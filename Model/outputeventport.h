@@ -8,8 +8,6 @@ class OutputEventPort : public EventPort
 public:
     OutputEventPort(QString name);
     ~OutputEventPort();
-
-    const static qint32 portKind = 2;
     // GraphML interface
 public:
     bool isAdoptLegal(GraphML *child);

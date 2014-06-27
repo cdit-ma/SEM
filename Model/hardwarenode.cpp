@@ -1,5 +1,7 @@
 #include "hardwarenode.h"
 #include <QDebug>
+#include "componentinstance.h"
+#include "assembly.h"
 
 HardwareNode::HardwareNode(QString name):Node(this->nodeKind,name)
 {
@@ -26,10 +28,25 @@ bool HardwareNode::isAdoptLegal(GraphML *child)
 
 bool HardwareNode::isEdgeLegal(GraphML *attachableObject)
 {
-    if(attachableObject->getKind() == this->getKind()){
-        return true;
+    ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*> (attachableObject);
+    Assembly* assemblyInstance = dynamic_cast<Assembly*> (attachableObject);
+
+    if(componentInstance != 0){
+        //Do Component Instance Checks
+    }else if(assemblyInstance != 0){
+        //Do Assembly Checks
+    }else{
+        qWarning() << "HardwareNode can only be connected to a Component Instance or Assembly Node.";
+        return false;
     }
-    return false;
+
+    //Check for existing connection.
+    if(this->isConnected(attachableObject)){
+        qWarning() << "Already connected to this Object";
+        return false;
+    }
+
+    return true;
 }
 
 QString HardwareNode::toGraphML(qint32 indentationLevel)

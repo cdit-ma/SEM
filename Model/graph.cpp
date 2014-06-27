@@ -57,10 +57,13 @@ QString Graph::toGraphML(qint32 indentationLevel)
 
     QString returnable = "";
     if(this->descendants.size() > 0){
+        
+        //If this is the parent Graph, we need to specify the edge type.
         QString edgeType;
         if(this->getParent() == 0){
                 edgeType+="edgedefault=\"directed\"";
         }
+        
         returnable = tabSpace + QString("<graph id =\"%1\" %2>\n").arg(QString::number(this->getID()),edgeType);
 
         for(int i=0; i < this->descendants.size();i++){

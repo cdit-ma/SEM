@@ -1,6 +1,5 @@
 #include "assembly.h"
 #include "componentinstance.h"
-#include "hardwarenode.h"
 #include <QDebug>
 Assembly::Assembly(QString name):Node(this->nodeKind,name)
 {
@@ -14,15 +13,12 @@ Assembly::~Assembly()
 
 bool Assembly::isAdoptLegal(GraphML *child)
 {
-    //If its a node, cast as a node, and check sub type.
-    if(child->getKind() != Node::classKind){
-        qWarning() << "Assembly Node can only adopt a Node type";
+    ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*> (child);
+
+    //Is this child a ComponentInstance?
+    if(componentInstance == 0){
+        qWarning() << "Assembly Node can only adopt a Component Instance Node";
         return false;
-    }else{
-        if(((Node *)child)->getNodeKind() != ComponentInstance::nodeKind){
-            qWarning() << "Assembly Node can only adopt a Component Instance Node";;
-            return false;
-        }
     }
 
     if(this->getGraph() != NULL){
@@ -33,21 +29,19 @@ bool Assembly::isAdoptLegal(GraphML *child)
 
 bool Assembly::isEdgeLegal(GraphML *attachableObject)
 {
+    HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
+
+     //Is this child a HardwareNode?
+    if(hardwareNode == 0){
+        //Check stuff!
+        qWarning() << "AssemblyNode can only connect to a HardwareNode";
+        return false;
+    }
+
     //Check for existing connection.
     if(this->isConnected(attachableObject)){
         qWarning() << "Already connected to this Object";
         return false;
-    }
-
-    //If its a node, cast as a node, and check sub type.
-    if(attachableObject->getKind() != Node::classKind){
-        qWarning() << "ComponentInstance Node can only be connected to another Node Type";
-        return false;
-    }else{
-        if(((Node *)attachableObject)->getNodeKind() != HardwareNode::nodeKind){
-            qWarning() << "ComponentInstance Node can only be connected to a HardwareNode";
-            return false;
-        }
     }
 
     return true;

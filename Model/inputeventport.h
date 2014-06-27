@@ -9,7 +9,6 @@ public:
     InputEventPort(QString name);
     ~InputEventPort();
 
-    const static qint32 portKind = 1;
     // GraphML interface
 public:
     bool isAdoptLegal(GraphML *child);

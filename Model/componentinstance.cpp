@@ -1,5 +1,8 @@
 #include "componentinstance.h"
 #include <QDebug>
+#include "eventport.h"
+#include "inputeventport.h"
+#include "outputeventport.h"
 
 ComponentInstance::ComponentInstance(QString name):Node(this->nodeKind,name)
 {
@@ -11,36 +14,37 @@ ComponentInstance::~ComponentInstance()
     //Destructor
 }
 
-bool ComponentInstance::isAdoptLegal(GraphML *child)
+bool ComponentInstance::isAdoptLegal(GraphML *attachableObject)
 {
-    //Specific stuff here!
 
-    //Return only on False statements.
-    //Do RETURN FALSE
+    EventPort* eventPort = dynamic_cast<EventPort*> (attachableObject);
+
+    if(eventPort != 0){
+        //Do Event Port Specific things!
+    }else{
+        qWarning() << "ComponentInstance can only adopt an EventPort or an Attribute Node";;
+        return false;
+    }
 
     if(this->getGraph() != NULL){
-        return this->getGraph()->isAdoptLegal(child);
+        return this->getGraph()->isAdoptLegal(attachableObject);
     }
     return true;
 }
 
 bool ComponentInstance::isEdgeLegal(GraphML *attachableObject)
 {
+    HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
+
+    if(hardwareNode == 0){
+        qWarning() << "ComponentInstance Node can only be connected to a HardwareNode";
+        return false;
+    }
+
     //Check for existing connection.
     if(this->isConnected(attachableObject)){
         qWarning() << "Already connected to this Object";
         return false;
-    }
-
-    //If its a node, cast as a node, and check sub type.
-    if(attachableObject->getKind() != Node::classKind){
-        qWarning() << "ComponentInstance Node can only be connected to another Node Type";
-        return false;
-    }else{
-        if(((Node *)attachableObject)->getNodeKind() != HardwareNode::nodeKind){
-            qWarning() << "ComponentInstance Node can only be connected to a HardwareNode";
-            return false;
-        }
     }
 
     return true;

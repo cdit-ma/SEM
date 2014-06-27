@@ -1,7 +1,9 @@
 #include "inputeventport.h"
+#include <QDebug>
+#include <typeinfo>
+#include "outputeventport.h"
 
-
-InputEventPort::InputEventPort(QString name):EventPort(this->portKind,name)
+InputEventPort::InputEventPort(QString name):EventPort(name)
 {
     qDebug() << "Constructed InputEventPort: "<< this->getName();
 }
@@ -13,18 +15,35 @@ bool InputEventPort::isAdoptLegal(GraphML *child)
 
 bool InputEventPort::isEdgeLegal(GraphML *attachableObject)
 {
-    return false;
 
+    OutputEventPort* outputEventPort = dynamic_cast<OutputEventPort*> (attachableObject);
+
+    if(outputEventPort != 0){
+    }else{
+        return false;
+    }
+
+    return true;
 }
 
 QString InputEventPort::toGraphML(qint32 indentationLevel)
 {
-    return QString("");
+    QString tabSpace;
+    for(int i=0;i<indentationLevel;i++){
+        tabSpace += "\t";
+    }
+
+    QString returnable = tabSpace + QString("<node id =\"%1\">\n").arg(this->getID());
+    returnable += tabSpace + "\t" + QString("<data key =\"name\">%1</data>\n").arg(this->getName());
+    returnable += tabSpace + "\t" + QString("<data key =\"type\">InputEventPort</data>\n");
+    returnable += Node::toGraphML(indentationLevel+1);
+    returnable += tabSpace + "</node>\n";
+    return returnable;
 
 }
 
 QString InputEventPort::toString()
 {
-    return QString("");
+    return QString("InputEventPort[%1]: "+this->getName()).arg(this->getID());
 
 }
