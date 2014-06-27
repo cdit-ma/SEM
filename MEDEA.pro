@@ -27,7 +27,10 @@ SOURCES += main.cpp \
     Model/hardwarenode.cpp \
     Model/node.cpp \
     Model/componentinstance.cpp \
-    Model/assembly.cpp
+    Model/assembly.cpp \
+    Model/eventport.cpp \
+    Model/inputeventport.cpp \
+    Model/outputeventport.cpp
 
 HEADERS += \
     Model/graphml.h \
@@ -41,4 +44,7 @@ HEADERS += \
     Model/hardwarenode.h \
     Model/node.h \
     Model/componentinstance.h \
-    Model/assembly.h
+    Model/assembly.h \
+    Model/eventport.h \
+    Model/inputeventport.h \
+    Model/outputeventport.h

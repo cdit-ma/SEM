@@ -8,6 +8,8 @@
 #include "Model/hardwarenode.h"
 #include "Model/componentinstance.h"
 #include "Model/assembly.h"
+#include "Model/inputeventport.h"
+#include "Model/outputeventport.h"
 #include <QDebug>
 
 #include <QFile>
