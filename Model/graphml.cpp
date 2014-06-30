@@ -3,7 +3,7 @@
 
 qint32 GraphML::idCounter = 0;
 
-GraphML::GraphML(qint32 kind, QString name)
+GraphML::GraphML(GraphML::KIND kind, QString name)
 {
     //Set variables
     this->id = idCounter;

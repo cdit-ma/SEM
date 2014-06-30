@@ -8,10 +8,10 @@
 class Node : public GraphML
 {
 public:
-    Node(qint32 nodeType, QString name);
+    Node(QString name);
     ~Node();
 
-    const static qint32 classKind = 2;
+    const static GraphML::KIND classKind = GraphML::NODE;
 public:
     //Continue these being Pure Virtual.
     bool isAdoptLegal(GraphML *child)=0;

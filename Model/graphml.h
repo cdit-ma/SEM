@@ -1,7 +1,6 @@
 #ifndef GRAPHML_H
 #define GRAPHML_H
 
-
 #include "edge.h"
 #include <QVector>
 #include <QString>
@@ -11,9 +10,14 @@
 class GraphML{
     //Friend to Edge, meaning Edge can access the private members of this class!
     friend class Edge;
+
 public:
+    enum KIND {GRAPH, NODE, EDGE};
+
     //Super class constructor; Relative ID and name provided. Used only to be called by the extended classes.
-    GraphML(qint32 kind, QString name);
+    GraphML(KIND kind, QString name);
+
+
 
     void setParent(GraphML *parent);
 
@@ -108,10 +112,9 @@ private:
     qint32 id;
 
     //The unique kind ID of this graph object.
-    qint32 kind;
+    KIND kind;
 
 };
-
 
 
 #endif // GRAPHML_H

@@ -3,7 +3,7 @@
 #include "componentinstance.h"
 #include "assembly.h"
 
-HardwareNode::HardwareNode(QString name):Node(this->nodeKind,name)
+HardwareNode::HardwareNode(QString name):Node(name)
 {
     qDebug() << "Constructed HardwareNode: "<< this->getName();
 }
@@ -21,7 +21,7 @@ bool HardwareNode::isAdoptLegal(GraphML *child)
     //Do RETURN FALSE
 
     if(this->getGraph() != NULL){
-        return this->getGraph()->isAdoptLegal(child);
+        return this->isAdoptLegal(child);
     }
     return true;
 }

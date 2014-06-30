@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core
+QT	+= xml
 
 QT       -= gui
 
@@ -32,7 +33,8 @@ SOURCES += main.cpp \
     Model/inputeventport.cpp \
     Model/outputeventport.cpp \
     Controller/graphmlcontroller.cpp \
-    Model/model.cpp
+    Model/model.cpp \
+    Model/graphmlattribute.cpp
 
 HEADERS += \
     Model/graphml.h \
@@ -51,4 +53,5 @@ HEADERS += \
     Model/inputeventport.h \
     Model/outputeventport.h \
     Controller/graphmlcontroller.h \
-    Model/model.h
+    Model/model.h \
+    Model/graphmlattribute.h

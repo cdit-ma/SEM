@@ -1,7 +1,6 @@
-#include "eventport.h"
-
 #ifndef INPUTEVENTPORT_H
 #define INPUTEVENTPORT_H
+#include "eventport.h"
 
 class InputEventPort : public EventPort
 {

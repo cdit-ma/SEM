@@ -1,7 +1,7 @@
 #include "assembly.h"
 #include "componentinstance.h"
 #include <QDebug>
-Assembly::Assembly(QString name):Node(this->nodeKind,name)
+Assembly::Assembly(QString name):Node(name)
 {
     qDebug() << "Constructed Assembly: "<< this->getName();
 }

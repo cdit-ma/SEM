@@ -1,7 +1,8 @@
 #include <QCoreApplication>
 //#include "graphml.h"
 //#include "edge.h"
-#include "Model/graphml.h"
+#include "Model/Model.h"
+/*
 #include "Model/edge.h"
 #include "Model/node.h"
 #include "Model/graph.h"
@@ -10,6 +11,7 @@
 #include "Model/assembly.h"
 #include "Model/inputeventport.h"
 #include "Model/outputeventport.h"
+*/
 #include <QDebug>
 
 #include <QFile>
@@ -31,15 +33,56 @@ bool connect(GraphML* object1, GraphML *object2){
     }
     return false;
 }
+QString readFile(QString filePointer){
+    QFile file(filePointer);
+
+    if(!file.open(QFile::ReadOnly | QFile::Text)){
+        qDebug() << "could not open file for read";
+        return "";
+    }
+
+    QTextStream in(&file);
+    QString mText = in.readAll();
+
+    file.close();
+
+    return mText;
+}
+
+
+bool writeFile(QString filePointer, QString data){
+    try{
+        QFile file(filePointer);
+        file.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream out(&file);
+        out << data;
+        file.close();
+        qDebug()<<"Successfully written file: " <<filePointer;
+    }catch(...){
+        return false;
+    }
+    return true;
+
+}
+
+
 
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
 
-    Graph *parentGraph = new Graph("Parent Graph");
+    Model *model = new Model();
+
+    Graph *parentGraph = model->getGraph();
+
+    QString input = readFile("c:\\inputGML.graphml");
+
+    model->importGraphML(input);
+
 
     qDebug() << "\n";
 
+    /*
     //Make an Assembly
     Assembly *vUAV = new Assembly("vUAV");
 
@@ -73,25 +116,15 @@ int main(int argc, char *argv[])
     adopt(vUAV,COMMS);
     adopt(vUAV,CONTROLLER);
 
-
     adopt(parentGraph, gouda31);
     adopt(parentGraph, gouda32);
     adopt(parentGraph, gouda33);
     adopt(parentGraph, gouda34);
 
-
     connect(GPS, gouda31);
     connect(vUAV, gouda33);
 
-    QFile file("c://out.txt");
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QTextStream out(&file);
-    out << parentGraph->toGraphML();
-    file.close();
-
     qDebug() << "ERROR CHECKING!";
-
-
 
     adopt(vUAV, CONTROLLER);
     adopt(vUAV, gouda31);
@@ -100,66 +133,10 @@ int main(int argc, char *argv[])
     connect(gouda31, vUAV);
     connect(gouda33, vUAV);
 
-    //Trying a commit!
+    */
 
+    writeFile("c:\\file.output",model->exportGraphML());
+    writeFile("c:\\file.stack",model->output);
 
-    /*
-
-    if(gouda34->isAdoptLegal(parentGraph)){
-        gouda34->adopt(parentGraph);
-        qDebug() << "Node adpot graph";
-
-    }
-
-
-
-
-
-
-    if(parentGraph->isAdoptLegal(gouda32)){
-        parentGraph->adopt(gouda32);
-
-    }
-
-    if(parentGraph->isAdoptLegal(gouda33)){
-        parentGraph->adopt(gouda33);
-
-    }
-
-    if(parentGraph->isAdoptLegal(testGraph)){
-        qDebug() << "ADOPT LEGAL!?";
-    }else{
-        qDebug() << "ADOPT ILLEGAL!?";
-
-    }
-
-    Edge *currentEdge;
-    if(gouda32->isEdgeLegal(gouda33)){
-        currentEdge = new Edge(gouda32,gouda33);
-    }
-
-
-    qDebug() << "\n";
-    qDebug() << "Parent Graphs Children";
-    QVector<GraphML*> children = parentGraph->getChildren();
-
-    for(int i = 0; i <children.size();i++){
-        qDebug()<<children[i]->toString();
-    }
-
-    qDebug() << gouda34->isAncestorOf(gouda33);
-    qDebug() << gouda33->isDescendantOf(gouda34);
-
-
-
-    if(gouda33->isAdoptLegal(gouda34)){
-        gouda33->adopt(gouda34);
-    }
-
-    qDebug() << gouda33->isDescendantOf(gouda34);
-    qDebug() << gouda33->isDescendantOf(gouda35);
-
-*/
-    //Edge test = new Edge(null,null);
     return a.exec();
 }

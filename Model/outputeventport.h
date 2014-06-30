@@ -1,7 +1,6 @@
-#include "eventport.h"
-
 #ifndef OUTPUTEVENTPORT_H
 #define OUTPUTEVENTPORT_H
+#include "eventport.h"
 
 class OutputEventPort : public EventPort
 {

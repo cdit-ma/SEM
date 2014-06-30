@@ -1,8 +1,7 @@
-#include "graphml.h"
-
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include "graphml.h"
 class Graph : public GraphML
 {
 public:
@@ -10,7 +9,8 @@ public:
     Graph(QString name);
     ~Graph();
 
-    const static qint32 classKind = 1;
+    const static GraphML::KIND classKind = GraphML::GRAPH;
+
     // GraphML interface
 public:
     bool isAdoptLegal(GraphML *child);

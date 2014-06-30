@@ -4,7 +4,7 @@
 #include "inputeventport.h"
 #include "outputeventport.h"
 
-ComponentInstance::ComponentInstance(QString name):Node(this->nodeKind,name)
+ComponentInstance::ComponentInstance(QString name):Node(name)
 {
     qDebug() << "Constructed ComponentInstance: "<< this->getName();
 }

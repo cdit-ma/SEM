@@ -10,7 +10,6 @@ public:
     EventPort(QString name);
     ~EventPort();
 
-    const static qint32 nodeKind = 4;
     // GraphML interface
 public:
     bool isAdoptLegal(GraphML *child)=0;

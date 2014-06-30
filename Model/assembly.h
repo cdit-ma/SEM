@@ -1,7 +1,6 @@
-#include "node.h"
-
 #ifndef ASSEMBLY_H
 #define ASSEMBLY_H
+#include "node.h"
 
 class Assembly : public Node
 {

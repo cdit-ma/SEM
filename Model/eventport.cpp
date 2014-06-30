@@ -1,7 +1,7 @@
 #include "eventport.h"
 #include <QDebug>
 
-EventPort::EventPort(QString name):Node(this->nodeKind,name)
+EventPort::EventPort(QString name):Node(name)
 {
     qDebug() << "Constructed EventPort: "<< this->getName();
 }

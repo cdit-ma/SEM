@@ -2,6 +2,8 @@
 #define EDGE_H
 #include <QString>
 
+//#include "graphml.h"
+
 //Forward Definition
 class GraphML;
 
