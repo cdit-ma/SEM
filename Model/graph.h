@@ -10,7 +10,6 @@ public:
     Graph(QString name);
     ~Graph();
 
-
     const static qint32 classKind = 1;
     // GraphML interface
 public:

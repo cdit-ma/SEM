@@ -30,7 +30,9 @@ SOURCES += main.cpp \
     Model/assembly.cpp \
     Model/eventport.cpp \
     Model/inputeventport.cpp \
-    Model/outputeventport.cpp
+    Model/outputeventport.cpp \
+    Controller/graphmlcontroller.cpp \
+    Model/model.cpp
 
 HEADERS += \
     Model/graphml.h \
@@ -47,4 +49,6 @@ HEADERS += \
     Model/assembly.h \
     Model/eventport.h \
     Model/inputeventport.h \
-    Model/outputeventport.h
+    Model/outputeventport.h \
+    Controller/graphmlcontroller.h \
+    Model/model.h
