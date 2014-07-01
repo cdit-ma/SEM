@@ -18,7 +18,7 @@
 #include <QCoreApplication>
 #include <QTextStream>
 
-bool adopt(GraphML* object1, GraphML *object2){
+bool adopt(GraphMLContainer* object1, GraphMLContainer *object2){
     if(object1->isAdoptLegal(object2)){
         object1->adopt(object2);
         return true;
@@ -26,7 +26,7 @@ bool adopt(GraphML* object1, GraphML *object2){
     return false;
 }
 
-bool connect(GraphML* object1, GraphML *object2){
+bool connect(GraphMLContainer* object1, GraphMLContainer *object2){
     if(object1->isEdgeLegal(object2)){
         Edge * newEdge = new Edge(object1,object2);
         return true;

@@ -7,13 +7,13 @@ OutputEventPort::OutputEventPort(QString name):EventPort(name)
     qDebug() << "Constructed OutputEventPort: "<< this->getName();
 }
 
-bool OutputEventPort::isAdoptLegal(GraphML *child)
+bool OutputEventPort::isAdoptLegal(GraphMLContainer *child)
 {
     //Cannot adopt anything.
     return false;
 }
 
-bool OutputEventPort::isEdgeLegal(GraphML *attachableObject)
+bool OutputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
 {
     return false;
 }

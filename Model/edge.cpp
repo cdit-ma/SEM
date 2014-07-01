@@ -2,24 +2,17 @@
 #include "graphml.h"
 #include <QDebug>
 
-//The Unique ID Counter
-qint32 Edge::idCounter = 0;
 
-Edge::Edge(GraphML *source, GraphML *destination)
+Edge::Edge(GraphMLContainer *source, GraphMLContainer *destination, QString name):GraphML(GraphML::EDGE, name)
 {
     //Set the instance Variables
     this->source = source;
     this->destination = destination;
-    this->id=idCounter;
 
     //Attach the Edge to its source/Destination
     this->getSource()->addEdge(this);
     this->getDestination()->addEdge(this);
 
-    qDebug() << this->toString();
-
-    //Increment idCounter
-    this->idCounter++;
 }
 
 Edge::~Edge()
@@ -30,12 +23,12 @@ Edge::~Edge()
     qDebug() << QString("Removed Edge[%1]!").arg(this->getID());
 };
 
-GraphML *Edge::getSource() const
+GraphMLContainer *Edge::getSource() const
 {
     return this->source;
 };
 
-GraphML *Edge::getDestination() const
+GraphMLContainer *Edge::getDestination() const
 {
     return this->destination;
 
@@ -52,9 +45,9 @@ QString Edge::toGraphML(qint32 indentationLevel)
     return returnable;
 }
 
-qint32 Edge::getID() const
+bool Edge::contains(GraphMLContainer *item)
 {
-    return this->id;
+   return item == this->source || item == this->destination;
 }
 
 QString Edge::toString()

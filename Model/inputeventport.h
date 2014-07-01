@@ -10,8 +10,8 @@ public:
 
     // GraphML interface
 public:
-    bool isAdoptLegal(GraphML *child);
-    bool isEdgeLegal(GraphML *attachableObject);
+    bool isAdoptLegal(GraphMLContainer *child);
+    bool isEdgeLegal(GraphMLContainer *attachableObject);
     QString toGraphML(qint32 indentationLevel);
     QString toString();
 };

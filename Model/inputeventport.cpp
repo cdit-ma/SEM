@@ -8,12 +8,12 @@ InputEventPort::InputEventPort(QString name):EventPort(name)
     qDebug() << "Constructed InputEventPort: "<< this->getName();
 }
 
-bool InputEventPort::isAdoptLegal(GraphML *child)
+bool InputEventPort::isAdoptLegal(GraphMLContainer *child)
 {
     return false;
 }
 
-bool InputEventPort::isEdgeLegal(GraphML *attachableObject)
+bool InputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
 {
 
     OutputEventPort* outputEventPort = dynamic_cast<OutputEventPort*> (attachableObject);

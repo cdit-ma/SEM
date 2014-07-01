@@ -35,7 +35,8 @@ SOURCES += main.cpp \
     Controller/graphmlcontroller.cpp \
     Model/model.cpp \
     Model/graphmlattribute.cpp \
-    Model/graphmldata.cpp
+    Model/graphmldata.cpp \
+    Model/graphmlcontainer.cpp
 
 HEADERS += \
     Model/graphml.h \
@@ -56,4 +57,5 @@ HEADERS += \
     Controller/graphmlcontroller.h \
     Model/model.h \
     Model/graphmlattribute.h \
-    Model/graphmldata.h
+    Model/graphmldata.h \
+    Model/graphmlcontainer.h

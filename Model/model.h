@@ -30,9 +30,8 @@ public:
     Model();
     ~Model();
     //Imports
-    bool importGraphML(QString inputGraphML, GraphML *parent=0);
+    bool importGraphML(QString inputGraphML, GraphMLContainer *parent=0);
 
-    void parseGraphML(QXmlStreamReader xml, GraphML *parent);
     QString exportGraphML();
 
     Graph* getGraph();

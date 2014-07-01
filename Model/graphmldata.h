@@ -5,8 +5,7 @@
 
 #include <QString>
 
-class GraphMLData
-{
+class GraphMLData: public GraphML{
 public:
     GraphMLData(GraphMLAttribute* type, QString value);
     void setValue(QString value);
@@ -14,10 +13,15 @@ public:
 
     GraphMLAttribute* getType();
 
-     QString toGraphML(qint32 indentationLevel=0);
+    QString toGraphML(qint32 indentationLevel=0);
+    QString toString();
+
 private:
     QString value;
     GraphMLAttribute* type;
+
+    // GraphML interface
+
 };
 
 #endif // GRAPHMLDATA_H

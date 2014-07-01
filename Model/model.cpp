@@ -4,7 +4,7 @@
 
 Model::Model()
 {
-    qDebug() << "Constructed new Model";
+    qDebug() << "Constructed New Model";
     this->parentGraph = new Graph("Parent Graph");
 
 }
@@ -16,7 +16,7 @@ Model::~Model()
 
 
 
-bool Model::importGraphML(QString inputGraphML, GraphML *parent)
+bool Model::importGraphML(QString inputGraphML, GraphMLContainer *parent)
 {
     QXmlStreamReader xml(inputGraphML);
 
@@ -24,12 +24,10 @@ bool Model::importGraphML(QString inputGraphML, GraphML *parent)
     QVector<GraphMLData*> nodeData;
     QVector<TempEdge> currentEdges;
 
-    QMap<QString, GraphML *> graphMap;
+    QMap<QString, GraphMLContainer *> graphMap;
 
 
-
-    GraphML* current = parent;
-    GraphML* currentParent = parent;
+    GraphMLContainer* currentParent = parent;
 
 
     GraphML::KIND nowParsing = GraphML::NONE;
@@ -100,8 +98,9 @@ bool Model::importGraphML(QString inputGraphML, GraphML *parent)
 
         if(nowParsing == GraphML::NODE){
             if(previousID != ""){
-                GraphML* newNode = new HardwareNode(previousID);
+                GraphMLContainer* newNode = new HardwareNode(previousID);
 
+                qDebug () << "DATA SIZE: " << nodeData.size();
                 newNode->attachData(nodeData);
                 nodeData.clear();
                 qDebug() << "Adopting Parent";
@@ -138,14 +137,14 @@ bool Model::importGraphML(QString inputGraphML, GraphML *parent)
     for(int i =0; i<currentEdges.size(); i++){
         TempEdge edge = currentEdges[i];
         qDebug() << edge.source << "<->" << edge.target;
-        GraphML* s = graphMap[edge.source];
-        GraphML* d = graphMap[edge.target];
+        GraphMLContainer* s = graphMap[edge.source];
+        GraphMLContainer* d = graphMap[edge.target];
 
         //qDebug() << "GG";
         //qDebug() <<"Edge " << s->toString() << "<->" << d->toString();
 
-        //if(s->isEdgeLegal(d)){
-        //     Edge* newEdge = new Edge(s,d);
+       // if(s->isEdgeLegal(d)){
+             Edge* newEdge = new Edge(s,d);
         // }
     }
 
@@ -156,10 +155,6 @@ bool Model::importGraphML(QString inputGraphML, GraphML *parent)
     return false;
 }
 
-void Model::parseGraphML(QXmlStreamReader xml, GraphML *parent)
-{
-
-}
 
 QString Model::exportGraphML()
 {
@@ -231,7 +226,7 @@ GraphMLData* Model::parseDataAttribute(QXmlStreamReader &xml)
     GraphMLAttribute *attr = this->getGraphMLAttribute(key);
 
     GraphMLData *data = new GraphMLData(attr, value);
-    //qDebug() << data->getType()->getName() <<":"<<data->getValue();
+    qDebug() << data->getType()->getName() <<":"<<data->getValue();
     return data;
 }
 

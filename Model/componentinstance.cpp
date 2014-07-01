@@ -14,7 +14,7 @@ ComponentInstance::~ComponentInstance()
     //Destructor
 }
 
-bool ComponentInstance::isAdoptLegal(GraphML *attachableObject)
+bool ComponentInstance::isAdoptLegal(GraphMLContainer *attachableObject)
 {
 
     EventPort* eventPort = dynamic_cast<EventPort*> (attachableObject);
@@ -32,7 +32,7 @@ bool ComponentInstance::isAdoptLegal(GraphML *attachableObject)
     return true;
 }
 
-bool ComponentInstance::isEdgeLegal(GraphML *attachableObject)
+bool ComponentInstance::isEdgeLegal(GraphMLContainer *attachableObject)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
 

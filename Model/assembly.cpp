@@ -11,7 +11,7 @@ Assembly::~Assembly()
     //Destructor
 }
 
-bool Assembly::isAdoptLegal(GraphML *child)
+bool Assembly::isAdoptLegal(GraphMLContainer *child)
 {
     ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*> (child);
 
@@ -27,7 +27,7 @@ bool Assembly::isAdoptLegal(GraphML *child)
     return true;
 }
 
-bool Assembly::isEdgeLegal(GraphML *attachableObject)
+bool Assembly::isEdgeLegal(GraphMLContainer *attachableObject)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
 

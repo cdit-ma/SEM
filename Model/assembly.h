@@ -7,11 +7,9 @@ class Assembly : public Node
 public:
     Assembly(QString name);
     ~Assembly();
-    const static qint32 nodeKind = 3;
-    // GraphML interface
 public:
-    bool isAdoptLegal(GraphML *child);
-    bool isEdgeLegal(GraphML *attachableObject);
+    bool isAdoptLegal(GraphMLContainer *child);
+    bool isEdgeLegal(GraphMLContainer *attachableObject);
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
 };

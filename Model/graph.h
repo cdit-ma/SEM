@@ -1,20 +1,16 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#include "graphml.h"
-class Graph : public GraphML
+#include "graphmlcontainer.h"
+class Graph : public GraphMLContainer
 {
 public:
     //Constructor (May have more args)
     Graph(QString name);
     ~Graph();
-
-    const static GraphML::KIND classKind = GraphML::GRAPH;
-
-    // GraphML interface
 public:
-    bool isAdoptLegal(GraphML *child);
-    bool isEdgeLegal(GraphML *attachableObject);
+    bool isAdoptLegal(GraphMLContainer *child);
+    bool isEdgeLegal(GraphMLContainer *attachableObject);
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
 

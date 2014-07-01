@@ -1,6 +1,6 @@
 #include "graphmldata.h"
 
-GraphMLData::GraphMLData(GraphMLAttribute *type, QString value)
+GraphMLData::GraphMLData(GraphMLAttribute *type, QString value):GraphML(GraphML::DATA)
 {
     this->type = type;
     this->setValue(value);
@@ -30,4 +30,9 @@ QString GraphMLData::toGraphML(qint32 indentationLevel)
 
     QString returnable = tabSpace + QString("<data key=\"%1\">%2</data>\n").arg(this->getType()->getID(), this->getValue());
     return returnable;
+}
+
+QString GraphMLData::toString()
+{
+    return "this->";
 }

@@ -9,10 +9,9 @@ class ComponentInstance : public Node
 public:
     ComponentInstance(QString name);
     ~ComponentInstance();
-    const static qint32 nodeKind = 2;
 public:
-    bool isAdoptLegal(GraphML *child);
-    bool isEdgeLegal(GraphML *attachableObject);
+    bool isAdoptLegal(GraphMLContainer *child);
+    bool isEdgeLegal(GraphMLContainer *attachableObject);
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
 };
