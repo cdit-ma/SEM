@@ -48,6 +48,24 @@ QString GraphML::getName() const
     return this->name;
 }
 
+QVector<GraphMLData *> GraphML::getData()
+{
+    return this->containedData;
+}
+
+void GraphML::attachData(GraphMLData *data)
+{
+    this->containedData.append(data);
+}
+
+void GraphML::attachData(QVector<GraphMLData *> data)
+{
+    while(!data.isEmpty()){
+        this->attachData(data.front());
+        data.pop_front();
+    }
+}
+
 void GraphML::setName(QString name)
 {
     this->name = name;

@@ -34,7 +34,8 @@ SOURCES += main.cpp \
     Model/outputeventport.cpp \
     Controller/graphmlcontroller.cpp \
     Model/model.cpp \
-    Model/graphmlattribute.cpp
+    Model/graphmlattribute.cpp \
+    Model/graphmldata.cpp
 
 HEADERS += \
     Model/graphml.h \
@@ -54,4 +55,5 @@ HEADERS += \
     Model/outputeventport.h \
     Controller/graphmlcontroller.h \
     Model/model.h \
-    Model/graphmlattribute.h
+    Model/graphmlattribute.h \
+    Model/graphmldata.h

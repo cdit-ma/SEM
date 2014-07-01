@@ -1,9 +1,12 @@
 #include "model.h"
 #include "QDebug"
+#include <QMap>
+
 Model::Model()
 {
     qDebug() << "Constructed new Model";
     this->parentGraph = new Graph("Parent Graph");
+
 }
 
 Model::~Model()
@@ -15,77 +18,139 @@ Model::~Model()
 
 bool Model::importGraphML(QString inputGraphML, GraphML *parent)
 {
-
-    //qDebug()<<inputGraphML;
     QXmlStreamReader xml(inputGraphML);
 
 
-    int level=0;
-    QString output("");
-    parent =  this->getGraph();
+    QVector<GraphMLData*> nodeData;
+    QVector<TempEdge> currentEdges;
 
-    GraphML::KIND kind;
-    bool gotBool = false;
-    QString ID("");
-    while (!xml.atEnd()) {
+    QMap<QString, GraphML *> graphMap;
+
+
+
+    GraphML* current = parent;
+    GraphML* currentParent = parent;
+
+
+    GraphML::KIND nowParsing = GraphML::NONE;
+    GraphML::KIND nowInside = GraphML::NONE;
+
+    QString currentID("");
+    QString previousID("");
+    int parentDepth = 0;
+
+    while(!xml.atEnd()){
         xml.readNext();
 
-        if(xml.isStartElement()){
-            if(gotBool){
-             //Construct Parent?!
-                if( kind == GraphML::GRAPH){
-                    Graph *newGraph = new Graph(ID);
-                    //Attach it
-                    parent->adopt(newGraph);
-                    parent = newGraph;
+        QString tagName = xml.name().toString();
 
-                }else if(kind == GraphML::NODE){
-                    HardwareNode *newNode = new HardwareNode(ID);
-                    //Attach it
-                    parent->adopt(newNode);
-                    parent = newNode;
+        if(tagName == "edge"){
+            if(xml.isStartElement()){
+                TempEdge currentEdge = parseEdge(xml);
+                currentEdges.append(currentEdge);
+                nowInside = GraphML::EDGE;
+            }
+        }else if(tagName == "data"){
+            if(xml.isStartElement()){
+                GraphMLData* data = parseDataAttribute(xml);
+
+                switch(nowInside){
+                    //Attach the Data to the TempEdge if we are currently inside an Edge.
+                    case GraphML::EDGE:{
+                        currentEdges.last().data.append(data);
+                        break;
+                    }
+
+                    //Attach the Data to the list of Data to be attached to the node.
+                    case GraphML::NODE:{
+                        nodeData.append(data);
+                    }
                 }
             }
-           if(xml.name() != "data" && xml.name() != "key" && xml.name() != "graphml"){
+        }else if(tagName == "key"){
+            if(xml.isStartElement()){
+                //Parse the Attribute Definition
+                GraphMLAttribute* attribute = parseKeyAttribute(xml);
 
-               QXmlStreamAttributes attributes = xml.attributes();
-               if(attributes.hasAttribute("id")) {
-                  ID = attributes.value("id").toString();
-                  gotBool = true;
-               }
+                if(!this->attributeTypes.contains(attribute)){
+                    attributeTypes.append(attribute);
+                }
+            }
+        }else if(tagName == "node"){
+            if(xml.isStartElement()){
+                nowInside = GraphML::NODE;
 
-               if(xml.name() == "graph"){
-                    //kind= GraphML::GRAPH;
-                    qDebug() << "Got Graph";
-               }else if(xml.name() == "node"){
-                   kind = GraphML::NODE;
-                   qDebug() << "Got Node";
-               }else if(xml.name() == "edge"){
-                   kind = GraphML::EDGE;
-                    qDebug() << "Got Edge";
-               }else{
-                   output += "<"+xml.name().toString()+">\n";
-                   //continue;
-               }
+                //Get the ID of the new Node
+                currentID = getAttribute(xml, "id");
 
-           }
+                nowParsing = GraphML::NODE;
+            }
+            if(xml.isEndElement()){
+                nowInside = GraphML::NONE;
+                parentDepth++;
+            }
+        }else{
+
+            if(xml.isEndDocument()){
+                nowParsing = GraphML::NODE;
+            }else{
+                nowParsing = GraphML::NONE;
+            }
         }
-       if(xml.isEndElement())
-       {
-           if(xml.name() != "data" && xml.name() != "key"  && xml.name() != "graphml")
-           {
-               qDebug () <<"End of current Element";
-               parent = parent->getParent();
-               output += "</"+xml.name().toString()+">\n";
-           }
-       }
-    }
 
+        if(nowParsing == GraphML::NODE){
+            if(previousID != ""){
+                GraphML* newNode = new HardwareNode(previousID);
+
+                newNode->attachData(nodeData);
+                nodeData.clear();
+                qDebug() << "Adopting Parent";
+                //Adopt
+                if(currentParent->isAdoptLegal(newNode)){
+                    currentParent->adopt(newNode);
+                }
+
+                qDebug() << "Parent Depth : " <<QString::number(parentDepth);
+
+
+                if(parentDepth == 0){
+                    currentParent = newNode;
+                }else{
+                    while(parentDepth > 1){
+                        parentDepth --;
+                        currentParent = currentParent->getParent();
+                    }
+                }
+                parentDepth = 0;
+
+                graphMap.insert(previousID, newNode);
+            }
+
+            previousID = currentID;
+
+        }
+    }
 
     if (xml.hasError()) {
     }
+
+
+    for(int i =0; i<currentEdges.size(); i++){
+        TempEdge edge = currentEdges[i];
+        qDebug() << edge.source << "<->" << edge.target;
+        GraphML* s = graphMap[edge.source];
+        GraphML* d = graphMap[edge.target];
+
+        //qDebug() << "GG";
+        //qDebug() <<"Edge " << s->toString() << "<->" << d->toString();
+
+        //if(s->isEdgeLegal(d)){
+        //     Edge* newEdge = new Edge(s,d);
+        // }
+    }
+
+
     this->output = output;
-    this->parentGraph = (Graph *)parent;
 
     //DO MAGIC!
     return false;
@@ -105,6 +170,7 @@ QString Model::exportGraphML()
     for(int i=0; i < this->attributeTypes.size();i++){
         returnable += this->attributeTypes[i]->toGraphML(1);
     }
+    returnable += this->parentGraph->toGraphML(1);
 
     returnable +="</graphml>\n";
 
@@ -117,7 +183,7 @@ Graph *Model::getGraph()
     return this->parentGraph;
 }
 
-void Model::parseDataAttribute(QXmlStreamReader &xml)
+GraphMLAttribute*  Model::parseKeyAttribute(QXmlStreamReader &xml)
 {
     QXmlStreamAttributes attributes = xml.attributes();
 
@@ -125,9 +191,6 @@ void Model::parseDataAttribute(QXmlStreamReader &xml)
     QString id;
     QString typeStr;
     QString forStr;
-
-    GraphMLAttribute::TYPE type;
-    GraphML::KIND forKind;
 
 
     if(attributes.hasAttribute("id")){
@@ -157,8 +220,32 @@ void Model::parseDataAttribute(QXmlStreamReader &xml)
     }
 
     GraphMLAttribute *attribute = new GraphMLAttribute(id, name, typeStr, forStr);
+    return attribute;
+}
 
-    attributeTypes.append(attribute);
+GraphMLData* Model::parseDataAttribute(QXmlStreamReader &xml)
+{
+    QString key = getAttribute(xml, "key");
+    QString value = xml.readElementText();
+
+    GraphMLAttribute *attr = this->getGraphMLAttribute(key);
+
+    GraphMLData *data = new GraphMLData(attr, value);
+    //qDebug() << data->getType()->getName() <<":"<<data->getValue();
+    return data;
+}
+
+QString Model::getAttribute(QXmlStreamReader &xml, QString attrID)
+{
+    QXmlStreamAttributes attributes = xml.attributes();
+
+    if(attributes.hasAttribute(attrID)){
+        return attributes.value(attrID).toString();
+    }else{
+
+        qDebug() << "<data> must contain Attribute key";
+        return "";
+    }
 
 }
 
@@ -172,7 +259,21 @@ void Model::parseNode(QXmlStreamReader &xml)
 
 }
 
-void Model::parseEdge(QXmlStreamReader &xml)
+TempEdge Model::parseEdge(QXmlStreamReader &xml)
 {
+    TempEdge tE;
+    tE.id = getAttribute(xml, "id");
+    tE.source = getAttribute(xml, "source");
+    tE.target = getAttribute(xml, "target");
+    return tE;
+}
 
+GraphMLAttribute *Model::getGraphMLAttribute(QString key)
+{
+    for(int i=0;i<this->attributeTypes.size();i++){
+        if(this->attributeTypes[i]->getID() == key){
+            return this->attributeTypes[i];
+        }
+    }
+    return 0;
 }

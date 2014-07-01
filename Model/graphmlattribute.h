@@ -1,8 +1,8 @@
 #ifndef GRAPHMLATTRIBUTE_H
 #define GRAPHMLATTRIBUTE_H
-
-#include "QString"
+#include <QString>
 #include "graphml.h"
+
 class GraphMLAttribute
 {
 public:

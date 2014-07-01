@@ -9,6 +9,8 @@ GraphMLAttribute::GraphMLAttribute( QString id, QString name, QString typeStr, Q
         this->type = BOOLEAN;
     }else if(typeStr == QString("string")){
         this->type = STRING;
+    }else if(typeStr == QString("double")){
+        this->type = DOUBLE;
     }else{
         qDebug() << "Attribute type:" << typeStr << "Not implemented";
     }

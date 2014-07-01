@@ -10,13 +10,20 @@
 #include "inputeventport.h"
 #include "outputeventport.h"
 #include "graphmlattribute.h"
+#include "graphmldata.h"
 
 #include <QString>
 #include <QVector>
 
 #include <QXmlStreamReader>
 
-
+struct TempEdge
+{
+    QString id;
+    QString source;
+    QString target;
+    QVector<GraphMLData *> data;
+};
 class Model
 {
 public:
@@ -31,11 +38,17 @@ public:
     Graph* getGraph();
     QString output;
 private:
-    void parseDataAttribute(QXmlStreamReader& xml);
+    enum PARSING_TYPE {NONE, GRAPH, NODE, EDGE, KEY, DATA};
+    GraphMLAttribute* parseKeyAttribute(QXmlStreamReader& xml);
+    GraphMLData* parseDataAttribute(QXmlStreamReader& xml);
+
+    QString getAttribute(QXmlStreamReader& xml, QString attrID);
+
     void parseGraph(QXmlStreamReader &xml);
     void parseNode(QXmlStreamReader &xml);
-    void parseEdge(QXmlStreamReader &xml);
+    TempEdge parseEdge(QXmlStreamReader &xml);
 
+    GraphMLAttribute* getGraphMLAttribute(QString key);
 
     Graph *parentGraph;
 
@@ -43,6 +56,8 @@ private:
     QVector<Edge *> edges;
     QVector<Node *> nodes;
     QVector<GraphMLAttribute *> attributeTypes;
+
+
 };
 
 #endif // MODEL_H

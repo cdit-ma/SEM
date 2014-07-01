@@ -2,6 +2,11 @@
 #define GRAPHML_H
 
 #include "edge.h"
+
+
+//Forward Definition
+class GraphMLData;
+
 #include <QVector>
 #include <QString>
 
@@ -12,7 +17,8 @@ class GraphML{
     friend class Edge;
 
 public:
-    enum KIND {GRAPH, NODE, EDGE};
+    enum KIND {NONE, GRAPH, NODE, EDGE};
+
 
     //Super class constructor; Relative ID and name provided. Used only to be called by the extended classes.
     GraphML(KIND kind, QString name);
@@ -28,6 +34,14 @@ public:
 
     //Get the name of this graphml object
     QString getName() const;
+
+
+    //Get a list of Data objects contained by this GraphML
+    QVector<GraphMLData *> getData();
+
+    //Attach a data object contained by this GraphML
+    void attachData(GraphMLData* data);
+    void attachData(QVector<GraphMLData* > data);
 
     //Set the name of this graphml object
     void setName(QString name);
@@ -92,6 +106,7 @@ protected:
     //The list of contained children GraphML elements. (Top level only)
     QVector<GraphML *> descendants;
 
+    QVector<GraphMLData *> containedData;
     //The list of contained Edge elements in this graph. (Top level only)
     QVector<Edge *> edges;
 

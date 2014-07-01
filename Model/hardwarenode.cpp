@@ -21,7 +21,7 @@ bool HardwareNode::isAdoptLegal(GraphML *child)
     //Do RETURN FALSE
 
     if(this->getGraph() != NULL){
-        return this->isAdoptLegal(child);
+        return this->getGraph()->isAdoptLegal(child);
     }
     return true;
 }
@@ -55,9 +55,7 @@ QString HardwareNode::toGraphML(qint32 indentationLevel)
     for(int i=0;i<indentationLevel;i++){
         tabSpace += "\t";
     }
-    QString returnable = tabSpace + QString("<node id =\"%1\">\n").arg(this->getID());
-    returnable += tabSpace + "\t" + QString("<data key =\"name\">%1</data>\n").arg(this->getName());
-    returnable += tabSpace + "\t" + QString("<data key =\"type\">HardwareNode</data>\n");
+    QString returnable = tabSpace + QString("<node id =\"%1\">\n").arg(this->getName());
     returnable += Node::toGraphML(indentationLevel+1);
     returnable += tabSpace + "</node>\n";
     return returnable;

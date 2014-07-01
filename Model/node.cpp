@@ -1,15 +1,16 @@
 #include "node.h"
 #include <QDebug>
+#include "graphmldata.h"
 Node::Node(QString name): GraphML(this->classKind ,name)
 {
     //Set the Node kind to that of what is constructed.
     this->nodeKind = 0;
 
     //Construct a Graph to hold the children of this Node type.
-    //this->childGraph = new Graph(name + "_graph");
+    this->childGraph = new Graph(name + ":");
 
     //Adopt the Graph, But using the Default adopt method
-    //GraphML::adopt(childGraph);
+    GraphML::adopt(childGraph);
 
     qDebug() << "Constructed Node[" << this->nodeKind <<"]: "<< this->getName();
 }
@@ -26,6 +27,10 @@ QString Node::toGraphML(qint32 indentationLevel)
         tabSpace += "\t";
     }
     QString returnable;
+
+    for(int i=0; i <this->containedData.size();i++){
+        returnable += this->containedData[i]->toGraphML(indentationLevel);
+    }
 
     for(int i=0; i < this->descendants.size(); i++){
 

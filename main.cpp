@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
     QString input = readFile("c:\\inputGML.graphml");
 
-    model->importGraphML(input);
+    model->importGraphML(input, parentGraph);
 
 
     qDebug() << "\n";
@@ -136,7 +136,6 @@ int main(int argc, char *argv[])
     */
 
     writeFile("c:\\file.output",model->exportGraphML());
-    writeFile("c:\\file.stack",model->output);
 
     return a.exec();
 }
