@@ -16,7 +16,7 @@ public:
     bool isAdoptLegal(GraphMLContainer *child)=0;
     bool isEdgeLegal(GraphMLContainer *attachableObject)=0;
 
-    virtual QString toGraphML(qint32 indentationLevel=0);
+    QString toGraphML(qint32 indentationLevel=0);
     QString toString();
     Graph* getGraph();
 
@@ -26,6 +26,7 @@ public:
     void disown(GraphMLContainer* child);
 private:
     Graph* childGraph;
+    static int _Nid;
 };
 
 

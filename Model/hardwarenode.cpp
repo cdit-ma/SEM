@@ -1,7 +1,7 @@
 #include "hardwarenode.h"
 #include <QDebug>
 #include "componentinstance.h"
-#include "assembly.h"
+#include "componentassembly.h"
 
 HardwareNode::HardwareNode(QString name):Node(name)
 {
@@ -29,7 +29,7 @@ bool HardwareNode::isAdoptLegal(GraphMLContainer *child)
 bool HardwareNode::isEdgeLegal(GraphMLContainer *attachableObject)
 {
     ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*> (attachableObject);
-    Assembly* assemblyInstance = dynamic_cast<Assembly*> (attachableObject);
+    ComponentAssembly* assemblyInstance = dynamic_cast<ComponentAssembly*> (attachableObject);
 
     if(componentInstance != 0){
         //Do Component Instance Checks
@@ -49,17 +49,6 @@ bool HardwareNode::isEdgeLegal(GraphMLContainer *attachableObject)
     return true;
 }
 
-QString HardwareNode::toGraphML(qint32 indentationLevel)
-{
-    QString tabSpace;
-    for(int i=0;i<indentationLevel;i++){
-        tabSpace += "\t";
-    }
-    QString returnable = tabSpace + QString("<node id =\"%1\">\n").arg(this->getName());
-    returnable += Node::toGraphML(indentationLevel+1);
-    returnable += tabSpace + "</node>\n";
-    return returnable;
-}
 
 QString HardwareNode::toString()
 {

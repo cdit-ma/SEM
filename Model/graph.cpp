@@ -2,8 +2,12 @@
 #include <QDebug>
 #include "node.h"
 
+int Graph::_Gid = 0;
+
 Graph::Graph(QString name):GraphMLContainer(GraphML::GRAPH, name)
 {
+    this->setID(QString("g%1").arg(this->_Gid++));
+
     qDebug() << "Constructed Graph["<< this->getName() <<"]";
 }
 
@@ -61,7 +65,7 @@ QString Graph::toGraphML(qint32 indentationLevel)
         //If this is the parent Graph, we need to specify the edge type.
         QString edgeType="edgedefault=\"directed\"";
         
-        returnable = tabSpace + QString("<graph %2 id =\"%1\">\n").arg(this->getName(),edgeType);
+        returnable = tabSpace + QString("<graph %2 id =\"%1\">\n").arg(this->getID(),edgeType);
 
         for(int i=0; i < this->descendants.size();i++){
             returnable += this->descendants[i]->toGraphML(indentationLevel+1);

@@ -12,7 +12,7 @@ public:
 public:
     bool isAdoptLegal(GraphMLContainer *child);
     bool isEdgeLegal(GraphMLContainer *attachableObject);
-    QString toGraphML(qint32 indentationLevel);
+    //QString toGraphML(qint32 indentationLevel);
     QString toString();
 };
 

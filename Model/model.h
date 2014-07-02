@@ -4,12 +4,13 @@
 #include "graph.h"
 #include "edge.h"
 #include "node.h"
-#include "assembly.h"
+#include "attribute.h"
+#include "componentassembly.h"
 #include "componentinstance.h"
 #include "eventport.h"
 #include "inputeventport.h"
 #include "outputeventport.h"
-#include "graphmlattribute.h"
+#include "graphmlkey.h"
 #include "graphmldata.h"
 
 #include <QString>
@@ -30,7 +31,7 @@ public:
     Model();
     ~Model();
     //Imports
-    bool importGraphML(QString inputGraphML, GraphMLContainer *parent=0);
+    bool importGraphML(QString inputGraphML, GraphMLContainer *currentParent=0);
 
     QString exportGraphML();
 
@@ -38,23 +39,29 @@ public:
     QString output;
 private:
     enum PARSING_TYPE {NONE, GRAPH, NODE, EDGE, KEY, DATA};
-    GraphMLAttribute* parseKeyAttribute(QXmlStreamReader& xml);
-    GraphMLData* parseDataAttribute(QXmlStreamReader& xml);
+
+    GraphMLKey* parseGraphMLKey(QXmlStreamReader& xml);
+    GraphMLData* parseGraphMLData(QXmlStreamReader& xml, GraphMLKey* attachedKey);
+
+
+    Node* parseGraphMLNode(QString ID, QVector<GraphMLData *> data);
 
     QString getAttribute(QXmlStreamReader& xml, QString attrID);
 
     void parseGraph(QXmlStreamReader &xml);
-    void parseNode(QXmlStreamReader &xml);
+
+
     TempEdge parseEdge(QXmlStreamReader &xml);
 
-    GraphMLAttribute* getGraphMLAttribute(QString key);
 
     Graph *parentGraph;
 
+
+    QVector<GraphMLKey *> keys;
     QVector<Graph*> graphs;
     QVector<Edge *> edges;
     QVector<Node *> nodes;
-    QVector<GraphMLAttribute *> attributeTypes;
+    //QVector<GraphMLKey *> attributeKeys;
 
 
 };

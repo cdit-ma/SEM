@@ -28,6 +28,8 @@ public:
 private:
     GraphMLContainer* source;
     GraphMLContainer* destination;
+
+    static int _Eid;
 };
 
 #endif // EDGE_H

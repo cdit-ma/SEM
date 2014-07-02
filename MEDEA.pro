@@ -27,16 +27,17 @@ SOURCES += main.cpp \
     Model/graphml.cpp \
     Model/hardwarenode.cpp \
     Model/node.cpp \
-    Model/componentinstance.cpp \
-    Model/assembly.cpp \
     Model/eventport.cpp \
     Model/inputeventport.cpp \
     Model/outputeventport.cpp \
     Controller/graphmlcontroller.cpp \
     Model/model.cpp \
-    Model/graphmlattribute.cpp \
     Model/graphmldata.cpp \
-    Model/graphmlcontainer.cpp
+    Model/graphmlcontainer.cpp \
+    Model/componentinstance.cpp \
+    Model/componentassembly.cpp \
+    Model/attribute.cpp \
+    Model/graphmlkey.cpp
 
 HEADERS += \
     Model/graphml.h \
@@ -50,12 +51,15 @@ HEADERS += \
     Model/hardwarenode.h \
     Model/node.h \
     Model/componentinstance.h \
-    Model/assembly.h \
     Model/eventport.h \
     Model/inputeventport.h \
     Model/outputeventport.h \
     Controller/graphmlcontroller.h \
     Model/model.h \
-    Model/graphmlattribute.h \
     Model/graphmldata.h \
-    Model/graphmlcontainer.h
+    Model/graphmlcontainer.h \
+    Model/componentassembly.h \
+    Model/attribute.h \
+    Model/graphmlkey.h
+
+CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT

@@ -1,24 +1,24 @@
 #ifndef GRAPHMLDATA_H
 #define GRAPHMLDATA_H
 
-#include "graphmlattribute.h"
+#include "graphmlkey.h"
 
 #include <QString>
 
 class GraphMLData: public GraphML{
 public:
-    GraphMLData(GraphMLAttribute* type, QString value);
+    GraphMLData(GraphMLKey* key, QString value);
     void setValue(QString value);
     QString getValue() const;
 
-    GraphMLAttribute* getType();
+    GraphMLKey* getKey();
 
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
 
 private:
     QString value;
-    GraphMLAttribute* type;
+    GraphMLKey* key;
 
     // GraphML interface
 

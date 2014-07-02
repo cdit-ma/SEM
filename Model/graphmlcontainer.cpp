@@ -118,7 +118,7 @@ QVector<GraphMLContainer *> GraphMLContainer::getChildren() const
 
 void GraphMLContainer::addEdge(Edge *edge)
 {
-    qDebug() << this->getName() << " Attached Edge: " << edge->getID();
+    //qDebug() << this->getName() << " Attached Edge: " << edge->getID();
     this->edges.append(edge);
 }
 

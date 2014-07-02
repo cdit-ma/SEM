@@ -1,8 +1,13 @@
 #include "node.h"
 #include <QDebug>
 #include "graphmldata.h"
+
+int Node::_Nid = 0;
+
 Node::Node(QString name): GraphMLContainer(GraphML::NODE, name)
 {
+    this->setID(QString("n%1").arg(this->_Nid++));
+
     //Construct a Graph to hold the children of this Node type.
     this->childGraph = new Graph(name + ":");
 
@@ -22,23 +27,26 @@ QString Node::toGraphML(qint32 indentationLevel)
     for(int i=0;i<indentationLevel;i++){
         tabSpace += "\t";
     }
-    QString returnable;
 
-    for(int i=0; i <this->attachedData.size();i++){
-        returnable += this->attachedData[i]->toGraphML(indentationLevel);
+    QString returnable = tabSpace + QString("<node id =\"%1\">\n").arg(this->getID());
+
+    for(int i=0; i < this->attachedData.size();i++){
+        returnable += this->attachedData[i]->toGraphML(indentationLevel+1);
     }
 
     for(int i=0; i < this->descendants.size(); i++){
 
-        returnable += this->descendants[i]->toGraphML(indentationLevel);
+        returnable += this->descendants[i]->toGraphML(indentationLevel+1);
     }
 
     for(int i=0; i < this->edges.size(); i++){
         //Only store edges which originate from here.
         if(this->edges[i]->getSource() == this){
-            returnable += this->edges[i]->toGraphML(indentationLevel);
+            returnable += this->edges[i]->toGraphML(indentationLevel+1);
         }
     }
+
+    returnable += tabSpace + "</node>\n";
     return returnable;
 }
 

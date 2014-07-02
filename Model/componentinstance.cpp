@@ -3,6 +3,7 @@
 #include "eventport.h"
 #include "inputeventport.h"
 #include "outputeventport.h"
+#include "attribute.h"
 
 ComponentInstance::ComponentInstance(QString name):Node(name)
 {
@@ -18,8 +19,9 @@ bool ComponentInstance::isAdoptLegal(GraphMLContainer *attachableObject)
 {
 
     EventPort* eventPort = dynamic_cast<EventPort*> (attachableObject);
+    Attribute* attribute = dynamic_cast<Attribute*> (attachableObject);
 
-    if(eventPort != 0){
+    if(eventPort != 0 || attribute != 0){
         //Do Event Port Specific things!
     }else{
         qWarning() << "ComponentInstance can only adopt an EventPort or an Attribute Node";;
@@ -50,20 +52,6 @@ bool ComponentInstance::isEdgeLegal(GraphMLContainer *attachableObject)
     return true;
 }
 
-QString ComponentInstance::toGraphML(qint32 indentationLevel)
-{
-    QString tabSpace;
-    for(int i=0;i<indentationLevel;i++){
-        tabSpace += "\t";
-    }
-
-    QString returnable = tabSpace + QString("<node id =\"%1\">\n").arg(this->getID());
-    returnable += tabSpace + "\t" + QString("<data key =\"name\">%1</data>\n").arg(this->getName());
-    returnable += tabSpace + "\t" + QString("<data key =\"type\">ComponentInstance</data>\n");
-    returnable += Node::toGraphML(indentationLevel+1);
-    returnable += tabSpace + "</node>\n";
-    return returnable;
-}
 
 QString ComponentInstance::toString()
 {

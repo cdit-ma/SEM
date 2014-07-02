@@ -1,17 +1,17 @@
-#include "assembly.h"
+#include "componentassembly.h"
 #include "componentinstance.h"
 #include <QDebug>
-Assembly::Assembly(QString name):Node(name)
+ComponentAssembly::ComponentAssembly(QString name):Node(name)
 {
     qDebug() << "Constructed Assembly: "<< this->getName();
 }
 
-Assembly::~Assembly()
+ComponentAssembly::~ComponentAssembly()
 {
     //Destructor
 }
 
-bool Assembly::isAdoptLegal(GraphMLContainer *child)
+bool ComponentAssembly::isAdoptLegal(GraphMLContainer *child)
 {
     ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*> (child);
 
@@ -27,7 +27,7 @@ bool Assembly::isAdoptLegal(GraphMLContainer *child)
     return true;
 }
 
-bool Assembly::isEdgeLegal(GraphMLContainer *attachableObject)
+bool ComponentAssembly::isEdgeLegal(GraphMLContainer *attachableObject)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
 
@@ -47,22 +47,7 @@ bool Assembly::isEdgeLegal(GraphMLContainer *attachableObject)
     return true;
 }
 
-QString Assembly::toGraphML(qint32 indentationLevel)
-{
-    QString tabSpace;
-    for(int i=0;i<indentationLevel;i++){
-        tabSpace += "\t";
-    }
-
-    QString returnable = tabSpace + QString("<node id =\"%1\">\n").arg(this->getID());
-    returnable += tabSpace + "\t" + QString("<data key =\"name\">%1</data>\n").arg(this->getName());
-    returnable += tabSpace + "\t" + QString("<data key =\"type\">Assembly</data>\n");
-    returnable += Node::toGraphML(indentationLevel+1);
-    returnable += tabSpace + "</node>\n";
-    return returnable;
-}
-
-QString Assembly::toString()
+QString ComponentAssembly::toString()
 {
     return QString("Assembly[%1]: "+this->getName()).arg(this->getID());
 }

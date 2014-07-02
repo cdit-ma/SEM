@@ -78,9 +78,11 @@ int main(int argc, char *argv[])
     QString input = readFile("c:\\inputGML.graphml");
 
     model->importGraphML(input, parentGraph);
-
-
     qDebug() << "\n";
+    model->importGraphML(input, parentGraph);
+qDebug() << "\n";
+
+
 
     /*
     //Make an Assembly

@@ -1,13 +1,12 @@
-#ifndef HARDWARENODE_H
-#define HARDWARENODE_H
+#ifndef COMPONENTASSEMBLY_H
+#define COMPONENTASSEMBLY_H
 #include "node.h"
 
-class HardwareNode : public Node
+class ComponentAssembly : public Node
 {
 public:
-    HardwareNode(QString name);
-    ~HardwareNode();
-
+    ComponentAssembly(QString name);
+    ~ComponentAssembly();
 public:
     bool isAdoptLegal(GraphMLContainer *child);
     bool isEdgeLegal(GraphMLContainer *attachableObject);
@@ -15,4 +14,4 @@ public:
     QString toString();
 };
 
-#endif // HARDWARENODE_H
+#endif // COMPONENTASSEMBLY_H

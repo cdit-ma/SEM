@@ -1,9 +1,11 @@
-#include "graphmlattribute.h"
+#include "graphmlkey.h"
 #include <QDebug>
 
-GraphMLAttribute::GraphMLAttribute( QString id, QString name, QString typeStr, QString forStr)
-{
+int GraphMLKey::_Did =0;
 
+GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(GraphML::KEY, name)
+{
+     this->setID(QString("d%1").arg(this->_Did++));
     //Parse Type
     if(typeStr == QString("boolean")){
         this->type = BOOLEAN;
@@ -28,11 +30,23 @@ GraphMLAttribute::GraphMLAttribute( QString id, QString name, QString typeStr, Q
 
     this->kind = kind;
     this->type = type;
-    this->name = name;
-    this->id = id;
 }
 
-QString GraphMLAttribute::toGraphML(qint32 indentationLevel)
+bool GraphMLKey::operator==(const GraphMLKey &other) const
+{
+    if(this->getType() != other.getType()){
+        return false;
+    }
+    if(this->getName() != other.getName()){
+        return false;
+    }
+    if(this->getKind() != other.getKind()){
+        return false;
+    }
+    return true;
+}
+
+QString GraphMLKey::toGraphML(qint32 indentationLevel)
 {
     QString tabSpace;
     for(int i=0;i<indentationLevel;i++){
@@ -43,22 +57,18 @@ QString GraphMLAttribute::toGraphML(qint32 indentationLevel)
     return returnable;
 }
 
-QString GraphMLAttribute::getID() const
-{
-    return this->id;
-}
-
-QString GraphMLAttribute::getName() const
-{
-    return this ->name;
-}
-
-GraphMLAttribute::TYPE GraphMLAttribute::getType() const
+GraphMLKey::TYPE GraphMLKey::getType() const
 {
     return this->type;
 }
 
-GraphML::KIND GraphMLAttribute::getKind() const
+GraphML::KIND GraphMLKey::getKind() const
 {
     return this->kind;
+}
+
+QString GraphMLKey::toString()
+{
+     return QString("Key[%1]: "+this->getName()).arg(this->getID());
+
 }

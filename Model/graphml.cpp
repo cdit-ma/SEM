@@ -1,14 +1,14 @@
 #include "graphml.h"
-
-qint32 GraphML::_id = 0;
+#include "graphmldata.h"
+#include <qdebug>
+int GraphML::_Uid = 0;
 
 GraphML::GraphML(GraphML::KIND kind, QString name)
 {
-    this->id = ++_id;
+    this->Uid = ++_Uid;
+
     this->kind = kind;
-
     this->setName(name);
-
 }
 
 GraphML::~GraphML()
@@ -31,6 +31,23 @@ QString GraphML::getName() const
     return this->name;
 }
 
+QString GraphML::getID() const
+{
+    return this->id;
+}
+
+QString GraphML::getData(QString keyName)
+{
+    for(int i=0; i < this->attachedData.size(); i++){
+        if(this->attachedData[i]->getKey()->getName() == keyName){
+            return this->attachedData[i]->getValue();
+        }
+    }
+    qCritical() <<"GraphML Object does not contain Data!";
+    return "";
+
+}
+
 QVector<GraphMLData *> GraphML::getData()
 {
     return this->attachedData;
@@ -49,7 +66,8 @@ void GraphML::attachData(QVector<GraphMLData *> data)
     }
 }
 
-qint32 GraphML::getID() const
+void GraphML::setID(QString id)
 {
-    return this->id;
+    this->id = id;
 }
+

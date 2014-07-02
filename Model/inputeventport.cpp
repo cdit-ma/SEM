@@ -15,32 +15,20 @@ bool InputEventPort::isAdoptLegal(GraphMLContainer *child)
 
 bool InputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
 {
-
     OutputEventPort* outputEventPort = dynamic_cast<OutputEventPort*> (attachableObject);
 
-    if(outputEventPort != 0){
-    }else{
+    if(outputEventPort == 0){
+        return false;
+    }
+
+    if(this->getData("type") != attachableObject->getData("type")){
+        qCritical() << "Cannot connect 2 different type names!";
         return false;
     }
 
     return true;
 }
 
-QString InputEventPort::toGraphML(qint32 indentationLevel)
-{
-    QString tabSpace;
-    for(int i=0;i<indentationLevel;i++){
-        tabSpace += "\t";
-    }
-
-    QString returnable = tabSpace + QString("<node id =\"%1\">\n").arg(this->getID());
-    returnable += tabSpace + "\t" + QString("<data key =\"name\">%1</data>\n").arg(this->getName());
-    returnable += tabSpace + "\t" + QString("<data key =\"type\">InputEventPort</data>\n");
-    returnable += Node::toGraphML(indentationLevel+1);
-    returnable += tabSpace + "</node>\n";
-    return returnable;
-
-}
 
 QString InputEventPort::toString()
 {

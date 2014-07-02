@@ -1,10 +1,15 @@
 #include "edge.h"
 #include "graphml.h"
+#include "graphmldata.h"
 #include <QDebug>
+
+int Edge::_Eid = 0;
 
 
 Edge::Edge(GraphMLContainer *source, GraphMLContainer *destination, QString name):GraphML(GraphML::EDGE, name)
 {
+    this->setID(QString("e%1").arg(this->_Eid++));
+
     //Set the instance Variables
     this->source = source;
     this->destination = destination;
@@ -41,7 +46,18 @@ QString Edge::toGraphML(qint32 indentationLevel)
         tabSpace += "\t";
     }
 
-    QString returnable = tabSpace + QString("<edge id=\"" + QString::number(this->getID()) + "\" source=\""+QString::number(this->getSource()->getID())+"\" target=\""+QString::number(this->getDestination()->getID())+"\" />\n");
+    QString returnable = tabSpace + QString("<edge id=\"%1\" source=\"%2\" target =\"%3\"").arg(this->getID(),this->getSource()->getID(),this->getDestination()->getID());
+
+    if(this->attachedData.size() > 0){
+        returnable += ">\n";
+        for(int i =0;i<this->attachedData.size();i++){
+            returnable += this->attachedData[i]->toGraphML(indentationLevel + 1);
+        }
+        returnable += tabSpace + "</edge>\n";
+    }else{
+        returnable += "/>\n";
+    }
+
     return returnable;
 }
 

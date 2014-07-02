@@ -28,6 +28,9 @@ public:
     //Get the name of this graphml object
     QString getName() const;
 
+    QString getID() const;
+
+    QString getData(QString keyName);
     //Get a list of Data objects contained by this GraphML
     QVector<GraphMLData *> getData();
 
@@ -37,7 +40,7 @@ public:
     void attachData(QVector<GraphMLData* > data);
 
     //Get the Unique ID of this object
-    qint32 getID() const;
+    qint32 getUID() const;
 
     //Returns a string graphml representation of this graphml object
     //Pure Virtual => Must be overwritten by subclasses!
@@ -47,16 +50,20 @@ public:
     virtual QString toString()=0;
 
     //The unique ID counter;
-    static qint32 _id;
-
+    static qint32 _Uid;
 protected:
     QVector<GraphMLData *> attachedData;
+
+    void setID(QString id);
 private:
     //The name of this graphml object.
     QString name;
 
+    //The ID of this graphml object.
+    QString id;
+
     //The unique ID of this graphml object.
-    qint32 id;
+    qint32 Uid;
 
     //The unique kind ID of this graph object.
     KIND kind;
