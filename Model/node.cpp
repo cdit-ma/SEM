@@ -39,13 +39,6 @@ QString Node::toGraphML(qint32 indentationLevel)
         returnable += this->descendants[i]->toGraphML(indentationLevel+1);
     }
 
-    for(int i=0; i < this->edges.size(); i++){
-        //Only store edges which originate from here.
-        if(this->edges[i]->getSource() == this){
-            returnable += this->edges[i]->toGraphML(indentationLevel+1);
-        }
-    }
-
     returnable += tabSpace + "</node>\n";
     return returnable;
 }

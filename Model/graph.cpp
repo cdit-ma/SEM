@@ -11,6 +11,7 @@ Graph::Graph(QString name):GraphMLContainer(GraphML::GRAPH, name)
     qDebug() << "Constructed Graph["<< this->getName() <<"]";
 }
 
+
 bool Graph::isAdoptLegal(GraphMLContainer *child)
 {
     //Check for self connection.
@@ -70,6 +71,18 @@ QString Graph::toGraphML(qint32 indentationLevel)
         for(int i=0; i < this->descendants.size();i++){
             returnable += this->descendants[i]->toGraphML(indentationLevel+1);
         }
+
+        QVector<Edge *> edges = this->getEdges(-1);
+        for(int i=0; i < edges.size(); i++){
+            //Only store edges which originate from here.
+            if(edges[i]->getContainingGraph() == this){
+                returnable += edges[i]->toGraphML(indentationLevel+1);
+            }
+//            if(this->edges[i]->getSource() == this){
+  //          }
+        }
+
+
         returnable += tabSpace + "</graph>\n";
     }
     return returnable;

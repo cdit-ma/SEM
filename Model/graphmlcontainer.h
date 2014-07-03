@@ -37,7 +37,7 @@ public:
     bool isConnected(GraphMLContainer *element);
 
     //Get a list of edges which is connected to this graphml object.
-    QVector<Edge *> getEdges() const;
+    QVector<Edge *> getEdges(int depth=-1 ) const;
 
     //Removes all edges.
     void removeEdges();
@@ -59,7 +59,8 @@ public:
     bool isDescendantOf(GraphMLContainer *element);
 
     //Get a list of graphml objects contained by this graph
-    QVector<GraphMLContainer *> getChildren() const;
+    //-1 returns all children recursively.
+    QVector<GraphMLContainer *> getChildren(int depth=-1) const;
 
     //Can this graph adopt this graph.
     //Pure Virtual => Must be overwritten by subclasses!

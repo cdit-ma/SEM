@@ -12,7 +12,7 @@ class GraphMLData;
 class GraphML{
 
 public:
-    enum KIND{NONE, GRAPH, NODE, EDGE, KEY, DATA};
+    enum KIND{NONE, GRAPH, NODE, EDGE, ALL, KEY, DATA};
 
     //Super class constructor; Relative ID and name provided. Used only to be called by the extended classes.
     GraphML(KIND kind, QString name="");
@@ -67,8 +67,6 @@ private:
 
     //The unique kind ID of this graph object.
     KIND kind;
-
-
 };
 #endif // GRAPHML_H
 

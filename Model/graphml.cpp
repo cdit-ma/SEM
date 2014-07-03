@@ -55,7 +55,14 @@ QVector<GraphMLData *> GraphML::getData()
 
 void GraphML::attachData(GraphMLData *data)
 {
-    this->attachedData.append(data);
+    GraphML::KIND keyKind = data->getKey()->getForKind();
+
+    if(keyKind == this->getKind() || (keyKind == GraphML::ALL && this->getKind() < GraphML::ALL)){
+        this->attachedData.append(data);
+    }else{
+        qCritical() << "Cannot attach <data> to this object. Wrong Kind!";
+        qCritical() << data->getKey()->getForKind() << " != " << this->getKind();
+    }
 }
 
 void GraphML::attachData(QVector<GraphMLData *> data)

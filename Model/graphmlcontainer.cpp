@@ -46,9 +46,23 @@ bool GraphMLContainer::isConnected(GraphMLContainer *element)
     return false;
 }
 
-QVector<Edge *> GraphMLContainer::getEdges() const
+QVector<Edge *> GraphMLContainer::getEdges(int depth) const
 {
-    return this->edges;
+    QVector<Edge *> returnable;
+
+    if(depth != 0){
+        for(int i=0; i < this->edges.size(); i++){
+            if(this->edges[i]->getSource() == this){
+                returnable +=  this->edges[i];
+            }
+        }
+        for(int i=0; i < this->descendants.size(); i++){
+            returnable +=  this->descendants.at(i)->getEdges(depth -1);
+        }
+    }else{
+        returnable += this->edges;
+    }
+    return returnable;
 }
 
 void GraphMLContainer::removeEdges()
@@ -83,6 +97,9 @@ void GraphMLContainer::disown(GraphMLContainer *child)
 
 bool GraphMLContainer::isAncestorOf(GraphMLContainer *element)
 {
+    QVector<GraphMLContainer *> ancestors = this->getChildren(-1);
+    return ancestors.contains(element);
+    /*
     //Check for an immediate descendant
     if(this->descendants.contains(element)){
         return true;
@@ -92,7 +109,9 @@ bool GraphMLContainer::isAncestorOf(GraphMLContainer *element)
             return descendants[i]->isAncestorOf(element);
         }
     }
+
     return false;
+    */
 }
 
 bool GraphMLContainer::isDescendantOf(GraphMLContainer *element)
@@ -111,10 +130,24 @@ bool GraphMLContainer::isDescendantOf(GraphMLContainer *element)
 
 }
 
-QVector<GraphMLContainer *> GraphMLContainer::getChildren() const
+QVector<GraphMLContainer *> GraphMLContainer::getChildren(int depth) const
 {
-    return this->descendants;
+    QVector<GraphMLContainer *> returnable;
+
+    if(depth != 0){
+        for(int i=0; i < this->descendants.size(); i++){
+            returnable += this->descendants.at(i);
+            returnable +=  this->descendants.at(i)->getChildren(depth -1 );
+        }
+    }else{
+        returnable += this->descendants;
+    }
+    return returnable;
+
 }
+
+
+
 
 void GraphMLContainer::addEdge(Edge *edge)
 {

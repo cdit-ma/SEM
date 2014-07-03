@@ -32,27 +32,21 @@ public:
     ~Model();
     //Imports
     bool importGraphML(QString inputGraphML, GraphMLContainer *currentParent=0);
-
     QString exportGraphML();
 
+    QVector<Edge *> getAllEdges() const;
+
     Graph* getGraph();
-    QString output;
 private:
     enum PARSING_TYPE {NONE, GRAPH, NODE, EDGE, KEY, DATA};
 
     GraphMLKey* parseGraphMLKey(QXmlStreamReader& xml);
     GraphMLData* parseGraphMLData(QXmlStreamReader& xml, GraphMLKey* attachedKey);
-
-
     Node* parseGraphMLNode(QString ID, QVector<GraphMLData *> data);
 
     QString getAttribute(QXmlStreamReader& xml, QString attrID);
 
-    void parseGraph(QXmlStreamReader &xml);
-
-
     TempEdge parseEdge(QXmlStreamReader &xml);
-
 
     Graph *parentGraph;
 
@@ -61,9 +55,6 @@ private:
     QVector<Graph*> graphs;
     QVector<Edge *> edges;
     QVector<Node *> nodes;
-    //QVector<GraphMLKey *> attributeKeys;
-
-
 };
 
 #endif // MODEL_H

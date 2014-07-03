@@ -2,8 +2,12 @@
 
 GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
 {
-    this->setValue(value);
     this->key = key;
+    if(value==""){
+        this->setValue(this->key->getDefaultValue());
+    }else{
+        this->setValue(value);
+    }
 }
 
 void GraphMLData::setValue(QString value)

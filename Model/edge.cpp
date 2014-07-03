@@ -37,6 +37,22 @@ GraphMLContainer *Edge::getDestination() const
 {
     return this->destination;
 
+}
+
+GraphMLContainer *Edge::getContainingGraph()
+{
+    GraphMLContainer * source = this->getSource();
+    GraphMLContainer * currentLookup = this->getDestination();
+
+    while(currentLookup != 0){
+        if(currentLookup->isAncestorOf(source)){
+            return currentLookup;
+        }else{
+            currentLookup = currentLookup->getParent();
+        }
+    }
+    return 0;
+
 };
 
 QString Edge::toGraphML(qint32 indentationLevel)

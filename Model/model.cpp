@@ -30,17 +30,27 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
     //A list storing all the Edge information (source, target, data)
     QVector<TempEdge> currentEdges;
 
+    GraphMLKey * currentKey;
 
     //Used to keep track of state inside the XML
     GraphML::KIND nowParsing = GraphML::NONE;
     GraphML::KIND nowInside = GraphML::NONE;
 
-    //Used to store the ID of the current and previously discovered node ID
+    //Used to store the ID of the node we are to construct
     QString nodeID = "";
-    QString prevNodeID = "";
+
+    QString graphID = "";
+
+    //Used to store the ID of the new node we will construct later.
+    QString newNodeID = "";
 
     //Counts the number of </node> elements we encounter to correctly traverse to the correct insertion point.
     int parentDepth = 0;
+
+    if (xml.hasError()) {
+        qDebug() << "ERRORS YO";
+        return false;
+    }
 
     while(!xml.atEnd()){
         //Read the next tag
@@ -90,20 +100,29 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
             }
         }else if(tagName == "key"){
             if(xml.isStartElement()){
+                nowInside = GraphML::KEY;
                 //Parse the Attribute Definition.
-                GraphMLKey* attribute = parseGraphMLKey(xml);
+                currentKey = parseGraphMLKey(xml);
 
-                //Get the original Key ID.
-                QString originalKeyID = getAttribute(xml,"id");
+                //Get the Key ID.
+                QString keyID = getAttribute(xml,"id");
 
                 //Place the key in the lookup Map.
-                keyLookup.insert(originalKeyID, attribute);
+                keyLookup.insert(keyID, currentKey);
+            }
+            if(xml.isEndElement()){
+                nowInside = GraphML::NONE;
+            }
+        }else if(tagName =="default"){
+            if(nowInside == GraphML::KEY){
+                QString defaultValue = xml.readElementText();
+                currentKey->setDefaultValue(defaultValue);
             }
         }else if(tagName == "node"){
+            //If we have found a new <node> it means we should build the previous <node id=nodeID> node.
             if(xml.isStartElement()){
-                //Get the ID of the Node
-                //prevNodeID = nodeID;
-                nodeID = getAttribute(xml, "id");
+                //Get the ID of the Node, W
+                newNodeID = getAttribute(xml, "id");
 
                 nowInside = GraphML::NODE;
                 nowParsing = GraphML::NODE;
@@ -114,9 +133,15 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                 //We have reached the end of a Node, therefore not inside a Node anymore.
                 nowInside = GraphML::NONE;
             }
+        }else if(tagName == "graph"){
+            if(xml.isStartElement()){
+                //Get the ID of the Graph, we want to point this at the current Parent.
+                graphID = getAttribute(xml, "id");
+            }
+
         }else{
             if(xml.isEndDocument()){
-                //Construct a Node
+                //Construct the final Node
                 nowParsing = GraphML::NODE;
             }else{
                 nowParsing = GraphML::NONE;
@@ -124,14 +149,15 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
         }
 
         if(nowParsing == GraphML::NODE){
-            if(prevNodeID != ""){
+            //If we have a nodeID to build
+            if(nodeID != ""){
                 //Construct the specialised Node
-                Node* newNode = this->parseGraphMLNode(prevNodeID, currentNodeData);
+                Node* newNode = this->parseGraphMLNode(nodeID, currentNodeData);
 
                 //Clear the Node Data List.
                 currentNodeData.clear();
 
-
+                //Adopt the new Node into the currentParent
                 if(currentParent->isAdoptLegal(newNode)){
                     currentParent->adopt(newNode);
                 }else{
@@ -141,12 +167,11 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
 
                 //Set the currentParent to the Node Construced
                 currentParent = newNode;
-                //Increment the depth
-                parentDepth ++;
 
                 //Navigate back to the correct parent.
-                while(parentDepth > 1){
+                while(parentDepth > 0){
                     currentParent = currentParent->getParent();
+
                     //Check if the parent is a graph or a node!
                     //We only care about if it's not a graph!
                     Graph* graph = dynamic_cast<Graph*> (currentParent);
@@ -155,17 +180,26 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                     }
                 }
 
-                parentDepth = 0;
+                //Add the new Node to the lookup table.
+                nodeLookup.insert(nodeID, newNode);
 
-                nodeLookup.insert(prevNodeID, newNode);
+                //If we have encountered a Graph object, we should point it to it's parent Node to allow links to Graph's
+                if(graphID != ""){
+                    nodeLookup.insert(graphID, newNode);
+                    graphID = "";
+                }
             }
-            prevNodeID = nodeID;
+            //Set the current nodeID to equal the newly found NodeID.
+            nodeID = newNodeID;
         }
     }
 
     if (xml.hasError()) {
-
+        qDebug() << "ERRORS YO";
+        return false;
     }
+
+
 
     //Construct the Edges from the EdgeTemp objects
     for(int i =0; i< currentEdges.size(); i++){
@@ -173,15 +207,22 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
         GraphMLContainer* s = nodeLookup[edge.source];
         GraphMLContainer* d = nodeLookup[edge.target];
 
-        if(s->isEdgeLegal(d)){
-            Edge* newEdge = new Edge(s, d);
-            newEdge->attachData(edge.data);
+        if(s != 0 && d != 0){
+            if(s->isEdgeLegal(d)){
+                Edge* newEdge = new Edge(s, d);
+                newEdge->attachData(edge.data);
+                edges.append(newEdge);
+            }else{
+                qDebug() << s->toString() << " to " << d->toString();
+                qCritical() << "Edge Not Valid!";
+                return false;
+            }
         }else{
-            qDebug() << s->toString() << " to " << d->toString();
-            qCritical() << "Edge Not Valid!";
+            qCritical() << "Edge is Illegal!";
             return false;
         }
     }
+
     return true;
 }
 
@@ -203,6 +244,12 @@ QString Model::exportGraphML()
 
 }
 
+QVector<Edge *> Model::getAllEdges() const
+{
+    return this->edges;
+
+}
+
 Graph *Model::getGraph()
 {
     return this->parentGraph;
@@ -215,6 +262,7 @@ GraphMLKey*  Model::parseGraphMLKey(QXmlStreamReader &xml)
     QString forStr = getAttribute(xml,"for");;
 
     GraphMLKey *attribute = new GraphMLKey(name, typeStr, forStr);
+
 
     for(int i = 0 ; i < this->keys.size(); i ++){
         if( this->keys[i]->operator ==(*attribute)){
@@ -278,8 +326,7 @@ QString Model::getAttribute(QXmlStreamReader &xml, QString attrID)
     if(attributes.hasAttribute(attrID)){
         return attributes.value(attrID).toString();
     }else{
-
-        qDebug() << "<data> must contain Attribute key";
+        qCritical() << "Expecting Attribute key" <<attrID;
         return "";
     }
 

@@ -2,16 +2,14 @@
 //#include "graphml.h"
 //#include "edge.h"
 #include "Model/Model.h"
-/*
 #include "Model/edge.h"
 #include "Model/node.h"
 #include "Model/graph.h"
 #include "Model/hardwarenode.h"
 #include "Model/componentinstance.h"
-#include "Model/assembly.h"
+#include "Model/componentassembly.h"
 #include "Model/inputeventport.h"
 #include "Model/outputeventport.h"
-*/
 #include <QDebug>
 
 #include <QFile>
@@ -78,15 +76,33 @@ int main(int argc, char *argv[])
     QString input = readFile("c:\\inputGML.graphml");
 
     model->importGraphML(input, parentGraph);
+
+
+    QVector<GraphMLContainer *> children = model->getGraph()->getChildren(1);
+
+
+    QVector<Edge *> edges = model->getAllEdges();
+
+    for(int i =0;i< edges.size();i++){
+        GraphMLContainer* container = edges[i]->getContainingGraph();
+
+        if(container !=0){
+            qDebug() << container->toString();
+            qDebug() << edges[i]->toString();
+        }else{
+            qDebug() << "ERROR";
+        }
+    }
+    /*
     qDebug() << "\n";
-    model->importGraphML(input, parentGraph);
-qDebug() << "\n";
+    //model->importGraphML(input, parentGraph);
+//qDebug() << "\n";
 
 
-
+*/
     /*
     //Make an Assembly
-    Assembly *vUAV = new Assembly("vUAV");
+    ComponentAssembly *vUAV = new ComponentAssembly("vUAV");
 
     //Make some ComponentInstances
     ComponentInstance *GPS = new ComponentInstance("GPS");
@@ -135,8 +151,9 @@ qDebug() << "\n";
     connect(gouda31, vUAV);
     connect(gouda33, vUAV);
 
-    */
+*/
 
+    qDebug() << "LEL";
     writeFile("c:\\file.output",model->exportGraphML());
 
     return a.exec();

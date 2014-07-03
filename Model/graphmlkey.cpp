@@ -18,18 +18,32 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
     }
 
     if(forStr == QString("graph")){
-        this->kind = GraphML::GRAPH;
+        this->forKind = GraphML::GRAPH;
     }else if(forStr ==  QString("node")){
-        this->kind = GraphML::NODE;
+        this->forKind = GraphML::NODE;
+    }else if(forStr == QString("edge")){
+        this->forKind = GraphML::EDGE;
+    }else if(forStr == QString("all")){
+        this->forKind = GraphML::ALL;
     }else{
         qDebug() << "Attribute forType:" << forStr << "Not implemented";
     }
 
     this->typeStr = typeStr;
-    this->kindStr = forStr;
+    this->forKindStr = forStr;
+    this->defaultValue = "";
 
-    this->kind = kind;
     this->type = type;
+}
+
+void GraphMLKey::setDefaultValue(QString value)
+{
+    this->defaultValue = value;
+}
+
+QString GraphMLKey::getDefaultValue() const
+{
+    return this->defaultValue;
 }
 
 bool GraphMLKey::operator==(const GraphMLKey &other) const
@@ -40,10 +54,15 @@ bool GraphMLKey::operator==(const GraphMLKey &other) const
     if(this->getName() != other.getName()){
         return false;
     }
-    if(this->getKind() != other.getKind()){
+    if(this->getForKind() != other.getForKind()){
         return false;
     }
     return true;
+}
+
+GraphML::KIND GraphMLKey::getForKind() const
+{
+    return this->forKind;
 }
 
 QString GraphMLKey::toGraphML(qint32 indentationLevel)
@@ -53,7 +72,14 @@ QString GraphMLKey::toGraphML(qint32 indentationLevel)
         tabSpace += "\t";
     }
 
-    QString returnable = tabSpace + QString("<key attr.name=\"%1\" attr.type=\"%2\" for=\"%3\" id=\"%4\"/>\n").arg(this->getName(),this->typeStr,this->kindStr,this->getID());
+    QString returnable = tabSpace + QString("<key attr.name=\"%1\" attr.type=\"%2\" for=\"%3\" id=\"%4\"").arg(this->getName(),this->typeStr,this->forKindStr,this->getID());
+    if(this->getDefaultValue() != ""){
+        returnable += ">\n";
+        returnable += tabSpace + QString("\t<default>%1</default>\n").arg(this->getDefaultValue());
+        returnable += tabSpace + "</key>\n";
+    }else{
+        returnable += "/>\n";
+    }
     return returnable;
 }
 
@@ -62,10 +88,6 @@ GraphMLKey::TYPE GraphMLKey::getType() const
     return this->type;
 }
 
-GraphML::KIND GraphMLKey::getKind() const
-{
-    return this->kind;
-}
 
 QString GraphMLKey::toString()
 {

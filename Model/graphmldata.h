@@ -10,9 +10,7 @@ public:
     GraphMLData(GraphMLKey* key, QString value);
     void setValue(QString value);
     QString getValue() const;
-
     GraphMLKey* getKey();
-
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
 

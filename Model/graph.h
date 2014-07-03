@@ -1,6 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include <QVector>
 #include "graphmlcontainer.h"
 class Graph : public GraphMLContainer
 {
@@ -9,6 +10,8 @@ public:
     Graph(QString name);
     ~Graph();
 
+    QVector<Edge *> getContainedEdges();
+    QVector<Edge *> getAllChildrenEdges();
 
 public:
     bool isAdoptLegal(GraphMLContainer *child);

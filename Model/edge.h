@@ -20,6 +20,8 @@ public:
     //Get the destination graphml object of this Edge
     GraphMLContainer *getDestination() const;
 
+    GraphMLContainer *getContainingGraph();
+
     //Return the graphml representation of this
     QString toGraphML(qint32 indentationLevel=0);
 
