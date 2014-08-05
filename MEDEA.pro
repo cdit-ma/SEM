@@ -5,9 +5,9 @@
 #-------------------------------------------------
 
 QT       += core
-QT	+= xml
-
-QT       -= gui
+QT       += xml
+QT       += gui
+QT       += widgets
 
 TARGET = MEDEA
 CONFIG   += console
@@ -37,7 +37,8 @@ SOURCES += main.cpp \
     Model/componentinstance.cpp \
     Model/componentassembly.cpp \
     Model/attribute.cpp \
-    Model/graphmlkey.cpp
+    Model/graphmlkey.cpp \
+    mainwindow.cpp
 
 HEADERS += \
     Model/graphml.h \
@@ -60,6 +61,10 @@ HEADERS += \
     Model/graphmlcontainer.h \
     Model/componentassembly.h \
     Model/attribute.h \
-    Model/graphmlkey.h
+    Model/graphmlkey.h \
+    mainwindow.h
 
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+
+FORMS += \
+    mainwindow.ui

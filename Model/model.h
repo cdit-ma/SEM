@@ -15,38 +15,51 @@
 
 #include <QString>
 #include <QVector>
-
+#include <QThread>
+#include <QObject>
 #include <QXmlStreamReader>
 
-struct TempEdge
+struct EdgeStruct
 {
     QString id;
+    qint64 linenumber;
     QString source;
     QString target;
     QVector<GraphMLData *> data;
 };
-class Model
+
+class Model: public QThread
 {
+    Q_OBJECT
 public:
-    Model();
+    Model(QObject *parent);
     ~Model();
     //Imports
+
     bool importGraphML(QString inputGraphML, GraphMLContainer *currentParent=0);
+
     QString exportGraphML();
 
     QVector<Edge *> getAllEdges() const;
-
+     int getNodeCount();
     Graph* getGraph();
-private:
-    enum PARSING_TYPE {NONE, GRAPH, NODE, EDGE, KEY, DATA};
+signals:
+    void updatePercentage(int percentage);
+    void componentCount(int percentage);
 
+private:
     GraphMLKey* parseGraphMLKey(QXmlStreamReader& xml);
-    GraphMLData* parseGraphMLData(QXmlStreamReader& xml, GraphMLKey* attachedKey);
+
+    //Construct a specific Node type given the attached Vector of data
     Node* parseGraphMLNode(QString ID, QVector<GraphMLData *> data);
 
+    //Gets a specific Attribute from the current Element in the XML. returns "" if none.
     QString getAttribute(QXmlStreamReader& xml, QString attrID);
 
-    TempEdge parseEdge(QXmlStreamReader &xml);
+
+    bool importGraphMLThread();
+
+    EdgeStruct parseEdge(QXmlStreamReader &xml);
 
     Graph *parentGraph;
 
@@ -55,6 +68,21 @@ private:
     QVector<Graph*> graphs;
     QVector<Edge *> edges;
     QVector<Node *> nodes;
-};
 
+
+
+    // QObject interface
+public:
+    bool event(QEvent *);
+
+    // QThread interface
+protected:
+    void run();
+
+private:
+    double percentage;
+    QString importGraphMLData;
+    GraphMLContainer *importGraphMLParent;
+
+};
 #endif // MODEL_H

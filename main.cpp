@@ -1,4 +1,7 @@
-#include <QCoreApplication>
+#include <QApplication>
+#include <QtDebug>
+#include <QFile>
+#include <QTextStream>
 //#include "graphml.h"
 //#include "edge.h"
 #include "Model/Model.h"
@@ -10,6 +13,7 @@
 #include "Model/componentassembly.h"
 #include "Model/inputeventport.h"
 #include "Model/outputeventport.h"
+#include "mainwindow.h"
 #include <QDebug>
 
 #include <QFile>
@@ -31,6 +35,7 @@ bool connect(GraphMLContainer* object1, GraphMLContainer *object2){
     }
     return false;
 }
+
 QString readFile(QString filePointer){
     QFile file(filePointer);
 
@@ -63,12 +68,38 @@ bool writeFile(QString filePointer, QString data){
 
 }
 
+static MainWindow* window;
+
+void myMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg){
+    QString txt;
+    switch (type) {
+    case QtDebugMsg:
+        txt = QString("<font color=\"black\">%1</font>").arg(msg);
+        break;
+    case QtWarningMsg:
+         txt = QString("<font color=\"orange\">%1</font>").arg(msg);
+    break;
+    case QtCriticalMsg:
+        txt = QString("<font color=\"red\">%1</font>").arg(msg);
+    break;
+    case QtFatalMsg:
+        txt = QString("<b><font color=\"red\">%1</font></b>").arg(msg);
+    break;
+    }
+
+    window->debugPrint(txt);
+}
 
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+    QApplication a(argc, argv);
 
+
+   window = new MainWindow();
+   //qInstallMessageHandler(myMessageHandler);
+    window->show();
+    /*
     Model *model = new Model();
 
     Graph *parentGraph = model->getGraph();
@@ -153,8 +184,7 @@ int main(int argc, char *argv[])
 
 */
 
-    qDebug() << "LEL";
-    writeFile("c:\\file.output",model->exportGraphML());
+    //writeFile("c:\\file.output",model->exportGraphML());
 
     return a.exec();
 }
