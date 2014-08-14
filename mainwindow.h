@@ -15,9 +15,9 @@
 #include "Model/componentassembly.h"
 #include "Model/inputeventport.h"
 #include "Model/outputeventport.h"
+#include <stdio.h>
 
-
-
+#include <QStringList>
 
 namespace Ui {
 class MainWindow;
@@ -29,12 +29,20 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
-
-
     ~MainWindow();
 
 public slots:
-    void debugPrint(QString value);
+    void recieveMessage(QString value);
+
+    void enableGUI(bool enabled);
+
+    void writeExportedGraphMLData(QString filename, QString data);
+
+signals:
+    void init_enableGUI(bool enabled);
+
+    void init_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
+    void init_ExportGraphML(QString file);
 
 private slots:
     void on_actionImport_GraphML_triggered();
@@ -48,9 +56,11 @@ private slots:
     void on_pushButton_2_clicked();
 
 private:
+    void createNewModel();
 
-
+    QThread *modelThread;
     Ui::MainWindow *ui;
+    QProgressDialog *progressDialog;
     Model *model;
 };
 

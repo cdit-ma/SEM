@@ -3,10 +3,13 @@
 #include <QObject>
 #include <QMap>
 
-Model::Model(QObject *parent): QThread(parent)
+Model::Model(): QObject()
 {
     qDebug() << "Constructed New Model";
     this->parentGraph = new Graph("Parent Graph");
+
+    int componentCount = this->parentGraph->getChildren().size();
+    emit setComponentCount(componentCount);
 }
 
 Model::~Model()
@@ -17,117 +20,7 @@ Model::~Model()
 
 bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
 {
-    this->importGraphMLData = inputGraphML;
-    this->importGraphMLParent = currentParent;
-    this->start();
-
-    return true;
-}
-
-
-
-QString Model::exportGraphML()
-{
-
-    QString returnable = QString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    returnable +="<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
-
-    for(int i=0; i < this->keys.size();i++){
-        returnable += this->keys[i]->toGraphML(1);
-    }
-    returnable += this->parentGraph->toGraphML(1);
-
-    returnable +="</graphml>\n";
-
-    return returnable;
-
-}
-
-QVector<Edge *> Model::getAllEdges() const
-{
-    return this->edges;
-
-}
-
-Graph *Model::getGraph()
-{
-    return this->parentGraph;
-}
-
-GraphMLKey*  Model::parseGraphMLKey(QXmlStreamReader &xml)
-{
-    QString name = getAttribute(xml,"attr.name");
-    QString typeStr = getAttribute(xml,"attr.type");;
-    QString forStr = getAttribute(xml,"for");;
-
-    GraphMLKey *attribute = new GraphMLKey(name, typeStr, forStr);
-
-
-    for(int i = 0 ; i < this->keys.size(); i ++){
-        if( this->keys[i]->operator ==(*attribute)){
-            delete(attribute);
-            return this->keys[i];
-        }
-    }
-
-    this->keys.append(attribute);
-    return attribute;
-}
-
-
-Node *Model::parseGraphMLNode(QString ID, QVector<GraphMLData *> data)
-{
-
-    Node *newNode;
-
-    QString kind;
-    //Get kind from nodeData.
-    for(int i=0; i < data.size(); i++){
-        if(data[i]->getKey()->getName() == "kind"){
-            kind = data[i]->getValue();
-        }
-    }
-
-    if(kind == "ComponentAssembly"){
-        newNode = new ComponentAssembly(ID);
-    }else if(kind == "ComponentInstance"){
-        newNode = new ComponentInstance(ID);
-    }else if(kind == "Attribute"){
-        newNode = new Attribute(ID);
-    }else if(kind == "OutEventPort"){
-        newNode = new OutputEventPort(ID);
-    }else if(kind == "InEventPort"){
-        newNode = new InputEventPort(ID);
-    }else{
-        qDebug() << "Kind:"<<kind << "Not implemented";
-    }
-
-    newNode->attachData(data);
-
-    return newNode;
-}
-
-
-QString Model::getAttribute(QXmlStreamReader &xml, QString attrID)
-{
-    QXmlStreamAttributes attributes = xml.attributes();
-
-    if(attributes.hasAttribute(attrID)){
-        return attributes.value(attrID).toString();
-    }else{
-        qCritical() << "Expecting Attribute key" <<attrID;
-        return "";
-    }
-
-}
-
-bool Model::importGraphMLThread()
-{
-    QString inputGraphML = this->importGraphMLData;
-    GraphMLContainer *currentParent = this->importGraphMLParent;
-
     int lines = inputGraphML.count("\n");
-
 
     //Construct a Stream Reader for the XML graph
     QXmlStreamReader xml(inputGraphML);
@@ -169,16 +62,13 @@ bool Model::importGraphMLThread()
         return false;
     }
 
-
-    int componentCounts = this->parentGraph->getChildren().size();
-    emit componentCount(componentCounts);
-
+     int componentCount = this->parentGraph->getChildren().size();
 
 
     while(!xml.atEnd()){
         double percentage = ((double)xml.lineNumber() / (double)lines) * 100;
 
-        updatePercentage(percentage);
+        emit progressDialog_SetValue(percentage);
         //Read the next tag
         xml.readNext();
 
@@ -296,7 +186,7 @@ bool Model::importGraphMLThread()
             if(nodeID != ""){
                 //Construct the specialised Node
                 Node* newNode = this->parseGraphMLNode(nodeID, currentNodeData);
-                emit componentCount(componentCounts+=2);
+                emit setComponentCount(componentCount+=2);
                 //Clear the Node Data List.
                 currentNodeData.clear();
 
@@ -366,21 +256,146 @@ bool Model::importGraphMLThread()
         }
     }
 
+
     return true;
-
 }
 
-bool Model::event(QEvent *)
+
+
+QString Model::exportGraphML()
 {
-    return true;
+    emit progressDialog_SetValue(0);
+
+    QString returnable = QString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    returnable +="<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
+
+    for(int i=0; i < this->keys.size();i++){
+        returnable += this->keys[i]->toGraphML(1);
+    }
+    emit progressDialog_SetValue(10);
+    returnable += this->parentGraph->toGraphML(1);
+
+    returnable +="</graphml>\n";
+
+    emit progressDialog_SetValue(100);
+    return returnable;
 
 }
 
-void Model::run()
+QVector<Edge *> Model::getAllEdges() const
 {
-    this->importGraphMLThread();
+    return this->edges;
+
 }
 
+Graph *Model::getGraph()
+{
+    return this->parentGraph;
+}
+
+void Model::init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent)
+{
+    emit progressDialog_Show();
+    emit enableGUI(false);
+
+    int files = inputGraphMLData.size();
+
+    for (int i = 0; i < files ; i++){
+        //Update Dialogs etc.
+        emit progressDialog_SetText(QString("Importing GraphML file %1 / %2").arg(QString::number(i + 1), QString::number(files)));
+
+        QString currentGraphMLData = inputGraphMLData.at(i);
+        importGraphML(currentGraphMLData, currentParent);
+    }
+
+    emit enableGUI(true);
+    emit progressDialog_Hide();
+
+}
+
+void Model::init_ExportGraphML(QString file)
+{
+    emit progressDialog_Show();
+    emit enableGUI(false);
+
+    emit progressDialog_SetText(QString("Exporting Model to GraphML"));
+
+    QString data = exportGraphML();
+    emit returnExportedGraphMLData(file, data);
+
+    emit enableGUI(true);
+    emit progressDialog_Hide();
+}
+
+
+
+
+GraphMLKey*  Model::parseGraphMLKey(QXmlStreamReader &xml)
+{
+    QString name = getAttribute(xml,"attr.name");
+    QString typeStr = getAttribute(xml,"attr.type");;
+    QString forStr = getAttribute(xml,"for");;
+
+    GraphMLKey *attribute = new GraphMLKey(name, typeStr, forStr);
+
+
+    for(int i = 0 ; i < this->keys.size(); i ++){
+        if( this->keys[i]->operator ==(*attribute)){
+            delete(attribute);
+            return this->keys[i];
+        }
+    }
+
+    this->keys.append(attribute);
+    return attribute;
+}
+
+
+Node *Model::parseGraphMLNode(QString ID, QVector<GraphMLData *> data)
+{
+
+    Node *newNode;
+
+    QString kind;
+    //Get kind from nodeData.
+    for(int i=0; i < data.size(); i++){
+        if(data[i]->getKey()->getName() == "kind"){
+            kind = data[i]->getValue();
+        }
+    }
+
+    if(kind == "ComponentAssembly"){
+        newNode = new ComponentAssembly(ID);
+    }else if(kind == "ComponentInstance"){
+        newNode = new ComponentInstance(ID);
+    }else if(kind == "Attribute"){
+        newNode = new Attribute(ID);
+    }else if(kind == "OutEventPort"){
+        newNode = new OutputEventPort(ID);
+    }else if(kind == "InEventPort"){
+        newNode = new InputEventPort(ID);
+    }else{
+        qDebug() << "Kind:"<<kind << "Not implemented";
+    }
+
+    newNode->attachData(data);
+
+    return newNode;
+}
+
+
+QString Model::getAttribute(QXmlStreamReader &xml, QString attrID)
+{
+    QXmlStreamAttributes attributes = xml.attributes();
+
+    if(attributes.hasAttribute(attrID)){
+        return attributes.value(attrID).toString();
+    }else{
+        qCritical() << "Expecting Attribute key" <<attrID;
+        return "";
+    }
+
+}
 
 int Model::getNodeCount()
 {

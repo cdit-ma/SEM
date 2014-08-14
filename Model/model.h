@@ -12,12 +12,17 @@
 #include "outputeventport.h"
 #include "graphmlkey.h"
 #include "graphmldata.h"
+#include <QStringList>
 
 #include <QString>
 #include <QVector>
 #include <QThread>
 #include <QObject>
 #include <QXmlStreamReader>
+
+#ifdef Q_OS_WIN
+#include <windows.h> // for Sleep
+#endif
 
 struct EdgeStruct
 {
@@ -28,11 +33,11 @@ struct EdgeStruct
     QVector<GraphMLData *> data;
 };
 
-class Model: public QThread
+class Model: public QObject
 {
     Q_OBJECT
 public:
-    Model(QObject *parent);
+    Model();
     ~Model();
     //Imports
 
@@ -43,9 +48,21 @@ public:
     QVector<Edge *> getAllEdges() const;
      int getNodeCount();
     Graph* getGraph();
+
 signals:
-    void updatePercentage(int percentage);
-    void componentCount(int percentage);
+    void enableGUI(bool lock);
+
+    void progressDialog_Show();
+    void progressDialog_Hide();
+    void progressDialog_SetValue(int perc);
+    void progressDialog_SetText(QString text);
+
+    void setComponentCount(int count);
+
+    void returnExportedGraphMLData(QString file, QString data);
+public slots:
+    void init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent=0);
+    void init_ExportGraphML(QString file);
 
 private:
     GraphMLKey* parseGraphMLKey(QXmlStreamReader& xml);
@@ -57,7 +74,6 @@ private:
     QString getAttribute(QXmlStreamReader& xml, QString attrID);
 
 
-    bool importGraphMLThread();
 
     EdgeStruct parseEdge(QXmlStreamReader &xml);
 
@@ -70,19 +86,9 @@ private:
     QVector<Node *> nodes;
 
 
-
-    // QObject interface
-public:
-    bool event(QEvent *);
-
-    // QThread interface
-protected:
-    void run();
-
 private:
     double percentage;
-    QString importGraphMLData;
-    GraphMLContainer *importGraphMLParent;
+    bool isOperating;
 
 };
 #endif // MODEL_H

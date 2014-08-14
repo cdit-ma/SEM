@@ -15,10 +15,14 @@
 #include "Model/outputeventport.h"
 #include "mainwindow.h"
 #include <QDebug>
+#include "qlogger.h"
 
+
+#include <QObject>
 #include <QFile>
 #include <QCoreApplication>
 #include <QTextStream>
+
 
 bool adopt(GraphMLContainer* object1, GraphMLContainer *object2){
     if(object1->isAdoptLegal(object2)){
@@ -28,7 +32,7 @@ bool adopt(GraphMLContainer* object1, GraphMLContainer *object2){
     return false;
 }
 
-bool connect(GraphMLContainer* object1, GraphMLContainer *object2){
+bool connect2(GraphMLContainer* object1, GraphMLContainer *object2){
     if(object1->isEdgeLegal(object2)){
         Edge * newEdge = new Edge(object1,object2);
         return true;
@@ -68,7 +72,9 @@ bool writeFile(QString filePointer, QString data){
 
 }
 
+
 static MainWindow* window;
+static QLogger* newlogger;
 
 void myMessageHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg){
     QString txt;
@@ -87,7 +93,8 @@ void myMessageHandler(QtMsgType type, const QMessageLogContext& context, const Q
     break;
     }
 
-    window->debugPrint(txt);
+
+    emit newlogger->debugPrint(txt);
 }
 
 
@@ -96,9 +103,21 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
 
-   window = new MainWindow();
-   //qInstallMessageHandler(myMessageHandler);
+    newlogger = new QLogger();
+    window = new MainWindow();
+
+  //connect(this->model, SIGNAL(componentCount(int)), this->ui->componentCount, SLOT(display(int)));
+
+  // qInstallMessageHandler(myMessageHandler);
+  // QObject::connect(newlogger, SIGNAL(debugPrint(QString)), window, SLOT(recieveMessage(QString)));
+
+
+
+
+
     window->show();
+
+
     /*
     Model *model = new Model();
 
