@@ -57,6 +57,7 @@ signals:
     void progressDialog_SetValue(int perc);
     void progressDialog_SetText(QString text);
 
+    void constructNodeItem(Node* node);
     void setComponentCount(int count);
 
     void returnExportedGraphMLData(QString file, QString data);

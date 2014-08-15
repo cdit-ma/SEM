@@ -201,6 +201,7 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                 //Set the currentParent to the Node Construced
                 currentParent = newNode;
 
+
                 //Navigate back to the correct parent.
                 while(parentDepth > 0){
                     currentParent = currentParent->getParent();
@@ -215,6 +216,10 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
 
                 //Add the new Node to the lookup table.
                 nodeLookup.insert(nodeID, newNode);
+
+
+                //Construct in GUI
+                emit constructNodeItem(newNode);
 
                 //If we have encountered a Graph object, we should point it to it's parent Node to allow links to Graph's
                 if(graphID != ""){

@@ -15,6 +15,7 @@
 #include "Model/componentassembly.h"
 #include "Model/inputeventport.h"
 #include "Model/outputeventport.h"
+#include "GUI/nodeitem.h"
 #include <stdio.h>
 
 #include <QStringList>
@@ -38,6 +39,9 @@ public slots:
 
     void writeExportedGraphMLData(QString filename, QString data);
 
+    void setNodeSelected(NodeItem* node);
+    void makeNode(Node* node);
+    void exportNodeSelected(Node * node);
 signals:
     void init_enableGUI(bool enabled);
 
@@ -57,11 +61,13 @@ private slots:
 
 private:
     void createNewModel();
-
+    NodeItem *previousParent;
     QThread *modelThread;
     Ui::MainWindow *ui;
     QProgressDialog *progressDialog;
     Model *model;
+    QGraphicsScene *scene;
+    QHash<Node *, NodeItem*> hash;
 };
 
 #endif // MAINWINDOW_H

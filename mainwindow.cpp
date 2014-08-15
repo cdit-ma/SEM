@@ -8,12 +8,25 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    model = 0;
+    modelThread = new QThread();
+previousParent = 0;
+    scene = new QGraphicsScene(this);
+    ui->graphicsView->setScene(scene);
+
+    //setDragMode(RubberBandDrag);
+    ui->graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
+    //setDragMode()
+
+     ui->graphicsView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+      ui->graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    //Set-up the view
+     ui->graphicsView->setSceneRect(0, 0, 2000, 2000);
 
 
-    this->modelThread = new QThread();
-    this->model= new Model();
-
-    this->progressDialog = new QProgressDialog(this);
+    progressDialog = new QProgressDialog(this);
+    progressDialog->setAutoClose(false);
 
     //Connect Enable
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->DebugOuputText,SLOT(setEnabled(bool)));
@@ -22,7 +35,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton_2,SLOT(setEnabled(bool)));
 
-    this->createNewModel();
+
+    createNewModel();
 }
 
 
@@ -54,6 +68,38 @@ void MainWindow::writeExportedGraphMLData(QString filename, QString data)
     }catch(...){
         qCritical() << "Export Failed!" ;
     }
+
+}
+
+void MainWindow::setNodeSelected(NodeItem *node)
+{
+    ui->DebugOuputText->append(node->node->getData("label"));
+    ui->graphicsView->repaint();
+}
+
+void MainWindow::makeNode(Node *node)
+{
+    if(node->getData("kind") == "ComponentAssembly" ||node->getData("kind") == "ComponentInstance" || node->getData("kind") == "InEventPort" || node->getData("kind") == "OutEventPort"){
+
+        NodeItem* parent = 0;
+        if(previousParent->node->isAncestorOf(node)){
+            parent = previousParent;
+        }
+
+        NodeItem* nodeMade = new NodeItem(node, parent);
+
+        connect(nodeMade, SIGNAL(setSelected(NodeItem*)), this, SLOT(setNodeSelected(NodeItem*)));
+        connect(nodeMade, SIGNAL(exportSelected(Node*)), this, SLOT(exportNodeSelected(Node*)));
+        scene->addItem((QGraphicsItem *)nodeMade);
+
+        previousParent = nodeMade;
+    }
+}
+
+void MainWindow::exportNodeSelected(Node * node)
+{
+    this->ui->DebugOuputText->clear();
+    ui->DebugOuputText->append(node->toGraphML());
 
 }
 
@@ -129,9 +175,9 @@ void MainWindow::on_pushButton_2_clicked()
 void MainWindow::createNewModel()
 {
     if(model != 0){
-        model->~Model();
+       // model->~Model();
     }
-
+    qDebug() << "TEST";
     model = new Model();
 
 
@@ -148,6 +194,8 @@ void MainWindow::createNewModel()
     //Returned Data Signals
     connect(model, SIGNAL(returnExportedGraphMLData(QString, QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
 
+
+    connect(model, SIGNAL(constructNodeItem(Node*, Node*)), this, SLOT(makeNode(Node*, Node*)));
     //Connect to Models Slots
     connect(this, SIGNAL(init_ImportGraphML(QStringList , GraphMLContainer *)), model, SLOT(init_ImportGraphML(QStringList , GraphMLContainer*)));
     connect(this, SIGNAL(init_ExportGraphML(QString)), model, SLOT(init_ExportGraphML(QString)));

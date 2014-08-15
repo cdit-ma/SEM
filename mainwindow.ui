@@ -18,6 +18,9 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
+       <widget class="QGraphicsView" name="graphicsView"/>
+      </item>
+      <item>
        <widget class="QTextBrowser" name="DebugOuputText"/>
       </item>
       <item>

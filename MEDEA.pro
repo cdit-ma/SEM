@@ -39,7 +39,8 @@ SOURCES += main.cpp \
     Model/attribute.cpp \
     Model/graphmlkey.cpp \
     mainwindow.cpp \
-    qlogger.cpp
+    qlogger.cpp \
+    GUI/nodeitem.cpp
 
 HEADERS += \
     Model/graphml.h \
@@ -64,7 +65,8 @@ HEADERS += \
     Model/attribute.h \
     Model/graphmlkey.h \
     mainwindow.h \
-    qlogger.h
+    qlogger.h \
+    GUI/nodeitem.h
 
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
