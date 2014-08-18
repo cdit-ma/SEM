@@ -9,6 +9,7 @@ class GraphMLContainer;
 
 //Base class of an edge object (Treated as Class for extended Node Types). Extends the GraphML Abstract Base Class.
 class Edge: public GraphML{
+    Q_OBJECT
 public:
     //Constructor
     Edge(GraphMLContainer* source, GraphMLContainer* destination, QString name="");

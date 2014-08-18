@@ -10,6 +10,11 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
     }
 }
 
+GraphMLData::~GraphMLData()
+{
+
+}
+
 void GraphMLData::setValue(QString value)
 {
     this->value = value;

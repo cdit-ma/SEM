@@ -4,6 +4,7 @@
 
 class InputEventPort : public EventPort
 {
+        Q_OBJECT
 public:
     InputEventPort(QString name);
     ~InputEventPort();

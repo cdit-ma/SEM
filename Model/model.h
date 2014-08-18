@@ -75,13 +75,15 @@ private:
     QString getAttribute(QXmlStreamReader& xml, QString attrID);
 
 
+    void reset();
+    void removeKeys();
 
     EdgeStruct parseEdge(QXmlStreamReader &xml);
 
     Graph *parentGraph;
 
 
-    QVector<GraphMLKey *> keys;
+    QVector<GraphMLKey*> keys;
     QVector<Graph*> graphs;
     QVector<Edge *> edges;
     QVector<Node *> nodes;
@@ -90,6 +92,7 @@ private:
 private:
     double percentage;
     bool isOperating;
+    int loadCount;
 
 };
 #endif // MODEL_H

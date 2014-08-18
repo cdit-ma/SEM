@@ -11,6 +11,10 @@ Graph::Graph(QString name):GraphMLContainer(GraphML::GRAPH, name)
     //qDebug() << "Constructed Graph["<< this->getName() <<"]";
 }
 
+Graph::~Graph()
+{
+}
+
 
 bool Graph::isAdoptLegal(GraphMLContainer *child)
 {

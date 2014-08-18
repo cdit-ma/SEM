@@ -33,7 +33,12 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
     this->forKindStr = forStr;
     this->defaultValue = "";
 
-    this->type = type;
+    //this->type = type;
+}
+
+GraphMLKey::~GraphMLKey()
+{
+
 }
 
 void GraphMLKey::setDefaultValue(QString value)
@@ -48,13 +53,13 @@ QString GraphMLKey::getDefaultValue() const
 
 bool GraphMLKey::operator==(const GraphMLKey &other) const
 {
-    if(this->getType() != other.getType()){
+    if(getType() != other.getType()){
         return false;
     }
-    if(this->getName() != other.getName()){
+    if(getName() != other.getName()){
         return false;
     }
-    if(this->getForKind() != other.getForKind()){
+    if(getForKind() != other.getForKind()){
         return false;
     }
     return true;

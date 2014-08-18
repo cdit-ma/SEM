@@ -5,6 +5,7 @@
 #include "graphmlcontainer.h"
 class Graph : public GraphMLContainer
 {
+    Q_OBJECT
 public:
     //Constructor (May have more args)
     Graph(QString name);

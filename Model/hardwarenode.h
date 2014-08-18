@@ -4,6 +4,7 @@
 
 class HardwareNode : public Node
 {
+        Q_OBJECT
 public:
     HardwareNode(QString name);
     ~HardwareNode();

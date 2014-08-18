@@ -8,6 +8,11 @@ InputEventPort::InputEventPort(QString name):EventPort(name)
     qDebug() << "Constructed InputEventPort: "<< this->getName();
 }
 
+InputEventPort::~InputEventPort()
+{
+
+}
+
 bool InputEventPort::isAdoptLegal(GraphMLContainer *child)
 {
     return false;

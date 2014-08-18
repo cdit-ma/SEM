@@ -7,6 +7,7 @@
 
 class GraphMLContainer : public GraphML
 {
+        Q_OBJECT
     //Friend to Edge, meaning Edge can access the private members of this class!
     friend class Edge;
 public:
@@ -41,6 +42,9 @@ public:
 
     //Removes all edges.
     void removeEdges();
+
+    //Remove all Children
+    void removeChildren();
 
     /*                      */
     /* CHILDREN FUNCTIONS   */

@@ -6,6 +6,7 @@
 
 class EventPort : public Node
 {
+        Q_OBJECT
 public:
     EventPort(QString name);
     ~EventPort();

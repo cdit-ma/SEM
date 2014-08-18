@@ -6,8 +6,10 @@
 #include <QString>
 
 class GraphMLData: public GraphML{
+        Q_OBJECT
 public:
     GraphMLData(GraphMLKey* key, QString value);
+    ~GraphMLData();
     void setValue(QString value);
     QString getValue() const;
     GraphMLKey* getKey();

@@ -3,14 +3,15 @@
 
 #include <QVector>
 #include <QString>
+#include <QObject>
 
 //Forward Declaration
 class GraphMLData;
 
 //Abstract Base class for ALL GraphML objects used in a graph. Extended by GraphMLContainer.
 //Some pure Virtual methods. Cannot be directly Instantiated.
-class GraphML{
-
+class GraphML : public QObject{
+    Q_OBJECT
 public:
     enum KIND{NONE, GRAPH, NODE, EDGE, ALL, KEY, DATA};
 
@@ -31,8 +32,12 @@ public:
     QString getID() const;
 
     QString getData(QString keyName);
+
     //Get a list of Data objects contained by this GraphML
     QVector<GraphMLData *> getData();
+
+    //Remove all Data
+    void removeData();
 
     //Attach a data object contained by this GraphML
     void attachData(GraphMLData* data);

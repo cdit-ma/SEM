@@ -82,9 +82,11 @@ void MainWindow::makeNode(Node *node)
     if(node->getData("kind") == "ComponentAssembly" ||node->getData("kind") == "ComponentInstance" || node->getData("kind") == "InEventPort" || node->getData("kind") == "OutEventPort"){
 
         NodeItem* parent = 0;
+        /*
         if(previousParent->node->isAncestorOf(node)){
             parent = previousParent;
         }
+        */
 
         NodeItem* nodeMade = new NodeItem(node, parent);
 
@@ -92,7 +94,7 @@ void MainWindow::makeNode(Node *node)
         connect(nodeMade, SIGNAL(exportSelected(Node*)), this, SLOT(exportNodeSelected(Node*)));
         scene->addItem((QGraphicsItem *)nodeMade);
 
-        previousParent = nodeMade;
+        //previousParent = nodeMade;
     }
 }
 
@@ -138,6 +140,7 @@ void MainWindow::on_actionImport_GraphML_triggered()
         }
     }
 
+    qCritical() << "TEST";
      emit init_ImportGraphML(fileData, NULL);
 }
 
@@ -175,11 +178,10 @@ void MainWindow::on_pushButton_2_clicked()
 void MainWindow::createNewModel()
 {
     if(model != 0){
-       // model->~Model();
+       model->~Model();
     }
-    qDebug() << "TEST";
     model = new Model();
-
+    qDebug() << "GG";
 
     //Connect to Models Signals
     connect(model, SIGNAL(enableGUI(bool)), this, SLOT(enableGUI(bool)));
@@ -195,7 +197,7 @@ void MainWindow::createNewModel()
     connect(model, SIGNAL(returnExportedGraphMLData(QString, QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
 
 
-    connect(model, SIGNAL(constructNodeItem(Node*, Node*)), this, SLOT(makeNode(Node*, Node*)));
+    //connect(model, SIGNAL(constructNodeItem(Node*)), this, SLOT(makeNode(Node*)));
     //Connect to Models Slots
     connect(this, SIGNAL(init_ImportGraphML(QStringList , GraphMLContainer *)), model, SLOT(init_ImportGraphML(QStringList , GraphMLContainer*)));
     connect(this, SIGNAL(init_ExportGraphML(QString)), model, SLOT(init_ExportGraphML(QString)));

@@ -7,6 +7,16 @@ GraphMLContainer::GraphMLContainer(GraphML::KIND kind, QString name):GraphML(kin
 
 GraphMLContainer::~GraphMLContainer()
 {
+    qDebug() << "Destructing GraphMLContainer: " << this->getName();
+
+    qDebug() << "Removing Edges!";
+    removeEdges();
+    qDebug() << "Removed Edges";
+
+    qDebug() << "Removing Children";
+    removeChildren();
+    qDebug() << "Removed Children";
+
 
 }
 
@@ -68,10 +78,23 @@ QVector<Edge *> GraphMLContainer::getEdges(int depth) const
 void GraphMLContainer::removeEdges()
 {
     //Delete all Edges
-    while(!this->edges.isEmpty()){
-        delete this->edges.first();
+    while(!edges.isEmpty()){
+        Edge* current = edges.first();
+        edges.removeFirst();
+        delete current;
     }
 }
+
+void GraphMLContainer::removeChildren()
+{
+    //Delete all Children
+    while(!descendants.isEmpty()){
+        GraphMLContainer* current = descendants.first();
+        descendants.removeFirst();
+        delete current;
+    }
+}
+
 
 void GraphMLContainer::adopt(GraphMLContainer *child)
 {

@@ -18,7 +18,7 @@ Node::Node(QString name): GraphMLContainer(GraphML::NODE, name)
 }
 
 Node::~Node(){
-    qDebug() << "Destructing Node";
+    qDebug() << "Destructing Node: " << this->getID();
 }
 
 QString Node::toGraphML(qint32 indentationLevel)

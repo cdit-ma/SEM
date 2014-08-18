@@ -7,6 +7,7 @@
 
 class Node : public GraphMLContainer
 {
+        Q_OBJECT
 public:
     Node(QString name);
     ~Node();

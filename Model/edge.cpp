@@ -23,9 +23,10 @@ Edge::Edge(GraphMLContainer *source, GraphMLContainer *destination, QString name
 Edge::~Edge()
 {
     //Remove Edge!
-    this->getSource()->removeEdge(this);
-    this->getDestination()->removeEdge(this);
     qDebug() << QString("Removed Edge[%1]!").arg(this->getID());
+
+    getSource()->removeEdge(this);
+    getDestination()->removeEdge(this);
 };
 
 GraphMLContainer *Edge::getSource() const

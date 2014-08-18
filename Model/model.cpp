@@ -6,15 +6,18 @@
 Model::Model(): QObject()
 {
     qDebug() << "Constructed New Model";
+
     this->parentGraph = new Graph("Parent Graph");
 
     int componentCount = this->parentGraph->getChildren().size();
+    loadCount=0;
     emit setComponentCount(componentCount);
 }
 
 Model::~Model()
 {
     qDebug() << "Killing Model";
+    delete parentGraph;
 
 }
 
@@ -310,12 +313,12 @@ void Model::init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *c
         emit progressDialog_SetText(QString("Importing GraphML file %1 / %2").arg(QString::number(i + 1), QString::number(files)));
 
         QString currentGraphMLData = inputGraphMLData.at(i);
-        importGraphML(currentGraphMLData, currentParent);
+        bool result = importGraphML(currentGraphMLData, currentParent);
     }
+
 
     emit enableGUI(true);
     emit progressDialog_Hide();
-
 }
 
 void Model::init_ExportGraphML(QString file)
@@ -330,6 +333,7 @@ void Model::init_ExportGraphML(QString file)
 
     emit enableGUI(true);
     emit progressDialog_Hide();
+
 }
 
 
@@ -338,15 +342,14 @@ void Model::init_ExportGraphML(QString file)
 GraphMLKey*  Model::parseGraphMLKey(QXmlStreamReader &xml)
 {
     QString name = getAttribute(xml,"attr.name");
-    QString typeStr = getAttribute(xml,"attr.type");;
-    QString forStr = getAttribute(xml,"for");;
+    QString typeStr = getAttribute(xml,"attr.type");
+    QString forStr = getAttribute(xml,"for");
 
     GraphMLKey *attribute = new GraphMLKey(name, typeStr, forStr);
 
-
-    for(int i = 0 ; i < this->keys.size(); i ++){
-        if( this->keys[i]->operator ==(*attribute)){
-            delete(attribute);
+    for(int i = 0 ; i < keys.size(); i ++){
+        if(keys[i]->operator ==(*attribute)){
+            delete attribute;
             return this->keys[i];
         }
     }
@@ -398,6 +401,25 @@ QString Model::getAttribute(QXmlStreamReader &xml, QString attrID)
     }else{
         qCritical() << "Expecting Attribute key" <<attrID;
         return "";
+    }
+
+}
+
+void Model::reset()
+{
+    removeKeys();
+
+    delete parentGraph;
+    parentGraph = new Graph("Parent Graph");
+}
+
+void Model::removeKeys()
+{
+    //Delete all Children
+    while(!keys.isEmpty()){
+        GraphMLKey* current = keys.first();
+        keys.removeFirst();
+        delete current;
     }
 
 }

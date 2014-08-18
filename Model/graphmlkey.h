@@ -5,9 +5,11 @@
 
 class GraphMLKey: public GraphML
 {
+        Q_OBJECT
 public:
     enum TYPE {BOOLEAN, INT, LONG, FLOAT, DOUBLE, STRING};
     GraphMLKey(QString name, QString typeStr, QString forStr);
+    ~GraphMLKey();
 
     void setDefaultValue(QString value);
     QString getDefaultValue() const;

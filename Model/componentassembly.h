@@ -4,6 +4,7 @@
 
 class ComponentAssembly : public Node
 {
+            Q_OBJECT
 public:
     ComponentAssembly(QString name);
     ~ComponentAssembly();

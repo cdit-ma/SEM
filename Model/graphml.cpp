@@ -9,11 +9,24 @@ GraphML::GraphML(GraphML::KIND kind, QString name)
 
     this->kind = kind;
     this->setName(name);
+
+    QObject::QObject(this);
+
 }
 
 GraphML::~GraphML()
 {
-    //Destructor.
+    removeData();
+}
+
+void GraphML::removeData(){
+
+    //Delete all Data
+    while(!attachedData.isEmpty()){
+        GraphMLData* current = attachedData.first();
+        attachedData.removeFirst();
+        delete current;
+    }
 }
 
 void GraphML::setName(QString name)
