@@ -19,6 +19,7 @@ class NodeItem : public QObject, QGraphicsItem
 
 public:
        NodeItem(Node *node, NodeItem *parent);
+       ~NodeItem();
        QRectF boundingRect() const;
        void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
        Node* node;
@@ -27,6 +28,10 @@ public:
 signals:
        void setSelected(NodeItem*);
        void exportSelected(Node*);
+       void updateData(QString key, QString value);
+public slots:
+       void recieveData();
+       void deleteD(GraphMLContainer*);
 protected:
        void mousePressEvent(QGraphicsSceneMouseEvent *event);
        void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -38,6 +43,8 @@ private:
        QString name;
        QString kind;
        QRect bRec;
+
+        QGraphicsTextItem* label;
 
 
         bool isPressed;

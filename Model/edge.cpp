@@ -6,35 +6,41 @@
 int Edge::_Eid = 0;
 
 
-Edge::Edge(GraphMLContainer *source, GraphMLContainer *destination, QString name):GraphML(GraphML::EDGE, name)
+Edge::Edge(GraphMLContainer *s, GraphMLContainer *d, QString name):GraphML(GraphML::EDGE, name)
 {
-    this->setID(QString("e%1").arg(this->_Eid++));
+    setID(QString("e%1").arg(this->_Eid++));
 
     //Set the instance Variables
-    this->source = source;
-    this->destination = destination;
+    source = s;
+
+    destination = d;
 
     //Attach the Edge to its source/Destination
-    this->getSource()->addEdge(this);
-    this->getDestination()->addEdge(this);
-
+    source->addEdge(this);
+    destination->addEdge(this);
 }
 
 Edge::~Edge()
 {
     //Remove Edge!
+    qDebug() << "Destination: Number of Edges: " << destination->getEdges().size();
+    destination->removeEdge(this);
+    qDebug() << "Removed Edge from Destination!";
+
+    qDebug() << "Source: Number of Edges: " << destination->getEdges().size();
+    source->removeEdge(this);
+    qDebug() << "Removed Edge from Source!";
+
+
     qDebug() << QString("Removed Edge[%1]!").arg(this->getID());
+}
 
-    getSource()->removeEdge(this);
-    getDestination()->removeEdge(this);
-};
-
-GraphMLContainer *Edge::getSource() const
+GraphMLContainer *Edge::getSource()
 {
     return this->source;
-};
+}
 
-GraphMLContainer *Edge::getDestination() const
+GraphMLContainer *Edge::getDestination()
 {
     return this->destination;
 
@@ -42,8 +48,8 @@ GraphMLContainer *Edge::getDestination() const
 
 GraphMLContainer *Edge::getContainingGraph()
 {
-    GraphMLContainer * source = this->getSource();
-    GraphMLContainer * currentLookup = this->getDestination();
+    GraphMLContainer* source = this->getSource();
+    GraphMLContainer* currentLookup = this->getDestination();
 
     while(currentLookup != 0){
         if(currentLookup->isAncestorOf(source)){

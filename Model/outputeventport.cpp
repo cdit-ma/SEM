@@ -33,6 +33,11 @@ bool OutputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
         return false;
     }
 
+    if(this->isConnected(attachableObject)){
+        qCritical() << "Cannot connect 2 already connected ports!";
+        return false;
+    }
+
     return true;
 
 }

@@ -40,11 +40,17 @@ public slots:
     void writeExportedGraphMLData(QString filename, QString data);
 
     void setNodeSelected(NodeItem* node);
+    void deselectNode(QObject* obj);
     void makeNode(Node* node);
     void exportNodeSelected(Node * node);
+
+    void deleteComponent(GraphMLContainer* graph);
+
+    void updateText(QString data);
 signals:
     void init_enableGUI(bool enabled);
 
+    void removeComponent(GraphMLContainer* v);
     void init_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
     void init_ExportGraphML(QString file);
 
@@ -67,6 +73,7 @@ private:
     QProgressDialog *progressDialog;
     Model *model;
     QGraphicsScene *scene;
+    NodeItem* currentSelected;
     QHash<Node *, NodeItem*> hash;
 };
 

@@ -45,7 +45,7 @@ public:
 
     QString exportGraphML();
 
-    QVector<Edge *> getAllEdges() const;
+    QVector<Edge *> getAllEdges();
      int getNodeCount();
     Graph* getGraph();
 
@@ -60,10 +60,20 @@ signals:
     void constructNodeItem(Node* node);
     void setComponentCount(int count);
 
+    void updateGUIComponent(GraphMLContainer* component);
+
     void returnExportedGraphMLData(QString file, QString data);
+    void removeUIComponent(GraphMLContainer*);
 public slots:
+
     void init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent=0);
     void init_ExportGraphML(QString file);
+    void deleteUIComponent(GraphMLContainer * comp);
+
+
+    void updatePosition(GraphMLContainer* comp, QPointF pos);
+
+
 
 private:
     GraphMLKey* parseGraphMLKey(QXmlStreamReader& xml);

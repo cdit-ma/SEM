@@ -16,12 +16,12 @@ public:
     ~Edge();
 
     //Get the source graphml object of this Edge
-    GraphMLContainer *getSource() const;
+    GraphMLContainer* getSource();
 
     //Get the destination graphml object of this Edge
-    GraphMLContainer *getDestination() const;
+    GraphMLContainer* getDestination();
 
-    GraphMLContainer *getContainingGraph();
+    GraphMLContainer* getContainingGraph();
 
     //Return the graphml representation of this
     QString toGraphML(qint32 indentationLevel=0);

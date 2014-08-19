@@ -35,7 +35,7 @@ previousParent = 0;
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton_2,SLOT(setEnabled(bool)));
 
-
+    connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
     createNewModel();
 }
 
@@ -73,13 +73,26 @@ void MainWindow::writeExportedGraphMLData(QString filename, QString data)
 
 void MainWindow::setNodeSelected(NodeItem *node)
 {
-    ui->DebugOuputText->append(node->node->getData("label"));
+    ui->DebugOuputText->append(node->node->getDataValue("label"));
+    ui->DebugOuputText->append(QString("Edges: %1 ").arg(node->node->getEdges().size()));
+
     ui->graphicsView->repaint();
+
+    currentSelected = node;
+    ui->lineEdit->setText(node->node->getDataValue("label"));
+
+}
+
+void MainWindow::deselectNode(QObject *obj)
+{
+    if((NodeItem*) obj == currentSelected){
+        currentSelected = 0;
+    }
 }
 
 void MainWindow::makeNode(Node *node)
 {
-    if(node->getData("kind") == "ComponentAssembly" ||node->getData("kind") == "ComponentInstance" || node->getData("kind") == "InEventPort" || node->getData("kind") == "OutEventPort"){
+    if(node->getDataValue("kind") == "ComponentAssembly" ||node->getDataValue("kind") == "ComponentInstance" || node->getDataValue("kind") == "InEventPort" || node->getDataValue("kind") == "OutEventPort"){
 
         NodeItem* parent = 0;
         /*
@@ -90,8 +103,14 @@ void MainWindow::makeNode(Node *node)
 
         NodeItem* nodeMade = new NodeItem(node, parent);
 
+        hash[node] = nodeMade;
+
         connect(nodeMade, SIGNAL(setSelected(NodeItem*)), this, SLOT(setNodeSelected(NodeItem*)));
         connect(nodeMade, SIGNAL(exportSelected(Node*)), this, SLOT(exportNodeSelected(Node*)));
+
+        connect(nodeMade, SIGNAL(destroyed(QObject*)), this,SLOT(deselectNode(QObject*)));
+        //connect(qi, SIGNAL(qi->
+
         scene->addItem((QGraphicsItem *)nodeMade);
 
         //previousParent = nodeMade;
@@ -101,12 +120,40 @@ void MainWindow::makeNode(Node *node)
 void MainWindow::exportNodeSelected(Node * node)
 {
     this->ui->DebugOuputText->clear();
+
     ui->DebugOuputText->append(node->toGraphML());
+
+    qCritical() << "\n\n";
+    qCritical() << "Starting Parsing!";
+    delete node;
 
 }
 
+void MainWindow::deleteComponent(GraphMLContainer *graph)
+{
+    if(hash.contains((Node *)graph)){
+        this->ui->DebugOuputText->append("Deleting GUI");
+        NodeItem* i = hash[(Node *)graph];
+        delete i;
 
+        this->ui->DebugOuputText->append("Deleted...");
+    }else{
+        this->ui->DebugOuputText->append("=(");
 
+    }
+}
+
+void MainWindow::updateText(QString data)
+{
+    try{
+        if(currentSelected != 0){
+            emit currentSelected->updateData("label", data);
+        }
+    }catch(...){
+        currentSelected = 0 ;
+    }
+
+}
 
 
 void MainWindow::on_actionImport_GraphML_triggered()
@@ -181,7 +228,6 @@ void MainWindow::createNewModel()
        model->~Model();
     }
     model = new Model();
-    qDebug() << "GG";
 
     //Connect to Models Signals
     connect(model, SIGNAL(enableGUI(bool)), this, SLOT(enableGUI(bool)));
@@ -196,11 +242,14 @@ void MainWindow::createNewModel()
     //Returned Data Signals
     connect(model, SIGNAL(returnExportedGraphMLData(QString, QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
 
+    //connect(model, SIGNAL(removeUIComponent(GraphMLContainer*)),this, SLOT(deleteComponent(GraphMLContainer*)));
 
-    //connect(model, SIGNAL(constructNodeItem(Node*)), this, SLOT(makeNode(Node*)));
+
+    connect(model, SIGNAL(constructNodeItem(Node*)), this, SLOT(makeNode(Node*)));
     //Connect to Models Slots
     connect(this, SIGNAL(init_ImportGraphML(QStringList , GraphMLContainer *)), model, SLOT(init_ImportGraphML(QStringList , GraphMLContainer*)));
     connect(this, SIGNAL(init_ExportGraphML(QString)), model, SLOT(init_ExportGraphML(QString)));
+
 
 
     model->moveToThread(this->modelThread);

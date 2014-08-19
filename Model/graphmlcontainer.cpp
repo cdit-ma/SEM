@@ -2,22 +2,25 @@
 #include <QDebug>
 GraphMLContainer::GraphMLContainer(GraphML::KIND kind, QString name):GraphML(kind, name)
 {
-    this->parent = NULL;
+    this->parent = 0;
 }
 
 GraphMLContainer::~GraphMLContainer()
 {
+
     qDebug() << "Destructing GraphMLContainer: " << this->getName();
 
-    qDebug() << "Removing Edges!";
+    if(parent != 0){
+        qCritical() << "Detaching from GraphML Parent: " << parent->getName() << " [" <<parent->getKind()<<"]";
+        parent->disown(this);
+    }
+
     removeEdges();
-    qDebug() << "Removed Edges";
-
-    qDebug() << "Removing Children";
     removeChildren();
-    qDebug() << "Removed Children";
 
+    qDebug() << "\n";
 
+    emit deleteGUI(this);
 }
 
 void GraphMLContainer::setParent(GraphMLContainer *parent)
@@ -36,7 +39,7 @@ GraphMLContainer *GraphMLContainer::getParent()
 
 Edge *GraphMLContainer::getEdge(GraphMLContainer *element)
 {
-    for (int i = 0; i < this->edges.size(); i++){
+    for (int i = 0; i < edges.size(); i++){
         if(this->edges[i]->contains(element)){
             return edges[i];
         }
@@ -47,31 +50,33 @@ Edge *GraphMLContainer::getEdge(GraphMLContainer *element)
 
 bool GraphMLContainer::isConnected(GraphMLContainer *element)
 {
-
-    for (int i = 0; i < this->edges.size(); i++){
-        if(this->edges[i]->contains(element)){
-            return true;
-        }
+    if (getEdge(element) != 0){
+        return true;
     }
     return false;
 }
 
-QVector<Edge *> GraphMLContainer::getEdges(int depth) const
+QVector<Edge *> GraphMLContainer::getEdges(int depth)
 {
     QVector<Edge *> returnable;
 
+    //Append this GraphMLContainers Edges which originate from here.
+    for(int i=0; i < edges.size(); i++){
+        if(edges[i]->getSource() == this){
+            returnable.append(this->edges[i]);
+        }
+    }
+
+    //If depth is not 0, keep Recursing.
     if(depth != 0){
-        for(int i=0; i < this->edges.size(); i++){
-            if(this->edges[i]->getSource() == this){
-                returnable +=  this->edges[i];
+        for(int i=0; i < descendants.size(); i++){
+            QVector<Edge *> toAppend = descendants.at(i)->getEdges(depth -1);
+            for(int j=0; j < toAppend.size(); j++){
+                returnable.append(toAppend[j]);
             }
         }
-        for(int i=0; i < this->descendants.size(); i++){
-            returnable +=  this->descendants.at(i)->getEdges(depth -1);
-        }
-    }else{
-        returnable += this->edges;
     }
+
     return returnable;
 }
 
@@ -107,15 +112,17 @@ void GraphMLContainer::adopt(GraphMLContainer *child)
 
 void GraphMLContainer::disown(GraphMLContainer *child)
 {
-    if(this->isDescendantOf(child)){
-        for (int i = 0; i < this->descendants.size(); i++){
-            if(this->descendants[i] == child){
+       if(isAncestorOf(child)){
+        for (int i = 0; i < descendants.size(); i++){
+            qDebug() << "\t" << descendants[i]->getName();
+            if(descendants[i] == child){
+                qCritical() << " Found Child. Removing!";
                 descendants.removeAt(i);
                 return;
             }
         }
+        qCritical() <<  "Couldn't find child!";
     }
-    qCritical() <<  "Couldn't find child!";
 }
 
 bool GraphMLContainer::isAncestorOf(GraphMLContainer *element)
@@ -139,10 +146,10 @@ bool GraphMLContainer::isAncestorOf(GraphMLContainer *element)
 
 bool GraphMLContainer::isDescendantOf(GraphMLContainer *element)
 {
-    if(this->parent != NULL){
+    if(this->parent != 0){
         //Check if the parent is the element we are looking for;
-        //Check if we element is a cousin.
-        if(this->parent == element || this->parent->descendants.contains(element)){
+        //Check if the element is a cousin.
+        if(parent == element || parent->descendants.contains(element)){
             return true;
         }else{
             //Check up the tree.
@@ -153,7 +160,7 @@ bool GraphMLContainer::isDescendantOf(GraphMLContainer *element)
 
 }
 
-QVector<GraphMLContainer *> GraphMLContainer::getChildren(int depth) const
+QVector<GraphMLContainer *> GraphMLContainer::getChildren(int depth)
 {
     QVector<GraphMLContainer *> returnable;
 
@@ -169,24 +176,42 @@ QVector<GraphMLContainer *> GraphMLContainer::getChildren(int depth) const
 
 }
 
+void GraphMLContainer::updateData(QString key, QString value)
+{
+    this->setDataValue(key,value);
+    emit pushData();
+}
+
 
 
 
 void GraphMLContainer::addEdge(Edge *edge)
 {
-    //qDebug() << this->getName() << " Attached Edge: " << edge->getID();
-    this->edges.append(edge);
+    qDebug() << "Attached Edge to: " << getName() << " [" << getKind() << "]" << static_cast<void*>(this);
+    qDebug()  << "\tAttached Edge: " << edge->getID();
+    edges.append(edge);
 }
 
 void GraphMLContainer::removeEdge(Edge *edge)
 {
+    qCritical() << "Removing Edge from: " << getName() << " [" << getKind() << "]" << static_cast<void*>(this);
+    qCritical() << "Looking for Edge: " << edge->getID();
+    qCritical() << "Edges: " << edges.size();
+
+    for (int i = 0; i < edges.size(); i++){
+        qCritical() << "\t" << edges[i]->getID();
+    }
+
     if(this->edges.contains(edge)){
         for (int i = 0; i < this->edges.size(); i++){
             if(this->edges[i] == edge){
+                qCritical() << "Edge Removed!";
                 edges.removeAt(i);
             }
         }
+    }else{
         qCritical() <<  "Couldn't find Edge!";
     }
+
 
 }

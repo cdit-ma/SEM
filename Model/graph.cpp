@@ -82,8 +82,6 @@ QString Graph::toGraphML(qint32 indentationLevel)
             if(edges[i]->getContainingGraph() == this){
                 returnable += edges[i]->toGraphML(indentationLevel+1);
             }
-//            if(this->edges[i]->getSource() == this){
-  //          }
         }
 
 

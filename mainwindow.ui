@@ -53,6 +53,9 @@
          </spacer>
         </item>
         <item>
+         <widget class="QLineEdit" name="lineEdit"/>
+        </item>
+        <item>
          <widget class="QLCDNumber" name="componentCount">
           <property name="autoFillBackground">
            <bool>false</bool>

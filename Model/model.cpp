@@ -290,7 +290,7 @@ QString Model::exportGraphML()
 
 }
 
-QVector<Edge *> Model::getAllEdges() const
+QVector<Edge *> Model::getAllEdges()
 {
     return this->edges;
 
@@ -336,8 +336,18 @@ void Model::init_ExportGraphML(QString file)
 
 }
 
+void Model::deleteUIComponent(GraphMLContainer *comp)
+{
+    emit removeUIComponent(comp);
 
+    //disconnect(comp, SIGNAL(deleteGUI(GraphMLContainer*)),this,SLOT(deleteUIComponent(GraphMLContainer*)));
+}
 
+void Model::updatePosition(GraphMLContainer *comp, QPointF pos)
+{
+    comp->setDataValue("x", QString::number(pos.x()));
+    comp->setDataValue("y", QString::number(pos.y()));
+}
 
 GraphMLKey*  Model::parseGraphMLKey(QXmlStreamReader &xml)
 {
@@ -387,6 +397,8 @@ Node *Model::parseGraphMLNode(QString ID, QVector<GraphMLData *> data)
     }
 
     newNode->attachData(data);
+
+    connect(newNode, SIGNAL(deleteGUI(GraphMLContainer*)),this,SLOT(deleteUIComponent(GraphMLContainer*)));
 
     return newNode;
 }

@@ -18,7 +18,7 @@ Node::Node(QString name): GraphMLContainer(GraphML::NODE, name)
 }
 
 Node::~Node(){
-    qDebug() << "Destructing Node: " << this->getID();
+    qDebug() << "Destructing Node: " << this->getName();
 }
 
 QString Node::toGraphML(qint32 indentationLevel)
@@ -52,22 +52,21 @@ QString Node::toString()
 Graph *Node::getGraph()
 {
     return this->childGraph;
-
 }
 
 
 
 void Node::adopt(GraphMLContainer *child)
 {
-
-    if(this->childGraph != NULL){
+    if(this->childGraph != 0){
         this->childGraph->adopt(child);
     }
 }
 
 void Node::disown(GraphMLContainer *child)
 {
-    if(this->childGraph != NULL){
+    if(this->childGraph != 0){
+        qDebug() << "Node Disown!";
         this->childGraph->disown(child);
     }
 }

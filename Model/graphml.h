@@ -31,7 +31,11 @@ public:
 
     QString getID() const;
 
-    QString getData(QString keyName);
+    QString getDataValue(QString keyName);
+
+    GraphMLData* getData(QString keyName);
+
+    bool setDataValue(QString keyName, QString value);
 
     //Get a list of Data objects contained by this GraphML
     QVector<GraphMLData *> getData();
