@@ -3,13 +3,12 @@
 
 NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
 {
-    QString x = node->getData("x");
-    QString y = node->getData("y");
+    QString x = node->getDataValue("x");
+    QString y = node->getDataValue("y");
+    name = node->getDataValue("label");
+    kind = node->getDataValue("kind");
 
-    name = node->getData("label");
-    kind = node->getData("kind");
-
-    QGraphicsTextItem* label  = new QGraphicsTextItem(name,this);
+    label  = new QGraphicsTextItem(name,this);
 
     this->isPressed = false;
 
@@ -30,7 +29,17 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
 
     setPos(previousMousePosition);
 
-    bRec = QRect(0,0,this->width,this->height);
+    bRec = QRect(0,0,this->width, this->height);
+    connect(this, SIGNAL(updateData(QString,QString)),node,SLOT(updateData(QString,QString)));
+
+    connect(node, SIGNAL(pushData()), this, SLOT(recieveData()));
+    connect(node, SIGNAL(deleteGUI(GraphMLContainer*)), this, SLOT(deleteD(GraphMLContainer*)));
+}
+
+NodeItem::~NodeItem()
+{
+    this->setVisible(false);
+    disconnect(this, SIGNAL(updateData(QString,QString)),node,SLOT(updateData(QString,QString)));
 }
 
 QRectF NodeItem::boundingRect() const
@@ -78,6 +87,25 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
 }
+
+void NodeItem::recieveData()
+{
+    name = node->getDataValue("label");
+    label->setPlainText(name);
+
+
+    QString x = node->getDataValue("x");
+    QString y = node->getDataValue("y");
+
+    this->setPos(QPointF(x.toInt(),y.toInt()));
+}
+
+void NodeItem::deleteD(GraphMLContainer *)
+{
+    delete this;
+}
+
+
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
 
@@ -112,7 +140,8 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         }
         */
 
-
+        emit updateData("x",QString::number(delta.x()));
+        emit updateData("y",QString::number(delta.y()));
         this->previousMousePosition = event->scenePos();
     }
 }
