@@ -28,10 +28,6 @@ bool OutputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
         return false;
     }
 
-    if(this->getData("type") != attachableObject->getData("type")){
-        qCritical() << "Cannot connect 2 different type names!";
-        return false;
-    }
 
     if(this->isConnected(attachableObject)){
         qCritical() << "Cannot connect 2 already connected ports!";

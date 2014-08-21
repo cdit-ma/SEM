@@ -12,6 +12,9 @@ Model::Model(): QObject()
     int componentCount = this->parentGraph->getChildren().size();
     loadCount=0;
     emit setComponentCount(componentCount);
+
+    buildGraphMLKey("width","double","node");
+    buildGraphMLKey("height","double","node");
 }
 
 Model::~Model()
@@ -196,6 +199,9 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                 //Adopt the new Node into the currentParent
                 if(currentParent->isAdoptLegal(newNode)){
                     currentParent->adopt(newNode);
+
+                    //Construct a GraphMLData object out of the xml, using the key found in keyLookup
+
                 }else{
                     qCritical() << QString("Line #%1: Node Cannot Adopt child Node!").arg(xml.lineNumber());
                     return false;
@@ -253,6 +259,9 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                 Edge* newEdge = new Edge(s, d);
                 newEdge->attachData(edge.data);
                 edges.append(newEdge);
+
+                qCritical() << "Emitting ConstructEdgeItem";
+                emit constructEdgeItem(newEdge);
             }else{
                 qDebug() << s->toString() << " to " << d->toString();
                 qCritical() << QString("Line #%1: Edge Not Valid!").arg(QString::number(edge.linenumber));
@@ -299,6 +308,36 @@ QVector<Edge *> Model::getAllEdges()
 Graph *Model::getGraph()
 {
     return this->parentGraph;
+}
+
+void Model::constructIENode(Node* parent)
+{
+     InputEventPort* ie = new InputEventPort("asd");
+
+     GraphMLKey* x = buildGraphMLKey("x","double","node");
+     GraphMLKey* y = buildGraphMLKey("y","double","node");
+     GraphMLKey* k = buildGraphMLKey("kind","string","node");
+     GraphMLKey* t = buildGraphMLKey("type","string","node");
+     GraphMLKey* l = buildGraphMLKey("label","string","node");
+
+     GraphMLData* xD = new GraphMLData(x,QString::number(100));
+     GraphMLData* yD = new GraphMLData(y,QString::number(100));
+     GraphMLData* kD = new GraphMLData(k,"InEventPort");
+     GraphMLData* tD = new GraphMLData(t,"MAGIC");
+     GraphMLData* lD = new GraphMLData(l,"MAGIC");
+
+     ie->attachData(xD);
+     ie->attachData(yD);
+     ie->attachData(tD);
+     ie->attachData(kD);
+     ie->attachData(lD);
+
+     if(parent->isAdoptLegal(ie)){
+         parent->adopt(ie);
+         //Construct in GUI
+         emit constructNodeItem((Node*)ie);
+     }
+
 }
 
 void Model::init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent)
@@ -355,7 +394,12 @@ GraphMLKey*  Model::parseGraphMLKey(QXmlStreamReader &xml)
     QString typeStr = getAttribute(xml,"attr.type");
     QString forStr = getAttribute(xml,"for");
 
-    GraphMLKey *attribute = new GraphMLKey(name, typeStr, forStr);
+    return buildGraphMLKey(name,typeStr,forStr);
+}
+
+GraphMLKey *Model::buildGraphMLKey(QString name, QString type, QString forString)
+{
+    GraphMLKey *attribute = new GraphMLKey(name, type, forString);
 
     for(int i = 0 ; i < keys.size(); i ++){
         if(keys[i]->operator ==(*attribute)){

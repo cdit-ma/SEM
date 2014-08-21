@@ -14,11 +14,12 @@ GraphMLData::~GraphMLData()
 {
 
 }
-
+/*
 void GraphMLData::setValue(QString value)
 {
     this->value = value;
 }
+*/
 
 QString GraphMLData::getValue() const
 {
@@ -44,4 +45,12 @@ QString GraphMLData::toGraphML(qint32 indentationLevel)
 QString GraphMLData::toString()
 {
     return QString("Data[%1]: "+this->getName()).arg(this->getID());
+}
+
+void GraphMLData::setValue(QString value)
+{
+    if(value != this->value){
+        this->value = value;
+        emit dataChanged(this);
+    }
 }

@@ -26,8 +26,12 @@ public:
     //Return the graphml representation of this
     QString toGraphML(qint32 indentationLevel=0);
 
+
     bool contains(GraphMLContainer *item);
     QString toString();
+signals:
+    void deleteGUI(Edge*);
+
 private:
     GraphMLContainer* source;
     GraphMLContainer* destination;

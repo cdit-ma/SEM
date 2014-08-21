@@ -1,44 +1,68 @@
 #include "nodeitem.h"
 #include <QGraphicsTextItem>
-
+#include "nodeconnection.h"
+#include <QDebug>
+#include <QFont>
+#include <QFontMetrics>
 NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
 {
-    QString x = node->getDataValue("x");
-    QString y = node->getDataValue("y");
-    name = node->getDataValue("label");
-    kind = node->getDataValue("kind");
 
-    label  = new QGraphicsTextItem(name,this);
+    drawDetail = true;
+    drawObject = true;
 
     this->isPressed = false;
-
     this->node = node;
-    this->previousMousePosition = QPointF(x.toInt(),y.toInt());
+    this->setParentItem(parent);
 
-    this->setAcceptTouchEvents(true);
+     label  = new QGraphicsTextItem("NULL",this);
 
-    if(parent != 0){
-        this->width = parent->width - (parent->width /3);
-        this->height =  parent->height - (parent->height /3);
-        this->setParentItem(parent);
-        //this->setParent(parent);
+    if(parent == 0){
+        depth = 1;
+        this->width = 1000;
+        this->height = 1000;
     }else{
-        this->width = 250;
-        this->height = 250;
+        depth = parent->depth +1;
+        this->width = parent->width/4;
+        this->height =  parent->height/4;
     }
 
-    setPos(previousMousePosition);
-
     bRec = QRect(0,0,this->width, this->height);
-    connect(this, SIGNAL(updateData(QString,QString)),node,SLOT(updateData(QString,QString)));
 
-    connect(node, SIGNAL(pushData()), this, SLOT(recieveData()));
+
+
+
+    GraphMLData* xData = node->getData("x");
+    GraphMLData* yData = node->getData("y");
+    GraphMLData* kindData = node->getData("kind");
+    GraphMLData* labelData = node->getData("label");
+
+
+
+    connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+
+    connect(this, SIGNAL(updateData(QString,QString)),node,SLOT(updateData(QString,QString)));
     connect(node, SIGNAL(deleteGUI(GraphMLContainer*)), this, SLOT(deleteD(GraphMLContainer*)));
+
+
+
+
+
+    emit updatedData(xData);
+    emit updatedData(yData);
+    emit updatedData(kindData);
+    emit updatedData(labelData);
+
+
+
+    //recieveData();
+
 }
 
 NodeItem::~NodeItem()
 {
-    this->setVisible(false);
     disconnect(this, SIGNAL(updateData(QString,QString)),node,SLOT(updateData(QString,QString)));
 }
 
@@ -50,54 +74,112 @@ QRectF NodeItem::boundingRect() const
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    QRectF rectangle = boundingRect();
-   // update(boundingRect());
+    label->setVisible(drawDetail);
 
+    if(drawObject){
+        QRectF rectangle = boundingRect();
 
-    QBrush Brush(Qt::white);
+        QBrush Brush(Qt::white);
 
-    if(kind == "OutEventPort"){
-        Brush.setColor(Qt::red);
-    }else if(kind == "InEventPort"){
-        Brush.setColor(Qt::green);
-    }else if(kind == "ComponentInstance"){
-        Brush.setColor(Qt::gray);
-    }else if(kind == "Attribute"){
-        Brush.setColor(Qt::blue);
+        if(kind == "OutEventPort"){
+            Brush.setColor(Qt::red);
+        }else if(kind == "InEventPort"){
+            Brush.setColor(Qt::green);
+        }else if(kind == "ComponentInstance"){
+            Brush.setColor(Qt::gray);
+        }else if(kind == "Attribute"){
+            Brush.setColor(Qt::blue);
+        }
+        //if(drawDetail){
+        painter->fillRect(rectangle, Brush);
+        painter->drawRect(rectangle);
+    }
+}
+
+void NodeItem::notifyEdges()
+{
+    for(int i =0;i< connections.size();i++){
+        connections[i]->updateLine();
     }
 
-
-    /*
-    if(!scene()->collidingItems(this).isEmpty()){
-        Brush.setColor(Qt::red);
-
-        foreach(QGraphicsItem * item, scene()->collidingItems(this)){
-            item->update(item->boundingRect());
+    for(int i=0;i<this->childItems().size();i++){
+        NodeItem * childNode = dynamic_cast<NodeItem*>(childItems()[i]);
+        if(childNode != 0){
+            childNode->notifyEdges();
         }
     }
-    */
+}
 
-   // if(this->isPressed){
-//
-  //      Brush.setColor(Qt::green);
-  //  }
+void NodeItem::addConnection(NodeConnection *line)
+{
+    connections.append(line);
+}
 
-    painter->fillRect(rectangle, Brush);
-    painter->drawRect(rectangle);
+void NodeItem::deleteConnnection(NodeConnection *line)
+{
+    int position = connections.indexOf(line);
+    connections.remove(position);
+}
+
+void NodeItem::toggleDetailDepth(int level)
+{
+
+    if(level>=depth){
+        drawDetail = true;
+    }else{
+        if(level + 1 < depth){
+            drawObject = false;
+
+        }else{
+            drawObject = true;
+        }
+        drawDetail = false;
+    }
+    notifyEdges();
+    update();
+}
 
 
+void NodeItem::updatedData(GraphMLData* data)
+{
+    QString dataKey = data->getKey()->getName();
+    QString dataValue = data->getValue();
+
+    if(dataKey == "x"){
+        updatePosition(dataValue,0);
+    }else if(dataKey == "y"){
+        updatePosition(0,dataValue);
+    }else if(dataKey == "label"){
+
+        QFont font("Arial");
+        font.setPointSize(5);
+        QFontMetrics fm(font);
+
+        float factor = width / fm.width(dataValue);
+
+        if ((factor < 1) || (factor > 1.25))
+        {
+            font.setPointSizeF(font.pointSizeF()*factor);
+            label->setFont(font);
+        }
+
+
+        label->setPlainText(dataValue);
+    }else if(dataKey == "kind"){
+        kind = dataValue;
+        update();
+    }
 }
 
 void NodeItem::recieveData()
 {
     name = node->getDataValue("label");
-    label->setPlainText(name);
-
 
     QString x = node->getDataValue("x");
     QString y = node->getDataValue("y");
 
-    this->setPos(QPointF(x.toInt(),y.toInt()));
+    this->setPos(QPointF(x.toDouble(),y.toDouble()));
+
 }
 
 void NodeItem::deleteD(GraphMLContainer *)
@@ -108,40 +190,55 @@ void NodeItem::deleteD(GraphMLContainer *)
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    if(drawObject){
+        this->isPressed = true;
 
-    this->isPressed = true;
-    this->previousMousePosition = event->scenePos();
-   // update(boundingRect());
+        previousPosition = event->scenePos();
 
-    if ( event->button() == Qt::RightButton ) {
-        emit exportSelected(node);
-    }else{
-        emit setSelected(this);
+        if ( event->button() == Qt::RightButton ) {
+            emit exportSelected(node);
+        }else if( event->button() == Qt::MiddleButton ) {
+            emit makeChildNode(node);
+        }
+        else{
+
+            emit setSelected(this);
+        }
     }
-
-
-
 }
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    this->isPressed = false;
-    //update(boundingRect());
+    if(drawObject){
+        this->isPressed = false;
+    }
 }
 
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(this->isPressed){
-        QPointF delta = this->pos() + (event->scenePos() - this->previousMousePosition);
-        this->setPos(delta);
+    if(this->isPressed && drawObject){
 
-       /* for(int i=0; i < this->childItems().size(); i++){
-            this->childItems().at(i)->setPos(delta);
-        }
-        */
+        QPointF newPosition = pos() + (event->scenePos() - previousPosition);
 
-        emit updateData("x",QString::number(delta.x()));
-        emit updateData("y",QString::number(delta.y()));
-        this->previousMousePosition = event->scenePos();
+        this->setPos(newPosition);
+
+        emit updateData("x", QString::number(newPosition.x()));
+        emit updateData("y", QString::number(newPosition.y()));
+        notifyEdges();
+
+        previousPosition = event->scenePos();
     }
+}
+
+void NodeItem::updatePosition(QString x, QString y)
+{
+    qreal xR = pos().x();
+    qreal yR = pos().y();
+    if(x !=0){
+        xR = x.toDouble();
+    }
+    if(y != 0){
+        yR = y.toDouble();
+    }
+    this->setPos(xR,yR);
 }

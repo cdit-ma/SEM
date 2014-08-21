@@ -23,6 +23,7 @@ public:
     //Gets the Parent
     GraphMLContainer* getParent();
 
+
     /*                      */
     /*EDGE FUNCTIONS        */
     /*                      */

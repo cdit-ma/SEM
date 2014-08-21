@@ -17,6 +17,7 @@ public:
     bool isAdoptLegal(GraphMLContainer *child)=0;
     bool isEdgeLegal(GraphMLContainer *attachableObject)=0;
 
+    Node* getParentNode();
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
     Graph* getGraph();

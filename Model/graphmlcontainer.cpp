@@ -37,6 +37,7 @@ GraphMLContainer *GraphMLContainer::getParent()
     return this->parent;
 }
 
+
 Edge *GraphMLContainer::getEdge(GraphMLContainer *element)
 {
     for (int i = 0; i < edges.size(); i++){
@@ -44,7 +45,7 @@ Edge *GraphMLContainer::getEdge(GraphMLContainer *element)
             return edges[i];
         }
     }
-    qCritical() << "Couldn't find edge!";
+    //qCritical() << "Couldn't find edge!";
     return 0;
 }
 
@@ -181,9 +182,6 @@ void GraphMLContainer::updateData(QString key, QString value)
     this->setDataValue(key,value);
     emit pushData();
 }
-
-
-
 
 void GraphMLContainer::addEdge(Edge *edge)
 {

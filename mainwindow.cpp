@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
 #include <QThread>
 #include <QObject>
 
@@ -10,23 +11,28 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     model = 0;
     modelThread = new QThread();
-previousParent = 0;
+    previousParent = 0;
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
+
+
 
     //setDragMode(RubberBandDrag);
     ui->graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
     //setDragMode()
 
-     ui->graphicsView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-      ui->graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+
+    ui->graphicsView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+
+    ui->graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     //Set-up the view
-     ui->graphicsView->setSceneRect(0, 0, 2000, 2000);
+    ui->graphicsView->setSceneRect(0, 0, 2000, 2000);
 
 
     progressDialog = new QProgressDialog(this);
     progressDialog->setAutoClose(false);
+
 
     //Connect Enable
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->DebugOuputText,SLOT(setEnabled(bool)));
@@ -36,6 +42,7 @@ previousParent = 0;
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton_2,SLOT(setEnabled(bool)));
 
     connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
+    connect((NodeView*)ui->graphicsView, SIGNAL(updateZoom(qreal)), this, SLOT(updateZoom(qreal)));
     createNewModel();
 }
 
@@ -74,9 +81,9 @@ void MainWindow::writeExportedGraphMLData(QString filename, QString data)
 void MainWindow::setNodeSelected(NodeItem *node)
 {
     ui->DebugOuputText->append(node->node->getDataValue("label"));
-    ui->DebugOuputText->append(QString("Edges: %1 ").arg(node->node->getEdges().size()));
+    ui->DebugOuputText->append("Depth: "+QString::number(node->depth));
 
-    ui->graphicsView->repaint();
+    //ui->graphicsView->repaint();
 
     currentSelected = node;
     ui->lineEdit->setText(node->node->getDataValue("label"));
@@ -90,9 +97,9 @@ void MainWindow::deselectNode(QObject *obj)
     }
 }
 
-void MainWindow::makeNode(Node *node)
-{
+void MainWindow::makeNode(Node *node){
     if(node->getDataValue("kind") == "ComponentAssembly" ||node->getDataValue("kind") == "ComponentInstance" || node->getDataValue("kind") == "InEventPort" || node->getDataValue("kind") == "OutEventPort"){
+
 
         NodeItem* parent = 0;
         /*
@@ -101,7 +108,13 @@ void MainWindow::makeNode(Node *node)
         }
         */
 
-        NodeItem* nodeMade = new NodeItem(node, parent);
+        Node* parentNode = node->getParentNode();
+        NodeItem* parentNodeItem=0;
+        if(parentNode != 0){
+            parentNodeItem =  hash[parentNode];
+        }
+
+        NodeItem* nodeMade = new NodeItem(node, parentNodeItem);
 
         hash[node] = nodeMade;
 
@@ -109,12 +122,42 @@ void MainWindow::makeNode(Node *node)
         connect(nodeMade, SIGNAL(exportSelected(Node*)), this, SLOT(exportNodeSelected(Node*)));
 
         connect(nodeMade, SIGNAL(destroyed(QObject*)), this,SLOT(deselectNode(QObject*)));
+
+        //connect(nodeMade, SIGNAL(makeChildNode(NodeItem*)),this,SLOT(makeChildNode(NodeItem*)));
+
+        connect(nodeMade,SIGNAL(makeChildNode(Node*)),model,SLOT(constructIENode(Node*)));
         //connect(qi, SIGNAL(qi->
 
-        scene->addItem((QGraphicsItem *)nodeMade);
+        connect(ui->verticalSlider, SIGNAL(valueChanged(int)),nodeMade, SLOT(toggleDetailDepth(int)));
+
+        nodeMade->toggleDetailDepth(ui->verticalSlider->value());
+
+        if(!scene->items().contains((QGraphicsItem*)nodeMade)){
+            scene->addItem((QGraphicsItem *)nodeMade);
+        }
 
         //previousParent = nodeMade;
     }
+}
+
+void MainWindow::makeEdge(Edge *edge)
+{
+    GraphMLContainer* source = edge->getSource();
+    GraphMLContainer* destination = edge->getDestination();
+
+    NodeItem* sourceItem = hash[(Node*)source];
+    NodeItem* destinationItem = hash[(Node*)destination];
+
+    if(sourceItem != 0 && destinationItem != 0){
+        qCritical() << "Valid Edge!";
+        NodeConnection* nC = new NodeConnection(edge,sourceItem,destinationItem);
+        nC->addToScene(scene);
+
+    }else{
+        qCritical() << "Non Valid Edge!";
+    }
+
+
 }
 
 void MainWindow::exportNodeSelected(Node * node)
@@ -126,6 +169,41 @@ void MainWindow::exportNodeSelected(Node * node)
     qCritical() << "\n\n";
     qCritical() << "Starting Parsing!";
     delete node;
+
+}
+
+void MainWindow::makeChildNode(NodeItem *nodeItme)
+{
+    Node* parentNode = nodeItme->node;
+
+    InputEventPort* ie = new InputEventPort("asd");
+
+
+
+
+    parentNode->adopt(ie);
+
+
+    NodeItem* nodeMade = new NodeItem((Node *)ie, nodeItme);
+
+    hash[(Node *)ie] = nodeMade;
+
+    connect(nodeMade, SIGNAL(setSelected(NodeItem*)), this, SLOT(setNodeSelected(NodeItem*)));
+    connect(nodeMade, SIGNAL(exportSelected(Node*)), this, SLOT(exportNodeSelected(Node*)));
+
+    connect(nodeMade, SIGNAL(destroyed(QObject*)), this,SLOT(deselectNode(QObject*)));
+
+    connect(nodeMade, SIGNAL(makeChildNode(NodeItem*)),this,SLOT(makeChildNode(NodeItem*)));
+
+
+    //connect(qi, SIGNAL(qi->
+
+    //scene->addItem((QGraphicsItem *)nodeMade);
+
+
+
+
+
 
 }
 
@@ -155,14 +233,33 @@ void MainWindow::updateText(QString data)
 
 }
 
+void MainWindow::updateZoom(qreal zoom)
+{
+    int value=0;
+    if(zoom < .5){
+        value =1;
+    }else if(zoom < 1){
+        value =2;
+    }else if(zoom <1.5){
+        value = 3;
+    }else if(zoom < 2){
+        value =4;
+    }else{
+        value =5;
+    }
+
+    ui->verticalSlider->setValue(value);
+    ui->lineEdit_2->setText(QString::number(zoom));
+}
+
 
 void MainWindow::on_actionImport_GraphML_triggered()
 {
     QStringList files = QFileDialog::getOpenFileNames(
-                            this,
-                            "Select one or more files to open",
-                            "c:\\",
-                            "GraphML Documents (*.graphml *.xml)");
+                this,
+                "Select one or more files to open",
+                "c:\\",
+                "GraphML Documents (*.graphml *.xml)");
 
     QStringList fileData;
     for (int i = 0; i < files.size(); i++){
@@ -174,31 +271,31 @@ void MainWindow::on_actionImport_GraphML_triggered()
         }
 
         try{
-        QTextStream in(&file);
-        QString xmlText = in.readAll();
-        file.close();
+            QTextStream in(&file);
+            QString xmlText = in.readAll();
+            file.close();
 
-         qDebug() << "Importing text from file: " << files.at(i);
+            qDebug() << "Importing text from file: " << files.at(i);
 
-         fileData << xmlText;
-         qDebug() << "Loaded: " << files.at(i) << "Successfully!";
+            fileData << xmlText;
+            qDebug() << "Loaded: " << files.at(i) << "Successfully!";
         }catch(...){
-             qCritical() << "Error Loading: " << files.at(i);
+            qCritical() << "Error Loading: " << files.at(i);
         }
     }
 
     qCritical() << "TEST";
-     emit init_ImportGraphML(fileData, NULL);
+    emit init_ImportGraphML(fileData, NULL);
 }
 
 void MainWindow::on_actionExport_GraphML_triggered()
 {
 
     QString filename = QFileDialog::getSaveFileName(
-                                this,
-                                "Export .graphML",
-                                "c:\\",
-                                "GraphML Documents (*.graphml *.xml)");
+                this,
+                "Export .graphML",
+                "c:\\",
+                "GraphML Documents (*.graphml *.xml)");
 
 
 
@@ -208,7 +305,7 @@ void MainWindow::on_actionExport_GraphML_triggered()
 
 void MainWindow::on_actionExit_triggered()
 {
-   this->~MainWindow();
+    this->~MainWindow();
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -225,7 +322,7 @@ void MainWindow::on_pushButton_2_clicked()
 void MainWindow::createNewModel()
 {
     if(model != 0){
-       model->~Model();
+        model->~Model();
     }
     model = new Model();
 
@@ -246,9 +343,11 @@ void MainWindow::createNewModel()
 
 
     connect(model, SIGNAL(constructNodeItem(Node*)), this, SLOT(makeNode(Node*)));
+    connect(model,SIGNAL(constructEdgeItem(Edge*)),this,SLOT(makeEdge(Edge*)));
     //Connect to Models Slots
     connect(this, SIGNAL(init_ImportGraphML(QStringList , GraphMLContainer *)), model, SLOT(init_ImportGraphML(QStringList , GraphMLContainer*)));
     connect(this, SIGNAL(init_ExportGraphML(QString)), model, SLOT(init_ExportGraphML(QString)));
+
 
 
 
@@ -256,4 +355,63 @@ void MainWindow::createNewModel()
     modelThread->start();
 
 }
+
+
+/**
+  * Zoom the view in and out.
+  */
+void MainWindow::wheelEvent(QWheelEvent* event) {
+    if(CONTROL_DOWN){
+        // Scale the view / do the zoom
+        double scaleFactor = 1.15;
+        if(event->delta() > 0) {
+            // Zoom in
+            ui->graphicsView->scale(scaleFactor, scaleFactor);
+
+
+
+        } else {
+            // Zooming out
+            ui->graphicsView->scale(1.0 / scaleFactor, 1.0 / scaleFactor);
+        }
+
+    }else{
+
+        //QGraphicsView::wheelEvent(event);
+    }
+
+    // Don't call superclass handler here
+    // as wheel is normally used for moving scrollbars
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Control){
+        this->CONTROL_DOWN = true;
+        //Use ScrollHand Drag Mode to enable Panning
+    }
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Control){
+        this->CONTROL_DOWN = false;
+    }
+
+
+}
+
+
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+   QPointF newPostion = ui->graphicsView->mapToScene(event->pos().x(),event->pos().y());
+   ui->graphicsView->translate(event->x(),event->y());
+   /*
+   // event->x()
+    MyItem *item = new MyItem(newPostion,100,100);
+    this->scene()->addItem(item);
+
+    */
+}
+
 

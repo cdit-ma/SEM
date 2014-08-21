@@ -23,16 +23,13 @@ Edge::Edge(GraphMLContainer *s, GraphMLContainer *d, QString name):GraphML(Graph
 Edge::~Edge()
 {
     //Remove Edge!
-    qDebug() << "Destination: Number of Edges: " << destination->getEdges().size();
     destination->removeEdge(this);
-    qDebug() << "Removed Edge from Destination!";
 
-    qDebug() << "Source: Number of Edges: " << destination->getEdges().size();
     source->removeEdge(this);
-    qDebug() << "Removed Edge from Source!";
-
 
     qDebug() << QString("Removed Edge[%1]!").arg(this->getID());
+
+    emit deleteGUI(this);
 }
 
 GraphMLContainer *Edge::getSource()
@@ -86,7 +83,7 @@ QString Edge::toGraphML(qint32 indentationLevel)
 
 bool Edge::contains(GraphMLContainer *item)
 {
-   return item == this->source || item == this->destination;
+    return item == this->source || item == this->destination;
 }
 
 QString Edge::toString()

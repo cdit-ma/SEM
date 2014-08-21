@@ -10,12 +10,17 @@ class GraphMLData: public GraphML{
 public:
     GraphMLData(GraphMLKey* key, QString value);
     ~GraphMLData();
+    //void setValue(QString value);
+
     void setValue(QString value);
+
     QString getValue() const;
     GraphMLKey* getKey();
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
 
+signals:
+    void dataChanged(GraphMLData* data);
 private:
     QString value;
     GraphMLKey* key;

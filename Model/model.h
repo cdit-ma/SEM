@@ -58,14 +58,17 @@ signals:
     void progressDialog_SetText(QString text);
 
     void constructNodeItem(Node* node);
+    void constructEdgeItem(Edge* edge);
     void setComponentCount(int count);
 
     void updateGUIComponent(GraphMLContainer* component);
 
     void returnExportedGraphMLData(QString file, QString data);
     void removeUIComponent(GraphMLContainer*);
+
 public slots:
 
+    void constructIENode(Node* parent);
     void init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent=0);
     void init_ExportGraphML(QString file);
     void deleteUIComponent(GraphMLContainer * comp);
@@ -78,6 +81,7 @@ public slots:
 private:
     GraphMLKey* parseGraphMLKey(QXmlStreamReader& xml);
 
+    GraphMLKey* buildGraphMLKey(QString name, QString type, QString forString);
     //Construct a specific Node type given the attached Vector of data
     Node* parseGraphMLNode(QString ID, QVector<GraphMLData *> data);
 

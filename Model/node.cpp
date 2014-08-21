@@ -21,6 +21,16 @@ Node::~Node(){
     qDebug() << "Destructing Node: " << this->getName();
 }
 
+Node *Node::getParentNode()
+{
+    Graph* parentGraph = dynamic_cast<Graph*>(getParent());
+    Node* parentNode = dynamic_cast<Node*>(parentGraph->getParent());
+
+    if(parentGraph != 0 && parentNode != 0){
+        return parentNode;
+    }
+}
+
 QString Node::toGraphML(qint32 indentationLevel)
 {
     QString tabSpace;

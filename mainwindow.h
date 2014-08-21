@@ -16,6 +16,8 @@
 #include "Model/inputeventport.h"
 #include "Model/outputeventport.h"
 #include "GUI/nodeitem.h"
+#include "GUI/nodeconnection.h"
+
 #include <stdio.h>
 
 #include <QStringList>
@@ -42,11 +44,15 @@ public slots:
     void setNodeSelected(NodeItem* node);
     void deselectNode(QObject* obj);
     void makeNode(Node* node);
+    void makeEdge(Edge* edge);
     void exportNodeSelected(Node * node);
+
+    void makeChildNode(NodeItem * nodeItme);
 
     void deleteComponent(GraphMLContainer* graph);
 
     void updateText(QString data);
+    void updateZoom(qreal zoom);
 signals:
     void init_enableGUI(bool enabled);
 
@@ -65,7 +71,14 @@ private slots:
 
     void on_pushButton_2_clicked();
 
+
+protected:
+    virtual void mousePressEvent(QMouseEvent *event);
+    virtual void wheelEvent(QWheelEvent* event);
+    virtual void keyPressEvent(QKeyEvent *event);
+    virtual void keyReleaseEvent(QKeyEvent *event);
 private:
+    bool CONTROL_DOWN;
     void createNewModel();
     NodeItem *previousParent;
     QThread *modelThread;
