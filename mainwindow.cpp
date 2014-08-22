@@ -25,9 +25,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->graphicsView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
-    ui->graphicsView->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+
     //Set-up the view
-    ui->graphicsView->setSceneRect(0, 0, 2000, 2000);
+    //ui->graphicsView->setSceneRect(0, 0, 2000, 2000);
 
 
     progressDialog = new QProgressDialog(this);
@@ -42,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton_2,SLOT(setEnabled(bool)));
 
     connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
-    connect((NodeView*)ui->graphicsView, SIGNAL(updateZoom(qreal)), this, SLOT(updateZoom(qreal)));
+    //connect((NodeView*)ui->graphicsView, SIGNAL(updateZoom(qreal)), this, SLOT(updateZoom(qreal)));
     createNewModel();
 }
 
@@ -118,7 +118,7 @@ void MainWindow::makeNode(Node *node){
 
         hash[node] = nodeMade;
 
-        connect(nodeMade, SIGNAL(setSelected(NodeItem*)), this, SLOT(setNodeSelected(NodeItem*)));
+        connect(nodeMade, SIGNAL(setSelected(NodeItem*)), (NodeView*)ui->graphicsView, SLOT(centreItem(NodeItem*)));
         connect(nodeMade, SIGNAL(exportSelected(Node*)), this, SLOT(exportNodeSelected(Node*)));
 
         connect(nodeMade, SIGNAL(destroyed(QObject*)), this,SLOT(deselectNode(QObject*)));

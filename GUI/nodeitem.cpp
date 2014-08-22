@@ -191,18 +191,20 @@ void NodeItem::deleteD(GraphMLContainer *)
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(drawObject){
-        this->isPressed = true;
 
-        previousPosition = event->scenePos();
+
+
 
         if ( event->button() == Qt::RightButton ) {
-            emit exportSelected(node);
+            emit setSelected(this);
+            //emit exportSelected(node);
         }else if( event->button() == Qt::MiddleButton ) {
             emit makeChildNode(node);
         }
         else{
+            this->isPressed = true;
+            previousPosition = event->scenePos();
 
-            emit setSelected(this);
         }
     }
 }
@@ -210,7 +212,9 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if(drawObject){
-        this->isPressed = false;
+        if ( event->button() == Qt::LeftButton ) {
+            this->isPressed = false;
+        }
     }
 }
 
