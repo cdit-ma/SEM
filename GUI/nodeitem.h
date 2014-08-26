@@ -5,6 +5,7 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsColorizeEffect>
 #include <iostream>
 #include <QTouchEvent>
 #include <QObject>
@@ -33,13 +34,17 @@ public:
     void addConnection(NodeConnection* line);
     void deleteConnnection(NodeConnection* line);
 signals:
-    void setSelected(NodeItem*);
+    void triggerSelected(NodeItem*);
+
+    void centreNode(NodeItem*);
     void exportSelected(Node*);
 
     void makeChildNode(Node*);
     void updateData(QString key, QString value);
 public slots:
 
+    void setSelected();
+    void setDeselected();
     void toggleDetailDepth(int level);
     void updatedData(GraphMLData* data);
     void recieveData();
@@ -61,6 +66,9 @@ private:
 
 
     QVector<NodeConnection*> connections;
+
+
+    QGraphicsColorizeEffect *graphicsEffect;
 
     QGraphicsTextItem* label;
     bool isPressed;

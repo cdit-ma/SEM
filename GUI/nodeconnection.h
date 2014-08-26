@@ -7,6 +7,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <iostream>
 #include <QTouchEvent>
+#include <QGraphicsColorizeEffect>
 #include <QObject>
 #include <QAbstractItemModel>
 
@@ -17,7 +18,7 @@
 #include <QObject>
 
 
-class NodeConnection : public QObject, public QGraphicsLineItem
+class NodeConnection : public QObject, public QGraphicsItem
 {
     Q_OBJECT
 
@@ -25,20 +26,40 @@ public:
     NodeConnection(Edge *edge, NodeItem* s, NodeItem* d);
     ~NodeConnection();
 
+    QRectF boundingRect() const;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
+
      void updateLine();
     void  addToScene(QGraphicsScene* scene);
 signals:
+    void setSelected(NodeConnection *);
 
 public slots:
     void deleteD(Edge*);
+    void setSelected();
+    void setDeselected();
+
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+
 
 private:
     QGraphicsLineItem* QGline;
+    Edge* edge;
     NodeItem* source;
     NodeItem* destination;
 
+
+    int width;
+    int height;
+
+    QRect bRec;
+
     QPen linePen;
     QLineF line;
+    QGraphicsTextItem* label;
 
     bool inScene;
     QPointF sPos;
@@ -48,6 +69,7 @@ private:
     qreal dx;
     qreal dy;
 
+     QGraphicsColorizeEffect *graphicsEffect;
 
 
 };

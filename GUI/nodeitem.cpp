@@ -10,6 +10,14 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     drawDetail = true;
     drawObject = true;
 
+    graphicsEffect = new QGraphicsColorizeEffect();
+
+    QColor blue(70,130,180);
+    graphicsEffect->setColor(blue);
+    graphicsEffect->setStrength(0);
+
+
+
     this->isPressed = false;
     this->node = node;
     this->setParentItem(parent);
@@ -47,18 +55,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     connect(node, SIGNAL(deleteGUI(GraphMLContainer*)), this, SLOT(deleteD(GraphMLContainer*)));
 
 
-
-
-
     emit updatedData(xData);
     emit updatedData(yData);
     emit updatedData(kindData);
     emit updatedData(labelData);
 
 
-
-    //recieveData();
-
+     this->setGraphicsEffect(graphicsEffect);
 }
 
 NodeItem::~NodeItem()
@@ -119,6 +122,23 @@ void NodeItem::deleteConnnection(NodeConnection *line)
 {
     int position = connections.indexOf(line);
     connections.remove(position);
+}
+
+void NodeItem::setSelected()
+{
+    graphicsEffect->setStrength(1);
+
+    for(int i =0;i< connections.size();i++){
+        connections[i]->setSelected();
+    }
+}
+
+void NodeItem::setDeselected()
+{
+    graphicsEffect->setStrength(0);
+    for(int i =0;i< connections.size();i++){
+        connections[i]->setDeselected();
+    }
 }
 
 void NodeItem::toggleDetailDepth(int level)
@@ -191,20 +211,16 @@ void NodeItem::deleteD(GraphMLContainer *)
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(drawObject){
-
-
-
-
-        if ( event->button() == Qt::RightButton ) {
-            emit setSelected(this);
-            //emit exportSelected(node);
-        }else if( event->button() == Qt::MiddleButton ) {
-            emit makeChildNode(node);
-        }
-        else{
+        if( event->button() == Qt::MiddleButton ) {
+            emit centreNode(this);
+        }else{
+            if ( event->button() == Qt::LeftButton ) {
+                emit triggerSelected(this);
+            }else if(event->button() == Qt::RightButton){
+                emit makeChildNode(node);
+            }
             this->isPressed = true;
             previousPosition = event->scenePos();
-
         }
     }
 }
@@ -212,7 +228,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if(drawObject){
-        if ( event->button() == Qt::LeftButton ) {
+        if ( event->button() != Qt::MiddleButton ) {
             this->isPressed = false;
         }
     }

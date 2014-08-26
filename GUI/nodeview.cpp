@@ -96,16 +96,13 @@ void NodeView::centreItem(NodeItem *item)
             yPos->setValue(yPos->value() +1);
         }
     }
-    //if(viewCenter.x)
+}
 
+void NodeView::mousePressEvent(QMouseEvent *event)
+{
+    qCritical() << "Mouse Pressed";
 
-    //120% the size
-
-
-
-
-
-
+    QGraphicsView::mousePressEvent(event);
 }
 
 void NodeView::wheelEvent(QWheelEvent *event)
@@ -128,19 +125,27 @@ void NodeView::wheelEvent(QWheelEvent *event)
 
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
+    if(event->key() == Qt::Key_Delete){
+        emit deletePressed();
+    }
+
     if(event->key() == Qt::Key_Control){
         //Use ScrollHand Drag Mode to enable Panning
         this->CONTROL_DOWN = true;
+        emit controlPressed();
     }
+
     if(event->key() == Qt::Key_Shift){
         this->SHIFT_DOWN = true;
     }
+
+
 }
 
 void NodeView::keyReleaseEvent(QKeyEvent *event)
 {
     if(event->key() == Qt::Key_Control){
-        this->CONTROL_DOWN = false;
+        emit controlPressed();
     }
     if(event->key() == Qt::Key_Shift){
         this->SHIFT_DOWN = false;

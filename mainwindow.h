@@ -17,6 +17,7 @@
 #include "Model/outputeventport.h"
 #include "GUI/nodeitem.h"
 #include "GUI/nodeconnection.h"
+#include <Vector>
 
 #include <stdio.h>
 
@@ -42,11 +43,21 @@ public slots:
     void writeExportedGraphMLData(QString filename, QString data);
 
     void setNodeSelected(NodeItem* node);
+
     void deselectNode(QObject* obj);
+
+    void centreNode(NodeItem*);
     void makeNode(Node* node);
     void makeEdge(Edge* edge);
     void exportNodeSelected(Node * node);
 
+
+
+
+
+
+    void controlPressed();
+    void deleteSelected();
     void makeChildNode(NodeItem * nodeItme);
 
     void deleteComponent(GraphMLContainer* graph);
@@ -72,11 +83,6 @@ private slots:
     void on_pushButton_2_clicked();
 
 
-protected:
-    virtual void mousePressEvent(QMouseEvent *event);
-    virtual void wheelEvent(QWheelEvent* event);
-    virtual void keyPressEvent(QKeyEvent *event);
-    virtual void keyReleaseEvent(QKeyEvent *event);
 private:
     bool CONTROL_DOWN;
     void createNewModel();
@@ -86,6 +92,7 @@ private:
     QProgressDialog *progressDialog;
     Model *model;
     QGraphicsScene *scene;
+    QVector<NodeItem*> currentSelectedItems;
     NodeItem* currentSelected;
     QHash<Node *, NodeItem*> hash;
 };

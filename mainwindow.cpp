@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QObject>
 
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -12,15 +13,16 @@ MainWindow::MainWindow(QWidget *parent) :
     model = 0;
     modelThread = new QThread();
     previousParent = 0;
+    currentSelected = 0;
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
 
+    CONTROL_DOWN = false;
 
 
     //setDragMode(RubberBandDrag);
     ui->graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
     //setDragMode()
-
 
 
     ui->graphicsView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
@@ -42,7 +44,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton_2,SLOT(setEnabled(bool)));
 
     connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
-    //connect((NodeView*)ui->graphicsView, SIGNAL(updateZoom(qreal)), this, SLOT(updateZoom(qreal)));
+    connect(((NodeView*)ui->graphicsView), SIGNAL(deletePressed()), this, SLOT(deleteSelected()));
+    connect(((NodeView*)ui->graphicsView), SIGNAL(controlPressed()), this, SLOT(controlPressed()));
+
+
     createNewModel();
 }
 
@@ -80,21 +85,56 @@ void MainWindow::writeExportedGraphMLData(QString filename, QString data)
 
 void MainWindow::setNodeSelected(NodeItem *node)
 {
+    //append current Item to the list.
+    if(CONTROL_DOWN){
+        //If we already have this node selected, we should remove it.
+        if(currentSelectedItems.contains(node)){
+            deselectNode(node);
+            return;
+        }else{
+            //Else we should append it to the list and select it.
+        }
+    }else{
+        deselectNode(0);
+    }
+
+    //Append it and Select it.
+    currentSelectedItems.append(node);
+    node->setSelected();
     ui->DebugOuputText->append(node->node->getDataValue("label"));
     ui->DebugOuputText->append("Depth: "+QString::number(node->depth));
-
-    //ui->graphicsView->repaint();
-
-    currentSelected = node;
     ui->lineEdit->setText(node->node->getDataValue("label"));
-
 }
+ 
 
 void MainWindow::deselectNode(QObject *obj)
 {
-    if((NodeItem*) obj == currentSelected){
-        currentSelected = 0;
+    //Deselect from the group.
+    if(CONTROL_DOWN){
+        NodeItem* item = dynamic_cast<NodeItem*>(obj);
+
+        if(item != 0){
+            int position = currentSelectedItems.indexOf(item);
+
+            if(position != -1){
+                currentSelectedItems[position]->setDeselected();
+                currentSelectedItems.removeAt(position);
+            }
+        }
+
+    }else{
+     //Clear all the items
+        for (int i = 0 ; i < currentSelectedItems.size(); i++){
+            currentSelectedItems[i]->setDeselected();
+        }
+        currentSelectedItems.clear();
+
     }
+}
+
+void MainWindow::centreNode(NodeItem *)
+{
+
 }
 
 void MainWindow::makeNode(Node *node){
@@ -118,10 +158,12 @@ void MainWindow::makeNode(Node *node){
 
         hash[node] = nodeMade;
 
-        connect(nodeMade, SIGNAL(setSelected(NodeItem*)), (NodeView*)ui->graphicsView, SLOT(centreItem(NodeItem*)));
+        connect(nodeMade, SIGNAL(centreNode(NodeItem*)), (NodeView*)ui->graphicsView, SLOT(centreItem(NodeItem*)));
         connect(nodeMade, SIGNAL(exportSelected(Node*)), this, SLOT(exportNodeSelected(Node*)));
 
         connect(nodeMade, SIGNAL(destroyed(QObject*)), this,SLOT(deselectNode(QObject*)));
+
+        connect(nodeMade, SIGNAL(triggerSelected(NodeItem*)), this, SLOT(setNodeSelected(NodeItem*)));
 
         //connect(nodeMade, SIGNAL(makeChildNode(NodeItem*)),this,SLOT(makeChildNode(NodeItem*)));
 
@@ -172,6 +214,23 @@ void MainWindow::exportNodeSelected(Node * node)
 
 }
 
+void MainWindow::controlPressed()
+{
+    CONTROL_DOWN = !CONTROL_DOWN;
+    ui->DebugOuputText->append(QString("Control: %1").arg(CONTROL_DOWN));
+}
+
+void MainWindow::deleteSelected()
+{
+    ui->DebugOuputText->append(QString("Current Size: %1").arg(currentSelectedItems.size()));
+
+    for (int i = 0 ; i < currentSelectedItems.size(); i++){
+        delete currentSelectedItems[i]->node;
+    }
+    currentSelectedItems.clear();
+
+}
+
 void MainWindow::makeChildNode(NodeItem *nodeItme)
 {
     Node* parentNode = nodeItme->node;
@@ -188,13 +247,14 @@ void MainWindow::makeChildNode(NodeItem *nodeItme)
 
     hash[(Node *)ie] = nodeMade;
 
-    connect(nodeMade, SIGNAL(setSelected(NodeItem*)), this, SLOT(setNodeSelected(NodeItem*)));
+    connect(nodeMade, SIGNAL(triggerSelected(NodeItem*)), this, SLOT(setNodeSelected(NodeItem*)));
     connect(nodeMade, SIGNAL(exportSelected(Node*)), this, SLOT(exportNodeSelected(Node*)));
+
+    connect(nodeMade, SIGNAL(centreNode(NodeItem*)), this, SLOT(centreNode(NodeItem*)));
 
     connect(nodeMade, SIGNAL(destroyed(QObject*)), this,SLOT(deselectNode(QObject*)));
 
     connect(nodeMade, SIGNAL(makeChildNode(NodeItem*)),this,SLOT(makeChildNode(NodeItem*)));
-
 
     //connect(qi, SIGNAL(qi->
 
@@ -357,61 +417,5 @@ void MainWindow::createNewModel()
 }
 
 
-/**
-  * Zoom the view in and out.
-  */
-void MainWindow::wheelEvent(QWheelEvent* event) {
-    if(CONTROL_DOWN){
-        // Scale the view / do the zoom
-        double scaleFactor = 1.15;
-        if(event->delta() > 0) {
-            // Zoom in
-            ui->graphicsView->scale(scaleFactor, scaleFactor);
-
-
-
-        } else {
-            // Zooming out
-            ui->graphicsView->scale(1.0 / scaleFactor, 1.0 / scaleFactor);
-        }
-
-    }else{
-
-        //QGraphicsView::wheelEvent(event);
-    }
-
-    // Don't call superclass handler here
-    // as wheel is normally used for moving scrollbars
-}
-
-void MainWindow::keyPressEvent(QKeyEvent *event)
-{
-    if(event->key() == Qt::Key_Control){
-        this->CONTROL_DOWN = true;
-        //Use ScrollHand Drag Mode to enable Panning
-    }
-}
-
-void MainWindow::keyReleaseEvent(QKeyEvent *event)
-{
-    if(event->key() == Qt::Key_Control){
-        this->CONTROL_DOWN = false;
-    }
-
-
-}
-
-
-void MainWindow::mousePressEvent(QMouseEvent *event)
-{
-   QPointF newPostion = ui->graphicsView->mapToScene(event->pos().x(),event->pos().y());
-   ui->graphicsView->translate(event->x(),event->y());
-   /*
-   // event->x()
-    MyItem *item = new MyItem(newPostion,100,100);
-    this->scene()->addItem(item);
-
-    */
-}
 
 
