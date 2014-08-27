@@ -14,7 +14,7 @@
 #include <QGraphicsItem>
 #include "../Model/node.h"
 #include "../Model/graphmldata.h"
-class NodeConnection;
+class NodeEdge;
 class NodeItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
@@ -31,11 +31,15 @@ public:
     bool drawObject;
     int depth;
     void notifyEdges();
-    void addConnection(NodeConnection* line);
-    void deleteConnnection(NodeConnection* line);
+    void addConnection(NodeEdge* line);
+    void deleteConnnection(NodeEdge* line);
+
+
+
 signals:
     void triggerSelected(NodeItem*);
 
+    void deleted(NodeItem*);
     void centreNode(NodeItem*);
     void exportSelected(Node*);
 
@@ -65,7 +69,7 @@ private:
 
 
 
-    QVector<NodeConnection*> connections;
+    QVector<NodeEdge*> connections;
 
 
     QGraphicsColorizeEffect *graphicsEffect;

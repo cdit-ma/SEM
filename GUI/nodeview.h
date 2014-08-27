@@ -12,20 +12,28 @@ class NodeView : public QGraphicsView
 public:
     NodeView(QWidget *parent = 0);
 
+signals:
+    virtual void updateZoom(qreal zoom);
+    void deletePressed(bool isDown);
+    void controlPressed(bool isDown);
+    void shiftPressed(bool isDown);
+    void unselect();
+    void selectAll();
+
 public slots:
+    void addNodeItem(NodeItem* item);
+    void removeNodeItem(NodeItem* item);
+    void addEdgeItem(NodeEdge* edge);
     void centreItem(NodeItem* item);
 protected:
     virtual void mousePressEvent(QMouseEvent* event);
     virtual void wheelEvent(QWheelEvent* event);
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
-signals:
-    virtual void updateZoom(qreal zoom);
-    void deletePressed();
-    void controlPressed();
+
 
 private:
-    QRectF getVisibleRect( );
+    QRectF getVisibleRect();
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;
     qreal totalScaleFactor;

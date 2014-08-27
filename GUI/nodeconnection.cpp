@@ -1,13 +1,13 @@
 #include "nodeconnection.h"
 #include <QDebug>
 
-NodeConnection::NodeConnection(Edge *edge, NodeItem* s, NodeItem* d):QObject()
+NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d):QObject()
 {
 
     connect(edge, SIGNAL(deleteGUI(Edge*)), this, SLOT(deleteD(Edge*)));
 
 
-    graphicsEffect = new QGraphicsColorizeEffect();
+    graphicsEffect = new QGraphicsColorizeEffect(this);
 
     QColor blue(70,130,180);
     graphicsEffect->setColor(blue);
@@ -23,6 +23,7 @@ NodeConnection::NodeConnection(Edge *edge, NodeItem* s, NodeItem* d):QObject()
     destination->addConnection(this);
     QGline=0;
 
+    this->setParentItem(0);
 
     QString text = edge->getName();
     label  = new QGraphicsTextItem(text,this);
@@ -37,25 +38,27 @@ NodeConnection::NodeConnection(Edge *edge, NodeItem* s, NodeItem* d):QObject()
 
     inScene = false;
 
-    this->setGraphicsEffect(graphicsEffect);
+    setGraphicsEffect(graphicsEffect);
 
 
     updateLine();
 }
 
-NodeConnection::~NodeConnection()
+NodeEdge::~NodeEdge()
 {
+
     source->deleteConnnection(this);
     destination->deleteConnnection(this);
     delete QGline;
+
 }
 
-QRectF NodeConnection::boundingRect() const
+QRectF NodeEdge::boundingRect() const
 {
     return bRec;
 }
 
-void NodeConnection::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     if(inScene){
         if(source->drawObject && destination->drawObject){
@@ -72,7 +75,7 @@ void NodeConnection::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     }
 }
 
-void NodeConnection::addToScene(QGraphicsScene *scene)
+void NodeEdge::addToScene(QGraphicsScene *scene)
 {
     QGline = scene->addLine(line,linePen);
     QGline->setGraphicsEffect(graphicsEffect);
@@ -82,23 +85,23 @@ void NodeConnection::addToScene(QGraphicsScene *scene)
 
 
 
-void NodeConnection::deleteD(Edge *)
+void NodeEdge::deleteD(Edge *)
 {
     qCritical() << "SHOULD DELETE";
     delete this;
 }
 
-void NodeConnection::setSelected()
+void NodeEdge::setSelected()
 {
     graphicsEffect->setStrength(1);
 }
 
-void NodeConnection::setDeselected()
+void NodeEdge::setDeselected()
 {
     graphicsEffect->setStrength(0);
 }
 
-void NodeConnection::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton ) {
         emit setSelected(this);
@@ -108,18 +111,18 @@ void NodeConnection::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 }
 
-void NodeConnection::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void NodeEdge::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
 
 }
 
-void NodeConnection::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void NodeEdge::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
 
 }
 
 
-void NodeConnection::updateLine()
+void NodeEdge::updateLine()
 {
     sx = source->scenePos().x() + source->width/2;
 

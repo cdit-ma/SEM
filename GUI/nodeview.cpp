@@ -37,6 +37,26 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 
 }
 
+void NodeView::addNodeItem(NodeItem *item)
+{
+    qCritical() << "View: Adding NodeItem to View";
+    if(!scene()->items().contains(item)){
+        scene()->addItem(item);
+    }
+}
+
+void NodeView::removeNodeItem(NodeItem *item)
+{
+    if(scene()->items().contains(item)){
+        scene()->removeItem(item);
+    }
+}
+
+
+void NodeView::addEdgeItem(NodeEdge* edge){
+    qCritical() << "View: Adding NodeConnection to View";
+}
+
 QRectF NodeView::getVisibleRect( )
 {
     QPointF topLeft = mapToScene(0,0);
@@ -100,7 +120,15 @@ void NodeView::centreItem(NodeItem *item)
 
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
-    qCritical() << "Mouse Pressed";
+
+/*
+    QPointF scenePos = this->mapToScene(event->pos());
+    QGraphicsItem* item = this->scene()->itemAt(scenePos,this->transform());
+
+    if(item == 0){
+        emit unselect();
+    }
+    */
 
     QGraphicsView::mousePressEvent(event);
 }
@@ -126,17 +154,22 @@ void NodeView::wheelEvent(QWheelEvent *event)
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
     if(event->key() == Qt::Key_Delete){
-        emit deletePressed();
+        emit deletePressed(true);
     }
 
     if(event->key() == Qt::Key_Control){
         //Use ScrollHand Drag Mode to enable Panning
         this->CONTROL_DOWN = true;
-        emit controlPressed();
+        emit controlPressed(true);
+    }
+
+    if(this->CONTROL_DOWN && event->key() == Qt::Key_A){
+        emit selectAll();
     }
 
     if(event->key() == Qt::Key_Shift){
         this->SHIFT_DOWN = true;
+        emit shiftPressed(true);
     }
 
 
@@ -145,9 +178,12 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 void NodeView::keyReleaseEvent(QKeyEvent *event)
 {
     if(event->key() == Qt::Key_Control){
-        emit controlPressed();
+        this->CONTROL_DOWN = false;
+        emit controlPressed(false);
     }
     if(event->key() == Qt::Key_Shift){
         this->SHIFT_DOWN = false;
+        emit shiftPressed(false);
     }
+
 }

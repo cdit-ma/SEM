@@ -17,6 +17,7 @@
 #include "Model/outputeventport.h"
 #include "GUI/nodeitem.h"
 #include "GUI/nodeconnection.h"
+#include "Controller/graphmlcontroller.h"
 #include <Vector>
 
 #include <stdio.h>
@@ -56,6 +57,7 @@ public slots:
 
 
 
+    void shiftPressed();
     void controlPressed();
     void deleteSelected();
     void makeChildNode(NodeItem * nodeItme);
@@ -68,7 +70,7 @@ signals:
     void init_enableGUI(bool enabled);
 
     void removeComponent(GraphMLContainer* v);
-    void init_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
+    void init_ImportGraphML(QStringList inputGraphML);
     void init_ExportGraphML(QString file);
 
 private slots:
@@ -85,7 +87,9 @@ private slots:
 
 private:
     bool CONTROL_DOWN;
+    bool SHIFT_DOWN;
     void createNewModel();
+    GraphMLController* controller;
     NodeItem *previousParent;
     QThread *modelThread;
     Ui::MainWindow *ui;

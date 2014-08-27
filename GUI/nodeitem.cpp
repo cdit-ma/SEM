@@ -10,7 +10,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     drawDetail = true;
     drawObject = true;
 
-    graphicsEffect = new QGraphicsColorizeEffect();
+    graphicsEffect = new QGraphicsColorizeEffect(this);
 
     QColor blue(70,130,180);
     graphicsEffect->setColor(blue);
@@ -22,7 +22,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     this->node = node;
     this->setParentItem(parent);
 
-     label  = new QGraphicsTextItem("NULL",this);
+    label  = new QGraphicsTextItem("NULL",this);
 
     if(parent == 0){
         depth = 1;
@@ -61,12 +61,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     emit updatedData(labelData);
 
 
-     this->setGraphicsEffect(graphicsEffect);
+    this->setGraphicsEffect(graphicsEffect);
 }
 
 NodeItem::~NodeItem()
 {
     disconnect(this, SIGNAL(updateData(QString,QString)),node,SLOT(updateData(QString,QString)));
+    emit deleted(this);
 }
 
 QRectF NodeItem::boundingRect() const
@@ -113,16 +114,17 @@ void NodeItem::notifyEdges()
     }
 }
 
-void NodeItem::addConnection(NodeConnection *line)
+void NodeItem::addConnection(NodeEdge *line)
 {
     connections.append(line);
 }
 
-void NodeItem::deleteConnnection(NodeConnection *line)
+void NodeItem::deleteConnnection(NodeEdge *line)
 {
     int position = connections.indexOf(line);
     connections.remove(position);
 }
+
 
 void NodeItem::setSelected()
 {
@@ -172,16 +174,16 @@ void NodeItem::updatedData(GraphMLData* data)
     }else if(dataKey == "label"){
 
         QFont font("Arial");
-        font.setPointSize(5);
+        font.setPointSize(1);
         QFontMetrics fm(font);
 
-        float factor = width / fm.width(dataValue);
+        if(dataValue !=""){
+            float factor = width / fm.width(dataValue);
 
-        if ((factor < 1) || (factor > 1.25))
-        {
             font.setPointSizeF(font.pointSizeF()*factor);
             label->setFont(font);
         }
+
 
 
         label->setPlainText(dataValue);

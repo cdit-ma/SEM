@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     model = 0;
+    controller = 0;
     modelThread = new QThread();
     previousParent = 0;
     currentSelected = 0;
@@ -18,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->graphicsView->setScene(scene);
 
     CONTROL_DOWN = false;
+    SHIFT_DOWN = false;
 
 
     //setDragMode(RubberBandDrag);
@@ -36,6 +38,10 @@ MainWindow::MainWindow(QWidget *parent) :
     progressDialog->setAutoClose(false);
 
 
+
+
+
+
     //Connect Enable
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->DebugOuputText,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->menubar,SLOT(setEnabled(bool)));
@@ -44,8 +50,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton_2,SLOT(setEnabled(bool)));
 
     connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
-    connect(((NodeView*)ui->graphicsView), SIGNAL(deletePressed()), this, SLOT(deleteSelected()));
-    connect(((NodeView*)ui->graphicsView), SIGNAL(controlPressed()), this, SLOT(controlPressed()));
+
+
+    //connect(((NodeView*)ui->graphicsView), SIGNAL(deletePressed()), this, SLOT(deleteSelected()));
+   // connect(((NodeView*)ui->graphicsView), SIGNAL(controlPressed()), this, SLOT(controlPressed()));
+   // connect(((NodeView*)ui->graphicsView), SIGNAL(shiftPressed()), this, SLOT(shiftPressed()));
+
+
 
 
     createNewModel();
@@ -85,6 +96,23 @@ void MainWindow::writeExportedGraphMLData(QString filename, QString data)
 
 void MainWindow::setNodeSelected(NodeItem *node)
 {
+    if(SHIFT_DOWN){
+        //Start Connecting.
+        if(currentSelectedItems.size() == 1){
+            if(currentSelectedItems[0]->node->isEdgeLegal(node->node)){
+                ui->DebugOuputText->append("Edge Legal!");
+                Edge * edge = new Edge(currentSelectedItems[0]->node, node->node);
+                makeEdge(edge);
+
+              }else{
+                ui->DebugOuputText->append("Edge IlLegal!");
+
+            }
+        }
+
+
+    }
+
     //append current Item to the list.
     if(CONTROL_DOWN){
         //If we already have this node selected, we should remove it.
@@ -98,11 +126,13 @@ void MainWindow::setNodeSelected(NodeItem *node)
         deselectNode(0);
     }
 
+
+
     //Append it and Select it.
     currentSelectedItems.append(node);
     node->setSelected();
-    ui->DebugOuputText->append(node->node->getDataValue("label"));
-    ui->DebugOuputText->append("Depth: "+QString::number(node->depth));
+    //ui->DebugOuputText->append(node->node->getDataValue("label"));
+    //ui->DebugOuputText->append("Depth: "+QString::number(node->depth));
     ui->lineEdit->setText(node->node->getDataValue("label"));
 }
  
@@ -192,7 +222,7 @@ void MainWindow::makeEdge(Edge *edge)
 
     if(sourceItem != 0 && destinationItem != 0){
         qCritical() << "Valid Edge!";
-        NodeConnection* nC = new NodeConnection(edge,sourceItem,destinationItem);
+        NodeEdge* nC = new NodeEdge(edge,sourceItem,destinationItem);
         nC->addToScene(scene);
 
     }else{
@@ -212,6 +242,12 @@ void MainWindow::exportNodeSelected(Node * node)
     qCritical() << "Starting Parsing!";
     delete node;
 
+}
+
+void MainWindow::shiftPressed()
+{
+    SHIFT_DOWN= !SHIFT_DOWN;
+    ui->DebugOuputText->append(QString("Shift: %1").arg(SHIFT_DOWN));
 }
 
 void MainWindow::controlPressed()
@@ -284,8 +320,9 @@ void MainWindow::deleteComponent(GraphMLContainer *graph)
 void MainWindow::updateText(QString data)
 {
     try{
-        if(currentSelected != 0){
-            emit currentSelected->updateData("label", data);
+
+        if(currentSelectedItems.size() == 1){
+            currentSelectedItems[0]->updateData("label",data);
         }
     }catch(...){
         currentSelected = 0 ;
@@ -297,15 +334,15 @@ void MainWindow::updateZoom(qreal zoom)
 {
     int value=0;
     if(zoom < .5){
-        value =1;
+        value = 1;
     }else if(zoom < 1){
-        value =2;
+        value = 2;
     }else if(zoom <1.5){
         value = 3;
     }else if(zoom < 2){
-        value =4;
+        value = 4;
     }else{
-        value =5;
+        value = 5;
     }
 
     ui->verticalSlider->setValue(value);
@@ -344,8 +381,7 @@ void MainWindow::on_actionImport_GraphML_triggered()
         }
     }
 
-    qCritical() << "TEST";
-    emit init_ImportGraphML(fileData, NULL);
+    emit init_ImportGraphML(fileData);
 }
 
 void MainWindow::on_actionExport_GraphML_triggered()
@@ -382,13 +418,21 @@ void MainWindow::on_pushButton_2_clicked()
 void MainWindow::createNewModel()
 {
     if(model != 0){
-        model->~Model();
+        delete model;
+    }
+    if(controller != 0){
+        delete controller;
     }
     model = new Model();
+
+    controller = new GraphMLController(model,ui->graphicsView);
 
     //Connect to Models Signals
     connect(model, SIGNAL(enableGUI(bool)), this, SLOT(enableGUI(bool)));
 
+    connect(this,SIGNAL(init_ExportGraphML(QString)),controller, SLOT(view_ExportGraphML(QString)));
+    connect(this,SIGNAL(init_ImportGraphML(QStringList)),controller, SLOT(view_ImportGraphML(QStringList)));
+    /*
     //Progress Dialog Signals
     connect(model, SIGNAL(progressDialog_Hide()), progressDialog, SLOT(hide()));
     connect(model, SIGNAL(progressDialog_Show()), progressDialog, SLOT(show()));
@@ -410,7 +454,7 @@ void MainWindow::createNewModel()
 
 
 
-
+*/
     model->moveToThread(this->modelThread);
     modelThread->start();
 

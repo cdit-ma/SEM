@@ -18,13 +18,13 @@
 #include <QObject>
 
 
-class NodeConnection : public QObject, public QGraphicsItem
+class NodeEdge : public QObject, public QGraphicsItem
 {
     Q_OBJECT
 
 public:
-    NodeConnection(Edge *edge, NodeItem* s, NodeItem* d);
-    ~NodeConnection();
+    NodeEdge(Edge *edge, NodeItem* s, NodeItem* d);
+    ~NodeEdge();
 
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -32,7 +32,7 @@ public:
      void updateLine();
     void  addToScene(QGraphicsScene* scene);
 signals:
-    void setSelected(NodeConnection *);
+    void setSelected(NodeEdge *);
 
 public slots:
     void deleteD(Edge*);

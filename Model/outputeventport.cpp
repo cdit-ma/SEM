@@ -28,6 +28,11 @@ bool OutputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
         return false;
     }
 
+    if(inputEventPort->getDataValue("type") != this->getDataValue("type")){
+        qCritical() << "Cannot connect 2 Different IDL Types!";
+        return false;
+    }
+
 
     if(this->isConnected(attachableObject)){
         qCritical() << "Cannot connect 2 already connected ports!";

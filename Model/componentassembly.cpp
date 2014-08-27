@@ -35,7 +35,7 @@ bool ComponentAssembly::isEdgeLegal(GraphMLContainer *attachableObject)
     if(hardwareNode == 0){
         //Check stuff!
         qWarning() << "AssemblyNode can only connect to a HardwareNode";
-        //return false;
+        return false;
     }
 
     //Check for existing connection.

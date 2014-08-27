@@ -58,6 +58,7 @@ signals:
     void progressDialog_SetText(QString text);
 
     void constructNodeItem(Node* node);
+
     void constructEdgeItem(Edge* edge);
     void setComponentCount(int count);
 
