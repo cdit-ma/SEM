@@ -3,6 +3,8 @@
 GraphMLContainer::GraphMLContainer(GraphML::KIND kind, QString name):GraphML(kind, name)
 {
     this->parent = 0;
+
+    emit constructGUI(this);
 }
 
 GraphMLContainer::~GraphMLContainer()

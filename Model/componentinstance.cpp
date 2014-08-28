@@ -31,6 +31,7 @@ bool ComponentInstance::isAdoptLegal(GraphMLContainer *attachableObject)
     if(this->getGraph() != NULL){
         return this->getGraph()->isAdoptLegal(attachableObject);
     }
+
     return true;
 }
 

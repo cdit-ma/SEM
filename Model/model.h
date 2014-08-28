@@ -52,10 +52,12 @@ public:
 signals:
     void enableGUI(bool lock);
 
-    void progressDialog_Show();
-    void progressDialog_Hide();
-    void progressDialog_SetValue(int perc);
-    void progressDialog_SetText(QString text);
+
+    void constructNodeItemNew(GraphMLContainer* gml);
+
+    void currentAction_ShowProgress(bool visible);
+    void currentAction_UpdateProgress(int perc, QString label=0);
+
 
     void constructNodeItem(Node* node);
 
@@ -68,8 +70,11 @@ signals:
     void removeUIComponent(GraphMLContainer*);
 
 public slots:
+    void constructedGraphML(GraphMLContainer* newlyCreated);
 
-    void constructIENode(Node* parent);
+    void model_MakeChildNode(Node* parent);
+
+
     void init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent=0);
     void init_ExportGraphML(QString file);
     void deleteUIComponent(GraphMLContainer * comp);
@@ -105,6 +110,7 @@ private:
 
 
 private:
+    bool outputEvent;
     double percentage;
     bool isOperating;
     int loadCount;

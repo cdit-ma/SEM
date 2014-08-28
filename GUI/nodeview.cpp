@@ -67,68 +67,58 @@ QRectF NodeView::getVisibleRect( )
 
 void NodeView::centreItem(NodeItem *item)
 {
-    QRectF viewRect = this->getVisibleRect();
+    //Get the current Viewport Rectangle
+    QRectF viewRect = getVisibleRect();
+    //Get the Items Rectangle
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
 
-    QPointF viewCenter = viewRect.center();
-    QPointF itemCenter = itemRect.center();
-
-
-    //CenterX;
-    QScrollBar* xPos=horizontalScrollBar();
-    QScrollBar* yPos=verticalScrollBar();
-
+    //Extra Space denotes 20% extra space on the height.
+    //Calculate the scalre required to fit the item + 20% in the Viewport Rectangle.
     qreal extraSpace = 1.2;
-    qreal scaleRatio = viewRect.height()/ (itemRect.height()*extraSpace);
+    qreal scaleRatio = viewRect.height()/ (itemRect.height() * extraSpace);
     scale(scaleRatio, scaleRatio);
 
+    //Get the actual Scale Ratio!
+    scaleRatio = transform().m22();
 
-    int timeout = 1000;
-    bool xRight = false;
-    bool yRight = false;
+    //Get the Center of the ViewPort Rectangle
+    QPointF viewCenter = viewRect.center();
 
-    int xCount = 0;
-    int yCount = 0;
-    while(xCount++ < timeout){
-        viewRect = getVisibleRect();
-        viewCenter = viewRect.center();
+    //Get the Center of the Item Rectangle.
+    QPointF itemCenter = itemRect.center();
 
-        if(viewCenter.x() == itemCenter.x()){
-            xRight = true;
-        }
-        else if(viewCenter.x() > itemCenter.x()){
-            xPos->setValue(xPos->value() -1);
-        }
-        else{
-            xPos->setValue(xPos->value() +1);
-        }
-    }
-    while(yCount++ < timeout){
-        viewRect = getVisibleRect();
-        viewCenter = viewRect.center();
-        if((viewCenter.y() + 2) > itemCenter.y() && (viewCenter.y()-2) < itemCenter.y()){
-            yRight = true;
-        }
-        else if(viewCenter.y() > itemCenter.y()){
-            yPos->setValue(yPos->value() -1);
-        }
-        else{
-            yPos->setValue(yPos->value() +1);
-        }
-    }
+    //Get the updated visible Rectangle.
+    viewCenter = getVisibleRect().center();
+
+    //Calculate the distance including scale Ratio between the center of the view and item.
+    float deltaX = (itemCenter.x() - viewCenter.x()) * scaleRatio;
+    float deltaY = (itemCenter.y() - viewCenter.y()) * scaleRatio;
+
+    //Move the Scroll bars the appropriate distance to square up the items.
+    int xBarValue = horizontalScrollBar()->value() + deltaX;
+    int yBarValue = verticalScrollBar()->value() + deltaY;
+
+    horizontalScrollBar()->setValue(xBarValue);
+    verticalScrollBar()->setValue(yBarValue);
 }
 
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
 
-/*
     QPointF scenePos = this->mapToScene(event->pos());
     QGraphicsItem* item = this->scene()->itemAt(scenePos,this->transform());
 
     if(item == 0){
-        emit unselect();
+        if(event->button() == Qt::MiddleButton){
+            resetTransform();
+            int xValue = (horizontalScrollBar()->minimum() + horizontalScrollBar()->maximum())/2;
+            int yValue = (verticalScrollBar()->minimum() + verticalScrollBar()->maximum())/2;
+            horizontalScrollBar()->setValue(xValue);
+            verticalScrollBar()->setValue(yValue);
+        }else{
+            emit unselect();
+        }
     }
-    */
 
     QGraphicsView::mousePressEvent(event);
 }

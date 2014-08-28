@@ -15,7 +15,7 @@ InputEventPort::~InputEventPort()
 
 bool InputEventPort::isAdoptLegal(GraphMLContainer *child)
 {
-    return true;
+    return false;
 }
 
 bool InputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
@@ -29,6 +29,11 @@ bool InputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
     if(outputEventPort->getDataValue("type") != this->getDataValue("type")){
         qCritical() << "Cannot connect 2 Different IDL Types!";
         return false;
+    }
+
+    if(outputEventPort->getParent() == this->getParent()){
+         qCritical() << "Cannot connect 2 Ports from the same component!";
+         return false;
     }
 
 

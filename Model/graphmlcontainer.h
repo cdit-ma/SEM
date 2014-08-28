@@ -81,6 +81,7 @@ public:
     virtual QString toString()=0;
 
 signals:
+    void constructGUI(GraphMLContainer*);
     void deleteGUI(GraphMLContainer*);
 
     void pushData();
@@ -105,6 +106,9 @@ private:
 
     //The unique ID of this graphml object.
     qint32 id;
+
+    //The Depth of this graphml object.
+    qint32 depth;
 
     //The unique kind ID of this graph object.
     KIND kind;

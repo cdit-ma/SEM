@@ -28,17 +28,18 @@ NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d):QObject()
     QString text = edge->getName();
     label  = new QGraphicsTextItem(text,this);
 
-    width = 50;
-    height = 50;
+    width = 20;
+    height = 20;
 
     bRec = QRect(0, 0, width, height);
 
     linePen.setWidth(((d->height + s->height) /2)/20);
-    linePen.setColor(Qt::gray);
+    linePen.setColor(Qt::red);
 
     inScene = false;
 
-    setGraphicsEffect(graphicsEffect);
+
+    this->setGraphicsEffect(graphicsEffect);
 
 
     updateLine();
@@ -104,7 +105,6 @@ void NodeEdge::setDeselected()
 void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton ) {
-        emit setSelected(this);
     }else if ( event->button() == Qt::RightButton ) {
         delete edge;
     }

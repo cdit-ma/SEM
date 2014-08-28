@@ -46,7 +46,7 @@ signals:
     void makeChildNode(Node*);
     void updateData(QString key, QString value);
 public slots:
-
+    void setOpacity(qreal opacity);
     void setSelected();
     void setDeselected();
     void toggleDetailDepth(int level);

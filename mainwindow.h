@@ -40,6 +40,7 @@ public slots:
     void recieveMessage(QString value);
 
     void enableGUI(bool enabled);
+    void updateProgressBar(int percentage, QString label);
 
     void writeExportedGraphMLData(QString filename, QString data);
 
@@ -51,10 +52,6 @@ public slots:
     void makeNode(Node* node);
     void makeEdge(Edge* edge);
     void exportNodeSelected(Node * node);
-
-
-
-
 
 
     void shiftPressed();
@@ -85,6 +82,7 @@ private slots:
     void on_pushButton_2_clicked();
 
 
+
 private:
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;
@@ -99,6 +97,10 @@ private:
     QVector<NodeItem*> currentSelectedItems;
     NodeItem* currentSelected;
     QHash<Node *, NodeItem*> hash;
+
+    // QWidget interface
+protected:
+    void keyPressEvent(QKeyEvent *);
 };
 
 #endif // MAINWINDOW_H

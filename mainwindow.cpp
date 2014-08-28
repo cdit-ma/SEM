@@ -10,11 +10,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    modelThread = new QThread();
+
     model = 0;
     controller = 0;
-    modelThread = new QThread();
-    previousParent = 0;
-    currentSelected = 0;
+
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
 
@@ -22,25 +23,8 @@ MainWindow::MainWindow(QWidget *parent) :
     SHIFT_DOWN = false;
 
 
-    //setDragMode(RubberBandDrag);
-    ui->graphicsView->setDragMode(QGraphicsView::ScrollHandDrag);
-    //setDragMode()
-
-
-    ui->graphicsView->setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
-
-
-    //Set-up the view
-    //ui->graphicsView->setSceneRect(0, 0, 2000, 2000);
-
-
     progressDialog = new QProgressDialog(this);
     progressDialog->setAutoClose(false);
-
-
-
-
-
 
     //Connect Enable
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->DebugOuputText,SLOT(setEnabled(bool)));
@@ -51,10 +35,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
 
-
-    //connect(((NodeView*)ui->graphicsView), SIGNAL(deletePressed()), this, SLOT(deleteSelected()));
-   // connect(((NodeView*)ui->graphicsView), SIGNAL(controlPressed()), this, SLOT(controlPressed()));
-   // connect(((NodeView*)ui->graphicsView), SIGNAL(shiftPressed()), this, SLOT(shiftPressed()));
 
 
 
@@ -76,6 +56,15 @@ void MainWindow::recieveMessage(QString value)
 void MainWindow::enableGUI(bool enabled)
 {
     emit init_enableGUI(enabled);
+}
+
+void MainWindow::updateProgressBar(int percentage, QString label)
+{
+    if(label != 0){
+        progressDialog->setLabelText(label);
+    }
+    progressDialog->setValue(percentage);
+
 }
 
 void MainWindow::writeExportedGraphMLData(QString filename, QString data)
@@ -346,7 +335,6 @@ void MainWindow::updateZoom(qreal zoom)
     }
 
     ui->verticalSlider->setValue(value);
-    ui->lineEdit_2->setText(QString::number(zoom));
 }
 
 
@@ -427,19 +415,29 @@ void MainWindow::createNewModel()
 
     controller = new GraphMLController(model,ui->graphicsView);
 
+    this->ui->treeView->setModel(controller->getTreeModel());
     //Connect to Models Signals
     connect(model, SIGNAL(enableGUI(bool)), this, SLOT(enableGUI(bool)));
 
     connect(this,SIGNAL(init_ExportGraphML(QString)),controller, SLOT(view_ExportGraphML(QString)));
     connect(this,SIGNAL(init_ImportGraphML(QStringList)),controller, SLOT(view_ImportGraphML(QStringList)));
-    /*
-    //Progress Dialog Signals
-    connect(model, SIGNAL(progressDialog_Hide()), progressDialog, SLOT(hide()));
-    connect(model, SIGNAL(progressDialog_Show()), progressDialog, SLOT(show()));
-    connect(model, SIGNAL(progressDialog_SetValue(int)), progressDialog, SLOT(setValue(int)));
-    connect(model, SIGNAL(progressDialog_SetText(QString)), progressDialog, SLOT(setLabelText(QString)));
-    connect(model, SIGNAL(setComponentCount(int)), this->ui->componentCount, SLOT(display(int)));
+    connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), controller, SLOT(view_SetCentered(QModelIndex)));
+    connect(ui->treeView, SIGNAL(pressed (QModelIndex)), controller, SLOT(view_SetSelected(QModelIndex)));
 
+    connect(ui->lineEdit,SIGNAL(textChanged(QString)), controller, SLOT(view_UpdateLabel(QString)));
+    connect(controller, SIGNAL(view_LabelChanged(QString)),  this->ui->lineEdit, SLOT(setText(QString)));
+
+    //Progress Dialog Signals
+    connect(model, SIGNAL(currentAction_ShowProgress(bool)), progressDialog, SLOT(setVisible(bool)));
+    connect(model,SIGNAL(currentAction_UpdateProgress(int,QString)), this, SLOT(updateProgressBar(int,QString)));
+    //connect(controller,SIGNAL())
+
+    //connect(model, SIGNAL(progressDialog_Show()), progressDialog, SLOT(show()));
+    //connect(model, SIGNAL(progressDialog_SetValue(int)), progressDialog, SLOT(setValue(int)));
+    //connect(model, SIGNAL(progressDialog_SetText(QString)), progressDialog, SLOT(setLabelText(QString)));
+    //connect(model, SIGNAL(setComponentCount(int)), this->ui->componentCount, SLOT(display(int)));
+
+    /*
     //Returned Data Signals
     connect(model, SIGNAL(returnExportedGraphMLData(QString, QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
 
@@ -449,7 +447,7 @@ void MainWindow::createNewModel()
     connect(model, SIGNAL(constructNodeItem(Node*)), this, SLOT(makeNode(Node*)));
     connect(model,SIGNAL(constructEdgeItem(Edge*)),this,SLOT(makeEdge(Edge*)));
     //Connect to Models Slots
-    connect(this, SIGNAL(init_ImportGraphML(QStringList , GraphMLContainer *)), model, SLOT(init_ImportGraphML(QStringList , GraphMLContainer*)));
+    connect(this, SIGNAL(init_ImportGraphML(QStringList view_SetCentered, GraphMLContainer *)), model, SLOT(init_ImportGraphML(QStringList , GraphMLContainer*)));
     connect(this, SIGNAL(init_ExportGraphML(QString)), model, SLOT(init_ExportGraphML(QString)));
 
 
@@ -457,6 +455,14 @@ void MainWindow::createNewModel()
 */
     model->moveToThread(this->modelThread);
     modelThread->start();
+
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key() == Qt::Key_Delete){
+        controller->view_DeleteTriggered(true);
+    }
 
 }
 

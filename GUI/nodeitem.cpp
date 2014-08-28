@@ -62,6 +62,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
 
 
     this->setGraphicsEffect(graphicsEffect);
+
+   //setFlag(ItemDoesntPropagateOpacityToChildren);
+    setFlag(ItemIgnoresParentOpacity);
 }
 
 NodeItem::~NodeItem()
@@ -123,6 +126,11 @@ void NodeItem::deleteConnnection(NodeEdge *line)
 {
     int position = connections.indexOf(line);
     connections.remove(position);
+}
+
+void NodeItem::setOpacity(qreal opacity)
+{
+   QGraphicsItem::setOpacity(opacity);
 }
 
 
