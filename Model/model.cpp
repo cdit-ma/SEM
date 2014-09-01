@@ -26,6 +26,7 @@ Model::~Model()
 
 bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
 {
+    qCritical() << "IMPORTING GRAPHML";
     int lines = inputGraphML.count("\n");
 
     //Construct a Stream Reader for the XML graph
@@ -68,7 +69,7 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
         return false;
     }
 
-     int componentCount = this->parentGraph->getChildren().size();
+    int componentCount = this->parentGraph->getChildren().size();
 
 
     while(!xml.atEnd()){
@@ -247,12 +248,14 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
     }
 
 
+    qCritical() << "EDGES?" << currentEdges.size();
 
     //Construct the Edges from the EdgeTemp objects
     for(int i =0; i< currentEdges.size(); i++){
         EdgeStruct edge = currentEdges[i];
         GraphMLContainer* s = nodeLookup[edge.source];
         GraphMLContainer* d = nodeLookup[edge.target];
+
 
         if(s != 0 && d != 0){
             if(s->isEdgeLegal(d)){
@@ -277,31 +280,6 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
     return true;
 }
 
-
-
-QString Model::exportGraphML()
-{
-
-    emit currentAction_ShowProgress(true);
-    emit currentAction_UpdateProgress(50);
-
-    QString returnable = QString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    returnable +="<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
-
-    for(int i=0; i < this->keys.size();i++){
-        returnable += this->keys[i]->toGraphML(1);
-    }
-    returnable += this->parentGraph->toGraphML(1);
-
-    returnable +="</graphml>\n";
-
-    emit currentAction_UpdateProgress(100);
-
-    emit currentAction_ShowProgress(false);
-
-    return returnable;
-}
-
 QVector<Edge *> Model::getAllEdges()
 {
     return this->edges;
@@ -311,6 +289,97 @@ QVector<Edge *> Model::getAllEdges()
 Graph *Model::getGraph()
 {
     return this->parentGraph;
+}
+
+QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
+{
+    //outputs for the stringed output.
+    QString keyXML, edgeXML, nodeXML;
+
+    //Vectors for the contained entities
+    QVector<GraphMLKey*> containedKeys;
+    QVector<Edge*> containedEdges;
+    QVector<GraphMLContainer*> containedNodes;
+
+    float size = nodes.size() * 2;
+
+    float count = 0;
+    foreach(GraphMLContainer* node, nodes)
+    {
+        //Add this node to the list of nodes contained.
+        if(!containedNodes.contains(node)){
+            containedNodes.append(node);
+        }
+
+        //Get all keys used by this node.
+        foreach(GraphMLKey* key, node->getKeys())
+        {
+            //Add the <key> tag to the list of Keys contained.
+            if(!containedKeys.contains(key)){
+                containedKeys.append(key);
+                keyXML += key->toGraphML(1);
+            }
+        }
+
+
+        //Get all children nodes and append them to
+        foreach(GraphMLContainer* child, node->getChildren())
+        {
+            //Add the child node to the list of nodes contained.
+            if(!containedNodes.contains(child)){
+                containedNodes.append(child);
+            }
+        }
+
+        count++;
+        double value = (count/size) * 100;
+        emit currentAction_UpdateProgress(value);
+    }
+
+    foreach(GraphMLContainer* node, nodes)
+    {
+        foreach(Edge* edge, node->getEdges())
+        {
+            if(!containedEdges.contains(edge)){
+                GraphMLContainer* src = edge->getSource();
+                GraphMLContainer* dst = edge->getDestination();
+
+                //If this edge is encapsulated by the current selection we should export it.
+                if(containedNodes.contains(src) && containedNodes.contains(dst)){
+                    containedEdges.append(edge);
+                    edgeXML += edge->toGraphML(2);
+
+                    //Get the Edges attached keys.
+                    foreach(GraphMLKey* key, edge->getKeys())
+                    {
+                        if(!containedKeys.contains(key)){
+                            containedKeys.append(key);
+                            keyXML += key->toGraphML(1);
+                        }
+                    }
+                }
+            }
+        }
+        nodeXML += node->toGraphML(2);
+
+        count++;
+        double value = (count/size) * 100;
+        emit currentAction_UpdateProgress(value);
+    }
+
+    //XMLize the output.
+    QString returnable = QString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    returnable +="<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
+    returnable += keyXML;
+    returnable +="\n\t<graph edgedefault=\"directed\" id=\"parentGraph0\">\n";
+    returnable += nodeXML;
+    returnable += edgeXML;
+    returnable += "\t</graph>\n";
+    returnable += "</graphml>";
+
+
+    return returnable;
+
 }
 
 void Model::constructedGraphML(GraphMLContainer *newlyCreated)
@@ -367,7 +436,7 @@ void Model::model_MakeChildNode(Node *parent)
 
 void Model::init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent)
 {
-    emit enableGUI(false);
+    emit model_EnableGUI(false);
     emit currentAction_ShowProgress(true);
 
     int files = inputGraphMLData.size();
@@ -382,22 +451,22 @@ void Model::init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *c
     }
 
     emit currentAction_ShowProgress(false);
-    emit enableGUI(true);
+    emit model_EnableGUI(true);
 }
 
 void Model::init_ExportGraphML(QString file)
 {
-    emit enableGUI(false);
+    emit model_EnableGUI(false);
 
-
+    emit currentAction_ShowProgress(true);
     emit currentAction_UpdateProgress(0, QString("Exporting Model to GraphML"));
 
-    QString data = exportGraphML();
+    QString data = exportGraphML(parentGraph->getChildren(0));
+
     emit returnExportedGraphMLData(file, data);
 
-
-
-    emit enableGUI(true);
+    emit currentAction_ShowProgress(false);
+    emit model_EnableGUI(true);
 
 }
 
@@ -422,6 +491,7 @@ GraphMLKey*  Model::parseGraphMLKey(QXmlStreamReader &xml)
 
     return buildGraphMLKey(name,typeStr,forStr);
 }
+
 
 GraphMLKey *Model::buildGraphMLKey(QString name, QString type, QString forString)
 {

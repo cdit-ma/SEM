@@ -34,19 +34,16 @@ Node *Node::getParentNode()
 QString Node::toGraphML(qint32 indentationLevel)
 {
     QString tabSpace;
-    for(int i=0;i<indentationLevel;i++){
-        tabSpace += "\t";
-    }
+    tabSpace.fill('\t', indentationLevel);
 
     QString returnable = tabSpace + QString("<node id =\"%1\">\n").arg(this->getID());
 
-    for(int i=0; i < this->attachedData.size();i++){
-        returnable += this->attachedData[i]->toGraphML(indentationLevel+1);
+    for(int i=0; i < attachedData.size();i++){
+        returnable += attachedData[i]->toGraphML(indentationLevel+1);
     }
 
-    for(int i=0; i < this->descendants.size(); i++){
-
-        returnable += this->descendants[i]->toGraphML(indentationLevel+1);
+    for(int i=0; i < descendants.size(); i++){
+        returnable += descendants[i]->toGraphML(indentationLevel+1);
     }
 
     returnable += tabSpace + "</node>\n";

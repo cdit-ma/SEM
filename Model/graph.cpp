@@ -60,33 +60,27 @@ bool Graph::isEdgeLegal(GraphMLContainer *attachableObject)
 QString Graph::toGraphML(qint32 indentationLevel)
 {
     QString tabSpace;
-    for(int i=0;i<indentationLevel;i++){
-        tabSpace += "\t";
-    }
+    tabSpace.fill('\t', indentationLevel);
 
     QString returnable = "";
-    if(this->descendants.size() > 0){
-        
+    //If we have Descendants
+    if(descendants.size() > 0){
         //If this is the parent Graph, we need to specify the edge type.
         QString edgeType="edgedefault=\"directed\"";
         
-        returnable = tabSpace + QString("<graph %2 id =\"%1\">\n").arg(this->getID(),edgeType);
+        returnable = tabSpace + QString("<graph %2 id =\"%1\">\n").arg(this->getID(), edgeType);
 
-        for(int i=0; i < this->descendants.size();i++){
+        //Attach Data
+        for(int i=0; i < attachedData.size();i++){
+            returnable += attachedData[i]->toGraphML(indentationLevel+1);
+        }
+
+        for(int i=0; i < descendants.size();i++){
             returnable += this->descendants[i]->toGraphML(indentationLevel+1);
         }
-
-        QVector<Edge *> edges = this->getEdges(-1);
-        for(int i=0; i < edges.size(); i++){
-            //Only store edges which originate from here.
-            if(edges[i]->getContainingGraph() == this){
-                returnable += edges[i]->toGraphML(indentationLevel+1);
-            }
-        }
-
-
         returnable += tabSpace + "</graph>\n";
     }
+
     return returnable;
 }
 

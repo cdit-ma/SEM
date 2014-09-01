@@ -17,6 +17,12 @@ signals:
     void deletePressed(bool isDown);
     void controlPressed(bool isDown);
     void shiftPressed(bool isDown);
+
+
+    void copy();
+    void cut();
+    void paste();
+
     void unselect();
     void selectAll();
 

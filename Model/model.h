@@ -43,15 +43,15 @@ public:
 
     bool importGraphML(QString inputGraphML, GraphMLContainer *currentParent=0);
 
-    QString exportGraphML();
+    //Exports a Selection of Containers to export into GraphML
+    QString exportGraphML(QVector<GraphMLContainer *> nodes);
 
     QVector<Edge *> getAllEdges();
      int getNodeCount();
     Graph* getGraph();
 
 signals:
-    void enableGUI(bool lock);
-
+    void model_EnableGUI(bool lock);
 
     void constructNodeItemNew(GraphMLContainer* gml);
 
@@ -70,6 +70,7 @@ signals:
     void removeUIComponent(GraphMLContainer*);
 
 public slots:
+
     void constructedGraphML(GraphMLContainer* newlyCreated);
 
     void model_MakeChildNode(Node* parent);

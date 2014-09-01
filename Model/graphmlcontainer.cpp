@@ -170,12 +170,42 @@ QVector<GraphMLContainer *> GraphMLContainer::getChildren(int depth)
     if(depth != 0){
         for(int i=0; i < this->descendants.size(); i++){
             returnable += this->descendants.at(i);
-            returnable +=  this->descendants.at(i)->getChildren(depth -1 );
+            returnable +=  this->descendants.at(i)->getChildren(depth - 1 );
         }
     }else{
         returnable += this->descendants;
     }
     return returnable;
+
+}
+
+
+QVector<GraphMLKey *> GraphMLContainer::getKeys(int depth)
+{
+    QVector<GraphMLContainer *> children = getChildren(depth);
+
+    QVector<GraphMLKey *> allKeys;
+
+    QVector<GraphMLData *> data = getData();
+    for(int i=0; i < data.size(); i++){
+        if(!allKeys.contains(data[i]->getKey())){
+            allKeys.append(data[i]->getKey());
+        }
+    }
+
+    for(int i=0; i < children.size(); i++){
+        GraphMLContainer* child = children[i];
+
+        QVector<GraphMLData *> data = child->getData();
+        for(int j=0; j < data.size(); j++){
+            if(!allKeys.contains(data[j]->getKey())){
+                allKeys.append(data[j]->getKey());
+            }
+        }
+
+    }
+
+    return allKeys;
 
 }
 

@@ -24,7 +24,6 @@ Edge::~Edge()
 {
     //Remove Edge!
     destination->removeEdge(this);
-
     source->removeEdge(this);
 
     qDebug() << QString("Removed Edge[%1]!").arg(this->getID());
@@ -62,16 +61,14 @@ GraphMLContainer *Edge::getContainingGraph()
 QString Edge::toGraphML(qint32 indentationLevel)
 {
     QString tabSpace;
-    for(int i=0;i<indentationLevel;i++){
-        tabSpace += "\t";
-    }
+    tabSpace.fill('\t', indentationLevel);
 
     QString returnable = tabSpace + QString("<edge id=\"%1\" source=\"%2\" target =\"%3\"").arg(this->getID(),this->getSource()->getID(),this->getDestination()->getID());
 
-    if(this->attachedData.size() > 0){
+    if(attachedData.size() > 0){
         returnable += ">\n";
-        for(int i =0;i<this->attachedData.size();i++){
-            returnable += this->attachedData[i]->toGraphML(indentationLevel + 1);
+        for(int i =0;i<attachedData.size();i++){
+            returnable += attachedData[i]->toGraphML(indentationLevel + 1);
         }
         returnable += tabSpace + "</edge>\n";
     }else{
@@ -79,6 +76,18 @@ QString Edge::toGraphML(qint32 indentationLevel)
     }
 
     return returnable;
+}
+
+QVector<GraphMLKey *> Edge::getKeys()
+{
+    QVector<GraphMLKey *> keys;
+    foreach(GraphMLData* data, attachedData){
+        GraphMLKey* key = data->getKey();
+        if(!keys.contains(key)){
+            keys.append(key);
+        }
+    }
+    return keys;
 }
 
 bool Edge::contains(GraphMLContainer *item)

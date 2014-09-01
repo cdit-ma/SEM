@@ -3,7 +3,7 @@
 
 NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d):QObject()
 {
-
+    qCritical() << "NODEEDGE";
     connect(edge, SIGNAL(deleteGUI(Edge*)), this, SLOT(deleteD(Edge*)));
 
 
@@ -67,8 +67,6 @@ void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             QRectF rectangle = boundingRect();
 
             painter->setBrush(QBrush(Qt::yellow));
-
-
             QPainterPath circle_path;
             circle_path.addEllipse(rectangle);
             painter->drawPath(circle_path);
@@ -78,10 +76,13 @@ void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 void NodeEdge::addToScene(QGraphicsScene *scene)
 {
-    QGline = scene->addLine(line,linePen);
-    QGline->setGraphicsEffect(graphicsEffect);
-    scene->addItem(this);
-    inScene = true;
+    qCritical() << "GG";
+    if(scene != 0){
+        QGline = scene->addLine(line,linePen);
+        QGline->setGraphicsEffect(graphicsEffect);
+        scene->addItem(this);
+        inScene = true;
+    }
 }
 
 

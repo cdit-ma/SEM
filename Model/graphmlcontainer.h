@@ -4,6 +4,8 @@
 #define GRAPHMLCONTAINER_H
 
 #include "edge.h"
+#include "graphmlkey.h"
+#include "graphmldata.h"
 
 class GraphMLContainer : public GraphML
 {
@@ -66,6 +68,8 @@ public:
     //Get a list of graphml objects contained by this graph
     //-1 returns all children recursively.
     QVector<GraphMLContainer *> getChildren(int depth=-1);
+
+    QVector<GraphMLKey *> getKeys(int depth=-1);
 
     //Can this graph adopt this graph.
     //Pure Virtual => Must be overwritten by subclasses!

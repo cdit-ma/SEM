@@ -9,12 +9,14 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+
     ui->setupUi(this);
 
+    //Make a thread for the Model.
     modelThread = new QThread();
 
-    model = 0;
     controller = 0;
+    model = 0;
 
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
@@ -32,8 +34,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->centralwidget,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton_2,SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(init_enableGUI(bool)), this->ui->graphicsView,SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(init_enableGUI(bool)), this->ui->graphicsView,SLOT(setVisible(bool)));
 
-    connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
+   // connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
 
 
 
@@ -46,11 +50,6 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-}
-
-void MainWindow::recieveMessage(QString value)
-{
-    this->ui->DebugOuputText->append(value);
 }
 
 void MainWindow::enableGUI(bool enabled)
@@ -82,7 +81,7 @@ void MainWindow::writeExportedGraphMLData(QString filename, QString data)
     }
 
 }
-
+/*
 void MainWindow::setNodeSelected(NodeItem *node)
 {
     if(SHIFT_DOWN){
@@ -161,11 +160,9 @@ void MainWindow::makeNode(Node *node){
 
 
         NodeItem* parent = 0;
-        /*
         if(previousParent->node->isAncestorOf(node)){
             parent = previousParent;
         }
-        */
 
         Node* parentNode = node->getParentNode();
         NodeItem* parentNodeItem=0;
@@ -220,6 +217,7 @@ void MainWindow::makeEdge(Edge *edge)
 
 
 }
+
 
 void MainWindow::exportNodeSelected(Node * node)
 {
@@ -306,6 +304,7 @@ void MainWindow::deleteComponent(GraphMLContainer *graph)
     }
 }
 
+
 void MainWindow::updateText(QString data)
 {
     try{
@@ -318,6 +317,7 @@ void MainWindow::updateText(QString data)
     }
 
 }
+*/
 
 void MainWindow::updateZoom(qreal zoom)
 {
@@ -403,24 +403,30 @@ void MainWindow::on_pushButton_2_clicked()
     createNewModel();
 }
 
+void MainWindow::copyText(QString value)
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(value);
+}
+
 void MainWindow::createNewModel()
 {
-    if(model != 0){
-        delete model;
-    }
     if(controller != 0){
         delete controller;
     }
-    model = new Model();
-
-    controller = new GraphMLController(model,ui->graphicsView);
+    controller = new GraphMLController(ui->graphicsView);
 
     this->ui->treeView->setModel(controller->getTreeModel());
     //Connect to Models Signals
-    connect(model, SIGNAL(enableGUI(bool)), this, SLOT(enableGUI(bool)));
+
+    connect(ui->graphicsView, SIGNAL(paste()), this, SLOT(on_pushButton_4_clicked()));
+
+    connect(controller, SIGNAL(view_EnableGUI(bool)), this, SLOT(enableGUI(bool)));
 
     connect(this,SIGNAL(init_ExportGraphML(QString)),controller, SLOT(view_ExportGraphML(QString)));
     connect(this,SIGNAL(init_ImportGraphML(QStringList)),controller, SLOT(view_ImportGraphML(QStringList)));
+
+
     connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), controller, SLOT(view_SetCentered(QModelIndex)));
     connect(ui->treeView, SIGNAL(pressed (QModelIndex)), controller, SLOT(view_SetSelected(QModelIndex)));
 
@@ -428,32 +434,16 @@ void MainWindow::createNewModel()
     connect(controller, SIGNAL(view_LabelChanged(QString)),  this->ui->lineEdit, SLOT(setText(QString)));
 
     //Progress Dialog Signals
-    connect(model, SIGNAL(currentAction_ShowProgress(bool)), progressDialog, SLOT(setVisible(bool)));
-    connect(model,SIGNAL(currentAction_UpdateProgress(int,QString)), this, SLOT(updateProgressBar(int,QString)));
-    //connect(controller,SIGNAL())
+    //connect(model, SIGNAL(currentAction_ShowProgress(bool)), progressDialog, SLOT(setVisible(bool)));
+   //connect(model,SIGNAL(currentAction_UpdateProgress(int,QString)), this, SLOT(updateProgressBar(int,QString)));
+    connect(ui->pushButton_3, SIGNAL(clicked()), controller, SLOT(view_Copy()));
+    connect(ui->pushButton_5, SIGNAL(clicked()), controller, SLOT(view_Cut()));
 
-    //connect(model, SIGNAL(progressDialog_Show()), progressDialog, SLOT(show()));
-    //connect(model, SIGNAL(progressDialog_SetValue(int)), progressDialog, SLOT(setValue(int)));
-    //connect(model, SIGNAL(progressDialog_SetText(QString)), progressDialog, SLOT(setLabelText(QString)));
-    //connect(model, SIGNAL(setComponentCount(int)), this->ui->componentCount, SLOT(display(int)));
-
-    /*
-    //Returned Data Signals
-    connect(model, SIGNAL(returnExportedGraphMLData(QString, QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
-
-    //connect(model, SIGNAL(removeUIComponent(GraphMLContainer*)),this, SLOT(deleteComponent(GraphMLContainer*)));
+    connect(controller, SIGNAL(view_CopyText(QString)), this, SLOT(copyText(QString)));
+    connect(this, SIGNAL(Controller_Paste(QString)), controller, SLOT(view_Paste(QString)));
 
 
-    connect(model, SIGNAL(constructNodeItem(Node*)), this, SLOT(makeNode(Node*)));
-    connect(model,SIGNAL(constructEdgeItem(Edge*)),this,SLOT(makeEdge(Edge*)));
-    //Connect to Models Slots
-    connect(this, SIGNAL(init_ImportGraphML(QStringList view_SetCentered, GraphMLContainer *)), model, SLOT(init_ImportGraphML(QStringList , GraphMLContainer*)));
-    connect(this, SIGNAL(init_ExportGraphML(QString)), model, SLOT(init_ExportGraphML(QString)));
-
-
-
-*/
-    model->moveToThread(this->modelThread);
+    controller->getModel()->moveToThread(this->modelThread);
     modelThread->start();
 
 }
@@ -468,4 +458,15 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 
 
+
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    if(clipboard->ownsClipboard()){
+        emit Controller_Paste(clipboard->text());
+
+    }
+
+}
 

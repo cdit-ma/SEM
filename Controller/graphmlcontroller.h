@@ -9,6 +9,7 @@
 #include <QDebug>
 #include "../Model/model.h"
 #include "../GUI/nodeview.h"
+#include <QClipboard>
 
 
 struct GUIContainer{
@@ -21,9 +22,10 @@ class GraphMLController: public QObject
 {
     Q_OBJECT
 public:
-    GraphMLController(Model* model, NodeView *view);
+    GraphMLController(NodeView *view);
     ~GraphMLController();
 
+    Model* getModel();
 
     QStandardItemModel* getTreeModel();
 signals:
@@ -36,12 +38,22 @@ signals:
     void view_EnableGUI(bool enabled);
 
 
+
+    void view_CopyText(QString value);
+
+
     //Model Signals
-    void model_ImportGraphML(QStringList inputGraphML);
+    void model_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
     void model_ExportGraphML(QString filePath);
     void model_MakeChildNode(Node* node);
 
 public slots:
+
+    //Copy/Paste Operations
+    void view_Copy();
+    void view_Cut();
+    void view_Paste(QString XMLData);
+
     //GUI Operation Slots.
     void view_ImportGraphML(QStringList inputGraphML);
     void view_ExportGraphML(QString filePath);
@@ -49,6 +61,8 @@ public slots:
     void view_UpdateLabel(QString value);
 
     void model_WriteToFile(QString filePath, QString data);
+
+    void model_EnableGUI(bool enabled);
 
     //Model Slots
     void model_MakeNode(Node* node);
@@ -101,9 +115,11 @@ private:
     QVector<GUIContainer*> nodeContainers;
     QVector<NodeItem*> nodeItems;
 
-    NodeItem* currentNodeAspect;
+    NodeItem* currentMaximized;
 
     QStandardItemModel* treeModel;
+
+    QString copyBuffer;
 
     Model* model;
     NodeView* view;

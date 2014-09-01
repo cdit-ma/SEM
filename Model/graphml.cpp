@@ -90,6 +90,8 @@ QVector<GraphMLData *> GraphML::getData()
     return this->attachedData;
 }
 
+
+
 void GraphML::attachData(GraphMLData *data)
 {
     GraphML::KIND keyKind = data->getKey()->getForKind();
@@ -109,6 +111,7 @@ void GraphML::attachData(QVector<GraphMLData *> data)
         data.pop_front();
     }
 }
+
 
 void GraphML::setID(QString id)
 {

@@ -27,6 +27,8 @@ public:
     QString toGraphML(qint32 indentationLevel=0);
 
 
+    QVector<GraphMLKey *> getKeys();
+
     bool contains(GraphMLContainer *item);
     QString toString();
 signals:

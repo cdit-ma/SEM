@@ -19,6 +19,8 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 {
     totalScaleFactor = 1;
 
+    CONTROL_DOWN = false;
+    SHIFT_DOWN = false;
     //setDragMode(RubberBandDrag);
     setDragMode(ScrollHandDrag);
     //setDragMode()
@@ -43,6 +45,7 @@ void NodeView::addNodeItem(NodeItem *item)
     if(!scene()->items().contains(item)){
         scene()->addItem(item);
     }
+    qCritical() << "CRASGH: Adding NodeItem to View";
 }
 
 void NodeView::removeNodeItem(NodeItem *item)
@@ -155,6 +158,18 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_A){
         emit selectAll();
+    }
+
+    if(this->CONTROL_DOWN && event->key() == Qt::Key_C){
+        emit copy();
+    }
+
+    if(this->CONTROL_DOWN && event->key() == Qt::Key_X){
+        emit cut();
+    }
+
+    if(this->CONTROL_DOWN && event->key() == Qt::Key_V){
+        emit paste();
     }
 
     if(event->key() == Qt::Key_Shift){

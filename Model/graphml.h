@@ -7,6 +7,7 @@
 
 //Forward Declaration
 class GraphMLData;
+class GraphMLKey;
 
 //Abstract Base class for ALL GraphML objects used in a graph. Extended by GraphMLContainer.
 //Some pure Virtual methods. Cannot be directly Instantiated.

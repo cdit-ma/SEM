@@ -37,31 +37,12 @@ public:
     ~MainWindow();
 
 public slots:
-    void recieveMessage(QString value);
 
     void enableGUI(bool enabled);
+
     void updateProgressBar(int percentage, QString label);
 
     void writeExportedGraphMLData(QString filename, QString data);
-
-    void setNodeSelected(NodeItem* node);
-
-    void deselectNode(QObject* obj);
-
-    void centreNode(NodeItem*);
-    void makeNode(Node* node);
-    void makeEdge(Edge* edge);
-    void exportNodeSelected(Node * node);
-
-
-    void shiftPressed();
-    void controlPressed();
-    void deleteSelected();
-    void makeChildNode(NodeItem * nodeItme);
-
-    void deleteComponent(GraphMLContainer* graph);
-
-    void updateText(QString data);
     void updateZoom(qreal zoom);
 signals:
     void init_enableGUI(bool enabled);
@@ -69,6 +50,7 @@ signals:
     void removeComponent(GraphMLContainer* v);
     void init_ImportGraphML(QStringList inputGraphML);
     void init_ExportGraphML(QString file);
+    void Controller_Paste(QString data);
 
 private slots:
     void on_actionImport_GraphML_triggered();
@@ -81,6 +63,9 @@ private slots:
 
     void on_pushButton_2_clicked();
 
+    void copyText(QString value);
+
+    void on_pushButton_4_clicked();
 
 
 private:
@@ -88,11 +73,12 @@ private:
     bool SHIFT_DOWN;
     void createNewModel();
     GraphMLController* controller;
+    Model* model;
     NodeItem *previousParent;
     QThread *modelThread;
     Ui::MainWindow *ui;
     QProgressDialog *progressDialog;
-    Model *model;
+    //Model *model;
     QGraphicsScene *scene;
     QVector<NodeItem*> currentSelectedItems;
     NodeItem* currentSelected;
