@@ -30,6 +30,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
      void updateLine();
+      Edge* edge;
     void  addToScene(QGraphicsScene* scene);
 signals:
     void setSelected(NodeEdge *);
@@ -47,7 +48,7 @@ protected:
 
 private:
     QGraphicsLineItem* QGline;
-    Edge* edge;
+
     NodeItem* source;
     NodeItem* destination;
 

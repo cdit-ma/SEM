@@ -41,11 +41,9 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 
 void NodeView::addNodeItem(NodeItem *item)
 {
-    qCritical() << "View: Adding NodeItem to View";
     if(!scene()->items().contains(item)){
         scene()->addItem(item);
     }
-    qCritical() << "CRASGH: Adding NodeItem to View";
 }
 
 void NodeView::removeNodeItem(NodeItem *item)

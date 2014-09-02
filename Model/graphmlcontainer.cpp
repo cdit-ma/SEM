@@ -3,26 +3,19 @@
 GraphMLContainer::GraphMLContainer(GraphML::KIND kind, QString name):GraphML(kind, name)
 {
     this->parent = 0;
-
-    emit constructGUI(this);
 }
 
 GraphMLContainer::~GraphMLContainer()
 {
-
-    qDebug() << "Destructing GraphMLContainer: " << this->getName();
-
     if(parent != 0){
-        qCritical() << "Detaching from GraphML Parent: " << parent->getName() << " [" <<parent->getKind()<<"]";
         parent->disown(this);
     }
 
     removeEdges();
     removeChildren();
 
-    qDebug() << "\n";
-
-    emit deleteGUI(this);
+    //Kill the attached GUI element
+    emit destructGUI(this);
 }
 
 void GraphMLContainer::setParent(GraphMLContainer *parent)
@@ -32,6 +25,9 @@ void GraphMLContainer::setParent(GraphMLContainer *parent)
         this->parent->disown(this);
     }
     this->parent = parent;
+
+    //Construct the GUI for this.
+    emit constructGUI(this);
 }
 
 GraphMLContainer *GraphMLContainer::getParent()
@@ -47,7 +43,6 @@ Edge *GraphMLContainer::getEdge(GraphMLContainer *element)
             return edges[i];
         }
     }
-    //qCritical() << "Couldn't find edge!";
     return 0;
 }
 
@@ -106,11 +101,13 @@ void GraphMLContainer::removeChildren()
 
 void GraphMLContainer::adopt(GraphMLContainer *child)
 {
-    qDebug() << this->toString() << " Adopting " << child->toString();
+    //Construct the GUI for this.
+    emit constructGUI(this);
 
     child->setParent(this);
-
     this->descendants.append(child);
+
+
 }
 
 void GraphMLContainer::disown(GraphMLContainer *child)
@@ -209,11 +206,6 @@ QVector<GraphMLKey *> GraphMLContainer::getKeys(int depth)
 
 }
 
-void GraphMLContainer::updateData(QString key, QString value)
-{
-    this->setDataValue(key,value);
-    emit pushData();
-}
 
 void GraphMLContainer::addEdge(Edge *edge)
 {

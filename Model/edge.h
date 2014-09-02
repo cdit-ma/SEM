@@ -31,8 +31,12 @@ public:
 
     bool contains(GraphMLContainer *item);
     QString toString();
+
 signals:
-    void deleteGUI(Edge*);
+    //Used to construct and tear down GUI elements.
+    void constructGUI(Edge*);
+    void destructGUI(Edge*);
+
 
 private:
     GraphMLContainer* source;

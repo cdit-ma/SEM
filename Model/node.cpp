@@ -24,11 +24,15 @@ Node::~Node(){
 Node *Node::getParentNode()
 {
     Graph* parentGraph = dynamic_cast<Graph*>(getParent());
-    Node* parentNode = dynamic_cast<Node*>(parentGraph->getParent());
+    Node* parentNode = 0;
+    if(parentGraph != 0){
+        parentNode = dynamic_cast<Node*>(parentGraph->getParent());
+    }
 
     if(parentGraph != 0 && parentNode != 0){
         return parentNode;
     }
+    return 0;
 }
 
 QString Node::toGraphML(qint32 indentationLevel)

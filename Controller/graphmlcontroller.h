@@ -98,11 +98,14 @@ private:
     bool KEY_SHIFT_DOWN;
 
     void deselectNodeItems(NodeItem* selectedNodeItem = 0);
+    void deselectEdgeItems(NodeEdge* selectedEdgeItem = 0);
     void selectNodeItem(NodeItem* selectedNodeItem);
+    void selectEdgeItem(NodeEdge* selectedEdgeItem);
 
     void hideAllMatches(Node* node);
     void resetMatches();
     void deleteSelectedNodeItems();
+    void deleteSelectedEdgeItems();
 
     NodeItem* getNodeItemFromNode(Node* node);
     GUIContainer* getGUIContainer(Node* node);
@@ -112,6 +115,9 @@ private:
     void removeNodeItem(NodeItem* nodeItem);
 
     QVector<NodeItem*> selectedNodeItems;
+
+    QVector<NodeEdge*> selectedEdgeItems;
+
     QVector<GUIContainer*> nodeContainers;
     QVector<NodeItem*> nodeItems;
 

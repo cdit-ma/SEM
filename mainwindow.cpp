@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton_2,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->graphicsView,SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(init_enableGUI(bool)), this->ui->graphicsView,SLOT(setVisible(bool)));
+    //connect(this, SIGNAL(init_enableGUI(bool)), this->ui->graphicsView,SLOT(setVisible(bool)));
 
    // connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
 

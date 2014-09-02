@@ -32,13 +32,9 @@ public:
 
     QString getID() const;
 
-    bool setDataValue(QString keyName,QString value);
-
     QString getDataValue(QString keyName);
 
     GraphMLData* getData(QString keyName);
-
-    // bool setDataValue(QString keyName, QString value);
 
     //Get a list of Data objects contained by this GraphML
     QVector<GraphMLData *> getData();
@@ -63,6 +59,10 @@ public:
 
     //The unique ID counter;
     static qint32 _Uid;
+
+public slots:
+    void updateDataValue(QString key, QString value);
+
 protected:
     QVector<GraphMLData *> attachedData;
 

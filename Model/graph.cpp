@@ -7,8 +7,6 @@ int Graph::_Gid = 0;
 Graph::Graph(QString name):GraphMLContainer(GraphML::GRAPH, name)
 {
     this->setID(QString("g%1").arg(this->_Gid++));
-
-    //qDebug() << "Constructed Graph["<< this->getName() <<"]";
 }
 
 Graph::~Graph()

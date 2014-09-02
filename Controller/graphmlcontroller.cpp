@@ -39,21 +39,23 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
     connect(this, SIGNAL(model_ExportGraphML(QString)), model, SLOT(init_ExportGraphML(QString)));
     connect(this, SIGNAL(model_ImportGraphML(QStringList, GraphMLContainer*)), model, SLOT(init_ImportGraphML(QStringList, GraphMLContainer*)));
     connect(this, SIGNAL(model_MakeChildNode(Node*)),model,SLOT(model_MakeChildNode(Node*)));
-    connect(model, SIGNAL(model_EnableGUI(bool)), this, SLOT(model_EnableGUI(bool)));
+    connect(model, SIGNAL(view_EnableGUI(bool)), this, SLOT(model_EnableGUI(bool)));
+
+    connect(model, SIGNAL(view_DestructGUINode(GraphMLContainer*)), this, SLOT(model_RemoveNode(GraphMLContainer*)));
 
     //connect(model, SIGNAL(removeUIComponent(GraphMLContainer*)),this, SLOT(deleteComponent(GraphMLContainer*)));
 
-    connect(model, SIGNAL(removeUIComponent(GraphMLContainer*)), this, SLOT(model_RemoveNode(GraphMLContainer*)));
+    //connect(model, SIGNAL(removeUIComponent(GraphMLContainer*)), this, SLOT(model_RemoveNode(GraphMLContainer*)));
 
     //Connect to the Signals of the MODEL
-    connect(model, SIGNAL(constructNodeItemNew(GraphMLContainer*)), this,SLOT(model_MadeNodeNew(GraphMLContainer*)));
+    connect(model, SIGNAL(view_ConstructGUINode(GraphMLContainer*)), this,SLOT(model_MadeNodeNew(GraphMLContainer*)));
     //connect(model,SIGNAL(constructNodeItem(Node*)),this,SLOT(model_MakeNode(Node*)));
-    connect(model,SIGNAL(constructEdgeItem(Edge*)),this,SLOT(model_MakeEdge(Edge*)));
+    connect(model,SIGNAL(view_ConstructGUIEdge(Edge*)),this,SLOT(model_MakeEdge(Edge*)));
 
 
 
 
-    connect(model,SIGNAL(returnExportedGraphMLData(QString,QString)), this, SLOT(model_WriteToFile(QString,QString)));
+    connect(model,SIGNAL(view_ReturnExportedData(QString,QString)), this, SLOT(model_WriteToFile(QString,QString)));
 }
 
 GraphMLController::~GraphMLController()
@@ -104,6 +106,7 @@ void GraphMLController::view_Paste(QString XMLData)
         currentParent = selectedNodeItems[0]->node;
     }
     emit model_ImportGraphML(files, currentParent);
+    qCritical() << "WHAT IS GOING ON";
 }
 
 
@@ -124,7 +127,7 @@ void GraphMLController::view_ExportGraphML(QString filePath)
 void GraphMLController::view_UpdateLabel(QString value)
 {
     if(selectedNodeItems.size() == 1){
-        selectedNodeItems[0]->node->setDataValue("label", value);
+        selectedNodeItems[0]->node->updateDataValue("label", value);
         GUIContainer* gi = getGUIContainer(selectedNodeItems[0]);
         gi->modelItem->setText(value);
     }
@@ -147,6 +150,7 @@ void GraphMLController::model_WriteToFile(QString filePath, QString data)
 
 void GraphMLController::model_EnableGUI(bool enabled)
 {
+
     emit view_EnableGUI(enabled);
 }
 
@@ -157,10 +161,12 @@ void GraphMLController::model_MakeNode(Node *node)
     QStringList kindsToMake;
     kindsToMake << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "OutEventPort" << "Attribute";
 
+    qCritical() << "GraphMLController: kindsToMake Node!";
     QString nodeKind = node->getDataValue("kind");
 
     //If we are meant to make this node.
     if(kindsToMake.contains(nodeKind)){
+         qCritical() << "GraphMLController: kindsToMake Node!";
 
         //Get Visual Parent Node
         NodeItem* parentNodeItem = 0;
@@ -209,8 +215,6 @@ void GraphMLController::model_MakeNode(Node *node)
 
 void GraphMLController::model_MakeEdge(Edge *edge)
 {
-    qCritical() << "GraphMLController: Making Edge!";
-
     GraphMLContainer* source = edge->getSource();
     GraphMLContainer* destination = edge->getDestination();
 
@@ -218,35 +222,36 @@ void GraphMLController::model_MakeEdge(Edge *edge)
     NodeItem* destinationItem = getNodeItemFromNode((Node*)destination);
 
 
-     qCritical() << "GraphMLController: Making Edge2!";
 
     if(sourceItem != 0 && destinationItem != 0){
         NodeEdge* nC = new NodeEdge(edge, sourceItem, destinationItem);
-         qCritical() << "GraphMLController33: Making Edge!";
-         nC->addToScene(view->scene());
-        qCritical() << "GraphMLController35: Making Edge!";
+        nC->addToScene(view->scene());
+
+        connect(nC, SIGNAL(setSelected(NodeEdge*)), this, SLOT(nodeEdge_Selected(NodeEdge*)));
     }else{
-        qCritical() << "BROKEN";
+        qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
     }
 }
 
 void GraphMLController::model_MadeNodeNew(GraphMLContainer *item)
 {
-    qCritical() << "GraphMLController: Making Node!";
+    qDebug() << "GraphMLController::model_MadeNodeNew()";
 
+    if(item == 0){
+        return;
+    }
     QStringList kindsToMake;
     kindsToMake << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "OutEventPort" << "Attribute";
 
+
     QString nodeKind = item->getDataValue("kind");
+
 
     //If we are meant to make this node.
     if(kindsToMake.contains(nodeKind)){
-
         Node* node = (Node*) item;
         //Get Visual Parent Node
         NodeItem* parentNodeItem = 0;
-
-
 
         Node* parentNode = node->getParentNode();
 
@@ -274,8 +279,8 @@ void GraphMLController::model_MadeNodeNew(GraphMLContainer *item)
         nodeContainers.append(toAppend);
 
         GUIContainer* parent = getGUIContainer(parentNode);
+
         if(parent == 0){
-            qCritical() << "YOLO";
             treeModel->appendRow(newNodeItemData);
         }else{
             parent->modelItem->appendRow(newNodeItemData);
@@ -284,16 +289,14 @@ void GraphMLController::model_MadeNodeNew(GraphMLContainer *item)
         //Add Item to view
         emit view_addNodeItem(newNodeItem);
     }else{
-        qCritical() << "GraphMLController: Not Making Node!" << nodeKind;
-        //Don't make
+        qCritical() << "GraphMLController::model_MadeNodeNew() << Node Kind: " << nodeKind << " not Implemented";
     }
-
 }
 
 void GraphMLController::model_RemoveNode(GraphMLContainer *item)
 {
+    qCritical() << "GraphMLController::model_RemoveNode()";
     //Removes the item from the list of built nodes.
-    qCritical() << "GraphMLController::model_RemoveNode";
     Node* node = (Node*)item;
     if(node != 0){
         GUIContainer* item = getGUIContainer(node);
@@ -303,7 +306,9 @@ void GraphMLController::model_RemoveNode(GraphMLContainer *item)
             QModelIndex index = item->modelItem->index();
             treeModel->removeRow(index.row(), index.parent());
 
+
             removeNodeItem(item->nodeItem);
+
 
             nodeContainers.removeAt(position);
         }
@@ -362,7 +367,19 @@ void GraphMLController::nodeItem_MakeChildNode(Node *node)
 
 void GraphMLController::nodeEdge_Selected(NodeEdge *nodeEdge)
 {
+    if(KEY_CONTROL_DOWN){
+        //If we have already got this Edge in the selected Item list, deselect it.
+        if(selectedEdgeItems.contains(nodeEdge)){
+            deselectEdgeItems(nodeEdge);
+            qCritical() << "LEL";
+            return;
+        }
+    }
 
+    if(KEY_CONTROL_DOWN == false){
+        deselectEdgeItems();
+    }
+    selectEdgeItem(nodeEdge);
 
 }
 
@@ -406,6 +423,7 @@ void GraphMLController::view_ShiftTriggered(bool isDown)
 void GraphMLController::view_DeleteTriggered(bool isDown)
 {
     if(isDown){
+        deleteSelectedEdgeItems();
         deleteSelectedNodeItems();
     }
 
@@ -417,7 +435,7 @@ void GraphMLController::view_SelectAll()
     QVector<GraphMLContainer*> children;
 
     if(currentMaximized == 0){
-        children = model->getGraph()->getChildren(0);
+        children = model->getChildren(0);
     }else{
         children = currentMaximized->node->getChildren(1);
     }
@@ -437,6 +455,7 @@ void GraphMLController::view_SelectAll()
 void GraphMLController::view_EmptyScenePressed()
 {
     deselectNodeItems();
+    deselectEdgeItems();
     resetMatches();
     currentMaximized = 0;
     emit view_LabelChanged("");
@@ -457,6 +476,20 @@ void GraphMLController::deselectNodeItems(NodeItem *selectedNodeItem)
     }
 }
 
+void GraphMLController::deselectEdgeItems(NodeEdge *selectedEdgeItem)
+{
+    if(selectedEdgeItem == 0){
+        for(int i = 0; i < selectedEdgeItems.size(); i++){
+            selectedEdgeItems[i]->setDeselected();
+        }
+        selectedEdgeItems.clear();
+    }else{
+        int position = selectedEdgeItems.indexOf(selectedEdgeItem);
+        selectedEdgeItems.removeAt(position);
+        selectedEdgeItem->setDeselected();
+    }
+}
+
 void GraphMLController::selectNodeItem(NodeItem *selectedNodeItem)
 {
     if(!selectedNodeItems.contains(selectedNodeItem)){
@@ -466,6 +499,14 @@ void GraphMLController::selectNodeItem(NodeItem *selectedNodeItem)
     selectedNodeItem->setSelected();
 
     emit view_LabelChanged(gui->node->getDataValue("label"));
+}
+
+void GraphMLController::selectEdgeItem(NodeEdge *selectedEdgeItem)
+{
+    if(!selectedEdgeItems.contains(selectedEdgeItem)){
+        selectedEdgeItems.append(selectedEdgeItem);
+    }
+    selectedEdgeItem->setSelected();
 }
 
 bool nodeItemLessThan(NodeItem* o1, NodeItem* o2){
@@ -486,6 +527,19 @@ void GraphMLController::deleteSelectedNodeItems()
         }
     }
     emit view_LabelChanged("");
+}
+
+void GraphMLController::deleteSelectedEdgeItems()
+{
+    while(selectedEdgeItems.size() != 0){
+        NodeEdge* tdNodeItem = selectedEdgeItems.first();
+        if(tdNodeItem != 0){
+            Edge* tdNode = tdNodeItem->edge;
+            delete tdNode;
+            selectedEdgeItems.pop_front();
+        }
+    }
+
 }
 
 GUIContainer *GraphMLController::getGUIContainer(Node *node)
@@ -541,12 +595,14 @@ void GraphMLController::removeNodeItem(NodeItem *nodeItem)
         if(currentMaximized == nodeItem){
             currentMaximized = 0;
         }
+
     }
+    delete nodeItem;
 }
 
 void GraphMLController::hideAllMatches(Node *node)
 {
-    QVector<GraphMLContainer *> items = this->model->getGraph()->getChildren(-1);
+    QVector<GraphMLContainer *> items = model->getChildren();
     for(int i = 0; i <items.size();i++){
         GraphMLContainer* currentItem = items[i];
         Node* currentNode = (Node*)currentItem;
@@ -567,7 +623,7 @@ void GraphMLController::hideAllMatches(Node *node)
 
 void GraphMLController::resetMatches()
 {
-    QVector<GraphMLContainer *> items = this->model->getGraph()->getChildren(-1);
+    QVector<GraphMLContainer *> items = model->getChildren();
     for(int i = 0; i <items.size();i++){
         GraphMLContainer* currentItem = items[i];
         Node* currentNode = (Node*)currentItem;

@@ -28,7 +28,7 @@ Edge::~Edge()
 
     qDebug() << QString("Removed Edge[%1]!").arg(this->getID());
 
-    emit deleteGUI(this);
+    emit destructGUI(this);
 }
 
 GraphMLContainer *Edge::getSource()

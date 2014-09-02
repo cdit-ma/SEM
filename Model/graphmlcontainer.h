@@ -85,12 +85,10 @@ public:
     virtual QString toString()=0;
 
 signals:
+    //Used to construct and tear down GUI elements.
     void constructGUI(GraphMLContainer*);
-    void deleteGUI(GraphMLContainer*);
+    void destructGUI(GraphMLContainer*);
 
-    void pushData();
-public slots:
-    void updateData(QString key, QString value);
 protected:
     //The list of contained children GraphML elements. (Top level only)
     QVector<GraphMLContainer *> descendants;

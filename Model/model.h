@@ -27,7 +27,7 @@
 struct EdgeStruct
 {
     QString id;
-    qint64 linenumber;
+    qint64 lineNumber;
     QString source;
     QString target;
     QVector<GraphMLData *> data;
@@ -39,46 +39,53 @@ class Model: public QObject
 public:
     Model();
     ~Model();
-    //Imports
-
-    bool importGraphML(QString inputGraphML, GraphMLContainer *currentParent=0);
 
     //Exports a Selection of Containers to export into GraphML
     QString exportGraphML(QVector<GraphMLContainer *> nodes);
 
-    QVector<Edge *> getAllEdges();
-     int getNodeCount();
+    QVector<GraphMLContainer*> getChildren(int depth=-1);
+private:
+    //Imports
+    bool importGraphML(QString inputGraphML, GraphMLContainer *currentParent = 0);
+
     Graph* getGraph();
 
 signals:
-    void model_EnableGUI(bool lock);
+    //Enable the GUI
+    void view_EnableGUI(bool lock);
 
-    void constructNodeItemNew(GraphMLContainer* gml);
+    //Update the Progress Dialog
+    void view_ShowProgressDialog(bool visible);
+    void view_UpdateProgressDialog(int perc, QString label=0);
 
-    void currentAction_ShowProgress(bool visible);
-    void currentAction_UpdateProgress(int perc, QString label=0);
+    //Return the Exported Data from a successful GraphML Export.
+    void view_ReturnExportedData(QString filePath, QString graphMLData);
 
+    //Emitted by model_ConstructGUINode()
+    void view_ConstructGUINode(GraphMLContainer* node);
+    //Emitted by model_ConstructGUIEdge()
+    void view_ConstructGUIEdge(Edge* edge);
 
-    void constructNodeItem(Node* node);
-
-    void constructEdgeItem(Edge* edge);
-    void setComponentCount(int count);
-
-    void updateGUIComponent(GraphMLContainer* component);
-
-    void returnExportedGraphMLData(QString file, QString data);
-    void removeUIComponent(GraphMLContainer*);
+    //Emitted by model_DestructGUINode()
+    void view_DestructGUINode(GraphMLContainer* node);
+    //Emitted by model_DestructGUINode()
+    void view_DestructGUIEdge(Edge* edge);
 
 public slots:
+    //Called when ever a new GraphML Node or Edge has been constructed in the Model.
+    void model_ConstructGUINode(GraphMLContainer* node);
+    void model_ConstructGUIEdge(Edge* edge);
 
-    void constructedGraphML(GraphMLContainer* newlyCreated);
+    //Called when ever a GraphML Node or Edge has been destructed in the Model.
+    void model_DestructGUINode(GraphMLContainer* node);
+    void model_DestructGUIEdge(Edge* edge);
+
 
     void model_MakeChildNode(Node* parent);
 
 
     void init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent=0);
     void init_ExportGraphML(QString file);
-    void deleteUIComponent(GraphMLContainer * comp);
 
 
     void updatePosition(GraphMLContainer* comp, QPointF pos);
@@ -112,9 +119,5 @@ private:
 
 private:
     bool outputEvent;
-    double percentage;
-    bool isOperating;
-    int loadCount;
-
 };
 #endif // MODEL_H

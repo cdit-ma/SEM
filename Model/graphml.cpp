@@ -50,25 +50,24 @@ QString GraphML::getID() const
 }
 
 
-bool GraphML::setDataValue(QString keyName, QString value)
+void GraphML::updateDataValue(QString keyName, QString value)
 {
     GraphMLData* data = getData(keyName);
     if(data != 0){
         data->setValue(value);
-        return true;
     }else{
-        qCritical() << "GraphML Object does not contain Data: "<<keyName<<"!";
-        return false;
+        qCritical() << "GraphML Object does not contain Data: " << keyName << "!";
     }
 }
 
 QString GraphML::getDataValue(QString keyName)
 {
     GraphMLData* data = getData(keyName);
+
     if(data != 0){
         return data->getValue();
     }else{
-        qCritical() <<"GraphML Object does not contain Data: "<<keyName<<"!";
+        qCritical() <<"GraphML::getDataValue() << GraphML Object does not contain Data: " << keyName;
         return "";
     }
 
@@ -77,8 +76,10 @@ QString GraphML::getDataValue(QString keyName)
 GraphMLData *GraphML::getData(QString keyName)
 {
     for(int i=0; i < attachedData.size(); i++){
-        if(attachedData[i]->getKey()->getName() == keyName){
-            return this->attachedData[i];
+        if(attachedData[i]->getKey() != 0){
+            if(attachedData[i]->getKey()->getName() == keyName){
+                return this->attachedData[i];
+            }
         }
     }
     return 0;

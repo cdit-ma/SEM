@@ -7,6 +7,7 @@
 NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
 {
 
+
     drawDetail = true;
     drawObject = true;
 
@@ -37,8 +38,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     bRec = QRect(0,0,this->width, this->height);
 
 
-
-
     GraphMLData* xData = node->getData("x");
     GraphMLData* yData = node->getData("y");
     GraphMLData* kindData = node->getData("kind");
@@ -52,7 +51,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
 
     connect(this, SIGNAL(updateData(QString,QString)),node,SLOT(updateData(QString,QString)));
-    connect(node, SIGNAL(deleteGUI(GraphMLContainer*)), this, SLOT(deleteD(GraphMLContainer*)));
+    //connect(node, SIGNAL(deleteGUI(GraphMLContainer*)), this, SLOT(deleteD(GraphMLContainer*)));
 
 
     emit updatedData(xData);
@@ -69,8 +68,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
 
 NodeItem::~NodeItem()
 {
-    disconnect(this, SIGNAL(updateData(QString,QString)),node,SLOT(updateData(QString,QString)));
-    emit deleted(this);
 }
 
 QRectF NodeItem::boundingRect() const
@@ -212,10 +209,12 @@ void NodeItem::recieveData()
 
 }
 
-void NodeItem::deleteD(GraphMLContainer *)
+void NodeItem::destructNodeItem()
 {
     delete this;
+
 }
+
 
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)

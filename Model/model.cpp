@@ -5,32 +5,21 @@
 
 Model::Model(): QObject()
 {
-    qDebug() << "Constructed New Model";
+    qDebug() << "Model::Model()";
 
-    this->parentGraph = new Graph("Parent Graph");
-
-    int componentCount = this->parentGraph->getChildren().size();
-    loadCount=0;
-    emit setComponentCount(componentCount);
-
-    buildGraphMLKey("width","double","node");
-    buildGraphMLKey("height","double","node");
+    //Construct Parent Graph.
+    this->parentGraph = new Graph("ParentGraph");
 }
 
 Model::~Model()
 {
-    qDebug() << "Killing Model";
+    qDebug() << "Model::~Model()";
     delete parentGraph;
-
 }
 
 bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
 {
-    qCritical() << "IMPORTING GRAPHML";
-    int lines = inputGraphML.count("\n");
-
-    //Construct a Stream Reader for the XML graph
-    QXmlStreamReader xml(inputGraphML);
+    qDebug() << "Model::importGraphML()";
 
     //Key Lookup provides a way for the original key "id" to be linked with the internal object GraphMLKey
     QMap<QString , GraphMLKey*> keyLookup;
@@ -53,31 +42,51 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
     //Used to store the ID of the node we are to construct
     QString nodeID = "";
 
+    //Used to store the ID of the graph we are to construct
     QString graphID = "";
 
     //Used to store the ID of the new node we will construct later.
     QString newNodeID = "";
 
+    //If we have been passed no parent, set it as the graph of this Model.
     if(currentParent == NULL){
         currentParent = this->getGraph();
     }
+
+
+
+    //Construct a Stream Reader for the XML graph
+    QXmlStreamReader xmlErrorChecking(inputGraphML);
+
+    //Check for Errors
+    while(!xmlErrorChecking.atEnd()){
+        xmlErrorChecking.readNext();
+        if (xmlErrorChecking.hasError()){
+            qCritical() << "Model::importGraphML() << Parsing Error!";
+            qCritical() << "\t" << xmlErrorChecking.errorString();
+            return false;
+        }
+    }
+
+    //Now we know we have no errors, so read Stream again.
+    QXmlStreamReader xml(inputGraphML);
+
+    //Get the number of lines in the input GraphML XML String.
+    float lineCount = inputGraphML.count("\n") / 100;
+
+
     //Counts the number of </node> elements we encounter to correctly traverse to the correct insertion point.
     int parentDepth = 0;
 
-    if (xml.hasError()) {
-        qDebug() << "ERRORS YO";
-        return false;
-    }
-
-    int componentCount = this->parentGraph->getChildren().size();
-
-
+    //While the document has more lines.
     while(!xml.atEnd()){
-        double percentage = ((double)xml.lineNumber() / (double)lines) * 100;
-
-        emit currentAction_UpdateProgress(percentage);
         //Read the next tag
         xml.readNext();
+
+        //Calculate the current percentage
+        float lineNumber = xml.lineNumber();
+        double percentage = (lineNumber * 100 / lineCount);
+        emit view_UpdateProgressDialog(percentage);
 
         //Get the tagName
         QString tagName = xml.name().toString();
@@ -88,7 +97,7 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                 //Parse the Edge element into a EdgeStruct object
                 EdgeStruct newEdge;
                 newEdge.id = getAttribute(xml, "id");
-                newEdge.linenumber = xml.lineNumber();
+                newEdge.lineNumber = lineNumber;
                 newEdge.source = getAttribute(xml, "source");
                 newEdge.target = getAttribute(xml, "target");
 
@@ -161,9 +170,8 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
         }else if(tagName == "node"){
             //If we have found a new <node> it means we should build the previous <node id=nodeID> node.
             if(xml.isStartElement()){
-                //Get the ID of the Node, W
+                //Get the ID of the Node
                 newNodeID = getAttribute(xml, "id");
-
                 nowInside = GraphML::NODE;
                 nowParsing = GraphML::NODE;
             }
@@ -193,18 +201,17 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
             if(nodeID != ""){
                 //Construct the specialised Node
                 Node* newNode = this->parseGraphMLNode(nodeID, currentNodeData);
-                emit setComponentCount(componentCount+=2);
+
                 //Clear the Node Data List.
                 currentNodeData.clear();
 
                 //Adopt the new Node into the currentParent
                 if(currentParent->isAdoptLegal(newNode)){
                     currentParent->adopt(newNode);
-
-                    //Construct a GraphMLData object out of the xml, using the key found in keyLookup
-
                 }else{
                     qCritical() << QString("Line #%1: Node Cannot Adopt child Node!").arg(xml.lineNumber());
+                    //Delete the newly created node.
+                    delete newNode;
                     return false;
                 }
 
@@ -227,9 +234,8 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                 //Add the new Node to the lookup table.
                 nodeLookup.insert(nodeID, newNode);
 
-
                 //Construct in GUI
-                emit constructNodeItem(newNode);
+                //emit constructNodeItem(newNode);
 
                 //If we have encountered a Graph object, we should point it to it's parent Node to allow links to Graph's
                 if(graphID != ""){
@@ -242,32 +248,27 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
         }
     }
 
-    if (xml.hasError()) {
-        qCritical() << QString("XML Error!");
-        return false;
-    }
-
-
-    qCritical() << "EDGES?" << currentEdges.size();
-
     //Construct the Edges from the EdgeTemp objects
     for(int i =0; i< currentEdges.size(); i++){
         EdgeStruct edge = currentEdges[i];
         GraphMLContainer* s = nodeLookup[edge.source];
         GraphMLContainer* d = nodeLookup[edge.target];
 
-
         if(s != 0 && d != 0){
             if(s->isEdgeLegal(d)){
+                //Construct the edge, and attach the data.
                 Edge* newEdge = new Edge(s, d);
                 newEdge->attachData(edge.data);
+
+                //Add the edge to the list of edges constructed.
                 edges.append(newEdge);
 
-                qCritical() << "Emitting ConstructEdgeItem";
-                emit constructEdgeItem(newEdge);
+                connect(newEdge, SIGNAL(constructGUI(Edge*)),this, SLOT(model_ConstructGUIEdge(Edge*)));
+                connect(newEdge, SIGNAL(destructGUI(Edge*)), this, SLOT(model_DestructGUIEdge(Edge*)));
+                emit newEdge->constructGUI(newEdge);
+
             }else{
-                qDebug() << s->toString() << " to " << d->toString();
-                qCritical() << QString("Line #%1: Edge Not Valid!").arg(QString::number(edge.linenumber));
+                qCritical() << QString("Line #%1: Edge Not Valid!").arg(QString::number(edge.lineNumber));
                 return false;
             }
         }else{
@@ -280,15 +281,30 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
     return true;
 }
 
-QVector<Edge *> Model::getAllEdges()
-{
-    return this->edges;
-
-}
 
 Graph *Model::getGraph()
 {
     return this->parentGraph;
+}
+
+void Model::model_ConstructGUINode(GraphMLContainer *node)
+{
+    emit view_ConstructGUINode(node);
+}
+
+void Model::model_ConstructGUIEdge(Edge *edge)
+{
+    emit view_ConstructGUIEdge(edge);
+}
+
+void Model::model_DestructGUINode(GraphMLContainer *node)
+{
+    emit view_DestructGUINode(node);
+}
+
+void Model::model_DestructGUIEdge(Edge *edge)
+{
+    emit view_DestructGUIEdge(edge);
 }
 
 QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
@@ -333,7 +349,7 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
 
         count++;
         double value = (count/size) * 100;
-        emit currentAction_UpdateProgress(value);
+        emit view_UpdateProgressDialog(value);
     }
 
     foreach(GraphMLContainer* node, nodes)
@@ -364,7 +380,7 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
 
         count++;
         double value = (count/size) * 100;
-        emit currentAction_UpdateProgress(value);
+        emit view_UpdateProgressDialog(value);
     }
 
     //XMLize the output.
@@ -382,15 +398,14 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
 
 }
 
-void Model::constructedGraphML(GraphMLContainer *newlyCreated)
+QVector<GraphMLContainer *> Model::getChildren(int depth)
 {
-    emit constructNodeItemNew(newlyCreated);
+    return parentGraph->getChildren(depth);
 }
+
 
 void Model::model_MakeChildNode(Node *parent)
 {
-
-
     qCritical()<<"Model::model_MakeChildNode";
     Node* newPort;
     QString kind;
@@ -403,11 +418,11 @@ void Model::model_MakeChildNode(Node *parent)
         newPort = new OutputEventPort("NewOutEventPort");
         kind = "OutEventPort";
     }
-    GraphMLKey* x = buildGraphMLKey("x","double","node");
-    GraphMLKey* y = buildGraphMLKey("y","double","node");
-    GraphMLKey* k = buildGraphMLKey("kind","string","node");
-    GraphMLKey* t = buildGraphMLKey("type","string","node");
-    GraphMLKey* l = buildGraphMLKey("label","string","node");
+    GraphMLKey* x = buildGraphMLKey("x", "double", "node");
+    GraphMLKey* y = buildGraphMLKey("y", "double", "node");
+    GraphMLKey* k = buildGraphMLKey("kind", "string", "node");
+    GraphMLKey* t = buildGraphMLKey("type", "string", "node");
+    GraphMLKey* l = buildGraphMLKey("label", "string", "node");
 
     GraphMLData* xD = new GraphMLData(x,QString::number(0));
     GraphMLData* yD = new GraphMLData(y,QString::number(0));
@@ -424,8 +439,8 @@ void Model::model_MakeChildNode(Node *parent)
 
     if(parent->isAdoptLegal(newPort)){
         parent->adopt(newPort);
-        connect(newPort, SIGNAL(deleteGUI(GraphMLContainer*)),this,SLOT(deleteUIComponent(GraphMLContainer*)));
-        connect(newPort, SIGNAL(constructGUI(GraphMLContainer*)),this, SLOT(constructedGraphML(GraphMLContainer*)));
+        connect(newPort, SIGNAL(constructGUI(GraphMLContainer*)),this, SLOT(model_ConstructGUINode(GraphMLContainer*)));
+        connect(newPort, SIGNAL(destructGUI(GraphMLContainer*)), this, SLOT(model_DestructGUINode(GraphMLContainer*)));
 
         emit newPort->constructGUI(newPort);
     }else{
@@ -436,51 +451,45 @@ void Model::model_MakeChildNode(Node *parent)
 
 void Model::init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent)
 {
-    emit model_EnableGUI(false);
-    emit currentAction_ShowProgress(true);
+    emit view_EnableGUI(false);
+    emit view_UpdateProgressDialog(true);
 
     int files = inputGraphMLData.size();
 
     for (int i = 0; i < files ; i++){
         //Update Dialogs etc.
-
-        emit currentAction_UpdateProgress(0,QString("Importing GraphML file %1 / %2").arg(QString::number(i + 1), QString::number(files)));
+        emit view_UpdateProgressDialog(0,QString("Importing GraphML file %1 / %2").arg(QString::number(i + 1), QString::number(files)));
 
         QString currentGraphMLData = inputGraphMLData.at(i);
         bool result = importGraphML(currentGraphMLData, currentParent);
     }
 
-    emit currentAction_ShowProgress(false);
-    emit model_EnableGUI(true);
+
+    emit view_UpdateProgressDialog(false);
+    emit view_EnableGUI(true);
 }
 
 void Model::init_ExportGraphML(QString file)
 {
-    emit model_EnableGUI(false);
+    emit view_EnableGUI(false);
 
-    emit currentAction_ShowProgress(true);
-    emit currentAction_UpdateProgress(0, QString("Exporting Model to GraphML"));
+    emit view_UpdateProgressDialog(true);
+    emit view_UpdateProgressDialog(0, QString("Exporting Model to GraphML"));
 
     QString data = exportGraphML(parentGraph->getChildren(0));
 
-    emit returnExportedGraphMLData(file, data);
+    emit view_ReturnExportedData(file, data);
 
-    emit currentAction_ShowProgress(false);
-    emit model_EnableGUI(true);
+    emit view_UpdateProgressDialog(false);
+    emit view_EnableGUI(true);
 
 }
 
-void Model::deleteUIComponent(GraphMLContainer *comp)
-{
-    emit removeUIComponent(comp);
-
-    //disconnect(comp, SIGNAL(deleteGUI(GraphMLContainer*)),this,SLOT(deleteUIComponent(GraphMLContainer*)));
-}
 
 void Model::updatePosition(GraphMLContainer *comp, QPointF pos)
 {
-    comp->setDataValue("x", QString::number(pos.x()));
-    comp->setDataValue("y", QString::number(pos.y()));
+    comp->updateDataValue("x", QString::number(pos.x()));
+    comp->updateDataValue("y", QString::number(pos.y()));
 }
 
 GraphMLKey*  Model::parseGraphMLKey(QXmlStreamReader &xml)
@@ -538,12 +547,8 @@ Node *Model::parseGraphMLNode(QString ID, QVector<GraphMLData *> data)
     }
 
     newNode->attachData(data);
-    connect(newNode, SIGNAL(deleteGUI(GraphMLContainer*)),this,SLOT(deleteUIComponent(GraphMLContainer*)));
-    connect(newNode, SIGNAL(constructGUI(GraphMLContainer*)),this, SLOT(constructedGraphML(GraphMLContainer*)));
-
-    emit newNode->constructGUI(newNode);
-
-
+    connect(newNode, SIGNAL(constructGUI(GraphMLContainer*)),this, SLOT(model_ConstructGUINode(GraphMLContainer*)));
+    connect(newNode, SIGNAL(destructGUI(GraphMLContainer*)), this, SLOT(model_DestructGUINode(GraphMLContainer*)));
 
     return newNode;
 }
@@ -580,10 +585,3 @@ void Model::removeKeys()
     }
 
 }
-
-int Model::getNodeCount()
-{
-    return this->parentGraph->getChildren().size();
-}
-
-

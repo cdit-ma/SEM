@@ -52,7 +52,7 @@ public slots:
     void toggleDetailDepth(int level);
     void updatedData(GraphMLData* data);
     void recieveData();
-    void deleteD(GraphMLContainer*);
+    void destructNodeItem();
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);

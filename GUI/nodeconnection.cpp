@@ -3,9 +3,7 @@
 
 NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d):QObject()
 {
-    qCritical() << "NODEEDGE";
-    connect(edge, SIGNAL(deleteGUI(Edge*)), this, SLOT(deleteD(Edge*)));
-
+    qDebug() << "NodeEdge::NodeEdge()";
 
     graphicsEffect = new QGraphicsColorizeEffect(this);
 
@@ -76,7 +74,6 @@ void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 void NodeEdge::addToScene(QGraphicsScene *scene)
 {
-    qCritical() << "GG";
     if(scene != 0){
         QGline = scene->addLine(line,linePen);
         QGline->setGraphicsEffect(graphicsEffect);
@@ -89,25 +86,26 @@ void NodeEdge::addToScene(QGraphicsScene *scene)
 
 void NodeEdge::deleteD(Edge *)
 {
-    qCritical() << "SHOULD DELETE";
     delete this;
 }
 
 void NodeEdge::setSelected()
 {
+    qCritical() <<  "setSelected";
     graphicsEffect->setStrength(1);
 }
 
 void NodeEdge::setDeselected()
 {
+    qCritical() <<  "setDeselected";
     graphicsEffect->setStrength(0);
 }
 
 void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton ) {
+        emit this->setSelected(this);
     }else if ( event->button() == Qt::RightButton ) {
-        delete edge;
     }
 
 }
