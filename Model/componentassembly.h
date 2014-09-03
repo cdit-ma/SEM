@@ -6,7 +6,7 @@ class ComponentAssembly : public Node
 {
             Q_OBJECT
 public:
-    ComponentAssembly(QString name);
+    ComponentAssembly(QString name="");
     ~ComponentAssembly();
 public:
     bool isAdoptLegal(GraphMLContainer *child);

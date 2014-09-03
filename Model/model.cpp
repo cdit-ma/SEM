@@ -151,7 +151,7 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
             if(xml.isStartElement()){
                 nowInside = GraphML::KEY;
                 //Parse the Attribute Definition.
-                currentKey = parseGraphMLKey(xml);
+                currentKey = parseGraphMLKeyXML(xml);
 
                 //Get the Key ID.
                 QString keyID = getAttribute(xml,"id");
@@ -200,20 +200,15 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
             //If we have a nodeID to build
             if(nodeID != ""){
                 //Construct the specialised Node
-                Node* newNode = this->parseGraphMLNode(nodeID, currentNodeData);
+                Node* newNode = constructGraphMLNode(currentNodeData, currentParent);
+
+                if(newNode == 0){
+                     qCritical() << QString("Line #%1: Node Cannot Adopt child Node!").arg(xml.lineNumber());
+                      return false;
+                }
 
                 //Clear the Node Data List.
                 currentNodeData.clear();
-
-                //Adopt the new Node into the currentParent
-                if(currentParent->isAdoptLegal(newNode)){
-                    currentParent->adopt(newNode);
-                }else{
-                    qCritical() << QString("Line #%1: Node Cannot Adopt child Node!").arg(xml.lineNumber());
-                    //Delete the newly created node.
-                    delete newNode;
-                    return false;
-                }
 
                 //Set the currentParent to the Node Construced
                 currentParent = newNode;
@@ -259,14 +254,7 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                 //Construct the edge, and attach the data.
                 Edge* newEdge = new Edge(s, d);
                 newEdge->attachData(edge.data);
-
-                //Add the edge to the list of edges constructed.
-                edges.append(newEdge);
-
-                connect(newEdge, SIGNAL(constructGUI(Edge*)),this, SLOT(model_ConstructGUIEdge(Edge*)));
-                connect(newEdge, SIGNAL(destructGUI(Edge*)), this, SLOT(model_DestructGUIEdge(Edge*)));
-                emit newEdge->constructGUI(newEdge);
-
+                setupEdge(newEdge);
             }else{
                 qCritical() << QString("Line #%1: Edge Not Valid!").arg(QString::number(edge.lineNumber));
                 return false;
@@ -305,6 +293,11 @@ void Model::model_DestructGUINode(GraphMLContainer *node)
 void Model::model_DestructGUIEdge(Edge *edge)
 {
     emit view_DestructGUIEdge(edge);
+}
+
+void Model::view_ConstructEdge(Edge *edge)
+{
+    setupEdge(edge);
 }
 
 QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
@@ -404,52 +397,32 @@ QVector<GraphMLContainer *> Model::getChildren(int depth)
 }
 
 
-void Model::model_MakeChildNode(Node *parent)
+void Model::view_ConstructNode(QString kind, GraphMLContainer* parent=0)
 {
-    qCritical()<<"Model::model_MakeChildNode";
-    Node* newPort;
-    QString kind;
-    outputEvent = !outputEvent;
-
-    if(outputEvent){
-        newPort = new InputEventPort("NewInEventPort");
-        kind = "InEventPort";
-    }else{
-        newPort = new OutputEventPort("NewOutEventPort");
-        kind = "OutEventPort";
+    if(parent=0){
+        parent = getGraph();
     }
-    GraphMLKey* x = buildGraphMLKey("x", "double", "node");
-    GraphMLKey* y = buildGraphMLKey("y", "double", "node");
-    GraphMLKey* k = buildGraphMLKey("kind", "string", "node");
-    GraphMLKey* t = buildGraphMLKey("type", "string", "node");
-    GraphMLKey* l = buildGraphMLKey("label", "string", "node");
 
-    GraphMLData* xD = new GraphMLData(x,QString::number(0));
-    GraphMLData* yD = new GraphMLData(y,QString::number(0));
-    GraphMLData* kD = new GraphMLData(k, kind);
-    GraphMLData* tD = new GraphMLData(t, "TYPE");
-    GraphMLData* lD = new GraphMLData(l, kind);
+    GraphMLKey* x = constructGraphMLKey("x", "double", "node");
+    GraphMLKey* y = constructGraphMLKey("y", "double", "node");
+    GraphMLKey* k = constructGraphMLKey("kind", "string", "node");
+    GraphMLKey* t = constructGraphMLKey("type", "string", "node");
+    GraphMLKey* l = constructGraphMLKey("label", "string", "node");
 
-    newPort->attachData(xD);
-    newPort->attachData(yD);
-    newPort->attachData(tD);
-    newPort->attachData(kD);
-    newPort->attachData(lD);
+    QVector<GraphMLData *> data;
 
+    data.append(new GraphMLData(x, QString::number(0)));
+    data.append(new GraphMLData(y, QString::number(0)));
+    data.append(new GraphMLData(k, kind));
+    data.append(new GraphMLData(t, ""));
+    data.append(new GraphMLData(l, "new_" + kind));
 
-    if(parent->isAdoptLegal(newPort)){
-        parent->adopt(newPort);
-        connect(newPort, SIGNAL(constructGUI(GraphMLContainer*)),this, SLOT(model_ConstructGUINode(GraphMLContainer*)));
-        connect(newPort, SIGNAL(destructGUI(GraphMLContainer*)), this, SLOT(model_DestructGUINode(GraphMLContainer*)));
+    constructGraphMLNode(data, parent);
 
-        emit newPort->constructGUI(newPort);
-    }else{
-        delete newPort;
-    }
 }
 
 
-void Model::init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent)
+void Model::view_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent)
 {
     emit view_EnableGUI(false);
     emit view_UpdateProgressDialog(true);
@@ -469,7 +442,7 @@ void Model::init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *c
     emit view_EnableGUI(true);
 }
 
-void Model::init_ExportGraphML(QString file)
+void Model::view_ExportGraphML(QString file)
 {
     emit view_EnableGUI(false);
 
@@ -485,24 +458,17 @@ void Model::init_ExportGraphML(QString file)
 
 }
 
-
-void Model::updatePosition(GraphMLContainer *comp, QPointF pos)
-{
-    comp->updateDataValue("x", QString::number(pos.x()));
-    comp->updateDataValue("y", QString::number(pos.y()));
-}
-
-GraphMLKey*  Model::parseGraphMLKey(QXmlStreamReader &xml)
+GraphMLKey*  Model::parseGraphMLKeyXML(QXmlStreamReader &xml)
 {
     QString name = getAttribute(xml,"attr.name");
     QString typeStr = getAttribute(xml,"attr.type");
     QString forStr = getAttribute(xml,"for");
 
-    return buildGraphMLKey(name,typeStr,forStr);
+    return constructGraphMLKey(name,typeStr,forStr);
 }
 
 
-GraphMLKey *Model::buildGraphMLKey(QString name, QString type, QString forString)
+GraphMLKey *Model::constructGraphMLKey(QString name, QString type, QString forString)
 {
     GraphMLKey *attribute = new GraphMLKey(name, type, forString);
 
@@ -518,7 +484,7 @@ GraphMLKey *Model::buildGraphMLKey(QString name, QString type, QString forString
 }
 
 
-Node *Model::parseGraphMLNode(QString ID, QVector<GraphMLData *> data)
+Node *Model::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent)
 {
 
     Node *newNode;
@@ -533,22 +499,30 @@ Node *Model::parseGraphMLNode(QString ID, QVector<GraphMLData *> data)
 
 
     if(kind == "ComponentAssembly"){
-        newNode = new ComponentAssembly(ID);
+        newNode = new ComponentAssembly();
     }else if(kind == "ComponentInstance"){
-        newNode = new ComponentInstance(ID);
+        newNode = new ComponentInstance();
     }else if(kind == "Attribute"){
-        newNode = new Attribute(ID);
+        newNode = new Attribute();
     }else if(kind == "OutEventPort"){
-        newNode = new OutputEventPort(ID);
+        newNode = new OutputEventPort();
     }else if(kind == "InEventPort"){
-        newNode = new InputEventPort(ID);
+        newNode = new InputEventPort();
     }else{
-        qDebug() << "Kind:"<<kind << "Not implemented";
+        qDebug() << "Kind:" << kind << "Not implemented";
     }
 
     newNode->attachData(data);
-    connect(newNode, SIGNAL(constructGUI(GraphMLContainer*)),this, SLOT(model_ConstructGUINode(GraphMLContainer*)));
-    connect(newNode, SIGNAL(destructGUI(GraphMLContainer*)), this, SLOT(model_DestructGUINode(GraphMLContainer*)));
+
+    //Adopt the new Node into the parent
+    if(parent->isAdoptLegal(newNode)){
+        setupNode(newNode);
+        parent->adopt(newNode);
+    }else{
+        //Delete the newly created node.
+        delete newNode;
+        return 0;
+    }
 
     return newNode;
 }
@@ -567,7 +541,24 @@ QString Model::getAttribute(QXmlStreamReader &xml, QString attrID)
 
 }
 
-void Model::reset()
+void Model::setupEdge(Edge *edge)
+{
+    //Add the edge to the list of edges constructed.
+    edges.append(edge);
+
+    connect(edge, SIGNAL(constructGUI(Edge*)),this, SLOT(model_ConstructGUIEdge(Edge*)));
+    connect(edge, SIGNAL(destructGUI(Edge*)), this, SLOT(model_DestructGUIEdge(Edge*)));
+    emit edge->constructGUI(edge);
+}
+
+void Model::setupNode(Node *node)
+{
+    nodes.append(node);
+    connect(node, SIGNAL(constructGUI(GraphMLContainer*)),this, SLOT(model_ConstructGUINode(GraphMLContainer*)));
+    connect(node, SIGNAL(destructGUI(GraphMLContainer*)), this, SLOT(model_DestructGUINode(GraphMLContainer*)));
+}
+
+void Model::clearModel()
 {
     removeKeys();
 

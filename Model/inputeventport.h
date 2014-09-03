@@ -6,7 +6,7 @@ class InputEventPort : public EventPort
 {
         Q_OBJECT
 public:
-    InputEventPort(QString name);
+    InputEventPort(QString name="");
     ~InputEventPort();
 
     // GraphML interface

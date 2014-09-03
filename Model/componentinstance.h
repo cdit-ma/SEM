@@ -8,7 +8,7 @@ class ComponentInstance : public Node
 {
         Q_OBJECT
 public:
-    ComponentInstance(QString name);
+    ComponentInstance(QString name="");
     ~ComponentInstance();
 public:
     bool isAdoptLegal(GraphMLContainer *child);

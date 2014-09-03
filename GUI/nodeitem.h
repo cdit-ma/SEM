@@ -43,7 +43,7 @@ signals:
     void centreNode(NodeItem*);
     void exportSelected(Node*);
 
-    void makeChildNode(Node*);
+    void makeChildNode(QString type, Node*);
     void updateData(QString key, QString value);
 public slots:
     void setOpacity(qreal opacity);

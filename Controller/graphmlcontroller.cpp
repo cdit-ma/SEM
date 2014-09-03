@@ -24,7 +24,9 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
     connect(this, SIGNAL(view_addNodeEdge(NodeEdge*)),view,SLOT(addEdgeItem(NodeEdge*)));
     connect(this, SIGNAL(view_addNodeItem(NodeItem*)),view,SLOT(addNodeItem(NodeItem*)));
     connect(this, SIGNAL(view_centerNodeItem(NodeItem*)),view,SLOT(centreItem(NodeItem*)));
+    connect(this, SIGNAL(model_ConstructNode(QString, GraphMLContainer*)), model, SLOT(view_ConstructNode(QString, GraphMLContainer*)));
 
+    connect(this, SIGNAL(model_ConstructEdge(Edge*)), model, SLOT(view_ConstructEdge(Edge*)));
 
     //Connect to the Signals from the VIEW
     connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
@@ -36,12 +38,12 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
     connect(view, SIGNAL(cut()), this, SLOT(view_Cut()));
 
     //Connect the Signals to the MODEL
-    connect(this, SIGNAL(model_ExportGraphML(QString)), model, SLOT(init_ExportGraphML(QString)));
-    connect(this, SIGNAL(model_ImportGraphML(QStringList, GraphMLContainer*)), model, SLOT(init_ImportGraphML(QStringList, GraphMLContainer*)));
-    connect(this, SIGNAL(model_MakeChildNode(Node*)),model,SLOT(model_MakeChildNode(Node*)));
+    connect(this, SIGNAL(model_ExportGraphML(QString)), model, SLOT(view_ExportGraphML(QString)));
+    connect(this, SIGNAL(model_ImportGraphML(QStringList, GraphMLContainer*)), model, SLOT(view_ImportGraphML(QStringList, GraphMLContainer*)));
     connect(model, SIGNAL(view_EnableGUI(bool)), this, SLOT(model_EnableGUI(bool)));
 
     connect(model, SIGNAL(view_DestructGUINode(GraphMLContainer*)), this, SLOT(model_RemoveNode(GraphMLContainer*)));
+    connect(model, SIGNAL(view_DestructGUIEdge(Edge*)), this, SLOT(model_RemoveEdge(Edge*)));
 
     //connect(model, SIGNAL(removeUIComponent(GraphMLContainer*)),this, SLOT(deleteComponent(GraphMLContainer*)));
 
@@ -105,8 +107,8 @@ void GraphMLController::view_Paste(QString XMLData)
     if(selectedNodeItems.size() == 1){
         currentParent = selectedNodeItems[0]->node;
     }
+
     emit model_ImportGraphML(files, currentParent);
-    qCritical() << "WHAT IS GOING ON";
 }
 
 
@@ -186,7 +188,7 @@ void GraphMLController::model_MakeNode(Node *node)
 
         connect(newNodeItem, SIGNAL(centreNode(NodeItem*)),this, SLOT(nodeItem_SetCentered(NodeItem*)));
 
-        connect(newNodeItem, SIGNAL(makeChildNode(Node*)), this, SLOT(nodeItem_MakeChildNode(Node*)));
+        connect(newNodeItem, SIGNAL(makeChildNode(QString, Node*)), this, SLOT(nodeItem_MakeChildNode(QString, Node*)));
 
         //Add item to the Tree Model.
         QStandardItem* newNodeItemData = new QStandardItem(node->getDataValue("label"));
@@ -228,6 +230,9 @@ void GraphMLController::model_MakeEdge(Edge *edge)
         nC->addToScene(view->scene());
 
         connect(nC, SIGNAL(setSelected(NodeEdge*)), this, SLOT(nodeEdge_Selected(NodeEdge*)));
+        if(!edgeItems.contains(nC)){
+            edgeItems.append(nC);
+        }
     }else{
         qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
     }
@@ -266,7 +271,7 @@ void GraphMLController::model_MadeNodeNew(GraphMLContainer *item)
 
         connect(newNodeItem, SIGNAL(centreNode(NodeItem*)),this, SLOT(nodeItem_SetCentered(NodeItem*)));
 
-        connect(newNodeItem, SIGNAL(makeChildNode(Node*)), this, SLOT(nodeItem_MakeChildNode(Node*)));
+        connect(newNodeItem, SIGNAL(makeChildNode(QString, Node*)), this, SLOT(nodeItem_MakeChildNode(QString, Node*)));
 
         //Add item to the Tree Model.
         QStandardItem* newNodeItemData = new QStandardItem(node->getDataValue("label"));
@@ -315,6 +320,23 @@ void GraphMLController::model_RemoveNode(GraphMLContainer *item)
     }
 }
 
+void GraphMLController::model_RemoveEdge(Edge *edge)
+{
+    qCritical() << "GraphMLController::model_RemoveEdge()";
+    if(edge != 0){
+        NodeEdge* nEdge = getNodeEdgeFromEdge(edge);
+        if(nEdge !=0){
+            int position = edgeItems.indexOf(nEdge);
+            edgeItems.removeAt(position);
+            //position = selectedEdgeItems.indexOf(nEdge);
+            //selectedEdgeItems.removeAt(position);
+
+            delete nEdge;
+        }
+    }
+
+}
+
 void GraphMLController::nodeItem_Selected(NodeItem *nodeItem)
 {
     qCritical() << "GraphMLController::NodeItem_Selected";
@@ -325,6 +347,7 @@ void GraphMLController::nodeItem_Selected(NodeItem *nodeItem)
             return;
         }
     }else{
+        deselectEdgeItems();
     }
 
     if(KEY_SHIFT_DOWN){
@@ -332,8 +355,7 @@ void GraphMLController::nodeItem_Selected(NodeItem *nodeItem)
             Node* node1 = selectedNodeItems[0]->node;
             if(node1->isEdgeLegal(nodeItem->node)){
                 Edge* edge = new Edge(node1, nodeItem->node);
-                model_MakeEdge(edge);
-                this->resetMatches();
+                emit model_ConstructEdge(edge);
                 return;
             }else{
                 deselectNodeItems();
@@ -359,9 +381,9 @@ void GraphMLController::nodeItem_SetCentered(NodeItem *nodeItem)
 }
 
 //Make a child node inside the node.
-void GraphMLController::nodeItem_MakeChildNode(Node *node)
+void GraphMLController::nodeItem_MakeChildNode(QString type, Node *node)
 {
-    emit model_MakeChildNode(node);
+    emit model_ConstructNode(type, node);
 }
 
 
@@ -378,6 +400,7 @@ void GraphMLController::nodeEdge_Selected(NodeEdge *nodeEdge)
 
     if(KEY_CONTROL_DOWN == false){
         deselectEdgeItems();
+        deselectNodeItems();
     }
     selectEdgeItem(nodeEdge);
 
@@ -583,6 +606,18 @@ NodeItem *GraphMLController::getNodeItemFromNode(Node *node)
         }
     }
     return 0;
+}
+
+NodeEdge *GraphMLController::getNodeEdgeFromEdge(Edge *edge)
+{
+    for(int i = 0; i < edgeItems.size(); i++){
+        NodeEdge* nodeEdge = edgeItems[i];
+        if(nodeEdge != 0 && nodeEdge->edge == edge){
+            return nodeEdge;
+        }
+    }
+    return 0;
+
 }
 
 

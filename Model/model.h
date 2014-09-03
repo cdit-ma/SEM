@@ -43,22 +43,23 @@ public:
     //Exports a Selection of Containers to export into GraphML
     QString exportGraphML(QVector<GraphMLContainer *> nodes);
 
+    //Gets a list of all the child Nodes in this Model. Based on a depth variable.
     QVector<GraphMLContainer*> getChildren(int depth=-1);
 private:
-    //Imports
+    //Imports a GraphML XML Document into the Model, inserting it into the currentParent Variable.
     bool importGraphML(QString inputGraphML, GraphMLContainer *currentParent = 0);
 
+    //Returns the parentGraph of this Model.
     Graph* getGraph();
-
 signals:
-    //Enable the GUI
+    //Enable and disables the GUI
     void view_EnableGUI(bool lock);
 
-    //Update the Progress Dialog
+    //Updates the Progress Dialog
     void view_ShowProgressDialog(bool visible);
     void view_UpdateProgressDialog(int perc, QString label=0);
 
-    //Return the Exported Data from a successful GraphML Export.
+    //Returns the Exported Data from a successful GraphML Export.
     void view_ReturnExportedData(QString filePath, QString graphMLData);
 
     //Emitted by model_ConstructGUINode()
@@ -72,6 +73,9 @@ signals:
     void view_DestructGUIEdge(Edge* edge);
 
 public slots:
+    //MODEL SLOTS
+    //Functions triggered by the entities in the Model.
+
     //Called when ever a new GraphML Node or Edge has been constructed in the Model.
     void model_ConstructGUINode(GraphMLContainer* node);
     void model_ConstructGUIEdge(Edge* edge);
@@ -80,44 +84,53 @@ public slots:
     void model_DestructGUINode(GraphMLContainer* node);
     void model_DestructGUIEdge(Edge* edge);
 
+    //Called when the Controller constructs a new Node.
+    void view_ConstructNode(QString kind, GraphMLContainer* parent);
 
-    void model_MakeChildNode(Node* parent);
+    //VIEW SLOTS
+    //Functions triggered by the Controller from the View.
+    void view_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent=0);
+    void view_ExportGraphML(QString file);
 
-
-    void init_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent=0);
-    void init_ExportGraphML(QString file);
-
-
-    void updatePosition(GraphMLContainer* comp, QPointF pos);
-
-
+    void view_ConstructEdge(Edge * edge);
 
 private:
-    GraphMLKey* parseGraphMLKey(QXmlStreamReader& xml);
+    //Constructs a GraphMLKey Object from a XML entity.
+    GraphMLKey* parseGraphMLKeyXML(QXmlStreamReader& xml);
 
-    GraphMLKey* buildGraphMLKey(QString name, QString type, QString forString);
-    //Construct a specific Node type given the attached Vector of data
-    Node* parseGraphMLNode(QString ID, QVector<GraphMLData *> data);
+    //Constructs an EdgeStruct from the XML entity.
+    EdgeStruct parseEdgeXML(QXmlStreamReader &xml);
+
+    //Construct a GraphMLKey.
+    GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
+
+    //Construct a specified Node type given the attached data.
+    Node* constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent=0);
 
     //Gets a specific Attribute from the current Element in the XML. returns "" if none.
     QString getAttribute(QXmlStreamReader& xml, QString attrID);
 
+    //Connects Edge object and stores into a vector.
+    void setupEdge(Edge* edge);
 
-    void reset();
+    //Connects Node object and stores into a vector.
+    void setupNode(Node* node);
+
+    //Clears Model
+    void clearModel();
+
+    //Clears the Keys stored in the model.
     void removeKeys();
 
-    EdgeStruct parseEdge(QXmlStreamReader &xml);
-
+    //The Parent graph of this model.
     Graph *parentGraph;
 
-
+    //Lists of elements in Model.
     QVector<GraphMLKey*> keys;
     QVector<Graph*> graphs;
     QVector<Edge *> edges;
     QVector<Node *> nodes;
 
-
-private:
     bool outputEvent;
 };
 #endif // MODEL_H

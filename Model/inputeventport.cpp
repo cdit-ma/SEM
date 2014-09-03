@@ -32,8 +32,8 @@ bool InputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
     }
 
     if(outputEventPort->getParent() == this->getParent()){
-         qCritical() << "Cannot connect 2 Ports from the same component!";
-         return false;
+         //qCritical() << "Cannot connect 2 Ports from the same component!";
+         //return false;
     }
 
 
