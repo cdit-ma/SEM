@@ -10,6 +10,7 @@ Edge::Edge(GraphMLContainer *s, GraphMLContainer *d, QString name):GraphML(Graph
 {
     setID(QString("e%1").arg(this->_Eid++));
 
+
     //Set the instance Variables
     source = s;
 
@@ -22,13 +23,13 @@ Edge::Edge(GraphMLContainer *s, GraphMLContainer *d, QString name):GraphML(Graph
 
 Edge::~Edge()
 {
+    emit destructGUI(this);
+
     //Remove Edge!
     destination->removeEdge(this);
     source->removeEdge(this);
 
-    qDebug() << QString("Removed Edge[%1]!").arg(this->getID());
-
-    emit destructGUI(this);
+    qCritical() << QString("Removed Edge[%1]!").arg(this->getID());
 }
 
 GraphMLContainer *Edge::getSource()

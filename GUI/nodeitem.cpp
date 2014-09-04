@@ -226,7 +226,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             if ( event->button() == Qt::LeftButton ) {
                 emit triggerSelected(this);
             }else if(event->button() == Qt::RightButton){
-                emit makeChildNode("OutputEventPort", node);
+                emit makeChildNode("OutEventPort", node);
             }
             this->isPressed = true;
             previousPosition = event->scenePos();

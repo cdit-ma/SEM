@@ -70,6 +70,8 @@ Graph *Node::getGraph()
 void Node::adopt(GraphMLContainer *child)
 {
     if(this->childGraph != 0){
+        Node* node = dynamic_cast<Node*>(child);
+
         this->childGraph->adopt(child);
     }
 }

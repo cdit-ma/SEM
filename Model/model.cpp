@@ -399,7 +399,7 @@ QVector<GraphMLContainer *> Model::getChildren(int depth)
 
 void Model::view_ConstructNode(QString kind, GraphMLContainer* parent=0)
 {
-    if(parent=0){
+    if(parent == 0){
         parent = getGraph();
     }
 
@@ -556,6 +556,7 @@ void Model::setupNode(Node *node)
     nodes.append(node);
     connect(node, SIGNAL(constructGUI(GraphMLContainer*)),this, SLOT(model_ConstructGUINode(GraphMLContainer*)));
     connect(node, SIGNAL(destructGUI(GraphMLContainer*)), this, SLOT(model_DestructGUINode(GraphMLContainer*)));
+    emit node->constructGUI(node);
 }
 
 void Model::clearModel()

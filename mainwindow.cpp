@@ -44,6 +44,22 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     createNewModel();
+
+
+    QFile file("C:/asd12.graphml");
+    if(!file.open(QFile::ReadOnly | QFile::Text)){
+        qDebug() << "could not open file for read";
+    }
+    QTextStream in(&file);
+    QString xmlText = in.readAll();
+    file.close();
+
+
+    QStringList file2;
+    file2 << xmlText;
+
+
+    emit init_ImportGraphML(file2);
 }
 
 
@@ -349,7 +365,7 @@ void MainWindow::on_actionImport_GraphML_triggered()
     QStringList fileData;
     for (int i = 0; i < files.size(); i++){
 
-        qDebug() << "Reading in file: " << files.at(i);
+        qCritical() << "Reading in file: " << files.at(i);
         QFile file(files.at(i));
         if(!file.open(QFile::ReadOnly | QFile::Text)){
             qDebug() << "could not open file for read";
@@ -442,6 +458,8 @@ void MainWindow::createNewModel()
     connect(controller, SIGNAL(view_CopyText(QString)), this, SLOT(copyText(QString)));
     connect(this, SIGNAL(Controller_Paste(QString)), controller, SLOT(view_Paste(QString)));
 
+    connect(ui->pushButton_6, SIGNAL(clicked()), controller, SLOT(view_Undo()));
+    connect(ui->pushButton_7, SIGNAL(clicked()), controller, SLOT(view_Redo()));
 
     controller->getModel()->moveToThread(this->modelThread);
     modelThread->start();
@@ -465,7 +483,6 @@ void MainWindow::on_pushButton_4_clicked()
     QClipboard *clipboard = QApplication::clipboard();
     if(clipboard->ownsClipboard()){
         emit Controller_Paste(clipboard->text());
-
     }
 
 }

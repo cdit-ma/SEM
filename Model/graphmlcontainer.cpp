@@ -7,15 +7,15 @@ GraphMLContainer::GraphMLContainer(GraphML::KIND kind, QString name):GraphML(kin
 
 GraphMLContainer::~GraphMLContainer()
 {
-    if(parent != 0){
-        parent->disown(this);
-    }
-
+    //Remove children first
     removeEdges();
     removeChildren();
 
-    //Kill the attached GUI element
     emit destructGUI(this);
+
+    if(getParent() != 0){
+        getParent()->disown(this);
+    }
 }
 
 void GraphMLContainer::setParent(GraphMLContainer *parent)
@@ -26,8 +26,6 @@ void GraphMLContainer::setParent(GraphMLContainer *parent)
     }
     this->parent = parent;
 
-    //Construct the GUI for this.
-    emit constructGUI(this);
 }
 
 GraphMLContainer *GraphMLContainer::getParent()
@@ -101,13 +99,8 @@ void GraphMLContainer::removeChildren()
 
 void GraphMLContainer::adopt(GraphMLContainer *child)
 {
-    //Construct the GUI for this.
-    emit constructGUI(this);
-
     child->setParent(this);
     this->descendants.append(child);
-
-
 }
 
 void GraphMLContainer::disown(GraphMLContainer *child)
@@ -116,7 +109,6 @@ void GraphMLContainer::disown(GraphMLContainer *child)
         for (int i = 0; i < descendants.size(); i++){
             qDebug() << "\t" << descendants[i]->getName();
             if(descendants[i] == child){
-                qCritical() << " Found Child. Removing!";
                 descendants.removeAt(i);
                 return;
             }
@@ -209,14 +201,14 @@ QVector<GraphMLKey *> GraphMLContainer::getKeys(int depth)
 
 void GraphMLContainer::addEdge(Edge *edge)
 {
-    qDebug() << "Attached Edge to: " << getName() << " [" << getKind() << "]" << static_cast<void*>(this);
+    qDebug() << "Attached Edge to: " << getName() << " [" << getKind() << "]";
     qDebug()  << "\tAttached Edge: " << edge->getID();
     edges.append(edge);
 }
 
 void GraphMLContainer::removeEdge(Edge *edge)
 {
-    qCritical() << "Removing Edge from: " << getName() << " [" << getKind() << "]" << static_cast<void*>(this);
+    qCritical() << "Removing Edge from: " << getName() << " [" << getKind() << "]";
     qCritical() << "Looking for Edge: " << edge->getID();
     qCritical() << "Edges: " << edges.size();
 

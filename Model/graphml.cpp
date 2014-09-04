@@ -19,6 +19,7 @@ GraphML::~GraphML()
     removeData();
 }
 
+
 void GraphML::removeData(){
 
     //Delete all Data
@@ -46,7 +47,7 @@ QString GraphML::getName() const
 
 QString GraphML::getID() const
 {
-    return this->id;
+    return QString::number(this->Uid);
 }
 
 

@@ -19,6 +19,7 @@
 #include "GUI/nodeconnection.h"
 #include "Controller/graphmlcontroller.h"
 #include <Vector>
+#include <QStack>
 
 #include <stdio.h>
 

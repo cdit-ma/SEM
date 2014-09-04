@@ -11,20 +11,35 @@
 #include "../GUI/nodeview.h"
 #include <QClipboard>
 #include <QInputDialog>
-
+#include <QHash>
+#include <QStack>
+enum ACTION_TYPE {CONSTRUCT, DESTRUCT, ADOPT, DISOWN};
 
 struct GUIContainer{
     NodeItem* nodeItem;
     QStandardItem* modelItem;
+    QString deleteXML;
     Node* node;
+};
+
+struct Action{
+    GraphML::KIND itemKind;
+    ACTION_TYPE actionType;
+    GraphML *item;
+    GraphMLContainer* src;
+    GraphMLContainer* dst;
+    GraphMLContainer *parent;
+    QString removedXML;
 };
 
 class GraphMLController: public QObject
 {
     Q_OBJECT
 public:
+
     GraphMLController(NodeView *view);
     ~GraphMLController();
+
 
     Model* getModel();
 
@@ -47,14 +62,15 @@ signals:
     void model_ConstructNode(QString kind, GraphMLContainer* parentNode);
     void model_ConstructEdge(Edge* edge);
 
+
 public slots:
     //MODEL SLOTS
     //Functions triggered by the Model
-    void model_MakeNode(Node* node);
-    void model_MakeEdge(Edge* edge);
+    void model_MadeEdge(Edge* edge);
 
-    void model_MadeNodeNew(GraphMLContainer* item);
+    void model_MadeNode(GraphMLContainer* item);
     void model_RemoveNode(GraphMLContainer* item);
+
     void model_RemoveEdge(Edge* edge);
 
     void model_WriteToFile(QString filePath, QString data);
@@ -74,6 +90,8 @@ public slots:
     void view_UpdateLabel(QString value);
 
     //Copy/Paste Operations
+    void view_Undo();
+    void view_Redo();
     void view_Copy();
     void view_Cut();
     void view_Paste(QString XMLData);
@@ -114,15 +132,23 @@ private:
     GUIContainer* getGUIContainer(NodeItem* nodeItem);
     GUIContainer* getGUIContainer(QModelIndex nodeIndex);
 
+
+    bool reverseAction(Action action);
+    void removeGraphML(GraphML* node);
     void removeNodeItem(NodeItem* nodeItem);
 
     QVector<NodeItem*> selectedNodeItems;
 
     QVector<NodeEdge*> selectedEdgeItems;
 
+    QStack<Action> undoStack;
+    QStack<Action> redoStack;
+
     QVector<GUIContainer*> nodeContainers;
     QVector<NodeItem*> nodeItems;
     QVector<NodeEdge*> edgeItems;
+
+    QHash<QString, GraphMLContainer*> nodeDeletionIDLookup;
 
     NodeItem* currentMaximized;
 
@@ -134,6 +160,8 @@ private:
 
     Model* model;
     NodeView* view;
+    bool UNDOING;
+    bool REDOING;
 };
 
 #endif // GRAPHMLCONTROLLER_H

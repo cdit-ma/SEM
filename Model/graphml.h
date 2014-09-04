@@ -60,6 +60,7 @@ public:
     //The unique ID counter;
     static qint32 _Uid;
 
+
 public slots:
     void updateDataValue(QString key, QString value);
 
@@ -70,6 +71,9 @@ protected:
 private:
     //The name of this graphml object.
     QString name;
+
+    //QString
+    QString deletingXML;
 
     //The ID of this graphml object.
     QString id;

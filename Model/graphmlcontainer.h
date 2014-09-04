@@ -75,8 +75,6 @@ public:
     //Pure Virtual => Must be overwritten by subclasses!
     virtual bool isAdoptLegal(GraphMLContainer *child)=0;
 
-
-
     //Returns a string graphml representation of this graphml object
     //Pure Virtual => Must be overwritten by subclasses!
     virtual QString toGraphML(qint32 indentationLevel=0)=0;
@@ -114,7 +112,6 @@ private:
 
     //The unique kind ID of this graph object.
     KIND kind;
-
 };
 
 #endif // GRAPHMLCONTAINER_H
