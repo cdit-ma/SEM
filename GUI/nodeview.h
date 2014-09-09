@@ -23,6 +23,9 @@ signals:
     void cut();
     void paste();
 
+    void undo();
+    void redo();
+
     void unselect();
     void selectAll();
 

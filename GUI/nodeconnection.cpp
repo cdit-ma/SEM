@@ -45,7 +45,6 @@ NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d):QObject()
 
 NodeEdge::~NodeEdge()
 {
-    qCritical() << "WTF";
     source->deleteConnnection(this);
     destination->deleteConnnection(this);
     delete QGline;

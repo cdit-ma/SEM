@@ -68,9 +68,9 @@ signals:
     void view_ConstructGUIEdge(Edge* edge);
 
     //Emitted by model_DestructGUINode()
-    void view_DestructGUINode(GraphMLContainer* node);
+    void view_DestructGUINode(GraphMLContainer* node, QString ID);
     //Emitted by model_DestructGUINode()
-    void view_DestructGUIEdge(Edge* edge);
+    void view_DestructGUIEdge(Edge* edge, QString ID);
 
 public slots:
     //MODEL SLOTS
@@ -81,8 +81,8 @@ public slots:
     void model_ConstructGUIEdge(Edge* edge);
 
     //Called when ever a GraphML Node or Edge has been destructed in the Model.
-    void model_DestructGUINode(GraphMLContainer* node);
-    void model_DestructGUIEdge(Edge* edge);
+    void model_DestructGUINode(GraphMLContainer* node, QString ID);
+    void model_DestructGUIEdge(Edge* edge, QString ID);
 
     //Called when the Controller constructs a new Node.
     void view_ConstructNode(QString kind, GraphMLContainer* parent);

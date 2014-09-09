@@ -11,6 +11,10 @@ Graph::Graph(QString name):GraphMLContainer(GraphML::GRAPH, name)
 
 Graph::~Graph()
 {
+    qCritical() << "Deleting Graph: " << getID();
+    removeEdges();
+    removeChildren();
+    setParent(0);
 }
 
 

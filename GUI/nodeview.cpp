@@ -170,6 +170,14 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         emit paste();
     }
 
+    if(this->CONTROL_DOWN && event->key() == Qt::Key_Z){
+        emit undo();
+    }
+
+    if(this->CONTROL_DOWN && event->key() == Qt::Key_Y){
+        emit redo();
+    }
+
     if(event->key() == Qt::Key_Shift){
         this->SHIFT_DOWN = true;
         emit shiftPressed(true);

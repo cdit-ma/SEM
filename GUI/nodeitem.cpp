@@ -68,6 +68,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
 
 NodeItem::~NodeItem()
 {
+
 }
 
 QRectF NodeItem::boundingRect() const
@@ -178,6 +179,7 @@ void NodeItem::updatedData(GraphMLData* data)
         updatePosition(0,dataValue);
     }else if(dataKey == "label"){
 
+        dataValue = node->getID();
         QFont font("Arial");
         font.setPointSize(1);
         QFontMetrics fm(font);

@@ -6,7 +6,7 @@ int Node::_Nid = 0;
 
 Node::Node(QString name): GraphMLContainer(GraphML::NODE, name)
 {
-    this->setID(QString("n%1").arg(this->_Nid++));
+    //this->setID(QString("n%1").arg(this->_Nid++));
 
     //Construct a Graph to hold the children of this Node type.
     this->childGraph = new Graph(name + ":");
@@ -18,8 +18,14 @@ Node::Node(QString name): GraphMLContainer(GraphML::NODE, name)
 }
 
 Node::~Node(){
-    qDebug() << "Destructing Node: " << this->getName();
+    qCritical() << "Destructing Node: " << getID();
+    removeEdges();
+    removeChildren();
+    setParent(0);
+
+    emit destructGUI(this, getID());
 }
+
 
 Node *Node::getParentNode()
 {

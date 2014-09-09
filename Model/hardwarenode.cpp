@@ -1,47 +1,32 @@
 #include "hardwarenode.h"
-#include <QDebug>
-#include "componentinstance.h"
 #include "componentassembly.h"
+#include "componentinstance.h"
+#include <QDebug>
 
 HardwareNode::HardwareNode(QString name):Node(name)
 {
-    qDebug() << "Constructed HardwareNode: "<< this->getName();
+    qDebug() << "Constructed Hardwdare Node: "<< this->getName();
 }
 
 HardwareNode::~HardwareNode()
 {
-    //Destructor.
-}
 
-bool HardwareNode::isAdoptLegal(GraphMLContainer *child)
-{
-    //Specific stuff here!
-
-    //Return only on False statements.
-    //Do RETURN FALSE
-
-    if(this->getGraph() != NULL){
-        return this->getGraph()->isAdoptLegal(child);
-    }
-    return true;
 }
 
 bool HardwareNode::isEdgeLegal(GraphMLContainer *attachableObject)
 {
-    ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*> (attachableObject);
-    ComponentAssembly* assemblyInstance = dynamic_cast<ComponentAssembly*> (attachableObject);
+    ComponentAssembly* assembly = dynamic_cast<ComponentAssembly*> (attachableObject);
+    ComponentInstance* instance = dynamic_cast<ComponentInstance*> (attachableObject);
 
-    if(componentInstance != 0){
-        //Do Component Instance Checks
-    }else if(assemblyInstance != 0){
-        //Do Assembly Checks
-    }else{
-        qWarning() << "HardwareNode can only be connected to a Component Instance or Assembly Node.";
+     //Is this child a HardwareNode?
+    if(assembly == 0 && instance == 0){
+        //Check stuff!
+        qWarning() << "AssemblyNode can only connect to either a Component Assembly or a Component Instance";
         return false;
     }
 
     //Check for existing connection.
-    if(this->isConnected(attachableObject)){
+    if(isConnected(attachableObject)){
         qWarning() << "Already connected to this Object";
         return false;
     }
@@ -49,6 +34,11 @@ bool HardwareNode::isEdgeLegal(GraphMLContainer *attachableObject)
     return true;
 }
 
+bool HardwareNode::isAdoptLegal(GraphMLContainer *child)
+{
+    qWarning() << "Hardware Node cannot adopt any Children.";
+    return false;
+}
 
 QString HardwareNode::toString()
 {

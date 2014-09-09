@@ -19,16 +19,17 @@ struct GUIContainer{
     NodeItem* nodeItem;
     QStandardItem* modelItem;
     QString deleteXML;
+    QString parentNodeID;
     Node* node;
 };
 
 struct Action{
     GraphML::KIND itemKind;
     ACTION_TYPE actionType;
-    GraphML *item;
-    GraphMLContainer* src;
-    GraphMLContainer* dst;
-    GraphMLContainer *parent;
+    QString itemID;
+    QString srcID;
+    QString dstID;
+    QString parentID;
     QString removedXML;
 };
 
@@ -69,9 +70,9 @@ public slots:
     void model_MadeEdge(Edge* edge);
 
     void model_MadeNode(GraphMLContainer* item);
-    void model_RemoveNode(GraphMLContainer* item);
+    void model_RemoveNode(GraphMLContainer* item, QString ID);
 
-    void model_RemoveEdge(Edge* edge);
+    void model_RemoveEdge(Edge* edge, QString ID);
 
     void model_WriteToFile(QString filePath, QString data);
     void model_EnableGUI(bool enabled);
@@ -142,12 +143,14 @@ private:
     QVector<NodeEdge*> selectedEdgeItems;
 
     QStack<Action> undoStack;
+    QStack<QString> undoIDStack;
     QStack<Action> redoStack;
 
     QVector<GUIContainer*> nodeContainers;
     QVector<NodeItem*> nodeItems;
     QVector<NodeEdge*> edgeItems;
 
+    QHash<QString, GraphML*> undoLookup;
     QHash<QString, GraphMLContainer*> nodeDeletionIDLookup;
 
     NodeItem* currentMaximized;

@@ -64,6 +64,7 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
         if (xmlErrorChecking.hasError()){
             qCritical() << "Model::importGraphML() << Parsing Error!";
             qCritical() << "\t" << xmlErrorChecking.errorString();
+            qCritical() << inputGraphML;
             return false;
         }
     }
@@ -277,7 +278,9 @@ Graph *Model::getGraph()
 
 void Model::model_ConstructGUINode(GraphMLContainer *node)
 {
-    emit view_ConstructGUINode(node);
+    //if(node->getKind() == GraphML::NODE){
+        emit view_ConstructGUINode(node);
+    //}
 }
 
 void Model::model_ConstructGUIEdge(Edge *edge)
@@ -285,14 +288,17 @@ void Model::model_ConstructGUIEdge(Edge *edge)
     emit view_ConstructGUIEdge(edge);
 }
 
-void Model::model_DestructGUINode(GraphMLContainer *node)
+void Model::model_DestructGUINode(GraphMLContainer *node, QString ID)
 {
-    emit view_DestructGUINode(node);
+    qCritical() << "model_DestructGUINode: " << ID;
+
+    emit view_DestructGUINode(node, ID);
 }
 
-void Model::model_DestructGUIEdge(Edge *edge)
+void Model::model_DestructGUIEdge(Edge *edge, QString ID)
 {
-    emit view_DestructGUIEdge(edge);
+    qCritical() << "Model::model_DestructGUIEdge: " << ID;
+    emit view_DestructGUIEdge(edge, ID);
 }
 
 void Model::view_ConstructEdge(Edge *edge)
@@ -547,7 +553,7 @@ void Model::setupEdge(Edge *edge)
     edges.append(edge);
 
     connect(edge, SIGNAL(constructGUI(Edge*)),this, SLOT(model_ConstructGUIEdge(Edge*)));
-    connect(edge, SIGNAL(destructGUI(Edge*)), this, SLOT(model_DestructGUIEdge(Edge*)));
+    connect(edge, SIGNAL(destructGUI(Edge*, QString)), this, SLOT(model_DestructGUIEdge(Edge*, QString)));
     emit edge->constructGUI(edge);
 }
 
@@ -555,7 +561,7 @@ void Model::setupNode(Node *node)
 {
     nodes.append(node);
     connect(node, SIGNAL(constructGUI(GraphMLContainer*)),this, SLOT(model_ConstructGUINode(GraphMLContainer*)));
-    connect(node, SIGNAL(destructGUI(GraphMLContainer*)), this, SLOT(model_DestructGUINode(GraphMLContainer*)));
+    connect(node, SIGNAL(destructGUI(GraphMLContainer*, QString)), this, SLOT(model_DestructGUINode(GraphMLContainer*, QString)));
     emit node->constructGUI(node);
 }
 

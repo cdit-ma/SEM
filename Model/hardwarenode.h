@@ -1,18 +1,17 @@
+#include "node.h"
+
 #ifndef HARDWARENODE_H
 #define HARDWARENODE_H
-#include "node.h"
 
 class HardwareNode : public Node
 {
-        Q_OBJECT
+    Q_OBJECT
 public:
-    HardwareNode(QString name);
+    HardwareNode(QString name="");
     ~HardwareNode();
-
 public:
-    bool isAdoptLegal(GraphMLContainer *child);
     bool isEdgeLegal(GraphMLContainer *attachableObject);
-    //QString toGraphML(qint32 indentationLevel=0);
+    bool isAdoptLegal(GraphMLContainer *child);
     QString toString();
 };
 

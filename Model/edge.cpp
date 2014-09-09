@@ -23,7 +23,7 @@ Edge::Edge(GraphMLContainer *s, GraphMLContainer *d, QString name):GraphML(Graph
 
 Edge::~Edge()
 {
-    emit destructGUI(this);
+    emit destructGUI(this, getID());
 
     //Remove Edge!
     destination->removeEdge(this);

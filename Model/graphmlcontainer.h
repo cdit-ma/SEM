@@ -82,10 +82,6 @@ public:
     //Returns a string representation of this graphml object.
     virtual QString toString()=0;
 
-signals:
-    //Used to construct and tear down GUI elements.
-    void constructGUI(GraphMLContainer*);
-    void destructGUI(GraphMLContainer*);
 
 protected:
     //The list of contained children GraphML elements. (Top level only)

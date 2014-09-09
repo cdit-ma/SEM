@@ -47,7 +47,7 @@ QString GraphML::getName() const
 
 QString GraphML::getID() const
 {
-    return QString::number(this->Uid);
+    return QString::number(Uid);
 }
 
 

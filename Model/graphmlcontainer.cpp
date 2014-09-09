@@ -2,20 +2,17 @@
 #include <QDebug>
 GraphMLContainer::GraphMLContainer(GraphML::KIND kind, QString name):GraphML(kind, name)
 {
-    this->parent = 0;
+    parent = 0;
 }
 
 GraphMLContainer::~GraphMLContainer()
 {
-    //Remove children first
+    /*
     removeEdges();
     removeChildren();
+*/
 
-    emit destructGUI(this);
-
-    if(getParent() != 0){
-        getParent()->disown(this);
-    }
+  //  */
 }
 
 void GraphMLContainer::setParent(GraphMLContainer *parent)
