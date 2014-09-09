@@ -514,6 +514,8 @@ Node *Model::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer 
         newNode = new OutputEventPort();
     }else if(kind == "InEventPort"){
         newNode = new InputEventPort();
+    }else if(kind == "HardwareNode"){
+        newNode = new HardwareNode();
     }else{
         qDebug() << "Kind:" << kind << "Not implemented";
     }

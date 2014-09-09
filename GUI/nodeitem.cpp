@@ -94,6 +94,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             Brush.setColor(Qt::gray);
         }else if(kind == "Attribute"){
             Brush.setColor(Qt::blue);
+        }else if(kind == "HardwareNode"){
+                    Brush.setColor(Qt::yellow);
         }
         //if(drawDetail){
         painter->fillRect(rectangle, Brush);
@@ -179,7 +181,7 @@ void NodeItem::updatedData(GraphMLData* data)
         updatePosition(0,dataValue);
     }else if(dataKey == "label"){
 
-        dataValue = node->getID();
+        dataValue = dataValue + " [" + node->getID()+"]";
         QFont font("Arial");
         font.setPointSize(1);
         QFontMetrics fm(font);

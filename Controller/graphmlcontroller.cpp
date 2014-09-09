@@ -331,7 +331,7 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
         return;
     }
     QStringList kindsToMake;
-    kindsToMake << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "OutEventPort" << "Attribute";
+    kindsToMake << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "OutEventPort" << "Attribute" << "HardwareNode";
 
 
     QString nodeKind = item->getDataValue("kind");
