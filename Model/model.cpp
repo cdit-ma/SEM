@@ -19,7 +19,9 @@ Model::~Model()
 
 bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
 {
-    qDebug() << "Model::importGraphML()";
+    qCritical() << "Model::importGraphML()";
+    qCritical() << inputGraphML;
+    //emit controller_ActionTrigger("Importing GraphML");
 
     //Key Lookup provides a way for the original key "id" to be linked with the internal object GraphMLKey
     QMap<QString , GraphMLKey*> keyLookup;
@@ -51,6 +53,7 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
     //If we have been passed no parent, set it as the graph of this Model.
     if(currentParent == NULL){
         currentParent = this->getGraph();
+        qCritical() << "Using Parent Graph";
     }
 
 
@@ -61,8 +64,9 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
     //Check for Errors
     while(!xmlErrorChecking.atEnd()){
         xmlErrorChecking.readNext();
+        float lineNumber = xmlErrorChecking.lineNumber();
         if (xmlErrorChecking.hasError()){
-            qCritical() << "Model::importGraphML() << Parsing Error!";
+            qCritical() << "Model::importGraphML() << Parsing Error! Line Number: " << lineNumber;
             qCritical() << "\t" << xmlErrorChecking.errorString();
             qCritical() << inputGraphML;
             return false;
@@ -291,14 +295,13 @@ void Model::model_ConstructGUIEdge(Edge *edge)
 void Model::model_DestructGUINode(GraphMLContainer *node, QString ID)
 {
     qCritical() << "model_DestructGUINode: " << ID;
-
     emit view_DestructGUINode(node, ID);
 }
 
-void Model::model_DestructGUIEdge(Edge *edge, QString ID)
+void Model::model_DestructGUIEdge(Edge* edge, QString srcID, QString dstID)
 {
-    qCritical() << "Model::model_DestructGUIEdge: " << ID;
-    emit view_DestructGUIEdge(edge, ID);
+    qCritical() << "Model::model_DestructGUIEdge: ";
+    emit view_DestructGUIEdge(edge, srcID, dstID);
 }
 
 void Model::view_ConstructEdge(Edge *edge)
@@ -555,7 +558,7 @@ void Model::setupEdge(Edge *edge)
     edges.append(edge);
 
     connect(edge, SIGNAL(constructGUI(Edge*)),this, SLOT(model_ConstructGUIEdge(Edge*)));
-    connect(edge, SIGNAL(destructGUI(Edge*, QString)), this, SLOT(model_DestructGUIEdge(Edge*, QString)));
+    connect(edge, SIGNAL(destructGUI(Edge*, QString, QString)), this, SLOT(model_DestructGUIEdge(Edge*, QString, QString)));
     emit edge->constructGUI(edge);
 }
 

@@ -59,7 +59,6 @@ void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 {
     if(inScene){
         if(source->drawObject && destination->drawObject){
-
             QRectF rectangle = boundingRect();
 
             painter->setBrush(QBrush(Qt::yellow));
@@ -97,6 +96,14 @@ void NodeEdge::setDeselected()
 {
     qCritical() <<  "setDeselected";
     graphicsEffect->setStrength(0);
+}
+
+void NodeEdge::setVisible(bool visible)
+{
+    QGraphicsItem::setVisible(visible);
+    if(QGline != 0){
+        QGline->setVisible(visible);
+    }
 }
 
 void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)

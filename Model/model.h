@@ -45,15 +45,17 @@ public:
 
     //Gets a list of all the child Nodes in this Model. Based on a depth variable.
     QVector<GraphMLContainer*> getChildren(int depth=-1);
-private:
     //Imports a GraphML XML Document into the Model, inserting it into the currentParent Variable.
     bool importGraphML(QString inputGraphML, GraphMLContainer *currentParent = 0);
 
+private:
     //Returns the parentGraph of this Model.
     Graph* getGraph();
 signals:
     //Enable and disables the GUI
     void view_EnableGUI(bool lock);
+
+    void controller_ActionTrigger(QString action);
 
     //Updates the Progress Dialog
     void view_ShowProgressDialog(bool visible);
@@ -70,7 +72,7 @@ signals:
     //Emitted by model_DestructGUINode()
     void view_DestructGUINode(GraphMLContainer* node, QString ID);
     //Emitted by model_DestructGUINode()
-    void view_DestructGUIEdge(Edge* edge, QString ID);
+    void view_DestructGUIEdge(Edge* edge, QString srcID, QString dstID);
 
 public slots:
     //MODEL SLOTS
@@ -82,7 +84,7 @@ public slots:
 
     //Called when ever a GraphML Node or Edge has been destructed in the Model.
     void model_DestructGUINode(GraphMLContainer* node, QString ID);
-    void model_DestructGUIEdge(Edge* edge, QString ID);
+    void model_DestructGUIEdge(Edge* edge, QString srcID, QString dstID);
 
     //Called when the Controller constructs a new Node.
     void view_ConstructNode(QString kind, GraphMLContainer* parent);

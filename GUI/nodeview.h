@@ -29,11 +29,13 @@ signals:
     void unselect();
     void selectAll();
 
+
 public slots:
     void addNodeItem(NodeItem* item);
     void removeNodeItem(NodeItem* item);
     void addEdgeItem(NodeEdge* edge);
     void centreItem(NodeItem* item);
+    void clearView();
 protected:
     virtual void mousePressEvent(QMouseEvent* event);
     virtual void wheelEvent(QWheelEvent* event);

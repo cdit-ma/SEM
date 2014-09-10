@@ -35,7 +35,7 @@ public:
 signals:
     //Used to construct and tear down GUI elements.
     void constructGUI(Edge*);
-    void destructGUI(Edge*, QString);
+    void destructGUI(Edge*, QString, QString);
 
 
 private:

@@ -13,7 +13,7 @@
 #include <QInputDialog>
 #include <QHash>
 #include <QStack>
-enum ACTION_TYPE {CONSTRUCT, DESTRUCT, ADOPT, DISOWN};
+enum ACTION_TYPE {CONSTRUCT, DESTRUCT, ADOPT, DISOWN, CHANGED};
 
 struct GUIContainer{
     NodeItem* nodeItem;
@@ -31,6 +31,10 @@ struct Action{
     QString dstID;
     QString parentID;
     QString removedXML;
+    QString key;
+    QString previousValue;
+    QString actionName;
+    int actionID;
 };
 
 class GraphMLController: public QObject
@@ -72,7 +76,7 @@ public slots:
     void model_MadeNode(GraphMLContainer* item);
     void model_RemoveNode(GraphMLContainer* item, QString ID);
 
-    void model_RemoveEdge(Edge* edge, QString ID);
+    void model_RemoveEdge(Edge* edge, QString srcID, QString dstID);
 
     void model_WriteToFile(QString filePath, QString data);
     void model_EnableGUI(bool enabled);
@@ -84,6 +88,8 @@ public slots:
     void view_DeleteTriggered(bool isDown);
     void view_SelectAll();
     void view_EmptyScenePressed();
+
+    void view_ActionTriggered(QString action);
 
     //Functions triggered by GUI Operation Slots.
     void view_ImportGraphML(QStringList inputGraphML);
@@ -102,6 +108,9 @@ public slots:
     void nodeItem_Selected(NodeItem* nodeItem);
     void nodeItem_SetCentered(NodeItem* nodeItem);
     void nodeItem_MakeChildNode(QString type, Node* node);
+
+
+    void view_updateGraphMLData(Node* node, QString key, QString value);
 
     //NODEEDGE SLOTS
     //Functions triggered by the NodeEdges in the View
@@ -134,6 +143,7 @@ private:
     GUIContainer* getGUIContainer(QModelIndex nodeIndex);
 
 
+    void addActionToStack(Action action);
     bool reverseAction(Action action);
     void removeGraphML(GraphML* node);
     void removeNodeItem(NodeItem* nodeItem);
@@ -160,6 +170,11 @@ private:
     QStandardItemModel* treeModel;
 
     QString copyBuffer;
+
+    QString currentAction;
+    int currentActionID;
+
+    int actionCount;
 
     Model* model;
     NodeView* view;

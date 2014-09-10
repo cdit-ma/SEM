@@ -50,7 +50,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
     connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
 
-    connect(this, SIGNAL(updateData(QString,QString)),node,SLOT(updateDataValue(QString,QString)));
+    //connect(this, SIGNAL(updateData(QString,QString)), node, SLOT(updateDataValue(QString,QString)));
     //connect(node, SIGNAL(deleteGUI(GraphMLContainer*)), this, SLOT(deleteD(GraphMLContainer*)));
 
 
@@ -97,7 +97,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }else if(kind == "HardwareNode"){
                     Brush.setColor(Qt::yellow);
         }
-        //if(drawDetail){
         painter->fillRect(rectangle, Brush);
         painter->drawRect(rectangle);
     }
@@ -242,24 +241,37 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if(drawObject){
         if ( event->button() != Qt::MiddleButton ) {
-            this->isPressed = false;
+
         }
+    }
+
+    if ( event->button() == Qt::LeftButton ){
+
+        QPointF newPosition = pos() + (event->scenePos() - previousPosition);
+        this->setPos(newPosition);
+
+        emit actionTriggered("Updated Node Position");
+        emit updateGraphMLData(node,"x",QString::number(newPosition.x()));
+        emit updateGraphMLData(node,"y",QString::number(newPosition.y()));
+
+        notifyEdges();
+
+        foreach(NodeEdge* edge, connections ){
+            edge->setVisible(true);
+        }
+         this->isPressed = false;
     }
 }
 
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(this->isPressed && drawObject){
-
+        //Rended the Node Item in the new location, but don't update coordinates
         QPointF newPosition = pos() + (event->scenePos() - previousPosition);
-
         this->setPos(newPosition);
-
-        emit updateData("x", QString::number(newPosition.x()));
-        emit updateData("y", QString::number(newPosition.y()));
-        notifyEdges();
-
         previousPosition = event->scenePos();
+
+
     }
 }
 

@@ -47,11 +47,11 @@ public slots:
     void updateZoom(qreal zoom);
 signals:
     void init_enableGUI(bool enabled);
-
     void removeComponent(GraphMLContainer* v);
     void init_ImportGraphML(QStringList inputGraphML);
     void init_ExportGraphML(QString file);
     void Controller_Paste(QString data);
+    void actionTriggered(QString action);
 
 private slots:
     void on_actionImport_GraphML_triggered();

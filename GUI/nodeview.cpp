@@ -103,6 +103,12 @@ void NodeView::centreItem(NodeItem *item)
     verticalScrollBar()->setValue(yBarValue);
 }
 
+void NodeView::clearView()
+{
+    //scene()->clear();
+    //viewport()->update();
+}
+
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
 

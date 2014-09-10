@@ -35,7 +35,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton_2,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->graphicsView,SLOT(setEnabled(bool)));
-    //connect(this, SIGNAL(init_enableGUI(bool)), this->ui->graphicsView,SLOT(setVisible(bool)));
 
    // connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
 
@@ -44,7 +43,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     createNewModel();
-
 
     QFile file("C:/asd12.graphml");
     if(!file.open(QFile::ReadOnly | QFile::Text)){
@@ -429,6 +427,7 @@ void MainWindow::createNewModel()
 {
     if(controller != 0){
         delete controller;
+        ui->graphicsView->clearView();
     }
     controller = new GraphMLController(ui->graphicsView);
 
@@ -460,6 +459,12 @@ void MainWindow::createNewModel()
 
     connect(ui->pushButton_6, SIGNAL(clicked()), controller, SLOT(view_Undo()));
     connect(ui->pushButton_7, SIGNAL(clicked()), controller, SLOT(view_Redo()));
+
+    connect(this, SIGNAL(actionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
+   // connect(ui->verticalSlider, SIGNAL(valueChanged(int)), nodeMade, SLOT(toggleDetailDepth(int)));
+
+    //nodeMade->toggleDetailDepth(ui->verticalSlider->value());
+
 
     controller->getModel()->moveToThread(this->modelThread);
     modelThread->start();

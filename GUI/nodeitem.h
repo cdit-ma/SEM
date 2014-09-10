@@ -43,7 +43,10 @@ signals:
     void centreNode(NodeItem*);
     void exportSelected(Node*);
 
+    void actionTriggered(QString action);
+
     void makeChildNode(QString type, Node*);
+    void updateGraphMLData(Node*, QString, QString);
     void updateData(QString key, QString value);
 public slots:
     void setOpacity(qreal opacity);

@@ -40,6 +40,7 @@ public slots:
     void setSelected();
     void setDeselected();
 
+    void setVisible(bool visible);
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
