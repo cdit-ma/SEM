@@ -12,7 +12,7 @@
 #include <QDebug>
 #include <iostream>
 #include <QGraphicsSceneMouseEvent>
-
+#include "nodeconnection.h"
 
 
 NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
@@ -39,6 +39,7 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 
 }
 
+
 void NodeView::addNodeItem(NodeItem *item)
 {
     if(!scene()->items().contains(item)){
@@ -56,6 +57,9 @@ void NodeView::removeNodeItem(NodeItem *item)
 
 void NodeView::addEdgeItem(NodeEdge* edge){
     qCritical() << "View: Adding NodeConnection to View";
+    if(edge != 0){
+        edge->addToScene(scene());
+    }
 }
 
 QRectF NodeView::getVisibleRect( )

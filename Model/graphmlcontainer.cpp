@@ -112,19 +112,6 @@ bool GraphMLContainer::isAncestorOf(GraphMLContainer *element)
 {
     QVector<GraphMLContainer *> ancestors = this->getChildren(-1);
     return ancestors.contains(element);
-    /*
-    //Check for an immediate descendant
-    if(this->descendants.contains(element)){
-        return true;
-    }else{
-        //Check for a descendants descendant.
-        for(int i=0; i < this->descendants.size();i++){
-            return descendants[i]->isAncestorOf(element);
-        }
-    }
-
-    return false;
-    */
 }
 
 bool GraphMLContainer::isDescendantOf(GraphMLContainer *element)

@@ -68,6 +68,8 @@ private slots:
 
     void on_pushButton_4_clicked();
 
+    void labelPressed();
+
 
 private:
     bool CONTROL_DOWN;

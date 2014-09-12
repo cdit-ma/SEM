@@ -194,11 +194,14 @@ void NodeItem::updatedData(GraphMLData* data)
         }
 
 
-
         label->setPlainText(dataValue);
     }else if(dataKey == "kind"){
         kind = dataValue;
         update();
+    }
+
+    if(dataKey == "x" || dataKey == "y"){
+        notifyEdges();
     }
 }
 
@@ -258,6 +261,8 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             emit actionTriggered("Updated Node Position");
             emit updateGraphMLData(node,"x",QString::number(newPosition.x()));
             emit updateGraphMLData(node,"y",QString::number(newPosition.y()));
+
+
             hasMoved = false;
         }
         notifyEdges();
@@ -278,6 +283,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         this->setPos(newPosition);
         previousPosition = event->scenePos();
         hasMoved = true;
+
     }
 }
 

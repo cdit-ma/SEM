@@ -23,6 +23,7 @@ bool InputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
     OutputEventPort* outputEventPort = dynamic_cast<OutputEventPort*> (attachableObject);
 
     if(outputEventPort == 0){
+        qCritical() << "Cannot connect to anything which isn't a Output EVent Port";
         return false;
     }
 

@@ -20,10 +20,12 @@ bool OutputEventPort::isAdoptLegal(GraphMLContainer *child)
 
 bool OutputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
 {
+    qCritical() << "Not Calling child";
     InputEventPort* inputEventPort = dynamic_cast<InputEventPort*> (attachableObject);
 
     //Check Event Name (TYPE)
     if(inputEventPort == 0){
+        qCritical() << "Cannot connect to anything which isn't a Input EVent Port";
         return false;
     }
 
@@ -33,7 +35,7 @@ bool OutputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
     }
 
     if(inputEventPort->getParent() == this->getParent()){
-         //qCritical() << "Cannot connect 2 Ports from the same component!";
+         qCritical() << "Cannot connect 2 Ports from the same component!";
          //return false;
     }
 

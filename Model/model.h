@@ -86,16 +86,17 @@ public slots:
     void model_DestructGUINode(GraphMLContainer* node, QString ID);
     void model_DestructGUIEdge(Edge* edge, QString srcID, QString dstID);
 
-    //Called when the Controller constructs a new Node.
-    void view_ConstructNode(QString kind, GraphMLContainer* parent);
+
 
     //VIEW SLOTS
     //Functions triggered by the Controller from the View.
     void view_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent=0);
     void view_ExportGraphML(QString file);
 
-    void view_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst);
 
+    //Called when the Controller constructs a new Node.
+    void view_ConstructNode(QString kind, GraphMLContainer* parent);
+    void view_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst);
 private:
     //Constructs a GraphMLKey Object from a XML entity.
     GraphMLKey* parseGraphMLKeyXML(QXmlStreamReader& xml);

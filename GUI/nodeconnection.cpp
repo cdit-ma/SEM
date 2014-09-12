@@ -72,7 +72,7 @@ void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 void NodeEdge::addToScene(QGraphicsScene *scene)
 {
     if(scene != 0){
-        QGline = scene->addLine(line,linePen);
+        QGline = scene->addLine(line, linePen);
         QGline->setGraphicsEffect(graphicsEffect);
         scene->addItem(this);
         inScene = true;

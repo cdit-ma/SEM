@@ -70,6 +70,7 @@ signals:
 
 
 public slots:
+    void modelActionComplete();
 
     //MODEL SLOTS
     //Functions triggered by the Model
@@ -154,6 +155,7 @@ private:
 
     QVector<NodeEdge*> selectedEdgeItems;
 
+    QStack<Action> reversingStack;
     QStack<Action> undoStack;
     QStack<Action> redoStack;
 
@@ -178,6 +180,7 @@ private:
     int currentActionID;
 
     int actionCount;
+    bool actionWorking;
 
     QThread* modelThread;
 

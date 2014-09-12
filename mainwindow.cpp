@@ -446,7 +446,9 @@ void MainWindow::createNewModel()
     connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), controller, SLOT(view_SetCentered(QModelIndex)));
     connect(ui->treeView, SIGNAL(pressed (QModelIndex)), controller, SLOT(view_SetSelected(QModelIndex)));
 
-    connect(ui->lineEdit,SIGNAL(textChanged(QString)), controller, SLOT(view_UpdateLabel(QString)));
+
+    //connect(ui->lineEdit,SIGNAL(textChanged(QString)), controller, SLOT(view_UpdateLabel(QString)));
+    connect(ui->lineEdit, SIGNAL(returnPressed()),this, SLOT(labelPressed()));
     connect(controller, SIGNAL(view_LabelChanged(QString)),  this->ui->lineEdit, SLOT(setText(QString)));
 
     //Progress Dialog Signals
@@ -474,8 +476,8 @@ void MainWindow::createNewModel()
    modelThread->start();
 
 
-    //controller->moveToThread(controllerThread);
-  //  controllerThread->start();
+   // controller->moveToThread(controllerThread);
+  // controllerThread->start();
 
 }
 
@@ -494,9 +496,14 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 void MainWindow::on_pushButton_4_clicked()
 {
     QClipboard *clipboard = QApplication::clipboard();
-    if(clipboard->ownsClipboard()){
+    //if(clipboard->ownsClipboard()){
         emit Controller_Paste(clipboard->text());
-    }
+    //}
 
+}
+
+void MainWindow::labelPressed()
+{
+    controller->view_UpdateLabel(ui->lineEdit->text());
 }
 

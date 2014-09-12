@@ -21,6 +21,7 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
 {
     qCritical() << "Model::importGraphML()";
     qCritical() << inputGraphML;
+
     //emit controller_ActionTrigger("Importing GraphML");
 
     //Key Lookup provides a way for the original key "id" to be linked with the internal object GraphMLKey
@@ -34,7 +35,6 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
 
     //A list storing all the Edge information (source, target, data)
     QVector<EdgeStruct> currentEdges;
-
     GraphMLKey * currentKey;
 
     //Used to keep track of state inside the XML
@@ -102,6 +102,9 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                 //Parse the Edge element into a EdgeStruct object
                 EdgeStruct newEdge;
                 newEdge.id = getAttribute(xml, "id");
+
+
+
                 newEdge.lineNumber = lineNumber;
                 newEdge.source = getAttribute(xml, "source");
                 newEdge.target = getAttribute(xml, "target");
@@ -110,6 +113,7 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                 currentEdges.append(newEdge);
                 //Set the current object type to EDGE.
                 nowInside = GraphML::EDGE;
+
             }
             if(xml.isEndElement()){
                 //Set the current object type to NONE.
@@ -282,9 +286,7 @@ Graph *Model::getGraph()
 
 void Model::model_ConstructGUINode(GraphMLContainer *node)
 {
-    //if(node->getKind() == GraphML::NODE){
-        emit view_ConstructGUINode(node);
-    //}
+    emit view_ConstructGUINode(node);
 }
 
 void Model::model_ConstructGUIEdge(Edge *edge)
@@ -315,6 +317,8 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
     QVector<Edge*> containedEdges;
     QVector<GraphMLContainer*> containedNodes;
 
+    GraphMLKey* pIDKey = constructGraphMLKey("previousID","string","node");
+
     float size = nodes.size() * 2;
 
     float count = 0;
@@ -324,6 +328,10 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
         if(!containedNodes.contains(node)){
             containedNodes.append(node);
         }
+
+        //Attach a special key.
+        GraphMLData* data = new GraphMLData(pIDKey,node->getID());
+        node->attachData(data);
 
         //Get all keys used by this node.
         foreach(GraphMLKey* key, node->getKeys())
@@ -339,6 +347,13 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
         //Get all children nodes and append them to
         foreach(GraphMLContainer* child, node->getChildren())
         {
+
+            //Attach a special key.
+            if(child->getKind() == GraphML::NODE){
+                GraphMLData* data = new GraphMLData(pIDKey,child->getID());
+                child->attachData(data);
+            }
+
             //Add the child node to the list of nodes contained.
             if(!containedNodes.contains(child)){
                 containedNodes.append(child);
@@ -352,6 +367,7 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
 
     foreach(GraphMLContainer* node, nodes)
     {
+
         foreach(Edge* edge, node->getEdges())
         {
             if(!containedEdges.contains(edge)){
@@ -423,7 +439,6 @@ void Model::view_ConstructNode(QString kind, GraphMLContainer* parent=0)
     data.append(new GraphMLData(l, "new_" + kind));
 
     constructGraphMLNode(data, parent);
-
 }
 
 
@@ -444,6 +459,7 @@ void Model::view_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *c
 
     emit view_UpdateProgressDialog(false);
     emit view_EnableGUI(true);
+
 }
 
 void Model::view_ExportGraphML(QString file)
@@ -459,14 +475,16 @@ void Model::view_ExportGraphML(QString file)
 
     emit view_UpdateProgressDialog(false);
     emit view_EnableGUI(true);
-
 }
 
-void Model::view_ConstructEdge(GraphMLContainer *src, GraphMLContainer *dst)
+void Model::view_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst)
 {
     if(src->isEdgeLegal(dst)){
+        emit controller_ActionTrigger("Connected Nodes");
         Edge* edge = new Edge(src, dst);
         setupEdge(edge);
+    }else{
+        qCritical()<<"GG";
     }
 }
 
