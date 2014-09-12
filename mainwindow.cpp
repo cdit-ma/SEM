@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //Make a thread for the Model.
     modelThread = new QThread();
+    controllerThread = new QThread();
 
     controller = 0;
     model = 0;
@@ -466,8 +467,15 @@ void MainWindow::createNewModel()
     //nodeMade->toggleDetailDepth(ui->verticalSlider->value());
 
 
+
+    //ui->graphicsView->moveToThread(modelThread);
+
     controller->getModel()->moveToThread(this->modelThread);
-    modelThread->start();
+   modelThread->start();
+
+
+    //controller->moveToThread(controllerThread);
+  //  controllerThread->start();
 
 }
 

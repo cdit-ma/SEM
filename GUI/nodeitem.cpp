@@ -11,6 +11,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     drawDetail = true;
     drawObject = true;
 
+    hasMoved = false;
     graphicsEffect = new QGraphicsColorizeEffect(this);
 
     QColor blue(70,130,180);
@@ -209,6 +210,7 @@ void NodeItem::recieveData()
     QString y = node->getDataValue("y");
 
     this->setPos(QPointF(x.toDouble(),y.toDouble()));
+    notifyEdges();
 
 }
 
@@ -227,6 +229,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             emit centreNode(this);
         }else{
             if ( event->button() == Qt::LeftButton ) {
+                hasMoved = false;
                 emit triggerSelected(this);
             }else if(event->button() == Qt::RightButton){
                 emit makeChildNode("OutEventPort", node);
@@ -247,13 +250,16 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
     if ( event->button() == Qt::LeftButton ){
 
-        QPointF newPosition = pos() + (event->scenePos() - previousPosition);
-        this->setPos(newPosition);
+        if(hasMoved){
+            QPointF newPosition = pos() + (event->scenePos() - previousPosition);
+            this->setPos(newPosition);
 
-        emit actionTriggered("Updated Node Position");
-        emit updateGraphMLData(node,"x",QString::number(newPosition.x()));
-        emit updateGraphMLData(node,"y",QString::number(newPosition.y()));
 
+            emit actionTriggered("Updated Node Position");
+            emit updateGraphMLData(node,"x",QString::number(newPosition.x()));
+            emit updateGraphMLData(node,"y",QString::number(newPosition.y()));
+            hasMoved = false;
+        }
         notifyEdges();
 
         foreach(NodeEdge* edge, connections ){
@@ -261,6 +267,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         }
          this->isPressed = false;
     }
+
 }
 
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -270,8 +277,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QPointF newPosition = pos() + (event->scenePos() - previousPosition);
         this->setPos(newPosition);
         previousPosition = event->scenePos();
-
-
+        hasMoved = true;
     }
 }
 

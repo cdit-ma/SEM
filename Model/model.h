@@ -94,7 +94,7 @@ public slots:
     void view_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent=0);
     void view_ExportGraphML(QString file);
 
-    void view_ConstructEdge(Edge * edge);
+    void view_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst);
 
 private:
     //Constructs a GraphMLKey Object from a XML entity.

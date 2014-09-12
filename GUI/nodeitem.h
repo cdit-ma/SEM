@@ -71,6 +71,7 @@ private:
     QRect bRec;
 
 
+    bool hasMoved;
 
     QVector<NodeEdge*> connections;
 

@@ -10,6 +10,7 @@
 #include "../Model/model.h"
 #include "../GUI/nodeview.h"
 #include <QClipboard>
+#include <QThread>
 #include <QInputDialog>
 #include <QHash>
 #include <QStack>
@@ -65,18 +66,18 @@ signals:
     void model_ExportGraphML(QString filePath);
 
     void model_ConstructNode(QString kind, GraphMLContainer* parentNode);
-    void model_ConstructEdge(Edge* edge);
+    void model_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst);
 
 
 public slots:
+
     //MODEL SLOTS
     //Functions triggered by the Model
     void model_MadeEdge(Edge* edge);
+    void model_RemoveEdge(Edge* edge, QString srcID, QString dstID);
 
     void model_MadeNode(GraphMLContainer* item);
     void model_RemoveNode(GraphMLContainer* item, QString ID);
-
-    void model_RemoveEdge(Edge* edge, QString srcID, QString dstID);
 
     void model_WriteToFile(QString filePath, QString data);
     void model_EnableGUI(bool enabled);
@@ -147,14 +148,16 @@ private:
     bool reverseAction(Action action);
     void removeGraphML(GraphML* node);
     void removeNodeItem(NodeItem* nodeItem);
+    void removeNodeEdge(NodeEdge* nodeEdge);
 
     QVector<NodeItem*> selectedNodeItems;
 
     QVector<NodeEdge*> selectedEdgeItems;
 
     QStack<Action> undoStack;
-    QStack<QString> undoIDStack;
     QStack<Action> redoStack;
+
+    QStack<QString> undoIDStack;
 
     QVector<GUIContainer*> nodeContainers;
     QVector<NodeItem*> nodeItems;
@@ -175,6 +178,8 @@ private:
     int currentActionID;
 
     int actionCount;
+
+    QThread* modelThread;
 
     Model* model;
     NodeView* view;

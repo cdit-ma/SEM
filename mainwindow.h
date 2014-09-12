@@ -75,8 +75,14 @@ private:
     void createNewModel();
     GraphMLController* controller;
     Model* model;
+
+
     NodeItem *previousParent;
+
+
     QThread *modelThread;
+    QThread *controllerThread;
+
     Ui::MainWindow *ui;
     QProgressDialog *progressDialog;
     //Model *model;

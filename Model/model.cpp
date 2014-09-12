@@ -5,7 +5,7 @@
 
 Model::Model(): QObject()
 {
-    qDebug() << "Model::Model()";
+    qCritical() << "Model::Model()";
 
     //Construct Parent Graph.
     this->parentGraph = new Graph("ParentGraph");
@@ -304,10 +304,6 @@ void Model::model_DestructGUIEdge(Edge* edge, QString srcID, QString dstID)
     emit view_DestructGUIEdge(edge, srcID, dstID);
 }
 
-void Model::view_ConstructEdge(Edge *edge)
-{
-    setupEdge(edge);
-}
 
 QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
 {
@@ -446,7 +442,6 @@ void Model::view_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *c
         bool result = importGraphML(currentGraphMLData, currentParent);
     }
 
-
     emit view_UpdateProgressDialog(false);
     emit view_EnableGUI(true);
 }
@@ -465,6 +460,14 @@ void Model::view_ExportGraphML(QString file)
     emit view_UpdateProgressDialog(false);
     emit view_EnableGUI(true);
 
+}
+
+void Model::view_ConstructEdge(GraphMLContainer *src, GraphMLContainer *dst)
+{
+    if(src->isEdgeLegal(dst)){
+        Edge* edge = new Edge(src, dst);
+        setupEdge(edge);
+    }
 }
 
 GraphMLKey*  Model::parseGraphMLKeyXML(QXmlStreamReader &xml)

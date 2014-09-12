@@ -7,12 +7,6 @@ GraphMLContainer::GraphMLContainer(GraphML::KIND kind, QString name):GraphML(kin
 
 GraphMLContainer::~GraphMLContainer()
 {
-    /*
-    removeEdges();
-    removeChildren();
-*/
-
-  //  */
 }
 
 void GraphMLContainer::setParent(GraphMLContainer *parent)
@@ -205,23 +199,23 @@ void GraphMLContainer::addEdge(Edge *edge)
 
 void GraphMLContainer::removeEdge(Edge *edge)
 {
-    qCritical() << "Removing Edge from: " << getName() << " [" << getKind() << "]";
-    qCritical() << "Looking for Edge: " << edge->getID();
-    qCritical() << "Edges: " << edges.size();
+    qDebug() << "Removing Edge from: " << getName() << " [" << getKind() << "]";
+    qDebug() << "Looking for Edge: " << edge->getID();
+    qDebug() << "Edges: " << edges.size();
 
     for (int i = 0; i < edges.size(); i++){
-        qCritical() << "\t" << edges[i]->getID();
+        qDebug() << "\t" << edges[i]->getID();
     }
 
     if(this->edges.contains(edge)){
         for (int i = 0; i < this->edges.size(); i++){
             if(this->edges[i] == edge){
-                qCritical() << "Edge Removed!";
+                qDebug() << "Edge Removed!";
                 edges.removeAt(i);
             }
         }
     }else{
-        qCritical() <<  "Couldn't find Edge!";
+        qDebug() <<  "Couldn't find Edge!";
     }
 
 
