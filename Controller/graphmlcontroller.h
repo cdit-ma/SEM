@@ -14,7 +14,7 @@
 #include <QInputDialog>
 #include <QHash>
 #include <QStack>
-enum ACTION_TYPE {CONSTRUCT, DESTRUCT, ADOPT, DISOWN, CHANGED};
+enum ACTION_TYPE {CONSTRUCT, DESTRUCT, MODIFIED};
 
 struct GUIContainer{
     NodeItem* nodeItem;
@@ -63,6 +63,7 @@ signals:
 
     //Model Signals
     void model_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
+    void model_ImportGraphML(QString, GraphMLContainer *currentParent);
     void model_ExportGraphML(QString filePath);
 
     void model_ConstructNode(QString kind, GraphMLContainer* parentNode);
@@ -70,7 +71,6 @@ signals:
 
 
 public slots:
-    void modelActionComplete();
 
     //MODEL SLOTS
     //Functions triggered by the Model
@@ -125,6 +125,7 @@ public slots:
     void view_SetSelected(QModelIndex index);
 
 private:
+    void undoRedo(bool UNDO);
     bool KEY_CONTROL_DOWN;
     bool KEY_SHIFT_DOWN;
 
@@ -132,6 +133,9 @@ private:
     void deselectEdgeItems(NodeEdge* selectedEdgeItem = 0);
     void selectNodeItem(NodeItem* selectedNodeItem);
     void selectEdgeItem(NodeEdge* selectedEdgeItem);
+
+    GraphMLContainer* getSingleSelectedNode();
+    NodeItem* getSingleSelectedNodeItem();
 
     void hideAllMatches(Node* node);
     void resetMatches();
@@ -146,7 +150,7 @@ private:
 
 
     void addActionToStack(Action action);
-    bool reverseAction(Action action);
+    void reverseAction(Action action);
     void removeGraphML(GraphML* node);
     void removeNodeItem(NodeItem* nodeItem);
     void removeNodeEdge(NodeEdge* nodeEdge);

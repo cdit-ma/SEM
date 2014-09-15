@@ -42,6 +42,7 @@ public:
 
     //Exports a Selection of Containers to export into GraphML
     QString exportGraphML(QVector<GraphMLContainer *> nodes);
+    QString exportGraphML(GraphMLContainer * node);
 
     //Gets a list of all the child Nodes in this Model. Based on a depth variable.
     QVector<GraphMLContainer*> getChildren(int depth=-1);
@@ -86,11 +87,10 @@ public slots:
     void model_DestructGUINode(GraphMLContainer* node, QString ID);
     void model_DestructGUIEdge(Edge* edge, QString srcID, QString dstID);
 
-
-
     //VIEW SLOTS
     //Functions triggered by the Controller from the View.
-    void view_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *currentParent=0);
+    void view_ImportGraphML(QStringList inputGraphMLDatas, GraphMLContainer *currentParent=0);
+    void view_ImportGraphML(QString inputGraphMLData, GraphMLContainer *currentParent=0);
     void view_ExportGraphML(QString file);
 
 

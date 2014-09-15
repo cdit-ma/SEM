@@ -5,70 +5,64 @@
 //Constructor
 GraphMLController::GraphMLController(NodeView* view):QObject()
 {
-    this->model = new Model();
+    model = new Model();
+    treeModel = new QStandardItemModel(this);
     this->view = view;
-   // this->model = model;
 
+    //Setup variables;
     UNDOING = false;
     REDOING = false;
 
-    //Setup variables;
     KEY_CONTROL_DOWN = false;
     KEY_SHIFT_DOWN = false;
 
     //Connect View and Model
     currentMaximized=0;
-
-    currentAction = "";
     currentActionID = 0;
     actionCount = 0;
 
-    treeModel = new QStandardItemModel(this);
+    currentAction = "";
+
 
 
     //Connect the Signals to the VIEW
-    connect(this, SIGNAL(view_addNodeEdge(NodeEdge*)),view,SLOT(addEdgeItem(NodeEdge*)));
-    connect(this, SIGNAL(view_addNodeItem(NodeItem*)),view,SLOT(addNodeItem(NodeItem*)));
-    connect(this, SIGNAL(view_centerNodeItem(NodeItem*)),view,SLOT(centreItem(NodeItem*)));
-    connect(this, SIGNAL(model_ConstructNode(QString, GraphMLContainer*)), model, SLOT(view_ConstructNode(QString, GraphMLContainer*)));
-
-    connect(this, SIGNAL(model_ConstructEdge(GraphMLContainer*, GraphMLContainer*)), model, SLOT(view_ConstructEdge(GraphMLContainer*, GraphMLContainer*)));
-
+    connect(this, SIGNAL(view_addNodeEdge(NodeEdge*)), view, SLOT(addEdgeItem(NodeEdge*)));
+    connect(this, SIGNAL(view_addNodeItem(NodeItem*)), view, SLOT(addNodeItem(NodeItem*)));
+    connect(this, SIGNAL(view_centerNodeItem(NodeItem*)), view, SLOT(centreItem(NodeItem*)));
 
     //Connect to the Signals from the VIEW
     connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
     connect(view, SIGNAL(shiftPressed(bool)), this, SLOT(view_ShiftTriggered(bool)));
     connect(view, SIGNAL(deletePressed(bool)), this, SLOT(view_DeleteTriggered(bool)));
-    connect(view, SIGNAL(unselect()),this, SLOT(view_EmptyScenePressed()));
+
     connect(view, SIGNAL(selectAll()),this, SLOT(view_SelectAll()));
-    connect(view, SIGNAL(copy()), this, SLOT(view_Copy()));
+    connect(view, SIGNAL(unselect()),this, SLOT(view_EmptyScenePressed()));
+
     connect(view, SIGNAL(cut()), this, SLOT(view_Cut()));
+    connect(view, SIGNAL(copy()), this, SLOT(view_Copy()));
+
     connect(view, SIGNAL(undo()), this, SLOT(view_Undo()));
     connect(view, SIGNAL(redo()), this, SLOT(view_Redo()));
 
-    //Connect the Signals to the MODEL
-    connect(this, SIGNAL(model_ExportGraphML(QString)), model, SLOT(view_ExportGraphML(QString)));
+    //Connect the Signals to the Model.
+    connect(this, SIGNAL(model_ConstructNode(QString, GraphMLContainer*)), model, SLOT(view_ConstructNode(QString, GraphMLContainer*)));
+    connect(this, SIGNAL(model_ConstructEdge(GraphMLContainer*, GraphMLContainer*)), model, SLOT(view_ConstructEdge(GraphMLContainer*, GraphMLContainer*)));
     connect(this, SIGNAL(model_ImportGraphML(QStringList, GraphMLContainer*)), model, SLOT(view_ImportGraphML(QStringList, GraphMLContainer*)));
-    connect(model, SIGNAL(view_EnableGUI(bool)), this, SLOT(model_EnableGUI(bool)));
+    connect(this, SIGNAL(model_ImportGraphML(QString, GraphMLContainer*)), model, SLOT(view_ImportGraphML(QString, GraphMLContainer*)));
+    connect(this, SIGNAL(model_ExportGraphML(QString)), model, SLOT(view_ExportGraphML(QString)));
 
+    //Connect to the Signals from the Model.
+    connect(model, SIGNAL(view_EnableGUI(bool)), this, SLOT(model_EnableGUI(bool)));
     connect(model, SIGNAL(controller_ActionTrigger(QString)), this, SLOT(view_ActionTriggered(QString)));
+
+    connect(model, SIGNAL(view_ConstructGUINode(GraphMLContainer*)), this,SLOT(model_MadeNode(GraphMLContainer*)));
     connect(model, SIGNAL(view_DestructGUINode(GraphMLContainer*, QString)), this, SLOT(model_RemoveNode(GraphMLContainer*, QString)));
+
+    connect(model, SIGNAL(view_ConstructGUIEdge(Edge*)),this,SLOT(model_MadeEdge(Edge*)));
     connect(model, SIGNAL(view_DestructGUIEdge(Edge*, QString, QString)), this, SLOT(model_RemoveEdge(Edge*, QString, QString)));
 
-    //connect(model, SIGNAL(removeUIComponent(GraphMLContainer*)),this, SLOT(deleteComponent(GraphMLContainer*)));
-
-
-    //Connect to the Signals of the MODEL
-    connect(model, SIGNAL(view_ConstructGUINode(GraphMLContainer*)), this,SLOT(model_MadeNode(GraphMLContainer*)));
-    //connect(model,SIGNAL(constructNodeItem(Node*)),this,SLOT(model_MakeNode(Node*)));
-    connect(model,SIGNAL(view_ConstructGUIEdge(Edge*)),this,SLOT(model_MadeEdge(Edge*)));
-
-
     connect(model, SIGNAL(controller_FinishedAction()), this, SLOT(modelActionComplete()));
-
-
-    connect(model,SIGNAL(view_ReturnExportedData(QString,QString)), this, SLOT(model_WriteToFile(QString,QString)));
-
+    connect(model, SIGNAL(view_ReturnExportedData(QString,QString)), this, SLOT(model_WriteToFile(QString,QString)));
 }
 
 GraphMLController::~GraphMLController()
@@ -79,7 +73,6 @@ GraphMLController::~GraphMLController()
 Model *GraphMLController::getModel()
 {
     return model;
-
 }
 
 QStandardItemModel *GraphMLController::getTreeModel()
@@ -87,51 +80,43 @@ QStandardItemModel *GraphMLController::getTreeModel()
     return this->treeModel;
 }
 
-void GraphMLController::modelActionComplete()
-{
-    qCritical() << "Action Completed.";
-
-    qCritical() << "ACTIONS LEFT" << reversingStack.size();
-    if(reversingStack.size() > 0){
-        Action action = reversingStack.pop();
-        reverseAction(action);
-    }
-    //Continue on.
-}
 
 void GraphMLController::view_Copy()
 {
-
     QVector<GraphMLContainer*> nodes;
 
-    for(int i=0; i < selectedNodeItems.size(); i++){
-        nodes.append(selectedNodeItems[i]->node);
+    //Get the Model's Node object for each selected Node Items.
+    foreach(NodeItem* nodeItem, selectedNodeItems){
+        nodes.append(nodeItem->node);
     }
 
-
+    //Export the GraphML for those Nodes.
     QString result = model->exportGraphML(nodes);
 
+    //Tell the view to place the resulting GraphML String into the Copy buffer.
     emit view_CopyText(result);
 }
 
 void GraphMLController::view_Cut()
 {
+    //Run Copy
     view_Copy();
 
+    //Then remove the selected node items.
     deleteSelectedNodeItems();
 }
 
 void GraphMLController::view_Paste(QString XMLData)
 {
-    QStringList files;
-    files << XMLData;
-
+    //Get the currentParent
     GraphMLContainer* currentParent = 0;
-    if(selectedNodeItems.size() == 1){
-        currentParent = selectedNodeItems[0]->node;
+
+    //Paste into the current Maximized Node.
+    if(currentMaximized != 0){
+        currentParent = currentMaximized->node;
     }
 
-    emit model_ImportGraphML(files, currentParent);
+    emit model_ImportGraphML(XMLData, currentParent);
 }
 
 
@@ -151,187 +136,132 @@ void GraphMLController::view_ExportGraphML(QString filePath)
 
 void GraphMLController::view_UpdateLabel(QString value)
 {
-    if(selectedNodeItems.size() == 1){
+    Node* selectedNode = (Node*)getSingleSelectedNode();
+
+    if(selectedNode != 0){
         view_ActionTriggered("Updating Label");
-        view_updateGraphMLData(selectedNodeItems[0]->node, "label", value);
-        //selectedNodeItems[0]->node->updateDataValue("label", value);
-        //GUIContainer* gi = getGUIContainer(selectedNodeItems[0]);
-        //gi->modelItem->setText(value);
+        view_updateGraphMLData(selectedNode, "label", value);
     }
 }
 
 
-bool GraphMLController::reverseAction(Action action)
+void GraphMLController::reverseAction(Action action)
 {
-    qCritical() << "Reversing Action: ";
-    if(action.actionType == CONSTRUCT){
-            QString ID = action.itemID;
+    qCritical() << "GraphMLController::reverseAction()" << action.actionID << " : " << action.actionName;
 
-            GraphML* item = undoLookup[ID];
-            if(item != 0){
-                removeGraphML(item);
+    switch(action.actionType){
+
+    case CONSTRUCT:{
+        //qCritical() << "Gotta Remove this thing.";
+        //Reverse a Construct action, so Destruct it.
+        //Get the constructed Item from the ID specified and then remove it.
+        GraphML* item = undoLookup[action.itemID];
+        removeGraphML(item);
+        break;
+    }
+
+    case DESTRUCT:{
+        //Reverse a Destruct action, so Construct it.
+        switch(action.itemKind){
+
+        case GraphML::NODE:{
+            GraphMLContainer* parent = 0;
+
+            if(action.parentID != ""){
+                qCritical() << "Looking for parent Component ID: " << action.parentID;
+                parent = (GraphMLContainer*) undoLookup[action.parentID];
             }
-    }else if(action.actionType == DESTRUCT){
-        if(action.itemKind == GraphML::NODE){
-
-            QString parentID = action.parentID;
-
-            GraphMLContainer* parent;
-            if(parentID == ""){
-
-                //Use Graph.
-                parent = 0;
-            }else{
-                qCritical () << "Looking for ID: " << parentID;
-                parent =  (GraphMLContainer*)undoLookup[parentID];
-            }
-
-            QStringList xmlData;
-
-            xmlData << action.removedXML;
 
             if(action.removedXML != ""){
-                //model->importGraphML(action.removedXML, parent);
-                emit model_ImportGraphML(xmlData, parent);
+                qCritical() << "Attempting to import GraphML to reverse destruct.";
+                model->importGraphML(action.removedXML, parent);
+                //emit model_ImportGraphML(action.removedXML, parent);
             }else{
-                qCritical() << action.itemID;
-                qCritical() << "NO XML!";
+                qCritical() << "Action for item ID: " << action.itemID << " has no stored GraphML data.";
             }
+            break;
+        }
+        case GraphML::EDGE:{
+            qCritical() << "Attempting to construct Edge: " << action.srcID << " <-> " << action.dstID;
 
-        }else if (action.itemKind == GraphML::EDGE){
-            qCritical() << "Edge";
-            QString srcID = action.srcID;
-            QString dstID = action.dstID;
+            //Get the source and destination components.
+            GraphMLContainer* src = (GraphMLContainer*) undoLookup[action.srcID];
+            GraphMLContainer* dst = (GraphMLContainer*) undoLookup[action.dstID];
 
-            qCritical() << "Edge: " << srcID << " <-> " << dstID;
-
-            GraphMLContainer* src = (GraphMLContainer*)undoLookup[srcID];
-            GraphMLContainer* dst = (GraphMLContainer*)undoLookup[dstID];
-            qCritical() << "Edge: " << src->getID() << " <-> " << dst->getID();
-
-            if(src == 0 || dst == 0){
-                qCritical() << "NULLAGE";
-                return false;
-
+            if(src != 0 && dst != 0){
+                qCritical() << "Constructing Edge: " << src->getID() << " <-> " << dst->getID();
+                emit model_ConstructEdge(src, dst);
+            }else{
+                qCritical() << "Source or Destination Component does not exist!";
             }
-
-            qCritical() << "Making Edge between src and dst";
-
-            emit model_ConstructEdge(src, dst);
-        }else{
-            qCritical() << "UNKNOWN ACTION KIND";
-            qCritical() << action.itemKind;
+            break;
         }
-
-    }else if(action.actionType == CHANGED){
-        QString itemID = action.itemID;
-        GraphMLContainer* item = (GraphMLContainer*)undoLookup[itemID];
-
-        if(item != 0){
-            emit view_updateGraphMLData((Node*)item,action.key, action.previousValue);
+        default:
+            qCritical() << "Action.itemKind: " << action.itemKind << " not implemented.";
+            break;
         }
+        break;
+    }
+    case MODIFIED:{
+        qCritical() << "Attribute Modified";
+        //Reverse an attribute change.
+        //Get the node which data has changed.
+        qCritical() << "Attribute Modified" << action.itemID;
+        Node* node = (Node*)undoLookup[action.itemID];
+        qCritical() << node->getID();
+
+        //Reverse the change of GraphMLData
+        emit view_updateGraphMLData(node, action.key, action.previousValue);
+        break;
+    }
+    default:
+        qCritical() << "Action.actionType: " << action.actionType << " no implemented.";
+        break;
     }
 
 
-    else{
-            qCritical() << "UNKNOWN ACTION TYPE";
-    }
 
-    qCritical() << "FINISHED REVERSING!";
-
-    return true;
 }
 
 void GraphMLController::removeGraphML(GraphML *graph)
 {
+    if(graph == 0){
+        return;
+    }
+
     GraphMLContainer* node = dynamic_cast<GraphMLContainer*>(graph);
 
     if(node != 0){
         GUIContainer* item = getGUIContainer((Node*)node);
 
         if(item != 0){
-            QVector<GraphMLContainer*> nodes;
-            nodes.append(node);
+            //Export the GraphML for the Node.
+            item->deleteXML = model->exportGraphML(node);
 
-            item->deleteXML = model->exportGraphML(nodes);
-            Node* parentNode = ((Node*)node)->getParentNode();
+            //Get the Nodes Parent ID.
+            Node* parentNode = item->node->getParentNode();
+
             if(parentNode != 0){
+                qCritical() << "Before Crash";
                 item->parentNodeID = parentNode->getID();
+                qCritical() << "After Crash";
             }else{
                 item->parentNodeID = "";
             }
         }
-        delete graph;
     }
+    delete graph;
 }
 
 
 void GraphMLController::view_Undo()
 {
-    UNDOING = true;
-
-    int cActionID = currentActionID;
-    QString cActionName = currentAction;
-
-    if(undoStack.size() > 0){
-        emit view_ActionTriggered("Undoing: " + cActionName);
-
-        qCritical() << "cActionName["<<cActionID<<"]: " << cActionName;
-
-        reversingStack.clear();
-        // reverseAction(action);
-
-
-        while(undoStack.size() > 0){
-            Action action = undoStack.pop();
-            int actionID = action.actionID;
-
-            qCritical() << actionID;
-            if(actionID == cActionID){
-                reverseAction(action);
-                //reversingStack.push_front(action);
-            }else{
-                currentActionID = actionID;
-                currentAction = action.actionName;
-                undoStack.append(action);
-                break;
-            }
-        }
-    }
+    undoRedo(true);
 }
 
 void GraphMLController::view_Redo()
 {
-    int cActionID = currentActionID;
-    QString cActionName = currentAction;
-
-    UNDOING = false;
-    emit view_ActionTriggered("Redoing: " + cActionName);
-
-    qCritical() << "cActionName["<<cActionID<<"]: " << cActionName;
-
-
-    while(redoStack.size() > 0){
-        Action action = redoStack.pop();
-        int actionID = action.actionID;
-
-        qCritical() << actionID;
-        if(actionID == cActionID){
-            reverseAction(action);
-        }else{
-            qCritical() << "FOund new Action";
-            currentActionID = actionID;
-            currentAction = action.actionName;
-            redoStack.append(action);
-            break;
-        }
-    }
-
-/*
-    if(redoStack.size() > 0){
-        reverseAction(redoStack.pop());
-    }
-    */
+    undoRedo(false);
 }
 
 void GraphMLController::model_WriteToFile(QString filePath, QString data)
@@ -399,6 +329,7 @@ void GraphMLController::model_MadeEdge(Edge *edge)
 
 void GraphMLController::model_MadeNode(GraphMLContainer *item)
 {
+    qCritical() << "Making Node";
 
     Node* node = dynamic_cast<Node*>(item);
 
@@ -418,7 +349,17 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
         //Get Visual Parent Node
         NodeItem* parentNodeItem = 0;
 
+        GraphMLContainer* parentLOL = node->getParent();
+
+        if(parentLOL != 0){
+             qCritical() << "Got Parent";
+             GraphMLContainer* pParnet = parentLOL->getParent();
+             qCritical() << (pParnet == 0);
+        }else{
+             qCritical() << "No Parent yet?!";
+        }
         Node* parentNode = node->getParentNode();
+
 
         //Get Parent item from lookup hash
         parentNodeItem = getNodeItemFromNode(parentNode);
@@ -428,7 +369,10 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
         QString parentItemID = "";
         if(parentNode != 0){
             parentItemID = parentNode->getID();
+            //qCritical() << parentNode->getID();
 
+        }else{
+           // qCritical() << "No Parent yet?!";
         }
 
         //Insert an action to reverse it.
@@ -443,30 +387,17 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
 
         addActionToStack(newNode);
 
-        QString previousID = node->getDataValue("previousID");
-
-        if(previousID != ""){
-            undoLookup[previousID] = node;
-        }
         undoLookup[newNode.itemID] = node;
-        /*
+
         if(!undoIDStack.isEmpty()){
             QString oldID = undoIDStack.pop();
             qCritical() << "Linking old ID: " << oldID << " to: " << node->toString();
             undoLookup[oldID] = node;
         }
-        */
-
-        //QString currentID = node->getID();
-        //undoLookup[currentID] = node;
-
-        qCritical() << "GG1";
 
         NodeItem* newNodeItem = new NodeItem(node, parentNodeItem);
-        qCritical() << "GG2";
 
         nodeItems.append(newNodeItem);
-        qCritical() << "GG3";
 
         connect(newNodeItem, SIGNAL(triggerSelected(NodeItem*)), this, SLOT(nodeItem_Selected(NodeItem*)));
         connect(newNodeItem, SIGNAL(centreNode(NodeItem*)),this, SLOT(nodeItem_SetCentered(NodeItem*)));
@@ -486,7 +417,6 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
         //toAppend->deleteXML = node->toGraphML();
 
         nodeContainers.append(toAppend);
-        qCritical() << "GG4";
 
         GUIContainer* parent = getGUIContainer(parentNode);
 
@@ -496,7 +426,6 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
             parent->modelItem->appendRow(newNodeItemData);
         }
 
-         qCritical() << "GG5";
         //Add Item to view
         emit view_addNodeItem(newNodeItem);
     }else{
@@ -539,8 +468,13 @@ void GraphMLController::model_RemoveNode(GraphMLContainer *item, QString ID)
 
     addActionToStack(newNode);
 
-
+    //This should be the next item to make during an undo.
     qCritical() << "Adding ID: " << ID << " To Undo stack!";
+    undoIDStack.push(ID);
+
+    //Remove the pointer to it.
+    undoLookup[ID] = 0;
+
     //undoIDStack.append(ID);
 
     //Remove From Tree Model.
@@ -556,7 +490,13 @@ void GraphMLController::model_RemoveNode(GraphMLContainer *item, QString ID)
     //Remove the GUIContainer
     nodeContainers.remove(position);
 
-    qCritical() << "Exiting!!";
+    qCritical() << nodeContainers.size();
+    qCritical() << selectedEdgeItems.size();
+    qCritical() << nodeItems.size();
+    qCritical() << edgeItems.size();
+    qCritical() << treeModel->rowCount();
+    qCritical() << (currentMaximized == 0);
+    qCritical() << (currentParent == 0);
 }
 
 void GraphMLController::model_RemoveEdge(Edge *edge, QString srcID, QString dstID)
@@ -578,6 +518,8 @@ void GraphMLController::model_RemoveEdge(Edge *edge, QString srcID, QString dstI
     NodeEdge* nodeEdge = getNodeEdgeFromEdge(edge);
 
     undoLookup[action.itemID] = 0;
+
+    //undoIDStack.push(ID);
 
     //Remove it
     removeNodeEdge(nodeEdge);
@@ -636,7 +578,7 @@ void GraphMLController::view_updateGraphMLData(Node *node, QString key, QString 
 {
     if(node->getData(key) != 0){
         Action updatedAction;
-        updatedAction.actionType = CHANGED;
+        updatedAction.actionType = MODIFIED;
         updatedAction.itemID = node->getID();
         updatedAction.key = key;
         updatedAction.previousValue = node->getDataValue(key);
@@ -679,6 +621,59 @@ void GraphMLController::view_SetSelected(QModelIndex index)
     nodeItem_Selected(item->nodeItem);
 }
 
+void GraphMLController::undoRedo(bool UNDO)
+{
+    QStack<Action> reverseStack;
+
+    UNDOING = UNDO;
+    if(UNDO){
+        reverseStack = undoStack;
+    }else{
+        reverseStack = redoStack;
+    }
+
+    //Get the current Action ID and name
+    //int actionID = currentActionID;
+    //QString actionName = currentAction;
+
+
+    if(reverseStack.size() == 0){
+        qCritical () << "No Actions to reverse!";
+        return;
+    }
+
+    int actionID = reverseStack.top().actionID;
+    QString actionName = reverseStack.top().actionName;
+
+    //Emit a new action so this Undo operation can itself be undone.
+    emit view_ActionTriggered("Reversing: " + actionName);
+
+    qCritical() << "Current Action: " << actionID;
+    //Reverse all the actions which match the actionID.
+
+    while(reverseStack.size() > 0){
+        Action action = reverseStack.pop();
+
+        qCritical() << "Action: " << action.actionID;
+        //If this action is part of the currentAction reverse it.
+        if(action.actionID == actionID){
+            qCritical() << "Reverse this thing";
+            reverseAction(action);
+        }else{
+            //currentActionID = action.actionID;
+            //currentAction = action.actionName;
+            reverseStack.append(action);
+            break;
+        }
+    }
+
+    if(UNDO){
+        undoStack = reverseStack;
+    }else{
+        redoStack = reverseStack;
+    }
+}
+
 
 
 void GraphMLController::view_ControlPressed(bool isDown)
@@ -708,6 +703,7 @@ void GraphMLController::view_DeleteTriggered(bool isDown)
 {
     if(isDown){
         if(selectedEdgeItems.size() > 0 || selectedNodeItems.size() > 0){
+            view_ActionTriggered("Deleting Selection.");
             deleteSelectedEdgeItems();
             deleteSelectedNodeItems();
         }
@@ -803,6 +799,24 @@ void GraphMLController::selectEdgeItem(NodeEdge *selectedEdgeItem)
     selectedEdgeItem->setSelected();
 }
 
+GraphMLContainer *GraphMLController::getSingleSelectedNode()
+{
+    NodeItem* nodeItem = getSingleSelectedNodeItem();
+
+    if(nodeItem != 0){
+        return nodeItem->node;
+    }
+    return 0;
+}
+
+NodeItem *GraphMLController::getSingleSelectedNodeItem()
+{
+    if(selectedNodeItems.size() == 1){
+        return selectedNodeItems[0];
+    }
+    return 0;
+}
+
 bool nodeItemLessThan(NodeItem* o1, NodeItem* o2){
     return o1->depth >= o2->depth;
 }
@@ -876,10 +890,12 @@ void GraphMLController::addActionToStack(Action action)
     action.actionID = currentActionID;
     action.actionName = currentAction;
 
-    if(!UNDOING){
-        undoStack.append(action);
+    if(UNDOING){
+        qCritical() << "Adding action: " << action.itemKind << " to redo Stack";
+        redoStack.push(action);
     }else{
-        redoStack.append(action);
+        qCritical() << "Adding action: " << action.itemKind << " to undo Stack";
+        undoStack.push(action);
     }
 }
 

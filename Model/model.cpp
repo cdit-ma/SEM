@@ -20,9 +20,6 @@ Model::~Model()
 bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
 {
     qCritical() << "Model::importGraphML()";
-    qCritical() << inputGraphML;
-
-    //emit controller_ActionTrigger("Importing GraphML");
 
     //Key Lookup provides a way for the original key "id" to be linked with the internal object GraphMLKey
     QMap<QString , GraphMLKey*> keyLookup;
@@ -51,12 +48,10 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
     QString newNodeID = "";
 
     //If we have been passed no parent, set it as the graph of this Model.
-    if(currentParent == NULL){
-        currentParent = this->getGraph();
+    if(currentParent == 0){
         qCritical() << "Using Parent Graph";
+        currentParent = this->getGraph();
     }
-
-
 
     //Construct a Stream Reader for the XML graph
     QXmlStreamReader xmlErrorChecking(inputGraphML);
@@ -102,8 +97,6 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
                 //Parse the Edge element into a EdgeStruct object
                 EdgeStruct newEdge;
                 newEdge.id = getAttribute(xml, "id");
-
-
 
                 newEdge.lineNumber = lineNumber;
                 newEdge.source = getAttribute(xml, "source");
@@ -274,6 +267,7 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
         }
     }
 
+    qCritical() << "Imported";
 
     return true;
 }
@@ -317,8 +311,6 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
     QVector<Edge*> containedEdges;
     QVector<GraphMLContainer*> containedNodes;
 
-    GraphMLKey* pIDKey = constructGraphMLKey("previousID","string","node");
-
     float size = nodes.size() * 2;
 
     float count = 0;
@@ -328,10 +320,6 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
         if(!containedNodes.contains(node)){
             containedNodes.append(node);
         }
-
-        //Attach a special key.
-        GraphMLData* data = new GraphMLData(pIDKey,node->getID());
-        node->attachData(data);
 
         //Get all keys used by this node.
         foreach(GraphMLKey* key, node->getKeys())
@@ -347,13 +335,6 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
         //Get all children nodes and append them to
         foreach(GraphMLContainer* child, node->getChildren())
         {
-
-            //Attach a special key.
-            if(child->getKind() == GraphML::NODE){
-                GraphMLData* data = new GraphMLData(pIDKey,child->getID());
-                child->attachData(data);
-            }
-
             //Add the child node to the list of nodes contained.
             if(!containedNodes.contains(child)){
                 containedNodes.append(child);
@@ -412,6 +393,13 @@ QString Model::exportGraphML(QVector<GraphMLContainer *> nodes)
 
 }
 
+QString Model::exportGraphML(GraphMLContainer *node)
+{
+    QVector<GraphMLContainer*> nodes;
+    nodes.append(node);
+    return exportGraphML(nodes);
+}
+
 QVector<GraphMLContainer *> Model::getChildren(int depth)
 {
     return parentGraph->getChildren(depth);
@@ -454,12 +442,20 @@ void Model::view_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *c
         emit view_UpdateProgressDialog(0,QString("Importing GraphML file %1 / %2").arg(QString::number(i + 1), QString::number(files)));
 
         QString currentGraphMLData = inputGraphMLData.at(i);
+        emit controller_ActionTrigger("Importing GraphML");
         bool result = importGraphML(currentGraphMLData, currentParent);
     }
 
     emit view_UpdateProgressDialog(false);
     emit view_EnableGUI(true);
 
+}
+
+void Model::view_ImportGraphML(QString inputGraphMLData, GraphMLContainer *currentParent)
+{
+    QStringList files;
+    files << inputGraphMLData;
+    view_ImportGraphML(files, currentParent);
 }
 
 void Model::view_ExportGraphML(QString file)
