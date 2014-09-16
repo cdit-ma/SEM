@@ -18,6 +18,7 @@
 NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 {
     totalScaleFactor = 1;
+    NodeType = "";
 
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
@@ -39,12 +40,22 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 
 }
 
+void NodeView::updateNodeTypeName(QString name)
+{
+    this->NodeType = name;
+    qCritical() << "NodeType: " << name;
+
+    emit this->updateNodeType(NodeType);
+
+}
+
 
 void NodeView::addNodeItem(NodeItem *item)
 {
     if(!scene()->items().contains(item)){
         scene()->addItem(item);
     }
+    connect(this, SIGNAL(updateNodeType(QString)), item, SLOT(updateChildNodeType(QString)));
 }
 
 void NodeView::removeNodeItem(NodeItem *item)
@@ -126,6 +137,9 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             int yValue = (verticalScrollBar()->minimum() + verticalScrollBar()->maximum())/2;
             horizontalScrollBar()->setValue(xValue);
             verticalScrollBar()->setValue(yValue);
+        }else if(event->button() == Qt::RightButton && CONTROL_DOWN){
+            qCritical() << "LIFE";
+            emit constructNodeItem(NodeType);
         }else{
             emit unselect();
         }

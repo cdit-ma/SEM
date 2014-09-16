@@ -51,6 +51,9 @@ public:
 
     QStandardItemModel* getTreeModel();
 signals:
+    void view_UndoCommandList(QStringList count);
+    void view_RedoCommandList(QStringList count);
+
     //View Signals
     void view_addNodeItem(NodeItem* nodeItem);
     void view_addNodeEdge(NodeEdge* nodeEdge);
@@ -69,13 +72,12 @@ signals:
     void model_ConstructNode(QString kind, GraphMLContainer* parentNode);
     void model_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst);
 
-
 public slots:
 
     //MODEL SLOTS
     //Functions triggered by the Model
     void model_MadeEdge(Edge* edge);
-    void model_RemoveEdge(Edge* edge, QString srcID, QString dstID);
+    void model_RemoveEdge(Edge* edge, QString ID, QString srcID, QString dstID);
 
     void model_MadeNode(GraphMLContainer* item);
     void model_RemoveNode(GraphMLContainer* item, QString ID);
@@ -109,7 +111,8 @@ public slots:
     //Functions triggered by the NodeItems in the View
     void nodeItem_Selected(NodeItem* nodeItem);
     void nodeItem_SetCentered(NodeItem* nodeItem);
-    void nodeItem_MakeChildNode(QString type, Node* node);
+    void nodeItem_MakeChildNode(QString type, Node* node=0);
+    void view_MakeNode();
 
 
     void view_updateGraphMLData(Node* node, QString key, QString value);
@@ -149,6 +152,7 @@ private:
     GUIContainer* getGUIContainer(QModelIndex nodeIndex);
 
 
+    void updateActionCount();
     void addActionToStack(Action action);
     void reverseAction(Action action);
     void removeGraphML(GraphML* node);

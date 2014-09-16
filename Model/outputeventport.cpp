@@ -20,7 +20,6 @@ bool OutputEventPort::isAdoptLegal(GraphMLContainer *child)
 
 bool OutputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
 {
-    qCritical() << "Not Calling child";
     InputEventPort* inputEventPort = dynamic_cast<InputEventPort*> (attachableObject);
 
     //Check Event Name (TYPE)

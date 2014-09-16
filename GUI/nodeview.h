@@ -18,6 +18,8 @@ signals:
     void controlPressed(bool isDown);
     void shiftPressed(bool isDown);
 
+    void constructNodeItem(QString type);
+
 
     void copy();
     void cut();
@@ -29,8 +31,11 @@ signals:
     void unselect();
     void selectAll();
 
+    void updateNodeType(QString name);
+
 
 public slots:
+    void updateNodeTypeName(QString name);
     void addNodeItem(NodeItem* item);
     void removeNodeItem(NodeItem* item);
     void addEdgeItem(NodeEdge* edge);
@@ -44,6 +49,7 @@ protected:
 
 
 private:
+    QString NodeType;
     QRectF getVisibleRect();
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;

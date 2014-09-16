@@ -96,7 +96,9 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }else if(kind == "Attribute"){
             Brush.setColor(Qt::blue);
         }else if(kind == "HardwareNode"){
-                    Brush.setColor(Qt::yellow);
+            Brush.setColor(Qt::yellow);
+        }else if(kind == "HardwareCluster"){
+            Brush.setColor(QColor(255,0,255));
         }
         painter->fillRect(rectangle, Brush);
         painter->drawRect(rectangle);
@@ -223,19 +225,47 @@ void NodeItem::destructNodeItem()
 
 }
 
+void NodeItem::updateChildNodeType(QString type)
+{
+    qCritical() << "Update stuff " << type;
+    toBuildType = type;
+}
+
+void NodeItem::sortChildren()
+{
+    int currentX  = width/10;
+    int currentY = height/5;
+
+    foreach(QGraphicsItem* children, this->childItems()){
+
+        NodeItem* nodeItem = dynamic_cast<NodeItem*>(children);
+        if(nodeItem != 0){
+
+        if((currentX + nodeItem->width * 1.1) > width){
+            currentY += nodeItem->height * 1.1;
+            currentX = width/10;
+        }
+
+        nodeItem->setPos(currentX, currentY);
+        currentX += nodeItem->width * 1.1;
+        }
+    }
+}
+
 
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(drawObject){
         if( event->button() == Qt::MiddleButton ) {
+            sortChildren();
             emit centreNode(this);
         }else{
             if ( event->button() == Qt::LeftButton ) {
                 hasMoved = false;
                 emit triggerSelected(this);
             }else if(event->button() == Qt::RightButton){
-                emit makeChildNode("OutEventPort", node);
+                emit makeChildNode(toBuildType, node);
             }
             this->isPressed = true;
             previousPosition = event->scenePos();

@@ -42,7 +42,8 @@ SOURCES += main.cpp \
     qlogger.cpp \
     GUI/nodeitem.cpp \
     GUI/nodeconnection.cpp \
-    GUI/nodeview.cpp
+    GUI/nodeview.cpp \
+    Model/hardwarecluster.cpp
 
 HEADERS += \
     Model/graphml.h \
@@ -70,7 +71,8 @@ HEADERS += \
     qlogger.h \
     GUI/nodeitem.h \
     GUI/nodeconnection.h \
-    GUI/nodeview.h
+    GUI/nodeview.h \
+    Model/hardwarecluster.h
 
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 

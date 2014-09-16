@@ -12,12 +12,10 @@ public:
     Node(QString name);
     ~Node();
 
-
 signals:
     //Used to construct and tear down GUI elements.
     void constructGUI(GraphMLContainer*);
     void destructGUI(GraphMLContainer*, QString ID);
-
 public:
     //Continue these being Pure Virtual.
     bool isAdoptLegal(GraphMLContainer *child)=0;

@@ -12,6 +12,7 @@
 #include "outputeventport.h"
 #include "graphmlkey.h"
 #include "graphmldata.h"
+#include "hardwarecluster.h"
 #include <QStringList>
 
 #include <QString>
@@ -56,6 +57,8 @@ signals:
     //Enable and disables the GUI
     void view_EnableGUI(bool lock);
 
+    void disableLock();
+
     void controller_ActionTrigger(QString action);
 
     //Updates the Progress Dialog
@@ -73,11 +76,13 @@ signals:
     //Emitted by model_DestructGUINode()
     void view_DestructGUINode(GraphMLContainer* node, QString ID);
     //Emitted by model_DestructGUINode()
-    void view_DestructGUIEdge(Edge* edge, QString srcID, QString dstID);
+    void view_DestructGUIEdge(Edge* edge, QString ID, QString srcID, QString dstID);
 
 public slots:
     //MODEL SLOTS
     //Functions triggered by the entities in the Model.
+
+    void view_Constructed();
 
     //Called when ever a new GraphML Node or Edge has been constructed in the Model.
     void model_ConstructGUINode(GraphMLContainer* node);
@@ -85,7 +90,7 @@ public slots:
 
     //Called when ever a GraphML Node or Edge has been destructed in the Model.
     void model_DestructGUINode(GraphMLContainer* node, QString ID);
-    void model_DestructGUIEdge(Edge* edge, QString srcID, QString dstID);
+    void model_DestructGUIEdge(Edge* edge, QString ID, QString srcID, QString dstID);
 
     //VIEW SLOTS
     //Functions triggered by the Controller from the View.

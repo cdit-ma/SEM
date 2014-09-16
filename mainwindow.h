@@ -45,6 +45,9 @@ public slots:
 
     void writeExportedGraphMLData(QString filename, QString data);
     void updateZoom(qreal zoom);
+
+    void updateUndoCount(QStringList list);
+    void updateRedoCount(QStringList list);
 signals:
     void init_enableGUI(bool enabled);
     void removeComponent(GraphMLContainer* v);
@@ -71,9 +74,12 @@ private slots:
     void labelPressed();
 
 
+    void on_constructBox_highlighted(const QString &arg1);
+
 private:
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;
+    QString currentSet;
     void createNewModel();
     GraphMLController* controller;
     Model* model;

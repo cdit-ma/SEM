@@ -56,6 +56,8 @@ public slots:
     void updatedData(GraphMLData* data);
     void recieveData();
     void destructNodeItem();
+    void updateChildNodeType(QString type);
+    void sortChildren();
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -66,6 +68,7 @@ private:
 
 
     void updatePosition(QString x=0, QString y=0);
+    QString toBuildType;
     QString name;
     QString kind;
     QRect bRec;

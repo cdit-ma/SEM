@@ -2,7 +2,7 @@
 #include "QDebug"
 #include <QObject>
 #include <QMap>
-
+#include <QEventLoop>
 Model::Model(): QObject()
 {
     qCritical() << "Model::Model()";
@@ -278,6 +278,11 @@ Graph *Model::getGraph()
     return this->parentGraph;
 }
 
+void Model::view_Constructed()
+{
+    emit disableLock();
+}
+
 void Model::model_ConstructGUINode(GraphMLContainer *node)
 {
     emit view_ConstructGUINode(node);
@@ -294,10 +299,10 @@ void Model::model_DestructGUINode(GraphMLContainer *node, QString ID)
     emit view_DestructGUINode(node, ID);
 }
 
-void Model::model_DestructGUIEdge(Edge* edge, QString srcID, QString dstID)
+void Model::model_DestructGUIEdge(Edge* edge, QString ID, QString srcID, QString dstID)
 {
     qCritical() << "Model::model_DestructGUIEdge: ";
-    emit view_DestructGUIEdge(edge, srcID, dstID);
+    emit view_DestructGUIEdge(edge, ID, srcID, dstID);
 }
 
 
@@ -476,7 +481,7 @@ void Model::view_ExportGraphML(QString file)
 void Model::view_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst)
 {
     if(src->isEdgeLegal(dst)){
-        emit controller_ActionTrigger("Connected Nodes");
+        //emit controller_ActionTrigger("Connected Nodes");
         Edge* edge = new Edge(src, dst);
         setupEdge(edge);
     }else{
@@ -536,16 +541,19 @@ Node *Model::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer 
         newNode = new InputEventPort();
     }else if(kind == "HardwareNode"){
         newNode = new HardwareNode();
+    }else if(kind == "HardwareCluster"){
+        newNode = new HardwareCluster();
     }else{
         qDebug() << "Kind:" << kind << "Not implemented";
+        return 0;
     }
 
     newNode->attachData(data);
 
     //Adopt the new Node into the parent
     if(parent->isAdoptLegal(newNode)){
-        setupNode(newNode);
         parent->adopt(newNode);
+        setupNode(newNode);
     }else{
         //Delete the newly created node.
         delete newNode;
@@ -575,8 +583,12 @@ void Model::setupEdge(Edge *edge)
     edges.append(edge);
 
     connect(edge, SIGNAL(constructGUI(Edge*)),this, SLOT(model_ConstructGUIEdge(Edge*)));
-    connect(edge, SIGNAL(destructGUI(Edge*, QString, QString)), this, SLOT(model_DestructGUIEdge(Edge*, QString, QString)));
+    connect(edge, SIGNAL(destructGUI(Edge*,QString, QString, QString)), this, SLOT(model_DestructGUIEdge(Edge*,QString, QString, QString)));
+
+    QEventLoop pause;
+    connect(this, SIGNAL(disableLock()), &pause, SLOT(quit()));
     emit edge->constructGUI(edge);
+    pause.exec();
 }
 
 void Model::setupNode(Node *node)
@@ -584,7 +596,12 @@ void Model::setupNode(Node *node)
     nodes.append(node);
     connect(node, SIGNAL(constructGUI(GraphMLContainer*)),this, SLOT(model_ConstructGUINode(GraphMLContainer*)));
     connect(node, SIGNAL(destructGUI(GraphMLContainer*, QString)), this, SLOT(model_DestructGUINode(GraphMLContainer*, QString)));
+
+    //Wait for the GUI element to be made.
+    QEventLoop pause;
+    connect(this, SIGNAL(disableLock()), &pause, SLOT(quit()));
     emit node->constructGUI(node);
+    pause.exec();
 }
 
 void Model::clearModel()
