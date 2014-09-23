@@ -12,6 +12,7 @@ ComponentInstance::ComponentInstance(QString name):Node(name)
 
 ComponentInstance::~ComponentInstance()
 {
+    //THIS IS A TEST
     //Destructor
 }
 
