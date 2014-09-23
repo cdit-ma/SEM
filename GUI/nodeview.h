@@ -6,6 +6,10 @@
 #include <QGraphicsSceneMouseEvent>
 #include "nodeitem.h"
 #include <QPointF>
+#include <QRubberBand>
+#include "nodeviewtreemodel.h"
+#include "nodeitemtreeitem.h"
+
 class NodeView : public QGraphicsView
 {
     Q_OBJECT
@@ -18,7 +22,7 @@ signals:
     void controlPressed(bool isDown);
     void shiftPressed(bool isDown);
 
-    void constructNodeItem(QString type);
+    void constructNodeItem(QPointF);
 
 
     void copy();
@@ -41,7 +45,10 @@ public slots:
     void addEdgeItem(NodeEdge* edge);
     void centreItem(NodeItem* item);
     void clearView();
+    void depthChanged(int depth);
 protected:
+    virtual void mouseReleaseEvent(QMouseEvent *event);
+    virtual void mouseMoveEvent(QMouseEvent *event);
     virtual void mousePressEvent(QMouseEvent* event);
     virtual void wheelEvent(QWheelEvent* event);
     virtual void keyPressEvent(QKeyEvent *event);
@@ -49,11 +56,16 @@ protected:
 
 
 private:
+    QPoint origin;
+    bool rubberBanding;
+    bool once;
+    QRubberBand* rubberBand;
     QString NodeType;
     QRectF getVisibleRect();
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;
     qreal totalScaleFactor;
+
 };
 
 #endif // NODEVIEW_H

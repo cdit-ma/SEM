@@ -38,7 +38,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->menubar,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->centralwidget,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton,SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton_2,SLOT(setEnabled(bool)));
     connect(this, SIGNAL(init_enableGUI(bool)), this->ui->graphicsView,SLOT(setEnabled(bool)));
 
    // connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
@@ -166,6 +165,11 @@ void MainWindow::updateRedoCount(QStringList list)
 
 }
 
+void MainWindow::setModel(AttributeTableModel *model)
+{
+    this->ui->tableView->setModel(model);
+}
+
 
 void MainWindow::on_actionImport_GraphML_triggered()
 {
@@ -246,10 +250,11 @@ void MainWindow::createNewModel()
     }
     controller = new GraphMLController(ui->graphicsView);
 
-    this->ui->treeView->setModel(controller->getTreeModel());
+    //this->ui->treeView->setModel(controller->getTreeModel());
+    this->ui->treeView->setModel(  controller->getTreeModel());
     //Connect to Models Signals
 
-    connect(ui->constructBox, SIGNAL(currentTextChanged(QString)), ui->graphicsView, SLOT(updateNodeTypeName(QString)));
+    connect(ui->constructBox, SIGNAL(currentTextChanged(QString)), controller, SLOT(view_SetChildNodeType(QString)));
 
     connect(ui->graphicsView, SIGNAL(paste()), this, SLOT(on_pushButton_4_clicked()));
 
@@ -261,13 +266,11 @@ void MainWindow::createNewModel()
     connect(controller, SIGNAL(view_UndoCommandList(QStringList)), this, SLOT(updateUndoCount(QStringList)));
     connect(controller, SIGNAL(view_RedoCommandList(QStringList)), this, SLOT(updateRedoCount(QStringList)));
 
-    connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), controller, SLOT(view_SetCentered(QModelIndex)));
-    connect(ui->treeView, SIGNAL(pressed (QModelIndex)), controller, SLOT(view_SetSelected(QModelIndex)));
+    //connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), controller, SLOT(view_SetCentered(QModelIndex)));
+    //connect(ui->treeView, SIGNAL(pressed (QModelIndex)), controller, SLOT(view_SetSelected(QModelIndex)));
 
 
     //connect(ui->lineEdit,SIGNAL(textChanged(QString)), controller, SLOT(view_UpdateLabel(QString)));
-    connect(ui->lineEdit, SIGNAL(returnPressed()),this, SLOT(labelPressed()));
-    connect(controller, SIGNAL(view_LabelChanged(QString)),  this->ui->lineEdit, SLOT(setText(QString)));
 
     //Progress Dialog Signals
     //connect(model, SIGNAL(currentAction_ShowProgress(bool)), progressDialog, SLOT(setVisible(bool)));
@@ -282,30 +285,20 @@ void MainWindow::createNewModel()
     connect(ui->pushButton_7, SIGNAL(clicked()), controller, SLOT(view_Redo()));
 
     connect(this, SIGNAL(actionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
-   // connect(ui->verticalSlider, SIGNAL(valueChanged(int)), nodeMade, SLOT(toggleDetailDepth(int)));
-
-    //nodeMade->toggleDetailDepth(ui->verticalSlider->value());
 
 
+    connect(ui->verticalSlider, SIGNAL(valueChanged(int)), ui->graphicsView, SLOT(depthChanged(int)));
 
-    //ui->graphicsView->moveToThread(modelThread);
+    connect(controller, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setModel(AttributeTableModel*)));
+
 
     controller->getModel()->moveToThread(this->modelThread);
-   modelThread->start();
+    modelThread->start();
 
 
-   // controller->moveToThread(controllerThread);
-  // controllerThread->start();
 
 }
 
-void MainWindow::keyPressEvent(QKeyEvent *event)
-{
-    if(event->key() == Qt::Key_Delete){
-        controller->view_DeleteTriggered(true);
-    }
-
-}
 
 
 
@@ -314,19 +307,19 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 void MainWindow::on_pushButton_4_clicked()
 {
     QClipboard *clipboard = QApplication::clipboard();
-    //if(clipboard->ownsClipboard()){
+    if(clipboard->ownsClipboard()){
         emit Controller_Paste(clipboard->text());
-    //}
-
+    }
 }
 
-void MainWindow::labelPressed()
-{
-    controller->view_UpdateLabel(ui->lineEdit->text());
-}
 
 
 void MainWindow::on_constructBox_highlighted(const QString &arg1)
 {
     currentSet = arg1;
+}
+
+void MainWindow::on_verticalSlider_actionTriggered(int action)
+{
+
 }

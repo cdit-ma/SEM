@@ -7,6 +7,7 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
 {
     model = new Model();
     treeModel = new QStandardItemModel(this);
+    newTreeModel = new NodeViewTreeModel(this);
     this->view = view;
 
     //Setup variables;
@@ -35,7 +36,7 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
     connect(view, SIGNAL(shiftPressed(bool)), this, SLOT(view_ShiftTriggered(bool)));
     connect(view, SIGNAL(deletePressed(bool)), this, SLOT(view_DeleteTriggered(bool)));
 
-    connect(view, SIGNAL(constructNodeItem(QString)), this, SLOT(nodeItem_MakeChildNode(QString)));
+    connect(view, SIGNAL(constructNodeItem(QPointF)), this, SLOT(nodeItem_MakeChildNode(QPointF)));
 
     connect(view, SIGNAL(selectAll()),this, SLOT(view_SelectAll()));
     connect(view, SIGNAL(unselect()),this, SLOT(view_EmptyScenePressed()));
@@ -47,7 +48,7 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
     connect(view, SIGNAL(redo()), this, SLOT(view_Redo()));
 
     //Connect the Signals to the Model.
-    connect(this, SIGNAL(model_ConstructNode(QString, GraphMLContainer*)), model, SLOT(view_ConstructNode(QString, GraphMLContainer*)));
+    connect(this, SIGNAL(model_ConstructNode(QPointF, QString, GraphMLContainer*)), model, SLOT(view_ConstructNode(QPointF, QString, GraphMLContainer*)));
     connect(this, SIGNAL(model_ConstructEdge(GraphMLContainer*, GraphMLContainer*)), model, SLOT(view_ConstructEdge(GraphMLContainer*, GraphMLContainer*)));
     connect(this, SIGNAL(model_ImportGraphML(QStringList, GraphMLContainer*)), model, SLOT(view_ImportGraphML(QStringList, GraphMLContainer*)));
     connect(this, SIGNAL(model_ImportGraphML(QString, GraphMLContainer*)), model, SLOT(view_ImportGraphML(QString, GraphMLContainer*)));
@@ -66,8 +67,8 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
     connect(model, SIGNAL(view_ConstructGUIEdge(Edge*)),this,SLOT(model_MadeEdge(Edge*)));
     connect(model, SIGNAL(view_DestructGUIEdge(Edge*, QString,QString, QString)), this, SLOT(model_RemoveEdge(Edge*, QString, QString, QString)));
 
-    connect(model, SIGNAL(controller_FinishedAction()), this, SLOT(modelActionComplete()));
     connect(model, SIGNAL(view_ReturnExportedData(QString,QString)), this, SLOT(model_WriteToFile(QString,QString)));
+
 }
 
 GraphMLController::~GraphMLController()
@@ -86,13 +87,19 @@ QStandardItemModel *GraphMLController::getTreeModel()
 }
 
 
+
+
 void GraphMLController::view_Copy()
 {
     QVector<GraphMLContainer*> nodes;
 
     //Get the Model's Node object for each selected Node Items.
     foreach(NodeItem* nodeItem, selectedNodeItems){
-        nodes.append(nodeItem->node);
+        if(nodeItem != 0){
+            if(nodeItem->node!=0){
+                nodes.append(nodeItem->node);
+            }
+        }
     }
 
     //Export the GraphML for those Nodes.
@@ -114,12 +121,13 @@ void GraphMLController::view_Cut()
 void GraphMLController::view_Paste(QString XMLData)
 {
     //Get the currentParent
-    GraphMLContainer* currentParent = 0;
+    GraphMLContainer* currentParent =  getSingleSelectedNode();
 
     //Paste into the current Maximized Node.
     if(currentMaximized != 0){
         currentParent = currentMaximized->node;
     }
+
 
     emit model_ImportGraphML(XMLData, currentParent);
 }
@@ -298,7 +306,7 @@ void GraphMLController::model_EnableGUI(bool enabled)
 
 void GraphMLController::model_MadeEdge(Edge *edge)
 {
-    qCritical() << "GraphMLController::model_MadeEdge()";
+    //qCritical() << "GraphMLController::model_MadeEdge()";
     //Get the source and destination from the edge.
     Node* srcNode = (Node*) edge->getSource();
     Node* dstNode = (Node*) edge->getDestination();
@@ -345,20 +353,16 @@ void GraphMLController::model_MadeEdge(Edge *edge)
 
 void GraphMLController::model_MadeNode(GraphMLContainer *item)
 {
-    qCritical() << "Making Node";
-
     Node* node = dynamic_cast<Node*>(item);
 
-    if(item == 0){
+    if(node == 0){
         return;
     }
     QStringList kindsToMake;
 
     kindsToMake << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "OutEventPort" << "Attribute" << "HardwareNode" << "HardwareCluster";
 
-
     QString nodeKind = item->getDataValue("kind");
-
 
     //If we are meant to make this node.
     if(kindsToMake.contains(nodeKind)){
@@ -366,15 +370,6 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
         //Get Visual Parent Node
         NodeItem* parentNodeItem = 0;
 
-        GraphMLContainer* parentLOL = node->getParent();
-
-        if(parentLOL != 0){
-             qCritical() << "Got Parent";
-             GraphMLContainer* pParnet = parentLOL->getParent();
-             qCritical() << (pParnet == 0);
-        }else{
-             qCritical() << "No Parent yet?!";
-        }
         Node* parentNode = node->getParentNode();
 
 
@@ -418,13 +413,15 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
 
         connect(newNodeItem, SIGNAL(triggerSelected(NodeItem*)), this, SLOT(nodeItem_Selected(NodeItem*)));
         connect(newNodeItem, SIGNAL(centreNode(NodeItem*)),this, SLOT(nodeItem_SetCentered(NodeItem*)));
-        connect(newNodeItem, SIGNAL(makeChildNode(QString, Node*)), this, SLOT(nodeItem_MakeChildNode(QString, Node*)));
+        connect(newNodeItem, SIGNAL(makeChildNode(QPointF, Node*)), this, SLOT(nodeItem_MakeChildNode(QPointF, Node*)));
 
         connect(newNodeItem, SIGNAL(actionTriggered(QString)), this, SLOT(view_ActionTriggered(QString)));
         connect(newNodeItem, SIGNAL(updateGraphMLData(Node*,QString,QString)), this, SLOT(view_updateGraphMLData(Node*,QString,QString)));
         //Add item to the Tree Model.
+
         QStandardItem* newNodeItemData = new QStandardItem(node->getDataValue("label"));
         newNodeItemData->setFlags(newNodeItemData->flags() & ~Qt::ItemIsEditable);
+
 
         GUIContainer* toAppend = new GUIContainer();
 
@@ -437,11 +434,22 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
 
         GUIContainer* parent = getGUIContainer(parentNode);
 
+        NodeItemTreeItem* modelItem = newNodeItem->getTreeModelItem();
+
         if(parent == 0){
             treeModel->appendRow(newNodeItemData);
+            newTreeModel->addToParentModel(newNodeItem->getTreeModelItem());
         }else{
             parent->modelItem->appendRow(newNodeItemData);
+
+             //NodeItemTreeItem* parentItem = parentNodeItem->getTreeModelItem();
+            // parentItem->appendChild(modelItem);
+
+
+            //parentNodeItem->getTreeModelItem()->appendChild(newNodeItem->getTreeModelItem());
         }
+
+
 
         //Add Item to view
 
@@ -549,16 +557,24 @@ void GraphMLController::nodeItem_Selected(NodeItem *nodeItem)
     qCritical() << "GraphMLController::NodeItem_Selected";
     if(KEY_CONTROL_DOWN){
         //If we have already got this item in the selected Item list, deselect it.
+        qCritical() << "1";
         if(selectedNodeItems.contains(nodeItem)){
+            qCritical() << "2";
             deselectNodeItems(nodeItem);
+            qCritical() << "3";
             return;
         }
     }else{
+        qCritical() << "4";
         deselectEdgeItems();
+        qCritical() << "5";
     }
 
     if(KEY_SHIFT_DOWN){
+
+         qCritical() << "6";
         if(selectedNodeItems.size() == 1){
+             qCritical() << "7";
             //Get the previous Node
             Node* previousNode = selectedNodeItems[0]->node;
             Node* currentNode = nodeItem->node;
@@ -570,12 +586,18 @@ void GraphMLController::nodeItem_Selected(NodeItem *nodeItem)
 
     }
 
+    qCritical() << "8";
+
+
     if(KEY_SHIFT_DOWN == false && KEY_CONTROL_DOWN == false){
+        qCritical() << "8.5";
         deselectNodeItems();
     }
 
+     qCritical() << "9";
 
     selectNodeItem(nodeItem);
+    qCritical() << "10";
 }
 
 void GraphMLController::nodeItem_SetCentered(NodeItem *nodeItem)
@@ -584,26 +606,25 @@ void GraphMLController::nodeItem_SetCentered(NodeItem *nodeItem)
     emit view_centerNodeItem(nodeItem);
 }
 
-//Make a child node inside the node.
-void GraphMLController::nodeItem_MakeChildNode(QString type, Node *node)
+void GraphMLController::nodeItem_MakeChildNode(QPointF centerPoint, Node *node)
 {
     UNDOING = false;
-    if(type != ""){
+    if(childNodeType != ""){
         view_ActionTriggered("Adding a child Node!");
-        //Node* childNode = model->
-        emit model_ConstructNode(type, node);
+        emit model_ConstructNode(centerPoint, childNodeType, node);
     }
+
 }
 
-void GraphMLController::view_MakeNode()
+void GraphMLController::view_SetChildNodeType(QString nodeType)
 {
-    emit model_ConstructNode(0,0);
-
+    childNodeType = nodeType;
 }
+
+
 
 void GraphMLController::view_updateGraphMLData(Node *node, QString key, QString value)
 {
-
     if(node != 0 && node->getData(key) != 0){
         Action updatedAction;
         updatedAction.actionType = MODIFIED;
@@ -670,7 +691,7 @@ void GraphMLController::undoRedo(bool UNDO)
     QString actionName = reverseStack.top().actionName;
 
     //Emit a new action so this Undo operation can itself be undone.
-    emit view_ActionTriggered("Reversing: " + actionName);
+    emit view_ActionTriggered(actionName);
 
     qCritical() << "Current Action: " << actionID;
     //Reverse all the actions which match the actionID.
@@ -712,13 +733,15 @@ void GraphMLController::view_ShiftTriggered(bool isDown)
     qCritical() << "GraphMLController::view_ShiftTriggered::"<<isDown;
 
     if(isDown){
-        if(selectedNodeItems.size() == 1){
-            hideAllMatches(selectedNodeItems[0]->node);
+        Node* selectedNode = (Node*) getSingleSelectedNode();
+        if(selectedNode){
+            hideAllMatches(selectedNode);
         }else{
             resetMatches();
         }
+    }else{
+        resetMatches();
     }
-
 
     KEY_SHIFT_DOWN = isDown;
 }
@@ -779,14 +802,22 @@ void GraphMLController::view_ActionTriggered(QString action)
 void GraphMLController::deselectNodeItems(NodeItem *selectedNodeItem)
 {
     if(selectedNodeItem == 0){
+        qCritical() << "1";
         for(int i = 0; i < selectedNodeItems.size(); i++){
-            selectedNodeItems[i]->setDeselected();
+            qCritical() << "2";
+            if(selectedNodeItems[i] != 0){
+                qCritical() << "3";
+                selectedNodeItems[i]->setDeselected();
+            }
         }
+        qCritical() << "4";
         selectedNodeItems.clear();
     }else{
+        qCritical() << "5";
         int position = selectedNodeItems.indexOf(selectedNodeItem);
         selectedNodeItems.removeAt(position);
         selectedNodeItem->setDeselected();
+        qCritical() << "6";
     }
 }
 
@@ -806,13 +837,15 @@ void GraphMLController::deselectEdgeItems(NodeEdge *selectedEdgeItem)
 
 void GraphMLController::selectNodeItem(NodeItem *selectedNodeItem)
 {
-    if(!selectedNodeItems.contains(selectedNodeItem)){
-        selectedNodeItems.append(selectedNodeItem);
+    if(selectedNodeItem != 0){
+        if(!selectedNodeItems.contains(selectedNodeItem)){
+            selectedNodeItems.append(selectedNodeItem);
+        }
+        GUIContainer* gui = getGUIContainer(selectedNodeItem);
+        selectedNodeItem->setSelected();
+        emit view_SetAttributeModel(selectedNodeItem->getTable());
+        emit view_LabelChanged(gui->node->getDataValue("label"));
     }
-    GUIContainer* gui = getGUIContainer(selectedNodeItem);
-    selectedNodeItem->setSelected();
-
-    emit view_LabelChanged(gui->node->getDataValue("label"));
 }
 
 void GraphMLController::selectEdgeItem(NodeEdge *selectedEdgeItem)
@@ -923,7 +956,7 @@ void GraphMLController::updateActionCount()
     foreach(Action a, undoStack){
         if(!temp.contains(a.actionID) && a.actionID != 0){
             temp.append(a.actionID);
-            undoList << a.itemID + ": "  + a.actionName;
+            undoList <<a.actionName;
         }
     }
     emit view_UndoCommandList(undoList);
@@ -933,7 +966,7 @@ void GraphMLController::updateActionCount()
     foreach(Action a, redoStack){
         if(!temp.contains(a.actionID) && a.actionID != 0){
             temp.append(a.actionID);
-            undoList << a.itemID + ": " + a.actionName;
+            undoList << a.actionName;
         }
     }
 

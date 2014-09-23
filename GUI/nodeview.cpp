@@ -19,12 +19,24 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 {
     totalScaleFactor = 1;
     NodeType = "";
+    rubberBanding = false;
+    once = true;
 
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
     //setDragMode(RubberBandDrag);
     setDragMode(ScrollHandDrag);
     //setDragMode()
+
+
+
+    rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+    QPalette palette;
+    palette.setBrush(QPalette::Foreground, QBrush(Qt::green));
+    palette.setBrush(QPalette::Base, QBrush(Qt::red));
+
+    rubberBand->setPalette(palette);
+    rubberBand->resize(500, 500);
 
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
@@ -37,7 +49,6 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     //Set-up the view
     setSceneRect(0, 0, 5000, 5000);
     translate(2500,2500);
-
 }
 
 void NodeView::updateNodeTypeName(QString name)
@@ -46,7 +57,6 @@ void NodeView::updateNodeTypeName(QString name)
     qCritical() << "NodeType: " << name;
 
     emit this->updateNodeType(NodeType);
-
 }
 
 
@@ -54,6 +64,7 @@ void NodeView::addNodeItem(NodeItem *item)
 {
     if(!scene()->items().contains(item)){
         scene()->addItem(item);
+        //Add to model.
     }
     connect(this, SIGNAL(updateNodeType(QString)), item, SLOT(updateChildNodeType(QString)));
 }
@@ -67,7 +78,7 @@ void NodeView::removeNodeItem(NodeItem *item)
 
 
 void NodeView::addEdgeItem(NodeEdge* edge){
-    qCritical() << "View: Adding NodeConnection to View";
+    //qCritical() << "View: Adding NodeConnection to View";
     if(edge != 0){
         edge->addToScene(scene());
     }
@@ -124,11 +135,47 @@ void NodeView::clearView()
     //viewport()->update();
 }
 
+void NodeView::depthChanged(int depth)
+{
+    foreach(QGraphicsItem* item, scene()->items()){
+        NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
+        if(nodeItem != 0){
+            nodeItem->toggleDetailDepth(depth);
+        }
+    }
+
+}
+
+void NodeView::mouseReleaseEvent(QMouseEvent *event)
+{
+      QPointF scenePos = this->mapToScene(event->pos());
+    if(rubberBanding){
+        QRect selectionRectangle(origin, scenePos.toPoint());
+        QPainterPath pp;
+        pp.addRect(selectionRectangle);
+
+        scene()->setSelectionArea(pp);
+        qCritical() << "SELECTING";
+
+
+    }
+    QGraphicsView::mouseReleaseEvent(event);
+    setDragMode(ScrollHandDrag);
+}
+
+void NodeView::mouseMoveEvent(QMouseEvent *event)
+{
+
+        QGraphicsView::mouseMoveEvent(event);
+}
+
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
 
     QPointF scenePos = this->mapToScene(event->pos());
     QGraphicsItem* item = this->scene()->itemAt(scenePos,this->transform());
+    rubberBanding = false;
+
 
     if(item == 0){
         if(event->button() == Qt::MiddleButton){
@@ -138,12 +185,19 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             horizontalScrollBar()->setValue(xValue);
             verticalScrollBar()->setValue(yValue);
         }else if(event->button() == Qt::RightButton && CONTROL_DOWN){
-            qCritical() << "LIFE";
-            emit constructNodeItem(NodeType);
+            emit constructNodeItem(scenePos);
+        }else if( event->button() == Qt::LeftButton && CONTROL_DOWN){
+            origin = scenePos.toPoint();
+            rubberBanding = true;
+            setDragMode(RubberBandDrag);
         }else{
+
+
+
             emit unselect();
         }
     }
+
 
     QGraphicsView::mousePressEvent(event);
 }

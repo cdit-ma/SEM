@@ -14,6 +14,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     hasMoved = false;
     graphicsEffect = new QGraphicsColorizeEffect(this);
 
+
+
     QColor blue(70,130,180);
     graphicsEffect->setColor(blue);
     graphicsEffect->setStrength(0);
@@ -44,16 +46,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     GraphMLData* kindData = node->getData("kind");
     GraphMLData* labelData = node->getData("label");
 
-
-
     connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
     connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
     connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
     connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
-
-    //connect(this, SIGNAL(updateData(QString,QString)), node, SLOT(updateDataValue(QString,QString)));
-    //connect(node, SIGNAL(deleteGUI(GraphMLContainer*)), this, SLOT(deleteD(GraphMLContainer*)));
-
 
     emit updatedData(xData);
     emit updatedData(yData);
@@ -65,11 +61,27 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
 
    //setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
+    setFlag(ItemIsSelectable);
+
+    attributeModel = new AttributeTableModel(this);
+
+    if(parent == 0){
+        //PARENT MODEL!
+        treeModelItem = new NodeItemTreeItem(this, 0);
+    }else{
+        treeModelItem = new NodeItemTreeItem(this, parent->getTreeModelItem());
+    }
+
 }
 
 NodeItem::~NodeItem()
 {
+    delete treeModelItem;
+}
 
+void NodeItem::setTreeModelItem(NodeItemTreeItem *newItem)
+{
+    this->treeModelItem = newItem;
 }
 
 QRectF NodeItem::boundingRect() const
@@ -130,6 +142,40 @@ void NodeItem::deleteConnnection(NodeEdge *line)
     connections.remove(position);
 }
 
+AttributeTableModel *NodeItem::getTable()
+{
+    return attributeModel;
+}
+
+QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+{
+    if (change == QGraphicsItem::ItemSelectedChange)
+       {
+           if (value == true)
+           {
+               qCritical() << "Set Selected";
+               emit triggerSelected(this);
+               //emit setSelected();
+
+               // do stuff if selected
+           }
+           else
+           {
+               emit setDeselected();
+               // do stuff if not selected
+           }
+       }
+
+    return QGraphicsItem::itemChange(change, value);
+}
+
+NodeItemTreeItem *NodeItem::getTreeModelItem()
+{
+    return this->treeModelItem;
+}
+
+
+
 void NodeItem::setOpacity(qreal opacity)
 {
    QGraphicsItem::setOpacity(opacity);
@@ -138,18 +184,27 @@ void NodeItem::setOpacity(qreal opacity)
 
 void NodeItem::setSelected()
 {
-    graphicsEffect->setStrength(1);
+    if(graphicsEffect != 0){
+        graphicsEffect->setStrength(1);
+    }
 
     for(int i =0;i< connections.size();i++){
-        connections[i]->setSelected();
+        if(connections[i] != 0){
+            connections[i]->setSelected();
+        }
     }
 }
 
 void NodeItem::setDeselected()
 {
-    graphicsEffect->setStrength(0);
+    if(graphicsEffect != 0){
+        graphicsEffect->setStrength(0);
+    }
+
     for(int i =0;i< connections.size();i++){
+        if(connections[i] != 0){
         connections[i]->setDeselected();
+        }
     }
 }
 
@@ -227,7 +282,6 @@ void NodeItem::destructNodeItem()
 
 void NodeItem::updateChildNodeType(QString type)
 {
-    qCritical() << "Update stuff " << type;
     toBuildType = type;
 }
 
@@ -265,7 +319,8 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 hasMoved = false;
                 emit triggerSelected(this);
             }else if(event->button() == Qt::RightButton){
-                emit makeChildNode(toBuildType, node);
+                QPointF position = this->mapToItem(this,event->pos());
+                emit makeChildNode(position, node);
             }
             this->isPressed = true;
             previousPosition = event->scenePos();

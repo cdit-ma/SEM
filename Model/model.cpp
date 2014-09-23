@@ -267,8 +267,6 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
         }
     }
 
-    qCritical() << "Imported";
-
     return true;
 }
 
@@ -411,7 +409,7 @@ QVector<GraphMLContainer *> Model::getChildren(int depth)
 }
 
 
-void Model::view_ConstructNode(QString kind, GraphMLContainer* parent=0)
+void Model::view_ConstructNode(QPointF position, QString kind, GraphMLContainer* parent=0)
 {
     if(parent == 0){
         parent = getGraph();
@@ -425,8 +423,8 @@ void Model::view_ConstructNode(QString kind, GraphMLContainer* parent=0)
 
     QVector<GraphMLData *> data;
 
-    data.append(new GraphMLData(x, QString::number(0)));
-    data.append(new GraphMLData(y, QString::number(0)));
+    data.append(new GraphMLData(x, QString::number(position.x())));
+    data.append(new GraphMLData(y, QString::number(position.y())));
     data.append(new GraphMLData(k, kind));
     data.append(new GraphMLData(t, ""));
     data.append(new GraphMLData(l, "new_" + kind));

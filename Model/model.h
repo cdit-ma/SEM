@@ -5,14 +5,15 @@
 #include "edge.h"
 #include "node.h"
 #include "attribute.h"
-#include "componentassembly.h"
-#include "componentinstance.h"
-#include "eventport.h"
-#include "inputeventport.h"
-#include "outputeventport.h"
 #include "graphmlkey.h"
 #include "graphmldata.h"
-#include "hardwarecluster.h"
+
+#include "Assembly/componentassembly.h"
+#include "Assembly/componentinstance.h"
+#include "Assembly/eventport.h"
+#include "Assembly/inputeventport.h"
+#include "Assembly/outputeventport.h"
+#include "Assembly/hardwarecluster.h"
 #include <QStringList>
 
 #include <QString>
@@ -100,7 +101,7 @@ public slots:
 
 
     //Called when the Controller constructs a new Node.
-    void view_ConstructNode(QString kind, GraphMLContainer* parent);
+    void view_ConstructNode(QPointF position,QString kind, GraphMLContainer* parent);
     void view_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst);
 private:
     //Constructs a GraphMLKey Object from a XML entity.

@@ -106,6 +106,11 @@ void GraphML::attachData(GraphMLData *data)
     }
 }
 
+void GraphML::removeData(GraphMLData *data)
+{
+    attachedData.remove(attachedData.indexOf(data));
+}
+
 void GraphML::attachData(QVector<GraphMLData *> data)
 {
     while(!data.isEmpty()){

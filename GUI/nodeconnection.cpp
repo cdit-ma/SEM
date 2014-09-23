@@ -88,13 +88,11 @@ void NodeEdge::deleteD(Edge *)
 
 void NodeEdge::setSelected()
 {
-    qCritical() <<  "setSelected";
     graphicsEffect->setStrength(1);
 }
 
 void NodeEdge::setDeselected()
 {
-    qCritical() <<  "setDeselected";
     graphicsEffect->setStrength(0);
 }
 

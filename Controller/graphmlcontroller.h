@@ -14,6 +14,7 @@
 #include <QInputDialog>
 #include <QHash>
 #include <QStack>
+#include "../GUI/attributetablemodel.h"
 enum ACTION_TYPE {CONSTRUCT, DESTRUCT, MODIFIED};
 
 struct GUIContainer{
@@ -69,9 +70,10 @@ signals:
     void model_ImportGraphML(QString, GraphMLContainer *currentParent);
     void model_ExportGraphML(QString filePath);
 
-    void model_ConstructNode(QString kind, GraphMLContainer* parentNode);
+    void model_ConstructNode(QPointF position, QString kind, GraphMLContainer* parentNode);
     void model_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst);
 
+     void view_SetAttributeModel(AttributeTableModel*);
 public slots:
 
     //MODEL SLOTS
@@ -111,8 +113,10 @@ public slots:
     //Functions triggered by the NodeItems in the View
     void nodeItem_Selected(NodeItem* nodeItem);
     void nodeItem_SetCentered(NodeItem* nodeItem);
-    void nodeItem_MakeChildNode(QString type, Node* node=0);
-    void view_MakeNode();
+    void nodeItem_MakeChildNode(QPointF centerPoint, Node* node=0);
+
+
+    void view_SetChildNodeType(QString nodeType);
 
 
     void view_updateGraphMLData(Node* node, QString key, QString value);
@@ -181,8 +185,10 @@ private:
     Node* currentParent;
 
     QStandardItemModel* treeModel;
+    NodeViewTreeModel* newTreeModel;
 
     QString copyBuffer;
+    QString childNodeType;
 
     QString currentAction;
     int currentActionID;

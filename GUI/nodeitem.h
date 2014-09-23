@@ -10,11 +10,16 @@
 #include <QTouchEvent>
 #include <QObject>
 #include <QAbstractItemModel>
+#include <QAbstractTableModel>
 
 #include <QGraphicsItem>
 #include "../Model/node.h"
 #include "../Model/graphmldata.h"
+#include "attributetablemodel.h"
+#include "nodeitemtreeitem.h"
+
 class NodeEdge;
+class NodeItemTreeItem;
 class NodeItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
@@ -22,6 +27,7 @@ class NodeItem : public QObject, public QGraphicsItem
 public:
     NodeItem(Node *node, NodeItem *parent);
     ~NodeItem();
+    void setTreeModelItem(NodeItemTreeItem * newItem);
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     Node* node;
@@ -33,8 +39,10 @@ public:
     void notifyEdges();
     void addConnection(NodeEdge* line);
     void deleteConnnection(NodeEdge* line);
+    AttributeTableModel* getTable();
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
-
+    NodeItemTreeItem* getTreeModelItem();
 
 signals:
     void triggerSelected(NodeItem*);
@@ -44,6 +52,8 @@ signals:
     void exportSelected(Node*);
 
     void actionTriggered(QString action);
+
+    void makeChildNode(QPointF centerPoint, Node * parentNode);
 
     void makeChildNode(QString type, Node*);
     void updateGraphMLData(Node*, QString, QString);
@@ -66,6 +76,8 @@ protected:
 private:
 
 
+    AttributeTableModel* attributeModel;
+    NodeItemTreeItem* treeModelItem;
 
     void updatePosition(QString x=0, QString y=0);
     QString toBuildType;

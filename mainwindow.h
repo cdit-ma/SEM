@@ -10,11 +10,11 @@
 #include "Model/edge.h"
 #include "Model/node.h"
 #include "Model/graph.h"
-#include "Model/hardwarenode.h"
-#include "Model/componentinstance.h"
-#include "Model/componentassembly.h"
-#include "Model/inputeventport.h"
-#include "Model/outputeventport.h"
+#include "Model/Assembly/hardwarenode.h"
+#include "Model/Assembly/componentinstance.h"
+#include "Model/Assembly/componentassembly.h"
+#include "Model/Assembly/inputeventport.h"
+#include "Model/Assembly/outputeventport.h"
 #include "GUI/nodeitem.h"
 #include "GUI/nodeconnection.h"
 #include "Controller/graphmlcontroller.h"
@@ -48,6 +48,8 @@ public slots:
 
     void updateUndoCount(QStringList list);
     void updateRedoCount(QStringList list);
+
+      void setModel(AttributeTableModel* model);
 signals:
     void init_enableGUI(bool enabled);
     void removeComponent(GraphMLContainer* v);
@@ -71,10 +73,13 @@ private slots:
 
     void on_pushButton_4_clicked();
 
-    void labelPressed();
+
+
 
 
     void on_constructBox_highlighted(const QString &arg1);
+
+    void on_verticalSlider_actionTriggered(int action);
 
 private:
     bool CONTROL_DOWN;
@@ -100,8 +105,6 @@ private:
     QHash<Node *, NodeItem*> hash;
 
     // QWidget interface
-protected:
-    void keyPressEvent(QKeyEvent *);
 };
 
 #endif // MAINWINDOW_H

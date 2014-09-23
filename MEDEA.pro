@@ -15,66 +15,60 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
-
-SOURCES += main.cpp \
-    Model/edge.cpp \
-    Model/node.cpp \
-    Model/graphml.cpp \
-    Model/graph.cpp \
-    Model/hardwarenode.cpp \
-    Model/edge.cpp \
-    Model/graph.cpp \
-    Model/graphml.cpp \
-    Model/hardwarenode.cpp \
-    Model/node.cpp \
-    Model/eventport.cpp \
-    Model/inputeventport.cpp \
-    Model/outputeventport.cpp \
-    Controller/graphmlcontroller.cpp \
-    Model/model.cpp \
-    Model/graphmldata.cpp \
-    Model/graphmlcontainer.cpp \
-    Model/componentinstance.cpp \
-    Model/componentassembly.cpp \
-    Model/attribute.cpp \
-    Model/graphmlkey.cpp \
-    mainwindow.cpp \
-    qlogger.cpp \
-    GUI/nodeitem.cpp \
-    GUI/nodeconnection.cpp \
-    GUI/nodeview.cpp \
-    Model/hardwarecluster.cpp
-
 HEADERS += \
-    Model/graphml.h \
-    Model/edge.h \
-    Model/node.h \
-    Model/graph.h \
-    Model/hardwarenode.h \
-    Model/edge.h \
-    Model/graph.h \
-    Model/graphml.h \
-    Model/hardwarenode.h \
-    Model/node.h \
-    Model/componentinstance.h \
-    Model/eventport.h \
-    Model/inputeventport.h \
-    Model/outputeventport.h \
     Controller/graphmlcontroller.h \
-    Model/model.h \
-    Model/graphmldata.h \
-    Model/graphmlcontainer.h \
-    Model/componentassembly.h \
-    Model/attribute.h \
-    Model/graphmlkey.h \
-    mainwindow.h \
-    qlogger.h \
-    GUI/nodeitem.h \
+    GUI/attributetablemodel.h \
     GUI/nodeconnection.h \
+    GUI/nodeitem.h \
+    GUI/nodeitemtreeitem.h \
     GUI/nodeview.h \
-    Model/hardwarecluster.h
+    GUI/nodeviewtreemodel.h \
+    Model/Assembly/componentassembly.h \
+    Model/Assembly/componentinstance.h \
+    Model/Assembly/eventport.h \
+    Model/Assembly/hardwarecluster.h \
+    Model/Assembly/hardwarenode.h \
+    Model/Assembly/inputeventport.h \
+    Model/Assembly/outputeventport.h \
+    Model/attribute.h \
+    Model/edge.h \
+    Model/graph.h \
+    Model/graphml.h \
+    Model/graphmlcontainer.h \
+    Model/graphmldata.h \
+    Model/graphmlkey.h \
+    Model/model.h \
+    Model/node.h \
+    mainwindow.h \
+    qlogger.h
 
-CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+SOURCES += \
+    Controller/graphmlcontroller.cpp \
+    GUI/attributetablemodel.cpp \
+    GUI/nodeconnection.cpp \
+    GUI/nodeitem.cpp \
+    GUI/nodeitemtreeitem.cpp \
+    GUI/nodeview.cpp \
+    GUI/nodeviewtreemodel.cpp \
+    Model/Assembly/componentassembly.cpp \
+    Model/Assembly/componentinstance.cpp \
+    Model/Assembly/eventport.cpp \
+    Model/Assembly/hardwarecluster.cpp \
+    Model/Assembly/hardwarenode.cpp \
+    Model/Assembly/inputeventport.cpp \
+    Model/Assembly/outputeventport.cpp \
+    Model/attribute.cpp \
+    Model/edge.cpp \
+    Model/graph.cpp \
+    Model/graphml.cpp \
+    Model/graphmlcontainer.cpp \
+    Model/graphmldata.cpp \
+    Model/graphmlkey.cpp \
+    Model/model.cpp \
+    Model/node.cpp \
+    main.cpp \
+    mainwindow.cpp \
+    qlogger.cpp
 
 FORMS += \
     mainwindow.ui

@@ -45,6 +45,9 @@ public:
     //Attach a data object contained by this GraphML
     void attachData(GraphMLData* data);
 
+    //Remove a data object contained by this GraphML;
+    void removeData(GraphMLData* data);
+
     void attachData(QVector<GraphMLData* > data);
 
     //Get the Unique ID of this object
