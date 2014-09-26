@@ -36,6 +36,7 @@ bool HardwareNode::isEdgeLegal(GraphMLContainer *attachableObject)
 
 bool HardwareNode::isAdoptLegal(GraphMLContainer *child)
 {
+    Q_UNUSED(child);
     qWarning() << "Hardware Node cannot adopt any Children.";
     return false;
 }

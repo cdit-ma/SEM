@@ -1,14 +1,13 @@
-#ifndef INPUTEVENTPORT_H
-#define INPUTEVENTPORT_H
+#ifndef OutputEventPortIDL_H
+#define OutputEventPortIDL_H
 #include "eventport.h"
 
-class InputEventPort : public EventPort
+class OutputEventPortIDL : public EventPort
 {
         Q_OBJECT
 public:
-    InputEventPort(QString name="");
-    ~InputEventPort();
-
+    OutputEventPortIDL(QString name="");
+    ~OutputEventPortIDL();
     // GraphML interface
 public:
     bool isAdoptLegal(GraphMLContainer *child);
@@ -17,4 +16,4 @@ public:
     QString toString();
 };
 
-#endif // INPUTEVENTPORT_H
+#endif // OutputEventPortIDL_H

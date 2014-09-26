@@ -1,24 +1,25 @@
-#include "inputeventport.h"
+#include "InputEventPortIDL.h"
 #include <QDebug>
 #include <typeinfo>
-#include "outputeventport.h"
+#include "outputeventportidl.h"
 
-InputEventPort::InputEventPort(QString name):EventPort(name)
+InputEventPortIDL::InputEventPortIDL(QString name):EventPort(name)
 {
-    qDebug() << "Constructed InputEventPort: "<< this->getName();
+    qDebug() << "Constructed InputEventPortIDL: "<< this->getName();
 }
 
-InputEventPort::~InputEventPort()
+InputEventPortIDL::~InputEventPortIDL()
 {
 
 }
 
-bool InputEventPort::isAdoptLegal(GraphMLContainer *child)
+bool InputEventPortIDL::isAdoptLegal(GraphMLContainer *child)
 {
-    return false;
+    Q_UNUSED(child);
+    return true;
 }
 
-bool InputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
+bool InputEventPortIDL::isEdgeLegal(GraphMLContainer *attachableObject)
 {
     OutputEventPort* outputEventPort = dynamic_cast<OutputEventPort*> (attachableObject);
 
@@ -47,8 +48,8 @@ bool InputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
 }
 
 
-QString InputEventPort::toString()
+QString InputEventPortIDL::toString()
 {
-    return QString("InputEventPort[%1]: "+this->getName()).arg(this->getID());
+    return QString("InputEventPortIDL[%1]: "+this->getName()).arg(this->getID());
 
 }

@@ -1,30 +1,31 @@
-#include "outputeventport.h"
+#include "OutputEventPortIDL.h"
 #include "inputeventport.h"
 #include <QDebug>
 
-OutputEventPort::OutputEventPort(QString name):EventPort(name)
+OutputEventPortIDL::OutputEventPortIDL(QString name):EventPort(name)
 {
-    qDebug() << "Constructed OutputEventPort: "<< this->getName();
+    qDebug() << "Constructed OutputEventPortIDL: "<< this->getName();
 }
 
-OutputEventPort::~OutputEventPort()
+OutputEventPortIDL::~OutputEventPortIDL()
 {
 
 }
 
-bool OutputEventPort::isAdoptLegal(GraphMLContainer *child)
+bool OutputEventPortIDL::isAdoptLegal(GraphMLContainer *child)
 {
+    Q_UNUSED(child);
     //Cannot adopt anything.
-    return false;
+    return true;
 }
 
-bool OutputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
+bool OutputEventPortIDL::isEdgeLegal(GraphMLContainer *attachableObject)
 {
-    InputEventPort* inputEventPort = dynamic_cast<InputEventPort*> (attachableObject);
+    InputEventPortIDL* inputEventPort = dynamic_cast<InputEventPortIDL*> (attachableObject);
 
     //Check Event Name (TYPE)
     if(inputEventPort == 0){
-        qCritical() << "Cannot connect to anything which isn't a Input EVent Port";
+        qCritical() << "Cannot connect to anything which isn't a Input Event Port";
         return false;
     }
 
@@ -47,7 +48,7 @@ bool OutputEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
 
 }
 
-QString OutputEventPort::toString()
+QString OutputEventPortIDL::toString()
 {
-    return QString("OutputEventPort[%1]: "+this->getName()).arg(this->getID());
+    return QString("OutputEventPortIDL[%1]: "+this->getName()).arg(this->getID());
 }

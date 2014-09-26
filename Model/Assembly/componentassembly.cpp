@@ -1,5 +1,7 @@
 #include "componentassembly.h"
 #include "componentinstance.h"
+#include "hardwarecluster.h"
+#include "hardwarenode.h"
 #include <QDebug>
 ComponentAssembly::ComponentAssembly(QString name):Node(name)
 {
