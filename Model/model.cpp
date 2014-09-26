@@ -252,18 +252,18 @@ bool Model::importGraphML(QString inputGraphML, GraphMLContainer *currentParent)
         GraphMLContainer* d = nodeLookup[edge.target];
 
         if(s != 0 && d != 0){
-            if(s->isEdgeLegal(d)){
+            if(s->isEdgeLegal(d) && d->isEdgeLegal(s)){
                 //Construct the edge, and attach the data.
                 Edge* newEdge = new Edge(s, d);
                 newEdge->attachData(edge.data);
                 setupEdge(newEdge);
             }else{
                 qCritical() << QString("Line #%1: Edge Not Valid!").arg(QString::number(edge.lineNumber));
-                return false;
+                //return false;
             }
         }else{
             qCritical() << "Edge is Illegal!";
-            return false;
+            //return false;
         }
     }
 
@@ -417,6 +417,8 @@ void Model::view_ConstructNode(QPointF position, QString kind, GraphMLContainer*
 
     GraphMLKey* x = constructGraphMLKey("x", "double", "node");
     GraphMLKey* y = constructGraphMLKey("y", "double", "node");
+
+
     GraphMLKey* k = constructGraphMLKey("kind", "string", "node");
     GraphMLKey* t = constructGraphMLKey("type", "string", "node");
     GraphMLKey* l = constructGraphMLKey("label", "string", "node");
@@ -428,6 +430,15 @@ void Model::view_ConstructNode(QPointF position, QString kind, GraphMLContainer*
     data.append(new GraphMLData(k, kind));
     data.append(new GraphMLData(t, ""));
     data.append(new GraphMLData(l, "new_" + kind));
+
+    Component* component = dynamic_cast<Component*>(parent);
+
+    if(component && (kind == "Attribute" || kind == "InEventPort" || kind == "OutEventPort")){
+        //We must repeat this change to all children.
+        foreach(ComponentInstance* instance, component->getComponentInstances()){
+            constructGraphMLNode(data, instance);
+        }
+    }
 
     constructGraphMLNode(data, parent);
 }
@@ -446,7 +457,7 @@ void Model::view_ImportGraphML(QStringList inputGraphMLData, GraphMLContainer *c
 
         QString currentGraphMLData = inputGraphMLData.at(i);
         emit controller_ActionTrigger("Importing GraphML");
-        bool result = importGraphML(currentGraphMLData, currentParent);
+        importGraphML(currentGraphMLData, currentParent);
     }
 
     emit view_UpdateProgressDialog(false);
@@ -476,9 +487,56 @@ void Model::view_ExportGraphML(QString file)
     emit view_EnableGUI(true);
 }
 
+void Model::view_ConstructComponentInstance(GraphMLContainer* c)
+{
+    Component* component = dynamic_cast<Component*>(c);
+    if(component == 0){
+        //Cannot construct Instance of a non-Component.
+        qCritical() << "Node is not a Component.";
+    }
+
+
+
+    GraphMLKey* x = constructGraphMLKey("x", "double", "node");
+    GraphMLKey* y = constructGraphMLKey("y", "double", "node");
+    GraphMLKey* k = constructGraphMLKey("kind", "string", "node");
+    GraphMLKey* t = constructGraphMLKey("type", "string", "node");
+    GraphMLKey* l = constructGraphMLKey("label", "string", "node");
+
+    QVector<GraphMLData *> data;
+    //Get instance count.
+    int children = component->getComponentInstances().size();
+
+    data.append(new GraphMLData(x, component->getDataValue("x")));
+    data.append(new GraphMLData(y, component->getDataValue("y")));
+    data.append(new GraphMLData(k, "ComponentInstance"));
+    data.append(new GraphMLData(t, component->getDataValue("type")));
+    data.append(new GraphMLData(l, component->getDataValue("type") + "_" +QString::number(children)));
+
+    Node* node = constructGraphMLNode(data, component->getParent());
+
+
+    if(node != 0){
+        //Import all of the Attributes.
+        foreach(GraphMLContainer* child, component->getChildren(-1)){
+            EventPort* eventPort = dynamic_cast<EventPort*>(child);
+            Attribute* attribute = dynamic_cast<Attribute*>(child);
+
+            if(eventPort != 0 || attribute != 0){
+                //Adopt.
+                qCritical() << "Adopting life.";
+                importGraphML(exportGraphML(child), node);
+            }
+        }
+        component->addComponentInstance((ComponentInstance*)node);
+
+        view_ConstructEdge(component,node);
+    }
+}
+
 void Model::view_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst)
 {
-    if(src->isEdgeLegal(dst)){
+    if(src->isEdgeLegal(dst) && dst->isEdgeLegal(src)){
         //emit controller_ActionTrigger("Connected Nodes");
         Edge* edge = new Edge(src, dst);
         setupEdge(edge);
@@ -518,32 +576,71 @@ Node *Model::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer 
 
     Node *newNode;
 
+    GraphMLKey* w = constructGraphMLKey("width", "double", "node");
+    GraphMLKey* h = constructGraphMLKey("height", "double", "node");
+
+    bool noWidth = true;
+    bool noHeight = true;
     QString kind;
     //Get kind from nodeData.
     for(int i=0; i < data.size(); i++){
         if(data[i]->getKey()->getName() == "kind"){
             kind = data[i]->getValue();
         }
+        if(data[i]->getKey() == w){
+            noWidth = false;
+        }
+        if(data[i]->getKey() == h){
+            noHeight = false;
+        }
+    }
+
+    if(noWidth){
+        data.append(new GraphMLData(w, ""));
+    }
+    if(noHeight){
+        data.append(new GraphMLData(h, ""));
     }
 
 
+    QVector<QString> aspects;
     if(kind == "ComponentAssembly"){
         newNode = new ComponentAssembly();
+        aspects << "Assembly" << "Workload";
     }else if(kind == "ComponentInstance"){
         newNode = new ComponentInstance();
+        aspects << "Assembly" << "Workload";
     }else if(kind == "Attribute"){
         newNode = new Attribute();
-    }else if(kind == "OutEventPort"){
-        newNode = new OutputEventPort();
-    }else if(kind == "InEventPort"){
-        newNode = new InputEventPort();
+        aspects << "Assembly";
+    }else if(kind == "OutEventPortIDL"){
+        newNode = new OutEventPortIDL();
+        aspects << "Assembly";
+    }else if(kind == "InEventPortIDL"){
+        newNode = new InEventPortIDL();
+        aspects << "Assembly";
     }else if(kind == "HardwareNode"){
         newNode = new HardwareNode();
+        aspects << "Assembly";
     }else if(kind == "HardwareCluster"){
         newNode = new HardwareCluster();
-    }else{
-        qDebug() << "Kind:" << kind << "Not implemented";
-        return 0;
+        aspects << "Assembly";
+    }else if(kind == "PeriodicEvent"){
+        newNode = new PeriodicEvent();
+        aspects << "Workload" ;
+    }else if(kind == "Component"){
+        newNode = new Component();
+        aspects << "Workload";
+    }
+
+    else{
+        qCritical() << "Kind:" << kind << "Not implemented";
+        newNode = new BlankNode();
+        aspects << "Workload" << "Assembly";
+    }
+
+    foreach(QString aspect, aspects){
+        newNode->addAspect(aspect);
     }
 
     newNode->attachData(data);
@@ -553,10 +650,12 @@ Node *Model::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer 
         parent->adopt(newNode);
         setupNode(newNode);
     }else{
+        qCritical() << "Cannot adopt";
         //Delete the newly created node.
         delete newNode;
         return 0;
     }
+
 
     return newNode;
 }

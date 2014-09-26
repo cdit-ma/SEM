@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QProgressDialog>
 #include <QDebug>
+
 #include "Model/Model.h"
 #include "Model/edge.h"
 #include "Model/node.h"
@@ -13,8 +14,8 @@
 #include "Model/Assembly/hardwarenode.h"
 #include "Model/Assembly/componentinstance.h"
 #include "Model/Assembly/componentassembly.h"
-#include "Model/Assembly/inputeventport.h"
-#include "Model/Assembly/outputeventport.h"
+#include "Model/Assembly/ineventportidl.h"
+#include "Model/Assembly/outeventportidl.h"
 #include "GUI/nodeitem.h"
 #include "GUI/nodeconnection.h"
 #include "Controller/graphmlcontroller.h"
@@ -49,13 +50,17 @@ public slots:
     void updateUndoCount(QStringList list);
     void updateRedoCount(QStringList list);
 
-      void setModel(AttributeTableModel* model);
+    void setModel(AttributeTableModel* model);
 signals:
-    void init_enableGUI(bool enabled);
-    void removeComponent(GraphMLContainer* v);
-    void init_ImportGraphML(QStringList inputGraphML);
-    void init_ExportGraphML(QString file);
-    void Controller_Paste(QString data);
+    void view_EnableGUI(bool enabled);
+
+    void view_ImportGraphML(QStringList inputGraphML);
+    void view_ImportGraphML(QString inputGraphML);
+    void view_ExportGraphML(QString file);
+
+
+    void view_PasteData(QString data);
+
     void actionTriggered(QString action);
 
 private slots:
@@ -65,40 +70,22 @@ private slots:
 
     void on_actionExit_triggered();
 
-    void on_pushButton_clicked();
+    void view_CopyData(QString value);
 
-    void on_pushButton_2_clicked();
+    void on_actionPaste_triggered();
 
-    void copyText(QString value);
-
-    void on_pushButton_4_clicked();
-
-
-
-
-
-    void on_constructBox_highlighted(const QString &arg1);
-
-    void on_verticalSlider_actionTriggered(int action);
+    void view_resetModel();
+    void on_actionMake_Instance_triggered();
 
 private:
-    bool CONTROL_DOWN;
-    bool SHIFT_DOWN;
-    QString currentSet;
-    void createNewModel();
     GraphMLController* controller;
-    Model* model;
-
-
-    NodeItem *previousParent;
 
 
     QThread *modelThread;
-    QThread *controllerThread;
 
     Ui::MainWindow *ui;
     QProgressDialog *progressDialog;
-    //Model *model;
+
     QGraphicsScene *scene;
     QVector<NodeItem*> currentSelectedItems;
     NodeItem* currentSelected;

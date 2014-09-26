@@ -9,59 +9,54 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-
+    //Setup the GUI
     ui->setupUi(this);
-
-    //Make a thread for the Model.
-    modelThread = new QThread();
-    controllerThread = new QThread();
-
-    controller = 0;
-    model = 0;
-
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
-
-    CONTROL_DOWN = false;
-    SHIFT_DOWN = false;
-
-    QStringList kindsToMake;
-    kindsToMake << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "OutEventPort" << "Attribute" << "HardwareNode" << "HardwareCluster";
-
-    ui->constructBox->addItems(kindsToMake);
 
     progressDialog = new QProgressDialog(this);
     progressDialog->setAutoClose(false);
 
-    //Connect Enable
-    connect(this, SIGNAL(init_enableGUI(bool)), this->ui->DebugOuputText,SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(init_enableGUI(bool)), this->ui->menubar,SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(init_enableGUI(bool)), this->ui->centralwidget,SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(init_enableGUI(bool)), this->ui->pushButton,SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(init_enableGUI(bool)), this->ui->graphicsView,SLOT(setEnabled(bool)));
 
-   // connect(ui->lineEdit,SIGNAL(textChanged(QString)),this, SLOT(updateText(QString)));
+    //Make a thread for the Model.
+    modelThread = new QThread();
 
+    //Set the Controller and Model to 0
+    controller = 0;
 
+    view_resetModel();
 
 
+    //Add the Components which can be constructed in this canvas to the drop down box.
+    ui->constructBox->addItems(controller->getComponentKinds());
 
-    createNewModel();
+    ui->aspectBox->addItems(controller->getViewAspects());
+
+
+    //Connect Enable GUI flags.
+    connect(ui->actionClear, SIGNAL(triggered()), this, SLOT(view_resetModel()));
+    connect(this, SIGNAL(view_EnableGUI(bool)), this->ui->DebugOuputText,SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(view_EnableGUI(bool)), this->ui->menubar,SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(view_EnableGUI(bool)), this->ui->centralwidget,SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(view_EnableGUI(bool)), this->ui->pushButton,SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(view_EnableGUI(bool)), this->ui->graphicsView,SLOT(setEnabled(bool)));
+
+
+
+
+    //Load a File.
 
     QFile file("C:/asd12.graphml");
+
     if(!file.open(QFile::ReadOnly | QFile::Text)){
         qDebug() << "could not open file for read";
     }
+
     QTextStream in(&file);
     QString xmlText = in.readAll();
     file.close();
 
-
-    QStringList file2;
-    file2 << xmlText;
-
-
-    emit init_ImportGraphML(file2);
+    emit view_ImportGraphML(xmlText);
 }
 
 
@@ -72,7 +67,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::enableGUI(bool enabled)
 {
-    emit init_enableGUI(enabled);
+    emit view_EnableGUI(enabled);
 }
 
 void MainWindow::updateProgressBar(int percentage, QString label)
@@ -181,19 +176,17 @@ void MainWindow::on_actionImport_GraphML_triggered()
 
     QStringList fileData;
     for (int i = 0; i < files.size(); i++){
-
-        qCritical() << "Reading in file: " << files.at(i);
         QFile file(files.at(i));
+
         if(!file.open(QFile::ReadOnly | QFile::Text)){
-            qDebug() << "could not open file for read";
+            qCritical() << "Could not open: " << files.at(i) << " for reading!";
+            return;
         }
 
         try{
             QTextStream in(&file);
             QString xmlText = in.readAll();
             file.close();
-
-            qDebug() << "Importing text from file: " << files.at(i);
 
             fileData << xmlText;
             qDebug() << "Loaded: " << files.at(i) << "Successfully!";
@@ -202,7 +195,7 @@ void MainWindow::on_actionImport_GraphML_triggered()
         }
     }
 
-    emit init_ImportGraphML(fileData);
+    emit view_ImportGraphML(fileData);
 }
 
 void MainWindow::on_actionExport_GraphML_triggered()
@@ -217,7 +210,7 @@ void MainWindow::on_actionExport_GraphML_triggered()
 
 
 
-    emit init_ExportGraphML(filename);
+    emit view_ExportGraphML(filename);
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -225,61 +218,70 @@ void MainWindow::on_actionExit_triggered()
     this->~MainWindow();
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    this->ui->DebugOuputText->clear();
 
-}
-
-void MainWindow::on_pushButton_2_clicked()
-{
-    createNewModel();
-}
-
-void MainWindow::copyText(QString value)
+void MainWindow::view_CopyData(QString value)
 {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(value);
 }
 
-void MainWindow::createNewModel()
+
+
+void MainWindow::on_actionPaste_triggered()
 {
-    if(controller != 0){
-        delete controller;
-        ui->graphicsView->clearView();
+    QClipboard *clipboard = QApplication::clipboard();
+    if(clipboard->ownsClipboard()){
+        emit view_PasteData(clipboard->text());
     }
+
+}
+
+void MainWindow::view_resetModel()
+{
+    if(controller){
+        delete controller;
+        //scene->clear();
+        //scene->items().clear();
+    }
+
+
     controller = new GraphMLController(ui->graphicsView);
 
-    //this->ui->treeView->setModel(controller->getTreeModel());
-    this->ui->treeView->setModel(  controller->getTreeModel());
+    this->ui->treeView->setModel(controller->getTreeModel());
     //Connect to Models Signals
 
     connect(ui->constructBox, SIGNAL(currentTextChanged(QString)), controller, SLOT(view_SetChildNodeType(QString)));
+    connect(ui->aspectBox, SIGNAL(currentTextChanged(QString)), controller, SLOT(view_SetViewAspect(QString)));
 
-    connect(ui->graphicsView, SIGNAL(paste()), this, SLOT(on_pushButton_4_clicked()));
 
     connect(controller, SIGNAL(view_EnableGUI(bool)), this, SLOT(enableGUI(bool)));
 
-    connect(this,SIGNAL(init_ExportGraphML(QString)),controller, SLOT(view_ExportGraphML(QString)));
-    connect(this,SIGNAL(init_ImportGraphML(QStringList)),controller, SLOT(view_ImportGraphML(QStringList)));
+    connect(this,SIGNAL(view_ExportGraphML(QString)),controller, SLOT(view_ExportGraphML(QString)));
+    connect(this,SIGNAL(view_ImportGraphML(QStringList)),controller, SLOT(view_ImportGraphML(QStringList)));
+    connect(this,SIGNAL(view_ImportGraphML(QString)),controller, SLOT(view_ImportGraphML(QString)));
 
     connect(controller, SIGNAL(view_UndoCommandList(QStringList)), this, SLOT(updateUndoCount(QStringList)));
     connect(controller, SIGNAL(view_RedoCommandList(QStringList)), this, SLOT(updateRedoCount(QStringList)));
 
-    //connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), controller, SLOT(view_SetCentered(QModelIndex)));
-    //connect(ui->treeView, SIGNAL(pressed (QModelIndex)), controller, SLOT(view_SetSelected(QModelIndex)));
+    connect(ui->treeView, SIGNAL(doubleClicked(QModelIndex)), controller, SLOT(view_SetCentered(QModelIndex)));
+    connect(ui->treeView, SIGNAL(pressed (QModelIndex)), controller, SLOT(view_SetSelected(QModelIndex)));
 
 
-    //connect(ui->lineEdit,SIGNAL(textChanged(QString)), controller, SLOT(view_UpdateLabel(QString)));
 
     //Progress Dialog Signals
     //connect(model, SIGNAL(currentAction_ShowProgress(bool)), progressDialog, SLOT(setVisible(bool)));
-   //connect(model,SIGNAL(currentAction_UpdateProgress(int,QString)), this, SLOT(updateProgressBar(int,QString)));
-    connect(ui->pushButton_3, SIGNAL(clicked()), controller, SLOT(view_Copy()));
-    connect(ui->pushButton_5, SIGNAL(clicked()), controller, SLOT(view_Cut()));
+    //connect(model,SIGNAL(currentAction_UpdateProgress(int,QString)), this, SLOT(updateProgressBar(int,QString)));
 
-    connect(controller, SIGNAL(view_CopyText(QString)), this, SLOT(copyText(QString)));
-    connect(this, SIGNAL(Controller_Paste(QString)), controller, SLOT(view_Paste(QString)));
+    connect(ui->actionCopy, SIGNAL(triggered()), controller, SLOT(view_Copy()));
+    connect(ui->actionCut, SIGNAL(triggered()), controller, SLOT(view_Cut()));
+
+    connect(ui->actionUndo, SIGNAL(triggered()), controller, SLOT(view_Undo()));
+    connect(ui->actionRedo, SIGNAL(triggered()), controller, SLOT(view_Redo()));
+
+    connect(ui->actionMake_Instance,SIGNAL(triggered()), controller, SLOT(view_MakeInstance()));
+
+    connect(controller, SIGNAL(view_CopyData(QString)), this, SLOT(view_CopyData(QString)));
+    connect(this, SIGNAL(view_PasteData(QString)), controller, SLOT(view_Paste(QString)));
 
     connect(ui->pushButton_6, SIGNAL(clicked()), controller, SLOT(view_Undo()));
     connect(ui->pushButton_7, SIGNAL(clicked()), controller, SLOT(view_Redo()));
@@ -292,34 +294,17 @@ void MainWindow::createNewModel()
     connect(controller, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setModel(AttributeTableModel*)));
 
 
+
+
     controller->getModel()->moveToThread(this->modelThread);
     modelThread->start();
 
-
+    emit ui->aspectBox->currentTextChanged("Assembly");
 
 }
 
-
-
-
-
-
-void MainWindow::on_pushButton_4_clicked()
+void MainWindow::on_actionMake_Instance_triggered()
 {
-    QClipboard *clipboard = QApplication::clipboard();
-    if(clipboard->ownsClipboard()){
-        emit Controller_Paste(clipboard->text());
-    }
-}
 
-
-
-void MainWindow::on_constructBox_highlighted(const QString &arg1)
-{
-    currentSet = arg1;
-}
-
-void MainWindow::on_verticalSlider_actionTriggered(int action)
-{
 
 }

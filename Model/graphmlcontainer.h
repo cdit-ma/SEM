@@ -75,6 +75,9 @@ public:
     //Pure Virtual => Must be overwritten by subclasses!
     virtual bool isAdoptLegal(GraphMLContainer *child)=0;
 
+    //Add an edge which is connected to this graphml object.
+    virtual void addEdge(Edge *edge);
+
     //Returns a string graphml representation of this graphml object
     //Pure Virtual => Must be overwritten by subclasses!
     virtual QString toGraphML(qint32 indentationLevel=0)=0;
@@ -91,8 +94,7 @@ protected:
     QVector<Edge *> edges;
 
 private:
-    //Add an edge which is connected to this graphml object.
-    void addEdge(Edge *edge);
+
 
     //Remove an edge which is connected to this graphml object.
     void removeEdge(Edge *edge);

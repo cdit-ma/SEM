@@ -7,7 +7,11 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
 {
     model = new Model();
     treeModel = new QStandardItemModel(this);
-    newTreeModel = new NodeViewTreeModel(this);
+
+    componentTypes << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "OutEventPort" << "Attribute" << "HardwareNode" << "HardwareCluster" << "PeriodicEvent" << "Component";
+
+    aspects << "Assembly" << "Workload";
+
     this->view = view;
 
     //Setup variables;
@@ -30,6 +34,8 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
     connect(this, SIGNAL(view_addNodeEdge(NodeEdge*)), view, SLOT(addEdgeItem(NodeEdge*)));
     connect(this, SIGNAL(view_addNodeItem(NodeItem*)), view, SLOT(addNodeItem(NodeItem*)));
     connect(this, SIGNAL(view_centerNodeItem(NodeItem*)), view, SLOT(centreItem(NodeItem*)));
+
+    connect(this, SIGNAL(view_SetAspect(QString)), view, SLOT(setViewAspect(QString)));
 
     //Connect to the Signals from the VIEW
     connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
@@ -57,6 +63,7 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
     connect(this, SIGNAL(view_addNodeItem(NodeItem*)), model, SLOT(view_Constructed()));
     connect(this, SIGNAL(view_addNodeEdge(NodeEdge*)), model, SLOT(view_Constructed()));
 
+    connect(this, SIGNAL(model_ConstructComponentInstance(GraphMLContainer*)), model, SLOT(view_ConstructComponentInstance(GraphMLContainer*)));
     //Connect to the Signals from the Model.
     connect(model, SIGNAL(view_EnableGUI(bool)), this, SLOT(model_EnableGUI(bool)));
     connect(model, SIGNAL(controller_ActionTrigger(QString)), this, SLOT(view_ActionTriggered(QString)));
@@ -74,6 +81,7 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
 GraphMLController::~GraphMLController()
 {
     delete model;
+
 }
 
 Model *GraphMLController::getModel()
@@ -106,7 +114,7 @@ void GraphMLController::view_Copy()
     QString result = model->exportGraphML(nodes);
 
     //Tell the view to place the resulting GraphML String into the Copy buffer.
-    emit view_CopyText(result);
+    emit view_CopyData(result);
 }
 
 void GraphMLController::view_Cut()
@@ -116,6 +124,17 @@ void GraphMLController::view_Cut()
 
     //Then remove the selected node items.
     deleteSelectedNodeItems();
+}
+
+void GraphMLController::view_MakeInstance()
+{
+    //Get the currentParent
+    GraphMLContainer* currentParent =  getSingleSelectedNode();
+
+    if(currentParent != 0){
+        emit model_ConstructComponentInstance(currentParent);
+    }
+
 }
 
 void GraphMLController::view_Paste(QString XMLData)
@@ -133,10 +152,27 @@ void GraphMLController::view_Paste(QString XMLData)
 }
 
 
+QStringList GraphMLController::getComponentKinds()
+{
+    return componentTypes;
+}
+
+QStringList GraphMLController::getViewAspects()
+{
+    return aspects;
+}
+
 void GraphMLController::view_ImportGraphML(QStringList inputGraphML)
 {
     qCritical() << "GraphMLController::view_ImportGraphML";
     emit model_ImportGraphML(inputGraphML);
+}
+
+void GraphMLController::view_ImportGraphML(QString inputGraphML)
+{
+    qCritical() << "GraphMLController::view_ImportGraphML";
+    emit model_ImportGraphML(inputGraphML);
+
 }
 
 void GraphMLController::view_ExportGraphML(QString filePath)
@@ -358,14 +394,11 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
     if(node == 0){
         return;
     }
-    QStringList kindsToMake;
-
-    kindsToMake << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "OutEventPort" << "Attribute" << "HardwareNode" << "HardwareCluster";
 
     QString nodeKind = item->getDataValue("kind");
 
     //If we are meant to make this node.
-    if(kindsToMake.contains(nodeKind)){
+    if(componentTypes.contains(nodeKind) || true){
         Node* node = (Node*) item;
         //Get Visual Parent Node
         NodeItem* parentNodeItem = 0;
@@ -434,11 +467,9 @@ void GraphMLController::model_MadeNode(GraphMLContainer *item)
 
         GUIContainer* parent = getGUIContainer(parentNode);
 
-        NodeItemTreeItem* modelItem = newNodeItem->getTreeModelItem();
 
         if(parent == 0){
             treeModel->appendRow(newNodeItemData);
-            newTreeModel->addToParentModel(newNodeItem->getTreeModelItem());
         }else{
             parent->modelItem->appendRow(newNodeItemData);
 
@@ -609,6 +640,7 @@ void GraphMLController::nodeItem_SetCentered(NodeItem *nodeItem)
 void GraphMLController::nodeItem_MakeChildNode(QPointF centerPoint, Node *node)
 {
     UNDOING = false;
+
     if(childNodeType != ""){
         view_ActionTriggered("Adding a child Node!");
         emit model_ConstructNode(centerPoint, childNodeType, node);
@@ -619,6 +651,11 @@ void GraphMLController::nodeItem_MakeChildNode(QPointF centerPoint, Node *node)
 void GraphMLController::view_SetChildNodeType(QString nodeType)
 {
     childNodeType = nodeType;
+}
+
+void GraphMLController::view_SetViewAspect(QString aspect)
+{
+    emit view_SetAspect(aspect);
 }
 
 
@@ -787,7 +824,6 @@ void GraphMLController::view_EmptyScenePressed()
     deselectEdgeItems();
     resetMatches();
     currentMaximized = 0;
-    emit view_LabelChanged("");
 }
 
 void GraphMLController::view_ActionTriggered(QString action)
@@ -844,7 +880,6 @@ void GraphMLController::selectNodeItem(NodeItem *selectedNodeItem)
         GUIContainer* gui = getGUIContainer(selectedNodeItem);
         selectedNodeItem->setSelected();
         emit view_SetAttributeModel(selectedNodeItem->getTable());
-        emit view_LabelChanged(gui->node->getDataValue("label"));
     }
 }
 
@@ -891,7 +926,6 @@ void GraphMLController::deleteSelectedNodeItems()
             selectedNodeItems.pop_front();
         }
     }
-    emit view_LabelChanged("");
 }
 
 void GraphMLController::deleteSelectedEdgeItems()
@@ -1048,7 +1082,7 @@ void GraphMLController::hideAllMatches(Node *node)
 
         GUIContainer* currentContainer = getGUIContainer(currentNode);
         if(currentContainer != 0){
-            if(node->isEdgeLegal(currentItem)){
+            if(node->isEdgeLegal(currentItem) && currentItem->isEdgeLegal(node)){
                 currentContainer->nodeItem->setOpacity(1);
             }else{
                 if(node!= currentContainer->node){

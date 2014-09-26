@@ -57,6 +57,8 @@ QRectF NodeEdge::boundingRect() const
 
 void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
     if(inScene){
         if(source->drawObject && destination->drawObject){
             QRectF rectangle = boundingRect();
@@ -113,15 +115,6 @@ void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 }
 
-void NodeEdge::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
-{
-
-}
-
-void NodeEdge::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
-{
-
-}
 
 
 void NodeEdge::updateLine()
@@ -140,7 +133,7 @@ void NodeEdge::updateLine()
         QGline->setLine(line);
     }
     if(inScene){
-        if(source->drawObject && destination->drawObject){
+        if(source->isVisible() && destination->isVisible()){
 
             QGline->setVisible(true);
         }else{

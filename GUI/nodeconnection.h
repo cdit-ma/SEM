@@ -21,6 +21,7 @@
 class NodeEdge : public QObject, public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 
 public:
     NodeEdge(Edge *edge, NodeItem* s, NodeItem* d);
@@ -43,8 +44,6 @@ public slots:
     void setVisible(bool visible);
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 
 private:

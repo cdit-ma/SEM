@@ -6,14 +6,12 @@
 #include <QFontMetrics>
 NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
 {
-
-
+    viewAspect = "";
     drawDetail = true;
     drawObject = true;
 
     hasMoved = false;
     graphicsEffect = new QGraphicsColorizeEffect(this);
-
 
 
     QColor blue(70,130,180);
@@ -46,8 +44,15 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     GraphMLData* kindData = node->getData("kind");
     GraphMLData* labelData = node->getData("label");
 
+    GraphMLData* hData = node->getData("height");
+    GraphMLData* wData = node->getData("width");
+
+
+
     connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
     connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(hData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(wData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
     connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
     connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
 
@@ -55,6 +60,14 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
     emit updatedData(yData);
     emit updatedData(kindData);
     emit updatedData(labelData);
+
+    if(wData->getValue() == ""){
+        wData->setValue(QString::number(width));
+    }
+
+    if(hData->getValue() == ""){
+        hData->setValue(QString::number(height));
+    }
 
 
     this->setGraphicsEffect(graphicsEffect);
@@ -67,22 +80,15 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
 
     if(parent == 0){
         //PARENT MODEL!
-        treeModelItem = new NodeItemTreeItem(this, 0);
     }else{
-        treeModelItem = new NodeItemTreeItem(this, parent->getTreeModelItem());
     }
 
 }
 
 NodeItem::~NodeItem()
 {
-    delete treeModelItem;
 }
 
-void NodeItem::setTreeModelItem(NodeItemTreeItem *newItem)
-{
-    this->treeModelItem = newItem;
-}
 
 QRectF NodeItem::boundingRect() const
 {
@@ -92,6 +98,10 @@ QRectF NodeItem::boundingRect() const
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    Q_UNUSED(option);
+    Q_UNUSED(widget);
+
+
     label->setVisible(drawDetail);
 
     if(drawObject){
@@ -99,18 +109,23 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         QBrush Brush(Qt::white);
 
-        if(kind == "OutEventPort"){
+        if(kind == "OutEventPortIDL"){
             Brush.setColor(Qt::red);
-        }else if(kind == "InEventPort"){
+        }else if(kind == "InEventPortIDL"){
             Brush.setColor(Qt::green);
         }else if(kind == "ComponentInstance"){
-            Brush.setColor(Qt::gray);
+             Brush.setColor(QColor(200,200,200));
         }else if(kind == "Attribute"){
             Brush.setColor(Qt::blue);
         }else if(kind == "HardwareNode"){
             Brush.setColor(Qt::yellow);
         }else if(kind == "HardwareCluster"){
             Brush.setColor(QColor(255,0,255));
+        }else if(kind == "PeriodicEvent"){
+            Brush.setColor(QColor(255,153,0));
+        }else if(kind == "Component"){
+            Brush.setColor(Qt::gray);
+
         }
         painter->fillRect(rectangle, Brush);
         painter->drawRect(rectangle);
@@ -169,10 +184,6 @@ QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
     return QGraphicsItem::itemChange(change, value);
 }
 
-NodeItemTreeItem *NodeItem::getTreeModelItem()
-{
-    return this->treeModelItem;
-}
 
 
 
@@ -237,7 +248,6 @@ void NodeItem::updatedData(GraphMLData* data)
     }else if(dataKey == "y"){
         updatePosition(0,dataValue);
     }else if(dataKey == "label"){
-
         dataValue = dataValue + " [" + node->getID()+"]";
         QFont font("Arial");
         font.setPointSize(1);
@@ -255,6 +265,12 @@ void NodeItem::updatedData(GraphMLData* data)
     }else if(dataKey == "kind"){
         kind = dataValue;
         update();
+    }
+    else if(dataKey == "width"){
+        updateSize(dataValue,0);
+    }
+    else if(dataKey == "height"){
+        updateSize(0,dataValue);
     }
 
     if(dataKey == "x" || dataKey == "y"){
@@ -285,6 +301,22 @@ void NodeItem::updateChildNodeType(QString type)
     toBuildType = type;
 }
 
+void NodeItem::updateViewAspect(QString aspect)
+{
+    viewAspect = aspect;
+
+    bool isVisible = node->inAspect(viewAspect);
+
+    this->setVisible(isVisible);
+
+    foreach(NodeEdge* edge, connections){
+        edge->setVisible(isVisible);
+    }
+
+    update();
+
+}
+
 void NodeItem::sortChildren()
 {
     int currentX  = width/10;
@@ -300,7 +332,9 @@ void NodeItem::sortChildren()
             currentX = width/10;
         }
 
-        nodeItem->setPos(currentX, currentY);
+        emit updateGraphMLData(nodeItem->node,"x",QString::number(currentX));
+        emit updateGraphMLData(nodeItem->node,"y",QString::number(currentY));
+
         currentX += nodeItem->width * 1.1;
         }
     }
@@ -351,10 +385,12 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             hasMoved = false;
         }
         notifyEdges();
+        /*
 
         foreach(NodeEdge* edge, connections ){
             edge->setVisible(true);
         }
+        */
          this->isPressed = false;
     }
 
@@ -383,4 +419,17 @@ void NodeItem::updatePosition(QString x, QString y)
         yR = y.toDouble();
     }
     this->setPos(xR,yR);
+}
+
+void NodeItem::updateSize(QString w, QString h)
+{
+    if(w != 0){
+        width = w.toDouble();
+    }
+    if(h != 0){
+        height = h.toDouble();
+    }
+     bRec = QRect(0,0,width, height);
+     update();
+
 }

@@ -21,6 +21,7 @@ void NodeViewTreeModel::addToParentModel(NodeItemTreeItem *item)
 
 void NodeViewTreeModel::updatedData(GraphMLData *data)
 {
+     Q_UNUSED(data);
 
 }
 

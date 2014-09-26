@@ -26,6 +26,26 @@ Node::~Node(){
     emit destructGUI(this, getID());
 }
 
+void Node::addAspect(QString aspect)
+{
+    if(!inAspect(aspect)){
+        containedAspects.append(aspect);
+    }
+
+}
+
+void Node::removeAspect(QString aspect)
+{
+    if(inAspect(aspect)){
+        containedAspects.removeAt(containedAspects.indexOf(aspect));
+    }
+}
+
+bool Node::inAspect(QString aspect)
+{
+    return this->containedAspects.contains(aspect);
+}
+
 
 Node *Node::getParentNode()
 {
@@ -76,8 +96,6 @@ Graph *Node::getGraph()
 void Node::adopt(GraphMLContainer *child)
 {
     if(this->childGraph != 0){
-        Node* node = dynamic_cast<Node*>(child);
-
         this->childGraph->adopt(child);
     }
 }

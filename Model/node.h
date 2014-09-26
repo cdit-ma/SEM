@@ -21,6 +21,10 @@ public:
     bool isAdoptLegal(GraphMLContainer *child)=0;
     bool isEdgeLegal(GraphMLContainer *attachableObject)=0;
 
+    void addAspect(QString aspect);
+    void removeAspect(QString aspect);
+    bool inAspect(QString aspect);
+
     Node* getParentNode();
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
@@ -30,8 +34,10 @@ public:
     //Extend the adopt/disown functionality to use the internal graph object in the node.
     void adopt(GraphMLContainer* child);
     void disown(GraphMLContainer* child);
+
 private:
     Graph* childGraph;
+    QVector<QString> containedAspects;
     static int _Nid;
 };
 

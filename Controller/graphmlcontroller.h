@@ -51,7 +51,12 @@ public:
     Model* getModel();
 
     QStandardItemModel* getTreeModel();
+
+    //Gets a list of all the kinds of Components which have a visual representation.
+    QStringList getComponentKinds();
+    QStringList getViewAspects();
 signals:
+    //Updates the list of Undo/Redo Commands for the GUI.
     void view_UndoCommandList(QStringList count);
     void view_RedoCommandList(QStringList count);
 
@@ -59,21 +64,21 @@ signals:
     void view_addNodeItem(NodeItem* nodeItem);
     void view_addNodeEdge(NodeEdge* nodeEdge);
     void view_centerNodeItem(NodeItem* nodeItem);
-
-    void view_LabelChanged(QString value);
     void view_EnableGUI(bool enabled);
 
-    void view_CopyText(QString value);
+    void view_CopyData(QString value);
 
     //Model Signals
     void model_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
-    void model_ImportGraphML(QString, GraphMLContainer *currentParent);
+    void model_ImportGraphML(QString, GraphMLContainer *currentParent=0);
     void model_ExportGraphML(QString filePath);
 
+    void model_ConstructComponentInstance(GraphMLContainer* component);
     void model_ConstructNode(QPointF position, QString kind, GraphMLContainer* parentNode);
     void model_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst);
 
      void view_SetAttributeModel(AttributeTableModel*);
+     void view_SetAspect(QString);
 public slots:
 
     //MODEL SLOTS
@@ -99,6 +104,7 @@ public slots:
 
     //Functions triggered by GUI Operation Slots.
     void view_ImportGraphML(QStringList inputGraphML);
+    void view_ImportGraphML(QString inputGraphML);
     void view_ExportGraphML(QString filePath);
     void view_UpdateLabel(QString value);
 
@@ -107,6 +113,7 @@ public slots:
     void view_Redo();
     void view_Copy();
     void view_Cut();
+    void view_MakeInstance();
     void view_Paste(QString XMLData);
 
     //NODEITEM SLOTS
@@ -116,7 +123,9 @@ public slots:
     void nodeItem_MakeChildNode(QPointF centerPoint, Node* node=0);
 
 
+
     void view_SetChildNodeType(QString nodeType);
+    void view_SetViewAspect(QString aspect);
 
 
     void view_updateGraphMLData(Node* node, QString key, QString value);
@@ -180,12 +189,14 @@ private:
     QHash<QString, GraphML*> undoLookup;
     QHash<QString, GraphMLContainer*> nodeDeletionIDLookup;
 
+    QStringList componentTypes;
+    QStringList aspects;
+
     NodeItem* currentMaximized;
 
     Node* currentParent;
 
     QStandardItemModel* treeModel;
-    NodeViewTreeModel* newTreeModel;
 
     QString copyBuffer;
     QString childNodeType;

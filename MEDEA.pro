@@ -20,17 +20,12 @@ HEADERS += \
     GUI/attributetablemodel.h \
     GUI/nodeconnection.h \
     GUI/nodeitem.h \
-    GUI/nodeitemtreeitem.h \
     GUI/nodeview.h \
-    GUI/nodeviewtreemodel.h \
     Model/Assembly/componentassembly.h \
     Model/Assembly/componentinstance.h \
     Model/Assembly/eventport.h \
     Model/Assembly/hardwarecluster.h \
     Model/Assembly/hardwarenode.h \
-    Model/Assembly/inputeventport.h \
-    Model/Assembly/outputeventport.h \
-    Model/attribute.h \
     Model/edge.h \
     Model/graph.h \
     Model/graphml.h \
@@ -40,24 +35,27 @@ HEADERS += \
     Model/model.h \
     Model/node.h \
     mainwindow.h \
-    qlogger.h
+    qlogger.h \
+    Model/Assembly/attribute.h \
+    Model/Workload/periodicevent.h \
+    Model/Workload/component.h \
+    Model/blanknode.h \
+    Model/Assembly/outeventportidl.h \
+    Model/Assembly/ineventportidl.h \
+    Model/Assembly/ineventportidl.h \
+    Model/Assembly/outeventportidl.h
 
 SOURCES += \
     Controller/graphmlcontroller.cpp \
     GUI/attributetablemodel.cpp \
     GUI/nodeconnection.cpp \
     GUI/nodeitem.cpp \
-    GUI/nodeitemtreeitem.cpp \
     GUI/nodeview.cpp \
-    GUI/nodeviewtreemodel.cpp \
     Model/Assembly/componentassembly.cpp \
     Model/Assembly/componentinstance.cpp \
     Model/Assembly/eventport.cpp \
     Model/Assembly/hardwarecluster.cpp \
     Model/Assembly/hardwarenode.cpp \
-    Model/Assembly/inputeventport.cpp \
-    Model/Assembly/outputeventport.cpp \
-    Model/attribute.cpp \
     Model/edge.cpp \
     Model/graph.cpp \
     Model/graphml.cpp \
@@ -68,7 +66,15 @@ SOURCES += \
     Model/node.cpp \
     main.cpp \
     mainwindow.cpp \
-    qlogger.cpp
+    qlogger.cpp \
+    Model/Assembly/attribute.cpp \
+    Model/Workload/periodicevent.cpp \
+    Model/Workload/component.cpp \
+    Model/blanknode.cpp \
+    Model/Assembly/outeventportidl.cpp \
+    Model/Assembly/ineventportidl.cpp \
+    Model/Assembly/ineventportidl.cpp \
+    Model/Assembly/outeventportidl.cpp
 
 FORMS += \
     mainwindow.ui

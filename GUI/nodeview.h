@@ -7,8 +7,6 @@
 #include "nodeitem.h"
 #include <QPointF>
 #include <QRubberBand>
-#include "nodeviewtreemodel.h"
-#include "nodeitemtreeitem.h"
 
 class NodeView : public QGraphicsView
 {
@@ -17,7 +15,7 @@ public:
     NodeView(QWidget *parent = 0);
 
 signals:
-    virtual void updateZoom(qreal zoom);
+    void updateZoom(qreal zoom);
     void deletePressed(bool isDown);
     void controlPressed(bool isDown);
     void shiftPressed(bool isDown);
@@ -36,6 +34,7 @@ signals:
     void selectAll();
 
     void updateNodeType(QString name);
+    void updateViewAspect(QString name);
 
 
 public slots:
@@ -46,6 +45,8 @@ public slots:
     void centreItem(NodeItem* item);
     void clearView();
     void depthChanged(int depth);
+
+    void setViewAspect(QString aspect);
 protected:
     virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
@@ -56,6 +57,7 @@ protected:
 
 
 private:
+    QString currentAspect;
     QPoint origin;
     bool rubberBanding;
     bool once;

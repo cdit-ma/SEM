@@ -4,16 +4,20 @@
 #include "graph.h"
 #include "edge.h"
 #include "node.h"
-#include "attribute.h"
 #include "graphmlkey.h"
 #include "graphmldata.h"
 
+#include "Assembly/attribute.h"
 #include "Assembly/componentassembly.h"
 #include "Assembly/componentinstance.h"
 #include "Assembly/eventport.h"
-#include "Assembly/inputeventport.h"
-#include "Assembly/outputeventport.h"
+#include "Assembly/ineventportidl.h"
+#include "Assembly/outeventportidl.h"
+#include "Assembly/hardwarenode.h"
 #include "Assembly/hardwarecluster.h"
+#include "Workload/periodicevent.h"
+#include "Workload/Component.h"
+#include "blanknode.h"
 #include <QStringList>
 
 #include <QString>
@@ -48,6 +52,7 @@ public:
 
     //Gets a list of all the child Nodes in this Model. Based on a depth variable.
     QVector<GraphMLContainer*> getChildren(int depth=-1);
+
     //Imports a GraphML XML Document into the Model, inserting it into the currentParent Variable.
     bool importGraphML(QString inputGraphML, GraphMLContainer *currentParent = 0);
 
@@ -99,9 +104,11 @@ public slots:
     void view_ImportGraphML(QString inputGraphMLData, GraphMLContainer *currentParent=0);
     void view_ExportGraphML(QString file);
 
+    void view_ConstructComponentInstance(GraphMLContainer* component);
+
 
     //Called when the Controller constructs a new Node.
-    void view_ConstructNode(QPointF position,QString kind, GraphMLContainer* parent);
+    void view_ConstructNode(QPointF position, QString kind, GraphMLContainer* parent);
     void view_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst);
 private:
     //Constructs a GraphMLKey Object from a XML entity.

@@ -4,6 +4,7 @@
 
 AttributeTableModel::AttributeTableModel(NodeItem *item, QObject *parent): QAbstractTableModel(item)
 {
+    Q_UNUSED(parent)
     gui = item;
     attachedNode = item->node;
     attachedData = attachedNode->getData();
@@ -105,6 +106,9 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
 
 bool AttributeTableModel::insertRows(int row, int count, const QModelIndex &parent)
 {
+    Q_UNUSED(row)
+    Q_UNUSED(count)
+    Q_UNUSED(parent)
     return true;
 }
 
@@ -130,6 +134,7 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
     if(index.column() == 1){
         return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
     }
+    return Qt::ItemIsEnabled;
 
 }
 

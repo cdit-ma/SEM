@@ -16,18 +16,16 @@
 #include "../Model/node.h"
 #include "../Model/graphmldata.h"
 #include "attributetablemodel.h"
-#include "nodeitemtreeitem.h"
 
 class NodeEdge;
-class NodeItemTreeItem;
 class NodeItem : public QObject, public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 
 public:
     NodeItem(Node *node, NodeItem *parent);
     ~NodeItem();
-    void setTreeModelItem(NodeItemTreeItem * newItem);
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     Node* node;
@@ -42,7 +40,6 @@ public:
     AttributeTableModel* getTable();
     QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
-    NodeItemTreeItem* getTreeModelItem();
 
 signals:
     void triggerSelected(NodeItem*);
@@ -67,6 +64,7 @@ public slots:
     void recieveData();
     void destructNodeItem();
     void updateChildNodeType(QString type);
+    void updateViewAspect(QString aspect);
     void sortChildren();
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -74,12 +72,14 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 private:
+    void setParent(NodeItem* parentItem);
 
+    QString viewAspect;
 
     AttributeTableModel* attributeModel;
-    NodeItemTreeItem* treeModelItem;
 
     void updatePosition(QString x=0, QString y=0);
+    void updateSize(QString w=0, QString h=0);
     QString toBuildType;
     QString name;
     QString kind;

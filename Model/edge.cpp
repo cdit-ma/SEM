@@ -13,7 +13,6 @@ Edge::Edge(GraphMLContainer *s, GraphMLContainer *d, QString name):GraphML(Graph
 
     //Set the instance Variables
     source = s;
-
     destination = d;
 
     //Attach the Edge to its source/Destination

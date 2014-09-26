@@ -1,8 +1,8 @@
 #include "componentinstance.h"
 #include <QDebug>
 #include "eventport.h"
-#include "inputeventport.h"
-#include "outputeventport.h"
+#include "ineventportidl.h"
+#include "outeventportidl.h"
 #include "../Workload/periodicevent.h"
 #include "../Workload/component.h"
 #include "hardwarenode.h"

@@ -21,6 +21,7 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     NodeType = "";
     rubberBanding = false;
     once = true;
+    currentAspect = "";
 
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
@@ -67,6 +68,7 @@ void NodeView::addNodeItem(NodeItem *item)
         //Add to model.
     }
     connect(this, SIGNAL(updateNodeType(QString)), item, SLOT(updateChildNodeType(QString)));
+    connect(this, SIGNAL(updateViewAspect(QString)), item, SLOT(updateViewAspect(QString)));
 }
 
 void NodeView::removeNodeItem(NodeItem *item)
@@ -144,6 +146,13 @@ void NodeView::depthChanged(int depth)
         }
     }
 
+}
+
+void NodeView::setViewAspect(QString aspect)
+{
+    qCritical() << "Setting: " << aspect;
+    currentAspect = aspect;
+    emit updateViewAspect(aspect);
 }
 
 void NodeView::mouseReleaseEvent(QMouseEvent *event)
@@ -237,23 +246,23 @@ void NodeView::keyPressEvent(QKeyEvent *event)
     }
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_C){
-        emit copy();
+       // emit copy();
     }
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_X){
-        emit cut();
+        //emit cut();
     }
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_V){
-        emit paste();
+        //emit paste();
     }
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_Z){
-        emit undo();
+        //emit undo();
     }
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_Y){
-        emit redo();
+        //emit redo();
     }
 
     if(event->key() == Qt::Key_Shift){
