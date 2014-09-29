@@ -13,7 +13,9 @@ Component::Component(QString name):Node(name)
 
 Component::~Component()
 {
-
+    foreach(ComponentInstance* child, componentInstances){
+        delete child;
+    }
 }
 
 QString Component::toString()

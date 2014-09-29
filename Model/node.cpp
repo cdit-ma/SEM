@@ -19,9 +19,19 @@ Node::Node(QString name): GraphMLContainer(GraphML::NODE, name)
 
 Node::~Node(){
     qCritical() << "Destructing Node: " << getID();
+
+    qCritical() << "Removing Edges: " << getID();
     removeEdges();
+    qCritical() << "Removed Edges: " << getID();
+    qCritical() << "Removing Children: " << getID();
     removeChildren();
-    setParent(0);
+    qCritical() << "Removed Children: " << getID();
+
+
+    if(this->getParent()){
+        this->getParent()->disown(this);
+    }
+    //setParent(0);
 
     emit destructGUI(this, getID());
 }
@@ -103,7 +113,6 @@ void Node::adopt(GraphMLContainer *child)
 void Node::disown(GraphMLContainer *child)
 {
     if(this->childGraph != 0){
-        qDebug() << "Node Disown!";
         this->childGraph->disown(child);
     }
 }

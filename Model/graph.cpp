@@ -14,7 +14,7 @@ Graph::~Graph()
     qCritical() << "Deleting Graph: " << getID();
     removeEdges();
     removeChildren();
-    setParent(0);
+    //setParent(0);
 }
 
 
@@ -40,8 +40,8 @@ bool Graph::isAdoptLegal(GraphMLContainer *child)
 
      //Check if the GraphML object is a parent of this
     if(this->isAncestorOf(child)){
-        qWarning() << "Cannot adopt a Node object which is already an ancestor.";
-        return false;
+        //qWarning() << "Cannot adopt a Node object which is already an ancestor.";
+        //return false;
     }
 
     return true;
@@ -69,7 +69,7 @@ QString Graph::toGraphML(qint32 indentationLevel)
     if(descendants.size() > 0){
         //If this is the parent Graph, we need to specify the edge type.
         QString edgeType="edgedefault=\"directed\"";
-        
+
         returnable = tabSpace + QString("<graph %2 id =\"%1\">\n").arg(this->getID(), edgeType);
 
         //Attach Data

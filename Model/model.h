@@ -15,6 +15,7 @@
 #include "Assembly/outeventportidl.h"
 #include "Assembly/hardwarenode.h"
 #include "Assembly/hardwarecluster.h"
+#include "Assembly/member.h"
 #include "Workload/periodicevent.h"
 #include "Workload/Component.h"
 #include "blanknode.h"
@@ -56,7 +57,6 @@ public:
     //Imports a GraphML XML Document into the Model, inserting it into the currentParent Variable.
     bool importGraphML(QString inputGraphML, GraphMLContainer *currentParent = 0);
 
-private:
     //Returns the parentGraph of this Model.
     Graph* getGraph();
 signals:
@@ -104,7 +104,7 @@ public slots:
     void view_ImportGraphML(QString inputGraphMLData, GraphMLContainer *currentParent=0);
     void view_ExportGraphML(QString file);
 
-    void view_ConstructComponentInstance(GraphMLContainer* component);
+    void view_ConstructNodeInstance(GraphMLContainer* component);
 
 
     //Called when the Controller constructs a new Node.

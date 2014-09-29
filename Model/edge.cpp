@@ -28,7 +28,7 @@ Edge::~Edge()
     destination->removeEdge(this);
     source->removeEdge(this);
 
-    //qCritical() << QString("Removed Edge[%1]!").arg(this->getID());
+    qCritical() << QString("Removed Edge[%1]!").arg(this->getID());
 }
 
 GraphMLContainer *Edge::getSource()

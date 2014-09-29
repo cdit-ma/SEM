@@ -8,7 +8,7 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
     model = new Model();
     treeModel = new QStandardItemModel(this);
 
-    componentTypes << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "OutEventPort" << "Attribute" << "HardwareNode" << "HardwareCluster" << "PeriodicEvent" << "Component";
+    componentTypes << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "OutEventPort" << "Attribute" << "HardwareNode" << "HardwareCluster" << "PeriodicEvent" << "Component" << "Member";
 
     aspects << "Assembly" << "Workload";
 
@@ -63,7 +63,7 @@ GraphMLController::GraphMLController(NodeView* view):QObject()
     connect(this, SIGNAL(view_addNodeItem(NodeItem*)), model, SLOT(view_Constructed()));
     connect(this, SIGNAL(view_addNodeEdge(NodeEdge*)), model, SLOT(view_Constructed()));
 
-    connect(this, SIGNAL(model_ConstructComponentInstance(GraphMLContainer*)), model, SLOT(view_ConstructComponentInstance(GraphMLContainer*)));
+    connect(this, SIGNAL(model_ConstructNodeInstance(GraphMLContainer*)), model, SLOT(view_ConstructNodeInstance(GraphMLContainer*)));
     //Connect to the Signals from the Model.
     connect(model, SIGNAL(view_EnableGUI(bool)), this, SLOT(model_EnableGUI(bool)));
     connect(model, SIGNAL(controller_ActionTrigger(QString)), this, SLOT(view_ActionTriggered(QString)));
@@ -132,7 +132,7 @@ void GraphMLController::view_MakeInstance()
     GraphMLContainer* currentParent =  getSingleSelectedNode();
 
     if(currentParent != 0){
-        emit model_ConstructComponentInstance(currentParent);
+        emit model_ConstructNodeInstance(currentParent);
     }
 
 }
@@ -201,7 +201,6 @@ void GraphMLController::reverseAction(Action action)
     switch(action.actionType){
 
     case CONSTRUCT:{
-        qCritical() << "Gotta Remove this thing." << action.itemID;
         //Reverse a Construct action, so Destruct it.
         //Get the constructed Item from the ID specified and then remove it.
         GraphML* item = undoLookup[action.itemID];
@@ -286,15 +285,12 @@ void GraphMLController::removeGraphML(GraphML *graph)
         if(item != 0){
             //Export the GraphML for the Node.
             item->deleteXML = model->exportGraphML(node);
-            qCritical() << (item->deleteXML == "");
 
             //Get the Nodes Parent ID.
             Node* parentNode = item->node->getParentNode();
 
             if(parentNode != 0){
-                qCritical() << "Before Crash";
                 item->parentNodeID = parentNode->getID();
-                qCritical() << "After Crash";
             }else{
                 item->parentNodeID = "";
             }
@@ -519,7 +515,7 @@ void GraphMLController::model_RemoveNode(GraphMLContainer *item, QString ID)
     newNode.srcID = "";
 
     if(node == 0){
-        qCritical() << "GG";
+        qCritical() << "Cannot find node.";
     }
 
     newNode.parentID = guiContainer->parentNodeID;
@@ -761,13 +757,11 @@ void GraphMLController::undoRedo(bool UNDO)
 void GraphMLController::view_ControlPressed(bool isDown)
 {
 
-    qCritical() << "GraphMLController::view_ControlPressed::"<<isDown;
     KEY_CONTROL_DOWN = isDown;
 }
 
 void GraphMLController::view_ShiftTriggered(bool isDown)
 {
-    qCritical() << "GraphMLController::view_ShiftTriggered::"<<isDown;
 
     if(isDown){
         Node* selectedNode = (Node*) getSingleSelectedNode();
@@ -797,7 +791,6 @@ void GraphMLController::view_DeleteTriggered(bool isDown)
 
 void GraphMLController::view_SelectAll()
 {
-    qCritical() << "GraphMLController::view_SelectAll()";
     QVector<GraphMLContainer*> children;
 
     if(currentMaximized == 0){
@@ -815,7 +808,6 @@ void GraphMLController::view_SelectAll()
             }
         }
     }
-    qCritical() << "!GraphMLController::view_SelectAll()";
 }
 
 void GraphMLController::view_EmptyScenePressed()
@@ -843,7 +835,7 @@ void GraphMLController::deselectNodeItems(NodeItem *selectedNodeItem)
             qCritical() << "2";
             if(selectedNodeItems[i] != 0){
                 qCritical() << "3";
-                selectedNodeItems[i]->setDeselected();
+                selectedNodeItems[i]->setDeselected2();
             }
         }
         qCritical() << "4";
@@ -852,7 +844,7 @@ void GraphMLController::deselectNodeItems(NodeItem *selectedNodeItem)
         qCritical() << "5";
         int position = selectedNodeItems.indexOf(selectedNodeItem);
         selectedNodeItems.removeAt(position);
-        selectedNodeItem->setDeselected();
+        selectedNodeItem->setDeselected2();
         qCritical() << "6";
     }
 }
@@ -878,7 +870,7 @@ void GraphMLController::selectNodeItem(NodeItem *selectedNodeItem)
             selectedNodeItems.append(selectedNodeItem);
         }
         GUIContainer* gui = getGUIContainer(selectedNodeItem);
-        selectedNodeItem->setSelected();
+        selectedNodeItem->setSelected(true);
         emit view_SetAttributeModel(selectedNodeItem->getTable());
     }
 }
@@ -922,6 +914,7 @@ void GraphMLController::deleteSelectedNodeItems()
         NodeItem* tdNodeItem = selectedNodeItems.first();
         if(tdNodeItem != 0){
             Node* tdNode = tdNodeItem->node;
+            qCritical() << "Removing: " << tdNode->getID();
             removeGraphML(tdNode);
             selectedNodeItems.pop_front();
         }

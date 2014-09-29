@@ -1,5 +1,6 @@
 #include "outeventportidl.h"
 #include "ineventportidl.h"
+#include "member.h"
 #include <QDebug>
 
 OutEventPortIDL::OutEventPortIDL(QString name):EventPort(name)
@@ -14,8 +15,18 @@ OutEventPortIDL::~OutEventPortIDL()
 
 bool OutEventPortIDL::isAdoptLegal(GraphMLContainer *child)
 {
-    Q_UNUSED(child);
-    //Cannot adopt anything.
+    Member* member = dynamic_cast<Member*> (child);
+
+    if(member == 0){
+        qCritical() << "Cannot connect to anything which isn't a Member.";
+        return false;
+    }
+
+    if(this->isAncestorOf(child) || this->isDescendantOf(child)){
+        qCritical() << "Already related to this node.";
+        return false;
+    }
+
     return true;
 }
 

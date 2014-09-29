@@ -244,6 +244,7 @@ void MainWindow::view_resetModel()
         //scene->items().clear();
     }
 
+    newController = new NewController(ui->graphicsView);
 
     controller = new GraphMLController(ui->graphicsView);
 
@@ -257,8 +258,13 @@ void MainWindow::view_resetModel()
     connect(controller, SIGNAL(view_EnableGUI(bool)), this, SLOT(enableGUI(bool)));
 
     connect(this,SIGNAL(view_ExportGraphML(QString)),controller, SLOT(view_ExportGraphML(QString)));
-    connect(this,SIGNAL(view_ImportGraphML(QStringList)),controller, SLOT(view_ImportGraphML(QStringList)));
-    connect(this,SIGNAL(view_ImportGraphML(QString)),controller, SLOT(view_ImportGraphML(QString)));
+    //connect(this,SIGNAL(view_ImportGraphML(QStringList)),controller, SLOT(view_ImportGraphML(QStringList)));
+   // connect(this,SIGNAL(view_ImportGraphML(QStringList)),controller, SLOT(view_ImportGraphML(QStringList)));
+    //connect(this,SIGNAL(view_ImportGraphML(QString)),controller, SLOT(view_ImportGraphML(QString)));
+
+    connect(this, SIGNAL(view_ImportGraphML(QString)), newController, SLOT(view_ImportGraphML(QString)));
+    connect(this, SIGNAL(view_ImportGraphML(QStringList)), newController, SLOT(view_ImportGraphML(QStringList)));
+
 
     connect(controller, SIGNAL(view_UndoCommandList(QStringList)), this, SLOT(updateUndoCount(QStringList)));
     connect(controller, SIGNAL(view_RedoCommandList(QStringList)), this, SLOT(updateRedoCount(QStringList)));

@@ -46,6 +46,7 @@ public slots:
     void clearView();
     void depthChanged(int depth);
 
+    void setRubberBandMode(bool On);
     void setViewAspect(QString aspect);
 protected:
     virtual void mouseReleaseEvent(QMouseEvent *event);

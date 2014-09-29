@@ -73,7 +73,7 @@ signals:
     void model_ImportGraphML(QString, GraphMLContainer *currentParent=0);
     void model_ExportGraphML(QString filePath);
 
-    void model_ConstructComponentInstance(GraphMLContainer* component);
+    void model_ConstructNodeInstance(GraphMLContainer* component);
     void model_ConstructNode(QPointF position, QString kind, GraphMLContainer* parentNode);
     void model_ConstructEdge(GraphMLContainer* src, GraphMLContainer* dst);
 

@@ -27,11 +27,10 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     SHIFT_DOWN = false;
     //setDragMode(RubberBandDrag);
     setDragMode(ScrollHandDrag);
-    //setDragMode()
-
-
+    this->setRubberBandSelectionMode(Qt::ContainsItemBoundingRect);
 
     rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+
     QPalette palette;
     palette.setBrush(QPalette::Foreground, QBrush(Qt::green));
     palette.setBrush(QPalette::Base, QBrush(Qt::red));
@@ -148,6 +147,17 @@ void NodeView::depthChanged(int depth)
 
 }
 
+void NodeView::setRubberBandMode(bool On)
+{
+    if(On){
+        setDragMode(RubberBandDrag);
+    }else{
+        setDragMode(ScrollHandDrag);
+    }
+
+
+}
+
 void NodeView::setViewAspect(QString aspect)
 {
     qCritical() << "Setting: " << aspect;
@@ -159,23 +169,38 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
 {
       QPointF scenePos = this->mapToScene(event->pos());
     if(rubberBanding){
-        QRect selectionRectangle(origin, scenePos.toPoint());
-        QPainterPath pp;
-        pp.addRect(selectionRectangle);
+        //QRect selectionRectangle(origin, scenePos.toPoint());
+        //QPainterPath pp;
+        //pp.addRect(selectionRectangle);
 
-        scene()->setSelectionArea(pp);
-        qCritical() << "SELECTING";
+
+        //scene()->setSelectionArea(pp,Qt::ContainsItemBoundingRect);
 
 
     }
     QGraphicsView::mouseReleaseEvent(event);
-    setDragMode(ScrollHandDrag);
 }
 
 void NodeView::mouseMoveEvent(QMouseEvent *event)
 {
 
-        QGraphicsView::mouseMoveEvent(event);
+    QPointF scenePos = this->mapToScene(event->pos());
+
+    QGraphicsItem* item = this->scene()->itemAt(scenePos,this->transform());
+
+    NodeItem* node = dynamic_cast<NodeItem*>(item);
+
+    if(node){
+        if(node->isSelected()){
+            this->setCursor(Qt::SizeAllCursor);
+        }else{
+            this->setCursor(Qt::SizeAllCursor);
+        }
+    }else{
+        this->setCursor(Qt::ArrowCursor);
+    }
+
+    QGraphicsView::mouseMoveEvent(event);
 }
 
 void NodeView::mousePressEvent(QMouseEvent *event)
@@ -194,11 +219,10 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             horizontalScrollBar()->setValue(xValue);
             verticalScrollBar()->setValue(yValue);
         }else if(event->button() == Qt::RightButton && CONTROL_DOWN){
+            emit unselect();
             emit constructNodeItem(scenePos);
         }else if( event->button() == Qt::LeftButton && CONTROL_DOWN){
             origin = scenePos.toPoint();
-            rubberBanding = true;
-            setDragMode(RubberBandDrag);
         }else{
 
 

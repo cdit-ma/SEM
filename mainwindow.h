@@ -19,6 +19,7 @@
 #include "GUI/nodeitem.h"
 #include "GUI/nodeconnection.h"
 #include "Controller/graphmlcontroller.h"
+#include "Controller/newcontroller.h"
 #include <Vector>
 #include <QStack>
 
@@ -80,6 +81,7 @@ private slots:
 private:
     GraphMLController* controller;
 
+    NewController* newController;
 
     QThread *modelThread;
 

@@ -15,6 +15,7 @@
 #include <QGraphicsItem>
 #include "../Model/node.h"
 #include "../Model/graphmldata.h"
+#include <QRubberBand>
 #include "attributetablemodel.h"
 
 class NodeEdge;
@@ -44,21 +45,28 @@ public:
 signals:
     void triggerSelected(NodeItem*);
 
+
     void deleted(NodeItem*);
     void centreNode(NodeItem*);
+    void centreNode(Node*);
     void exportSelected(Node*);
+
+    void setNodeSelected(Node*, bool selected=true);
 
     void actionTriggered(QString action);
 
     void makeChildNode(QPointF centerPoint, Node * parentNode);
+    void makeChildNode(QPointF centerPoint);
 
+    void moveSelection(QPointF move);
     void makeChildNode(QString type, Node*);
     void updateGraphMLData(Node*, QString, QString);
     void updateData(QString key, QString value);
 public slots:
     void setOpacity(qreal opacity);
-    void setSelected();
-    void setDeselected();
+    void setSelected2();
+    void setSelected(bool selected);
+    void setDeselected2();
     void toggleDetailDepth(int level);
     void updatedData(GraphMLData* data);
     void recieveData();
@@ -66,6 +74,8 @@ public slots:
     void updateChildNodeType(QString type);
     void updateViewAspect(QString aspect);
     void sortChildren();
+
+    void setRubberbandMode(bool On);
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -86,16 +96,23 @@ private:
     QRect bRec;
 
 
+    bool USING_RUBBERBAND_SELECTION;
+
+    QPointF origin;
+    QPointF sceneOrigin;
+
+
     bool hasMoved;
 
     QVector<NodeEdge*> connections;
 
-
+    QRubberBand* rubberBand;
     QGraphicsColorizeEffect *graphicsEffect;
 
     QGraphicsTextItem* label;
     bool isPressed;
     QPointF previousPosition;
+
 
 };
 

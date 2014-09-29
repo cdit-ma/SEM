@@ -36,6 +36,8 @@ public:
 
     GraphMLData* getData(QString keyName);
 
+    GraphMLData* getData(GraphMLKey* key);
+
     //Get a list of Data objects contained by this GraphML
     QVector<GraphMLData *> getData();
 

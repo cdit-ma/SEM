@@ -86,6 +86,17 @@ GraphMLData *GraphML::getData(QString keyName)
     return 0;
 }
 
+GraphMLData *GraphML::getData(GraphMLKey *key)
+{
+    for(int i=0; i < attachedData.size(); i++){
+        if(attachedData[i]->getKey() == key){
+            return this->attachedData[i];
+        }
+    }
+    return 0;
+
+}
+
 
 QVector<GraphMLData *> GraphML::getData()
 {

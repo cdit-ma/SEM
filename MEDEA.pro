@@ -43,7 +43,11 @@ HEADERS += \
     Model/Assembly/outeventportidl.h \
     Model/Assembly/ineventportidl.h \
     Model/Assembly/ineventportidl.h \
-    Model/Assembly/outeventportidl.h
+    Model/Assembly/outeventportidl.h \
+    Model/Workload/ineventport.h \
+    Model/Workload/outeventport.h \
+    Model/Assembly/member.h \
+    Controller/newcontroller.h
 
 SOURCES += \
     Controller/graphmlcontroller.cpp \
@@ -74,7 +78,11 @@ SOURCES += \
     Model/Assembly/outeventportidl.cpp \
     Model/Assembly/ineventportidl.cpp \
     Model/Assembly/ineventportidl.cpp \
-    Model/Assembly/outeventportidl.cpp
+    Model/Assembly/outeventportidl.cpp \
+    Model/Workload/ineventport.cpp \
+    Model/Workload/outeventport.cpp \
+    Model/Assembly/member.cpp \
+    Controller/newcontroller.cpp
 
 FORMS += \
     mainwindow.ui

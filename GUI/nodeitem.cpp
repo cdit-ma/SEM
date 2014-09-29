@@ -4,19 +4,28 @@
 #include <QDebug>
 #include <QFont>
 #include <QFontMetrics>
-NodeItem::NodeItem(Node *node, NodeItem *parent):QObject(parent)
+#include <QRubberBand>
+NodeItem::NodeItem(Node *node, NodeItem *parent):QGraphicsItem(), QObject(parent)
 {
     viewAspect = "";
     drawDetail = true;
     drawObject = true;
+    USING_RUBBERBAND_SELECTION = false;
 
     hasMoved = false;
     graphicsEffect = new QGraphicsColorizeEffect(this);
 
-
     QColor blue(70,130,180);
     graphicsEffect->setColor(blue);
     graphicsEffect->setStrength(0);
+
+    rubberBand = new QRubberBand(QRubberBand::Rectangle,0);
+    QPalette palette;
+    palette.setBrush(QPalette::Foreground, QBrush(Qt::green));
+    palette.setBrush(QPalette::Base, QBrush(Qt::red));
+
+    rubberBand->setPalette(palette);
+    rubberBand->resize(500, 500);
 
 
 
@@ -110,10 +119,16 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         QBrush Brush(Qt::white);
 
         if(kind == "OutEventPortIDL"){
-            Brush.setColor(Qt::red);
+            Brush.setColor(QColor(180,0,0));
+        }else if(kind == "OutEventPort"){
+            Brush.setColor(QColor(255,0,0));
         }else if(kind == "InEventPortIDL"){
-            Brush.setColor(Qt::green);
-        }else if(kind == "ComponentInstance"){
+            Brush.setColor(QColor(0,180,0));
+        }else if(kind == "InEventPort"){
+            Brush.setColor(QColor(0,255,0));
+        }
+
+        else if(kind == "ComponentInstance"){
              Brush.setColor(QColor(200,200,200));
         }else if(kind == "Attribute"){
             Brush.setColor(Qt::blue);
@@ -165,21 +180,17 @@ AttributeTableModel *NodeItem::getTable()
 QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
     if (change == QGraphicsItem::ItemSelectedChange)
-       {
-           if (value == true)
-           {
-               qCritical() << "Set Selected";
-               emit triggerSelected(this);
-               //emit setSelected();
-
-               // do stuff if selected
-           }
-           else
-           {
-               emit setDeselected();
-               // do stuff if not selected
-           }
-       }
+    {
+        if (value == true)
+        {
+            qCritical() << "IS SELECTED";
+            emit setNodeSelected(node, true);
+        }else{
+            qCritical() << "IS DESELECTED";
+            emit setNodeSelected(node, false);
+        }
+        //return 0;
+    }
 
     return QGraphicsItem::itemChange(change, value);
 }
@@ -193,7 +204,7 @@ void NodeItem::setOpacity(qreal opacity)
 }
 
 
-void NodeItem::setSelected()
+void NodeItem::setSelected2()
 {
     if(graphicsEffect != 0){
         graphicsEffect->setStrength(1);
@@ -204,9 +215,43 @@ void NodeItem::setSelected()
             connections[i]->setSelected();
         }
     }
+    this->update(this->boundingRect());
 }
 
-void NodeItem::setDeselected()
+void NodeItem::setSelected(bool selected)
+{
+    qCritical() << "NodeItem::setSelected";
+    if(selected){
+        if(graphicsEffect != 0){
+            graphicsEffect->setStrength(1);
+        }
+
+        for(int i =0;i< connections.size();i++){
+            if(connections[i] != 0){
+                connections[i]->setSelected();
+            }
+        }
+
+        //itemChange(QGraphicsItem::ItemSelectedChange, true);
+
+    }else{
+        if(graphicsEffect != 0){
+            graphicsEffect->setStrength(0);
+        }
+
+        for(int i =0;i< connections.size();i++){
+            if(connections[i] != 0){
+            connections[i]->setDeselected();
+            }
+        }
+        //itemChange(QGraphicsItem::ItemSelectedChange, false);
+
+
+    }
+
+}
+
+void NodeItem::setDeselected2()
 {
     if(graphicsEffect != 0){
         graphicsEffect->setStrength(0);
@@ -332,79 +377,115 @@ void NodeItem::sortChildren()
             currentX = width/10;
         }
 
+        nodeItem->node->updateDataValue("x",QString::number(currentX));
+        nodeItem->node->updateDataValue("y",QString::number(currentY));
+
+        /*
         emit updateGraphMLData(nodeItem->node,"x",QString::number(currentX));
         emit updateGraphMLData(nodeItem->node,"y",QString::number(currentY));
-
+*/
         currentX += nodeItem->width * 1.1;
         }
     }
 }
 
+void NodeItem::setRubberbandMode(bool On)
+{
+    USING_RUBBERBAND_SELECTION = On;
+}
 
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(drawObject){
-        if( event->button() == Qt::MiddleButton ) {
-            sortChildren();
-            emit centreNode(this);
+    if(!drawObject){
+        return;
+    }
+
+    switch (event->button()) {
+
+    case Qt::MiddleButton:{
+        sortChildren();
+        emit centreNode(node);
+        //emit centreNode(this);
+        break;
+    }
+    case Qt::LeftButton:{
+        if(USING_RUBBERBAND_SELECTION){
+            origin = event->screenPos();
+            sceneOrigin = mapToScene(event->pos());
+            rubberBand->setGeometry(QRect(origin.toPoint(), QSize()));
+            rubberBand->show();
         }else{
-            if ( event->button() == Qt::LeftButton ) {
-                hasMoved = false;
-                emit triggerSelected(this);
-            }else if(event->button() == Qt::RightButton){
-                QPointF position = this->mapToItem(this,event->pos());
-                emit makeChildNode(position, node);
-            }
-            this->isPressed = true;
+            //Left and Right buttons should target this line.
             previousPosition = event->scenePos();
+
+            hasMoved = false;
+            isPressed = true;
+            //emit triggerSelected(this);
+            emit setNodeSelected(node);
         }
+        break;
+    }
+    case Qt::RightButton:{
+        //Select this node, and construct a child node.
+        emit setNodeSelected(node);
+        emit makeChildNode(event->pos());
+        break;
+
+    }
+
+    default:{
+
+        break;
+    }
     }
 }
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(drawObject){
-        if ( event->button() != Qt::MiddleButton ) {
-
-        }
+    if(!drawObject){
+        return;
     }
 
-    if ( event->button() == Qt::LeftButton ){
+    switch (event->button()) {
+    case Qt::LeftButton:{
+        if(USING_RUBBERBAND_SELECTION){
+            QPointF scenePos = mapToScene(event->pos());
+            QRect selectionRectangle(sceneOrigin.toPoint(), scenePos.toPoint());
+            QPainterPath pp;
+            pp.addRect(selectionRectangle);
 
-        if(hasMoved){
-            QPointF newPosition = pos() + (event->scenePos() - previousPosition);
-            this->setPos(newPosition);
-
-
-            emit actionTriggered("Updated Node Position");
-            emit updateGraphMLData(node,"x",QString::number(newPosition.x()));
-            emit updateGraphMLData(node,"y",QString::number(newPosition.y()));
-
-
+            scene()->setSelectionArea(pp,Qt::ContainsItemBoundingRect);
+            rubberBand->hide();
+        }else{
             hasMoved = false;
+            isPressed = false;
         }
-        notifyEdges();
-        /*
-
-        foreach(NodeEdge* edge, connections ){
-            edge->setVisible(true);
-        }
-        */
-         this->isPressed = false;
+        break;
     }
+    default:
+        break;
 
+    }
 }
 
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(this->isPressed && drawObject){
-        //Rended the Node Item in the new location, but don't update coordinates
-        QPointF newPosition = pos() + (event->scenePos() - previousPosition);
-        this->setPos(newPosition);
-        previousPosition = event->scenePos();
-        hasMoved = true;
+    if(!drawObject){
+        return;
+    }
 
+    if(USING_RUBBERBAND_SELECTION){
+        if(boundingRect().contains(event->pos())){
+            rubberBand->setGeometry(QRect(origin.toPoint(), event->screenPos()).normalized());
+        }
+    }else if(isPressed){
+        QPointF delta = (event->scenePos() - previousPosition);
+        this->setPos(pos() + delta);
+
+        emit moveSelection(delta);
+        hasMoved = true;
+        previousPosition = event->scenePos();
     }
 }
 
@@ -433,3 +514,5 @@ void NodeItem::updateSize(QString w, QString h)
      update();
 
 }
+
+

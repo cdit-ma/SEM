@@ -98,8 +98,9 @@ void GraphMLContainer::disown(GraphMLContainer *child)
 {
        if(isAncestorOf(child)){
         for (int i = 0; i < descendants.size(); i++){
-            qDebug() << "\t" << descendants[i]->getName();
+            qDebug() << "\t" << descendants[i]->getID();
             if(descendants[i] == child){
+                //delete descendants[i];
                 descendants.removeAt(i);
                 return;
             }
@@ -116,14 +117,14 @@ bool GraphMLContainer::isAncestorOf(GraphMLContainer *element)
 
 bool GraphMLContainer::isDescendantOf(GraphMLContainer *element)
 {
-    if(this->parent != 0){
+    if(parent != 0){
         //Check if the parent is the element we are looking for;
         //Check if the element is a cousin.
         if(parent == element || parent->descendants.contains(element)){
             return true;
         }else{
             //Check up the tree.
-            return this->parent->isDescendantOf(element);
+            return parent->isDescendantOf(element);
         }
     }
     return false;
