@@ -1,8 +1,13 @@
 #ifndef NEWCONTROLLER_H
 #define NEWCONTROLLER_H
+#include <QStack>
 #include "../GUI/nodeview.h"
+#include "../GUI/nodeconnection.h"
+
 #include "../Model/graphmlcontainer.h"
 #include "../Model/model.h"
+
+enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 
 struct EdgeTemp
 {
@@ -13,89 +18,180 @@ struct EdgeTemp
     QVector<GraphMLData *> data;
 };
 
+struct ActionItem{
+    ACTION_TYPE actionType;
+    GraphML::KIND actionKind;
+    QString parentID;
+    QString srcID;
+    QString dstID;
+    QString ID;
+    QString removedXML;
+    QString actionName;
+    int actionID;
+};
+
+
 class NewController: public QObject
 {
     Q_OBJECT
 public:
     NewController(NodeView *view);
 
+    //Exports a Selection of Containers to export into GraphML
+    QString exportGraphML(QVector<Node *> nodes);
+    QString exportGraphML(Node* node);
+
+
+    //Gets a list of all the kinds of Components which have a visual representation.
+    QStringList getNodeKinds();
+    QStringList getViewAspects();
+
 signals:
     void view_SetNodeItemCentered(NodeItem* node);
 
-     void view_TriggerRubberbandMode(bool on);
+    void view_SetRubberbandSelectionMode(bool on);
+
+    void view_ExportGraphML(QString data);
 
 public slots:
     void view_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
     void view_ImportGraphML(QString, GraphMLContainer *currentParent=0);
 
+    void view_ExportGraphML();
+
     void view_SetNodeSelected(Node* node, bool setSelected);
+    void view_SetEdgeSelected(Edge* edge, bool setSelected);
     void view_SetNodeCentered(Node* node);
     void view_ConstructChildNode(QPointF centerPoint);
+    void view_ConstructEdge(Node* src, Node* dst);
     void view_MoveSelectedNodes(QPointF delta);
 
+    void view_SetChildNodeKind(QString nodeKind);
 
+    void view_HideUnconnectableNodes(Node* node);
+    void view_ShowAllNodes();
+
+
+    void view_ActionTriggered(QString actionName);
+
+    //Keyboard Actions
     void view_ControlPressed(bool isDown);
-    void view_ShiftTriggered(bool isDown);
-    void view_DeleteTriggered(bool isDown);
+    void view_ShiftPressed(bool isDown);
+    void view_DeletePressed(bool isDown);
+
+    //Copy/Pase Operations
+    void view_Undo();
+    void view_Redo();
+
+
+    //Selection Actions.
     void view_SelectAll();
     void view_ClearSelection();
 
-
 private slots:
-    void model_ConstructNodeItem(Node* node);
+    void view_ConstructNodeItem(Node* node);
+    void view_ConstructNodeEdge(Edge* edge);
 
 
 private:
-    bool KEY_CONTROL_DOWN;
-    bool KEY_SHIFT_DOWN;
-
     //Gets a specific Attribute from the current Element in the XML. returns "" if none.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attrID);
 
     //Constructs a GraphMLKey Object from a XML entity.
     GraphMLKey* parseGraphMLKeyXML(QXmlStreamReader& xml);
 
-    //Construct a specified Node type given the attached data.
-    Node* constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent=0);
-
     //Construct a GraphMLKey.
     GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
 
-    //Connects Edge object and stores into a vector.
-    void setupEdge(Edge* edge);
-
-    void clearSelectedNodes();
-    void setNodeSelected(Node* node, bool setSelected=true);
-
-    Node* getSelectedNode();
-
-    bool isNodesAncestorSelected(Node* node);
-    bool isNodeKindImplemented(QString nodeKind);
-
-    void deleteSelectedNodes();
-
+    //Construct a specified Node type given the attached data.
+    Node* constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent = 0);
 
     //Connects Node object and stores into a vector.
     void setupNode(Node* node);
 
+    //Connects Edge object and stores into a vector.
+    void setupEdge(Edge* edge);
+
+    //Selection methods
+    Node* getSelectedNode();
+
+    void deleteNode(Node* node, bool addAction = true);
+    void deleteEdge(Edge* edge, bool addAction = true);
+
+    void setNodeSelected(Node* node, bool setSelected=true);
+    void setEdgeSelected(Edge* edge, bool setSelected=true);
+    void clearSelectedNodes();
+    void clearSelectedEdges();
+    void deleteSelectedNodes();
+    void deleteSelectedEdges();
+
+    bool isNodesAncestorSelected(Node* node);
+    bool isNodeSelected(Node* node);
+    bool isEdgeSelected(Edge* edge);
+
+    bool isEdgeLegal(Node* src, Node* dst);
+
+
+
+    bool isNodeKindImplemented(QString nodeKind);
+
+
+    void reverseAction(ActionItem action);
+    void addActionToStack(ActionItem action);
+
+    void undoRedo();
+
+    QStack<ActionItem> undoStack;
+    QStack<ActionItem> redoStack;
+
+
+    NodeEdge* getNodeEdgeFromEdge(Edge* edge);
     NodeItem* getNodeItemFromNode(Node* node);
 
-    //Lists of elements in Model.
+    Node* getNodeFromID(QString ID);
+    Edge* getEdgeFromID(QString ID);
+
+
     QVector<GraphMLKey*> keys;
+
     QVector<Edge *> edges;
     QVector<Node *> nodes;
+
     QVector<NodeItem*> nodeItems;
+    QVector<NodeEdge*> nodeEdges;
 
 
+    //Selection Lists
+    QVector<Edge *> selectedEdges;
     QVector<Node *> selectedNodes;
+
+
+    Node* getNodeFromPreviousID(QString ID);
+    //Provides a lookup for old IDs.
+    QHash<QString, QString> previousNodeIDLookup;
+
     Node* centeredNode;
 
-    QStringList nodeKindsImplemented;
-    QStringList aspects;
+    QStringList nodeKinds;
+    QStringList viewAspects;
 
+    bool UNDOING;
+    bool REDOING;
+
+    bool KEY_CONTROL_DOWN;
+    bool KEY_SHIFT_DOWN;
+
+    qreal HIDDEN_OPACITY;
 
     NodeView* view;
     Model* model;
+
+    int actionCount;
+    QString currentAction;
+    int currentActionID;
+
+    QString childNodeKind;
+
 };
 
 #endif // NEWCONTROLLER_H

@@ -183,10 +183,8 @@ QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
     {
         if (value == true)
         {
-            qCritical() << "IS SELECTED";
             emit setNodeSelected(node, true);
         }else{
-            qCritical() << "IS DESELECTED";
             emit setNodeSelected(node, false);
         }
         //return 0;
@@ -200,7 +198,7 @@ QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
 
 void NodeItem::setOpacity(qreal opacity)
 {
-   QGraphicsItem::setOpacity(opacity);
+    QGraphicsItem::setOpacity(opacity);
 }
 
 
@@ -212,7 +210,7 @@ void NodeItem::setSelected2()
 
     for(int i =0;i< connections.size();i++){
         if(connections[i] != 0){
-            connections[i]->setSelected();
+            connections[i]->setSelected(true);
         }
     }
     this->update(this->boundingRect());
@@ -228,7 +226,7 @@ void NodeItem::setSelected(bool selected)
 
         for(int i =0;i< connections.size();i++){
             if(connections[i] != 0){
-                connections[i]->setSelected();
+                connections[i]->setSelected(true);
             }
         }
 
@@ -241,7 +239,7 @@ void NodeItem::setSelected(bool selected)
 
         for(int i =0;i< connections.size();i++){
             if(connections[i] != 0){
-            connections[i]->setDeselected();
+            connections[i]->setSelected(false);
             }
         }
         //itemChange(QGraphicsItem::ItemSelectedChange, false);
@@ -259,7 +257,7 @@ void NodeItem::setDeselected2()
 
     for(int i =0;i< connections.size();i++){
         if(connections[i] != 0){
-        connections[i]->setDeselected();
+        //connections[i]->s();
         }
     }
 }
@@ -418,7 +416,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         }else{
             //Left and Right buttons should target this line.
             previousPosition = event->scenePos();
-
             hasMoved = false;
             isPressed = true;
             //emit triggerSelected(this);

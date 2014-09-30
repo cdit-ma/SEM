@@ -81,6 +81,11 @@ void NodeEdge::addToScene(QGraphicsScene *scene)
     }
 }
 
+void NodeEdge::destructNodeEdge()
+{
+    delete this;
+}
+
 
 
 void NodeEdge::deleteD(Edge *)
@@ -88,14 +93,14 @@ void NodeEdge::deleteD(Edge *)
     delete this;
 }
 
-void NodeEdge::setSelected()
+void NodeEdge::setSelected(bool selected)
 {
-    graphicsEffect->setStrength(1);
-}
+    if(selected){
+         graphicsEffect->setStrength(1);
+    }else{
+         graphicsEffect->setStrength(0);
+    }
 
-void NodeEdge::setDeselected()
-{
-    graphicsEffect->setStrength(0);
 }
 
 void NodeEdge::setVisible(bool visible)
@@ -109,8 +114,7 @@ void NodeEdge::setVisible(bool visible)
 void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton ) {
-        emit this->setSelected(this);
-    }else if ( event->button() == Qt::RightButton ) {
+        emit this->setSelected(edge, true);
     }
 
 }

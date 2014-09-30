@@ -18,21 +18,12 @@ Node::Node(QString name): GraphMLContainer(GraphML::NODE, name)
 }
 
 Node::~Node(){
-    qCritical() << "Destructing Node: " << getID();
-
-    qCritical() << "Removing Edges: " << getID();
     removeEdges();
-    qCritical() << "Removed Edges: " << getID();
-    qCritical() << "Removing Children: " << getID();
     removeChildren();
-    qCritical() << "Removed Children: " << getID();
-
 
     if(this->getParent()){
         this->getParent()->disown(this);
     }
-    //setParent(0);
-
     emit destructGUI(this, getID());
 }
 

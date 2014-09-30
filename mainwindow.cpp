@@ -28,9 +28,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     //Add the Components which can be constructed in this canvas to the drop down box.
-    ui->constructBox->addItems(controller->getComponentKinds());
+    ui->constructBox->addItems(newController->getNodeKinds());
 
-    ui->aspectBox->addItems(controller->getViewAspects());
+    ui->aspectBox->addItems(newController->getViewAspects());
 
 
     //Connect Enable GUI flags.
@@ -246,9 +246,20 @@ void MainWindow::view_resetModel()
 
     newController = new NewController(ui->graphicsView);
 
-    controller = new GraphMLController(ui->graphicsView);
+    connect(ui->actionUndo, SIGNAL(triggered()), newController, SLOT(view_Undo()));
+    connect(ui->actionRedo, SIGNAL(triggered()), newController, SLOT(view_Redo()));
+    connect(ui->constructBox, SIGNAL(currentTextChanged(QString)), newController, SLOT(view_SetChildNodeKind(QString)));
+    connect(ui->actionExport_GraphML, SIGNAL(triggered()), newController, SLOT(view_ExportGraphML()));
+    connect(newController, SIGNAL(view_ExportGraphML(QString)), this, SLOT(view_CopyData(QString)));
+    connect(this, SIGNAL(view_ImportGraphML(QString)), newController, SLOT(view_ImportGraphML(QString)));
+    connect(this, SIGNAL(view_ImportGraphML(QStringList)), newController, SLOT(view_ImportGraphML(QStringList)));
 
+
+    controller = new GraphMLController(ui->graphicsView);
     this->ui->treeView->setModel(controller->getTreeModel());
+
+    /*
+
     //Connect to Models Signals
 
     connect(ui->constructBox, SIGNAL(currentTextChanged(QString)), controller, SLOT(view_SetChildNodeType(QString)));
@@ -262,8 +273,6 @@ void MainWindow::view_resetModel()
    // connect(this,SIGNAL(view_ImportGraphML(QStringList)),controller, SLOT(view_ImportGraphML(QStringList)));
     //connect(this,SIGNAL(view_ImportGraphML(QString)),controller, SLOT(view_ImportGraphML(QString)));
 
-    connect(this, SIGNAL(view_ImportGraphML(QString)), newController, SLOT(view_ImportGraphML(QString)));
-    connect(this, SIGNAL(view_ImportGraphML(QStringList)), newController, SLOT(view_ImportGraphML(QStringList)));
 
 
     connect(controller, SIGNAL(view_UndoCommandList(QStringList)), this, SLOT(updateUndoCount(QStringList)));
@@ -295,16 +304,17 @@ void MainWindow::view_resetModel()
     connect(this, SIGNAL(actionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
 
 
-    connect(ui->verticalSlider, SIGNAL(valueChanged(int)), ui->graphicsView, SLOT(depthChanged(int)));
 
     connect(controller, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setModel(AttributeTableModel*)));
 
 
+    connect(ui->verticalSlider, SIGNAL(valueChanged(int)), ui->graphicsView, SLOT(depthChanged(int)));
 
 
     controller->getModel()->moveToThread(this->modelThread);
     modelThread->start();
 
+    */
     emit ui->aspectBox->currentTextChanged("Assembly");
 
 }

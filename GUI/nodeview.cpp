@@ -191,11 +191,7 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
     NodeItem* node = dynamic_cast<NodeItem*>(item);
 
     if(node){
-        if(node->isSelected()){
-            this->setCursor(Qt::SizeAllCursor);
-        }else{
-            this->setCursor(Qt::SizeAllCursor);
-        }
+        this->setCursor(Qt::SizeAllCursor);
     }else{
         this->setCursor(Qt::ArrowCursor);
     }

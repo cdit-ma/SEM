@@ -34,12 +34,12 @@ public:
       Edge* edge;
     void  addToScene(QGraphicsScene* scene);
 signals:
-    void setSelected(NodeEdge *);
+    void setSelected(Edge *edge, bool selected);
 
 public slots:
+    void destructNodeEdge();
     void deleteD(Edge*);
-    void setSelected();
-    void setDeselected();
+    void setSelected(bool selected);
 
     void setVisible(bool visible);
 protected:

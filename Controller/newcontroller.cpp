@@ -2,34 +2,131 @@
 
 #include <QDebug>
 
+
+
 NewController::NewController(NodeView *v)
 {
+    UNDOING = false;
+    HIDDEN_OPACITY = 0.10;
+
     //Attach the view.
     view = v;
     model = new Model();
 
+    currentActionID = 0;
+    actionCount = 0;
+    currentAction = "";
+
+    childNodeKind="";
+
     centeredNode = 0;
-    nodeKindsImplemented << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "InEventPortIDL"  << "OutEventPort" << "OutEventPortIDL" << "Attribute" << "HardwareNode" << "HardwareCluster" << "PeriodicEvent" << "Component" << "Member";
+    nodeKinds << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "InEventPortIDL"  << "OutEventPort" << "OutEventPortIDL" << "Attribute" << "HardwareNode" << "HardwareCluster" << "PeriodicEvent" << "Component" << "Member";
 
 
     connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
-    connect(view, SIGNAL(shiftPressed(bool)), this, SLOT(view_ShiftTriggered(bool)));
-    connect(view, SIGNAL(deletePressed(bool)), this, SLOT(view_DeleteTriggered(bool)));
+    connect(view, SIGNAL(shiftPressed(bool)), this, SLOT(view_ShiftPressed(bool)));
+    connect(view, SIGNAL(deletePressed(bool)), this, SLOT(view_DeletePressed(bool)));
     connect(view, SIGNAL(selectAll()),this, SLOT(view_SelectAll()));
     connect(view, SIGNAL(unselect()),this, SLOT(view_ClearSelection()));
     connect(view, SIGNAL(constructNodeItem(QPointF)), this,SLOT(view_ConstructChildNode(QPointF)));
     connect(this, SIGNAL(view_SetNodeItemCentered(NodeItem*)), view, SLOT(centreItem(NodeItem*)));
 
-    connect(this, SIGNAL(view_TriggerRubberbandMode(bool)), view, SLOT(setRubberBandMode(bool)));
+    connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
 
     KEY_CONTROL_DOWN = false;
     KEY_SHIFT_DOWN = false;
 
-    aspects << "Assembly" << "Workload";
+    viewAspects << "Assembly" << "Workload";
+}
+
+QString NewController::exportGraphML(QVector<Node *> eNodes)
+{
+    QString keyXML, edgeXML, nodeXML;
+    QVector<Node*> containedNodes;
+    QVector<GraphMLKey*> containedKeys;
+    QVector<Edge*> containedEdges;
+
+    //Get all Children and Edges.
+    foreach(Node* node, eNodes){
+        if(containedNodes.contains(node) == false){
+            containedNodes.append(node);
+        }
+
+        //Get all keys used by this node.
+        foreach(GraphMLKey* key, node->getKeys())
+        {
+            //Add the <key> tag to the list of Keys contained.
+            if(!containedKeys.contains(key)){
+                containedKeys.append(key);
+                keyXML += key->toGraphML(1);
+            }
+        }
+
+        //Get all Children in this node.
+        foreach(GraphMLContainer* child, node->getChildren()){
+            Node* childNode = dynamic_cast<Node*>(child);
+            if(childNode && (containedNodes.contains(childNode) == false)){
+                containedNodes.append(childNode);
+            }
+        }
+    }
+
+    foreach(Node* node, eNodes){
+        foreach(Edge* edge, node->getEdges()){
+            Node* src = (Node*) edge->getSource();
+            Node* dst = (Node*) edge->getDestination();
+
+            //If the source and destination for all edges are inside the selection, then copy it.
+            if(containedNodes.contains(src) && containedNodes.contains(dst)){
+                if(containedEdges.contains(edge) == false){
+                    containedEdges.append(edge);
+                    edgeXML += edge->toGraphML(2);
+                }
+            }
+            //Get the Keys related to this edge.
+            foreach(GraphMLKey* key, edge->getKeys()){
+                if(!containedKeys.contains(key)){
+                    containedKeys.append(key);
+                    keyXML += key->toGraphML(1);
+                }
+            }
+        }
+        //Export the XML for this node
+        nodeXML += node->toGraphML(2);
+    }
+
+    QString returnable = QString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    returnable +="<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns\">\n";
+    returnable += keyXML;
+    returnable +="\n\t<graph edgedefault=\"directed\" id=\"parentGraph0\">\n";
+    returnable += nodeXML;
+    returnable += edgeXML;
+    returnable += "\t</graph>\n";
+    returnable += "</graphml>";
+
+    return returnable;
+}
+
+QString NewController::exportGraphML(Node *node)
+{
+    QVector<Node*> nodes;
+    nodes.append(node);
+    return exportGraphML(nodes);
+}
+
+QStringList NewController::getNodeKinds()
+{
+    return nodeKinds;
+}
+
+QStringList NewController::getViewAspects()
+{
+    return viewAspects;
 }
 
 void NewController::view_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent)
 {
+    view_ActionTriggered("Importing GraphML");
    // emit view_EnableGUI(false);
    // emit view_UpdateProgressDialog(true);
 
@@ -263,8 +360,12 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
                 //Add the new Node to the lookup table.
                 nodeLookup.insert(nodeID, newNode);
 
-                //Construct in GUI
-                //emit constructNodeItem(newNode);
+                if(UNDOING || REDOING){
+                    qCritical() << "Linking " << nodeID << " TO " << newNode->getID();
+                    previousNodeIDLookup[nodeID] = newNode->getID();
+                    previousNodeIDLookup[newNode->getID()] = "";
+
+                }
 
                 //If we have encountered a Graph object, we should point it to it's parent Node to allow links to Graph's
                 if(graphID != ""){
@@ -303,19 +404,61 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
 
 }
 
+void NewController::view_ExportGraphML()
+{
+
+    QVector<Node*> nodes;
+
+    foreach(GraphMLContainer* child, model->getGraph()->getChildren(0)){
+        Node* node = dynamic_cast<Node*>(child);
+        if(node){
+            nodes.append(node);
+        }
+    }
+
+    QString data = exportGraphML(nodes);
+
+    emit view_ExportGraphML(data);
+}
+
 void NewController::view_SetNodeSelected(Node *node, bool setSelected)
 {
     qCritical() << "view_SetNodeSelected";
 
     if(KEY_CONTROL_DOWN){
         //If it contains node, unselect it.
-        bool setSelected = !selectedNodes.contains(node);
+        bool setSelected = !isNodeSelected(node);
         setNodeSelected(node, setSelected);
     }else{
-        if(!selectedNodes.contains(node)){
-            //Clear selected nodes
-            clearSelectedNodes();
+        if(KEY_SHIFT_DOWN){
+            Node* src = getSelectedNode();
+            if(selectedEdges.size() == 0 && src != 0){
+                view_ActionTriggered("Constructing Child Node");
+                view_ConstructEdge(src, node);
+            }
+        }
+        if(!isNodeSelected(node)){
+            //Clear selected items
+            view_ClearSelection();
             setNodeSelected(node, setSelected);
+        }
+    }
+
+}
+
+void NewController::view_SetEdgeSelected(Edge *edge, bool setSelected)
+{
+    qCritical() << "view_SetEdgeSelected";
+
+    if(KEY_CONTROL_DOWN){
+        //If it contains node, unselect it.
+        bool setSelected = !isEdgeSelected(edge);
+        setEdgeSelected(edge, setSelected);
+    }else{
+        if(!isEdgeSelected(edge)){
+            //Clear selected items
+            view_ClearSelection();
+            setEdgeSelected(edge, setSelected);
         }
     }
 
@@ -334,6 +477,7 @@ void NewController::view_SetNodeCentered(Node *node)
 
 void NewController::view_ConstructChildNode(QPointF centerPoint)
 {
+
     //Get the current Selected Node.
     GraphMLContainer* parent = getSelectedNode();
     if(!parent){
@@ -352,11 +496,24 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
 
     data.append(new GraphMLData(x, QString::number(centerPoint.x())));
     data.append(new GraphMLData(y, QString::number(centerPoint.y())));
-    data.append(new GraphMLData(k, "OutEventPortIDL"));
-    data.append(new GraphMLData(t, ""));
-    data.append(new GraphMLData(l, "new_OutEventPort" ));
+    data.append(new GraphMLData(k, childNodeKind));
+    data.append(new GraphMLData(t, childNodeKind));
+    data.append(new GraphMLData(l, "new_" + childNodeKind ));
 
+    view_ActionTriggered("Constructing Child Node");
     constructGraphMLNode(data, parent);
+
+}
+
+void NewController::view_ConstructEdge(Node *src, Node *dst)
+{
+    if(isEdgeLegal(src, dst)){
+        Edge* edge = new Edge(src, dst);
+        setupEdge(edge);
+    }else{
+        qCritical() << "Edge not legal";
+    }
+
 
 }
 
@@ -374,36 +531,114 @@ void NewController::view_MoveSelectedNodes(QPointF delta)
 
 }
 
+void NewController::view_SetChildNodeKind(QString nodeKind)
+{
+
+    childNodeKind = nodeKind;
+}
+
+void NewController::view_HideUnconnectableNodes(Node *src)
+{
+    foreach(Node* dst, nodes){
+        if(!isEdgeLegal(src, dst) && (dst != src)){
+            NodeItem* nodeItem = getNodeItemFromNode(dst);
+            if(nodeItem){
+                nodeItem->setOpacity(HIDDEN_OPACITY);
+            }
+        }
+    }
+}
+
+void NewController::view_ShowAllNodes()
+{
+    foreach(Node* node, nodes){
+        NodeItem* nodeItem = getNodeItemFromNode(node);
+        if(nodeItem && nodeItem->opacity() != 1){
+            nodeItem->setOpacity(1);
+        }
+    }
+
+}
+
+void NewController::view_ActionTriggered(QString actionName)
+{
+    actionCount++;
+    currentAction = actionName;
+    currentActionID = actionCount;
+
+}
+
 void NewController::view_ControlPressed(bool isDown)
 {
-    qCritical() << "NewController::view_ControlPressed";
+
+    qCritical() << "Undo States: " << undoStack.count();
+    /*
+    qCritical() << "Edges: " << edges.count();
+    qCritical() << "Nodes: " << nodes.count();
+    qCritical() << "NodeItems: " << nodeItems.count();
+    qCritical() << "NodeEdges: " << nodeEdges.count();
+    qCritical() << "SelectedNodes: " << selectedNodes.count();
+    qCritical() << "SelectedEdges: " << selectedEdges.count();
+*/
 
     KEY_CONTROL_DOWN = isDown;
     if(KEY_CONTROL_DOWN && KEY_SHIFT_DOWN){
-        emit view_TriggerRubberbandMode(true);
+        emit view_SetRubberbandSelectionMode(true);
     }else{
-        emit view_TriggerRubberbandMode(false);
+        emit view_SetRubberbandSelectionMode(false);
 
     }
 }
 
-void NewController::view_ShiftTriggered(bool isDown)
+void NewController::view_ShiftPressed(bool isDown)
 {
     KEY_SHIFT_DOWN = isDown;
 
     if(KEY_CONTROL_DOWN && KEY_SHIFT_DOWN){
-        emit view_TriggerRubberbandMode(true);
+        emit view_SetRubberbandSelectionMode(true);
     }else{
-        emit view_TriggerRubberbandMode(false);
+        emit view_SetRubberbandSelectionMode(false);
     }
+
+    if(KEY_SHIFT_DOWN){
+        Node* node = getSelectedNode();
+        if(node){
+            view_HideUnconnectableNodes(node);
+        }
+    }else{
+        view_ShowAllNodes();
+
+    }
+
 }
 
-void NewController::view_DeleteTriggered(bool isDown)
+void NewController::view_DeletePressed(bool isDown)
 {
      if(isDown){
-         deleteSelectedNodes();
+         view_ActionTriggered("Deleting Selection");
          //Do Delete
+         deleteSelectedEdges();
+         deleteSelectedNodes();
      }
+}
+
+void NewController::view_Undo()
+{
+    UNDOING = true;
+    undoRedo();
+    /*if(undoStack.size() > 0){
+        invertAction(undoStack.pop());
+    }*/
+    UNDOING = false;
+    view->scene()->update();
+}
+
+void NewController::view_Redo()
+{
+    REDOING = true;
+    undoRedo();
+    REDOING = false;
+    view->scene()->update();
 }
 
 void NewController::view_SelectAll()
@@ -434,13 +669,15 @@ void NewController::view_SelectAll()
 
 void NewController::view_ClearSelection()
 {
+    clearSelectedEdges();
     clearSelectedNodes();
 
 }
 
-void NewController::model_ConstructNodeItem(Node *node)
+void NewController::view_ConstructNodeItem(Node *node)
 {
     if(node == 0){
+        qCritical() << "Node is Null";
         return;
     }
 
@@ -449,9 +686,13 @@ void NewController::model_ConstructNodeItem(Node *node)
     //If we are meant to make this node.
     if(isNodeKindImplemented(nodeKind)){
         //Get Visual Parent Node
+
         Node* parentNode = node->getParentNode();
         NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
 
+        if(!parentNodeItem){
+            qCritical() << "No NodeItem";
+        }
         NodeItem* nodeItem = new NodeItem(node, parentNodeItem);
 
         nodeItems.append(nodeItem);
@@ -459,11 +700,11 @@ void NewController::model_ConstructNodeItem(Node *node)
 
         connect(nodeItem, SIGNAL(setNodeSelected(Node*, bool)),this, SLOT(view_SetNodeSelected(Node*,bool)));
         connect(nodeItem, SIGNAL(centreNode(Node*)), this, SLOT(view_SetNodeCentered(Node*)));
-        connect(node, SIGNAL(destroyed()), nodeItem, SLOT(destructNodeItem()));
-        connect(this, SIGNAL(view_TriggerRubberbandMode(bool)),nodeItem, SLOT(setRubberbandMode(bool)));
-
         connect(nodeItem, SIGNAL(makeChildNode(QPointF)), this,SLOT(view_ConstructChildNode(QPointF)));
         connect(nodeItem, SIGNAL(moveSelection(QPointF)), this, SLOT(view_MoveSelectedNodes(QPointF)));
+
+        connect(node, SIGNAL(destroyed()), nodeItem, SLOT(destructNodeItem()));
+        connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)),nodeItem, SLOT(setRubberbandMode(bool)));
 
         connect(view, SIGNAL(controlPressed(bool)), nodeItem, SLOT(controlPressed(bool)));
         /*
@@ -537,14 +778,37 @@ void NewController::model_ConstructNodeItem(Node *node)
 
          */
 
-
-        //Add Item to view
-
-        //emit view_addNodeItem(newNodeItem);
     }else{
         qCritical() << "GraphMLController::model_MadeNodeNew() << Node Kind: " << nodeKind << " not Implemented";
     }
 
+}
+
+void NewController::view_ConstructNodeEdge(Edge *edge)
+{
+    Node* src = (Node*) edge->getSource();
+    Node* dst = (Node*) edge->getDestination();
+
+    NodeItem* srcGUI = getNodeItemFromNode(src);
+    NodeItem* dstGUI = getNodeItemFromNode(dst);
+
+    if(srcGUI != 0 && dstGUI != 0){
+        //We have valid GUI elements for both ends of this edge.
+        //Make an action for this Operation.
+
+        //Construct a new GUI Element for this edge.
+        NodeEdge* nodeEdge = new NodeEdge(edge, srcGUI, dstGUI);
+
+        //Add it to the list of EdgeItems in the Model.
+        nodeEdges.append(nodeEdge);
+
+        connect(edge, SIGNAL(destroyed()), nodeEdge, SLOT(destructNodeEdge()));
+        connect(nodeEdge, SIGNAL(setSelected(Edge*,bool)), this, SLOT(view_SetEdgeSelected(Edge*,bool)));
+
+        view->addEdgeItem(nodeEdge);
+    }else{
+        qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
+    }
 }
 
 QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attrID)
@@ -643,14 +907,12 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
         aspects << "Workload" << "Assembly";
     }
 
-    qCritical() << "Built finished?";
-
     foreach(QString aspect, aspects){
         newNode->addAspect(aspect);
     }
 
     newNode->attachData(data);
-
+    qCritical() << "Node Made!!?";
     //Adopt the new Node into the parent
     if(parent->isAdoptLegal(newNode)){
         parent->adopt(newNode);
@@ -661,9 +923,6 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
         delete newNode;
         return 0;
     }
-
-
-    qCritical() << "Constructed finished?";
 
     return newNode;
 }
@@ -683,31 +942,31 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
     return attribute;
 }
 
-void NewController::setupEdge(Edge *edge)
-{
-    //Add the edge to the list of edges constructed.
-    edges.append(edge);
 
-    //connect(edge, SIGNAL(constructGUI(Edge*)),this, SLOT(model_ConstructGUIEdge(Edge*)));
-   // connect(edge, SIGNAL(destructGUI(Edge*,QString, QString, QString)), this, SLOT(model_DestructGUIEdge(Edge*,QString, QString, QString)));
-
-    //QEventLoop pause;
-   // connect(this, SIGNAL(disableLock()), &pause, SLOT(quit()));
-    emit edge->constructGUI(edge);
-    //pause.exec();
-
-}
 
 void NewController::clearSelectedNodes()
 {
     qCritical() << "NewController::clearSelectedNodes";
-   foreach(Node* node, selectedNodes){
+    foreach(Node* node, selectedNodes){
         NodeItem* nodeItem = getNodeItemFromNode(node);
         if(nodeItem != 0){
             nodeItem->setSelected(false);
         }
-   }
-   selectedNodes.clear();
+    }
+    selectedNodes.clear();
+    view->scene()->update();
+}
+
+void NewController::clearSelectedEdges()
+{
+    qCritical() << "NewController::clearSelectedEdges";
+    foreach(Edge* edge, selectedEdges){
+        NodeEdge* nodeEdge = getNodeEdgeFromEdge(edge);
+        if(nodeEdge != 0){
+            nodeEdge->setSelected(false);
+        }
+    }
+    selectedEdges.clear();
     view->scene()->update();
 }
 
@@ -737,15 +996,56 @@ void NewController::setNodeSelected(Node *node, bool setSelected)
             qCritical() << "Selected: " << node->getID();
             qCritical() << "Size: " << this->selectedNodes.size();
         }
+
+        //Check all selected Edges.
+        foreach(Edge* selectedEdge, selectedEdges){
+            Node* src = (Node *) selectedEdge->getSource();
+            Node* dst = (Node *) selectedEdge->getDestination();
+
+            if(node == src || node == dst){
+                setEdgeSelected(selectedEdge, false);
+            }
+        }
+
+
         //Check to see if
     }else{
         nodeItem->setSelected(false);
         //Remove from list.
         int position = selectedNodes.indexOf(node);
-        selectedNodes.removeAt(position);
+        if(position >= 0){
+            selectedNodes.removeAt(position);
+        }
     }
     view->scene()->update();
 
+}
+
+void NewController::setEdgeSelected(Edge *edge, bool setSelected)
+{
+    NodeEdge* nodeEdge = getNodeEdgeFromEdge(edge);
+
+    if(nodeEdge == 0){
+        qCritical() << "Null NodeEdge";
+        return;
+    }
+
+    if(setSelected){
+
+        Node* src = (Node *) edge->getSource();
+        Node* dst = (Node *) edge->getDestination();
+
+        if(!isNodeSelected(src) && !isNodeSelected(dst)){
+            nodeEdge->setSelected(true);
+            selectedEdges.append(edge);
+        }
+    }else{
+        nodeEdge->setSelected(false);
+        //Remove from list.
+        int position = selectedEdges.indexOf(edge);
+        selectedEdges.removeAt(position);
+    }
+    view->scene()->update();
 }
 
 Node *NewController::getSelectedNode()
@@ -755,6 +1055,105 @@ Node *NewController::getSelectedNode()
     }
 
     return 0;
+}
+
+void NewController::deleteNode(Node *node, bool addAction)
+{
+    if(node){
+        QVector<GraphMLContainer*> children = node->getChildren(1);
+        QVector<Edge*> childEdges = node->getEdges(1);
+
+        QString xml;
+        if(addAction){
+            xml = exportGraphML(node);
+        }
+
+
+        //Remove all Children Nodes
+        foreach(GraphMLContainer* child, children){
+            Node* childNode = dynamic_cast<Node*>(child);
+            if(childNode){
+                deleteNode(childNode, false);
+            }
+        }
+
+        //Remove all Edges
+        foreach(Edge* edge, childEdges){
+            deleteEdge(edge, true);
+        }
+
+        NodeItem* nodeItem = getNodeItemFromNode(node);
+
+        //Remove Node from list.
+        int position = nodes.indexOf(node);
+        nodes.removeAt(position);
+
+        //Remove NodeItem from list.
+        position = nodeItems.indexOf(nodeItem);
+        nodeItems.removeAt(position);
+
+        //Remove Node from selectedNode list
+        //position = selectedNodes.indexOf(childNode);
+        //selectedNodes.removeAt(position);
+
+        if(addAction){
+            ActionItem action;
+            action.actionKind = GraphML::NODE;
+            action.actionType = DESTRUCTED;
+            action.removedXML = xml;
+            action.ID = node->getID();
+
+            action.parentID = "";
+
+            if(node->getParentNode()){
+                action.parentID = node->getParentNode()->getID();
+            }
+            addActionToStack(action);
+        }
+
+
+
+        delete node;
+    }else{
+        qCritical() << "Node doesn't exist!!";
+    }
+}
+
+void NewController::deleteEdge(Edge *edge, bool addAction)
+{
+    if(edge){
+        if(addAction){
+            ActionItem action;
+            action.actionType = DESTRUCTED;
+            action.actionKind = GraphML::EDGE;
+            action.ID = edge->getID();
+
+            action.srcID = edge->getSource()->getID();
+            action.dstID = edge->getDestination()->getID();
+
+            addActionToStack(action);
+        }
+
+
+        NodeEdge* nodeEdge = getNodeEdgeFromEdge(edge);
+
+        //Remove Edge from list.
+        int position = edges.indexOf(edge);
+        edges.removeAt(position);
+
+        //Remove NodeEdge from list.
+        position = nodeEdges.indexOf(nodeEdge);
+        nodeEdges.removeAt(position);
+
+        //Remove Edge from selectedEdges list
+        position = selectedEdges.indexOf(edge);
+        selectedEdges.removeAt(position);
+
+        delete edge;
+    }else{
+         qCritical() << "Edge doesn't exist!!";
+
+    }
 }
 
 bool NewController::isNodesAncestorSelected(Node *selectedNode)
@@ -767,35 +1166,216 @@ bool NewController::isNodesAncestorSelected(Node *selectedNode)
     return false;
 }
 
+bool NewController::isNodeSelected(Node *node)
+{
+    return selectedNodes.contains(node);
+}
+
+bool NewController::isEdgeSelected(Edge *edge)
+{
+    return selectedEdges.contains(edge);
+}
+
+bool NewController::isEdgeLegal(Node *src, Node *dst)
+{
+    if(src && dst){
+        return src->isEdgeLegal(dst) && dst->isEdgeLegal(src);
+    }
+    return false;
+
+}
+
 bool NewController::isNodeKindImplemented(QString nodeKind)
 {
-    return nodeKindsImplemented.contains(nodeKind);
+    return nodeKinds.contains(nodeKind);
+}
+
+void NewController::reverseAction(ActionItem action)
+{
+    switch(action.actionType){
+
+    case CONSTRUCTED:{
+        switch(action.actionKind){
+        case GraphML::NODE:{
+            //Delete Node.
+            Node* node = getNodeFromPreviousID(action.ID);
+            deleteNode(node);
+            break;
+        }
+        case GraphML::EDGE:{
+            Edge* edge = getEdgeFromID(action.ID);
+            deleteEdge(edge);
+            break;
+        }
+        default:{
+            break;
+        }
+        }
+        break;
+    }
+
+    case DESTRUCTED:{
+        switch(action.actionKind){
+        case GraphML::NODE:{
+
+            //Get Parent Node
+            qCritical() << "Previous Parent: " << action.parentID;
+            Node* node = getNodeFromPreviousID(action.parentID);
+            view_ImportGraphML(action.removedXML, node);
+            break;
+        }
+        case GraphML::EDGE:{
+            Node* src = getNodeFromPreviousID(action.srcID);
+            Node* dst = getNodeFromPreviousID(action.dstID);
+            qCritical() << src->toString();
+            qCritical() << dst->toString();
+            if(isEdgeLegal(src,dst)){
+                view_ConstructEdge(src,dst);
+            }
+            break;
+        }
+        default:{
+            break;
+        }
+        }
+        break;
+
+
+
+    }
+    }
+
+}
+
+void NewController::addActionToStack(ActionItem action)
+{
+    //Get Current Action ID and action.
+    action.actionID = currentActionID;
+    action.actionName = currentAction;
+
+    if(UNDOING){
+        qCritical() << "Added to Redo Stack";
+        redoStack.push(action);
+    }else{
+        qCritical() << "Added to Undo Stack";
+        undoStack.push(action);
+    }
+}
+
+void NewController::undoRedo()
+{
+    QStack<ActionItem> reverseStack;
+
+    if(UNDOING){
+        reverseStack = undoStack;
+    }else{
+        reverseStack = redoStack;
+    }
+
+    if(reverseStack.size() == 0){
+        qCritical () << "No Actions to reverse!";
+        return;
+    }
+
+    int actionID = reverseStack.top().actionID;
+    QString actionName = reverseStack.top().actionName;
+
+    //Emit a new action so this Undo operation can itself be undone.
+    view_ActionTriggered(actionName);
+    //emit view_ActionTriggered(actionName);
+
+    qCritical() << "Current Action: " << actionID;
+    //Reverse all the actions which match the actionID.
+
+    while(reverseStack.size() > 0){
+        ActionItem action = reverseStack.top();
+
+        qCritical() << "Action: " << action.actionID;
+        //If this action is part of the currentAction reverse it.
+        if(action.actionID == actionID){
+            reverseAction(reverseStack.pop());
+        }else{
+            break;
+        }
+    }
+
+    if(UNDOING){
+        undoStack = reverseStack;
+    }else{
+        redoStack = reverseStack;
+    }
+
+}
+
+NodeEdge *NewController::getNodeEdgeFromEdge(Edge *edge)
+{
+    foreach(NodeEdge* nodeEdge, nodeEdges){
+        if(nodeEdge->edge == edge){
+            return nodeEdge;
+        }
+    }
+    return 0;
 }
 
 void NewController::deleteSelectedNodes()
 {
     foreach(Node* node, selectedNodes){
-        int position = nodes.indexOf(node);
-        nodes.removeAt(position);
         if(node->isAncestorOf(centeredNode)){
             centeredNode = 0;
         }
-        delete node;
+
+        deleteNode(node);
     }
     selectedNodes.clear();
 }
 
+void NewController::deleteSelectedEdges()
+{
+    foreach(Edge* edge, selectedEdges){
+        deleteEdge(edge);
+
+    }
+    selectedEdges.clear();
+}
+
 void NewController::setupNode(Node *node)
 {
+    //Construct Action
+
+    ActionItem action;
+    action.actionType = CONSTRUCTED;
+    action.actionKind = GraphML::NODE;
+    action.ID = node->getID();
+
+    //Get the Parent ID.
+    QString parentID = "";
+    if(node->getParentNode()){
+        parentID = node->getParentNode()->getID();
+    }
+
+    action.parentID = parentID;
+
+    addActionToStack(action);
+
     nodes.append(node);
 
-    //Wait for the GUI element to be made.
-    //QEventLoop pause;
-   // connect(this, SIGNAL(disableLock()), &pause, SLOT(quit()));
-    model_ConstructNodeItem(node);
-    //emit node->constructGUI(node);
-    //pause.exec();
 
+    view_ConstructNodeItem(node);
+}
+
+void NewController::setupEdge(Edge *edge)
+{
+    ActionItem action;
+    action.actionType = CONSTRUCTED;
+    action.actionKind = GraphML::EDGE;
+    action.ID = edge->getID();
+
+
+    addActionToStack(action);
+
+    //Add the edge to the list of edges constructed.
+    edges.append(edge);
+    view_ConstructNodeEdge(edge);
 }
 
 NodeItem *NewController::getNodeItemFromNode(Node *node)
@@ -806,5 +1386,51 @@ NodeItem *NewController::getNodeItemFromNode(Node *node)
         }
     }
     return 0;
+}
+
+Node *NewController::getNodeFromID(QString ID)
+{
+    foreach(Node* node, nodes){
+        if(node->getID() == ID){
+            return node;
+        }
+    }
+    return 0;
+}
+
+Edge *NewController::getEdgeFromID(QString ID)
+{
+    foreach(Edge* edge, edges){
+        if(edge->getID() == ID){
+            return edge;
+        }
+    }
+    return 0;
+
+}
+
+Node *NewController::getNodeFromPreviousID(QString ID)
+{
+    qCritical() << "OLD ID:" << ID;
+    QString newID = ID;
+    while(newID != ""){
+         if(previousNodeIDLookup.contains(ID)){
+             QString temp = ID;
+             ID = newID;
+             newID = previousNodeIDLookup[temp];
+         }else{
+             break;
+         }
+    }
+    qCritical() << "NEW ID:" << ID;
+
+    Node* node = getNodeFromID(ID);
+
+
+    if(node){
+    }else{
+        qCritical() << "No Node!";
+    }
+    return node;
 }
 

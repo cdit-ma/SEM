@@ -250,7 +250,7 @@ void GraphMLController::reverseAction(Action action)
         }
         break;
     }
-    case MODIFIED:{
+    case MODIFY:{
         qCritical() << "Attribute Modified";
         //Reverse an attribute change.
         //Get the node which data has changed.
@@ -660,7 +660,7 @@ void GraphMLController::view_updateGraphMLData(Node *node, QString key, QString 
 {
     if(node != 0 && node->getData(key) != 0){
         Action updatedAction;
-        updatedAction.actionType = MODIFIED;
+        updatedAction.actionType = MODIFY;
         updatedAction.itemKind = GraphML::DATA;
         updatedAction.itemID = node->getID();
         updatedAction.key = key;
@@ -703,6 +703,7 @@ void GraphMLController::view_SetSelected(QModelIndex index)
     GUIContainer* item = getGUIContainer(index);
     nodeItem_Selected(item->nodeItem);
 }
+
 
 void GraphMLController::undoRedo(bool UNDO)
 {
@@ -853,13 +854,13 @@ void GraphMLController::deselectEdgeItems(NodeEdge *selectedEdgeItem)
 {
     if(selectedEdgeItem == 0){
         for(int i = 0; i < selectedEdgeItems.size(); i++){
-            selectedEdgeItems[i]->setDeselected();
+            //selectedEdgeItems[i]->setDeselected();
         }
         selectedEdgeItems.clear();
     }else{
         int position = selectedEdgeItems.indexOf(selectedEdgeItem);
         selectedEdgeItems.removeAt(position);
-        selectedEdgeItem->setDeselected();
+        //selectedEdgeItem->setDeselected();
     }
 }
 
@@ -880,7 +881,7 @@ void GraphMLController::selectEdgeItem(NodeEdge *selectedEdgeItem)
     if(!selectedEdgeItems.contains(selectedEdgeItem)){
         selectedEdgeItems.append(selectedEdgeItem);
     }
-    selectedEdgeItem->setSelected();
+    //selectedEdgeItem->setSelected();
 }
 
 GraphMLContainer *GraphMLController::getSingleSelectedNode()
@@ -899,6 +900,14 @@ NodeItem *GraphMLController::getSingleSelectedNodeItem()
         return selectedNodeItems[0];
     }
     return 0;
+}
+
+bool GraphMLController::isEdgeLegal(Node *src, Node *dst)
+{
+    if(src && dst){
+        return src->isEdgeLegal(dst) && dst->isEdgeLegal(src);
+    }
+    return false;
 }
 
 bool nodeItemLessThan(NodeItem* o1, NodeItem* o2){

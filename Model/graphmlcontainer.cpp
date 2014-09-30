@@ -49,8 +49,11 @@ QVector<Edge *> GraphMLContainer::getEdges(int depth)
 
     //Append this GraphMLContainers Edges which originate from here.
     for(int i=0; i < edges.size(); i++){
-        if(edges[i]->getSource() == this){
-            returnable.append(this->edges[i]);
+        if(edges[i]->getSource() == this || edges[i]->getDestination() == this){
+            if(!returnable.contains(edges[i])){
+                returnable.append(this->edges[i]);
+
+            }
         }
     }
 
@@ -59,7 +62,10 @@ QVector<Edge *> GraphMLContainer::getEdges(int depth)
         for(int i=0; i < descendants.size(); i++){
             QVector<Edge *> toAppend = descendants.at(i)->getEdges(depth -1);
             for(int j=0; j < toAppend.size(); j++){
-                returnable.append(toAppend[j]);
+                if(!returnable.contains(toAppend[j])){
+                    returnable.append(toAppend[j]);
+
+                }
             }
         }
     }
@@ -98,7 +104,6 @@ void GraphMLContainer::disown(GraphMLContainer *child)
 {
        if(isAncestorOf(child)){
         for (int i = 0; i < descendants.size(); i++){
-            qDebug() << "\t" << descendants[i]->getID();
             if(descendants[i] == child){
                 //delete descendants[i];
                 descendants.removeAt(i);
@@ -180,25 +185,14 @@ QVector<GraphMLKey *> GraphMLContainer::getKeys(int depth)
 
 void GraphMLContainer::addEdge(Edge *edge)
 {
-    qDebug() << "Attached Edge to: " << getName() << " [" << getKind() << "]";
-    qDebug()  << "\tAttached Edge: " << edge->getID();
     edges.append(edge);
 }
 
 void GraphMLContainer::removeEdge(Edge *edge)
 {
-    qDebug() << "Removing Edge from: " << getName() << " [" << getKind() << "]";
-    qDebug() << "Looking for Edge: " << edge->getID();
-    qDebug() << "Edges: " << edges.size();
-
-    for (int i = 0; i < edges.size(); i++){
-        qDebug() << "\t" << edges[i]->getID();
-    }
-
     if(this->edges.contains(edge)){
         for (int i = 0; i < this->edges.size(); i++){
             if(this->edges[i] == edge){
-                qDebug() << "Edge Removed!";
                 edges.removeAt(i);
             }
         }

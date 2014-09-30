@@ -15,7 +15,7 @@
 #include <QHash>
 #include <QStack>
 #include "../GUI/attributetablemodel.h"
-enum ACTION_TYPE {CONSTRUCT, DESTRUCT, MODIFIED};
+enum ACTION_TYPE2 {CONSTRUCT, DESTRUCT, MODIFY};
 
 struct GUIContainer{
     NodeItem* nodeItem;
@@ -27,7 +27,7 @@ struct GUIContainer{
 
 struct Action{
     GraphML::KIND itemKind;
-    ACTION_TYPE actionType;
+    ACTION_TYPE2 actionType;
     QString itemID;
     QString srcID;
     QString dstID;
@@ -140,6 +140,7 @@ public slots:
     void view_SetCentered(QModelIndex index);
     void view_SetSelected(QModelIndex index);
 
+
 private:
     void undoRedo(bool UNDO);
     bool KEY_CONTROL_DOWN;
@@ -152,6 +153,8 @@ private:
 
     GraphMLContainer* getSingleSelectedNode();
     NodeItem* getSingleSelectedNodeItem();
+
+    bool isEdgeLegal(Node* src, Node* dst);
 
     void hideAllMatches(Node* node);
     void resetMatches();
