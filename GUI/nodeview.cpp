@@ -220,9 +220,6 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }else if( event->button() == Qt::LeftButton && CONTROL_DOWN){
             origin = scenePos.toPoint();
         }else{
-
-
-
             emit unselect();
         }
     }

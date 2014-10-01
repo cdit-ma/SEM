@@ -12,6 +12,11 @@ GraphMLItem::GraphMLItem(GraphML* graph): QObject(0)
     table = new AttributeTableModel(this);
 }
 
+GraphMLItem::~GraphMLItem()
+{
+    delete table;
+}
+
 GraphML *GraphMLItem::getGraphML()
 {
     return attachedGraph;

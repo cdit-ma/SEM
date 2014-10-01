@@ -113,28 +113,28 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_4">
           <item>
-           <widget class="QListView" name="UndoListView"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_6">
+           <widget class="QLabel" name="label">
             <property name="text">
-             <string>Undo</string>
+             <string>Undo Actions</string>
             </property>
            </widget>
+          </item>
+          <item>
+           <widget class="QListView" name="UndoListView"/>
           </item>
          </layout>
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
-           <widget class="QListView" name="RedoListView"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_7">
+           <widget class="QLabel" name="label_6">
             <property name="text">
-             <string>Redo</string>
+             <string>Redo Actions</string>
             </property>
            </widget>
+          </item>
+          <item>
+           <widget class="QListView" name="RedoListView"/>
           </item>
          </layout>
         </item>
@@ -278,6 +278,7 @@
     <addaction name="actionCopy"/>
     <addaction name="actionPaste"/>
     <addaction name="actionMake_Instance"/>
+    <addaction name="actionClearHistory"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -370,6 +371,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+I</string>
+   </property>
+  </action>
+  <action name="actionClearHistory">
+   <property name="text">
+    <string>Clear History</string>
    </property>
   </action>
  </widget>

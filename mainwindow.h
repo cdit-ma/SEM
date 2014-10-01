@@ -79,7 +79,7 @@ private slots:
     void on_actionMake_Instance_triggered();
 
 private:
-    GraphMLController* controller;
+    //GraphMLController* controller;
 
     NewController* newController;
 

@@ -92,6 +92,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
 NodeItem::~NodeItem()
 {
+    delete graphicsEffect;
+    delete rubberBand;
+    delete label;
 }
 
 

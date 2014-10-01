@@ -61,6 +61,7 @@ signals:
     void view_UpdateUndoList(QStringList list);
     void view_UpdateRedoList(QStringList list);
 
+    void view_updateCopyBuffer(QString data);
 public slots:
     void view_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
     void view_ImportGraphML(QString, GraphMLContainer *currentParent=0);
@@ -88,6 +89,7 @@ public slots:
     void view_ActionTriggered(QString actionName);
 
     //Keyboard Actions
+    void view_ClearHistory();
     void view_ControlPressed(bool isDown);
     void view_ShiftPressed(bool isDown);
     void view_DeletePressed(bool isDown);
@@ -96,9 +98,14 @@ public slots:
     void view_Undo();
     void view_Redo();
 
+    void view_Copy();
+    void view_Cut();
+    void view_Paste(QString xmlData);
+
 
     //Selection Actions.
     void view_SelectAll();
+    void view_ClearCenteredNode();
     void view_ClearSelection();
 
 private slots:
@@ -107,6 +114,7 @@ private slots:
 
 
 private:
+    bool copySelection();
     //Gets a specific Attribute from the current Element in the XML. returns "" if none.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attrID);
 
@@ -122,6 +130,9 @@ private:
     //Connects Node object and stores into a vector.
     void setupNode(Node* node);
 
+    bool isGraphMLValid(QString inputGraphML);
+
+
     //Connects Edge object and stores into a vector.
     void setupEdge(Edge* edge);
     void updateGUIUndoRedoLists();
@@ -130,7 +141,7 @@ private:
     Node* getSelectedNode();
     Edge* getSelectedEdge();
 
-    void deleteNode(Node* node, bool addAction = true);
+    void deleteNode(Node* node);
     void deleteEdge(Edge* edge, bool addAction = true);
 
     void setNodeSelected(Node* node, bool setSelected=true);
@@ -211,7 +222,9 @@ private:
     qreal HIDDEN_OPACITY;
 
     NodeView* view;
-    Model* model;
+
+    Graph* getParentGraph();
+    Graph* parentGraph;
 
     int actionCount;
     QString currentAction;

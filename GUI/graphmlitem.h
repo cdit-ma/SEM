@@ -10,6 +10,7 @@ class GraphMLItem: public QObject
     Q_OBJECT
 public:
     GraphMLItem(GraphML* attachedGraph);
+    ~GraphMLItem();
     GraphML* getGraphML();
     AttributeTableModel* getAttributeTable();
 signals:

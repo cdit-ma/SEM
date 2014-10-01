@@ -47,7 +47,10 @@ NodeEdge::~NodeEdge()
 {
     source->deleteConnnection(this);
     destination->deleteConnnection(this);
+
     delete QGline;
+    //delete label;
+    //delete graphicsEffect;
 }
 
 QRectF NodeEdge::boundingRect() const

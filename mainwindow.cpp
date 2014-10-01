@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     modelThread = new QThread();
 
     //Set the Controller and Model to 0
-    controller = 0;
+    newController = 0;
 
     view_resetModel();
 
@@ -117,11 +117,11 @@ void MainWindow::updateZoom(qreal zoom)
 void MainWindow::updateUndoCount(QStringList list)
 {
     if(list.size() == 0){
-        ui->pushButton_6->setEnabled(false);
+        ui->actionUndo->setEnabled(false);
     }else{
-        ui->pushButton_6->setEnabled(true);
+        ui->actionUndo->setEnabled(true);
     }
-    ui->pushButton_6->setText(QString("Undo [%1]").arg(list.size()));
+    ui->actionUndo->setText(QString("Undo [%1]").arg(list.size()));
 
     QStandardItemModel*  undoModel = new QStandardItemModel(this);
 
@@ -140,12 +140,12 @@ void MainWindow::updateUndoCount(QStringList list)
 void MainWindow::updateRedoCount(QStringList list)
 {
     if(list.size() == 0){
-        ui->pushButton_7->setEnabled(false);
+        ui->actionRedo->setEnabled(false);
     }else{
-        ui->pushButton_7->setEnabled(true);
+        ui->actionRedo->setEnabled(true);
     }
 
-    ui->pushButton_7->setText(QString("Redo [%1]").arg(list.size()));
+    ui->actionRedo->setText(QString("Redo [%1]").arg(list.size()));
 
     QStandardItemModel*  redoModel = new QStandardItemModel(this);
 
@@ -239,16 +239,21 @@ void MainWindow::on_actionPaste_triggered()
 
 void MainWindow::view_resetModel()
 {
-    if(controller){
-        delete controller;
-        //scene->clear();
-        //scene->items().clear();
+    if(newController){
+        delete newController;
     }
 
     newController = new NewController(ui->graphicsView);
 
     connect(ui->actionUndo, SIGNAL(triggered()), newController, SLOT(view_Undo()));
     connect(ui->actionRedo, SIGNAL(triggered()), newController, SLOT(view_Redo()));
+    connect(ui->actionCopy, SIGNAL(triggered()), newController, SLOT(view_Copy()));
+    connect(ui->actionCut, SIGNAL(triggered()), newController, SLOT(view_Cut()));
+    connect(this, SIGNAL(view_PasteData(QString)), newController, SLOT(view_Paste(QString)));
+
+
+    connect(ui->actionClearHistory, SIGNAL(triggered()), newController, SLOT(view_ClearHistory()));
+
     connect(ui->constructBox, SIGNAL(currentTextChanged(QString)), newController, SLOT(view_SetChildNodeKind(QString)));
     connect(ui->actionExport_GraphML, SIGNAL(triggered()), newController, SLOT(view_ExportGraphML()));
     connect(newController, SIGNAL(view_ExportGraphML(QString)), this, SLOT(view_CopyData(QString)));
@@ -260,8 +265,9 @@ void MainWindow::view_resetModel()
     connect(newController, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoCount(QStringList)));
     connect(newController, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoCount(QStringList)));
 
-    controller = new GraphMLController(ui->graphicsView);
-    this->ui->treeView->setModel(controller->getTreeModel());
+    connect(newController, SIGNAL(view_updateCopyBuffer(QString)), this, SLOT(view_CopyData(QString)));
+
+    //this->ui->treeView->setModel(controller->getTreeModel());
 
     /*
 

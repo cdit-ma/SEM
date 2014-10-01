@@ -256,7 +256,6 @@ void GraphMLController::reverseAction(Action action)
         //Get the node which data has changed.
         qCritical() << "Attribute Modified" << action.itemID;
         Node* node = (Node*)undoLookup[action.itemID];
-        qCritical() << node->getID();
 
         //Reverse the change of GraphMLData
         emit view_updateGraphMLData(node, action.key, action.previousValue);
@@ -584,24 +583,17 @@ void GraphMLController::nodeItem_Selected(NodeItem *nodeItem)
     qCritical() << "GraphMLController::NodeItem_Selected";
     if(KEY_CONTROL_DOWN){
         //If we have already got this item in the selected Item list, deselect it.
-        qCritical() << "1";
         if(selectedNodeItems.contains(nodeItem)){
-            qCritical() << "2";
             deselectNodeItems(nodeItem);
-            qCritical() << "3";
             return;
         }
     }else{
-        qCritical() << "4";
         deselectEdgeItems();
-        qCritical() << "5";
     }
 
     if(KEY_SHIFT_DOWN){
 
-         qCritical() << "6";
         if(selectedNodeItems.size() == 1){
-             qCritical() << "7";
             //Get the previous Node
             Node* previousNode = selectedNodeItems[0]->node;
             Node* currentNode = nodeItem->node;
@@ -613,18 +605,14 @@ void GraphMLController::nodeItem_Selected(NodeItem *nodeItem)
 
     }
 
-    qCritical() << "8";
 
 
     if(KEY_SHIFT_DOWN == false && KEY_CONTROL_DOWN == false){
-        qCritical() << "8.5";
         deselectNodeItems();
     }
 
-     qCritical() << "9";
 
     selectNodeItem(nodeItem);
-    qCritical() << "10";
 }
 
 void GraphMLController::nodeItem_SetCentered(NodeItem *nodeItem)
@@ -831,22 +819,16 @@ void GraphMLController::view_ActionTriggered(QString action)
 void GraphMLController::deselectNodeItems(NodeItem *selectedNodeItem)
 {
     if(selectedNodeItem == 0){
-        qCritical() << "1";
         for(int i = 0; i < selectedNodeItems.size(); i++){
-            qCritical() << "2";
             if(selectedNodeItems[i] != 0){
-                qCritical() << "3";
                 selectedNodeItems[i]->setDeselected2();
             }
         }
-        qCritical() << "4";
         selectedNodeItems.clear();
     }else{
-        qCritical() << "5";
         int position = selectedNodeItems.indexOf(selectedNodeItem);
         selectedNodeItems.removeAt(position);
         selectedNodeItem->setDeselected2();
-        qCritical() << "6";
     }
 }
 
