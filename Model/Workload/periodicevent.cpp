@@ -2,7 +2,7 @@
 #include <QDebug>
 PeriodicEvent::PeriodicEvent(QString name):Node(name)
 {
-    qCritical() << "Constructed PeriodicEvent: "<< this->getName();
+    //qCritical() << "Constructed PeriodicEvent: "<< this->getName();
 
 }
 

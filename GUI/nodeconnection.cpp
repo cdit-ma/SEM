@@ -1,9 +1,9 @@
 #include "nodeconnection.h"
 #include <QDebug>
+#include "graphmlitem.h";
 
-NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d):QObject()
+NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 {
-    qDebug() << "NodeEdge::NodeEdge()";
 
     graphicsEffect = new QGraphicsColorizeEffect(this);
 
@@ -114,7 +114,7 @@ void NodeEdge::setVisible(bool visible)
 void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton ) {
-        emit this->setSelected(edge, true);
+        emit this->setItemSelected(edge, true);
     }
 
 }

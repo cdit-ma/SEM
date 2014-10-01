@@ -2,7 +2,7 @@
 #include <qdebug>
 BlankNode::BlankNode(QString name):Node(name)
 {
-    qDebug() << "Constructed Blank Node: "<< this->getName();
+    //qDebug() << "Constructed Blank Node: "<< this->getName();
 }
 
 BlankNode::~BlankNode()

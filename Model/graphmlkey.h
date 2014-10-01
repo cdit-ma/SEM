@@ -18,6 +18,8 @@ public:
     GraphML::KIND getForKind() const;
     QString toGraphML(qint32 indentationLevel=0);
     TYPE getType() const;
+    QString getTypeString();
+    QString getForKindString();
 private:
 
     GraphML::KIND forKind;

@@ -11,7 +11,7 @@
 
 ComponentInstance::ComponentInstance(QString name):Node(name)
 {
-    qDebug() << "Constructed ComponentInstance: "<< this->getName();
+    //qDebug() << "Constructed ComponentInstance: "<< this->getName();
     parentComponent = 0;
 }
 

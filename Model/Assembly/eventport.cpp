@@ -3,7 +3,7 @@
 
 EventPort::EventPort(QString name):Node(name)
 {
-    qDebug() << "Constructed EventPort: "<< this->getName();
+    //qDebug() << "Constructed EventPort: "<< this->getName();
 }
 
 EventPort::~EventPort()

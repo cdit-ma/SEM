@@ -4,7 +4,7 @@
 #include "../Assembly/member.h"
 InEventPort::InEventPort(QString name): Node(name)
 {
-    qDebug() << "Constructed InEventPort: "<< this->getName();
+    //qDebug() << "Constructed InEventPort: "<< this->getName();
     inEventPortIDL = 0;
 }
 

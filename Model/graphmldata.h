@@ -3,6 +3,7 @@
 
 #include "graphmlkey.h"
 
+#include <QStringList>
 #include <QString>
 
 class GraphMLData: public GraphML{
@@ -19,6 +20,7 @@ public:
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
 
+    QStringList toStringList();
 signals:
     void dataChanged(GraphMLData* data);
 private:

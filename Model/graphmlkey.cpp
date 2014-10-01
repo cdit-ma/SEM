@@ -93,6 +93,16 @@ GraphMLKey::TYPE GraphMLKey::getType() const
     return this->type;
 }
 
+QString GraphMLKey::getTypeString()
+{
+    return this->typeStr;
+}
+
+QString GraphMLKey::getForKindString()
+{
+    return this->forKindStr;
+}
+
 
 QString GraphMLKey::toString()
 {

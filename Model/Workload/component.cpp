@@ -8,14 +8,14 @@
 
 Component::Component(QString name):Node(name)
 {
-     qDebug() << "Constructed Component: " << this->getName();
+     //qDebug() << "Constructed Component: " << this->getName();
 }
 
 Component::~Component()
 {
-    foreach(ComponentInstance* child, componentInstances){
-        delete child;
-    }
+    //foreach(ComponentInstance* child, componentInstances){
+    //    delete child;
+    //}
 }
 
 QString Component::toString()

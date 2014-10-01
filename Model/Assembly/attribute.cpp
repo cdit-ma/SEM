@@ -3,7 +3,7 @@
 
 Attribute::Attribute(QString name): Node(name)
 {
-    qDebug() << "Constructed Attribute: "<< this->getName();
+    //qDebug() << "Constructed Attribute: "<< this->getName();
 }
 
 Attribute::~Attribute()

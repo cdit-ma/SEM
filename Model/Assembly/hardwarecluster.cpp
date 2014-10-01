@@ -6,7 +6,7 @@
 
 HardwareCluster::HardwareCluster(QString name):Node(name)
 {
-    qDebug() << "Constructed Hardwdare Cluster: "<< this->getName();
+    //qDebug() << "Constructed Hardwdare Cluster: "<< this->getName();
 }
 
 HardwareCluster::~HardwareCluster()

@@ -5,7 +5,7 @@
 
 OutEventPortIDL::OutEventPortIDL(QString name):EventPort(name)
 {
-    qDebug() << "Constructed OutEventPortIDL: "<< this->getName();
+    //qDebug() << "Constructed OutEventPortIDL: "<< this->getName();
 }
 
 OutEventPortIDL::~OutEventPortIDL()

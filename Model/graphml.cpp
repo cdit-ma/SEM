@@ -3,14 +3,13 @@
 #include <qdebug>
 int GraphML::_Uid = 0;
 
-GraphML::GraphML(GraphML::KIND kind, QString name)
+GraphML::GraphML(GraphML::KIND kind, QString name):QObject(0)
 {
     this->Uid = ++_Uid;
 
     this->kind = kind;
     this->setName(name);
 
-    QObject::QObject(this);
 
 }
 

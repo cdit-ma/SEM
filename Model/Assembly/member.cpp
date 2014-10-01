@@ -3,7 +3,7 @@
 
 Member::Member(QString name):Node(name)
 {
-    qDebug() << "Constructed Member: "<< this->getName();
+    //qDebug() << "Constructed Member: "<< this->getName();
 
 }
 

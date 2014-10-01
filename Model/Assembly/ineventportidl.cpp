@@ -6,7 +6,7 @@
 
 InEventPortIDL::InEventPortIDL(QString name):EventPort(name)
 {
-    qDebug() << "Constructed InEventPortIDL: "<< this->getName();
+    //qDebug() << "Constructed InEventPortIDL: "<< this->getName();
 }
 
 InEventPortIDL::~InEventPortIDL()
@@ -107,6 +107,7 @@ void InEventPortIDL::addEdge(Edge *edge)
     //Make sure if we are restoring a
     InEventPort* src = dynamic_cast<InEventPort*>(edge->getSource());
     InEventPort* dst = dynamic_cast<InEventPort*>(edge->getDestination());
+
     if(src != 0){
         this->addInEventPortInstance(src);
     }

@@ -5,7 +5,7 @@
 #include <QFont>
 #include <QFontMetrics>
 #include <QRubberBand>
-NodeItem::NodeItem(Node *node, NodeItem *parent):QGraphicsItem(), QObject(parent)
+NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsItem()
 {
     viewAspect = "";
     drawDetail = true;
@@ -57,7 +57,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QGraphicsItem(), QObject(parent
     GraphMLData* wData = node->getData("width");
 
 
-
     connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
     connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
     connect(hData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
@@ -84,9 +83,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):QGraphicsItem(), QObject(parent
    //setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
     setFlag(ItemIsSelectable);
-
-    attributeModel = new AttributeTableModel(this);
-
     if(parent == 0){
         //PARENT MODEL!
     }else{
@@ -172,10 +168,6 @@ void NodeItem::deleteConnnection(NodeEdge *line)
     connections.remove(position);
 }
 
-AttributeTableModel *NodeItem::getTable()
-{
-    return attributeModel;
-}
 
 QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
@@ -218,7 +210,6 @@ void NodeItem::setSelected2()
 
 void NodeItem::setSelected(bool selected)
 {
-    qCritical() << "NodeItem::setSelected";
     if(selected){
         if(graphicsEffect != 0){
             graphicsEffect->setStrength(1);
@@ -362,6 +353,7 @@ void NodeItem::updateViewAspect(QString aspect)
 
 void NodeItem::sortChildren()
 {
+    emit actionTriggered("Sorting Children");
     int currentX  = width/10;
     int currentY = height/5;
 
@@ -375,13 +367,13 @@ void NodeItem::sortChildren()
             currentX = width/10;
         }
 
-        nodeItem->node->updateDataValue("x",QString::number(currentX));
-        nodeItem->node->updateDataValue("y",QString::number(currentY));
 
-        /*
-        emit updateGraphMLData(nodeItem->node,"x",QString::number(currentX));
-        emit updateGraphMLData(nodeItem->node,"y",QString::number(currentY));
-*/
+        //nodeItem->node->updateDataValue("x",QString::number(currentX));
+        //nodeItem->node->updateDataValue("y",QString::number(currentY));
+
+        emit updateGraphMLDataValue(nodeItem->getGraphML(),"x",QString::number(currentX));
+        emit updateGraphMLDataValue(nodeItem->getGraphML(),"y",QString::number(currentY));
+
         currentX += nodeItem->width * 1.1;
         }
     }
@@ -419,13 +411,14 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             hasMoved = false;
             isPressed = true;
             //emit triggerSelected(this);
-            emit setNodeSelected(node);
+            emit setItemSelected(node);
+//            emit setNodeSelected(node);
         }
         break;
     }
     case Qt::RightButton:{
         //Select this node, and construct a child node.
-        emit setNodeSelected(node);
+        emit setItemSelected(node, true);
         emit makeChildNode(event->pos());
         break;
 
@@ -477,6 +470,9 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             rubberBand->setGeometry(QRect(origin.toPoint(), event->screenPos()).normalized());
         }
     }else if(isPressed){
+        if(hasMoved == false){
+            emit actionTriggered("Moving Selection");
+        }
         QPointF delta = (event->scenePos() - previousPosition);
         this->setPos(pos() + delta);
 

@@ -18,7 +18,7 @@
 #include <QObject>
 
 
-class NodeEdge : public QObject, public QGraphicsItem
+class NodeEdge: public GraphMLItem, public QGraphicsItem
 {
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)

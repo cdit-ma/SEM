@@ -47,7 +47,8 @@ HEADERS += \
     Model/Workload/ineventport.h \
     Model/Workload/outeventport.h \
     Model/Assembly/member.h \
-    Controller/newcontroller.h
+    Controller/newcontroller.h \
+    GUI/graphmlitem.h
 
 SOURCES += \
     Controller/graphmlcontroller.cpp \
@@ -82,7 +83,8 @@ SOURCES += \
     Model/Workload/ineventport.cpp \
     Model/Workload/outeventport.cpp \
     Model/Assembly/member.cpp \
-    Controller/newcontroller.cpp
+    Controller/newcontroller.cpp \
+    GUI/graphmlitem.cpp
 
 FORMS += \
     mainwindow.ui

@@ -5,7 +5,7 @@
 #include <QDebug>
 ComponentAssembly::ComponentAssembly(QString name):Node(name)
 {
-    qDebug() << "Constructed Assembly: "<< this->getName();
+    //qDebug() << "Constructed Assembly: "<< this->getName();
 }
 
 ComponentAssembly::~ComponentAssembly()

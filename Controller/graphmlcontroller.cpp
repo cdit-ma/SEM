@@ -872,7 +872,8 @@ void GraphMLController::selectNodeItem(NodeItem *selectedNodeItem)
         }
         GUIContainer* gui = getGUIContainer(selectedNodeItem);
         selectedNodeItem->setSelected(true);
-        emit view_SetAttributeModel(selectedNodeItem->getTable());
+
+        emit view_SetAttributeModel(selectedNodeItem->getAttributeTable());
     }
 }
 

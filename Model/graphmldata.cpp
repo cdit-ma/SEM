@@ -47,6 +47,17 @@ QString GraphMLData::toString()
     return QString("Data[%1]: "+this->getName()).arg(this->getID());
 }
 
+QStringList GraphMLData::toStringList()
+{
+     QStringList dataDump;
+     dataDump << key->getName();
+     dataDump << key->getTypeString();
+     dataDump << key->getForKindString();
+     dataDump << this->getValue();
+     return dataDump;
+
+}
+
 void GraphMLData::setValue(QString value)
 {
     if(value != this->value){

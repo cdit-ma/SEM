@@ -17,9 +17,10 @@
 #include "../Model/graphmldata.h"
 #include <QRubberBand>
 #include "attributetablemodel.h"
+#include "graphmlitem.h"
 
 class NodeEdge;
-class NodeItem : public QObject, public QGraphicsItem
+class NodeItem : public GraphMLItem, public QGraphicsItem
 {
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
@@ -38,7 +39,6 @@ public:
     void notifyEdges();
     void addConnection(NodeEdge* line);
     void deleteConnnection(NodeEdge* line);
-    AttributeTableModel* getTable();
     QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
 
@@ -53,7 +53,6 @@ signals:
 
     void setNodeSelected(Node*, bool selected=true);
 
-    void actionTriggered(QString action);
 
     void makeChildNode(QPointF centerPoint, Node * parentNode);
     void makeChildNode(QPointF centerPoint);
@@ -86,7 +85,6 @@ private:
 
     QString viewAspect;
 
-    AttributeTableModel* attributeModel;
 
     void updatePosition(QString x=0, QString y=0);
     void updateSize(QString w=0, QString h=0);
@@ -106,6 +104,7 @@ private:
 
     QVector<NodeEdge*> connections;
 
+    bool moveActionSent;
     QRubberBand* rubberBand;
     QGraphicsColorizeEffect *graphicsEffect;
 

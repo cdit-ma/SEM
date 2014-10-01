@@ -6,17 +6,20 @@
 #include <QAbstractTableModel>
 
 
-#include "../Model/node.h"
 #include "../Model/graphmldata.h"
+#include "../Model/graphml.h"
+#include "graphmlitem.h"
 #include <QVector>
 
 class NodeItem;
+class NodeEdge;
+class GraphMLItem;
 
 class AttributeTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 public:
-    AttributeTableModel(NodeItem* item, QObject* parent = 0);
+    AttributeTableModel(GraphMLItem* guiItem, QObject* parent = 0);
 
 public slots:
     void updatedData(GraphMLData* data);
@@ -31,8 +34,11 @@ public:
     bool removeRows(int row, int count, const QModelIndex &parent);
     Qt::ItemFlags flags(const QModelIndex &index) const;
 private:
-    NodeItem* gui;
-    Node* attachedNode;
+    void setupDataBinding();
+    GraphMLItem* guiItem;
+
+    bool isNode;
+    GraphML* attachedGraphML;
     QVector<GraphMLData*> attachedData;
 };
 

@@ -1,17 +1,13 @@
 #include "attributetablemodel.h"
 #include "QDebug"
 #include "nodeitem.h"
+#include "nodeconnection.h"
 
-AttributeTableModel::AttributeTableModel(NodeItem *item, QObject *parent): QAbstractTableModel(item)
+AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QAbstractTableModel(item)
 {
-    Q_UNUSED(parent)
-    gui = item;
-    attachedNode = item->node;
-    attachedData = attachedNode->getData();
-    foreach(GraphMLData* data, attachedData){
-        connect(data, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
-    }
-
+    guiItem = item;
+    attachedGraphML = guiItem->getGraphML();
+    setupDataBinding();
 }
 
 
@@ -93,8 +89,8 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
 
         if (index.column() == 1){
             if(value.toString() != ""){
-                emit gui->actionTriggered("Updated Table Cell");
-                emit gui->updateGraphMLData(attachedNode, data->getKey()->getName(), value.toString());
+                emit guiItem->actionTriggered("Updated Table Cell");
+                emit guiItem->updateGraphMLDataValue(attachedGraphML, data->getKey()->getName(), value.toString());
             }
             emit(dataChanged(index, index));
         }
@@ -119,8 +115,9 @@ bool AttributeTableModel::removeRows(int position, int rows, const QModelIndex &
 
     for (int row=0; row < rows; ++row) {
         GraphMLData* data = attachedData.at(position);
-        attachedNode->removeData(data);
-        attachedData.removeAt(position);
+
+        //attachedNode->removeData(data);
+        //attachedData.removeAt(position);
     }
     endRemoveRows();
     return true;
@@ -136,5 +133,15 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
     }
     return Qt::ItemIsEnabled;
 
+}
+
+void AttributeTableModel::setupDataBinding()
+{
+    if(attachedGraphML){
+        attachedData = attachedGraphML->getData();
+        foreach(GraphMLData* data, attachedData){
+            connect(data, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+        }
+    }
 }
 

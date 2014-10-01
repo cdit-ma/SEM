@@ -5,7 +5,7 @@
 
 HardwareNode::HardwareNode(QString name):Node(name)
 {
-    qDebug() << "Constructed Hardwdare Node: "<< this->getName();
+    //qDebug() << "Constructed Hardwdare Node: "<< this->getName();
 }
 
 HardwareNode::~HardwareNode()

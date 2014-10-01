@@ -56,6 +56,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QString xmlText = in.readAll();
     file.close();
 
+    newController->view_ActionTriggered("Loading XME");
     emit view_ImportGraphML(xmlText);
 }
 
@@ -254,6 +255,10 @@ void MainWindow::view_resetModel()
     connect(this, SIGNAL(view_ImportGraphML(QString)), newController, SLOT(view_ImportGraphML(QString)));
     connect(this, SIGNAL(view_ImportGraphML(QStringList)), newController, SLOT(view_ImportGraphML(QStringList)));
 
+    connect(newController, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setModel(AttributeTableModel*)));
+
+    connect(newController, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoCount(QStringList)));
+    connect(newController, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoCount(QStringList)));
 
     controller = new GraphMLController(ui->graphicsView);
     this->ui->treeView->setModel(controller->getTreeModel());
