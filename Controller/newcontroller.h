@@ -40,7 +40,7 @@ class NewController: public QObject
     Q_OBJECT
 public:
     NewController(NodeView *view);
-
+    ~NewController();
     //Exports a Selection of Containers to export into GraphML
     QString exportGraphML(QVector<Node *> nodes);
     QString exportGraphML(Node* node);

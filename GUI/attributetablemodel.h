@@ -1,5 +1,3 @@
-#include <qabstractitemmodel.h>
-
 #ifndef ATTRIBUTETABLEMODEL_H
 #define ATTRIBUTETABLEMODEL_H
 

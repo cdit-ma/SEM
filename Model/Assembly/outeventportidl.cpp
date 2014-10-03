@@ -1,6 +1,7 @@
 #include "outeventportidl.h"
-#include "ineventportidl.h"
+
 #include "member.h"
+#include "ineventportidl.h"
 #include <QDebug>
 
 OutEventPortIDL::OutEventPortIDL(QString name):EventPort(name)

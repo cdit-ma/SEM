@@ -51,6 +51,11 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     translate(2500,2500);
 }
 
+NodeView::~NodeView()
+{
+    qCritical() << "Killed Node View";
+}
+
 void NodeView::updateNodeTypeName(QString name)
 {
     this->NodeType = name;

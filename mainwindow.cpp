@@ -14,8 +14,6 @@ MainWindow::MainWindow(QWidget *parent) :
     scene = new QGraphicsScene(this);
     ui->graphicsView->setScene(scene);
 
-    progressDialog = new QProgressDialog(this);
-    progressDialog->setAutoClose(false);
 
 
     //Make a thread for the Model.
@@ -57,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     file.close();
 
     newController->view_ActionTriggered("Loading XME");
-    emit view_ImportGraphML(xmlText);
+    //emit view_ImportGraphML(xmlText);
 }
 
 
@@ -73,11 +71,12 @@ void MainWindow::enableGUI(bool enabled)
 
 void MainWindow::updateProgressBar(int percentage, QString label)
 {
+    /*
     if(label != 0){
         progressDialog->setLabelText(label);
     }
     progressDialog->setValue(percentage);
-
+*/
 }
 
 void MainWindow::writeExportedGraphMLData(QString filename, QString data)
@@ -132,7 +131,7 @@ void MainWindow::updateUndoCount(QStringList list)
 
     }
 
-    ui->UndoListView->setModel(undoModel);
+    //ui->UndoListView->setModel(undoModel);
 
 }
 
@@ -156,14 +155,14 @@ void MainWindow::updateRedoCount(QStringList list)
 
     }
 
-    ui->RedoListView->setModel(redoModel);
+    //ui->RedoListView->setModel(redoModel);
 
 
 }
 
 void MainWindow::setModel(AttributeTableModel *model)
 {
-    this->ui->tableView->setModel(model);
+   // this->ui->tableView->setModel(model);
 }
 
 

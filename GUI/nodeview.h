@@ -13,6 +13,7 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 public:
     NodeView(QWidget *parent = 0);
+    ~NodeView();
 
 signals:
     void updateZoom(qreal zoom);

@@ -7,6 +7,7 @@
 NewController::NewController(NodeView *v)
 {
     UNDOING = false;
+    REDOING = false;
     HIDDEN_OPACITY = 0.10;
 
     //Attach the view.
@@ -39,6 +40,13 @@ NewController::NewController(NodeView *v)
     KEY_SHIFT_DOWN = false;
 
     viewAspects << "Assembly" << "Workload";
+}
+
+NewController::~NewController()
+{
+    emit view_SetSelectedAttributeModel(0);
+    delete parentGraph;
+    qCritical() << "Destroyed Controller";
 }
 
 QString NewController::exportGraphML(QVector<Node *> eNodes)
@@ -1048,7 +1056,7 @@ void NewController::setNodeSelected(Node *node, bool setSelected)
 
     if(nodeItem == 0){
         qCritical() << "Null NodeItem";
-
+        return;
     }
 
     if(setSelected){

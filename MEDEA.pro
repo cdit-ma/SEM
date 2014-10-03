@@ -48,7 +48,9 @@ HEADERS += \
     Model/Workload/outeventport.h \
     Model/Assembly/member.h \
     Controller/newcontroller.h \
-    GUI/graphmlitem.h
+    GUI/graphmlitem.h \
+    medeawindow.h \
+    GUI/projectwindow.h
 
 SOURCES += \
     Controller/graphmlcontroller.cpp \
@@ -84,7 +86,10 @@ SOURCES += \
     Model/Workload/outeventport.cpp \
     Model/Assembly/member.cpp \
     Controller/newcontroller.cpp \
-    GUI/graphmlitem.cpp
+    GUI/graphmlitem.cpp \
+    medeawindow.cpp \
+    GUI/projectwindow.cpp
 
 FORMS += \
+    medeawindow.ui \
     mainwindow.ui

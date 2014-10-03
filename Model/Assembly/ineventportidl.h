@@ -1,8 +1,8 @@
 #ifndef InEventPortIDL_H
 #define InEventPortIDL_H
 #include "eventport.h"
-#include "../Workload/ineventport.h"
 
+class InEventPort;
 class InEventPortIDL : public EventPort
 {
         Q_OBJECT

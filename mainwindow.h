@@ -1,11 +1,11 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-#include <QtDebug>
-#include <QMainWindow>
-#include <QFileDialog>
-#include <QApplication>
-#include <QProgressDialog>
+
 #include <QDebug>
+#include <QMainWindow>
+#include <QGraphicsScene>
+
+#include <QFileDialog>
 
 #include "Model/Model.h"
 #include "Model/edge.h"
@@ -86,7 +86,6 @@ private:
     QThread *modelThread;
 
     Ui::MainWindow *ui;
-    QProgressDialog *progressDialog;
 
     QGraphicsScene *scene;
     QVector<NodeItem*> currentSelectedItems;

@@ -18,6 +18,8 @@
 #include "Assembly/member.h"
 #include "Workload/periodicevent.h"
 #include "Workload/Component.h"
+#include "Workload/ineventport.h"
+
 #include "blanknode.h"
 #include <QStringList>
 
