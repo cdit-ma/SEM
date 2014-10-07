@@ -51,6 +51,7 @@ public:
     QStringList getViewAspects();
 
 signals:
+    void view_SetGUIEnabled(bool setEnabled);
     void view_SetNodeItemCentered(NodeItem* node);
 
     void view_SetRubberbandSelectionMode(bool on);
@@ -61,10 +62,12 @@ signals:
     void view_UpdateUndoList(QStringList list);
     void view_UpdateRedoList(QStringList list);
 
+    void view_UpdateProgressBar(int percentage, QString label);
+
     void view_updateCopyBuffer(QString data);
 public slots:
     void view_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
-    void view_ImportGraphML(QString, GraphMLContainer *currentParent=0);
+    void view_ImportGraphML(QString, GraphMLContainer *currentParent=0, bool linkID = false);
     void view_UpdateGraphMLData(GraphML* parent, QString keyName, QString dataValue);
 
     void view_ExportGraphML();
@@ -226,6 +229,7 @@ private:
     Graph* getParentGraph();
     Graph* parentGraph;
 
+    bool CUT_LINKING;
     int actionCount;
     QString currentAction;
     int currentActionID;

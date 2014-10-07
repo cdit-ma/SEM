@@ -2,6 +2,7 @@
 #define MEDEAWINDOW_H
 
 #include <QMainWindow>
+#include <QProgressBar>
 #include "GUI/projectwindow.h"
 #include "GUI/attributetablemodel.h"
 
@@ -21,8 +22,12 @@ public:
 signals:
     void view_PasteData(QString value);
     void view_ActionTriggered(QString name);
+    void enableGUI(bool isEnable);
 
 private slots:
+
+    void updateProgressBar(int percentage, QString label);
+
     void on_actionImport_GraphML_triggered();
 
     void on_actionNew_Project_triggered();
@@ -37,16 +42,18 @@ private slots:
     void setClipboard(QString value);
 
     void on_actionPaste_triggered();
+    void setEnableGUI(bool enable);
 
 
 
 private:
-
+    QProgressBar* currentOperationBar;
     void setSelectedProject(ProjectWindow* newSelected);
     Ui::MedeaWindow *ui;
     QVector<ProjectWindow*> projectWindows;
     ProjectWindow* getProjectWindow(QObject *object);
     ProjectWindow* selectedProject;
+    bool isEnabled;
 };
 
 #endif // MEDEAWINDOW_H

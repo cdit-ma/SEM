@@ -10,7 +10,6 @@ Edge::Edge(GraphMLContainer *s, GraphMLContainer *d, QString name):GraphML(Graph
 {
     setID(QString("e%1").arg(this->_Eid++));
 
-
     //Set the instance Variables
     source = s;
     destination = d;

@@ -9,6 +9,8 @@
 #include <QMdiSubWindow>
 #include <QDebug>
 #include <QClipboard>
+#include <QStatusBar>
+#include <QProgressBar>
 
 
 
@@ -18,6 +20,13 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     ui(new Ui::MedeaWindow)
 {
     ui->setupUi(this);
+
+    currentOperationBar = new QProgressBar(this);
+    currentOperationBar->setMaximum(100);
+
+    statusBar()->addPermanentWidget(currentOperationBar);
+
+
 
     selectedProject = 0;
 
@@ -46,12 +55,24 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     emit view_PasteData(xmlText);
 
     //ui->actionImport_GraphML->trigger();
-
 }
 
 MedeaWindow::~MedeaWindow()
 {
     delete ui;
+}
+
+void MedeaWindow::updateProgressBar(int percentage, QString label)
+{
+    if(percentage >= 100){
+        this->currentOperationBar->setVisible(false);
+        this->currentOperationBar->setValue(0);
+    }else{
+        this->currentOperationBar->setVisible(true);
+         this->currentOperationBar->setValue(percentage);
+
+    }
+
 }
 
 void MedeaWindow::on_actionImport_GraphML_triggered()
@@ -108,7 +129,8 @@ void MedeaWindow::on_actionNew_Project_triggered()
     connect(newWindow, SIGNAL(destroyed(QObject*)), this, SLOT(windowClosed(QObject*)));
 
     NewController* controller = newWindow->getController();
-    connect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
+    NodeView* view = newWindow->getView();
+    connect(view, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
 }
 
 void MedeaWindow::windowClosed(QObject *window)
@@ -205,7 +227,8 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         disconnect(ui->actionCopy, SIGNAL(triggered()), controller, SLOT(view_Copy()));
         disconnect(ui->actionExport_GraphML, SIGNAL(triggered()), controller, SLOT(view_ExportGraphML()));
 
-
+        disconnect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(setEnableGUI(bool)));
+        disconnect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     }
 
     selectedProject = newSelected;
@@ -220,6 +243,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
         connect(controller, SIGNAL(view_updateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));
 
+        connect(controller, SIGNAL(view_UpdateProgressBar(int,QString)), this, SLOT(updateProgressBar(int,QString)));
         connect(ui->actionUndo, SIGNAL(triggered()), controller, SLOT(view_Undo()));
         connect(ui->actionRedo, SIGNAL(triggered()), controller, SLOT(view_Redo()));
         connect(ui->actionCut, SIGNAL(triggered()), controller, SLOT(view_Cut()));
@@ -229,6 +253,9 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         connect(this, SIGNAL(view_PasteData(QString)), controller, SLOT(view_Paste(QString)));
         connect(ui->actionExport_GraphML, SIGNAL(triggered()), controller, SLOT(view_ExportGraphML()));
 
+
+        connect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
+        connect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(setEnableGUI(bool)));
     }
 
 
@@ -247,4 +274,20 @@ void MedeaWindow::on_actionPaste_triggered()
     if(clipboard->ownsClipboard()){
         emit view_PasteData(clipboard->text());
     }
+}
+
+void MedeaWindow::setEnableGUI(bool enable)
+{
+    qCritical() << "SET ENABLED" << enable;
+
+    if(selectedProject){
+        selectedProject->setEnabled(enable);
+    }
+
+    ui->attributeTable->setEnabled(enable);
+    ui->menubar->setEnabled(enable);
+
+
+
+
 }

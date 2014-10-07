@@ -4,7 +4,7 @@
 #include <QMdiSubWindow>
 #include "../Controller/newcontroller.h"
 #include "nodeview.h"
-
+#include <QThread>
 class ProjectWindow : public QMdiSubWindow
 {
     Q_OBJECT
@@ -18,6 +18,7 @@ signals:
 public slots:
 
 private:
+    QThread *thread;
     NodeView* view;
     NewController* controller;
 

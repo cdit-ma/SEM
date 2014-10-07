@@ -21,6 +21,7 @@ NewController::NewController(NodeView *v)
 
     childNodeKind="";
 
+    CUT_LINKING = false;
     centeredNode = 0;
     nodeKinds << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "InEventPortIDL"  << "OutEventPort" << "OutEventPortIDL" << "Attribute" << "HardwareNode" << "HardwareCluster" << "PeriodicEvent" << "Component" << "Member";
 
@@ -137,6 +138,7 @@ QStringList NewController::getViewAspects()
 void NewController::view_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent)
 {
     view_ActionTriggered("Importing GraphML");
+    emit view_SetGUIEnabled(false);
    // emit view_EnableGUI(false);
    // emit view_UpdateProgressDialog(true);
 
@@ -151,12 +153,12 @@ void NewController::view_ImportGraphML(QStringList inputGraphML, GraphMLContaine
         view_ImportGraphML(currentGraphMLData, currentParent);
     }
 
-   // emit view_UpdateProgressDialog(false);
-   // emit view_EnableGUI(true);
+     emit view_SetGUIEnabled(true);
+    // emit view_UpdateProgressDialog(false);
 
 }
 
-void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *currentParent)
+void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *currentParent, bool linkID)
 {
     qCritical() << "NewController::view_ImportGraphML()";
 
@@ -188,7 +190,6 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
 
     //If we have been passed no parent, set it as the graph of this Model.
     if(currentParent == 0){
-        qCritical() << "Using Parent Graph";
         currentParent = getParentGraph();
     }
 
@@ -202,7 +203,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
     QXmlStreamReader xml(inputGraphML);
 
     //Get the number of lines in the input GraphML XML String.
-    float lineCount = inputGraphML.count("\n") / 100;
+    float lineCount = inputGraphML.count("\n");
 
 
     //Counts the number of </node> elements we encounter to correctly traverse to the correct insertion point.
@@ -216,7 +217,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
         //Calculate the current percentage
         float lineNumber = xml.lineNumber();
         double percentage = (lineNumber * 100 / lineCount);
-        //emit view_UpdateProgressDialog(percentage);
+        emit view_UpdateProgressBar((int)percentage, "");
 
         //Get the tagName
         QString tagName = xml.name().toString();
@@ -361,7 +362,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
                 //Add the new Node to the lookup table.
                 nodeLookup.insert(nodeID, newNode);
 
-                if(UNDOING || REDOING){
+                if(linkID){
                     linkPreviousIDToID(nodeID,newNode->getID());
                 }
 
@@ -391,7 +392,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
                 newEdge->attachData(edge.data);
                 setupEdge(newEdge);
 
-                if(UNDOING || REDOING){
+                if(linkID){
                     linkPreviousIDToID(edge.id, newEdge->getID());
                 }
 
@@ -404,6 +405,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
             //return false;
         }
     }
+      emit view_UpdateProgressBar(100, "");
 }
 
 void NewController::view_UpdateGraphMLData(GraphML* parent, QString keyName, QString dataValue)
@@ -655,13 +657,6 @@ void NewController::view_ClearHistory()
 void NewController::view_ControlPressed(bool isDown)
 {
 
-    qCritical() << "Edges: " << edges.count();
-    qCritical() << "Nodes: " << nodes.count();
-    qCritical() << "NodeItems: " << nodeItems.count();
-    qCritical() << "NodeEdges: " << nodeEdges.count();
-    qCritical() << "SelectedNodes: " << selectedNodes.count();
-    qCritical() << "SelectedEdges: " << selectedEdges.count();
-
     KEY_CONTROL_DOWN = isDown;
     if(KEY_CONTROL_DOWN && KEY_SHIFT_DOWN){
         emit view_SetRubberbandSelectionMode(true);
@@ -705,6 +700,7 @@ void NewController::view_DeletePressed(bool isDown)
 
 void NewController::view_Undo()
 {
+
     UNDOING = true;
     undoRedo();
     /*if(undoStack.size() > 0){
@@ -735,6 +731,7 @@ void NewController::view_Cut()
         view_ActionTriggered("Cutting Selection.");
         deleteSelectedEdges();
         deleteSelectedNodes();
+        CUT_LINKING = true;
     }
 }
 
@@ -751,7 +748,8 @@ void NewController::view_Paste(QString xmlData)
         }
 
         view_ActionTriggered("Pasting Selection.");
-        view_ImportGraphML(xmlData, node);
+        view_ImportGraphML(xmlData, node, CUT_LINKING);
+        CUT_LINKING = false;
     }
 }
 
@@ -812,7 +810,7 @@ void NewController::view_ConstructNodeItem(Node *node)
         NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
 
         if(!parentNodeItem){
-            qDebug() << "Using Parent Graph as Parent";
+            //qDebug() << "Using Parent Graph as Parent";
         }
         NodeItem* nodeItem = new NodeItem(node, parentNodeItem);
 
@@ -984,7 +982,7 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
     }
 
     else{
-        qCritical() << "Kind:" << kind << "Not implemented";
+        //qCritical() << "Kind:" << kind << "Not implemented";
         newNode = new BlankNode();
         aspects << "Workload" << "Assembly";
     }
@@ -1325,7 +1323,7 @@ void NewController::reverseAction(ActionItem action)
             qCritical() << "Previous Parent: " << action.parentID;
 
             Node* node = getNodeFromPreviousID(action.parentID);
-            view_ImportGraphML(action.removedXML, node);
+            view_ImportGraphML(action.removedXML, node, true);
             break;
         }
         case GraphML::EDGE:{
@@ -1389,6 +1387,7 @@ void NewController::addActionToStack(ActionItem action)
 
 void NewController::undoRedo()
 {
+    emit view_SetGUIEnabled(false);
     QStack<ActionItem> reverseStack;
 
     if(UNDOING){
@@ -1428,6 +1427,7 @@ void NewController::undoRedo()
         redoStack = reverseStack;
     }
     updateGUIUndoRedoLists();
+    emit view_SetGUIEnabled(true);
 }
 
 NodeEdge *NewController::getNodeEdgeFromEdge(Edge *edge)
