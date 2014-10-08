@@ -18,6 +18,41 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <layout class="QHBoxLayout" name="filterBox">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Search</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="searchBox"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="addFilter">
+            <property name="text">
+             <string>Add Filter</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="AppliedFilters"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="clearFilters">
+          <property name="text">
+           <string>Clear Filters</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
        <widget class="QTableView" name="attributeTable"/>
       </item>
      </layout>

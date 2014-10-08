@@ -618,6 +618,34 @@ void NewController::view_SetChildNodeKind(QString nodeKind)
     childNodeKind = nodeKind;
 }
 
+void NewController::view_FilterNodes(QStringList filterString)
+{
+    foreach(Node* node, nodes){
+            bool allMatched = true;
+            foreach(QString filter, filterString){
+                bool gotMatch = false;
+                foreach(GraphMLData* data, node->getData()){
+                    if(data->getValue().contains(filter)){
+                        gotMatch = true;
+                        break;
+                    }
+                }
+                if(!gotMatch){
+                    allMatched = false;
+                    break;
+                }
+            }
+
+        NodeItem* nodeItem = getNodeItemFromNode(node);
+        if(allMatched){
+            nodeItem->setOpacity(1);
+        }else{
+            nodeItem->setOpacity(0);
+        }
+
+    }
+}
+
 void NewController::view_HideUnconnectableNodes(Node *src)
 {
     foreach(Node* dst, nodes){
@@ -691,10 +719,12 @@ void NewController::view_ShiftPressed(bool isDown)
 void NewController::view_DeletePressed(bool isDown)
 {
      if(isDown){
+         emit view_SetGUIEnabled(false);
          view_ActionTriggered("Deleting Selection");
          //Do Delete
          deleteSelectedEdges();
          deleteSelectedNodes();
+         emit view_SetGUIEnabled(true);
      }
 }
 
@@ -728,10 +758,12 @@ void NewController::view_Cut()
 {
     //Run Copy
     if(copySelection()){
+        emit view_SetGUIEnabled(false);
         view_ActionTriggered("Cutting Selection.");
         deleteSelectedEdges();
         deleteSelectedNodes();
         CUT_LINKING = true;
+        emit view_SetGUIEnabled(true);
     }
 }
 
@@ -757,6 +789,7 @@ void NewController::view_SelectAll()
 {
     qCritical() << "NewController::view_SelectAll";
 
+    clearSelectedEdges();
     clearSelectedNodes();
 
     if(centeredNode){
@@ -772,6 +805,7 @@ void NewController::view_SelectAll()
         foreach(GraphMLContainer* child, getParentGraph()->getChildren(0)){
             Node* node = dynamic_cast<Node*>(child);
             if(node){
+                qCritical() << "Nodes";
                 setNodeSelected(node);
             }
         }
@@ -1178,19 +1212,10 @@ void NewController::deleteNode(Node *node)
                 //Remove nodeItem from list.
                 position = nodeItems.indexOf(nodeItem);
                 nodeItems.removeAt(position);
+
             }
         }
 
-        //Get the NodeItem corresponding to this node.
-        NodeItem* nodeItem = getNodeItemFromNode(node);
-
-        //Remove node from list.
-        int position = nodes.indexOf(node);
-        nodes.removeAt(position);
-
-        //Remove NodeItem from list.
-        position = nodeItems.indexOf(nodeItem);
-        nodeItems.removeAt(position);
 
 
         //Add an action to reverse this action.
@@ -1198,7 +1223,7 @@ void NewController::deleteNode(Node *node)
         action.actionKind = GraphML::NODE;
         action.actionType = DESTRUCTED;
         action.removedXML = nodesXML;
-        action.ID = node->getID();
+        action.ID =  node->getID();
 
         action.parentID = "";
 
@@ -1207,6 +1232,18 @@ void NewController::deleteNode(Node *node)
         }
 
         addActionToStack(action);
+
+        //Get the NodeItem corresponding to this node.
+        NodeItem* nodeItem = getNodeItemFromNode(node);
+
+
+        //Remove node from list.
+        int position = nodes.indexOf(node);
+        nodes.removeAt(position);
+
+        //Remove NodeItem from list.
+        position = nodeItems.indexOf(nodeItem);
+        nodeItems.removeAt(position);
 
         delete node;
     }else{
@@ -1443,12 +1480,14 @@ NodeEdge *NewController::getNodeEdgeFromEdge(Edge *edge)
 void NewController::deleteSelectedNodes()
 {
     foreach(Node* node, selectedNodes){
-        if(node->isAncestorOf(centeredNode)){
+
+        if(node && node->isAncestorOf(centeredNode)){
             centeredNode = 0;
         }
 
         deleteNode(node);
     }
+
     selectedNodes.clear();
 }
 

@@ -30,9 +30,12 @@ public:
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-     void updateLine();
-      Edge* edge;
+    NodeItem* getSource();
+    NodeItem* getDestination();
+    void updateLine();
+    Edge* edge;
     void  addToScene(QGraphicsScene* scene);
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 signals:
     void setSelected(Edge *edge, bool selected);
 
@@ -40,6 +43,8 @@ public slots:
     void destructNodeEdge();
     void deleteD(Edge*);
     void setSelected(bool selected);
+
+    void setOpacity(qreal opacity);
 
     void setVisible(bool visible);
 protected:
@@ -70,7 +75,8 @@ private:
     qreal dx;
     qreal dy;
 
-     QGraphicsColorizeEffect *graphicsEffect;
+    QGraphicsColorizeEffect *itemGraphicsEffect;
+    QGraphicsColorizeEffect *lineGraphicsEffect;
 
 
 };

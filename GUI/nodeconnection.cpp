@@ -5,11 +5,16 @@
 NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 {
 
-    graphicsEffect = new QGraphicsColorizeEffect(this);
+    itemGraphicsEffect = new QGraphicsColorizeEffect();
+    lineGraphicsEffect = new QGraphicsColorizeEffect();
+
 
     QColor blue(70,130,180);
-    graphicsEffect->setColor(blue);
-    graphicsEffect->setStrength(0);
+    itemGraphicsEffect->setColor(blue);
+    itemGraphicsEffect->setStrength(0);
+
+    lineGraphicsEffect->setColor(blue);
+    lineGraphicsEffect->setStrength(0);
 
 
 
@@ -37,7 +42,12 @@ NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     inScene = false;
 
 
-    this->setGraphicsEffect(graphicsEffect);
+    this->setGraphicsEffect(itemGraphicsEffect);
+
+    setFlag(ItemDoesntPropagateOpacityToChildren);
+    setFlag(ItemIgnoresParentOpacity);
+    setFlag(ItemIsSelectable);
+
 
 
     updateLine();
@@ -49,8 +59,6 @@ NodeEdge::~NodeEdge()
     destination->deleteConnnection(this);
 
     delete QGline;
-    //delete label;
-    //delete graphicsEffect;
 }
 
 QRectF NodeEdge::boundingRect() const
@@ -74,14 +82,41 @@ void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 }
 
+NodeItem *NodeEdge::getSource()
+{
+    return source;
+}
+
+NodeItem *NodeEdge::getDestination()
+{
+    return destination;
+}
+
 void NodeEdge::addToScene(QGraphicsScene *scene)
 {
     if(scene != 0){
         QGline = scene->addLine(line, linePen);
-        QGline->setGraphicsEffect(graphicsEffect);
+        QGline->setGraphicsEffect(lineGraphicsEffect);
         scene->addItem(this);
         inScene = true;
     }
+}
+
+QVariant NodeEdge::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+{
+    if (change == QGraphicsItem::ItemSelectedChange)
+    {
+        if (value == true)
+        {
+            emit this->setItemSelected(edge, true);
+        }else{
+            emit this->setItemSelected(edge, false);
+        }
+        //return 0;
+    }
+
+    return QGraphicsItem::itemChange(change, value);
+
 }
 
 void NodeEdge::destructNodeEdge()
@@ -99,10 +134,19 @@ void NodeEdge::deleteD(Edge *)
 void NodeEdge::setSelected(bool selected)
 {
     if(selected){
-         graphicsEffect->setStrength(1);
+         itemGraphicsEffect->setStrength(1);
+         lineGraphicsEffect->setStrength(1);
     }else{
-         graphicsEffect->setStrength(0);
+         itemGraphicsEffect->setStrength(0);
+         lineGraphicsEffect->setStrength(0);
     }
+
+}
+
+void NodeEdge::setOpacity(qreal opacity)
+{
+    QGraphicsItem::setOpacity(opacity);
+    QGline->setOpacity(opacity);
 
 }
 

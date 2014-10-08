@@ -65,6 +65,7 @@ signals:
     void view_UpdateProgressBar(int percentage, QString label);
 
     void view_updateCopyBuffer(QString data);
+
 public slots:
     void view_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
     void view_ImportGraphML(QString, GraphMLContainer *currentParent=0, bool linkID = false);
@@ -84,6 +85,8 @@ public slots:
     void view_MoveSelectedNodes(QPointF delta);
 
     void view_SetChildNodeKind(QString nodeKind);
+
+    void view_FilterNodes(QStringList filterString);
 
     void view_HideUnconnectableNodes(Node* node);
     void view_ShowAllNodes();

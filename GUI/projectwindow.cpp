@@ -13,6 +13,7 @@ ProjectWindow::ProjectWindow(QWidget *parent) :
     controller = new NewController(view);
     //controller->moveToThread(thread);
 
+    connect(this, SIGNAL(updateFilters(QStringList)), controller, SLOT(view_FilterNodes(QStringList)));
     //connect(thread, SIGNAL(started()), controller, SLOT(setupControllerOnThread()));
    // thread->start();
 
@@ -44,6 +45,29 @@ NodeView *ProjectWindow::getView()
 NewController *ProjectWindow::getController()
 {
     return controller;
+}
+
+void ProjectWindow::appendFilterString(QString filter)
+{
+    if(!filters.contains(filter)){
+        filters << filter;
+        emit updateFilters(filters);
+    }
+}
+
+void ProjectWindow::removeFilterString(QString filter)
+{
+    int position = filters.indexOf(filter);
+    filters.removeAt(position);
+    if(position != -1){
+        emit updateFilters(filters);
+    }
+}
+
+void ProjectWindow::clearFilters()
+{
+    filters.clear();
+    emit updateFilters(filters);
 }
 
 void ProjectWindow::closeEvent(QCloseEvent *)

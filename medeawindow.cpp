@@ -11,6 +11,7 @@
 #include <QClipboard>
 #include <QStatusBar>
 #include <QProgressBar>
+#include <QPushButton>
 
 
 
@@ -36,6 +37,9 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     connect(ui->actionCascade, SIGNAL(triggered()), ui->mdiArea, SLOT(cascadeSubWindows()));
     connect(ui->actionClose_All, SIGNAL(triggered()), ui->mdiArea, SLOT(closeAllSubWindows()));
 
+    connect(ui->clearFilters, SIGNAL(clicked()), this, SLOT(clearFilters()));
+    connect(ui->addFilter, SIGNAL(clicked()), this, SLOT(appendFilter()));
+
     ui->actionNew_Project->trigger();
 
 
@@ -54,12 +58,31 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     emit view_ActionTriggered("Loading XME");
     emit view_PasteData(xmlText);
 
+    updateProgressBar(100,"");
     //ui->actionImport_GraphML->trigger();
 }
 
 MedeaWindow::~MedeaWindow()
 {
     delete ui;
+}
+
+void MedeaWindow::updateFilterButtons(QStringList activeFilters)
+{
+
+    for (int i = 0; i < ui->AppliedFilters->count(); i++) {
+        QWidget *w = ui->AppliedFilters->itemAt(i)->widget();
+        w->setVisible(false);
+        ui->AppliedFilters->removeWidget(w);
+        delete w;
+    }
+
+    foreach(QString filter, activeFilters){
+        QPushButton* newFilter = new QPushButton(this);
+        newFilter->setText(filter);
+        ui->AppliedFilters->addWidget(newFilter);
+    }
+
 }
 
 void MedeaWindow::updateProgressBar(int percentage, QString label)
@@ -138,6 +161,23 @@ void MedeaWindow::windowClosed(QObject *window)
     int position = projectWindows.indexOf((ProjectWindow*)window);
     projectWindows.removeAt(position);
     qCritical() << "Window: " << position << " Closed!";
+}
+
+void MedeaWindow::appendFilter()
+{
+    QString data = ui->searchBox->text();
+
+    if(data != ""){
+        emit view_AddFilter(data);
+    }
+
+
+}
+
+void MedeaWindow::clearFilters()
+{
+    emit view_ClearFilters();
+    ui->filterBox->update();
 }
 
 void MedeaWindow::projectWindowSelected(QMdiSubWindow *window)
@@ -227,17 +267,30 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         disconnect(ui->actionCopy, SIGNAL(triggered()), controller, SLOT(view_Copy()));
         disconnect(ui->actionExport_GraphML, SIGNAL(triggered()), controller, SLOT(view_ExportGraphML()));
 
+        disconnect(this, SIGNAL(view_AddFilter(QString)), selectedProject, SLOT(appendFilterString(QString)));
+        disconnect(this, SIGNAL(view_ClearFilters()), selectedProject, SLOT(clearFilters()));
+
         disconnect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(setEnableGUI(bool)));
         disconnect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
+        disconnect(selectedProject, SIGNAL(updateFilters(QStringList)), this, SLOT(updateFilterButtons(QStringList)));
+
     }
 
     selectedProject = newSelected;
 
     if(selectedProject){
         connect(ui->actionMaximize, SIGNAL(triggered()), selectedProject, SLOT(showMaximized()));
-
+        connect(selectedProject, SIGNAL(updateFilters(QStringList)), this, SLOT(updateFilterButtons(QStringList)));
         NewController* controller = selectedProject->getController();
 
+
+        connect(this, SIGNAL(view_AddFilter(QString)), selectedProject, SLOT(appendFilterString(QString)));
+
+        connect(this, SIGNAL(view_ClearFilters()), selectedProject, SLOT(clearFilters()));
+
+
+
+        connect(this, SIGNAL(view_FilterNodes(QStringList)), controller, SLOT(view_FilterNodes(QStringList)));
 
         connect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
         connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));

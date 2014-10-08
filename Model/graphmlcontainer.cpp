@@ -141,9 +141,11 @@ QVector<GraphMLContainer *> GraphMLContainer::getChildren(int depth)
     QVector<GraphMLContainer *> returnable;
 
     if(depth != 0){
-        for(int i=0; i < this->descendants.size(); i++){
-            returnable += this->descendants.at(i);
-            returnable +=  this->descendants.at(i)->getChildren(depth - 1 );
+        foreach(GraphMLContainer* child, descendants){
+            returnable += child;
+        }
+        foreach(GraphMLContainer* child, descendants){
+            returnable += child->getChildren(depth -1);
         }
     }else{
         returnable += this->descendants;

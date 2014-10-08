@@ -14,10 +14,15 @@ public:
     NodeView* getView();
     NewController* getController();
 signals:
+    void updateFilters(QStringList filters);
 
 public slots:
+    void appendFilterString(QString filter);
+    void removeFilterString(QString filter);
+    void clearFilters();
 
 private:
+    QStringList filters;
     QThread *thread;
     NodeView* view;
     NewController* controller;

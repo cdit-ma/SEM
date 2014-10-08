@@ -23,8 +23,12 @@ signals:
     void view_PasteData(QString value);
     void view_ActionTriggered(QString name);
     void enableGUI(bool isEnable);
+    void view_AddFilter(QString filter);
+    void view_RemoveFilter(QString filter);
+    void view_ClearFilters();
 
 private slots:
+    void updateFilterButtons(QStringList activeFilters);
 
     void updateProgressBar(int percentage, QString label);
 
@@ -33,6 +37,9 @@ private slots:
     void on_actionNew_Project_triggered();
 
     void windowClosed(QObject* window);
+
+    void appendFilter();
+    void clearFilters();
 
     void projectWindowSelected(QMdiSubWindow* window);
     void setAttributeModel(AttributeTableModel* model);

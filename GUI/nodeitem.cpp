@@ -80,8 +80,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
     this->setGraphicsEffect(graphicsEffect);
 
-   //setFlag(ItemDoesntPropagateOpacityToChildren);
-    setFlag(ItemIgnoresParentOpacity);
+    setFlag(ItemDoesntPropagateOpacityToChildren);
+//    setFlag(ItemIgnoresParentOpacity);
     setFlag(ItemIsSelectable);
     if(parent == 0){
         //PARENT MODEL!
@@ -178,9 +178,9 @@ QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
     {
         if (value == true)
         {
-            emit setNodeSelected(node, true);
+            emit setItemSelected(node, true);
         }else{
-            emit setNodeSelected(node, false);
+            emit setItemSelected(node, false);
         }
         //return 0;
     }
@@ -194,6 +194,15 @@ QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
 void NodeItem::setOpacity(qreal opacity)
 {
     QGraphicsItem::setOpacity(opacity);
+
+    foreach(NodeEdge* edge, connections){
+        if(edge->getSource()->opacity() != 0 && edge->getDestination()->opacity() != 0){
+            edge->setOpacity(opacity);
+        }else{
+            edge->setOpacity(0);
+        }
+    }
+
 }
 
 
@@ -382,6 +391,7 @@ void NodeItem::sortChildren()
     }
 }
 
+
 void NodeItem::setRubberbandMode(bool On)
 {
     USING_RUBBERBAND_SELECTION = On;
@@ -448,7 +458,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             QPainterPath pp;
             pp.addRect(selectionRectangle);
 
-            scene()->setSelectionArea(pp,Qt::ContainsItemBoundingRect);
+            scene()->setSelectionArea(pp, Qt::ContainsItemBoundingRect);
             rubberBand->hide();
         }else{
             hasMoved = false;
