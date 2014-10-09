@@ -35,7 +35,7 @@ signals:
     void selectAll();
 
     void updateNodeType(QString name);
-    void updateViewAspect(QString name);
+    void updateViewAspects(QStringList aspects);
 
 
 public slots:
@@ -48,7 +48,9 @@ public slots:
     void depthChanged(int depth);
 
     void setRubberBandMode(bool On);
-    void setViewAspect(QString aspect);
+    void setViewAspects(QStringList aspects);
+
+    void showContextMenu(const QPoint& pos);
 protected:
     virtual void mouseReleaseEvent(QMouseEvent *event);
     virtual void mouseMoveEvent(QMouseEvent *event);
@@ -59,7 +61,7 @@ protected:
 
 
 private:
-    QString currentAspect;
+    QStringList currentAspects;
     QPoint origin;
     bool rubberBanding;
     bool once;

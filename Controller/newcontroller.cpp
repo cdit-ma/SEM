@@ -10,6 +10,7 @@ NewController::NewController(NodeView *v)
     REDOING = false;
     HIDDEN_OPACITY = 0.10;
 
+
     //Attach the view.
     view = v;
 
@@ -19,7 +20,7 @@ NewController::NewController(NodeView *v)
     actionCount = 0;
     currentAction = "";
 
-    childNodeKind="";
+    childNodeKind = "InEventPort";
 
     CUT_LINKING = false;
     centeredNode = 0;
@@ -719,12 +720,18 @@ void NewController::view_ShiftPressed(bool isDown)
 void NewController::view_DeletePressed(bool isDown)
 {
      if(isDown){
-         emit view_SetGUIEnabled(false);
+         //emit view_SetGUIEnabled(false);
          view_ActionTriggered("Deleting Selection");
          //Do Delete
+         qCritical() << "Deleting Edges";
          deleteSelectedEdges();
+         qCritical() << "Deleted Edges";
+         qCritical() << "Deleting Nodes";
          deleteSelectedNodes();
-         emit view_SetGUIEnabled(true);
+         qCritical() << "Deleted Nodes";
+         //emit view_SetGUIEnabled(true);
+     }else{
+         qCritical() << "GG;";
      }
 }
 
@@ -805,9 +812,9 @@ void NewController::view_SelectAll()
         foreach(GraphMLContainer* child, getParentGraph()->getChildren(0)){
             Node* node = dynamic_cast<Node*>(child);
             if(node){
-                qCritical() << "Nodes";
                 setNodeSelected(node);
             }
+
         }
     }
 
@@ -1213,6 +1220,7 @@ void NewController::deleteNode(Node *node)
                 position = nodeItems.indexOf(nodeItem);
                 nodeItems.removeAt(position);
 
+                //delete childNode;
             }
         }
 
@@ -1479,15 +1487,16 @@ NodeEdge *NewController::getNodeEdgeFromEdge(Edge *edge)
 
 void NewController::deleteSelectedNodes()
 {
-    foreach(Node* node, selectedNodes){
-
+    int size = selectedNodes.size();
+    for(int i=0; i < size; i++){
+        Node* node = selectedNodes.at(i);
         if(node && node->isAncestorOf(centeredNode)){
             centeredNode = 0;
+            qCritical() << "Unsetting Cenetered Node";
         }
 
         deleteNode(node);
     }
-
     selectedNodes.clear();
 }
 

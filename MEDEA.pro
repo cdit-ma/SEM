@@ -50,7 +50,8 @@ HEADERS += \
     Controller/newcontroller.h \
     GUI/graphmlitem.h \
     medeawindow.h \
-    GUI/projectwindow.h
+    GUI/projectwindow.h \
+    GUI/filterbutton.h
 
 SOURCES += \
     Controller/graphmlcontroller.cpp \
@@ -88,7 +89,8 @@ SOURCES += \
     Controller/newcontroller.cpp \
     GUI/graphmlitem.cpp \
     medeawindow.cpp \
-    GUI/projectwindow.cpp
+    GUI/projectwindow.cpp \
+    GUI/filterbutton.cpp
 
 FORMS += \
     medeawindow.ui \

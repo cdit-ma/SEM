@@ -28,7 +28,6 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     statusBar()->addPermanentWidget(currentOperationBar);
 
 
-
     selectedProject = 0;
 
     connect(ui->mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this , SLOT(projectWindowSelected(QMdiSubWindow*)));
@@ -39,6 +38,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
 
     connect(ui->clearFilters, SIGNAL(clicked()), this, SLOT(clearFilters()));
     connect(ui->addFilter, SIGNAL(clicked()), this, SLOT(appendFilter()));
+    connect(ui->addAspect, SIGNAL(clicked()), this, SLOT(appendAspect()));
 
     ui->actionNew_Project->trigger();
 
@@ -67,21 +67,50 @@ MedeaWindow::~MedeaWindow()
     delete ui;
 }
 
-void MedeaWindow::updateFilterButtons(QStringList activeFilters)
+void MedeaWindow::updateFilterButtons(QVector<FilterButton *> buttons)
 {
+    qCritical() << "updateFilterButtons";
+    qCritical() << buttons.size();
 
-    for (int i = 0; i < ui->AppliedFilters->count(); i++) {
+
+    int count = ui->AppliedFilters->count();
+    for (int i = 0; i < count; i++) {
+
         QWidget *w = ui->AppliedFilters->itemAt(i)->widget();
         w->setVisible(false);
-        ui->AppliedFilters->removeWidget(w);
-        delete w;
+        //ui->AppliedFilters->removeWidget(w);
     }
 
-    foreach(QString filter, activeFilters){
-        QPushButton* newFilter = new QPushButton(this);
-        newFilter->setText(filter);
-        ui->AppliedFilters->addWidget(newFilter);
+    update();
+
+    foreach(FilterButton* filter, buttons){
+        ui->AppliedFilters->addWidget(filter);
+        filter->setVisible(true);
     }
+    update();
+
+}
+
+void MedeaWindow::updateAspectButtons(QVector<FilterButton *> buttons)
+{
+    qCritical() << "updateAspectButtons";
+    qCritical() << buttons.size();
+
+
+    int count = ui->VisibleAspects->count();
+    for (int i = 0; i < count; i++) {
+        QWidget *w = ui->VisibleAspects->itemAt(i)->widget();
+        w->setVisible(false);
+        //ui->AppliedFilters->removeWidget(w);
+    }
+
+    update();
+
+    foreach(FilterButton* filter, buttons){
+        ui->VisibleAspects->addWidget(filter);
+        filter->setVisible(true);
+    }
+    update();
 
 }
 
@@ -153,14 +182,13 @@ void MedeaWindow::on_actionNew_Project_triggered()
 
     NewController* controller = newWindow->getController();
     NodeView* view = newWindow->getView();
-    connect(view, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
 }
 
 void MedeaWindow::windowClosed(QObject *window)
 {
     int position = projectWindows.indexOf((ProjectWindow*)window);
     projectWindows.removeAt(position);
-    qCritical() << "Window: " << position << " Closed!";
+    projectWindowSelected(0);
 }
 
 void MedeaWindow::appendFilter()
@@ -168,11 +196,24 @@ void MedeaWindow::appendFilter()
     QString data = ui->searchBox->text();
 
     if(data != ""){
+        qCritical() << "Emitting Append Filter: " << data;
+        ui->searchBox->clear();
         emit view_AddFilter(data);
     }
+}
 
+void MedeaWindow::appendAspect()
+{
+
+    QString data = ui->aspectComboBox->currentText();
+
+    if(data != ""){
+        qCritical() << "Emitting Append Aspect: " << data;
+        emit view_AddAspect(data);
+    }
 
 }
+
 
 void MedeaWindow::clearFilters()
 {
@@ -182,8 +223,11 @@ void MedeaWindow::clearFilters()
 
 void MedeaWindow::projectWindowSelected(QMdiSubWindow *window)
 {
-    selectedProject  = dynamic_cast<ProjectWindow*>(window);
-    setSelectedProject(selectedProject);
+    qCritical() << "Selection changed" << window;
+    ProjectWindow* newlySelected  = dynamic_cast<ProjectWindow*>(window);
+    if(newlySelected){
+        setSelectedProject(newlySelected);
+    }
 }
 
 void MedeaWindow::setAttributeModel(AttributeTableModel* model)
@@ -252,6 +296,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
     if(selectedProject){
         NewController* controller = selectedProject->getController();
+
         disconnect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
         disconnect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
 
@@ -267,30 +312,41 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         disconnect(ui->actionCopy, SIGNAL(triggered()), controller, SLOT(view_Copy()));
         disconnect(ui->actionExport_GraphML, SIGNAL(triggered()), controller, SLOT(view_ExportGraphML()));
 
+
+        disconnect(selectedProject, SIGNAL(updateFilterButtons(QVector<FilterButton*>)), this, SLOT(updateFilterButtons(QVector<FilterButton*>)));
+        disconnect(selectedProject, SIGNAL(updateAspectButtons(QVector<FilterButton*>)), this, SLOT(updateAspectButtons(QVector<FilterButton*>)));
         disconnect(this, SIGNAL(view_AddFilter(QString)), selectedProject, SLOT(appendFilterString(QString)));
+        disconnect(this, SIGNAL(view_AddAspect(QString)), selectedProject, SLOT(appendAspectString(QString)));
         disconnect(this, SIGNAL(view_ClearFilters()), selectedProject, SLOT(clearFilters()));
+
+        disconnect(this, SIGNAL(view_AspectsVisible(QStringList)), selectedProject, SLOT(setVisibleAspects(QStringList)));
 
         disconnect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(setEnableGUI(bool)));
         disconnect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
-        disconnect(selectedProject, SIGNAL(updateFilters(QStringList)), this, SLOT(updateFilterButtons(QStringList)));
 
     }
 
     selectedProject = newSelected;
 
     if(selectedProject){
+
+
         connect(ui->actionMaximize, SIGNAL(triggered()), selectedProject, SLOT(showMaximized()));
-        connect(selectedProject, SIGNAL(updateFilters(QStringList)), this, SLOT(updateFilterButtons(QStringList)));
         NewController* controller = selectedProject->getController();
 
+        this->ui->aspectComboBox->clear();;
+        this->ui->aspectComboBox->addItems(controller->getViewAspects());
 
+        connect(selectedProject, SIGNAL(updateFilterButtons(QVector<FilterButton*>)), this, SLOT(updateFilterButtons(QVector<FilterButton*>)));
+        connect(selectedProject, SIGNAL(updateAspectButtons(QVector<FilterButton*>)), this, SLOT(updateAspectButtons(QVector<FilterButton*>)));
         connect(this, SIGNAL(view_AddFilter(QString)), selectedProject, SLOT(appendFilterString(QString)));
-
+        connect(this, SIGNAL(view_AddAspect(QString)), selectedProject, SLOT(appendAspectString(QString)));
         connect(this, SIGNAL(view_ClearFilters()), selectedProject, SLOT(clearFilters()));
 
+        connect(this, SIGNAL(view_AspectsVisible(QStringList)), selectedProject, SLOT(setVisibleAspects(QStringList)));
 
 
-        connect(this, SIGNAL(view_FilterNodes(QStringList)), controller, SLOT(view_FilterNodes(QStringList)));
+
 
         connect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
         connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
@@ -309,6 +365,12 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
         connect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
         connect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(setEnableGUI(bool)));
+
+        //Force a refresh
+        selectedProject->selectedProject();
+
+
+
     }
 
 
@@ -331,7 +393,6 @@ void MedeaWindow::on_actionPaste_triggered()
 
 void MedeaWindow::setEnableGUI(bool enable)
 {
-    qCritical() << "SET ENABLED" << enable;
 
     if(selectedProject){
         selectedProject->setEnabled(enable);

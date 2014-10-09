@@ -7,7 +7,7 @@
 #include <QRubberBand>
 NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsItem()
 {
-    viewAspect = "";
+    isSelected = false;
     drawDetail = true;
     drawObject = true;
     USING_RUBBERBAND_SELECTION = false;
@@ -92,7 +92,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
 NodeItem::~NodeItem()
 {
-    delete graphicsEffect;
     delete rubberBand;
     delete label;
 }
@@ -222,6 +221,7 @@ void NodeItem::setSelected2()
 
 void NodeItem::setSelected(bool selected)
 {
+    isSelected = selected;
     if(selected){
         if(graphicsEffect != 0){
             graphicsEffect->setStrength(1);
@@ -246,8 +246,6 @@ void NodeItem::setSelected(bool selected)
             }
         }
         //itemChange(QGraphicsItem::ItemSelectedChange, false);
-
-
     }
 
 }
@@ -338,8 +336,7 @@ void NodeItem::recieveData()
 
 void NodeItem::destructNodeItem()
 {
-    delete this;
-
+    this->~NodeItem();
 }
 
 void NodeItem::updateChildNodeType(QString type)
@@ -347,11 +344,17 @@ void NodeItem::updateChildNodeType(QString type)
     toBuildType = type;
 }
 
-void NodeItem::updateViewAspect(QString aspect)
+void NodeItem::updateViewAspects(QStringList aspects)
 {
-    viewAspect = aspect;
+    viewAspect = aspects;
 
-    bool isVisible = node->inAspect(viewAspect);
+    bool isVisible = false;
+    foreach(QString aspect, aspects){
+        if(node->inAspect(aspect)){
+            isVisible = true;
+            break;
+        }
+    }
 
     this->setVisible(isVisible);
 
@@ -360,7 +363,6 @@ void NodeItem::updateViewAspect(QString aspect)
     }
 
     update();
-
 }
 
 void NodeItem::sortChildren()
@@ -425,7 +427,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             isPressed = true;
             //emit triggerSelected(this);
             emit setItemSelected(node);
-//            emit setNodeSelected(node);
         }
         break;
     }
@@ -486,6 +487,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         if(hasMoved == false){
             emit actionTriggered("Moving Selection");
         }
+
         QPointF delta = (event->scenePos() - previousPosition);
         this->setPos(pos() + delta);
 

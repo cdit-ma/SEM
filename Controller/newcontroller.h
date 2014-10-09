@@ -217,6 +217,7 @@ private:
     Node* centeredNode;
 
     QStringList nodeKinds;
+
     QStringList viewAspects;
 
     bool UNDOING;

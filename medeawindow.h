@@ -5,7 +5,7 @@
 #include <QProgressBar>
 #include "GUI/projectwindow.h"
 #include "GUI/attributetablemodel.h"
-
+#include "GUI/filterbutton.h"
 namespace Ui {
 class MedeaWindow;
 }
@@ -24,11 +24,13 @@ signals:
     void view_ActionTriggered(QString name);
     void enableGUI(bool isEnable);
     void view_AddFilter(QString filter);
-    void view_RemoveFilter(QString filter);
+    void view_AddAspect(QString aspect);
     void view_ClearFilters();
-
+    void view_ClearAspects();
+    void view_AspectsVisible(QStringList aspects);
 private slots:
-    void updateFilterButtons(QStringList activeFilters);
+    void updateFilterButtons(QVector<FilterButton*> buttons);
+    void updateAspectButtons(QVector<FilterButton*> buttons);
 
     void updateProgressBar(int percentage, QString label);
 
@@ -39,6 +41,7 @@ private slots:
     void windowClosed(QObject* window);
 
     void appendFilter();
+    void appendAspect();
     void clearFilters();
 
     void projectWindowSelected(QMdiSubWindow* window);

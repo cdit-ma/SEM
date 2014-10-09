@@ -14,17 +14,52 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,5">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,5">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,10">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <layout class="QVBoxLayout" name="Aspects_2">
+        <item>
+         <layout class="QHBoxLayout" name="AspectBox">
+          <item>
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Aspect:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="aspectComboBox"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="addAspect">
+            <property name="text">
+             <string>Add Aspect</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Visible Aspects:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="VisibleAspects"/>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="Filters">
         <item>
          <layout class="QHBoxLayout" name="filterBox">
           <item>
            <widget class="QLabel" name="label">
             <property name="text">
-             <string>Search</string>
+             <string>Filter:</string>
             </property>
            </widget>
           </item>
@@ -39,6 +74,13 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Applied Filters:</string>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QVBoxLayout" name="AppliedFilters"/>

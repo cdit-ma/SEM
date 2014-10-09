@@ -4,6 +4,7 @@
 #include <QMdiSubWindow>
 #include "../Controller/newcontroller.h"
 #include "nodeview.h"
+#include "filterbutton.h"
 #include <QThread>
 class ProjectWindow : public QMdiSubWindow
 {
@@ -15,14 +16,26 @@ public:
     NewController* getController();
 signals:
     void updateFilters(QStringList filters);
+    void updateFilterButtons(QVector<FilterButton*>);
+    void updateAspectButtons(QVector<FilterButton*>);
 
 public slots:
+    void selectedProject();
     void appendFilterString(QString filter);
     void removeFilterString(QString filter);
     void clearFilters();
 
+    void appendAspectString(QString aspect);
+    void removeAspectString(QString aspect);
+    void clearAspects();
+
+    void setVisibleAspects(QStringList aspects);
+
 private:
-    QStringList filters;
+    QVector<FilterButton*> appliedFilterButtons;
+    QStringList appliedFilters;
+    QVector<FilterButton*> appliedAspectButtons;
+    QStringList visibleAspects;
     QThread *thread;
     NodeView* view;
     NewController* controller;

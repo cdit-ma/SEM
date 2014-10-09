@@ -71,7 +71,7 @@ public slots:
     void recieveData();
     void destructNodeItem();
     void updateChildNodeType(QString type);
-    void updateViewAspect(QString aspect);
+    void updateViewAspects(QStringList aspects);
     void sortChildren();
 
     void setRubberbandMode(bool On);
@@ -83,7 +83,7 @@ protected:
 private:
     void setParent(NodeItem* parentItem);
 
-    QString viewAspect;
+    QStringList viewAspect;
 
 
     void updatePosition(QString x=0, QString y=0);
@@ -104,6 +104,7 @@ private:
 
     QVector<NodeEdge*> connections;
 
+    bool isSelected;
     bool moveActionSent;
     QRubberBand* rubberBand;
     QGraphicsColorizeEffect *graphicsEffect;
