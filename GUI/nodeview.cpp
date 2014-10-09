@@ -13,6 +13,8 @@
 #include <iostream>
 #include <QGraphicsSceneMouseEvent>
 #include "nodeconnection.h"
+#include <QMenu>
+#include <QAction>
 
 
 NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
@@ -21,7 +23,6 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     NodeType = "";
     rubberBanding = false;
     once = true;
-    currentAspect = "";
 
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
@@ -49,6 +50,10 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     //Set-up the view
     setSceneRect(0, 0, 5000, 5000);
     translate(2500,2500);
+
+    this->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+
 }
 
 NodeView::~NodeView()
@@ -72,7 +77,7 @@ void NodeView::addNodeItem(NodeItem *item)
         //Add to model.
     }
     connect(this, SIGNAL(updateNodeType(QString)), item, SLOT(updateChildNodeType(QString)));
-    connect(this, SIGNAL(updateViewAspect(QString)), item, SLOT(updateViewAspect(QString)));
+    connect(this, SIGNAL(updateViewAspects(QStringList)), item, SLOT(updateViewAspects(QStringList)));
 }
 
 void NodeView::removeNodeItem(NodeItem *item)
@@ -163,12 +168,42 @@ void NodeView::setRubberBandMode(bool On)
 
 }
 
-void NodeView::setViewAspect(QString aspect)
+
+void NodeView::setViewAspects(QStringList aspects)
 {
-    qCritical() << "Setting: " << aspect;
-    currentAspect = aspect;
-    emit updateViewAspect(aspect);
+    qCritical() << "Setting: " << aspects;
+    currentAspects = aspects;
+    emit updateViewAspects(aspects);
 }
+
+void NodeView::showContextMenu(const QPoint &pos)
+{
+    QPoint globalPos = this->mapToGlobal(pos);
+
+    QMenu myMenu;
+
+    myMenu.addAction("Delete Selection");
+    myMenu.addAction("Add Child Node");
+
+    // ...
+
+    QAction* selectedItem = myMenu.exec(globalPos);
+    if (selectedItem)
+    {
+        if(selectedItem->text() == "Delete Selection"){
+            emit deletePressed(true);
+        }else if(selectedItem->text() == "Add Child Node"){
+            emit constructNodeItem(pos);
+        }
+        // something was chosen, do stuff
+    }
+    else
+    {
+        // nothing was chosen
+    }
+    //myMenu.exec();
+}
+
 
 void NodeView::mouseReleaseEvent(QMouseEvent *event)
 {
