@@ -52,8 +52,13 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     translate(2500,2500);
 
     this->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
+    //connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 
+}
+
+bool NodeView::getControlPressed()
+{
+    return this->CONTROL_DOWN;
 }
 
 NodeView::~NodeView()
@@ -179,6 +184,7 @@ void NodeView::setViewAspects(QStringList aspects)
 void NodeView::showContextMenu(const QPoint &pos)
 {
     QPoint globalPos = this->mapToGlobal(pos);
+    QPointF scenePos = this->mapToScene(pos);
 
     QMenu myMenu;
 
@@ -193,7 +199,7 @@ void NodeView::showContextMenu(const QPoint &pos)
         if(selectedItem->text() == "Delete Selection"){
             emit deletePressed(true);
         }else if(selectedItem->text() == "Add Child Node"){
-            emit constructNodeItem(pos);
+            emit constructNodeItem(scenePos);
         }
         // something was chosen, do stuff
     }
@@ -255,8 +261,8 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             horizontalScrollBar()->setValue(xValue);
             verticalScrollBar()->setValue(yValue);
         }else if(event->button() == Qt::RightButton && CONTROL_DOWN){
-            emit unselect();
-            emit constructNodeItem(scenePos);
+            //emit unselect();
+            //emit constructNodeItem(scenePos);
         }else if( event->button() == Qt::LeftButton && CONTROL_DOWN){
             origin = scenePos.toPoint();
         }else{

@@ -16,6 +16,8 @@ ProjectWindow::ProjectWindow(QWidget *parent) :
     connect(this, SIGNAL(updateFilters(QStringList)), controller, SLOT(view_FilterNodes(QStringList)));
 
 
+    connect(view, SIGNAL(customContextMenuRequested(QPoint)), controller, SLOT(view_ConstructMenu(QPoint)));
+
 
     //controller->moveToThread(thread);
     //thread->start();

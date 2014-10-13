@@ -6,6 +6,8 @@
 
 #include "../Model/graphmlcontainer.h"
 #include "../Model/model.h"
+#include <QMenu>
+#include <QAction>
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 
@@ -71,6 +73,8 @@ public slots:
     void view_ImportGraphML(QString, GraphMLContainer *currentParent=0, bool linkID = false);
     void view_UpdateGraphMLData(GraphML* parent, QString keyName, QString dataValue);
 
+    void view_ConstructMenu(QPoint position);
+
     void view_ExportGraphML();
 
     void view_SetNodeSelected(Node* node, bool setSelected);
@@ -98,9 +102,9 @@ public slots:
     void view_ClearHistory();
     void view_ControlPressed(bool isDown);
     void view_ShiftPressed(bool isDown);
-    void view_DeletePressed(bool isDown);
+    void view_DeletePressed(bool isDown=true);
 
-    //Copy/Pase Operations
+    //Copy/Pase Operationsview_DeletePressed
     void view_Undo();
     void view_Redo();
 
@@ -108,6 +112,7 @@ public slots:
     void view_Cut();
     void view_Paste(QString xmlData);
 
+    void view_ClearKeyModifiers();
 
     //Selection Actions.
     void view_SelectAll();
@@ -213,6 +218,7 @@ private:
 
     //Provides a lookup for old IDs.
     QHash<QString, QString> pastIDLookup;
+    QPoint menuPosition;
 
     Node* centeredNode;
 

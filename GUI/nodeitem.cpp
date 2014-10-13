@@ -433,7 +433,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     case Qt::RightButton:{
         //Select this node, and construct a child node.
         emit setItemSelected(node, true);
-        emit makeChildNode(event->pos());
+        //emit makeChildNode(event->pos());
         break;
 
     }

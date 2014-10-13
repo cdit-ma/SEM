@@ -13,7 +13,15 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 public:
     NodeView(QWidget *parent = 0);
+    bool getControlPressed();
     ~NodeView();
+
+    virtual void mouseReleaseEvent(QMouseEvent *event);
+    virtual void mouseMoveEvent(QMouseEvent *event);
+    virtual void mousePressEvent(QMouseEvent* event);
+    virtual void wheelEvent(QWheelEvent* event);
+    virtual void keyPressEvent(QKeyEvent *event);
+    virtual void keyReleaseEvent(QKeyEvent *event);
 
 signals:
     void updateZoom(qreal zoom);
@@ -38,6 +46,9 @@ signals:
     void updateViewAspects(QStringList aspects);
 
 
+
+
+
 public slots:
     void updateNodeTypeName(QString name);
     void addNodeItem(NodeItem* item);
@@ -51,13 +62,7 @@ public slots:
     void setViewAspects(QStringList aspects);
 
     void showContextMenu(const QPoint& pos);
-protected:
-    virtual void mouseReleaseEvent(QMouseEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event);
-    virtual void mousePressEvent(QMouseEvent* event);
-    virtual void wheelEvent(QWheelEvent* event);
-    virtual void keyPressEvent(QKeyEvent *event);
-    virtual void keyReleaseEvent(QKeyEvent *event);
+
 
 
 private:

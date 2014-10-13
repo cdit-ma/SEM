@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,5">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,10">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,10">
       <item>
        <layout class="QVBoxLayout" name="Aspects_2">
         <item>
@@ -93,6 +93,22 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QSlider" name="horizontalSlider">
+        <property name="maximum">
+         <number>10</number>
+        </property>
+        <property name="pageStep">
+         <number>3</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="invertedControls">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QTableView" name="attributeTable"/>

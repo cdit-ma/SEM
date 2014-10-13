@@ -430,6 +430,44 @@ void NewController::view_UpdateGraphMLData(GraphML* parent, QString keyName, QSt
     }
 }
 
+void NewController::view_ConstructMenu(QPoint position)
+{
+    QPoint globalPos = view->mapToGlobal(position);
+
+    QMenu* rightClickMenu = new QMenu();
+
+    QAction* deleteAction = new QAction(this);
+    deleteAction->setText("Delete Selection");
+    connect(deleteAction, SIGNAL(triggered()), this, SLOT(view_DeletePressed()));
+
+    QAction* addChildNode = new QAction(this);
+    addChildNode->setText("Add Child Node");
+    connect(addChildNode, SIGNAL(triggered()), this, SLOT(view_ConstructChildNode()));
+
+
+    rightClickMenu->addAction(deleteAction);
+    rightClickMenu->addAction(addChildNode);
+
+    QAction* selectedItem = rightClickMenu->exec(globalPos);
+    /*
+    if (selectedItem)
+    {
+        if(selectedItem->text() == "Delete Selection"){
+            emit deletePressed(true);
+        }else if(selectedItem->text() == "Add Child Node"){
+            emit constructNodeItem(scenePos);
+        }
+        // something was chosen, do stuff
+    }
+    else
+    {
+        // nothing was chosen
+    }
+    */
+
+}
+
+
 void NewController::view_ExportGraphML()
 {
 
@@ -449,11 +487,16 @@ void NewController::view_ExportGraphML()
 
 void NewController::view_SetNodeSelected(Node *node, bool setSelected)
 {
+    if(!node){
+        return;
+    }
 
     if(KEY_CONTROL_DOWN){
         //If it contains node, unselect it.
+        qCritical() << "Control Down";
         bool setSelected = !isNodeSelected(node);
         setNodeSelected(node, setSelected);
+        qCritical() << "Broked";
     }else{
         if(KEY_SHIFT_DOWN){
             Node* src = getSelectedNode();
@@ -491,16 +534,25 @@ void NewController::view_SetEdgeSelected(Edge *edge, bool setSelected)
 
 void NewController::view_SetItemSelected(GraphML *item, bool setSelected)
 {
+    if(!item){
+        return;
+    }
+
+    qCritical() << "IS LEGIT";
     if(isGraphMLNode(item)){
         view_SetNodeSelected(getNodeFromGraphML(item), setSelected);
     }
     if(isGraphMLEdge(item)){
+
         view_SetEdgeSelected(getEdgeFromGraphML(item), setSelected);
     }
 
     if(selectedNodes.size() == 1 && selectedEdges.size() == 0){
+        qCritical() << "GG";
         Node* node = getSelectedNode();
+        qCritical() << "GG1";
         GraphMLItem* gui = getNodeItemFromNode(node);
+        qCritical() << "GG2";
         emit view_SetSelectedAttributeModel(gui->getAttributeTable());
     }
     if(selectedEdges.size() == 1 && selectedNodes.size() == 0){
@@ -508,6 +560,8 @@ void NewController::view_SetItemSelected(GraphML *item, bool setSelected)
         GraphMLItem* gui = getNodeEdgeFromEdge(edge);
         emit view_SetSelectedAttributeModel(gui->getAttributeTable());
     }
+
+    qCritical() << "IS LEGIT?!";
 
 
 }
@@ -525,12 +579,21 @@ void NewController::view_SetNodeCentered(Node *node)
 
 void NewController::view_ConstructChildNode(QPointF centerPoint)
 {
+    qCritical() << "Making Child Node";
 
     //Get the current Selected Node.
     GraphMLContainer* parent = getSelectedNode();
     if(!parent){
         parent = getParentGraph();
+    }else{
+        NodeItem* nodeItem = getNodeItemFromNode(getSelectedNode());
+        if(nodeItem){
+            centerPoint = nodeItem->mapFromScene(centerPoint);
+        }
     }
+
+
+
 
     GraphMLKey* x = constructGraphMLKey("x", "double", "node");
     GraphMLKey* y = constructGraphMLKey("y", "double", "node");
@@ -600,6 +663,7 @@ void NewController::view_ConstructEdge(Node *src, Node *dst, QVector<QStringList
 
 void NewController::view_MoveSelectedNodes(QPointF delta)
 {
+
     foreach(Node* node, selectedNodes){
         GraphMLData* xData = node->getData("x");
         GraphMLData* yData = node->getData("y");
@@ -719,6 +783,7 @@ void NewController::view_ShiftPressed(bool isDown)
 
 void NewController::view_DeletePressed(bool isDown)
 {
+    qCritical() << "delete";
      if(isDown){
          //emit view_SetGUIEnabled(false);
          view_ActionTriggered("Deleting Selection");
@@ -744,6 +809,7 @@ void NewController::view_Undo()
         invertAction(undoStack.pop());
     }*/
     UNDOING = false;
+
     view->scene()->update();
 }
 
@@ -790,6 +856,10 @@ void NewController::view_Paste(QString xmlData)
         view_ImportGraphML(xmlData, node, CUT_LINKING);
         CUT_LINKING = false;
     }
+}
+
+void NewController::view_ClearKeyModifiers()
+{
 }
 
 void NewController::view_SelectAll()
@@ -897,7 +967,7 @@ void NewController::view_ConstructNodeEdge(Edge *edge)
 
         connect(edge, SIGNAL(destroyed()), nodeEdge, SLOT(destructNodeEdge()));
         connect(nodeEdge, SIGNAL(actionTriggered(QString)), this, SLOT(view_ActionTriggered(QString)));
-        connect(nodeEdge, SIGNAL(setItemSelected(GraphML*,bool)), this, SLOT(view_SetItemSelected(GraphML*,bool)));
+        //connect(nodeEdge, SIGNAL(setItemSelected(GraphML*,bool)), this, SLOT(view_SetItemSelected(GraphML*,bool)));
 
         connect(nodeEdge, SIGNAL(updateGraphMLDataValue(GraphML*,QString,QString)), this, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
 
@@ -1099,11 +1169,12 @@ void NewController::setNodeSelected(Node *node, bool setSelected)
     }
 
     if(setSelected){
+        qCritical() << "Set Selected";
         //Check to see if Node's Parents are in the list of selected Nodes.
         if(!isNodesAncestorSelected(node)){
-
             //Unselect any children nodes which are contained by the new node.
-            foreach(Node* selectedNode, selectedNodes){
+            for(int i = 0; i < selectedNodes.size(); i++){
+                Node * selectedNode = selectedNodes[i];
                 if(node->isAncestorOf(selectedNode)){
                     setNodeSelected(selectedNode, false);
                 }
@@ -1213,14 +1284,19 @@ void NewController::deleteNode(Node *node)
                 NodeItem* nodeItem = getNodeItemFromNode(childNode);
 
                 //Remove node from list.
-                int position = nodes.indexOf(childNode);
-                nodes.removeAt(position);
+                int nodePosition = nodes.indexOf(childNode);
+                int selectedPosition = selectedNodes.indexOf(childNode);
+                int nodeItemPosition = nodeItems.indexOf(nodeItem);
 
-                //Remove nodeItem from list.
-                position = nodeItems.indexOf(nodeItem);
-                nodeItems.removeAt(position);
-
-                //delete childNode;
+                if(nodePosition != -1){
+                    nodes.removeAt(nodePosition);
+                }
+                if(selectedPosition != -1){
+                    selectedNodes.removeAt(selectedPosition);
+                }
+                if(nodeItemPosition != -1){
+                    nodeItems.removeAt(nodeItemPosition);
+                }
             }
         }
 
@@ -1246,12 +1322,19 @@ void NewController::deleteNode(Node *node)
 
 
         //Remove node from list.
-        int position = nodes.indexOf(node);
-        nodes.removeAt(position);
+        int nodePosition = nodes.indexOf(node);
+        int selectedPosition = selectedNodes.indexOf(node);
+        int nodeItemPosition = nodeItems.indexOf(nodeItem);
 
-        //Remove NodeItem from list.
-        position = nodeItems.indexOf(nodeItem);
-        nodeItems.removeAt(position);
+        if(nodePosition != -1){
+            nodes.removeAt(nodePosition);
+        }
+        if(selectedPosition != -1){
+            selectedNodes.removeAt(selectedPosition);
+        }
+        if(nodeItemPosition != -1){
+            nodeItems.removeAt(nodeItemPosition);
+        }
 
         delete node;
     }else{
@@ -1302,8 +1385,16 @@ void NewController::deleteEdge(Edge *edge, bool addAction)
 
 bool NewController::isNodesAncestorSelected(Node *selectedNode)
 {
-    foreach(Node* node, selectedNodes){
-        if(node->isAncestorOf(selectedNode)){
+    qCritical() << selectedNodes.size();
+
+    for(int i = 0; i < selectedNodes.size(); i++){
+        qCritical() << "Loop" << i;
+        Node* node = selectedNodes[i];
+        qCritical() << "Loop" << i << " 2 ";
+
+        qCritical() << node->toString();
+        qCritical() << "Loop" << i << " 3 ";
+        if(node && node->isAncestorOf(selectedNode)){
             return true;
         }
     }
@@ -1488,16 +1579,18 @@ NodeEdge *NewController::getNodeEdgeFromEdge(Edge *edge)
 void NewController::deleteSelectedNodes()
 {
     int size = selectedNodes.size();
-    for(int i=0; i < size; i++){
-        Node* node = selectedNodes.at(i);
+
+    while(selectedNodes.size() > 0){
+        Node* node = selectedNodes.front();
         if(node && node->isAncestorOf(centeredNode)){
             centeredNode = 0;
             qCritical() << "Unsetting Cenetered Node";
         }
-
         deleteNode(node);
+        if(selectedNodes.contains(node)){
+            selectedNodes.removeFirst();
+        }
     }
-    selectedNodes.clear();
 }
 
 void NewController::deleteSelectedEdges()

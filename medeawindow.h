@@ -54,7 +54,9 @@ private slots:
     void on_actionPaste_triggered();
     void setEnableGUI(bool enable);
 
-
+protected:
+    virtual void keyPressEvent(QKeyEvent *event);
+    virtual void keyReleaseEvent(QKeyEvent *event);
 
 private:
     QProgressBar* currentOperationBar;
