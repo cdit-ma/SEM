@@ -330,6 +330,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
     if(selectedProject){
 
+        this->ui->listView->setModel(selectedProject->getController()->getModel());
 
         connect(ui->actionMaximize, SIGNAL(triggered()), selectedProject, SLOT(showMaximized()));
         NewController* controller = selectedProject->getController();

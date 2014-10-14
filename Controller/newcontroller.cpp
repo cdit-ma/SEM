@@ -8,11 +8,14 @@ NewController::NewController(NodeView *v)
 {
     UNDOING = false;
     REDOING = false;
+    SELECT_NEWLY_CREATED = false;
     HIDDEN_OPACITY = 0.10;
 
 
     //Attach the view.
     view = v;
+
+    treeModel = new QStandardItemModel();
 
     parentGraph = new Graph("Parent Graph");
 
@@ -126,6 +129,11 @@ QString NewController::exportGraphML(Node *node)
     return exportGraphML(nodes);
 }
 
+QStandardItemModel *NewController::getModel()
+{
+    return treeModel;
+}
+
 QStringList NewController::getNodeKinds()
 {
     return nodeKinds;
@@ -218,7 +226,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
         //Calculate the current percentage
         float lineNumber = xml.lineNumber();
         double percentage = (lineNumber * 100 / lineCount);
-        emit view_UpdateProgressBar((int)percentage, "");
+        emit view_UpdateProgressBar((int)percentage);
 
         //Get the tagName
         QString tagName = xml.name().toString();
@@ -238,7 +246,6 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
                 currentEdges.append(newEdge);
                 //Set the current object type to EDGE.
                 nowInside = GraphML::EDGE;
-
             }
             if(xml.isEndElement()){
                 //Set the current object type to NONE.
@@ -406,7 +413,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
             //return false;
         }
     }
-      emit view_UpdateProgressBar(100, "");
+      emit view_UpdateProgressBar(100);
 }
 
 void NewController::view_UpdateGraphMLData(GraphML* parent, QString keyName, QString dataValue)
@@ -433,6 +440,10 @@ void NewController::view_UpdateGraphMLData(GraphML* parent, QString keyName, QSt
 void NewController::view_ConstructMenu(QPoint position)
 {
     QPoint globalPos = view->mapToGlobal(position);
+
+    menuPosition = view->mapToScene(position);
+
+
 
     QMenu* rightClickMenu = new QMenu();
 
@@ -493,10 +504,8 @@ void NewController::view_SetNodeSelected(Node *node, bool setSelected)
 
     if(KEY_CONTROL_DOWN){
         //If it contains node, unselect it.
-        qCritical() << "Control Down";
         bool setSelected = !isNodeSelected(node);
         setNodeSelected(node, setSelected);
-        qCritical() << "Broked";
     }else{
         if(KEY_SHIFT_DOWN){
             Node* src = getSelectedNode();
@@ -538,21 +547,16 @@ void NewController::view_SetItemSelected(GraphML *item, bool setSelected)
         return;
     }
 
-    qCritical() << "IS LEGIT";
     if(isGraphMLNode(item)){
         view_SetNodeSelected(getNodeFromGraphML(item), setSelected);
     }
     if(isGraphMLEdge(item)){
-
         view_SetEdgeSelected(getEdgeFromGraphML(item), setSelected);
     }
 
     if(selectedNodes.size() == 1 && selectedEdges.size() == 0){
-        qCritical() << "GG";
         Node* node = getSelectedNode();
-        qCritical() << "GG1";
         GraphMLItem* gui = getNodeItemFromNode(node);
-        qCritical() << "GG2";
         emit view_SetSelectedAttributeModel(gui->getAttributeTable());
     }
     if(selectedEdges.size() == 1 && selectedNodes.size() == 0){
@@ -561,7 +565,6 @@ void NewController::view_SetItemSelected(GraphML *item, bool setSelected)
         emit view_SetSelectedAttributeModel(gui->getAttributeTable());
     }
 
-    qCritical() << "IS LEGIT?!";
 
 
 }
@@ -581,6 +584,15 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
 {
     qCritical() << "Making Child Node";
 
+    bool okay;
+    QInputDialog *dialog = new QInputDialog();
+    QString nodeType = dialog->getItem(0,"Selected Node Type","Please Select Child Node Type: ",this->getNodeKinds(),0,false, &okay);
+
+    if(!okay){
+        return;
+    }
+
+
     //Get the current Selected Node.
     GraphMLContainer* parent = getSelectedNode();
     if(!parent){
@@ -591,8 +603,6 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
             centerPoint = nodeItem->mapFromScene(centerPoint);
         }
     }
-
-
 
 
     GraphMLKey* x = constructGraphMLKey("x", "double", "node");
@@ -607,13 +617,19 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
 
     data.append(new GraphMLData(x, QString::number(centerPoint.x())));
     data.append(new GraphMLData(y, QString::number(centerPoint.y())));
-    data.append(new GraphMLData(k, childNodeKind));
-    data.append(new GraphMLData(t, childNodeKind));
-    data.append(new GraphMLData(l, "new_" + childNodeKind ));
+    data.append(new GraphMLData(k, nodeType));
+    data.append(new GraphMLData(t, nodeType));
+    data.append(new GraphMLData(l, "new_" + nodeType ));
 
     view_ActionTriggered("Constructing Child Node");
     constructGraphMLNode(data, parent);
 
+}
+
+void NewController::view_ConstructChildNode()
+{
+    //Invoked through Menu
+    view_ConstructChildNode(menuPosition);
 }
 
 void NewController::view_ConstructEdge(Node *src, Node *dst)
@@ -783,18 +799,13 @@ void NewController::view_ShiftPressed(bool isDown)
 
 void NewController::view_DeletePressed(bool isDown)
 {
-    qCritical() << "delete";
      if(isDown){
-         //emit view_SetGUIEnabled(false);
+         emit view_SetGUIEnabled(false);
          view_ActionTriggered("Deleting Selection");
          //Do Delete
-         qCritical() << "Deleting Edges";
          deleteSelectedEdges();
-         qCritical() << "Deleted Edges";
-         qCritical() << "Deleting Nodes";
          deleteSelectedNodes();
-         qCritical() << "Deleted Nodes";
-         //emit view_SetGUIEnabled(true);
+         emit view_SetGUIEnabled(true);
      }else{
          qCritical() << "GG;";
      }
@@ -802,15 +813,9 @@ void NewController::view_DeletePressed(bool isDown)
 
 void NewController::view_Undo()
 {
-
     UNDOING = true;
     undoRedo();
-    /*if(undoStack.size() > 0){
-        invertAction(undoStack.pop());
-    }*/
     UNDOING = false;
-
-    view->scene()->update();
 }
 
 void NewController::view_Redo()
@@ -818,13 +823,11 @@ void NewController::view_Redo()
     REDOING = true;
     undoRedo();
     REDOING = false;
-    view->scene()->update();
 }
 
 void NewController::view_Copy()
 {
     copySelection();
-
 }
 
 void NewController::view_Cut()
@@ -852,9 +855,16 @@ void NewController::view_Paste(QString xmlData)
             node = centeredNode;
         }
 
+        //Clear Selection.
+        clearSelectedEdges();
+        clearSelectedNodes();
+
+
+        SELECT_NEWLY_CREATED = true;
         view_ActionTriggered("Pasting Selection.");
         view_ImportGraphML(xmlData, node, CUT_LINKING);
         CUT_LINKING = false;
+        SELECT_NEWLY_CREATED = false;
     }
 }
 
@@ -941,6 +951,10 @@ void NewController::view_ConstructNodeItem(Node *node)
 
 
         connect(nodeItem, SIGNAL(updateGraphMLDataValue(GraphML*,QString,QString)), this, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
+
+        if(SELECT_NEWLY_CREATED){
+            setNodeSelected(node, true);
+        }
     }else{
         qCritical() << "GraphMLController::model_MadeNodeNew() << Node Kind: " << nodeKind << " not Implemented";
     }
@@ -1169,12 +1183,10 @@ void NewController::setNodeSelected(Node *node, bool setSelected)
     }
 
     if(setSelected){
-        qCritical() << "Set Selected";
         //Check to see if Node's Parents are in the list of selected Nodes.
         if(!isNodesAncestorSelected(node)){
             //Unselect any children nodes which are contained by the new node.
-            for(int i = 0; i < selectedNodes.size(); i++){
-                Node * selectedNode = selectedNodes[i];
+            foreach(Node* selectedNode, selectedNodes){
                 if(node->isAncestorOf(selectedNode)){
                     setNodeSelected(selectedNode, false);
                 }
@@ -1385,15 +1397,8 @@ void NewController::deleteEdge(Edge *edge, bool addAction)
 
 bool NewController::isNodesAncestorSelected(Node *selectedNode)
 {
-    qCritical() << selectedNodes.size();
-
     for(int i = 0; i < selectedNodes.size(); i++){
-        qCritical() << "Loop" << i;
         Node* node = selectedNodes[i];
-        qCritical() << "Loop" << i << " 2 ";
-
-        qCritical() << node->toString();
-        qCritical() << "Loop" << i << " 3 ";
         if(node && node->isAncestorOf(selectedNode)){
             return true;
         }
@@ -1523,45 +1528,65 @@ void NewController::addActionToStack(ActionItem action)
 
 void NewController::undoRedo()
 {
+    //Lock the GUI.
     emit view_SetGUIEnabled(false);
-    QStack<ActionItem> reverseStack;
+
+    //Used to store the stack of actions we are to use.
+    QStack<ActionItem> actionStack = redoStack;
 
     if(UNDOING){
-        reverseStack = undoStack;
-    }else{
-        reverseStack = redoStack;
+        //Set to the use the stack.
+        actionStack = undoStack;
     }
 
-    if(reverseStack.size() == 0){
-        qCritical () << "No Actions to reverse!";
+    //Get the total number of actions in the history stack.
+    float actionCount = actionStack.size();
+
+    if(actionCount == 0){
+        qCritical () << "No Actions in Undo/Redo Buffer.";
         return;
     }
 
-    int actionID = reverseStack.top().actionID;
-    QString actionName = reverseStack.top().actionName;
+    //Get the ID and Name of the top-most action.
+    int topActionID = actionStack.top().actionID;
+    QString topActionName = actionStack.top().actionName;
 
-    //Emit a new action so this Undo operation can itself be undone.
-    view_ActionTriggered(actionName);
-    //emit view_ActionTriggered(actionName);
+    //Emit a new action so this Undo/Redo operation can be reverted.
+    view_ActionTriggered(topActionName);
 
-    //Reverse all the actions which match the actionID.
+    //This vector will store all ActionItems which match topActionID
+    QVector<ActionItem> toReverse;
 
-    while(reverseStack.size() > 0){
-        ActionItem action = reverseStack.top();
+    while(!actionStack.isEmpty()){
+        //Get the top-most action.
+        ActionItem action = actionStack.top();
 
-        //If this action is part of the currentAction reverse it.
-        if(action.actionID == actionID){
-            reverseAction(reverseStack.pop());
+        //If this action has the same ID, we should undo it.
+        if(action.actionID == topActionID){
+            toReverse.append(action);
+            //Remove if from the action stack.
+            actionStack.pop();
         }else{
+            //If we don't match, it must be a new actionID, so we are done.
             break;
         }
     }
 
-    if(UNDOING){
-        undoStack = reverseStack;
-    }else{
-        redoStack = reverseStack;
+    actionCount = toReverse.size();
+    for(int i = 0; i < actionCount; i++){
+        int percentage = (i*100) / actionCount;
+        emit view_UpdateProgressBar(percentage);
+        reverseAction(toReverse[i]);
     }
+
+    emit view_UpdateProgressBar(100);
+
+    if(UNDOING){
+        undoStack = actionStack;
+    }else{
+        redoStack = actionStack;
+    }
+
     updateGUIUndoRedoLists();
     emit view_SetGUIEnabled(true);
 }

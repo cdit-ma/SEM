@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,5">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,10">
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,10,0">
       <item>
        <layout class="QVBoxLayout" name="Aspects_2">
         <item>
@@ -112,6 +112,9 @@
       </item>
       <item>
        <widget class="QTableView" name="attributeTable"/>
+      </item>
+      <item>
+       <widget class="QListView" name="listView"/>
       </item>
      </layout>
     </item>

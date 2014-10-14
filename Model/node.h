@@ -3,6 +3,8 @@
 
 #include "graphmlcontainer.h"
 #include "graph.h"
+
+#include <QStandardItem>
 #include <QString>
 
 class Node : public GraphMLContainer
@@ -39,6 +41,8 @@ private:
     Graph* childGraph;
     QVector<QString> containedAspects;
     static int _Nid;
+
+    // QStandardItem interface
 };
 
 

@@ -8,6 +8,7 @@
 #include "../Model/model.h"
 #include <QMenu>
 #include <QAction>
+#include <QInputDialog>
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 
@@ -48,6 +49,7 @@ public:
     QString exportGraphML(Node* node);
 
 
+    QStandardItemModel* getModel();
     //Gets a list of all the kinds of Components which have a visual representation.
     QStringList getNodeKinds();
     QStringList getViewAspects();
@@ -64,7 +66,7 @@ signals:
     void view_UpdateUndoList(QStringList list);
     void view_UpdateRedoList(QStringList list);
 
-    void view_UpdateProgressBar(int percentage, QString label);
+    void view_UpdateProgressBar(int percentage, QString label="");
 
     void view_updateCopyBuffer(QString data);
 
@@ -84,6 +86,7 @@ public slots:
 
     void view_SetNodeCentered(Node* node);
     void view_ConstructChildNode(QPointF centerPoint);
+    void view_ConstructChildNode();
     void view_ConstructEdge(Node* src, Node* dst);
     void view_ConstructEdge(Node* src, Node* dst, QVector<QStringList> data, QString previousID=0);
     void view_MoveSelectedNodes(QPointF delta);
@@ -218,7 +221,7 @@ private:
 
     //Provides a lookup for old IDs.
     QHash<QString, QString> pastIDLookup;
-    QPoint menuPosition;
+    QPointF menuPosition;
 
     Node* centeredNode;
 
@@ -228,6 +231,7 @@ private:
 
     bool UNDOING;
     bool REDOING;
+    bool SELECT_NEWLY_CREATED;
 
     bool KEY_CONTROL_DOWN;
     bool KEY_SHIFT_DOWN;
@@ -246,6 +250,7 @@ private:
 
     QString childNodeKind;
 
+    QStandardItemModel* treeModel;
 };
 
 #endif // NEWCONTROLLER_H

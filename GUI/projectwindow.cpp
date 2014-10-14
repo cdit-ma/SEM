@@ -6,7 +6,7 @@ ProjectWindow::ProjectWindow(QWidget *parent) :
     QMdiSubWindow(parent)
 {
 
-    //thread = new QThread();
+    thread = new QThread();
     view = new NodeView(0);
     layout()->addWidget(view);
 
@@ -20,7 +20,7 @@ ProjectWindow::ProjectWindow(QWidget *parent) :
 
 
     //controller->moveToThread(thread);
-    //thread->start();
+
 
     foreach(QString aspect, controller->getViewAspects()){
         appendAspectString(aspect);
@@ -31,6 +31,9 @@ ProjectWindow::ProjectWindow(QWidget *parent) :
     setWindowTitle("New Project");
 
     setAttribute(Qt::WA_DeleteOnClose, true);
+
+    this->moveToThread(thread);
+    thread->start();
 
 }
 
