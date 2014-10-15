@@ -32,7 +32,7 @@ struct ActionItem{
     QString dataValue;
     QString removedXML;
     //In the form KeyName, KeyType, KeyFor, Data Value.
-    QVector<QStringList> edgeDataValues;
+    QVector<QStringList> dataValues;
     QString actionName;
     int actionID;
 };
@@ -73,7 +73,14 @@ signals:
 public slots:
     void view_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
     void view_ImportGraphML(QString, GraphMLContainer *currentParent=0, bool linkID = false);
+
+
+    //Informants from the AttributeTableModel Class.
     void view_UpdateGraphMLData(GraphML* parent, QString keyName, QString dataValue);
+    void view_ConstructGraphMLData(GraphML* parent, QString keyName);
+    void view_DestructGraphMLData(GraphML* parent, QString keyName);
+
+
 
     void view_ConstructMenu(QPoint position);
 
@@ -177,6 +184,8 @@ private:
 
 
     void reverseAction(ActionItem action);
+
+    void attachGraphMLData(GraphML* item, QVector<QStringList> dataList);
     void addActionToStack(ActionItem action);
 
 
@@ -228,6 +237,7 @@ private:
     QStringList nodeKinds;
 
     QStringList viewAspects;
+    QStringList protectedKeyNames;
 
     bool UNDOING;
     bool REDOING;

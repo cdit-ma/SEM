@@ -81,8 +81,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
     this->setGraphicsEffect(graphicsEffect);
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
-//    setFlag(ItemIgnoresParentOpacity);
+    setFlag(ItemIgnoresParentOpacity);
     setFlag(ItemIsSelectable);
+
+
     if(parent == 0){
         //PARENT MODEL!
     }else{
@@ -181,7 +183,6 @@ QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
         }else{
             emit setItemSelected(node, false);
         }
-        //return 0;
     }
 
     return QGraphicsItem::itemChange(change, value);
@@ -385,8 +386,8 @@ void NodeItem::sortChildren()
         //nodeItem->node->updateDataValue("x",QString::number(currentX));
         //nodeItem->node->updateDataValue("y",QString::number(currentY));
 
-        emit updateGraphMLDataValue(nodeItem->getGraphML(),"x",QString::number(currentX));
-        emit updateGraphMLDataValue(nodeItem->getGraphML(),"y",QString::number(currentY));
+        emit updateGraphMLData(nodeItem->getGraphML(),"x",QString::number(currentX));
+        emit updateGraphMLData(nodeItem->getGraphML(),"y",QString::number(currentY));
 
         currentX += nodeItem->width * 1.1;
         }

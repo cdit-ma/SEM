@@ -37,7 +37,6 @@ public:
     void  addToScene(QGraphicsScene* scene);
     QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 signals:
-    void setSelected(Edge *edge, bool selected);
 
 public slots:
     void destructNodeEdge();

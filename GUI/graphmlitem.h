@@ -16,8 +16,10 @@ public:
 signals:
     void setItemSelected(GraphML*, bool setSelected=true);
     void actionTriggered(QString actionName);
-    void updateGraphMLDataValue(GraphML* element, QString keyName, QString value);
+    void updateGraphMLData(GraphML* element, QString keyName, QString value);
 
+    void destructGraphMLData(GraphML* element, QString keyName);
+    void constructGraphMLData(GraphML* element, QString keyName);
 private:
     GraphML* attachedGraph;
     AttributeTableModel* table;

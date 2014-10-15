@@ -12,6 +12,7 @@
 #include <QStatusBar>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QItemSelectionModel>
 
 
 
@@ -425,4 +426,17 @@ void MedeaWindow::keyReleaseEvent(QKeyEvent *event)
         selectedProject->getView()->keyReleaseEvent(event);
     }
 
+}
+
+void MedeaWindow::on_deleteData_clicked()
+{
+    QAbstractItemModel* model = ui->attributeTable->model();
+    if(model){
+        QItemSelectionModel* selectionModel = ui->attributeTable->selectionModel();
+
+        foreach(QModelIndex index, selectionModel->selectedIndexes()){
+            model->removeRow(index.row());
+            //model->removeRow(index);
+        }
+    }
 }

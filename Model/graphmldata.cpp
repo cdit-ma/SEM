@@ -8,6 +8,9 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
     }else{
         this->setValue(value);
     }
+
+    //Set to default.
+    this->setProtected(key->getProtected());
 }
 
 GraphMLData::~GraphMLData()
@@ -64,4 +67,14 @@ void GraphMLData::setValue(QString value)
         this->value = value;
         emit dataChanged(this);
     }
+}
+
+void GraphMLData::setProtected(bool setProtected)
+{
+    isProtected = setProtected;
+}
+
+bool GraphMLData::getProtected()
+{
+    return isProtected;
 }

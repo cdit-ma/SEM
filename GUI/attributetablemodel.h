@@ -21,6 +21,8 @@ public:
 
 public slots:
     void updatedData(GraphMLData* data);
+    void removedData(GraphMLData* data);
+    void addData(GraphMLData* data);
     // QAbstractItemModel interface
 public:
     int rowCount(const QModelIndex &parent) const;
@@ -29,6 +31,7 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     bool setData(const QModelIndex &index, const QVariant &value, int role);
     bool insertRows(int row, int count, const QModelIndex &parent);
+
     bool removeRows(int row, int count, const QModelIndex &parent);
     Qt::ItemFlags flags(const QModelIndex &index) const;
 private:

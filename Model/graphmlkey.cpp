@@ -33,12 +33,25 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
     this->forKindStr = forStr;
     this->defaultValue = "";
 
+    setDefaultProtected(false);
+
     //this->type = type;
 }
 
 GraphMLKey::~GraphMLKey()
 {
 
+}
+
+void GraphMLKey::setDefaultProtected(bool setProtected)
+{
+    this->isProtected = setProtected;
+
+}
+
+bool GraphMLKey::getProtected()
+{
+    return this->isProtected;
 }
 
 void GraphMLKey::setDefaultValue(QString value)

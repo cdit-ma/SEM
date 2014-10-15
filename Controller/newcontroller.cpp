@@ -29,6 +29,7 @@ NewController::NewController(NodeView *v)
     centeredNode = 0;
     nodeKinds << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "InEventPortIDL"  << "OutEventPort" << "OutEventPortIDL" << "Attribute" << "HardwareNode" << "HardwareCluster" << "PeriodicEvent" << "Component" << "Member";
 
+    protectedKeyNames << "x" << "y" << "kind" << "width" << "height";
 
     connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
     connect(view, SIGNAL(shiftPressed(bool)), this, SLOT(view_ShiftPressed(bool)));
@@ -416,7 +417,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
       emit view_UpdateProgressBar(100);
 }
 
-void NewController::view_UpdateGraphMLData(GraphML* parent, QString keyName, QString dataValue)
+void NewController::view_UpdateGraphMLData(GraphML *parent, QString keyName, QString dataValue)
 {
     //Construct an Action to reverse the update
     ActionItem action;
@@ -436,6 +437,41 @@ void NewController::view_UpdateGraphMLData(GraphML* parent, QString keyName, QSt
         qCritical() << "Data Doesn't Exist";
     }
 }
+
+void NewController::view_ConstructGraphMLData(GraphML *parent, QString keyName)
+{
+
+
+}
+
+void NewController::view_DestructGraphMLData(GraphML *parent, QString keyName)
+{
+    if(parent){
+        //Construct an Action to reverse the update
+        ActionItem action;
+        action.ID = parent->getID();
+        action.actionType = DESTRUCTED;
+        action.actionKind = GraphML::DATA;
+        action.keyName = keyName;
+
+        //Update
+        GraphMLData* data = parent->getData(keyName);
+
+        if(data){
+            action.dataValues.append(data->toStringList());
+            qCritical() << "Removed Data: " << keyName << " from ID: " << action.ID;
+            addActionToStack(action);
+
+            //Remove!
+            parent->removeData(data);
+        }else{
+            qCritical() << "Data Doesn't Exist";
+        }
+    }else{
+        qCritical() << "Parent Doesn't Exist";
+    }
+}
+
 
 void NewController::view_ConstructMenu(QPoint position)
 {
@@ -642,27 +678,7 @@ void NewController::view_ConstructEdge(Node *src, Node *dst, QVector<QStringList
 {
     if(isEdgeLegal(src, dst)){
         Edge* edge = new Edge(src, dst);
-
-        //Attach the data.
-        foreach(QStringList data, attachedData){
-            if(data.size() == 4){
-                QString keyName = data.at(0);
-                QString keyType = data.at(1);
-                QString keyFor = data.at(2);
-                QString dataValue = data.at(3);
-
-                GraphMLKey* key = constructGraphMLKey(keyName, keyType, keyFor);
-                if(key){
-                    GraphMLData* data = new GraphMLData(key, dataValue);
-                    if(data){
-                        edge->attachData(data);
-
-                        continue;
-                    }
-                }
-            }
-            qCritical() << "Data Illegal";
-        }
+        attachGraphMLData(edge, attachedData);
 
         if((UNDOING || REDOING) && previousID != 0){
             linkPreviousIDToID(previousID, edge->getID());
@@ -799,6 +815,7 @@ void NewController::view_ShiftPressed(bool isDown)
 
 void NewController::view_DeletePressed(bool isDown)
 {
+    qCritical() << "Delete";
      if(isDown){
          emit view_SetGUIEnabled(false);
          view_ActionTriggered("Deleting Selection");
@@ -950,7 +967,8 @@ void NewController::view_ConstructNodeItem(Node *node)
         connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)),nodeItem, SLOT(setRubberbandMode(bool)));
 
 
-        connect(nodeItem, SIGNAL(updateGraphMLDataValue(GraphML*,QString,QString)), this, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
+        connect(nodeItem, SIGNAL(destructGraphMLData(GraphML*,QString)), this, SLOT(view_DestructGraphMLData(GraphML*,QString)));
+        connect(nodeItem, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), this, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
 
         if(SELECT_NEWLY_CREATED){
             setNodeSelected(node, true);
@@ -981,9 +999,9 @@ void NewController::view_ConstructNodeEdge(Edge *edge)
 
         connect(edge, SIGNAL(destroyed()), nodeEdge, SLOT(destructNodeEdge()));
         connect(nodeEdge, SIGNAL(actionTriggered(QString)), this, SLOT(view_ActionTriggered(QString)));
-        //connect(nodeEdge, SIGNAL(setItemSelected(GraphML*,bool)), this, SLOT(view_SetItemSelected(GraphML*,bool)));
+        connect(nodeEdge, SIGNAL(setItemSelected(GraphML*,bool)), this, SLOT(view_SetItemSelected(GraphML*,bool)));
 
-        connect(nodeEdge, SIGNAL(updateGraphMLDataValue(GraphML*,QString,QString)), this, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
+        connect(nodeEdge, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), this, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
 
        // connect(nodeEdge, SIGNAL(setSelected(Edge*,bool)), this, SLOT(view_SetEdgeSelected(Edge*,bool)));
 
@@ -1135,6 +1153,7 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
 {
     GraphMLKey *attribute = new GraphMLKey(name, type, forString);
 
+
     for(int i = 0 ; i < keys.size(); i ++){
         if(keys[i]->operator ==(*attribute)){
             delete attribute;
@@ -1142,7 +1161,11 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         }
     }
 
+    if(protectedKeyNames.contains(name)){
+        attribute->setDefaultProtected(true);
+    }
     keys.append(attribute);
+
     return attribute;
 }
 
@@ -1367,7 +1390,7 @@ void NewController::deleteEdge(Edge *edge, bool addAction)
             action.dstID = edge->getDestination()->getID();
 
             foreach(GraphMLData* data, edge->getData()){
-                action.edgeDataValues.append(data->toStringList());
+                action.dataValues.append(data->toStringList());
             }
 
             addActionToStack(action);
@@ -1449,6 +1472,13 @@ void NewController::reverseAction(ActionItem action)
             deleteEdge(edge, true);
             break;
         }
+        case GraphML::DATA:{
+            GraphML* item = getGraphMLFromPreviousID(action.ID);
+            view_DestructGraphMLData(item, action.keyName);
+            break;
+
+
+        }
         default:{
             break;
         }
@@ -1472,8 +1502,21 @@ void NewController::reverseAction(ActionItem action)
             Node* dst = getNodeFromPreviousID(action.dstID);
 
             if(isEdgeLegal(src,dst)){
-                view_ConstructEdge(src ,dst, action.edgeDataValues, action.ID);
+                view_ConstructEdge(src ,dst, action.dataValues, action.ID);
             }
+            break;
+        }
+        case GraphML::DATA:{
+            GraphML* attachedItem = getGraphMLFromPreviousID(action.ID);
+
+            if(attachedItem){
+                //Attach GraphML data objects
+                attachGraphMLData(attachedItem, action.dataValues);
+            }else{
+                qCritical() << "Cannot find Item";
+            }
+
+
             break;
         }
         default:{
@@ -1508,6 +1551,37 @@ void NewController::reverseAction(ActionItem action)
         }
         break;
     }
+    }
+
+}
+void NewController::attachGraphMLData(GraphML *item, QVector<QStringList> dataList)
+{
+    //Attach the data.
+    foreach(QStringList data, dataList){
+        if(data.size() == 4){
+            QString keyName = data.at(0);
+            QString keyType = data.at(1);
+            QString keyFor = data.at(2);
+            QString dataValue = data.at(3);
+
+            GraphMLKey* key = constructGraphMLKey(keyName, keyType, keyFor);
+            if(key){
+                GraphMLData* data = new GraphMLData(key, dataValue);
+
+                ActionItem action;
+                action.ID = item->getID();
+                action.actionType = CONSTRUCTED;
+                action.actionKind = GraphML::DATA;
+                action.keyName = keyName;
+
+                if(data){
+                    addActionToStack(action);
+                    item->attachData(data);
+                    continue;
+                }
+            }
+        }
+        qCritical() << "Data Illegal";
     }
 
 }
@@ -1605,6 +1679,7 @@ void NewController::deleteSelectedNodes()
 {
     int size = selectedNodes.size();
 
+    emit view_SetSelectedAttributeModel(0);
     while(selectedNodes.size() > 0){
         Node* node = selectedNodes.front();
         if(node && node->isAncestorOf(centeredNode)){
@@ -1696,7 +1771,7 @@ void NewController::updateGUIUndoRedoLists()
         int ID = a.actionID;
         if(actions.contains(ID) == false){
             actions.append(ID);
-            undoList << a.actionName;
+            undoList.insert(0, a.actionName);
         }
     }
     emit view_UpdateUndoList(undoList);
@@ -1709,7 +1784,7 @@ void NewController::updateGUIUndoRedoLists()
         int ID = a.actionID;
         if(actions.contains(ID) == false){
             actions.append(ID);
-            undoList << a.actionName;
+            undoList.insert(0, a.actionName);
         }
     }
 

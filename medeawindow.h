@@ -54,6 +54,8 @@ private slots:
     void on_actionPaste_triggered();
     void setEnableGUI(bool enable);
 
+    void on_deleteData_clicked();
+
 protected:
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);

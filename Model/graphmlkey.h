@@ -11,6 +11,9 @@ public:
     GraphMLKey(QString name, QString typeStr, QString forStr);
     ~GraphMLKey();
 
+    void setDefaultProtected(bool setProtected);
+    bool getProtected();
+
     void setDefaultValue(QString value);
     QString getDefaultValue() const;
     bool operator==(const GraphMLKey &other) const;
@@ -24,6 +27,7 @@ private:
 
     GraphML::KIND forKind;
     QString forKindStr;
+    bool isProtected;
 
     TYPE type;
     QString typeStr;

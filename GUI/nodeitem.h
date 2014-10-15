@@ -59,7 +59,6 @@ signals:
 
     void moveSelection(QPointF move);
     void makeChildNode(QString type, Node*);
-    void updateGraphMLData(Node*, QString, QString);
     void updateData(QString key, QString value);
 public slots:
     void setOpacity(qreal opacity);

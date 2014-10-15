@@ -14,6 +14,8 @@ public:
     //void setValue(QString value);
 
     void setValue(QString value);
+    void setProtected(bool setProtected);
+    bool getProtected();
 
     QString getValue() const;
     GraphMLKey* getKey();
@@ -25,6 +27,7 @@ signals:
     void dataChanged(GraphMLData* data);
 private:
     QString value;
+    bool isProtected;
     GraphMLKey* key;
 
     // GraphML interface

@@ -108,11 +108,10 @@ QVariant NodeEdge::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
     {
         if (value == true)
         {
-            emit this->setItemSelected(edge, true);
+            emit setItemSelected(edge, true);
         }else{
-            emit this->setItemSelected(edge, false);
+            emit setItemSelected(edge, false);
         }
-        //return 0;
     }
 
     return QGraphicsItem::itemChange(change, value);
@@ -161,7 +160,8 @@ void NodeEdge::setVisible(bool visible)
 void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if ( event->button() == Qt::LeftButton ) {
-        emit this->setItemSelected(edge, true);
+        qCritical() << " EMITTED";
+        //emit setItemSelected(edge);
     }
 
 }

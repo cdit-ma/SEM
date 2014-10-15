@@ -17,9 +17,29 @@ void AttributeTableModel::updatedData(GraphMLData *data)
     int position = attachedData.indexOf(data);
     QModelIndex indexA = this->index(position, 0, QModelIndex());
     QModelIndex indexB = this->index(position, rowCount(indexA), QModelIndex());
-
     emit dataChanged(indexA, indexB);
+}
 
+void AttributeTableModel::removedData(GraphMLData *toRemove)
+{
+    //Remove the model index.
+    int index = attachedData.indexOf(toRemove);
+    if(index != -1){
+        beginRemoveRows(QModelIndex(), index, index);
+        attachedData.removeAt(index);
+        endRemoveRows();
+    }
+
+}
+
+void AttributeTableModel::addData(GraphMLData *data)
+{
+    if(!attachedData.contains(data)){
+        beginInsertRows(QModelIndex(), attachedData.size(), attachedData.size());
+        this->attachedData.append(data);
+        updatedData(data);
+        endInsertRows();
+    }
 }
 
 
@@ -87,10 +107,10 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
 
         GraphMLData* data = attachedData.at(row);
 
-        if (index.column() == 1){
+        if (index.column() == 1 && data && !data->getProtected()){
             if(value.toString() != ""){
                 emit guiItem->actionTriggered("Updated Table Cell");
-                emit guiItem->updateGraphMLDataValue(attachedGraphML, data->getKey()->getName(), value.toString());
+                emit guiItem->updateGraphMLData(attachedGraphML, data->getKey()->getName(), value.toString());
             }
             emit(dataChanged(index, index));
         }
@@ -110,16 +130,33 @@ bool AttributeTableModel::insertRows(int row, int count, const QModelIndex &pare
 
 bool AttributeTableModel::removeRows(int position, int rows, const QModelIndex &parent)
 {
+    qCritical() << "Got to remove Data";
     Q_UNUSED(parent);
-    beginRemoveRows(QModelIndex(), position, position+rows-1);
+    bool allRemoved = true;
+
+    bool anyRemoved = false;
 
     for (int row=0; row < rows; ++row) {
         GraphMLData* data = attachedData.at(position);
+        if(data && !data->getProtected()){
+            if(!anyRemoved){
+                anyRemoved = true;
+                emit guiItem->actionTriggered("Removed Table Row");
+            }
+            emit guiItem->destructGraphMLData(attachedGraphML, data->getKey()->getName());
 
-        //attachedNode->removeData(data);
-        //attachedData.removeAt(position);
+            /*emit guiItem->removedGraphMLData(attachedGraphML, data->getKey()->getName());
+            beginRemoveRows(QModelIndex(), position+row, position+row+1);
+            this->attachedGraphML->removeData(data);
+            endRemoveRows();
+            attachedData.removeAt(position);
+            */
+        }else{
+            allRemoved = false;
+        }
+
     }
-    endRemoveRows();
+
     return true;
 
 }
@@ -129,7 +166,17 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
     if (!index.isValid())
         return Qt::ItemIsEnabled;
     if(index.column() == 1){
-        return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
+        if(index.isValid()) {
+            int row = index.row();
+
+            GraphMLData* data = attachedData.at(row);
+
+            if (data && data->getProtected()){
+                return (QAbstractTableModel::flags(index)  ^ Qt::ItemIsEnabled);
+            }else{
+                return QAbstractTableModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsEnabled;
+            }
+        }
     }
     return Qt::ItemIsEnabled;
 
@@ -138,7 +185,11 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 void AttributeTableModel::setupDataBinding()
 {
     if(attachedGraphML){
+        connect(attachedGraphML, SIGNAL(dataRemoved(GraphMLData*)), this, SLOT(removedData(GraphMLData*)));
+        connect(attachedGraphML, SIGNAL(dataAdded(GraphMLData*)), this, SLOT(addData(GraphMLData*)));
+
         attachedData = attachedGraphML->getData();
+
         foreach(GraphMLData* data, attachedData){
             connect(data, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
         }

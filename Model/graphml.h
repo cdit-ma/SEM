@@ -66,6 +66,10 @@ public:
     static qint32 _Uid;
 
 
+signals:
+    //Used to inform models if data has been removed.
+    void dataRemoved(GraphMLData* data);
+    void dataAdded(GraphMLData* data);
 public slots:
     void updateDataValue(QString key, QString value);
 

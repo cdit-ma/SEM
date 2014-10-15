@@ -108,6 +108,7 @@ void GraphML::attachData(GraphMLData *data)
 
         if(keyKind == this->getKind() || (keyKind == GraphML::ALL && this->getKind() < GraphML::ALL)){
             this->attachedData.append(data);
+            emit dataAdded(data);
         }else{
             qCritical() << "Cannot attach <data> to this object. Wrong Kind!";
             qCritical() << data->getKey()->getForKind() << " != " << this->getKind();
@@ -117,7 +118,12 @@ void GraphML::attachData(GraphMLData *data)
 
 void GraphML::removeData(GraphMLData *data)
 {
-    attachedData.remove(attachedData.indexOf(data));
+    int index = attachedData.indexOf(data);
+    if(index != -1){
+        QString keyName = data->getKey()->getName();
+        attachedData.remove(attachedData.indexOf(data));
+        emit dataRemoved(data);
+    }
 }
 
 void GraphML::attachData(QVector<GraphMLData *> data)
