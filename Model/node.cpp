@@ -9,10 +9,10 @@ Node::Node(QString name): GraphMLContainer(GraphML::NODE, name)
     //this->setID(QString("n%1").arg(this->_Nid++));
 
     //Construct a Graph to hold the children of this Node type.
-    this->childGraph = new Graph(name + ":");
+    //this->childGraph = new Graph(name + ":");
 
     //Adopt the Graph, But using the Default adopt method
-    GraphMLContainer::adopt(childGraph);
+    //GraphMLContainer::adopt(childGraph);
 
     //qDebug() << "Constructed Node[" << this->nodeKind <<"]: "<< this->getName();
 }
@@ -51,6 +51,14 @@ bool Node::inAspect(QString aspect)
 Node *Node::getParentNode()
 {
     Graph* parentGraph = dynamic_cast<Graph*>(getParent());
+    Node* parentNode = dynamic_cast<Node*>(getParent());
+
+    if(parentNode){
+        return parentNode;
+    }else{
+        return 0;
+    }
+    /*
     Node* parentNode = 0;
     if(parentGraph != 0){
         parentNode = dynamic_cast<Node*>(parentGraph->getParent());
@@ -60,6 +68,7 @@ Node *Node::getParentNode()
         return parentNode;
     }
     return 0;
+    */
 }
 
 QString Node::toGraphML(qint32 indentationLevel)

@@ -21,11 +21,6 @@ HEADERS += \
     GUI/nodeconnection.h \
     GUI/nodeitem.h \
     GUI/nodeview.h \
-    Model/Assembly/componentassembly.h \
-    Model/Assembly/componentinstance.h \
-    Model/Assembly/eventport.h \
-    Model/Assembly/hardwarecluster.h \
-    Model/Assembly/hardwarenode.h \
     Model/edge.h \
     Model/graph.h \
     Model/graphml.h \
@@ -36,22 +31,26 @@ HEADERS += \
     Model/node.h \
     mainwindow.h \
     qlogger.h \
-    Model/Assembly/attribute.h \
-    Model/Workload/periodicevent.h \
-    Model/Workload/component.h \
     Model/blanknode.h \
-    Model/Assembly/outeventportidl.h \
-    Model/Assembly/ineventportidl.h \
-    Model/Assembly/ineventportidl.h \
-    Model/Assembly/outeventportidl.h \
-    Model/Workload/ineventport.h \
-    Model/Workload/outeventport.h \
-    Model/Assembly/member.h \
     Controller/newcontroller.h \
     GUI/graphmlitem.h \
     medeawindow.h \
     GUI/projectwindow.h \
-    GUI/filterbutton.h
+    GUI/filterbutton.h \
+    Model/BehaviourDefinitions/component.h \
+    Model/BehaviourDefinitions/ineventport.h \
+    Model/BehaviourDefinitions/outeventport.h \
+    Model/BehaviourDefinitions/periodicevent.h \
+    Model/DeploymentDefinitions/attribute.h \
+    Model/DeploymentDefinitions/componentassembly.h \
+    Model/DeploymentDefinitions/componentinstance.h \
+    Model/DeploymentDefinitions/eventport.h \
+    Model/DeploymentDefinitions/hardwarecluster.h \
+    Model/DeploymentDefinitions/hardwarenode.h \
+    Model/DeploymentDefinitions/ineventportidl.h \
+    Model/DeploymentDefinitions/member.h \
+    Model/DeploymentDefinitions/outeventportidl.h \
+    Model/BehaviourDefinitions/behaviourdefinitions.h
 
 SOURCES += \
     Controller/graphmlcontroller.cpp \
@@ -59,11 +58,6 @@ SOURCES += \
     GUI/nodeconnection.cpp \
     GUI/nodeitem.cpp \
     GUI/nodeview.cpp \
-    Model/Assembly/componentassembly.cpp \
-    Model/Assembly/componentinstance.cpp \
-    Model/Assembly/eventport.cpp \
-    Model/Assembly/hardwarecluster.cpp \
-    Model/Assembly/hardwarenode.cpp \
     Model/edge.cpp \
     Model/graph.cpp \
     Model/graphml.cpp \
@@ -75,22 +69,26 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     qlogger.cpp \
-    Model/Assembly/attribute.cpp \
-    Model/Workload/periodicevent.cpp \
-    Model/Workload/component.cpp \
     Model/blanknode.cpp \
-    Model/Assembly/outeventportidl.cpp \
-    Model/Assembly/ineventportidl.cpp \
-    Model/Assembly/ineventportidl.cpp \
-    Model/Assembly/outeventportidl.cpp \
-    Model/Workload/ineventport.cpp \
-    Model/Workload/outeventport.cpp \
-    Model/Assembly/member.cpp \
     Controller/newcontroller.cpp \
     GUI/graphmlitem.cpp \
     medeawindow.cpp \
     GUI/projectwindow.cpp \
-    GUI/filterbutton.cpp
+    GUI/filterbutton.cpp \
+    Model/BehaviourDefinitions/component.cpp \
+    Model/BehaviourDefinitions/ineventport.cpp \
+    Model/BehaviourDefinitions/outeventport.cpp \
+    Model/BehaviourDefinitions/periodicevent.cpp \
+    Model/DeploymentDefinitions/attribute.cpp \
+    Model/DeploymentDefinitions/componentassembly.cpp \
+    Model/DeploymentDefinitions/componentinstance.cpp \
+    Model/DeploymentDefinitions/eventport.cpp \
+    Model/DeploymentDefinitions/hardwarecluster.cpp \
+    Model/DeploymentDefinitions/hardwarenode.cpp \
+    Model/DeploymentDefinitions/ineventportidl.cpp \
+    Model/DeploymentDefinitions/member.cpp \
+    Model/DeploymentDefinitions/outeventportidl.cpp \
+    Model/BehaviourDefinitions/behaviourdefinitions.cpp
 
 FORMS += \
     medeawindow.ui \
