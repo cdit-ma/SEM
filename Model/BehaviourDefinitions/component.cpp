@@ -1,8 +1,8 @@
 #include "component.h"
 #include "periodicevent.h"
-#include "../Assembly/componentinstance.h"
-#include "../Assembly/attribute.h"
-#include "../Assembly/eventport.h"
+#include "../DeploymentDefinitions/componentinstance.h"
+#include "../DeploymentDefinitions/attribute.h"
+#include "../DeploymentDefinitions/eventport.h"
 
 #include <QDebug>
 

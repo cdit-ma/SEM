@@ -1,7 +1,7 @@
 #include "InEventPortIDL.h"
 #include <QDebug>
 #include <typeinfo>
-#include "../Workload/ineventport.h"
+#include "../BehaviourDefinitions/ineventport.h"
 #include "outeventportidl.h"
 #include "member.h"
 

@@ -3,6 +3,7 @@
 
 #include <QThread>
 #include <QObject>
+#include <QClipboard>
 
 
 MainWindow::MainWindow(QWidget *parent) :

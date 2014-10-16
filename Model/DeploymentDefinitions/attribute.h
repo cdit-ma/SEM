@@ -6,7 +6,7 @@
 
 class Attribute : public Node
 {
-        Q_OBJECT
+    Q_OBJECT
 public:
     Attribute(QString name="");
     ~Attribute();

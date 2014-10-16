@@ -12,6 +12,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
     drawObject = true;
     USING_RUBBERBAND_SELECTION = false;
 
+    CONTROL_DOWN = false;
     hasMoved = false;
     graphicsEffect = new QGraphicsColorizeEffect(this);
 
@@ -37,8 +38,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
     if(parent == 0){
         depth = 1;
-        this->width = 1000;
-        this->height = 1000;
+        this->width = 4000;
+        this->height = 4000;
     }else{
         depth = parent->depth +1;
         this->width = parent->width/4;
@@ -400,18 +401,21 @@ void NodeItem::setRubberbandMode(bool On)
     USING_RUBBERBAND_SELECTION = On;
 }
 
-
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(!drawObject){
         return;
     }
 
+
     switch (event->button()) {
 
     case Qt::MiddleButton:{
-        sortChildren();
-        emit centreNode(node);
+        if(event->modifiers().testFlag(Qt::ControlModifier)){
+            sortChildren();
+        }else{
+            emit centreNode(node);
+        }
         //emit centreNode(this);
         break;
     }

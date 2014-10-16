@@ -2,11 +2,9 @@
 #include <QLayout>
 #include <QDebug>
 
-ProjectWindow::ProjectWindow(QWidget *parent) :
-    QMdiSubWindow(parent)
+ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 {
-
-    thread = new QThread();
+    //thread = new QThread();
     view = new NodeView(0);
     layout()->addWidget(view);
 
@@ -32,11 +30,8 @@ ProjectWindow::ProjectWindow(QWidget *parent) :
 
     setAttribute(Qt::WA_DeleteOnClose, true);
 
-    this->moveToThread(thread);
-    thread->start();
 
 }
-
 ProjectWindow::~ProjectWindow()
 {
     delete controller;

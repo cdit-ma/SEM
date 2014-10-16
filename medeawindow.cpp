@@ -188,6 +188,11 @@ void MedeaWindow::on_actionNew_Project_triggered()
 void MedeaWindow::windowClosed(QObject *window)
 {
     int position = projectWindows.indexOf((ProjectWindow*)window);
+    if(window == selectedProject){
+        ui->listView->setModel(0);
+        ui->attributeTable->setModel(0);
+        selectedProject = 0;
+    }
     projectWindows.removeAt(position);
     projectWindowSelected(0);
 }
@@ -224,16 +229,14 @@ void MedeaWindow::clearFilters()
 
 void MedeaWindow::projectWindowSelected(QMdiSubWindow *window)
 {
-    qCritical() << "Selection changed" << window;
     ProjectWindow* newlySelected  = dynamic_cast<ProjectWindow*>(window);
-    if(newlySelected){
-        setSelectedProject(newlySelected);
-    }
+    setSelectedProject(newlySelected);
 }
 
 void MedeaWindow::setAttributeModel(AttributeTableModel* model)
 {
     ui->attributeTable->setModel(model);
+    ui->listView->setModel(0);
 }
 
 void MedeaWindow::updateUndoStates(QStringList list)
@@ -294,7 +297,6 @@ void MedeaWindow::setClipboard(QString value)
 
 void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 {
-
     if(selectedProject){
         NewController* controller = selectedProject->getController();
 
@@ -373,11 +375,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         //Force a refresh
         selectedProject->selectedProject();
 
-
-
     }
-
-
 }
 
 

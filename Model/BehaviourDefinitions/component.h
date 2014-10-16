@@ -1,7 +1,7 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 #include "../node.h"
-#include "../Assembly/componentinstance.h"
+#include "../DeploymentDefinitions/componentinstance.h"
 
 #include <Qstring>
 

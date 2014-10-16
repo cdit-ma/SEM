@@ -3,6 +3,7 @@
 
 #include <QVector>
 #include "graphmlcontainer.h"
+
 class Graph : public GraphMLContainer
 {
     Q_OBJECT

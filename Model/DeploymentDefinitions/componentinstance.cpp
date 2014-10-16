@@ -3,10 +3,10 @@
 #include "eventport.h"
 #include "ineventportidl.h"
 #include "outeventportidl.h"
-#include "../Workload/periodicevent.h"
-#include "../Workload/component.h"
+#include "../BehaviourDefinitions/periodicevent.h"
+#include "../BehaviourDefinitions/component.h"
 #include "hardwarenode.h"
-#include "../Workload/component.h"
+#include "../BehaviourDefinitions/component.h"
 #include "attribute.h"
 
 ComponentInstance::ComponentInstance(QString name):Node(name)
@@ -50,9 +50,11 @@ bool ComponentInstance::isAdoptLegal(GraphMLContainer *attachableObject)
         return false;
     }
 
+    /*
     if(this->getGraph() != NULL){
         return this->getGraph()->isAdoptLegal(attachableObject);
     }
+    */
 
     return true;
 }

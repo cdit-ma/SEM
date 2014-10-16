@@ -50,7 +50,7 @@ bool Node::inAspect(QString aspect)
 
 Node *Node::getParentNode()
 {
-    Graph* parentGraph = dynamic_cast<Graph*>(getParent());
+    //Graph* parentGraph = dynamic_cast<Graph*>(getParent());
     Node* parentNode = dynamic_cast<Node*>(getParent());
 
     if(parentNode){
@@ -82,8 +82,15 @@ QString Node::toGraphML(qint32 indentationLevel)
         returnable += attachedData[i]->toGraphML(indentationLevel+1);
     }
 
+    if(descendants.size() > 0){
+        returnable += tabSpace + QString("\t<graph id =\"g%1\">\n").arg(this->getID());
+    }
     for(int i=0; i < descendants.size(); i++){
-        returnable += descendants[i]->toGraphML(indentationLevel+1);
+        returnable += descendants[i]->toGraphML(indentationLevel+2);
+    }
+
+    if(descendants.size() > 0){
+        returnable += tabSpace + QString("\t</graph>\n");
     }
 
     returnable += tabSpace + "</node>\n";
@@ -96,6 +103,8 @@ QString Node::toString()
     return QString("Node[%1]: "+this->getName()).arg(this->getID());
 }
 
+/*
+
 Graph *Node::getGraph()
 {
     return this->childGraph;
@@ -105,6 +114,7 @@ Graph *Node::getGraph()
 
 void Node::adopt(GraphMLContainer *child)
 {
+
     if(this->childGraph != 0){
         this->childGraph->adopt(child);
     }
@@ -116,3 +126,4 @@ void Node::disown(GraphMLContainer *child)
         this->childGraph->disown(child);
     }
 }
+*/

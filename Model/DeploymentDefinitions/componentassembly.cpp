@@ -23,9 +23,11 @@ bool ComponentAssembly::isAdoptLegal(GraphMLContainer *child)
         return false;
     }
 
+    /*
     if(this->getGraph() != NULL){
         return this->getGraph()->isAdoptLegal(child);
     }
+    */
     return true;
 }
 

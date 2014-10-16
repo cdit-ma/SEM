@@ -1,15 +1,14 @@
-#ifndef BEHAVIOURDEFINITIONS_H
-#define BEHAVIOURDEFINITIONS_H
+#ifndef INTERFACEDEFINITIONS_H
+#define INTERFACEDEFINITIONS_H
 
 #include "../node.h"
 
-class BehaviourDefinitions: public Node
+class InterfaceDefinitions: public Node
 {
     Q_OBJECT
 public:
-    BehaviourDefinitions(QString name ="");
-    ~BehaviourDefinitions();
-
+    InterfaceDefinitions(QString name ="");
+    ~InterfaceDefinitions();
 
     // GraphML interface
 public:
@@ -21,4 +20,4 @@ public:
     bool isAdoptLegal(GraphMLContainer *child);
 };
 
-#endif // BEHAVIOURDEFINITIONS_H
+#endif // INTERFACEDEFINITIONS_H

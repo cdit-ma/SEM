@@ -1,7 +1,7 @@
 #include "ineventport.h"
-#include "../Assembly/ineventportidl.h"
+#include "../DeploymentDefinitions/ineventportidl.h"
 #include <QDebug>
-#include "../Assembly/member.h"
+#include "../DeploymentDefinitions/member.h"
 InEventPort::InEventPort(QString name): Node(name)
 {
     //qDebug() << "Constructed InEventPort: "<< this->getName();

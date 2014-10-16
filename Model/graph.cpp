@@ -2,12 +2,18 @@
 #include <QDebug>
 #include "node.h"
 
-Graph::Graph(QString name):GraphML(this->classKind,name)
+Graph::Graph(QString name): GraphMLContainer(GraphML::GRAPH, name)
 {
     qDebug() << "Constructed Graph["<< this->getName() <<"]";
 }
 
-bool Graph::isAdoptLegal(GraphML *child)
+Graph::~Graph()
+{
+
+}
+
+
+bool Graph::isAdoptLegal(GraphMLContainer *child)
 {
     //Check for self connection.
     if(child == this){
@@ -16,7 +22,7 @@ bool Graph::isAdoptLegal(GraphML *child)
     }
 
     //Graph Objects can only contain Node Type objects.
-    if(child->getKind() != Node::classKind){
+    if(child->getKind() != GraphML::NODE){
         qWarning() << "Cannot adopt non-Node type GraphML Objects.";
         return false;
     }
@@ -36,7 +42,7 @@ bool Graph::isAdoptLegal(GraphML *child)
     return true;
 }
 
-bool Graph::isEdgeLegal(GraphML *attachableObject)
+bool Graph::isEdgeLegal(GraphMLContainer *attachableObject)
 {
     //Check for self connection.
     if(attachableObject == this){
@@ -64,7 +70,7 @@ QString Graph::toGraphML(qint32 indentationLevel)
                 edgeType+="edgedefault=\"directed\"";
         }
         
-        returnable = tabSpace + QString("<graph id =\"%1\" %2>\n").arg(QString::number(this->getID()),edgeType);
+        returnable = tabSpace + QString("<graph id =\"%1\" %2>\n").arg(getID(),edgeType);
 
         for(int i=0; i < this->descendants.size();i++){
             returnable += this->descendants[i]->toGraphML(indentationLevel+1);

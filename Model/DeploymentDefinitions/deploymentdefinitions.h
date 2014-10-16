@@ -1,14 +1,14 @@
-#ifndef BEHAVIOURDEFINITIONS_H
-#define BEHAVIOURDEFINITIONS_H
+#ifndef DEPLOYMENTDEFINITIONS_H
+#define DEPLOYMENTDEFINITIONS_H
 
 #include "../node.h"
 
-class BehaviourDefinitions: public Node
+class DeploymentDefinitions: public Node
 {
     Q_OBJECT
 public:
-    BehaviourDefinitions(QString name ="");
-    ~BehaviourDefinitions();
+    DeploymentDefinitions(QString name ="");
+    ~DeploymentDefinitions();
 
 
     // GraphML interface
@@ -20,5 +20,4 @@ public:
     bool isEdgeLegal(GraphMLContainer *attachableObject);
     bool isAdoptLegal(GraphMLContainer *child);
 };
-
-#endif // BEHAVIOURDEFINITIONS_H
+#endif // DEPLOYMENTDEFINITIONS_H

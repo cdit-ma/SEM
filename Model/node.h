@@ -30,15 +30,17 @@ public:
     Node* getParentNode();
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
-    Graph* getGraph();
+    //Graph* getGraph();
 
 
+    /*
     //Extend the adopt/disown functionality to use the internal graph object in the node.
     void adopt(GraphMLContainer* child);
     void disown(GraphMLContainer* child);
+*/
 
 private:
-    Graph* childGraph;
+    //Graph* childGraph;
     QVector<QString> containedAspects;
     static int _Nid;
 

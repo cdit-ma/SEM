@@ -1,6 +1,6 @@
 #ifndef INEVENTPORT_H
 #define INEVENTPORT_H
-#include "../Assembly/eventport.h"
+#include "../DeploymentDefinitions/eventport.h"
 
 class InEventPortIDL;
 

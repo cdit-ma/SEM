@@ -13,10 +13,11 @@ TARGET = MEDEA
 CONFIG   += console
 CONFIG   -= app_bundle
 
+CONFIG += CONSOLE
+
 TEMPLATE = app
 
 HEADERS += \
-    Controller/graphmlcontroller.h \
     GUI/attributetablemodel.h \
     GUI/nodeconnection.h \
     GUI/nodeitem.h \
@@ -50,10 +51,11 @@ HEADERS += \
     Model/DeploymentDefinitions/ineventportidl.h \
     Model/DeploymentDefinitions/member.h \
     Model/DeploymentDefinitions/outeventportidl.h \
-    Model/BehaviourDefinitions/behaviourdefinitions.h
+    Model/BehaviourDefinitions/behaviourdefinitions.h \
+    Model/DeploymentDefinitions/deploymentdefinitions.h \
+    Model/InterfaceDefinitions/interfacedefinitions.h
 
 SOURCES += \
-    Controller/graphmlcontroller.cpp \
     GUI/attributetablemodel.cpp \
     GUI/nodeconnection.cpp \
     GUI/nodeitem.cpp \
@@ -88,7 +90,9 @@ SOURCES += \
     Model/DeploymentDefinitions/ineventportidl.cpp \
     Model/DeploymentDefinitions/member.cpp \
     Model/DeploymentDefinitions/outeventportidl.cpp \
-    Model/BehaviourDefinitions/behaviourdefinitions.cpp
+    Model/BehaviourDefinitions/behaviourdefinitions.cpp \
+    Model/DeploymentDefinitions/deploymentdefinitions.cpp \
+    Model/InterfaceDefinitions/interfacedefinitions.cpp
 
 FORMS += \
     medeawindow.ui \

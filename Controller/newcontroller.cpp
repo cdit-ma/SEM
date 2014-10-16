@@ -9,6 +9,9 @@ NewController::NewController(NodeView *v)
     UNDOING = false;
     REDOING = false;
     SELECT_NEWLY_CREATED = false;
+    KEY_CONTROL_DOWN = false;
+    KEY_SHIFT_DOWN = false;
+
     HIDDEN_OPACITY = 0.10;
 
 
@@ -17,7 +20,11 @@ NewController::NewController(NodeView *v)
 
     treeModel = new QStandardItemModel();
 
-    parentGraph = new Graph("Parent Graph");
+    //Construct
+
+    behaviourDefinitions = 0;
+    interfaceDefinitions = 0;
+    deploymentDefinitions = 0;
 
     currentActionID = 0;
     actionCount = 0;
@@ -27,10 +34,15 @@ NewController::NewController(NodeView *v)
 
     CUT_LINKING = false;
     centeredNode = 0;
-    nodeKinds << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "InEventPortIDL"  << "OutEventPort" << "OutEventPortIDL" << "Attribute" << "HardwareNode" << "HardwareCluster" << "PeriodicEvent" << "Component" << "Member";
 
+    viewAspects << "Assembly" << "Workload" << "Definitions";
     protectedKeyNames << "x" << "y" << "kind" << "width" << "height";
 
+    nodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
+    nodeKinds << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "InEventPortIDL"  << "OutEventPort" << "OutEventPortIDL" << "Attribute" << "HardwareNode" << "HardwareCluster" << "PeriodicEvent" << "Component" << "Member";
+
+
+    //Connect to the View's Signals
     connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
     connect(view, SIGNAL(shiftPressed(bool)), this, SLOT(view_ShiftPressed(bool)));
     connect(view, SIGNAL(deletePressed(bool)), this, SLOT(view_DeletePressed(bool)));
@@ -38,21 +50,21 @@ NewController::NewController(NodeView *v)
     connect(view, SIGNAL(unselect()),this, SLOT(view_ClearSelection()));
     connect(view, SIGNAL(unselect()), this, SLOT(view_ClearCenteredNode()));
     connect(view, SIGNAL(constructNodeItem(QPointF)), this,SLOT(view_ConstructChildNode(QPointF)));
-    connect(this, SIGNAL(view_SetNodeItemCentered(NodeItem*)), view, SLOT(centreItem(NodeItem*)));
 
+    //Connect the controllers signals to the view.
+    connect(this, SIGNAL(view_SetNodeItemCentered(NodeItem*)), view, SLOT(centreItem(NodeItem*)));
     connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
 
-    KEY_CONTROL_DOWN = false;
-    KEY_SHIFT_DOWN = false;
 
-    viewAspects << "Assembly" << "Workload";
+    model = new Model("Parent Graph");
+    setupModel();
+
 }
 
 NewController::~NewController()
 {
     emit view_SetSelectedAttributeModel(0);
-    delete parentGraph;
-    qCritical() << "Destroyed Controller";
+    delete model;
 }
 
 QString NewController::exportGraphML(QVector<Node *> eNodes)
@@ -200,7 +212,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
 
     //If we have been passed no parent, set it as the graph of this Model.
     if(currentParent == 0){
-        currentParent = getParentGraph();
+        currentParent = getParentModel();
     }
 
     if(!isGraphMLValid(inputGraphML)){
@@ -362,10 +374,10 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
 
                     //Check if the parent is a graph or a node!
                     //We only care about if it's not a graph!
-                    Graph* graph = dynamic_cast<Graph*> (currentParent);
-                    if(graph != 0){
-                        parentDepth --;
-                    }
+                    //Graph* graph = dynamic_cast<Graph*> (currentParent);
+                   // if(graph != 0){
+                    parentDepth --;
+                    //}
                 }
 
                 //Add the new Node to the lookup table.
@@ -520,7 +532,7 @@ void NewController::view_ExportGraphML()
 
     QVector<Node*> nodes;
 
-    foreach(GraphMLContainer* child, getParentGraph()->getChildren(0)){
+    foreach(GraphMLContainer* child, getParentModel()->getChildren(0)){
         Node* node = dynamic_cast<Node*>(child);
         if(node){
             nodes.append(node);
@@ -622,7 +634,7 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
 
     bool okay;
     QInputDialog *dialog = new QInputDialog();
-    QString nodeType = dialog->getItem(0,"Selected Node Type","Please Select Child Node Type: ",this->getNodeKinds(),0,false, &okay);
+    QString nodeType = dialog->getItem(0, "Selected Node Type","Please Select Child Node Type: ",this->getNodeKinds(),0,false, &okay);
 
     if(!okay){
         return;
@@ -632,7 +644,7 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
     //Get the current Selected Node.
     GraphMLContainer* parent = getSelectedNode();
     if(!parent){
-        parent = getParentGraph();
+        parent = getParentModel();
     }else{
         NodeItem* nodeItem = getNodeItemFromNode(getSelectedNode());
         if(nodeItem){
@@ -640,26 +652,8 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
         }
     }
 
-
-    GraphMLKey* x = constructGraphMLKey("x", "double", "node");
-    GraphMLKey* y = constructGraphMLKey("y", "double", "node");
-
-
-    GraphMLKey* k = constructGraphMLKey("kind", "string", "node");
-    GraphMLKey* t = constructGraphMLKey("type", "string", "node");
-    GraphMLKey* l = constructGraphMLKey("label", "string", "node");
-
-    QVector<GraphMLData *> data;
-
-    data.append(new GraphMLData(x, QString::number(centerPoint.x())));
-    data.append(new GraphMLData(y, QString::number(centerPoint.y())));
-    data.append(new GraphMLData(k, nodeType));
-    data.append(new GraphMLData(t, nodeType));
-    data.append(new GraphMLData(l, "new_" + nodeType ));
-
     view_ActionTriggered("Constructing Child Node");
-    constructGraphMLNode(data, parent);
-
+    constructNode(parent, nodeType, centerPoint);
 }
 
 void NewController::view_ConstructChildNode()
@@ -906,10 +900,17 @@ void NewController::view_SelectAll()
         }
     }else{
         //Get children.
-        foreach(GraphMLContainer* child, getParentGraph()->getChildren(0)){
+        foreach(GraphMLContainer* child, getParentModel()->getChildren(0)){
             Node* node = dynamic_cast<Node*>(child);
             if(node){
-                setNodeSelected(node);
+                if(node == behaviourDefinitions || node == deploymentDefinitions || node == interfaceDefinitions){
+                    foreach(GraphMLContainer* childN, node->getChildren(0)){
+                        Node* nodeN = dynamic_cast<Node*>(childN);
+                        setNodeSelected(nodeN);
+                    }
+                }else{
+                    setNodeSelected(node);
+                }
             }
 
         }
@@ -1122,9 +1123,31 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
     }else if(kind == "Member"){
         newNode = new Member();
         aspects << "Workload" << "Assembly";
-    }
-
-    else{
+    }else if(kind == "BehaviourDefinitions"){
+        if(behaviourDefinitions){
+            return behaviourDefinitions;
+        }else{
+            behaviourDefinitions = new BehaviourDefinitions();
+            newNode = behaviourDefinitions;
+        }
+        aspects << "Workload";
+    }else if(kind == "DeploymentDefinitions"){
+        if(deploymentDefinitions){
+            return deploymentDefinitions;
+        }else{
+            deploymentDefinitions = new DeploymentDefinitions();
+            newNode = deploymentDefinitions;
+        }
+        aspects << "Assembly";
+    }else if(kind == "InterfaceDefinitions"){
+        if(interfaceDefinitions){
+            return interfaceDefinitions;
+        }else{
+            interfaceDefinitions = new InterfaceDefinitions();
+            newNode = interfaceDefinitions;
+        }
+        aspects << "Definitions";
+    }else{
         //qCritical() << "Kind:" << kind << "Not implemented";
         newNode = new BlankNode();
         aspects << "Workload" << "Assembly";
@@ -1167,6 +1190,27 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
     keys.append(attribute);
 
     return attribute;
+}
+
+Node *NewController::constructNode(GraphMLContainer *parent, QString kind, QPointF position)
+{
+    GraphMLKey* x = constructGraphMLKey("x", "double", "node");
+    GraphMLKey* y = constructGraphMLKey("y", "double", "node");
+
+
+    GraphMLKey* k = constructGraphMLKey("kind", "string", "node");
+    GraphMLKey* t = constructGraphMLKey("type", "string", "node");
+    GraphMLKey* l = constructGraphMLKey("label", "string", "node");
+
+    QVector<GraphMLData *> data;
+
+    data.append(new GraphMLData(x, QString::number(position.x())));
+    data.append(new GraphMLData(y, QString::number(position.y())));
+    data.append(new GraphMLData(k, kind));
+    data.append(new GraphMLData(t, kind));
+    data.append(new GraphMLData(l, "new_" + kind ));
+
+    return constructGraphMLNode(data, parent);
 }
 
 
@@ -1293,6 +1337,15 @@ Edge *NewController::getSelectedEdge()
 void NewController::deleteNode(Node *node)
 {
     if(node){
+        if(behaviourDefinitions == node){
+            behaviourDefinitions = 0;
+        }
+        if(deploymentDefinitions == node){
+            deploymentDefinitions = 0;
+        }
+        if(interfaceDefinitions == node){
+            interfaceDefinitions = 0;
+        }
         QVector<GraphMLContainer*> children = node->getChildren();
         QVector<Edge*> childEdges = node->getEdges();
 
@@ -1476,8 +1529,6 @@ void NewController::reverseAction(ActionItem action)
             GraphML* item = getGraphMLFromPreviousID(action.ID);
             view_DestructGraphMLData(item, action.keyName);
             break;
-
-
         }
         default:{
             break;
@@ -1727,6 +1778,13 @@ void NewController::setupNode(Node *node)
     view_ConstructNodeItem(node);
 }
 
+void NewController::setupModel()
+{
+   constructNode(this->model,"BehaviourDefinitions",QPointF(0,0));
+   constructNode(this->model,"InterfaceDefinitions",QPointF(2500,0));
+   constructNode(this->model,"DeploymentDefinitions",QPointF(5000,0));
+}
+
 bool NewController::isGraphMLValid(QString inputGraphML)
 {
     //Construct a Stream Reader for the XML graph
@@ -1906,8 +1964,9 @@ Edge *NewController::getEdgeFromGraphML(GraphML *item)
     return edge;
 }
 
-Graph *NewController::getParentGraph()
+Model *NewController::getParentModel()
 {
-    return parentGraph;
+    return model;
 }
+
 

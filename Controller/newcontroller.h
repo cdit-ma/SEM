@@ -3,9 +3,10 @@
 #include <QStack>
 #include "../GUI/nodeview.h"
 #include "../GUI/nodeconnection.h"
-
 #include "../Model/graphmlcontainer.h"
 #include "../Model/model.h"
+
+
 #include <QMenu>
 #include <QAction>
 #include <QInputDialog>
@@ -146,10 +147,13 @@ private:
     GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
 
     //Construct a specified Node type given the attached data.
+    Node* constructNode(GraphMLContainer* parent, QString kind, QPointF position);
     Node* constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent = 0);
 
     //Connects Node object and stores into a vector.
     void setupNode(Node* node);
+
+    void setupModel();
 
     bool isGraphMLValid(QString inputGraphML);
 
@@ -250,8 +254,12 @@ private:
 
     NodeView* view;
 
-    Graph* getParentGraph();
-    Graph* parentGraph;
+    Model* getParentModel();
+
+    Model* model;
+    BehaviourDefinitions* behaviourDefinitions;
+    DeploymentDefinitions* deploymentDefinitions;
+    InterfaceDefinitions* interfaceDefinitions;
 
     bool CUT_LINKING;
     int actionCount;
