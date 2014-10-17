@@ -44,7 +44,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     ui->actionNew_Project->trigger();
 
 
-    QFile file("C:/asd12.graphml");
+    QFile file("C:/inputGML.graphml");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
         qDebug() << "could not open file for read";

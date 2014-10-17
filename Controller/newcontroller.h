@@ -83,6 +83,8 @@ public slots:
 
 
 
+    void view_ConstructComponentInstance(Component* definition = 0 );
+
     void view_ConstructMenu(QPoint position);
 
     void view_ExportGraphML();

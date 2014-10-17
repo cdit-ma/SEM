@@ -36,10 +36,16 @@ NewController::NewController(NodeView *v)
     centeredNode = 0;
 
     viewAspects << "Assembly" << "Workload" << "Definitions";
-    protectedKeyNames << "x" << "y" << "kind" << "width" << "height";
+    protectedKeyNames << "x" << "y" << "kind"; //<< "width" << "height";
 
     nodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
-    nodeKinds << "ComponentAssembly" << "ComponentInstance" << "InEventPort" << "InEventPortIDL"  << "OutEventPort" << "OutEventPortIDL" << "Attribute" << "HardwareNode" << "HardwareCluster" << "PeriodicEvent" << "Component" << "Member";
+    nodeKinds << "File" << "Component" << "ComponentInstance" << "ComponentImpl";
+    nodeKinds << "Attribute" << "AttributeInstance" << "AttributeImpl";
+    nodeKinds << "InEventPort" << "InEventPortInstance" << "InEventPortImpl";
+    nodeKinds << "OutEventPort" << "OutEventPortInstance" << "OutEventPortImpl";
+    nodeKinds << "ComponentAssembly";
+    nodeKinds << "HardwareNode" << "HardwareCluster" ;
+    nodeKinds << "PeriodicEvent" << "Member" << "Aggregate" << "AggregateMember";
 
 
     //Connect to the View's Signals
@@ -484,12 +490,31 @@ void NewController::view_DestructGraphMLData(GraphML *parent, QString keyName)
     }
 }
 
+void NewController::view_ConstructComponentInstance(Component *definition)
+{
+    if(!definition){
+        definition = dynamic_cast<Component*>(getSelectedNode());
+    }
+
+    if(definition){
+        Node* node = constructNode(deploymentDefinitions,"ComponentInstance",QPointF(0,0));
+        ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*>(node);
+        if(componentInstance){
+            componentInstance->updateDataValue("label", definition->getDataValue("label"));
+        }
+    }
+
+}
+
 
 void NewController::view_ConstructMenu(QPoint position)
 {
     QPoint globalPos = view->mapToGlobal(position);
 
     menuPosition = view->mapToScene(position);
+
+    Node* node = getSelectedNode();
+
 
 
 
@@ -502,6 +527,20 @@ void NewController::view_ConstructMenu(QPoint position)
     QAction* addChildNode = new QAction(this);
     addChildNode->setText("Add Child Node");
     connect(addChildNode, SIGNAL(triggered()), this, SLOT(view_ConstructChildNode()));
+
+    if(node){
+        Component* component = dynamic_cast<Component*>(node);
+
+        if(component){
+            QAction* createInstance = new QAction(this);
+            createInstance->setText("Create Instance");
+            connect(createInstance, SIGNAL(triggered()), this, SLOT(view_ConstructComponentInstance()));
+            rightClickMenu->addAction(createInstance);
+        }
+
+
+    }
+
 
 
     rightClickMenu->addAction(deleteAction);
@@ -1090,39 +1129,83 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
 
 
     QVector<QString> aspects;
-    if(kind == "ComponentAssembly"){
-        newNode = new ComponentAssembly();
-        aspects << "Assembly" << "Workload";
+
+    if(kind == "Component"){
+        newNode = new Component();
+        aspects << "Definitions";
+
     }else if(kind == "ComponentInstance"){
         newNode = new ComponentInstance();
-        aspects << "Assembly" << "Workload";
+        aspects << "Assembly";
+
+    }else if(kind == "ComponentImpl"){
+        newNode = new ComponentImpl();
+        aspects << "Workload";
+
+    }else if(kind == "OutEventPort"){
+        newNode = new OutEventPort();
+        aspects << "Definitions";
+
+    }else if(kind == "OutEventPortInstance"){
+        newNode = new OutEventPortInstance();
+        aspects << "Assembly";
+
+    }else if(kind == "OutEventPortImpl"){
+        newNode = new OutEventPortImpl();
+        aspects << "Workload";
+
+    }else if(kind == "InEventPort"){
+        newNode = new InEventPort();
+        aspects << "Definitions";
+
+    }else if(kind == "InEventPortInstance"){
+        newNode = new InEventPortInstance();
+        aspects << "Assembly";
+
+    }else if(kind == "InEventPortImpl"){
+        newNode = new InEventPortImpl();
+        aspects << "Workload";
+
     }else if(kind == "Attribute"){
         newNode = new Attribute();
+        aspects << "Definitions";
+
+    }else if(kind == "AttributeInstance"){
+        newNode = new AttributeInstance();
         aspects << "Assembly";
-    }else if(kind == "OutEventPortIDL"){
-        newNode = new OutEventPortIDL();
-        aspects << "Assembly" << "Workload";
-    }else if(kind == "InEventPortIDL"){
-        newNode = new InEventPortIDL();
-        aspects << "Assembly" << "Workload";
-    }else if(kind == "HardwareNode"){
+
+    }else if(kind == "AttributeImpl"){
+        newNode = new AttributeImpl();
+        aspects << "Workload";
+    }
+    else if(kind == "HardwareNode"){
         newNode = new HardwareNode();
         aspects << "Assembly";
+
     }else if(kind == "HardwareCluster"){
         newNode = new HardwareCluster();
         aspects << "Assembly";
+
     }else if(kind == "PeriodicEvent"){
         newNode = new PeriodicEvent();
         aspects << "Workload" ;
-    }else if(kind == "Component"){
-        newNode = new Component();
-        aspects << "Workload";
-    }else if(kind == "InEventPort"){
-        newNode = new InEventPort();
-        aspects << "Workload";
+
+    }else if(kind == "File"){
+        newNode = new File();
+        aspects << "Definitions";
+
     }else if(kind == "Member"){
         newNode = new Member();
-        aspects << "Workload" << "Assembly";
+        aspects << "Definitions";
+
+    }else if(kind == "Aggregate"){
+        newNode = new Aggregate();
+        aspects << "Definitions";
+
+    }else if(kind == "AggregateMember"){
+        newNode = new AggregateMember();
+        aspects << "Definitions";
+
     }else if(kind == "BehaviourDefinitions"){
         if(behaviourDefinitions){
             return behaviourDefinitions;
@@ -1131,6 +1214,7 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
             newNode = behaviourDefinitions;
         }
         aspects << "Workload";
+
     }else if(kind == "DeploymentDefinitions"){
         if(deploymentDefinitions){
             return deploymentDefinitions;
@@ -1139,6 +1223,7 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
             newNode = deploymentDefinitions;
         }
         aspects << "Assembly";
+
     }else if(kind == "InterfaceDefinitions"){
         if(interfaceDefinitions){
             return interfaceDefinitions;
@@ -1147,6 +1232,8 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
             newNode = interfaceDefinitions;
         }
         aspects << "Definitions";
+
+
     }else{
         //qCritical() << "Kind:" << kind << "Not implemented";
         newNode = new BlankNode();
@@ -1781,8 +1868,12 @@ void NewController::setupNode(Node *node)
 void NewController::setupModel()
 {
    constructNode(this->model,"BehaviourDefinitions",QPointF(0,0));
-   constructNode(this->model,"InterfaceDefinitions",QPointF(2500,0));
-   constructNode(this->model,"DeploymentDefinitions",QPointF(5000,0));
+   constructNode(this->model,"InterfaceDefinitions",QPointF(4100,0));
+   constructNode(this->model,"DeploymentDefinitions",QPointF(8200,0));
+
+   behaviourDefinitions->updateDataValue("label", "Behaviour Definitions");
+   interfaceDefinitions->updateDataValue("label", "Interface Definitions");
+   deploymentDefinitions->updateDataValue("label", "Deployment Definitions");
 }
 
 bool NewController::isGraphMLValid(QString inputGraphML)
@@ -1797,7 +1888,7 @@ bool NewController::isGraphMLValid(QString inputGraphML)
         if (xmlErrorChecking.hasError()){
             qCritical() << "NewController::isGraphMLValid() << Parsing Error! Line Number: " << lineNumber;
             qCritical() << "\t" << xmlErrorChecking.errorString();
-            qCritical() << inputGraphML;
+            //qCritical() << inputGraphML;
             return false;
         }
     }

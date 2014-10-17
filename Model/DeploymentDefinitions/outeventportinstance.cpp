@@ -1,20 +1,32 @@
-#include "outeventportidl.h"
+#include "outeventportinstance.h"
 
 #include "member.h"
-#include "ineventportidl.h"
+#include "ineventportinstance.h"
 #include <QDebug>
 
-OutEventPortIDL::OutEventPortIDL(QString name):EventPort(name)
+OutEventPortInstance::OutEventPortInstance(QString name):EventPort(name)
 {
     //qDebug() << "Constructed OutEventPortIDL: "<< this->getName();
+    def = 0;
 }
 
-OutEventPortIDL::~OutEventPortIDL()
+OutEventPortInstance::~OutEventPortInstance()
 {
 
 }
 
-bool OutEventPortIDL::isAdoptLegal(GraphMLContainer *child)
+void OutEventPortInstance::setDefinition(OutEventPort *def)
+{
+    this->def = def;
+
+}
+
+OutEventPort* OutEventPortInstance::getDefinition()
+{
+    return def;
+}
+
+bool OutEventPortInstance::isAdoptLegal(GraphMLContainer *child)
 {
     Member* member = dynamic_cast<Member*> (child);
 
@@ -31,8 +43,9 @@ bool OutEventPortIDL::isAdoptLegal(GraphMLContainer *child)
     return true;
 }
 
-bool OutEventPortIDL::isEdgeLegal(GraphMLContainer *attachableObject)
+bool OutEventPortInstance::isEdgeLegal(GraphMLContainer *attachableObject)
 {
+    /*
     InEventPortIDL* inputEventPort = dynamic_cast<InEventPortIDL*> (attachableObject);
 
     //Check Event Name (TYPE)
@@ -55,12 +68,13 @@ bool OutEventPortIDL::isEdgeLegal(GraphMLContainer *attachableObject)
         qCritical() << "Cannot connect 2 already connected ports!";
         return false;
     }
+    */
 
     return true;
 
 }
 
-QString OutEventPortIDL::toString()
+QString OutEventPortInstance::toString()
 {
-    return QString("OutEventPortIDL[%1]: "+this->getName()).arg(this->getID());
+    return QString("OutEventPortInstance[%1]: "+this->getName()).arg(this->getID());
 }

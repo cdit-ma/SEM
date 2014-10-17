@@ -1,5 +1,6 @@
 #include "behaviourdefinitions.h"
-#include "component.h"
+#include "componentimpl.h"
+
 #include <QDebug>
 
 
@@ -25,7 +26,7 @@ bool BehaviourDefinitions::isEdgeLegal(GraphMLContainer *attachableObject)
 
 bool BehaviourDefinitions::isAdoptLegal(GraphMLContainer *child)
 {
-    Component* component = dynamic_cast<Component *>(child);
+    ComponentImpl* component = dynamic_cast<ComponentImpl *>(child);
 
     if(component == 0){
         qWarning() << "Behaviour Definitions can only adopt a Component Node";

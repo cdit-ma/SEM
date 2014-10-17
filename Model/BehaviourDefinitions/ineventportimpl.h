@@ -1,17 +1,18 @@
-#ifndef INEVENTPORT_H
-#define INEVENTPORT_H
+#ifndef INEVENTPORTIMPL_H
+#define INEVENTPORTIMPL_H
 #include "../DeploymentDefinitions/eventport.h"
 
-class InEventPortIDL;
+class InEventPort;
 
-class InEventPort : public Node
+class InEventPortImpl : public Node
 {
     Q_OBJECT
 public:
-    InEventPort(QString name="");
-    ~InEventPort();
-    void setInEventPortIDL(InEventPortIDL *parent);
-    InEventPortIDL* getInEventPortIDL();
+    InEventPortImpl(QString name="");
+    ~InEventPortImpl();
+
+    void setDefinition(InEventPort *parent);
+    InEventPort* getDefinition();
 public:
     bool isAdoptLegal(GraphMLContainer *child);
     bool isEdgeLegal(GraphMLContainer *attachableObject);
@@ -19,7 +20,7 @@ public:
     QString toString();
 
 private:
-    InEventPortIDL* inEventPortIDL;
+    InEventPort* def;
 };
 
 

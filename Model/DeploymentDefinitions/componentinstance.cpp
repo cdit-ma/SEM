@@ -1,43 +1,48 @@
 #include "componentinstance.h"
 #include <QDebug>
 #include "eventport.h"
-#include "ineventportidl.h"
-#include "outeventportidl.h"
+#include "outeventportinstance.h"
 #include "../BehaviourDefinitions/periodicevent.h"
-#include "../BehaviourDefinitions/component.h"
+#include "../BehaviourDefinitions/componentimpl.h"
+#include "../InterfaceDefinitions/component.h"
 #include "hardwarenode.h"
-#include "../BehaviourDefinitions/component.h"
-#include "attribute.h"
 
 ComponentInstance::ComponentInstance(QString name):Node(name)
 {
     //qDebug() << "Constructed ComponentInstance: "<< this->getName();
-    parentComponent = 0;
+    def = 0;
 }
 
 ComponentInstance::~ComponentInstance()
 {
-    if(parentComponent != 0){
-        parentComponent->removeComponentInstance(this);
+    if(def){
+        def->removeInstance(this);
     }
     //THIS IS A TEST
     //Destructor
 }
 
-void ComponentInstance::setComponentParent(Component *parent)
+void ComponentInstance::setDefinition(Component *def)
 {
-    if(parentComponent == 0){
-        parentComponent = parent;
-    }
+    this->def = def;
 }
 
-Component *ComponentInstance::getComponentParent()
+Component *ComponentInstance::getDefinition()
 {
-    return parentComponent;
+    return def;
+}
+
+ComponentImpl *ComponentInstance::getImpl()
+{
+    if(def){
+        return def->getImpl();
+    }
+    return 0;
 }
 
 bool ComponentInstance::isAdoptLegal(GraphMLContainer *attachableObject)
 {
+    /*
 
     EventPort* eventPort = dynamic_cast<EventPort*> (attachableObject);
     Attribute* attribute = dynamic_cast<Attribute*> (attachableObject);
@@ -50,7 +55,6 @@ bool ComponentInstance::isAdoptLegal(GraphMLContainer *attachableObject)
         return false;
     }
 
-    /*
     if(this->getGraph() != NULL){
         return this->getGraph()->isAdoptLegal(attachableObject);
     }
@@ -63,7 +67,7 @@ bool ComponentInstance::isEdgeLegal(GraphMLContainer *attachableObject)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
 
-    Component* component = dynamic_cast<Component*> (attachableObject);
+    ComponentImpl* component = dynamic_cast<ComponentImpl*> (attachableObject);
 
     if(hardwareNode == 0 && component == 0){
         qWarning() << "ComponentInstance Node can only be connected to a HardwareNode";
@@ -72,8 +76,8 @@ bool ComponentInstance::isEdgeLegal(GraphMLContainer *attachableObject)
 
     //Check for an edge to a component.
     foreach(Edge* edge, this->edges){
-        Component* src = dynamic_cast<Component*>(edge->getSource());
-        Component* dst = dynamic_cast<Component*>(edge->getDestination());
+        ComponentImpl* src = dynamic_cast<ComponentImpl*>(edge->getSource());
+        ComponentImpl* dst = dynamic_cast<ComponentImpl*>(edge->getDestination());
         if(src != 0 || dst != 0){
             //Already connection to a Component. Return 0
             qWarning() << "ComponentInstance Node can only be connected to one Component.";

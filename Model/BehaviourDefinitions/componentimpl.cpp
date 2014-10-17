@@ -1,70 +1,40 @@
-#include "component.h"
-#include "periodicevent.h"
-#include "../DeploymentDefinitions/componentinstance.h"
-#include "../DeploymentDefinitions/attribute.h"
-#include "../DeploymentDefinitions/eventport.h"
+#include "componentimpl.h"
+#include "../InterfaceDefinitions/component.h"
 
 #include <QDebug>
 
-Component::Component(QString name):Node(name)
+ComponentImpl::ComponentImpl(QString name):Node(name)
 {
+    def = 0;
      //qDebug() << "Constructed Component: " << this->getName();
 }
 
-Component::~Component()
+ComponentImpl::~ComponentImpl()
 {
     //foreach(ComponentInstance* child, componentInstances){
     //    delete child;
     //}
 }
 
-QString Component::toString()
+QString ComponentImpl::toString()
 {
     return QString("Component[%1]: "+this->getName()).arg(this->getID());
 }
 
-void Component::addComponentInstance(ComponentInstance *componentInstance)
+void ComponentImpl::setDefinition(Component *def)
 {
-    if(componentInstance == 0){
-       qCritical() << "Cannot adopt a child Component Instance";
-    }else{
-        if(!componentInstances.contains(componentInstance)){
-            componentInstances.append(componentInstance);
-            componentInstance->setComponentParent(this);
-        }
-    }
+    this->def = def;
 }
 
-void Component::removeComponentInstance(ComponentInstance *child)
+Component *ComponentImpl::getDefinition()
 {
-    if(componentInstances.contains(child)){
-        componentInstances.removeAt(componentInstances.indexOf(child));
-    }
+    return def;
 }
 
-QVector<ComponentInstance *> Component::getComponentInstances()
-{
-    return componentInstances;
-}
-
-bool Component::isEdgeLegal(GraphMLContainer *attachableObject)
+bool ComponentImpl::isEdgeLegal(GraphMLContainer *attachableObject)
 {
     Q_UNUSED(attachableObject);
-
-    ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*> (attachableObject);
-
-    if(componentInstance == 0){
-        qWarning() << "Component Node can only be connected to a Component Instance";
-        return false;
-    }
-
-    QString newType = attachableObject->getDataValue("type");
-
-    if(newType == ""){
-        qWarning() << "Cannot connect a node with no type!";
-        return false;
-    }
-
+/*
     //Check for an edge to a component.
     foreach(Edge* edge, this->edges){
         ComponentInstance* src = dynamic_cast<ComponentInstance*>(edge->getSource());
@@ -82,15 +52,16 @@ bool Component::isEdgeLegal(GraphMLContainer *attachableObject)
             }
         }
     }
-
+*/
 
     return true;
 
 }
 
-bool Component::isAdoptLegal(GraphMLContainer *child)
+bool ComponentImpl::isAdoptLegal(GraphMLContainer *child)
 {
     return true;
+    /*
     PeriodicEvent* periodicEvent = dynamic_cast<PeriodicEvent*> (child);
     Attribute* attribute = dynamic_cast<Attribute*> (child);
     EventPort* eventPort = dynamic_cast<EventPort*> (child);
@@ -110,11 +81,13 @@ bool Component::isAdoptLegal(GraphMLContainer *child)
     }
 
     return true;
+    */
 }
 
-void Component::addEdge(Edge *edge)
+void ComponentImpl::addEdge(Edge *edge)
 {
     //Make sure if we are restoring a
+    /*
     ComponentInstance* src = dynamic_cast<ComponentInstance*>(edge->getSource());
     ComponentInstance* dst = dynamic_cast<ComponentInstance*>(edge->getDestination());
     if(src != 0){
@@ -123,7 +96,7 @@ void Component::addEdge(Edge *edge)
     if(dst != 0){
         this->addComponentInstance(dst);
     }
-
+*/
     Node::addEdge(edge);
 
 }

@@ -38,22 +38,31 @@ HEADERS += \
     medeawindow.h \
     GUI/projectwindow.h \
     GUI/filterbutton.h \
-    Model/BehaviourDefinitions/component.h \
-    Model/BehaviourDefinitions/ineventport.h \
-    Model/BehaviourDefinitions/outeventport.h \
     Model/BehaviourDefinitions/periodicevent.h \
-    Model/DeploymentDefinitions/attribute.h \
     Model/DeploymentDefinitions/componentassembly.h \
     Model/DeploymentDefinitions/componentinstance.h \
     Model/DeploymentDefinitions/eventport.h \
     Model/DeploymentDefinitions/hardwarecluster.h \
     Model/DeploymentDefinitions/hardwarenode.h \
-    Model/DeploymentDefinitions/ineventportidl.h \
     Model/DeploymentDefinitions/member.h \
-    Model/DeploymentDefinitions/outeventportidl.h \
     Model/BehaviourDefinitions/behaviourdefinitions.h \
     Model/DeploymentDefinitions/deploymentdefinitions.h \
-    Model/InterfaceDefinitions/interfacedefinitions.h
+    Model/InterfaceDefinitions/interfacedefinitions.h \
+    Model/BehaviourDefinitions/componentimpl.h \
+    Model/BehaviourDefinitions/ineventportimpl.h \
+    Model/BehaviourDefinitions/outeventportimpl.h \
+    Model/BehaviourDefinitions/attributeimpl.h \
+    Model/InterfaceDefinitions/outeventport.h \
+    Model/DeploymentDefinitions/outeventportinstance.h \
+    Model/InterfaceDefinitions/component.h \
+    Model/InterfaceDefinitions/ineventport.h \
+    Model/DeploymentDefinitions/ineventportinstance.h \
+    Model/InterfaceDefinitions/attribute.h \
+    Model/DeploymentDefinitions/attributeinstance.h \
+    Model/InterfaceDefinitions/file.h \
+    Model/InterfaceDefinitions/aggregate.h \
+    Model/InterfaceDefinitions/member.h \
+    Model/InterfaceDefinitions/aggregatemember.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -77,22 +86,31 @@ SOURCES += \
     medeawindow.cpp \
     GUI/projectwindow.cpp \
     GUI/filterbutton.cpp \
-    Model/BehaviourDefinitions/component.cpp \
-    Model/BehaviourDefinitions/ineventport.cpp \
-    Model/BehaviourDefinitions/outeventport.cpp \
     Model/BehaviourDefinitions/periodicevent.cpp \
-    Model/DeploymentDefinitions/attribute.cpp \
     Model/DeploymentDefinitions/componentassembly.cpp \
     Model/DeploymentDefinitions/componentinstance.cpp \
     Model/DeploymentDefinitions/eventport.cpp \
     Model/DeploymentDefinitions/hardwarecluster.cpp \
     Model/DeploymentDefinitions/hardwarenode.cpp \
-    Model/DeploymentDefinitions/ineventportidl.cpp \
     Model/DeploymentDefinitions/member.cpp \
-    Model/DeploymentDefinitions/outeventportidl.cpp \
     Model/BehaviourDefinitions/behaviourdefinitions.cpp \
     Model/DeploymentDefinitions/deploymentdefinitions.cpp \
-    Model/InterfaceDefinitions/interfacedefinitions.cpp
+    Model/InterfaceDefinitions/interfacedefinitions.cpp \
+    Model/BehaviourDefinitions/componentimpl.cpp \
+    Model/BehaviourDefinitions/ineventportimpl.cpp \
+    Model/BehaviourDefinitions/attributeimpl.cpp \
+    Model/BehaviourDefinitions/outeventportimpl.cpp \
+    Model/InterfaceDefinitions/outeventport.cpp \
+    Model/DeploymentDefinitions/outeventportinstance.cpp \
+    Model/InterfaceDefinitions/component.cpp \
+    Model/DeploymentDefinitions/ineventportinstance.cpp \
+    Model/InterfaceDefinitions/ineventport.cpp \
+    Model/InterfaceDefinitions/attribute.cpp \
+    Model/DeploymentDefinitions/attributeinstance.cpp \
+    Model/InterfaceDefinitions/file.cpp \
+    Model/InterfaceDefinitions/aggregate.cpp \
+    Model/InterfaceDefinitions/member.cpp \
+    Model/InterfaceDefinitions/aggregatemember.cpp
 
 FORMS += \
     medeawindow.ui \

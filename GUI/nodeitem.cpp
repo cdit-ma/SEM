@@ -46,8 +46,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
         this->height =  parent->height/4;
     }
 
-    bRec = QRect(0,0,this->width, this->height);
-
 
     GraphMLData* xData = node->getData("x");
     GraphMLData* yData = node->getData("y");
@@ -72,11 +70,17 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
     if(wData->getValue() == ""){
         wData->setValue(QString::number(width));
+    }else{
+        width = wData->getValue().toFloat();
     }
 
     if(hData->getValue() == ""){
         hData->setValue(QString::number(height));
+    }else{
+        height = hData->getValue().toFloat();
     }
+
+    bRec = QRect(0,0,this->width, this->height);
 
 
     this->setGraphicsEffect(graphicsEffect);
@@ -119,24 +123,50 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         QBrush Brush(Qt::white);
 
-        if(kind == "OutEventPortIDL"){
+
+        if(kind == "OutEventPort"){
+             Brush.setColor(QColor(255,0,0));
+        }else if(kind == "OutEventPortInstance"){
             Brush.setColor(QColor(180,0,0));
-        }else if(kind == "OutEventPort"){
-            Brush.setColor(QColor(255,0,0));
-        }else if(kind == "InEventPortIDL"){
+        }else if(kind == "OutEventPortImpl"){
+            Brush.setColor(QColor(120,0,0));
+       }
+
+        else if(kind == "InEventPort"){
+             Brush.setColor(QColor(0,255,0));
+        }else if(kind == "InEventPortInstance"){
             Brush.setColor(QColor(0,180,0));
-        }else if(kind == "InEventPort"){
-            Brush.setColor(QColor(0,255,0));
+        }else if(kind == "InEventPortImpl"){
+            Brush.setColor(QColor(0,120,0));
+       }
+
+
+
+        else if(kind == "Component"){
+             Brush.setColor(QColor(220,220,220));
+        }else if(kind == "ComponentInstance"){
+            Brush.setColor(QColor(180,180,180));
+        }else if(kind == "ComponentImpl"){
+            Brush.setColor(QColor(140,140,140));
+       }
+
+
+
+        else if(kind == "Attribute"){
+            Brush.setColor(QColor(0,0,255));
+        }else if(kind == "AttributeInstance"){
+            Brush.setColor(QColor(0,0,180));
+        }else if(kind == "AttributeImpl"){
+            Brush.setColor(QColor(0,0,120));
         }
 
-        else if(kind == "ComponentInstance"){
-             Brush.setColor(QColor(200,200,200));
-        }else if(kind == "Attribute"){
-            Brush.setColor(Qt::blue);
-        }else if(kind == "HardwareNode"){
+
+        else if(kind == "HardwareNode"){
             Brush.setColor(Qt::yellow);
         }else if(kind == "HardwareCluster"){
             Brush.setColor(QColor(255,0,255));
+
+
         }else if(kind == "PeriodicEvent"){
             Brush.setColor(QColor(255,153,0));
         }else if(kind == "Component"){

@@ -14,8 +14,6 @@
 #include "Model/DeploymentDefinitions/hardwarenode.h"
 #include "Model/DeploymentDefinitions/componentinstance.h"
 #include "Model/DeploymentDefinitions/componentassembly.h"
-#include "Model/DeploymentDefinitions/ineventportidl.h"
-#include "Model/DeploymentDefinitions/outeventportidl.h"
 #include "GUI/nodeitem.h"
 #include "GUI/nodeconnection.h"
 #include "Controller/newcontroller.h"
