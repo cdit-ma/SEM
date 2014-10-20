@@ -497,13 +497,8 @@ void NewController::view_ConstructComponentInstance(Component *definition)
     }
 
     if(definition){
-        Node* node = constructNode(deploymentDefinitions,"ComponentInstance",QPointF(0,0));
-        ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*>(node);
-        if(componentInstance){
-            componentInstance->updateDataValue("label", definition->getDataValue("label"));
-        }
+        Node* node = constructNodeInstance(deploymentDefinitions, definition);
     }
-
 }
 
 
@@ -1097,7 +1092,7 @@ GraphMLKey *NewController::parseGraphMLKeyXML(QXmlStreamReader &xml)
 
 }
 
-Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent)
+Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent, GraphMLContainer *definition)
 {
     Node *newNode;
 
@@ -1107,6 +1102,7 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
     bool noWidth = true;
     bool noHeight = true;
     QString kind;
+
     //Get kind from nodeData.
     for(int i=0; i < data.size(); i++){
         if(data[i]->getKey()->getName() == "kind"){
@@ -1249,6 +1245,13 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
     if(parent->isAdoptLegal(newNode)){
         parent->adopt(newNode);
         setupNode(newNode);
+
+        //Construct Node Instances for all Instanceable children
+        if(definition){
+            foreach(GraphMLContainer* child, definition->getInstanceableChildren()){
+                constructNodeInstance(newNode, child);
+            }
+        }
     }else{
         qCritical() << "Cannot adopt";
         //Delete the newly created node.
@@ -1300,7 +1303,27 @@ Node *NewController::constructNode(GraphMLContainer *parent, QString kind, QPoin
     return constructGraphMLNode(data, parent);
 }
 
+Node *NewController::constructNodeInstance(GraphMLContainer *parent, GraphMLContainer *definition)
+{
+    QVector<GraphMLData *> data;
 
+    foreach(GraphMLData* attachedData, definition->getData()){
+        GraphMLData* newData = new GraphMLData(attachedData->getKey(), attachedData->getValue());
+        if(newData->getKey()->getName() == "kind"){
+            newData->setValue(attachedData->getValue() + "Instance");
+        }
+
+        attachedData->bindData(newData);
+
+        if(attachedData->getProtected()){
+            newData->setProtected(true);
+        }
+
+        data.append(newData);
+    }
+
+    return constructGraphMLNode(data, parent, definition);
+}
 
 void NewController::clearSelectedNodes()
 {

@@ -1,4 +1,5 @@
 #include "graphmldata.h"
+#include <QDebug>
 
 GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
 {
@@ -10,11 +11,22 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
     }
 
     //Set to default.
+    parentData = 0;
     this->setProtected(key->getProtected());
 }
 
 GraphMLData::~GraphMLData()
 {
+    qCritical() << "unsetParentData";
+    unsetParentData();
+    qCritical() << "unsetParentData Complete";
+
+    qCritical() << "UnbInd Child";
+    for(int i = 0; i < childData.size();i++){
+        GraphMLData* child = childData[i];
+        unbindData(child);
+    }
+    qCritical() << "UnbInd Child Complete";
 
 }
 /*
@@ -67,6 +79,10 @@ void GraphMLData::setValue(QString value)
         this->value = value;
         emit dataChanged(this);
     }
+
+    foreach(GraphMLData* data, childData){
+        data->setValue(value);
+    }
 }
 
 void GraphMLData::setProtected(bool setProtected)
@@ -77,4 +93,41 @@ void GraphMLData::setProtected(bool setProtected)
 bool GraphMLData::getProtected()
 {
     return isProtected;
+}
+
+void GraphMLData::setParentData(GraphMLData *data)
+{
+    unsetParentData();
+    parentData = data;
+
+}
+
+void GraphMLData::unsetParentData()
+{
+    if(parentData != 0){
+        parentData->unbindData(this);
+    }
+    parentData = 0;
+}
+
+void GraphMLData::bindData(GraphMLData *data)
+{
+    if(!childData.contains(data)){
+        childData.append(data);
+        //Update Data.
+        data->setValue(getValue());
+
+        data->setParentData(this);
+    }
+}
+
+void GraphMLData::unbindData(GraphMLData *data)
+{
+    int index = childData.indexOf(data);
+    if(index != -1){
+        if(data){
+            //data->unsetParentData();
+            childData.removeAt(index);
+        }
+    }
 }

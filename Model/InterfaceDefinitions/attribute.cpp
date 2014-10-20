@@ -7,7 +7,7 @@
 Attribute::Attribute(QString name):Node(name)
 {
     impl = 0;
-
+    hasInstanceKind = true;
 }
 
 Attribute::~Attribute()

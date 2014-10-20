@@ -5,6 +5,7 @@
 Component::Component(QString name): Node(name)
 {
     impl = 0;
+    hasInstanceKind=true;
 }
 
 Component::~Component()

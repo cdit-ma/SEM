@@ -17,6 +17,12 @@ public:
     void setProtected(bool setProtected);
     bool getProtected();
 
+    void setParentData(GraphMLData* data);
+    void unsetParentData();
+
+    void bindData(GraphMLData* data);
+    void unbindData(GraphMLData* data);
+
     QString getValue() const;
     GraphMLKey* getKey();
     QString toGraphML(qint32 indentationLevel=0);
@@ -26,6 +32,8 @@ public:
 signals:
     void dataChanged(GraphMLData* data);
 private:
+    GraphMLData* parentData;
+    QVector<GraphMLData*> childData;
     QString value;
     bool isProtected;
     GraphMLKey* key;

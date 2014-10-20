@@ -85,6 +85,8 @@ public slots:
 
     void view_ConstructComponentInstance(Component* definition = 0 );
 
+
+
     void view_ConstructMenu(QPoint position);
 
     void view_ExportGraphML();
@@ -150,7 +152,9 @@ private:
 
     //Construct a specified Node type given the attached data.
     Node* constructNode(GraphMLContainer* parent, QString kind, QPointF position);
-    Node* constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent = 0);
+    Node* constructNodeInstance(GraphMLContainer* parent, GraphMLContainer* definition);
+
+    Node* constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent = 0, GraphMLContainer *definition = 0);
 
     //Connects Node object and stores into a vector.
     void setupNode(Node* node);

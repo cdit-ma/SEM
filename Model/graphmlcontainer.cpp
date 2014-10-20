@@ -3,6 +3,7 @@
 GraphMLContainer::GraphMLContainer(GraphML::KIND kind, QString name):GraphML(kind, name)
 {
     parent = 0;
+    hasInstanceKind = false;
 }
 
 GraphMLContainer::~GraphMLContainer()
@@ -136,6 +137,11 @@ bool GraphMLContainer::isDescendantOf(GraphMLContainer *element)
 
 }
 
+bool GraphMLContainer::isInstanceable()
+{
+    return hasInstanceKind;
+}
+
 QVector<GraphMLContainer *> GraphMLContainer::getChildren(int depth)
 {
     QVector<GraphMLContainer *> returnable;
@@ -152,6 +158,18 @@ QVector<GraphMLContainer *> GraphMLContainer::getChildren(int depth)
     }
     return returnable;
 
+}
+
+QVector<GraphMLContainer *> GraphMLContainer::getInstanceableChildren()
+{
+    QVector<GraphMLContainer *> returnable;
+
+    foreach(GraphMLContainer* child, descendants){
+        if(child->isInstanceable()){
+            returnable += child;
+        }
+    }
+    return returnable;
 }
 
 

@@ -6,6 +6,7 @@
 InEventPort::InEventPort(QString name):Node(name)
 {
     impl = 0;
+    hasInstanceKind=true;
 }
 
 InEventPort::~InEventPort()
