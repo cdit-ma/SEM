@@ -7,7 +7,7 @@
 #include "../InterfaceDefinitions/component.h"
 #include "hardwarenode.h"
 
-ComponentInstance::ComponentInstance(QString name):Node(name)
+ComponentInstance::ComponentInstance(QString name):Node()
 {
     //qDebug() << "Constructed ComponentInstance: "<< this->getName();
     def = 0;
@@ -40,7 +40,7 @@ ComponentImpl *ComponentInstance::getImpl()
     return 0;
 }
 
-bool ComponentInstance::isAdoptLegal(GraphMLContainer *attachableObject)
+bool ComponentInstance::isAdoptLegal(Node *attachableObject)
 {
 
     if( ((Node*)attachableObject)->isInstance()){
@@ -50,7 +50,7 @@ bool ComponentInstance::isAdoptLegal(GraphMLContainer *attachableObject)
     return false;
 }
 
-bool ComponentInstance::isEdgeLegal(GraphMLContainer *attachableObject)
+bool ComponentInstance::canConnect(Node* attachableObject)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
 

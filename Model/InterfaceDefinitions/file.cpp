@@ -17,12 +17,12 @@ QString File::toString()
     return QString("File[%1]: "+this->getName()).arg(this->getID());
 }
 
-bool File::isEdgeLegal(GraphMLContainer *attachableObject)
+bool File::canConnect(Node* attachableObject)
 {
     return false;
 }
 
-bool File::isAdoptLegal(GraphMLContainer *item)
+bool File::isAdoptLegal(Node *item)
 {
     Component* component = dynamic_cast<Component*>(item);
     Aggregate* aggregate = dynamic_cast<Aggregate*>(item);
@@ -32,7 +32,7 @@ bool File::isAdoptLegal(GraphMLContainer *item)
     }
 
     //Check children.
-    foreach(GraphMLContainer* child, getChildren(0)){
+    foreach(Node* child, getChildren(0)){
         Component* cComponent = dynamic_cast<Component*>(child);
         Aggregate* cAggregate = dynamic_cast<Aggregate*>(child);
 

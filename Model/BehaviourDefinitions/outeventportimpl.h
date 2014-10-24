@@ -14,8 +14,8 @@ public:
     void setDefinition(OutEventPort *parent);
     OutEventPort* getDefinition();
 public:
-    bool isAdoptLegal(GraphMLContainer *child);
-    bool isEdgeLegal(GraphMLContainer *attachableObject);
+    bool canAdoptChild(Node* child);
+    bool canConnect(Node* attachableObject);
     //QString toGraphML(qint32 indentationLevel=0);
     QString toString();
 

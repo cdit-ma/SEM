@@ -17,14 +17,14 @@ QString Member::toString()
 
 }
 
-bool Member::isEdgeLegal(GraphMLContainer *attachableObject)
+bool Member::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;
 
 }
 
-bool Member::isAdoptLegal(GraphMLContainer *child)
+bool Member::canAdoptChild(Node *child)
 {
     Q_UNUSED(child);
     return false;

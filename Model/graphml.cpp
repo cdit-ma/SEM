@@ -136,10 +136,6 @@ void GraphML::attachData(QVector<GraphMLData *> data)
 }
 
 
-void GraphML::setID(QString id)
-{
-    this->id = id;
-}
 
 
 

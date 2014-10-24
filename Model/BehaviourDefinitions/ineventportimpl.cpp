@@ -15,7 +15,7 @@ InEventPortImpl::~InEventPortImpl()
 }
 
 
-bool InEventPortImpl::isAdoptLegal(GraphMLContainer *child)
+bool InEventPortImpl::canAdoptChild(Node *child)
 {
     Member* member = dynamic_cast<Member*> (child);
 
@@ -32,7 +32,7 @@ bool InEventPortImpl::isAdoptLegal(GraphMLContainer *child)
     return true;
 }
 
-bool InEventPortImpl::isEdgeLegal(GraphMLContainer *attachableObject)
+bool InEventPortImpl::canConnect(Node* attachableObject)
 {
     return true;
 }

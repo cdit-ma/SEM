@@ -50,12 +50,12 @@ QString OutEventPort::toString()
 
 }
 
-bool OutEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
+bool OutEventPort::canConnect(Node* attachableObject)
 {
     return true;
 }
 
-bool OutEventPort::isAdoptLegal(GraphMLContainer *child)
+bool OutEventPort::canAdoptChild(Node *child)
 {
     return true;
 }

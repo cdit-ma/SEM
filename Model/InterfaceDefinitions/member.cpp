@@ -15,12 +15,12 @@ QString Member::toString()
     return QString("Member[%1]: "+this->getName()).arg(this->getID());
 }
 
-bool Member::isEdgeLegal(GraphMLContainer *attachableObject)
+bool Member::canConnect(Node* attachableObject)
 {
     return false;
 }
 
-bool Member::isAdoptLegal(GraphMLContainer *child)
+bool Member::canAdoptChild(Node *child)
 {
     return false;
 }

@@ -1,14 +1,15 @@
 #include "edge.h"
 #include "graphml.h"
 #include "graphmldata.h"
+#include "node.h"
 #include <QDebug>
 
 int Edge::_Eid = 0;
 
 
-Edge::Edge(GraphMLContainer *s, GraphMLContainer *d, QString name):GraphML(GraphML::EDGE, name)
+Edge::Edge(Node *s, Node *d, QString name):GraphML(GraphML::EDGE, name)
 {
-    setID(QString("e%1").arg(this->_Eid++));
+    //setID(QString("e%1").arg(this->_Eid++));
 
     //Set the instance Variables
     source = s;
@@ -28,27 +29,27 @@ Edge::~Edge()
     source->removeEdge(this);
 }
 
-GraphMLContainer *Edge::getSource()
+Node *Edge::getSource()
 {
     return this->source;
 }
 
-GraphMLContainer *Edge::getDestination()
+Node *Edge::getDestination()
 {
     return this->destination;
 
 }
 
-GraphMLContainer *Edge::getContainingGraph()
+Node *Edge::getContainingGraph()
 {
-    GraphMLContainer* source = this->getSource();
-    GraphMLContainer* currentLookup = this->getDestination();
+    Node* source = this->getSource();
+    Node* currentLookup = this->getDestination();
 
     while(currentLookup != 0){
         if(currentLookup->isAncestorOf(source)){
             return currentLookup;
         }else{
-            currentLookup = currentLookup->getParent();
+            currentLookup = currentLookup->getParentNode();
         }
     }
     return 0;
@@ -92,7 +93,7 @@ bool Edge::isInstanceLink()
     return source->getDataValue("kind") +"Instance" == destination->getDataValue("kind");
 }
 
-bool Edge::contains(GraphMLContainer *item)
+bool Edge::contains(Node *item)
 {
     return item == this->source || item == this->destination;
 }

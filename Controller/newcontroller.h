@@ -3,8 +3,8 @@
 #include <QStack>
 #include "../GUI/nodeview.h"
 #include "../GUI/nodeconnection.h"
-#include "../Model/graphmlcontainer.h"
 #include "../Model/model.h"
+#include "../Model/node.h"
 
 
 #include <QMenu>
@@ -72,8 +72,8 @@ signals:
     void view_updateCopyBuffer(QString data);
 
 public slots:
-    void view_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent=0);
-    void view_ImportGraphML(QString, GraphMLContainer *currentParent=0, bool linkID = false);
+    void view_ImportGraphML(QStringList inputGraphML, Node *currentParent=0);
+    void view_ImportGraphML(QString, Node *currentParent=0, bool linkID = false);
 
 
     //Informants from the AttributeTableModel Class.
@@ -152,10 +152,10 @@ private:
     GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
 
     //Construct a specified Node type given the attached data.
-    Node* constructNode(GraphMLContainer* parent, QString kind, QPointF position);
-    Node* constructNodeInstance(GraphMLContainer* parent, GraphMLContainer* definition,  bool forceCreate = false);
+    Node* constructNode(Node* parent, QString kind, QPointF position);
+    Node* constructNodeInstance(Node* parent, Node* definition,  bool forceCreate = false);
 
-    Node* constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent = 0);
+    Node* constructGraphMLNode(QVector<GraphMLData *> data, Node *parent = 0);
 
     //Connects Node object and stores into a vector.
     void setupNode(Node* node);

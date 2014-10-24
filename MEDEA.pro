@@ -23,9 +23,7 @@ HEADERS += \
     GUI/nodeitem.h \
     GUI/nodeview.h \
     Model/edge.h \
-    Model/graph.h \
     Model/graphml.h \
-    Model/graphmlcontainer.h \
     Model/graphmldata.h \
     Model/graphmlkey.h \
     Model/model.h \
@@ -70,9 +68,7 @@ SOURCES += \
     GUI/nodeitem.cpp \
     GUI/nodeview.cpp \
     Model/edge.cpp \
-    Model/graph.cpp \
     Model/graphml.cpp \
-    Model/graphmlcontainer.cpp \
     Model/graphmldata.cpp \
     Model/graphmlkey.cpp \
     Model/model.cpp \

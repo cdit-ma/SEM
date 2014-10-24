@@ -17,12 +17,12 @@ QString DeploymentDefinitions::toString()
     return QString("DeploymentDefinitions[%1]: "+this->getName()).arg(this->getID());
 }
 
-bool DeploymentDefinitions::isEdgeLegal(GraphMLContainer *attachableObject)
+bool DeploymentDefinitions::canConnect(Node* attachableObject)
 {
     return false;
 }
 
-bool DeploymentDefinitions::isAdoptLegal(GraphMLContainer *child)
+bool DeploymentDefinitions::canAdoptChild(Node *child)
 {
 
     ComponentAssembly* component = dynamic_cast<ComponentAssembly *>(child);

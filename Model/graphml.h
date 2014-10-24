@@ -9,7 +9,7 @@
 class GraphMLData;
 class GraphMLKey;
 
-//Abstract Base class for ALL GraphML objects used in a graph. Extended by GraphMLContainer.
+//Abstract Base class for ALL GraphML objects used in a graph. Extended by Node.
 //Some pure Virtual methods. Cannot be directly Instantiated.
 class GraphML : public QObject{
     Q_OBJECT
@@ -46,14 +46,11 @@ public:
 
     //Attach a data object contained by this GraphML
     void attachData(GraphMLData* data);
+    void attachData(QVector<GraphMLData* > data);
 
     //Remove a data object contained by this GraphML;
     void removeData(GraphMLData* data);
 
-    void attachData(QVector<GraphMLData* > data);
-
-    //Get the Unique ID of this object
-    qint32 getUID() const;
 
     //Returns a string graphml representation of this graphml object
     //Pure Virtual => Must be overwritten by subclasses!
@@ -76,7 +73,6 @@ public slots:
 protected:
     QVector<GraphMLData *> attachedData;
 
-    void setID(QString id);
 private:
     //The name of this graphml object.
     QString name;

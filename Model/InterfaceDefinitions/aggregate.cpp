@@ -38,7 +38,7 @@ QString Aggregate::toString()
     return QString("Aggregate[%1]: "+this->getName()).arg(this->getID());
 }
 
-bool Aggregate::isEdgeLegal(GraphMLContainer *attachableObject)
+bool Aggregate::canConnect(Node* attachableObject)
 {
     AggregateMember* aggregateMember = dynamic_cast<AggregateMember*>(attachableObject);
     if (aggregateMember){
@@ -48,7 +48,7 @@ bool Aggregate::isEdgeLegal(GraphMLContainer *attachableObject)
     return false;
 }
 
-bool Aggregate::isAdoptLegal(GraphMLContainer *child)
+bool Aggregate::canAdoptChild(Node *child)
 {
     Aggregate* aggregate = dynamic_cast<Aggregate*>(child);
     AggregateMember* aggregateMember = dynamic_cast<AggregateMember*>(child);

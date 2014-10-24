@@ -9,8 +9,8 @@ public:
     HardwareNode(QString name="");
     ~HardwareNode();
 public:
-    bool isEdgeLegal(GraphMLContainer *attachableObject);
-    bool isAdoptLegal(GraphMLContainer *child);
+    bool canConnect(Node* attachableObject);
+    bool canAdoptChild(Node* child);
     QString toString();
 };
 

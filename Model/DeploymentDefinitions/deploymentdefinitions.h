@@ -15,9 +15,9 @@ public:
 public:
     QString toString();
 
-    // GraphMLContainer interface
+    // Node interface
 public:
-    bool isEdgeLegal(GraphMLContainer *attachableObject);
-    bool isAdoptLegal(GraphMLContainer *child);
+    bool canConnect(Node* attachableObject);
+    bool canAdoptChild(Node* child);
 };
 #endif // DEPLOYMENTDEFINITIONS_H

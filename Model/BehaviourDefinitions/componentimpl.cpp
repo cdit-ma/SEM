@@ -3,7 +3,7 @@
 
 #include <QDebug>
 
-ComponentImpl::ComponentImpl(QString name):Node(name)
+ComponentImpl::ComponentImpl(QString name):Node()
 {
     def = 0;
      //qDebug() << "Constructed Component: " << this->getName();
@@ -31,7 +31,7 @@ Component *ComponentImpl::getDefinition()
     return def;
 }
 
-bool ComponentImpl::isEdgeLegal(GraphMLContainer *attachableObject)
+bool ComponentImpl::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
 /*
@@ -58,7 +58,7 @@ bool ComponentImpl::isEdgeLegal(GraphMLContainer *attachableObject)
 
 }
 
-bool ComponentImpl::isAdoptLegal(GraphMLContainer *child)
+bool ComponentImpl::canAdoptChild(Node *child)
 {
     return true;
     /*
@@ -97,7 +97,6 @@ void ComponentImpl::addEdge(Edge *edge)
         this->addComponentInstance(dst);
     }
 */
-    Node::addEdge(edge);
 
 }
 

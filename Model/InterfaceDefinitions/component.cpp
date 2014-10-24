@@ -52,12 +52,12 @@ QString Component::toString()
 
 }
 
-bool Component::isEdgeLegal(GraphMLContainer *attachableObject)
+bool Component::canConnect(Node* attachableObject)
 {
     return true;
 }
 
-bool Component::isAdoptLegal(GraphMLContainer *child)
+bool Component::canAdoptChild(Node *child)
 {
     return true;
 }

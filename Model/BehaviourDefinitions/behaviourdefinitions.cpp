@@ -4,7 +4,7 @@
 #include <QDebug>
 
 
-BehaviourDefinitions::BehaviourDefinitions(QString name):Node(name)
+BehaviourDefinitions::BehaviourDefinitions(QString name):Node()
 {
 
 }
@@ -19,12 +19,12 @@ QString BehaviourDefinitions::toString()
     return QString("BehaviourDefinitions[%1]: "+this->getName()).arg(this->getID());
 }
 
-bool BehaviourDefinitions::isEdgeLegal(GraphMLContainer *attachableObject)
+bool BehaviourDefinitions::canConnect(Node* attachableObject)
 {
     return false;
 }
 
-bool BehaviourDefinitions::isAdoptLegal(GraphMLContainer *child)
+bool BehaviourDefinitions::canAdoptChild(Node *child)
 {
     ComponentImpl* component = dynamic_cast<ComponentImpl *>(child);
 

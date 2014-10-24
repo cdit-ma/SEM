@@ -13,7 +13,7 @@ HardwareNode::~HardwareNode()
 
 }
 
-bool HardwareNode::isEdgeLegal(GraphMLContainer *attachableObject)
+bool HardwareNode::canConnect(Node* attachableObject)
 {
     ComponentAssembly* assembly = dynamic_cast<ComponentAssembly*> (attachableObject);
     ComponentInstance* instance = dynamic_cast<ComponentInstance*> (attachableObject);
@@ -34,7 +34,7 @@ bool HardwareNode::isEdgeLegal(GraphMLContainer *attachableObject)
     return true;
 }
 
-bool HardwareNode::isAdoptLegal(GraphMLContainer *child)
+bool HardwareNode::canAdoptChild(Node *child)
 {
     Q_UNUSED(child);
     qWarning() << "Hardware Node cannot adopt any Children.";

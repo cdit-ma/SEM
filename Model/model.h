@@ -1,7 +1,7 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-#include "graph.h"
+
 #include "edge.h"
 #include "node.h"
 #include "blanknode.h"
@@ -52,11 +52,11 @@
 #include <QObject>
 #include <QXmlStreamReader>
 
-class Model: public GraphMLContainer
+class Model: public Node
 {
     Q_OBJECT
 public:
-    Model(QString name);
+    Model();
     ~Model();
 
 
@@ -64,10 +64,10 @@ public:
 public:
     QString toString();
 
-    // GraphMLContainer interface
+    // Node interface
 public:
-    bool isEdgeLegal(GraphMLContainer *attachableObject);
-    bool isAdoptLegal(GraphMLContainer *child);
+    bool canConnect(Node* attachableObject);
+    bool canAdoptChild(Node* child);
 
 private:
 

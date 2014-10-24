@@ -13,6 +13,7 @@
 
 #include <QGraphicsItem>
 #include "../Model/node.h"
+#include "../Model/edge.h"
 #include "../Model/graphmldata.h"
 #include "nodeitem.h"
 #include <QObject>

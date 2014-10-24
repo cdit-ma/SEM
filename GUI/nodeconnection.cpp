@@ -2,7 +2,7 @@
 #include <QDebug>
 #include "graphmlitem.h";
 
-NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
+NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 {
     //Only show the Parent Instance
     IS_VISIBLE = true;

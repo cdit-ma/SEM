@@ -2,26 +2,25 @@
 #define EDGE_H
 
 #include "graphml.h"
-#include "graphmlcontainer.h"
 #include <QString>
 
-class GraphMLContainer;
+class Node;
 
 //Base class of an edge object (Treated as Class for extended Node Types). Extends the GraphML Abstract Base Class.
 class Edge: public GraphML{
     Q_OBJECT
 public:
     //Constructor
-    Edge(GraphMLContainer* source, GraphMLContainer* destination, QString name="");
+    Edge(Node* source, Node* destination, QString name="");
     ~Edge();
 
     //Get the source graphml object of this Edge
-    GraphMLContainer* getSource();
+    Node* getSource();
 
     //Get the destination graphml object of this Edge
-    GraphMLContainer* getDestination();
+    Node* getDestination();
 
-    GraphMLContainer* getContainingGraph();
+    Node* getContainingGraph();
 
     //Return the graphml representation of this
     QString toGraphML(qint32 indentationLevel=0);
@@ -31,7 +30,7 @@ public:
 
     bool isInstanceLink();
 
-    bool contains(GraphMLContainer *item);
+    bool contains(Node *item);
     QString toString();
 
 signals:
@@ -41,8 +40,8 @@ signals:
 
 
 private:
-    GraphMLContainer* source;
-    GraphMLContainer* destination;
+    Node* source;
+    Node* destination;
 
     static int _Eid;
 };

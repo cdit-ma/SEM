@@ -19,7 +19,7 @@ InEventPortInstance::~InEventPortInstance()
 }
 
 
-bool InEventPortInstance::isAdoptLegal(GraphMLContainer *child)
+bool InEventPortInstance::canAdoptChild(Node *child)
 {
     Member* member = dynamic_cast<Member*> (child);
 
@@ -36,7 +36,7 @@ bool InEventPortInstance::isAdoptLegal(GraphMLContainer *child)
     return true;
 }
 
-bool InEventPortInstance::isEdgeLegal(GraphMLContainer *attachableObject)
+bool InEventPortInstance::canConnect(Node* attachableObject)
 {
     OutEventPortInstance* outputEventPort = dynamic_cast<OutEventPortInstance*> (attachableObject);
 
@@ -53,7 +53,7 @@ bool InEventPortInstance::isEdgeLegal(GraphMLContainer *attachableObject)
             return false;
         }
 
-        if(outputEventPort->getParent() == this->getParent()){
+        if(outputEventPort->getParentNode() == this->getParentNode()){
             //qCritical() << "Cannot connect 2 Ports from the same component!";
             //return false;
         }

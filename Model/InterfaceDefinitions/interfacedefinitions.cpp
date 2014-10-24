@@ -16,12 +16,12 @@ QString InterfaceDefinitions::toString()
     return QString("InterfaceDefinitions[%1]: "+this->getName()).arg(this->getID());
 }
 
-bool InterfaceDefinitions::isEdgeLegal(GraphMLContainer *attachableObject)
+bool InterfaceDefinitions::canConnect(Node* attachableObject)
 {
     return false;
 }
 
-bool InterfaceDefinitions::isAdoptLegal(GraphMLContainer *child)
+bool InterfaceDefinitions::canAdoptChild(Node *child)
 {
     return true;
 

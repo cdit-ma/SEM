@@ -18,12 +18,12 @@ QString InEventPort::toString()
 
 }
 
-bool InEventPort::isEdgeLegal(GraphMLContainer *attachableObject)
+bool InEventPort::canConnect(Node* attachableObject)
 {
     return true;
 }
 
-bool InEventPort::isAdoptLegal(GraphMLContainer *child)
+bool InEventPort::canAdoptChild(Node *child)
 {
     return true;
 }

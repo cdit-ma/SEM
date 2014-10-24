@@ -21,8 +21,8 @@ public:
 
     QString toString();
 
-    bool isEdgeLegal(GraphMLContainer *attachableObject);
-    bool isAdoptLegal(GraphMLContainer *child);
+    bool canConnect(Node* attachableObject);
+    bool canAdoptChild(Node* child);
 private:
     QVector<OutEventPortInstance*> instances;
     OutEventPortImpl* impl;

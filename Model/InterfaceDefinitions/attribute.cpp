@@ -54,12 +54,12 @@ QString Attribute::toString()
     return QString("Attribute[%1]: "+this->getName()).arg(this->getID());
 }
 
-bool Attribute::isEdgeLegal(GraphMLContainer *attachableObject)
+bool Attribute::canConnect(Node* attachableObject)
 {
     return true;
 }
 
-bool Attribute::isAdoptLegal(GraphMLContainer *child)
+bool Attribute::canAdoptChild(Node *child)
 {
     return true;
 

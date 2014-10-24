@@ -63,7 +63,7 @@ NewController::NewController(NodeView *v)
     connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
 
 
-    model = new Model("Parent Graph");
+    model = new Model();
     setupModel();
 
 }
@@ -98,7 +98,7 @@ QString NewController::exportGraphML(QVector<Node *> eNodes)
         }
 
         //Get all Children in this node.
-        foreach(GraphMLContainer* child, node->getChildren()){
+        foreach(Node* child, node->getChildren()){
             Node* childNode = dynamic_cast<Node*>(child);
             if(childNode && (containedNodes.contains(childNode) == false)){
                 containedNodes.append(childNode);
@@ -164,7 +164,7 @@ QStringList NewController::getViewAspects()
     return viewAspects;
 }
 
-void NewController::view_ImportGraphML(QStringList inputGraphML, GraphMLContainer *currentParent)
+void NewController::view_ImportGraphML(QStringList inputGraphML, Node *currentParent)
 {
     view_ActionTriggered("Importing GraphML");
     emit view_SetGUIEnabled(false);
@@ -187,15 +187,15 @@ void NewController::view_ImportGraphML(QStringList inputGraphML, GraphMLContaine
 
 }
 
-void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *currentParent, bool linkID)
+void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent, bool linkID)
 {
     qCritical() << "NewController::view_ImportGraphML()";
 
     //Key Lookup provides a way for the original key "id" to be linked with the internal object GraphMLKey
     QMap<QString , GraphMLKey*> keyLookup;
 
-    //Node lookup provides a way for the original edge source/target ID's to be linked with the internal object GraphMLContainer
-    QMap<QString, GraphMLContainer *> nodeLookup;
+    //Node lookup provides a way for the original edge source/target ID's to be linked with the internal object Node
+    QMap<QString, Node *> nodeLookup;
 
     //A list for storing the current Parse <data> tags owned by a <node>
     QVector<GraphMLData*> currentNodeData;
@@ -377,7 +377,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
 
                 //Navigate back to the correct parent.
                 while(parentDepth > 0){
-                    currentParent = currentParent->getParent();
+                    currentParent = currentParent->getParentNode();
 
                     //Check if the parent is a graph or a node!
                     //We only care about if it's not a graph!
@@ -408,8 +408,8 @@ void NewController::view_ImportGraphML(QString inputGraphML, GraphMLContainer *c
     //Construct the Edges from the EdgeTemp objects
     for(int i =0; i< currentEdges.size(); i++){
         EdgeTemp edge = currentEdges[i];
-        GraphMLContainer* s = nodeLookup[edge.source];
-        GraphMLContainer* d = nodeLookup[edge.target];
+        Node* s = nodeLookup[edge.source];
+        Node* d = nodeLookup[edge.target];
 
 
 
@@ -571,7 +571,7 @@ void NewController::view_ExportGraphML()
 
     QVector<Node*> nodes;
 
-    foreach(GraphMLContainer* child, getParentModel()->getChildren(0)){
+    foreach(Node* child, getParentModel()->getChildren(0)){
         Node* node = dynamic_cast<Node*>(child);
         if(node){
             nodes.append(node);
@@ -681,7 +681,7 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
 
 
     //Get the current Selected Node.
-    GraphMLContainer* parent = getSelectedNode();
+    Node* parent = getSelectedNode();
     if(!parent){
         parent = getParentModel();
     }else{
@@ -972,7 +972,7 @@ void NewController::view_SelectAll()
 
     if(centeredNode){
         //Get children.
-        foreach(GraphMLContainer* child, centeredNode->getChildren(2)){
+        foreach(Node* child, centeredNode->getChildren(2)){
             Node* node = dynamic_cast<Node*>(child);
             if(node){
                 setNodeSelected(node);
@@ -980,11 +980,11 @@ void NewController::view_SelectAll()
         }
     }else{
         //Get children.
-        foreach(GraphMLContainer* child, getParentModel()->getChildren(0)){
+        foreach(Node* child, getParentModel()->getChildren(0)){
             Node* node = dynamic_cast<Node*>(child);
             if(node){
                 if(node == behaviourDefinitions || node == deploymentDefinitions || node == interfaceDefinitions){
-                    foreach(GraphMLContainer* childN, node->getChildren(0)){
+                    foreach(Node* childN, node->getChildren(0)){
                         Node* nodeN = dynamic_cast<Node*>(childN);
                         setNodeSelected(nodeN);
                     }
@@ -1095,12 +1095,12 @@ void NewController::view_ConstructNodeEdge(Edge *edge)
 bool NewController::copySelection()
 {
     //COPY ONLY WORKS IF YOU SHARE THE SAME PARENT.
-    GraphMLContainer* parent = 0;
+    Node* parent = 0;
     foreach(Node* node, selectedNodes){
         if(!parent){
-            parent = node->getParent();
+            parent = node->getParentNode();
         }else{
-            if(parent != node->getParent()){
+            if(parent != node->getParentNode()){
                 qCritical() << "Can only copy items which share the same parent";
                 return false;
             }
@@ -1138,7 +1138,7 @@ GraphMLKey *NewController::parseGraphMLKeyXML(QXmlStreamReader &xml)
 
 }
 
-Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent)
+Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *parent)
 {
     Node *newNode;
 
@@ -1309,8 +1309,8 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, GraphMLCo
     newNode->attachData(data);
 
     //Adopt the new Node into the parent
-    if(parent->isAdoptLegal(newNode)){
-        parent->adopt(newNode);
+    if(parent->canAdoptChild(newNode)){
+        parent->addChild(newNode);
         setupNode(newNode);
     }else{
         qCritical() << "Cannot adopt";
@@ -1342,7 +1342,7 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
     return attribute;
 }
 
-Node *NewController::constructNode(GraphMLContainer *parent, QString kind, QPointF position)
+Node *NewController::constructNode(Node *parent, QString kind, QPointF position)
 {
     GraphMLKey* x = constructGraphMLKey("x", "double", "node");
     GraphMLKey* y = constructGraphMLKey("y", "double", "node");
@@ -1363,7 +1363,7 @@ Node *NewController::constructNode(GraphMLContainer *parent, QString kind, QPoin
     return constructGraphMLNode(data, parent);
 }
 
-Node *NewController::constructNodeInstance(GraphMLContainer *parent, GraphMLContainer *def, bool forceCreate)
+Node *NewController::constructNodeInstance(Node *parent, Node *def, bool forceCreate)
 {
 
     qCritical() << "constructNodeInstance";
@@ -1396,7 +1396,7 @@ Node *NewController::constructNodeInstance(GraphMLContainer *parent, GraphMLCont
     Node* instance = 0;
 
     if(!forceCreate){
-        foreach(GraphMLContainer* child, parent->getChildren(0)){
+        foreach(Node* child, parent->getChildren(0)){
 
             bool allMatched = true;
             foreach(GraphMLData* attachedData, data){
@@ -1566,7 +1566,7 @@ void NewController::deleteNode(Node *node)
 
         //Delete any first level children which are instances.
 
-        QVector<GraphMLContainer*> children = node->getChildren();
+        QVector<Node*> children = node->getChildren();
         QVector<Edge*> childEdges = node->getEdges();
 
         QString nodesXML = exportGraphML(node);
@@ -1587,7 +1587,7 @@ void NewController::deleteNode(Node *node)
         }
 
         //Remove all Children Nodes
-        foreach(GraphMLContainer* child, children){
+        foreach(Node* child, children){
             Node* childNode = dynamic_cast<Node*>(child);
             if(childNode){
                 //Get the NodeItem corresponding to this childNode.
@@ -1727,7 +1727,7 @@ bool NewController::isEdgeSelected(Edge *edge)
 bool NewController::isEdgeLegal(Node *src, Node *dst)
 {
     if(src && dst){
-        return src->isEdgeLegal(dst) && dst->isEdgeLegal(src);
+        return src->canAdoptChild(dst) && dst->canAdoptChild(src);
     }
     return false;
 
@@ -2052,7 +2052,7 @@ void NewController::setupInstance(Node *definition, Node *instance)
         }
     }
 
-    foreach(GraphMLContainer* child, definition->getChildren(0)){
+    foreach(Node* child, definition->getChildren(0)){
 
         constructNodeInstance(instance, child);
     }

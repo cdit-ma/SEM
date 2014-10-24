@@ -19,7 +19,7 @@ QString HardwareCluster::toString()
     return QString("HardwareCluster[%1]: "+this->getName()).arg(this->getID());
 }
 
-bool HardwareCluster::isEdgeLegal(GraphMLContainer *attachableObject)
+bool HardwareCluster::canConnect(Node* attachableObject)
 {
     ComponentAssembly* assembly = dynamic_cast<ComponentAssembly*> (attachableObject);
     ComponentInstance* instance = dynamic_cast<ComponentInstance*> (attachableObject);
@@ -41,7 +41,7 @@ bool HardwareCluster::isEdgeLegal(GraphMLContainer *attachableObject)
 
 }
 
-bool HardwareCluster::isAdoptLegal(GraphMLContainer *child)
+bool HardwareCluster::canAdoptChild(Node *child)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (child);
 

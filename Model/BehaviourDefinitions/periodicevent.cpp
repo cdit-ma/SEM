@@ -1,6 +1,6 @@
 #include "periodicevent.h"
 #include <QDebug>
-PeriodicEvent::PeriodicEvent(QString name):Node(name)
+PeriodicEvent::PeriodicEvent(QString name):Node()
 {
     //qCritical() << "Constructed PeriodicEvent: "<< this->getName();
 
@@ -16,13 +16,13 @@ QString PeriodicEvent::toString()
     return QString("PeriodicEvent[%1]: "+this->getName()).arg(this->getID());
 }
 
-bool PeriodicEvent::isEdgeLegal(GraphMLContainer *attachableObject)
+bool PeriodicEvent::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;
 }
 
-bool PeriodicEvent::isAdoptLegal(GraphMLContainer *child)
+bool PeriodicEvent::canAdoptChild(Node *child)
 {
     Q_UNUSED(child);
     return false;

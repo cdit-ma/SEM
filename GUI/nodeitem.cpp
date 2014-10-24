@@ -376,7 +376,7 @@ void NodeItem::updateViewAspects(QStringList aspects)
 
     bool isVisible = false;
     foreach(QString aspect, aspects){
-        if(node->inAspect(aspect)){
+        if(node->isInAspect(aspect)){
             isVisible = true;
             break;
         }

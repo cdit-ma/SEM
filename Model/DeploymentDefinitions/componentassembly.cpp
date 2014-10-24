@@ -3,7 +3,7 @@
 #include "hardwarecluster.h"
 #include "hardwarenode.h"
 #include <QDebug>
-ComponentAssembly::ComponentAssembly(QString name):Node(name)
+ComponentAssembly::ComponentAssembly(QString name):Node()
 {
     //qDebug() << "Constructed Assembly: "<< this->getName();
 }
@@ -13,7 +13,7 @@ ComponentAssembly::~ComponentAssembly()
     //Destructor
 }
 
-bool ComponentAssembly::isAdoptLegal(GraphMLContainer *child)
+bool ComponentAssembly::canAdoptChild(Node *child)
 {
     ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*> (child);
 
@@ -25,13 +25,13 @@ bool ComponentAssembly::isAdoptLegal(GraphMLContainer *child)
 
     /*
     if(this->getGraph() != NULL){
-        return this->getGraph()->isAdoptLegal(child);
+        return this->getGraph()->canAdoptChild(child);
     }
     */
     return true;
 }
 
-bool ComponentAssembly::isEdgeLegal(GraphMLContainer *attachableObject)
+bool ComponentAssembly::canConnect(Node* attachableObject)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
 

@@ -17,19 +17,19 @@ public:
     Component* getDefinition();
 
 public:
-    bool isEdgeLegal(GraphMLContainer *attachableObject);
-    bool isAdoptLegal(GraphMLContainer *child);
+    bool canConnect(Node* attachableObject);
+    bool canAdoptChild(Node* child);
 
 private:
     Component* def;
 
-    // GraphMLContainer interface
+    // Node interface
 
-    // GraphMLContainer interface
+    // Node interface
 public:
     void addEdge(Edge *edge);
 
-    // GraphMLContainer interface
+    // Node interface
 };
 
 #endif // COMPONENTBEHAVIOUR_H

@@ -28,7 +28,7 @@ OutEventPort *OutEventPortImpl::getDefinition()
     return def;
 }
 
-bool OutEventPortImpl::isAdoptLegal(GraphMLContainer *child)
+bool OutEventPortImpl::canAdoptChild(Node *child)
 {
     Member* member = dynamic_cast<Member*> (child);
 
@@ -45,7 +45,7 @@ bool OutEventPortImpl::isAdoptLegal(GraphMLContainer *child)
     return true;
 }
 
-bool OutEventPortImpl::isEdgeLegal(GraphMLContainer *attachableObject)
+bool OutEventPortImpl::canConnect(Node* attachableObject)
 {
     return true;
 }

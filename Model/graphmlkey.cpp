@@ -5,7 +5,6 @@ int GraphMLKey::_Did =0;
 
 GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(GraphML::KEY, name)
 {
-     this->setID(QString("d%1").arg(this->_Did++));
     //Parse Type
     if(typeStr == QString("boolean")){
         this->type = BOOLEAN;

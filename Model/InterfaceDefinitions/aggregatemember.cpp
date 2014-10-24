@@ -28,7 +28,7 @@ QString AggregateMember::toString()
     return QString("AggregateMember[%1]: "+this->getName()).arg(this->getID());
 }
 
-bool AggregateMember::isEdgeLegal(GraphMLContainer *attachableObject)
+bool AggregateMember::canConnect(Node* attachableObject)
 {
     if(this->edges.size() == 1){
         return false;
@@ -41,7 +41,7 @@ bool AggregateMember::isEdgeLegal(GraphMLContainer *attachableObject)
     return false;
 }
 
-bool AggregateMember::isAdoptLegal(GraphMLContainer *child)
+bool AggregateMember::canAdoptChild(Node *child)
 {
     return false;
 }
