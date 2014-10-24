@@ -10,12 +10,6 @@ class InEventPort : public Node
 public:
     InEventPort(QString name="");
     ~InEventPort();
-    void addInstance(InEventPortInstance* instance);
-    void removeInstance(InEventPortInstance* instance);
-    QVector<InEventPortInstance*> getInstances();
-
-    void setImpl(InEventPortImpl* impl);
-    InEventPortImpl* getImpl();
 
     QString toString();
 

@@ -3,10 +3,9 @@
 #include "../DeploymentDefinitions/attributeinstance.h"
 #include <QDebug>
 
-AttributeInstance::AttributeInstance(QString name): Node(name)
+AttributeInstance::AttributeInstance(QString name): Node(name, Node::NT_INSTANCE)
 {
     //qDebug() << "Constructed Attribute: "<< this->getName();
-    def = 0;
 }
 
 AttributeInstance::~AttributeInstance()
@@ -33,16 +32,3 @@ bool AttributeInstance::isEdgeLegal(GraphMLContainer *attachableObject)
     return true;
 }
 
-
-void AttributeInstance::setDefinition(Attribute *def)
-{
-    this->def = def;
-}
-
-
-
-Attribute *AttributeInstance::getDefinition()
-{
-    return this->def;
-
-}

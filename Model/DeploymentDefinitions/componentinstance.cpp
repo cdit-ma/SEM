@@ -42,32 +42,19 @@ ComponentImpl *ComponentInstance::getImpl()
 
 bool ComponentInstance::isAdoptLegal(GraphMLContainer *attachableObject)
 {
-    /*
 
-    EventPort* eventPort = dynamic_cast<EventPort*> (attachableObject);
-    Attribute* attribute = dynamic_cast<Attribute*> (attachableObject);
-    PeriodicEvent* period = dynamic_cast<PeriodicEvent*> (attachableObject);
-
-    if(eventPort != 0 || attribute != 0 || period != 0){
-        //Do Event Port Specific things!
-    }else{
-        qWarning() << "ComponentInstance can only adopt an EventPort or an Attribute Node";;
-        return false;
+    if( ((Node*)attachableObject)->isInstance()){
+        return true;
     }
 
-    if(this->getGraph() != NULL){
-        return this->getGraph()->isAdoptLegal(attachableObject);
-    }
-    */
-
-    return true;
+    return false;
 }
 
 bool ComponentInstance::isEdgeLegal(GraphMLContainer *attachableObject)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
 
-    ComponentImpl* component = dynamic_cast<ComponentImpl*> (attachableObject);
+    Component* component = dynamic_cast<Component*> (attachableObject);
 
     if(hardwareNode == 0 && component == 0){
         qWarning() << "ComponentInstance Node can only be connected to a HardwareNode";
@@ -76,8 +63,8 @@ bool ComponentInstance::isEdgeLegal(GraphMLContainer *attachableObject)
 
     //Check for an edge to a component.
     foreach(Edge* edge, this->edges){
-        ComponentImpl* src = dynamic_cast<ComponentImpl*>(edge->getSource());
-        ComponentImpl* dst = dynamic_cast<ComponentImpl*>(edge->getDestination());
+        Component* src = dynamic_cast<Component*>(edge->getSource());
+        Component* dst = dynamic_cast<Component*>(edge->getDestination());
         if(src != 0 || dst != 0){
             //Already connection to a Component. Return 0
             qWarning() << "ComponentInstance Node can only be connected to one Component.";

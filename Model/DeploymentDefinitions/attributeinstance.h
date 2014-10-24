@@ -14,13 +14,6 @@ public:
     AttributeInstance(QString name="");
     ~AttributeInstance();
 
-    void setDefinition(Attribute* def);
-    Attribute* getDefinition();
-
-    AttributeImpl* getImpl();
-
-
-
     // GraphML interface
 public:
     QString toString();

@@ -2,10 +2,9 @@
 #include "../BehaviourDefinitions/componentimpl.h"
 #include "../DeploymentDefinitions/componentinstance.h"
 
-Component::Component(QString name): Node(name)
+Component::Component(QString name): Node(name, Node::NT_DEFINITION)
 {
     impl = 0;
-    hasInstanceKind=true;
 }
 
 Component::~Component()

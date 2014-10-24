@@ -12,22 +12,8 @@ InEventPortImpl::InEventPortImpl(QString name): Node(name)
 
 InEventPortImpl::~InEventPortImpl()
 {
-    if(def){
-        def->setImpl(0);
-    }
-
 }
 
-void InEventPortImpl::setDefinition(InEventPort *parent)
-{
-    def = parent;
-
-}
-
-InEventPort *InEventPortImpl::getDefinition()
-{
-    return def;
-}
 
 bool InEventPortImpl::isAdoptLegal(GraphMLContainer *child)
 {

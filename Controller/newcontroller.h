@@ -100,6 +100,7 @@ public slots:
     void view_ConstructChildNode(QPointF centerPoint);
     void view_ConstructChildNode();
     void view_ConstructEdge(Node* src, Node* dst);
+    void view_ConstructEdge(Node* src, Node* dst, QVector<GraphMLData*>data, QString previousID=0);
     void view_ConstructEdge(Node* src, Node* dst, QVector<QStringList> data, QString previousID=0);
     void view_MoveSelectedNodes(QPointF delta);
 
@@ -152,14 +153,17 @@ private:
 
     //Construct a specified Node type given the attached data.
     Node* constructNode(GraphMLContainer* parent, QString kind, QPointF position);
-    Node* constructNodeInstance(GraphMLContainer* parent, GraphMLContainer* definition);
+    Node* constructNodeInstance(GraphMLContainer* parent, GraphMLContainer* definition,  bool forceCreate = false);
 
-    Node* constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent = 0, GraphMLContainer *definition = 0);
+    Node* constructGraphMLNode(QVector<GraphMLData *> data, GraphMLContainer *parent = 0);
 
     //Connects Node object and stores into a vector.
     void setupNode(Node* node);
 
     void setupModel();
+
+    void setupInstance(Node* definition, Node* instance);
+    void teardownInstance(Node* definition, Node* instance);
 
     bool isGraphMLValid(QString inputGraphML);
 
@@ -196,6 +200,8 @@ private:
     void reverseAction(ActionItem action);
 
     void attachGraphMLData(GraphML* item, QVector<QStringList> dataList);
+    void attachGraphMLData(GraphML* item, QVector<GraphMLData*> dataList);
+    
     void addActionToStack(ActionItem action);
 
 

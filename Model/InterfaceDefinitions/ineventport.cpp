@@ -3,47 +3,13 @@
 #include "../DeploymentDefinitions/ineventportinstance.h"
 
 
-InEventPort::InEventPort(QString name):Node(name)
+InEventPort::InEventPort(QString name):Node(name, Node::NT_DEFINITION)
 {
-    impl = 0;
-    hasInstanceKind=true;
 }
 
 InEventPort::~InEventPort()
 {
 
-}
-
-void InEventPort::addInstance(InEventPortInstance *instance)
-{
-    if(!instances.contains(instance)){
-        instances.append(instance);
-        instance->setDefinition(this);
-    }
-}
-
-void InEventPort::removeInstance(InEventPortInstance *instance)
-{
-    int index = instances.indexOf(instance);
-    if(index >= 0){
-        instance->setDefinition(0);
-        instances.removeAt(index);
-    }
-}
-
-QVector<InEventPortInstance *> InEventPort::getInstances()
-{
-    return instances;
-}
-
-void InEventPort::setImpl(InEventPortImpl *impl)
-{
-    this->impl = impl;
-}
-
-InEventPortImpl *InEventPort::getImpl()
-{
-    return impl;
 }
 
 QString InEventPort::toString()

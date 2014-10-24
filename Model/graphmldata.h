@@ -25,6 +25,7 @@ public:
 
     QString getValue() const;
     GraphMLKey* getKey();
+    QString getKeyName();
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
 

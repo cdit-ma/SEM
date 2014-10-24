@@ -27,9 +27,10 @@ bool DeploymentDefinitions::isAdoptLegal(GraphMLContainer *child)
 
     ComponentAssembly* component = dynamic_cast<ComponentAssembly *>(child);
 
+
     if(component == 0){
-        qWarning() << "Deployment Definitions can only adopt a ComponentAssembly Node";
-        return true;
+        //qWarning() << "Deployment Definitions can only adopt a ComponentAssembly Node";
+        //return true;
     }
 
     return true;

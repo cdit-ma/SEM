@@ -4,17 +4,11 @@
 
 int Node::_Nid = 0;
 
-Node::Node(QString name): GraphMLContainer(GraphML::NODE, name)
+Node::Node(QString name, Node::NODE_TYPE nodeType): GraphMLContainer(GraphML::NODE, name)
 {
-    //this->setID(QString("n%1").arg(this->_Nid++));
-
-    //Construct a Graph to hold the children of this Node type.
-    //this->childGraph = new Graph(name + ":");
-
-    //Adopt the Graph, But using the Default adopt method
-    //GraphMLContainer::adopt(childGraph);
-
-    //qDebug() << "Constructed Node[" << this->nodeKind <<"]: "<< this->getName();
+    this->nodeType = nodeType;
+    unsetDefinition();
+    unsetImplementation();
 }
 
 Node::~Node(){
@@ -103,27 +97,66 @@ QString Node::toString()
     return QString("Node[%1]: "+this->getName()).arg(this->getID());
 }
 
-/*
 
-Graph *Node::getGraph()
+bool Node::isDefinition()
 {
-    return this->childGraph;
+    return nodeType == NT_DEFINITION;
+}
+
+bool Node::isInstance()
+{
+    return nodeType == NT_INSTANCE;
 }
 
 
-
-void Node::adopt(GraphMLContainer *child)
+bool Node::isImpl()
 {
+    return nodeType == NT_IMPL;
+}
 
-    if(this->childGraph != 0){
-        this->childGraph->adopt(child);
+void Node::setDefinition(Node *def)
+{
+    if(isImpl() || isInstance()){
+        definition = def;
     }
 }
 
-void Node::disown(GraphMLContainer *child)
+void Node::unsetDefinition()
 {
-    if(this->childGraph != 0){
-        this->childGraph->disown(child);
+    definition = 0;
+}
+
+void Node::addInstance(Node *inst)
+{
+    if(isDefinition()){
+        if(!instances.contains(inst)){
+            instances.append(inst);
+            inst->setDefinition(this);
+        }
     }
 }
-*/
+
+void Node::removeInstance(Node *inst)
+{
+    if(isDefinition()){
+        int index = instances.indexOf(inst);
+        if(index != -1){
+            inst->unsetDefinition();
+            instances.removeAt(index);
+        }
+    }
+}
+
+void Node::setImplementation(Node *impl)
+{
+    if(isDefinition()){
+        implementation = impl;
+        impl->setDefinition(this);
+    }
+}
+
+void Node::unsetImplementation()
+{
+    implementation = 0;
+}
+

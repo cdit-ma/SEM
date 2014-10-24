@@ -87,6 +87,11 @@ QVector<GraphMLKey *> Edge::getKeys()
     return keys;
 }
 
+bool Edge::isInstanceLink()
+{
+    return source->getDataValue("kind") +"Instance" == destination->getDataValue("kind");
+}
+
 bool Edge::contains(GraphMLContainer *item)
 {
     return item == this->source || item == this->destination;

@@ -11,8 +11,6 @@ public:
     InEventPortImpl(QString name="");
     ~InEventPortImpl();
 
-    void setDefinition(InEventPort *parent);
-    InEventPort* getDefinition();
 public:
     bool isAdoptLegal(GraphMLContainer *child);
     bool isEdgeLegal(GraphMLContainer *attachableObject);

@@ -89,12 +89,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
     setFlag(ItemIgnoresParentOpacity);
     setFlag(ItemIsSelectable);
 
-
-    if(parent == 0){
-        //PARENT MODEL!
-    }else{
-    }
-
 }
 
 NodeItem::~NodeItem()

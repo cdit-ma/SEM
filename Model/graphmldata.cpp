@@ -17,16 +17,12 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
 
 GraphMLData::~GraphMLData()
 {
-    qCritical() << "unsetParentData";
     unsetParentData();
-    qCritical() << "unsetParentData Complete";
 
-    qCritical() << "UnbInd Child";
     for(int i = 0; i < childData.size();i++){
         GraphMLData* child = childData[i];
         unbindData(child);
     }
-    qCritical() << "UnbInd Child Complete";
 
 }
 /*
@@ -44,6 +40,14 @@ QString GraphMLData::getValue() const
 GraphMLKey *GraphMLData::getKey()
 {
     return this->key;
+}
+
+QString GraphMLData::getKeyName()
+{
+    if(key){
+        return key->getName();
+    }
+    return "";
 }
 
 QString GraphMLData::toGraphML(qint32 indentationLevel)
@@ -97,7 +101,9 @@ bool GraphMLData::getProtected()
 
 void GraphMLData::setParentData(GraphMLData *data)
 {
-    unsetParentData();
+    if(data){
+        unsetParentData();
+    }
     parentData = data;
 
 }
@@ -105,7 +111,9 @@ void GraphMLData::setParentData(GraphMLData *data)
 void GraphMLData::unsetParentData()
 {
     if(parentData != 0){
+        qCritical() << "Unbinding";
         parentData->unbindData(this);
+        qCritical() << "unBound";
     }
     parentData = 0;
 }
@@ -128,6 +136,7 @@ void GraphMLData::unbindData(GraphMLData *data)
         if(data){
             //data->unsetParentData();
             childData.removeAt(index);
+            data->setParentData(0);
         }
     }
 }

@@ -5,10 +5,9 @@
 #include "../InterfaceDefinitions/ineventport.h"
 #include "member.h"
 
-InEventPortInstance::InEventPortInstance(QString name):EventPort(name)
+InEventPortInstance::InEventPortInstance(QString name):Node(name, Node::NT_INSTANCE)
 {
     //qDebug() << "Constructed InEventPortIDL: "<< this->getName();
-    def = 0;
 }
 
 InEventPortInstance::~InEventPortInstance()
@@ -19,21 +18,6 @@ InEventPortInstance::~InEventPortInstance()
 
 }
 
-void InEventPortInstance::setDefinition(InEventPort *def)
-{
-    this->def  = def;
-
-}
-
-InEventPort *InEventPortInstance::getDefinition()
-{
-    return def;
-}
-
-InEventPortImpl *InEventPortInstance::getImpl()
-{
-    return def->getImpl();
-}
 
 bool InEventPortInstance::isAdoptLegal(GraphMLContainer *child)
 {
@@ -54,10 +38,9 @@ bool InEventPortInstance::isAdoptLegal(GraphMLContainer *child)
 
 bool InEventPortInstance::isEdgeLegal(GraphMLContainer *attachableObject)
 {
-    /*
     OutEventPortInstance* outputEventPort = dynamic_cast<OutEventPortInstance*> (attachableObject);
 
-    InEventPortImpl* inEventPort = dynamic_cast<InEventPortImpl*>(attachableObject);
+    InEventPort* inEventPort = dynamic_cast<InEventPort*>(attachableObject);
 
     if(outputEventPort == 0 && inEventPort == 0){
         qCritical() << "Cannot connect to anything which isn't a Output Event Port or InEventPort instance";
@@ -76,16 +59,6 @@ bool InEventPortInstance::isEdgeLegal(GraphMLContainer *attachableObject)
         }
     }
 
-    if(inEventPort){
-
-    }
-
-    if(this->isConnected(attachableObject)){
-        qCritical() << "Cannot connect 2 already connected ports!";
-        return false;
-    }
-
-    */
     return true;
 }
 

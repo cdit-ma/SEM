@@ -22,6 +22,7 @@ void GraphML::removeData(){
     while(!attachedData.isEmpty()){
         GraphMLData* current = attachedData.first();
         attachedData.removeFirst();
+
         delete current;
     }
 }

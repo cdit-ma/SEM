@@ -1,13 +1,13 @@
 #include "outeventportinstance.h"
 
 #include "member.h"
+#include "../node.h"
 #include "ineventportinstance.h"
 #include <QDebug>
 
-OutEventPortInstance::OutEventPortInstance(QString name):EventPort(name)
+OutEventPortInstance::OutEventPortInstance(QString name):Node(name, Node::NT_INSTANCE)
 {
     //qDebug() << "Constructed OutEventPortIDL: "<< this->getName();
-    def = 0;
 }
 
 OutEventPortInstance::~OutEventPortInstance()
@@ -15,16 +15,6 @@ OutEventPortInstance::~OutEventPortInstance()
 
 }
 
-void OutEventPortInstance::setDefinition(OutEventPort *def)
-{
-    this->def = def;
-
-}
-
-OutEventPort* OutEventPortInstance::getDefinition()
-{
-    return def;
-}
 
 bool OutEventPortInstance::isAdoptLegal(GraphMLContainer *child)
 {
@@ -45,30 +35,26 @@ bool OutEventPortInstance::isAdoptLegal(GraphMLContainer *child)
 
 bool OutEventPortInstance::isEdgeLegal(GraphMLContainer *attachableObject)
 {
-    /*
-    InEventPortIDL* inputEventPort = dynamic_cast<InEventPortIDL*> (attachableObject);
+    InEventPortInstance* inputEventPort = dynamic_cast<InEventPortInstance*> (attachableObject);
 
-    //Check Event Name (TYPE)
-    if(inputEventPort == 0){
-        qCritical() << "Cannot connect to anything which isn't a Input Event Port";
+    OutEventPort* outEventPort = dynamic_cast<OutEventPort*>(attachableObject);
+
+    if(inputEventPort == 0 && outEventPort == 0){
+        qCritical() << "Cannot connect to anything which isn't a Output Event Port or InEventPort instance";
         return false;
     }
 
-    if(inputEventPort->getDataValue("type") != this->getDataValue("type")){
-        qCritical() << "Cannot connect 2 Different IDL Types!";
-        return false;
-    }
+    if(inputEventPort){
+        if(inputEventPort->getDataValue("type") != this->getDataValue("type")){
+            qCritical() << "Cannot connect 2 Different IDL Types!";
+            return false;
+        }
 
-    if(inputEventPort->getParent() == this->getParent()){
-         qCritical() << "Cannot connect 2 Ports from the same component!";
-         //return false;
+        if(inputEventPort->getParent() == this->getParent()){
+            //qCritical() << "Cannot connect 2 Ports from the same component!";
+            //return false;
+        }
     }
-
-    if(this->isConnected(attachableObject)){
-        qCritical() << "Cannot connect 2 already connected ports!";
-        return false;
-    }
-    */
 
     return true;
 

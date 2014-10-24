@@ -4,10 +4,9 @@
 
 
 
-Attribute::Attribute(QString name):Node(name)
+Attribute::Attribute(QString name):Node(name, Node::NT_DEFINITION)
 {
     impl = 0;
-    hasInstanceKind = true;
 }
 
 Attribute::~Attribute()

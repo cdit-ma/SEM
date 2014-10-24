@@ -2,10 +2,9 @@
 #include "../BehaviourDefinitions/outeventportimpl.h"
 #include "../DeploymentDefinitions/outeventportinstance.h"
 
-OutEventPort::OutEventPort(QString name):Node(name)
+OutEventPort::OutEventPort(QString name):Node(name,Node::NT_DEFINITION)
 {
     impl = 0;
-    hasInstanceKind = true;
 }
 
 OutEventPort::~OutEventPort()

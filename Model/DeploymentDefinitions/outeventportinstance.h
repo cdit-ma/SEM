@@ -3,7 +3,7 @@
 #include "eventport.h"
 #include "../InterfaceDefinitions/outeventport.h"
 
-class OutEventPortInstance : public EventPort
+class OutEventPortInstance : public Node
 {
         Q_OBJECT
 public:
@@ -11,16 +11,10 @@ public:
     ~OutEventPortInstance();
     // GraphML interface
 public:
-    void setDefinition(OutEventPort* def);
-    OutEventPort* getDefinition();
-
     bool isAdoptLegal(GraphMLContainer *child);
     bool isEdgeLegal(GraphMLContainer *attachableObject);
     //QString toGraphML(qint32 indentationLevel);
     QString toString();
-
-private:
-    OutEventPort* def;
 };
 
 #endif // OUTEVENTPORTINSTANCE_H

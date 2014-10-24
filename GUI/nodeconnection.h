@@ -32,52 +32,46 @@ public:
 
     NodeItem* getSource();
     NodeItem* getDestination();
+
     void updateLine();
-    Edge* edge;
+
+
     void  addToScene(QGraphicsScene* scene);
     QVariant itemChange(GraphicsItemChange change, const QVariant &value);
-signals:
 
 public slots:
     void destructNodeEdge();
-    void deleteD(Edge*);
+
     void setSelected(bool selected);
-
-    void setOpacity(qreal opacity);
-
     void setVisible(bool visible);
-protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *event);
 
 
 private:
-    QGraphicsLineItem* QGline;
+    void updateLabel();
 
+
+    QGraphicsLineItem* QGline;
     NodeItem* source;
     NodeItem* destination;
 
+
+    bool IS_INSTANCE_LINK;
+    bool IS_VISIBLE;
+
+
+    QPen linePen;
+    QPen selectedLinePen;
 
     int width;
     int height;
 
     QRect bRec;
 
-    QPen linePen;
     QLineF line;
     QGraphicsTextItem* label;
 
     bool inScene;
-    QPointF sPos;
-    QPointF dPos;
-    qreal sx;
-    qreal sy;
-    qreal dx;
-    qreal dy;
-
-    QGraphicsColorizeEffect *itemGraphicsEffect;
-    QGraphicsColorizeEffect *lineGraphicsEffect;
-
-
+    bool instanceLink;
 };
 
 

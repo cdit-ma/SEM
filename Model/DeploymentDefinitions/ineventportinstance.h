@@ -5,17 +5,12 @@
 class InEventPort;
 class InEventPortImpl;
 
-class InEventPortInstance : public EventPort
+class InEventPortInstance : public Node
 {
         Q_OBJECT
 public:
     InEventPortInstance(QString name="");
     ~InEventPortInstance();
-
-    void setDefinition(InEventPort* def);
-    InEventPort* getDefinition();
-
-    InEventPortImpl* getImpl();
 
 
     // GraphML interface
@@ -25,9 +20,6 @@ public:
     //QString toGraphML(qint32 indentationLevel);
     QString toString();
 
-private:
-    InEventPort* def;
-    // GraphMLContainer interface
 };
 
 #endif // INEVENTPORTINSTANCE_H

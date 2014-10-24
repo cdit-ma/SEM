@@ -4,52 +4,64 @@
 
 NodeEdge::NodeEdge(Edge *edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 {
+    //Only show the Parent Instance
+    IS_VISIBLE = true;
 
-    itemGraphicsEffect = new QGraphicsColorizeEffect();
-    lineGraphicsEffect = new QGraphicsColorizeEffect();
+    IS_INSTANCE_LINK = edge->isInstanceLink();
 
+    if(IS_INSTANCE_LINK){
+        Node* sNode = s->node;
+        Node* dNode = d->node;
 
-    QColor blue(70,130,180);
-    itemGraphicsEffect->setColor(blue);
-    itemGraphicsEffect->setStrength(0);
+        if(sNode->getParentNode()->isDefinition() && dNode->getParentNode()->isInstance()){
+            //Don't show Non-Top Most Instance Links
+            IS_VISIBLE = false;
+        }
+    }
 
-    lineGraphicsEffect->setColor(blue);
-    lineGraphicsEffect->setStrength(0);
-
-
-
-    this->edge=edge;
-    this->source = s;
-    this->destination = d;
-
-    source->addConnection(this);
-    destination->addConnection(this);
-    QGline=0;
-
-    this->setParentItem(0);
-
-    QString text = edge->getName();
-    label  = new QGraphicsTextItem(text,this);
-
-    width = 20;
-    height = 20;
-
-    bRec = QRect(0, 0, width, height);
-
-    linePen.setWidth(((d->height + s->height) /2)/20);
-    linePen.setColor(Qt::red);
-
+    //Setup Instance Variables
+    QGline = 0;
+    label = 0;
     inScene = false;
 
+    //Set Circle Width/Height
+    width = 50;
+    height = 50;
 
-    this->setGraphicsEffect(itemGraphicsEffect);
+    //Construct the Bounding Rectangle
+    bRec = QRect(0, 0, width, height);
 
+
+    if(IS_VISIBLE){
+        if(IS_INSTANCE_LINK){
+            linePen.setColor(QColor(0,0,180));
+            linePen.setWidth(2);
+
+            selectedLinePen.setColor(QColor(0,0,255));
+            selectedLinePen.setWidth(4);
+        }else{
+            linePen.setColor(QColor(180,0,255));
+            linePen.setWidth(((d->height + s->height) /2)/20);
+
+            selectedLinePen.setColor(QColor(0,0,255));
+            selectedLinePen.setWidth(linePen.width() + 2);
+        }
+    }
+
+    //Set Flags
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
     setFlag(ItemIsSelectable);
 
+    //Add this Node Edge to the Node Items
+    source = s;
+    destination = d;
+    source->addConnection(this);
+    destination->addConnection(this);
 
 
+
+    updateLabel();
     updateLine();
 }
 
@@ -70,15 +82,18 @@ void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    if(inScene){
-        if(source->drawObject && destination->drawObject){
-            QRectF rectangle = boundingRect();
 
+    if(IS_VISIBLE){
+        QRectF rectangle = boundingRect();
+
+        if(IS_INSTANCE_LINK){
             painter->setBrush(QBrush(Qt::yellow));
-            QPainterPath circle_path;
-            circle_path.addEllipse(rectangle);
-            painter->drawPath(circle_path);
+        }else{
+            painter->setBrush(QBrush(Qt::white));
         }
+        QPainterPath circle_path;
+        circle_path.addEllipse(rectangle);
+        painter->drawPath(circle_path);
     }
 }
 
@@ -94,11 +109,11 @@ NodeItem *NodeEdge::getDestination()
 
 void NodeEdge::addToScene(QGraphicsScene *scene)
 {
-    if(scene != 0){
+    if(scene){
         QGline = scene->addLine(line, linePen);
-        QGline->setGraphicsEffect(lineGraphicsEffect);
-        scene->addItem(this);
         inScene = true;
+        scene->addItem(this);
+        setVisible(IS_VISIBLE);
     }
 }
 
@@ -108,9 +123,9 @@ QVariant NodeEdge::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
     {
         if (value == true)
         {
-            emit setItemSelected(edge, true);
+            emit setItemSelected(getGraphML(), true);
         }else{
-            emit setItemSelected(edge, false);
+            emit setItemSelected(getGraphML(), false);
         }
     }
 
@@ -124,73 +139,68 @@ void NodeEdge::destructNodeEdge()
 }
 
 
-
-void NodeEdge::deleteD(Edge *)
-{
-    delete this;
-}
-
 void NodeEdge::setSelected(bool selected)
 {
     if(selected){
-         itemGraphicsEffect->setStrength(1);
-         lineGraphicsEffect->setStrength(1);
+        QGline->setPen(selectedLinePen);
     }else{
-         itemGraphicsEffect->setStrength(0);
-         lineGraphicsEffect->setStrength(0);
+        QGline->setPen(linePen);
     }
-
-}
-
-void NodeEdge::setOpacity(qreal opacity)
-{
-    QGraphicsItem::setOpacity(opacity);
-    QGline->setOpacity(opacity);
 
 }
 
 void NodeEdge::setVisible(bool visible)
 {
-    QGraphicsItem::setVisible(visible);
-    if(QGline != 0){
-        QGline->setVisible(visible);
+
+    if(IS_VISIBLE){
+
+        if(source->isVisible() && destination->isVisible()){
+            if(QGline){
+                QGline->setVisible(visible);
+            }
+            QGraphicsItem::setVisible(visible);
+        }else{
+            if(QGline){
+                QGline->setVisible(false);
+            }
+            QGraphicsItem::setVisible(false);
+        }
+
+
+    }else{
+        if(QGline){
+            QGline->setVisible(false);
+        }
+        QGraphicsItem::setVisible(false);
     }
 }
 
-void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void NodeEdge::updateLabel()
 {
-    if ( event->button() == Qt::LeftButton ) {
-        qCritical() << " EMITTED";
-        //emit setItemSelected(edge);
+    QString text = getGraphML()->getID();
+    if(label){
+        label->setPlainText(text);
+    }else{
+        label = new QGraphicsTextItem(text, this);
     }
-
 }
-
 
 
 void NodeEdge::updateLine()
 {
-    sx = source->scenePos().x() + source->width/2;
+    float sx = source->scenePos().x() + source->width/2;
+    float sy = source->scenePos().y() + source->height/2;
 
-    sy = source->scenePos().y() + source->height/2;
+    float dx = destination->scenePos().x() + destination->width/2;;
+    float dy = destination->scenePos().y() + destination->height/2;;
 
-    dx = destination->scenePos().x() + destination->width/2;;
+    line.setP1(QPoint(sx,sy));
+    line.setP2(QPoint(dx,dy));
 
-    dy = destination->scenePos().y() + destination->height/2;;
-
-    line = QLine(sx,sy,dx,dy);
-
-    if(QGline != 0){
+    if(QGline){
+        QGline->setPen(linePen);
         QGline->setLine(line);
     }
-    if(inScene){
-        if(source->isVisible() && destination->isVisible()){
 
-            QGline->setVisible(true);
-        }else{
-            QGline->setVisible(false);
-        }
-    }
-
-    this->setPos(((sx+dx)/2) - (width / 2), ((sy+dy) /2) - (height / 2));
+    setPos(((sx+dx)/2) - (width / 2), ((sy+dy) /2) - (height / 2));
 }

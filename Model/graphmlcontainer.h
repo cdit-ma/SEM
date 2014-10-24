@@ -9,10 +9,11 @@
 
 class GraphMLContainer : public GraphML
 {
-        Q_OBJECT
+    Q_OBJECT
     //Friend to Edge, meaning Edge can access the private members of this class!
     friend class Edge;
 public:
+
     //Constructor
     GraphMLContainer(GraphML::KIND kind, QString name);
 
@@ -65,12 +66,13 @@ public:
     //Checks if the element is a child, or a relative of a child.
     bool isDescendantOf(GraphMLContainer *element);
 
-    bool isInstanceable();
+
+
     //Get a list of graphml objects contained by this graph
     //-1 returns all children recursively.
     QVector<GraphMLContainer *> getChildren(int depth=-1);
 
-    QVector<GraphMLContainer *> getInstanceableChildren();
+
 
     QVector<GraphMLKey *> getKeys(int depth=-1);
 
@@ -90,9 +92,6 @@ public:
 
 
 protected:
-
-    bool hasInstanceKind;
-
     //The list of contained children GraphML elements. (Top level only)
     QVector<GraphMLContainer *> descendants;
 
