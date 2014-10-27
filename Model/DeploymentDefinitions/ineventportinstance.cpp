@@ -5,7 +5,7 @@
 #include "../InterfaceDefinitions/ineventport.h"
 #include "member.h"
 
-InEventPortInstance::InEventPortInstance(QString name):Node(name, Node::NT_INSTANCE)
+InEventPortInstance::InEventPortInstance(QString name):Node(Node::NT_INSTANCE)
 {
     //qDebug() << "Constructed InEventPortIDL: "<< this->getName();
 }

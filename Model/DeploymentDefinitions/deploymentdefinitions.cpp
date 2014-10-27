@@ -2,7 +2,7 @@
 #include <QDebug>
 #include "componentassembly.h"
 
-DeploymentDefinitions::DeploymentDefinitions(QString name):Node(name)
+DeploymentDefinitions::DeploymentDefinitions(QString name):Node()
 {
 
 }

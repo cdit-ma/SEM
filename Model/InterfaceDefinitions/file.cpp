@@ -2,7 +2,7 @@
 #include "component.h"
 #include "aggregate.h"
 #include <QDebug>
-File::File(QString name): Node(name)
+File::File(QString name): Node()
 {
 
 }
@@ -22,14 +22,16 @@ bool File::canConnect(Node* attachableObject)
     return false;
 }
 
-bool File::isAdoptLegal(Node *item)
+bool File::canAdoptChild(Node *item)
 {
+    qCritical() << "FIle trying";
     Component* component = dynamic_cast<Component*>(item);
     Aggregate* aggregate = dynamic_cast<Aggregate*>(item);
 
     if(!component && !aggregate){
         return false;
     }
+
 
     //Check children.
     foreach(Node* child, getChildren(0)){
@@ -41,5 +43,6 @@ bool File::isAdoptLegal(Node *item)
         }
     }
 
+    qCritical() << "File Can Adopt";
     return true;
 }

@@ -4,29 +4,16 @@
 #include "../DeploymentDefinitions/member.h"
 
 
-OutEventPortImpl::OutEventPortImpl(QString name): Node(name)
+OutEventPortImpl::OutEventPortImpl(QString name): Node(Node::NT_IMPL)
 {
     //qDebug() << "Constructed InEventPort: "<< this->getName();
-    def = 0;
 }
 
 OutEventPortImpl::~OutEventPortImpl()
 {
-    if(def){
-        def->setImpl(0);
-    }
 
 }
 
-void OutEventPortImpl::setDefinition(OutEventPort *parent)
-{
-    def = parent;
-}
-
-OutEventPort *OutEventPortImpl::getDefinition()
-{
-    return def;
-}
 
 bool OutEventPortImpl::canAdoptChild(Node *child)
 {

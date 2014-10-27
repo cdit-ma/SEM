@@ -26,7 +26,6 @@
 #include "DeploymentDefinitions/ineventportinstance.h"
 #include "DeploymentDefinitions/outeventportinstance.h"
 
-#include "DeploymentDefinitions/eventport.h"
 #include "DeploymentDefinitions/hardwarecluster.h"
 #include "DeploymentDefinitions/hardwarenode.h"
 #include "DeploymentDefinitions/member.h"

@@ -8,12 +8,13 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     IS_VISIBLE = true;
 
     IS_INSTANCE_LINK = edge->isInstanceLink();
+    IS_IMPL_LINK = edge->isImplLink();
 
-    if(IS_INSTANCE_LINK){
+    if(IS_INSTANCE_LINK || IS_IMPL_LINK){
         Node* sNode = s->node;
         Node* dNode = d->node;
 
-        if(sNode->getParentNode()->isDefinition() && dNode->getParentNode()->isInstance()){
+        if(sNode->getParentNode()->isDefinition() && (dNode->getParentNode()->isInstance() || dNode->getParentNode()->isImpl())){
             //Don't show Non-Top Most Instance Links
             IS_VISIBLE = false;
         }
@@ -39,11 +40,17 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 
             selectedLinePen.setColor(QColor(0,0,255));
             selectedLinePen.setWidth(4);
+        }else if(IS_IMPL_LINK){
+            linePen.setColor(QColor(0,180,0));
+            linePen.setWidth(2);
+
+            selectedLinePen.setColor(QColor(0,255,0));
+            selectedLinePen.setWidth(4);
         }else{
-            linePen.setColor(QColor(180,0,255));
+            linePen.setColor(QColor(180,0,0));
             linePen.setWidth(((d->height + s->height) /2)/20);
 
-            selectedLinePen.setColor(QColor(0,0,255));
+            selectedLinePen.setColor(QColor(255,0,0));
             selectedLinePen.setWidth(linePen.width() + 2);
         }
     }

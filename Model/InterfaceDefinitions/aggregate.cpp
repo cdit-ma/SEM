@@ -1,7 +1,7 @@
 #include "aggregate.h"
 #include "member.h"
 #include "aggregatemember.h"
-Aggregate::Aggregate(QString name): Node(name)
+Aggregate::Aggregate(QString name): Node()
 {
 
 }
@@ -41,11 +41,11 @@ QString Aggregate::toString()
 bool Aggregate::canConnect(Node* attachableObject)
 {
     AggregateMember* aggregateMember = dynamic_cast<AggregateMember*>(attachableObject);
-    if (aggregateMember){
-        return true;
+    if (!aggregateMember){
+        return false;
     }
 
-    return false;
+    return Node::canConnect(attachableObject);
 }
 
 bool Aggregate::canAdoptChild(Node *child)

@@ -3,7 +3,7 @@
 #include "../DeploymentDefinitions/ineventportinstance.h"
 
 
-InEventPort::InEventPort(QString name):Node(name, Node::NT_DEFINITION)
+InEventPort::InEventPort(QString name):Node(Node::NT_DEFINITION)
 {
 }
 
@@ -20,7 +20,7 @@ QString InEventPort::toString()
 
 bool InEventPort::canConnect(Node* attachableObject)
 {
-    return true;
+    return Node::canConnect(attachableObject);
 }
 
 bool InEventPort::canAdoptChild(Node *child)

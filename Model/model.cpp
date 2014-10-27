@@ -22,7 +22,6 @@ QString Model::toString()
 
 bool Model::canAdoptChild(Node *child)
 {
-
     return true;
 }
 

@@ -1,10 +1,10 @@
 #include "component.h"
 #include "../BehaviourDefinitions/componentimpl.h"
 #include "../DeploymentDefinitions/componentinstance.h"
+#include <QDebug>
 
-Component::Component(QString name): Node(name, Node::NT_DEFINITION)
+Component::Component(QString name): Node(Node::NT_DEFINITION)
 {
-    impl = 0;
 }
 
 Component::~Component()
@@ -12,39 +12,6 @@ Component::~Component()
 
 }
 
-void Component::addInstance(ComponentInstance *instance)
-{
-    if(!instances.contains(instance)){
-        instances.append(instance);
-        instance->setDefinition(this);
-    }
-}
-
-void Component::removeInstance(ComponentInstance *instance)
-{
-    int index = instances.indexOf(instance);
-    if(index >= 0){
-        instance->setDefinition(0);
-        instances.removeAt(index);
-    }
-}
-
-QVector<ComponentInstance *> Component::getInstances()
-{
-    return instances;
-}
-
-void Component::setImpl(ComponentImpl *impl)
-{
-    this->impl = impl;
-    impl->setDefinition(this);
-}
-
-ComponentImpl *Component::getImpl()
-{
-    return impl;
-
-}
 
 QString Component::toString()
 {
@@ -54,7 +21,20 @@ QString Component::toString()
 
 bool Component::canConnect(Node* attachableObject)
 {
-    return true;
+    ComponentImpl* componentImpl = dynamic_cast<ComponentImpl*>(attachableObject);
+    ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*>(attachableObject);
+
+    if(!componentImpl && !componentInstance){
+        qWarning() << "Can only connect a Component to a ComponentImpl / ComponentInstance";
+        return false;
+    }
+
+    if(getImplementation()){
+        qWarning() << "A Component can only connect to one ComponentImpl. Detach First!";
+        return false;
+    }
+
+    return Node::canConnect(attachableObject);
 }
 
 bool Component::canAdoptChild(Node *child)

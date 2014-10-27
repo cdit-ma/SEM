@@ -167,6 +167,14 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             Brush.setColor(Qt::gray);
 
         }
+
+        if(node->isInstance() || node->isImpl()){
+            if(!node->getDefinition()){
+                Brush.setStyle(Qt::DiagCrossPattern);
+            }
+        }
+
+
         painter->fillRect(rectangle, Brush);
         painter->drawRect(rectangle);
     }
@@ -318,6 +326,8 @@ void NodeItem::updatedData(GraphMLData* data)
     }else if(dataKey == "y"){
         updatePosition(0,dataValue);
     }else if(dataKey == "label"){
+        Node* node = (Node*) this->getGraphML();
+
         dataValue = dataValue + " [" + node->getID()+"]";
         QFont font("Arial");
         font.setPointSize(1);

@@ -1,7 +1,7 @@
 #include "interfacedefinitions.h"
 #include <QDebug>
 
-InterfaceDefinitions::InterfaceDefinitions(QString name): Node(name)
+InterfaceDefinitions::InterfaceDefinitions(QString name): Node()
 {
 
 }

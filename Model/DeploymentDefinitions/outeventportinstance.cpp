@@ -5,7 +5,7 @@
 #include "ineventportinstance.h"
 #include <QDebug>
 
-OutEventPortInstance::OutEventPortInstance(QString name):Node(name, Node::NT_INSTANCE)
+OutEventPortInstance::OutEventPortInstance(QString name):Node(Node::NT_INSTANCE)
 {
     //qDebug() << "Constructed OutEventPortIDL: "<< this->getName();
 }

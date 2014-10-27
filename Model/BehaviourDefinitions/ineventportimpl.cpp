@@ -4,10 +4,8 @@
 #include "../DeploymentDefinitions/member.h"
 
 
-InEventPortImpl::InEventPortImpl(QString name): Node(name)
+InEventPortImpl::InEventPortImpl(QString name): Node(Node::NT_IMPL)
 {
-    //qDebug() << "Constructed InEventPort: "<< this->getName();
-    def = 0;
 }
 
 InEventPortImpl::~InEventPortImpl()

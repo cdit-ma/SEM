@@ -39,7 +39,6 @@ HEADERS += \
     Model/BehaviourDefinitions/periodicevent.h \
     Model/DeploymentDefinitions/componentassembly.h \
     Model/DeploymentDefinitions/componentinstance.h \
-    Model/DeploymentDefinitions/eventport.h \
     Model/DeploymentDefinitions/hardwarecluster.h \
     Model/DeploymentDefinitions/hardwarenode.h \
     Model/DeploymentDefinitions/member.h \
@@ -85,7 +84,6 @@ SOURCES += \
     Model/BehaviourDefinitions/periodicevent.cpp \
     Model/DeploymentDefinitions/componentassembly.cpp \
     Model/DeploymentDefinitions/componentinstance.cpp \
-    Model/DeploymentDefinitions/eventport.cpp \
     Model/DeploymentDefinitions/hardwarecluster.cpp \
     Model/DeploymentDefinitions/hardwarenode.cpp \
     Model/DeploymentDefinitions/member.cpp \

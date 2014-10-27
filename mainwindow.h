@@ -10,7 +10,6 @@
 #include "Model/Model.h"
 #include "Model/edge.h"
 #include "Model/node.h"
-#include "Model/graph.h"
 #include "Model/DeploymentDefinitions/hardwarenode.h"
 #include "Model/DeploymentDefinitions/componentinstance.h"
 #include "Model/DeploymentDefinitions/componentassembly.h"

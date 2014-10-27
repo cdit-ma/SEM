@@ -43,7 +43,6 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
 
     ui->actionNew_Project->trigger();
 
-
     QFile file("C:/inputGML.graphml");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
@@ -53,7 +52,6 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     QTextStream in(&file);
     QString xmlText = in.readAll();
     file.close();
-
     this->setSelectedProject(projectWindows[0]);
 
     emit view_ActionTriggered("Loading XME");

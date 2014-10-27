@@ -13,23 +13,10 @@ public:
     ~ComponentImpl();    // GraphML interface
     QString toString();
 
-    void setDefinition(Component* def);
-    Component* getDefinition();
-
 public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 
-private:
-    Component* def;
-
-    // Node interface
-
-    // Node interface
-public:
-    void addEdge(Edge *edge);
-
-    // Node interface
 };
 
 #endif // COMPONENTBEHAVIOUR_H

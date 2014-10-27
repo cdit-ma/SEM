@@ -18,17 +18,12 @@ bool ComponentAssembly::canAdoptChild(Node *child)
     ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*> (child);
 
     //Is this child a ComponentInstance?
-    if(componentInstance == 0){
+    if(!componentInstance){
         qWarning() << "Assembly Node can only adopt a Component Instance Node";
         return false;
     }
 
-    /*
-    if(this->getGraph() != NULL){
-        return this->getGraph()->canAdoptChild(child);
-    }
-    */
-    return true;
+    return Node::canAdoptChild(child);
 }
 
 bool ComponentAssembly::canConnect(Node* attachableObject)

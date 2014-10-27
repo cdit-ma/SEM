@@ -77,6 +77,15 @@ QStringList GraphMLData::toStringList()
 
 }
 
+QStringList GraphMLData::getBoundIDS()
+{
+    QStringList dataDump;
+    foreach(GraphMLData* childdata, childData){
+        dataDump << childdata->getID();
+    }
+    return dataDump;
+}
+
 void GraphMLData::setValue(QString value)
 {
     if(value != this->value){
@@ -118,6 +127,11 @@ void GraphMLData::unsetParentData()
     parentData = 0;
 }
 
+GraphMLData *GraphMLData::getParentData()
+{
+    return parentData;
+}
+
 void GraphMLData::bindData(GraphMLData *data)
 {
     if(!childData.contains(data)){
@@ -139,4 +153,9 @@ void GraphMLData::unbindData(GraphMLData *data)
             data->setParentData(0);
         }
     }
+}
+
+QVector<GraphMLData *> GraphMLData::getBoundData()
+{
+    return childData;
 }

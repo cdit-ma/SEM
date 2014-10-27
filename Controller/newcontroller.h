@@ -4,6 +4,7 @@
 #include "../GUI/nodeview.h"
 #include "../GUI/nodeconnection.h"
 #include "../Model/model.h"
+#include <QStandardItemModel>
 #include "../Model/node.h"
 
 
@@ -32,8 +33,14 @@ struct ActionItem{
     QString keyName;
     QString dataValue;
     QString removedXML;
-    //In the form KeyName, KeyType, KeyFor, Data Value.
+
+    //In the form KeyName, KeyType, KeyFor, Data Value,.
     QVector<QStringList> dataValues;
+    //In the form ID
+    QVector<QStringList> boundDataIDs;
+    QVector<QString> parentDataID;
+
+    QString boundDataID;
     QString actionName;
     int actionID;
 };
@@ -48,7 +55,6 @@ public:
     //Exports a Selection of Containers to export into GraphML
     QString exportGraphML(QVector<Node *> nodes);
     QString exportGraphML(Node* node);
-
 
     QStandardItemModel* getModel();
     //Gets a list of all the kinds of Components which have a visual representation.
@@ -84,6 +90,10 @@ public slots:
 
 
     void view_ConstructComponentInstance(Component* definition = 0 );
+    void view_ConstructComponentImpl(Component* definition = 0 );
+
+    void view_CenterComponentImpl(Node* node = 0);
+    void view_CenterComponentDefinition(Node* node = 0);
 
 
 
@@ -154,6 +164,8 @@ private:
     //Construct a specified Node type given the attached data.
     Node* constructNode(Node* parent, QString kind, QPointF position);
     Node* constructNodeInstance(Node* parent, Node* definition,  bool forceCreate = false);
+    Node* constructNodeImpl(Node* parent, Node* definition,  bool forceCreate = false);
+
 
     Node* constructGraphMLNode(QVector<GraphMLData *> data, Node *parent = 0);
 
@@ -163,6 +175,9 @@ private:
     void setupModel();
 
     void setupInstance(Node* definition, Node* instance);
+    void setupImpl(Node* definition, Node* implementation);
+    void tearDownImpl(Node* definition, Node* implementation);
+
     void teardownInstance(Node* definition, Node* instance);
 
     bool isGraphMLValid(QString inputGraphML);
@@ -176,8 +191,8 @@ private:
     Node* getSelectedNode();
     Edge* getSelectedEdge();
 
-    void deleteNode(Node* node);
-    void deleteEdge(Edge* edge, bool addAction = true);
+    bool deleteNode(Node* node);
+    bool deleteEdge(Edge* edge, bool addAction = true);
 
     void setNodeSelected(Node* node, bool setSelected=true);
     void setEdgeSelected(Edge* edge, bool setSelected=true);

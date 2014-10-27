@@ -3,7 +3,7 @@
 #include "../DeploymentDefinitions/attributeinstance.h"
 #include <QDebug>
 
-AttributeInstance::AttributeInstance(QString name): Node(name, Node::NT_INSTANCE)
+AttributeInstance::AttributeInstance(QString name): Node(Node::NT_INSTANCE)
 {
     //qDebug() << "Constructed Attribute: "<< this->getName();
 }
@@ -29,6 +29,6 @@ QString AttributeInstance::toString()
 
 bool AttributeInstance::canConnect(Node* attachableObject)
 {
-    return true;
+    return Node::canConnect(attachableObject);
 }
 

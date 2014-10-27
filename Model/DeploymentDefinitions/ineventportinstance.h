@@ -1,9 +1,6 @@
 #ifndef INEVENTPORTINSTANCE_H
 #define INEVENTPORTINSTANCE_H
-#include "eventport.h"
-
-class InEventPort;
-class InEventPortImpl;
+#include "../node.h"
 
 class InEventPortInstance : public Node
 {

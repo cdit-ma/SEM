@@ -3,7 +3,7 @@
 #include "componentinstance.h"
 #include <QDebug>
 
-HardwareNode::HardwareNode(QString name):Node(name)
+HardwareNode::HardwareNode(QString name):Node()
 {
     //qDebug() << "Constructed Hardwdare Node: "<< this->getName();
 }

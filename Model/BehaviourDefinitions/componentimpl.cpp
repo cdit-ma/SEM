@@ -3,9 +3,8 @@
 
 #include <QDebug>
 
-ComponentImpl::ComponentImpl(QString name):Node()
+ComponentImpl::ComponentImpl(QString name):Node(Node::NT_IMPL)
 {
-    def = 0;
      //qDebug() << "Constructed Component: " << this->getName();
 }
 
@@ -18,18 +17,10 @@ ComponentImpl::~ComponentImpl()
 
 QString ComponentImpl::toString()
 {
-    return QString("Component[%1]: "+this->getName()).arg(this->getID());
+    return QString("ComponentImpl[%1]: "+this->getName()).arg(this->getID());
 }
 
-void ComponentImpl::setDefinition(Component *def)
-{
-    this->def = def;
-}
 
-Component *ComponentImpl::getDefinition()
-{
-    return def;
-}
 
 bool ComponentImpl::canConnect(Node* attachableObject)
 {
@@ -84,19 +75,4 @@ bool ComponentImpl::canAdoptChild(Node *child)
     */
 }
 
-void ComponentImpl::addEdge(Edge *edge)
-{
-    //Make sure if we are restoring a
-    /*
-    ComponentInstance* src = dynamic_cast<ComponentInstance*>(edge->getSource());
-    ComponentInstance* dst = dynamic_cast<ComponentInstance*>(edge->getDestination());
-    if(src != 0){
-        this->addComponentInstance(src);
-    }
-    if(dst != 0){
-        this->addComponentInstance(dst);
-    }
-*/
-
-}
 

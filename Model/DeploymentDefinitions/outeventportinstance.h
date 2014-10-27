@@ -1,6 +1,5 @@
 #ifndef OUTEVENTPORTINSTANCE_H
 #define OUTEVENTPORTINSTANCE_H
-#include "eventport.h"
 #include "../InterfaceDefinitions/outeventport.h"
 
 class OutEventPortInstance : public Node

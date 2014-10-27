@@ -1,59 +1,41 @@
 #include "componentinstance.h"
 #include <QDebug>
-#include "eventport.h"
 #include "outeventportinstance.h"
-#include "../BehaviourDefinitions/periodicevent.h"
-#include "../BehaviourDefinitions/componentimpl.h"
+#include "ineventportinstance.h"
+#include "attributeinstance.h"
 #include "../InterfaceDefinitions/component.h"
+#include "../edge.h"
 #include "hardwarenode.h"
 
-ComponentInstance::ComponentInstance(QString name):Node()
+ComponentInstance::ComponentInstance(QString name):Node(Node::NT_INSTANCE)
 {
     //qDebug() << "Constructed ComponentInstance: "<< this->getName();
-    def = 0;
 }
 
 ComponentInstance::~ComponentInstance()
 {
-    if(def){
-        def->removeInstance(this);
-    }
     //THIS IS A TEST
     //Destructor
 }
 
-void ComponentInstance::setDefinition(Component *def)
+bool ComponentInstance::canAdoptChild(Node *child)
 {
-    this->def = def;
-}
+    OutEventPortInstance* outEventPortInstance = dynamic_cast<OutEventPortInstance*>(child);
+    InEventPortInstance* inEventPortInstance = dynamic_cast<InEventPortInstance*>(child);
+    AttributeInstance* attributeInstance = dynamic_cast<AttributeInstance*>(child);
 
-Component *ComponentInstance::getDefinition()
-{
-    return def;
-}
-
-ComponentImpl *ComponentInstance::getImpl()
-{
-    if(def){
-        return def->getImpl();
-    }
-    return 0;
-}
-
-bool ComponentInstance::isAdoptLegal(Node *attachableObject)
-{
-
-    if( ((Node*)attachableObject)->isInstance()){
-        return true;
+    if(!(outEventPortInstance || inEventPortInstance || attributeInstance)){
+        qCritical() << "Component Instance can only Adopt a OutEventPortInstance, InEventPortInstance or AttributeInstance";
+        return false;
     }
 
-    return false;
+    return Node::canAdoptChild(child);
 }
+
 
 bool ComponentInstance::canConnect(Node* attachableObject)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
-
     Component* component = dynamic_cast<Component*> (attachableObject);
 
     if(hardwareNode == 0 && component == 0){
@@ -62,7 +44,7 @@ bool ComponentInstance::canConnect(Node* attachableObject)
     }
 
     //Check for an edge to a component.
-    foreach(Edge* edge, this->edges){
+    foreach(Edge* edge, getEdges(0)){
         Component* src = dynamic_cast<Component*>(edge->getSource());
         Component* dst = dynamic_cast<Component*>(edge->getDestination());
         if(src != 0 || dst != 0){
@@ -72,13 +54,7 @@ bool ComponentInstance::canConnect(Node* attachableObject)
         }
     }
 
-    //Check for existing connection.
-    if(isConnected(attachableObject)){
-        qWarning() << "Already connected to this Object";
-        return false;
-    }
-
-    return true;
+    return Node::canConnect(attachableObject);;
 }
 
 

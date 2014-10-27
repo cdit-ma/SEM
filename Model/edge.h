@@ -29,6 +29,7 @@ public:
     QVector<GraphMLKey *> getKeys();
 
     bool isInstanceLink();
+    bool isImplLink();
 
     bool contains(Node *item);
     QString toString();

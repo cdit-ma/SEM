@@ -3,7 +3,6 @@
 
 #include "graphml.h"
 
-#include <QStandardItem>
 #include <QString>
 
 class Node : public GraphML
@@ -43,7 +42,7 @@ public:
     //-1 = Recurse forever.
     QVector<Node *> getChildren(int depth =-1);
 
-    bool childrenCount();
+    int childrenCount();
 
     //Remove a child Node from this Node
     void removeChild(Node *child);
@@ -96,12 +95,15 @@ public:
     bool isImpl();
 
     void setDefinition(Node *def);
+    Node* getDefinition();
     void unsetDefinition();
 
     void addInstance(Node* inst);
+    QVector<Node*> getInstances();
     void removeInstance(Node* inst);
 
     void setImplementation(Node* impl);
+    Node* getImplementation();
     void unsetImplementation();
 
 
@@ -133,8 +135,6 @@ private:
     //The list of contained Edge elements in this graph. (Top level only)
     QVector<Edge *> edges;
 
-    // QStandardItem interface
 };
-
 
 #endif // NODE_H

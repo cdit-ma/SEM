@@ -1,9 +1,8 @@
 #include "attributeimpl.h"
 #include "../InterfaceDefinitions/attribute.h"
 
-AttributeImpl::AttributeImpl(QString name):Node(name)
+AttributeImpl::AttributeImpl(QString name):Node(Node::NT_IMPL)
 {
-    def = 0;
 }
 
 AttributeImpl::~AttributeImpl()
@@ -11,15 +10,6 @@ AttributeImpl::~AttributeImpl()
 
 }
 
-void AttributeImpl::setDefinition(Attribute *def)
-{
-    this->def = def;
-}
-
-Attribute *AttributeImpl::getDefinition()
-{
-    return def;
-}
 
 QString AttributeImpl::toString()
 {

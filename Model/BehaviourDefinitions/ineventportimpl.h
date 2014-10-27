@@ -1,8 +1,6 @@
 #ifndef INEVENTPORTIMPL_H
 #define INEVENTPORTIMPL_H
-#include "../DeploymentDefinitions/eventport.h"
-
-class InEventPort;
+#include "../node.h"
 
 class InEventPortImpl : public Node
 {
@@ -17,8 +15,6 @@ public:
     //QString toGraphML(qint32 indentationLevel=0);
     QString toString();
 
-private:
-    InEventPort* def;
 };
 
 

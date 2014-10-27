@@ -19,9 +19,11 @@ public:
 
     void setParentData(GraphMLData* data);
     void unsetParentData();
+    GraphMLData* getParentData();
 
     void bindData(GraphMLData* data);
     void unbindData(GraphMLData* data);
+    QVector<GraphMLData*> getBoundData();
 
     QString getValue() const;
     GraphMLKey* getKey();
@@ -30,6 +32,7 @@ public:
     QString toString();
 
     QStringList toStringList();
+    QStringList getBoundIDS();
 signals:
     void dataChanged(GraphMLData* data);
 private:

@@ -1,7 +1,7 @@
 #include "member.h"
 #include <QDebug>
 
-Member::Member(QString name):Node(name)
+Member::Member(QString name):Node()
 {
     //qDebug() << "Constructed Member: "<< this->getName();
 
