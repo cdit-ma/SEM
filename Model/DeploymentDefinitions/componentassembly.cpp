@@ -28,22 +28,16 @@ bool ComponentAssembly::canAdoptChild(Node *child)
 
 bool ComponentAssembly::canConnect(Node* attachableObject)
 {
+
+    HardwareCluster* hardwareCluster = dynamic_cast<HardwareCluster*> (attachableObject);
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
 
-     //Is this child a HardwareNode?
-    if(hardwareNode == 0){
-        //Check stuff!
-        qWarning() << "AssemblyNode can only connect to a HardwareNode";
+    if(!hardwareNode && !hardwareCluster){
+        qWarning() << "ComponentAssembly Node can only be connected to a HardwareNode or HardwareCluster.";
         return false;
     }
 
-    //Check for existing connection.
-    if(this->isConnected(attachableObject)){
-        qWarning() << "Already connected to this Object";
-        return false;
-    }
-
-    return true;
+    return Node::canConnect(attachableObject);
 }
 
 QString ComponentAssembly::toString()

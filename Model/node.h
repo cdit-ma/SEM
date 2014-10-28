@@ -43,6 +43,7 @@ public:
     QVector<Node *> getChildren(int depth =-1);
 
     int childrenCount();
+    int edgeCount();
 
     //Remove a child Node from this Node
     void removeChild(Node *child);

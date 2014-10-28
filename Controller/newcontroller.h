@@ -94,6 +94,7 @@ public slots:
 
     void view_CenterComponentImpl(Node* node = 0);
     void view_CenterComponentDefinition(Node* node = 0);
+    void view_CenterAggregate(Node* node = 0);
 
 
 

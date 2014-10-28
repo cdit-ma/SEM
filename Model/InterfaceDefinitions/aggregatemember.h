@@ -10,9 +10,6 @@ class AggregateMember : public Node
 public:
     AggregateMember(QString name ="");
     ~AggregateMember();
-
-    void setDefinition(Aggregate* def);
-    Aggregate* getDefinition();
     // GraphML interface
 public:
     QString toString();

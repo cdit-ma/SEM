@@ -58,6 +58,7 @@ private:
 
     bool IS_INSTANCE_LINK;
     bool IS_IMPL_LINK;
+    bool IS_AGG_LINK;
     bool IS_VISIBLE;
 
 

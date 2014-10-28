@@ -29,7 +29,7 @@ bool Component::canConnect(Node* attachableObject)
         return false;
     }
 
-    if(getImplementation()){
+    if(componentImpl && getImplementation()){
         qWarning() << "A Component can only connect to one ComponentImpl. Detach First!";
         return false;
     }

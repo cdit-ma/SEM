@@ -1,7 +1,7 @@
 #include "outeventportimpl.h"
 #include <QDebug>
 #include "../InterfaceDefinitions/outeventport.h"
-#include "../DeploymentDefinitions/member.h"
+#include "../InterfaceDefinitions//member.h"
 
 
 OutEventPortImpl::OutEventPortImpl(QString name): Node(Node::NT_IMPL)
@@ -17,24 +17,21 @@ OutEventPortImpl::~OutEventPortImpl()
 
 bool OutEventPortImpl::canAdoptChild(Node *child)
 {
-    Member* member = dynamic_cast<Member*> (child);
-
-    if(member == 0){
-        qCritical() << "Cannot connect to anything which isn't a Member.";
-        return false;
-    }
-
-    if(this->isAncestorOf(child) || this->isDescendantOf(child)){
-        qCritical() << "Already related to this node.";
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 bool OutEventPortImpl::canConnect(Node* attachableObject)
 {
-    return true;
+    if(getDefinition()){
+        return false;
+    }
+    OutEventPort* oep = dynamic_cast<OutEventPort*>(attachableObject);
+    if(!oep){
+        qCritical() << "Can Only connect an OutEventPortImpl to an OutEventPort";
+        return false;
+    }
+
+    return Node::canConnect(attachableObject);
 }
 
 QString OutEventPortImpl::toString()

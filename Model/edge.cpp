@@ -98,6 +98,16 @@ bool Edge::isImplLink()
     return (destination->isImpl() && destination->getDefinition() == source);
 }
 
+bool Edge::isAggregateLink()
+{
+    if(source->isDefinition()){
+        if(source->getDataValue("kind").endsWith("EventPort") &&destination->getDataValue("kind") == "Aggregate"){
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Edge::contains(Node *item)
 {
     return item == this->source || item == this->destination;

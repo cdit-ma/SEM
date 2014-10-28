@@ -1,5 +1,6 @@
 #include "aggregatemember.h"
 #include "aggregate.h"
+#include <QDebug>
 
 
 AggregateMember::AggregateMember(QString name):Node()
@@ -12,17 +13,6 @@ AggregateMember::~AggregateMember()
 
 }
 
-void AggregateMember::setDefinition(Aggregate *def)
-{
-    this->def = def;
-
-}
-
-Aggregate *AggregateMember::getDefinition()
-{
-    return def;
-}
-
 QString AggregateMember::toString()
 {
     return QString("AggregateMember[%1]: "+this->getName()).arg(this->getID());
@@ -30,13 +20,10 @@ QString AggregateMember::toString()
 
 bool AggregateMember::canConnect(Node* attachableObject)
 {
-    if(this->getEdges(0).size() != 1){
+    Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
+    if (!aggregate || edgeCount() > 0){
+        qWarning() << "Can only connect to one Aggregate!";
         return false;
-    }else{
-        Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
-        if (!aggregate){
-            return false;
-        }
     }
 
     return Node::canConnect(attachableObject);

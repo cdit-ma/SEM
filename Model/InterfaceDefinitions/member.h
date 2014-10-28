@@ -6,7 +6,7 @@ class Member : public Node
 {
     Q_OBJECT
 public:
-    Member(QString name ="");
+    Member();
     ~Member();
 
     // GraphML interface

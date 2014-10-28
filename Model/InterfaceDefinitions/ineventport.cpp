@@ -1,10 +1,10 @@
 #include "ineventport.h"
-#include "../BehaviourDefinitions/ineventportimpl.h"
-#include "../DeploymentDefinitions/ineventportinstance.h"
+#include "aggregate.h"
 
 
-InEventPort::InEventPort(QString name):Node(Node::NT_DEFINITION)
+InEventPort::InEventPort(QString name):EventPort()
 {
+
 }
 
 InEventPort::~InEventPort()
@@ -18,13 +18,13 @@ QString InEventPort::toString()
 
 }
 
+
 bool InEventPort::canConnect(Node* attachableObject)
 {
-    return Node::canConnect(attachableObject);
+    return EventPort::canConnect(attachableObject);
 }
 
 bool InEventPort::canAdoptChild(Node *child)
 {
-    return true;
+    return EventPort::canAdoptChild(child);
 }
-

@@ -3,6 +3,7 @@
 #include "outeventportinstance.h"
 #include "ineventportinstance.h"
 #include "attributeinstance.h"
+#include "hardwarecluster.h"
 #include "../InterfaceDefinitions/component.h"
 #include "../edge.h"
 #include "hardwarenode.h"
@@ -35,26 +36,21 @@ bool ComponentInstance::canAdoptChild(Node *child)
 
 bool ComponentInstance::canConnect(Node* attachableObject)
 {
+    HardwareCluster* hardwareCluster = dynamic_cast<HardwareCluster*> (attachableObject);
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
     Component* component = dynamic_cast<Component*> (attachableObject);
 
-    if(hardwareNode == 0 && component == 0){
+    if(!hardwareNode && !hardwareCluster && !component){
+        qWarning() << "ComponentInstance Node can only be connected to a HardwareNode, HardwareCluster or a Component";
+        return false;
+    }
+
+    if(component && getDefinition()){
         qWarning() << "ComponentInstance Node can only be connected to a HardwareNode";
         return false;
     }
 
-    //Check for an edge to a component.
-    foreach(Edge* edge, getEdges(0)){
-        Component* src = dynamic_cast<Component*>(edge->getSource());
-        Component* dst = dynamic_cast<Component*>(edge->getDestination());
-        if(src != 0 || dst != 0){
-            //Already connection to a Component. Return 0
-            qWarning() << "ComponentInstance Node can only be connected to one Component.";
-            return false;
-        }
-    }
-
-    return Node::canConnect(attachableObject);;
+    return Node::canConnect(attachableObject);
 }
 
 

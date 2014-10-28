@@ -3,7 +3,6 @@
 #include <typeinfo>
 #include "outeventportinstance.h"
 #include "../InterfaceDefinitions/ineventport.h"
-#include "member.h"
 
 InEventPortInstance::InEventPortInstance(QString name):Node(Node::NT_INSTANCE)
 {
@@ -21,19 +20,7 @@ InEventPortInstance::~InEventPortInstance()
 
 bool InEventPortInstance::canAdoptChild(Node *child)
 {
-    Member* member = dynamic_cast<Member*> (child);
-
-    if(member == 0){
-        qCritical() << "Cannot connect to anything which isn't a Member.";
-        return false;
-    }
-
-    if(this->isAncestorOf(child) || this->isDescendantOf(child)){
-        qCritical() << "Already related to this node.";
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 bool InEventPortInstance::canConnect(Node* attachableObject)
@@ -43,23 +30,38 @@ bool InEventPortInstance::canConnect(Node* attachableObject)
     InEventPort* inEventPort = dynamic_cast<InEventPort*>(attachableObject);
 
     if(outputEventPort == 0 && inEventPort == 0){
-        qCritical() << "Cannot connect to anything which isn't a Output Event Port or InEventPort instance";
+        qCritical() << "Cannot connect an IEPI to anything which isn't an EventPort instance";
+        return false;
+    }
+
+    if(inEventPort && getDefinition()){
+        qCritical() << "Cannot connect an IEPI to more than 1 Definition";
         return false;
     }
 
     if(outputEventPort){
-        if(outputEventPort->getDataValue("type") != this->getDataValue("type")){
-            qCritical() << "Cannot connect 2 Different IDL Types!";
+        if(!outputEventPort->getDefinition()){
+            qCritical() << "Cannot connect an IEPI to a un-defined EventPort!";
             return false;
         }
 
-        if(outputEventPort->getParentNode() == this->getParentNode()){
-            //qCritical() << "Cannot connect 2 Ports from the same component!";
-            //return false;
+        EventPort* eventPortSrc = dynamic_cast<EventPort*>(outputEventPort->getDefinition());
+        EventPort* eventPortDst = dynamic_cast<EventPort*>(getDefinition());
+
+        if(eventPortSrc && eventPortDst){
+            if(!eventPortSrc->getAggregate()){
+                qWarning() << "Cannot connect an IEPI to an un-Aggregated EventPort";
+                return false;
+            }
+            if(eventPortSrc->getAggregate() != eventPortDst->getAggregate()){
+                qWarning() << "Cannot connect an IEPI 2 EventPort Instances which have a differing Aggregate";
+                return false;
+            }
+
         }
     }
 
-    return true;
+    return Node::canConnect(attachableObject);
 }
 
 

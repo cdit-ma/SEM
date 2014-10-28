@@ -86,6 +86,11 @@ int Node::childrenCount()
     return children.size();
 }
 
+int Node::edgeCount()
+{
+    return edges.size();
+}
+
 void Node::removeChild(Node *child)
 {
     Q_CHECK_PTR(child);

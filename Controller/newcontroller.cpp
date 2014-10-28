@@ -58,6 +58,7 @@ NewController::NewController(NodeView *v)
     connect(view, SIGNAL(unselect()), this, SLOT(view_ClearCenteredNode()));
     connect(view, SIGNAL(constructNodeItem(QPointF)), this,SLOT(view_ConstructChildNode(QPointF)));
 
+    connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
     //Connect the controllers signals to the view.
     connect(this, SIGNAL(view_SetNodeItemCentered(NodeItem*)), view, SLOT(centreItem(NodeItem*)));
     connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
@@ -70,6 +71,7 @@ NewController::NewController(NodeView *v)
 NewController::~NewController()
 {
     emit view_SetSelectedAttributeModel(0);
+    view_ClearSelection();
     view_SelectAll();
     view_DeletePressed(true);
 
@@ -223,7 +225,6 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
     if(currentParent == 0){
         currentParent = getParentModel();
     }
-    qCritical() << "1";
 
     if(currentParent->isInstance() || currentParent->isImpl()){
         if(!(UNDOING || REDOING)){
@@ -238,7 +239,6 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
         return;
     }
 
-    qCritical() << "2";
 
     //Now we know we have no errors, so read Stream again.
     QXmlStreamReader xml(inputGraphML);
@@ -565,6 +565,26 @@ void NewController::view_CenterComponentDefinition(Node *node)
 
 }
 
+void NewController::view_CenterAggregate(Node *node)
+{
+    if(!node){
+        node = getSelectedNode();
+    }
+    if(node && (node->getDefinition() || node->isDefinition())){
+        if(!node->isDefinition()){
+            node = node->getDefinition();
+        }
+
+
+        EventPort* eP = dynamic_cast<EventPort*>(node);
+        if(eP){
+            qCritical() << eP->toString();
+            qCritical() << eP->getAggregate()->toString();
+            view_SetNodeCentered(eP->getAggregate());
+        }
+    }
+}
+
 
 void NewController::view_ConstructMenu(QPoint position)
 {
@@ -619,6 +639,15 @@ void NewController::view_ConstructMenu(QPoint position)
             connect(gotoAction, SIGNAL(triggered()), this, SLOT(view_CenterComponentDefinition()));
             rightClickMenu->addAction(gotoAction);
         }
+
+        if(((node->isInstance() || node->isImpl()) && node->getDefinition()) || node->isDefinition()){
+            QAction* gotoAction = new QAction(this);
+            gotoAction->setText("Center " + kind + " Aggregate");
+            connect(gotoAction, SIGNAL(triggered()), this, SLOT(view_CenterAggregate()));
+            rightClickMenu->addAction(gotoAction);
+        }
+
+
         rightClickMenu->addSeparator();
     }
 
@@ -1227,7 +1256,6 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
 
         if(keyName == "kind"){
             kind = keyData;
-            qCritical() << "Building new Node" << kind;
         }
         if(currentData->getKey() == w){
             noWidth = false;
@@ -1374,33 +1402,25 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
         newNode->addAspect(aspect);
     }
 
-    qCritical() << "Built new Node";
 
 
     newNode->attachData(data);
 
-    qCritical() << "Attached Data";
 
     //Adopt the new Node into the parent
     if(!parent){
-        qCritical() << "Get Parent Model";
         parent = this->model;
 
     }
-    qCritical() << "Trying to adopt";
     if(parent->canAdoptChild(newNode)){
-        qCritical() << "Can Adopt";
         parent->addChild(newNode);
         setupNode(newNode);
     }else{
         qCritical() << "Parent cannot Adopt Child";
-        qCritical() << parent->toString();
-        qCritical() << newNode->toString();
         //Delete the newly created node.
         delete newNode;
         return 0;
     }
-     qCritical() << "Adopt Passed!";
 
 
 
@@ -1621,7 +1641,7 @@ void NewController::setNodeSelected(Node *node, bool setSelected)
             }
 
             //Unselected
-            qCritical() << node->toString() << "Selected";
+            //qCritical() << node->toString() << "Selected";
             nodeItem->setSelected(true);
             selectedNodes.append(node);
         }
@@ -1850,6 +1870,23 @@ bool NewController::deleteEdge(Edge *edge, bool addAction)
             //Delete Instances/Impls
             tearDownImpl(edge->getSource(),edge->getDestination());
         }
+
+        if(edge->isImplLink()){
+            qCritical() << "Got New Instance Link";
+            //Delete Instances/Impls
+            tearDownImpl(edge->getSource(),edge->getDestination());
+        }
+
+        if(edge->isAggregateLink()){
+            qCritical() << "Got New Instance Link";
+            //Delete Instances/Impls
+
+            EventPort* eP = dynamic_cast<EventPort*>(edge->getSource());
+            if(eP){
+                eP->unsetAggregate();
+            }
+        }
+
 
 
 
@@ -2161,7 +2198,6 @@ void NewController::deleteSelectedNodes()
         }
         bool deleted = deleteNode(node);
 
-        qCritical() << deleted;
 
         if(!deleted){
             NodeItem* nodeItem = getNodeItemFromNode(node);
@@ -2371,11 +2407,17 @@ void NewController::setupEdge(Edge *edge)
         QString dstKind = dst->getDataValue("kind");
 
         if(srcKind + "Instance" == dstKind){
-            qCritical() << "Making Instance";
             setupInstance(src, dst);
         }else if(srcKind + "Impl" == dstKind){
-            qCritical() << "Making Impl";
             setupImpl(src, dst);
+        }
+    }
+
+    if(edge->isAggregateLink()){
+        EventPort* eP = dynamic_cast<EventPort*>(src);
+        if(eP){
+            qCritical() << "Setting Aggregate";
+            eP->setAggregate(dst);
         }
     }
 

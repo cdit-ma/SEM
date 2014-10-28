@@ -1,6 +1,5 @@
 #include "outeventportinstance.h"
 
-#include "member.h"
 #include "../node.h"
 #include "ineventportinstance.h"
 #include <QDebug>
@@ -18,19 +17,7 @@ OutEventPortInstance::~OutEventPortInstance()
 
 bool OutEventPortInstance::canAdoptChild(Node *child)
 {
-    Member* member = dynamic_cast<Member*> (child);
-
-    if(member == 0){
-        qCritical() << "Cannot connect to anything which isn't a Member.";
-        return false;
-    }
-
-    if(this->isAncestorOf(child) || this->isDescendantOf(child)){
-        qCritical() << "Already related to this node.";
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 bool OutEventPortInstance::canConnect(Node* attachableObject)
@@ -39,24 +26,38 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
 
     OutEventPort* outEventPort = dynamic_cast<OutEventPort*>(attachableObject);
 
-    if(inputEventPort == 0 && outEventPort == 0){
-        qCritical() << "Cannot connect to anything which isn't a Output Event Port or InEventPort instance";
+    if(!inputEventPort && !outEventPort){
+        qCritical() << "Cannot connect an OEPI to anything which isn't an EventPort instance";
+        return false;
+    }
+
+    if(outEventPort && getDefinition()){
+        qCritical() << "Cannot connect an OEPI to more than 1 Definition";
         return false;
     }
 
     if(inputEventPort){
-        if(inputEventPort->getDataValue("type") != this->getDataValue("type")){
-            qCritical() << "Cannot connect 2 Different IDL Types!";
+        if(!inputEventPort->getDefinition()){
+            qCritical() << "Cannot connect an OEPI to a un-defined EventPort!";
             return false;
         }
 
-        if(inputEventPort->getParentNode() == this->getParentNode()){
-            //qCritical() << "Cannot connect 2 Ports from the same component!";
-            //return false;
+        EventPort* eventPortSrc = dynamic_cast<EventPort*>(inputEventPort->getDefinition());
+        EventPort* eventPortDst = dynamic_cast<EventPort*>(getDefinition());
+
+        if(eventPortSrc && eventPortDst){
+            if(!eventPortSrc->getAggregate()){
+                qWarning() << "Cannot connect an OEPI an un-Aggregated EventPort";
+                return false;
+            }
+            if(eventPortSrc->getAggregate() != eventPortDst->getAggregate()){
+                qWarning() << "Cannot connect an OEPI 2 EventPort Instances which have a differing Aggregate";
+                return false;
+            }
         }
     }
 
-    return true;
+    return Node::canConnect(attachableObject);
 
 }
 

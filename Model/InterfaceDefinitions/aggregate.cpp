@@ -1,7 +1,9 @@
 #include "aggregate.h"
 #include "member.h"
 #include "aggregatemember.h"
-Aggregate::Aggregate(QString name): Node()
+#include "eventport.h"
+#include <QDebug>
+Aggregate::Aggregate(): Node()
 {
 
 }
@@ -11,28 +13,6 @@ Aggregate::~Aggregate()
 
 }
 
-void Aggregate::addMember(AggregateMember *member)
-{
-    if(!members.contains(member)){
-        members.append(member);
-        member->setDefinition(this);
-    }
-}
-
-void Aggregate::removeMember(AggregateMember *member)
-{
-    int index = members.indexOf(member);
-    if(index >= 0){
-        member->setDefinition(0);
-        members.removeAt(index);
-    }
-}
-
-QVector<AggregateMember *> Aggregate::getMembers()
-{
-    return members;
-}
-
 QString Aggregate::toString()
 {
     return QString("Aggregate[%1]: "+this->getName()).arg(this->getID());
@@ -40,8 +20,16 @@ QString Aggregate::toString()
 
 bool Aggregate::canConnect(Node* attachableObject)
 {
+    EventPort* eventport = dynamic_cast<EventPort*>(attachableObject);
     AggregateMember* aggregateMember = dynamic_cast<AggregateMember*>(attachableObject);
-    if (!aggregateMember){
+
+    if (!aggregateMember && !eventport){
+        qWarning() << "Aggregate can only connect to an Aggregate member or an Eventport";
+        return false;
+    }
+
+    if(eventport && eventport->getAggregate()){
+        qWarning() << "Aggregate can only connect to an unn-attached Eventport";
         return false;
     }
 
@@ -50,21 +38,15 @@ bool Aggregate::canConnect(Node* attachableObject)
 
 bool Aggregate::canAdoptChild(Node *child)
 {
-    Aggregate* aggregate = dynamic_cast<Aggregate*>(child);
     AggregateMember* aggregateMember = dynamic_cast<AggregateMember*>(child);
     Member* member = dynamic_cast<Member*>(child);
 
-    if(!aggregate && !member && !aggregateMember){
+    if(!member && !aggregateMember){
+        qWarning() << "Aggregate can only adopt Member/Aggregates";
         return false;
     }
 
     //Check for loops
-    if(aggregateMember){
-        Aggregate* definition = aggregateMember->getDefinition();
-        if(definition && isAncestorOf(definition)){
-            return false;
-        }
-    }
 
-    return true;
+    return Node::canAdoptChild(child);
 }

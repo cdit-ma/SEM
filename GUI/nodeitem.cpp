@@ -36,7 +36,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
     label  = new QGraphicsTextItem("NULL",this);
 
-    if(parent == 0){
+    if(!parent){
         depth = 1;
         this->width = 4000;
         this->height = 4000;

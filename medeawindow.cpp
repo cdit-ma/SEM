@@ -68,8 +68,6 @@ MedeaWindow::~MedeaWindow()
 
 void MedeaWindow::updateFilterButtons(QVector<FilterButton *> buttons)
 {
-    qCritical() << "updateFilterButtons";
-    qCritical() << buttons.size();
 
 
     int count = ui->AppliedFilters->count();
@@ -92,8 +90,6 @@ void MedeaWindow::updateFilterButtons(QVector<FilterButton *> buttons)
 
 void MedeaWindow::updateAspectButtons(QVector<FilterButton *> buttons)
 {
-    qCritical() << "updateAspectButtons";
-    qCritical() << buttons.size();
 
 
     int count = ui->VisibleAspects->count();

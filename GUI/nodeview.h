@@ -27,6 +27,7 @@ signals:
     void updateZoom(qreal zoom);
     void deletePressed(bool isDown);
     void controlPressed(bool isDown);
+    void escapePressed(bool isDown);
     void shiftPressed(bool isDown);
 
     void constructNodeItem(QPointF);

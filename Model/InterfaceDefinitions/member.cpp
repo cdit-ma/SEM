@@ -1,6 +1,6 @@
 #include "member.h"
 
-Member::Member(QString name): Node(name)
+Member::Member(): Node()
 {
 
 }

@@ -1,7 +1,7 @@
 #include "ineventportimpl.h"
 #include <QDebug>
 #include "../InterfaceDefinitions/ineventport.h"
-#include "../DeploymentDefinitions/member.h"
+#include "../InterfaceDefinitions/member.h"
 
 
 InEventPortImpl::InEventPortImpl(QString name): Node(Node::NT_IMPL)
@@ -15,24 +15,22 @@ InEventPortImpl::~InEventPortImpl()
 
 bool InEventPortImpl::canAdoptChild(Node *child)
 {
-    Member* member = dynamic_cast<Member*> (child);
-
-    if(member == 0){
-        qCritical() << "Cannot connect to anything which isn't a Member.";
-        return false;
-    }
-
-    if(this->isAncestorOf(child) || this->isDescendantOf(child)){
-        qCritical() << "Already related to this node.";
-        return false;
-    }
-
-    return true;
+    return false;
 }
 
 bool InEventPortImpl::canConnect(Node* attachableObject)
 {
-    return true;
+    if(getDefinition()){
+        return false;
+    }
+
+    InEventPort* oep = dynamic_cast<InEventPort*>(attachableObject);
+    if(!oep){
+        qCritical() << "Can Only connect an InEventPortImpl to an InEventPort";
+        return false;
+    }
+
+    return Node::canConnect(attachableObject);
 }
 
 QString InEventPortImpl::toString()

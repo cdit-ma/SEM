@@ -1,24 +1,20 @@
 #ifndef INEVENTPORT_H
 #define INEVENTPORT_H
-#include "../node.h"
+
+#include "eventport.h"
 
 class InEventPortInstance;
 class InEventPortImpl;
 
-class InEventPort : public Node
+class InEventPort : public EventPort
 {
 public:
     InEventPort(QString name="");
     ~InEventPort();
 
     QString toString();
-
-    bool canConnect(Node* attachableObject);
-    bool canAdoptChild(Node* child);
-private:
-    QVector<InEventPortInstance*> instances;
-    InEventPortImpl* impl;
-
+    bool canAdoptChild(Node *node);
+    bool canConnect(Node *node);
 };
 
 #endif // INEVENTPORT_H

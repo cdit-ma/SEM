@@ -1,9 +1,9 @@
 #ifndef OUTEVENTPORT_H
 #define OUTEVENTPORT_H
-#include "../node.h"
+#include "eventport.h"
 
 
-class OutEventPort : public Node
+class OutEventPort : public EventPort
 {
 public:
     OutEventPort(QString name="");
@@ -11,9 +11,9 @@ public:
 
     QString toString();
 
-    bool canConnect(Node* attachableObject);
-    bool canAdoptChild(Node* child);
-private:
+    // Node interface
+    bool canAdoptChild(Node *node);
+    bool canConnect(Node *node);
 };
 
 #endif // OUTEVENTPORT_H

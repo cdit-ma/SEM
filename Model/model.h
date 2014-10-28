@@ -28,7 +28,6 @@
 
 #include "DeploymentDefinitions/hardwarecluster.h"
 #include "DeploymentDefinitions/hardwarenode.h"
-#include "DeploymentDefinitions/member.h"
 
 #include "InterfaceDefinitions/interfacedefinitions.h"
 #include "InterfaceDefinitions/attribute.h"

@@ -24,7 +24,6 @@ bool File::canConnect(Node* attachableObject)
 
 bool File::canAdoptChild(Node *item)
 {
-    qCritical() << "FIle trying";
     Component* component = dynamic_cast<Component*>(item);
     Aggregate* aggregate = dynamic_cast<Aggregate*>(item);
 
@@ -43,6 +42,5 @@ bool File::canAdoptChild(Node *item)
         }
     }
 
-    qCritical() << "File Can Adopt";
     return true;
 }

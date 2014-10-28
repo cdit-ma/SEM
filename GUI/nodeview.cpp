@@ -304,6 +304,10 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         emit controlPressed(true);
     }
 
+    if(event->key() == Qt::Key_Escape){
+        emit escapePressed(true);
+    }
+
     if(this->CONTROL_DOWN && event->key() == Qt::Key_A){
         emit selectAll();
     }
@@ -346,5 +350,11 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
         this->SHIFT_DOWN = false;
         emit shiftPressed(false);
     }
+    /*
+    if(event->key() == Qt::Key_Escape){
+        emit escapePressed(false);
+    }
+    */
+
 
 }

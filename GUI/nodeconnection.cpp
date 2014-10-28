@@ -9,6 +9,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 
     IS_INSTANCE_LINK = edge->isInstanceLink();
     IS_IMPL_LINK = edge->isImplLink();
+    IS_AGG_LINK = edge->isAggregateLink();
 
     if(IS_INSTANCE_LINK || IS_IMPL_LINK){
         Node* sNode = s->node;
@@ -45,6 +46,12 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
             linePen.setWidth(2);
 
             selectedLinePen.setColor(QColor(0,255,0));
+            selectedLinePen.setWidth(4);
+        }else if(IS_AGG_LINK){
+            linePen.setColor(QColor(180,0,180));
+            linePen.setWidth(2);
+
+            selectedLinePen.setColor(QColor(255,0,255));
             selectedLinePen.setWidth(4);
         }else{
             linePen.setColor(QColor(180,0,0));

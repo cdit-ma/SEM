@@ -41,7 +41,6 @@ HEADERS += \
     Model/DeploymentDefinitions/componentinstance.h \
     Model/DeploymentDefinitions/hardwarecluster.h \
     Model/DeploymentDefinitions/hardwarenode.h \
-    Model/DeploymentDefinitions/member.h \
     Model/BehaviourDefinitions/behaviourdefinitions.h \
     Model/DeploymentDefinitions/deploymentdefinitions.h \
     Model/InterfaceDefinitions/interfacedefinitions.h \
@@ -59,7 +58,8 @@ HEADERS += \
     Model/InterfaceDefinitions/file.h \
     Model/InterfaceDefinitions/aggregate.h \
     Model/InterfaceDefinitions/member.h \
-    Model/InterfaceDefinitions/aggregatemember.h
+    Model/InterfaceDefinitions/aggregatemember.h \
+    Model/InterfaceDefinitions/eventport.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -86,7 +86,6 @@ SOURCES += \
     Model/DeploymentDefinitions/componentinstance.cpp \
     Model/DeploymentDefinitions/hardwarecluster.cpp \
     Model/DeploymentDefinitions/hardwarenode.cpp \
-    Model/DeploymentDefinitions/member.cpp \
     Model/BehaviourDefinitions/behaviourdefinitions.cpp \
     Model/DeploymentDefinitions/deploymentdefinitions.cpp \
     Model/InterfaceDefinitions/interfacedefinitions.cpp \
@@ -104,7 +103,8 @@ SOURCES += \
     Model/InterfaceDefinitions/file.cpp \
     Model/InterfaceDefinitions/aggregate.cpp \
     Model/InterfaceDefinitions/member.cpp \
-    Model/InterfaceDefinitions/aggregatemember.cpp
+    Model/InterfaceDefinitions/aggregatemember.cpp \
+    Model/InterfaceDefinitions/eventport.cpp
 
 FORMS += \
     medeawindow.ui \

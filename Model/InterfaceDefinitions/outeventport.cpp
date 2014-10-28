@@ -2,7 +2,7 @@
 #include "../BehaviourDefinitions/outeventportimpl.h"
 #include "../DeploymentDefinitions/outeventportinstance.h"
 
-OutEventPort::OutEventPort(QString name):Node(Node::NT_DEFINITION)
+OutEventPort::OutEventPort(QString name):EventPort()
 {
 }
 
@@ -20,11 +20,11 @@ QString OutEventPort::toString()
 
 bool OutEventPort::canConnect(Node* attachableObject)
 {
-    return Node::canConnect(attachableObject);
+    return EventPort::canConnect(attachableObject);
 }
 
 bool OutEventPort::canAdoptChild(Node *child)
 {
-    return true;
+    return EventPort::canAdoptChild(child);
 }
 
