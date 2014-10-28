@@ -61,7 +61,6 @@ private:
     bool IS_AGG_LINK;
     bool IS_VISIBLE;
 
-
     QPen linePen;
     QPen selectedLinePen;
 

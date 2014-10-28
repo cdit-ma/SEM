@@ -14,6 +14,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
     CONTROL_DOWN = false;
     hasMoved = false;
+
     graphicsEffect = new QGraphicsColorizeEffect(this);
 
     QColor blue(70,130,180);
@@ -63,10 +64,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
     connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
     connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
 
-    emit updatedData(xData);
-    emit updatedData(yData);
-    emit updatedData(kindData);
-    emit updatedData(labelData);
+
+
 
     if(wData->getValue() == ""){
         wData->setValue(QString::number(width));
@@ -83,12 +82,28 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
     bRec = QRect(0,0,this->width, this->height);
 
 
-    this->setGraphicsEffect(graphicsEffect);
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
     setFlag(ItemIsSelectable);
 
+    color = QColor(255,255,255,255);
+    selectedColor = QColor(0,0,255,180);
+
+
+    brush.setColor(color);
+    selectedBrush.setColor(selectedColor);
+
+
+
+
+
+    updatedData(xData);
+    updatedData(yData);
+    updatedData(kindData);
+    updatedData(labelData);
+
+    updateBrushes();
 }
 
 NodeItem::~NodeItem()
@@ -114,58 +129,14 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     if(drawObject){
         QRectF rectangle = boundingRect();
+        QPen Pen;
 
-        QBrush Brush(Qt::white);
-
-
-        if(kind == "OutEventPort"){
-             Brush.setColor(QColor(255,0,0));
-        }else if(kind == "OutEventPortInstance"){
-            Brush.setColor(QColor(180,0,0));
-        }else if(kind == "OutEventPortImpl"){
-            Brush.setColor(QColor(120,0,0));
-       }
-
-        else if(kind == "InEventPort"){
-             Brush.setColor(QColor(0,255,0));
-        }else if(kind == "InEventPortInstance"){
-            Brush.setColor(QColor(0,180,0));
-        }else if(kind == "InEventPortImpl"){
-            Brush.setColor(QColor(0,120,0));
-       }
-
-
-
-        else if(kind == "Component"){
-             Brush.setColor(QColor(220,220,220));
-        }else if(kind == "ComponentInstance"){
-            Brush.setColor(QColor(180,180,180));
-        }else if(kind == "ComponentImpl"){
-            Brush.setColor(QColor(140,140,140));
-       }
-
-
-
-        else if(kind == "Attribute"){
-            Brush.setColor(QColor(0,0,255));
-        }else if(kind == "AttributeInstance"){
-            Brush.setColor(QColor(0,0,180));
-        }else if(kind == "AttributeImpl"){
-            Brush.setColor(QColor(0,0,120));
-        }
-
-
-        else if(kind == "HardwareNode"){
-            Brush.setColor(Qt::yellow);
-        }else if(kind == "HardwareCluster"){
-            Brush.setColor(QColor(255,0,255));
-
-
-        }else if(kind == "PeriodicEvent"){
-            Brush.setColor(QColor(255,153,0));
-        }else if(kind == "Component"){
-            Brush.setColor(Qt::gray);
-
+        if(isSelected){
+            Brush = selectedBrush;
+            Pen = selectedPen;
+        }else{
+            Brush = brush;
+            Pen = pen;
         }
 
         if(node->isInstance() || node->isImpl()){
@@ -176,6 +147,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         painter->fillRect(rectangle, Brush);
+        painter->setPen(Pen);
         painter->drawRect(rectangle);
     }
 }
@@ -330,10 +302,10 @@ void NodeItem::updatedData(GraphMLData* data)
 
         dataValue = dataValue + " [" + node->getID()+"]";
         QFont font("Arial");
-        font.setPointSize(1);
+        font.setPointSize(2);
         QFontMetrics fm(font);
 
-        if(dataValue !=""){
+        if(dataValue != ""){
             float factor = width / fm.width(dataValue);
 
             font.setPointSizeF(font.pointSizeF()*factor);
@@ -348,9 +320,11 @@ void NodeItem::updatedData(GraphMLData* data)
     }
     else if(dataKey == "width"){
         updateSize(dataValue,0);
+        updatedData(node->getData("label"));
     }
     else if(dataKey == "height"){
         updateSize(0,dataValue);
+        updatedData(node->getData("label"));
     }
 
     if(dataKey == "x" || dataKey == "y"){
@@ -534,6 +508,107 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         hasMoved = true;
         previousPosition = event->scenePos();
     }
+}
+
+void NodeItem::updateBrushes()
+{
+    QString nodeKind = getGraphML()->getDataValue("kind");
+
+    if(nodeKind == "OutEventPort"){
+        color = QColor(250,0,0);
+    }
+    else if(kind == "OutEventPortInstance"){
+        color = QColor(200,0,0);
+    }
+    else if(kind == "OutEventPortImpl"){
+        color = QColor(150,0,0);
+    }
+    else if(nodeKind == "InEventPort"){
+        color = QColor(0,250,0);
+    }
+    else if(kind == "InEventPortInstance"){
+        color = QColor(0,200,0);
+    }
+    else if(kind == "InEventPortImpl"){
+        color = QColor(0,150,0);
+    }
+    else if(nodeKind == "Component"){
+        color = QColor(200,200,200);
+    }
+    else if(kind == "ComponentInstance"){
+        color = QColor(150,150,150);
+    }
+    else if(kind == "ComponentImpl"){
+        color = QColor(100,100,100);
+    }
+    else if(nodeKind == "Attribute"){
+        color = QColor(0,0,250);
+    }
+    else if(kind == "AttributeInstance"){
+        color = QColor(0,0,200);
+    }
+    else if(kind == "AttributeImpl"){
+        color = QColor(0,0,150);
+    }
+    else if(nodeKind == "HardwareNode"){
+        color = QColor(0,250,250);
+    }
+    else if(kind == "HardwareCluster"){
+        color = QColor(0,200,200);
+    }
+
+    else if(nodeKind == "BehaviourDefinitions"){
+        color = QColor(250,250,250);
+    }
+    else if(kind == "InterfaceDefinitions"){
+        color = QColor(250,250,250);
+    }
+    else if(nodeKind == "DeploymentDefinitions"){
+        color = QColor(250,250,250);
+    }
+
+    else if(kind == "File"){
+        color = QColor(150,150,150);
+    }
+    else if(nodeKind == "ComponentAssembly"){
+        color = QColor(200,200,200);
+    }
+
+    else if(kind == "Aggregate"){
+        color = QColor(200,200,200);
+    }
+    else if(nodeKind == "AggregateMember"){
+        color = QColor(150,150,150);
+    }
+    else if(nodeKind == "Member"){
+        color = QColor(100,100,100);
+    }
+
+
+
+
+
+    if(nodeKind.endsWith("Definitions")){
+        selectedColor = color;
+        color.setAlpha(50);
+        selectedColor.setAlpha(150);
+    }else{
+        selectedColor = color;
+        color.setAlpha(200);
+        selectedColor.setAlpha(250);
+
+    }
+
+
+
+
+    brush = QBrush(color);
+    selectedBrush = QBrush(selectedColor);
+
+    pen.setColor(Qt::gray);
+    selectedPen.setColor(Qt::blue);
+    selectedPen.setWidth(4);
+
 }
 
 void NodeItem::updatePosition(QString x, QString y)

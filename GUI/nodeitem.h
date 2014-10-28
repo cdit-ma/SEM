@@ -80,6 +80,7 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 private:
+    void updateBrushes();
     void setParent(NodeItem* parentItem);
 
     QStringList viewAspect;
@@ -97,6 +98,15 @@ private:
 
     QPointF origin;
     QPointF sceneOrigin;
+
+    QColor selectedColor;
+    QColor color;
+    QBrush selectedBrush;
+    QBrush brush;
+
+    QPen pen;
+    QPen selectedPen;
+
 
 
     bool hasMoved;
