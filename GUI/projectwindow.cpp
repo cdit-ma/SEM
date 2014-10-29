@@ -13,6 +13,7 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     connect(this, SIGNAL(updateFilters(QStringList)), controller, SLOT(view_FilterNodes(QStringList)));
 
+    connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateWindowTitle(QString)));
 
     connect(view, SIGNAL(customContextMenuRequested(QPoint)), controller, SLOT(view_ConstructMenu(QPoint)));
 
@@ -26,7 +27,6 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
 
     showMaximized();
-    setWindowTitle("New Project");
 
     setAttribute(Qt::WA_DeleteOnClose, true);
 
@@ -52,6 +52,7 @@ void ProjectWindow::selectedProject()
 {
     emit updateFilterButtons(appliedFilterButtons);
     emit updateAspectButtons(appliedAspectButtons);
+    controller->view_ClearSelection();
 }
 
 void ProjectWindow::appendFilterString(QString filter)
@@ -132,6 +133,11 @@ void ProjectWindow::clearAspects()
 
     view->setViewAspects(visibleAspects);
     emit updateAspectButtons(appliedAspectButtons);
+}
+
+void ProjectWindow::updateWindowTitle(QString title)
+{
+    setWindowTitle(title);
 }
 
 void ProjectWindow::setVisibleAspects(QStringList aspects)

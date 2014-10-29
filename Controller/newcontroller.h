@@ -57,17 +57,17 @@ public:
     QString exportGraphML(Node* node);
 
     QStandardItemModel* getModel();
-    //Gets a list of all the kinds of Components which have a visual representation.
     QStringList getNodeKinds();
     QStringList getViewAspects();
 
 signals:
     void view_SetGUIEnabled(bool setEnabled);
+    //Inform the View to Center the Canvas around an Node.
     void view_SetNodeItemCentered(NodeItem* node);
 
     void view_SetRubberbandSelectionMode(bool on);
 
-    void view_ExportGraphML(QString data);
+    void view_WriteGraphML(QString filename, QString data);
 
     void view_SetSelectedAttributeModel(AttributeTableModel* model);
     void view_UpdateUndoList(QStringList list);
@@ -75,18 +75,19 @@ signals:
 
     void view_UpdateProgressBar(int percentage, QString label="");
 
-    void view_updateCopyBuffer(QString data);
+    void view_UpdateCopyBuffer(QString data);
+
+    void view_UpdateProjectName(QString name);
+
 
 public slots:
     void view_ImportGraphML(QStringList inputGraphML, Node *currentParent=0);
     void view_ImportGraphML(QString, Node *currentParent=0, bool linkID = false);
 
-
     //Informants from the AttributeTableModel Class.
     void view_UpdateGraphMLData(GraphML* parent, QString keyName, QString dataValue);
     void view_ConstructGraphMLData(GraphML* parent, QString keyName);
     void view_DestructGraphMLData(GraphML* parent, QString keyName);
-
 
 
     void view_ConstructComponentInstance(Component* definition = 0 );
@@ -96,11 +97,13 @@ public slots:
     void view_CenterComponentDefinition(Node* node = 0);
     void view_CenterAggregate(Node* node = 0);
 
+    void view_ProjectNameUpdated(GraphMLData* label);
+
 
 
     void view_ConstructMenu(QPoint position);
 
-    void view_ExportGraphML();
+    void view_ExportGraphML(QString filename);
 
     void view_SetNodeSelected(Node* node, bool setSelected);
     void view_SetEdgeSelected(Edge* edge, bool setSelected);

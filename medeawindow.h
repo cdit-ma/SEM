@@ -28,9 +28,15 @@ signals:
     void view_ClearFilters();
     void view_ClearAspects();
     void view_AspectsVisible(QStringList aspects);
+    void view_ImportGraphML(QStringList files);
+    void view_ExportGraphML(QString fileName);
+
 private slots:
+
     void updateFilterButtons(QVector<FilterButton*> buttons);
     void updateAspectButtons(QVector<FilterButton*> buttons);
+
+    void writeExportedGraphMLData(QString fileName, QString data);
 
     void updateProgressBar(int percentage, QString label);
 
@@ -55,6 +61,8 @@ private slots:
     void setEnableGUI(bool enable);
 
     void on_deleteData_clicked();
+
+    void on_actionExport_GraphML_triggered();
 
 protected:
     virtual void keyPressEvent(QKeyEvent *event);

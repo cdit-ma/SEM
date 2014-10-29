@@ -29,6 +29,8 @@ public slots:
     void removeAspectString(QString aspect);
     void clearAspects();
 
+    void updateWindowTitle(QString title);
+
     void setVisibleAspects(QStringList aspects);
 
 private:

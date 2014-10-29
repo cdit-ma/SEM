@@ -66,6 +66,7 @@ MedeaWindow::~MedeaWindow()
     delete ui;
 }
 
+
 void MedeaWindow::updateFilterButtons(QVector<FilterButton *> buttons)
 {
 
@@ -153,12 +154,15 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
 
 
     if(selectedProject){
-        NewController* controller = selectedProject->getController();
+        emit view_ImportGraphML(fileData);
+        /*NewController* controller = selectedProject->getController();
+
         if(controller){
             controller->view_ImportGraphML(fileData, 0);
         }else{
             qCritical() << "No Controller";
         }
+        */
     }else{
         qCritical() << "No Active Window";
     }
@@ -258,6 +262,23 @@ void MedeaWindow::updateUndoStates(QStringList list)
 
 }
 
+void MedeaWindow::writeExportedGraphMLData(QString filename, QString data)
+{
+    try{
+        QFile file(filename);
+        file.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream out(&file);
+        out << data;
+        file.close();
+
+        qDebug() << "Successfully written file: " << filename;
+    }catch(...){
+        qCritical() << "Export Failed!" ;
+    }
+
+}
+
+
 void MedeaWindow::updateRedoStates(QStringList list)
 {
     if(list.size() == 0){
@@ -297,7 +318,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         disconnect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
         disconnect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
 
-        disconnect(controller, SIGNAL(view_updateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));
+        disconnect(controller, SIGNAL(view_UpdateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));
 
         disconnect(this, SIGNAL(view_PasteData(QString)), controller, SLOT(view_Paste(QString)));
         disconnect(this, SIGNAL(view_ActionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
@@ -321,6 +342,11 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         disconnect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(setEnableGUI(bool)));
         disconnect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
 
+        disconnect(this, SIGNAL(view_ExportGraphML(QString)), controller, SLOT(view_ExportGraphML(QString)));
+        disconnect(controller, SIGNAL(view_WriteGraphML(QString,QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
+
+        disconnect(this, SIGNAL(view_ImportGraphML(QStringList)), controller, SLOT(view_ImportGraphML(QStringList)));
+
     }
 
     selectedProject = newSelected;
@@ -343,14 +369,16 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
         connect(this, SIGNAL(view_AspectsVisible(QStringList)), selectedProject, SLOT(setVisibleAspects(QStringList)));
 
-
+        connect(this, SIGNAL(view_ExportGraphML(QString)), controller, SLOT(view_ExportGraphML(QString)));
+        connect(controller, SIGNAL(view_WriteGraphML(QString,QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
+        connect(this, SIGNAL(view_ImportGraphML(QStringList)), controller, SLOT(view_ImportGraphML(QStringList)));
 
 
 
         connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), selectedProject->getView(), SLOT(depthChanged(int)));
         connect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
         connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
-        connect(controller, SIGNAL(view_updateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));
+        connect(controller, SIGNAL(view_UpdateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));
 
         connect(controller, SIGNAL(view_UpdateProgressBar(int,QString)), this, SLOT(updateProgressBar(int,QString)));
         connect(ui->actionUndo, SIGNAL(triggered()), controller, SLOT(view_Undo()));
@@ -360,7 +388,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
         connect(this, SIGNAL(view_ActionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
         connect(this, SIGNAL(view_PasteData(QString)), controller, SLOT(view_Paste(QString)));
-        connect(ui->actionExport_GraphML, SIGNAL(triggered()), controller, SLOT(view_ExportGraphML()));
+
 
 
         connect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
@@ -431,4 +459,16 @@ void MedeaWindow::on_deleteData_clicked()
             //model->removeRow(index);
         }
     }
+}
+
+void MedeaWindow::on_actionExport_GraphML_triggered()
+{
+    QString filename = QFileDialog::getSaveFileName(
+                this,
+                "Export .graphML",
+                "c:\\",
+                "GraphML Documents (*.graphml *.xml)");
+
+
+    emit view_ExportGraphML(filename);
 }

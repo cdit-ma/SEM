@@ -144,13 +144,6 @@ bool AttributeTableModel::removeRows(int position, int rows, const QModelIndex &
                 emit guiItem->actionTriggered("Removed Table Row");
             }
             emit guiItem->destructGraphMLData(attachedGraphML, data->getKey()->getName());
-
-            /*emit guiItem->removedGraphMLData(attachedGraphML, data->getKey()->getName());
-            beginRemoveRows(QModelIndex(), position+row, position+row+1);
-            this->attachedGraphML->removeData(data);
-            endRemoveRows();
-            attachedData.removeAt(position);
-            */
         }else{
             allRemoved = false;
         }

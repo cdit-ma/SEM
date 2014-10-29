@@ -1,21 +1,20 @@
 #ifndef NODEITEM_H
 #define NODEITEM_H
 
-#include <QPainter>
-#include <QGraphicsItem>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
-#include <QGraphicsColorizeEffect>
-#include <iostream>
-#include <QTouchEvent>
-#include <QObject>
 #include <QAbstractItemModel>
 #include <QAbstractTableModel>
-
 #include <QGraphicsItem>
+#include <QGraphicsScene>
+#include <QGraphicsColorizeEffect>
+#include <QGraphicsSceneMouseEvent>
+#include <QObject>
+#include <QPainter>
+#include <QTouchEvent>
+#include <iostream>
+#include <QRubberBand>
+
 #include "../Model/node.h"
 #include "../Model/graphmldata.h"
-#include <QRubberBand>
 #include "attributetablemodel.h"
 #include "graphmlitem.h"
 

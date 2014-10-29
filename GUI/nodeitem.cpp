@@ -15,12 +15,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
     CONTROL_DOWN = false;
     hasMoved = false;
 
-    graphicsEffect = new QGraphicsColorizeEffect(this);
-
-    QColor blue(70,130,180);
-    graphicsEffect->setColor(blue);
-    graphicsEffect->setStrength(0);
-
     rubberBand = new QRubberBand(QRubberBand::Rectangle,0);
     QPalette palette;
     palette.setBrush(QPalette::Foreground, QBrush(Qt::green));
@@ -33,14 +27,15 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
     this->isPressed = false;
     this->node = node;
-    this->setParentItem(parent);
+
+    setParentItem(parent);
 
     label  = new QGraphicsTextItem("NULL",this);
 
     if(!parent){
         depth = 1;
-        this->width = 4000;
-        this->height = 4000;
+        this->width = 16000;
+        this->height = 16000;
     }else{
         depth = parent->depth +1;
         this->width = parent->width/4;
@@ -57,27 +52,42 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
     GraphMLData* wData = node->getData("width");
 
 
+    if(xData)
     connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+
+    if(yData)
     connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+
+    if(hData)
     connect(hData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+
+    if(wData)
     connect(wData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+
+    if(labelData)
     connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+
+    if(kindData)
     connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
 
 
 
 
-    if(wData->getValue() == ""){
+    if(wData && wData->getValue() == ""){
         wData->setValue(QString::number(width));
     }else{
-        width = wData->getValue().toFloat();
+        if(wData)
+            width = wData->getValue().toFloat();
     }
 
-    if(hData->getValue() == ""){
+    if(hData && hData->getValue() == ""){
         hData->setValue(QString::number(height));
     }else{
-        height = hData->getValue().toFloat();
+        if(hData)
+            height = hData->getValue().toFloat();
     }
+
+
 
     bRec = QRect(0,0,this->width, this->height);
 
@@ -97,13 +107,20 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
 
 
-
-    updatedData(xData);
-    updatedData(yData);
-    updatedData(kindData);
-    updatedData(labelData);
+    if(xData)
+        updatedData(xData);
+    if(yData)
+        updatedData(yData);
+    if(kindData)
+        updatedData(kindData);
+    if(labelData)
+        updatedData(labelData);
 
     updateBrushes();
+    if(kindData->getValue() == "Model"){
+        drawObject = false;
+        drawDetail = false;
+    }
 }
 
 NodeItem::~NodeItem()
@@ -130,6 +147,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(drawObject){
         QRectF rectangle = boundingRect();
         QPen Pen;
+        QBrush Brush;
 
         if(isSelected){
             Brush = selectedBrush;
@@ -228,30 +246,10 @@ void NodeItem::setSelected2()
 void NodeItem::setSelected(bool selected)
 {
     isSelected = selected;
-    if(selected){
-        if(graphicsEffect != 0){
-            graphicsEffect->setStrength(1);
+    for(int i =0;i< connections.size();i++){
+        if(connections[i] != 0){
+            connections[i]->setSelected(selected);
         }
-
-        for(int i =0;i< connections.size();i++){
-            if(connections[i] != 0){
-                connections[i]->setSelected(true);
-            }
-        }
-
-        //itemChange(QGraphicsItem::ItemSelectedChange, true);
-
-    }else{
-        if(graphicsEffect != 0){
-            graphicsEffect->setStrength(0);
-        }
-
-        for(int i =0;i< connections.size();i++){
-            if(connections[i] != 0){
-            connections[i]->setSelected(false);
-            }
-        }
-        //itemChange(QGraphicsItem::ItemSelectedChange, false);
     }
 
 }
@@ -290,45 +288,47 @@ void NodeItem::toggleDetailDepth(int level)
 
 void NodeItem::updatedData(GraphMLData* data)
 {
-    QString dataKey = data->getKey()->getName();
-    QString dataValue = data->getValue();
+    if(data){
+        QString dataKey = data->getKey()->getName();
+        QString dataValue = data->getValue();
 
-    if(dataKey == "x"){
-        updatePosition(dataValue,0);
-    }else if(dataKey == "y"){
-        updatePosition(0,dataValue);
-    }else if(dataKey == "label"){
-        Node* node = (Node*) this->getGraphML();
+        if(dataKey == "x"){
+            updatePosition(dataValue,0);
+        }else if(dataKey == "y"){
+            updatePosition(0,dataValue);
+        }else if(dataKey == "label"){
+            Node* node = (Node*) this->getGraphML();
 
-        dataValue = dataValue + " [" + node->getID()+"]";
-        QFont font("Arial");
-        font.setPointSize(2);
-        QFontMetrics fm(font);
+            dataValue = dataValue + " [" + node->getID()+"]";
+            QFont font("Arial");
+            font.setPointSize(2);
+            QFontMetrics fm(font);
 
-        if(dataValue != ""){
-            float factor = width / fm.width(dataValue);
+            if(dataValue != ""){
+                float factor = width / fm.width(dataValue);
 
-            font.setPointSizeF(font.pointSizeF()*factor);
-            label->setFont(font);
+                font.setPointSizeF(font.pointSizeF()*factor);
+                label->setFont(font);
+            }
+
+
+            label->setPlainText(dataValue);
+        }else if(dataKey == "kind"){
+            kind = dataValue;
+            update();
+        }
+        else if(dataKey == "width"){
+            updateSize(dataValue,0);
+            updatedData(node->getData("label"));
+        }
+        else if(dataKey == "height"){
+            updateSize(0,dataValue);
+            updatedData(node->getData("label"));
         }
 
-
-        label->setPlainText(dataValue);
-    }else if(dataKey == "kind"){
-        kind = dataValue;
-        update();
-    }
-    else if(dataKey == "width"){
-        updateSize(dataValue,0);
-        updatedData(node->getData("label"));
-    }
-    else if(dataKey == "height"){
-        updateSize(0,dataValue);
-        updatedData(node->getData("label"));
-    }
-
-    if(dataKey == "x" || dataKey == "y"){
-        notifyEdges();
+        if(dataKey == "x" || dataKey == "y"){
+            notifyEdges();
+        }
     }
 }
 

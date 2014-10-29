@@ -19,6 +19,7 @@ NewController::NewController(NodeView *v)
     //Attach the view.
     view = v;
 
+    model = 0;
     treeModel = new QStandardItemModel();
 
     //Construct
@@ -39,6 +40,7 @@ NewController::NewController(NodeView *v)
     viewAspects << "Assembly" << "Workload" << "Definitions";
     protectedKeyNames << "x" << "y" << "kind"; //<< "width" << "height";
 
+    nodeKinds << "Model";
     nodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
     nodeKinds << "File" << "Component" << "ComponentInstance" << "ComponentImpl";
     nodeKinds << "Attribute" << "AttributeInstance" << "AttributeImpl";
@@ -64,7 +66,6 @@ NewController::NewController(NodeView *v)
     connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
 
 
-    model = new Model();
     setupModel();
 }
 
@@ -585,6 +586,11 @@ void NewController::view_CenterAggregate(Node *node)
     }
 }
 
+void NewController::view_ProjectNameUpdated(GraphMLData *label)
+{
+    emit view_UpdateProjectName(label->getValue());
+}
+
 
 void NewController::view_ConstructMenu(QPoint position)
 {
@@ -676,9 +682,8 @@ void NewController::view_ConstructMenu(QPoint position)
 }
 
 
-void NewController::view_ExportGraphML()
+void NewController::view_ExportGraphML(QString filename)
 {
-
     QVector<Node*> nodes;
 
     foreach(Node* child, getParentModel()->getChildren(0)){
@@ -690,7 +695,7 @@ void NewController::view_ExportGraphML()
 
     QString data = exportGraphML(nodes);
 
-    emit view_ExportGraphML(data);
+    emit view_WriteGraphML(filename, data);
 }
 
 void NewController::view_SetNodeSelected(Node *node, bool setSelected)
@@ -1101,7 +1106,8 @@ void NewController::view_ClearSelection()
     clearSelectedEdges();
     clearSelectedNodes();
     //Clear Model
-    emit view_SetSelectedAttributeModel(0);
+
+    emit view_SetSelectedAttributeModel(getNodeItemFromNode(model)->getAttributeTable());
 
 }
 
@@ -1120,9 +1126,8 @@ void NewController::view_ConstructNodeItem(Node *node)
 
         Node* parentNode = node->getParentNode();
         NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
-
-        if(!parentNodeItem){
-            //qDebug() << "Using Parent Graph as Parent";
+        if(parentNode == model){
+            qCritical() << (parentNodeItem == 0);
         }
 
         NodeItem* nodeItem = new NodeItem(node, parentNodeItem);
@@ -1204,7 +1209,7 @@ bool NewController::copySelection()
     QString result = exportGraphML(selectedNodes);
 
     //Tell the view to place the resulting GraphML String into the Copy buffer.
-    emit view_updateCopyBuffer(result);
+    emit view_UpdateCopyBuffer(result);
     return true;
 }
 
@@ -1271,24 +1276,30 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
         }
     }
 
-    if(noWidth){
-        data.append(new GraphMLData(w, ""));
-    }
-    if(noHeight){
-        data.append(new GraphMLData(h, ""));
-    }
-    if(noX){
-        data.append(new GraphMLData(x, ""));
-    }
-    if(noY){
-        data.append(new GraphMLData(y, ""));
+    if(kind != "Model"){
+        if(noWidth){
+            data.append(new GraphMLData(w, ""));
+        }
+        if(noHeight){
+            data.append(new GraphMLData(h, ""));
+        }
+        if(noX){
+            data.append(new GraphMLData(x, ""));
+        }
+        if(noY){
+            data.append(new GraphMLData(y, ""));
+        }
     }
 
 
     QVector<QString> aspects;
 
 
-    if(kind == "Component"){
+    if(kind == "Model"){
+        newNode = new Model();
+        aspects << "Definitions" << "Assembly" << "Workload";
+
+    }else if(kind == "Component"){
         newNode = new Component();
         aspects << "Definitions";
 
@@ -1408,10 +1419,19 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
 
 
     //Adopt the new Node into the parent
-    if(!parent){
-        parent = this->model;
-
+    if(!parent && model){
+        parent = model;
+        qCritical() << "Using Model as Parent";
     }
+
+
+
+    if(!model && kind=="Model"){
+        qCritical() << "Got Model";
+        setupNode(newNode);
+        return newNode;
+    }
+
     if(parent->canAdoptChild(newNode)){
         parent->addChild(newNode);
         setupNode(newNode);
@@ -1421,8 +1441,6 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
         delete newNode;
         return 0;
     }
-
-
 
 
     if(newNode->isDefinition() && parent->isDefinition()){
@@ -1630,6 +1648,7 @@ void NewController::setNodeSelected(Node *node, bool setSelected)
         return;
     }
 
+
     if(setSelected){
         //Check to see if Node's Parents are in the list of selected Nodes.
         if(!isNodesAncestorSelected(node)){
@@ -1667,9 +1686,7 @@ void NewController::setNodeSelected(Node *node, bool setSelected)
         }
     }
 
-
     view->scene()->update();
-
 }
 
 void NewController::setEdgeSelected(Edge *edge, bool setSelected)
@@ -2219,6 +2236,9 @@ void NewController::deleteSelectedEdges()
 
 void NewController::setupNode(Node *node)
 {
+    if(!node){
+        qCritical() << "Null node";
+    }
     //Construct Action
 
     ActionItem action;
@@ -2244,13 +2264,29 @@ void NewController::setupNode(Node *node)
 
 void NewController::setupModel()
 {
-   constructNode(this->model,"BehaviourDefinitions",QPointF(0,0));
-   constructNode(this->model,"InterfaceDefinitions",QPointF(4100,0));
-   constructNode(this->model,"DeploymentDefinitions",QPointF(8200,0));
+    GraphMLKey* label = constructGraphMLKey("label", "string", "node");
+    GraphMLKey* k = constructGraphMLKey("kind", "string", "node");
 
-   behaviourDefinitions->updateDataValue("label", "Behaviour Definitions");
-   interfaceDefinitions->updateDataValue("label", "Interface Definitions");
-   deploymentDefinitions->updateDataValue("label", "Deployment Definitions");
+    QVector<GraphMLData *> data;
+
+    data.append(new GraphMLData(k, "Model"));
+
+    GraphMLData* labelD = new GraphMLData(label, "New Project");
+
+    data.append(labelD);
+    connect(labelD, SIGNAL(dataChanged(GraphMLData*)), this, SLOT(view_ProjectNameUpdated(GraphMLData*)));
+
+    model = (Model*)constructGraphMLNode(data, 0);
+
+
+
+    constructNode(model,"BehaviourDefinitions",QPointF(0,0));
+    constructNode(model,"InterfaceDefinitions",QPointF(4100,0));
+    constructNode(model,"DeploymentDefinitions",QPointF(8200,0));
+
+    behaviourDefinitions->updateDataValue("label", "Behaviour Definitions");
+    interfaceDefinitions->updateDataValue("label", "Interface Definitions");
+    deploymentDefinitions->updateDataValue("label", "Deployment Definitions");
 }
 
 void NewController::setupInstance(Node *definition, Node *instance)
