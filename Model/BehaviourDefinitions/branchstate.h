@@ -1,18 +1,15 @@
-#ifndef DEPLOYMENTDEFINITIONS_H
-#define DEPLOYMENTDEFINITIONS_H
-
+#ifndef BRANCHSTATE_H
+#define BRANCHSTATE_H
 #include "../node.h"
 
-class DeploymentDefinitions: public Node
+class BranchState: public Node
 {
     Q_OBJECT
 public:
-    DeploymentDefinitions();
-    ~DeploymentDefinitions();
-
+    BranchState();
+    ~BranchState();
 
     // GraphML interface
-public:
     QString toString();
 
     // Node interface
@@ -20,4 +17,4 @@ public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
-#endif // DEPLOYMENTDEFINITIONS_H
+#endif // BRANCHSTATE_H

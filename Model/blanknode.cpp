@@ -17,21 +17,10 @@ QString BlankNode::toString()
 
 bool BlankNode::canConnect(Node* attachableObject)
 {
-    //Check for existing connection.
-    if(isConnected(attachableObject)){
-        qWarning() << "Already connected to this Object";
-        return false;
-    }
-
-    return true;
-
+    return Node::canConnect(attachableObject);
 }
 
 bool BlankNode::canAdoptChild(Node *child)
 {
-    if(this->isAncestorOf(child) || this->isDescendantOf(child)){
-        return false;
-    }
-
-    return true;
+    return Node::canAdoptChild(child);
 }

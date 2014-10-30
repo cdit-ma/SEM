@@ -59,7 +59,15 @@ HEADERS += \
     Model/InterfaceDefinitions/aggregate.h \
     Model/InterfaceDefinitions/member.h \
     Model/InterfaceDefinitions/aggregatemember.h \
-    Model/InterfaceDefinitions/eventport.h
+    Model/InterfaceDefinitions/eventport.h \
+    Model/BehaviourDefinitions/variable.h \
+    Model/BehaviourDefinitions/process.h \
+    Model/BehaviourDefinitions/workload.h \
+    Model/BehaviourDefinitions/branchstate.h \
+    Model/BehaviourDefinitions/condition.h \
+    Model/BehaviourDefinitions/termination.h \
+    Model/DeploymentDefinitions/assemblydefinitions.h \
+    Model/DeploymentDefinitions/hardwaredefinitions.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -104,7 +112,15 @@ SOURCES += \
     Model/InterfaceDefinitions/aggregate.cpp \
     Model/InterfaceDefinitions/member.cpp \
     Model/InterfaceDefinitions/aggregatemember.cpp \
-    Model/InterfaceDefinitions/eventport.cpp
+    Model/InterfaceDefinitions/eventport.cpp \
+    Model/BehaviourDefinitions/variable.cpp \
+    Model/BehaviourDefinitions/process.cpp \
+    Model/BehaviourDefinitions/workload.cpp \
+    Model/BehaviourDefinitions/branchstate.cpp \
+    Model/BehaviourDefinitions/condition.cpp \
+    Model/BehaviourDefinitions/termination.cpp \
+    Model/DeploymentDefinitions/assemblydefinitions.cpp \
+    Model/DeploymentDefinitions/hardwaredefinitions.cpp
 
 FORMS += \
     medeawindow.ui \

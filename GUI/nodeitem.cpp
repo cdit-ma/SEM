@@ -606,6 +606,7 @@ void NodeItem::updateBrushes()
     selectedBrush = QBrush(selectedColor);
 
     pen.setColor(Qt::gray);
+    pen.setWidth(4);
     selectedPen.setColor(Qt::blue);
     selectedPen.setWidth(4);
 
@@ -632,7 +633,7 @@ void NodeItem::updateSize(QString w, QString h)
     if(h != 0){
         height = h.toDouble();
     }
-     bRec = QRect(0,0,width, height);
+     bRec = QRect(-4,-4,width+4, height+4);
      update();
 
 }

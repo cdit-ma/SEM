@@ -1,8 +1,9 @@
 #include "deploymentdefinitions.h"
 #include <QDebug>
-#include "componentassembly.h"
+#include "assemblydefinitions.h"
+#include "hardwaredefinitions.h"
 
-DeploymentDefinitions::DeploymentDefinitions(QString name):Node()
+DeploymentDefinitions::DeploymentDefinitions():Node()
 {
 
 }
@@ -25,13 +26,14 @@ bool DeploymentDefinitions::canConnect(Node* attachableObject)
 bool DeploymentDefinitions::canAdoptChild(Node *child)
 {
 
-    ComponentAssembly* component = dynamic_cast<ComponentAssembly *>(child);
+    AssemblyDefinitions* assemblyDefinitions = dynamic_cast<AssemblyDefinitions *>(child);
+    HardwareDefinitions* hardwareDefinitions = dynamic_cast<HardwareDefinitions *>(child);
 
 
-    if(component == 0){
-        //qWarning() << "Deployment Definitions can only adopt a ComponentAssembly Node";
-        //return true;
+    if(!hardwareDefinitions && !assemblyDefinitions){
+        qWarning() << "Cannot Adopt anything outside of Assembly Definitions and Hardware Definitions";
+        return false;
     }
 
-    return true;
+    return Node::canAdoptChild(child);
 }

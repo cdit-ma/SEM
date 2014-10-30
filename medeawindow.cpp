@@ -43,7 +43,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
 
     ui->actionNew_Project->trigger();
 
-    QFile file("C:/inputGML.graphml");
+    QFile file("C:/CompletedVUAV.graphml");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
         qDebug() << "could not open file for read";

@@ -1,18 +1,15 @@
-#ifndef DEPLOYMENTDEFINITIONS_H
-#define DEPLOYMENTDEFINITIONS_H
-
+#ifndef CONDITION_H
+#define CONDITION_H
 #include "../node.h"
 
-class DeploymentDefinitions: public Node
+class Condition: public Node
 {
     Q_OBJECT
 public:
-    DeploymentDefinitions();
-    ~DeploymentDefinitions();
-
+    Condition();
+    ~Condition();
 
     // GraphML interface
-public:
     QString toString();
 
     // Node interface
@@ -20,4 +17,5 @@ public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
-#endif // DEPLOYMENTDEFINITIONS_H
+
+#endif // CONDITION_H

@@ -291,6 +291,8 @@ private:
     BehaviourDefinitions* behaviourDefinitions;
     DeploymentDefinitions* deploymentDefinitions;
     InterfaceDefinitions* interfaceDefinitions;
+    HardwareDefinitions* hardwareDefinitions;
+    AssemblyDefinitions* assemblyDefinitions;
 
     bool CUT_LINKING;
     int actionCount;

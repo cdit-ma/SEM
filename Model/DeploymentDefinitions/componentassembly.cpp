@@ -42,5 +42,5 @@ bool ComponentAssembly::canConnect(Node* attachableObject)
 
 QString ComponentAssembly::toString()
 {
-    return QString("Assembly[%1]: "+this->getName()).arg(this->getID());
+    return QString("ComponentAssembly[%1]: "+this->getName()).arg(this->getID());
 }

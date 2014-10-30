@@ -1,18 +1,15 @@
-#ifndef DEPLOYMENTDEFINITIONS_H
-#define DEPLOYMENTDEFINITIONS_H
-
+#ifndef TERMINATION_H
+#define TERMINATION_H
 #include "../node.h"
 
-class DeploymentDefinitions: public Node
+class Termination: public Node
 {
     Q_OBJECT
 public:
-    DeploymentDefinitions();
-    ~DeploymentDefinitions();
-
+    Termination();
+    ~Termination();
 
     // GraphML interface
-public:
     QString toString();
 
     // Node interface
@@ -20,4 +17,6 @@ public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
-#endif // DEPLOYMENTDEFINITIONS_H
+
+
+#endif // TERMINATION_H

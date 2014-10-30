@@ -1,9 +1,8 @@
 #include "periodicevent.h"
 #include <QDebug>
-PeriodicEvent::PeriodicEvent(QString name):Node()
+PeriodicEvent::PeriodicEvent():Node()
 {
     //qCritical() << "Constructed PeriodicEvent: "<< this->getName();
-
 }
 
 PeriodicEvent::~PeriodicEvent()
@@ -18,12 +17,10 @@ QString PeriodicEvent::toString()
 
 bool PeriodicEvent::canConnect(Node* attachableObject)
 {
-    Q_UNUSED(attachableObject);
-    return false;
+    return Node::canConnect(attachableObject);
 }
 
 bool PeriodicEvent::canAdoptChild(Node *child)
 {
-    Q_UNUSED(child);
-    return false;
+    return Node::canAdoptChild(child);
 }

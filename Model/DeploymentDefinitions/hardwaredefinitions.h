@@ -1,14 +1,14 @@
-#ifndef DEPLOYMENTDEFINITIONS_H
-#define DEPLOYMENTDEFINITIONS_H
+#ifndef HARDWAREDEFINITIONS_H
+#define HARDWAREDEFINITIONS_H
 
 #include "../node.h"
 
-class DeploymentDefinitions: public Node
+class HardwareDefinitions: public Node
 {
     Q_OBJECT
 public:
-    DeploymentDefinitions();
-    ~DeploymentDefinitions();
+    HardwareDefinitions();
+    ~HardwareDefinitions();
 
 
     // GraphML interface
@@ -20,4 +20,4 @@ public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
-#endif // DEPLOYMENTDEFINITIONS_H
+#endif // HARDWAREDEFINITIONS_H

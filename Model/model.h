@@ -15,10 +15,23 @@
 #include "BehaviourDefinitions/outeventportimpl.h"
 #include "BehaviourDefinitions/attributeimpl.h"
 
+#include "BehaviourDefinitions/branchstate.h"
+#include "BehaviourDefinitions/condition.h"
+#include "BehaviourDefinitions/periodicevent.h"
+#include "BehaviourDefinitions/process.h"
+#include "BehaviourDefinitions/termination.h"
+#include "BehaviourDefinitions/variable.h"
+#include "BehaviourDefinitions/workload.h"
+
 
 #include "BehaviourDefinitions/periodicevent.h"
 
 #include "DeploymentDefinitions/deploymentdefinitions.h"
+#include "DeploymentDefinitions/hardwaredefinitions.h"
+#include "DeploymentDefinitions/assemblydefinitions.h"
+#include "DeploymentDefinitions/deploymentdefinitions.h"
+
+
 #include "DeploymentDefinitions/componentassembly.h"
 
 #include "DeploymentDefinitions/attributeinstance.h"

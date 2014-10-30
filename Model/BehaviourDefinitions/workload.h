@@ -1,18 +1,16 @@
-#ifndef DEPLOYMENTDEFINITIONS_H
-#define DEPLOYMENTDEFINITIONS_H
+#ifndef WORKLOAD_H
+#define WORKLOAD_H
 
 #include "../node.h"
 
-class DeploymentDefinitions: public Node
+class Workload: public Node
 {
     Q_OBJECT
 public:
-    DeploymentDefinitions();
-    ~DeploymentDefinitions();
-
+    Workload();
+    ~Workload();
 
     // GraphML interface
-public:
     QString toString();
 
     // Node interface
@@ -20,4 +18,5 @@ public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
-#endif // DEPLOYMENTDEFINITIONS_H
+
+#endif // WORKLOAD_H

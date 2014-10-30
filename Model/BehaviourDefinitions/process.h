@@ -1,18 +1,15 @@
-#ifndef DEPLOYMENTDEFINITIONS_H
-#define DEPLOYMENTDEFINITIONS_H
-
+#ifndef PROCESS_H
+#define PROCESS_H
 #include "../node.h"
 
-class DeploymentDefinitions: public Node
+class Process: public Node
 {
     Q_OBJECT
 public:
-    DeploymentDefinitions();
-    ~DeploymentDefinitions();
-
+    Process();
+    ~Process();
 
     // GraphML interface
-public:
     QString toString();
 
     // Node interface
@@ -20,4 +17,6 @@ public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
-#endif // DEPLOYMENTDEFINITIONS_H
+
+
+#endif // PROCESS_H
