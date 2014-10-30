@@ -27,6 +27,8 @@ NewController::NewController(NodeView *v)
     behaviourDefinitions = 0;
     interfaceDefinitions = 0;
     deploymentDefinitions = 0;
+    hardwareDefinitions = 0;
+    assemblyDefinitions = 0;
 
     currentActionID = 0;
     actionCount = 0;
@@ -42,13 +44,16 @@ NewController::NewController(NodeView *v)
 
     nodeKinds << "Model";
     nodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
+    nodeKinds << "HardwareDefinitions" << "AssemblyDefinitions";
     nodeKinds << "File" << "Component" << "ComponentInstance" << "ComponentImpl";
     nodeKinds << "Attribute" << "AttributeInstance" << "AttributeImpl";
     nodeKinds << "InEventPort" << "InEventPortInstance" << "InEventPortImpl";
     nodeKinds << "OutEventPort" << "OutEventPortInstance" << "OutEventPortImpl";
     nodeKinds << "ComponentAssembly";
     nodeKinds << "HardwareNode" << "HardwareCluster" ;
-    nodeKinds << "PeriodicEvent" << "Member" << "Aggregate" << "AggregateMember";
+    nodeKinds << "Member" << "Aggregate" << "AggregateMember";
+    nodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload";
+
 
 
     //Connect to the View's Signals
@@ -825,7 +830,12 @@ void NewController::view_ConstructChildNode()
 void NewController::view_ConstructEdge(Node *src, Node *dst)
 {
     QVector<QStringList> noData;
-    view_ConstructEdge(src, dst, noData, 0);
+    if(dst->isDefinition()){
+        view_ConstructEdge(dst, src, noData, 0);
+    }else{
+        view_ConstructEdge(src, dst, noData, 0);
+
+    }
 }
 
 void NewController::view_ConstructEdge(Node *src, Node *dst, QVector<GraphMLData *> data, QString previousID)
@@ -867,7 +877,6 @@ void NewController::view_ConstructEdge(Node *src, Node *dst, QVector<QStringList
 
 void NewController::view_MoveSelectedNodes(QPointF delta)
 {
-
     foreach(Node* node, selectedNodes){
         GraphMLData* xData = node->getData("x");
         GraphMLData* yData = node->getData("y");
@@ -1038,6 +1047,9 @@ void NewController::view_Paste(QString xmlData)
     if(isGraphMLValid(xmlData) && xmlData != ""){
         //Paste it into the current Selected Node,
         Node* node = getSelectedNode();
+        if(node){
+            qCritical() << node->toString();
+        }
 
         //Paste into the current Maximized Node.
         if(centeredNode != 0){
@@ -1126,9 +1138,6 @@ void NewController::view_ConstructNodeItem(Node *node)
 
         Node* parentNode = node->getParentNode();
         NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
-        if(parentNode == model){
-            qCritical() << (parentNodeItem == 0);
-        }
 
         NodeItem* nodeItem = new NodeItem(node, parentNodeItem);
 
@@ -1354,11 +1363,6 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
     }else if(kind == "HardwareCluster"){
         newNode = new HardwareCluster();
         aspects << "Assembly";
-
-    }else if(kind == "PeriodicEvent"){
-        newNode = new PeriodicEvent();
-        aspects << "Workload" ;
-
     }else if(kind == "File"){
         newNode = new File();
         aspects << "Definitions";
@@ -1370,10 +1374,35 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
     }else if(kind == "Aggregate"){
         newNode = new Aggregate();
         aspects << "Definitions";
-
     }else if(kind == "AggregateMember"){
         newNode = new AggregateMember();
         aspects << "Definitions";
+
+    }else if(kind == "BranchState"){
+        newNode = new BranchState();
+        aspects << "Workload";
+    }else if(kind == "Condition"){
+        newNode = new Condition();
+        aspects << "Workload";
+    }else if(kind == "PeriodicEvent"){
+        newNode = new PeriodicEvent();
+        aspects << "Workload";
+    }else if(kind == "Process"){
+        newNode = new Process();
+        aspects << "Workload";
+    }else if(kind == "Termination"){
+        newNode = new Termination();
+        aspects << "Workload";
+    }else if(kind == "Variable"){
+        newNode = new Variable();
+        aspects << "Workload";
+    }else if(kind == "Workload"){
+        newNode = new Workload();
+        aspects << "Workload";
+
+    }else if(kind == "ComponentAssembly"){
+        newNode = new ComponentAssembly();
+        aspects << "Assembly";
 
     }else if(kind == "BehaviourDefinitions"){
         if(behaviourDefinitions){
@@ -1402,7 +1431,23 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
         }
         aspects << "Definitions";
 
+    }else if(kind == "AssemblyDefinitions"){
+        if(assemblyDefinitions){
+            return assemblyDefinitions;
+        }else{
+            assemblyDefinitions = new AssemblyDefinitions();
+            newNode = assemblyDefinitions;
+        }
+        aspects << "Definitions";
 
+    }else if(kind == "HardwareDefinitions"){
+        if(hardwareDefinitions){
+            return hardwareDefinitions;
+        }else{
+            hardwareDefinitions = new HardwareDefinitions();
+            newNode = hardwareDefinitions;
+        }
+        aspects << "Definitions";
     }else{
         //qCritical() << "Kind:" << kind << "Not implemented";
         newNode = new BlankNode();
@@ -1507,10 +1552,20 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool 
 
 
     foreach(GraphMLData* attachedData, definition->getData()){
-        if(attachedData->getKeyName() == "kind" || attachedData->getKeyName() == "label"){
+        QString keyName = attachedData->getKeyName();
+        if(keyName == "kind" || keyName == "label" || keyName == "x" || keyName == "y"){
             QString modifier = "";
-            if(attachedData->getKeyName() == "kind"){
+
+            if(keyName == "kind"){
                 modifier += "Instance";
+                if(attachedData->getValue() == "Attribute"){
+                    /*
+                    GraphMLKey* valueKey = constructGraphMLKey("value", "string","node");
+                    GraphMLData* valueData = new GraphMLData(valueKey, valueKey->getDefaultValue());
+                    data.append(valueData);
+                    */
+                }
+
             }
             GraphMLData* kindData = new GraphMLData(attachedData->getKey(), attachedData->getValue() + modifier);
 
@@ -1545,7 +1600,7 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool 
                 }
             }
             if(allMatched){
-                instance = dynamic_cast<Node*>(child);
+                instance = child;
             }
         }
     }
@@ -1759,6 +1814,12 @@ bool NewController::deleteNode(Node *node)
         }
         if(interfaceDefinitions == node){
             interfaceDefinitions = 0;
+        }
+        if(assemblyDefinitions == node){
+            assemblyDefinitions = 0;
+        }
+        if(hardwareDefinitions == node){
+            hardwareDefinitions = 0;
         }
 
         //Delete any first level children which are instances.
@@ -2284,9 +2345,19 @@ void NewController::setupModel()
     constructNode(model,"InterfaceDefinitions",QPointF(4100,0));
     constructNode(model,"DeploymentDefinitions",QPointF(8200,0));
 
+    constructNode(deploymentDefinitions,"AssemblyDefinitions",QPointF(0,0));
+    constructNode(deploymentDefinitions,"HardwareDefinitions",QPointF(0,0));
+
+
     behaviourDefinitions->updateDataValue("label", "Behaviour Definitions");
     interfaceDefinitions->updateDataValue("label", "Interface Definitions");
     deploymentDefinitions->updateDataValue("label", "Deployment Definitions");
+    assemblyDefinitions->updateDataValue("label", "Assembly Definitions");
+    hardwareDefinitions->updateDataValue("label", "Hardware Definitions");
+
+    undoStack.clear();
+    redoStack.clear();
+
 }
 
 void NewController::setupInstance(Node *definition, Node *instance)
@@ -2311,6 +2382,7 @@ void NewController::setupInstance(Node *definition, Node *instance)
             }
         }
     }
+
 
     foreach(Node* child, definition->getChildren(0)){
         if(child->isDefinition()){
