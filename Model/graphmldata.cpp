@@ -120,9 +120,7 @@ void GraphMLData::setParentData(GraphMLData *data)
 void GraphMLData::unsetParentData()
 {
     if(parentData != 0){
-        qCritical() << "Unbinding";
         parentData->unbindData(this);
-        qCritical() << "unBound";
     }
     parentData = 0;
 }

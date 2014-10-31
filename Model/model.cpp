@@ -27,7 +27,7 @@ bool Model::canAdoptChild(Node *child)
 
 QString Model::toGraphML(qint32 indentationLevel)
 {
-    return "";
+    return Node::toGraphML(indentationLevel);
 }
 
 bool Model::canConnect(Node* attachableObject)

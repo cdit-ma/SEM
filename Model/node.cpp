@@ -131,7 +131,7 @@ bool Node::isDescendantOf(Node *node)
 bool Node::canConnect(Node *node)
 {
     if(isConnected(node)){
-        qWarning() << "Cannot connect 2 Connected Nodes";
+        //qWarning() << "Cannot connect 2 Connected Nodes";
         return false;
     }
 
@@ -307,6 +307,7 @@ void Node::unsetDefinition()
 void Node::addInstance(Node *inst)
 {
     if(isDefinition()){
+        qCritical() << toString() << " Added " << inst->toString() << "  as Instance";
         if(!instances.contains(inst)){
             instances.append(inst);
             inst->setDefinition(this);

@@ -40,6 +40,8 @@ bool InEventPortInstance::canConnect(Node* attachableObject)
     }
 
     if(outputEventPort){
+        qCritical() << outputEventPort->toString();
+        qCritical() << outputEventPort->getDefinition();
         if(!outputEventPort->getDefinition()){
             qCritical() << "Cannot connect an IEPI to a un-defined EventPort!";
             return false;

@@ -176,7 +176,7 @@ void NodeView::setRubberBandMode(bool On)
 
 void NodeView::setViewAspects(QStringList aspects)
 {
-    qCritical() << "Setting: " << aspects;
+    //qCritical() << "Setting: " << aspects;
     currentAspects = aspects;
     emit updateViewAspects(aspects);
 }
@@ -253,13 +253,17 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     rubberBanding = false;
 
 
-    if(item == 0){
+    if(!item){
         if(event->button() == Qt::MiddleButton){
-            resetTransform();
-            int xValue = (horizontalScrollBar()->minimum() + horizontalScrollBar()->maximum())/2;
-            int yValue = (verticalScrollBar()->minimum() + verticalScrollBar()->maximum())/2;
-            horizontalScrollBar()->setValue(xValue);
-            verticalScrollBar()->setValue(yValue);
+            if(CONTROL_DOWN){
+                emit sortModel();
+            }else{
+                resetTransform();
+                int xValue = (horizontalScrollBar()->minimum() + horizontalScrollBar()->maximum())/2;
+                int yValue = (verticalScrollBar()->minimum() + verticalScrollBar()->maximum())/2;
+                horizontalScrollBar()->setValue(xValue);
+                verticalScrollBar()->setValue(yValue);
+            }
         }else if(event->button() == Qt::RightButton && CONTROL_DOWN){
             //emit unselect();
             //emit constructNodeItem(scenePos);

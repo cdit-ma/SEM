@@ -22,13 +22,11 @@ bool OutEventPortImpl::canAdoptChild(Node *child)
 
 bool OutEventPortImpl::canConnect(Node* attachableObject)
 {
-    if(getDefinition()){
-        return false;
-    }
     OutEventPort* oep = dynamic_cast<OutEventPort*>(attachableObject);
-    if(!oep){
+
+    if(getDefinition() && oep){
         qCritical() << "Can Only connect an OutEventPortImpl to an OutEventPort";
-        //return false;
+        return false;
     }
 
     return Node::canConnect(attachableObject);

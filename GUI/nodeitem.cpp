@@ -34,8 +34,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
     if(!parent){
         depth = 1;
-        this->width = 16000;
-        this->height = 16000;
+        this->width = 20000;
+        this->height = 20000;
     }else{
         depth = parent->depth +1;
         this->width = parent->width/4;

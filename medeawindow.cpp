@@ -42,7 +42,9 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     connect(ui->addAspect, SIGNAL(clicked()), this, SLOT(appendAspect()));
 
     ui->actionNew_Project->trigger();
+    this->setSelectedProject(projectWindows[0]);
 
+    /*
     QFile file("C:/CompletedVUAV.graphml");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
@@ -59,6 +61,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
 
     updateProgressBar(100,"");
     //ui->actionImport_GraphML->trigger();
+    */
 }
 
 MedeaWindow::~MedeaWindow()

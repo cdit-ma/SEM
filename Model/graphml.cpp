@@ -108,8 +108,18 @@ void GraphML::attachData(GraphMLData *data)
         GraphML::KIND keyKind = data->getKey()->getForKind();
 
         if(keyKind == this->getKind() || (keyKind == GraphML::ALL && this->getKind() < GraphML::ALL)){
-            this->attachedData.append(data);
-            emit dataAdded(data);
+
+            foreach(GraphMLData* cData, attachedData){
+                if(cData->getKey() == data->getKey()){
+                    qCritical() << "Got Duplicate Data";
+                    cData->setValue(data->getValue());
+                    return;
+                }
+            }
+            if(data){
+                attachedData.append(data);
+                emit dataAdded(data);
+            }
         }else{
             qCritical() << "Cannot attach <data> to this object. Wrong Kind!";
             qCritical() << data->getKey()->getForKind() << " != " << this->getKind();
@@ -130,7 +140,7 @@ void GraphML::removeData(GraphMLData *data)
 void GraphML::attachData(QVector<GraphMLData *> data)
 {
     while(!data.isEmpty()){
-        this->attachData(data.front());
+        attachData(data.front());
         data.pop_front();
     }
 }

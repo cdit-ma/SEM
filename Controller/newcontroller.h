@@ -93,6 +93,7 @@ public slots:
     void view_ConstructComponentInstance(Component* definition = 0 );
     void view_ConstructComponentImpl(Component* definition = 0 );
 
+    void view_SortModel();
     void view_CenterComponentImpl(Node* node = 0);
     void view_CenterComponentDefinition(Node* node = 0);
     void view_CenterAggregate(Node* node = 0);
@@ -235,6 +236,7 @@ private:
 
     GraphML* getGraphMLFromID(QString ID);
     Node* getNodeFromID(QString ID);
+    NodeItem* getNodeItemFromGraphML(GraphML* item);
     Edge* getEdgeFromID(QString ID);
 
 

@@ -45,6 +45,7 @@ signals:
 
     void updateNodeType(QString name);
     void updateViewAspects(QStringList aspects);
+    void sortModel();
 
 
 
