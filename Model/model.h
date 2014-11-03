@@ -23,6 +23,8 @@
 #include "BehaviourDefinitions/variable.h"
 #include "BehaviourDefinitions/workload.h"
 
+#include "BehaviourDefinitions/aggregateinstance.h"
+#include "BehaviourDefinitions/memberinstance.h"
 
 #include "BehaviourDefinitions/periodicevent.h"
 

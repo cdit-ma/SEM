@@ -1,6 +1,7 @@
 #ifndef AGGREGATE_H
 #define AGGREGATE_H
 #include "../node.h"
+#include "eventport.h"
 
 class AggregateMember;
 
@@ -11,12 +12,19 @@ public:
     Aggregate();
     ~Aggregate();
 
+
+    void addEventPort(EventPort* node);
+    void removeEventPort(EventPort* node);
+    QVector<EventPort*> getEventPorts();
+
+
     // GraphML interface
     QString toString();
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 
 private:
+    QVector<EventPort*> attachedEventPorts;
 };
 
 

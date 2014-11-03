@@ -18,19 +18,25 @@ QString EventPort::toString()
 
 }
 
-void EventPort::setAggregate(Node *aggregate)
+void EventPort::setAggregate(Aggregate *aggregate)
 {
-    this->aggregate = aggregate;
+    if(getAggregate() != aggregate){
+        this->aggregate = aggregate;
+        aggregate->addEventPort(this);
+    }
 }
 
-Node *EventPort::getAggregate()
+Aggregate *EventPort::getAggregate()
 {
     return aggregate;
 }
 
 void EventPort::unsetAggregate()
 {
-    aggregate = 0;
+    if(aggregate){
+        aggregate->removeEventPort(this);
+        aggregate = 0;
+    }
 }
 
 bool EventPort::canConnect(Node* attachableObject)

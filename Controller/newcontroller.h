@@ -181,6 +181,7 @@ private:
 
     void setupInstance(Node* definition, Node* instance);
     void setupImpl(Node* definition, Node* implementation);
+    void setupAggregate(EventPort* eventPort, Aggregate* aggregate);
     void tearDownImpl(Node* definition, Node* implementation);
 
     void teardownInstance(Node* definition, Node* instance);

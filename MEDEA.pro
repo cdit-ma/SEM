@@ -67,7 +67,9 @@ HEADERS += \
     Model/BehaviourDefinitions/condition.h \
     Model/BehaviourDefinitions/termination.h \
     Model/DeploymentDefinitions/assemblydefinitions.h \
-    Model/DeploymentDefinitions/hardwaredefinitions.h
+    Model/DeploymentDefinitions/hardwaredefinitions.h \
+    Model/BehaviourDefinitions/aggregateinstance.h \
+    Model/BehaviourDefinitions/memberinstance.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -120,7 +122,9 @@ SOURCES += \
     Model/BehaviourDefinitions/condition.cpp \
     Model/BehaviourDefinitions/termination.cpp \
     Model/DeploymentDefinitions/assemblydefinitions.cpp \
-    Model/DeploymentDefinitions/hardwaredefinitions.cpp
+    Model/DeploymentDefinitions/hardwaredefinitions.cpp \
+    Model/BehaviourDefinitions/aggregateinstance.cpp \
+    Model/BehaviourDefinitions/memberinstance.cpp
 
 FORMS += \
     medeawindow.ui \

@@ -1,6 +1,7 @@
 #include "member.h"
-
-Member::Member(): Node()
+#include "../BehaviourDefinitions/memberinstance.h"
+#include <QDebug>
+Member::Member(): Node(Node::NT_DEFINITION)
 {
 
 }
@@ -17,7 +18,14 @@ QString Member::toString()
 
 bool Member::canConnect(Node* attachableObject)
 {
-    return false;
+    MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(attachableObject);
+
+    if (!memberInstance){
+        qWarning() << "Member can only connect to a MemberInstance.";
+        return false;
+    }
+
+    return Node::canConnect(attachableObject);
 }
 
 bool Member::canAdoptChild(Node *child)

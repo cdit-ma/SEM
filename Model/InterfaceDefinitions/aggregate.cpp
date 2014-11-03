@@ -1,9 +1,10 @@
 #include "aggregate.h"
 #include "member.h"
 #include "aggregatemember.h"
+#include "../BehaviourDefinitions/aggregateinstance.h"
 #include "eventport.h"
 #include <QDebug>
-Aggregate::Aggregate(): Node()
+Aggregate::Aggregate(): Node(Node::NT_DEFINITION)
 {
 
 }
@@ -11,6 +12,28 @@ Aggregate::Aggregate(): Node()
 Aggregate::~Aggregate()
 {
 
+}
+
+void Aggregate::addEventPort(EventPort *node)
+{
+    if(!attachedEventPorts.contains(node)){
+        attachedEventPorts.append(node);
+        node->setAggregate(this);
+    }
+}
+
+void Aggregate::removeEventPort(EventPort *node)
+{
+    int index = attachedEventPorts.indexOf(node);
+    if(index != -1){
+        node->unsetAggregate();
+        attachedEventPorts.remove(index);
+    }
+}
+
+QVector<EventPort *> Aggregate::getEventPorts()
+{
+    return attachedEventPorts;
 }
 
 QString Aggregate::toString()
@@ -22,9 +45,10 @@ bool Aggregate::canConnect(Node* attachableObject)
 {
     EventPort* eventport = dynamic_cast<EventPort*>(attachableObject);
     AggregateMember* aggregateMember = dynamic_cast<AggregateMember*>(attachableObject);
+    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(attachableObject);
 
-    if (!aggregateMember && !eventport){
-        qWarning() << "Aggregate can only connect to an Aggregate member or an Eventport";
+    if (!aggregateMember && !eventport && !aggregateInstance){
+        qWarning() << "Aggregate can only connect to an AggregateMember, AggregateInstance or EventPort.";
         return false;
     }
 

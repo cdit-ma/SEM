@@ -163,7 +163,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
-
         painter->fillRect(rectangle, Brush);
         painter->setPen(Pen);
         painter->drawRect(rectangle);

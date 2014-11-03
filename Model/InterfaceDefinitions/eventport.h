@@ -2,6 +2,8 @@
 #define EVENTPORT_H
 #include "../node.h"
 
+class Aggregate;
+
 class EventPort : public Node
 {
 public:
@@ -11,15 +13,15 @@ public:
     // GraphML interface
     QString toString();
 
-    void setAggregate(Node *aggregate);
-    Node* getAggregate();
+    void setAggregate(Aggregate *aggregate);
+    Aggregate* getAggregate();
     void unsetAggregate();
 
     bool canAdoptChild(Node *node);
     bool canConnect(Node *node);
 
 private:
-    Node* aggregate;
+    Aggregate* aggregate;
 };
 
 #endif // EVENTPORT_H

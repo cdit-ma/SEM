@@ -43,6 +43,7 @@ NewController::NewController(NodeView *v)
     protectedKeyNames << "x" << "y" << "kind"; //<< "width" << "height";
 
     nodeKinds << "Model";
+    nodeKinds << "MemberInstance" << "AggregateInstance";
     nodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
     nodeKinds << "HardwareDefinitions" << "AssemblyDefinitions";
     nodeKinds << "File" << "Component" << "ComponentInstance" << "ComponentImpl";
@@ -616,7 +617,7 @@ void NewController::view_CenterAggregate(Node *node)
 
 
         EventPort* eP = dynamic_cast<EventPort*>(node);
-        if(eP){
+        if(eP && eP->getAggregate()){
             qCritical() << eP->toString();
             qCritical() << eP->getAggregate()->toString();
             view_SetNodeCentered(eP->getAggregate());
@@ -1495,7 +1496,25 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
         newNode = new Workload();
         aspects << "Workload";
 
-    }else if(kind == "ComponentAssembly"){
+    }
+
+    else if(kind == "MemberInstance"){
+        newNode = new MemberInstance();
+        aspects << "Workload";
+
+    }
+    else if(kind == "AggregateInstance"){
+        newNode = new AggregateInstance();
+        aspects << "Workload";
+    }
+    else if(kind == "Workload"){
+            newNode = new Workload();
+            aspects << "Workload";
+
+        }
+
+
+    else if(kind == "ComponentAssembly"){
         newNode = new ComponentAssembly();
         aspects << "Assembly";
 
@@ -1641,6 +1660,10 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool 
 
             GraphMLData* matchingData = child->getData(key);
 
+            if(child->getDefinition()){
+                allMatched = false;
+                break;
+            }
             if(!matchingData){
                 allMatched = false;
                 break;
@@ -1686,6 +1709,8 @@ Node *NewController::constructNodeImpl(Node *parent, Node *definition, bool forc
             data.append(kindData);
         }
     }
+
+    EventPort* eventPort = dynamic_cast<EventPort*>(definition);
 
 
     //Check for Duplicates.
@@ -2448,7 +2473,6 @@ void NewController::setupInstance(Node *definition, Node *instance)
         return;
     }
 
-
     foreach(GraphMLData* attachedData, definition->getData()){
 
         if(!attachedData->getProtected()){
@@ -2517,6 +2541,17 @@ void NewController::setupImpl(Node *definition, Node *impl)
 
     //Specific
     definition->setImplementation(impl);
+}
+
+void NewController::setupAggregate(EventPort *eventPort, Aggregate *aggregate)
+{
+    //Must copy across a flattened aggreagte into eventPort;
+
+    eventPort->setAggregate(aggregate);
+    Node* implementation = eventPort->getImplementation();
+    if(implementation){
+        constructNodeInstance(implementation, aggregate);
+    }
 }
 
 void NewController::tearDownImpl(Node *definition, Node *implementation)
@@ -2617,9 +2652,13 @@ void NewController::setupEdge(Edge *edge)
 
     if(edge->isAggregateLink()){
         EventPort* eP = dynamic_cast<EventPort*>(src);
-        if(eP){
+        Aggregate* agg = dynamic_cast<Aggregate*>(dst);
+        if(eP && agg){
             qCritical() << "Setting Aggregate";
-            eP->setAggregate(dst);
+            setupAggregate(eP, agg);
+        }else{
+            qCritical() << (eP == 0);
+            qCritical() << (agg == 0);
         }
     }
 

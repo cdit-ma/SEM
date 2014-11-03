@@ -44,8 +44,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     ui->actionNew_Project->trigger();
     this->setSelectedProject(projectWindows[0]);
 
-    /*
-    QFile file("C:/CompletedVUAV.graphml");
+    QFile file("C:/base.graphml");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
         qDebug() << "could not open file for read";
@@ -61,7 +60,6 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
 
     updateProgressBar(100,"");
     //ui->actionImport_GraphML->trigger();
-    */
 }
 
 MedeaWindow::~MedeaWindow()
