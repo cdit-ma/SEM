@@ -34,12 +34,12 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsI
 
     if(!parent){
         depth = 1;
-        this->width = 20000;
-        this->height = 20000;
+        this->width = 19200;
+        this->height = 10800;
     }else{
         depth = parent->depth +1;
-        this->width = parent->width/4;
-        this->height =  parent->height/4;
+        this->width = parent->width/2;
+        this->height =  parent->height/2;
     }
 
 
@@ -209,9 +209,6 @@ QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
 
     return QGraphicsItem::itemChange(change, value);
 }
-
-
-
 
 void NodeItem::setOpacity(qreal opacity)
 {

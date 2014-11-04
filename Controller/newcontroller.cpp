@@ -201,7 +201,7 @@ void NewController::view_ImportGraphML(QStringList inputGraphML, Node *currentPa
 
 void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent, bool linkID)
 {
-    qCritical() << "NewController::view_ImportGraphML()2";
+    //qCritical() << "NewController::view_ImportGraphML()";
 
     //Key Lookup provides a way for the original key "id" to be linked with the internal object GraphMLKey
     QMap<QString , GraphMLKey*> keyLookup;
@@ -425,7 +425,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
         }
     }
 
-
+    //Sort the edges into types.
     QVector<EdgeTemp> aggregateEdges;
     QVector<EdgeTemp> instanceEdges;
     QVector<EdgeTemp> implEdges;
@@ -439,15 +439,15 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
         if(s && d){
             if(s->isDefinition() || d->isDefinition()){
                 if(s->isInstance() || d->isInstance()){
-                    qCritical() << "Got Instance Edge";
+                    //qWarning() << "Got Instance Edge";
                     instanceEdges.append(edge);
                     continue;
                 }else if(s->isImpl() || d->isImpl()){
-                    qCritical() << "Got Impl Edge";
+                    //qWarning() << "Got Impl Edge";
                     implEdges.append(edge);
                     continue;
                 }else if(s->getDataValue("kind") == "Aggregate" || d->getDataValue("kind") == "Aggregate" ){
-                    qCritical() << "Got Aggregate Edge";
+                    //qWarning() << "Got Aggregate Edge";
                     aggregateEdges.append(edge);
                     continue;
                 }
@@ -469,7 +469,6 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
         Node* d = nodeLookup[edge.target];
 
         if(s && d){
-            qCritical() << s->toString() << " < - > " << d->toString();
             if(d->isDefinition()){
                 view_ConstructEdge(d, s, edge.data, edge.id);
             }else{
@@ -558,7 +557,7 @@ void NewController::view_ConstructComponentInstance(Component *definition)
 
     if(definition){
         view_ActionTriggered("Constructing Component Instance.");
-        Node* node = constructNodeInstance(deploymentDefinitions, definition, true);
+        Node* node = constructNodeInstance(assemblyDefinitions, definition, true);
         view_SetNodeCentered(node);
     }
 }
@@ -816,12 +815,14 @@ void NewController::view_SetItemSelected(GraphML *item, bool setSelected)
 
 void NewController::view_SetNodeCentered(Node *node)
 {
-    qCritical() << "view_SetNodeCentered";
-    centeredNode = node;
-    NodeItem* nodeItem = getNodeItemFromNode(node);
-    if(nodeItem){
-        clearSelectedNodes();
-        emit view_SetNodeItemCentered(nodeItem);
+    if(node){
+        qWarning() << "view_SetNodeCentered";
+        centeredNode = node;
+        NodeItem* nodeItem = getNodeItemFromNode(node);
+        if(nodeItem){
+            clearSelectedNodes();
+            emit view_SetNodeItemCentered(nodeItem);
+        }
     }
 }
 
@@ -892,7 +893,6 @@ void NewController::view_ConstructEdge(Node *src, Node *dst, QVector<GraphMLData
         if(!src->isConnected(dst)){
             qCritical() << "Edge: " << src->toString() << " to " << dst->toString() << " not legal.";
         }
-        qCritical() << "Edge not legal";
     }
 }
 
@@ -1710,9 +1710,6 @@ Node *NewController::constructNodeImpl(Node *parent, Node *definition, bool forc
         }
     }
 
-    EventPort* eventPort = dynamic_cast<EventPort*>(definition);
-
-
     //Check for Duplicates.
     Node* impl = 0;
 
@@ -1725,6 +1722,10 @@ Node *NewController::constructNodeImpl(Node *parent, Node *definition, bool forc
             QString value = attachedData->getValue();
 
             GraphMLData* matchingData = child->getData(key);
+            if(child->getDefinition()){
+                allMatched = false;
+                break;
+            }
 
             if(!matchingData){
                 allMatched = false;
@@ -1894,19 +1895,29 @@ bool NewController::deleteNode(Node *node)
 {
     if(node){
         if(behaviourDefinitions == node){
-            behaviourDefinitions = 0;
+            qCritical() << "Cannot delete behaviourDefinitions. Must be deleted from Definition.";
+            return false;
+            //behaviourDefinitions = 0;
         }
         if(deploymentDefinitions == node){
-            deploymentDefinitions = 0;
+            qCritical() << "Cannot delete deploymentDefinitions. Must be deleted from Definition.";
+            return false;
+            //deploymentDefinitions = 0;
         }
         if(interfaceDefinitions == node){
-            interfaceDefinitions = 0;
+            qCritical() << "Cannot delete interfaceDefinitions. Must be deleted from Definition.";
+            return false;
+            //interfaceDefinitions = 0;
         }
         if(assemblyDefinitions == node){
-            assemblyDefinitions = 0;
+            qCritical() << "Cannot delete assemblyDefinitions. Must be deleted from Definition.";
+            return false;
+            //assemblyDefinitions = 0;
         }
         if(hardwareDefinitions == node){
-            hardwareDefinitions = 0;
+            qCritical() << "Cannot delete hardwareDefinitions. Must be deleted from Definition.";
+            return false;
+            //hardwareDefinitions = 0;
         }
 
         //Delete any first level children which are instances.
@@ -2378,7 +2389,7 @@ void NewController::deleteSelectedNodes()
         Node* node = selectedNodes.front();
         if(node && node->isAncestorOf(centeredNode)){
             centeredNode = 0;
-            qCritical() << "Unsetting Cenetered Node";
+            qWarning() << "Unsetting Centered Node";
         }
         bool deleted = deleteNode(node);
 
@@ -2614,7 +2625,7 @@ bool NewController::isGraphMLValid(QString inputGraphML)
         xmlErrorChecking.readNext();
         float lineNumber = xmlErrorChecking.lineNumber();
         if (xmlErrorChecking.hasError()){
-            qCritical() << "NewController::isGraphMLValid() << Parsing Error! Line Number: " << lineNumber;
+            qCritical() << "isGraphMLValid(): Parsing Error! Line #" << lineNumber;
             qCritical() << "\t" << xmlErrorChecking.errorString();
             //qCritical() << inputGraphML;
             return false;
@@ -2642,10 +2653,10 @@ void NewController::setupEdge(Edge *edge)
         QString dstKind = dst->getDataValue("kind");
 
         if(srcKind + "Instance" == dstKind){
-            qCritical() << "Setting up Instance";
+            qDebug() << "Setting up Instance";
             setupInstance(src, dst);
         }else if(srcKind + "Impl" == dstKind){
-            qCritical() << "Setting up Impl";
+            qDebug() << "Setting up Impl";
             setupImpl(src, dst);
         }
     }
@@ -2654,11 +2665,8 @@ void NewController::setupEdge(Edge *edge)
         EventPort* eP = dynamic_cast<EventPort*>(src);
         Aggregate* agg = dynamic_cast<Aggregate*>(dst);
         if(eP && agg){
-            qCritical() << "Setting Aggregate";
+            qDebug() << "Setting Aggregate";
             setupAggregate(eP, agg);
-        }else{
-            qCritical() << (eP == 0);
-            qCritical() << (agg == 0);
         }
     }
 

@@ -48,12 +48,10 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
     //Set-up the view
-    setSceneRect(0, 0, 10000, 10000);
-    translate(5000,5000);
+    setSceneRect(0, 0, 19200, 10800);
+    translate(9600,5040);
 
     this->setContextMenuPolicy(Qt::CustomContextMenu);
-    //connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
-
 }
 
 bool NodeView::getControlPressed()

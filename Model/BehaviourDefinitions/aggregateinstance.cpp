@@ -1,5 +1,7 @@
 #include "aggregateinstance.h"
-
+#include "memberinstance.h"
+#include "../InterfaceDefinitions/aggregate.h"
+#include <QDebug>
 
 AggregateInstance::AggregateInstance():Node(Node::NT_INSTANCE)
 {
@@ -18,10 +20,28 @@ QString AggregateInstance::toString()
 
 bool AggregateInstance::canConnect(Node* attachableObject)
 {
-    return true;
+    Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
+
+    if (!aggregate){
+        qWarning() << "AggregateInstance can only connect to an Aggregate.";
+        return false;
+    }
+    if(aggregate && getDefinition()){
+        qWarning() << "AggregateInstacne can only connect to one Aggregate.";
+        return false;
+    }
+
+    return Node::canConnect(attachableObject);
 }
 
 bool AggregateInstance::canAdoptChild(Node *child)
 {
-    return true;
+    MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(child);
+
+    if(!memberInstance){
+        qWarning() << "AggregateInstance can only adopt memberInstance";
+        return false;
+    }
+
+    return Node::canAdoptChild(child);
 }

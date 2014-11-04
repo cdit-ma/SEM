@@ -329,7 +329,6 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         disconnect(ui->actionRedo, SIGNAL(triggered()), controller, SLOT(view_Redo()));
         disconnect(ui->actionCut, SIGNAL(triggered()), controller, SLOT(view_Cut()));
         disconnect(ui->actionCopy, SIGNAL(triggered()), controller, SLOT(view_Copy()));
-        disconnect(ui->actionExport_GraphML, SIGNAL(triggered()), controller, SLOT(view_ExportGraphML()));
 
 
         disconnect(selectedProject, SIGNAL(updateFilterButtons(QVector<FilterButton*>)), this, SLOT(updateFilterButtons(QVector<FilterButton*>)));
