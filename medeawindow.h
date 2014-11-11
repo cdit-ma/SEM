@@ -32,6 +32,7 @@ signals:
     void view_ExportGraphML(QString fileName);
 
 private slots:
+    void updateStatusText(QString statusText);
 
     void updateFilterButtons(QVector<FilterButton*> buttons);
     void updateAspectButtons(QVector<FilterButton*> buttons);

@@ -73,7 +73,11 @@ NewController::NewController(NodeView *v)
     connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
 
 
+    connect(this, SIGNAL(view_PrintErrorCode(NodeItem*,QString)), view, SLOT(printErrorText(NodeItem*,QString)));
+
+
     setupModel();
+    setupValidator();
 }
 
 NewController::~NewController()
@@ -480,7 +484,23 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
             //return false;
         }
     }
-      emit view_UpdateProgressBar(100);
+    emit view_UpdateProgressBar(100);
+}
+
+void NewController::validator_HighlightError(Node *node, QString error)
+{
+    if(node){
+        view_SetNodeCentered(node);
+        emit view_PrintErrorCode(getNodeItemFromNode(node), error);
+        emit view_UpdateStatusText(error);
+    }
+}
+
+void NewController::view_ValidateModel()
+{
+    if(validator && model){
+        validator->validateModel(model);
+    }
 }
 
 void NewController::view_UpdateGraphMLData(GraphML *parent, QString keyName, QString dataValue)
@@ -2478,6 +2498,14 @@ void NewController::setupModel()
 
 }
 
+void NewController::setupValidator()
+{
+    validator = new ValidationEngine();
+    ValidationPlugin* interfacePlugin = new InterfaceDefinitionPlugin();
+    connect(interfacePlugin, SIGNAL(highlightNodeError(Node*,QString)), this, SLOT(validator_HighlightError(Node*,QString)));
+    validator->addPlugin(interfacePlugin);
+}
+
 void NewController::setupInstance(Node *definition, Node *instance)
 {
     if(!instance || !definition){
@@ -2557,7 +2585,6 @@ void NewController::setupImpl(Node *definition, Node *impl)
 void NewController::setupAggregate(EventPort *eventPort, Aggregate *aggregate)
 {
     //Must copy across a flattened aggreagte into eventPort;
-
     eventPort->setAggregate(aggregate);
     Node* implementation = eventPort->getImplementation();
     if(implementation){

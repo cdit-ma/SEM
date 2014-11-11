@@ -27,7 +27,7 @@ bool AggregateInstance::canConnect(Node* attachableObject)
         return false;
     }
     if(aggregate && getDefinition()){
-        qWarning() << "AggregateInstacne can only connect to one Aggregate.";
+        qWarning() << "AggregateInstance can only connect to one Aggregate.";
         return false;
     }
 
@@ -39,7 +39,7 @@ bool AggregateInstance::canAdoptChild(Node *child)
     MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(child);
 
     if(!memberInstance){
-        qWarning() << "AggregateInstance can only adopt memberInstance";
+        qWarning() << "AggregateInstance can only adopt MemberInstance";
         return false;
     }
 

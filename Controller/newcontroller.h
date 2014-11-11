@@ -7,6 +7,10 @@
 #include <QStandardItemModel>
 #include "../Model/node.h"
 
+//Include Validation Engine
+#include "../ValidationEngine/validationengine.h"
+#include "../ValidationEngine/Plugins/interfacedefinitionplugin.h"
+
 
 #include <QMenu>
 #include <QAction>
@@ -79,10 +83,15 @@ signals:
 
     void view_UpdateProjectName(QString name);
 
+    void view_PrintErrorCode(NodeItem* node, QString text);
+    void view_UpdateStatusText(QString statusText);
 
 public slots:
     void view_ImportGraphML(QStringList inputGraphML, Node *currentParent=0);
     void view_ImportGraphML(QString, Node *currentParent=0, bool linkID = false);
+
+    void validator_HighlightError(Node* node, QString error);
+    void view_ValidateModel();
 
     //Informants from the AttributeTableModel Class.
     void view_UpdateGraphMLData(GraphML* parent, QString keyName, QString dataValue);
@@ -178,6 +187,7 @@ private:
     void setupNode(Node* node);
 
     void setupModel();
+    void setupValidator();
 
     void setupInstance(Node* definition, Node* instance);
     void setupImpl(Node* definition, Node* implementation);
@@ -305,6 +315,7 @@ private:
     QString childNodeKind;
 
     QStandardItemModel* treeModel;
+    ValidationEngine* validator;
 };
 
 #endif // NEWCONTROLLER_H

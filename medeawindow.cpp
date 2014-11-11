@@ -67,6 +67,11 @@ MedeaWindow::~MedeaWindow()
     delete ui;
 }
 
+void MedeaWindow::updateStatusText(QString statusText)
+{
+    this->ui->errorCode->setText(statusText);
+}
+
 
 void MedeaWindow::updateFilterButtons(QVector<FilterButton *> buttons)
 {
@@ -347,6 +352,10 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
         disconnect(this, SIGNAL(view_ImportGraphML(QStringList)), controller, SLOT(view_ImportGraphML(QStringList)));
 
+        disconnect(ui->actionValidate_Model, SIGNAL(triggered()), controller, SLOT(view_ValidateModel()));
+
+        disconnect(controller, SIGNAL(view_UpdateStatusText(QString)), this, SLOT(updateStatusText(QString)));
+
     }
 
     selectedProject = newSelected;
@@ -360,6 +369,8 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
         this->ui->aspectComboBox->clear();;
         this->ui->aspectComboBox->addItems(controller->getViewAspects());
+
+
 
         connect(selectedProject, SIGNAL(updateFilterButtons(QVector<FilterButton*>)), this, SLOT(updateFilterButtons(QVector<FilterButton*>)));
         connect(selectedProject, SIGNAL(updateAspectButtons(QVector<FilterButton*>)), this, SLOT(updateAspectButtons(QVector<FilterButton*>)));
@@ -393,6 +404,10 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
         connect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
         connect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(setEnableGUI(bool)));
+
+        connect(controller, SIGNAL(view_UpdateStatusText(QString)), this, SLOT(updateStatusText(QString)));
+
+        connect(ui->actionValidate_Model, SIGNAL(triggered()), controller, SLOT(view_ValidateModel()));
 
         //Force a refresh
         selectedProject->selectedProject();

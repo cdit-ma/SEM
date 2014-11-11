@@ -14,142 +14,159 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,5">
+   <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <layout class="QVBoxLayout" name="Aspects_2">
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1,0,0,0">
         <item>
-         <layout class="QHBoxLayout" name="AspectBox">
+         <layout class="QVBoxLayout" name="Aspects_2">
           <item>
-           <widget class="QLabel" name="label_3">
+           <layout class="QHBoxLayout" name="AspectBox">
+            <item>
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Aspect:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="aspectComboBox"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="addAspect">
+              <property name="text">
+               <string>Add Aspect</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_4">
             <property name="text">
-             <string>Aspect:</string>
+             <string>Visible Aspects:</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="aspectComboBox"/>
+           <layout class="QVBoxLayout" name="VisibleAspects"/>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QSlider" name="horizontalSlider">
+          <property name="maximum">
+           <number>10</number>
+          </property>
+          <property name="pageStep">
+           <number>3</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="invertedControls">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QTableView" name="attributeTable"/>
           </item>
           <item>
-           <widget class="QPushButton" name="addAspect">
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QPushButton" name="addData">
+              <property name="text">
+               <string>Add Data</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="deleteData">
+              <property name="text">
+               <string>Delete Data</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QListView" name="listView"/>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="Filters">
+          <item>
+           <layout class="QHBoxLayout" name="filterBox">
+            <item>
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Filter:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="searchBox"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="addFilter">
+              <property name="text">
+               <string>Add Filter</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_2">
             <property name="text">
-             <string>Add Aspect</string>
+             <string>Applied Filters:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="AppliedFilters"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="clearFilters">
+            <property name="text">
+             <string>Clear Filters</string>
             </property>
            </widget>
           </item>
          </layout>
         </item>
         <item>
-         <widget class="QLabel" name="label_4">
-          <property name="text">
-           <string>Visible Aspects:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="VisibleAspects"/>
+         <layout class="QVBoxLayout" name="verticalLayout_3"/>
         </item>
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="Filters">
-        <item>
-         <layout class="QHBoxLayout" name="filterBox">
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Filter:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="searchBox"/>
-          </item>
-          <item>
-           <widget class="QPushButton" name="addFilter">
-            <property name="text">
-             <string>Add Filter</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Applied Filters:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="AppliedFilters"/>
-        </item>
-        <item>
-         <widget class="QPushButton" name="clearFilters">
-          <property name="text">
-           <string>Clear Filters</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QSlider" name="horizontalSlider">
-        <property name="maximum">
-         <number>10</number>
+       <widget class="QMdiArea" name="mdiArea">
+        <property name="viewMode">
+         <enum>QMdiArea::TabbedView</enum>
         </property>
-        <property name="pageStep">
-         <number>3</number>
+        <property name="tabsClosable">
+         <bool>true</bool>
         </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="invertedControls">
+        <property name="tabsMovable">
          <bool>true</bool>
         </property>
        </widget>
       </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QTableView" name="attributeTable"/>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QPushButton" name="addData">
-            <property name="text">
-             <string>Add Data</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="deleteData">
-            <property name="text">
-             <string>Delete Data</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QListView" name="listView"/>
-      </item>
      </layout>
     </item>
     <item>
-     <widget class="QMdiArea" name="mdiArea">
-      <property name="viewMode">
-       <enum>QMdiArea::TabbedView</enum>
+     <widget class="QLineEdit" name="errorCode">
+      <property name="enabled">
+       <bool>false</bool>
       </property>
-      <property name="tabsClosable">
-       <bool>true</bool>
-      </property>
-      <property name="tabsMovable">
-       <bool>true</bool>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
     </item>
@@ -171,6 +188,7 @@
     <addaction name="actionNew_Project"/>
     <addaction name="actionImport_GraphML"/>
     <addaction name="actionExport_GraphML"/>
+    <addaction name="actionValidate_Model"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -276,6 +294,17 @@
   <action name="actionExport_GraphML">
    <property name="text">
     <string>Export GraphML</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionValidate_Model">
+   <property name="text">
+    <string>Validate Model</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+V</string>
    </property>
   </action>
  </widget>

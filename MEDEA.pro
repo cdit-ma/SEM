@@ -69,7 +69,10 @@ HEADERS += \
     Model/DeploymentDefinitions/assemblydefinitions.h \
     Model/DeploymentDefinitions/hardwaredefinitions.h \
     Model/BehaviourDefinitions/aggregateinstance.h \
-    Model/BehaviourDefinitions/memberinstance.h
+    Model/BehaviourDefinitions/memberinstance.h \
+    ValidationEngine/validationengine.h \
+    ValidationEngine/validationplugin.h \
+    ValidationEngine/Plugins/interfacedefinitionplugin.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -124,7 +127,10 @@ SOURCES += \
     Model/DeploymentDefinitions/assemblydefinitions.cpp \
     Model/DeploymentDefinitions/hardwaredefinitions.cpp \
     Model/BehaviourDefinitions/aggregateinstance.cpp \
-    Model/BehaviourDefinitions/memberinstance.cpp
+    Model/BehaviourDefinitions/memberinstance.cpp \
+    ValidationEngine/validationengine.cpp \
+    ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
+    ValidationEngine/validationplugin.cpp
 
 FORMS += \
     medeawindow.ui \

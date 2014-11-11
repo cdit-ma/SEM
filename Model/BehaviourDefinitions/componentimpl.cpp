@@ -45,7 +45,7 @@ bool ComponentImpl::canConnect(Node* attachableObject)
     }
 */
 
-    return true;
+    return false;
 
 }
 

@@ -360,3 +360,17 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
 
 }
+
+void NodeView::printErrorText(NodeItem *node, QString text)
+{
+    /*
+    if(node){
+        QGraphicsTextItem * io = new QGraphicsTextItem();
+        io->setPos(node->scenePos());
+        io->setPlainText(text);
+        io->setTextWidth(20);
+
+        scene()->addItem(io);
+    }
+    */
+}

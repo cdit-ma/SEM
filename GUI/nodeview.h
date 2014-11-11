@@ -52,6 +52,7 @@ signals:
 
 
 public slots:
+    void printErrorText(NodeItem* node, QString text);
     void updateNodeTypeName(QString name);
     void addNodeItem(NodeItem* item);
     void removeNodeItem(NodeItem* item);

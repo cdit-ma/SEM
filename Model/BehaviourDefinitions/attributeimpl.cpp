@@ -18,7 +18,8 @@ QString AttributeImpl::toString()
 
 bool AttributeImpl::canConnect(Node* attachableObject)
 {
-    return true;
+
+    return false;
 }
 
 bool AttributeImpl::canAdoptChild(Node *child)
