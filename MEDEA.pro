@@ -29,7 +29,6 @@ HEADERS += \
     Model/model.h \
     Model/node.h \
     mainwindow.h \
-    qlogger.h \
     Model/blanknode.h \
     Controller/newcontroller.h \
     GUI/graphmlitem.h \
@@ -87,7 +86,6 @@ SOURCES += \
     Model/node.cpp \
     main.cpp \
     mainwindow.cpp \
-    qlogger.cpp \
     Model/blanknode.cpp \
     Controller/newcontroller.cpp \
     GUI/graphmlitem.cpp \
