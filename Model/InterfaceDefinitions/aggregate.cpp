@@ -24,9 +24,9 @@ void Aggregate::addEventPort(EventPort *node)
 
 void Aggregate::removeEventPort(EventPort *node)
 {
+    qCritical() << "Removing Aggregate";
     int index = attachedEventPorts.indexOf(node);
     if(index != -1){
-        node->unsetAggregate();
         attachedEventPorts.remove(index);
     }
 }

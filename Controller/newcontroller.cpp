@@ -889,16 +889,29 @@ void NewController::view_ConstructChildNode()
 void NewController::view_ConstructEdge(Node *src, Node *dst)
 {
     QVector<QStringList> noData;
-    if(dst->isDefinition()){
-        view_ConstructEdge(dst, src, noData, 0);
-    }else{
-        view_ConstructEdge(src, dst, noData, 0);
 
-    }
+
+
+    view_ConstructEdge(src, dst, noData);
 }
 
 void NewController::view_ConstructEdge(Node *src, Node *dst, QVector<GraphMLData *> data, QString previousID)
 {
+    QString srcKind = src->getDataValue("kind");
+    QString dstKind = dst->getDataValue("kind");
+
+    Node* temp;
+    bool swapOrder = false;
+    if(srcKind == "Aggregate" || dst->isDefinition()){
+        swapOrder=true;
+    }
+
+    if(swapOrder){
+        temp = src;
+        src = dst;
+        dst = temp;
+    }
+
     if(isEdgeLegal(src, dst)){
         Edge* edge = new Edge(src, dst);
 
@@ -2059,26 +2072,20 @@ bool NewController::deleteEdge(Edge *edge, bool addAction)
         if(edge->isInstanceLink()){
             qCritical() << "Got New Instance Link";
             //Delete Instances/Impls
-            teardownInstance(edge->getSource(),edge->getDestination());
+            teardownInstance(edge->getSource(), edge->getDestination());
         }
         if(edge->isImplLink()){
-            qCritical() << "Got New Instance Link";
-            //Delete Instances/Impls
-            tearDownImpl(edge->getSource(),edge->getDestination());
-        }
-
-        if(edge->isImplLink()){
-            qCritical() << "Got New Instance Link";
+            qCritical() << "Got New Impl Link";
             //Delete Instances/Impls
             tearDownImpl(edge->getSource(),edge->getDestination());
         }
 
         if(edge->isAggregateLink()){
             qCritical() << "Got New Instance Link";
-            //Delete Instances/Impls
 
             EventPort* eP = dynamic_cast<EventPort*>(edge->getSource());
             if(eP){
+                qCritical() << "Unsetting Aggreaget";
                 eP->unsetAggregate();
             }
         }
@@ -2086,6 +2093,7 @@ bool NewController::deleteEdge(Edge *edge, bool addAction)
 
 
 
+        qCritical() << "Deleted AggregateLink";
         NodeEdge* nodeEdge = getNodeEdgeFromEdge(edge);
 
         qCritical() << "Got Node Edge";
@@ -2618,6 +2626,7 @@ void NewController::tearDownImpl(Node *definition, Node *implementation)
 
 void NewController::teardownInstance(Node *definition, Node *instance)
 {
+    qCritical() << "TEARDOWN";
     qCritical() << "Tearing Down Instance: " << definition->toString() << " <-> " << instance->toString();
     if(!instance || !definition){
         return;

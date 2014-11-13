@@ -5,14 +5,10 @@
 
 ComponentImpl::ComponentImpl(QString name):Node(Node::NT_IMPL)
 {
-     //qDebug() << "Constructed Component: " << this->getName();
 }
 
 ComponentImpl::~ComponentImpl()
 {
-    //foreach(ComponentInstance* child, componentInstances){
-    //    delete child;
-    //}
 }
 
 QString ComponentImpl::toString()
@@ -24,29 +20,19 @@ QString ComponentImpl::toString()
 
 bool ComponentImpl::canConnect(Node* attachableObject)
 {
-    Q_UNUSED(attachableObject);
-/*
-    //Check for an edge to a component.
-    foreach(Edge* edge, this->edges){
-        ComponentInstance* src = dynamic_cast<ComponentInstance*>(edge->getSource());
-        ComponentInstance* dst = dynamic_cast<ComponentInstance*>(edge->getDestination());
-        if(src != 0){
-            if(src->getDataValue("type") != newType){
-                qWarning() << "Cannot connect to a Component Instance with a different Type!";
-                return false;
-            }
-        }
-        if(dst != 0){
-            if(dst->getDataValue("type") != newType){
-                qWarning() << "Cannot connect to a Component Instance with a different Type!";
-                return false;
-            }
-        }
+    Component* component = dynamic_cast<Component*>(attachableObject);
+
+    if(getDefinition()){
+        qWarning() << "ComponentImpl already has a definition already";
+        return false;
     }
-*/
 
-    return false;
+    if(!component){
+        qWarning() << "ComponentImpl can only connect to a Component.";
+        return false;
+    }
 
+    return Node::canConnect(attachableObject);
 }
 
 bool ComponentImpl::canAdoptChild(Node *child)

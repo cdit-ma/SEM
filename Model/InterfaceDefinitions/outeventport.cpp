@@ -1,6 +1,8 @@
 #include "outeventport.h"
 #include "../BehaviourDefinitions/outeventportimpl.h"
 #include "../DeploymentDefinitions/outeventportinstance.h"
+#include "aggregate.h"
+#include <QDebug>
 
 OutEventPort::OutEventPort(QString name):EventPort()
 {
@@ -20,6 +22,20 @@ QString OutEventPort::toString()
 
 bool OutEventPort::canConnect(Node* attachableObject)
 {
+    OutEventPortImpl* outEventPortImpl = dynamic_cast<OutEventPortImpl*>(attachableObject);
+    OutEventPortInstance* outEventPortInstance = dynamic_cast<OutEventPortInstance*>(attachableObject);
+    Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
+
+    if(outEventPortImpl && getImplementation()){
+        qWarning() << "A OutEventPort can only connect to one OutEventPortImpl. Detach First!";
+        return false;
+    }
+
+    if(!aggregate && !outEventPortImpl && !outEventPortInstance){
+        qWarning() << "A OutEventPort can only connect to a Aggregate, OutEventPortImpl or OutEventPortInstance.";
+        return false;
+    }
+
     return EventPort::canConnect(attachableObject);
 }
 
