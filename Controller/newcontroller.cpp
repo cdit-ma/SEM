@@ -84,10 +84,8 @@ NewController::~NewController()
 {
     emit view_SetSelectedAttributeModel(0);
     view_ClearSelection();
-    view_SelectAll();
-    view_DeletePressed(true);
 
-    delete model;
+    deleteNode(model);
 }
 
 QString NewController::exportGraphML(QVector<Node *> eNodes)
@@ -637,8 +635,6 @@ void NewController::view_CenterAggregate(Node *node)
 
         EventPort* eP = dynamic_cast<EventPort*>(node);
         if(eP && eP->getAggregate()){
-            qCritical() << eP->toString();
-            qCritical() << eP->getAggregate()->toString();
             view_SetNodeCentered(eP->getAggregate());
         }
     }

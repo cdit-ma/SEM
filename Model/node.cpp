@@ -307,7 +307,7 @@ void Node::unsetDefinition()
 void Node::addInstance(Node *inst)
 {
     if(isDefinition()){
-        qCritical() << toString() << " Added " << inst->toString() << "  as Instance";
+        //qCritical() << toString() << " Added " << inst->toString() << "  as Instance";
         if(!instances.contains(inst)){
             instances.append(inst);
             inst->setDefinition(this);

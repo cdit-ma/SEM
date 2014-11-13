@@ -17,7 +17,6 @@ QString ComponentImpl::toString()
 }
 
 
-
 bool ComponentImpl::canConnect(Node* attachableObject)
 {
     Component* component = dynamic_cast<Component*>(attachableObject);
