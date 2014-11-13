@@ -3,3 +3,4 @@
 NewMedeaWindow::NewMedeaWindow()
 {
 }
+//Do some work Cathlyn
