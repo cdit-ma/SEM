@@ -71,7 +71,10 @@ HEADERS += \
     Model/BehaviourDefinitions/memberinstance.h \
     ValidationEngine/validationengine.h \
     ValidationEngine/validationplugin.h \
-    ValidationEngine/Plugins/interfacedefinitionplugin.h
+    ValidationEngine/Plugins/interfacedefinitionplugin.h \
+    ValidationEngine/validationengine.h \
+    ValidationEngine/Plugins/interfacedefinitionplugin.h \
+    newmedeawindow.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -128,7 +131,9 @@ SOURCES += \
     Model/BehaviourDefinitions/memberinstance.cpp \
     ValidationEngine/validationengine.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
-    ValidationEngine/validationplugin.cpp
+    ValidationEngine/validationplugin.cpp \
+    ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
+    newmedeawindow.cpp
 
 FORMS += \
     medeawindow.ui \
