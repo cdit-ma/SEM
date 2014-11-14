@@ -408,6 +408,7 @@ void NodeItem::setRubberbandMode(bool On)
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(!drawObject){
+        event->setAccepted(false);
         return;
     }
 

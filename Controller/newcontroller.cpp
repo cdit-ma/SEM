@@ -2644,7 +2644,7 @@ void NewController::teardownInstance(Node *definition, Node *instance)
         }
     }
 
-    qCritical() << "Done Tearing Donw";
+    qCritical() << "Done Tearing Down";
 }
 
 bool NewController::isGraphMLValid(QString inputGraphML)
