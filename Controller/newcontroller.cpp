@@ -42,20 +42,20 @@ NewController::NewController(NodeView *v)
     viewAspects << "Assembly" << "Workload" << "Definitions";
     protectedKeyNames << "x" << "y" << "kind"; //<< "width" << "height";
 
-    nodeKinds << "Model";
-    nodeKinds << "MemberInstance" << "AggregateInstance";
-    nodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
-    nodeKinds << "HardwareDefinitions" << "AssemblyDefinitions";
-    nodeKinds << "File" << "Component" << "ComponentInstance" << "ComponentImpl";
-    nodeKinds << "Attribute" << "AttributeInstance" << "AttributeImpl";
-    nodeKinds << "InEventPort" << "InEventPortInstance" << "InEventPortImpl";
-    nodeKinds << "OutEventPort" << "OutEventPortInstance" << "OutEventPortImpl";
-    nodeKinds << "ComponentAssembly";
-    nodeKinds << "HardwareNode" << "HardwareCluster" ;
-    nodeKinds << "Member" << "Aggregate" << "AggregateMember";
-    nodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload";
 
+    containerNodeKinds << "Model";
+    containerNodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
+    containerNodeKinds << "HardwareDefinitions" << "AssemblyDefinitions";
 
+    constructableNodeKinds << "MemberInstance" << "AggregateInstance";
+    constructableNodeKinds << "File" << "Component" << "ComponentInstance" << "ComponentImpl";
+    constructableNodeKinds << "Attribute" << "AttributeInstance" << "AttributeImpl";
+    constructableNodeKinds << "InEventPort" << "InEventPortInstance" << "InEventPortImpl";
+    constructableNodeKinds << "OutEventPort" << "OutEventPortInstance" << "OutEventPortImpl";
+    constructableNodeKinds << "ComponentAssembly";
+    constructableNodeKinds << "HardwareNode" << "HardwareCluster" ;
+    constructableNodeKinds << "Member" << "Aggregate" << "AggregateMember";
+    constructableNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload";
 
     //Connect to the View's Signals
     connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
@@ -170,7 +170,7 @@ QStandardItemModel *NewController::getModel()
 
 QStringList NewController::getNodeKinds()
 {
-    return nodeKinds;
+    return constructableNodeKinds;
 }
 
 QStringList NewController::getViewAspects()
@@ -384,7 +384,9 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
             //If we have a nodeID to build
             if(nodeID != ""){
                 //Construct the specialised Node
-                Node* newNode = constructGraphMLNode(currentNodeData, currentParent);
+
+                Node* newNode = constructNodeChild(currentParent, currentNodeData);
+                //Node* newNode = constructGraphMLNode(currentNodeData, currentParent);
 
                 if(newNode == 0){
                      qCritical() << QString("Line #%1: Node Cannot Adopt child Node!").arg(xml.lineNumber());
@@ -848,32 +850,32 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
 
     bool okay;
     QInputDialog *dialog = new QInputDialog();
-    QString nodeType = dialog->getItem(0, "Selected Node Type","Please Select Child Node Type: ",this->getNodeKinds(),0,false, &okay);
-
-    if(!okay){
-        return;
-    }
-
 
     //Get the current Selected Node.
     Node* parent = getSelectedNode();
     if(!parent){
         parent = getParentModel();
-    }else{
+    }
 
-        if(parent->isInstance() || parent->isImpl()){
-            qCritical() << "Cannot Import or Copy and Paste into a Instace/Impl";
-            return;
-        }
+    if(parent->isInstance() || parent->isImpl()){
+        qCritical() << "Cannot Import or Copy and Paste into a Instace/Impl";
+        return;
+    }
 
-        NodeItem* nodeItem = getNodeItemFromNode(getSelectedNode());
-        if(nodeItem){
-            centerPoint = nodeItem->mapFromScene(centerPoint);
-        }
+    QString nodeKind = dialog->getItem(0, "Selected Node Type","Please Select Child Node Type: ",this->getAdoptableNodes(parent),0,false, &okay);
+
+    if(!okay){
+        return;
+    }
+
+    NodeItem* nodeItem = getNodeItemFromNode(parent);
+
+    if(nodeItem){
+        centerPoint = nodeItem->mapFromScene(centerPoint);
     }
 
     view_ActionTriggered("Constructing Child Node");
-    constructNode(parent, nodeType, centerPoint);
+    constructNodeChild(parent, constructGraphMLDataVector(nodeKind,centerPoint));
 }
 
 void NewController::view_ConstructChildNode()
@@ -1295,6 +1297,27 @@ bool NewController::copySelection()
     return true;
 }
 
+QStringList NewController::getAdoptableNodes(Node *parent)
+{
+
+    QStringList returnable;
+
+    foreach(QString kind, getNodeKinds()){
+
+        Node* nodeKind = constructNodeEntity(constructGraphMLDataVector(kind));
+
+        if(nodeKind && parent->canAdoptChild(nodeKind)){
+            qCritical() << parent->getDataValue("kind") << " Can Adopt " << kind;
+            returnable.append(kind);
+        }
+        if(nodeKind && !getNodeItemFromNode(nodeKind)){
+            delete nodeKind;
+        }
+    }
+
+    return returnable;
+}
+
 QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attrID)
 {
     QXmlStreamAttributes attributes = xml.attributes();
@@ -1621,28 +1644,239 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
     return attribute;
 }
 
-Node *NewController::constructNode(Node *parent, QString kind, QPointF position)
+
+Node *NewController::constructNodeEntity(QVector<GraphMLData *> dataToAttach)
 {
-    GraphMLKey* x = constructGraphMLKey("x", "double", "node");
-    GraphMLKey* y = constructGraphMLKey("y", "double", "node");
+    //The to-be-constructed node.
+    Node* node;
 
+    //Construct/Get Keys for the data we require.
+    GraphMLKey* widthKey = constructGraphMLKey("width", "double", "node");
+    GraphMLKey* heightKey = constructGraphMLKey("height", "double", "node");
+    GraphMLKey* xKey = constructGraphMLKey("x", "double", "node");
+    GraphMLKey* yKey = constructGraphMLKey("y", "double", "node");
+    GraphMLKey* kindKey = constructGraphMLKey("kind", "string", "node");
+    GraphMLKey* labelKey = constructGraphMLKey("label", "string", "node");
 
-    GraphMLKey* k = constructGraphMLKey("kind", "string", "node");
-    GraphMLKey* t = constructGraphMLKey("type", "string", "node");
-    GraphMLKey* l = constructGraphMLKey("label", "string", "node");
+    bool setWidth = true;
+    bool setHeight = true;
+    bool setX = true;
+    bool setY = true;
+    bool setLabel = true;
 
-    QVector<GraphMLData *> data;
+    QString nodeKind = "";
 
-    data.append(new GraphMLData(x, QString::number(position.x())));
-    data.append(new GraphMLData(y, QString::number(position.y())));
-    data.append(new GraphMLData(k, kind));
-    data.append(new GraphMLData(t, kind));
-    data.append(new GraphMLData(l, "new_" + kind ));
+    //Check Vector of data for X,Y, Width and Height.
+    //Also get nodeKind
+    foreach(GraphMLData* data, dataToAttach){
+        GraphMLKey* dataKey = data->getKey();
 
+        if(dataKey == kindKey){
+            //Get the kind of this Node
+            nodeKind = data->getValue();
+        }else if(dataKey == widthKey){
+            setWidth = false;
+        }else if(dataKey == heightKey){
+            setHeight = false;
+        }else if(dataKey == xKey){
+            setX = false;
+        }else if(dataKey == yKey){
+            setY = false;
+        }else if(dataKey == labelKey){
+            setLabel = false;
+        }
+    }
 
+    if(nodeKind == ""){
+        qCritical() << "Cannot Construct a Kind-less Node.";
+        return 0;
+    }
 
+    //Attach blank data to the Vector for the Unset Data Keys.
+    if(nodeKind != "Model"){
+        if(setWidth){
+            dataToAttach.append(new GraphMLData(widthKey, ""));
+        }
+        if(setHeight){
+            dataToAttach.append(new GraphMLData(heightKey, ""));
+        }
+        if(setX){
+            dataToAttach.append(new GraphMLData(xKey, ""));
+        }
+        if(setY){
+            dataToAttach.append(new GraphMLData(yKey, ""));
+        }
+        if(setLabel){
+            dataToAttach.append(new GraphMLData(labelKey, "new_" + nodeKind));
+        }
+    }
 
-    return constructGraphMLNode(data, parent);
+    //Construct Containers First.
+    if(nodeKind == "Model"){
+        //Check for an existing Model node.
+        if(!model){
+            model = new Model();
+        }
+        node = model;
+    }else if(nodeKind == "BehaviourDefinitions"){
+        if(!behaviourDefinitions){
+            behaviourDefinitions = new BehaviourDefinitions();
+        }
+        node = behaviourDefinitions;
+    }else if(nodeKind == "InterfaceDefinitions"){
+        if(!interfaceDefinitions){
+            interfaceDefinitions = new InterfaceDefinitions();
+        }
+        node = interfaceDefinitions;
+    }else if(nodeKind == "AssemblyDefinitions"){
+        if(!assemblyDefinitions){
+            assemblyDefinitions = new AssemblyDefinitions();
+        }
+        node = assemblyDefinitions;
+    }else if(nodeKind == "HardwareDefinitions"){
+        if(!hardwareDefinitions){
+            hardwareDefinitions = new HardwareDefinitions();
+        }
+        node = hardwareDefinitions;
+    }else if(nodeKind == "DeploymentDefinitions"){
+        if(!deploymentDefinitions){
+            deploymentDefinitions = new DeploymentDefinitions();
+        }
+        node = deploymentDefinitions;
+    }else if(nodeKind == "ComponentAssembly"){
+        node = new ComponentAssembly();
+    }else if(nodeKind == "Component"){
+        node = new Component();
+    }else if(nodeKind == "ComponentInstance"){
+        node = new ComponentInstance();
+    }else if(nodeKind == "ComponentImpl"){
+        node = new ComponentImpl();
+    }else if(nodeKind == "OutEventPort"){
+        node = new OutEventPort();
+    }else if(nodeKind == "OutEventPortInstance"){
+        node = new OutEventPortInstance();
+    }else if(nodeKind == "OutEventPortImpl"){
+        node = new OutEventPortImpl();
+    }else if(nodeKind == "InEventPort"){
+        node = new InEventPort();
+    }else if(nodeKind == "InEventPortInstance"){
+        node = new InEventPortInstance();
+    }else if(nodeKind == "InEventPortImpl"){
+        node = new InEventPortImpl();
+    }else if(nodeKind == "Attribute"){
+        node = new Attribute();
+    }else if(nodeKind == "AttributeInstance"){
+        node = new AttributeInstance();
+    }else if(nodeKind == "AttributeImpl"){
+        node = new AttributeImpl();
+    }else if(nodeKind == "HardwareNode"){
+        node = new HardwareNode();
+    }else if(nodeKind == "HardwareCluster"){
+        node = new HardwareCluster();
+    }else if(nodeKind == "File"){
+        node = new File();
+    }else if(nodeKind == "Member"){
+        node = new Member();
+    }else if(nodeKind == "Aggregate"){
+        node = new Aggregate();
+    }else if(nodeKind == "AggregateMember"){
+        node = new AggregateMember();
+    }else if(nodeKind == "AggregateInstance"){
+        node = new AggregateInstance();
+    }else if(nodeKind == "MemberInstance"){
+        node = new MemberInstance();
+    }else if(nodeKind == "BranchState"){
+        node = new BranchState();
+    }else if(nodeKind == "Condition"){
+        node = new Condition();
+    }else if(nodeKind == "PeriodicEvent"){
+        node = new PeriodicEvent();
+    }else if(nodeKind == "Workload"){
+        node = new Workload();
+    }else if(nodeKind == "Process"){
+        node = new Process();
+    }else if(nodeKind == "Termination"){
+        node = new Termination();
+    }else if(nodeKind == "Variable"){
+        node = new Variable();
+    }else{
+        qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
+        node = new BlankNode();
+    }
+
+    //Adds the data to the newly created Node.
+    //This will add Undo states to reverse.
+    attachGraphMLData(node, dataToAttach);
+
+    node->addAspect("Definitions");
+    return node;
+}
+
+Node *NewController::constructNodeChild(Node *parentNode, QVector<GraphMLData *> dataToAttach)
+{
+    Node* node = constructNodeEntity(dataToAttach);
+
+    //Check if this node has been Setup Visually.
+    if(getNodeItemFromNode(node)){
+        return node;
+    }
+
+    //If the node wasn't constructed, return.0
+    if(!node){
+        return 0;
+    }
+
+    //If we have no parentNode, attempt to attach it to the Model.
+    if(!parentNode){
+        parentNode = model;
+    }
+
+    if(parentNode->canAdoptChild(node)){
+        parentNode->addChild(node);
+        //SetupNode
+        setupNode(node);
+    }else{
+        qCritical() << "Node: " << parentNode->toString() << " Cannot Adopt: " << node->toString();
+
+        //Delete the newly created node.
+        delete node;
+        node = 0;
+
+        //TODO: Implement the UNDO of GraphMLData added to Undo Stack.
+    }
+
+    if(node->isDefinition()){
+        qCritical() << "Make Instance?!";
+        foreach(Node* child, parentNode->getInstances()){
+            constructNodeInstance(child, node);
+        }
+        if(parentNode->getImplementation()){
+            constructNodeImpl(parentNode->getImplementation(), node);
+        }
+    }
+
+    return node;
+}
+
+QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind, QPointF relativePosition)
+{
+    GraphMLKey* kindKey = constructGraphMLKey("kind", "string", "node");
+    GraphMLKey* xKey = constructGraphMLKey("x", "double", "node");
+    GraphMLKey* yKey = constructGraphMLKey("y", "double", "node");
+
+    QVector<GraphMLData*> data;
+
+    data.append(new GraphMLData(kindKey, nodeKind));
+    data.append(new GraphMLData(xKey, QString::number(relativePosition.x())));
+    data.append(new GraphMLData(yKey, QString::number(relativePosition.y())));
+
+    return data;
+}
+
+QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind)
+{
+    //No Position provided, so call with a Blank Point.
+    return constructGraphMLDataVector(nodeKind, QPointF(0,0));
 }
 
 Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool forceCreate)
@@ -1658,14 +1892,6 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool 
 
             if(keyName == "kind"){
                 modifier += "Instance";
-                if(attachedData->getValue() == "Attribute"){
-                    /*
-                    GraphMLKey* valueKey = constructGraphMLKey("value", "string","node");
-                    GraphMLData* valueData = new GraphMLData(valueKey, valueKey->getDefaultValue());
-                    data.append(valueData);
-                    */
-                }
-
             }
             GraphMLData* kindData = new GraphMLData(attachedData->getKey(), attachedData->getValue() + modifier);
 
@@ -1714,7 +1940,8 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool 
         }
     }
     if(!instance){
-        instance =  constructGraphMLNode(data, parent);
+        instance = constructNodeChild(parent, data);
+        //instance =  constructGraphMLNode(data, parent);
     }
 
     view_ConstructEdge(definition, instance);
@@ -1779,7 +2006,8 @@ Node *NewController::constructNodeImpl(Node *parent, Node *definition, bool forc
 
     if(!impl){
         qCritical() << "Making impl";
-        impl =  constructGraphMLNode(data, parent);
+        impl = constructNodeChild(parent, data);
+        //impl =  constructGraphMLNode(data, parent);
     }
 
     view_ConstructEdge(definition, impl);
@@ -2153,7 +2381,7 @@ bool NewController::isEdgeLegal(Node *src, Node *dst)
 
 bool NewController::isNodeKindImplemented(QString nodeKind)
 {
-    return nodeKinds.contains(nodeKind);
+    return containerNodeKinds.contains(nodeKind) || constructableNodeKinds.contains(nodeKind);
 }
 
 void NewController::reverseAction(ActionItem action)
@@ -2291,26 +2519,30 @@ void NewController::attachGraphMLData(GraphML *item, QVector<QStringList> dataLi
 
 void NewController::attachGraphMLData(GraphML *item, QVector<GraphMLData *> dataList)
 {
-    if(item){
-        foreach(GraphMLData* data, dataList){
-            GraphMLData* containedData = item->getData(data->getKey());
-            if(containedData){
-                qWarning() << item->toString() << " Found duplicate Data for key: " << data->getKeyName() << " Updating Value instead.";
-                //Update so we have an Undo.
-                view_UpdateGraphMLData(item, data->getKeyName(), data->getValue());
-            }else{
-                //We are adding new data to an existing
-                if(getNodeItemFromGraphML(item)){
-                    //Add action!
-                    ActionItem action;
-                    action.ID = item->getID();
-                    action.actionType = CONSTRUCTED;
-                    action.actionKind = GraphML::DATA;
-                    action.keyName = data->getKeyName();
-                    addActionToStack(action);
-                }
-                item->attachData(data);
+    if(!item){
+        qCritical() << "No Item.";
+        return;
+    }
+
+
+    foreach(GraphMLData* data, dataList){
+        GraphMLData* containedData = item->getData(data->getKey());
+        if(containedData){
+            qWarning() << item->toString() << " Found duplicate Data for key: " << data->getKeyName() << " Updating Value instead.";
+            //Update so we have an Undo.
+            view_UpdateGraphMLData(item, data->getKeyName(), data->getValue());
+        }else{
+            //We are adding new data to an existing
+            if(getNodeItemFromGraphML(item)){
+                //Add action!
+                ActionItem action;
+                action.ID = item->getID();
+                action.actionType = CONSTRUCTED;
+                action.actionKind = GraphML::DATA;
+                action.keyName = data->getKeyName();
+                addActionToStack(action);
             }
+            item->attachData(data);
         }
     }
 }
@@ -2461,34 +2693,34 @@ void NewController::setupNode(Node *node)
 
     nodes.append(node);
 
-
     view_ConstructNodeItem(node);
 }
 
 void NewController::setupModel()
 {
-    GraphMLKey* label = constructGraphMLKey("label", "string", "node");
-    GraphMLKey* k = constructGraphMLKey("kind", "string", "node");
+    QVector<GraphMLData *> data = constructGraphMLDataVector("Model");
 
-    QVector<GraphMLData *> data;
+    //Construct a Label Data for the Model.
+    GraphMLKey* labelKey = constructGraphMLKey("label", "string", "node");
+    GraphMLData* labelData = new GraphMLData(labelKey, "New Project");
+    data.append(labelData);
 
-    data.append(new GraphMLData(k, "Model"));
+    //Connect the dataChanging with the ProjectName changed slot.
+    connect(labelData, SIGNAL(dataChanged(GraphMLData*)), this, SLOT(view_ProjectNameUpdated(GraphMLData*)));
 
-    GraphMLData* labelD = new GraphMLData(label, "New Project");
+    Node* modelNode = constructNodeEntity(data);
+    setupNode(modelNode);
 
-    data.append(labelD);
-    connect(labelD, SIGNAL(dataChanged(GraphMLData*)), this, SLOT(view_ProjectNameUpdated(GraphMLData*)));
+    //Construct the top level parents.
+    constructNodeChild(model, constructGraphMLDataVector("BehaviourDefinitions"));
+    constructNodeChild(model, constructGraphMLDataVector("InterfaceDefinitions"));
+    constructNodeChild(model, constructGraphMLDataVector("DeploymentDefinitions"));
 
-    constructGraphMLNode(data);
-    constructNode(model,"BehaviourDefinitions",QPointF(0,0));
-    constructNode(model,"InterfaceDefinitions",QPointF(0,0));
-    constructNode(model,"DeploymentDefinitions",QPointF(0,0));
+    //Construct the second level containers.
+    constructNodeChild(deploymentDefinitions, constructGraphMLDataVector("AssemblyDefinitions"));
+    constructNodeChild(deploymentDefinitions, constructGraphMLDataVector("HardwareDefinitions"));
 
-    constructNode(deploymentDefinitions,"AssemblyDefinitions",QPointF(0,0));
-    constructNode(deploymentDefinitions,"HardwareDefinitions",QPointF(0,0));
-
-
-
+    //Update the Labels.
     behaviourDefinitions->updateDataValue("label", "Behaviour Definitions");
     interfaceDefinitions->updateDataValue("label", "Interface Definitions");
     deploymentDefinitions->updateDataValue("label", "Deployment Definitions");
@@ -2497,9 +2729,9 @@ void NewController::setupModel()
 
     view_SortModel();
 
+    //Clear the Undo/Redo Stacks
     undoStack.clear();
     redoStack.clear();
-
 }
 
 void NewController::setupValidator()
@@ -2535,9 +2767,7 @@ void NewController::setupInstance(Node *definition, Node *instance)
                 }
             }
             if(newData){
-                if(attachedData->getProtected()){
-                    attachedData->bindData(newData);
-                }
+                attachedData->bindData(newData);
             }
         }
     }
@@ -2592,6 +2822,7 @@ void NewController::setupAggregate(EventPort *eventPort, Aggregate *aggregate)
     eventPort->setAggregate(aggregate);
     Node* implementation = eventPort->getImplementation();
     if(implementation){
+        qCritical() << "Setting up Aggregate Flatenning";
         constructNodeInstance(implementation, aggregate);
     }
 }

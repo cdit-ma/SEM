@@ -21,11 +21,14 @@ QString Attribute::toString()
 
 bool Attribute::canConnect(Node* attachableObject)
 {
+    AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(attachableObject);
+    AttributeInstance* attributeInstance = dynamic_cast<AttributeInstance*>(attachableObject);
+
+
     return Node::canConnect(attachableObject);
 }
 
 bool Attribute::canAdoptChild(Node *child)
 {
-    return true;
-
+    return false;
 }

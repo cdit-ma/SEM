@@ -1,6 +1,9 @@
 #include "component.h"
 #include "../BehaviourDefinitions/componentimpl.h"
 #include "../DeploymentDefinitions/componentinstance.h"
+#include "outeventport.h"
+#include "ineventport.h"
+#include "attribute.h"
 #include <QDebug>
 
 Component::Component(QString name): Node(Node::NT_DEFINITION)
@@ -39,5 +42,14 @@ bool Component::canConnect(Node* attachableObject)
 
 bool Component::canAdoptChild(Node *child)
 {
-    return true;
+    OutEventPort* outEventPort  = dynamic_cast<OutEventPort*>(child);
+    InEventPort* inEventPort  = dynamic_cast<InEventPort*>(child);
+    Attribute* attribute  = dynamic_cast<Attribute*>(child);
+
+    if(!outEventPort && !inEventPort && !attribute){
+        qWarning() << "Can only adopt an OutEventPort, an InEventPort or an Attribute in a Component.";
+        return false;
+    }
+
+    return Node::canAdoptChild(child);
 }

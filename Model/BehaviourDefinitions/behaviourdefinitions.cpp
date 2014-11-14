@@ -28,11 +28,9 @@ bool BehaviourDefinitions::canAdoptChild(Node *child)
 {
     ComponentImpl* component = dynamic_cast<ComponentImpl *>(child);
 
-    if(component == 0){
+    if(!component){
         qWarning() << "Behaviour Definitions can only adopt a Component Node";
-        return true;
-
+        return false;
     }
-
-    return true;
+    return Node::canAdoptChild(child);
 }

@@ -44,6 +44,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     ui->actionNew_Project->trigger();
     this->setSelectedProject(projectWindows[0]);
 
+    /*
     QFile file("C:/base.graphml");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
@@ -59,6 +60,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     emit view_PasteData(xmlText);
 
     updateProgressBar(100,"");
+    */
     //ui->actionImport_GraphML->trigger();
 }
 

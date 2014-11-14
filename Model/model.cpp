@@ -22,7 +22,16 @@ QString Model::toString()
 
 bool Model::canAdoptChild(Node *child)
 {
-    return true;
+    InterfaceDefinitions* interfaceDefinitions = dynamic_cast<InterfaceDefinitions*>(child);
+    DeploymentDefinitions* deploymentDefinitions = dynamic_cast<DeploymentDefinitions*>(child);
+    BehaviourDefinitions* behaviourDefinitions = dynamic_cast<BehaviourDefinitions*>(child);
+
+    if(!interfaceDefinitions && !deploymentDefinitions && !behaviourDefinitions){
+        qWarning() << "Model can only adopt interfaceDefinitions, deploymentDefinitions, interfaceDefinitions";
+        return false;
+    }
+
+    return Node::canAdoptChild(child);
 }
 
 QString Model::toGraphML(qint32 indentationLevel)

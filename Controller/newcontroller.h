@@ -123,6 +123,7 @@ public slots:
     void view_SetNodeCentered(Node* node);
     void view_ConstructChildNode(QPointF centerPoint);
     void view_ConstructChildNode();
+
     void view_ConstructEdge(Node* src, Node* dst);
     void view_ConstructEdge(Node* src, Node* dst, QVector<GraphMLData*>data, QString previousID=0);
     void view_ConstructEdge(Node* src, Node* dst, QVector<QStringList> data, QString previousID=0);
@@ -166,6 +167,8 @@ private slots:
 
 private:
     bool copySelection();
+
+    QStringList getAdoptableNodes(Node* parent);
     //Gets a specific Attribute from the current Element in the XML. returns "" if none.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attrID);
 
@@ -175,8 +178,15 @@ private:
     //Construct a GraphMLKey.
     GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
 
-    //Construct a specified Node type given the attached data.
-    Node* constructNode(Node* parent, QString kind, QPointF position);
+
+
+    Node* constructNodeEntity(QVector<GraphMLData*> dataToAttach);
+    Node* constructNodeChild(Node* parentNode, QVector<GraphMLData*> dataToAttach);
+
+    QVector<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition);
+    QVector<GraphMLData*> constructGraphMLDataVector(QString nodeKind);
+
+
     Node* constructNodeInstance(Node* parent, Node* definition,  bool forceCreate = false);
     Node* constructNodeImpl(Node* parent, Node* definition,  bool forceCreate = false);
 
@@ -282,7 +292,8 @@ private:
 
     Node* centeredNode;
 
-    QStringList nodeKinds;
+    QStringList containerNodeKinds;
+    QStringList constructableNodeKinds;
 
     QStringList viewAspects;
     QStringList protectedKeyNames;
