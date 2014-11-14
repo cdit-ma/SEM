@@ -1,6 +1,6 @@
 #include "newmedeawindow.h"
 
-
-NewMedeaWindow::NewMedeaWindow()
+NewMedeaWindow::NewMedeaWindow(QWidget *parent) :
+    QMainWindow(parent)
 {
 }
