@@ -3,7 +3,7 @@
 #include <QDebug>
 
 
-AggregateMember::AggregateMember(QString name):Node()
+AggregateMember::AggregateMember(QString name):Node(Node::NT_DEFINITION)
 {
     def = 0;
 }
@@ -21,7 +21,7 @@ QString AggregateMember::toString()
 bool AggregateMember::canConnect(Node* attachableObject)
 {
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
-    if (aggregate || edgeCount() > 0){
+    if (!aggregate || edgeCount() > 0){
         qWarning() << "Can only connect to one Aggregate!";
         return false;
     }

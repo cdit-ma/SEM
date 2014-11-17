@@ -441,29 +441,32 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
         Node* d = nodeLookup[edge.target];
 
         if(s && d){
+            qCritical() << "Edge: " << s->toString() << " to " << d->toString();
             if(s->isDefinition() || d->isDefinition()){
                 if(s->isInstance() || d->isInstance()){
-                    //qWarning() << "Got Instance Edge";
+                    qWarning() << "\tInstance Edge";
                     instanceEdges.append(edge);
                     continue;
                 }else if(s->isImpl() || d->isImpl()){
-                    //qWarning() << "Got Impl Edge";
+                    qWarning() << "\t Impl Edge";
                     implEdges.append(edge);
                     continue;
                 }else if(s->getDataValue("kind") == "Aggregate" || d->getDataValue("kind") == "Aggregate" ){
-                    //qWarning() << "Got Aggregate Edge";
+                    qWarning() << "\tAggregate Edge";
                     aggregateEdges.append(edge);
                     continue;
                 }
             }
+            qWarning() << "\tNormal Edge";
             otherEdges.append(edge);
+            qWarning() << "";
         }
     }
 
     QVector<EdgeTemp> allEdges;
-    allEdges << aggregateEdges;
     allEdges << implEdges;
     allEdges << instanceEdges;
+    allEdges << aggregateEdges;
     allEdges << otherEdges;
 
     //Construct the Edges from the EdgeTemp objects
@@ -578,7 +581,9 @@ void NewController::view_ConstructComponentInstance(Component *definition)
     if(definition){
         view_ActionTriggered("Constructing Component Instance.");
         Node* node = constructNodeInstance(assemblyDefinitions, definition, true);
-        view_SetNodeCentered(node);
+        if(node){
+            view_SetNodeCentered(node);
+        }
     }
 }
 
@@ -888,8 +893,6 @@ void NewController::view_ConstructEdge(Node *src, Node *dst)
 {
     QVector<QStringList> noData;
 
-
-
     view_ConstructEdge(src, dst, noData);
 }
 
@@ -900,8 +903,8 @@ void NewController::view_ConstructEdge(Node *src, Node *dst, QVector<GraphMLData
 
     Node* temp;
     bool swapOrder = false;
-    if(srcKind == "Aggregate" || dst->isDefinition()){
-        swapOrder=true;
+    if((srcKind == "Aggregate" && dstKind != "AggregateInstance") || dst->isDefinition()){
+        swapOrder = true;
     }
 
     if(swapOrder){
@@ -1845,7 +1848,7 @@ Node *NewController::constructNodeChild(Node *parentNode, QVector<GraphMLData *>
         //TODO: Implement the UNDO of GraphMLData added to Undo Stack.
     }
 
-    if(node->isDefinition()){
+    if(node && node->isDefinition()){
         qCritical() << "Make Instance?!";
         foreach(Node* child, parentNode->getInstances()){
             constructNodeInstance(child, node);
@@ -1916,19 +1919,24 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool 
             GraphMLData* matchingData = child->getData(key);
 
             if(child->getDefinition()){
-                allMatched = false;
-                break;
+                if(!(definition->isAncestorOf(child->getDefinition()) || definition == child->getDefinition())){
+                    qCritical() << "Child has a non contained definition!";
+                    allMatched = false;
+                    break;
+                }
             }
             if(!matchingData){
+                qCritical() << "Child has no data for type: " << keyName;
                 allMatched = false;
                 break;
             }else{
                 if(keyName == "kind" && value != matchingData->getValue() ){
+                    qCritical() << "kind "<< value << " != " << matchingData->getValue();
                     allMatched = false;
                     break;
                 }
                 if(keyName == "label" && value != matchingData->getValue()){
-                    if(child)
+                    qCritical() << "label "<< value << " != " << matchingData->getValue();
                     allMatched = false;
                     break;
                 }
@@ -1939,12 +1947,21 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool 
             instance = child;
         }
     }
+
+    qCritical () << "Instance";
+
     if(!instance){
         instance = constructNodeChild(parent, data);
-        //instance =  constructGraphMLNode(data, parent);
     }
 
-    view_ConstructEdge(definition, instance);
+    if(instance){
+        qCritical() << "Instance";
+        qCritical() << definition->toString();
+        qCritical() << instance->toString();
+
+        view_ConstructEdge(definition, instance);
+    }
+
     return instance;
 }
 
@@ -2187,9 +2204,11 @@ bool NewController::deleteNode(Node *node)
 
         if(node->getParentNode()){
             if((node->getParentNode()->isInstance() || node->getParentNode()->isImpl()) && node->getParentNode()->getDefinition() != 0 && node->getDefinition()){
-               //Cannot delete Child node.
-                qCritical() << "Cannot delete Instance's inheritted child. Must be deleted from Definition.";
-                return false;
+               if(node->getDefinition()){
+                   //Cannot delete Child node.
+                   qCritical() << "Cannot delete Instance's inheritted child. Must be deleted from Definition.";
+                   return false;
+               }
             }
         }
 
@@ -2301,16 +2320,26 @@ bool NewController::deleteEdge(Edge *edge, bool addAction)
         if(edge->isImplLink()){
             qCritical() << "Got New Impl Link";
             //Delete Instances/Impls
-            tearDownImpl(edge->getSource(),edge->getDestination());
+            tearDownImpl(edge->getSource(), edge->getDestination());
         }
 
         if(edge->isAggregateLink()){
             qCritical() << "Got New Instance Link";
 
+            Aggregate* aggregate = dynamic_cast<Aggregate*>(edge->getDestination());
             EventPort* eP = dynamic_cast<EventPort*>(edge->getSource());
             if(eP){
-                qCritical() << "Unsetting Aggreaget";
+                qCritical() << "Unsetting Aggregate";
                 eP->unsetAggregate();
+            }
+            Node* impl = eP->getImplementation();
+
+            foreach(Node* child, impl->getChildren(0)){
+                if(child->isConnected(aggregate)){
+                    qCritical() << "Got Aggregate Child!";
+                    child->setDefinition(0);
+                    setNodeSelected(child, true);
+                }
             }
         }
 
@@ -2781,6 +2810,8 @@ void NewController::setupInstance(Node *definition, Node *instance)
 
     //Specific
     definition->addInstance(instance);
+    qCritical() << "Definition: " << definition->toString() << " set  Instance: " << instance->toString();
+
 }
 
 void NewController::setupImpl(Node *definition, Node *impl)
@@ -2814,6 +2845,8 @@ void NewController::setupImpl(Node *definition, Node *impl)
 
     //Specific
     definition->setImplementation(impl);
+
+    qCritical() << "Definition: " << definition->toString() << " set Impl: " << impl->toString();
 }
 
 void NewController::setupAggregate(EventPort *eventPort, Aggregate *aggregate)
@@ -2822,8 +2855,11 @@ void NewController::setupAggregate(EventPort *eventPort, Aggregate *aggregate)
     eventPort->setAggregate(aggregate);
     Node* implementation = eventPort->getImplementation();
     if(implementation){
-        qCritical() << "Setting up Aggregate Flatenning";
         constructNodeInstance(implementation, aggregate);
+        qCritical() << "Implementation: " << implementation->toString() << " set Aggregate: " << aggregate->toString();
+
+    }else{
+        qCritical() << eventPort->toString() << " Has no implementation!?";
     }
 }
 
@@ -2909,6 +2945,8 @@ void NewController::setupEdge(Edge *edge)
 
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
+
+    qCritical() << src->toString() << " Connects " << dst->toString();
 
     if(src->isDefinition() && (dst->isInstance() || dst->isImpl())){
         //Check the types.
