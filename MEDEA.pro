@@ -137,4 +137,5 @@ SOURCES += \
 
 FORMS += \
     medeawindow.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    newmedeawindow.ui

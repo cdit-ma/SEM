@@ -1,19 +1,22 @@
 #include <QApplication>
 #include <QtDebug>
 
-#include "medeawindow.h"
-#include "mainwindow.h"
+#include "newmedeawindow.h"
+//#include "medeawindow.h"
+//#include "mainwindow.h"
 #include <QDebug>
 
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MedeaWindow w;
+    //MedeaWindow w;
     //MainWindow w2;
+    NewMedeaWindow w3;
 
-    w.show();
+    w3.show();
     //w2.show();
+    //w3.show();
 
     return a.exec();
 }
