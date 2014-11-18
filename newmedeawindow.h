@@ -22,7 +22,7 @@
 #include "GUI/projectwindow.h"
 #include "GUI/attributetablemodel.h"
 #include "GUI/filterbutton.h"
-
+//Modified
 namespace Ui {
 class NewMedeaWindow;
 }
