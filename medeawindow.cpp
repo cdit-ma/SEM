@@ -14,7 +14,6 @@
 #include <QPushButton>
 #include <QItemSelectionModel>
 
-//Comment
 
 
 MedeaWindow::MedeaWindow(QWidget *parent) :

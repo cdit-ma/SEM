@@ -1,6 +1,6 @@
 #include "newmedeawindow.h"
 #include "ui_newmedeawindow.h"
-//Comment
+
 
 NewMedeaWindow::NewMedeaWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -8,12 +8,14 @@ NewMedeaWindow::NewMedeaWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    // Initialise graphicsview and scene
     scene = new QGraphicsScene(this);
     view = new QGraphicsView(scene, this);
     box = new QGroupBox(this);
     scene->addWidget(box);
 
-    int windowWidth = 1200;
+    // set window size; used for graphicsview and groupbox
+    int windowWidth = 1400;
     int windowHeight = 800;
 
     this->setCentralWidget(view);
@@ -22,6 +24,7 @@ NewMedeaWindow::NewMedeaWindow(QWidget *parent) :
     box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     box->setMinimumSize(view->width(), view->height());
 
+    // layouts and spacer items
     QHBoxLayout *mainHlayout = new QHBoxLayout(this);
     QVBoxLayout *leftVlayout = new QVBoxLayout(this);
     QVBoxLayout *rightVlayout = new QVBoxLayout(this);
@@ -29,9 +32,11 @@ NewMedeaWindow::NewMedeaWindow(QWidget *parent) :
     QHBoxLayout *searchLayout = new QHBoxLayout(this);
     QSpacerItem *vSpacer = new QSpacerItem(20, 30, QSizePolicy::Expanding, QSizePolicy::Expanding);
 
+    // initialise other private variables
     projectName = new QLabel(" Project Name");
     projectName->setStyleSheet("font-size: 16px;");
     menuButton = new QPushButton("Menu", this);
+    menu = new QMenu("+", this);
     searchBar = new QLineEdit(this);
     searchButton = new QPushButton("Search", this);
     assemblyButton = new QPushButton("Assembly", this);
@@ -40,12 +45,20 @@ NewMedeaWindow::NewMedeaWindow(QWidget *parent) :
     dataTable = new QTableView(this);
     notificationArea = new QTextEdit("Notifications can be displayed here.", this);
 
+    // menu button/actions
+    menu_newProject = menu->addAction("New Project");
+    menu_importGraphML = menu->addAction("Import");
+    menuButton->setMenu(menu);
+
+    // set buttons' sizes
     menuButton->setFixedWidth(50);
     assemblyButton->setMinimumHeight(40);
     workloadButton->setMinimumHeight(40);
     definitionsButton->setMinimumHeight(40);
+
     notificationArea->setEnabled(false);
 
+    // add widgets and layouts
     titleLayout->addWidget(menuButton, 1);
     titleLayout->addWidget(projectName, 8);
     searchLayout->addWidget(searchBar, 3);
@@ -61,6 +74,7 @@ NewMedeaWindow::NewMedeaWindow(QWidget *parent) :
     rightVlayout->addWidget(dataTable, 4);
     rightVlayout->addSpacerItem(vSpacer);
     rightVlayout->addWidget(notificationArea, 1);
+    rightVlayout->addSpacerItem(vSpacer);
 
     mainHlayout->addLayout(leftVlayout, 4);
     mainHlayout->addLayout(rightVlayout, 1);

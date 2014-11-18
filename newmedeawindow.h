@@ -10,6 +10,8 @@
 #include <QPushButton>
 #include <QTableView>
 #include <QTextEdit>
+#include <QMenu>
+#include <QAction>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -22,7 +24,7 @@
 #include "GUI/projectwindow.h"
 #include "GUI/attributetablemodel.h"
 #include "GUI/filterbutton.h"
-//Modified
+
 namespace Ui {
 class NewMedeaWindow;
 }
@@ -83,6 +85,10 @@ private:
     QPushButton *definitionsButton;
     QTableView *dataTable;
     QTextEdit *notificationArea;
+
+    QMenu *menu;
+    QAction *menu_newProject;
+    QAction *menu_importGraphML;
 };
 
 #endif // NEWMEDEAWINDOW_H
