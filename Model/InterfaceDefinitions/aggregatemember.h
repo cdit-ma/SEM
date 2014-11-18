@@ -8,7 +8,7 @@ class AggregateMember : public Node
 {
     Q_OBJECT
 public:
-    AggregateM ember(QString name ="");
+    AggregateMember(QString name ="");
     ~AggregateMember();
     // GraphML interface
 public:
@@ -18,9 +18,6 @@ public:
 public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
-
-private:
-    Aggregate* def;
 };
 
 

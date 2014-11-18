@@ -5,7 +5,6 @@
 
 AggregateMember::AggregateMember(QString name):Node(Node::NT_DEFINITION)
 {
-    def = 0;
 }
 
 AggregateMember::~AggregateMember()
