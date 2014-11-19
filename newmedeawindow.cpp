@@ -1,12 +1,16 @@
 #include "newmedeawindow.h"
 #include "ui_newmedeawindow.h"
 
+#include <QMenuBar>
 
 NewMedeaWindow::NewMedeaWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::NewMedeaWindow)
 {
     ui->setupUi(this);
+
+    QMenuBar *menuBar = this->menuBar();
+    menuBar->addMenu(tr("File"));
 
     // Initialise graphicsview and scene
     scene = new QGraphicsScene(this);
@@ -19,6 +23,7 @@ NewMedeaWindow::NewMedeaWindow(QWidget *parent) :
     int windowHeight = 800;
 
     this->setCentralWidget(view);
+    //view->fitInView(this->x(), this->y(), this->width(), this->height(), Qt::IgnoreAspectRatio);
     this->setMinimumSize(windowWidth, windowHeight);
     view->setMinimumSize(windowWidth, windowHeight);
     box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
