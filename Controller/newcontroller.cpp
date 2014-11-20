@@ -47,7 +47,7 @@ NewController::NewController(NodeView *v)
     containerNodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
     containerNodeKinds << "HardwareDefinitions" << "AssemblyDefinitions";
 
-    constructableNodeKinds << "MemberInstance" << "AggregateInstance";
+    constructableNodeKinds << "MemberInstance" << "AggregateInstance" << "AggregateMemberInstance";
     constructableNodeKinds << "File" << "Component" << "ComponentInstance" << "ComponentImpl";
     constructableNodeKinds << "Attribute" << "AttributeInstance" << "AttributeImpl";
     constructableNodeKinds << "InEventPort" << "InEventPortInstance" << "InEventPortImpl";
@@ -862,8 +862,8 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
         parent = getParentModel();
     }
 
-    if(parent->isInstance() || parent->isImpl()){
-        qCritical() << "Cannot Import or Copy and Paste into a Instace/Impl";
+    if(parent->isInstance()){
+        qCritical() << "Cannot Import or Paste into an Instance!";
         return;
     }
 
@@ -1784,6 +1784,8 @@ Node *NewController::constructNodeEntity(QVector<GraphMLData *> dataToAttach)
         node = new Aggregate();
     }else if(nodeKind == "AggregateMember"){
         node = new AggregateMember();
+    }else if(nodeKind == "AggregateMemberInstance"){
+        node = new AggregateMemberInstance();
     }else if(nodeKind == "AggregateInstance"){
         node = new AggregateInstance();
     }else if(nodeKind == "MemberInstance"){
@@ -1890,13 +1892,16 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool 
 
     foreach(GraphMLData* attachedData, definition->getData()){
         QString keyName = attachedData->getKeyName();
+        QString keyValue = attachedData->getValue();
         if(keyName == "kind" || keyName == "label" || keyName == "x" || keyName == "y"){
             QString modifier = "";
 
             if(keyName == "kind"){
-                modifier += "Instance";
+                if(keyValue != "AggregateInstance" && keyValue != "MemberInstance"){
+                    modifier += "Instance";
+                }
             }
-            GraphMLData* kindData = new GraphMLData(attachedData->getKey(), attachedData->getValue() + modifier);
+            GraphMLData* kindData = new GraphMLData(attachedData->getKey(), keyValue + modifier);
 
             kindData->setProtected(true);
 
@@ -1925,6 +1930,7 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool 
                     break;
                 }
             }
+
             if(!matchingData){
                 qCritical() << "Child has no data for type: " << keyName;
                 allMatched = false;
@@ -1948,17 +1954,18 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool 
         }
     }
 
-    qCritical () << "Instance";
 
     if(!instance){
+        qCritical() << "Creating Instance";
+        if(parent->isDefinition()){
+            qCritical() << "Maybe Broken";
+
+        }
+
         instance = constructNodeChild(parent, data);
     }
 
     if(instance){
-        qCritical() << "Instance";
-        qCritical() << definition->toString();
-        qCritical() << instance->toString();
-
         view_ConstructEdge(definition, instance);
     }
 
@@ -2804,8 +2811,27 @@ void NewController::setupInstance(Node *definition, Node *instance)
 
     foreach(Node* child, definition->getChildren(0)){
         if(child->isDefinition()){
-            constructNodeInstance(instance, child);
-        }
+            /*
+            AggregateMember* aM = dynamic_cast<AggregateMember*>(child);
+
+            if(aM){
+                QVector<Edge*> aMEdges = aM->getEdges(0);
+                if(aMEdges.size() == 1){
+                    Edge* edge = aMEdges[0];
+                    Node* src = edge->getSource();
+                    Node* dst = edge->getDestination();
+
+                    if(src == child){
+                        constructNodeInstance(instance, dst);
+                    }else{
+                        constructNodeInstance(instance, src);
+                    }
+                }
+            }else{
+            */
+                constructNodeInstance(instance, child);
+            }
+       // }
     }
 
     //Specific
@@ -2948,7 +2974,10 @@ void NewController::setupEdge(Edge *edge)
 
     qCritical() << src->toString() << " Connects " << dst->toString();
 
+    qCritical() << src->isDefinition();
+    qCritical() << dst->isInstance();
     if(src->isDefinition() && (dst->isInstance() || dst->isImpl())){
+        qCritical() << "Checking types";
         //Check the types.
         QString srcKind = src->getDataValue("kind");
         QString dstKind = dst->getDataValue("kind");
@@ -2959,6 +2988,12 @@ void NewController::setupEdge(Edge *edge)
         }else if(srcKind + "Impl" == dstKind){
             qDebug() << "Setting up Impl";
             setupImpl(src, dst);
+        }else if(srcKind == "AggregateInstance" && dstKind == "AggregateInstance"){
+            qDebug() << "Setting up Aggregate Instance";
+            setupInstance(src, dst);
+        }else if(srcKind == "MemberInstance" && dstKind == "MemberInstance"){
+            qDebug() << "Setting up Aggregate Instance";
+            setupInstance(src, dst);
         }
     }
 

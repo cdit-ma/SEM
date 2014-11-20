@@ -25,6 +25,7 @@
 
 #include "BehaviourDefinitions/aggregateinstance.h"
 #include "BehaviourDefinitions/memberinstance.h"
+#include "BehaviourDefinitions/aggregatememberinstance.h"
 
 #include "BehaviourDefinitions/periodicevent.h"
 

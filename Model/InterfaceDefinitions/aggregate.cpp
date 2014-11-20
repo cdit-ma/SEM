@@ -63,10 +63,11 @@ bool Aggregate::canConnect(Node* attachableObject)
 bool Aggregate::canAdoptChild(Node *child)
 {
     AggregateMember* aggregateMember = dynamic_cast<AggregateMember*>(child);
+    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
     Member* member = dynamic_cast<Member*>(child);
 
-    if(!member && !aggregateMember){
-        qWarning() << "Aggregate can only adopt Member/Aggregates";
+    if(!member && !aggregateMember && !aggregateInstance){
+        qWarning() << "Aggregate can only adopt Member/Instances";
         return false;
     }
 

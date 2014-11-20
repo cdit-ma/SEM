@@ -13,7 +13,7 @@ class Node : public GraphML
     friend class Edge;
 public:
     //Enum for Node Types
-    enum NODE_TYPE {NT_NODE, NT_DEFINITION, NT_INSTANCE, NT_IMPL};
+    enum NODE_TYPE {NT_NODE, NT_DEFINITION, NT_INSTANCE, NT_IMPL, NT_DEFINSTANCE};
 
     //Constuctor
     Node(NODE_TYPE type = NT_NODE);

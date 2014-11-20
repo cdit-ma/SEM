@@ -273,12 +273,12 @@ QString Node::toGraphML(qint32 indentationLevel)
 
 bool Node::isDefinition()
 {
-    return nodeType == Node::NT_DEFINITION;
+    return nodeType == Node::NT_DEFINITION || nodeType == Node::NT_DEFINSTANCE;
 }
 
 bool Node::isInstance()
 {
-    return nodeType == Node::NT_INSTANCE;
+    return nodeType == Node::NT_INSTANCE || nodeType == Node::NT_DEFINSTANCE;
 }
 
 bool Node::isImpl()
