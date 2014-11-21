@@ -1618,8 +1618,8 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
         foreach(Node* child, parent->getInstances()){
             constructNodeInstance(child, newNode);
         }
-        if(parent->getImplementation()){
-            constructNodeImpl(parent->getImplementation(), newNode);
+        foreach(Node* child, parent->getImplementations()){
+            constructNodeImpl(child, newNode);
         }
     }
 
@@ -1851,12 +1851,11 @@ Node *NewController::constructNodeChild(Node *parentNode, QVector<GraphMLData *>
     }
 
     if(node && node->isDefinition()){
-        qCritical() << "Make Instance?!";
         foreach(Node* child, parentNode->getInstances()){
             constructNodeInstance(child, node);
         }
-        if(parentNode->getImplementation()){
-            constructNodeImpl(parentNode->getImplementation(), node);
+        foreach(Node* child, parentNode->getImplementations()){
+            constructNodeImpl(child, node);
         }
     }
 
@@ -2320,18 +2319,18 @@ bool NewController::deleteEdge(Edge *edge, bool addAction)
 
 
         if(edge->isInstanceLink()){
-            qCritical() << "Got New Instance Link";
+            qCritical() << "Got Instance Link";
             //Delete Instances/Impls
             teardownInstance(edge->getSource(), edge->getDestination());
         }
         if(edge->isImplLink()){
-            qCritical() << "Got New Impl Link";
+            qCritical() << "Got Impl Link";
             //Delete Instances/Impls
             tearDownImpl(edge->getSource(), edge->getDestination());
         }
 
         if(edge->isAggregateLink()){
-            qCritical() << "Got New Instance Link";
+            qCritical() << "Got Aggregate Link";
 
             Aggregate* aggregate = dynamic_cast<Aggregate*>(edge->getDestination());
             EventPort* eP = dynamic_cast<EventPort*>(edge->getSource());
@@ -2339,13 +2338,14 @@ bool NewController::deleteEdge(Edge *edge, bool addAction)
                 qCritical() << "Unsetting Aggregate";
                 eP->unsetAggregate();
             }
-            Node* impl = eP->getImplementation();
 
-            foreach(Node* child, impl->getChildren(0)){
-                if(child->isConnected(aggregate)){
-                    qCritical() << "Got Aggregate Child!";
-                    child->setDefinition(0);
-                    setNodeSelected(child, true);
+            foreach(Node* impl, eP->getImplementations()){
+                foreach(Node* child, impl->getChildren(0)){
+                    if(child->isConnected(aggregate)){
+                        qCritical() << "Got Aggregate Child!";
+                        child->setDefinition(0);
+                        setNodeSelected(child, true);
+                    }
                 }
             }
         }
@@ -2870,7 +2870,7 @@ void NewController::setupImpl(Node *definition, Node *impl)
     }
 
     //Specific
-    definition->setImplementation(impl);
+    definition->addImplementation(impl);
 
     qCritical() << "Definition: " << definition->toString() << " set Impl: " << impl->toString();
 }
@@ -2879,14 +2879,16 @@ void NewController::setupAggregate(EventPort *eventPort, Aggregate *aggregate)
 {
     //Must copy across a flattened aggreagte into eventPort;
     eventPort->setAggregate(aggregate);
-    Node* implementation = eventPort->getImplementation();
-    if(implementation){
-        constructNodeInstance(implementation, aggregate);
-        qCritical() << "Implementation: " << implementation->toString() << " set Aggregate: " << aggregate->toString();
 
-    }else{
-        qCritical() << eventPort->toString() << " Has no implementation!?";
+    foreach(Node* implementation, eventPort->getImplementations()){
+        if(implementation){
+            constructNodeInstance(implementation, aggregate);
+            qCritical() << "Implementation: " << implementation->toString() << " set Aggregate: " << aggregate->toString();
+        }else{
+            qCritical() << eventPort->toString() << " Has no implementation!?";
+        }
     }
+
 }
 
 void NewController::tearDownImpl(Node *definition, Node *implementation)
@@ -2905,7 +2907,8 @@ void NewController::tearDownImpl(Node *definition, Node *implementation)
     }
 
     if(definition->isConnected(implementation)){
-        definition->unsetImplementation();
+        definition->removeImplementation(implementation);
+        //definition->unsetImplementation();
         if(!selectedNodes.contains(implementation)){
             selectedNodes.push_front(implementation);
         }

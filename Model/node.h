@@ -103,6 +103,11 @@ public:
     QVector<Node*> getInstances();
     void removeInstance(Node* inst);
 
+    void addImplementation(Node* impl);
+    QVector<Node*> getImplementations();
+    void removeImplementation(Node* impl);
+
+
     void setImplementation(Node* impl);
     Node* getImplementation();
     void unsetImplementation();
@@ -121,6 +126,7 @@ private:
 
     //Used Sparingly
     QVector<Node *> instances;
+    QVector<Node *> implementations;
 
     Node* definition;
     Node* implementation;

@@ -1,5 +1,6 @@
 #include "component.h"
 #include "../BehaviourDefinitions/componentimpl.h"
+#include "../BehaviourDefinitions/outeventportimpl.h"
 #include "../DeploymentDefinitions/componentinstance.h"
 #include "outeventport.h"
 #include "ineventport.h"
@@ -45,9 +46,10 @@ bool Component::canAdoptChild(Node *child)
     OutEventPort* outEventPort  = dynamic_cast<OutEventPort*>(child);
     InEventPort* inEventPort  = dynamic_cast<InEventPort*>(child);
     Attribute* attribute  = dynamic_cast<Attribute*>(child);
+    OutEventPortImpl* outEventPortImpl = dynamic_cast<OutEventPortImpl*>(child);
 
-    if(!outEventPort && !inEventPort && !attribute){
-        qWarning() << "Can only adopt an OutEventPort, an InEventPort or an Attribute in a Component.";
+    if(!outEventPort && !inEventPort && !attribute && !outEventPortImpl){
+        qWarning() << "Can only adopt an OutEventPort, OutEventPortImpl, an InEventPort or an Attribute in a Component.";
         return false;
     }
 

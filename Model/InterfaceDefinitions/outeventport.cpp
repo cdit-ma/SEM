@@ -27,8 +27,8 @@ bool OutEventPort::canConnect(Node* attachableObject)
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
 
     if(outEventPortImpl && getImplementation()){
-        qWarning() << "A OutEventPort can only connect to one OutEventPortImpl. Detach First!";
-        return false;
+       // qWarning() << "A OutEventPort can only connect to one OutEventPortImpl. Detach First!";
+        //return false;
     }
 
     if(!aggregate && !outEventPortImpl && !outEventPortInstance){

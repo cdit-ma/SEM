@@ -331,6 +331,33 @@ void Node::removeInstance(Node *inst)
     }
 }
 
+void Node::addImplementation(Node *impl)
+{
+    if(isDefinition()){
+        if(!implementations.contains(impl)){
+            implementations.append(impl);
+            impl->setDefinition(this);
+        }
+    }
+}
+
+QVector<Node *> Node::getImplementations()
+{
+    return implementations;
+}
+
+void Node::removeImplementation(Node *impl)
+{
+    if(isDefinition()){
+        int index = implementations.indexOf(impl);
+        if(index != -1){
+            impl->unsetDefinition();
+            implementations.remove(index);
+        }
+    }
+
+}
+
 void Node::setImplementation(Node *impl)
 {
     if(isDefinition()){
