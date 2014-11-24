@@ -1847,7 +1847,6 @@ Node *NewController::constructNodeChild(Node *parentNode, QVector<GraphMLData *>
         delete node;
         node = 0;
 
-        //TODO: Implement the UNDO of GraphMLData added to Undo Stack.
     }
 
     if(node && node->isDefinition()){
@@ -2848,7 +2847,6 @@ void NewController::setupImpl(Node *definition, Node *impl)
 
 
     foreach(GraphMLData* attachedData, definition->getData()){
-
         if(!attachedData->getProtected()){
             GraphMLData* newData = impl->getData(attachedData->getKey());
 
@@ -2869,7 +2867,6 @@ void NewController::setupImpl(Node *definition, Node *impl)
         }
     }
 
-    //Specific
     definition->addImplementation(impl);
 
     qCritical() << "Definition: " << definition->toString() << " set Impl: " << impl->toString();
@@ -2918,8 +2915,6 @@ void NewController::tearDownImpl(Node *definition, Node *implementation)
 
 void NewController::teardownInstance(Node *definition, Node *instance)
 {
-    qCritical() << "TEARDOWN";
-    qCritical() << "Tearing Down Instance: " << definition->toString() << " <-> " << instance->toString();
     if(!instance || !definition){
         return;
     }
@@ -2936,11 +2931,8 @@ void NewController::teardownInstance(Node *definition, Node *instance)
         definition->removeInstance(instance);
         if(!selectedNodes.contains(instance)){
             selectedNodes.push_front(instance);
-            qCritical() << "Selected Nodes[0] = " << instance->toString();
         }
     }
-
-    qCritical() << "Done Tearing Down";
 }
 
 bool NewController::isGraphMLValid(QString inputGraphML)
@@ -2964,23 +2956,24 @@ bool NewController::isGraphMLValid(QString inputGraphML)
 
 void NewController::setupEdge(Edge *edge)
 {
+
+    //Construct an ActionItem to reverse an Edge Construction.
     ActionItem action;
     action.actionType = CONSTRUCTED;
     action.actionKind = GraphML::EDGE;
     action.ID = edge->getID();
 
-
+    //Add Action to the Undo/Redo Stack
     addActionToStack(action);
+
+    //Get Source and Destination of the Edge.
 
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
-    qCritical() << src->toString() << " Connects " << dst->toString();
+    qWarning() << "Setting Up Edge: " << "Source: " << src->toString() << " to Destination: " << dst->toString();
 
-    qCritical() << src->isDefinition();
-    qCritical() << dst->isInstance();
     if(src->isDefinition() && (dst->isInstance() || dst->isImpl())){
-        qCritical() << "Checking types";
         //Check the types.
         QString srcKind = src->getDataValue("kind");
         QString dstKind = dst->getDataValue("kind");

@@ -135,7 +135,7 @@ void GraphMLData::bindData(GraphMLData *data)
     if(!childData.contains(data)){
         childData.append(data);
         //Update Data.
-        data->setValue(getValue());
+        //data->setValue(getValue());
 
         data->setParentData(this);
     }
