@@ -17,6 +17,7 @@
 #include <QInputDialog>
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
+enum MESSAGE_TYPE{CRITICAL, WARNING, MESSAGE};
 
 struct EdgeTemp
 {
@@ -85,6 +86,8 @@ signals:
 
     void view_PrintErrorCode(NodeItem* node, QString text);
     void view_UpdateStatusText(QString statusText);
+
+    void view_DialogMessage(MESSAGE_TYPE type, QString message);
 
 public slots:
     void view_ImportGraphML(QStringList inputGraphML, Node *currentParent=0);
@@ -166,17 +169,28 @@ private slots:
 
 
 private:
-    bool copySelection();
+    //Consolidated Methods
 
-    QStringList getAdoptableNodes(Node* parent);
-    //Gets a specific Attribute from the current Element in the XML. returns "" if none.
-    QString getXMLAttribute(QXmlStreamReader& xml, QString attrID);
+    //Copies the selected Nodes' GraphML representation to the Clipboard.
+    //Returns true if succeeded
+    bool copySelectedNodesGraphML();
 
-    //Constructs a GraphMLKey Object from a XML entity.
-    GraphMLKey* parseGraphMLKeyXML(QXmlStreamReader& xml);
 
-    //Construct a GraphMLKey.
+    //Finds or Constructs a GraphMLKey given a Name, Type and ForType
     GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
+
+    //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
+    Node* constructNodeInstance(Node* parent, Node* definition);
+    Node* constructNodeImplementation(Node* parent, Node* definition);
+
+
+
+    //Returns a list of Kinds which can be adopted by a Node.
+    QStringList getAdoptableNodeKinds(Node* parent);
+    //Gets a specific Attribute from the current Element in the XML.
+    //Returns "" if no Attribute found.
+    QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
+
 
 
 
@@ -187,8 +201,6 @@ private:
     QVector<GraphMLData*> constructGraphMLDataVector(QString nodeKind);
 
 
-    Node* constructNodeInstance(Node* parent, Node* definition,  bool forceCreate = false);
-    Node* constructNodeImpl(Node* parent, Node* definition,  bool forceCreate = false);
 
 
     Node* constructGraphMLNode(QVector<GraphMLData *> data, Node *parent = 0);
@@ -199,7 +211,15 @@ private:
     void setupModel();
     void setupValidator();
 
-    void setupInstance(Node* definition, Node* instance);
+
+    void bindGraphMLData(Node* definition, Node* child);
+
+
+
+    void setupNodeAsInstance(Node* definition, Node* node);
+    void setupNodeAsImplementation(Node* definition, Node* node);
+
+
     void setupImpl(Node* definition, Node* implementation);
     void setupAggregate(EventPort* eventPort, Aggregate* aggregate);
     void tearDownImpl(Node* definition, Node* implementation);
@@ -241,6 +261,7 @@ private:
     void reverseAction(ActionItem action);
 
     void attachGraphMLData(GraphML* item, QVector<QStringList> dataList);
+    void attachGraphMLData(GraphML* item, GraphMLData* data);
     void attachGraphMLData(GraphML* item, QVector<GraphMLData*> dataList);
     
     void addActionToStack(ActionItem action);

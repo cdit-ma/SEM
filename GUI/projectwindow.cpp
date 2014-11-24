@@ -1,7 +1,7 @@
 #include "projectwindow.h"
 #include <QLayout>
 #include <QDebug>
-
+#include <QMessageBox>
 ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 {
     //thread = new QThread();
@@ -13,6 +13,7 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     connect(this, SIGNAL(updateFilters(QStringList)), controller, SLOT(view_FilterNodes(QStringList)));
 
+    connect(controller, SIGNAL(view_DialogMessage(MESSAGE_TYPE,QString)), this, SLOT(view_DialogWarning(MESSAGE_TYPE,QString)));
     connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateWindowTitle(QString)));
 
     connect(view, SIGNAL(customContextMenuRequested(QPoint)), controller, SLOT(view_ConstructMenu(QPoint)));
@@ -145,6 +146,17 @@ void ProjectWindow::setVisibleAspects(QStringList aspects)
     visibleAspects = aspects;
     view->setViewAspects(aspects);
 
+}
+
+void ProjectWindow::view_DialogWarning(MESSAGE_TYPE type, QString output)
+{
+    if(type == CRITICAL){
+        QMessageBox::critical(this, "Error", output, QMessageBox::Ok);
+    }else if(type == WARNING){
+        QMessageBox::warning(this, "Warning", output, QMessageBox::Ok);
+    }else{
+        QMessageBox::information(this, "Message", output, QMessageBox::Ok);
+    }
 }
 
 void ProjectWindow::closeEvent(QCloseEvent *)

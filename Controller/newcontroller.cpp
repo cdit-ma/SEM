@@ -334,7 +334,11 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
             if(xml.isStartElement()){
                 nowInside = GraphML::KEY;
                 //Parse the Attribute Definition.
-                currentKey = parseGraphMLKeyXML(xml);
+                QString name = getXMLAttribute(xml, "attr.name");
+                QString typeStr = getXMLAttribute(xml, "attr.type");
+                QString forStr = getXMLAttribute(xml, "for");
+
+                currentKey = constructGraphMLKey(name, typeStr, forStr);
 
                 //Get the Key ID.
                 QString keyID = getXMLAttribute(xml,"id");
@@ -441,25 +445,25 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
         Node* d = nodeLookup[edge.target];
 
         if(s && d){
-            qCritical() << "Edge: " << s->toString() << " to " << d->toString();
+            //qCritical() << "Edge: " << s->toString() << " to " << d->toString();
             if(s->isDefinition() || d->isDefinition()){
                 if(s->isInstance() || d->isInstance()){
-                    qWarning() << "\tInstance Edge";
+                    //qWarning() << "\tInstance Edge";
                     instanceEdges.append(edge);
                     continue;
                 }else if(s->isImpl() || d->isImpl()){
-                    qWarning() << "\t Impl Edge";
+                    //qWarning() << "\t Impl Edge";
                     implEdges.append(edge);
                     continue;
                 }else if(s->getDataValue("kind") == "Aggregate" || d->getDataValue("kind") == "Aggregate" ){
-                    qWarning() << "\tAggregate Edge";
+                    //qWarning() << "\tAggregate Edge";
                     aggregateEdges.append(edge);
                     continue;
                 }
             }
-            qWarning() << "\tNormal Edge";
+            //qWarning() << "\tNormal Edge";
             otherEdges.append(edge);
-            qWarning() << "";
+            //qWarning() << "";
         }
     }
 
@@ -529,8 +533,8 @@ void NewController::view_UpdateGraphMLData(GraphML *parent, QString keyName, QSt
 
 void NewController::view_ConstructGraphMLData(GraphML *parent, QString keyName)
 {
-
-
+    Q_UNUSED(parent);
+    //TODO: Implement
 }
 
 void NewController::view_DestructGraphMLData(GraphML *parent, QString keyName)
@@ -580,7 +584,7 @@ void NewController::view_ConstructComponentInstance(Component *definition)
 
     if(definition){
         view_ActionTriggered("Constructing Component Instance.");
-        Node* node = constructNodeInstance(assemblyDefinitions, definition, true);
+        Node* node = constructNodeInstance(assemblyDefinitions, definition);
         if(node){
             view_SetNodeCentered(node);
         }
@@ -595,7 +599,7 @@ void NewController::view_ConstructComponentImpl(Component *definition)
 
     if(definition){
         view_ActionTriggered("Constructing Component Implementation.");
-        Node* node = constructNodeImpl(behaviourDefinitions, definition, true);
+        Node* node = constructNodeImplementation(behaviourDefinitions, definition);
         view_SetNodeCentered(node);
     }
 }
@@ -723,7 +727,7 @@ void NewController::view_ConstructMenu(QPoint position)
     rightClickMenu->addAction(deleteAction);
     rightClickMenu->addAction(addChildNode);
 
-    QAction* selectedItem = rightClickMenu->exec(globalPos);
+    //QAction* selectedItem = rightClickMenu->exec(globalPos);
     /*
     if (selectedItem)
     {
@@ -854,7 +858,7 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
     qCritical() << "Making Child Node";
 
     bool okay;
-    QInputDialog *dialog = new QInputDialog();
+    QInputDialog* dialog = new QInputDialog();
 
     //Get the current Selected Node.
     Node* parent = getSelectedNode();
@@ -867,7 +871,7 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
         return;
     }
 
-    QString nodeKind = dialog->getItem(0, "Selected Node Type","Please Select Child Node Type: ",this->getAdoptableNodes(parent),0,false, &okay);
+    QString nodeKind = dialog->getItem(0, "Selected Node Type","Please Select Child Node Type: ",this->getAdoptableNodeKinds(parent),0,false, &okay);
 
     if(!okay){
         return;
@@ -878,6 +882,8 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
     if(nodeItem){
         centerPoint = nodeItem->mapFromScene(centerPoint);
     }
+
+    delete dialog;
 
     view_ActionTriggered("Constructing Child Node");
     constructNodeChild(parent, constructGraphMLDataVector(nodeKind,centerPoint));
@@ -1103,13 +1109,13 @@ void NewController::view_Redo()
 
 void NewController::view_Copy()
 {
-    copySelection();
+    copySelectedNodesGraphML();
 }
 
 void NewController::view_Cut()
 {
     //Run Copy
-    if(copySelection()){
+    if(copySelectedNodesGraphML()){
         emit view_SetGUIEnabled(false);
         view_ActionTriggered("Cutting Selection.");
         deleteSelectedEdges();
@@ -1277,18 +1283,19 @@ void NewController::view_ConstructNodeEdge(Edge *edge)
     }
 }
 
-bool NewController::copySelection()
+bool NewController::copySelectedNodesGraphML()
 {
-    //COPY ONLY WORKS IF YOU SHARE THE SAME PARENT.
-    Node* parent = 0;
+    Node* firstParent = 0;
+
     foreach(Node* node, selectedNodes){
-        if(!parent){
-            parent = node->getParentNode();
-        }else{
-            if(parent != node->getParentNode()){
-                qCritical() << "Can only copy items which share the same parent";
-                return false;
-            }
+        if(!firstParent){
+            //Set the firstParent to the first Nodes parent.
+            firstParent = node->getParentNode();
+        }
+
+        if(node->getParentNode() != firstParent){
+            emit view_DialogMessage(WARNING, "Can only copy Nodes which share the same Node Parent");
+            return false;
         }
     }
 
@@ -1300,48 +1307,39 @@ bool NewController::copySelection()
     return true;
 }
 
-QStringList NewController::getAdoptableNodes(Node *parent)
+QStringList NewController::getAdoptableNodeKinds(Node *parent)
 {
+    QStringList adoptableNodeTypes;
 
-    QStringList returnable;
+    foreach(QString nodeKind, getNodeKinds()){
+        //Construct a Node of the Kind nodeKind.
+        Node* node = constructNodeEntity(constructGraphMLDataVector(nodeKind));
 
-    foreach(QString kind, getNodeKinds()){
-
-        Node* nodeKind = constructNodeEntity(constructGraphMLDataVector(kind));
-
-        if(nodeKind && parent->canAdoptChild(nodeKind)){
-            qCritical() << parent->getDataValue("kind") << " Can Adopt " << kind;
-            returnable.append(kind);
+        //If we have constructed this node, test if the parent can adopt it.
+        if(node && parent->canAdoptChild(node)){
+            adoptableNodeTypes.append(nodeKind);
         }
-        if(nodeKind && !getNodeItemFromNode(nodeKind)){
-            delete nodeKind;
+
+        //Delete the node, if we didn't create a GUI NodeItem.
+        if(node && !getNodeItemFromNode(node)){
+            delete node;
         }
     }
 
-    return returnable;
+    return adoptableNodeTypes;
 }
 
-QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attrID)
+QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attributeID)
 {
+    //Get the Attributes of the current XML entity.
     QXmlStreamAttributes attributes = xml.attributes();
 
-    if(attributes.hasAttribute(attrID)){
-        return attributes.value(attrID).toString();
+    if(attributes.hasAttribute(attributeID)){
+        return attributes.value(attributeID).toString();
     }else{
-        qCritical() << "Expecting Attribute key" <<attrID;
+        qCritical() << "Cannot find Attribute Key: " << attributeID;
         return "";
     }
-
-}
-
-GraphMLKey *NewController::parseGraphMLKeyXML(QXmlStreamReader &xml)
-{
-    QString name = getXMLAttribute(xml,"attr.name");
-    QString typeStr = getXMLAttribute(xml,"attr.type");
-    QString forStr = getXMLAttribute(xml,"for");
-
-    return constructGraphMLKey(name,typeStr,forStr);
-
 }
 
 Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *parent)
@@ -1619,7 +1617,7 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
             constructNodeInstance(child, newNode);
         }
         foreach(Node* child, parent->getImplementations()){
-            constructNodeImpl(child, newNode);
+            constructNodeImplementation(child, newNode);
         }
     }
 
@@ -1629,21 +1627,24 @@ Node *NewController::constructGraphMLNode(QVector<GraphMLData *> data, Node *par
 
 GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QString forString)
 {
+    //Construct a new GraphMLKey for the input variables.
     GraphMLKey *attribute = new GraphMLKey(name, type, forString);
 
-
-    for(int i = 0 ; i < keys.size(); i ++){
-        if(keys[i]->operator ==(*attribute)){
+    //Search for a matching Key. If we find one, remove the newly created GraphMLKey
+    foreach(GraphMLKey* key, keys){
+        if(key->equals(attribute)){
             delete attribute;
-            return this->keys[i];
+            return key;
         }
     }
 
+    //Protect the GraphMLKey if it meant to be protected
     if(protectedKeyNames.contains(name)){
         attribute->setDefaultProtected(true);
     }
-    keys.append(attribute);
 
+    //Add it to the list of GraphMLKeys.
+    keys.append(attribute);
     return attribute;
 }
 
@@ -1854,7 +1855,7 @@ Node *NewController::constructNodeChild(Node *parentNode, QVector<GraphMLData *>
             constructNodeInstance(child, node);
         }
         foreach(Node* child, parentNode->getImplementations()){
-            constructNodeImpl(child, node);
+            constructNodeImplementation(child, node);
         }
     }
 
@@ -1882,95 +1883,94 @@ QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKin
     return constructGraphMLDataVector(nodeKind, QPointF(0,0));
 }
 
-Node *NewController::constructNodeInstance(Node *parent, Node *definition, bool forceCreate)
+Node *NewController::constructNodeInstance(Node *parent, Node *definition)
 {
+    //Construct a List of GraphMLData derived from the Definition to bind to the new Instance.
+    QVector<GraphMLData *> matchableData;
 
-    QVector<GraphMLData *> data;
 
+    QStringList requiredKeyNames;
+    requiredKeyNames << "kind" << "label" << "x" << "y";
 
-    foreach(GraphMLData* attachedData, definition->getData()){
-        QString keyName = attachedData->getKeyName();
-        QString keyValue = attachedData->getValue();
-        if(keyName == "kind" || keyName == "label" || keyName == "x" || keyName == "y"){
+    //Clone the Data for an Instance.
+    foreach(GraphMLData* data, definition->getData()){
+        GraphMLKey* key = data->getKey();
+        QString keyName = key->getName();
+        QString keyValue = data->getValue();
+
+        if(requiredKeyNames.contains(keyName)){
             QString modifier = "";
 
             if(keyName == "kind"){
+                //AggregateInstance and MemberInstances are able to Instance themselves.
                 if(keyValue != "AggregateInstance" && keyValue != "MemberInstance"){
-                    modifier += "Instance";
+                    modifier = "Instance";
                 }
             }
-            GraphMLData* kindData = new GraphMLData(attachedData->getKey(), keyValue + modifier);
-
-            kindData->setProtected(true);
-
-            data.append(kindData);
+            GraphMLData* newData = new GraphMLData(key, keyValue + modifier);
+            newData->setProtected(true);
+            matchableData.append(newData);
         }
     }
 
+    Node* newNode = 0;
 
-    //Check for Duplicates.
-    Node* instance = 0;
+    QStringList matchKeyNames;
+    matchKeyNames << "kind" << "label";
 
+    //Look for children which match.
     foreach(Node* child, parent->getChildren(0)){
-
-        bool allMatched = true;
-        foreach(GraphMLData* attachedData, data){
-            GraphMLKey* key = attachedData->getKey();
-            QString keyName = attachedData->getKeyName();
-            QString value = attachedData->getValue();
-
-            GraphMLData* matchingData = child->getData(key);
-
-            if(child->getDefinition()){
-                if(!(definition->isAncestorOf(child->getDefinition()) || definition == child->getDefinition())){
-                    qCritical() << "Child has a non contained definition!";
-                    allMatched = false;
-                    break;
-                }
-            }
-
-            if(!matchingData){
-                qCritical() << "Child has no data for type: " << keyName;
-                allMatched = false;
-                break;
-            }else{
-                if(keyName == "kind" && value != matchingData->getValue() ){
-                    qCritical() << "kind "<< value << " != " << matchingData->getValue();
-                    allMatched = false;
-                    break;
-                }
-                if(keyName == "label" && value != matchingData->getValue()){
-                    qCritical() << "label "<< value << " != " << matchingData->getValue();
-                    allMatched = false;
-                    break;
-                }
-            }
+        if(child->getDefinition() && child->getDefinition() == definition){
+            //Already got a Definition.
+            //qCritical() << "Definition is already connected.";
+            newNode = child;
+            return newNode;
         }
 
-        if(allMatched){
-            instance = child;
+        bool allDataMatched = true;
+
+        foreach(GraphMLData* data, matchableData){
+             GraphMLKey* key = data->getKey();
+             QString keyName = key->getName();
+
+             //Get the GraphMLData for the child, matching the key.
+             GraphMLData* childData = child->getData(key);
+
+             if(!childData){
+                 //No Match.
+                 allDataMatched = false;
+                 break;
+             }
+
+             if(matchKeyNames.contains(keyName)){
+                 if(data->getValue() != childData->getValue()){
+                     allDataMatched = false;
+                     break;
+                 }
+             }
+        }
+
+        if(allDataMatched){
+            //Found a match.
+            newNode = child;
+            break;
         }
     }
 
-
-    if(!instance){
-        qCritical() << "Creating Instance";
-        if(parent->isDefinition()){
-            qCritical() << "Maybe Broken";
-
-        }
-
-        instance = constructNodeChild(parent, data);
+    if(!newNode){
+        qCritical() << "No Matches found, So Creating Instance.";
+        qCritical() << "In: " <<  parent->toString() << "" << definition->toString();
+        newNode = constructNodeChild(parent, matchableData);
     }
 
-    if(instance){
-        view_ConstructEdge(definition, instance);
+    if(newNode){
+        //Construct an Edge
+        view_ConstructEdge(definition, newNode);
     }
-
-    return instance;
+    return newNode;
 }
 
-Node *NewController::constructNodeImpl(Node *parent, Node *definition, bool forceCreate)
+Node *NewController::constructNodeImplementation(Node *parent, Node *definition)
 {
     QVector<GraphMLData *> data;
 
@@ -2355,25 +2355,26 @@ bool NewController::deleteEdge(Edge *edge, bool addAction)
         qCritical() << "Deleted AggregateLink";
         NodeEdge* nodeEdge = getNodeEdgeFromEdge(edge);
 
-        qCritical() << "Got Node Edge";
 
         //Remove Edge from list.
         int position = edges.indexOf(edge);
-        edges.removeAt(position);
+        if(position >= 0){
+            edges.removeAt(position);
+        }
 
-        qCritical() << "Removed From edges";
 
         //Remove NodeEdge from list.
         position = nodeEdges.indexOf(nodeEdge);
-        nodeEdges.removeAt(position);
+        if(position >= 0){
+            nodeEdges.removeAt(position);
+        }
 
-        qCritical() << "Removed From nodeEdges";
 
         //Remove Edge from selectedEdges list
         position = selectedEdges.indexOf(edge);
-        selectedEdges.removeAt(position);
-
-        qCritical() << "Removed From selectedEdges";
+        if(position >= 0){
+            selectedEdges.removeAt(position);
+        }
 
         delete edge;
         return true;
@@ -2563,8 +2564,8 @@ void NewController::attachGraphMLData(GraphML *item, QVector<GraphMLData *> data
     foreach(GraphMLData* data, dataList){
         GraphMLData* containedData = item->getData(data->getKey());
         if(containedData){
-            qWarning() << item->toString() << " Found duplicate Data for key: " << data->getKeyName() << " Updating Value instead.";
             //Update so we have an Undo.
+            //qWarning() << item->toString() << " Found duplicate Data for key: " << data->getKeyName() << " Updating Value instead.";
             view_UpdateGraphMLData(item, data->getKeyName(), data->getValue());
         }else{
             //We are adding new data to an existing
@@ -2580,6 +2581,13 @@ void NewController::attachGraphMLData(GraphML *item, QVector<GraphMLData *> data
             item->attachData(data);
         }
     }
+}
+
+void NewController::attachGraphMLData(GraphML *item, GraphMLData *data)
+{
+    QVector<GraphMLData *> dataList;
+    dataList.append(data);
+    attachGraphMLData(item, dataList);
 }
 
 void NewController::addActionToStack(ActionItem action)
@@ -2673,8 +2681,6 @@ NodeEdge *NewController::getNodeEdgeFromEdge(Edge *edge)
 
 void NewController::deleteSelectedNodes()
 {
-    int size = selectedNodes.size();
-
     emit view_SetSelectedAttributeModel(0);
     while(selectedNodes.size() > 0){
         Node* node = selectedNodes.front();
@@ -2777,67 +2783,98 @@ void NewController::setupValidator()
     validator->addPlugin(interfacePlugin);
 }
 
-void NewController::setupInstance(Node *definition, Node *instance)
+void NewController::bindGraphMLData(Node *definition, Node *child)
 {
-    if(!instance || !definition){
+    //Bind the un-protected GraphMLData attached to the Definition to the Instance/Impl.
+    foreach(GraphMLData* data, definition->getData()){
+        GraphMLKey* dataKey = data->getKey();
+        QString dataValue = data->getValue();
+
+        if(!data->isProtected()){
+            //Check for existing GraphMLData.
+            GraphMLData* boundData = child->getData(dataKey);
+
+            if(!boundData){
+                //If the Instance/Impl does not have a matching GraphMLData, We have to attach one.
+                boundData = new GraphMLData(dataKey, dataValue);
+                //Attach the GraphMLData to the Instance/Impl
+                attachGraphMLData(child, boundData);
+
+                if(child->isInstance() && definition->getDataValue("kind") == "Component" && dataKey->getName() == "label"){
+                    //If the Definition is a Component, and the GraphMLData is for the label
+                    //and the child is an Instance, Then don't protect it. Deployments can have their own unique names.
+                    boundData->setProtected(false);
+                }else{
+                    //Protect the Data.
+                    boundData->setProtected(true);
+                }
+            }
+            //Bind the Instance/Impl GraphMLData to the Defintion GraphMLData.
+            data->bindData(boundData);
+        }
+    }
+}
+
+void NewController::setupNodeAsInstance(Node *definition, Node *node)
+{
+    if(!node || !definition){
+        qCritical() << "setupNodeAsInstance() << Definition or Node is NULL.";
         return;
     }
 
-    foreach(GraphMLData* attachedData, definition->getData()){
+    //Bind the un-protected GraphMLData attached to the Definition to the Instance.
+    bindGraphMLData(definition, node);
 
-        if(!attachedData->getProtected()){
-            GraphMLData* newData = instance->getData(attachedData->getKey());
+    bool allCreated = true;
 
-            if(!newData){
-                newData = new GraphMLData(attachedData->getKey(), attachedData->getValue());
-                QVector<GraphMLData*> dataList;
-                dataList.append(newData);
-                attachGraphMLData(instance, dataList);
-
-                //instance->attachData(newData);
-                if(definition->getDataValue("kind") == "Component" && newData->getKeyName() == "label"){
-                    newData->setProtected(false);
-                }else{
-                    newData->setProtected(true);
-                }
-            }
-            if(newData){
-                attachedData->bindData(newData);
+    //For each child contained in the Definition, which itself is a definition, construct an Instance/Impl inside the Parent Instance/Impl.
+    foreach(Node* definitionChild, definition->getChildren(0)){
+        if(definitionChild->isDefinition()){
+            Node* childInstance = constructNodeInstance(node, definitionChild);
+            if(!childInstance){
+                qCritical() << "Could not create a NodeInstance for: " << definitionChild->toString() << " In: " << node->toString();
+                allCreated = false;
             }
         }
     }
 
+    //If we have made all children, we can set this node as an instance of the definition.
+    if(allCreated){
+        definition->addInstance(node);
+        qDebug() << "Definition: " << definition->toString() << " added  Instance: " << node->toString();
+    }
+}
 
-    foreach(Node* child, definition->getChildren(0)){
-        if(child->isDefinition()){
-            /*
-            AggregateMember* aM = dynamic_cast<AggregateMember*>(child);
-
-            if(aM){
-                QVector<Edge*> aMEdges = aM->getEdges(0);
-                if(aMEdges.size() == 1){
-                    Edge* edge = aMEdges[0];
-                    Node* src = edge->getSource();
-                    Node* dst = edge->getDestination();
-
-                    if(src == child){
-                        constructNodeInstance(instance, dst);
-                    }else{
-                        constructNodeInstance(instance, src);
-                    }
-                }
-            }else{
-            */
-                constructNodeInstance(instance, child);
-            }
-       // }
+void NewController::setupNodeAsImplementation(Node *definition, Node *node)
+{
+    if(!node || !definition){
+        qCritical() << "setupNodeAsImplementation() << Definition or Node is NULL.";
+        return;
     }
 
-    //Specific
-    definition->addInstance(instance);
-    qCritical() << "Definition: " << definition->toString() << " set  Instance: " << instance->toString();
+    //Bind the un-protected GraphMLData attached to the Definition to the Impl.
+    bindGraphMLData(definition, node);
 
+    bool allCreated = true;
+
+    //For each child contained in the Definition, which itself is a definition, construct an Instance/Impl inside the Parent Instance/Impl.
+    foreach(Node* definitionChild, definition->getChildren(0)){
+        if(definitionChild->isDefinition()){
+            Node* childImpl = constructNodeImplementation(node, definitionChild);
+            if(!childImpl){
+                qCritical() << "Could not create a NodeImpl for: " << definitionChild->toString() << " In: " << node->toString();
+                allCreated = false;
+            }
+        }
+    }
+
+    //If we have made all children, we can set this node as an implementation of the definition.
+    if(allCreated){
+        definition->addImplementation(node);
+        qDebug() << "Definition: " << definition->toString() << " added  Implementation: " << node->toString();
+    }
 }
+
 
 void NewController::setupImpl(Node *definition, Node *impl)
 {
@@ -2847,7 +2884,7 @@ void NewController::setupImpl(Node *definition, Node *impl)
 
 
     foreach(GraphMLData* attachedData, definition->getData()){
-        if(!attachedData->getProtected()){
+        if(!attachedData->isProtected()){
             GraphMLData* newData = impl->getData(attachedData->getKey());
 
             if(!newData){
@@ -2863,7 +2900,7 @@ void NewController::setupImpl(Node *definition, Node *impl)
 
     foreach(Node* child, definition->getChildren(0)){
         if(child->isDefinition()){
-            constructNodeImpl(impl, child);
+            constructNodeImplementation(impl, child);
         }
     }
 
@@ -2956,7 +2993,6 @@ bool NewController::isGraphMLValid(QString inputGraphML)
 
 void NewController::setupEdge(Edge *edge)
 {
-
     //Construct an ActionItem to reverse an Edge Construction.
     ActionItem action;
     action.actionType = CONSTRUCTED;
@@ -2967,43 +3003,41 @@ void NewController::setupEdge(Edge *edge)
     addActionToStack(action);
 
     //Get Source and Destination of the Edge.
-
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
-    qWarning() << "Setting Up Edge: " << "Source: " << src->toString() << " to Destination: " << dst->toString();
+    //qWarning() << "Setting Up Edge: " << "Source: " << src->toString() << " to Destination: " << dst->toString();
 
-    if(src->isDefinition() && (dst->isInstance() || dst->isImpl())){
-        //Check the types.
+    //Check for the special Edges
+    if(src->isDefinition()){
+        //Get the Node Kind of the Source and Destination
         QString srcKind = src->getDataValue("kind");
         QString dstKind = dst->getDataValue("kind");
-
-        if(srcKind + "Instance" == dstKind){
-            qDebug() << "Setting up Instance";
-            setupInstance(src, dst);
-        }else if(srcKind + "Impl" == dstKind){
-            qDebug() << "Setting up Impl";
-            setupImpl(src, dst);
-        }else if(srcKind == "AggregateInstance" && dstKind == "AggregateInstance"){
-            qDebug() << "Setting up Aggregate Instance";
-            setupInstance(src, dst);
-        }else if(srcKind == "MemberInstance" && dstKind == "MemberInstance"){
-            qDebug() << "Setting up Aggregate Instance";
-            setupInstance(src, dst);
+        if(srcKind == "" || dstKind == ""){
+            qCritical() << "Got an undefined Node Kind.";
         }
-    }
 
-    if(edge->isAggregateLink()){
-        EventPort* eP = dynamic_cast<EventPort*>(src);
-        Aggregate* agg = dynamic_cast<Aggregate*>(dst);
-        if(eP && agg){
-            qDebug() << "Setting Aggregate";
-            setupAggregate(eP, agg);
+        if(srcKind + "Instance" == dstKind || (srcKind == dstKind)){
+            //Got Instance Edge.
+            //If the source and destination are the same type, it must be an Aggregate Instance or MemberInstance.
+            setupNodeAsInstance(src, dst);
+        }else if(srcKind + "Impl" == dstKind){
+            //Got Implementation Edge
+            setupNodeAsImplementation(src, dst);
+        }else if(edge->isAggregateLink()){
+            EventPort* eventPort = dynamic_cast<EventPort*>(src);
+            Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
+            //Got Aggregate Edge.
+            if(eventPort && aggregate){
+                setupAggregate(eventPort, aggregate);
+            }
         }
     }
 
     //Add the edge to the list of edges constructed.
     edges.append(edge);
+
+    //Construct the GUI Representation of the Edge.
     view_ConstructNodeEdge(edge);
 }
 

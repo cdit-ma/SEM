@@ -101,7 +101,7 @@ bool Edge::isImplLink()
 bool Edge::isAggregateLink()
 {
     if(source->isDefinition()){
-        if(source->getDataValue("kind").endsWith("EventPort") &&destination->getDataValue("kind") == "Aggregate"){
+        if(source->getDataValue("kind").endsWith("EventPort") && destination->getDataValue("kind") == "Aggregate"){
             return true;
         }
     }

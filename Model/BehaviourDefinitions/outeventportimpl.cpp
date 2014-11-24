@@ -2,7 +2,7 @@
 #include <QDebug>
 #include "../InterfaceDefinitions/outeventport.h"
 #include "../InterfaceDefinitions//member.h"
-
+#include "aggregateinstance.h"
 
 OutEventPortImpl::OutEventPortImpl(QString name): Node(Node::NT_IMPL)
 {
@@ -17,6 +17,13 @@ OutEventPortImpl::~OutEventPortImpl()
 
 bool OutEventPortImpl::canAdoptChild(Node *child)
 {
+    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
+
+    if(!aggregateInstance || (aggregateInstance && this->edgeCount() > 0)){
+        qWarning() << "InEventPortImpl can only adopt one AggregateInstance";
+        return false;
+    }
+
     return Node::canAdoptChild(child);
 }
 

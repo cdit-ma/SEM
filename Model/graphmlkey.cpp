@@ -44,18 +44,18 @@ GraphMLKey::~GraphMLKey()
 
 void GraphMLKey::setDefaultProtected(bool setProtected)
 {
-    this->isProtected = setProtected;
+    protectedKey = setProtected;
 
 }
 
-bool GraphMLKey::getProtected()
+bool GraphMLKey::isProtected()
 {
-    return this->isProtected;
+    return protectedKey;
 }
 
 void GraphMLKey::setDefaultValue(QString value)
 {
-    this->defaultValue = value;
+    defaultValue = value;
 }
 
 QString GraphMLKey::getDefaultValue() const
@@ -63,19 +63,20 @@ QString GraphMLKey::getDefaultValue() const
     return this->defaultValue;
 }
 
-bool GraphMLKey::operator==(const GraphMLKey &other) const
+bool GraphMLKey::equals(GraphMLKey *key)
 {
-    if(getType() != other.getType()){
+    if(getType() != key->getType()){
         return false;
     }
-    if(getName() != other.getName()){
+    if(getName() != key->getName()){
         return false;
     }
-    if(getForKind() != other.getForKind()){
+    if(getForKind() != key->getForKind()){
         return false;
     }
     return true;
 }
+
 
 GraphML::KIND GraphMLKey::getForKind() const
 {

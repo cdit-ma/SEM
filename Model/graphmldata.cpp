@@ -12,7 +12,7 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
 
     //Set to default.
     parentData = 0;
-    this->setProtected(key->getProtected());
+    setProtected(key->isProtected());
 }
 
 GraphMLData::~GraphMLData()
@@ -100,12 +100,12 @@ void GraphMLData::setValue(QString value)
 
 void GraphMLData::setProtected(bool setProtected)
 {
-    isProtected = setProtected;
+    protectedData = setProtected;
 }
 
-bool GraphMLData::getProtected()
+bool GraphMLData::isProtected()
 {
-    return isProtected;
+    return protectedData;
 }
 
 void GraphMLData::setParentData(GraphMLData *data)

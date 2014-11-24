@@ -15,7 +15,7 @@ public:
 
     void setValue(QString value);
     void setProtected(bool setProtected);
-    bool getProtected();
+    bool isProtected();
 
     void setParentData(GraphMLData* data);
     void unsetParentData();
@@ -39,7 +39,7 @@ private:
     GraphMLData* parentData;
     QVector<GraphMLData*> childData;
     QString value;
-    bool isProtected;
+    bool protectedData;
     GraphMLKey* key;
 
     // GraphML interface

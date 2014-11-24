@@ -107,7 +107,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
 
         GraphMLData* data = attachedData.at(row);
 
-        if (index.column() == 1 && data && !data->getProtected()){
+        if (index.column() == 1 && data && !data->isProtected()){
             if(value.toString() != ""){
                 emit guiItem->actionTriggered("Updated Table Cell");
                 emit guiItem->updateGraphMLData(attachedGraphML, data->getKey()->getName(), value.toString());
@@ -138,7 +138,7 @@ bool AttributeTableModel::removeRows(int position, int rows, const QModelIndex &
 
     for (int row=0; row < rows; ++row) {
         GraphMLData* data = attachedData.at(position);
-        if(data && !data->getProtected()){
+        if(data && !data->isProtected()){
             if(!anyRemoved){
                 anyRemoved = true;
                 emit guiItem->actionTriggered("Removed Table Row");
@@ -164,7 +164,7 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 
             GraphMLData* data = attachedData.at(row);
 
-            if (data && data->getProtected()){
+            if (data && data->isProtected()){
                 return (QAbstractTableModel::flags(index)  ^ Qt::ItemIsEnabled);
             }else{
                 return QAbstractTableModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsEnabled;

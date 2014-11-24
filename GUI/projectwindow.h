@@ -33,6 +33,8 @@ public slots:
 
     void setVisibleAspects(QStringList aspects);
 
+    void view_DialogWarning(MESSAGE_TYPE type, QString output);
+
 private:
     QVector<FilterButton*> appliedFilterButtons;
     QStringList appliedFilters;
