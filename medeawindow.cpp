@@ -321,6 +321,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 {
     if(selectedProject){
         NewController* controller = selectedProject->getController();
+        NodeView* view = selectedProject->getView();
 
         disconnect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
         disconnect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
@@ -346,7 +347,8 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         disconnect(this, SIGNAL(view_AspectsVisible(QStringList)), selectedProject, SLOT(setVisibleAspects(QStringList)));
 
         disconnect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(setEnableGUI(bool)));
-        disconnect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
+
+        disconnect(view, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
 
         disconnect(this, SIGNAL(view_ExportGraphML(QString)), controller, SLOT(view_ExportGraphML(QString)));
         disconnect(controller, SIGNAL(view_WriteGraphML(QString,QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
@@ -363,10 +365,12 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
     if(selectedProject){
 
+
         this->ui->listView->setModel(selectedProject->getController()->getModel());
 
         connect(ui->actionMaximize, SIGNAL(triggered()), selectedProject, SLOT(showMaximized()));
         NewController* controller = selectedProject->getController();
+        NodeView* view = selectedProject->getView();
 
         this->ui->aspectComboBox->clear();;
         this->ui->aspectComboBox->addItems(controller->getViewAspects());
@@ -403,7 +407,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
 
 
-        connect(controller, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
+        connect(view, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
         connect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(setEnableGUI(bool)));
 
         connect(controller, SIGNAL(view_UpdateStatusText(QString)), this, SLOT(updateStatusText(QString)));
@@ -426,9 +430,9 @@ ProjectWindow *MedeaWindow::getProjectWindow(QObject *object)
 void MedeaWindow::on_actionPaste_triggered()
 {
     QClipboard *clipboard = QApplication::clipboard();
-    if(clipboard->ownsClipboard()){
-        emit view_PasteData(clipboard->text());
-    }
+    //if(clipboard->ownsClipboard()){
+    emit view_PasteData(clipboard->text());
+    //}
 }
 
 void MedeaWindow::setEnableGUI(bool enable)

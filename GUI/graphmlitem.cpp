@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QDebug>
 
-GraphMLItem::GraphMLItem(GraphML* graph): QObject(0)
+GraphMLItem::GraphMLItem(GraphML* graph):QObject(0), QGraphicsItem()
 {
     attachedGraph = graph;
 

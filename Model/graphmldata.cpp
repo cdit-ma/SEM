@@ -17,13 +17,10 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
 
 GraphMLData::~GraphMLData()
 {
-    unsetParentData();
-
     for(int i = 0; i < childData.size();i++){
         GraphMLData* child = childData[i];
         unbindData(child);
     }
-
 }
 /*
 void GraphMLData::setValue(QString value)
@@ -119,7 +116,7 @@ void GraphMLData::setParentData(GraphMLData *data)
 
 void GraphMLData::unsetParentData()
 {
-    if(parentData != 0){
+    if(parentData){
         parentData->unbindData(this);
     }
     parentData = 0;
@@ -134,9 +131,6 @@ void GraphMLData::bindData(GraphMLData *data)
 {
     if(!childData.contains(data)){
         childData.append(data);
-        //Update Data.
-        //data->setValue(getValue());
-
         data->setParentData(this);
     }
 }
@@ -146,7 +140,6 @@ void GraphMLData::unbindData(GraphMLData *data)
     int index = childData.indexOf(data);
     if(index != -1){
         if(data){
-            //data->unsetParentData();
             childData.removeAt(index);
             data->setParentData(0);
         }

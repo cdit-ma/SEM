@@ -15,7 +15,7 @@
 #include "nodeconnection.h"
 #include <QMenu>
 #include <QAction>
-
+#include "../Controller/newcontroller.h"
 
 NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 {
@@ -54,6 +54,11 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     this->setContextMenuPolicy(Qt::CustomContextMenu);
 }
 
+void NodeView::setController(NewController *controller)
+{
+    this->controller = controller;
+}
+
 bool NodeView::getControlPressed()
 {
     return this->CONTROL_DOWN;
@@ -61,6 +66,7 @@ bool NodeView::getControlPressed()
 
 NodeView::~NodeView()
 {
+    emit view_SetSelectedAttributeModel(0);
     qCritical() << "Killed Node View";
 }
 
@@ -106,10 +112,19 @@ QRectF NodeView::getVisibleRect( )
 }
 
 
-void NodeView::centreItem(NodeItem *item)
+void NodeView::centreItem(GraphMLItem *item)
 {
+    qCritical() << "Center Item";
+    if(!item){
+        qCritical() << "No GUI item to Center";
+        return;
+    }
+
+    qCritical() << "getVisibleRect";
     //Get the current Viewport Rectangle
     QRectF viewRect = getVisibleRect();
+
+    qCritical() << "getVisibleRect";
     //Get the Items Rectangle
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
 
@@ -206,6 +221,193 @@ void NodeView::showContextMenu(const QPoint &pos)
         // nothing was chosen
     }
     //myMenu.exec();
+}
+
+void NodeView::view_ConstructNodeGUI(Node *node)
+{
+    if(!node){
+        qCritical() << "Node is Null.";
+    }
+
+    Node* parentNode = node->getParentNode();
+
+    NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
+
+    NodeItem* nodeItem = new NodeItem(node, parentNodeItem);
+
+    nodeItems.append(nodeItem);
+
+    connect(nodeItem, SIGNAL(setItemSelected(GraphML*, bool)), controller, SLOT(view_SetItemSelected(GraphML*,bool)));
+    connect(nodeItem, SIGNAL(actionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
+
+    connect(nodeItem, SIGNAL(center(GraphML*)), this, SLOT(view_SetCentered(GraphML*)));
+
+    connect(nodeItem, SIGNAL(makeChildNode(QPointF)), controller, SLOT(view_ConstructChildNode(QPointF)));
+    connect(nodeItem, SIGNAL(moveSelection(QPointF)), controller, SLOT(view_MoveSelectedNodes(QPointF)));
+
+    connect(node, SIGNAL(destroyed()), nodeItem, SLOT(destructNodeItem()));
+    connect(controller, SIGNAL(view_SetRubberbandSelectionMode(bool)), nodeItem, SLOT(setRubberbandMode(bool)));
+
+
+    connect(nodeItem, SIGNAL(destructGraphMLData(GraphML*,QString)), controller, SLOT(view_DestructGraphMLData(GraphML*,QString)));
+    connect(nodeItem, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
+
+
+    addNodeItem(nodeItem);
+}
+
+void NodeView::view_ConstructEdgeGUI(Edge *edge)
+{
+    Node* src = edge->getSource();
+    Node* dst = edge->getDestination();
+
+    NodeItem* srcGUI = getNodeItemFromNode(src);
+    NodeItem* dstGUI = getNodeItemFromNode(dst);
+
+    if(srcGUI != 0 && dstGUI != 0){
+        //We have valid GUI elements for both ends of this edge.
+
+        //Construct a new GUI Element for this edge.
+        NodeEdge* nodeEdge = new NodeEdge(edge, srcGUI, dstGUI);
+
+        //Add it to the list of EdgeItems in the Model.
+        nodeEdges.append(nodeEdge);
+
+        connect(edge, SIGNAL(destroyed()), nodeEdge, SLOT(destructNodeEdge()));
+        connect(nodeEdge, SIGNAL(center(GraphML*)), this, SLOT(view_SetCentered(GraphML*)));
+
+        connect(nodeEdge, SIGNAL(actionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
+        connect(nodeEdge, SIGNAL(setItemSelected(GraphML*,bool)), controller, SLOT(view_SetItemSelected(GraphML*,bool)));
+
+        connect(nodeEdge, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
+
+       // connect(nodeEdge, SIGNAL(setSelected(Edge*,bool)), this, SLOT(view_SetEdgeSelected(Edge*,bool)));
+
+        addEdgeItem(nodeEdge);
+    }else{
+        qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
+    }
+
+}
+
+void NodeView::view_DestructGraphMLGUI(GraphML *graphML)
+{
+    NodeItem* nodeItem = getNodeItemFromGraphML(graphML);
+    NodeEdge* nodeEdge = getNodeEdgeFromGraphML(graphML);
+
+    if(nodeItem){
+        int nodeItemPosition = nodeItems.indexOf(nodeItem);
+        if(nodeItemPosition != -1){
+            nodeItems.removeAt(nodeItemPosition);
+        }
+    }
+    else if(nodeEdge){
+        int nodeEdgePosition = nodeEdges.indexOf(nodeEdge);
+
+        if(nodeEdgePosition != -1){
+            nodeEdges.removeAt(nodeEdgePosition);
+        }
+    }else{
+        qCritical() << "NOT A VALID GRAPHML";
+    }
+
+
+}
+
+void NodeView::view_SetSelected(GraphML *graphML, bool setSelected)
+{
+    GraphMLItem* GUIItem = getGraphMLItemFromGraphML(graphML);
+
+    if(GUIItem){
+        GUIItem->setSelected(setSelected);
+    }
+
+    if(setSelected){
+        emit view_SetSelectedAttributeModel(GUIItem->getAttributeTable());
+    }else{
+        emit view_SetSelectedAttributeModel(0);
+    }
+}
+
+void NodeView::view_SortNode(Node *node)
+{
+    NodeItem* nodeItem = getNodeItemFromNode(node);
+    if(nodeItem){
+        nodeItem->sortChildren();
+    }
+
+}
+
+void NodeView::view_SetCentered(GraphML *graphML)
+{
+    GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
+    centreItem(guiItem);
+}
+
+void NodeView::view_SetOpacity(GraphML *graphML, qreal opacity)
+{
+    GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
+    if(guiItem){
+        guiItem->setOpacity(opacity);
+    }
+}
+
+
+NodeItem *NodeView::getNodeItemFromGraphML(GraphML *item)
+{
+    Node* node = getNodeFromGraphML(item);
+    return getNodeItemFromNode(node);
+}
+
+NodeEdge *NodeView::getNodeEdgeFromGraphML(GraphML *item)
+{
+    Edge* edge = getEdgeFromGraphML(item);
+    return getNodeEdgeFromEdge(edge);
+}
+
+Node *NodeView::getNodeFromGraphML(GraphML *item)
+{
+    Node* node = dynamic_cast<Node*>(item);
+    return node;
+}
+
+Edge *NodeView::getEdgeFromGraphML(GraphML *item)
+{
+    Edge* edge = dynamic_cast<Edge*>(item);
+    return edge;
+}
+
+
+NodeEdge *NodeView::getNodeEdgeFromEdge(Edge *edge)
+{
+    foreach(NodeEdge* nodeEdge, nodeEdges){
+        if(nodeEdge->getGraphML() == edge){
+            return nodeEdge;
+        }
+    }
+    return 0;
+}
+
+NodeItem *NodeView::getNodeItemFromNode(Node *node)
+{
+    foreach(NodeItem* nodeItem, nodeItems){
+        if(nodeItem->getGraphML() == node){
+            return nodeItem;
+        }
+    }
+    return 0;
+}
+
+GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
+{
+    NodeItem* nodeItem = getNodeItemFromGraphML(item);
+    NodeEdge* nodeEdge = getNodeEdgeFromGraphML(item);
+    if(nodeItem){
+        return nodeItem;
+    }else if(nodeEdge){
+        return nodeEdge;
+    }
+    return 0;
 }
 
 
@@ -361,7 +563,12 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
 }
 
-void NodeView::printErrorText(NodeItem *node, QString text)
+bool NodeView::guiCreated(GraphML *item)
+{
+    return getNodeItemFromGraphML(item) || getNodeEdgeFromGraphML(item);
+}
+
+void NodeView::printErrorText(GraphML *graphml, QString text)
 {
     /*
     if(node){

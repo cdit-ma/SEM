@@ -68,13 +68,15 @@ public:
 signals:
     void view_SetGUIEnabled(bool setEnabled);
     //Inform the View to Center the Canvas around an Node.
-    void view_SetNodeItemCentered(NodeItem* node);
+
+    void view_SetCentered(GraphML* graphML);
+
+    void view_SetOpacity(GraphML* graphML, qreal opacity);
 
     void view_SetRubberbandSelectionMode(bool on);
 
     void view_WriteGraphML(QString filename, QString data);
 
-    void view_SetSelectedAttributeModel(AttributeTableModel* model);
     void view_UpdateUndoList(QStringList list);
     void view_UpdateRedoList(QStringList list);
 
@@ -84,10 +86,13 @@ signals:
 
     void view_UpdateProjectName(QString name);
 
-    void view_PrintErrorCode(NodeItem* node, QString text);
+    void view_PrintErrorCode(GraphML* graphml, QString text);
     void view_UpdateStatusText(QString statusText);
 
     void view_DialogMessage(MESSAGE_TYPE type, QString message);
+
+    void view_ConstructNodeGUI(Node* node);
+    void view_ConstructEdgeGUI(Edge* node);
 
 public slots:
     void view_ImportGraphML(QStringList inputGraphML, Node *currentParent=0);
@@ -105,7 +110,6 @@ public slots:
     void view_ConstructComponentInstance(Component* definition = 0 );
     void view_ConstructComponentImpl(Component* definition = 0 );
 
-    void view_SortModel();
     void view_CenterComponentImpl(Node* node = 0);
     void view_CenterComponentDefinition(Node* node = 0);
     void view_CenterAggregate(Node* node = 0);
@@ -123,13 +127,12 @@ public slots:
 
     void view_SetItemSelected(GraphML* item, bool setSelected);
 
-    void view_SetNodeCentered(Node* node);
     void view_ConstructChildNode(QPointF centerPoint);
     void view_ConstructChildNode();
 
     void view_ConstructEdge(Node* src, Node* dst);
-    void view_ConstructEdge(Node* src, Node* dst, QVector<GraphMLData*>data, QString previousID=0);
-    void view_ConstructEdge(Node* src, Node* dst, QVector<QStringList> data, QString previousID=0);
+    void view_ConstructEdge(Node* src, Node* dst, QVector<GraphMLData*> data, QString previousID="");
+    void view_ConstructEdge(Node* src, Node* dst, QVector<QStringList> data, QString previousID="");
     void view_MoveSelectedNodes(QPointF delta);
 
     void view_SetChildNodeKind(QString nodeKind);
@@ -163,10 +166,6 @@ public slots:
     void view_ClearCenteredNode();
     void view_ClearSelection();
 
-private slots:
-    void view_ConstructNodeItem(Node* node);
-    void view_ConstructNodeEdge(Edge* edge);
-
 
 private:
     //Consolidated Methods
@@ -175,7 +174,6 @@ private:
     //Returns true if succeeded
     bool copySelectedNodesGraphML();
 
-
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
     GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
 
@@ -183,86 +181,95 @@ private:
     Node* constructNodeInstance(Node* parent, Node* definition);
     Node* constructNodeImplementation(Node* parent, Node* definition);
 
-
-
     //Returns a list of Kinds which can be adopted by a Node.
     QStringList getAdoptableNodeKinds(Node* parent);
     //Gets a specific Attribute from the current Element in the XML.
     //Returns "" if no Attribute found.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
+     //Constructs a Node using the attached GraphMLData elements. Does not attach this Node.
+    Node* constructNode(QVector<GraphMLData*> dataToAttach);
+    Edge* constructEdge(Node* source, Node* destination);
 
+    void storeGraphMLInHash(GraphML* item);
+    GraphML* getGraphMLFromHash(QString ID);
+    void removeGraphMLFromHash(QString ID);
 
-
-    Node* constructNodeEntity(QVector<GraphMLData*> dataToAttach);
+    //Constructs a Node using the attached GraphMLData elements. Attachs the node to the parentNode provided.
     Node* constructNodeChild(Node* parentNode, QVector<GraphMLData*> dataToAttach);
 
+    //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
+    void constructNodeGUI(Node* node);
+    void constructEdgeGUI(Edge* edge);
+
+    //Sets up an Undo state for the deletion of the Node/Edge, and tells the View To destruct its GUI Element.
+    bool destructNode(Node* node);
+    bool destructEdge(Edge* edge, bool addAction = true);
+
+    //Constructs a Vector of basic GraphMLData entities required for creating a Node.
     QVector<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition);
     QVector<GraphMLData*> constructGraphMLDataVector(QString nodeKind);
 
-
-
-
-    Node* constructGraphMLNode(QVector<GraphMLData *> data, Node *parent = 0);
-
-    //Connects Node object and stores into a vector.
-    void setupNode(Node* node);
-
+    //Constructs and setups all required Entities inside the Model Node.
     void setupModel();
+
+    //Sets up the Validation Engine.
     void setupValidator();
 
-
+    //Binds matching GraphMLData elements from the Node Child, to the Node Definition.
     void bindGraphMLData(Node* definition, Node* child);
 
-
-
+    //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all GraphMLData which isn't protected.
     void setupNodeAsInstance(Node* definition, Node* node);
+    void teardownNodeAsInstance(Node* definition, Node* instance);
+
+    //Setup/Teardown the node provided an Implementation of the Definition. It will adopt Implementations of all Definitions contained by definition and bind all GraphMLData which isn't protected.
     void setupNodeAsImplementation(Node* definition, Node* node);
+    void teardownNodeAsImplementation(Node* definition, Node* implementation);
 
+    //Attaches an Aggregate Definition to an EventPort Definition.
+    void attachAggregateToEventPort(EventPort* eventPort, Aggregate* aggregate);
 
-    void setupImpl(Node* definition, Node* implementation);
-    void setupAggregate(EventPort* eventPort, Aggregate* aggregate);
-    void tearDownImpl(Node* definition, Node* implementation);
-
-    void teardownInstance(Node* definition, Node* instance);
-
+    //Checks to see if the provided GraphML document is Valid XML.
     bool isGraphMLValid(QString inputGraphML);
 
+    //Updates the attached views list of Undo/Redo States.
+    void updateViewUndoRedoLists();
 
-    //Connects Edge object and stores into a vector.
-    void setupEdge(Edge* edge);
-    void updateGUIUndoRedoLists();
-
-    //Selection methods
+    //Gets the currently selected Node/Edge only if there is 1 Node/Edge selected.
     Node* getSelectedNode();
     Edge* getSelectedEdge();
 
-    bool deleteNode(Node* node);
-    bool deleteEdge(Edge* edge, bool addAction = true);
+    //Sets the Node/Edge as selected. Calls Methods in the View to visually select the item's GUI.
+    void setNodeSelected(Node* node, bool setSelected = true);
+    void setEdgeSelected(Edge* edge, bool setSelected = true);
 
-    void setNodeSelected(Node* node, bool setSelected=true);
-    void setEdgeSelected(Edge* edge, bool setSelected=true);
+    //Calls the GUI to unselect the currently Selected Node/Edges.
     void clearSelectedNodes();
     void clearSelectedEdges();
+
+    //Deletes the Model Entities corresponding to the selected Node/Edges.
     void deleteSelectedNodes();
     void deleteSelectedEdges();
 
+    //Returns true If a Node's parent (Recursive) is already selected.
     bool isNodesAncestorSelected(Node* node);
+
+    //Returns true if a Node/Edge is already selected.
     bool isNodeSelected(Node* node);
     bool isEdgeSelected(Edge* edge);
 
+    //Returns true if the Model Entities can be connected.
     bool isEdgeLegal(Node* src, Node* dst);
 
-
-
+    //Returns true if a nodeKind has been Implemented in the Model.
     bool isNodeKindImplemented(QString nodeKind);
-
 
     void reverseAction(ActionItem action);
 
-    void attachGraphMLData(GraphML* item, QVector<QStringList> dataList);
-    void attachGraphMLData(GraphML* item, GraphMLData* data);
-    void attachGraphMLData(GraphML* item, QVector<GraphMLData*> dataList);
+    bool attachGraphMLData(GraphML* item, QVector<QStringList> dataList);
+    bool attachGraphMLData(GraphML* item, GraphMLData* data);
+    bool attachGraphMLData(GraphML* item, QVector<GraphMLData*> dataList);
     
     void addActionToStack(ActionItem action);
 
@@ -273,12 +280,9 @@ private:
     QStack<ActionItem> redoStack;
 
 
-    NodeEdge* getNodeEdgeFromEdge(Edge* edge);
-    NodeItem* getNodeItemFromNode(Node* node);
 
     GraphML* getGraphMLFromID(QString ID);
     Node* getNodeFromID(QString ID);
-    NodeItem* getNodeItemFromGraphML(GraphML* item);
     Edge* getEdgeFromID(QString ID);
 
 
@@ -287,8 +291,10 @@ private:
     QVector<Edge *> edges;
     QVector<Node *> nodes;
 
-    QVector<NodeItem*> nodeItems;
-    QVector<NodeEdge*> nodeEdges;
+    QStringList nodeIDs;
+    QStringList edgeIDs;
+
+
 
 
     //Selection Lists
@@ -300,7 +306,7 @@ private:
     QString getNewIDFromPreviousID(QString ID);
     GraphML* getGraphMLFromPreviousID(QString ID);
 
-    void linkPreviousIDToID(QString previousID, QString newID);
+    void linkOldIDtoNewID(QString previousID, QString newID);
 
     bool isGraphMLNode(GraphML* item);
     bool isGraphMLEdge(GraphML* item);
@@ -308,7 +314,9 @@ private:
     Edge* getEdgeFromGraphML(GraphML* item);
 
     //Provides a lookup for old IDs.
-    QHash<QString, QString> pastIDLookup;
+    QHash<QString, QString> IDLookupHash;
+    QHash<QString, GraphML*> IDLookupGraphMLHash;
+
     QPointF menuPosition;
 
     Node* centeredNode;

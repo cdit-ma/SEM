@@ -152,6 +152,11 @@ void NodeEdge::destructNodeEdge()
     delete this;
 }
 
+void NodeEdge::setOpacity(qreal opacity)
+{
+
+}
+
 
 void NodeEdge::setSelected(bool selected)
 {

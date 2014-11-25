@@ -19,7 +19,7 @@
 #include "graphmlitem.h"
 
 class NodeEdge;
-class NodeItem : public GraphMLItem, public QGraphicsItem
+class NodeItem : public GraphMLItem
 {
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)

@@ -11,7 +11,7 @@
 #include <QObject>
 #include <QAbstractItemModel>
 
-#include <QGraphicsItem>
+
 #include "../Model/node.h"
 #include "../Model/edge.h"
 #include "../Model/graphmldata.h"
@@ -19,10 +19,9 @@
 #include <QObject>
 
 
-class NodeEdge: public GraphMLItem, public QGraphicsItem
+class NodeEdge: public GraphMLItem
 {
     Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
 
 public:
     NodeEdge(Edge *edge, NodeItem* s, NodeItem* d);
@@ -42,6 +41,7 @@ public:
 
 public slots:
     void destructNodeEdge();
+    void setOpacity(qreal opacity);
 
     void setSelected(bool selected);
     void setVisible(bool visible);

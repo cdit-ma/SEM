@@ -10,7 +10,6 @@ AggregateInstance::AggregateInstance():Node(Node::NT_DEFINSTANCE)
 
 AggregateInstance::~AggregateInstance()
 {
-
 }
 
 

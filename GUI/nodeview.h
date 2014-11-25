@@ -8,11 +8,14 @@
 #include <QPointF>
 #include <QRubberBand>
 
+class NewController;
+
 class NodeView : public QGraphicsView
 {
     Q_OBJECT
 public:
     NodeView(QWidget *parent = 0);
+    void setController(NewController* controller);
     bool getControlPressed();
     ~NodeView();
 
@@ -22,6 +25,8 @@ public:
     virtual void wheelEvent(QWheelEvent* event);
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
+
+    bool guiCreated(GraphML* item);
 
 signals:
     void updateZoom(qreal zoom);
@@ -48,16 +53,18 @@ signals:
     void sortModel();
 
 
+    void view_SetSelectedAttributeModel(AttributeTableModel* model);
+
 
 
 
 public slots:
-    void printErrorText(NodeItem* node, QString text);
+    void printErrorText(GraphML* graphml, QString text);
     void updateNodeTypeName(QString name);
     void addNodeItem(NodeItem* item);
     void removeNodeItem(NodeItem* item);
     void addEdgeItem(NodeEdge* edge);
-    void centreItem(NodeItem* item);
+    void centreItem(GraphMLItem* item);
     void clearView();
     void depthChanged(int depth);
 
@@ -66,9 +73,36 @@ public slots:
 
     void showContextMenu(const QPoint& pos);
 
+    void view_ConstructNodeGUI(Node* node);
+    void view_ConstructEdgeGUI(Edge* edge);
+
+    void view_DestructGraphMLGUI(GraphML* graphML);
+
+    void view_SetSelected(GraphML* graphML, bool setSelected);
+    void view_SortNode(Node* node);
+    void view_SetCentered(GraphML* graphML);
+    void view_SetOpacity(GraphML* graphML, qreal opacity);
+
 
 
 private:
+
+    NewController* controller;
+
+
+    NodeItem* getNodeItemFromGraphML(GraphML* item);
+    NodeEdge* getNodeEdgeFromGraphML(GraphML* item);
+    NodeEdge* getNodeEdgeFromEdge(Edge* edge);
+    NodeItem* getNodeItemFromNode(Node* node);
+    GraphMLItem* getGraphMLItemFromGraphML(GraphML* item);
+
+    Node* getNodeFromGraphML(GraphML* item);
+    Edge* getEdgeFromGraphML(GraphML* item);
+
+    QVector<NodeItem*> nodeItems;
+    QVector<NodeEdge*> nodeEdges;
+
+
     QStringList currentAspects;
     QPoint origin;
     bool rubberBanding;

@@ -21,7 +21,6 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     //controller->moveToThread(thread);
 
-
     foreach(QString aspect, controller->getViewAspects()){
         appendAspectString(aspect);
     }
@@ -31,6 +30,8 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     setAttribute(Qt::WA_DeleteOnClose, true);
 
+
+    qCritical() << "TEST";
 
 }
 ProjectWindow::~ProjectWindow()

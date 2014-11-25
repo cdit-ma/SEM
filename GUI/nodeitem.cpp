@@ -5,7 +5,7 @@
 #include <QFont>
 #include <QFontMetrics>
 #include <QRubberBand>
-NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node), QGraphicsItem()
+NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 {
     isSelected = false;
     drawDetail = true;
@@ -419,7 +419,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if(event->modifiers().testFlag(Qt::ControlModifier)){
             sortChildren();
         }else{
-            emit centreNode(node);
+            emit center(getGraphML());
         }
         //emit centreNode(this);
         break;
