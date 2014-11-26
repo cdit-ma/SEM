@@ -1,4 +1,4 @@
-#include "nodeconnection.h"
+#include "nodeedge.h"
 #include <QDebug>
 #include "graphmlitem.h"
 

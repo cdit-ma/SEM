@@ -1357,10 +1357,6 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
         node = new Member();
     }else if(nodeKind == "Aggregate"){
         node = new Aggregate();
-    }else if(nodeKind == "AggregateMember"){
-        node = new AggregateMember();
-    }else if(nodeKind == "AggregateMemberInstance"){
-        node = new AggregateMemberInstance();
     }else if(nodeKind == "AggregateInstance"){
         node = new AggregateInstance();
     }else if(nodeKind == "MemberInstance"){

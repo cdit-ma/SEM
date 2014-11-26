@@ -19,7 +19,6 @@ TEMPLATE = app
 
 HEADERS += \
     GUI/attributetablemodel.h \
-    GUI/nodeconnection.h \
     GUI/nodeitem.h \
     GUI/nodeview.h \
     Model/edge.h \
@@ -71,11 +70,11 @@ HEADERS += \
     ValidationEngine/validationplugin.h \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
     ValidationEngine/validationengine.h \
-    ValidationEngine/Plugins/interfacedefinitionplugin.h
+    ValidationEngine/Plugins/interfacedefinitionplugin.h \
+    GUI/nodeedge.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
-    GUI/nodeconnection.cpp \
     GUI/nodeitem.cpp \
     GUI/nodeview.cpp \
     Model/edge.cpp \
@@ -127,7 +126,8 @@ SOURCES += \
     ValidationEngine/validationengine.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
     ValidationEngine/validationplugin.cpp \
-    ValidationEngine/Plugins/interfacedefinitionplugin.cpp
+    ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
+    GUI/nodeedge.cpp
 
 FORMS += \
     medeawindow.ui \

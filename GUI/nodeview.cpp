@@ -12,7 +12,6 @@
 #include <QDebug>
 #include <iostream>
 #include <QGraphicsSceneMouseEvent>
-#include "nodeconnection.h"
 #include <QMenu>
 #include <QAction>
 #include "../Controller/newcontroller.h"

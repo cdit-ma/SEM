@@ -2,7 +2,7 @@
 #define NEWCONTROLLER_H
 #include <QStack>
 #include "../GUI/nodeview.h"
-#include "../GUI/nodeconnection.h"
+#include "../GUI/nodeedge.h"
 #include "../Model/model.h"
 #include <QStandardItemModel>
 #include "../Model/node.h"

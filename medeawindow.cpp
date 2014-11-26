@@ -1,10 +1,6 @@
 #include "medeawindow.h"
 #include "ui_medeawindow.h"
 
-#include "GUI/nodeitem.h"
-#include "GUI/nodeconnection.h"
-#include "GUI/attributetablemodel.h"
-
 #include <QFileDialog>
 #include <QMdiSubWindow>
 #include <QDebug>
