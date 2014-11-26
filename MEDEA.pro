@@ -28,7 +28,6 @@ HEADERS += \
     Model/graphmlkey.h \
     Model/model.h \
     Model/node.h \
-    mainwindow.h \
     Model/blanknode.h \
     Controller/newcontroller.h \
     GUI/graphmlitem.h \
@@ -57,7 +56,6 @@ HEADERS += \
     Model/InterfaceDefinitions/file.h \
     Model/InterfaceDefinitions/aggregate.h \
     Model/InterfaceDefinitions/member.h \
-    Model/InterfaceDefinitions/aggregatemember.h \
     Model/InterfaceDefinitions/eventport.h \
     Model/BehaviourDefinitions/variable.h \
     Model/BehaviourDefinitions/process.h \
@@ -73,9 +71,7 @@ HEADERS += \
     ValidationEngine/validationplugin.h \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
     ValidationEngine/validationengine.h \
-    ValidationEngine/Plugins/interfacedefinitionplugin.h \
-    newmedeawindow.h \
-    Model/BehaviourDefinitions/aggregatememberinstance.h
+    ValidationEngine/Plugins/interfacedefinitionplugin.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -89,7 +85,6 @@ SOURCES += \
     Model/model.cpp \
     Model/node.cpp \
     main.cpp \
-    mainwindow.cpp \
     Model/blanknode.cpp \
     Controller/newcontroller.cpp \
     GUI/graphmlitem.cpp \
@@ -118,7 +113,6 @@ SOURCES += \
     Model/InterfaceDefinitions/file.cpp \
     Model/InterfaceDefinitions/aggregate.cpp \
     Model/InterfaceDefinitions/member.cpp \
-    Model/InterfaceDefinitions/aggregatemember.cpp \
     Model/InterfaceDefinitions/eventport.cpp \
     Model/BehaviourDefinitions/variable.cpp \
     Model/BehaviourDefinitions/process.cpp \
@@ -133,9 +127,7 @@ SOURCES += \
     ValidationEngine/validationengine.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
     ValidationEngine/validationplugin.cpp \
-    ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
-    newmedeawindow.cpp \
-    Model/BehaviourDefinitions/aggregatememberinstance.cpp
+    ValidationEngine/Plugins/interfacedefinitionplugin.cpp
 
 FORMS += \
     medeawindow.ui \
