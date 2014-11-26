@@ -17,6 +17,7 @@ OutEventPortInstance::~OutEventPortInstance()
 
 bool OutEventPortInstance::canAdoptChild(Node *child)
 {
+    Q_UNUSED(child);
     return false;
 }
 

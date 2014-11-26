@@ -37,7 +37,6 @@ public:
 
 
     void  addToScene(QGraphicsScene* scene);
-    QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
 public slots:
     void destructNodeEdge();
@@ -45,6 +44,8 @@ public slots:
 
     void setSelected(bool selected);
     void setVisible(bool visible);
+
+    void graphMLDataUpdated(GraphMLData * data);
 
 
 private:

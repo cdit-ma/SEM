@@ -26,3 +26,22 @@ AttributeTableModel *GraphMLItem::getAttributeTable()
 {
     return table;
 }
+
+QVariant GraphMLItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+{
+    if (change == QGraphicsItem::ItemSelectedChange)
+    {
+        if (value == true){
+            emit triggerSelected(getGraphML(), true);
+        }else{
+            emit triggerSelected(getGraphML(), false);
+        }
+    }
+
+    return QGraphicsItem::itemChange(change, value);
+}
+
+void GraphMLItem::destructGraphML()
+{
+    delete this;
+}

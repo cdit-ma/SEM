@@ -61,7 +61,6 @@ public:
     QString exportGraphML(QVector<Node *> nodes);
     QString exportGraphML(Node* node);
 
-    QStandardItemModel* getModel();
     QStringList getNodeKinds();
     QStringList getViewAspects();
 
@@ -69,7 +68,7 @@ signals:
     void view_SetGUIEnabled(bool setEnabled);
     //Inform the View to Center the Canvas around an Node.
 
-    void view_SetCentered(GraphML* graphML);
+    void view_CenterGraphML(GraphML* graphML);
 
     void view_SetOpacity(GraphML* graphML, qreal opacity);
 
@@ -122,10 +121,11 @@ public slots:
 
     void view_ExportGraphML(QString filename);
 
+    void view_GraphMLSelected(GraphML* item, bool setSelected);
+
     void view_SetNodeSelected(Node* node, bool setSelected);
     void view_SetEdgeSelected(Edge* edge, bool setSelected);
 
-    void view_SetItemSelected(GraphML* item, bool setSelected);
 
     void view_ConstructChildNode(QPointF centerPoint);
     void view_ConstructChildNode();
@@ -143,7 +143,7 @@ public slots:
     void view_ShowAllNodes();
 
 
-    void view_ActionTriggered(QString actionName);
+    void view_TriggerAction(QString actionName);
 
     //Keyboard Actions
     void view_ClearHistory();
@@ -240,6 +240,7 @@ private:
     Node* getSelectedNode();
     Edge* getSelectedEdge();
 
+
     //Sets the Node/Edge as selected. Calls Methods in the View to visually select the item's GUI.
     void setNodeSelected(Node* node, bool setSelected = true);
     void setEdgeSelected(Edge* edge, bool setSelected = true);
@@ -268,51 +269,56 @@ private:
     //Used by Undo/Redo to reverse an ActionItem from the Stacks.
     void reverseAction(ActionItem action);
 
-    bool attachGraphMLData(GraphML* item, QVector<QStringList> dataList);
-    bool attachGraphMLData(GraphML* item, GraphMLData* data);
-    bool attachGraphMLData(GraphML* item, QVector<GraphMLData*> dataList);
-    
+    //Adds an ActionItem to the Undo/Redo Stack depending on the State of the application.
     void addActionToStack(ActionItem action);
 
+    //Undo's/Redo's all of the ActionItems in the Stack which have been performed since the last operation.
+    void undoRedo(bool undo=true);
 
-    void undoRedo();
-
-    QStack<ActionItem> undoStack;
-    QStack<ActionItem> redoStack;
-
-
-
+    //Attach GraphMLData('s) to the GraphML item.
+    bool attachGraphMLData(GraphML* item, GraphMLData* data);
+    bool attachGraphMLData(GraphML* item, QVector<QStringList> dataList);
+    bool attachGraphMLData(GraphML* item, QVector<GraphMLData*> dataList);
+    
+    //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
     GraphML* getGraphMLFromID(QString ID);
     Node* getNodeFromID(QString ID);
     Edge* getEdgeFromID(QString ID);
 
 
+
+    //Stores the GraphMLKey's used by the Model.
     QVector<GraphMLKey*> keys;
 
     QVector<Edge *> edges;
     QVector<Node *> nodes;
 
+    //Stores the list of nodeID's and EdgeID's inside the Hash.
     QStringList nodeIDs;
     QStringList edgeIDs;
 
-
-
+    //Stack of ActionItems in the Undo Stack.
+    QStack<ActionItem> undoActionStack;
+    //Stack of ActionItems in the Redo Stack.
+    QStack<ActionItem> redoActionStack;
 
     //Selection Lists
     QVector<Edge *> selectedEdges;
     QVector<Node *> selectedNodes;
 
+    //Used to find old ID's which may have been deleted from the Model. Will find the replacement ID if they exist.
+    QString getIDFromOldID(QString ID);
 
-    Node* getNodeFromPreviousID(QString ID);
-    QString getNewIDFromPreviousID(QString ID);
-    GraphML* getGraphMLFromPreviousID(QString ID);
+    //Links an ID of an already deleted GraphML Item to the ID of the new GraphML Item.
+    void linkOldIDToID(QString oldID, QString newID);
 
-    void linkOldIDtoNewID(QString previousID, QString newID);
-
-    bool isGraphMLNode(GraphML* item);
-    bool isGraphMLEdge(GraphML* item);
+    //Casts the GraphML as a Node/Edge, will be NULL if not a Node/Edge
     Node* getNodeFromGraphML(GraphML* item);
     Edge* getEdgeFromGraphML(GraphML* item);
+
+    //Gets the Model Node.
+    Model* getModel();
+
 
     //Provides a lookup for old IDs.
     QHash<QString, QString> IDLookupHash;
@@ -330,7 +336,6 @@ private:
 
     bool UNDOING;
     bool REDOING;
-    bool SELECT_NEWLY_CREATED;
 
     bool KEY_CONTROL_DOWN;
     bool KEY_SHIFT_DOWN;
@@ -339,7 +344,7 @@ private:
 
     NodeView* view;
 
-    Model* getParentModel();
+
 
     Model* model;
     BehaviourDefinitions* behaviourDefinitions;
@@ -348,14 +353,12 @@ private:
     HardwareDefinitions* hardwareDefinitions;
     AssemblyDefinitions* assemblyDefinitions;
 
-    bool CUT_LINKING;
     int actionCount;
     QString currentAction;
     int currentActionID;
 
     QString childNodeKind;
 
-    QStandardItemModel* treeModel;
     ValidationEngine* validator;
 };
 

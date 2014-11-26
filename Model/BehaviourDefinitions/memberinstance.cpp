@@ -36,5 +36,6 @@ bool MemberInstance::canConnect(Node* attachableObject)
 
 bool MemberInstance::canAdoptChild(Node *child)
 {
+    Q_UNUSED(child);
     return true;
 }

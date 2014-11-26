@@ -21,7 +21,8 @@ public:
 
 signals:
     void view_PasteData(QString value);
-    void view_ActionTriggered(QString name);
+
+    void view_TriggerAction(QString name);
     void enableGUI(bool isEnable);
     void view_AddFilter(QString filter);
     void view_AddAspect(QString aspect);

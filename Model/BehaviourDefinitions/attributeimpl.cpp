@@ -36,6 +36,7 @@ bool AttributeImpl::canConnect(Node* attachableObject)
 
 bool AttributeImpl::canAdoptChild(Node *child)
 {
+    Q_UNUSED(child);
     return true;
 }
 

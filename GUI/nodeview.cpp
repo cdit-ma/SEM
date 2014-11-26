@@ -79,15 +79,6 @@ void NodeView::updateNodeTypeName(QString name)
 }
 
 
-void NodeView::addNodeItem(NodeItem *item)
-{
-    if(!scene()->items().contains(item)){
-        scene()->addItem(item);
-        //Add to model.
-    }
-    connect(this, SIGNAL(updateNodeType(QString)), item, SLOT(updateChildNodeType(QString)));
-    connect(this, SIGNAL(updateViewAspects(QStringList)), item, SLOT(updateViewAspects(QStringList)));
-}
 
 void NodeView::removeNodeItem(NodeItem *item)
 {
@@ -97,12 +88,6 @@ void NodeView::removeNodeItem(NodeItem *item)
 }
 
 
-void NodeView::addEdgeItem(NodeEdge* edge){
-    //qCritical() << "View: Adding NodeConnection to View";
-    if(edge != 0){
-        edge->addToScene(scene());
-    }
-}
 
 QRectF NodeView::getVisibleRect( )
 {
@@ -234,23 +219,20 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     nodeItems.append(nodeItem);
 
-    connect(nodeItem, SIGNAL(setItemSelected(GraphML*, bool)), controller, SLOT(view_SetItemSelected(GraphML*,bool)));
-    connect(nodeItem, SIGNAL(actionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
+    //Connect the Generic Functionality.
+    connectGraphMLItemToController(nodeItem, node);
 
-    connect(nodeItem, SIGNAL(center(GraphML*)), this, SLOT(view_SetCentered(GraphML*)));
-
-    connect(nodeItem, SIGNAL(makeChildNode(QPointF)), controller, SLOT(view_ConstructChildNode(QPointF)));
+    //Connect the Node Specific Functionality
     connect(nodeItem, SIGNAL(moveSelection(QPointF)), controller, SLOT(view_MoveSelectedNodes(QPointF)));
-
-    connect(node, SIGNAL(destroyed()), nodeItem, SLOT(destructNodeItem()));
     connect(controller, SIGNAL(view_SetRubberbandSelectionMode(bool)), nodeItem, SLOT(setRubberbandMode(bool)));
+    connect(this, SIGNAL(updateNodeType(QString)), nodeItem, SLOT(updateChildNodeType(QString)));
+    connect(this, SIGNAL(updateViewAspects(QStringList)), nodeItem, SLOT(updateViewAspects(QStringList)));
 
 
-    connect(nodeItem, SIGNAL(destructGraphMLData(GraphML*,QString)), controller, SLOT(view_DestructGraphMLData(GraphML*,QString)));
-    connect(nodeItem, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
-
-
-    addNodeItem(nodeItem);
+    if(!scene()->items().contains(nodeItem)){
+        //Add to model.
+        scene()->addItem(nodeItem);
+    }
 }
 
 void NodeView::view_ConstructEdgeGUI(Edge *edge)
@@ -270,17 +252,11 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         //Add it to the list of EdgeItems in the Model.
         nodeEdges.append(nodeEdge);
 
-        connect(edge, SIGNAL(destroyed()), nodeEdge, SLOT(destructNodeEdge()));
-        connect(nodeEdge, SIGNAL(center(GraphML*)), this, SLOT(view_SetCentered(GraphML*)));
+        connectGraphMLItemToController(nodeEdge, edge);
 
-        connect(nodeEdge, SIGNAL(actionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
-        connect(nodeEdge, SIGNAL(setItemSelected(GraphML*,bool)), controller, SLOT(view_SetItemSelected(GraphML*,bool)));
-
-        connect(nodeEdge, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
-
-       // connect(nodeEdge, SIGNAL(setSelected(Edge*,bool)), this, SLOT(view_SetEdgeSelected(Edge*,bool)));
-
-        addEdgeItem(nodeEdge);
+        if(nodeEdge){
+            nodeEdge->addToScene(scene());
+        }
     }else{
         qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
     }
@@ -311,7 +287,7 @@ void NodeView::view_DestructGraphMLGUI(GraphML *graphML)
 
 }
 
-void NodeView::view_SetSelected(GraphML *graphML, bool setSelected)
+void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
 {
     GraphMLItem* GUIItem = getGraphMLItemFromGraphML(graphML);
 
@@ -335,7 +311,7 @@ void NodeView::view_SortNode(Node *node)
 
 }
 
-void NodeView::view_SetCentered(GraphML *graphML)
+void NodeView::view_CenterGraphML(GraphML *graphML)
 {
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
     centreItem(guiItem);
@@ -347,6 +323,17 @@ void NodeView::view_SetOpacity(GraphML *graphML, qreal opacity)
     if(guiItem){
         guiItem->setOpacity(opacity);
     }
+}
+
+void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
+{
+    connect(GUIItem, SIGNAL(triggerAction(QString)),  controller, SLOT(view_TriggerAction(QString)));
+    connect(GUIItem, SIGNAL(triggerCentered(GraphML*)), this, SLOT(view_CenterGraphML(GraphML*)));
+    connect(GUIItem, SIGNAL(triggerSelected(GraphML*, bool)), controller, SLOT(view_GraphMLSelected(GraphML*, bool)));
+    connect(GUIItem, SIGNAL(constructGraphMLData(GraphML*,QString)), controller, SLOT(view_ConstructGraphMLData(GraphML*,QString)));
+    connect(GUIItem, SIGNAL(destructGraphMLData(GraphML*,QString)), controller, SLOT(view_DestructGraphMLData(GraphML*,QString)));
+    connect(GUIItem, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
+    connect(graphML, SIGNAL(destroyed()), GUIItem, SLOT(destructGraphML()));
 }
 
 
@@ -567,14 +554,7 @@ bool NodeView::guiCreated(GraphML *item)
 
 void NodeView::printErrorText(GraphML *graphml, QString text)
 {
-    /*
-    if(node){
-        QGraphicsTextItem * io = new QGraphicsTextItem();
-        io->setPos(node->scenePos());
-        io->setPlainText(text);
-        io->setTextWidth(20);
-
-        scene()->addItem(io);
-    }
-    */
+    //TODO
+    Q_UNUSED(graphml);
+    Q_UNUSED(text);
 }

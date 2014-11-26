@@ -4,11 +4,13 @@
 
 
 
+bool UNDO = true;
+bool REDO = false;
+
 NewController::NewController(NodeView *v)
 {
     UNDOING = false;
     REDOING = false;
-    SELECT_NEWLY_CREATED = false;
     KEY_CONTROL_DOWN = false;
     KEY_SHIFT_DOWN = false;
 
@@ -22,7 +24,6 @@ NewController::NewController(NodeView *v)
     view->setController(this);
 
     model = 0;
-    treeModel = new QStandardItemModel();
 
     //Construct
 
@@ -38,7 +39,6 @@ NewController::NewController(NodeView *v)
 
     childNodeKind = "InEventPort";
 
-    CUT_LINKING = false;
     centeredNode = 0;
 
     viewAspects << "Assembly" << "Workload" << "Definitions";
@@ -72,7 +72,7 @@ NewController::NewController(NodeView *v)
     //connect(view, SIGNAL(sortModel()),this, SLOT(view_SortModel()));
     connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
     //Connect the controllers signals to the view.
-    connect(this, SIGNAL(view_SetCentered(GraphML*)), view, SLOT(view_SetCentered(GraphML*)));
+    connect(this, SIGNAL(view_CenterGraphML(GraphML*)), view, SLOT(view_CenterGraphML(GraphML*)));
     connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
 
 
@@ -166,11 +166,6 @@ QString NewController::exportGraphML(Node *node)
     return exportGraphML(nodes);
 }
 
-QStandardItemModel *NewController::getModel()
-{
-    return treeModel;
-}
-
 QStringList NewController::getNodeKinds()
 {
     return constructableNodeKinds;
@@ -183,7 +178,7 @@ QStringList NewController::getViewAspects()
 
 void NewController::view_ImportGraphML(QStringList inputGraphML, Node *currentParent)
 {
-    view_ActionTriggered("Importing GraphML");
+    view_TriggerAction("Importing GraphML");
     emit view_SetGUIEnabled(false);
    // emit view_EnableGUI(false);
    // emit view_UpdateProgressDialog(true);
@@ -237,7 +232,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
 
     //If we have been passed no parent, set it as the graph of this Model.
     if(currentParent == 0){
-        currentParent = getParentModel();
+        currentParent = getModel();
     }
 
     if(currentParent->isInstance() || currentParent->isImpl()){
@@ -425,7 +420,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
                 nodeLookup.insert(nodeID, newNode);
 
                 if(linkID){
-                    linkOldIDtoNewID(nodeID, newNode->getID());
+                    linkOldIDToID(nodeID, newNode->getID());
                 }
 
                 //If we have encountered a Graph object, we should point it to it's parent Node to allow links to Graph's
@@ -506,7 +501,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
 void NewController::validator_HighlightError(Node *node, QString error)
 {
     if(node){
-        view->view_SetCentered(node);
+        view->view_CenterGraphML(node);
         emit view_PrintErrorCode(node, error);
         emit view_UpdateStatusText(error);
     }
@@ -591,10 +586,10 @@ void NewController::view_ConstructComponentInstance(Component *definition)
     }
 
     if(definition){
-        view_ActionTriggered("Constructing Component Instance.");
+        view_TriggerAction("Constructing Component Instance.");
         Node* node = constructNodeInstance(assemblyDefinitions, definition);
         if(node){
-            view->view_SetCentered(node);
+            view->view_CenterGraphML(node);
         }
     }
 }
@@ -606,9 +601,9 @@ void NewController::view_ConstructComponentImpl(Component *definition)
     }
 
     if(definition){
-        view_ActionTriggered("Constructing Component Implementation.");
+        view_TriggerAction("Constructing Component Implementation.");
         Node* node = constructNodeImplementation(behaviourDefinitions, definition);
-        view->view_SetCentered(node);
+        view->view_CenterGraphML(node);
     }
 }
 
@@ -619,7 +614,7 @@ void NewController::view_CenterComponentImpl(Node *node)
         node = getSelectedNode();
     }
     if(node && node->getImplementation()){
-        view->view_SetCentered(node->getImplementation());
+        view->view_CenterGraphML(node->getImplementation());
     }
 }
 
@@ -629,7 +624,7 @@ void NewController::view_CenterComponentDefinition(Node *node)
         node = getSelectedNode();
     }
     if(node && node->getDefinition()){
-        view->view_SetCentered(node->getDefinition());
+        view->view_CenterGraphML(node->getDefinition());
     }
 
 }
@@ -647,7 +642,7 @@ void NewController::view_CenterAggregate(Node *node)
 
         EventPort* eP = dynamic_cast<EventPort*>(node);
         if(eP && eP->getAggregate()){
-            view->view_SetCentered(eP->getAggregate());
+            view->view_CenterGraphML(eP->getAggregate());
         }
     }
 }
@@ -738,18 +733,57 @@ void NewController::view_ExportGraphML(QString filename)
     QVector<Node*> nodes;
     nodes.append(model);
 
-    /*
-    foreach(Node* child, getParentModel()->getChildren(0)){
-        Node* node = dynamic_cast<Node*>(child);
-        if(node){
-            nodes.append(node);
-        }
-    }
-    */
-
     QString data = exportGraphML(nodes);
 
     emit view_WriteGraphML(filename, data);
+}
+
+void NewController::view_GraphMLSelected(GraphML *item, bool setSelected)
+{
+    Node* node = getNodeFromGraphML(item);
+    Edge* edge = getEdgeFromGraphML(item);
+
+    if(node){
+        if(KEY_CONTROL_DOWN){
+            //If Node is already selected, Unselect It.
+            setSelected = !isNodeSelected(node);
+            setNodeSelected(node, setSelected);
+            return;
+        }
+
+        if(KEY_SHIFT_DOWN){
+            //Construct an Edge between the previous selected Node and this Node.
+            Node* source = getSelectedNode();
+            if(!getSelectedEdge() && source){
+                view_TriggerAction("Constructing Edge.");
+                view_ConstructEdge(source, node);
+                return;
+            }
+        }
+
+        if(!isNodeSelected(node)){
+            //Clear Selected Items
+            view_ClearSelection();
+            //Set the Node Selected
+            setNodeSelected(node, setSelected);
+        }
+    }
+
+    if(edge){
+        if(KEY_CONTROL_DOWN){
+            //If Edge is already selected, Unselect It.
+            setSelected = !isEdgeSelected(edge);
+            setEdgeSelected(edge, setSelected);
+            return;
+        }
+
+        if(!isEdgeSelected(edge)){
+            //Clear Selected Items
+            view_ClearSelection();
+            //Set the Edge Selected
+            setEdgeSelected(edge, setSelected);
+        }
+    }
 }
 
 void NewController::view_SetNodeSelected(Node *node, bool setSelected)
@@ -769,7 +803,7 @@ void NewController::view_SetNodeSelected(Node *node, bool setSelected)
         if(KEY_SHIFT_DOWN){
             Node* src = getSelectedNode();
             if(selectedEdges.size() == 0 && src){
-                view_ActionTriggered("Constructing Edge!");
+                view_TriggerAction("Constructing Edge!");
                 view_ConstructEdge(src, node);
             }
         }
@@ -801,21 +835,6 @@ void NewController::view_SetEdgeSelected(Edge *edge, bool setSelected)
 
 }
 
-void NewController::view_SetItemSelected(GraphML *item, bool setSelected)
-{
-    if(!item){
-        return;
-    }
-
-    if(isGraphMLNode(item)){
-        view_SetNodeSelected(getNodeFromGraphML(item), setSelected);
-    }
-    if(isGraphMLEdge(item)){
-        view_SetEdgeSelected(getEdgeFromGraphML(item), setSelected);
-    }
-
-}
-
 
 void NewController::view_ConstructChildNode(QPointF centerPoint)
 {
@@ -827,7 +846,7 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
     //Get the current Selected Node.
     Node* parent = getSelectedNode();
     if(!parent){
-        parent = getParentModel();
+        parent = getModel();
     }
 
     if(parent->isInstance()){
@@ -843,7 +862,7 @@ void NewController::view_ConstructChildNode(QPointF centerPoint)
 
     delete dialog;
 
-    view_ActionTriggered("Constructing Child Node");
+    view_TriggerAction("Constructing Child Node");
     constructNodeChild(parent, constructGraphMLDataVector(nodeKind,centerPoint));
 }
 
@@ -869,7 +888,7 @@ void NewController::view_ConstructEdge(Node *src, Node *dst, QVector<GraphMLData
 
         //If we are Undo-ing or Redo-ing and we have an ID to link it to.
         if((UNDOING || REDOING) && previousID != ""){
-            linkOldIDtoNewID(previousID, edge->getID());
+            linkOldIDToID(previousID, edge->getID());
         }
         storeGraphMLInHash(edge);
         constructEdgeGUI(edge);
@@ -883,7 +902,7 @@ void NewController::view_ConstructEdge(Node *src, Node *dst, QVector<QStringList
          attachGraphMLData(edge, attachedData);
 
          if((UNDOING || REDOING) && previousID != ""){
-             linkOldIDtoNewID(previousID, edge->getID());
+             linkOldIDToID(previousID, edge->getID());
          }
          storeGraphMLInHash(edge);
 
@@ -964,7 +983,7 @@ void NewController::view_ShowAllNodes()
     }
 }
 
-void NewController::view_ActionTriggered(QString actionName)
+void NewController::view_TriggerAction(QString actionName)
 {
     actionCount++;
     currentAction = actionName;
@@ -973,8 +992,8 @@ void NewController::view_ActionTriggered(QString actionName)
 
 void NewController::view_ClearHistory()
 {
-    undoStack.clear();
-    redoStack.clear();
+    undoActionStack.clear();
+    redoActionStack.clear();
 }
 
 void NewController::view_ControlPressed(bool isDown)
@@ -1013,31 +1032,23 @@ void NewController::view_ShiftPressed(bool isDown)
 
 void NewController::view_DeletePressed(bool isDown)
 {
-    qCritical() << "Delete";
      if(isDown){
          emit view_SetGUIEnabled(false);
-         view_ActionTriggered("Deleting Selection");
-         //Do Delete
+         view_TriggerAction("Deleting Selection");
          deleteSelectedEdges();
          deleteSelectedNodes();
          emit view_SetGUIEnabled(true);
-     }else{
-         qCritical() << "GG;";
      }
 }
 
 void NewController::view_Undo()
 {
-    UNDOING = true;
-    undoRedo();
-    UNDOING = false;
+    undoRedo(UNDO);
 }
 
 void NewController::view_Redo()
 {
-    REDOING = true;
-    undoRedo();
-    REDOING = false;
+    undoRedo(REDO);
 }
 
 void NewController::view_Copy()
@@ -1050,10 +1061,9 @@ void NewController::view_Cut()
     //Run Copy
     if(copySelectedNodesGraphML()){
         emit view_SetGUIEnabled(false);
-        view_ActionTriggered("Cutting Selection.");
+        view_TriggerAction("Cutting Selection.");
         deleteSelectedEdges();
         deleteSelectedNodes();
-        CUT_LINKING = true;
         emit view_SetGUIEnabled(true);
     }
 }
@@ -1077,12 +1087,8 @@ void NewController::view_Paste(QString xmlData)
         clearSelectedEdges();
         clearSelectedNodes();
 
-
-        SELECT_NEWLY_CREATED = true;
-        view_ActionTriggered("Pasting Selection.");
-        view_ImportGraphML(xmlData, node, CUT_LINKING);
-        CUT_LINKING = false;
-        SELECT_NEWLY_CREATED = false;
+        view_TriggerAction("Pasting Selection.");
+        view_ImportGraphML(xmlData, node, true);
     }
 }
 
@@ -1129,7 +1135,7 @@ void NewController::view_ClearSelection()
     clearSelectedEdges();
     clearSelectedNodes();
 
-    view->view_SetSelected(model, true);
+    view->view_SelectGraphML(model);
     //setNodeSelected(model, true);
 }
 
@@ -1738,7 +1744,7 @@ Node *NewController::constructNodeImplementation(Node *parent, Node *definition)
 void NewController::clearSelectedNodes()
 {
     foreach(Node* node, selectedNodes){
-        view->view_SetSelected(node, false);
+        view->view_SelectGraphML(node, false);
     }
     selectedNodes.clear();
 
@@ -1748,7 +1754,7 @@ void NewController::clearSelectedNodes()
 void NewController::clearSelectedEdges()
 {
     foreach(Edge* edge, selectedEdges){
-        view->view_SetSelected(edge, false);
+        view->view_SelectGraphML(edge, false);
     }
     selectedEdges.clear();
     view->scene()->update();
@@ -1771,7 +1777,7 @@ void NewController::setNodeSelected(Node *node, bool setSelected)
                 }
             }
 
-            view->view_SetSelected(node, true);
+            view->view_SelectGraphML(node, true);
 
             selectedNodes.append(node);
         }
@@ -1786,7 +1792,7 @@ void NewController::setNodeSelected(Node *node, bool setSelected)
             }
         }
     }else{
-        view->view_SetSelected(node, false);
+        view->view_SelectGraphML(node, false);
 
         //Remove from list.
         int position = selectedNodes.indexOf(node);
@@ -1820,18 +1826,18 @@ void NewController::setEdgeSelected(Edge *edge, bool setSelected)
                 foreach(Edge* childEdge, dstEdges){
                     if(childEdge->isInstanceLink()){
                         if(src->isAncestorOf(childEdge->getSource())){
-                            view->view_SetSelected(childEdge, true);
+                            view->view_SelectGraphML(childEdge, true);
                             selectedEdges.append(childEdge);
                         }
                     }
                 }
             }
 
-            view->view_SetSelected(edge, true);
+            view->view_SelectGraphML(edge, true);
             selectedEdges.append(edge);
         }
     }else{
-        view->view_SetSelected(edge, false);
+        view->view_SelectGraphML(edge, false);
         //Remove from list.
         int position = selectedEdges.indexOf(edge);
         if(position != -1){
@@ -2148,6 +2154,9 @@ void NewController::reverseAction(ActionItem action)
 
             if(attachedItem){
                 bool success = attachGraphMLData(attachedItem, action.dataValues);
+                if(!success){
+                    qCritical() << "Could not Attach GraphMLData";
+                }
             }else{
                 qCritical() << "Cannot find Item";
             }
@@ -2189,31 +2198,38 @@ void NewController::reverseAction(ActionItem action)
 }
 bool NewController::attachGraphMLData(GraphML *item, QVector<QStringList> dataList)
 {
-    //Attach the data.
-    QVector<GraphMLData*> graphMLData;
-    foreach(QStringList data, dataList){
-        if(data.size() == 5){
-            QString keyName = data.at(0);
-            QString keyType = data.at(1);
-            QString keyFor = data.at(2);
-            QString dataValue = data.at(3);
-            bool isProtected = data.at(4) == "true";
+    QVector<GraphMLData*> graphMLDataList;
+    //Conver the StringList into GraphMLData Objects.
 
-            GraphMLKey* key = constructGraphMLKey(keyName, keyType, keyFor);
-            if(key){
-                GraphMLData* data = new GraphMLData(key, dataValue);
-                data->setProtected(isProtected);
-                if(data){
-                    graphMLData.append(data);
-                    continue;
-                }else{
-                    qCritical() << "GraphML data cannot be added!";
-                }
-            }
+    foreach(QStringList data, dataList){
+        if(data.size() != 5){
+            qCritical() << "GraphMLData Cannot be Parsed.";
+            continue;
         }
-        qCritical() << "Data Illegal";
+
+        QString keyName = data.at(0);
+        QString keyType = data.at(1);
+        QString keyFor = data.at(2);
+        QString dataValue = data.at(3);
+        bool isProtected = data.at(4) == "true";
+
+        GraphMLKey* key = constructGraphMLKey(keyName, keyType, keyFor);
+        if(!key){
+            qCritical() << "Cannot Construct Key";
+            continue;
+        }
+
+        GraphMLData* graphMLData = new GraphMLData(key, dataValue);
+        if(!graphMLData){
+            qCritical() << "Cannot Construct GraphMLData";
+            continue;
+        }
+
+        graphMLData->setProtected(isProtected);
+        graphMLDataList.append(graphMLData);
     }
-    return attachGraphMLData(item, graphMLData);
+
+    return attachGraphMLData(item, graphMLDataList);
 }
 
 bool NewController::attachGraphMLData(GraphML *item, QVector<GraphMLData *> dataList)
@@ -2260,24 +2276,31 @@ void NewController::addActionToStack(ActionItem action)
     action.actionName = currentAction;
 
     if(UNDOING){
-        redoStack.push(action);
+        redoActionStack.push(action);
     }else{
-        undoStack.push(action);
+        undoActionStack.push(action);
     }
     updateViewUndoRedoLists();
 }
 
-void NewController::undoRedo()
+void NewController::undoRedo(bool undo)
 {
+    if(undo){
+        UNDOING = true;
+        REDOING = false;
+    }else{
+        REDOING = true;
+        UNDOING = false;
+    }
     //Lock the GUI.
     emit view_SetGUIEnabled(false);
 
     //Used to store the stack of actions we are to use.
-    QStack<ActionItem> actionStack = redoStack;
+    QStack<ActionItem> actionStack = redoActionStack;
 
     if(UNDOING){
         //Set to the use the stack.
-        actionStack = undoStack;
+        actionStack = undoActionStack;
     }
 
     //Get the total number of actions in the history stack.
@@ -2293,7 +2316,7 @@ void NewController::undoRedo()
     QString topActionName = actionStack.top().actionName;
 
     //Emit a new action so this Undo/Redo operation can be reverted.
-    view_ActionTriggered(topActionName);
+    view_TriggerAction(topActionName);
 
     //This vector will store all ActionItems which match topActionID
     QVector<ActionItem> toReverse;
@@ -2323,13 +2346,16 @@ void NewController::undoRedo()
     emit view_UpdateProgressBar(100);
 
     if(UNDOING){
-        undoStack = actionStack;
+        undoActionStack = actionStack;
     }else{
-        redoStack = actionStack;
+        redoActionStack = actionStack;
     }
 
     updateViewUndoRedoLists();
     emit view_SetGUIEnabled(true);
+
+    UNDOING = false;
+    REDOING = false;
 }
 
 
@@ -2346,7 +2372,7 @@ void NewController::deleteSelectedNodes()
 
         if(!deleted){
             if(view->guiCreated(node)){
-                view->view_SetSelected(node, false);
+                view->view_SelectGraphML(node, false);
                 selectedNodes.removeFirst();
             }
         }
@@ -2438,8 +2464,8 @@ void NewController::setupModel()
     view->view_SortNode(model);
 
     //Clear the Undo/Redo Stacks
-    undoStack.clear();
-    redoStack.clear();
+    undoActionStack.clear();
+    redoActionStack.clear();
 }
 
 void NewController::setupValidator()
@@ -2681,7 +2707,7 @@ void NewController::updateViewUndoRedoLists()
     QStringList undoList;
 
     //Undo first
-    foreach(ActionItem a, undoStack){
+    foreach(ActionItem a, undoActionStack){
         int ID = a.actionID;
         if(actions.contains(ID) == false){
             actions.append(ID);
@@ -2694,7 +2720,7 @@ void NewController::updateViewUndoRedoLists()
     actions.clear();
 
     //Redo
-    foreach(ActionItem a, redoStack){
+    foreach(ActionItem a, redoActionStack){
         int ID = a.actionID;
         if(actions.contains(ID) == false){
             actions.append(ID);
@@ -2709,7 +2735,7 @@ void NewController::updateViewUndoRedoLists()
 GraphML *NewController::getGraphMLFromID(QString ID)
 {
     //Check for old IDs
-    ID = getNewIDFromPreviousID(ID);
+    ID = getIDFromOldID(ID);
 
     GraphML* graphML = getGraphMLFromHash(ID);
     return graphML;
@@ -2728,16 +2754,7 @@ Edge *NewController::getEdgeFromID(QString ID)
     return getEdgeFromGraphML(graphML);
 }
 
-Node *NewController::getNodeFromPreviousID(QString ID)
-{
-    ID = getNewIDFromPreviousID(ID);
-
-    Node* node = getNodeFromID(ID);
-
-    return node;
-}
-
-QString NewController::getNewIDFromPreviousID(QString ID)
+QString NewController::getIDFromOldID(QString ID)
 {
     QString originalID = ID;
     QString newID = ID;
@@ -2758,30 +2775,18 @@ QString NewController::getNewIDFromPreviousID(QString ID)
 
 }
 
-GraphML *NewController::getGraphMLFromPreviousID(QString ID)
-{
-    ID = getNewIDFromPreviousID(ID);
-    return getGraphMLFromHash(ID);
-}
 
-void NewController::linkOldIDtoNewID(QString previousID, QString newID)
+void NewController::linkOldIDToID(QString oldID, QString newID)
 {
-    IDLookupHash[previousID] = newID;
+    //Point the ID Hash for the oldID to the newID
+    IDLookupHash[oldID] = newID;
     if(!IDLookupHash.contains(newID)){
+        //Set the ID Hash for the newID to ""
         IDLookupHash[newID] = "";
     }
-    //qDebug() << "Linked old ID:" << previousID << " to new ID:" << newID;
 }
 
-bool NewController::isGraphMLNode(GraphML *item)
-{
-    return getNodeFromGraphML(item) != 0;
-}
 
-bool NewController::isGraphMLEdge(GraphML *item)
-{
-    return getEdgeFromGraphML(item) != 0;
-}
 
 Node *NewController::getNodeFromGraphML(GraphML *item)
 {
@@ -2795,7 +2800,7 @@ Edge *NewController::getEdgeFromGraphML(GraphML *item)
     return edge;
 }
 
-Model *NewController::getParentModel()
+Model *NewController::getModel()
 {
     return model;
 }

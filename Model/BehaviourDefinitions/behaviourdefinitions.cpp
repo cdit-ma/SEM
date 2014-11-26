@@ -21,6 +21,7 @@ QString BehaviourDefinitions::toString()
 
 bool BehaviourDefinitions::canConnect(Node* attachableObject)
 {
+    Q_UNUSED(attachableObject);
     return false;
 }
 

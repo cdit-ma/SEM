@@ -186,8 +186,6 @@ void MedeaWindow::on_actionNew_Project_triggered()
 
     connect(newWindow, SIGNAL(destroyed(QObject*)), this, SLOT(windowClosed(QObject*)));
 
-    NewController* controller = newWindow->getController();
-    NodeView* view = newWindow->getView();
 }
 
 void MedeaWindow::windowClosed(QObject *window)
@@ -329,7 +327,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         disconnect(controller, SIGNAL(view_UpdateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));
 
         disconnect(this, SIGNAL(view_PasteData(QString)), controller, SLOT(view_Paste(QString)));
-        disconnect(this, SIGNAL(view_ActionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
+        disconnect(this, SIGNAL(view_TriggerAction(QString)), controller, SLOT(view_TriggerAction(QString)));
 
         disconnect(ui->actionMaximize, SIGNAL(triggered()), selectedProject, SLOT(showMaximized()));
         disconnect(ui->actionUndo, SIGNAL(triggered()), controller, SLOT(view_Undo()));
@@ -366,7 +364,6 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
     if(selectedProject){
 
 
-        this->ui->listView->setModel(selectedProject->getController()->getModel());
 
         connect(ui->actionMaximize, SIGNAL(triggered()), selectedProject, SLOT(showMaximized()));
         NewController* controller = selectedProject->getController();
@@ -402,7 +399,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         connect(ui->actionCut, SIGNAL(triggered()), controller, SLOT(view_Cut()));
         connect(ui->actionCopy, SIGNAL(triggered()), controller, SLOT(view_Copy()));
 
-        connect(this, SIGNAL(view_ActionTriggered(QString)), controller, SLOT(view_ActionTriggered(QString)));
+        connect(this, SIGNAL(view_TriggerAction(QString)), controller, SLOT(view_TriggerAction(QString)));
         connect(this, SIGNAL(view_PasteData(QString)), controller, SLOT(view_Paste(QString)));
 
 

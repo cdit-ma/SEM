@@ -20,6 +20,7 @@ InEventPortInstance::~InEventPortInstance()
 
 bool InEventPortInstance::canAdoptChild(Node *child)
 {
+    Q_UNUSED(child);
     return false;
 }
 

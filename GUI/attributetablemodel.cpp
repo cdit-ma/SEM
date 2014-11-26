@@ -5,6 +5,7 @@
 
 AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QAbstractTableModel(item)
 {
+    Q_UNUSED(parent);
     guiItem = item;
     attachedGraphML = guiItem->getGraphML();
     setupDataBinding();
@@ -109,7 +110,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
 
         if (index.column() == 1 && data && !data->isProtected()){
             if(value.toString() != ""){
-                emit guiItem->actionTriggered("Updated Table Cell");
+                emit guiItem->triggerAction("Updated Table Cell");
                 emit guiItem->updateGraphMLData(attachedGraphML, data->getKey()->getName(), value.toString());
             }
             emit(dataChanged(index, index));
@@ -141,7 +142,7 @@ bool AttributeTableModel::removeRows(int position, int rows, const QModelIndex &
         if(data && !data->isProtected()){
             if(!anyRemoved){
                 anyRemoved = true;
-                emit guiItem->actionTriggered("Removed Table Row");
+                emit guiItem->triggerAction("Removed Table Row");
             }
             emit guiItem->destructGraphMLData(attachedGraphML, data->getKey()->getName());
         }else{

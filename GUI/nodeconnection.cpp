@@ -1,6 +1,6 @@
 #include "nodeconnection.h"
 #include <QDebug>
-#include "graphmlitem.h";
+#include "graphmlitem.h"
 
 NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 {
@@ -131,21 +131,6 @@ void NodeEdge::addToScene(QGraphicsScene *scene)
     }
 }
 
-QVariant NodeEdge::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
-{
-    if (change == QGraphicsItem::ItemSelectedChange)
-    {
-        if (value == true)
-        {
-            emit setItemSelected(getGraphML(), true);
-        }else{
-            emit setItemSelected(getGraphML(), false);
-        }
-    }
-
-    return QGraphicsItem::itemChange(change, value);
-
-}
 
 void NodeEdge::destructNodeEdge()
 {
@@ -154,7 +139,8 @@ void NodeEdge::destructNodeEdge()
 
 void NodeEdge::setOpacity(qreal opacity)
 {
-
+    //TODO
+    Q_UNUSED(opacity);
 }
 
 
@@ -192,6 +178,12 @@ void NodeEdge::setVisible(bool visible)
         }
         QGraphicsItem::setVisible(false);
     }
+}
+
+void NodeEdge::graphMLDataUpdated(GraphMLData *data)
+{
+    //TODO
+    Q_UNUSED(data);
 }
 
 void NodeEdge::updateLabel()

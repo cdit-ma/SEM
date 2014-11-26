@@ -38,11 +38,9 @@ public:
     void notifyEdges();
     void addConnection(NodeEdge* line);
     void deleteConnnection(NodeEdge* line);
-    QVariant itemChange(GraphicsItemChange change, const QVariant &value);
 
 
 signals:
-    void triggerSelected(NodeItem*);
 
 
     void deleted(NodeItem*);
@@ -65,7 +63,8 @@ public slots:
     void setSelected(bool selected);
     void setDeselected2();
     void toggleDetailDepth(int level);
-    void updatedData(GraphMLData* data);
+
+    void graphMLDataUpdated(GraphMLData *data);
     void recieveData();
     void destructNodeItem();
     void updateChildNodeType(QString type);

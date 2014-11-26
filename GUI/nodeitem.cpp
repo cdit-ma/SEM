@@ -53,22 +53,22 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
 
     if(xData)
-    connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
     if(yData)
-    connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
     if(hData)
-    connect(hData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(hData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
     if(wData)
-    connect(wData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(wData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
     if(labelData)
-    connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
     if(kindData)
-    connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+    connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
 
 
@@ -108,13 +108,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
 
     if(xData)
-        updatedData(xData);
+        graphMLDataUpdated(xData);
     if(yData)
-        updatedData(yData);
+        graphMLDataUpdated(yData);
     if(kindData)
-        updatedData(kindData);
+        graphMLDataUpdated(kindData);
     if(labelData)
-        updatedData(labelData);
+        graphMLDataUpdated(labelData);
 
     updateBrushes();
     if(kindData->getValue() == "Model"){
@@ -171,16 +171,16 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 void NodeItem::notifyEdges()
 {
-    for(int i =0;i< connections.size();i++){
-        connections[i]->updateLine();
+    foreach(NodeEdge* edge, connections){
+        edge->updateLine();
     }
-
-    for(int i=0;i<this->childItems().size();i++){
-        NodeItem * childNode = dynamic_cast<NodeItem*>(childItems()[i]);
-        if(childNode != 0){
+    foreach(QGraphicsItem* child, childItems()){
+        NodeItem * childNode = dynamic_cast<NodeItem*>(child);
+        if(childNode){
             childNode->notifyEdges();
         }
     }
+
 }
 
 void NodeItem::addConnection(NodeEdge *line)
@@ -195,20 +195,6 @@ void NodeItem::deleteConnnection(NodeEdge *line)
 }
 
 
-QVariant NodeItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
-{
-    if (change == QGraphicsItem::ItemSelectedChange)
-    {
-        if (value == true)
-        {
-            emit setItemSelected(node, true);
-        }else{
-            emit setItemSelected(node, false);
-        }
-    }
-
-    return QGraphicsItem::itemChange(change, value);
-}
 
 void NodeItem::setOpacity(qreal opacity)
 {
@@ -282,7 +268,7 @@ void NodeItem::toggleDetailDepth(int level)
 }
 
 
-void NodeItem::updatedData(GraphMLData* data)
+void NodeItem::graphMLDataUpdated(GraphMLData* data)
 {
     if(data){
         QString dataKey = data->getKey()->getName();
@@ -315,11 +301,11 @@ void NodeItem::updatedData(GraphMLData* data)
         }
         else if(dataKey == "width"){
             updateSize(dataValue,0);
-            updatedData(node->getData("label"));
+            graphMLDataUpdated(node->getData("label"));
         }
         else if(dataKey == "height"){
             updateSize(0,dataValue);
-            updatedData(node->getData("label"));
+            graphMLDataUpdated(node->getData("label"));
         }
 
         if(dataKey == "x" || dataKey == "y"){
@@ -373,7 +359,7 @@ void NodeItem::updateViewAspects(QStringList aspects)
 
 void NodeItem::sortChildren()
 {
-    emit actionTriggered("Sorting Children");
+    emit triggerAction("Sorting Children");
     int currentX  = width/10;
     int currentY = height/5;
 
@@ -419,7 +405,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if(event->modifiers().testFlag(Qt::ControlModifier)){
             sortChildren();
         }else{
-            emit center(getGraphML());
+            emit triggerCentered(getGraphML());
         }
         //emit centreNode(this);
         break;
@@ -435,15 +421,15 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             previousPosition = event->scenePos();
             hasMoved = false;
             isPressed = true;
+            emit triggerSelected(getGraphML());
             //emit triggerSelected(this);
-            emit setItemSelected(node);
+            //emit setItemSelected(node);
         }
         break;
     }
     case Qt::RightButton:{
         //Select this node, and construct a child node.
-        emit setItemSelected(node, true);
-        //emit makeChildNode(event->pos());
+        emit triggerSelected(getGraphML());
         break;
 
     }
@@ -495,7 +481,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         }
     }else if(isPressed){
         if(hasMoved == false){
-            emit actionTriggered("Moving Selection");
+            emit triggerAction("Moving Selection");
         }
 
         QPointF delta = (event->scenePos() - previousPosition);

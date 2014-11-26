@@ -19,6 +19,7 @@ QString File::toString()
 
 bool File::canConnect(Node* attachableObject)
 {
+    Q_UNUSED(attachableObject);
     return false;
 }
 

@@ -61,9 +61,7 @@ signals:
 public slots:
     void printErrorText(GraphML* graphml, QString text);
     void updateNodeTypeName(QString name);
-    void addNodeItem(NodeItem* item);
     void removeNodeItem(NodeItem* item);
-    void addEdgeItem(NodeEdge* edge);
     void centreItem(GraphMLItem* item);
     void clearView();
     void depthChanged(int depth);
@@ -78,14 +76,17 @@ public slots:
 
     void view_DestructGraphMLGUI(GraphML* graphML);
 
-    void view_SetSelected(GraphML* graphML, bool setSelected);
+    void view_SelectGraphML(GraphML* graphML, bool setSelected=true);
+    void view_CenterGraphML(GraphML* graphML);
+
+
     void view_SortNode(Node* node);
-    void view_SetCentered(GraphML* graphML);
     void view_SetOpacity(GraphML* graphML, qreal opacity);
 
 
 
 private:
+    void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
 
     NewController* controller;
 

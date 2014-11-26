@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QString xmlText = in.readAll();
     file.close();
 
-    newController->view_ActionTriggered("Loading XME");
+    newController->view_TriggerAction("Loading XME");
     //emit view_ImportGraphML(xmlText);
 }
 
@@ -72,6 +72,7 @@ void MainWindow::enableGUI(bool enabled)
 
 void MainWindow::updateProgressBar(int percentage, QString label)
 {
+
     /*
     if(label != 0){
         progressDialog->setLabelText(label);

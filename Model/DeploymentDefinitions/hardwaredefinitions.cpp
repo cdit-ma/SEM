@@ -19,6 +19,7 @@ QString HardwareDefinitions::toString()
 
 bool HardwareDefinitions::canConnect(Node* attachableObject)
 {
+    Q_UNUSED(attachableObject);
     return false;
 }
 

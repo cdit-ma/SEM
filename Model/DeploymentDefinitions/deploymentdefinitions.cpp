@@ -20,6 +20,7 @@ QString DeploymentDefinitions::toString()
 
 bool DeploymentDefinitions::canConnect(Node* attachableObject)
 {
+    Q_UNUSED(attachableObject);
     return false;
 }
 

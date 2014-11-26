@@ -18,6 +18,7 @@ QString InterfaceDefinitions::toString()
 
 bool InterfaceDefinitions::canConnect(Node* attachableObject)
 {
+    Q_UNUSED(attachableObject);
     return false;
 }
 

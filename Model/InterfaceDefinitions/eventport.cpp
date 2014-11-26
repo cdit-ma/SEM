@@ -53,5 +53,6 @@ bool EventPort::canConnect(Node* attachableObject)
 
 bool EventPort::canAdoptChild(Node *child)
 {
+    Q_UNUSED(child);
     return false;
 }

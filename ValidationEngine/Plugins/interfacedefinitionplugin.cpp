@@ -92,5 +92,7 @@ bool InterfaceDefinitionPlugin::checkAggregates(InterfaceDefinitions *iD)
         }
     }
 
+    return true;
+
 }
 

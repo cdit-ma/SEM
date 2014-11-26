@@ -18,6 +18,7 @@ QString AssemblyDefinitions::toString()
 
 bool AssemblyDefinitions::canConnect(Node* attachableObject)
 {
+    Q_UNUSED(attachableObject);
     return false;
 }
 
