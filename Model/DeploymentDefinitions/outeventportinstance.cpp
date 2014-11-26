@@ -47,12 +47,12 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
 
         if(eventPortSrc && eventPortDst){
             if(!eventPortSrc->getAggregate()){
-                qWarning() << "Cannot connect an OEPI an un-Aggregated EventPort";
-                return false;
+                //qWarning() << "Cannot connect an OEPI an un-Aggregated EventPort";
+                //return false;
             }
             if(eventPortSrc->getAggregate() != eventPortDst->getAggregate()){
                 qWarning() << "Cannot connect an OEPI 2 EventPort Instances which have a differing Aggregate";
-                return false;
+                //return false;
             }
         }
     }

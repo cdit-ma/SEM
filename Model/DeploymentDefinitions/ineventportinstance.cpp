@@ -50,8 +50,8 @@ bool InEventPortInstance::canConnect(Node* attachableObject)
 
         if(eventPortSrc && eventPortDst){
             if(!eventPortSrc->getAggregate()){
-                qWarning() << "Cannot connect an IEPI to an un-Aggregated EventPort";
-                return false;
+                //qWarning() << "Cannot connect an IEPI to an un-Aggregated EventPort";
+                //return false;
             }
             if(eventPortSrc->getAggregate() != eventPortDst->getAggregate()){
                 qWarning() << "Cannot connect an IEPI 2 EventPort Instances which have a differing Aggregate";

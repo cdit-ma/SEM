@@ -114,17 +114,14 @@ QRectF NodeView::getVisibleRect( )
 
 void NodeView::centreItem(GraphMLItem *item)
 {
-    qCritical() << "Center Item";
     if(!item){
         qCritical() << "No GUI item to Center";
         return;
     }
 
-    qCritical() << "getVisibleRect";
     //Get the current Viewport Rectangle
     QRectF viewRect = getVisibleRect();
 
-    qCritical() << "getVisibleRect";
     //Get the Items Rectangle
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
 

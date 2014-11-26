@@ -70,6 +70,12 @@ QStringList GraphMLData::toStringList()
      dataDump << key->getTypeString();
      dataDump << key->getForKindString();
      dataDump << this->getValue();
+
+     if(this->isProtected()){
+         dataDump << "true";
+     }else{
+         dataDump << "false";
+     }
      return dataDump;
 
 }
@@ -109,6 +115,7 @@ void GraphMLData::setParentData(GraphMLData *data)
 {
     if(data){
         unsetParentData();
+        data->setValue(data->getValue());
     }
     parentData = data;
 
@@ -132,6 +139,7 @@ void GraphMLData::bindData(GraphMLData *data)
     if(!childData.contains(data)){
         childData.append(data);
         data->setParentData(this);
+
     }
 }
 

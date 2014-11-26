@@ -39,7 +39,7 @@ struct ActionItem{
     QString dataValue;
     QString removedXML;
 
-    //In the form KeyName, KeyType, KeyFor, Data Value,.
+    //In the form KeyName, KeyType, KeyFor, Data Value, isProtected.
     QVector<QStringList> dataValues;
     //In the form ID
     QVector<QStringList> boundDataIDs;
@@ -107,8 +107,8 @@ public slots:
     void view_DestructGraphMLData(GraphML* parent, QString keyName);
 
 
-    void view_ConstructComponentInstance(Component* definition = 0 );
-    void view_ConstructComponentImpl(Component* definition = 0 );
+    void view_ConstructComponentInstance(Component* definition = 0);
+    void view_ConstructComponentImpl(Component* definition = 0);
 
     void view_CenterComponentImpl(Node* node = 0);
     void view_CenterComponentDefinition(Node* node = 0);
@@ -265,6 +265,7 @@ private:
     //Returns true if a nodeKind has been Implemented in the Model.
     bool isNodeKindImplemented(QString nodeKind);
 
+    //Used by Undo/Redo to reverse an ActionItem from the Stacks.
     void reverseAction(ActionItem action);
 
     bool attachGraphMLData(GraphML* item, QVector<QStringList> dataList);

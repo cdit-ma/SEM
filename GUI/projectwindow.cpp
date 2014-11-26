@@ -30,9 +30,6 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     setAttribute(Qt::WA_DeleteOnClose, true);
 
-
-    qCritical() << "TEST";
-
 }
 ProjectWindow::~ProjectWindow()
 {
