@@ -47,23 +47,33 @@ public slots:
 
     void graphMLDataUpdated(GraphMLData * data);
 
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event);
 
 private:
     void updateLabel();
 
+    void updateBrushes();
 
     QGraphicsLineItem* QGline;
     NodeItem* source;
     NodeItem* destination;
 
 
+    bool IS_SELECTED;
     bool IS_INSTANCE_LINK;
     bool IS_IMPL_LINK;
     bool IS_AGG_LINK;
     bool IS_VISIBLE;
 
-    QPen linePen;
-    QPen selectedLinePen;
+    QPen pen;
+    QPen selectedPen;
+
+    QColor selectedColor;
+    QColor color;
+    QBrush selectedBrush;
+    QBrush brush;
+
 
     int width;
     int height;

@@ -64,14 +64,14 @@ HEADERS += \
     Model/BehaviourDefinitions/termination.h \
     Model/DeploymentDefinitions/assemblydefinitions.h \
     Model/DeploymentDefinitions/hardwaredefinitions.h \
-    Model/BehaviourDefinitions/aggregateinstance.h \
-    Model/BehaviourDefinitions/memberinstance.h \
     ValidationEngine/validationengine.h \
     ValidationEngine/validationplugin.h \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
     ValidationEngine/validationengine.h \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
-    GUI/nodeedge.h
+    GUI/nodeedge.h \
+    Model/InterfaceDefinitions/aggregateinstance.h \
+    Model/InterfaceDefinitions/memberinstance.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -121,13 +121,13 @@ SOURCES += \
     Model/BehaviourDefinitions/termination.cpp \
     Model/DeploymentDefinitions/assemblydefinitions.cpp \
     Model/DeploymentDefinitions/hardwaredefinitions.cpp \
-    Model/BehaviourDefinitions/aggregateinstance.cpp \
-    Model/BehaviourDefinitions/memberinstance.cpp \
     ValidationEngine/validationengine.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
     ValidationEngine/validationplugin.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
-    GUI/nodeedge.cpp
+    GUI/nodeedge.cpp \
+    Model/InterfaceDefinitions/aggregateinstance.cpp \
+    Model/InterfaceDefinitions/memberinstance.cpp
 
 FORMS += \
     medeawindow.ui \

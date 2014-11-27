@@ -1,7 +1,6 @@
 #include "aggregateinstance.h"
 #include "memberinstance.h"
-#include "aggregatememberinstance.h"
-#include "../InterfaceDefinitions/aggregate.h"
+#include "aggregate.h"
 #include <QDebug>
 
 AggregateInstance::AggregateInstance():Node(Node::NT_DEFINSTANCE)

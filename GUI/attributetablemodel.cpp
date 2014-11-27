@@ -1,7 +1,7 @@
 #include "attributetablemodel.h"
 #include "QDebug"
 #include "nodeitem.h"
-#include "nodeconnection.h"
+#include "nodeedge.h"
 
 AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QAbstractTableModel(item)
 {

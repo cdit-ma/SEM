@@ -14,9 +14,12 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
     connect(this, SIGNAL(updateFilters(QStringList)), controller, SLOT(view_FilterNodes(QStringList)));
 
     connect(controller, SIGNAL(view_DialogMessage(MESSAGE_TYPE,QString)), this, SLOT(view_DialogWarning(MESSAGE_TYPE,QString)));
+
     connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateWindowTitle(QString)));
 
     connect(view, SIGNAL(customContextMenuRequested(QPoint)), controller, SLOT(view_ConstructMenu(QPoint)));
+    connect(controller, SIGNAL(view_ConstructMenu(QPoint,QList<QAction*>)), view, SLOT(view_ShowMenu(QPoint,QList<QAction*>)));
+
 
 
     //controller->moveToThread(thread);

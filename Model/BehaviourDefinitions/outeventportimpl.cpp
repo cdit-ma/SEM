@@ -1,8 +1,8 @@
 #include "outeventportimpl.h"
 #include <QDebug>
 #include "../InterfaceDefinitions/outeventport.h"
-#include "../InterfaceDefinitions//member.h"
-#include "aggregateinstance.h"
+#include "../InterfaceDefinitions/member.h"
+#include "../InterfaceDefinitions/aggregateinstance.h"
 
 OutEventPortImpl::OutEventPortImpl(QString name): Node(Node::NT_IMPL)
 {

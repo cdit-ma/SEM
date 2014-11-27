@@ -2,7 +2,7 @@
 #include <QDebug>
 #include "../InterfaceDefinitions/ineventport.h"
 #include "../InterfaceDefinitions/member.h"
-#include "aggregateinstance.h"
+#include "../InterfaceDefinitions/aggregateinstance.h"
 
 InEventPortImpl::InEventPortImpl(QString name): Node(Node::NT_IMPL)
 {

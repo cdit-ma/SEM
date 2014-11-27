@@ -551,6 +551,16 @@ bool NodeView::guiCreated(GraphML *item)
     return getNodeItemFromGraphML(item) || getNodeEdgeFromGraphML(item);
 }
 
+void NodeView::view_ShowMenu(QPoint position, QList<QAction *> actions)
+{
+    QPoint globalPos = mapToGlobal(position);
+
+    QMenu* menu = new QMenu();
+    menu->addActions(actions);
+    menu->exec(globalPos);
+}
+
+
 void NodeView::printErrorText(GraphML *graphml, QString text)
 {
     //TODO

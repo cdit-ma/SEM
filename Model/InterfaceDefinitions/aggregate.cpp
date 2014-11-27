@@ -1,7 +1,6 @@
 #include "aggregate.h"
 #include "member.h"
-#include "aggregatemember.h"
-#include "../BehaviourDefinitions/aggregateinstance.h"
+#include "aggregateinstance.h"
 #include "eventport.h"
 #include <QDebug>
 Aggregate::Aggregate(): Node(Node::NT_DEFINITION)
@@ -44,10 +43,9 @@ QString Aggregate::toString()
 bool Aggregate::canConnect(Node* attachableObject)
 {
     EventPort* eventport = dynamic_cast<EventPort*>(attachableObject);
-    AggregateMember* aggregateMember = dynamic_cast<AggregateMember*>(attachableObject);
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(attachableObject);
 
-    if (!aggregateMember && !eventport && !aggregateInstance){
+    if (!eventport && !aggregateInstance){
         qWarning() << "Aggregate can only connect to an AggregateMember, AggregateInstance or EventPort.";
         return false;
     }
@@ -62,11 +60,10 @@ bool Aggregate::canConnect(Node* attachableObject)
 
 bool Aggregate::canAdoptChild(Node *child)
 {
-    AggregateMember* aggregateMember = dynamic_cast<AggregateMember*>(child);
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
     Member* member = dynamic_cast<Member*>(child);
 
-    if(!member && !aggregateMember && !aggregateInstance){
+    if(!member && !aggregateInstance){
         qWarning() << "Aggregate can only adopt Member/Instances";
         return false;
     }

@@ -1,10 +1,12 @@
 #include "nodeitem.h"
+#include "nodeedge.h"
+
 #include <QGraphicsTextItem>
-#include "nodeconnection.h"
 #include <QDebug>
 #include <QFont>
 #include <QFontMetrics>
 #include <QRubberBand>
+
 NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 {
     isSelected = false;

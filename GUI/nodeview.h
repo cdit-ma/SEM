@@ -59,6 +59,7 @@ signals:
 
 
 public slots:
+    void view_ShowMenu(QPoint position, QList<QAction *> actions);
     void printErrorText(GraphML* graphml, QString text);
     void updateNodeTypeName(QString name);
     void removeNodeItem(NodeItem* item);

@@ -6,6 +6,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 {
     //Only show the Parent Instance
     IS_VISIBLE = true;
+    IS_SELECTED = false;
 
     IS_INSTANCE_LINK = edge->isInstanceLink();
     IS_IMPL_LINK = edge->isImplLink();
@@ -34,34 +35,6 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     bRec = QRect(0, 0, width, height);
 
 
-    if(IS_VISIBLE){
-        if(IS_INSTANCE_LINK){
-            linePen.setColor(QColor(0,0,180));
-            linePen.setWidth(2);
-
-            selectedLinePen.setColor(QColor(0,0,255));
-            selectedLinePen.setWidth(4);
-        }else if(IS_IMPL_LINK){
-            linePen.setColor(QColor(0,180,0));
-            linePen.setWidth(2);
-
-            selectedLinePen.setColor(QColor(0,255,0));
-            selectedLinePen.setWidth(4);
-        }else if(IS_AGG_LINK){
-            linePen.setColor(QColor(180,0,180));
-            linePen.setWidth(2);
-
-            selectedLinePen.setColor(QColor(255,0,255));
-            selectedLinePen.setWidth(4);
-        }else{
-            linePen.setColor(QColor(180,0,0));
-            linePen.setWidth(((d->height + s->height) /2)/20);
-
-            selectedLinePen.setColor(QColor(255,0,0));
-            selectedLinePen.setWidth(linePen.width() + 2);
-        }
-    }
-
     //Set Flags
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
@@ -74,6 +47,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     destination->addConnection(this);
 
 
+    updateBrushes();
 
     updateLabel();
     updateLine();
@@ -100,11 +74,20 @@ void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(IS_VISIBLE){
         QRectF rectangle = boundingRect();
 
-        if(IS_INSTANCE_LINK){
-            painter->setBrush(QBrush(Qt::yellow));
+        QPen Pen;
+        QBrush Brush;
+
+        if(IS_SELECTED){
+            Brush = selectedBrush;
+            Pen = selectedPen;
         }else{
-            painter->setBrush(QBrush(Qt::white));
+            Brush = brush;
+            Pen = pen;
         }
+
+        painter->setBrush(Brush);
+        painter->setPen(Pen);
+
         QPainterPath circle_path;
         circle_path.addEllipse(rectangle);
         painter->drawPath(circle_path);
@@ -124,7 +107,7 @@ NodeItem *NodeEdge::getDestination()
 void NodeEdge::addToScene(QGraphicsScene *scene)
 {
     if(scene){
-        QGline = scene->addLine(line, linePen);
+        QGline = scene->addLine(line, pen);
         inScene = true;
         scene->addItem(this);
         setVisible(IS_VISIBLE);
@@ -146,10 +129,12 @@ void NodeEdge::setOpacity(qreal opacity)
 
 void NodeEdge::setSelected(bool selected)
 {
+    IS_SELECTED = selected;
+
     if(selected){
-        QGline->setPen(selectedLinePen);
+        QGline->setPen(selectedPen);
     }else{
-        QGline->setPen(linePen);
+        QGline->setPen(pen);
     }
 
 }
@@ -186,14 +171,60 @@ void NodeEdge::graphMLDataUpdated(GraphMLData *data)
     Q_UNUSED(data);
 }
 
+void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    if(!IS_VISIBLE){
+        event->setAccepted(false);
+        return;
+    }
+    switch (event->button()) {
+
+    case Qt::MiddleButton:{
+        emit triggerCentered(getGraphML());
+        break;
+    }
+    case Qt::LeftButton:{
+        emit triggerSelected(getGraphML());
+        break;
+    }
+    };
+
+}
+
 void NodeEdge::updateLabel()
 {
     QString text = getGraphML()->getID();
     if(label){
+        label->setDefaultTextColor(QColor(Qt::white));
         label->setPlainText(text);
     }else{
         label = new QGraphicsTextItem(text, this);
     }
+}
+
+void NodeEdge::updateBrushes()
+{
+    if(IS_INSTANCE_LINK){
+        color = QColor(0, 0, 180);
+    }else if(IS_IMPL_LINK){
+        color = QColor(0, 180, 0);
+    }else if(IS_AGG_LINK){
+        color = QColor(180, 0, 0);
+    }else{
+        color = QColor(50, 50, 50);
+    }
+
+    selectedColor = color;
+    color.setAlpha(150);
+    selectedColor.setAlpha(250);
+
+    brush = QBrush(color);
+    selectedBrush = QBrush(selectedColor);
+
+    pen.setColor(color);
+    pen.setWidth(4);
+    selectedPen.setColor(selectedColor);
+    selectedPen.setWidth(8);
 }
 
 
@@ -209,7 +240,7 @@ void NodeEdge::updateLine()
     line.setP2(QPoint(dx,dy));
 
     if(QGline){
-        QGline->setPen(linePen);
+        QGline->setPen(pen);
         QGline->setLine(line);
     }
 

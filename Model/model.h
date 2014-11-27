@@ -23,8 +23,7 @@
 #include "BehaviourDefinitions/variable.h"
 #include "BehaviourDefinitions/workload.h"
 
-#include "BehaviourDefinitions/aggregateinstance.h"
-#include "BehaviourDefinitions/memberinstance.h"
+
 
 #include "BehaviourDefinitions/periodicevent.h"
 
@@ -45,6 +44,8 @@
 #include "DeploymentDefinitions/hardwarenode.h"
 
 #include "InterfaceDefinitions/interfacedefinitions.h"
+#include "InterfaceDefinitions/aggregateinstance.h"
+#include "InterfaceDefinitions/memberinstance.h"
 #include "InterfaceDefinitions/attribute.h"
 #include "InterfaceDefinitions/component.h"
 #include "InterfaceDefinitions/outeventport.h"
