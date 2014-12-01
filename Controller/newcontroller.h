@@ -64,6 +64,8 @@ public:
     QStringList getNodeKinds();
     QStringList getViewAspects();
 
+    QStringList getNodeIDS();
+
 signals:
     void view_SetGUIEnabled(bool setEnabled);
     //Inform the View to Center the Canvas around an Node.
@@ -136,6 +138,8 @@ public slots:
     //Moves all Nodes that are selected by delta.
     void view_MoveSelectedNodes(QPointF delta);
 
+
+    void view_SelectFromID(QString ID);
 
     //Hides all Nodes which don't match the List of Filters provided.
     void view_FilterNodes(QStringList filterString);

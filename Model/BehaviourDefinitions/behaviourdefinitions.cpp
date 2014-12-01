@@ -6,7 +6,7 @@
 
 BehaviourDefinitions::BehaviourDefinitions(QString name):Node()
 {
-
+    this->addAspect("Workload");
 }
 
 BehaviourDefinitions::~BehaviourDefinitions()

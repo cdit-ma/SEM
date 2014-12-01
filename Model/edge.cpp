@@ -90,12 +90,14 @@ QVector<GraphMLKey *> Edge::getKeys()
 
 bool Edge::isInstanceLink()
 {
-    return (destination->isInstance() && destination->getDefinition() == source);
+    return (source->isInstance() && source->getDefinition() == destination);
+    //return (destination->isInstance() && destination->getDefinition() == source);
 }
 
 bool Edge::isImplLink()
 {
-    return (destination->isImpl() && destination->getDefinition() == source);
+    return (source->isImpl() && source->getDefinition() == destination);
+    //return (destination->isImpl() && destination->getDefinition() == source);
 }
 
 bool Edge::isAggregateLink()

@@ -22,12 +22,13 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
 
 
-    //controller->moveToThread(thread);
-
+   //controller->moveToThread(thread);
+    appendAspectString("Definitions");
+/*
     foreach(QString aspect, controller->getViewAspects()){
         appendAspectString(aspect);
     }
-
+*/
 
     showMaximized();
 

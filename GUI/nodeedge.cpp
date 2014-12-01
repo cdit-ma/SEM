@@ -1,5 +1,6 @@
 #include "nodeedge.h"
 #include <QDebug>
+#include <QtMath>
 #include "graphmlitem.h"
 
 NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
@@ -18,12 +19,13 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 
         if(sNode->getParentNode()->isDefinition() && (dNode->getParentNode()->isInstance() || dNode->getParentNode()->isImpl())){
             //Don't show Non-Top Most Instance Links
-            IS_VISIBLE = false;
+            //IS_VISIBLE = false;
         }
     }
 
     //Setup Instance Variables
     QGline = 0;
+    QGline2 = 0;
     label = 0;
     inScene = false;
 
@@ -59,6 +61,7 @@ NodeEdge::~NodeEdge()
     destination->deleteConnnection(this);
 
     delete QGline;
+    delete QGline2;
 }
 
 QRectF NodeEdge::boundingRect() const
@@ -108,6 +111,8 @@ void NodeEdge::addToScene(QGraphicsScene *scene)
 {
     if(scene){
         QGline = scene->addLine(line, pen);
+        QGline2 = scene->addLine(arrowHead, arrowPen);
+
         inScene = true;
         scene->addItem(this);
         setVisible(IS_VISIBLE);
@@ -133,8 +138,10 @@ void NodeEdge::setSelected(bool selected)
 
     if(selected){
         QGline->setPen(selectedPen);
+        QGline2->setPen(arrowPen);
     }else{
         QGline->setPen(pen);
+        QGline2->setPen(arrowPen);
     }
 
 }
@@ -148,10 +155,16 @@ void NodeEdge::setVisible(bool visible)
             if(QGline){
                 QGline->setVisible(visible);
             }
+            if(QGline2){
+                QGline2->setVisible(visible);
+            }
             QGraphicsItem::setVisible(visible);
         }else{
             if(QGline){
                 QGline->setVisible(false);
+            }
+            if(QGline2){
+                QGline2->setVisible(false);
             }
             QGraphicsItem::setVisible(false);
         }
@@ -160,6 +173,9 @@ void NodeEdge::setVisible(bool visible)
     }else{
         if(QGline){
             QGline->setVisible(false);
+        }
+        if(QGline2){
+            QGline2->setVisible(false);
         }
         QGraphicsItem::setVisible(false);
     }
@@ -223,8 +239,12 @@ void NodeEdge::updateBrushes()
 
     pen.setColor(color);
     pen.setWidth(4);
+    pen.setStyle(Qt::DashLine);
     selectedPen.setColor(selectedColor);
     selectedPen.setWidth(8);
+
+    arrowPen.setColor(selectedColor);
+    arrowPen.setWidth(12);
 }
 
 
@@ -236,12 +256,28 @@ void NodeEdge::updateLine()
     float dx = destination->scenePos().x() + destination->width/2;;
     float dy = destination->scenePos().y() + destination->height/2;;
 
+    float deltaX = dx - sx;
+    float deltaY = dy - sy;
+
+    qreal angle = qAtan2(deltaX, deltaY);
+
+
+    float arrowDeltaX = dx - (50 * qSin(angle));
+    float arrowDeltaY = dy - (50 * qCos(angle));
+
     line.setP1(QPoint(sx,sy));
     line.setP2(QPoint(dx,dy));
+
+    arrowHead.setP1(QPoint(arrowDeltaX,arrowDeltaY));
+    arrowHead.setP2(QPoint(dx,dy));
 
     if(QGline){
         QGline->setPen(pen);
         QGline->setLine(line);
+    }
+    if(QGline2){
+        QGline2->setPen(arrowPen);
+        QGline2->setLine(arrowHead);
     }
 
     setPos(((sx+dx)/2) - (width / 2), ((sy+dy) /2) - (height / 2));

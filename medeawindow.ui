@@ -22,6 +22,24 @@
         <item>
          <layout class="QVBoxLayout" name="Aspects_2">
           <item>
+           <layout class="QHBoxLayout" name="SelectNodeByItem">
+            <item>
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Select Node:</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="nodeIDCombo">
+              <property name="editable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
            <layout class="QHBoxLayout" name="AspectBox">
             <item>
              <widget class="QLabel" name="label_3">
@@ -111,6 +129,9 @@
             </item>
             <item>
              <widget class="QLineEdit" name="searchBox"/>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_3"/>
             </item>
             <item>
              <widget class="QPushButton" name="addFilter">

@@ -3,7 +3,7 @@
 #include <QDebug>
 InterfaceDefinitions::InterfaceDefinitions(QString name): Node()
 {
-
+    addAspect("Definitions");
 }
 
 InterfaceDefinitions::~InterfaceDefinitions()

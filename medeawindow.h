@@ -66,6 +66,8 @@ private slots:
 
     void on_actionExport_GraphML_triggered();
 
+    void on_nodeIDCombo_activated(const QString &arg1);
+
 protected:
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);

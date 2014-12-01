@@ -174,6 +174,11 @@ QStringList NewController::getViewAspects()
     return viewAspects;
 }
 
+QStringList NewController::getNodeIDS()
+{
+    return nodeIDs;
+}
+
 void NewController::view_ImportGraphML(QStringList inputGraphML, Node *currentParent)
 {
     view_TriggerAction("Importing GraphML");
@@ -438,11 +443,32 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
     QVector<EdgeTemp> implEdges;
     QVector<EdgeTemp> otherEdges;
 
+    QVector<EdgeTemp> sortEdges;
+
     for(int i =0; i < currentEdges.size(); i++){
         EdgeTemp edge = currentEdges[i];
         Node* s = nodeLookup[edge.source];
         Node* d = nodeLookup[edge.target];
 
+        if(s && d){
+            if(interfaceDefinitions->isAncestorOf(s) && interfaceDefinitions->isAncestorOf(d)){
+                //sortEdges.
+                qCritical() << "Got Interface Definition Edge";
+                //qCritical() << edge.id;
+                sortEdges.insert(0, edge);
+            }else{
+                sortEdges.append(edge);
+            }
+        }
+
+    }
+
+
+    for(int i =0; i < sortEdges.size(); i++){
+        EdgeTemp edge = sortEdges[i];
+        Node* s = nodeLookup[edge.source];
+        Node* d = nodeLookup[edge.target];
+        qCritical() << "Organized Edge: " << edge.id;
         if(s && d){
             //qCritical() << "Edge: " << s->toString() << " to " << d->toString();
             if(s->isDefinition() || d->isDefinition()){
@@ -467,24 +493,28 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
     }
 
     QVector<EdgeTemp> allEdges;
-    allEdges << implEdges;
+    //allEdges << implEdges;
     allEdges << instanceEdges;
-    allEdges << aggregateEdges;
-    allEdges << otherEdges;
+    //allEdges << aggregateEdges;
+   // allEdges << otherEdges;
 
     //Construct the Edges from the EdgeTemp objects
     for(int i =0; i< allEdges.size(); i++){
         EdgeTemp edge = allEdges[i];
+        qCritical() << edge.id;
         Node* s = nodeLookup[edge.source];
         Node* d = nodeLookup[edge.target];
 
         if(s && d){
-            if(d->isDefinition()){
+            constructEdgeWithData(s, d, edge.data, edge.id);
+
+/*            if(d->isDefinition()){
                 constructEdgeWithData(d, s, edge.data, edge.id);
             }else{
                 constructEdgeWithData(s, d, edge.data, edge.id);
-
             }
+            */
+           // qCritical("\n________________");
         }else{
             qCritical() << "Edge is Illegal!";
             //return false;
@@ -618,7 +648,6 @@ void NewController::view_CenterAggregate(Node *node)
 
 void NewController::view_ProjectNameUpdated(GraphMLData *label)
 {
-    qCritical() << "NAME CHANGED";
     emit view_UpdateProjectName(label->getValue());
 }
 
@@ -733,6 +762,7 @@ void NewController::view_GraphMLSelected(GraphML *item, bool setSelected)
             Node* source = getSelectedNode();
             if(!getSelectedEdge() && source){
                 view_TriggerAction("Constructing Edge.");
+
                 view_ConstructEdge(source, node);
                 return;
             }
@@ -859,6 +889,17 @@ void NewController::view_MoveSelectedNodes(QPointF delta)
 
 }
 
+void NewController::view_SelectFromID(QString ID)
+{
+    GraphML* item = getGraphMLFromID(ID);
+    if(item){
+
+        view_ClearSelection();
+        view_GraphMLSelected(item, true);
+        view_CenterGraphML(item);
+    }
+}
+
 void NewController::view_FilterNodes(QStringList filterString)
 {
     foreach(QString ID, nodeIDs){
@@ -891,7 +932,7 @@ void NewController::view_ShowLegalEdgesForNode(Node *src)
 {
     foreach(QString ID, nodeIDs){
         Node* dst = getNodeFromID(ID);
-        if(!isEdgeLegal(src, dst) && (dst != src)){
+        if(dst && !isEdgeLegal(src, dst) && (dst != src)){
             view->view_SetOpacity(dst, HIDDEN_OPACITY);
         }
     }
@@ -1311,7 +1352,7 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
     //This will add Undo states to reverse.
     attachGraphMLData(node, dataToAttach);
 
-    node->addAspect("Definitions");
+    //node->addAspect("Definitions");
     return node;
 }
 
@@ -1329,14 +1370,12 @@ Edge *NewController::constructEdge(Node *source, Node *destination)
         Edge* edge = 0;
 
         bool swap = false;
+
+        qWarning() << "constructEdge: " << "Source: " << source->toString() << " to Destination: " << destination->toString();
+
         if(sourceKind.startsWith(destinationKind)){
-            if(sourceKind == destinationKind){
-                if(source->getDefinition()){
-                    swap = true;
-                }else{
-                    swap = false;
-                }
-            }else{
+            if(sourceKind != sourceKind){
+                qCritical() << "Source Kind starts with destination Kind";
                 swap = true;
             }
         }
@@ -1345,28 +1384,20 @@ Edge *NewController::constructEdge(Node *source, Node *destination)
             swap = true;
         }
 
+        /*
+        if(source->isDefinition() && source->getDefinition() && !destination->getDefinition()){
+            qCritical() << "EDGE CASE";
+            //swap = true;
+        }*/
 
-        if(swap){
+
+         if(swap){
+            qCritical() << "Destination to Source";
             edge = new Edge(destination, source);
         }else{
+             qCritical() << "Source to Destination";
             edge = new Edge(source, destination);
         }
-
-/*        //Make sure that the edge is the correct way around.
-        if(destination->isDefinition() && !source->getDefinition()){
-            edge = new Edge(destination, source);
-        }else{
-            edge = new Edge(source, destination);
-        }
-        */
-                    /*
-        if((sourceKind == "Aggregate" && destinationKind != "AggregateInstance") || (sourceKind == "Member" && destinationKind == "MemberInstance" ) || destination->isDefinition()){
-            edge = new Edge(destination, source);
-        }else{
-            edge = new Edge(source, destination);
-        }
-
-                */
 
         return edge;
     }else{
@@ -1518,7 +1549,7 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition)
                 }
             }
             GraphMLData* newData = new GraphMLData(key, keyValue + modifier);
-            newData->setProtected(true);
+            //newData->setProtected(true);
             matchableData.append(newData);
         }
     }
@@ -1534,11 +1565,11 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition)
 
             if(child->getDefinition() == definition){
                 //Already got a Definition.
-                //qCritical() << "Definition is already connected.";
+                qCritical() << "Child is already connected.";
                 newNode = child;
                 return newNode;
             }else{
-                //Already got a definition, try the next node.
+                qCritical() << "Child has a different Definition.";
                 continue;
             }
         }
@@ -1554,6 +1585,7 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition)
              GraphMLData* childData = child->getData(key);
 
              if(!childData){
+                 qCritical() << "Got no Data for type " << keyName;
                  //No Match.
                  allDataMatched = false;
                  break;
@@ -1561,6 +1593,7 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition)
 
              if(matchKeyNames.contains(keyName)){
                  if(data->getValue() != childData->getValue()){
+                     qCritical() << data->getValue() << " != " << childData->getValue();
                      allDataMatched = false;
                      break;
                  }
@@ -1577,12 +1610,15 @@ Node *NewController::constructNodeInstance(Node *parent, Node *definition)
     if(!newNode){
         qCritical() << "No Matches found, So Creating Instance.";
         qCritical() << "In: " <<  parent->toString() << "" << definition->toString();
+        qCritical() << parent->getDataValue("label") << " Cannot find " << definition->getDataValue("label");
         newNode = constructChildNode(parent, matchableData);
+    }else{
+        qCritical() << "Found Match.";
     }
 
     if(newNode){
         //Construct an Edge
-        view_ConstructEdge(definition, newNode);
+        view_ConstructEdge(newNode, definition);
     }
     return newNode;
 }
@@ -1825,8 +1861,9 @@ bool NewController::destructNode(Node *node)
 
 
         if(node->getParentNode()){
-            if((node->getParentNode()->isInstance() || node->getParentNode()->isImpl()) && node->getParentNode()->getDefinition() != 0 && node->getDefinition()){
+            if((node->getParentNode()->isInstance() || node->getParentNode()->isImpl()) && node->getParentNode()->getDefinition() != 0){
                if(node->getDefinition()){
+                   qCritical() << node->getDefinition()->toString();
                    //Cannot delete Child node.
                    qCritical() << "Cannot delete Instance/Implementation's inheritted child. Must be deleted from Definition.";
                    return false;
@@ -1930,10 +1967,11 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
 
 
         if(edge->isInstanceLink()){
-            //qCritical() << "Got Instance Link";
+            qCritical() << "Got Instance Link";
             //Delete Instances/Impls
             //qDebug() << "Definition: " << edge->getSource()->toString() << " removed  Instance: " << edge->getDestination()->toString();
-            teardownNodeAsInstance(edge->getSource(), edge->getDestination());
+            teardownNodeAsInstance(edge->getDestination(),edge->getSource());
+            //teardownNodeAsInstance(edge->getSource(), edge->getDestination());
         }
         if(edge->isImplLink()){
             //qCritical() << "Got Impl Link";
@@ -2010,7 +2048,6 @@ bool NewController::isEdgeSelected(Edge *edge)
 
 bool NewController::isEdgeLegal(Node *src, Node *dst)
 {
-    //Check for Valid Nodes.
     if(src && dst){
         //Check for dual way connections.
         return src->canConnect(dst) && dst->canConnect(src);
@@ -2403,12 +2440,14 @@ void NewController::setupValidator()
 
 void NewController::bindGraphMLData(Node *definition, Node *child)
 {
+    qCritical() << definition->toString() << " Binding " <<  child->toString();
     //Bind the un-protected GraphMLData attached to the Definition to the Instance/Impl.
     foreach(GraphMLData* data, definition->getData()){
         GraphMLKey* dataKey = data->getKey();
         QString dataValue = data->getValue();
 
-        if(!data->isProtected()){
+
+        if(!data->isProtected() || data->getParentData()){
             //Check for existing GraphMLData.
             GraphMLData* boundData = child->getData(dataKey);
 
@@ -2425,7 +2464,7 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
                 boundData->setProtected(false);
             }else{
                 //Protect the Data.
-                boundData->setProtected(true);
+                //boundData->setProtected(true);
             }
 
             //Bind the Instance/Impl GraphMLData to the Defintion GraphMLData.
@@ -2584,6 +2623,9 @@ void NewController::constructEdgeGUI(Edge *edge)
     action.actionKind = GraphML::EDGE;
     action.ID = edge->getID();
 
+    GraphMLKey* descriptionKey = constructGraphMLKey("description", "string", "edge");
+
+
     //Add Action to the Undo/Redo Stack
     addActionToStack(action);
 
@@ -2591,10 +2633,10 @@ void NewController::constructEdgeGUI(Edge *edge)
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
-    //qWarning() << "Setting Up Edge: " << "Source: " << src->toString() << " to Destination: " << dst->toString();
+    qWarning() << "Setting Up Edge: " << "Source: " << src->toString() << " to Destination: " << dst->toString();
 
     //Check for the special Edges
-    if(src->isDefinition()){
+    if(dst->isDefinition()){
         //Get the Node Kind of the Source and Destination
         QString srcKind = src->getDataValue("kind");
         QString dstKind = dst->getDataValue("kind");
@@ -2602,18 +2644,30 @@ void NewController::constructEdgeGUI(Edge *edge)
             qCritical() << "Got an undefined Node Kind.";
         }
 
-        if(srcKind + "Instance" == dstKind || (srcKind == dstKind)){
+        if(srcKind == dstKind){
             //Got Instance Edge.
+            qCritical() << "Got Instance Edge (X==X)";
             //If the source and destination are the same type, it must be an Aggregate Instance or MemberInstance.
-            setupNodeAsInstance(src, dst);
-        }else if(srcKind + "Impl" == dstKind){
+            setupNodeAsInstance(dst, src);
+            GraphMLData* label = new GraphMLData(descriptionKey, "Instance Of");
+            attachGraphMLData(edge, label);
+        }else if(dstKind + "Instance" == srcKind){
+            qCritical() << "Got Instance Edge";
+            setupNodeAsInstance(dst, src);
+            GraphMLData* label = new GraphMLData(descriptionKey, "Instance Of");
+            attachGraphMLData(edge, label);
+        }
+        else if(srcKind + "Impl" == dstKind){
             //Got Implementation Edge
             setupNodeAsImplementation(src, dst);
+            GraphMLData* label = new GraphMLData(descriptionKey, "Implementation Of");
+            attachGraphMLData(edge, label);
         }else if(edge->isAggregateLink()){
             EventPort* eventPort = dynamic_cast<EventPort*>(src);
             Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
             //Got Aggregate Edge.
             if(eventPort && aggregate){
+                GraphMLData* label = new GraphMLData(descriptionKey, "Data Type for");                attachGraphMLData(edge, label);
                 attachAggregateToEventPort(eventPort, aggregate);
             }
         }
@@ -2688,6 +2742,9 @@ QString NewController::getIDFromOldID(QString ID)
              QString temp = ID;
              ID = newID;
              newID = IDLookupHash[temp];
+             if(originalID == newID){
+                 break;
+             }
          }else{
              break;
          }

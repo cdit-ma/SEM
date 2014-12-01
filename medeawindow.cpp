@@ -39,8 +39,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     ui->actionNew_Project->trigger();
     this->setSelectedProject(projectWindows[0]);
 
-    /*
-    QFile file("C:/base.graphml");
+    QFile file("C:/test.graphml");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
         qDebug() << "could not open file for read";
@@ -51,11 +50,18 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     file.close();
     this->setSelectedProject(projectWindows[0]);
 
-    emit view_ActionTriggered("Loading XME");
+    emit view_TriggerAction("Loading GraphML");
+    //emit view_ActionTriggered("Loading XME");
     emit view_PasteData(xmlText);
 
     updateProgressBar(100,"");
-    */
+
+
+    ui->nodeIDCombo->addItems(selectedProject->getController()->getNodeIDS());
+
+
+    selectedProject->getController()->view_SelectFromID("49");
+    //on_nodeIDCombo_activated("etst");
     //ui->actionImport_GraphML->trigger();
 }
 
@@ -484,4 +490,14 @@ void MedeaWindow::on_actionExport_GraphML_triggered()
 
 
     emit view_ExportGraphML(filename);
+}
+
+void MedeaWindow::on_nodeIDCombo_activated(const QString &arg1)
+{
+
+
+    selectedProject->getController()->view_SelectFromID(arg1);
+
+
+
 }

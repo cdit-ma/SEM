@@ -56,6 +56,7 @@ private:
     void updateBrushes();
 
     QGraphicsLineItem* QGline;
+    QGraphicsLineItem* QGline2;
     NodeItem* source;
     NodeItem* destination;
 
@@ -67,6 +68,7 @@ private:
     bool IS_VISIBLE;
 
     QPen pen;
+    QPen arrowPen;
     QPen selectedPen;
 
     QColor selectedColor;
@@ -81,6 +83,7 @@ private:
     QRect bRec;
 
     QLineF line;
+    QLineF arrowHead;
     QGraphicsTextItem* label;
 
     bool inScene;
