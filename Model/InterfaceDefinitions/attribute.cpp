@@ -29,7 +29,7 @@ bool Attribute::canConnect(Node* attachableObject)
         qWarning() << "Attribute can only connect to AttributeImpl's and AttributeInstances";
         return false;
     }
-    if(attributeImpl && getImplementation()){
+    if(attributeImpl && getImplementations().size() != 0){
         qCritical() << "Attribute can only connect to one AttributeImpl";
         return false;
     }

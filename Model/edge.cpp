@@ -97,7 +97,6 @@ bool Edge::isInstanceLink()
 bool Edge::isImplLink()
 {
     return (source->isImpl() && source->getDefinition() == destination);
-    //return (destination->isImpl() && destination->getDefinition() == source);
 }
 
 bool Edge::isAggregateLink()

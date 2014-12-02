@@ -39,6 +39,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     ui->actionNew_Project->trigger();
     this->setSelectedProject(projectWindows[0]);
 
+    /*
     QFile file("C:/test.graphml");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
@@ -63,6 +64,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     selectedProject->getController()->view_SelectFromID("49");
     //on_nodeIDCombo_activated("etst");
     //ui->actionImport_GraphML->trigger();
+    */
 }
 
 MedeaWindow::~MedeaWindow()

@@ -86,6 +86,7 @@ public:
     void addAspect(QString aspect);
     void removeAspect(QString aspect);
     bool isInAspect(QString aspect);
+    QVector<QString> getAspects();
 
     QString toGraphML(qint32 indentationLevel=0);
 
@@ -108,9 +109,6 @@ public:
     void removeImplementation(Node* impl);
 
 
-    void setImplementation(Node* impl);
-    Node* getImplementation();
-    void unsetImplementation();
 
 
 private:

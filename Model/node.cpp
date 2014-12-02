@@ -53,6 +53,10 @@ void Node::addChild(Node *child)
 
     if(!containsChild(child)){
         children.append(child);
+        foreach(QString aspect, getAspects()){
+            child->addAspect(aspect);
+        }
+
         child->setParentNode(this);
     }
 }
@@ -244,6 +248,11 @@ bool Node::isInAspect(QString aspect)
     return containedAspects.contains(aspect);
 }
 
+QVector<QString> Node::getAspects()
+{
+    return containedAspects;
+}
+
 QString Node::toGraphML(qint32 indentationLevel)
 {
     QString tabSpace;
@@ -356,28 +365,6 @@ void Node::removeImplementation(Node *impl)
         }
     }
 
-}
-
-void Node::setImplementation(Node *impl)
-{
-    if(isDefinition()){
-        implementation = impl;
-        impl->setDefinition(this);
-    }
-}
-
-Node *Node::getImplementation()
-{
-    if(isInstance() && getDefinition()){
-        return getDefinition()->getImplementation();
-    }
-    return implementation;
-}
-
-void Node::unsetImplementation()
-{
-    implementation->unsetDefinition();
-    implementation = 0;
 }
 
 void Node::addEdge(Edge *edge)

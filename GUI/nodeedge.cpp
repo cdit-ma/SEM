@@ -17,9 +17,9 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
         Node* sNode = s->node;
         Node* dNode = d->node;
 
-        if(sNode->getParentNode()->isDefinition() && (dNode->getParentNode()->isInstance() || dNode->getParentNode()->isImpl())){
+        if(dNode->getParentNode()->isDefinition() && (sNode->getParentNode()->isImpl() || sNode->getParentNode()->isInstance())){
             //Don't show Non-Top Most Instance Links
-            //IS_VISIBLE = false;
+            IS_VISIBLE = false;
         }
     }
 

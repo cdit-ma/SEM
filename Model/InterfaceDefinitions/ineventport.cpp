@@ -27,7 +27,8 @@ bool InEventPort::canConnect(Node* attachableObject)
     InEventPortInstance* inEventPortInstance = dynamic_cast<InEventPortInstance*>(attachableObject);
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
 
-    if(inEventPortImpl && getImplementation()){
+
+    if(inEventPortImpl && getImplementations().size() != 0){
         qWarning() << "A InEventPort can only connect to one inEventPortImpl. Detach First!";
         return false;
     }

@@ -4,7 +4,6 @@
 
 HardwareDefinitions::HardwareDefinitions():Node()
 {
-
 }
 
 HardwareDefinitions::~HardwareDefinitions()

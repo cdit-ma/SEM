@@ -23,7 +23,7 @@ bool AggregateInstance::canConnect(Node* attachableObject)
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
 
     if (!aggregate && !aggregateInstance){
-        //qWarning() << "AggregateInstance can only connect to an Aggregate.";
+        qWarning() << "AggregateInstance can only connect to an Aggregate.";
         return false;
     }
     if(getDefinition() && attachableObject->getDefinition()){
