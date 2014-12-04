@@ -55,10 +55,13 @@ class NewController: public QObject
 {
     Q_OBJECT
 public:
-    NewController(NodeView *view);
+    NewController();
+    void connectView(NodeView* view);
+
+    void initializeModel();
     ~NewController();
     //Exports a Selection of Containers to export into GraphML
-    QString exportGraphML(QVector<Node *> nodes);
+    QString exportGraphML(QStringList nodeIDs);
     QString exportGraphML(Node* node);
 
     QStringList getNodeKinds();
@@ -67,33 +70,52 @@ public:
     QStringList getNodeIDS();
 
 signals:
+    //Triggers the View to Enable/Disable the GUI
     void view_SetGUIEnabled(bool setEnabled);
-    //Inform the View to Center the Canvas around an Node.
 
+    //Triggers the View to Center the Canvas around a GraphML Entity.
     void view_CenterGraphML(GraphML* graphML);
 
+    //Triggers the View to adjust the Opacity of the GraphML Entity.
     void view_SetOpacity(GraphML* graphML, qreal opacity);
 
+    //Called when a GUI Item is triggered to be selected.
+    void view_SetGraphMLSelected(GraphML* item, bool setSelected=true);
+
+    //Triggers the View to set RubberBand Selection mode on.
     void view_SetRubberbandSelectionMode(bool on);
 
+    //Triggers the View to write the GraphML XML data specified to the filename specified.
     void view_WriteGraphML(QString filename, QString data);
 
+    //Triggers the View to update the Undo/Redo History with the lists provided.
     void view_UpdateUndoList(QStringList list);
     void view_UpdateRedoList(QStringList list);
 
+    //Triggers the view to update a progress bar for the current Action.
     void view_UpdateProgressBar(int percentage, QString label="");
 
+    //Triggers the View to update the Copy Buffer with the data provided.
     void view_UpdateCopyBuffer(QString data);
 
+    //Triggers the View to update the Visual Project Name.
     void view_UpdateProjectName(QString name);
 
+    //Triggers the View that an error was found related to the GraphML entity, and error text provided.
     void view_PrintErrorCode(GraphML* graphml, QString text);
+
+    //Triggers the View to Update the status of the current operation.
     void view_UpdateStatusText(QString statusText);
 
+    //Triggers the View to Print a Dialog Box with the message and type provided.
     void view_DialogMessage(MESSAGE_TYPE type, QString message);
 
+    //Tells the View to construct a New GUI Item for the GraphMLItem
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* node);
+    void view_ConstructGraphMLGUI(GraphML* item);
+    void view_DestructGraphMLGUI(GraphML* item);
+    void view_DestructGraphMLGUIFromID(QString ID);
 
     void view_ConstructMenu(QPoint position, QList<QAction*> actions);
 
@@ -188,6 +210,7 @@ private:
 
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
     Node* constructNodeInstance(Node* parent, Node* definition);
+    Node* constructNodeInstance2(Node* parent, Node* definition);
     Node* constructNodeImplementation(Node* parent, Node* definition);
 
     //Returns a list of Kinds which can be adopted by a Node.
@@ -215,7 +238,8 @@ private:
     void constructEdgeGUI(Edge* edge);
 
     //Sets up an Undo state for the deletion of the Node/Edge, and tells the View To destruct its GUI Element.
-    bool destructNode(Node* node);
+    //bool destructNode(Node* node);
+    bool destructNode2(Node* node, bool addAction = true);
     bool destructEdge(Edge* edge, bool addAction = true);
 
     //Constructs a Vector of basic GraphMLData entities required for creating a Node.
@@ -288,9 +312,9 @@ private:
     void undoRedo(bool undo=true);
 
     //Attach GraphMLData('s) to the GraphML item.
-    bool attachGraphMLData(GraphML* item, GraphMLData* data);
-    bool attachGraphMLData(GraphML* item, QVector<QStringList> dataList);
-    bool attachGraphMLData(GraphML* item, QVector<GraphMLData*> dataList);
+    bool attachGraphMLData(GraphML* item, GraphMLData* data, bool addAction = true);
+    bool attachGraphMLData(GraphML* item, QVector<QStringList> dataList, bool addAction = true);
+    bool attachGraphMLData(GraphML* item, QVector<GraphMLData*> dataList, bool addAction = true);
     
     //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
     GraphML* getGraphMLFromID(QString ID);
@@ -302,21 +326,21 @@ private:
     //Stores the GraphMLKey's used by the Model.
     QVector<GraphMLKey*> keys;
 
-    QVector<Edge *> edges;
-    QVector<Node *> nodes;
-
     //Stores the list of nodeID's and EdgeID's inside the Hash.
     QStringList nodeIDs;
     QStringList edgeIDs;
 
-    //Stack of ActionItems in the Undo Stack.
+    //Selection Lists
+    QStringList selectedNodeIDs;
+    QStringList selectedEdgeIDs;
+
+
+    //Stack of ActionItems in the Undo/Redo Stack.
     QStack<ActionItem> undoActionStack;
-    //Stack of ActionItems in the Redo Stack.
     QStack<ActionItem> redoActionStack;
 
-    //Selection Lists
-    QVector<Edge *> selectedEdges;
-    QVector<Node *> selectedNodes;
+    //QVector<Edge *> selectedEdges;
+    //QVector<Node *> selectedNodes;
 
     //Used to find old ID's which may have been deleted from the Model. Will find the replacement ID if they exist.
     QString getIDFromOldID(QString ID);
@@ -328,6 +352,9 @@ private:
     Node* getNodeFromGraphML(GraphML* item);
     Edge* getEdgeFromGraphML(GraphML* item);
 
+
+    bool isGraphMLInModel(GraphML* item);
+
     //Gets the Model Node.
     Model* getModel();
 
@@ -336,16 +363,23 @@ private:
     QHash<QString, QString> IDLookupHash;
     QHash<QString, GraphML*> IDLookupGraphMLHash;
 
+    //Used to store the position of the menu.
     QPointF menuPosition;
 
+    //The Element which is currently Centered
     GraphML* centeredGraphML;
 
+    //A list of Node's which are considered Containers, and aren't part of constructable Nodes.
     QStringList containerNodeKinds;
+    //A List of Node's which are elements in the Model, can be constructed.
     QStringList constructableNodeKinds;
 
+    //A list of View Aspects present in the model.
     QStringList viewAspects;
+    //A list of KeyNames to be protected.
     QStringList protectedKeyNames;
 
+    //Used to tell if we are currently Undo-ing/Redo-ing in the system.
     bool UNDOING;
     bool REDOING;
 
@@ -354,7 +388,7 @@ private:
 
     qreal HIDDEN_OPACITY;
 
-    NodeView* view;
+    //NodeView* view;
 
 
 

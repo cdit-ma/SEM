@@ -14,6 +14,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     drawObject = true;
     USING_RUBBERBAND_SELECTION = false;
 
+    ID = node->getID();
+
     CONTROL_DOWN = false;
     hasMoved = false;
 

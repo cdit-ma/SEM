@@ -175,33 +175,11 @@ void NodeView::setViewAspects(QStringList aspects)
     emit updateViewAspects(aspects);
 }
 
-void NodeView::showContextMenu(const QPoint &pos)
+void NodeView::showContextMenu(QPoint position)
 {
-    QPoint globalPos = this->mapToGlobal(pos);
-    QPointF scenePos = this->mapToScene(pos);
-
-    QMenu myMenu;
-
-    myMenu.addAction("Delete Selection");
-    myMenu.addAction("Add Child Node");
-
-    // ...
-
-    QAction* selectedItem = myMenu.exec(globalPos);
-    if (selectedItem)
-    {
-        if(selectedItem->text() == "Delete Selection"){
-            emit deletePressed(true);
-        }else if(selectedItem->text() == "Add Child Node"){
-            emit constructNodeItem(scenePos);
-        }
-        // something was chosen, do stuff
-    }
-    else
-    {
-        // nothing was chosen
-    }
-    //myMenu.exec();
+    QPoint globalPos = this->mapToGlobal(position);
+    QPointF scenePos = this->mapToScene(position);
+    emit view_ConstructMenu(globalPos);
 }
 
 void NodeView::view_ConstructNodeGUI(Node *node)
@@ -212,11 +190,22 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     Node* parentNode = node->getParentNode();
 
-    NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
+
+    NodeItem* parentNodeItem = 0;
+    if(parentNode){
+        GraphMLItem* parentGUI = getGraphMLItemFromHash(parentNode->getID());
+        parentNodeItem = getNodeItemFromGraphMLItem(parentGUI);
+    }
+
+
+
+
+   // NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
 
     NodeItem* nodeItem = new NodeItem(node, parentNodeItem);
 
-    nodeItems.append(nodeItem);
+    storeGraphMLItemInHash(nodeItem);
+    //nodeItems.append(nodeItem);
 
     //Connect the Generic Functionality.
     connectGraphMLItemToController(nodeItem, node);
@@ -239,8 +228,15 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
-    NodeItem* srcGUI = getNodeItemFromNode(src);
-    NodeItem* dstGUI = getNodeItemFromNode(dst);
+
+    NodeItem* srcGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(src->getID()));
+    NodeItem* dstGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(dst->getID()));
+
+    //NodeItem* parentNodeItem = getNodeItemFromGraphMLItem(parentGUI);
+
+//
+   // NodeItem* srcGUI = getNodeItemFromNode(src);
+   // NodeItem* dstGUI = getNodeItemFromNode(dst);
 
     if(srcGUI != 0 && dstGUI != 0){
         //We have valid GUI elements for both ends of this edge.
@@ -249,7 +245,8 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         NodeEdge* nodeEdge = new NodeEdge(edge, srcGUI, dstGUI);
 
         //Add it to the list of EdgeItems in the Model.
-        nodeEdges.append(nodeEdge);
+        storeGraphMLItemInHash(nodeEdge);
+       //nodeEdges.append(nodeEdge);
 
         connectGraphMLItemToController(nodeEdge, edge);
 
@@ -262,11 +259,24 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 
 }
 
+void NodeView::view_DestructGraphMLGUI(QString ID)
+{
+    removeGraphMLItemFromHash(ID);
+}
+
+/*
 void NodeView::view_DestructGraphMLGUI(GraphML *graphML)
 {
+    qCritical() << "DELETING?!";
+    if(!graphML){
+        qCritical() << "NULL";
+    }
+
+
     NodeItem* nodeItem = getNodeItemFromGraphML(graphML);
     NodeEdge* nodeEdge = getNodeEdgeFromGraphML(graphML);
 
+    qCritical() << "Got Node Item";
     if(nodeItem){
         int nodeItemPosition = nodeItems.indexOf(nodeItem);
         if(nodeItemPosition != -1){
@@ -285,25 +295,32 @@ void NodeView::view_DestructGraphMLGUI(GraphML *graphML)
 
 
 }
+*/
 
 void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
 {
-    GraphMLItem* GUIItem = getGraphMLItemFromGraphML(graphML);
+    if(graphML){
 
-    if(GUIItem){
-        GUIItem->setSelected(setSelected);
-    }
+        GraphMLItem* GUIItem = getGraphMLItemFromHash(graphML->getID());
 
-    if(setSelected){
-        emit view_SetSelectedAttributeModel(GUIItem->getAttributeTable());
-    }else{
-        emit view_SetSelectedAttributeModel(0);
+        if(GUIItem){
+            GUIItem->setSelected(setSelected);
+            if(setSelected){
+                emit view_SetSelectedAttributeModel(GUIItem->getAttributeTable());
+                return;
+            }
+        }
+
     }
+    emit view_SetSelectedAttributeModel(0);
+
 }
 
 void NodeView::view_SortNode(Node *node)
 {
-    NodeItem* nodeItem = getNodeItemFromNode(node);
+    NodeItem* nodeItem = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(node->getID()));
+
+    //NodeItem* nodeItem = getNodeItemFromNode(node);
     if(nodeItem){
         nodeItem->sortChildren();
     }
@@ -332,10 +349,23 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
     connect(GUIItem, SIGNAL(constructGraphMLData(GraphML*,QString)), controller, SLOT(view_ConstructGraphMLData(GraphML*,QString)));
     connect(GUIItem, SIGNAL(destructGraphMLData(GraphML*,QString)), controller, SLOT(view_DestructGraphMLData(GraphML*,QString)));
     connect(GUIItem, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
-    connect(graphML, SIGNAL(destroyed()), GUIItem, SLOT(destructGraphML()));
+    //connect(graphML, SIGNAL(destroyed()), GUIItem, SLOT(destructGraphML()));
+}
+
+NodeItem *NodeView::getNodeItemFromGraphMLItem(GraphMLItem *item)
+{
+    NodeItem* node = dynamic_cast<NodeItem*>(item);
+    return node;
+}
+
+NodeEdge *NodeView::getEdgeItemFromGraphMLItem(GraphMLItem *item)
+{
+    NodeEdge* edge = dynamic_cast<NodeEdge*>(item);
+    return edge;
 }
 
 
+/*
 NodeItem *NodeView::getNodeItemFromGraphML(GraphML *item)
 {
     Node* node = getNodeFromGraphML(item);
@@ -359,7 +389,53 @@ Edge *NodeView::getEdgeFromGraphML(GraphML *item)
     Edge* edge = dynamic_cast<Edge*>(item);
     return edge;
 }
+*/
 
+void NodeView::storeGraphMLItemInHash(GraphMLItem *item)
+{
+    GraphML* graphML = item->getGraphML();
+    if(graphML){
+        QString ID = graphML->getID();
+        if(guiItems.contains(ID)){
+            qCritical() << "Hash already contains GraphMLItem with ID: " << ID;
+        }else{
+            guiItems[ID] = item;
+        }
+    }
+
+}
+
+bool NodeView::removeGraphMLItemFromHash(QString ID)
+{
+    if(guiItems.contains(ID)){
+        //qCritical() << "Hash Removed ID: " << ID;
+        GraphMLItem* item = guiItems[ID];
+
+        guiItems.remove(ID);
+
+        if(item){
+            delete item;
+            return true;
+        }
+    }else{
+        qCritical() << "Not HERE?!" << ID;
+    }
+    return false;
+}
+
+GraphMLItem *NodeView::getGraphMLItemFromHash(QString ID)
+{
+    if(guiItems.contains(ID)){
+        return guiItems[ID];
+    }else{
+        qCritical() << "Cannot find GraphMLItem from Lookup Hash. ID: " << ID;
+    }
+    return 0;
+
+}
+
+
+/*
 
 NodeEdge *NodeView::getNodeEdgeFromEdge(Edge *edge)
 {
@@ -380,15 +456,12 @@ NodeItem *NodeView::getNodeItemFromNode(Node *node)
     }
     return 0;
 }
+*/
 
 GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
 {
-    NodeItem* nodeItem = getNodeItemFromGraphML(item);
-    NodeEdge* nodeEdge = getNodeEdgeFromGraphML(item);
-    if(nodeItem){
-        return nodeItem;
-    }else if(nodeEdge){
-        return nodeEdge;
+    if(item){
+        return getGraphMLItemFromHash(item->getID());
     }
     return 0;
 }
@@ -546,9 +619,25 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
 }
 
+/*
 bool NodeView::guiCreated(GraphML *item)
 {
     return getNodeItemFromGraphML(item) || getNodeEdgeFromGraphML(item);
+}
+*/
+
+void NodeView::view_ConstructGraphMLGUI(GraphML *item)
+{
+    Node* node = dynamic_cast<Node*>(item);
+    Edge* edge = dynamic_cast<Edge*>(item);
+    if(node){
+        view_ConstructNodeGUI(node);
+    }else if(edge){
+        view_ConstructEdgeGUI(edge);
+    }else{
+        qCritical() << "Unknown Type";
+    }
+
 }
 
 void NodeView::view_ShowMenu(QPoint position, QList<QAction *> actions)

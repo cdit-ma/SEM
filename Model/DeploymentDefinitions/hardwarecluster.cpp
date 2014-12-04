@@ -37,8 +37,7 @@ bool HardwareCluster::canConnect(Node* attachableObject)
         return false;
     }
 
-    return true;
-
+    return Node::canConnect(attachableObject);
 }
 
 bool HardwareCluster::canAdoptChild(Node *child)
@@ -52,6 +51,6 @@ bool HardwareCluster::canAdoptChild(Node *child)
         return false;
     }
 
-    return true;
+    return Node::canAdoptChild(child);
 
 }

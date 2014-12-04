@@ -5,7 +5,7 @@
 
 DeploymentDefinitions::DeploymentDefinitions():Node()
 {
-
+     addAspect("Assembly");
 }
 
 DeploymentDefinitions::~DeploymentDefinitions()

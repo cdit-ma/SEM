@@ -82,6 +82,7 @@ private:
 
     QRect bRec;
 
+    QString ID;
     QLineF line;
     QLineF arrowHead;
     QGraphicsTextItem* label;

@@ -9,14 +9,20 @@
 #include <QProgressBar>
 #include <QPushButton>
 #include <QItemSelectionModel>
+#include <QSettings>
 
-
+#include <QProcess>
 
 MedeaWindow::MedeaWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MedeaWindow)
 {
     ui->setupUi(this);
+    myProcess = 0;
+
+
+
+    setupJenkinsSettings();
 
     currentOperationBar = new QProgressBar(this);
     currentOperationBar->setMaximum(100);
@@ -37,7 +43,7 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     connect(ui->addAspect, SIGNAL(clicked()), this, SLOT(appendAspect()));
 
     ui->actionNew_Project->trigger();
-    this->setSelectedProject(projectWindows[0]);
+   this->setSelectedProject(projectWindows[0]);
 
     /*
     QFile file("C:/test.graphml");
@@ -70,6 +76,31 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
 MedeaWindow::~MedeaWindow()
 {
     delete ui;
+}
+
+void MedeaWindow::setupJenkinsSettings()
+{
+    DEPGEN_ROOT = QString(qgetenv("DEPGEN_ROOT"));
+
+    QSettings Settings(DEPGEN_ROOT+"/release/config.ini", QSettings::IniFormat);
+
+    Settings.beginGroup("Jenkins-Settings");
+    JENKINS_ADDRESS = Settings.value("JENKINS_ADDRESS").toString();
+    JENKINS_USERNAME = Settings.value("JENKINS_USERNAME").toString();
+    JENKINS_PASSWORD = Settings.value("JENKINS_PASSWORD").toString();
+    Settings.endGroup();
+
+    if(JENKINS_ADDRESS  != ""){
+
+        QAction *getJenkinsNodes = new QAction(0);
+        getJenkinsNodes->setText("Get Jenkins Nodes from: " + JENKINS_ADDRESS);
+        getJenkinsNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
+        connect(getJenkinsNodes, SIGNAL(triggered()), this, SLOT(getJenkinsNodes()));
+
+        ui->menuFile->addAction(getJenkinsNodes);
+
+    }
+
 }
 
 void MedeaWindow::updateStatusText(QString statusText)
@@ -164,8 +195,13 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
     }
 
 
+
+
     if(selectedProject){
-        emit view_ImportGraphML(fileData);
+    int count = 2;
+        while(count-=1 > 0){
+            emit view_ImportGraphML(fileData);
+        }
         /*NewController* controller = selectedProject->getController();
 
         if(controller){
@@ -317,6 +353,23 @@ void MedeaWindow::setClipboard(QString value)
 {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(value);
+}
+
+void MedeaWindow::getJenkinsNodes()
+{
+
+
+    QString program = "python Jenkins-Groovy-Runner.py";
+    program +=" -s " + JENKINS_ADDRESS;
+    program +=" -u " + JENKINS_USERNAME;
+    program +=" -p " + JENKINS_PASSWORD;
+    program +=" -g  Jenkins_Construct_GraphMLNodesList.groovy";
+
+
+    myProcess = new QProcess(this);
+    myProcess->setWorkingDirectory(DEPGEN_ROOT + "/scripts");
+    connect(myProcess, SIGNAL(finished(int)), this, SLOT(loadJenkinsData(int)));
+    myProcess->start(program);
 }
 
 void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
@@ -501,5 +554,15 @@ void MedeaWindow::on_nodeIDCombo_activated(const QString &arg1)
     selectedProject->getController()->view_SelectFromID(arg1);
 
 
+
+}
+
+void MedeaWindow::loadJenkinsData(int code)
+{
+    qCritical() << "JENKINS: " << code;
+
+    QStringList files;
+    files << myProcess->readAll();
+    emit view_ImportGraphML(files);
 
 }

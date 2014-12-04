@@ -6,6 +6,9 @@
 NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 {
     //Only show the Parent Instance
+
+     ID = edge->getID();
+
     IS_VISIBLE = true;
     IS_SELECTED = false;
 
@@ -19,7 +22,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 
         if(dNode->getParentNode()->isDefinition() && (sNode->getParentNode()->isImpl() || sNode->getParentNode()->isInstance())){
             //Don't show Non-Top Most Instance Links
-            IS_VISIBLE = false;
+            //IS_VISIBLE = false;
         }
     }
 
@@ -57,8 +60,14 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 
 NodeEdge::~NodeEdge()
 {
-    source->deleteConnnection(this);
-    destination->deleteConnnection(this);
+    //qCritical() << "~NodeEdge(" << ID << ")";
+
+    if(source){
+        source->deleteConnnection(this);
+    }
+    if(destination){
+        destination->deleteConnnection(this);
+    }
 
     delete QGline;
     delete QGline2;

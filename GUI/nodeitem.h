@@ -121,6 +121,8 @@ private:
     bool isPressed;
     QPointF previousPosition;
 
+    QString ID;
+
 
 };
 

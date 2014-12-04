@@ -1,5 +1,8 @@
 #include "componentimpl.h"
 #include "../InterfaceDefinitions/component.h"
+#include "attributeimpl.h"
+#include "ineventportimpl.h"
+#include "outeventportimpl.h"
 
 #include <QDebug>
 
@@ -36,8 +39,17 @@ bool ComponentImpl::canConnect(Node* attachableObject)
 
 bool ComponentImpl::canAdoptChild(Node *child)
 {
-    Q_UNUSED(child);
-    return true;
+    AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(child);
+    InEventPortImpl* inEventPortImpl = dynamic_cast<InEventPortImpl*>(child);
+    OutEventPortImpl* outEventPortImpl = dynamic_cast<OutEventPortImpl*>(child);
+
+    if(!attributeImpl && !inEventPortImpl && !outEventPortImpl){
+        //qWarning() << "ComponentImpl can Only adopt AttributeImpl, InEventPortImpl and OutEventPortImpl.";
+        //return false;
+
+    }
+
+    return Node::canAdoptChild(child);
 }
 
 

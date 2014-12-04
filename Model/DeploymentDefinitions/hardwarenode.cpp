@@ -31,7 +31,7 @@ bool HardwareNode::canConnect(Node* attachableObject)
         return false;
     }
 
-    return true;
+    return Node::canConnect(attachableObject);
 }
 
 bool HardwareNode::canAdoptChild(Node *child)

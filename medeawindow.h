@@ -5,6 +5,7 @@
 #include <QProgressBar>
 #include "GUI/projectwindow.h"
 #include "GUI/attributetablemodel.h"
+#include <QProcess>
 #include "GUI/filterbutton.h"
 namespace Ui {
 class MedeaWindow;
@@ -33,6 +34,7 @@ signals:
     void view_ExportGraphML(QString fileName);
 
 private slots:
+    void setupJenkinsSettings();
     void updateStatusText(QString statusText);
 
     void updateFilterButtons(QVector<FilterButton*> buttons);
@@ -59,6 +61,8 @@ private slots:
     void updateRedoStates(QStringList list);
     void setClipboard(QString value);
 
+
+    void getJenkinsNodes();
     void on_actionPaste_triggered();
     void setEnableGUI(bool enable);
 
@@ -67,12 +71,19 @@ private slots:
     void on_actionExport_GraphML_triggered();
 
     void on_nodeIDCombo_activated(const QString &arg1);
+    void loadJenkinsData(int code);
 
 protected:
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
 
 private:
+    QProcess *myProcess;
+    QString DEPGEN_ROOT;
+    QString JENKINS_ADDRESS;
+    QString JENKINS_USERNAME;
+    QString JENKINS_PASSWORD;
+
     QProgressBar* currentOperationBar;
     void setSelectedProject(ProjectWindow* newSelected);
     Ui::MedeaWindow *ui;

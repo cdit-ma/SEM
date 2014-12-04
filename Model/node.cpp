@@ -53,8 +53,11 @@ void Node::addChild(Node *child)
 
     if(!containsChild(child)){
         children.append(child);
-        foreach(QString aspect, getAspects()){
-            child->addAspect(aspect);
+
+        if(getParentNode()){
+            foreach(QString aspect, getAspects()){
+                child->addAspect(aspect);
+            }
         }
 
         child->setParentNode(this);
@@ -115,9 +118,28 @@ void Node::removeChildren()
     }
 }
 
-bool Node::isAncestorOf(Node *node)
+bool Node::ancestorOf(Node *node)
 {
-    return getChildren().contains(node);
+    return getChildren().contains(node) || this == node;
+}
+
+bool Node::ancestorOf(Edge *edge)
+{
+    return getEdges().contains(edge);
+}
+
+bool Node::isAncestorOf(GraphML *item)
+{
+    Node* node = (Node*)item;
+    Edge* edge = dynamic_cast<Edge*>(item);
+    if(edge){
+        return ancestorOf(edge);
+    }
+    if(node){
+        return ancestorOf(node);
+    }
+
+    return false;
 }
 
 bool Node::isDescendantOf(Node *node)

@@ -30,7 +30,7 @@ public:
     //Get the name of this graphml object
     QString getName() const;
 
-    QString getID() const;
+    QString getID();
 
     QString getDataValue(QString keyName);
 

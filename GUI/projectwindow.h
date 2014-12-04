@@ -42,6 +42,7 @@ private:
     QStringList visibleAspects;
     QThread *thread;
     NodeView* view;
+    NodeView* view2;
     NewController* controller;
 
 

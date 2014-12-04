@@ -6,19 +6,32 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 {
     //thread = new QThread();
     view = new NodeView(0);
+    //view2 = new NodeView(0);
     layout()->addWidget(view);
 
-    controller = new NewController(view);
+    //layout()->addWidget(view2);
+
+    controller = new NewController();
+    thread = new QThread();
+    thread->start();
+    controller->moveToThread(thread);
+
+    controller->connectView(view);
+    //controller->connectView(view2);
+    controller->initializeModel();
+
+
     //controller->moveToThread(thread);
 
+    connect(controller, SIGNAL(view_DialogMessage(MESSAGE_TYPE,QString)), this, SLOT(view_DialogWarning(MESSAGE_TYPE,QString)));
+    connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateWindowTitle(QString)));
     connect(this, SIGNAL(updateFilters(QStringList)), controller, SLOT(view_FilterNodes(QStringList)));
 
-    connect(controller, SIGNAL(view_DialogMessage(MESSAGE_TYPE,QString)), this, SLOT(view_DialogWarning(MESSAGE_TYPE,QString)));
 
-    connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateWindowTitle(QString)));
 
-    connect(view, SIGNAL(customContextMenuRequested(QPoint)), controller, SLOT(view_ConstructMenu(QPoint)));
-    connect(controller, SIGNAL(view_ConstructMenu(QPoint,QList<QAction*>)), view, SLOT(view_ShowMenu(QPoint,QList<QAction*>)));
+
+    connect(view, SIGNAL(customContextMenuRequested(QPoint)), view, SLOT(showContextMenu(QPoint)));
+    //connect(view2, SIGNAL(customContextMenuRequested(QPoint)), controller, SLOT(view_ConstructMenu(QPoint)));
 
 
 
@@ -37,6 +50,7 @@ ProjectWindow::~ProjectWindow()
 {
     delete controller;
     delete view;
+    //delete view2;
 }
 
 NodeView *ProjectWindow::getView()
@@ -98,6 +112,7 @@ void ProjectWindow::clearFilters()
 void ProjectWindow::appendAspectString(QString aspect)
 {
 
+    qCritical() << "Appending Apsecst?!";
     if(!visibleAspects.contains(aspect)){
         FilterButton* aspectButton = new FilterButton(aspect, this);
         connect(aspectButton, SIGNAL(removeFilter(QString)), this, SLOT(removeAspectString(QString)));

@@ -42,7 +42,7 @@ QString GraphML::getName() const
     return this->name;
 }
 
-QString GraphML::getID() const
+QString GraphML::getID()
 {
     return QString::number(Uid);
 }
@@ -68,7 +68,6 @@ QString GraphML::getDataValue(QString keyName)
         qCritical() <<"GraphML::getDataValue() << GraphML Object does not contain Data: " << keyName;
         return "";
     }
-
 }
 
 GraphMLData *GraphML::getData(QString keyName)

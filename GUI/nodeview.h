@@ -26,7 +26,7 @@ public:
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
 
-    bool guiCreated(GraphML* item);
+    //bool guiCreated(GraphML* item);
 
 signals:
     void updateZoom(qreal zoom);
@@ -56,9 +56,10 @@ signals:
     void view_SetSelectedAttributeModel(AttributeTableModel* model);
 
 
-
+    void view_ConstructMenu(QPoint);
 
 public slots:
+    void view_ConstructGraphMLGUI(GraphML* item);
     void view_ShowMenu(QPoint position, QList<QAction *> actions);
     void printErrorText(GraphML* graphml, QString text);
     void updateNodeTypeName(QString name);
@@ -70,12 +71,13 @@ public slots:
     void setRubberBandMode(bool On);
     void setViewAspects(QStringList aspects);
 
-    void showContextMenu(const QPoint& pos);
+    void showContextMenu(QPoint position);
 
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
 
-    void view_DestructGraphMLGUI(GraphML* graphML);
+    void view_DestructGraphMLGUI(QString ID);
+    //void view_DestructGraphMLGUI(GraphML* graphML);
 
     void view_SelectGraphML(GraphML* graphML, bool setSelected=true);
     void view_CenterGraphML(GraphML* graphML);
@@ -92,17 +94,31 @@ private:
     NewController* controller;
 
 
-    NodeItem* getNodeItemFromGraphML(GraphML* item);
-    NodeEdge* getNodeEdgeFromGraphML(GraphML* item);
-    NodeEdge* getNodeEdgeFromEdge(Edge* edge);
-    NodeItem* getNodeItemFromNode(Node* node);
-    GraphMLItem* getGraphMLItemFromGraphML(GraphML* item);
+    //NodeItem* getNodeItemFromGraphML(GraphML* item);
+    //NodeEdge* getNodeEdgeFromGraphML(GraphML* item);
+    //NodeEdge* getNodeEdgeFromEdge(Edge* edge);
+    //NodeItem* getNodeItemFromNode(Node* node);
+    //GraphMLItem* getGraphMLItemFromGraphML(GraphML* item);
 
-    Node* getNodeFromGraphML(GraphML* item);
-    Edge* getEdgeFromGraphML(GraphML* item);
+    //Node* getNodeFromGraphML(GraphML* item);
+    //Edge* getEdgeFromGraphML(GraphML* item);
 
-    QVector<NodeItem*> nodeItems;
-    QVector<NodeEdge*> nodeEdges;
+    //QVector<NodeItem*> nodeItems;
+    //QVector<NodeEdge*> nodeEdges;
+
+
+    NodeItem* getNodeItemFromGraphMLItem(GraphMLItem* item);
+    NodeEdge* getEdgeItemFromGraphMLItem(GraphMLItem* item);
+
+
+
+    void storeGraphMLItemInHash(GraphMLItem* item);
+
+    bool removeGraphMLItemFromHash(QString ID);
+
+    GraphMLItem *getGraphMLItemFromGraphML(GraphML* item);
+    GraphMLItem* getGraphMLItemFromHash(QString ID);
+    QHash<QString, GraphMLItem*> guiItems;
 
 
     QStringList currentAspects;

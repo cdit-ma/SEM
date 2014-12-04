@@ -52,8 +52,10 @@ public:
     void removeChildren();
 
     //Checks if the Node is a (distant) Parent.
-    bool isAncestorOf(Node *node);
+    bool ancestorOf(Node *node);
 
+    bool ancestorOf(Edge* edge);
+    bool isAncestorOf(GraphML* item);
     //Checks if the Node is a (distant) child.
     bool isDescendantOf(Node *node);
 

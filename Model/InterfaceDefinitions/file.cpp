@@ -43,5 +43,5 @@ bool File::canAdoptChild(Node *item)
         }
     }
 
-    return true;
+    return Node::canAdoptChild(item);
 }
