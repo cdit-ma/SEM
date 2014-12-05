@@ -1,7 +1,6 @@
 #ifndef NEWCONTROLLER_H
 #define NEWCONTROLLER_H
 #include <QStack>
-#include "../GUI/nodeview.h"
 #include "../GUI/nodeedge.h"
 #include "../Model/model.h"
 #include <QStandardItemModel>
@@ -51,10 +50,17 @@ struct ActionItem{
 };
 
 
+class NodeView;
 class NewController: public QObject
 {
+
+
     Q_OBJECT
 public:
+    typedef QVector<QAction*> ActionArray;
+
+
+
     NewController();
     void connectView(NodeView* view);
 
@@ -66,8 +72,11 @@ public:
 
     QStringList getNodeKinds();
     QStringList getViewAspects();
-
     QStringList getNodeIDS();
+
+    //Returns a list of Kinds which can be adopted by a Node.
+    QStringList getAdoptableNodeKinds(Node* parent = 0);
+
 
 signals:
     //Triggers the View to Enable/Disable the GUI
@@ -117,7 +126,10 @@ signals:
     void view_DestructGraphMLGUI(GraphML* item);
     void view_DestructGraphMLGUIFromID(QString ID);
 
-    void view_ConstructMenu(QPoint position, QList<QAction*> actions);
+    void view_SortNode(Node* item);
+
+    void view_ConstructMenu(QPoint position, NewController::ActionArray actions);
+    void view_ForceRefresh();
 
 public slots:
     //UNUSED
@@ -151,8 +163,7 @@ public slots:
     void view_GraphMLSelected(GraphML* item, bool setSelected);
 
     //Called by the QAction from the Menu
-    void view_ConstructNode();
-    void view_ConstructNode(QPointF centerPoint);
+    void view_ConstructNode(QString kind, QPointF centerPoint);
 
     //Constructs an Edge with no data between Source and Destination Nodes.
     void view_ConstructEdge(Node* source, Node* destination);
@@ -197,24 +208,19 @@ public slots:
     void view_ClearSelection();
 
 private:
-    //Consolidated Methods
-
     //Copies the selected Nodes' GraphML representation to the Clipboard.
     //Returns true if succeeded
     bool copySelectedNodesGraphML();
-
-
 
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
     GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
 
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
-    Node* constructNodeInstance(Node* parent, Node* definition);
-    Node* constructNodeInstance2(Node* parent, Node* definition);
-    Node* constructNodeImplementation(Node* parent, Node* definition);
+    Node* constructNodeInstance2(Node* parent, Node* definition, bool instance = true);
 
-    //Returns a list of Kinds which can be adopted by a Node.
-    QStringList getAdoptableNodeKinds(Node* parent);
+    QVector<GraphMLData*> getDefinitionData(Node* definition, bool instance = true);
+
+
     //Gets a specific Attribute from the current Element in the XML.
     //Returns "" if no Attribute found.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
@@ -232,6 +238,7 @@ private:
 
     //Constructs a Node using the attached GraphMLData elements. Attachs the node to the parentNode provided.
     Node* constructChildNode(Node* parentNode, QVector<GraphMLData*> dataToAttach);
+
 
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
     void constructNodeGUI(Node* node);
@@ -253,15 +260,11 @@ private:
     void setupValidator();
 
     //Binds matching GraphMLData elements from the Node Child, to the Node Definition.
-    void bindGraphMLData(Node* definition, Node* child);
+    void bindGraphMLData(Node* definition, Node* node);
 
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all GraphMLData which isn't protected.
-    void setupNodeAsInstance(Node* definition, Node* node);
-    void teardownNodeAsInstance(Node* definition, Node* instance);
-
-    //Setup/Teardown the node provided an Implementation of the Definition. It will adopt Implementations of all Definitions contained by definition and bind all GraphMLData which isn't protected.
-    void setupNodeAsImplementation(Node* definition, Node* node);
-    void teardownNodeAsImplementation(Node* definition, Node* implementation);
+    void setupDefinitionRelationship(Node* definition, Node* node, bool instance);
+    void teardpwmDefinitionRelationship(Node* definition, Node* node, bool instance);
 
     //Attaches an Aggregate Definition to an EventPort Definition.
     void attachAggregateToEventPort(EventPort* eventPort, Aggregate* aggregate);

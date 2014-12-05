@@ -109,10 +109,8 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
         GraphMLData* data = attachedData.at(row);
 
         if (index.column() == 1 && data && !data->isProtected()){
-            if(value.toString() != ""){
-                emit guiItem->triggerAction("Updated Table Cell");
-                emit guiItem->updateGraphMLData(attachedGraphML, data->getKey()->getName(), value.toString());
-            }
+            emit guiItem->triggerAction("Updated Table Cell");
+            emit guiItem->updateGraphMLData(attachedGraphML, data->getKey()->getName(), value.toString());
             emit(dataChanged(index, index));
         }
     }

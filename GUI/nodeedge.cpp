@@ -15,6 +15,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     IS_INSTANCE_LINK = edge->isInstanceLink();
     IS_IMPL_LINK = edge->isImplLink();
     IS_AGG_LINK = edge->isAggregateLink();
+    IS_DEPLOYMENT_LINK = edge->isDeploymentLink();
 
     if(IS_INSTANCE_LINK || IS_IMPL_LINK){
         Node* sNode = s->node;
@@ -229,12 +230,17 @@ void NodeEdge::updateLabel()
 
 void NodeEdge::updateBrushes()
 {
+    int penWidth = 4;
+
     if(IS_INSTANCE_LINK){
         color = QColor(0, 0, 180);
     }else if(IS_IMPL_LINK){
         color = QColor(0, 180, 0);
     }else if(IS_AGG_LINK){
         color = QColor(180, 0, 0);
+    }else if(IS_DEPLOYMENT_LINK){
+        color = QColor(180, 0, 180);
+        penWidth += 4;
     }else{
         color = QColor(50, 50, 50);
     }
@@ -247,13 +253,13 @@ void NodeEdge::updateBrushes()
     selectedBrush = QBrush(selectedColor);
 
     pen.setColor(color);
-    pen.setWidth(4);
+    pen.setWidth(penWidth);
     pen.setStyle(Qt::DashLine);
     selectedPen.setColor(selectedColor);
-    selectedPen.setWidth(8);
+    selectedPen.setWidth(2 * penWidth);
 
     arrowPen.setColor(selectedColor);
-    arrowPen.setWidth(12);
+    arrowPen.setWidth(3 * penWidth);
 }
 
 

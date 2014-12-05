@@ -8,6 +8,7 @@ GraphML::GraphML(GraphML::KIND kind, QString name):QObject(0)
     this->Uid = ++_Uid;
     this->kind = kind;
     this->setName(name);
+    setGenerated(false);
 }
 
 GraphML::~GraphML()
@@ -26,6 +27,17 @@ void GraphML::removeData(){
         delete current;
     }
 }
+
+bool GraphML::wasGenerated()
+{
+    return generated;
+}
+
+void GraphML::setGenerated(bool isGenerated)
+{
+    generated = isGenerated;
+}
+
 
 void GraphML::setName(QString name)
 {

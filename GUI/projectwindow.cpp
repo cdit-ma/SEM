@@ -5,8 +5,11 @@
 ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 {
     //thread = new QThread();
+
     view = new NodeView(0);
-    //view2 = new NodeView(0);
+   // view2 = new NodeView(0);
+
+
     layout()->addWidget(view);
 
     //layout()->addWidget(view2);
@@ -31,7 +34,7 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
 
     connect(view, SIGNAL(customContextMenuRequested(QPoint)), view, SLOT(showContextMenu(QPoint)));
-    //connect(view2, SIGNAL(customContextMenuRequested(QPoint)), controller, SLOT(view_ConstructMenu(QPoint)));
+    //connect(view2, SIGNAL(customContextMenuRequested(QPoint)), view, SLOT(showContextMenu(QPoint)));
 
 
 
@@ -112,7 +115,6 @@ void ProjectWindow::clearFilters()
 void ProjectWindow::appendAspectString(QString aspect)
 {
 
-    qCritical() << "Appending Apsecst?!";
     if(!visibleAspects.contains(aspect)){
         FilterButton* aspectButton = new FilterButton(aspect, this);
         connect(aspectButton, SIGNAL(removeFilter(QString)), this, SLOT(removeAspectString(QString)));

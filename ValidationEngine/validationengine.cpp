@@ -9,7 +9,7 @@ ValidationEngine::ValidationEngine()
 void ValidationEngine::addPlugin(ValidationPlugin *plugin)
 {
     if(plugin && !plugins.contains(plugin)){
-        qDebug()<< "Added Plugin: " << plugin->getName();
+        //qDebug()<< "Added Plugin: " << plugin->getName();
         plugins.append(plugin);
     }
 }

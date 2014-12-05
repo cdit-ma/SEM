@@ -1,4 +1,5 @@
 #include "graphmlkey.h"
+#include "graphmldata.h"
 #include <QDebug>
 
 int GraphMLKey::_Did =0;
@@ -8,10 +9,16 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
     //Parse Type
     if(typeStr == QString("boolean")){
         this->type = BOOLEAN;
+        this->defaultValue = "false";
     }else if(typeStr == QString("string")){
         this->type = STRING;
+        this->defaultValue = "";
     }else if(typeStr == QString("double")){
         this->type = DOUBLE;
+        this->defaultValue = "0.0";
+    }else if(typeStr == QString("int")){
+        this->type = INT;
+        this->defaultValue = "0";
     }else{
         qDebug() << "Attribute type:" << typeStr << "Not implemented";
     }
@@ -75,6 +82,44 @@ bool GraphMLKey::equals(GraphMLKey *key)
         return false;
     }
     return true;
+}
+
+QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
+{
+
+    bool ok = false;
+
+    switch(type){
+    case BOOLEAN:
+        newValue = newValue.toLower();
+        if(newValue == "true" || newValue == "false"){
+            return newValue;
+        }
+        break;
+    case INT:
+        newValue.toInt(&ok);
+        break;
+    case LONG:
+        newValue.toLong(&ok);
+    case DOUBLE:
+        newValue.toDouble(&ok);
+        break;
+    case FLOAT:
+        newValue.toFloat(&ok);
+        break;
+    case STRING:
+        ok = true;
+        break;
+    default:
+        qCritical() << "Cannot Validate Data Change";
+        ok = true;
+    }
+
+    if(ok){
+        return newValue;
+    }else{
+        return data->getValue();
+    }
 }
 
 

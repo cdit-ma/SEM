@@ -31,6 +31,7 @@ public:
     bool isInstanceLink();
     bool isImplLink();
     bool isAggregateLink();
+    bool isDeploymentLink();
 
     bool contains(Node *item);
     QString toString();

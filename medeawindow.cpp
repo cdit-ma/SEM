@@ -494,6 +494,7 @@ void MedeaWindow::setEnableGUI(bool enable)
 
     if(selectedProject){
         selectedProject->setEnabled(enable);
+        selectedProject->getView()->setVisible(enable);
     }
 
     ui->attributeTable->setEnabled(enable);

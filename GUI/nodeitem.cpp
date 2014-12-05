@@ -211,8 +211,9 @@ void NodeItem::setOpacity(qreal opacity)
             edge->setOpacity(0);
         }
     }
-
+    this->update(this->boundingRect());
 }
+
 
 
 void NodeItem::setSelected2()
@@ -238,6 +239,7 @@ void NodeItem::setSelected(bool selected)
         }
     }
 
+    this->update(this->boundingRect());
 }
 
 void NodeItem::setDeselected2()

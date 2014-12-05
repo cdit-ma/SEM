@@ -66,6 +66,7 @@ private:
     bool IS_IMPL_LINK;
     bool IS_AGG_LINK;
     bool IS_VISIBLE;
+    bool IS_DEPLOYMENT_LINK;
 
     QPen pen;
     QPen arrowPen;

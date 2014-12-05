@@ -27,10 +27,11 @@ bool InEventPortImpl::canAdoptChild(Node *child)
 
 bool InEventPortImpl::canConnect(Node* attachableObject)
 {
+
     InEventPort* oep = dynamic_cast<InEventPort*>(attachableObject);
 
-    if(getDefinition() && oep){
-        qCritical() << "Can Only connect an InEventPortImpl to an InEventPort";
+    if(getDefinition() && oep ){
+        qCritical() << "Can Only connect to one InEventPort";
         return false;
     }
 

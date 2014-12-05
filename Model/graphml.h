@@ -38,6 +38,9 @@ public:
 
     GraphMLData* getData(GraphMLKey* key);
 
+    bool wasGenerated();
+    void setGenerated(bool isGenerated);
+
     //Get a list of Data objects contained by this GraphML
     QVector<GraphMLData *> getData();
 
@@ -79,6 +82,8 @@ private:
 
     //QString
     QString deletingXML;
+
+    bool generated;
 
     //The ID of this graphml object.
     QString id;

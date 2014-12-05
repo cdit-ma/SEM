@@ -1,4 +1,4 @@
-#ifndef NODEVIEW_H
+#ifndef NODEVIEW_H//
 #define NODEVIEW_H
 
 #include <QGraphicsView>
@@ -7,9 +7,8 @@
 #include "nodeitem.h"
 #include <QPointF>
 #include <QRubberBand>
-
-class NewController;
-
+#include "../Controller/newcontroller.h"
+//class ActionArray;
 class NodeView : public QGraphicsView
 {
     Q_OBJECT
@@ -35,7 +34,8 @@ signals:
     void escapePressed(bool isDown);
     void shiftPressed(bool isDown);
 
-    void constructNodeItem(QPointF);
+    void constructNodeItem(QString kind, QPointF);
+
 
 
     void copy();
@@ -59,8 +59,9 @@ signals:
     void view_ConstructMenu(QPoint);
 
 public slots:
+    void view_Refresh();
     void view_ConstructGraphMLGUI(GraphML* item);
-    void view_ShowMenu(QPoint position, QList<QAction *> actions);
+    void view_ShowMenu(QPoint position, NewController::ActionArray actions);
     void printErrorText(GraphML* graphml, QString text);
     void updateNodeTypeName(QString name);
     void removeNodeItem(NodeItem* item);
@@ -86,40 +87,26 @@ public slots:
     void view_SortNode(Node* node);
     void view_SetOpacity(GraphML* graphML, qreal opacity);
 
+    void view_ConstructNodeAction();
+
 
 
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
 
-    NewController* controller;
-
-
-    //NodeItem* getNodeItemFromGraphML(GraphML* item);
-    //NodeEdge* getNodeEdgeFromGraphML(GraphML* item);
-    //NodeEdge* getNodeEdgeFromEdge(Edge* edge);
-    //NodeItem* getNodeItemFromNode(Node* node);
-    //GraphMLItem* getGraphMLItemFromGraphML(GraphML* item);
-
-    //Node* getNodeFromGraphML(GraphML* item);
-    //Edge* getEdgeFromGraphML(GraphML* item);
-
-    //QVector<NodeItem*> nodeItems;
-    //QVector<NodeEdge*> nodeEdges;
-
+    void storeGraphMLItemInHash(GraphMLItem* item);
+    bool removeGraphMLItemFromHash(QString ID);
 
     NodeItem* getNodeItemFromGraphMLItem(GraphMLItem* item);
     NodeEdge* getEdgeItemFromGraphMLItem(GraphMLItem* item);
-
-
-
-    void storeGraphMLItemInHash(GraphMLItem* item);
-
-    bool removeGraphMLItemFromHash(QString ID);
-
     GraphMLItem *getGraphMLItemFromGraphML(GraphML* item);
     GraphMLItem* getGraphMLItemFromHash(QString ID);
-    QHash<QString, GraphMLItem*> guiItems;
 
+
+    NewController* controller;
+
+    QHash<QString, GraphMLItem*> guiItems;
+    QPointF menuPosition;
 
     QStringList currentAspects;
     QPoint origin;

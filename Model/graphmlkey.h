@@ -3,11 +3,14 @@
 #include <QString>
 #include "graphml.h"
 
+class GraphMLData;
 class GraphMLKey: public GraphML
 {
         Q_OBJECT
 public:
+    //TODO: match all types for GRAPHML.
     enum TYPE {BOOLEAN, INT, LONG, FLOAT, DOUBLE, STRING};
+
     GraphMLKey(QString name, QString typeStr, QString forStr);
     ~GraphMLKey();
 
@@ -18,6 +21,8 @@ public:
     QString getDefaultValue() const;
 
     bool equals(GraphMLKey* key);
+
+    QString validateDataChange(GraphMLData* data, QString newValue);
 
     GraphML::KIND getForKind() const;
     QString toGraphML(qint32 indentationLevel=0);

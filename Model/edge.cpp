@@ -109,6 +109,14 @@ bool Edge::isAggregateLink()
     return false;
 }
 
+bool Edge::isDeploymentLink()
+{
+    if(source->getDataValue("kind").endsWith("EventPortInstance") && destination->getDataValue("kind").endsWith("EventPortInstance")){
+        return true;
+    }
+    return false;
+}
+
 bool Edge::contains(Node *item)
 {
     return item == this->source || item == this->destination;

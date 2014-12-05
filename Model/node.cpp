@@ -14,6 +14,7 @@ Node::Node(Node::NODE_TYPE type) : GraphML(GraphML::NODE)
     implementation = 0;
     parentNode = 0;
 
+
 }
 
 Node::~Node()
@@ -316,6 +317,7 @@ bool Node::isImpl()
 {
     return nodeType == Node::NT_IMPL;
 }
+
 
 
 void Node::setDefinition(Node *def)

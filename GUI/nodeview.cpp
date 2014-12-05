@@ -177,9 +177,27 @@ void NodeView::setViewAspects(QStringList aspects)
 
 void NodeView::showContextMenu(QPoint position)
 {
-    QPoint globalPos = this->mapToGlobal(position);
-    QPointF scenePos = this->mapToScene(position);
-    emit view_ConstructMenu(globalPos);
+    //Got Right Click. Build Menu.
+    QPoint globalPos = mapToGlobal(position);
+    QPointF scenePos = mapToScene(position);
+
+    menuPosition = scenePos;
+
+    QMenu* rightClickMenu = new QMenu(this);
+
+    QAction* deleteAction = new QAction(this);
+    deleteAction->setText("Delete Selection");
+    connect(deleteAction, SIGNAL(triggered()), controller, SLOT(view_DeletePressed()));
+    rightClickMenu->addAction(deleteAction);
+
+    if(controller->getAdoptableNodeKinds().size() > 0){
+        QAction* addChildNode = new QAction(this);
+        addChildNode->setText("Create Child Node");
+        connect(addChildNode, SIGNAL(triggered()), this, SLOT(view_ConstructNodeAction()));
+        rightClickMenu->addAction(addChildNode);
+    }
+
+    rightClickMenu->exec(globalPos);
 }
 
 void NodeView::view_ConstructNodeGUI(Node *node)
@@ -339,6 +357,30 @@ void NodeView::view_SetOpacity(GraphML *graphML, qreal opacity)
     if(guiItem){
         guiItem->setOpacity(opacity);
     }
+}
+
+void NodeView::view_ConstructNodeAction()
+{
+
+    QStringList nodeKinds = controller->getAdoptableNodeKinds();
+
+    if(nodeKinds.size() > 0){
+        bool okay;
+        QInputDialog* dialog = new QInputDialog();
+
+        QString nodeKind = dialog->getItem(0, "Selected Node Type","Please Select Child Node Type: ", nodeKinds, 0, false, &okay);
+
+        if(!okay){
+            return;
+        }
+        emit constructNodeItem(nodeKind, menuPosition);
+    }else{
+        emit controller->view_DialogMessage(MESSAGE_TYPE::WARNING, "No Adoptable Types.");
+    }
+
+
+
+
 }
 
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
@@ -619,6 +661,11 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
 }
 
+void NodeView::view_Refresh()
+{
+    scene()->update();
+}
+
 /*
 bool NodeView::guiCreated(GraphML *item)
 {
@@ -640,12 +687,16 @@ void NodeView::view_ConstructGraphMLGUI(GraphML *item)
 
 }
 
-void NodeView::view_ShowMenu(QPoint position, QList<QAction *> actions)
+void NodeView::view_ShowMenu(QPoint position, NewController::ActionArray actions)
 {
     QPoint globalPos = mapToGlobal(position);
 
     QMenu* menu = new QMenu();
-    menu->addActions(actions);
+
+    foreach(QAction* action, actions){
+        menu->addAction(action);
+    }
+
     menu->exec(globalPos);
 }
 

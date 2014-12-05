@@ -4,8 +4,8 @@
 GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
 {
     this->key = key;
-    if(value==""){
-        this->setValue(this->key->getDefaultValue());
+    if(value == ""){
+        this->setValue(key->getDefaultValue());
     }else{
         this->setValue(value);
     }
@@ -22,12 +22,6 @@ GraphMLData::~GraphMLData()
         unbindData(child);
     }
 }
-/*
-void GraphMLData::setValue(QString value)
-{
-    this->value = value;
-}
-*/
 
 QString GraphMLData::getValue() const
 {
@@ -54,7 +48,14 @@ QString GraphMLData::toGraphML(qint32 indentationLevel)
         tabSpace += "\t";
     }
 
-    QString returnable = tabSpace + QString("<data key=\"%1\">%2</data>\n").arg(this->getKey()->getID(), this->getValue());
+    QString dataTo = getValue();
+    dataTo.replace( "&", "&amp;" );
+    dataTo.replace( ">", "&gt;" );
+    dataTo.replace( "<", "&lt;" );
+    dataTo.replace( "\"", "&quot;" );
+    dataTo.replace( "\'", "&apos;" );
+
+    QString returnable = tabSpace + QString("<data key=\"%1\">%2</data>\n").arg(this->getKey()->getID(), dataTo);
     return returnable;
 }
 
@@ -89,10 +90,12 @@ QStringList GraphMLData::getBoundIDS()
     return dataDump;
 }
 
-void GraphMLData::setValue(QString value)
+void GraphMLData::setValue(QString newValue)
 {
-    if(value != this->value){
-        this->value = value;
+    QString validatedValue = key->validateDataChange(this, newValue);
+
+    if(validatedValue != value){
+        value = validatedValue;
         emit dataChanged(this);
     }
 
@@ -115,10 +118,9 @@ void GraphMLData::setParentData(GraphMLData *data)
 {
     if(data){
         unsetParentData();
-        data->setValue(data->getValue());
+        setValue(data->getValue());
     }
     parentData = data;
-
 }
 
 void GraphMLData::unsetParentData()
@@ -136,10 +138,9 @@ GraphMLData *GraphMLData::getParentData()
 
 void GraphMLData::bindData(GraphMLData *data)
 {
-    if(!childData.contains(data)){
+    if(data && !childData.contains(data)){
         childData.append(data);
         data->setParentData(this);
-
     }
 }
 

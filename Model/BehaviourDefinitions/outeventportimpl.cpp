@@ -31,8 +31,8 @@ bool OutEventPortImpl::canConnect(Node* attachableObject)
 {
     OutEventPort* oep = dynamic_cast<OutEventPort*>(attachableObject);
 
-    if(getDefinition() && oep){
-        qCritical() << "Can Only connect an OutEventPortImpl to an OutEventPort";
+    if(getDefinition() && oep ){
+        qCritical() << "Can Only connect to one OutEventPort";
         return false;
     }
 

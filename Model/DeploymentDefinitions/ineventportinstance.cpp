@@ -60,6 +60,13 @@ bool InEventPortInstance::canConnect(Node* attachableObject)
             }
 
         }
+
+        QString topicName = outputEventPort->getDataValue("topicName");
+        QString thisTopicName = getDataValue("topicName");
+        if(topicName != thisTopicName){
+            qWarning() << "Cannot connect an IEPI to and OEPI with a different Topic Name";
+            return false;
+        }
     }
 
     return Node::canConnect(attachableObject);

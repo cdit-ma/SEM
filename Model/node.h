@@ -82,7 +82,6 @@ public:
     void removeEdges();
 
 
-    //Searching Methods
 
     //Visual Methods
     void addAspect(QString aspect);
@@ -97,6 +96,8 @@ public:
     bool isDefinition();
     bool isInstance();
     bool isImpl();
+
+
 
     void setDefinition(Node *def);
     Node* getDefinition();
@@ -130,6 +131,7 @@ private:
 
     Node* definition;
     Node* implementation;
+
 
     Node* parentNode;
 
