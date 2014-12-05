@@ -200,7 +200,7 @@ private:
     GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
 
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
-    Node* constructNodeInstance2(Node* parent, Node* definition, bool instance = true);
+    Node *constructDefinitionRelative(Node* parent, Node* definition, bool instance = true);
 
     QVector<GraphMLData*> getDefinitionData(Node* definition, bool instance = true);
 

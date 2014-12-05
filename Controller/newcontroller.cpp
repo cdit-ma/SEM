@@ -11,23 +11,16 @@ bool SETUP_AS_IMPL = true;
 
 NewController::NewController()
 {
-    qRegisterMetaType<NewController::ActionArray>("NewController::ActionArray");
-
     UNDOING = false;
     REDOING = false;
     KEY_CONTROL_DOWN = false;
     KEY_SHIFT_DOWN = false;
-
-
     HIDDEN_OPACITY = 0.10;
-
-
 
 
     model = 0;
 
     //Construct
-
     behaviourDefinitions = 0;
     interfaceDefinitions = 0;
     deploymentDefinitions = 0;
@@ -59,8 +52,6 @@ NewController::NewController()
     constructableNodeKinds << "Member" << "Aggregate";
     constructableNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload";
 
-
-    qCritical() << "Constructor Run!";
 }
 
 void NewController::connectView(NodeView *view)
@@ -68,7 +59,6 @@ void NewController::connectView(NodeView *view)
     view->setController(this);
 
     //Connect to the View's Signals
-
     connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
     connect(view, SIGNAL(shiftPressed(bool)), this, SLOT(view_ShiftPressed(bool)));
     connect(view, SIGNAL(deletePressed(bool)), this, SLOT(view_DeletePressed(bool)));
@@ -76,26 +66,18 @@ void NewController::connectView(NodeView *view)
     connect(view, SIGNAL(unselect()),this, SLOT(view_ClearSelection()));
     connect(view, SIGNAL(unselect()), this, SLOT(view_UncenterGraphML()));
     connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this,SLOT(view_ConstructNode(QString, QPointF)));
+    connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
 
+    //Connect the View to the Controllers Signals
     connect(this, SIGNAL(view_SetOpacity(GraphML*,qreal)), view, SLOT(view_SetOpacity(GraphML*,qreal)));
-
     connect(this, SIGNAL(view_SortNode(Node*)), view, SLOT(view_SortNode(Node*)));
-    connect(this, SIGNAL(view_ConstructMenu(QPoint, NewController::ActionArray)), view, SLOT(view_ShowMenu(QPoint,NewController::ActionArray)));
     connect(this, SIGNAL(view_SetGraphMLSelected(GraphML*,bool)), view, SLOT(view_SelectGraphML(GraphML*,bool)));
     connect(this, SIGNAL(view_ForceRefresh()), view, SLOT(view_Refresh()));
-
-    //connect(view, SIGNAL(sortModel()),this, SLOT(view_SortModel()));
-    connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
-    //Connect the controllers signals to the view.
     connect(this, SIGNAL(view_CenterGraphML(GraphML*)), view, SLOT(view_CenterGraphML(GraphML*)));
     connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
     connect(this, SIGNAL(view_ConstructGraphMLGUI(GraphML*)), view, SLOT(view_ConstructGraphMLGUI(GraphML*)));
-
-    connect(view, SIGNAL(view_ConstructMenu(QPoint)), this, SLOT(view_ConstructMenu(QPoint)));
     connect(this, SIGNAL(view_DestructGraphMLGUIFromID(QString)), view, SLOT(view_DestructGraphMLGUI(QString)));
-    //connect(this, SIGNAL(view_DestructGraphMLGUI(GraphML*)), view, SLOT(view_DestructGraphMLGUI(GraphML*)));
     connect(this, SIGNAL(view_PrintErrorCode(GraphML*,QString)), view, SLOT(printErrorText(GraphML*,QString)));
-
 
 }
 
@@ -109,7 +91,7 @@ NewController::~NewController()
 {
     view_ClearSelection();
 
-    destructNode2(model);
+    destructNode(model);
 }
 
 QString NewController::exportGraphML(QStringList nodeIDs)
@@ -639,87 +621,6 @@ void NewController::view_ProjectNameUpdated(GraphMLData *label)
 }
 
 
-void NewController::view_ConstructMenu(QPoint position)
-{
-    menuPosition = position;//emit mapToScene(position);
-
-    Node* node = getSelectedNode();
-
-    ActionArray menuActions;
-    //Construct Actions for the Menu
-
-    QAction* deleteAction = new QAction(this);
-    deleteAction->setText("Delete Selection");
-    connect(deleteAction, SIGNAL(triggered()), this, SLOT(view_DeletePressed()));
-
-    if(selectedEdgeIDs.size() == 0 && selectedNodeIDs.size() == 0){
-        deleteAction->setEnabled(false);
-    }
-
-    menuActions.append(deleteAction);
-
-    QStringList adoptableKinds = getAdoptableNodeKinds(node);
-
-    QAction* addChildNode = new QAction(this);
-    addChildNode->setText("Create Child Node");
-    connect(addChildNode, SIGNAL(triggered()), this, SLOT(view_ConstructNode()));
-
-    if(adoptableKinds.size() == 0){
-        addChildNode->setEnabled(false);
-    }
-
-    menuActions.append(addChildNode);
-
-    if(node){
-        QString kind = node->getDataValue("kind");
-
-        /*
-        if(node->isDefinition() && !node->getParentNode()->isDefinition()){
-            QAction* createInstance = new QAction(this);
-            createInstance->setText("Create Instance of " + kind + ".");
-            connect(createInstance, SIGNAL(triggered()), this, SLOT(view_ConstructComponentInstance()));
-
-            menuActions.append(createInstance);
-        }
-        */
-
-        if(node->isDefinition() && node->getImplementations().size() == 0 && !node->getParentNode()->isDefinition()){
-            QAction* createImplementation = new QAction(this);
-            createImplementation->setText("Create Implementation for " + kind + ".");
-            connect(createImplementation, SIGNAL(triggered()), this, SLOT(view_ConstructComponentImpl()));
-            menuActions.append(createImplementation);
-        }
-
-
-        if((node->isInstance() || node->isDefinition()) && node->getImplementations().size() == 1){
-            QAction* gotoAction = new QAction(this);
-            gotoAction->setText("Center Implementation.");
-            connect(gotoAction, SIGNAL(triggered()), this, SLOT(view_CenterComponentImpl()));
-            menuActions.append(gotoAction);
-        }
-
-        if((node->isInstance() || node->isImpl()) && node->getDefinition()){
-            QAction* gotoAction = new QAction(this);
-            gotoAction->setText("Center Definition");
-            connect(gotoAction, SIGNAL(triggered()), this, SLOT(view_CenterComponentDefinition()));
-            menuActions.append(gotoAction);
-        }
-
-        if(node->isInstance() || node->isImpl() || node->isDefinition()){
-            if(kind.contains("EventPort")){
-                QAction* gotoAction = new QAction(this);
-                gotoAction->setText("Center Aggregate");
-                connect(gotoAction, SIGNAL(triggered()), this, SLOT(view_CenterAggregate()));
-                menuActions.append(gotoAction);
-            }
-        }
-    }
-
-
-    emit view_ConstructMenu(position, menuActions);
-}
-
-
 void NewController::view_ExportGraphML(QString filename)
 {
     QString data = exportGraphML(model);
@@ -1197,8 +1098,6 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
      }
 
 
-
-
     //Check Vector of data for X,Y, Width and Height.
     //Also get nodeKind
     foreach(GraphMLData* data, dataToAttach){
@@ -1490,10 +1389,10 @@ Node *NewController::constructChildNode(Node *parentNode, QVector<GraphMLData *>
     //If the node is a defintion, construct an instance/Implementation in each Instance/Implementation of the parentNode.
     if(node && node->isDefinition()){
         foreach(Node* child, parentNode->getInstances()){
-            constructNodeInstance2(child, node);
+            constructDefinitionRelative(child, node);
         }
         foreach(Node* child, parentNode->getImplementations()){
-            constructNodeInstance2(child, node, false);
+            constructDefinitionRelative(child, node, false);
         }
     }
 
@@ -1557,7 +1456,7 @@ QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKin
     //No Position provided, so call with a Blank Point.
     return constructGraphMLDataVector(nodeKind, QPointF(0,0));
 }
-Node *NewController::constructNodeInstance2(Node *parent, Node *definition, bool isInstance)
+Node *NewController::constructDefinitionRelative(Node *parent, Node *definition, bool isInstance)
 {
     Node* instanceNode = 0;
     QString defLabel = "";
@@ -1810,7 +1709,7 @@ Edge *NewController::getSelectedEdge()
     return 0;
 }
 
-bool NewController::destructNode2(Node *node, bool addAction)
+bool NewController::destructNode(Node *node, bool addAction)
 {
     if(addAction){
         if(behaviourDefinitions == node){
@@ -1876,7 +1775,7 @@ bool NewController::destructNode2(Node *node, bool addAction)
     foreach(Node* childNode, node->getChildren(0)){
         QString childID = childNode->getID();
         //qCritical() << "Calling: destructNode2(" << childID << ")";
-        destructNode2(childNode, false);
+        destructNode(childNode, false);
     }
 
     if(!node->wasGenerated() && addAction){
@@ -2027,7 +1926,7 @@ void NewController::reverseAction(ActionItem action)
             //Delete Node.
             Node* node = getNodeFromID(action.ID);
             if(node){
-                destructNode2(node);
+                destructNode(node);
             }
             break;
         }
@@ -2331,7 +2230,7 @@ void NewController::deleteSelectedNodes()
             if(node->isInstance() || node->isImpl()){
                 addAction = false;
             }
-            bool deleted = destructNode2(node, addAction);
+            bool deleted = destructNode(node, addAction);
 
             if(!deleted){
                 selectedNodeIDs.removeFirst();
@@ -2549,7 +2448,7 @@ void NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
     foreach(Node* definitionChild, definition->getChildren(0)){
         if(definitionChild->isDefinition()){
             Node* childInstance = 0;
-            childInstance = constructNodeInstance2(node, definitionChild, instance);
+            childInstance = constructDefinitionRelative(node, definitionChild, instance);
             if(!childInstance){
                 qCritical() << "Could not create a NodeInstance for: " << definitionChild->toString() << " In: " << node->toString();
                 allCreated = false;
@@ -2580,7 +2479,7 @@ void NewController::attachAggregateToEventPort(EventPort *eventPort, Aggregate *
 
     foreach(Node* implementation, eventPort->getImplementations()){
         if(implementation){
-            constructNodeInstance2(implementation, aggregate);
+            constructDefinitionRelative(implementation, aggregate);
             //qCritical() << "Implementation: " << implementation->toString() << " set Aggregate: " << aggregate->toString();
         }else{
             qCritical() << eventPort->toString() << " Has no implementation!?";
@@ -2832,5 +2731,3 @@ Model *NewController::getModel()
 {
     return model;
 }
-
-

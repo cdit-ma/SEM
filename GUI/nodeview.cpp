@@ -13,6 +13,7 @@
 #include <iostream>
 #include <QGraphicsSceneMouseEvent>
 #include <QMenu>
+#include <QInputDialog>
 #include <QAction>
 #include "../Controller/newcontroller.h"
 
@@ -66,7 +67,6 @@ bool NodeView::getControlPressed()
 NodeView::~NodeView()
 {
     emit view_SetSelectedAttributeModel(0);
-    qCritical() << "Killed Node View";
 }
 
 void NodeView::updateNodeTypeName(QString name)
@@ -685,19 +685,6 @@ void NodeView::view_ConstructGraphMLGUI(GraphML *item)
         qCritical() << "Unknown Type";
     }
 
-}
-
-void NodeView::view_ShowMenu(QPoint position, NewController::ActionArray actions)
-{
-    QPoint globalPos = mapToGlobal(position);
-
-    QMenu* menu = new QMenu();
-
-    foreach(QAction* action, actions){
-        menu->addAction(action);
-    }
-
-    menu->exec(globalPos);
 }
 
 

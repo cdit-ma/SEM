@@ -61,7 +61,6 @@ signals:
 public slots:
     void view_Refresh();
     void view_ConstructGraphMLGUI(GraphML* item);
-    void view_ShowMenu(QPoint position, NewController::ActionArray actions);
     void printErrorText(GraphML* graphml, QString text);
     void updateNodeTypeName(QString name);
     void removeNodeItem(NodeItem* item);
