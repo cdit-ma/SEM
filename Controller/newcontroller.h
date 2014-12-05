@@ -10,11 +10,6 @@
 #include "../ValidationEngine/validationengine.h"
 #include "../ValidationEngine/Plugins/interfacedefinitionplugin.h"
 
-
-#include <QMenu>
-#include <QAction>
-#include <QInputDialog>
-
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 enum MESSAGE_TYPE{CRITICAL, WARNING, MESSAGE};
 
@@ -53,30 +48,21 @@ struct ActionItem{
 class NodeView;
 class NewController: public QObject
 {
-
-
     Q_OBJECT
 public:
-    typedef QVector<QAction*> ActionArray;
-
-
-
     NewController();
-    void connectView(NodeView* view);
+    ~NewController();
 
     void initializeModel();
-    ~NewController();
-    //Exports a Selection of Containers to export into GraphML
-    QString exportGraphML(QStringList nodeIDs);
-    QString exportGraphML(Node* node);
+    void connectView(NodeView* view);
 
+    //Get a list of all Node Kinds
     QStringList getNodeKinds();
+    //Get a list of all View Aspects
     QStringList getViewAspects();
-    QStringList getNodeIDS();
 
     //Returns a list of Kinds which can be adopted by a Node.
     QStringList getAdoptableNodeKinds(Node* parent = 0);
-
 
 signals:
     //Triggers the View to Enable/Disable the GUI
@@ -120,15 +106,11 @@ signals:
     void view_DialogMessage(MESSAGE_TYPE type, QString message);
 
     //Tells the View to construct a New GUI Item for the GraphMLItem
-    void view_ConstructNodeGUI(Node* node);
-    void view_ConstructEdgeGUI(Edge* node);
     void view_ConstructGraphMLGUI(GraphML* item);
-    void view_DestructGraphMLGUI(GraphML* item);
     void view_DestructGraphMLGUIFromID(QString ID);
 
     void view_SortNode(Node* item);
 
-    void view_ConstructMenu(QPoint position, NewController::ActionArray actions);
     void view_ForceRefresh();
 
 public slots:
@@ -156,9 +138,6 @@ public slots:
     //Called when the User Renames the GraphMLData* Label attached to the Model.
     void view_ProjectNameUpdated(GraphMLData* label);
 
-    //Constructs A List Of QActions for the right click Menu.
-    void view_ConstructMenu(QPoint position);
-
     //Called when a GUI Item is triggered to be selected.
     void view_GraphMLSelected(GraphML* item, bool setSelected);
 
@@ -170,8 +149,6 @@ public slots:
 
     //Moves all Nodes that are selected by delta.
     void view_MoveSelectedNodes(QPointF delta);
-
-
     void view_SelectFromID(QString ID);
 
     //Hides all Nodes which don't match the List of Filters provided.
@@ -212,6 +189,13 @@ private:
     //Returns true if succeeded
     bool copySelectedNodesGraphML();
 
+    //Get a list of all Node ID's
+    QStringList getNodeIDS();
+
+    //Exports a Selection of Containers to export into GraphML
+    QString exportGraphML(QStringList nodeIDs);
+    QString exportGraphML(Node* node);
+
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
     GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
 
@@ -219,7 +203,6 @@ private:
     Node* constructNodeInstance2(Node* parent, Node* definition, bool instance = true);
 
     QVector<GraphMLData*> getDefinitionData(Node* definition, bool instance = true);
-
 
     //Gets a specific Attribute from the current Element in the XML.
     //Returns "" if no Attribute found.
@@ -231,7 +214,7 @@ private:
     Edge* constructEdgeWithData(Node* source, Node* destination, QVector<GraphMLData*> data, QString previousID="");
     Edge* constructEdgeWithData(Node* source, Node* destination, QVector<QStringList> data, QString previousID="");
 
-
+    //Stores/Gets/Removes items/IDs from the GraphML Hash
     void storeGraphMLInHash(GraphML* item);
     GraphML* getGraphMLFromHash(QString ID);
     void removeGraphMLFromHash(QString ID);
@@ -245,8 +228,7 @@ private:
     void constructEdgeGUI(Edge* edge);
 
     //Sets up an Undo state for the deletion of the Node/Edge, and tells the View To destruct its GUI Element.
-    //bool destructNode(Node* node);
-    bool destructNode2(Node* node, bool addAction = true);
+    bool destructNode(Node* node, bool addAction = true);
     bool destructEdge(Edge* edge, bool addAction = true);
 
     //Constructs a Vector of basic GraphMLData entities required for creating a Node.
@@ -278,7 +260,6 @@ private:
     //Gets the currently selected Node/Edge only if there is 1 Node/Edge selected.
     Node* getSelectedNode();
     Edge* getSelectedEdge();
-
 
     //Sets the Node/Edge as selected. Calls Methods in the View to visually select the item's GUI.
     void setNodeSelected(Node* node, bool setSelected = true);
@@ -324,7 +305,20 @@ private:
     Node* getNodeFromID(QString ID);
     Edge* getEdgeFromID(QString ID);
 
+    //Used to find old ID's which may have been deleted from the Model. Will find the replacement ID if they exist.
+    QString getIDFromOldID(QString ID);
 
+    //Links an ID of an already deleted GraphML Item to the ID of the new GraphML Item.
+    void linkOldIDToID(QString oldID, QString newID);
+
+    //Casts the GraphML as a Node/Edge, will be NULL if not a Node/Edge
+    Node* getNodeFromGraphML(GraphML* item);
+    Edge* getEdgeFromGraphML(GraphML* item);
+
+    bool isGraphMLInModel(GraphML* item);
+
+    //Gets the Model Node.
+    Model* getModel();
 
     //Stores the GraphMLKey's used by the Model.
     QVector<GraphMLKey*> keys;
@@ -337,37 +331,13 @@ private:
     QStringList selectedNodeIDs;
     QStringList selectedEdgeIDs;
 
-
     //Stack of ActionItems in the Undo/Redo Stack.
     QStack<ActionItem> undoActionStack;
     QStack<ActionItem> redoActionStack;
 
-    //QVector<Edge *> selectedEdges;
-    //QVector<Node *> selectedNodes;
-
-    //Used to find old ID's which may have been deleted from the Model. Will find the replacement ID if they exist.
-    QString getIDFromOldID(QString ID);
-
-    //Links an ID of an already deleted GraphML Item to the ID of the new GraphML Item.
-    void linkOldIDToID(QString oldID, QString newID);
-
-    //Casts the GraphML as a Node/Edge, will be NULL if not a Node/Edge
-    Node* getNodeFromGraphML(GraphML* item);
-    Edge* getEdgeFromGraphML(GraphML* item);
-
-
-    bool isGraphMLInModel(GraphML* item);
-
-    //Gets the Model Node.
-    Model* getModel();
-
-
     //Provides a lookup for old IDs.
     QHash<QString, QString> IDLookupHash;
     QHash<QString, GraphML*> IDLookupGraphMLHash;
-
-    //Used to store the position of the menu.
-    QPointF menuPosition;
 
     //The Element which is currently Centered
     GraphML* centeredGraphML;
@@ -390,10 +360,6 @@ private:
     bool KEY_SHIFT_DOWN;
 
     qreal HIDDEN_OPACITY;
-
-    //NodeView* view;
-
-
 
     Model* model;
     BehaviourDefinitions* behaviourDefinitions;
