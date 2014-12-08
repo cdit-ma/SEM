@@ -135,4 +135,4 @@ FORMS += \
     newmedeawindow.ui \
 
 RESOURCES += \
-    Test.qrc
+    resources.qrc
