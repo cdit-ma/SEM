@@ -133,3 +133,6 @@ FORMS += \
     medeawindow.ui \
     mainwindow.ui \
     newmedeawindow.ui \
+
+RESOURCES += \
+    Test.qrc
