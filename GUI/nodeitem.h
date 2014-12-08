@@ -117,6 +117,9 @@ private:
     QGraphicsColorizeEffect *graphicsEffect;
 
     QGraphicsTextItem* label;
+    QGraphicsPixmapItem* icon;
+
+
     bool CONTROL_DOWN;
     bool isPressed;
     QPointF previousPosition;

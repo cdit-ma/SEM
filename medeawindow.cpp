@@ -17,6 +17,8 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MedeaWindow)
 {
+
+
     ui->setupUi(this);
     myProcess = 0;
 

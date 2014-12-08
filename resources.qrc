@@ -3,11 +3,10 @@
         <file>Resources/Icons/Activate.png</file>
         <file>Resources/Icons/Aggregate.png</file>
         <file>Resources/Icons/ArrayMember.png</file>
-        <file>Resources/Icons/Assembly.png</file>
         <file>Resources/Icons/Attribute.png</file>
         <file>Resources/Icons/BranchState.png</file>
         <file>Resources/Icons/Complexity.png</file>
-        <file>Resources/Icons/Component.png</file>
+        <file alias="ICON_COMPONENT">Resources/Icons/Component.png</file>
         <file>Resources/Icons/Condition.png</file>
         <file>Resources/Icons/CPU.png</file>
         <file>Resources/Icons/DB.png</file>
@@ -23,8 +22,7 @@
         <file>Resources/Icons/OutMember.png</file>
         <file>Resources/Icons/Parameter.png</file>
         <file>Resources/Icons/Passivate.png</file>
-        <file>Resources/Icons/PeriodicEventOrg.png</file>
-        <file>Resources/Icons/PeriodicTask.png</file>
+        <file>Resources/Icons/PeriodicEvent.png</file>
         <file>Resources/Icons/Postprocess.png</file>
         <file>Resources/Icons/Preprocess.png</file>
         <file>Resources/Icons/Process.png</file>
@@ -34,5 +32,16 @@
         <file>Resources/Icons/Termination.png</file>
         <file>Resources/Icons/Variable.png</file>
         <file>Resources/Icons/Workload.png</file>
+        <file>Resources/Icons/ComponentAssembly.png</file>
+        <file>Resources/Icons/ComponentImpl.png</file>
+        <file>Resources/Icons/ComponentInstance.png</file>
+        <file>Resources/Icons/AttributeImpl.png</file>
+        <file>Resources/Icons/AttributeInstance.png</file>
+        <file>Resources/Icons/InEventPortImpl.png</file>
+        <file>Resources/Icons/InEventPortInstance.png</file>
+        <file>Resources/Icons/OutEventPortImpl.png</file>
+        <file>Resources/Icons/OutEventPortInstance.png</file>
+        <file>Resources/Icons/MemberInstance.png</file>
+        <file>Resources/Icons/AggregateInstance.png</file>
     </qresource>
 </RCC>

@@ -9,6 +9,8 @@
 
 NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 {
+    Q_INIT_RESOURCE(resources);
+
     isSelected = false;
     drawDetail = true;
     drawObject = true;
@@ -29,12 +31,19 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
 
 
+
+
+
+
+
     this->isPressed = false;
     this->node = node;
 
     setParentItem(parent);
 
     label  = new QGraphicsTextItem("NULL",this);
+    icon = 0;
+
 
     if(!parent){
         depth = 1;
@@ -89,6 +98,12 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     }else{
         if(hData)
             height = hData->getValue().toFloat();
+    }
+
+
+    if(kindData){
+        QImage image( ":/Resources/Icons/" + kindData->getValue() + ".png");
+        icon = new QGraphicsPixmapItem(QPixmap::fromImage(image), this);
     }
 
 
@@ -287,20 +302,30 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
         }else if(dataKey == "label"){
             Node* node = (Node*) this->getGraphML();
 
-            dataValue = dataValue + " [" + node->getID()+"]";
+            dataValue = dataValue; //+ " [" + node->getID()+"]";
             QFont font("Arial");
-            font.setPointSize(2);
+            font.setPointSize(1);
             QFontMetrics fm(font);
 
             if(dataValue != ""){
-                float factor = width / fm.width(dataValue);
-
-                font.setPointSizeF(font.pointSizeF()*factor);
+                float factor = (width / 1.1) / fm.width(dataValue);
+                font.setPointSizeF(font.pointSizeF() * factor);
                 label->setFont(font);
             }
 
 
             label->setPlainText(dataValue);
+
+            if(icon){
+                qreal labelHeight = label->boundingRect().height();
+                qreal iconHeight = icon->boundingRect().height();
+                qreal iconWidth = icon->boundingRect().width();
+                qreal scaleFactor = labelHeight / iconHeight;
+                icon->setScale(scaleFactor);
+                label->setX(label->x() + (iconWidth * scaleFactor) );
+            }
+
+
         }else if(dataKey == "kind"){
             kind = dataValue;
             update();
@@ -504,22 +529,22 @@ void NodeItem::updateBrushes()
     QString nodeKind = getGraphML()->getDataValue("kind");
 
     if(nodeKind == "OutEventPort"){
-        color = QColor(250,0,0);
-    }
-    else if(kind == "OutEventPortInstance"){
-        color = QColor(200,0,0);
-    }
-    else if(kind == "OutEventPortImpl"){
-        color = QColor(150,0,0);
-    }
-    else if(nodeKind == "InEventPort"){
         color = QColor(0,250,0);
     }
-    else if(kind == "InEventPortInstance"){
+    else if(kind == "OutEventPortInstance"){
         color = QColor(0,200,0);
     }
-    else if(kind == "InEventPortImpl"){
+    else if(kind == "OutEventPortImpl"){
         color = QColor(0,150,0);
+    }
+    else if(nodeKind == "InEventPort"){
+        color = QColor(250,0,0);
+    }
+    else if(kind == "InEventPortInstance"){
+        color = QColor(200,0,0);
+    }
+    else if(kind == "InEventPortImpl"){
+        color = QColor(150,0,0);
     }
     else if(nodeKind == "Component"){
         color = QColor(200,200,200);
