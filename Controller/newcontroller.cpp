@@ -1007,7 +1007,7 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
             }
 
             //Delete the node, if we didn't create a GUI NodeItem.
-            if(node /*&& !emit guiCreated(node)*/){
+            if(node && isGraphMLInModel(node)){ //!emit guiCreated(node)){
                 delete node;
             }
         }
@@ -1066,7 +1066,6 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
     GraphMLKey* yKey = constructGraphMLKey("y", "double", "node");
     GraphMLKey* kindKey = constructGraphMLKey("kind", "string", "node");
     GraphMLKey* labelKey = constructGraphMLKey("label", "string", "node");
-    GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
 
     bool setWidth = true;
     bool setHeight = true;
