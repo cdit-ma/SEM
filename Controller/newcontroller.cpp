@@ -1269,9 +1269,10 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach, bool rea
     }
 
 
-    if(isGraphMLInModel(node) && readOnly){
+    if((!node || isGraphMLInModel(node)) && readOnly){
         return 0;
     }
+
     //Adds the data to the newly created Node.
     //This will add Undo states to reverse.
     attachGraphMLData(node, dataToAttach, false);
