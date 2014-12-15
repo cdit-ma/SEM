@@ -2352,12 +2352,10 @@ void NewController::setupModel()
     assemblyDefinitions->updateDataValue("label", "Assembly Definitions");
     hardwareDefinitions->updateDataValue("label", "Hardware Definitions");
 
-
     setupManagementComponents();
 
-
-
     //Sort the Model.
+    emit view_SortNode(assemblyDefinitions);
     emit view_SortNode(deploymentDefinitions);
     emit view_SortNode(model);
     emit view_CenterGraphML(model);
@@ -2695,28 +2693,33 @@ void NewController::setupManagementComponents()
 
     //EXECUTION MANAGER
     QVector<GraphMLData*> executionManagerData = constructGraphMLDataVector("ManagementComponent") ;
-    QVector<GraphMLData*> ciaoLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
     QVector<GraphMLData*> dancePlanLauncherData = constructGraphMLDataVector("ManagementComponent") ;
+    QVector<GraphMLData*> ciaoLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
+    QVector<GraphMLData*> ddsLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
 
     GraphMLData* emData = new GraphMLData(typeKey, "DANCE_EXECUTION_MANAGER");
     GraphMLData* plData = new GraphMLData(typeKey, "DANCE_PLAN_LAUNCHER");
-    GraphMLData* lsData = new GraphMLData(typeKey, "CIAO_LOGGING_SERVER");
+    GraphMLData* lscData = new GraphMLData(typeKey, "CIAO_LOGGING_SERVER");
+    GraphMLData* lsdData = new GraphMLData(typeKey, "DDS_LOGGING_SERVER");
     emData->setProtected(true);
     plData->setProtected(true);
-    lsData->setProtected(true);
+    lscData->setProtected(true);
+    lsdData->setProtected(true);
 
     executionManagerData.append(emData);
     dancePlanLauncherData.append(plData);
-    ciaoLoggingServerData.append(lsData);
+    ciaoLoggingServerData.append(lscData);
+    ddsLoggingServerData.append(lsdData);
 
     Node* emNode = constructChildNode(assemblyDefinitions, executionManagerData);
     Node* plNode = constructChildNode(assemblyDefinitions, dancePlanLauncherData);
-    Node* lsNode = constructChildNode(assemblyDefinitions, ciaoLoggingServerData);
+    Node* lscNode = constructChildNode(assemblyDefinitions, ciaoLoggingServerData);
+    Node* lsdNode = constructChildNode(assemblyDefinitions, ddsLoggingServerData);
 
     emNode->getData("label")->setValue("DANCE_EXECUTION_MANAGER");
     plNode->getData("label")->setValue("DANCE_PLAN_LAUNCHER");
-    lsNode->getData("label")->setValue("CIAO_LOGGING_SERVER");
-
+    lscNode->getData("label")->setValue("CIAO_LOGGING_SERVER");
+    lsdNode->getData("label")->setValue("DDS_LOGGING_SERVER");
 }
 
 GraphML *NewController::getGraphMLFromID(QString ID)

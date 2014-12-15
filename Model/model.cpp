@@ -7,7 +7,7 @@ Model::Model(): Node()
     qCritical() << "Constructed Model.";
     addAspect("Definitions");
     addAspect("Workload");
-    addAspect("Deployment");
+    addAspect("Assembly");
 }
 
 Model::~Model()

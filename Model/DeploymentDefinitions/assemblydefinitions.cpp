@@ -4,7 +4,7 @@
 #include <qdebug>
 AssemblyDefinitions::AssemblyDefinitions():Node()
 {
-
+     addAspect("Assembly");
 }
 
 AssemblyDefinitions::~AssemblyDefinitions()
