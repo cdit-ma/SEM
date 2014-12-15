@@ -999,7 +999,8 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
     if(parent){
         foreach(QString nodeKind, getNodeKinds()){
             //Construct a Node of the Kind nodeKind.
-            Node* node = constructNode(constructGraphMLDataVector(nodeKind));
+            Node* node = 0;
+            node = constructNode(constructGraphMLDataVector(nodeKind), true);
 
             //If we have constructed this node, test if the parent can adopt it.
             if(node && parent->canAdoptChild(node)){
@@ -1007,7 +1008,7 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
             }
 
             //Delete the node, if we didn't create a GUI NodeItem.
-            if(node && isGraphMLInModel(node)){ //!emit guiCreated(node)){
+            if(node && !isGraphMLInModel(node)){
                 delete node;
             }
         }
@@ -1028,6 +1029,7 @@ QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attributeI
         return "";
     }
 }
+
 
 
 GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QString forString)
@@ -1054,10 +1056,10 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
 }
 
 
-Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
+Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach, bool readOnly)
 {
     //The to-be-constructed node.
-    Node* node;
+    Node* node = 0;
 
     //Construct/Get Keys for the data we require.
     GraphMLKey* widthKey = constructGraphMLKey("width", "double", "node");
@@ -1151,7 +1153,7 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
             dataToAttach.append(new GraphMLData(yKey, ""));
         }
         if(setLabel){
-            dataToAttach.append(new GraphMLData(labelKey, "new_" + nodeKind));
+            dataToAttach.append(new GraphMLData(labelKey, ""));
         }
     }
 
@@ -1188,21 +1190,27 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
         }
         node = deploymentDefinitions;
     }else if(nodeKind == "HardwareNode"){
-        if(!hardwareNodes.contains(labelKind)){
-            hardwareNodes[labelKind] = new HardwareNode();
+        if(!readOnly){
+            if(!hardwareNodes.contains(labelKind)){
+                hardwareNodes[labelKind] = new HardwareNode();
+            }
+            node = hardwareNodes[labelKind];
         }
-        node = hardwareNodes[labelKind];
     }
     else if(nodeKind == "HardwareCluster"){
-        if(!hardwareClusters.contains(labelKind)){
-            hardwareClusters[labelKind] = new HardwareCluster();
+        if(!readOnly){
+            if(!hardwareClusters.contains(labelKind)){
+                hardwareClusters[labelKind] = new HardwareCluster();
+            }
+            node = hardwareClusters[labelKind];
         }
-        node = hardwareClusters[labelKind];
     }else if(nodeKind == "ManagementComponent"){
-        if(!managementComponents.contains(typeKind)){
-            managementComponents[typeKind] = new ManagementComponent();
+        if(!readOnly){
+            if(!managementComponents.contains(typeKind)){
+                managementComponents[typeKind] = new ManagementComponent();
+            }
+            node = managementComponents[typeKind];
         }
-        node = managementComponents[typeKind];
     }
     else if(nodeKind == "ComponentAssembly"){
         node = new ComponentAssembly();
@@ -1260,6 +1268,10 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
         node = new BlankNode();
     }
 
+
+    if(isGraphMLInModel(node) && readOnly){
+        return 0;
+    }
     //Adds the data to the newly created Node.
     //This will add Undo states to reverse.
     attachGraphMLData(node, dataToAttach, false);
@@ -1443,6 +1455,11 @@ QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKin
         GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
         data.append(new GraphMLData(typeKey, ""));
     }
+    if(nodeKind == "ManagementComponent"){
+        GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
+        GraphMLData* typeData = new GraphMLData(typeKey, "");
+        data.append(new GraphMLData(typeKey, ""));
+    }
     if(nodeKind == "Model"){
         GraphMLKey* middlewareKey = constructGraphMLKey("middleware", "string", "node");
         GraphMLKey* projectUUID = constructGraphMLKey("projectUUID", "string", "node");
@@ -1469,8 +1486,6 @@ QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKin
         GraphMLKey* componentInstanceUUIDKey = constructGraphMLKey("componentInstanceUUID", "string", "node");
         data.append(new GraphMLData(componentInstanceUUIDKey, ""));
     }
-
-
 
 
     return data;
@@ -2063,6 +2078,7 @@ void NewController::reverseAction(ActionItem action)
                 //GraphMLData* data = attachedItem->getData(action.keyName);
                 //data->setValue(action.dataValue);
             }else{
+                qCritical() << action.ID << " " << action.keyName <<  action.dataValue;
                 qCritical() << "Cannot find Item";
             }
 
@@ -2701,19 +2717,32 @@ void NewController::setupManagementComponents()
     QVector<GraphMLData*> ciaoLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
     QVector<GraphMLData*> ddsLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
 
-    GraphMLData* emData = new GraphMLData(typeKey, "DANCE_EXECUTION_MANAGER");
-    GraphMLData* plData = new GraphMLData(typeKey, "DANCE_PLAN_LAUNCHER");
-    GraphMLData* lscData = new GraphMLData(typeKey, "CIAO_LOGGING_SERVER");
-    GraphMLData* lsdData = new GraphMLData(typeKey, "DDS_LOGGING_SERVER");
-    emData->setProtected(true);
-    plData->setProtected(true);
-    lscData->setProtected(true);
-    lsdData->setProtected(true);
+    foreach(GraphMLData* data, executionManagerData){
+        if(data->getKeyName() == "type"){
+            data->setValue("DANCE_EXECUTION_MANAGER");
+            data->setProtected(true);
+        }
+    }
+    foreach(GraphMLData* data, dancePlanLauncherData){
+        if(data->getKeyName() == "type"){
+            data->setValue("DANCE_PLAN_LAUNCHER");
+            data->setProtected(true);
+        }
+    }
+    foreach(GraphMLData* data, ciaoLoggingServerData){
+        if(data->getKeyName() == "type"){
+            data->setValue("CIAO_LOGGING_SERVER");
+            data->setProtected(true);
+        }
+    }
+    foreach(GraphMLData* data, ddsLoggingServerData){
+        if(data->getKeyName() == "type"){
+            data->setValue("DDS_LOGGING_SERVER");
+            data->setProtected(true);
+        }
+    }
 
-    executionManagerData.append(emData);
-    dancePlanLauncherData.append(plData);
-    ciaoLoggingServerData.append(lscData);
-    ddsLoggingServerData.append(lsdData);
+
 
     Node* emNode = constructChildNode(assemblyDefinitions, executionManagerData);
     Node* plNode = constructChildNode(assemblyDefinitions, dancePlanLauncherData);

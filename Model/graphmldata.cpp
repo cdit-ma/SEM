@@ -12,6 +12,7 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
 
     //Set to default.
     parentData = 0;
+    temporaryData = false;
     setProtected(key->isProtected());
 }
 
@@ -107,6 +108,16 @@ void GraphMLData::setValue(QString newValue)
 void GraphMLData::setProtected(bool setProtected)
 {
     protectedData = setProtected;
+}
+
+void GraphMLData::setTemporary(bool setTemporary)
+{
+    temporaryData = setTemporary;
+}
+
+bool GraphMLData::isTemporary()
+{
+    return temporaryData;
 }
 
 bool GraphMLData::isProtected()

@@ -209,7 +209,7 @@ private:
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
      //Constructs a Node using the attached GraphMLData elements. Does not attach this Node.
-    Node* constructNode(QVector<GraphMLData*> dataToAttach);
+    Node* constructNode(QVector<GraphMLData*> dataToAttach, bool readOnly = false);
     Edge* constructEdge(Node* source, Node* destination);
     Edge* constructEdgeWithData(Node* source, Node* destination, QVector<GraphMLData*> data, QString previousID="");
     Edge* constructEdgeWithData(Node* source, Node* destination, QVector<QStringList> data, QString previousID="");
