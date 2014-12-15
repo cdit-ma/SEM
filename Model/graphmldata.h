@@ -15,8 +15,6 @@ public:
 
     void setValue(QString value);
     void setProtected(bool setProtected);
-    void setTemporary(bool setTemporary);
-    bool isTemporary();
     bool isProtected();
 
     void setParentData(GraphMLData* data);
@@ -42,7 +40,6 @@ private:
     QVector<GraphMLData*> childData;
     QString value;
     bool protectedData;
-    bool temporaryData;
 
     GraphMLKey* key;
 
