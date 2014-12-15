@@ -1824,6 +1824,7 @@ bool NewController::destructNode(Node *node, bool addAction)
 
     HardwareNode* hNode = dynamic_cast<HardwareNode*>(node);
     HardwareCluster* hCNode = dynamic_cast<HardwareCluster*>(node);
+    ManagementComponent* mCNode = dynamic_cast<ManagementComponent*>(node);
     if(hNode){
         QString nodeName = hNode->getDataValue("label");
         hardwareNodes.remove(nodeName);
@@ -1831,6 +1832,10 @@ bool NewController::destructNode(Node *node, bool addAction)
     if(hCNode){
         QString nodeName = hCNode->getDataValue("label");
         hardwareClusters.remove(nodeName);
+    }
+    if(mCNode){
+        QString type = mCNode->getDataValue("type");
+        managementComponents.remove(type);
     }
 
     delete node;
