@@ -47,7 +47,7 @@ NewController::NewController()
     constructableNodeKinds << "Attribute" << "AttributeInstance" << "AttributeImpl";
     constructableNodeKinds << "InEventPort" << "InEventPortInstance" << "InEventPortImpl";
     constructableNodeKinds << "OutEventPort" << "OutEventPortInstance" << "OutEventPortImpl";
-    constructableNodeKinds << "ComponentAssembly";
+    constructableNodeKinds << "ComponentAssembly" << "ManagementComponent";
     constructableNodeKinds << "HardwareNode" << "HardwareCluster" ;
     constructableNodeKinds << "Member" << "Aggregate";
     constructableNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload";
@@ -1066,6 +1066,7 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
     GraphMLKey* yKey = constructGraphMLKey("y", "double", "node");
     GraphMLKey* kindKey = constructGraphMLKey("kind", "string", "node");
     GraphMLKey* labelKey = constructGraphMLKey("label", "string", "node");
+    GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
 
     bool setWidth = true;
     bool setHeight = true;
@@ -1073,11 +1074,17 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
     bool setY = true;
     bool setLabel = true;
 
+    QString typeKind = "";
     QString nodeKind = "";
+    QString labelKind = "";
 
     foreach(GraphMLData* data, dataToAttach){
         if(data->getKeyName() == "kind"){
             nodeKind = data->getValue();
+        }else if(data->getKeyName() == "type"){
+            typeKind = data->getValue();
+        }else if(data->getKeyName() == "label"){
+            labelKind = data->getValue();
         }
     }
 
@@ -1181,7 +1188,24 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
             deploymentDefinitions = new DeploymentDefinitions();
         }
         node = deploymentDefinitions;
-    }else if(nodeKind == "ComponentAssembly"){
+    }else if(nodeKind == "HardwareNode"){
+        if(!hardwareNodes.contains(labelKind)){
+            hardwareNodes[labelKind] = new HardwareNode();
+        }
+        node = hardwareNodes[labelKind];
+    }
+    else if(nodeKind == "HardwareCluster"){
+        if(!hardwareClusters.contains(labelKind)){
+            hardwareClusters[labelKind] = new HardwareCluster();
+        }
+        node = hardwareClusters[labelKind];
+    }else if(nodeKind == "ManagementComponent"){
+        if(!managementComponents.contains(typeKind)){
+            managementComponents[typeKind] = new ManagementComponent();
+        }
+        node = managementComponents[typeKind];
+    }
+    else if(nodeKind == "ComponentAssembly"){
         node = new ComponentAssembly();
     }else if(nodeKind == "Component"){
         node = new Component();
@@ -1207,11 +1231,8 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach)
         node = new AttributeInstance();
     }else if(nodeKind == "AttributeImpl"){
         node = new AttributeImpl();
-    }else if(nodeKind == "HardwareNode"){
-        node = new HardwareNode();
-    }else if(nodeKind == "HardwareCluster"){
-        node = new HardwareCluster();
-    }else if(nodeKind == "File"){
+    }
+    else if(nodeKind == "File"){
         node = new File();
     }else if(nodeKind == "Member"){
         node = new Member();
@@ -1286,6 +1307,11 @@ Edge *NewController::constructEdge(Node *source, Node *destination)
 
         //If destination Kind endswith EventPort, swap. *EventPort -> Aggregate
         if(sourceKind == "InEventPortInstance" && destinationKind == "OutEventPortInstance"){
+            swap = true;
+        }
+
+        //If destination Kind is ManagementComponent, swap.
+        if(destinationKind == "ManagementComponent"){
             swap = true;
         }
 
@@ -1796,6 +1822,17 @@ bool NewController::destructNode(Node *node, bool addAction)
 
     emit view_DestructGraphMLGUIFromID(ID);
     removeGraphMLFromHash(ID);
+
+    HardwareNode* hNode = dynamic_cast<HardwareNode*>(node);
+    HardwareCluster* hCNode = dynamic_cast<HardwareCluster*>(node);
+    if(hNode){
+        QString nodeName = hNode->getDataValue("label");
+        hardwareNodes.remove(nodeName);
+    }
+    if(hCNode){
+        QString nodeName = hCNode->getDataValue("label");
+        hardwareClusters.remove(nodeName);
+    }
 
     delete node;
     return true;
@@ -2315,8 +2352,12 @@ void NewController::setupModel()
     assemblyDefinitions->updateDataValue("label", "Assembly Definitions");
     hardwareDefinitions->updateDataValue("label", "Hardware Definitions");
 
-    //Sort the Model.
 
+    setupManagementComponents();
+
+
+
+    //Sort the Model.
     emit view_SortNode(deploymentDefinitions);
     emit view_SortNode(model);
     emit view_CenterGraphML(model);
@@ -2644,6 +2685,37 @@ void NewController::updateViewUndoRedoLists()
     }
 
     emit view_UpdateRedoList(undoList);
+
+}
+
+void NewController::setupManagementComponents()
+{
+
+    GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
+
+    //EXECUTION MANAGER
+    QVector<GraphMLData*> executionManagerData = constructGraphMLDataVector("ManagementComponent") ;
+    QVector<GraphMLData*> ciaoLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
+    QVector<GraphMLData*> dancePlanLauncherData = constructGraphMLDataVector("ManagementComponent") ;
+
+    GraphMLData* emData = new GraphMLData(typeKey, "DANCE_EXECUTION_MANAGER");
+    GraphMLData* plData = new GraphMLData(typeKey, "DANCE_PLAN_LAUNCHER");
+    GraphMLData* lsData = new GraphMLData(typeKey, "CIAO_LOGGING_SERVER");
+    emData->setProtected(true);
+    plData->setProtected(true);
+    lsData->setProtected(true);
+
+    executionManagerData.append(emData);
+    dancePlanLauncherData.append(plData);
+    ciaoLoggingServerData.append(lsData);
+
+    Node* emNode = constructChildNode(assemblyDefinitions, executionManagerData);
+    Node* plNode = constructChildNode(assemblyDefinitions, dancePlanLauncherData);
+    Node* lsNode = constructChildNode(assemblyDefinitions, ciaoLoggingServerData);
+
+    emNode->getData("label")->setValue("DANCE_EXECUTION_MANAGER");
+    plNode->getData("label")->setValue("DANCE_PLAN_LAUNCHER");
+    lsNode->getData("label")->setValue("CIAO_LOGGING_SERVER");
 
 }
 

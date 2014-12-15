@@ -42,6 +42,7 @@
 
 #include "DeploymentDefinitions/hardwarecluster.h"
 #include "DeploymentDefinitions/hardwarenode.h"
+#include "DeploymentDefinitions/managementcomponent.h"
 
 #include "InterfaceDefinitions/interfacedefinitions.h"
 #include "InterfaceDefinitions/aggregateinstance.h"

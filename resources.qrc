@@ -44,5 +44,6 @@
         <file>Resources/Icons/MemberInstance.png</file>
         <file>Resources/Icons/AggregateInstance.png</file>
         <file>Resources/Icons/File.png</file>
+        <file>Resources/Icons/ManagementComponent.png</file>
     </qresource>
 </RCC>

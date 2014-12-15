@@ -257,6 +257,8 @@ private:
     //Updates the attached views list of Undo/Redo States.
     void updateViewUndoRedoLists();
 
+    void setupManagementComponents();
+
     //Gets the currently selected Node/Edge only if there is 1 Node/Edge selected.
     Node* getSelectedNode();
     Edge* getSelectedEdge();
@@ -367,6 +369,13 @@ private:
     InterfaceDefinitions* interfaceDefinitions;
     HardwareDefinitions* hardwareDefinitions;
     AssemblyDefinitions* assemblyDefinitions;
+
+    //ManagementNodes
+    QHash<QString, ManagementComponent*> managementComponents;
+    QHash<QString, HardwareNode*> hardwareNodes;
+    QHash<QString, HardwareCluster*> hardwareClusters;
+
+
 
     int actionCount;
     QString currentAction;

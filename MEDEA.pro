@@ -71,7 +71,8 @@ HEADERS += \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
     GUI/nodeedge.h \
     Model/InterfaceDefinitions/aggregateinstance.h \
-    Model/InterfaceDefinitions/memberinstance.h
+    Model/InterfaceDefinitions/memberinstance.h \
+    Model/DeploymentDefinitions/managementcomponent.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -127,7 +128,8 @@ SOURCES += \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
     GUI/nodeedge.cpp \
     Model/InterfaceDefinitions/aggregateinstance.cpp \
-    Model/InterfaceDefinitions/memberinstance.cpp
+    Model/InterfaceDefinitions/memberinstance.cpp \
+    Model/DeploymentDefinitions/managementcomponent.cpp
 
 FORMS += \
     medeawindow.ui \
