@@ -824,7 +824,6 @@ void NewController::view_ClearUndoRedoStacks()
 
 void NewController::view_ControlPressed(bool isDown)
 {
-    qCritical() << "CONTROL DOWN" << isDown;
     KEY_CONTROL_DOWN = isDown;
     if(KEY_CONTROL_DOWN && KEY_SHIFT_DOWN){
         emit view_SetRubberbandSelectionMode(true);

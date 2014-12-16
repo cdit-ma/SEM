@@ -114,6 +114,7 @@ signals:
     void view_ForceRefresh();
 
 public slots:
+    void view_SelectModel();
     //UNUSED
     void view_ValidateModel();
     void validator_HighlightError(Node* node, QString error);

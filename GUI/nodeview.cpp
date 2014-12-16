@@ -634,7 +634,6 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         emit shiftPressed(true);
     }
     if(event->key() == Qt::Key_Control){
-        qCritical() << "CONTORL";
         //Use ScrollHand Drag Mode to enable Panning
         this->CONTROL_DOWN = true;
         emit controlPressed(true);
