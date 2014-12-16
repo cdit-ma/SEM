@@ -13,7 +13,7 @@
 
 #include <QProcess>
 
-MedeaWindow::MedeaWindow(QWidget *parent) :
+MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MedeaWindow)
 {
@@ -73,6 +73,12 @@ MedeaWindow::MedeaWindow(QWidget *parent) :
     //on_nodeIDCombo_activated("etst");
     //ui->actionImport_GraphML->trigger();
     */
+
+    if(graphMLFile.length() != 0){
+        QStringList files;
+        files.append(graphMLFile);
+        importGraphMLFiles(files);
+    }
 }
 
 MedeaWindow::~MedeaWindow()
@@ -170,55 +176,12 @@ void MedeaWindow::updateProgressBar(int percentage, QString label)
 void MedeaWindow::on_actionImport_GraphML_triggered()
 {
 
-    QStringList files = QFileDialog::getOpenFileNames(
+         QStringList files = QFileDialog::getOpenFileNames(
                 this,
                 "Select one or more files to open",
                 "c:\\",
                 "GraphML Documents (*.graphml *.xml)");
-
-
-    QStringList fileData;
-    for (int i = 0; i < files.size(); i++){
-        QFile file(files.at(i));
-
-        if(!file.open(QFile::ReadOnly | QFile::Text)){
-            qCritical() << "Could not open: " << files.at(i) << " for reading!";
-            return;
-        }
-
-        try{
-            QTextStream in(&file);
-            QString xmlText = in.readAll();
-            file.close();
-
-            fileData << xmlText;
-            qDebug() << "Loaded: " << files.at(i) << "Successfully!";
-        }catch(...){
-            qCritical() << "Error Loading: " << files.at(i);
-        }
-    }
-
-
-
-
-    if(selectedProject){
-    int count = 2;
-        while(count-=1 > 0){
-            emit selectedProject->getView()->controlPressed(false);
-            emit selectedProject->getView()->shiftPressed(false);
-            emit view_ImportGraphML(fileData);
-        }
-        /*NewController* controller = selectedProject->getController();
-
-        if(controller){
-            controller->view_ImportGraphML(fileData, 0);
-        }else{
-            qCritical() << "No Controller";
-        }
-        */
-    }else{
-        qCritical() << "No Active Window";
-    }
+         importGraphMLFiles(files);
 
    // emit view_ImportGraphML(fileData);
 
@@ -521,6 +484,52 @@ void MedeaWindow::keyReleaseEvent(QKeyEvent *event)
         selectedProject->getView()->keyReleaseEvent(event);
     }
 
+}
+
+void MedeaWindow::importGraphMLFiles(QStringList files)
+{
+    QStringList fileData;
+    for (int i = 0; i < files.size(); i++){
+        QFile file(files.at(i));
+
+        if(!file.open(QFile::ReadOnly | QFile::Text)){
+            qCritical() << "Could not open: " << files.at(i) << " for reading!";
+            return;
+        }
+
+        try{
+            QTextStream in(&file);
+            QString xmlText = in.readAll();
+            file.close();
+
+            fileData << xmlText;
+            qDebug() << "Loaded: " << files.at(i) << "Successfully!";
+        }catch(...){
+            qCritical() << "Error Loading: " << files.at(i);
+        }
+    }
+
+
+
+
+    if(selectedProject){
+    int count = 2;
+        while(count-=1 > 0){
+            emit selectedProject->getView()->controlPressed(false);
+            emit selectedProject->getView()->shiftPressed(false);
+            emit view_ImportGraphML(fileData);
+        }
+        /*NewController* controller = selectedProject->getController();
+
+        if(controller){
+            controller->view_ImportGraphML(fileData, 0);
+        }else{
+            qCritical() << "No Controller";
+        }
+        */
+    }else{
+        qCritical() << "No Active Window";
+    }
 }
 
 void MedeaWindow::on_deleteData_clicked()
