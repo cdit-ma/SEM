@@ -7,7 +7,7 @@
 bool UNDO = true;
 bool REDO = false;
 bool SETUP_AS_INSTANCE = true;
-bool SETUP_AS_IMPL = true;
+bool SETUP_AS_IMPL = false;
 
 NewController::NewController()
 {
@@ -17,7 +17,6 @@ NewController::NewController()
     KEY_CONTROL_DOWN = false;
     KEY_SHIFT_DOWN = false;
     HIDDEN_OPACITY = 0.10;
-
 
     model = 0;
 
@@ -1022,6 +1021,13 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
     return adoptableNodeTypes;
 }
 
+void NewController::view_SelectModel()
+{
+    if(model){
+        emit view_SetGraphMLSelected(model);
+    }
+}
+
 QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attributeID)
 {
     //Get the Attributes of the current XML entity.
@@ -1314,11 +1320,6 @@ Edge *NewController::constructEdge(Node *source, Node *destination)
         //If the source is both an Instance and already has a definition, and the destination is a definition.
         //AggregateInstance_2 is instance of Aggregate_1
         if(source->isInstance() && source->getDefinition() && destination->isDefinition()){
-            swap = true;
-        }
-
-        //If destination Kind endswith EventPort, swap. *EventPort -> Aggregate
-        if(!sourceKind.contains("EventPort") && destinationKind.endsWith("EventPort")){
             swap = true;
         }
 
@@ -1654,7 +1655,7 @@ void NewController::clearSelectedNodes()
         }
     }
     selectedNodeIDs.clear();
-    emit view_SetGraphMLSelected(model);
+    emit view_SetGraphMLSelected(0);
 }
 
 void NewController::clearSelectedEdges()
@@ -2202,7 +2203,7 @@ void NewController::addActionToStack(ActionItem action)
 
 void NewController::undoRedo(bool undo)
 {
-    emit view_SetGraphMLSelected(model);
+    emit view_SetGraphMLSelected(0);
 
     if(undo){
         UNDOING = true;
@@ -2283,8 +2284,7 @@ void NewController::undoRedo(bool undo)
 
 void NewController::deleteSelectedNodes()
 {
-
-    emit view_SetGraphMLSelected(model);
+    emit view_SetGraphMLSelected(0);
 
     while(selectedNodeIDs.size() > 0){
 
@@ -2315,7 +2315,7 @@ void NewController::deleteSelectedNodes()
 
 void NewController::deleteSelectedEdges()
 {
-    emit view_SetGraphMLSelected(model);
+    emit view_SetGraphMLSelected(0);
 
     while(selectedEdgeIDs.size() > 0){
 
@@ -2330,7 +2330,6 @@ void NewController::deleteSelectedEdges()
                 selectedEdgeIDs.removeFirst();
             }
         }
-        emit view_SetGraphMLSelected(0);
     }
 
 }
@@ -2555,7 +2554,7 @@ void NewController::attachAggregateToEventPort(EventPort *eventPort, Aggregate *
     foreach(Node* implementation, eventPort->getImplementations()){
         if(implementation){
             constructDefinitionRelative(implementation, aggregate);
-            //qCritical() << "Implementation: " << implementation->toString() << " set Aggregate: " << aggregate->toString();
+            qCritical() << "Implementation: " << implementation->toString() << " set Aggregate: " << aggregate->toString();
         }else{
             qCritical() << eventPort->toString() << " Has no implementation!?";
         }
@@ -2657,6 +2656,7 @@ void NewController::constructEdgeGUI(Edge *edge)
                 attachGraphMLData(edge, label, false);
             }
         }else if(edge->isAggregateLink()){
+            qCritical() << "Got Aggregate Link";
             EventPort* eventPort = dynamic_cast<EventPort*>(src);
             Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
             //Got Aggregate Edge.
