@@ -567,7 +567,7 @@ void NodeItem::updateBrushes()
         color = QColor(0,250,250);
     }
     else if(kind == "HardwareCluster"){
-        color = QColor(0,200,200);
+        color = QColor(0,50,100);
     }
 
     else if(nodeKind == "BehaviourDefinitions"){

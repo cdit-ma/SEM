@@ -16,7 +16,7 @@ class MedeaWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MedeaWindow(QWidget *parent = 0);
+    explicit MedeaWindow(QString graphMLFile=0, QWidget *parent = 0);
     ~MedeaWindow();
 
 
@@ -78,6 +78,7 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent *event);
 
 private:
+    void importGraphMLFiles(QStringList filePaths);
     QProcess *myProcess;
     QString DEPGEN_ROOT;
     QString JENKINS_ADDRESS;
