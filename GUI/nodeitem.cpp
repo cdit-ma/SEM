@@ -302,7 +302,7 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
         }else if(dataKey == "label"){
             Node* node = (Node*) this->getGraphML();
 
-            dataValue = dataValue; //+ " [" + node->getID()+"]";
+            dataValue = dataValue;// + " [" + node->getID()+"]";
             QFont font("Arial");
             font.setPointSize(1);
             QFontMetrics fm(font);
@@ -510,11 +510,10 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         if(boundingRect().contains(event->pos())){
             rubberBand->setGeometry(QRect(origin.toPoint(), event->screenPos()).normalized());
         }
-    }else if(isPressed){
+    }else if(isPressed && isSelected){
         if(hasMoved == false){
             emit triggerAction("Moving Selection");
         }
-
         QPointF delta = (event->scenePos() - previousPosition);
         this->setPos(pos() + delta);
 

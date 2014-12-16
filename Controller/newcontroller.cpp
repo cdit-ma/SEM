@@ -13,6 +13,7 @@ NewController::NewController()
 {
     UNDOING = false;
     REDOING = false;
+    CUT_USED = false;
     KEY_CONTROL_DOWN = false;
     KEY_SHIFT_DOWN = false;
     HIDDEN_OPACITY = 0.10;
@@ -432,6 +433,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
                 nodeLookup.insert(nodeID, newNode);
 
                 if(linkID){
+                    qCritical() << "Linking nodeID: " << nodeID  << " To " << newNode->getID();
                     linkOldIDToID(nodeID, newNode->getID());
                 }
 
@@ -823,7 +825,7 @@ void NewController::view_ClearUndoRedoStacks()
 
 void NewController::view_ControlPressed(bool isDown)
 {
-
+    qCritical() << "CONTROL DOWN" << isDown;
     KEY_CONTROL_DOWN = isDown;
     if(KEY_CONTROL_DOWN && KEY_SHIFT_DOWN){
         emit view_SetRubberbandSelectionMode(true);
@@ -885,6 +887,7 @@ void NewController::view_Cut()
 {
     //Run Copy
     if(copySelectedNodesGraphML()){
+        CUT_USED = true;
         emit view_SetGUIEnabled(false);
         view_TriggerAction("Cutting Selection.");
         deleteSelectedEdges();
@@ -912,7 +915,8 @@ void NewController::view_Paste(QString xmlData)
         clearSelectedNodes();
 
         view_TriggerAction("Pasting Selection.");
-        view_ImportGraphML(xmlData, node, true);
+        view_ImportGraphML(xmlData, node, CUT_USED);
+        CUT_USED = false;
     }
 }
 
@@ -966,6 +970,7 @@ bool NewController::copySelectedNodesGraphML()
 {
     Node* firstParent = 0;
 
+    qCritical() << "Copying: " << selectedNodeIDs.size() << " Nodes";
     foreach(QString ID, selectedNodeIDs){
         Node* node = getNodeFromID(ID);
 
@@ -1318,7 +1323,17 @@ Edge *NewController::constructEdge(Node *source, Node *destination)
         }
 
         //If destination Kind endswith EventPort, swap. *EventPort -> Aggregate
+        if(!sourceKind.contains("EventPort") && destinationKind.endsWith("EventPort")){
+            swap = true;
+        }
+
+        //If destination Kind endswith EventPort, swap. *EventPort -> Aggregate
         if(sourceKind == "InEventPortInstance" && destinationKind == "OutEventPortInstance"){
+            swap = true;
+        }
+
+        //If destination Kind endswith EventPort, swap. *EventPort -> Aggregate
+        if((destinationKind == "ComponentInstance" || destinationKind == "ComponentAssembly") && sourceKind.startsWith("Hardware")){
             swap = true;
         }
 
@@ -2286,7 +2301,7 @@ void NewController::deleteSelectedNodes()
         if(node){
             bool addAction = true;
             if(node->isInstance() || node->isImpl()){
-                addAction = false;
+                //addAction = false;
             }
             bool deleted = destructNode(node, addAction);
 
@@ -2715,7 +2730,6 @@ void NewController::setupManagementComponents()
     //EXECUTION MANAGER
     QVector<GraphMLData*> executionManagerData = constructGraphMLDataVector("ManagementComponent") ;
     QVector<GraphMLData*> dancePlanLauncherData = constructGraphMLDataVector("ManagementComponent") ;
-    QVector<GraphMLData*> ciaoLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
     QVector<GraphMLData*> ddsLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
 
     foreach(GraphMLData* data, executionManagerData){
@@ -2730,12 +2744,7 @@ void NewController::setupManagementComponents()
             data->setProtected(true);
         }
     }
-    foreach(GraphMLData* data, ciaoLoggingServerData){
-        if(data->getKeyName() == "type"){
-            data->setValue("CIAO_LOGGING_SERVER");
-            data->setProtected(true);
-        }
-    }
+
     foreach(GraphMLData* data, ddsLoggingServerData){
         if(data->getKeyName() == "type"){
             data->setValue("DDS_LOGGING_SERVER");
@@ -2744,15 +2753,12 @@ void NewController::setupManagementComponents()
     }
 
 
-
     Node* emNode = constructChildNode(assemblyDefinitions, executionManagerData);
     Node* plNode = constructChildNode(assemblyDefinitions, dancePlanLauncherData);
-    Node* lscNode = constructChildNode(assemblyDefinitions, ciaoLoggingServerData);
     Node* lsdNode = constructChildNode(assemblyDefinitions, ddsLoggingServerData);
 
     emNode->getData("label")->setValue("DANCE_EXECUTION_MANAGER");
     plNode->getData("label")->setValue("DANCE_PLAN_LAUNCHER");
-    lscNode->getData("label")->setValue("CIAO_LOGGING_SERVER");
     lsdNode->getData("label")->setValue("DDS_LOGGING_SERVER");
 }
 

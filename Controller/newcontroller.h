@@ -377,6 +377,7 @@ private:
 
 
 
+    bool CUT_USED;
     int actionCount;
     QString currentAction;
     int currentActionID;

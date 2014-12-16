@@ -169,11 +169,13 @@ void MedeaWindow::updateProgressBar(int percentage, QString label)
 
 void MedeaWindow::on_actionImport_GraphML_triggered()
 {
+
     QStringList files = QFileDialog::getOpenFileNames(
                 this,
                 "Select one or more files to open",
                 "c:\\",
                 "GraphML Documents (*.graphml *.xml)");
+
 
     QStringList fileData;
     for (int i = 0; i < files.size(); i++){
@@ -202,6 +204,8 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
     if(selectedProject){
     int count = 2;
         while(count-=1 > 0){
+            emit selectedProject->getView()->controlPressed(false);
+            emit selectedProject->getView()->shiftPressed(false);
             emit view_ImportGraphML(fileData);
         }
         /*NewController* controller = selectedProject->getController();
@@ -506,8 +510,6 @@ void MedeaWindow::setEnableGUI(bool enable)
 void MedeaWindow::keyPressEvent(QKeyEvent *event)
 {
     if(selectedProject){
-
-
         selectedProject->getView()->keyPressEvent(event);
     }
 
@@ -543,6 +545,8 @@ void MedeaWindow::on_actionExport_GraphML_triggered()
                 "GraphML Documents (*.graphml *.xml)");
 
 
+    emit selectedProject->getView()->controlPressed(false);
+    emit selectedProject->getView()->shiftPressed(false);
     emit view_ExportGraphML(filename);
 }
 

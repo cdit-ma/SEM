@@ -600,11 +600,6 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         emit deletePressed(true);
     }
 
-    if(event->key() == Qt::Key_Control){
-        //Use ScrollHand Drag Mode to enable Panning
-        this->CONTROL_DOWN = true;
-        emit controlPressed(true);
-    }
 
     if(event->key() == Qt::Key_Escape){
         emit escapePressed(true);
@@ -637,6 +632,12 @@ void NodeView::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Shift){
         this->SHIFT_DOWN = true;
         emit shiftPressed(true);
+    }
+    if(event->key() == Qt::Key_Control){
+        qCritical() << "CONTORL";
+        //Use ScrollHand Drag Mode to enable Panning
+        this->CONTROL_DOWN = true;
+        emit controlPressed(true);
     }
 
 
