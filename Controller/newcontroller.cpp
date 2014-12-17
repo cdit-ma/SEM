@@ -1,5 +1,6 @@
 #include "newcontroller.h"
 #include "../GUI/nodeview.h"
+#include "../GUI/graphmlview.h"
 #include <QDebug>
 
 #include <algorithm>
@@ -79,6 +80,11 @@ void NewController::connectView(NodeView *view)
     connect(this, SIGNAL(view_DestructGraphMLGUIFromID(QString)), view, SLOT(view_DestructGraphMLGUI(QString)));
     connect(this, SIGNAL(view_PrintErrorCode(GraphML*,QString)), view, SLOT(printErrorText(GraphML*,QString)));
 
+}
+
+void NewController::connectView(GraphMLView *view)
+{
+    view->connectController(this);
 }
 
 void NewController::initializeModel()

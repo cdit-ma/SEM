@@ -1,27 +1,36 @@
 #include "projectwindow.h"
 #include <QLayout>
 #include <QDebug>
+#include <QTreeView>
 #include <QMessageBox>
+#include "nodetableview.h"
 ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 {
     //thread = new QThread();
 
     view = new NodeView(0);
+
+    NodeTableView* tableView = new NodeTableView();
    // view2 = new NodeView(0);
 
-
+    QTreeView* treeView = new QTreeView();
+    treeView->setModel(tableView);
     layout()->addWidget(view);
 
-    //layout()->addWidget(view2);
+
+    layout()->addWidget(treeView);
 
     controller = new NewController();
     thread = new QThread();
     thread->start();
+
     controller->moveToThread(thread);
 
+    controller->connectView(tableView);
     controller->connectView(view);
-    //controller->connectView(view2);
+
     controller->initializeModel();
+    //controller->connectView(view2);
 
 
     //controller->moveToThread(thread);

@@ -72,7 +72,10 @@ HEADERS += \
     GUI/nodeedge.h \
     Model/InterfaceDefinitions/aggregateinstance.h \
     Model/InterfaceDefinitions/memberinstance.h \
-    Model/DeploymentDefinitions/managementcomponent.h
+    Model/DeploymentDefinitions/managementcomponent.h \
+    GUI/graphmlview.h \
+    GUI/graphmlviewitem.h \
+    GUI/nodetableview.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -129,7 +132,10 @@ SOURCES += \
     GUI/nodeedge.cpp \
     Model/InterfaceDefinitions/aggregateinstance.cpp \
     Model/InterfaceDefinitions/memberinstance.cpp \
-    Model/DeploymentDefinitions/managementcomponent.cpp
+    Model/DeploymentDefinitions/managementcomponent.cpp \
+    GUI/graphmlview.cpp \
+    GUI/graphmlviewitem.cpp \
+    GUI/nodetableview.cpp
 
 FORMS += \
     medeawindow.ui \

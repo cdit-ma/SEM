@@ -46,6 +46,7 @@ struct ActionItem{
 
 
 class NodeView;
+class GraphMLView;
 class NewController: public QObject
 {
     Q_OBJECT
@@ -55,6 +56,8 @@ public:
 
     void initializeModel();
     void connectView(NodeView* view);
+
+    void connectView(GraphMLView* view);
 
     //Get a list of all Node Kinds
     QStringList getNodeKinds();
