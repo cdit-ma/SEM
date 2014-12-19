@@ -10,6 +10,7 @@
 #include <QPushButton>
 #include <QItemSelectionModel>
 #include <QSettings>
+#include <QHeaderView>
 
 #include <QProcess>
 
@@ -30,6 +31,17 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     currentOperationBar->setMaximum(100);
 
     statusBar()->addPermanentWidget(currentOperationBar);
+
+
+    QHeaderView *headerView = ui->nodeTreeView->header();
+    headerView->setSectionResizeMode(QHeaderView::Stretch);
+
+
+
+    //ui->nodeTreeView->header()->setStretchLastSection(true);
+    ui->attributeTable->horizontalHeader()->setStretchLastSection(true);
+
+    //ui->nodeTreeView->header()->resizeSections(QHeaderView::ResizeToContents);
 
 
     selectedProject = 0;
@@ -114,6 +126,11 @@ void MedeaWindow::setupJenkinsSettings()
 void MedeaWindow::updateStatusText(QString statusText)
 {
     this->ui->errorCode->setText(statusText);
+}
+
+void MedeaWindow::view_SetTableModel(QAbstractTableModel *model)
+{
+    this->ui->nodeTreeView->setModel(model);
 }
 
 
@@ -201,7 +218,7 @@ void MedeaWindow::windowClosed(QObject *window)
 {
     int position = projectWindows.indexOf((ProjectWindow*)window);
     if(window == selectedProject){
-        ui->listView->setModel(0);
+        ui->nodeTreeView->setModel(0);
         ui->attributeTable->setModel(0);
         selectedProject = 0;
     }
@@ -248,7 +265,7 @@ void MedeaWindow::projectWindowSelected(QMdiSubWindow *window)
 void MedeaWindow::setAttributeModel(AttributeTableModel* model)
 {
     ui->attributeTable->setModel(model);
-    ui->listView->setModel(0);
+    //ui->nodeTable->setModel(0);
 }
 
 void MedeaWindow::updateUndoStates(QStringList list)
@@ -383,14 +400,13 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
         disconnect(controller, SIGNAL(view_UpdateStatusText(QString)), this, SLOT(updateStatusText(QString)));
 
+        disconnect(selectedProject, SIGNAL(setTableView(QAbstractTableModel*)), this, SLOT(view_SetTableModel(QAbstractTableModel*)));
+
     }
 
     selectedProject = newSelected;
 
     if(selectedProject){
-
-
-
         connect(ui->actionMaximize, SIGNAL(triggered()), selectedProject, SLOT(showMaximized()));
         NewController* controller = selectedProject->getController();
         NodeView* view = selectedProject->getView();
@@ -399,7 +415,10 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
         this->ui->aspectComboBox->addItems(controller->getViewAspects());
 
 
+        connect(ui->nodeTreeView, SIGNAL(clicked(QModelIndex)), selectedProject, SLOT(treeViewItemSelected(QModelIndex)));
 
+
+        connect(selectedProject, SIGNAL(setTableView(QAbstractTableModel*)), this, SLOT(view_SetTableModel(QAbstractTableModel*)));
         connect(selectedProject, SIGNAL(updateFilterButtons(QVector<FilterButton*>)), this, SLOT(updateFilterButtons(QVector<FilterButton*>)));
         connect(selectedProject, SIGNAL(updateAspectButtons(QVector<FilterButton*>)), this, SLOT(updateAspectButtons(QVector<FilterButton*>)));
         connect(this, SIGNAL(view_AddFilter(QString)), selectedProject, SLOT(appendFilterString(QString)));

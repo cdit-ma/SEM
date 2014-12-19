@@ -692,6 +692,42 @@ void NewController::view_ConstructNode(QString kind, QPointF centerPoint)
     }
 }
 
+void NewController::view_ConstructComponentInstanceInAssembly(Component *definition, ComponentAssembly *assembly)
+{
+
+    if(assembly == 0){
+        foreach(Node* child, assemblyDefinitions->getChildren(0)){
+            ComponentAssembly* childAssembly = dynamic_cast<ComponentAssembly*>(child);
+            if(childAssembly){
+                assembly = childAssembly;
+                break;
+            }
+        }
+    }
+    if(definition && assembly){
+        view_TriggerAction("Constructing Component Instance");
+
+        Node* instanceNode = constructChildNode(assembly, getDefinitionData(definition, true));
+
+        /*if(instanceNode){
+            //Don't create an ActionItem for this.
+            instanceNode->setGenerated(true);
+        }
+        */
+
+        if(instanceNode){
+            QVector<QStringList> noData;
+            Edge* connectingEdge = constructEdgeWithData(instanceNode, definition, noData);
+            /*if(connectingEdge){
+                //Don't create an ActionItem for this.
+                connectingEdge->setGenerated(true);
+            }
+            */
+        }
+    }
+
+}
+
 
 void NewController::view_ConstructEdge(Node *src, Node *dst)
 {
@@ -2439,7 +2475,7 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
         bindTypeToType = true;
     }
 
-    if(child->getParentNode()->isInstance() || child->getParentNode()->isImpl()){
+    if(child->getParentNode()->isInstance() || child->getParentNode()->isImpl() || child->isImpl()){
         bindLabel = true;
         lockLabel = true;
     }

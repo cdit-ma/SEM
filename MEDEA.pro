@@ -75,6 +75,8 @@ HEADERS += \
     Model/DeploymentDefinitions/managementcomponent.h \
     GUI/graphmlview.h \
     GUI/graphmlviewitem.h \
+    GUI/nodetableitem.h \
+    GUI/nodetable.h \
     GUI/nodetableview.h
 
 SOURCES += \
@@ -135,6 +137,8 @@ SOURCES += \
     Model/DeploymentDefinitions/managementcomponent.cpp \
     GUI/graphmlview.cpp \
     GUI/graphmlviewitem.cpp \
+    GUI/nodetableitem.cpp \
+    GUI/nodetable.cpp \
     GUI/nodetableview.cpp
 
 FORMS += \

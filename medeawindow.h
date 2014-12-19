@@ -36,6 +36,7 @@ signals:
 private slots:
     void setupJenkinsSettings();
     void updateStatusText(QString statusText);
+    void view_SetTableModel(QAbstractTableModel* model);
 
     void updateFilterButtons(QVector<FilterButton*> buttons);
     void updateAspectButtons(QVector<FilterButton*> buttons);

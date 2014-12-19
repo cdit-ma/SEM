@@ -123,8 +123,9 @@ public slots:
     void validator_HighlightError(Node* node, QString error);
 
     //Used to Import a GraphML XML document from the GUI/Paste/Undo/Redo
-    void view_ImportGraphML(QStringList inputGraphML, Node *currentParent=0);
+    void view_ImportGraphML(QStringList inputGraphML, Node *currentParent = 0);
     void view_ImportGraphML(QString, Node *currentParent=0, bool linkID = false);
+
 
     //Used to Export a GraphML XML document representation of the Model.
     void view_ExportGraphML(QString filename);
@@ -147,6 +148,8 @@ public slots:
 
     //Called by the QAction from the Menu
     void view_ConstructNode(QString kind, QPointF centerPoint);
+
+    void view_ConstructComponentInstanceInAssembly(Component* definition, ComponentAssembly* assembly = 0);
 
     //Constructs an Edge with no data between Source and Destination Nodes.
     void view_ConstructEdge(Node* source, Node* destination);

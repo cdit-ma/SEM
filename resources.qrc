@@ -6,7 +6,6 @@
         <file>Resources/Icons/Attribute.png</file>
         <file>Resources/Icons/BranchState.png</file>
         <file>Resources/Icons/Complexity.png</file>
-        <file alias="ICON_COMPONENT">Resources/Icons/Component.png</file>
         <file>Resources/Icons/Condition.png</file>
         <file>Resources/Icons/CPU.png</file>
         <file>Resources/Icons/DB.png</file>
@@ -45,5 +44,6 @@
         <file>Resources/Icons/AggregateInstance.png</file>
         <file>Resources/Icons/File.png</file>
         <file>Resources/Icons/ManagementComponent.png</file>
+        <file>Resources/Icons/Component.png</file>
     </qresource>
 </RCC>
