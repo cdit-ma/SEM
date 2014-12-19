@@ -5,6 +5,7 @@
 #include "../Controller/newcontroller.h"
 #include "nodeview.h"
 #include "filterbutton.h"
+#include "nodetableview.h"
 #include <QThread>
 class ProjectWindow : public QMdiSubWindow
 {
@@ -18,8 +19,13 @@ signals:
     void updateFilters(QStringList filters);
     void updateFilterButtons(QVector<FilterButton*>);
     void updateAspectButtons(QVector<FilterButton*>);
+    void setTableView(QAbstractTableModel* model);
 
 public slots:
+
+    void treeViewItemSelected(QModelIndex index);
+    void treeViewItemCentered(QModelIndex index);
+
     void selectedProject();
     void appendFilterString(QString filter);
     void removeFilterString(QString filter);
@@ -42,6 +48,7 @@ private:
     QStringList visibleAspects;
     QThread *thread;
     NodeView* view;
+    NodeTableView* tableView;
     NodeView* view2;
     NewController* controller;
 

@@ -50,9 +50,9 @@ signals:
 
     void setNodeSelected(Node*, bool selected=true);
 
-
     void makeChildNode(QPointF centerPoint, Node * parentNode);
     void makeChildNode(QPointF centerPoint);
+
 
     void moveSelection(QPointF move);
     void makeChildNode(QString type, Node*);

@@ -15,6 +15,8 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     IS_INSTANCE_LINK = edge->isInstanceLink();
     IS_IMPL_LINK = edge->isImplLink();
     IS_AGG_LINK = edge->isAggregateLink();
+
+
     IS_DEPLOYMENT_LINK = edge->isDeploymentLink();
 
     if(IS_INSTANCE_LINK || IS_IMPL_LINK){
@@ -25,6 +27,16 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
             //Don't show Non-Top Most Instance Links
             IS_VISIBLE = false;
         }
+        if(sNode->getDataValue("kind") == "AggregateInstance"){
+            IS_VISIBLE = false;
+
+        }
+    }
+    if(IS_AGG_LINK){
+        if(s->node->getDataValue("kind").endsWith("Instance")){
+            IS_VISIBLE = false;
+        }
+
     }
 
     //Setup Instance Variables

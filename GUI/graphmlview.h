@@ -16,19 +16,20 @@ public:
     NewController* getController();
 
 signals:
-    void view_Cut();
-    void view_Copy();
-    void view_Paste();
+    virtual void view_Cut();
+    virtual void view_Copy();
+    virtual void view_Paste();
 
-    void view_Undo();
-    void view_Redo();
+    virtual void view_Undo();
+    virtual void view_Redo();
 
-    void view_SelectAll();
-    void view_ClearSelection();
-    void view_SetViewAspects(QStringList aspects);
+    virtual void view_SelectAll();
+    virtual void view_ClearSelection();
+    virtual void view_SetViewAspects(QStringList aspects);
 
-    void view_SortModel();
-    void view_SetSelectedTableModel(AttributeTableModel* model);
+    virtual void view_SortModel();
+    virtual void view_SetSelectedTableModel(AttributeTableModel* model);
+    virtual void view_TriggerSelected(GraphML*, bool setSelected = true);
 public slots:
     virtual void view_RefreshView() = 0;
     virtual void view_SetViewDrawDepth(int depth) = 0;

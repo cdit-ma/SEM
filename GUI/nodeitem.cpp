@@ -322,7 +322,7 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
                 qreal iconWidth = icon->boundingRect().width();
                 qreal scaleFactor = labelHeight / iconHeight;
                 icon->setScale(scaleFactor);
-                label->setX(label->x() + (iconWidth * scaleFactor) );
+                label->setX(iconWidth * scaleFactor);
             }
 
 
@@ -424,7 +424,14 @@ void NodeItem::setRubberbandMode(bool On)
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+
+
     if(!drawObject){
+        event->setAccepted(false);
+        return;
+    }
+
+    if(QGraphicsItem::opacity() == .10){
         event->setAccepted(false);
         return;
     }

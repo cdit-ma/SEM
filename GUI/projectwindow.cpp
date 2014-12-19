@@ -10,15 +10,11 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     view = new NodeView(0);
 
-    NodeTableView* tableView = new NodeTableView();
+    this->tableView = new NodeTableView();
    // view2 = new NodeView(0);
 
-    QTreeView* treeView = new QTreeView();
-    treeView->setModel(tableView);
     layout()->addWidget(view);
 
-
-    layout()->addWidget(treeView);
 
     controller = new NewController();
     thread = new QThread();
@@ -31,6 +27,9 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     controller->initializeModel();
     //controller->connectView(view2);
+
+
+    //treeView->setModel(tableView->getModel());
 
 
     //controller->moveToThread(thread);
@@ -57,6 +56,7 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     setAttribute(Qt::WA_DeleteOnClose, true);
 
+
 }
 ProjectWindow::~ProjectWindow()
 {
@@ -75,10 +75,21 @@ NewController *ProjectWindow::getController()
     return controller;
 }
 
+void ProjectWindow::treeViewItemSelected(QModelIndex index)
+{
+    tableView->view_TreeViewItemSelected(index);
+}
+
+void ProjectWindow::treeViewItemCentered(QModelIndex index)
+{
+    tableView->view_TreeViewItemSelected(index);
+}
+
 void ProjectWindow::selectedProject()
 {
     emit updateFilterButtons(appliedFilterButtons);
     emit updateAspectButtons(appliedAspectButtons);
+    emit setTableView(tableView->getModel());
     controller->view_ClearSelection();
 }
 
