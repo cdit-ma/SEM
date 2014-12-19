@@ -11,6 +11,7 @@ class NodeTable: public QAbstractTableModel
     Q_OBJECT
 public:
     NodeTable();
+    ~NodeTable();
     // GraphMLView interface
     void addItem(Node* item);
     void removeItem(QString ID);

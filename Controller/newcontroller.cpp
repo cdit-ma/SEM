@@ -766,8 +766,8 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QVector<QString
     }
 
     if(!src->isConnected(dst)){
-            qCritical() << "Edge: " << src->toString() << " to " << dst->toString() << " not legal.";
-            qCritical() << "Edge not legal";
+        qCritical() << "Edge: " << src->toString() << " to " << dst->toString() << " not legal.";
+        qCritical() << "Edge not legal";
     }
     return edge;
 }

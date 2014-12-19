@@ -32,8 +32,8 @@ signals:
     void view_AspectsVisible(QStringList aspects);
     void view_ImportGraphML(QStringList files);
     void view_ExportGraphML(QString fileName);
-
 private slots:
+    void clearSelectedTreeViewItem();
     void setupJenkinsSettings();
     void updateStatusText(QString statusText);
     void view_SetTableModel(QAbstractTableModel* model);

@@ -71,6 +71,7 @@ void NodeTableView::view_SelectItem(GraphML *item, bool selected)
 {
 
 
+
 }
 
 void NodeTableView::view_SetItemOpacity(GraphML *item, qreal opacity)

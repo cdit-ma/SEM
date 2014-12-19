@@ -36,6 +36,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QHeaderView *headerView = ui->nodeTreeView->header();
     headerView->setSectionResizeMode(QHeaderView::Stretch);
 
+    ui->nodeTreeView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->nodeTreeView->setSelectionMode(QTableView::SingleSelection);
+
 
 
     //ui->nodeTreeView->header()->setStretchLastSection(true);
@@ -96,6 +99,11 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 MedeaWindow::~MedeaWindow()
 {
     delete ui;
+}
+
+void MedeaWindow::clearSelectedTreeViewItem()
+{
+    this->ui->nodeTreeView->clearSelection();
 }
 
 void MedeaWindow::setupJenkinsSettings()

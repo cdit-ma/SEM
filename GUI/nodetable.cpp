@@ -8,13 +8,15 @@ NodeTable::NodeTable():QAbstractTableModel()
     rootItem = 0;
 }
 
+NodeTable::~NodeTable()
+{
+    //delete rootItem;
+}
+
 void NodeTable::addItem(Node *node)
 {
-
     if(node){
         emit layoutAboutToBeChanged();
-
-
 
         NodeTableItem* parentItem = 0;
 
@@ -52,9 +54,11 @@ void NodeTable::addItem(Node *node)
 void NodeTable::removeItem(QString ID)
 {
 
-    emit layoutAboutToBeChanged();
-    removeNodeFromHash(ID);
-    emit layoutChanged();
+    if(IDLookup.contains(ID)){
+        emit beginResetModel();
+        removeNodeFromHash(ID);
+        emit endResetModel();
+    }
 }
 
 Node *NodeTable::getNodeFromIndex(QModelIndex index)
@@ -177,7 +181,6 @@ Qt::ItemFlags NodeTable::flags(const QModelIndex &index) const
                 return  !Qt::ItemIsEditable | Qt::ItemIsSelectable | Qt::ItemIsEnabled;
             }else{
                 return  Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable;
-
             }
         }
     }
@@ -208,7 +211,6 @@ bool NodeTable::removeNodeFromHash(QString ID)
         modelLookup.remove(ID);
 
         if(item){
-            qCritical() << "Deleting Item";
             delete item;
             return true;
         }
