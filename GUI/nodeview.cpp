@@ -373,7 +373,13 @@ void NodeView::view_ConstructNodeAction()
         if(!okay){
             return;
         }
-        emit constructNodeItem(nodeKind, menuPosition);
+
+        QGraphicsItem* item = this->scene()->itemAt(menuPosition,this->transform());
+        if(item){
+            emit constructNodeItem(nodeKind, item->mapFromScene(menuPosition));
+        }else{
+            emit constructNodeItem(nodeKind, menuPosition);
+        }
     }else{
         emit controller->view_DialogMessage(MESSAGE_TYPE::WARNING, "No Adoptable Types.");
     }

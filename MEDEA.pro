@@ -77,7 +77,9 @@ HEADERS += \
     GUI/graphmlviewitem.h \
     GUI/nodetableitem.h \
     GUI/nodetable.h \
-    GUI/nodetableview.h
+    GUI/nodetableview.h \
+    Model/DeploymentDefinitions/ineventportdelegate.h \
+    Model/DeploymentDefinitions/outeventportdelegate.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -139,7 +141,9 @@ SOURCES += \
     GUI/graphmlviewitem.cpp \
     GUI/nodetableitem.cpp \
     GUI/nodetable.cpp \
-    GUI/nodetableview.cpp
+    GUI/nodetableview.cpp \
+    Model/DeploymentDefinitions/ineventportdelegate.cpp \
+    Model/DeploymentDefinitions/outeventportdelegate.cpp
 
 FORMS += \
     medeawindow.ui \
