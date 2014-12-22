@@ -709,6 +709,8 @@ void NewController::view_ConstructComponentInstanceInAssembly(Component *definit
 
         Node* instanceNode = constructChildNode(assembly, getDefinitionData(definition, true));
 
+        instanceNode->getData("x")->setValue("0");
+        instanceNode->getData("y")->setValue("0");
         /*if(instanceNode){
             //Don't create an ActionItem for this.
             instanceNode->setGenerated(true);
@@ -724,6 +726,7 @@ void NewController::view_ConstructComponentInstanceInAssembly(Component *definit
             }
             */
         }
+
     }
 
 }
