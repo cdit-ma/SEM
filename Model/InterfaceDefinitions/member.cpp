@@ -18,14 +18,8 @@ QString Member::toString()
 
 bool Member::canConnect(Node* attachableObject)
 {
-    MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(attachableObject);
-
-    if (!memberInstance){
-        qWarning() << "Member can only connect to a MemberInstance.";
-        return false;
-    }
-
-    return Node::canConnect(attachableObject);
+    Q_UNUSED(attachableObject);
+    return false;
 }
 
 bool Member::canAdoptChild(Node *child)

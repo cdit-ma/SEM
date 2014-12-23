@@ -43,6 +43,8 @@
 #include "DeploymentDefinitions/hardwarecluster.h"
 #include "DeploymentDefinitions/hardwarenode.h"
 #include "DeploymentDefinitions/managementcomponent.h"
+#include "DeploymentDefinitions/ineventportdelegate.h"
+#include "DeploymentDefinitions/outeventportdelegate.h"
 
 #include "InterfaceDefinitions/interfacedefinitions.h"
 #include "InterfaceDefinitions/aggregateinstance.h"
@@ -54,6 +56,7 @@
 #include "InterfaceDefinitions/file.h"
 #include "InterfaceDefinitions/aggregate.h"
 #include "InterfaceDefinitions/member.h"
+
 
 
 
@@ -72,7 +75,6 @@ class Model: public Node
 public:
     Model();
     ~Model();
-
 
     // GraphML interface
 public:

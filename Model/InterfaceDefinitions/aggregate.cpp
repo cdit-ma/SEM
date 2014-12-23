@@ -42,20 +42,8 @@ QString Aggregate::toString()
 
 bool Aggregate::canConnect(Node* attachableObject)
 {
-    EventPort* eventport = dynamic_cast<EventPort*>(attachableObject);
-    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(attachableObject);
-
-    if (!eventport && !aggregateInstance){
-        qWarning() << "Aggregate can only connect to an AggregateMember, AggregateInstance or EventPort.";
-        return false;
-    }
-
-    if(eventport && eventport->getAggregate()){
-        qWarning() << "Aggregate can only connect to an unn-attached Eventport";
-        return false;
-    }
-
-    return Node::canConnect(attachableObject);
+    Q_UNUSED(attachableObject);
+    return false;
 }
 
 bool Aggregate::canAdoptChild(Node *child)

@@ -34,10 +34,17 @@ bool ComponentInstance::canAdoptChild(Node *child)
 }
 
 
+//A ComponentInstance can be connected to:
+//Deployed to:
+// + HardwareCluster
+// + HardwareNode
+//Connected to a Definition:
+// + Component (If it has no definition already)
 bool ComponentInstance::canConnect(Node* attachableObject)
 {
     HardwareCluster* hardwareCluster = dynamic_cast<HardwareCluster*> (attachableObject);
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
+
     Component* component = dynamic_cast<Component*> (attachableObject);
 
     if(!hardwareNode && !hardwareCluster && !component){
@@ -45,8 +52,18 @@ bool ComponentInstance::canConnect(Node* attachableObject)
         return false;
     }
 
+    if(hardwareCluster || hardwareNode){
+        //Check for deployment edges already.
+        foreach(Edge* edge, getEdges(0)){
+            if(edge->isDeploymentLink()){
+                qWarning() << "ComponentInstance Node is already deployed!";
+                return false;
+            }
+        }
+    }
+
     if(component && getDefinition()){
-        qWarning() << "ComponentInstance Node can only be connected to a HardwareNode";
+        qWarning() << "ComponentInstance Node can only be connected to 1 Component Definition.";
         return false;
     }
 

@@ -45,5 +45,7 @@
         <file>Resources/Icons/File.png</file>
         <file>Resources/Icons/ManagementComponent.png</file>
         <file>Resources/Icons/Component.png</file>
+        <file>Resources/Icons/InEventPortDelegate.png</file>
+        <file>Resources/Icons/OutEventPortDelegate.png</file>
     </qresource>
 </RCC>

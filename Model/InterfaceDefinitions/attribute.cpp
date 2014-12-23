@@ -22,19 +22,8 @@ QString Attribute::toString()
 
 bool Attribute::canConnect(Node* attachableObject)
 {
-    AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(attachableObject);
-    AttributeInstance* attributeInstance = dynamic_cast<AttributeInstance*>(attachableObject);
-
-    if(!attributeImpl && !attributeInstance){
-        qWarning() << "Attribute can only connect to AttributeImpl's and AttributeInstances";
-        return false;
-    }
-    if(attributeImpl && getImplementations().size() != 0){
-        qCritical() << "Attribute can only connect to one AttributeImpl";
-        return false;
-    }
-
-    return Node::canConnect(attachableObject);
+    Q_UNUSED(attachableObject);
+    return false;
 }
 
 bool Attribute::canAdoptChild(Node *child)

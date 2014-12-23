@@ -543,6 +543,9 @@ void NodeItem::updateBrushes()
     else if(kind == "OutEventPortImpl"){
         color = QColor(0,150,0);
     }
+    else if(kind == "OutEventPortDelegate"){
+        color = QColor(0,100,0);
+    }
     else if(nodeKind == "InEventPort"){
         color = QColor(250,0,0);
     }
@@ -551,6 +554,9 @@ void NodeItem::updateBrushes()
     }
     else if(kind == "InEventPortImpl"){
         color = QColor(150,0,0);
+    }
+    else if(kind == "InEventPortDelegate"){
+        color = QColor(100,0,0);
     }
     else if(nodeKind == "Component"){
         color = QColor(200,200,200);

@@ -2,12 +2,17 @@
 #define OUTEVENTPORTDELEGATE_H
 #include "../node.h"
 
-class OutEventPortDelegate
+class OutEventPortInstance;
+
+class OutEventPortDelegate: public Node
 {
     Q_OBJECT
 public:
     OutEventPortDelegate();
     ~OutEventPortDelegate();
+
+    bool connectedToOutEventPortInstance();
+    OutEventPortInstance* getOutEventPortInstance();
 
     // GraphML interface
 public:

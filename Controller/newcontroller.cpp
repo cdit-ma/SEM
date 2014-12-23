@@ -46,8 +46,8 @@ NewController::NewController()
     constructableNodeKinds << "MemberInstance" << "AggregateInstance";
     constructableNodeKinds << "File" << "Component" << "ComponentInstance" << "ComponentImpl";
     constructableNodeKinds << "Attribute" << "AttributeInstance" << "AttributeImpl";
-    constructableNodeKinds << "InEventPort" << "InEventPortInstance" << "InEventPortImpl";
-    constructableNodeKinds << "OutEventPort" << "OutEventPortInstance" << "OutEventPortImpl";
+    constructableNodeKinds << "InEventPort" << "InEventPortInstance" << "InEventPortImpl" << "InEventPortDelegate";
+    constructableNodeKinds << "OutEventPort" << "OutEventPortInstance" << "OutEventPortImpl" << "OutEventPortDelegate";
     constructableNodeKinds << "ComponentAssembly" << "ManagementComponent";
     constructableNodeKinds << "HardwareNode" << "HardwareCluster" ;
     constructableNodeKinds << "Member" << "Aggregate";
@@ -489,11 +489,27 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
     sortedEdges << otherEdges;
 
     //Construct the Edges from the EdgeTemp objects
+    while(sortedEdges.size() > 0){
+        EdgeTemp edge = sortedEdges.first();
+        Node* s = nodeLookup[edge.source];
+        Node* d = nodeLookup[edge.target];
+        Edge* newEdge = constructEdgeWithData(s, d, edge.data, edge.id);
+        if(newEdge){
+            sortedEdges.removeFirst();
+        }else{
+            sortedEdges.removeFirst();
+            if(!s->isConnected(d)){
+                sortedEdges.append(edge);
+            }
+        }
+    }
+    /*
     foreach(EdgeTemp edge, sortedEdges){
         Node* s = nodeLookup[edge.source];
         Node* d = nodeLookup[edge.target];
         constructEdgeWithData(s, d, edge.data, edge.id);
     }
+    */
 
     if(!(UNDOING || REDOING)){
         emit view_UpdateProgressBar(100);
@@ -837,7 +853,8 @@ void NewController::view_ShowLegalEdgesForNode(Node *src)
     emit view_ForceRefresh();
     foreach(QString ID, nodeIDs){
         Node* dst = getNodeFromID(ID);
-        if(dst && !isEdgeLegal(src, dst) && (dst != src)){
+
+        if(dst && !src->canConnect(dst) && (dst != src)){
             emit view_SetOpacity(dst, HIDDEN_OPACITY);
         }
     }
@@ -1281,20 +1298,23 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach, bool rea
         node = new OutEventPortInstance();
     }else if(nodeKind == "OutEventPortImpl"){
         node = new OutEventPortImpl();
+    }else if(nodeKind == "OutEventPortDelegate"){
+        node = new OutEventPortDelegate();
     }else if(nodeKind == "InEventPort"){
         node = new InEventPort();
     }else if(nodeKind == "InEventPortInstance"){
         node = new InEventPortInstance();
     }else if(nodeKind == "InEventPortImpl"){
         node = new InEventPortImpl();
+    }else if(nodeKind == "InEventPortDelegate"){
+        node = new InEventPortDelegate();
     }else if(nodeKind == "Attribute"){
         node = new Attribute();
     }else if(nodeKind == "AttributeInstance"){
         node = new AttributeInstance();
     }else if(nodeKind == "AttributeImpl"){
         node = new AttributeImpl();
-    }
-    else if(nodeKind == "File"){
+    }else if(nodeKind == "File"){
         node = new File();
     }else if(nodeKind == "Member"){
         node = new Member();
@@ -1342,7 +1362,21 @@ Edge *NewController::constructEdge(Node *source, Node *destination)
         qCritical() << "Source or Destination Node is Null!";
         return 0;
     }
+    if(source->canConnect(destination)){
+        QString sourceKind = source->getDataValue("kind");
+        QString destinationKind = destination->getDataValue("kind");
 
+        Edge* edge = new Edge(source, destination);
+
+        return edge;
+    }else{
+        if(!source->isConnected(destination)){
+            qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
+        }
+        return 0;
+    }
+
+    /*
     if(isEdgeLegal(source, destination)){
         QString sourceKind = source->getDataValue("kind");
         QString destinationKind = destination->getDataValue("kind");
@@ -1382,6 +1416,19 @@ Edge *NewController::constructEdge(Node *source, Node *destination)
             swap = true;
         }
 
+        if(destinationKind == "InEventPortDelegate" && (sourceKind.endsWith("PortInstance") || sourceKind.endsWith("PortDelegate"))){
+
+            //10//InEventPortDelegate* iEPD = dynamic_cast<
+            //swap = true;
+        }
+
+        if(sourceKind == "OutEventPortDelegate" && (destinationKind.endsWith("PortInstance") || destinationKind.endsWith("PortDelegate"))){
+            swap = true;
+        }
+
+
+
+
         //If destination Kind is ManagementComponent, swap.
         if(destinationKind == "ManagementComponent"){
             swap = true;
@@ -1402,6 +1449,7 @@ Edge *NewController::constructEdge(Node *source, Node *destination)
         }
         return 0;
     }
+    */
 }
 
 void NewController::storeGraphMLInHash(GraphML *item)

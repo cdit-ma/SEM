@@ -111,7 +111,7 @@ bool Edge::isAggregateLink()
 
 bool Edge::isDeploymentLink()
 {
-    if(source->getDataValue("kind").endsWith("EventPortInstance") && destination->getDataValue("kind").endsWith("EventPortInstance")){
+    if(source->getDataValue("kind").endsWith("EventPortInstance") && destination->getDataValue("kind").startsWith("Hardware")){
         return true;
     }
     return false;

@@ -152,3 +152,5 @@ FORMS += \
 
 RESOURCES += \
     resources.qrc
+
+OTHER_FILES +=
