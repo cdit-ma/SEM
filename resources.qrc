@@ -1,32 +1,24 @@
 <RCC>
     <qresource prefix="/">
-        <file>Resources/Icons/Activate.png</file>
         <file>Resources/Icons/Aggregate.png</file>
-        <file>Resources/Icons/ArrayMember.png</file>
         <file>Resources/Icons/Attribute.png</file>
         <file>Resources/Icons/BranchState.png</file>
         <file>Resources/Icons/Complexity.png</file>
         <file>Resources/Icons/Condition.png</file>
-        <file>Resources/Icons/CPU.png</file>
-        <file>Resources/Icons/DB.png</file>
         <file>Resources/Icons/Event.png</file>
         <file>Resources/Icons/HardwareCluster.png</file>
         <file>Resources/Icons/HardwareNode.png</file>
-        <file>Resources/Icons/HDD.png</file>
         <file>Resources/Icons/InEventPort.png</file>
         <file>Resources/Icons/InMember.png</file>
-        <file>Resources/Icons/LOG.png</file>
         <file>Resources/Icons/Member.png</file>
         <file>Resources/Icons/OutEventPort.png</file>
         <file>Resources/Icons/OutMember.png</file>
         <file>Resources/Icons/Parameter.png</file>
-        <file>Resources/Icons/Passivate.png</file>
         <file>Resources/Icons/PeriodicEvent.png</file>
         <file>Resources/Icons/Postprocess.png</file>
         <file>Resources/Icons/Preprocess.png</file>
         <file>Resources/Icons/Process.png</file>
         <file>Resources/Icons/ProvidedRequestPort.png</file>
-        <file>Resources/Icons/RAM.png</file>
         <file>Resources/Icons/RequiredRequestPort.png</file>
         <file>Resources/Icons/Termination.png</file>
         <file>Resources/Icons/Variable.png</file>
@@ -43,6 +35,32 @@
         <file>Resources/Icons/MemberInstance.png</file>
         <file>Resources/Icons/AggregateInstance.png</file>
         <file>Resources/Icons/File.png</file>
+        <file>Resources/Icons/Component.png</file>
+        <file>Resources/Icons/menuIcon.png</file>
+        <file>Resources/Icons/clear.png</file>
+        <file>Resources/Icons/search_icon.png</file>
+        <file>Resources/Icons/undo.png</file>
+        <file>Resources/Icons/validate.png</file>
+        <file>Resources/Icons/zoomToFit.png</file>
+        <file>Resources/Icons/copy.png</file>
+        <file>Resources/Icons/cut.png</file>
+        <file>Resources/Icons/exit.png</file>
+        <file>Resources/Icons/export.png</file>
+        <file>Resources/Icons/import.png</file>
+        <file>Resources/Icons/new_project.png</file>
+        <file>Resources/Icons/paste.png</file>
+        <file>Resources/Icons/redo.png</file>
+        <file>Resources/Icons/view.png</file>
+        <file>Resources/Icons/jenkins.png</file>
+        <file>Resources/Icons/edit_menu.png</file>
+        <file>Resources/Icons/file_menu.png</file>
+        <file>Resources/Icons/hdd.png</file>
+        <file>Resources/Icons/ram.png</file>
+        <file>Resources/Icons/log.png</file>
+        <file>Resources/Icons/db.png</file>
+        <file>Resources/Icons/activate.png</file>
+        <file>Resources/Icons/cpu.png</file>
+        <file>Resources/Icons/passivate.png</file>
         <file>Resources/Icons/ManagementComponent.png</file>
         <file>Resources/Icons/Component.png</file>
         <file>Resources/Icons/InEventPortDelegate.png</file>

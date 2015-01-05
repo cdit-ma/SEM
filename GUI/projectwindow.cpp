@@ -54,12 +54,14 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     showMaximized();
 
-    setAttribute(Qt::WA_DeleteOnClose, true);
+    //setAttribute(Qt::WA_DeleteOnClose, true);
 
 
 }
 ProjectWindow::~ProjectWindow()
 {
+
+    //qCritical() << "Deleting Project Window";
     delete controller;
     delete view;
     //delete view2;

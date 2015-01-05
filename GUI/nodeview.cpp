@@ -24,6 +24,8 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     rubberBanding = false;
     once = true;
 
+    firstSort = true;
+
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
     //setDragMode(RubberBandDrag);
@@ -39,6 +41,7 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     rubberBand->setPalette(palette);
     rubberBand->resize(500, 500);
 
+    //setAlignment(Qt::AlignHCenter);
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
     //Set-up the scene
@@ -48,10 +51,17 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
     //Set-up the view
-    setSceneRect(0, 0, 19200, 10800);
-    translate(9600,5040);
+    // changed the sceneRect values
+    // it used to be 19200 x 10800
+    // we may not need this here
+    //setSceneRect(0, 0, 29200, (10800/2*5));
+    //translate(9600,5040);
+
 
     this->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    // initially make the whole scene fit inside the view.
+    setStyleSheet("QGraphicsView{ background-color: rgba(150,150,150,255); }");
 }
 
 void NodeView::setController(NewController *controller)
@@ -72,7 +82,7 @@ NodeView::~NodeView()
 void NodeView::updateNodeTypeName(QString name)
 {
     this->NodeType = name;
-    qCritical() << "NodeType: " << name;
+    //qCritical() << "NodeType: " << name;
 
     emit this->updateNodeType(NodeType);
 }
@@ -111,12 +121,72 @@ void NodeView::centreItem(GraphMLItem *item)
 
     //Extra Space denotes 20% extra space on the height.
     //Calculate the scalre required to fit the item + 20% in the Viewport Rectangle.
-    qreal extraSpace = 1.2;
-    qreal scaleRatio = viewRect.height()/ (itemRect.height() * extraSpace);
-    scale(scaleRatio, scaleRatio);
+    qreal extraSpace;
 
+    if (item->getGraphML()->getDataValue("kind") == "Model") {
+        extraSpace = 1;
+    } else {
+        extraSpace = 1.5;
+    }
+
+    //qreal scaleRatio = viewRect.height()/ (itemRect.height() * extraSpace);
+    //scale(scaleRatio, scaleRatio);
+    //centerOn(item);
+
+
+    QRectF newRec = sceneRect();
+    qreal multiplier = viewRect.height() / itemRect.height();
+    qreal leftXGap = itemRect.x() - sceneRect().x();
+    qreal rightXGap = sceneRect().x() + sceneRect().width() - (itemRect.x() + itemRect.width());
+    qreal topYGap = itemRect.y() - sceneRect().y();
+    qreal bottomYGap = (sceneRect().y() + sceneRect().height()) - (itemRect.y() + itemRect.height());
+    qreal neededXGap = qAbs((viewRect.width() - (itemRect.width()*multiplier)) / 2);
+    qreal neededYGap = qAbs(viewRect.height()/2);
+
+    itemRect.setHeight(itemRect.height()*extraSpace);
+    fitInView(itemRect, Qt::KeepAspectRatio);
+
+    // check to make sure that there is enough space around the
+    // items boundingRect within the scene before centering it
+    // if there isn't, add the needed space to the sceneRect
+    if (leftXGap < neededXGap) {
+        newRec.setX(newRec.x()-neededXGap);
+        newRec.setWidth(newRec.width()+neededXGap);
+        setSceneRect(newRec);
+    } else if (rightXGap < neededXGap) {
+        newRec.setWidth(newRec.width()+neededXGap);
+        setSceneRect(newRec);
+    }
+    if (topYGap < neededYGap) {
+        newRec.setY(newRec.y()-neededYGap);
+        newRec.setHeight(newRec.height()+neededYGap);
+        setSceneRect(newRec);
+    } else if (bottomYGap < neededYGap) {
+        newRec.setHeight(newRec.height()+neededYGap);
+        setSceneRect(newRec);
+    }
+
+    centerOn(item);
+
+
+    /**
+
+    QRectF itemsRec = scene()->itemsBoundingRect();
+    qreal multiplier = 1;
+
+    if(itemsRec.x() == sceneRect().x()) {
+        multiplier = 1.5;
+    }
+
+    setSceneRect(itemsRec.x()*multiplier, itemsRec.y(), itemsRec.width(), itemsRec.height()*extraSpace);
+    fitInView(item->sceneBoundingRect(), Qt::KeepAspectRatio);
+    */
+
+
+
+    /**
     //Get the actual Scale Ratio!
-    scaleRatio = transform().m22();
+    //scaleRatio = transform().m22();
 
     //Get the Center of the ViewPort Rectangle
     QPointF viewCenter = viewRect.center();
@@ -135,14 +205,15 @@ void NodeView::centreItem(GraphMLItem *item)
     int xBarValue = horizontalScrollBar()->value() + deltaX;
     int yBarValue = verticalScrollBar()->value() + deltaY;
 
-    horizontalScrollBar()->setValue(xBarValue);
-    verticalScrollBar()->setValue(yBarValue);
+    //horizontalScrollBar()->setValue(xBarValue);
+    //verticalScrollBar()->setValue(yBarValue);
+    */
 }
 
 void NodeView::clearView()
 {
-    //scene()->clear();
-    //viewport()->update();
+    scene()->clear();
+    viewport()->update();
 }
 
 void NodeView::depthChanged(int depth)
@@ -180,6 +251,8 @@ void NodeView::showContextMenu(QPoint position)
     //Got Right Click. Build Menu.
     QPoint globalPos = mapToGlobal(position);
     QPointF scenePos = mapToScene(position);
+    qCritical() << "Make Menu";
+
 
     menuPosition = scenePos;
 
@@ -200,6 +273,17 @@ void NodeView::showContextMenu(QPoint position)
     rightClickMenu->exec(globalPos);
 }
 
+
+/**
+ * @brief NodeView::view_DockConstructNode
+ * @param kind
+ */
+void NodeView::view_DockConstructNode(QString kind)
+{
+    emit constructNodeItem(kind, QPointF(0,0));
+}
+
+
 void NodeView::view_ConstructNodeGUI(Node *node)
 {
     if(!node){
@@ -208,19 +292,16 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     Node* parentNode = node->getParentNode();
 
-
     NodeItem* parentNodeItem = 0;
     if(parentNode){
         GraphMLItem* parentGUI = getGraphMLItemFromHash(parentNode->getID());
         parentNodeItem = getNodeItemFromGraphMLItem(parentGUI);
     }
 
-
-
-
-   // NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
+    // NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
 
     NodeItem* nodeItem = new NodeItem(node, parentNodeItem);
+    qDebug() << "Adding " << nodeItem->getGraphML()->getDataValue("label");
 
     storeGraphMLItemInHash(nodeItem);
     //nodeItems.append(nodeItem);
@@ -234,11 +315,53 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     connect(this, SIGNAL(updateNodeType(QString)), nodeItem, SLOT(updateChildNodeType(QString)));
     connect(this, SIGNAL(updateViewAspects(QStringList)), nodeItem, SLOT(updateViewAspects(QStringList)));
 
+    connect(nodeItem, SIGNAL(updateSceneRect(NodeItem*)), this, SLOT(resetSceneRect(NodeItem*)));
+    connect(nodeItem, SIGNAL(disableDockButtons()), this, SLOT(disableDockButtons()));
+
 
     if(!scene()->items().contains(nodeItem)){
         //Add to model.
         scene()->addItem(nodeItem);
     }
+
+
+    /************************************************************************************/
+
+
+
+    /**
+    HardwareDefinitions* hardwareDefinitions = dynamic_cast<HardwareDefinitions*>(node);
+    if(hardwareDefinitions){
+        nodeItem->setVisible(false);
+        // return;
+    }
+   */
+
+    // Stop component definitions and hardware nodes from being
+    // drawn on the canvas. Handle differently when user is adding
+    // a new definition or connecting hardware nodes.
+    Component* component = dynamic_cast<Component*>(node);
+    if (component) {
+        emit componentNodeMade("component", nodeItem);
+        //qDebug() << "Component Definition has been added to dock.";
+        return;
+    }
+
+    HardwareNode* hardwareNode = dynamic_cast<HardwareNode*>(node);
+    if (hardwareNode) {
+        //nodeItem->setVisible(false);
+        nodeItem->setHidden(true);
+        emit hardwareNodeMade("hardware", nodeItem);
+        //qDebug() << "Hardware Node has been added to dock.";
+        return;
+    }
+
+    if (node) {
+        if (node->getDataValue("kind") == "HardwareCluster") {
+            qDebug() << "Jenkins Nodes loaded";
+        }
+    }
+
 }
 
 void NodeView::view_ConstructEdgeGUI(Edge *edge)
@@ -246,15 +369,14 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
-
     NodeItem* srcGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(src->getID()));
     NodeItem* dstGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(dst->getID()));
 
     //NodeItem* parentNodeItem = getNodeItemFromGraphMLItem(parentGUI);
 
-//
-   // NodeItem* srcGUI = getNodeItemFromNode(src);
-   // NodeItem* dstGUI = getNodeItemFromNode(dst);
+    //
+    // NodeItem* srcGUI = getNodeItemFromNode(src);
+    // NodeItem* dstGUI = getNodeItemFromNode(dst);
 
     if(srcGUI != 0 && dstGUI != 0){
         //We have valid GUI elements for both ends of this edge.
@@ -264,13 +386,20 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 
         //Add it to the list of EdgeItems in the Model.
         storeGraphMLItemInHash(nodeEdge);
-       //nodeEdges.append(nodeEdge);
+        //nodeEdges.append(nodeEdge);
 
         connectGraphMLItemToController(nodeEdge, edge);
+
+        /******************************************************************/
+        // show hidden hardware node before the new edge is added to scene
+        if (dstGUI->getGraphML()->getDataValue("kind") == "HardwareNode") {
+            dstGUI->setHidden(false);
+        }
 
         if(nodeEdge){
             nodeEdge->addToScene(scene());
         }
+
     }else{
         qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
     }
@@ -315,6 +444,7 @@ void NodeView::view_DestructGraphMLGUI(GraphML *graphML)
 }
 */
 
+
 void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
 {
     if(graphML){
@@ -325,6 +455,42 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
             GUIItem->setSelected(setSelected);
             if(setSelected){
                 emit view_SetSelectedAttributeModel(GUIItem->getAttributeTable());
+
+                Node* node = dynamic_cast<Node*>(graphML);
+                if (node) {
+                    // update the dock node items when a node is selected
+                    emit updateAdoptableNodeList(node);
+
+                    // enable/disable dock buttons when necessary
+                    QString nodeKind = node->getDataValue("kind");
+
+                    if (nodeKind == "ComponentAssembly") {
+
+                        emit updateDockButtons('D');
+
+                    } else  if (nodeKind == "InterfaceDefinitions"||
+                                nodeKind == "BehaviourDefinitions" ||
+                                nodeKind == "AssemblyDefinitions" ||
+                                nodeKind == "File") {
+                        //nodeKind.startsWith("Component")) {
+
+                        emit updateDockButtons('P');
+
+                    } else if (nodeKind == "HardwareDefinitions" ||
+                               nodeKind == "HardwareCluster") {
+
+                        emit updateDockButtons('H');
+
+                    } else if (nodeKind == "DeploymentDefinitions" ||
+                               nodeKind == "ManagementComponent") {
+
+                        emit updateDockButtons('N');
+
+                    } else {
+                        emit updateDockButtons('A');
+                    }
+                }
+
                 return;
             }
         }
@@ -337,10 +503,12 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
 void NodeView::view_SortNode(Node *node)
 {
     NodeItem* nodeItem = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(node->getID()));
-
-    //NodeItem* nodeItem = getNodeItemFromNode(node);
     if(nodeItem){
         nodeItem->sortChildren();
+        // set/update the sceneRect when the model is sorted/resized
+        if (node->getDataValue("kind") == "Model") {
+            resetSceneRect(nodeItem);
+        }
     }
 
 }
@@ -517,17 +685,8 @@ GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
 
 void NodeView::mouseReleaseEvent(QMouseEvent *event)
 {
-      QPointF scenePos = this->mapToScene(event->pos());
-    if(rubberBanding){
-        //QRect selectionRectangle(origin, scenePos.toPoint());
-        //QPainterPath pp;
-        //pp.addRect(selectionRectangle);
 
 
-        //scene()->setSelectionArea(pp,Qt::ContainsItemBoundingRect);
-
-
-    }
     QGraphicsView::mouseReleaseEvent(event);
 }
 
@@ -551,22 +710,27 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
-
     QPointF scenePos = this->mapToScene(event->pos());
-    QGraphicsItem* item = this->scene()->itemAt(scenePos,this->transform());
+    QGraphicsItem* item = this->scene()->itemAt(scenePos, QTransform());
     rubberBanding = false;
-
 
     if(!item){
         if(event->button() == Qt::MiddleButton){
             if(CONTROL_DOWN){
                 emit sortModel();
+                return;
             }else{
+                /**
                 resetTransform();
                 int xValue = (horizontalScrollBar()->minimum() + horizontalScrollBar()->maximum())/2;
                 int yValue = (verticalScrollBar()->minimum() + verticalScrollBar()->maximum())/2;
                 horizontalScrollBar()->setValue(xValue);
                 verticalScrollBar()->setValue(yValue);
+                */
+
+                // center the model
+                emit centerModel();
+                return;
             }
         }else if(event->button() == Qt::RightButton && CONTROL_DOWN){
             //emit unselect();
@@ -575,11 +739,19 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             origin = scenePos.toPoint();
         }else{
             emit unselect();
+            emit updateDockButtons('N');
+            return;
+        }
+
+    } else {
+        // update attribute table size
+        if (event->button() == Qt::LeftButton) {
+            emit nodePressed();
         }
     }
 
-
     QGraphicsView::mousePressEvent(event);
+
 }
 
 void NodeView::wheelEvent(QWheelEvent *event)
@@ -595,6 +767,7 @@ void NodeView::wheelEvent(QWheelEvent *event)
             scale(1.0 / scaleFactor, 1.0 / scaleFactor);
         }
         emit updateZoom(transform().m22());
+        //emit updateViewMargin();
     }else{
         //QGraphicsView::wheelEvent(event);
     }
@@ -616,7 +789,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
     }
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_C){
-       // emit copy();
+        // emit copy();
     }
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_X){
@@ -667,6 +840,52 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
 }
 
+
+/**
+ * @brief NodeView::resetModel
+ * This method is called after the model is cleared.
+ * It resets the size of the model, sorts and centers it.
+ */
+void NodeView::resetModel()
+{
+    qDebug() << "Resetting model...";
+    foreach (QGraphicsItem *itm, scene()->items()) {
+        NodeItem *nodeItm = dynamic_cast<NodeItem*>(itm);
+        if (nodeItm) {
+            qDebug() << nodeItm->getGraphML()->getDataValue("label");
+            nodeItm->resetSize();
+        }
+    }
+    sortModel();
+    centerModel();
+    update();
+}
+
+
+/**
+ * @brief NodeView::centreModel
+ * @param node
+ */
+void NodeView::centreModel(Node *node)
+{
+    if(node){
+        centreItem(getGraphMLItemFromGraphML(node));
+    }
+    //centreItem(nodeItem);
+}
+
+
+/**
+ * @brief NodeView::disableDockButtons
+ * Disable all dock toggle buttons when either
+ * the view or model is pressed/selected.
+ */
+void NodeView::disableDockButtons()
+{
+    emit updateDockButtons('N');
+}
+
+
 void NodeView::view_Refresh()
 {
     scene()->update();
@@ -679,8 +898,8 @@ bool NodeView::guiCreated(GraphML *item)
 }
 */
 
-void NodeView::view_ConstructGraphMLGUI(GraphML *item)
-{
+void NodeView::view_ConstructGraphMLGUI(GraphML *item){
+
     Node* node = dynamic_cast<Node*>(item);
     Edge* edge = dynamic_cast<Edge*>(item);
     if(node){
@@ -699,4 +918,64 @@ void NodeView::printErrorText(GraphML *graphml, QString text)
     //TODO
     Q_UNUSED(graphml);
     Q_UNUSED(text);
+}
+
+
+
+
+
+/**
+ * @brief NodeView::fitToScreen
+ * This scales the view to fit the whole scene.
+ */
+void NodeView::fitToScreen()
+{
+    // make new scene rect slightly bigger than the itemsBoundingRect
+    QRectF itemsRec = scene()->itemsBoundingRect();
+    QRectF newSceneRec = QRectF(itemsRec.x() - 100,
+                                itemsRec.y() - 100,
+                                itemsRec.width() + 200,
+                                itemsRec.height() + 200);
+
+    //setSceneRect(newSceneRec);
+    //fitInView(newSceneRec, Qt::KeepAspectRatio);
+    setSceneRect(itemsRec);
+    fitInView(itemsRec, Qt::KeepAspectRatio);
+}
+
+
+/**
+ * @brief NodeView::view_addComponentDefinition
+ * Add a ComponentInstance of Component itm into the currently selected ComponentAssembly.
+ * @param itm
+ */
+void NodeView::view_addComponentDefinition(NodeItem *itm)
+{
+    ComponentAssembly* assm = dynamic_cast<ComponentAssembly*>(controller->getSelectedNode());
+    if (assm) {
+        Component* defn = dynamic_cast<Component*>(itm->getGraphML());
+        if (defn) {
+            controller->view_ConstructComponentInstanceInAssembly(defn, assm);
+            // sort component assembly
+            //view_SortNode(assm);
+        }
+    }
+}
+
+
+/**
+ * @brief NodeView::resetSceneRect
+ * This method resets the scene rectangle everytime the model is sorted.
+ * @param nodeItem
+ */
+void NodeView::resetSceneRect(NodeItem *nodeItem)
+{
+    if (nodeItem) {
+        QRect* rec = new QRect(0, 0,
+                               nodeItem->boundingRect().width()*1.5,
+                               nodeItem->boundingRect().height()*1.5);
+        setSceneRect(*rec);
+        nodeItem->setPos((rec->width()/2) - (nodeItem->boundingRect().width()/2),
+                         (rec->height()/2) - (nodeItem->boundingRect().height()/2));
+    }
 }

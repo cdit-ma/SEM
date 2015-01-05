@@ -27,6 +27,8 @@ public:
 
     //bool guiCreated(GraphML* item);
 
+    void resetModel();
+
 signals:
     void updateZoom(qreal zoom);
     void deletePressed(bool isDown);
@@ -35,8 +37,6 @@ signals:
     void shiftPressed(bool isDown);
 
     void constructNodeItem(QString kind, QPointF);
-
-
 
     void copy();
     void cut();
@@ -52,11 +52,18 @@ signals:
     void updateViewAspects(QStringList aspects);
     void sortModel();
 
-
     void view_SetSelectedAttributeModel(AttributeTableModel* model);
+    void nodePressed();
+    void updateAdoptableNodeList(Node* node);
+    void updateViewMargin();
 
+    void componentNodeMade(QString type, NodeItem* nodeItem);
+    void hardwareNodeMade(QString type, NodeItem* nodeItem);
 
     void view_ConstructMenu(QPoint);
+
+    void centerModel();
+    void updateDockButtons(char dockContainer);
 
 public slots:
     void view_Refresh();
@@ -73,6 +80,7 @@ public slots:
 
     void showContextMenu(QPoint position);
 
+    void view_DockConstructNode(QString kind);
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
 
@@ -82,12 +90,19 @@ public slots:
     void view_SelectGraphML(GraphML* graphML, bool setSelected=true);
     void view_CenterGraphML(GraphML* graphML);
 
-
     void view_SortNode(Node* node);
     void view_SetOpacity(GraphML* graphML, qreal opacity);
 
     void view_ConstructNodeAction();
 
+
+    void fitToScreen();
+    void resetSceneRect(NodeItem *nodeItem);
+
+    void centreModel(Node* node);
+
+    void disableDockButtons();
+    void view_addComponentDefinition(NodeItem* itm);
 
 
 private:
@@ -109,15 +124,19 @@ private:
 
     QStringList currentAspects;
     QPoint origin;
-    bool rubberBanding;
-    bool once;
     QRubberBand* rubberBand;
     QString NodeType;
+    qreal totalScaleFactor;
+
+    bool rubberBanding;
+    bool once;
     QRectF getVisibleRect();
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;
-    qreal totalScaleFactor;
 
+
+    double origRatio;
+    bool firstSort;
 };
 
 #endif // NODEVIEW_H

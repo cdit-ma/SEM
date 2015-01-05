@@ -29,13 +29,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     rubberBand->setPalette(palette);
     rubberBand->resize(500, 500);
 
-
-
-
-
-
-
-
     this->isPressed = false;
     this->node = node;
 
@@ -45,16 +38,19 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     icon = 0;
 
 
-    if(!parent){
+    if (!parent) {
         depth = 1;
-        this->width = 19200;
-        this->height = 10800;
-    }else{
-        depth = parent->depth +1;
-        this->width = parent->width/2;
-        this->height =  parent->height/2;
+        width = 19200;
+        height = 10800;
+    } else {
+        parentKind = parent->getGraphML()->getDataValue("label");
+        width = parent->getChildSize();
+        height = parent->getChildSize();
     }
 
+    origWidth = width;
+    origHeight = height;
+    hidden = false;
 
     GraphMLData* xData = node->getData("x");
     GraphMLData* yData = node->getData("y");
@@ -66,23 +62,22 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
 
     if(xData)
-    connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+        connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
     if(yData)
-    connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+        connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
     if(hData)
-    connect(hData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+        connect(hData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
     if(wData)
-    connect(wData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+        connect(wData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
     if(labelData)
-    connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+        connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
     if(kindData)
-    connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
-
+        connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
 
 
@@ -100,17 +95,14 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
             height = hData->getValue().toFloat();
     }
 
-
     if(kindData){
         QImage image( ":/Resources/Icons/" + kindData->getValue() + ".png");
-        icon = new QGraphicsPixmapItem(QPixmap::fromImage(image), this);
+        if (!image.isNull()) {
+            icon = new QGraphicsPixmapItem(QPixmap::fromImage(image), this);
+        }
     }
 
-
-
-    bRec = QRect(0,0,this->width, this->height);
-
-
+    bRec = QRectF(0,0,this->width, this->height);
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
@@ -119,12 +111,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     color = QColor(255,255,255,255);
     selectedColor = QColor(0,0,255,180);
 
-
     brush.setColor(color);
     selectedBrush.setColor(selectedColor);
-
-
-
 
     if(xData)
         graphMLDataUpdated(xData);
@@ -140,6 +128,11 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         drawObject = false;
         drawDetail = false;
     }
+
+    // this will stop the width of this item
+    // and its children from shrinking
+    setLabelFont();
+    setupIcon();
 }
 
 NodeItem::~NodeItem()
@@ -213,11 +206,18 @@ void NodeItem::deleteConnnection(NodeEdge *line)
     connections.remove(position);
 }
 
+float NodeItem::getChildSize()
+{
+    return childSize;
+
+}
+
 
 
 void NodeItem::setOpacity(qreal opacity)
 {
     QGraphicsItem::setOpacity(opacity);
+    emit updateOpacity(opacity);
 
     foreach(NodeEdge* edge, connections){
         if(edge->getSource()->opacity() != 0 && edge->getDestination()->opacity() != 0){
@@ -255,6 +255,9 @@ void NodeItem::setSelected(bool selected)
     }
 
     this->update(this->boundingRect());
+
+    // update corresponding dock node item
+    emit updateDockNodeItem(selected);
 }
 
 void NodeItem::setDeselected2()
@@ -265,7 +268,7 @@ void NodeItem::setDeselected2()
 
     for(int i =0;i< connections.size();i++){
         if(connections[i] != 0){
-        //connections[i]->s();
+            //connections[i]->s();
         }
     }
 }
@@ -300,31 +303,40 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
         }else if(dataKey == "y"){
             updatePosition(0,dataValue);
         }else if(dataKey == "label"){
+
             Node* node = (Node*) this->getGraphML();
 
-            dataValue = dataValue;// + " [" + node->getID()+"]";
-            QFont font("Arial");
-            font.setPointSize(1);
-            QFontMetrics fm(font);
+            dataValue = dataValue;// +  " [" + node->getID()+"]";
 
             if(dataValue != ""){
-                float factor = (width / 1.1) / fm.width(dataValue);
-                font.setPointSizeF(font.pointSizeF() * factor);
-                label->setFont(font);
+                label->setPlainText(dataValue);
             }
 
-
-            label->setPlainText(dataValue);
-
+            /**
             if(icon){
                 qreal labelHeight = label->boundingRect().height();
                 qreal iconHeight = icon->boundingRect().height();
                 qreal iconWidth = icon->boundingRect().width();
                 qreal scaleFactor = labelHeight / iconHeight;
                 icon->setScale(scaleFactor);
-                label->setX(iconWidth * scaleFactor);
-            }
 
+                label->setX(icon->x() + (iconWidth * scaleFactor) );
+
+                qDebug() << "labelHeight = " << labelHeight;
+                qDebug() << "iconWidth = " << iconWidth;
+                qDebug() << "iconHeight = " << iconHeight;
+                qDebug() << "icon.x = " << icon->x();
+                qDebug() << "scaleFactor = " << scaleFactor;
+
+                // added this to prevent the icon from looking pixelated
+                icon->setTransformationMode(Qt::SmoothTransformation);
+            }
+            */
+
+            // there has been a change to this item's graphml data
+            // update connected dock node item
+            //qDebug() << "NodeItem: graphMLDataUpdated";
+            emit updateDockNodeItem();
 
         }else if(dataKey == "kind"){
             kind = dataValue;
@@ -373,7 +385,7 @@ void NodeItem::updateViewAspects(QStringList aspects)
 
     bool isVisible = false;
     foreach(QString aspect, aspects){
-        if(node->isInAspect(aspect)){
+        if(node->isInAspect(aspect) && !hidden){
             isVisible = true;
             break;
         }
@@ -388,32 +400,148 @@ void NodeItem::updateViewAspects(QStringList aspects)
     update();
 }
 
+
+/**
+ * @brief NodeItem::sortChildren
+ */
 void NodeItem::sortChildren()
 {
     emit triggerAction("Sorting Children");
-    int currentX  = width/10;
-    int currentY = height/5;
 
-    foreach(QGraphicsItem* children, this->childItems()){
+    float topY;
+    float gapY;
+
+    // if it's a main node item, it will have no icon
+    if (kind == "Model" || kind.endsWith("Definitions")) {
+        topY = label->boundingRect().height();
+        gapY = topY;
+    } else {
+        topY = icon->boundingRect().height()*icon->scale();
+        gapY = topY/1.8;
+    }
+
+    float gapX = gapY;
+
+    float inCol = topY;
+    float outCol = topY;
+    float attCol = topY;
+
+    float rowWidth = gapX;
+    float colHeight = topY;
+
+    float maxHeight = 0;
+    float maxWidth = 0;
+
+    int numberOfItems = 0;
+    bool componentLayout = (kind == "Component" || kind == "ComponentInstance");
+
+    foreach (QGraphicsItem* children, this->childItems()) {
 
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(children);
-        if(nodeItem != 0){
 
-        if((currentX + nodeItem->width * 1.1) > width){
-            currentY += nodeItem->height * 1.1;
-            currentX = width/10;
-        }
+        // check that it's a NodeItem and that it's visible
+        if (nodeItem != 0 && nodeItem->isVisible()) {
 
+            QString childKind = nodeItem->getGraphML()->getDataValue("kind");
+            int childWidth = nodeItem->boundingRect().width();
+            int childHeight = nodeItem->boundingRect().height();
 
-        //nodeItem->node->updateDataValue("x",QString::number(currentX));
-        //nodeItem->node->updateDataValue("y",QString::number(currentY));
+            // store the maximum height for each row
+            if (childHeight > maxHeight) {
+                maxHeight = childHeight;
+            }
 
-        emit updateGraphMLData(nodeItem->getGraphML(),"x",QString::number(currentX));
-        emit updateGraphMLData(nodeItem->getGraphML(),"y",QString::number(currentY));
+            // if the node item's children are Components or ComponentInstances
+            // leave more gap for the in/out event ports along its edges
+            if (childKind == "Component" || childKind == "ComponentInstance") {
+                gapX = topY;
+            }
 
-        currentX += nodeItem->width * 1.1;
+            if (componentLayout) {
+
+                QString nodeKind = nodeItem->getGraphML()->getDataValue("kind");
+                float newX = 0;
+                float newY = 0;
+
+                if (nodeKind.startsWith("InEvent")) {
+                    newY = inCol;
+                    newX = 0 - (childWidth/2);
+                    inCol += childHeight + gapY;
+                } else if (nodeKind.startsWith("OutEvent")) {
+                    newY = outCol;
+                    newX = width - (childWidth/2);
+                    outCol += childHeight + gapY;
+                } else if (nodeKind.startsWith("Attribute")) {
+                    newX = (width/2) - (childWidth/2);
+                    newY = attCol;
+                    attCol += childHeight + gapY;
+
+                }
+
+                emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(newX));
+                emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(newY));
+
+            } else {
+
+                // if the origWidth is not used, when a node is sorted and it
+                // only had one child to begin with, it will always only have
+                // one node per row and hence one column, once sorted
+                // this allows there to be at most 2 child nodes per row
+
+                if ((rowWidth + childWidth) > origWidth) {
+                    colHeight += maxHeight + gapY;
+                    maxHeight = 0;
+
+                    if (rowWidth > maxWidth) {
+                        maxWidth = rowWidth - gapX;
+                    }
+                    maxHeight = childHeight;
+                    rowWidth = gapX;
+                }
+
+                emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
+                emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
+                rowWidth += gapX + childWidth;
+            }
+
+            numberOfItems++;
         }
     }
+
+    if (numberOfItems > 0) {
+        if (componentLayout) {
+            float max_height = inCol;
+            if (outCol > max_height) {
+                max_height = outCol;
+            }
+            if (attCol > max_height) {
+                max_height = attCol;
+            }
+            emit updateGraphMLData(getGraphML(),"height", QString::number(max_height));
+        } else {
+            if (maxWidth == 0) {
+                maxWidth = rowWidth - gapX;
+            }
+            emit updateGraphMLData(getGraphML(),"width", QString::number(maxWidth + gapX));
+            emit updateGraphMLData(getGraphML(),"height", QString::number(colHeight + maxHeight + gapY));
+
+            // this is only used to resize the model
+            if (kind == "Model") {
+                updateSize(maxWidth + gapX, colHeight + maxHeight + gapY);
+            }
+        }
+
+    }
+
+    /**
+    // propagate the resize event to the parent(s)
+    if (parentItem()) {
+        NodeItem* itm = dynamic_cast<NodeItem*>(parentItem());
+        if (itm->getGraphML()->getDataValue("kind").endsWith("Definitions")) {
+            itm->sortChildren();
+        }
+    }
+    */
 }
 
 
@@ -424,24 +552,17 @@ void NodeItem::setRubberbandMode(bool On)
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-
-
-    if(!drawObject){
-        event->setAccepted(false);
-        return;
-    }
-
-    if(QGraphicsItem::opacity() == .10){
-        event->setAccepted(false);
-        return;
-    }
-
-
     switch (event->button()) {
 
     case Qt::MiddleButton:{
         if(event->modifiers().testFlag(Qt::ControlModifier)){
             sortChildren();
+            // update scene rect after the model is sorted/resized
+            // and disable all dock toggle buttons
+            if (kind == "Model") {
+                emit updateSceneRect(this);
+                emit disableDockButtons();
+            }
         }else{
             emit triggerCentered(getGraphML());
         }
@@ -449,6 +570,10 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         break;
     }
     case Qt::LeftButton:{
+        if(!drawObject){
+            event->setAccepted(false);
+            return;
+        }
         if(USING_RUBBERBAND_SELECTION){
             origin = event->screenPos();
             sceneOrigin = mapToScene(event->pos());
@@ -466,16 +591,18 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         break;
     }
     case Qt::RightButton:{
+        if(!drawObject){
+            event->setAccepted(false);
+            return;
+        }
         //Select this node, and construct a child node.
         emit triggerSelected(getGraphML());
         break;
 
     }
 
-    default:{
-
+    default:
         break;
-    }
     }
 }
 
@@ -503,7 +630,6 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
     default:
         break;
-
     }
 }
 
@@ -522,11 +648,16 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             emit triggerAction("Moving Selection");
         }
         QPointF delta = (event->scenePos() - previousPosition);
-        this->setPos(pos() + delta);
 
+        //if (parentItem()) {
+        //QRectF rec = parentItem()->boundingRect();
+        //if (rec.contains(pos()+delta) && rec.contains(pos()+delta+QPoint(width, height))) {
+        this->setPos(pos() + delta);
         emit moveSelection(delta);
         hasMoved = true;
         previousPosition = event->scenePos();
+        //}
+        //}
     }
 }
 
@@ -626,15 +757,13 @@ void NodeItem::updateBrushes()
     }
 
 
-
-
     brush = QBrush(color);
     selectedBrush = QBrush(selectedColor);
 
     pen.setColor(Qt::gray);
     pen.setWidth(4);
     selectedPen.setColor(Qt::blue);
-    selectedPen.setWidth(4);
+    selectedPen.setWidth(24);
 
 }
 
@@ -659,9 +788,84 @@ void NodeItem::updateSize(QString w, QString h)
     if(h != 0){
         height = h.toDouble();
     }
-     bRec = QRect(-4,-4,width+4, height+4);
-     update();
+    bRec = QRect(-4,-4,width+4, height+4);
+    update();
 
+}
+
+
+/**
+ * @brief NodeItem::updateSize
+ * This is called whenever the sortChildren is called on the model.
+ * @param w
+ * @param h
+ */
+void NodeItem::updateSize(double w, double h)
+{
+    bRec = QRect(0, 0, w, h);
+    update();
+}
+
+/**
+ * @brief NodeItem::setLabelFont
+ */
+void NodeItem::setLabelFont()
+{
+    QFont font("Arial");
+    font.setPointSize(1);
+    QFontMetrics fm(font);
+
+    float factor = (width*0.95) / fm.width(QString(16, 'c'));
+    font.setPointSizeF(font.pointSizeF() * factor);
+    label->setFont(font);
+
+    // set fixed child size
+    childSize = label->boundingRect().height() * 4;
+}
+
+
+/**
+ * @brief NodeItem::setupIcon
+ */
+void NodeItem::setupIcon()
+{
+    if(icon != 0){
+        qreal labelHeight = label->boundingRect().height();
+        qreal iconHeight = icon->boundingRect().height();
+        qreal iconWidth = icon->boundingRect().width();
+
+        qreal scaleFactor = (labelHeight / iconHeight)*1.5;
+        icon->setScale(scaleFactor);
+
+        qreal diffHeight = (iconHeight*scaleFactor) - labelHeight;
+        label->setX(icon->x() + (iconWidth * scaleFactor));
+        label->setY(icon->y() + (diffHeight/2));
+
+        // added this to prevent the icon from looking pixelated
+        icon->setTransformationMode(Qt::SmoothTransformation);
+    }
+}
+
+
+/**
+ * @brief NodeItem::setHidden
+ */
+void NodeItem::setHidden(bool h)
+{
+    hidden  = h;
+    setVisible(!h);
+}
+
+
+/**
+ * @brief NodeItem::resetSize
+ * Reset this node item's size to its default size.
+ */
+void NodeItem::resetSize()
+{
+    updateSize(QString::number(origWidth), QString::number(origHeight));
+    qDebug() << "OrigSize: " << origWidth << "," << origHeight;
+    sortChildren();
 }
 
 

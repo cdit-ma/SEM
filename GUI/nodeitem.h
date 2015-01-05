@@ -30,8 +30,8 @@ public:
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     Node* node;
-    int width;
-    int height;
+    double width;
+    double height;
     bool drawDetail;
     bool drawObject;
     int depth;
@@ -39,9 +39,13 @@ public:
     void addConnection(NodeEdge* line);
     void deleteConnnection(NodeEdge* line);
 
+    float getChildSize();
+
+    void setHidden(bool h);
+    void resetSize();
 
 signals:
-
+    void nodeItemPressed(Node* n, bool selected);
 
     void deleted(NodeItem*);
     void centreNode(NodeItem*);
@@ -57,6 +61,16 @@ signals:
     void moveSelection(QPointF move);
     void makeChildNode(QString type, Node*);
     void updateData(QString key, QString value);
+
+    void updateDockNodeItem();
+    void updateDockNodeItem(bool selected);
+
+    void updateOpacity(qreal opacity);
+
+    void updateSceneRect(NodeItem* nodeItem);
+
+    void disableDockButtons();
+
 public slots:
     void setOpacity(qreal opacity);
     void setSelected2();
@@ -72,6 +86,7 @@ public slots:
     void sortChildren();
 
     void setRubberbandMode(bool On);
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
@@ -89,7 +104,7 @@ private:
     QString toBuildType;
     QString name;
     QString kind;
-    QRect bRec;
+    QRectF bRec;
 
 
     bool USING_RUBBERBAND_SELECTION;
@@ -105,8 +120,7 @@ private:
     QPen pen;
     QPen selectedPen;
 
-
-
+    float childSize;
     bool hasMoved;
 
     QVector<NodeEdge*> connections;
@@ -119,13 +133,21 @@ private:
     QGraphicsTextItem* label;
     QGraphicsPixmapItem* icon;
 
-
     bool CONTROL_DOWN;
     bool isPressed;
     QPointF previousPosition;
 
     QString ID;
 
+
+    QString parentKind;
+    double origWidth;
+    double origHeight;
+    bool hidden;
+
+    void updateSize(double w, double h);
+    void setLabelFont();
+    void setupIcon();
 
 };
 

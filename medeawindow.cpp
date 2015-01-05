@@ -32,7 +32,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     statusBar()->addPermanentWidget(currentOperationBar);
 
-
     QHeaderView *headerView = ui->nodeTreeView->header();
     headerView->setSectionResizeMode(QHeaderView::Stretch);
 
@@ -144,8 +143,6 @@ void MedeaWindow::view_SetTableModel(QAbstractTableModel *model)
 
 void MedeaWindow::updateFilterButtons(QVector<FilterButton *> buttons)
 {
-
-
     int count = ui->AppliedFilters->count();
     for (int i = 0; i < count; i++) {
 
@@ -166,8 +163,6 @@ void MedeaWindow::updateFilterButtons(QVector<FilterButton *> buttons)
 
 void MedeaWindow::updateAspectButtons(QVector<FilterButton *> buttons)
 {
-
-
     int count = ui->VisibleAspects->count();
     for (int i = 0; i < count; i++) {
         QWidget *w = ui->VisibleAspects->itemAt(i)->widget();
@@ -195,7 +190,6 @@ void MedeaWindow::updateProgressBar(int percentage, QString label)
          this->currentOperationBar->setValue(percentage);
 
     }
-
 }
 
 void MedeaWindow::on_actionImport_GraphML_triggered()
@@ -278,6 +272,7 @@ void MedeaWindow::setAttributeModel(AttributeTableModel* model)
 
 void MedeaWindow::updateUndoStates(QStringList list)
 {
+
     if(list.size() == 0){
         ui->actionUndo->setEnabled(false);
     }else{
@@ -536,9 +531,6 @@ void MedeaWindow::importGraphMLFiles(QStringList files)
         }
     }
 
-
-
-
     if(selectedProject){
     int count = 2;
         while(count-=1 > 0){
@@ -546,14 +538,7 @@ void MedeaWindow::importGraphMLFiles(QStringList files)
             emit selectedProject->getView()->shiftPressed(false);
             emit view_ImportGraphML(fileData);
         }
-        /*NewController* controller = selectedProject->getController();
 
-        if(controller){
-            controller->view_ImportGraphML(fileData, 0);
-        }else{
-            qCritical() << "No Controller";
-        }
-        */
     }else{
         qCritical() << "No Active Window";
     }

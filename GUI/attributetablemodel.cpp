@@ -11,6 +11,11 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
     setupDataBinding();
 }
 
+AttributeTableModel::~AttributeTableModel()
+{
+    //qCritical() << "Deleting Table Model";
+}
+
 
 
 void AttributeTableModel::updatedData(GraphMLData *data)

@@ -18,6 +18,7 @@ class AttributeTableModel : public QAbstractTableModel
     Q_OBJECT
 public:
     AttributeTableModel(GraphMLItem* guiItem, QObject* parent = 0);
+    ~AttributeTableModel();
 
 public slots:
     void updatedData(GraphMLData* data);

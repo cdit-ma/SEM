@@ -22,6 +22,7 @@ Node::~Node()
     if(parentNode){
         parentNode->removeChild(this);
     }
+   //qCritical() << "NOde deleted";
 
 }
 

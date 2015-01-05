@@ -46,8 +46,10 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     inScene = false;
 
     //Set Circle Width/Height
-    width = 50;
-    height = 50;
+
+    width =  (s->boundingRect().width() + d->boundingRect().width())/20;
+     height =  (s->boundingRect().height() + d->boundingRect().height())/20;
+
 
     //Construct the Bounding Rectangle
     bRec = QRect(0, 0, width, height);
@@ -268,7 +270,7 @@ void NodeEdge::updateBrushes()
     pen.setWidth(penWidth);
     pen.setStyle(Qt::DashLine);
     selectedPen.setColor(selectedColor);
-    selectedPen.setWidth(2 * penWidth);
+    selectedPen.setWidth(6 * penWidth);
 
     arrowPen.setColor(selectedColor);
     arrowPen.setWidth(3 * penWidth);

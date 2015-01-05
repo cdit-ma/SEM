@@ -66,6 +66,10 @@ public:
 
     //Returns a list of Kinds which can be adopted by a Node.
     QStringList getAdoptableNodeKinds(Node* parent = 0);
+    //QStringList getAdoptableNodeKinds(Node* parent);
+
+    Node* getSelectedNode();
+
 
 signals:
     //Triggers the View to Enable/Disable the GUI
@@ -116,9 +120,15 @@ signals:
 
     void view_ForceRefresh();
 
+    void view_FitToScreen();
+    void centerModel(Node* node);
+
 public slots:
+    void centerModel();
     void view_SelectModel();
+
     //UNUSED
+
     void view_ValidateModel();
     void validator_HighlightError(Node* node, QString error);
 
@@ -151,6 +161,9 @@ public slots:
 
     void view_ConstructComponentInstanceInAssembly(Component* definition, ComponentAssembly* assembly = 0);
 
+    //Clears the Model
+    void view_ClearModel();
+
     //Constructs an Edge with no data between Source and Destination Nodes.
     void view_ConstructEdge(Node* source, Node* destination);
 
@@ -161,6 +174,7 @@ public slots:
     //Hides all Nodes which don't match the List of Filters provided.
     void view_FilterNodes(QStringList filterString);
 
+    void view_SortModel();
     //Hides all Nodes which can't be connected to Node
     void view_ShowLegalEdgesForNode(Node* node);
 
@@ -196,7 +210,7 @@ private:
     //Returns true if succeeded
     bool copySelectedNodesGraphML();
 
-    //Get a list of all Node ID's
+    //Get a list of all NodsortModele ID's
     QStringList getNodeIDS();
 
     //Exports a Selection of Containers to export into GraphML
@@ -267,7 +281,7 @@ private:
     void setupManagementComponents();
 
     //Gets the currently selected Node/Edge only if there is 1 Node/Edge selected.
-    Node* getSelectedNode();
+    //Node* getSelectedNode();
     Edge* getSelectedEdge();
 
     //Sets the Node/Edge as selected. Calls Methods in the View to visually select the item's GUI.
@@ -391,6 +405,6 @@ private:
 
 
     ValidationEngine* validator;
-};
+    };
 
 #endif // NEWCONTROLLER_H

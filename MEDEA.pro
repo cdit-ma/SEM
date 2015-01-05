@@ -10,10 +10,6 @@ QT       += gui
 QT       += widgets
 
 TARGET = MEDEA
-CONFIG   += console
-CONFIG   -= app_bundle
-
-CONFIG += CONSOLE
 
 TEMPLATE = app
 
@@ -69,15 +65,20 @@ HEADERS += \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
     ValidationEngine/validationengine.h \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
+    newmedeawindow.h \
+    GUI/docktogglebutton.h \
+    GUI/dockscrollarea.h \
     GUI/nodeedge.h \
+    Model/InterfaceDefinitions/memberinstance.h \
     Model/InterfaceDefinitions/aggregateinstance.h \
     Model/InterfaceDefinitions/memberinstance.h \
     Model/DeploymentDefinitions/managementcomponent.h \
-    GUI/graphmlview.h \
-    GUI/graphmlviewitem.h \
-    GUI/nodetableitem.h \
+    GUI/dockadoptablenodeitem.h \
+    GUI/docknodeitem.h \
     GUI/nodetable.h \
+    GUI/nodetableitem.h \
     GUI/nodetableview.h \
+    GUI/graphmlview.h \
     Model/DeploymentDefinitions/ineventportdelegate.h \
     Model/DeploymentDefinitions/outeventportdelegate.h
 
@@ -131,24 +132,28 @@ SOURCES += \
     Model/DeploymentDefinitions/hardwaredefinitions.cpp \
     ValidationEngine/validationengine.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
-    ValidationEngine/validationplugin.cpp \
+	ValidationEngine/validationplugin.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
+    newmedeawindow.cpp \
+    GUI/docktogglebutton.cpp \
+    GUI/dockscrollarea.cpp \
     GUI/nodeedge.cpp \
+    Model/InterfaceDefinitions/memberinstance.cpp \
     Model/InterfaceDefinitions/aggregateinstance.cpp \
     Model/InterfaceDefinitions/memberinstance.cpp \
     Model/DeploymentDefinitions/managementcomponent.cpp \
-    GUI/graphmlview.cpp \
-    GUI/graphmlviewitem.cpp \
-    GUI/nodetableitem.cpp \
+    GUI/dockadoptablenodeitem.cpp \
+    GUI/docknodeitem.cpp \
     GUI/nodetable.cpp \
+    GUI/nodetableitem.cpp \
     GUI/nodetableview.cpp \
+    GUI/graphmlview.cpp \
     Model/DeploymentDefinitions/ineventportdelegate.cpp \
     Model/DeploymentDefinitions/outeventportdelegate.cpp
 
 FORMS += \
     medeawindow.ui \
     mainwindow.ui \
-    newmedeawindow.ui \
 
 RESOURCES += \
     resources.qrc

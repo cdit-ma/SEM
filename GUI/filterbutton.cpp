@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <QSizePolicy>
 #include <QPainter>
-
+#include <QDebug>
 
 FilterButton::FilterButton(QString filter, QWidget *parent) :
     QWidget(parent)
@@ -27,6 +27,11 @@ FilterButton::FilterButton(QString filter, QWidget *parent) :
 
     setFilter(filter);
     connect(button, SIGNAL(clicked()),this, SLOT(buttonPressed()));
+}
+
+FilterButton::~FilterButton()
+{
+    //qCritical() << "Deleting FilterButton";
 }
 
 void FilterButton::setFilter(QString f)

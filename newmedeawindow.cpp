@@ -1,0 +1,926 @@
+#include "newmedeawindow.h"
+
+#include <QDebug>
+#include <QImage>
+#include <QFileDialog>
+#include <QClipboard>
+#include <QMessageBox>
+#include <QApplication>
+#include <QHeaderView>
+#include <QScrollBar>
+#include <QSettings>
+
+
+/**
+ * @brief NewMedeaWindow::NewMedeaWindow
+ * @param parent
+ */
+NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
+    QMainWindow(parent)
+{
+    nodeView = 0;
+    controller = 0;
+    myProcess = 0;
+
+    // initialise gui and connect signals and slots
+    initialiseGUI();
+    makeConnections();
+
+
+
+    if(graphMLFile.length() != 0){
+        QStringList files;
+        files.append(graphMLFile);
+        importGraphMLFiles(files);
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::~NewMedeaWindow
+ */
+NewMedeaWindow::~NewMedeaWindow()
+{
+    if (controller) {
+        delete controller;
+    }
+    if (nodeView) {
+        delete nodeView;
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::initialiseGUI
+ * Initialise variables, setup widget sizes, organise layout
+ * and setup the view, scene and menu.
+ */
+void NewMedeaWindow::initialiseGUI()
+{
+    // initial values
+    prevPressedButton = 0;
+    prevSelectedNode = 0;
+    selectedNode = 0;
+
+    nodeView = new NodeView();
+    controller = new NewController();
+    scene = nodeView->scene();
+
+    //QThread *controllerThread =  new QThread(this);
+    //controller->moveToThread(controllerThread);
+    //controllerThread->start();
+
+    // set window size; used for graphicsview and main widget
+    int windowWidth = 1300;
+    int windowHeight = 800;
+    int rightPanelWidth = 210;
+
+    // set central widget and window size
+    this->setCentralWidget(nodeView);
+    this->setMinimumSize(windowWidth, windowHeight);
+    nodeView->setMinimumSize(windowWidth, windowHeight);
+
+    setupJenkinsSettings();
+    controller->connectView(nodeView);
+    controller->initializeModel();
+
+    projectName = new QPushButton(" Project Name");
+    dataTable = new QTableView();
+    dataTableBox = new QGroupBox();
+    assemblyButton = new QPushButton("Assembly");
+    workloadButton = new QPushButton("Workload");
+    definitionsButton = new QPushButton("Definitions");
+
+    // initialise other private variables
+    QPushButton *menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
+    QLineEdit *searchBar = new QLineEdit();
+    QPushButton *searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
+    QTextEdit *notificationArea = new QTextEdit("Notifications can be displayed here.");
+    QVBoxLayout *tableLayout = new QVBoxLayout();
+
+    // this is just for testing
+    connect(searchButton, SIGNAL(pressed()), this, SLOT(addNodeToDock()));
+
+    // setup widgets
+    projectName->setFlat(true);
+    projectName->setFixedWidth(rightPanelWidth);
+    menuButton->setFixedSize(50,25);
+    menuButton->setIconSize(menuButton->size()*0.6);
+    searchButton->setFixedSize(45, 25);
+    searchButton->setIconSize(searchButton->size()*0.8);
+    searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
+    notificationArea->setFixedSize(rightPanelWidth, 60);
+    assemblyButton->setFixedSize(rightPanelWidth, 40);
+    workloadButton->setFixedSize(rightPanelWidth, 40);
+    definitionsButton->setFixedSize(rightPanelWidth, 40);
+    assemblyButton->setStyleSheet("background-color: rgba(80,180,180,0.9);");
+    workloadButton->setStyleSheet("background-color: rgba(230,130,130,0.9);");
+    definitionsButton->setStyleSheet("background-color: rgba(120,120,220,0.9);");
+    projectName->setStyleSheet("font-size: 16px;");
+    searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
+
+    // setup and add dataTable/dataTableBox widget/layout
+    dataTable->setFixedWidth(rightPanelWidth);
+    dataTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    //dataTable->setStyleSheet("QTableView{ background-color: rgba(0,0,0,0); }");
+    tableLayout->setMargin(0);
+    tableLayout->setContentsMargins(0,0,0,0);
+    tableLayout->addWidget(dataTable);
+    dataTableBox->setFixedWidth(rightPanelWidth);
+    dataTableBox->setLayout(tableLayout);
+    //dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
+    dataTableBox->setStyleSheet("QGroupBox {"
+                                "background-color: rgba(0,0,0,0);"
+                                "border: 0px;"
+                                "}");
+
+    // layouts and spacer items
+    QHBoxLayout *mainHLayout = new QHBoxLayout();
+    QVBoxLayout *leftVlayout = new QVBoxLayout();
+    QVBoxLayout *rightVlayout =  new QVBoxLayout();
+    QHBoxLayout *titleLayout = new QHBoxLayout();
+    QHBoxLayout *searchLayout = new QHBoxLayout();
+    QHBoxLayout *bodyLayout = new QHBoxLayout();
+
+    // add widgets to/and layouts
+    titleLayout->addWidget(menuButton, 1);
+    titleLayout->addWidget(projectName, 1);
+    titleLayout->addStretch(7);
+
+    searchLayout->addWidget(searchBar, 3);
+    searchLayout->addWidget(searchButton, 1);
+
+    leftVlayout->addLayout(titleLayout);
+    leftVlayout->addStretch(1);
+    leftVlayout->addLayout(bodyLayout, 20);
+
+    rightVlayout->addLayout(searchLayout, 1);
+    rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
+    rightVlayout->addWidget(assemblyButton, 1);
+    rightVlayout->addWidget(workloadButton, 1);
+    rightVlayout->addWidget(definitionsButton, 1);
+    rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
+    rightVlayout->addWidget(dataTableBox, 4);
+    rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
+    rightVlayout->addStretch();
+    rightVlayout->addWidget(notificationArea, 1);
+    rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
+
+    mainHLayout->addLayout(leftVlayout, 4);
+    mainHLayout->addLayout(rightVlayout, 1);
+    mainHLayout->setContentsMargins(25, 25, 25, 25);
+    nodeView->setLayout(mainHLayout);
+
+    // other settings
+    notificationArea->setEnabled(false);
+    assemblyButton->setCheckable(true);
+    workloadButton->setCheckable(true);
+    definitionsButton->setCheckable(true);
+
+    // setup the menu and dock
+    setupMenu(menuButton);
+    setupDock(bodyLayout);
+
+    // why does calling it here shrink it first before
+    // scaling it correctly when called a second time
+    // using the menu or keyboard shorcut?
+    //nodeView->fitToScreen();
+
+    // intially turn all view aspects on
+    assemblyButton->setChecked(true);
+    workloadButton->setChecked(true);
+    definitionsButton->setChecked(true);
+    checkedViewAspects.append(assemblyButton->text());
+    checkedViewAspects.append(workloadButton->text());
+    checkedViewAspects.append(definitionsButton->text());
+
+   // nodeView->centerModel();
+
+}
+
+
+/**
+ * @brief NewMedeaWindow::setupMenu
+ * Initialise and setup menus and their actions.
+ * @param button
+ */
+void NewMedeaWindow::setupMenu(QPushButton *button)
+{
+    // menu button/actions
+    menu = new QMenu();
+    file_menu = menu->addMenu(QIcon(":/Resources/Icons/file_menu.png"), "File");
+    edit_menu = menu->addMenu(QIcon(":/Resources/Icons/edit_menu.png"), "Edit");
+    view_menu = menu->addMenu(QIcon(":/Resources/Icons/view.png"), "View");
+    menu->addSeparator();
+    exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Exit");
+
+    file_newProject = file_menu->addAction(QIcon(":/Resources/Icons/new_project.png"), "New Project");
+    file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+    file_importGraphML = file_menu->addAction(QIcon(":/Resources/Icons/import.png"), "Import");
+    file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
+    file_exportGraphML = file_menu->addAction(QIcon(":/Resources/Icons/export.png"), "Export");
+    file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
+    file_menu->addSeparator();
+
+    if (JENKINS_ADDRESS != "") {
+        file_importJenkinsNodes = file_menu->addAction(QIcon(":/Resources/Icons/jenkins.png"), "Import Jenkins Nodes");
+        file_importJenkinsNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
+    } else {
+        file_importJenkinsNodes = 0;
+    }
+
+    file_clearModel = file_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
+    file_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    file_validateModel = file_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
+    file_validateModel->setEnabled(false);
+
+    edit_undo = edit_menu->addAction(QIcon(":/Resources/Icons/undo.png"), "Undo");
+    edit_undo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
+    edit_redo = edit_menu->addAction(QIcon(":/Resources/Icons/redo.png"), "Redo");
+    edit_redo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Y));
+    edit_menu->addSeparator();
+    edit_cut = edit_menu->addAction(QIcon(":/Resources/Icons/cut.png"), "Cut");
+    edit_cut->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_X));
+    edit_copy = edit_menu->addAction(QIcon(":/Resources/Icons/copy.png"), "Copy");
+    edit_copy->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
+    edit_paste = edit_menu->addAction(QIcon(":/Resources/Icons/paste.png"), "Paste");
+    edit_paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
+
+    view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/zoomToFit.png"), "Fit To Sreen");
+    view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
+
+    exit->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
+
+    button->setMenu(menu);
+}
+
+
+/**
+ * @brief NewMedeaWindow::setupDock
+ * Initialise and setup dock widgets.
+ * @param layout
+ */
+void NewMedeaWindow::setupDock(QHBoxLayout *layout)
+{
+    QVBoxLayout *dockLayout = new QVBoxLayout();
+    QGroupBox* buttonsBox = new QGroupBox();
+    QHBoxLayout *dockButtonsHlayout = new QHBoxLayout();
+
+    partsButton = new DockToggleButton("P", this);
+    hardwareNodesButton = new DockToggleButton("H", this);
+    compDefinitionsButton = new DockToggleButton("D", this);
+
+    partsContainer = new DockScrollArea("Parts", partsButton);
+    hardwareContainer = new DockScrollArea("Hardware Nodes", hardwareNodesButton);
+    definitionsContainer = new DockScrollArea("Definitions", compDefinitionsButton);
+
+    // width of the containers is fixed
+    boxWidth = (partsButton->getWidth()*3) + 30;
+
+    // set buttonBox's size and get rid of its border
+    buttonsBox->setStyleSheet("border: 0px;");
+    buttonsBox->setFixedSize(boxWidth, 60);
+
+    // set dockScrollAreas sizes
+    partsContainer->setMaximumWidth(boxWidth);
+    hardwareContainer->setMaximumWidth(boxWidth);
+    definitionsContainer->setMaximumWidth(boxWidth);
+
+    // set size policy for buttons
+    partsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    hardwareNodesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    compDefinitionsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+    // set keyboard shortcuts for dock buttons
+    partsButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
+    hardwareNodesButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_H));
+    compDefinitionsButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+
+    // add widgets to/and layouts
+    dockButtonsHlayout->addWidget(partsButton);
+    dockButtonsHlayout->addWidget(hardwareNodesButton);
+    dockButtonsHlayout->addWidget(compDefinitionsButton);
+    buttonsBox->setLayout(dockButtonsHlayout);
+
+    dockLayout->addWidget(buttonsBox);
+    dockLayout->addWidget(partsContainer);
+    dockLayout->addWidget(hardwareContainer);
+    dockLayout->addWidget(definitionsContainer);
+    dockLayout->addStretch();
+
+    layout->addLayout(dockLayout, 1);
+    layout->addStretch(3);
+
+    // initially disable dock buttons
+    updateDockButtons('N');
+}
+
+
+/**
+ * @brief NewMedeaWindow::makeConnections
+ * Connect signals and slots.
+ */
+void NewMedeaWindow::makeConnections()
+{
+    connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
+
+    connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
+    connect(this, SIGNAL(view_ImportGraphML(QStringList)), controller, SLOT(view_ImportGraphML(QStringList)));
+
+    connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
+    connect(this, SIGNAL(view_ExportGraphML(QString)), controller, SLOT(view_ExportGraphML(QString)));
+    connect(controller, SIGNAL(view_WriteGraphML(QString,QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
+
+    connect(file_clearModel, SIGNAL(triggered()), controller, SLOT(view_ClearModel()));
+    connect(file_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
+
+    connect(file_importJenkinsNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
+
+    connect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
+    connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
+    connect(edit_undo, SIGNAL(triggered()), controller, SLOT(view_Undo()));
+    connect(edit_redo, SIGNAL(triggered()), controller, SLOT(view_Redo()));
+
+    connect(edit_cut, SIGNAL(triggered()), controller, SLOT(view_Cut()));
+    connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
+    connect(this, SIGNAL(view_PasteData(QString)), controller, SLOT(view_Paste(QString)));
+    connect(edit_copy, SIGNAL(triggered()), controller, SLOT(view_Copy()));
+    connect(controller, SIGNAL(view_UpdateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));
+
+    connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
+
+    connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
+
+    connect(projectName, SIGNAL(clicked()), controller, SLOT(view_SelectModel()));
+
+    connect(assemblyButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
+    connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
+    connect(definitionsButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
+    connect(this, SIGNAL(setViewAspects(QStringList)), nodeView, SLOT(setViewAspects(QStringList)));
+
+    connect(this, SIGNAL(clearDock()), partsContainer, SLOT(clear()));
+    connect(this, SIGNAL(clearDock()), hardwareContainer, SLOT(clear()));
+    connect(this, SIGNAL(clearDock()), definitionsContainer, SLOT(clear()));
+
+    connect(nodeView, SIGNAL(hardwareNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
+    connect(nodeView, SIGNAL(componentNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
+    connect(nodeView, SIGNAL(updateAdoptableNodeList(Node*)), this, SLOT(nodeSelected(Node*)));
+    connect(partsContainer, SIGNAL(constructDockNode(QString)), nodeView, SLOT(view_DockConstructNode(QString)));
+    connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(NodeItem*)), nodeView, SLOT(view_addComponentDefinition(NodeItem*)));
+
+    connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateProjectName(QString)));
+    //connect(nodeView, SIGNAL(updateViewMargin()), this, SLOT(updateViewMargin()));
+    connect(nodeView, SIGNAL(nodePressed()), this, SLOT(on_nodePressed()));
+
+    connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
+    connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showContextMenu(QPoint)));
+
+    connect(nodeView, SIGNAL(updateDockButtons(char)), this, SLOT(updateDockButtons(char)));
+}
+
+
+/**
+ * @brief NewMedeaWindow::resizeEvent
+ * The width of the scroll areas and group boxes in the dock are fixed.
+ * The height changes depending on window size and content.
+ * @param event
+ */
+void NewMedeaWindow::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+
+    boxHeight = this->height()*0.75;
+    partsContainer->setMinimumHeight(boxHeight);
+    hardwareContainer->setMinimumHeight(boxHeight);
+    definitionsContainer->setMinimumHeight(boxHeight);
+
+    // update dataTable size
+    on_nodePressed();
+}
+
+
+/**
+ * @brief NewMedeaWindow::setupJenkinsSettings
+ */
+void NewMedeaWindow::setupJenkinsSettings()
+{
+    DEPGEN_ROOT = QString(qgetenv("DEPGEN_ROOT"));
+
+    QSettings Settings(DEPGEN_ROOT+"/release/config.ini", QSettings::IniFormat);
+
+    Settings.beginGroup("Jenkins-Settings");
+    JENKINS_ADDRESS = Settings.value("JENKINS_ADDRESS").toString();
+    JENKINS_USERNAME = Settings.value("JENKINS_USERNAME").toString();
+    JENKINS_PASSWORD = Settings.value("JENKINS_PASSWORD").toString();
+    Settings.endGroup();
+}
+
+
+/************************************************************************************************************/
+
+
+/**
+ * @brief NewMedeaWindow::on_actionImportJenkinsNode
+ */
+void NewMedeaWindow::on_actionImportJenkinsNode()
+{
+    QString program = "python Jenkins-Groovy-Runner.py";
+    program +=" -s " + JENKINS_ADDRESS;
+    program +=" -u " + JENKINS_USERNAME;
+    program +=" -p " + JENKINS_PASSWORD;
+    program +=" -g  Jenkins_Construct_GraphMLNodesList.groovy";
+
+    myProcess = new QProcess(this);
+    myProcess->setWorkingDirectory(DEPGEN_ROOT + "/scripts");
+    connect(myProcess, SIGNAL(finished(int)), this, SLOT(loadJenkinsData(int)));
+    myProcess->start(program);
+}
+
+
+/**
+ * @brief NewMedeaWindow::on_actionNew_Project_triggered
+ * At the moment it olnly allows one project to be opened at a time.
+ */
+void NewMedeaWindow::on_actionNew_Project_triggered()
+{
+    // ask user if they want to save current project before closing it
+    QMessageBox::StandardButton saveProject = QMessageBox::question(this,
+                                                                    "Creating A New Project",
+                                                                    "Current project will be closed.\nSave changes?",
+                                                                    QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+    if (saveProject == QMessageBox::Yes) {
+        file_exportGraphML->trigger();
+    } else if (saveProject == QMessageBox::Cancel) {
+        return;
+    }
+
+    file_clearModel->trigger();
+    nodeView->resetModel();
+    emit clearDock();
+}
+
+
+/**
+ * @brief NewMedeaWindow::on_actionImport_GraphML_triggered
+ */
+void NewMedeaWindow::on_actionImport_GraphML_triggered()
+{
+    QStringList files = QFileDialog::getOpenFileNames(
+                this,
+                "Select one or more files to open",
+                "c:\\",
+                "GraphML Documents (*.graphml *.xml)");
+
+    importGraphMLFiles(files);
+    QStringList fileData;
+
+}
+
+
+/**
+ * @brief NewMedeaWindow::on_actionExport_GraphML_triggered
+ */
+void NewMedeaWindow::on_actionExport_GraphML_triggered()
+{
+    QString filename = QFileDialog::getSaveFileName(
+                this,
+                "Export .graphML",
+                "c:\\",
+                "GraphML Documents (*.graphml *.xml)");
+
+
+    emit view_ExportGraphML(filename);
+}
+
+
+/**
+ * @brief NewMedeaWindow::on_clearModel_triggered
+ */
+void NewMedeaWindow::on_actionClearModel_triggered()
+{
+    nodeView->resetModel();
+    emit clearDock();
+}
+
+
+/**
+ * @brief NewMedeaWindow::on_actionPaste_triggered
+ */
+void NewMedeaWindow::on_actionPaste_triggered()
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    if (clipboard->ownsClipboard()) {
+        emit view_PasteData(clipboard->text());
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::on_actionExit_triggered
+ */
+void NewMedeaWindow::on_actionExit_triggered()
+{
+   close();
+}
+
+
+/**
+ * @brief NewMedeaWindow::writeExportedGraphMLData
+ * @param fileName
+ * @param data
+ */
+void NewMedeaWindow::writeExportedGraphMLData(QString filename, QString data)
+{
+    try {
+        QFile file(filename);
+        file.open(QIODevice::WriteOnly | QIODevice::Text);
+
+        QTextStream out(&file);
+        out << data;
+
+        file.close();
+        qDebug() << "Successfully written file: " << filename;
+
+    } catch(...){
+        qCritical() << "Export Failed!" ;
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::updateUndoStates
+ * @param list
+ */
+void NewMedeaWindow::updateUndoStates(QStringList list)
+{
+    if (list.size() == 0) {
+        edit_undo->setEnabled(false);
+    } else {
+        edit_undo->setEnabled(true);
+    }
+
+    edit_undo->setText(QString("Undo [%1]").arg(list.size()));
+
+    QMenu* menu = edit_undo->menu();
+    if (menu) {
+        menu->clear();
+    } else {
+        menu = new QMenu();
+        edit_undo->setMenu(menu);
+    }
+    foreach (QString item, list) {
+        QAction* newUndo = new QAction(item, menu);
+        newUndo->setEnabled(false);
+        menu->addAction(newUndo);
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::updateRedoStates
+ * @param list
+ */
+void NewMedeaWindow::updateRedoStates(QStringList list)
+{
+    if (list.size() == 0) {
+        edit_redo->setEnabled(false);
+    } else {
+        edit_redo->setEnabled(true);
+    }
+
+    edit_redo->setText(QString("Redo [%1]").arg(list.size()));
+
+    QMenu* menu = edit_redo->menu();
+    if (menu) {
+        menu->clear();
+    } else {
+        menu = new QMenu();
+        edit_redo->setMenu(menu);
+    }
+    foreach (QString item, list) {
+        QAction* newRedo = new QAction(item, menu);
+        newRedo->setEnabled(false);
+        menu->addAction(newRedo);
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::setClipboard
+ * @param value
+ */
+void NewMedeaWindow::setClipboard(QString value)
+{
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(value);
+}
+
+
+/**
+ * @brief NewMedeaWindow::updateProjectName
+ * @param label
+ */
+void NewMedeaWindow::updateProjectName(QString label)
+{
+    setWindowTitle("MEDEA - " + label);
+    projectName->setText(label);
+}
+
+
+/**
+ * @brief NewMedeaWindow::newNodeMadeAddToToolbar
+ * Once a node has been defined, add its icon to its corresponding container
+ * in the dock. Right now buttons are being used instead of icons.
+ * @param nodeName
+ */
+void NewMedeaWindow::addNewNodeToDock(QString type, NodeItem *nodeItem)
+{
+    DockScrollArea *container;
+
+    if (type == "component") {
+        container = definitionsContainer;
+    } else if (type == "hardware") {
+        container = hardwareContainer;
+    }
+
+    container->addDockNode(nodeItem);
+}
+
+
+/**
+ * @brief NewMedeaWindow::updateAspects
+ * Add view aspect to checkedViewAspects when the corresponding button
+ * is clicked and remove it when it's unclick then update the view.
+ */
+void NewMedeaWindow::updateViewAspects()
+{
+    QPushButton *sourceButton = qobject_cast<QPushButton*>(QObject::sender());
+
+    if (sourceButton->isChecked()) {
+        checkedViewAspects.append(sourceButton->text());
+    } else {
+        int index = checkedViewAspects.indexOf(sourceButton->text(), 0);
+        checkedViewAspects.removeAt(index);
+    }
+
+    emit setViewAspects(checkedViewAspects);
+}
+
+
+/**
+ * @brief NewMedeaWindow::updateDockButtons
+ * Enable/disable dock toggle buttons depending on the selected node.
+ * If a button is disabled, hide its corresponding container.
+ * P - Parts
+ * D - Definitions
+ * H - Hardware Nodes
+ * N - None
+ * A - All
+ * @param dockButton
+ */
+void NewMedeaWindow::updateDockButtons(char dockButton)
+{
+    if (dockButton == 'P') {
+        partsButton->setEnabled(true);
+        hardwareNodesButton->setEnabled(false);
+        compDefinitionsButton->setEnabled(false);
+    } else if (dockButton == 'D') {
+        compDefinitionsButton->setEnabled(true);
+        partsButton->setEnabled(false);
+        hardwareNodesButton->setEnabled(false);
+    } else if (dockButton == 'H') {
+        hardwareNodesButton->setEnabled(true);
+        partsButton->setEnabled(false);
+        compDefinitionsButton->setEnabled(false);
+    } else if (dockButton == 'N') {
+        partsButton->setEnabled(false);
+        hardwareNodesButton->setEnabled(false);
+        compDefinitionsButton->setEnabled(false);
+    } else if (dockButton == 'A') {
+        partsButton->setEnabled(true);
+        hardwareNodesButton->setEnabled(true);
+        compDefinitionsButton->setEnabled(true);
+    }
+    // hide necessary dock containers
+    partsButton->checkEnabled();
+    hardwareNodesButton->checkEnabled();
+    compDefinitionsButton->checkEnabled();
+}
+
+
+/**
+ * @brief NewMedeaWindow::setAdoptableNodeList
+ * This checks to see if the partsButton is currently selected and that the
+ * partsContainer is visible before it updates the dock adoptable nodes list.
+ * @param node
+ */
+void NewMedeaWindow::setAdoptableNodeList(Node *node)
+{
+    //qDebug() << "NewMedeaWindow: Updating adoptable nodes list.";
+
+    if (prevSelectedNode != 0 && prevSelectedNode == node) {
+        //qDebug() << "NewMedeaWindow: Same node pressed.";
+        return;
+    } else {
+        partsContainer->clear();
+        if (node) {
+            if (partsButton->getSelected()) {
+                partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(node));
+                partsContainer->repaint();
+            }
+        }
+        update();
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::nodeSelected
+ * @param node
+ */
+void NewMedeaWindow::nodeSelected(Node *node)
+{
+    selectedNode = node;
+    setAdoptableNodeList(selectedNode);
+}
+
+
+/**
+ * @brief NewMedeaWindow::updateViewMargin
+ */
+void NewMedeaWindow::updateViewMargin()
+{
+    // maybe leave out scrollbars for the main window in the future?
+    // when the scene is bigger than the view, allow user to pan
+    // but hide the scroll bars. display a button instead letting the
+    // user know that they have zoomed in/out a certain amount and
+    // pressing the button will make the scene fit in the view.
+    /**
+    // change values later and set an initial value
+    if (nodeView->verticalScrollBar()->isVisible()) {
+        nodeView->layout()->setContentsMargins(10, 10, 30, 10);
+    } else {
+        nodeView->layout()->setContentsMargins(10, 10, 10, 10);
+    }
+    */
+}
+
+
+/**
+ * @brief NewMedeaWindow::setAttributeModel
+ * @param model
+ */
+void NewMedeaWindow::setAttributeModel(AttributeTableModel *model)
+{
+    dataTable->setModel(model);
+    on_nodePressed();
+}
+
+
+/**
+ * @brief NewMedeaWindow::on_buttonPressed
+ * This method makes sure that the groupbox attached to the button that
+ * was pressed is the only groupbox being currently displayed.
+ * @param buttonName
+ */
+void NewMedeaWindow::on_buttonPressed(QString buttonName)
+{
+    DockToggleButton *b, *prevB;
+
+    if (buttonName == "P") {
+        b = partsButton;
+    } else if (buttonName == "H") {
+        b = hardwareNodesButton;
+    } else if (buttonName == "D") {
+        b = compDefinitionsButton;
+    } else {
+        qDebug() << "Error NewMedeaWindow::on_buttonPressed: buttonName is unknown";
+        return;
+    }
+
+    // if the previously activated groupbox is still on display, hide it
+    if (prevPressedButton != 0 && prevPressedButton != b) {
+        prevB = b;
+        prevPressedButton->hideContainer();
+        b = prevB;
+    }
+
+    prevPressedButton = b;
+    update();
+
+    // when the partsButton is pressed, update the parts container
+    if (b == partsButton) {
+        setAdoptableNodeList(selectedNode);
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::on_nodePressed
+ * Update the dataTable size whenever a node is selected/deselected,
+ * when a new model is loaded and when the window is resized.
+ * NOTE: Once maximum size is set, it cannot be reset.
+ */
+void NewMedeaWindow::on_nodePressed()
+{
+    // this squeezes the content as much as possible
+    // to make it fit in the space available
+    //dataTable->resizeRowsToContents();
+
+    QAbstractItemModel* tableModel = dataTable->model();
+    qreal height = 0;
+    int vOffset = 0;
+
+    dataTable->setVisible(true);
+
+    if (tableModel) {
+        int rowCount = tableModel->rowCount() + 1;
+        for (int i = 0; i < rowCount; i++) {
+            height += dataTable->rowHeight(i);
+        }
+        vOffset = dataTable->verticalHeader()->size().width() + 21;
+    }
+
+    int maxHeight = dataTableBox->height();
+    int newHeight = height + vOffset;
+
+    if (maxHeight == 0) {
+        //qDebug() << "Node has been deselected. Hide data table";
+        dataTable->setVisible(false);
+    } else if (newHeight > maxHeight) {
+        dataTable->resize(dataTable->width(), maxHeight);
+    } else {
+        dataTable->resize(dataTable->width(), newHeight);
+    }
+
+    dataTable->repaint();
+
+    int w = dataTable->width();
+    int h = dataTable->height();
+
+    // update the visible region of the groupbox that contains the dataTable
+    if (w == 0 || h == 0) {
+        dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
+    } else {
+        dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents, false);
+        dataTableBox->setMask(QRegion(0, 0, w, h, QRegion::Rectangle));
+    }
+
+    dataTableBox->repaint();
+}
+
+
+/**
+ * @brief NewMedeaWindow::addNodeToDock
+ * This is currently just for testing purposes.
+ */
+void NewMedeaWindow::addNodeToDock()
+{
+    //hardwareContainer->addDockNode("H", "test");
+    //definitionsContainer->addDockNode("D", "test");
+}
+
+
+/**
+ * @brief NewMedeaWindow::loadJenkinsData
+ * @param code
+ */
+void NewMedeaWindow::loadJenkinsData(int code)
+{
+    qCritical() << "JENKINS: " << code;
+
+    QStringList files;
+    files << myProcess->readAll();
+    emit view_ImportGraphML(files);
+}
+
+void NewMedeaWindow::importGraphMLFiles(QStringList files)
+{
+    QStringList fileData;
+    for (int i = 0; i < files.size(); i++) {
+
+        QFile file(files.at(i));
+
+        if (!file.open(QFile::ReadOnly | QFile::Text)) {
+            qCritical() << "Could not open: " << files.at(i) << " for reading!";
+            return;
+        }
+
+        try {
+            QTextStream in(&file);
+            QString xmlText = in.readAll();
+            file.close();
+            fileData << xmlText;
+            qDebug() << "Loaded: " << files.at(i) << "Successfully!";
+        } catch (...) {
+            qCritical() << "Error Loading: " << files.at(i);
+        }
+    }
+
+    emit nodeView->controlPressed(false);
+    emit nodeView->shiftPressed(false);
+
+    emit view_ImportGraphML(fileData);
+    nodeView->fitToScreen();
+}
+

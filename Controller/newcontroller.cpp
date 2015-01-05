@@ -69,6 +69,10 @@ void NewController::connectView(NodeView *view)
     connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this,SLOT(view_ConstructNode(QString, QPointF)));
     connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
 
+    connect(view, SIGNAL(sortModel()), this, SLOT(view_SortModel()));
+    connect(view, SIGNAL(centerModel()), this, SLOT(centerModel()) );
+    connect(this, SIGNAL(centerModel(Node*)), view, SLOT(centreModel(Node*)) );
+
     //Connect the View to the Controllers Signals
     connect(this, SIGNAL(view_SetOpacity(GraphML*,qreal)), view, SLOT(view_SetOpacity(GraphML*,qreal)));
     connect(this, SIGNAL(view_SortNode(Node*)), view, SLOT(view_SortNode(Node*)));
@@ -80,6 +84,7 @@ void NewController::connectView(NodeView *view)
     connect(this, SIGNAL(view_DestructGraphMLGUIFromID(QString)), view, SLOT(view_DestructGraphMLGUI(QString)));
     connect(this, SIGNAL(view_PrintErrorCode(GraphML*,QString)), view, SLOT(printErrorText(GraphML*,QString)));
 
+    connect(this, SIGNAL(view_FitToScreen()), view, SLOT(fitToScreen()));
 }
 
 void NewController::connectView(GraphMLView *view)
@@ -516,6 +521,45 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
     }
 }
 
+void NewController::view_ClearModel()
+{
+    //qCritical() << "Clearing Model";
+    //qCritical() << actionCount;
+    view_TriggerAction("Clearing Model");
+
+    //qCritical() << actionCount;
+
+    QVector<Node*> childNodes = interfaceDefinitions->getChildren(0);
+    for(int i=0; i < childNodes.size(); i++){
+        Node* child = childNodes[i];
+
+        destructNode(child);
+    }
+
+    childNodes = behaviourDefinitions->getChildren(0);
+    for(int i=0; i < childNodes.size(); i++){
+        Node* child = childNodes[i];
+        destructNode(child);
+    }
+
+    childNodes = hardwareDefinitions->getChildren(0);
+    for(int i=0; i < childNodes.size(); i++){
+        Node* child = childNodes[i];
+        destructNode(child);
+    }
+    childNodes = assemblyDefinitions->getChildren(0);
+    for(int i=0; i < childNodes.size(); i++){
+        Node* child = childNodes[i];
+
+        // don't delete ManagementComponents
+        if (child->getDataValue("kind") != "ManagementComponent") {
+            destructNode(child);
+        }
+    }
+
+
+}
+
 void NewController::validator_HighlightError(Node *node, QString error)
 {
     if(node){
@@ -670,6 +714,7 @@ void NewController::view_GraphMLSelected(GraphML *item, bool setSelected)
                 view_TriggerAction("Constructing Edge.");
 
                 view_ConstructEdge(source, node);
+
                 return;
             }
         }
@@ -846,6 +891,12 @@ void NewController::view_FilterNodes(QStringList filterString)
 
 
     }
+}
+
+void NewController::view_SortModel()
+{
+    qDebug() << "NewController: sortModel";
+    emit view_SortNode(model);
 }
 
 void NewController::view_ShowLegalEdgesForNode(Node *src)
@@ -1076,8 +1127,11 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
             if(node && !isGraphMLInModel(node)){
                 delete node;
             }
+
         }
     }
+
+    qCritical() << adoptableNodeTypes;
 
     return adoptableNodeTypes;
 }
@@ -1088,6 +1142,7 @@ void NewController::view_SelectModel()
         emit view_SetGraphMLSelected(model);
     }
 }
+
 
 QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attributeID)
 {
@@ -1673,6 +1728,7 @@ void NewController::clearSelectedNodes()
     }
     selectedNodeIDs.clear();
     emit view_SetGraphMLSelected(0);
+    //emit view_SetGraphMLSelected(0);
 }
 
 void NewController::clearSelectedEdges()
@@ -1773,6 +1829,15 @@ Node *NewController::getSelectedNode()
         return getNodeFromID(selectedNodeIDs[0]);
     }
     return 0;
+}
+
+
+/**
+ * @brief NewController::centerModel
+ */
+void NewController::centerModel()
+{
+    emit centerModel(model);
 }
 
 Edge *NewController::getSelectedEdge()
@@ -2088,7 +2153,8 @@ void NewController::reverseAction(ActionItem action)
                     qCritical() << "Could not Attach GraphMLData";
                 }
             }else{
-                qCritical() << "Cannot find Item";
+
+                qCritical() << "Destructed Data: Cannot find Item";
             }
             break;
         }
@@ -2243,7 +2309,7 @@ void NewController::undoRedo(bool undo)
     float actionCount = actionStack.size();
 
     if(actionCount == 0){
-        qCritical () << "No Actions in Undo/Redo Buffer.";
+        //qCritical () << "No Actions in Undo/Redo Buffer.";
         return;
     }
 
@@ -2410,7 +2476,8 @@ void NewController::setupModel()
     emit view_SortNode(assemblyDefinitions);
     emit view_SortNode(deploymentDefinitions);
     emit view_SortNode(model);
-    emit view_CenterGraphML(model);
+    emit view_CenterGraphML(assemblyDefinitions);
+    //emit view_FitToScreen();
 
     //Clear the Undo/Redo Stacks
     undoActionStack.clear();
@@ -2573,7 +2640,7 @@ void NewController::attachAggregateToEventPort(EventPort *eventPort, Aggregate *
             constructDefinitionRelative(implementation, aggregate);
             qCritical() << "Implementation: " << implementation->toString() << " set Aggregate: " << aggregate->toString();
         }else{
-            qCritical() << eventPort->toString() << " Has no implementation!?";
+            //qCritical() << eventPort->toString() << " Has no implementation!?";
         }
     }
 
@@ -2614,8 +2681,8 @@ bool NewController::isGraphMLValid(QString inputGraphML)
         xmlErrorChecking.readNext();
         float lineNumber = xmlErrorChecking.lineNumber();
         if (xmlErrorChecking.hasError()){
-            qCritical() << "isGraphMLValid(): Parsing Error! Line #" << lineNumber;
-            qCritical() << "\t" << xmlErrorChecking.errorString();
+            //qCritical() << "isGraphMLValid(): Parsing Error! Line #" << lineNumber;
+            //qCritical() << "\t" << xmlErrorChecking.errorString();
             //qCritical() << inputGraphML;
             return false;
         }

@@ -10,7 +10,7 @@ class FilterButton : public QWidget
     Q_OBJECT
 public:
     FilterButton(QString filter, QWidget *parent = 0);
-
+    ~FilterButton();
     void setFilter(QString f);
     QString getFilter();
 signals:
