@@ -92,7 +92,11 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
 
     if(outEventPortDelegate){
         if(!outEventPortDelegate->getParentNode()->isAncestorOf(this)){
-            qWarning() << "OutEventPortDelegate cannot be connected to an OutEventPortDelegate not contained in the same Assembly!";
+            qWarning() << "OutEventPortInstance cannot be connected to an OutEventPortDelegate not contained in the same Assembly!";
+            return false;
+        }
+        if(outEventPortDelegate->getParentNode() != this->getParentNode()->getParentNode()){
+            qWarning() << "OutEventPortInstance must only be connected to an OutEventPortDelegate contained in this assembly!";
             return false;
         }
     }
@@ -100,6 +104,10 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
     if(inEventPortDelegate){
         if(!this->getParentNode()->getParentNode()->isAncestorOf(inEventPortDelegate)){
             qWarning() << "OutEventPortDelegate cannot be connected to an OutEventPortDelegate not contained in the same Assembly!";
+            return false;
+        }
+        if(inEventPortDelegate->getParentNode()->getParentNode() != this->getParentNode()->getParentNode()){
+            qWarning() << "OutEventPortInstance must only be connected to an OutEventPortDelegate contained in this assembly!";
             return false;
         }
 
