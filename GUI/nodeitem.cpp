@@ -434,6 +434,27 @@ void NodeItem::sortChildren()
 
     int numberOfItems = 0;
     bool componentLayout = (kind == "Component" || kind == "ComponentInstance");
+    bool fileContainsComponents = ((kind == "File") && (getChildrenKind().contains("Component")));
+    bool componentHasChildren = false;
+
+    // if this item is a File and contains Components for its children,
+    // check if any of them has children and increase gapX accordingly
+    if (fileContainsComponents) {
+        foreach (QGraphicsItem* child, this->childItems()) {
+            NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
+            if (nodeItem && (nodeItem->getNumberOfChildren() > 0)) {
+                componentHasChildren = true;
+                break;
+            }
+        }
+    }
+
+    // if the node item's children are Components or ComponentInstances
+    // leave more gap for the in/out event ports along its edges
+    if (fileContainsComponents && componentHasChildren) {
+        gapX = topY*1.2;
+        rowWidth = gapX;
+    }
 
     foreach (QGraphicsItem* children, this->childItems()) {
 
@@ -442,19 +463,25 @@ void NodeItem::sortChildren()
         // check that it's a NodeItem and that it's visible
         if (nodeItem != 0 && nodeItem->isVisible()) {
 
-            QString childKind = nodeItem->getGraphML()->getDataValue("kind");
+            //QString childKind = nodeItem->getGraphML()->getDataValue("kind");
             int childWidth = nodeItem->boundingRect().width();
             int childHeight = nodeItem->boundingRect().height();
+
+
+            if ((rowWidth + childWidth) > (origWidth)) {
+                colHeight += maxHeight + gapY;
+                //maxHeight = 0;
+
+                if (rowWidth > maxWidth) {
+                    maxWidth = rowWidth - gapX;
+                }
+                maxHeight = childHeight;
+                rowWidth = gapX;
+            }
 
             // store the maximum height for each row
             if (childHeight > maxHeight) {
                 maxHeight = childHeight;
-            }
-
-            // if the node item's children are Components or ComponentInstances
-            // leave more gap for the in/out event ports along its edges
-            if (childKind == "Component" || childKind == "ComponentInstance") {
-                gapX = topY;
             }
 
             if (componentLayout) {
@@ -488,20 +515,14 @@ void NodeItem::sortChildren()
                 // one node per row and hence one column, once sorted
                 // this allows there to be at most 2 child nodes per row
 
-                if ((rowWidth + childWidth) > origWidth) {
-                    colHeight += maxHeight + gapY;
-                    maxHeight = 0;
 
-                    if (rowWidth > maxWidth) {
-                        maxWidth = rowWidth - gapX;
-                    }
-                    maxHeight = childHeight;
-                    rowWidth = gapX;
-                }
+
+                qDebug() << "rowWidth = " << rowWidth;
+                qDebug() << "colHeight = " << colHeight;
 
                 emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
                 emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
-                rowWidth += gapX + childWidth;
+                rowWidth += childWidth + gapX;
             }
 
             numberOfItems++;
@@ -561,9 +582,13 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             // and disable all dock toggle buttons
             if (kind == "Model") {
                 emit updateSceneRect(this);
-                emit disableDockButtons();
             }
         }else{
+            /**
+            if (kind == "Model") {
+                emit disableDockButtons();
+            }
+            */
             emit triggerCentered(getGraphML());
         }
         //emit centreNode(this);
@@ -846,6 +871,38 @@ void NodeItem::setupIcon()
     }
 }
 
+int NodeItem::getNumberOfChildren()
+{
+    int childrenCount = 0;
+    foreach (QGraphicsItem *itm, childItems()) {
+        NodeItem *nodeItm = dynamic_cast<NodeItem*>(itm);
+        if (nodeItm) {
+            childrenCount++;
+        }
+    }
+    return childrenCount;
+}
+
+/**
+ * @brief NodeItem::getChildKind
+ * @return
+ */
+QStringList NodeItem::getChildrenKind()
+{
+    QStringList returnable;
+    Node* modelNode = dynamic_cast<Node*>(getGraphML());
+    if(modelNode){
+        foreach(Node* child, modelNode->getChildren(0)){
+            returnable += child->getDataValue("kind");
+        }
+    }
+    return returnable;
+}
+
+
+
+
+
 
 /**
  * @brief NodeItem::setHidden
@@ -859,12 +916,13 @@ void NodeItem::setHidden(bool h)
 
 /**
  * @brief NodeItem::resetSize
- * Reset this node item's size to its default size.
+ * Reset this node item's size to its default size
+ * and sort its children if there are any.
  */
 void NodeItem::resetSize()
 {
+    //qDebug() << "OrigSize: " << origWidth << "," << origHeight;
     updateSize(QString::number(origWidth), QString::number(origHeight));
-    qDebug() << "OrigSize: " << origWidth << "," << origHeight;
     sortChildren();
 }
 

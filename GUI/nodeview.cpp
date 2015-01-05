@@ -126,7 +126,7 @@ void NodeView::centreItem(GraphMLItem *item)
     if (item->getGraphML()->getDataValue("kind") == "Model") {
         extraSpace = 1;
     } else {
-        extraSpace = 1.5;
+        extraSpace = 1.25;
     }
 
     //qreal scaleRatio = viewRect.height()/ (itemRect.height() * extraSpace);
@@ -301,7 +301,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     // NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
 
     NodeItem* nodeItem = new NodeItem(node, parentNodeItem);
-    qDebug() << "Adding " << nodeItem->getGraphML()->getDataValue("label");
+    //qDebug() << "Adding " << nodeItem->getGraphML()->getDataValue("label");
 
     storeGraphMLItemInHash(nodeItem);
     //nodeItems.append(nodeItem);
@@ -739,7 +739,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             origin = scenePos.toPoint();
         }else{
             emit unselect();
-            emit updateDockButtons('N');
+            //emit updateDockButtons('N');
             return;
         }
 

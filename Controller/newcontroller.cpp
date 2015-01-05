@@ -2476,7 +2476,7 @@ void NewController::setupModel()
     emit view_SortNode(assemblyDefinitions);
     emit view_SortNode(deploymentDefinitions);
     emit view_SortNode(model);
-    emit view_CenterGraphML(assemblyDefinitions);
+    emit view_CenterGraphML((model));
     //emit view_FitToScreen();
 
     //Clear the Undo/Redo Stacks
