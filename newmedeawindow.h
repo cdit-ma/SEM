@@ -66,16 +66,18 @@ private slots:
     void updateRedoStates(QStringList list);
     void setClipboard(QString value);
 
+    void updateViewMargin();
     void updateProjectName(QString label);
 
-    void on_buttonPressed(QString buttonName);
-    void on_nodePressed();
-    void updateViewMargin();
+    void on_dockButtonPressed(QString buttonName);
 
     void setAttributeModel(AttributeTableModel* model);
-    void updateViewAspects();
 
+    void updateDataTable();
+    void updateViewAspects();
     void updateDockButtons(char dockButton);
+    void updateDockContainer(QString container);
+
     void addNewNodeToDock(QString type, NodeItem* nodeItem);
     void setAdoptableNodeList(Node* node);
     void nodeSelected(Node* node);

@@ -120,6 +120,7 @@ signals:
 
     void view_ForceRefresh();
 
+
     void view_FitToScreen();
     void centerModel(Node* node);
 

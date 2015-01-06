@@ -170,21 +170,6 @@ void NodeView::centreItem(GraphMLItem *item)
 
 
     /**
-
-    QRectF itemsRec = scene()->itemsBoundingRect();
-    qreal multiplier = 1;
-
-    if(itemsRec.x() == sceneRect().x()) {
-        multiplier = 1.5;
-    }
-
-    setSceneRect(itemsRec.x()*multiplier, itemsRec.y(), itemsRec.width(), itemsRec.height()*extraSpace);
-    fitInView(item->sceneBoundingRect(), Qt::KeepAspectRatio);
-    */
-
-
-
-    /**
     //Get the actual Scale Ratio!
     //scaleRatio = transform().m22();
 
@@ -316,7 +301,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     connect(this, SIGNAL(updateViewAspects(QStringList)), nodeItem, SLOT(updateViewAspects(QStringList)));
 
     connect(nodeItem, SIGNAL(updateSceneRect(NodeItem*)), this, SLOT(resetSceneRect(NodeItem*)));
-    connect(nodeItem, SIGNAL(disableDockButtons()), this, SLOT(disableDockButtons()));
+    connect(nodeItem, SIGNAL(clearSelection()), this, SLOT(clearSelection()));
 
 
     if(!scene()->items().contains(nodeItem)){
@@ -327,42 +312,38 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     /************************************************************************************/
 
+    /* if this item's parent is a File, check if it's the first child
+    // if it is, update dock adoptable node list
+    if (parentNode && parentNode->getDataValue("kind") == "File")  {
+        if (parentNode->childrenCount() == 1) {
+            emit updateDockContainer("Parts");
+        }
+    }*/
 
+    // update parts dock conatiner everytime there is a newly created
+    // node item, in case the current adoptable node list has chnaged
+    emit updateDockContainer("Parts");
 
-    /**
-    HardwareDefinitions* hardwareDefinitions = dynamic_cast<HardwareDefinitions*>(node);
-    if(hardwareDefinitions){
-        nodeItem->setVisible(false);
-        // return;
-    }
-   */
 
     // Stop component definitions and hardware nodes from being
     // drawn on the canvas. Handle differently when user is adding
     // a new definition or connecting hardware nodes.
+
     Component* component = dynamic_cast<Component*>(node);
     if (component) {
         emit componentNodeMade("component", nodeItem);
-        //qDebug() << "Component Definition has been added to dock.";
         return;
     }
 
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*>(node);
     if (hardwareNode) {
-        //nodeItem->setVisible(false);
         nodeItem->setHidden(true);
         emit hardwareNodeMade("hardware", nodeItem);
-        //qDebug() << "Hardware Node has been added to dock.";
         return;
     }
 
-    if (node) {
-        if (node->getDataValue("kind") == "HardwareCluster") {
-            qDebug() << "Jenkins Nodes loaded";
-        }
-    }
-
 }
+
 
 void NodeView::view_ConstructEdgeGUI(Edge *edge)
 {
@@ -458,6 +439,7 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
 
                 Node* node = dynamic_cast<Node*>(graphML);
                 if (node) {
+
                     // update the dock node items when a node is selected
                     emit updateAdoptableNodeList(node);
 
@@ -465,27 +447,19 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
                     QString nodeKind = node->getDataValue("kind");
 
                     if (nodeKind == "ComponentAssembly") {
-
                         emit updateDockButtons('D');
-
                     } else  if (nodeKind == "InterfaceDefinitions"||
                                 nodeKind == "BehaviourDefinitions" ||
                                 nodeKind == "AssemblyDefinitions" ||
-                                nodeKind == "File") {
-                        //nodeKind.startsWith("Component")) {
-
+                                nodeKind == "File" ||
+                                nodeKind.startsWith("Component")) {
                         emit updateDockButtons('P');
-
                     } else if (nodeKind == "HardwareDefinitions" ||
                                nodeKind == "HardwareCluster") {
-
                         emit updateDockButtons('H');
-
                     } else if (nodeKind == "DeploymentDefinitions" ||
                                nodeKind == "ManagementComponent") {
-
                         emit updateDockButtons('N');
-
                     } else {
                         emit updateDockButtons('A');
                     }
@@ -494,8 +468,8 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
                 return;
             }
         }
-
     }
+
     emit view_SetSelectedAttributeModel(0);
 
 }
@@ -700,12 +674,16 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
     NodeItem* node = dynamic_cast<NodeItem*>(item);
 
     if(node){
-        this->setCursor(Qt::SizeAllCursor);
+        //this->setCursor(Qt::SizeAllCursor);
     }else{
         this->setCursor(Qt::ArrowCursor);
     }
 
     QGraphicsView::mouseMoveEvent(event);
+
+    // this removes the non-disappearing blue
+    // lines after moving node items
+    update();
 }
 
 void NodeView::mousePressEvent(QMouseEvent *event)
@@ -738,15 +716,19 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }else if( event->button() == Qt::LeftButton && CONTROL_DOWN){
             origin = scenePos.toPoint();
         }else{
-            emit unselect();
-            //emit updateDockButtons('N');
+            // clear selection and disable dock buttons
+            clearSelection();
             return;
         }
 
     } else {
+        // sorting node item's children, need to update view
+        if (CONTROL_DOWN) {
+            update();
+        }
         // update attribute table size
         if (event->button() == Qt::LeftButton) {
-            emit nodePressed();
+            emit updateDataTable();
         }
     }
 
@@ -782,6 +764,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
     if(event->key() == Qt::Key_Escape){
         emit escapePressed(true);
+        emit updateDockButtons('N');
     }
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_A){
@@ -871,17 +854,17 @@ void NodeView::centreModel(Node *node)
     if(node){
         centreItem(getGraphMLItemFromGraphML(node));
     }
-    //centreItem(nodeItem);
 }
 
 
 /**
- * @brief NodeView::disableDockButtons
- * Disable all dock toggle buttons when either
- * the view or model is pressed/selected.
+ * @brief NodeView::clearSelection
+ * This gets called when either the view or the model is pressed.
+ * It clears the selection and disables all dock node buttons.
  */
-void NodeView::disableDockButtons()
+void NodeView::clearSelection()
 {
+    emit unselect();
     emit updateDockButtons('N');
 }
 

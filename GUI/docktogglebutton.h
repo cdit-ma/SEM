@@ -31,7 +31,7 @@ protected:
     void paintEvent(QPaintEvent* e);
 
 signals:
-    void buttonPressed(QString buttonName);
+    void dockButtonPressed(QString buttonName);
 
 public slots:
     void on_buttonPressed();

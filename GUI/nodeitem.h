@@ -44,6 +44,7 @@ public:
     void setHidden(bool h);
     void resetSize();
 
+
 signals:
     void nodeItemPressed(Node* n, bool selected);
 
@@ -57,19 +58,18 @@ signals:
     void makeChildNode(QPointF centerPoint, Node * parentNode);
     void makeChildNode(QPointF centerPoint);
 
-
     void moveSelection(QPointF move);
     void makeChildNode(QString type, Node*);
     void updateData(QString key, QString value);
+
 
     void updateDockNodeItem();
     void updateDockNodeItem(bool selected);
 
     void updateOpacity(qreal opacity);
-
     void updateSceneRect(NodeItem* nodeItem);
 
-    void disableDockButtons();
+    void clearSelection();
 
 public slots:
     void setOpacity(qreal opacity);
@@ -150,6 +150,7 @@ private:
     void setupIcon();
     int getNumberOfChildren();
     QStringList getChildrenKind();
+
 
 };
 

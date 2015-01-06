@@ -50,20 +50,25 @@ signals:
 
     void updateNodeType(QString name);
     void updateViewAspects(QStringList aspects);
-    void sortModel();
 
     void view_SetSelectedAttributeModel(AttributeTableModel* model);
-    void nodePressed();
-    void updateAdoptableNodeList(Node* node);
-    void updateViewMargin();
+
+    void view_ConstructMenu(QPoint);
+
+
 
     void componentNodeMade(QString type, NodeItem* nodeItem);
     void hardwareNodeMade(QString type, NodeItem* nodeItem);
 
-    void view_ConstructMenu(QPoint);
+    void updateDataTable();
+    void updateViewMargin();
+    void updateAdoptableNodeList(Node* node);
+    void updateDockButtons(char c);
+    void updateDockContainer(QString container);
 
+    void sortModel();
     void centerModel();
-    void updateDockButtons(char dockContainer);
+
 
 public slots:
     void view_Refresh();
@@ -96,12 +101,13 @@ public slots:
     void view_ConstructNodeAction();
 
 
+
     void fitToScreen();
     void resetSceneRect(NodeItem *nodeItem);
-
     void centreModel(Node* node);
 
-    void disableDockButtons();
+    void clearSelection();
+
     void view_addComponentDefinition(NodeItem* itm);
 
 

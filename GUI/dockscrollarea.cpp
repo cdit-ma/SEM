@@ -110,7 +110,8 @@ void DockScrollArea::addDockNode(NodeItem* item)
  * @param nodes
  */
 void DockScrollArea::addAdoptableDockNodes(QStringList nodes)
-{    
+{
+    clear();
     nodes.sort();
 
     for (int i=0; i<nodes.count(); i++) {
@@ -119,6 +120,8 @@ void DockScrollArea::addAdoptableDockNodes(QStringList nodes)
         dockNodes.append(itm);
         connect(itm, SIGNAL(itemPressed(QString)), this, SLOT(buttonPressed(QString)));
     }
+
+    repaint();
 }
 
 
@@ -181,5 +184,4 @@ void DockScrollArea::clear()
     }
 
     dockNodes.clear();
-    //qDebug() << "DockScrollArea: Clearing Dock";
 }

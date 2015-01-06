@@ -37,20 +37,29 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     label  = new QGraphicsTextItem("NULL",this);
     icon = 0;
 
-
+    // initially set width and height ot be the default size
     if (!parent) {
         depth = 1;
         width = 19200;
         height = 10800;
     } else {
-        parentKind = parent->getGraphML()->getDataValue("label");
+        parentKind = parent->getGraphML()->getDataValue("kind");
         width = parent->getChildSize();
         height = parent->getChildSize();
     }
 
+    if (!parentKind.isNull()) {
+        if (parentKind == "Component" || parentKind == "ComponentInstance") {
+            width /= 2;
+            height /= 2;
+        }
+    }
+
+    // store original/default width and height
     origWidth = width;
     origHeight = height;
     hidden = false;
+
 
     GraphMLData* xData = node->getData("x");
     GraphMLData* yData = node->getData("y");
@@ -129,11 +138,15 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         drawDetail = false;
     }
 
-    // this will stop the width of this item
-    // and its children from shrinking
+    // this will stop the width of this item and its children from
+    // shrinking when it, or one of its child is resized.
     setLabelFont();
     setupIcon();
+
+
+    setCacheMode(QGraphicsItem::NoCache);
 }
+
 
 NodeItem::~NodeItem()
 {
@@ -209,7 +222,6 @@ void NodeItem::deleteConnnection(NodeEdge *line)
 float NodeItem::getChildSize()
 {
     return childSize;
-
 }
 
 
@@ -322,12 +334,6 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
 
                 label->setX(icon->x() + (iconWidth * scaleFactor) );
 
-                qDebug() << "labelHeight = " << labelHeight;
-                qDebug() << "iconWidth = " << iconWidth;
-                qDebug() << "iconHeight = " << iconHeight;
-                qDebug() << "icon.x = " << icon->x();
-                qDebug() << "scaleFactor = " << scaleFactor;
-
                 // added this to prevent the icon from looking pixelated
                 icon->setTransformationMode(Qt::SmoothTransformation);
             }
@@ -384,7 +390,10 @@ void NodeItem::updateViewAspects(QStringList aspects)
     viewAspect = aspects;
 
     bool isVisible = false;
+
     foreach(QString aspect, aspects){
+        // if this item is in the currently viewed aspects, check to see
+        // if this item is meant to be hidden before making it visible
         if(node->isInAspect(aspect) && !hidden){
             isVisible = true;
             break;
@@ -403,6 +412,16 @@ void NodeItem::updateViewAspects(QStringList aspects)
 
 /**
  * @brief NodeItem::sortChildren
+ * This methods sorts this node item's children one by one, from left to right
+ * until it can't fit it inside this item's origWidth in which case it moves it
+ * to the next row. The maxHeight per row is being used to get the new y pos for
+ * the next row. The maxWidth per column isn't currently being stored but it will
+ * need to be for future sorting.
+ *
+ * The sorting for Components/ComponentInstances is different. The in/out event
+ * ports are placed on the item's left/right edge respectively and the attributes
+ * in the middle. A bigger gap is also required for nodes containing Components
+ * to prevent the in/out event ports from overlapping each other.
  */
 void NodeItem::sortChildren()
 {
@@ -420,6 +439,7 @@ void NodeItem::sortChildren()
         gapY = topY/1.8;
     }
 
+    //float gapY = topY;
     float gapX = gapY;
 
     float inCol = topY;
@@ -433,13 +453,15 @@ void NodeItem::sortChildren()
     float maxWidth = 0;
 
     int numberOfItems = 0;
+
     bool componentLayout = (kind == "Component" || kind == "ComponentInstance");
-    bool fileContainsComponents = ((kind == "File") && (getChildrenKind().contains("Component")));
+    bool fileContainsComponents = (kind == "File" && getChildrenKind().contains("Component"));
+    bool componentAssembly = (kind == "ComponentAssembly");
     bool componentHasChildren = false;
 
     // if this item is a File and contains Components for its children,
     // check if any of them has children and increase gapX accordingly
-    if (fileContainsComponents) {
+    if (fileContainsComponents || componentAssembly) {
         foreach (QGraphicsItem* child, this->childItems()) {
             NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
             if (nodeItem && (nodeItem->getNumberOfChildren() > 0)) {
@@ -451,14 +473,16 @@ void NodeItem::sortChildren()
 
     // if the node item's children are Components or ComponentInstances
     // leave more gap for the in/out event ports along its edges
-    if (fileContainsComponents && componentHasChildren) {
-        gapX = topY*1.2;
+    if ((fileContainsComponents || componentAssembly) && componentHasChildren) {
+        gapY = topY;  // this value is only used to sort an imported file
+        //gapY *= 1.25;
+        gapX = gapY;
         rowWidth = gapX;
     }
 
-    foreach (QGraphicsItem* children, this->childItems()) {
+    foreach (QGraphicsItem* child, this->childItems()) {
 
-        NodeItem* nodeItem = dynamic_cast<NodeItem*>(children);
+        NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
 
         // check that it's a NodeItem and that it's visible
         if (nodeItem != 0 && nodeItem->isVisible()) {
@@ -468,7 +492,7 @@ void NodeItem::sortChildren()
             int childHeight = nodeItem->boundingRect().height();
 
 
-            if ((rowWidth + childWidth) > (origWidth)) {
+            if ((rowWidth + childWidth) > (origWidth*1.25)) {
                 colHeight += maxHeight + gapY;
                 //maxHeight = 0;
 
@@ -515,11 +539,6 @@ void NodeItem::sortChildren()
                 // one node per row and hence one column, once sorted
                 // this allows there to be at most 2 child nodes per row
 
-
-
-                qDebug() << "rowWidth = " << rowWidth;
-                qDebug() << "colHeight = " << colHeight;
-
                 emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
                 emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
                 rowWidth += childWidth + gapX;
@@ -551,18 +570,9 @@ void NodeItem::sortChildren()
                 updateSize(maxWidth + gapX, colHeight + maxHeight + gapY);
             }
         }
-
     }
 
-    /**
-    // propagate the resize event to the parent(s)
-    if (parentItem()) {
-        NodeItem* itm = dynamic_cast<NodeItem*>(parentItem());
-        if (itm->getGraphML()->getDataValue("kind").endsWith("Definitions")) {
-            itm->sortChildren();
-        }
-    }
-    */
+    update();
 }
 
 
@@ -579,16 +589,10 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if(event->modifiers().testFlag(Qt::ControlModifier)){
             sortChildren();
             // update scene rect after the model is sorted/resized
-            // and disable all dock toggle buttons
             if (kind == "Model") {
                 emit updateSceneRect(this);
             }
         }else{
-            /**
-            if (kind == "Model") {
-                emit disableDockButtons();
-            }
-            */
             emit triggerCentered(getGraphML());
         }
         //emit centreNode(this);
@@ -596,6 +600,9 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::LeftButton:{
         if(!drawObject){
+            // unselect any selected node item
+            // when the model is pressed
+            emit clearSelection();
             event->setAccepted(false);
             return;
         }
@@ -768,8 +775,6 @@ void NodeItem::updateBrushes()
 
 
 
-
-
     if(nodeKind.endsWith("Definitions")){
         selectedColor = color;
         color.setAlpha(50);
@@ -831,8 +836,11 @@ void NodeItem::updateSize(double w, double h)
     update();
 }
 
+
 /**
  * @brief NodeItem::setLabelFont
+ * This sets up the font and size of the label.
+ * It also stores a fixed, default size for its children.
  */
 void NodeItem::setLabelFont()
 {
@@ -851,6 +859,8 @@ void NodeItem::setLabelFont()
 
 /**
  * @brief NodeItem::setupIcon
+ * This sets up the scale and tranformation of this item's icon
+ * if it has one. It also sets the pos for this item's label.
  */
 void NodeItem::setupIcon()
 {
@@ -866,11 +876,17 @@ void NodeItem::setupIcon()
         label->setX(icon->x() + (iconWidth * scaleFactor));
         label->setY(icon->y() + (diffHeight/2));
 
-        // added this to prevent the icon from looking pixelated
+        // this prevents the icon from looking pixelated
         icon->setTransformationMode(Qt::SmoothTransformation);
     }
 }
 
+
+/**
+ * @brief NodeItem::getNumberOfChildren
+ * This returns the number of NodeItem children this item has.
+ * @return
+ */
 int NodeItem::getNumberOfChildren()
 {
     int childrenCount = 0;
@@ -882,6 +898,7 @@ int NodeItem::getNumberOfChildren()
     }
     return childrenCount;
 }
+
 
 /**
  * @brief NodeItem::getChildKind
@@ -900,12 +917,11 @@ QStringList NodeItem::getChildrenKind()
 }
 
 
-
-
-
-
 /**
  * @brief NodeItem::setHidden
+ * This method is used to prevent this item from being shown
+ * when the view aspects are changed. If this item is meant to
+ * be hidden no matter the view aspect, this keeps it hidden.
  */
 void NodeItem::setHidden(bool h)
 {
@@ -921,7 +937,6 @@ void NodeItem::setHidden(bool h)
  */
 void NodeItem::resetSize()
 {
-    //qDebug() << "OrigSize: " << origWidth << "," << origHeight;
     updateSize(QString::number(origWidth), QString::number(origHeight));
     sortChildren();
 }

@@ -977,6 +977,10 @@ void NewController::view_DeletePressed(bool isDown)
          deleteSelectedNodes();
          emit view_SetGUIEnabled(true);
      }
+
+     // this removes the non-disappearing
+     // blue lines after deletion
+     emit view_ForceRefresh();
 }
 
 void NewController::view_Undo()
@@ -1074,7 +1078,6 @@ void NewController::view_ClearSelection()
 {
     clearSelectedEdges();
     clearSelectedNodes();
-
 }
 
 bool NewController::copySelectedNodesGraphML()
@@ -1131,7 +1134,7 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
         }
     }
 
-    qCritical() << adoptableNodeTypes;
+    //qCritical() << adoptableNodeTypes;
 
     return adoptableNodeTypes;
 }

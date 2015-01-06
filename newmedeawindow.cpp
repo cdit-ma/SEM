@@ -26,8 +26,8 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseGUI();
     makeConnections();
 
-
-
+    // this is used for when a file is dragged and
+    // dropped on top of this tool's icon
     if(graphMLFile.length() != 0){
         QStringList files;
         files.append(graphMLFile);
@@ -122,13 +122,11 @@ void NewMedeaWindow::initialiseGUI()
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setFixedWidth(rightPanelWidth);
     dataTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    //dataTable->setStyleSheet("QTableView{ background-color: rgba(0,0,0,0); }");
     tableLayout->setMargin(0);
     tableLayout->setContentsMargins(0,0,0,0);
     tableLayout->addWidget(dataTable);
     dataTableBox->setFixedWidth(rightPanelWidth);
     dataTableBox->setLayout(tableLayout);
-    //dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
     dataTableBox->setStyleSheet("QGroupBox {"
                                 "background-color: rgba(0,0,0,0);"
                                 "border: 0px;"
@@ -193,9 +191,6 @@ void NewMedeaWindow::initialiseGUI()
     checkedViewAspects.append(assemblyButton->text());
     checkedViewAspects.append(workloadButton->text());
     checkedViewAspects.append(definitionsButton->text());
-
-   // nodeView->centerModel();
-
 }
 
 
@@ -206,7 +201,7 @@ void NewMedeaWindow::initialiseGUI()
  */
 void NewMedeaWindow::setupMenu(QPushButton *button)
 {
-    // menu button/actions
+    // menu buttons/actions
     menu = new QMenu();
     file_menu = menu->addMenu(QIcon(":/Resources/Icons/file_menu.png"), "File");
     edit_menu = menu->addMenu(QIcon(":/Resources/Icons/edit_menu.png"), "Edit");
@@ -222,6 +217,7 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
     file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     file_menu->addSeparator();
 
+    // only create the menu item if JENKINS_ADDRESS is not null
     if (JENKINS_ADDRESS != "") {
         file_importJenkinsNodes = file_menu->addAction(QIcon(":/Resources/Icons/jenkins.png"), "Import Jenkins Nodes");
         file_importJenkinsNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
@@ -352,6 +348,7 @@ void NewMedeaWindow::makeConnections()
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
     connect(projectName, SIGNAL(clicked()), controller, SLOT(view_SelectModel()));
+    connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
 
     connect(assemblyButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
@@ -369,13 +366,13 @@ void NewMedeaWindow::makeConnections()
     connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(NodeItem*)), nodeView, SLOT(view_addComponentDefinition(NodeItem*)));
 
     connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateProjectName(QString)));
-    //connect(nodeView, SIGNAL(updateViewMargin()), this, SLOT(updateViewMargin()));
-    connect(nodeView, SIGNAL(nodePressed()), this, SLOT(on_nodePressed()));
+    connect(nodeView, SIGNAL(updateDataTable()), this, SLOT(updateDataTable()));
 
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showContextMenu(QPoint)));
 
     connect(nodeView, SIGNAL(updateDockButtons(char)), this, SLOT(updateDockButtons(char)));
+    connect(nodeView, SIGNAL(updateDockContainer(QString)), this, SLOT(updateDockContainer(QString)));
 }
 
 
@@ -395,7 +392,7 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
     definitionsContainer->setMinimumHeight(boxHeight);
 
     // update dataTable size
-    on_nodePressed();
+    updateDataTable();
 }
 
 
@@ -455,8 +452,6 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
     }
 
     file_clearModel->trigger();
-    nodeView->resetModel();
-    emit clearDock();
 }
 
 
@@ -495,10 +490,15 @@ void NewMedeaWindow::on_actionExport_GraphML_triggered()
 
 /**
  * @brief NewMedeaWindow::on_clearModel_triggered
+ * When the model is cleared or the new project menu is triggered,
+ * this method resets the model, clears any current selection,
+ * disables the dock buttons and clears the dock containers.
  */
 void NewMedeaWindow::on_actionClearModel_triggered()
 {
+    nodeView->unselect();
     nodeView->resetModel();
+    updateDockButtons('N');
     emit clearDock();
 }
 
@@ -709,6 +709,20 @@ void NewMedeaWindow::updateDockButtons(char dockButton)
 
 
 /**
+ * @brief NewMedeaWindow::updateDockContainer
+ * @param container
+ */
+void NewMedeaWindow::updateDockContainer(QString container)
+{
+    if (container == "Parts") {
+        qDebug() << "NewMedeaWindow::updateDockContainer";
+        partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(selectedNode));
+    }
+    update();
+}
+
+
+/**
  * @brief NewMedeaWindow::setAdoptableNodeList
  * This checks to see if the partsButton is currently selected and that the
  * partsContainer is visible before it updates the dock adoptable nodes list.
@@ -716,17 +730,12 @@ void NewMedeaWindow::updateDockButtons(char dockButton)
  */
 void NewMedeaWindow::setAdoptableNodeList(Node *node)
 {
-    //qDebug() << "NewMedeaWindow: Updating adoptable nodes list.";
-
     if (prevSelectedNode != 0 && prevSelectedNode == node) {
-        //qDebug() << "NewMedeaWindow: Same node pressed.";
         return;
     } else {
-        partsContainer->clear();
         if (node) {
             if (partsButton->getSelected()) {
                 partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(node));
-                partsContainer->repaint();
             }
         }
         update();
@@ -773,17 +782,17 @@ void NewMedeaWindow::updateViewMargin()
 void NewMedeaWindow::setAttributeModel(AttributeTableModel *model)
 {
     dataTable->setModel(model);
-    on_nodePressed();
+    updateDataTable();
 }
 
 
 /**
- * @brief NewMedeaWindow::on_buttonPressed
- * This method makes sure that the groupbox attached to the button that
- * was pressed is the only groupbox being currently displayed.
+ * @brief NewMedeaWindow::on_dockButtonPressed
+ * This method makes sure that the groupbox attached to the dock button
+ * that was pressed is the only groupbox being currently displayed.
  * @param buttonName
  */
-void NewMedeaWindow::on_buttonPressed(QString buttonName)
+void NewMedeaWindow::on_dockButtonPressed(QString buttonName)
 {
     DockToggleButton *b, *prevB;
 
@@ -794,7 +803,7 @@ void NewMedeaWindow::on_buttonPressed(QString buttonName)
     } else if (buttonName == "D") {
         b = compDefinitionsButton;
     } else {
-        qDebug() << "Error NewMedeaWindow::on_buttonPressed: buttonName is unknown";
+        qDebug() << "Error NewMedeaWindow::on_dockButtonPressed: buttonName is unknown";
         return;
     }
 
@@ -816,12 +825,12 @@ void NewMedeaWindow::on_buttonPressed(QString buttonName)
 
 
 /**
- * @brief NewMedeaWindow::on_nodePressed
+ * @brief NewMedeaWindow::updateDataTable
  * Update the dataTable size whenever a node is selected/deselected,
  * when a new model is loaded and when the window is resized.
  * NOTE: Once maximum size is set, it cannot be reset.
  */
-void NewMedeaWindow::on_nodePressed()
+void NewMedeaWindow::updateDataTable()
 {
     // this squeezes the content as much as possible
     // to make it fit in the space available
