@@ -144,9 +144,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     setupIcon();
 
 
-
-
-
      setCacheMode(QGraphicsItem::NoCache);
 }
 
@@ -230,6 +227,7 @@ void NodeItem::deleteConnnection(NodeEdge *line)
     int position = connections.indexOf(line);
     connections.remove(position);
 }
+
 
 float NodeItem::getChildSize()
 {
@@ -555,12 +553,12 @@ void NodeItem::sortChildren()
 
             // this is only used to resize the model
             if (kind == "Model") {
-                updateSize(maxWidth + gapX, colHeight + maxHeight + gapY);
+                //updateSize(maxWidth + gapX, colHeight + maxHeight + gapY);
             }
         }
     }
 
-    update();
+    //update();
 }
 
 
@@ -934,12 +932,12 @@ void NodeItem::resetSize()
     GraphMLData* wData = getGraphML()->getData("width");
 
     if(hData && wData){
-        wData->setValue(QString::number(origWidth));
-        hData->setValue(QString::number(origHeight));
+        wData->setValue(QString::number(origWidth)+1);
+        hData->setValue(QString::number(origHeight)+1);
     }
 
     //updateSize(QString::number(origWidth), QString::number(origHeight));
-    sortChildren();
+    //sortChildren();
 }
 
 

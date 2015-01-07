@@ -143,27 +143,30 @@ void NodeView::centreItem(GraphMLItem *item)
     qreal neededXGap = qAbs((viewRect.width() - (itemRect.width()*multiplier)) / 2);
     qreal neededYGap = qAbs(viewRect.height()/2);
 
+    //setSceneRect(scene()->itemsBoundingRect());
     itemRect.setHeight(itemRect.height()*extraSpace);
     fitInView(itemRect, Qt::KeepAspectRatio);
 
     // check to make sure that there is enough space around the
     // items boundingRect within the scene before centering it
     // if there isn't, add the needed space to the sceneRect
-    if (leftXGap < neededXGap) {
-        newRec.setX(newRec.x()-neededXGap);
-        newRec.setWidth(newRec.width()+neededXGap);
-        setSceneRect(newRec);
-    } else if (rightXGap < neededXGap) {
-        newRec.setWidth(newRec.width()+neededXGap);
-        setSceneRect(newRec);
-    }
-    if (topYGap < neededYGap) {
-        newRec.setY(newRec.y()-neededYGap);
-        newRec.setHeight(newRec.height()+neededYGap);
-        setSceneRect(newRec);
-    } else if (bottomYGap < neededYGap) {
-        newRec.setHeight(newRec.height()+neededYGap);
-        setSceneRect(newRec);
+    if (item->getGraphML()->getDataValue("kind") != "Model") {
+        if (leftXGap < neededXGap) {
+            newRec.setX(newRec.x()-neededXGap);
+            newRec.setWidth(newRec.width()+neededXGap);
+            setSceneRect(newRec);
+        } else if (rightXGap < neededXGap) {
+            newRec.setWidth(newRec.width()+neededXGap);
+            setSceneRect(newRec);
+        }
+        if (topYGap < neededYGap) {
+            newRec.setY(newRec.y()-neededYGap);
+            newRec.setHeight(newRec.height()+neededYGap);
+            setSceneRect(newRec);
+        } else if (bottomYGap < neededYGap) {
+            newRec.setHeight(newRec.height()+neededYGap);
+            setSceneRect(newRec);
+        }
     }
 
     centerOn(item);
@@ -302,7 +305,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     connect(this, SIGNAL(updateNodeType(QString)), nodeItem, SLOT(updateChildNodeType(QString)));
     connect(this, SIGNAL(updateViewAspects(QStringList)), nodeItem, SLOT(updateViewAspects(QStringList)));
 
-    connect(nodeItem, SIGNAL(updateSceneRect(NodeItem*)), this, SLOT(resetSceneRect(NodeItem*)));
+    //connect(nodeItem, SIGNAL(updateSceneRect(NodeItem*)), this, SLOT(resetSceneRect(NodeItem*)));
     connect(nodeItem, SIGNAL(clearSelection()), this, SLOT(clearSelection()));
 
 
@@ -314,17 +317,17 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     /************************************************************************************/
 
-    /* if this item's parent is a File, check if it's the first child
+    //if this item's parent is a File, check if it's the first child
     // if it is, update dock adoptable node list
     if (parentNode && parentNode->getDataValue("kind") == "File")  {
         if (parentNode->childrenCount() == 1) {
             emit updateDockContainer("Parts");
         }
-    }*/
+    }
 
     // update parts dock conatiner everytime there is a newly created
     // node item, in case the current adoptable node list has chnaged
-    emit updateDockContainer("Parts");
+    //emit updateDockContainer("Parts");
 
 
     // Stop component definitions and hardware nodes from being
@@ -461,7 +464,7 @@ void NodeView::view_SortNode(Node *node)
         nodeItem->sortChildren();
         // set/update the sceneRect when the model is sorted/resized
         if (node->getDataValue("kind") == "Model") {
-            resetSceneRect(nodeItem);
+            //resetSceneRect(nodeItem);
         }
     }
 

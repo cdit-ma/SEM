@@ -170,19 +170,6 @@ void NewMedeaWindow::initialiseGUI()
     workloadButton->setCheckable(true);
     definitionsButton->setCheckable(true);
 
-    // setup controller and jenkins settings
-    setupJenkinsSettings();
-    setupController();
-
-    // setup the menu and dock
-    setupMenu(menuButton);
-    setupDock(bodyLayout);
-
-    // why does calling it here shrink it first before
-    // scaling it correctly when called a second time
-    // using the menu or keyboard shorcut?
-    //nodeView->fitToScreen();
-
     // intially turn all view aspects on
     assemblyButton->setChecked(true);
     workloadButton->setChecked(true);
@@ -190,6 +177,14 @@ void NewMedeaWindow::initialiseGUI()
     checkedViewAspects.append(assemblyButton->text());
     checkedViewAspects.append(workloadButton->text());
     checkedViewAspects.append(definitionsButton->text());
+
+    // setup controller and jenkins settings
+    setupJenkinsSettings();
+    setupController();
+
+    // setup the menu and dock
+    setupMenu(menuButton);
+    setupDock(bodyLayout);
 }
 
 
@@ -321,9 +316,12 @@ void NewMedeaWindow::setupController()
     controller = new NewController();
     controller->connectView(nodeView);
     controller->initializeModel();
-
 }
 
+
+/**
+ * @brief NewMedeaWindow::resetGUI
+ */
 void NewMedeaWindow::resetGUI()
 {
     prevPressedButton = 0;
@@ -331,6 +329,9 @@ void NewMedeaWindow::resetGUI()
     selectedNode = 0;
     setupController();
     connectToController();
+
+    // this is temporary
+    updateProjectName("Model");
 }
 
 
@@ -348,9 +349,9 @@ void NewMedeaWindow::makeConnections()
 
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
 
-    connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
-
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
+
+    connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
 
@@ -384,6 +385,7 @@ void NewMedeaWindow::makeConnections()
 
 /**
  * @brief NewMedeaWindow::connectToController
+ * Connect signals and slots to the controller.
  */
 void NewMedeaWindow::connectToController()
 {
