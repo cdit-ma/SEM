@@ -170,14 +170,13 @@ void NewMedeaWindow::initialiseGUI()
     workloadButton->setCheckable(true);
     definitionsButton->setCheckable(true);
 
+    // setup controller and jenkins settings
     setupJenkinsSettings();
     setupController();
 
     // setup the menu and dock
     setupMenu(menuButton);
     setupDock(bodyLayout);
-
-
 
     // why does calling it here shrink it first before
     // scaling it correctly when called a second time
@@ -325,12 +324,13 @@ void NewMedeaWindow::setupController()
 
 }
 
-void NewMedeaWindow::resetTool()
+void NewMedeaWindow::resetGUI()
 {
     prevPressedButton = 0;
     prevSelectedNode = 0;
     selectedNode = 0;
     setupController();
+    connectToController();
 }
 
 
@@ -341,37 +341,17 @@ void NewMedeaWindow::resetTool()
 void NewMedeaWindow::makeConnections()
 {
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
-
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
-    connect(this, SIGNAL(view_ImportGraphML(QStringList)), controller, SLOT(view_ImportGraphML(QStringList)));
-
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
-    connect(this, SIGNAL(view_ExportGraphML(QString)), controller, SLOT(view_ExportGraphML(QString)));
-    connect(controller, SIGNAL(view_WriteGraphML(QString,QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
-
-    connect(file_clearModel, SIGNAL(triggered()), controller, SLOT(view_ClearModel()));
     connect(file_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
+    connect(file_importJenkinsNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
 
-    if(file_importJenkinsNodes){
-        connect(file_importJenkinsNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
-    }
-
-    connect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
-    connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
-    connect(edit_undo, SIGNAL(triggered()), controller, SLOT(view_Undo()));
-    connect(edit_redo, SIGNAL(triggered()), controller, SLOT(view_Redo()));
-
-    connect(edit_cut, SIGNAL(triggered()), controller, SLOT(view_Cut()));
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
-    connect(this, SIGNAL(view_PasteData(QString)), controller, SLOT(view_Paste(QString)));
-    connect(edit_copy, SIGNAL(triggered()), controller, SLOT(view_Copy()));
-    connect(controller, SIGNAL(view_UpdateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
-    connect(projectName, SIGNAL(clicked()), controller, SLOT(view_SelectModel()));
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
 
     connect(assemblyButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
@@ -389,16 +369,42 @@ void NewMedeaWindow::makeConnections()
     connect(partsContainer, SIGNAL(constructDockNode(QString)), nodeView, SLOT(view_DockConstructNode(QString)));
     connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(NodeItem*)), nodeView, SLOT(view_addComponentDefinition(NodeItem*)));
 
-    connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateProjectName(QString)));
-    connect(nodeView, SIGNAL(updateDataTable()), this, SLOT(updateDataTable()));
-
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showContextMenu(QPoint)));
 
+    connect(nodeView, SIGNAL(updateDataTable()), this, SLOT(updateDataTable()));
     connect(nodeView, SIGNAL(updateDockButtons(QString)), this, SLOT(updateDockButtons(QString)));
     connect(nodeView, SIGNAL(updateDockContainer(QString)), this, SLOT(updateDockContainer(QString)));
 
     connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
+
+    connectToController();
+}
+
+
+/**
+ * @brief NewMedeaWindow::connectToController
+ */
+void NewMedeaWindow::connectToController()
+{
+    connect(this, SIGNAL(view_ImportGraphML(QStringList)), controller, SLOT(view_ImportGraphML(QStringList)));
+    connect(this, SIGNAL(view_ExportGraphML(QString)), controller, SLOT(view_ExportGraphML(QString)));
+    connect(controller, SIGNAL(view_WriteGraphML(QString,QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
+
+    connect(file_clearModel, SIGNAL(triggered()), controller, SLOT(view_ClearModel()));
+
+    connect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
+    connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
+
+    connect(edit_undo, SIGNAL(triggered()), controller, SLOT(view_Undo()));
+    connect(edit_redo, SIGNAL(triggered()), controller, SLOT(view_Redo()));
+    connect(edit_cut, SIGNAL(triggered()), controller, SLOT(view_Cut()));
+    connect(edit_copy, SIGNAL(triggered()), controller, SLOT(view_Copy()));
+    connect(this, SIGNAL(view_PasteData(QString)), controller, SLOT(view_Paste(QString)));
+    connect(controller, SIGNAL(view_UpdateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));
+
+    connect(projectName, SIGNAL(clicked()), controller, SLOT(view_SelectModel()));
+    connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateProjectName(QString)));
 }
 
 
@@ -477,12 +483,10 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
         return;
     }
 
-    //selectedNode = 0;
-    //file_clearModel->trigger();
-    // delete controller and create a new one
-    //setupController();
-    resetTool();
-    makeConnections();
+    // reset gui
+    // delete old controller, create a new one
+    // then connect to new controller
+    resetGUI();
 }
 
 

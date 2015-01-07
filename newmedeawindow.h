@@ -91,11 +91,12 @@ private:
     void importGraphMLFiles(QStringList files);
     void initialiseGUI();
     void makeConnections();
+    void connectToController();
     void setupJenkinsSettings();
     void setupMenu(QPushButton* button);
     void setupDock(QHBoxLayout* layout);
     void setupController();
-    void resetTool();
+    void resetGUI();
 
     QVector<ProjectWindow*> projectWindows;
     bool isEnabled;
