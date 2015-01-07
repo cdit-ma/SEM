@@ -63,7 +63,7 @@ signals:
     void updateDataTable();
     void updateViewMargin();
     void updateAdoptableNodeList(Node* node);
-    void updateDockButtons(char c);
+    void updateDockButtons(QString dockButton);
     void updateDockContainer(QString container);
 
     void sortModel();
@@ -107,6 +107,7 @@ public slots:
     void centreModel(Node* node);
 
     void clearSelection();
+    void updateDockButtons(Node* node);
 
     void view_addComponentDefinition(NodeItem* itm);
 

@@ -48,7 +48,9 @@ signals:
     void view_ImportGraphML(QStringList files);
     void view_ExportGraphML(QString fileName);
     void setViewAspects(QStringList aspects);
+
     void clearDock();
+    void checkDockScrollBar();
 
 private slots:
     void loadJenkinsData(int code);
@@ -75,7 +77,7 @@ private slots:
 
     void updateDataTable();
     void updateViewAspects();
-    void updateDockButtons(char dockButton);
+    void updateDockButtons(QString dockButton);
     void updateDockContainer(QString container);
 
     void addNewNodeToDock(QString type, NodeItem* nodeItem);
@@ -92,6 +94,7 @@ private:
     void setupJenkinsSettings();
     void setupMenu(QPushButton* button);
     void setupDock(QHBoxLayout* layout);
+    void setupController();
 
     QVector<ProjectWindow*> projectWindows;
     bool isEnabled;

@@ -50,6 +50,8 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
+    this->setContextMenuPolicy(Qt::CustomContextMenu);
+
     //Set-up the view
     // changed the sceneRect values
     // it used to be 19200 x 10800
@@ -58,9 +60,7 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     //translate(9600,5040);
 
 
-    this->setContextMenuPolicy(Qt::CustomContextMenu);
-
-    // initially make the whole scene fit inside the view.
+    // set view background-color
     setStyleSheet("QGraphicsView{ background-color: rgba(150,150,150,255); }");
 }
 
@@ -261,6 +261,8 @@ void NodeView::showContextMenu(QPoint position)
 
 /**
  * @brief NodeView::view_DockConstructNode
+ * This is called whenever a dock adoptable node item is pressed
+ * from the Parts container in the dock.
  * @param kind
  */
 void NodeView::view_DockConstructNode(QString kind)
@@ -437,33 +439,11 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
             if(setSelected){
                 emit view_SetSelectedAttributeModel(GUIItem->getAttributeTable());
 
+                // update the dock node items when a node is selected
+                // and enable/disable dock buttons accordingly
                 Node* node = dynamic_cast<Node*>(graphML);
-                if (node) {
-
-                    // update the dock node items when a node is selected
-                    emit updateAdoptableNodeList(node);
-
-                    // enable/disable dock buttons when necessary
-                    QString nodeKind = node->getDataValue("kind");
-
-                    if (nodeKind == "ComponentAssembly") {
-                        emit updateDockButtons('D');
-                    } else  if (nodeKind == "InterfaceDefinitions"||
-                                nodeKind == "BehaviourDefinitions" ||
-                                nodeKind == "AssemblyDefinitions" ||
-                                nodeKind == "File" ||
-                                nodeKind.startsWith("Component")) {
-                        emit updateDockButtons('P');
-                    } else if (nodeKind == "HardwareDefinitions" ||
-                               nodeKind == "HardwareCluster") {
-                        emit updateDockButtons('H');
-                    } else if (nodeKind == "DeploymentDefinitions" ||
-                               nodeKind == "ManagementComponent") {
-                        emit updateDockButtons('N');
-                    } else {
-                        emit updateDockButtons('A');
-                    }
-                }
+                emit updateAdoptableNodeList(node);
+                updateDockButtons(node);
 
                 return;
             }
@@ -764,7 +744,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
     if(event->key() == Qt::Key_Escape){
         emit escapePressed(true);
-        emit updateDockButtons('N');
+        emit updateDockButtons("N");
     }
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_A){
@@ -847,11 +827,12 @@ void NodeView::resetModel()
 
 /**
  * @brief NodeView::centreModel
+ * This gets called every time the user middle clicks on the view.
  * @param node
  */
 void NodeView::centreModel(Node *node)
 {
-    if(node){
+    if (node) {
         centreItem(getGraphMLItemFromGraphML(node));
     }
 }
@@ -865,7 +846,7 @@ void NodeView::centreModel(Node *node)
 void NodeView::clearSelection()
 {
     emit unselect();
-    emit updateDockButtons('N');
+    emit updateDockButtons("N");
 }
 
 
@@ -941,6 +922,49 @@ void NodeView::view_addComponentDefinition(NodeItem *itm)
             controller->view_ConstructComponentInstanceInAssembly(defn, assm);
             // sort component assembly
             //view_SortNode(assm);
+        }
+    }
+}
+
+
+/**
+ * @brief NodeView::view_updateDockButtons
+ * This method enable/disable dock buttons depending on the currently selected node.
+ */
+void NodeView::updateDockButtons(Node* node)
+{
+    if (node) {
+
+        QString nodeKind = node->getDataValue("kind");
+
+        if (nodeKind == "ComponentAssembly") {
+
+            emit updateDockButtons("D");
+
+        } else  if (nodeKind == "InterfaceDefinitions"||
+                    nodeKind == "BehaviourDefinitions" ||
+                    nodeKind == "AssemblyDefinitions" ||
+                    nodeKind == "File" ||
+                    nodeKind == "Component") {
+
+            emit updateDockButtons("P");
+
+        } else if (nodeKind == "HardwareDefinitions" ||
+                   nodeKind == "HardwareCluster") {
+
+            emit updateDockButtons("H");
+
+        } else if (nodeKind == "ComponentImpl") {
+
+            emit updateDockButtons("PD");
+
+        } else if (nodeKind == "DeploymentDefinitions" ||
+                   nodeKind == "ManagementComponent") {
+
+            emit updateDockButtons("N");
+
+        } else {
+            emit updateDockButtons("A");
         }
     }
 }

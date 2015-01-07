@@ -3,7 +3,7 @@
 #include "docknodeitem.h"
 #include "dockadoptablenodeitem.h"
 
-#include <QFontMetrics>
+#include <QScrollBar>
 #include <QDebug>
 
 
@@ -25,8 +25,9 @@ DockScrollArea::DockScrollArea(QString label, DockToggleButton *parent) :
     parentButton->setContainer(this);
 
     groupBox->setLayout(layout);
-    //groupBox->setTitle(label);
-    groupBox->setFixedSize(this->width(), this->height());
+    groupBox->setTitle(label);
+    //groupBox->setFixedSize(this->width(), this->height());
+    groupBox->setFixedSize(140, 140);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     groupBox->setStyleSheet("QGroupBox {"
                             "background-color: rgba(255,255,255,0);"
@@ -47,12 +48,13 @@ DockScrollArea::DockScrollArea(QString label, DockToggleButton *parent) :
                   "background-color: rgba(255,255,255,180);"
                   "border: 0px;"
                   "border-radius: 10px;"
+                  "padding-top: 10px;"
                   "}");
 
-    // this centers the dock node items but it moves the groupbox title around
-    // find a way to keep the groupbox title on the top left
+    // this centers the groupbox and dock node items
     setAlignment(Qt::AlignHCenter);
 
+    // connect this container to its dock toglle button
     connect(parentButton, SIGNAL(pressed()), this, SLOT(activate()));
 }
 
@@ -68,7 +70,7 @@ DockScrollArea::~DockScrollArea()
 
 /**
  * @brief DockScrollArea::getParentButton
- * Returns this scroll area's parent button (DockToggleButton)
+ * Returns this scroll area's parent button (DockToggleButton).
  * @return
  */
 DockToggleButton *DockScrollArea::getParentButton()
@@ -79,6 +81,7 @@ DockToggleButton *DockScrollArea::getParentButton()
 
 /**
  * @brief DockScrollArea::getGroupBox
+ * Returns this scroll area's groupbox.
  * @return
  */
 QGroupBox *DockScrollArea::getGroupBox()
@@ -121,6 +124,7 @@ void DockScrollArea::addAdoptableDockNodes(QStringList nodes)
         connect(itm, SIGNAL(itemPressed(QString)), this, SLOT(buttonPressed(QString)));
     }
 
+    //checkScrollBar();
     repaint();
 }
 
@@ -131,12 +135,16 @@ void DockScrollArea::addAdoptableDockNodes(QStringList nodes)
  */
 void DockScrollArea::paintEvent(QPaintEvent *e)
 {
+    //qDebug() << verticalScrollBar()->isVisible();
     QScrollArea::paintEvent(e);
 }
 
 
 /**
  * @brief DockScrollArea::buttonPressed
+ * This gets called when a dock adoptable node item is pressed.
+ * It tells the view to create a NodeItem with the specified
+ * kind inside the currently selected node.
  * @param kind
  */
 void DockScrollArea::buttonPressed(QString kind)
@@ -147,8 +155,8 @@ void DockScrollArea::buttonPressed(QString kind)
 
 /**
  * @brief DockScrollArea::dock_addComponentInstance
- * Tell the view to create and add a ComponentInstance of
- * NodeItem itm into the currently selected node.
+ * Tell the view to try and create a ComponentInstance of
+ * NodeItem itm and add it into the currently selected node.
  */
 void DockScrollArea::dock_addComponentInstance(NodeItem *itm)
 {
@@ -157,8 +165,35 @@ void DockScrollArea::dock_addComponentInstance(NodeItem *itm)
 
 
 /**
+ * @brief DockScrollArea::checkScrollBar
+ */
+void DockScrollArea::checkScrollBar()
+{
+    if (verticalScrollBar()->isVisible()) {
+        qDebug() << "Vertical scroll bar is visible";
+        setStyleSheet("QScrollArea {"
+                      "background-color: rgba(255,255,255,180);"
+                      "border: 0px;"
+                      "border-radius: 10px;"
+                      "padding-top: 10px;"
+                      "padding-right: 5px;"
+                      "}");
+    } else {
+        qDebug() << "Vertical scroll bar is NOT visible";
+        setStyleSheet("QScrollArea {"
+                      "background-color: rgba(255,255,255,180);"
+                      "border: 0px;"
+                      "border-radius: 10px;"
+                      "padding-top: 10px;"
+                      "}");
+    }
+
+}
+
+
+/**
  * @brief DockScrollArea::activate
- * This shows or hides the scroll area its groupbox.
+ * This shows or hides the scroll area and its groupbox.
  */
 void DockScrollArea::activate()
 {

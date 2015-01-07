@@ -46,6 +46,8 @@ public slots:\
 
     void buttonPressed(QString kind);
     void dock_addComponentInstance(NodeItem *itm);
+
+    void checkScrollBar();
 };
 
 #endif // DOCKSCROLLAREA_H

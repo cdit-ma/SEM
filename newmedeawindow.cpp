@@ -63,7 +63,7 @@ void NewMedeaWindow::initialiseGUI()
     selectedNode = 0;
 
     nodeView = new NodeView();
-    controller = new NewController();
+    //controller = new NewController();
     scene = nodeView->scene();
 
     //QThread *controllerThread =  new QThread(this);
@@ -81,8 +81,9 @@ void NewMedeaWindow::initialiseGUI()
     nodeView->setMinimumSize(windowWidth, windowHeight);
 
     setupJenkinsSettings();
-    controller->connectView(nodeView);
-    controller->initializeModel();
+    setupController();
+    //controller->connectView(nodeView);
+    //controller->initializeModel();
 
     projectName = new QPushButton(" Project Name");
     dataTable = new QTableView();
@@ -116,7 +117,7 @@ void NewMedeaWindow::initialiseGUI()
     assemblyButton->setStyleSheet("background-color: rgba(80,180,180,0.9);");
     workloadButton->setStyleSheet("background-color: rgba(230,130,130,0.9);");
     definitionsButton->setStyleSheet("background-color: rgba(120,120,220,0.9);");
-    projectName->setStyleSheet("font-size: 16px;");
+    projectName->setStyleSheet("font-size: 16px; text-align: left;");
     searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
 
     // setup and add dataTable/dataTableBox widget/layout
@@ -308,7 +309,20 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
     layout->addStretch(3);
 
     // initially disable dock buttons
-    updateDockButtons('N');
+    //updateDockButtons("N");
+}
+
+
+/**
+ * @brief NewMedeaWindow::setupController
+ */
+void NewMedeaWindow::setupController()
+{
+    delete controller;
+    controller = new NewController();
+    controller->connectView(nodeView);
+    controller->initializeModel();
+
 }
 
 
@@ -371,8 +385,10 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showContextMenu(QPoint)));
 
-    connect(nodeView, SIGNAL(updateDockButtons(char)), this, SLOT(updateDockButtons(char)));
+    connect(nodeView, SIGNAL(updateDockButtons(QString)), this, SLOT(updateDockButtons(QString)));
     connect(nodeView, SIGNAL(updateDockContainer(QString)), this, SLOT(updateDockContainer(QString)));
+
+    connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 }
 
 
@@ -451,7 +467,10 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
         return;
     }
 
-    file_clearModel->trigger();
+    //file_clearModel->trigger();
+    // delete controller and create a new one
+    setupController();
+    makeConnections();
 }
 
 
@@ -498,7 +517,7 @@ void NewMedeaWindow::on_actionClearModel_triggered()
 {
     nodeView->unselect();
     nodeView->resetModel();
-    updateDockButtons('N');
+    updateDockButtons("N");
     emit clearDock();
 }
 
@@ -678,25 +697,37 @@ void NewMedeaWindow::updateViewAspects()
  * A - All
  * @param dockButton
  */
-void NewMedeaWindow::updateDockButtons(char dockButton)
+void NewMedeaWindow::updateDockButtons(QString dockButton)
 {
-    if (dockButton == 'P') {
+    if (dockButton == "P") {
         partsButton->setEnabled(true);
         hardwareNodesButton->setEnabled(false);
         compDefinitionsButton->setEnabled(false);
-    } else if (dockButton == 'D') {
+    } else if (dockButton == "D") {
         compDefinitionsButton->setEnabled(true);
         partsButton->setEnabled(false);
         hardwareNodesButton->setEnabled(false);
-    } else if (dockButton == 'H') {
+    } else if (dockButton == "H") {
         hardwareNodesButton->setEnabled(true);
         partsButton->setEnabled(false);
         compDefinitionsButton->setEnabled(false);
-    } else if (dockButton == 'N') {
+    } else if (dockButton == "PD") {
+        partsButton->setEnabled(true);
+        hardwareNodesButton->setEnabled(false);
+        compDefinitionsButton->setEnabled(true);
+    } else if (dockButton == "PH") {
+        partsButton->setEnabled(true);
+        hardwareNodesButton->setEnabled(true);
+        compDefinitionsButton->setEnabled(false);
+    } else if (dockButton == "DH") {
+        partsButton->setEnabled(false);
+        hardwareNodesButton->setEnabled(true);
+        compDefinitionsButton->setEnabled(true);
+    } else if (dockButton == "N") {
         partsButton->setEnabled(false);
         hardwareNodesButton->setEnabled(false);
         compDefinitionsButton->setEnabled(false);
-    } else if (dockButton == 'A') {
+    } else if (dockButton == "A") {
         partsButton->setEnabled(true);
         hardwareNodesButton->setEnabled(true);
         compDefinitionsButton->setEnabled(true);
@@ -736,6 +767,9 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
         if (node) {
             if (partsButton->getSelected()) {
                 partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(node));
+
+                qDebug() << "NewMedeaWindow: " << partsContainer->verticalScrollBar()->isVisible();
+                emit checkDockScrollBar();
             }
         }
         update();
