@@ -107,6 +107,7 @@ private:
 
     bool USING_RUBBERBAND_SELECTION;
 
+    QRectF oldBoundingRect;
     QPointF origin;
     QPointF sceneOrigin;
 

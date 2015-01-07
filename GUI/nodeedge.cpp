@@ -48,7 +48,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     //Set Circle Width/Height
 
     width =  (s->boundingRect().width() + d->boundingRect().width())/20;
-     height =  (s->boundingRect().height() + d->boundingRect().height())/20;
+    height =  (s->boundingRect().height() + d->boundingRect().height())/20;
 
 
     //Construct the Bounding Rectangle

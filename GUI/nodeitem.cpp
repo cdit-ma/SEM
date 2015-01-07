@@ -161,16 +161,10 @@ NodeItem::~NodeItem()
 QRectF NodeItem::boundingRect() const
 {
     int brushSize = selectedPen.width();
-
-    int WIDTH = width;
-    if(icon && label){
-        int newWidth= icon->boundingRect().width() + label->boundingRect().width();
-        if(newWidth > WIDTH){
-            WIDTH = newWidth;
-        }
+    if(kind == "Model"){
+        brushSize = 0;
     }
-
-    return QRectF(-brushSize,-brushSize, WIDTH + brushSize, height + brushSize + 10);
+    return QRectF(-brushSize, -brushSize, width + (brushSize *2), height + (brushSize *2));
 }
 
 
@@ -183,8 +177,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     label->setVisible(drawDetail);
 
     if(drawObject){
-        QRectF rectangle(0,0,width,height);
-        //QRectF rectangle = boundingRect();
+        QRectF rectangle(0,0,width, height);
 
         QPen Pen;
         QBrush Brush;
@@ -553,8 +546,8 @@ void NodeItem::sortChildren()
             if (maxWidth == 0) {
                 maxWidth = rowWidth - gapX;
             }
-            emit updateGraphMLData(getGraphML(),"width", QString::number(maxWidth + gapX));
-            emit updateGraphMLData(getGraphML(),"height", QString::number(colHeight + maxHeight + gapY));
+            emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth + gapX));
+            emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
 
             // this is only used to resize the model
             if (kind == "Model") {
@@ -805,6 +798,7 @@ void NodeItem::updatePosition(QString x, QString y)
 
 void NodeItem::updateSize(QString w, QString h)
 {
+    oldBoundingRect = boundingRect();
     if(w != 0){
         width = w.toDouble();
     }
@@ -813,6 +807,7 @@ void NodeItem::updateSize(QString w, QString h)
     }
 
     //bRec = QRect(-4,-4,width+4, height+4);
+
     update();
 
 }

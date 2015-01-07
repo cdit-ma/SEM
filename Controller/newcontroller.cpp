@@ -1568,6 +1568,12 @@ QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKin
     if(nodeKind == "Model"){
         GraphMLKey* middlewareKey = constructGraphMLKey("middleware", "string", "node");
         GraphMLKey* projectUUID = constructGraphMLKey("projectUUID", "string", "node");
+        GraphMLKey* widthKey = constructGraphMLKey("width", "string", "node");
+        GraphMLKey* heightKey = constructGraphMLKey("height", "string", "node");
+
+        //Update Later
+        data.append(new GraphMLData(widthKey, ""));
+        data.append(new GraphMLData(heightKey, ""));
         data.append(new GraphMLData(projectUUID, "0"));
         data.append(new GraphMLData(middlewareKey, "tao"));
     }
