@@ -663,7 +663,7 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
     // this removes the non-disappearing blue
     // lines after moving node items
-    update();
+    //update();
 }
 
 void NodeView::mousePressEvent(QMouseEvent *event)

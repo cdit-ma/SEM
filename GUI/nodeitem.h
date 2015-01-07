@@ -73,9 +73,7 @@ signals:
 
 public slots:
     void setOpacity(qreal opacity);
-    void setSelected2();
     void setSelected(bool selected);
-    void setDeselected2();
     void toggleDetailDepth(int level);
 
     void graphMLDataUpdated(GraphMLData *data);
@@ -104,7 +102,7 @@ private:
     QString toBuildType;
     QString name;
     QString kind;
-    QRectF bRec;
+    //QRectF bRec;
 
 
     bool USING_RUBBERBAND_SELECTION;

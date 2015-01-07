@@ -111,7 +111,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         }
     }
 
-    bRec = QRectF(0,0,this->width, this->height);
+   // bRec = QRectF(0,0,this->width, this->height);
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
@@ -144,7 +144,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     setupIcon();
 
 
-    setCacheMode(QGraphicsItem::NoCache);
+
+
+
+     setCacheMode(QGraphicsItem::NoCache);
 }
 
 
@@ -157,7 +160,17 @@ NodeItem::~NodeItem()
 
 QRectF NodeItem::boundingRect() const
 {
-    return bRec;
+    int brushSize = selectedPen.width();
+
+    int WIDTH = width;
+    if(icon && label){
+        int newWidth= icon->boundingRect().width() + label->boundingRect().width();
+        if(newWidth > WIDTH){
+            WIDTH = newWidth;
+        }
+    }
+
+    return QRectF(-brushSize,-brushSize, WIDTH + brushSize, height + brushSize + 10);
 }
 
 
@@ -170,7 +183,9 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     label->setVisible(drawDetail);
 
     if(drawObject){
-        QRectF rectangle = boundingRect();
+        QRectF rectangle(0,0,width,height);
+        //QRectF rectangle = boundingRect();
+
         QPen Pen;
         QBrush Brush;
 
@@ -238,24 +253,12 @@ void NodeItem::setOpacity(qreal opacity)
             edge->setOpacity(0);
         }
     }
-    this->update(this->boundingRect());
+    this->update();
 }
 
 
 
-void NodeItem::setSelected2()
-{
-    if(graphicsEffect != 0){
-        graphicsEffect->setStrength(1);
-    }
 
-    for(int i =0;i< connections.size();i++){
-        if(connections[i] != 0){
-            connections[i]->setSelected(true);
-        }
-    }
-    this->update(this->boundingRect());
-}
 
 void NodeItem::setSelected(bool selected)
 {
@@ -266,24 +269,12 @@ void NodeItem::setSelected(bool selected)
         }
     }
 
-    this->update(this->boundingRect());
+    this->update();
 
     // update corresponding dock node item
     emit updateDockNodeItem(selected);
 }
 
-void NodeItem::setDeselected2()
-{
-    if(graphicsEffect != 0){
-        graphicsEffect->setStrength(0);
-    }
-
-    for(int i =0;i< connections.size();i++){
-        if(connections[i] != 0){
-            //connections[i]->s();
-        }
-    }
-}
 
 void NodeItem::toggleDetailDepth(int level)
 {
@@ -795,6 +786,8 @@ void NodeItem::updateBrushes()
     selectedPen.setColor(Qt::blue);
     selectedPen.setWidth(24);
 
+
+
 }
 
 void NodeItem::updatePosition(QString x, QString y)
@@ -819,7 +812,7 @@ void NodeItem::updateSize(QString w, QString h)
         height = h.toDouble();
     }
 
-    bRec = QRect(-4,-4,width+4, height+4);
+    //bRec = QRect(-4,-4,width+4, height+4);
     update();
 
 }
@@ -833,7 +826,7 @@ void NodeItem::updateSize(QString w, QString h)
  */
 void NodeItem::updateSize(double w, double h)
 {
-    bRec = QRect(0, 0, w, h);
+    //bRec = QRect(0, 0, w, h);
     update();
 }
 
