@@ -63,7 +63,6 @@ void NewMedeaWindow::initialiseGUI()
     selectedNode = 0;
 
     nodeView = new NodeView();
-    //controller = new NewController();
     scene = nodeView->scene();
 
     //QThread *controllerThread =  new QThread(this);
@@ -79,11 +78,6 @@ void NewMedeaWindow::initialiseGUI()
     this->setCentralWidget(nodeView);
     this->setMinimumSize(windowWidth, windowHeight);
     nodeView->setMinimumSize(windowWidth, windowHeight);
-
-    setupJenkinsSettings();
-    setupController();
-    //controller->connectView(nodeView);
-    //controller->initializeModel();
 
     projectName = new QPushButton(" Project Name");
     dataTable = new QTableView();
@@ -179,6 +173,9 @@ void NewMedeaWindow::initialiseGUI()
     // setup the menu and dock
     setupMenu(menuButton);
     setupDock(bodyLayout);
+
+    setupJenkinsSettings();
+    setupController();
 
     // why does calling it here shrink it first before
     // scaling it correctly when called a second time
@@ -309,7 +306,7 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
     layout->addStretch(3);
 
     // initially disable dock buttons
-    //updateDockButtons("N");
+    updateDockButtons("N");
 }
 
 
@@ -467,6 +464,7 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
         return;
     }
 
+    selectedNode = 0;
     //file_clearModel->trigger();
     // delete controller and create a new one
     setupController();
@@ -745,7 +743,7 @@ void NewMedeaWindow::updateDockButtons(QString dockButton)
  */
 void NewMedeaWindow::updateDockContainer(QString container)
 {
-    if (container == "Parts") {
+    if (container == "Parts" &&  selectedNode) {
         qDebug() << "NewMedeaWindow::updateDockContainer";
         partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(selectedNode));
     }
