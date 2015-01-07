@@ -316,6 +316,7 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
 void NewMedeaWindow::setupController()
 {
     delete controller;
+    controller = 0;
     controller = new NewController();
     controller->connectView(nodeView);
     controller->initializeModel();
@@ -341,7 +342,9 @@ void NewMedeaWindow::makeConnections()
     connect(file_clearModel, SIGNAL(triggered()), controller, SLOT(view_ClearModel()));
     connect(file_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
 
-    connect(file_importJenkinsNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
+    if(file_importJenkinsNodes){
+        connect(file_importJenkinsNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
+    }
 
     connect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
     connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
@@ -745,7 +748,9 @@ void NewMedeaWindow::updateDockContainer(QString container)
 {
     if (container == "Parts" &&  selectedNode) {
         qDebug() << "NewMedeaWindow::updateDockContainer";
-        partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(selectedNode));
+        if(controller){
+            partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(selectedNode));
+        }
     }
     update();
 }
