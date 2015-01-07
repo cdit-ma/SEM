@@ -95,6 +95,7 @@ private:
     void setupMenu(QPushButton* button);
     void setupDock(QHBoxLayout* layout);
     void setupController();
+    void resetTool();
 
     QVector<ProjectWindow*> projectWindows;
     bool isEnabled;

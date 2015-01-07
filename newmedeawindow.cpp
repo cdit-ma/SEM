@@ -170,12 +170,14 @@ void NewMedeaWindow::initialiseGUI()
     workloadButton->setCheckable(true);
     definitionsButton->setCheckable(true);
 
+    setupJenkinsSettings();
+    setupController();
+
     // setup the menu and dock
     setupMenu(menuButton);
     setupDock(bodyLayout);
 
-    setupJenkinsSettings();
-    setupController();
+
 
     // why does calling it here shrink it first before
     // scaling it correctly when called a second time
@@ -323,6 +325,14 @@ void NewMedeaWindow::setupController()
 
 }
 
+void NewMedeaWindow::resetTool()
+{
+    prevPressedButton = 0;
+    prevSelectedNode = 0;
+    selectedNode = 0;
+    setupController();
+}
+
 
 /**
  * @brief NewMedeaWindow::makeConnections
@@ -467,10 +477,11 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
         return;
     }
 
-    selectedNode = 0;
+    //selectedNode = 0;
     //file_clearModel->trigger();
     // delete controller and create a new one
-    setupController();
+    //setupController();
+    resetTool();
     makeConnections();
 }
 
