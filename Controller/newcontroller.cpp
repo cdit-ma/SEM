@@ -2248,7 +2248,7 @@ bool NewController::attachGraphMLData(GraphML *item, QVector<GraphMLData *> data
         GraphMLData* containedData = item->getData(data->getKey());
         if(containedData){
             //Update so we have an Undo.
-            //qWarning() << item->toString() << " Found duplicate Data for key: " << data->getKeyName() << " Updating Value instead.";
+            qWarning() << item->toString() << " Found duplicate Data for key: " << data->getKeyName() << " Updating Value instead.";
             view_UpdateGraphMLData(item, data->getKeyName(), data->getValue());
         }else{
             //Add action!

@@ -818,6 +818,7 @@ void NodeItem::updateSize(QString w, QString h)
     if(h != 0){
         height = h.toDouble();
     }
+
     bRec = QRect(-4,-4,width+4, height+4);
     update();
 
@@ -937,7 +938,15 @@ void NodeItem::setHidden(bool h)
  */
 void NodeItem::resetSize()
 {
-    updateSize(QString::number(origWidth), QString::number(origHeight));
+    GraphMLData* hData = getGraphML()->getData("height");
+    GraphMLData* wData = getGraphML()->getData("width");
+
+    if(hData && wData){
+        wData->setValue(QString::number(origWidth));
+        hData->setValue(QString::number(origHeight));
+    }
+
+    //updateSize(QString::number(origWidth), QString::number(origHeight));
     sortChildren();
 }
 
