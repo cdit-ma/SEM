@@ -101,7 +101,6 @@ void NewController::initializeModel()
 NewController::~NewController()
 {
     view_ClearSelection();
-
     destructNode(model);
 }
 
@@ -508,6 +507,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
             }
         }
     }
+
     /*
     foreach(EdgeTemp edge, sortedEdges){
         Node* s = nodeLookup[edge.source];
@@ -532,21 +532,23 @@ void NewController::view_ClearModel()
     QVector<Node*> childNodes = interfaceDefinitions->getChildren(0);
     for(int i=0; i < childNodes.size(); i++){
         Node* child = childNodes[i];
-
         destructNode(child);
     }
+    childNodes.clear();
 
     childNodes = behaviourDefinitions->getChildren(0);
     for(int i=0; i < childNodes.size(); i++){
         Node* child = childNodes[i];
         destructNode(child);
     }
+    childNodes.clear();
 
     childNodes = hardwareDefinitions->getChildren(0);
     for(int i=0; i < childNodes.size(); i++){
         Node* child = childNodes[i];
         destructNode(child);
     }
+    childNodes.clear();
     childNodes = assemblyDefinitions->getChildren(0);
     for(int i=0; i < childNodes.size(); i++){
         Node* child = childNodes[i];
@@ -556,6 +558,7 @@ void NewController::view_ClearModel()
             destructNode(child);
         }
     }
+    childNodes.clear();
 
 
 }
@@ -1122,8 +1125,10 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
             node = constructNode(constructGraphMLDataVector(nodeKind), true);
 
             //If we have constructed this node, test if the parent can adopt it.
-            if(node && parent->canAdoptChild(node)){
-                adoptableNodeTypes.append(nodeKind);
+            if(node){
+               if(parent->canAdoptChild(node)){
+                   adoptableNodeTypes.append(nodeKind);
+               }
             }
 
             //Delete the node, if we didn't create a GUI NodeItem.
