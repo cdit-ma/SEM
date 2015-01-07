@@ -77,7 +77,7 @@ void NewController::connectView(NodeView *view)
     connect(this, SIGNAL(view_SetOpacity(GraphML*,qreal)), view, SLOT(view_SetOpacity(GraphML*,qreal)));
     connect(this, SIGNAL(view_SortNode(Node*)), view, SLOT(view_SortNode(Node*)));
     connect(this, SIGNAL(view_SetGraphMLSelected(GraphML*,bool)), view, SLOT(view_SelectGraphML(GraphML*,bool)));
-    connect(this, SIGNAL(view_ForceRefresh()), view, SLOT(view_Refresh()));
+    //connect(this, SIGNAL(view_ForceRefresh()), view, SLOT(view_Refresh()));
     connect(this, SIGNAL(view_CenterGraphML(GraphML*)), view, SLOT(view_CenterGraphML(GraphML*)));
     connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
     connect(this, SIGNAL(view_ConstructGraphMLGUI(GraphML*)), view, SLOT(view_ConstructGraphMLGUI(GraphML*)));
