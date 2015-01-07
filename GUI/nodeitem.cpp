@@ -200,6 +200,10 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setPen(Pen);
         painter->drawRect(rectangle);
     }
+
+    if(oldBoundingRect.width() >= boundingRect().width() || oldBoundingRect.height() >= boundingRect().height()){
+        update(oldBoundingRect);
+    }
 }
 
 void NodeItem::notifyEdges()
