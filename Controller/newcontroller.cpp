@@ -493,8 +493,15 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
     sortedEdges << otherEdges;
 
     //Construct the Edges from the EdgeTemp objects
+
+    int maxRetry = 3;
+    QHash<QString, int> retryCount;
     while(sortedEdges.size() > 0){
         EdgeTemp edge = sortedEdges.first();
+        bool retry = true;
+        if(retryCount[edge.id] > maxRetry){
+            retry = false;
+        }
         Node* s = nodeLookup[edge.source];
         Node* d = nodeLookup[edge.target];
         Edge* newEdge = constructEdgeWithData(s, d, edge.data, edge.id);
@@ -502,7 +509,8 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
             sortedEdges.removeFirst();
         }else{
             sortedEdges.removeFirst();
-            if(!s->isConnected(d)){
+            if(!s->isConnected(d) && retry){
+                retryCount[edge.id] += 1;
                 sortedEdges.append(edge);
             }
         }
