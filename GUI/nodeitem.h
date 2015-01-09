@@ -147,9 +147,11 @@ private:
     void updateSize(double w, double h);
     void setLabelFont();
     void setupIcon();
+
     int getNumberOfChildren();
     QStringList getChildrenKind();
 
+    double getCurvedCornerWidth();
 
 };
 

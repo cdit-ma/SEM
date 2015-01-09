@@ -193,14 +193,19 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
-        painter->fillRect(rectangle, Brush);
+        qreal symetricRound = width > height ? width/10 : height/10;
+
         painter->setPen(Pen);
-        painter->drawRect(rectangle);
+        painter->setBrush(Brush);
+        painter->drawRoundedRect(rectangle, symetricRound, symetricRound);
     }
 
+    /*
+    // I don't think this is needed
     if(oldBoundingRect.width() >= boundingRect().width() || oldBoundingRect.height() >= boundingRect().height()){
         update(oldBoundingRect);
     }
+    */
 }
 
 void NodeItem::notifyEdges()
@@ -460,7 +465,7 @@ void NodeItem::sortChildren()
     // if the node item's children are Components or ComponentInstances
     // leave more gap for the in/out event ports along its edges
     if ((fileContainsComponents || componentAssembly) && componentHasChildren) {
-        gapY = topY;  // this value is only used to sort an imported file
+        gapY = topY;  // testing with this value to sort an imported file
         //gapY *= 1.25;
         gapX = gapY;
         rowWidth = gapX;
@@ -473,18 +478,16 @@ void NodeItem::sortChildren()
         // check that it's a NodeItem and that it's visible
         if (nodeItem != 0 && nodeItem->isVisible()) {
 
-            //QString childKind = nodeItem->getGraphML()->getDataValue("kind");
             int childWidth = nodeItem->boundingRect().width();
             int childHeight = nodeItem->boundingRect().height();
 
-
             if ((rowWidth + childWidth) > (origWidth*1.25)) {
                 colHeight += maxHeight + gapY;
-                //maxHeight = 0;
 
                 if (rowWidth > maxWidth) {
                     maxWidth = rowWidth - gapX;
                 }
+
                 maxHeight = childHeight;
                 rowWidth = gapX;
             }
@@ -557,8 +560,6 @@ void NodeItem::sortChildren()
             }
         }
     }
-
-    //update();
 }
 
 
@@ -843,6 +844,9 @@ void NodeItem::setLabelFont()
     font.setPointSizeF(font.pointSizeF() * factor);
     label->setFont(font);
 
+    // move the label away from the curved corner
+    label->setPos(getCurvedCornerWidth(), getCurvedCornerWidth()/2);
+
     // set fixed child size
     childSize = label->boundingRect().height() * 4;
 }
@@ -862,6 +866,7 @@ void NodeItem::setupIcon()
 
         qreal scaleFactor = (labelHeight / iconHeight)*1.5;
         icon->setScale(scaleFactor);
+        icon->setPos(getCurvedCornerWidth(), getCurvedCornerWidth());
 
         qreal diffHeight = (iconHeight*scaleFactor) - labelHeight;
         label->setX(icon->x() + (iconWidth * scaleFactor));
@@ -893,18 +898,33 @@ int NodeItem::getNumberOfChildren()
 
 /**
  * @brief NodeItem::getChildKind
+ * This returns the kinds of all this item's children.
  * @return
  */
 QStringList NodeItem::getChildrenKind()
 {
     QStringList returnable;
-    Node* modelNode = dynamic_cast<Node*>(getGraphML());
-    if(modelNode){
-        foreach(Node* child, modelNode->getChildren(0)){
+    Node *node = dynamic_cast<Node*>(getGraphML());
+    if (node) {
+        foreach(Node* child, node->getChildren(0)){
             returnable += child->getDataValue("kind");
         }
     }
     return returnable;
+}
+
+
+/**
+ * @brief NodeItem::getCurvedCornerWidth
+ * @return
+ */
+double NodeItem::getCurvedCornerWidth()
+{
+    if (width > height) {
+        return width/15;
+    } else {
+        return height/15;
+    }
 }
 
 
@@ -932,8 +952,8 @@ void NodeItem::resetSize()
     GraphMLData* wData = getGraphML()->getData("width");
 
     if(hData && wData){
-        wData->setValue(QString::number(origWidth)+1);
-        hData->setValue(QString::number(origHeight)+1);
+        wData->setValue(QString::number(origWidth));
+        hData->setValue(QString::number(origHeight));
     }
 
     //updateSize(QString::number(origWidth), QString::number(origHeight));

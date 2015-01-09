@@ -940,11 +940,7 @@ void NodeView::updateDockButtons(Node* node)
 
         QString nodeKind = node->getDataValue("kind");
 
-        if (nodeKind == "ComponentAssembly") {
-
-            emit updateDockButtons("D");
-
-        } else  if (nodeKind == "InterfaceDefinitions"||
+        if (nodeKind == "InterfaceDefinitions"||
                     nodeKind == "BehaviourDefinitions" ||
                     nodeKind == "AssemblyDefinitions" ||
                     nodeKind == "File" ||
@@ -957,14 +953,26 @@ void NodeView::updateDockButtons(Node* node)
 
             emit updateDockButtons("H");
 
-        } else if (nodeKind == "ComponentImpl") {
-
-            emit updateDockButtons("PD");
-
         } else if (nodeKind == "DeploymentDefinitions" ||
                    nodeKind == "ManagementComponent") {
 
             emit updateDockButtons("N");
+
+        } else if (nodeKind == "ComponentAssembly") {
+
+            emit updateDockButtons("A");
+
+        } else if (nodeKind == "ComponentImpl") {
+
+            emit updateDockButtons("PD");
+
+        }  else if (nodeKind == "ComponentInstance") {
+
+            if (node->getDefinition()) {
+                emit updateDockButtons("H");
+            } else {
+                emit updateDockButtons("D");
+            }
 
         } else {
             emit updateDockButtons("A");
