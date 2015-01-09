@@ -202,8 +202,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 
 
-
-    */
 }
 
 void NodeItem::notifyEdges()
