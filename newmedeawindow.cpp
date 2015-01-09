@@ -717,39 +717,22 @@ void NewMedeaWindow::updateViewAspects()
  */
 void NewMedeaWindow::updateDockButtons(QString dockButton)
 {
-    if (dockButton == "P") {
+    partsButton->setEnabled(false);
+    hardwareNodesButton->setEnabled(false);
+    compDefinitionsButton->setEnabled(false);
+
+    if (dockButton.contains("P")) {
         partsButton->setEnabled(true);
-        hardwareNodesButton->setEnabled(false);
-        compDefinitionsButton->setEnabled(false);
-    } else if (dockButton == "D") {
+    }else if (dockButton.contains("D")) {
         compDefinitionsButton->setEnabled(true);
-        partsButton->setEnabled(false);
-        hardwareNodesButton->setEnabled(false);
-    } else if (dockButton == "H") {
+    }else if (dockButton.contains("H")) {
         hardwareNodesButton->setEnabled(true);
-        partsButton->setEnabled(false);
-        compDefinitionsButton->setEnabled(false);
-    } else if (dockButton == "PD") {
-        partsButton->setEnabled(true);
-        hardwareNodesButton->setEnabled(false);
-        compDefinitionsButton->setEnabled(true);
-    } else if (dockButton == "PH") {
-        partsButton->setEnabled(true);
-        hardwareNodesButton->setEnabled(true);
-        compDefinitionsButton->setEnabled(false);
-    } else if (dockButton == "DH") {
-        partsButton->setEnabled(false);
-        hardwareNodesButton->setEnabled(true);
-        compDefinitionsButton->setEnabled(true);
-    } else if (dockButton == "N") {
-        partsButton->setEnabled(false);
-        hardwareNodesButton->setEnabled(false);
-        compDefinitionsButton->setEnabled(false);
-    } else if (dockButton == "A") {
+    }else if (dockButton == "A"){
         partsButton->setEnabled(true);
         hardwareNodesButton->setEnabled(true);
         compDefinitionsButton->setEnabled(true);
     }
+
     // hide necessary dock containers
     partsButton->checkEnabled();
     hardwareNodesButton->checkEnabled();

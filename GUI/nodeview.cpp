@@ -386,9 +386,16 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
             nodeEdge->addToScene(scene());
         }
 
+        //Read this
+        if(edge->getSource()->getDataValue("kind") == "ComponentInstance" && edge->getDestination()->getDataValue("kind") == "Component"){
+            emit updateDockButtons("H");
+        }
+
     }else{
         qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
     }
+
+    //if()
 
 }
 
