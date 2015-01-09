@@ -4,7 +4,7 @@
 
 HardwareDefinitions::HardwareDefinitions():Node()
 {
-         addAspect("Assembly");
+         addAspect("Hardware");
 }
 
 HardwareDefinitions::~HardwareDefinitions()

@@ -35,7 +35,7 @@ NewController::NewController()
 
     centeredGraphML = 0;
 
-    viewAspects << "Assembly" << "Workload" << "Definitions";
+    viewAspects << "Assembly" << "Workload" << "Definitions" << "Hardware";
     protectedKeyNames << "x" << "y" << "kind"; //<< "width" << "height";
 
 

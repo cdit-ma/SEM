@@ -815,6 +815,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 void NodeView::resetModel()
 {
     qDebug() << "Resetting model...";
+
     foreach (QGraphicsItem *itm, scene()->items()) {
         NodeItem *nodeItm = dynamic_cast<NodeItem*>(itm);
         if (nodeItm) {

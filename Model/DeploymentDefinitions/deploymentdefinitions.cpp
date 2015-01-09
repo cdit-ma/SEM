@@ -6,6 +6,7 @@
 DeploymentDefinitions::DeploymentDefinitions():Node()
 {
      addAspect("Assembly");
+     addAspect("Hardware");
 }
 
 DeploymentDefinitions::~DeploymentDefinitions()

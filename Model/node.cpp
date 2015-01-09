@@ -56,7 +56,7 @@ void Node::addChild(Node *child)
     if(!containsChild(child)){
         children.append(child);
 
-        if(getParentNode()){
+        if(getParentNode() && getAspects().size() == 1){
             foreach(QString aspect, getAspects()){
                 child->addAspect(aspect);
             }

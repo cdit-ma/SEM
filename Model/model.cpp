@@ -8,6 +8,7 @@ Model::Model(): Node()
     addAspect("Definitions");
     addAspect("Workload");
     addAspect("Assembly");
+    addAspect("Hardware");
 }
 
 Model::~Model()

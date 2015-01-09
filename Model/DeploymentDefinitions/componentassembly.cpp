@@ -8,6 +8,7 @@
 #include <QDebug>
 ComponentAssembly::ComponentAssembly(QString name):Node()
 {
+    addAspect("Assembly");
     //qDebug() << "Constructed Assembly: "<< this->getName();
 }
 

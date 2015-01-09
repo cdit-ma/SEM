@@ -4,7 +4,7 @@
 
 ManagementComponent::ManagementComponent()
 {
-    addAspect("Assembly");
+    addAspect("Hardware");
 }
 
 
