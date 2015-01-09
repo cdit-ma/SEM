@@ -145,6 +145,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
 
      setCacheMode(QGraphicsItem::NoCache);
+     updateViewAspects(QStringList());
 }
 
 

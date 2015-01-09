@@ -174,6 +174,7 @@ void NewMedeaWindow::initialiseGUI()
     assemblyButton->setChecked(true);
     workloadButton->setChecked(true);
     definitionsButton->setChecked(true);
+
     checkedViewAspects.append(assemblyButton->text());
     checkedViewAspects.append(workloadButton->text());
     checkedViewAspects.append(definitionsButton->text());
