@@ -133,7 +133,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         graphMLDataUpdated(labelData);
 
     updateBrushes();
-    if(kindData->getValue() == "Model"){
+    if(kindData->getValue() == "Model" || kindData->getValue() == "DeploymentDefinitions"){
         drawObject = false;
         drawDetail = false;
     }
@@ -174,7 +174,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     label->setVisible(drawDetail);
 
     if(drawObject){
-        QRectF rectangle(0,0,width, height);
+        //qCritical() << "REPAINTING!";
+        QRectF rectangle(0, 0, width, height);
 
         QPen Pen;
         QBrush Brush;
@@ -200,11 +201,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawRoundedRect(rectangle, symetricRound, symetricRound);
     }
 
-    /*
-    // I don't think this is needed
-    if(oldBoundingRect.width() >= boundingRect().width() || oldBoundingRect.height() >= boundingRect().height()){
-        update(oldBoundingRect);
-    }
+
+
     */
 }
 
@@ -340,11 +338,11 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
             update();
         }
         else if(dataKey == "width"){
-            updateSize(dataValue,0);
+            updateSize(dataValue, 0);
             graphMLDataUpdated(node->getData("label"));
         }
         else if(dataKey == "height"){
-            updateSize(0,dataValue);
+            updateSize(0, dataValue);
             graphMLDataUpdated(node->getData("label"));
         }
 
@@ -796,12 +794,13 @@ void NodeItem::updatePosition(QString x, QString y)
     if(y != 0){
         yR = y.toDouble();
     }
-    this->setPos(xR,yR);
+    setPos(xR,yR);
+
+    update();
 }
 
 void NodeItem::updateSize(QString w, QString h)
 {
-    oldBoundingRect = boundingRect();
     if(w != 0){
         width = w.toDouble();
     }
@@ -809,10 +808,8 @@ void NodeItem::updateSize(QString w, QString h)
         height = h.toDouble();
     }
 
-    //bRec = QRect(-4,-4,width+4, height+4);
-
+    prepareGeometryChange();
     update();
-
 }
 
 
