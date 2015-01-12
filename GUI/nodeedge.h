@@ -1,22 +1,13 @@
 #ifndef NODECONNECTION_H
 #define NODECONNECTION_H
 
-#include <QPainter>
 #include <QGraphicsItem>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
-#include <iostream>
-#include <QTouchEvent>
-#include <QGraphicsColorizeEffect>
 #include <QObject>
-#include <QAbstractItemModel>
 
-
+#include "nodeitem.h"
 #include "../Model/node.h"
 #include "../Model/edge.h"
 #include "../Model/graphmldata.h"
-#include "nodeitem.h"
-#include <QObject>
 
 
 class NodeEdge: public GraphMLItem
@@ -33,30 +24,31 @@ public:
     NodeItem* getSource();
     NodeItem* getDestination();
 
-    void updateLine();
-
-
-    void  addToScene(QGraphicsScene* scene);
 
 public slots:
-    void destructNodeEdge();
     void setOpacity(qreal opacity);
 
     void setSelected(bool selected);
     void setVisible(bool visible);
 
+    void updateEdge();
     void graphMLDataUpdated(GraphMLData * data);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
 
 private:
+    void setLabelFont();
     void updateLabel();
+    void updateLines();
 
-    void updateBrushes();
+    void setupBrushes();
 
-    QGraphicsLineItem* QGline;
-    QGraphicsLineItem* QGline2;
+    QPainterPath* painterPath;
+
+    QVector<QGraphicsLineItem*> lineItems;
+    QVector<QGraphicsLineItem*> arrowHeadLines;
+
     NodeItem* source;
     NodeItem* destination;
 
@@ -71,19 +63,18 @@ private:
     QPen pen;
     QPen arrowPen;
     QPen selectedPen;
+    QPen selectedArrowPen;
 
-    QColor selectedColor;
-    QColor color;
     QBrush selectedBrush;
     QBrush brush;
 
 
+    int circleRadius;
     int width;
     int height;
 
     QRect bRec;
 
-    QString ID;
     QLineF line;
     QLineF arrowHead;
     QGraphicsTextItem* label;

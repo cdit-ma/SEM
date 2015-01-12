@@ -382,10 +382,16 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
             dstGUI->setHidden(false);
         }
 
+
+        if(!scene()->items().contains(nodeEdge)){
+            //Add to model.
+            scene()->addItem(nodeEdge);
+        }
+/*
         if(nodeEdge){
             nodeEdge->addToScene(scene());
         }
-
+*/
         //Read this
         if(edge->getSource()->getDataValue("kind") == "ComponentInstance" && edge->getDestination()->getDataValue("kind") == "Component"){
             emit updateDockButtons("H");

@@ -35,9 +35,9 @@ public:
     bool drawDetail;
     bool drawObject;
     int depth;
-    void notifyEdges();
-    void addConnection(NodeEdge* line);
-    void deleteConnnection(NodeEdge* line);
+
+    void addNodeEdge(NodeEdge* line);
+    void removeNodeEdge(NodeEdge* line);
 
     float getChildSize();
 
@@ -66,6 +66,7 @@ signals:
     void updateDockNodeItem();
     void updateDockNodeItem(bool selected);
 
+    void updateEdges();
     void updateOpacity(qreal opacity);
     void updateSceneRect(NodeItem* nodeItem);
 
@@ -77,7 +78,6 @@ public slots:
     void toggleDetailDepth(int level);
 
     void graphMLDataUpdated(GraphMLData *data);
-    void recieveData();
     void destructNodeItem();
     void updateChildNodeType(QString type);
     void updateViewAspects(QStringList aspects);

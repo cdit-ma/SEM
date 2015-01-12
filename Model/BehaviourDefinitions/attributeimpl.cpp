@@ -4,6 +4,7 @@
 
 AttributeImpl::AttributeImpl(QString name):Node(Node::NT_IMPL)
 {
+
 }
 
 AttributeImpl::~AttributeImpl()

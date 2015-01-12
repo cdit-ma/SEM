@@ -69,7 +69,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     GraphMLData* hData = node->getData("height");
     GraphMLData* wData = node->getData("width");
 
-
     if(xData)
         connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
 
@@ -144,7 +143,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     setupIcon();
 
 
-     setCacheMode(QGraphicsItem::NoCache);
+    setCacheMode(QGraphicsItem::NoCache);
      updateViewAspects(QStringList());
 }
 
@@ -205,26 +204,20 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 }
 
-void NodeItem::notifyEdges()
+
+void NodeItem::addNodeEdge(NodeEdge *line)
 {
-    foreach(NodeEdge* edge, connections){
-        edge->updateLine();
-    }
-    foreach(QGraphicsItem* child, childItems()){
-        NodeItem * childNode = dynamic_cast<NodeItem*>(child);
-        if(childNode){
-            childNode->notifyEdges();
-        }
+    NodeItem* item = this;
+    while(item){
+        //Connect the UpdateEdge of all parents of this, to the edge.
+        connect(item, SIGNAL(updateEdges()), line, SLOT(updateEdge()));
+        item = dynamic_cast<NodeItem*>(item->parentItem());
     }
 
-}
-
-void NodeItem::addConnection(NodeEdge *line)
-{
     connections.append(line);
 }
 
-void NodeItem::deleteConnnection(NodeEdge *line)
+void NodeItem::removeNodeEdge(NodeEdge *line)
 {
     int position = connections.indexOf(line);
     connections.remove(position);
@@ -266,7 +259,7 @@ void NodeItem::setSelected(bool selected)
         }
     }
 
-    this->update();
+    update();
 
     // update corresponding dock node item
     emit updateDockNodeItem(selected);
@@ -287,7 +280,7 @@ void NodeItem::toggleDetailDepth(int level)
         }
         drawDetail = false;
     }
-    notifyEdges();
+    //notifyEdges();
     update();
 }
 
@@ -312,21 +305,6 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
                 label->setPlainText(dataValue);
             }
 
-            /**
-            if(icon){
-                qreal labelHeight = label->boundingRect().height();
-                qreal iconHeight = icon->boundingRect().height();
-                qreal iconWidth = icon->boundingRect().width();
-                qreal scaleFactor = labelHeight / iconHeight;
-                icon->setScale(scaleFactor);
-
-                label->setX(icon->x() + (iconWidth * scaleFactor) );
-
-                // added this to prevent the icon from looking pixelated
-                icon->setTransformationMode(Qt::SmoothTransformation);
-            }
-            */
-
             // there has been a change to this item's graphml data
             // update connected dock node item
             //qDebug() << "NodeItem: graphMLDataUpdated";
@@ -346,22 +324,11 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
         }
 
         if(dataKey == "x" || dataKey == "y"){
-            notifyEdges();
+            emit updateEdges();
         }
     }
 }
 
-void NodeItem::recieveData()
-{
-    name = node->getDataValue("label");
-
-    QString x = node->getDataValue("x");
-    QString y = node->getDataValue("y");
-
-    this->setPos(QPointF(x.toDouble(),y.toDouble()));
-    notifyEdges();
-
-}
 
 void NodeItem::destructNodeItem()
 {

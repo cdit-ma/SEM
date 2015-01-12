@@ -33,6 +33,24 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
         files.append(graphMLFile);
         importGraphMLFiles(files);
     }
+
+    QFile file("C:/ArrowTest.graphml");
+
+    if(!file.open(QFile::ReadOnly | QFile::Text)){
+        qDebug() << "could not open file for read";
+    }
+
+    QTextStream in(&file);
+    QString xmlText = in.readAll();
+    file.close();
+
+    emit view_ActionTriggered("Loading GraphML");
+    //emit view_ActionTriggered("Loading XME");
+    emit view_PasteData(xmlText);
+
+
+
+
 }
 
 
