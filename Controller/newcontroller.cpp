@@ -757,7 +757,6 @@ void NewController::view_GraphMLSelected(GraphML *item, bool setSelected)
 
 void NewController::view_ConstructNode(QString kind, QPointF centerPoint)
 {
-
     if(kind != ""){
         view_TriggerAction("Constructing Child Node");
         constructChildNode(getSelectedNode(), constructGraphMLDataVector(kind, centerPoint));
@@ -2495,10 +2494,10 @@ void NewController::setupModel()
     setupManagementComponents();
 
     //Sort the Model.
-    emit view_SortNode(assemblyDefinitions);
-    emit view_SortNode(deploymentDefinitions);
-    emit view_SortNode(model);
-    emit view_CenterGraphML((model));
+    //emit view_SortNode(assemblyDefinitions);
+    //emit view_SortNode(deploymentDefinitions);
+    //emit view_SortNode(model);
+    //emit view_CenterGraphML(model);
     //emit view_FitToScreen();
 
     //Clear the Undo/Redo Stacks

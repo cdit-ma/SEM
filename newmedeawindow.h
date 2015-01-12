@@ -134,6 +134,7 @@ private:
 
     QPushButton *projectName;
     QPushButton* assemblyButton;
+    QPushButton* hardwareButton;
     QPushButton* workloadButton;
     QPushButton* definitionsButton;
 

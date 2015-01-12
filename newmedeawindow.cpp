@@ -25,6 +25,8 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     // initialise gui and connect signals and slots
     initialiseGUI();
     makeConnections();
+    updateViewAspects();
+
 
     // this is used for when a file is dragged and
     // dropped on top of this tool's icon
@@ -101,6 +103,7 @@ void NewMedeaWindow::initialiseGUI()
     dataTable = new QTableView();
     dataTableBox = new QGroupBox();
     assemblyButton = new QPushButton("Assembly");
+    hardwareButton = new QPushButton("Hardware");
     workloadButton = new QPushButton("Workload");
     definitionsButton = new QPushButton("Definitions");
 
@@ -123,12 +126,18 @@ void NewMedeaWindow::initialiseGUI()
     searchButton->setIconSize(searchButton->size()*0.8);
     searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
     notificationArea->setFixedSize(rightPanelWidth, 60);
-    assemblyButton->setFixedSize(rightPanelWidth, 40);
-    workloadButton->setFixedSize(rightPanelWidth, 40);
-    definitionsButton->setFixedSize(rightPanelWidth, 40);
-    assemblyButton->setStyleSheet("background-color: rgba(80,180,180,0.9);");
-    workloadButton->setStyleSheet("background-color: rgba(230,130,130,0.9);");
-    definitionsButton->setStyleSheet("background-color: rgba(120,120,220,0.9);");
+    //assemblyButton->setFixedSize(rightPanelWidth, 40);
+    //hardwareButton->setFixedSize(rightPanelWidth, 40);
+    //workloadButton->setFixedSize(rightPanelWidth, 40);
+    //definitionsButton->setFixedSize(rightPanelWidth, 40);
+    assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
+    hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
+    workloadButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
+    definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
+    assemblyButton->setStyleSheet("background-color: rgba(230,130,130,0.9);");
+    hardwareButton->setStyleSheet("background-color: rgba(80,140,190,0.9);");
+    workloadButton->setStyleSheet("background-color: rgba(80,180,180,0.9);");
+    definitionsButton->setStyleSheet("background-color: rgba(224,154,96,0.9);");
     projectName->setStyleSheet("font-size: 16px; text-align: left;");
     searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
 
@@ -152,6 +161,7 @@ void NewMedeaWindow::initialiseGUI()
     QHBoxLayout *titleLayout = new QHBoxLayout();
     QHBoxLayout *searchLayout = new QHBoxLayout();
     QHBoxLayout *bodyLayout = new QHBoxLayout();
+    QGridLayout *viewButtonsGrid = new QGridLayout();
 
     // add widgets to/and layouts
     titleLayout->addWidget(menuButton, 1);
@@ -165,11 +175,18 @@ void NewMedeaWindow::initialiseGUI()
     leftVlayout->addStretch(1);
     leftVlayout->addLayout(bodyLayout, 20);
 
+    viewButtonsGrid->addWidget(assemblyButton, 1, 1);
+    viewButtonsGrid->addWidget(hardwareButton, 1, 2);
+    viewButtonsGrid->addWidget(workloadButton, 2, 1);
+    viewButtonsGrid->addWidget(definitionsButton, 2, 2);
+
     rightVlayout->addLayout(searchLayout, 1);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
-    rightVlayout->addWidget(assemblyButton, 1);
-    rightVlayout->addWidget(workloadButton, 1);
-    rightVlayout->addWidget(definitionsButton, 1);
+    //rightVlayout->addWidget(assemblyButton, 1);
+    //rightVlayout->addWidget(hardwareButton, 1);
+    //rightVlayout->addWidget(workloadButton, 1);
+    //rightVlayout->addWidget(definitionsButton, 1);
+    rightVlayout->addLayout(viewButtonsGrid);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
     rightVlayout->addWidget(dataTableBox, 4);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
@@ -185,15 +202,18 @@ void NewMedeaWindow::initialiseGUI()
     // other settings
     notificationArea->setEnabled(false);
     assemblyButton->setCheckable(true);
+    hardwareButton->setCheckable(true);
     workloadButton->setCheckable(true);
     definitionsButton->setCheckable(true);
 
-    // intially turn all view aspects on
+    // intially only turn the assembly view aspect on
     assemblyButton->setChecked(true);
+    hardwareButton->setChecked(true);
     workloadButton->setChecked(true);
     definitionsButton->setChecked(true);
 
     checkedViewAspects.append(assemblyButton->text());
+    checkedViewAspects.append(hardwareButton->text());
     checkedViewAspects.append(workloadButton->text());
     checkedViewAspects.append(definitionsButton->text());
 
@@ -375,6 +395,7 @@ void NewMedeaWindow::makeConnections()
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
 
     connect(assemblyButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
+    connect(hardwareButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(definitionsButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(this, SIGNAL(setViewAspects(QStringList)), nodeView, SLOT(setViewAspects(QStringList)));
@@ -576,7 +597,7 @@ void NewMedeaWindow::on_actionPaste_triggered()
  */
 void NewMedeaWindow::on_actionExit_triggered()
 {
-   close();
+    close();
 }
 
 
@@ -711,12 +732,13 @@ void NewMedeaWindow::addNewNodeToDock(QString type, NodeItem *nodeItem)
 void NewMedeaWindow::updateViewAspects()
 {
     QPushButton *sourceButton = qobject_cast<QPushButton*>(QObject::sender());
-
-    if (sourceButton->isChecked()) {
-        checkedViewAspects.append(sourceButton->text());
-    } else {
-        int index = checkedViewAspects.indexOf(sourceButton->text(), 0);
-        checkedViewAspects.removeAt(index);
+    if(sourceButton){
+        if (sourceButton->isChecked()) {
+            checkedViewAspects.append(sourceButton->text());
+        } else {
+            int index = checkedViewAspects.indexOf(sourceButton->text(), 0);
+            checkedViewAspects.removeAt(index);
+        }
     }
 
     emit setViewAspects(checkedViewAspects);
@@ -761,12 +783,12 @@ void NewMedeaWindow::updateDockButtons(QString dockButton)
 
 /**
  * @brief NewMedeaWindow::updateDockContainer
+ * This method updates the specified container.
  * @param container
  */
 void NewMedeaWindow::updateDockContainer(QString container)
 {
     if (container == "Parts" &&  selectedNode) {
-        qDebug() << "NewMedeaWindow::updateDockContainer";
         if(controller){
             partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(selectedNode));
         }
@@ -789,8 +811,6 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
         if (node) {
             if (partsButton->getSelected()) {
                 partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(node));
-
-                qDebug() << "NewMedeaWindow: " << partsContainer->verticalScrollBar()->isVisible();
                 emit checkDockScrollBar();
             }
         }

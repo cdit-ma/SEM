@@ -34,6 +34,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
     setParentItem(parent);
 
+    proxyWidget = 0;
+    expandButton = 0;
+
     label  = new QGraphicsTextItem("NULL",this);
     icon = 0;
 
@@ -46,6 +49,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         parentKind = parent->getGraphML()->getDataValue("kind");
         width = parent->getChildSize();
         height = parent->getChildSize();
+        depth = parent->depth+1;
     }
 
     if (!parentKind.isNull()) {
@@ -110,7 +114,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         }
     }
 
-   // bRec = QRectF(0,0,this->width, this->height);
+    // bRec = QRectF(0,0,this->width, this->height);
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
@@ -142,6 +146,11 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     setLabelFont();
     setupIcon();
 
+    if (drawObject) {
+        if (kindData->getValue() != "Hardware" && kindData->getValue() != "ManagementComponent") {
+            addExpandButton();
+        }
+    }
 
     setCacheMode(QGraphicsItem::NoCache);
      updateViewAspects(QStringList());
@@ -194,7 +203,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
-        qreal symetricRound = width > height ? width/10 : height/10;
+        qreal symetricRound = width > height ? width/15 : height/15;
 
         painter->setPen(Pen);
         painter->setBrush(Brush);
@@ -380,6 +389,8 @@ void NodeItem::updateViewAspects(QStringList aspects)
  */
 void NodeItem::sortChildren()
 {
+    //qDebug() << "----------------------------";
+
     emit triggerAction("Sorting Children");
 
     float topY;
@@ -387,10 +398,12 @@ void NodeItem::sortChildren()
 
     // if it's a main node item, it will have no icon
     if (kind == "Model" || kind.endsWith("Definitions")) {
-        topY = label->boundingRect().height();
+        topY = label->x() + label->boundingRect().height();
         gapY = topY;
     } else {
-        topY = icon->boundingRect().height()*icon->scale();
+        topY = (icon->boundingRect().height()*icon->scale()) + getCurvedCornerWidth();
+        //qDebug() << "icon height = " << icon->boundingRect().height()*icon->scale();
+        //qDebug() << "curved corner width = " << getCurvedCornerWidth();
         gapY = topY/1.8;
     }
 
@@ -435,6 +448,11 @@ void NodeItem::sortChildren()
         rowWidth = gapX;
     }
 
+    //qDebug() << "topY = " << topY;
+    //qDebug() << "rowWidth = " << rowWidth;
+    //qDebug() << "gapX = " << gapX;
+    //qDebug() << "gapY = " << gapY;
+
     foreach (QGraphicsItem* child, this->childItems()) {
 
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
@@ -442,8 +460,14 @@ void NodeItem::sortChildren()
         // check that it's a NodeItem and that it's visible
         if (nodeItem != 0 && nodeItem->isVisible()) {
 
-            int childWidth = nodeItem->boundingRect().width();
+            //int childWidth = nodeItem->boundingRect().width();
+            int childWidth = nodeItem->width;
             int childHeight = nodeItem->boundingRect().height();
+
+            // if the origWidth is not used, when a node is sorted and it
+            // only had one child to begin with, it will always only have
+            // one node per row and hence one column, once sorted
+            // this allows there to be at most 2 child nodes per row
 
             if ((rowWidth + childWidth) > (origWidth*1.25)) {
                 colHeight += maxHeight + gapY;
@@ -487,14 +511,10 @@ void NodeItem::sortChildren()
 
             } else {
 
-                // if the origWidth is not used, when a node is sorted and it
-                // only had one child to begin with, it will always only have
-                // one node per row and hence one column, once sorted
-                // this allows there to be at most 2 child nodes per row
-
                 emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
                 emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
                 rowWidth += childWidth + gapX;
+
             }
 
             numberOfItems++;
@@ -539,12 +559,12 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     case Qt::MiddleButton:{
         if(event->modifiers().testFlag(Qt::ControlModifier)){
             sortChildren();
-            // update scene rect after the model is sorted/resized
-            if (kind == "Model") {
-                emit updateSceneRect(this);
-            }
         }else{
-            emit triggerCentered(getGraphML());
+            if (kind != "DeploymentDefinitions") {
+                emit triggerCentered(getGraphML());
+            } else {
+                emit centerModel();
+            }
         }
         //emit centreNode(this);
         break;
@@ -829,7 +849,7 @@ void NodeItem::setupIcon()
 
         qreal scaleFactor = (labelHeight / iconHeight)*1.5;
         icon->setScale(scaleFactor);
-        icon->setPos(getCurvedCornerWidth(), getCurvedCornerWidth());
+        icon->setPos(getCurvedCornerWidth(), getCurvedCornerWidth()/2);
 
         qreal diffHeight = (iconHeight*scaleFactor) - labelHeight;
         label->setX(icon->x() + (iconWidth * scaleFactor));
@@ -883,10 +903,47 @@ QStringList NodeItem::getChildrenKind()
  */
 double NodeItem::getCurvedCornerWidth()
 {
+    /**
     if (width > height) {
-        return width/15;
+        return width/20;
     } else {
-        return height/15;
+        return height/20;
+    }
+    */
+    return origWidth/20;
+}
+
+
+/**
+ * @brief NodeItem::addExpandButton
+ */
+void NodeItem::addExpandButton()
+{
+    if (icon != 0) {
+
+        QFont font = label->font();
+        QFontMetrics fm(font);
+        QPointF point = QPointF(label->x()+label->boundingRect().width(), icon->y());
+        QSize size = QSize(icon->boundingRect().width()*icon->scale(), icon->boundingRect().height()*icon->scale());
+        double ratio = 0.8;
+
+        font.setPointSize(font.pointSize()*ratio);
+        point.setX(point.x()+(size.width()*(1-ratio)));
+        point.setY(point.y()+(size.height()*(1-ratio)/2));
+        size.setWidth(size.width()*ratio);
+        size.setHeight(size.height()*ratio);
+
+        expandButton = new QPushButton("+");
+        expandButton->setStyleSheet("padding: 0px;");
+        expandButton->setFont(font);
+        expandButton->setFixedSize(size.width(), size.height());
+        expandButton->move(point.x(), point.y());
+        //expandButton->move(label->x()+fm.width(QString(16, 'c')), point.y());
+
+        proxyWidget = new QGraphicsProxyWidget(this);
+        proxyWidget->setWidget(expandButton);
+
+        origWidth += expandButton->width();
     }
 }
 

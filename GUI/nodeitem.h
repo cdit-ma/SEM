@@ -12,6 +12,8 @@
 #include <QTouchEvent>
 #include <iostream>
 #include <QRubberBand>
+#include <QGraphicsProxyWidget>
+#include <QPushButton>
 
 #include "../Model/node.h"
 #include "../Model/graphmldata.h"
@@ -71,6 +73,7 @@ signals:
     void updateSceneRect(NodeItem* nodeItem);
 
     void clearSelection();
+    void centerModel();
 
 public slots:
     void setOpacity(qreal opacity);
@@ -143,6 +146,9 @@ private:
     double origHeight;
     bool hidden;
 
+    QGraphicsProxyWidget *proxyWidget;
+    QPushButton *expandButton;
+
     void updateSize(double w, double h);
     void setLabelFont();
     void setupIcon();
@@ -151,6 +157,7 @@ private:
     QStringList getChildrenKind();
 
     double getCurvedCornerWidth();
+    void addExpandButton();
 
 };
 

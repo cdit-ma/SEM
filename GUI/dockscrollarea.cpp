@@ -170,7 +170,7 @@ void DockScrollArea::dock_addComponentInstance(NodeItem *itm)
 void DockScrollArea::checkScrollBar()
 {
     if (verticalScrollBar()->isVisible()) {
-        qDebug() << "Vertical scroll bar is visible";
+        //qDebug() << "Vertical scroll bar is visible";
         setStyleSheet("QScrollArea {"
                       "background-color: rgba(255,255,255,180);"
                       "border: 0px;"
@@ -179,7 +179,7 @@ void DockScrollArea::checkScrollBar()
                       "padding-right: 5px;"
                       "}");
     } else {
-        qDebug() << "Vertical scroll bar is NOT visible";
+        //qDebug() << "Vertical scroll bar is NOT visible";
         setStyleSheet("QScrollArea {"
                       "background-color: rgba(255,255,255,180);"
                       "border: 0px;"

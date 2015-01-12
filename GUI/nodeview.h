@@ -66,8 +66,8 @@ signals:
     void updateDockButtons(QString dockButton);
     void updateDockContainer(QString container);
 
-    void sortModel();
     void centerModel();
+    void sortModel();
 
 
 public slots:
@@ -110,7 +110,7 @@ public slots:
     void updateDockButtons(Node* node);
 
     void view_addComponentDefinition(NodeItem* itm);
-
+    void view_centerModel();
 
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
@@ -144,6 +144,8 @@ private:
 
     double origRatio;
     bool firstSort;
+
+    void sortInitialItems(QStringList aspects);
 };
 
 #endif // NODEVIEW_H
