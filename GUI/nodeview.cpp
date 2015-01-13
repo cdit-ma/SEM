@@ -195,9 +195,9 @@ void NodeView::centreItem(GraphMLItem *item)
     //Get the Items Rectangle
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
 
-    //Extra Space denotes 10% extra space on the height.
+    //Extra Space denotes 20% extra space on the height.
     //Calculate the scalre required to fit the item + 20% in the Viewport Rectangle.
-    qreal extraSpace = 1.1;
+    qreal extraSpace = 1.2;
 
     if (item->getGraphML()->getDataValue("kind") == "Model") {
         qDebug() << "Centering model...";
@@ -257,6 +257,7 @@ void NodeView::centreItem(GraphMLItem *item)
         setSceneRect(newRec);
     }
 
+    itemRect.setWidth(itemRect.width()*extraSpace);
     itemRect.setHeight(itemRect.height()*extraSpace);
     fitInView(itemRect, Qt::KeepAspectRatio);
     centerOn(item);
@@ -1063,7 +1064,8 @@ void NodeView::updateDockButtons(Node* node)
 
             emit updateDockButtons("H");
 
-        } else if (nodeKind == "DeploymentDefinitions") {
+        } else if (nodeKind == "Model" ||
+                   nodeKind == "DeploymentDefinitions") {
 
             emit updateDockButtons("N");
 

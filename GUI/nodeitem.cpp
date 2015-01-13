@@ -38,11 +38,14 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     icon = 0;
 
 
+
     parentKind = "";
     proxyWidget = 0;
     expandButton = 0;
     hidden = false;
     expanded = false;
+
+    kind = node->getDataValue("kind");
 
     // initially set width and height to be the default size
     if (!parent) {
@@ -54,8 +57,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         depth = parent->depth + 1;
 
         width = parent->getChildSize();
-        if (parentKind.contains("Definitions")) {
-            height = parent->getChildSize();
+        if (kind.contains("Definitions")) {
+            height = width;
         } else {
             height = width/7;
         }
@@ -73,6 +76,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     origHeight = height;
     prevWidth = width;
     prevHeight = height;
+
 
 
     GraphMLData* xData = node->getData("x");
@@ -163,11 +167,11 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     setupIcon();
 
     // if this item has a parent and it's the first child of that parent
-    // send a signal to the parent to add an expandButton and sort it
+    // send a signal to the parent to add an expandButton
     if (parent && parent->getNumberOfChildren() == 1) {
         emit addExpandButtonToParent();
-        parent->sortChildren();
     }
+
 }
 
 
@@ -972,6 +976,16 @@ double NodeItem::getCurvedCornerWidth()
 
 
 /**
+ * @brief NodeItem::getMaxLabelWidth
+ * @return
+ */
+double NodeItem::getMaxLabelWidth()
+{
+    // calculate font metrics here
+}
+
+
+/**
  * @brief NodeItem::addExpandButton
  */
 void NodeItem::addExpandButton()
@@ -1072,9 +1086,6 @@ void NodeItem::resetSize()
         wData->setValue(QString::number(origWidth));
         hData->setValue(QString::number(origHeight));
     }
-
-    //updateSize(QString::number(origWidth), QString::number(origHeight));
-    //sortChildren();
 }
 
 
