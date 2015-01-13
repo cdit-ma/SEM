@@ -46,6 +46,9 @@ public:
     void setHidden(bool h);
     void resetSize();
 
+    bool isExpanded();
+    bool hasExpandButton();
+    void removeExpandButton();
 
 signals:
     void nodeItemPressed(Node* n, bool selected);
@@ -149,7 +152,10 @@ private:
     QString parentKind;
     double origWidth;
     double origHeight;
+    double prevWidth;
+    double prevHeight;
     bool hidden;
+    bool expanded;
 
     QGraphicsProxyWidget *proxyWidget;
     QPushButton *expandButton;

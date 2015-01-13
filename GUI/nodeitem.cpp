@@ -48,8 +48,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     } else {
         parentKind = parent->getGraphML()->getDataValue("kind");
         width = parent->getChildSize();
-        height = parent->getChildSize();
-        width = dynamic_cast<NodeItem*>(parentItem())->width/3;
+        //height = parent->getChildSize();
+        //width = dynamic_cast<NodeItem*>(parentItem())->width/3;
         height = width/7;
         depth = parent->depth+1;
 
@@ -66,7 +66,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     // store original/default width and height
     origWidth = width;
     origHeight = height;
+    prevWidth = width;
+    prevHeight = height;
     hidden = false;
+    expanded = false;
 
     GraphMLData* xData = node->getData("x");
     GraphMLData* yData = node->getData("y");
@@ -167,6 +170,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
 NodeItem::~NodeItem()
 {
+    if (parentItem()) {
+        NodeItem* item = dynamic_cast<NodeItem*>(parentItem());
+        if (item && item->getNumberOfChildren() == 1) {
+            item->removeExpandButton();
+            item->resetSize();
+        }
+    }
     delete rubberBand;
     delete label;
 }
@@ -365,28 +375,38 @@ void NodeItem::updateViewAspects(QStringList aspects)
     }
     */
 
-    viewAspect = aspects;
-    bool isVisible = false;
+    NodeItem* parentNodeItem = dynamic_cast<NodeItem*>(parentItem());
 
-    foreach(QString aspect, aspects){
-        // if this item is in the currently viewed aspects, check to see
-        // if this item is meant to be hidden before making it visible
-        if(node->isInAspect(aspect) && !hidden){
-            isVisible = true;
-            break;
+    if (parentNodeItem && parentNodeItem->hasExpandButton() && !parentNodeItem->isExpanded()) {
+
+        setVisible(false);
+        return;
+
+    } else {
+
+        viewAspect = aspects;
+        bool isVisible = false;
+
+        foreach(QString aspect, aspects){
+            // if this item is in the currently viewed aspects, check to see
+            // if this item is meant to be hidden before making it visible
+            if(node->isInAspect(aspect) && !hidden){
+                isVisible = true;
+                break;
+            }
         }
-    }
 
-    this->setVisible(isVisible);
+        setVisible(isVisible);
 
-    foreach(NodeEdge* edge, connections){
-        edge->setVisible(isVisible);
-    }
+        foreach(NodeEdge* edge, connections){
+            edge->setVisible(isVisible);
+        }
 
-    // only show ManagementComponents when the hardware view aspect is turned on
-    if (kind == "ManagementComponent" && !aspects.contains("Hardware")) {
-        //qDebug() << kind << ": " << node->getDataValue("label");
-        //setVisible(false);
+        // only show ManagementComponents when the hardware view aspect is turned on
+        if (kind == "ManagementComponent" && !aspects.contains("Hardware")) {
+            //qDebug() << kind << ": " << node->getDataValue("label");
+            setVisible(false);
+        }
     }
 }
 
@@ -555,10 +575,12 @@ void NodeItem::sortChildren()
                 //updateSize(maxWidth + gapX, colHeight + maxHeight + gapY);
             }
         }
-    } else {
+    }
+
+    /*else {
         emit updateGraphMLData(getGraphML(), "width", QString::number(origWidth));
         emit updateGraphMLData(getGraphML(), "height", QString::number(origHeight));
-    }
+    }*/
 }
 
 
@@ -964,6 +986,7 @@ void NodeItem::addExpandButton()
             proxyWidget->setWidget(expandButton);
 
             // setup and connect button
+            expanded = true;
             expandButton->setCheckable(true);
             expandButton->setChecked(true);
             connect(expandButton, SIGNAL(clicked(bool)), this, SLOT(expandItem(bool)));
@@ -975,63 +998,102 @@ void NodeItem::addExpandButton()
 }
 
 
-    /**
+/**
  * @brief NodeItem::expandItem
  * @param show
  */
-    void NodeItem::expandItem(bool show)
-    {
-        qDebug() << "expandItem";
-
-        if (show) {
-            expandButton->setText("-");
-        } else {
-            expandButton->setText("+");
+void NodeItem::expandItem(bool show)
+{
+    foreach (QGraphicsItem* child, this->childItems()) {
+        NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
+        if (nodeItem) {
+            nodeItem->setVisible(show);
         }
-
-        foreach (QGraphicsItem* child, this->childItems()) {
-            NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
-            if (nodeItem) {
-                nodeItem->setVisible(show);
-            }
-            qDebug() << node->getDataValue("kind");
-        }
-
-        sortChildren();
-        update();
     }
 
+    if (show) {
+        expandButton->setText("-");
+        width = prevWidth;
+        height = prevHeight;
+    } else {
+        expandButton->setText("+");
+        prevWidth = width;
+        prevHeight = height;
+        width = origWidth;
+        height = origHeight;
+    }
 
-    /**
+    expanded = show;
+    prepareGeometryChange();
+    update();
+}
+
+
+/**
  * @brief NodeItem::setHidden
  * This method is used to prevent this item from being shown
  * when the view aspects are changed. If this item is meant to
  * be hidden no matter the view aspect, this keeps it hidden.
  */
-    void NodeItem::setHidden(bool h)
-    {
-        hidden  = h;
-        setVisible(!h);
-    }
+void NodeItem::setHidden(bool h)
+{
+    hidden  = h;
+    setVisible(!h);
+}
 
 
-    /**
+/**
  * @brief NodeItem::resetSize
  * Reset this node item's size to its default size
  * and sort its children if there are any.
  */
-    void NodeItem::resetSize()
-    {
-        GraphMLData* hData = getGraphML()->getData("height");
-        GraphMLData* wData = getGraphML()->getData("width");
+void NodeItem::resetSize()
+{
+    GraphMLData* hData = getGraphML()->getData("height");
+    GraphMLData* wData = getGraphML()->getData("width");
 
-        if(hData && wData){
-            wData->setValue(QString::number(origWidth));
-            hData->setValue(QString::number(origHeight));
-        }
-
-        //updateSize(QString::number(origWidth), QString::number(origHeight));
-        //sortChildren();
+    if(hData && wData){
+        wData->setValue(QString::number(origWidth));
+        hData->setValue(QString::number(origHeight));
     }
+
+    //updateSize(QString::number(origWidth), QString::number(origHeight));
+    //sortChildren();
+}
+
+
+/**
+ * @brief NodeItem::isExpanded
+ */
+bool NodeItem::isExpanded()
+{
+    return expanded;
+}
+
+
+/**
+ * @brief NodeItem::hasExpandButton
+ * @return
+ */
+bool NodeItem::hasExpandButton()
+{
+    if (expandButton == 0) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+
+/**
+ * @brief NodeItem::hideExpandButton
+ */
+void NodeItem::removeExpandButton()
+{
+    if (expandButton) {
+        delete expandButton;
+        expandButton = 0;
+    }
+}
 
 

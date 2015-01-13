@@ -371,7 +371,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     if (nodeItem) {
         // send the current view aspects to the newly created node item
         // this determines whether the item should intially be visible or not
-        //nodeItem->updateViewAspects(currentAspects);
+        nodeItem->updateViewAspects(currentAspects);
     }
 
     if(!scene()->items().contains(nodeItem)){
