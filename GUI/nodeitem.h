@@ -75,6 +75,8 @@ signals:
     void clearSelection();
     void centerModel();
 
+    void addExpandButtonToParent();
+
 public slots:
     void setOpacity(qreal opacity);
     void setSelected(bool selected);
@@ -87,6 +89,9 @@ public slots:
     void sortChildren();
 
     void setRubberbandMode(bool On);
+
+    void addExpandButton();
+    void expandItem(bool show);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -157,7 +162,6 @@ private:
     QStringList getChildrenKind();
 
     double getCurvedCornerWidth();
-    void addExpandButton();
 
 };
 

@@ -49,7 +49,11 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         parentKind = parent->getGraphML()->getDataValue("kind");
         width = parent->getChildSize();
         height = parent->getChildSize();
+        width = dynamic_cast<NodeItem*>(parentItem())->width/3;
+        height = width/7;
         depth = parent->depth+1;
+
+        connect(this, SIGNAL(addExpandButtonToParent()), parent, SLOT(addExpandButton()));
     }
 
     if (!parentKind.isNull()) {
@@ -63,7 +67,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     origWidth = width;
     origHeight = height;
     hidden = false;
-
 
     GraphMLData* xData = node->getData("x");
     GraphMLData* yData = node->getData("y");
@@ -107,6 +110,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
             height = hData->getValue().toFloat();
     }
 
+
     if(kindData){
         QImage image( ":/Resources/Icons/" + kindData->getValue() + ".png");
         if (!image.isNull()) {
@@ -141,20 +145,24 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         drawDetail = false;
     }
 
+
+    setCacheMode(QGraphicsItem::NoCache);
+    updateViewAspects(QStringList());
+
+
     // this will stop the width of this item and its children from
     // shrinking when it, or one of its child is resized.
     setLabelFont();
     setupIcon();
 
-    if (drawObject) {
-        if (kindData->getValue() != "Hardware" && kindData->getValue() != "ManagementComponent") {
-            addExpandButton();
-        }
+    // if this item has a parent and it's the first child of that parent
+    // send a signal to the parent to add an expandButton and sort it
+    if (parent && parent->getNumberOfChildren() == 1) {
+        emit addExpandButtonToParent();
+        parent->sortChildren();
     }
-
-    setCacheMode(QGraphicsItem::NoCache);
-     updateViewAspects(QStringList());
 }
+
 
 
 NodeItem::~NodeItem()
@@ -351,8 +359,13 @@ void NodeItem::updateChildNodeType(QString type)
 
 void NodeItem::updateViewAspects(QStringList aspects)
 {
-    viewAspect = aspects;
+    /*
+    for (int i = 0; i<aspects.count(); i++) {
+        qDebug() << aspects.at(i);
+    }
+    */
 
+    viewAspect = aspects;
     bool isVisible = false;
 
     foreach(QString aspect, aspects){
@@ -370,7 +383,11 @@ void NodeItem::updateViewAspects(QStringList aspects)
         edge->setVisible(isVisible);
     }
 
-    update();
+    // only show ManagementComponents when the hardware view aspect is turned on
+    if (kind == "ManagementComponent" && !aspects.contains("Hardware")) {
+        //qDebug() << kind << ": " << node->getDataValue("label");
+        //setVisible(false);
+    }
 }
 
 
@@ -398,12 +415,10 @@ void NodeItem::sortChildren()
 
     // if it's a main node item, it will have no icon
     if (kind == "Model" || kind.endsWith("Definitions")) {
-        topY = label->x() + label->boundingRect().height();
+        topY = label->x() + label->boundingRect().height()  + getCurvedCornerWidth();
         gapY = topY;
     } else {
         topY = (icon->boundingRect().height()*icon->scale()) + getCurvedCornerWidth();
-        //qDebug() << "icon height = " << icon->boundingRect().height()*icon->scale();
-        //qDebug() << "curved corner width = " << getCurvedCornerWidth();
         gapY = topY/1.8;
     }
 
@@ -448,11 +463,6 @@ void NodeItem::sortChildren()
         rowWidth = gapX;
     }
 
-    //qDebug() << "topY = " << topY;
-    //qDebug() << "rowWidth = " << rowWidth;
-    //qDebug() << "gapX = " << gapX;
-    //qDebug() << "gapY = " << gapY;
-
     foreach (QGraphicsItem* child, this->childItems()) {
 
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
@@ -461,15 +471,17 @@ void NodeItem::sortChildren()
         if (nodeItem != 0 && nodeItem->isVisible()) {
 
             //int childWidth = nodeItem->boundingRect().width();
+            //int childHeight = nodeItem->boundingRect().height();
             int childWidth = nodeItem->width;
-            int childHeight = nodeItem->boundingRect().height();
+            int childHeight = nodeItem->height;
 
             // if the origWidth is not used, when a node is sorted and it
             // only had one child to begin with, it will always only have
             // one node per row and hence one column, once sorted
             // this allows there to be at most 2 child nodes per row
 
-            if ((rowWidth + childWidth) > (origWidth*1.25)) {
+            if ((rowWidth + childWidth) > (origWidth*1.5)) {
+                //if ((rowWidth + childWidth) > origWidth) {
                 colHeight += maxHeight + gapY;
 
                 if (rowWidth > maxWidth) {
@@ -543,6 +555,9 @@ void NodeItem::sortChildren()
                 //updateSize(maxWidth + gapX, colHeight + maxHeight + gapY);
             }
         }
+    } else {
+        emit updateGraphMLData(getGraphML(), "width", QString::number(origWidth));
+        emit updateGraphMLData(getGraphML(), "height", QString::number(origHeight));
     }
 }
 
@@ -857,6 +872,10 @@ void NodeItem::setupIcon()
 
         // this prevents the icon from looking pixelated
         icon->setTransformationMode(Qt::SmoothTransformation);
+
+        height = (icon->boundingRect().height()*icon->scale())
+                + getCurvedCornerWidth();
+        origHeight = height;
     }
 }
 
@@ -920,64 +939,99 @@ double NodeItem::getCurvedCornerWidth()
 void NodeItem::addExpandButton()
 {
     if (icon != 0) {
+        if (kind != "Hardware" && kind != "ManagementComponent") {
 
-        QFont font = label->font();
-        QFontMetrics fm(font);
-        QPointF point = QPointF(label->x()+label->boundingRect().width(), icon->y());
-        QSize size = QSize(icon->boundingRect().width()*icon->scale(), icon->boundingRect().height()*icon->scale());
-        double ratio = 0.8;
+            QFont font = label->font();
+            QFontMetrics fm(font);
+            QPointF point = QPointF(label->x()+label->boundingRect().width(), icon->y());
+            QSize size = QSize(icon->boundingRect().width()*icon->scale(), icon->boundingRect().height()*icon->scale());
+            double ratio = 0.8;
 
-        font.setPointSize(font.pointSize()*ratio);
-        point.setX(point.x()+(size.width()*(1-ratio)));
-        point.setY(point.y()+(size.height()*(1-ratio)/2));
-        size.setWidth(size.width()*ratio);
-        size.setHeight(size.height()*ratio);
+            font.setPointSize(font.pointSize()*ratio);
+            point.setX(point.x()+(size.width()*(1-ratio)));
+            point.setY(point.y()+(size.height()*(1-ratio)/2));
+            size.setWidth(size.width()*ratio);
+            size.setHeight(size.height()*ratio);
 
-        expandButton = new QPushButton("+");
-        expandButton->setStyleSheet("padding: 0px;");
-        expandButton->setFont(font);
-        expandButton->setFixedSize(size.width(), size.height());
-        expandButton->move(point.x(), point.y());
-        //expandButton->move(label->x()+fm.width(QString(16, 'c')), point.y());
+            expandButton = new QPushButton("-");
+            expandButton->setStyleSheet("padding: 0px;");
+            expandButton->setFont(font);
+            expandButton->setFixedSize(size.width(), size.height());
+            //expandButton->move(point.x(), point.y());
+            expandButton->move(label->x()+fm.width(QString(16, 'c')), point.y());
 
-        proxyWidget = new QGraphicsProxyWidget(this);
-        proxyWidget->setWidget(expandButton);
+            proxyWidget = new QGraphicsProxyWidget(this);
+            proxyWidget->setWidget(expandButton);
 
-        origWidth += expandButton->width();
+            // setup and connect button
+            expandButton->setCheckable(true);
+            expandButton->setChecked(true);
+            connect(expandButton, SIGNAL(clicked(bool)), this, SLOT(expandItem(bool)));
+
+            // add button's width to this item's origWidth
+            //origWidth += expandButton->width();
+        }
     }
 }
 
 
-/**
+    /**
+ * @brief NodeItem::expandItem
+ * @param show
+ */
+    void NodeItem::expandItem(bool show)
+    {
+        qDebug() << "expandItem";
+
+        if (show) {
+            expandButton->setText("-");
+        } else {
+            expandButton->setText("+");
+        }
+
+        foreach (QGraphicsItem* child, this->childItems()) {
+            NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
+            if (nodeItem) {
+                nodeItem->setVisible(show);
+            }
+            qDebug() << node->getDataValue("kind");
+        }
+
+        sortChildren();
+        update();
+    }
+
+
+    /**
  * @brief NodeItem::setHidden
  * This method is used to prevent this item from being shown
  * when the view aspects are changed. If this item is meant to
  * be hidden no matter the view aspect, this keeps it hidden.
  */
-void NodeItem::setHidden(bool h)
-{
-    hidden  = h;
-    setVisible(!h);
-}
+    void NodeItem::setHidden(bool h)
+    {
+        hidden  = h;
+        setVisible(!h);
+    }
 
 
-/**
+    /**
  * @brief NodeItem::resetSize
  * Reset this node item's size to its default size
  * and sort its children if there are any.
  */
-void NodeItem::resetSize()
-{
-    GraphMLData* hData = getGraphML()->getData("height");
-    GraphMLData* wData = getGraphML()->getData("width");
+    void NodeItem::resetSize()
+    {
+        GraphMLData* hData = getGraphML()->getData("height");
+        GraphMLData* wData = getGraphML()->getData("width");
 
-    if(hData && wData){
-        wData->setValue(QString::number(origWidth));
-        hData->setValue(QString::number(origHeight));
+        if(hData && wData){
+            wData->setValue(QString::number(origWidth));
+            hData->setValue(QString::number(origHeight));
+        }
+
+        //updateSize(QString::number(origWidth), QString::number(origHeight));
+        //sortChildren();
     }
-
-    //updateSize(QString::number(origWidth), QString::number(origHeight));
-    //sortChildren();
-}
 
 

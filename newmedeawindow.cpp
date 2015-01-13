@@ -99,7 +99,7 @@ void NewMedeaWindow::initialiseGUI()
     this->setMinimumSize(windowWidth, windowHeight);
     nodeView->setMinimumSize(windowWidth, windowHeight);
 
-    projectName = new QPushButton(" Project Name");
+    projectName = new QPushButton("Model");
     dataTable = new QTableView();
     dataTableBox = new QGroupBox();
     assemblyButton = new QPushButton("Assembly");
@@ -132,12 +132,12 @@ void NewMedeaWindow::initialiseGUI()
     //definitionsButton->setFixedSize(rightPanelWidth, 40);
     assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
-    workloadButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
+    workloadButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     assemblyButton->setStyleSheet("background-color: rgba(230,130,130,0.9);");
     hardwareButton->setStyleSheet("background-color: rgba(80,140,190,0.9);");
-    workloadButton->setStyleSheet("background-color: rgba(80,180,180,0.9);");
-    definitionsButton->setStyleSheet("background-color: rgba(224,154,96,0.9);");
+    workloadButton->setStyleSheet("background-color: rgba(224,154,96,0.9);");
+    definitionsButton->setStyleSheet("background-color: rgba(80,180,180,0.9);");
     projectName->setStyleSheet("font-size: 16px; text-align: left;");
     searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
 
@@ -165,6 +165,7 @@ void NewMedeaWindow::initialiseGUI()
 
     // add widgets to/and layouts
     titleLayout->addWidget(menuButton, 1);
+    titleLayout->addSpacerItem(new QSpacerItem(10, 0));
     titleLayout->addWidget(projectName, 1);
     titleLayout->addStretch(7);
 
@@ -177,8 +178,8 @@ void NewMedeaWindow::initialiseGUI()
 
     viewButtonsGrid->addWidget(assemblyButton, 1, 1);
     viewButtonsGrid->addWidget(hardwareButton, 1, 2);
-    viewButtonsGrid->addWidget(workloadButton, 2, 1);
-    viewButtonsGrid->addWidget(definitionsButton, 2, 2);
+    viewButtonsGrid->addWidget(definitionsButton, 2, 1);
+    viewButtonsGrid->addWidget(workloadButton, 2, 2);
 
     rightVlayout->addLayout(searchLayout, 1);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));

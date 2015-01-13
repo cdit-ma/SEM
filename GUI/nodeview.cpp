@@ -369,7 +369,9 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     connect(nodeItem, SIGNAL(centerModel()), this, SLOT(view_centerModel()));
 
     if (nodeItem) {
-        //qDebug() << "Adding " << nodeItem->getGraphML()->getDataValue("label");
+        // send the current view aspects to the newly created node item
+        // this determines whether the item should intially be visible or not
+        //nodeItem->updateViewAspects(currentAspects);
     }
 
     if(!scene()->items().contains(nodeItem)){
@@ -452,7 +454,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
             //Add to model.
             scene()->addItem(nodeEdge);
         }
-/*
+        /*
         if(nodeEdge){
             nodeEdge->addToScene(scene());
         }
