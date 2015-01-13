@@ -77,6 +77,7 @@ signals:
 
     void clearSelection();
     void centerModel();
+    //void sortModel();
 
     void addExpandButtonToParent();
 

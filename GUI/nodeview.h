@@ -146,6 +146,8 @@ private:
     bool firstSort;
 
     void sortInitialItems(QStringList aspects);
+    QList<NodeItem*> getNodeItemsList();
+    QList<NodeItem *> getVisibleNodeItems();
 };
 
 #endif // NODEVIEW_H

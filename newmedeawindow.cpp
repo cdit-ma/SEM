@@ -136,8 +136,8 @@ void NewMedeaWindow::initialiseGUI()
     workloadButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     assemblyButton->setStyleSheet("background-color: rgba(230,130,130,0.9);");
     hardwareButton->setStyleSheet("background-color: rgba(80,140,190,0.9);");
-    workloadButton->setStyleSheet("background-color: rgba(224,154,96,0.9);");
     definitionsButton->setStyleSheet("background-color: rgba(80,180,180,0.9);");
+    workloadButton->setStyleSheet("background-color: rgba(224,154,96,0.9);");
     projectName->setStyleSheet("font-size: 16px; text-align: left;");
     searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
 
@@ -204,19 +204,19 @@ void NewMedeaWindow::initialiseGUI()
     notificationArea->setEnabled(false);
     assemblyButton->setCheckable(true);
     hardwareButton->setCheckable(true);
-    workloadButton->setCheckable(true);
     definitionsButton->setCheckable(true);
+    workloadButton->setCheckable(true);
 
     // intially only turn the assembly view aspect on
     assemblyButton->setChecked(true);
-    hardwareButton->setChecked(true);
-    workloadButton->setChecked(true);
-    definitionsButton->setChecked(true);
+    //hardwareButton->setChecked(true);
+    //definitionsButton->setChecked(true);
+    //workloadButton->setChecked(true);
 
     checkedViewAspects.append(assemblyButton->text());
-    checkedViewAspects.append(hardwareButton->text());
-    checkedViewAspects.append(workloadButton->text());
-    checkedViewAspects.append(definitionsButton->text());
+    //checkedViewAspects.append(hardwareButton->text());
+    //checkedViewAspects.append(definitionsButton->text());
+    //checkedViewAspects.append(workloadButton->text());
 
     // setup controller and jenkins settings
     setupJenkinsSettings();
@@ -397,8 +397,8 @@ void NewMedeaWindow::makeConnections()
 
     connect(assemblyButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(hardwareButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
-    connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(definitionsButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
+    connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(this, SIGNAL(setViewAspects(QStringList)), nodeView, SLOT(setViewAspects(QStringList)));
 
     connect(this, SIGNAL(clearDock()), partsContainer, SLOT(clear()));

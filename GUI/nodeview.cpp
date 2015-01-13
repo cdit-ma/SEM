@@ -115,26 +115,70 @@ QRectF NodeView::getVisibleRect( )
  */
 void NodeView::sortInitialItems(QStringList aspects)
 {
+    fitToScreen();
+
+    // if there is only one visible item on the scene, centre it
+    if (getVisibleNodeItems().count() == 1) {
+        centreItem(getVisibleNodeItems().at(0));
+        return;
+    }
+
     NodeItem* topItem = 0;
     int minDepth = 100;
 
-    foreach(QGraphicsItem *itm, scene()->items()) {
-        NodeItem *nodeItm = dynamic_cast<NodeItem*>(itm);
-        if (nodeItm) {
-            nodeItm->sortChildren();
-            if (aspects.count() == 1 && nodeItm->getGraphML()->getDataValue("label") == "Model")  {
-                break;
-            }
-            if (nodeItm->depth < minDepth && nodeItm->isVisible()
-                    && nodeItm->getGraphML()->getDataValue("label") != "Deployment Definitions") {
-                minDepth = nodeItm->depth;
-                topItem = nodeItm;
-            }
+    // if not, find the top most visible item that's not the Model and centre it
+    foreach (NodeItem *nodeItm, getVisibleNodeItems()) {
+
+        nodeItm->sortChildren();
+
+        QString nodeKind = nodeItm->getGraphML()->getDataValue("kind");
+        if (aspects.count() == 1 && nodeKind == "Model") {
+            break;
+        }
+        if (nodeItm->depth < minDepth && nodeKind != "DeploymentDefinitions") {
+            minDepth = nodeItm->depth;
+            topItem = nodeItm;
         }
     }
 
-    fitToScreen();
     centreItem(topItem);
+}
+
+
+/**
+ * @brief NodeView::getNodeItemsList
+ * Return the list of all node items on the scene.
+ * @return
+ */
+QList<NodeItem*> NodeView::getNodeItemsList()
+{
+    QList<NodeItem*> nodeItems;
+
+    foreach(QGraphicsItem *itm, scene()->items()) {
+        NodeItem *nodeItem = dynamic_cast<NodeItem*>(itm);
+        if (nodeItem) {
+            nodeItems.append(nodeItem);
+        }
+    }
+
+    return nodeItems;
+}
+
+
+/**
+ * @brief NodeView::getNumberOfVisibleItems
+ * Return the list of visible node items on the scene.
+ * @return
+ */
+QList<NodeItem*> NodeView::getVisibleNodeItems()
+{
+    QList<NodeItem*> nodeItems;
+    foreach (NodeItem* item, getNodeItemsList()) {
+        if (item->isVisible()) {
+            nodeItems.append(item);
+        }
+    }
+    return nodeItems;
 }
 
 
@@ -151,38 +195,33 @@ void NodeView::centreItem(GraphMLItem *item)
     //Get the Items Rectangle
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
 
-    //Extra Space denotes 20% extra space on the height.
+    //Extra Space denotes 10% extra space on the height.
     //Calculate the scalre required to fit the item + 20% in the Viewport Rectangle.
-    qreal extraSpace = 1.25;
+    qreal extraSpace = 1.1;
 
     if (item->getGraphML()->getDataValue("kind") == "Model") {
-        fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
-        return;
+        qDebug() << "Centering model...";
+        extraSpace = 1;
     }
 
-    //qreal scaleRatio = viewRect.height()/ (itemRect.height() * extraSpace);
-    //scale(scaleRatio, scaleRatio);
-    //centerOn(item);
-
-
-    QRectF newRec = sceneRect();
-    //qreal multiplier = viewRect.height() / itemRect.height();
-    qreal multiplier = this->height() / itemRect.height();
+    QRectF newRec = scene()->itemsBoundingRect();
+    qreal multiplier = viewRect.height() / itemRect.height();
+    qreal neededXGap = qAbs((viewRect.width() - (itemRect.width()*multiplier)) / 2);
+    qreal neededYGap = qAbs((viewRect.height() - (itemRect.height()*multiplier)) / 2);
+    //qreal multiplier = this->height() / itemRect.height();
+    //qreal neededXGap = qAbs((this->width() - (itemRect.width()*multiplier)) / 2);
+    //qreal neededYGap = qAbs((this->height() - (itemRect.height()*multiplier)) / 2);
     qreal leftXGap = (itemRect.x() - sceneRect().x()) * multiplier;
     qreal rightXGap = (sceneRect().x() + sceneRect().width() - (itemRect.x() + itemRect.width()))  * multiplier;
     qreal topYGap = (itemRect.y() - sceneRect().y()) * multiplier;
     qreal bottomYGap = ((sceneRect().y() + sceneRect().height()) - (itemRect.y() + itemRect.height())) * multiplier;
-    //qreal neededXGap = qAbs((viewRect.width() - (itemRect.width()*multiplier)) / 2);
-    //qreal neededYGap = qAbs((viewRect.height() - (itemRect.height()*multiplier)) / 2);
-    qreal neededXGap = qAbs((this->width() - (itemRect.width()*multiplier)) / 2);
-    qreal neededYGap = qAbs((this->height() - (itemRect.height()*multiplier)) / 2);
-
-    qDebug() << "viewport.width = " << viewport()->width();
-    //qDebug() << "view.width = " << this->width();
 
     /*
-    qDebug() << "multiplier: " << multiplier;
-    qDebug() << "viewRect.width(): " << viewRect.width();
+    qDebug() << "viewRect.height(): " << viewRect.height();
+    qDebug() << "viewRect.multiplier: " << (viewRect.height() / itemRect.height());
+    qDebug() << "this.height(): " << this->height();
+    qDebug() << "this.multiplier: " << (this->height() / itemRect.height());
+
     qDebug() << "scene.x = : " << sceneRect().x();
     qDebug() << "scene.width = : " << sceneRect().width();
     qDebug() << "item.x = : " << itemRect.x();
@@ -194,9 +233,6 @@ void NodeView::centreItem(GraphMLItem *item)
     qDebug() << "neededYGap: " << neededYGap;
     */
 
-    //itemRect.setHeight(itemRect.height()*extraSpace);
-    fitInView(itemRect, Qt::KeepAspectRatio);
-
     // check to make sure that there is enough space around the
     // items boundingRect within the scene before centering it
     // if there isn't, add the needed space to the sceneRect
@@ -204,28 +240,26 @@ void NodeView::centreItem(GraphMLItem *item)
         qDebug() << "1 IF";
         newRec.setX(newRec.x()-neededXGap);
         newRec.setWidth(newRec.width()+neededXGap);
-        //setSceneRect(newRec);
+        setSceneRect(newRec);
     } else if (rightXGap < neededXGap) {
         qDebug() << "1 ELSE";
         newRec.setWidth(newRec.width()+neededXGap);
-        //setSceneRect(newRec);
+        setSceneRect(newRec);
     }
     if (topYGap < neededYGap) {
         qDebug() << "2 IF";
         newRec.setY(newRec.y()-neededYGap);
         newRec.setHeight(newRec.height()+neededYGap);
-        //setSceneRect(newRec);
+        setSceneRect(newRec);
     } else if (bottomYGap < neededYGap) {
         qDebug() << "2 ELSE";
         newRec.setHeight(newRec.height()+neededYGap);
-        //setSceneRect(newRec);
+        setSceneRect(newRec);
     }
 
-    //qDebug() << "AFTER scene.x = : " << sceneRect().x();
-    //qDebug() << "ItemRect: " << itemRect;
-    //qDebug() << "sceneRect: " << sceneRect().size();
-
-    //centerOn(item);
+    itemRect.setHeight(itemRect.height()*extraSpace);
+    fitInView(itemRect, Qt::KeepAspectRatio);
+    centerOn(item);
 
 
     /**
@@ -285,7 +319,6 @@ void NodeView::setRubberBandMode(bool On)
 
 void NodeView::setViewAspects(QStringList aspects)
 {
-    //qCritical() << "Setting: " << aspects;
     currentAspects = aspects;
     emit updateViewAspects(aspects);
     if (firstSort) {
@@ -973,12 +1006,9 @@ void NodeView::printErrorText(GraphML *graphml, QString text)
  */
 void NodeView::fitToScreen()
 {
-    // make new scene rect slightly bigger than the itemsBoundingRect
     QRectF itemsRec = scene()->itemsBoundingRect();
     setSceneRect(itemsRec);
     fitInView(itemsRec, Qt::KeepAspectRatio);
-    //qDebug() << "itemsRec = " << itemsRec;
-    //qDebug() << "sceneRec = " << sceneRect().size();
 }
 
 

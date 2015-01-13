@@ -34,33 +34,38 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
     setParentItem(parent);
 
-    proxyWidget = 0;
-    expandButton = 0;
-
     label  = new QGraphicsTextItem("NULL",this);
     icon = 0;
 
-    // initially set width and height ot be the default size
+
+    parentKind = "";
+    proxyWidget = 0;
+    expandButton = 0;
+    hidden = false;
+    expanded = false;
+
+    // initially set width and height to be the default size
     if (!parent) {
         depth = 1;
         width = 19200;
         height = 10800;
     } else {
         parentKind = parent->getGraphML()->getDataValue("kind");
+        depth = parent->depth + 1;
+
         width = parent->getChildSize();
-        //height = parent->getChildSize();
-        //width = dynamic_cast<NodeItem*>(parentItem())->width/3;
-        height = width/7;
-        depth = parent->depth+1;
+        if (parentKind.contains("Definitions")) {
+            height = parent->getChildSize();
+        } else {
+            height = width/7;
+        }
 
         connect(this, SIGNAL(addExpandButtonToParent()), parent, SLOT(addExpandButton()));
     }
 
-    if (!parentKind.isNull()) {
-        if (parentKind == "Component" || parentKind == "ComponentInstance") {
-            width /= 2;
-            height /= 2;
-        }
+    if (parentKind.contains("Component") && parentKind != "ComponentAssembly") {
+        width /= 2;
+        height /= 2;
     }
 
     // store original/default width and height
@@ -68,8 +73,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     origHeight = height;
     prevWidth = width;
     prevHeight = height;
-    hidden = false;
-    expanded = false;
+
 
     GraphMLData* xData = node->getData("x");
     GraphMLData* yData = node->getData("y");
@@ -150,7 +154,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
 
     setCacheMode(QGraphicsItem::NoCache);
-    updateViewAspects(QStringList());
+    //updateViewAspects(QStringList());
 
 
     // this will stop the width of this item and its children from
@@ -167,7 +171,12 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 }
 
 
-
+/**
+ * @brief NodeItem::~NodeItem
+ * Before deleting this item, check to see if it has a parent item.
+ * If it does and this is the only child of that parent remove that
+ * parent's exapnd button and reset its size.
+ */
 NodeItem::~NodeItem()
 {
     if (parentItem()) {
@@ -367,47 +376,54 @@ void NodeItem::updateChildNodeType(QString type)
     toBuildType = type;
 }
 
+
+/**
+ * @brief NodeItem::updateViewAspects
+ * This method checks to see if this item should be visible or not.
+ * @param aspects
+ */
 void NodeItem::updateViewAspects(QStringList aspects)
 {
-    /*
-    for (int i = 0; i<aspects.count(); i++) {
-        qDebug() << aspects.at(i);
+    // check to see if this item is meant to be hidden
+    if (hidden) {
+        setVisible(false);
+        return;
     }
-    */
+
+    // only show ManagementComponents and HardwareDefinitions
+    // when the Hardware view aspect is turned on
+    if ((kind == "ManagementComponent" || kind == "HardwareDefinitions")
+            && !aspects.contains("Hardware")) {
+        setVisible(false);
+        return;
+    }
 
     NodeItem* parentNodeItem = dynamic_cast<NodeItem*>(parentItem());
 
+    // if this item has a parent and that parent is not expanded, hide this item
     if (parentNodeItem && parentNodeItem->hasExpandButton() && !parentNodeItem->isExpanded()) {
-
         setVisible(false);
         return;
+    }
 
-    } else {
+    bool isVisible = false;
 
-        viewAspect = aspects;
-        bool isVisible = false;
-
-        foreach(QString aspect, aspects){
-            // if this item is in the currently viewed aspects, check to see
-            // if this item is meant to be hidden before making it visible
-            if(node->isInAspect(aspect) && !hidden){
-                isVisible = true;
-                break;
-            }
-        }
-
-        setVisible(isVisible);
-
-        foreach(NodeEdge* edge, connections){
-            edge->setVisible(isVisible);
-        }
-
-        // only show ManagementComponents when the hardware view aspect is turned on
-        if (kind == "ManagementComponent" && !aspects.contains("Hardware")) {
-            //qDebug() << kind << ": " << node->getDataValue("label");
-            setVisible(false);
+    // if this item is in the currently viewed aspects, show it
+    foreach (QString aspect, aspects) {
+        if (node->isInAspect(aspect)) {
+            isVisible = true;
+            break;
         }
     }
+
+    setVisible(isVisible);
+
+    foreach(NodeEdge* edge, connections){
+        edge->setVisible(isVisible);
+    }
+
+    //qDebug() << "NodeItem::updateViewAspects";
+    //qDebug() << kind << ": " << this->isVisible();
 }
 
 
@@ -597,10 +613,10 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if(event->modifiers().testFlag(Qt::ControlModifier)){
             sortChildren();
         }else{
-            if (kind != "DeploymentDefinitions") {
-                emit triggerCentered(getGraphML());
-            } else {
+            if (!drawObject) {
                 emit centerModel();
+            } else {
+                emit triggerCentered(getGraphML());
             }
         }
         //emit centreNode(this);
