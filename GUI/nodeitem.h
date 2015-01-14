@@ -154,8 +154,6 @@ private:
 
     QString parentNodeKind;
 
-    double prevWidth;
-    double prevHeight;
     bool hidden;
     int depth;
 

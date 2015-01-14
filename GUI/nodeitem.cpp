@@ -39,7 +39,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
 
 
-    parentKind = "";
     proxyWidget = 0;
     expandButton = 0;
     hidden = false;
@@ -1026,15 +1025,6 @@ double NodeItem::getCurvedCornerWidth()
 }
 
 
-/**
- * @brief NodeItem::getMaxLabelWidth
- * @return
- */
-double NodeItem::getMaxLabelWidth()
-{
-    // calculate font metrics here
-}
-
 
 /**
  * @brief NodeItem::addExpandButton
@@ -1112,37 +1102,6 @@ void NodeItem::expandItem(bool show)
 Node *NodeItem::getNode()
 {
     return dynamic_cast<Node*>(getGraphML());
-}
-
-
-/**
- * @brief NodeItem::expandItem
- * @param show
- */
-void NodeItem::expandItem(bool show)
-{
-    foreach (QGraphicsItem* child, this->childItems()) {
-        NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
-        if (nodeItem) {
-            nodeItem->setVisible(show);
-        }
-    }
-
-    if (show) {
-        expandButton->setText("-");
-        width = prevWidth;
-        height = prevHeight;
-    } else {
-        expandButton->setText("+");
-        prevWidth = width;
-        prevHeight = height;
-        width = origWidth;
-        height = origHeight;
-    }
-
-    expanded = show;
-    prepareGeometryChange();
-    update();
 }
 
 
