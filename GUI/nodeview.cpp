@@ -176,6 +176,10 @@ QList<NodeItem*> NodeView::getVisibleNodeItems()
 }
 
 
+/**
+ * @brief NodeView::centreItem
+ * @param item
+ */
 void NodeView::centreItem(GraphMLItem *item)
 {
     if(!item){
@@ -193,8 +197,8 @@ void NodeView::centreItem(GraphMLItem *item)
     //Calculate the scalre required to fit the item + 20% in the Viewport Rectangle.
     qreal extraSpace = 1.2;
 
-    if (item->getGraphML()->getDataValue("kind") == "Model") {
-        qDebug() << "Centering model...";
+    if (item->getGraphML()->getDataValue("kind") == "Model" ||
+            item->getGraphML()->getDataValue("kind") == "DeploymentDefinitions") {
         extraSpace = 1;
     }
 
@@ -202,86 +206,57 @@ void NodeView::centreItem(GraphMLItem *item)
     qreal multiplier = viewRect.height() / itemRect.height();
     qreal neededXGap = qAbs((viewRect.width() - (itemRect.width()*multiplier)) / 2);
     qreal neededYGap = qAbs((viewRect.height() - (itemRect.height()*multiplier)) / 2);
-    //qreal multiplier = this->height() / itemRect.height();
-    //qreal neededXGap = qAbs((this->width() - (itemRect.width()*multiplier)) / 2);
-    //qreal neededYGap = qAbs((this->height() - (itemRect.height()*multiplier)) / 2);
-    qreal leftXGap = (itemRect.x() - sceneRect().x()) * multiplier;
-    qreal rightXGap = (sceneRect().x() + sceneRect().width() - (itemRect.x() + itemRect.width()))  * multiplier;
-    qreal topYGap = (itemRect.y() - sceneRect().y()) * multiplier;
-    qreal bottomYGap = ((sceneRect().y() + sceneRect().height()) - (itemRect.y() + itemRect.height())) * multiplier;
+    qreal leftXGap = qAbs((itemRect.x() - sceneRect().x()) * multiplier);
+    qreal rightXGap = qAbs((sceneRect().x() + sceneRect().width() - (itemRect.x() + itemRect.width()))  * multiplier);
+    qreal topYGap = qAbs((itemRect.y() - sceneRect().y()) * multiplier);
+    qreal bottomYGap = qAbs(((sceneRect().y() + sceneRect().height()) - (itemRect.y() + itemRect.height())) * multiplier);
 
-    /*
-    qDebug() << "viewRect.height(): " << viewRect.height();
-    qDebug() << "viewRect.multiplier: " << (viewRect.height() / itemRect.height());
-    qDebug() << "this.height(): " << this->height();
-    qDebug() << "this.multiplier: " << (this->height() / itemRect.height());
-
-    qDebug() << "scene.x = : " << sceneRect().x();
-    qDebug() << "scene.width = : " << sceneRect().width();
-    qDebug() << "item.x = : " << itemRect.x();
-    qDebug() << "item.width = : " << itemRect.width();
-
-    qDebug() << "leftXGap: " << leftXGap;
-    qDebug() << "topYGap: " << topYGap;
-    qDebug() << "neededXGap: " << neededXGap;
-    qDebug() << "neededYGap: " << neededYGap;
-    */
+    //qDebug() << "------------------------------------";
 
     // check to make sure that there is enough space around the
     // items boundingRect within the scene before centering it
     // if there isn't, add the needed space to the sceneRect
     if (leftXGap < neededXGap) {
-        qDebug() << "1 IF";
         newRec.setX(newRec.x()-neededXGap);
         newRec.setWidth(newRec.width()+neededXGap);
         setSceneRect(newRec);
+        //qDebug() << "Adding to leftXGap";
     } else if (rightXGap < neededXGap) {
-        qDebug() << "1 ELSE";
         newRec.setWidth(newRec.width()+neededXGap);
         setSceneRect(newRec);
+        //qDebug() << "Adding to rightXGap";
     }
     if (topYGap < neededYGap) {
-        qDebug() << "2 IF";
         newRec.setY(newRec.y()-neededYGap);
         newRec.setHeight(newRec.height()+neededYGap);
         setSceneRect(newRec);
+        //qDebug() << "Adding to topYGap";
     } else if (bottomYGap < neededYGap) {
-        qDebug() << "2 ELSE";
         newRec.setHeight(newRec.height()+neededYGap);
         setSceneRect(newRec);
+        //qDebug() << "Adding to bottomYGap";
     }
+
+    /*
+    qDebug() << "viewRect.height = " << viewRect.height();
+    qDebug() << "item.height = " << itemRect.height();
+    qDebug() << "multiplier = " << (viewRect.height() / itemRect.height());
+
+    qDebug() << "leftXGap: " << leftXGap;
+    qDebug() << "rightXGap: " << rightXGap;
+    qDebug() << "topYGap: " << topYGap;
+    qDebug() << "bottomYGap: " << bottomYGap;
+    qDebug() << "neededXGap: " << neededXGap;
+    qDebug() << "neededYGap: " << neededYGap;
+    */
 
     itemRect.setWidth(itemRect.width()*extraSpace);
     itemRect.setHeight(itemRect.height()*extraSpace);
     fitInView(itemRect, Qt::KeepAspectRatio);
     centerOn(item);
 
-
-    /**
-    //Get the actual Scale Ratio!
-    //scaleRatio = transform().m22();
-
-    //Get the Center of the ViewPort Rectangle
-    QPointF viewCenter = viewRect.center();
-
-    //Get the Center of the Item Rectangle.
-    QPointF itemCenter = itemRect.center();
-
-    //Get the updated visible Rectangle.
-    viewCenter = getVisibleRect().center();
-
-    //Calculate the distance including scale Ratio between the center of the view and item.
-    float deltaX = (itemCenter.x() - viewCenter.x()) * scaleRatio;
-    float deltaY = (itemCenter.y() - viewCenter.y()) * scaleRatio;
-
-    //Move the Scroll bars the appropriate distance to square up the items.
-    int xBarValue = horizontalScrollBar()->value() + deltaX;
-    int yBarValue = verticalScrollBar()->value() + deltaY;
-
-    //horizontalScrollBar()->setValue(xBarValue);
-    //verticalScrollBar()->setValue(yBarValue);
-    */
 }
+
 
 void NodeView::clearView()
 {
@@ -312,15 +287,33 @@ void NodeView::setRubberBandMode(bool On)
 }
 
 
+/**
+ * @brief NodeView::setViewAspects
+ * @param aspects
+ */
 void NodeView::setViewAspects(QStringList aspects)
 {
     currentAspects = aspects;
+
     emit updateViewAspects(aspects);
+    emit sortModel();
+
+    if (aspects.count() == 1) {
+        emit centerNode(aspects.at(0));
+    } else if (aspects.count() == 2 && (aspects.contains("Assembly") && aspects.contains("Hardware"))) {
+        emit centerNode("Deployment");
+    } else {
+        emit centerNode("Model");
+    }
+
+    /*
     if (firstSort) {
         sortInitialItems(aspects);
         firstSort = false;
     }
+    */
 }
+
 
 void NodeView::showContextMenu(QPoint position)
 {
@@ -393,10 +386,11 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     connect(nodeItem, SIGNAL(clearSelection()), this, SLOT(clearSelection()));
     connect(nodeItem, SIGNAL(centerModel()), this, SLOT(view_centerModel()));
+    connect(nodeItem, SIGNAL(sortModel()), this, SLOT(view_sortModel()));
 
+    // send the current view aspects to the newly created node item
+    // this determines whether the item should intially be visible or not
     if (nodeItem) {
-        // send the current view aspects to the newly created node item
-        // this determines whether the item should intially be visible or not
         nodeItem->updateViewAspects(currentAspects);
     }
 
@@ -793,7 +787,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
                 */
 
                 // center the model
-                emit centerModel();
+                emit centerNode("Model");
                 return;
             }
         }else if(event->button() == Qt::RightButton && CONTROL_DOWN){
@@ -925,18 +919,18 @@ void NodeView::resetModel()
             nodeItm->resetSize();
         }
     }
-    sortModel();
-    centerModel();
+    emit sortModel();
+    emit centerNode("Model");
     update();
 }
 
 
 /**
- * @brief NodeView::centreModel
+ * @brief NodeView::centreNode
  * This gets called every time the user middle clicks on the view.
  * @param node
  */
-void NodeView::centreModel(Node *node)
+void NodeView::centreNode(Node *node)
 {
     if (node) {
         centreItem(getGraphMLItemFromGraphML(node));
@@ -1029,7 +1023,16 @@ void NodeView::view_addComponentDefinition(NodeItem *itm)
  */
 void NodeView::view_centerModel()
 {
-    emit centerModel();
+    emit centerNode("Model");
+}
+
+
+/**
+ * @brief NodeView::view_sortModel
+ */
+void NodeView::view_sortModel()
+{
+    emit sortModel();
 }
 
 

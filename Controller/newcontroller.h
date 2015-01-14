@@ -122,10 +122,11 @@ signals:
 
 
     void view_FitToScreen();
-    void centerModel(Node* node);
+    void centreNode(Node* node);
+
 
 public slots:
-    void centerModel();
+    void centerNode(QString nodeLabel);
     void view_SelectModel();
 
     //UNUSED

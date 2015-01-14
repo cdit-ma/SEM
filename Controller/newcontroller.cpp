@@ -68,10 +68,6 @@ void NewController::connectView(NodeView *view)
     connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this,SLOT(view_ConstructNode(QString, QPointF)));
     connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
 
-    connect(view, SIGNAL(sortModel()), this, SLOT(view_SortModel()));
-    connect(view, SIGNAL(centerModel()), this, SLOT(centerModel()) );
-    connect(this, SIGNAL(centerModel(Node*)), view, SLOT(centreModel(Node*)) );
-
     //Connect the View to the Controllers Signals
     connect(this, SIGNAL(view_SetOpacity(GraphML*,qreal)), view, SLOT(view_SetOpacity(GraphML*,qreal)));
     connect(this, SIGNAL(view_SortNode(Node*)), view, SLOT(view_SortNode(Node*)));
@@ -84,6 +80,10 @@ void NewController::connectView(NodeView *view)
     connect(this, SIGNAL(view_PrintErrorCode(GraphML*,QString)), view, SLOT(printErrorText(GraphML*,QString)));
 
     connect(this, SIGNAL(view_FitToScreen()), view, SLOT(fitToScreen()));
+    connect(this, SIGNAL(centreNode(Node*)), view, SLOT(centreNode(Node*)));
+    connect(view, SIGNAL(centerModel()), this, SLOT(centerModel()));
+    connect(view, SIGNAL(sortModel()), this, SLOT(view_SortModel()));
+    connect(view, SIGNAL(centerNode(QString)), this, SLOT(centerNode(QString)));
 }
 
 
@@ -911,11 +911,13 @@ void NewController::view_FilterNodes(QStringList filterString)
     }
 }
 
+
 void NewController::view_SortModel()
 {
-    qDebug() << "NewController: sortModel";
+    emit view_SortNode(deploymentDefinitions);
     emit view_SortNode(model);
 }
+
 
 void NewController::view_ShowLegalEdgesForNode(Node *src)
 {
@@ -1868,12 +1870,28 @@ Node *NewController::getSelectedNode()
 
 
 /**
- * @brief NewController::centerModel
+ * @brief NewController::centerNode
+ * @param nodeLabel
  */
-void NewController::centerModel()
+void NewController::centerNode(QString nodeLabel)
 {
-    emit centerModel(model);
+    Node *node;
+    if (nodeLabel == "Model") {
+        node = model;
+    } else if (nodeLabel == "Deployment") {
+        node = deploymentDefinitions;
+    } else if (nodeLabel == "Definitions") {
+        node = interfaceDefinitions;
+    } else if (nodeLabel == "Workload") {
+        node = behaviourDefinitions;
+    } else if (nodeLabel == "Assembly") {
+        node = assemblyDefinitions;
+    } else if (nodeLabel == "Hardware") {
+        node = hardwareDefinitions;
+    }
+    emit centreNode(node);
 }
+
 
 Edge *NewController::getSelectedEdge()
 {

@@ -66,9 +66,9 @@ signals:
     void updateDockButtons(QString dockButton);
     void updateDockContainer(QString container);
 
-    void centerModel();
     void sortModel();
-
+    //void centerModel();
+    void centerNode(QString nodeLabel);
 
 public slots:
     void view_Refresh();
@@ -100,16 +100,16 @@ public slots:
     void view_ConstructNodeAction();
 
 
-
     void fitToScreen();
     void resetSceneRect(NodeItem *nodeItem);
-    void centreModel(Node* node);
+    void centreNode(Node* node);
 
     void clearSelection();
     void updateDockButtons(Node* node);
 
     void view_addComponentDefinition(NodeItem* itm);
     void view_centerModel();
+    void view_sortModel();
 
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
