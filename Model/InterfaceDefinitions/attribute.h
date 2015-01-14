@@ -14,7 +14,7 @@ public:
 
     // GraphML interface
 public:
-    QString toString();
+    
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 

@@ -164,6 +164,5 @@ QString GraphMLKey::getForKindString()
 
 QString GraphMLKey::toString()
 {
-     return QString("Key[%1]: "+this->getName()).arg(this->getID());
-
+    return QString("[%1]GraphMLKey").arg(getID());
 }

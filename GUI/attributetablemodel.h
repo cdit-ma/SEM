@@ -41,7 +41,7 @@ private:
 
     bool isNode;
     GraphML* attachedGraphML;
-    QVector<GraphMLData*> attachedData;
+    QList<GraphMLData*> attachedData;
 };
 
 #endif // ATTRIBUTETABLEMODEL_H

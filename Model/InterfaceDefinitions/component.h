@@ -11,7 +11,7 @@ public:
     Component(QString name="");
     ~Component();
 
-    QString toString();
+    
 
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);

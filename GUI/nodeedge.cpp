@@ -55,8 +55,6 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     updateLabel();
     setLabelFont();
 
-    setSelected(false);
-
     GraphMLData* descriptionData = edge->getData("description");
 
     if(descriptionData)
@@ -64,6 +62,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 
 
 
+    this->setVisible(IS_VISIBLE);
     //Set Flags
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
@@ -162,15 +161,13 @@ void NodeEdge::setSelected(bool selected)
 
     label->setVisible(selected);
 
-
+    prepareGeometryChange();
     update();
-
-
 }
 
 void NodeEdge::setVisible(bool visible)
 {
-    bool setVisible = IS_VISIBLE && source->isVisible() && destination->isVisible() && visible;
+    bool setVisible = IS_VISIBLE && (source->isVisible() && destination->isVisible());// && visible;
 
     foreach(QGraphicsLineItem* line, lineItems){
         line->setVisible(setVisible);
@@ -180,12 +177,15 @@ void NodeEdge::setVisible(bool visible)
     }
 
 
+    label->setVisible(setVisible);
     QGraphicsItem::setVisible(setVisible);
 }
 
 void NodeEdge::updateEdge()
 {
-    updateLines();
+    if(source && destination){
+        updateLines();
+    }
 }
 
 void NodeEdge::graphMLDataUpdated(GraphMLData *data)

@@ -18,13 +18,9 @@ GraphML::~GraphML()
 
 
 void GraphML::removeData(){
-
-    //Delete all Data
-    while(!attachedData.isEmpty()){
-        GraphMLData* current = attachedData.first();
-        attachedData.removeFirst();
-
-        delete current;
+    while(attachedData.size() > 0){
+        GraphMLData* data = attachedData.takeFirst();
+        delete data;
     }
 }
 
@@ -77,7 +73,7 @@ QString GraphML::getDataValue(QString keyName)
     if(data != 0){
         return data->getValue();
     }else{
-        qCritical() <<"GraphML::getDataValue() << GraphML Object does not contain Data: " << keyName;
+        //qCritical() <<"GraphML::getDataValue() << GraphML Object does not contain Data: " << keyName;
         return "";
     }
 }
@@ -105,8 +101,13 @@ GraphMLData *GraphML::getData(GraphMLKey *key)
 
 }
 
+bool GraphML::containsData(GraphMLData *data)
+{
+    return attachedData.contains(data);
+}
 
-QVector<GraphMLData *> GraphML::getData()
+
+QList<GraphMLData *> GraphML::getData()
 {
     return this->attachedData;
 }
@@ -141,18 +142,14 @@ void GraphML::attachData(GraphMLData *data)
 void GraphML::removeData(GraphMLData *data)
 {
     int index = attachedData.indexOf(data);
-    if(index != -1){
-        QString keyName = data->getKey()->getName();
-        attachedData.remove(attachedData.indexOf(data));
-        emit dataRemoved(data);
-    }
+    attachedData.removeAll(data);
+    emit dataRemoved(data);
 }
 
-void GraphML::attachData(QVector<GraphMLData *> data)
+void GraphML::attachData(QList<GraphMLData *> data)
 {
     while(!data.isEmpty()){
-        attachData(data.front());
-        data.pop_front();
+        attachData(data.takeFirst());
     }
 }
 

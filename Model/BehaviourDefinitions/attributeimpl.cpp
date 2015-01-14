@@ -13,10 +13,6 @@ AttributeImpl::~AttributeImpl()
 }
 
 
-QString AttributeImpl::toString()
-{
-    return QString("AttributeImpl[%1]: "+this->getName()).arg(this->getID());
-}
 
 bool AttributeImpl::canConnect(Node* attachableObject)
 {

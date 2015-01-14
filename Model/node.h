@@ -28,6 +28,7 @@ signals:
 public:
     //Child Node Methods
 
+    QString toString();
     Node* getParentNode();
 
     //Returns whether or not this Node can Adopt the child Node.
@@ -40,7 +41,7 @@ public:
 
     //Gets the Children of this Node to a desired Depth.
     //-1 = Recurse forever.
-    QVector<Node *> getChildren(int depth =-1);
+    QList<Node *> getChildren(int depth =-1);
 
     int childrenCount();
     int edgeCount();
@@ -75,8 +76,8 @@ public:
     bool containsEdge(Edge* edge);
 
     //Gets list of edges which are connected to this Node.
-    QVector<Edge *> getEdges(int depth=-1 );
-    QVector<GraphMLKey *> getKeys(int depth=-1 );
+    QList<Edge *> getEdges(int depth=-1 );
+    QList<GraphMLKey *> getKeys(int depth=-1 );
 
     //Removes all edges.
     void removeEdges();
@@ -84,10 +85,6 @@ public:
 
 
     //Visual Methods
-    void addAspect(QString aspect);
-    void removeAspect(QString aspect);
-    bool isInAspect(QString aspect);
-    QVector<QString> getAspects();
 
     QString toGraphML(qint32 indentationLevel=0);
 
@@ -104,11 +101,11 @@ public:
     void unsetDefinition();
 
     void addInstance(Node* inst);
-    QVector<Node*> getInstances();
+    QList<Node*> getInstances();
     void removeInstance(Node* inst);
 
     void addImplementation(Node* impl);
-    QVector<Node*> getImplementations();
+    QList<Node*> getImplementations();
     void removeImplementation(Node* impl);
 
 
@@ -123,26 +120,19 @@ private:
 
 
 
+    Node* parentNode;
+    Node* definition;
+
     NODE_TYPE nodeType;
 
-    //Used Sparingly
-    QVector<Node *> instances;
-    QVector<Node *> implementations;
-
-    Node* definition;
-    Node* implementation;
-
-
-    Node* parentNode;
-
-    //Graph* childGraph;
-    QVector<QString> containedAspects;
+    QList<Node*> instances;
+    QList<Node*> implementations;
 
     //The list of contained children GraphML elements. (Top level only)
-    QVector<Node *> children;
+    QList<Node *> children;
 
     //The list of contained Edge elements in this graph. (Top level only)
-    QVector<Edge *> edges;
+    QList<Edge *> edges;
 
 };
 

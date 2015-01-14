@@ -115,9 +115,3 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
 
     return Node::canConnect(attachableObject);
 }
-
-
-QString OutEventPortInstance::toString()
-{
-    return QString("OutEventPortInstance[%1]: "+this->getName()).arg(this->getID());
-}

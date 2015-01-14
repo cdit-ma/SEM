@@ -10,11 +10,6 @@ Condition::~Condition()
     //Destructor
 }
 
-QString Condition::toString()
-{
-    return QString("Condition[%1]: "+this->getName()).arg(this->getID());
-}
-
 bool Condition::canConnect(Node* attachableObject)
 {
     return Node::canConnect(attachableObject);

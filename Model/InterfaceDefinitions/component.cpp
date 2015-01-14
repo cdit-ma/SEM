@@ -15,13 +15,6 @@ Component::~Component()
 
 }
 
-
-QString Component::toString()
-{
-     return QString("Component[%1]: "+this->getName()).arg(this->getID());
-
-}
-
 bool Component::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);

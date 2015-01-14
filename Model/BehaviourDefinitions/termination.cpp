@@ -10,11 +10,6 @@ Termination::~Termination()
     //Destructor
 }
 
-QString Termination::toString()
-{
-    return QString("Termination[%1]: "+this->getName()).arg(this->getID());
-}
-
 bool Termination::canConnect(Node* attachableObject)
 {
     return Node::canConnect(attachableObject);

@@ -4,6 +4,12 @@ ValidationEngine::ValidationEngine()
 {
 
 }
+ValidationEngine::~ValidationEngine(){
+    while(plugins.size() > 0){
+        ValidationPlugin* p = plugins.takeFirst();
+        delete p;
+    }
+}
 
 
 void ValidationEngine::addPlugin(ValidationPlugin *plugin)

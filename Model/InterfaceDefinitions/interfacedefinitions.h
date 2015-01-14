@@ -7,12 +7,12 @@ class InterfaceDefinitions: public Node
 {
     Q_OBJECT
 public:
-    InterfaceDefinitions(QString name ="");
+    InterfaceDefinitions();
     ~InterfaceDefinitions();
 
     // GraphML interface
 public:
-    QString toString();
+
 
     // Node interface
 public:

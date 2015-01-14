@@ -11,11 +11,6 @@ Member::~Member()
 
 }
 
-QString Member::toString()
-{
-    return QString("Member[%1]: "+this->getName()).arg(this->getID());
-}
-
 bool Member::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);

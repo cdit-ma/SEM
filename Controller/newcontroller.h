@@ -19,7 +19,7 @@ struct EdgeTemp
     qint64 lineNumber;
     QString source;
     QString target;
-    QVector<GraphMLData *> data;
+    QList<GraphMLData *> data;
 };
 
 struct ActionItem{
@@ -34,10 +34,10 @@ struct ActionItem{
     QString removedXML;
 
     //In the form KeyName, KeyType, KeyFor, Data Value, isProtected.
-    QVector<QStringList> dataValues;
+    QList<QStringList> dataValues;
     //In the form ID
-    QVector<QStringList> boundDataIDs;
-    QVector<QString> parentDataID;
+    QList<QStringList> boundDataIDs;
+    QList<QString> parentDataID;
 
     QString boundDataID;
     QString actionName;
@@ -57,7 +57,7 @@ public:
     void initializeModel();
     void connectView(NodeView* view);
 
-    void connectView(GraphMLView* view);
+   // void connectView(GraphMLView* view);
 
     //Get a list of all Node Kinds
     QStringList getNodeKinds();
@@ -224,17 +224,17 @@ private:
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
     Node *constructDefinitionRelative(Node* parent, Node* definition, bool instance = true);
 
-    QVector<GraphMLData*> getDefinitionData(Node* definition, bool instance = true);
+    QList<GraphMLData*> getDefinitionData(Node* definition, bool instance = true);
 
     //Gets a specific Attribute from the current Element in the XML.
     //Returns "" if no Attribute found.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
      //Constructs a Node using the attached GraphMLData elements. Does not attach this Node.
-    Node* constructNode(QVector<GraphMLData*> dataToAttach, bool readOnly = false);
+    Node* constructNode(QList<GraphMLData*> dataToAttach, bool readOnly = false);
     Edge* constructEdge(Node* source, Node* destination);
-    Edge* constructEdgeWithData(Node* source, Node* destination, QVector<GraphMLData*> data, QString previousID="");
-    Edge* constructEdgeWithData(Node* source, Node* destination, QVector<QStringList> data, QString previousID="");
+    Edge* constructEdgeWithData(Node* source, Node* destination, QList<GraphMLData*> data, QString previousID="");
+    Edge* constructEdgeWithData(Node* source, Node* destination, QList<QStringList> data, QString previousID="");
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash
     void storeGraphMLInHash(GraphML* item);
@@ -242,7 +242,7 @@ private:
     void removeGraphMLFromHash(QString ID);
 
     //Constructs a Node using the attached GraphMLData elements. Attachs the node to the parentNode provided.
-    Node* constructChildNode(Node* parentNode, QVector<GraphMLData*> dataToAttach);
+    Node* constructChildNode(Node* parentNode, QList<GraphMLData*> dataToAttach);
 
 
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
@@ -254,8 +254,8 @@ private:
     bool destructEdge(Edge* edge, bool addAction = true);
 
     //Constructs a Vector of basic GraphMLData entities required for creating a Node.
-    QVector<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition);
-    QVector<GraphMLData*> constructGraphMLDataVector(QString nodeKind);
+    QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition);
+    QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind);
 
     //Constructs and setups all required Entities inside the Model Node.
     void setupModel();
@@ -321,8 +321,8 @@ private:
 
     //Attach GraphMLData('s) to the GraphML item.
     bool attachGraphMLData(GraphML* item, GraphMLData* data, bool addAction = true);
-    bool attachGraphMLData(GraphML* item, QVector<QStringList> dataList, bool addAction = true);
-    bool attachGraphMLData(GraphML* item, QVector<GraphMLData*> dataList, bool addAction = true);
+    bool attachGraphMLData(GraphML* item, QList<QStringList> dataList, bool addAction = true);
+    bool attachGraphMLData(GraphML* item, QList<GraphMLData*> dataList, bool addAction = true);
     
     //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
     GraphML* getGraphMLFromID(QString ID);
@@ -345,7 +345,7 @@ private:
     Model* getModel();
 
     //Stores the GraphMLKey's used by the Model.
-    QVector<GraphMLKey*> keys;
+    QList<GraphMLKey*> keys;
 
     //Stores the list of nodeID's and EdgeID's inside the Hash.
     QStringList nodeIDs;

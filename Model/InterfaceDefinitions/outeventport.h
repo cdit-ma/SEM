@@ -9,7 +9,7 @@ public:
     OutEventPort(QString name="");
     ~OutEventPort();
 
-    QString toString();
+    
 
     // Node interface
     bool canAdoptChild(Node *node);

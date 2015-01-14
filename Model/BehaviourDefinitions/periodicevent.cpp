@@ -10,11 +10,6 @@ PeriodicEvent::~PeriodicEvent()
     //Destructor
 }
 
-QString PeriodicEvent::toString()
-{
-    return QString("PeriodicEvent[%1]: "+this->getName()).arg(this->getID());
-}
-
 bool PeriodicEvent::canConnect(Node* attachableObject)
 {
     return Node::canConnect(attachableObject);

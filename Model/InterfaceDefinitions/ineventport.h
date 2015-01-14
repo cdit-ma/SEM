@@ -12,7 +12,7 @@ public:
     InEventPort(QString name="");
     ~InEventPort();
 
-    QString toString();
+    
     bool canAdoptChild(Node *node);
     bool canConnect(Node *node);
 };

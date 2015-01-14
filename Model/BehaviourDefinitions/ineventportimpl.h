@@ -13,7 +13,7 @@ public:
     bool canAdoptChild(Node* child);
     bool canConnect(Node* attachableObject);
     //QString toGraphML(qint32 indentationLevel=0);
-    QString toString();
+
 
 };
 

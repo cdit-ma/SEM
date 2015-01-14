@@ -1,6 +1,5 @@
 #include "newcontroller.h"
 #include "../GUI/nodeview.h"
-#include "../GUI/graphmlview.h"
 #include <QDebug>
 
 #include <algorithm>
@@ -87,10 +86,6 @@ void NewController::connectView(NodeView *view)
     connect(this, SIGNAL(view_FitToScreen()), view, SLOT(fitToScreen()));
 }
 
-void NewController::connectView(GraphMLView *view)
-{
-    view->connectController(this);
-}
 
 void NewController::initializeModel()
 {
@@ -101,15 +96,21 @@ void NewController::initializeModel()
 NewController::~NewController()
 {
     view_ClearSelection();
-    destructNode(model);
+    destructNode(model, false);
+
+    while(keys.size() > 0){
+        GraphMLKey* key = keys.takeFirst();
+        delete key;
+    }
+    delete validator;
 }
 
 QString NewController::exportGraphML(QStringList nodeIDs)
 {
     QString keyXML, edgeXML, nodeXML;
-    QVector<Node*> containedNodes;
-    QVector<GraphMLKey*> containedKeys;
-    QVector<Edge*> containedEdges;
+    QList<Node*> containedNodes;
+    QList<GraphMLKey*> containedKeys;
+    QList<Edge*> containedEdges;
 
     //Get all Children and Edges.
     foreach(QString ID, nodeIDs){
@@ -233,10 +234,10 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
     QMap<QString, Node *> nodeLookup;
 
     //A list for storing the current Parse <data> tags owned by a <node>
-    QVector<GraphMLData*> currentNodeData;
+    QList<GraphMLData*> currentNodeData;
 
     //A list storing all the Edge information (source, target, data)
-    QVector<EdgeTemp> currentEdges;
+    QList<EdgeTemp> currentEdges;
     GraphMLKey * currentKey;
 
     //Used to keep track of state inside the XML
@@ -254,7 +255,6 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
 
     //If we have been passed no parent, set it as the graph of this Model.
     if(currentParent == 0){
-        qCritical() << "Using Model";
         currentParent = getModel();
     }
 
@@ -414,6 +414,14 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
                 //Construct the specialised Node
                 Node* newNode = constructChildNode(currentParent, currentNodeData);
 
+                //Delete unadopted Memory
+                while(currentNodeData.size()> 0){
+                    GraphMLData* data = currentNodeData.takeFirst();
+                    if(!newNode || !newNode->containsData(data)){
+                        //Delete newly Constructed unadopted data.
+                        delete data;
+                    }
+                }
 
                 if(newNode == 0){
                      qCritical() << QString("Line #%1: Node Cannot Adopt child Node!").arg(xml.lineNumber());
@@ -442,7 +450,6 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
                 nodeLookup.insert(nodeID, newNode);
 
                 if(linkID){
-                    qCritical() << "Linking nodeID: " << nodeID  << " To " << newNode->getID();
                     linkOldIDToID(nodeID, newNode->getID());
                 }
 
@@ -458,10 +465,10 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
     }
 
     //Sort the edges into types.
-    QVector<EdgeTemp> aggregateEdges;
-    QVector<EdgeTemp> instanceEdges;
-    QVector<EdgeTemp> implEdges;
-    QVector<EdgeTemp> otherEdges;
+    QList<EdgeTemp> aggregateEdges;
+    QList<EdgeTemp> instanceEdges;
+    QList<EdgeTemp> implEdges;
+    QList<EdgeTemp> otherEdges;
 
     foreach(EdgeTemp edge, currentEdges){
         Node* s = nodeLookup[edge.source];
@@ -486,7 +493,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
     }
 
     //Implementations, Instances, Aggregates, then others.
-    QVector<EdgeTemp> sortedEdges;
+    QList<EdgeTemp> sortedEdges;
     sortedEdges << implEdges;
     sortedEdges << instanceEdges;
     sortedEdges << aggregateEdges;
@@ -537,7 +544,8 @@ void NewController::view_ClearModel()
 
     //qCritical() << actionCount;
 
-    QVector<Node*> childNodes = interfaceDefinitions->getChildren(0);
+    QList<Node*> childNodes = interfaceDefinitions->getChildren(0);
+   // while(!childNodes.isEmpty())
     for(int i=0; i < childNodes.size(); i++){
         Node* child = childNodes[i];
         destructNode(child);
@@ -568,7 +576,7 @@ void NewController::view_ClearModel()
     }
     childNodes.clear();
 
-
+    view_ClearUndoRedoStacks();
 }
 
 void NewController::validator_HighlightError(Node *node, QString error)
@@ -789,7 +797,7 @@ void NewController::view_ConstructComponentInstanceInAssembly(Component *definit
         */
 
         if(instanceNode){
-            QVector<QStringList> noData;
+            QList<QStringList> noData;
             Edge* connectingEdge = constructEdgeWithData(instanceNode, definition, noData);
             /*if(connectingEdge){
                 //Don't create an ActionItem for this.
@@ -805,12 +813,12 @@ void NewController::view_ConstructComponentInstanceInAssembly(Component *definit
 
 void NewController::view_ConstructEdge(Node *src, Node *dst)
 {
-    QVector<QStringList> noData;
+    QList<QStringList> noData;
 
     constructEdgeWithData(src, dst, noData);
 }
 
-Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QVector<GraphMLData *> data, QString previousID)
+Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<GraphMLData *> data, QString previousID)
 {
     Edge* edge = constructEdge(src, dst);
     if(edge){
@@ -825,7 +833,7 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QVector<GraphML
     return edge;
 }
 
-Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QVector<QStringList> attachedData, QString previousID)
+Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<QStringList> attachedData, QString previousID)
 {
     Edge* edge = constructEdge(src, dst);
     if(edge){
@@ -857,8 +865,8 @@ void NewController::view_MoveSelectedNodes(QPointF delta)
             float x = xData->getValue().toFloat() + delta.x();
             float y = yData->getValue().toFloat() + delta.y();
 
-            view_UpdateGraphMLData(node,"x", QString::number(x));
-            view_UpdateGraphMLData(node,"y", QString::number(y));
+            view_UpdateGraphMLData(node, "x", QString::number(x));
+            view_UpdateGraphMLData(node, "y", QString::number(y));
         }
     }
 
@@ -1067,7 +1075,7 @@ void NewController::view_SelectAll()
         }
     }else{
         //Get children.
-        QVector<Node*> containers;
+        QList<Node*> containers;
         containers << behaviourDefinitions << interfaceDefinitions << hardwareDefinitions << assemblyDefinitions;
 
         foreach(Node* container, containers){
@@ -1198,7 +1206,7 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
 }
 
 
-Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach, bool readOnly)
+Node *NewController::constructNode(QList<GraphMLData *> dataToAttach, bool readOnly)
 {
     //The to-be-constructed node.
     Node* node = 0;
@@ -1231,9 +1239,11 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach, bool rea
         }
     }
 
-     QVector<GraphMLData*> requiredData = constructGraphMLDataVector(nodeKind);
+     QList<GraphMLData*> requiredData = constructGraphMLDataVector(nodeKind);
 
-     foreach(GraphMLData* data, requiredData){
+     while(requiredData.size() > 0){
+         GraphMLData* data = requiredData.takeFirst();
+
          bool gotDataType = false;
          foreach(GraphMLData* gotData, dataToAttach){
              if(gotData->getKey() == data->getKey()){
@@ -1244,6 +1254,8 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach, bool rea
 
          if(!gotDataType){
              dataToAttach.append(data);
+         }else{
+             delete data;
          }
      }
 
@@ -1278,16 +1290,15 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach, bool rea
         return 0;
     }
 
-
-
     //Attach blank data to the Vector for the Unset Data Keys.
+    if(setWidth){
+        dataToAttach.append(new GraphMLData(widthKey, ""));
+    }
+    if(setHeight){
+        dataToAttach.append(new GraphMLData(heightKey, ""));
+    }
+
     if(nodeKind != "Model"){
-        if(setWidth){
-            dataToAttach.append(new GraphMLData(widthKey, ""));
-        }
-        if(setHeight){
-            dataToAttach.append(new GraphMLData(heightKey, ""));
-        }
         if(setX){
             dataToAttach.append(new GraphMLData(xKey, ""));
         }
@@ -1422,6 +1433,8 @@ Node *NewController::constructNode(QVector<GraphMLData *> dataToAttach, bool rea
     //This will add Undo states to reverse.
     attachGraphMLData(node, dataToAttach, false);
 
+
+
     //node->addAspect("Definitions");
     return node;
 }
@@ -1441,7 +1454,7 @@ Edge *NewController::constructEdge(Node *source, Node *destination)
         return edge;
     }else{
         if(!source->isConnected(destination)){
-            qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
+            //qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
         }
         return 0;
     }
@@ -1492,7 +1505,7 @@ void NewController::removeGraphMLFromHash(QString ID)
     }
 }
 
-Node *NewController::constructChildNode(Node *parentNode, QVector<GraphMLData *> dataToAttach)
+Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> dataToAttach)
 {
     //Construct the Model Node first.
 
@@ -1500,6 +1513,7 @@ Node *NewController::constructChildNode(Node *parentNode, QVector<GraphMLData *>
 
     //Check if this node has been already setup Visually.
     if(isGraphMLInModel(node)){
+        //Clean up dataToAttach
         return node;
     }
 
@@ -1523,6 +1537,11 @@ Node *NewController::constructChildNode(Node *parentNode, QVector<GraphMLData *>
     }else{
         qCritical() << "Node: " << parentNode->toString() << " Cannot Adopt: " << node->toString();
         //Delete the newly created node.
+
+        while(dataToAttach.size() > 0){
+            GraphMLData* data = dataToAttach.takeFirst();
+            delete data;
+        }
         delete node;
         node = 0;
     }
@@ -1540,9 +1559,9 @@ Node *NewController::constructChildNode(Node *parentNode, QVector<GraphMLData *>
     return node;
 }
 
-QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind, QPointF relativePosition)
+QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind, QPointF relativePosition)
 {
-    QVector<GraphMLData*> data;
+    QList<GraphMLData*> data;
 
     GraphMLKey* kindKey = constructGraphMLKey("kind", "string", "node");
     GraphMLKey* labelKey = constructGraphMLKey("label", "string", "node");
@@ -1561,18 +1580,13 @@ QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKin
     }
     if(nodeKind == "ManagementComponent"){
         GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
-        GraphMLData* typeData = new GraphMLData(typeKey, "");
         data.append(new GraphMLData(typeKey, ""));
     }
     if(nodeKind == "Model"){
         GraphMLKey* middlewareKey = constructGraphMLKey("middleware", "string", "node");
         GraphMLKey* projectUUID = constructGraphMLKey("projectUUID", "string", "node");
-        GraphMLKey* widthKey = constructGraphMLKey("width", "string", "node");
-        GraphMLKey* heightKey = constructGraphMLKey("height", "string", "node");
 
         //Update Later
-        data.append(new GraphMLData(widthKey, ""));
-        data.append(new GraphMLData(heightKey, ""));
         data.append(new GraphMLData(projectUUID, "0"));
         data.append(new GraphMLData(middlewareKey, "tao"));
     }
@@ -1601,7 +1615,7 @@ QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKin
     return data;
 }
 
-QVector<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind)
+QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind)
 {
     //No Position provided, so call with a Blank Point.
     return constructGraphMLDataVector(nodeKind, QPointF(0,0));
@@ -1692,7 +1706,7 @@ Node *NewController::constructDefinitionRelative(Node *parent, Node *definition,
     }
 
     if(instanceNode){
-        QVector<QStringList> noData;
+        QList<QStringList> noData;
         Edge* connectingEdge = constructEdgeWithData(instanceNode, definition, noData);
         if(connectingEdge){
             //Don't create an ActionItem for this.
@@ -1705,9 +1719,9 @@ Node *NewController::constructDefinitionRelative(Node *parent, Node *definition,
 
 
 
-QVector<GraphMLData *> NewController::getDefinitionData(Node *definition, bool forInstance)
+QList<GraphMLData *> NewController::getDefinitionData(Node *definition, bool forInstance)
 {
-    QVector<GraphMLData *> childData;
+    QList<GraphMLData *> childData;
 
     QStringList requiredKeyNames;
     requiredKeyNames << "kind" << "label" << "type" << "x" << "y";
@@ -1918,23 +1932,11 @@ bool NewController::destructNode(Node *node, bool addAction)
             }else{
                 destructEdge(edge, false);
             }
-
-            /*
-            //If this node contains both Edge ends, then it will be contained by the XML exported.
-            if(node->isAncestorOf(src) && node->isAncestorOf(dst)){
-                destructEdge(edge, false);
-            }else{
-                //If it doesn't contain both ends, we need to add an action to reconnect the Edge.
-                //qCritical() << "Destructing Edge: " << edge->getID();
-                destructEdge(edge, false);
-            }
-            */
         }
     }
 
     foreach(Node* childNode, node->getChildren(0)){
         QString childID = childNode->getID();
-        //qCritical() << "Calling: destructNode2(" << childID << ")";
         destructNode(childNode, false);
     }
 
@@ -1974,6 +1976,7 @@ bool NewController::destructNode(Node *node, bool addAction)
     }
 
     delete node;
+
     return true;
 }
 
@@ -2015,7 +2018,7 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
             teardpwmDefinitionRelationship(destination, source, SETUP_AS_IMPL);
         }else if(edge->isAggregateLink()){
             EventPort* eventPort = dynamic_cast<EventPort*>(source);
-            Aggregate* aggregate = dynamic_cast<Aggregate*>(source);
+            Aggregate* aggregate = dynamic_cast<Aggregate*>(destination);
             if(eventPort && aggregate){
                 eventPort->unsetAggregate();
             }
@@ -2082,7 +2085,7 @@ bool NewController::isEdgeLegal(Node *src, Node *dst)
 {
     if(src && dst){
         //Check for dual way connections.
-        return src->canConnect(dst) && dst->canConnect(src);
+        return src->canConnect(dst);
     }
     return false;
 }
@@ -2150,9 +2153,14 @@ void NewController::reverseAction(ActionItem action)
             Node* src = getNodeFromID(action.srcID);
             Node* dst = getNodeFromID(action.dstID);
 
+
             if(src && dst){
                 if(isEdgeLegal(src,dst)){
                     constructEdgeWithData(src ,dst, action.dataValues, action.ID);
+                }else{
+                    if(!src->isConnected(dst)){
+                        qCritical() << "Cannot make Edge: " << src->toString() << " AND  " << dst->toString();
+                    }
                 }
             }else{
                 if(!src){
@@ -2214,9 +2222,9 @@ void NewController::reverseAction(ActionItem action)
     }
 
 }
-bool NewController::attachGraphMLData(GraphML *item, QVector<QStringList> dataList, bool addAction)
+bool NewController::attachGraphMLData(GraphML *item, QList<QStringList> dataList, bool addAction)
 {
-    QVector<GraphMLData*> graphMLDataList;
+    QList<GraphMLData*> graphMLDataList;
     //Conver the StringList into GraphMLData Objects.
 
     foreach(QStringList data, dataList){
@@ -2250,7 +2258,7 @@ bool NewController::attachGraphMLData(GraphML *item, QVector<QStringList> dataLi
     return attachGraphMLData(item, graphMLDataList, addAction);
 }
 
-bool NewController::attachGraphMLData(GraphML *item, QVector<GraphMLData *> dataList, bool addAction)
+bool NewController::attachGraphMLData(GraphML *item, QList<GraphMLData *> dataList, bool addAction)
 {
     if(!item){
         qCritical() << "Null GraphML Item.";
@@ -2266,7 +2274,7 @@ bool NewController::attachGraphMLData(GraphML *item, QVector<GraphMLData *> data
         GraphMLData* containedData = item->getData(data->getKey());
         if(containedData){
             //Update so we have an Undo.
-            qWarning() << item->toString() << " Found duplicate Data for key: " << data->getKeyName() << " Updating Value instead.";
+            //qWarning() << item->toString() << " Found duplicate Data for key: " << data->getKeyName() << " Updating Value instead.";
             view_UpdateGraphMLData(item, data->getKeyName(), data->getValue());
         }else{
             //Add action!
@@ -2286,7 +2294,7 @@ bool NewController::attachGraphMLData(GraphML *item, QVector<GraphMLData *> data
 
 bool NewController::attachGraphMLData(GraphML *item, GraphMLData *data, bool addAction)
 {
-    QVector<GraphMLData *> dataList;
+    QList<GraphMLData *> dataList;
     dataList.append(data);
     return attachGraphMLData(item, dataList, addAction);
 }
@@ -2345,7 +2353,7 @@ void NewController::undoRedo(bool undo)
     view_TriggerAction(topActionName);
 
     //This vector will store all ActionItems which match topActionID
-    QVector<ActionItem> toReverse;
+    QList<ActionItem> toReverse;
 
     while(!actionStack.isEmpty()){
         //Get the top-most action.
@@ -2761,7 +2769,6 @@ void NewController::constructEdgeGUI(Edge *edge)
                 attachGraphMLData(edge, label, false);
             }
         }else if(edge->isAggregateLink()){
-            qCritical() << "Got Aggregate Link";
             EventPort* eventPort = dynamic_cast<EventPort*>(src);
             Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
             //Got Aggregate Edge.
@@ -2798,7 +2805,7 @@ void NewController::constructEdgeGUI(Edge *edge)
 
 void NewController::updateViewUndoRedoLists()
 {
-    QVector<int> actions;
+    QList<int> actions;
     QStringList undoList;
 
     //Undo first
@@ -2833,9 +2840,9 @@ void NewController::setupManagementComponents()
     GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
 
     //EXECUTION MANAGER
-    QVector<GraphMLData*> executionManagerData = constructGraphMLDataVector("ManagementComponent") ;
-    QVector<GraphMLData*> dancePlanLauncherData = constructGraphMLDataVector("ManagementComponent") ;
-    QVector<GraphMLData*> ddsLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
+    QList<GraphMLData*> executionManagerData = constructGraphMLDataVector("ManagementComponent") ;
+    QList<GraphMLData*> dancePlanLauncherData = constructGraphMLDataVector("ManagementComponent") ;
+    QList<GraphMLData*> ddsLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
 
     foreach(GraphMLData* data, executionManagerData){
         if(data->getKeyName() == "type"){

@@ -70,6 +70,13 @@ bool InEventPortDelegate::canConnect(Node* attachableObject)
         qCritical() << "InEventPortDelegate cannot be connected to undefined InEventPortDelegates.";
         return false;
     }
+    if(inEventPortDelegate){
+        if(!getParentNode()->isAncestorOf(inEventPortDelegate)){
+            qCritical() << "InEventPortDelegate cannot be connected to an InEventPortDelegates which isn't contained by the node.";
+            return false;
+        }
+
+    }
 
     /*if(inEventPortInstance && connectedToInEventPortInstance()){
         if(this->connectedToInEventPortInstance()){
@@ -122,12 +129,3 @@ bool InEventPortDelegate::canConnect(Node* attachableObject)
 
     return Node::canConnect(attachableObject);
 }
-
-
-QString InEventPortDelegate::toString()
-{
-    return QString("InEventPortDelegate[%1]: " + this->getName()).arg(this->getID());
-
-}
-
-

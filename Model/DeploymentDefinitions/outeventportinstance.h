@@ -13,7 +13,7 @@ public:
     bool canAdoptChild(Node* child);
     bool canConnect(Node* attachableObject);
     //QString toGraphML(qint32 indentationLevel);
-    QString toString();
+    
 };
 
 #endif // OUTEVENTPORTINSTANCE_H

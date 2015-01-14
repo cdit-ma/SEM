@@ -74,7 +74,6 @@ public slots:
     void view_Refresh();
     void view_ConstructGraphMLGUI(GraphML* item);
     void printErrorText(GraphML* graphml, QString text);
-    void updateNodeTypeName(QString name);
     void removeNodeItem(NodeItem* item);
     void centreItem(GraphMLItem* item);
     void clearView();

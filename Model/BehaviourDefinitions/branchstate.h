@@ -10,7 +10,7 @@ public:
     ~BranchState();
 
     // GraphML interface
-    QString toString();
+    
 
     // Node interface
 public:

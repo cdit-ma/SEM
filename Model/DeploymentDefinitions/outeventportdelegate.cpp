@@ -146,10 +146,3 @@ bool OutEventPortDelegate::canConnect(Node* attachableObject)
 
     return Node::canConnect(attachableObject);
 }
-
-
-QString OutEventPortDelegate::toString()
-{
-    return QString("InEventPortDelegate[%1]: " + this->getName()).arg(this->getID());
-
-}

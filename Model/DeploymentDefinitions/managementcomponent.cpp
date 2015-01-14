@@ -4,18 +4,12 @@
 
 ManagementComponent::ManagementComponent()
 {
-    addAspect("Hardware");
 }
 
 
 ManagementComponent::~ManagementComponent()
 {
 
-}
-
-QString ManagementComponent::toString()
-{
-    return QString("ManagementComponent[%1]: "+this->getName()).arg(this->getID());
 }
 
 bool ManagementComponent::canConnect(Node* attachableObject)

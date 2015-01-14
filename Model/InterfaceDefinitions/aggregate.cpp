@@ -35,11 +35,6 @@ QVector<EventPort *> Aggregate::getEventPorts()
     return attachedEventPorts;
 }
 
-QString Aggregate::toString()
-{
-    return QString("Aggregate[%1]: "+this->getName()).arg(this->getID());
-}
-
 bool Aggregate::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);

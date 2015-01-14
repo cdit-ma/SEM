@@ -4,17 +4,11 @@
 
 HardwareDefinitions::HardwareDefinitions():Node()
 {
-         addAspect("Hardware");
 }
 
 HardwareDefinitions::~HardwareDefinitions()
 {
 
-}
-
-QString HardwareDefinitions::toString()
-{
-    return QString("HardwareDefinitions[%1]: "+this->getName()).arg(this->getID());
 }
 
 bool HardwareDefinitions::canConnect(Node* attachableObject)

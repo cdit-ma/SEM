@@ -9,7 +9,7 @@ public:
     ~BlankNode();
 
     // GraphML interface
-    QString toString();
+    
 
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);

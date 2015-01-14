@@ -4,19 +4,13 @@
 #include <QDebug>
 
 
-BehaviourDefinitions::BehaviourDefinitions(QString name):Node()
+BehaviourDefinitions::BehaviourDefinitions():Node()
 {
-    this->addAspect("Workload");
 }
 
 BehaviourDefinitions::~BehaviourDefinitions()
 {
 
-}
-
-QString BehaviourDefinitions::toString()
-{
-    return QString("BehaviourDefinitions[%1]: "+this->getName()).arg(this->getID());
 }
 
 bool BehaviourDefinitions::canConnect(Node* attachableObject)

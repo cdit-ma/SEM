@@ -10,7 +10,7 @@ public:
 
     // GraphML interface
 public:
-    QString toString();
+    
 
     // Node interface
 public:

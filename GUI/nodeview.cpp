@@ -81,13 +81,6 @@ NodeView::~NodeView()
     emit view_SetSelectedAttributeModel(0);
 }
 
-void NodeView::updateNodeTypeName(QString name)
-{
-    this->NodeType = name;
-    //qCritical() << "NodeType: " << name;
-
-    emit this->updateNodeType(NodeType);
-}
 
 
 
@@ -126,17 +119,18 @@ void NodeView::sortInitialItems(QStringList aspects)
     NodeItem* topItem = 0;
     int minDepth = 100;
 
+
     // if not, find the top most visible item that's not the Model and centre it
     foreach (NodeItem *nodeItm, getVisibleNodeItems()) {
 
-        nodeItm->sortChildren();
+        nodeItm->sort();
 
         QString nodeKind = nodeItm->getGraphML()->getDataValue("kind");
         if (aspects.count() == 1 && nodeKind == "Model") {
             break;
         }
-        if (nodeItm->depth < minDepth && nodeKind != "DeploymentDefinitions") {
-            minDepth = nodeItm->depth;
+        if (nodeItm->getDepth() < minDepth && nodeKind != "DeploymentDefinitions") {
+            minDepth = nodeItm->getDepth();
             topItem = nodeItm;
         }
     }
@@ -395,10 +389,8 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     //Connect the Node Specific Functionality
     connect(nodeItem, SIGNAL(moveSelection(QPointF)), controller, SLOT(view_MoveSelectedNodes(QPointF)));
     connect(controller, SIGNAL(view_SetRubberbandSelectionMode(bool)), nodeItem, SLOT(setRubberbandMode(bool)));
-    connect(this, SIGNAL(updateNodeType(QString)), nodeItem, SLOT(updateChildNodeType(QString)));
     connect(this, SIGNAL(updateViewAspects(QStringList)), nodeItem, SLOT(updateViewAspects(QStringList)));
 
-    //connect(nodeItem, SIGNAL(updateSceneRect(NodeItem*)), this, SLOT(resetSceneRect(NodeItem*)));
     connect(nodeItem, SIGNAL(clearSelection()), this, SLOT(clearSelection()));
     connect(nodeItem, SIGNAL(centerModel()), this, SLOT(view_centerModel()));
 
@@ -444,6 +436,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*>(node);
     if (hardwareNode) {
         nodeItem->setHidden(true);
+        //nodeItem->setHidden(true);
         emit hardwareNodeMade("hardware", nodeItem);
         return;
     }
@@ -575,7 +568,7 @@ void NodeView::view_SortNode(Node *node)
 {
     NodeItem* nodeItem = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(node->getID()));
     if(nodeItem){
-        nodeItem->sortChildren();
+        nodeItem->sort();
     }
 
 }
@@ -1104,7 +1097,7 @@ void NodeView::resetSceneRect(NodeItem *nodeItem)
                                nodeItem->boundingRect().width()*1.5,
                                nodeItem->boundingRect().height()*1.5);
         setSceneRect(*rec);
-        nodeItem->setPos((rec->width()/2) - (nodeItem->boundingRect().width()/2),
-                         (rec->height()/2) - (nodeItem->boundingRect().height()/2));
+        //nodeItem->setPos((rec->width()/2) - (nodeItem->boundingRect().width()/2),
+                        // (rec->height()/2) - (nodeItem->boundingRect().height()/2));
     }
 }

@@ -14,12 +14,6 @@ Attribute::~Attribute()
 
 }
 
-
-QString Attribute::toString()
-{
-    return QString("Attribute[%1]: "+this->getName()).arg(this->getID());
-}
-
 bool Attribute::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);

@@ -10,11 +10,6 @@ public:
     ManagementComponent();
     ~ManagementComponent();
 
-
-    // GraphML interface
-public:
-    QString toString();
-
     // Node interface
 public:
     bool canConnect(Node* attachableObject);

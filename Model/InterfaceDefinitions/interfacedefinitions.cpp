@@ -1,19 +1,13 @@
 #include "interfacedefinitions.h"
 #include "file.h"
 #include <QDebug>
-InterfaceDefinitions::InterfaceDefinitions(QString name): Node()
+InterfaceDefinitions::InterfaceDefinitions(): Node()
 {
-    addAspect("Definitions");
 }
 
 InterfaceDefinitions::~InterfaceDefinitions()
 {
 
-}
-
-QString InterfaceDefinitions::toString()
-{
-    return QString("InterfaceDefinitions[%1]: "+this->getName()).arg(this->getID());
 }
 
 bool InterfaceDefinitions::canConnect(Node* attachableObject)

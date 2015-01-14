@@ -11,7 +11,7 @@ class ComponentImpl: public Node
 public:
     ComponentImpl(QString name="");
     ~ComponentImpl();    // GraphML interface
-    QString toString();
+    
 
 public:
     bool canConnect(Node* attachableObject);

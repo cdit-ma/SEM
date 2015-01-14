@@ -11,12 +11,6 @@ MemberInstance::~MemberInstance()
 
 }
 
-
-QString MemberInstance::toString()
-{
-    return QString("MemberInstance[%1]: "+this->getName()).arg(this->getID());
-}
-
 bool MemberInstance::canConnect(Node* attachableObject)
 {
     MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(attachableObject);

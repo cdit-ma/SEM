@@ -21,6 +21,7 @@ GraphMLData::~GraphMLData()
         GraphMLData* child = childData[i];
         unbindData(child);
     }
+    childData.clear();
 }
 
 QString GraphMLData::getValue() const
@@ -61,7 +62,7 @@ QString GraphMLData::toGraphML(qint32 indentationLevel)
 
 QString GraphMLData::toString()
 {
-    return QString("Data[%1]: "+this->getName()).arg(this->getID());
+    return QString("[%1]GraphMLData").arg(getID());
 }
 
 QStringList GraphMLData::toStringList()

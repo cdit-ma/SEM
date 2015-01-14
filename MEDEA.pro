@@ -13,6 +13,8 @@ TARGET = MEDEA
 
 TEMPLATE = app
 
+LIBS += -lpsapi
+
 HEADERS += \
     GUI/attributetablemodel.h \
     GUI/nodeitem.h \
@@ -78,9 +80,10 @@ HEADERS += \
     GUI/nodetable.h \
     GUI/nodetableitem.h \
     GUI/nodetableview.h \
-    GUI/graphmlview.h \
     Model/DeploymentDefinitions/ineventportdelegate.h \
-    Model/DeploymentDefinitions/outeventportdelegate.h
+    Model/DeploymentDefinitions/outeventportdelegate.h \
+    GUI/graphmlview.h \
+    modeltester.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -147,9 +150,10 @@ SOURCES += \
     GUI/nodetable.cpp \
     GUI/nodetableitem.cpp \
     GUI/nodetableview.cpp \
-    GUI/graphmlview.cpp \
     Model/DeploymentDefinitions/ineventportdelegate.cpp \
-    Model/DeploymentDefinitions/outeventportdelegate.cpp
+    Model/DeploymentDefinitions/outeventportdelegate.cpp \
+    GUI/graphmlview.cpp \
+    modeltester.cpp
 
 FORMS += \
     medeawindow.ui \

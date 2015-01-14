@@ -22,11 +22,6 @@ bool AttributeInstance::canAdoptChild(Node *child)
 }
 
 
-QString AttributeInstance::toString()
-{
-    return QString("AttributeInstance[%1]: "+this->getName()).arg(this->getID());
-}
-
 //An AttributeInstance can be connected to:
 //Connected to a Definition:
 // + Attribute

@@ -11,12 +11,6 @@ AggregateInstance::~AggregateInstance()
 {
 }
 
-
-QString AggregateInstance::toString()
-{
-    return QString("AggregateInstance[%1]: "+this->getName()).arg(this->getID());
-}
-
 bool AggregateInstance::canConnect(Node* attachableObject)
 {
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(attachableObject);

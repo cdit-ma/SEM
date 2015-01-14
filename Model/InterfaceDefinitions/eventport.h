@@ -11,7 +11,7 @@ public:
     ~EventPort();
 
     // GraphML interface
-    QString toString();
+    
 
     void setAggregate(Aggregate *aggregate);
     Aggregate* getAggregate();

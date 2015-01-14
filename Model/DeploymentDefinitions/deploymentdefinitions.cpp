@@ -5,18 +5,11 @@
 
 DeploymentDefinitions::DeploymentDefinitions():Node()
 {
-     addAspect("Assembly");
-     addAspect("Hardware");
 }
 
 DeploymentDefinitions::~DeploymentDefinitions()
 {
 
-}
-
-QString DeploymentDefinitions::toString()
-{
-    return QString("DeploymentDefinitions[%1]: "+this->getName()).arg(this->getID());
 }
 
 bool DeploymentDefinitions::canConnect(Node* attachableObject)

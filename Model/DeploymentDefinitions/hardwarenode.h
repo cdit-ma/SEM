@@ -11,7 +11,7 @@ public:
 public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
-    QString toString();
+    
 };
 
 #endif // HARDWARENODE_H

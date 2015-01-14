@@ -11,10 +11,7 @@ Node::Node(Node::NODE_TYPE type) : GraphML(GraphML::NODE)
 
     //Initialize Instance Variables.
     definition = 0;
-    implementation = 0;
     parentNode = 0;
-
-
 }
 
 Node::~Node()
@@ -22,8 +19,21 @@ Node::~Node()
     if(parentNode){
         parentNode->removeChild(this);
     }
-   //qCritical() << "NOde deleted";
+}
 
+QString Node::toString()
+{
+    GraphMLData* kindData = getData("kind");
+    GraphMLData* labelData = getData("label");
+    QString kind = "Node";
+    QString label = "Node";
+    if(kindData){
+        kind = kindData->getValue();
+    }
+    if(labelData){
+        label = labelData->getValue();
+    }
+    return QString("[%1]%2 - %3").arg(getID(), kind, label);
 }
 
 Node *Node::getParentNode()
@@ -33,7 +43,9 @@ Node *Node::getParentNode()
 
 bool Node::canAdoptChild(Node *node)
 {
-    Q_CHECK_PTR(node);
+    if(!node){
+        return false;
+    }
 
     //Check for Cyclic contains.
     if(node == this){
@@ -51,30 +63,20 @@ bool Node::canAdoptChild(Node *node)
 
 void Node::addChild(Node *child)
 {
-    Q_CHECK_PTR(child);
-
-    if(!containsChild(child)){
+    if(child && !containsChild(child)){
         children.append(child);
-
-        if(getParentNode() && getAspects().size() >= 1){
-            foreach(QString aspect, getAspects()){
-                child->addAspect(aspect);
-            }
-        }
-
         child->setParentNode(this);
     }
 }
 
 bool Node::containsChild(Node *child)
 {
-    Q_CHECK_PTR(child);
     return children.contains(child);
 }
 
-QVector<Node *> Node::getChildren(int depth)
+QList<Node *> Node::getChildren(int depth)
 {
-    QVector<Node *> childList;
+    QList<Node *> childList;
 
     //Add direct Children
     childList += children;
@@ -102,22 +104,14 @@ int Node::edgeCount()
 
 void Node::removeChild(Node *child)
 {
-    Q_CHECK_PTR(child);
-
-    if(containsChild(child)){
-        //Remove Child.
-        int index = children.indexOf(child);
-        children.removeAt(index);
+    if(child){
+        children.removeAll(child);
     }
 }
 
 void Node::removeChildren()
 {
-    while(!children.isEmpty()){
-        Node* current = children.first();
-        children.removeFirst();
-        delete current;
-    }
+    children.clear();
 }
 
 bool Node::ancestorOf(Node *node)
@@ -132,7 +126,7 @@ bool Node::ancestorOf(Edge *edge)
 
 bool Node::isAncestorOf(GraphML *item)
 {
-    Node* node = (Node*)item;
+    Node* node = dynamic_cast<Node*>(item);
     Edge* edge = dynamic_cast<Edge*>(item);
     if(edge){
         return ancestorOf(edge);
@@ -140,7 +134,6 @@ bool Node::isAncestorOf(GraphML *item)
     if(node){
         return ancestorOf(node);
     }
-
     return false;
 }
 
@@ -159,10 +152,8 @@ bool Node::isDescendantOf(Node *node)
 bool Node::canConnect(Node *node)
 {
     if(isConnected(node)){
-        //qWarning() << "Cannot connect 2 Connected Nodes";
         return false;
     }
-
     return true;
 }
 
@@ -186,9 +177,9 @@ bool Node::containsEdge(Edge *edge)
     return edges.contains(edge);
 }
 
-QVector<Edge *> Node::getEdges(int depth)
+QList<Edge *> Node::getEdges(int depth)
 {
-    QVector<Edge *> edgeList;
+    QList<Edge *> edgeList;
 
     foreach(Edge* edge, edges){
         if(!edgeList.contains(edge)){
@@ -208,73 +199,32 @@ QVector<Edge *> Node::getEdges(int depth)
     return edgeList;
 }
 
-QVector<GraphMLKey *> Node::getKeys(int depth)
+QList<GraphMLKey *> Node::getKeys(int depth)
 {
-    QVector<Node *> gChildren = getChildren(depth);
-    QVector<Edge *> gEdges = getEdges(depth);
+    QList<GraphMLKey*> allKeys;
+    QList<GraphMLData*> allData;
 
-    QVector<GraphMLKey *> allKeys;
-
-
-    foreach(GraphMLData* data, getData()){
-        if(!allKeys.contains(data->getKey())){
-            allKeys += data->getKey();
-        }
+    allData += getData();
+    foreach(GraphML* entity, getChildren(depth)){
+        allData += entity->getData();
+    }
+    foreach(GraphML* entity, getEdges(depth)){
+        allData += entity->getData();
     }
 
-    foreach(Node* child, gChildren){
-        foreach(GraphMLData* data, child->getData()){
-            if(!allKeys.contains(data->getKey())){
-                allKeys += data->getKey();
-            }
+    foreach(GraphMLData* data, allData){
+        GraphMLKey* key = data->getKey();
+        if(!allKeys.contains(key)){
+            allKeys += key;
         }
     }
-
-    foreach(Edge* edge, gEdges){
-        foreach(GraphMLData* data, edge->getData()){
-            if(!allKeys.contains(data->getKey())){
-                allKeys += data->getKey();
-            }
-        }
-    }
-
 
     return allKeys;
-
 }
 
 void Node::removeEdges()
 {
-    while(!edges.isEmpty()){
-        Edge* current = edges.first();
-        edges.removeFirst();
-        delete current;
-    }
-}
-
-void Node::addAspect(QString aspect)
-{
-    if(!isInAspect(aspect)){
-        containedAspects += aspect;
-    }
-}
-
-void Node::removeAspect(QString aspect)
-{
-    if(isInAspect(aspect)){
-        int index = containedAspects.indexOf(aspect);
-        containedAspects.removeAt(index);
-    }
-}
-
-bool Node::isInAspect(QString aspect)
-{
-    return containedAspects.contains(aspect);
-}
-
-QVector<QString> Node::getAspects()
-{
-    return containedAspects;
+    edges.clear();
 }
 
 QString Node::toGraphML(qint32 indentationLevel)
@@ -319,8 +269,6 @@ bool Node::isImpl()
     return nodeType == Node::NT_IMPL;
 }
 
-
-
 void Node::setDefinition(Node *def)
 {
     if(isImpl() || isInstance()){
@@ -341,7 +289,6 @@ void Node::unsetDefinition()
 void Node::addInstance(Node *inst)
 {
     if(isDefinition()){
-        //qCritical() << toString() << " Added " << inst->toString() << "  as Instance";
         if(!instances.contains(inst)){
             instances.append(inst);
             inst->setDefinition(this);
@@ -349,7 +296,7 @@ void Node::addInstance(Node *inst)
     }
 }
 
-QVector<Node *> Node::getInstances()
+QList<Node *> Node::getInstances()
 {
     return instances;
 }
@@ -357,11 +304,9 @@ QVector<Node *> Node::getInstances()
 void Node::removeInstance(Node *inst)
 {
     if(isDefinition()){
-        int index = instances.indexOf(inst);
-        if(index != -1){
-            inst->unsetDefinition();
-            instances.remove(index);
-        }
+        instances.removeAll(inst);
+        instances.removeAll(inst);
+        inst->unsetDefinition();
     }
 }
 
@@ -369,13 +314,13 @@ void Node::addImplementation(Node *impl)
 {
     if(isDefinition()){
         if(!implementations.contains(impl)){
-            implementations.append(impl);
+            implementations.push_back(impl);
             impl->setDefinition(this);
         }
     }
 }
 
-QVector<Node *> Node::getImplementations()
+QList<Node *> Node::getImplementations()
 {
     return implementations;
 }
@@ -383,11 +328,8 @@ QVector<Node *> Node::getImplementations()
 void Node::removeImplementation(Node *impl)
 {
     if(isDefinition()){
-        int index = implementations.indexOf(impl);
-        if(index != -1){
-            impl->unsetDefinition();
-            implementations.remove(index);
-        }
+        implementations.removeAll(impl);
+        impl->unsetDefinition();
     }
 
 }
@@ -401,14 +343,10 @@ void Node::addEdge(Edge *edge)
 
 void Node::removeEdge(Edge *edge)
 {
-    if(containsEdge(edge)){
-        int index = edges.indexOf(edge);
-        edges.removeAt(index);
-    }
+    edges.removeAll(edge);
 }
 
 void Node::setParentNode(Node *parent)
 {
     parentNode = parent;
-
 }

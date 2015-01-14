@@ -6,10 +6,8 @@
 #include "../edge.h"
 #include "outeventportdelegate.h"
 #include <QDebug>
-ComponentAssembly::ComponentAssembly(QString name):Node()
+ComponentAssembly::ComponentAssembly():Node()
 {
-    addAspect("Assembly");
-    //qDebug() << "Constructed Assembly: "<< this->getName();
 }
 
 ComponentAssembly::~ComponentAssembly()
@@ -58,9 +56,4 @@ bool ComponentAssembly::canConnect(Node* attachableObject)
     }
 
     return Node::canConnect(attachableObject);
-}
-
-QString ComponentAssembly::toString()
-{
-    return QString("ComponentAssembly[%1]: "+this->getName()).arg(this->getID());
 }

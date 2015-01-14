@@ -4,17 +4,11 @@
 #include <qdebug>
 AssemblyDefinitions::AssemblyDefinitions():Node()
 {
-     addAspect("Assembly");
 }
 
 AssemblyDefinitions::~AssemblyDefinitions()
 {
 
-}
-
-QString AssemblyDefinitions::toString()
-{
-    return QString("AssemblyDefinitions[%1]: "+this->getName()).arg(this->getID());
 }
 
 bool AssemblyDefinitions::canConnect(Node* attachableObject)

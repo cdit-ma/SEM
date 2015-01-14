@@ -4,15 +4,15 @@
 
 class ComponentAssembly : public Node
 {
-            Q_OBJECT
+    Q_OBJECT
 public:
-    ComponentAssembly(QString name="");
+    ComponentAssembly();
     ~ComponentAssembly();
 public:
     bool canAdoptChild(Node* child);
     bool canConnect(Node* attachableObject);
     //QString toGraphML(qint32 indentationLevel=0);
-    QString toString();
+
 };
 
 #endif // COMPONENTASSEMBLY_H

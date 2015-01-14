@@ -12,12 +12,6 @@ EventPort::~EventPort()
 
 }
 
-QString EventPort::toString()
-{
-    return QString("EventPort[%1]: "+this->getName()).arg(this->getID());
-
-}
-
 void EventPort::setAggregate(Aggregate *aggregate)
 {
     if(getAggregate() != aggregate){

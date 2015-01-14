@@ -10,11 +10,6 @@ BlankNode::~BlankNode()
 
 }
 
-QString BlankNode::toString()
-{
-    return QString("BlankNode[%1]: "+this->getName()).arg(this->getID());
-}
-
 bool BlankNode::canConnect(Node* attachableObject)
 {
     return Node::canConnect(attachableObject);

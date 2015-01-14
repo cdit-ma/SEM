@@ -37,8 +37,3 @@ bool InEventPortImpl::canConnect(Node* attachableObject)
 
     return Node::canConnect(attachableObject);
 }
-
-QString InEventPortImpl::toString()
-{
-    return QString("InEventPortImpl[%1]: "+this->getName()).arg(this->getID());
-}

@@ -38,18 +38,20 @@ public:
 
     GraphMLData* getData(GraphMLKey* key);
 
+    bool containsData(GraphMLData* data);
+
     bool wasGenerated();
     void setGenerated(bool isGenerated);
 
     //Get a list of Data objects contained by this GraphML
-    QVector<GraphMLData *> getData();
+    QList<GraphMLData *> getData();
 
     //Remove all Data
     void removeData();
 
     //Attach a data object contained by this GraphML
     void attachData(GraphMLData* data);
-    void attachData(QVector<GraphMLData* > data);
+    void attachData(QList<GraphMLData* > data);
 
     //Remove a data object contained by this GraphML;
     void removeData(GraphMLData* data);
@@ -74,7 +76,7 @@ public slots:
     void updateDataValue(QString key, QString value);
 
 protected:
-    QVector<GraphMLData *> attachedData;
+    QList<GraphMLData *> attachedData;
 
 private:
     //The name of this graphml object.

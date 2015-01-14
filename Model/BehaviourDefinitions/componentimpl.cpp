@@ -14,12 +14,6 @@ ComponentImpl::~ComponentImpl()
 {
 }
 
-QString ComponentImpl::toString()
-{
-    return QString("ComponentImpl[%1]: "+this->getName()).arg(this->getID());
-}
-
-
 bool ComponentImpl::canConnect(Node* attachableObject)
 {
     Component* component = dynamic_cast<Component*>(attachableObject);

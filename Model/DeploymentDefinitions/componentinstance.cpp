@@ -69,10 +69,3 @@ bool ComponentInstance::canConnect(Node* attachableObject)
 
     return Node::canConnect(attachableObject);
 }
-
-
-QString ComponentInstance::toString()
-{
-    return QString("ComponentInstance[%1]: "+this->getName()).arg(this->getID());
-}
-

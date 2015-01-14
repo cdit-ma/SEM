@@ -13,13 +13,6 @@ OutEventPort::~OutEventPort()
 
 }
 
-
-QString OutEventPort::toString()
-{
-    return QString("OutEventPort[%1]: "+this->getName()).arg(this->getID());
-
-}
-
 bool OutEventPort::canConnect(Node* attachableObject)
 {
     return EventPort::canConnect(attachableObject);

@@ -14,11 +14,6 @@ HardwareCluster::~HardwareCluster()
 
 }
 
-QString HardwareCluster::toString()
-{
-    return QString("HardwareCluster[%1]: "+this->getName()).arg(this->getID());
-}
-
 bool HardwareCluster::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);

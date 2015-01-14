@@ -22,7 +22,7 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     controller->moveToThread(thread);
 
-    controller->connectView(tableView);
+    //controller->connectView(tableView);
     controller->connectView(view);
 
     controller->initializeModel();

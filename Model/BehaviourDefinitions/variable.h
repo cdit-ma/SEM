@@ -11,7 +11,7 @@ public:
     ~Variable();
 
     // GraphML interface
-    QString toString();
+    
 
     // Node interface
 public:

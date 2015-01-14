@@ -4,11 +4,6 @@
 
 Model::Model(): Node()
 {
-    qCritical() << "Constructed Model.";
-    addAspect("Definitions");
-    addAspect("Workload");
-    addAspect("Assembly");
-    addAspect("Hardware");
 }
 
 Model::~Model()
@@ -16,11 +11,6 @@ Model::~Model()
     removeEdges();
     removeChildren();
     qCritical() << "Destructed Model.";
-}
-
-QString Model::toString()
-{
-    return QString("Model[%1]: "+this->getName()).arg(this->getID());
 }
 
 bool Model::canAdoptChild(Node *child)

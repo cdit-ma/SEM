@@ -10,7 +10,7 @@ public:
     ~Termination();
 
     // GraphML interface
-    QString toString();
+    
 
     // Node interface
 public:

@@ -7,13 +7,13 @@ class BehaviourDefinitions: public Node
 {
     Q_OBJECT
 public:
-    BehaviourDefinitions(QString name ="");
+    BehaviourDefinitions();
     ~BehaviourDefinitions();
 
 
     // GraphML interface
 public:
-    QString toString();
+
 
     // Node interface
 public:

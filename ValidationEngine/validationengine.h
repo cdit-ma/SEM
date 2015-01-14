@@ -6,13 +6,13 @@
 
 class ValidationEngine
 {
-    //Q_OBJECT
 public:
     ValidationEngine();
+    ~ValidationEngine();
     void addPlugin(ValidationPlugin* plugin);
     bool validateModel(Model* model);
 private:
-    QVector<ValidationPlugin*> plugins;
+    QList<ValidationPlugin*> plugins;
 };
 
 

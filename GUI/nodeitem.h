@@ -30,69 +30,63 @@ public:
     NodeItem(Node *node, NodeItem *parent);
     ~NodeItem();
     QRectF boundingRect() const;
+
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-    Node* node;
+
+
     double width;
     double height;
-    bool drawDetail;
-    bool drawObject;
-    int depth;
 
     void addNodeEdge(NodeEdge* line);
     void removeNodeEdge(NodeEdge* line);
 
     float getChildSize();
+    int getDepth();
 
-    void setHidden(bool h);
+    //void setHidden(bool h);
     void resetSize();
 
     bool isExpanded();
     bool hasExpandButton();
     void removeExpandButton();
 
+
 signals:
-    void nodeItemPressed(Node* n, bool selected);
+    //Node Edge Signals
+    void setEdgeVisibility(bool visible);
+    void updateEdgePosition();
+    void setEdgeSelected(bool selected);
 
-    void deleted(NodeItem*);
-    void centreNode(NodeItem*);
-    void centreNode(Node*);
-    void exportSelected(Node*);
-
-    void setNodeSelected(Node*, bool selected=true);
-
-    void makeChildNode(QPointF centerPoint, Node * parentNode);
-    void makeChildNode(QPointF centerPoint);
-
-    void moveSelection(QPointF move);
-    void makeChildNode(QString type, Node*);
-    void updateData(QString key, QString value);
-
-
-    void updateDockNodeItem();
-    void updateDockNodeItem(bool selected);
-
-    void updateEdges();
-    void updateOpacity(qreal opacity);
-    void updateSceneRect(NodeItem* nodeItem);
-
+    //View Signals.
+    void moveSelection(QPointF delta);
     void clearSelection();
     void centerModel();
-    //void sortModel();
+
+    //DockNodeItem Signals
+    void updateDockNodeItem();
+    void updateDockNodeItem(bool selected);
+    void updateOpacity(qreal opacity);
 
     void addExpandButtonToParent();
+public slots:
+    //Model Signals
+    void graphMLDataUpdated(GraphMLData *data);
+
 
 public slots:
     void setOpacity(qreal opacity);
-    void setSelected(bool selected);
-    void toggleDetailDepth(int level);
-
-    void graphMLDataUpdated(GraphMLData *data);
-    void destructNodeItem();
-    void updateChildNodeType(QString type);
-    void updateViewAspects(QStringList aspects);
-    void sortChildren();
-
     void setRubberbandMode(bool On);
+    void setSelected(bool selected);
+    void setVisible(bool visible);
+
+    void sort();
+
+    void setHidden(bool hidden);
+    void setHideChildren(bool hideChildren);
+
+    //Depth/Aspect Slots
+    void toggleDetailDepth(int depth);
+    void updateViewAspects(QStringList aspects);
 
     void addExpandButton();
     void expandItem(bool show);
@@ -104,72 +98,79 @@ protected:
 
 private:
     void updateBrushes();
-    void setParent(NodeItem* parentItem);
 
-    QStringList viewAspect;
+    void setPos(qreal x, qreal y);
+    void setPos(const QPointF &pos);
 
+    //Visual Components
+    QGraphicsTextItem* label;
+    QGraphicsPixmapItem* icon;
+    QGraphicsProxyWidget *proxyWidget;
+    QPushButton *expandButton;
 
-    void updatePosition(QString x=0, QString y=0);
-    void updateSize(QString w=0, QString h=0);
-    QString toBuildType;
-    QString name;
-    QString kind;
-    //QRectF bRec;
-
+    QRubberBand* rubberBand;
+    QVector<NodeEdge*> connections;
 
     bool USING_RUBBERBAND_SELECTION;
 
-    QPointF origin;
-    QPointF sceneOrigin;
+    bool isSelected;
+    bool isNodePressed;
 
+    float defaultChildSize;
+
+    QString nodeKind;
+    double initialWidth;
+    double initialHeight;
+
+    double prevWidth;
+    double prevHeight;
+
+
+    QStringList currentViewAspects;
+    //QRectF bRec;
+
+    //Used to store the initial position of the Rubber band selection.
+    QPointF rubberBand_ScreenOrigin;
+    QPointF rubberBand_SceneOrigin;
+
+    QPointF previousScenePosition;
+    bool hasSelectionMoved;
+
+    //Used to store the Color/Brush/Pen for the selected Style.
     QColor selectedColor;
     QColor color;
     QBrush selectedBrush;
     QBrush brush;
-
     QPen pen;
     QPen selectedPen;
 
-    float childSize;
-    bool hasMoved;
-
-    QVector<NodeEdge*> connections;
-
-    bool isSelected;
-    bool moveActionSent;
-    QRubberBand* rubberBand;
-    QGraphicsColorizeEffect *graphicsEffect;
-
-    QGraphicsTextItem* label;
-    QGraphicsPixmapItem* icon;
-
-    bool CONTROL_DOWN;
-    bool isPressed;
-    QPointF previousPosition;
-
-    QString ID;
 
 
-    QString parentKind;
-    double origWidth;
-    double origHeight;
+    bool DRAW_DETAIL;
+
+    bool DRAW_OBJECT;
+
+
+
+    QString parentNodeKind;
+
     double prevWidth;
     double prevHeight;
     bool hidden;
-    bool expanded;
+    int depth;
 
-    QGraphicsProxyWidget *proxyWidget;
-    QPushButton *expandButton;
 
-    void updateSize(double w, double h);
+
     void setLabelFont();
     void setupIcon();
+     bool expanded;
 
     int getNumberOfChildren();
     QStringList getChildrenKind();
 
     double getCurvedCornerWidth();
-
+    Node* getNode();
+    //Node* node;
 };
 
 #endif // NODEITEM_H
