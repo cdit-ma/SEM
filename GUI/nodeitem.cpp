@@ -460,7 +460,7 @@ void NodeItem::updateViewAspects(QStringList aspects)
     }
 
     // only show Assembly when the Assembly view aspect is turned on
-    if (kind == "AssemblyDefinitions" && !aspects.contains("Assembly")) {
+    if (nodeKind == "AssemblyDefinitions" && !aspects.contains("Assembly")) {
         setVisible(false);
         return;
     }
@@ -661,10 +661,10 @@ void NodeItem::sort()
             if (maxWidth == 0) {
                 maxWidth = rowWidth - gapX;
             }
-            if ((maxWidth+gapX) > origWidth) {
+            if ((maxWidth+gapX) > initialWidth) {
                 emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth + gapX));
             } else {
-                emit updateGraphMLData(getGraphML(), "width", QString::number(origWidth));
+                emit updateGraphMLData(getGraphML(), "width", QString::number(initialWidth));
             }
             emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
         }
@@ -705,7 +705,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
     case Qt::MiddleButton:{
         if (event->modifiers().testFlag(Qt::ControlModifier)) {
-            if (!drawObject) {
+            if (!DRAW_OBJECT) {
                 emit sortModel();
             }
             sort();

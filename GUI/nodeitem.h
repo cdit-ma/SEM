@@ -67,8 +67,6 @@ signals:
     void updateDockNodeItem(bool selected);
     void updateOpacity(qreal opacity);
 
-    void clearSelection();
-    void centerModel();
     void sortModel();
 
     void addExpandButtonToParent();
@@ -167,12 +165,15 @@ private:
     void setupIcon();
      bool expanded;
 
+
+
     int getNumberOfChildren();
     QStringList getChildrenKind();
 
     double getCurvedCornerWidth();
     double getMaxLabelWidth();
 
+    Node* getNode();
 };
 
 #endif // NODEITEM_H
