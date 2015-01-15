@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QFont>
 #include <QFontMetrics>
+#include <QStyleOptionGraphicsItem>
 #include <QRubberBand>
 
 #define MODEL_WIDTH 19200
@@ -34,7 +35,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
     setParentItem(parent);
 
-    label  = new QGraphicsTextItem("NULL",this);
+    label  = new QGraphicsTextItem(this);
     icon = 0;
 
 
@@ -44,7 +45,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     hidden = false;
     expanded = false;
 
-    label  = new QGraphicsTextItem("NULL", this);
     icon = 0;
     parentNodeKind= "";
 
@@ -233,6 +233,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
+    painter->setClipRect( option->exposedRect );
 
     if(DRAW_OBJECT){
 

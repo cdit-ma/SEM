@@ -45,12 +45,18 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 
     //Set-up the scene
+    //QGraphicsScene* Scene = new QGraphicsScene(this);
     QGraphicsScene* Scene = new QGraphicsScene(this);
+    //GridScene* Scene = new GridScene(this);
     setScene(Scene);
+    //connect(this, SIGNAL(updateViewPort(QRectF)), Scene, SLOT(drawViewPort(QRectF)));
+
 
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
     this->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    this->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 
     //Set-up the view
     // changed the sceneRect values
@@ -175,11 +181,13 @@ QList<NodeItem*> NodeView::getVisibleNodeItems()
     return nodeItems;
 }
 
+bool NodeView::viewportEvent(QEvent * e)
+{
+    emit updateViewPort(getVisibleRect());
+    return QGraphicsView::viewportEvent(e);
+}
 
-/**
- * @brief NodeView::centreItem
- * @param item
- */
+
 void NodeView::centreItem(GraphMLItem *item)
 {
     if(!item){
@@ -762,7 +770,6 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
     }
 
     QGraphicsView::mouseMoveEvent(event);
-
     // this removes the non-disappearing blue
     // lines after moving node items
     //update();
@@ -832,6 +839,7 @@ void NodeView::wheelEvent(QWheelEvent *event)
             scale(1.0 / scaleFactor, 1.0 / scaleFactor);
         }
         emit updateZoom(transform().m22());
+        //emit updateViewPort(getVisibleRect());
         //emit updateViewMargin();
     }else{
         //QGraphicsView::wheelEvent(event);

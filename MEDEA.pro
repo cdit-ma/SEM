@@ -83,7 +83,8 @@ HEADERS += \
     Model/DeploymentDefinitions/ineventportdelegate.h \
     Model/DeploymentDefinitions/outeventportdelegate.h \
     GUI/graphmlview.h \
-    modeltester.h
+    modeltester.h \
+    GUI/nodeviewminimap.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -153,7 +154,8 @@ SOURCES += \
     Model/DeploymentDefinitions/ineventportdelegate.cpp \
     Model/DeploymentDefinitions/outeventportdelegate.cpp \
     GUI/graphmlview.cpp \
-    modeltester.cpp
+    modeltester.cpp \
+    GUI/nodeviewminimap.cpp
 
 FORMS += \
     medeawindow.ui \

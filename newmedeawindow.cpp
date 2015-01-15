@@ -9,6 +9,8 @@
 #include <QHeaderView>
 #include <QScrollBar>
 #include <QSettings>
+#include <QPicture>
+#include "GUI/nodeviewminimap.h"
 
 
 /**
@@ -147,6 +149,7 @@ void NewMedeaWindow::initialiseGUI()
     tableLayout->setMargin(0);
     tableLayout->setContentsMargins(0,0,0,0);
     tableLayout->addWidget(dataTable);
+
     dataTableBox->setFixedWidth(rightPanelWidth);
     dataTableBox->setLayout(tableLayout);
     dataTableBox->setStyleSheet("QGroupBox {"
@@ -192,6 +195,7 @@ void NewMedeaWindow::initialiseGUI()
     rightVlayout->addWidget(dataTableBox, 4);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
     rightVlayout->addStretch();
+
     rightVlayout->addWidget(notificationArea, 1);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
 
@@ -225,6 +229,33 @@ void NewMedeaWindow::initialiseGUI()
     // setup the menu and dock
     setupMenu(menuButton);
     setupDock(bodyLayout);
+
+    NodeViewMinimap* minimap = new NodeViewMinimap();
+    minimap->setScene(nodeView->scene());
+    connect(nodeView, SIGNAL(updateViewPort(QRectF)), minimap, SLOT(updateViewPort(QRectF)));
+
+    rightVlayout->addWidget(minimap);
+    //minimap->fitInView(QRectF(0,0,19200,10800));
+
+    //minimap->setSceneRect(0,0,19200,10800);
+    //minimap->setInteractive(false);
+
+    minimap->scale(.002,.002);
+    minimap->setHorizontalScrollBarPolicy ( Qt::ScrollBarAlwaysOff );
+    minimap->setVerticalScrollBarPolicy  ( Qt::ScrollBarAlwaysOff );
+    minimap->setInteractive(false);
+
+    minimap->setFixedWidth(rightPanelWidth);
+    qreal minimapHeight = (rightPanelWidth/16) * 10;
+    minimap->setFixedHeight(minimapHeight);
+
+
+
+    //QPixmap pixmap = nodeView->grab();
+
+
+
+
 }
 
 

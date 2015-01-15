@@ -30,6 +30,7 @@ public:
     void resetModel();
 
 signals:
+    void updateViewPort(QRectF);
     void updateZoom(qreal zoom);
     void deletePressed(bool isDown);
     void controlPressed(bool isDown);
@@ -146,6 +147,10 @@ private:
     void sortInitialItems(QStringList aspects);
     QList<NodeItem*> getNodeItemsList();
     QList<NodeItem *> getVisibleNodeItems();
+
+    // QAbstractScrollArea interface
+protected:
+    bool viewportEvent(QEvent *);
 };
 
 #endif // NODEVIEW_H
