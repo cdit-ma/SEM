@@ -185,6 +185,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     setLabelFont();
     setupIcon();
 
+    if(hData) {
+        hData->setValue(QString::number(height));
+    }
+    if(wData) {
+        wData->setValue(QString::number(width));
+    }
+
 
     setCacheMode(QGraphicsItem::NoCache);
     updateViewAspects(QStringList());
@@ -1143,13 +1150,18 @@ void NodeItem::setHidden(bool h)
  */
 void NodeItem::resetSize()
 {
+    /*
     GraphMLData* hData = getGraphML()->getData("height");
     GraphMLData* wData = getGraphML()->getData("width");
 
     if(hData && wData){
         wData->setValue(QString::number(initialWidth));
         hData->setValue(QString::number(initialHeight));
-    }
+    }*/
+
+    emit updateGraphMLData(getGraphML(),"height", QString::number(initialHeight));
+    emit updateGraphMLData(getGraphML(),"width", QString::number(initialWidth));
+
 }
 /**
  * @brief NodeItem::isExpanded
