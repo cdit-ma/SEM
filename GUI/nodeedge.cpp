@@ -292,10 +292,10 @@ void NodeEdge::updateLines()
 {
     //The Top Left of the Circle will be the center point.
 
-    float sx = source->scenePos().x() + (source->width / 2);
-    float sy = source->scenePos().y() + (source->height / 2);
-    float dx = destination->scenePos().x() + (destination->width / 2);
-    float dy = destination->scenePos().y() + (destination->height / 2);
+    float sx = source->scenePos().x() + (source->getWidth() / 2);
+    float sy = source->scenePos().y() + (source->getHeight() / 2);
+    float dx = destination->scenePos().x() + (destination->getWidth() / 2);
+    float dy = destination->scenePos().y() + (destination->getHeight() / 2);
 
     //Work out the Center Point.
     float mx = ((sx + dx) / 2) - circleRadius;

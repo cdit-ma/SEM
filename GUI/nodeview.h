@@ -79,7 +79,6 @@ public slots:
     void removeNodeItem(NodeItem* item);
     void centreItem(GraphMLItem* item);
     void clearView();
-    void depthChanged(int depth);
 
     void setRubberBandMode(bool On);
     void setViewAspects(QStringList aspects);

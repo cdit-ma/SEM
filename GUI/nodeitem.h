@@ -27,29 +27,21 @@ class NodeItem : public GraphMLItem
     Q_INTERFACES(QGraphicsItem)
 
 public:
-    NodeItem(Node *node, NodeItem *parent);
+    NodeItem(Node *node, NodeItem *parent, QStringList aspects);
     ~NodeItem();
     QRectF boundingRect() const;
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-
-    double width;
-    double height;
+    void setHidden(bool hidden);
 
     void addNodeEdge(NodeEdge* line);
     void removeNodeEdge(NodeEdge* line);
 
-    float getChildSize();
-    int getDepth();
-
-    //void setHidden(bool h);
+    double getWidth();
+    double getHeight();
     void resetSize();
-
-    bool isExpanded();
-    bool hasExpandButton();
-    void removeExpandButton();
-
+    double getChildWidth();
 
 signals:
     //Node Edge Signals
@@ -60,6 +52,8 @@ signals:
     //View Signals.
     void moveSelection(QPointF delta);
     void clearSelection();
+
+    //
     void centerModel();
     void sortModel();
 
@@ -73,20 +67,16 @@ signals:
 public slots:
     //Model Signals
     void graphMLDataUpdated(GraphMLData *data);
-
-
-public slots:
+\
     void setOpacity(qreal opacity);
     void setSelected(bool selected);
     void setVisible(bool visible);
 
     void sort();
 
-    void setHidden(bool hidden);
-    void setHideChildren(bool hideChildren);
+
 
     //Depth/Aspect Slots
-    void toggleDetailDepth(int depth);
     void updateViewAspects(QStringList aspects);
 
     void addExpandButton();
@@ -98,14 +88,40 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 private:
+    void setupAspect();
+    void setupBrushes();
+    void setupIcon();
+    void setupLabel();
+    void setupGraphMLConnections();
+
+    void updateGraphMLSize();
+    void updateGraphMLPosition();
+
+    void retrieveGraphMLData();
 
     void setPaintObject(bool paint);
 
-    void setupAspect();
+
+    bool isExpanded();
+    bool hasExpandButton();
+    void removeExpandButton();
+
+     bool expanded;
+
+
+
+    int getNumberOfChildren();
+    QStringList getChildrenKind();
+
+    double getCurvedCornerWidth();
+    double getMaxLabelWidth();
+
+    Node* getNode();
+
+
     QStringList viewAspects;
 
 
-    void updateBrushes();
 
     void setPos(qreal x, qreal y);
     void setPos(const QPointF &pos);
@@ -121,9 +137,13 @@ private:
     bool isSelected;
     bool isNodePressed;
 
-    float defaultChildSize;
+   // float defaultChildSize;
 
     QString nodeKind;
+
+    double width;
+    double height;
+
     double initialWidth;
     double initialHeight;
 
@@ -150,32 +170,17 @@ private:
 
 
 
-    bool DRAW_DETAIL;
-
-    bool DRAW_OBJECT;
+   bool PAINT_OBJECT;
 
 
 
-    QString parentNodeKind;
 
     bool hidden;
     int depth;
 
 
 
-    void setLabelFont();
-    void setupIcon();
-     bool expanded;
 
-
-
-    int getNumberOfChildren();
-    QStringList getChildrenKind();
-
-    double getCurvedCornerWidth();
-    double getMaxLabelWidth();
-
-    Node* getNode();
 };
 
 #endif // NODEITEM_H

@@ -115,6 +115,7 @@ QRectF NodeView::getVisibleRect( )
  */
 void NodeView::sortInitialItems(QStringList aspects)
 {
+    /*
     fitToScreen();
 
     // if there is only one visible item on the scene, centre it
@@ -143,6 +144,7 @@ void NodeView::sortInitialItems(QStringList aspects)
     }
 
     centreItem(topItem);
+    */
 }
 
 
@@ -275,16 +277,7 @@ void NodeView::clearView()
     viewport()->update();
 }
 
-void NodeView::depthChanged(int depth)
-{
-    foreach(QGraphicsItem* item, scene()->items()){
-        NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
-        if(nodeItem != 0){
-            nodeItem->toggleDetailDepth(depth);
-        }
-    }
 
-}
 
 void NodeView::setRubberBandMode(bool On)
 {
@@ -383,7 +376,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     // NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
 
-    NodeItem* nodeItem = new NodeItem(node, parentNodeItem);
+    NodeItem* nodeItem = new NodeItem(node, parentNodeItem, currentAspects);
 
     storeGraphMLItemInHash(nodeItem);
     //nodeItems.append(nodeItem);
@@ -402,9 +395,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     // send the current view aspects to the newly created node item
     // this determines whether the item should intially be visible or not
-    if (nodeItem) {
-        nodeItem->updateViewAspects(currentAspects);
-    }
+
 
     if(!scene()->items().contains(nodeItem)){
         //Add to model.
@@ -487,11 +478,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
             //Add to model.
             scene()->addItem(nodeEdge);
         }
-        /*
-        if(nodeEdge){
-            nodeEdge->addToScene(scene());
-        }
-*/
+
         //Read this
         if(edge->getSource()->getDataValue("kind") == "ComponentInstance" && edge->getDestination()->getDataValue("kind") == "Component"){
             emit updateDockButtons("H");
