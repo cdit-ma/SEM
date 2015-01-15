@@ -67,6 +67,10 @@ signals:
     void updateDockNodeItem(bool selected);
     void updateOpacity(qreal opacity);
 
+    void clearSelection();
+    void centerModel();
+    void sortModel();
+
     void addExpandButtonToParent();
 public slots:
     //Model Signals
@@ -167,8 +171,8 @@ private:
     QStringList getChildrenKind();
 
     double getCurvedCornerWidth();
-    Node* getNode();
-    //Node* node;
+    double getMaxLabelWidth();
+
 };
 
 #endif // NODEITEM_H

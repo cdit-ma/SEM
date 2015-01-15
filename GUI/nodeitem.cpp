@@ -195,6 +195,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         emit addExpandButtonToParent();
         //parent->sort();
     }
+    //qDebug() << "width = " << width;
+    //qDebug() << "origWidth = " << origWidth;
+
 }
 
 
@@ -456,6 +459,12 @@ void NodeItem::updateViewAspects(QStringList aspects)
         return;
     }
 
+    // only show Assembly when the Assembly view aspect is turned on
+    if (kind == "AssemblyDefinitions" && !aspects.contains("Assembly")) {
+        setVisible(false);
+        return;
+    }
+
     // only show ManagementComponents and HardwareDefinitions
     // when the Hardware view aspect is turned on
     if ((nodeKind == "ManagementComponent" || nodeKind == "HardwareDefinitions")
@@ -652,23 +661,17 @@ void NodeItem::sort()
             if (maxWidth == 0) {
                 maxWidth = rowWidth - gapX;
             }
-            emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth + gapX));
-            emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
-
-            // this is only used to resize the model
-            if (nodeKind == "Model") {
-                //updateSize(maxWidth + gapX, colHeight + maxHeight + gapY);
+            if ((maxWidth+gapX) > origWidth) {
+                emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth + gapX));
+            } else {
+                emit updateGraphMLData(getGraphML(), "width", QString::number(origWidth));
             }
+            emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
         }
     } else {
         emit updateGraphMLData(getGraphML(), "width", QString::number(initialWidth));
         emit updateGraphMLData(getGraphML(), "height", QString::number(initialHeight));
     }
-
-    /*else {
-        emit updateGraphMLData(getGraphML(), "width", QString::number(origWidth));
-        emit updateGraphMLData(getGraphML(), "height", QString::number(origHeight));
-    }*/
 }
 
 void NodeItem::setHidden(bool hidden)
@@ -701,14 +704,16 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     switch (event->button()) {
 
     case Qt::MiddleButton:{
-        if(event->modifiers().testFlag(Qt::ControlModifier)){
+        if (event->modifiers().testFlag(Qt::ControlModifier)) {
+            if (!drawObject) {
+                emit sortModel();
+            }
             sort();
-        }else{
+        } else {
             if (nodeKind!= "DeploymentDefinitions") {
                 emit triggerCentered(getGraphML());
             }
         }
-        //emit centreNode(this);
         break;
     }
     case Qt::LeftButton:{
@@ -1026,6 +1031,15 @@ double NodeItem::getCurvedCornerWidth()
 }
 
 
+/**
+ * @brief NodeItem::getMaxLabelWidth
+ * @return
+ */
+double NodeItem::getMaxLabelWidth()
+{
+    // calculate font metrics here
+    return 0;
+}
 
 /**
  * @brief NodeItem::addExpandButton
@@ -1065,6 +1079,7 @@ void NodeItem::addExpandButton()
 
             // add button's width to this item's origWidth
             //origWidth += expandButton->width();
+            //qDebug() << "origWidth: " << origWidth;
         }
     }
 }
