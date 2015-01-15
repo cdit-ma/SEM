@@ -101,19 +101,21 @@ private:
 
     void setPaintObject(bool paint);
 
+    void updateTextLabel(QString text);
+
 
     bool isExpanded();
     bool hasExpandButton();
     void removeExpandButton();
 
-     bool expanded;
+    bool expanded;
 
 
 
     int getNumberOfChildren();
     QStringList getChildrenKind();
 
-    double getCurvedCornerWidth();
+    double getCornerRadius();
     double getMaxLabelWidth();
 
     Node* getNode();
@@ -146,6 +148,9 @@ private:
 
     double initialWidth;
     double initialHeight;
+
+    double minimumHeight;
+    double minimumWidth;
 
     double prevWidth;
     double prevHeight;

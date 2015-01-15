@@ -11,6 +11,8 @@
 #define MODEL_WIDTH 19200
 #define MODEL_HEIGHT 10800
 #define COLUMN_COUNT 2
+#define MINIMUM_HEIGHT_RATIO 7
+#define LABEL_LENGTH 16
 
 
 NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLItem(node)
@@ -65,6 +67,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
     prevWidth = width;
     prevHeight = height;
+
+    minimumHeight = initialWidth / MINIMUM_HEIGHT_RATIO;
+    minimumWidth = initialWidth;
 
 
     setupAspect();
@@ -181,13 +186,13 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
-        qreal symetricRound = width > height ? width/15 : height/15;
+        qreal cornerRadius = getCornerRadius();
 
         painter->setPen(Pen);
         painter->setBrush(Brush);
 
 
-        painter->drawRoundedRect(rectangle, symetricRound, symetricRound);
+        painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
 
 
         QPainterPath UpperSidePath;
@@ -199,7 +204,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setBrush(HeaderBrush);
         painter->setClipping(true);
         painter->setClipPath(UpperSidePath);
-        painter->drawRoundedRect(rectangle, symetricRound, symetricRound);
+
+        painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
 
 
 
@@ -327,7 +333,8 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
             update();
         }else if(dataKey == "label"){
             if(dataValue != ""){
-                label->setPlainText(dataValue);
+                updateTextLabel(dataValue);
+                //label->setPlainText(dataValue);
             }
 
             // there has been a change to this item's graphml data
@@ -389,11 +396,11 @@ void NodeItem::sort()
 
     // if it's a main node item, it will have no icon
     if (getGraphML()->getDataValue("kind") == "Model" || nodeKind.endsWith("Definitions")) {
-        topY = label->x() + label->boundingRect().height()  + getCurvedCornerWidth();
+        topY = label->x() + label->boundingRect().height()  + getCornerRadius();
         gapY = topY;
     } else {
         if(icon){
-            topY = (icon->boundingRect().height()*icon->scale()) + getCurvedCornerWidth();
+            topY = (icon->boundingRect().height()*icon->scale()) + getCornerRadius();
         }
         gapY = topY/1.8;
     }
@@ -642,6 +649,26 @@ void NodeItem::setPaintObject(bool paint)
     }
 }
 
+void NodeItem::updateTextLabel(QString text)
+{
+    label->setPlainText(text);
+
+    qreal availableWidth = width - (getCornerRadius()/2 + minimumHeight);
+    if(icon){
+        availableWidth -= (getCornerRadius()/2 + minimumHeight);
+    }
+
+    qreal labelWidth = label->boundingRect().width();
+    if(labelWidth > availableWidth){
+        qreal ratio = availableWidth / labelWidth;
+        qreal fitChars = (text.size() * ratio) - 2;
+        text.truncate(fitChars);
+        label->setPlainText(text + "..");
+    }
+
+
+}
+
 void NodeItem::setupAspect()
 {
     Node* node = getNode();
@@ -817,23 +844,25 @@ void NodeItem::setPos(const QPointF &pos)
 void NodeItem::setupLabel()
 {
     QFont font("Arial");
-    font.setPointSize(1);
+    font.setPointSize(.25 * minimumHeight);
     QFontMetrics fm(font);
 
-    float factor = (width*0.95) / fm.width(QString(16, 'c'));
-    font.setPointSizeF(font.pointSizeF() * factor);
 
+
+
+    //float fontScaleFactor = fm.width(QString(LABEL_LENGTH, 'W'));
+
+    //font.setPointSizeF(font.pointSizeF() * fontScaleFactor);
 
     label = new QGraphicsTextItem(this);
+    //label->adjustSize();
+    //label->setTextWidth(availableWidth);
     label->setFont(font);
 
-    // move the label away from the curved corner
-    label->setPos(getCurvedCornerWidth(), getCurvedCornerWidth()/2);
+    label->setPos(getCornerRadius()/2, (minimumHeight - label->boundingRect().height())/2);
+    updateTextLabel(getGraphML()->getDataValue("label"));
+    //label->setPlainText(getGraphML()->getDataValue("label"));
 
-    label->setPlainText(getGraphML()->getDataValue("label"));
-
-    // set fixed child size
-    //defaultChildSize = label->boundingRect().height() * 4;
 }
 
 void NodeItem::setupGraphMLConnections()
@@ -882,7 +911,6 @@ void NodeItem::updateGraphMLSize()
     if(modelEntity){
         GraphMLData* wData = modelEntity->getData("width");
         GraphMLData* hData = modelEntity->getData("height");
-
         wData->setValue(QString::number(width));
         hData->setValue(QString::number(height));
     }
@@ -910,12 +938,19 @@ void NodeItem::retrieveGraphMLData()
     double graphmlY = getGraphML()->getDataValue("y").toDouble();
     nodeKind = getGraphML()->getDataValue("kind");
 
+    qCritical() << "\nretrieveGraphMLData";
+    qCritical() << "GraphMLWidth: " << graphmlWidth;
+    qCritical() << "GraphMLHeight: " << graphmlHeight;
+
     setPos(graphmlX, graphmlY);
 
     if(graphmlWidth != 0 && graphmlHeight != 0){
         width = graphmlWidth;
         height = graphmlHeight;
     }
+
+    qCritical() << "currentWidth: " << width;
+    qCritical() << "currentHeight: " << height;
 }
 
 
@@ -934,23 +969,25 @@ void NodeItem::setupIcon()
     }
 
     if(icon != 0){
-        qreal labelHeight = label->boundingRect().height();
         qreal iconHeight = icon->boundingRect().height();
         qreal iconWidth = icon->boundingRect().width();
+        qreal scaleFactor = (minimumHeight / iconHeight);
+        iconWidth *= scaleFactor;
 
-        qreal scaleFactor = (labelHeight / iconHeight)*1.5;
+
         icon->setScale(scaleFactor);
-        icon->setPos(getCurvedCornerWidth(), getCurvedCornerWidth()/2);
 
-        qreal diffHeight = (iconHeight*scaleFactor) - labelHeight;
-        label->setX(icon->x() + (iconWidth * scaleFactor));
-        label->setY(icon->y() + (diffHeight/2));
+        icon->setPos(getCornerRadius()/2,0);
 
-        // this prevents the icon from looking pixelated
-        //icon->setTransformationMode(Qt::SmoothTransformation);
-        height = (icon->boundingRect().height()*icon->scale())
-                + getCurvedCornerWidth();
-        initialHeight = height;
+        icon->setTransformationMode(Qt::SmoothTransformation);
+
+
+        label->setX(label->x() + iconWidth);
+       // qreal diffHeight = (iconHeight*scaleFactor) - labelHeight;
+        //label->setX(icon->x() + iconWidth);
+       // label->setY(icon->y() + (diffHeight/2));
+
+
     }
 }
 
@@ -995,16 +1032,9 @@ QStringList NodeItem::getChildrenKind()
  * @brief NodeItem::getCurvedCornerWidth
  * @return
  */
-double NodeItem::getCurvedCornerWidth()
+double NodeItem::getCornerRadius()
 {
-    /**
-    if (width > height) {
-        return width/20;
-    } else {
-        return height/20;
-    }
-    */
-    return initialWidth/20;
+    return initialWidth / (2 * MINIMUM_HEIGHT_RATIO);
 }
 
 
