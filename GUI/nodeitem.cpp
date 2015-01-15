@@ -16,36 +16,24 @@
 NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 {
     Q_INIT_RESOURCE(resources);
-
-
-    USING_RUBBERBAND_SELECTION = false;
-
-    isSelected = false;
-    hasSelectionMoved = false;
-
-    rubberBand = new QRubberBand(QRubberBand::Rectangle,0);
-    QPalette palette;
-    palette.setBrush(QPalette::Foreground, QBrush(Qt::green));
-    palette.setBrush(QPalette::Base, QBrush(Qt::red));
-
-    rubberBand->setPalette(palette);
-    rubberBand->resize(500, 500);
-
-    this->isNodePressed = false;
-
     setParentItem(parent);
 
-    label  = new QGraphicsTextItem(this);
-    icon = 0;
-
-
-
-    proxyWidget = 0;
-    expandButton = 0;
+    isSelected = false;
+    isNodePressed = false;
     hidden = false;
     expanded = false;
+    hasSelectionMoved = false;
+
 
     icon = 0;
+    icon = 0;
+    proxyWidget = 0;
+    expandButton = 0;
+    label  = new QGraphicsTextItem(this);
+
+
+
+
     parentNodeKind= "";
 
     //setHidden(false);
@@ -146,6 +134,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
     setFlag(ItemIsSelectable);
+    setFlag(ItemIsMovable);
+    setFlag(ItemSendsGeometryChanges);
 
     color = QColor(255,255,255,255);
     selectedColor = QColor(0,0,255,180);
@@ -170,8 +160,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
 
 
-    //setCacheMode(QGraphicsItem::ItemCoordinateCache);
-    //updateViewAspects(QStringList());
+    setCacheMode(QGraphicsItem::ItemCoordinateCache);
+    updateViewAspects(QStringList());
 
 
     // this will stop the width of this item and its children from
@@ -202,6 +192,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     setupAspect();
     if(kindData->getValue() == "Model" || kindData->getValue() == "DeploymentDefinitions"){
         setPaintObject(false);
+    }else{
+        setPaintObject(true);
+
     }
 
 }
@@ -215,14 +208,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
  */
 NodeItem::~NodeItem()
 {
- if (parentItem()) {
+    if (parentItem()) {
         NodeItem* item = dynamic_cast<NodeItem*>(parentItem());
         if (item && item->getNumberOfChildren() == 1) {
             item->removeExpandButton();
             item->resetSize();
         }
     }
-    delete rubberBand;
     delete label;
 }
 
@@ -474,12 +466,6 @@ void NodeItem::updateViewAspects(QStringList aspects)
         }
     }
 
-
-    qCritical() << viewAspects;
-    qCritical() << "allMatched" << allMatched;
-
-    qCritical() << "viewAspects.size() > 0" << viewAspects.size();
-
     setVisible(allMatched && (viewAspects.size() > 0));
 }
 
@@ -665,10 +651,6 @@ void NodeItem::setHideChildren(bool hideChildren)
 }
 
 
-void NodeItem::setRubberbandMode(bool On)
-{
-    USING_RUBBERBAND_SELECTION = On;
-}
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
@@ -695,18 +677,15 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             event->setAccepted(false);
             return;
         }
-        if(USING_RUBBERBAND_SELECTION){
-            rubberBand_ScreenOrigin = event->screenPos();
-            rubberBand_SceneOrigin = mapToScene(event->pos());
-            rubberBand->setGeometry(QRect(rubberBand_ScreenOrigin.toPoint(), QSize()));
-            rubberBand->show();
-        }else{
-            //Left and Right buttons should target this line.
-            previousScenePosition = event->scenePos();
-            hasSelectionMoved = false;
-            isNodePressed = true;
-            emit triggerSelected(getGraphML());
-        }
+
+        //Left and Right buttons should target this line.
+        previousScenePosition = event->scenePos();
+
+        hasSelectionMoved = false;
+        isNodePressed = true;
+        //QGraphicsItem::mousePressEvent(event);
+        emit triggerSelected(getGraphML());
+
         break;
     }
     case Qt::RightButton:{
@@ -733,18 +712,9 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
     switch (event->button()) {
     case Qt::LeftButton:{
-        if(USING_RUBBERBAND_SELECTION){
-            QPointF scenePos = mapToScene(event->pos());
-            QRect selectionRectangle(rubberBand_SceneOrigin.toPoint(), scenePos.toPoint());
-            QPainterPath pp;
-            pp.addRect(selectionRectangle);
 
-            scene()->setSelectionArea(pp, Qt::ContainsItemBoundingRect);
-            rubberBand->hide();
-        }else{
-            hasSelectionMoved = false;
-            isNodePressed = false;
-        }
+        hasSelectionMoved = false;
+        isNodePressed = false;
         break;
     }
     default:
@@ -758,23 +728,15 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
 
-    if(USING_RUBBERBAND_SELECTION){
-        if(boundingRect().contains(event->pos())){
-            rubberBand->setGeometry(QRect(rubberBand_ScreenOrigin.toPoint(), event->screenPos()).normalized());
-        }
-    }else if(isNodePressed && isSelected){
+   if(isNodePressed && isSelected){
         if(hasSelectionMoved == false){
             emit triggerAction("Moving Selection");
+            hasSelectionMoved = true;
         }
         QPointF delta = (event->scenePos() - previousScenePosition);
-
-        //if (parentItem()) {
-        //QRectF rec = parentItem()->boundingRect();
-        //if (rec.contains(pos()+delta) && rec.contains(pos()+delta+QPoint(width, height))) {
-        this->setPos(pos() + delta);
-        emit moveSelection(delta);
-        hasSelectionMoved = true;
         previousScenePosition = event->scenePos();
+
+        emit moveSelection(delta);
     }
 }
 
@@ -947,8 +909,10 @@ void NodeItem::setPos(qreal x, qreal y)
 
 void NodeItem::setPos(const QPointF &pos)
 {
-    QGraphicsItem::setPos(pos);
-    emit updateEdgePosition();
+    if(pos != this->pos()){
+        QGraphicsItem::setPos(pos);
+        emit updateEdgePosition();
+    }
 }
 
 
@@ -998,7 +962,7 @@ void NodeItem::setupIcon()
 
         // this prevents the icon from looking pixelated
         icon->setTransformationMode(Qt::SmoothTransformation);
-         height = (icon->boundingRect().height()*icon->scale())
+        height = (icon->boundingRect().height()*icon->scale())
                 + getCurvedCornerWidth();
         initialHeight = height;
     }
@@ -1047,7 +1011,7 @@ QStringList NodeItem::getChildrenKind()
  */
 double NodeItem::getCurvedCornerWidth()
 {
-  /**
+    /**
     if (width > height) {
         return width/20;
     } else {

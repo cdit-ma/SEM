@@ -277,14 +277,14 @@ void NodeEdge::setupBrushes()
     pen.setWidth(penWidth);
     pen.setStyle(Qt::DashLine);
     selectedPen.setColor(selectedColor);
-    selectedPen.setWidth(6 * penWidth);
+    selectedPen.setWidth(2 * penWidth);
 
     arrowPen.setColor(selectedColor);
     arrowPen.setStyle(Qt::SolidLine);
     arrowPen.setWidth(penWidth);
 
     selectedArrowPen.setColor(selectedColor);
-    selectedArrowPen.setWidth(6 * penWidth);
+    selectedArrowPen.setWidth(2 * penWidth);
 }
 
 

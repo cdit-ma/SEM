@@ -718,6 +718,7 @@ void NewController::view_GraphMLSelected(GraphML *item, bool setSelected)
     Edge* edge = getEdgeFromGraphML(item);
 
     if(node){
+        qCritical() << node->toString() << "Set Selected: " << setSelected;
         if(KEY_CONTROL_DOWN){
             //If Node is already selected, Unselect It.
             setSelected = !isNodeSelected(node);

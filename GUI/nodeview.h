@@ -71,6 +71,8 @@ signals:
     void centerNode(QString nodeLabel);
 
 public slots:
+
+    void rubberBandChanged1(QRect viewportRect, QPointF fromScenePoint, QPointF toScenePoint);
     void view_Refresh();
     void view_ConstructGraphMLGUI(GraphML* item);
     void printErrorText(GraphML* graphml, QString text);
@@ -151,6 +153,7 @@ private:
     // QAbstractScrollArea interface
 protected:
     bool viewportEvent(QEvent *);
+
 };
 
 #endif // NODEVIEW_H

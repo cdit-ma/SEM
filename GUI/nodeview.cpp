@@ -49,6 +49,7 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     QGraphicsScene* Scene = new QGraphicsScene(this);
     //GridScene* Scene = new GridScene(this);
     setScene(Scene);
+    connect(this, SIGNAL(rubberBandChanged(QRect,QPointF,QPointF)), this, SLOT(rubberBandChanged1(QRect,QPointF,QPointF)));
     //connect(this, SIGNAL(updateViewPort(QRectF)), Scene, SLOT(drawViewPort(QRectF)));
 
 
@@ -294,6 +295,7 @@ void NodeView::setRubberBandMode(bool On)
     }
 
 
+
 }
 
 
@@ -391,7 +393,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     //Connect the Node Specific Functionality
     connect(nodeItem, SIGNAL(moveSelection(QPointF)), controller, SLOT(view_MoveSelectedNodes(QPointF)));
-    connect(controller, SIGNAL(view_SetRubberbandSelectionMode(bool)), nodeItem, SLOT(setRubberbandMode(bool)));
+    //connect(controller, SIGNAL(view_SetRubberbandSelectionMode(bool)), nodeItem, SLOT(setRubberbandMode(bool)));
     connect(this, SIGNAL(updateViewAspects(QStringList)), nodeItem, SLOT(updateViewAspects(QStringList)));
 
     connect(nodeItem, SIGNAL(clearSelection()), this, SLOT(clearSelection()));
@@ -932,6 +934,11 @@ void NodeView::resetModel()
     emit sortModel();
     emit centerNode("Model");
     update();
+}
+
+void NodeView::rubberBandChanged1(QRect viewportRect, QPointF fromScenePoint, QPointF toScenePoint)
+{
+    //TODO Implement Selection Rectangle Magic.
 }
 
 
