@@ -81,7 +81,6 @@ void NewController::connectView(NodeView *view)
 
     connect(this, SIGNAL(view_FitToScreen()), view, SLOT(fitToScreen()));
     connect(this, SIGNAL(centreNode(Node*)), view, SLOT(centreNode(Node*)));
-    connect(view, SIGNAL(centerModel()), this, SLOT(centerModel()));
     connect(view, SIGNAL(sortModel()), this, SLOT(view_SortModel()));
     connect(view, SIGNAL(centerNode(QString)), this, SLOT(centerNode(QString)));
 }

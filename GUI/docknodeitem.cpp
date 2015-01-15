@@ -1,4 +1,3 @@
-#include "./nodeitem.h"
 #include "docknodeitem.h"
 
 #include <QDebug>

@@ -67,7 +67,6 @@ signals:
     void updateDockContainer(QString container);
 
     void sortModel();
-    //void centerModel();
     void centerNode(QString nodeLabel);
 
 public slots:

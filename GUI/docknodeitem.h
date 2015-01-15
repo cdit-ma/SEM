@@ -8,8 +8,10 @@
 
 #include "docknodeitem.h"
 #include "../Model/graphml.h"
+#include "./nodeitem.h"
 
-class NodeItem;
+
+//class NodeItem;
 
 class DockNodeItem : public QPushButton
 {

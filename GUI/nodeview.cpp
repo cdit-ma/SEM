@@ -185,6 +185,8 @@ void NodeView::centreItem(GraphMLItem *item)
     if(!item){
         qCritical() << "No GUI item to Center";
         return;
+    } else {
+        //qDebug() << "centreItem: " << item->getGraphML()->getDataValue("kind");
     }
 
     //Get the current Viewport Rectangle
