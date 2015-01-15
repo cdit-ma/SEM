@@ -11,7 +11,6 @@
 #include <QPainter>
 #include <QTouchEvent>
 #include <iostream>
-#include <QRubberBand>
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
 
@@ -21,6 +20,7 @@
 #include "graphmlitem.h"
 
 class NodeEdge;
+//hgkjjhg
 class NodeItem : public GraphMLItem
 {
     Q_OBJECT
@@ -61,15 +61,15 @@ signals:
     void moveSelection(QPointF delta);
     void clearSelection();
     void centerModel();
+    void sortModel();
 
     //DockNodeItem Signals
     void updateDockNodeItem();
     void updateDockNodeItem(bool selected);
     void updateOpacity(qreal opacity);
 
-    void sortModel();
-
     void addExpandButtonToParent();
+
 public slots:
     //Model Signals
     void graphMLDataUpdated(GraphMLData *data);
@@ -77,7 +77,6 @@ public slots:
 
 public slots:
     void setOpacity(qreal opacity);
-    void setRubberbandMode(bool On);
     void setSelected(bool selected);
     void setVisible(bool visible);
 
@@ -99,6 +98,13 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 private:
+
+    void setPaintObject(bool paint);
+
+    void setupAspect();
+    QStringList viewAspects;
+
+
     void updateBrushes();
 
     void setPos(qreal x, qreal y);
@@ -110,10 +116,7 @@ private:
     QGraphicsProxyWidget *proxyWidget;
     QPushButton *expandButton;
 
-    QRubberBand* rubberBand;
     QVector<NodeEdge*> connections;
-
-    bool USING_RUBBERBAND_SELECTION;
 
     bool isSelected;
     bool isNodePressed;
@@ -128,14 +131,13 @@ private:
     double prevHeight;
 
 
-    QStringList currentViewAspects;
+   // QStringList currentViewAspects;
     //QRectF bRec;
 
-    //Used to store the initial position of the Rubber band selection.
-    QPointF rubberBand_ScreenOrigin;
-    QPointF rubberBand_SceneOrigin;
+
 
     QPointF previousScenePosition;
+    QPointF initialScenePressPosition;
     bool hasSelectionMoved;
 
     //Used to store the Color/Brush/Pen for the selected Style.
