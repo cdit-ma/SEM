@@ -48,7 +48,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     icon = 0;
     parentNodeKind= "";
 
-    setHidden(false);
+    //setHidden(false);
     expanded  = false;
     setHideChildren(false);
 
@@ -167,16 +167,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
         graphMLDataUpdated(labelData);
 
     updateBrushes();
-    if(kindData->getValue() == "Model" || kindData->getValue() == "DeploymentDefinitions"){
-        setHidden(true);
-        //setHideChildren(false);
-
-        //drawObject = false;
-        //drawDetail = false;
-    }
 
 
-    setCacheMode(QGraphicsItem::NoCache);
+
+    //setCacheMode(QGraphicsItem::ItemCoordinateCache);
     //updateViewAspects(QStringList());
 
 
@@ -194,7 +188,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
 
 
     setCacheMode(QGraphicsItem::NoCache);
-    updateViewAspects(QStringList());
+    //updateViewAspects(QStringList());
 
     // if this item has a parent and it's the first child of that parent
     // send a signal to the parent to add an expandButton and sort it
@@ -204,6 +198,11 @@ NodeItem::NodeItem(Node *node, NodeItem *parent):  GraphMLItem(node)
     }
     //qDebug() << "width = " << width;
     //qDebug() << "origWidth = " << origWidth;
+
+    setupAspect();
+    if(kindData->getValue() == "Model" || kindData->getValue() == "DeploymentDefinitions"){
+        setPaintObject(false);
+    }
 
 }
 
@@ -379,6 +378,10 @@ void NodeItem::setSelected(bool selected)
 
 void NodeItem::setVisible(bool visible)
 {
+    if(visible){
+        qCritical() << nodeKind << " Set Visible: " << visible;
+
+    }
     bool isCurrentlyVisible = isVisible();
     if(isCurrentlyVisible != visible){
         QGraphicsItem::setVisible(visible);
@@ -460,55 +463,24 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
  */
 void NodeItem::updateViewAspects(QStringList aspects)
 {
-    // check to see if this item is meant to be hidden
-    if (hidden) {
-        setVisible(false);
+    if(hidden || !DRAW_OBJECT){
         return;
     }
-
-    // only show Assembly when the Assembly view aspect is turned on
-    if (nodeKind == "AssemblyDefinitions" && !aspects.contains("Assembly")) {
-        setVisible(false);
-        return;
-    }
-
-    // only show ManagementComponents and HardwareDefinitions
-    // when the Hardware view aspect is turned on
-    if ((nodeKind == "ManagementComponent" || nodeKind == "HardwareDefinitions")
-            && !aspects.contains("Hardware")) {
-        setVisible(false);
-        return;
-    }
-
-    NodeItem* parentNodeItem = dynamic_cast<NodeItem*>(parentItem());
-
-    // if this item has a parent and that parent is not expanded, hide this item
-    if (parentNodeItem && parentNodeItem->hasExpandButton() && !parentNodeItem->isExpanded()) {
-        setVisible(false);
-        return;
-    }
-
-    bool isVisible = true;
-
-
-    // if this item is in the currently viewed aspects, show it
-    /*
-    foreach (QString aspect, aspects) {
-        if (getNode()->isInAspect(aspect)) {
-            isVisible = true;
+    bool allMatched = true;
+    foreach(QString aspect, viewAspects){
+        if(!aspects.contains(aspect)){
+            allMatched = false;
             break;
         }
     }
-    */
 
-    setVisible(isVisible);
 
-    foreach(NodeEdge* edge, connections){
-        edge->setVisible(isVisible);
-    }
+    qCritical() << viewAspects;
+    qCritical() << "allMatched" << allMatched;
 
-    //qDebug() << "NodeItem::updateViewAspects";
-    //qDebug() << kind << ": " << this->isVisible();
+    qCritical() << "viewAspects.size() > 0" << viewAspects.size();
+
+    setVisible(allMatched && (viewAspects.size() > 0));
 }
 
 
@@ -681,14 +653,6 @@ void NodeItem::sort()
     }
 }
 
-void NodeItem::setHidden(bool hidden)
-{
-    DRAW_OBJECT = !hidden;
-    if(label){
-        label->setVisible(DRAW_OBJECT);
-    }
-    setVisible(DRAW_OBJECT);
-}
 
 
 void NodeItem::setHideChildren(bool hideChildren)
@@ -812,6 +776,62 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         hasSelectionMoved = true;
         previousScenePosition = event->scenePos();
     }
+}
+
+void NodeItem::setPaintObject(bool paint)
+{
+    DRAW_OBJECT = paint;
+    DRAW_DETAIL = paint;
+
+    if(icon){
+        icon->setVisible(paint);
+    }
+    if(label){
+        label->setVisible(paint);
+    }
+
+}
+
+void NodeItem::setupAspect()
+{
+    Node* node = getNode();
+
+    while(node){
+        QString nodeKind = node->getDataValue("kind");
+        if(nodeKind == "ManagementComponent"){
+            if(!viewAspects.contains("Hardware")){
+                viewAspects.append("Hardware");
+            }
+            if(!viewAspects.contains("Assembly")){
+                viewAspects.append("Assembly");
+            }
+        }
+        else if(nodeKind == "HardwareDefinitions"){
+            if(!viewAspects.contains("Hardware")){
+                viewAspects.append("Hardware");
+            }
+        }else if(nodeKind == "AssemblyDefinitions"){
+            if(!viewAspects.contains("Assembly")){
+                viewAspects.append("Assembly");
+            }
+        }else if(nodeKind == "BehaviourDefinitions"){
+            if(!viewAspects.contains("Workload")){
+                viewAspects.append("Workload");
+            }
+        }else if(nodeKind == "InterfaceDefinitions"){
+            if(!viewAspects.contains("Definitions")){
+                viewAspects.append("Definitions");
+            }
+        }
+
+        node = node->getParentNode();
+    }
+
+
+
+
+
+
 }
 
 void NodeItem::updateBrushes()
@@ -1134,13 +1154,13 @@ Node *NodeItem::getNode()
  * when the view aspects are changed. If this item is meant to
  * be hidden no matter the view aspect, this keeps it hidden.
  */
-/*
+
 void NodeItem::setHidden(bool h)
 {
     hidden  = h;
     setVisible(!h);
 }
-*/
+
 
 
 /**
