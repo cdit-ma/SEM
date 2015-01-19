@@ -112,12 +112,14 @@ void DockScrollArea::addDockNode(NodeItem* item)
  * which contains the new dock node item and its label.
  * @param nodes
  */
-void DockScrollArea::addAdoptableDockNodes(QStringList nodes)
+void DockScrollArea::addAdoptableDockNodes(Node* node, QStringList nodes)
 {
     clear();
     nodes.sort();
 
-    for (int i=0; i<nodes.count(); i++) {
+    parentNode = node;
+
+    for (int i=0; i < nodes.count(); i++) {
         DockAdoptableNodeItem *itm = new DockAdoptableNodeItem(nodes.at(i), this);
         layout->addWidget(itm);
         dockNodes.append(itm);
@@ -149,7 +151,7 @@ void DockScrollArea::paintEvent(QPaintEvent *e)
  */
 void DockScrollArea::buttonPressed(QString kind)
 {
-    emit constructDockNode(kind);
+    emit constructDockNode(parentNode, kind);
 }
 
 

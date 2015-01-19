@@ -43,6 +43,8 @@ public:
     void resetSize();
     double getChildWidth();
 
+    qreal getMinimumHeight();
+
 signals:
     //Node Edge Signals
     void setEdgeVisibility(bool visible);

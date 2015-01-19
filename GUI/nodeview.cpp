@@ -354,9 +354,24 @@ void NodeView::showContextMenu(QPoint position)
  * from the Parts container in the dock.
  * @param kind
  */
-void NodeView::view_DockConstructNode(QString kind)
+void NodeView::view_DockConstructNode(Node* parentNode, QString kind)
 {
-    emit constructNodeItem(kind, QPointF(0,0));
+
+    GraphMLItem* guiItem = getGraphMLItemFromGraphML(parentNode);
+    NodeItem* nodeItem = getNodeItemFromGraphMLItem(guiItem);
+
+
+    qreal initialHeight = 0;
+    if(nodeItem){
+        initialHeight = nodeItem->getMinimumHeight();
+    }
+
+    //Expand nodeItem to fit the newNode.
+    //set Initial position so it doesn't collide with any of nodeItem.children();
+
+
+    emit constructNodeItem(kind, QPointF(0,initialHeight));
+
 }
 
 

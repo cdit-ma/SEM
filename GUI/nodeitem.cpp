@@ -262,6 +262,11 @@ double NodeItem::getChildWidth()
     return initialWidth / COLUMN_COUNT + 1;
 }
 
+qreal NodeItem::getMinimumHeight()
+{
+    return minimumHeight;
+}
+
 /*
 int NodeItem::getDepth()
 {

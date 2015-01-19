@@ -440,7 +440,7 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(hardwareNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(componentNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(updateAdoptableNodeList(Node*)), this, SLOT(nodeSelected(Node*)));
-    connect(partsContainer, SIGNAL(constructDockNode(QString)), nodeView, SLOT(view_DockConstructNode(QString)));
+    connect(partsContainer, SIGNAL(constructDockNode(Node*, QString)), nodeView, SLOT(view_DockConstructNode(Node*, QString)));
     connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(NodeItem*)), nodeView, SLOT(view_addComponentDefinition(NodeItem*)));
 
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
@@ -823,7 +823,7 @@ void NewMedeaWindow::updateDockContainer(QString container)
 {
     if (container == "Parts" &&  selectedNode) {
         if(controller){
-            partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(selectedNode));
+            partsContainer->addAdoptableDockNodes(selectedNode, controller->getAdoptableNodeKinds(selectedNode));
         }
     }
     update();
@@ -843,7 +843,7 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
     } else {
         if (node) {
             if (partsButton->getSelected()) {
-                partsContainer->addAdoptableDockNodes(controller->getAdoptableNodeKinds(node));
+                partsContainer->addAdoptableDockNodes(node, controller->getAdoptableNodeKinds(selectedNode));
                 emit checkDockScrollBar();
             }
         }

@@ -16,6 +16,7 @@ public:
     NodeView(QWidget *parent = 0);
     void setController(NewController* controller);
     bool getControlPressed();
+
     ~NodeView();
 
     virtual void mouseReleaseEvent(QMouseEvent *event);
@@ -84,7 +85,7 @@ public slots:
 
     void showContextMenu(QPoint position);
 
-    void view_DockConstructNode(QString kind);
+    void view_DockConstructNode(Node* node, QString kind);
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
 
@@ -120,6 +121,7 @@ private:
     NodeItem* getNodeItemFromGraphMLItem(GraphMLItem* item);
     NodeEdge* getEdgeItemFromGraphMLItem(GraphMLItem* item);
     GraphMLItem *getGraphMLItemFromGraphML(GraphML* item);
+
     GraphMLItem* getGraphMLItemFromHash(QString ID);
 
 

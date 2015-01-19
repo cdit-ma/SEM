@@ -21,26 +21,28 @@ public:
     DockToggleButton* getParentButton();
     QGroupBox* getGroupBox();
     void addDockNode(NodeItem* item);
-    void addAdoptableDockNodes(QStringList nodes);
+    void addAdoptableDockNodes(Node* parentNode, QStringList nodes);
 
 protected:
     void paintEvent(QPaintEvent *e);
 
 private:
     NodeItem* nodeItem;
+    Node* parentNode;
     DockToggleButton *parentButton;
     QGroupBox *groupBox;
     QVBoxLayout *layout;
     QString label;
     bool activated;
 
+
     QVector<QWidget*> dockNodes;
 
 signals:
-    void constructDockNode(QString kind);
+    void constructDockNode(Node* node, QString kind);
     void trigger_addComponentInstance(NodeItem* itm);
 
-public slots:\
+public slots:
     void activate();
     void clear();
 
