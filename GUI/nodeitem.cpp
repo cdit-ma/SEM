@@ -4,7 +4,6 @@
 #include <QGraphicsTextItem>
 #include <QDebug>
 #include <QFont>
-#include <QFontMetrics>
 #include <QStyleOptionGraphicsItem>
 #include <QRubberBand>
 
@@ -60,7 +59,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     }
 
     //Update Width and Height with values from the GraphML Model If they have them.
-    retrieveGraphMLData();
 
 
     initialWidth = width;
@@ -68,6 +66,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
     prevWidth = width;
     prevHeight = height;
+
+    retrieveGraphMLData();
+
 
     minimumHeight = initialWidth / MINIMUM_HEIGHT_RATIO;
     minimumWidth = initialWidth;
@@ -890,10 +891,6 @@ void NodeItem::setupLabel()
     QFont font("Arial");
     font.setPointSize(.25 * minimumHeight);
 
-    //float fontScaleFactor = fm.width(QString(LABEL_LENGTH, 'W'));
-
-    //font.setPointSizeF(font.pointSizeF() * fontScaleFactor);
-
     label = new QGraphicsTextItem(this);
     //label->adjustSize();
     //label->setTextWidth(availableWidth);
@@ -979,19 +976,12 @@ void NodeItem::retrieveGraphMLData()
     double graphmlY = getGraphML()->getDataValue("y").toDouble();
     nodeKind = getGraphML()->getDataValue("kind");
 
-    qCritical() << "\nretrieveGraphMLData";
-    qCritical() << "GraphMLWidth: " << graphmlWidth;
-    qCritical() << "GraphMLHeight: " << graphmlHeight;
-
     setPos(graphmlX, graphmlY);
 
     if(graphmlWidth != 0 && graphmlHeight != 0){
         setWidth(graphmlWidth);
         setHeight(graphmlHeight);
     }
-
-    qCritical() << "currentWidth: " << width;
-    qCritical() << "currentHeight: " << height;
 }
 
 

@@ -222,11 +222,8 @@ void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
 void NodeEdge::setLabelFont()
 {
     QFont font("Arial");
-    font.setPointSize(1);
-    QFontMetrics fm(font);
+    font.setPointSize(.25 * 2*circleRadius);
 
-    float factor = (width*0.95) / fm.width(QString(16, 'c'));
-    font.setPointSizeF(font.pointSizeF() * factor);
     label->setFont(font);
 
 }
