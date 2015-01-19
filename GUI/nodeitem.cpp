@@ -30,7 +30,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     expandButton = 0;
     label  = 0;
 
-
+    nodeKind = "";
 
 
     QString parentNodeKind = "";
@@ -46,7 +46,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
         parentNodeKind = parent->getGraphML()->getDataValue("kind");
 
+        // connect this item to its parent item
         connect(this, SIGNAL(addExpandButtonToParent()), parent, SLOT(addExpandButton()));
+        connect(this, SIGNAL(updateParentHeight(NodeItem*)), parent, SLOT(updateHeight(NodeItem*)));
+
     }else{
         setWidth(MODEL_WIDTH);
         setHeight(MODEL_HEIGHT);
@@ -58,17 +61,14 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
         setHeight(height/2);
     }
 
-    //Update Width and Height with values from the GraphML Model If they have them.
-
-
     initialWidth = width;
     initialHeight = height;
 
     prevWidth = width;
     prevHeight = height;
 
+    //Update Width and Height with values from the GraphML Model If they have them.
     retrieveGraphMLData();
-
 
     minimumHeight = initialWidth / MINIMUM_HEIGHT_RATIO;
     minimumWidth = initialWidth;
@@ -85,7 +85,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     updateGraphMLSize();
     updateGraphMLPosition();
 
-
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
     //setFlag(ItemIsSelectable);
@@ -100,7 +99,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
         emit addExpandButtonToParent();
     }
 
-
     if(getGraphML()->getDataValue("kind") == "Model" || getGraphML()->getDataValue("kind") == "DeploymentDefinitions"){
         setPaintObject(false);
     }else{
@@ -108,6 +106,11 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     }
 
     updateViewAspects(aspects);
+    resetNextChildPos();
+
+    if (PAINT_OBJECT && !nodeKind.endsWith("Definitions")) {
+        emit updateParentHeight(this);
+    }
 }
 
 
@@ -189,16 +192,12 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setPen(Pen);
         painter->setBrush(Brush);
 
-
-
         painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
-
 
         QPainterPath UpperSidePath;
         QPolygonF UpperPolygon;
         UpperPolygon << QPointF(0,0) << QPointF(headerWidth,0) << QPointF(headerWidth,headerHeight) << QPointF(0,headerHeight);
         UpperSidePath.addPolygon(UpperPolygon);
-
 
         painter->setBrush(HeaderBrush);
         painter->setClipping(true);
@@ -262,9 +261,40 @@ double NodeItem::getChildWidth()
     return initialWidth / COLUMN_COUNT + 1;
 }
 
+
+
 qreal NodeItem::getMinimumHeight()
 {
     return minimumHeight;
+}
+
+
+/**
+ * @brief NodeItem::getNextChildPos
+ * @return
+ */
+QPointF NodeItem::getNextChildPos()
+{
+    QPointF nextPos = nextChildPosition;
+
+    // update nexChildPosition to the next available position
+    nextChildPosition.setX(nextChildPosition.x() + (getChildWidth()*0.05));
+    nextChildPosition.setY(nextChildPosition.y() + (getChildWidth()/14));
+
+    // reset x if child.x + child.width is out of parent's bounds
+    if ((nextChildPosition.x() + getChildWidth()) > width) {
+        nextChildPosition.setX(0);
+    }
+
+    return nextPos;
+}
+
+/**
+ * @brief NodeItem::resetNextChildPos
+ */
+void NodeItem::resetNextChildPos()
+{
+    nextChildPosition = QPointF(0, minimumHeight);
 }
 
 /*
@@ -273,8 +303,6 @@ int NodeItem::getDepth()
     return depth;
 }
 */
-
-
 
 void NodeItem::setOpacity(qreal opacity)
 {
@@ -292,9 +320,6 @@ void NodeItem::setOpacity(qreal opacity)
 }
 
 
-
-
-
 void NodeItem::setSelected(bool selected)
 {
     if(isSelected != selected){
@@ -307,6 +332,7 @@ void NodeItem::setSelected(bool selected)
     }
 }
 
+
 void NodeItem::setVisible(bool visible)
 {
     bool isCurrentlyVisible = isVisible();
@@ -315,8 +341,6 @@ void NodeItem::setVisible(bool visible)
         emit setEdgeVisibility(visible);
     }
 }
-
-
 
 
 void NodeItem::graphMLDataUpdated(GraphMLData* data)
@@ -361,9 +385,6 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
 }
 
 
-
-
-
 /**
  * @brief NodeItem::updateViewAspects
  * This method checks to see if this item should be visible or not.
@@ -387,7 +408,7 @@ void NodeItem::updateViewAspects(QStringList aspects)
 
 
 /**
- * @brief NodeItem::sortChildren
+ * @brief NodeItem::sort
  * This methods sorts this node item's children one by one, from left to right
  * until it can't fit it inside this item's origWidth in which case it moves it
  * to the next row. The maxHeight per row is being used to get the new y pos for
@@ -551,10 +572,13 @@ void NodeItem::sort()
             }
             emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
         }
-    } else {
+    } /*else {
         emit updateGraphMLData(getGraphML(), "width", QString::number(initialWidth));
         emit updateGraphMLData(getGraphML(), "height", QString::number(initialHeight));
-    }
+    }*/
+
+
+    resetNextChildPos();
 }
 
 
@@ -908,6 +932,9 @@ void NodeItem::setupLabel()
 
 }
 
+/**
+ * @brief NodeItem::setupGraphMLConnections
+ */
 void NodeItem::setupGraphMLConnections()
 {
     GraphML* modelEntity = getGraphML();
@@ -1010,7 +1037,6 @@ void NodeItem::setupIcon()
         qreal scaleFactor = (minimumHeight / iconHeight);
         iconWidth *= scaleFactor;
 
-
         icon->setScale(scaleFactor);
 
         int brushSize = selectedPen.width();
@@ -1019,15 +1045,7 @@ void NodeItem::setupIcon()
 
         icon->setTransformationMode(Qt::SmoothTransformation);
 
-
-
-
         label->setX(label->x() + iconWidth);
-       // qreal diffHeight = (iconHeight*scaleFactor) - labelHeight;
-        //label->setX(icon->x() + iconWidth);
-       // label->setY(icon->y() + (diffHeight/2));
-
-
     }
 }
 
@@ -1174,6 +1192,20 @@ void NodeItem::expandItem(bool show)
     expanded = show;
     prepareGeometryChange();
     update();
+}
+
+
+/**
+ * @brief NodeItem::updateHeight
+ * Expand this item's height to fit the newly added child.
+ * @param child
+ */
+void NodeItem::updateHeight(NodeItem *child)
+{
+    double diffHeight = (child->pos().y() + child->getHeight()) - height;
+    if (diffHeight > 0) {
+        setHeight(height + diffHeight);
+    }
 }
 
 

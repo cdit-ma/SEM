@@ -65,7 +65,7 @@ void NewController::connectView(NodeView *view)
     connect(view, SIGNAL(selectAll()),this, SLOT(view_SelectAll()));
     connect(view, SIGNAL(unselect()),this, SLOT(view_ClearSelection()));
     connect(view, SIGNAL(unselect()), this, SLOT(view_UncenterGraphML()));
-    connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this,SLOT(view_ConstructNode(QString, QPointF)));
+    connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this, SLOT(view_ConstructNode(QString, QPointF)));
     connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
 
     //Connect the View to the Controllers Signals

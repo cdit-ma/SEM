@@ -45,6 +45,9 @@ public:
 
     qreal getMinimumHeight();
 
+    QPointF getNextChildPos();
+    void resetNextChildPos();
+
 signals:
     //Node Edge Signals
     void setEdgeVisibility(bool visible);
@@ -55,7 +58,6 @@ signals:
     void moveSelection(QPointF delta);
     void clearSelection();
 
-    //
     void centerModel();
     void sortModel();
 
@@ -65,6 +67,7 @@ signals:
     void updateOpacity(qreal opacity);
 
     void addExpandButtonToParent();
+    void updateParentHeight(NodeItem* child);
 
 public slots:
     //Model Signals
@@ -76,13 +79,12 @@ public slots:
 
     void sort();
 
-
-
     //Depth/Aspect Slots
     void updateViewAspects(QStringList aspects);
 
     void addExpandButton();
     void expandItem(bool show);
+    void updateHeight(NodeItem* child);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -92,7 +94,6 @@ protected:
 private:
     void setWidth(qreal width);
     void setHeight(qreal height);
-
 
     void setupAspect();
     void setupBrushes();
@@ -111,13 +112,11 @@ private:
 
     void updateExpandButton();
 
-
     bool isExpanded();
     bool hasExpandButton();
     void removeExpandButton();
 
     bool expanded;
-
 
 
     int getNumberOfChildren();
@@ -128,13 +127,11 @@ private:
 
     Node* getNode();
 
-
     QStringList viewAspects;
-
-
 
     void setPos(qreal x, qreal y);
     void setPos(const QPointF &pos);
+
 
     //Visual Components
     QGraphicsTextItem* label;
@@ -146,8 +143,6 @@ private:
 
     bool isSelected;
     bool isNodePressed;
-
-   // float defaultChildSize;
 
     QString nodeKind;
 
@@ -163,14 +158,10 @@ private:
     double prevWidth;
     double prevHeight;
 
-
-   // QStringList currentViewAspects;
-    //QRectF bRec;
-
-
+    QPointF nextChildPosition;
 
     QPointF previousScenePosition;
-    QPointF initialScenePressPosition;
+    //QPointF initialScenePressPosition;
     bool hasSelectionMoved;
 
     //Used to store the Color/Brush/Pen for the selected Style.

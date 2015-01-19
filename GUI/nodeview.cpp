@@ -356,22 +356,13 @@ void NodeView::showContextMenu(QPoint position)
  */
 void NodeView::view_DockConstructNode(Node* parentNode, QString kind)
 {
-
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(parentNode);
-    NodeItem* nodeItem = getNodeItemFromGraphMLItem(guiItem);
+    NodeItem* parentItem = getNodeItemFromGraphMLItem(guiItem);
 
-
-    qreal initialHeight = 0;
-    if(nodeItem){
-        initialHeight = nodeItem->getMinimumHeight();
+    // set Initial position so it doesn't collide with any of nodeItem.children();
+    if(parentItem){
+        emit constructNodeItem(kind, parentItem->getNextChildPos());
     }
-
-    //Expand nodeItem to fit the newNode.
-    //set Initial position so it doesn't collide with any of nodeItem.children();
-
-
-    emit constructNodeItem(kind, QPointF(0,initialHeight));
-
 }
 
 
