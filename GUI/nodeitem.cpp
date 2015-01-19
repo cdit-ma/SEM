@@ -36,26 +36,26 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
     QString parentNodeKind = "";
     if(parent){
-        width = parent->getChildWidth();
+        setWidth(parent->getChildWidth());
 
         if (getGraphML()->getDataValue("kind").contains("Definitions")) {
-            height = width;
+            setHeight(width);
         } else {
-            height = width/7;
+            setHeight(width/7);
         }
 
         parentNodeKind = parent->getGraphML()->getDataValue("kind");
 
         connect(this, SIGNAL(addExpandButtonToParent()), parent, SLOT(addExpandButton()));
     }else{
-        width = MODEL_WIDTH;
-        height = MODEL_HEIGHT;
+        setWidth(MODEL_WIDTH);
+        setHeight(MODEL_HEIGHT);
     }
 
     //Make
     if (parentNodeKind== "Component" || parentNodeKind== "ComponentInstance") {
-        width /= 2;
-        height /= 2;
+        setWidth(width/2);
+        setHeight(height/2);
     }
 
     //Update Width and Height with values from the GraphML Model If they have them.
@@ -325,9 +325,9 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
         }else if(dataKey == "width" || dataKey == "height"){
             //Update the Size
             if(dataKey == "width"){
-                width = dataValue.toFloat();
+                setWidth(dataValue.toFloat());
             }else if(dataKey == "height"){
-                height = dataValue.toFloat();
+                setHeight(dataValue.toFloat());
             }
             prepareGeometryChange();
             update();
@@ -634,8 +634,21 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         previousScenePosition = event->scenePos();
 
         emit moveSelection(delta);
-    }
+   }
 }
+
+void NodeItem::setWidth(qreal width)
+{
+    this->width = width;
+    updateExpandButton();
+}
+
+void NodeItem::setHeight(qreal height)
+{
+    this->height = height;
+
+}
+
 
 void NodeItem::setPaintObject(bool paint)
 {
@@ -653,9 +666,10 @@ void NodeItem::updateTextLabel(QString text)
 {
     label->setPlainText(text);
 
-    qreal availableWidth = width - (getCornerRadius()/2 + minimumHeight);
+    int brushSize = selectedPen.width();
+    qreal availableWidth = width - (getCornerRadius()/2 + minimumHeight + brushSize);
     if(icon){
-        availableWidth -= (getCornerRadius()/2 + minimumHeight);
+        availableWidth -= (getCornerRadius()/2 + minimumHeight + brushSize);
     }
 
     qreal labelWidth = label->boundingRect().width();
@@ -667,6 +681,20 @@ void NodeItem::updateTextLabel(QString text)
     }
 
 
+}
+
+void NodeItem::updateExpandButton()
+{
+    if(expandButton){
+        int brushSize = selectedPen.width();
+        QPoint currentPos = expandButton->pos();
+        qreal buttonSize = expandButton->width();
+
+        //New Position
+        QPoint newPos(width - (getCornerRadius()/2) - buttonSize - brushSize, (minimumHeight - buttonSize)/2);
+
+        expandButton->move(newPos);
+    }
 }
 
 void NodeItem::setupAspect()
@@ -845,10 +873,6 @@ void NodeItem::setupLabel()
 {
     QFont font("Arial");
     font.setPointSize(.25 * minimumHeight);
-    QFontMetrics fm(font);
-
-
-
 
     //float fontScaleFactor = fm.width(QString(LABEL_LENGTH, 'W'));
 
@@ -859,7 +883,8 @@ void NodeItem::setupLabel()
     //label->setTextWidth(availableWidth);
     label->setFont(font);
 
-    label->setPos(getCornerRadius()/2, (minimumHeight - label->boundingRect().height())/2);
+    int brushSize = selectedPen.width();
+    label->setPos(getCornerRadius()/2 + brushSize , (minimumHeight - label->boundingRect().height())/2);
     updateTextLabel(getGraphML()->getDataValue("label"));
     //label->setPlainText(getGraphML()->getDataValue("label"));
 
@@ -945,8 +970,8 @@ void NodeItem::retrieveGraphMLData()
     setPos(graphmlX, graphmlY);
 
     if(graphmlWidth != 0 && graphmlHeight != 0){
-        width = graphmlWidth;
-        height = graphmlHeight;
+        setWidth(graphmlWidth);
+        setHeight(graphmlHeight);
     }
 
     qCritical() << "currentWidth: " << width;
@@ -977,9 +1002,13 @@ void NodeItem::setupIcon()
 
         icon->setScale(scaleFactor);
 
-        icon->setPos(getCornerRadius()/2,0);
+        int brushSize = selectedPen.width();
+
+        icon->setPos((getCornerRadius()/2 + brushSize) ,0);
 
         icon->setTransformationMode(Qt::SmoothTransformation);
+
+
 
 
         label->setX(label->x() + iconWidth);
@@ -1054,26 +1083,21 @@ double NodeItem::getMaxLabelWidth()
 void NodeItem::addExpandButton()
 {
     if (icon != 0) {
-        if (nodeKind!= "Hardware" && nodeKind!= "ManagementComponent") {
+        if (nodeKind!= "Hardware" && nodeKind != "ManagementComponent") {
+            QFont font("Arial");
+            font.setPointSize(.25 * minimumHeight);
+            qreal buttonSize = .75 * minimumHeight;
 
-            QFont font = label->font();
-            QFontMetrics fm(font);
-            QPointF point = QPointF(label->x()+label->boundingRect().width(), icon->y());
-            QSize size = QSize(icon->boundingRect().width()*icon->scale(), icon->boundingRect().height()*icon->scale());
-            double ratio = 0.8;
-
-            font.setPointSize(font.pointSize()*ratio);
-            point.setX(point.x()+(size.width()*(1-ratio)));
-            point.setY(point.y()+(size.height()*(1-ratio)/2));
-            size.setWidth(size.width()*ratio);
-            size.setHeight(size.height()*ratio);
-
+            //Dans code.
             expandButton = new QPushButton("-");
-            expandButton->setStyleSheet("padding: 0px;");
+            expandButton->setStyleSheet("padding: 0px; border: none;");
             expandButton->setFont(font);
-            expandButton->setFixedSize(size.width(), size.height());
-            //expandButton->move(point.x(), point.y());
-            expandButton->move(label->x()+fm.width(QString(16, 'c')), point.y());
+
+            expandButton->setFixedSize(buttonSize, buttonSize);
+
+            int brushSize = selectedPen.width();
+
+            expandButton->move(width - (getCornerRadius()/2) - buttonSize - brushSize, (minimumHeight - buttonSize)/2);
 
             proxyWidget = new QGraphicsProxyWidget(this);
             proxyWidget->setWidget(expandButton);
@@ -1104,16 +1128,36 @@ void NodeItem::expandItem(bool show)
         }
     }
 
+    GraphML* modelEntity = getGraphML();
+    GraphMLData* wData = 0;
+    GraphMLData* hData = 0;
+
+    if(modelEntity){
+        wData = modelEntity->getData("width");
+        hData = modelEntity->getData("height");
+    }
+
     if (show) {
         expandButton->setText("-");
-        width = prevWidth;
-        height = prevHeight;
+        if(wData){
+            wData->setValue(QString::number(prevWidth));
+        }
+        if(hData){
+            hData->setValue(QString::number(prevHeight));
+
+        }
     } else {
         expandButton->setText("+");
         prevWidth = width;
         prevHeight = height;
-        width = initialWidth;
-        height = initialHeight;
+
+        if(wData){
+            wData->setValue(QString::number(initialWidth));
+        }
+        if(hData){
+            hData->setValue(QString::number(initialHeight));
+
+        }
     }
 
     expanded = show;

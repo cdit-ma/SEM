@@ -88,6 +88,10 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 private:
+    void setWidth(qreal width);
+    void setHeight(qreal height);
+
+
     void setupAspect();
     void setupBrushes();
     void setupIcon();
@@ -102,6 +106,8 @@ private:
     void setPaintObject(bool paint);
 
     void updateTextLabel(QString text);
+
+    void updateExpandButton();
 
 
     bool isExpanded();
