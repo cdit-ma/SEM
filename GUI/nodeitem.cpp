@@ -1205,6 +1205,7 @@ void NodeItem::updateHeight(NodeItem *child)
     double diffHeight = (child->pos().y() + child->getHeight()) - height;
     if (diffHeight > 0) {
         setHeight(height + diffHeight);
+        emit updateGraphMLData(getGraphML(), "height", QString::number(height));
     }
 }
 
