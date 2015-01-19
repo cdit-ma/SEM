@@ -29,7 +29,6 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     makeConnections();
     updateViewAspects();
 
-/*
     // this is used for when a file is dragged and
     // dropped on top of this tool's icon
     if(graphMLFile.length() != 0){
@@ -37,6 +36,8 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
         files.append(graphMLFile);
         importGraphMLFiles(files);
     }
+
+    /*
 
     QFile file("C:/ArrowTest.graphml");
 
