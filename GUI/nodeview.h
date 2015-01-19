@@ -73,7 +73,6 @@ signals:
 public slots:
 
     void rubberBandChanged1(QRect viewportRect, QPointF fromScenePoint, QPointF toScenePoint);
-    void view_Refresh();
     void view_ConstructGraphMLGUI(GraphML* item);
     void printErrorText(GraphML* graphml, QString text);
     void removeNodeItem(NodeItem* item);

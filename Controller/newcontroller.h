@@ -118,9 +118,6 @@ signals:
 
     void view_SortNode(Node* item);
 
-    void view_ForceRefresh();
-
-
     void view_FitToScreen();
     void centreNode(Node* node);
 

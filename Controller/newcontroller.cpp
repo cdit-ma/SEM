@@ -74,6 +74,7 @@ void NewController::connectView(NodeView *view)
     connect(this, SIGNAL(view_SetGraphMLSelected(GraphML*,bool)), view, SLOT(view_SelectGraphML(GraphML*,bool)));
     //connect(this, SIGNAL(view_ForceRefresh()), view, SLOT(view_Refresh()));
     connect(this, SIGNAL(view_CenterGraphML(GraphML*)), view, SLOT(view_CenterGraphML(GraphML*)));
+
     connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
     connect(this, SIGNAL(view_ConstructGraphMLGUI(GraphML*)), view, SLOT(view_ConstructGraphMLGUI(GraphML*)));
     connect(this, SIGNAL(view_DestructGraphMLGUIFromID(QString)), view, SLOT(view_DestructGraphMLGUI(QString)));
@@ -920,7 +921,6 @@ void NewController::view_SortModel()
 
 void NewController::view_ShowLegalEdgesForNode(Node *src)
 {
-    emit view_ForceRefresh();
     foreach(QString ID, nodeIDs){
         Node* dst = getNodeFromID(ID);
 
@@ -928,7 +928,6 @@ void NewController::view_ShowLegalEdgesForNode(Node *src)
             emit view_SetOpacity(dst, HIDDEN_OPACITY);
         }
     }
-    emit view_ForceRefresh();
 }
 
 void NewController::view_ShowAllNodes()
@@ -996,10 +995,6 @@ void NewController::view_DeletePressed(bool isDown)
          deleteSelectedNodes();
          emit view_SetGUIEnabled(true);
      }
-
-     // this removes the non-disappearing
-     // blue lines after deletion
-     emit view_ForceRefresh();
 }
 
 void NewController::view_Undo()

@@ -954,10 +954,7 @@ void NodeView::clearSelection()
 }
 
 
-void NodeView::view_Refresh()
-{
-    scene()->update();
-}
+
 
 /*
 bool NodeView::guiCreated(GraphML *item)
