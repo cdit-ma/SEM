@@ -75,7 +75,7 @@ void DockNodeItem::paintEvent(QPaintEvent *e)
 
     setStyleSheet("QPushButton{"
                   "background-color:" + color +
-                  "border-radius: 10px"
+                  "border-radius: 10px;"
                   "}");
 
     /**
@@ -136,7 +136,6 @@ void DockNodeItem::mousePressEvent(QMouseEvent *event)
 {
     if (event->modifiers().testFlag(Qt::ControlModifier)) {
         emit dockNode_addComponentInstance(nodeItem);
-        qDebug() << "Add Component Instance";
     } else {
         QPushButton::mousePressEvent(event);
     }

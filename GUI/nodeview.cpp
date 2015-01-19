@@ -782,16 +782,8 @@ void NodeView::mousePressEvent(QMouseEvent *event)
                 emit sortModel();
                 return;
             }else{
-                /**
-                resetTransform();
-                int xValue = (horizontalScrollBar()->minimum() + horizontalScrollBar()->maximum())/2;
-                int yValue = (verticalScrollBar()->minimum() + verticalScrollBar()->maximum())/2;
-                horizontalScrollBar()->setValue(xValue);
-                verticalScrollBar()->setValue(yValue);
-                */
-
-                // center the model
-                emit centerNode("Model");
+                // center current view aspects
+                view_centerModel();
                 return;
             }
         }else if(event->button() == Qt::RightButton && CONTROL_DOWN){
@@ -1031,6 +1023,10 @@ void NodeView::view_addComponentDefinition(NodeItem *itm)
  */
 void NodeView::view_centerModel()
 {
+    if (currentAspects.count() == 1) {
+        emit centerNode(currentAspects.at(0));
+        return;
+    }
     emit centerNode("Model");
 }
 
@@ -1109,6 +1105,6 @@ void NodeView::resetSceneRect(NodeItem *nodeItem)
                                nodeItem->boundingRect().height()*1.5);
         setSceneRect(*rec);
         //nodeItem->setPos((rec->width()/2) - (nodeItem->boundingRect().width()/2),
-                        // (rec->height()/2) - (nodeItem->boundingRect().height()/2));
+        // (rec->height()/2) - (nodeItem->boundingRect().height()/2));
     }
 }

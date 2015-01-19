@@ -6,6 +6,8 @@
 #include <QFont>
 #include <QStyleOptionGraphicsItem>
 #include <QRubberBand>
+#include <QPixmap>
+#include <QBitmap>
 
 #define MODEL_WIDTH 19200
 #define MODEL_HEIGHT 10800
@@ -34,7 +36,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
 
     QString parentNodeKind = "";
-    if(parent){
+    if (parent) {
         setWidth(parent->getChildWidth());
 
         if (getGraphML()->getDataValue("kind").contains("Definitions")) {
@@ -50,7 +52,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
         connect(this, SIGNAL(addExpandButtonToParent()), parent, SLOT(addExpandButton()));
         connect(this, SIGNAL(updateParentHeight(NodeItem*)), parent, SLOT(updateHeight(NodeItem*)));
 
-    }else{
+    } else {
         setWidth(MODEL_WIDTH);
         setHeight(MODEL_HEIGHT);
     }
@@ -67,23 +69,22 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     prevWidth = width;
     prevHeight = height;
 
-    //Update Width and Height with values from the GraphML Model If they have them.
-    retrieveGraphMLData();
-
     minimumHeight = initialWidth / MINIMUM_HEIGHT_RATIO;
     minimumWidth = initialWidth;
 
+    //Update Width and Height with values from the GraphML Model If they have them.
+    retrieveGraphMLData();
+
+    //Update GraphML Model for size/position if they have been changed.
+    updateGraphMLSize();
+    updateGraphMLPosition();
+
+    setupGraphMLConnections();
 
     setupAspect();
     setupBrushes();
     setupLabel();
     setupIcon();
-
-    setupGraphMLConnections();
-
-    //Update GraphML Model for size/position if they have been changed.
-    updateGraphMLSize();
-    updateGraphMLPosition();
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
@@ -107,10 +108,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
     updateViewAspects(aspects);
     resetNextChildPos();
-
-    if (PAINT_OBJECT && !nodeKind.endsWith("Definitions")) {
-        emit updateParentHeight(this);
-    }
+    emit updateParentHeight(this);
 }
 
 
@@ -125,9 +123,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 NodeItem::~NodeItem()
 {
     if (parentItem()) {
+        // if this item is its parent's last child,
+        // remove the parent's expand button and
+        // reset its size and nextChildPosition
         NodeItem* item = dynamic_cast<NodeItem*>(parentItem());
         if (item && item->getNumberOfChildren() == 1) {
             item->removeExpandButton();
+            item->resetNextChildPos();
             item->resetSize();
         }
     }
@@ -215,10 +217,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
-
-
     }
-
 
 }
 
@@ -281,9 +280,9 @@ QPointF NodeItem::getNextChildPos()
     nextChildPosition.setX(nextChildPosition.x() + (getChildWidth()*0.05));
     nextChildPosition.setY(nextChildPosition.y() + (getChildWidth()/14));
 
-    // reset x if child.x + child.width is out of parent's bounds
-    if ((nextChildPosition.x() + getChildWidth()) > width) {
-        nextChildPosition.setX(0);
+    // reset nextChildPosition.x if child is going to be out of bounds
+    if ((nextChildPosition.x() + getChildWidth() + (getCornerRadius()/2)) > width) {
+        nextChildPosition.setX(getCornerRadius()/2);
     }
 
     return nextPos;
@@ -294,7 +293,7 @@ QPointF NodeItem::getNextChildPos()
  */
 void NodeItem::resetNextChildPos()
 {
-    nextChildPosition = QPointF(0, minimumHeight);
+    nextChildPosition = QPointF(getCornerRadius()/2, minimumHeight);
 }
 
 /*
@@ -327,6 +326,7 @@ void NodeItem::setSelected(bool selected)
 
         update();
         emit setEdgeSelected(selected);
+
         // update corresponding dock node item
         emit updateDockNodeItem(selected);
     }
@@ -372,14 +372,10 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
         }else if(dataKey == "label"){
             if(dataValue != ""){
                 updateTextLabel(dataValue);
-                //label->setPlainText(dataValue);
             }
 
-            // there has been a change to this item's graphml data
             // update connected dock node item
-            //qDebug() << "NodeItem: graphMLDataUpdated";
             emit updateDockNodeItem();
-
         }
     }
 }
@@ -598,8 +594,10 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             }
             sort();
         } else {
-            if (nodeKind!= "DeploymentDefinitions") {
+            if (PAINT_OBJECT) {
                 emit triggerCentered(getGraphML());
+            } else {
+                emit centerModel();
             }
         }
         break;
@@ -663,7 +661,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
 
-   if(isNodePressed && isSelected){
+    if(isNodePressed && isSelected){
         if(hasSelectionMoved == false){
             emit triggerAction("Moving Selection");
             hasSelectionMoved = true;
@@ -672,7 +670,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         previousScenePosition = event->scenePos();
 
         emit moveSelection(delta);
-   }
+    }
 }
 
 void NodeItem::setWidth(qreal width)
@@ -1113,19 +1111,39 @@ void NodeItem::addExpandButton()
 {
     if (icon != 0) {
         if (nodeKind!= "Hardware" && nodeKind != "ManagementComponent") {
+
             QFont font("Arial");
-            font.setPointSize(.25 * minimumHeight);
-            qreal buttonSize = .75 * minimumHeight;
+            qreal buttonSize = .7 * minimumHeight;
+            font.setPointSize(buttonSize/2);
 
-            //Dans code.
             expandButton = new QPushButton("-");
-            expandButton->setStyleSheet("padding: 0px; border: none;");
             expandButton->setFont(font);
-
             expandButton->setFixedSize(buttonSize, buttonSize);
 
-            int brushSize = selectedPen.width();
+            QString borderRadius = QString::number(expandButton->width()/3.5);
+            expandButton->setStyleSheet("QPushButton {"
+                                        "background-color: rgba(255,255,255,250);"
+                                        "border: 10px solid gray;"
+                                        "border-radius:" + borderRadius + "px;"
+                                        "padding: 0px;"
+                                        "margin: 0px;"
+                                        "}");
 
+            // this makes the corners of the expand button
+            // and the proxy widget look rounded
+            QPixmap pixmap(expandButton->size());
+            QPainter painter(&pixmap);
+            QBrush brush(Qt::white);
+            painter.setBrush(brush);
+            painter.drawRoundRect(pixmap.rect(), 60, 60);
+            expandButton->setMask(pixmap.createMaskFromColor(Qt::white, Qt::MaskOutColor));
+
+            /*
+            QRegion region(expandButton->rect(), QRegion::RegionType::Ellipse);
+            expandButton->setMask(region);
+            */
+
+            int brushSize = selectedPen.width();
             expandButton->move(width - (getCornerRadius()/2) - buttonSize - brushSize, (minimumHeight - buttonSize)/2);
 
             proxyWidget = new QGraphicsProxyWidget(this);
@@ -1136,10 +1154,6 @@ void NodeItem::addExpandButton()
             expandButton->setCheckable(true);
             expandButton->setChecked(true);
             connect(expandButton, SIGNAL(clicked(bool)), this, SLOT(expandItem(bool)));
-
-            // add button's width to this item's origWidth
-            //origWidth += expandButton->width();
-            //qDebug() << "origWidth: " << origWidth;
         }
     }
 }
@@ -1198,14 +1212,27 @@ void NodeItem::expandItem(bool show)
 /**
  * @brief NodeItem::updateHeight
  * Expand this item's height to fit the newly added child.
+ * This only gets called by painted and non-definition items.
  * @param child
  */
 void NodeItem::updateHeight(NodeItem *child)
 {
-    double diffHeight = (child->pos().y() + child->getHeight()) - height;
-    if (diffHeight > 0) {
-        setHeight(height + diffHeight);
-        emit updateGraphMLData(getGraphML(), "height", QString::number(height));
+    if (PAINT_OBJECT && !nodeKind.endsWith("Definitions")) {
+
+        double diffHeight = (child->pos().y() + child->getHeight()) - height;
+
+        if (diffHeight > 0) {
+
+            setHeight(height + diffHeight + selectedPen.width());
+            emit updateGraphMLData(getGraphML(), "height", QString::number(height));
+
+            // recurse while there is a parent node item
+            NodeItem* parentNodeItem = dynamic_cast<NodeItem*>(parentItem());
+            if (parentNodeItem) {
+                emit updateParentHeight(this);
+            }
+
+        }
     }
 }
 
