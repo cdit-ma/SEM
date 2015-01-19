@@ -940,6 +940,7 @@ void NodeView::resetModel()
 
 void NodeView::rubberBandChanged1(QRect viewportRect, QPointF fromScenePoint, QPointF toScenePoint)
 {
+
     //TODO Implement Selection Rectangle Magic.
 }
 

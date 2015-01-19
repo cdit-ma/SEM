@@ -31,7 +31,6 @@ QVariant GraphMLItem::itemChange(QGraphicsItem::GraphicsItemChange change, const
 {
     if (change == QGraphicsItem::ItemSelectedChange)
     {
-        qCritical() << "SLEECTION";
         if (value == true){
             emit triggerSelected(getGraphML(), true);
         }else{

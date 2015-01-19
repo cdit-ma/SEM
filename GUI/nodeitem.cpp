@@ -88,7 +88,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
-    setFlag(ItemIsSelectable);
+    //setFlag(ItemIsSelectable);
     //setFlag(ItemIsMovable);
     setFlag(ItemSendsGeometryChanges);
 
