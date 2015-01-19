@@ -105,7 +105,7 @@ private:
 
     void setPaintObject(bool paint);
 
-    void updateTextLabel(QString text);
+    void updateTextLabel(QString text=0);
 
     void updateExpandButton();
 

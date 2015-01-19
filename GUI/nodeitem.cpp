@@ -40,6 +40,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
         if (getGraphML()->getDataValue("kind").contains("Definitions")) {
             setHeight(width);
+            expanded = true;
         } else {
             setHeight(width/7);
         }
@@ -152,15 +153,11 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         float headerWidth = width;
-        float headerHeight = label->boundingRect().height() * label->scale();
-        if(icon){
-            headerHeight = icon->boundingRect().height() * icon->scale();
-            float gapY = headerHeight/1.8;
-            headerHeight += gapY;
-        }
+        float headerHeight = minimumHeight;
 
         QPen Pen;
         QBrush Brush;
+
 
         if(isSelected){
             Brush = selectedBrush;
@@ -192,6 +189,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setBrush(Brush);
 
 
+
         painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
 
 
@@ -206,6 +204,16 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setClipPath(UpperSidePath);
 
         painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
+
+        if(expanded){
+            if(headerHeight + selectedPen.width()  < height){
+                QPen linePen = selectedPen;
+                linePen.setStyle(Qt::DotLine);
+                linePen.setColor(QColor(100,100,100));
+                painter->setPen(linePen);
+                painter->drawLine(QPointF(0,headerHeight), QPointF(width, headerHeight));
+            }
+        }
 
 
 
@@ -641,6 +649,7 @@ void NodeItem::setWidth(qreal width)
 {
     this->width = width;
     updateExpandButton();
+    updateTextLabel();
 }
 
 void NodeItem::setHeight(qreal height)
@@ -664,20 +673,27 @@ void NodeItem::setPaintObject(bool paint)
 
 void NodeItem::updateTextLabel(QString text)
 {
-    label->setPlainText(text);
+    if(label){
+        if(text == 0){
+            if(getGraphML()){
+                text = getGraphML()->getDataValue("label");
+            }
+        }
+        label->setPlainText(text);
 
-    int brushSize = selectedPen.width();
-    qreal availableWidth = width - (getCornerRadius()/2 + minimumHeight + brushSize);
-    if(icon){
-        availableWidth -= (getCornerRadius()/2 + minimumHeight + brushSize);
-    }
+        int brushSize = selectedPen.width();
+        qreal availableWidth = width - (getCornerRadius()/2 + minimumHeight + brushSize);
+        if(icon){
+            availableWidth -= (getCornerRadius()/2 + minimumHeight + brushSize);
+        }
 
-    qreal labelWidth = label->boundingRect().width();
-    if(labelWidth > availableWidth){
-        qreal ratio = availableWidth / labelWidth;
-        qreal fitChars = (text.size() * ratio) - 2;
-        text.truncate(fitChars);
-        label->setPlainText(text + "..");
+        qreal labelWidth = label->boundingRect().width();
+        if(labelWidth > availableWidth){
+            qreal ratio = availableWidth / labelWidth;
+            qreal fitChars = (text.size() * ratio) - 2;
+            text.truncate(fitChars);
+            label->setPlainText(text + "..");
+        }
     }
 
 
