@@ -131,6 +131,12 @@ NodeItem::~NodeItem()
             item->removeExpandButton();
             item->resetNextChildPos();
             item->resetSize();
+
+            // update parts dock container if parent kind
+            // is File and it no longer has children
+            if (item->getGraphML()->getDataValue("kind") == "File") {
+                emit updateDockContainer("Parts");
+            }
         }
     }
     delete label;
@@ -170,8 +176,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    //painter->setClipRect( option->exposedRect );
-
     if(PAINT_OBJECT){
         QRectF rectangle(0, 0, width, height);
 
@@ -191,13 +195,10 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             Pen = pen;
         }
 
-        QBrush HeaderBrush;
-        HeaderBrush = Brush;
+        QBrush HeaderBrush = Brush;
         QColor HeaderBrushColor = HeaderBrush.color();
 
         HeaderBrushColor.setAlpha(255);
-        //HeaderBrushColor.setRed(255);
-
         HeaderBrush.setColor(HeaderBrushColor);
 
         Node* node = getNode();
@@ -213,6 +214,9 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setBrush(Brush);
 
         painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
+
+        //painter->setPen(QPen(Qt::red, 10));
+        //painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
 
         QPainterPath UpperSidePath;
         QPolygonF UpperPolygon;
@@ -276,13 +280,6 @@ void NodeItem::removeNodeEdge(NodeEdge *line)
 double NodeItem::getChildWidth()
 {
     return initialWidth / COLUMN_COUNT + 1;
-}
-
-
-
-qreal NodeItem::getMinimumHeight()
-{
-    return minimumHeight;
 }
 
 
@@ -409,6 +406,7 @@ void NodeItem::updateViewAspects(QStringList aspects)
     if(hidden || !PAINT_OBJECT){
         return;
     }
+
     bool allMatched = true;
     foreach(QString aspect, viewAspects){
         if(!aspects.contains(aspect)){
@@ -418,6 +416,11 @@ void NodeItem::updateViewAspects(QStringList aspects)
     }
 
     setVisible(allMatched && (viewAspects.size() > 0));
+
+    // if not visible, unselect node item
+    if (!isVisible()) {
+        setSelected(false);
+    }
 }
 
 
@@ -436,15 +439,13 @@ void NodeItem::updateViewAspects(QStringList aspects)
  */
 void NodeItem::sort()
 {
-    //qDebug() << "----------------------------";
-
     emit triggerAction("Sorting Children");
 
     float topY;
     float gapY;
 
     // if it's a main node item, it will have no icon
-    if (getGraphML()->getDataValue("kind") == "Model" || nodeKind.endsWith("Definitions")) {
+    if (!PAINT_OBJECT || nodeKind.endsWith("Definitions")) {
         topY = label->x() + label->boundingRect().height()  + getCornerRadius();
         gapY = topY;
     } else {
@@ -489,8 +490,8 @@ void NodeItem::sort()
     // if the node item's children are Components or ComponentInstances
     // leave more gap for the in/out event ports along its edges
     if ((fileContainsComponents || componentAssembly) && componentHasChildren) {
-        gapY = topY;  // testing with this value to sort an imported file
-        //gapY *= 1.25;
+        //gapY = topY;  // testing with this value to sort an imported file
+        gapY *= 1.25;
         gapX = gapY;
         rowWidth = gapX;
     }
@@ -504,8 +505,6 @@ void NodeItem::sort()
 
             int childWidth = nodeItem->boundingRect().width();
             int childHeight = nodeItem->boundingRect().height();
-            //int childWidth = nodeItem->width;
-            //int childHeight = nodeItem->height;
 
             // if the origWidth is not used, when a node is sorted and it
             // only had one child to begin with, it will always only have
@@ -513,7 +512,6 @@ void NodeItem::sort()
             // this allows there to be at most 2 child nodes per row
 
             if ((rowWidth + childWidth) > (initialWidth*1.5)) {
-                //if ((rowWidth + childWidth) > origWidth) {
                 colHeight += maxHeight + gapY;
 
                 if (rowWidth > maxWidth) {
@@ -586,18 +584,10 @@ void NodeItem::sort()
             }
             emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
         }
-    } /*else {
-        emit updateGraphMLData(getGraphML(), "width", QString::number(initialWidth));
-        emit updateGraphMLData(getGraphML(), "height", QString::number(initialHeight));
-    }*/
-
+    }
 
     resetNextChildPos();
 }
-
-
-
-
 
 
 
@@ -609,23 +599,25 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if (event->modifiers().testFlag(Qt::ControlModifier)) {
             if (!PAINT_OBJECT) {
                 emit sortModel();
+            } else {
+                sort();
             }
-            sort();
         } else {
             if (PAINT_OBJECT) {
                 emit triggerCentered(getGraphML());
             } else {
-                emit centerModel();
+                emit centerViewAspects();
             }
         }
         break;
     }
     case Qt::LeftButton:{
+
+        // unselect any selected node item
+        // when the model is pressed
         if(!PAINT_OBJECT){
-            // unselect any selected node item
-            // when the model is pressed
             emit clearSelection();
-            event->setAccepted(false);
+            //event->setAccepted(false);
             return;
         }
 
@@ -634,7 +626,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
         hasSelectionMoved = false;
         isNodePressed = true;
-        //QGraphicsItem::mousePressEvent(event);
+
         emit triggerSelected(getGraphML());
 
         break;
@@ -1138,15 +1130,18 @@ void NodeItem::addExpandButton()
             expandButton->setFont(font);
             expandButton->setFixedSize(buttonSize, buttonSize);
 
-            QString borderRadius = QString::number(expandButton->width()/3.5);
+            //QString testString = QString("This is a test %1, T.txt").arg(expandButton->width());
+            QString penWidth = QString::number(pen.width());
+            QString borderRadius = QString::number(expandButton->width()/2);
             expandButton->setStyleSheet("QPushButton {"
                                         "background-color: rgba(255,255,255,250);"
-                                        "border: 10px solid gray;"
+                                        "border:" + penWidth + "px solid gray;"
                                         "border-radius:" + borderRadius + "px;"
                                         "padding: 0px;"
                                         "margin: 0px;"
                                         "}");
 
+            /*
             // this makes the corners of the expand button
             // and the proxy widget look rounded
             QPixmap pixmap(expandButton->size());
@@ -1155,11 +1150,10 @@ void NodeItem::addExpandButton()
             painter.setBrush(brush);
             painter.drawRoundRect(pixmap.rect(), 60, 60);
             expandButton->setMask(pixmap.createMaskFromColor(Qt::white, Qt::MaskOutColor));
+            */
 
-            /*
             QRegion region(expandButton->rect(), QRegion::RegionType::Ellipse);
             expandButton->setMask(region);
-            */
 
             int brushSize = selectedPen.width();
             expandButton->move(width - (getCornerRadius()/2) - buttonSize - brushSize, (minimumHeight - buttonSize)/2);

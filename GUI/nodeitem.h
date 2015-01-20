@@ -46,10 +46,11 @@ public:
     void resetSize();
     double getChildWidth();
 
-    qreal getMinimumHeight();
-
     QPointF getNextChildPos();
     void resetNextChildPos();
+
+    Node* getNode();
+
 
 signals:
     //Node Edge Signals
@@ -61,7 +62,7 @@ signals:
     void moveSelection(QPointF delta);
     void clearSelection();
 
-    void centerModel();
+    void centerViewAspects();
     void sortModel();
 
     //DockNodeItem Signals
@@ -71,6 +72,8 @@ signals:
 
     void addExpandButtonToParent();
     void updateParentHeight(NodeItem* child);
+
+    void updateDockContainer(QString dockContainer);
 
 public slots:
     //Model Signals
@@ -128,7 +131,7 @@ private:
     double getCornerRadius();
     double getMaxLabelWidth();
 
-    Node* getNode();
+    //Node* getNode();
 
     QStringList viewAspects;
 

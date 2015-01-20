@@ -821,9 +821,18 @@ void NewMedeaWindow::updateDockButtons(QString dockButton)
  */
 void NewMedeaWindow::updateDockContainer(QString container)
 {
-    if (container == "Parts" &&  selectedNode) {
+    if (container == "Parts" && selectedNode) {
         if(controller){
             partsContainer->addAdoptableDockNodes(selectedNode, controller->getAdoptableNodeKinds(selectedNode));
+            /*
+            QList<NodeItem*> list = nodeView->getVisibleNodeItems();
+            foreach (NodeItem* item, list) {
+                if (item->getNode() == selectedNode) {
+                    item->setSelected(false);
+                    item->setSelected(true);
+                }
+            }
+            */
         }
     }
     update();

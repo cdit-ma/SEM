@@ -30,6 +30,8 @@ public:
 
     void resetModel();
 
+    QList<NodeItem *> getVisibleNodeItems();
+
 signals:
     void updateViewPort(QRectF);
     void updateZoom(qreal zoom);
@@ -90,7 +92,6 @@ public slots:
     void view_ConstructEdgeGUI(Edge* edge);
 
     void view_DestructGraphMLGUI(QString ID);
-    //void view_DestructGraphMLGUI(GraphML* graphML);
 
     void view_SelectGraphML(GraphML* graphML, bool setSelected=true);
     void view_CenterGraphML(GraphML* graphML);
@@ -100,17 +101,19 @@ public slots:
 
     void view_ConstructNodeAction();
 
+    
+    void clearSelection();
 
     void fitToScreen();
-    void resetSceneRect(NodeItem *nodeItem);
     void centreNode(Node* node);
 
-    void clearSelection();
     void updateDockButtons(Node* node);
+    void view_updateDockContainer(QString dockContainer);
+
+    void view_sortModel();
+    void view_centerViewAspects();
 
     void view_addComponentDefinition(NodeItem* itm);
-    void view_centerModel();
-    void view_sortModel();
 
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
@@ -148,11 +151,9 @@ private:
     double origRatio;
     bool firstSort;
 
-    void sortInitialItems(QStringList aspects);
     QList<NodeItem*> getNodeItemsList();
-    QList<NodeItem *> getVisibleNodeItems();
 
-    // QAbstractScrollArea interface
+
 protected:
     bool viewportEvent(QEvent *);
 
