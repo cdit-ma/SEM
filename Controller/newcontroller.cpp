@@ -75,7 +75,6 @@ void NewController::connectView(NodeView *view)
     //connect(this, SIGNAL(view_ForceRefresh()), view, SLOT(view_Refresh()));
     connect(this, SIGNAL(view_CenterGraphML(GraphML*)), view, SLOT(view_CenterGraphML(GraphML*)));
 
-    connect(this, SIGNAL(view_SetRubberbandSelectionMode(bool)), view, SLOT(setRubberBandMode(bool)));
     connect(this, SIGNAL(view_ConstructGraphMLGUI(GraphML*)), view, SLOT(view_ConstructGraphMLGUI(GraphML*)));
     connect(this, SIGNAL(view_DestructGraphMLGUIFromID(QString)), view, SLOT(view_DestructGraphMLGUI(QString)));
     connect(this, SIGNAL(view_PrintErrorCode(GraphML*,QString)), view, SLOT(printErrorText(GraphML*,QString)));
@@ -956,23 +955,11 @@ void NewController::view_ClearUndoRedoStacks()
 void NewController::view_ControlPressed(bool isDown)
 {
     KEY_CONTROL_DOWN = isDown;
-    if(KEY_CONTROL_DOWN && KEY_SHIFT_DOWN){
-        emit view_SetRubberbandSelectionMode(true);
-    }else{
-        emit view_SetRubberbandSelectionMode(false);
-
-    }
 }
 
 void NewController::view_ShiftPressed(bool isDown)
 {
     KEY_SHIFT_DOWN = isDown;
-
-    if(KEY_CONTROL_DOWN && KEY_SHIFT_DOWN){
-        emit view_SetRubberbandSelectionMode(true);
-    }else{
-        emit view_SetRubberbandSelectionMode(false);
-    }
 
     if(KEY_SHIFT_DOWN){
         Node* node = getSelectedNode();
@@ -981,7 +968,6 @@ void NewController::view_ShiftPressed(bool isDown)
         }
     }else{
         view_ShowAllNodes();
-
     }
 
 }

@@ -21,7 +21,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     Q_INIT_RESOURCE(resources);
     setParentItem(parent);
 
-    isSelected = false;
+    nodeSelected = false;
     isNodePressed = false;
     hidden = false;
     expanded = false;
@@ -146,6 +146,24 @@ QRectF NodeItem::boundingRect() const
     return QRectF(-brushSize, -brushSize, width + (brushSize *2), height + (brushSize *2));
 }
 
+bool NodeItem::isSelected()
+{
+    return nodeSelected;
+}
+
+bool NodeItem::isPainted()
+{
+    return PAINT_OBJECT;
+}
+
+bool NodeItem::intersectsRectangle(QRectF sceneRect)
+{
+    QRectF itemRectangle = boundingRect();
+    itemRectangle.moveTo(scenePos());
+    return sceneRect.contains(itemRectangle);
+}
+
+
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
@@ -165,7 +183,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         QBrush Brush;
 
 
-        if(isSelected){
+        if(nodeSelected){
             Brush = selectedBrush;
             Pen = selectedPen;
         }else{
@@ -321,8 +339,8 @@ void NodeItem::setOpacity(qreal opacity)
 
 void NodeItem::setSelected(bool selected)
 {
-    if(isSelected != selected){
-        isSelected = selected;
+    if(nodeSelected != selected){
+        nodeSelected = selected;
 
         update();
         emit setEdgeSelected(selected);
@@ -661,7 +679,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
 
-    if(isNodePressed && isSelected){
+    if(isNodePressed && nodeSelected){
         if(hasSelectionMoved == false){
             emit triggerAction("Moving Selection");
             hasSelectionMoved = true;

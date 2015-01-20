@@ -84,9 +84,6 @@ signals:
     //Called when a GUI Item is triggered to be selected.
     void view_SetGraphMLSelected(GraphML* item, bool setSelected=true);
 
-    //Triggers the View to set RubberBand Selection mode on.
-    void view_SetRubberbandSelectionMode(bool on);
-
     //Triggers the View to write the GraphML XML data specified to the filename specified.
     void view_WriteGraphML(QString filename, QString data);
 

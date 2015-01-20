@@ -73,7 +73,7 @@ signals:
 
 public slots:
 
-    void rubberBandChanged1(QRect viewportRect, QPointF fromScenePoint, QPointF toScenePoint);
+    void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
     void view_ConstructGraphMLGUI(GraphML* item);
     void printErrorText(GraphML* graphml, QString text);
     void removeNodeItem(NodeItem* item);
@@ -136,7 +136,9 @@ private:
     QString NodeType;
     qreal totalScaleFactor;
 
-    bool rubberBanding;
+    bool RUBBERBAND_MODE;
+    bool drawingRubberBand;
+    QPoint rubberBandOrigin;
     bool once;
     QRectF getVisibleRect();
     bool CONTROL_DOWN;

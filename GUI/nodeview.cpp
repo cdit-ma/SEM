@@ -9,6 +9,7 @@
 #include <QWheelEvent>
 #include <QPointF>
 #include <QTouchEvent>
+#include <QRect>
 #include <QDebug>
 #include <iostream>
 #include <QGraphicsSceneMouseEvent>
@@ -21,7 +22,8 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 {
     totalScaleFactor = 1;
     NodeType = "";
-    rubberBanding = false;
+    RUBBERBAND_MODE = false;
+    drawingRubberBand = false;
     once = true;
 
     firstSort = true;
@@ -40,6 +42,7 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 
     rubberBand->setPalette(palette);
     rubberBand->resize(500, 500);
+    rubberBand->setVisible(false);
 
     //setAlignment(Qt::AlignHCenter);
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
@@ -49,8 +52,6 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     QGraphicsScene* Scene = new QGraphicsScene(this);
     //GridScene* Scene = new GridScene(this);
     setScene(Scene);
-    connect(this, SIGNAL(rubberBandChanged(QRect,QPointF,QPointF)), this, SLOT(rubberBandChanged1(QRect,QPointF,QPointF)));
-    //connect(this, SIGNAL(updateViewPort(QRectF)), Scene, SLOT(drawViewPort(QRectF)));
 
 
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
@@ -282,13 +283,14 @@ void NodeView::clearView()
 void NodeView::setRubberBandMode(bool On)
 {
     if(On){
-        setDragMode(RubberBandDrag);
+        RUBBERBAND_MODE = true;
+        setDragMode(NoDrag);
     }else{
+        RUBBERBAND_MODE = false;
+        drawingRubberBand = false;
+        rubberBand->setVisible(false);
         setDragMode(ScrollHandDrag);
     }
-
-
-
 }
 
 
@@ -745,6 +747,18 @@ GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
 void NodeView::mouseReleaseEvent(QMouseEvent *event)
 {
 
+    if(RUBBERBAND_MODE && drawingRubberBand){
+        //Get the Top Left and Bottom Right corners of the Rectangle.
+        QPoint screenOrigin = rubberBand->pos();
+        QPoint screenFinish = screenOrigin + QPoint(rubberBand->width(),rubberBand->height());
+        QPointF sceneOrigin = this->mapToScene(screenOrigin);
+        QPointF sceneFinish = this->mapToScene(screenFinish);
+
+        selectedInRubberBand(sceneOrigin, sceneFinish);
+        setRubberBandMode(false);
+        return;
+    }
+
 
     QGraphicsView::mouseReleaseEvent(event);
 }
@@ -752,29 +766,42 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
 void NodeView::mouseMoveEvent(QMouseEvent *event)
 {
 
+    if(RUBBERBAND_MODE && drawingRubberBand){
+        //Move rubberband to the position on the screen.
+        rubberBand->setGeometry(QRect(rubberBandOrigin, event->pos()).normalized());
+        if(!rubberBand->isVisible()){
+            rubberBand->setVisible(true);
+        }
+        return;
+    }
+
+
     QPointF scenePos = this->mapToScene(event->pos());
 
-    QGraphicsItem* item = this->scene()->itemAt(scenePos,this->transform());
+    QGraphicsItem* item = this->scene()->itemAt(scenePos, transform());
 
-    NodeItem* node = dynamic_cast<NodeItem*>(item);
+    NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
 
-    if(node){
-        //this->setCursor(Qt::SizeAllCursor);
-    }else{
+    if(!nodeItem){
         this->setCursor(Qt::ArrowCursor);
     }
 
     QGraphicsView::mouseMoveEvent(event);
-    // this removes the non-disappearing blue
-    // lines after moving node items
-    //update();
 }
 
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
     QPointF scenePos = this->mapToScene(event->pos());
     QGraphicsItem* item = this->scene()->itemAt(scenePos, QTransform());
-    rubberBanding = false;
+    //rubberBanding = false;
+
+    if(RUBBERBAND_MODE){
+        rubberBandOrigin = event->pos();
+        //Move rubberband to the position on the screen.
+        rubberBand->setGeometry(QRect(rubberBandOrigin, QSize()));
+        drawingRubberBand = true;
+        return;
+    }
 
     if(!item){
         if(event->button() == Qt::MiddleButton){
@@ -879,6 +906,14 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         emit controlPressed(true);
     }
 
+    if(CONTROL_DOWN && SHIFT_DOWN){
+        setRubberBandMode(true);
+    }else{
+        if(RUBBERBAND_MODE){
+            setRubberBandMode(false);
+        }
+    }
+
 
 }
 
@@ -892,6 +927,8 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
         this->SHIFT_DOWN = false;
         emit shiftPressed(false);
     }
+
+
     /*
     if(event->key() == Qt::Key_Escape){
         emit escapePressed(false);
@@ -921,11 +958,46 @@ void NodeView::resetModel()
     update();
 }
 
-void NodeView::rubberBandChanged1(QRect viewportRect, QPointF fromScenePoint, QPointF toScenePoint)
+void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint)
 {
+    QRectF selectionRectangle(fromScenePoint, toScenePoint);
 
-    //TODO Implement Selection Rectangle Magic.
+    //Get the Model and work down.
+    QList<QGraphicsItem*> graphicsItems = this->scene()->items(Qt::AscendingOrder);
+
+    NodeItem* modelItem = 0;
+    foreach(QGraphicsItem* item, graphicsItems){
+          NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
+          if(nodeItem){
+              if(nodeItem->getGraphML()->getDataValue("kind") == "Model"){
+                  modelItem = nodeItem;
+                  break;
+              }
+          }
+    }
+
+
+    QList<NodeItem*> nodeItems;
+    nodeItems << modelItem;
+    while(nodeItems.size() > 0){
+        NodeItem* currentNode = nodeItems.takeFirst();
+
+        if(currentNode->intersectsRectangle(selectionRectangle) && currentNode->isVisible() && currentNode->isPainted()){
+             controller->view_GraphMLSelected(currentNode->getGraphML(), true);
+        }else{
+            foreach(QGraphicsItem* childItem, currentNode->childItems()){
+                NodeItem* childNode = dynamic_cast<NodeItem*>(childItem);
+                if(childNode){
+                    nodeItems.push_back(childNode);
+                }
+            }
+        }
+    }
+
+
+
 }
+
 
 
 /**

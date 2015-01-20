@@ -30,7 +30,10 @@ public:
     NodeItem(Node *node, NodeItem *parent, QStringList aspects);
     ~NodeItem();
     QRectF boundingRect() const;
+    bool isSelected();
+    bool isPainted();
 
+    bool intersectsRectangle(QRectF rect);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     void setHidden(bool hidden);
@@ -141,7 +144,7 @@ private:
 
     QVector<NodeEdge*> connections;
 
-    bool isSelected;
+    bool nodeSelected;
     bool isNodePressed;
 
     QString nodeKind;
