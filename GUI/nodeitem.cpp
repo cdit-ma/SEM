@@ -470,7 +470,8 @@ void NodeItem::sort()
 
     int numberOfItems = 0;
 
-    bool componentLayout = (nodeKind == "Component" || nodeKind == "ComponentInstance");
+    //bool componentLayout = (nodeKind == "Component" || nodeKind == "ComponentInstance");
+    bool componentLayout = (nodeKind.contains("Component"));
     bool fileContainsComponents = (nodeKind == "File" && getChildrenKind().contains("Component"));
     bool componentAssembly = (nodeKind == "ComponentAssembly");
     bool componentHasChildren = false;
@@ -541,7 +542,7 @@ void NodeItem::sort()
                     newY = outCol;
                     newX = width - (childWidth/2);
                     outCol += childHeight + gapY;
-                } else if (nodeKind.startsWith("Attribute")) {
+                } else { //if (nodeKind.startsWith("Attribute")) {
                     newX = (width/2) - (childWidth/2);
                     newY = attCol;
                     attCol += childHeight + gapY;

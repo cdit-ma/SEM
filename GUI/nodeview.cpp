@@ -1076,6 +1076,5 @@ void NodeView::updateDockButtons(Node* node)
  */
 void NodeView::view_updateDockContainer(QString dockContainer)
 {
-    qDebug() << "view_updateDockContainer";
     emit updateDockContainer(dockContainer);
 }
