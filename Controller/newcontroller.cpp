@@ -1574,7 +1574,13 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     }
     if(nodeKind == "Member"){
         GraphMLKey* keyKey = constructGraphMLKey("key", "boolean", "node");
+        GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
         data.append(new GraphMLData(keyKey, "false"));
+        data.append(new GraphMLData(typeKey, ""));
+    }
+    if(nodeKind == "AttributeInstance"){
+        GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
+        data.append(new GraphMLData(valueKey, ""));
     }
     if(nodeKind == "OutEventPortInstance" || nodeKind == "InEventPortInstance"){
         GraphMLKey* topicKey = constructGraphMLKey("topicName", "string", "node");
