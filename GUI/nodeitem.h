@@ -50,7 +50,7 @@ public:
     void resetNextChildPos();
 
     Node* getNode();
-
+    QString getNodeKind();
 
 signals:
     //Node Edge Signals
@@ -131,6 +131,8 @@ private:
     double getCornerRadius();
     double getMaxLabelWidth();
 
+
+
     //Node* getNode();
 
     QStringList viewAspects;
@@ -187,8 +189,6 @@ private:
 
     bool hidden;
     int depth;
-
-
 
 
 };

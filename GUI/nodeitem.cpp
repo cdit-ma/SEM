@@ -32,14 +32,16 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     expandButton = 0;
     label  = 0;
 
-    nodeKind = "";
-
+    nodeKind = getGraphML()->getDataValue("kind");
 
     QString parentNodeKind = "";
     if (parent) {
         setWidth(parent->getChildWidth());
 
-        if (getGraphML()->getDataValue("kind").contains("Definitions")) {
+        if (nodeKind == "DeploymentDefinitions") {
+            setWidth(MODEL_WIDTH);
+            setHeight(MODEL_HEIGHT);
+        } else if (nodeKind.endsWith("Definitions")) { // && nodeKind.startsWith("Deployment")) {
             setHeight(width);
             expanded = true;
         } else {
@@ -57,7 +59,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
         setHeight(MODEL_HEIGHT);
     }
 
-    //Make
     if (parentNodeKind== "Component" || parentNodeKind== "ComponentInstance") {
         setWidth(width/2);
         setHeight(height/2);
@@ -214,9 +215,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setBrush(Brush);
 
         painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
-
-        //painter->setPen(QPen(Qt::red, 10));
-        //painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
 
         QPainterPath UpperSidePath;
         QPolygonF UpperPolygon;
@@ -402,7 +400,7 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
  * @param aspects
  */
 void NodeItem::updateViewAspects(QStringList aspects)
-{
+{    
     if(hidden || !PAINT_OBJECT){
         return;
     }
@@ -420,6 +418,9 @@ void NodeItem::updateViewAspects(QStringList aspects)
     // if not visible, unselect node item
     if (!isVisible()) {
         setSelected(false);
+        qDebug() << nodeKind << " not in aspect";
+    } else {
+        qDebug() << nodeKind << " in aspect";
     }
 }
 
@@ -455,7 +456,6 @@ void NodeItem::sort()
         gapY = topY/1.8;
     }
 
-    //float gapY = topY;
     float gapX = gapY;
 
     float inCol = topY;
@@ -470,10 +470,9 @@ void NodeItem::sort()
 
     int numberOfItems = 0;
 
-    //bool componentLayout = (nodeKind == "Component" || nodeKind == "ComponentInstance");
     bool componentLayout = (nodeKind.contains("Component"));
-    bool fileContainsComponents = (nodeKind == "File" && getChildrenKind().contains("Component"));
     bool componentAssembly = (nodeKind == "ComponentAssembly");
+    bool fileContainsComponents = (nodeKind == "File" && getChildrenKind().contains("Component"));
     bool componentHasChildren = false;
 
     // if this item is a File and contains Components for its children,
@@ -491,10 +490,19 @@ void NodeItem::sort()
     // if the node item's children are Components or ComponentInstances
     // leave more gap for the in/out event ports along its edges
     if ((fileContainsComponents || componentAssembly) && componentHasChildren) {
-        //gapY = topY;  // testing with this value to sort an imported file
-        gapY *= 1.25;
+        gapY = topY;
         gapX = gapY;
         rowWidth = gapX;
+    }
+
+    // position children differently for DeploymentDefinitions
+    if (nodeKind == "DeploymentDefinitions") {
+        rowWidth = 0;
+        colHeight = 0;
+        gapY = 0;
+    } else if (nodeKind == "Model") {
+        rowWidth = 0;
+        colHeight = 0;
     }
 
     foreach (QGraphicsItem* child, this->childItems()) {
@@ -503,6 +511,23 @@ void NodeItem::sort()
 
         // check that it's a NodeItem and that it's visible
         if (nodeItem != 0 && nodeItem->isVisible()) {
+
+            // if child == DeploymentDefinitions and all of
+            // it's children are invisible, don't sort it
+            if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
+                bool childrenAreInAspect = false;
+                foreach (QGraphicsItem* itm, nodeItem->childItems()) {
+                    NodeItem* nodeItm = dynamic_cast<NodeItem*>(itm);
+                    if (nodeItm && nodeItm->isVisible()) {
+                        childrenAreInAspect = true;
+                        break;
+                    }
+                }
+                if (!childrenAreInAspect) {
+                    break;
+                }
+                qDebug() << "Deployment width = " << nodeItem->boundingRect().width();
+            }
 
             int childWidth = nodeItem->boundingRect().width();
             int childHeight = nodeItem->boundingRect().height();
@@ -520,7 +545,12 @@ void NodeItem::sort()
                 }
 
                 maxHeight = childHeight;
-                rowWidth = gapX;
+
+                if (nodeKind == "Model") {
+                    rowWidth = 0;
+                } else {
+                    rowWidth = gapX;
+                }
             }
 
             // store the maximum height for each row
@@ -542,11 +572,10 @@ void NodeItem::sort()
                     newY = outCol;
                     newX = width - (childWidth/2);
                     outCol += childHeight + gapY;
-                } else { //if (nodeKind.startsWith("Attribute")) {
+                } else {
                     newX = (width/2) - (childWidth/2);
                     newY = attCol;
                     attCol += childHeight + gapY;
-
                 }
 
                 emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(newX));
@@ -565,7 +594,9 @@ void NodeItem::sort()
     }
 
     if (numberOfItems > 0) {
+
         if (componentLayout) {
+
             float max_height = inCol;
             if (outCol > max_height) {
                 max_height = outCol;
@@ -574,11 +605,32 @@ void NodeItem::sort()
                 max_height = attCol;
             }
             emit updateGraphMLData(getGraphML(),"height", QString::number(max_height));
+
         } else {
-            if (maxWidth == 0) {
+
+            /*
+                if (maxWidth == 0) {
+                    maxWidth = rowWidth - gapX;
+                }
+                */
+
+            if (rowWidth > maxWidth) {
                 maxWidth = rowWidth - gapX;
             }
-            if ((maxWidth+gapX) > initialWidth) {
+
+            if (nodeKind == "DeploymentDefinitions") {
+                emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth));
+                emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight));
+                return;
+            }
+
+            if (nodeKind == "Model") {
+                emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth));
+                emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight));
+                return;
+            }
+
+            if ((maxWidth + gapX) > initialWidth) {
                 emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth + gapX));
             } else {
                 emit updateGraphMLData(getGraphML(), "width", QString::number(initialWidth));
@@ -759,40 +811,32 @@ void NodeItem::setupAspect()
     while(node){
         QString nodeKind = node->getDataValue("kind");
         if(nodeKind == "ManagementComponent"){
-            if(!viewAspects.contains("Hardware")){
-                viewAspects.append("Hardware");
-            }
-            if(!viewAspects.contains("Assembly")){
-                viewAspects.append("Assembly");
-            }
+            viewAspects.append("Hardware");
+            viewAspects.append("Assembly");
         }
         else if(nodeKind == "HardwareDefinitions"){
-            if(!viewAspects.contains("Hardware")){
+            viewAspects.append("Hardware");
+        }else if(nodeKind == "AssemblyDefinitions"){
+            viewAspects.append("Assembly");
+        }else if(nodeKind == "BehaviourDefinitions"){
+            viewAspects.append("Workload");
+        }else if(nodeKind == "InterfaceDefinitions"){
+            viewAspects.append("Definitions");
+        }
+
+        if (nodeKind == "DeploymentDefintions") {
+            if (!viewAspects.contains("Hardware")) {
                 viewAspects.append("Hardware");
             }
-        }else if(nodeKind == "AssemblyDefinitions"){
-            if(!viewAspects.contains("Assembly")){
+            if (!viewAspects.contains("Assembly")) {
                 viewAspects.append("Assembly");
-            }
-        }else if(nodeKind == "BehaviourDefinitions"){
-            if(!viewAspects.contains("Workload")){
-                viewAspects.append("Workload");
-            }
-        }else if(nodeKind == "InterfaceDefinitions"){
-            if(!viewAspects.contains("Definitions")){
-                viewAspects.append("Definitions");
             }
         }
 
         node = node->getParentNode();
     }
-
-
-
-
-
-
 }
+
 
 void NodeItem::setupBrushes()
 {
@@ -1015,7 +1059,7 @@ void NodeItem::retrieveGraphMLData()
     //Update the position with values from the GraphML Model if they have them.
     double graphmlX = getGraphML()->getDataValue("x").toDouble();
     double graphmlY = getGraphML()->getDataValue("y").toDouble();
-    nodeKind = getGraphML()->getDataValue("kind");
+    //nodeKind = getGraphML()->getDataValue("kind");
 
     setPos(graphmlX, graphmlY);
 
@@ -1253,6 +1297,16 @@ void NodeItem::updateHeight(NodeItem *child)
 Node *NodeItem::getNode()
 {
     return dynamic_cast<Node*>(getGraphML());
+}
+
+
+/**
+ * @brief NodeItem::getNodeKind
+ * @return
+ */
+QString NodeItem::getNodeKind()
+{
+    return nodeKind;
 }
 
 

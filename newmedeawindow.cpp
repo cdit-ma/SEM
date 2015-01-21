@@ -197,7 +197,8 @@ void NewMedeaWindow::initialiseGUI()
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
     rightVlayout->addStretch();
 
-    rightVlayout->addWidget(notificationArea, 1);
+    //rightVlayout->addWidget(notificationArea, 1);
+    rightVlayout->addStretch();
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
 
     mainHLayout->addLayout(leftVlayout, 4);

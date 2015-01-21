@@ -70,8 +70,6 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 
     // set view background-color
     setStyleSheet("QGraphicsView{ background-color: rgba(150,150,150,255); }");
-    //setViewport(this);
-    //viewport()->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
 }
 
 void NodeView::setController(NewController *controller)
@@ -165,6 +163,8 @@ void NodeView::centreItem(GraphMLItem *item)
         return;
     }
 
+    qDebug() << "Centering " << item->getGraphML()->getDataValue("kind");
+
     QRectF viewRect = getVisibleRect();
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
 
@@ -174,11 +174,11 @@ void NodeView::centreItem(GraphMLItem *item)
 
     // don't add extra space for node items that aren't painted
     if (!dynamic_cast<NodeItem*>(item)->isPainted()) {
-        extraSpace = 1;
+        //extraSpace = 1;
     }
 
     QRectF newRec = scene()->itemsBoundingRect();
-    qreal multiplier = viewRect.height() / itemRect.height();
+    qreal multiplier = (viewRect.height() / itemRect.height()) - 1;
     qreal neededXGap = qAbs((viewRect.width() - (itemRect.width()*multiplier)) / 2);
     qreal neededYGap = qAbs((viewRect.height() - (itemRect.height()*multiplier)) / 2);
     qreal leftXGap = qAbs((itemRect.x() - sceneRect().x()) * multiplier);
