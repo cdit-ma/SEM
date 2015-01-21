@@ -254,17 +254,17 @@ void NodeView::showContextMenu(QPoint position)
 
     QMenu* rightClickMenu = new QMenu(this);
 
-    QAction* deleteAction = new QAction(this);
-    deleteAction->setText("Delete Selection");
-    connect(deleteAction, SIGNAL(triggered()), controller, SLOT(view_DeletePressed()));
-    rightClickMenu->addAction(deleteAction);
-
     if(controller->getAdoptableNodeKinds().size() > 0){
         QAction* addChildNode = new QAction(this);
         addChildNode->setText("Create Child Node");
         connect(addChildNode, SIGNAL(triggered()), this, SLOT(view_ConstructNodeAction()));
         rightClickMenu->addAction(addChildNode);
     }
+
+    QAction* deleteAction = new QAction(this);
+    deleteAction->setText("Delete Selection");
+    connect(deleteAction, SIGNAL(triggered()), controller, SLOT(view_DeletePressed()));
+    rightClickMenu->addAction(deleteAction);
 
     rightClickMenu->exec(globalPos);
 }
@@ -320,6 +320,18 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     connect(nodeItem, SIGNAL(centerViewAspects()), this, SLOT(view_centerViewAspects()));
     connect(nodeItem, SIGNAL(sortModel()), this, SLOT(view_sortModel()));
     connect(nodeItem, SIGNAL(updateDockContainer(QString)), this, SLOT(view_updateDockContainer(QString)));
+
+
+    /**************************************************************/
+
+    if (node->isDefinition() || node->isInstance()) {
+        connect(nodeItem, SIGNAL(centerImplementation(Node*)), this, SLOT(goToImplementation(Node*)));
+    }
+    if (node->isImpl() || node->isInstance()) {
+        connect(nodeItem, SIGNAL(centerDefinition(Node*)), this, SLOT(goToDefinition(Node*)));
+    }
+
+    /**************************************************************/
 
 
     if(!scene()->items().contains(nodeItem)){
@@ -955,6 +967,26 @@ void NodeView::view_addComponentDefinition(NodeItem *itm)
             controller->view_ConstructComponentInstanceInAssembly(defn, assm);
         }
     }
+}
+
+
+/**
+ * @brief NodeView::goToDefinition
+ * @param node
+ */
+void NodeView::goToDefinition(Node *node)
+{
+    centreItem(getGraphMLItemFromGraphML(node));
+}
+
+
+/**
+ * @brief NodeView::goToImplementation
+ * @param node
+ */
+void NodeView::goToImplementation(Node *node)
+{
+    centreItem(getGraphMLItemFromGraphML(node));
 }
 
 

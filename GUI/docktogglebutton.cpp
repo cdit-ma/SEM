@@ -17,16 +17,36 @@ DockToggleButton::DockToggleButton(QString label, NewMedeaWindow *window, QWidge
 {
     selected = false;
 
-    fillColor = QColor(230, 230, 230, 230);
-    selectedColor = QColor(230,150,150,230);
+    fillColor = QColor(250, 250, 250, 250);
+    selectedColor = QColor(250, 160, 0, 250);
     color = fillColor;
 
     width = 40;
     height = 40;
 
     setText(label);
-    setStyleSheet("font-size: 14px;");
-    setMinimumSize(50, 50);
+    setFixedSize(width + 10, height + 10);
+
+    QPixmap pixmap = 0;
+    if (label == "P") {
+        pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/Workload.png"));
+    } else if (label == "H") {
+        pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/HardwareNode.png"));
+    } else if (label == "D") {
+        pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/Component.png"));
+    }
+
+    QVBoxLayout* vLayout = new QVBoxLayout();
+    QLabel* imageLabel = new QLabel(this);
+    QPixmap scaledPixmap = pixmap.scaled(this->size()*0.6, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    imageLabel->setStyleSheet("padding: 3px 0px 8.5px 6.5px;");
+    imageLabel->setFixedSize(this->size());
+    imageLabel->setPixmap(scaledPixmap);
+
+    vLayout->setMargin(0);
+    vLayout->addWidget(imageLabel);
+    setLayout(vLayout);
 
     // make connections
     connect(this, SIGNAL(pressed()), this, SLOT(on_buttonPressed()));
@@ -78,24 +98,32 @@ void DockToggleButton::setContainer(DockScrollArea *area)
 
 /**
  * @brief DockToggleButton::paintEvent
- * Draw the button as an ellipse with and changeits color when it's selected.
+ * Draw the button as an ellipse and change its color when it's selected.
+ * The rect used for the path is moved to (1,1) so that the full pen width is painted.
  * @param e
  */
 void DockToggleButton::paintEvent(QPaintEvent *e)
 {
     QPainter painter(this);
-    QPainterPath path;
     QBrush brush(color);
-    QRectF shape(0, 0, width, height);
 
-    QVector<QLine> arrow;
-    arrow.append(QLine(13,32,23,27));
-    arrow.append(QLine(23,27,33,32));
+    QPen pen(QColor(130,130,130));
+    pen.setWidth(2);
+    painter.setPen(pen);
 
-    path.addEllipse(shape);
-    painter.fillPath(path, brush);
-    painter.drawEllipse(shape);
-    painter.drawText(16, 25, text());
+    // fill the ellipse
+    QPainterPath path1;
+    QRectF rect1(1, 1, width+1, height+1);
+    path1.addEllipse(rect1);
+    painter.fillPath(path1, brush);
+
+    // draw the ellipse
+    QRectF rect2(1, 1, width+2, height+2);
+    QPainterPath path2;
+    path2.addEllipse(rect2);
+    painter.drawPath(path2);
+
+    //painter.drawText(16, 25, text());
 
     QWidget::paintEvent(e);
 }

@@ -117,6 +117,9 @@ public slots:
 
     void view_addComponentDefinition(NodeItem* itm);
 
+    void goToDefinition(Node* node);
+    void goToImplementation(Node* node);
+
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
 

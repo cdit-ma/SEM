@@ -41,7 +41,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
         if (nodeKind == "DeploymentDefinitions") {
             setWidth(MODEL_WIDTH);
             setHeight(MODEL_HEIGHT);
-        } else if (nodeKind.endsWith("Definitions")) { // && nodeKind.startsWith("Deployment")) {
+        } else if (nodeKind.endsWith("Definitions")) {
             setHeight(width);
             expanded = true;
         } else {
@@ -95,21 +95,31 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
     setCacheMode(QGraphicsItem::NoCache);
 
-    // if this item has a parent and it's the first child of that parent
-    // send a signal to the parent to add an expandButton and sort it
-    if (parent && parent->getNumberOfChildren() == 1) {
-        emit addExpandButtonToParent();
-    }
-
     if(getGraphML()->getDataValue("kind") == "Model" || getGraphML()->getDataValue("kind") == "DeploymentDefinitions"){
         setPaintObject(false);
     }else{
         setPaintObject(true);
     }
 
+    // if this item has a parent and it's the first child of that parent
+    // send a signal to the parent to add an expandButton and sort it
+    if (parent && parent->getNumberOfChildren() == 1) {
+        emit addExpandButtonToParent();
+    }
+
     updateViewAspects(aspects);
     resetNextChildPos();
     emit updateParentHeight(this);
+
+    /*
+    QPushButton *defn = new QPushButton("Definition");
+    defn->setFixedSize(1000, 1000);
+    connect(defn, SIGNAL(pressed()), this, SLOT(goToDefinition()));
+    defn->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+    defn->setCheckable(true);
+    QGraphicsProxyWidget *p = new QGraphicsProxyWidget(this);
+    p->setWidget(defn);
+    */
 }
 
 
@@ -732,6 +742,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
+
 void NodeItem::setWidth(qreal width)
 {
     this->width = width;
@@ -1286,6 +1297,29 @@ void NodeItem::updateHeight(NodeItem *child)
             }
 
         }
+    }
+}
+
+
+/**
+ * @brief NodeItem::goToDefinition
+ */
+void NodeItem::goToDefinition()
+{
+    qDebug() << "NodeItem::goToDefinition";
+    if (getNode() && getNode()->getDefinition()) {
+        emit centerDefinition(getNode()->getDefinition());
+    }
+}
+
+
+/**
+ * @brief NodeItem::goToImplementation
+ */
+void NodeItem::goToImplementation()
+{
+    if (getNode() && getNode()->getImplementations().count() == 1) {
+        emit centerImplementation(getNode()->getImplementations().at(0));
     }
 }
 

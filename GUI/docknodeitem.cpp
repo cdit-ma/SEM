@@ -78,7 +78,7 @@ void DockNodeItem::paintEvent(QPaintEvent *e)
                   "border-radius: 10px;"
                   "}");
 
-    /**
+    /*
     // this overrides the call above so when the item is selected, you can
     // only see the change in background color when you hover over it
     setStyleSheet("QPushButton:hover:checked{"

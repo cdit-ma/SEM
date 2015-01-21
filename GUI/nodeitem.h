@@ -75,6 +75,9 @@ signals:
 
     void updateDockContainer(QString dockContainer);
 
+    void centerDefinition(Node* node);
+    void centerImplementation(Node* node);
+
 public slots:
     //Model Signals
     void graphMLDataUpdated(GraphMLData *data);
@@ -92,12 +95,15 @@ public slots:
     void expandItem(bool show);
     void updateHeight(NodeItem* child);
 
+    void goToDefinition();
+    void goToImplementation();
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
-private:
+private:    
     void setWidth(qreal width);
     void setHeight(qreal height);
 
@@ -107,15 +113,14 @@ private:
     void setupLabel();
     void setupGraphMLConnections();
 
+    void setPaintObject(bool paint);
+
     void updateGraphMLSize();
     void updateGraphMLPosition();
 
     void retrieveGraphMLData();
 
-    void setPaintObject(bool paint);
-
     void updateTextLabel(QString text=0);
-
     void updateExpandButton();
 
     bool isExpanded();

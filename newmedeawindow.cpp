@@ -176,10 +176,6 @@ void NewMedeaWindow::initialiseGUI()
 
     rightVlayout->addLayout(searchLayout, 1);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
-    //rightVlayout->addWidget(assemblyButton, 1);
-    //rightVlayout->addWidget(hardwareButton, 1);
-    //rightVlayout->addWidget(workloadButton, 1);
-    //rightVlayout->addWidget(definitionsButton, 1);
     rightVlayout->addLayout(viewButtonsGrid);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
     rightVlayout->addWidget(dataTableBox, 4);
@@ -486,6 +482,7 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
 
 /**
  * @brief NewMedeaWindow::sortAndCenterModel
+ * This forces the current view aspects to center.
  */
 void NewMedeaWindow::sortAndCenterViewAspects()
 {
