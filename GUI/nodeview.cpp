@@ -153,7 +153,8 @@ bool NodeView::viewportEvent(QEvent * e)
 
 /**
  * @brief NodeView::centreItem
- * This method scales and translates the scene to center on item.
+ * This method scales and translates the scene to center on the item.
+ * It extends the scene rect if it's not big enough to centre the item.
  * @param item
  */
 void NodeView::centreItem(GraphMLItem *item)
@@ -167,15 +168,7 @@ void NodeView::centreItem(GraphMLItem *item)
 
     QRectF viewRect = getVisibleRect();
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
-
-    //Extra Space denotes 20% extra space on the height.
-    //Calculate the scale required to fit the item + 20% in the Viewport Rectangle.
     qreal extraSpace = 1.2;
-
-    // don't add extra space for node items that aren't painted
-    if (!dynamic_cast<NodeItem*>(item)->isPainted()) {
-        //extraSpace = 1;
-    }
 
     QRectF newRec = scene()->itemsBoundingRect();
     qreal multiplier = (viewRect.height() / itemRect.height()) - 1;
@@ -193,35 +186,18 @@ void NodeView::centreItem(GraphMLItem *item)
         newRec.setX(newRec.x()-neededXGap);
         newRec.setWidth(newRec.width()+neededXGap);
         setSceneRect(newRec);
-        //qDebug() << "Adding to leftXGap";
     } else if (rightXGap < neededXGap) {
         newRec.setWidth(newRec.width()+neededXGap);
         setSceneRect(newRec);
-        //qDebug() << "Adding to rightXGap";
     }
     if (topYGap < neededYGap) {
         newRec.setY(newRec.y()-neededYGap);
         newRec.setHeight(newRec.height()+neededYGap);
         setSceneRect(newRec);
-        //qDebug() << "Adding to topYGap";
     } else if (bottomYGap < neededYGap) {
         newRec.setHeight(newRec.height()+neededYGap);
         setSceneRect(newRec);
-        //qDebug() << "Adding to bottomYGap";
     }
-
-    /*
-    qDebug() << "viewRect.height = " << viewRect.height();
-    qDebug() << "item.height = " << itemRect.height();
-    qDebug() << "multiplier = " << (viewRect.height() / itemRect.height());
-
-    qDebug() << "leftXGap: " << leftXGap;
-    qDebug() << "rightXGap: " << rightXGap;
-    qDebug() << "topYGap: " << topYGap;
-    qDebug() << "bottomYGap: " << bottomYGap;
-    qDebug() << "neededXGap: " << neededXGap;
-    qDebug() << "neededYGap: " << neededYGap;
-    */
 
     itemRect.setWidth(itemRect.width()*extraSpace*1.15);
     itemRect.setHeight(itemRect.height()*extraSpace);
@@ -262,10 +238,9 @@ void NodeView::setRubberBandMode(bool On)
 void NodeView::setViewAspects(QStringList aspects)
 {
     currentAspects = aspects;
-
     emit updateViewAspects(aspects);
     emit sortModel();
-    emit view_centerViewAspects();
+    view_centerViewAspects();
 }
 
 
@@ -346,19 +321,12 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     connect(nodeItem, SIGNAL(sortModel()), this, SLOT(view_sortModel()));
     connect(nodeItem, SIGNAL(updateDockContainer(QString)), this, SLOT(view_updateDockContainer(QString)));
 
-    // send the current view aspects to the newly created node item
-    // this determines whether the item should intially be visible or not
-
 
     if(!scene()->items().contains(nodeItem)){
         //Add to model.
         scene()->addItem(nodeItem);
-    } else {
-        //qDebug() << "Item already in the scene";
     }
 
-
-    /************************************************************************************/
 
     //if this item's parent is a File, check if it's the first child
     // if it is, update dock adoptable node list
@@ -1005,6 +973,7 @@ void NodeView::view_centerViewAspects()
             return;
         }
     }
+
     emit centerNode("Model");
 }
 

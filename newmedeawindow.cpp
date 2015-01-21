@@ -38,7 +38,6 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     }
 
     /*
-
     QFile file("C:/ArrowTest.graphml");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
@@ -52,10 +51,7 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     emit view_ActionTriggered("Loading GraphML");
     //emit view_ActionTriggered("Loading XME");
     emit view_PasteData(xmlText);
-
-*/
-
-
+    */
 }
 
 
@@ -88,10 +84,6 @@ void NewMedeaWindow::initialiseGUI()
     nodeView = new NodeView();
     scene = nodeView->scene();
 
-    //QThread *controllerThread =  new QThread(this);
-    //controller->moveToThread(controllerThread);
-    //controllerThread->start();
-
     // set window size; used for graphicsview and main widget
     int windowWidth = 1300;
     int windowHeight = 800;
@@ -116,9 +108,6 @@ void NewMedeaWindow::initialiseGUI()
     QPushButton *searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
     QTextEdit *notificationArea = new QTextEdit("Notifications can be displayed here.");
     QVBoxLayout *tableLayout = new QVBoxLayout();
-
-    // this is just for testing
-    connect(searchButton, SIGNAL(pressed()), this, SLOT(addNodeToDock()));
 
     // setup widgets
     projectName->setFlat(true);
@@ -442,6 +431,8 @@ void NewMedeaWindow::makeConnections()
 
     connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 
+    connect(this, SIGNAL(setupViewLayout()), this, SLOT(sortAndCenterViewAspects()));
+
     connectToController();
 }
 
@@ -490,6 +481,17 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
 
     // update dataTable size
     updateDataTable();
+}
+
+
+/**
+ * @brief NewMedeaWindow::sortAndCenterModel
+ */
+void NewMedeaWindow::sortAndCenterViewAspects()
+{
+    if (nodeView) {
+        nodeView->view_centerViewAspects();
+    }
 }
 
 
@@ -755,7 +757,7 @@ void NewMedeaWindow::addNewNodeToDock(QString type, NodeItem *nodeItem)
 void NewMedeaWindow::updateViewAspects()
 {
     QPushButton *sourceButton = qobject_cast<QPushButton*>(QObject::sender());
-    if(sourceButton){
+    if (sourceButton) {
         if (sourceButton->isChecked()) {
             checkedViewAspects.append(sourceButton->text());
         } else {
@@ -984,17 +986,6 @@ void NewMedeaWindow::updateDataTable()
     }
 
     dataTableBox->repaint();
-}
-
-
-/**
- * @brief NewMedeaWindow::addNodeToDock
- * This is currently just for testing purposes.
- */
-void NewMedeaWindow::addNodeToDock()
-{
-    //hardwareContainer->addDockNode("H", "test");
-    //definitionsContainer->addDockNode("D", "test");
 }
 
 

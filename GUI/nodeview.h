@@ -73,6 +73,8 @@ signals:
     void sortModel();
     void centerNode(QString nodeLabel);
 
+    void hideDeployment(bool hide);
+
 public slots:
 
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);

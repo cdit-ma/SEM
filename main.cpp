@@ -24,10 +24,12 @@ int main(int argc, char *argv[])
 
     //MedeaWindow *w = new MedeaWindow(GraphMLFile);
     NewMedeaWindow *w = new NewMedeaWindow(GraphMLFile);
+
    // ModelTester *t = new ModelTester();
     //delete t;
 
     w->show();
+    w->setupViewLayout();
 
     return a.exec();
 }

@@ -78,7 +78,7 @@ signals:
 public slots:
     //Model Signals
     void graphMLDataUpdated(GraphMLData *data);
-\
+    \
     void setOpacity(qreal opacity);
     void setSelected(bool selected);
     void setVisible(bool visible);
@@ -132,9 +132,6 @@ private:
     double getMaxLabelWidth();
 
 
-
-    //Node* getNode();
-
     QStringList viewAspects;
 
     void setPos(qreal x, qreal y);
@@ -181,11 +178,7 @@ private:
     QPen selectedPen;
 
 
-
-   bool PAINT_OBJECT;
-
-
-
+    bool PAINT_OBJECT;
 
     bool hidden;
     int depth;

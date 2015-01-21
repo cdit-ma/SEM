@@ -30,7 +30,6 @@
 #include "GUI/dockscrollarea.h"
 
 
-
 class NewMedeaWindow : public QMainWindow
 {
     Q_OBJECT
@@ -52,7 +51,11 @@ signals:
     void clearDock();
     void checkDockScrollBar();
 
+    void setupViewLayout();
+
 private slots:
+    void sortAndCenterViewAspects();
+
     void loadJenkinsData(int code);
 
     void on_actionImportJenkinsNode();
@@ -83,9 +86,6 @@ private slots:
     void addNewNodeToDock(QString type, NodeItem* nodeItem);
     void setAdoptableNodeList(Node* node);
     void nodeSelected(Node* node);
-
-    // this is just for testing
-    void addNodeToDock();
 
 private:
     void importGraphMLFiles(QStringList files);

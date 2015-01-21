@@ -418,9 +418,6 @@ void NodeItem::updateViewAspects(QStringList aspects)
     // if not visible, unselect node item
     if (!isVisible()) {
         setSelected(false);
-        qDebug() << nodeKind << " not in aspect";
-    } else {
-        qDebug() << nodeKind << " in aspect";
     }
 }
 
@@ -526,7 +523,6 @@ void NodeItem::sort()
                 if (!childrenAreInAspect) {
                     break;
                 }
-                qDebug() << "Deployment width = " << nodeItem->boundingRect().width();
             }
 
             int childWidth = nodeItem->boundingRect().width();
