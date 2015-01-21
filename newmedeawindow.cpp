@@ -232,32 +232,21 @@ void NewMedeaWindow::initialiseGUI()
     setupMenu(menuButton);
     setupDock(bodyLayout);
 
+    // setup mini map
     NodeViewMinimap* minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
     connect(nodeView, SIGNAL(updateViewPort(QRectF)), minimap, SLOT(updateViewPort(QRectF)));
 
-    rightVlayout->addWidget(minimap);
-    //minimap->fitInView(QRectF(0,0,19200,10800));
-
-    //minimap->setSceneRect(0,0,19200,10800);
-    //minimap->setInteractive(false);
-
     minimap->scale(.002,.002);
-    minimap->setHorizontalScrollBarPolicy ( Qt::ScrollBarAlwaysOff );
-    minimap->setVerticalScrollBarPolicy  ( Qt::ScrollBarAlwaysOff );
+    minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
     minimap->setInteractive(false);
 
     minimap->setFixedWidth(rightPanelWidth);
-    qreal minimapHeight = (rightPanelWidth/16) * 10;
-    minimap->setFixedHeight(minimapHeight);
+    minimap->setFixedHeight(rightPanelWidth/16 * 10);
+    minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
 
-
-
-    //QPixmap pixmap = nodeView->grab();
-
-
-
-
+    rightVlayout->addWidget(minimap);
 }
 
 
