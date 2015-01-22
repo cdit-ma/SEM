@@ -43,12 +43,15 @@ private:
     void updateLines();
 
     void setupBrushes();
+    void forceVisible(bool visible);
 
     QPainterPath* painterPath;
 
     QVector<QGraphicsLineItem*> lineItems;
     QVector<QGraphicsLineItem*> arrowHeadLines;
 
+    NodeItem* sourceParent;
+    NodeItem* destinationParent;
     NodeItem* source;
     NodeItem* destination;
 

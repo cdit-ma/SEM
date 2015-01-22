@@ -1,5 +1,6 @@
 #include "nodeedge.h"
 #include "graphmlitem.h"
+#include <QDebug>
 
 NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 {
@@ -14,6 +15,25 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 
     source = s;
     destination = d;
+
+    sourceParent = 0;
+    destinationParent = 0;
+
+    if(s->parentItem()){
+        QGraphicsItem* sParent = s->parentItem();
+        sourceParent = dynamic_cast<NodeItem*>(sParent);
+        if(sourceParent){
+            qCritical() << sourceParent->getGraphML()->toString();
+        }
+    }
+
+    if(d->parentItem()){
+        QGraphicsItem* dParent = d->parentItem();
+        destinationParent = dynamic_cast<NodeItem*>(dParent);
+        if(destinationParent){
+            qCritical() << destinationParent->getGraphML()->toString();
+        }
+    }
 
     if(IS_INSTANCE_LINK || IS_IMPL_LINK){
         Node* src = edge->getSource();
@@ -35,6 +55,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
             IS_VISIBLE = false;
         }
     }
+
 
     //Construct lines.
     for(int i=0; i < 3; i++){
@@ -167,18 +188,30 @@ void NodeEdge::setSelected(bool selected)
 
 void NodeEdge::setVisible(bool visible)
 {
-    bool setVisible = IS_VISIBLE && (source->isVisible() && destination->isVisible());// && visible;
-
-    foreach(QGraphicsLineItem* line, lineItems){
-        line->setVisible(setVisible);
+    NodeItem* start = source;
+    NodeItem* finish = destination;
+    if(!source->isVisible()){
+        if(sourceParent){
+            if(sourceParent->isVisible()){
+                 start = sourceParent;
+            }
+        }
     }
-    foreach(QGraphicsLineItem* line, arrowHeadLines){
-        line->setVisible(setVisible);
+
+    if(!destination->isVisible()){
+        if(destinationParent){
+            if(destinationParent->isVisible()){
+                 finish = destinationParent;
+            }
+        }
     }
 
 
-    label->setVisible(setVisible);
-    QGraphicsItem::setVisible(setVisible);
+    bool isVisible = false;
+    if(IS_VISIBLE && start->isVisible() && finish->isVisible()){
+        isVisible = true;
+    }
+    forceVisible(isVisible);
 }
 
 void NodeEdge::updateEdge()
@@ -284,15 +317,47 @@ void NodeEdge::setupBrushes()
     selectedArrowPen.setWidth(2 * penWidth);
 }
 
+void NodeEdge::forceVisible(bool visible)
+{
+    foreach(QGraphicsLineItem* line, lineItems){
+        line->setVisible(visible);
+    }
+    foreach(QGraphicsLineItem* line, arrowHeadLines){
+        line->setVisible(visible);
+    }
+
+    QGraphicsItem::setVisible(visible);
+}
+
 
 void NodeEdge::updateLines()
 {
     //The Top Left of the Circle will be the center point.
+    NodeItem* start = source;
+    NodeItem* finish = destination;
+    //Check for parent Visibility.
 
-    float sx = source->scenePos().x() + (source->getWidth() / 2);
-    float sy = source->scenePos().y() + (source->getHeight() / 2);
-    float dx = destination->scenePos().x() + (destination->getWidth() / 2);
-    float dy = destination->scenePos().y() + (destination->getHeight() / 2);
+    while(start && !(start->isVisible() && start->isPainted())){
+        start = start->getParentNodeItem();
+    }
+
+    while(finish && !(finish->isVisible() && finish->isPainted())){
+        finish = finish->getParentNodeItem();
+    }
+
+    if(!start || !finish){
+        return;
+    }
+
+    if(start->isVisible() && finish->isVisible()){
+        forceVisible(true);
+    }
+
+
+    float sx = start->scenePos().x() + (start->getWidth() / 2);
+    float sy = start->scenePos().y() + (start->getHeight() / 2);
+    float dx = finish->scenePos().x() + (finish->getWidth() / 2);
+    float dy = finish->scenePos().y() + (finish->getHeight() / 2);
 
     //Work out the Center Point.
     float mx = ((sx + dx) / 2) - circleRadius;

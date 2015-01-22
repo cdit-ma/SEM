@@ -153,6 +153,11 @@ NodeItem::~NodeItem()
     delete label;
 }
 
+NodeItem *NodeItem::getParentNodeItem()
+{
+    return dynamic_cast<NodeItem*>(parentItem());
+}
+
 
 QRectF NodeItem::boundingRect() const
 {
@@ -1270,6 +1275,8 @@ void NodeItem::expandItem(bool show)
     expanded = show;
     prepareGeometryChange();
     update();
+    emit updateEdgePosition();
+
 }
 
 

@@ -29,6 +29,8 @@ class NodeItem : public GraphMLItem
 public:
     NodeItem(Node *node, NodeItem *parent, QStringList aspects);
     ~NodeItem();
+
+    NodeItem* getParentNodeItem();
     QRectF boundingRect() const;
     bool isSelected();
     bool isPainted();
