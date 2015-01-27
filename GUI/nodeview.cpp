@@ -1,4 +1,6 @@
 #include "nodeview.h"
+#include "../Controller/newcontroller.h"
+#include "toolbarwidget.h"
 
 //Qt includes
 #include <QGraphicsScene>
@@ -16,7 +18,7 @@
 #include <QMenu>
 #include <QInputDialog>
 #include <QAction>
-#include "../Controller/newcontroller.h"
+
 
 NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 {
@@ -164,7 +166,7 @@ void NodeView::centreItem(GraphMLItem *item)
         return;
     }
 
-    qDebug() << "Centering " << item->getGraphML()->getDataValue("kind");
+    //qDebug() << "Centering " << item->getGraphML()->getDataValue("kind");
 
     QRectF viewRect = getVisibleRect();
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
@@ -266,7 +268,22 @@ void NodeView::showContextMenu(QPoint position)
     connect(deleteAction, SIGNAL(triggered()), controller, SLOT(view_DeletePressed()));
     rightClickMenu->addAction(deleteAction);
 
+    GraphMLItem* graphmlItem = getGraphMLItemFromGraphML(controller->getSelectedNode());
+
+    // TODO
+    // show toolbar here!!!
+    if (graphmlItem) {
+        /*
+        NodeItem* nodeItem = getNodeItemFromGraphMLItem(graphmlItem);
+        ToolbarWidget* toolbar = new ToolbarWidget(nodeItem, this);
+        connect(rightClickMenu, SIGNAL(triggered(QAction*)), toolbar, SLOT(close()));
+        toolbar->show();
+        qDebug() << "HERE";
+        */
+    }
+
     rightClickMenu->exec(globalPos);
+
 }
 
 
@@ -475,11 +492,23 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
             if(setSelected){
                 emit view_SetSelectedAttributeModel(GUIItem->getAttributeTable());
 
-                // update the dock node items when a node is selected
-                // and enable/disable dock buttons accordingly
+                // update the dock adoptable node items when a node is
+                // selected and enable/disable dock buttons accordingly
                 Node* node = dynamic_cast<Node*>(graphML);
                 emit updateAdoptableNodeList(node);
                 updateDockButtons(node);
+
+                // TODO
+                // show toolbar here!!!
+                /*
+                QToolBar *toolbar = new QToolBar("Toolbar", this);
+                int tx = node->getDataValue("x").toInt();
+                int ty = node->getDataValue("y").toInt();
+                QPoint p = mapToScene(tx, ty).toPoint();
+                toolbar->setFixedSize(500,500);
+                toolbar->move(p);
+                scene()->addWidget(toolbar);
+                */
 
                 return;
             }

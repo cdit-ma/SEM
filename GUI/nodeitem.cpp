@@ -620,10 +620,10 @@ void NodeItem::sort()
         } else {
 
             /*
-                if (maxWidth == 0) {
-                    maxWidth = rowWidth - gapX;
-                }
-                */
+            if (maxWidth == 0) {
+                maxWidth = rowWidth - gapX;
+            }
+            */
 
             if (rowWidth > maxWidth) {
                 maxWidth = rowWidth - gapX;
@@ -681,7 +681,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         // when the model is pressed
         if(!PAINT_OBJECT){
             emit clearSelection();
-            //event->setAccepted(false);
+            event->setAccepted(false);
             return;
         }
 

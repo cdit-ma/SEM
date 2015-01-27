@@ -118,10 +118,6 @@ void NewMedeaWindow::initialiseGUI()
     searchButton->setIconSize(searchButton->size()*0.8);
     searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
     notificationArea->setFixedSize(rightPanelWidth, 60);
-    //assemblyButton->setFixedSize(rightPanelWidth, 40);
-    //hardwareButton->setFixedSize(rightPanelWidth, 40);
-    //workloadButton->setFixedSize(rightPanelWidth, 40);
-    //definitionsButton->setFixedSize(rightPanelWidth, 40);
     assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
