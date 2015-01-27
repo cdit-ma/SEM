@@ -55,7 +55,6 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     //GridScene* Scene = new GridScene(this);
     setScene(Scene);
 
-
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
     this->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -63,15 +62,16 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     this->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 
     //Set-up the view
-    // changed the sceneRect values
-    // it used to be 19200 x 10800
-    // we may not need this here
-    //setSceneRect(0, 0, 29200, (10800/2*5));
+    //setSceneRect(0, 0, 19200, 10800);  // we may not need this here
     //translate(9600,5040);
 
 
     // set view background-color
     setStyleSheet("QGraphicsView{ background-color: rgba(150,150,150,255); }");
+
+    // create toolbar widget and connect it to this view
+    toolbar = new ToolbarWidget(this);
+    toolbar->connectToView();
 }
 
 void NodeView::setController(NewController *controller)
@@ -268,22 +268,18 @@ void NodeView::showContextMenu(QPoint position)
     connect(deleteAction, SIGNAL(triggered()), controller, SLOT(view_DeletePressed()));
     rightClickMenu->addAction(deleteAction);
 
-    GraphMLItem* graphmlItem = getGraphMLItemFromGraphML(controller->getSelectedNode());
-
-    // TODO
-    // show toolbar here!!!
-    if (graphmlItem) {
-        /*
-        NodeItem* nodeItem = getNodeItemFromGraphMLItem(graphmlItem);
-        ToolbarWidget* toolbar = new ToolbarWidget(nodeItem, this);
-        connect(rightClickMenu, SIGNAL(triggered(QAction*)), toolbar, SLOT(close()));
-        toolbar->show();
-        qDebug() << "HERE";
-        */
-    }
-
     rightClickMenu->exec(globalPos);
 
+    /*
+    // update toolbar position and connect selected node item
+    GraphMLItem* graphmlItem = getGraphMLItemFromGraphML(controller->getSelectedNode());
+    if (graphmlItem) {
+        NodeItem* nodeItem = getNodeItemFromGraphMLItem(graphmlItem);
+        toolbar->setNodeItem(nodeItem);
+        toolbar->move(globalPos);
+        toolbar->show();
+    }
+    */
 }
 
 
@@ -299,7 +295,7 @@ void NodeView::view_DockConstructNode(Node* parentNode, QString kind)
     NodeItem* parentItem = getNodeItemFromGraphMLItem(guiItem);
 
     // set Initial position so it doesn't collide with any of nodeItem.children();
-    if(parentItem){
+    if (parentItem) {
         emit constructNodeItem(kind, parentItem->getNextChildPos());
     }
 }
@@ -567,7 +563,8 @@ void NodeView::view_ConstructNodeAction()
         emit controller->view_DialogMessage(MESSAGE_TYPE::WARNING, "No Adoptable Types.");
     }
 
-
+    // TODO
+    // add child node action
 
 
 }
@@ -745,6 +742,10 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
+    // this force releases SHIFT/DELETE after it's been used from the toolbar
+    emit shiftPressed(false);
+    emit deletePressed(false);
+
     QPointF scenePos = this->mapToScene(event->pos());
     QGraphicsItem* item = this->scene()->itemAt(scenePos, QTransform());
     //rubberBanding = false;
@@ -889,13 +890,13 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
 
     NodeItem* modelItem = 0;
     foreach(QGraphicsItem* item, graphicsItems){
-          NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
-          if(nodeItem){
-              if(nodeItem->getGraphML()->getDataValue("kind") == "Model"){
-                  modelItem = nodeItem;
-                  break;
-              }
-          }
+        NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
+        if(nodeItem){
+            if(nodeItem->getGraphML()->getDataValue("kind") == "Model"){
+                modelItem = nodeItem;
+                break;
+            }
+        }
     }
 
 
@@ -905,7 +906,7 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
         NodeItem* currentNode = nodeItems.takeFirst();
 
         if(currentNode->intersectsRectangle(selectionRectangle) && currentNode->isVisible() && currentNode->isPainted()){
-             controller->view_GraphMLSelected(currentNode->getGraphML(), true);
+            controller->view_GraphMLSelected(currentNode->getGraphML(), true);
         }else{
             foreach(QGraphicsItem* childItem, currentNode->childItems()){
                 NodeItem* childNode = dynamic_cast<NodeItem*>(childItem);
@@ -1016,6 +1017,24 @@ void NodeView::goToDefinition(Node *node)
 void NodeView::goToImplementation(Node *node)
 {
     centreItem(getGraphMLItemFromGraphML(node));
+}
+
+
+/**
+ * @brief NodeView::trigger_pressShift
+ */
+void NodeView::trigger_shiftPressed()
+{
+    emit shiftPressed(true);
+}
+
+
+/**
+ * @brief NodeView::trigger_deletePressed
+ */
+void NodeView::trigger_deletePressed()
+{
+    emit deletePressed(true);
 }
 
 

@@ -4,12 +4,17 @@
 #include "nodeitem.h"
 
 #include <QWidget>
+#include <QToolButton>
+
 
 class ToolbarWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ToolbarWidget(NodeItem* item, QWidget *parent = 0);
+    explicit ToolbarWidget(QWidget *parent = 0);
+
+    void connectToView();
+    void setNodeItem(NodeItem* item);
 
 signals:
 
@@ -19,6 +24,10 @@ private:
     void setupToolBar();
 
     NodeItem* nodeItem;
+
+    QToolButton* addChildButton;
+    QToolButton* deleteButton;
+    QToolButton* connectButton;
 
 };
 

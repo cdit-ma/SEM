@@ -107,7 +107,12 @@ void DockToggleButton::paintEvent(QPaintEvent *e)
     QPainter painter(this);
     QBrush brush(color);
 
-    QPen pen(QColor(130,130,130));
+    QPen pen;
+    if (isEnabled()) {
+        pen.setColor(QColor(120,120,120));
+    } else {
+        pen.setColor(QColor(150,150,150));
+    }
     pen.setWidth(2);
     painter.setPen(pen);
 

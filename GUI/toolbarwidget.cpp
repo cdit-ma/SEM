@@ -1,25 +1,49 @@
 #include "toolbarwidget.h"
-
-#include <QHBoxLayout>
-#include <QToolButton>
+#include "nodeview.h"
 
 #include <QDebug>
+#include <QHBoxLayout>
 
-ToolbarWidget::ToolbarWidget(NodeItem* item, QWidget *parent) :
+
+ToolbarWidget::ToolbarWidget(QWidget *parent) :
     QWidget(parent)
 {
-    if (item) {
-        nodeItem = item;
-    } else {
-        nodeItem = 0;
-    }
+    nodeItem = 0;
 
-    setMinimumSize(300,150);
-    //move(item->pos().x() - width(), item->pos().y() - height());
+    setMinimumSize(100,40);
+    setBackgroundRole(QPalette::Dark);
     setWindowFlags(windowFlags() | Qt::Popup);
-    setupToolBar();
 
-    qDebug() << "ToolbarWidget";
+    setupToolBar();
+}
+
+
+/**
+ * @brief ToolbarWidget::connectNodeItem
+ * @param item
+ */
+void ToolbarWidget::connectToView()
+{
+    NodeView* view = dynamic_cast<NodeView*>(parentWidget());
+
+    connect(addChildButton, SIGNAL(clicked()), view, SLOT(view_ConstructNodeAction()));
+    connect(connectButton, SIGNAL(clicked()), view, SLOT(trigger_pressShift()));
+    connect(deleteButton, SIGNAL(clicked()), view, SLOT(trigger_deletePressed()));
+    connect(addChildButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(connectButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
+}
+
+
+/**
+ * @brief ToolbarWidget::setNodeItem
+ * @param item
+ */
+void ToolbarWidget::setNodeItem(NodeItem *item)
+{
+   if (item) {
+       nodeItem = item;
+   }
 }
 
 
@@ -29,34 +53,31 @@ ToolbarWidget::ToolbarWidget(NodeItem* item, QWidget *parent) :
 void ToolbarWidget::setupToolBar()
 {
     QHBoxLayout* layout = new QHBoxLayout();
-    QToolButton* addChildButton = new QToolButton();
-    QToolButton* deleteButton = new QToolButton();
-    QToolButton* connectButton = new QToolButton();
-    QSize buttonSize = QSize(60,60);
+    QSize buttonSize = QSize(30,30);
 
-    //addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode2.png"));
-    //deleteButton->setIcon(QIcon(":/Resources/Icons/deleteNode.png"));
-    //connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
+    addChildButton = new QToolButton();
+    deleteButton = new QToolButton();
+    connectButton = new QToolButton();
 
-    qDebug() << "addChildButton icon size = " << addChildButton->size();
-    qDebug() << "deleteButton icon size = " << deleteButton->size();
-    qDebug() << "connectButton icon size = " << connectButton->size();
+    addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode.png"));
+    connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
+    deleteButton->setIcon(QIcon(":/Resources/Icons/deleteNode.png"));
 
     addChildButton->setFixedSize(buttonSize);
-    deleteButton->setFixedSize(buttonSize);
     connectButton->setFixedSize(buttonSize);
+    deleteButton->setFixedSize(buttonSize);
 
-    //addChildButton->setIconSize(buttonSize*0.8);
-    //deleteButton->setIconSize(buttonSize*0.8);
-    //connectButton->setIconSize(buttonSize*0.8);
+    addChildButton->setIconSize(buttonSize*0.75);
+    connectButton->setIconSize(buttonSize*0.75);
+    deleteButton->setIconSize(buttonSize*0.85);
 
     addChildButton->setToolTip("Add Child Node");
-    deleteButton->setToolTip("Delete Node");
     connectButton->setToolTip("Connect Node");
+    deleteButton->setToolTip("Delete Node");
 
     layout->addWidget(addChildButton);
-    layout->addWidget(deleteButton);
     layout->addWidget(connectButton);
+    layout->addWidget(deleteButton);
 
     setLayout(layout);
 }

@@ -1,14 +1,18 @@
 #ifndef NODEVIEW_H//
 #define NODEVIEW_H
 
+#include "../Controller/newcontroller.h"
+#include "nodeitem.h"
+#include "toolbarwidget.h"
+
 #include <QGraphicsView>
 #include <QGraphicsRectItem>
 #include <QGraphicsSceneMouseEvent>
-#include "nodeitem.h"
 #include <QPointF>
 #include <QRubberBand>
-#include "../Controller/newcontroller.h"
+
 //class ActionArray;
+
 class NodeView : public QGraphicsView
 {
     Q_OBJECT
@@ -120,6 +124,9 @@ public slots:
     void goToDefinition(Node* node);
     void goToImplementation(Node* node);
 
+    void trigger_shiftPressed();
+    void trigger_deletePressed();
+
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
 
@@ -157,6 +164,8 @@ private:
     bool firstSort;
 
     QList<NodeItem*> getNodeItemsList();
+
+    ToolbarWidget* toolbar;
 
 
 protected:
