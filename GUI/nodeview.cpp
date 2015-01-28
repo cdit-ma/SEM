@@ -72,6 +72,8 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     // create toolbar widget and connect it to this view
     toolbar = new ToolbarWidget(this);
     toolbar->connectToView();
+    shiftTriggered = false;
+    deleteTriggered = false;
 }
 
 void NodeView::setController(NewController *controller)
@@ -268,9 +270,9 @@ void NodeView::showContextMenu(QPoint position)
     connect(deleteAction, SIGNAL(triggered()), controller, SLOT(view_DeletePressed()));
     rightClickMenu->addAction(deleteAction);
 
-    rightClickMenu->exec(globalPos);
+    //rightClickMenu->exec(globalPos);
 
-    /*
+
     // update toolbar position and connect selected node item
     GraphMLItem* graphmlItem = getGraphMLItemFromGraphML(controller->getSelectedNode());
     if (graphmlItem) {
@@ -279,7 +281,7 @@ void NodeView::showContextMenu(QPoint position)
         toolbar->move(globalPos);
         toolbar->show();
     }
-    */
+
 }
 
 
@@ -724,10 +726,6 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
-    // this force releases SHIFT/DELETE after it's been used from the toolbar
-    //emit shiftPressed(false);
-    //emit deletePressed(false);
-
     QPointF scenePos = this->mapToScene(event->pos());
     QGraphicsItem* item = this->scene()->itemAt(scenePos, QTransform());
     //rubberBanding = false;
@@ -774,6 +772,16 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     }
 
     QGraphicsView::mousePressEvent(event);
+
+    // this force releases SHIFT/DELETE after it's been used from the toolbar
+    if (shiftTriggered) {
+        emit shiftPressed(false);
+        shiftTriggered = false;
+    }
+    if (deleteTriggered) {
+        emit deletePressed(false);
+        deleteTriggered = false;
+    }
 
 }
 
@@ -1028,6 +1036,7 @@ void NodeView::goToImplementation(Node *node)
 void NodeView::trigger_shiftPressed()
 {
     emit shiftPressed(true);
+    shiftTriggered = true;
 }
 
 
@@ -1037,6 +1046,7 @@ void NodeView::trigger_shiftPressed()
 void NodeView::trigger_deletePressed()
 {
     emit deletePressed(true);
+    deleteTriggered = true;
 }
 
 

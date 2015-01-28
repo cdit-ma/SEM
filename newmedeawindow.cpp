@@ -904,27 +904,6 @@ void NewMedeaWindow::goToImplementation()
 
 
 /**
- * @brief NewMedeaWindow::updateViewMargin
- */
-void NewMedeaWindow::updateViewMargin()
-{
-    // maybe leave out scrollbars for the main window in the future?
-    // when the scene is bigger than the view, allow user to pan
-    // but hide the scroll bars. display a button instead letting the
-    // user know that they have zoomed in/out a certain amount and
-    // pressing the button will make the scene fit in the view.
-    /**
-    // change values later and set an initial value
-    if (nodeView->verticalScrollBar()->isVisible()) {
-        nodeView->layout()->setContentsMargins(10, 10, 30, 10);
-    } else {
-        nodeView->layout()->setContentsMargins(10, 10, 10, 10);
-    }
-    */
-}
-
-
-/**
  * @brief NewMedeaWindow::setAttributeModel
  * @param model
  */

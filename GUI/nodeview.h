@@ -127,6 +127,8 @@ public slots:
 
     void trigger_shiftPressed();
     void trigger_deletePressed();
+    //void trigger_goToDefinition();
+    //void trigger_goToImplementation();
 
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
@@ -167,6 +169,8 @@ private:
     QList<NodeItem*> getNodeItemsList();
 
     ToolbarWidget* toolbar;
+    bool shiftTriggered;
+    bool deleteTriggered;
 
 
 protected:

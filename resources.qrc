@@ -68,5 +68,7 @@
         <file>Resources/Icons/connectNode.png</file>
         <file>Resources/Icons/addChildNode.png</file>
         <file>Resources/Icons/deleteNode.png</file>
+        <file>Resources/Icons/definition.png</file>
+        <file>Resources/Icons/implementation.png</file>
     </qresource>
 </RCC>

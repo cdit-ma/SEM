@@ -71,7 +71,6 @@ private slots:
     void updateRedoStates(QStringList list);
     void setClipboard(QString value);
 
-    void updateViewMargin();
     void updateProjectName(QString label);
 
     void on_dockButtonPressed(QString buttonName);

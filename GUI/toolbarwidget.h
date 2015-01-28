@@ -17,8 +17,12 @@ public:
     void setNodeItem(NodeItem* item);
 
 signals:
+    void goToDefinition(Node* node);
+    void goToImplementation(Node* node);
 
 public slots:
+    void goToDefinition();
+    void goToImplementation();
 
 private:
     void setupToolBar();
@@ -28,6 +32,9 @@ private:
     QToolButton* addChildButton;
     QToolButton* deleteButton;
     QToolButton* connectButton;
+
+    QToolButton* definitionButton;
+    QToolButton* implementationButton;
 
 };
 
