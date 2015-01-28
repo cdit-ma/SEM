@@ -337,15 +337,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     /**************************************************************/
 
-    if (node->isDefinition() || node->isInstance()) {
-        connect(nodeItem, SIGNAL(centerImplementation(Node*)), this, SLOT(goToImplementation(Node*)));
-    }
-    if (node->isImpl() || node->isInstance()) {
-        connect(nodeItem, SIGNAL(centerDefinition(Node*)), this, SLOT(goToDefinition(Node*)));
-    }
-
-    /**************************************************************/
-
 
     if(!scene()->items().contains(nodeItem)){
         //Add to model.
@@ -491,24 +482,15 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
                 // update the dock adoptable node items when a node is
                 // selected and enable/disable dock buttons accordingly
                 Node* node = dynamic_cast<Node*>(graphML);
-                emit updateAdoptableNodeList(node);
                 updateDockButtons(node);
 
-                // TODO
-                // show toolbar here!!!
-                /*
-                QToolBar *toolbar = new QToolBar("Toolbar", this);
-                int tx = node->getDataValue("x").toInt();
-                int ty = node->getDataValue("y").toInt();
-                QPoint p = mapToScene(tx, ty).toPoint();
-                toolbar->setFixedSize(500,500);
-                toolbar->move(p);
-                scene()->addWidget(toolbar);
-                */
-
+                emit updateAdoptableNodeList(node);
+                emit hasSelectedNode(true);
                 return;
             }
         }
+    } else {
+        emit hasSelectedNode(false);
     }
 
     emit view_SetSelectedAttributeModel(0);
@@ -743,8 +725,8 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
     // this force releases SHIFT/DELETE after it's been used from the toolbar
-    emit shiftPressed(false);
-    emit deletePressed(false);
+    //emit shiftPressed(false);
+    //emit deletePressed(false);
 
     QPointF scenePos = this->mapToScene(event->pos());
     QGraphicsItem* item = this->scene()->itemAt(scenePos, QTransform());
@@ -1002,21 +984,41 @@ void NodeView::view_addComponentDefinition(NodeItem *itm)
 
 /**
  * @brief NodeView::goToDefinition
+ * If the node is a definition, center it.
+ * If it's not but it has a definition, center on its definition.
  * @param node
  */
 void NodeView::goToDefinition(Node *node)
 {
-    centreItem(getGraphMLItemFromGraphML(node));
+    Node* temp = node;
+    if (node) {
+        if (!node->isDefinition()) {
+            temp = node->getDefinition();
+        }
+        if (temp) {
+            centreItem(getGraphMLItemFromGraphML(temp));
+        }
+    }
 }
 
 
 /**
  * @brief NodeView::goToImplementation
+ * If the node is not a definition, check to see if it has a definition.
+ * If it does and it has at least 1 implementation, center on the first one.
  * @param node
  */
 void NodeView::goToImplementation(Node *node)
 {
-    centreItem(getGraphMLItemFromGraphML(node));
+    Node* temp = node;
+    if (node) {
+        if (!node->isDefinition()) {
+            temp = node->getDefinition();
+        }
+        if (temp && temp->getImplementations().count() == 1) {
+            centreItem(getGraphMLItemFromGraphML(temp->getImplementations().at(0)));
+        }
+    }
 }
 
 

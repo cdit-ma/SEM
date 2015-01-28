@@ -87,6 +87,11 @@ private slots:
     void setAdoptableNodeList(Node* node);
     void nodeSelected(Node* node);
 
+    void hasSelectedNode(bool nodeSelected);
+
+    void goToDefinition();
+    void goToImplementation();
+
 private:
     void importGraphMLFiles(QStringList files);
     void initialiseGUI();
@@ -121,6 +126,8 @@ private:
     QAction* edit_copy;
     QAction* edit_paste;
     QAction* view_fitToScreen;
+    QAction* view_goToDefinition;
+    QAction* view_goToImplementation;
 
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;

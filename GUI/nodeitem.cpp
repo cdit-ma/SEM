@@ -107,8 +107,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
         emit addExpandButtonToParent();
     }
 
-    updateViewAspects(aspects);
     resetNextChildPos();
+    updateViewAspects(aspects);
     emit updateParentHeight(this);
 
     /*
@@ -619,12 +619,6 @@ void NodeItem::sort()
 
         } else {
 
-            /*
-            if (maxWidth == 0) {
-                maxWidth = rowWidth - gapX;
-            }
-            */
-
             if (rowWidth > maxWidth) {
                 maxWidth = rowWidth - gapX;
             }
@@ -974,7 +968,6 @@ void NodeItem::setPos(const QPointF &pos)
 }
 
 
-
 /**
  * @brief NodeItem::setLabelFont
  * This sets up the font and size of the label.
@@ -986,16 +979,13 @@ void NodeItem::setupLabel()
     font.setPointSize(.25 * minimumHeight);
 
     label = new QGraphicsTextItem(this);
-    //label->adjustSize();
-    //label->setTextWidth(availableWidth);
     label->setFont(font);
 
     int brushSize = selectedPen.width();
     label->setPos(getCornerRadius()/2 + brushSize , (minimumHeight - label->boundingRect().height())/2);
     updateTextLabel(getGraphML()->getDataValue("label"));
-    //label->setPlainText(getGraphML()->getDataValue("label"));
-
 }
+
 
 /**
  * @brief NodeItem::setupGraphMLConnections
@@ -1100,16 +1090,14 @@ void NodeItem::setupIcon()
         qreal iconHeight = icon->boundingRect().height();
         qreal iconWidth = icon->boundingRect().width();
         qreal scaleFactor = (minimumHeight / iconHeight);
-        iconWidth *= scaleFactor;
 
         icon->setScale(scaleFactor);
-
-        int brushSize = selectedPen.width();
-
-        icon->setPos((getCornerRadius()/2 + brushSize) ,0);
-
         icon->setTransformationMode(Qt::SmoothTransformation);
 
+        int brushSize = selectedPen.width();
+        icon->setPos((getCornerRadius()/2 + brushSize) ,0);
+
+        iconWidth *= scaleFactor;
         label->setX(label->x() + iconWidth);
     }
 }
@@ -1135,7 +1123,7 @@ int NodeItem::getNumberOfChildren()
 
 /**
  * @brief NodeItem::getChildKind
- * This returns the kinds of all this item's children.
+ * This returns a list of kinds of all this item's children.
  * @return
  */
 QStringList NodeItem::getChildrenKind()
@@ -1198,17 +1186,7 @@ void NodeItem::addExpandButton()
                                         "margin: 0px;"
                                         "}");
 
-            /*
-            // this makes the corners of the expand button
-            // and the proxy widget look rounded
-            QPixmap pixmap(expandButton->size());
-            QPainter painter(&pixmap);
-            QBrush brush(Qt::white);
-            painter.setBrush(brush);
-            painter.drawRoundRect(pixmap.rect(), 60, 60);
-            expandButton->setMask(pixmap.createMaskFromColor(Qt::white, Qt::MaskOutColor));
-            */
-
+            // this rounds the expandButton and its proxy
             QRegion region(expandButton->rect(), QRegion::RegionType::Ellipse);
             expandButton->setMask(region);
 
@@ -1275,15 +1253,15 @@ void NodeItem::expandItem(bool show)
     expanded = show;
     prepareGeometryChange();
     update();
-    emit updateEdgePosition();
 
+    emit updateEdgePosition();
 }
 
 
 /**
  * @brief NodeItem::updateHeight
  * Expand this item's height to fit the newly added child.
- * This only gets called by painted and non-definition items.
+ * This only gets called by painted items and not Definitions containers.
  * @param child
  */
 void NodeItem::updateHeight(NodeItem *child)
@@ -1304,29 +1282,6 @@ void NodeItem::updateHeight(NodeItem *child)
             }
 
         }
-    }
-}
-
-
-/**
- * @brief NodeItem::goToDefinition
- */
-void NodeItem::goToDefinition()
-{
-    qDebug() << "NodeItem::goToDefinition";
-    if (getNode() && getNode()->getDefinition()) {
-        emit centerDefinition(getNode()->getDefinition());
-    }
-}
-
-
-/**
- * @brief NodeItem::goToImplementation
- */
-void NodeItem::goToImplementation()
-{
-    if (getNode() && getNode()->getImplementations().count() == 1) {
-        emit centerImplementation(getNode()->getImplementations().at(0));
     }
 }
 

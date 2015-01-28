@@ -77,9 +77,6 @@ signals:
 
     void updateDockContainer(QString dockContainer);
 
-    void centerDefinition(Node* node);
-    void centerImplementation(Node* node);
-
 public slots:
     //Model Signals
     void graphMLDataUpdated(GraphMLData *data);
@@ -96,9 +93,6 @@ public slots:
     void addExpandButton();
     void expandItem(bool show);
     void updateHeight(NodeItem* child);
-
-    void goToDefinition();
-    void goToImplementation();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

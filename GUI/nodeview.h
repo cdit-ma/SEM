@@ -64,7 +64,6 @@ signals:
     void view_ConstructMenu(QPoint);
 
 
-
     void componentNodeMade(QString type, NodeItem* nodeItem);
     void hardwareNodeMade(QString type, NodeItem* nodeItem);
 
@@ -78,6 +77,8 @@ signals:
     void centerNode(QString nodeLabel);
 
     void hideDeployment(bool hide);
+
+    void hasSelectedNode(bool nodeSelected);
 
 public slots:
 

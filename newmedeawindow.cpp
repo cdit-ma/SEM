@@ -281,10 +281,15 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
 
     view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/zoomToFit.png"), "Fit To Sreen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
+    view_goToDefinition = view_menu->addAction("Go to Definition");
+    view_goToDefinition->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
+    view_goToImplementation = view_menu->addAction("Go to Implementation");
+    view_goToImplementation->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
 
     exit->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
 
     button->setMenu(menu);
+    hasSelectedNode(false);
 }
 
 
@@ -395,6 +400,8 @@ void NewMedeaWindow::makeConnections()
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
+    connect(view_goToDefinition, SIGNAL(triggered()), this, SLOT(goToDefinition()));
+    connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
 
@@ -411,9 +418,11 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(hardwareNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(componentNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(updateAdoptableNodeList(Node*)), this, SLOT(nodeSelected(Node*)));
+
     connect(partsContainer, SIGNAL(constructDockNode(Node*, QString)), nodeView, SLOT(view_DockConstructNode(Node*, QString)));
     connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(NodeItem*)), nodeView, SLOT(view_addComponentDefinition(NodeItem*)));
 
+    connect(nodeView, SIGNAL(unselect()), this, SLOT(checkSelection()));
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showContextMenu(QPoint)));
 
@@ -421,9 +430,12 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(updateDockButtons(QString)), this, SLOT(updateDockButtons(QString)));
     connect(nodeView, SIGNAL(updateDockContainer(QString)), this, SLOT(updateDockContainer(QString)));
 
-    connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
+    connect(nodeView, SIGNAL(hasSelectedNode(bool)), this, SLOT(hasSelectedNode(bool)));
 
     connect(this, SIGNAL(setupViewLayout()), this, SLOT(sortAndCenterViewAspects()));
+
+    // this needs fixing
+    connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 
     connectToController();
 }
@@ -854,6 +866,40 @@ void NewMedeaWindow::nodeSelected(Node *node)
 {
     selectedNode = node;
     setAdoptableNodeList(selectedNode);
+}
+
+
+/**
+ * @brief NewMedeaWindow::hasNodeSelected
+ * This gets called when a node is selected or when the selection is cleared.
+ * @param nodeSelected
+ */
+void NewMedeaWindow::hasSelectedNode(bool nodeSelected)
+{
+    view_goToDefinition->setEnabled(nodeSelected);
+    view_goToImplementation->setEnabled(nodeSelected);
+}
+
+
+/**
+ * @brief NewMedeaWindow::goToDefinition
+ */
+void NewMedeaWindow::goToDefinition()
+{
+    if (selectedNode) {
+        nodeView->goToDefinition(selectedNode);
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::goToImplementation
+ */
+void NewMedeaWindow::goToImplementation()
+{
+    if (selectedNode) {
+        nodeView->goToImplementation(selectedNode);
+    }
 }
 
 

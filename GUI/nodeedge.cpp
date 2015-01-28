@@ -23,7 +23,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
         QGraphicsItem* sParent = s->parentItem();
         sourceParent = dynamic_cast<NodeItem*>(sParent);
         if(sourceParent){
-            qCritical() << sourceParent->getGraphML()->toString();
+            //qCritical() << sourceParent->getGraphML()->toString();
         }
     }
 
@@ -31,7 +31,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
         QGraphicsItem* dParent = d->parentItem();
         destinationParent = dynamic_cast<NodeItem*>(dParent);
         if(destinationParent){
-            qCritical() << destinationParent->getGraphML()->toString();
+            //qCritical() << destinationParent->getGraphML()->toString();
         }
     }
 
