@@ -13,37 +13,76 @@ DockAdoptableNodeItem::DockAdoptableNodeItem(QString _kind, QWidget *parent) :
     QPushButton(parent)
 {
     kind = _kind;
+    textLabel = new QLabel(kind, this);
+    imageLabel = new QLabel(this);
 
     setParent(parent);
     setFlat(true);
     setFixedSize(100, 100);
-    setStyleSheet("padding: 0px;");
+    setStyleSheet("margin: 0px; padding: 0px;");
 
-    QLabel* textLabel = new QLabel(kind, this);
-    QLabel* imageLabel = new QLabel(this);
-    QVBoxLayout* vLayout = new QVBoxLayout();
+    setupLayout();
+    connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
+}
+
+
+/**
+ * @brief DockAdoptableNodeItem::setupLayout
+ * @param layout
+ */
+void DockAdoptableNodeItem::setupLayout()
+{
+    QVBoxLayout *layout = new QVBoxLayout();
+
+    // make the font size smaller to fit the whole text inside textLabel
+    QFont font = textLabel->font();
+    if (kind.length() > 18) {
+        QFontMetrics fm(font);
+        font.setPointSizeF(fm.boundingRect(kind).width()/kind.size()*1.3);
+    } else {
+        font.setPointSizeF(7.5);
+    }
+
+    textLabel->setFont(font);
+    textLabel->setFixedSize(width(), 21);
+    textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+
     QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
     QImage scaledImage = image->scaled(width(),
                                        height()-textLabel->height(),
                                        Qt::KeepAspectRatio,
                                        Qt::SmoothTransformation);
+    initialSize = scaledImage.size();
 
-    double offSet = 2.5;
-
-    vLayout->setMargin(0);
-    imageLabel->setAlignment(Qt::AlignBottom | Qt::AlignHCenter);
-    textLabel->setAlignment(Qt::AlignCenter);
-    textLabel->setFixedSize(width()+offSet, 40);
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
-    imageLabel->setFixedSize(width()-offSet, height()-30);
 
-    vLayout->addWidget(imageLabel);
-    vLayout->addWidget(textLabel);
-    setLayout(vLayout);
+    layout->addWidget(imageLabel);
+    layout->addWidget(textLabel);
 
-    connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
+    layout->setMargin(0);
+    layout->setSpacing(2);
+    layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+    layout->setAlignment(textLabel, Qt::AlignHCenter);
+
+    setLayout(layout);
+}
+
+
+/**
+ * @brief DockAdoptableNodeItem::setPixmapSize
+ * This changes the size of the pixmap in the imageLabel.
+ * @param size
+ */
+void DockAdoptableNodeItem::setPixmapSize(QSize size)
+{
+    if (imageLabel != 0) {
+        QPixmap pixmap = imageLabel->pixmap()->scaled(size,
+                                                      Qt::KeepAspectRatio,
+                                                      Qt::SmoothTransformation);
+        imageLabel->setPixmap(pixmap);
+    }
 }
 
 
@@ -72,14 +111,3 @@ void DockAdoptableNodeItem::buttonPressed()
 {
     emit itemPressed(kind);
 }
-
-
-/**
- * @brief DockAdoptableNodeItem::destructGraphML
- */
-/**
-void DockAdoptableNodeItem::destructGraphML()
-{
-    delete this;
-}
-*/

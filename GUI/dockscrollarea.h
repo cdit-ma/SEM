@@ -26,18 +26,6 @@ public:
 protected:
     void paintEvent(QPaintEvent *e);
 
-private:
-    NodeItem* nodeItem;
-    Node* parentNode;
-    DockToggleButton *parentButton;
-    QGroupBox *groupBox;
-    QVBoxLayout *layout;
-    QString label;
-    bool activated;
-
-
-    QVector<QWidget*> dockNodes;
-
 signals:
     void constructDockNode(Node* node, QString kind);
     void trigger_addComponentInstance(NodeItem* itm);
@@ -50,6 +38,18 @@ public slots:
     void dock_addComponentInstance(NodeItem *itm);
 
     void checkScrollBar();
+
+private:
+    NodeItem* nodeItem;
+    Node* parentNode;
+    DockToggleButton *parentButton;
+    QGroupBox *groupBox;
+    QVBoxLayout *layout;
+    QString label;
+    bool activated;
+
+    QVector<QWidget*> dockNodes;
+
 };
 
 #endif // DOCKSCROLLAREA_H

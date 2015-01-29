@@ -68,8 +68,6 @@ signals:
     void hardwareNodeMade(QString type, NodeItem* nodeItem);
 
     void updateDataTable();
-    void updateViewMargin();
-    void updateAdoptableNodeList(Node* node);
     void updateDockButtons(QString dockButton);
     void updateDockContainer(QString container);
 
@@ -77,8 +75,13 @@ signals:
     void centerNode(QString nodeLabel);
 
     void hideDeployment(bool hide);
+    void hideToolbarWidget();
 
     void hasSelectedNode(bool nodeSelected);
+
+    void getAdoptableNodeList(Node* node);
+    void updateAdoptableNodeList(Node* node);
+    void updateMenuList(QString action, QStringList nodeList);
 
 public slots:
 
@@ -108,6 +111,8 @@ public slots:
 
     void view_ConstructNodeAction();
 
+
+    void view_ConstructNodeAction(QString nodeKind);
     
     void clearSelection();
 
@@ -127,8 +132,9 @@ public slots:
 
     void trigger_shiftPressed();
     void trigger_deletePressed();
-    //void trigger_goToDefinition();
-    //void trigger_goToImplementation();
+
+    void updateMenuList(Node* node);
+    void updateToolbarList(QString action, QStringList nodeList);
 
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);

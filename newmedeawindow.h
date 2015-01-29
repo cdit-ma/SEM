@@ -46,11 +46,12 @@ signals:
     void view_ActionTriggered(QString name);
     void view_ImportGraphML(QStringList files);
     void view_ExportGraphML(QString fileName);
+
     void setViewAspects(QStringList aspects);
+    void updateToolbarList(QString action, QStringList nodeList);
 
     void clearDock();
     void checkDockScrollBar();
-
     void setupViewLayout();
 
 private slots:

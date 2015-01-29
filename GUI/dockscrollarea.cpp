@@ -26,7 +26,6 @@ DockScrollArea::DockScrollArea(QString label, DockToggleButton *parent) :
 
     groupBox->setLayout(layout);
     groupBox->setTitle(label);
-    //groupBox->setFixedSize(this->width(), this->height());
     groupBox->setFixedSize(140, 140);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     groupBox->setStyleSheet("QGroupBox {"
@@ -168,6 +167,8 @@ void DockScrollArea::dock_addComponentInstance(NodeItem *itm)
 
 /**
  * @brief DockScrollArea::checkScrollBar
+ * This still needs fixing.
+ * isVisible() doesn't return the correct value.
  */
 void DockScrollArea::checkScrollBar()
 {

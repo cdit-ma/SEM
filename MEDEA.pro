@@ -85,7 +85,8 @@ HEADERS += \
     GUI/graphmlview.h \
     modeltester.h \
     GUI/nodeviewminimap.h \
-    GUI/toolbarwidget.h
+    GUI/toolbarwidget.h \
+    GUI/toolbarwidgetaction.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -157,7 +158,8 @@ SOURCES += \
     GUI/graphmlview.cpp \
     modeltester.cpp \
     GUI/nodeviewminimap.cpp \
-    GUI/toolbarwidget.cpp
+    GUI/toolbarwidget.cpp \
+    GUI/toolbarwidgetaction.cpp
 
 FORMS += \
     medeawindow.ui \

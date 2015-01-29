@@ -69,9 +69,8 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
     // set view background-color
     setStyleSheet("QGraphicsView{ background-color: rgba(150,150,150,255); }");
 
-    // create toolbar widget and connect it to this view
+    // create toolbar widget
     toolbar = new ToolbarWidget(this);
-    toolbar->connectToView();
     shiftTriggered = false;
     deleteTriggered = false;
 }
@@ -256,6 +255,7 @@ void NodeView::showContextMenu(QPoint position)
 
     menuPosition = scenePos;
 
+    /*
     QMenu* rightClickMenu = new QMenu(this);
 
     if(controller->getAdoptableNodeKinds().size() > 0){
@@ -270,8 +270,8 @@ void NodeView::showContextMenu(QPoint position)
     connect(deleteAction, SIGNAL(triggered()), controller, SLOT(view_DeletePressed()));
     rightClickMenu->addAction(deleteAction);
 
-    //rightClickMenu->exec(globalPos);
-
+    rightClickMenu->exec(globalPos);
+    */
 
     // update toolbar position and connect selected node item
     GraphMLItem* graphmlItem = getGraphMLItemFromGraphML(controller->getSelectedNode());
@@ -345,8 +345,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         scene()->addItem(nodeItem);
     }
 
-
-    //if this item's parent is a File, check if it's the first child
+    // if this item's parent is a File, check if it's the first child
     // if it is, update dock adoptable node list
     if (parentNode && parentNode->getDataValue("kind") == "File")  {
         if (parentNode->childrenCount() == 1) {
@@ -547,11 +546,24 @@ void NodeView::view_ConstructNodeAction()
         emit controller->view_DialogMessage(MESSAGE_TYPE::WARNING, "No Adoptable Types.");
     }
 
-    // TODO
-    // add child node action
-
-
 }
+
+
+/**
+ * @brief NodeView::view_ConstructNodeAction
+ * @param nodeKind
+ */
+void NodeView::view_ConstructNodeAction(QString nodeKind)
+{
+    QGraphicsItem* item = this->scene()->itemAt(menuPosition,this->transform());
+    if (item) {
+        emit constructNodeItem(nodeKind, item->mapFromScene(menuPosition));
+    } else {
+        emit constructNodeItem(nodeKind, menuPosition);
+    }
+    update();
+}
+
 
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
 {
@@ -771,6 +783,9 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }
     }
 
+    //qDebug() << "NodeView::mousePress";
+    //emit hideToolbarWidget();
+
     QGraphicsView::mousePressEvent(event);
 
     // this force releases SHIFT/DELETE after it's been used from the toolbar
@@ -861,7 +876,6 @@ void NodeView::resetModel()
     foreach (QGraphicsItem *itm, scene()->items()) {
         NodeItem *nodeItm = dynamic_cast<NodeItem*>(itm);
         if (nodeItm) {
-            qDebug() << nodeItm->getGraphML()->getDataValue("label");
             nodeItm->resetSize();
         }
     }
@@ -1047,6 +1061,27 @@ void NodeView::trigger_deletePressed()
 {
     emit deletePressed(true);
     deleteTriggered = true;
+}
+
+
+/**
+ * @brief NodeView::updateMenuList
+ * @param node
+ */
+void NodeView::updateMenuList(Node *node)
+{
+    emit getAdoptableNodeList(node);
+}
+
+
+/**
+ * @brief NodeView::updateToolbarList
+ * @param action
+ * @param nodeList
+ */
+void NodeView::updateToolbarList(QString action, QStringList nodeList)
+{
+    emit updateMenuList(action, nodeList);
 }
 
 

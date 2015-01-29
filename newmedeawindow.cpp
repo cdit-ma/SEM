@@ -1,4 +1,6 @@
 #include "newmedeawindow.h"
+#include "GUI/nodeviewminimap.h"
+#include "GUI/toolbarwidgetaction.h"
 
 #include <QDebug>
 #include <QImage>
@@ -10,7 +12,6 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QPicture>
-#include "GUI/nodeviewminimap.h"
 
 
 /**
@@ -288,6 +289,11 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
 
     exit->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
 
+    /*
+    ToolbarWidgetAction* action = new ToolbarWidgetAction(this);
+    menu->addAction(action);
+    */
+
     button->setMenu(menu);
     hasSelectedNode(false);
 }
@@ -359,7 +365,9 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
  */
 void NewMedeaWindow::setupController()
 {
-    delete controller;
+    if (controller) {
+        delete controller;
+    }
     controller = 0;
     controller = new NewController();
     controller->connectView(nodeView);
@@ -375,10 +383,15 @@ void NewMedeaWindow::resetGUI()
     prevPressedButton = 0;
     prevSelectedNode = 0;
     selectedNode = 0;
+
+    qDebug() << "Setting up controller";
     setupController();
+
+    qDebug() << "Connecting controller";
     connectToController();
 
-    // this is temporary
+    qDebug() << "Resetting project name";
+    // force projectName to be the same as the model label
     updateProjectName("Model");
 }
 
@@ -418,11 +431,11 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(hardwareNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(componentNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(updateAdoptableNodeList(Node*)), this, SLOT(nodeSelected(Node*)));
+    connect(nodeView, SIGNAL(getAdoptableNodeList(Node*)), this, SLOT(setAdoptableNodeList(Node*)));
 
     connect(partsContainer, SIGNAL(constructDockNode(Node*, QString)), nodeView, SLOT(view_DockConstructNode(Node*, QString)));
     connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(NodeItem*)), nodeView, SLOT(view_addComponentDefinition(NodeItem*)));
 
-    connect(nodeView, SIGNAL(unselect()), this, SLOT(checkSelection()));
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showContextMenu(QPoint)));
 
@@ -431,6 +444,8 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(updateDockContainer(QString)), this, SLOT(updateDockContainer(QString)));
 
     connect(nodeView, SIGNAL(hasSelectedNode(bool)), this, SLOT(hasSelectedNode(bool)));
+
+    connect(this, SIGNAL(updateToolbarList(QString,QStringList)), nodeView, SLOT(updateToolbarList(QString,QStringList)));
 
     connect(this, SIGNAL(setupViewLayout()), this, SLOT(sortAndCenterViewAspects()));
 
@@ -813,24 +828,19 @@ void NewMedeaWindow::updateDockButtons(QString dockButton)
 
 /**
  * @brief NewMedeaWindow::updateDockContainer
- * This method updates the specified container.
+ * This method updates the specified dock container.
  * @param container
  */
 void NewMedeaWindow::updateDockContainer(QString container)
 {
-    if (container == "Parts" && selectedNode) {
-        if(controller){
+    if (container == "Parts") {
+        if(selectedNode && controller){
             partsContainer->addAdoptableDockNodes(selectedNode, controller->getAdoptableNodeKinds(selectedNode));
-            /*
-            QList<NodeItem*> list = nodeView->getVisibleNodeItems();
-            foreach (NodeItem* item, list) {
-                if (item->getNode() == selectedNode) {
-                    item->setSelected(false);
-                    item->setSelected(true);
-                }
-            }
-            */
         }
+    } else if (container == "Hardware") {
+        // update hardwareDefinitons container
+    } else if (container == "Definitions") {
+        // update compDefinitons container
     }
     update();
 }
@@ -844,16 +854,17 @@ void NewMedeaWindow::updateDockContainer(QString container)
  */
 void NewMedeaWindow::setAdoptableNodeList(Node *node)
 {
-    if (prevSelectedNode != 0 && prevSelectedNode == node) {
-        return;
-    } else {
-        if (node) {
-            if (partsButton->getSelected()) {
-                partsContainer->addAdoptableDockNodes(node, controller->getAdoptableNodeKinds(selectedNode));
-                emit checkDockScrollBar();
-            }
+    if (node) {
+        if (prevSelectedNode != 0 && prevSelectedNode == node) {
+            return;
+        } else {
+            QStringList nodeKinds = controller->getAdoptableNodeKinds(selectedNode);
+            partsContainer->addAdoptableDockNodes(node, nodeKinds);
+
+            emit checkDockScrollBar();
+            emit updateToolbarList("add", nodeKinds);
+            update();
         }
-        update();
     }
 }
 
@@ -865,7 +876,11 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
 void NewMedeaWindow::nodeSelected(Node *node)
 {
     selectedNode = node;
-    setAdoptableNodeList(selectedNode);
+
+    // if partsConatiner is open, update adoptable node list
+    if (partsButton->getSelected()) {
+        setAdoptableNodeList(selectedNode);
+    }
 }
 
 
@@ -930,9 +945,6 @@ void NewMedeaWindow::on_dockButtonPressed(QString buttonName)
         b = hardwareNodesButton;
     } else if (buttonName == "D") {
         b = compDefinitionsButton;
-    } else {
-        qDebug() << "Error NewMedeaWindow::on_dockButtonPressed: buttonName is unknown";
-        return;
     }
 
     // if the previously activated groupbox is still on display, hide it
@@ -945,8 +957,8 @@ void NewMedeaWindow::on_dockButtonPressed(QString buttonName)
     prevPressedButton = b;
     update();
 
-    // when the partsButton is pressed, update the parts container
-    if (b == partsButton) {
+    // when the partsButton is selected, update the parts container
+    if (b == partsButton && partsButton->getSelected()) {
         setAdoptableNodeList(selectedNode);
     }
 }
@@ -982,7 +994,6 @@ void NewMedeaWindow::updateDataTable()
     int newHeight = height + vOffset;
 
     if (maxHeight == 0) {
-        //qDebug() << "Node has been deselected. Hide data table";
         dataTable->setVisible(false);
     } else if (newHeight > maxHeight) {
         dataTable->resize(dataTable->width(), maxHeight);
@@ -995,7 +1006,7 @@ void NewMedeaWindow::updateDataTable()
     int w = dataTable->width();
     int h = dataTable->height();
 
-    // update the visible region of the groupbox that contains the dataTable
+    // update the visible region of the groupbox to fit the dataTable
     if (w == 0 || h == 0) {
         dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
     } else {
@@ -1013,8 +1024,6 @@ void NewMedeaWindow::updateDataTable()
  */
 void NewMedeaWindow::loadJenkinsData(int code)
 {
-    qCritical() << "JENKINS: " << code;
-
     QStringList files;
     files << myProcess->readAll();
     emit view_ImportGraphML(files);
