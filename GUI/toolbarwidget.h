@@ -6,6 +6,7 @@
 #include <QWidget>
 #include <QToolButton>
 #include <QMenu>
+#include <QFrame>
 
 
 class ToolbarWidget : public QWidget
@@ -16,22 +17,31 @@ public:
 
     void setNodeItem(NodeItem* item);
 
+    void showDefinitionButton(bool show);
+    void showImplementationButton(bool show);
+
 signals:
     void goToDefinition(Node* node);
     void goToImplementation(Node* node);
 
-    void updateMenuList(Node* node);
+    void updateMenuList(QString action, Node* node);
 
     void constructNode(QString nodeKind);
+    void constructEdge(Node* src, Node* dst);
+
+    void checkDefinition(Node* node);
+    void checkImplementation(Node* node);
 
 public slots:
     void goToDefinition();
     void goToImplementation();
 
     void getAdoptableNodeList();
-    void updateMenuList(QString action, QStringList nodeList);
+    void getLegalNodesList();
+    void updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodeList);
 
     void addChildNode();
+    void connectNodes();
 
     void hideToolbar();
     void resetToolbarStates();
@@ -42,7 +52,10 @@ private:
     void makeConnections();
     void connectToView();
 
+    void updateToolButtons();
+
     NodeItem* nodeItem;
+    NodeItem* prevNodeItem;
 
     QToolButton* addChildButton;
     QToolButton* deleteButton;
@@ -53,6 +66,9 @@ private:
 
     QMenu* addMenu;
     QMenu* connectMenu;
+
+    QFrame* frame;
+    int showFrame;
 };
 
 #endif // TOOLBARWIDGET_H

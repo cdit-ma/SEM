@@ -10,6 +10,7 @@ ToolbarWidget::ToolbarWidget(QWidget *parent) :
     QWidget(parent)
 {
     nodeItem = 0;
+    prevNodeItem = 0;
 
     setMinimumSize(100,40);
     setBackgroundRole(QPalette::Dark);
@@ -23,11 +24,43 @@ ToolbarWidget::ToolbarWidget(QWidget *parent) :
 
 /**
  * @brief ToolbarWidget::setNodeItem
+ * Set nodeItem to the currectly selected item.
+ * Update applicable tool buttons only if prev != item.
  * @param item
  */
 void ToolbarWidget::setNodeItem(NodeItem *item)
 {
     nodeItem = item;
+    if (prevNodeItem != nodeItem) {
+        updateToolButtons();
+    }
+    prevNodeItem = nodeItem;
+}
+
+
+/**
+ * @brief ToolbarWidget::showDefinitionButton
+ * @param show
+ */
+void ToolbarWidget::showDefinitionButton(bool show)
+{
+    definitionButton->setVisible(show);
+    if (!show) {
+        showFrame++;
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::showImplementationButton
+ * @param show
+ */
+void ToolbarWidget::showImplementationButton(bool show)
+{
+    implementationButton->setVisible(show);
+    if (!show) {
+        showFrame++;
+    }
 }
 
 
@@ -54,7 +87,16 @@ void ToolbarWidget::goToImplementation()
  */
 void ToolbarWidget::getAdoptableNodeList()
 {
-    emit updateMenuList(nodeItem->getNode());
+    emit updateMenuList("add", nodeItem->getNode());
+}
+
+
+/**
+ * @brief ToolbarWidget::getLegalNodesList
+ */
+void ToolbarWidget::getLegalNodesList()
+{
+    emit updateMenuList("connect", nodeItem->getNode());
 }
 
 
@@ -63,28 +105,46 @@ void ToolbarWidget::getAdoptableNodeList()
  * @param action
  * @param nodeList
  */
-void ToolbarWidget::updateMenuList(QString action, QStringList nodeList)
+void ToolbarWidget::updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodeList)
 {
-    QToolButton* button;
-    QMenu* menu;
+    if (action == "add" && nodeKinds != 0) {
 
-    if (action == "add") {
-        button = addChildButton;
-        menu = addMenu;
-    } else if (action == "connect") {
-        button = connectButton;
-        menu = connectMenu;
+        addMenu->clear();
+
+        if (nodeKinds->count() == 0) {
+            addChildButton->hide();
+            return;
+        } else {
+            addChildButton->show();
+        }
+
+        for (int i=0; i<nodeKinds->count(); i++) {
+            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeKinds->at(i), this);
+            addMenu->addAction(action);
+            connect(action, SIGNAL(triggered()), this, SLOT(addChildNode()));
+        }
+
+        addChildButton->setMenu(addMenu);
+
+    } else if (action == "connect" && nodeList != 0) {
+
+        connectMenu->clear();
+
+        if (nodeList->count() == 0) {
+            connectButton->hide();
+            return;
+        } else {
+            connectButton->show();
+        }
+
+        for (int i=0; i<nodeList->count(); i++) {
+            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList->at(i), this);
+            connectMenu->addAction(action);
+            connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
+        }
+
+        connectButton->setMenu(connectMenu);
     }
-
-    menu->clear();
-
-    for (int i=0; i<nodeList.count(); i++) {
-        ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList.at(i), this);
-        menu->addAction(action);
-        connect(action, SIGNAL(triggered()), this, SLOT(addChildNode()));
-    }
-
-    button->setMenu(menu);
 }
 
 
@@ -96,6 +156,18 @@ void ToolbarWidget::addChildNode()
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
     if (action) {
         emit constructNode(action->getKind());
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::connectNodes
+ */
+void ToolbarWidget::connectNodes()
+{
+    ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
+    if (action) {
+        emit constructEdge(nodeItem->getNode(), action->getNode());
     }
 }
 
@@ -149,7 +221,7 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setFixedSize(buttonSize);
     implementationButton->setFixedSize(buttonSize);
 
-    addChildButton->setIconSize(buttonSize*0.65);
+    addChildButton->setIconSize(buttonSize*0.6);
     connectButton->setIconSize(buttonSize*0.7);
     deleteButton->setIconSize(buttonSize*0.85);
     definitionButton->setIconSize(buttonSize*1.2);
@@ -161,7 +233,7 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setToolTip("Go to Definition");
     implementationButton->setToolTip("Go to Implementation");
 
-    QFrame* frame = new QFrame();
+    frame = new QFrame();
     frame->setFrameShape(QFrame::VLine);
     frame->setPalette(QPalette(Qt::darkGray));
 
@@ -188,8 +260,8 @@ void ToolbarWidget::setupButtonMenus()
     addChildButton->setPopupMode(QToolButton::InstantPopup);
     addChildButton->setMenu(addMenu);
 
-    //connectButton->setPopupMode(QToolButton::InstantPopup);
-    //connectButton->setMenu(connectMenu);
+    connectButton->setPopupMode(QToolButton::InstantPopup);
+    connectButton->setMenu(connectMenu);
 }
 
 
@@ -198,12 +270,13 @@ void ToolbarWidget::setupButtonMenus()
  */
 void ToolbarWidget::makeConnections()
 {
-    connect(addMenu, SIGNAL(aboutToShow()), this, SLOT(getAdoptableNodeList()));
     connect(addMenu, SIGNAL(triggered(QAction*)), this, SLOT(hide()));
     connect(addMenu, SIGNAL(triggered(QAction*)), addMenu, SLOT(hide()));
+    connect(connectMenu, SIGNAL(triggered(QAction*)), this, SLOT(hide()));
+    connect(connectMenu, SIGNAL(triggered(QAction*)), connectMenu, SLOT(hide()));
 
     //connect(addMenu, SIGNAL(aboutToHide()), this, SLOT(hide()));
-    connect(addMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
+    //connect(addMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
 
     connect(connectButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
@@ -225,16 +298,54 @@ void ToolbarWidget::connectToView()
 {
     NodeView* nodeView = dynamic_cast<NodeView*>(parentWidget());
 
-    connect(connectButton, SIGNAL(clicked()), nodeView, SLOT(trigger_shiftPressed()));
+    //connect(connectButton, SIGNAL(clicked()), nodeView, SLOT(trigger_shiftPressed()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(trigger_deletePressed()));
+
+    connect(this, SIGNAL(checkDefinition(Node*)), nodeView, SLOT(goToDefinition(Node*)));
+    connect(this, SIGNAL(checkImplementation(Node*)), nodeView, SLOT(goToImplementation(Node*)));
 
     connect(this, SIGNAL(goToDefinition(Node*)), nodeView, SLOT(goToDefinition(Node*)));
     connect(this, SIGNAL(goToImplementation(Node*)), nodeView, SLOT(goToImplementation(Node*)));
 
-    connect(this, SIGNAL(updateMenuList(Node*)), nodeView, SLOT(updateMenuList(Node*)));
-    connect(nodeView, SIGNAL(updateMenuList(QString,QStringList)), this, SLOT(updateMenuList(QString,QStringList)));
+    connect(this, SIGNAL(updateMenuList(QString,Node*)), nodeView, SLOT(updateToolbarMenuList(QString,Node*)));
+    connect(nodeView, SIGNAL(updateMenuList(QString,QStringList*,QList<Node*>*)), this, SLOT(updateMenuList(QString,QStringList*,QList<Node*>*)));
 
     connect(this, SIGNAL(constructNode(QString)), nodeView, SLOT(view_ConstructNodeAction(QString)));
+    connect(this, SIGNAL(constructEdge(Node*,Node*)), nodeView, SLOT(view_ConstructEdgeAction(Node*,Node*)));
 
     connect(nodeView, SIGNAL(hideToolbarWidget()), this, SLOT(hide()));
+}
+
+
+/**
+ * @brief ToolbarWidget::updateToolButtons
+ * Hide the tool buttons that don't apply to the selected node item.
+ */
+void ToolbarWidget::updateToolButtons()
+{
+    frame->setVisible(false);
+
+    if (nodeItem->getNodeKind().endsWith("Definitions") || nodeItem->getNodeKind().startsWith("Management")) {
+
+        deleteButton->hide();
+        definitionButton->hide();
+        implementationButton->hide();
+
+    } else {
+
+        showFrame = 0;
+
+        deleteButton->show();
+        emit checkDefinition(nodeItem->getNode());
+        emit checkImplementation(nodeItem->getNode());
+
+        if (showFrame < 2) {
+            frame->setVisible(true);
+        }
+    }
+
+    // isVisible() is giving the wrong value
+    //frame->setVisible(definitionButton->isVisible() || implementationButton->isVisible());
+    getAdoptableNodeList();
+    getLegalNodesList();
 }

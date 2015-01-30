@@ -65,7 +65,6 @@ void NewController::connectView(NodeView *view)
     connect(view, SIGNAL(selectAll()),this, SLOT(view_SelectAll()));
     connect(view, SIGNAL(unselect()),this, SLOT(view_ClearSelection()));
     connect(view, SIGNAL(unselect()), this, SLOT(view_UncenterGraphML()));
-    connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this, SLOT(view_ConstructNode(QString, QPointF)));
     connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
 
     //Connect the View to the Controllers Signals
@@ -83,6 +82,12 @@ void NewController::connectView(NodeView *view)
     connect(this, SIGNAL(centreNode(Node*)), view, SLOT(centreNode(Node*)));
     connect(view, SIGNAL(sortModel()), this, SLOT(view_SortModel()));
     connect(view, SIGNAL(centerNode(QString)), this, SLOT(centerNode(QString)));
+
+    connect(view, SIGNAL(getLegalNodesList(Node*)), this, SLOT(getLegalNodesList(Node*)));
+    connect(this, SIGNAL(setLegalNodesList(QList<Node*>*)), view, SLOT(updateToolbarLegalNodesList(QList<Node*>*)));
+
+    connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this, SLOT(view_ConstructNode(QString, QPointF)));
+    connect(view, SIGNAL(constructEdgeItem(Node*,Node*)), this, SLOT(constructLegalEdge(Node*,Node*)));
 }
 
 
@@ -205,21 +210,21 @@ void NewController::view_ImportGraphML(QStringList inputGraphML, Node *currentPa
 {
     view_TriggerAction("Importing GraphML");
     emit view_SetGUIEnabled(false);
-   // emit view_EnableGUI(false);
-   // emit view_UpdateProgressDialog(true);
+    // emit view_EnableGUI(false);
+    // emit view_UpdateProgressDialog(true);
 
     int files = inputGraphML.size();
 
     for (int i = 0; i < files ; i++){
         //Update Dialogs etc.
-       // emit view_UpdateProgressDialog(0,QString("Importing GraphML file %1 / %2").arg(QString::number(i + 1), QString::number(files)));
+        // emit view_UpdateProgressDialog(0,QString("Importing GraphML file %1 / %2").arg(QString::number(i + 1), QString::number(files)));
 
         QString currentGraphMLData = inputGraphML.at(i);
         //emit controller_ActionTrigger("Importing GraphML");
         view_ImportGraphML(currentGraphMLData, currentParent);
     }
 
-     emit view_SetGUIEnabled(true);
+    emit view_SetGUIEnabled(true);
     // emit view_UpdateProgressDialog(false);
 
 }
@@ -423,8 +428,8 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
                 }
 
                 if(newNode == 0){
-                     qCritical() << QString("Line #%1: Node Cannot Adopt child Node!").arg(xml.lineNumber());
-                     break;
+                    qCritical() << QString("Line #%1: Node Cannot Adopt child Node!").arg(xml.lineNumber());
+                    break;
                 }
 
                 //Clear the Node Data List.
@@ -440,7 +445,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
                     //Check if the parent is a graph or a node!
                     //We only care about if it's not a graph!
                     //Graph* graph = dynamic_cast<Graph*> (currentParent);
-                   // if(graph != 0){
+                    // if(graph != 0){
                     parentDepth --;
                     //}
                 }
@@ -544,7 +549,7 @@ void NewController::view_ClearModel()
     //qCritical() << actionCount;
 
     QList<Node*> childNodes = interfaceDefinitions->getChildren(0);
-   // while(!childNodes.isEmpty())
+    // while(!childNodes.isEmpty())
     for(int i=0; i < childNodes.size(); i++){
         Node* child = childNodes[i];
         destructNode(child);
@@ -637,18 +642,18 @@ void NewController::view_DestructGraphMLData(GraphML *parent, QString keyName)
             action.dataValues.append(data->toStringList());
             action.boundDataIDs.append(data->getBoundIDS());
 
-           QString parentDataID = "";
-           if(data->getParentData()){
-               parentDataID = data->getParentData()->getID();
-               action.parentDataID.append(parentDataID);
-           }
+            QString parentDataID = "";
+            if(data->getParentData()){
+                parentDataID = data->getParentData()->getID();
+                action.parentDataID.append(parentDataID);
+            }
 
-           //qCritical() << "Removed Data: " << keyName << " from ID: " << action.ID;
-           addActionToStack(action);
+            //qCritical() << "Removed Data: " << keyName << " from ID: " << action.ID;
+            addActionToStack(action);
 
-           //Remove!
-           parent->removeData(data);
-           delete data;
+            //Remove!
+            parent->removeData(data);
+            delete data;
         }else{
             qCritical() << "action.ID: " << action.ID;
             qCritical() << "keyName: " << keyName;
@@ -695,7 +700,7 @@ void NewController::view_CenterAggregate(Node *node)
 
         EventPort* eP = dynamic_cast<EventPort*>(node);
         if(eP && eP->getAggregate()){
-             emit view_CenterGraphML(eP->getAggregate());
+            emit view_CenterGraphML(eP->getAggregate());
         }
     }
 }
@@ -886,25 +891,25 @@ void NewController::view_FilterNodes(QStringList filterString)
 {
     foreach(QString ID, nodeIDs){
         Node* node = getNodeFromID(ID);
-            bool allMatched = true;
-            foreach(QString filter, filterString){
-                bool gotMatch = false;
-                foreach(GraphMLData* data, node->getData()){
-                    if(data->getValue().contains(filter)){
-                        gotMatch = true;
-                        break;
-                    }
-                }
-                if(!gotMatch){
-                    allMatched = false;
+        bool allMatched = true;
+        foreach(QString filter, filterString){
+            bool gotMatch = false;
+            foreach(GraphMLData* data, node->getData()){
+                if(data->getValue().contains(filter)){
+                    gotMatch = true;
                     break;
                 }
             }
-            if(allMatched){
-                emit view_SetOpacity(node, 1);
-            }else{
-                emit view_SetOpacity(node, 0);
+            if(!gotMatch){
+                allMatched = false;
+                break;
             }
+        }
+        if(allMatched){
+            emit view_SetOpacity(node, 1);
+        }else{
+            emit view_SetOpacity(node, 0);
+        }
 
 
     }
@@ -919,14 +924,15 @@ void NewController::view_SortModel()
 
 
 void NewController::view_ShowLegalEdgesForNode(Node *src)
-{
+{    
     foreach(QString ID, nodeIDs){
         Node* dst = getNodeFromID(ID);
 
-        if(dst && !src->canConnect(dst) && (dst != src)){
+        if (dst && !src->canConnect(dst) && (dst != src)) {
             emit view_SetOpacity(dst, HIDDEN_OPACITY);
         }
     }
+
 }
 
 void NewController::view_ShowAllNodes()
@@ -974,13 +980,13 @@ void NewController::view_ShiftPressed(bool isDown)
 
 void NewController::view_DeletePressed(bool isDown)
 {
-     if(isDown){
-         emit view_SetGUIEnabled(false);
-         view_TriggerAction("Deleting Selection");
-         deleteSelectedEdges();
-         deleteSelectedNodes();
-         emit view_SetGUIEnabled(true);
-     }
+    if(isDown){
+        emit view_SetGUIEnabled(false);
+        view_TriggerAction("Deleting Selection");
+        deleteSelectedEdges();
+        deleteSelectedNodes();
+        emit view_SetGUIEnabled(true);
+    }
 }
 
 void NewController::view_Undo()
@@ -1080,6 +1086,38 @@ void NewController::view_ClearSelection()
     clearSelectedNodes();
 }
 
+
+/**
+ * @brief NewController::getLegalNodes
+ * @param src
+ */
+void NewController::getLegalNodesList(Node *src)
+{
+    QList<Node*> *legalNodes = new QList<Node*>();
+
+    foreach (QString ID, nodeIDs) {
+        Node* dst = getNodeFromID(ID);
+        if (dst && (dst != src)) {
+            if (src->canConnect(dst)) {
+                legalNodes->append(dst);
+            }
+        }
+    }
+
+    emit setLegalNodesList(legalNodes);
+}
+
+/**
+ * @brief NewController::constructLegalEdge
+ * @param source
+ * @param destination
+ */
+void NewController::constructLegalEdge(Node *src, Node *dst)
+{
+   view_ConstructEdge(src, dst);
+}
+
+
 bool NewController::copySelectedNodesGraphML()
 {
     Node* firstParent = 0;
@@ -1123,9 +1161,9 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
 
             //If we have constructed this node, test if the parent can adopt it.
             if(node){
-               if(parent->canAdoptChild(node)){
-                   adoptableNodeTypes.append(nodeKind);
-               }
+                if(parent->canAdoptChild(node)){
+                    adoptableNodeTypes.append(nodeKind);
+                }
             }
 
             //Delete the node, if we didn't create a GUI NodeItem.
@@ -1221,25 +1259,25 @@ Node *NewController::constructNode(QList<GraphMLData *> dataToAttach, bool readO
         }
     }
 
-     QList<GraphMLData*> requiredData = constructGraphMLDataVector(nodeKind);
+    QList<GraphMLData*> requiredData = constructGraphMLDataVector(nodeKind);
 
-     while(requiredData.size() > 0){
-         GraphMLData* data = requiredData.takeFirst();
+    while(requiredData.size() > 0){
+        GraphMLData* data = requiredData.takeFirst();
 
-         bool gotDataType = false;
-         foreach(GraphMLData* gotData, dataToAttach){
-             if(gotData->getKey() == data->getKey()){
-                 gotDataType = true;
-                 break;
-             }
-         }
+        bool gotDataType = false;
+        foreach(GraphMLData* gotData, dataToAttach){
+            if(gotData->getKey() == data->getKey()){
+                gotDataType = true;
+                break;
+            }
+        }
 
-         if(!gotDataType){
-             dataToAttach.append(data);
-         }else{
-             delete data;
-         }
-     }
+        if(!gotDataType){
+            dataToAttach.append(data);
+        }else{
+            delete data;
+        }
+    }
 
 
     //Check Vector of data for X,Y, Width and Height.
@@ -1482,7 +1520,7 @@ void NewController::removeGraphMLFromHash(QString ID)
             edgeIDs.removeOne(ID);
         }
         if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
-                qCritical() << "Hash Map Inconsistency detected!";
+            qCritical() << "Hash Map Inconsistency detected!";
         }
     }
 }
@@ -1756,11 +1794,11 @@ void NewController::clearSelectedNodes()
 
 void NewController::clearSelectedEdges()
 {
-     foreach(QString ID, selectedEdgeIDs){
-         Edge* edge = getEdgeFromID(ID);
-         if(edge){
-             emit view_SetGraphMLSelected(edge, false);
-         }
+    foreach(QString ID, selectedEdgeIDs){
+        Edge* edge = getEdgeFromID(ID);
+        if(edge){
+            emit view_SetGraphMLSelected(edge, false);
+        }
     }
     selectedEdgeIDs.clear();
 }
@@ -2055,8 +2093,8 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
         delete edge;
         return true;
     }else{
-         qCritical() << "Edge doesn't exist!!";
-         return false;
+        qCritical() << "Edge doesn't exist!!";
+        return false;
 
     }
 }
@@ -2270,7 +2308,7 @@ bool NewController::attachGraphMLData(GraphML *item, QList<GraphMLData *> dataLi
     }
 
     if(getEdgeFromGraphML(item)){
-      //  qCritical() << "EDGE DATA" << item->getID();
+        //  qCritical() << "EDGE DATA" << item->getID();
     }
 
 
@@ -2556,8 +2594,8 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
         lockLabel = true;
     }
 
-   QStringList dataTypes;
-   dataTypes << "type" << "label";
+    QStringList dataTypes;
+    dataTypes << "type" << "label";
 
     //Bind the GraphMLData attached to the Definition to the Instance/Impl.
     foreach(GraphMLData* data, definition->getData()){
@@ -2905,16 +2943,16 @@ QString NewController::getIDFromOldID(QString ID)
     QString originalID = ID;
     QString newID = ID;
     while(newID != ""){
-         if(IDLookupHash.contains(ID)){
-             QString temp = ID;
-             ID = newID;
-             newID = IDLookupHash[temp];
-             if(originalID == newID){
-                 break;
-             }
-         }else{
-             break;
-         }
+        if(IDLookupHash.contains(ID)){
+            QString temp = ID;
+            ID = newID;
+            newID = IDLookupHash[temp];
+            if(originalID == newID){
+                break;
+            }
+        }else{
+            break;
+        }
     }
 
     if(ID != originalID){

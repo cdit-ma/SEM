@@ -426,7 +426,7 @@ void NewMedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(hardwareNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(componentNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
-    connect(nodeView, SIGNAL(updateAdoptableNodeList(Node*)), this, SLOT(nodeSelected(Node*)));
+    connect(nodeView, SIGNAL(updateDockAdoptableNodeList(Node*)), this, SLOT(nodeSelected(Node*)));
     connect(nodeView, SIGNAL(getAdoptableNodeList(Node*)), this, SLOT(setAdoptableNodeList(Node*)));
 
     connect(partsContainer, SIGNAL(constructDockNode(Node*, QString)), nodeView, SLOT(view_DockConstructNode(Node*, QString)));
@@ -434,19 +434,18 @@ void NewMedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showContextMenu(QPoint)));
+    connect(nodeView, SIGNAL(hasSelectedNode(bool)), this, SLOT(hasSelectedNode(bool)));
 
     connect(nodeView, SIGNAL(updateDataTable()), this, SLOT(updateDataTable()));
     connect(nodeView, SIGNAL(updateDockButtons(QString)), this, SLOT(updateDockButtons(QString)));
     connect(nodeView, SIGNAL(updateDockContainer(QString)), this, SLOT(updateDockContainer(QString)));
 
-    connect(nodeView, SIGNAL(hasSelectedNode(bool)), this, SLOT(hasSelectedNode(bool)));
-
-    connect(this, SIGNAL(updateToolbarList(QString,QStringList)), nodeView, SLOT(updateToolbarList(QString,QStringList)));
-
-    connect(this, SIGNAL(setupViewLayout()), this, SLOT(sortAndCenterViewAspects()));
+    connect(this, SIGNAL(updateToolbarAdoptableNodeList(QStringList)), nodeView, SLOT(updateToolbarAdoptableNodeList(QStringList)));
 
     // this needs fixing
     connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
+
+    connect(this, SIGNAL(setupViewLayout()), this, SLOT(sortAndCenterViewAspects()));
 
     connectToController();
 }
@@ -854,11 +853,11 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
         if (prevSelectedNode != 0 && prevSelectedNode == node) {
             return;
         } else {
-            QStringList nodeKinds = controller->getAdoptableNodeKinds(selectedNode);
+            QStringList nodeKinds = controller->getAdoptableNodeKinds(node);
             partsContainer->addAdoptableDockNodes(node, nodeKinds);
 
             emit checkDockScrollBar();
-            emit updateToolbarList("add", nodeKinds);
+            emit updateToolbarAdoptableNodeList(nodeKinds);
             update();
         }
     }

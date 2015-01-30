@@ -45,6 +45,7 @@ signals:
     void shiftPressed(bool isDown);
 
     void constructNodeItem(QString kind, QPointF);
+    void constructEdgeItem(Node* src, Node* dst);
 
     void copy();
     void cut();
@@ -79,9 +80,10 @@ signals:
 
     void hasSelectedNode(bool nodeSelected);
 
+    void getLegalNodesList(Node* src);
     void getAdoptableNodeList(Node* node);
-    void updateAdoptableNodeList(Node* node);
-    void updateMenuList(QString action, QStringList nodeList);
+    void updateDockAdoptableNodeList(Node* node);
+    void updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodes);
 
 public slots:
 
@@ -113,6 +115,7 @@ public slots:
 
 
     void view_ConstructNodeAction(QString nodeKind);
+    void view_ConstructEdgeAction(Node* src, Node* dst);
     
     void clearSelection();
 
@@ -133,8 +136,9 @@ public slots:
     void trigger_shiftPressed();
     void trigger_deletePressed();
 
-    void updateMenuList(Node* node);
-    void updateToolbarList(QString action, QStringList nodeList);
+    void updateToolbarMenuList(QString action, Node* node);
+    void updateToolbarAdoptableNodeList(QStringList nodeKinds);
+    void updateToolbarLegalNodesList(QList<Node*>* nodeList);
 
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);

@@ -245,11 +245,13 @@ void NodeView::setViewAspects(QStringList aspects)
     // initially show and sort container items so that they are not
     // painted on top of each other when they are first turned on
     if (firstSort) {
+
         QStringList allAspects;
         allAspects.append("Assembly");
         allAspects.append("Hardware");
         allAspects.append("Definitions");
         allAspects.append("Workload");
+
         emit updateViewAspects(allAspects);
         emit sortModel();
         firstSort = false;
@@ -499,7 +501,7 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
                 Node* node = dynamic_cast<Node*>(graphML);
                 updateDockButtons(node);
 
-                emit updateAdoptableNodeList(node);
+                emit updateDockAdoptableNodeList(node);
                 emit hasSelectedNode(true);
                 return;
             }
@@ -576,6 +578,17 @@ void NodeView::view_ConstructNodeAction(QString nodeKind)
         emit constructNodeItem(nodeKind, menuPosition);
     }
     update();
+}
+
+
+/**
+ * @brief NodeView::view_ConstructEdgeAction
+ * @param src
+ * @param dst
+ */
+void NodeView::view_ConstructEdgeAction(Node *src, Node *dst)
+{
+    emit constructEdgeItem(src, dst);
 }
 
 
@@ -788,9 +801,11 @@ void NodeView::mousePressEvent(QMouseEvent *event)
 
     } else {
         // sorting node item's children, need to update view
+        /*
         if (CONTROL_DOWN) {
             update();
         }
+        */
         // update attribute table size
         if (event->button() == Qt::LeftButton) {
             emit updateDataTable();
@@ -1026,12 +1041,28 @@ void NodeView::view_addComponentDefinition(NodeItem *itm)
  */
 void NodeView::goToDefinition(Node *node)
 {
+    qDebug() << "NodeView::goToDefinition";
+
+    ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(QObject::sender());
+    bool hasDefinition = false;
+
     Node* temp = node;
     if (node) {
+
         if (!node->isDefinition()) {
             temp = node->getDefinition();
         }
+
         if (temp) {
+            hasDefinition = true;
+        }
+
+        if (toolbar) {
+            toolbar->showDefinitionButton(hasDefinition);
+            return;
+        }
+
+        if (hasDefinition) {
             controller->view_GraphMLSelected(temp, true);
             centreItem(getGraphMLItemFromGraphML(temp));
         }
@@ -1047,12 +1078,27 @@ void NodeView::goToDefinition(Node *node)
  */
 void NodeView::goToImplementation(Node *node)
 {
+    qDebug() << "NodeView::goToImplementation";
+
+    ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(QObject::sender());
+    bool hasImplementation = false;
+
     Node* temp = node;
     if (node) {
         if (!node->isDefinition()) {
             temp = node->getDefinition();
         }
+
         if (temp && temp->getImplementations().count() == 1) {
+            hasImplementation = true;
+        }
+
+        if (toolbar) {
+            toolbar->showImplementationButton(hasImplementation);
+            return;
+        }
+
+        if (hasImplementation) {
             controller->view_GraphMLSelected(temp->getImplementations().at(0), true);
             centreItem(getGraphMLItemFromGraphML(temp->getImplementations().at(0)));
         }
@@ -1081,23 +1127,40 @@ void NodeView::trigger_deletePressed()
 
 
 /**
- * @brief NodeView::updateMenuList
+ * @brief NodeView::updateToolbarMenuList
  * @param node
  */
-void NodeView::updateMenuList(Node *node)
+void NodeView::updateToolbarMenuList(QString action, Node *node)
 {
-    emit getAdoptableNodeList(node);
+    if (action == "add") {
+        emit getAdoptableNodeList(node);
+    } else if (action == "connect") {
+        emit getLegalNodesList(node);
+    }
 }
 
 
 /**
- * @brief NodeView::updateToolbarList
+ * @brief NodeView::updateToolbarAdoptableNodeList
+ * This is called by NewMedeaWindow whenever the toolbar adoptable nodes list
+ * needs to be updated. If selectedNode == prevSelectedNode, nothing happens.
  * @param action
  * @param nodeList
  */
-void NodeView::updateToolbarList(QString action, QStringList nodeList)
+void NodeView::updateToolbarAdoptableNodeList(QStringList nodeKinds)
 {
-    emit updateMenuList(action, nodeList);
+    QStringList* kinds = new QStringList(nodeKinds);
+    emit updateMenuList("add", kinds, 0);
+}
+
+
+/**
+ * @brief NodeView::updateToolbarLegalNodesList
+ * @param nodeList
+ */
+void NodeView::updateToolbarLegalNodesList(QList<Node*>* nodeList)
+{
+    emit updateMenuList("connect", 0, nodeList);
 }
 
 

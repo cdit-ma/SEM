@@ -118,6 +118,8 @@ signals:
     void view_FitToScreen();
     void centreNode(Node* node);
 
+    void setLegalNodesList(QList<Node*>* nodes);
+
 
 public slots:
     void centerNode(QString nodeLabel);
@@ -201,6 +203,9 @@ public slots:
     void view_SelectAll();
     void view_UncenterGraphML();
     void view_ClearSelection();
+
+    void getLegalNodesList(Node* src);
+    void constructLegalEdge(Node *src, Node *dst);
 
 private:
     //Copies the selected Nodes' GraphML representation to the Clipboard.

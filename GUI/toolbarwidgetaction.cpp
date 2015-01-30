@@ -4,10 +4,43 @@
 #include <QLabel>
 
 
+/**
+ * @brief ToolbarWidgetAction::ToolbarWidgetAction
+ * @param nodeKind
+ * @param parent
+ */
 ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QWidget *parent) :
     QWidgetAction(parent)
 {
+    node = 0;
     kind = nodeKind;
+    label = nodeKind;
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::ToolbarWidgetAction
+ * @param node
+ * @param parent
+ */
+ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent) :
+    QWidgetAction(parent)
+{
+    this->node = node;
+    kind = node->getDataValue("kind");
+    label = node->getDataValue("label");
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::getNode
+ * @return
+ */
+Node *ToolbarWidgetAction::getNode()
+{
+   if (node) {
+       return node;
+   }
 }
 
 
@@ -38,7 +71,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     layout->setMargin(0);
     //layout->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 
-    QLabel* textLabel = new QLabel(kind, actionButton);
+    QLabel* textLabel = new QLabel(label, actionButton);
     textLabel->setFixedHeight(25);
 
     QLabel* imageLabel = new QLabel(actionButton);

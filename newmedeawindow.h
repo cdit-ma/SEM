@@ -48,7 +48,7 @@ signals:
     void view_ExportGraphML(QString fileName);
 
     void setViewAspects(QStringList aspects);
-    void updateToolbarList(QString action, QStringList nodeList);
+    void updateToolbarAdoptableNodeList(QStringList nodeList);
 
     void clearDock();
     void checkDockScrollBar();
