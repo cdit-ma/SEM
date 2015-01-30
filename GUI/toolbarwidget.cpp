@@ -101,6 +101,29 @@ void ToolbarWidget::addChildNode()
 
 
 /**
+ * @brief ToolbarWidget::hideToolbar
+ */
+void ToolbarWidget::hideToolbar()
+{
+    /*
+    if (mousePressOutOfBounds) {
+        hide();
+        resetToolbarStates();
+    }
+    */
+}
+
+
+/**
+ * @brief ToolbarWidget::resetToolbarStates
+ */
+void ToolbarWidget::resetToolbarStates()
+{
+    //addChildButton->setChecked(false);
+}
+
+
+/**
  * @brief ToolbarWidget::setupToolBar
  */
 void ToolbarWidget::setupToolBar()
@@ -128,7 +151,7 @@ void ToolbarWidget::setupToolBar()
 
     addChildButton->setIconSize(buttonSize*0.65);
     connectButton->setIconSize(buttonSize*0.7);
-    deleteButton->setIconSize(buttonSize*0.8);
+    deleteButton->setIconSize(buttonSize*0.85);
     definitionButton->setIconSize(buttonSize*1.2);
     implementationButton->setIconSize(buttonSize*0.7);
 
@@ -178,7 +201,9 @@ void ToolbarWidget::makeConnections()
     connect(addMenu, SIGNAL(aboutToShow()), this, SLOT(getAdoptableNodeList()));
     connect(addMenu, SIGNAL(triggered(QAction*)), this, SLOT(hide()));
     connect(addMenu, SIGNAL(triggered(QAction*)), addMenu, SLOT(hide()));
+
     //connect(addMenu, SIGNAL(aboutToHide()), this, SLOT(hide()));
+    connect(addMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
 
     connect(connectButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));

@@ -241,8 +241,22 @@ void NodeView::setRubberBandMode(bool On)
 void NodeView::setViewAspects(QStringList aspects)
 {
     currentAspects = aspects;
+
+    // initially show and sort container items so that they are not
+    // painted on top of each other when they are first turned on
+    if (firstSort) {
+        QStringList allAspects;
+        allAspects.append("Assembly");
+        allAspects.append("Hardware");
+        allAspects.append("Definitions");
+        allAspects.append("Workload");
+        emit updateViewAspects(allAspects);
+        emit sortModel();
+        firstSort = false;
+    }
+
     emit updateViewAspects(aspects);
-    emit sortModel();
+    //emit sortModel();
     view_centerViewAspects();
 }
 
@@ -1018,6 +1032,7 @@ void NodeView::goToDefinition(Node *node)
             temp = node->getDefinition();
         }
         if (temp) {
+            controller->view_GraphMLSelected(temp, true);
             centreItem(getGraphMLItemFromGraphML(temp));
         }
     }
@@ -1038,6 +1053,7 @@ void NodeView::goToImplementation(Node *node)
             temp = node->getDefinition();
         }
         if (temp && temp->getImplementations().count() == 1) {
+            controller->view_GraphMLSelected(temp->getImplementations().at(0), true);
             centreItem(getGraphMLItemFromGraphML(temp->getImplementations().at(0)));
         }
     }
@@ -1093,6 +1109,8 @@ void NodeView::view_centerViewAspects()
 {
     if (currentAspects.count() == 1) {
         emit centerNode(currentAspects.at(0));
+        qDebug() << "One aspect visible";
+        qDebug() << currentAspects.at(0);
         return;
     } else if (currentAspects.count() == 2) {
         if (currentAspects.contains("Assembly") && currentAspects.contains("Hardware")){

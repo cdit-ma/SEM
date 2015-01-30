@@ -33,6 +33,9 @@ public slots:
 
     void addChildNode();
 
+    void hideToolbar();
+    void resetToolbarStates();
+
 private:
     void setupToolBar();
     void setupButtonMenus();

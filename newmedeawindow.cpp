@@ -283,16 +283,11 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
     view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/zoomToFit.png"), "Fit To Sreen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
     view_goToDefinition = view_menu->addAction("Go to Definition");
-    view_goToDefinition->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_D));
+    view_goToDefinition->setShortcut(QKeySequence(Qt::Key_D));
     view_goToImplementation = view_menu->addAction("Go to Implementation");
-    view_goToImplementation->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_I));
+    view_goToImplementation->setShortcut(QKeySequence(Qt::Key_I));
 
     exit->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
-
-    /*
-    ToolbarWidgetAction* action = new ToolbarWidgetAction(this);
-    menu->addAction(action);
-    */
 
     button->setMenu(menu);
     hasSelectedNode(false);
@@ -533,9 +528,6 @@ void NewMedeaWindow::setupJenkinsSettings()
 }
 
 
-/************************************************************************************************************/
-
-
 /**
  * @brief NewMedeaWindow::on_actionImportJenkinsNode
  */
@@ -571,9 +563,10 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
         return;
     }
 
-    // reset gui
+    // clear item selection and reset gui
     // delete old controller, create a new one
     // then connect to new controller
+    nodeView->clearSelection();
     resetGUI();
 }
 
@@ -592,6 +585,8 @@ void NewMedeaWindow::on_actionImport_GraphML_triggered()
     importGraphMLFiles(files);
     QStringList fileData;
 
+    // clear item selection
+    nodeView->clearSelection();
 }
 
 

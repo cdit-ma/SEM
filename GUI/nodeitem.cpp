@@ -703,8 +703,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     default:
         break;
     }
-
-    //QGraphicsItem::mousePressEvent(event);
 }
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

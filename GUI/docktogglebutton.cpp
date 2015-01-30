@@ -29,7 +29,8 @@ DockToggleButton::DockToggleButton(QString label, NewMedeaWindow *window, QWidge
 
     QPixmap pixmap = 0;
     if (label == "P") {
-        pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/Workload.png"));
+        //pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/Workload.png"));
+        pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/parts.png"));
     } else if (label == "H") {
         pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/HardwareNode.png"));
     } else if (label == "D") {
