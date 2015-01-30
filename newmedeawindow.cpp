@@ -391,6 +391,7 @@ void NewMedeaWindow::resetGUI()
     connectToController();
 
     qDebug() << "Resetting project name";
+
     // force projectName to be the same as the model label
     updateProjectName("Model");
 }
