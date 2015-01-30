@@ -1109,8 +1109,6 @@ void NodeView::view_centerViewAspects()
 {
     if (currentAspects.count() == 1) {
         emit centerNode(currentAspects.at(0));
-        qDebug() << "One aspect visible";
-        qDebug() << currentAspects.at(0);
         return;
     } else if (currentAspects.count() == 2) {
         if (currentAspects.contains("Assembly") && currentAspects.contains("Hardware")){
