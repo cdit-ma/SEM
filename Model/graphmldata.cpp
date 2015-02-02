@@ -10,6 +10,10 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
         this->setValue(value);
     }
 
+    if(key){
+        key->addData(this);
+    }
+
     //Set to default.
     parentData = 0;
     setProtected(key->isProtected());
@@ -22,6 +26,16 @@ GraphMLData::~GraphMLData()
         unbindData(child);
     }
     childData.clear();
+
+    if(key){
+        key->removeData(this);
+    }
+    qCritical() << "Deleted GraphMLData ";
+}
+
+void GraphMLData::unsetKey()
+{
+    this->key = 0;
 }
 
 QString GraphMLData::getValue() const
@@ -93,15 +107,17 @@ QStringList GraphMLData::getBoundIDS()
 
 void GraphMLData::setValue(QString newValue)
 {
-    QString validatedValue = key->validateDataChange(this, newValue);
+    if(key){
+        QString validatedValue = key->validateDataChange(this, newValue);
 
-    if(validatedValue != value){
-        value = validatedValue;
-        emit dataChanged(this);
-    }
+        if(validatedValue != value){
+            value = validatedValue;
+            emit dataChanged(this);
+        }
 
-    foreach(GraphMLData* data, childData){
-        data->setValue(value);
+        foreach(GraphMLData* data, childData){
+            data->setValue(value);
+        }
     }
 }
 
@@ -121,7 +137,9 @@ void GraphMLData::setParentData(GraphMLData *data)
 {
     if(data){
         unsetParentData();
-        setValue(data->getValue());
+        if(data){
+            setValue(data->getValue());
+        }
     }
     parentData = data;
 }

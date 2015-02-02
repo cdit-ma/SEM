@@ -10,7 +10,7 @@ ProjectWindow::ProjectWindow(QWidget *parent):QMdiSubWindow(parent)
 
     view = new NodeView(0);
 
-    this->tableView = new NodeTableView();
+    //this->tableView = new NodeTableView();
    // view2 = new NodeView(0);
 
     layout()->addWidget(view);
@@ -79,19 +79,19 @@ NewController *ProjectWindow::getController()
 
 void ProjectWindow::treeViewItemSelected(QModelIndex index)
 {
-    tableView->view_TreeViewItemSelected(index);
+    //tableView->view_TreeViewItemSelected(index);
 }
 
 void ProjectWindow::treeViewItemCentered(QModelIndex index)
 {
-    tableView->view_TreeViewItemSelected(index);
+    //tableView->view_TreeViewItemSelected(index);
 }
 
 void ProjectWindow::selectedProject()
 {
     emit updateFilterButtons(appliedFilterButtons);
     emit updateAspectButtons(appliedAspectButtons);
-    emit setTableView(tableView->getModel());
+    //emit setTableView(tableView->getModel());
     controller->view_ClearSelection();
 }
 

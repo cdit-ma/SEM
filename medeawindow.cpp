@@ -436,7 +436,7 @@ void MedeaWindow::setSelectedProject(ProjectWindow *newSelected)
 
 
 
-        connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), selectedProject->getView(), SLOT(depthChanged(int)));
+        //connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), selectedProject->getView(), SLOT(depthChanged(int)));
         connect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
         connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
         connect(controller, SIGNAL(view_UpdateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));

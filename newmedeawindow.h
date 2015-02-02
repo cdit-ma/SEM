@@ -29,6 +29,9 @@
 #include "GUI/docktogglebutton.h"
 #include "GUI/dockscrollarea.h"
 
+#include "GUI/nodeviewminimap.h"
+
+
 
 class NewMedeaWindow : public QMainWindow
 {
@@ -149,6 +152,8 @@ private:
     NewController* controller;
     Node* prevSelectedNode;
     Node* selectedNode;
+
+    NodeViewMinimap* minimap;
 
     int boxWidth;
     int boxHeight;

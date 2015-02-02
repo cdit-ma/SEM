@@ -100,12 +100,14 @@ void NewController::initializeModel()
 NewController::~NewController()
 {
     view_ClearSelection();
+
     destructNode(model, false);
 
     while(keys.size() > 0){
         GraphMLKey* key = keys.takeFirst();
         delete key;
     }
+
     delete validator;
 }
 
@@ -601,6 +603,7 @@ void NewController::view_ValidateModel()
 
 void NewController::view_UpdateGraphMLData(GraphML *parent, QString keyName, QString dataValue)
 {
+
     //Construct an Action to reverse the update
     ActionItem action;
     action.ID = parent->getID();
@@ -609,15 +612,19 @@ void NewController::view_UpdateGraphMLData(GraphML *parent, QString keyName, QSt
     action.keyName = keyName;
 
     //Update
+    //GraphMLData* data = 0;
     GraphMLData* data = parent->getData(keyName);
+
 
     if(data){
         action.dataValue = data->getValue();
         addActionToStack(action);
+        //qCritical() << keyName << ": " << dataValue;
         data->setValue(dataValue);
     }else{
         qCritical() << "Data Doesn't Exist";
     }
+
 }
 
 void NewController::view_ConstructGraphMLData(GraphML *parent, QString keyName)

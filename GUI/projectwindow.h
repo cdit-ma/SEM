@@ -48,7 +48,7 @@ private:
     QStringList visibleAspects;
     QThread *thread;
     NodeView* view;
-    NodeTableView* tableView;
+    //NodeTableView* tableView;
     NodeView* view2;
     NewController* controller;
 

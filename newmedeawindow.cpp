@@ -1,5 +1,4 @@
 #include "newmedeawindow.h"
-#include "GUI/nodeviewminimap.h"
 #include "GUI/toolbarwidgetaction.h"
 
 #include <QDebug>
@@ -24,6 +23,7 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     nodeView = 0;
     controller = 0;
     myProcess = 0;
+    minimap = 0;
 
     // initialise gui and connect signals and slots
     initialiseGUI();
@@ -215,7 +215,8 @@ void NewMedeaWindow::initialiseGUI()
     setupDock(bodyLayout);
 
     // setup mini map
-    NodeViewMinimap* minimap = new NodeViewMinimap();
+    /*
+    minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
     connect(nodeView, SIGNAL(updateViewPort(QRectF)), minimap, SLOT(updateViewPort(QRectF)));
 
@@ -229,6 +230,7 @@ void NewMedeaWindow::initialiseGUI()
     minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
 
     rightVlayout->addWidget(minimap);
+    */
 }
 
 
@@ -362,11 +364,16 @@ void NewMedeaWindow::setupController()
 {
     if (controller) {
         delete controller;
+      //  nodeView->di
     }
     controller = 0;
     controller = new NewController();
+   // qCritical() << "New Controller";
     controller->connectView(nodeView);
+   // qCritical() << "Connected View";
     controller->initializeModel();
+
+    //qCritical() << "Initialize Model";
 }
 
 
@@ -379,13 +386,9 @@ void NewMedeaWindow::resetGUI()
     prevSelectedNode = 0;
     selectedNode = 0;
 
-    qDebug() << "Setting up controller";
     setupController();
 
-    qDebug() << "Connecting controller";
     connectToController();
-
-    qDebug() << "Resetting project name";
 
     // force projectName to be the same as the model label
     updateProjectName("Model");
@@ -418,6 +421,7 @@ void NewMedeaWindow::makeConnections()
     connect(hardwareButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(definitionsButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
+
     connect(this, SIGNAL(setViewAspects(QStringList)), nodeView, SLOT(setViewAspects(QStringList)));
 
     connect(this, SIGNAL(clearDock()), partsContainer, SLOT(clear()));
@@ -566,6 +570,7 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
     // delete old controller, create a new one
     // then connect to new controller
     nodeView->clearSelection();
+    //on_actionClearModel_triggered();
     resetGUI();
 }
 

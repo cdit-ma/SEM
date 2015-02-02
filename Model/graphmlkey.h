@@ -20,6 +20,9 @@ public:
     void setDefaultValue(QString value);
     QString getDefaultValue() const;
 
+    void addData(GraphMLData* data);
+    void removeData(GraphMLData *data);
+
     bool equals(GraphMLKey* key);
 
     QString validateDataChange(GraphMLData* data, QString newValue);
@@ -34,6 +37,8 @@ private:
     GraphML::KIND forKind;
     QString forKindStr;
     bool protectedKey;
+
+    QList<GraphMLData*> keysData;
 
     TYPE type;
     QString typeStr;

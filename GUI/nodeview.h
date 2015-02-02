@@ -19,6 +19,7 @@ class NodeView : public QGraphicsView
 public:
     NodeView(QWidget *parent = 0);
     void setController(NewController* controller);
+    void disconnectController();
     bool getControlPressed();
 
     ~NodeView();
@@ -184,7 +185,7 @@ private:
 
 
 protected:
-    bool viewportEvent(QEvent *);
+    //bool viewportEvent(QEvent *);
 
 };
 

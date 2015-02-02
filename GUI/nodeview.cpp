@@ -51,9 +51,9 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 
     //Set-up the scene
     //QGraphicsScene* Scene = new QGraphicsScene(this);
-    QGraphicsScene* Scene = new QGraphicsScene(this);
+    //QGraphicsScene* Scene = new QGraphicsScene(this);
     //GridScene* Scene = new GridScene(this);
-    setScene(Scene);
+    //setScene(Scene);
 
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
@@ -77,7 +77,19 @@ NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
 
 void NodeView::setController(NewController *controller)
 {
+
+    qCritical() << "Setting new Controller";
+
+    //GridScene* Scene = new GridScene(this);
+    setScene(new QGraphicsScene(this));
+
     this->controller = controller;
+}
+
+void NodeView::disconnectController()
+{
+    //  this->controller = controller;
+
 }
 
 bool NodeView::getControlPressed()
@@ -146,13 +158,14 @@ QList<NodeItem*> NodeView::getVisibleNodeItems()
     return nodeItems;
 }
 
-
+/*
 bool NodeView::viewportEvent(QEvent * e)
 {
-    emit updateViewPort(getVisibleRect());
+    //qDebug() << ".............";
+    //emit updateViewPort(getVisibleRect());
     return QGraphicsView::viewportEvent(e);
 }
-
+*/
 
 /**
  * @brief NodeView::centreItem
@@ -356,7 +369,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     /**************************************************************/
 
 
-    if(!scene()->items().contains(nodeItem)){
+    if(scene() && !scene()->items().contains(nodeItem)){
         //Add to model.
         scene()->addItem(nodeItem);
     }
@@ -449,6 +462,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 void NodeView::view_DestructGraphMLGUI(QString ID)
 {
     removeGraphMLItemFromHash(ID);
+    //qCritical() << "Removed ID:" << ID;
 }
 
 /*
@@ -594,13 +608,15 @@ void NodeView::view_ConstructEdgeAction(Node *src, Node *dst)
 
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
 {
-    connect(GUIItem, SIGNAL(triggerAction(QString)),  controller, SLOT(view_TriggerAction(QString)));
-    connect(GUIItem, SIGNAL(triggerCentered(GraphML*)), this, SLOT(view_CenterGraphML(GraphML*)));
-    connect(GUIItem, SIGNAL(triggerSelected(GraphML*, bool)), controller, SLOT(view_GraphMLSelected(GraphML*, bool)));
-    connect(GUIItem, SIGNAL(constructGraphMLData(GraphML*,QString)), controller, SLOT(view_ConstructGraphMLData(GraphML*,QString)));
-    connect(GUIItem, SIGNAL(destructGraphMLData(GraphML*,QString)), controller, SLOT(view_DestructGraphMLData(GraphML*,QString)));
-    connect(GUIItem, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
-    //connect(graphML, SIGNAL(destroyed()), GUIItem, SLOT(destructGraphML()));
+    if(controller && GUIItem){
+        connect(GUIItem, SIGNAL(triggerAction(QString)),  controller, SLOT(view_TriggerAction(QString)));
+        connect(GUIItem, SIGNAL(triggerCentered(GraphML*)), this, SLOT(view_CenterGraphML(GraphML*)));
+        connect(GUIItem, SIGNAL(triggerSelected(GraphML*, bool)), controller, SLOT(view_GraphMLSelected(GraphML*, bool)));
+        connect(GUIItem, SIGNAL(constructGraphMLData(GraphML*,QString)), controller, SLOT(view_ConstructGraphMLData(GraphML*,QString)));
+        connect(GUIItem, SIGNAL(destructGraphMLData(GraphML*,QString)), controller, SLOT(view_DestructGraphMLData(GraphML*,QString)));
+        connect(GUIItem, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
+        //connect(graphML, SIGNAL(destroyed()), GUIItem, SLOT(destructGraphML()));
+    }
 }
 
 NodeItem *NodeView::getNodeItemFromGraphMLItem(GraphMLItem *item)
@@ -902,6 +918,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
  */
 void NodeView::resetModel()
 {
+
     foreach (QGraphicsItem *itm, scene()->items()) {
         NodeItem *nodeItm = dynamic_cast<NodeItem*>(itm);
         if (nodeItm) {

@@ -133,6 +133,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
 NodeItem::~NodeItem()
 {
+
     if (parentItem()) {
         // if this item is its parent's last child,
         // remove the parent's expand button and
@@ -151,6 +152,7 @@ NodeItem::~NodeItem()
         }
     }
     delete label;
+    //qCritical() << "NodeItem~() " <<parentItem();
 }
 
 NodeItem *NodeItem::getParentNodeItem()
@@ -374,7 +376,7 @@ void NodeItem::setVisible(bool visible)
 void NodeItem::graphMLDataUpdated(GraphMLData* data)
 {
     if(data){
-        QString dataKey = data->getKey()->getName();
+        QString dataKey = data->getKeyName();
         QString dataValue = data->getValue();
 
         if(dataKey == "x" || dataKey == "y"){
@@ -391,13 +393,16 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
         }else if(dataKey == "width" || dataKey == "height"){
             //Update the Size
             if(dataKey == "width"){
+                //qCritical() << "Width";
                 setWidth(dataValue.toFloat());
             }else if(dataKey == "height"){
+                //qCritical() << "Height" << dataValue.toFloat();
                 setHeight(dataValue.toFloat());
             }
             prepareGeometryChange();
             update();
-        }else if(dataKey == "label"){
+        }
+        else if(dataKey == "label"){
             if(dataValue != ""){
                 updateTextLabel(dataValue);
             }
@@ -405,6 +410,7 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
             // update connected dock node item
             emit updateDockNodeItem();
         }
+
     }
 }
 
@@ -428,8 +434,13 @@ void NodeItem::updateViewAspects(QStringList aspects)
         }
     }
 
+    bool prevVisible = isVisible();
+
     setVisible(allMatched && (viewAspects.size() > 0));
 
+    if(prevVisible != isVisible()){
+        emit updateEdgePosition();
+    }
     // if not visible, unselect node item
     if (!isVisible()) {
         setSelected(false);
@@ -752,7 +763,6 @@ void NodeItem::setWidth(qreal width)
 void NodeItem::setHeight(qreal height)
 {
     this->height = height;
-
 }
 
 
