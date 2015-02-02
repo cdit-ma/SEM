@@ -21,7 +21,7 @@ ModelTester::ModelTester()
     float postInitializeMemory = getMemoryUsage();
     qCritical() << "Memory Usage after Initialize: " << postInitializeMemory << "KB.";
 
-    QFile file("C:/ArrowTest.graphml");
+    QFile file("C:/newVUAV.graphml");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
         qDebug() << "could not open file for read";
@@ -31,7 +31,7 @@ ModelTester::ModelTester()
     QString xmlText = in.readAll();
     file.close();
 
-    int repeatCount = 1000;
+    int repeatCount = 10;
     int loadCount = 10;
 
       sleep(20);
@@ -63,7 +63,7 @@ ModelTester::ModelTester()
     xmlText = "";
 
     delete controller;
-    sleep(100);
+    sleep(1);
     float afterDelete = getMemoryUsage();
     qCritical() << "Memory Usage After Delete: " << afterDelete << "KB.";
     qCritical() << "Total Memory Growth: " << afterDelete-initialMemory << "KB.";

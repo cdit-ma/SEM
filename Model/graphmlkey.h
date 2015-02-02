@@ -20,9 +20,6 @@ public:
     void setDefaultValue(QString value);
     QString getDefaultValue() const;
 
-    void addData(GraphMLData* data);
-    void removeData(GraphMLData *data);
-
     bool equals(GraphMLKey* key);
 
     QString validateDataChange(GraphMLData* data, QString newValue);

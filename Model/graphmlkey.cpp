@@ -46,13 +46,6 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
 
 GraphMLKey::~GraphMLKey()
 {
-
-    qCritical() << "Deleting GraphMLKey" << this->getName();
-    //Tell all Data that the key is dead
-
-    foreach(GraphMLData* data, keysData){
-        data->unsetKey();
-    }
 }
 
 void GraphMLKey::setDefaultProtected(bool setProtected)
@@ -74,18 +67,6 @@ void GraphMLKey::setDefaultValue(QString value)
 QString GraphMLKey::getDefaultValue() const
 {
     return this->defaultValue;
-}
-
-void GraphMLKey::addData(GraphMLData *data)
-{
-    if(!keysData.contains(data)){
-        keysData.append(data);
-    }
-}
-
-void GraphMLKey::removeData(GraphMLData *data)
-{
-    keysData.removeAll(data);
 }
 
 bool GraphMLKey::equals(GraphMLKey *key)

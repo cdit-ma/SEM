@@ -400,6 +400,7 @@ private:
 
 
 
+    bool DELETING;
     bool CUT_USED;
     int actionCount;
     QString currentAction;

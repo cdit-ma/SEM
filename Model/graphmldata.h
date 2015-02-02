@@ -11,9 +11,6 @@ class GraphMLData: public GraphML{
 public:
     GraphMLData(GraphMLKey* key, QString value);
     ~GraphMLData();
-    //void setValue(QString value)
-
-    void unsetKey();
 
     void setValue(QString value);
     void setProtected(bool setProtected);

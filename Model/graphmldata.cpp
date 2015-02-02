@@ -10,10 +10,6 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
         this->setValue(value);
     }
 
-    if(key){
-        key->addData(this);
-    }
-
     //Set to default.
     parentData = 0;
     setProtected(key->isProtected());
@@ -26,16 +22,6 @@ GraphMLData::~GraphMLData()
         unbindData(child);
     }
     childData.clear();
-
-    if(key){
-        key->removeData(this);
-    }
-    qCritical() << "Deleted GraphMLData ";
-}
-
-void GraphMLData::unsetKey()
-{
-    this->key = 0;
 }
 
 QString GraphMLData::getValue() const

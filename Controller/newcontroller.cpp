@@ -12,6 +12,7 @@ bool SETUP_AS_IMPL = false;
 NewController::NewController()
 {
     UNDOING = false;
+    DELETING = false;
     REDOING = false;
     CUT_USED = false;
     KEY_CONTROL_DOWN = false;
@@ -99,6 +100,7 @@ void NewController::initializeModel()
 
 NewController::~NewController()
 {
+    DELETING = true;
     view_ClearSelection();
 
     destructNode(model, false);
@@ -603,6 +605,9 @@ void NewController::view_ValidateModel()
 
 void NewController::view_UpdateGraphMLData(GraphML *parent, QString keyName, QString dataValue)
 {
+    if(DELETING){
+        return;
+    }
 
     //Construct an Action to reverse the update
     ActionItem action;
@@ -620,6 +625,7 @@ void NewController::view_UpdateGraphMLData(GraphML *parent, QString keyName, QSt
         action.dataValue = data->getValue();
         addActionToStack(action);
         //qCritical() << keyName << ": " << dataValue;
+
         data->setValue(dataValue);
     }else{
         qCritical() << "Data Doesn't Exist";
