@@ -244,7 +244,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
-   }
+    }
 
 }
 
@@ -509,7 +509,7 @@ void NodeItem::sort()
         rowWidth = gapX;
     }
 
-    // position children differently for DeploymentDefinitions/Model
+    // position children differently for DeploymentDefinitions
     if (nodeKind == "DeploymentDefinitions") {
         rowWidth = 0;
         colHeight = 0;
@@ -524,13 +524,11 @@ void NodeItem::sort()
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
 
         // check that it's a NodeItem and that it's visible
-        if (nodeItem != 0 && (nodeItem->isVisible())) {
-
-            bool deploymentDefinition = (nodeItem->getNodeKind() == "DeploymentDefinitions");
+        if (nodeItem != 0 && nodeItem->isVisible()) {
 
             // if child == DeploymentDefinitions and all of
             // it's children are invisible, don't sort it
-            if (deploymentDefinition) {
+            if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
                 bool childrenAreInAspect = false;
                 foreach (QGraphicsItem* itm, nodeItem->childItems()) {
                     NodeItem* nodeItm = dynamic_cast<NodeItem*>(itm);
@@ -552,14 +550,14 @@ void NodeItem::sort()
             // one node per row and hence one column, once sorted
             // this allows there to be at most 2 child nodes per row
 
-            if ((rowWidth + childWidth) > (initialWidth*1.5) || deploymentDefinition) {
-
+            if ((rowWidth + childWidth) > (initialWidth*1.5)) {
                 colHeight += maxHeight + gapY;
-                maxHeight = childHeight;
 
                 if (rowWidth > maxWidth) {
                     maxWidth = rowWidth - gapX;
                 }
+
+                maxHeight = childHeight;
 
                 if (nodeKind == "Model") {
                     rowWidth = 0;
@@ -598,9 +596,10 @@ void NodeItem::sort()
 
             } else {
 
-                    emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
-                    emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
-                    rowWidth += childWidth + gapX;
+                emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
+                emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
+                rowWidth += childWidth + gapX;
+
             }
 
             numberOfItems++;

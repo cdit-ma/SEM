@@ -100,8 +100,8 @@ void NewMedeaWindow::initialiseGUI()
     dataTableBox = new QGroupBox();
     assemblyButton = new QPushButton("Assembly");
     hardwareButton = new QPushButton("Hardware");
-    workloadButton = new QPushButton("Workload");
-    definitionsButton = new QPushButton("Definitions");
+    workloadButton = new QPushButton("Behaviour");
+    definitionsButton = new QPushButton("Interface");
 
     // initialise other private variables
     QPushButton *menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
@@ -166,10 +166,10 @@ void NewMedeaWindow::initialiseGUI()
     leftVlayout->addStretch(1);
     leftVlayout->addLayout(bodyLayout, 20);
 
-    viewButtonsGrid->addWidget(assemblyButton, 1, 1);
-    viewButtonsGrid->addWidget(hardwareButton, 1, 2);
-    viewButtonsGrid->addWidget(definitionsButton, 2, 1);
-    viewButtonsGrid->addWidget(workloadButton, 2, 2);
+    viewButtonsGrid->addWidget(definitionsButton, 1, 1);
+    viewButtonsGrid->addWidget(workloadButton, 1, 2);
+    viewButtonsGrid->addWidget(assemblyButton, 2, 1);
+    viewButtonsGrid->addWidget(hardwareButton, 2, 2);
 
     rightVlayout->addLayout(searchLayout, 1);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
@@ -778,10 +778,18 @@ void NewMedeaWindow::updateViewAspects()
 {
     QPushButton *sourceButton = qobject_cast<QPushButton*>(QObject::sender());
     if (sourceButton) {
+
+        QString view = sourceButton->text();
+        if (view == "Interface") {
+            view = "Definitions";
+        } else if (view == "Behaviour") {
+            view = "Workload";
+        }
+
         if (sourceButton->isChecked()) {
-            checkedViewAspects.append(sourceButton->text());
+            checkedViewAspects.append(view);
         } else {
-            int index = checkedViewAspects.indexOf(sourceButton->text(), 0);
+            int index = checkedViewAspects.indexOf(view, 0);
             checkedViewAspects.removeAt(index);
         }
     }

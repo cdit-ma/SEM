@@ -2551,8 +2551,8 @@ void NewController::setupModel()
     connect(labelData, SIGNAL(dataChanged(GraphMLData*)), this, SLOT(view_ProjectNameUpdated(GraphMLData*)));
 
     //Construct the top level parents.
-    constructChildNode(model, constructGraphMLDataVector("BehaviourDefinitions"));
     constructChildNode(model, constructGraphMLDataVector("InterfaceDefinitions"));
+    constructChildNode(model, constructGraphMLDataVector("BehaviourDefinitions"));
     constructChildNode(model, constructGraphMLDataVector("DeploymentDefinitions"));
 
     //Construct the second level containers.
@@ -2560,8 +2560,8 @@ void NewController::setupModel()
     constructChildNode(deploymentDefinitions, constructGraphMLDataVector("HardwareDefinitions"));
 
     //Update the Labels.
-    behaviourDefinitions->updateDataValue("label", "Behaviour Definitions");
     interfaceDefinitions->updateDataValue("label", "Interface Definitions");
+    behaviourDefinitions->updateDataValue("label", "Behaviour Definitions");
     deploymentDefinitions->updateDataValue("label", "Deployment Definitions");
     assemblyDefinitions->updateDataValue("label", "Assembly Definitions");
     hardwareDefinitions->updateDataValue("label", "Hardware Definitions");

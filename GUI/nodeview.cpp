@@ -266,6 +266,7 @@ void NodeView::setViewAspects(QStringList aspects)
         allAspects.append("Workload");
 
         emit updateViewAspects(allAspects);
+        emit sortDeployment();
         emit sortModel();
         firstSort = false;
     }
@@ -1181,7 +1182,7 @@ void NodeView::updateToolbarLegalNodesList(QList<Node*>* nodeList)
 
 
 /**
- * @brief NodeView::view_centerModel
+ * @brief NodeView::view_centerViewAspects
  * This sends a signal to the controller to center on the current view aspects.
  */
 void NodeView::view_centerViewAspects()
@@ -1191,16 +1192,11 @@ void NodeView::view_centerViewAspects()
         return;
     } else if (currentAspects.count() == 2) {
         if (currentAspects.contains("Assembly") && currentAspects.contains("Hardware")){
-            emit sortDeployment();
             emit centerNode("Deployment");
             return;
-        } else if ((currentAspects.contains("Assembly") && currentAspects.contains("Workload")) ||
-                   (currentAspects.contains("Definitions") && currentAspects.contains("Hardware"))) {
-            emit sortDeployment();;
         }
     }
 
-    emit sortModel();
     emit centerNode("Model");
 }
 

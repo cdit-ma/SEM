@@ -51,9 +51,9 @@ DockNodeItem::DockNodeItem(NodeItem *node_item, QWidget* parent) :
     }
 
     // make connections
-    connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
-    connect(nodeItem, SIGNAL(updateDockNodeItem()), this, SLOT(updateData()));
+    //connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
     connect(nodeItem, SIGNAL(updateDockNodeItem(bool)), this, SLOT(setSelected(bool)));
+    connect(nodeItem, SIGNAL(updateDockNodeItem()), this, SLOT(updateData()));
     connect(nodeItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
     connect(nodeItem, SIGNAL(updateOpacity(qreal)), this, SLOT(setOpacity(qreal)));
 }
