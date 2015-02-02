@@ -74,6 +74,7 @@ signals:
     void updateDockContainer(QString container);
 
     void sortModel();
+    void sortDeployment();
     void centerNode(QString nodeLabel);
 
     void hideDeployment(bool hide);

@@ -110,16 +110,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     resetNextChildPos();
     updateViewAspects(aspects);
     emit updateParentHeight(this);
-
-    /*
-    QPushButton *defn = new QPushButton("Definition");
-    defn->setFixedSize(1000, 1000);
-    connect(defn, SIGNAL(pressed()), this, SLOT(goToDefinition()));
-    defn->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
-    defn->setCheckable(true);
-    QGraphicsProxyWidget *p = new QGraphicsProxyWidget(this);
-    p->setWidget(defn);
-    */
 }
 
 
@@ -254,7 +244,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
-    }
+   }
 
 }
 
@@ -435,12 +425,13 @@ void NodeItem::updateViewAspects(QStringList aspects)
     }
 
     bool prevVisible = isVisible();
-
     setVisible(allMatched && (viewAspects.size() > 0));
 
+    // if the view aspects have been changed, update pos of edges
     if(prevVisible != isVisible()){
         emit updateEdgePosition();
     }
+
     // if not visible, unselect node item
     if (!isVisible()) {
         setSelected(false);
@@ -518,7 +509,7 @@ void NodeItem::sort()
         rowWidth = gapX;
     }
 
-    // position children differently for DeploymentDefinitions
+    // position children differently for DeploymentDefinitions/Model
     if (nodeKind == "DeploymentDefinitions") {
         rowWidth = 0;
         colHeight = 0;
@@ -533,11 +524,13 @@ void NodeItem::sort()
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
 
         // check that it's a NodeItem and that it's visible
-        if (nodeItem != 0 && nodeItem->isVisible()) {
+        if (nodeItem != 0 && (nodeItem->isVisible())) {
+
+            bool deploymentDefinition = (nodeItem->getNodeKind() == "DeploymentDefinitions");
 
             // if child == DeploymentDefinitions and all of
             // it's children are invisible, don't sort it
-            if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
+            if (deploymentDefinition) {
                 bool childrenAreInAspect = false;
                 foreach (QGraphicsItem* itm, nodeItem->childItems()) {
                     NodeItem* nodeItm = dynamic_cast<NodeItem*>(itm);
@@ -559,14 +552,14 @@ void NodeItem::sort()
             // one node per row and hence one column, once sorted
             // this allows there to be at most 2 child nodes per row
 
-            if ((rowWidth + childWidth) > (initialWidth*1.5)) {
+            if ((rowWidth + childWidth) > (initialWidth*1.5) || deploymentDefinition) {
+
                 colHeight += maxHeight + gapY;
+                maxHeight = childHeight;
 
                 if (rowWidth > maxWidth) {
                     maxWidth = rowWidth - gapX;
                 }
-
-                maxHeight = childHeight;
 
                 if (nodeKind == "Model") {
                     rowWidth = 0;
@@ -605,10 +598,9 @@ void NodeItem::sort()
 
             } else {
 
-                emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
-                emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
-                rowWidth += childWidth + gapX;
-
+                    emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
+                    emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
+                    rowWidth += childWidth + gapX;
             }
 
             numberOfItems++;

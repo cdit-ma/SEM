@@ -81,8 +81,9 @@ void NewController::connectView(NodeView *view)
 
     connect(this, SIGNAL(view_FitToScreen()), view, SLOT(fitToScreen()));
     connect(this, SIGNAL(centreNode(Node*)), view, SLOT(centreNode(Node*)));
-    connect(view, SIGNAL(sortModel()), this, SLOT(view_SortModel()));
     connect(view, SIGNAL(centerNode(QString)), this, SLOT(centerNode(QString)));
+    connect(view, SIGNAL(sortModel()), this, SLOT(view_SortModel()));
+    connect(view, SIGNAL(sortDeployment()), this, SLOT(view_SortDeployment()));
 
     connect(view, SIGNAL(getLegalNodesList(Node*)), this, SLOT(getLegalNodesList(Node*)));
     connect(this, SIGNAL(setLegalNodesList(QList<Node*>*)), view, SLOT(updateToolbarLegalNodesList(QList<Node*>*)));
@@ -929,10 +930,21 @@ void NewController::view_FilterNodes(QStringList filterString)
 }
 
 
+/**
+ * @brief NewController::view_SortModel
+ */
 void NewController::view_SortModel()
 {
-    emit view_SortNode(deploymentDefinitions);
     emit view_SortNode(model);
+}
+
+
+/**
+ * @brief NewController::view_SortDeployment
+ */
+void NewController::view_SortDeployment()
+{
+    emit view_SortNode(deploymentDefinitions);
 }
 
 

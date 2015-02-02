@@ -359,7 +359,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     //Connect the Node Specific Functionality
     connect(nodeItem, SIGNAL(moveSelection(QPointF)), controller, SLOT(view_MoveSelectedNodes(QPointF)));
     connect(this, SIGNAL(updateViewAspects(QStringList)), nodeItem, SLOT(updateViewAspects(QStringList)));
-
     connect(nodeItem, SIGNAL(clearSelection()), this, SLOT(clearSelection()));
     connect(nodeItem, SIGNAL(centerViewAspects()), this, SLOT(view_centerViewAspects()));
     connect(nodeItem, SIGNAL(sortModel()), this, SLOT(view_sortModel()));
@@ -608,9 +607,9 @@ void NodeView::view_ConstructEdgeAction(Node *src, Node *dst)
 
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
 {
-    if(controller && GUIItem){
-        connect(GUIItem, SIGNAL(triggerAction(QString)),  controller, SLOT(view_TriggerAction(QString)));
+    if(GUIItem){
         connect(GUIItem, SIGNAL(triggerCentered(GraphML*)), this, SLOT(view_CenterGraphML(GraphML*)));
+        connect(GUIItem, SIGNAL(triggerAction(QString)),  controller, SLOT(view_TriggerAction(QString)));
         connect(GUIItem, SIGNAL(triggerSelected(GraphML*, bool)), controller, SLOT(view_GraphMLSelected(GraphML*, bool)));
         connect(GUIItem, SIGNAL(constructGraphMLData(GraphML*,QString)), controller, SLOT(view_ConstructGraphMLData(GraphML*,QString)));
         connect(GUIItem, SIGNAL(destructGraphMLData(GraphML*,QString)), controller, SLOT(view_DestructGraphMLData(GraphML*,QString)));
@@ -1192,11 +1191,16 @@ void NodeView::view_centerViewAspects()
         return;
     } else if (currentAspects.count() == 2) {
         if (currentAspects.contains("Assembly") && currentAspects.contains("Hardware")){
+            emit sortDeployment();
             emit centerNode("Deployment");
             return;
+        } else if ((currentAspects.contains("Assembly") && currentAspects.contains("Workload")) ||
+                   (currentAspects.contains("Definitions") && currentAspects.contains("Hardware"))) {
+            emit sortDeployment();;
         }
     }
 
+    emit sortModel();
     emit centerNode("Model");
 }
 

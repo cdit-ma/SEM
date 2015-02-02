@@ -174,6 +174,8 @@ public slots:
     void view_FilterNodes(QStringList filterString);
 
     void view_SortModel();
+    void view_SortDeployment();
+
     //Hides all Nodes which can't be connected to Node
     void view_ShowLegalEdgesForNode(Node* node);
 
