@@ -17,6 +17,9 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
 
 GraphMLData::~GraphMLData()
 {
+    if(this->parentData){
+        this->parentData->unbindData(this);
+    }
     for(int i = 0; i < childData.size();i++){
         GraphMLData* child = childData[i];
         unbindData(child);
