@@ -118,13 +118,13 @@ void DockNodeItem::updateData()
  * @brief DockNodeItem::deleteLater
  */
 void DockNodeItem::deleteLater()
-{
+{/*
     emit removeFromDockNodeList(this);
 
     if (parentContainer) {
         parentContainer->checkDockNodesList();
     }
-
+*/
     QObject::deleteLater();
 }
 

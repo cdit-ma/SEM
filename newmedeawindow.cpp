@@ -215,6 +215,7 @@ void NewMedeaWindow::initialiseGUI()
     setupDock(bodyLayout);
 
     // setup mini map
+
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
     connect(nodeView, SIGNAL(updateViewPort(QRectF)), minimap, SLOT(updateViewPort(QRectF)));

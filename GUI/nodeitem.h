@@ -126,7 +126,7 @@ private:
     bool expanded;
 
 
-    int getNumberOfChildren();
+    QList<NodeItem*> getChildren();
     QStringList getChildrenKind();
 
     double getCornerRadius();

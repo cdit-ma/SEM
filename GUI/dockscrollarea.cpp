@@ -121,7 +121,7 @@ void DockScrollArea::addAdoptableDockNodes(Node* node, QStringList nodes)
     }
 
     //checkScrollBar();
-    checkDockNodesList();
+    //checkDockNodesList();
     repaint();
 }
 

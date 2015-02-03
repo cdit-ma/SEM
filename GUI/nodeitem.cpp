@@ -103,7 +103,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
     // if this item has a parent and it's the first child of that parent
     // send a signal to the parent to add an expandButton and sort it
-    if (parent && parent->getNumberOfChildren() == 1) {
+    if (parent && parent->getChildren().count() == 1) {
         emit addExpandButtonToParent();
     }
 
@@ -123,13 +123,12 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
 NodeItem::~NodeItem()
 {
-    qDebug() << "~NodeItem";
     if (parentItem()) {
         // if this item is its parent's last child,
         // remove the parent's expand button and
         // reset its size and nextChildPosition
         NodeItem* item = dynamic_cast<NodeItem*>(parentItem());
-        if (item && item->getNumberOfChildren() == 1) {
+        if (item && item->getChildren().count() == 1) {
             item->removeExpandButton();
             item->resetNextChildPos();
             item->resetSize();
@@ -495,7 +494,7 @@ void NodeItem::sort()
     if (fileContainsComponents || componentAssembly) {
         foreach (QGraphicsItem* child, this->childItems()) {
             NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
-            if (nodeItem && (nodeItem->getNumberOfChildren() > 0)) {
+            if (nodeItem && (nodeItem->getChildren().count() > 0)) {
                 componentHasChildren = true;
                 break;
             }
@@ -1106,20 +1105,19 @@ void NodeItem::setupIcon()
 
 
 /**
- * @brief NodeItem::getNumberOfChildren
- * This returns the number of NodeItem children this item has.
+ * @brief NodeItem::getChildren
  * @return
  */
-int NodeItem::getNumberOfChildren()
+QList<NodeItem *> NodeItem::getChildren()
 {
-    int childrenCount = 0;
+    QList<NodeItem*> children;
     foreach (QGraphicsItem *itm, childItems()) {
         NodeItem *nodeItm = dynamic_cast<NodeItem*>(itm);
         if (nodeItm) {
-            childrenCount++;
+            children.append(nodeItm);
         }
     }
-    return childrenCount;
+    return children;
 }
 
 
@@ -1130,14 +1128,14 @@ int NodeItem::getNumberOfChildren()
  */
 QStringList NodeItem::getChildrenKind()
 {
-    QStringList returnable;
+    QStringList childrenKinds;
     Node *node = dynamic_cast<Node*>(getGraphML());
     if (node) {
         foreach(Node* child, node->getChildren(0)){
-            returnable += child->getDataValue("kind");
+            childrenKinds.append(child->getDataValue("kind"));
         }
     }
-    return returnable;
+    return childrenKinds;
 }
 
 

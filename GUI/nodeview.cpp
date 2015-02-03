@@ -605,6 +605,7 @@ void NodeView::view_ConstructNodeAction(QString nodeKind)
  */
 void NodeView::view_ConstructEdgeAction(Node *src, Node *dst)
 {
+    emit triggerAction("Toolbar: Constructing edge");
     emit constructEdgeItem(src, dst);
 }
 
@@ -1021,8 +1022,6 @@ void NodeView::printErrorText(GraphML *graphml, QString text)
 
 
 
-
-
 /**
  * @brief NodeView::fitToScreen
  * This scales the view to fit the whole scene.
@@ -1060,8 +1059,6 @@ void NodeView::view_addComponentDefinition(NodeItem *itm)
  */
 void NodeView::goToDefinition(Node *node)
 {
-    qDebug() << "NodeView::goToDefinition";
-
     ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(QObject::sender());
     bool hasDefinition = false;
 
@@ -1097,8 +1094,6 @@ void NodeView::goToDefinition(Node *node)
  */
 void NodeView::goToImplementation(Node *node)
 {
-    qDebug() << "NodeView::goToImplementation";
-
     ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(QObject::sender());
     bool hasImplementation = false;
 
@@ -1196,7 +1191,11 @@ void NodeView::view_centerViewAspects()
         if (currentAspects.contains("Assembly") && currentAspects.contains("Hardware")){
             emit centerNode("Deployment");
             return;
+        } else if (currentAspects.contains("Definitions") && currentAspects.contains("Workload")) {
+            emit sortModel();
         }
+    } else if (currentAspects.count() >= 3 && currentAspects.contains("Definitions")) {
+        emit sortModel();
     }
 
     emit centerNode("Model");

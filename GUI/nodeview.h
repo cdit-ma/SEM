@@ -38,6 +38,7 @@ public:
     QList<NodeItem *> getVisibleNodeItems();
 
 signals:
+    void triggerAction(QString action);
     void updateViewPort(QRectF);
     void updateZoom(qreal zoom);
     void deletePressed(bool isDown);
