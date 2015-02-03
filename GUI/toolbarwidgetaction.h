@@ -2,6 +2,7 @@
 #define TOOLBARWIDGETACTION_H
 
 #include "../Model/node.h"
+#include "toolbarwidget.h"
 
 #include <QWidgetAction>
 #include <QPushButton>
@@ -11,7 +12,7 @@ class ToolbarWidgetAction : public QWidgetAction
 {
     Q_OBJECT
 public:
-    explicit ToolbarWidgetAction(QString nodeKind, QWidget *parent = 0);
+    explicit ToolbarWidgetAction(QString nodeKind,  ToolbarWidget* parent = 0);
     explicit ToolbarWidgetAction(Node* node, QWidget *parent = 0);
 
     Node* getNode();

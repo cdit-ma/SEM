@@ -29,8 +29,8 @@ signals:
     void constructNode(QString nodeKind);
     void constructEdge(Node* src, Node* dst);
 
-    void checkDefinition(Node* node);
-    void checkImplementation(Node* node);
+    void checkDefinition(Node* node, bool show);
+    void checkImplementation(Node* node, bool show);
 
 public slots:
     void goToDefinition();

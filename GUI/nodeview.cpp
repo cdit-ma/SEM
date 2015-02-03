@@ -1057,7 +1057,7 @@ void NodeView::view_addComponentDefinition(NodeItem *itm)
  * If it's not but it has a definition, center on its definition.
  * @param node
  */
-void NodeView::goToDefinition(Node *node)
+void NodeView::goToDefinition(Node *node, bool show)
 {
     ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(QObject::sender());
     bool hasDefinition = false;
@@ -1074,8 +1074,11 @@ void NodeView::goToDefinition(Node *node)
         }
 
         if (toolbar) {
-            toolbar->showDefinitionButton(hasDefinition);
-            return;
+            if (!show) {
+                toolbar->showDefinitionButton(hasDefinition);
+                qDebug() << "NodeView: hasDefiniton = " << hasDefinition;
+                return;
+            }
         }
 
         if (hasDefinition) {
@@ -1092,7 +1095,7 @@ void NodeView::goToDefinition(Node *node)
  * If it does and it has at least 1 implementation, center on the first one.
  * @param node
  */
-void NodeView::goToImplementation(Node *node)
+void NodeView::goToImplementation(Node *node, bool show)
 {
     ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(QObject::sender());
     bool hasImplementation = false;
@@ -1108,8 +1111,10 @@ void NodeView::goToImplementation(Node *node)
         }
 
         if (toolbar) {
-            toolbar->showImplementationButton(hasImplementation);
-            return;
+            if (!show) {
+                toolbar->showImplementationButton(hasImplementation);
+                return;
+            }
         }
 
         if (hasImplementation) {

@@ -298,11 +298,10 @@ void ToolbarWidget::connectToView()
 {
     NodeView* nodeView = dynamic_cast<NodeView*>(parentWidget());
 
-    //connect(connectButton, SIGNAL(clicked()), nodeView, SLOT(trigger_shiftPressed()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(trigger_deletePressed()));
 
-    connect(this, SIGNAL(checkDefinition(Node*)), nodeView, SLOT(goToDefinition(Node*)));
-    connect(this, SIGNAL(checkImplementation(Node*)), nodeView, SLOT(goToImplementation(Node*)));
+    connect(this, SIGNAL(checkDefinition(Node*, bool)), nodeView, SLOT(goToDefinition(Node*, bool)));
+    connect(this, SIGNAL(checkImplementation(Node*, bool)), nodeView, SLOT(goToImplementation(Node*, bool)));
 
     connect(this, SIGNAL(goToDefinition(Node*)), nodeView, SLOT(goToDefinition(Node*)));
     connect(this, SIGNAL(goToImplementation(Node*)), nodeView, SLOT(goToImplementation(Node*)));
@@ -336,8 +335,8 @@ void ToolbarWidget::updateToolButtons()
         showFrame = 0;
 
         deleteButton->show();
-        emit checkDefinition(nodeItem->getNode());
-        emit checkImplementation(nodeItem->getNode());
+        emit checkDefinition(nodeItem->getNode(), false);
+        emit checkImplementation(nodeItem->getNode(), false);
 
         if (showFrame < 2) {
             frame->setVisible(true);

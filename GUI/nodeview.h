@@ -133,8 +133,8 @@ public slots:
 
     void view_addComponentDefinition(NodeItem* itm);
 
-    void goToDefinition(Node* node);
-    void goToImplementation(Node* node);
+    void goToDefinition(Node* node, bool show = true);
+    void goToImplementation(Node* node, bool show = true);
 
     void trigger_shiftPressed();
     void trigger_deletePressed();

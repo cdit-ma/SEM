@@ -9,7 +9,7 @@
  * @param nodeKind
  * @param parent
  */
-ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QWidget *parent) :
+ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, ToolbarWidget *parent) :
     QWidgetAction(parent)
 {
     node = 0;
@@ -89,6 +89,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     actionButton->setLayout(layout);
 
     connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
+    connect(actionButton, SIGNAL(pressed()), this, SLOT(hide()));
 
     return actionButton;
 }
@@ -100,4 +101,11 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 void ToolbarWidgetAction::actionButtonPressed()
 {
     emit trigger();
+
+    if (node) {
+        ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(parent());
+        toolbar->checkDefinition(node, false);
+        toolbar->checkImplementation(node, false);
+        toolbar->updateMenuList("connect", node);
+    }
 }
