@@ -67,7 +67,7 @@ void NewController::connectView(NodeView *view)
     connect(view, SIGNAL(unselect()),this, SLOT(view_ClearSelection()));
     connect(view, SIGNAL(unselect()), this, SLOT(view_UncenterGraphML()));
     connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
-    connect(view, SIGNAL(triggerAction), this, SLOT(view_TriggerAction(QString)));
+    connect(view, SIGNAL(triggerAction(QString)), this, SLOT(view_TriggerAction(QString)));
 
     //Connect the View to the Controllers Signals
     connect(this, SIGNAL(view_SetOpacity(GraphML*,qreal)), view, SLOT(view_SetOpacity(GraphML*,qreal)));
@@ -106,6 +106,7 @@ NewController::~NewController()
     view_ClearSelection();
 
     destructNode(model, false);
+
 
     while(keys.size() > 0){
         GraphMLKey* key = keys.takeFirst();

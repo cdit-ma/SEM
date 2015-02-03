@@ -133,14 +133,15 @@ NodeItem::~NodeItem()
             item->resetNextChildPos();
             item->resetSize();
 
-            // update parts dock container if parent kind
-            // is File and it no longer has children
-            /*
-            if (item->getGraphML()->getDataValue("kind") == "File") {
-                emit updateDockContainer("Parts");
-            }
-            */
+                // update parts dock container if parent kind
+                // is File and it no longer has children
+                /*
+                if (item->getGraphML()->getDataValue("kind") == "File") {
+                    emit updateDockContainer("Parts");
+                }
+                */
         }
+
     }
     delete label;
 }

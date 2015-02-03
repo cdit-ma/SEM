@@ -31,8 +31,8 @@ ModelTester::ModelTester()
     QString xmlText = in.readAll();
     file.close();
 
-    int repeatCount = 10;
-    int loadCount = 10;
+    int repeatCount = 1;
+    int loadCount = 1;
 
       sleep(20);
 

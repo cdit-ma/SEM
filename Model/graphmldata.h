@@ -22,7 +22,7 @@ public:
 
     void bindData(GraphMLData* data);
     void unbindData(GraphMLData* data);
-    QVector<GraphMLData*> getBoundData();
+    QList<GraphMLData*> getBoundData();
 
     QString getValue() const;
     GraphMLKey* getKey();
@@ -36,7 +36,7 @@ signals:
     void dataChanged(GraphMLData* data);
 private:
     GraphMLData* parentData;
-    QVector<GraphMLData*> childData;
+    QList<GraphMLData*> childData;
     QString value;
     bool protectedData;
 

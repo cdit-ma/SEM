@@ -17,14 +17,17 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
 
 GraphMLData::~GraphMLData()
 {
+    std::string value = this->value.toStdString();
     if(this->parentData){
         this->parentData->unbindData(this);
     }
-    for(int i = 0; i < childData.size();i++){
-        GraphMLData* child = childData[i];
-        unbindData(child);
+    while(childData.size() > 0){
+        GraphMLData* child = childData.takeFirst();
+        if(child){
+            child->setParentData(0);
+        }
     }
-    childData.clear();
+
 }
 
 QString GraphMLData::getValue() const
@@ -163,9 +166,10 @@ void GraphMLData::unbindData(GraphMLData *data)
             data->setParentData(0);
         }
     }
+
 }
 
-QVector<GraphMLData *> GraphMLData::getBoundData()
+QList<GraphMLData *> GraphMLData::getBoundData()
 {
     return childData;
 }
