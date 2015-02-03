@@ -1,4 +1,5 @@
 #include "docknodeitem.h"
+#include "dockscrollarea.h"
 
 #include <QDebug>
 #include <QLabel>
@@ -16,7 +17,6 @@ DockNodeItem::DockNodeItem(NodeItem *node_item, QWidget* parent) :
     image = new QImage(":/Resources/Icons/" + kind + ".png");
     isSelected = false;
 
-    setParent(parent);
     setFlat(true);
     setFixedSize(100, 100);
     setStyleSheet("padding: 0px;");
@@ -54,8 +54,8 @@ DockNodeItem::DockNodeItem(NodeItem *node_item, QWidget* parent) :
     //connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
     connect(nodeItem, SIGNAL(updateDockNodeItem(bool)), this, SLOT(setSelected(bool)));
     connect(nodeItem, SIGNAL(updateDockNodeItem()), this, SLOT(updateData()));
-    connect(nodeItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
     connect(nodeItem, SIGNAL(updateOpacity(qreal)), this, SLOT(setOpacity(qreal)));
+    connect(nodeItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
 }
 
 
@@ -105,7 +105,6 @@ void DockNodeItem::buttonPressed()
 /**
  * @brief DockNodeItem::updateData
  * This gets called when the dataTable value for the node item has been changed.
- * @param newDataValue
  */
 void DockNodeItem::updateData()
 {
@@ -116,9 +115,24 @@ void DockNodeItem::updateData()
 
 
 /**
+ * @brief DockNodeItem::deleteLater
+ */
+void DockNodeItem::deleteLater()
+{
+    emit removeFromDockNodeList(this);
+
+    if (parentContainer) {
+        parentContainer->checkDockNodesList();
+    }
+
+    QObject::deleteLater();
+}
+
+
+/**
  * @brief DockNodeItem::getNodeItem
- * Return the NodeItem this item is conneted to.
- * @return
+ * Returns the NodeItem this item is conneted to.
+ * @return nodeItem
  */
 NodeItem *DockNodeItem::getNodeItem()
 {
@@ -139,6 +153,16 @@ void DockNodeItem::mousePressEvent(QMouseEvent *event)
     } else {
         QPushButton::mousePressEvent(event);
     }
+}
+
+
+/**
+ * @brief DockNodeItem::setContainer
+ * @param container
+ */
+void DockNodeItem::setContainer(DockScrollArea *container)
+{
+   parentContainer = container;
 }
 
 

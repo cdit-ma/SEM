@@ -24,8 +24,9 @@ public:
     void setContainer(DockScrollArea* area);
     void hideContainer();
 
-    void checkEnabled();
     int getWidth();
+
+    void checkEnabled();
 
 protected:
     void paintEvent(QPaintEvent* e);

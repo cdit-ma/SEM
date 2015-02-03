@@ -448,7 +448,8 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 
         //Read this
         if(edge->getSource()->getDataValue("kind") == "ComponentInstance" && edge->getDestination()->getDataValue("kind") == "Component"){
-            emit updateDockButtons("H");
+            // why is this here?
+            //emit updateDockButtons("H");
         }
 
     }else{
@@ -513,10 +514,12 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
                 // update the dock adoptable node items when a node is
                 // selected and enable/disable dock buttons accordingly
                 Node* node = dynamic_cast<Node*>(graphML);
-                updateDockButtons(node);
+                //updateDockButtons(node);
 
                 emit updateDockAdoptableNodeList(node);
                 emit hasSelectedNode(true);
+
+                updateDockButtons(node);
                 return;
             }
         }
@@ -811,7 +814,6 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }else{
             // clear selection and disable dock buttons
             clearSelection();
-            updateDockButtons("N");
             return;
         }
 
@@ -1211,7 +1213,7 @@ void NodeView::view_sortModel()
 
 
 /**
- * @brief NodeView::view_updateDockButtons
+ * @brief NodeView::updateDockButtons
  * This method enable/disable dock buttons depending on the currently selected node.
  */
 void NodeView::updateDockButtons(Node* node)

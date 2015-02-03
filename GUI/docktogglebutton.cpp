@@ -153,7 +153,8 @@ void DockToggleButton::hideContainer()
 
 /**
  * @brief DockToggleButton::getContainer
- * @return
+ * This method returns the dock container attached to this button.
+ * @return scrollArea
  */
 DockScrollArea* DockToggleButton::getContainer()
 {
@@ -163,7 +164,8 @@ DockScrollArea* DockToggleButton::getContainer()
 
 /**
  * @brief DockToggleButton::getWidth
- * @return
+ * Returns the width of this button.
+ * @return width
  */
 int DockToggleButton::getWidth()
 {

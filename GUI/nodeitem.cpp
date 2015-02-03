@@ -123,7 +123,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
 NodeItem::~NodeItem()
 {
-
+    qDebug() << "~NodeItem";
     if (parentItem()) {
         // if this item is its parent's last child,
         // remove the parent's expand button and
@@ -136,13 +136,14 @@ NodeItem::~NodeItem()
 
             // update parts dock container if parent kind
             // is File and it no longer has children
+            /*
             if (item->getGraphML()->getDataValue("kind") == "File") {
                 emit updateDockContainer("Parts");
             }
+            */
         }
     }
     delete label;
-    //qCritical() << "NodeItem~() " <<parentItem();
 }
 
 NodeItem *NodeItem::getParentNodeItem()

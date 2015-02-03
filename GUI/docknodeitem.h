@@ -7,11 +7,10 @@
 #include <QLabel>
 
 #include "docknodeitem.h"
+#include "dockscrollarea.h"
 #include "../Model/graphml.h"
 #include "./nodeitem.h"
 
-
-//class NodeItem;
 
 class DockNodeItem : public QPushButton
 {
@@ -22,11 +21,26 @@ public:
     NodeItem* getNodeItem();
 
     void mousePressEvent(QMouseEvent *event);
+    void setContainer(DockScrollArea* container);
 
 protected:
     void paintEvent(QPaintEvent* e);
 
-private:    
+signals:
+    void itemPressed(QString kind);
+    void dockNode_addComponentInstance(NodeItem* itm);
+
+    void removeFromDockNodeList(QWidget* widget);
+
+public slots:
+    void buttonPressed();
+    void updateData();
+    void deleteLater();
+    void setSelected(bool selected);
+    void setOpacity(double opacity);
+
+private:
+    DockScrollArea* parentContainer;
     NodeItem* nodeItem;
     QString kind;
     QString label;
@@ -38,16 +52,6 @@ private:
     QString selectedColor;
     bool isSelected;
 
-signals:
-    void itemPressed(QString kind);
-    void clearDockSelection();
-    void dockNode_addComponentInstance(NodeItem* itm);
-
-public slots:
-    void buttonPressed();
-    void updateData();
-    void setSelected(bool selected);
-    void setOpacity(double opacity);
 };
 
 #endif // DOCKNODEITEM_H

@@ -79,17 +79,6 @@ DockToggleButton *DockScrollArea::getParentButton()
 
 
 /**
- * @brief DockScrollArea::getGroupBox
- * Returns this scroll area's groupbox.
- * @return
- */
-QGroupBox *DockScrollArea::getGroupBox()
-{
-    return groupBox;
-}
-
-
-/**
  * @brief DockScrollArea::addNode
  * @param buttonName
  * @param nodeName
@@ -97,10 +86,16 @@ QGroupBox *DockScrollArea::getGroupBox()
 void DockScrollArea::addDockNode(NodeItem* item)
 {
     DockNodeItem *itm = new DockNodeItem(item, this);
+
     dockNodes.append(itm);
     layout->addWidget(itm);
+    itm->setContainer(this);
+
+    connect(itm, SIGNAL(removeFromDockNodeList(QWidget*)), this,
+            SLOT(removeFromDockNodeList(QWidget*)));
     connect(itm, SIGNAL(dockNode_addComponentInstance(NodeItem*)),
             this, SLOT(dock_addComponentInstance(NodeItem*)));
+
 }
 
 
@@ -126,8 +121,23 @@ void DockScrollArea::addAdoptableDockNodes(Node* node, QStringList nodes)
     }
 
     //checkScrollBar();
+    checkDockNodesList();
     repaint();
 }
+
+
+/**
+ * @brief DockScrollArea::checkDockNodesList
+ */
+void DockScrollArea::checkDockNodesList()
+{
+    qDebug() << "dockNodes.count() = " << dockNodes.count();
+    if (parentButton && dockNodes.count() == 0) {
+        parentButton->hideContainer();
+        parentButton->setEnabled(false);
+    }
+    qDebug() << "------------------------------";
+ }
 
 
 /**
@@ -162,6 +172,18 @@ void DockScrollArea::buttonPressed(QString kind)
 void DockScrollArea::dock_addComponentInstance(NodeItem *itm)
 {
     emit trigger_addComponentInstance(itm);
+}
+
+
+/**
+ * @brief DockScrollArea::removeFromDockNodeList
+ * @param widget
+ */
+void DockScrollArea::removeFromDockNodeList(QWidget *widget)
+{
+    if (dockNodes.contains(widget)) {
+        dockNodes.removeAt(dockNodes.indexOf(widget));
+    }
 }
 
 
@@ -206,6 +228,7 @@ void DockScrollArea::activate()
     } else {
         setVisible(true);
         activated = true;
+        //checkDockNodesList();
     }
 }
 

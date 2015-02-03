@@ -2438,7 +2438,7 @@ void NewController::undoRedo(bool undo)
     }
 
     actionCount = toReverse.size();
-    qCritical() << "Actions to Reverse: " << actionCount;
+    //qCritical() << "Actions to Reverse: " << actionCount;
     for(int i = 0; i < actionCount; i++){
         int percentage = (i*100) / actionCount;
         emit view_UpdateProgressBar(percentage);

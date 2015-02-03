@@ -19,9 +19,10 @@ public:
     ~DockScrollArea();
 
     DockToggleButton* getParentButton();
-    QGroupBox* getGroupBox();
     void addDockNode(NodeItem* item);
     void addAdoptableDockNodes(Node* parentNode, QStringList nodes);
+
+    void checkDockNodesList();
 
 protected:
     void paintEvent(QPaintEvent *e);
@@ -36,6 +37,8 @@ public slots:
 
     void buttonPressed(QString kind);
     void dock_addComponentInstance(NodeItem *itm);
+
+    void removeFromDockNodeList(QWidget* widget);
 
     void checkScrollBar();
 

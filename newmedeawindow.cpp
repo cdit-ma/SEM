@@ -215,7 +215,6 @@ void NewMedeaWindow::initialiseGUI()
     setupDock(bodyLayout);
 
     // setup mini map
-    /*
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
     connect(nodeView, SIGNAL(updateViewPort(QRectF)), minimap, SLOT(updateViewPort(QRectF)));
@@ -230,7 +229,6 @@ void NewMedeaWindow::initialiseGUI()
     minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
 
     rightVlayout->addWidget(minimap);
-    */
 }
 
 
@@ -618,9 +616,8 @@ void NewMedeaWindow::on_actionExport_GraphML_triggered()
  */
 void NewMedeaWindow::on_actionClearModel_triggered()
 {
-    nodeView->unselect();
+    nodeView->clearSelection();
     nodeView->resetModel();
-    updateDockButtons("N");
     emit clearDock();
 }
 
@@ -811,20 +808,28 @@ void NewMedeaWindow::updateViewAspects()
  */
 void NewMedeaWindow::updateDockButtons(QString dockButton)
 {
+    qDebug() << "NewMedeaWindow::updateDockButtons";
     partsButton->setEnabled(false);
     hardwareNodesButton->setEnabled(false);
     compDefinitionsButton->setEnabled(false);
 
     if (dockButton.contains("P")) {
         partsButton->setEnabled(true);
+        //partsContainer->checkDockNodesList();
     }else if (dockButton.contains("D")) {
         compDefinitionsButton->setEnabled(true);
+        //definitionsContainer->checkDockNodesList();
     }else if (dockButton.contains("H")) {
         hardwareNodesButton->setEnabled(true);
+        //hardwareContainer->checkDockNodesList();
     }else if (dockButton == "A"){
         partsButton->setEnabled(true);
         hardwareNodesButton->setEnabled(true);
         compDefinitionsButton->setEnabled(true);
+
+        //partsContainer->checkDockNodesList();
+        //hardwareContainer->checkDockNodesList();
+        //definitionsContainer->checkDockNodesList();
     }
 
     // hide necessary dock containers
@@ -883,6 +888,8 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
  */
 void NewMedeaWindow::nodeSelected(Node *node)
 {
+    qDebug() << "NewMedeaWindow::nodeSelected";
+
     selectedNode = node;
 
     // if partsConatiner is open, update adoptable node list
