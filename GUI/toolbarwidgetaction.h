@@ -24,6 +24,7 @@ protected:
 signals:
 
 public slots:
+    void hover();
     void actionButtonPressed();
 
 private:
@@ -31,6 +32,8 @@ private:
     QString kind;
     QString label;
     QPushButton* actionButton;
+
+    bool actionHovered;
 
 };
 

@@ -3,7 +3,6 @@
 
 #include "../Controller/newcontroller.h"
 #include "nodeitem.h"
-#include "toolbarwidget.h"
 
 #include <QGraphicsView>
 #include <QGraphicsRectItem>
@@ -11,7 +10,8 @@
 #include <QPointF>
 #include <QRubberBand>
 
-//class ActionArray;
+
+class ToolbarWidget;
 
 class NodeView : public QGraphicsView
 {
@@ -158,7 +158,6 @@ private:
 
     GraphMLItem* getGraphMLItemFromHash(QString ID);
 
-
     NewController* controller;
 
     QHash<QString, GraphMLItem*> guiItems;
@@ -179,10 +178,10 @@ private:
     bool SHIFT_DOWN;
 
 
-    double origRatio;
     bool firstSort;
 
     QList<NodeItem*> getNodeItemsList();
+    void showAllViewAspects();
 
     ToolbarWidget* toolbar;
     bool shiftTriggered;
@@ -192,7 +191,7 @@ private:
     QList<NodeView*> subViews;
 
 protected:
-    //bool viewportEvent(QEvent *);
+    bool viewportEvent(QEvent *);
 
 };
 

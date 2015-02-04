@@ -67,6 +67,7 @@ signals:
     void centerViewAspects();
     void sortModel();
 
+
     //DockNodeItem Signals
     void updateDockNodeItem();
     void updateDockNodeItem(bool selected);

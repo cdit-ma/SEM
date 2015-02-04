@@ -79,17 +79,17 @@ DockToggleButton *DockScrollArea::getParentButton()
 
 
 /**
- * @brief DockScrollArea::addNode
- * @param buttonName
- * @param nodeName
+ * @brief DockScrollArea::addDockNode
+ * @param item
  */
 void DockScrollArea::addDockNode(NodeItem* item)
 {
     DockNodeItem *itm = new DockNodeItem(item, this);
+    itm->connectToNodeItem();
+    itm->setContainer(this);
 
     dockNodes.append(itm);
     layout->addWidget(itm);
-    itm->setContainer(this);
 
     connect(itm, SIGNAL(removeFromDockNodeList(QWidget*)), this,
             SLOT(removeFromDockNodeList(QWidget*)));

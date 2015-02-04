@@ -1,12 +1,11 @@
 #include "toolbarwidget.h"
 #include "toolbarwidgetaction.h"
-#include "nodeview.h"
 
 #include <QDebug>
 #include <QHBoxLayout>
 
 
-ToolbarWidget::ToolbarWidget(QWidget *parent) :
+ToolbarWidget::ToolbarWidget(NodeView *parent) :
     QWidget(parent)
 {
     nodeItem = 0;
@@ -42,10 +41,12 @@ void ToolbarWidget::setNodeItem(NodeItem *item)
  * @brief ToolbarWidget::showDefinitionButton
  * @param show
  */
-void ToolbarWidget::showDefinitionButton(bool show)
+void ToolbarWidget::showDefinitionButton(bool show, Node *definition)
 {
     definitionButton->setVisible(show);
-    if (!show) {
+    if (show) {
+        definitionNode = definition;
+    } else {
         showFrame++;
     }
 }
@@ -55,10 +56,12 @@ void ToolbarWidget::showDefinitionButton(bool show)
  * @brief ToolbarWidget::showImplementationButton
  * @param show
  */
-void ToolbarWidget::showImplementationButton(bool show)
+void ToolbarWidget::showImplementationButton(bool show, Node* implementation)
 {
     implementationButton->setVisible(show);
-    if (!show) {
+    if (show) {
+        implementationNode = implementation;
+    } else {
         showFrame++;
     }
 }
@@ -194,9 +197,25 @@ void ToolbarWidget::resetToolbarStates()
     //addChildButton->setChecked(false);
 }
 
+
+/**
+ * @brief ToolbarWidget::makeNewView
+ */
 void ToolbarWidget::makeNewView()
 {
-    emit constructNewView(nodeItem->getNode());
+    QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
+    if (button) {
+        emit constructNewView(nodeItem->getNode());
+    }
+
+    QAction* action = qobject_cast<QAction*>(QObject::sender());
+    if (action) {
+        if (action->parentWidget() == definitionMenu) {
+            emit constructNewView(definitionNode);
+        } else if (action->parentWidget() == implementationMenu) {
+            emit constructNewView(implementationNode);
+        }
+    }
 }
 
 
@@ -209,30 +228,25 @@ void ToolbarWidget::setupToolBar()
     QSize buttonSize = QSize(30,30);
 
     addChildButton = new QToolButton();
-    deleteButton = new QToolButton();
     connectButton = new QToolButton();
+    deleteButton = new QToolButton();
+    showNewViewButton = new QToolButton();
     definitionButton = new QToolButton();
     implementationButton = new QToolButton();
-
-    showNewViewButton = new QToolButton();
 
     addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode.png"));
     connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
     deleteButton->setIcon(QIcon(":/Resources/Icons/deleteNode.png"));
+    showNewViewButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
     definitionButton->setIcon(QIcon(":/Resources/Icons/definition.png"));
     implementationButton->setIcon(QIcon(":/Resources/Icons/implementation.png"));
-
-    showNewViewButton->setIcon(QIcon(":/Resources/Icons/view.png"));
 
     addChildButton->setFixedSize(buttonSize);
     connectButton->setFixedSize(buttonSize);
     deleteButton->setFixedSize(buttonSize);
+    showNewViewButton->setFixedSize(buttonSize);
     definitionButton->setFixedSize(buttonSize);
     implementationButton->setFixedSize(buttonSize);
-
-    showNewViewButton->setFixedSize(buttonSize);
-
-
 
     addChildButton->setIconSize(buttonSize*0.6);
     connectButton->setIconSize(buttonSize*0.7);
@@ -240,15 +254,12 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setIconSize(buttonSize*1.2);
     implementationButton->setIconSize(buttonSize*0.7);
 
-    //showNewViewButton->setFixedSize(buttonSize);
-
     addChildButton->setToolTip("Add Child Node");
     connectButton->setToolTip("Connect Node");
     deleteButton->setToolTip("Delete Node");
+    showNewViewButton->setToolTip("Show in new window");
     definitionButton->setToolTip("Go to Definition");
     implementationButton->setToolTip("Go to Implementation");
-
-    showNewViewButton->setToolTip("Create new view.");
 
     frame = new QFrame();
     frame->setFrameShape(QFrame::VLine);
@@ -257,11 +268,10 @@ void ToolbarWidget::setupToolBar()
     layout->addWidget(addChildButton);
     layout->addWidget(connectButton);
     layout->addWidget(deleteButton);
+    layout->addWidget(showNewViewButton);
     layout->addWidget(frame);
     layout->addWidget(definitionButton);
     layout->addWidget(implementationButton);
-
-    layout->addWidget(showNewViewButton);
 
     layout->setMargin(5);
     setLayout(layout);
@@ -275,12 +285,27 @@ void ToolbarWidget::setupButtonMenus()
 {
     addMenu = new QMenu(this);
     connectMenu = new QMenu(this);
+    definitionMenu = new QMenu(this);
+    implementationMenu = new QMenu(this);
 
     addChildButton->setPopupMode(QToolButton::InstantPopup);
     addChildButton->setMenu(addMenu);
 
     connectButton->setPopupMode(QToolButton::InstantPopup);
     connectButton->setMenu(connectMenu);
+
+    QAction* goToAction = definitionMenu->addAction(QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
+    QAction* popupAction = definitionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Definition");
+    connect(goToAction, SIGNAL(triggered()), this, SLOT(goToDefinition()));
+    connect(popupAction, SIGNAL(triggered()), this, SLOT(makeNewView()));
+
+    definitionButton->setPopupMode(QToolButton::InstantPopup);
+    definitionButton->setMenu(definitionMenu);
+
+    //implementationButton->setPopupMode(QToolButton::InstantPopup);
+    //implementationButton->setMenu(implementationMenu);
+
+
 }
 
 
@@ -293,6 +318,8 @@ void ToolbarWidget::makeConnections()
     connect(addMenu, SIGNAL(triggered(QAction*)), addMenu, SLOT(hide()));
     connect(connectMenu, SIGNAL(triggered(QAction*)), this, SLOT(hide()));
     connect(connectMenu, SIGNAL(triggered(QAction*)), connectMenu, SLOT(hide()));
+    connect(definitionMenu, SIGNAL(triggered(QAction*)), this, SLOT(hide()));
+    connect(definitionMenu, SIGNAL(triggered(QAction*)), definitionMenu, SLOT(hide()));
 
     //connect(addMenu, SIGNAL(aboutToHide()), this, SLOT(hide()));
     //connect(addMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
@@ -302,10 +329,8 @@ void ToolbarWidget::makeConnections()
     connect(definitionButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(implementationButton, SIGNAL(clicked()), this, SLOT(hide()));
 
-    connect(definitionButton, SIGNAL(clicked()), this, SLOT(goToDefinition()));
-    connect(implementationButton, SIGNAL(clicked()), this, SLOT(goToImplementation()));
-
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
+    connect(implementationButton, SIGNAL(clicked()), this, SLOT(goToImplementation()));
 
     connectToView();
 }
@@ -313,30 +338,27 @@ void ToolbarWidget::makeConnections()
 
 /**
  * @brief ToolbarWidget::connectNodeItem
- * @param item
  */
 void ToolbarWidget::connectToView()
 {
     NodeView* nodeView = dynamic_cast<NodeView*>(parentWidget());
 
-    if(nodeView){
-        connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(trigger_deletePressed()));
+    connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(trigger_deletePressed()));
 
-        connect(this, SIGNAL(checkDefinition(Node*, bool)), nodeView, SLOT(goToDefinition(Node*, bool)));
-        connect(this, SIGNAL(checkImplementation(Node*, bool)), nodeView, SLOT(goToImplementation(Node*, bool)));
+    connect(this, SIGNAL(checkDefinition(Node*, bool)), nodeView, SLOT(goToDefinition(Node*, bool)));
+    connect(this, SIGNAL(checkImplementation(Node*, bool)), nodeView, SLOT(goToImplementation(Node*, bool)));
 
-        connect(this, SIGNAL(goToDefinition(Node*)), nodeView, SLOT(goToDefinition(Node*)));
-        connect(this, SIGNAL(goToImplementation(Node*)), nodeView, SLOT(goToImplementation(Node*)));
+    connect(this, SIGNAL(goToDefinition(Node*)), nodeView, SLOT(goToDefinition(Node*)));
+    connect(this, SIGNAL(goToImplementation(Node*)), nodeView, SLOT(goToImplementation(Node*)));
 
-        connect(this, SIGNAL(updateMenuList(QString,Node*)), nodeView, SLOT(updateToolbarMenuList(QString,Node*)));
-        connect(nodeView, SIGNAL(updateMenuList(QString,QStringList*,QList<Node*>*)), this, SLOT(updateMenuList(QString,QStringList*,QList<Node*>*)));
+    connect(this, SIGNAL(updateMenuList(QString,Node*)), nodeView, SLOT(updateToolbarMenuList(QString,Node*)));
+    connect(nodeView, SIGNAL(updateMenuList(QString,QStringList*,QList<Node*>*)), this, SLOT(updateMenuList(QString,QStringList*,QList<Node*>*)));
 
-        connect(this, SIGNAL(constructNode(QString)), nodeView, SLOT(view_ConstructNodeAction(QString)));
-        connect(this, SIGNAL(constructEdge(Node*,Node*)), nodeView, SLOT(view_ConstructEdgeAction(Node*,Node*)));
+    connect(this, SIGNAL(constructNode(QString)), nodeView, SLOT(view_ConstructNodeAction(QString)));
+    connect(this, SIGNAL(constructEdge(Node*,Node*)), nodeView, SLOT(view_ConstructEdgeAction(Node*,Node*)));
 
-        connect(nodeView, SIGNAL(hideToolbarWidget()), this, SLOT(hide()));
-        connect(this, SIGNAL(constructNewView(Node*)), nodeView, SLOT(constructNewView(Node*)));
-    }
+    connect(nodeView, SIGNAL(hideToolbarWidget()), this, SLOT(hide()));
+    connect(this, SIGNAL(constructNewView(Node*)), nodeView, SLOT(constructNewView(Node*)));
 }
 
 

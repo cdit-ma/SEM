@@ -49,13 +49,6 @@ DockNodeItem::DockNodeItem(NodeItem *node_item, QWidget* parent) :
     } else if (kind == "Component") {
         selectedColor = "rgba(210, 105, 30, 100);";
     }
-
-    // make connections
-    //connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
-    connect(nodeItem, SIGNAL(updateDockNodeItem(bool)), this, SLOT(setSelected(bool)));
-    connect(nodeItem, SIGNAL(updateDockNodeItem()), this, SLOT(updateData()));
-    connect(nodeItem, SIGNAL(updateOpacity(qreal)), this, SLOT(setOpacity(qreal)));
-    connect(nodeItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
 }
 
 
@@ -73,20 +66,20 @@ void DockNodeItem::paintEvent(QPaintEvent *e)
         color = "rgba(0,0,0,0);";
     }
 
+    /*
     setStyleSheet("QPushButton{"
                   "background-color:" + color +
                   "border-radius: 10px;"
                   "}");
+    */
 
-    /*
     // this overrides the call above so when the item is selected, you can
     // only see the change in background color when you hover over it
-    setStyleSheet("QPushButton:hover:checked{"
-                  "background-color:" + selectedColor +
+    setStyleSheet("QPushButton:hover{"
+                  "background-color: rgba(0,0,0,0);"
                   "border: 1px solid black;"
-                  "border-radius: 10px;"
+                  "border-radius: 5px;"
                   "}");
-    */
 
     QPushButton::paintEvent(e);
 }
@@ -137,6 +130,19 @@ void DockNodeItem::deleteLater()
 NodeItem *DockNodeItem::getNodeItem()
 {
     return nodeItem;
+}
+
+
+/**
+ * @brief DockNodeItem::connectToNodeItem
+ */
+void DockNodeItem::connectToNodeItem()
+{
+    //connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
+    connect(nodeItem, SIGNAL(updateDockNodeItem(bool)), this, SLOT(setSelected(bool)));
+    connect(nodeItem, SIGNAL(updateDockNodeItem()), this, SLOT(updateData()));
+    connect(nodeItem, SIGNAL(updateOpacity(qreal)), this, SLOT(setOpacity(qreal)));
+    connect(nodeItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
 }
 
 

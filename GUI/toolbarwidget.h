@@ -1,6 +1,7 @@
 #ifndef TOOLBARWIDGET_H
 #define TOOLBARWIDGET_H
 
+#include "nodeview.h"
 #include "nodeitem.h"
 
 #include <QWidget>
@@ -13,12 +14,12 @@ class ToolbarWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit ToolbarWidget(QWidget *parent = 0);
+    explicit ToolbarWidget(NodeView *parent = 0);
 
     void setNodeItem(NodeItem* item);
 
-    void showDefinitionButton(bool show);
-    void showImplementationButton(bool show);
+    void showDefinitionButton(bool show, Node* definition = 0);
+    void showImplementationButton(bool show, Node* implementation = 0);
 
 signals:
     void goToDefinition(Node* node);
@@ -62,18 +63,21 @@ private:
     NodeItem* nodeItem;
     NodeItem* prevNodeItem;
 
+    Node* definitionNode;
+    Node* implementationNode;
+
     QToolButton* addChildButton;
     QToolButton* deleteButton;
     QToolButton* connectButton;
+    QToolButton* showNewViewButton;
 
     QToolButton* definitionButton;
     QToolButton* implementationButton;
 
-
-    QToolButton* showNewViewButton;
-
     QMenu* addMenu;
     QMenu* connectMenu;
+    QMenu* definitionMenu;
+    QMenu* implementationMenu;
 
     QFrame* frame;
     int showFrame;

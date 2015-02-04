@@ -71,5 +71,7 @@
         <file>Resources/Icons/definition.png</file>
         <file>Resources/Icons/implementation.png</file>
         <file>Resources/Icons/parts.png</file>
+        <file>Resources/Icons/goto.png</file>
+        <file>Resources/Icons/popup.png</file>
     </qresource>
 </RCC>

@@ -662,8 +662,6 @@ void NodeItem::sort()
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
 
-
-
     switch (event->button()) {
 
     case Qt::MiddleButton:{

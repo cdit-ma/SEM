@@ -19,6 +19,7 @@ public:
     explicit DockNodeItem(NodeItem *node_item, QWidget* parent = 0);
 
     NodeItem* getNodeItem();
+    void connectToNodeItem();
 
     void mousePressEvent(QMouseEvent *event);
     void setContainer(DockScrollArea* container);

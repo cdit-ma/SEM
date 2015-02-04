@@ -78,9 +78,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
 void NodeView::setController(NewController *controller)
 {
-
-    qCritical() << "Setting new Controller";
-
     //GridScene* Scene = new GridScene(this);
     setScene(new QGraphicsScene(this));
 
@@ -149,6 +146,21 @@ QList<NodeItem*> NodeView::getNodeItemsList()
 
 
 /**
+ * @brief NodeView::showAllViewAspects
+ */
+void NodeView::showAllViewAspects()
+{
+    QStringList allAspects;
+    allAspects.append("Assembly");
+    allAspects.append("Hardware");
+    allAspects.append("Definitions");
+    allAspects.append("Workload");
+
+    emit updateViewAspects(allAspects);
+}
+
+
+/**
  * @brief NodeView::getNumberOfVisibleItems
  * Return the list of visible node items on the scene.
  * @return
@@ -169,23 +181,23 @@ void NodeView::constructNewView(Node *centeredOn)
     qCritical() << "Make new View";
 
     Qt::WindowFlags flags = 0;
-        flags |= Qt::WindowMaximizeButtonHint;
-        flags |= Qt::WindowCloseButtonHint;
-        flags |= Qt::WindowMinimizeButtonHint;
+    flags |= Qt::WindowMaximizeButtonHint;
+    flags |= Qt::WindowCloseButtonHint;
+    flags |= Qt::WindowMinimizeButtonHint;
 
     QDialog* newViewWindow = new QDialog(this, flags);
     newViewWindow->setWindowModality(Qt::NonModal);
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-     mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
 
     Node* firstNode = centeredOn;
 
     NodeView* newView = new NodeView(true, newViewWindow);
 
-     mainLayout->addWidget(newView);
-     newViewWindow->setLayout(mainLayout);
-     newViewWindow->show();;
+    mainLayout->addWidget(newView);
+    newViewWindow->setLayout(mainLayout);
+    newViewWindow->show();;
 
     if(this->controller){
         controller->connectView(newView);
@@ -209,14 +221,13 @@ void NodeView::constructNewView(Node *centeredOn)
 
 }
 
-/*
+
 bool NodeView::viewportEvent(QEvent * e)
 {
-    //qDebug() << ".............";
-    //emit updateViewPort(getVisibleRect());
+    emit updateViewPort(getVisibleRect());
     return QGraphicsView::viewportEvent(e);
 }
-*/
+
 
 /**
  * @brief NodeView::centreItem
@@ -309,21 +320,12 @@ void NodeView::setViewAspects(QStringList aspects)
     // initially show and sort container items so that they are not
     // painted on top of each other when they are first turned on
     if (firstSort) {
-
-        QStringList allAspects;
-        allAspects.append("Assembly");
-        allAspects.append("Hardware");
-        allAspects.append("Definitions");
-        allAspects.append("Workload");
-
-        emit updateViewAspects(allAspects);
-        emit sortDeployment();
-        emit sortModel();
+        showAllViewAspects();
+        view_sortModel();
         firstSort = false;
     }
 
     emit updateViewAspects(aspects);
-    //emit sortModel();
     view_centerViewAspects();
 }
 
@@ -868,6 +870,7 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
     QGraphicsView::mouseMoveEvent(event);
 }
 
+
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
     QPointF scenePos = this->mapToScene(event->pos());
@@ -885,7 +888,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     if(!item){
         if(event->button() == Qt::MiddleButton){
             if(CONTROL_DOWN){
-                emit sortModel();
+                view_sortModel();
                 return;
             }else{
                 // center current view aspects
@@ -904,12 +907,6 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }
 
     } else {
-        // sorting node item's children, need to update view
-        /*
-        if (CONTROL_DOWN) {
-            update();
-        }
-        */
         // update attribute table size
         if (event->button() == Qt::LeftButton) {
             emit updateDataTable();
@@ -1013,8 +1010,8 @@ void NodeView::resetModel()
             nodeItm->resetSize();
         }
     }
-    emit sortModel();
-    emit view_centerViewAspects();
+    view_sortModel();
+    view_centerViewAspects();
     update();
 }
 
@@ -1138,9 +1135,10 @@ void NodeView::view_addComponentDefinition(NodeItem *itm)
 
 /**
  * @brief NodeView::goToDefinition
- * If the node is a definition, center it.
+ * If the node is a definition, select and center it.
  * If it's not but it has a definition, center on its definition.
  * @param node
+ * @param show
  */
 void NodeView::goToDefinition(Node *node, bool show)
 {
@@ -1158,12 +1156,11 @@ void NodeView::goToDefinition(Node *node, bool show)
             hasDefinition = true;
         }
 
-        if (toolbar) {
-            if (!show) {
-                toolbar->showDefinitionButton(hasDefinition);
-                qDebug() << "NodeView: hasDefiniton = " << hasDefinition;
-                return;
-            }
+        // if the signal came from the toolbar and !show it's only checking to
+        // see if node has a definition - hence, don't select and center it
+        if (toolbar && !show) {
+            toolbar->showDefinitionButton(hasDefinition, temp);
+            return;
         }
 
         if (hasDefinition) {
@@ -1177,8 +1174,9 @@ void NodeView::goToDefinition(Node *node, bool show)
 /**
  * @brief NodeView::goToImplementation
  * If the node is not a definition, check to see if it has a definition.
- * If it does and it has at least 1 implementation, center on the first one.
+ * If it does and it has at least 1 implementation, select & center on the first one.
  * @param node
+ * @param show
  */
 void NodeView::goToImplementation(Node *node, bool show)
 {
@@ -1191,15 +1189,15 @@ void NodeView::goToImplementation(Node *node, bool show)
             temp = node->getDefinition();
         }
 
-        if (temp && temp->getImplementations().count() == 1) {
+        if (temp && temp->getImplementations().count() > 0) {
             hasImplementation = true;
         }
 
-        if (toolbar) {
-            if (!show) {
-                toolbar->showImplementationButton(hasImplementation);
-                return;
-            }
+        // if the signal came from the toolbar and !show, it's only checking to
+        // see if node has an implementation - hence, don't select and center it
+        if (toolbar && !show) {
+            toolbar->showImplementationButton(hasImplementation, temp->getImplementations().at(0));
+            return;
         }
 
         if (hasImplementation) {
@@ -1212,6 +1210,7 @@ void NodeView::goToImplementation(Node *node, bool show)
 
 /**
  * @brief NodeView::trigger_pressShift
+ * This triggers the same actions for when SHIFT is pressed.
  */
 void NodeView::trigger_shiftPressed()
 {
@@ -1222,6 +1221,7 @@ void NodeView::trigger_shiftPressed()
 
 /**
  * @brief NodeView::trigger_deletePressed
+ * This triggers the same actions for when DELETE is pressed.
  */
 void NodeView::trigger_deletePressed()
 {
@@ -1232,6 +1232,7 @@ void NodeView::trigger_deletePressed()
 
 /**
  * @brief NodeView::updateToolbarMenuList
+ * @param action
  * @param node
  */
 void NodeView::updateToolbarMenuList(QString action, Node *node)
@@ -1283,11 +1284,14 @@ void NodeView::view_centerViewAspects()
             return;
         } else if (currentAspects.contains("Definitions") && currentAspects.contains("Workload")) {
             emit sortModel();
+            emit centerNode("Model");
+            return;
         }
-    } else if (currentAspects.count() >= 3 && currentAspects.contains("Definitions")) {
-        emit sortModel();
     }
 
+    showAllViewAspects();
+    emit sortModel();
+    emit updateViewAspects(currentAspects);
     emit centerNode("Model");
 }
 
@@ -1297,6 +1301,7 @@ void NodeView::view_centerViewAspects()
  */
 void NodeView::view_sortModel()
 {
+    emit sortDeployment();
     emit sortModel();
 }
 

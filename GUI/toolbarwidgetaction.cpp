@@ -2,6 +2,7 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QDebug>
 
 
 /**
@@ -62,10 +63,12 @@ QString ToolbarWidgetAction::getKind()
 QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 {
     actionButton = new QPushButton(parent);
-    //actionButton->setFlat(true);
-    actionButton->setFixedSize(150, 30);
-    actionButton->setStyleSheet("QPushButton{ margin: 0px; padding: 0px; }");
 
+    actionButton->setFlat(true);
+    actionButton->setFixedSize(150, 30);
+    actionButton->setStyleSheet("QPushButton{ margin: 0px;"
+                                "padding: 0px; }");
+    actionButton->setMouseTracking(true);
 
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setMargin(0);
@@ -89,10 +92,24 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     actionButton->setLayout(layout);
 
     connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
-    connect(actionButton, SIGNAL(pressed()), this, SLOT(hide()));
+    connect(this, SIGNAL(hovered()), this, SLOT(hover()));
+    //connect(this, );
 
     return actionButton;
 }
+
+
+/**
+ * @brief ToolbarWidgetAction::hover
+ */
+void ToolbarWidgetAction::hover()
+{/*
+    actionButton->setStyleSheet("QPushButton:hover{"
+                                "background-color: rgba(0,0,0,0);"
+                                "border: 1px solid black;"
+                                "border-radius: 5px;"
+                                "}");
+*/}
 
 
 /**
