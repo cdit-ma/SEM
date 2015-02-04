@@ -77,6 +77,8 @@ signals:
 
     void updateDockContainer(QString dockContainer);
 
+    void recentralizeAfterChange(GraphML* item);
+
 public slots:
     //Model Signals
     void graphMLDataUpdated(GraphMLData *data);
@@ -84,6 +86,8 @@ public slots:
     void setOpacity(qreal opacity);
     void setSelected(bool selected);
     void setVisible(bool visible);
+
+    void setPermanentlyCentralized(bool centralized);
 
     void sort();
 
@@ -124,6 +128,7 @@ private:
     void removeExpandButton();
 
     bool expanded;
+    bool permanentlyCentralized;
 
 
     QList<NodeItem*> getChildren();

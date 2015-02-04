@@ -57,6 +57,7 @@ public:
     void initializeModel();
     void connectView(NodeView* view);
 
+
    // void connectView(GraphMLView* view);
 
     //Get a list of all Node Kinds

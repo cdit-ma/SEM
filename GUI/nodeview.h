@@ -17,9 +17,10 @@ class NodeView : public QGraphicsView
 {
     Q_OBJECT
 public:
-    NodeView(QWidget *parent = 0);
+    NodeView(bool subView = false, QWidget *parent = 0);
     void setController(NewController* controller);
     void disconnectController();
+    bool isSubView();
     bool getControlPressed();
 
     ~NodeView();
@@ -89,6 +90,7 @@ signals:
     void updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodes);
 
 public slots:
+    void constructNewView(Node* centeredOn);
 
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
     void view_ConstructGraphMLGUI(GraphML* item);
@@ -110,6 +112,7 @@ public slots:
 
     void view_SelectGraphML(GraphML* graphML, bool setSelected=true);
     void view_CenterGraphML(GraphML* graphML);
+    void view_LockCenteredGraphML(GraphML* graphML);
 
     void view_SortNode(Node* node);
     void view_SetOpacity(GraphML* graphML, qreal opacity);
@@ -185,6 +188,8 @@ private:
     bool shiftTriggered;
     bool deleteTriggered;
 
+    bool SUB_VIEW;
+    QList<NodeView*> subViews;
 
 protected:
     //bool viewportEvent(QEvent *);

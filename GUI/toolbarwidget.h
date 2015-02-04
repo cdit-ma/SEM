@@ -32,6 +32,9 @@ signals:
     void checkDefinition(Node* node, bool show);
     void checkImplementation(Node* node, bool show);
 
+
+    void constructNewView(Node* node);
+
 public slots:
     void goToDefinition();
     void goToImplementation();
@@ -45,6 +48,8 @@ public slots:
 
     void hideToolbar();
     void resetToolbarStates();
+
+    void makeNewView();
 
 private:
     void setupToolBar();
@@ -63,6 +68,9 @@ private:
 
     QToolButton* definitionButton;
     QToolButton* implementationButton;
+
+
+    QToolButton* showNewViewButton;
 
     QMenu* addMenu;
     QMenu* connectMenu;

@@ -18,10 +18,11 @@
 #include <QMenu>
 #include <QInputDialog>
 #include <QAction>
+#include <QVBoxLayout>
 
-
-NodeView::NodeView(QWidget *parent):QGraphicsView(parent)
+NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
+    SUB_VIEW = subView;
     totalScaleFactor = 1;
     NodeType = "";
     RUBBERBAND_MODE = false;
@@ -92,6 +93,11 @@ void NodeView::disconnectController()
 
 }
 
+bool NodeView::isSubView()
+{
+    return this->SUB_VIEW;
+}
+
 bool NodeView::getControlPressed()
 {
     return this->CONTROL_DOWN;
@@ -156,6 +162,51 @@ QList<NodeItem*> NodeView::getVisibleNodeItems()
         }
     }
     return nodeItems;
+}
+
+void NodeView::constructNewView(Node *centeredOn)
+{
+    qCritical() << "Make new View";
+
+    Qt::WindowFlags flags = 0;
+        flags |= Qt::WindowMaximizeButtonHint;
+        flags |= Qt::WindowCloseButtonHint;
+        flags |= Qt::WindowMinimizeButtonHint;
+
+    QDialog* newViewWindow = new QDialog(this, flags);
+    newViewWindow->setWindowModality(Qt::NonModal);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+     mainLayout->setContentsMargins(0, 0, 0, 0);
+
+    Node* firstNode = centeredOn;
+
+    NodeView* newView = new NodeView(true, newViewWindow);
+
+     mainLayout->addWidget(newView);
+     newViewWindow->setLayout(mainLayout);
+     newViewWindow->show();;
+
+    if(this->controller){
+        controller->connectView(newView);
+
+        newView->setViewAspects(currentAspects);
+
+        QList<Node*> toConstruct;
+        toConstruct.append(centeredOn->getChildren());
+        while(centeredOn->getParentNode()){
+            toConstruct.insert(0, centeredOn);
+            centeredOn = centeredOn->getParentNode();
+        }
+
+        while(toConstruct.size() > 0){
+            newView->view_ConstructGraphMLGUI(toConstruct.takeFirst());
+        }
+        newView->view_LockCenteredGraphML(firstNode);
+
+    }
+
+
 }
 
 /*
@@ -357,13 +408,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     //Connect the Generic Functionality.
     connectGraphMLItemToController(nodeItem, node);
 
-    //Connect the Node Specific Functionality
-    connect(nodeItem, SIGNAL(moveSelection(QPointF)), controller, SLOT(view_MoveSelectedNodes(QPointF)));
-    connect(this, SIGNAL(updateViewAspects(QStringList)), nodeItem, SLOT(updateViewAspects(QStringList)));
-    connect(nodeItem, SIGNAL(clearSelection()), this, SLOT(clearSelection()));
-    connect(nodeItem, SIGNAL(centerViewAspects()), this, SLOT(view_centerViewAspects()));
-    connect(nodeItem, SIGNAL(sortModel()), this, SLOT(view_sortModel()));
-    connect(nodeItem, SIGNAL(updateDockContainer(QString)), this, SLOT(view_updateDockContainer(QString)));
+
 
 
     /**************************************************************/
@@ -543,7 +588,22 @@ void NodeView::view_SortNode(Node *node)
 void NodeView::view_CenterGraphML(GraphML *graphML)
 {
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
-    centreItem(guiItem);
+    if(guiItem){
+        centreItem(guiItem);
+    }
+}
+
+void NodeView::view_LockCenteredGraphML(GraphML *graphML)
+{
+    GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
+    NodeItem* nodeItem = getNodeItemFromGraphMLItem(guiItem);
+    if(nodeItem){
+        centreItem(guiItem);
+        nodeItem->setPermanentlyCentralized(true);
+
+        connect(nodeItem, SIGNAL(recentralizeAfterChange(GraphML*)), this, SLOT(view_CenterGraphML(GraphML*)));
+
+    }
 }
 
 void NodeView::view_SetOpacity(GraphML *graphML, qreal opacity)
@@ -612,14 +672,39 @@ void NodeView::view_ConstructEdgeAction(Node *src, Node *dst)
 
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
 {
+
     if(GUIItem){
-        connect(GUIItem, SIGNAL(triggerCentered(GraphML*)), this, SLOT(view_CenterGraphML(GraphML*)));
-        connect(GUIItem, SIGNAL(triggerAction(QString)),  controller, SLOT(view_TriggerAction(QString)));
         connect(GUIItem, SIGNAL(triggerSelected(GraphML*, bool)), controller, SLOT(view_GraphMLSelected(GraphML*, bool)));
-        connect(GUIItem, SIGNAL(constructGraphMLData(GraphML*,QString)), controller, SLOT(view_ConstructGraphMLData(GraphML*,QString)));
-        connect(GUIItem, SIGNAL(destructGraphMLData(GraphML*,QString)), controller, SLOT(view_DestructGraphMLData(GraphML*,QString)));
-        connect(GUIItem, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
-        //connect(graphML, SIGNAL(destroyed()), GUIItem, SLOT(destructGraphML()));
+
+        NodeItem* nodeItem = dynamic_cast<NodeItem*>(GUIItem);
+
+        if(nodeItem){
+            connect(nodeItem, SIGNAL(clearSelection()), this, SLOT(clearSelection()));
+        }
+
+
+
+        if(!SUB_VIEW){
+            connect(GUIItem, SIGNAL(triggerCentered(GraphML*)), this, SLOT(view_CenterGraphML(GraphML*)));
+            connect(GUIItem, SIGNAL(triggerAction(QString)),  controller, SLOT(view_TriggerAction(QString)));
+
+            connect(GUIItem, SIGNAL(constructGraphMLData(GraphML*,QString)), controller, SLOT(view_ConstructGraphMLData(GraphML*,QString)));
+            connect(GUIItem, SIGNAL(destructGraphMLData(GraphML*,QString)), controller, SLOT(view_DestructGraphMLData(GraphML*,QString)));
+            connect(GUIItem, SIGNAL(updateGraphMLData(GraphML*,QString,QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*,QString,QString)));
+            //Connect the Node Specific Functionality
+
+
+            if(nodeItem){
+                connect(nodeItem, SIGNAL(moveSelection(QPointF)), controller, SLOT(view_MoveSelectedNodes(QPointF)));
+                connect(this, SIGNAL(updateViewAspects(QStringList)), nodeItem, SLOT(updateViewAspects(QStringList)));
+                connect(nodeItem, SIGNAL(centerViewAspects()), this, SLOT(view_centerViewAspects()));
+                connect(nodeItem, SIGNAL(sortModel()), this, SLOT(view_sortModel()));
+                connect(nodeItem, SIGNAL(updateDockContainer(QString)), this, SLOT(view_updateDockContainer(QString)));
+            }
+        }else{
+            //Specific SubView Functionality.
+        }
+
     }
 }
 

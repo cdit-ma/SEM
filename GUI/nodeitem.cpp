@@ -1,5 +1,6 @@
 #include "nodeitem.h"
 #include "nodeedge.h"
+#include "nodeview.h"
 
 #include <QGraphicsTextItem>
 #include <QDebug>
@@ -23,6 +24,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
     nodeSelected = false;
     isNodePressed = false;
+    permanentlyCentralized = false;
     hidden = false;
     expanded = false;
     hasSelectionMoved = false;
@@ -363,6 +365,11 @@ void NodeItem::setVisible(bool visible)
     }
 }
 
+void NodeItem::setPermanentlyCentralized(bool centralized)
+{
+    permanentlyCentralized = centralized;
+}
+
 
 void NodeItem::graphMLDataUpdated(GraphMLData* data)
 {
@@ -654,6 +661,9 @@ void NodeItem::sort()
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+
+
+
     switch (event->button()) {
 
     case Qt::MiddleButton:{
@@ -750,12 +760,19 @@ void NodeItem::setWidth(qreal width)
     this->width = width;
     updateExpandButton();
     updateTextLabel();
+    if(permanentlyCentralized){
+        emit recentralizeAfterChange(this->getGraphML());
+    }
 }
 
 void NodeItem::setHeight(qreal height)
 {
     this->height = height;
+    if(permanentlyCentralized){
+        emit recentralizeAfterChange(this->getGraphML());
+    }
 }
+
 
 
 void NodeItem::setPaintObject(bool paint)
@@ -966,6 +983,9 @@ void NodeItem::setPos(const QPointF &pos)
     if(pos != this->pos()){
         QGraphicsItem::setPos(pos);
         emit updateEdgePosition();
+        if(permanentlyCentralized){
+            emit recentralizeAfterChange(this->getGraphML());
+        }
     }
 }
 

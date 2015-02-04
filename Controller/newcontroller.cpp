@@ -59,39 +59,50 @@ void NewController::connectView(NodeView *view)
 {
     view->setController(this);
 
-    //Connect to the View's Signals
-    connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
-    connect(view, SIGNAL(shiftPressed(bool)), this, SLOT(view_ShiftPressed(bool)));
-    connect(view, SIGNAL(deletePressed(bool)), this, SLOT(view_DeletePressed(bool)));
-    connect(view, SIGNAL(selectAll()),this, SLOT(view_SelectAll()));
-    connect(view, SIGNAL(unselect()),this, SLOT(view_ClearSelection()));
-    connect(view, SIGNAL(unselect()), this, SLOT(view_UncenterGraphML()));
-    connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
-    connect(view, SIGNAL(triggerAction(QString)), this, SLOT(view_TriggerAction(QString)));
-
-    //Connect the View to the Controllers Signals
-    connect(this, SIGNAL(view_SetOpacity(GraphML*,qreal)), view, SLOT(view_SetOpacity(GraphML*,qreal)));
-    connect(this, SIGNAL(view_SortNode(Node*)), view, SLOT(view_SortNode(Node*)));
+    //Generic function.
     connect(this, SIGNAL(view_SetGraphMLSelected(GraphML*,bool)), view, SLOT(view_SelectGraphML(GraphML*,bool)));
-    //connect(this, SIGNAL(view_ForceRefresh()), view, SLOT(view_Refresh()));
-    connect(this, SIGNAL(view_CenterGraphML(GraphML*)), view, SLOT(view_CenterGraphML(GraphML*)));
-
     connect(this, SIGNAL(view_ConstructGraphMLGUI(GraphML*)), view, SLOT(view_ConstructGraphMLGUI(GraphML*)));
     connect(this, SIGNAL(view_DestructGraphMLGUIFromID(QString)), view, SLOT(view_DestructGraphMLGUI(QString)));
-    connect(this, SIGNAL(view_PrintErrorCode(GraphML*,QString)), view, SLOT(printErrorText(GraphML*,QString)));
+    connect(view, SIGNAL(unselect()),this, SLOT(view_ClearSelection()));
 
-    connect(this, SIGNAL(view_FitToScreen()), view, SLOT(fitToScreen()));
-    connect(this, SIGNAL(centreNode(Node*)), view, SLOT(centreNode(Node*)));
-    connect(view, SIGNAL(centerNode(QString)), this, SLOT(centerNode(QString)));
-    connect(view, SIGNAL(sortModel()), this, SLOT(view_SortModel()));
-    connect(view, SIGNAL(sortDeployment()), this, SLOT(view_SortDeployment()));
+    if(!view->isSubView()){
+        //Main view Functionality
+        //Connect to the View's Signals
+        connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
+        connect(view, SIGNAL(shiftPressed(bool)), this, SLOT(view_ShiftPressed(bool)));
+        connect(view, SIGNAL(deletePressed(bool)), this, SLOT(view_DeletePressed(bool)));
+        connect(view, SIGNAL(selectAll()),this, SLOT(view_SelectAll()));
 
-    connect(view, SIGNAL(getLegalNodesList(Node*)), this, SLOT(getLegalNodesList(Node*)));
-    connect(this, SIGNAL(setLegalNodesList(QList<Node*>*)), view, SLOT(updateToolbarLegalNodesList(QList<Node*>*)));
+        connect(view, SIGNAL(unselect()), this, SLOT(view_UncenterGraphML()));
+        connect(view, SIGNAL(escapePressed(bool)), this, SLOT(view_ClearSelection()));
+        connect(view, SIGNAL(triggerAction(QString)), this, SLOT(view_TriggerAction(QString)));
 
-    connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this, SLOT(view_ConstructNode(QString, QPointF)));
-    connect(view, SIGNAL(constructEdgeItem(Node*,Node*)), this, SLOT(constructLegalEdge(Node*,Node*)));
+        //Connect the View to the Controllers Signals
+        connect(this, SIGNAL(view_SetOpacity(GraphML*,qreal)), view, SLOT(view_SetOpacity(GraphML*,qreal)));
+        connect(this, SIGNAL(view_SortNode(Node*)), view, SLOT(view_SortNode(Node*)));
+
+        connect(this, SIGNAL(view_CenterGraphML(GraphML*)), view, SLOT(view_CenterGraphML(GraphML*)));
+
+
+        connect(this, SIGNAL(view_PrintErrorCode(GraphML*,QString)), view, SLOT(printErrorText(GraphML*,QString)));
+
+        connect(this, SIGNAL(view_FitToScreen()), view, SLOT(fitToScreen()));
+        connect(this, SIGNAL(centreNode(Node*)), view, SLOT(centreNode(Node*)));
+        connect(view, SIGNAL(centerNode(QString)), this, SLOT(centerNode(QString)));
+        connect(view, SIGNAL(sortModel()), this, SLOT(view_SortModel()));
+        connect(view, SIGNAL(sortDeployment()), this, SLOT(view_SortDeployment()));
+
+        connect(view, SIGNAL(getLegalNodesList(Node*)), this, SLOT(getLegalNodesList(Node*)));
+        connect(this, SIGNAL(setLegalNodesList(QList<Node*>*)), view, SLOT(updateToolbarLegalNodesList(QList<Node*>*)));
+
+        connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this, SLOT(view_ConstructNode(QString, QPointF)));
+        connect(view, SIGNAL(constructEdgeItem(Node*,Node*)), this, SLOT(constructLegalEdge(Node*,Node*)));
+    }else{
+        //Special Subview only functionality.
+
+    }
 }
+
 
 
 void NewController::initializeModel()
