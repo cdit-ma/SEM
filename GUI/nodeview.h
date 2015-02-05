@@ -79,15 +79,13 @@ signals:
     void sortDeployment();
     void centerNode(QString nodeLabel);
 
-    void hideDeployment(bool hide);
-    void hideToolbarWidget();
-
     void hasSelectedNode(bool nodeSelected);
 
     void getLegalNodesList(Node* src);
     void getAdoptableNodeList(Node* node);
     void updateDockAdoptableNodeList(Node* node);
     void updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodes);
+
 
 public slots:
     void constructNewView(Node* centeredOn);
@@ -139,12 +137,12 @@ public slots:
     void goToDefinition(Node* node, bool show = true);
     void goToImplementation(Node* node, bool show = true);
 
-    void trigger_shiftPressed();
-    void trigger_deletePressed();
+    void toolbar_deleteSelectedNode();
 
     void updateToolbarMenuList(QString action, Node* node);
     void updateToolbarAdoptableNodeList(QStringList nodeKinds);
     void updateToolbarLegalNodesList(QList<Node*>* nodeList);
+    void updateToolbarDefinitionsList(QList<Node*>* nodeList);
 
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
@@ -184,8 +182,6 @@ private:
     void showAllViewAspects();
 
     ToolbarWidget* toolbar;
-    bool shiftTriggered;
-    bool deleteTriggered;
 
     bool SUB_VIEW;
     QList<NodeView*> subViews;

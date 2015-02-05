@@ -44,6 +44,7 @@ public:
 protected:
     void resizeEvent(QResizeEvent* event);
 
+
 signals:
     void view_PasteData(QString value);
     void view_ActionTriggered(QString name);
@@ -56,6 +57,8 @@ signals:
     void clearDock();
     void checkDockScrollBar();
     void setupViewLayout();
+
+    void sendComponentDefinitions(QList<Node*>* definitions);
 
 private slots:
     void sortAndCenterViewAspects();
@@ -94,6 +97,9 @@ private slots:
 
     void goToDefinition();
     void goToImplementation();
+
+    void getAdoptableNodeList(Node* node);
+
 
 private:
     void importGraphMLFiles(QStringList files);

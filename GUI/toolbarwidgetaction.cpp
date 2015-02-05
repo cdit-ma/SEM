@@ -24,11 +24,15 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, ToolbarWidget *parent
  * @param node
  * @param parent
  */
-ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent) :
+ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, bool instance) :
     QWidgetAction(parent)
 {
     this->node = node;
-    kind = node->getDataValue("kind");
+    if (instance) {
+        kind = "ComponentInstance";
+    } else {
+        kind = node->getDataValue("kind");
+    }
     label = node->getDataValue("label");
 }
 
@@ -77,7 +81,6 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
                                 "background-color: rgba(10,10,10,50);"
                                 "}");
 
-
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setMargin(0);
 
@@ -125,6 +128,7 @@ void ToolbarWidgetAction::actionButtonClicked()
     emit trigger();
 
     if (node) {
+        // if a new edge has been constructed using the toolbar, update tool buttons
         ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(parent());
         toolbar->checkDefinition(node, false);
         toolbar->checkImplementation(node, false);

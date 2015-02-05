@@ -15,11 +15,14 @@
 DockScrollArea::DockScrollArea(QString label, DockToggleButton *parent) :
     QScrollArea(parent)
 {
-    layout = new QVBoxLayout(this);
-    groupBox = new QGroupBox(0);
     parentButton = parent;
+    parentNode = 0;
+
     this->label = label;
     activated = false;
+
+    layout = new QVBoxLayout(this);
+    groupBox = new QGroupBox(0);
 
     // attach scroll area and groupbox to their parent button
     parentButton->setContainer(this);
@@ -96,6 +99,10 @@ void DockScrollArea::addDockNode(NodeItem* item)
     connect(itm, SIGNAL(dockNode_addComponentInstance(NodeItem*)),
             this, SLOT(dock_addComponentInstance(NodeItem*)));
 
+    // keep a list of all the component definitions
+    if (label == "Definitions") {
+        componentDefinitions.append(item->getNode());
+    }
 }
 
 
@@ -112,6 +119,7 @@ void DockScrollArea::addAdoptableDockNodes(Node* node, QStringList nodes)
     nodes.sort();
 
     parentNode = node;
+    adoptableNodesList = nodes;
 
     for (int i=0; i < nodes.count(); i++) {
         DockAdoptableNodeItem *itm = new DockAdoptableNodeItem(nodes.at(i), this);
@@ -131,13 +139,31 @@ void DockScrollArea::addAdoptableDockNodes(Node* node, QStringList nodes)
  */
 void DockScrollArea::checkDockNodesList()
 {
-    qDebug() << "dockNodes.count() = " << dockNodes.count();
     if (parentButton && dockNodes.count() == 0) {
         parentButton->hideContainer();
         parentButton->setEnabled(false);
     }
-    qDebug() << "------------------------------";
- }
+}
+
+
+/**
+ * @brief DockScrollArea::getAdoptableNodesList
+ * @return
+ */
+QStringList DockScrollArea::getAdoptableNodesList()
+{
+    return adoptableNodesList;
+}
+
+
+/**
+ * @brief DockScrollArea::getComponentDefinitions
+ * @return
+ */
+QList<Node *> DockScrollArea::getComponentDefinitions()
+{
+    return componentDefinitions;
+}
 
 
 /**

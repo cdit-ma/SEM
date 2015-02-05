@@ -21,6 +21,12 @@ public:
     void showDefinitionButton(bool show, Node* definition = 0);
     void showImplementationButton(bool show, Node* implementation = 0);
 
+
+protected:
+    virtual void enterEvent(QEvent* event);
+    virtual void leaveEvent(QEvent* event);
+
+
 signals:
     void goToDefinition(Node* node);
     void goToImplementation(Node* node);
@@ -33,8 +39,8 @@ signals:
     void checkDefinition(Node* node, bool show);
     void checkImplementation(Node* node, bool show);
 
-
     void constructNewView(Node* node);
+
 
 public slots:
     void goToDefinition();
@@ -46,11 +52,10 @@ public slots:
 
     void addChildNode();
     void connectNodes();
+    void makeNewView();
 
     void hideToolbar();
-    void resetToolbarStates();
 
-    void makeNewView();
 
 private:
     void setupToolBar();
@@ -70,17 +75,21 @@ private:
     QToolButton* deleteButton;
     QToolButton* connectButton;
     QToolButton* showNewViewButton;
-
     QToolButton* definitionButton;
     QToolButton* implementationButton;
+    QToolButton* addInstanceButton;
 
     QMenu* addMenu;
     QMenu* connectMenu;
     QMenu* definitionMenu;
     QMenu* implementationMenu;
+    QMenu* addInstanceMenu;
 
     QFrame* frame;
     int showFrame;
+
+    bool eventFromToolbar;
+
 };
 
 #endif // TOOLBARWIDGET_H

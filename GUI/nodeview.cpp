@@ -72,8 +72,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     // create toolbar widget
     toolbar = new ToolbarWidget(this);
-    shiftTriggered = false;
-    deleteTriggered = false;
 }
 
 void NodeView::setController(NewController *controller)
@@ -913,22 +911,9 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }
     }
 
-    //qDebug() << "NodeView::mousePress";
-    //emit hideToolbarWidget();
-
     QGraphicsView::mousePressEvent(event);
-
-    // this force releases SHIFT/DELETE after it's been used from the toolbar
-    if (shiftTriggered) {
-        emit shiftPressed(false);
-        shiftTriggered = false;
-    }
-    if (deleteTriggered) {
-        emit deletePressed(false);
-        deleteTriggered = false;
-    }
-
 }
+
 
 void NodeView::wheelEvent(QWheelEvent *event)
 {
@@ -1143,7 +1128,7 @@ void NodeView::view_addComponentDefinition(NodeItem *itm)
 void NodeView::goToDefinition(Node *node, bool show)
 {
     ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(QObject::sender());
-    bool hasDefinition = false;
+    bool toolbarCheck = (toolbar && !show);
 
     Node* temp = node;
     if (node) {
@@ -1152,20 +1137,19 @@ void NodeView::goToDefinition(Node *node, bool show)
             temp = node->getDefinition();
         }
 
-        if (temp) {
-            hasDefinition = true;
-        }
-
         // if the signal came from the toolbar and !show it's only checking to
         // see if node has a definition - hence, don't select and center it
-        if (toolbar && !show) {
-            toolbar->showDefinitionButton(hasDefinition, temp);
-            return;
-        }
-
-        if (hasDefinition) {
-            controller->view_GraphMLSelected(temp, true);
-            centreItem(getGraphMLItemFromGraphML(temp));
+        if (temp) {
+            if (toolbarCheck) {
+                toolbar->showDefinitionButton(true, temp);
+            } else {
+                controller->view_GraphMLSelected(temp, true);
+                centreItem(getGraphMLItemFromGraphML(temp));
+            }
+        } else {
+            if (toolbarCheck) {
+                toolbar->showDefinitionButton(false);
+            }
         }
     }
 }
@@ -1181,52 +1165,40 @@ void NodeView::goToDefinition(Node *node, bool show)
 void NodeView::goToImplementation(Node *node, bool show)
 {
     ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(QObject::sender());
-    bool hasImplementation = false;
+    bool toolbarCheck = (toolbar && !show);
 
     Node* temp = node;
     if (node) {
+
         if (!node->isDefinition()) {
             temp = node->getDefinition();
         }
 
-        if (temp && temp->getImplementations().count() > 0) {
-            hasImplementation = true;
-        }
-
         // if the signal came from the toolbar and !show, it's only checking to
         // see if node has an implementation - hence, don't select and center it
-        if (toolbar && !show && temp) {
-            toolbar->showImplementationButton(hasImplementation, temp->getImplementations().at(0));
-            return;
-        }
-
-        if (hasImplementation) {
-            controller->view_GraphMLSelected(temp->getImplementations().at(0), true);
-            centreItem(getGraphMLItemFromGraphML(temp->getImplementations().at(0)));
+        if (temp && temp->getImplementations().count() > 0) {
+            if (toolbarCheck) {
+                toolbar->showImplementationButton(true, temp->getImplementations().at(0));
+            } else {
+                controller->view_GraphMLSelected(temp->getImplementations().at(0), true);
+                centreItem(getGraphMLItemFromGraphML(temp->getImplementations().at(0)));
+            }
+        } else {
+            if (toolbarCheck) {
+                toolbar->showImplementationButton(false);
+            }
         }
     }
 }
 
 
 /**
- * @brief NodeView::trigger_pressShift
- * This triggers the same actions for when SHIFT is pressed.
- */
-void NodeView::trigger_shiftPressed()
-{
-    emit shiftPressed(true);
-    shiftTriggered = true;
-}
-
-
-/**
- * @brief NodeView::trigger_deletePressed
+ * @brief NodeView::toolbar_deleteNode
  * This triggers the same actions for when DELETE is pressed.
  */
-void NodeView::trigger_deletePressed()
+void NodeView::toolbar_deleteSelectedNode()
 {
     emit deletePressed(true);
-    deleteTriggered = true;
 }
 
 
@@ -1266,6 +1238,16 @@ void NodeView::updateToolbarAdoptableNodeList(QStringList nodeKinds)
 void NodeView::updateToolbarLegalNodesList(QList<Node*>* nodeList)
 {
     emit updateMenuList("connect", 0, nodeList);
+}
+
+
+/**
+ * @brief NodeView::updateToolbarDefinitionsList
+ * @param nodeList
+ */
+void NodeView::updateToolbarDefinitionsList(QList<Node*>* nodeList)
+{
+    emit updateMenuList("addInstance", 0, nodeList);
 }
 
 

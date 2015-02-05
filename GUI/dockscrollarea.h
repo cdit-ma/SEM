@@ -23,6 +23,8 @@ public:
     void addAdoptableDockNodes(Node* parentNode, QStringList nodes);
 
     void checkDockNodesList();
+    QStringList getAdoptableNodesList();
+    QList<Node*> getComponentDefinitions();
 
 protected:
     void paintEvent(QPaintEvent *e);
@@ -46,12 +48,16 @@ private:
     NodeItem* nodeItem;
     Node* parentNode;
     DockToggleButton *parentButton;
+
     QGroupBox *groupBox;
     QVBoxLayout *layout;
     QString label;
     bool activated;
 
     QVector<QWidget*> dockNodes;
+
+    QStringList adoptableNodesList;
+    QList<Node*> componentDefinitions;
 
 };
 

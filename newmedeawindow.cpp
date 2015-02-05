@@ -363,13 +363,13 @@ void NewMedeaWindow::setupController()
 {
     if (controller) {
         delete controller;
-      //  nodeView->di
+        //  nodeView->di
     }
     controller = 0;
     controller = new NewController();
-   // qCritical() << "New Controller";
+    // qCritical() << "New Controller";
     controller->connectView(nodeView);
-   // qCritical() << "Connected View";
+    // qCritical() << "Connected View";
     controller->initializeModel();
 
     //qCritical() << "Initialize Model";
@@ -430,7 +430,6 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(hardwareNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(componentNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(updateDockAdoptableNodeList(Node*)), this, SLOT(nodeSelected(Node*)));
-    connect(nodeView, SIGNAL(getAdoptableNodeList(Node*)), this, SLOT(setAdoptableNodeList(Node*)));
 
     connect(partsContainer, SIGNAL(constructDockNode(Node*, QString)), nodeView, SLOT(view_DockConstructNode(Node*, QString)));
     connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(NodeItem*)), nodeView, SLOT(view_addComponentDefinition(NodeItem*)));
@@ -443,7 +442,10 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(updateDockButtons(QString)), this, SLOT(updateDockButtons(QString)));
     connect(nodeView, SIGNAL(updateDockContainer(QString)), this, SLOT(updateDockContainer(QString)));
 
+    connect(nodeView, SIGNAL(getAdoptableNodeList(Node*)), this, SLOT(getAdoptableNodeList(Node*)));
     connect(this, SIGNAL(updateToolbarAdoptableNodeList(QStringList)), nodeView, SLOT(updateToolbarAdoptableNodeList(QStringList)));
+
+    connect(this, SIGNAL(sendComponentDefinitions(QList<Node*>)), nodeView, SLOT(updateToolbarDefinitionsList(QList<Node*>*)));
 
     // this needs fixing
     connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
@@ -809,34 +811,32 @@ void NewMedeaWindow::updateViewAspects()
  */
 void NewMedeaWindow::updateDockButtons(QString dockButton)
 {
-    qDebug() << "NewMedeaWindow::updateDockButtons";
     partsButton->setEnabled(false);
     hardwareNodesButton->setEnabled(false);
     compDefinitionsButton->setEnabled(false);
 
     if (dockButton.contains("P")) {
         partsButton->setEnabled(true);
-        //partsContainer->checkDockNodesList();
     }else if (dockButton.contains("D")) {
         compDefinitionsButton->setEnabled(true);
-        //definitionsContainer->checkDockNodesList();
     }else if (dockButton.contains("H")) {
         hardwareNodesButton->setEnabled(true);
-        //hardwareContainer->checkDockNodesList();
     }else if (dockButton == "A"){
         partsButton->setEnabled(true);
         hardwareNodesButton->setEnabled(true);
         compDefinitionsButton->setEnabled(true);
-
-        //partsContainer->checkDockNodesList();
-        //hardwareContainer->checkDockNodesList();
-        //definitionsContainer->checkDockNodesList();
     }
 
     // hide necessary dock containers
     partsButton->checkEnabled();
     hardwareNodesButton->checkEnabled();
     compDefinitionsButton->checkEnabled();
+
+    // if compDefinitionsButton is enabled, send comp definitions list to toolbar
+    if (compDefinitionsButton->isEnabled()) {
+        QList<Node*>* list = new QList<Node*>(definitionsContainer->getComponentDefinitions());
+        emit sendComponentDefinitions(list);
+    }
 }
 
 
@@ -850,6 +850,7 @@ void NewMedeaWindow::updateDockContainer(QString container)
     if (container == "Parts") {
         if(selectedNode && controller){
             partsContainer->addAdoptableDockNodes(selectedNode, controller->getAdoptableNodeKinds(selectedNode));
+            emit updateToolbarAdoptableNodeList(partsContainer->getAdoptableNodesList());
         }
     } else if (container == "Hardware") {
         // update hardwareDefinitons container
@@ -879,6 +880,7 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
             emit updateToolbarAdoptableNodeList(nodeKinds);
             update();
         }
+        prevSelectedNode = node;
     }
 }
 
@@ -889,8 +891,6 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
  */
 void NewMedeaWindow::nodeSelected(Node *node)
 {
-    qDebug() << "NewMedeaWindow::nodeSelected";
-
     selectedNode = node;
 
     // if partsConatiner is open, update adoptable node list
@@ -930,6 +930,19 @@ void NewMedeaWindow::goToImplementation()
 {
     if (selectedNode) {
         nodeView->goToImplementation(selectedNode);
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::getAdoptableNodeList
+ * If the parts dock is already visible then it already has the adoptable nodes list.
+ * If not, get the list from the controller. Send the list to the toolbar widget.
+ */
+void NewMedeaWindow::getAdoptableNodeList(Node* node)
+{
+    if (!partsButton->getSelected()) {
+        setAdoptableNodeList(node);
     }
 }
 
