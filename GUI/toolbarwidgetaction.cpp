@@ -64,18 +64,24 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 {
     actionButton = new QPushButton(parent);
 
-    actionButton->setFixedSize(150, 30);
-    actionButton->setStyleSheet("QPushButton{ margin: 0px;"
-                                "background-color: rgba(0,0,255,100);"
-                                "padding: 0px; }");
     actionButton->setMouseTracking(true);
+    actionButton->setFixedSize(150, 30);
+    actionButton->setStyleSheet("QPushButton{"
+                                "border: 0px;"
+                                "margin: 0px;"
+                                "padding: 0px;"
+                                "background-color: rgba(0,0,0,0);"
+                                "}"
 
-    actionButton->installEventFilter(this);
+                                "QPushButton:hover{"
+                                "background-color: rgba(10,10,10,50);"
+                                "}");
+
 
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setMargin(0);
 
-    QLabel* textLabel = new QLabel(label, actionButton);
+    textLabel = new QLabel(label, actionButton);
     textLabel->setFixedHeight(25);
     textLabel->setStyleSheet("background-color: rgba(0,0,0,0);");
 
@@ -94,7 +100,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     layout->addWidget(textLabel);
     actionButton->setLayout(layout);
 
-    connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
+    connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
     connect(this, SIGNAL(hovered()), this, SLOT(hover()));
 
     return actionButton;
@@ -106,20 +112,15 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
  */
 void ToolbarWidgetAction::hover()
 {
-    qDebug() << "hover";
-    actionButton->setStyleSheet("QPushButton:hover{"
-                                "margin: 0px;"
-                                "padding: 0px;"
-                                "background-color: red;"
-                                "border: 1px solid black;"
-                                "}");
+    actionButton->grabMouse();
+    actionButton->releaseMouse();
 }
 
 
 /**
- * @brief ToolbarWidgetAction::actionButtonPressed
+ * @brief ToolbarWidgetAction::actionButtonClicked
  */
-void ToolbarWidgetAction::actionButtonPressed()
+void ToolbarWidgetAction::actionButtonClicked()
 {
     emit trigger();
 
@@ -129,13 +130,4 @@ void ToolbarWidgetAction::actionButtonPressed()
         toolbar->checkImplementation(node, false);
         toolbar->updateMenuList("connect", node);
     }
-}
-
-
-bool ToolbarWidgetAction::eventFilter(QObject *, QEvent *e)
-{
-    if(e->type() == QEvent::Leave) {
-        qDebug() << "yay i'm leaving!";
-    }
-    return false;
 }

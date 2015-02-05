@@ -6,7 +6,7 @@
 
 #include <QWidgetAction>
 #include <QPushButton>
-#include <QEvent>
+#include <QLabel>
 
 
 class ToolbarWidgetAction : public QWidgetAction
@@ -15,6 +15,8 @@ class ToolbarWidgetAction : public QWidgetAction
 public:
     explicit ToolbarWidgetAction(QString nodeKind,  ToolbarWidget* parent = 0);
     explicit ToolbarWidgetAction(Node* node, QWidget *parent = 0);
+
+    void activate();
 
     Node* getNode();
     QString getKind();
@@ -26,7 +28,7 @@ signals:
 
 public slots:
     void hover();
-    void actionButtonPressed();
+    void actionButtonClicked();
 
 private:
 
@@ -37,10 +39,8 @@ private:
 
     bool actionHovered;
 
+    QLabel* textLabel;
 
-    // QObject interface
-public:
-    bool eventFilter(QObject *, QEvent *);
 };
 
 #endif // TOOLBARWIDGETACTION_H

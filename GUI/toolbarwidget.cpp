@@ -14,6 +14,7 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     setMinimumSize(100,40);
     setBackgroundRole(QPalette::Dark);
     setWindowFlags(windowFlags() | Qt::Popup);
+    setFocusPolicy(Qt::ClickFocus);
 
     setupToolBar();
     setupButtonMenus();
@@ -304,7 +305,6 @@ void ToolbarWidget::setupButtonMenus()
 
     //implementationButton->setPopupMode(QToolButton::InstantPopup);
     //implementationButton->setMenu(implementationMenu);
-
 
 }
 
