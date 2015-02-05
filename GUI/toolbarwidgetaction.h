@@ -6,6 +6,7 @@
 
 #include <QWidgetAction>
 #include <QPushButton>
+#include <QEvent>
 
 
 class ToolbarWidgetAction : public QWidgetAction
@@ -28,6 +29,7 @@ public slots:
     void actionButtonPressed();
 
 private:
+
     Node* node;
     QString kind;
     QString label;
@@ -35,6 +37,10 @@ private:
 
     bool actionHovered;
 
+
+    // QObject interface
+public:
+    bool eventFilter(QObject *, QEvent *);
 };
 
 #endif // TOOLBARWIDGETACTION_H

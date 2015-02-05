@@ -1195,7 +1195,7 @@ void NodeView::goToImplementation(Node *node, bool show)
 
         // if the signal came from the toolbar and !show, it's only checking to
         // see if node has an implementation - hence, don't select and center it
-        if (toolbar && !show) {
+        if (toolbar && !show && temp) {
             toolbar->showImplementationButton(hasImplementation, temp->getImplementations().at(0));
             return;
         }
