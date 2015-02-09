@@ -38,14 +38,25 @@ ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, bool insta
 
 
 /**
+ * @brief ToolbarWidgetAction::setMenu
+ * @param menu
+ */
+void ToolbarWidgetAction::setMenu(QMenu *menu)
+{
+    this->menu = menu;
+    connect(this->menu, SIGNAL(aboutToHide()), this, SLOT(actionButtonUnclicked()));
+}
+
+
+/**
  * @brief ToolbarWidgetAction::getNode
  * @return
  */
 Node *ToolbarWidgetAction::getNode()
 {
-   if (node) {
-       return node;
-   }
+    if (node) {
+        return node;
+    }
 }
 
 
@@ -55,7 +66,19 @@ Node *ToolbarWidgetAction::getNode()
  */
 QString ToolbarWidgetAction::getKind()
 {
-   return kind;
+    return kind;
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::getButtonPos
+ * @return
+ */
+QPoint ToolbarWidgetAction::getButtonPos()
+{
+    QPoint point = actionButton->mapToGlobal(actionButton->pos());
+    point.setX(point.x() + actionButton->width() - 10);
+    return point;
 }
 
 
@@ -79,29 +102,40 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 
                                 "QPushButton:hover{"
                                 "background-color: rgba(10,10,10,50);"
+                                "}"
+
+                                "QPushButton:checked{"
+                                "background-color: rgba(10,10,10,50);"
                                 "}");
 
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setMargin(0);
 
-    textLabel = new QLabel(label, actionButton);
-    textLabel->setFixedHeight(25);
-    textLabel->setStyleSheet("background-color: rgba(0,0,0,0);");
-
-    QLabel* imageLabel = new QLabel(actionButton);
     QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
     QImage scaledImage = image->scaled(actionButton->height(),
-                                       textLabel->height(),
+                                       actionButton->height(),
                                        Qt::KeepAspectRatio,
                                        Qt::SmoothTransformation);
+
+    QLabel* imageLabel = new QLabel(actionButton);
     imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
     imageLabel->setFixedSize(scaledImage.size());
     imageLabel->setStyleSheet("background-color: rgba(0,0,0,0);");
+
+    QLabel* textLabel = new QLabel(label, actionButton);
+    textLabel->setFixedHeight(25);
+    textLabel->setStyleSheet("background-color: rgba(0,0,0,0);");
 
     layout->addSpacerItem(new QSpacerItem(5,0));
     layout->addWidget(imageLabel);
     layout->addWidget(textLabel);
     actionButton->setLayout(layout);
+
+    // if this action's kind is ComponentInstance, setCheckable to true
+    // to help highlight this action when its menu is visible
+    if (node == 0 && kind == "ComponentInstance") {
+        actionButton->setCheckable(true);
+    }
 
     connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
     connect(this, SIGNAL(hovered()), this, SLOT(hover()));
@@ -134,4 +168,15 @@ void ToolbarWidgetAction::actionButtonClicked()
         toolbar->checkImplementation(node, false);
         toolbar->updateMenuList("connect", node);
     }
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::actionButtonUnclicked
+ * This method corrects the checked state of actionButton when the menu is hidden.
+ */
+void ToolbarWidgetAction::actionButtonUnclicked()
+{
+    actionButton->setChecked(false);
+    actionButton->repaint();
 }

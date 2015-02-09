@@ -87,6 +87,7 @@ DockToggleButton *DockScrollArea::getParentButton()
  */
 void DockScrollArea::addDockNode(NodeItem* item)
 {
+
     DockNodeItem *itm = new DockNodeItem(item, this);
     itm->connectToNodeItem();
     itm->setContainer(this);

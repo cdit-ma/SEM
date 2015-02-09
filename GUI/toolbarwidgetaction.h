@@ -4,6 +4,7 @@
 #include "../Model/node.h"
 #include "toolbarwidget.h"
 
+#include <QWidget>
 #include <QWidgetAction>
 #include <QPushButton>
 #include <QLabel>
@@ -16,10 +17,11 @@ public:
     explicit ToolbarWidgetAction(QString nodeKind,  ToolbarWidget* parent = 0);
     explicit ToolbarWidgetAction(Node* node, QWidget *parent = 0, bool instance = false);
 
-    void activate();
+    void setMenu(QMenu* menu);
 
     Node* getNode();
     QString getKind();
+    QPoint getButtonPos();
 
 protected:
     QWidget* createWidget(QWidget *parent);
@@ -29,17 +31,16 @@ signals:
 public slots:
     void hover();
     void actionButtonClicked();
+    void actionButtonUnclicked();
 
 private:
-
     Node* node;
+
     QString kind;
     QString label;
+
     QPushButton* actionButton;
-
-    bool actionHovered;
-
-    QLabel* textLabel;
+    QMenu* menu;
 
 };
 

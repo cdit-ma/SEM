@@ -561,7 +561,7 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
                 Node* node = dynamic_cast<Node*>(graphML);
                 //updateDockButtons(node);
 
-                emit updateDockAdoptableNodeList(node);
+                emit updateDockAdoptableNodesList(node);
                 emit hasSelectedNode(true);
 
                 updateDockButtons(node);
@@ -1210,9 +1210,11 @@ void NodeView::toolbar_deleteSelectedNode()
 void NodeView::updateToolbarMenuList(QString action, Node *node)
 {
     if (action == "add") {
-        emit getAdoptableNodeList(node);
+        emit getAdoptableNodesList(node);
     } else if (action == "connect") {
         emit getLegalNodesList(node);
+    } else if (action == "addInstance") {
+        emit getComponentDefinitions(node);
     }
 }
 
@@ -1224,7 +1226,7 @@ void NodeView::updateToolbarMenuList(QString action, Node *node)
  * @param action
  * @param nodeList
  */
-void NodeView::updateToolbarAdoptableNodeList(QStringList nodeKinds)
+void NodeView::updateToolbarAdoptableNodesList(QStringList nodeKinds)
 {
     QStringList* kinds = new QStringList(nodeKinds);
     emit updateMenuList("add", kinds, 0);

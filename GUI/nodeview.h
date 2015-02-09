@@ -81,9 +81,11 @@ signals:
 
     void hasSelectedNode(bool nodeSelected);
 
+    void getAdoptableNodesList(Node* node);
     void getLegalNodesList(Node* src);
-    void getAdoptableNodeList(Node* node);
-    void updateDockAdoptableNodeList(Node* node);
+    void getComponentDefinitions(Node* node);
+
+    void updateDockAdoptableNodesList(Node* node);
     void updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodes);
 
 
@@ -140,7 +142,7 @@ public slots:
     void toolbar_deleteSelectedNode();
 
     void updateToolbarMenuList(QString action, Node* node);
-    void updateToolbarAdoptableNodeList(QStringList nodeKinds);
+    void updateToolbarAdoptableNodesList(QStringList nodeKinds);
     void updateToolbarLegalNodesList(QList<Node*>* nodeList);
     void updateToolbarDefinitionsList(QList<Node*>* nodeList);
 

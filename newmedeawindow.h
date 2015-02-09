@@ -52,7 +52,7 @@ signals:
     void view_ExportGraphML(QString fileName);
 
     void setViewAspects(QStringList aspects);
-    void updateToolbarAdoptableNodeList(QStringList nodeList);
+    void updateToolbarAdoptableNodesList(QStringList nodeList);
 
     void clearDock();
     void checkDockScrollBar();
@@ -98,7 +98,8 @@ private slots:
     void goToDefinition();
     void goToImplementation();
 
-    void getAdoptableNodeList(Node* node);
+    void getAdoptableNodesList(Node* node);
+    void getComponentDefinitions(Node* node);
 
 
 private:

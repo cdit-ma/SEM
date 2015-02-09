@@ -3,12 +3,15 @@
 
 #include "nodeview.h"
 #include "nodeitem.h"
+#include "toolbarwidgetaction.h"
 
 #include <QWidget>
 #include <QToolButton>
 #include <QMenu>
 #include <QFrame>
 
+
+class ToolbarWidgetAction;
 
 class ToolbarWidget : public QWidget
 {
@@ -46,8 +49,9 @@ public slots:
     void goToDefinition();
     void goToImplementation();
 
-    void getAdoptableNodeList();
+    void getAdoptableNodesList();
     void getLegalNodesList();
+    void getComponentDefinitionsList();
     void updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodeList);
 
     void addChildNode();
@@ -55,6 +59,7 @@ public slots:
     void makeNewView();
 
     void hideToolbar();
+    void showMenu();
 
 
 private:
@@ -85,8 +90,9 @@ private:
     QMenu* implementationMenu;
     QMenu* addInstanceMenu;
 
+    ToolbarWidgetAction* addInstanceAction;
+
     QFrame* frame;
-    int showFrame;
 
     bool eventFromToolbar;
 
