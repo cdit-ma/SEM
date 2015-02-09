@@ -24,6 +24,8 @@ public:
     void showDefinitionButton(bool show, Node* definition = 0);
     void showImplementationButton(bool show, Node* implementation = 0);
 
+    void checkDefinition();
+    void checkImplementation();
 
 protected:
     virtual void enterEvent(QEvent* event);
@@ -31,6 +33,9 @@ protected:
 
 
 signals:
+    void checkDefinition(Node* node, bool show);
+    void checkImplementation(Node* node, bool show);
+
     void goToDefinition(Node* node);
     void goToImplementation(Node* node);
 
@@ -38,11 +43,9 @@ signals:
 
     void constructNode(QString nodeKind);
     void constructEdge(Node* src, Node* dst);
-
-    void checkDefinition(Node* node, bool show);
-    void checkImplementation(Node* node, bool show);
-
     void constructNewView(Node* node);
+
+    void constructComponentInstance(Node* definition);
 
 
 public slots:
@@ -58,9 +61,13 @@ public slots:
     void connectNodes();
     void makeNewView();
 
-    void hideToolbar();
-    void showMenu();
+    void addComponentInstance();
 
+    void hideToolbar(QAction* action);
+    void hideToolbar();
+
+    void showMenu();
+    void hideMenu();
 
 private:
     void setupToolBar();
@@ -84,13 +91,13 @@ private:
     QToolButton* implementationButton;
     QToolButton* addInstanceButton;
 
+    ToolbarWidgetAction* addInstanceAction;
+
     QMenu* addMenu;
     QMenu* connectMenu;
     QMenu* definitionMenu;
     QMenu* implementationMenu;
-    QMenu* addInstanceMenu;
-
-    ToolbarWidgetAction* addInstanceAction;
+    QMenu* addInstanceActionMenu;
 
     QFrame* frame;
 

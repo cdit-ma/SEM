@@ -97,6 +97,8 @@ void NewController::connectView(NodeView *view)
 
         connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this, SLOT(view_ConstructNode(QString, QPointF)));
         connect(view, SIGNAL(constructEdgeItem(Node*,Node*)), this, SLOT(constructLegalEdge(Node*,Node*)));
+        connect(view, SIGNAL(constructComponentInstance(Node*,QPointF)), this, SLOT(constructComponentInstance(Node*,QPointF)));
+
     }else{
         //Special Subview only functionality.
 
@@ -1145,6 +1147,7 @@ void NewController::getLegalNodesList(Node *src)
     emit setLegalNodesList(legalNodes);
 }
 
+
 /**
  * @brief NewController::constructLegalEdge
  * @param source
@@ -1152,7 +1155,20 @@ void NewController::getLegalNodesList(Node *src)
  */
 void NewController::constructLegalEdge(Node *src, Node *dst)
 {
-   view_ConstructEdge(src, dst);
+    view_ConstructEdge(src, dst);
+}
+
+
+/**
+ * @brief NewController::constructComponentInstance
+ * @param definition
+ * @param center
+ */
+void NewController::constructComponentInstance(Node *definition, QPointF center)
+{
+    QList<GraphMLData*> graphMLData = constructGraphMLDataVector("ComponentInstance", center);
+    Node* componentInstance = constructChildNode(getSelectedNode(), graphMLData);
+    view_ConstructEdge(componentInstance, definition);
 }
 
 

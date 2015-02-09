@@ -141,7 +141,7 @@ void ToolbarWidget::updateMenuList(QString action, QStringList* nodeKinds, QList
 
         addMenu->clear();
 
-        if (nodeKinds->count() == 0) {
+        if (nodeKinds->count() == 0) { // || nodeItem->getNodeKind() == "ComponentInstance") {
             addChildButton->hide();
             return;
         } else {
@@ -149,11 +149,18 @@ void ToolbarWidget::updateMenuList(QString action, QStringList* nodeKinds, QList
         }
 
         for (int i=0; i<nodeKinds->count(); i++) {
-            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeKinds->at(i), this);
-            addMenu->addAction(action);
-            if (nodeKinds->at(i) != "ComponentInstance") {
+
+            QString nodeKind = nodeKinds->at(i);
+            ToolbarWidgetAction* action;
+
+            if (nodeKind == "ComponentInstance") {
+                action = addInstanceAction;
+            } else {
+                action  = new ToolbarWidgetAction(nodeKind, this);
                 connect(action, SIGNAL(triggered()), this, SLOT(addChildNode()));
             }
+
+            addMenu->addAction(action);
         }
 
         addChildButton->setMenu(addMenu);
@@ -179,25 +186,7 @@ void ToolbarWidget::updateMenuList(QString action, QStringList* nodeKinds, QList
 
     } else if (action == "addInstance" && nodeList != 0) {
 
-        /*
-        addInstanceMenu->clear();
-
-        if (nodeList->count() == 0) {
-            addInstanceButton->hide();
-            return;
-        } else {
-            addInstanceButton->show();
-        }
-
-        for (int i=0; i<nodeList->count(); i++) {
-            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList->at(i), this, true);
-            addInstanceMenu->addAction(action);
-        }
-
-        addInstanceButton->setMenu(addInstanceMenu);
-        */
-
-        addInstanceMenu->clear();
+        addInstanceActionMenu->clear();
 
         if (nodeList->count() == 0) {
             return;
@@ -205,14 +194,12 @@ void ToolbarWidget::updateMenuList(QString action, QStringList* nodeKinds, QList
 
         for (int i=0; i<nodeList->count(); i++) {
             ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList->at(i), this, true);
-            addInstanceMenu->addAction(action);
+            addInstanceActionMenu->addAction(action);
+            connect(action, SIGNAL(triggered()), this, SLOT(addComponentInstance()));
         }
 
         addInstanceAction = qobject_cast<ToolbarWidgetAction*>(addMenu->actions().at(0));
-        addInstanceAction->setMenu(addInstanceMenu);
-        connect(addInstanceAction, SIGNAL(triggered()), this, SLOT(show()));
-        connect(addInstanceAction, SIGNAL(triggered()), addMenu, SLOT(show()));
-        connect(addInstanceAction, SIGNAL(triggered()), this, SLOT(showMenu()));
+        addInstanceAction->setMenu(addInstanceActionMenu);
     }
 }
 
@@ -265,15 +252,63 @@ void ToolbarWidget::makeNewView()
 
 
 /**
+ * @brief ToolbarWidget::addComponentInstance
+ */
+void ToolbarWidget::addComponentInstance()
+{
+    ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
+    if (action) {
+        emit constructComponentInstance(action->getNode());
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::hideToolbar
+ * When a QAction is triggered and it's not addInstanceAction,
+ * hide both the action's menu (if it has one) and the toolbar.
+ * @param action
+ */
+void ToolbarWidget::hideToolbar(QAction *action)
+{
+    if (action == addInstanceAction) {
+        return;
+    } else {
+        QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
+        menu->hide();
+        hide();
+
+        if (menu == addInstanceActionMenu) {
+            addMenu->hide();
+        }
+    }
+}
+
+
+/**
  * @brief ToolbarWidget::hideToolbar
  * This method checks if hiding the menu was triggered by the toolbar.
  * If the event came from outside the toolbar, hide the toolbar.
  */
 void ToolbarWidget::hideToolbar()
 {
+    QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
     if (!eventFromToolbar) {
+        qDebug() << "Hide Toolbar";
+        menu->hide();
         hide();
     }
+}
+
+
+/**
+ * @brief ToolbarWidget::hideMenu
+ */
+void ToolbarWidget::hideMenu()
+{
+    qDebug() << "Hide Menu";
+    QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
+    menu->hide();
 }
 
 
@@ -284,7 +319,7 @@ void ToolbarWidget::hideToolbar()
 void ToolbarWidget::showMenu()
 {
     QPoint menuPos = addInstanceAction->getButtonPos();
-    addInstanceMenu->exec(menuPos);
+    addInstanceActionMenu->exec(menuPos);
 }
 
 
@@ -302,7 +337,6 @@ void ToolbarWidget::setupToolBar()
     showNewViewButton = new QToolButton(this);
     definitionButton = new QToolButton(this);
     implementationButton = new QToolButton(this);
-    //addInstanceButton = new QToolButton();
 
     addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode.png"));
     connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
@@ -310,7 +344,6 @@ void ToolbarWidget::setupToolBar()
     showNewViewButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
     definitionButton->setIcon(QIcon(":/Resources/Icons/definition.png"));
     implementationButton->setIcon(QIcon(":/Resources/Icons/implementation.png"));
-    //addInstanceButton->setIcon(QIcon(":/Resources/Icons/ComponentInstance.png"));
 
     addChildButton->setFixedSize(buttonSize);
     connectButton->setFixedSize(buttonSize);
@@ -318,14 +351,12 @@ void ToolbarWidget::setupToolBar()
     showNewViewButton->setFixedSize(buttonSize);
     definitionButton->setFixedSize(buttonSize);
     implementationButton->setFixedSize(buttonSize);
-    //addInstanceButton->setFixedSize(buttonSize);
 
     addChildButton->setIconSize(buttonSize*0.6);
     connectButton->setIconSize(buttonSize*0.7);
     deleteButton->setIconSize(buttonSize*0.85);
     definitionButton->setIconSize(buttonSize*1.2);
     implementationButton->setIconSize(buttonSize*0.7);
-    //addInstanceButton->setIconSize(buttonSize*0.8);
 
     addChildButton->setToolTip("Add Child Node");
     connectButton->setToolTip("Connect Node");
@@ -333,14 +364,12 @@ void ToolbarWidget::setupToolBar()
     showNewViewButton->setToolTip("Show in New Window");
     definitionButton->setToolTip("Go to Definition");
     implementationButton->setToolTip("Go to Implementation");
-    //addInstanceButton->setToolTip("Add Component Instance");
 
     frame = new QFrame();
     frame->setFrameShape(QFrame::VLine);
     frame->setPalette(QPalette(Qt::darkGray));
 
     layout->addWidget(addChildButton);
-    //layout->addWidget(addInstanceButton);
     layout->addWidget(connectButton);
     layout->addWidget(deleteButton);
     layout->addWidget(frame);
@@ -362,17 +391,12 @@ void ToolbarWidget::setupButtonMenus()
     connectMenu = new QMenu(connectButton);
     definitionMenu = new QMenu(definitionButton);
     implementationMenu = new QMenu(implementationButton);
-    //addInstanceMenu = new QMenu(addInstanceButton);
-    addInstanceMenu = new QMenu(this);
 
     addChildButton->setPopupMode(QToolButton::InstantPopup);
     addChildButton->setMenu(addMenu);
 
     connectButton->setPopupMode(QToolButton::InstantPopup);
     connectButton->setMenu(connectMenu);
-
-    //addInstanceButton->setPopupMode(QToolButton::InstantPopup);
-    //addInstanceButton->setMenu(addInstanceMenu);
 
     QAction* defn_goTo = definitionMenu->addAction(QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
     QAction* defn_popup = definitionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Definition");
@@ -389,6 +413,10 @@ void ToolbarWidget::setupButtonMenus()
 
     implementationButton->setPopupMode(QToolButton::InstantPopup);
     implementationButton->setMenu(implementationMenu);
+
+    // this is used when ComponentInstance can be adopted by the current node
+    addInstanceAction = new ToolbarWidgetAction("ComponentInstance", this);
+    addInstanceActionMenu = new QMenu(addChildButton);
 }
 
 
@@ -397,33 +425,30 @@ void ToolbarWidget::setupButtonMenus()
  */
 void ToolbarWidget::makeConnections()
 {
-    connect(addMenu, SIGNAL(triggered(QAction*)), this, SLOT(hide()));
-    connect(addMenu, SIGNAL(triggered(QAction*)), addMenu, SLOT(hide()));
+    connect(addInstanceAction, SIGNAL(triggered()), this, SLOT(showMenu()));
+
+    connect(addInstanceActionMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
+    //connect(addInstanceActionMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
+
+    connect(addMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
     connect(addMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
+    connect(addMenu, SIGNAL(aboutToHide()), this, SLOT(hideMenu()));
 
-    connect(connectMenu, SIGNAL(triggered(QAction*)), this, SLOT(hide()));
-    connect(connectMenu, SIGNAL(triggered(QAction*)), connectMenu, SLOT(hide()));
+    connect(connectMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
     connect(connectMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
+    connect(connectMenu, SIGNAL(aboutToHide()), this, SLOT(hideMenu()));
 
-    //connect(addInstanceMenu, SIGNAL(triggered(QAction*)), this, SLOT(hide()));
-    //connect(addInstanceMenu, SIGNAL(triggered(QAction*)), addInstanceMenu, SLOT(hide()));
-    //connect(addInstanceMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
-
-    connect(definitionMenu, SIGNAL(triggered(QAction*)), this, SLOT(hide()));
-    connect(definitionMenu, SIGNAL(triggered(QAction*)), definitionMenu, SLOT(hide()));
+    connect(definitionMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
     connect(definitionMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
 
-    connect(implementationMenu, SIGNAL(triggered(QAction*)), this, SLOT(hide()));
-    connect(implementationMenu, SIGNAL(triggered(QAction*)), definitionMenu, SLOT(hide()));
+    connect(implementationMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
     connect(implementationMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
 
-    connect(connectButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(definitionButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(implementationButton, SIGNAL(clicked()), this, SLOT(hide()));
 
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
-    connect(implementationButton, SIGNAL(clicked()), this, SLOT(goToImplementation()));
 
     connectToView();
 }
@@ -436,7 +461,7 @@ void ToolbarWidget::connectToView()
 {
     NodeView* nodeView = dynamic_cast<NodeView*>(parentWidget());
 
-    connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(toolbar_deleteSelectedNode()));
+    connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(view_deleteSelectedNode()));
 
     connect(this, SIGNAL(checkDefinition(Node*, bool)), nodeView, SLOT(goToDefinition(Node*, bool)));
     connect(this, SIGNAL(checkImplementation(Node*, bool)), nodeView, SLOT(goToImplementation(Node*, bool)));
@@ -451,6 +476,8 @@ void ToolbarWidget::connectToView()
     connect(this, SIGNAL(constructEdge(Node*,Node*)), nodeView, SLOT(view_ConstructEdgeAction(Node*,Node*)));
 
     connect(this, SIGNAL(constructNewView(Node*)), nodeView, SLOT(constructNewView(Node*)));
+
+    connect(this, SIGNAL(constructComponentInstance(Node*)), nodeView, SLOT(view_ConstructComponentInstanceAction(Node*)));
 }
 
 
@@ -467,7 +494,6 @@ void ToolbarWidget::updateToolButtons()
 
         deleteButton->hide();
         connectButton->hide();
-        //addInstanceButton->hide();
         definitionButton->hide();
         implementationButton->hide();
 
@@ -480,7 +506,40 @@ void ToolbarWidget::updateToolButtons()
             getComponentDefinitionsList();
         }
 
-        emit checkDefinition(nodeItem->getNode(), false);
-        emit checkImplementation(nodeItem->getNode(), false);
+        //emit checkDefinition(nodeItem->getNode(), false);
+        //emit checkImplementation(nodeItem->getNode(), false);
+
+        checkDefinition();
+        checkImplementation();
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::checkDefinition
+ */
+void ToolbarWidget::checkDefinition()
+{
+    if (nodeItem && nodeItem->getNode()) {
+        if (nodeItem->getNode()->isDefinition()) {
+            definitionButton->hide();
+        } else {
+            emit checkDefinition(nodeItem->getNode(), false);
+        }
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::checkImplementation
+ */
+void ToolbarWidget::checkImplementation()
+{
+    if (nodeItem && nodeItem->getNode()) {
+        if (nodeItem->getNode()->isImpl()) {
+            implementationButton->hide();
+        } else {
+            emit checkImplementation(nodeItem->getNode(), false);
+        }
     }
 }

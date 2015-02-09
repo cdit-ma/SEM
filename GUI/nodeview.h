@@ -47,9 +47,6 @@ signals:
     void escapePressed(bool isDown);
     void shiftPressed(bool isDown);
 
-    void constructNodeItem(QString kind, QPointF);
-    void constructEdgeItem(Node* src, Node* dst);
-
     void copy();
     void cut();
     void paste();
@@ -88,10 +85,11 @@ signals:
     void updateDockAdoptableNodesList(Node* node);
     void updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodes);
 
+    void constructNodeItem(QString kind, QPointF);
+    void constructEdgeItem(Node* src, Node* dst);
+    void constructComponentInstance(Node* definition, QPointF center);
 
 public slots:
-    void constructNewView(Node* centeredOn);
-
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
     void view_ConstructGraphMLGUI(GraphML* item);
     void printErrorText(GraphML* graphml, QString text);
@@ -119,9 +117,8 @@ public slots:
 
     void view_ConstructNodeAction();
 
+    void constructNewView(Node* centeredOn);
 
-    void view_ConstructNodeAction(QString nodeKind);
-    void view_ConstructEdgeAction(Node* src, Node* dst);
     
     void clearSelection();
 
@@ -139,7 +136,10 @@ public slots:
     void goToDefinition(Node* node, bool show = true);
     void goToImplementation(Node* node, bool show = true);
 
-    void toolbar_deleteSelectedNode();
+    void view_deleteSelectedNode();
+    void view_ConstructNodeAction(QString nodeKind);
+    void view_ConstructEdgeAction(Node* src, Node* dst);
+    void view_ConstructComponentInstanceAction(Node* node);
 
     void updateToolbarMenuList(QString action, Node* node);
     void updateToolbarAdoptableNodesList(QStringList nodeKinds);

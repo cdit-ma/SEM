@@ -328,31 +328,15 @@ void NodeView::setViewAspects(QStringList aspects)
 }
 
 
+/**
+ * @brief NodeView::showContextMenu
+ * This is called when there is a mouse right-click event on a node item.
+ * @param position
+ */
 void NodeView::showContextMenu(QPoint position)
 {
-    //Got Right Click. Build Menu.
     QPoint globalPos = mapToGlobal(position);
-    QPointF scenePos = mapToScene(position);
-
-    menuPosition = scenePos;
-
-    /*
-    QMenu* rightClickMenu = new QMenu(this);
-
-    if(controller->getAdoptableNodeKinds().size() > 0){
-        QAction* addChildNode = new QAction(this);
-        addChildNode->setText("Create Child Node");
-        connect(addChildNode, SIGNAL(triggered()), this, SLOT(view_ConstructNodeAction()));
-        rightClickMenu->addAction(addChildNode);
-    }
-
-    QAction* deleteAction = new QAction(this);
-    deleteAction->setText("Delete Selection");
-    connect(deleteAction, SIGNAL(triggered()), controller, SLOT(view_DeletePressed()));
-    rightClickMenu->addAction(deleteAction);
-
-    rightClickMenu->exec(globalPos);
-    */
+    menuPosition = mapToScene(position);
 
     // update toolbar position and connect selected node item
     GraphMLItem* graphmlItem = getGraphMLItemFromGraphML(controller->getSelectedNode());
@@ -362,7 +346,6 @@ void NodeView::showContextMenu(QPoint position)
         toolbar->move(globalPos);
         toolbar->show();
     }
-
 }
 
 
@@ -648,13 +631,14 @@ void NodeView::view_ConstructNodeAction()
  */
 void NodeView::view_ConstructNodeAction(QString nodeKind)
 {
+    emit triggerAction("Toolbar: Constructing Node");
+
     QGraphicsItem* item = this->scene()->itemAt(menuPosition,this->transform());
     if (item) {
         emit constructNodeItem(nodeKind, item->mapFromScene(menuPosition));
     } else {
         emit constructNodeItem(nodeKind, menuPosition);
     }
-    update();
 }
 
 
@@ -665,8 +649,25 @@ void NodeView::view_ConstructNodeAction(QString nodeKind)
  */
 void NodeView::view_ConstructEdgeAction(Node *src, Node *dst)
 {
-    emit triggerAction("Toolbar: Constructing edge");
+    emit triggerAction("Toolbar: Constructing Edge");
     emit constructEdgeItem(src, dst);
+}
+
+
+/**
+ * @brief NodeView::view_ConstructComponentInstanceAction
+ * @param node
+ */
+void NodeView::view_ConstructComponentInstanceAction(Node *node)
+{
+    emit triggerAction("Toolbar: Constructing ComponentInstance");
+
+    QGraphicsItem* item = this->scene()->itemAt(menuPosition,this->transform());
+    if (item) {
+        emit constructComponentInstance(node, item->mapFromScene(menuPosition));
+    } else {
+        emit constructComponentInstance(node, menuPosition);
+    }
 }
 
 
@@ -1196,7 +1197,7 @@ void NodeView::goToImplementation(Node *node, bool show)
  * @brief NodeView::toolbar_deleteNode
  * This triggers the same actions for when DELETE is pressed.
  */
-void NodeView::toolbar_deleteSelectedNode()
+void NodeView::view_deleteSelectedNode()
 {
     emit deletePressed(true);
 }

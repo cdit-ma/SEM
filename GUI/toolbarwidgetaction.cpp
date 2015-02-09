@@ -90,7 +90,6 @@ QPoint ToolbarWidgetAction::getButtonPos()
 QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 {
     actionButton = new QPushButton(parent);
-
     actionButton->setMouseTracking(true);
     actionButton->setFixedSize(150, 30);
     actionButton->setStyleSheet("QPushButton{"
@@ -135,6 +134,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     // to help highlight this action when its menu is visible
     if (node == 0 && kind == "ComponentInstance") {
         actionButton->setCheckable(true);
+        actionButton->setChecked(false);
     }
 
     connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
@@ -164,8 +164,8 @@ void ToolbarWidgetAction::actionButtonClicked()
     if (node) {
         // if a new edge has been constructed using the toolbar, update tool buttons
         ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(parent());
-        toolbar->checkDefinition(node, false);
-        toolbar->checkImplementation(node, false);
+        toolbar->checkDefinition();
+        toolbar->checkImplementation();
         toolbar->updateMenuList("connect", node);
     }
 }
@@ -177,6 +177,7 @@ void ToolbarWidgetAction::actionButtonClicked()
  */
 void ToolbarWidgetAction::actionButtonUnclicked()
 {
+    qDebug() << "actionButtonUnclicked";
     actionButton->setChecked(false);
     actionButton->repaint();
 }

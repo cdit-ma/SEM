@@ -139,7 +139,7 @@ NodeItem *DockNodeItem::getNodeItem()
 void DockNodeItem::connectToNodeItem()
 {
     //connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
-    connect(nodeItem, SIGNAL(updateDockNodeItem(bool)), this, SLOT(setSelected(bool)));
+    //connect(nodeItem, SIGNAL(updateDockNodeItem(bool)), this, SLOT(setSelected(bool)));
     connect(nodeItem, SIGNAL(updateDockNodeItem()), this, SLOT(updateData()));
     connect(nodeItem, SIGNAL(updateOpacity(qreal)), this, SLOT(setOpacity(qreal)));
     connect(nodeItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
@@ -154,11 +154,7 @@ void DockNodeItem::connectToNodeItem()
  */
 void DockNodeItem::mousePressEvent(QMouseEvent *event)
 {
-    if (event->modifiers().testFlag(Qt::ControlModifier)) {
-        emit dockNode_addComponentInstance(nodeItem);
-    } else {
-        QPushButton::mousePressEvent(event);
-    }
+    emit dockNode_addComponentInstance(nodeItem);
 }
 
 

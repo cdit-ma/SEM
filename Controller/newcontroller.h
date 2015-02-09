@@ -121,7 +121,6 @@ signals:
 
     void setLegalNodesList(QList<Node*>* nodes);
 
-
 public slots:
     void centerNode(QString nodeLabel);
     void view_SelectModel();
@@ -209,6 +208,8 @@ public slots:
 
     void getLegalNodesList(Node* src);
     void constructLegalEdge(Node *src, Node *dst);
+
+    void constructComponentInstance(Node* definition, QPointF center);
 
 private:
     //Copies the selected Nodes' GraphML representation to the Clipboard.
