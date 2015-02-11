@@ -95,9 +95,9 @@ void NewController::connectView(NodeView *view)
         connect(view, SIGNAL(getLegalNodesList(Node*)), this, SLOT(getLegalNodesList(Node*)));
         connect(this, SIGNAL(setLegalNodesList(QList<Node*>*)), view, SLOT(updateToolbarLegalNodesList(QList<Node*>*)));
 
-        connect(view, SIGNAL(constructNodeItem(QString, QPointF)), this, SLOT(view_ConstructNode(QString, QPointF)));
-        connect(view, SIGNAL(constructEdgeItem(Node*,Node*)), this, SLOT(constructLegalEdge(Node*,Node*)));
-        connect(view, SIGNAL(constructComponentInstance(Node*,QPointF)), this, SLOT(constructComponentInstance(Node*,QPointF)));
+        connect(view, SIGNAL(constructNode(QString, QPointF)), this, SLOT(view_ConstructNode(QString, QPointF)));
+        connect(view, SIGNAL(constructEdge(Node*,Node*)), this, SLOT(constructLegalEdge(Node*,Node*)));
+        connect(view, SIGNAL(constructComponentInstance(Node*,Node*,QPointF)), this, SLOT(constructComponentInstance(Node*,Node*,QPointF)));
 
     }else{
         //Special Subview only functionality.
@@ -764,7 +764,6 @@ void NewController::view_GraphMLSelected(GraphML *item, bool setSelected)
             Node* source = getSelectedNode();
             if(!getSelectedEdge() && source){
                 view_TriggerAction("Constructing Edge.");
-
                 view_ConstructEdge(source, node);
 
                 return;
@@ -804,6 +803,7 @@ void NewController::view_ConstructNode(QString kind, QPointF centerPoint)
     }
 }
 
+/*
 void NewController::view_ConstructComponentInstanceInAssembly(Component *definition, ComponentAssembly *assembly)
 {
 
@@ -827,7 +827,7 @@ void NewController::view_ConstructComponentInstanceInAssembly(Component *definit
             //Don't create an ActionItem for this.
             instanceNode->setGenerated(true);
         }
-        */
+        *
 
         if(instanceNode){
             QList<QStringList> noData;
@@ -836,13 +836,13 @@ void NewController::view_ConstructComponentInstanceInAssembly(Component *definit
                 //Don't create an ActionItem for this.
                 connectingEdge->setGenerated(true);
             }
-            */
+            *
         }
 
     }
 
 }
-
+*/
 
 void NewController::view_ConstructEdge(Node *src, Node *dst)
 {
@@ -1032,6 +1032,13 @@ void NewController::view_DeletePressed(bool isDown)
 void NewController::view_Undo()
 {
     undoRedo(UNDO);
+
+    // CTRL seems to lock when undoing some actions
+    view_ShiftPressed(false);
+    view_ControlPressed(false);
+
+    // unselect any selected nodes
+    view_ClearSelection();
 }
 
 void NewController::view_Redo()
@@ -1155,20 +1162,28 @@ void NewController::getLegalNodesList(Node *src)
  */
 void NewController::constructLegalEdge(Node *src, Node *dst)
 {
+    // should the instance inherit the label (or other) of its definition???
+    // is that what getDefinitionData() is for?
+    //if (src->isInstance() && dst->isDefinition()) {
+    if (src->getDataValue("kind") == "ComponentInstance" && dst->getDataValue("kind") == "Component") {
+        src->getData("label")->setValue(dst->getDataValue("label"));
+    }
     view_ConstructEdge(src, dst);
 }
 
 
 /**
  * @brief NewController::constructComponentInstance
+ * @param assembly
  * @param definition
  * @param center
  */
-void NewController::constructComponentInstance(Node *definition, QPointF center)
+void NewController::constructComponentInstance(Node *assembly, Node *definition, QPointF center)
 {
-    QList<GraphMLData*> graphMLData = constructGraphMLDataVector("ComponentInstance", center);
-    Node* componentInstance = constructChildNode(getSelectedNode(), graphMLData);
-    view_ConstructEdge(componentInstance, definition);
+    Node* instance = constructChildNode(assembly, getDefinitionData(definition, true));
+    instance->getData("x")->setValue(QString::number(center.x()));
+    instance->getData("y")->setValue(QString::number(center.y()));
+    view_ConstructEdge(instance, definition);
 }
 
 

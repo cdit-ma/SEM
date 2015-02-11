@@ -27,6 +27,7 @@ public:
     void checkDefinition();
     void checkImplementation();
 
+
 protected:
     virtual void enterEvent(QEvent* event);
     virtual void leaveEvent(QEvent* event);
@@ -45,7 +46,7 @@ signals:
     void constructEdge(Node* src, Node* dst);
     void constructNewView(Node* node);
 
-    void constructComponentInstance(Node* definition);
+    void constructComponentInstance(Node* assm, Node* defn, int sender);
 
 
 public slots:

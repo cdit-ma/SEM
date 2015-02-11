@@ -19,6 +19,8 @@
 
 NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLItem(node)
 {
+    counter = 0;
+
     Q_INIT_RESOURCE(resources);
     setParentItem(parent);
 
@@ -184,6 +186,7 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    //qDebug() << this->getNode() << ":" << QString::number(counter++);
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
@@ -319,12 +322,6 @@ void NodeItem::resetNextChildPos()
     nextChildPosition = QPointF(getCornerRadius()/2, minimumHeight);
 }
 
-/*
-int NodeItem::getDepth()
-{
-    return depth;
-}
-*/
 
 void NodeItem::setOpacity(qreal opacity)
 {
@@ -338,7 +335,6 @@ void NodeItem::setOpacity(qreal opacity)
             edge->setOpacity(0);
         }
     }
-    this->update();
 }
 
 
@@ -398,7 +394,7 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
                 setHeight(dataValue.toFloat());
             }
             prepareGeometryChange();
-            update();
+            //update();
         }
         else if(dataKey == "label"){
             if(dataValue != ""){
@@ -1271,7 +1267,7 @@ void NodeItem::expandItem(bool show)
 
     expanded = show;
     prepareGeometryChange();
-    update();
+    //update();
 
     emit updateEdgePosition();
 }

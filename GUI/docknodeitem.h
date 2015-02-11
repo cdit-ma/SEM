@@ -21,7 +21,6 @@ public:
     NodeItem* getNodeItem();
     void connectToNodeItem();
 
-    void mousePressEvent(QMouseEvent *event);
     void setContainer(DockScrollArea* container);
 
 protected:
@@ -29,20 +28,29 @@ protected:
 
 signals:
     void itemPressed(QString kind);
-    void dockNode_addComponentInstance(NodeItem* itm);
+
+    void dockNode_addComponentInstance(Node* assm, Node* defn);
+    void dockNode_connectComponentInstance(Node* inst, Node* defn);
 
     void removeFromDockNodeList(QWidget* widget);
 
+    void getSelectedNode();
+
 public slots:
     void buttonPressed();
+    void setSelected(bool selected);
+
     void updateData();
     void deleteLater();
-    void setSelected(bool selected);
     void setOpacity(double opacity);
+
+    void setSelectedNode(Node* node);
 
 private:
     DockScrollArea* parentContainer;
     NodeItem* nodeItem;
+    Node* selectedNode;
+
     QString kind;
     QString label;
 

@@ -31,18 +31,26 @@ protected:
 
 signals:
     void constructDockNode(Node* node, QString kind);
-    void trigger_addComponentInstance(NodeItem* itm);
+
+    void getSelectedNode();
+    void selectedNode(Node* node);
+
+    void trigger_addComponentInstance(Node* assm, Node* defn, int sender);
+    void trigger_connectComponentInstance(Node* inst, Node* defn);
 
 public slots:
     void activate();
     void clear();
+    void checkScrollBar();
 
     void buttonPressed(QString kind);
-    void dock_addComponentInstance(NodeItem *itm);
+    void dock_getSelectedNode();
+
+    void dock_addComponentInstance(Node* assm, Node* defn);
+    void dock_connectComponentInstance(Node* inst, Node* defn);
 
     void removeFromDockNodeList(QWidget* widget);
 
-    void checkScrollBar();
 
 private:
     NodeItem* nodeItem;

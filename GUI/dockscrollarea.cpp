@@ -95,10 +95,16 @@ void DockScrollArea::addDockNode(NodeItem* item)
     dockNodes.append(itm);
     layout->addWidget(itm);
 
+    connect(itm, SIGNAL(getSelectedNode()), this, SLOT(dock_getSelectedNode()));
+    connect(this, SIGNAL(selectedNode(Node*)), itm, SLOT(setSelectedNode(Node*)));
+
     connect(itm, SIGNAL(removeFromDockNodeList(QWidget*)), this,
             SLOT(removeFromDockNodeList(QWidget*)));
-    connect(itm, SIGNAL(dockNode_addComponentInstance(NodeItem*)),
-            this, SLOT(dock_addComponentInstance(NodeItem*)));
+
+    connect(itm, SIGNAL(dockNode_addComponentInstance(Node*,Node*)),
+            this, SLOT(dock_addComponentInstance(Node*,Node*)));
+    connect(itm, SIGNAL(dockNode_connectComponentInstance(Node*,Node*)),
+            this, SLOT(dock_connectComponentInstance(Node*,Node*)));
 
     // keep a list of all the component definitions
     if (label == "Definitions") {
@@ -196,9 +202,19 @@ void DockScrollArea::buttonPressed(QString kind)
  * Tell the view to try and create a ComponentInstance of
  * NodeItem itm and add it into the currently selected node.
  */
-void DockScrollArea::dock_addComponentInstance(NodeItem *itm)
+void DockScrollArea::dock_addComponentInstance(Node* assm, Node* defn)
 {
-    emit trigger_addComponentInstance(itm);
+    emit trigger_addComponentInstance(assm, defn, 0);
+}
+
+
+/**
+ * @brief DockScrollArea::dock_connectComponentInstance
+ * @param itm
+ */
+void DockScrollArea::dock_connectComponentInstance(Node *inst, Node *defn)
+{
+    emit trigger_connectComponentInstance(inst, defn);
 }
 
 
@@ -211,6 +227,15 @@ void DockScrollArea::removeFromDockNodeList(QWidget *widget)
     if (dockNodes.contains(widget)) {
         dockNodes.removeAt(dockNodes.indexOf(widget));
     }
+}
+
+
+/**
+ * @brief DockScrollArea::dock_getSelectedNode
+ */
+void DockScrollArea::dock_getSelectedNode()
+{
+    emit getSelectedNode();
 }
 
 

@@ -364,16 +364,11 @@ void NewMedeaWindow::setupController()
 {
     if (controller) {
         delete controller;
-        //  nodeView->di
     }
     controller = 0;
     controller = new NewController();
-    // qCritical() << "New Controller";
     controller->connectView(nodeView);
-    // qCritical() << "Connected View";
     controller->initializeModel();
-
-    //qCritical() << "Initialize Model";
 }
 
 
@@ -387,7 +382,6 @@ void NewMedeaWindow::resetGUI()
     selectedNode = 0;
 
     setupController();
-
     connectToController();
 
     // force projectName to be the same as the model label
@@ -433,7 +427,10 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(updateDockAdoptableNodesList(Node*)), this, SLOT(nodeSelected(Node*)));
 
     connect(partsContainer, SIGNAL(constructDockNode(Node*, QString)), nodeView, SLOT(view_DockConstructNode(Node*, QString)));
-    connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(NodeItem*)), nodeView, SLOT(view_addComponentDefinition(NodeItem*)));
+
+    connect(definitionsContainer, SIGNAL(getSelectedNode()), this, SLOT(getSelectedNode()));
+    connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(Node*,Node*,int)), nodeView, SLOT(view_ConstructComponentInstance(Node*,Node*,int)));
+    connect(definitionsContainer, SIGNAL(trigger_connectComponentInstance(Node*,Node*)), nodeView, SLOT(view_ConstructEdge(Node*,Node*)));
 
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showContextMenu(QPoint)));
@@ -844,8 +841,8 @@ void NewMedeaWindow::updateDockButtons(QString dockButton)
 void NewMedeaWindow::updateDockContainer(QString container)
 {
     if (container == "Parts") {
+        // update dock container's adoptable nodes list and then send it to the toolbar
         if(selectedNode && controller){
-            // update dock container's adoptable nodes list and then send it to the toolbar
             partsContainer->addAdoptableDockNodes(selectedNode, controller->getAdoptableNodeKinds(selectedNode));
             emit updateToolbarAdoptableNodesList(partsContainer->getAdoptableNodesList());
         }
@@ -906,6 +903,16 @@ void NewMedeaWindow::hasSelectedNode(bool nodeSelected)
 {
     view_goToDefinition->setEnabled(nodeSelected);
     view_goToImplementation->setEnabled(nodeSelected);
+}
+
+
+/**
+ * @brief NewMedeaWindow::getSelectedNode
+ * Send the selected node to the Definitions dock.
+ */
+void NewMedeaWindow::getSelectedNode()
+{
+    emit definitionsContainer->selectedNode(nodeView->getSelectedNode());
 }
 
 
@@ -1068,6 +1075,11 @@ void NewMedeaWindow::loadJenkinsData(int code)
     emit view_ImportGraphML(files);
 }
 
+
+/**
+ * @brief NewMedeaWindow::importGraphMLFiles
+ * @param files
+ */
 void NewMedeaWindow::importGraphMLFiles(QStringList files)
 {
     QStringList fileData;
@@ -1095,6 +1107,6 @@ void NewMedeaWindow::importGraphMLFiles(QStringList files)
     emit nodeView->shiftPressed(false);
 
     emit view_ImportGraphML(fileData);
-    nodeView->fitToScreen();
+    //nodeView->fitToScreen();
 }
 

@@ -68,11 +68,12 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
 
     // set view background-color
-    setStyleSheet("QGraphicsView{ background-color: rgba(150,150,150,255); }");
+    setStyleSheet("QGraphicsView{ background-color: rgba(175,175,175,255); }");
 
     // create toolbar widget
     toolbar = new ToolbarWidget(this);
 }
+
 
 void NodeView::setController(NewController *controller)
 {
@@ -173,6 +174,17 @@ QList<NodeItem*> NodeView::getVisibleNodeItems()
     }
     return nodeItems;
 }
+
+
+/**
+ * @brief NodeView::getSelectedNode
+ * @return
+ */
+Node *NodeView::getSelectedNode()
+{
+    return controller->getSelectedNode();
+}
+
 
 void NodeView::constructNewView(Node *centeredOn)
 {
@@ -362,7 +374,7 @@ void NodeView::view_DockConstructNode(Node* parentNode, QString kind)
 
     // set Initial position so it doesn't collide with any of nodeItem.children();
     if (parentItem) {
-        emit constructNodeItem(kind, parentItem->getNextChildPos());
+        emit constructNode(kind, parentItem->getNextChildPos());
     }
 }
 
@@ -597,7 +609,7 @@ void NodeView::view_SetOpacity(GraphML *graphML, qreal opacity)
     }
 }
 
-void NodeView::view_ConstructNodeAction()
+void NodeView::view_ConstructNode()
 {
 
     QStringList nodeKinds = controller->getAdoptableNodeKinds();
@@ -614,9 +626,9 @@ void NodeView::view_ConstructNodeAction()
 
         QGraphicsItem* item = this->scene()->itemAt(menuPosition,this->transform());
         if(item){
-            emit constructNodeItem(nodeKind, item->mapFromScene(menuPosition));
+            emit constructNode(nodeKind, item->mapFromScene(menuPosition));
         }else{
-            emit constructNodeItem(nodeKind, menuPosition);
+            emit constructNode(nodeKind, menuPosition);
         }
     }else{
         emit controller->view_DialogMessage(MESSAGE_TYPE::WARNING, "No Adoptable Types.");
@@ -629,15 +641,15 @@ void NodeView::view_ConstructNodeAction()
  * @brief NodeView::view_ConstructNodeAction
  * @param nodeKind
  */
-void NodeView::view_ConstructNodeAction(QString nodeKind)
+void NodeView::view_ConstructNode(QString nodeKind)
 {
     emit triggerAction("Toolbar: Constructing Node");
 
     QGraphicsItem* item = this->scene()->itemAt(menuPosition,this->transform());
     if (item) {
-        emit constructNodeItem(nodeKind, item->mapFromScene(menuPosition));
+        emit constructNode(nodeKind, item->mapFromScene(menuPosition));
     } else {
-        emit constructNodeItem(nodeKind, menuPosition);
+        emit constructNode(nodeKind, menuPosition);
     }
 }
 
@@ -647,27 +659,99 @@ void NodeView::view_ConstructNodeAction(QString nodeKind)
  * @param src
  * @param dst
  */
-void NodeView::view_ConstructEdgeAction(Node *src, Node *dst)
+void NodeView::view_ConstructEdge(Node *src, Node *dst)
 {
     emit triggerAction("Toolbar: Constructing Edge");
-    emit constructEdgeItem(src, dst);
+    emit constructEdge(src, dst);
 }
 
 
 /**
- * @brief NodeView::view_ConstructComponentInstanceAction
- * @param node
+ * @brief NodeView::view_addComponentInstance
+ * @param assm - ComponentAssembly (selected node)
+ * @param defn - Component from selected dock/toolbar item
+ * @param sender - 0 = DockScrollArea, 1 = ToolbarWidget
  */
-void NodeView::view_ConstructComponentInstanceAction(Node *node)
+void NodeView::view_ConstructComponentInstance(Node* assm, Node* defn, int sender)
 {
     emit triggerAction("Toolbar: Constructing ComponentInstance");
 
-    QGraphicsItem* item = this->scene()->itemAt(menuPosition,this->transform());
-    if (item) {
-        emit constructComponentInstance(node, item->mapFromScene(menuPosition));
-    } else {
-        emit constructComponentInstance(node, menuPosition);
+    ComponentAssembly* assembly = dynamic_cast<ComponentAssembly*>(assm);
+    Component* definition = dynamic_cast<Component*>(defn);
+
+    if (assembly && definition) {
+        GraphMLItem *graphMLItem = getGraphMLItemFromGraphML(assembly);
+        if (sender == 0) {
+            NodeItem *nodeItem = getNodeItemFromGraphMLItem(graphMLItem);
+            emit constructComponentInstance(assembly, definition, nodeItem->getNextChildPos());
+        } else if (sender == 1) {
+            emit constructComponentInstance(assembly, definition, graphMLItem->mapFromScene(menuPosition));
+        }
     }
+}
+
+
+/**
+ * @brief NodeView::view_connectComponentDefinition
+ * @param itm
+ *
+void NodeView::view_connectComponentInstance(Node *inst, Node *defn)
+{
+    emit triggerAction("Toolbar: Connecting ComponentInstance to Component");
+    if (inst && defn) {
+        emit constructEdge(inst, defn);
+    }
+}*/
+
+
+/**
+ * @brief NodeView::updateToolbarMenuList
+ * @param action
+ * @param node
+ */
+void NodeView::updateToolbarMenuList(QString action, Node *node)
+{
+    if (action == "add") {
+        emit getAdoptableNodesList(node);
+    } else if (action == "connect") {
+        emit getLegalNodesList(node);
+    } else if (action == "addInstance") {
+        emit getComponentDefinitions(node);
+    }
+}
+
+
+/**
+ * @brief NodeView::updateToolbarAdoptableNodeList
+ * This is called by NewMedeaWindow whenever the toolbar adoptable nodes list
+ * needs to be updated. If selectedNode == prevSelectedNode, nothing happens.
+ * @param action
+ * @param nodeList
+ */
+void NodeView::updateToolbarAdoptableNodesList(QStringList nodeKinds)
+{
+    QStringList* kinds = new QStringList(nodeKinds);
+    emit updateMenuList("add", kinds, 0);
+}
+
+
+/**
+ * @brief NodeView::updateToolbarLegalNodesList
+ * @param nodeList
+ */
+void NodeView::updateToolbarLegalNodesList(QList<Node*>* nodeList)
+{
+    emit updateMenuList("connect", 0, nodeList);
+}
+
+
+/**
+ * @brief NodeView::updateToolbarDefinitionsList
+ * @param nodeList
+ */
+void NodeView::updateToolbarDefinitionsList(QList<Node*>* nodeList)
+{
+    emit updateMenuList("addInstance", 0, nodeList);
 }
 
 
@@ -872,6 +956,8 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
+    //qDebug() << "startMousePress";
+
     QPointF scenePos = this->mapToScene(event->pos());
     QGraphicsItem* item = this->scene()->itemAt(scenePos, QTransform());
     //rubberBanding = false;
@@ -913,6 +999,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     }
 
     QGraphicsView::mousePressEvent(event);
+    //qDebug() << "endMousePress";
 }
 
 
@@ -989,16 +1076,16 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
  */
 void NodeView::resetModel()
 {
-
     foreach (QGraphicsItem *itm, scene()->items()) {
         NodeItem *nodeItm = dynamic_cast<NodeItem*>(itm);
         if (nodeItm) {
             nodeItm->resetSize();
         }
     }
+
+    showAllViewAspects();
     view_sortModel();
-    view_centerViewAspects();
-    update();
+    setViewAspects(currentAspects);
 }
 
 
@@ -1103,23 +1190,6 @@ void NodeView::fitToScreen()
 
 
 /**
- * @brief NodeView::view_addComponentDefinition
- * Add a ComponentInstance of Component itm into the currently selected ComponentAssembly.
- * @param itm
- */
-void NodeView::view_addComponentDefinition(NodeItem *itm)
-{
-    ComponentAssembly* assm = dynamic_cast<ComponentAssembly*>(controller->getSelectedNode());
-    if (assm) {
-        Component* defn = dynamic_cast<Component*>(itm->getGraphML());
-        if (defn) {
-            controller->view_ConstructComponentInstanceInAssembly(defn, assm);
-        }
-    }
-}
-
-
-/**
  * @brief NodeView::goToDefinition
  * If the node is a definition, select and center it.
  * If it's not but it has a definition, center on its definition.
@@ -1203,55 +1273,6 @@ void NodeView::view_deleteSelectedNode()
 }
 
 
-/**
- * @brief NodeView::updateToolbarMenuList
- * @param action
- * @param node
- */
-void NodeView::updateToolbarMenuList(QString action, Node *node)
-{
-    if (action == "add") {
-        emit getAdoptableNodesList(node);
-    } else if (action == "connect") {
-        emit getLegalNodesList(node);
-    } else if (action == "addInstance") {
-        emit getComponentDefinitions(node);
-    }
-}
-
-
-/**
- * @brief NodeView::updateToolbarAdoptableNodeList
- * This is called by NewMedeaWindow whenever the toolbar adoptable nodes list
- * needs to be updated. If selectedNode == prevSelectedNode, nothing happens.
- * @param action
- * @param nodeList
- */
-void NodeView::updateToolbarAdoptableNodesList(QStringList nodeKinds)
-{
-    QStringList* kinds = new QStringList(nodeKinds);
-    emit updateMenuList("add", kinds, 0);
-}
-
-
-/**
- * @brief NodeView::updateToolbarLegalNodesList
- * @param nodeList
- */
-void NodeView::updateToolbarLegalNodesList(QList<Node*>* nodeList)
-{
-    emit updateMenuList("connect", 0, nodeList);
-}
-
-
-/**
- * @brief NodeView::updateToolbarDefinitionsList
- * @param nodeList
- */
-void NodeView::updateToolbarDefinitionsList(QList<Node*>* nodeList)
-{
-    emit updateMenuList("addInstance", 0, nodeList);
-}
 
 
 /**

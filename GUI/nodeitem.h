@@ -190,7 +190,7 @@ private:
     bool hidden;
     int depth;
 
-
+    int counter;
 };
 
 #endif // NODEITEM_H

@@ -37,6 +37,7 @@ public:
     void resetModel();
 
     QList<NodeItem *> getVisibleNodeItems();
+    Node* getSelectedNode();
 
 signals:
     void triggerAction(QString action);
@@ -85,9 +86,9 @@ signals:
     void updateDockAdoptableNodesList(Node* node);
     void updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodes);
 
-    void constructNodeItem(QString kind, QPointF);
-    void constructEdgeItem(Node* src, Node* dst);
-    void constructComponentInstance(Node* definition, QPointF center);
+    void constructNode(QString kind, QPointF);
+    void constructEdge(Node* src, Node* dst);
+    void constructComponentInstance(Node* assm, Node* defn, QPointF center);
 
 public slots:
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
@@ -115,7 +116,7 @@ public slots:
     void view_SortNode(Node* node);
     void view_SetOpacity(GraphML* graphML, qreal opacity);
 
-    void view_ConstructNodeAction();
+    void view_ConstructNode();
 
     void constructNewView(Node* centeredOn);
 
@@ -131,15 +132,14 @@ public slots:
     void view_sortModel();
     void view_centerViewAspects();
 
-    void view_addComponentDefinition(NodeItem* itm);
-
     void goToDefinition(Node* node, bool show = true);
     void goToImplementation(Node* node, bool show = true);
 
     void view_deleteSelectedNode();
-    void view_ConstructNodeAction(QString nodeKind);
-    void view_ConstructEdgeAction(Node* src, Node* dst);
-    void view_ConstructComponentInstanceAction(Node* node);
+    void view_ConstructNode(QString nodeKind);
+    void view_ConstructEdge(Node* src, Node* dst);
+    void view_ConstructComponentInstance(Node *assm, Node *defn, int sender);
+    //void view_connectComponentInstance(Node* inst, Node* defn);
 
     void updateToolbarMenuList(QString action, Node* node);
     void updateToolbarAdoptableNodesList(QStringList nodeKinds);

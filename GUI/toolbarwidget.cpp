@@ -258,7 +258,7 @@ void ToolbarWidget::addComponentInstance()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
     if (action) {
-        emit constructComponentInstance(action->getNode());
+        emit constructComponentInstance(nodeItem->getNode(), action->getNode(), 1);
     }
 }
 
@@ -472,12 +472,11 @@ void ToolbarWidget::connectToView()
     connect(this, SIGNAL(updateMenuList(QString,Node*)), nodeView, SLOT(updateToolbarMenuList(QString,Node*)));
     connect(nodeView, SIGNAL(updateMenuList(QString,QStringList*,QList<Node*>*)), this, SLOT(updateMenuList(QString,QStringList*,QList<Node*>*)));
 
-    connect(this, SIGNAL(constructNode(QString)), nodeView, SLOT(view_ConstructNodeAction(QString)));
-    connect(this, SIGNAL(constructEdge(Node*,Node*)), nodeView, SLOT(view_ConstructEdgeAction(Node*,Node*)));
+    connect(this, SIGNAL(constructNode(QString)), nodeView, SLOT(view_ConstructNode(QString)));
+    connect(this, SIGNAL(constructEdge(Node*,Node*)), nodeView, SLOT(view_ConstructEdge(Node*,Node*)));
+    connect(this, SIGNAL(constructComponentInstance(Node*,Node*,int)), nodeView, SLOT(view_ConstructComponentInstance(Node*,Node*,int)));
 
     connect(this, SIGNAL(constructNewView(Node*)), nodeView, SLOT(constructNewView(Node*)));
-
-    connect(this, SIGNAL(constructComponentInstance(Node*)), nodeView, SLOT(view_ConstructComponentInstanceAction(Node*)));
 }
 
 
@@ -500,17 +499,13 @@ void ToolbarWidget::updateToolButtons()
     } else {
 
         deleteButton->show();
+        checkDefinition();
+        checkImplementation();
         getLegalNodesList();
 
         if (nodeKind == "ComponentAssembly") {
             getComponentDefinitionsList();
         }
-
-        //emit checkDefinition(nodeItem->getNode(), false);
-        //emit checkImplementation(nodeItem->getNode(), false);
-
-        checkDefinition();
-        checkImplementation();
     }
 }
 

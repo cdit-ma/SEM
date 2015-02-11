@@ -158,7 +158,7 @@ public slots:
     //Called by the QAction from the Menu
     void view_ConstructNode(QString kind, QPointF centerPoint);
 
-    void view_ConstructComponentInstanceInAssembly(Component* definition, ComponentAssembly* assembly = 0);
+    //void view_ConstructComponentInstanceInAssembly(Component* definition, ComponentAssembly* assembly = 0);
 
     //Clears the Model
     void view_ClearModel();
@@ -208,8 +208,7 @@ public slots:
 
     void getLegalNodesList(Node* src);
     void constructLegalEdge(Node *src, Node *dst);
-
-    void constructComponentInstance(Node* definition, QPointF center);
+    void constructComponentInstance(Node *assembly, Node* definition, QPointF center);
 
 private:
     //Copies the selected Nodes' GraphML representation to the Clipboard.

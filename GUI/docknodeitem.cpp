@@ -11,6 +11,7 @@
 DockNodeItem::DockNodeItem(NodeItem *node_item, QWidget* parent) :
     QPushButton(parent)
 {
+    selectedNode = 0;
     nodeItem = node_item;
     kind = nodeItem->getGraphML()->getDataValue("kind");
     label = nodeItem->getGraphML()->getDataValue("label");
@@ -87,11 +88,22 @@ void DockNodeItem::paintEvent(QPaintEvent *e)
 
 /**
  * @brief DockNodeItem::buttonPressed
- * When pressed, select this and its corresponding node item and update datTable.
+ * Get the selected node and depending on its kind, either try to add a ComponentInstance
+ * inside the ComponentAssembly or connect the ComponentInstance to this dock item's Component.
+ *
  */
 void DockNodeItem::buttonPressed()
 {
-    emit nodeItem->triggerSelected(nodeItem->getGraphML());
+    emit getSelectedNode();
+
+    if (selectedNode) {
+        QString nodeKind = selectedNode->getDataValue("kind");
+        if (nodeKind == "ComponentAssembly") {
+            emit dockNode_addComponentInstance(selectedNode, nodeItem->getNode());
+        } else if (nodeKind == "ComponentInstance") {
+            emit dockNode_connectComponentInstance(selectedNode, nodeItem->getNode());
+        }
+    }
 }
 
 
@@ -111,13 +123,15 @@ void DockNodeItem::updateData()
  * @brief DockNodeItem::deleteLater
  */
 void DockNodeItem::deleteLater()
-{/*
+{
+    /*
     emit removeFromDockNodeList(this);
 
     if (parentContainer) {
         parentContainer->checkDockNodesList();
     }
-*/
+    */
+
     QObject::deleteLater();
 }
 
@@ -138,23 +152,10 @@ NodeItem *DockNodeItem::getNodeItem()
  */
 void DockNodeItem::connectToNodeItem()
 {
-    //connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
-    //connect(nodeItem, SIGNAL(updateDockNodeItem(bool)), this, SLOT(setSelected(bool)));
+    connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
     connect(nodeItem, SIGNAL(updateDockNodeItem()), this, SLOT(updateData()));
     connect(nodeItem, SIGNAL(updateOpacity(qreal)), this, SLOT(setOpacity(qreal)));
     connect(nodeItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
-}
-
-
-/**
- * @brief DockNodeItem::mousePressEvent
- * Send a signal to the view if this item is selected when CTRL is held down.
- * The view checks if the user is trying to add a ComponentInstance.
- * @param event
- */
-void DockNodeItem::mousePressEvent(QMouseEvent *event)
-{
-    emit dockNode_addComponentInstance(nodeItem);
 }
 
 
@@ -164,7 +165,7 @@ void DockNodeItem::mousePressEvent(QMouseEvent *event)
  */
 void DockNodeItem::setContainer(DockScrollArea *container)
 {
-   parentContainer = container;
+    parentContainer = container;
 }
 
 
@@ -195,4 +196,14 @@ void DockNodeItem::setOpacity(double opacity)
         setEnabled(true);
     }
     repaint();
+}
+
+
+/**
+ * @brief DockNodeItem::setSelectedNode
+ * @param node
+ */
+void DockNodeItem::setSelectedNode(Node *node)
+{
+    selectedNode = node;
 }

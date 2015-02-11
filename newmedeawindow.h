@@ -94,6 +94,7 @@ private slots:
     void nodeSelected(Node* node);
 
     void hasSelectedNode(bool nodeSelected);
+    void getSelectedNode();
 
     void goToDefinition();
     void goToImplementation();
