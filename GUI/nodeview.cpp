@@ -232,6 +232,42 @@ void NodeView::constructNewView(Node *centeredOn)
 }
 
 
+/**
+ * @brief NodeView::sortEntireModel
+ * This method sorts the enitre model.
+ */
+void NodeView::sortEntireModel()
+{
+    emit triggerAction("View: Sorting entire Model");
+    sortNode(controller->getGraphmlModel());
+}
+
+
+/**
+ * @brief NodeView::sortNode
+ * This method recursively sorts the provided node.
+ * It sorts from the lowest level children back up to the provided node.
+ * @param node
+ */
+void NodeView::sortNode(Node *node)
+{
+    GraphMLItem* graphMLItem = getGraphMLItemFromGraphML(node);
+    NodeItem* nodeItem = getNodeItemFromGraphMLItem(graphMLItem);
+
+    if (nodeItem->getChildren().count() == 0) {
+        NodeItem* parentItem = dynamic_cast<NodeItem*>(nodeItem->parentItem());
+        while(parentItem) {
+            parentItem->sort();
+            parentItem = dynamic_cast<NodeItem*>(parentItem->parentItem());
+        }
+    } else {
+        foreach (NodeItem* child, nodeItem->getChildren()) {
+            sortNode(child->getNode());
+        }
+    }
+}
+
+
 bool NodeView::viewportEvent(QEvent * e)
 {
     emit updateViewPort(getVisibleRect());
@@ -1144,11 +1180,21 @@ void NodeView::centreNode(Node *node)
 /**
  * @brief NodeView::clearSelection
  * This gets called when either the view or the model is pressed.
- * It clears the selection and disables all dock node buttons.
+ * It clears the selection.
  */
 void NodeView::clearSelection()
 {
     emit unselect();
+}
+
+
+/**
+ * @brief NodeView::disableDockButtons
+ * This gets called when either the view or the model is pressed.
+ * It disables all the dock toggle buttons.
+ */
+void NodeView::disableDockButtons()
+{
     emit updateDockButtons("N");
 }
 

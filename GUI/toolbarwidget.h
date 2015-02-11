@@ -68,7 +68,7 @@ public slots:
     void hideToolbar();
 
     void showMenu();
-    void hideMenu();
+    void checkAddInstanceAction();
 
 private:
     void setupToolBar();
@@ -90,7 +90,6 @@ private:
     QToolButton* showNewViewButton;
     QToolButton* definitionButton;
     QToolButton* implementationButton;
-    QToolButton* addInstanceButton;
 
     ToolbarWidgetAction* addInstanceAction;
 

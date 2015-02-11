@@ -51,6 +51,8 @@ signals:
     void view_ImportGraphML(QStringList files);
     void view_ExportGraphML(QString fileName);
 
+    void sortModel();
+
     void setViewAspects(QStringList aspects);
     void updateToolbarAdoptableNodesList(QStringList nodeList);
 
@@ -69,7 +71,11 @@ private slots:
     void on_actionNew_Project_triggered();
     void on_actionImport_GraphML_triggered();
     void on_actionExport_GraphML_triggered();
+
     void on_actionClearModel_triggered();
+    void on_actionSortModel_triggered();
+    //void on_actionSortNode_triggered();
+
     void on_actionPaste_triggered();
     void on_actionExit_triggered();
 
@@ -124,13 +130,13 @@ private:
     QMenu* file_menu;
     QMenu* edit_menu;
     QMenu* view_menu;
+    QMenu* model_menu;
+
     QAction* exit;
     QAction* file_newProject;
     QAction* file_importGraphML;
     QAction* file_exportGraphML;
     QAction* file_importJenkinsNodes;
-    QAction* file_validateModel;
-    QAction* file_clearModel;
     QAction* edit_undo;
     QAction* edit_redo;
     QAction* edit_cut;
@@ -139,6 +145,9 @@ private:
     QAction* view_fitToScreen;
     QAction* view_goToDefinition;
     QAction* view_goToImplementation;
+    QAction* model_validateModel;
+    QAction* model_clearModel;
+    QAction* model_sortModel;
 
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;

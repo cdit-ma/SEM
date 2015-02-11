@@ -70,7 +70,7 @@ public:
     //QStringList getAdoptableNodeKinds(Node* parent);
 
     Node* getSelectedNode();
-
+    Node* getGraphmlModel();
 
 signals:
     //Triggers the View to Enable/Disable the GUI
@@ -120,6 +120,8 @@ signals:
     void centreNode(Node* node);
 
     void setLegalNodesList(QList<Node*>* nodes);
+
+    void disableDockButtons();
 
 public slots:
     void centerNode(QString nodeLabel);

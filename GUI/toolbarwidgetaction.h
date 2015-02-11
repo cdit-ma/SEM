@@ -21,6 +21,8 @@ public:
 
     Node* getNode();
     QString getKind();
+
+    QPushButton* getButton();
     QPoint getButtonPos();
 
 protected:

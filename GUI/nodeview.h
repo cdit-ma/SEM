@@ -121,10 +121,15 @@ public slots:
     void constructNewView(Node* centeredOn);
 
     
-    void clearSelection();
+
+    void sortEntireModel();
+    void sortNode(Node* node);
 
     void fitToScreen();
     void centreNode(Node* node);
+
+    void clearSelection();
+    void disableDockButtons();
 
     void updateDockButtons(Node* node);
     void view_updateDockContainer(QString dockContainer);

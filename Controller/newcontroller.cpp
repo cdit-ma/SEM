@@ -63,7 +63,9 @@ void NewController::connectView(NodeView *view)
     connect(this, SIGNAL(view_SetGraphMLSelected(GraphML*,bool)), view, SLOT(view_SelectGraphML(GraphML*,bool)));
     connect(this, SIGNAL(view_ConstructGraphMLGUI(GraphML*)), view, SLOT(view_ConstructGraphMLGUI(GraphML*)));
     connect(this, SIGNAL(view_DestructGraphMLGUIFromID(QString)), view, SLOT(view_DestructGraphMLGUI(QString)));
-    connect(view, SIGNAL(unselect()),this, SLOT(view_ClearSelection()));
+
+    connect(view, SIGNAL(unselect()), this, SLOT(view_ClearSelection()));
+    connect(this, SIGNAL(disableDockButtons()), view, SLOT(disableDockButtons()));
 
     if(!view->isSubView()){
         //Main view Functionality
@@ -1131,6 +1133,9 @@ void NewController::view_ClearSelection()
 {
     clearSelectedEdges();
     clearSelectedNodes();
+
+    // disable dock buttons when nothing is selected
+    emit disableDockButtons();
 }
 
 
@@ -1959,6 +1964,16 @@ Node *NewController::getSelectedNode()
         return getNodeFromID(selectedNodeIDs[0]);
     }
     return 0;
+}
+
+
+/**
+ * @brief NewController::getGraphmlModel
+ * @return
+ */
+Node *NewController::getGraphmlModel()
+{
+   return model;
 }
 
 

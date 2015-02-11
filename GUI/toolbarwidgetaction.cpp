@@ -71,7 +71,18 @@ QString ToolbarWidgetAction::getKind()
 
 
 /**
+ * @brief ToolbarWidgetAction::getButton
+ * @return
+ */
+QPushButton *ToolbarWidgetAction::getButton()
+{
+    return actionButton;
+}
+
+
+/**
  * @brief ToolbarWidgetAction::getButtonPos
+ * This is used to determine where to draw the menu for this action.
  * @return
  */
 QPoint ToolbarWidgetAction::getButtonPos()
@@ -91,7 +102,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 {
     actionButton = new QPushButton(parent);
     actionButton->setMouseTracking(true);
-    actionButton->setFixedSize(150, 30);
+    actionButton->setFixedSize(155, 33);
     actionButton->setStyleSheet("QPushButton{"
                                 "border: 0px;"
                                 "margin: 0px;"
@@ -177,7 +188,8 @@ void ToolbarWidgetAction::actionButtonClicked()
  */
 void ToolbarWidgetAction::actionButtonUnclicked()
 {
-    qDebug() << "actionButtonUnclicked";
+
     actionButton->setChecked(false);
     actionButton->repaint();
+    //emit trigger();
 }

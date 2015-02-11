@@ -247,6 +247,8 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
     edit_menu = menu->addMenu(QIcon(":/Resources/Icons/edit_menu.png"), "Edit");
     view_menu = menu->addMenu(QIcon(":/Resources/Icons/view.png"), "View");
     menu->addSeparator();
+    model_menu = menu->addMenu(QIcon(":/Resources/Icons/model.png"), "Model");
+    menu->addSeparator();
     exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Exit");
 
     file_newProject = file_menu->addAction(QIcon(":/Resources/Icons/new_project.png"), "New Project");
@@ -265,11 +267,6 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
         file_importJenkinsNodes = 0;
     }
 
-    file_clearModel = file_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
-    file_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
-    file_validateModel = file_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
-    file_validateModel->setEnabled(false);
-
     edit_undo = edit_menu->addAction(QIcon(":/Resources/Icons/undo.png"), "Undo");
     edit_undo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
     edit_redo = edit_menu->addAction(QIcon(":/Resources/Icons/redo.png"), "Redo");
@@ -284,10 +281,18 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
 
     view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/zoomToFit.png"), "Fit To Sreen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
-    view_goToDefinition = view_menu->addAction("Go to Definition");
+    view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go to Definition");
     view_goToDefinition->setShortcut(QKeySequence(Qt::Key_D));
-    view_goToImplementation = view_menu->addAction("Go to Implementation");
+    view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go to Implementation");
     view_goToImplementation->setShortcut(QKeySequence(Qt::Key_I));
+
+    model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
+    model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    model_sortModel = model_menu->addAction(QIcon(":/Resources/Icons/sort.png"), "Sort Model");
+    model_sortModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    model_menu->addSeparator();
+    model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
+    model_validateModel->setEnabled(false);
 
     exit->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
 
@@ -398,7 +403,6 @@ void NewMedeaWindow::makeConnections()
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
-    connect(file_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
     connect(file_importJenkinsNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
 
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
@@ -408,6 +412,10 @@ void NewMedeaWindow::makeConnections()
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_goToDefinition, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
+
+    connect(model_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
+    connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortModel_triggered()));
+    //connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
 
@@ -465,7 +473,7 @@ void NewMedeaWindow::connectToController()
     connect(this, SIGNAL(view_ExportGraphML(QString)), controller, SLOT(view_ExportGraphML(QString)));
     connect(controller, SIGNAL(view_WriteGraphML(QString,QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
 
-    connect(file_clearModel, SIGNAL(triggered()), controller, SLOT(view_ClearModel()));
+    connect(model_clearModel, SIGNAL(triggered()), controller, SLOT(view_ClearModel()));
 
     connect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
     connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
@@ -623,6 +631,25 @@ void NewMedeaWindow::on_actionClearModel_triggered()
     emit clearDock();
 }
 
+
+/**
+ * @brief NewMedeaWindow::on_actionSortModel_triggered
+ */
+void NewMedeaWindow::on_actionSortModel_triggered()
+{
+   if (selectedNode) {
+       nodeView->sortNode(selectedNode);
+   } else {
+       nodeView->sortEntireModel();
+   }
+}
+
+/*
+void NewMedeaWindow::on_actionSortNode_triggered()
+{
+
+}
+*/
 
 /**
  * @brief NewMedeaWindow::on_actionPaste_triggered
@@ -1107,6 +1134,6 @@ void NewMedeaWindow::importGraphMLFiles(QStringList files)
     emit nodeView->shiftPressed(false);
 
     emit view_ImportGraphML(fileData);
-    //nodeView->fitToScreen();
+    nodeView->view_centerViewAspects();
 }
 

@@ -53,6 +53,7 @@ public:
 
     Node* getNode();
     QString getNodeKind();
+    QList<NodeItem*> getChildren();
 
 signals:
     //Node Edge Signals
@@ -131,8 +132,6 @@ private:
     bool expanded;
     bool permanentlyCentralized;
 
-
-    QList<NodeItem*> getChildren();
     QStringList getChildrenKind();
 
     double getCornerRadius();
