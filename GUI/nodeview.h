@@ -34,10 +34,12 @@ public:
 
     //bool guiCreated(GraphML* item);
 
+    void forceSortViewAspects();
     void resetModel();
 
     QList<NodeItem *> getVisibleNodeItems();
     Node* getSelectedNode();
+
 
 signals:
     void triggerAction(QString action);
@@ -77,8 +79,6 @@ signals:
     void sortDeployment();
     void centerNode(QString nodeLabel);
 
-    void hasSelectedNode(bool nodeSelected);
-
     void getAdoptableNodesList(Node* node);
     void getLegalNodesList(Node* src);
     void getComponentDefinitions(Node* node);
@@ -89,6 +89,9 @@ signals:
     void constructNode(QString kind, QPointF);
     void constructEdge(Node* src, Node* dst);
     void constructComponentInstance(Node* assm, Node* defn, QPointF center);
+
+    void turnOnViewAspect(QString aspect);
+    void setGoToMenuActions(QString action, bool);
 
 public slots:
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
@@ -119,7 +122,6 @@ public slots:
     void view_ConstructNode();
 
     void constructNewView(Node* centeredOn);
-
     
 
     void sortEntireModel();
@@ -137,6 +139,8 @@ public slots:
     void view_sortModel();
     void view_centerViewAspects();
 
+    void setGoToToolbarButtons(QString action, Node *node);
+
     void goToDefinition(Node* node, bool show = true);
     void goToImplementation(Node* node, bool show = true);
 
@@ -144,7 +148,6 @@ public slots:
     void view_ConstructNode(QString nodeKind);
     void view_ConstructEdge(Node* src, Node* dst);
     void view_ConstructComponentInstance(Node *assm, Node *defn, int sender);
-    //void view_connectComponentInstance(Node* inst, Node* defn);
 
     void updateToolbarMenuList(QString action, Node* node);
     void updateToolbarAdoptableNodesList(QStringList nodeKinds);
@@ -156,6 +159,11 @@ private:
 
     void storeGraphMLItemInHash(GraphMLItem* item);
     bool removeGraphMLItemFromHash(QString ID);
+
+    void nodeSelected_signalUpdates(Node *node);
+
+    Node* hasDefinition(Node* node);
+    Node* hasImplementation(Node* node);
 
     NodeItem* getNodeItemFromGraphMLItem(GraphMLItem* item);
     NodeEdge* getEdgeItemFromGraphMLItem(GraphMLItem* item);
@@ -169,7 +177,7 @@ private:
     QPointF menuPosition;
 
     QStringList currentAspects;
-    QPoint origin;
+    //QPoint origin;
     QRubberBand* rubberBand;
     QString NodeType;
     qreal totalScaleFactor;
@@ -183,7 +191,7 @@ private:
     bool SHIFT_DOWN;
 
 
-    bool firstSort;
+    //bool firstSort;
 
     QList<NodeItem*> getNodeItemsList();
     void showAllViewAspects();

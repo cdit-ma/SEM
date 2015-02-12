@@ -97,9 +97,8 @@ private slots:
 
     void addNewNodeToDock(QString type, NodeItem* nodeItem);
     void setAdoptableNodeList(Node* node);
-    void nodeSelected(Node* node);
 
-    void hasSelectedNode(bool nodeSelected);
+    void nodeSelected(Node* node);
     void getSelectedNode();
 
     void goToDefinition();
@@ -108,6 +107,8 @@ private slots:
     void getAdoptableNodesList(Node* node);
     void getComponentDefinitions(Node* node);
 
+    void turnOnViewAspect(QString aspect);
+    void setGoToMenuActions(QString action, bool enabled);
 
 private:
     void importGraphMLFiles(QStringList files);

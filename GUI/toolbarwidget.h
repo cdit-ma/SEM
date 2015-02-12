@@ -21,8 +21,8 @@ public:
 
     void setNodeItem(NodeItem* item);
 
-    void showDefinitionButton(bool show, Node* definition = 0);
-    void showImplementationButton(bool show, Node* implementation = 0);
+    void showDefinitionButton(Node *definition);
+    void showImplementationButton(Node* implementation);
 
     void checkDefinition();
     void checkImplementation();
@@ -34,8 +34,7 @@ protected:
 
 
 signals:
-    void checkDefinition(Node* node, bool show);
-    void checkImplementation(Node* node, bool show);
+    void setGoToButtons(QString action, Node* node);
 
     void goToDefinition(Node* node);
     void goToImplementation(Node* node);

@@ -94,8 +94,6 @@ public:
     bool isInstance();
     bool isImpl();
 
-
-
     void setDefinition(Node *def);
     Node* getDefinition();
     void unsetDefinition();

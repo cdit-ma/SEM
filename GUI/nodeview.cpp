@@ -29,7 +29,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     drawingRubberBand = false;
     once = true;
 
-    firstSort = true;
+    //firstSort = true;
 
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
@@ -188,8 +188,6 @@ Node *NodeView::getSelectedNode()
 
 void NodeView::constructNewView(Node *centeredOn)
 {
-    qCritical() << "Make new View";
-
     Qt::WindowFlags flags = 0;
     flags |= Qt::WindowMaximizeButtonHint;
     flags |= Qt::WindowCloseButtonHint;
@@ -365,11 +363,13 @@ void NodeView::setViewAspects(QStringList aspects)
 
     // initially show and sort container items so that they are not
     // painted on top of each other when they are first turned on
+    /*
     if (firstSort) {
         showAllViewAspects();
         view_sortModel();
         firstSort = false;
     }
+    */
 
     emit updateViewAspects(aspects);
     view_centerViewAspects();
@@ -579,28 +579,15 @@ void NodeView::view_DestructGraphMLGUI(GraphML *graphML)
 void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
 {
     if(graphML){
-
         GraphMLItem* GUIItem = getGraphMLItemFromHash(graphML->getID());
-
         if(GUIItem){
             GUIItem->setSelected(setSelected);
             if(setSelected){
                 emit view_SetSelectedAttributeModel(GUIItem->getAttributeTable());
-
-                // update the dock adoptable node items when a node is
-                // selected and enable/disable dock buttons accordingly
-                Node* node = dynamic_cast<Node*>(graphML);
-                //updateDockButtons(node);
-
-                emit updateDockAdoptableNodesList(node);
-                emit hasSelectedNode(true);
-
-                updateDockButtons(node);
+                nodeSelected_signalUpdates(dynamic_cast<Node*>(graphML));
                 return;
             }
         }
-    } else {
-        emit hasSelectedNode(false);
     }
 
     emit view_SetSelectedAttributeModel(0);
@@ -900,6 +887,23 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
     return false;
 }
 
+
+/**
+ * @brief NodeView::nodeSelected
+ * This is called whenever a node is selected.
+ * It sends signals to update whatever needs updating.
+ */
+void NodeView::nodeSelected_signalUpdates(Node* node)
+{
+    if (node) {
+        updateDockButtons(node);
+        emit updateDockAdoptableNodesList(node);
+        emit setGoToMenuActions("definition", hasDefinition(node));
+        emit setGoToMenuActions("implementation", hasImplementation(node));
+    }
+}
+
+
 GraphMLItem *NodeView::getGraphMLItemFromHash(QString ID)
 {
     if(guiItems.contains(ID)){
@@ -975,7 +979,6 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
         return;
     }
 
-
     QPointF scenePos = this->mapToScene(event->pos());
 
     QGraphicsItem* item = this->scene()->itemAt(scenePos, transform());
@@ -985,6 +988,9 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
     if(!nodeItem){
         this->setCursor(Qt::ArrowCursor);
     }
+
+    // enable panning without having to hold CTRL
+    //setDragMode(ScrollHandDrag);
 
     QGraphicsView::mouseMoveEvent(event);
 }
@@ -1007,20 +1013,17 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     }
 
     if(!item){
+
         if(event->button() == Qt::MiddleButton){
-            if(CONTROL_DOWN){
-                view_sortModel();
-                return;
-            }else{
-                // center current view aspects
-                view_centerViewAspects();
-                return;
-            }
+            // sort and center current view aspects
+            view_centerViewAspects();
+            return;
         }else if(event->button() == Qt::RightButton && CONTROL_DOWN){
             //emit unselect();
             //emit constructNodeItem(scenePos);
         }else if( event->button() == Qt::LeftButton && CONTROL_DOWN){
-            origin = scenePos.toPoint();
+            qDebug() << "Panning . . .";
+            //origin = scenePos.toPoint();
         }else{
             // clear selection and disable dock buttons
             clearSelection();
@@ -1041,18 +1044,19 @@ void NodeView::mousePressEvent(QMouseEvent *event)
 
 void NodeView::wheelEvent(QWheelEvent *event)
 {
-    if(CONTROL_DOWN){
-        // Scale the view / do the zoom
-        double scaleFactor = 1.05;
-        if(event->delta() > 0) {
-            // Zoom in
-            scale(scaleFactor, scaleFactor);
-        } else {
-            // Zooming out
-            scale(1.0 / scaleFactor, 1.0 / scaleFactor);
-        }
-        emit updateZoom(transform().m22());
+    // enable zooming without having to hold CTRL
+    //if(CONTROL_DOWN){
+    // Scale the view / do the zoom
+    double scaleFactor = 1.05;
+    if(event->delta() > 0) {
+        // Zoom in
+        scale(scaleFactor, scaleFactor);
+    } else {
+        // Zooming out
+        scale(1.0 / scaleFactor, 1.0 / scaleFactor);
     }
+    emit updateZoom(transform().m22());
+    //}
 }
 
 void NodeView::keyPressEvent(QKeyEvent *event)
@@ -1060,7 +1064,6 @@ void NodeView::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Delete){
         emit deletePressed(true);
     }
-
 
     if(event->key() == Qt::Key_Escape){
         emit escapePressed(true);
@@ -1106,6 +1109,16 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
 
 /**
+ * @brief NodeView::forceSortViewAspects
+ */
+void NodeView::forceSortViewAspects()
+{
+    showAllViewAspects();
+    view_sortModel();
+}
+
+
+/**
  * @brief NodeView::resetModel
  * This method is called after the model is cleared.
  * It resets the size of the model, sorts and centers it.
@@ -1119,8 +1132,7 @@ void NodeView::resetModel()
         }
     }
 
-    showAllViewAspects();
-    view_sortModel();
+    forceSortViewAspects();
     setViewAspects(currentAspects);
 }
 
@@ -1244,29 +1256,15 @@ void NodeView::fitToScreen()
  */
 void NodeView::goToDefinition(Node *node, bool show)
 {
-    ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(QObject::sender());
-    bool toolbarCheck = (toolbar && !show);
-
-    Node* temp = node;
     if (node) {
-
-        if (!node->isDefinition()) {
-            temp = node->getDefinition();
-        }
-
-        // if the signal came from the toolbar and !show it's only checking to
-        // see if node has a definition - hence, don't select and center it
-        if (temp) {
-            if (toolbarCheck) {
-                toolbar->showDefinitionButton(true, temp);
-            } else {
-                controller->view_GraphMLSelected(temp, true);
-                centreItem(getGraphMLItemFromGraphML(temp));
+        Node* defn = hasDefinition(node);
+        if (defn) {
+            // make sure the Definitions view aspect is on
+            if (!currentAspects.contains("Definitions")) {
+                emit turnOnViewAspect("Definitions");
             }
-        } else {
-            if (toolbarCheck) {
-                toolbar->showDefinitionButton(false);
-            }
+            controller->view_GraphMLSelected(defn, true);
+            centreItem(getGraphMLItemFromGraphML(defn));
         }
     }
 }
@@ -1281,29 +1279,15 @@ void NodeView::goToDefinition(Node *node, bool show)
  */
 void NodeView::goToImplementation(Node *node, bool show)
 {
-    ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(QObject::sender());
-    bool toolbarCheck = (toolbar && !show);
-
-    Node* temp = node;
     if (node) {
-
-        if (!node->isDefinition()) {
-            temp = node->getDefinition();
-        }
-
-        // if the signal came from the toolbar and !show, it's only checking to
-        // see if node has an implementation - hence, don't select and center it
-        if (temp && temp->getImplementations().count() > 0) {
-            if (toolbarCheck) {
-                toolbar->showImplementationButton(true, temp->getImplementations().at(0));
-            } else {
-                controller->view_GraphMLSelected(temp->getImplementations().at(0), true);
-                centreItem(getGraphMLItemFromGraphML(temp->getImplementations().at(0)));
+        Node* impl = hasImplementation(node);
+        if (impl) {
+            // make sure the Definitions view aspect is on
+            if (!currentAspects.contains("Workload")) {
+                emit turnOnViewAspect("Workload");
             }
-        } else {
-            if (toolbarCheck) {
-                toolbar->showImplementationButton(false);
-            }
+            controller->view_GraphMLSelected(impl, true);
+            centreItem(getGraphMLItemFromGraphML(impl));
         }
     }
 }
@@ -1332,6 +1316,7 @@ void NodeView::view_centerViewAspects()
         return;
     } else if (currentAspects.count() == 2) {
         if (currentAspects.contains("Assembly") && currentAspects.contains("Hardware")){
+            emit sortDeployment();
             emit centerNode("Deployment");
             return;
         } else if (currentAspects.contains("Definitions") && currentAspects.contains("Workload")) {
@@ -1342,9 +1327,59 @@ void NodeView::view_centerViewAspects()
     }
 
     showAllViewAspects();
-    emit sortModel();
+    view_sortModel();
     emit updateViewAspects(currentAspects);
     emit centerNode("Model");
+}
+
+
+/**
+ * @brief NodeView::setGoToToolbarButtons
+ * @param action
+ */
+void NodeView::setGoToToolbarButtons(QString action, Node *node)
+{
+    if (action == "definition") {
+        toolbar->showDefinitionButton(hasDefinition(node));
+    } else if (action == "implementation") {
+        toolbar->showImplementationButton(hasImplementation(node));
+    }
+}
+
+
+/**
+ * @brief NodeView::hasDefinition
+ * @param node
+ * @return
+ */
+Node* NodeView::hasDefinition(Node *node)
+{
+    Node* defn = node;
+    if (!node->isDefinition()) {
+        defn = node->getDefinition();
+    }
+    return defn;
+}
+
+
+/**
+ * @brief NodeView::hasImplementation
+ * @param node
+ * @return
+ */
+Node* NodeView::hasImplementation(Node *node)
+{
+    Node* impl = node;
+    if (!node->isImpl()) {
+        if (node->isDefinition()) {
+            impl = node->getImplementations().at(0);
+        } else if (node->getDefinition()) {
+            impl = node->getDefinition()->getImplementations().at(0);
+        } else {
+            impl = 0;
+        }
+    }
+    return impl;
 }
 
 

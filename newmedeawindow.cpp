@@ -28,7 +28,6 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     // initialise gui and connect signals and slots
     initialiseGUI();
     makeConnections();
-    updateViewAspects();
 
     // this is used for when a file is dragged and
     // dropped on top of this tool's icon
@@ -292,12 +291,15 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
     model_sortModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
-    model_validateModel->setEnabled(false);
 
     exit->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
 
     button->setMenu(menu);
-    hasSelectedNode(false);
+
+    // initially disable model & goto menu actions
+    model_validateModel->setEnabled(false);
+    view_goToDefinition->setEnabled(false);
+    view_goToImplementation->setEnabled(false);
 }
 
 
@@ -442,7 +444,6 @@ void NewMedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showContextMenu(QPoint)));
-    connect(nodeView, SIGNAL(hasSelectedNode(bool)), this, SLOT(hasSelectedNode(bool)));
 
     connect(nodeView, SIGNAL(updateDataTable()), this, SLOT(updateDataTable()));
     connect(nodeView, SIGNAL(updateDockButtons(QString)), this, SLOT(updateDockButtons(QString)));
@@ -453,6 +454,9 @@ void NewMedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(getComponentDefinitions(Node*)), this, SLOT(getComponentDefinitions(Node*)));
     connect(this, SIGNAL(sendComponentDefinitions(QList<Node*>*)), nodeView, SLOT(updateToolbarDefinitionsList(QList<Node*>*)));
+
+    connect(nodeView, SIGNAL(turnOnViewAspect(QString)), this, SLOT(turnOnViewAspect(QString)));
+    connect(nodeView, SIGNAL(setGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
 
     // this needs fixing
     connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
@@ -512,12 +516,14 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
 
 /**
  * @brief NewMedeaWindow::sortAndCenterModel
- * This forces the current view aspects to center.
+ * This force sorts the main definitions containers before they are hidden.
+ * The visible view aspect(s) is the centered.
  */
 void NewMedeaWindow::sortAndCenterViewAspects()
 {
     if (nodeView) {
-        nodeView->view_centerViewAspects();
+        nodeView->forceSortViewAspects();
+        updateViewAspects();
     }
 }
 
@@ -922,18 +928,6 @@ void NewMedeaWindow::nodeSelected(Node *node)
 
 
 /**
- * @brief NewMedeaWindow::hasNodeSelected
- * This gets called when a node is selected or when the selection is cleared.
- * @param nodeSelected
- */
-void NewMedeaWindow::hasSelectedNode(bool nodeSelected)
-{
-    view_goToDefinition->setEnabled(nodeSelected);
-    view_goToImplementation->setEnabled(nodeSelected);
-}
-
-
-/**
  * @brief NewMedeaWindow::getSelectedNode
  * Send the selected node to the Definitions dock.
  */
@@ -988,6 +982,46 @@ void NewMedeaWindow::getComponentDefinitions(Node *node)
        QList<Node*>* definitions = new QList<Node*>(definitionsContainer->getComponentDefinitions());
        emit sendComponentDefinitions(definitions);
    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::turnOnViewAspect
+ * This turns on the view aspect specified.
+ * @param aspect
+ */
+void NewMedeaWindow::turnOnViewAspect(QString aspect)
+{
+    if (aspect == "Definitions") {
+        emit definitionsButton->click();
+    } else if (aspect == "Workload") {
+        workloadButton->click();
+    } else if (aspect == "Assembly") {
+        assemblyButton->click();
+    } else if (aspect == "Hardware") {
+        hardwareButton->click();
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::setGoToMenuActions
+ * @param action
+ * @param node
+ */
+void NewMedeaWindow::setGoToMenuActions(QString action, bool enabled)
+{
+    /*
+    bool enabled = false;
+    if (node) {
+        enabled = true;
+    }
+    */
+    if (action == "definition") {
+        view_goToDefinition->setEnabled(enabled);
+    } else if (action == "implementation") {
+        view_goToImplementation->setEnabled(enabled);
+    }
 }
 
 
@@ -1100,6 +1134,9 @@ void NewMedeaWindow::loadJenkinsData(int code)
     QStringList files;
     files << myProcess->readAll();
     emit view_ImportGraphML(files);
+
+    // sort and center view aspects
+    nodeView->view_centerViewAspects();
 }
 
 

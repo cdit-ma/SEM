@@ -80,6 +80,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     //Update Width and Height with values from the GraphML Model If they have them.
     retrieveGraphMLData();
 
+    if (width < initialWidth) {
+        width = initialWidth;
+    }
+    if (height < initialHeight) {
+        height = initialHeight;
+    }
+
     //Update GraphML Model for size/position if they have been changed.
     updateGraphMLSize();
     updateGraphMLPosition();
@@ -137,9 +144,9 @@ NodeItem::~NodeItem()
             item->resetNextChildPos();
             item->resetSize();
 
-                // update parts dock container if parent kind
-                // is File and it no longer has children
-                /*
+            // update parts dock container if parent kind
+            // is File and it no longer has children
+            /*
                 if (item->getGraphML()->getDataValue("kind") == "File") {
                     emit updateDockContainer("Parts");
                 }
@@ -657,22 +664,17 @@ void NodeItem::sort()
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-
     switch (event->button()) {
 
     case Qt::MiddleButton:{
-        if (event->modifiers().testFlag(Qt::ControlModifier)) {
-            if (!PAINT_OBJECT) {
-                emit sortModel();
-            } else {
+        if (PAINT_OBJECT) {
+            if (event->modifiers().testFlag(Qt::ControlModifier)) {
                 sort();
+            } else {
+                emit triggerCentered(getGraphML());
             }
         } else {
-            if (PAINT_OBJECT) {
-                emit triggerCentered(getGraphML());
-            } else {
-                emit centerViewAspects();
-            }
+            emit centerViewAspects();
         }
         break;
     }
@@ -709,7 +711,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
     default:
         break;
-    }
+}
 }
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

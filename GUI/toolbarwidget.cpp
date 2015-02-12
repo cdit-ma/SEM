@@ -15,6 +15,9 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     prevNodeItem = 0;
     eventFromToolbar = false;
 
+    definitionNode = 0;
+    implementationNode = 0;
+
     setBackgroundRole(QPalette::Dark);
     setWindowFlags(windowFlags() | Qt::Popup);
 
@@ -55,11 +58,13 @@ void ToolbarWidget::setNodeItem(NodeItem *item)
  * This method shows/hides the definitionButton and sets the definitionNode if there is one.
  * @param show
  */
-void ToolbarWidget::showDefinitionButton(bool show, Node *definition)
+void ToolbarWidget::showDefinitionButton(Node *definition)
 {
-    definitionButton->setVisible(show);
-    if (show) {
+    if (definition) {
         definitionNode = definition;
+        definitionButton->show();
+    } else {
+        definitionButton->hide();
     }
 }
 
@@ -69,11 +74,13 @@ void ToolbarWidget::showDefinitionButton(bool show, Node *definition)
  * This method shows/hides the implementationButton and sets the implementationNode if there is one.
  * @param show
  */
-void ToolbarWidget::showImplementationButton(bool show, Node* implementation)
+void ToolbarWidget::showImplementationButton(Node* implementation)
 {
-    implementationButton->setVisible(show);
-    if (show) {
+    if (implementation) {
         implementationNode = implementation;
+        implementationButton->show();
+    } else {
+        implementationButton->hide();
     }
 }
 
@@ -234,9 +241,7 @@ void ToolbarWidget::updateMenuList(QString action, QStringList* nodeKinds, QList
 void ToolbarWidget::addChildNode()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    if (action) {
-        emit constructNode(action->getKind());
-    }
+    emit constructNode(action->getKind());
 }
 
 
@@ -247,9 +252,7 @@ void ToolbarWidget::addChildNode()
 void ToolbarWidget::connectNodes()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    if (action) {
-        emit constructEdge(nodeItem->getNode(), action->getNode());
-    }
+    emit constructEdge(nodeItem->getNode(), action->getNode());
 }
 
 
@@ -261,6 +264,7 @@ void ToolbarWidget::makeNewView()
     QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
     if (button) {
         emit constructNewView(nodeItem->getNode());
+        return;
     }
 
     QAction* action = qobject_cast<QAction*>(QObject::sender());
@@ -280,9 +284,7 @@ void ToolbarWidget::makeNewView()
 void ToolbarWidget::addComponentInstance()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    if (action) {
-        emit constructComponentInstance(nodeItem->getNode(), action->getNode(), 1);
-    }
+    emit constructComponentInstance(nodeItem->getNode(), action->getNode(), 1);
 }
 
 
@@ -501,8 +503,7 @@ void ToolbarWidget::connectToView()
 
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(view_deleteSelectedNode()));
 
-    connect(this, SIGNAL(checkDefinition(Node*, bool)), nodeView, SLOT(goToDefinition(Node*, bool)));
-    connect(this, SIGNAL(checkImplementation(Node*, bool)), nodeView, SLOT(goToImplementation(Node*, bool)));
+    connect(this, SIGNAL(setGoToButtons(QString,Node*)), nodeView, SLOT(setGoToToolbarButtons(QString,Node*)));
 
     connect(this, SIGNAL(goToDefinition(Node*)), nodeView, SLOT(goToDefinition(Node*)));
     connect(this, SIGNAL(goToImplementation(Node*)), nodeView, SLOT(goToImplementation(Node*)));
@@ -527,7 +528,12 @@ void ToolbarWidget::updateToolButtons()
     QString nodeKind = nodeItem->getNodeKind();
     bool showFrame = true;
 
-    getAdoptableNodesList();
+    // this can be removed when the returned adoptable node list is updated
+    if (nodeKind == "ComponentInstance") {
+        addChildButton->hide();
+    } else {
+        getAdoptableNodesList();
+    }
 
     if (nodeKind.endsWith("Definitions") || nodeKind == "ManagementComponent") {
 
@@ -563,12 +569,10 @@ void ToolbarWidget::updateToolButtons()
  */
 void ToolbarWidget::checkDefinition()
 {
-    if (nodeItem && nodeItem->getNode()) {
-        if (nodeItem->getNode()->isDefinition()) {
-            definitionButton->hide();
-        } else {
-            emit checkDefinition(nodeItem->getNode(), false);
-        }
+    if (nodeItem->getNode()->isDefinition()) {
+        definitionButton->hide();
+    } else {
+        emit setGoToButtons("definition", nodeItem->getNode());
     }
 }
 
@@ -578,11 +582,9 @@ void ToolbarWidget::checkDefinition()
  */
 void ToolbarWidget::checkImplementation()
 {
-    if (nodeItem && nodeItem->getNode()) {
-        if (nodeItem->getNode()->isImpl()) {
-            implementationButton->hide();
-        } else {
-            emit checkImplementation(nodeItem->getNode(), false);
-        }
+    if (nodeItem->getNode()->isImpl()) {
+        implementationButton->hide();
+    } else {
+        emit setGoToButtons("implementation", nodeItem->getNode());
     }
 }
