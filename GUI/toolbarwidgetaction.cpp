@@ -171,14 +171,6 @@ void ToolbarWidgetAction::hover()
 void ToolbarWidgetAction::actionButtonClicked()
 {
     emit trigger();
-
-    if (node) {
-        // if a new edge has been constructed using the toolbar, update tool buttons
-        ToolbarWidget* toolbar = qobject_cast<ToolbarWidget*>(parent());
-        toolbar->checkDefinition();
-        toolbar->checkImplementation();
-        toolbar->updateMenuList("connect", node);
-    }
 }
 
 

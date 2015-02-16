@@ -686,6 +686,7 @@ void NodeView::view_ConstructEdge(Node *src, Node *dst)
 {
     emit triggerAction("Toolbar: Constructing Edge");
     emit constructEdge(src, dst);
+    newEdgeConstructed_signalUpdates(src);
 }
 
 
@@ -896,11 +897,43 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
 void NodeView::nodeSelected_signalUpdates(Node* node)
 {
     if (node) {
+
+        Node* hasDefn = hasDefinition(node);
+        Node* hasImpl = hasImplementation(node);
+
+        // update goto menu actions
+        emit setGoToMenuActions("definition", hasDefn);
+        emit setGoToMenuActions("implementation", hasImpl);
+
+        // update goto toolbar buttons
+        toolbar->showDefinitionButton(hasDefn);
+        toolbar->showImplementationButton(hasImpl);
+
+        // update the dock buttons and dock adoptable nodes list
         updateDockButtons(node);
         emit updateDockAdoptableNodesList(node);
-        emit setGoToMenuActions("definition", hasDefinition(node));
-        emit setGoToMenuActions("implementation", hasImplementation(node));
     }
+}
+
+
+/**
+ * @brief NodeView::newEdgeConstructed_signalUpdates
+ * This is called when a new edge is constructed.
+ * It sends signals to update specific toolbar buttons and menu items.
+ */
+void NodeView::newEdgeConstructed_signalUpdates(Node *src)
+{
+    Node* hasDefn = hasDefinition(src);
+    Node* hasImpl = hasImplementation(src);
+
+    // update specific tool buttons when a new edge is constructed
+    toolbar->showDefinitionButton(hasDefn);
+    toolbar->showImplementationButton(hasImpl);
+    toolbar->updateMenuList("connect", src);
+
+    // update node goto menu actions
+    emit setGoToMenuActions("definition", hasDefn);
+    emit setGoToMenuActions("implementation", hasImpl);
 }
 
 
@@ -912,7 +945,6 @@ GraphMLItem *NodeView::getGraphMLItemFromHash(QString ID)
         qCritical() << "Cannot find GraphMLItem from Lookup Hash. ID: " << ID;
     }
     return 0;
-
 }
 
 
@@ -1354,7 +1386,8 @@ void NodeView::setGoToToolbarButtons(QString action, Node *node)
  */
 Node* NodeView::hasDefinition(Node *node)
 {
-    Node* defn = node;
+    //Node* defn = node;
+    Node* defn = 0;
     if (!node->isDefinition()) {
         defn = node->getDefinition();
     }
@@ -1369,7 +1402,8 @@ Node* NodeView::hasDefinition(Node *node)
  */
 Node* NodeView::hasImplementation(Node *node)
 {
-    Node* impl = node;
+    //Node* impl = node;
+    Node* impl = 0;
     if (!node->isImpl()) {
         if (node->isDefinition()) {
             impl = node->getImplementations().at(0);

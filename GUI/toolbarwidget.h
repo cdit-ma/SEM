@@ -24,9 +24,6 @@ public:
     void showDefinitionButton(Node *definition);
     void showImplementationButton(Node* implementation);
 
-    void checkDefinition();
-    void checkImplementation();
-
 
 protected:
     virtual void enterEvent(QEvent* event);
@@ -34,8 +31,6 @@ protected:
 
 
 signals:
-    void setGoToButtons(QString action, Node* node);
-
     void goToDefinition(Node* node);
     void goToImplementation(Node* node);
 
@@ -67,14 +62,13 @@ public slots:
     void hideToolbar();
 
     void showMenu();
-    void checkAddInstanceAction();
+
 
 private:
     void setupToolBar();
     void setupButtonMenus();
     void makeConnections();
     void connectToView();
-
     void updateToolButtons();
 
     NodeItem* nodeItem;

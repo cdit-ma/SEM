@@ -314,13 +314,13 @@ void ToolbarWidget::hideToolbar(QAction *action)
 /**
  * @brief ToolbarWidget::hideToolbar
  * This method checks if hiding the menu was triggered by the toolbar.
- * If the event came from outside the toolbar, hide the toolbar.
+ * If the event came from outside the toolbar, hide the toolbar and all visible menus.
  */
 void ToolbarWidget::hideToolbar()
 {
     // TODO
     // add a check here or the method above when addInstanceActionMenu is closed
-    // check if it was closed by clicking on addInstanceAction
+    // check if it was closed by clicking on addInstanceAction or otherwise
 
     QObject *object = QObject::sender();
     while (object) {
@@ -334,7 +334,6 @@ void ToolbarWidget::hideToolbar()
     if (!eventFromToolbar) {
         hide();
     }
-
 }
 
 
@@ -349,19 +348,6 @@ void ToolbarWidget::showMenu()
     if (addInstanceActionMenu->actions().count() > 0) {
         addInstanceActionMenu->exec(menuPos);
     }
-}
-
-
-/**
- * @brief ToolbarWidget::checkAddInstanceAction
- */
-void ToolbarWidget::checkAddInstanceAction()
-{
-    /*
-    if (!addInstanceAction->getButton()->isChecked()) {
-        hideToolbar();
-    }
-    */
 }
 
 
@@ -503,8 +489,6 @@ void ToolbarWidget::connectToView()
 
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(view_deleteSelectedNode()));
 
-    connect(this, SIGNAL(setGoToButtons(QString,Node*)), nodeView, SLOT(setGoToToolbarButtons(QString,Node*)));
-
     connect(this, SIGNAL(goToDefinition(Node*)), nodeView, SLOT(goToDefinition(Node*)));
     connect(this, SIGNAL(goToImplementation(Node*)), nodeView, SLOT(goToImplementation(Node*)));
 
@@ -514,7 +498,6 @@ void ToolbarWidget::connectToView()
     connect(this, SIGNAL(constructNode(QString)), nodeView, SLOT(view_ConstructNode(QString)));
     connect(this, SIGNAL(constructEdge(Node*,Node*)), nodeView, SLOT(view_ConstructEdge(Node*,Node*)));
     connect(this, SIGNAL(constructComponentInstance(Node*,Node*,int)), nodeView, SLOT(view_ConstructComponentInstance(Node*,Node*,int)));
-
     connect(this, SIGNAL(constructNewView(Node*)), nodeView, SLOT(constructNewView(Node*)));
 }
 
@@ -539,15 +522,13 @@ void ToolbarWidget::updateToolButtons()
 
         deleteButton->hide();
         connectButton->hide();
-        definitionButton->hide();
-        implementationButton->hide();
+        //definitionButton->hide();
+        //implementationButton->hide();
         showFrame = false;
 
     } else {
 
         deleteButton->show();
-        checkDefinition();
-        checkImplementation();
         getLegalNodesList();
 
         if (nodeKind == "ComponentAssembly") {
@@ -560,31 +541,5 @@ void ToolbarWidget::updateToolButtons()
         frame->hide();
     } else {
         frame->show();
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::checkDefinition
- */
-void ToolbarWidget::checkDefinition()
-{
-    if (nodeItem->getNode()->isDefinition()) {
-        definitionButton->hide();
-    } else {
-        emit setGoToButtons("definition", nodeItem->getNode());
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::checkImplementation
- */
-void ToolbarWidget::checkImplementation()
-{
-    if (nodeItem->getNode()->isImpl()) {
-        implementationButton->hide();
-    } else {
-        emit setGoToButtons("implementation", nodeItem->getNode());
     }
 }

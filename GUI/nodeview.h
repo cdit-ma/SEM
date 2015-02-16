@@ -93,6 +93,7 @@ signals:
     void turnOnViewAspect(QString aspect);
     void setGoToMenuActions(QString action, bool);
 
+
 public slots:
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
     void view_ConstructGraphMLGUI(GraphML* item);
@@ -154,6 +155,7 @@ public slots:
     void updateToolbarLegalNodesList(QList<Node*>* nodeList);
     void updateToolbarDefinitionsList(QList<Node*>* nodeList);
 
+
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
 
@@ -161,6 +163,7 @@ private:
     bool removeGraphMLItemFromHash(QString ID);
 
     void nodeSelected_signalUpdates(Node *node);
+    void newEdgeConstructed_signalUpdates(Node* src);
 
     Node* hasDefinition(Node* node);
     Node* hasImplementation(Node* node);
