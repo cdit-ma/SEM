@@ -224,9 +224,13 @@ void DockScrollArea::dock_connectComponentInstance(Node *inst, Node *defn)
  */
 void DockScrollArea::removeFromDockNodeList(QWidget *widget)
 {
+    qDebug() << "componentDefinitions.size = " << componentDefinitions.size();
     if (dockNodes.contains(widget)) {
         dockNodes.removeAt(dockNodes.indexOf(widget));
+        DockNodeItem* item = qobject_cast<DockNodeItem*>(widget);
+        componentDefinitions.removeAll(item->getNodeItem()->getNode());
     }
+    qDebug() << "componentDefinitions.size = " << componentDefinitions.size();
 }
 
 

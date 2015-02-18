@@ -163,8 +163,9 @@ private:
     void storeGraphMLItemInHash(GraphMLItem* item);
     bool removeGraphMLItemFromHash(QString ID);
 
+    void nodeConstructed_signalUpdates(NodeItem* nodeItem);
     void nodeSelected_signalUpdates(Node *node);
-    void newEdgeConstructed_signalUpdates(Node* src);
+    void edgeConstructed_signalUpdates(Node* src);
 
     Node* hasDefinition(Node* node);
     Node* hasImplementation(Node* node);

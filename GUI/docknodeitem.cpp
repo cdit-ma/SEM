@@ -124,8 +124,8 @@ void DockNodeItem::updateData()
  */
 void DockNodeItem::deleteLater()
 {
-    /*
     emit removeFromDockNodeList(this);
+    /*
 
     if (parentContainer) {
         parentContainer->checkDockNodesList();

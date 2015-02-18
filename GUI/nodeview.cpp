@@ -441,45 +441,9 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         }
     }
 
-    // update parts dock conatiner everytime there is a newly created
-    // node item, in case the current adoptable node list has chnaged
-    //emit updateDockContainer("Parts");
-
-
-    // Stop component definitions and hardware nodes from being
-    // drawn on the canvas. Handle differently when user is adding
-    // a new definition or connecting hardware nodes.
-
-    Component* component = dynamic_cast<Component*>(node);
-    if (component) {
-        emit componentNodeMade("component", nodeItem);
-
-        // store which File the new Component belongs to
-        if (nodeItem && parentNode) {
-            nodeItem->setFileID(parentNode->getID());
-        }
-
-        return;
-    }
-
-    HardwareNode* hardwareNode = dynamic_cast<HardwareNode*>(node);
-    if (hardwareNode) {
-        nodeItem->setHidden(true);
-        emit hardwareNodeMade("hardware", nodeItem);
-        return;
-    }
-
-    // store Files for toolbar menu
-    File* file = dynamic_cast<File*>(node);
-    if (file) {
-        files->append(file);
-    }
-    /*
-    if (nodeItem && node->getDataValue("kind") == "ComponentInstance") {
-        qDebug() << "858564651612361654161563161";
-        nodeItem->updateParentHeight(nodeItem);
-    }
-    */
+    // new Node/NodeItem has been constructed
+    // update whatever needs updating
+    nodeConstructed_signalUpdates(nodeItem);
 }
 
 
@@ -685,7 +649,7 @@ void NodeView::view_ConstructEdge(Node *src, Node *dst)
 {
     emit triggerAction("Toolbar: Constructing Edge");
     emit constructEdge(src, dst);
-    newEdgeConstructed_signalUpdates(src);
+    edgeConstructed_signalUpdates(src);
 }
 
 
@@ -713,19 +677,6 @@ void NodeView::view_ConstructComponentInstance(Node* assm, Node* defn, int sende
 
     }
 }
-
-
-/**
- * @brief NodeView::view_connectComponentDefinition
- * @param itm
- *
-void NodeView::view_connectComponentInstance(Node *inst, Node *defn)
-{
-    emit triggerAction("Toolbar: Connecting ComponentInstance to Component");
-    if (inst && defn) {
-        emit constructEdge(inst, defn);
-    }
-}*/
 
 
 /**
@@ -780,6 +731,13 @@ void NodeView::updateToolbarDefinitionsList(QList<Node*>* nodeList)
     emit updateMenuList("addInstance", 0, nodeList);
 }
 
+
+/**
+ * @brief NodeView::componentInstanceConstructed
+ * This is called when a ComponentInstance is constructed.
+ * It sends a signal to update its parent's height if necessary.
+ * @param node
+ */
 void NodeView::componentInstanceConstructed(Node *node)
 {
     GraphMLItem* graphMLItem = getGraphMLItemFromGraphML(node);
@@ -901,6 +859,35 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
 
 
 /**
+ * @brief NodeView::nodeConstructed_signalUpdates
+ * This is called whenever a node is constructed.
+ * It sends signals to update whatever needs updating.
+ * @param node
+ */
+void NodeView::nodeConstructed_signalUpdates(NodeItem *nodeItem)
+{
+    // update parts dock conatiner everytime there is a newly created
+    // node item, in case the current adoptable node list has chnaged
+    // emit updateDockContainer("Parts");
+
+    // store Files for toolbar menu
+    File* file = dynamic_cast<File*>(nodeItem->getNode());
+    if (file) {
+        files->append(file);
+        return;
+    }
+
+    QString nodeKind = nodeItem->getNode()->getDataValue("kind");
+    if (nodeKind == "Component") {
+        emit componentNodeMade("component", nodeItem);
+    } else if (nodeKind == "HardwareNode") {
+        nodeItem->setHidden(true);
+        emit hardwareNodeMade("hardware", nodeItem);
+    }
+}
+
+
+/**
  * @brief NodeView::nodeSelected
  * This is called whenever a node is selected.
  * It sends signals to update whatever needs updating.
@@ -927,11 +914,11 @@ void NodeView::nodeSelected_signalUpdates(Node* node)
 
 
 /**
- * @brief NodeView::newEdgeConstructed_signalUpdates
+ * @brief NodeView::edgeConstructed_signalUpdates
  * This is called when a new edge is constructed.
  * It sends signals to update specific toolbar buttons and menu items.
  */
-void NodeView::newEdgeConstructed_signalUpdates(Node *src)
+void NodeView::edgeConstructed_signalUpdates(Node *src)
 {
     Node* hasDefn = hasDefinition(src);
     Node* hasImpl = hasImplementation(src);
