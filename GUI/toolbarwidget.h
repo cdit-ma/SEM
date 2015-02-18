@@ -26,8 +26,8 @@ public:
 
 
 protected:
-    virtual void enterEvent(QEvent* event);
-    virtual void leaveEvent(QEvent* event);
+    virtual void enterEvent(QEvent*);
+    virtual void leaveEvent(QEvent*);
 
 
 signals:
@@ -49,8 +49,7 @@ public slots:
 
     void getAdoptableNodesList();
     void getLegalNodesList();
-    void getComponentDefinitionsList();
-    void updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodeList);
+    void updateMenuList(QString action, QStringList* stringList, QList<Node*>* nodeList);
 
     void addChildNode();
     void connectNodes();
@@ -70,6 +69,15 @@ private:
     void makeConnections();
     void connectToView();
     void updateToolButtons();
+
+    void showMenu(ToolbarWidgetAction *action, QMenu* menu);
+
+    void setupAdoptableNodesList(QStringList *nodeKinds);
+    void setupLegalNodesList(QList<Node*> *nodeList);
+    void setupComponentInstanceList(QList<Node*> *instances);
+    void setupFilesList(QList<Node *> *files);
+
+    void getComponentDefinitionsList();
 
     NodeItem* nodeItem;
     NodeItem* prevNodeItem;
@@ -91,6 +99,8 @@ private:
     QMenu* definitionMenu;
     QMenu* implementationMenu;
     QMenu* addInstanceActionMenu;
+
+    QMenu* fileMenu;
 
     QFrame* frame;
 

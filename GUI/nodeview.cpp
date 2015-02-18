@@ -29,8 +29,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     drawingRubberBand = false;
     once = true;
 
-    //firstSort = true;
-
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
     //setDragMode(RubberBandDrag);
@@ -72,6 +70,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     // create toolbar widget
     toolbar = new ToolbarWidget(this);
+    files = new QList<Node*>();
 }
 
 
@@ -360,17 +359,6 @@ void NodeView::setRubberBandMode(bool On)
 void NodeView::setViewAspects(QStringList aspects)
 {
     currentAspects = aspects;
-
-    // initially show and sort container items so that they are not
-    // painted on top of each other when they are first turned on
-    /*
-    if (firstSort) {
-        showAllViewAspects();
-        view_sortModel();
-        firstSort = false;
-    }
-    */
-
     emit updateViewAspects(aspects);
     view_centerViewAspects();
 }
@@ -440,11 +428,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     connectGraphMLItemToController(nodeItem, node);
 
 
-
-
-    /**************************************************************/
-
-
     if(scene() && !scene()->items().contains(nodeItem)){
         //Add to model.
         scene()->addItem(nodeItem);
@@ -470,17 +453,33 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     Component* component = dynamic_cast<Component*>(node);
     if (component) {
         emit componentNodeMade("component", nodeItem);
+
+        // store which File the new Component belongs to
+        if (nodeItem && parentNode) {
+            nodeItem->setFileID(parentNode->getID());
+        }
+
         return;
     }
 
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*>(node);
     if (hardwareNode) {
         nodeItem->setHidden(true);
-        //nodeItem->setHidden(true);
         emit hardwareNodeMade("hardware", nodeItem);
         return;
     }
 
+    // store Files for toolbar menu
+    File* file = dynamic_cast<File*>(node);
+    if (file) {
+        files->append(file);
+    }
+    /*
+    if (nodeItem && node->getDataValue("kind") == "ComponentInstance") {
+        qDebug() << "858564651612361654161563161";
+        nodeItem->updateParentHeight(nodeItem);
+    }
+    */
 }
 
 
@@ -711,6 +710,7 @@ void NodeView::view_ConstructComponentInstance(Node* assm, Node* defn, int sende
         } else if (sender == 1) {
             emit constructComponentInstance(assembly, definition, graphMLItem->mapFromScene(menuPosition));
         }
+
     }
 }
 
@@ -741,6 +741,8 @@ void NodeView::updateToolbarMenuList(QString action, Node *node)
         emit getLegalNodesList(node);
     } else if (action == "addInstance") {
         emit getComponentDefinitions(node);
+    } else if (action == "files") {
+        emit updateMenuList("files", 0, files);
     }
 }
 
@@ -776,6 +778,15 @@ void NodeView::updateToolbarLegalNodesList(QList<Node*>* nodeList)
 void NodeView::updateToolbarDefinitionsList(QList<Node*>* nodeList)
 {
     emit updateMenuList("addInstance", 0, nodeList);
+}
+
+void NodeView::componentInstanceConstructed(Node *node)
+{
+    GraphMLItem* graphMLItem = getGraphMLItemFromGraphML(node);
+    NodeItem* nodeItem = getNodeItemFromGraphMLItem(graphMLItem);
+    if (nodeItem) {
+        nodeItem->updateParentHeight(nodeItem);
+    }
 }
 
 
@@ -897,7 +908,6 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
 void NodeView::nodeSelected_signalUpdates(Node* node)
 {
     if (node) {
-
         Node* hasDefn = hasDefinition(node);
         Node* hasImpl = hasImplementation(node);
 
@@ -1078,6 +1088,7 @@ void NodeView::wheelEvent(QWheelEvent *event)
 {
     // enable zooming without having to hold CTRL
     //if(CONTROL_DOWN){
+
     // Scale the view / do the zoom
     double scaleFactor = 1.05;
     if(event->delta() > 0) {
@@ -1088,6 +1099,7 @@ void NodeView::wheelEvent(QWheelEvent *event)
         scale(1.0 / scaleFactor, 1.0 / scaleFactor);
     }
     emit updateZoom(transform().m22());
+
     //}
 }
 
@@ -1147,6 +1159,7 @@ void NodeView::forceSortViewAspects()
 {
     showAllViewAspects();
     view_sortModel();
+    controller->view_ClearUndoRedoStacks();
 }
 
 
@@ -1381,39 +1394,39 @@ void NodeView::setGoToToolbarButtons(QString action, Node *node)
 
 /**
  * @brief NodeView::hasDefinition
+ * Check to see if node has an definition.
  * @param node
  * @return
  */
 Node* NodeView::hasDefinition(Node *node)
 {
-    //Node* defn = node;
-    Node* defn = 0;
     if (!node->isDefinition()) {
-        defn = node->getDefinition();
+        return node->getDefinition();
     }
-    return defn;
+    return 0;
 }
 
 
 /**
  * @brief NodeView::hasImplementation
+ * Check to see if node has an implementation.
  * @param node
  * @return
  */
 Node* NodeView::hasImplementation(Node *node)
 {
-    //Node* impl = node;
-    Node* impl = 0;
     if (!node->isImpl()) {
         if (node->isDefinition()) {
-            impl = node->getImplementations().at(0);
+            if(node->getImplementations().size() > 0) {
+                return node->getImplementations().at(0);
+            }
         } else if (node->getDefinition()) {
-            impl = node->getDefinition()->getImplementations().at(0);
-        } else {
-            impl = 0;
+            if(node->getDefinition()->getImplementations().size() > 0) {
+                return node->getDefinition()->getImplementations().at(0);
+            }
         }
     }
-    return impl;
+    return 0;
 }
 
 

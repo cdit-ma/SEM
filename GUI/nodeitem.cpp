@@ -83,6 +83,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     if (width < initialWidth) {
         width = initialWidth;
     }
+
     if (height < initialHeight) {
         height = initialHeight;
     }
@@ -147,10 +148,10 @@ NodeItem::~NodeItem()
             // update parts dock container if parent kind
             // is File and it no longer has children
             /*
-                if (item->getGraphML()->getDataValue("kind") == "File") {
-                    emit updateDockContainer("Parts");
-                }
-                */
+            if (item->getGraphML()->getDataValue("kind") == "File") {
+                emit updateDockContainer("Parts");
+            }
+            */
         }
 
     }
@@ -199,7 +200,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     if(PAINT_OBJECT){
         QRectF rectangle(0, 0, width, height);
-
 
         float headerWidth = width;
         float headerHeight = minimumHeight;
@@ -259,6 +259,16 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     }
 
+}
+
+
+/**
+ * @brief NodeItem::isHidden
+ * @return
+ */
+bool NodeItem::isHidden()
+{
+   return hidden;
 }
 
 double NodeItem::getWidth()
@@ -1139,6 +1149,26 @@ QList<NodeItem *> NodeItem::getChildren()
 
 
 /**
+ * @brief NodeItem::getFileID
+ * @return
+ */
+QString NodeItem::getFileID()
+{
+    return fileID;
+}
+
+
+/**
+ * @brief NodeItem::setFileID
+ * @param id
+ */
+void NodeItem::setFileID(QString id)
+{
+    fileID = id;
+}
+
+
+/**
  * @brief NodeItem::getChildKind
  * This returns a list of kinds of all this item's children.
  * @return
@@ -1230,7 +1260,7 @@ void NodeItem::expandItem(bool show)
 {
     foreach (QGraphicsItem* child, this->childItems()) {
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
-        if (nodeItem) {
+        if (nodeItem && !nodeItem->isHidden()) {
             nodeItem->setVisible(show);
         }
     }
@@ -1297,7 +1327,8 @@ void NodeItem::updateHeight(NodeItem *child)
             if (parentNodeItem) {
                 emit updateParentHeight(this);
             }
-
+        } else {
+            //qDebug() << "No change in height";
         }
     }
 }
@@ -1368,7 +1399,7 @@ bool NodeItem::hasExpandButton()
 
 
 /**
- * @brief NodeItem::hideExpandButton
+ * @brief NodeItem::removeExpandButton
  */
 void NodeItem::removeExpandButton()
 {

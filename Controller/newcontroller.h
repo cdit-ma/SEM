@@ -123,6 +123,8 @@ signals:
 
     void disableDockButtons();
 
+    void componentInstanceConstructed(Node* node);
+
 public slots:
     void centerNode(QString nodeLabel);
     void view_SelectModel();

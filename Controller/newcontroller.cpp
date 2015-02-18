@@ -44,11 +44,11 @@ NewController::NewController()
     containerNodeKinds << "HardwareDefinitions" << "AssemblyDefinitions";
 
     constructableNodeKinds << "MemberInstance" << "AggregateInstance";
-    constructableNodeKinds << "File" << "Component" << "ComponentInstance" << "ComponentImpl";
+    constructableNodeKinds << "File" << "Component" << "ComponentAssembly" << "ComponentInstance" << "ComponentImpl";
     constructableNodeKinds << "Attribute" << "AttributeInstance" << "AttributeImpl";
     constructableNodeKinds << "InEventPort" << "InEventPortInstance" << "InEventPortImpl" << "InEventPortDelegate";
     constructableNodeKinds << "OutEventPort" << "OutEventPortInstance" << "OutEventPortImpl" << "OutEventPortDelegate";
-    constructableNodeKinds << "ComponentAssembly" << "ManagementComponent";
+    constructableNodeKinds << "ManagementComponent";
     constructableNodeKinds << "HardwareNode" << "HardwareCluster" ;
     constructableNodeKinds << "Member" << "Aggregate";
     constructableNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload";
@@ -66,6 +66,8 @@ void NewController::connectView(NodeView *view)
 
     connect(view, SIGNAL(unselect()), this, SLOT(view_ClearSelection()));
     connect(this, SIGNAL(disableDockButtons()), view, SLOT(disableDockButtons()));
+
+    connect(this, SIGNAL(componentInstanceConstructed(Node*)), view, SLOT(componentInstanceConstructed(Node*)));
 
     if(!view->isSubView()){
         //Main view Functionality
@@ -1189,6 +1191,8 @@ void NewController::constructComponentInstance(Node *assembly, Node *definition,
     instance->getData("x")->setValue(QString::number(center.x()));
     instance->getData("y")->setValue(QString::number(center.y()));
     view_ConstructEdge(instance, definition);
+
+    emit componentInstanceConstructed(instance);
 }
 
 
@@ -1602,7 +1606,6 @@ void NewController::removeGraphMLFromHash(QString ID)
 Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> dataToAttach)
 {
     //Construct the Model Node first.
-
     Node* node = constructNode(dataToAttach);
 
     //Check if this node has been already setup Visually.

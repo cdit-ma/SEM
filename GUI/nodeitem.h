@@ -20,7 +20,7 @@
 #include "graphmlitem.h"
 
 class NodeEdge;
-//hgkjjhg
+
 class NodeItem : public GraphMLItem
 {
     Q_OBJECT
@@ -38,6 +38,7 @@ public:
     bool intersectsRectangle(QRectF rect);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
+    bool isHidden();
     void setHidden(bool hidden);
 
     void addNodeEdge(NodeEdge* line);
@@ -54,6 +55,9 @@ public:
     Node* getNode();
     QString getNodeKind();
     QList<NodeItem*> getChildren();
+
+    QString getFileID();
+    void setFileID(QString id);
 
 signals:
     //Node Edge Signals
@@ -156,6 +160,7 @@ private:
     bool isNodePressed;
 
     QString nodeKind;
+    QString fileID;
 
     double width;
     double height;

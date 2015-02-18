@@ -39,6 +39,7 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
 
 /**
  * @brief ToolbarWidget::setNodeItem
+ * This only gets called when the toolbar is about to show.
  * Set nodeItem to the currectly selected item.
  * Update applicable tool buttons only if prev != item.
  * @param item
@@ -90,7 +91,7 @@ void ToolbarWidget::showImplementationButton(Node* implementation)
  * This is called when the mouse is hovering over the toolbar.
  * @param event
  */
-void ToolbarWidget::enterEvent(QEvent *event)
+void ToolbarWidget::enterEvent(QEvent*)
 {
     eventFromToolbar = true;
 }
@@ -101,7 +102,7 @@ void ToolbarWidget::enterEvent(QEvent *event)
  * This is called when the mouse is no longer hovering over the toolbar.
  * @param event
  */
-void ToolbarWidget::leaveEvent(QEvent *event)
+void ToolbarWidget::leaveEvent(QEvent*)
 {
     eventFromToolbar = false;
 }
@@ -153,7 +154,8 @@ void ToolbarWidget::getLegalNodesList()
  */
 void ToolbarWidget::getComponentDefinitionsList()
 {
-    emit updateMenuList("addInstance", nodeItem->getNode());
+    //emit updateMenuList("addInstance", nodeItem->getNode());
+    emit updateMenuList("files", nodeItem->getNode());
 }
 
 
@@ -164,72 +166,16 @@ void ToolbarWidget::getComponentDefinitionsList()
  * @param nodeList - if action = connect; list of nodes the selected item can connect to
  *                 - if action = addInstance; list of existing Component definitions
  */
-void ToolbarWidget::updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodeList)
+void ToolbarWidget::updateMenuList(QString action, QStringList* stringList, QList<Node*>* nodeList)
 {
-    if (action == "add" && nodeKinds != 0) {
-
-        addMenu->clear();
-
-        if (nodeKinds->count() == 0) {
-            addChildButton->hide();
-            return;
-        } else {
-            addChildButton->show();
-        }
-
-        for (int i=0; i<nodeKinds->count(); i++) {
-
-            QString nodeKind = nodeKinds->at(i);
-            ToolbarWidgetAction* action;
-
-            if (nodeKind == "ComponentInstance") {
-                action = addInstanceAction;
-            } else {
-                action  = new ToolbarWidgetAction(nodeKind, this);
-                connect(action, SIGNAL(triggered()), this, SLOT(addChildNode()));
-            }
-
-            addMenu->addAction(action);
-        }
-
-        addChildButton->setMenu(addMenu);
-
+    if (action == "add" && stringList != 0) {
+        setupAdoptableNodesList(stringList);
     } else if (action == "connect" && nodeList != 0) {
-
-        connectMenu->clear();
-
-        if (nodeList->count() == 0) {
-            connectButton->hide();
-            return;
-        } else {
-            connectButton->show();
-        }
-
-        for (int i=0; i<nodeList->count(); i++) {
-            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList->at(i), this);
-            connectMenu->addAction(action);
-            connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
-        }
-
-        connectButton->setMenu(connectMenu);
-
+        setupLegalNodesList(nodeList);
     } else if (action == "addInstance" && nodeList != 0) {
-
-        addInstanceActionMenu->clear();
-
-        if (nodeList->count() == 0) {
-            addInstanceAction->setMenu(0);
-            return;
-        }
-
-        for (int i=0; i<nodeList->count(); i++) {
-            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList->at(i), this, true);
-            addInstanceActionMenu->addAction(action);
-            connect(action, SIGNAL(triggered()), this, SLOT(addComponentInstance()));
-        }
-
-        addInstanceAction = qobject_cast<ToolbarWidgetAction*>(addMenu->actions().at(0));
-        addInstanceAction->setMenu(addInstanceActionMenu);
+        setupComponentInstanceList(nodeList);
+    } else if (action == "files" && nodeList != 0) {
+        setupFilesList(nodeList);
     }
 }
 
@@ -296,17 +242,14 @@ void ToolbarWidget::addComponentInstance()
  */
 void ToolbarWidget::hideToolbar(QAction *action)
 {
-    if (action != addInstanceAction) {
-        hideToolbar();
-    } else {
-        // this can be replaced by the commented out connect
-        if (addInstanceAction->getButton()->isChecked()) {
-            showMenu();
-        } else {
-            addInstanceActionMenu->hide();
+    qDebug() << "QObject::sender() - " << QObject::sender();
+    QMenu* senderMenu = qobject_cast<QMenu*>(QObject::sender());
+    if (senderMenu) {
+        if (senderMenu == addMenu && action != addInstanceAction) {
+            hideToolbar();
+        } else if (senderMenu == fileMenu) {
+            qDebug() << "fileMenu";
         }
-        //this->show();
-        //addMenu->show();
     }
 }
 
@@ -322,18 +265,27 @@ void ToolbarWidget::hideToolbar()
     // add a check here or the method above when addInstanceActionMenu is closed
     // check if it was closed by clicking on addInstanceAction or otherwise
 
-    QObject *object = QObject::sender();
-    while (object) {
-        QMenu* menu = qobject_cast<QMenu*>(object);
-        if (menu) {
-            menu->hide();
-        }
-        object = object->parent();
-    }
-
     if (!eventFromToolbar) {
+        QObject *sender = QObject::sender();
+        while (sender) {
+            QMenu* menu = qobject_cast<QMenu*>(sender);
+            if (menu) {
+                menu->hide();
+            }
+            sender = sender->parent();
+        }
         hide();
     }
+}
+
+
+/**
+ * @brief ToolbarWidget::showMenu
+ */
+void ToolbarWidget::showMenu()
+{
+    ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
+    showMenu(action, action->getMenu());
 }
 
 
@@ -342,11 +294,11 @@ void ToolbarWidget::hideToolbar()
  * This shows the hidden menu that lists all the existing component definitions.
  * It also sets the actionButton's state to checked and repaints it.
  */
-void ToolbarWidget::showMenu()
+void ToolbarWidget::showMenu(ToolbarWidgetAction *action, QMenu *menu)
 {
-    QPoint menuPos = addInstanceAction->getButtonPos();
-    if (addInstanceActionMenu->actions().count() > 0) {
-        addInstanceActionMenu->exec(menuPos);
+    QPoint menuPos = action->getButtonPos();
+    if (menu->actions().count() > 0) {
+        menu->exec(menuPos);
     }
 }
 
@@ -443,8 +395,13 @@ void ToolbarWidget::setupButtonMenus()
     implementationButton->setMenu(implementationMenu);
 
     // this is used when ComponentInstance can be adopted by the current node
-    addInstanceAction = new ToolbarWidgetAction("ComponentInstance", this);
+    addInstanceAction = new ToolbarWidgetAction("ComponentInstance", addMenu);
     addInstanceActionMenu = new QMenu(addMenu);
+
+    fileMenu = new QMenu(addMenu);
+
+    qDebug() << "addMenu = " << addMenu;
+    qDebug() << "fileMenu = " << fileMenu;
 }
 
 
@@ -453,7 +410,11 @@ void ToolbarWidget::setupButtonMenus()
  */
 void ToolbarWidget::makeConnections()
 {
-    //connect(addInstanceAction, SIGNAL(triggered()), this, SLOT(showMenu()));
+    connect(fileMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
+    //connect(fileMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar()));
+    connect(fileMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
+
+    connect(addInstanceAction, SIGNAL(triggered()), this, SLOT(showMenu()));
 
     connect(addInstanceActionMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar()));
     connect(addInstanceActionMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
@@ -522,8 +483,6 @@ void ToolbarWidget::updateToolButtons()
 
         deleteButton->hide();
         connectButton->hide();
-        //definitionButton->hide();
-        //implementationButton->hide();
         showFrame = false;
 
     } else {
@@ -542,4 +501,143 @@ void ToolbarWidget::updateToolButtons()
     } else {
         frame->show();
     }
+}
+
+
+/**
+ * @brief ToolbarWidget::setupAdoptableNodesList
+ * @param nodeKinds
+ */
+void ToolbarWidget::setupAdoptableNodesList(QStringList* nodeKinds)
+{
+    addMenu->clear();
+
+    if (nodeKinds->count() == 0) {
+        addChildButton->hide();
+        return;
+    } else {
+        addChildButton->show();
+    }
+
+    for (int i=0; i<nodeKinds->count(); i++) {
+
+        QString nodeKind = nodeKinds->at(i);
+        ToolbarWidgetAction* action;
+
+        if (nodeKind == "ComponentInstance") {
+            action = addInstanceAction;
+        } else {
+            action  = new ToolbarWidgetAction(nodeKind, this);
+            connect(action, SIGNAL(triggered()), this, SLOT(addChildNode()));
+        }
+
+        addMenu->addAction(action);
+    }
+
+    addChildButton->setMenu(addMenu);
+}
+
+
+/**
+ * @brief ToolbarWidget::setupLegalNodesList
+ * @param nodeList
+ */
+void ToolbarWidget::setupLegalNodesList(QList<Node*> *nodeList)
+{
+    connectMenu->clear();
+
+    if (nodeList->count() == 0) {
+        connectButton->hide();
+        return;
+    } else {
+        connectButton->show();
+    }
+
+    for (int i=0; i<nodeList->count(); i++) {
+        ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList->at(i), this);
+        connectMenu->addAction(action);
+        connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
+    }
+
+    connectButton->setMenu(connectMenu);
+}
+
+
+/**
+ * @brief ToolbarWidget::setupComponentInstanceList
+ * @param instances
+ */
+void ToolbarWidget::setupComponentInstanceList(QList<Node*> *instances)
+{
+    /*
+    addInstanceActionMenu->clear();
+
+    if (instances->count() == 0) {
+        addInstanceAction->getButton()->setCheckable(false);
+        return;
+    } else {
+        addInstanceAction->getButton()->setCheckable(true);
+    }
+
+    for (int i=0; i<instances->count(); i++) {
+        ToolbarWidgetAction* action = new ToolbarWidgetAction(instances->at(i), this, "instance");
+        addInstanceActionMenu->addAction(action);
+        connect(action, SIGNAL(triggered()), this, SLOT(addComponentInstance()));
+    }
+
+    //addInstanceAction->setMenu(addInstanceActionMenu);
+    */
+
+    if (instances->count() == 0) {
+        return;
+    }
+
+    for (int i=0; i<instances->count(); i++) {
+
+        foreach (QAction* action, fileMenu->actions()) {
+
+            ToolbarWidgetAction* fileAction = qobject_cast<ToolbarWidgetAction*>(action);
+            QString fileID = instances->at(i)->getParentNode()->getID();
+
+            if (fileID == fileAction->getNode()->getID()) {
+
+                ToolbarWidgetAction* action = new ToolbarWidgetAction(instances->at(i), this, "instance");
+                fileAction->getMenu()->addAction(action);
+                break;
+
+            }
+        }
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::setupFilesList
+ * @param files
+ */
+void ToolbarWidget::setupFilesList(QList<Node*> *files)
+{
+    fileMenu->clear();
+
+    if (files->count() == 0) {
+        addInstanceAction->getButton()->setCheckable(false);
+        addInstanceAction->setMenu(0);
+        return;
+    } else {
+        addInstanceAction->getButton()->setCheckable(true);
+    }
+
+    for (int i=0; i<files->count(); i++) {
+        ToolbarWidgetAction* fileAction = new ToolbarWidgetAction(files->at(i), fileMenu, "file");
+        QMenu* fileActionMenu = new QMenu(fileMenu);
+
+        connect(fileAction, SIGNAL(triggered()), this, SLOT(showMenu()));
+        connect(fileActionMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
+
+        fileAction->setMenu(fileActionMenu);
+        fileMenu->addAction(fileAction);
+    }
+
+    addInstanceAction->setMenu(fileMenu);
+    emit updateMenuList("addInstance", nodeItem->getNode());
 }

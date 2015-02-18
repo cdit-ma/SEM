@@ -178,15 +178,30 @@ void NewMedeaWindow::initialiseGUI()
     rightVlayout->addWidget(dataTableBox, 4);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
     rightVlayout->addStretch();
-
     //rightVlayout->addWidget(notificationArea, 1);
-    rightVlayout->addStretch();
+    //rightVlayout->addStretch();
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
 
     mainHLayout->addLayout(leftVlayout, 4);
     mainHLayout->addLayout(rightVlayout, 1);
     mainHLayout->setContentsMargins(25, 25, 25, 25);
     nodeView->setLayout(mainHLayout);
+
+    // setup mini map
+    minimap = new NodeViewMinimap();
+    minimap->setScene(nodeView->scene());
+    connect(nodeView, SIGNAL(updateViewPort(QRectF)), minimap, SLOT(updateViewPort(QRectF)));
+
+    minimap->scale(.002,.002);
+    minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
+    minimap->setInteractive(false);
+
+    minimap->setFixedWidth(rightPanelWidth);
+    minimap->setFixedHeight(rightPanelWidth/16 * 10);
+    minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
+
+    rightVlayout->addWidget(minimap);
 
     // other settings
     notificationArea->setEnabled(false);
@@ -213,23 +228,6 @@ void NewMedeaWindow::initialiseGUI()
     // setup the menu and dock
     setupMenu(menuButton);
     setupDock(bodyLayout);
-
-    // setup mini map
-
-    minimap = new NodeViewMinimap();
-    minimap->setScene(nodeView->scene());
-    connect(nodeView, SIGNAL(updateViewPort(QRectF)), minimap, SLOT(updateViewPort(QRectF)));
-
-    minimap->scale(.002,.002);
-    minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
-    minimap->setInteractive(false);
-
-    minimap->setFixedWidth(rightPanelWidth);
-    minimap->setFixedHeight(rightPanelWidth/16 * 10);
-    minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
-
-    rightVlayout->addWidget(minimap);
 }
 
 
@@ -517,7 +515,7 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
 /**
  * @brief NewMedeaWindow::sortAndCenterModel
  * This force sorts the main definitions containers before they are hidden.
- * The visible view aspect(s) is the centered.
+ * The visible view aspect(s) is then centered.
  */
 void NewMedeaWindow::sortAndCenterViewAspects()
 {
@@ -573,18 +571,16 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
     QMessageBox::StandardButton saveProject = QMessageBox::question(this,
                                                                     "Creating A New Project",
                                                                     "Current project will be closed.\nSave changes?",
-                                                                    QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+                                                                    QMessageBox::Yes | QMessageBox::No);
     if (saveProject == QMessageBox::Yes) {
-        file_exportGraphML->trigger();
-    } else if (saveProject == QMessageBox::Cancel) {
-        return;
+        // if failed to export, do nothing
+        if (!exportGraphML()) {
+            return;
+        }
     }
 
     // clear item selection and reset gui
-    // delete old controller, create a new one
-    // then connect to new controller
     nodeView->clearSelection();
-    //on_actionClearModel_triggered();
     resetGUI();
 }
 
@@ -613,14 +609,7 @@ void NewMedeaWindow::on_actionImport_GraphML_triggered()
  */
 void NewMedeaWindow::on_actionExport_GraphML_triggered()
 {
-    QString filename = QFileDialog::getSaveFileName(
-                this,
-                "Export .graphML",
-                "c:\\",
-                "GraphML Documents (*.graphml *.xml)");
-
-
-    emit view_ExportGraphML(filename);
+    exportGraphML();
 }
 
 
@@ -1011,16 +1000,46 @@ void NewMedeaWindow::turnOnViewAspect(QString aspect)
  */
 void NewMedeaWindow::setGoToMenuActions(QString action, bool enabled)
 {
-    /*
-    bool enabled = false;
-    if (node) {
-        enabled = true;
-    }
-    */
     if (action == "definition") {
         view_goToDefinition->setEnabled(enabled);
     } else if (action == "implementation") {
         view_goToImplementation->setEnabled(enabled);
+    }
+}
+
+
+/**
+ * @brief NewMedeaWindow::exportGraphML
+ * @return
+ */
+bool NewMedeaWindow::exportGraphML()
+{
+    /*
+    QFileDialog *saveDialog = new QFileDialog(this,"Export .graphML", "c:\\", "GraphML Documents (*.graphml *.xml)");
+
+    if(QDialog::Accepted == saveDialog->exec()){
+        QString fileName = saveDialog->selectedFiles().at(0);
+        emit view_ExportGraphML(fileName);
+        //TODO: Wait for successful export then return.
+        qCritical() << "got export";
+        return true;
+    }else{
+        qCritical() << "No export";
+        return false;
+    }
+    */
+
+    QString filename = QFileDialog::getSaveFileName(this,
+                                                    "Export .graphML",
+                                                    "C:\\",
+                                                    "GraphML Documents (*.graphML *.xml)");
+
+    if (filename != "") {
+        emit view_ExportGraphML(filename);
+        //TODO: Wait for successful  then return.
+        return true;
+    } else {
+        return false;
     }
 }
 

@@ -111,6 +111,7 @@ private slots:
     void setGoToMenuActions(QString action, bool enabled);
 
 private:
+    bool exportGraphML();
     void importGraphMLFiles(QStringList files);
     void initialiseGUI();
     void makeConnections();

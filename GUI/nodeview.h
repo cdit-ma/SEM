@@ -155,6 +155,7 @@ public slots:
     void updateToolbarLegalNodesList(QList<Node*>* nodeList);
     void updateToolbarDefinitionsList(QList<Node*>* nodeList);
 
+    void componentInstanceConstructed(Node* node);
 
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
@@ -194,11 +195,10 @@ private:
     bool SHIFT_DOWN;
 
 
-    //bool firstSort;
-
     QList<NodeItem*> getNodeItemsList();
     void showAllViewAspects();
 
+    QList<Node*>* files;
     ToolbarWidget* toolbar;
 
     bool SUB_VIEW;

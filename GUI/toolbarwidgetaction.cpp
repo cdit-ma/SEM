@@ -10,7 +10,7 @@
  * @param nodeKind
  * @param parent
  */
-ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, ToolbarWidget *parent) :
+ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QWidget *parent) :
     QWidgetAction(parent)
 {
     node = 0;
@@ -24,12 +24,14 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, ToolbarWidget *parent
  * @param node
  * @param parent
  */
-ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, bool instance) :
+ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString actionKind) :
     QWidgetAction(parent)
 {
     this->node = node;
-    if (instance) {
+    if (actionKind == "instance") {
         kind = "ComponentInstance";
+    } else if (actionKind == "file") {
+        kind = "File";
     } else {
         kind = node->getDataValue("kind");
     }
@@ -49,6 +51,16 @@ void ToolbarWidgetAction::setMenu(QMenu *menu)
 
 
 /**
+ * @brief ToolbarWidgetAction::getMenu
+ * @return
+ */
+QMenu *ToolbarWidgetAction::getMenu()
+{
+    return menu;
+}
+
+
+/**
  * @brief ToolbarWidgetAction::getNode
  * @return
  */
@@ -57,6 +69,7 @@ Node *ToolbarWidgetAction::getNode()
     if (node) {
         return node;
     }
+    return NULL;
 }
 
 
@@ -87,8 +100,7 @@ QPushButton *ToolbarWidgetAction::getButton()
  */
 QPoint ToolbarWidgetAction::getButtonPos()
 {
-    QPoint point = actionButton->mapToGlobal(actionButton->pos());
-    point.setX(point.x() + actionButton->width() - 10);
+    QPoint point = actionButton->mapToGlobal(actionButton->rect().topRight());
     return point;
 }
 
@@ -127,6 +139,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
                                        Qt::KeepAspectRatio,
                                        Qt::SmoothTransformation);
 
+    //image
     QLabel* imageLabel = new QLabel(actionButton);
     imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
     imageLabel->setFixedSize(scaledImage.size());
@@ -143,10 +156,12 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 
     // if this action's kind is ComponentInstance, setCheckable to true
     // to help highlight this action when its menu is visible
+    /*
     if (node == 0 && kind == "ComponentInstance") {
         actionButton->setCheckable(true);
         actionButton->setChecked(false);
     }
+    */
 
     connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
     connect(this, SIGNAL(hovered()), this, SLOT(hover()));
@@ -157,6 +172,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 
 /**
  * @brief ToolbarWidgetAction::hover
+ * This method passes the hover on this item to the actionButton.
  */
 void ToolbarWidgetAction::hover()
 {
@@ -167,6 +183,7 @@ void ToolbarWidgetAction::hover()
 
 /**
  * @brief ToolbarWidgetAction::actionButtonClicked
+ * When the actionButton is clicked, this action is triggered.
  */
 void ToolbarWidgetAction::actionButtonClicked()
 {
@@ -180,8 +197,6 @@ void ToolbarWidgetAction::actionButtonClicked()
  */
 void ToolbarWidgetAction::actionButtonUnclicked()
 {
-
     actionButton->setChecked(false);
     actionButton->repaint();
-    //emit trigger();
 }
