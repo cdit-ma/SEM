@@ -50,6 +50,7 @@ public slots:
 
     void getAdoptableNodesList();
     void getLegalNodesList();
+    void getFilesList();
     void updateMenuList(QString action, QStringList* stringList, QList<Node*>* nodeList);
 
     void addChildNode();
@@ -58,11 +59,7 @@ public slots:
 
     void addComponentInstance();
 
-    void hideToolbar(QAction* action);
     void hideToolbar();
-
-    void showMenu();
-    void hideMenu(QMenu* menu, QMenu *topMostMenu);
 
 private:
     void setupToolBar();
@@ -71,14 +68,12 @@ private:
     void connectToView();
     void updateToolButtons();
 
-    void showMenu(ToolbarWidgetAction *action, QMenu* menu);
-
     void setupAdoptableNodesList(QStringList *nodeKinds);
     void setupLegalNodesList(QList<Node*> *nodeList);
     void setupComponentInstanceList(QList<Node*> *instances);
     void setupFilesList(QList<Node *> *files);
 
-    void getFilesList();
+    void clearMenus();
 
     NodeItem* nodeItem;
     NodeItem* prevNodeItem;
@@ -95,13 +90,14 @@ private:
 
     ToolbarWidgetAction* addInstanceAction;
 
-    QMenu* addMenu;
-    QMenu* connectMenu;
-    QMenu* definitionMenu;
-    QMenu* implementationMenu;
-    QMenu* addInstanceActionMenu;
+    ToolbarWidgetMenu* addMenu;
+    ToolbarWidgetMenu* connectMenu;
+    ToolbarWidgetMenu* definitionMenu;
+    ToolbarWidgetMenu* implementationMenu;
 
-    QMenu* fileMenu;
+    ToolbarWidgetMenu* fileMenu;
+    ToolbarWidgetAction* fileDefaultAction;
+    ToolbarWidgetAction* instanceDefaultAction;
 
     QFrame* frame;
 

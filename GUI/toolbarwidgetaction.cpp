@@ -1,4 +1,5 @@
 #include "toolbarwidgetaction.h"
+#include "toolbarwidgetmenu.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
@@ -10,13 +11,19 @@
  * @param nodeKind
  * @param parent
  */
-ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QWidget *parent) :
+ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QWidget *parent) :
     QWidgetAction(parent)
 {
-    menu = 0;
+    widgetMenu = 0;
     node = 0;
     kind = nodeKind;
-    label = nodeKind;
+
+    if (nodeKind == "info") {
+        setEnabled(false);
+        label = textLabel;
+    } else {
+        label = nodeKind;
+    }
 }
 
 
@@ -28,14 +35,15 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QWidget *parent) :
 ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString actionKind) :
     QWidgetAction(parent)
 {
-    menu = 0;
+    widgetMenu = 0;
     this->node = node;
+    label = node->getDataValue("label");
+
     if (actionKind == "instance") {
         kind = "ComponentInstance";
     } else {
         kind = node->getDataValue("kind");
     }
-    label = node->getDataValue("label");
 }
 
 
@@ -43,10 +51,11 @@ ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString ac
  * @brief ToolbarWidgetAction::setMenu
  * @param menu
  */
-void ToolbarWidgetAction::setMenu(QMenu *menu)
+void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu *menu)
 {
-    this->menu = menu;
-    connect(this->menu, SIGNAL(aboutToHide()), this, SLOT(actionButtonUnclicked()));
+    widgetMenu = menu;
+    connect(widgetMenu, SIGNAL(aboutToHide()), this, SLOT(actionButtonUnclicked()));
+    connect(this, SIGNAL(triggered()), widgetMenu, SLOT(execMenu()));
 }
 
 
@@ -54,9 +63,9 @@ void ToolbarWidgetAction::setMenu(QMenu *menu)
  * @brief ToolbarWidgetAction::getMenu
  * @return
  */
-QMenu *ToolbarWidgetAction::getMenu()
+ToolbarWidgetMenu* ToolbarWidgetAction::getMenu()
 {
-    return menu;
+    return widgetMenu;
 }
 
 
@@ -66,10 +75,7 @@ QMenu *ToolbarWidgetAction::getMenu()
  */
 Node *ToolbarWidgetAction::getNode()
 {
-    if (node) {
-        return node;
-    }
-    return NULL;
+    return node;
 }
 
 
@@ -114,21 +120,32 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 {
     actionButton = new QPushButton(parent);
     actionButton->setMouseTracking(true);
-    actionButton->setFixedSize(155, 33);
-    actionButton->setStyleSheet("QPushButton{"
-                                "border: 0px;"
-                                "margin: 0px;"
-                                "padding: 0px;"
-                                "background-color: rgba(0,0,0,0);"
-                                "}"
 
-                                "QPushButton:hover{"
-                                "background-color: rgba(10,10,10,50);"
-                                "}"
+    if (isEnabled()) {
+        actionButton->setFixedSize(155, 33);
+        actionButton->setStyleSheet("QPushButton{"
+                                    "border: 0px;"
+                                    "margin: 0px;"
+                                    "padding: 0px;"
+                                    "background-color: rgba(0,0,0,0);"
+                                    "}"
 
-                                "QPushButton:checked{"
-                                "background-color: rgba(10,10,10,50);"
-                                "}");
+                                    "QPushButton:hover{"
+                                    "background-color: rgba(10,10,10,50);"
+                                    "}"
+
+                                    "QPushButton:checked{"
+                                    "background-color: rgba(10,10,10,50);"
+                                    "}");
+    } else {
+        actionButton->setFixedSize(label.size()*7.25, 33);
+        actionButton->setStyleSheet("QPushButton{"
+                                    "border: 0px;"
+                                    "margin: 0px;"
+                                    "padding: 0px;"
+                                    "background-color: rgba(0,0,0,0);"
+                                    "}");
+    }
 
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setMargin(0);

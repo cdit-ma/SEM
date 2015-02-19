@@ -49,6 +49,7 @@ void ToolbarWidget::setNodeItem(NodeItem *item)
 {
     nodeItem = item;
     if (prevNodeItem != nodeItem) {
+        clearMenus();
         updateToolButtons();
     }
     prevNodeItem = nodeItem;
@@ -240,124 +241,13 @@ void ToolbarWidget::addComponentInstance()
 
 /**
  * @brief ToolbarWidget::hideToolbar
- * When a QAction is triggered and it's not addInstanceAction,
- * hide both the action's menu (if it has one) and the toolbar.
- * @param action
- */
-void ToolbarWidget::hideToolbar(QAction *action)
-{
-    QMenu* senderMenu = qobject_cast<QMenu*>(QObject::sender());
-    QMenu* parentMenu = qobject_cast<QMenu*>(action->parent());
-    ToolbarWidgetAction* widgetAction = qobject_cast<ToolbarWidgetAction*>(action);
-
-    if (parentMenu && (parentMenu != senderMenu)) {
-        if (senderMenu == addMenu) {
-            qDebug() << "addMenu triggered";
-            if (widgetAction == addInstanceAction) {
-                qDebug() << "addInstanceAction clicked";
-                if (widgetAction->getButton()->isChecked()) {
-                    widgetAction->actionButtonUnclicked();
-                    hideMenu(fileMenu, fileMenu);
-                }
-            } else {
-                if (parentMenu && parentMenu != fileMenu) {
-                    hideToolbar();
-                }
-            }
-        } else if (senderMenu == fileMenu) {
-            if (widgetAction->getButton()->isChecked()) {
-                widgetAction->actionButtonUnclicked();
-            }
-        }
-    } else {
-        if (widgetAction != addInstanceAction) {
-            hideToolbar();
-        }
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::hideToolbar
  * This method checks if hiding the menu was triggered by the toolbar.
  * If the event came from outside the toolbar, hide the toolbar and all visible menus.
  */
 void ToolbarWidget::hideToolbar()
 {
-    QObject *sender = QObject::sender();
-    while (sender) {
-        QMenu* menu = qobject_cast<QMenu*>(sender);
-        if (menu) {
-            menu->hide();
-        }
-        sender = sender->parent();
-    }
-
     if (!eventFromToolbar) {
         hide();
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::showMenu
- * This gets called when a ToolbarWidgetAction has been triggered and it contains a menu.
- */
-void ToolbarWidget::showMenu()
-{
-    ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    showMenu(action, action->getMenu());
-
-    // if action == fileAction, get the current files/component definitions list
-    QMenu* parentMenu = qobject_cast<QMenu*>(action->parent());
-    if (parentMenu && parentMenu == fileMenu) {
-        emit updateMenuList("files", nodeItem->getNode());
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::showMenu
- * This shows the hidden menu that lists the files/component definitions.
- * The actionButton's checked state/appearance should've been updated.
- */
-void ToolbarWidget::showMenu(ToolbarWidgetAction *action, QMenu *menu)
-{
-    QPoint menuPos = action->getButtonPos();
-    if (menu && menu->actions().count() > 0) {
-        menu->exec(menuPos);
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::hideMenu
- * @param menu
- */
-void ToolbarWidget::hideMenu(QMenu *menu, QMenu* topMostMenu)
-{
-    if (menu->children().count() == 0) {
-        menu->hide();
-        if (menu == topMostMenu) {
-            return;
-        }
-        QMenu* parentMenu = qobject_cast<QMenu*>(menu->parent());
-        while (parentMenu) {
-            if (parentMenu != topMostMenu) {
-                parentMenu->hide();
-                parentMenu = qobject_cast<QMenu*>(parentMenu->parent());
-            } else {
-                parentMenu->hide();
-                return;
-            }
-        }
-    } else {
-        foreach (QObject* child, menu->children()) {
-            QMenu* childMenu = qobject_cast<QMenu*>(child);
-            if (childMenu) {
-                hideMenu(childMenu, topMostMenu);
-            }
-        }
     }
 }
 
@@ -416,16 +306,6 @@ void ToolbarWidget::setupToolBar()
     layout->addWidget(definitionButton);
     layout->addWidget(implementationButton);
 
-    /*
-    QToolButton* button = new QToolButton(this);
-    ToolbarWidgetMenu* menu = new ToolbarWidgetMenu(this);
-    ToolbarWidgetAction* action = new ToolbarWidgetAction("Component", this);
-    menu->addAction(action);
-    button->setMenu(menu);
-    button->setPopupMode(QToolButton::InstantPopup);
-    layout->addWidget(button);
-    */
-
     layout->setMargin(5);
     setLayout(layout);
 }
@@ -436,36 +316,38 @@ void ToolbarWidget::setupToolBar()
  */
 void ToolbarWidget::setupButtonMenus()
 {
-    addMenu = new QMenu(addChildButton);
-    connectMenu = new QMenu(connectButton);
-    definitionMenu = new QMenu(definitionButton);
-    implementationMenu = new QMenu(implementationButton);
-
+    addMenu = new ToolbarWidgetMenu(0, 0, addChildButton);
     addChildButton->setPopupMode(QToolButton::InstantPopup);
     addChildButton->setMenu(addMenu);
 
+    connectMenu = new ToolbarWidgetMenu(0, 0, connectButton);
     connectButton->setPopupMode(QToolButton::InstantPopup);
     connectButton->setMenu(connectMenu);
+
+    definitionMenu = new ToolbarWidgetMenu(0, 0, definitionButton);
+    definitionButton->setPopupMode(QToolButton::InstantPopup);
+    definitionButton->setMenu(definitionMenu);
 
     QAction* defn_goTo = definitionMenu->addAction(QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
     QAction* defn_popup = definitionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Definition");
     connect(defn_goTo, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(defn_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
 
-    definitionButton->setPopupMode(QToolButton::InstantPopup);
-    definitionButton->setMenu(definitionMenu);
+    implementationMenu = new ToolbarWidgetMenu(0, 0, implementationButton);
+    implementationButton->setPopupMode(QToolButton::InstantPopup);
+    implementationButton->setMenu(implementationMenu);
 
     QAction* impl_goTo = implementationMenu->addAction(QIcon(":/Resources/Icons/goto.png"), "Go to Implementation");
     QAction* impl_popup = implementationMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Implementation");
     connect(impl_goTo, SIGNAL(triggered()), this, SLOT(goToImplementation()));
     connect(impl_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
 
-    implementationButton->setPopupMode(QToolButton::InstantPopup);
-    implementationButton->setMenu(implementationMenu);
-
     // this is used when ComponentInstance can be adopted by the current node
-    addInstanceAction = new ToolbarWidgetAction("ComponentInstance", addMenu);
-    fileMenu = new QMenu(addMenu);
+    addInstanceAction = new ToolbarWidgetAction("ComponentInstance", "", addMenu);
+    fileDefaultAction = new ToolbarWidgetAction("info", "There are no Files.", this);
+    fileMenu = new ToolbarWidgetMenu(addInstanceAction, fileDefaultAction, addMenu);
+
+    instanceDefaultAction = new ToolbarWidgetAction("info", "This File has no Components.", this);
 }
 
 
@@ -474,25 +356,14 @@ void ToolbarWidget::setupButtonMenus()
  */
 void ToolbarWidget::makeConnections()
 {
+    connect(addMenu, SIGNAL(hideToolbar()), this, SLOT(hideToolbar()));
+    connect(connectMenu, SIGNAL(hideToolbar()), this, SLOT(hideToolbar()));
+    connect(definitionMenu, SIGNAL(hideToolbar()), this, SLOT(hideToolbar()));
+    connect(implementationMenu, SIGNAL(hideToolbar()), this, SLOT(hideToolbar()));
+
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(definitionButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(implementationButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
-
-    connect(connectMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar()));
-    connect(connectMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
-
-    connect(definitionMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar()));
-    connect(definitionMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
-
-    connect(implementationMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar()));
-    connect(implementationMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
-
-    connect(addMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
     connect(addInstanceAction, SIGNAL(triggered()), this, SLOT(showMenu()));
-
-    connect(fileMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
-    connect(fileMenu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
 
     connectToView();
 }
@@ -567,8 +438,7 @@ void ToolbarWidget::updateToolButtons()
  */
 void ToolbarWidget::setupAdoptableNodesList(QStringList* nodeKinds)
 {
-    addMenu->clear();
-
+    // if the list has no contents, hide the button
     if (nodeKinds->count() == 0) {
         addChildButton->hide();
         return;
@@ -584,14 +454,13 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList* nodeKinds)
         if (nodeKind == "ComponentInstance") {
             action = addInstanceAction;
         } else {
-            action  = new ToolbarWidgetAction(nodeKind, this);
+            action  = new ToolbarWidgetAction(nodeKind, "", this);
             connect(action, SIGNAL(triggered()), this, SLOT(addChildNode()));
         }
 
-        addMenu->addAction(action);
+        addMenu->addWidgetAction(action);
     }
 
-    addChildButton->setMenu(addMenu);
 }
 
 
@@ -601,8 +470,7 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList* nodeKinds)
  */
 void ToolbarWidget::setupLegalNodesList(QList<Node*> *nodeList)
 {
-    connectMenu->clear();
-
+    // if the list has no contents, hide the button
     if (nodeList->count() == 0) {
         connectButton->hide();
         return;
@@ -615,8 +483,6 @@ void ToolbarWidget::setupLegalNodesList(QList<Node*> *nodeList)
         connectMenu->addAction(action);
         connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
     }
-
-    connectButton->setMenu(connectMenu);
 }
 
 
@@ -638,11 +504,10 @@ void ToolbarWidget::setupComponentInstanceList(QList<Node*> *instances)
             QString fileID = instances->at(i)->getParentNode()->getID();
 
             if (fileID == fileAction->getNode()->getID()) {
-
                 ToolbarWidgetAction* action = new ToolbarWidgetAction(instances->at(i), this, "instance");
-                fileAction->getMenu()->addAction(action);
+                connect(action, SIGNAL(triggered()), this, SLOT(addComponentInstance()));
+                fileAction->getMenu()->addWidgetAction(action);
                 break;
-
             }
         }
     }
@@ -655,11 +520,11 @@ void ToolbarWidget::setupComponentInstanceList(QList<Node*> *instances)
  */
 void ToolbarWidget::setupFilesList(QList<Node*> *files)
 {
-    fileMenu->clear();
+    fileMenu->clearMenu();
 
+    // if the list has no contents, change addInstanceAction checkable state
     if (files->count() == 0) {
         addInstanceAction->getButton()->setCheckable(false);
-        addInstanceAction->setMenu(0);
         return;
     } else {
         addInstanceAction->getButton()->setCheckable(true);
@@ -667,15 +532,21 @@ void ToolbarWidget::setupFilesList(QList<Node*> *files)
 
     for (int i=0; i<files->count(); i++) {
         ToolbarWidgetAction* fileAction = new ToolbarWidgetAction(files->at(i), fileMenu);
-        QMenu* fileActionMenu = new QMenu(fileMenu);
-
-        connect(fileAction, SIGNAL(triggered()), this, SLOT(showMenu()));
-        connect(fileActionMenu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
-
-        fileAction->setMenu(fileActionMenu);
-        fileMenu->addAction(fileAction);
+        ToolbarWidgetMenu* fileActionMenu = new ToolbarWidgetMenu(fileAction, instanceDefaultAction, fileMenu);
+        connect(fileAction, SIGNAL(triggered()), this, SLOT(getFilesList()));
+        fileMenu->addWidgetAction(fileAction);
     }
 
-    addInstanceAction->setMenu(fileMenu);
     emit updateMenuList("addInstance", nodeItem->getNode());
+}
+
+
+/**
+ * @brief ToolbarWidget::clearMenus
+ */
+void ToolbarWidget::clearMenus()
+{
+    addMenu->clear();
+    connectMenu->clear();
+    fileMenu->clearMenu();
 }

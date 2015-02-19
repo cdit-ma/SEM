@@ -9,29 +9,40 @@ class ToolbarWidgetMenu : public QMenu
 {
     Q_OBJECT
 public:
-    explicit ToolbarWidgetMenu(ToolbarWidgetAction* action, QWidget *parent = 0);
+    explicit ToolbarWidgetMenu(ToolbarWidgetAction* widgetAction = 0,
+                               ToolbarWidgetAction *action = 0,
+                               QWidget *parent = 0);
 
-    QAction* exec();
+    void clearMenu();
 
     void addWidgetAction(ToolbarWidgetAction* action);
     QList<ToolbarWidgetAction*> getWidgetActions();
+    ToolbarWidgetAction* getParentAction();
 
 protected:
     virtual void enterEvent(QEvent*);
     virtual void leaveEvent(QEvent*);
 
 signals:
+    void hideToolbar();
     void closeParentMenu();
+    void connectToParentMenu(ToolbarWidgetMenu* menu);
 
 public slots:
-    bool close();
+    void close();
     void closeMenu();
-    void connectChildMenu(QMenu* menu);
+    void hideMenu(QAction* action);
+    void execMenu();
+
+    void setupDefaultAction();
+    void connectChildMenu(ToolbarWidgetMenu* menu);
 
 private:
     ToolbarWidgetAction* parentAction;
     QList<ToolbarWidgetAction*> widgetActions;
     bool eventFromMenu;
+
+    ToolbarWidgetAction* defaultAction;
 
 };
 

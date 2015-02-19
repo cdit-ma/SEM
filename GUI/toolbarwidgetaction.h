@@ -10,15 +10,17 @@
 #include <QLabel>
 
 
+class ToolbarWidgetMenu;
+
 class ToolbarWidgetAction : public QWidgetAction
 {
     Q_OBJECT
 public:
-    explicit ToolbarWidgetAction(QString nodeKind,  QWidget *parent = 0);
+    explicit ToolbarWidgetAction(QString nodeKind, QString textLabel = "", QWidget *parent = 0);
     explicit ToolbarWidgetAction(Node* node, QWidget *parent = 0, QString actionKind = "");
 
-    void setMenu(QMenu* menu);
-    QMenu* getMenu();
+    void setMenu(ToolbarWidgetMenu* widgetMenu);
+    ToolbarWidgetMenu* getMenu();
 
     Node* getNode();
     QString getKind();
@@ -30,7 +32,6 @@ protected:
     QWidget* createWidget(QWidget *parent);
 
 signals:
-    void menuAttached(QMenu* menu);
 
 public slots:
     void hover();
@@ -44,7 +45,7 @@ private:
     QString label;
 
     QPushButton* actionButton;
-    QMenu* menu;
+    ToolbarWidgetMenu* widgetMenu;
 
 };
 
