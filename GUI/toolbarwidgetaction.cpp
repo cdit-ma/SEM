@@ -13,6 +13,7 @@
 ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QWidget *parent) :
     QWidgetAction(parent)
 {
+    menu = 0;
     node = 0;
     kind = nodeKind;
     label = nodeKind;
@@ -27,11 +28,10 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QWidget *parent) :
 ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString actionKind) :
     QWidgetAction(parent)
 {
+    menu = 0;
     this->node = node;
     if (actionKind == "instance") {
         kind = "ComponentInstance";
-    } else if (actionKind == "file") {
-        kind = "File";
     } else {
         kind = node->getDataValue("kind");
     }

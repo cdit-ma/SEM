@@ -126,7 +126,7 @@ public slots:
     
 
     void sortEntireModel();
-    void sortNode(Node* node);
+    void sortNode(Node* node, Node* topMostNode = 0);
 
     void fitToScreen();
     void centreNode(Node* node);

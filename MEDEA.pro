@@ -86,7 +86,8 @@ HEADERS += \
     modeltester.h \
     GUI/nodeviewminimap.h \
     GUI/toolbarwidget.h \
-    GUI/toolbarwidgetaction.h
+    GUI/toolbarwidgetaction.h \
+    GUI/toolbarwidgetmenu.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -159,7 +160,8 @@ SOURCES += \
     modeltester.cpp \
     GUI/nodeviewminimap.cpp \
     GUI/toolbarwidget.cpp \
-    GUI/toolbarwidgetaction.cpp
+    GUI/toolbarwidgetaction.cpp \
+    GUI/toolbarwidgetmenu.cpp
 
 FORMS += \
     medeawindow.ui \

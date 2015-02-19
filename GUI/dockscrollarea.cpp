@@ -220,17 +220,18 @@ void DockScrollArea::dock_connectComponentInstance(Node *inst, Node *defn)
 
 /**
  * @brief DockScrollArea::removeFromDockNodeList
+ * This is called whenever a DockNodeItem is deleted.
  * @param widget
  */
 void DockScrollArea::removeFromDockNodeList(QWidget *widget)
 {
-    qDebug() << "componentDefinitions.size = " << componentDefinitions.size();
     if (dockNodes.contains(widget)) {
         dockNodes.removeAt(dockNodes.indexOf(widget));
+
+        // if node is of kind Component, update componentDefinitions list
         DockNodeItem* item = qobject_cast<DockNodeItem*>(widget);
         componentDefinitions.removeAll(item->getNodeItem()->getNode());
     }
-    qDebug() << "componentDefinitions.size = " << componentDefinitions.size();
 }
 
 

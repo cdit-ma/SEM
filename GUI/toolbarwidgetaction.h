@@ -30,6 +30,7 @@ protected:
     QWidget* createWidget(QWidget *parent);
 
 signals:
+    void menuAttached(QMenu* menu);
 
 public slots:
     void hover();

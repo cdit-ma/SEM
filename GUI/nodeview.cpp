@@ -246,20 +246,32 @@ void NodeView::sortEntireModel()
  * It sorts from the lowest level children back up to the provided node.
  * @param node
  */
-void NodeView::sortNode(Node *node)
+void NodeView::sortNode(Node *node, Node *topMostNode)
 {
     GraphMLItem* graphMLItem = getGraphMLItemFromGraphML(node);
     NodeItem* nodeItem = getNodeItemFromGraphMLItem(graphMLItem);
 
+    // check if node has children
     if (nodeItem->getChildren().count() == 0) {
+        //  if it doesn't and it's also the topMost node that needs sorting, do nothing
+        if (node == topMostNode) {
+            return;
+        }
+        // otherwise, iterate up to the topMost node while sorting node
         NodeItem* parentItem = dynamic_cast<NodeItem*>(nodeItem->parentItem());
         while(parentItem) {
-            parentItem->sort();
-            parentItem = dynamic_cast<NodeItem*>(parentItem->parentItem());
+            if (parentItem->getNode() != topMostNode) {
+                parentItem->sort();
+                parentItem = dynamic_cast<NodeItem*>(parentItem->parentItem());
+            } else {
+                parentItem->sort();
+                break;
+            }
         }
     } else {
+        // go to the lowest level child and start sorting from there
         foreach (NodeItem* child, nodeItem->getChildren()) {
-            sortNode(child->getNode());
+            sortNode(child->getNode(), node);
         }
     }
 }
@@ -681,6 +693,8 @@ void NodeView::view_ConstructComponentInstance(Node* assm, Node* defn, int sende
 
 /**
  * @brief NodeView::updateToolbarMenuList
+ * This is called by the toolbar when it needs to update a particular list.
+ * The view gets the updatated list and it's returned to the toolbar.
  * @param action
  * @param node
  */

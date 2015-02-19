@@ -12,6 +12,7 @@
 
 
 class ToolbarWidgetAction;
+class ToolbarWidgetMenu;
 
 class ToolbarWidget : public QWidget
 {
@@ -61,7 +62,7 @@ public slots:
     void hideToolbar();
 
     void showMenu();
-
+    void hideMenu(QMenu* menu, QMenu *topMostMenu);
 
 private:
     void setupToolBar();
@@ -77,7 +78,7 @@ private:
     void setupComponentInstanceList(QList<Node*> *instances);
     void setupFilesList(QList<Node *> *files);
 
-    void getComponentDefinitionsList();
+    void getFilesList();
 
     NodeItem* nodeItem;
     NodeItem* prevNodeItem;
