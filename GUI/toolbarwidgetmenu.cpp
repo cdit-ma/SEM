@@ -99,8 +99,16 @@ ToolbarWidgetAction* ToolbarWidgetMenu::getParentAction()
  */
 void ToolbarWidgetMenu::clearMenu()
 {
+    QMutableListIterator<ToolbarWidgetAction*> it(widgetActions);
+    while(it.hasNext()) {
+        ToolbarWidgetAction *action = it.next();
+        if(action->getKind() != "ComponentInstance" && action->getKind() != "info") {
+            delete action;
+        } else {
+            removeAction(action);
+        }
+    }
     widgetActions.clear();
-    clear();
 }
 
 

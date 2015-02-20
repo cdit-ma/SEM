@@ -363,7 +363,6 @@ void ToolbarWidget::makeConnections()
 
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
-    connect(addInstanceAction, SIGNAL(triggered()), this, SLOT(showMenu()));
 
     connectToView();
 }
@@ -460,7 +459,6 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList* nodeKinds)
 
         addMenu->addWidgetAction(action);
     }
-
 }
 
 
@@ -546,7 +544,7 @@ void ToolbarWidget::setupFilesList(QList<Node*> *files)
  */
 void ToolbarWidget::clearMenus()
 {
-    addMenu->clear();
-    connectMenu->clear();
+    addMenu->clearMenu();
+    connectMenu->clearMenu();
     fileMenu->clearMenu();
 }
