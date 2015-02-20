@@ -31,10 +31,16 @@ public:
     ~NodeItem();
 
     NodeItem* getParentNodeItem();
+
+    QList<NodeEdge*> getEdgeItems();
+    QList<NodeItem*> getChildNodeItems();
+    void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
     bool isSelected();
     bool isPainted();
 
+    void addChildNodeItem(NodeItem* child);
+    void removeChildNodeItem(NodeItem* child);
     bool intersectsRectangle(QRectF rect);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
@@ -142,6 +148,7 @@ private:
     double getMaxLabelWidth();
 
 
+    NodeItem* parentNode;
     QStringList viewAspects;
 
     void setPos(qreal x, qreal y);
@@ -151,10 +158,11 @@ private:
     //Visual Components
     QGraphicsTextItem* label;
     QGraphicsPixmapItem* icon;
+    QGraphicsPixmapItem* lockIcon;
     QGraphicsProxyWidget *proxyWidget;
     QPushButton *expandButton;
 
-    QVector<NodeEdge*> connections;
+    QList<NodeEdge*> connections;
 
     bool nodeSelected;
     bool isNodePressed;
@@ -180,6 +188,8 @@ private:
     //QPointF initialScenePressPosition;
     bool hasSelectionMoved;
 
+    QList<NodeItem*> childNodeItems;
+
     //Used to store the Color/Brush/Pen for the selected Style.
     QColor selectedColor;
     QColor color;
@@ -188,6 +198,7 @@ private:
     QPen pen;
     QPen selectedPen;
 
+    bool hasDefinition;
 
     bool PAINT_OBJECT;
 

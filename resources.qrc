@@ -73,8 +73,7 @@
         <file>Resources/Icons/parts.png</file>
         <file>Resources/Icons/goto.png</file>
         <file>Resources/Icons/popup.png</file>
-        <file>Resources/Icons/sort.png</file>
-        <file>Resources/Icons/model.png</file>
+        <file>Resources/Icons/lock.png</file>
         <file>Resources/Icons/info.png</file>
     </qresource>
 </RCC>

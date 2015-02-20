@@ -145,18 +145,16 @@ void MedeaWindow::updateFilterButtons(QVector<FilterButton *> buttons)
 {
     int count = ui->AppliedFilters->count();
     for (int i = 0; i < count; i++) {
-
         QWidget *w = ui->AppliedFilters->itemAt(i)->widget();
         w->setVisible(false);
-        //ui->AppliedFilters->removeWidget(w);
     }
 
-    update();
 
     foreach(FilterButton* filter, buttons){
         ui->AppliedFilters->addWidget(filter);
         filter->setVisible(true);
     }
+
     update();
 
 }
@@ -170,7 +168,6 @@ void MedeaWindow::updateAspectButtons(QVector<FilterButton *> buttons)
         //ui->AppliedFilters->removeWidget(w);
     }
 
-    update();
 
     foreach(FilterButton* filter, buttons){
         ui->VisibleAspects->addWidget(filter);
@@ -255,7 +252,7 @@ void MedeaWindow::appendAspect()
 void MedeaWindow::clearFilters()
 {
     emit view_ClearFilters();
-    ui->filterBox->update();
+    //ui->filterBox->update();
 }
 
 void MedeaWindow::projectWindowSelected(QMdiSubWindow *window)

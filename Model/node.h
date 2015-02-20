@@ -28,7 +28,7 @@ signals:
 public:
     //Child Node Methods
 
-    QString toString();
+    virtual QString toString();
     Node* getParentNode();
 
     //Returns whether or not this Node can Adopt the child Node.
@@ -69,8 +69,14 @@ public:
     //Gets the edge that is joining the node to this.
     Edge* getConnectingEdge(Node *node);
 
-    //Returns true if this Node is connected to the provided node.
+    QList<Node*> getAllConnectedNodes(QList<Node*> connectedNode = QList<Node*>());
+
+    //Returns true if this Node is directly connected to the provided node.
     bool isConnected(Node* node);
+
+    bool isIndirectlyConnected(Node* node);
+
+
 
 
     bool containsEdge(Edge* edge);

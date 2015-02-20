@@ -1,5 +1,6 @@
 #include "eventport.h"
 #include "aggregate.h"
+#include "aggregateinstance.h"
 #include <QDebug>
 
 EventPort::EventPort():Node(Node::NT_DEFINITION)
@@ -41,12 +42,25 @@ bool EventPort::canConnect(Node* attachableObject)
         qWarning() << "Can only connect an EventPort to one aggregate.";
         return false;
     }
+    if(!aggregate){
+        qWarning() << "Can only connect an EventPort to an Aggregate.";
+        return false;
+    }
+
 
     return Node::canConnect(attachableObject);
 }
 
 bool EventPort::canAdoptChild(Node *child)
 {
-    Q_UNUSED(child);
-    return false;
+     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
+     if(aggregateInstance){
+         if(this->getChildren(0).count() > 0){
+             return false;
+         }
+     }else{
+         return false;
+     }
+
+     return Node::canAdoptChild(child);
 }

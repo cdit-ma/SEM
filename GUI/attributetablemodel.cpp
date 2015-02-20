@@ -192,4 +192,3 @@ void AttributeTableModel::setupDataBinding()
         }
     }
 }
-

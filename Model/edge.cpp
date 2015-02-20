@@ -24,9 +24,12 @@ Edge::~Edge()
 {
     //emit destructGUI(this, this->getID(), source->getID(), destination->getID());
 
-    //Remove Edge!
-    destination->removeEdge(this);
-    source->removeEdge(this);
+    if(destination){
+        destination->removeEdge(this);
+    }
+    if(source){
+        source->removeEdge(this);
+    }
 }
 
 Node *Edge::getSource()
@@ -116,6 +119,24 @@ bool Edge::isDeploymentLink()
     }
     return false;
 }
+
+bool Edge::isAssemblyLink()
+{
+    if(source->getDataValue("kind") == "OutEventPortDelegate" && destination->getDataValue("kind") == "InEventPortDelegate"){
+        return true;
+    }
+    return false;
+}
+
+bool Edge::isComponentLink()
+{
+    if(source->getDataValue("kind") == "OutEventPortInstance" && destination->getDataValue("kind") == "InEventPortInstance"){
+        return true;
+    }
+    return false;
+}
+
+
 
 bool Edge::contains(Node *item)
 {

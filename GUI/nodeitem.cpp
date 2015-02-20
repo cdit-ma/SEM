@@ -24,14 +24,18 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     Q_INIT_RESOURCE(resources);
     setParentItem(parent);
 
+    parentNode = parent;
+
     nodeSelected = false;
     isNodePressed = false;
     permanentlyCentralized = false;
     hidden = false;
     expanded = false;
     hasSelectionMoved = false;
+    hasDefinition = false;
 
     icon = 0;
+    lockIcon = 0;
     proxyWidget = 0;
     expandButton = 0;
     label  = 0;
@@ -125,6 +129,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 }
 
 
+
+
 /**
  * @brief NodeItem::~NodeItem
  * Before deleting this item, check to see if it has a parent item.
@@ -135,25 +141,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
 NodeItem::~NodeItem()
 {
-    if (parentItem()) {
-        // if this item is its parent's last child,
-        // remove the parent's expand button and
-        // reset its size and nextChildPosition
-        NodeItem* item = dynamic_cast<NodeItem*>(parentItem());
-        if (item && item->getChildren().count() == 1) {
-            item->removeExpandButton();
-            item->resetNextChildPos();
-            item->resetSize();
-
-            // update parts dock container if parent kind
-            // is File and it no longer has children
-            /*
-            if (item->getGraphML()->getDataValue("kind") == "File") {
-                emit updateDockContainer("Parts");
-            }
-            */
-        }
-
+    if(parentNode){
+        parentNode->removeChildNodeItem(this);
     }
     delete label;
 }
@@ -161,6 +150,25 @@ NodeItem::~NodeItem()
 NodeItem *NodeItem::getParentNodeItem()
 {
     return dynamic_cast<NodeItem*>(parentItem());
+}
+
+QList<NodeEdge *> NodeItem::getEdgeItems()
+{
+    return this->connections;
+}
+
+QList<NodeItem *> NodeItem::getChildNodeItems()
+{
+    return this->childNodeItems;
+}
+
+void NodeItem::setParentItem(QGraphicsItem *parent)
+{
+   NodeItem* nodeItem = dynamic_cast<NodeItem*>(parent);
+   if(nodeItem){
+       nodeItem->addChildNodeItem(this);
+   }
+   QGraphicsItem::setParentItem(parent);
 }
 
 
@@ -181,6 +189,23 @@ bool NodeItem::isSelected()
 bool NodeItem::isPainted()
 {
     return PAINT_OBJECT;
+}
+
+void NodeItem::addChildNodeItem(NodeItem *child)
+{
+    if(!childNodeItems.contains(child)){
+        childNodeItems.append(child);
+    }
+}
+
+void NodeItem::removeChildNodeItem(NodeItem *child)
+{
+    int removed = childNodeItems.removeAll(child);
+    if(removed > 0 && childNodeItems.size() == 0){
+        removeExpandButton();
+        resetNextChildPos();
+        resetSize();
+    }
 }
 
 bool NodeItem::intersectsRectangle(QRectF sceneRect)
@@ -223,9 +248,15 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         HeaderBrush.setColor(HeaderBrushColor);
 
         Node* node = getNode();
-        if(node->isInstance() || node->isImpl()){
+        if(node && (node->isInstance() || node->isImpl())){
             if(!node->getDefinition()){
                 Brush.setStyle(Qt::DiagCrossPattern);
+                hasDefinition = false;
+            }else{
+                hasDefinition = true;
+            }
+            if(lockIcon && lockIcon->isVisible() != hasDefinition){
+                lockIcon->setVisible(hasDefinition);
             }
         }
 
@@ -300,8 +331,7 @@ void NodeItem::addNodeEdge(NodeEdge *line)
 
 void NodeItem::removeNodeEdge(NodeEdge *line)
 {
-    int position = connections.indexOf(line);
-    connections.remove(position);
+    connections.removeAll(line);
 }
 
 
@@ -359,6 +389,11 @@ void NodeItem::setSelected(bool selected)
 {
     if(nodeSelected != selected){
         nodeSelected = selected;
+        if(nodeSelected){
+            this->setZValue(1000);
+        }else{
+            this->setZValue(0);
+        }
 
         update();
         emit setEdgeSelected(selected);
@@ -403,6 +438,8 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
 
         }else if(dataKey == "width" || dataKey == "height"){
             //Update the Size
+            prepareGeometryChange();
+
             if(dataKey == "width"){
                 //qCritical() << "Width";
                 setWidth(dataValue.toFloat());
@@ -410,8 +447,7 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
                 //qCritical() << "Height" << dataValue.toFloat();
                 setHeight(dataValue.toFloat());
             }
-            prepareGeometryChange();
-            //update();
+
         }
         else if(dataKey == "label"){
             if(dataValue != ""){
@@ -475,7 +511,7 @@ void NodeItem::updateViewAspects(QStringList aspects)
  */
 void NodeItem::sort()
 {
-    emit triggerAction("Sorting Children");
+    //emit triggerAction("Sorting Children");
 
     float topY;
     float gapY;
@@ -513,8 +549,9 @@ void NodeItem::sort()
     // if this item is a File and contains Components for its children,
     // check if any of them has children and increase gapX accordingly
     if (fileContainsComponents || componentAssembly) {
-        foreach (QGraphicsItem* child, this->childItems()) {
-            NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
+        for(int i = 0 ; i < childNodeItems.size() ; i++){
+            NodeItem* nodeItem = childNodeItems[i];
+
             if (nodeItem && (nodeItem->getChildren().count() > 0)) {
                 componentHasChildren = true;
                 break;
@@ -540,19 +577,18 @@ void NodeItem::sort()
         colHeight = 0;
     }
 
-    foreach (QGraphicsItem* child, this->childItems()) {
-
-        NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
+    for(int i = 0 ; i < childNodeItems.size() ; i++){
+        NodeItem* nodeItem = childNodeItems[i];
 
         // check that it's a NodeItem and that it's visible
-        if (nodeItem != 0 && nodeItem->isVisible()) {
+        if (nodeItem  && nodeItem->isVisible()) {
 
             // if child == DeploymentDefinitions and all of
             // it's children are invisible, don't sort it
             if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
                 bool childrenAreInAspect = false;
-                foreach (QGraphicsItem* itm, nodeItem->childItems()) {
-                    NodeItem* nodeItm = dynamic_cast<NodeItem*>(itm);
+                for(int i = 0; i < childNodeItems.size(); i++){
+                    NodeItem *nodeItm = childNodeItems[i];
                     if (nodeItm && nodeItm->isVisible()) {
                         childrenAreInAspect = true;
                         break;
@@ -677,15 +713,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     switch (event->button()) {
 
     case Qt::MiddleButton:{
-        if (PAINT_OBJECT) {
-            if (event->modifiers().testFlag(Qt::ControlModifier)) {
-                sort();
-            } else {
-                emit triggerCentered(getGraphML());
-            }
-        } else {
-            emit centerViewAspects();
-        }
         break;
     }
     case Qt::LeftButton:{
@@ -737,6 +764,20 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         isNodePressed = false;
         break;
     }
+    case Qt::MiddleButton:{
+        if (PAINT_OBJECT) {
+            if (event->modifiers().testFlag(Qt::ControlModifier)) {
+                emit triggerAction("Sorting Node");
+                sort();
+            } else {
+                emit triggerCentered(getGraphML());
+            }
+        } else {
+            emit centerViewAspects();
+        }
+        break;
+    }
+
     default:
         break;
     }
@@ -787,6 +828,13 @@ void NodeItem::setPaintObject(bool paint)
 
     if(icon){
         icon->setVisible(paint);
+    }
+    if(lockIcon){
+        if(hasDefinition){
+            lockIcon->setVisible(paint);
+        }else{
+            lockIcon->setVisible(false);
+        }
     }
     if(label){
         label->setVisible(paint);
@@ -1113,11 +1161,21 @@ void NodeItem::setupIcon()
     if (!image.isNull()) {
         icon = new QGraphicsPixmapItem(QPixmap::fromImage(image), this);
     }
+    QImage lockImage (":/Resources/Icons/lock.png");
+    if(!lockImage.isNull()){
+        lockIcon = new QGraphicsPixmapItem(QPixmap::fromImage(lockImage), this);
+    }
 
-    if(icon != 0){
+    if(icon){
+        qreal lockScale = .25;
         qreal iconHeight = icon->boundingRect().height();
         qreal iconWidth = icon->boundingRect().width();
         qreal scaleFactor = (minimumHeight / iconHeight);
+
+        qreal lockHeight = lockIcon->boundingRect().height();
+        qreal lockWidth = lockIcon->boundingRect().width();
+        qreal lockScaleFactor = lockScale * ((minimumHeight) / lockHeight);
+
 
         icon->setScale(scaleFactor);
         icon->setTransformationMode(Qt::SmoothTransformation);
@@ -1125,7 +1183,23 @@ void NodeItem::setupIcon()
         int brushSize = selectedPen.width();
         icon->setPos((getCornerRadius()/2 + brushSize) ,0);
 
+
+
         iconWidth *= scaleFactor;
+        iconHeight *= scaleFactor;
+
+        if(lockIcon){
+            lockIcon->setScale(lockScaleFactor);
+
+            lockHeight *= lockScaleFactor;
+
+
+
+            lockIcon->setTransformationMode(Qt::SmoothTransformation);
+            lockIcon->setPos(brushSize, (iconHeight/2) - (lockHeight/2));
+        }
+
+
         label->setX(label->x() + iconWidth);
     }
 }
@@ -1137,14 +1211,7 @@ void NodeItem::setupIcon()
  */
 QList<NodeItem *> NodeItem::getChildren()
 {
-    QList<NodeItem*> children;
-    foreach (QGraphicsItem *itm, childItems()) {
-        NodeItem *nodeItm = dynamic_cast<NodeItem*>(itm);
-        if (nodeItm) {
-            children.append(nodeItm);
-        }
-    }
-    return children;
+    return childNodeItems;
 }
 
 
@@ -1178,6 +1245,7 @@ QStringList NodeItem::getChildrenKind()
     QStringList childrenKinds;
     Node *node = dynamic_cast<Node*>(getGraphML());
     if (node) {
+
         foreach(Node* child, node->getChildren(0)){
             childrenKinds.append(child->getDataValue("kind"));
         }
@@ -1258,9 +1326,9 @@ void NodeItem::addExpandButton()
  */
 void NodeItem::expandItem(bool show)
 {
-    foreach (QGraphicsItem* child, this->childItems()) {
-        NodeItem* nodeItem = dynamic_cast<NodeItem*>(child);
-        if (nodeItem && !nodeItem->isHidden()) {
+    for(int i = 0 ; i < childNodeItems.size() ; i++){
+        NodeItem* nodeItem = childNodeItems[i];
+        if(nodeItem){
             nodeItem->setVisible(show);
         }
     }
@@ -1299,7 +1367,7 @@ void NodeItem::expandItem(bool show)
 
     expanded = show;
     prepareGeometryChange();
-    //update();
+    update();
 
     emit updateEdgePosition();
 }
@@ -1372,8 +1440,18 @@ void NodeItem::setHidden(bool h)
  */
 void NodeItem::resetSize()
 {
-    emit updateGraphMLData(getGraphML(), "height", QString::number(initialHeight));
-    emit updateGraphMLData(getGraphML(), "width", QString::number(initialWidth));
+    GraphML* id = getGraphML();
+    if(id){
+        if(initialHeight != height || initialWidth != width){
+            //emit triggerAction("Resetting Size!");
+        }
+        if(initialHeight != height){
+            emit updateGraphMLData(id, "height", QString::number(initialHeight));
+        }
+        if(initialWidth != width){
+            emit updateGraphMLData(id, "width", QString::number(initialWidth));
+        }
+    }
 }
 /**
  * @brief NodeItem::isExpanded

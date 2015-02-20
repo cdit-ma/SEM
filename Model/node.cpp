@@ -154,6 +154,9 @@ bool Node::canConnect(Node *node)
     if(isConnected(node)){
         return false;
     }
+    if(node->getParentNode() == this || this->getParentNode() == node){
+        return false;
+    }
     return true;
 }
 
@@ -167,10 +170,36 @@ Edge* Node::getConnectingEdge(Node *node)
     return 0;
 }
 
+QList<Node *> Node::getAllConnectedNodes(QList<Node *> connectedNodes)
+{
+    foreach(Edge* edge, getEdges()){
+        Node* nodeEnd = edge->getSource();
+        if(nodeEnd == this){
+            nodeEnd = edge->getDestination();
+        }
+
+        if(!connectedNodes.contains(nodeEnd)){
+            connectedNodes.append(nodeEnd);
+            foreach(Node* cNode, nodeEnd->getAllConnectedNodes(connectedNodes)){
+                if(!connectedNodes.contains(cNode)){
+                    connectedNodes.append(cNode);
+                }
+            }
+        }
+    }
+    return connectedNodes;
+}
+
 bool Node::isConnected(Node *node)
 {
     return getConnectingEdge(node) != 0;
 }
+
+bool Node::isIndirectlyConnected(Node *node)
+{
+    return (getAllConnectedNodes().contains(node) || node->getAllConnectedNodes().contains(this) || node == this);
+}
+
 
 bool Node::containsEdge(Edge *edge)
 {

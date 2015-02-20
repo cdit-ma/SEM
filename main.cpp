@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
         qCritical() << GraphMLFile;
     }
 
-   // MedeaWindow *w = new MedeaWindow(GraphMLFile);
+    //MedeaWindow *w = new MedeaWindow(GraphMLFile);
     NewMedeaWindow *w = new NewMedeaWindow(GraphMLFile);
 
     //ModelTester *t = new ModelTester();

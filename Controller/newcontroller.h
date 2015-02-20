@@ -61,7 +61,7 @@ public:
    // void connectView(GraphMLView* view);
 
     //Get a list of all Node Kinds
-    QStringList getNodeKinds();
+    QStringList getNodeKinds(Node* parent);
     //Get a list of all View Aspects
     QStringList getViewAspects();
 
@@ -71,6 +71,11 @@ public:
 
     Node* getSelectedNode();
     Node* getGraphmlModel();
+
+    //Gets the Model Node.
+    Model* getModel();
+
+
 
 signals:
     //Triggers the View to Enable/Disable the GUI
@@ -146,7 +151,8 @@ public slots:
     //Informants from the AttributeTableModel Class.
     void view_ConstructGraphMLData(GraphML* parent, QString keyName);
     void view_DestructGraphMLData(GraphML* parent, QString keyName);
-    void view_UpdateGraphMLData(GraphML* parent, QString keyName, QString dataValue);
+    void view_AttachGraphMLData(GraphML* parent, GraphMLData* data, bool addAction = true);
+    void view_UpdateGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
 
     //Used by the Right Click Menu
     void view_CenterComponentImpl(Node* node = 0);
@@ -228,21 +234,18 @@ private:
 
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
     GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
+    GraphMLKey* getGraphMLKeyFromName(QString name);
 
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
-    Node *constructDefinitionRelative(Node* parent, Node* definition, bool instance = true);
-
-    QList<GraphMLData*> getDefinitionData(Node* definition, bool instance = true);
+    int constructDefinitionRelative(Node* parent, Node* definition, bool instance = true);
 
     //Gets a specific Attribute from the current Element in the XML.
     //Returns "" if no Attribute found.
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
-     //Constructs a Node using the attached GraphMLData elements. Does not attach this Node.
-    Node* constructNode(QList<GraphMLData*> dataToAttach, bool readOnly = false);
     Edge* constructEdge(Node* source, Node* destination);
-    Edge* constructEdgeWithData(Node* source, Node* destination, QList<GraphMLData*> data, QString previousID="");
-    Edge* constructEdgeWithData(Node* source, Node* destination, QList<QStringList> data, QString previousID="");
+    Edge* constructEdgeWithGraphMLData(Node* source, Node* destination, QList<GraphMLData*> data = QList<GraphMLData*>(), QString previousID ="");
+    Edge* constructEdgeWithData(Node* source, Node* destination, QList<QStringList> data = QList<QStringList>(), QString previousID ="");
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash
     void storeGraphMLInHash(GraphML* item);
@@ -262,8 +265,10 @@ private:
     bool destructEdge(Edge* edge, bool addAction = true);
 
     //Constructs a Vector of basic GraphMLData entities required for creating a Node.
-    QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition);
-    QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind);
+    QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition = QPointF(0,0));
+
+    QString getNodeInstanceKind(Node* definition);
+    QString getNodeImplKind(Node* definition);
 
     //Constructs and setups all required Entities inside the Model Node.
     void setupModel();
@@ -272,14 +277,17 @@ private:
     void setupValidator();
 
     //Binds matching GraphMLData elements from the Node Child, to the Node Definition.
-    void bindGraphMLData(Node* definition, Node* node);
+    void bindGraphMLData(Node* definition, Node* instance);
+    void unbindGraphMLData(Node* definition, Node* instance);
 
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all GraphMLData which isn't protected.
-    void setupDefinitionRelationship(Node* definition, Node* node, bool instance);
-    void teardpwmDefinitionRelationship(Node* definition, Node* node, bool instance);
+    bool setupDefinitionRelationship(Node* definition, Node* node, bool instance);
+    bool teardownDefinitionRelationship(Node* definition, Node* node, bool instance);
 
     //Attaches an Aggregate Definition to an EventPort Definition.
-    void attachAggregateToEventPort(EventPort* eventPort, Aggregate* aggregate);
+    bool setupAggregateRelationship(EventPort* eventPort, Aggregate* aggregate);
+    bool teardownAggregateRelationship(EventPort* EventPort, Aggregate* aggregate);
+
 
     //Checks to see if the provided GraphML document is Valid XML.
     bool isGraphMLValid(QString inputGraphML);
@@ -297,11 +305,13 @@ private:
     void setNodeSelected(Node* node, bool setSelected = true);
     void setEdgeSelected(Edge* edge, bool setSelected = true);
 
+    void enforceUniqueLabel(Node* node, QString newLabel = "");
+
     //Calls the GUI to unselect the currently Selected Node/Edges.
-    void clearSelectedNodes();
-    void clearSelectedEdges();
+    void clearSelection();
 
     //Deletes the Model Entities corresponding to the selected Node/Edges.
+    bool deleteNode(Node* node, bool addAction = true);
     void deleteSelectedNodes();
     void deleteSelectedEdges();
 
@@ -327,6 +337,9 @@ private:
     //Undo's/Redo's all of the ActionItems in the Stack which have been performed since the last operation.
     void undoRedo(bool undo=true);
 
+    Node* constructTypedNode(QString nodeKind, QString nodeType="", QString nodeLabel="");
+
+
     //Attach GraphMLData('s) to the GraphML item.
     bool attachGraphMLData(GraphML* item, GraphMLData* data, bool addAction = true);
     bool attachGraphMLData(GraphML* item, QList<QStringList> dataList, bool addAction = true);
@@ -349,8 +362,6 @@ private:
 
     bool isGraphMLInModel(GraphML* item);
 
-    //Gets the Model Node.
-    Model* getModel();
 
     //Stores the GraphMLKey's used by the Model.
     QList<GraphMLKey*> keys;
@@ -360,12 +371,15 @@ private:
     QStringList edgeIDs;
 
     //Selection Lists
+    QStringList selectedIDs;
     QStringList selectedNodeIDs;
     QStringList selectedEdgeIDs;
 
     //Stack of ActionItems in the Undo/Redo Stack.
     QStack<ActionItem> undoActionStack;
     QStack<ActionItem> redoActionStack;
+
+    QString getDataValueFromKeyName(QList<GraphMLData*> dataList, QString keyName);
 
     //Provides a lookup for old IDs.
     QHash<QString, QString> IDLookupHash;
@@ -378,6 +392,9 @@ private:
     QStringList containerNodeKinds;
     //A List of Node's which are elements in the Model, can be constructed.
     QStringList constructableNodeKinds;
+
+    QStringList behaviourNodeKinds;
+    QStringList definitionNodeKinds;
 
     //A list of View Aspects present in the model.
     QStringList viewAspects;
@@ -394,11 +411,13 @@ private:
     qreal HIDDEN_OPACITY;
 
     Model* model;
-    BehaviourDefinitions* behaviourDefinitions;
-    DeploymentDefinitions* deploymentDefinitions;
-    InterfaceDefinitions* interfaceDefinitions;
-    HardwareDefinitions* hardwareDefinitions;
-    AssemblyDefinitions* assemblyDefinitions;
+    Node* behaviourDefinitions;
+    Node* deploymentDefinitions;
+    Node* interfaceDefinitions;
+    Node* hardwareDefinitions;
+    Node* assemblyDefinitions;
+    QList<Node*> immutableContainerNodes;
+
 
     //ManagementNodes
     QHash<QString, ManagementComponent*> managementComponents;

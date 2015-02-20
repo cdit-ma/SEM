@@ -68,7 +68,7 @@ QString GraphMLData::toGraphML(qint32 indentationLevel)
 
 QString GraphMLData::toString()
 {
-    return QString("[%1]GraphMLData").arg(getID());
+    return QString("[%1]GraphMLData: " + this->getKeyName() + ": " + this->getValue()).arg(getID());
 }
 
 QStringList GraphMLData::toStringList()
@@ -131,6 +131,7 @@ void GraphMLData::setParentData(GraphMLData *data)
         unsetParentData();
         if(data){
             setValue(data->getValue());
+            setProtected(true);
         }
     }
     parentData = data;
@@ -140,6 +141,7 @@ void GraphMLData::unsetParentData()
 {
     if(parentData){
         parentData->unbindData(this);
+        setProtected(false);
     }
     parentData = 0;
 }

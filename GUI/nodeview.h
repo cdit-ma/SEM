@@ -32,7 +32,7 @@ public:
     virtual void keyPressEvent(QKeyEvent *event);
     virtual void keyReleaseEvent(QKeyEvent *event);
 
-    //bool guiCreated(GraphML* item);
+    //bool guiCreated(GraphML* item)
 
     void forceSortViewAspects();
     void resetModel();
@@ -90,15 +90,14 @@ signals:
     void constructEdge(Node* src, Node* dst);
     void constructComponentInstance(Node* assm, Node* defn, QPointF center);
 
+
     void turnOnViewAspect(QString aspect);
     void setGoToMenuActions(QString action, bool);
-
 
 public slots:
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
     void view_ConstructGraphMLGUI(GraphML* item);
     void printErrorText(GraphML* graphml, QString text);
-    void removeNodeItem(NodeItem* item);
     void centreItem(GraphMLItem* item);
     void clearView();
 
@@ -120,19 +119,20 @@ public slots:
     void view_SortNode(Node* node);
     void view_SetOpacity(GraphML* graphML, qreal opacity);
 
-    void view_ConstructNode();
 
     void constructNewView(Node* centeredOn);
-    
 
     void sortEntireModel();
-    void sortNode(Node* node, Node* topMostNode = 0);
+    void sortNode(Node* node);
 
     void fitToScreen();
     void centreNode(Node* node);
 
+    void componentInstanceConstructed(Node *node);
+
     void clearSelection();
     void disableDockButtons();
+
 
     void updateDockButtons(Node* node);
     void view_updateDockContainer(QString dockContainer);
@@ -155,7 +155,6 @@ public slots:
     void updateToolbarLegalNodesList(QList<Node*>* nodeList);
     void updateToolbarDefinitionsList(QList<Node*>* nodeList);
 
-    void componentInstanceConstructed(Node* node);
 
 private:
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
@@ -195,6 +194,8 @@ private:
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;
 
+
+    //bool firstSort;
 
     QList<NodeItem*> getNodeItemsList();
     void showAllViewAspects();

@@ -216,4 +216,5 @@ void ToolbarWidgetAction::actionButtonUnclicked()
 {
     actionButton->setChecked(false);
     actionButton->repaint();
+    //emit trigger();
 }

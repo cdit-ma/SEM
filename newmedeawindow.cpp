@@ -82,7 +82,7 @@ void NewMedeaWindow::initialiseGUI()
     selectedNode = 0;
 
     nodeView = new NodeView();
-    scene = nodeView->scene();
+
 
     // set window size; used for graphicsview and main widget
     int windowWidth = 1300;
@@ -865,7 +865,7 @@ void NewMedeaWindow::updateDockContainer(QString container)
     if (container == "Parts") {
         // update dock container's adoptable nodes list and then send it to the toolbar
         if(selectedNode && controller){
-            partsContainer->addAdoptableDockNodes(selectedNode, controller->getAdoptableNodeKinds(selectedNode));
+            partsContainer->addAdoptableDockNodes(controller->getSelectedNode(), controller->getAdoptableNodeKinds(controller->getSelectedNode()));
             emit updateToolbarAdoptableNodesList(partsContainer->getAdoptableNodesList());
         }
     } else if (container == "Hardware") {
@@ -1192,4 +1192,3 @@ void NewMedeaWindow::importGraphMLFiles(QStringList files)
     emit view_ImportGraphML(fileData);
     nodeView->view_centerViewAspects();
 }
-

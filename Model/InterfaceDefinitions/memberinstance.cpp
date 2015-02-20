@@ -20,8 +20,8 @@ bool MemberInstance::canConnect(Node* attachableObject)
         qWarning() << "MemberInstance can only connect to an MemberInstance or Member.";
         return false;
     }
-    if(getDefinition() && attachableObject->getDefinition()){
-        qWarning() << "MemberInstance can only connect to one MemberInstance.";
+    if(getDefinition()){
+        qWarning() << "MemberInstance can only connect to one MemberInstance/Member.";
         return false;
     }
 

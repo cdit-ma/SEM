@@ -1,5 +1,7 @@
 #include "graphmlkey.h"
 #include "graphmldata.h"
+#include "node.h"
+
 #include <QDebug>
 
 int GraphMLKey::_Did =0;
@@ -88,6 +90,7 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
 
     bool ok = false;
 
+
     switch(type){
     case BOOLEAN:
         newValue = newValue.toLower();
@@ -106,9 +109,11 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
     case FLOAT:
         newValue.toFloat(&ok);
         break;
-    case STRING:
+    case STRING:{
+
         ok = true;
         break;
+    }
     default:
         qCritical() << "Cannot Validate Data Change";
         ok = true;

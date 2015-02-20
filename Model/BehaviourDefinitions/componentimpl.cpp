@@ -18,13 +18,16 @@ bool ComponentImpl::canConnect(Node* attachableObject)
 {
     Component* component = dynamic_cast<Component*>(attachableObject);
 
+    if(!component){
+        return false;
+    }
+
     if(getDefinition()){
         qWarning() << "ComponentImpl already has a definition already";
         return false;
     }
-
-    if(!component){
-        qWarning() << "ComponentImpl can only connect to a Component.";
+    if(component->getImplementations().count() != 0){
+        qWarning() << "ComponentImpl cannot be connected to a Component which already has an Implementation.";
         return false;
     }
 

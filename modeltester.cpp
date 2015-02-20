@@ -31,8 +31,8 @@ ModelTester::ModelTester()
     QString xmlText = in.readAll();
     file.close();
 
-    int repeatCount = 1;
-    int loadCount = 1;
+    int repeatCount = 10;
+    int loadCount = 2;
 
       sleep(20);
 
@@ -52,7 +52,9 @@ ModelTester::ModelTester()
         float afterLoad = getMemoryUsage();
         //qCritical() << "Memory Usage After Load: " << afterLoad << "KB.";
 
-        controller->view_ClearModel();
+        controller->view_Undo();
+
+        //controller->view_ClearModel();
         sleep(20);
         float afterClear = getMemoryUsage();
 

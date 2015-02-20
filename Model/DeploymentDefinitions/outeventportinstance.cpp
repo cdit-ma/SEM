@@ -1,6 +1,7 @@
 #include "outeventportinstance.h"
 
 #include "../node.h"
+#include "../InterfaceDefinitions/aggregateinstance.h"
 #include "ineventportinstance.h"
 #include "outeventportdelegate.h"
 #include "ineventportdelegate.h"
@@ -19,8 +20,14 @@ OutEventPortInstance::~OutEventPortInstance()
 
 bool OutEventPortInstance::canAdoptChild(Node *child)
 {
-    Q_UNUSED(child);
-    return false;
+    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
+
+    if(!aggregateInstance || (aggregateInstance && this->childrenCount() > 0)){
+        qWarning() << "OutEventPortInstance can only adopt one AggregateInstance";
+        return false;
+    }
+
+    return Node::canAdoptChild(child);
 }
 
 bool OutEventPortInstance::canConnect(Node* attachableObject)

@@ -47,7 +47,7 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
  */
 void ToolbarWidget::setNodeItem(NodeItem *item)
 {
-    nodeItem = item;
+      nodeItem = item;
     if (prevNodeItem != nodeItem) {
         clearMenus();
         updateToolButtons();

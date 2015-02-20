@@ -125,9 +125,6 @@ private:
     QVector<ProjectWindow*> projectWindows;
     bool isEnabled;
 
-    QGraphicsScene* scene;
-    QGraphicsScene* newScene;
-
     QMenu* menu;
     QMenu* file_menu;
     QMenu* edit_menu;

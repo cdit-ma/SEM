@@ -20,10 +20,50 @@ bool AggregateInstance::canConnect(Node* attachableObject)
         qWarning() << "AggregateInstance can only connect to an Aggregate.";
         return false;
     }
-    if(getDefinition() && attachableObject->getDefinition()){
+    if(getDefinition() && aggregate){
         qWarning() << "AggregateInstance can only connect to one Aggregate.";
         return false;
     }
+
+    Node* topMostParent= getParentNode();
+    while(topMostParent){
+        QString parentKind = topMostParent->getDataValue("kind");
+        if(parentKind.contains("Aggregate")){
+            topMostParent = topMostParent->getParentNode();
+        }else{
+            break;
+        }
+    }
+    if(!(topMostParent->isImpl() || topMostParent->isInstance()) && !topMostParent->isDefinition()){
+        //Check for ownership in the same file, for circular checks
+        if(!this->getParentNode()->isImpl()){
+            if(aggregate){
+                if(!aggregate->getParentNode()->isAncestorOf(this)){
+                    return false;
+                }
+            }
+            if(aggregateInstance){
+                if(aggregateInstance->getParentNode()->isAncestorOf(this)){
+                    return false;
+                }
+                Node* aDefinition = aggregateInstance->getDefinition();
+                if(aDefinition && aDefinition->getParentNode() && !aDefinition->getParentNode()->isAncestorOf(this)){
+                    return false;
+                }
+            }
+
+        }
+        //Check for connection.
+        if(isIndirectlyConnected(attachableObject)){
+            qCritical() << "AggregateInstance is already connected in directly to Node";
+            return false;
+        }
+
+    }
+
+
+
+
 
     return Node::canConnect(attachableObject);
 }

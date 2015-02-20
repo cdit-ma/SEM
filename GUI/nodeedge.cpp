@@ -12,6 +12,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     IS_IMPL_LINK = edge->isImplLink();
     IS_AGG_LINK = edge->isAggregateLink();
     IS_DEPLOYMENT_LINK = edge->isDeploymentLink();
+    IS_COMPONENT_LINK = edge->isComponentLink() || edge->isAssemblyLink();
 
     source = s;
     destination = d;
@@ -22,17 +23,11 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
     if(s->parentItem()){
         QGraphicsItem* sParent = s->parentItem();
         sourceParent = dynamic_cast<NodeItem*>(sParent);
-        if(sourceParent){
-            //qCritical() << sourceParent->getGraphML()->toString();
-        }
     }
 
     if(d->parentItem()){
         QGraphicsItem* dParent = d->parentItem();
         destinationParent = dynamic_cast<NodeItem*>(dParent);
-        if(destinationParent){
-            //qCritical() << destinationParent->getGraphML()->toString();
-        }
     }
 
     if(IS_INSTANCE_LINK || IS_IMPL_LINK){
@@ -41,6 +36,12 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 
         if(dst->getParentNode()->isDefinition() && (src->getParentNode()->isImpl() || src->getParentNode()->isInstance())){
             //Don't show Non-Top Most Instance Links
+            IS_VISIBLE = false;
+        }
+        if(dst->getDataValue("kind") == "AggregateInstance"){
+            IS_VISIBLE = false;
+        }
+        if(src->getDataValue("kind") == "MemberInstance"){
             IS_VISIBLE = false;
         }
         if(src->getDataValue("kind") == "AggregateInstance"){
@@ -58,10 +59,13 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 
 
     //Construct lines.
+
     for(int i=0; i < 3; i++){
+        lineItems.append(new QGraphicsLineItem(this));
         lineItems.append(new QGraphicsLineItem(this));
         arrowHeadLines.append(new QGraphicsLineItem(this));
     }
+
 
     //Setup Sizes.
     circleRadius = (s->boundingRect().width() + d->boundingRect().width()) / 30;
@@ -83,11 +87,13 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
 
 
 
-    this->setVisible(IS_VISIBLE);
+
     //Set Flags
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
     setFlag(ItemIsSelectable);
+
+    setVisible(IS_VISIBLE);
 }
 
 NodeEdge::~NodeEdge()
@@ -99,7 +105,15 @@ NodeEdge::~NodeEdge()
         destination->removeNodeEdge(this);
     }
 
-    lineItems.clear();
+    while(!lineItems.isEmpty()){
+        QGraphicsLineItem *lineI = lineItems.takeFirst();
+        delete lineI;
+    }
+    while(!arrowHeadLines.isEmpty()){
+        QGraphicsLineItem *lineI = arrowHeadLines.takeFirst();
+        delete lineI;
+    }
+
     delete label;
 }
 
@@ -284,6 +298,7 @@ void NodeEdge::setupBrushes()
     QColor selectedColor;
     QColor color;
 
+    pen.setStyle(Qt::DashLine);
     if(IS_INSTANCE_LINK){
         color = QColor(0, 0, 180);
     }else if(IS_IMPL_LINK){
@@ -292,6 +307,10 @@ void NodeEdge::setupBrushes()
         color = QColor(180, 0, 0);
     }else if(IS_DEPLOYMENT_LINK){
         color = QColor(180, 0, 180);
+    }else if(IS_COMPONENT_LINK){
+        color = QColor(0, 180 , 180);
+        penWidth *= 2;
+        pen.setStyle(Qt::SolidLine);
     }else{
         color = QColor(50, 50, 50);
     }
@@ -305,7 +324,7 @@ void NodeEdge::setupBrushes()
 
     pen.setColor(color);
     pen.setWidth(penWidth);
-    pen.setStyle(Qt::DashLine);
+
     selectedPen.setColor(selectedColor);
     selectedPen.setWidth(2 * penWidth);
 
@@ -335,59 +354,202 @@ void NodeEdge::updateLines()
     //The Top Left of the Circle will be the center point.
     NodeItem* start = source;
     NodeItem* finish = destination;
-    //Check for parent Visibility.
 
+    //Set start to the top most visible parent.
     while(start && !(start->isVisible() && start->isPainted())){
         start = start->getParentNodeItem();
     }
 
+    //Set finish to the top most visible parent.
     while(finish && !(finish->isVisible() && finish->isPainted())){
         finish = finish->getParentNodeItem();
     }
 
-    if(!start || !finish){
+    //If start or finish aren't visible, don't update or draw!
+    if(!(start && finish)){
+        forceVisible(false);
         return;
     }
 
-    if(start->isVisible() && finish->isVisible()){
+    //If this line is meant to be visible, and both the start/finish is visible, set it as visible.
+    if(IS_VISIBLE && start->isVisible() && finish->isVisible()){
         forceVisible(true);
+    }else{
+        forceVisible(false);
+        return;
     }
 
+    NodeItem* startParent = start->getParentNodeItem();
+    NodeItem* finishParent = finish->getParentNodeItem();
 
-    float sx = start->scenePos().x() + (start->getWidth() / 2);
-    float sy = start->scenePos().y() + (start->getHeight() / 2);
-    float dx = finish->scenePos().x() + (finish->getWidth() / 2);
-    float dy = finish->scenePos().y() + (finish->getHeight() / 2);
 
-    //Work out the Center Point.
-    float mx = ((sx + dx) / 2) - circleRadius;
-    float my = ((sy + dy) / 2) - circleRadius;
+    //Get Start Size Modifier
+    float sDX = start->getWidth() / 2;
+    float sDY = start->getHeight() / 2;
+
+    //Get Start Parent Size Modifier
+    float sPDX = startParent->getWidth() / 2;
+
+    //Get Finish Size Modifier
+    float fDX = finish->getWidth() / 2;
+    float fDY = finish->getHeight() / 2;
+
+    //Get Finish Parent Size Modifier
+    float fPDX = finishParent->getWidth() / 2;
+
+    //Get Start Center
+    float sX = start->scenePos().x() + sDX;
+    float sY = start->scenePos().y() + sDY;
+
+    //Get Start Parent Center
+    float sPX = startParent->scenePos().x() + sPDX;
+
+    //Get Finish Center
+    float fX = finish->scenePos().x() + fDX;
+    float fY = finish->scenePos().y() + fDY;
+
+    //Get Finish Parent Center
+    float fPX = finishParent->scenePos().x() + fPDX;
+
+    //Use this to determine direction of addition of Width.
+    int sourceWidthMult = 1;
+    int finishWidthMult = 1;
+
+    //If StartLeft == true, line is coming out the left of Start, else; coming out the right.
+    bool startLeft = false;
+    //If finishLeft == true, line is coming out the left of Finish, else; coming out the right.
+    bool finishLeft = false;
+    //If usingStart == true, line is using the X coordinate of the Start, else; the X Coordinate of the Finish.
+    bool usingStart = false;
+
+    //Calculate if the source is on the left or right of the sourceParentcomponent.
+    float sourceX = source->scenePos().x() + (source->getWidth() /2);
+    float destinationX = destination->scenePos().x() + (destination->getWidth() /2);
+
+    float sourceParentX = source->getParentNodeItem()->scenePos().x() + (source->getParentNodeItem()->getWidth() /2);;
+    float destinationParentX = destination->getParentNodeItem()->scenePos().x() + (destination->getParentNodeItem()->getWidth() /2);;
+
+    /*
+//OLD CASE
+    if(sX < sPX){
+        sourceWidthMult = -1;
+        startLeft = true;
+    }
+
+    if(fX < fPX){
+        finishWidthMult = -1;
+        finishLeft = true;
+    }
+    */
+
+    if(sourceX < sourceParentX){
+        sourceWidthMult = -1;
+        startLeft = true;
+    }
+
+    if(destinationX < destinationParentX){
+        finishWidthMult = -1;
+        finishLeft = true;
+    }
+
+    bool usingCenter = finishLeft != startLeft;
+
+    sX = sX + (sourceWidthMult * sDX);
+    fX = fX + (finishWidthMult * fDX);
+
+    float deltaX = abs(fX - sX);
+    float deltaY = abs(fY - sY);
+
+    //Work out the change in distance across the Y Axis.
+    float d = 2 * (deltaY / log(deltaY));
+
+
+    //Work out the end of the start/finish Line segments..
+    float sLX = sX + (d * sourceWidthMult);
+    float fLX = fX + (d * finishWidthMult);
+
+    //Calculate the center of the Point.
+    float mX = ((sLX + fLX) / 2) - circleRadius;
+    float mY = ((sY + fY) / 2) - circleRadius;
+
+    //if s and f aren't drawing from the same side as their respective parents.
+    if(!usingCenter){
+        if(startLeft){
+            //Start and Finish both leave to the Left, so minimize;
+            if(sLX < fLX){
+                usingStart = true;
+                mX = sLX;
+            }else{
+                mX = fLX;
+            }
+        }else{
+            //Start and Finish both leave to the right, so maximize;
+            if(sLX > sX){
+                if(sLX > fLX){
+                    usingStart = true;
+                    mX = sLX;
+                }else{
+                    mX = fLX;
+                }
+            }
+        }
+        mX -= circleRadius;
+    }
 
     //Set the Center.
-    setPos(mx, my);
+    setPos(mX, mY);
 
-    sx -= mx;
-    sy -= my;
 
-    dx -= mx;
-    dy -= my;
+    //Update based on the Translation of setPos()
+    sX -= mX;
+    sY -= mY;
+    sLX -= mX;
 
-    mx = circleRadius;
-    my = circleRadius;
+    fX -= mX;
+    fY -= mY;
+    fLX -= mX;
 
-    int arrowHeadSize = width / 4;
+    //Set mX and mY to the centre of the mid point object.
+    mX = circleRadius;
+    mY = circleRadius;
 
-    if(dx < sx){
-        arrowHeadSize *= - 1;
+    //Calculate the Arrow size, based of the radius of the connection.
+    //When the finish point is on the right, we need to reverse the arrowHeadSize.
+    int arrowHeadSize = finishWidthMult * (circleRadius / 2);
+
+
+    if(lineItems.size() == 6){
+        lineItems[0]->setLine(sX, sY, sLX, sY);
+
+        if((usingCenter && (sLX > mX) && startLeft) || (!usingCenter && !usingStart)){
+            //Grow towards mX first
+            lineItems[1]->setLine(sLX, sY, mX, sY);
+            lineItems[2]->setLine(mX, sY, mX, mY);
+        }else{
+            //Grow towards mY first
+            lineItems[1]->setLine(sLX, sY, sLX, mY);
+            lineItems[2]->setLine(sLX, mY, mX, mY);
+        }
+
+        if((!usingCenter && usingStart)){
+            //Grow towards fY first
+            lineItems[3]->setLine(mX, mY, mX, fY);
+            lineItems[4]->setLine(mX, fY, fLX, fY);
+        }else{
+            //Grow towards fX first
+            lineItems[3]->setLine(mX, mY, fLX, mY);
+            lineItems[4]->setLine(fLX, mY, fLX, fY);
+        }
+
+        lineItems[5]->setLine(fLX, fY, fX, fY);
     }
 
-    lineItems[0]->setLine(sx, sy, mx, sy);
-    lineItems[1]->setLine(mx, sy, mx, dy);
-    lineItems[2]->setLine(mx, dy, dx, dy);
-
-    arrowHeadLines[0]->setLine(dx, dy, dx-arrowHeadSize, dy-(arrowHeadSize/2));
-    arrowHeadLines[1]->setLine(dx-arrowHeadSize, dy-(arrowHeadSize/2), dx-arrowHeadSize, dy+(arrowHeadSize/2));
-    arrowHeadLines[2]->setLine(dx-arrowHeadSize, dy+(arrowHeadSize/2), dx, dy);
+    //Set the Arrow Head!
+    if(arrowHeadLines.size() == 3){
+        arrowHeadLines[0]->setLine(fX, fY, fX - arrowHeadSize, fY - (arrowHeadSize/2));
+        arrowHeadLines[1]->setLine(fX - arrowHeadSize, fY - (arrowHeadSize/2), fX - arrowHeadSize, fY + (arrowHeadSize/2));
+        arrowHeadLines[2]->setLine(fX - arrowHeadSize, fY + (arrowHeadSize/2), fX, fY);
+    }
 
     prepareGeometryChange();
     update();
