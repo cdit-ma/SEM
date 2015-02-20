@@ -633,7 +633,7 @@ void NewMedeaWindow::on_actionClearModel_triggered()
 void NewMedeaWindow::on_actionSortModel_triggered()
 {
    if (selectedNode) {
-       nodeView->sortNode(selectedNode, selectedNode);
+       nodeView->sortNode(selectedNode);
    } else {
        nodeView->sortEntireModel();
    }
