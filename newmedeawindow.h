@@ -63,6 +63,8 @@ signals:
     void sendComponentDefinitions(QList<Node*>* definitions);
 
     void setGUIComponentsEnabled(bool isEnabled);
+
+
 private slots:
     void view_SetGUIEnabled(bool isEnabled);
 

@@ -96,16 +96,15 @@ signals:
     void constructNode(QString nodeKind, QPointF relativePosition);
     void constructEdge(Node* src, Node* dst);
 
-
     void constructConnectedComponents(Node* parent, Node* connectedNode, QString nodeKind, QPointF relativePosition);
     void constructComponentInstance(Node* assm, Node* defn, QPointF center);
-
 
     void turnOnViewAspect(QString aspect);
     void setGoToMenuActions(QString action, bool);
 
-
     void view_ClearHistoryStates();
+
+    void sceneRectChanged(QRectF newRect);
 
 
 public slots:
@@ -175,6 +174,8 @@ public slots:
 
     void componentInstanceConstructed(Node* node);
 
+    void updateSceneRect(NodeItem *item);
+
 private:
     NewController* getController();
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
@@ -228,7 +229,7 @@ private:
 
     QRectF getVisibleRect();
     void adjustSceneRect(QRectF rectToCenter);
-    void centerRect(QRectF rect);
+    void centerRect(QRectF rect, float extraspace = 0);
 
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;
@@ -256,6 +257,8 @@ private:
     bool autoCenterOn;
 
     bool toolbarJustClosed;
+
+
 protected:
     bool viewportEvent(QEvent *);
 

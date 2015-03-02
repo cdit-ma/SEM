@@ -408,7 +408,6 @@ void NewMedeaWindow::resetGUI()
  */
 void NewMedeaWindow::makeConnections()
 {
-
     connect(this, SIGNAL(setGUIComponentsEnabled(bool)), nodeView, SLOT(setEnabled(bool)));
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
@@ -534,8 +533,8 @@ void NewMedeaWindow::view_SetGUIEnabled(bool isEnabled)
 void NewMedeaWindow::sortAndCenterViewAspects()
 {
     if (nodeView) {
-        nodeView->forceSortViewAspects();
-        updateViewAspects();
+        nodeView->view_centerViewAspects();
+        nodeView->fitToScreen();
     }
 }
 

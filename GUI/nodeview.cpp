@@ -24,6 +24,8 @@
 
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
+#define MIN_ZOOM 0.01
+#define MAX_ZOOM 0.5
 
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
@@ -160,7 +162,7 @@ void NodeView::adjustSceneRect(QRectF rectToCenter)
         setSceneRect(newRec);
     }
 
-    // send a signal to the node items when there has been a change to the sceneRect
+    // send a signal to the node items if there has been a change to the sceneRect
     if (newRec.width() != prevSceneRect.width() || newRec.height() != prevSceneRect.height()) {
         //emit sceneRectChanged(newRec);
     }
@@ -172,10 +174,15 @@ void NodeView::adjustSceneRect(QRectF rectToCenter)
  * This centers the provided rectangle in the view.
  * @param rect
  */
-void NodeView::centerRect(QRectF rect)
+void NodeView::centerRect(QRectF rect, float extraspace)
 {
     QPointF rectCenter = rect.center();
-    qreal extraSpace = 1.15;
+    float extraSpace = 1.15;
+
+    // check if there is a specified value for extraspace
+    if (extraspace > 0) {
+        extraSpace = extraspace;
+    }
 
     // add extra space to the visible itemsBoundingRect to create a margin in the view
     rect.setWidth(rect.width()*extraSpace*extraSpace);
@@ -422,6 +429,7 @@ void NodeView::setRubberBandMode(bool On)
 
 /**
  * @brief NodeView::setViewAspects
+ * This is called whenever the view aspect buttons are clicked.
  * @param aspects
  */
 void NodeView::setViewAspects(QStringList aspects)
@@ -805,6 +813,16 @@ void NodeView::componentInstanceConstructed(Node *node)
     }
 }
 
+
+/**
+ * @brief NodeView::updateSceneRect
+ */
+void NodeView::updateSceneRect(NodeItem* item)
+{
+    adjustSceneRect(item->sceneBoundingRect());
+}
+
+
 NewController *NodeView::getController()
 {
     return this->controller;
@@ -837,7 +855,6 @@ void NodeView::updateDocks()
 
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
 {
-
     if(GUIItem){
         connect(GUIItem, SIGNAL(triggerSelected(GraphML*, bool)), controller, SLOT(view_GraphMLSelected(GraphML*, bool)));
 
@@ -870,6 +887,9 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
                 connect(nodeItem, SIGNAL(centerViewAspects()), this, SLOT(view_centerViewAspects()));
                 connect(nodeItem, SIGNAL(sortModel()), this, SLOT(view_sortModel()));
                 connect(nodeItem, SIGNAL(updateDockContainer(QString)), this, SLOT(view_updateDockContainer(QString)));
+
+                connect(this, SIGNAL(sceneRectChanged(QRectF)), nodeItem, SLOT(updateSceneRect(QRectF)));
+                connect(nodeItem, SIGNAL(itemMovedOutOfScene(NodeItem*)), this, SLOT(updateSceneRect(NodeItem*)));
             }
         }else{
             //Specific SubView Functionality.
@@ -1131,10 +1151,10 @@ void NodeView::mousePressEvent(QMouseEvent *event)
 void NodeView::wheelEvent(QWheelEvent *event)
 {
     // Scale the view / do the zoom
-    if(event->delta() > 0) {
+    if(event->delta() > 0 && transform().m11() < MAX_ZOOM) {
         // Zoom in
         scale(ZOOM_SCALE_INCREMENTOR, ZOOM_SCALE_INCREMENTOR);
-    } else {
+    } else if (event->delta() < 0 && transform().m11() > MIN_ZOOM) {
         // Zooming out
         scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
     }
@@ -1335,6 +1355,7 @@ void NodeView::printErrorText(GraphML *graphml, QString text)
  */
 void NodeView::fitToScreen()
 {
+    //qDebug() << "fitToScreen";
     QRectF itemsRec = scene()->itemsBoundingRect();
     float leftMostX = itemsRec.bottomRight().x();
     float rightMostX = itemsRec.topLeft().x();
