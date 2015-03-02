@@ -353,16 +353,15 @@ void NodeView::sortNode(Node *node, Node* topMostNode)
 
     // check if node has children
     if (nodeItem->getChildNodeItems().count() == 0) {
-        // if it doesn't and it also != topMost node, recurse sorting to parent
-        if (node != topMostNode) {
-            // otherwise, iterate up to the topMost node while sorting node
-            while (nodeItem->getParentNodeItem()) {
-                nodeItem = nodeItem->getParentNodeItem();
-                nodeItem->sort();
-                if (nodeItem->getNode() != topMostNode) {
-                    break;
-                }
+        // otherwise, iterate up to the topMost node while sorting node
+        while (nodeItem->getParentNodeItem()) {
+            // if it doesn't and it also != topMost node, recurse sorting to parent
+            if (nodeItem->getNode() == topMostNode) {
+                break;
             }
+
+            nodeItem = nodeItem->getParentNodeItem();
+            nodeItem->sort();
         }
     } else {
         // go to the lowest level child and start sorting from there
