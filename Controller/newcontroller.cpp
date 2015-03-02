@@ -2298,8 +2298,10 @@ void NewController::reverseAction(ActionItem action)
                 //Restore the Data Value;
                 view_UpdateGraphMLData(attachedItem, action.keyName, action.dataValue);
             }else{
-                qCritical() << action.ID << " " << action.keyName <<  action.dataValue;
-                qCritical() << "Cannot find Item";
+                if(!IS_SUB_VIEW){
+                    qCritical() << action.ID << " " << action.keyName <<  action.dataValue;
+                    qCritical() << "Cannot find Item";
+                }
             }
 
             break;

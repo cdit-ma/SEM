@@ -91,13 +91,17 @@ bool NodeView::isSubView()
 
 NodeView::~NodeView()
 {
-    if(this->parentNodeView){
-        parentNodeView->removeSubView(this);
-
-    }
     //Clear the current Selected Attribute Model so that the GUI doesn't crash.
     emit view_SetSelectedAttributeModel(0);
+
+    if(this->parentNodeView){
+        parentNodeView->removeSubView(this);
+        centralizedItemID = "";
+        CENTRALIZED_ON_ITEM = false;
+    }
 }
+
+
 
 void NodeView::setDock(DockScrollArea *dock)
 {
@@ -229,7 +233,6 @@ void NodeView::setParentNodeView(NodeView *n)
 void NodeView::removeSubView(NodeView *subView)
 {
     if(subViews.contains(subView)){
-        qCritical() << "Removed SubView";
         subViews.removeAll(subView);
     }
 }
@@ -570,7 +573,9 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 
 
     }else{
-        qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
+        if(!IS_SUB_VIEW){
+            qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
+        }
     }
 }
 
@@ -580,7 +585,7 @@ void NodeView::view_DestructGraphMLGUI(QString ID)
     if(IS_SUB_VIEW){
         if(CENTRALIZED_ON_ITEM && centralizedItemID == ID){
             //CALL DELETE ON DIALOG
-            delete this->parent();
+            this->parent()->deleteLater();
         }
     }
 }
@@ -631,7 +636,7 @@ void NodeView::view_SortNode(Node *node)
 
 void NodeView::view_CenterGraphML(GraphML *graphML)
 {
-    qCritical() << "Centering on: " << graphML->toString();
+    //qCritical() << "Centering on: " << graphML->toString();
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
     if(guiItem){
         centreItem(guiItem);
@@ -923,7 +928,9 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
             return true;
         }
     }else{
-        qCritical() << "Not HERE?!" << ID;
+        if(!IS_SUB_VIEW){
+            qCritical() << "Could not find GraphMLItem from Hash!" << ID;
+        }
     }
     return false;
 }
@@ -1040,7 +1047,9 @@ GraphMLItem *NodeView::getGraphMLItemFromHash(QString ID)
     if(guiItems.contains(ID)){
         return guiItems[ID];
     }else{
-        qCritical() << "Cannot find GraphMLItem from Lookup Hash. ID: " << ID;
+        if(!IS_SUB_VIEW){
+            qCritical() << "Cannot find GraphMLItem from Lookup Hash. ID: " << ID;
+        }
     }
     return 0;
 }
