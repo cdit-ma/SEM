@@ -11,10 +11,10 @@ Variable::~Variable()
 
 bool Variable::canConnect(Node* attachableObject)
 {
-    return Node::canConnect(attachableObject);
+    return false;
 }
 
 bool Variable::canAdoptChild(Node *child)
 {
-    return Node::canConnect(child);
+    return false;
 }

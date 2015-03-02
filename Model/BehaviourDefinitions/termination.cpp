@@ -12,7 +12,13 @@ Termination::~Termination()
 
 bool Termination::canConnect(Node* attachableObject)
 {
-    return Node::canConnect(attachableObject);
+    Node* parentNode = getParentNode();
+    if(parentNode){
+        if(!parentNode->isAncestorOf(attachableObject)){
+            return false;
+        }
+    }
+
 }
 
 bool Termination::canAdoptChild(Node *child)

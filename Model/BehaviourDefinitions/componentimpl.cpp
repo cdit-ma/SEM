@@ -3,6 +3,9 @@
 #include "attributeimpl.h"
 #include "ineventportimpl.h"
 #include "outeventportimpl.h"
+#include "../InterfaceDefinitions/memberinstance.h"
+#include "condition.h"
+#include "process.h"
 
 #include <QDebug>
 
@@ -36,14 +39,16 @@ bool ComponentImpl::canConnect(Node* attachableObject)
 
 bool ComponentImpl::canAdoptChild(Node *child)
 {
-    AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(child);
-    InEventPortImpl* inEventPortImpl = dynamic_cast<InEventPortImpl*>(child);
-    OutEventPortImpl* outEventPortImpl = dynamic_cast<OutEventPortImpl*>(child);
+    Condition* condition = dynamic_cast<Condition*>(child);
+    MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(child);
+    Process* process = dynamic_cast<Process*>(child);
 
-    if(!attributeImpl && !inEventPortImpl && !outEventPortImpl){
-        //qWarning() << "ComponentImpl can Only adopt AttributeImpl, InEventPortImpl and OutEventPortImpl.";
-        //return false;
+    //AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(child);
+    //InEventPortImpl* inEventPortImpl = dynamic_cast<InEventPortImpl*>(child);
+    //OutEventPortImpl* outEventPortImpl = dynamic_cast<OutEventPortImpl*>(child);
 
+    if(condition || memberInstance || process){
+        return false;
     }
 
     return Node::canAdoptChild(child);

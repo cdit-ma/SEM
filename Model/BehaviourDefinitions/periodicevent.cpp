@@ -2,7 +2,7 @@
 #include <QDebug>
 PeriodicEvent::PeriodicEvent():Node()
 {
-    //qCritical() << "Constructed PeriodicEvent: "<< this->getName();
+
 }
 
 PeriodicEvent::~PeriodicEvent()
@@ -12,10 +12,17 @@ PeriodicEvent::~PeriodicEvent()
 
 bool PeriodicEvent::canConnect(Node* attachableObject)
 {
+    Node* parentNode = getParentNode();
+    if(parentNode){
+        if(!parentNode->isAncestorOf(attachableObject)){
+            return false;
+        }
+    }
+    //Only in things locally contained.
     return Node::canConnect(attachableObject);
 }
 
 bool PeriodicEvent::canAdoptChild(Node *child)
 {
-    return Node::canAdoptChild(child);
+    return false;
 }

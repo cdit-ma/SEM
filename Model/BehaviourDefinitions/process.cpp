@@ -13,6 +13,7 @@ Process::~Process()
 
 bool Process::canConnect(Node* attachableObject)
 {
+
     return Node::canConnect(attachableObject);
 }
 

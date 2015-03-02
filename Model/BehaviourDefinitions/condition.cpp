@@ -17,5 +17,5 @@ bool Condition::canConnect(Node* attachableObject)
 
 bool Condition::canAdoptChild(Node *child)
 {
-    return Node::canAdoptChild(child);
+    return false;
 }

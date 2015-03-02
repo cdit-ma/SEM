@@ -51,11 +51,12 @@ NewController::NewController()
     definitionNodeKinds << "AggregateInstance" << "MemberInstance";
     definitionNodeKinds << "ComponentImpl";
 
-    behaviourNodeKinds << "MemberInstance" << "AttributeImpl";
+
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload";
     behaviourNodeKinds << "OutEventPortImpl";
 
     //Append Kinds which can't be constructed by the GUI.
+    constructableNodeKinds << "MemberInstance" << "AttributeImpl";
     constructableNodeKinds << "OutEventPortInstance" << "MemberInstance" << "AggregateInstance";
     constructableNodeKinds << "AttributeInstance" << "AttributeImpl";
     constructableNodeKinds << "InEventPortInstance" << "InEventPortImpl";

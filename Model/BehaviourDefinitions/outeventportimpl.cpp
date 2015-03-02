@@ -30,25 +30,33 @@ bool OutEventPortImpl::canAdoptChild(Node *child)
 bool OutEventPortImpl::canConnect(Node* attachableObject)
 {
     OutEventPort* oep = dynamic_cast<OutEventPort*>(attachableObject);
+
     Node* aParent = getParentNode();
 
-
-
-    if(getDefinition() || !oep){
-        qCritical() << "Can Only connect to one OutEventPort";
-        return false;
-    }
-
-    //Check for connections.
-    if(aParent){
-        Node* parentDef = aParent->getDefinition();
-        if(parentDef){
-            if(!parentDef->isAncestorOf(attachableObject)){
-                qCritical() << "Can Only connect to an OutEventPort owned by the definition of this ComponentImpl.";
+    if(oep){
+        if(getDefinition()){
+            qCritical() << "OutEventPortImpl Can Only be connected to one OutEventPort Definition.";
+            return false;
+        }
+        if(aParent){
+            Node* parentDef = aParent->getDefinition();
+            if(parentDef){
+                if(!parentDef->isAncestorOf(attachableObject)){
+                    qCritical() << "Can Only connect to an OutEventPort owned by the definition of this ComponentImpl.";
+                    return false;
+                }
+            }
+        }
+    }else{
+        if(aParent){
+            if(!aParent->isAncestorOf(attachableObject)){
+                qCritical() << "Can only connect to items owned by Component Impl!";
                 return false;
             }
         }
     }
+
+
 
     return Node::canConnect(attachableObject);
 }
