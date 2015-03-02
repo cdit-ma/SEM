@@ -24,7 +24,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setParentItem(parent);
     parentNodeItem = parent;
 
-    isCurrentlySorted = false;
+
     nodeSelected = false;
     isNodePressed = false;
     permanentlyCentralized = false;
@@ -163,8 +163,8 @@ void NodeItem::setParentItem(QGraphicsItem *parent)
 {
    NodeItem* nodeItem = dynamic_cast<NodeItem*>(parent);
    if(nodeItem){
-       nodeItem->addChildNodeItem(this);
-       connect(nodeItem, SIGNAL(nodeItemMoved()), this, SLOT(parentNodeItemMoved()));
+        nodeItem->addChildNodeItem(this);
+        connect(nodeItem, SIGNAL(nodeItemMoved()), this, SLOT(parentNodeItemMoved()));
    }
    QGraphicsItem::setParentItem(parent);
 }
@@ -471,7 +471,7 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
  * @param aspects
  */
 void NodeItem::updateViewAspects(QStringList aspects)
-{    
+{
     if(hidden || !PAINT_OBJECT){
         return;
     }
@@ -585,7 +585,7 @@ void NodeItem::sort()
         }
 
         QList<Node*> childNodes = getNode()->getChildren(0);
-    	foreach(Node* childNode, childNodes){
+        foreach(Node* childNode, childNodes){
         NodeItem* nodeItem = getChildNodeItemFromNode(childNode);
 
             // check that it's a NodeItem and that it's visible
@@ -733,7 +733,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         // unselect any selected node item
         // when the model is pressed
         if(!PAINT_OBJECT){
-            emit clearSelection();         
+            emit clearSelection();
             return;
         }
 
@@ -764,14 +764,20 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-
-
     switch (event->button()) {
     case Qt::LeftButton:{
         if(!PAINT_OBJECT){
             return;
         }
 
+        // check if item is still inside sceneRect after it's been moved
+        if (hasSelectionMoved) {
+            if (!currentSceneRect.contains(scenePos()) ||
+                    !currentSceneRect.contains(scenePos().x()+width, scenePos().y()+height)) {
+                //qDebug() << "itemMovedOutOfScene";
+                emit itemMovedOutOfScene(this);
+            }
+        }
 
         hasSelectionMoved = false;
         isNodePressed = false;
@@ -814,7 +820,6 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
-
 NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
 {
     foreach(NodeItem* childNI , childNodeItems){
@@ -827,12 +832,22 @@ NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
 
 void NodeItem::setWidth(qreal width)
 {
-
     if(this->width != width){
+
+        bool updateModel = false;
+        if(width < initialWidth){
+            qWarning() << "NodeItem::setWidth() Width provided less than Minimum.";
+            width = initialWidth;
+            updateModel = true;
+        }
         this->width = width;
         updateExpandButton();
         updateTextLabel();
         updateChildrenOnChange();
+
+        if(updateModel){
+            updateGraphMLSize();
+        }
     }
 
 }
@@ -840,8 +855,19 @@ void NodeItem::setWidth(qreal width)
 void NodeItem::setHeight(qreal height)
 {
     if(this->height != height){
+        bool updateModel = false;
+        if(height < initialHeight){
+            qWarning() << "NodeItem::setHeight() Height provided less than Minimum.";
+            height = initialHeight;
+            updateModel = true;
+        }
+
         this->height = height;
         updateChildrenOnChange();
+
+        if(updateModel){
+            updateGraphMLSize();
+        }
     }
 }
 
@@ -1160,7 +1186,6 @@ void NodeItem::updateChildrenOnChange()
         emit recentralizeAfterChange(getGraphML());
     }
 }
-
 void NodeItem::retrieveGraphMLData()
 {
     double graphmlHeight = getGraphML()->getDataValue("height").toDouble();
@@ -1256,7 +1281,6 @@ void NodeItem::parentNodeItemMoved()
         emit recentralizeAfterChange(getGraphML());
     }
 }
-
 
 /**
  * @brief NodeItem::getChildKind
@@ -1392,7 +1416,7 @@ void NodeItem::expandItem(bool show)
     prepareGeometryChange();
     update();
 
-    //emit updateEdgePosition();
+
 }
 
 
@@ -1422,6 +1446,17 @@ void NodeItem::updateHeight(NodeItem *child)
             //qDebug() << "No change in height";
         }
     }
+}
+
+
+/**
+ * @brief NodeItem::updateSceneRect
+ * This gets called everytime there has been a change to the view's sceneRect.
+ * @param sceneRect
+ */
+void NodeItem::updateSceneRect(QRectF sceneRect)
+{
+   currentSceneRect = sceneRect;
 }
 
 

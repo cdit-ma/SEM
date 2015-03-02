@@ -74,7 +74,7 @@ signals:
 
     //View Signals.
     void moveSelection(QPointF delta);
-	void growSelection(QPointF delta);
+    void growSelection(QPointF delta);
     void clearSelection();
 
     void centerViewAspects();
@@ -91,11 +91,11 @@ signals:
 
     void updateDockContainer(QString dockContainer);
 
-
-
     void recentralizeAfterChange(GraphML* item);
 
     void nodeItemMoved();
+    void itemMovedOutOfScene(NodeItem* item);
+
 
 public slots:
     void parentNodeItemMoved();
@@ -114,16 +114,18 @@ public slots:
 
     void addExpandButton();
     void expandItem(bool show);
-	
+
     void updateHeight(NodeItem* child);
+
+    void updateSceneRect(QRectF sceneRect);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
-private:    
- 	NodeItem* getChildNodeItemFromNode(Node* child);
+private:
+    NodeItem* getChildNodeItemFromNode(Node* child);
     void setWidth(qreal width);
     void setHeight(qreal height);
 
@@ -139,7 +141,6 @@ private:
     void updateGraphMLPosition();
 
     void updateChildrenOnChange();
-
     void retrieveGraphMLData();
 
     void updateTextLabel(QString text=0);
@@ -192,7 +193,6 @@ private:
     double prevHeight;
 
 
-    bool isCurrentlySorted;
 
     QPointF nextChildPosition;
 
@@ -216,6 +216,8 @@ private:
 
     bool hidden;
     int depth;
+
+    QRectF currentSceneRect;
 
 };
 
