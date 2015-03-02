@@ -609,7 +609,7 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
 
                 NodeItem* nodeItem = getNodeItemFromGraphMLItem(guiItem);
                 if(nodeItem){
-                    toolbar->setCurrentNodeItem(nodeItem);
+                    //toolbar->setCurrentNodeItem(nodeItem);
 
                     //dock->setCurrentNodeItem(nodeItem);
                     updateDocks();
