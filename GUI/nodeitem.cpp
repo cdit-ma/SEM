@@ -811,6 +811,9 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
         emit moveSelection(delta);
     }
+
+    qDebug() << "mouseMoveEvent";
+
 }
 
 NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)

@@ -54,6 +54,9 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //Set GraphicsView background-color
     setStyleSheet("QGraphicsView{ background-color: rgba(175,175,175,255);}");
 
+    //QBrush brush( QColor(100,100,200,250) );
+    //scene()->setBackgroundBrush(brush);
+
     //Set The rubberband Mode.
     setRubberBandMode(false);
 
@@ -111,6 +114,72 @@ QRectF NodeView::getVisibleRect( )
     QPointF topLeft = mapToScene(0,0);
     QPointF bottomRight = mapToScene(viewport()->width(),viewport()->height());
     return QRectF( topLeft, bottomRight );
+}
+
+
+/**
+ * @brief NodeView::adjustSceneRect
+ * This makes the necessary adjustments to the sceneRect to be able to center on rectToCenter.
+ * @param rectToCenter
+ */
+void NodeView::adjustSceneRect(QRectF rectToCenter)
+{
+    QRectF viewRect = getVisibleRect();
+    QRectF newRec = scene()->itemsBoundingRect();
+    QRectF prevSceneRect = sceneRect();
+
+    qreal multiplier = (viewRect.height() / rectToCenter.height()) - 1;
+    qreal neededXGap = qAbs((viewRect.width() - (rectToCenter.width()*multiplier)) / 2);
+    qreal neededYGap = qAbs((viewRect.height() - (rectToCenter.height()*multiplier)) / 2);
+    qreal leftXGap = qAbs((rectToCenter.x() - sceneRect().x()) * multiplier);
+    qreal rightXGap = qAbs((sceneRect().x() + sceneRect().width() - (rectToCenter.x() + rectToCenter.width()))  * multiplier);
+    qreal topYGap = qAbs((rectToCenter.y() - sceneRect().y()) * multiplier);
+    qreal bottomYGap = qAbs(((sceneRect().y() + sceneRect().height()) - (rectToCenter.y() + rectToCenter.height())) * multiplier);
+
+    // check to make sure that there is enough space around the items boundingRect within
+    // the scene before centering it; if there isn't, add the needed space to the sceneRect
+    if (leftXGap < neededXGap) {
+        newRec.setX(newRec.x()-neededXGap);
+        newRec.setWidth(newRec.width()+neededXGap);
+        setSceneRect(newRec);
+    } else if (rightXGap < neededXGap) {
+        newRec.setWidth(newRec.width()+neededXGap);
+        setSceneRect(newRec);
+    }
+    if (topYGap < neededYGap) {
+        newRec.setY(newRec.y()-neededYGap);
+        newRec.setHeight(newRec.height()+neededYGap);
+        setSceneRect(newRec);
+    } else if (bottomYGap < neededYGap) {
+        newRec.setHeight(newRec.height()+neededYGap);
+        setSceneRect(newRec);
+    }
+
+    // send a signal to the node items when there has been a change to the sceneRect
+    if (newRec.width() != prevSceneRect.width() || newRec.height() != prevSceneRect.height()) {
+        emit sceneRectChanged(newRec);
+    }
+}
+
+
+/**
+ * @brief NodeView::centerRect
+ * This centers the provided rectangle in the view.
+ * @param rect
+ */
+void NodeView::centerRect(QRectF rect)
+{
+    QPointF rectCenter = rect.center();
+    qreal extraSpace = 1.15;
+
+    // add extra space to the visible itemsBoundingRect to create a margin in the view
+    rect.setWidth(rect.width()*extraSpace*extraSpace);
+    rect.setHeight(rect.height()*extraSpace);
+
+    // adjust the sceneRect to be able to center on rect, then fit and center rect in view
+    adjustSceneRect(rect);
+    fitInView(rect, Qt::KeepAspectRatio);
+    centerOn(rectCenter);
 }
 
 
@@ -313,43 +382,10 @@ void NodeView::centreItem(GraphMLItem *item)
         return;
     }
 
-    QRectF viewRect = getVisibleRect();
+    qDebug() << "centreItem: " << item->getGraphML()->getDataValue("kind");
+
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
-    qreal extraSpace = 1.2;
-
-    QRectF newRec = scene()->itemsBoundingRect();
-    qreal multiplier = (viewRect.height() / itemRect.height()) - 1;
-    qreal neededXGap = qAbs((viewRect.width() - (itemRect.width()*multiplier)) / 2);
-    qreal neededYGap = qAbs((viewRect.height() - (itemRect.height()*multiplier)) / 2);
-    qreal leftXGap = qAbs((itemRect.x() - sceneRect().x()) * multiplier);
-    qreal rightXGap = qAbs((sceneRect().x() + sceneRect().width() - (itemRect.x() + itemRect.width()))  * multiplier);
-    qreal topYGap = qAbs((itemRect.y() - sceneRect().y()) * multiplier);
-    qreal bottomYGap = qAbs(((sceneRect().y() + sceneRect().height()) - (itemRect.y() + itemRect.height())) * multiplier);
-
-    // check to make sure that there is enough space around the
-    // items boundingRect within the scene before centering it
-    // if there isn't, add the needed space to the sceneRect
-    if (leftXGap < neededXGap) {
-        newRec.setX(newRec.x()-neededXGap);
-        newRec.setWidth(newRec.width()+neededXGap);
-        setSceneRect(newRec);
-    } else if (rightXGap < neededXGap) {
-        newRec.setWidth(newRec.width()+neededXGap);
-        setSceneRect(newRec);
-    }
-    if (topYGap < neededYGap) {
-        newRec.setY(newRec.y()-neededYGap);
-        newRec.setHeight(newRec.height()+neededYGap);
-        setSceneRect(newRec);
-    } else if (bottomYGap < neededYGap) {
-        newRec.setHeight(newRec.height()+neededYGap);
-        setSceneRect(newRec);
-    }
-
-    itemRect.setWidth(itemRect.width()*extraSpace*1.15);
-    itemRect.setHeight(itemRect.height()*extraSpace);
-    fitInView(itemRect, Qt::KeepAspectRatio);
-    centerOn(item);
+    centerRect(itemRect);
 }
 
 
@@ -1041,7 +1077,6 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
 
 void NodeView::mouseMoveEvent(QMouseEvent *event)
 {
-
     if(RUBBERBAND_MODE && drawingRubberBand){
         //Move rubberband to the position on the screen.
         rubberBand->setGeometry(QRect(rubberBandOrigin, event->pos()).normalized());
@@ -1277,23 +1312,18 @@ void NodeView::printErrorText(GraphML *graphml, QString text)
 
 /**
  * @brief NodeView::fitToScreen
- * This scales the view to fit the whole scene.
+ * This makes sure that all the visible items fit and are centered within the view.
  */
 void NodeView::fitToScreen()
 {
-    /*
-    QRectF itemsRec = scene()->itemsBoundingRect();
-    setSceneRect(itemsRec);
-    fitInView(itemsRec, Qt::KeepAspectRatio);
-    */
-
     QRectF itemsRec = scene()->itemsBoundingRect();
     float leftMostX = itemsRec.bottomRight().x();
     float rightMostX = itemsRec.topLeft().x();
     float topMostY = itemsRec.bottomRight().y();
     float bottomMostY = itemsRec.topLeft().y();
 
-
+    // go through each item and store the left/right/top/bottom most coordinates
+    // of the visible items to create the visible itemsBoundingRect to center on
     foreach (QGraphicsItem* item, scene()->items(itemsRec)) {
 
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
@@ -1315,13 +1345,7 @@ void NodeView::fitToScreen()
     }
 
     QRectF visibleItemsRec = QRectF(leftMostX, topMostY, abs((rightMostX-leftMostX)), abs((bottomMostY-topMostY)));
-    QPointF recCenter = visibleItemsRec.center();
-    qreal extraSpace = 1.15;
-
-    visibleItemsRec.setWidth(visibleItemsRec.width()*extraSpace*extraSpace);
-    visibleItemsRec.setHeight(visibleItemsRec.height()*extraSpace);
-    fitInView(visibleItemsRec, Qt::KeepAspectRatio);
-    centerOn(recCenter);
+    centerRect(visibleItemsRec);
 }
 
 

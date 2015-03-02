@@ -79,5 +79,6 @@
         <file>Resources/Icons/model.png</file>
         <file>Resources/Icons/sort.png</file>
         <file>Resources/Icons/autoCenter.png</file>
+        <file>Resources/Icons/searchIcon.png</file>
     </qresource>
 </RCC>

@@ -24,7 +24,7 @@ protected:
     virtual void leaveEvent(QEvent*);
 
 signals:
-    void hideToolbar();
+    void hideToolbar(bool actionTriggered = false);
     void closeParentMenu();
     void connectToParentMenu(ToolbarWidgetMenu* menu);
 

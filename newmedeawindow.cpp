@@ -13,7 +13,7 @@
 #include <QPicture>
 
 
-#define THREADING false
+#define THREADING true
 /**
  * @brief NewMedeaWindow::NewMedeaWindow
  * @param parent
@@ -29,7 +29,6 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
 
     setupJenkinsSettings();
 
-
     // initialise gui and connect signals and slots
     initialiseGUI();
     makeConnections();
@@ -42,6 +41,7 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
         files.append(graphMLFile);
         importGraphMLFiles(files);
     }
+
     //this->view_SetGUIEnabled(false);
 }
 
@@ -408,36 +408,8 @@ void NewMedeaWindow::resetGUI()
  */
 void NewMedeaWindow::makeConnections()
 {
-/*
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), file_newProject, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), file_importGraphML, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), file_exportGraphML, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), edit_paste, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), exit, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), view_fitToScreen, SLOT(setEnabled(bool)));
 
-
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), view_autoCenterView, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), view_goToDefinition, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), view_goToImplementation, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), model_clearModel, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), model_sortModel, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), projectName, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), assemblyButton, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), hardwareButton, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), definitionsButton, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), workloadButton, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), partsContainer, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), hardwareContainer, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), definitionsContainer, SLOT(setEnabled(bool)));
-  */
     connect(this, SIGNAL(setGUIComponentsEnabled(bool)), nodeView, SLOT(setEnabled(bool)));
-
-
-
-
-
-
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
@@ -620,8 +592,8 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
             return;
         }
     }
-    newProject();
 
+    newProject();
 }
 
 
@@ -1086,7 +1058,6 @@ void NewMedeaWindow::newProject()
 
     //Set default View.
     resetView();
-
 }
 
 

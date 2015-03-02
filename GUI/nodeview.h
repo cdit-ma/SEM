@@ -106,6 +106,8 @@ signals:
 
 
     void view_ClearHistoryStates();
+
+
 public slots:
     void view_ClearHistory();
     void toolbarClosed();
@@ -222,6 +224,9 @@ private:
 
 
     QRectF getVisibleRect();
+    void adjustSceneRect(QRectF rectToCenter);
+    void centerRect(QRectF rect);
+
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;
 

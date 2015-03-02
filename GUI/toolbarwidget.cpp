@@ -304,11 +304,13 @@ void ToolbarWidget::addComponentInstance()
  * This method checks if hiding the menu was triggered by the toolbar.
  * If the event came from outside the toolbar, hide the toolbar and all visible menus.
  */
-void ToolbarWidget::hideToolbar()
+void ToolbarWidget::hideToolbar(bool actionTriggered)
 {
     if (!eventFromToolbar) {
         hide();
-        emit toolbarClosed();
+        if (!actionTriggered) {
+            emit toolbarClosed();
+        }
     }
 }
 
@@ -427,10 +429,10 @@ void ToolbarWidget::setupMenus()
  */
 void ToolbarWidget::makeConnections()
 {
-    connect(addMenu, SIGNAL(hideToolbar()), this, SLOT(hideToolbar()));
-    connect(connectMenu, SIGNAL(hideToolbar()), this, SLOT(hideToolbar()));
-    connect(definitionMenu, SIGNAL(hideToolbar()), this, SLOT(hideToolbar()));
-    connect(implementationMenu, SIGNAL(hideToolbar()), this, SLOT(hideToolbar()));
+    connect(addMenu, SIGNAL(hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
+    connect(connectMenu, SIGNAL(hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
+    connect(definitionMenu, SIGNAL(hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
+    connect(implementationMenu, SIGNAL(hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
 
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));

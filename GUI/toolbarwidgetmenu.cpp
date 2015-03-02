@@ -182,7 +182,7 @@ void ToolbarWidgetMenu::hideMenu(QAction *action)
     ToolbarWidgetAction* widgetAction = dynamic_cast<ToolbarWidgetAction*>(action);
     if (widgetAction && widgetAction->getMenu() == 0) {
         hide();
-        emit hideToolbar();
+        emit hideToolbar(true);
     }
 }
 

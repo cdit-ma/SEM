@@ -66,7 +66,7 @@ public slots:
     //void addInEventPortInstance();
     //void addOutEventPortInstance();
 
-    void hideToolbar();
+    void hideToolbar(bool actionTriggered);
 
 
 private:
