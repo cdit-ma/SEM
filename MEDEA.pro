@@ -139,7 +139,7 @@ SOURCES += \
     Model/DeploymentDefinitions/hardwaredefinitions.cpp \
     ValidationEngine/validationengine.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
-	ValidationEngine/validationplugin.cpp \
+    ValidationEngine/validationplugin.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
     newmedeawindow.cpp \
     GUI/docktogglebutton.cpp \
