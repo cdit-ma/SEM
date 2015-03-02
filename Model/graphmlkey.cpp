@@ -103,9 +103,14 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
         break;
     case LONG:
         newValue.toLong(&ok);
-    case DOUBLE:
-        newValue.toDouble(&ok);
+    case DOUBLE:{
+        double temp = newValue.toDouble(&ok);
+        if((getName() == "width" || getName() == "height") && temp  <= 0){
+            ok = false;
+        }
+
         break;
+    }
     case FLOAT:
         newValue.toFloat(&ok);
         break;
@@ -120,6 +125,8 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
     }
 
     if(ok){
+
+
         return newValue;
     }else{
         return data->getValue();

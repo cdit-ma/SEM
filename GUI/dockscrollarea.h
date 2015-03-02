@@ -10,6 +10,7 @@
 #include "nodeitem.h"
 
 class DockToggleButton;
+class NodeView;
 
 class DockScrollArea : public QScrollArea
 {
@@ -18,6 +19,9 @@ public:
     explicit DockScrollArea(QString label, DockToggleButton *parent);
     ~DockScrollArea();
 
+    void setNodeView(NodeView* v);
+
+    void setCurrentNodeItem(NodeItem* currentNode);
     DockToggleButton* getParentButton();
     void addDockNode(NodeItem* item);
     void addAdoptableDockNodes(Node* parentNode, QStringList nodes);
@@ -51,10 +55,17 @@ public slots:
 
     void removeFromDockNodeList(QWidget* widget);
 
+public:
+    void updatePartsDock();
+
+    //virtual void updateDock() = 0;
+
 
 private:
     NodeItem* nodeItem;
     Node* parentNode;
+    QStringList utilisedKinds;
+
     DockToggleButton *parentButton;
 
     QGroupBox *groupBox;
@@ -62,6 +73,7 @@ private:
     QString label;
     bool activated;
 
+    NodeView* nodeView;
     QVector<QWidget*> dockNodes;
 
     QStringList adoptableNodesList;

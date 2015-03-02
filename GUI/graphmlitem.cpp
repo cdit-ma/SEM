@@ -4,10 +4,11 @@
 #include <QObject>
 #include <QDebug>
 
-GraphMLItem::GraphMLItem(GraphML* graph):QObject(0), QGraphicsItem(0)
+GraphMLItem::GraphMLItem(GraphML *attachedGraph, GraphMLItem::GUI_KIND kind)
 {
-    attachedGraph = graph;
+    this->attachedGraph = attachedGraph;
     table = new AttributeTableModel(this);
+    this->kind = kind;
 }
 
 GraphMLItem::~GraphMLItem()
@@ -27,4 +28,14 @@ GraphML *GraphMLItem::getGraphML()
 AttributeTableModel *GraphMLItem::getAttributeTable()
 {
     return table;
+}
+
+bool GraphMLItem::isNodeItem()
+{
+    return kind == NODE_ITEM;
+}
+
+bool GraphMLItem::isNodeEdge()
+{
+    return kind == NODE_EDGE;
 }

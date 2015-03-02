@@ -9,12 +9,12 @@
 /**
  * @brief ToolbarWidgetAction::ToolbarWidgetAction
  * @param nodeKind
+ * @param textLabel
  * @param parent
  */
 ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QWidget *parent) :
     QWidgetAction(parent)
-{
-    widgetMenu = 0;
+{           
     node = 0;
     kind = nodeKind;
 
@@ -24,6 +24,13 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
     } else {
         label = nodeKind;
     }
+
+    widgetMenu = 0;
+    willHaveMenu = false;
+
+    if (nodeKind == "ComponentInstance" || nodeKind == "InEventPortDelegate" || nodeKind == "OutEventPortDelegate") {
+        willHaveMenu = true;
+    }
 }
 
 
@@ -31,11 +38,11 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
  * @brief ToolbarWidgetAction::ToolbarWidgetAction
  * @param node
  * @param parent
+ * @param actionKind
  */
 ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString actionKind) :
     QWidgetAction(parent)
 {
-    widgetMenu = 0;
     this->node = node;
     label = node->getDataValue("label");
 
@@ -43,6 +50,13 @@ ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString ac
         kind = "ComponentInstance";
     } else {
         kind = node->getDataValue("kind");
+    }
+
+    widgetMenu = 0;
+    willHaveMenu = false;
+
+    if (actionKind == "file" || actionKind == "eventPort") {
+        willHaveMenu = true;
     }
 }
 
@@ -54,6 +68,7 @@ ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString ac
 void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu *menu)
 {
     widgetMenu = menu;
+
     connect(widgetMenu, SIGNAL(aboutToHide()), this, SLOT(actionButtonUnclicked()));
     connect(this, SIGNAL(triggered()), widgetMenu, SLOT(execMenu()));
 }
@@ -106,8 +121,7 @@ QPushButton *ToolbarWidgetAction::getButton()
  */
 QPoint ToolbarWidgetAction::getButtonPos()
 {
-    QPoint point = actionButton->mapToGlobal(actionButton->rect().topRight());
-    return point;
+    return actionButton->mapToGlobal(actionButton->rect().topRight());
 }
 
 
@@ -122,7 +136,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     actionButton->setMouseTracking(true);
 
     if (isEnabled()) {
-        actionButton->setFixedSize(155, 33);
+        actionButton->setMinimumSize(160, 33);
         actionButton->setStyleSheet("QPushButton{"
                                     "border: 0px;"
                                     "margin: 0px;"
@@ -138,7 +152,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
                                     "background-color: rgba(10,10,10,50);"
                                     "}");
     } else {
-        actionButton->setFixedSize(label.size()*7.25, 33);
+        actionButton->setMinimumSize(label.size()*7.25, 33);
         actionButton->setStyleSheet("QPushButton{"
                                     "border: 0px;"
                                     "margin: 0px;"
@@ -156,7 +170,6 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
                                        Qt::KeepAspectRatio,
                                        Qt::SmoothTransformation);
 
-    //image
     QLabel* imageLabel = new QLabel(actionButton);
     imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
     imageLabel->setFixedSize(scaledImage.size());
@@ -171,14 +184,19 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     layout->addWidget(textLabel);
     actionButton->setLayout(layout);
 
-    // if this action's kind is ComponentInstance, setCheckable to true
-    // to help highlight this action when its menu is visible
-    /*
-    if (node == 0 && kind == "ComponentInstance") {
-        actionButton->setCheckable(true);
-        actionButton->setChecked(false);
+    // if this action is going to have a menu, add menu_arrow icon to the widget
+    if (willHaveMenu) {
+        QImage* menuImage = new QImage(":/Resources/Icons/menu_arrow.png");
+        QImage scaledMenuImage = menuImage->scaled(actionButton->height()/2.5,
+                                           actionButton->height()/2.5,
+                                           Qt::KeepAspectRatio,
+                                           Qt::SmoothTransformation);
+        QLabel* menuImageLabel = new QLabel(actionButton);
+        menuImageLabel->setPixmap(QPixmap::fromImage(scaledMenuImage));
+        menuImageLabel->setFixedSize(scaledMenuImage.size());
+        menuImageLabel->setStyleSheet("background-color: rgba(0,0,0,0);");
+        layout->addWidget(menuImageLabel);
     }
-    */
 
     connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
     connect(this, SIGNAL(hovered()), this, SLOT(hover()));
@@ -216,5 +234,4 @@ void ToolbarWidgetAction::actionButtonUnclicked()
 {
     actionButton->setChecked(false);
     actionButton->repaint();
-    //emit trigger();
 }

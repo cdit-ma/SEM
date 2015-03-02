@@ -11,7 +11,8 @@ public:
 
 
 public slots:
-    void updateViewPort(QRectF viewport);
+    void viewPortRectangleChanged(QRectF viewport);
+
 private:
     QRectF viewport;
 

@@ -15,28 +15,32 @@ ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction *widgetAction, ToolbarW
     defaultAction = action;
     eventFromMenu = false;
 
+    // attach this menu to its parentAction
     if (parentAction) {
-
-        // attach this menu to its parentAction
         parentAction->setMenu(this);
+    }
 
-        // if the parent of this menu is of type ToolbarWidgetMenu, connect to it
-        ToolbarWidgetMenu* parentMenu = qobject_cast<ToolbarWidgetMenu*>(parent);
-        if (parentMenu) {
-            connect(this, SIGNAL(connectToParentMenu(ToolbarWidgetMenu*)),
-                    parentMenu, SLOT(connectChildMenu(ToolbarWidgetMenu*)));
-            emit connectToParentMenu(this);
-        }
+    // if the parent of this menu is of type ToolbarWidgetMenu, connect to it
+    ToolbarWidgetMenu* parentMenu = qobject_cast<ToolbarWidgetMenu*>(parent);
+    if (parentMenu) {
+        connect(this, SIGNAL(connectToParentMenu(ToolbarWidgetMenu*)),
+                parentMenu, SLOT(connectChildMenu(ToolbarWidgetMenu*)));
+        emit connectToParentMenu(this);
     }
 
     connect(this, SIGNAL(triggered(QAction*)), this, SLOT(hideMenu(QAction*)));
     connect(this, SIGNAL(aboutToHide()), this, SLOT(close()));
+
+    // this should always have a parent; print warning if it doesn't
+    if (!parent) {
+        qDebug() << "WARNING: " << this << " doesn't have a parent. This may cause errors.";
+    }
 }
 
 
 /**
  * @brief ToolbarWidgetMenu::execMenu
- * This executes this menu next to it's ToolbarWidgetAction.
+ * This executes this menu next to its parent ToolbarWidgetAction.
  */
 void ToolbarWidgetMenu::execMenu()
 {
@@ -65,7 +69,6 @@ void ToolbarWidgetMenu::addWidgetAction(ToolbarWidgetAction* action)
         widgetActions.removeAll(defaultAction);
         removeAction(defaultAction);
     }
-
     widgetActions.append(action);
     addAction(action);
 }
@@ -95,14 +98,16 @@ ToolbarWidgetAction* ToolbarWidgetMenu::getParentAction()
 
 /**
  * @brief ToolbarWidgetMenu::clearMenu
- * This clears this menu. If there is a defaultAction, set it up.
+ * This clears this menu. It deletes all of this menu's actions except
+ * addInstanceAction and defaultAction if they exist.
  */
 void ToolbarWidgetMenu::clearMenu()
 {
     QMutableListIterator<ToolbarWidgetAction*> it(widgetActions);
-    while(it.hasNext()) {
+    while (it.hasNext()) {
         ToolbarWidgetAction *action = it.next();
-        if(action->getKind() != "ComponentInstance" && action->getKind() != "info") {
+        // NOTE: make sure to check for all kinds that are being stored in the ToolbarWidget
+        if (action && action->getKind() != "ComponentInstance" && action->getKind() != "InEventPortDelegate" && action->getKind() != "OutEventPortDelegate" && action->getKind() != "info") {
             delete action;
         } else {
             removeAction(action);
@@ -116,9 +121,10 @@ void ToolbarWidgetMenu::clearMenu()
  * @brief ToolbarWidgetMenu::enterEvent
  * This picks up if the mouse is hovering over this menu.
  */
-void ToolbarWidgetMenu::enterEvent(QEvent *)
+void ToolbarWidgetMenu::enterEvent(QEvent *e)
 {
     eventFromMenu = true;
+    QMenu::enterEvent(e);
 }
 
 
@@ -126,9 +132,10 @@ void ToolbarWidgetMenu::enterEvent(QEvent *)
  * @brief ToolbarWidgetMenu::leaveEvent
  * This picks up if the mouse is leaving this menu.
  */
-void ToolbarWidgetMenu::leaveEvent(QEvent *)
+void ToolbarWidgetMenu::leaveEvent(QEvent * e)
 {
     eventFromMenu = false;
+    QMenu::leaveEvent(e);
 }
 
 
@@ -154,9 +161,13 @@ void ToolbarWidgetMenu::close()
 void ToolbarWidgetMenu::closeMenu()
 {
     if (!eventFromMenu) {
+        QToolButton* button = qobject_cast<QToolButton*>(parent());
+        if (button) {
+            emit hideToolbar();
+        } else {
+            emit closeParentMenu();
+        }
         hide();
-        emit closeParentMenu();
-        emit hideToolbar();
     }
 }
 
@@ -168,8 +179,8 @@ void ToolbarWidgetMenu::closeMenu()
  */
 void ToolbarWidgetMenu::hideMenu(QAction *action)
 {
-    ToolbarWidgetAction* widgetAction = qobject_cast<ToolbarWidgetAction*>(action);
-    if (widgetAction->getMenu() == 0) {
+    ToolbarWidgetAction* widgetAction = dynamic_cast<ToolbarWidgetAction*>(action);
+    if (widgetAction && widgetAction->getMenu() == 0) {
         hide();
         emit hideToolbar();
     }

@@ -12,6 +12,7 @@
 ToolbarWidget::ToolbarWidget(NodeView *parent) :
     QWidget(parent)
 {
+    parentNodeView = parent;
     nodeItem = 0;
     prevNodeItem = 0;
     eventFromToolbar = false;
@@ -33,8 +34,36 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     */
 
     setupToolBar();
-    setupButtonMenus();
+    setupMenus();
     makeConnections();
+}
+
+void ToolbarWidget::setCurrentNodeItem(NodeItem *item)
+{
+    //Dans method.
+    currentSelectedItem = item;
+
+    Node* selectedNode = item->getNode();
+
+    Node* itemDefinition = parentNodeView->hasDefinition(selectedNode);
+    Node* itemImplementation = parentNodeView->hasDefinition(selectedNode);
+
+    showDefinitionButton(itemDefinition);
+    showImplementationButton(itemImplementation);
+
+    QStringList adoptableNodeList = parentNodeView->getAdoptableNodeList(selectedNode);
+    setupAdoptableNodesList(&adoptableNodeList);
+
+    QList<Node*> connectableNodeList = parentNodeView->getConnectableNodes(selectedNode);
+    setupLegalNodesList(&connectableNodeList);
+
+
+    if(selectedNode->getDataValue("kind") == "ComponentAssembly"){
+        QList<Node*> outEventPortDelegates = selectedNode->getChildrenOfKind("OutEventPort", 1);
+        qCritical() << selectedNode->toString() << " Has " << outEventPortDelegates.size() << " OEP's it could use!";
+        QList<Node*> inEventPortDelegates = selectedNode->getChildrenOfKind("InEventPort", 1);
+        qCritical() << selectedNode->toString() << " Has " << inEventPortDelegates.size() << " IEP's it could use!";
+    }
 }
 
 
@@ -47,7 +76,7 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
  */
 void ToolbarWidget::setNodeItem(NodeItem *item)
 {
-      nodeItem = item;
+    nodeItem = item;
     if (prevNodeItem != nodeItem) {
         clearMenus();
         updateToolButtons();
@@ -93,9 +122,10 @@ void ToolbarWidget::showImplementationButton(Node* implementation)
  * This is called when the mouse is hovering over the toolbar.
  * @param event
  */
-void ToolbarWidget::enterEvent(QEvent*)
+void ToolbarWidget::enterEvent(QEvent* e)
 {
     eventFromToolbar = true;
+    QWidget::enterEvent(e);
 }
 
 
@@ -104,10 +134,12 @@ void ToolbarWidget::enterEvent(QEvent*)
  * This is called when the mouse is no longer hovering over the toolbar.
  * @param event
  */
-void ToolbarWidget::leaveEvent(QEvent*)
+void ToolbarWidget::leaveEvent(QEvent* e)
 {
     eventFromToolbar = false;
+    QWidget::leaveEvent(e);
 }
+
 
 
 /**
@@ -116,6 +148,7 @@ void ToolbarWidget::leaveEvent(QEvent*)
  */
 void ToolbarWidget::goToDefinition()
 {
+    //emit goToDefinition(currentSelectedItem->getNode());
     emit goToDefinition(nodeItem->getNode());
 }
 
@@ -126,6 +159,7 @@ void ToolbarWidget::goToDefinition()
  */
 void ToolbarWidget::goToImplementation()
 {
+    //emit goToImplementation(currentSelectedItem->getNode());
     emit goToImplementation(nodeItem->getNode());
 }
 
@@ -157,6 +191,32 @@ void ToolbarWidget::getLegalNodesList()
 void ToolbarWidget::getFilesList()
 {
     emit updateMenuList("files", nodeItem->getNode());
+}
+
+
+/**
+ * @brief ToolbarWidget::getComponenttInstanceList
+ * This only gets called if the selected node is a ComponentAssembly.
+ * It gets all of its ComponentInstance children and it is used to setup
+ * the InEventPort/OutEventPort menu lists for the Delegates.
+ */
+void ToolbarWidget::getComponentInstanceList()
+{
+    QList<Node*> children = nodeItem->getNode()->getChildren(0);
+
+    if (children.count() > 0) {
+
+        QList<Node*> *componentInstances = new QList<Node*>();
+
+        foreach (Node* child, children) {
+            QString childKind = child->getDataValue("kind");
+            if (childKind == "ComponentInstance") {
+                componentInstances->append(child);
+            }
+        }
+
+        setupChildrenComponentInstanceList(componentInstances);
+    }
 }
 
 
@@ -212,7 +272,7 @@ void ToolbarWidget::makeNewView()
     // pop up the selected node into a new window
     QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
     if (button) {
-        emit constructNewView(nodeItem->getNode());
+        emit constructNewView(parentNodeView->getSelectedNode());
         return;
     }
 
@@ -248,6 +308,7 @@ void ToolbarWidget::hideToolbar()
 {
     if (!eventFromToolbar) {
         hide();
+        emit toolbarClosed();
     }
 }
 
@@ -281,7 +342,7 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setFixedSize(buttonSize);
     implementationButton->setFixedSize(buttonSize);
 
-    addChildButton->setIconSize(buttonSize*0.6);
+    addChildButton->setIconSize(buttonSize*0.8);
     connectButton->setIconSize(buttonSize*0.7);
     deleteButton->setIconSize(buttonSize*0.85);
     definitionButton->setIconSize(buttonSize*1.2);
@@ -312,9 +373,9 @@ void ToolbarWidget::setupToolBar()
 
 
 /**
- * @brief ToolbarWidget::setupButtonMenus
+ * @brief ToolbarWidget::setupMenus
  */
-void ToolbarWidget::setupButtonMenus()
+void ToolbarWidget::setupMenus()
 {
     addMenu = new ToolbarWidgetMenu(0, 0, addChildButton);
     addChildButton->setPopupMode(QToolButton::InstantPopup);
@@ -343,11 +404,21 @@ void ToolbarWidget::setupButtonMenus()
     connect(impl_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
 
     // this is used when ComponentInstance can be adopted by the current node
-    addInstanceAction = new ToolbarWidgetAction("ComponentInstance", "", addMenu);
-    fileDefaultAction = new ToolbarWidgetAction("info", "There are no Files.", this);
-    fileMenu = new ToolbarWidgetMenu(addInstanceAction, fileDefaultAction, addMenu);
+    componentInstanceAction = new ToolbarWidgetAction("ComponentInstance", "", addMenu);
+    inEventPortDelegateAction = new ToolbarWidgetAction("InEventPortDelegate", "", addMenu);
+    outEventPortDelegateAction = new ToolbarWidgetAction("OutEventPortDelegate", "", addMenu);
 
-    instanceDefaultAction = new ToolbarWidgetAction("info", "This File has no Components.", this);
+    // default actions for when some of the menus are empty
+    fileDefaultAction = new ToolbarWidgetAction("info", "There are no Files.", this);
+    componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This File has no Components.", this);
+    eventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly has no ComponentInstances.", this);
+    inEventPortDefaultAction = new ToolbarWidgetAction("info", "There are no InEventPorts.", this);
+    outEventPortDefaultAction = new ToolbarWidgetAction("info", "There are no OutEventPorts.", this);
+
+    // hidden menus for COmponentInstances and InEvent/OutEvent PortDelegates
+    fileMenu = new ToolbarWidgetMenu(componentInstanceAction, fileDefaultAction, addMenu);
+    inEventPort_componentInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, eventPort_componentInstanceDefaultAction, addMenu);
+    outEventPort_componentInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, eventPort_componentInstanceDefaultAction, addMenu);
 }
 
 
@@ -364,29 +435,32 @@ void ToolbarWidget::makeConnections()
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
 
+    connect(inEventPortDelegateAction, SIGNAL(triggered()), this, SLOT(getComponentInstanceList()));
+    connect(outEventPortDelegateAction, SIGNAL(triggered()), this, SLOT(getComponentInstanceList()));
+
     connectToView();
 }
 
 
 /**
- * @brief ToolbarWidget::connectNodeItem
+ * @brief ToolbarWidget::connectToView
  */
 void ToolbarWidget::connectToView()
 {
-    NodeView* nodeView = dynamic_cast<NodeView*>(parentWidget());
+    connect(this, SIGNAL(toolbarClosed()), parentNodeView, SLOT(toolbarClosed()));
 
-    connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(view_deleteSelectedNode()));
+    connect(deleteButton, SIGNAL(clicked()), parentNodeView, SLOT(view_deleteSelectedNode()));
 
-    connect(this, SIGNAL(goToDefinition(Node*)), nodeView, SLOT(goToDefinition(Node*)));
-    connect(this, SIGNAL(goToImplementation(Node*)), nodeView, SLOT(goToImplementation(Node*)));
+    connect(this, SIGNAL(goToDefinition(Node*)), parentNodeView, SLOT(goToDefinition(Node*)));
+    connect(this, SIGNAL(goToImplementation(Node*)), parentNodeView, SLOT(goToImplementation(Node*)));
 
-    connect(this, SIGNAL(updateMenuList(QString,Node*)), nodeView, SLOT(updateToolbarMenuList(QString,Node*)));
-    connect(nodeView, SIGNAL(updateMenuList(QString,QStringList*,QList<Node*>*)), this, SLOT(updateMenuList(QString,QStringList*,QList<Node*>*)));
+    connect(this, SIGNAL(updateMenuList(QString,Node*)), parentNodeView, SLOT(updateToolbarMenuList(QString,Node*)));
+    connect(parentNodeView, SIGNAL(updateMenuList(QString,QStringList*,QList<Node*>*)), this, SLOT(updateMenuList(QString,QStringList*,QList<Node*>*)));
 
-    connect(this, SIGNAL(constructNode(QString)), nodeView, SLOT(view_ConstructNode(QString)));
-    connect(this, SIGNAL(constructEdge(Node*,Node*)), nodeView, SLOT(view_ConstructEdge(Node*,Node*)));
-    connect(this, SIGNAL(constructComponentInstance(Node*,Node*,int)), nodeView, SLOT(view_ConstructComponentInstance(Node*,Node*,int)));
-    connect(this, SIGNAL(constructNewView(Node*)), nodeView, SLOT(constructNewView(Node*)));
+    connect(this, SIGNAL(constructNode(QString)), parentNodeView, SLOT(view_ConstructNode(QString)));
+    connect(this, SIGNAL(constructEdge(Node*,Node*)), parentNodeView, SLOT(view_ConstructEdge(Node*,Node*)));
+    connect(this, SIGNAL(constructComponentInstance(Node*,Node*,int)), parentNodeView, SLOT(view_ConstructComponentInstance(Node*,Node*,int)));
+    connect(this, SIGNAL(constructNewView(Node*)), parentNodeView, SLOT(constructNewView(Node*)));
 }
 
 
@@ -407,16 +481,12 @@ void ToolbarWidget::updateToolButtons()
     }
 
     if (nodeKind.endsWith("Definitions") || nodeKind == "ManagementComponent") {
-
         deleteButton->hide();
         connectButton->hide();
         showFrame = false;
-
     } else {
-
         deleteButton->show();
         getLegalNodesList();
-
         if (nodeKind == "ComponentAssembly") {
             getFilesList();
         }
@@ -445,13 +515,24 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList* nodeKinds)
         addChildButton->show();
     }
 
+
+    //DAN ADDED
+    // Dan, I commented out the connect() for the EventPortDelegates because they're already
+    // being connected to a different slot in makeConnections to getComponentInstanceList.
+    // I wanted to show which ComponentInstance the event ports belonged to.
     for (int i=0; i<nodeKinds->count(); i++) {
 
         QString nodeKind = nodeKinds->at(i);
         ToolbarWidgetAction* action;
 
         if (nodeKind == "ComponentInstance") {
-            action = addInstanceAction;
+            action = componentInstanceAction;
+        } else if (nodeKind == "InEventPortDelegate") {
+            action = inEventPortDelegateAction;
+            //connect(action, SIGNAL(triggered()), this, SLOT(setupInEventPortInstanceList()));
+        } else if (nodeKind == "OutEventPortDelegate") {
+            action = outEventPortDelegateAction;
+            //connect(action, SIGNAL(triggered()), this, SLOT(setupOutEventPortInstanceList()));
         } else {
             action  = new ToolbarWidgetAction(nodeKind, "", this);
             connect(action, SIGNAL(triggered()), this, SLOT(addChildNode()));
@@ -476,38 +557,13 @@ void ToolbarWidget::setupLegalNodesList(QList<Node*> *nodeList)
         connectButton->show();
     }
 
+    //DAN ADDED
+    connectMenu->clear();
+
     for (int i=0; i<nodeList->count(); i++) {
         ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList->at(i), this);
         connectMenu->addAction(action);
         connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::setupComponentInstanceList
- * @param instances
- */
-void ToolbarWidget::setupComponentInstanceList(QList<Node*> *instances)
-{
-    if (instances->count() == 0) {
-        return;
-    }
-
-    for (int i=0; i<instances->count(); i++) {
-
-        foreach (QAction* action, fileMenu->actions()) {
-
-            ToolbarWidgetAction* fileAction = qobject_cast<ToolbarWidgetAction*>(action);
-            QString fileID = instances->at(i)->getParentNode()->getID();
-
-            if (fileID == fileAction->getNode()->getID()) {
-                ToolbarWidgetAction* action = new ToolbarWidgetAction(instances->at(i), this, "instance");
-                connect(action, SIGNAL(triggered()), this, SLOT(addComponentInstance()));
-                fileAction->getMenu()->addWidgetAction(action);
-                break;
-            }
-        }
     }
 }
 
@@ -520,17 +576,17 @@ void ToolbarWidget::setupFilesList(QList<Node*> *files)
 {
     fileMenu->clearMenu();
 
-    // if the list has no contents, change addInstanceAction checkable state
+    // if the list has no contents, change componentInstanceAction checkable state
     if (files->count() == 0) {
-        addInstanceAction->getButton()->setCheckable(false);
+        componentInstanceAction->getButton()->setCheckable(false);
         return;
     } else {
-        addInstanceAction->getButton()->setCheckable(true);
+        componentInstanceAction->getButton()->setCheckable(true);
     }
 
-    for (int i=0; i<files->count(); i++) {
-        ToolbarWidgetAction* fileAction = new ToolbarWidgetAction(files->at(i), fileMenu);
-        ToolbarWidgetMenu* fileActionMenu = new ToolbarWidgetMenu(fileAction, instanceDefaultAction, fileMenu);
+    for (int i=0; i< files->count(); i++) {
+        ToolbarWidgetAction* fileAction = new ToolbarWidgetAction(files->at(i), fileMenu, "file");
+        ToolbarWidgetMenu* fileActionMenu = new ToolbarWidgetMenu(fileAction, componentInstanceDefaultAction, fileMenu);
         connect(fileAction, SIGNAL(triggered()), this, SLOT(getFilesList()));
         fileMenu->addWidgetAction(fileAction);
     }
@@ -540,11 +596,107 @@ void ToolbarWidget::setupFilesList(QList<Node*> *files)
 
 
 /**
+ * @brief ToolbarWidget::setupComponentInstanceList
+ * @param instances
+ */
+void ToolbarWidget::setupComponentInstanceList(QList<Node*> *components)
+{
+    for (int i=0; i<components->count(); i++) {
+        foreach (QAction* action, fileMenu->actions()) {
+
+            ToolbarWidgetAction* fileAction = qobject_cast<ToolbarWidgetAction*>(action);
+            QString fileID = components->at(i)->getParentNode()->getID();
+
+            if (fileID == fileAction->getNode()->getID()) {
+                ToolbarWidgetAction* action = new ToolbarWidgetAction(components->at(i), this, "instance");
+                connect(action, SIGNAL(triggered()), this, SLOT(addComponentInstance()));
+                fileAction->getMenu()->addWidgetAction(action);
+                break;
+            }
+        }
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::setupComponentInstanceList_EventPorts
+ * @param components
+ */
+void ToolbarWidget::setupChildrenComponentInstanceList(QList<Node*> *componentInstances)
+{
+    inEventPort_componentInstanceMenu->clear();
+    outEventPort_componentInstanceMenu->clear();
+
+    if (componentInstances->count() > 0) {
+
+        foreach (Node* instance, *componentInstances) {
+
+            ToolbarWidgetAction* inEvent_instanceAction = new ToolbarWidgetAction(instance, inEventPort_componentInstanceMenu, "eventPort");
+            ToolbarWidgetMenu* inEventPortMenu = new ToolbarWidgetMenu(inEvent_instanceAction, inEventPortDefaultAction, inEventPort_componentInstanceMenu);
+
+            ToolbarWidgetAction* outEvent_instanceAction = new ToolbarWidgetAction(instance, outEventPort_componentInstanceMenu, "eventPort");
+            ToolbarWidgetMenu* outEventPortMenu = new ToolbarWidgetMenu(outEvent_instanceAction, outEventPortDefaultAction, outEventPort_componentInstanceMenu);
+
+            inEventPort_componentInstanceMenu->addWidgetAction(inEvent_instanceAction);
+            outEventPort_componentInstanceMenu->addWidgetAction(outEvent_instanceAction);
+        }
+
+        // setup menu lists for InEventPort/OutEventPort Delegates
+        setupInEventPortInstanceList();
+        setupOutEventPortInstanceList();
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::setupInEventPortInstanceList
+ * @param instances
+ */
+void ToolbarWidget::setupInEventPortInstanceList()
+{
+    foreach (ToolbarWidgetAction* action, inEventPort_componentInstanceMenu->getWidgetActions()) {
+
+        QList<Node*> children = action->getNode()->getChildren(0);
+
+        foreach (Node* child, children) {
+            if (child->getDataValue("kind") == "InEventPortInstance") {
+                ToolbarWidgetAction* action = new ToolbarWidgetAction(child, inEventPort_componentInstanceMenu, "");
+                action->getMenu()->addWidgetAction(action);
+            }
+        }
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::setupOutEventPortInstanceList
+ * @param instances
+ */
+void ToolbarWidget::setupOutEventPortInstanceList()
+{
+    foreach (ToolbarWidgetAction* action, outEventPort_componentInstanceMenu->getWidgetActions()) {
+
+        QList<Node*> children = action->getNode()->getChildren(0);
+
+        foreach (Node* child, children) {
+            if (child->getDataValue("kind") == "OutEventPortInstance") {
+                ToolbarWidgetAction* action = new ToolbarWidgetAction(child, outEventPort_componentInstanceMenu, "");
+                action->getMenu()->addWidgetAction(action);
+            }
+        }
+    }
+}
+
+
+/**
  * @brief ToolbarWidget::clearMenus
+ * Clear the stored menus.
  */
 void ToolbarWidget::clearMenus()
 {
     addMenu->clearMenu();
     connectMenu->clearMenu();
     fileMenu->clearMenu();
+    inEventPort_componentInstanceMenu->clearMenu();
+    outEventPort_componentInstanceMenu->clearMenu();
 }

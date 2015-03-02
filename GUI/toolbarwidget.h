@@ -16,10 +16,12 @@ class ToolbarWidgetMenu;
 
 class ToolbarWidget : public QWidget
 {
+
     Q_OBJECT
 public:
     explicit ToolbarWidget(NodeView *parent = 0);
 
+    void setCurrentNodeItem(NodeItem* item);
     void setNodeItem(NodeItem* item);
 
     void showDefinitionButton(Node *definition);
@@ -29,6 +31,7 @@ public:
 protected:
     virtual void enterEvent(QEvent*);
     virtual void leaveEvent(QEvent*);
+
 
 
 signals:
@@ -43,6 +46,7 @@ signals:
 
     void constructComponentInstance(Node* assm, Node* defn, int sender);
 
+    void toolbarClosed();
 
 public slots:
     void goToDefinition();
@@ -51,6 +55,7 @@ public slots:
     void getAdoptableNodesList();
     void getLegalNodesList();
     void getFilesList();
+    void getComponentInstanceList();
     void updateMenuList(QString action, QStringList* stringList, QList<Node*>* nodeList);
 
     void addChildNode();
@@ -58,22 +63,35 @@ public slots:
     void makeNewView();
 
     void addComponentInstance();
+    //void addInEventPortInstance();
+    //void addOutEventPortInstance();
 
     void hideToolbar();
 
+
 private:
     void setupToolBar();
-    void setupButtonMenus();
+    void setupMenus();
     void makeConnections();
     void connectToView();
     void updateToolButtons();
 
     void setupAdoptableNodesList(QStringList *nodeKinds);
     void setupLegalNodesList(QList<Node*> *nodeList);
-    void setupComponentInstanceList(QList<Node*> *instances);
+
     void setupFilesList(QList<Node *> *files);
+    void setupComponentInstanceList(QList<Node*> *components);
+
+    void setupChildrenComponentInstanceList(QList<Node*> *componentInstances);
+    void setupInEventPortInstanceList();
+    void setupOutEventPortInstanceList();
 
     void clearMenus();
+
+
+    NodeView* parentNodeView;
+    NodeItem* currentSelectedItem;
+
 
     NodeItem* nodeItem;
     NodeItem* prevNodeItem;
@@ -88,7 +106,9 @@ private:
     QToolButton* definitionButton;
     QToolButton* implementationButton;
 
-    ToolbarWidgetAction* addInstanceAction;
+    ToolbarWidgetAction* componentInstanceAction;
+    ToolbarWidgetAction* inEventPortDelegateAction;
+    ToolbarWidgetAction* outEventPortDelegateAction;
 
     ToolbarWidgetMenu* addMenu;
     ToolbarWidgetMenu* connectMenu;
@@ -96,12 +116,20 @@ private:
     ToolbarWidgetMenu* implementationMenu;
 
     ToolbarWidgetMenu* fileMenu;
+    ToolbarWidgetMenu* inEventPort_componentInstanceMenu;
+    ToolbarWidgetMenu* outEventPort_componentInstanceMenu;
+
     ToolbarWidgetAction* fileDefaultAction;
-    ToolbarWidgetAction* instanceDefaultAction;
+    ToolbarWidgetAction* componentInstanceDefaultAction;
+
+    ToolbarWidgetAction* eventPort_componentInstanceDefaultAction;
+    ToolbarWidgetAction* inEventPortDefaultAction;
+    ToolbarWidgetAction* outEventPortDefaultAction;
 
     QFrame* frame;
-
     bool eventFromToolbar;
+
+    //QList<Node*>* componentInstances;
 
 };
 

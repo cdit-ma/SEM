@@ -17,15 +17,14 @@
 #define LABEL_LENGTH 16
 
 
-NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLItem(node)
+NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW):  GraphMLItem(node, GraphMLItem::NODE_ITEM)
 {
-    counter = 0;
-
     Q_INIT_RESOURCE(resources);
     setParentItem(parent);
 
-    parentNode = parent;
+    parentNodeItem = parent;
 
+    isCurrentlySorted = false;
     nodeSelected = false;
     isNodePressed = false;
     permanentlyCentralized = false;
@@ -84,13 +83,16 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
     //Update Width and Height with values from the GraphML Model If they have them.
     retrieveGraphMLData();
 
-    if (width < initialWidth) {
-        width = initialWidth;
+    if(!IN_SUBVIEW){
+        if (width < initialWidth) {
+            width = initialWidth;
+        }
+
+        if (height < initialHeight) {
+            height = initialHeight;
+        }
     }
 
-    if (height < initialHeight) {
-        height = initialHeight;
-    }
 
     //Update GraphML Model for size/position if they have been changed.
     updateGraphMLSize();
@@ -119,7 +121,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
 
     // if this item has a parent and it's the first child of that parent
     // send a signal to the parent to add an expandButton and sort it
-    if (parent && parent->getChildren().count() == 1) {
+    if (parent && parent->getChildNodeItems().count() == 1) {
         emit addExpandButtonToParent();
     }
 
@@ -135,14 +137,12 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects):  GraphMLI
  * @brief NodeItem::~NodeItem
  * Before deleting this item, check to see if it has a parent item.
  * If it does and this is the only child of that parent remove that
- * parent's exapnd button and reset its size.
+ * parent's expand button and reset its size.
  */
-
-
 NodeItem::~NodeItem()
 {
-    if(parentNode){
-        parentNode->removeChildNodeItem(this);
+    if(parentNodeItem){
+        parentNodeItem->removeChildNodeItem(this);
     }
     delete label;
 }
@@ -157,10 +157,7 @@ QList<NodeEdge *> NodeItem::getEdgeItems()
     return this->connections;
 }
 
-QList<NodeItem *> NodeItem::getChildNodeItems()
-{
-    return this->childNodeItems;
-}
+
 
 void NodeItem::setParentItem(QGraphicsItem *parent)
 {
@@ -191,6 +188,7 @@ bool NodeItem::isPainted()
     return PAINT_OBJECT;
 }
 
+
 void NodeItem::addChildNodeItem(NodeItem *child)
 {
     if(!childNodeItems.contains(child)){
@@ -200,8 +198,8 @@ void NodeItem::addChildNodeItem(NodeItem *child)
 
 void NodeItem::removeChildNodeItem(NodeItem *child)
 {
-    int removed = childNodeItems.removeAll(child);
-    if(removed > 0 && childNodeItems.size() == 0){
+    childNodeItems.removeAll(child);
+    if(childNodeItems.size() == 0){
         removeExpandButton();
         resetNextChildPos();
         resetSize();
@@ -219,7 +217,7 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    //qDebug() << this->getNode() << ":" << QString::number(counter++);
+
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
@@ -290,6 +288,11 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     }
 
+}
+
+bool NodeItem::hasChildren()
+{
+    return childNodeItems.size() > 0;
 }
 
 
@@ -472,6 +475,9 @@ void NodeItem::updateViewAspects(QStringList aspects)
     if(hidden || !PAINT_OBJECT){
         return;
     }
+    if(this->getParentNodeItem() && !getParentNodeItem()->isExpanded()){
+        return;
+    }
 
     bool allMatched = true;
     foreach(QString aspect, viewAspects){
@@ -511,217 +517,221 @@ void NodeItem::updateViewAspects(QStringList aspects)
  */
 void NodeItem::sort()
 {
+
     //emit triggerAction("Sorting Children");
-
     float topY;
-    float gapY;
+        float gapY;
 
-    // if it's a main node item, it will have no icon
-    if (!PAINT_OBJECT || nodeKind.endsWith("Definitions")) {
-        topY = label->x() + label->boundingRect().height()  + getCornerRadius();
-        gapY = topY;
-    } else {
-        if(icon){
-            topY = (icon->boundingRect().height()*icon->scale()) + getCornerRadius();
-        }
-        gapY = topY/1.8;
-    }
-
-    float gapX = gapY;
-
-    float inCol = topY;
-    float outCol = topY;
-    float attCol = topY;
-
-    float rowWidth = gapX;
-    float colHeight = topY;
-
-    float maxHeight = 0;
-    float maxWidth = 0;
-
-    int numberOfItems = 0;
-
-    bool componentLayout = (nodeKind.contains("Component"));
-    bool componentAssembly = (nodeKind == "ComponentAssembly");
-    bool fileContainsComponents = (nodeKind == "File" && getChildrenKind().contains("Component"));
-    bool componentHasChildren = false;
-
-    // if this item is a File and contains Components for its children,
-    // check if any of them has children and increase gapX accordingly
-    if (fileContainsComponents || componentAssembly) {
-        for(int i = 0 ; i < childNodeItems.size() ; i++){
-            NodeItem* nodeItem = childNodeItems[i];
-
-            if (nodeItem && (nodeItem->getChildren().count() > 0)) {
-                componentHasChildren = true;
-                break;
+        // if it's a main node item, it will have no icon
+        if (!PAINT_OBJECT || nodeKind.endsWith("Definitions")) {
+            topY = label->x() + label->boundingRect().height()  + getCornerRadius();
+            gapY = topY;
+        } else {
+            if(icon){
+                topY = (icon->boundingRect().height()*icon->scale()) + getCornerRadius();
             }
+            gapY = topY/1.8;
         }
-    }
 
-    // if the node item's children are Components or ComponentInstances
-    // leave more gap for the in/out event ports along its edges
-    if ((fileContainsComponents || componentAssembly) && componentHasChildren) {
-        gapY = topY;
-        gapX = gapY;
-        rowWidth = gapX;
-    }
+        float gapX = gapY;
 
-    // position children differently for DeploymentDefinitions
-    if (nodeKind == "DeploymentDefinitions") {
-        rowWidth = 0;
-        colHeight = 0;
-        gapY = 0;
-    } else if (nodeKind == "Model") {
-        rowWidth = 0;
-        colHeight = 0;
-    }
+        float inCol = topY;
+        float outCol = topY;
+        float attCol = topY;
 
-    for(int i = 0 ; i < childNodeItems.size() ; i++){
-        NodeItem* nodeItem = childNodeItems[i];
+        float rowWidth = gapX;
+        float colHeight = topY;
 
-        // check that it's a NodeItem and that it's visible
-        if (nodeItem  && nodeItem->isVisible()) {
+        float maxHeight = 0;
+        float maxWidth = 0;
 
-            // if child == DeploymentDefinitions and all of
-            // it's children are invisible, don't sort it
-            if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
-                bool childrenAreInAspect = false;
-                for(int i = 0; i < childNodeItems.size(); i++){
-                    NodeItem *nodeItm = childNodeItems[i];
-                    if (nodeItm && nodeItm->isVisible()) {
-                        childrenAreInAspect = true;
-                        break;
-                    }
-                }
-                if (!childrenAreInAspect) {
+        int numberOfItems = 0;
+
+        bool componentLayout = (nodeKind.contains("Component"));
+        bool componentAssembly = (nodeKind == "ComponentAssembly");
+        bool fileContainsComponents = (nodeKind == "File" && getChildrenKind().contains("Component"));
+        bool componentHasChildren = false;
+
+        // if this item is a File and contains Components for its children,
+        // check if any of them has children and increase gapX accordingly
+        if (fileContainsComponents || componentAssembly) {
+            for(int i = 0 ; i < childNodeItems.size() ; i++){
+                NodeItem* nodeItem = childNodeItems[i];
+
+                if (nodeItem && (nodeItem->getChildNodeItems().count() > 0)) {
+                    componentHasChildren = true;
                     break;
                 }
             }
+        }
 
-            int childWidth = nodeItem->boundingRect().width();
-            int childHeight = nodeItem->boundingRect().height();
+        // if the node item's children are Components or ComponentInstances
+        // leave more gap for the in/out event ports along its edges
+        if ((fileContainsComponents || componentAssembly) && componentHasChildren) {
+            gapY = topY;
+            gapX = gapY;
+            rowWidth = gapX;
+        }
 
-            // if the origWidth is not used, when a node is sorted and it
-            // only had one child to begin with, it will always only have
-            // one node per row and hence one column, once sorted
-            // this allows there to be at most 2 child nodes per row
+        // position children differently for DeploymentDefinitions
+        if (nodeKind == "DeploymentDefinitions") {
+            rowWidth = 0;
+            colHeight = 0;
+            gapY = 0;
+        } else if (nodeKind == "Model") {
+            rowWidth = 0;
+            colHeight = 0;
+        }
 
-            if ((rowWidth + childWidth) > (initialWidth*1.5)) {
-                colHeight += maxHeight + gapY;
+        for(int i = 0 ; i < childNodeItems.size() ; i++){
+            NodeItem* nodeItem = childNodeItems[i];
+
+            // check that it's a NodeItem and that it's visible
+            if (nodeItem  && nodeItem->isVisible()) {
+
+                // if child == DeploymentDefinitions and all of
+                // it's children are invisible, don't sort it
+                if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
+                    bool childrenAreInAspect = false;
+                    for(int i = 0; i < childNodeItems.size(); i++){
+                        NodeItem *nodeItm = childNodeItems[i];
+                        if (nodeItm && nodeItm->isVisible()) {
+                            childrenAreInAspect = true;
+                            break;
+                        }
+                    }
+                    if (!childrenAreInAspect) {
+                        break;
+                    }
+                }
+
+                int childWidth = nodeItem->boundingRect().width();
+                int childHeight = nodeItem->boundingRect().height();
+
+                // if the origWidth is not used, when a node is sorted and it
+                // only had one child to begin with, it will always only have
+                // one node per row and hence one column, once sorted
+                // this allows there to be at most 2 child nodes per row
+
+                if ((rowWidth + childWidth) > (initialWidth*1.5)) {
+                    colHeight += maxHeight + gapY;
+
+                    if (rowWidth > maxWidth) {
+                        maxWidth = rowWidth - gapX;
+                    }
+
+                    maxHeight = childHeight;
+
+                    if (nodeKind == "Model") {
+                        rowWidth = 0;
+                    } else {
+                        rowWidth = gapX;
+                    }
+                }
+
+                // store the maximum height for each row
+                if (childHeight > maxHeight) {
+                    maxHeight = childHeight;
+                }
+
+                if (componentLayout) {
+
+                    QString nodeKind = nodeItem->getGraphML()->getDataValue("kind");
+                    float newX = 0;
+                    float newY = 0;
+
+                    if (nodeKind.startsWith("InEvent")) {
+                        newY = inCol;
+                        newX = 0 - (childWidth/2);
+                        inCol += childHeight + gapY;
+                    } else if (nodeKind.startsWith("OutEvent")) {
+                        newY = outCol;
+                        newX = width - (childWidth/2);
+                        outCol += childHeight + gapY;
+                    } else {
+                        newX = (width/2) - (childWidth/2);
+                        newY = attCol;
+                        attCol += childHeight + gapY;
+                    }
+
+                    emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(newX));
+                    emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(newY));
+
+                } else {
+
+                    emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
+                    emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
+                    rowWidth += childWidth + gapX;
+
+                }
+
+                numberOfItems++;
+            }
+        }
+
+        if (numberOfItems > 0) {
+
+            if (componentLayout) {
+
+                float max_height = inCol;
+                if (outCol > max_height) {
+                    max_height = outCol;
+                }
+                if (attCol > max_height) {
+                    max_height = attCol;
+                }
+                emit updateGraphMLData(getGraphML(),"height", QString::number(max_height));
+
+            } else {
 
                 if (rowWidth > maxWidth) {
                     maxWidth = rowWidth - gapX;
                 }
 
-                maxHeight = childHeight;
+                if (nodeKind == "DeploymentDefinitions") {
+                    emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth));
+                    emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight));
+                    return;
+                }
 
                 if (nodeKind == "Model") {
-                    rowWidth = 0;
-                } else {
-                    rowWidth = gapX;
-                }
-            }
-
-            // store the maximum height for each row
-            if (childHeight > maxHeight) {
-                maxHeight = childHeight;
-            }
-
-            if (componentLayout) {
-
-                QString nodeKind = nodeItem->getGraphML()->getDataValue("kind");
-                float newX = 0;
-                float newY = 0;
-
-                if (nodeKind.startsWith("InEvent")) {
-                    newY = inCol;
-                    newX = 0 - (childWidth/2);
-                    inCol += childHeight + gapY;
-                } else if (nodeKind.startsWith("OutEvent")) {
-                    newY = outCol;
-                    newX = width - (childWidth/2);
-                    outCol += childHeight + gapY;
-                } else {
-                    newX = (width/2) - (childWidth/2);
-                    newY = attCol;
-                    attCol += childHeight + gapY;
+                    emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth));
+                    emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight));
+                    return;
                 }
 
-                emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(newX));
-                emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(newY));
-
-            } else {
-
-                emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
-                emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
-                rowWidth += childWidth + gapX;
-
+                if ((maxWidth + gapX) > initialWidth) {
+                    emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth + gapX));
+                } else {
+                    emit updateGraphMLData(getGraphML(), "width", QString::number(initialWidth));
+                }
+                emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
             }
-
-            numberOfItems++;
         }
-    }
 
-    if (numberOfItems > 0) {
+        resetNextChildPos();
 
-        if (componentLayout) {
-
-            float max_height = inCol;
-            if (outCol > max_height) {
-                max_height = outCol;
-            }
-            if (attCol > max_height) {
-                max_height = attCol;
-            }
-            emit updateGraphMLData(getGraphML(),"height", QString::number(max_height));
-
-        } else {
-
-            if (rowWidth > maxWidth) {
-                maxWidth = rowWidth - gapX;
-            }
-
-            if (nodeKind == "DeploymentDefinitions") {
-                emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth));
-                emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight));
-                return;
-            }
-
-            if (nodeKind == "Model") {
-                emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth));
-                emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight));
-                return;
-            }
-
-            if ((maxWidth + gapX) > initialWidth) {
-                emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth + gapX));
-            } else {
-                emit updateGraphMLData(getGraphML(), "width", QString::number(initialWidth));
-            }
-            emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
-        }
-    }
-
-    resetNextChildPos();
 }
 
 
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+
+
     switch (event->button()) {
 
     case Qt::MiddleButton:{
+        if(!PAINT_OBJECT){
+            return;
+        }
         break;
     }
     case Qt::LeftButton:{
-
         // unselect any selected node item
         // when the model is pressed
         if(!PAINT_OBJECT){
-            emit clearSelection();
-            event->setAccepted(false);
+            emit clearSelection();         
             return;
         }
 
@@ -737,7 +747,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::RightButton:{
         if(!PAINT_OBJECT){
-            event->setAccepted(false);
             return;
         }
         //Select this node, and construct a child node.
@@ -753,12 +762,14 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(!PAINT_OBJECT){
-        return;
-    }
+
 
     switch (event->button()) {
     case Qt::LeftButton:{
+        if(!PAINT_OBJECT){
+            return;
+        }
+
 
         hasSelectionMoved = false;
         isNodePressed = false;
@@ -810,6 +821,7 @@ void NodeItem::setWidth(qreal width)
     if(permanentlyCentralized){
         emit recentralizeAfterChange(this->getGraphML());
     }
+
 }
 
 void NodeItem::setHeight(qreal height)
@@ -818,6 +830,7 @@ void NodeItem::setHeight(qreal height)
     if(permanentlyCentralized){
         emit recentralizeAfterChange(this->getGraphML());
     }
+
 }
 
 
@@ -1137,7 +1150,6 @@ void NodeItem::retrieveGraphMLData()
     //Update the position with values from the GraphML Model if they have them.
     double graphmlX = getGraphML()->getDataValue("x").toDouble();
     double graphmlY = getGraphML()->getDataValue("y").toDouble();
-    //nodeKind = getGraphML()->getDataValue("kind");
 
     setPos(graphmlX, graphmlY);
 
@@ -1193,8 +1205,6 @@ void NodeItem::setupIcon()
 
             lockHeight *= lockScaleFactor;
 
-
-
             lockIcon->setTransformationMode(Qt::SmoothTransformation);
             lockIcon->setPos(brushSize, (iconHeight/2) - (lockHeight/2));
         }
@@ -1209,29 +1219,9 @@ void NodeItem::setupIcon()
  * @brief NodeItem::getChildren
  * @return
  */
-QList<NodeItem *> NodeItem::getChildren()
+QList<NodeItem *> NodeItem::getChildNodeItems()
 {
     return childNodeItems;
-}
-
-
-/**
- * @brief NodeItem::getFileID
- * @return
- */
-QString NodeItem::getFileID()
-{
-    return fileID;
-}
-
-
-/**
- * @brief NodeItem::setFileID
- * @param id
- */
-void NodeItem::setFileID(QString id)
-{
-    fileID = id;
 }
 
 
@@ -1458,7 +1448,11 @@ void NodeItem::resetSize()
  */
 bool NodeItem::isExpanded()
 {
-    return expanded;
+    if(hasExpandButton()){
+        return expanded;
+    }else{
+        return true;
+    }
 }
 
 

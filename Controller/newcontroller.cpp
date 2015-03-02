@@ -70,18 +70,19 @@ void NewController::connectView(NodeView *view)
     view->setController(this);
 
     //Generic function.
+
     connect(this, SIGNAL(view_SetGraphMLSelected(GraphML*,bool)), view, SLOT(view_SelectGraphML(GraphML*,bool)));
     connect(this, SIGNAL(view_ConstructGraphMLGUI(GraphML*)), view, SLOT(view_ConstructGraphMLGUI(GraphML*)));
     connect(this, SIGNAL(view_DestructGraphMLGUIFromID(QString)), view, SLOT(view_DestructGraphMLGUI(QString)));
 
     connect(view, SIGNAL(unselect()), this, SLOT(view_ClearSelection()));
-    connect(this, SIGNAL(disableDockButtons()), view, SLOT(disableDockButtons()));
 
     connect(this, SIGNAL(componentInstanceConstructed(Node*)), view, SLOT(componentInstanceConstructed(Node*)));
 
     if(!view->isSubView()){
         //Main view Functionality
         //Connect to the View's Signals
+        connect(view, SIGNAL(view_ClearHistoryStates()), this, SLOT(view_ClearHistoryStates()));
         connect(view, SIGNAL(controlPressed(bool)), this, SLOT(view_ControlPressed(bool)));
         connect(view, SIGNAL(shiftPressed(bool)), this, SLOT(view_ShiftPressed(bool)));
         connect(view, SIGNAL(deletePressed(bool)), this, SLOT(view_DeletePressed(bool)));
@@ -125,6 +126,8 @@ void NewController::initializeModel()
 {
     setupModel();
     setupValidator();
+
+    clearHistory();
 }
 
 NewController::~NewController()
@@ -1030,7 +1033,7 @@ void NewController::view_Undo()
     view_ControlPressed(false);
 
     // unselect any selected nodes
-    view_ClearSelection();
+    //view_ClearSelection();
 }
 
 void NewController::view_Redo()
@@ -1120,8 +1123,6 @@ void NewController::view_UncenterGraphML()
 void NewController::view_ClearSelection()
 {
     clearSelection();
-    // disable dock buttons when nothing is selected
-    emit disableDockButtons();
 }
 
 
@@ -1163,20 +1164,38 @@ void NewController::constructLegalEdge(Node *src, Node *dst)
      * @param definition
      * @param center
      */
-void NewController::constructComponentInstance(Node *assembly, Node *definition, QPointF center)
+void NewController::constructComponentInstance(Node *assembly, Node *definition, QPointF relativePosition)
 {
     QString instanceKind = getNodeInstanceKind(definition);
     Node* instance = constructChildNode(assembly, constructGraphMLDataVector(instanceKind));
 
     if(instance){
         //Update the position
-        view_UpdateGraphMLData(instance, "x", QString::number(center.x()));
-        view_UpdateGraphMLData(instance, "y", QString::number(center.y()));
+        view_UpdateGraphMLData(instance, "x", QString::number(relativePosition.x()));
+        view_UpdateGraphMLData(instance, "y", QString::number(relativePosition.y()));
 
         view_ConstructEdge(instance, definition);
     }
 
     emit componentInstanceConstructed(instance);
+}
+
+void NewController::constructedConnectedComponents(Node *parent, Node *connectedNode, QString kind, QPointF relativePosition)
+{
+    Node* newNode = constructChildNode(parent, constructGraphMLDataVector(kind));
+
+    if(newNode){
+        //Update the position
+        view_UpdateGraphMLData(newNode, "x", QString::number(relativePosition.x()));
+        view_UpdateGraphMLData(newNode, "y", QString::number(relativePosition.y()));
+
+        view_ConstructEdge(newNode, connectedNode);
+
+        //Try the alternate connection.
+        if(!newNode->isConnected(newNode)){
+            view_ConstructEdge(connectedNode, newNode);
+        }
+    }
 }
 
 
@@ -1234,6 +1253,21 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
 
 
     return adoptableNodeTypes;
+}
+
+QList<Node *> NewController::getConnectableNodes(Node *src)
+{
+    QList<Node*> legalNodes;
+
+    foreach (QString ID, nodeIDs) {
+        Node* dst = getNodeFromID(ID);
+        if(src && dst && dst != src){
+            if (src->canConnect(dst)){ //&& (src->getDataValue("kind") != dst->getDataValue("kind"))) {
+                legalNodes.append(dst);
+            }
+        }
+    }
+    return legalNodes;
 }
 
 void NewController::view_SelectModel()
@@ -1690,9 +1724,10 @@ void NewController::setNodeSelected(Node *node, bool setSelected)
                 }
             }
 
+            //Swapped these 2 lines because selectedNode Breakage.
+            selectedNodeIDs.append(node->getID());
             emit view_SetGraphMLSelected(node);
 
-            selectedNodeIDs.append(node->getID());
         }
 
         //Check all selected Edges.
@@ -2341,6 +2376,16 @@ void NewController::undoRedo(bool undo)
         REDOING = false;
 }
 
+void NewController::clearHistory()
+{
+    currentActionID = 0;
+    actionCount = 0;
+    currentAction = "";
+    undoActionStack.clear();
+    redoActionStack.clear();
+
+}
+
 Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QString nodeLabel)
 {
     if(nodeKind == "Model"){
@@ -2529,10 +2574,6 @@ void NewController::setupModel()
 
 
     setupManagementComponents();
-
-    //Clear the Undo/Redo Stacks
-    undoActionStack.clear();
-    redoActionStack.clear();
 }
 
 void NewController::setupValidator()
@@ -3068,6 +3109,11 @@ bool NewController::isGraphMLInModel(GraphML *item)
 Model *NewController::getModel()
 {
     return model;
+}
+
+void NewController::view_ClearHistoryStates()
+{
+    clearHistory();
 }
 
 QString NewController::getDataValueFromKeyName(QList<GraphMLData *> dataList, QString keyName)

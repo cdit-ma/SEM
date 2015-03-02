@@ -492,7 +492,7 @@ void MedeaWindow::setEnableGUI(bool enable)
 void MedeaWindow::keyPressEvent(QKeyEvent *event)
 {
     if(selectedProject){
-        selectedProject->getView()->keyPressEvent(event);
+        //selectedProject->getView()->keyPressEvent(event);
     }
 
 }
@@ -500,7 +500,7 @@ void MedeaWindow::keyPressEvent(QKeyEvent *event)
 void MedeaWindow::keyReleaseEvent(QKeyEvent *event)
 {
     if(selectedProject){
-        selectedProject->getView()->keyReleaseEvent(event);
+        //selectedProject->getView()->keyReleaseEvent(event);
     }
 
 }

@@ -39,9 +39,12 @@ public:
 
     bool containsChild(Node* child);
 
+    int getDepth();
+
     //Gets the Children of this Node to a desired Depth.
     //-1 = Recurse forever.
     QList<Node *> getChildren(int depth =-1);
+    QList<Node *> getChildrenOfKind(QString kind, int depth=-1);
 
     int childrenCount();
     int edgeCount();
@@ -123,7 +126,7 @@ private:
 
 
 
-
+    int depth;
     Node* parentNode;
     Node* definition;
 

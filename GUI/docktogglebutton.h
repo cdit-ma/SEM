@@ -26,6 +26,10 @@ public:
 
     int getWidth();
 
+    QString getKind();
+
+
+
     void checkEnabled();
 
 protected:
@@ -41,6 +45,7 @@ private:
     DockScrollArea* scrollArea;
     bool selected;
 
+    QString kind;
     QColor color;
     QColor fillColor;
     QColor selectedColor;

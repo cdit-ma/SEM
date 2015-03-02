@@ -11,7 +11,7 @@ NodeViewMinimap::NodeViewMinimap(QObject *parent)
 
 }
 
-void NodeViewMinimap::updateViewPort(QRectF viewport)
+void NodeViewMinimap::viewPortRectangleChanged(QRectF viewport)
 {
     viewport.translate(-GRACE , -GRACE);
     viewport.translate(-LINEWIDTH / 2 , -LINEWIDTH / 2);

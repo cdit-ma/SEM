@@ -27,23 +27,26 @@ class NodeItem : public GraphMLItem
     Q_INTERFACES(QGraphicsItem)
 
 public:
-    NodeItem(Node *node, NodeItem *parent, QStringList aspects);
+    NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW=false);
     ~NodeItem();
 
     NodeItem* getParentNodeItem();
 
     QList<NodeEdge*> getEdgeItems();
-    QList<NodeItem*> getChildNodeItems();
     void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
     bool isSelected();
     bool isPainted();
+
 
     void addChildNodeItem(NodeItem* child);
     void removeChildNodeItem(NodeItem* child);
     bool intersectsRectangle(QRectF rect);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
+    bool hasChildren();
+
+    bool isExpanded();
     bool isHidden();
     void setHidden(bool hidden);
 
@@ -60,10 +63,8 @@ public:
 
     Node* getNode();
     QString getNodeKind();
-    QList<NodeItem*> getChildren();
+    QList<NodeItem*> getChildNodeItems();
 
-    QString getFileID();
-    void setFileID(QString id);
 
 signals:
     //Node Edge Signals
@@ -135,7 +136,6 @@ private:
     void updateTextLabel(QString text=0);
     void updateExpandButton();
 
-    bool isExpanded();
     bool hasExpandButton();
     void removeExpandButton();
 
@@ -148,7 +148,7 @@ private:
     double getMaxLabelWidth();
 
 
-    NodeItem* parentNode;
+    NodeItem* parentNodeItem;
     QStringList viewAspects;
 
     void setPos(qreal x, qreal y);
@@ -182,6 +182,9 @@ private:
     double prevWidth;
     double prevHeight;
 
+
+    bool isCurrentlySorted;
+
     QPointF nextChildPosition;
 
     QPointF previousScenePosition;
@@ -205,7 +208,6 @@ private:
     bool hidden;
     int depth;
 
-    int counter;
 };
 
 #endif // NODEITEM_H

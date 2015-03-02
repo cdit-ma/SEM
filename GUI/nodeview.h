@@ -3,6 +3,7 @@
 
 #include "../Controller/newcontroller.h"
 #include "nodeitem.h"
+#include "dockscrollarea.h"
 
 #include <QGraphicsView>
 #include <QGraphicsRectItem>
@@ -15,36 +16,54 @@ class ToolbarWidget;
 
 class NodeView : public QGraphicsView
 {
+    friend class ToolbarWidget;
+    friend class NewController;
     Q_OBJECT
 public:
     NodeView(bool subView = false, QWidget *parent = 0);
-    void setController(NewController* controller);
-    void disconnectController();
-    bool isSubView();
-    bool getControlPressed();
-
     ~NodeView();
 
-    virtual void mouseReleaseEvent(QMouseEvent *event);
-    virtual void mouseMoveEvent(QMouseEvent *event);
-    virtual void mousePressEvent(QMouseEvent* event);
-    virtual void wheelEvent(QWheelEvent* event);
-    virtual void keyPressEvent(QKeyEvent *event);
-    virtual void keyReleaseEvent(QKeyEvent *event);
+    void setDock(DockScrollArea* dock);
 
-    //bool guiCreated(GraphML* item)
+    //Set Controller
+    void setController(NewController* controller);
+    void disconnectController();
 
-    void forceSortViewAspects();
-    void resetModel();
-
-    QList<NodeItem *> getVisibleNodeItems();
+    //Get the Selected Node.
     Node* getSelectedNode();
 
+    void setParentNodeView(NodeView *n);
+    void removeSubView(NodeView* subView);
+
+
+    QStringList getAdoptableNodeList(Node* node=0);
+    QList<Node*> getConnectableNodes(Node* node=0);
+
+
+protected:
+    //Mouse Handling Methods
+    void mouseReleaseEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent* event);
+    void wheelEvent(QWheelEvent* event);
+
+    //Keyboard Handling Methods
+    void keyPressEvent(QKeyEvent *event);
+    void keyReleaseEvent(QKeyEvent *event);
 
 signals:
+    //SIGNALS for other View Elements
+    void view_SetSelectedAttributeModel(AttributeTableModel* model);
+    void viewportRectangleChanged(QRectF);
+    void updateViewAspects(QStringList aspects);
+    void componentNodeMade(QString type, NodeItem* nodeItem);
+    void hardwareNodeMade(QString type, NodeItem* nodeItem);
+    void updateDockButtons(QString dockButton);
+    void updateDockContainer(QString container);
+
+    //SIGNALS for the Controller
     void triggerAction(QString action);
-    void updateViewPort(QRectF);
-    void updateZoom(qreal zoom);
+
     void deletePressed(bool isDown);
     void controlPressed(bool isDown);
     void escapePressed(bool isDown);
@@ -60,23 +79,11 @@ signals:
     void unselect();
     void selectAll();
 
-    void updateNodeType(QString name);
-    void updateViewAspects(QStringList aspects);
 
-    void view_SetSelectedAttributeModel(AttributeTableModel* model);
-
-    void view_ConstructMenu(QPoint);
-
-
-    void componentNodeMade(QString type, NodeItem* nodeItem);
-    void hardwareNodeMade(QString type, NodeItem* nodeItem);
-
-    void updateDataTable();
-    void updateDockButtons(QString dockButton);
-    void updateDockContainer(QString container);
 
     void sortModel();
     void sortDeployment();
+
     void centerNode(QString nodeLabel);
 
     void getAdoptableNodesList(Node* node);
@@ -86,25 +93,37 @@ signals:
     void updateDockAdoptableNodesList(Node* node);
     void updateMenuList(QString action, QStringList* nodeKinds, QList<Node*>* nodes);
 
-    void constructNode(QString kind, QPointF);
+    void constructNode(QString nodeKind, QPointF relativePosition);
     void constructEdge(Node* src, Node* dst);
+
+
+    void constructConnectedComponents(Node* parent, Node* connectedNode, QString nodeKind, QPointF relativePosition);
     void constructComponentInstance(Node* assm, Node* defn, QPointF center);
 
 
     void turnOnViewAspect(QString aspect);
     void setGoToMenuActions(QString action, bool);
 
+
+    void view_ClearHistoryStates();
 public slots:
+    void view_ClearHistory();
+    void toolbarClosed();
+    void forceSortViewAspects();
+    void resetModel();
+
+    void setAutoCenterViewAspects(bool center);
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
     void view_ConstructGraphMLGUI(GraphML* item);
     void printErrorText(GraphML* graphml, QString text);
+    //void removeNodeItem(NodeItem* item);
     void centreItem(GraphMLItem* item);
     void clearView();
 
     void setRubberBandMode(bool On);
     void setViewAspects(QStringList aspects);
 
-    void showContextMenu(QPoint position);
+    void showToolbar(QPoint position);
 
     void view_DockConstructNode(Node* node, QString kind);
     void view_ConstructNodeGUI(Node* node);
@@ -121,18 +140,15 @@ public slots:
 
 
     void constructNewView(Node* centeredOn);
+    
 
     void sortEntireModel();
-    void sortNode(Node* node);
+    void sortNode(Node* node, Node* topMostNode = 0);
 
     void fitToScreen();
     void centreNode(Node* node);
 
-    void componentInstanceConstructed(Node *node);
-
     void clearSelection();
-    void disableDockButtons();
-
 
     void updateDockButtons(Node* node);
     void view_updateDockContainer(QString dockContainer);
@@ -155,9 +171,16 @@ public slots:
     void updateToolbarLegalNodesList(QList<Node*>* nodeList);
     void updateToolbarDefinitionsList(QList<Node*>* nodeList);
 
+    void componentInstanceConstructed(Node* node);
 
 private:
+    NewController* getController();
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
+
+    bool isSubView();
+    QList<Node*>* getFiles();
+
+    void updateDocks();
 
     void storeGraphMLItemInHash(GraphMLItem* item);
     bool removeGraphMLItemFromHash(QString ID);
@@ -169,6 +192,7 @@ private:
     Node* hasDefinition(Node* node);
     Node* hasImplementation(Node* node);
 
+    NodeItem* getNodeItemFromNode(Node* node);
     NodeItem* getNodeItemFromGraphMLItem(GraphMLItem* item);
     NodeEdge* getEdgeItemFromGraphMLItem(GraphMLItem* item);
     GraphMLItem *getGraphMLItemFromGraphML(GraphML* item);
@@ -178,6 +202,11 @@ private:
     NewController* controller;
 
     QHash<QString, GraphMLItem*> guiItems;
+
+    NodeView* parentNodeView;
+
+    QStringList allAspects;
+
     QPointF menuPosition;
 
     QStringList currentAspects;
@@ -190,22 +219,35 @@ private:
     bool drawingRubberBand;
     QPoint rubberBandOrigin;
     bool once;
+
+
     QRectF getVisibleRect();
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;
 
 
-    //bool firstSort;
 
     QList<NodeItem*> getNodeItemsList();
+
     void showAllViewAspects();
+
+
 
     QList<Node*>* files;
     ToolbarWidget* toolbar;
 
-    bool SUB_VIEW;
+
+    DockScrollArea* dock;
+
+
+
+    bool IS_SUB_VIEW;
+
     QList<NodeView*> subViews;
 
+    bool autoCenterOn;
+
+    bool toolbarJustClosed;
 protected:
     bool viewportEvent(QEvent *);
 

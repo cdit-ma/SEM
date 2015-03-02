@@ -21,6 +21,7 @@ DockToggleButton::DockToggleButton(QString label, NewMedeaWindow *window, QWidge
     selectedColor = QColor(250, 160, 0, 250);
     color = fillColor;
 
+    kind = label;
     width = 40;
     height = 40;
 
@@ -168,6 +169,11 @@ DockScrollArea* DockToggleButton::getContainer()
 int DockToggleButton::getWidth()
 {
     return width;
+}
+
+QString DockToggleButton::getKind()
+{
+    return kind;
 }
 
 

@@ -13,6 +13,7 @@
 #include <QPicture>
 
 
+#define THREADING false
 /**
  * @brief NewMedeaWindow::NewMedeaWindow
  * @param parent
@@ -20,14 +21,19 @@
 NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+    thread = 0;
     nodeView = 0;
     controller = 0;
     myProcess = 0;
     minimap = 0;
 
+    setupJenkinsSettings();
+
+
     // initialise gui and connect signals and slots
     initialiseGUI();
     makeConnections();
+    newProject();
 
     // this is used for when a file is dragged and
     // dropped on top of this tool's icon
@@ -36,22 +42,7 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
         files.append(graphMLFile);
         importGraphMLFiles(files);
     }
-
-    /*
-    QFile file("C:/ArrowTest.graphml");
-
-    if(!file.open(QFile::ReadOnly | QFile::Text)){
-        qDebug() << "could not open file for read";
-    }
-
-    QTextStream in(&file);
-    QString xmlText = in.readAll();
-    file.close();
-
-    emit view_ActionTriggered("Loading GraphML");
-    //emit view_ActionTriggered("Loading XME");
-    emit view_PasteData(xmlText);
-    */
+    //this->view_SetGUIEnabled(false);
 }
 
 
@@ -83,7 +74,6 @@ void NewMedeaWindow::initialiseGUI()
 
     nodeView = new NodeView();
 
-
     // set window size; used for graphicsview and main widget
     int windowWidth = 1300;
     int windowHeight = 800;
@@ -112,9 +102,8 @@ void NewMedeaWindow::initialiseGUI()
     // setup widgets
     projectName->setFlat(true);
     projectName->setFixedWidth(rightPanelWidth);
-    menuButton->setFixedSize(50,25);
-    menuButton->setIconSize(menuButton->size()*0.6);
-    menuButton->setStyleSheet("QPushButton::menu-indicator{ image: none; }");
+    menuButton->setFixedSize(50,45);
+    menuButton->setIconSize(menuButton->size());
     searchButton->setFixedSize(45, 25);
     searchButton->setIconSize(searchButton->size()*0.8);
     searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
@@ -127,8 +116,10 @@ void NewMedeaWindow::initialiseGUI()
     hardwareButton->setStyleSheet("background-color: rgba(80,140,190,0.9);");
     definitionsButton->setStyleSheet("background-color: rgba(80,180,180,0.9);");
     workloadButton->setStyleSheet("background-color: rgba(224,154,96,0.9);");
-    projectName->setStyleSheet("font-size: 16px; text-align: left;");
     searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
+    projectName->setStyleSheet("font-size: 16px; text-align: left;");
+    menuButton->setStyleSheet("QPushButton{ background-color: rgba(220,220,220,0.5); }"
+                              "QPushButton::menu-indicator{ image: none; }");
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setFixedWidth(rightPanelWidth);
@@ -190,7 +181,7 @@ void NewMedeaWindow::initialiseGUI()
     // setup mini map
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
-    connect(nodeView, SIGNAL(updateViewPort(QRectF)), minimap, SLOT(updateViewPort(QRectF)));
+    connect(nodeView, SIGNAL(viewportRectangleChanged(QRectF)), minimap, SLOT(viewPortRectangleChanged(QRectF)));
 
     minimap->scale(.002,.002);
     minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -211,19 +202,17 @@ void NewMedeaWindow::initialiseGUI()
     workloadButton->setCheckable(true);
 
     // intially only turn the assembly view aspect on
-    assemblyButton->setChecked(true);
+    //assemblyButton->setChecked(true);
     //hardwareButton->setChecked(true);
     //definitionsButton->setChecked(true);
     //workloadButton->setChecked(true);
 
-    checkedViewAspects.append(assemblyButton->text());
+    //checkedViewAspects.append(assemblyButton->text());
     //checkedViewAspects.append(hardwareButton->text());
     //checkedViewAspects.append(definitionsButton->text());
     //checkedViewAspects.append(workloadButton->text());
 
     // setup controller and jenkins settings
-    setupJenkinsSettings();
-    setupController();
 
     // setup the menu and dock
     setupMenu(menuButton);
@@ -278,10 +267,12 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
 
     view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/zoomToFit.png"), "Fit To Sreen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
+    view_autoCenterView = view_menu->addAction(QIcon(":/Resources/Icons/autoCenter.png"), "Manually Center Views");
+    view_menu->addSeparator();
     view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go to Definition");
-    view_goToDefinition->setShortcut(QKeySequence(Qt::Key_D));
+    view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
     view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go to Implementation");
-    view_goToImplementation->setShortcut(QKeySequence(Qt::Key_I));
+    view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
@@ -298,6 +289,9 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
     model_validateModel->setEnabled(false);
     view_goToDefinition->setEnabled(false);
     view_goToImplementation->setEnabled(false);
+
+    // set deafult view aspects centering to automatic
+    autoCenterOn = true;
 }
 
 
@@ -359,6 +353,9 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
 
     // initially disable dock buttons
     updateDockButtons("N");
+
+
+    nodeView->setDock(partsContainer);
 }
 
 
@@ -370,9 +367,24 @@ void NewMedeaWindow::setupController()
     if (controller) {
         delete controller;
     }
+    if(thread)
+    {
+        delete thread;
+    }
     controller = 0;
+    thread = 0;
+
     controller = new NewController();
+
+    if(THREADING){
+    //IMPLEMENT THREADING!
+        thread = new QThread();
+        thread->start();
+        controller->moveToThread(thread);
+    }
+
     controller->connectView(nodeView);
+    connectToController();
     controller->initializeModel();
 }
 
@@ -387,10 +399,6 @@ void NewMedeaWindow::resetGUI()
     selectedNode = 0;
 
     setupController();
-    connectToController();
-
-    // force projectName to be the same as the model label
-    updateProjectName("Model");
 }
 
 
@@ -400,19 +408,48 @@ void NewMedeaWindow::resetGUI()
  */
 void NewMedeaWindow::makeConnections()
 {
+/*
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), file_newProject, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), file_importGraphML, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), file_exportGraphML, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), edit_paste, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), exit, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), view_fitToScreen, SLOT(setEnabled(bool)));
+
+
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), view_autoCenterView, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), view_goToDefinition, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), view_goToImplementation, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), model_clearModel, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), model_sortModel, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), projectName, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), assemblyButton, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), hardwareButton, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), definitionsButton, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), workloadButton, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), partsContainer, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), hardwareContainer, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), definitionsContainer, SLOT(setEnabled(bool)));
+  */
+    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), nodeView, SLOT(setEnabled(bool)));
+
+
+
+
+
+
+
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
     connect(file_importJenkinsNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
 
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
-
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
-
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
+    connect(view_autoCenterView, SIGNAL(triggered()), this, SLOT(autoCenterViews()));
     connect(view_goToDefinition, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
-
     connect(model_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortModel_triggered()));
     //connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
@@ -430,6 +467,7 @@ void NewMedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDock()), hardwareContainer, SLOT(clear()));
     connect(this, SIGNAL(clearDock()), definitionsContainer, SLOT(clear()));
 
+
     connect(nodeView, SIGNAL(hardwareNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(componentNodeMade(QString, NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(updateDockAdoptableNodesList(Node*)), this, SLOT(nodeSelected(Node*)));
@@ -441,9 +479,9 @@ void NewMedeaWindow::makeConnections()
     connect(definitionsContainer, SIGNAL(trigger_connectComponentInstance(Node*,Node*)), nodeView, SLOT(view_ConstructEdge(Node*,Node*)));
 
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
-    connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showContextMenu(QPoint)));
+    connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
 
-    connect(nodeView, SIGNAL(updateDataTable()), this, SLOT(updateDataTable()));
+
     connect(nodeView, SIGNAL(updateDockButtons(QString)), this, SLOT(updateDockButtons(QString)));
     connect(nodeView, SIGNAL(updateDockContainer(QString)), this, SLOT(updateDockContainer(QString)));
 
@@ -457,11 +495,9 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(setGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
 
     // this needs fixing
-    connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
+    //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 
     connect(this, SIGNAL(setupViewLayout()), this, SLOT(sortAndCenterViewAspects()));
-
-    connectToController();
 }
 
 
@@ -489,6 +525,7 @@ void NewMedeaWindow::connectToController()
 
     connect(projectName, SIGNAL(clicked()), controller, SLOT(view_SelectModel()));
     connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateProjectName(QString)));
+    connect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(view_SetGUIEnabled(bool)));
 }
 
 
@@ -509,6 +546,15 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
 
     // update dataTable size
     updateDataTable();
+}
+
+void NewMedeaWindow::view_SetGUIEnabled(bool isEnabled)
+{
+    emit setGUIComponentsEnabled(isEnabled);
+
+
+    qCritical() << "NEW MEDEA is " << isEnabled;
+    //LOCK MAIN GUI COMPONENTS>
 }
 
 
@@ -578,10 +624,8 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
             return;
         }
     }
+    newProject();
 
-    // clear item selection and reset gui
-    nodeView->clearSelection();
-    resetGUI();
 }
 
 
@@ -614,6 +658,23 @@ void NewMedeaWindow::on_actionExport_GraphML_triggered()
 
 
 /**
+ * @brief NewMedeaWindow::on_actionAutoCenterViews_triggered
+ * This tells the nodeView to set the automatic centering of view aspects on/off.
+ */
+void NewMedeaWindow::autoCenterViews()
+{
+    if (autoCenterOn) {
+        autoCenterOn = false;
+        view_autoCenterView->setText("Automatically Center Views");
+    } else {
+        autoCenterOn = true;
+        view_autoCenterView->setText("Manually Center Views");
+    }
+    nodeView->setAutoCenterViewAspects(autoCenterOn);
+}
+
+
+/**
  * @brief NewMedeaWindow::on_clearModel_triggered
  * When the model is cleared or the new project menu is triggered,
  * this method resets the model, clears any current selection,
@@ -632,8 +693,8 @@ void NewMedeaWindow::on_actionClearModel_triggered()
  */
 void NewMedeaWindow::on_actionSortModel_triggered()
 {
-   if (selectedNode) {
-       nodeView->sortNode(selectedNode);
+   if (nodeView->getSelectedNode()){
+       nodeView->sortNode(nodeView->getSelectedNode());
    } else {
        nodeView->sortEntireModel();
    }
@@ -682,8 +743,8 @@ void NewMedeaWindow::writeExportedGraphMLData(QString filename, QString data)
         out << data;
 
         file.close();
-        qDebug() << "Successfully written file: " << filename;
 
+        QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: " + filename, QMessageBox::Ok);
     } catch(...){
         qCritical() << "Export Failed!" ;
     }
@@ -799,7 +860,6 @@ void NewMedeaWindow::updateViewAspects()
 {
     QPushButton *sourceButton = qobject_cast<QPushButton*>(QObject::sender());
     if (sourceButton) {
-
         QString view = sourceButton->text();
         if (view == "Interface") {
             view = "Definitions";
@@ -810,11 +870,9 @@ void NewMedeaWindow::updateViewAspects()
         if (sourceButton->isChecked()) {
             checkedViewAspects.append(view);
         } else {
-            int index = checkedViewAspects.indexOf(view, 0);
-            checkedViewAspects.removeAt(index);
+            checkedViewAspects.removeAll(view);
         }
     }
-
     emit setViewAspects(checkedViewAspects);
 }
 
@@ -1007,6 +1065,34 @@ void NewMedeaWindow::setGoToMenuActions(QString action, bool enabled)
     }
 }
 
+void NewMedeaWindow::resetView()
+{
+    if(hardwareButton->isChecked()){
+        hardwareButton->click();
+    }
+    if(definitionsButton->isChecked()){
+        definitionsButton->click();
+    }
+    if(workloadButton->isChecked()){
+        workloadButton->click();
+    }
+    if(!assemblyButton->isChecked()){
+        assemblyButton->click();
+    }
+}
+
+void NewMedeaWindow::newProject()
+{
+    // clear view and reset gui
+    resetGUI();
+    on_actionClearModel_triggered();
+    nodeView->view_ClearHistory();
+
+    //Set default View.
+    resetView();
+
+}
+
 
 /**
  * @brief NewMedeaWindow::exportGraphML
@@ -1035,7 +1121,16 @@ bool NewMedeaWindow::exportGraphML()
                                                     "GraphML Documents (*.graphML *.xml)");
 
     if (filename != "") {
-        emit view_ExportGraphML(filename);
+
+        if(filename.toLower().endsWith(".graphml") || filename.toLower().endsWith(".xml")){
+            emit view_ExportGraphML(filename);
+
+        }else{
+
+             QMessageBox::critical(this, "Error", "You must Export using the either .graphML or .xml extensions.", QMessageBox::Ok);
+            //CALL AGAIN IF WE Don't get a a .graphML file or a .xml File
+            exportGraphML();
+        }
         //TODO: Wait for successful  then return.
         return true;
     } else {
@@ -1050,6 +1145,9 @@ bool NewMedeaWindow::exportGraphML()
  */
 void NewMedeaWindow::setAttributeModel(AttributeTableModel *model)
 {
+    if(model){
+        updateDataTable();
+    }
     dataTable->setModel(model);
     updateDataTable();
 }

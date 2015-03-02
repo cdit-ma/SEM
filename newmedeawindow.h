@@ -62,7 +62,12 @@ signals:
 
     void sendComponentDefinitions(QList<Node*>* definitions);
 
+    void setGUIComponentsEnabled(bool isEnabled);
 private slots:
+    void view_SetGUIEnabled(bool isEnabled);
+
+
+
     void sortAndCenterViewAspects();
 
     void loadJenkinsData(int code);
@@ -71,6 +76,8 @@ private slots:
     void on_actionNew_Project_triggered();
     void on_actionImport_GraphML_triggered();
     void on_actionExport_GraphML_triggered();
+
+    void autoCenterViews();
 
     void on_actionClearModel_triggered();
     void on_actionSortModel_triggered();
@@ -90,7 +97,7 @@ private slots:
 
     void setAttributeModel(AttributeTableModel* model);
 
-    void updateDataTable();
+
     void updateViewAspects();
     void updateDockButtons(QString dockButton);
     void updateDockContainer(QString container);
@@ -111,6 +118,8 @@ private slots:
     void setGoToMenuActions(QString action, bool enabled);
 
 private:
+    void resetView();
+    void newProject();
     bool exportGraphML();
     void importGraphMLFiles(QStringList files);
     void initialiseGUI();
@@ -121,6 +130,7 @@ private:
     void setupDock(QHBoxLayout* layout);
     void setupController();
     void resetGUI();
+    void updateDataTable();
 
     QVector<ProjectWindow*> projectWindows;
     bool isEnabled;
@@ -142,6 +152,7 @@ private:
     QAction* edit_copy;
     QAction* edit_paste;
     QAction* view_fitToScreen;
+    QAction* view_autoCenterView;
     QAction* view_goToDefinition;
     QAction* view_goToImplementation;
     QAction* model_validateModel;
@@ -171,8 +182,10 @@ private:
 
     NodeViewMinimap* minimap;
 
+    QThread* thread;
     int boxWidth;
     int boxHeight;
+    bool autoCenterOn;
     QStringList checkedViewAspects;
 
     QProcess *myProcess;

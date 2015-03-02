@@ -2,7 +2,7 @@
 #include "docktogglebutton.h"
 #include "docknodeitem.h"
 #include "dockadoptablenodeitem.h"
-
+#include "nodeview.h"
 #include <QScrollBar>
 #include <QDebug>
 
@@ -58,6 +58,22 @@ DockScrollArea::DockScrollArea(QString label, DockToggleButton *parent) :
 
     // connect this container to its dock toglle button
     connect(parentButton, SIGNAL(pressed()), this, SLOT(activate()));
+
+    QString parentKind = parentButton->getKind();
+    if (parentKind == "P") {
+
+        //Empty means all kinds!
+
+    } else if(parentKind == "H") {
+        utilisedKinds << "HardwareDefinitions";
+        utilisedKinds << "HardwareCluster";
+        utilisedKinds << "ManagementComponent";
+        utilisedKinds << "ComponentInstance";
+        utilisedKinds << "ComponentAssembly";
+    } else if(parentKind == "D") {
+        utilisedKinds << "ComponentInstance";
+        utilisedKinds << "ComponentAssembly";
+    }
 }
 
 
@@ -67,6 +83,27 @@ DockScrollArea::DockScrollArea(QString label, DockToggleButton *parent) :
 DockScrollArea::~DockScrollArea()
 {
 
+}
+
+void DockScrollArea::setNodeView(NodeView *v)
+{
+    this->nodeView = v;
+}
+
+void DockScrollArea::setCurrentNodeItem(NodeItem *currentNodeItem)
+{
+    Node* currentNode = currentNodeItem->getNode();
+
+    //Then do some updates.
+    QStringList nodeList = nodeView->getAdoptableNodeList(currentNode);
+
+    if(nodeList.length() > 0){
+        parentButton->setEnabled(true);
+    }else{
+        parentButton->setEnabled(false);
+    }
+
+    addAdoptableDockNodes(currentNode, nodeList);
 }
 
 
@@ -87,7 +124,6 @@ DockToggleButton *DockScrollArea::getParentButton()
  */
 void DockScrollArea::addDockNode(NodeItem* item)
 {
-
     DockNodeItem *itm = new DockNodeItem(item, this);
     itm->connectToNodeItem();
     itm->setContainer(this);
@@ -234,6 +270,29 @@ void DockScrollArea::removeFromDockNodeList(QWidget *widget)
     }
 }
 
+void DockScrollArea::updatePartsDock()
+{
+    if(!nodeView){
+        return;
+    }
+
+    Node* selectedNode = nodeView->getSelectedNode();
+    if(!selectedNode){
+       qCritical() << "DockScrollArea::updateCurrentNode() selected node is NULL";
+       return;
+    }
+    //Then do some updates.
+    QStringList nodeList = nodeView->getAdoptableNodeList(selectedNode);
+
+    if(nodeList.length() > 0){
+        parentButton->setEnabled(true);
+    }else{
+        parentButton->setEnabled(false);
+    }
+
+    addAdoptableDockNodes(selectedNode, nodeList);
+}
+
 
 /**
  * @brief DockScrollArea::dock_getSelectedNode
@@ -269,7 +328,6 @@ void DockScrollArea::checkScrollBar()
                       "padding-top: 10px;"
                       "}");
     }
-
 }
 
 

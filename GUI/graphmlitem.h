@@ -12,10 +12,14 @@ class GraphMLItem: public QObject, public QGraphicsItem
     Q_INTERFACES(QGraphicsItem)
 
 public:
-    GraphMLItem(GraphML* attachedGraph);
+    enum GUI_KIND{NODE_ITEM, NODE_EDGE};
+    GraphMLItem(GraphML* attachedGraph, GUI_KIND kind);
     ~GraphMLItem();
     GraphML* getGraphML();
     AttributeTableModel* getAttributeTable();
+
+    bool isNodeItem();
+    bool isNodeEdge();
 
     virtual void setSelected(bool selected) = 0;
     virtual void setOpacity(qreal opacity) = 0;
@@ -34,6 +38,8 @@ signals:
 private:
     GraphML* attachedGraph;
     AttributeTableModel* table;
+
+    GUI_KIND kind;
 
     // QGraphicsItem interface
 };

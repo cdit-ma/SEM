@@ -2,7 +2,7 @@
 #include "graphmlitem.h"
 #include <QDebug>
 
-NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge)
+NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, GraphMLItem::NODE_EDGE)
 {
     label = 0;
     IS_VISIBLE = true;
@@ -515,7 +515,7 @@ void NodeEdge::updateLines()
 
     //Calculate the Arrow size, based of the radius of the connection.
     //When the finish point is on the right, we need to reverse the arrowHeadSize.
-    int arrowHeadSize = finishWidthMult * (circleRadius / 2);
+    int arrowHeadSize = -finishWidthMult * (circleRadius / 2);
 
 
     if(lineItems.size() == 6){

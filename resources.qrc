@@ -75,5 +75,9 @@
         <file>Resources/Icons/popup.png</file>
         <file>Resources/Icons/lock.png</file>
         <file>Resources/Icons/info.png</file>
+        <file>Resources/Icons/menu_arrow.png</file>
+        <file>Resources/Icons/model.png</file>
+        <file>Resources/Icons/sort.png</file>
+        <file>Resources/Icons/autoCenter.png</file>
     </qresource>
 </RCC>

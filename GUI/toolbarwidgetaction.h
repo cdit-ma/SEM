@@ -47,6 +47,8 @@ private:
     QPushButton* actionButton;
     ToolbarWidgetMenu* widgetMenu;
 
+    bool willHaveMenu;
+
 };
 
 #endif // TOOLBARWIDGETACTION_H

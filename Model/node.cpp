@@ -12,6 +12,7 @@ Node::Node(Node::NODE_TYPE type) : GraphML(GraphML::NODE)
     //Initialize Instance Variables.
     definition = 0;
     parentNode = 0;
+    depth = 0;
 }
 
 Node::~Node()
@@ -74,6 +75,11 @@ bool Node::containsChild(Node *child)
     return children.contains(child);
 }
 
+int Node::getDepth()
+{
+    return depth;
+}
+
 QList<Node *> Node::getChildren(int depth)
 {
     QList<Node *> childList;
@@ -90,6 +96,19 @@ QList<Node *> Node::getChildren(int depth)
     }
 
     return childList;
+}
+
+QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
+{
+    QList<Node *> childList = getChildren(depth);
+
+    QList<Node*> returnableList;
+    foreach(Node* childNode, getChildren(depth)){
+        if(childNode->getDataValue("kind") == kindStr){
+            returnableList.append(childNode);
+        }
+    }
+    return returnableList;
 }
 
 int Node::childrenCount()
@@ -377,5 +396,8 @@ void Node::removeEdge(Edge *edge)
 
 void Node::setParentNode(Node *parent)
 {
+    if(parent){
+        this->depth = parent->getDepth() +1;
+    }
     parentNode = parent;
 }

@@ -57,9 +57,6 @@ public:
     void initializeModel();
     void connectView(NodeView* view);
 
-
-   // void connectView(GraphMLView* view);
-
     //Get a list of all Node Kinds
     QStringList getNodeKinds(Node* parent);
     //Get a list of all View Aspects
@@ -69,8 +66,10 @@ public:
     QStringList getAdoptableNodeKinds(Node* parent = 0);
     //QStringList getAdoptableNodeKinds(Node* parent);
 
+    QList<Node*> getConnectableNodes(Node* src = 0);
+
     Node* getSelectedNode();
-    Node* getGraphmlModel();
+    //Node* getGraphmlModel();
 
     //Gets the Model Node.
     Model* getModel();
@@ -126,11 +125,10 @@ signals:
 
     void setLegalNodesList(QList<Node*>* nodes);
 
-    void disableDockButtons();
-
     void componentInstanceConstructed(Node* node);
 
 public slots:
+    void view_ClearHistoryStates();
     void centerNode(QString nodeLabel);
     void view_SelectModel();
 
@@ -204,6 +202,9 @@ public slots:
     void view_DeletePressed(bool isDown=true);
     void view_ClearKeyModifiers();
 
+
+
+
     //GUI Functionality
     void view_Undo();
     void view_Redo();
@@ -218,7 +219,8 @@ public slots:
 
     void getLegalNodesList(Node* src);
     void constructLegalEdge(Node *src, Node *dst);
-    void constructComponentInstance(Node *assembly, Node* definition, QPointF center);
+    void constructComponentInstance(Node *assembly, Node* definition, QPointF relativePosition);
+    void constructedConnectedComponents(Node* parent, Node* connectedNode, QString kind , QPointF relativePosition);
 
 private:
     //Copies the selected Nodes' GraphML representation to the Clipboard.
@@ -337,6 +339,7 @@ private:
     //Undo's/Redo's all of the ActionItems in the Stack which have been performed since the last operation.
     void undoRedo(bool undo=true);
 
+    void clearHistory();
     Node* constructTypedNode(QString nodeKind, QString nodeType="", QString nodeLabel="");
 
 
