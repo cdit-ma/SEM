@@ -551,10 +551,6 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
 void NewMedeaWindow::view_SetGUIEnabled(bool isEnabled)
 {
     emit setGUIComponentsEnabled(isEnabled);
-
-
-    qCritical() << "NEW MEDEA is " << isEnabled;
-    //LOCK MAIN GUI COMPONENTS>
 }
 
 

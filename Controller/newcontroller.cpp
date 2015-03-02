@@ -70,7 +70,6 @@ void NewController::connectView(NodeView *view)
     view->setController(this);
 
     //Generic function.
-
     connect(this, SIGNAL(view_SetGraphMLSelected(GraphML*,bool)), view, SLOT(view_SelectGraphML(GraphML*,bool)));
     connect(this, SIGNAL(view_ConstructGraphMLGUI(GraphML*)), view, SLOT(view_ConstructGraphMLGUI(GraphML*)));
     connect(this, SIGNAL(view_DestructGraphMLGUIFromID(QString)), view, SLOT(view_DestructGraphMLGUI(QString)));
@@ -651,6 +650,15 @@ void NewController::view_UpdateGraphMLData(GraphML *parent, QString keyName, QSt
         if(keyName == "label"){
             Node* node = dynamic_cast<Node*>(parent);
             enforceUniqueLabel(node, dataValue);
+ 		}else if(keyName == "sortOrder"){
+            Node* node = dynamic_cast<Node*>(parent);
+            enforceUniqueSortOrder(node, dataValue.toInt());
+            QString newSortOrder = node->getDataValue("sortOrder");
+
+            if(action.dataValue == newSortOrder){
+                //Don't add an action for the initial setting!
+                addAction = false;
+            }
         }else{
             data->setValue(dataValue);
         }
@@ -1082,6 +1090,22 @@ void NewController::view_Paste(QString xmlData)
     }
 }
 
+void NewController::view_GrowNode(QPointF point)
+{
+    Node* node = getSelectedNode();
+
+    if(node){
+        GraphMLData* xData = node->getData("width");
+        GraphMLData* yData = node->getData("height");
+
+        float x = xData->getValue().toFloat() + point.x();
+        float y = yData->getValue().toFloat() + point.y();
+
+        view_UpdateGraphMLData(node, "width", QString::number(x));
+        view_UpdateGraphMLData(node, "height", QString::number(y));
+    }
+}
+
 void NewController::view_ClearKeyModifiers()
 {
 }
@@ -1164,15 +1188,15 @@ void NewController::constructLegalEdge(Node *src, Node *dst)
      * @param definition
      * @param center
      */
-void NewController::constructComponentInstance(Node *assembly, Node *definition, QPointF relativePosition)
+void NewController::constructComponentInstance(Node *assembly, Node *definition, QPointF center)
 {
     QString instanceKind = getNodeInstanceKind(definition);
     Node* instance = constructChildNode(assembly, constructGraphMLDataVector(instanceKind));
 
     if(instance){
         //Update the position
-        view_UpdateGraphMLData(instance, "x", QString::number(relativePosition.x()));
-        view_UpdateGraphMLData(instance, "y", QString::number(relativePosition.y()));
+        view_UpdateGraphMLData(instance, "x", QString::number(center.x()));
+        view_UpdateGraphMLData(instance, "y", QString::number(center.y()));
 
         view_ConstructEdge(instance, definition);
     }
@@ -1244,7 +1268,7 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
             continue;
         }
 
-        if(parent->canAdoptChild(node)){
+        if(parent && parent->canAdoptChild(node)){
             if(!adoptableNodeTypes.contains(nodeKind)){
                 adoptableNodeTypes.append(nodeKind);
             }
@@ -1443,7 +1467,12 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
     if(!isGraphMLInModel(node)){
         if(parentNode->canAdoptChild(node)){
             //Adopt the Node.
-            parentNode->addChild(node);
+ 			//Get the ID.
+            int sortPosition = parentNode->getNextOrderNumber();
+            parentNode->addChild(node, sortPosition);
+
+            //Update the SortOrder Data.
+            view_UpdateGraphMLData(node, "sortOrder", QString::number(sortPosition), true);
             //Force Unique labels.
             enforceUniqueLabel(node);
             //Build gui
@@ -1475,6 +1504,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
     GraphMLKey* widthKey = constructGraphMLKey("width", "double", "node");
     GraphMLKey* heightKey = constructGraphMLKey("height", "double", "node");
+	GraphMLKey* sortKey = constructGraphMLKey("sortOrder", "int", "node");
 
     QList<GraphMLData*> data;
 
@@ -1494,6 +1524,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     data.append(new GraphMLData(widthKey, "0"));
     data.append(new GraphMLData(heightKey, "0"));
     data.append(new GraphMLData(labelKey, labelString));
+	data.append(new GraphMLData(sortKey, "-1"));
 
 
     //Attach Node Specific Data.
@@ -1834,6 +1865,63 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
     }
 }
 
+void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
+{
+    Node* parentNode = node->getParentNode();
+
+    if(parentNode){
+        //Get the original value for sortOrder.
+        int originalPosition = node->getDataValue("sortOrder").toInt();
+
+        //Bound the new value for sortOrder based on the parent size.
+        if(newPosition >= parentNode->childrenCount()){
+            newPosition = parentNode->childrenCount() - 1;
+        }
+        if(newPosition < 0){
+            newPosition = 0;
+        }
+
+
+        //If we haven't set the position yet, just update the value.
+        if(originalPosition == -1){
+            node->updateDataValue("sortOrder", QString::number(newPosition));
+            return;
+        }
+
+        int lowerPos = qMin(originalPosition, newPosition);
+        int upperPos = qMax(originalPosition, newPosition);
+
+        //Go from top to bottom
+        if(newPosition > originalPosition){
+            for(int i = lowerPos; i < upperPos; i ++){
+                Node* lowerNode = parentNode->getChild(i);
+                Node* upperNode = parentNode->getChild(i+1);
+                if(upperNode && lowerNode){
+                    parentNode->swapChildPositions(i, i + 1);
+                    lowerNode->updateDataValue("sortOrder", QString::number(i+1));
+                    upperNode->updateDataValue("sortOrder", QString::number(i));
+                }
+            }
+            //Swap UP
+        }else{
+            for(int i = upperPos; i >= lowerPos; i --){
+                Node* lowerNode = parentNode->getChild(i);
+                Node* upperNode = parentNode->getChild(i-1);
+                if(upperNode && lowerNode){
+                    parentNode->swapChildPositions(i, i - 1);
+                    lowerNode->updateDataValue("sortOrder", QString::number(i-1));
+                    upperNode->updateDataValue("sortOrder", QString::number(i));
+                }
+            }
+            //Swap Down
+
+        }
+        //Calculate the positions we will need to swap.
+
+        //Swap them.
+
+    }
+}
 Node *NewController::getSelectedNode()
 {
     if(selectedNodeIDs.size() == 1){
@@ -2574,6 +2662,9 @@ void NewController::setupModel()
 
 
     setupManagementComponents();
+	//Clear the Undo/Redo Stacks
+    undoActionStack.clear();
+    redoActionStack.clear();
 }
 
 void NewController::setupValidator()
@@ -3019,11 +3110,9 @@ void NewController::setupManagementComponents()
     plNode->getData("label")->setValue("DANCE_PLAN_LAUNCHER");
     lsdNode->getData("label")->setValue("DDS_LOGGING_SERVER");
 
-    this->managementComponents.insert("DANCE_EXECUTION_MANAGER",dynamic_cast<ManagementComponent*>(emNode));
-    this->managementComponents.insert("DANCE_PLAN_LAUNCHER",dynamic_cast<ManagementComponent*>(plNode));
-    this->managementComponents.insert("DDS_LOGGING_SERVER",dynamic_cast<ManagementComponent*>(lsdNode));
-
-
+	managementComponents.insert("DANCE_EXECUTION_MANAGER",dynamic_cast<ManagementComponent*>(emNode));
+    managementComponents.insert("DANCE_PLAN_LAUNCHER",dynamic_cast<ManagementComponent*>(plNode));
+    managementComponents.insert("DDS_LOGGING_SERVER",dynamic_cast<ManagementComponent*>(lsdNode));
 }
 
 GraphML *NewController::getGraphMLFromID(QString ID)

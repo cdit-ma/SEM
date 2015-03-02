@@ -74,6 +74,7 @@ signals:
 
     //View Signals.
     void moveSelection(QPointF delta);
+	void growSelection(QPointF delta);
     void clearSelection();
 
     void centerViewAspects();
@@ -95,7 +96,6 @@ signals:
 public slots:
     //Model Signals
     void graphMLDataUpdated(GraphMLData *data);
-    \
     void setOpacity(qreal opacity);
     void setSelected(bool selected);
     void setVisible(bool visible);
@@ -109,6 +109,7 @@ public slots:
 
     void addExpandButton();
     void expandItem(bool show);
+	
     void updateHeight(NodeItem* child);
 
 protected:
@@ -117,6 +118,7 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
 private:    
+ 	NodeItem* getChildNodeItemFromNode(Node* child);
     void setWidth(qreal width);
     void setHeight(qreal height);
 

@@ -212,6 +212,7 @@ public slots:
     void view_Cut();
     void view_Paste(QString xmlData);
 
+	void view_GrowNode(QPointF point);
     //Selection Actions.
     void view_SelectAll();
     void view_UncenterGraphML();
@@ -219,7 +220,7 @@ public slots:
 
     void getLegalNodesList(Node* src);
     void constructLegalEdge(Node *src, Node *dst);
-    void constructComponentInstance(Node *assembly, Node* definition, QPointF relativePosition);
+    void constructComponentInstance(Node *assembly, Node* definition, QPointF point);
     void constructedConnectedComponents(Node* parent, Node* connectedNode, QString kind , QPointF relativePosition);
 
 private:
@@ -308,6 +309,7 @@ private:
     void setEdgeSelected(Edge* edge, bool setSelected = true);
 
     void enforceUniqueLabel(Node* node, QString newLabel = "");
+	void enforceUniqueSortOrder(Node* node, int position);
 
     //Calls the GUI to unselect the currently Selected Node/Edges.
     void clearSelection();

@@ -2,6 +2,7 @@
 #define NODE_H
 
 #include "graphml.h"
+#include <QMap>
 
 #include <QString>
 
@@ -17,6 +18,9 @@ public:
 
     //Constuctor
     Node(NODE_TYPE type = NT_NODE);
+
+    void setSortPosition(int i);
+    int getSortPosition();
     ~Node();
 
 signals:
@@ -35,16 +39,22 @@ public:
     virtual bool canAdoptChild(Node *node);
 
     //Adds the Node provided to the list of children.
-    void addChild(Node *child);
+    void addChild(Node *child, int position = -1);
 
     bool containsChild(Node* child);
 
-    int getDepth();
+    int getNextOrderNumber();
+
+    bool swapChildPositions(int pos1, int pos2);
 
     //Gets the Children of this Node to a desired Depth.
     //-1 = Recurse forever.
     QList<Node *> getChildren(int depth =-1);
-    QList<Node *> getChildrenOfKind(QString kind, int depth=-1);
+
+    QList<Node *> getChildrenOfKind(QString kindStr, int depth =-1);
+
+    Node* getChild(int position);
+
 
     int childrenCount();
     int edgeCount();
@@ -126,7 +136,9 @@ private:
 
 
 
-    int depth;
+
+    int sortOrder;
+
     Node* parentNode;
     Node* definition;
 
@@ -136,7 +148,7 @@ private:
     QList<Node*> implementations;
 
     //The list of contained children GraphML elements. (Top level only)
-    QList<Node *> children;
+    QMap<int,Node*> orderedChildren;
 
     //The list of contained Edge elements in this graph. (Top level only)
     QList<Edge *> edges;

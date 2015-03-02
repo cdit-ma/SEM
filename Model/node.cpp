@@ -12,7 +12,22 @@ Node::Node(Node::NODE_TYPE type) : GraphML(GraphML::NODE)
     //Initialize Instance Variables.
     definition = 0;
     parentNode = 0;
-    depth = 0;
+    sortOrder = -1;
+}
+
+void Node::setSortPosition(int i)
+{
+    //Check
+    sortOrder = i;
+    GraphMLData* sortData = getData("sortOrder");
+    if(sortData){
+        sortData->setValue(QString::number(sortOrder));
+    }
+}
+
+int Node::getSortPosition()
+{
+    return sortOrder;
 }
 
 Node::~Node()
@@ -62,30 +77,49 @@ bool Node::canAdoptChild(Node *node)
     return true;
 }
 
-void Node::addChild(Node *child)
+void Node::addChild(Node *child, int position)
 {
     if(child && !containsChild(child)){
-        children.append(child);
+
+        orderedChildren.insert(position, child);
         child->setParentNode(this);
     }
 }
 
 bool Node::containsChild(Node *child)
 {
-    return children.contains(child);
+    return orderedChildren.values().contains(child);
 }
 
-int Node::getDepth()
+int Node::getNextOrderNumber()
 {
-    return depth;
+    return orderedChildren.size();
 }
+
+bool Node::swapChildPositions(int pos1, int pos2)
+{
+    if(pos1 == pos2){
+        return true;
+    }
+    if(orderedChildren.contains(pos1) && orderedChildren.contains(pos2)){
+        Node* pos1Node = orderedChildren.take(pos1);
+        Node* pos2Node = orderedChildren.take(pos2);
+        orderedChildren.insert(pos1, pos2Node);
+        orderedChildren.insert(pos2, pos1Node);
+        return true;
+    }
+    return false;
+}
+
+
 
 QList<Node *> Node::getChildren(int depth)
 {
     QList<Node *> childList;
 
     //Add direct Children
-    childList += children;
+    //childList += children;
+    childList += orderedChildren.values();
 
     //While we still have Children, Recurse
     if(depth != 0){
@@ -111,9 +145,17 @@ QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
     return returnableList;
 }
 
+Node *Node::getChild(int position)
+{
+    if(orderedChildren.contains(position)){
+        return orderedChildren[position];
+    }
+    return 0;
+}
+
 int Node::childrenCount()
 {
-    return children.size();
+    return orderedChildren.size();
 }
 
 int Node::edgeCount()
@@ -124,13 +166,16 @@ int Node::edgeCount()
 void Node::removeChild(Node *child)
 {
     if(child){
-        children.removeAll(child);
+        int key = orderedChildren.key(child, -1);
+        if(key != -1){
+            orderedChildren.remove(key);
+        }
     }
 }
 
 void Node::removeChildren()
 {
-    children.clear();
+    orderedChildren.clear();
 }
 
 bool Node::ancestorOf(Node *node)
@@ -396,8 +441,5 @@ void Node::removeEdge(Edge *edge)
 
 void Node::setParentNode(Node *parent)
 {
-    if(parent){
-        this->depth = parent->getDepth() +1;
-    }
     parentNode = parent;
 }

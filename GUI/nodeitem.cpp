@@ -19,9 +19,9 @@
 
 NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW):  GraphMLItem(node, GraphMLItem::NODE_ITEM)
 {
+
     Q_INIT_RESOURCE(resources);
     setParentItem(parent);
-
     parentNodeItem = parent;
 
     isCurrentlySorted = false;
@@ -583,8 +583,9 @@ void NodeItem::sort()
             colHeight = 0;
         }
 
-        for(int i = 0 ; i < childNodeItems.size() ; i++){
-            NodeItem* nodeItem = childNodeItems[i];
+        QList<Node*> childNodes = getNode()->getChildren(0);
+    	foreach(Node* childNode, childNodes){
+        NodeItem* nodeItem = getChildNodeItemFromNode(childNode);
 
             // check that it's a NodeItem and that it's visible
             if (nodeItem  && nodeItem->isVisible()) {
@@ -812,6 +813,15 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
+NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
+{
+    foreach(NodeItem* childNI , childNodeItems){
+        if(childNI->getNode() == child){
+            return childNI;
+        }
+    }
+    return 0;
+}
 
 void NodeItem::setWidth(qreal width)
 {
