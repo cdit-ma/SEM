@@ -39,11 +39,15 @@ bool EventPort::canConnect(Node* attachableObject)
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
 
     if(aggregate && getAggregate()){
+#ifdef DEBUG_MODE
         qWarning() << "Can only connect an EventPort to one aggregate.";
+#endif
         return false;
     }
     if(!aggregate){
+#ifdef DEBUG_MODE
         qWarning() << "Can only connect an EventPort to an Aggregate.";
+#endif
         return false;
     }
 

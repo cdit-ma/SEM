@@ -164,6 +164,7 @@ void NodeItem::setParentItem(QGraphicsItem *parent)
    NodeItem* nodeItem = dynamic_cast<NodeItem*>(parent);
    if(nodeItem){
        nodeItem->addChildNodeItem(this);
+       connect(nodeItem, SIGNAL(nodeItemMoved()), this, SLOT(parentNodeItemMoved()));
    }
    QGraphicsItem::setParentItem(parent);
 }
@@ -319,10 +320,9 @@ double NodeItem::getHeight()
 
 void NodeItem::addNodeEdge(NodeEdge *line)
 {
+    connect(this, SIGNAL(nodeItemMoved()), line, SLOT(updateEdge()));
     NodeItem* item = this;
     while(item){
-        //Connect the UpdateEdge of all parents of this, to the edge.
-        connect(item, SIGNAL(updateEdgePosition()), line, SLOT(updateEdge()));
         //Connect the Visibility of the edges of this node, so that if this node's parent was to be set invisbile, we any edges would be invisible.
         connect(item, SIGNAL(setEdgeVisibility(bool)), line, SLOT(setVisible(bool)));
         item = dynamic_cast<NodeItem*>(item->parentItem());
@@ -491,9 +491,10 @@ void NodeItem::updateViewAspects(QStringList aspects)
     setVisible(allMatched && (viewAspects.size() > 0));
 
     // if the view aspects have been changed, update pos of edges
-    if(prevVisible != isVisible()){
-        emit updateEdgePosition();
-    }
+    //if(prevVisible != isVisible()){
+    //    emit update
+    //    emit updateEdgePosition();
+    //}
 
     // if not visible, unselect node item
     if (!isVisible()) {
@@ -811,10 +812,8 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
         emit moveSelection(delta);
     }
-
-    qDebug() << "mouseMoveEvent";
-
 }
+
 
 NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
 {
@@ -828,22 +827,22 @@ NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
 
 void NodeItem::setWidth(qreal width)
 {
-    this->width = width;
-    updateExpandButton();
-    updateTextLabel();
-    if(permanentlyCentralized){
-        emit recentralizeAfterChange(this->getGraphML());
+
+    if(this->width != width){
+        this->width = width;
+        updateExpandButton();
+        updateTextLabel();
+        updateChildrenOnChange();
     }
 
 }
 
 void NodeItem::setHeight(qreal height)
 {
-    this->height = height;
-    if(permanentlyCentralized){
-        emit recentralizeAfterChange(this->getGraphML());
+    if(this->height != height){
+        this->height = height;
+        updateChildrenOnChange();
     }
-
 }
 
 
@@ -1062,10 +1061,8 @@ void NodeItem::setPos(const QPointF &pos)
 {
     if(pos != this->pos()){
         QGraphicsItem::setPos(pos);
-        emit updateEdgePosition();
-        if(permanentlyCentralized){
-            emit recentralizeAfterChange(this->getGraphML());
-        }
+
+        updateChildrenOnChange();
     }
 }
 
@@ -1155,6 +1152,15 @@ void NodeItem::updateGraphMLPosition()
     }
 }
 
+void NodeItem::updateChildrenOnChange()
+{
+    emit nodeItemMoved();
+
+    if(this->isPermanentlyCentered()){
+        emit recentralizeAfterChange(getGraphML());
+    }
+}
+
 void NodeItem::retrieveGraphMLData()
 {
     double graphmlHeight = getGraphML()->getDataValue("height").toDouble();
@@ -1235,6 +1241,20 @@ void NodeItem::setupIcon()
 QList<NodeItem *> NodeItem::getChildNodeItems()
 {
     return childNodeItems;
+}
+
+bool NodeItem::isPermanentlyCentered()
+{
+    return permanentlyCentralized;
+}
+
+void NodeItem::parentNodeItemMoved()
+{
+
+    emit nodeItemMoved();
+    if(isPermanentlyCentered()){
+        emit recentralizeAfterChange(getGraphML());
+    }
 }
 
 
@@ -1372,7 +1392,7 @@ void NodeItem::expandItem(bool show)
     prepareGeometryChange();
     update();
 
-    emit updateEdgePosition();
+    //emit updateEdgePosition();
 }
 
 

@@ -26,7 +26,9 @@ bool DeploymentDefinitions::canAdoptChild(Node *child)
 
 
     if(!hardwareDefinitions && !assemblyDefinitions){
+#ifdef DEBUG_MODE
         qWarning() << "Cannot Adopt anything outside of Assembly Definitions and Hardware Definitions";
+#endif
         return false;
     }
 

@@ -2,7 +2,7 @@
 
 Process::Process():Node()
 {
-    //qCritical() << "Constructed PeriodicEvent: "<< this->getName();
+    //qWarning() << "Constructed PeriodicEvent: "<< this->getName();
 
 }
 

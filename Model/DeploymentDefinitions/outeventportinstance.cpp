@@ -23,7 +23,9 @@ bool OutEventPortInstance::canAdoptChild(Node *child)
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
 
     if(!aggregateInstance || (aggregateInstance && this->childrenCount() > 0)){
+#ifdef DEBUG_MODE
         qWarning() << "OutEventPortInstance can only adopt one AggregateInstance";
+#endif
         return false;
     }
 
@@ -39,19 +41,25 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
     InEventPortDelegate* inEventPortDelegate = dynamic_cast<InEventPortDelegate*>(attachableObject);
 
     if(!outEventPortDelegate && !inEventPortInstance && !outEventPort && !inEventPortDelegate){
-        qCritical() << "OutEventPortInstance can only be connected to InEventPortInstances (Which match the same definition), 1 OutEventPort and defined InEventPortDelegates.";
+#ifdef DEBUG_MODE
+        qWarning() << "OutEventPortInstance can only be connected to InEventPortInstances (Which match the same definition), 1 OutEventPort and defined InEventPortDelegates.";
+#endif
         return false;
     }
 
     if(outEventPort && getDefinition()){
+#ifdef DEBUG_MODE
         qWarning() << "OutEventPortInstance can only be connected to 1 OutEventPort Definition.";
+#endif
         return false;
     }
 
     if(outEventPortDelegate || inEventPortInstance){
            EventPort* oEP = dynamic_cast<EventPort*>(getDefinition());
            if(!oEP || !oEP->getAggregate()){
+#ifdef DEBUG_MODE
                qWarning() << "OutEventPortInstance cannot be connected until it has a connected Aggregate in it's definition.";
+#endif
                return false;
            }
     }
@@ -80,7 +88,9 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
 
         if(outDefinition2){
             if(outDefinition->getAggregate() != outDefinition2->getAggregate()){
+#ifdef DEBUG_MODE
                 qWarning() << "OutEventPortInstance cannot be connected to a Delegate with a different Aggregate definition.";
+#endif
                 return false;
             }
         }
@@ -88,29 +98,39 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
 
     if(inEventPortInstance){
         if(inEventPortInstance->getParentNode() == this->getParentNode()){
+#ifdef DEBUG_MODE
             qWarning() << "OutEventPortInstance cannot be connected to an InEventPortInstance Contained by the same ComponentInstance Node!";
+#endif
             return false;
         }
         if(inEventPortInstance->getParentNode()->getParentNode() != this->getParentNode()->getParentNode()){
+#ifdef DEBUG_MODE
             qWarning() << "OutEventPortInstance must only be connected to an InEventPortInstance contained in this assembly!";
+#endif
             return false;
         }
     }
 
     if(outEventPortDelegate){
         if(!outEventPortDelegate->getParentNode()->isAncestorOf(this)){
+#ifdef DEBUG_MODE
             qWarning() << "OutEventPortInstance cannot be connected to an OutEventPortDelegate not contained in the same Assembly!";
+#endif
             return false;
         }
         if(outEventPortDelegate->getParentNode() != this->getParentNode()->getParentNode()){
+#ifdef DEBUG_MODE
             qWarning() << "OutEventPortInstance must only be connected to an OutEventPortDelegate contained in this assembly!";
+#endif
             return false;
         }
     }
 
     if(inEventPortDelegate){
         if(!this->getParentNode()->getParentNode()->isAncestorOf(inEventPortDelegate)){
+#ifdef DEBUG_MODE
             qWarning() << "OutEventPortDelegate cannot be connected to an OutEventPortDelegate not contained in the same Assembly!";
+#endif
             return false;
         }
         if(inEventPortDelegate->getParentNode()->getParentNode() != this->getParentNode()->getParentNode()){

@@ -17,11 +17,15 @@ bool AggregateInstance::canConnect(Node* attachableObject)
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
 
     if (!aggregate && !aggregateInstance){
+#ifdef DEBUG_MODE
         qWarning() << "AggregateInstance can only connect to an Aggregate.";
+#endif
         return false;
     }
     if(getDefinition() && aggregate){
+#ifdef DEBUG_MODE
         qWarning() << "AggregateInstance can only connect to one Aggregate.";
+#endif
         return false;
     }
 
@@ -55,7 +59,9 @@ bool AggregateInstance::canConnect(Node* attachableObject)
         }
         //Check for connection.
         if(isIndirectlyConnected(attachableObject)){
-            qCritical() << "AggregateInstance is already connected in directly to Node";
+#ifdef DEBUG_MODE
+            qWarning() << "AggregateInstance is already connected in directly to Node";
+#endif
             return false;
         }
 
@@ -74,7 +80,9 @@ bool AggregateInstance::canAdoptChild(Node *child)
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
 
     if(!memberInstance && !aggregateInstance){
+#ifdef DEBUG_MODE
         qWarning() << "AggregateInstance can only adopt MemberInstance or AggregateInstance";
+#endif
         return false;
     }
 

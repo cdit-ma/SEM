@@ -62,29 +62,27 @@ bool InEventPortDelegate::canConnect(Node* attachableObject)
 
 
     if(!inEventPortInstance && !inEventPortDelegate){
-        qCritical() << "InEventPortDelegate can only be connected to InEventPortInstances (Which match the same definition) and defined InEventPortDelegates.";
+#ifdef DEBUG_MODE
+        qWarning() << "InEventPortDelegate can only be connected to InEventPortInstances (Which match the same definition) and defined InEventPortDelegates.";
+#endif
         return false;
     }
 
     if(inEventPortDelegate && !inEventPortDelegate->connectedToInEventPortInstance()){
-        qCritical() << "InEventPortDelegate cannot be connected to undefined InEventPortDelegates.";
+#ifdef DEBUG_MODE
+        qWarning() << "InEventPortDelegate cannot be connected to undefined InEventPortDelegates.";
+#endif
         return false;
     }
     if(inEventPortDelegate){
         if(!getParentNode()->isAncestorOf(inEventPortDelegate)){
-            qCritical() << "InEventPortDelegate cannot be connected to an InEventPortDelegates which isn't contained by the node.";
+#ifdef DEBUG_MODE
+            qWarning() << "InEventPortDelegate cannot be connected to an InEventPortDelegates which isn't contained by the node.";
+#endif
             return false;
         }
 
     }
-
-    /*if(inEventPortInstance && connectedToInEventPortInstance()){
-        if(this->connectedToInEventPortInstance()){
-            qCritical() << "InEventPortDelegate cannot be connected to InEventPortDelegates.";
-            return false;
-        }
-    }
-    */
 
     if(inEventPortDelegate || inEventPortInstance){
         InEventPortInstance* thisInstance = getInEventPortInstance();
@@ -102,12 +100,16 @@ bool InEventPortDelegate::canConnect(Node* attachableObject)
             EventPort* connectingDefinition = dynamic_cast<EventPort*>(connectingInstance->getDefinition());
 
             if(!thisDefinition || !connectingDefinition){
+#ifdef DEBUG_MODE
                 qWarning() << "InEventPortDelegate cannot be connected to an undefined inEventPortInstance/Delegate.";
+#endif
                 return false;
             }
 
             if(thisDefinition->getAggregate() != connectingDefinition->getAggregate() && (connectingDefinition->getAggregate() != 0)){
+#ifdef DEBUG_MODE
                 qWarning() << "InEventPortDelegate cannot be connected to an inEventPortInstance/Delegate with a different Aggregate definition.";
+#endif
                 return false;
             }
         }
@@ -115,14 +117,18 @@ bool InEventPortDelegate::canConnect(Node* attachableObject)
 
     if(inEventPortDelegate){
         if(inEventPortDelegate->getParentNode() == this->getParentNode()){
+#ifdef DEBUG_MODE
             qWarning() << "InEventPortDelegate cannot be connected to an InEventPortDelegate owned by the same Assembly!";
+#endif
             return false;
         }
     }
 
     if(inEventPortInstance){
         if(!getParentNode()->isAncestorOf(inEventPortInstance)){
+#ifdef DEBUG_MODE
             qWarning() << "InEventPortDelegate cannot be connected to an inEventPortInstance not contained in the same Assembly!";
+#endif
             return false;
         }
     }

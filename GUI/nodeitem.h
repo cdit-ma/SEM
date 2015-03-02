@@ -64,12 +64,12 @@ public:
     Node* getNode();
     QString getNodeKind();
     QList<NodeItem*> getChildNodeItems();
+    bool isPermanentlyCentered();
 
 
 signals:
     //Node Edge Signals
     void setEdgeVisibility(bool visible);
-    void updateEdgePosition();
     void setEdgeSelected(bool selected);
 
     //View Signals.
@@ -91,9 +91,14 @@ signals:
 
     void updateDockContainer(QString dockContainer);
 
+
+
     void recentralizeAfterChange(GraphML* item);
 
+    void nodeItemMoved();
+
 public slots:
+    void parentNodeItemMoved();
     //Model Signals
     void graphMLDataUpdated(GraphMLData *data);
     void setOpacity(qreal opacity);
@@ -132,6 +137,8 @@ private:
 
     void updateGraphMLSize();
     void updateGraphMLPosition();
+
+    void updateChildrenOnChange();
 
     void retrieveGraphMLData();
 

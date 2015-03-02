@@ -24,7 +24,9 @@ bool HardwareDefinitions::canAdoptChild(Node *child)
 
 
     if(!hardwareCluster){
-        qWarning() << "Deployment Definitions can only adopt a ComponentAssembly Node";
+#ifdef DEBUG_MODE
+        qWarning() << "HardwareDefinitions can only adopt a HardwareCluster Node";
+#endif
         return false;
     }
 

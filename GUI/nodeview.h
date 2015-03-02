@@ -203,6 +203,9 @@ private:
 
     NewController* controller;
 
+    QString centralizedItemID;
+    bool CENTRALIZED_ON_ITEM;
+
     QHash<QString, GraphMLItem*> guiItems;
 
     NodeView* parentNodeView;

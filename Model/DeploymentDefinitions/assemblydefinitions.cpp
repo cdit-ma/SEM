@@ -25,7 +25,9 @@ bool AssemblyDefinitions::canAdoptChild(Node *child)
 
 
     if(!component && !managementComponent){
+#ifdef DEBUG_MODE
         qWarning() << "AssemblyDefinitions can only adopt a ComponentAssembly or ManagementComponent Node";
+#endif
         return false;
     }
 
@@ -36,6 +38,9 @@ bool AssemblyDefinitions::canAdoptChild(Node *child)
             ManagementComponent* mChild = dynamic_cast<ManagementComponent *>(cChild);
 
             if(mChild->getDataValue("type") == type){
+#ifdef DEBUG_MODE
+         qWarning() << "AssemblyDefinitions can only adopt 1 of a particularly typed ManagementComponent!";
+#endif
                 return false;
             }
         }

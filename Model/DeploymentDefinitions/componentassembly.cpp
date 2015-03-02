@@ -24,7 +24,9 @@ bool ComponentAssembly::canAdoptChild(Node *child)
 
     //Is this child a ComponentInstance?
     if(!componentInstance && !inEventPortDelegate && !outEventPortDelegate && !componentAssembly){
+#ifdef DEBUG_MODE
         qWarning() << "Assembly Node can only adopt a ComponentInstance, ComponentAssembly, InEventPortDelegate or OutEventPortDelegate Node";
+#endif
         return false;
     }
 
@@ -41,7 +43,9 @@ bool ComponentAssembly::canConnect(Node* attachableObject)
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);
 
     if(!hardwareNode && !hardwareCluster){
+#ifdef DEBUG_MODE
         qWarning() << "ComponentInstance Node can only be connected to a HardwareNode, HardwareCluster or a Component";
+#endif
         return false;
     }
 
@@ -49,7 +53,9 @@ bool ComponentAssembly::canConnect(Node* attachableObject)
         //Check for deployment edges already.
         foreach(Edge* edge, getEdges(0)){
             if(edge->isDeploymentLink()){
+#ifdef DEBUG_MODE
                 qWarning() << "ComponentInstance Node is already deployed!";
+#endif
                 return false;
             }
         }

@@ -27,6 +27,7 @@
 
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
+    CENTRALIZED_ON_ITEM = false;
     IS_SUB_VIEW = subView;
     toolbarJustClosed = false;
     parentNodeView = 0;
@@ -157,7 +158,7 @@ void NodeView::adjustSceneRect(QRectF rectToCenter)
 
     // send a signal to the node items when there has been a change to the sceneRect
     if (newRec.width() != prevSceneRect.width() || newRec.height() != prevSceneRect.height()) {
-        emit sceneRectChanged(newRec);
+        //emit sceneRectChanged(newRec);
     }
 }
 
@@ -382,8 +383,6 @@ void NodeView::centreItem(GraphMLItem *item)
         return;
     }
 
-    qDebug() << "centreItem: " << item->getGraphML()->getDataValue("kind");
-
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
     centerRect(itemRect);
 }
@@ -578,7 +577,12 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 void NodeView::view_DestructGraphMLGUI(QString ID)
 {
     removeGraphMLItemFromHash(ID);
-
+    if(IS_SUB_VIEW){
+        if(CENTRALIZED_ON_ITEM && centralizedItemID == ID){
+            //CALL DELETE ON DIALOG
+            delete this->parent();
+        }
+    }
 }
 
 void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
@@ -605,6 +609,8 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
                     //toolbar
                     nodeSelected_signalUpdates(node);
                 }
+
+
 
                 return;
             }
@@ -637,10 +643,14 @@ void NodeView::view_LockCenteredGraphML(GraphML *graphML)
     if(!graphML){
         return;
     }
+
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
     NodeItem* nodeItem = getNodeItemFromGraphMLItem(guiItem);
     if(nodeItem){
+        centralizedItemID = graphML->getID();
+
         centreItem(guiItem);
+        CENTRALIZED_ON_ITEM = true;
         nodeItem->setPermanentlyCentralized(true);
 
         connect(nodeItem, SIGNAL(recentralizeAfterChange(GraphML*)), this, SLOT(view_CenterGraphML(GraphML*)));

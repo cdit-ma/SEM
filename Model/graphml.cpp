@@ -62,7 +62,9 @@ void GraphML::updateDataValue(QString keyName, QString value)
     if(data != 0){
         data->setValue(value);
     }else{
-        qCritical() << "GraphML Object does not contain Data: " << keyName << "!";
+#ifdef DEBUG_MODE
+        qWarning() << "GraphML Object does not contain Data: " << keyName << "!";
+#endif
     }
 }
 
@@ -73,7 +75,9 @@ QString GraphML::getDataValue(QString keyName)
     if(data != 0){
         return data->getValue();
     }else{
-        //qCritical() <<"GraphML::getDataValue() << GraphML Object does not contain Data: " << keyName;
+#ifdef DEBUG_MODE
+        qWarning() <<"GraphML::getDataValue() << GraphML Object does not contain Data: " << keyName;
+#endif
         return "";
     }
 }
@@ -123,7 +127,9 @@ void GraphML::attachData(GraphMLData *data)
 
             foreach(GraphMLData* cData, attachedData){
                 if(cData->getKey() == data->getKey()){
-                    qCritical() << "Got Duplicate Data";
+#ifdef DEBUG_MODE
+                    qWarning() << "Got Duplicate Data";
+#endif
                     cData->setValue(data->getValue());
                     return;
                 }
@@ -133,8 +139,10 @@ void GraphML::attachData(GraphMLData *data)
                 emit dataAdded(data);
             }
         }else{
-            qCritical() << "Cannot attach <data> to this object. Wrong Kind!";
-            qCritical() << data->getKey()->getForKind() << " != " << this->getKind();
+#ifdef DEBUG_MODE
+            qWarning() << "Cannot attach <data> to this object. Wrong Kind!";
+            qWarning() << data->getKey()->getForKind() << " != " << this->getKind();
+#endif
         }
     }
 }

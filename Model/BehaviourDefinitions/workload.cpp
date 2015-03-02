@@ -3,7 +3,7 @@
 #include "process.h"
 Workload::Workload():Node()
 {
-    //qCritical() << "Constructed Workload: "<< this->getName();
+    //qWarning() << "Constructed Workload: "<< this->getName();
 
 }
 
@@ -21,7 +21,11 @@ bool Workload::canAdoptChild(Node *child)
 {
     Process* process = dynamic_cast<Process*>(child);
     if(!process){
-        qCritical() << "Workload can only adopt Process!";
+#ifdef DEBUG_MODE
+         qWarning() << "Workload can only adopt Process!";
+#endif
+
+
         return false;
     }
     return Node::canAdoptChild(child);

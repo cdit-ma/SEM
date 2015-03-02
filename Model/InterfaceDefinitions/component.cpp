@@ -29,7 +29,9 @@ bool Component::canAdoptChild(Node *child)
     Attribute* attribute  = dynamic_cast<Attribute*>(child);
 
     if(!outEventPort && !inEventPort && !attribute){
+#ifdef DEBUG_MODE
         qWarning() << "Can only adopt an OutEventPort, an InEventPort or an Attribute in a Component.";
+#endif
         return false;
     }
 

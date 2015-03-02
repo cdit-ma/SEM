@@ -5,7 +5,6 @@
 
 BranchState::BranchState():Node()
 {
-    //qCritical() << "Constructed BranchState: "<< this->getName();
 
 }
 
@@ -19,7 +18,9 @@ bool BranchState::canConnect(Node* attachableObject)
     Termination* terminate = dynamic_cast<Termination*>(attachableObject);
     if(!terminate){
         //TODO: Implement a check for singular terminate only.
-        qCritical() << "Branch state can only connect to 1 Terminate Item";
+#ifdef DEBUG_MODE
+        qWarning() << "Branch state can only connect to 1 Terminate Item";
+#endif
         return false;
     }
     //Only Termination.
@@ -30,7 +31,9 @@ bool BranchState::canAdoptChild(Node *child)
 {
     Condition* condition = dynamic_cast<Condition*>(child);
     if(!condition){
-        qCritical() << "Branch state can only adopt Conditions.";
+        #ifdef DEBUG_MODE
+        qWarning() << "Branch state can only adopt Conditions.";
+        #endif
         return false;
     }
     return Node::canAdoptChild(child);

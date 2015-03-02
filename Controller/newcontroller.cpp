@@ -1740,6 +1740,9 @@ bool NewController::deleteNode(Node *node, bool addAction)
 void NewController::setNodeSelected(Node *node, bool setSelected)
 {
     if(!isGraphMLInModel(node)){
+        if(node){
+            qCritical() << node->toString();
+        }
         qCritical() << "Node isn't connected to Model.";
         return;
     }

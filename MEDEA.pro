@@ -13,6 +13,8 @@ TARGET = MEDEA
 
 TEMPLATE = app
 
+#DEFINES += DEBUG_MODE
+
 LIBS += -lpsapi
 
 HEADERS += \

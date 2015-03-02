@@ -10,7 +10,7 @@ Model::~Model()
 {
     removeEdges();
     removeChildren();
-    qCritical() << "Destructed Model.";
+    qWarning() << "Destructed Model.";
 }
 
 bool Model::canAdoptChild(Node *child)
@@ -20,7 +20,9 @@ bool Model::canAdoptChild(Node *child)
     BehaviourDefinitions* behaviourDefinitions = dynamic_cast<BehaviourDefinitions*>(child);
 
     if(!interfaceDefinitions && !deploymentDefinitions && !behaviourDefinitions){
+        #ifdef DEBUG_MODE
         qWarning() << "Model can only adopt interfaceDefinitions, deploymentDefinitions, interfaceDefinitions";
+#endif
         return false;
     }
 

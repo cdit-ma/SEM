@@ -23,7 +23,7 @@ void Aggregate::addEventPort(EventPort *node)
 
 void Aggregate::removeEventPort(EventPort *node)
 {
-    //qCritical() << "Removing Aggregate";
+    //qWarning() << "Removing Aggregate";
     int index = attachedEventPorts.indexOf(node);
     if(index != -1){
         attachedEventPorts.remove(index);
@@ -47,7 +47,9 @@ bool Aggregate::canAdoptChild(Node *child)
     Member* member = dynamic_cast<Member*>(child);
 
     if(!member && !aggregateInstance){
+#ifdef DEBUG_MODE
         qWarning() << "Aggregate can only adopt Member/Instances";
+#endif
         return false;
     }
 

@@ -26,7 +26,9 @@ bool ComponentInstance::canAdoptChild(Node *child)
     AttributeInstance* attributeInstance = dynamic_cast<AttributeInstance*>(child);
 
     if(!(outEventPortInstance || inEventPortInstance || attributeInstance)){
-        qCritical() << "Component Instance can only Adopt a OutEventPortInstance, InEventPortInstance or AttributeInstance";
+#ifdef DEBUG_MODE
+        qWarning() << "Component Instance can only Adopt a OutEventPortInstance, InEventPortInstance or AttributeInstance";
+#endif
         return false;
     }
 
@@ -48,7 +50,9 @@ bool ComponentInstance::canConnect(Node* attachableObject)
     Component* component = dynamic_cast<Component*> (attachableObject);
 
     if(!hardwareNode && !hardwareCluster && !component){
+#ifdef DEBUG_MODE
         qWarning() << "ComponentInstance Node can only be connected to a HardwareNode, HardwareCluster or a Component";
+#endif
         return false;
     }
 
@@ -56,14 +60,18 @@ bool ComponentInstance::canConnect(Node* attachableObject)
         //Check for deployment edges already.
         foreach(Edge* edge, getEdges(0)){
             if(edge->isDeploymentLink()){
+#ifdef DEBUG_MODE
                 qWarning() << "ComponentInstance Node is already deployed!";
+#endif
                 return false;
             }
         }
     }
 
     if(component && getDefinition()){
+#ifdef DEBUG_MODE
         qWarning() << "ComponentInstance Node can only be connected to 1 Component Definition.";
+#endif
         return false;
     }
 

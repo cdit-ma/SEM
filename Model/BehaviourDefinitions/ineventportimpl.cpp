@@ -18,7 +18,9 @@ bool InEventPortImpl::canAdoptChild(Node *child)
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
 
     if(!aggregateInstance || (aggregateInstance && this->childrenCount() > 0)){
+        #ifdef DEBUG_MODE
         qWarning() << "InEventPortImpl can only adopt one AggregateInstance";
+        #endif
         return false;
     }
 
@@ -31,7 +33,9 @@ bool InEventPortImpl::canConnect(Node* attachableObject)
     InEventPort* oep = dynamic_cast<InEventPort*>(attachableObject);
 
     if(getDefinition() && oep ){
-        qCritical() << "Can Only connect to one InEventPort";
+        #ifdef DEBUG_MODE
+        qWarning() << "Can Only connect to one InEventPort";
+#endif
         return false;
     }
 

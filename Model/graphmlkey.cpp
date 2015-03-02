@@ -120,7 +120,9 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
         break;
     }
     default:
-        qCritical() << "Cannot Validate Data Change";
+#ifdef DEBUG_MODE
+        qWarning() << "Cannot Validate Data Change";
+#endif
         ok = true;
     }
 

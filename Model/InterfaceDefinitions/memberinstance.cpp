@@ -17,11 +17,15 @@ bool MemberInstance::canConnect(Node* attachableObject)
     Member* member = dynamic_cast<Member*>(attachableObject);
 
     if (!member && !memberInstance){
+#ifdef DEBUG_MODE
         qWarning() << "MemberInstance can only connect to an MemberInstance or Member.";
+#endif
         return false;
     }
     if(getDefinition()){
+#ifdef DEBUG_MODE
         qWarning() << "MemberInstance can only connect to one MemberInstance/Member.";
+#endif
         return false;
     }
 

@@ -2,7 +2,7 @@
 #include <QDebug>
 Condition::Condition():Node()
 {
-    //qCritical() << "Constructed Condition: "<< this->getName();
+    //qWarning() << "Constructed Condition: "<< this->getName();
 }
 
 Condition::~Condition()

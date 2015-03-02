@@ -2,7 +2,7 @@
 #include <QDebug>
 Termination::Termination():Node()
 {
-    //qCritical() << "Constructed Termination: "<< this->getName();
+    //qWarning() << "Constructed Termination: "<< this->getName();
 }
 
 Termination::~Termination()
@@ -19,6 +19,7 @@ bool Termination::canConnect(Node* attachableObject)
         }
     }
 
+    return Node::canConnect(attachableObject);
 }
 
 bool Termination::canAdoptChild(Node *child)

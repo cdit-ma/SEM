@@ -26,11 +26,15 @@ bool ComponentImpl::canConnect(Node* attachableObject)
     }
 
     if(getDefinition()){
+        #ifdef DEBUG_MODE
         qWarning() << "ComponentImpl already has a definition already";
+#endif
         return false;
     }
     if(component->getImplementations().count() != 0){
+        #ifdef DEBUG_MODE
         qWarning() << "ComponentImpl cannot be connected to a Component which already has an Implementation.";
+#endif
         return false;
     }
 
@@ -43,11 +47,10 @@ bool ComponentImpl::canAdoptChild(Node *child)
     MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(child);
     Process* process = dynamic_cast<Process*>(child);
 
-    //AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(child);
-    //InEventPortImpl* inEventPortImpl = dynamic_cast<InEventPortImpl*>(child);
-    //OutEventPortImpl* outEventPortImpl = dynamic_cast<OutEventPortImpl*>(child);
-
     if(condition || memberInstance || process){
+        #ifdef DEBUG_MODE
+        qWarning() << "ComponentImpl cannot adopt anything outside of Condition, MemberInstance or Process";
+#endif
         return false;
     }
 

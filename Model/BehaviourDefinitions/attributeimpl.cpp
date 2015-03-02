@@ -19,12 +19,16 @@ bool AttributeImpl::canConnect(Node* attachableObject)
     Attribute* attribute = dynamic_cast<Attribute*>(attachableObject);
 
     if(getDefinition()){
+         #ifdef DEBUG_MODE
         qWarning() << "AttributeImpl already has a definition already";
+        #endif
         return false;
     }
 
     if(!attribute){
+         #ifdef DEBUG_MODE
         qWarning() << "AttributeImpl can only connect to an Attribute.";
+#endif
         return false;
     }
 

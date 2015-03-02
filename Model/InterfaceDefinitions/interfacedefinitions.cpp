@@ -21,7 +21,9 @@ bool InterfaceDefinitions::canAdoptChild(Node *child)
     File* file = dynamic_cast<File*>(child);
 
     if(!file){
+#ifdef DEBUG_MODE
         qWarning() << "InterfaceDefinitions can only adopt a File Node";
+#endif
         return false;
     }
 

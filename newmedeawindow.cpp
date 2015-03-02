@@ -13,7 +13,7 @@
 #include <QPicture>
 
 
-#define THREADING true
+#define THREADING false
 /**
  * @brief NewMedeaWindow::NewMedeaWindow
  * @param parent

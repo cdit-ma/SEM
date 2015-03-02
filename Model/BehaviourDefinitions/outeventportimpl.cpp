@@ -20,7 +20,9 @@ bool OutEventPortImpl::canAdoptChild(Node *child)
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
 
     if(!aggregateInstance || (aggregateInstance && this->childrenCount() > 0)){
+#ifdef DEBUG_MODE
         qWarning() << "InEventPortImpl can only adopt one AggregateInstance";
+        #endif
         return false;
     }
 
@@ -35,14 +37,18 @@ bool OutEventPortImpl::canConnect(Node* attachableObject)
 
     if(oep){
         if(getDefinition()){
-            qCritical() << "OutEventPortImpl Can Only be connected to one OutEventPort Definition.";
+#ifdef DEBUG_MODE
+            qWarning() << "OutEventPortImpl Can Only be connected to one OutEventPort Definition.";
+#endif
             return false;
         }
         if(aParent){
             Node* parentDef = aParent->getDefinition();
             if(parentDef){
                 if(!parentDef->isAncestorOf(attachableObject)){
-                    qCritical() << "Can Only connect to an OutEventPort owned by the definition of this ComponentImpl.";
+#ifdef DEBUG_MODE
+                    qWarning() << "Can Only connect to an OutEventPort owned by the definition of this ComponentImpl.";
+#endif
                     return false;
                 }
             }
@@ -50,7 +56,9 @@ bool OutEventPortImpl::canConnect(Node* attachableObject)
     }else{
         if(aParent){
             if(!aParent->isAncestorOf(attachableObject)){
-                qCritical() << "Can only connect to items owned by Component Impl!";
+                #ifdef DEBUG_MODE
+                qWarning() << "Can only connect to items owned by Component Impl!";
+                #endif
                 return false;
             }
         }

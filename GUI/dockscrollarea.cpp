@@ -278,7 +278,7 @@ void DockScrollArea::updatePartsDock()
 
     Node* selectedNode = nodeView->getSelectedNode();
     if(!selectedNode){
-       qCritical() << "DockScrollArea::updateCurrentNode() selected node is NULL";
+       //qCritical() << "DockScrollArea::updateCurrentNode() selected node is NULL";
        return;
     }
     //Then do some updates.

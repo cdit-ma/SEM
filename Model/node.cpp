@@ -65,12 +65,16 @@ bool Node::canAdoptChild(Node *node)
 
     //Check for Cyclic contains.
     if(node == this){
+#ifdef DEBUG_MODE
         qWarning() << "Cannot Adopt self.";
+#endif
         return false;
     }
 
     if(containsChild(node) || isAncestorOf(node) || isDescendantOf(node)){
-        qCritical() << "Cannot Adopt Ancestor/Descendant";
+#ifdef DEBUG_MODE
+        qWarning() << "Cannot Adopt Ancestor/Descendant";
+#endif
         return false;
     }
 
@@ -80,7 +84,12 @@ bool Node::canAdoptChild(Node *node)
 void Node::addChild(Node *child, int position)
 {
     if(child && !containsChild(child)){
-
+        if(orderedChildren.contains(position)){
+#ifdef DEBUG_MODE
+            qWarning() << "Node::addChild() Got Node at position " << position;
+#endif
+            return;
+        }
         orderedChildren.insert(position, child);
         child->setParentNode(this);
     }
