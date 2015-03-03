@@ -1238,6 +1238,7 @@ void NodeView::forceSortViewAspects()
 void NodeView::resetModel()
 {
     triggerAction("Resetting Model");
+
     foreach(NodeItem* nodeItem, getNodeItemsList()){
         if (nodeItem) {
             nodeItem->resetSize();

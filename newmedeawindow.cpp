@@ -36,11 +36,13 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
 
     // this is used for when a file is dragged and
     // dropped on top of this tool's icon
+    /*
     if(graphMLFile.length() != 0){
         QStringList files;
         files.append(graphMLFile);
         importGraphMLFiles(files);
     }
+    */
 
     //this->view_SetGUIEnabled(false);
 }
@@ -408,7 +410,7 @@ void NewMedeaWindow::resetGUI()
  */
 void NewMedeaWindow::makeConnections()
 {
-    connect(this, SIGNAL(setGUIComponentsEnabled(bool)), nodeView, SLOT(setEnabled(bool)));
+    //connect(this, SIGNAL(setGUIComponentsEnabled(bool)), nodeView, SLOT(setEnabled(bool)));
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
@@ -649,8 +651,10 @@ void NewMedeaWindow::autoCenterViews()
  */
 void NewMedeaWindow::on_actionClearModel_triggered()
 {
-    nodeView->clearSelection();
-    nodeView->resetModel();
+    if(nodeView){
+        nodeView->clearSelection();
+        nodeView->resetModel();
+    }
     emit clearDock();
 }
 

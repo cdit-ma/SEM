@@ -37,6 +37,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     lockIcon = 0;
     proxyWidget = 0;
     expandButton = 0;
+    initialWidth = 0;
+    initialHeight = 0;
     label  = 0;
 
     nodeKind = getGraphML()->getDataValue("kind");
@@ -107,8 +109,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
-    //setFlag(ItemIsSelectable);
-    //setFlag(ItemIsMovable);
     setFlag(ItemSendsGeometryChanges);
 
     setCacheMode(QGraphicsItem::NoCache);
@@ -777,7 +777,13 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
                 //qDebug() << "itemMovedOutOfScene";
                 emit itemMovedOutOfScene(this);
             }
+            //QPointF delta = (event->scenePos() - previousScenePosition);
+            //previousScenePosition = event->scenePos();
+
+            //emit moveSelection(delta);
         }
+
+
 
         hasSelectionMoved = false;
         isNodePressed = false;
@@ -836,7 +842,7 @@ void NodeItem::setWidth(qreal width)
 
         bool updateModel = false;
         if(width < initialWidth){
-            qWarning() << "NodeItem::setWidth() Width provided less than Minimum.";
+            //qWarning() << "NodeItem::setWidth() Width provided less than Minimum.";
             width = initialWidth;
             updateModel = true;
         }
@@ -857,7 +863,7 @@ void NodeItem::setHeight(qreal height)
     if(this->height != height){
         bool updateModel = false;
         if(height < initialHeight){
-            qWarning() << "NodeItem::setHeight() Height provided less than Minimum.";
+            //qWarning() << "NodeItem::setHeight() Height provided less than Minimum.";
             height = initialHeight;
             updateModel = true;
         }
@@ -1101,7 +1107,16 @@ void NodeItem::setPos(const QPointF &pos)
 void NodeItem::setupLabel()
 {
     QFont font("Arial");
-    font.setPointSize(.25 * minimumHeight);
+    double fontSize = .25 * minimumHeight;
+    //qCritical() << this->getGraphML()->toString();
+
+    if(fontSize < 0){
+        fontSize = 1;
+    }else if(fontSize > 1000){
+        fontSize = 1000;
+    }
+    //qCritical() << fontSize;
+    font.setPointSize(fontSize);
 
     label = new QGraphicsTextItem(this);
     label->setFont(font);
