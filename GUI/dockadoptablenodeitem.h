@@ -10,9 +10,6 @@ class DockAdoptableNodeItem : public QPushButton
 public:
     explicit DockAdoptableNodeItem(QString _kind, QWidget* parent = 0);
 
-    void setupLayout();
-    void setPixmapSize(QSize size);
-
 protected:
     void paintEvent(QPaintEvent* e);
 
@@ -23,12 +20,12 @@ public slots:
     void buttonPressed();
 
 private:
+    void setupLayout();
+
     QString kind;
 
     QLabel* textLabel;
     QLabel* imageLabel;
-
-    QSize initialSize;
 
 
 };

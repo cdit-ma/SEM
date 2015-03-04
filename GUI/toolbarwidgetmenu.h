@@ -17,6 +17,8 @@ public:
 
     void addWidgetAction(ToolbarWidgetAction* action);
     QList<ToolbarWidgetAction*> getWidgetActions();
+
+    void setParentAction(ToolbarWidgetAction* widgetAction);
     ToolbarWidgetAction* getParentAction();
 
 protected:
@@ -24,23 +26,27 @@ protected:
     virtual void leaveEvent(QEvent*);
 
 signals:
-    void hideToolbar(bool actionTriggered = false);
-    void closeParentMenu();
+    void hideToolbar(bool triggered);
+    void closeParentMenu(bool triggered);
     void connectToParentMenu(ToolbarWidgetMenu* menu);
+
+    void resetActionState();
 
 public slots:
     void close();
-    void closeMenu();
+    void closeMenu(bool triggered);
     void hideMenu(QAction* action);
     void execMenu();
 
     void setupDefaultAction();
     void connectChildMenu(ToolbarWidgetMenu* menu);
 
-private:
+private:    
     ToolbarWidgetAction* parentAction;
     QList<ToolbarWidgetAction*> widgetActions;
+
     bool eventFromMenu;
+    bool actionTriggered;
 
     ToolbarWidgetAction* defaultAction;
 

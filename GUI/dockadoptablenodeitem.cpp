@@ -16,11 +16,6 @@ DockAdoptableNodeItem::DockAdoptableNodeItem(QString _kind, QWidget *parent) :
     textLabel = new QLabel(kind, this);
     imageLabel = new QLabel(this);
 
-    setParent(parent);
-    setFlat(true);
-    setFixedSize(100, 100);
-    setStyleSheet("margin: 0px; padding: 0px;");
-
     setupLayout();
     connect(this, SIGNAL(clicked()), this , SLOT(buttonPressed()));
 }
@@ -33,6 +28,10 @@ DockAdoptableNodeItem::DockAdoptableNodeItem(QString _kind, QWidget *parent) :
 void DockAdoptableNodeItem::setupLayout()
 {
     QVBoxLayout *layout = new QVBoxLayout();
+
+    setFlat(true);
+    setFixedSize(100, 100);
+    setStyleSheet("margin: 0px; padding: 0px;");
 
     // make the font size smaller to fit the whole text inside textLabel
     QFont font = textLabel->font();
@@ -52,7 +51,6 @@ void DockAdoptableNodeItem::setupLayout()
                                        height()-textLabel->height(),
                                        Qt::KeepAspectRatio,
                                        Qt::SmoothTransformation);
-    initialSize = scaledImage.size();
 
     imageLabel->setBackgroundRole(QPalette::Base);
     imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -67,22 +65,6 @@ void DockAdoptableNodeItem::setupLayout()
     layout->setAlignment(textLabel, Qt::AlignHCenter);
 
     setLayout(layout);
-}
-
-
-/**
- * @brief DockAdoptableNodeItem::setPixmapSize
- * This changes the size of the pixmap in the imageLabel.
- * @param size
- */
-void DockAdoptableNodeItem::setPixmapSize(QSize size)
-{
-    if (imageLabel != 0) {
-        QPixmap pixmap = imageLabel->pixmap()->scaled(size,
-                                                      Qt::KeepAspectRatio,
-                                                      Qt::SmoothTransformation);
-        imageLabel->setPixmap(pixmap);
-    }
 }
 
 

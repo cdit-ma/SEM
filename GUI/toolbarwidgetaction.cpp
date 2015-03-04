@@ -17,19 +17,19 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
 {           
     node = 0;
     kind = nodeKind;
-
-    if (nodeKind == "info") {
-        setEnabled(false);
-        label = textLabel;
-    } else {
-        label = nodeKind;
-    }
+    label = nodeKind;
 
     widgetMenu = 0;
     willHaveMenu = false;
+    deletable = true;
 
     if (nodeKind == "ComponentInstance" || nodeKind == "InEventPortDelegate" || nodeKind == "OutEventPortDelegate") {
         willHaveMenu = true;
+        deletable = false;
+    } else if (nodeKind == "info") {
+        label = textLabel;
+        deletable = false;
+        setEnabled(false);
     }
 }
 
@@ -44,19 +44,17 @@ ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString ac
     QWidgetAction(parent)
 {
     this->node = node;
+    kind = node->getDataValue("kind");
     label = node->getDataValue("label");
-
-    if (actionKind == "instance") {
-        kind = "ComponentInstance";
-    } else {
-        kind = node->getDataValue("kind");
-    }
 
     widgetMenu = 0;
     willHaveMenu = false;
+    deletable = true;
 
     if (actionKind == "file" || actionKind == "eventPort") {
         willHaveMenu = true;
+    } else if (actionKind == "instance") {
+        kind = "ComponentInstance";
     }
 }
 
@@ -69,7 +67,7 @@ void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu *menu)
 {
     widgetMenu = menu;
 
-    connect(widgetMenu, SIGNAL(aboutToHide()), this, SLOT(actionButtonUnclicked()));
+    //connect(widgetMenu, SIGNAL(aboutToHide()), this, SLOT(actionButtonUnclicked()));
     connect(this, SIGNAL(triggered()), widgetMenu, SLOT(execMenu()));
 }
 
@@ -101,6 +99,16 @@ Node *ToolbarWidgetAction::getNode()
 QString ToolbarWidgetAction::getKind()
 {
     return kind;
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::isDeletable
+ * @return
+ */
+bool ToolbarWidgetAction::isDeletable()
+{
+    return deletable;
 }
 
 
@@ -198,8 +206,9 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
         layout->addWidget(menuImageLabel);
     }
 
-    connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
     connect(this, SIGNAL(hovered()), this, SLOT(hover()));
+    connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
+    connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
 
     return actionButton;
 }
@@ -213,6 +222,15 @@ void ToolbarWidgetAction::hover()
 {
     actionButton->grabMouse();
     actionButton->releaseMouse();
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::actionButtonPressed
+ */
+void ToolbarWidgetAction::actionButtonPressed()
+{
+    emit pressed();
 }
 
 
@@ -232,6 +250,7 @@ void ToolbarWidgetAction::actionButtonClicked()
  */
 void ToolbarWidgetAction::actionButtonUnclicked()
 {
+    //qDebug() << "ToolbarWidgetAction::actionButtonUnclicked()";
     actionButton->setChecked(false);
     actionButton->repaint();
 }

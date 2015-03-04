@@ -102,17 +102,15 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(view_PrintErrorCode(GraphML*,QString)), view, SLOT(printErrorText(GraphML*,QString)));
 
         connect(this, SIGNAL(view_FitToScreen()), view, SLOT(fitToScreen()));
-        connect(this, SIGNAL(centreNode(Node*)), view, SLOT(centreNode(Node*)));
-        connect(view, SIGNAL(centerNode(QString)), this, SLOT(centerNode(QString)));
+        //connect(this, SIGNAL(centreNode(Node*)), view, SLOT(centreNode(Node*)));
+        //connect(view, SIGNAL(centerNode(QString)), this, SLOT(centerNode(QString)));
         connect(view, SIGNAL(sortModel()), this, SLOT(view_SortModel()));
         connect(view, SIGNAL(sortDeployment()), this, SLOT(view_SortDeployment()));
-
-        connect(view, SIGNAL(getLegalNodesList(Node*)), this, SLOT(getLegalNodesList(Node*)));
-        connect(this, SIGNAL(setLegalNodesList(QList<Node*>*)), view, SLOT(updateToolbarLegalNodesList(QList<Node*>*)));
 
         connect(view, SIGNAL(constructNode(QString, QPointF)), this, SLOT(view_ConstructNode(QString, QPointF)));
         connect(view, SIGNAL(constructEdge(Node*,Node*)), this, SLOT(constructLegalEdge(Node*,Node*)));
         connect(view, SIGNAL(constructComponentInstance(Node*,Node*,QPointF)), this, SLOT(constructComponentInstance(Node*,Node*,QPointF)));
+        connect(view, SIGNAL(constructEventPortDelegate(Node*,Node*,QPointF)), this, SLOT(constructEventPortDelegate(Node*,Node*,QPointF)));
 
     }else{
         //Special Subview only functionality.
@@ -568,7 +566,7 @@ void NewController::view_ImportGraphML(QString inputGraphML, Node *currentParent
         }
     }
 
-   if(!(UNDOING || REDOING)){
+    if(!(UNDOING || REDOING)){
         emit view_UpdateProgressBar(100);
     }
 }
@@ -651,7 +649,7 @@ void NewController::view_UpdateGraphMLData(GraphML *parent, QString keyName, QSt
         if(keyName == "label"){
             Node* node = dynamic_cast<Node*>(parent);
             enforceUniqueLabel(node, dataValue);
- 		}else if(keyName == "sortOrder"){
+        }else if(keyName == "sortOrder"){
             Node* node = dynamic_cast<Node*>(parent);
             enforceUniqueSortOrder(node, dataValue.toInt());
             QString newSortOrder = node->getDataValue("sortOrder");
@@ -1152,31 +1150,10 @@ void NewController::view_ClearSelection()
 
 
 /**
-     * @brief NewController::getLegalNodes
-     * @param src
-     */
-void NewController::getLegalNodesList(Node *src)
-{
-    QList<Node*> *legalNodes = new QList<Node*>();
-
-    foreach (QString ID, nodeIDs) {
-        Node* dst = getNodeFromID(ID);
-        if (dst && (dst != src)) {
-            if (src->canConnect(dst) && (src->getDataValue("kind") != dst->getDataValue("kind"))) {
-                legalNodes->append(dst);
-            }
-        }
-    }
-
-    emit setLegalNodesList(legalNodes);
-}
-
-
-/**
-     * @brief NewController::constructLegalEdge
-     * @param source
-     * @param destination
-     */
+ * @brief NewController::constructLegalEdge
+ * @param src
+ * @param dst
+ */
 void NewController::constructLegalEdge(Node *src, Node *dst)
 {
     view_ConstructEdge(src, dst);
@@ -1184,26 +1161,54 @@ void NewController::constructLegalEdge(Node *src, Node *dst)
 
 
 /**
-     * @brief NewController::constructComponentInstance
-     * @param assembly
-     * @param definition
-     * @param center
-     */
+ * @brief NewController::constructComponentInstance
+ * @param assembly
+ * @param definition
+ * @param center
+ */
 void NewController::constructComponentInstance(Node *assembly, Node *definition, QPointF center)
 {
     QString instanceKind = getNodeInstanceKind(definition);
     Node* instance = constructChildNode(assembly, constructGraphMLDataVector(instanceKind));
 
-    if(instance){
-        //Update the position
+    // update the ComponentInstance's position then connect it to definition
+    if (instance) {
         view_UpdateGraphMLData(instance, "x", QString::number(center.x()));
         view_UpdateGraphMLData(instance, "y", QString::number(center.y()));
-
         view_ConstructEdge(instance, definition);
     }
 
     emit componentInstanceConstructed(instance);
 }
+
+
+/**
+ * @brief NewController::constructEventPortDelegate
+ * @param assembly
+ * @param definition
+ * @param point
+ */
+void NewController::constructEventPortDelegate(Node *assembly, Node *eventPortInstance, QPointF center)
+{
+    // check which kind of event port delegate to construct
+    QString eventPortKind = eventPortInstance->getDataValue("kind");
+    if (eventPortKind == "InEventPortInstance") {
+        eventPortKind = "InEventPortDelegate";
+    } else if (eventPortKind == "OutEventPortInstance") {
+        eventPortKind = "OutEventPortDelegate";
+    }
+
+    // construct event port delegate then connect it to eventPortInstance
+    Node* delegate = constructChildNode(assembly, constructGraphMLDataVector(eventPortKind, center));
+    if (delegate) {
+        if (eventPortKind == "InEventPortDelegate") {
+            view_ConstructEdge(delegate, eventPortInstance);
+        } else if (eventPortKind == "OutEventPortDelegate") {
+            view_ConstructEdge(eventPortInstance, delegate);
+        }
+    }
+}
+
 
 void NewController::constructedConnectedComponents(Node *parent, Node *connectedNode, QString kind, QPointF relativePosition)
 {
@@ -1468,7 +1473,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
     if(!isGraphMLInModel(node)){
         if(parentNode->canAdoptChild(node)){
             //Adopt the Node.
- 			//Get the ID.
+            //Get the ID.
             int sortPosition = parentNode->getNextOrderNumber();
             parentNode->addChild(node, sortPosition);
 
@@ -1505,7 +1510,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
     GraphMLKey* widthKey = constructGraphMLKey("width", "double", "node");
     GraphMLKey* heightKey = constructGraphMLKey("height", "double", "node");
-	GraphMLKey* sortKey = constructGraphMLKey("sortOrder", "int", "node");
+    GraphMLKey* sortKey = constructGraphMLKey("sortOrder", "int", "node");
 
     QList<GraphMLData*> data;
 
@@ -1525,7 +1530,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     data.append(new GraphMLData(widthKey, "0"));
     data.append(new GraphMLData(heightKey, "0"));
     data.append(new GraphMLData(labelKey, labelString));
-	data.append(new GraphMLData(sortKey, "-1"));
+    data.append(new GraphMLData(sortKey, "-1"));
 
 
     //Attach Node Specific Data.
@@ -1936,9 +1941,10 @@ Node *NewController::getSelectedNode()
 
 
 /**
-     * @brief NewController::centerNode
-     * @param nodeLabel
-     */
+ * @brief NewController::centerNode
+ * @param nodeLabel
+ */
+/*
 void NewController::centerNode(QString nodeLabel)
 {
     Node *node;
@@ -1957,7 +1963,7 @@ void NewController::centerNode(QString nodeLabel)
     }
     emit centreNode(node);
 }
-
+*/
 
 Edge *NewController::getSelectedEdge()
 {
@@ -2394,80 +2400,80 @@ void NewController::undoRedo(bool undo)
 {
     emit view_SetGraphMLSelected(0);
 
-        if(undo){
-            UNDOING = true;
-            REDOING = false;
-        }else{
-            REDOING = true;
-            UNDOING = false;
-        }
-
-
-        //Used to store the stack of actions we are to use.
-        QStack<ActionItem> actionStack = redoActionStack;
-
-        if(UNDOING){
-            //Set to the use the stack.
-            actionStack = undoActionStack;
-        }
-
-        //Get the total number of actions in the history stack.
-        float actionCount = actionStack.size();
-
-        if(actionCount == 0){
-            //qCritical () << "No Actions in Undo/Redo Buffer.";
-            return;
-        }
-
-        //Lock the GUI.
-        emit view_SetGUIEnabled(false);
-
-        //Get the ID and Name of the top-most action.
-        int topActionID = actionStack.top().actionID;
-        QString topActionName = actionStack.top().actionName;
-
-        //Emit a new action so this Undo/Redo operation can be reverted.
-        view_TriggerAction(topActionName);
-
-        //This vector will store all ActionItems which match topActionID
-        QList<ActionItem> toReverse;
-
-        while(!actionStack.isEmpty()){
-            //Get the top-most action.
-            ActionItem action = actionStack.top();
-
-            //If this action has the same ID, we should undo it.
-            if(action.actionID == topActionID){
-                toReverse.append(action);
-                //Remove if from the action stack.
-                actionStack.pop();
-            }else{
-                //If we don't match, it must be a new actionID, so we are done.
-                break;
-            }
-        }
-
-        actionCount = toReverse.size();
-        //qCritical() << "Actions to Reverse: " << actionCount;
-        for(int i = 0; i < actionCount; i++){
-            int percentage = (i*100) / actionCount;
-            emit view_UpdateProgressBar(percentage);
-            reverseAction(toReverse[i]);
-        }
-
-        emit view_UpdateProgressBar(100);
-
-        if(UNDOING){
-            undoActionStack = actionStack;
-        }else{
-            redoActionStack = actionStack;
-        }
-
-        updateViewUndoRedoLists();
-        emit view_SetGUIEnabled(true);
-
-        UNDOING = false;
+    if(undo){
+        UNDOING = true;
         REDOING = false;
+    }else{
+        REDOING = true;
+        UNDOING = false;
+    }
+
+
+    //Used to store the stack of actions we are to use.
+    QStack<ActionItem> actionStack = redoActionStack;
+
+    if(UNDOING){
+        //Set to the use the stack.
+        actionStack = undoActionStack;
+    }
+
+    //Get the total number of actions in the history stack.
+    float actionCount = actionStack.size();
+
+    if(actionCount == 0){
+        //qCritical () << "No Actions in Undo/Redo Buffer.";
+        return;
+    }
+
+    //Lock the GUI.
+    emit view_SetGUIEnabled(false);
+
+    //Get the ID and Name of the top-most action.
+    int topActionID = actionStack.top().actionID;
+    QString topActionName = actionStack.top().actionName;
+
+    //Emit a new action so this Undo/Redo operation can be reverted.
+    view_TriggerAction(topActionName);
+
+    //This vector will store all ActionItems which match topActionID
+    QList<ActionItem> toReverse;
+
+    while(!actionStack.isEmpty()){
+        //Get the top-most action.
+        ActionItem action = actionStack.top();
+
+        //If this action has the same ID, we should undo it.
+        if(action.actionID == topActionID){
+            toReverse.append(action);
+            //Remove if from the action stack.
+            actionStack.pop();
+        }else{
+            //If we don't match, it must be a new actionID, so we are done.
+            break;
+        }
+    }
+
+    actionCount = toReverse.size();
+    //qCritical() << "Actions to Reverse: " << actionCount;
+    for(int i = 0; i < actionCount; i++){
+        int percentage = (i*100) / actionCount;
+        emit view_UpdateProgressBar(percentage);
+        reverseAction(toReverse[i]);
+    }
+
+    emit view_UpdateProgressBar(100);
+
+    if(UNDOING){
+        undoActionStack = actionStack;
+    }else{
+        redoActionStack = actionStack;
+    }
+
+    updateViewUndoRedoLists();
+    emit view_SetGUIEnabled(true);
+
+    UNDOING = false;
+    REDOING = false;
 }
 
 void NewController::clearHistory()
@@ -2484,7 +2490,7 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
 {
     if(nodeKind == "Model"){
         if(model){
-           return model;
+            return model;
         }
         return new Model();
     }else if(nodeKind == "BehaviourDefinitions"){
@@ -2514,7 +2520,7 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
         return  new DeploymentDefinitions();
     }else if(nodeKind == "HardwareNode"){
         if(hardwareNodes.contains(nodeLabel))
-        return new HardwareNode();
+            return new HardwareNode();
     }else if(nodeKind == "HardwareCluster"){
         return new HardwareCluster();
     }else if(nodeKind == "ManagementComponent"){
@@ -2668,7 +2674,7 @@ void NewController::setupModel()
 
 
     setupManagementComponents();
-	//Clear the Undo/Redo Stacks
+    //Clear the Undo/Redo Stacks
     undoActionStack.clear();
     redoActionStack.clear();
 }
@@ -3116,7 +3122,7 @@ void NewController::setupManagementComponents()
     plNode->getData("label")->setValue("DANCE_PLAN_LAUNCHER");
     lsdNode->getData("label")->setValue("DDS_LOGGING_SERVER");
 
-	managementComponents.insert("DANCE_EXECUTION_MANAGER",dynamic_cast<ManagementComponent*>(emNode));
+    managementComponents.insert("DANCE_EXECUTION_MANAGER",dynamic_cast<ManagementComponent*>(emNode));
     managementComponents.insert("DANCE_PLAN_LAUNCHER",dynamic_cast<ManagementComponent*>(plNode));
     managementComponents.insert("DDS_LOGGING_SERVER",dynamic_cast<ManagementComponent*>(lsdNode));
 }

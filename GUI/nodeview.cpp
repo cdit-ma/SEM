@@ -71,8 +71,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     //create toolbar widget
     toolbar = new ToolbarWidget(this);
-
-    files = new QList<Node*>();
 }
 
 
@@ -255,7 +253,7 @@ QList<Node *> NodeView::getConnectableNodes(Node *node)
 }
 
 
-void NodeView::constructNewView(Node *centeredOn)
+void NodeView::view_constructNewView(Node *centeredOn)
 {
 
     if(IS_SUB_VIEW){
@@ -329,9 +327,7 @@ void NodeView::constructNewView(Node *centeredOn)
 void NodeView::sortEntireModel()
 {
     emit triggerAction("View: Sorting entire Model");
-    qCritical() << "Sorting Model";
     sortNode(controller->getModel());
-    qCritical() <<"Sorting ERROR:";
 }
 
 
@@ -353,13 +349,13 @@ void NodeView::sortNode(Node *node, Node* topMostNode)
 
     // check if node has children
     if (nodeItem->getChildNodeItems().count() == 0) {
-        // otherwise, iterate up to the topMost node while sorting node
+        // if it doesn't, iterate up to the topMost node
         while (nodeItem->getParentNodeItem()) {
-            // if it doesn't and it also != topMost node, recurse sorting to parent
+            //  if current node == topMost node, return
             if (nodeItem->getNode() == topMostNode) {
                 break;
             }
-
+            // otherwise, iterate sorting upto the topMost node
             nodeItem = nodeItem->getParentNodeItem();
             nodeItem->sort();
         }
@@ -407,10 +403,8 @@ void NodeView::clearView()
 }
 
 
-
 void NodeView::setRubberBandMode(bool On)
 {
-
     if(!rubberBand){
         rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
     }
@@ -451,8 +445,7 @@ void NodeView::setViewAspects(QStringList aspects)
  */
 void NodeView::showToolbar(QPoint position)
 {
-
-
+    // use mouse click position when constructing node items from toolbar
     QPoint globalPos = mapToGlobal(position);
     menuPosition = mapToScene(position);
 
@@ -463,24 +456,6 @@ void NodeView::showToolbar(QPoint position)
         toolbar->setNodeItem(nodeItem);
         toolbar->move(globalPos);
         toolbar->show();
-    }
-}
-
-
-/**
- * @brief NodeView::view_DockConstructNode
- * This is called whenever a dock adoptable node item is pressed
- * from the Parts container in the dock.
- * @param kind
- */
-void NodeView::view_DockConstructNode(Node* parentNode, QString kind)
-{
-    GraphMLItem* guiItem = getGraphMLItemFromGraphML(parentNode);
-    NodeItem* parentItem = getNodeItemFromGraphMLItem(guiItem);
-
-    // set Initial position so it doesn't collide with any of nodeItem.children();
-    if (parentItem) {
-        emit constructNode(kind, parentItem->getNextChildPos());
     }
 }
 
@@ -523,24 +498,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         scene()->addItem(nodeItem);
     }
 
-    // if this item's parent is a File, check if it's the first child
-    // if it is, update dock adoptable node list
-    //if (parentNode && parentNode->getDataValue("kind") == "File")  {
-    //    if (parentNode->childrenCount() == 1) {
-    //        emit updateDockContainer("Parts");
-    //   }
-    // }
     updateDocks();
-
-    // update parts dock conatiner everytime there is a newly created
-    // node item, in case the current adoptable node list has chnaged
-    //emit updateDockContainer("Parts");
-
-
-
-    // Stop component definitions and hardware nodes from being
-    // drawn on the canvas. Handle differently when user is adding
-    // a new definition or connecting hardware nodes.
 
     nodeConstructed_signalUpdates(nodeItem);
 }
@@ -679,21 +637,20 @@ void NodeView::view_SetOpacity(GraphML *graphML, qreal opacity)
 }
 
 /**
- * @brief NodeView::view_ConstructNodeAction
- * @param nodeKind
+ * @brief NodeView::view_constructNode
+ * @param nodeKind - kind of node to construct
+ * @param sender - 0 = DockScrollArea, 1 = ToolbarWidget
  */
-void NodeView::view_ConstructNode(QString nodeKind)
+void NodeView::view_constructNode(QString nodeKind, int sender)
 {
-    emit triggerAction("Toolbar: Constructing Node");
+    emit triggerAction("Dock/Toolbar: Constructing Node");
 
-
-    GraphMLItem* selected = getGraphMLItemFromGraphML(getSelectedNode());
-    if(selected){
-        NodeItem* nodeItem = getNodeItemFromGraphMLItem(selected);
-        if(nodeItem){
-            emit constructNode(nodeKind, nodeItem->mapFromScene(menuPosition));
-        }else{
-            //No Node Selected!
+    NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
+    if (selectedItem) {
+        if (sender == 0) {
+            emit constructNode(nodeKind, selectedItem->getNextChildPos());
+        } else if (sender == 1) {
+            emit constructNode(nodeKind, selectedItem->mapFromScene(menuPosition));
         }
     }
 }
@@ -704,9 +661,9 @@ void NodeView::view_ConstructNode(QString nodeKind)
  * @param src
  * @param dst
  */
-void NodeView::view_ConstructEdge(Node *src, Node *dst)
+void NodeView::view_constructEdge(Node *src, Node *dst)
 {
-    emit triggerAction("Toolbar: Constructing Edge");
+    emit triggerAction("Dock/Toolbar: Constructing Edge");
     emit constructEdge(src, dst);
     edgeConstructed_signalUpdates(src);
 }
@@ -718,9 +675,9 @@ void NodeView::view_ConstructEdge(Node *src, Node *dst)
  * @param defn - Component from selected dock/toolbar item
  * @param sender - 0 = DockScrollArea, 1 = ToolbarWidget
  */
-void NodeView::view_ConstructComponentInstance(Node* assm, Node* defn, int sender)
+void NodeView::view_constructComponentInstance(Node* assm, Node* defn, int sender)
 {
-    emit triggerAction("Toolbar: Constructing ComponentInstance");
+    emit triggerAction("Dock/Toolbar: Constructing ComponentInstance");
 
     ComponentAssembly* assembly = dynamic_cast<ComponentAssembly*>(assm);
     Component* definition = dynamic_cast<Component*>(defn);
@@ -739,6 +696,23 @@ void NodeView::view_ConstructComponentInstance(Node* assm, Node* defn, int sende
 
 
 /**
+ * @brief NodeView::view_constructEventPortDelegate
+ * @param assm
+ * @param eventPortInstance
+ */
+void NodeView::view_constructEventPortDelegate(Node *assm, Node *eventPortInstance)
+{
+    emit triggerAction("Toolbar: Constructing EventPortDelegate");
+
+    ComponentAssembly* assembly = dynamic_cast<ComponentAssembly*>(assm);
+    if (assembly) {
+        GraphMLItem *graphMLItem = getGraphMLItemFromGraphML(assembly);
+        emit constructEventPortDelegate(assm, eventPortInstance, graphMLItem->mapFromScene(menuPosition));
+    }
+}
+
+
+/**
  * @brief NodeView::view_connectComponentDefinition
  * @param itm
  *
@@ -752,57 +726,11 @@ void NodeView::view_connectComponentInstance(Node *inst, Node *defn)
 
 
 /**
- * @brief NodeView::updateToolbarMenuList
- * @param action
+ * @brief NodeView::componentInstanceConstructed
+ * This is called when a ComponentInstance is created with a definition.
+ * It forces an update on its parent's height after inheriting graphML values from its definition.
  * @param node
  */
-void NodeView::updateToolbarMenuList(QString action, Node *node)
-{
-    if (action == "add") {
-        emit getAdoptableNodesList(node);
-    } else if (action == "connect") {
-        emit getLegalNodesList(node);
-    } else if (action == "addInstance") {
-        emit getComponentDefinitions(node);
-    } else if (action == "files") {
-        emit updateMenuList("files", 0, files);
-    }
-}
-
-
-/**
- * @brief NodeView::updateToolbarAdoptableNodeList
- * This is called by NewMedeaWindow whenever the toolbar adoptable nodes list
- * needs to be updated. If selectedNode == prevSelectedNode, nothing happens.
- * @param action
- * @param nodeList
- */
-void NodeView::updateToolbarAdoptableNodesList(QStringList nodeKinds)
-{
-    QStringList* kinds = new QStringList(nodeKinds);
-    emit updateMenuList("add", kinds, 0);
-}
-
-
-/**
- * @brief NodeView::updateToolbarLegalNodesList
- * @param nodeList
- */
-void NodeView::updateToolbarLegalNodesList(QList<Node*>* nodeList)
-{
-    emit updateMenuList("connect", 0, nodeList);
-}
-
-
-/**
- * @brief NodeView::updateToolbarDefinitionsList
- * @param nodeList
- */
-void NodeView::updateToolbarDefinitionsList(QList<Node*>* nodeList)
-{
-    emit updateMenuList("addInstance", 0, nodeList);
-}
-
 void NodeView::componentInstanceConstructed(Node *node)
 {
     GraphMLItem* graphMLItem = getGraphMLItemFromGraphML(node);
@@ -827,20 +755,36 @@ NewController *NodeView::getController()
     return this->controller;
 }
 
-QList<Node *> *NodeView::getFiles()
+/**
+ * @brief NodeView::getFiles
+ * TODO: Get Definitions containers from the controller and use them to get
+ * the Files, Components, etc instead of recursing throught the whole model.
+ * @return
+ */
+QList<Node*> NodeView::getFiles()
 {
     Model* model = this->controller->getModel();
-
-    if(model){
-        return new QList<Node*>(model->getChildrenOfKind("File"));
+    if (model) {
+        return model->getChildrenOfKind("File");
     }
-
-    return 0;
 }
+
+
+/**
+ * @brief NodeView::getComponents
+ * @return
+ */
+QList<Node*> NodeView::getComponents()
+{
+    Model* model = this->controller->getModel();
+    if (model) {
+        return model->getChildrenOfKind("Component");
+    }
+}
+
 
 void NodeView::updateDocks()
 {
-
     if(dock){
         if(dock->getParentButton()->getKind() == "P"){
 
@@ -848,8 +792,6 @@ void NodeView::updateDocks()
         }
     }
 }
-
-
 
 
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
@@ -865,8 +807,6 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
         if(nodeItem){
             connect(nodeItem, SIGNAL(clearSelection()), this, SLOT(clearSelection()));
         }
-
-
 
         if(!IS_SUB_VIEW){
             connect(GUIItem, SIGNAL(triggerCentered(GraphML*)), this, SLOT(view_CenterGraphML(GraphML*)));
@@ -962,13 +902,8 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
         Node* hasImpl = hasImplementation(node);
 
         // update goto menu actions
-        if(hasDefn){
-            emit setGoToMenuActions("definition", hasDefn);
-        }
-        if(hasImpl){
-            emit setGoToMenuActions("implementation", hasImpl);
-        }
-
+        emit setGoToMenuActions("definition", hasDefn);
+        emit setGoToMenuActions("implementation", hasImpl);
 
         // update goto toolbar buttons
         toolbar->showDefinitionButton(hasDefn);
@@ -989,27 +924,24 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
  */
 void NodeView::nodeConstructed_signalUpdates(NodeItem *nodeItem)
 {
-    // update parts dock conatiner everytime there is a newly created
-    // node item, in case the current adoptable node list has chnaged
-    // emit updateDockContainer("Parts");
-
-    // store Files for toolbar menu
-    File* file = dynamic_cast<File*>(nodeItem->getNode());
-    if (file) {
-        files->append(file);
-        return;
-    }
-
+    // add newly constructed Components and HardwareNodes to the dock
     QString nodeKind = nodeItem->getNode()->getDataValue("kind");
     if (nodeKind == "Component") {
-        emit componentNodeMade("component", nodeItem);
+        emit dockNodeMade("component", nodeItem);
     } else if (nodeKind == "HardwareNode") {
+        // stop HardwareNodes from being drawn on the canvas until they are connected to a ComponentAssembly
         nodeItem->setHidden(true);
-        emit hardwareNodeMade("hardware", nodeItem);
+        emit dockNodeMade("hardware", nodeItem);
     }
 }
 
 
+/**
+ * @brief NodeView::edgeConstructed_signalUpdates
+ * This is called whenever an edge is constructed.
+ * It sends signals to update whatever needs updating.
+ * @param src
+ */
 void NodeView::edgeConstructed_signalUpdates(Node *src)
 {
     Node* hasDefn = hasDefinition(src);
@@ -1018,48 +950,61 @@ void NodeView::edgeConstructed_signalUpdates(Node *src)
     // update specific tool buttons when a new edge is constructed
     toolbar->showDefinitionButton(hasDefn);
     toolbar->showImplementationButton(hasImpl);
-    toolbar->updateMenuList("connect", src);
 
     // update node goto menu actions
     emit setGoToMenuActions("definition", hasDefn);
     emit setGoToMenuActions("implementation", hasImpl);
 }
 
-Node *NodeView::hasDefinition(Node *node)
+
+/**
+ * @brief NodeView::hasDefinition
+ * This returns the selected node's definition if it has one.
+ * @param node
+ * @return
+ */
+Node* NodeView::hasDefinition(Node *node)
 {
     Node* original = node;
-
-    while(node->getDefinition()){
+    while (node->getDefinition()) {
         node = node->getDefinition();
     }
-    if(node != original){
+    if (node != original) {
         return node;
     }
     return 0;
 }
 
-Node *NodeView::hasImplementation(Node *node)
+
+/**
+ * @brief NodeView::hasImplementation
+ * This returns the selected node's implementation if it has one.
+ * @param node
+ * @return
+ */
+Node* NodeView::hasImplementation(Node *node)
 {
     Node* original = node;
     node = hasDefinition(node);
-    if(!node){
+    if (!node) {
         node = original;
     }
     //Top Most Node.
-    if(node->getImplementations().size() > 0){
+    if (node->getImplementations().size() > 0) {
         Node* impl =node->getImplementations().at(0);
-        if(impl != original){
+        if (impl != original) {
             return impl;
         }
     }
-
     return 0;
 }
+
 
 NodeItem *NodeView::getNodeItemFromNode(Node *node)
 {
     return getNodeItemFromGraphMLItem(getGraphMLItemFromGraphML(node));
 }
+
 
 GraphMLItem *NodeView::getGraphMLItemFromHash(QString ID)
 {
@@ -1072,7 +1017,6 @@ GraphMLItem *NodeView::getGraphMLItemFromHash(QString ID)
     }
     return 0;
 }
-
 
 
 GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
@@ -1102,16 +1046,17 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
 
     if(!itemUnderMouse){
         if(event->button() == Qt::MiddleButton){
-            //Sort and center current view aspects
+            // sort and center current view aspects
             view_centerViewAspects();
         }else{
-            //Clear selection and disable dock buttons
+            // clear selection and disable dock buttons
             clearSelection();
         }
     }
 
     QGraphicsView::mouseReleaseEvent(event);
 }
+
 
 void NodeView::mouseMoveEvent(QMouseEvent *event)
 {
@@ -1147,17 +1092,22 @@ void NodeView::mousePressEvent(QMouseEvent *event)
 }
 
 
+/**
+ * @brief NodeView::wheelEvent
+ * This method zooms in/out of the view upto the MIN/MAX ZOOM values.
+ * @param event
+ */
 void NodeView::wheelEvent(QWheelEvent *event)
 {
-    // Scale the view / do the zoom
-    if(event->delta() > 0 && transform().m11() < MAX_ZOOM) {
-        // Zoom in
+    if (event->delta() > 0 && transform().m11() < MAX_ZOOM) {
+        // zoom in
         scale(ZOOM_SCALE_INCREMENTOR, ZOOM_SCALE_INCREMENTOR);
     } else if (event->delta() < 0 && transform().m11() > MIN_ZOOM) {
-        // Zooming out
+        // zoom out
         scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
     }
 }
+
 
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
@@ -1221,6 +1171,7 @@ void NodeView::toolbarClosed()
 
 /**
  * @brief NodeView::forceSortViewAspects
+ * This method forces all of the view aspects to be visible and then sorts them.
  */
 void NodeView::forceSortViewAspects()
 {
@@ -1229,17 +1180,16 @@ void NodeView::forceSortViewAspects()
 }
 
 
-
 /**
  * @brief NodeView::resetModel
  * This method is called after the model is cleared.
- * It resets the size of the model, sorts and centers it.
+ * It resets the size, sorts and centers the model.
  */
 void NodeView::resetModel()
 {
     triggerAction("Resetting Model");
 
-    foreach(NodeItem* nodeItem, getNodeItemsList()){
+    foreach (NodeItem* nodeItem, getNodeItemsList()) {
         if (nodeItem) {
             nodeItem->resetSize();
         }
@@ -1252,6 +1202,8 @@ void NodeView::resetModel()
 
 /**
  * @brief NodeView::autoCenterViewAspects
+ * This is called from the NewMedeaWindow menu.
+ * It sets the automatic centering of the view aspects on and off.
  * @param center
  */
 void NodeView::setAutoCenterViewAspects(bool center)
@@ -1305,12 +1257,14 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
  * This gets called every time the user middle clicks on the view.
  * @param node
  */
+/*
 void NodeView::centreNode(Node *node)
 {
     if (node) {
         centreItem(getGraphMLItemFromGraphML(node));
     }
 }
+*/
 
 
 /**
@@ -1355,7 +1309,6 @@ void NodeView::printErrorText(GraphML *graphml, QString text)
  */
 void NodeView::fitToScreen()
 {
-    //qDebug() << "fitToScreen";
     QRectF itemsRec = scene()->itemsBoundingRect();
     float leftMostX = itemsRec.bottomRight().x();
     float rightMostX = itemsRec.topLeft().x();
@@ -1396,7 +1349,7 @@ void NodeView::fitToScreen()
  * @param node
  * @param show
  */
-void NodeView::goToDefinition(Node *node, bool show)
+void NodeView::goToDefinition(Node *node)
 {
     if (node) {
         Node* defn = hasDefinition(node);
@@ -1419,18 +1372,35 @@ void NodeView::goToDefinition(Node *node, bool show)
  * @param node
  * @param show
  */
-void NodeView::goToImplementation(Node *node, bool show)
+void NodeView::goToImplementation(Node *node)
 {
     if (node) {
         Node* impl = hasImplementation(node);
         if (impl) {
-            // make sure the Definitions view aspect is on
+            // make sure the Workload view aspect is on
             if (!currentAspects.contains("Workload")) {
                 emit turnOnViewAspect("Workload");
             }
             controller->view_GraphMLSelected(impl, true);
             centreItem(getGraphMLItemFromGraphML(impl));
         }
+    }
+}
+
+
+/**
+ * @brief NodeView::goToInstance
+ * @param node
+ */
+void NodeView::goToInstance(Node *node)
+{
+    if (node) {
+        // make sure the Assembly view aspect is on
+        if (!currentAspects.contains("Assembly")) {
+            emit turnOnViewAspect("Assembly");
+        }
+        controller->view_GraphMLSelected(node, true);
+        centreItem(getGraphMLItemFromGraphML(node));
     }
 }
 
@@ -1453,23 +1423,9 @@ void NodeView::view_centerViewAspects()
 {
     forceSortViewAspects();
     emit updateViewAspects(currentAspects);
-    emit centerNode("Model");
+    centreItem(getNodeItemFromNode( controller->getModel() ));
+    //emit centerNode("Model");
     fitToScreen();
-}
-
-
-/**
- * @brief NodeView::setGoToToolbarButtons
- * @param action
- * @param node
- */
-void NodeView::setGoToToolbarButtons(QString action, Node *node)
-{
-    if (action == "definition") {
-        toolbar->showDefinitionButton(hasDefinition(node));
-    } else if (action == "implementation") {
-        toolbar->showImplementationButton(hasImplementation(node));
-    }
 }
 
 

@@ -18,7 +18,7 @@ DockToggleButton::DockToggleButton(QString label, NewMedeaWindow *window, QWidge
     selected = false;
 
     fillColor = QColor(250, 250, 250, 250);
-    selectedColor = QColor(250, 160, 0, 250);
+    selectedColor = QColor(200, 250, 100, 230);
     color = fillColor;
 
     kind = label;

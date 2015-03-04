@@ -34,13 +34,14 @@ protected:
     void paintEvent(QPaintEvent *e);
 
 signals:
-    void constructDockNode(Node* node, QString kind);
+    void trigger_addChildNode(QString kind, int sender);
 
     void getSelectedNode();
     void selectedNode(Node* node);
 
     void trigger_addComponentInstance(Node* assm, Node* defn, int sender);
     void trigger_connectComponentInstance(Node* inst, Node* defn);
+    void trigger_connectHardwareNode(Node* src, Node* hardwareNode);
 
 public slots:
     void activate();
@@ -48,10 +49,12 @@ public slots:
     void checkScrollBar();
 
     void buttonPressed(QString kind);
+
     void dock_getSelectedNode();
 
     void dock_addComponentInstance(Node* assm, Node* defn);
     void dock_connectComponentInstance(Node* inst, Node* defn);
+    void dock_connectHardwareNode(Node* src, Node* hardwareNode);
 
     void removeFromDockNodeList(QWidget* widget);
 
@@ -63,7 +66,6 @@ public:
 
 private:
     NodeItem* nodeItem;
-    Node* parentNode;
     QStringList utilisedKinds;
 
     DockToggleButton *parentButton;

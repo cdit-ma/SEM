@@ -11,20 +11,21 @@
 ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction *widgetAction, ToolbarWidgetAction* action, QWidget *parent) :
     QMenu(parent)
 {
-    parentAction = widgetAction;
     defaultAction = action;
-    eventFromMenu = false;
+    widgetActions = QList<ToolbarWidgetAction*>();
 
-    // attach this menu to its parentAction
-    if (parentAction) {
-        parentAction->setMenu(this);
+    eventFromMenu = false;
+    actionTriggered = false;
+
+    // set parentAction
+    if (widgetAction) {
+        setParentAction(widgetAction);
     }
 
     // if the parent of this menu is of type ToolbarWidgetMenu, connect to it
     ToolbarWidgetMenu* parentMenu = qobject_cast<ToolbarWidgetMenu*>(parent);
     if (parentMenu) {
-        connect(this, SIGNAL(connectToParentMenu(ToolbarWidgetMenu*)),
-                parentMenu, SLOT(connectChildMenu(ToolbarWidgetMenu*)));
+        connect(this, SIGNAL(connectToParentMenu(ToolbarWidgetMenu*)), parentMenu, SLOT(connectChildMenu(ToolbarWidgetMenu*)));
         emit connectToParentMenu(this);
     }
 
@@ -48,7 +49,7 @@ void ToolbarWidgetMenu::execMenu()
         if (widgetActions.count() == 0) {
             if (defaultAction) {
                 setupDefaultAction();
-            } else {
+            } else if (actions().count() == 0) {
                 return;
             }
         }
@@ -98,16 +99,16 @@ ToolbarWidgetAction* ToolbarWidgetMenu::getParentAction()
 
 /**
  * @brief ToolbarWidgetMenu::clearMenu
- * This clears this menu. It deletes all of this menu's actions except
- * addInstanceAction and defaultAction if they exist.
+ * This clears this menu's actions. If the action is stored in the toolbar
+ * it removes it from the menu, otherwise it deletes the action.
  */
 void ToolbarWidgetMenu::clearMenu()
 {
     QMutableListIterator<ToolbarWidgetAction*> it(widgetActions);
     while (it.hasNext()) {
         ToolbarWidgetAction *action = it.next();
-        // NOTE: make sure to check for all kinds that are being stored in the ToolbarWidget
-        if (action && action->getKind() != "ComponentInstance" && action->getKind() != "InEventPortDelegate" && action->getKind() != "OutEventPortDelegate" && action->getKind() != "info") {
+        // actions that are stored in the toolbar widget can't be deleted
+        if (action->isDeletable()) {
             delete action;
         } else {
             removeAction(action);
@@ -145,10 +146,16 @@ void ToolbarWidgetMenu::leaveEvent(QEvent * e)
  */
 void ToolbarWidgetMenu::close()
 {
-    if (!eventFromMenu) {
-        emit closeParentMenu();
-        emit hideToolbar();
+    //emit resetActionState();
+    if (!eventFromMenu || actionTriggered) {
+        QToolButton* button = qobject_cast<QToolButton*>(parent());
+        if (button) {
+            emit hideToolbar(actionTriggered);
+        } else {
+            emit closeParentMenu(actionTriggered);
+        }
     }
+    actionTriggered = false;
 }
 
 
@@ -158,15 +165,16 @@ void ToolbarWidgetMenu::close()
  * event not from them. If the event didn't come from this menu either,
  * send the same check signal to its parent then close it.
  */
-void ToolbarWidgetMenu::closeMenu()
+void ToolbarWidgetMenu::closeMenu(bool triggered)
 {
-    if (!eventFromMenu) {
+    if (!eventFromMenu || triggered) {
         QToolButton* button = qobject_cast<QToolButton*>(parent());
         if (button) {
-            emit hideToolbar();
+            emit hideToolbar(triggered);
         } else {
-            emit closeParentMenu();
+            emit closeParentMenu(triggered);
         }
+        //emit resetActionState();
         hide();
     }
 }
@@ -180,10 +188,12 @@ void ToolbarWidgetMenu::closeMenu()
 void ToolbarWidgetMenu::hideMenu(QAction *action)
 {
     ToolbarWidgetAction* widgetAction = dynamic_cast<ToolbarWidgetAction*>(action);
-    if (widgetAction && widgetAction->getMenu() == 0) {
+    if (!widgetAction || (widgetAction && widgetAction->getMenu() == 0)) {
+        actionTriggered = true;
         hide();
-        emit hideToolbar(true);
+        close();
     }
+    actionTriggered = false;
 }
 
 
@@ -194,7 +204,20 @@ void ToolbarWidgetMenu::hideMenu(QAction *action)
  */
 void ToolbarWidgetMenu::connectChildMenu(ToolbarWidgetMenu* menu)
 {
-    connect(menu, SIGNAL(closeParentMenu()), this, SLOT(closeMenu()));
+    connect(menu, SIGNAL(closeParentMenu(bool)), this, SLOT(closeMenu(bool)));
+}
+
+
+/**
+ * @brief ToolbarWidgetMenu::setParentAction
+ * @param widgetAction
+ */
+void ToolbarWidgetMenu::setParentAction(ToolbarWidgetAction *widgetAction)
+{
+    // attach this menu to its parentAction
+    parentAction = widgetAction;
+    parentAction->setMenu(this);
+    //connect(this, SIGNAL(resetActionState()), parentAction, SLOT(actionButtonUnclicked()));
 }
 
 

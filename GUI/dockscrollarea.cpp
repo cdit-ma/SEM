@@ -16,7 +16,6 @@ DockScrollArea::DockScrollArea(QString label, DockToggleButton *parent) :
     QScrollArea(parent)
 {
     parentButton = parent;
-    parentNode = 0;
 
     this->label = label;
     activated = false;
@@ -92,6 +91,7 @@ void DockScrollArea::setNodeView(NodeView *v)
 
 void DockScrollArea::setCurrentNodeItem(NodeItem *currentNodeItem)
 {
+    /*
     Node* currentNode = currentNodeItem->getNode();
 
     //Then do some updates.
@@ -104,6 +104,7 @@ void DockScrollArea::setCurrentNodeItem(NodeItem *currentNodeItem)
     }
 
     addAdoptableDockNodes(currentNode, nodeList);
+    */
 }
 
 
@@ -125,7 +126,6 @@ DockToggleButton *DockScrollArea::getParentButton()
 void DockScrollArea::addDockNode(NodeItem* item)
 {
     DockNodeItem *itm = new DockNodeItem(item, this);
-    itm->connectToNodeItem();
     itm->setContainer(this);
 
     dockNodes.append(itm);
@@ -161,7 +161,6 @@ void DockScrollArea::addAdoptableDockNodes(Node* node, QStringList nodes)
     clear();
     nodes.sort();
 
-    parentNode = node;
     adoptableNodesList = nodes;
 
     for (int i=0; i < nodes.count(); i++) {
@@ -229,7 +228,7 @@ void DockScrollArea::paintEvent(QPaintEvent *e)
  */
 void DockScrollArea::buttonPressed(QString kind)
 {
-    emit constructDockNode(parentNode, kind);
+    emit trigger_addChildNode(kind, 0);
 }
 
 
@@ -255,6 +254,17 @@ void DockScrollArea::dock_connectComponentInstance(Node *inst, Node *defn)
 
 
 /**
+ * @brief DockScrollArea::dock_connectHardwareNode
+ * @param src
+ * @param hardwareNode
+ */
+void DockScrollArea::dock_connectHardwareNode(Node *src, Node *hardwareNode)
+{
+   emit trigger_connectHardwareNode(src, hardwareNode);
+}
+
+
+/**
  * @brief DockScrollArea::removeFromDockNodeList
  * This is called whenever a DockNodeItem is deleted.
  * @param widget
@@ -272,6 +282,7 @@ void DockScrollArea::removeFromDockNodeList(QWidget *widget)
 
 void DockScrollArea::updatePartsDock()
 {
+    /*
     if(!nodeView){
         return;
     }
@@ -291,6 +302,7 @@ void DockScrollArea::updatePartsDock()
     }
 
     addAdoptableDockNodes(selectedNode, nodeList);
+    */
 }
 
 

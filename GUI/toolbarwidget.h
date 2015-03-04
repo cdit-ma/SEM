@@ -21,7 +21,7 @@ class ToolbarWidget : public QWidget
 public:
     explicit ToolbarWidget(NodeView *parent = 0);
 
-    void setCurrentNodeItem(NodeItem* item);
+    //void setCurrentNodeItem(NodeItem* item);
     void setNodeItem(NodeItem* item);
 
     void showDefinitionButton(Node *definition);
@@ -33,41 +33,38 @@ protected:
     virtual void leaveEvent(QEvent*);
 
 
-
 signals:
     void goToDefinition(Node* node);
     void goToImplementation(Node* node);
+    void goToInstance(Node* node);
 
-    void updateMenuList(QString action, Node* node);
-
-    void constructNode(QString nodeKind);
+    void constructNode(QString nodeKind, int sender);
     void constructEdge(Node* src, Node* dst);
     void constructNewView(Node* node);
 
     void constructComponentInstance(Node* assm, Node* defn, int sender);
+    void constructEventPortDelegate(Node* assm, Node* eventPortInstance);
 
     void toolbarClosed();
+
 
 public slots:
     void goToDefinition();
     void goToImplementation();
-
-    void getAdoptableNodesList();
-    void getLegalNodesList();
-    void getFilesList();
-    void getComponentInstanceList();
-    void updateMenuList(QString action, QStringList* stringList, QList<Node*>* nodeList);
+    void goToInstance();
 
     void addChildNode();
     void connectNodes();
     void makeNewView();
 
     void addComponentInstance();
-    //void addInEventPortInstance();
-    //void addOutEventPortInstance();
+    void addEventPorDelegate();
+
+    void attachOptionMenu();
 
     void hideToolbar(bool actionTriggered);
 
+    void testSlot();
 
 private:
     void setupToolBar();
@@ -75,14 +72,17 @@ private:
     void makeConnections();
     void connectToView();
     void updateToolButtons();
+    void updateMenuLists();
 
-    void setupAdoptableNodesList(QStringList *nodeKinds);
-    void setupLegalNodesList(QList<Node*> *nodeList);
+    void setupInstancesList(QList<Node*> instances);
 
-    void setupFilesList(QList<Node *> *files);
-    void setupComponentInstanceList(QList<Node*> *components);
+    void setupAdoptableNodesList(QStringList nodeKinds);
+    void setupLegalNodesList(QList<Node*> nodeList);
 
-    void setupChildrenComponentInstanceList(QList<Node*> *componentInstances);
+    void setupFilesList(QList<Node*> files);
+    void setupComponentInstanceList(QList<Node*> components);
+
+    void setupChildrenComponentInstanceList(QList<Node*> componentInstances);
     void setupInEventPortInstanceList();
     void setupOutEventPortInstanceList();
 
@@ -91,7 +91,6 @@ private:
 
     NodeView* parentNodeView;
     NodeItem* currentSelectedItem;
-
 
     NodeItem* nodeItem;
     NodeItem* prevNodeItem;
@@ -105,6 +104,7 @@ private:
     QToolButton* showNewViewButton;
     QToolButton* definitionButton;
     QToolButton* implementationButton;
+    QToolButton* instancesButton;
 
     ToolbarWidgetAction* componentInstanceAction;
     ToolbarWidgetAction* inEventPortDelegateAction;
@@ -114,6 +114,9 @@ private:
     ToolbarWidgetMenu* connectMenu;
     ToolbarWidgetMenu* definitionMenu;
     ToolbarWidgetMenu* implementationMenu;
+
+    ToolbarWidgetMenu* instancesMenu;
+    ToolbarWidgetMenu* instanceOptionMenu;
 
     ToolbarWidgetMenu* fileMenu;
     ToolbarWidgetMenu* inEventPort_componentInstanceMenu;

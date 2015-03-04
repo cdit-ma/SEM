@@ -121,15 +121,13 @@ signals:
     void view_SortNode(Node* item);
 
     void view_FitToScreen();
-    void centreNode(Node* node);
-
-    void setLegalNodesList(QList<Node*>* nodes);
+    //void centreNode(Node* node);
 
     void componentInstanceConstructed(Node* node);
 
 public slots:
     void view_ClearHistoryStates();
-    void centerNode(QString nodeLabel);
+    //void centerNode(QString nodeLabel);
     void view_SelectModel();
 
     //UNUSED
@@ -218,9 +216,10 @@ public slots:
     void view_UncenterGraphML();
     void view_ClearSelection();
 
-    void getLegalNodesList(Node* src);
     void constructLegalEdge(Node *src, Node *dst);
-    void constructComponentInstance(Node *assembly, Node* definition, QPointF point);
+    void constructComponentInstance(Node *assembly, Node* definition, QPointF center);
+    void constructEventPortDelegate(Node *assembly, Node* eventPortInstance, QPointF center);
+
     void constructedConnectedComponents(Node* parent, Node* connectedNode, QString kind , QPointF relativePosition);
 
 private:

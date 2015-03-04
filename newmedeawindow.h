@@ -113,9 +113,6 @@ private slots:
     void goToDefinition();
     void goToImplementation();
 
-    void getAdoptableNodesList(Node* node);
-    void getComponentDefinitions(Node* node);
-
     void turnOnViewAspect(QString aspect);
     void setGoToMenuActions(QString action, bool enabled);
 

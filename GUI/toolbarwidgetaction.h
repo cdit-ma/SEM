@@ -25,6 +25,8 @@ public:
     Node* getNode();
     QString getKind();
 
+    bool isDeletable();
+
     QPushButton* getButton();
     QPoint getButtonPos();
 
@@ -32,9 +34,11 @@ protected:
     QWidget* createWidget(QWidget *parent);
 
 signals:
+    void pressed();
 
 public slots:
     void hover();
+    void actionButtonPressed();
     void actionButtonClicked();
     void actionButtonUnclicked();
 
@@ -48,6 +52,7 @@ private:
     ToolbarWidgetMenu* widgetMenu;
 
     bool willHaveMenu;
+    bool deletable;
 
 };
 
