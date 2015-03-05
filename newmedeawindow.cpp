@@ -97,7 +97,6 @@ void NewMedeaWindow::initialiseGUI()
     QPushButton *menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
     QLineEdit *searchBar = new QLineEdit();
     QPushButton *searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
-    QTextEdit *notificationArea = new QTextEdit("Notifications can be displayed here.");
     QVBoxLayout *tableLayout = new QVBoxLayout();
 
     // setup widgets
@@ -108,7 +107,6 @@ void NewMedeaWindow::initialiseGUI()
     searchButton->setFixedSize(45, 25);
     searchButton->setIconSize(searchButton->size()*0.8);
     searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
-    notificationArea->setFixedSize(rightPanelWidth, 60);
     assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
@@ -170,8 +168,6 @@ void NewMedeaWindow::initialiseGUI()
     rightVlayout->addWidget(dataTableBox, 4);
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
     rightVlayout->addStretch();
-    //rightVlayout->addWidget(notificationArea, 1);
-    //rightVlayout->addStretch();
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
 
     mainHLayout->addLayout(leftVlayout, 4);
@@ -196,24 +192,10 @@ void NewMedeaWindow::initialiseGUI()
     rightVlayout->addWidget(minimap);
 
     // other settings
-    notificationArea->setEnabled(false);
     assemblyButton->setCheckable(true);
     hardwareButton->setCheckable(true);
     definitionsButton->setCheckable(true);
     workloadButton->setCheckable(true);
-
-    // intially only turn the assembly view aspect on
-    //assemblyButton->setChecked(true);
-    //hardwareButton->setChecked(true);
-    //definitionsButton->setChecked(true);
-    //workloadButton->setChecked(true);
-
-    //checkedViewAspects.append(assemblyButton->text());
-    //checkedViewAspects.append(hardwareButton->text());
-    //checkedViewAspects.append(definitionsButton->text());
-    //checkedViewAspects.append(workloadButton->text());
-
-    // setup controller and jenkins settings
 
     // setup the menu and dock
     setupMenu(menuButton);
@@ -311,10 +293,6 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
     hardwareNodesButton = new DockToggleButton("H", this);
     compDefinitionsButton = new DockToggleButton("D", this);
 
-    //partsContainer = new DockScrollArea("Parts", partsButton);
-    //hardwareContainer = new DockScrollArea("Hardware Nodes", hardwareNodesButton);
-    //definitionsContainer = new DockScrollArea("Definitions", compDefinitionsButton);
-
     partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
     definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, compDefinitionsButton);
     hardwareDock = new HardwareDockScrollArea("Hardware Nodes", nodeView, hardwareNodesButton);
@@ -327,10 +305,6 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
     buttonsBox->setFixedSize(boxWidth, 60);
 
     // set dockScrollAreas sizes
-    //partsContainer->setMaximumWidth(boxWidth);
-    //hardwareContainer->setMaximumWidth(boxWidth);
-    //definitionsContainer->setMaximumWidth(boxWidth);
-
     partsDock->setMaximumWidth(boxWidth);
     definitionsDock->setMaximumWidth(boxWidth);
     hardwareDock->setMaximumWidth(boxWidth);
@@ -352,9 +326,6 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
     buttonsBox->setLayout(dockButtonsHlayout);
 
     dockLayout->addWidget(buttonsBox);
-    //dockLayout->addWidget(partsContainer);
-    //dockLayout->addWidget(hardwareContainer);
-    //dockLayout->addWidget(definitionsContainer);
     dockLayout->addWidget(partsDock);
     dockLayout->addWidget(definitionsDock);
     dockLayout->addWidget(hardwareDock);
@@ -365,8 +336,6 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
 
     // initially disable dock buttons
     updateDockButtons("N");
-
-    //nodeView->setDock(partsContainer);
 }
 
 
@@ -378,10 +347,11 @@ void NewMedeaWindow::setupController()
     if (controller) {
         delete controller;
     }
-    if(thread)
-    {
+    if (thread) {
         delete thread;
     }
+
+    // can this be put inside the if statements?
     controller = 0;
     thread = 0;
 
@@ -444,26 +414,16 @@ void NewMedeaWindow::makeConnections()
 
     connect(this, SIGNAL(setViewAspects(QStringList)), nodeView, SLOT(setViewAspects(QStringList)));
 
-    //connect(this, SIGNAL(clearDock()), partsContainer, SLOT(clear()));
-    //connect(this, SIGNAL(clearDock()), hardwareContainer, SLOT(clear()));
-    //connect(this, SIGNAL(clearDock()), definitionsContainer, SLOT(clear()));
+    connect(nodeView, SIGNAL(enableDocks(bool)), partsButton, SLOT(setEnabled(bool)));
+    connect(nodeView, SIGNAL(enableDocks(bool)), compDefinitionsButton, SLOT(setEnabled(bool)));
+    connect(nodeView, SIGNAL(enableDocks(bool)), hardwareNodesButton, SLOT(setEnabled(bool)));
 
-    connect(this, SIGNAL(clearDock()), partsDock, SLOT(clear()));
-    connect(this, SIGNAL(clearDock()), definitionsDock, SLOT(clear()));
-    connect(this, SIGNAL(clearDock()), hardwareDock, SLOT(clear()));
+    connect(this, SIGNAL(clearDocks()), partsDock, SLOT(clear()));
+    connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
+    connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
 
     connect(nodeView, SIGNAL(dockNodeMade(QString,NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(updateDockAdoptableNodesList(Node*)), this, SLOT(nodeSelected(Node*)));
-
-    //connect(partsContainer, SIGNAL(trigger_addChildNode(QString,int)), nodeView, SLOT(view_constructNode(QString,int)));
-    //connect(partsDock, SIGNAL(dock_addChildNode(QString,int)), nodeView, SLOT(view_constructNode(QString,int)));
-
-    //connect(hardwareContainer, SIGNAL(getSelectedNode()), this, SLOT(getSelectedNode()));
-    //connect(hardwareContainer, SIGNAL(trigger_connectHardwareNode(Node*,Node*)), nodeView, SLOT(view_constructEdge(Node*,Node*)));
-
-    //connect(definitionsContainer, SIGNAL(getSelectedNode()), this, SLOT(getSelectedNode()));
-    //connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(Node*,Node*,int)), nodeView, SLOT(view_constructComponentInstance(Node*,Node*,int)));
-    //connect(definitionsContainer, SIGNAL(trigger_connectComponentInstance(Node*,Node*)), nodeView, SLOT(view_constructEdge(Node*,Node*)));
 
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
@@ -520,9 +480,6 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
     QWidget::resizeEvent(event);
 
     boxHeight = this->height()*0.73;
-    //partsContainer->setMinimumHeight(boxHeight);
-    //hardwareContainer->setMinimumHeight(boxHeight);
-    //definitionsContainer->setMinimumHeight(boxHeight);
     partsDock->setMinimumHeight(boxHeight);
     definitionsDock->setMinimumHeight(boxHeight);
     hardwareDock->setMinimumHeight(boxHeight);
@@ -665,7 +622,7 @@ void NewMedeaWindow::on_actionClearModel_triggered()
         nodeView->clearSelection();
         nodeView->resetModel();
     }
-    emit clearDock();
+    emit clearDocks();
 }
 
 
@@ -721,7 +678,7 @@ void NewMedeaWindow::writeExportedGraphMLData(QString filename, QString data)
         file.close();
 
         QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: " + filename, QMessageBox::Ok);
-    } catch(...){
+    } catch (...) {
         qCritical() << "Export Failed!" ;
     }
 }
@@ -808,24 +765,14 @@ void NewMedeaWindow::updateProjectName(QString label)
 
 
 /**
- * @brief NewMedeaWindow::newNodeMadeAddToToolbar
- * Once a node has been defined, add its icon to its corresponding container
- * in the dock. Right now buttons are being used instead of icons.
- * @param nodeName
+ * @brief NewMedeaWindow::addNewNodeToDock
+ * Once a node has been defined, add its icon to its corresponding container in the dock.
+ * @param type
+ * @param nodeItem
  */
 void NewMedeaWindow::addNewNodeToDock(QString type, NodeItem *nodeItem)
 {
-    /*
-    DockScrollArea *container;
-    if (type == "component") {
-        container = definitionsContainer;
-    } else if (type == "hardware") {
-        container = hardwareContainer;
-    }
-    container->addDockNode(nodeItem);
-    */
-
-    DockConnectableNodeItem* dockItem = new DockConnectableNodeItem(nodeItem, this);
+    DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
     if (type == "component") {
         definitionsDock->addDockNodeItem(dockItem);
     } else if (type == "hardware") {
@@ -835,7 +782,7 @@ void NewMedeaWindow::addNewNodeToDock(QString type, NodeItem *nodeItem)
 
 
 /**
- * @brief NewMedeaWindow::updateAspects
+ * @brief NewMedeaWindow::updateViewAspects
  * Add view aspect to checkedViewAspects when the corresponding button
  * is clicked and remove it when it's unclick then update the view.
  */
@@ -843,6 +790,7 @@ void NewMedeaWindow::updateViewAspects()
 {
     QPushButton *sourceButton = qobject_cast<QPushButton*>(QObject::sender());
     if (sourceButton) {
+
         QString view = sourceButton->text();
         if (view == "Interface") {
             view = "Definitions";
@@ -855,6 +803,7 @@ void NewMedeaWindow::updateViewAspects()
         } else {
             checkedViewAspects.removeAll(view);
         }
+
     }
     emit setViewAspects(checkedViewAspects);
 }
@@ -904,9 +853,8 @@ void NewMedeaWindow::updateDockButtons(QString dockButton)
 void NewMedeaWindow::updateDockContainer(QString container)
 {
     if (container == "Parts") {
-        // update dock container's adoptable nodes list and then send it to the toolbar
+        // update dock container's adoptable nodes list
         if(selectedNode && controller){
-            //partsContainer->addAdoptableDockNodes(controller->getSelectedNode(), controller->getAdoptableNodeKinds(controller->getSelectedNode()));
             partsDock->addDockNodeItems(controller->getAdoptableNodeKinds(selectedNode));
         }
     } else if (container == "Hardware") {
@@ -931,7 +879,6 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
             return;
         } else {
             QStringList nodeKinds = controller->getAdoptableNodeKinds(node);
-            //partsContainer->addAdoptableDockNodes(node, nodeKinds);
             partsDock->addDockNodeItems(nodeKinds);
 
             emit checkDockScrollBar();
@@ -954,16 +901,6 @@ void NewMedeaWindow::nodeSelected(Node *node)
     if (partsButton->getSelected()) {
         setAdoptableNodeList(selectedNode);
     }
-}
-
-
-/**
- * @brief NewMedeaWindow::getSelectedNode
- * Send the selected node to the Definitions dock.
- */
-void NewMedeaWindow::getSelectedNode()
-{
-    //emit definitionsContainer->selectedNode(nodeView->getSelectedNode());
 }
 
 
@@ -1022,22 +959,32 @@ void NewMedeaWindow::setGoToMenuActions(QString action, bool enabled)
     }
 }
 
+
+/**
+ * @brief NewMedeaWindow::resetView
+ * This sets the default values for the view aspects.
+ * Initially, only Assembly should be on.
+ */
 void NewMedeaWindow::resetView()
 {
-    if(hardwareButton->isChecked()){
+    if (hardwareButton->isChecked()){
         hardwareButton->click();
     }
-    if(definitionsButton->isChecked()){
+    if (definitionsButton->isChecked()){
         definitionsButton->click();
     }
-    if(workloadButton->isChecked()){
+    if (workloadButton->isChecked()){
         workloadButton->click();
     }
-    if(!assemblyButton->isChecked()){
+    if (!assemblyButton->isChecked()){
         assemblyButton->click();
     }
 }
 
+
+/**
+ * @brief NewMedeaWindow::newProject
+ */
 void NewMedeaWindow::newProject()
 {
     // clear view and reset gui
@@ -1045,7 +992,7 @@ void NewMedeaWindow::newProject()
     on_actionClearModel_triggered();
     nodeView->view_ClearHistory();
 
-    //Set default View.
+    // set default view
     resetView();
 }
 
@@ -1086,7 +1033,7 @@ bool NewMedeaWindow::exportGraphML()
  */
 void NewMedeaWindow::setAttributeModel(AttributeTableModel *model)
 {
-    if(model){
+    if (model) {
         updateDataTable();
     }
     dataTable->setModel(model);
@@ -1137,10 +1084,6 @@ void NewMedeaWindow::on_dockButtonPressed(QString buttonName)
  */
 void NewMedeaWindow::updateDataTable()
 {
-    // this squeezes the content as much as possible
-    // to make it fit in the space available
-    //dataTable->resizeRowsToContents();
-
     QAbstractItemModel* tableModel = dataTable->model();
     qreal height = 0;
     int vOffset = 0;

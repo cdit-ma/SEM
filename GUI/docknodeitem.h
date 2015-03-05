@@ -11,10 +11,9 @@ class DockNodeItem : public QPushButton
 {
     Q_OBJECT
 public:
-    explicit DockNodeItem(QString kind, NodeItem* item = 0, QWidget* parent = 0);
+    explicit DockNodeItem(QString kind = "", NodeItem* item = 0, QWidget* parent = 0);
 
     NodeItem* getNodeItem();
-    Node* getSelectedNode();
     QString getKind();
 
     void setLabel(QString newLabel);
@@ -31,8 +30,12 @@ public slots:
     void clicked();
     void deleteLater();
 
+    void updateData();
+    void setOpacity(double opacity);
+
 private:
     void setupLayout();
+    void connectToNodeItem();
 
     NodeItem* nodeItem;
 

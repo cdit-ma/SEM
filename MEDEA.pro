@@ -88,7 +88,6 @@ HEADERS += \
     GUI/toolbarwidget.h \
     GUI/toolbarwidgetaction.h \
     GUI/toolbarwidgetmenu.h \
-    GUI/dockconnectablenodeitem.h \
     GUI/docknodeitem.h \
     GUI/partsdockscrollarea.h \
     GUI/hardwaredockscrollarea.h \
@@ -165,7 +164,6 @@ SOURCES += \
     GUI/toolbarwidget.cpp \
     GUI/toolbarwidgetaction.cpp \
     GUI/toolbarwidgetmenu.cpp \
-    GUI/dockconnectablenodeitem.cpp \
     GUI/docknodeitem.cpp \
     GUI/partsdockscrollarea.cpp \
     GUI/hardwaredockscrollarea.cpp \

@@ -37,6 +37,7 @@ public:
     void checkDockNodesList();
 
     void addDockNodeItem(DockNodeItem* item);
+    QList<DockNodeItem*> getDockNodeItems();
 
     virtual void updateDock() = 0;
 

@@ -101,6 +101,8 @@ signals:
 
     void sceneRectChanged(QRectF newRect);
 
+    void enableDocks(bool enable);
+
 
 public slots:
     void view_ClearHistory();

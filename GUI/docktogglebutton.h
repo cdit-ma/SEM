@@ -28,8 +28,6 @@ public:
 
     QString getKind();
 
-
-
     void checkEnabled();
 
 protected:

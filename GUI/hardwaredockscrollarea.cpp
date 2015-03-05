@@ -1,5 +1,5 @@
 #include "hardwaredockscrollarea.h"
-#include "dockconnectablenodeitem.h"
+#include "docknodeitem.h"
 
 
 /**
@@ -29,6 +29,6 @@ void HardwareDockScrollArea::updateDock()
  */
 void HardwareDockScrollArea::dockNodeItemClicked()
 {
-    DockConnectableNodeItem* sender = qobject_cast<DockConnectableNodeItem*>(QObject::sender());
+    DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
     getNodeView()->view_constructEdge(getNodeView()->getSelectedNode(), sender->getNodeItem()->getNode());
 }

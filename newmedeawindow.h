@@ -28,8 +28,7 @@
 #include "GUI/filterbutton.h"
 
 #include "GUI/docktogglebutton.h"
-#include "GUI/dockconnectablenodeitem.h"
-#include "GUI/dockscrollarea.h"
+#include "GUI/docknodeitem.h"
 
 #include "GUI/partsdockscrollarea.h"
 #include "GUI/definitionsdockscrollarea.h"
@@ -60,23 +59,17 @@ signals:
     void view_ExportGraphML(QString fileName);
 
     void sortModel();
-
     void setViewAspects(QStringList aspects);
-    void updateToolbarAdoptableNodesList(QStringList nodeList);
 
-    void clearDock();
+    void clearDocks();
     void checkDockScrollBar();
     void setupViewLayout();
-
-    void sendComponentDefinitions(QList<Node*>* definitions);
 
     void setGUIComponentsEnabled(bool isEnabled);
 
 
 private slots:
     void view_SetGUIEnabled(bool isEnabled);
-
-
 
     void sortAndCenterViewAspects();
 
@@ -106,7 +99,6 @@ private slots:
 
     void setAttributeModel(AttributeTableModel* model);
 
-
     void updateViewAspects();
     void updateDockButtons(QString dockButton);
     void updateDockContainer(QString container);
@@ -115,7 +107,6 @@ private slots:
     void setAdoptableNodeList(Node* node);
 
     void nodeSelected(Node* node);
-    void getSelectedNode();
 
     void goToDefinition();
     void goToImplementation();
@@ -169,9 +160,6 @@ private:
     DockToggleButton* hardwareNodesButton;
     DockToggleButton* compDefinitionsButton;
     DockToggleButton* prevPressedButton;
-    DockScrollArea* partsContainer;
-    DockScrollArea* hardwareContainer;
-    DockScrollArea* definitionsContainer;
 
     PartsDockScrollArea* partsDock;
     DefinitionsDockScrollArea* definitionsDock;

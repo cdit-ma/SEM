@@ -18,6 +18,7 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
     if (nodeItem) {
         this->kind = nodeItem->getNodeKind();
         label = nodeItem->getNode()->getDataValue("label");
+        connectToNodeItem();
     } else {
         this->kind = kind;
         label = kind;
@@ -124,6 +125,17 @@ void DockNodeItem::setupLayout()
 
 
 /**
+ * @brief DockNodeItem::connectToNodeItem
+ */
+void DockNodeItem::connectToNodeItem()
+{
+    connect(nodeItem, SIGNAL(updateDockNodeItem()), this, SLOT(updateData()));
+    connect(nodeItem, SIGNAL(updateOpacity(qreal)), this, SLOT(setOpacity(qreal)));
+    connect(nodeItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
+}
+
+
+/**
  * @brief DockNodeItem::paintEvent
  * Change the node image (button icon) depending on the node type.
  * @param e
@@ -160,3 +172,32 @@ void DockNodeItem::deleteLater()
     emit dockItem_removeFromDock(this);
     QObject::deleteLater();
 }
+
+
+/**
+ * @brief DockNodeItem::updateData
+ * This gets called when the dataTable value for the node item has been changed.
+ */
+void DockNodeItem::updateData()
+{
+    setLabel(nodeItem->getNode()->getDataValue("label"));
+    repaint();
+}
+
+
+/**
+ * @brief DockNodeItem::setOpacity
+ * This disables this button when SHIFT is held down and the currently
+ * selected node can't be connected to this button.
+ * @param opacity
+ */
+void DockNodeItem::setOpacity(double opacity)
+{
+    if (opacity < 1) {
+        setEnabled(false);
+    } else {
+        setEnabled(true);
+    }
+    repaint();
+}
+

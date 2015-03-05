@@ -18,7 +18,7 @@ public slots:
     virtual void dockNodeItemClicked();
 
 private:
-
+    QStringList allowedKinds;
 
 };
 

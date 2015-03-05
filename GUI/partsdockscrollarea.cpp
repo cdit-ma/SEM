@@ -1,4 +1,5 @@
 #include "partsdockscrollarea.h"
+#include "docktogglebutton.h"
 #include "docknodeitem.h"
 
 #include <QDebug>
@@ -10,7 +11,17 @@
  * @param parent
  */
 PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent) :
-    DockScrollArea(label, view, parent) {}
+    DockScrollArea(label, view, parent)
+{
+    // populate allowed node kinds
+    allowedKinds.append("InterfaceDefinitions");
+    allowedKinds.append("BehaviourDefinitions");
+    allowedKinds.append("AssemblyDefinitions");
+    allowedKinds.append("File");
+    allowedKinds.append("Component");
+    allowedKinds.append("ComponentAssembly");
+    allowedKinds.append("ComponentImpl");
+}
 
 
 /**
@@ -20,29 +31,21 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
 void PartsDockScrollArea::updateDock()
 {
     // this forcefully updates the parts dock node items list
-    addDockNodeItems(getAdoptableNodeListFromView());
+    //addDockNodeItems(getAdoptableNodeListFromView());
 
     /*
-    if(!nodeView){
-        return;
-    }
+    QString nodeKind = nodeItem->getNodeKind();
+    if () {
 
-    Node* selectedNode = nodeView->getSelectedNode();
-    if(!selectedNode){
-       //qCritical() << "DockScrollArea::updateCurrentNode() selected node is NULL";
-       return;
     }
-    //Then do some updates.
-    QStringList nodeList = nodeView->getAdoptableNodeList(selectedNode);
-
-    if(nodeList.length() > 0){
-        parentButton->setEnabled(true);
-    }else{
-        parentButton->setEnabled(false);
-    }
-
-    addAdoptableDockNodes(selectedNode, nodeList);
     */
+
+    // when the selected node can't adopt anything,
+    // disbale parentButton and hide this dock
+    if (getDockNodeItems().count() == 0) {
+        getParentButton()->setEnabled(false);
+        getParentButton()->checkEnabled();
+    }
 }
 
 

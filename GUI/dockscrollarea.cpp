@@ -1,6 +1,5 @@
 #include "dockscrollarea.h"
 #include "docktogglebutton.h"
-#include "dockconnectablenodeitem.h"
 #include "docknodeitem.h"
 #include <QDebug>
 
@@ -33,7 +32,7 @@ DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton *
 void DockScrollArea::setCurrentNodeItem(NodeItem *currentNodeItem)
 {
     nodeItem = currentNodeItem;
-    // updateDock(); ???
+    updateDock();
 }
 
 
@@ -124,13 +123,20 @@ void DockScrollArea::addDockNodeItem(DockNodeItem *item)
 
 
 /**
+ * @brief DockScrollArea::getDockNodeItems
+ * @return
+ */
+QList<DockNodeItem *> DockScrollArea::getDockNodeItems()
+{
+   return dockNodeItems;
+}
+
+
+/**
  * @brief DockScrollArea::updateDock
  * This updates this dock.
  */
-void DockScrollArea::updateDock()
-{
-    // default behaviour
-}
+void DockScrollArea::updateDock() {}
 
 
 /**
