@@ -16,9 +16,11 @@ class ToolbarWidget;
 
 class NodeView : public QGraphicsView
 {
+    friend class DockScrollArea;
     friend class ToolbarWidget;
     friend class NewController;
     Q_OBJECT
+
 public:
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();

@@ -150,7 +150,7 @@ void ToolbarWidget::leaveEvent(QEvent* e)
  */
 void ToolbarWidget::goToDefinition()
 {
-    emit goToDefinition(nodeItem->getNode());
+    emit toolbar_goToDefinition(nodeItem->getNode());
 }
 
 
@@ -160,7 +160,7 @@ void ToolbarWidget::goToDefinition()
  */
 void ToolbarWidget::goToImplementation()
 {
-    emit goToImplementation(nodeItem->getNode());
+    emit toolbar_goToImplementation(nodeItem->getNode());
 }
 
 
@@ -169,7 +169,7 @@ void ToolbarWidget::goToImplementation()
  */
 void ToolbarWidget::goToInstance()
 {
-    emit goToInstance(instanceOptionMenu->getParentAction()->getNode());
+    emit toolbar_goToInstance(instanceOptionMenu->getParentAction()->getNode());
 }
 
 
@@ -180,7 +180,7 @@ void ToolbarWidget::goToInstance()
 void ToolbarWidget::addChildNode()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    emit constructNode(action->getKind(), 1);
+    emit toolbar_constructNode(action->getKind(), 1);
 }
 
 
@@ -191,7 +191,7 @@ void ToolbarWidget::addChildNode()
 void ToolbarWidget::connectNodes()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    emit constructEdge(nodeItem->getNode(), action->getNode());
+    emit toolbar_constructEdge(nodeItem->getNode(), action->getNode());
 }
 
 
@@ -204,7 +204,7 @@ void ToolbarWidget::makeNewView()
     // pop up the selected node into a new window
     QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
     if (button) {
-        emit constructNewView(parentNodeView->getSelectedNode());
+        emit toolbar_constructNewView(parentNodeView->getSelectedNode());
         return;
     }
 
@@ -212,11 +212,11 @@ void ToolbarWidget::makeNewView()
     QAction* action = qobject_cast<QAction*>(QObject::sender());
     if (action) {
         if (action->parentWidget() == definitionMenu) {
-            emit constructNewView(definitionNode);
+            emit toolbar_constructNewView(definitionNode);
         } else if (action->parentWidget() == implementationMenu) {
-            emit constructNewView(implementationNode);
+            emit toolbar_constructNewView(implementationNode);
         } else if (action->parentWidget() == instanceOptionMenu) {
-            emit constructNewView(instanceOptionMenu->getParentAction()->getNode());
+            emit toolbar_constructNewView(instanceOptionMenu->getParentAction()->getNode());
         }
     }
 }
@@ -229,7 +229,7 @@ void ToolbarWidget::makeNewView()
 void ToolbarWidget::addComponentInstance()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    emit constructComponentInstance(nodeItem->getNode(), action->getNode(), 1);
+    emit toolbar_constructComponentInstance(nodeItem->getNode(), action->getNode(), 1);
 }
 
 
@@ -239,7 +239,7 @@ void ToolbarWidget::addComponentInstance()
 void ToolbarWidget::addEventPorDelegate()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    emit constructEventPortDelegate(nodeItem->getNode(), action->getNode());
+    emit toolbar_constructEventPortDelegate(nodeItem->getNode(), action->getNode());
 }
 
 
@@ -263,7 +263,7 @@ void ToolbarWidget::hideToolbar(bool actionTriggered)
     if (!eventFromToolbar) {
         hide();
         if (!actionTriggered) {
-            emit toolbarClosed();
+            emit toolbar_closed();
         }
     }
 }
@@ -409,11 +409,11 @@ void ToolbarWidget::setupMenus()
  */
 void ToolbarWidget::makeConnections()
 {
-    connect(addMenu, SIGNAL(hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
-    connect(connectMenu, SIGNAL(hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
-    connect(definitionMenu, SIGNAL(hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
-    connect(implementationMenu, SIGNAL(hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
-    connect(instancesMenu, SIGNAL(hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
+    connect(addMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
+    connect(connectMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
+    connect(definitionMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
+    connect(implementationMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
+    connect(instancesMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
 
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
@@ -427,21 +427,21 @@ void ToolbarWidget::makeConnections()
  */
 void ToolbarWidget::connectToView()
 {
-    connect(this, SIGNAL(toolbarClosed()), parentNodeView, SLOT(toolbarClosed()));
+    connect(this, SIGNAL(toolbar_closed()), parentNodeView, SLOT(toolbarClosed()));
 
-    connect(this, SIGNAL(goToDefinition(Node*)), parentNodeView, SLOT(goToDefinition(Node*)));
-    connect(this, SIGNAL(goToImplementation(Node*)), parentNodeView, SLOT(goToImplementation(Node*)));
-    connect(this, SIGNAL(goToInstance(Node*)), parentNodeView, SLOT(goToInstance(Node*)));
+    connect(this, SIGNAL(toolbar_goToDefinition(Node*)), parentNodeView, SLOT(goToDefinition(Node*)));
+    connect(this, SIGNAL(toolbar_goToImplementation(Node*)), parentNodeView, SLOT(goToImplementation(Node*)));
+    connect(this, SIGNAL(toolbar_goToInstance(Node*)), parentNodeView, SLOT(goToInstance(Node*)));
 
     connect(deleteButton, SIGNAL(clicked()), parentNodeView, SLOT(view_deleteSelectedNode()));
 
-    connect(this, SIGNAL(constructNode(QString, int)), parentNodeView, SLOT(view_constructNode(QString, int)));
-    connect(this, SIGNAL(constructEdge(Node*,Node*)), parentNodeView, SLOT(view_constructEdge(Node*,Node*)));
+    connect(this, SIGNAL(toolbar_constructNode(QString, int)), parentNodeView, SLOT(view_constructNode(QString, int)));
+    connect(this, SIGNAL(toolbar_constructEdge(Node*,Node*)), parentNodeView, SLOT(view_constructEdge(Node*,Node*)));
 
-    connect(this, SIGNAL(constructComponentInstance(Node*,Node*,int)), parentNodeView, SLOT(view_constructComponentInstance(Node*,Node*,int)));
-    connect(this, SIGNAL(constructEventPortDelegate(Node*,Node*)), parentNodeView, SLOT(view_constructEventPortDelegate(Node*,Node*)));
+    connect(this, SIGNAL(toolbar_constructComponentInstance(Node*,Node*,int)), parentNodeView, SLOT(view_constructComponentInstance(Node*,Node*,int)));
+    connect(this, SIGNAL(toolbar_constructEventPortDelegate(Node*,Node*)), parentNodeView, SLOT(view_constructEventPortDelegate(Node*,Node*)));
 
-    connect(this, SIGNAL(constructNewView(Node*)), parentNodeView, SLOT(view_constructNewView(Node*)));
+    connect(this, SIGNAL(toolbar_constructNewView(Node*)), parentNodeView, SLOT(view_constructNewView(Node*)));
 }
 
 

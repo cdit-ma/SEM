@@ -1,30 +1,178 @@
 #include "dockscrollarea.h"
 #include "docktogglebutton.h"
+#include "dockconnectablenodeitem.h"
 #include "docknodeitem.h"
-#include "dockadoptablenodeitem.h"
-#include "nodeview.h"
-#include <QScrollBar>
 #include <QDebug>
 
 
 /**
  * @brief DockScrollArea::DockScrollArea
- * @param title
+ * @param label
+ * @param view
  * @param parent
  */
-DockScrollArea::DockScrollArea(QString label, DockToggleButton *parent) :
+DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton *parent) :
     QScrollArea(parent)
 {
-    parentButton = parent;
+    nodeView = view;
+    nodeItem = 0;
 
     this->label = label;
     activated = false;
 
-    layout = new QVBoxLayout(this);
-    groupBox = new QGroupBox(0);
+    setParentButton(parent);
+    setupLayout();
+}
 
-    // attach scroll area and groupbox to their parent button
-    parentButton->setContainer(this);
+
+/**
+ * @brief DockScrollArea::setCurrentNodeItem
+ * This sets nodeItem to be the currently selected node item.
+ * @param currentNodeItem
+ */
+void DockScrollArea::setCurrentNodeItem(NodeItem *currentNodeItem)
+{
+    nodeItem = currentNodeItem;
+    // updateDock(); ???
+}
+
+
+/**
+ * @brief DockScrollArea::getCurrentNodeItem
+ * Returns the current node item.
+ * @return
+ */
+NodeItem *DockScrollArea::getCurrentNodeItem()
+{
+   return nodeItem;
+}
+
+
+/**
+ * @brief DockScrollArea::getParentButton
+ * Returns this dock's parent button (DockToggleButton).
+ * @return
+ */
+DockToggleButton *DockScrollArea::getParentButton()
+{
+    return parentButton;
+}
+
+
+/**
+ * @brief DockScrollArea::getNodeView
+ * Returns the NodeView this dock is attached to.
+ * @return
+ */
+NodeView *DockScrollArea::getNodeView()
+{
+   return nodeView;
+}
+
+
+/**
+ * @brief DockScrollArea::getLabel
+ * Returns this dock's label.
+ * @return
+ */
+QString DockScrollArea::getLabel()
+{
+    return label;
+}
+
+
+/**
+ * @brief DockScrollArea::getAdoptableNodeListFromView
+ * Returns the list of adoptable nodes for the currently
+ * selected item from this dock's node view.
+ * @return
+ */
+QStringList DockScrollArea::getAdoptableNodeListFromView()
+{
+   return nodeView->getAdoptableNodeList(nodeView->getSelectedNode());
+}
+
+
+/**
+ * @brief DockScrollArea::checkDockNodesList
+ * This checks to see if this dock contains any items.
+ * If it doesn't, disable parentButton then hide this dock.
+ */
+void DockScrollArea::checkDockNodesList()
+{
+    if (parentButton && dockNodeItems.count() == 0) {
+        parentButton->hideContainer();
+        parentButton->setEnabled(false);
+    }
+}
+
+
+/**
+ * @brief DockScrollArea::addDockNodeItem
+ * This adds a new dock item to this dock's list and layout.
+ * It also connects the dock item's basic signals to this dock.
+ * @param item
+ */
+void DockScrollArea::addDockNodeItem(DockNodeItem *item)
+{
+    dockNodeItems.append(item);
+    layout->addWidget(item);
+
+    connect(item, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
+    connect(item, SIGNAL(dockItem_removeFromDock(DockNodeItem*)), this, SLOT(removeDockNodeItemFromList(DockNodeItem*)));
+}
+
+
+/**
+ * @brief DockScrollArea::updateDock
+ * This updates this dock.
+ */
+void DockScrollArea::updateDock()
+{
+    // default behaviour
+}
+
+
+/**
+ * @brief DockScrollArea::paintEvent
+ * Still trying to catch when the scrollbar appears/disappears to adjust dock size.
+ * @param e
+ */
+void DockScrollArea::paintEvent(QPaintEvent *e)
+{
+    //qDebug() << verticalScrollBar()->isVisible();
+    QScrollArea::paintEvent(e);
+}
+
+
+/**
+ * @brief DockScrollArea::removeDockNodeItemFromList
+ * This is called whenever a DockNodeItem is deleted.
+ * It removes the deleted item from this dock's list.
+ * @param item
+ */
+void DockScrollArea::removeDockNodeItemFromList(DockNodeItem *item)
+{
+    dockNodeItems.removeAll(item);
+}
+
+
+/**
+ * @brief DockScrollArea::dock_itemClicked
+ * This is called whenever an item in this dock is clicked.
+ */
+void DockScrollArea::dockNodeItemClicked() {}
+
+
+/**
+ * @brief DockScrollArea::setupLayout
+ * This sets up the groupbox widget contained inside this dock's scroll area.
+ * It sets up the visual layout, size and alignment of things.
+ */
+void DockScrollArea::setupLayout()
+{
+    layout = new QVBoxLayout(this);
+    QGroupBox* groupBox = new QGroupBox(0);
 
     groupBox->setLayout(layout);
     groupBox->setTitle(label);
@@ -54,264 +202,18 @@ DockScrollArea::DockScrollArea(QString label, DockToggleButton *parent) :
 
     // this centers the groupbox and dock node items
     setAlignment(Qt::AlignHCenter);
+}
 
-    // connect this container to its dock toglle button
+
+/**
+ * @brief DockScrollArea::setParentButton
+ * Attach and connect this dock to its parent button.
+ */
+void DockScrollArea::setParentButton(DockToggleButton *parent)
+{
+    parentButton = parent;
+    parentButton->setContainer(this);
     connect(parentButton, SIGNAL(pressed()), this, SLOT(activate()));
-
-    QString parentKind = parentButton->getKind();
-    if (parentKind == "P") {
-
-        //Empty means all kinds!
-
-    } else if(parentKind == "H") {
-        utilisedKinds << "HardwareDefinitions";
-        utilisedKinds << "HardwareCluster";
-        utilisedKinds << "ManagementComponent";
-        utilisedKinds << "ComponentInstance";
-        utilisedKinds << "ComponentAssembly";
-    } else if(parentKind == "D") {
-        utilisedKinds << "ComponentInstance";
-        utilisedKinds << "ComponentAssembly";
-    }
-}
-
-
-/**
- * @brief DockScrollArea::~DockScrollArea
- */
-DockScrollArea::~DockScrollArea()
-{
-
-}
-
-void DockScrollArea::setNodeView(NodeView *v)
-{
-    this->nodeView = v;
-}
-
-void DockScrollArea::setCurrentNodeItem(NodeItem *currentNodeItem)
-{
-    /*
-    Node* currentNode = currentNodeItem->getNode();
-
-    //Then do some updates.
-    QStringList nodeList = nodeView->getAdoptableNodeList(currentNode);
-
-    if(nodeList.length() > 0){
-        parentButton->setEnabled(true);
-    }else{
-        parentButton->setEnabled(false);
-    }
-
-    addAdoptableDockNodes(currentNode, nodeList);
-    */
-}
-
-
-/**
- * @brief DockScrollArea::getParentButton
- * Returns this scroll area's parent button (DockToggleButton).
- * @return
- */
-DockToggleButton *DockScrollArea::getParentButton()
-{
-    return parentButton;
-}
-
-
-/**
- * @brief DockScrollArea::addDockNode
- * @param item
- */
-void DockScrollArea::addDockNode(NodeItem* item)
-{
-    DockNodeItem *itm = new DockNodeItem(item, this);
-    itm->setContainer(this);
-
-    dockNodes.append(itm);
-    layout->addWidget(itm);
-
-    connect(itm, SIGNAL(getSelectedNode()), this, SLOT(dock_getSelectedNode()));
-    connect(this, SIGNAL(selectedNode(Node*)), itm, SLOT(setSelectedNode(Node*)));
-
-    connect(itm, SIGNAL(removeFromDockNodeList(QWidget*)), this,
-            SLOT(removeFromDockNodeList(QWidget*)));
-
-    connect(itm, SIGNAL(dockNode_addComponentInstance(Node*,Node*)),
-            this, SLOT(dock_addComponentInstance(Node*,Node*)));
-    connect(itm, SIGNAL(dockNode_connectComponentInstance(Node*,Node*)),
-            this, SLOT(dock_connectComponentInstance(Node*,Node*)));
-
-    // keep a list of all the component definitions
-    if (label == "Definitions") {
-        componentDefinitions.append(item->getNode());
-    }
-}
-
-
-/**
- * @brief DockScrollArea::addNodes
- * Add adoptable node items to dock.
- * This creates a groupbox for each adoptable node kind
- * which contains the new dock node item and its label.
- * @param nodes
- */
-void DockScrollArea::addAdoptableDockNodes(Node* node, QStringList nodes)
-{
-    clear();
-    nodes.sort();
-
-    adoptableNodesList = nodes;
-
-    for (int i=0; i < nodes.count(); i++) {
-        DockAdoptableNodeItem *itm = new DockAdoptableNodeItem(nodes.at(i), this);
-        layout->addWidget(itm);
-        dockNodes.append(itm);
-        connect(itm, SIGNAL(itemPressed(QString)), this, SLOT(buttonPressed(QString)));
-    }
-
-    //checkScrollBar();
-    //checkDockNodesList();
-    repaint();
-}
-
-
-/**
- * @brief DockScrollArea::checkDockNodesList
- */
-void DockScrollArea::checkDockNodesList()
-{
-    if (parentButton && dockNodes.count() == 0) {
-        parentButton->hideContainer();
-        parentButton->setEnabled(false);
-    }
-}
-
-
-/**
- * @brief DockScrollArea::getAdoptableNodesList
- * @return
- */
-QStringList DockScrollArea::getAdoptableNodesList()
-{
-    return adoptableNodesList;
-}
-
-
-/**
- * @brief DockScrollArea::getComponentDefinitions
- * @return
- */
-QList<Node *> DockScrollArea::getComponentDefinitions()
-{
-    return componentDefinitions;
-}
-
-
-/**
- * @brief DockScrollArea::paintEvent
- * @param e
- */
-void DockScrollArea::paintEvent(QPaintEvent *e)
-{
-    //qDebug() << verticalScrollBar()->isVisible();
-    QScrollArea::paintEvent(e);
-}
-
-
-/**
- * @brief DockScrollArea::buttonPressed
- * This gets called when a dock adoptable node item is pressed.
- * It tells the view to create a NodeItem with the specified
- * kind inside the currently selected node.
- * @param kind
- */
-void DockScrollArea::buttonPressed(QString kind)
-{
-    emit trigger_addChildNode(kind, 0);
-}
-
-
-/**
- * @brief DockScrollArea::dock_addComponentInstance
- * Tell the view to try and create a ComponentInstance of
- * NodeItem itm and add it into the currently selected node.
- */
-void DockScrollArea::dock_addComponentInstance(Node* assm, Node* defn)
-{
-    emit trigger_addComponentInstance(assm, defn, 0);
-}
-
-
-/**
- * @brief DockScrollArea::dock_connectComponentInstance
- * @param itm
- */
-void DockScrollArea::dock_connectComponentInstance(Node *inst, Node *defn)
-{
-    emit trigger_connectComponentInstance(inst, defn);
-}
-
-
-/**
- * @brief DockScrollArea::dock_connectHardwareNode
- * @param src
- * @param hardwareNode
- */
-void DockScrollArea::dock_connectHardwareNode(Node *src, Node *hardwareNode)
-{
-   emit trigger_connectHardwareNode(src, hardwareNode);
-}
-
-
-/**
- * @brief DockScrollArea::removeFromDockNodeList
- * This is called whenever a DockNodeItem is deleted.
- * @param widget
- */
-void DockScrollArea::removeFromDockNodeList(QWidget *widget)
-{
-    if (dockNodes.contains(widget)) {
-        dockNodes.removeAt(dockNodes.indexOf(widget));
-
-        // if node is of kind Component, update componentDefinitions list
-        DockNodeItem* item = qobject_cast<DockNodeItem*>(widget);
-        componentDefinitions.removeAll(item->getNodeItem()->getNode());
-    }
-}
-
-void DockScrollArea::updatePartsDock()
-{
-    /*
-    if(!nodeView){
-        return;
-    }
-
-    Node* selectedNode = nodeView->getSelectedNode();
-    if(!selectedNode){
-       //qCritical() << "DockScrollArea::updateCurrentNode() selected node is NULL";
-       return;
-    }
-    //Then do some updates.
-    QStringList nodeList = nodeView->getAdoptableNodeList(selectedNode);
-
-    if(nodeList.length() > 0){
-        parentButton->setEnabled(true);
-    }else{
-        parentButton->setEnabled(false);
-    }
-
-    addAdoptableDockNodes(selectedNode, nodeList);
-    */
-}
-
-
-/**
- * @brief DockScrollArea::dock_getSelectedNode
- */
-void DockScrollArea::dock_getSelectedNode()
-{
-    emit getSelectedNode();
 }
 
 
@@ -355,7 +257,6 @@ void DockScrollArea::activate()
     } else {
         setVisible(true);
         activated = true;
-        //checkDockNodesList();
     }
 }
 
@@ -366,10 +267,9 @@ void DockScrollArea::activate()
  */
 void DockScrollArea::clear()
 {
-    for (int i=0; i<dockNodes.count(); i++) {
-        layout->removeWidget(dockNodes.at(i));
-        delete dockNodes.at(i);
+    for (int i=0; i<dockNodeItems.count(); i++) {
+        layout->removeWidget(dockNodeItems.at(i));
+        delete dockNodeItems.at(i);
     }
-
-    dockNodes.clear();
+    dockNodeItems.clear();
 }

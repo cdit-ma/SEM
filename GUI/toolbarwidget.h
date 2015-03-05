@@ -34,18 +34,18 @@ protected:
 
 
 signals:
-    void goToDefinition(Node* node);
-    void goToImplementation(Node* node);
-    void goToInstance(Node* node);
+    void toolbar_goToDefinition(Node* node);
+    void toolbar_goToImplementation(Node* node);
+    void toolbar_goToInstance(Node* node);
 
-    void constructNode(QString nodeKind, int sender);
-    void constructEdge(Node* src, Node* dst);
-    void constructNewView(Node* node);
+    void toolbar_constructNode(QString nodeKind, int sender);
+    void toolbar_constructEdge(Node* src, Node* dst);
+    void toolbar_constructNewView(Node* node);
 
-    void constructComponentInstance(Node* assm, Node* defn, int sender);
-    void constructEventPortDelegate(Node* assm, Node* eventPortInstance);
+    void toolbar_constructComponentInstance(Node* assm, Node* defn, int sender);
+    void toolbar_constructEventPortDelegate(Node* assm, Node* eventPortInstance);
 
-    void toolbarClosed();
+    void toolbar_closed();
 
 
 public slots:

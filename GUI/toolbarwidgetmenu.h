@@ -26,11 +26,11 @@ protected:
     virtual void leaveEvent(QEvent*);
 
 signals:
-    void hideToolbar(bool triggered);
-    void closeParentMenu(bool triggered);
-    void connectToParentMenu(ToolbarWidgetMenu* menu);
+    void toolbarMenu_hideToolbar(bool triggered);
+    void toolbarMenu_closeParentMenu(bool triggered);
+    void toolbarMenu_connectToParentMenu(ToolbarWidgetMenu* menu);
 
-    void resetActionState();
+    void toolbarMenu_resetActionState();
 
 public slots:
     void close();

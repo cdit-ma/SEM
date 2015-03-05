@@ -34,7 +34,7 @@ protected:
     QWidget* createWidget(QWidget *parent);
 
 signals:
-    void pressed();
+    void toolbarAction_pressed();
 
 public slots:
     void hover();

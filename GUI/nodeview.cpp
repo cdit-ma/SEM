@@ -106,7 +106,6 @@ NodeView::~NodeView()
 void NodeView::setDock(DockScrollArea *dock)
 {
     this->dock = dock;
-    dock->setNodeView(this);
 }
 
 /**
@@ -785,12 +784,14 @@ QList<Node*> NodeView::getComponents()
 
 void NodeView::updateDocks()
 {
+    /*
     if(dock){
-        if(dock->getParentButton()->getKind() == "P"){
+        if(dock->parentButton()->getKind() == "P"){
 
             dock->updatePartsDock();
         }
     }
+    */
 }
 
 

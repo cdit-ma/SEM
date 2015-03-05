@@ -25,8 +25,8 @@ ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction *widgetAction, ToolbarW
     // if the parent of this menu is of type ToolbarWidgetMenu, connect to it
     ToolbarWidgetMenu* parentMenu = qobject_cast<ToolbarWidgetMenu*>(parent);
     if (parentMenu) {
-        connect(this, SIGNAL(connectToParentMenu(ToolbarWidgetMenu*)), parentMenu, SLOT(connectChildMenu(ToolbarWidgetMenu*)));
-        emit connectToParentMenu(this);
+        connect(this, SIGNAL(toolbarMenu_connectToParentMenu(ToolbarWidgetMenu*)), parentMenu, SLOT(connectChildMenu(ToolbarWidgetMenu*)));
+        emit toolbarMenu_connectToParentMenu(this);
     }
 
     connect(this, SIGNAL(triggered(QAction*)), this, SLOT(hideMenu(QAction*)));
@@ -150,9 +150,9 @@ void ToolbarWidgetMenu::close()
     if (!eventFromMenu || actionTriggered) {
         QToolButton* button = qobject_cast<QToolButton*>(parent());
         if (button) {
-            emit hideToolbar(actionTriggered);
+            emit toolbarMenu_hideToolbar(actionTriggered);
         } else {
-            emit closeParentMenu(actionTriggered);
+            emit toolbarMenu_closeParentMenu(actionTriggered);
         }
     }
     actionTriggered = false;
@@ -170,9 +170,9 @@ void ToolbarWidgetMenu::closeMenu(bool triggered)
     if (!eventFromMenu || triggered) {
         QToolButton* button = qobject_cast<QToolButton*>(parent());
         if (button) {
-            emit hideToolbar(triggered);
+            emit toolbarMenu_hideToolbar(triggered);
         } else {
-            emit closeParentMenu(triggered);
+            emit toolbarMenu_closeParentMenu(triggered);
         }
         //emit resetActionState();
         hide();
@@ -204,7 +204,7 @@ void ToolbarWidgetMenu::hideMenu(QAction *action)
  */
 void ToolbarWidgetMenu::connectChildMenu(ToolbarWidgetMenu* menu)
 {
-    connect(menu, SIGNAL(closeParentMenu(bool)), this, SLOT(closeMenu(bool)));
+    connect(menu, SIGNAL(toolbarMenu_closeParentMenu(bool)), this, SLOT(closeMenu(bool)));
 }
 
 

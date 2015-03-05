@@ -1,64 +1,45 @@
 #ifndef DOCKNODEITEM_H
 #define DOCKNODEITEM_H
 
-#include <QPushButton>
-#include <QImage>
-#include <QColor>
-#include <QLabel>
+#include "nodeview.h"
 
-#include "docknodeitem.h"
-#include "dockscrollarea.h"
-#include "../Model/graphml.h"
-#include "./nodeitem.h"
+#include <QPushButton>
+#include <QLabel>
 
 
 class DockNodeItem : public QPushButton
 {
     Q_OBJECT
 public:
-    explicit DockNodeItem(NodeItem *node_item, QWidget* parent = 0);
-
-    void setContainer(DockScrollArea* container);
+    explicit DockNodeItem(QString kind, NodeItem* item = 0, QWidget* parent = 0);
 
     NodeItem* getNodeItem();
+    Node* getSelectedNode();
+    QString getKind();
+
+    void setLabel(QString newLabel);
+    QString getLabel();
 
 protected:
     void paintEvent(QPaintEvent* e);
 
 signals:
-    void itemPressed(QString kind);
-
-    void getSelectedNode();
-
-    void dockNode_addComponentInstance(Node* assm, Node* defn);
-    void dockNode_connectComponentInstance(Node* inst, Node* defn);
-    void dockNode_connectHardwareNode(Node* src, Node* hardwareNode);
-
-    void removeFromDockNodeList(QWidget* widget);
+    void dockItem_clicked();
+    void dockItem_removeFromDock(DockNodeItem* dockItem);
 
 public slots:
-    void buttonPressed();
-
-    void updateData();
+    void clicked();
     void deleteLater();
-    void setOpacity(double opacity);
-
-    void setSelectedNode(Node* node);
 
 private:
     void setupLayout();
-    void makeConnections();
-
-    DockScrollArea* parentContainer;
 
     NodeItem* nodeItem;
-    Node* selectedNode;
 
     QString kind;
     QString label;
 
     QLabel* textLabel;
-    QLabel* imageLabel;
 
 };
 

@@ -18,7 +18,7 @@ DockToggleButton::DockToggleButton(QString label, NewMedeaWindow *window, QWidge
     selected = false;
 
     fillColor = QColor(250, 250, 250, 250);
-    selectedColor = QColor(200, 250, 100, 230);
+    selectedColor = QColor(230, 230, 150, 230);
     color = fillColor;
 
     kind = label;
@@ -51,7 +51,7 @@ DockToggleButton::DockToggleButton(QString label, NewMedeaWindow *window, QWidge
 
     // make connections
     connect(this, SIGNAL(pressed()), this, SLOT(on_buttonPressed()));
-    connect(this, SIGNAL(dockButtonPressed(QString)), window, SLOT(on_dockButtonPressed(QString)));
+    connect(this, SIGNAL(dockButton_pressed(QString)), window, SLOT(on_dockButtonPressed(QString)));
 }
 
 
@@ -192,7 +192,7 @@ void DockToggleButton::on_buttonPressed()
         color = selectedColor;
     }
 
-    emit dockButtonPressed(this->text());
+    emit dockButton_pressed(this->text());
     repaint();
 }
 

@@ -26,8 +26,16 @@
 #include "GUI/projectwindow.h"
 #include "GUI/attributetablemodel.h"
 #include "GUI/filterbutton.h"
+
 #include "GUI/docktogglebutton.h"
+#include "GUI/dockconnectablenodeitem.h"
 #include "GUI/dockscrollarea.h"
+
+#include "GUI/partsdockscrollarea.h"
+#include "GUI/definitionsdockscrollarea.h"
+#include "GUI/hardwaredockscrollarea.h"
+
+#include "GUI/toolbarwidgetaction.h"
 
 #include "GUI/nodeviewminimap.h"
 
@@ -83,7 +91,6 @@ private slots:
 
     void on_actionClearModel_triggered();
     void on_actionSortModel_triggered();
-    //void on_actionSortNode_triggered();
 
     void on_actionPaste_triggered();
     void on_actionExit_triggered();
@@ -165,6 +172,11 @@ private:
     DockScrollArea* partsContainer;
     DockScrollArea* hardwareContainer;
     DockScrollArea* definitionsContainer;
+
+    PartsDockScrollArea* partsDock;
+    DefinitionsDockScrollArea* definitionsDock;
+    HardwareDockScrollArea* hardwareDock;
+
     QTableView* dataTable;
     QGroupBox* dataTableBox;
 

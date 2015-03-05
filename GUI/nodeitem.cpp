@@ -400,9 +400,6 @@ void NodeItem::setSelected(bool selected)
 
         update();
         emit setEdgeSelected(selected);
-
-        // update corresponding dock node item
-        emit updateDockNodeItem(selected);
     }
 }
 

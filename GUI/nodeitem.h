@@ -83,7 +83,6 @@ signals:
 
     //DockNodeItem Signals
     void updateDockNodeItem();
-    void updateDockNodeItem(bool selected);
     void updateOpacity(qreal opacity);
 
     void addExpandButtonToParent();

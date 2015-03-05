@@ -5,81 +5,67 @@
 #include <QPushButton>
 #include <QGroupBox>
 #include <QVBoxLayout>
+#include <QScrollBar>
 #include <QLabel>
 
+#include "nodeview.h"
 #include "nodeitem.h"
+#include "docknodeitem.h"
+
 
 class DockToggleButton;
+class DockNodeItem;
 class NodeView;
 
 class DockScrollArea : public QScrollArea
 {
     Q_OBJECT
-public:
-    explicit DockScrollArea(QString label, DockToggleButton *parent);
-    ~DockScrollArea();
 
-    void setNodeView(NodeView* v);
+public:
+    explicit DockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
 
     void setCurrentNodeItem(NodeItem* currentNode);
-    DockToggleButton* getParentButton();
-    void addDockNode(NodeItem* item);
-    void addAdoptableDockNodes(Node* parentNode, QStringList nodes);
+    NodeItem* getCurrentNodeItem();
 
+    DockToggleButton* getParentButton();
+    QString getLabel();
+
+    NodeView* getNodeView();
+    QStringList getAdoptableNodeListFromView();
+
+    // this might not be needed anymore
     void checkDockNodesList();
-    QStringList getAdoptableNodesList();
-    QList<Node*> getComponentDefinitions();
+
+    void addDockNodeItem(DockNodeItem* item);
+
+    virtual void updateDock() = 0;
 
 protected:
     void paintEvent(QPaintEvent *e);
-
-signals:
-    void trigger_addChildNode(QString kind, int sender);
-
-    void getSelectedNode();
-    void selectedNode(Node* node);
-
-    void trigger_addComponentInstance(Node* assm, Node* defn, int sender);
-    void trigger_connectComponentInstance(Node* inst, Node* defn);
-    void trigger_connectHardwareNode(Node* src, Node* hardwareNode);
 
 public slots:
     void activate();
     void clear();
     void checkScrollBar();
 
-    void buttonPressed(QString kind);
+    void removeDockNodeItemFromList(DockNodeItem* item);
 
-    void dock_getSelectedNode();
-
-    void dock_addComponentInstance(Node* assm, Node* defn);
-    void dock_connectComponentInstance(Node* inst, Node* defn);
-    void dock_connectHardwareNode(Node* src, Node* hardwareNode);
-
-    void removeFromDockNodeList(QWidget* widget);
-
-public:
-    void updatePartsDock();
-
-    //virtual void updateDock() = 0;
-
+    virtual void dockNodeItemClicked() = 0;
 
 private:
-    NodeItem* nodeItem;
-    QStringList utilisedKinds;
+    void setupLayout();
+    void setParentButton(DockToggleButton* parent);
 
+    NodeView* nodeView;
+    NodeItem* nodeItem;
     DockToggleButton *parentButton;
 
-    QGroupBox *groupBox;
-    QVBoxLayout *layout;
     QString label;
     bool activated;
 
-    NodeView* nodeView;
-    QVector<QWidget*> dockNodes;
+    QVBoxLayout* layout;
 
-    QStringList adoptableNodesList;
-    QList<Node*> componentDefinitions;
+    QList<DockNodeItem*> dockNodeItems;
 
 };
 

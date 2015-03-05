@@ -77,8 +77,6 @@ HEADERS += \
     Model/InterfaceDefinitions/aggregateinstance.h \
     Model/InterfaceDefinitions/memberinstance.h \
     Model/DeploymentDefinitions/managementcomponent.h \
-    GUI/dockadoptablenodeitem.h \
-    GUI/docknodeitem.h \
     GUI/nodetable.h \
     GUI/nodetableitem.h \
     GUI/nodetableview.h \
@@ -89,7 +87,12 @@ HEADERS += \
     GUI/nodeviewminimap.h \
     GUI/toolbarwidget.h \
     GUI/toolbarwidgetaction.h \
-    GUI/toolbarwidgetmenu.h
+    GUI/toolbarwidgetmenu.h \
+    GUI/dockconnectablenodeitem.h \
+    GUI/docknodeitem.h \
+    GUI/partsdockscrollarea.h \
+    GUI/hardwaredockscrollarea.h \
+    GUI/definitionsdockscrollarea.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -151,8 +154,6 @@ SOURCES += \
     Model/InterfaceDefinitions/aggregateinstance.cpp \
     Model/InterfaceDefinitions/memberinstance.cpp \
     Model/DeploymentDefinitions/managementcomponent.cpp \
-    GUI/dockadoptablenodeitem.cpp \
-    GUI/docknodeitem.cpp \
     GUI/nodetable.cpp \
     GUI/nodetableitem.cpp \
     GUI/nodetableview.cpp \
@@ -163,7 +164,12 @@ SOURCES += \
     GUI/nodeviewminimap.cpp \
     GUI/toolbarwidget.cpp \
     GUI/toolbarwidgetaction.cpp \
-    GUI/toolbarwidgetmenu.cpp
+    GUI/toolbarwidgetmenu.cpp \
+    GUI/dockconnectablenodeitem.cpp \
+    GUI/docknodeitem.cpp \
+    GUI/partsdockscrollarea.cpp \
+    GUI/hardwaredockscrollarea.cpp \
+    GUI/definitionsdockscrollarea.cpp
 
 FORMS += \
     medeawindow.ui \

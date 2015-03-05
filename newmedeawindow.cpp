@@ -1,5 +1,4 @@
 #include "newmedeawindow.h"
-#include "GUI/toolbarwidgetaction.h"
 
 #include <QDebug>
 #include <QImage>
@@ -312,9 +311,13 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
     hardwareNodesButton = new DockToggleButton("H", this);
     compDefinitionsButton = new DockToggleButton("D", this);
 
-    partsContainer = new DockScrollArea("Parts", partsButton);
-    hardwareContainer = new DockScrollArea("Hardware Nodes", hardwareNodesButton);
-    definitionsContainer = new DockScrollArea("Definitions", compDefinitionsButton);
+    //partsContainer = new DockScrollArea("Parts", partsButton);
+    //hardwareContainer = new DockScrollArea("Hardware Nodes", hardwareNodesButton);
+    //definitionsContainer = new DockScrollArea("Definitions", compDefinitionsButton);
+
+    partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
+    definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, compDefinitionsButton);
+    hardwareDock = new HardwareDockScrollArea("Hardware Nodes", nodeView, hardwareNodesButton);
 
     // width of the containers is fixed
     boxWidth = (partsButton->getWidth()*3) + 30;
@@ -324,9 +327,13 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
     buttonsBox->setFixedSize(boxWidth, 60);
 
     // set dockScrollAreas sizes
-    partsContainer->setMaximumWidth(boxWidth);
-    hardwareContainer->setMaximumWidth(boxWidth);
-    definitionsContainer->setMaximumWidth(boxWidth);
+    //partsContainer->setMaximumWidth(boxWidth);
+    //hardwareContainer->setMaximumWidth(boxWidth);
+    //definitionsContainer->setMaximumWidth(boxWidth);
+
+    partsDock->setMaximumWidth(boxWidth);
+    definitionsDock->setMaximumWidth(boxWidth);
+    hardwareDock->setMaximumWidth(boxWidth);
 
     // set size policy for buttons
     partsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -340,14 +347,17 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
 
     // add widgets to/and layouts
     dockButtonsHlayout->addWidget(partsButton);
-    dockButtonsHlayout->addWidget(hardwareNodesButton);
     dockButtonsHlayout->addWidget(compDefinitionsButton);
+    dockButtonsHlayout->addWidget(hardwareNodesButton);
     buttonsBox->setLayout(dockButtonsHlayout);
 
     dockLayout->addWidget(buttonsBox);
-    dockLayout->addWidget(partsContainer);
-    dockLayout->addWidget(hardwareContainer);
-    dockLayout->addWidget(definitionsContainer);
+    //dockLayout->addWidget(partsContainer);
+    //dockLayout->addWidget(hardwareContainer);
+    //dockLayout->addWidget(definitionsContainer);
+    dockLayout->addWidget(partsDock);
+    dockLayout->addWidget(definitionsDock);
+    dockLayout->addWidget(hardwareDock);
     dockLayout->addStretch();
 
     layout->addLayout(dockLayout, 1);
@@ -356,8 +366,7 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
     // initially disable dock buttons
     updateDockButtons("N");
 
-
-    nodeView->setDock(partsContainer);
+    //nodeView->setDock(partsContainer);
 }
 
 
@@ -379,7 +388,7 @@ void NewMedeaWindow::setupController()
     controller = new NewController();
 
     if(THREADING){
-    //IMPLEMENT THREADING!
+        //IMPLEMENT THREADING!
         thread = new QThread();
         thread->start();
         controller->moveToThread(thread);
@@ -425,7 +434,6 @@ void NewMedeaWindow::makeConnections()
     connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
     connect(model_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortModel_triggered()));
-    //connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
 
@@ -436,21 +444,26 @@ void NewMedeaWindow::makeConnections()
 
     connect(this, SIGNAL(setViewAspects(QStringList)), nodeView, SLOT(setViewAspects(QStringList)));
 
-    connect(this, SIGNAL(clearDock()), partsContainer, SLOT(clear()));
-    connect(this, SIGNAL(clearDock()), hardwareContainer, SLOT(clear()));
-    connect(this, SIGNAL(clearDock()), definitionsContainer, SLOT(clear()));
+    //connect(this, SIGNAL(clearDock()), partsContainer, SLOT(clear()));
+    //connect(this, SIGNAL(clearDock()), hardwareContainer, SLOT(clear()));
+    //connect(this, SIGNAL(clearDock()), definitionsContainer, SLOT(clear()));
+
+    connect(this, SIGNAL(clearDock()), partsDock, SLOT(clear()));
+    connect(this, SIGNAL(clearDock()), definitionsDock, SLOT(clear()));
+    connect(this, SIGNAL(clearDock()), hardwareDock, SLOT(clear()));
 
     connect(nodeView, SIGNAL(dockNodeMade(QString,NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
     connect(nodeView, SIGNAL(updateDockAdoptableNodesList(Node*)), this, SLOT(nodeSelected(Node*)));
 
-    connect(partsContainer, SIGNAL(trigger_addChildNode(QString,int)), nodeView, SLOT(view_constructNode(QString,int)));
+    //connect(partsContainer, SIGNAL(trigger_addChildNode(QString,int)), nodeView, SLOT(view_constructNode(QString,int)));
+    //connect(partsDock, SIGNAL(dock_addChildNode(QString,int)), nodeView, SLOT(view_constructNode(QString,int)));
 
-    connect(hardwareContainer, SIGNAL(getSelectedNode()), this, SLOT(getSelectedNode()));
-    connect(hardwareContainer, SIGNAL(trigger_connectHardwareNode(Node*,Node*)), nodeView, SLOT(view_constructEdge(Node*,Node*)));
+    //connect(hardwareContainer, SIGNAL(getSelectedNode()), this, SLOT(getSelectedNode()));
+    //connect(hardwareContainer, SIGNAL(trigger_connectHardwareNode(Node*,Node*)), nodeView, SLOT(view_constructEdge(Node*,Node*)));
 
-    connect(definitionsContainer, SIGNAL(getSelectedNode()), this, SLOT(getSelectedNode()));
-    connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(Node*,Node*,int)), nodeView, SLOT(view_constructComponentInstance(Node*,Node*,int)));
-    connect(definitionsContainer, SIGNAL(trigger_connectComponentInstance(Node*,Node*)), nodeView, SLOT(view_constructEdge(Node*,Node*)));
+    //connect(definitionsContainer, SIGNAL(getSelectedNode()), this, SLOT(getSelectedNode()));
+    //connect(definitionsContainer, SIGNAL(trigger_addComponentInstance(Node*,Node*,int)), nodeView, SLOT(view_constructComponentInstance(Node*,Node*,int)));
+    //connect(definitionsContainer, SIGNAL(trigger_connectComponentInstance(Node*,Node*)), nodeView, SLOT(view_constructEdge(Node*,Node*)));
 
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
@@ -460,7 +473,6 @@ void NewMedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(updateDockButtons(QString)), this, SLOT(updateDockButtons(QString)));
     connect(nodeView, SIGNAL(updateDockContainer(QString)), this, SLOT(updateDockContainer(QString)));
-
 
     // this needs fixing
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
@@ -507,10 +519,13 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    boxHeight = this->height()*0.75;
-    partsContainer->setMinimumHeight(boxHeight);
-    hardwareContainer->setMinimumHeight(boxHeight);
-    definitionsContainer->setMinimumHeight(boxHeight);
+    boxHeight = this->height()*0.73;
+    //partsContainer->setMinimumHeight(boxHeight);
+    //hardwareContainer->setMinimumHeight(boxHeight);
+    //definitionsContainer->setMinimumHeight(boxHeight);
+    partsDock->setMinimumHeight(boxHeight);
+    definitionsDock->setMinimumHeight(boxHeight);
+    hardwareDock->setMinimumHeight(boxHeight);
 
     // update dataTable size
     updateDataTable();
@@ -659,19 +674,14 @@ void NewMedeaWindow::on_actionClearModel_triggered()
  */
 void NewMedeaWindow::on_actionSortModel_triggered()
 {
-   if (nodeView->getSelectedNode()){
-       nodeView->sortNode(nodeView->getSelectedNode());
-   } else {
-       nodeView->sortEntireModel();
-   }
+    if (nodeView->getSelectedNode()){
+        nodeView->sortNode(nodeView->getSelectedNode());
+    } else {
+        nodeView->sortEntireModel();
+        nodeView->fitToScreen();
+    }
 }
 
-/*
-void NewMedeaWindow::on_actionSortNode_triggered()
-{
-
-}
-*/
 
 /**
  * @brief NewMedeaWindow::on_actionPaste_triggered
@@ -805,15 +815,22 @@ void NewMedeaWindow::updateProjectName(QString label)
  */
 void NewMedeaWindow::addNewNodeToDock(QString type, NodeItem *nodeItem)
 {
+    /*
     DockScrollArea *container;
-
     if (type == "component") {
         container = definitionsContainer;
     } else if (type == "hardware") {
         container = hardwareContainer;
     }
-
     container->addDockNode(nodeItem);
+    */
+
+    DockConnectableNodeItem* dockItem = new DockConnectableNodeItem(nodeItem, this);
+    if (type == "component") {
+        definitionsDock->addDockNodeItem(dockItem);
+    } else if (type == "hardware") {
+        hardwareDock->addDockNodeItem(dockItem);
+    }
 }
 
 
@@ -889,7 +906,8 @@ void NewMedeaWindow::updateDockContainer(QString container)
     if (container == "Parts") {
         // update dock container's adoptable nodes list and then send it to the toolbar
         if(selectedNode && controller){
-            partsContainer->addAdoptableDockNodes(controller->getSelectedNode(), controller->getAdoptableNodeKinds(controller->getSelectedNode()));
+            //partsContainer->addAdoptableDockNodes(controller->getSelectedNode(), controller->getAdoptableNodeKinds(controller->getSelectedNode()));
+            partsDock->addDockNodeItems(controller->getAdoptableNodeKinds(selectedNode));
         }
     } else if (container == "Hardware") {
         // update hardwareDefinitons container
@@ -913,7 +931,8 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
             return;
         } else {
             QStringList nodeKinds = controller->getAdoptableNodeKinds(node);
-            partsContainer->addAdoptableDockNodes(node, nodeKinds);
+            //partsContainer->addAdoptableDockNodes(node, nodeKinds);
+            partsDock->addDockNodeItems(nodeKinds);
 
             emit checkDockScrollBar();
             update();
@@ -944,7 +963,7 @@ void NewMedeaWindow::nodeSelected(Node *node)
  */
 void NewMedeaWindow::getSelectedNode()
 {
-    emit definitionsContainer->selectedNode(nodeView->getSelectedNode());
+    //emit definitionsContainer->selectedNode(nodeView->getSelectedNode());
 }
 
 
@@ -1037,21 +1056,6 @@ void NewMedeaWindow::newProject()
  */
 bool NewMedeaWindow::exportGraphML()
 {
-    /*
-    QFileDialog *saveDialog = new QFileDialog(this,"Export .graphML", "c:\\", "GraphML Documents (*.graphml *.xml)");
-
-    if(QDialog::Accepted == saveDialog->exec()){
-        QString fileName = saveDialog->selectedFiles().at(0);
-        emit view_ExportGraphML(fileName);
-        //TODO: Wait for successful export then return.
-        qCritical() << "got export";
-        return true;
-    }else{
-        qCritical() << "No export";
-        return false;
-    }
-    */
-
     QString filename = QFileDialog::getSaveFileName(this,
                                                     "Export .graphML",
                                                     "C:\\",
@@ -1059,17 +1063,17 @@ bool NewMedeaWindow::exportGraphML()
 
     if (filename != "") {
 
-        if(filename.toLower().endsWith(".graphml") || filename.toLower().endsWith(".xml")){
+        if (filename.toLower().endsWith(".graphml") || filename.toLower().endsWith(".xml")) {
             emit view_ExportGraphML(filename);
 
-        }else{
-
-             QMessageBox::critical(this, "Error", "You must Export using the either .graphML or .xml extensions.", QMessageBox::Ok);
-            //CALL AGAIN IF WE Don't get a a .graphML file or a .xml File
-            exportGraphML();
+        } else {
+            QMessageBox::critical(this, "Error", "You must Export using the either .graphML or .xml extensions.", QMessageBox::Ok);
+            exportGraphML(); // call again if we don't get a a .graphML file or a .xml File
         }
+
         //TODO: Wait for successful  then return.
         return true;
+
     } else {
         return false;
     }
