@@ -37,6 +37,8 @@ public:
     void setParentNodeView(NodeView *n);
     void removeSubView(NodeView* subView);
 
+    QStringList getConstructableNodeKinds();
+
 
 protected:
     //Mouse Handling Methods

@@ -3212,6 +3212,17 @@ Model *NewController::getModel()
     return model;
 }
 
+
+/**
+ * @brief NewController::getConstructableNodeKinds
+ * This is used to initially constucts all kinds of node in the dock and toolbar.
+ * @return
+ */
+QStringList NewController::getConstructableNodeKinds()
+{
+    return constructableNodeKinds;
+}
+
 void NewController::view_ClearHistoryStates()
 {
     clearHistory();

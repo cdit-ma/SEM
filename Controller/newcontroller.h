@@ -75,6 +75,9 @@ public:
     Model* getModel();
 
 
+    // gets the list of all constructable node kinds
+    QStringList getConstructableNodeKinds();
+
 
 signals:
     //Triggers the View to Enable/Disable the GUI

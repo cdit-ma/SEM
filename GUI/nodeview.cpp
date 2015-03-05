@@ -782,6 +782,17 @@ QList<Node*> NodeView::getComponents()
 }
 
 
+/**
+ * @brief NodeView::getConstructableNodeKinds
+ * This method gets the constuctable node kinds list from the controller.
+ * @return
+ */
+QStringList NodeView::getConstructableNodeKinds()
+{
+    return controller->getConstructableNodeKinds();
+}
+
+
 void NodeView::updateDocks()
 {
     /*

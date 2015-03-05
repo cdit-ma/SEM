@@ -855,7 +855,7 @@ void NewMedeaWindow::updateDockContainer(QString container)
     if (container == "Parts") {
         // update dock container's adoptable nodes list
         if(selectedNode && controller){
-            partsDock->addDockNodeItems(controller->getAdoptableNodeKinds(selectedNode));
+            //partsDock->addDockNodeItems(controller->getAdoptableNodeKinds(selectedNode));
         }
     } else if (container == "Hardware") {
         // update hardwareDefinitons container
@@ -879,7 +879,7 @@ void NewMedeaWindow::setAdoptableNodeList(Node *node)
             return;
         } else {
             QStringList nodeKinds = controller->getAdoptableNodeKinds(node);
-            partsDock->addDockNodeItems(nodeKinds);
+            //partsDock->addDockNodeItems(nodeKinds);
 
             emit checkDockScrollBar();
             update();
@@ -901,6 +901,9 @@ void NewMedeaWindow::nodeSelected(Node *node)
     if (partsButton->getSelected()) {
         setAdoptableNodeList(selectedNode);
     }
+
+    partsDock->setSelectedNode();
+
 }
 
 
@@ -994,6 +997,9 @@ void NewMedeaWindow::newProject()
 
     // set default view
     resetView();
+
+    // TODO: create method to set the initial values for objects
+    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
 }
 
 

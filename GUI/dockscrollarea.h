@@ -24,6 +24,8 @@ class DockScrollArea : public QScrollArea
 public:
     explicit DockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
 
+    void setSelectedNode();
+
     void setCurrentNodeItem(NodeItem* currentNode);
     NodeItem* getCurrentNodeItem();
 

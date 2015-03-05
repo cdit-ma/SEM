@@ -11,14 +11,16 @@ public:
     explicit PartsDockScrollArea(QString label, NodeView* view, DockToggleButton *parent);
 
     void addDockNodeItems(QStringList nodeKinds);
+    DockNodeItem* getDockNodeItem(QString kind);
 
     virtual void updateDock();
 
 public slots:
     virtual void dockNodeItemClicked();
 
-private:
+private:    
     QStringList allowedKinds;
+    QStringList displayedItems;
 
 };
 

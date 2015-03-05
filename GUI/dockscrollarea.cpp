@@ -25,11 +25,22 @@ DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton *
 
 
 /**
+ * @brief DockScrollArea::setSelectedNode
+ */
+void DockScrollArea::setSelectedNode()
+{
+    Node* selectedNode = nodeView->getSelectedNode();
+    NodeItem* currentItem = nodeView->getNodeItemFromNode(selectedNode);
+    setCurrentNodeItem(currentItem);
+}
+
+
+/**
  * @brief DockScrollArea::setCurrentNodeItem
  * This sets nodeItem to be the currently selected node item.
  * @param currentNodeItem
  */
-void DockScrollArea::setCurrentNodeItem(NodeItem *currentNodeItem)
+void DockScrollArea::setCurrentNodeItem(NodeItem* currentNodeItem)
 {
     nodeItem = currentNodeItem;
     updateDock();
@@ -59,17 +70,6 @@ DockToggleButton *DockScrollArea::getParentButton()
 
 
 /**
- * @brief DockScrollArea::getNodeView
- * Returns the NodeView this dock is attached to.
- * @return
- */
-NodeView *DockScrollArea::getNodeView()
-{
-   return nodeView;
-}
-
-
-/**
  * @brief DockScrollArea::getLabel
  * Returns this dock's label.
  * @return
@@ -77,6 +77,17 @@ NodeView *DockScrollArea::getNodeView()
 QString DockScrollArea::getLabel()
 {
     return label;
+}
+
+
+/**
+ * @brief DockScrollArea::getNodeView
+ * Returns the NodeView this dock is attached to.
+ * @return
+ */
+NodeView *DockScrollArea::getNodeView()
+{
+    return nodeView;
 }
 
 
