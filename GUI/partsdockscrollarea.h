@@ -19,7 +19,7 @@ public slots:
     virtual void dockNodeItemClicked();
 
 private:    
-    QStringList allowedKinds;
+    QStringList parts_notAllowedKinds;
     QStringList displayedItems;
 
 };

@@ -10,10 +10,14 @@ class DefinitionsDockScrollArea : public DockScrollArea
 public:
     explicit DefinitionsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent = 0);
 
-    virtual void updateDock();
-
 public slots:
     virtual void dockNodeItemClicked();
+    virtual void updateDock();
+
+    void nodeConstructed(NodeItem* nodeItem);
+
+private:
+    QStringList definitions_notAllowedKinds;
 
 };
 

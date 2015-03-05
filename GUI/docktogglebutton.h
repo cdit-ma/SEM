@@ -39,6 +39,8 @@ signals:
 public slots:
     void on_buttonPressed();
 
+    void enableDock(bool enable);
+
 private:
     DockScrollArea* scrollArea;
     bool selected;

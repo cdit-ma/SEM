@@ -25,8 +25,6 @@ public:
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
 
-    void setDock(DockScrollArea* dock);
-
     //Set Controller
     void setController(NewController* controller);
     void disconnectController();
@@ -37,6 +35,7 @@ public:
     void setParentNodeView(NodeView *n);
     void removeSubView(NodeView* subView);
 
+    // this is used by the parts dock
     QStringList getConstructableNodeKinds();
 
 
@@ -56,10 +55,6 @@ signals:
     void view_SetSelectedAttributeModel(AttributeTableModel* model);
     void viewportRectangleChanged(QRectF);
     void updateViewAspects(QStringList aspects);
-
-    void dockNodeMade(QString type, NodeItem* nodeItem);
-    void updateDockButtons(QString dockButton);
-    void updateDockContainer(QString container);
 
     //SIGNALS for the Controller
     void triggerAction(QString action);
@@ -85,26 +80,29 @@ signals:
 
     //void centerNode(QString nodeLabel);
 
-    void updateDockAdoptableNodesList(Node* node);
-
     void constructNode(QString nodeKind, QPointF relativePosition);
     void constructEdge(Node* src, Node* dst);
 
-    void constructConnectedComponents(Node* parent, Node* connectedNode, QString nodeKind, QPointF relativePosition);
-
     void constructComponentInstance(Node* assm, Node* defn, QPointF center);
     void constructEventPortDelegate(Node *assm, Node *eventPortInstance, QPointF center);
+
+    void constructConnectedComponents(Node* parent, Node* connectedNode, QString nodeKind, QPointF relativePosition);
 
     void turnOnViewAspect(QString aspect);
 
     void setGoToMenuActions(QString action, bool);
 
-    void view_ClearHistoryStates();
-
     void sceneRectChanged(QRectF newRect);
 
-    void enableDocks(bool enable);
+    void view_ClearHistoryStates();
 
+    // new signals for docks
+    void view_enableDocks(bool enable);
+    void view_nodeConstructed(NodeItem* nodeItem);
+    void view_nodeDeleted();
+    void view_nodeSelected();
+    void view_edgeConstructed();
+    void view_edgeDeleted();
 
 public slots:
     void view_ClearHistory();
@@ -138,17 +136,12 @@ public slots:
     void view_SetOpacity(GraphML* graphML, qreal opacity);
 
 
-
     void sortEntireModel();
     void sortNode(Node* node, Node* topMostNode = 0);
 
     void fitToScreen();
-    //void centreNode(Node* node);
 
     void clearSelection();
-
-    void updateDockButtons(Node* node);
-    void view_updateDockContainer(QString dockContainer);
 
     void view_sortModel();
     void view_centerViewAspects();
@@ -182,12 +175,11 @@ private:
     QList<Node*> getFiles();
     QList<Node*> getComponents();
 
-    void updateDocks();
-
     void storeGraphMLItemInHash(GraphMLItem* item);
     bool removeGraphMLItemFromHash(QString ID);
 
     void nodeConstructed_signalUpdates(NodeItem* nodeItem);
+    void nodeDeleted_signalUpdates(NodeItem* nodeItem);
     void nodeSelected_signalUpdates(Node *node);
     void edgeConstructed_signalUpdates(Node* src);
 
@@ -239,8 +231,6 @@ private:
 
 
     ToolbarWidget* toolbar;
-
-    DockScrollArea* dock;
 
 
     bool IS_SUB_VIEW;

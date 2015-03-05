@@ -33,7 +33,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     IS_SUB_VIEW = subView;
     toolbarJustClosed = false;
     parentNodeView = 0;
-    dock = 0;
     rubberBand = 0;
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
@@ -101,12 +100,6 @@ NodeView::~NodeView()
     }
 }
 
-
-
-void NodeView::setDock(DockScrollArea *dock)
-{
-    this->dock = dock;
-}
 
 /**
  * @brief NodeView::getVisibleRect
@@ -497,8 +490,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         scene()->addItem(nodeItem);
     }
 
-    updateDocks();
-
     nodeConstructed_signalUpdates(nodeItem);
 }
 
@@ -546,12 +537,14 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 void NodeView::view_DestructGraphMLGUI(QString ID)
 {
     removeGraphMLItemFromHash(ID);
+
     if(IS_SUB_VIEW){
         if(CENTRALIZED_ON_ITEM && centralizedItemID == ID){
             //CALL DELETE ON DIALOG
             this->parent()->deleteLater();
         }
     }
+
 }
 
 void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
@@ -564,22 +557,11 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
             if(setSelected){
                 emit view_SetSelectedAttributeModel(guiItem->getAttributeTable());
 
-                NodeItem* nodeItem = getNodeItemFromGraphMLItem(guiItem);
-                if(nodeItem){
-                    //toolbar->setCurrentNodeItem(nodeItem);
-
-                    //dock->setCurrentNodeItem(nodeItem);
-                    updateDocks();
-                }
-
-
+                // toolbar and menu goTo function updates
                 Node* node = dynamic_cast<Node*>(graphML);
                 if(node){
-                    //toolbar
                     nodeSelected_signalUpdates(node);
                 }
-
-
 
                 return;
             }
@@ -793,19 +775,6 @@ QStringList NodeView::getConstructableNodeKinds()
 }
 
 
-void NodeView::updateDocks()
-{
-    /*
-    if(dock){
-        if(dock->parentButton()->getKind() == "P"){
-
-            dock->updatePartsDock();
-        }
-    }
-    */
-}
-
-
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
 {
     if(GUIItem){
@@ -837,7 +806,6 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
                 connect(this, SIGNAL(updateViewAspects(QStringList)), nodeItem, SLOT(updateViewAspects(QStringList)));
                 connect(nodeItem, SIGNAL(centerViewAspects()), this, SLOT(view_centerViewAspects()));
                 connect(nodeItem, SIGNAL(sortModel()), this, SLOT(view_sortModel()));
-                connect(nodeItem, SIGNAL(updateDockContainer(QString)), this, SLOT(view_updateDockContainer(QString)));
 
                 connect(this, SIGNAL(sceneRectChanged(QRectF)), nodeItem, SLOT(updateSceneRect(QRectF)));
                 connect(nodeItem, SIGNAL(itemMovedOutOfScene(NodeItem*)), this, SLOT(updateSceneRect(NodeItem*)));
@@ -892,12 +860,16 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
         if(item){
             disconnect(item, SIGNAL(updateGraphMLData(GraphML*, QString, QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*, QString, QString)));
             if(scene()->items().contains(item)){
+
+                //nodeDeleted_signalUpdates(getNodeItemFromGraphMLItem(item));
+
                 scene()->removeItem(item);
                 delete item;
-                updateDocks();
+
             }
             return true;
         }
+
     }else{
         if(!IS_SUB_VIEW){
             qCritical() << "Could not find GraphMLItem from Hash!" << ID;
@@ -921,11 +893,19 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
         toolbar->showDefinitionButton(hasDefn);
         toolbar->showImplementationButton(hasImpl);
 
-        // update the dock buttons and dock adoptable nodes list
-        updateDockButtons(node);
-        emit updateDockAdoptableNodesList(node);
+        emit view_nodeSelected();
     }
 
+}
+
+
+/**
+ * @brief NodeView::nodeDeleted_signalUpdates
+ * @param node
+ */
+void NodeView::nodeDeleted_signalUpdates(NodeItem *nodeItem)
+{
+    emit view_nodeDeleted();
 }
 
 /**
@@ -936,15 +916,7 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
  */
 void NodeView::nodeConstructed_signalUpdates(NodeItem *nodeItem)
 {
-    // add newly constructed Components and HardwareNodes to the dock
-    QString nodeKind = nodeItem->getNode()->getDataValue("kind");
-    if (nodeKind == "Component") {
-        emit dockNodeMade("component", nodeItem);
-    } else if (nodeKind == "HardwareNode") {
-        // stop HardwareNodes from being drawn on the canvas until they are connected to a ComponentAssembly
-        nodeItem->setHidden(true);
-        emit dockNodeMade("hardware", nodeItem);
-    }
+    emit view_nodeConstructed(nodeItem);
 }
 
 
@@ -1061,7 +1033,7 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
             // sort and center current view aspects
             view_centerViewAspects();
         }else{
-            // clear selection and disable dock buttons
+            // clear selection and disable docks
             clearSelection();
         }
     }
@@ -1129,7 +1101,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
     if(event->key() == Qt::Key_Escape){
         emit escapePressed(true);
-        emit updateDockButtons("N");
+        emit view_enableDocks(false);
     }
 
     if(this->CONTROL_DOWN && event->key() == Qt::Key_A){
@@ -1287,7 +1259,7 @@ void NodeView::centreNode(Node *node)
 void NodeView::clearSelection()
 {
     emit unselect();
-    emit updateDockButtons("N");
+    emit view_enableDocks(false);
 }
 
 
@@ -1434,9 +1406,8 @@ void NodeView::view_deleteSelectedNode()
 void NodeView::view_centerViewAspects()
 {
     forceSortViewAspects();
+    centreItem(getNodeItemFromNode(controller->getModel()));
     emit updateViewAspects(currentAspects);
-    centreItem(getNodeItemFromNode( controller->getModel() ));
-    //emit centerNode("Model");
     fitToScreen();
 }
 
@@ -1446,8 +1417,6 @@ void NodeView::view_centerViewAspects()
  */
 void NodeView::view_sortModel()
 {
-
-
     Model* model = controller->getModel();
 
     if(!model){
@@ -1472,66 +1441,4 @@ void NodeView::view_sortModel()
     if(modelItem){
         modelItem->sort();
     }
-}
-
-
-/**
- * @brief NodeView::updateDockButtons
- * This method enable/disable dock buttons depending on the currently selected node.
- */
-void NodeView::updateDockButtons(Node* node)
-{
-    if (node) {
-
-        QString nodeKind = node->getDataValue("kind");
-
-        if (nodeKind == "InterfaceDefinitions"||
-                nodeKind == "BehaviourDefinitions" ||
-                nodeKind == "AssemblyDefinitions" ||
-                nodeKind == "File" ||
-                nodeKind == "Component") {
-
-            emit updateDockButtons("P");
-
-        } else if (nodeKind == "HardwareDefinitions" ||
-                   nodeKind == "HardwareCluster" ||
-                   nodeKind == "ManagementComponent") {
-
-            emit updateDockButtons("H");
-
-        } else if (nodeKind == "Model" ||
-                   nodeKind == "DeploymentDefinitions") {
-
-            emit updateDockButtons("N");
-
-        } else if (nodeKind == "ComponentAssembly") {
-
-            emit updateDockButtons("A");
-
-        } else if (nodeKind == "ComponentImpl") {
-
-            emit updateDockButtons("PD");
-
-        }  else if (nodeKind == "ComponentInstance") {
-
-            if (node->getDefinition()) {
-                emit updateDockButtons("H");
-            } else {
-                emit updateDockButtons("D");
-            }
-
-        } else {
-            emit updateDockButtons("A");
-        }
-    }
-}
-
-
-/**
- * @brief NodeView::view_updateDockContainer
- * @param dockContainer
- */
-void NodeView::view_updateDockContainer(QString dockContainer)
-{
-    emit updateDockContainer(dockContainer);
 }

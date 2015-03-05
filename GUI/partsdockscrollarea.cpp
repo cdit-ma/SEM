@@ -13,18 +13,14 @@
 PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent) :
     DockScrollArea(label, view, parent)
 {
-    // populate allowed node kinds
-    allowedKinds.append("InterfaceDefinitions");
-    allowedKinds.append("BehaviourDefinitions");
-    allowedKinds.append("AssemblyDefinitions");
-    allowedKinds.append("File");
-    allowedKinds.append("Component");
-    allowedKinds.append("ComponentAssembly");
-    allowedKinds.append("ComponentImpl");
-
-    // intially add all kinds of nodes to this dock
-    // hide them when they're not adoptable; don't delete them
-    //addDockNodeItems(getConstructableNodeKindsFromView());
+    // populate list of not allowed kinds
+    parts_notAllowedKinds.append("Model");
+    parts_notAllowedKinds.append("DeploymentDefinitions");
+    parts_notAllowedKinds.append("HardwareDefinitions");
+    parts_notAllowedKinds.append("ManagementComponent");
+    parts_notAllowedKinds.append("HardwareCluster");
+    parts_notAllowedKinds.append("ComponentInstance");
+    setNotAllowedKinds(parts_notAllowedKinds);
 }
 
 
@@ -56,6 +52,14 @@ void PartsDockScrollArea::updateDock()
         getParentButton()->checkEnabled();
     }
     */
+
+    // check selected node kind against notAllowedKinds list first
+    DockScrollArea::updateDock();
+    if (!getParentButton()->isEnabled()) {
+        return;
+    }
+
+    // NOTE: AdoptableNodeList from view is incorrect when deleteing node using undo.
 
     QStringList itemsToDisplay = getAdoptableNodeListFromView();
     QStringList newDisplayedItems;
@@ -93,8 +97,6 @@ void PartsDockScrollArea::updateDock()
  */
 void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
 {
-    // TODO: maybe create all kinds of node and just hide them
-    // instead of deleting them when they can't be adopted
     clear();
     nodeKinds.removeDuplicates();
     nodeKinds.sort();
@@ -108,7 +110,6 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
     displayedItems = nodeKinds;
 
     //checkScrollBar();
-    //checkDockNodesList();
     repaint();
 }
 

@@ -207,7 +207,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     }
 
     connect(this, SIGNAL(hovered()), this, SLOT(hover()));
-    connect(actionButton, SIGNAL(toolbarAction_pressed()), this, SLOT(actionButtonPressed()));
+    connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
     connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
 
     return actionButton;

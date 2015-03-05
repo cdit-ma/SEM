@@ -14,7 +14,7 @@ DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton *
     QScrollArea(parent)
 {
     nodeView = view;
-    nodeItem = 0;
+    currentNodeItem = 0;
 
     this->label = label;
     activated = false;
@@ -25,9 +25,19 @@ DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton *
 
 
 /**
+ * @brief DockScrollArea::setNotAllowedKinds
+ * @param kinds
+ */
+void DockScrollArea::setNotAllowedKinds(QStringList kinds)
+{
+    notAllowedKinds = kinds;
+}
+
+
+/**
  * @brief DockScrollArea::setSelectedNode
  */
-void DockScrollArea::setSelectedNode()
+void DockScrollArea::updateCurrentNodeItem()
 {
     Node* selectedNode = nodeView->getSelectedNode();
     NodeItem* currentItem = nodeView->getNodeItemFromNode(selectedNode);
@@ -40,9 +50,9 @@ void DockScrollArea::setSelectedNode()
  * This sets nodeItem to be the currently selected node item.
  * @param currentNodeItem
  */
-void DockScrollArea::setCurrentNodeItem(NodeItem* currentNodeItem)
+void DockScrollArea::setCurrentNodeItem(NodeItem* nodeItem)
 {
-    nodeItem = currentNodeItem;
+    currentNodeItem = nodeItem;
     updateDock();
 }
 
@@ -54,7 +64,7 @@ void DockScrollArea::setCurrentNodeItem(NodeItem* currentNodeItem)
  */
 NodeItem *DockScrollArea::getCurrentNodeItem()
 {
-   return nodeItem;
+    return currentNodeItem;
 }
 
 
@@ -99,21 +109,7 @@ NodeView *DockScrollArea::getNodeView()
  */
 QStringList DockScrollArea::getAdoptableNodeListFromView()
 {
-   return nodeView->getAdoptableNodeList(nodeView->getSelectedNode());
-}
-
-
-/**
- * @brief DockScrollArea::checkDockNodesList
- * This checks to see if this dock contains any items.
- * If it doesn't, disable parentButton then hide this dock.
- */
-void DockScrollArea::checkDockNodesList()
-{
-    if (parentButton && dockNodeItems.count() == 0) {
-        parentButton->hideContainer();
-        parentButton->setEnabled(false);
-    }
+    return nodeView->getAdoptableNodeList(nodeView->getSelectedNode());
 }
 
 
@@ -139,15 +135,27 @@ void DockScrollArea::addDockNodeItem(DockNodeItem *item)
  */
 QList<DockNodeItem *> DockScrollArea::getDockNodeItems()
 {
-   return dockNodeItems;
+    return dockNodeItems;
 }
 
 
 /**
  * @brief DockScrollArea::updateDock
  * This updates this dock.
+ * If the currently selected node kind is contained in notAllowedKinds,
+ * it means that this dock can be used for the selected node.
+ * If so, hide this dock and disable its parentButton
  */
-void DockScrollArea::updateDock() {}
+void DockScrollArea::updateDock()
+{
+    if (currentNodeItem) {
+        if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
+            parentButton->enableDock(false);
+        } else {
+            parentButton->enableDock(true);
+        }
+    }
+}
 
 
 /**

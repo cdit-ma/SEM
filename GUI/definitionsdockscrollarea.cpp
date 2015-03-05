@@ -1,4 +1,5 @@
 #include "definitionsdockscrollarea.h"
+#include "docktogglebutton.h"
 #include "docknodeitem.h"
 
 #include <QDebug>
@@ -11,16 +12,20 @@
  * @param parent
  */
 DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* view, DockToggleButton *parent) :
-    DockScrollArea(label, view, parent) {}
-
-
-/**
- * @brief DefinitionsDockScrollArea::updateDock
- * This updates the Component definitions dock.
- */
-void DefinitionsDockScrollArea::updateDock()
+    DockScrollArea(label, view, parent)
 {
-    // do updates to deifinitions dock here
+    // populate list of not allowed kinds
+    definitions_notAllowedKinds.append("Model");
+    definitions_notAllowedKinds.append("InterfaceDefinitions");
+    definitions_notAllowedKinds.append("BehaviourDefinitions");
+    definitions_notAllowedKinds.append("DeploymentDefinitions");
+    definitions_notAllowedKinds.append("AssemblyDefinitions");
+    definitions_notAllowedKinds.append("HardwareDefinitions");
+    definitions_notAllowedKinds.append("ManagementComponent");
+    definitions_notAllowedKinds.append("HardwareCluster");
+    definitions_notAllowedKinds.append("File");
+    definitions_notAllowedKinds.append("Component");
+    setNotAllowedKinds(definitions_notAllowedKinds);
 }
 
 
@@ -42,4 +47,37 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
             getNodeView()->view_constructEdge(selectedNode,  dockNode);
         }
     }
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::updateDock
+ * This updates the definitions dock.
+ */
+void DefinitionsDockScrollArea::updateDock()
+{
+    // special case - ComponentInstance
+    // it's only an allowed kind if it doesn't have a definition
+    if (getCurrentNodeItem() && getCurrentNodeItem()->getNodeKind() == "ComponentInstance") {
+        Node* inst = getCurrentNodeItem()->getNode();
+        if (inst->getDefinition()) {
+            getParentButton()->hideContainer();
+            getParentButton()->setEnabled(false);
+        }
+        return;
+    }
+    DockScrollArea::updateDock();
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::nodeConstructed
+ * @param node
+ */
+void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
+{
+   if (nodeItem->getNodeKind() == "Component") {
+       DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
+       addDockNodeItem(dockItem);
+   }
 }

@@ -51,7 +51,7 @@ DockToggleButton::DockToggleButton(QString label, NewMedeaWindow *window, QWidge
 
     // make connections
     connect(this, SIGNAL(pressed()), this, SLOT(on_buttonPressed()));
-    connect(this, SIGNAL(dockButton_pressed(QString)), window, SLOT(on_dockButtonPressed(QString)));
+    connect(this, SIGNAL(dockButton_pressed(QString)), window, SLOT(dockButtonPressed(QString)));
 }
 
 
@@ -194,6 +194,19 @@ void DockToggleButton::on_buttonPressed()
 
     emit dockButton_pressed(this->text());
     repaint();
+}
+
+
+/**
+ * @brief DockToggleButton::enableDock
+ * @param enable
+ */
+void DockToggleButton::enableDock(bool enable)
+{
+   if (!enable) {
+       hideContainer();
+   }
+   setEnabled(enable);
 }
 
 

@@ -88,8 +88,6 @@ signals:
     void addExpandButtonToParent();
     void updateParentHeight(NodeItem* child);
 
-    void updateDockContainer(QString dockContainer);
-
     void recentralizeAfterChange(GraphML* item);
 
     void nodeItemMoved();

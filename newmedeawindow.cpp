@@ -13,6 +13,7 @@
 
 
 #define THREADING false
+
 /**
  * @brief NewMedeaWindow::NewMedeaWindow
  * @param parent
@@ -42,8 +43,6 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
         importGraphMLFiles(files);
     }
     */
-
-    //this->view_SetGUIEnabled(false);
 }
 
 
@@ -333,9 +332,6 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
 
     layout->addLayout(dockLayout, 1);
     layout->addStretch(3);
-
-    // initially disable dock buttons
-    updateDockButtons("N");
 }
 
 
@@ -389,8 +385,6 @@ void NewMedeaWindow::resetGUI()
  */
 void NewMedeaWindow::makeConnections()
 {
-    //connect(this, SIGNAL(setGUIComponentsEnabled(bool)), nodeView, SLOT(setEnabled(bool)));
-
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
@@ -399,7 +393,7 @@ void NewMedeaWindow::makeConnections()
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
-    connect(view_autoCenterView, SIGNAL(triggered()), this, SLOT(autoCenterViews()));
+    connect(view_autoCenterView, SIGNAL(triggered()), this, SLOT(on_actionAutoCenterViews_triggered()));
     connect(view_goToDefinition, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
     connect(model_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
@@ -414,25 +408,28 @@ void NewMedeaWindow::makeConnections()
 
     connect(this, SIGNAL(setViewAspects(QStringList)), nodeView, SLOT(setViewAspects(QStringList)));
 
-    connect(nodeView, SIGNAL(enableDocks(bool)), partsButton, SLOT(setEnabled(bool)));
-    connect(nodeView, SIGNAL(enableDocks(bool)), compDefinitionsButton, SLOT(setEnabled(bool)));
-    connect(nodeView, SIGNAL(enableDocks(bool)), hardwareNodesButton, SLOT(setEnabled(bool)));
+    connect(nodeView, SIGNAL(view_enableDocks(bool)), partsButton, SLOT(enableDock(bool)));
+    connect(nodeView, SIGNAL(view_enableDocks(bool)), compDefinitionsButton, SLOT(enableDock(bool)));
+    connect(nodeView, SIGNAL(view_enableDocks(bool)), hardwareNodesButton, SLOT(enableDock(bool)));
 
     connect(this, SIGNAL(clearDocks()), partsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
 
-    connect(nodeView, SIGNAL(dockNodeMade(QString,NodeItem*)), this, SLOT(addNewNodeToDock(QString, NodeItem*)));
-    connect(nodeView, SIGNAL(updateDockAdoptableNodesList(Node*)), this, SLOT(nodeSelected(Node*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_nodeDeleted()), partsDock, SLOT(updateDock()));
+
+    connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
+    connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
+    connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
 
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
 
     connect(nodeView, SIGNAL(turnOnViewAspect(QString)), this, SLOT(turnOnViewAspect(QString)));
     connect(nodeView, SIGNAL(setGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
-
-    connect(nodeView, SIGNAL(updateDockButtons(QString)), this, SLOT(updateDockButtons(QString)));
-    connect(nodeView, SIGNAL(updateDockContainer(QString)), this, SLOT(updateDockContainer(QString)));
 
     // this needs fixing
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
@@ -465,7 +462,6 @@ void NewMedeaWindow::connectToController()
 
     connect(projectName, SIGNAL(clicked()), controller, SLOT(view_SelectModel()));
     connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateProjectName(QString)));
-    connect(controller, SIGNAL(view_SetGUIEnabled(bool)), this, SLOT(view_SetGUIEnabled(bool)));
 }
 
 
@@ -486,11 +482,6 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
 
     // update dataTable size
     updateDataTable();
-}
-
-void NewMedeaWindow::view_SetGUIEnabled(bool isEnabled)
-{
-    emit setGUIComponentsEnabled(isEnabled);
 }
 
 
@@ -597,7 +588,7 @@ void NewMedeaWindow::on_actionExport_GraphML_triggered()
  * @brief NewMedeaWindow::on_actionAutoCenterViews_triggered
  * This tells the nodeView to set the automatic centering of view aspects on/off.
  */
-void NewMedeaWindow::autoCenterViews()
+void NewMedeaWindow::on_actionAutoCenterViews_triggered()
 {
     if (autoCenterOn) {
         autoCenterOn = false;
@@ -618,11 +609,15 @@ void NewMedeaWindow::autoCenterViews()
  */
 void NewMedeaWindow::on_actionClearModel_triggered()
 {
-    if(nodeView){
+    if (nodeView) {
         nodeView->clearSelection();
         nodeView->resetModel();
     }
+
     emit clearDocks();
+
+    // TODO: create method to set the initial values for objects
+    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
 }
 
 
@@ -676,8 +671,8 @@ void NewMedeaWindow::writeExportedGraphMLData(QString filename, QString data)
         out << data;
 
         file.close();
-
         QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: " + filename, QMessageBox::Ok);
+
     } catch (...) {
         qCritical() << "Export Failed!" ;
     }
@@ -765,23 +760,6 @@ void NewMedeaWindow::updateProjectName(QString label)
 
 
 /**
- * @brief NewMedeaWindow::addNewNodeToDock
- * Once a node has been defined, add its icon to its corresponding container in the dock.
- * @param type
- * @param nodeItem
- */
-void NewMedeaWindow::addNewNodeToDock(QString type, NodeItem *nodeItem)
-{
-    DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
-    if (type == "component") {
-        definitionsDock->addDockNodeItem(dockItem);
-    } else if (type == "hardware") {
-        hardwareDock->addDockNodeItem(dockItem);
-    }
-}
-
-
-/**
  * @brief NewMedeaWindow::updateViewAspects
  * Add view aspect to checkedViewAspects when the corresponding button
  * is clicked and remove it when it's unclick then update the view.
@@ -806,104 +784,6 @@ void NewMedeaWindow::updateViewAspects()
 
     }
     emit setViewAspects(checkedViewAspects);
-}
-
-
-/**
- * @brief NewMedeaWindow::updateDockButtons
- * Enable/disable dock toggle buttons depending on the selected node.
- * If a button is disabled, hide its corresponding container.
- * P - Parts
- * D - Definitions
- * H - Hardware Nodes
- * N - None
- * A - All
- * @param dockButton
- */
-void NewMedeaWindow::updateDockButtons(QString dockButton)
-{
-    partsButton->setEnabled(false);
-    hardwareNodesButton->setEnabled(false);
-    compDefinitionsButton->setEnabled(false);
-
-    if (dockButton.contains("P")) {
-        partsButton->setEnabled(true);
-    }else if (dockButton.contains("D")) {
-        compDefinitionsButton->setEnabled(true);
-    }else if (dockButton.contains("H")) {
-        hardwareNodesButton->setEnabled(true);
-    }else if (dockButton == "A"){
-        partsButton->setEnabled(true);
-        hardwareNodesButton->setEnabled(true);
-        compDefinitionsButton->setEnabled(true);
-    }
-
-    // hide necessary dock containers
-    partsButton->checkEnabled();
-    hardwareNodesButton->checkEnabled();
-    compDefinitionsButton->checkEnabled();
-}
-
-
-/**
- * @brief NewMedeaWindow::updateDockContainer
- * This method updates the specified dock container.
- * @param container
- */
-void NewMedeaWindow::updateDockContainer(QString container)
-{
-    if (container == "Parts") {
-        // update dock container's adoptable nodes list
-        if(selectedNode && controller){
-            //partsDock->addDockNodeItems(controller->getAdoptableNodeKinds(selectedNode));
-        }
-    } else if (container == "Hardware") {
-        // update hardwareDefinitons container
-    } else if (container == "Definitions") {
-        // update compDefinitons container
-    }
-    update();
-}
-
-
-/**
- * @brief NewMedeaWindow::setAdoptableNodeList
- * This checks to see if the partsButton is currently selected and that the
- * partsContainer is visible before it updates the dock adoptable nodes list.
- * @param node
- */
-void NewMedeaWindow::setAdoptableNodeList(Node *node)
-{
-    if (node) {
-        if (prevSelectedNode != 0 && prevSelectedNode == node) {
-            return;
-        } else {
-            QStringList nodeKinds = controller->getAdoptableNodeKinds(node);
-            //partsDock->addDockNodeItems(nodeKinds);
-
-            emit checkDockScrollBar();
-            update();
-        }
-        prevSelectedNode = node;
-    }
-}
-
-
-/**
- * @brief NewMedeaWindow::nodeSelected
- * @param node
- */
-void NewMedeaWindow::nodeSelected(Node *node)
-{
-    selectedNode = node;
-
-    // if partsConatiner is open, update adoptable node list
-    if (partsButton->getSelected()) {
-        setAdoptableNodeList(selectedNode);
-    }
-
-    partsDock->setSelectedNode();
-
 }
 
 
@@ -997,9 +877,6 @@ void NewMedeaWindow::newProject()
 
     // set default view
     resetView();
-
-    // TODO: create method to set the initial values for objects
-    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
 }
 
 
@@ -1018,7 +895,6 @@ bool NewMedeaWindow::exportGraphML()
 
         if (filename.toLower().endsWith(".graphml") || filename.toLower().endsWith(".xml")) {
             emit view_ExportGraphML(filename);
-
         } else {
             QMessageBox::critical(this, "Error", "You must Export using the either .graphML or .xml extensions.", QMessageBox::Ok);
             exportGraphML(); // call again if we don't get a a .graphML file or a .xml File
@@ -1053,7 +929,7 @@ void NewMedeaWindow::setAttributeModel(AttributeTableModel *model)
  * that was pressed is the only groupbox being currently displayed.
  * @param buttonName
  */
-void NewMedeaWindow::on_dockButtonPressed(QString buttonName)
+void NewMedeaWindow::dockButtonPressed(QString buttonName)
 {
     DockToggleButton *b, *prevB;
 
@@ -1074,11 +950,6 @@ void NewMedeaWindow::on_dockButtonPressed(QString buttonName)
 
     prevPressedButton = b;
     update();
-
-    // when the partsButton is selected, update the parts container
-    if (b == partsButton && partsButton->getSelected()) {
-        setAdoptableNodeList(selectedNode);
-    }
 }
 
 

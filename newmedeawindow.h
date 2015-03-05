@@ -48,6 +48,7 @@ public:
     explicit NewMedeaWindow(QString graphMLFile=0, QWidget* parent = 0);
     ~NewMedeaWindow();
 
+
 protected:
     void resizeEvent(QResizeEvent* event);
 
@@ -69,8 +70,6 @@ signals:
 
 
 private slots:
-    void view_SetGUIEnabled(bool isEnabled);
-
     void sortAndCenterViewAspects();
 
     void loadJenkinsData(int code);
@@ -80,7 +79,7 @@ private slots:
     void on_actionImport_GraphML_triggered();
     void on_actionExport_GraphML_triggered();
 
-    void autoCenterViews();
+    void on_actionAutoCenterViews_triggered();
 
     void on_actionClearModel_triggered();
     void on_actionSortModel_triggered();
@@ -95,24 +94,17 @@ private slots:
 
     void updateProjectName(QString label);
 
-    void on_dockButtonPressed(QString buttonName);
-
     void setAttributeModel(AttributeTableModel* model);
+    void setGoToMenuActions(QString action, bool enabled);
 
     void updateViewAspects();
-    void updateDockButtons(QString dockButton);
-    void updateDockContainer(QString container);
+    void turnOnViewAspect(QString aspect);
 
-    void addNewNodeToDock(QString type, NodeItem* nodeItem);
-    void setAdoptableNodeList(Node* node);
-
-    void nodeSelected(Node* node);
+    void dockButtonPressed(QString buttonName);
 
     void goToDefinition();
     void goToImplementation();
 
-    void turnOnViewAspect(QString aspect);
-    void setGoToMenuActions(QString action, bool enabled);
 
 private:
     void resetView();

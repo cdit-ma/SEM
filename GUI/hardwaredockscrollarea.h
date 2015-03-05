@@ -9,13 +9,15 @@ class HardwareDockScrollArea : public DockScrollArea
     
 public:
     explicit HardwareDockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
-
-    virtual void updateDock();
     
 public slots:
     virtual void dockNodeItemClicked();
+    virtual void updateDock();
+
+    void nodeConstructed(NodeItem* nodeItem);
 
 private:
+    QStringList hardware_notAllowedKinds;
 
 };
 
