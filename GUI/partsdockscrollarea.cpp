@@ -26,30 +26,17 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
 
 /**
  * @brief PartsDockScrollArea::updateDock
- * This updates the Parts dock.
  * This checks the new adoptable nodes list to see which dock node
  * items need to either be hidden or shown from this dock.
  */
 void PartsDockScrollArea::updateDock()
 {
-    // this forcefully updates the parts dock node items list
-    //addDockNodeItems(getAdoptableNodeListFromView());
-
-    /*
-    // check to see if current node item can adopt nodes
-    QString nodeKind = nodeItem->getNodeKind();
-    if (!allowedKinds.contains(nodeKind)) {
-        getParentButton()->setEnabled(false);
-        getParentButton()->checkEnabled();
-    }
-    */
-
     /*
     // when the selected node can't adopt anything,
     // disbale parentButton and hide this dock
     if (getDockNodeItems().count() == 0) {
-        getParentButton()->setEnabled(false);
-        getParentButton()->checkEnabled();
+        getParentButton()->enableDock(false);
+        return;
     }
     */
 
@@ -59,16 +46,40 @@ void PartsDockScrollArea::updateDock()
         return;
     }
 
+    /*
+     * This doesn't prune the list; it may show an item that is already displayed.
+     * Not sure if hide/show/setVisible are heavy calls.
+     *
+    QStringList itemsToDisplay = getAdoptableNodeListFromView();
+
+    // compare the list of itemsToDisplay against the list of displayedItems
+    // if item in displayedItems is not contained in itemsToDisplay, hide it
+    for (int i = 0; i < displayedItems.count(); i++) {
+        QString item = displayedItems.at(i);
+        if (!itemsToDisplay.contains(item)) {
+            getDockNodeItem(item)->hide();
+        }
+    }
+
+    // show all the hidden dock node items with kind in itemsToDisplay
+    for (int i = 0; i < itemsToDisplay.count(); i++) {
+        getDockNodeItem(itemsToDisplay.at(i))->show();
+    }
+
+    // update list of currently displayed dock node items
+    displayedItems = itemsToDisplay;
+    */
+
     // NOTE: AdoptableNodeList from view is incorrect when deleteing node using undo.
 
     QStringList itemsToDisplay = getAdoptableNodeListFromView();
     QStringList newDisplayedItems;
 
-    // check if items from new list are already displayed
+    // compare the list of itemsToDisplay against the list of displayedItems
     for (int i = 0; i < displayedItems.count(); i++) {
         QString item = displayedItems.at(i);
-        // if it is, remove it from the list of itemsToDisplay
-        // otherwise, hide the dock node item
+        // if item in displayedItems is contained in itemsToDisplay, remove it from itemsToDisplay
+        // otherwise, item shouldn't be displayed anymore; hide it
         if (itemsToDisplay.contains(item)) {
             itemsToDisplay.removeAll(item);
             newDisplayedItems.append(item);
@@ -77,7 +88,7 @@ void PartsDockScrollArea::updateDock()
         }
     }
 
-    // show all dock node items with kind in itemsToDisplay
+    // show all the hidden dock node items with kind in itemsToDisplay
     for (int i = 0; i < itemsToDisplay.count(); i++) {
         getDockNodeItem(itemsToDisplay.at(i))->show();
         newDisplayedItems.append(itemsToDisplay.at(i));
@@ -106,11 +117,11 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
         addDockNodeItem(item);
     }
 
-    // initialise list of displayed items
-    displayedItems = nodeKinds;
-
     //checkScrollBar();
     repaint();
+
+    // initialise list of displayed items
+    displayedItems = nodeKinds;
 }
 
 

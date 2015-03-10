@@ -99,10 +99,10 @@ signals:
     // new signals for docks
     void view_enableDocks(bool enable);
     void view_nodeConstructed(NodeItem* nodeItem);
-    void view_nodeDeleted();
-    void view_nodeSelected();
+    void view_nodeSelected(Node* node);
+    void view_nodeDestructed();
     void view_edgeConstructed();
-    void view_edgeDeleted();
+    void view_edgeDestructed();
 
 public slots:
     void view_ClearHistory();
@@ -179,8 +179,8 @@ private:
     bool removeGraphMLItemFromHash(QString ID);
 
     void nodeConstructed_signalUpdates(NodeItem* nodeItem);
-    void nodeDeleted_signalUpdates(NodeItem* nodeItem);
     void nodeSelected_signalUpdates(Node *node);
+    void nodeDestructed_signalUpdates();
     void edgeConstructed_signalUpdates(Node* src);
 
     Node* hasDefinition(Node* node);

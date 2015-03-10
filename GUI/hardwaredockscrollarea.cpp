@@ -36,9 +36,9 @@ void HardwareDockScrollArea::dockNodeItemClicked()
     getNodeView()->view_constructEdge(getNodeView()->getSelectedNode(), sender->getNodeItem()->getNode());
 }
 
+
 /**
  * @brief DefinitionsDockScrollArea::updateDock
- * This updates the hardware nodes dock.
  */
 void HardwareDockScrollArea::updateDock()
 {
@@ -47,8 +47,7 @@ void HardwareDockScrollArea::updateDock()
     if (getCurrentNodeItem() && getCurrentNodeItem()->getNodeKind() == "ComponentInstance") {
         Node* inst = getCurrentNodeItem()->getNode();
         if (!inst->getDefinition()) {
-            getParentButton()->hideContainer();
-            getParentButton()->setEnabled(false);
+            getParentButton()->enableDock(false);
         }
         return;
     }
@@ -58,6 +57,8 @@ void HardwareDockScrollArea::updateDock()
 
 /**
  * @brief HardwareDockScrollArea::nodeConstructed
+ * This gets called whenever a node has been constructed.
+ * It checks to see if a dock item needs to be constucted for the new node.
  * @param nodeItem
  */
 void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)

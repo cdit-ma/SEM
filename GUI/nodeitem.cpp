@@ -1485,6 +1485,16 @@ Node *NodeItem::getNode()
 QString NodeItem::getNodeKind()
 {
     return nodeKind;
+
+    /*
+    qDebug() << "getNodeKind()";
+    if (!nodeKind.isNull()) {
+        return nodeKind;
+    } else {
+        qDebug() << "nodeKind is NULL";
+    }
+    return 0;
+    */
 }
 
 

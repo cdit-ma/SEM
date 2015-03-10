@@ -34,6 +34,9 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     makeConnections();
     newProject();
 
+    // TODO: create method to set the initial values for objects
+    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
+
     // this is used for when a file is dragged and
     // dropped on top of this tool's icon
     /*
@@ -418,12 +421,13 @@ void NewMedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_nodeDeleted()), partsDock, SLOT(updateDock()));
 
-    connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
-    connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
-    connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_nodeDestructed()), partsDock, SLOT(updateDock()));
+
+    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), partsDock, SLOT(updateCurrentNodeItem(Node*)));
+    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), definitionsDock, SLOT(updateCurrentNodeItem(Node*)));
+    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), hardwareDock, SLOT(updateCurrentNodeItem(Node*)));
 
     connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
@@ -615,9 +619,6 @@ void NewMedeaWindow::on_actionClearModel_triggered()
     }
 
     emit clearDocks();
-
-    // TODO: create method to set the initial values for objects
-    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
 }
 
 
@@ -877,6 +878,9 @@ void NewMedeaWindow::newProject()
 
     // set default view
     resetView();
+
+    // TODO: create method to set the initial values for objects
+    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
 }
 
 

@@ -35,24 +35,12 @@ void DockScrollArea::setNotAllowedKinds(QStringList kinds)
 
 
 /**
- * @brief DockScrollArea::setSelectedNode
- */
-void DockScrollArea::updateCurrentNodeItem()
-{
-    Node* selectedNode = nodeView->getSelectedNode();
-    NodeItem* currentItem = nodeView->getNodeItemFromNode(selectedNode);
-    setCurrentNodeItem(currentItem);
-}
-
-
-/**
- * @brief DockScrollArea::setCurrentNodeItem
+ * @brief DockScrollArea::updateCurrentNodeItem
  * This sets nodeItem to be the currently selected node item.
- * @param currentNodeItem
  */
-void DockScrollArea::setCurrentNodeItem(NodeItem* nodeItem)
+void DockScrollArea::updateCurrentNodeItem(Node* selectedNode)
 {
-    currentNodeItem = nodeItem;
+    currentNodeItem = nodeView->getNodeItemFromNode(selectedNode);
     updateDock();
 }
 
@@ -131,6 +119,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem *item)
 
 /**
  * @brief DockScrollArea::getDockNodeItems
+ * Returns the dock node items contained in this dock.
  * @return
  */
 QList<DockNodeItem *> DockScrollArea::getDockNodeItems()
@@ -141,10 +130,11 @@ QList<DockNodeItem *> DockScrollArea::getDockNodeItems()
 
 /**
  * @brief DockScrollArea::updateDock
- * This updates this dock.
  * If the currently selected node kind is contained in notAllowedKinds,
- * it means that this dock can be used for the selected node.
- * If so, hide this dock and disable its parentButton
+ * it means that this dock can't be used for the selected node.
+ * If so, hide this dock and disable its parentButton.
+ * If currentNodeItem is NULL, it means that there is no selected node
+ * or, there is a signal missing to set currentNodeItem to 0.
  */
 void DockScrollArea::updateDock()
 {

@@ -26,23 +26,21 @@ public:
 
     void setNotAllowedKinds(QStringList kinds);
 
-    void setCurrentNodeItem(NodeItem* nodeItem);
-    NodeItem* getCurrentNodeItem();
+    void addDockNodeItem(DockNodeItem* item);
+    QList<DockNodeItem*> getDockNodeItems();
 
+    NodeItem* getCurrentNodeItem();
     DockToggleButton* getParentButton();
     QString getLabel();
 
     NodeView* getNodeView();
     QStringList getAdoptableNodeListFromView();
 
-    void addDockNodeItem(DockNodeItem* item);
-    QList<DockNodeItem*> getDockNodeItems();
-
 protected:
     void paintEvent(QPaintEvent *e);
 
 public slots:
-    void updateCurrentNodeItem();
+    void updateCurrentNodeItem(Node* selectedNode);
 
     void activate();
     void clear();

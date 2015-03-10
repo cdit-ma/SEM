@@ -490,6 +490,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         scene()->addItem(nodeItem);
     }
 
+    // send necessary signals when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
 }
 
@@ -557,11 +558,8 @@ void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
             if(setSelected){
                 emit view_SetSelectedAttributeModel(guiItem->getAttributeTable());
 
-                // toolbar and menu goTo function updates
-                Node* node = dynamic_cast<Node*>(graphML);
-                if(node){
-                    nodeSelected_signalUpdates(node);
-                }
+                // send necessary signals when a node has been selected
+                nodeSelected_signalUpdates(dynamic_cast<Node*>(graphML));
 
                 return;
             }
@@ -646,6 +644,8 @@ void NodeView::view_constructEdge(Node *src, Node *dst)
 {
     emit triggerAction("Dock/Toolbar: Constructing Edge");
     emit constructEdge(src, dst);
+
+    // send necessary signals when an edge has been constucted
     edgeConstructed_signalUpdates(src);
 }
 
@@ -861,7 +861,8 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
             disconnect(item, SIGNAL(updateGraphMLData(GraphML*, QString, QString)), controller, SLOT(view_UpdateGraphMLData(GraphML*, QString, QString)));
             if(scene()->items().contains(item)){
 
-                //nodeDeleted_signalUpdates(getNodeItemFromGraphMLItem(item));
+                // send necessary signals when a node has been destructed
+                nodeDestructed_signalUpdates();
 
                 scene()->removeItem(item);
                 delete item;
@@ -878,6 +879,13 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
     return false;
 }
 
+
+/**
+ * @brief NodeView::nodeSelected_signalUpdates
+ * This gets called whenever a node is selected.
+ * It sends signals to update whatever needs updating.
+ * @param node
+ */
 void NodeView::nodeSelected_signalUpdates(Node *node)
 {
     if (node) {
@@ -893,24 +901,27 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
         toolbar->showDefinitionButton(hasDefn);
         toolbar->showImplementationButton(hasImpl);
 
-        emit view_nodeSelected();
+        emit view_nodeSelected(getSelectedNode());
     }
-
 }
 
 
 /**
- * @brief NodeView::nodeDeleted_signalUpdates
+ * @brief NodeView::nodeDestructed_signalUpdates
+ * This gets called whenever a node has been destructed.
+ * It sends signals to update whatever needs updating.
  * @param node
  */
-void NodeView::nodeDeleted_signalUpdates(NodeItem *nodeItem)
+void NodeView::nodeDestructed_signalUpdates()
 {
-    emit view_nodeDeleted();
+    emit view_nodeSelected(0);
+    emit view_nodeDestructed();
 }
+
 
 /**
  * @brief NodeView::nodeConstructed_signalUpdates
- * This is called whenever a node is constructed.
+ * This gets called whenever a node is constructed.
  * It sends signals to update whatever needs updating.
  * @param node
  */
@@ -922,7 +933,7 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem *nodeItem)
 
 /**
  * @brief NodeView::edgeConstructed_signalUpdates
- * This is called whenever an edge is constructed.
+ * This gets called whenever an edge is constructed.
  * It sends signals to update whatever needs updating.
  * @param src
  */
@@ -1260,6 +1271,7 @@ void NodeView::clearSelection()
 {
     emit unselect();
     emit view_enableDocks(false);
+    emit view_nodeSelected(0);
 }
 
 

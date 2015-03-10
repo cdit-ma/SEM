@@ -52,7 +52,6 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
 
 /**
  * @brief DefinitionsDockScrollArea::updateDock
- * This updates the definitions dock.
  */
 void DefinitionsDockScrollArea::updateDock()
 {
@@ -61,8 +60,7 @@ void DefinitionsDockScrollArea::updateDock()
     if (getCurrentNodeItem() && getCurrentNodeItem()->getNodeKind() == "ComponentInstance") {
         Node* inst = getCurrentNodeItem()->getNode();
         if (inst->getDefinition()) {
-            getParentButton()->hideContainer();
-            getParentButton()->setEnabled(false);
+            getParentButton()->enableDock(false);
         }
         return;
     }
@@ -72,6 +70,8 @@ void DefinitionsDockScrollArea::updateDock()
 
 /**
  * @brief DefinitionsDockScrollArea::nodeConstructed
+ * This gets called whenever a node has been constructed.
+ * It checks to see if a dock item needs to be constucted for the new node.
  * @param node
  */
 void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
