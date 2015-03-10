@@ -25,10 +25,9 @@ public:
     void hideContainer();
 
     int getWidth();
-
     QString getKind();
 
-    void checkEnabled();
+    void setEnabled(bool enable);
 
 protected:
     void paintEvent(QPaintEvent* e);
@@ -38,19 +37,35 @@ signals:
 
 public slots:
     void on_buttonPressed();
-
     void enableDock(bool enable);
 
 private:
+    void setColor(int state);
+
     DockScrollArea* scrollArea;
-    bool selected;
+
+    QColor brushColor;
+    QColor defaultBrushColor;
+    QColor disabledBrushColor;
+    QColor selectedBrushColor;
+
+    QColor penColor;
+    QColor defaultPenColor;
+    QColor disabledPenColor;
+    QColor selectedPenColor;
+
+    int penWidth;
+    int defaultPenWidth;
+    int selectedPenWidth;
 
     QString kind;
-    QColor color;
-    QColor fillColor;
-    QColor selectedColor;
     int width;
     int height;
+    bool selected;
+
+    const static int DEFAULT = 0;
+    const static int DISABLED = 1;
+    const static int SELECTED = 2;
 
 };
 

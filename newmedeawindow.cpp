@@ -34,9 +34,6 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     makeConnections();
     newProject();
 
-    // TODO: create method to set the initial values for objects
-    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
-
     // this is used for when a file is dragged and
     // dropped on top of this tool's icon
     /*
@@ -613,12 +610,15 @@ void NewMedeaWindow::on_actionAutoCenterViews_triggered()
  */
 void NewMedeaWindow::on_actionClearModel_triggered()
 {
+    emit clearDocks();
+
     if (nodeView) {
         nodeView->clearSelection();
         nodeView->resetModel();
-    }
 
-    emit clearDocks();
+        // TODO: create method to set the initial values for objects
+        partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
+    }
 }
 
 
@@ -878,9 +878,6 @@ void NewMedeaWindow::newProject()
 
     // set default view
     resetView();
-
-    // TODO: create method to set the initial values for objects
-    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
 }
 
 

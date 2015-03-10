@@ -17,9 +17,19 @@ DockToggleButton::DockToggleButton(QString label, NewMedeaWindow *window, QWidge
 {
     selected = false;
 
-    fillColor = QColor(250, 250, 250, 250);
-    selectedColor = QColor(230, 230, 150, 230);
-    color = fillColor;
+    defaultPenWidth = 1;
+    selectedPenWidth = 2;
+    penWidth = defaultPenWidth;
+
+    defaultPenColor = QColor(120,120,120);
+    disabledPenColor = QColor(150,150,150);
+    selectedPenColor = Qt::blue;
+    penColor = defaultPenColor;
+
+    defaultBrushColor = QColor(235, 235, 235);
+    disabledBrushColor = QColor(205, 205, 205);
+    selectedBrushColor = Qt::white;
+    brushColor = defaultBrushColor;
 
     kind = label;
     width = 40;
@@ -106,16 +116,12 @@ void DockToggleButton::setContainer(DockScrollArea *area)
 void DockToggleButton::paintEvent(QPaintEvent *e)
 {
     QPainter painter(this);
-    QBrush brush(color);
+    QPen pen(penColor);
+    QBrush brush(brushColor);
 
-    QPen pen;
-    if (isEnabled()) {
-        pen.setColor(QColor(120,120,120));
-    } else {
-        pen.setColor(QColor(150,150,150));
-    }
-    pen.setWidth(2);
+    pen.setWidth(penWidth);
     painter.setPen(pen);
+    painter.setRenderHint(QPainter::Antialiasing, true);
 
     // fill the ellipse
     QPainterPath path1;
@@ -186,14 +192,12 @@ void DockToggleButton::on_buttonPressed()
 {
     if (selected) {
         selected = false;
-        color = fillColor;
+        setColor(DEFAULT);
     } else {
         selected = true;
-        color = selectedColor;
+        setColor(SELECTED);
     }
-
     emit dockButton_pressed(this->text());
-    repaint();
 }
 
 
@@ -211,13 +215,40 @@ void DockToggleButton::enableDock(bool enable)
 
 
 /**
- * @brief DockToggleButton::checkEnabled
- * This method checks if this button is enabled.
- * If it's not, hide it's container.
+ * @brief DockToggleButton::setColor
+ * This sets the colour of this toggle buttopn depending on its current state.
  */
-void DockToggleButton::checkEnabled()
+void DockToggleButton::setColor(int state)
 {
-    if (!isEnabled()) {
-        hideContainer();
+    penWidth = defaultPenWidth;
+    if (state == DEFAULT) {
+        penColor = defaultPenColor;
+        brushColor = defaultBrushColor;
+    } else if (state == DISABLED) {
+        penColor = disabledPenColor;
+        brushColor = disabledBrushColor;
+    } else if (state = SELECTED) {
+        penWidth = selectedPenWidth;
+        penColor = selectedPenColor;
+        brushColor = selectedBrushColor;
     }
+}
+
+
+/**
+ * @brief DockToggleButton::setEnabled
+ * @param enable
+ */
+void DockToggleButton::setEnabled(bool enable)
+{
+    // if there is no change to this button's enabled state, don't change its colour
+    if (isEnabled() == enable) {
+        return;
+    }
+    if (enable) {
+        setColor(DEFAULT);
+    } else {
+        setColor(DISABLED);
+    }
+    QPushButton::setEnabled(enable);
 }
