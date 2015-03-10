@@ -12,7 +12,7 @@ public:
     virtual void printError(int checkID, Node* node, QString errorDescription);
 
 signals:
-    void highlightNodeError(Node* node, QString error);
+    void validationPlugin_HighlightError(GraphML* item, QString error);
 };
 
 #endif // VALIDATIONPLUGIN_H

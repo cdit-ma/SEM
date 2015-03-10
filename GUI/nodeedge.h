@@ -32,7 +32,7 @@ public slots:
     void setVisible(bool visible);
 
     void updateEdge();
-    void graphMLDataUpdated(GraphMLData * data);
+    void graphMLDataChanged(GraphMLData * data);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -86,6 +86,10 @@ private:
 
     bool inScene;
     bool instanceLink;
+
+    // GraphMLItem interface
+public slots:
+    void aspectsChanged(QStringList aspects);
 };
 
 

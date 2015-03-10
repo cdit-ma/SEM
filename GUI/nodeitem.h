@@ -37,6 +37,7 @@ public:
     QRectF boundingRect() const;
     bool isSelected();
     bool isPainted();
+    bool isAncestorSelected();
 
 
     void addChildNodeItem(NodeItem* child);
@@ -68,17 +69,17 @@ public:
 
 
 signals:
+    void NodeItem_SortModel();
+    void NodeItem_MoveSelection(QPointF delta);
+
     //Node Edge Signals
     void setEdgeVisibility(bool visible);
     void setEdgeSelected(bool selected);
 
-    //View Signals.
-    void moveSelection(QPointF delta);
-    void growSelection(QPointF delta);
-    void clearSelection();
+
 
     void centerViewAspects();
-    void sortModel();
+
 
 
     //DockNodeItem Signals
@@ -91,30 +92,29 @@ signals:
     void recentralizeAfterChange(GraphML* item);
 
     void nodeItemMoved();
-    void itemMovedOutOfScene(NodeItem* item);
+    //void itemMovedOutOfScene(NodeItem* item);
 
 
 public slots:
     void parentNodeItemMoved();
     //Model Signals
-    void graphMLDataUpdated(GraphMLData *data);
+    void graphMLDataChanged(GraphMLData *data);
     void setOpacity(qreal opacity);
     void setSelected(bool selected);
     void setVisible(bool visible);
 
     void setPermanentlyCentralized(bool centralized);
 
+        void aspectsChanged(QStringList aspects);
     void sort();
 
-    //Depth/Aspect Slots
-    void updateViewAspects(QStringList aspects);
 
     void addExpandButton();
     void expandItem(bool show);
 
     void updateHeight(NodeItem* child);
 
-    void updateSceneRect(QRectF sceneRect);
+    void sceneRectChanged(QRectF sceneRect);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -133,6 +133,8 @@ private:
     void setupGraphMLConnections();
 
     void setPaintObject(bool paint);
+
+
 
     void updateGraphMLSize();
     void updateGraphMLPosition();
@@ -215,6 +217,10 @@ private:
     int depth;
 
     QRectF currentSceneRect;
+
+
+    // GraphMLItem interface
+public slots:
 
 };
 

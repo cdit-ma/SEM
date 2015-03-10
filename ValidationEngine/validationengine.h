@@ -1,9 +1,10 @@
 #ifndef VALIDATIONENGINE_H
 #define VALIDATIONENGINE_H
 #include <QString>
-#include "validationplugin.h"
-#include "../Model/model.h"
 
+#include "validationplugin.h"
+
+class Model;
 class ValidationEngine
 {
 public:

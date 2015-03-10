@@ -5,5 +5,5 @@ void ValidationPlugin::printError(int checkID, Node *node, QString errorDescript
 {
     QString errorString = "Validation[" + getName() + "]: Check #" + QString::number(checkID) + ": " + errorDescription;
     qCritical() << errorString;
-    emit highlightNodeError(node, errorString);
+    emit validationPlugin_HighlightError(node, errorString);
 }

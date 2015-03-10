@@ -2,6 +2,8 @@
 #include "docktogglebutton.h"
 #include "docknodeitem.h"
 
+#include <QDebug>
+
 
 /**
  * @brief HardwareDockScrollArea::HardwareDockScrollArea
@@ -33,7 +35,7 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
 void HardwareDockScrollArea::dockNodeItemClicked()
 {
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
-    getNodeView()->view_constructEdge(getNodeView()->getSelectedNode(), sender->getNodeItem()->getNode());
+    getNodeView()->view_ConstructEdge(getNodeView()->getSelectedNode(), sender->getNodeItem()->getNode());
 }
 
 
@@ -51,6 +53,7 @@ void HardwareDockScrollArea::updateDock()
         }
         return;
     }
+
     DockScrollArea::updateDock();
 }
 

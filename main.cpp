@@ -1,12 +1,8 @@
-#include "medeawindow.h"
-
 #include <QApplication>
 #include <QtDebug>
 #include <QObject>
 
 #include "newmedeawindow.h"
-#include "medeawindow.h"
-//#include "mainwindow.h"
 #include "modeltester.h"
 
 int main(int argc, char *argv[])

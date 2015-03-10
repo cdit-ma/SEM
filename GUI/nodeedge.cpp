@@ -83,7 +83,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     GraphMLData* descriptionData = edge->getData("description");
 
     if(descriptionData)
-        connect(descriptionData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+        connect(descriptionData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
 
 
 
@@ -235,7 +235,7 @@ void NodeEdge::updateEdge()
     }
 }
 
-void NodeEdge::graphMLDataUpdated(GraphMLData *data)
+void NodeEdge::graphMLDataChanged(GraphMLData *data)
 {
     if(data){
         QString dataKey = data->getKey()->getName();
@@ -256,11 +256,18 @@ void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
     switch (event->button()) {
 
     case Qt::MiddleButton:{
-        emit triggerCentered(getGraphML());
+        GraphMLItem_SetCentered(this);
         break;
     }
     case Qt::LeftButton:{
-        emit triggerSelected(getGraphML());
+
+        if (!event->modifiers().testFlag(Qt::ControlModifier)){
+            //Clear First if Control isn't pressed!
+            GraphMLItem_ClearSelection();
+        }
+        GraphMLItem_AppendSelected(this);
+
+
         break;
     }
     };
@@ -316,8 +323,8 @@ void NodeEdge::setupBrushes()
     }
 
     selectedColor = color;
-    color.setAlpha(150);
-    selectedColor.setAlpha(250);
+    //color.setAlpha(150);
+    //selectedColor.setAlpha(250);
 
     brush = QBrush(color);
     selectedBrush = QBrush(selectedColor);
@@ -346,6 +353,11 @@ void NodeEdge::forceVisible(bool visible)
     }
 
     QGraphicsItem::setVisible(visible);
+}
+
+void NodeEdge::aspectsChanged(QStringList aspects)
+{
+    //Do Nothing.
 }
 
 

@@ -105,6 +105,7 @@ void GraphMLData::setValue(QString newValue)
         if(validatedValue != value){
             value = validatedValue;
             emit dataChanged(this);
+            emit valueChanged(value);
         }
 
         foreach(GraphMLData* data, childData){

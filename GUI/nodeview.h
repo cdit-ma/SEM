@@ -20,7 +20,6 @@ class NodeView : public QGraphicsView
     friend class ToolbarWidget;
     friend class NewController;
     Q_OBJECT
-
 public:
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
@@ -37,8 +36,6 @@ public:
 
     // this is used by the parts dock
     QStringList getConstructableNodeKinds();
-
-
 protected:
     //Mouse Handling Methods
     void mouseReleaseEvent(QMouseEvent *event);
@@ -51,52 +48,47 @@ protected:
     void keyReleaseEvent(QKeyEvent *event);
 
 signals:
-    //SIGNALS for other View Elements
-    void view_SetSelectedAttributeModel(AttributeTableModel* model);
-    void viewportRectangleChanged(QRectF);
-    void updateViewAspects(QStringList aspects);
+    void view_SetClipboardBuffer(QString);
+    void view_UndoListChanged(QStringList);
+    void view_RedoListChanged(QStringList);
+    void view_ProjectNameChanged(QString);
+    void view_ExportProject();
+    void view_ExportedProject(QString data);
+    void view_ImportProjects(QStringList data);
+
+    void view_Copy(QStringList IDs);
+    void view_Cut(QStringList IDs);
+    void view_Paste(Node* parent, QString xmlData);
+    void view_Delete(QStringList IDs);
+    void view_Duplicate(QStringList IDs);
+    void view_Undo();
+    void view_Redo();
+
+    void view_SetGraphMLData(GraphML*, QString, QString);
+    void view_ConstructGraphMLData(GraphML*, QString);
+    void view_DestructGraphMLData(GraphML*, QString);
+
+    void view_SetAttributeModel(AttributeTableModel* model);
+
+    void view_ViewportRectChanged(QRectF);
+    void view_SceneRectChanged(QRectF);
+
+    void view_AspectsChanged(QStringList aspects);
+    void view_GUIAspectChanged(QStringList aspects);
+
+    void view_StatusChanged(QString status);
 
     //SIGNALS for the Controller
-    void triggerAction(QString action);
-
-    void deletePressed(bool isDown);
-    void controlPressed(bool isDown);
-    void escapePressed(bool isDown);
-    void shiftPressed(bool isDown);
-
-    void copy();
-    void cut();
-    void paste();
-
-    void undo();
-    void redo();
-
-    void unselect();
-    void selectAll();
-
-
-    void sortModel();
-    void sortDeployment();
-
-    //void centerNode(QString nodeLabel);
-
-    void constructNode(QString nodeKind, QPointF relativePosition);
-    void constructEdge(Node* src, Node* dst);
-
-    void constructComponentInstance(Node* assm, Node* defn, QPointF center);
-    void constructEventPortDelegate(Node *assm, Node *eventPortInstance, QPointF center);
-
-    void constructConnectedComponents(Node* parent, Node* connectedNode, QString nodeKind, QPointF relativePosition);
-
-    void turnOnViewAspect(QString aspect);
-
-    void setGoToMenuActions(QString action, bool);
-
-    void sceneRectChanged(QRectF newRect);
-
+    void view_TriggerAction(QString action);
+    void view_ConstructNode(Node* parent, QString nodeKind, QPointF position);
+    void view_ConstructEdge(Node* source, Node* destination);
+    void view_ConstructConnectedComponents(Node* parent, Node* connectedNode, QString nodeKind, QPointF position);
+    void view_ConstructComponentInstance(Node* parent, Node* definition, QPointF position);
     void view_ClearHistoryStates();
 
-    // new signals for docks
+
+ // new signals for docks
+	void setGoToMenuActions(QString action, bool);
     void view_enableDocks(bool enable);
     void view_nodeConstructed(NodeItem* nodeItem);
     void view_nodeSelected(Node* node);
@@ -105,28 +97,49 @@ signals:
     void view_edgeDestructed();
 
 public slots:
+    void constructEventPortDelegate(Node *assm, Node *eventPortInstance);
+    void constructNode(QString nodeKind, int sender);
+    void setDefaultAspects();
+    void setEnabled(bool);
+
+    void showDialogMessage(MESSAGE_TYPE type, QString message, GraphML* item = 0);
+
+
+    void view_SelectModel();
+
+
+    void duplicate();
+    void copy();
+    void cut();
+    void paste(QString xmlData);
+    void selectAll();
+
+    void appendToSelection(GraphMLItem* item);
+    void moveSelection(QPointF delta);
+    void clearSelection();
+
+
     void view_ClearHistory();
     void toolbarClosed();
-    void forceSortViewAspects();
+    void sortAspects();
     void resetModel();
+
 
     void setAutoCenterViewAspects(bool center);
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
-    void view_ConstructGraphMLGUI(GraphML* item);
-    void printErrorText(GraphML* graphml, QString text);
+    void constructGUIItem(GraphML* item);
+    void destructGUIItem(QString ID);
+
+
     //void removeNodeItem(NodeItem* item);
-    void centreItem(GraphMLItem* item);
+    void centerItem(GraphMLItem* item);
     void clearView();
 
     void setRubberBandMode(bool On);
-    void setViewAspects(QStringList aspects);
+
 
     void showToolbar(QPoint position);
-
-    void view_ConstructNodeGUI(Node* node);
-    void view_ConstructEdgeGUI(Edge* edge);
-
-    void view_DestructGraphMLGUI(QString ID);
+    void sortModel();
 
     void view_SelectGraphML(GraphML* graphML, bool setSelected=true);
     void view_CenterGraphML(GraphML* graphML);
@@ -136,40 +149,52 @@ public slots:
     void view_SetOpacity(GraphML* graphML, qreal opacity);
 
 
+    void constructNewView(Node* centeredOn);
+    
+
     void sortEntireModel();
     void sortNode(Node* node, Node* topMostNode = 0);
 
     void fitToScreen();
 
-    void clearSelection();
 
-    void view_sortModel();
-    void view_centerViewAspects();
+    //void centerAspects();
+    void centerAspects();
+
 
     void goToDefinition(Node* node);
     void goToImplementation(Node* node);
-    void goToInstance(Node* node);
+    void goToInstance(Node *node);
 
-    void view_deleteSelectedNode();
-    void view_constructNewView(Node* centeredOn);
-
-    void view_constructNode(QString nodeKind, int sender);
-    void view_constructEdge(Node* src, Node* dst);
-
-    void view_constructComponentInstance(Node *assm, Node *defn, int sender);
-    void view_constructEventPortDelegate(Node *assm, Node *eventPortInstance);
+    void deleteSelection();
+    //void view_ConstructNode(QString nodeKind);
+    void constructEdge(Node* src, Node* dst);
+    void constructComponentInstance(Node *assm, Node *defn, int sender);
 
     void componentInstanceConstructed(Node* node);
 
-    void updateSceneRect(NodeItem *item);
+    void fitInSceneRect(GraphMLItem *item);
+
+    void setAspects(QStringList aspects);
 
 private:
+
+    void view_ConstructNodeGUI(Node* node);
+    void view_ConstructEdgeGUI(Edge* edge);
+
+
+    void setGraphMLItemAsSelected(GraphMLItem* item);
+
     NewController* getController();
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
 
     bool isSubView();
+    bool isMainView();
+    bool isAspectVisible(QString aspect);
+    void addAspect(QString aspect);
+    void removeAspect(QString aspect);
 
-    QStringList getAdoptableNodeList(Node* node=0);
+ 	QStringList getAdoptableNodeList(Node* node=0);
     QList<Node*> getConnectableNodes(Node* node=0);
 
     QList<Node*> getFiles();
@@ -185,6 +210,9 @@ private:
 
     Node* hasDefinition(Node* node);
     Node* hasImplementation(Node* node);
+
+    bool isItemsAncestorSelected(GraphMLItem* selectedItem);
+    void unsetItemsDescendants(GraphMLItem* selectedItem);
 
     NodeItem* getNodeItemFromNode(Node* node);
     NodeItem* getNodeItemFromGraphMLItem(GraphMLItem* item);
@@ -227,9 +255,10 @@ private:
 
     QList<NodeItem*> getNodeItemsList();
 
-    void showAllViewAspects();
+    void showAllAspects();
 
 
+   
     ToolbarWidget* toolbar;
 
 
@@ -237,11 +266,15 @@ private:
 
     QList<NodeView*> subViews;
 
-    bool autoCenterOn;
+    bool AUTO_CENTER_ASPECTS;
 
     bool toolbarJustClosed;
 
 
+
+    //Selection Lists
+    QStringList selectedIDs;
+    QStringList defaultAspects;
 protected:
     bool viewportEvent(QEvent *);
 

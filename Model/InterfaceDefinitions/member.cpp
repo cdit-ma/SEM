@@ -1,5 +1,4 @@
 #include "member.h"
-#include "memberinstance.h"
 #include <QDebug>
 Member::Member(): Node(Node::NT_DEFINITION)
 {

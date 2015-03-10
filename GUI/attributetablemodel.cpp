@@ -114,8 +114,9 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
         GraphMLData* data = attachedData.at(row);
 
         if (index.column() == 1 && data && !data->isProtected()){
-            emit guiItem->triggerAction("Updated Table Cell");
-            emit guiItem->updateGraphMLData(attachedGraphML, data->getKey()->getName(), value.toString());
+            guiItem->GraphMLItem_TriggerAction("Updated Table Cell");
+            guiItem->GraphMLItem_SetGraphMLData(guiItem->getGraphML(), data->getKey()->getName(), value.toString());
+
             emit(dataChanged(index, index));
         }
     }
@@ -145,9 +146,10 @@ bool AttributeTableModel::removeRows(int position, int rows, const QModelIndex &
         if(data && !data->isProtected()){
             if(!anyRemoved){
                 anyRemoved = true;
-                emit guiItem->triggerAction("Removed Table Row");
+                guiItem->GraphMLItem_TriggerAction("Removed Table Cell");
             }
-            emit guiItem->destructGraphMLData(attachedGraphML, data->getKey()->getName());
+
+            guiItem->GraphMLItem_DestructGraphMLData(guiItem->getGraphML(), data->getKey()->getName());
         }else{
             allRemoved = false;
         }

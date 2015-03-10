@@ -15,6 +15,7 @@
 #include <QAction>
 #include <QProcess>
 
+#include <QThread>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QSpacerItem>
@@ -23,9 +24,8 @@
 #include <QClipboard>
 #include <QItemSelectionModel>
 
-#include "GUI/projectwindow.h"
+#include "Controller/newcontroller.h"
 #include "GUI/attributetablemodel.h"
-#include "GUI/filterbutton.h"
 
 #include "GUI/docktogglebutton.h"
 #include "GUI/docknodeitem.h"
@@ -47,29 +47,26 @@ class NewMedeaWindow : public QMainWindow
 public:
     explicit NewMedeaWindow(QString graphMLFile=0, QWidget* parent = 0);
     ~NewMedeaWindow();
-
-
-protected:
     void resizeEvent(QResizeEvent* event);
 
-
 signals:
-    void view_PasteData(QString value);
-    void view_ActionTriggered(QString name);
-    void view_ImportGraphML(QStringList files);
-    void view_ExportGraphML(QString fileName);
+    void window_PasteData(QString value);
+    void window_ExportProject();
+    void window_ImportProjects(QStringList file);
+    void window_AspectsChanged(QStringList aspects);
+    void window_SortModel();
 
-    void sortModel();
-    void setViewAspects(QStringList aspects);
 
-    void clearDocks();
+    //Leave
+    void updateToolbarAdoptableNodesList(QStringList nodeList);
     void checkDockScrollBar();
     void setupViewLayout();
-
-    void setGUIComponentsEnabled(bool isEnabled);
-
+    void sendComponentDefinitions(QList<Node*>* definitions);
+    void clearDocks();
 
 private slots:
+    void setAspects(QStringList aspects);
+
     void sortAndCenterViewAspects();
 
     void loadJenkinsData(int code);
@@ -79,38 +76,41 @@ private slots:
     void on_actionImport_GraphML_triggered();
     void on_actionExport_GraphML_triggered();
 
-    void on_actionAutoCenterViews_triggered();
+    void autoCenterViews();
 
     void on_actionClearModel_triggered();
     void on_actionSortModel_triggered();
+    //void on_actionSortNode_triggered();
 
     void on_actionPaste_triggered();
     void on_actionExit_triggered();
 
-    void writeExportedGraphMLData(QString filename, QString data);
+    void writeExportedProject(QString data);
     void updateUndoStates(QStringList list);
     void updateRedoStates(QStringList list);
     void setClipboard(QString value);
 
-    void updateProjectName(QString label);
-
-    void setAttributeModel(AttributeTableModel* model);
-    void setGoToMenuActions(QString action, bool enabled);
-
-    void updateViewAspects();
-    void turnOnViewAspect(QString aspect);
+    void changeWindowTitle(QString label);
 
     void dockButtonPressed(QString buttonName);
+
+    void setAttributeModel(AttributeTableModel* model);
+
+
+    void updateViewAspects();
+
+
 
     void goToDefinition();
     void goToImplementation();
 
+    void setGoToMenuActions(QString action, bool enabled);
 
 private:
     void resetView();
     void newProject();
-    bool exportGraphML();
-    void importGraphMLFiles(QStringList files);
+    bool exportProject();
+    void importProjects(QStringList files);
     void initialiseGUI();
     void makeConnections();
     void connectToController();
@@ -121,7 +121,6 @@ private:
     void resetGUI();
     void updateDataTable();
 
-    QVector<ProjectWindow*> projectWindows;
     bool isEnabled;
 
     QMenu* menu;
@@ -152,8 +151,7 @@ private:
     DockToggleButton* hardwareNodesButton;
     DockToggleButton* compDefinitionsButton;
     DockToggleButton* prevPressedButton;
-
-    PartsDockScrollArea* partsDock;
+	PartsDockScrollArea* partsDock;
     DefinitionsDockScrollArea* definitionsDock;
     HardwareDockScrollArea* hardwareDock;
 
@@ -184,6 +182,9 @@ private:
     QString JENKINS_ADDRESS;
     QString JENKINS_USERNAME;
     QString JENKINS_PASSWORD;
+
+
+    QString exportFileName;
 };
 
 #endif // NEWMEDEAWINDOW_H

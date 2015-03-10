@@ -31,44 +31,18 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
  */
 void PartsDockScrollArea::updateDock()
 {
-    /*
-    // when the selected node can't adopt anything,
-    // disbale parentButton and hide this dock
-    if (getDockNodeItems().count() == 0) {
-        getParentButton()->enableDock(false);
-        return;
-    }
-    */
-
     // check selected node kind against notAllowedKinds list first
     DockScrollArea::updateDock();
     if (!getParentButton()->isEnabled()) {
         return;
     }
 
-    /*
-     * This doesn't prune the list; it may show an item that is already displayed.
-     * Not sure if hide/show/setVisible are heavy calls.
-     *
-    QStringList itemsToDisplay = getAdoptableNodeListFromView();
-
-    // compare the list of itemsToDisplay against the list of displayedItems
-    // if item in displayedItems is not contained in itemsToDisplay, hide it
-    for (int i = 0; i < displayedItems.count(); i++) {
-        QString item = displayedItems.at(i);
-        if (!itemsToDisplay.contains(item)) {
-            getDockNodeItem(item)->hide();
-        }
+    // when the selected node can't adopt anything,
+    // disbale parentButton and hide this dock
+    if (getDockNodeItems().count() == 0) {
+        getParentButton()->enableDock(false);
+        return;
     }
-
-    // show all the hidden dock node items with kind in itemsToDisplay
-    for (int i = 0; i < itemsToDisplay.count(); i++) {
-        getDockNodeItem(itemsToDisplay.at(i))->show();
-    }
-
-    // update list of currently displayed dock node items
-    displayedItems = itemsToDisplay;
-    */
 
     // NOTE: AdoptableNodeList from view is incorrect when deleteing node using undo.
 
@@ -151,5 +125,5 @@ DockNodeItem* PartsDockScrollArea::getDockNodeItem(QString kind)
 void PartsDockScrollArea::dockNodeItemClicked()
 {
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
-    getNodeView()->view_constructNode(sender->getKind(), 0);
+    getNodeView()->constructNode(sender->getKind(), 0);
 }

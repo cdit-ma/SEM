@@ -18,6 +18,7 @@ TEMPLATE = app
 LIBS += -lpsapi
 
 HEADERS += \
+newmedeawindow.h \
     GUI/attributetablemodel.h \
     GUI/nodeitem.h \
     GUI/nodeview.h \
@@ -30,9 +31,6 @@ HEADERS += \
     Model/blanknode.h \
     Controller/newcontroller.h \
     GUI/graphmlitem.h \
-    medeawindow.h \
-    GUI/projectwindow.h \
-    GUI/filterbutton.h \
     Model/BehaviourDefinitions/periodicevent.h \
     Model/DeploymentDefinitions/componentassembly.h \
     Model/DeploymentDefinitions/componentinstance.h \
@@ -69,7 +67,6 @@ HEADERS += \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
     ValidationEngine/validationengine.h \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
-    newmedeawindow.h \
     GUI/docktogglebutton.h \
     GUI/dockscrollarea.h \
     GUI/nodeedge.h \
@@ -77,12 +74,8 @@ HEADERS += \
     Model/InterfaceDefinitions/aggregateinstance.h \
     Model/InterfaceDefinitions/memberinstance.h \
     Model/DeploymentDefinitions/managementcomponent.h \
-    GUI/nodetable.h \
-    GUI/nodetableitem.h \
-    GUI/nodetableview.h \
     Model/DeploymentDefinitions/ineventportdelegate.h \
     Model/DeploymentDefinitions/outeventportdelegate.h \
-    GUI/graphmlview.h \
     modeltester.h \
     GUI/nodeviewminimap.h \
     GUI/toolbarwidget.h \
@@ -107,9 +100,6 @@ SOURCES += \
     Model/blanknode.cpp \
     Controller/newcontroller.cpp \
     GUI/graphmlitem.cpp \
-    medeawindow.cpp \
-    GUI/projectwindow.cpp \
-    GUI/filterbutton.cpp \
     Model/BehaviourDefinitions/periodicevent.cpp \
     Model/DeploymentDefinitions/componentassembly.cpp \
     Model/DeploymentDefinitions/componentinstance.cpp \
@@ -153,12 +143,8 @@ SOURCES += \
     Model/InterfaceDefinitions/aggregateinstance.cpp \
     Model/InterfaceDefinitions/memberinstance.cpp \
     Model/DeploymentDefinitions/managementcomponent.cpp \
-    GUI/nodetable.cpp \
-    GUI/nodetableitem.cpp \
-    GUI/nodetableview.cpp \
     Model/DeploymentDefinitions/ineventportdelegate.cpp \
     Model/DeploymentDefinitions/outeventportdelegate.cpp \
-    GUI/graphmlview.cpp \
     modeltester.cpp \
     GUI/nodeviewminimap.cpp \
     GUI/toolbarwidget.cpp \
@@ -170,8 +156,6 @@ SOURCES += \
     GUI/definitionsdockscrollarea.cpp
 
 FORMS += \
-    medeawindow.ui \
-    mainwindow.ui \
 
 RESOURCES += \
     resources.qrc

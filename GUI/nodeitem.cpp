@@ -126,7 +126,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     }
 
     resetNextChildPos();
-    updateViewAspects(aspects);
+    aspectsChanged(aspects);
     emit updateParentHeight(this);
 }
 
@@ -419,7 +419,7 @@ void NodeItem::setPermanentlyCentralized(bool centralized)
 }
 
 
-void NodeItem::graphMLDataUpdated(GraphMLData* data)
+void NodeItem::graphMLDataChanged(GraphMLData* data)
 {
     if(data){
         QString dataKey = data->getKeyName();
@@ -462,42 +462,6 @@ void NodeItem::graphMLDataUpdated(GraphMLData* data)
 }
 
 
-/**
- * @brief NodeItem::updateViewAspects
- * This method checks to see if this item should be visible or not.
- * @param aspects
- */
-void NodeItem::updateViewAspects(QStringList aspects)
-{
-    if(hidden || !PAINT_OBJECT){
-        return;
-    }
-    if(this->getParentNodeItem() && !getParentNodeItem()->isExpanded()){
-        return;
-    }
-
-    bool allMatched = true;
-    foreach(QString aspect, viewAspects){
-        if(!aspects.contains(aspect)){
-            allMatched = false;
-            break;
-        }
-    }
-
-    bool prevVisible = isVisible();
-    setVisible(allMatched && (viewAspects.size() > 0));
-
-    // if the view aspects have been changed, update pos of edges
-    //if(prevVisible != isVisible()){
-    //    emit update
-    //    emit updateEdgePosition();
-    //}
-
-    // if not visible, unselect node item
-    if (!isVisible()) {
-        setSelected(false);
-    }
-}
 
 
 /**
@@ -517,8 +481,9 @@ void NodeItem::sort()
 {
 
     //emit triggerAction("Sorting Children");
+
     float topY;
-        float gapY;
+    float gapY;
 
         // if it's a main node item, it will have no icon
         if (!PAINT_OBJECT || nodeKind.endsWith("Definitions")) {
@@ -581,10 +546,8 @@ void NodeItem::sort()
             colHeight = 0;
         }
 
-        QList<Node*> childNodes = getNode()->getChildren(0);
-        foreach(Node* childNode, childNodes){
-        NodeItem* nodeItem = getChildNodeItemFromNode(childNode);
-
+        foreach(Node* child, getNode()->getChildren(0)){
+            NodeItem* nodeItem = getChildNodeItemFromNode(child);
             // check that it's a NodeItem and that it's visible
             if (nodeItem  && nodeItem->isVisible()) {
 
@@ -653,13 +616,12 @@ void NodeItem::sort()
                         attCol += childHeight + gapY;
                     }
 
-                    emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(newX));
-                    emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(newY));
+                    GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "x", QString::number(newX));
+                    GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "y", QString::number(newY));
 
                 } else {
-
-                    emit updateGraphMLData(nodeItem->getGraphML(),"x", QString::number(rowWidth));
-                    emit updateGraphMLData(nodeItem->getGraphML(),"y", QString::number(colHeight));
+                    GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "x", QString::number(rowWidth));
+                    GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "y", QString::number(colHeight));
                     rowWidth += childWidth + gapX;
 
                 }
@@ -679,7 +641,7 @@ void NodeItem::sort()
                 if (attCol > max_height) {
                     max_height = attCol;
                 }
-                emit updateGraphMLData(getGraphML(),"height", QString::number(max_height));
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(max_height));
 
             } else {
 
@@ -688,23 +650,23 @@ void NodeItem::sort()
                 }
 
                 if (nodeKind == "DeploymentDefinitions") {
-                    emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth));
-                    emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight));
+                    GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth));
+                    GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight));
                     return;
                 }
 
                 if (nodeKind == "Model") {
-                    emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth));
-                    emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight));
+                    GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth));
+                    GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight));
                     return;
                 }
 
                 if ((maxWidth + gapX) > initialWidth) {
-                    emit updateGraphMLData(getGraphML(), "width", QString::number(maxWidth + gapX));
+                    GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth + gapX));
                 } else {
-                    emit updateGraphMLData(getGraphML(), "width", QString::number(initialWidth));
+                    GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(initialWidth));
                 }
-                emit updateGraphMLData(getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
             }
         }
 
@@ -730,7 +692,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         // unselect any selected node item
         // when the model is pressed
         if(!PAINT_OBJECT){
-            emit clearSelection();
+            //emit clearSelection();
             return;
         }
 
@@ -740,16 +702,25 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         hasSelectionMoved = false;
         isNodePressed = true;
 
-        emit triggerSelected(getGraphML());
-
+        if(!isSelected()){
+            if (!event->modifiers().testFlag(Qt::ControlModifier)){
+                //Check for parent selection.
+                GraphMLItem_ClearSelection();
+            }
+            GraphMLItem_AppendSelected(this);
+        }
         break;
     }
     case Qt::RightButton:{
         if(!PAINT_OBJECT){
             return;
         }
+
+        //emit setSelection(this);
+
         //Select this node, and construct a child node.
-        emit triggerSelected(getGraphML());
+        //emit triggerSelected(this);
+        //emit triggerSelected(getGraphML());
         break;
 
     }
@@ -764,6 +735,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     switch (event->button()) {
     case Qt::LeftButton:{
         if(!PAINT_OBJECT){
+            GraphMLItem_ClearSelection();
             return;
         }
 
@@ -772,12 +744,10 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             if (!currentSceneRect.contains(scenePos()) ||
                     !currentSceneRect.contains(scenePos().x()+width, scenePos().y()+height)) {
                 //qDebug() << "itemMovedOutOfScene";
-                emit itemMovedOutOfScene(this);
+                GraphMLItem_MovedOutOfScene(this);
             }
-            //QPointF delta = (event->scenePos() - previousScenePosition);
-            //previousScenePosition = event->scenePos();
 
-            //emit moveSelection(delta);
+
         }
 
 
@@ -789,10 +759,10 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     case Qt::MiddleButton:{
         if (PAINT_OBJECT) {
             if (event->modifiers().testFlag(Qt::ControlModifier)) {
-                emit triggerAction("Sorting Node");
+                GraphMLItem_TriggerAction("Sorting Node");
                 sort();
             } else {
-                emit triggerCentered(getGraphML());
+                GraphMLItem_SetCentered(this);
             }
         } else {
             emit centerViewAspects();
@@ -813,13 +783,13 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
     if(isNodePressed && nodeSelected){
         if(hasSelectionMoved == false){
-            emit triggerAction("Moving Selection");
+            emit GraphMLItem_TriggerAction("Moving Selection");
             hasSelectionMoved = true;
         }
         QPointF delta = (event->scenePos() - previousScenePosition);
         previousScenePosition = event->scenePos();
 
-        emit moveSelection(delta);
+        NodeItem_MoveSelection(delta);
     }
 }
 
@@ -893,6 +863,18 @@ void NodeItem::setPaintObject(bool paint)
     if(label){
         label->setVisible(paint);
     }
+}
+
+bool NodeItem::isAncestorSelected()
+{
+    if(parentNodeItem){
+        if(parentNodeItem->isSelected()){
+            return true;
+        }else{
+            return parentNodeItem->isAncestorSelected();
+        }
+    }
+    return false;
 }
 
 void NodeItem::updateTextLabel(QString text)
@@ -1059,12 +1041,12 @@ void NodeItem::setupBrushes()
 
     if(nodeKind.endsWith("Definitions")){
         selectedColor = color;
-        color.setAlpha(50);
-        selectedColor.setAlpha(150);
+        //color.setAlpha(50);
+        //selectedColor.setAlpha(150);
     }else{
         selectedColor = color;
-        color.setAlpha(200);
-        selectedColor.setAlpha(250);
+        //color.setAlpha(200);
+        //selectedColor.setAlpha(250);
 
     }
 
@@ -1092,6 +1074,39 @@ void NodeItem::setPos(const QPointF &pos)
         QGraphicsItem::setPos(pos);
 
         updateChildrenOnChange();
+    }
+}
+
+void NodeItem::aspectsChanged(QStringList aspects)
+{
+    if(hidden || !PAINT_OBJECT){
+        return;
+    }
+    if(this->getParentNodeItem() && !getParentNodeItem()->isExpanded()){
+        return;
+    }
+
+    bool allMatched = true;
+    foreach(QString aspect, viewAspects){
+        if(!aspects.contains(aspect)){
+            allMatched = false;
+            break;
+        }
+    }
+
+    bool prevVisible = isVisible();
+
+    setVisible(allMatched && (viewAspects.size() > 0));
+
+    // if the view aspects have been changed, update pos of edges
+    //if(prevVisible != isVisible()){
+    //    emit update
+    //    emit updateEdgePosition();
+    //}
+
+    // if not visible, unselect node item
+    if (!isVisible()) {
+        setSelected(false);
     }
 }
 
@@ -1141,27 +1156,27 @@ void NodeItem::setupGraphMLConnections()
 
 
         if(xData){
-            connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+            connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
         }
 
         if(yData){
-            connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+            connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
         }
 
         if(hData){
-            connect(hData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+            connect(hData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
         }
 
         if(wData){
-            connect(wData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+            connect(wData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
         }
 
         if(labelData){
-            connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+            connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
         }
 
         if(kindData){
-            connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataUpdated(GraphMLData*)));
+            connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
         }
     }
 }
@@ -1447,7 +1462,7 @@ void NodeItem::updateHeight(NodeItem *child)
         if (diffHeight > 0) {
 
             setHeight(height + diffHeight + selectedPen.width());
-            emit updateGraphMLData(getGraphML(), "height", QString::number(height));
+            GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(height));
 
             // recurse while there is a parent node item
             NodeItem* parentNodeItem = dynamic_cast<NodeItem*>(parentItem());
@@ -1466,7 +1481,7 @@ void NodeItem::updateHeight(NodeItem *child)
  * This gets called everytime there has been a change to the view's sceneRect.
  * @param sceneRect
  */
-void NodeItem::updateSceneRect(QRectF sceneRect)
+void NodeItem::sceneRectChanged(QRectF sceneRect)
 {
    currentSceneRect = sceneRect;
 }
@@ -1526,10 +1541,10 @@ void NodeItem::resetSize()
             //emit triggerAction("Resetting Size!");
         }
         if(initialHeight != height){
-            emit updateGraphMLData(id, "height", QString::number(initialHeight));
+            GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(initialHeight));
         }
         if(initialWidth != width){
-            emit updateGraphMLData(id, "width", QString::number(initialWidth));
+            GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(initialWidth));
         }
     }
 }

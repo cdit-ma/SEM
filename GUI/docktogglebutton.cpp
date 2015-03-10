@@ -232,6 +232,7 @@ void DockToggleButton::setColor(int state)
         penColor = selectedPenColor;
         brushColor = selectedBrushColor;
     }
+    repaint();
 }
 
 

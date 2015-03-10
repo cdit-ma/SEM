@@ -19,6 +19,9 @@ public:
     //Super class constructor; Relative ID and name provided. Used only to be called by the extended classes.
     GraphML(KIND kind, QString name="");
 
+    bool isNode();
+    bool isEdge();
+
     //The destructor.
     ~GraphML();
 

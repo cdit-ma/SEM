@@ -1,4 +1,6 @@
 #include "validationengine.h"
+#include "validationplugin.h"
+#include "../Model/model.h"
 #include <QDebug>
 ValidationEngine::ValidationEngine()
 {

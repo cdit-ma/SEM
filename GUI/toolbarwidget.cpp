@@ -433,15 +433,15 @@ void ToolbarWidget::connectToView()
     connect(this, SIGNAL(toolbar_goToImplementation(Node*)), parentNodeView, SLOT(goToImplementation(Node*)));
     connect(this, SIGNAL(toolbar_goToInstance(Node*)), parentNodeView, SLOT(goToInstance(Node*)));
 
-    connect(deleteButton, SIGNAL(clicked()), parentNodeView, SLOT(view_deleteSelectedNode()));
+    connect(deleteButton, SIGNAL(clicked()), parentNodeView, SLOT(deleteSelection()));
 
-    connect(this, SIGNAL(toolbar_constructNode(QString, int)), parentNodeView, SLOT(view_constructNode(QString, int)));
-    connect(this, SIGNAL(toolbar_constructEdge(Node*,Node*)), parentNodeView, SLOT(view_constructEdge(Node*,Node*)));
+    connect(this, SIGNAL(toolbar_constructNode(QString, int)), parentNodeView, SLOT(constructNode(QString, int)));
+    connect(this, SIGNAL(toolbar_constructEdge(Node*,Node*)), parentNodeView, SLOT(constructEdge(Node*,Node*)));
 
-    connect(this, SIGNAL(toolbar_constructComponentInstance(Node*,Node*,int)), parentNodeView, SLOT(view_constructComponentInstance(Node*,Node*,int)));
-    connect(this, SIGNAL(toolbar_constructEventPortDelegate(Node*,Node*)), parentNodeView, SLOT(view_constructEventPortDelegate(Node*,Node*)));
+    connect(this, SIGNAL(toolbar_constructComponentInstance(Node*,Node*,int)), parentNodeView, SLOT(constructComponentInstance(Node*,Node*,int)));
+   // connect(this, SIGNAL(toolbar_constructEventPortDelegate(Node*,Node*)), parentNodeView, SLOT((Node*,Node*)));
 
-    connect(this, SIGNAL(toolbar_constructNewView(Node*)), parentNodeView, SLOT(view_constructNewView(Node*)));
+    connect(this, SIGNAL(toolbar_constructNewView(Node*)), parentNodeView, SLOT(constructNewView(Node*)));
 }
 
 
@@ -508,7 +508,7 @@ void ToolbarWidget::setupInstancesList(QList<Node*> instances)
 
     for (int i=0; i<instances.count(); i++) {
         ToolbarWidgetAction* action  = new ToolbarWidgetAction(instances.at(i), this);
-        connect(action, SIGNAL(pressed()), this, SLOT(attachOptionMenu()));
+        connect(action, SIGNAL(toolbarAction_pressed()), this, SLOT(attachOptionMenu()));
         instancesMenu->addWidgetAction(action);
     }
 }

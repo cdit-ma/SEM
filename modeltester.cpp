@@ -44,15 +44,15 @@ ModelTester::ModelTester()
             qCritical() << "Delta Memory: " << beforeLoad - priorMemory << "KB.";
         }
 
-        controller->view_TriggerAction("Loading GraphML");
+        //controller->view_TriggerAction("Loading GraphML");
         for(int i = 0 ; i < loadCount; i++){
-            controller->view_Paste(xmlText);
+            //controller->view_Paste(xmlText);
         }
 
         float afterLoad = getMemoryUsage();
         //qCritical() << "Memory Usage After Load: " << afterLoad << "KB.";
 
-        controller->view_Undo();
+        //controller->view_Undo();
 
         //controller->view_ClearModel();
         sleep(20);

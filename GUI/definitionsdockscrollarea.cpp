@@ -42,9 +42,10 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     if (selectedNode) {
         Node* dockNode = sender->getNodeItem()->getNode();
         if (selectedNode->getDataValue("kind") == "ComponentAssembly") {
-            getNodeView()->view_constructComponentInstance(selectedNode, dockNode, 0);
+
+            getNodeView()->constructComponentInstance(selectedNode, dockNode, 0);
         } else if (selectedNode->getDataValue("kind") == "ComponentInstance") {
-            getNodeView()->view_constructEdge(selectedNode,  dockNode);
+            getNodeView()->view_ConstructEdge(selectedNode,  dockNode);
         }
     }
 }

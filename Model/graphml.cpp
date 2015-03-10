@@ -11,6 +11,16 @@ GraphML::GraphML(GraphML::KIND kind, QString name):QObject(0)
     setGenerated(false);
 }
 
+bool GraphML::isNode()
+{
+    return kind == GraphML::NODE;
+}
+
+bool GraphML::isEdge()
+{
+    return kind == GraphML::EDGE;
+}
+
 GraphML::~GraphML()
 {
     removeData();

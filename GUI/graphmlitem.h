@@ -25,16 +25,21 @@ public:
     virtual void setOpacity(qreal opacity) = 0;
 
 public slots:
-    virtual void graphMLDataUpdated(GraphMLData*) = 0;
+    virtual void graphMLDataChanged(GraphMLData*) = 0;
+    virtual void aspectsChanged(QStringList aspects) = 0;
+
 signals:
-    void triggerSelected(GraphML*, bool setSelected=true);
-    void triggerCentered(GraphML* element);
-    void triggerAction(QString actionName);
+    void GraphMLItem_TriggerAction(QString actionName);
+    void GraphMLItem_SetCentered(GraphMLItem*);
+    void GraphMLItem_CenterAspects();
 
-    void constructGraphMLData(GraphML* element, QString keyName);
-    void destructGraphMLData(GraphML* element, QString keyName);
-    void updateGraphMLData(GraphML* element, QString keyName, QString value);
+    void GraphMLItem_SetGraphMLData(GraphML*, QString, QString);
+    void GraphMLItem_ConstructGraphMLData(GraphML*, QString);
+    void GraphMLItem_DestructGraphMLData(GraphML*, QString);
 
+    void GraphMLItem_AppendSelected(GraphMLItem*);
+    void GraphMLItem_ClearSelection();
+    void GraphMLItem_MovedOutOfScene(GraphMLItem*);
 private:
     GraphML* attachedGraph;
     AttributeTableModel* table;
