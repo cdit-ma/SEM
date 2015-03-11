@@ -28,6 +28,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     nodeSelected = false;
     isNodePressed = false;
     permanentlyCentralized = false;
+    permanentlyInvisible = false;
     hidden = false;
     expanded = false;
     hasSelectionMoved = false;
@@ -127,6 +128,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     resetNextChildPos();
     aspectsChanged(aspects);
+
+
+    if (parentNodeKind.endsWith("EventPortInstance")){
+        setPermanentlyInvisible(true);
+    }
+
+
     emit updateParentHeight(this);
 }
 
@@ -716,6 +724,14 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             return;
         }
 
+        if(!isSelected()){
+            if (!event->modifiers().testFlag(Qt::ControlModifier)){
+                //Check for parent selection.
+                GraphMLItem_ClearSelection();
+            }
+            GraphMLItem_AppendSelected(this);
+        }
+
         //emit setSelection(this);
 
         //Select this node, and construct a child node.
@@ -844,7 +860,11 @@ void NodeItem::setHeight(qreal height)
     }
 }
 
-
+void NodeItem::setPermanentlyInvisible(bool isInvisible)
+{
+    permanentlyInvisible = isInvisible;
+    setVisible(permanentlyInvisible);
+}
 
 void NodeItem::setPaintObject(bool paint)
 {
@@ -1079,7 +1099,7 @@ void NodeItem::setPos(const QPointF &pos)
 
 void NodeItem::aspectsChanged(QStringList aspects)
 {
-    if(hidden || !PAINT_OBJECT){
+    if(hidden || !PAINT_OBJECT || permanentlyInvisible){
         return;
     }
     if(this->getParentNodeItem() && !getParentNodeItem()->isExpanded()){

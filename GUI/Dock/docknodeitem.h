@@ -1,7 +1,7 @@
 #ifndef DOCKNODEITEM_H
 #define DOCKNODEITEM_H
 
-#include "nodeview.h"
+#include "../nodeview.h"
 
 #include <QPushButton>
 #include <QLabel>

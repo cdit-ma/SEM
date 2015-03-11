@@ -3,7 +3,7 @@
 
 #include "../Controller/newcontroller.h"
 #include "nodeitem.h"
-#include "dockscrollarea.h"
+#include "Dock/dockscrollarea.h"
 
 #include <QGraphicsView>
 #include <QGraphicsRectItem>
@@ -170,6 +170,7 @@ public slots:
     //void view_ConstructNode(QString nodeKind);
     void constructEdge(Node* src, Node* dst);
     void constructComponentInstance(Node *assm, Node *defn, int sender);
+    void constructConnectedComponents(Node *parentNode, Node *node, QString kind, int sender);
 
     void componentInstanceConstructed(Node* node);
 

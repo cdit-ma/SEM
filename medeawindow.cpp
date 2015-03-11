@@ -1,6 +1,8 @@
-#include "newmedeawindow.h"
+#include "medeawindow.h"
+#include "GUI/toolbar/toolbarwidgetaction.h"
 
 #include <QDebug>
+#include <QObject>
 #include <QImage>
 #include <QFileDialog>
 #include <QClipboard>
@@ -11,9 +13,10 @@
 #include <QSettings>
 #include <QPicture>
 
+#include "Controller/newcontroller.h"
+
 
 #define THREADING false
-
 /**
  * @brief NewMedeaWindow::NewMedeaWindow
  * @param parent
@@ -26,6 +29,7 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
     controller = 0;
     myProcess = 0;
     minimap = 0;
+    checkedViewAspects.clear();;
 
     setupJenkinsSettings();
 
@@ -43,6 +47,8 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
         importGraphMLFiles(files);
     }
     */
+
+    //this->view_SetGUIEnabled(false);
 }
 
 
@@ -177,7 +183,7 @@ void NewMedeaWindow::initialiseGUI()
     // setup mini map
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
-    connect(nodeView, SIGNAL(viewportRectangleChanged(QRectF)), minimap, SLOT(viewPortRectangleChanged(QRectF)));
+    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
 
     minimap->scale(.002,.002);
     minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -343,18 +349,16 @@ void NewMedeaWindow::setupController()
     if (controller) {
         delete controller;
     }
-    if (thread) {
+    if(thread){
         delete thread;
     }
-
-    // can this be put inside the if statements?
     controller = 0;
     thread = 0;
 
     controller = new NewController();
 
     if(THREADING){
-        //IMPLEMENT THREADING!
+    //IMPLEMENT THREADING!
         thread = new QThread();
         thread->start();
         controller->moveToThread(thread);
@@ -363,6 +367,7 @@ void NewMedeaWindow::setupController()
     controller->connectView(nodeView);
     connectToController();
     controller->initializeModel();
+
 }
 
 
@@ -376,6 +381,7 @@ void NewMedeaWindow::resetGUI()
     selectedNode = 0;
 
     setupController();
+
 }
 
 
@@ -385,6 +391,10 @@ void NewMedeaWindow::resetGUI()
  */
 void NewMedeaWindow::makeConnections()
 {
+    connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setAspects(QStringList)));
+
+
+
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
@@ -393,11 +403,12 @@ void NewMedeaWindow::makeConnections()
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
-    connect(view_autoCenterView, SIGNAL(triggered()), this, SLOT(on_actionAutoCenterViews_triggered()));
+    connect(view_autoCenterView, SIGNAL(triggered()), this, SLOT(autoCenterViews()));
     connect(view_goToDefinition, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
     connect(model_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortModel_triggered()));
+    //connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
 
@@ -406,7 +417,7 @@ void NewMedeaWindow::makeConnections()
     connect(definitionsButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
 
-    connect(this, SIGNAL(setViewAspects(QStringList)), nodeView, SLOT(setViewAspects(QStringList)));
+    connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
 
     connect(nodeView, SIGNAL(view_enableDocks(bool)), partsButton, SLOT(enableDock(bool)));
     connect(nodeView, SIGNAL(view_enableDocks(bool)), compDefinitionsButton, SLOT(enableDock(bool)));
@@ -416,7 +427,7 @@ void NewMedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
 
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
+connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
 
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
@@ -426,10 +437,10 @@ void NewMedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeSelected(Node*)), definitionsDock, SLOT(updateCurrentNodeItem(Node*)));
     connect(nodeView, SIGNAL(view_nodeSelected(Node*)), hardwareDock, SLOT(updateCurrentNodeItem(Node*)));
 
-    connect(nodeView, SIGNAL(view_SetSelectedAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
+    connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
 
-    connect(nodeView, SIGNAL(turnOnViewAspect(QString)), this, SLOT(turnOnViewAspect(QString)));
+
     connect(nodeView, SIGNAL(setGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
 
     // this needs fixing
@@ -439,30 +450,40 @@ void NewMedeaWindow::makeConnections()
 }
 
 
-/**
+/**setupViewLayout
  * @brief NewMedeaWindow::connectToController
  * Connect signals and slots to the controller.
  */
 void NewMedeaWindow::connectToController()
 {
-    connect(this, SIGNAL(view_ImportGraphML(QStringList)), controller, SLOT(view_ImportGraphML(QStringList)));
-    connect(this, SIGNAL(view_ExportGraphML(QString)), controller, SLOT(view_ExportGraphML(QString)));
-    connect(controller, SIGNAL(view_WriteGraphML(QString,QString)), this, SLOT(writeExportedGraphMLData(QString,QString)));
+    //Newly Connected.
 
-    connect(model_clearModel, SIGNAL(triggered()), controller, SLOT(view_ClearModel()));
+    //SIGNALS
 
-    connect(controller, SIGNAL(view_UpdateUndoList(QStringList)), this, SLOT(updateUndoStates(QStringList)));
-    connect(controller, SIGNAL(view_UpdateRedoList(QStringList)), this, SLOT(updateRedoStates(QStringList)));
+    connect(this, SIGNAL(window_ExportProject()), nodeView, SIGNAL(view_ExportProject()));
+    connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SIGNAL(view_ImportProjects(QStringList)));
 
-    connect(edit_undo, SIGNAL(triggered()), controller, SLOT(view_Undo()));
-    connect(edit_redo, SIGNAL(triggered()), controller, SLOT(view_Redo()));
-    connect(edit_cut, SIGNAL(triggered()), controller, SLOT(view_Cut()));
-    connect(edit_copy, SIGNAL(triggered()), controller, SLOT(view_Copy()));
-    connect(this, SIGNAL(view_PasteData(QString)), controller, SLOT(view_Paste(QString)));
-    connect(controller, SIGNAL(view_UpdateCopyBuffer(QString)), this, SLOT(setClipboard(QString)));
 
-    connect(projectName, SIGNAL(clicked()), controller, SLOT(view_SelectModel()));
-    connect(controller, SIGNAL(view_UpdateProjectName(QString)), this, SLOT(updateProjectName(QString)));
+
+    //SLOTS
+    connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
+    connect(nodeView, SIGNAL(view_UndoListChanged(QStringList)), this, SLOT(updateUndoStates(QStringList)));
+    connect(nodeView, SIGNAL(view_RedoListChanged(QStringList)), this, SLOT(updateRedoStates(QStringList)));
+    connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
+    connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(changeWindowTitle(QString)));
+
+    connect(model_clearModel, SIGNAL(triggered()), controller, SLOT(clearModel()));
+
+    connect(edit_undo, SIGNAL(triggered()), nodeView, SIGNAL(view_Undo()));
+    connect(edit_redo, SIGNAL(triggered()), nodeView, SIGNAL(view_Redo()));
+
+    connect(edit_cut, SIGNAL(triggered()), nodeView, SLOT(cut()));
+    connect(edit_copy, SIGNAL(triggered()), nodeView, SLOT(copy()));
+    connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
+
+
+    connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
+
 }
 
 
@@ -485,7 +506,6 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
     updateDataTable();
 }
 
-
 /**
  * @brief NewMedeaWindow::sortAndCenterModel
  * This force sorts the main definitions containers before they are hidden.
@@ -494,7 +514,8 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
 void NewMedeaWindow::sortAndCenterViewAspects()
 {
     if (nodeView) {
-        nodeView->view_centerViewAspects();
+        //Change to Emits!
+        nodeView->centerAspects();
         nodeView->fitToScreen();
     }
 }
@@ -548,7 +569,7 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
                                                                     QMessageBox::Yes | QMessageBox::No);
     if (saveProject == QMessageBox::Yes) {
         // if failed to export, do nothing
-        if (!exportGraphML()) {
+        if (!exportProject()) {
             return;
         }
     }
@@ -568,8 +589,7 @@ void NewMedeaWindow::on_actionImport_GraphML_triggered()
                 "c:\\",
                 "GraphML Documents (*.graphml *.xml)");
 
-    importGraphMLFiles(files);
-    QStringList fileData;
+    importProjects(files);
 
     // clear item selection
     nodeView->clearSelection();
@@ -581,7 +601,7 @@ void NewMedeaWindow::on_actionImport_GraphML_triggered()
  */
 void NewMedeaWindow::on_actionExport_GraphML_triggered()
 {
-    exportGraphML();
+    exportProject();
 }
 
 
@@ -589,7 +609,7 @@ void NewMedeaWindow::on_actionExport_GraphML_triggered()
  * @brief NewMedeaWindow::on_actionAutoCenterViews_triggered
  * This tells the nodeView to set the automatic centering of view aspects on/off.
  */
-void NewMedeaWindow::on_actionAutoCenterViews_triggered()
+void NewMedeaWindow::autoCenterViews()
 {
     if (autoCenterOn) {
         autoCenterOn = false;
@@ -610,12 +630,11 @@ void NewMedeaWindow::on_actionAutoCenterViews_triggered()
  */
 void NewMedeaWindow::on_actionClearModel_triggered()
 {
-    emit clearDocks();
-
     if (nodeView) {
         nodeView->clearSelection();
         nodeView->resetModel();
 
+        clearDocks();
         // TODO: create method to set the initial values for objects
         partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
     }
@@ -627,14 +646,13 @@ void NewMedeaWindow::on_actionClearModel_triggered()
  */
 void NewMedeaWindow::on_actionSortModel_triggered()
 {
-    if (nodeView->getSelectedNode()){
-        nodeView->sortNode(nodeView->getSelectedNode());
-    } else {
-        nodeView->sortEntireModel();
-        nodeView->fitToScreen();
-    }
+   if (nodeView->getSelectedNode()){
+       nodeView->sortNode(nodeView->getSelectedNode());
+   } else {
+       nodeView->sortEntireModel();
+       nodeView->fitToScreen();
+   }
 }
-
 
 /**
  * @brief NewMedeaWindow::on_actionPaste_triggered
@@ -643,7 +661,7 @@ void NewMedeaWindow::on_actionPaste_triggered()
 {
     QClipboard *clipboard = QApplication::clipboard();
     if (clipboard->ownsClipboard()) {
-        emit view_PasteData(clipboard->text());
+        window_PasteData(clipboard->text());
     }
 }
 
@@ -656,28 +674,30 @@ void NewMedeaWindow::on_actionExit_triggered()
     close();
 }
 
-
-/**
- * @brief NewMedeaWindow::writeExportedGraphMLData
- * @param fileName
- * @param data
- */
-void NewMedeaWindow::writeExportedGraphMLData(QString filename, QString data)
+void NewMedeaWindow::writeExportedProject(QString data)
 {
     try {
-        QFile file(filename);
-        file.open(QIODevice::WriteOnly | QIODevice::Text);
+        //Try and Open File.
+        QFile file(exportFileName);
+        bool fileOpened = file.open(QIODevice::WriteOnly | QIODevice::Text);
 
+        if(!fileOpened){
+            QMessageBox::critical(this, "File Error", "Unable to open file: '" + exportFileName + "'! Check Permissions and Try Again!", QMessageBox::Ok);
+            return;
+        }
+
+        //Create stream to write the data.
         QTextStream out(&file);
         out << data;
-
         file.close();
-        QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: " + filename, QMessageBox::Ok);
 
-    } catch (...) {
-        qCritical() << "Export Failed!" ;
+        QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: '" + exportFileName +"'!", QMessageBox::Ok);
+    }catch(...){
+        QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
     }
 }
+
+
 
 
 /**
@@ -753,7 +773,7 @@ void NewMedeaWindow::setClipboard(QString value)
  * @brief NewMedeaWindow::updateProjectName
  * @param label
  */
-void NewMedeaWindow::updateProjectName(QString label)
+void NewMedeaWindow::changeWindowTitle(QString label)
 {
     setWindowTitle("MEDEA - " + label);
     projectName->setText(label);
@@ -761,15 +781,16 @@ void NewMedeaWindow::updateProjectName(QString label)
 
 
 /**
- * @brief NewMedeaWindow::updateViewAspects
+ * @brief NewMedeaWindow::updateAspects
  * Add view aspect to checkedViewAspects when the corresponding button
  * is clicked and remove it when it's unclick then update the view.
  */
 void NewMedeaWindow::updateViewAspects()
 {
+    QStringList newAspects = checkedViewAspects;
+
     QPushButton *sourceButton = qobject_cast<QPushButton*>(QObject::sender());
     if (sourceButton) {
-
         QString view = sourceButton->text();
         if (view == "Interface") {
             view = "Definitions";
@@ -777,14 +798,15 @@ void NewMedeaWindow::updateViewAspects()
             view = "Workload";
         }
 
-        if (sourceButton->isChecked()) {
-            checkedViewAspects.append(view);
+        if (sourceButton->isChecked() && !newAspects.contains(view)) {
+            newAspects.append(view);
         } else {
-            checkedViewAspects.removeAll(view);
+            newAspects.removeAll(view);
         }
-
     }
-    emit setViewAspects(checkedViewAspects);
+    if(newAspects != checkedViewAspects){
+        window_AspectsChanged(newAspects);
+    }
 }
 
 
@@ -809,24 +831,15 @@ void NewMedeaWindow::goToImplementation()
     }
 }
 
-
-/**
- * @brief NewMedeaWindow::turnOnViewAspect
- * This turns on the view aspect specified.
- * @param aspect
- */
-void NewMedeaWindow::turnOnViewAspect(QString aspect)
+void NewMedeaWindow::setAspects(QStringList aspects)
 {
-    if (aspect == "Definitions") {
-        emit definitionsButton->click();
-    } else if (aspect == "Workload") {
-        workloadButton->click();
-    } else if (aspect == "Assembly") {
-        assemblyButton->click();
-    } else if (aspect == "Hardware") {
-        hardwareButton->click();
-    }
+    definitionsButton->setChecked(aspects.contains("Definitions"));
+    workloadButton->setChecked(aspects.contains("Workload"));
+    assemblyButton->setChecked(aspects.contains("Assembly"));
+    hardwareButton->setChecked(aspects.contains("Hardware"));
+    checkedViewAspects = aspects;
 }
+
 
 
 /**
@@ -843,32 +856,14 @@ void NewMedeaWindow::setGoToMenuActions(QString action, bool enabled)
     }
 }
 
-
-/**
- * @brief NewMedeaWindow::resetView
- * This sets the default values for the view aspects.
- * Initially, only Assembly should be on.
- */
 void NewMedeaWindow::resetView()
 {
-    if (hardwareButton->isChecked()){
-        hardwareButton->click();
-    }
-    if (definitionsButton->isChecked()){
-        definitionsButton->click();
-    }
-    if (workloadButton->isChecked()){
-        workloadButton->click();
-    }
-    if (!assemblyButton->isChecked()){
-        assemblyButton->click();
+    if(nodeView){
+        nodeView->setDefaultAspects();
     }
 }
 
 
-/**
- * @brief NewMedeaWindow::newProject
- */
 void NewMedeaWindow::newProject()
 {
     // clear view and reset gui
@@ -876,7 +871,7 @@ void NewMedeaWindow::newProject()
     on_actionClearModel_triggered();
     nodeView->view_ClearHistory();
 
-    // set default view
+    //Set default View.
     resetView();
 }
 
@@ -885,7 +880,7 @@ void NewMedeaWindow::newProject()
  * @brief NewMedeaWindow::exportGraphML
  * @return
  */
-bool NewMedeaWindow::exportGraphML()
+bool NewMedeaWindow::exportProject()
 {
     QString filename = QFileDialog::getSaveFileName(this,
                                                     "Export .graphML",
@@ -893,20 +888,17 @@ bool NewMedeaWindow::exportGraphML()
                                                     "GraphML Documents (*.graphML *.xml)");
 
     if (filename != "") {
-
-        if (filename.toLower().endsWith(".graphml") || filename.toLower().endsWith(".xml")) {
-            emit view_ExportGraphML(filename);
-        } else {
+        if(filename.toLower().endsWith(".graphml") || filename.toLower().endsWith(".xml")){
+            exportFileName = filename;
+            emit window_ExportProject();
+            return true;
+        }else{
             QMessageBox::critical(this, "Error", "You must Export using the either .graphML or .xml extensions.", QMessageBox::Ok);
-            exportGraphML(); // call again if we don't get a a .graphML file or a .xml File
+            //CALL AGAIN IF WE Don't get a a .graphML file or a .xml File
+            return exportProject();
         }
-
-        //TODO: Wait for successful  then return.
-        return true;
-
-    } else {
-        return false;
     }
+    return false;
 }
 
 
@@ -916,7 +908,7 @@ bool NewMedeaWindow::exportGraphML()
  */
 void NewMedeaWindow::setAttributeModel(AttributeTableModel *model)
 {
-    if (model) {
+    if(model){
         updateDataTable();
     }
     dataTable->setModel(model);
@@ -925,7 +917,7 @@ void NewMedeaWindow::setAttributeModel(AttributeTableModel *model)
 
 
 /**
- * @brief NewMedeaWindow::on_dockButtonPressed
+ * @brief NewMedeaWindow::dockButtonPressed
  * This method makes sure that the groupbox attached to the dock button
  * that was pressed is the only groupbox being currently displayed.
  * @param buttonName
@@ -950,7 +942,7 @@ void NewMedeaWindow::dockButtonPressed(QString buttonName)
     }
 
     prevPressedButton = b;
-    update();
+    //update();
 }
 
 
@@ -962,6 +954,7 @@ void NewMedeaWindow::dockButtonPressed(QString buttonName)
  */
 void NewMedeaWindow::updateDataTable()
 {
+
     QAbstractItemModel* tableModel = dataTable->model();
     qreal height = 0;
     int vOffset = 0;
@@ -1012,10 +1005,11 @@ void NewMedeaWindow::loadJenkinsData(int code)
 {
     QStringList files;
     files << myProcess->readAll();
-    emit view_ImportGraphML(files);
+
+    window_ImportProjects(files);
 
     // sort and center view aspects
-    nodeView->view_centerViewAspects();
+    nodeView->centerAspects();
 }
 
 
@@ -1023,32 +1017,32 @@ void NewMedeaWindow::loadJenkinsData(int code)
  * @brief NewMedeaWindow::importGraphMLFiles
  * @param files
  */
-void NewMedeaWindow::importGraphMLFiles(QStringList files)
+void NewMedeaWindow::importProjects(QStringList files)
 {
-    QStringList fileData;
-    for (int i = 0; i < files.size(); i++) {
+    QStringList projects;
+    foreach(QString fileName, files){
+        try {
+            QFile file(fileName);
 
-        QFile file(files.at(i));
+            bool fileOpened = file.open(QFile::ReadOnly | QFile::Text);
 
-        if (!file.open(QFile::ReadOnly | QFile::Text)) {
-            qCritical() << "Could not open: " << files.at(i) << " for reading!";
+            if(!fileOpened){
+                QMessageBox::critical(this, "File Error", "Unable to open file: '" + fileName + "'! Check Permissions and Try Again!", QMessageBox::Ok);
+                return;
+            }
+
+            QTextStream fileStream(&file);
+            QString projectXML = fileStream.readAll();
+            file.close();
+            projects << projectXML;
+        } catch (...) {
+            QMessageBox::critical(this, "Error", "Error reading file: '" + fileName + "'", QMessageBox::Ok);
             return;
         }
-
-        try {
-            QTextStream in(&file);
-            QString xmlText = in.readAll();
-            file.close();
-            fileData << xmlText;
-            qDebug() << "Loaded: " << files.at(i) << "Successfully!";
-        } catch (...) {
-            qCritical() << "Error Loading: " << files.at(i);
-        }
     }
+    if(projects.size() > 0){
 
-    emit nodeView->controlPressed(false);
-    emit nodeView->shiftPressed(false);
-
-    emit view_ImportGraphML(fileData);
-    nodeView->view_centerViewAspects();
+        window_ImportProjects(projects);
+        nodeView->centerAspects();
+    }
 }

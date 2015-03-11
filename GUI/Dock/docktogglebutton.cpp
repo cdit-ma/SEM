@@ -1,6 +1,7 @@
 #include "docktogglebutton.h"
 #include "dockscrollarea.h"
-#include "../newmedeawindow.h"
+
+#include "../../medeawindow.h"
 
 #include <QPainter>
 #include <QPainterPath>
@@ -61,6 +62,7 @@ DockToggleButton::DockToggleButton(QString label, NewMedeaWindow *window, QWidge
 
     // make connections
     connect(this, SIGNAL(pressed()), this, SLOT(on_buttonPressed()));
+
     connect(this, SIGNAL(dockButton_pressed(QString)), window, SLOT(dockButtonPressed(QString)));
 }
 

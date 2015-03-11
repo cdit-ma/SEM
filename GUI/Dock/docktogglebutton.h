@@ -4,7 +4,7 @@
 #include <QPushButton>
 #include <QGroupBox>
 
-#include "../Model/node.h"
+#include "../../Model/node.h"
 
 
 class NewMedeaWindow;

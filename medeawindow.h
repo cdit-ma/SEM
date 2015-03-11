@@ -1,5 +1,5 @@
-#ifndef NEWMEDEAWINDOW_H
-#define NEWMEDEAWINDOW_H
+#ifndef MEDEAWINDOW_H
+#define MEDEAWINDOW_H
 
 #include <QMainWindow>
 #include <QGraphicsView>
@@ -27,14 +27,14 @@
 #include "Controller/newcontroller.h"
 #include "GUI/attributetablemodel.h"
 
-#include "GUI/docktogglebutton.h"
-#include "GUI/docknodeitem.h"
+#include "GUI/dock/docktogglebutton.h"
+#include "GUI/dock/docknodeitem.h"
 
-#include "GUI/partsdockscrollarea.h"
-#include "GUI/definitionsdockscrollarea.h"
-#include "GUI/hardwaredockscrollarea.h"
+#include "GUI/dock/partsdockscrollarea.h"
+#include "GUI/dock/definitionsdockscrollarea.h"
+#include "GUI/dock/hardwaredockscrollarea.h"
 
-#include "GUI/toolbarwidgetaction.h"
+#include "GUI/toolbar/toolbarwidgetaction.h"
 
 #include "GUI/nodeviewminimap.h"
 
@@ -99,8 +99,6 @@ private slots:
 
     void updateViewAspects();
 
-
-
     void goToDefinition();
     void goToImplementation();
 
@@ -151,7 +149,8 @@ private:
     DockToggleButton* hardwareNodesButton;
     DockToggleButton* compDefinitionsButton;
     DockToggleButton* prevPressedButton;
-	PartsDockScrollArea* partsDock;
+
+PartsDockScrollArea* partsDock;
     DefinitionsDockScrollArea* definitionsDock;
     HardwareDockScrollArea* hardwareDock;
 

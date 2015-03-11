@@ -8,8 +8,8 @@
 #include <QScrollBar>
 #include <QLabel>
 
-#include "nodeview.h"
-#include "nodeitem.h"
+#include "../nodeview.h"
+#include "../nodeitem.h"
 #include "docknodeitem.h"
 
 

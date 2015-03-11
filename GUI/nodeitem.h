@@ -126,6 +126,7 @@ private:
     void setWidth(qreal width);
     void setHeight(qreal height);
 
+    void setPermanentlyInvisible(bool isInvisible);
     void setupAspect();
     void setupBrushes();
     void setupIcon();
@@ -215,6 +216,8 @@ private:
 
     bool hidden;
     int depth;
+
+    bool permanentlyInvisible;
 
     QRectF currentSceneRect;
 

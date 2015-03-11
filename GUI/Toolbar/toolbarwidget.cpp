@@ -239,7 +239,15 @@ void ToolbarWidget::addComponentInstance()
 void ToolbarWidget::addEventPorDelegate()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    emit toolbar_constructEventPortDelegate(nodeItem->getNode(), action->getNode());
+
+    QString nodeKind = "OutEventPortDelegate";
+    Node* actionNode = action->getNode();
+    if(actionNode->getDataValue("kind").startsWith("InEvent")){
+        nodeKind = "InEventPortDelegate";
+    }
+
+    toolbar_constructConnectedNode(nodeItem->getNode(), actionNode, nodeKind, 1);
+    //emit toolbar_constructEventPortDelegate(nodeItem->getNode(), action->getNode(), 1);
 }
 
 
@@ -439,7 +447,8 @@ void ToolbarWidget::connectToView()
     connect(this, SIGNAL(toolbar_constructEdge(Node*,Node*)), parentNodeView, SLOT(constructEdge(Node*,Node*)));
 
     connect(this, SIGNAL(toolbar_constructComponentInstance(Node*,Node*,int)), parentNodeView, SLOT(constructComponentInstance(Node*,Node*,int)));
-   // connect(this, SIGNAL(toolbar_constructEventPortDelegate(Node*,Node*)), parentNodeView, SLOT((Node*,Node*)));
+
+    connect(this, SIGNAL(toolbar_constructConnectedNode(Node*,Node*,QString,  int)), parentNodeView, SLOT(constructConnectedComponents(Node*,Node*,QString, int)));
 
     connect(this, SIGNAL(toolbar_constructNewView(Node*)), parentNodeView, SLOT(constructNewView(Node*)));
 }

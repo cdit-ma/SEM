@@ -1,7 +1,7 @@
 #ifndef TOOLBARWIDGETACTION_H
 #define TOOLBARWIDGETACTION_H
 
-#include "../Model/node.h"
+#include "../../Model/node.h"
 #include "toolbarwidget.h"
 
 #include <QWidget>

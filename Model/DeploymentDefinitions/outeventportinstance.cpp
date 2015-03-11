@@ -112,6 +112,9 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
     }
 
     if(outEventPortDelegate){
+        if(!outEventPortDelegate->getParentNode()){
+            return false;
+        }
         if(!outEventPortDelegate->getParentNode()->isAncestorOf(this)){
 #ifdef DEBUG_MODE
             qWarning() << "OutEventPortInstance cannot be connected to an OutEventPortDelegate not contained in the same Assembly!";

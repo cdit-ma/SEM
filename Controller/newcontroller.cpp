@@ -49,7 +49,7 @@ NewController::NewController()
     definitionNodeKinds << "Member" << "Aggregate";
     definitionNodeKinds << "InEventPort"  << "OutEventPort";
     definitionNodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
-    definitionNodeKinds << "AggregateInstance" << "MemberInstance";
+    //definitionNodeKinds << "AggregateInstance" << "MemberInstance";
     definitionNodeKinds << "ComponentImpl";
 
 
@@ -252,7 +252,7 @@ QStringList NewController::getNodeKinds(Node *parent)
 {
     QStringList empty;
     if(parent){
-        if(parent->isImpl()){
+        if(parent->isImpl() || parent->getParentNode()->isImpl()){
             return behaviourNodeKinds;
         }else if(!parent->isInstance()){
             return definitionNodeKinds;
@@ -498,7 +498,9 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<QStringLi
 
     }
 
+
     if(!src->isConnected(dst)){
+        qCritical() << edge;
         qCritical() << "Edge: " << src->toString() << " to " << dst->toString() << " not legal.";
         qCritical() << "Edge not legal";
     }
@@ -918,6 +920,8 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     GraphMLKey* heightKey = constructGraphMLKey("height", "double", "node");
 	GraphMLKey* sortKey = constructGraphMLKey("sortOrder", "int", "node");
 
+
+
     QList<GraphMLData*> data;
 
     QString labelString= "";
@@ -950,6 +954,11 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
         QDateTime currentTime = QDateTime::currentDateTime();
         data.append(new GraphMLData(projectUUID, currentTime.toString("yyyy-MM-dd|hh-mm")));
         data.append(new GraphMLData(middlewareKey, "tao"));
+    }
+    if(nodeKind == "PeriodicEvent"){
+        GraphMLKey* frequencyKey = constructGraphMLKey("frequency", "double", "node");
+        data.append(new GraphMLData(typeKey, "Constant"));
+        data.append(new GraphMLData(frequencyKey, "1.0"));
     }
     if(nodeKind == "Member"){
         GraphMLKey* keyKey = constructGraphMLKey("key", "boolean", "node");
@@ -1874,14 +1883,20 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
     GraphMLData* child_Label = child->getData("label");
     GraphMLData* def_Key = definition->getData("key");
     GraphMLData* child_Key = child->getData("key");
+    GraphMLData* def_Sort = definition->getData("sortOrder");
+    GraphMLData* child_Sort = child->getData("sortOrder");
 
     bool bindTypes = true;
     bool bindLabels = false;
+    bool bindSort = false;
 
     if(!definition->getDefinition() && !def_Type){
         bindTypes = false;
     }
     if((child->isInstance() || child->isImpl()) || (def_Type && def_Label)){
+        if(child->getDataValue("kind") == "AggregateInstance" || child->getDataValue("kind") == "MemberInstance"){
+            bindSort = true;
+        }
         bindLabels = true;
     }
 
@@ -1894,6 +1909,10 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
 
     if(def_Key && child_Key){
         def_Key->bindData(child_Key);
+    }
+
+    if(bindSort){
+        def_Sort->bindData(child_Sort);
     }
 
     if(bindLabels){

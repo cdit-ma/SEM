@@ -1,8 +1,8 @@
 #ifndef TOOLBARWIDGET_H
 #define TOOLBARWIDGET_H
 
-#include "nodeview.h"
-#include "nodeitem.h"
+#include "../nodeview.h"
+#include "../nodeitem.h"
 #include "toolbarwidgetaction.h"
 
 #include <QWidget>
@@ -43,7 +43,7 @@ signals:
     void toolbar_constructNewView(Node* node);
 
     void toolbar_constructComponentInstance(Node* assm, Node* defn, int sender);
-    void toolbar_constructEventPortDelegate(Node* assm, Node* eventPortInstance);
+    void toolbar_constructConnectedNode(Node* parentNode, Node* node, QString nodeKind, int sender);
 
     void toolbar_closed();
 

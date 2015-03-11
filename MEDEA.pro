@@ -18,7 +18,7 @@ TEMPLATE = app
 LIBS += -lpsapi
 
 HEADERS += \
-newmedeawindow.h \
+medeawindow.h \
     GUI/attributetablemodel.h \
     GUI/nodeitem.h \
     GUI/nodeview.h \
@@ -67,8 +67,6 @@ newmedeawindow.h \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
     ValidationEngine/validationengine.h \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
-    GUI/docktogglebutton.h \
-    GUI/dockscrollarea.h \
     GUI/nodeedge.h \
     Model/InterfaceDefinitions/memberinstance.h \
     Model/InterfaceDefinitions/aggregateinstance.h \
@@ -86,7 +84,7 @@ newmedeawindow.h \
     GUI/hardwaredockscrollarea.h \
     GUI/definitionsdockscrollarea.h \
     GUI/graphmlviewitem.h \
-    GUI/nodetableview.h \
+    GUI/nodetable.h \
     GUI/Toolbar/toolbarwidget.h \
     GUI/Toolbar/toolbarwidgetaction.h \
     GUI/Toolbar/toolbarwidgetmenu.h \
@@ -146,9 +144,7 @@ SOURCES += \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
     ValidationEngine/validationplugin.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
-    newmedeawindow.cpp \
-    GUI/docktogglebutton.cpp \
-    GUI/dockscrollarea.cpp \
+    medeawindow.cpp \
     GUI/nodeedge.cpp \
     Model/InterfaceDefinitions/memberinstance.cpp \
     Model/InterfaceDefinitions/aggregateinstance.cpp \
@@ -158,15 +154,7 @@ SOURCES += \
     Model/DeploymentDefinitions/outeventportdelegate.cpp \
     modeltester.cpp \
     GUI/nodeviewminimap.cpp \
-    GUI/toolbarwidget.cpp \
-    GUI/toolbarwidgetaction.cpp \
-    GUI/toolbarwidgetmenu.cpp \
-    GUI/docknodeitem.cpp \
-    GUI/partsdockscrollarea.cpp \
-    GUI/hardwaredockscrollarea.cpp \
-    GUI/definitionsdockscrollarea.cpp \
     GUI/graphmlviewitem.cpp \
-    GUI/nodetable.cpp \
     GUI/Toolbar/toolbarwidget.cpp \
     GUI/Toolbar/toolbarwidgetaction.cpp \
     GUI/Toolbar/toolbarwidgetmenu.cpp \

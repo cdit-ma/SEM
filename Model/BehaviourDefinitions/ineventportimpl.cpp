@@ -39,5 +39,9 @@ bool InEventPortImpl::canConnect(Node* attachableObject)
         return false;
     }
 
+    if(!oep){
+        return false;
+    }
+
     return Node::canConnect(attachableObject);
 }
