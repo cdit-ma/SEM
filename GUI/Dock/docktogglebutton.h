@@ -7,14 +7,14 @@
 #include "../../Model/node.h"
 
 
-class NewMedeaWindow;
+class MedeaWindow;
 class DockScrollArea;
 
 class DockToggleButton : public QPushButton
 {
     Q_OBJECT
 public:
-    explicit DockToggleButton(QString label, NewMedeaWindow* window, QWidget* parent = 0);
+    explicit DockToggleButton(QString label, MedeaWindow *window, QWidget* parent = 0);
     ~DockToggleButton();
 
     bool getSelected();

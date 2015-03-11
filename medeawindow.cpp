@@ -18,10 +18,10 @@
 
 #define THREADING false
 /**
- * @brief NewMedeaWindow::NewMedeaWindow
+ * @brief MedeaWindow::MedeaWindow
  * @param parent
  */
-NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
+MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
     thread = 0;
@@ -53,9 +53,9 @@ NewMedeaWindow::NewMedeaWindow(QString graphMLFile, QWidget *parent) :
 
 
 /**
- * @brief NewMedeaWindow::~NewMedeaWindow
+ * @brief MedeaWindow::~MedeaWindow
  */
-NewMedeaWindow::~NewMedeaWindow()
+MedeaWindow::~MedeaWindow()
 {
     if (controller) {
         delete controller;
@@ -67,11 +67,11 @@ NewMedeaWindow::~NewMedeaWindow()
 
 
 /**
- * @brief NewMedeaWindow::initialiseGUI
+ * @brief MedeaWindow::initialiseGUI
  * Initialise variables, setup widget sizes, organise layout
  * and setup the view, scene and menu.
  */
-void NewMedeaWindow::initialiseGUI()
+void MedeaWindow::initialiseGUI()
 {
     // initial values
     prevPressedButton = 0;
@@ -209,11 +209,11 @@ void NewMedeaWindow::initialiseGUI()
 
 
 /**
- * @brief NewMedeaWindow::setupMenu
+ * @brief MedeaWindow::setupMenu
  * Initialise and setup menus and their actions.
  * @param button
  */
-void NewMedeaWindow::setupMenu(QPushButton *button)
+void MedeaWindow::setupMenu(QPushButton *button)
 {
     // menu buttons/actions
     menu = new QMenu();
@@ -284,11 +284,11 @@ void NewMedeaWindow::setupMenu(QPushButton *button)
 
 
 /**
- * @brief NewMedeaWindow::setupDock
+ * @brief MedeaWindow::setupDock
  * Initialise and setup dock widgets.
  * @param layout
  */
-void NewMedeaWindow::setupDock(QHBoxLayout *layout)
+void MedeaWindow::setupDock(QHBoxLayout *layout)
 {
     QVBoxLayout *dockLayout = new QVBoxLayout();
     QGroupBox* buttonsBox = new QGroupBox();
@@ -342,9 +342,9 @@ void NewMedeaWindow::setupDock(QHBoxLayout *layout)
 
 
 /**
- * @brief NewMedeaWindow::setupController
+ * @brief MedeaWindow::setupController
  */
-void NewMedeaWindow::setupController()
+void MedeaWindow::setupController()
 {
     if (controller) {
         delete controller;
@@ -372,9 +372,9 @@ void NewMedeaWindow::setupController()
 
 
 /**
- * @brief NewMedeaWindow::resetGUI
+ * @brief MedeaWindow::resetGUI
  */
-void NewMedeaWindow::resetGUI()
+void MedeaWindow::resetGUI()
 {
     prevPressedButton = 0;
     prevSelectedNode = 0;
@@ -386,10 +386,10 @@ void NewMedeaWindow::resetGUI()
 
 
 /**
- * @brief NewMedeaWindow::makeConnections
+ * @brief MedeaWindow::makeConnections
  * Connect signals and slots.
  */
-void NewMedeaWindow::makeConnections()
+void MedeaWindow::makeConnections()
 {
     connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setAspects(QStringList)));
 
@@ -451,10 +451,10 @@ connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT
 
 
 /**setupViewLayout
- * @brief NewMedeaWindow::connectToController
+ * @brief MedeaWindow::connectToController
  * Connect signals and slots to the controller.
  */
-void NewMedeaWindow::connectToController()
+void MedeaWindow::connectToController()
 {
     //Newly Connected.
 
@@ -488,12 +488,12 @@ void NewMedeaWindow::connectToController()
 
 
 /**
- * @brief NewMedeaWindow::resizeEvent
+ * @brief MedeaWindow::resizeEvent
  * The width of the scroll areas and group boxes in the dock are fixed.
  * The height changes depending on window size and content.
  * @param event
  */
-void NewMedeaWindow::resizeEvent(QResizeEvent *event)
+void MedeaWindow::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
@@ -507,11 +507,11 @@ void NewMedeaWindow::resizeEvent(QResizeEvent *event)
 }
 
 /**
- * @brief NewMedeaWindow::sortAndCenterModel
+ * @brief MedeaWindow::sortAndCenterModel
  * This force sorts the main definitions containers before they are hidden.
  * The visible view aspect(s) is then centered.
  */
-void NewMedeaWindow::sortAndCenterViewAspects()
+void MedeaWindow::sortAndCenterViewAspects()
 {
     if (nodeView) {
         //Change to Emits!
@@ -522,9 +522,9 @@ void NewMedeaWindow::sortAndCenterViewAspects()
 
 
 /**
- * @brief NewMedeaWindow::setupJenkinsSettings
+ * @brief MedeaWindow::setupJenkinsSettings
  */
-void NewMedeaWindow::setupJenkinsSettings()
+void MedeaWindow::setupJenkinsSettings()
 {
     DEPGEN_ROOT = QString(qgetenv("DEPGEN_ROOT"));
 
@@ -539,9 +539,9 @@ void NewMedeaWindow::setupJenkinsSettings()
 
 
 /**
- * @brief NewMedeaWindow::on_actionImportJenkinsNode
+ * @brief MedeaWindow::on_actionImportJenkinsNode
  */
-void NewMedeaWindow::on_actionImportJenkinsNode()
+void MedeaWindow::on_actionImportJenkinsNode()
 {
     QString program = "python Jenkins-Groovy-Runner.py";
     program +=" -s " + JENKINS_ADDRESS;
@@ -557,10 +557,10 @@ void NewMedeaWindow::on_actionImportJenkinsNode()
 
 
 /**
- * @brief NewMedeaWindow::on_actionNew_Project_triggered
+ * @brief MedeaWindow::on_actionNew_Project_triggered
  * At the moment it olnly allows one project to be opened at a time.
  */
-void NewMedeaWindow::on_actionNew_Project_triggered()
+void MedeaWindow::on_actionNew_Project_triggered()
 {
     // ask user if they want to save current project before closing it
     QMessageBox::StandardButton saveProject = QMessageBox::question(this,
@@ -579,9 +579,9 @@ void NewMedeaWindow::on_actionNew_Project_triggered()
 
 
 /**
- * @brief NewMedeaWindow::on_actionImport_GraphML_triggered
+ * @brief MedeaWindow::on_actionImport_GraphML_triggered
  */
-void NewMedeaWindow::on_actionImport_GraphML_triggered()
+void MedeaWindow::on_actionImport_GraphML_triggered()
 {
     QStringList files = QFileDialog::getOpenFileNames(
                 this,
@@ -597,19 +597,19 @@ void NewMedeaWindow::on_actionImport_GraphML_triggered()
 
 
 /**
- * @brief NewMedeaWindow::on_actionExport_GraphML_triggered
+ * @brief MedeaWindow::on_actionExport_GraphML_triggered
  */
-void NewMedeaWindow::on_actionExport_GraphML_triggered()
+void MedeaWindow::on_actionExport_GraphML_triggered()
 {
     exportProject();
 }
 
 
 /**
- * @brief NewMedeaWindow::on_actionAutoCenterViews_triggered
+ * @brief MedeaWindow::on_actionAutoCenterViews_triggered
  * This tells the nodeView to set the automatic centering of view aspects on/off.
  */
-void NewMedeaWindow::autoCenterViews()
+void MedeaWindow::autoCenterViews()
 {
     if (autoCenterOn) {
         autoCenterOn = false;
@@ -623,12 +623,12 @@ void NewMedeaWindow::autoCenterViews()
 
 
 /**
- * @brief NewMedeaWindow::on_clearModel_triggered
+ * @brief MedeaWindow::on_clearModel_triggered
  * When the model is cleared or the new project menu is triggered,
  * this method resets the model, clears any current selection,
  * disables the dock buttons and clears the dock containers.
  */
-void NewMedeaWindow::on_actionClearModel_triggered()
+void MedeaWindow::on_actionClearModel_triggered()
 {
     if (nodeView) {
         nodeView->clearSelection();
@@ -642,9 +642,9 @@ void NewMedeaWindow::on_actionClearModel_triggered()
 
 
 /**
- * @brief NewMedeaWindow::on_actionSortModel_triggered
+ * @brief MedeaWindow::on_actionSortModel_triggered
  */
-void NewMedeaWindow::on_actionSortModel_triggered()
+void MedeaWindow::on_actionSortModel_triggered()
 {
    if (nodeView->getSelectedNode()){
        nodeView->sortNode(nodeView->getSelectedNode());
@@ -655,9 +655,9 @@ void NewMedeaWindow::on_actionSortModel_triggered()
 }
 
 /**
- * @brief NewMedeaWindow::on_actionPaste_triggered
+ * @brief MedeaWindow::on_actionPaste_triggered
  */
-void NewMedeaWindow::on_actionPaste_triggered()
+void MedeaWindow::on_actionPaste_triggered()
 {
     QClipboard *clipboard = QApplication::clipboard();
     if (clipboard->ownsClipboard()) {
@@ -667,14 +667,14 @@ void NewMedeaWindow::on_actionPaste_triggered()
 
 
 /**
- * @brief NewMedeaWindow::on_actionExit_triggered
+ * @brief MedeaWindow::on_actionExit_triggered
  */
-void NewMedeaWindow::on_actionExit_triggered()
+void MedeaWindow::on_actionExit_triggered()
 {
     close();
 }
 
-void NewMedeaWindow::writeExportedProject(QString data)
+void MedeaWindow::writeExportedProject(QString data)
 {
     try {
         //Try and Open File.
@@ -701,10 +701,10 @@ void NewMedeaWindow::writeExportedProject(QString data)
 
 
 /**
- * @brief NewMedeaWindow::updateUndoStates
+ * @brief MedeaWindow::updateUndoStates
  * @param list
  */
-void NewMedeaWindow::updateUndoStates(QStringList list)
+void MedeaWindow::updateUndoStates(QStringList list)
 {
     if (list.size() == 0) {
         edit_undo->setEnabled(false);
@@ -730,10 +730,10 @@ void NewMedeaWindow::updateUndoStates(QStringList list)
 
 
 /**
- * @brief NewMedeaWindow::updateRedoStates
+ * @brief MedeaWindow::updateRedoStates
  * @param list
  */
-void NewMedeaWindow::updateRedoStates(QStringList list)
+void MedeaWindow::updateRedoStates(QStringList list)
 {
     if (list.size() == 0) {
         edit_redo->setEnabled(false);
@@ -759,10 +759,10 @@ void NewMedeaWindow::updateRedoStates(QStringList list)
 
 
 /**
- * @brief NewMedeaWindow::setClipboard
+ * @brief MedeaWindow::setClipboard
  * @param value
  */
-void NewMedeaWindow::setClipboard(QString value)
+void MedeaWindow::setClipboard(QString value)
 {
     QClipboard *clipboard = QApplication::clipboard();
     clipboard->setText(value);
@@ -770,10 +770,10 @@ void NewMedeaWindow::setClipboard(QString value)
 
 
 /**
- * @brief NewMedeaWindow::updateProjectName
+ * @brief MedeaWindow::updateProjectName
  * @param label
  */
-void NewMedeaWindow::changeWindowTitle(QString label)
+void MedeaWindow::changeWindowTitle(QString label)
 {
     setWindowTitle("MEDEA - " + label);
     projectName->setText(label);
@@ -781,11 +781,11 @@ void NewMedeaWindow::changeWindowTitle(QString label)
 
 
 /**
- * @brief NewMedeaWindow::updateAspects
+ * @brief MedeaWindow::updateAspects
  * Add view aspect to checkedViewAspects when the corresponding button
  * is clicked and remove it when it's unclick then update the view.
  */
-void NewMedeaWindow::updateViewAspects()
+void MedeaWindow::updateViewAspects()
 {
     QStringList newAspects = checkedViewAspects;
 
@@ -811,9 +811,9 @@ void NewMedeaWindow::updateViewAspects()
 
 
 /**
- * @brief NewMedeaWindow::goToDefinition
+ * @brief MedeaWindow::goToDefinition
  */
-void NewMedeaWindow::goToDefinition()
+void MedeaWindow::goToDefinition()
 {
     if (selectedNode) {
         nodeView->goToDefinition(selectedNode);
@@ -822,16 +822,16 @@ void NewMedeaWindow::goToDefinition()
 
 
 /**
- * @brief NewMedeaWindow::goToImplementation
+ * @brief MedeaWindow::goToImplementation
  */
-void NewMedeaWindow::goToImplementation()
+void MedeaWindow::goToImplementation()
 {
     if (selectedNode) {
         nodeView->goToImplementation(selectedNode);
     }
 }
 
-void NewMedeaWindow::setAspects(QStringList aspects)
+void MedeaWindow::setAspects(QStringList aspects)
 {
     definitionsButton->setChecked(aspects.contains("Definitions"));
     workloadButton->setChecked(aspects.contains("Workload"));
@@ -843,11 +843,11 @@ void NewMedeaWindow::setAspects(QStringList aspects)
 
 
 /**
- * @brief NewMedeaWindow::setGoToMenuActions
+ * @brief MedeaWindow::setGoToMenuActions
  * @param action
  * @param node
  */
-void NewMedeaWindow::setGoToMenuActions(QString action, bool enabled)
+void MedeaWindow::setGoToMenuActions(QString action, bool enabled)
 {
     if (action == "definition") {
         view_goToDefinition->setEnabled(enabled);
@@ -856,7 +856,7 @@ void NewMedeaWindow::setGoToMenuActions(QString action, bool enabled)
     }
 }
 
-void NewMedeaWindow::resetView()
+void MedeaWindow::resetView()
 {
     if(nodeView){
         nodeView->setDefaultAspects();
@@ -864,7 +864,7 @@ void NewMedeaWindow::resetView()
 }
 
 
-void NewMedeaWindow::newProject()
+void MedeaWindow::newProject()
 {
     // clear view and reset gui
     resetGUI();
@@ -877,10 +877,10 @@ void NewMedeaWindow::newProject()
 
 
 /**
- * @brief NewMedeaWindow::exportGraphML
+ * @brief MedeaWindow::exportGraphML
  * @return
  */
-bool NewMedeaWindow::exportProject()
+bool MedeaWindow::exportProject()
 {
     QString filename = QFileDialog::getSaveFileName(this,
                                                     "Export .graphML",
@@ -903,10 +903,10 @@ bool NewMedeaWindow::exportProject()
 
 
 /**
- * @brief NewMedeaWindow::setAttributeModel
+ * @brief MedeaWindow::setAttributeModel
  * @param model
  */
-void NewMedeaWindow::setAttributeModel(AttributeTableModel *model)
+void MedeaWindow::setAttributeModel(AttributeTableModel *model)
 {
     if(model){
         updateDataTable();
@@ -917,12 +917,12 @@ void NewMedeaWindow::setAttributeModel(AttributeTableModel *model)
 
 
 /**
- * @brief NewMedeaWindow::dockButtonPressed
+ * @brief MedeaWindow::dockButtonPressed
  * This method makes sure that the groupbox attached to the dock button
  * that was pressed is the only groupbox being currently displayed.
  * @param buttonName
  */
-void NewMedeaWindow::dockButtonPressed(QString buttonName)
+void MedeaWindow::dockButtonPressed(QString buttonName)
 {
     DockToggleButton *b, *prevB;
 
@@ -947,12 +947,12 @@ void NewMedeaWindow::dockButtonPressed(QString buttonName)
 
 
 /**
- * @brief NewMedeaWindow::updateDataTable
+ * @brief MedeaWindow::updateDataTable
  * Update the dataTable size whenever a node is selected/deselected,
  * when a new model is loaded and when the window is resized.
  * NOTE: Once maximum size is set, it cannot be reset.
  */
-void NewMedeaWindow::updateDataTable()
+void MedeaWindow::updateDataTable()
 {
 
     QAbstractItemModel* tableModel = dataTable->model();
@@ -998,10 +998,10 @@ void NewMedeaWindow::updateDataTable()
 
 
 /**
- * @brief NewMedeaWindow::loadJenkinsData
+ * @brief MedeaWindow::loadJenkinsData
  * @param code
  */
-void NewMedeaWindow::loadJenkinsData(int code)
+void MedeaWindow::loadJenkinsData(int code)
 {
     QStringList files;
     files << myProcess->readAll();
@@ -1014,10 +1014,10 @@ void NewMedeaWindow::loadJenkinsData(int code)
 
 
 /**
- * @brief NewMedeaWindow::importGraphMLFiles
+ * @brief MedeaWindow::importGraphMLFiles
  * @param files
  */
-void NewMedeaWindow::importProjects(QStringList files)
+void MedeaWindow::importProjects(QStringList files)
 {
     QStringList projects;
     foreach(QString fileName, files){

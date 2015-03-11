@@ -13,7 +13,7 @@
  * @param label
  * @param parent
  */
-DockToggleButton::DockToggleButton(QString label, NewMedeaWindow *window, QWidget *parent) :
+DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *parent) :
     QPushButton(parent)
 {
     selected = false;

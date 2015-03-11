@@ -2,7 +2,7 @@
 #include <QtDebug>
 #include <QObject>
 
-#include "newmedeawindow.h"
+#include "medeawindow.h"
 #include "modeltester.h"
 
 int main(int argc, char *argv[])
@@ -18,13 +18,12 @@ int main(int argc, char *argv[])
         qCritical() << GraphMLFile;
     }
 
-    //MedeaWindow *w = new MedeaWindow(GraphMLFile);
-    NewMedeaWindow *w = new NewMedeaWindow(GraphMLFile);
+    MedeaWindow *w = new MedeaWindow(GraphMLFile);
 
     //ModelTester *t = new ModelTester();
     //delete t;
-
     //return 0;
+
     w->show();
     w->setupViewLayout();
 

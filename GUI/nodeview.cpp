@@ -1464,7 +1464,7 @@ void NodeView::resetModel()
 
 /**
  * @brief NodeView::autoCenterViewAspects
- * This is called from the NewMedeaWindow menu.
+ * This is called from the MedeaWindow menu.
  * It sets the automatic centering of the view aspects on and off.
  * @param center
  */

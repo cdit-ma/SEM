@@ -40,13 +40,13 @@
 
 
 
-class NewMedeaWindow : public QMainWindow
+class MedeaWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit NewMedeaWindow(QString graphMLFile=0, QWidget* parent = 0);
-    ~NewMedeaWindow();
+    explicit MedeaWindow(QString graphMLFile=0, QWidget* parent = 0);
+    ~MedeaWindow();
     void resizeEvent(QResizeEvent* event);
 
 signals:
@@ -186,4 +186,4 @@ PartsDockScrollArea* partsDock;
     QString exportFileName;
 };
 
-#endif // NEWMEDEAWINDOW_H
+#endif // MEDEAWINDOW_H
