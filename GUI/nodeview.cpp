@@ -205,7 +205,7 @@ void NodeView::adjustSceneRect(QRectF rectToCenter)
 void NodeView::centerRect(QRectF rect, float extraspace)
 {
     QPointF rectCenter = rect.center();
-    float extraSpace = 1.15;
+    float extraSpace = 1.25;
 
     // check if there is a specified value for extraspace
     if (extraspace > 0) {
@@ -1557,7 +1557,6 @@ void NodeView::destructGUIItem(QString ID)
  */
 void NodeView::fitToScreen()
 {
-   
     QRectF itemsRec = scene()->itemsBoundingRect();
     float leftMostX = itemsRec.bottomRight().x();
     float rightMostX = itemsRec.topLeft().x();

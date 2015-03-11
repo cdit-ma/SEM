@@ -256,49 +256,12 @@ void ToolbarWidget::hideToolbar(bool actionTriggered)
 
 
 /**
- * @brief ToolbarWidget::getClipboard
- */
-void ToolbarWidget::getClipboard()
-{
-    QClipboard *clipboard = QApplication::clipboard();
-    if (clipboard->ownsClipboard()) {
-        emit toolbar_paste(clipboard->text());
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::getNode
- */
-void ToolbarWidget::getNode()
-{
-   emit toolbar_sortNode(nodeItem->getNode());
-}
-
-
-/**
- * @brief ToolbarWidget::getGraphMLItem
- */
-void ToolbarWidget::getGraphMLItem()
-{
-   GraphMLItem* item = dynamic_cast<GraphMLItem*>(nodeItem);
-   emit toolbar_centerItem(item);
-}
-
-
-/**
  * @brief ToolbarWidget::setupToolBar
  */
 void ToolbarWidget::setupToolBar()
 {
     QHBoxLayout* layout = new QHBoxLayout();
     QSize buttonSize = QSize(35,35);
-
-    cutButton = new QToolButton(this);
-    copyButton = new QToolButton(this);
-    pasteButton = new QToolButton(this);
-    sortButton = new QToolButton(this);
-    centerButton = new QToolButton(this);
 
     addChildButton = new QToolButton(this);
     connectButton = new QToolButton(this);
@@ -308,12 +271,6 @@ void ToolbarWidget::setupToolBar()
     implementationButton = new QToolButton(this);
     instancesButton = new QToolButton(this);
 
-    cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
-    copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
-    pasteButton->setIcon(QIcon(":/Resources/Icons/paste.png"));
-    sortButton->setIcon(QIcon(":/Resources/Icons/sort.png"));
-    centerButton->setIcon(QIcon(":/Resources/Icons/autoCenter.png"));
-
     addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode.png"));
     connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
     deleteButton->setIcon(QIcon(":/Resources/Icons/deleteNode.png"));
@@ -321,12 +278,6 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setIcon(QIcon(":/Resources/Icons/definition.png"));
     implementationButton->setIcon(QIcon(":/Resources/Icons/implementation.png"));
     instancesButton->setIcon(QIcon(":/Resources/Icons/instance.png"));
-
-    cutButton->setFixedSize(buttonSize);
-    copyButton->setFixedSize(buttonSize);
-    pasteButton->setFixedSize(buttonSize);
-    sortButton->setFixedSize(buttonSize);
-    centerButton->setFixedSize(buttonSize);
 
     addChildButton->setFixedSize(buttonSize);
     connectButton->setFixedSize(buttonSize);
@@ -336,12 +287,6 @@ void ToolbarWidget::setupToolBar()
     implementationButton->setFixedSize(buttonSize);
     instancesButton->setFixedSize(buttonSize);
 
-    cutButton->setIconSize(buttonSize*0.6);
-    copyButton->setIconSize(buttonSize*0.65);
-    pasteButton->setIconSize(buttonSize*0.65);
-    sortButton->setIconSize(buttonSize*0.65);
-    centerButton->setIconSize(buttonSize*0.65);
-
     addChildButton->setIconSize(buttonSize*0.65);
     connectButton->setIconSize(buttonSize*0.6);
     deleteButton->setIconSize(buttonSize*0.75);
@@ -349,12 +294,6 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setIconSize(buttonSize);
     implementationButton->setIconSize(buttonSize);
     instancesButton->setIconSize(buttonSize*0.65);
-
-    cutButton->setToolTip("Cut Node");
-    copyButton->setToolTip("Copy Node");
-    pasteButton->setToolTip("Paste Node");
-    sortButton->setToolTip("Sort Node");
-    centerButton->setToolTip("Center Node");
 
     addChildButton->setToolTip("Add Child Node");
     connectButton->setToolTip("Connect Node");
@@ -364,34 +303,15 @@ void ToolbarWidget::setupToolBar()
     implementationButton->setToolTip("Show Implementation");
     instancesButton->setToolTip("Show Instances");
 
-    QFrame* frame1 = new QFrame();
-    QFrame* frame2 = new QFrame();
-    QFrame* frame3 = new QFrame();
-
-    frame1->setFrameShape(QFrame::VLine);
-    frame1->setPalette(QPalette(Qt::darkGray));
-    frame2->setFrameShape(QFrame::VLine);
-    frame2->setPalette(QPalette(Qt::darkGray));
-    frame3->setFrameShape(QFrame::VLine);
-    frame3->setPalette(QPalette(Qt::darkGray));
-
     frame = new QFrame();
-    //frame->setStyleSheet("border: 5px;");
     frame->setFrameShape(QFrame::VLine);
     frame->setPalette(QPalette(Qt::darkGray));
 
-    layout->addWidget(cutButton);
-    layout->addWidget(copyButton);
-    layout->addWidget(pasteButton);
-    layout->addWidget(frame1);
-    layout->addWidget(sortButton);
-    layout->addWidget(centerButton);
-    layout->addWidget(showNewViewButton);
-    layout->addWidget(frame2);
     layout->addWidget(addChildButton);
     layout->addWidget(connectButton);
     layout->addWidget(deleteButton);
     layout->addWidget(frame);
+    layout->addWidget(showNewViewButton);
     layout->addWidget(definitionButton);
     layout->addWidget(implementationButton);
     layout->addWidget(instancesButton);
@@ -475,12 +395,6 @@ void ToolbarWidget::makeConnections()
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
 
-    connect(cutButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(copyButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(pasteButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(sortButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(centerButton, SIGNAL(clicked()), this, SLOT(hide()));
-
     connectToView();
 }
 
@@ -504,16 +418,6 @@ void ToolbarWidget::connectToView()
     connect(this, SIGNAL(toolbar_constructConnectedNode(Node*,Node*,QString,  int)), parentNodeView, SLOT(constructConnectedComponents(Node*,Node*,QString, int)));
 
     connect(this, SIGNAL(toolbar_constructNewView(Node*)), parentNodeView, SLOT(constructNewView(Node*)));
-
-    connect(cutButton, SIGNAL(clicked()), parentNodeView, SLOT(cut()));
-    connect(copyButton, SIGNAL(clicked()), parentNodeView, SLOT(copy()));
-    connect(pasteButton, SIGNAL(clicked()), this, SLOT(getClipboard()));
-    connect(this, SIGNAL(toolbar_paste(QString)), parentNodeView, SLOT(paste(QString)));
-
-    connect(sortButton, SIGNAL(clicked()), this, SLOT(getNode()));
-    connect(this, SIGNAL(toolbar_sortNode(Node*)), parentNodeView, SLOT(sortNode(Node*)));
-    connect(centerButton, SIGNAL(clicked()), this, SLOT(getGraphMLItem()));
-    connect(this, SIGNAL(toolbar_centerItem(GraphMLItem*)), parentNodeView, SLOT(centerItem(GraphMLItem*)));
 }
 
 

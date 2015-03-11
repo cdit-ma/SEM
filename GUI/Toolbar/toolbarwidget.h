@@ -33,10 +33,6 @@ protected:
 
 
 signals:
-    void toolbar_paste(QString);
-    void toolbar_sortNode(Node*);
-    void toolbar_centerItem(GraphMLItem*);
-
     void toolbar_goToDefinition(Node* node);
     void toolbar_goToImplementation(Node* node);
     void toolbar_goToInstance(Node* node);
@@ -66,10 +62,6 @@ public slots:
     void attachOptionMenu();
 
     void hideToolbar(bool actionTriggered);
-
-    void getClipboard();
-    void getNode();
-    void getGraphMLItem();
 
 
 private:

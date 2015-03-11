@@ -361,8 +361,6 @@ void MedeaWindow::setupToolbar()
 {
     QSize buttonSize = QSize(40,40);
 
-    //toolbar->setMovable(true);
-    //toolbar->setFloatable(true);
     toolbar->setFixedHeight(buttonSize.height()+10);
     toolbar->setStyleSheet("QToolButton{"
                            "border: 1px solid grey;"
