@@ -84,7 +84,18 @@ newmedeawindow.h \
     GUI/docknodeitem.h \
     GUI/partsdockscrollarea.h \
     GUI/hardwaredockscrollarea.h \
-    GUI/definitionsdockscrollarea.h
+    GUI/definitionsdockscrollarea.h \
+    GUI/graphmlviewitem.h \
+    GUI/nodetableview.h \
+    GUI/Toolbar/toolbarwidget.h \
+    GUI/Toolbar/toolbarwidgetaction.h \
+    GUI/Toolbar/toolbarwidgetmenu.h \
+    GUI/Dock/definitionsdockscrollarea.h \
+    GUI/Dock/docknodeitem.h \
+    GUI/Dock/dockscrollarea.h \
+    GUI/Dock/docktogglebutton.h \
+    GUI/Dock/hardwaredockscrollarea.h \
+    GUI/Dock/partsdockscrollarea.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -153,7 +164,18 @@ SOURCES += \
     GUI/docknodeitem.cpp \
     GUI/partsdockscrollarea.cpp \
     GUI/hardwaredockscrollarea.cpp \
-    GUI/definitionsdockscrollarea.cpp
+    GUI/definitionsdockscrollarea.cpp \
+    GUI/graphmlviewitem.cpp \
+    GUI/nodetable.cpp \
+    GUI/Toolbar/toolbarwidget.cpp \
+    GUI/Toolbar/toolbarwidgetaction.cpp \
+    GUI/Toolbar/toolbarwidgetmenu.cpp \
+    GUI/Dock/definitionsdockscrollarea.cpp \
+    GUI/Dock/docknodeitem.cpp \
+    GUI/Dock/dockscrollarea.cpp \
+    GUI/Dock/docktogglebutton.cpp \
+    GUI/Dock/hardwaredockscrollarea.cpp \
+    GUI/Dock/partsdockscrollarea.cpp
 
 FORMS += \
 
