@@ -8,6 +8,11 @@
 #include <QBrush>
 
 
+#define DEFAULT 0
+#define DISABLED 1
+#define SELECTED 2
+
+
 /**
  * @brief DockToggleButton::DockToggleButton
  * @param label

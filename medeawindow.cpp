@@ -1,5 +1,5 @@
 #include "medeawindow.h"
-#include "GUI/toolbar/toolbarwidgetaction.h"
+#include "Controller/newcontroller.h"
 
 #include <QDebug>
 #include <QObject>
@@ -13,10 +13,12 @@
 #include <QSettings>
 #include <QPicture>
 
-#include "Controller/newcontroller.h"
+#include <QToolButton>
+#include <QToolBar>
 
 
 #define THREADING false
+
 /**
  * @brief MedeaWindow::MedeaWindow
  * @param parent
@@ -73,12 +75,25 @@ MedeaWindow::~MedeaWindow()
  */
 void MedeaWindow::initialiseGUI()
 {
-    // initial values
+    // initialise variables
     prevPressedButton = 0;
     prevSelectedNode = 0;
     selectedNode = 0;
 
     nodeView = new NodeView();
+    toolbar = new QToolBar();
+    dataTable = new QTableView();
+    dataTableBox = new QGroupBox();
+    projectName = new QPushButton("Model");
+    assemblyButton = new QPushButton("Assembly");
+    hardwareButton = new QPushButton("Hardware");
+    workloadButton = new QPushButton("Behaviour");
+    definitionsButton = new QPushButton("Interface");
+
+    QPushButton *menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
+    QLineEdit *searchBar = new QLineEdit();
+    QPushButton *searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
+    QVBoxLayout *tableLayout = new QVBoxLayout();
 
     // set window size; used for graphicsview and main widget
     int windowWidth = 1300;
@@ -90,27 +105,13 @@ void MedeaWindow::initialiseGUI()
     this->setMinimumSize(windowWidth, windowHeight);
     nodeView->setMinimumSize(windowWidth, windowHeight);
 
-    projectName = new QPushButton("Model");
-    dataTable = new QTableView();
-    dataTableBox = new QGroupBox();
-    assemblyButton = new QPushButton("Assembly");
-    hardwareButton = new QPushButton("Hardware");
-    workloadButton = new QPushButton("Behaviour");
-    definitionsButton = new QPushButton("Interface");
-
-    // initialise other private variables
-    QPushButton *menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
-    QLineEdit *searchBar = new QLineEdit();
-    QPushButton *searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
-    QVBoxLayout *tableLayout = new QVBoxLayout();
-
     // setup widgets
     projectName->setFlat(true);
-    projectName->setFixedWidth(rightPanelWidth);
+    projectName->setFixedWidth(rightPanelWidth*0.8);
     menuButton->setFixedSize(50,45);
     menuButton->setIconSize(menuButton->size());
-    searchButton->setFixedSize(45, 25);
-    searchButton->setIconSize(searchButton->size()*0.8);
+    searchButton->setFixedSize(45, 28);
+    searchButton->setIconSize(searchButton->size()*0.65);
     searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
     assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
@@ -139,8 +140,9 @@ void MedeaWindow::initialiseGUI()
                                 "border: 0px;"
                                 "}");
 
-    // layouts and spacer items
+    // layouts
     QHBoxLayout *mainHLayout = new QHBoxLayout();
+    QHBoxLayout *topHLayout = new QHBoxLayout();
     QVBoxLayout *leftVlayout = new QVBoxLayout();
     QVBoxLayout *rightVlayout =  new QVBoxLayout();
     QHBoxLayout *titleLayout = new QHBoxLayout();
@@ -148,18 +150,27 @@ void MedeaWindow::initialiseGUI()
     QHBoxLayout *bodyLayout = new QHBoxLayout();
     QGridLayout *viewButtonsGrid = new QGridLayout();
 
-    // add widgets to/and layouts
+    // setup layouts for widgets
+    titleLayout->setMargin(0);
+    titleLayout->setSpacing(0);
     titleLayout->addWidget(menuButton, 1);
     titleLayout->addSpacerItem(new QSpacerItem(10, 0));
     titleLayout->addWidget(projectName, 1);
     titleLayout->addStretch(7);
 
+    topHLayout->setMargin(0);
+    topHLayout->setSpacing(0);
+    topHLayout->addLayout(titleLayout, 3);
+    topHLayout->addStretch();
+    topHLayout->addWidget(toolbar, 3);
+    topHLayout->addStretch(1);
+
+    leftVlayout->addLayout(topHLayout, 10);
+    leftVlayout->addStretch(1);
+    leftVlayout->addLayout(bodyLayout, 50);
+
     searchLayout->addWidget(searchBar, 3);
     searchLayout->addWidget(searchButton, 1);
-
-    leftVlayout->addLayout(titleLayout);
-    leftVlayout->addStretch(1);
-    leftVlayout->addLayout(bodyLayout, 20);
 
     viewButtonsGrid->addWidget(definitionsButton, 1, 1);
     viewButtonsGrid->addWidget(workloadButton, 1, 2);
@@ -175,6 +186,8 @@ void MedeaWindow::initialiseGUI()
     rightVlayout->addStretch();
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
 
+    mainHLayout->setMargin(0);
+    mainHLayout->setSpacing(0);
     mainHLayout->addLayout(leftVlayout, 4);
     mainHLayout->addLayout(rightVlayout, 1);
     mainHLayout->setContentsMargins(25, 25, 25, 25);
@@ -183,7 +196,6 @@ void MedeaWindow::initialiseGUI()
     // setup mini map
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
-    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
 
     minimap->scale(.002,.002);
     minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -205,6 +217,7 @@ void MedeaWindow::initialiseGUI()
     // setup the menu and dock
     setupMenu(menuButton);
     setupDock(bodyLayout);
+    setupToolbar();
 }
 
 
@@ -342,6 +355,77 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
 
 
 /**
+ * @brief MedeaWindow::setupToolbar
+ */
+void MedeaWindow::setupToolbar()
+{
+    QSize buttonSize = QSize(40,40);
+
+    //toolbar->setMovable(true);
+    //toolbar->setFloatable(true);
+    toolbar->setFixedHeight(buttonSize.height()+10);
+    toolbar->setStyleSheet("QToolButton{"
+                           "border: 1px solid grey;"
+                           "border-radius: 10px;"
+                           "background-color: rgba(200,200,200,150);"
+                           "}");
+
+    cutButton = new QToolButton(this);
+    copyButton = new QToolButton(this);
+    pasteButton = new QToolButton(this);
+    sortButton = new QToolButton(this);
+    centerButton = new QToolButton(this);
+    popupButton = new QToolButton(this);
+
+    cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
+    copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
+    pasteButton->setIcon(QIcon(":/Resources/Icons/paste.png"));
+    sortButton->setIcon(QIcon(":/Resources/Icons/sort.png"));
+    centerButton->setIcon(QIcon(":/Resources/Icons/autoCenter.png"));
+    popupButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
+
+    cutButton->setFixedSize(buttonSize);
+    copyButton->setFixedSize(buttonSize);
+    pasteButton->setFixedSize(buttonSize);
+    sortButton->setFixedSize(buttonSize);
+    centerButton->setFixedSize(buttonSize);
+    popupButton->setFixedSize(buttonSize);
+
+    cutButton->setIconSize(buttonSize*0.6);
+    copyButton->setIconSize(buttonSize*0.65);
+    pasteButton->setIconSize(buttonSize*0.65);
+    sortButton->setIconSize(buttonSize*0.65);
+    centerButton->setIconSize(buttonSize*0.65);
+    popupButton->setIconSize(buttonSize*0.65);
+
+    cutButton->setToolTip("Cut Node");
+    copyButton->setToolTip("Copy Node");
+    pasteButton->setToolTip("Paste Node");
+    sortButton->setToolTip("Sort Node");
+    centerButton->setToolTip("Center Node");
+    popupButton->setToolTip("Show Node In New Window");
+
+    QWidget* spacerWidget = new QWidget();
+    QWidget* spacerWidget1 = new QWidget();
+    QWidget* spacerWidget2 = new QWidget();
+    spacerWidget->setFixedWidth(5);
+    spacerWidget1->setFixedWidth(15);
+    spacerWidget2->setFixedWidth(15);
+
+    toolbar->addWidget(cutButton);
+    //toolbar->addWidget(spacerWidget);
+    toolbar->addWidget(copyButton);
+    toolbar->addWidget(pasteButton);
+    toolbar->addWidget(spacerWidget1);
+    toolbar->addSeparator();
+    toolbar->addWidget(spacerWidget2);
+    toolbar->addWidget(sortButton);
+    toolbar->addWidget(centerButton);
+    toolbar->addWidget(popupButton);
+}
+
+
+/**
  * @brief MedeaWindow::setupController
  */
 void MedeaWindow::setupController()
@@ -358,7 +442,7 @@ void MedeaWindow::setupController()
     controller = new NewController();
 
     if(THREADING){
-    //IMPLEMENT THREADING!
+        //IMPLEMENT THREADING!
         thread = new QThread();
         thread->start();
         controller->moveToThread(thread);
@@ -391,33 +475,53 @@ void MedeaWindow::resetGUI()
  */
 void MedeaWindow::makeConnections()
 {
+    connect(this, SIGNAL(setupViewLayout()), this, SLOT(sortAndCenterViewAspects()));
+    connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
     connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setAspects(QStringList)));
+    connect(nodeView, SIGNAL(setGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
 
-
+    connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
+    connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
     connect(file_importJenkinsNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
+    connect(this, SIGNAL(window_ExportProject()), nodeView, SIGNAL(view_ExportProject()));
+    connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SIGNAL(view_ImportProjects(QStringList)));
 
+    connect(edit_undo, SIGNAL(triggered()), nodeView, SIGNAL(view_Undo()));
+    connect(edit_redo, SIGNAL(triggered()), nodeView, SIGNAL(view_Redo()));
+    connect(edit_cut, SIGNAL(triggered()), nodeView, SLOT(cut()));
+    connect(edit_copy, SIGNAL(triggered()), nodeView, SLOT(copy()));
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
-    connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
+    connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
+
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_autoCenterView, SIGNAL(triggered()), this, SLOT(autoCenterViews()));
     connect(view_goToDefinition, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
     connect(model_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
-    connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortModel_triggered()));
-    //connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
+    connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
+    connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
-    connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
+    connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
+    connect(copyButton, SIGNAL(clicked()), nodeView, SLOT(copy()));
+    connect(pasteButton, SIGNAL(clicked()), this, SLOT(on_actionPaste_triggered()));
+    connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
+    connect(centerButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
+    connect(popupButton, SIGNAL(clicked()), this, SLOT(on_actionPopupNewWindow()));
+
+    connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
+    connect(nodeView, SIGNAL(view_UndoListChanged(QStringList)), this, SLOT(updateUndoStates(QStringList)));
+    connect(nodeView, SIGNAL(view_RedoListChanged(QStringList)), this, SLOT(updateRedoStates(QStringList)));
+    connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
+    connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(changeWindowTitle(QString)));
 
     connect(assemblyButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(hardwareButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(definitionsButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
-
-    connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
 
     connect(nodeView, SIGNAL(view_enableDocks(bool)), partsButton, SLOT(enableDock(bool)));
     connect(nodeView, SIGNAL(view_enableDocks(bool)), compDefinitionsButton, SLOT(enableDock(bool)));
@@ -427,7 +531,7 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
 
-connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
 
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
@@ -440,50 +544,20 @@ connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
 
-
-    connect(nodeView, SIGNAL(setGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
-
     // this needs fixing
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 
-    connect(this, SIGNAL(setupViewLayout()), this, SLOT(sortAndCenterViewAspects()));
+    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
 }
 
 
-/**setupViewLayout
+/**
  * @brief MedeaWindow::connectToController
  * Connect signals and slots to the controller.
  */
 void MedeaWindow::connectToController()
 {
-    //Newly Connected.
-
-    //SIGNALS
-
-    connect(this, SIGNAL(window_ExportProject()), nodeView, SIGNAL(view_ExportProject()));
-    connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SIGNAL(view_ImportProjects(QStringList)));
-
-
-
-    //SLOTS
-    connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
-    connect(nodeView, SIGNAL(view_UndoListChanged(QStringList)), this, SLOT(updateUndoStates(QStringList)));
-    connect(nodeView, SIGNAL(view_RedoListChanged(QStringList)), this, SLOT(updateRedoStates(QStringList)));
-    connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
-    connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(changeWindowTitle(QString)));
-
     connect(model_clearModel, SIGNAL(triggered()), controller, SLOT(clearModel()));
-
-    connect(edit_undo, SIGNAL(triggered()), nodeView, SIGNAL(view_Undo()));
-    connect(edit_redo, SIGNAL(triggered()), nodeView, SIGNAL(view_Redo()));
-
-    connect(edit_cut, SIGNAL(triggered()), nodeView, SLOT(cut()));
-    connect(edit_copy, SIGNAL(triggered()), nodeView, SLOT(copy()));
-    connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
-
-
-    connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
-
 }
 
 
@@ -644,15 +718,38 @@ void MedeaWindow::on_actionClearModel_triggered()
 /**
  * @brief MedeaWindow::on_actionSortModel_triggered
  */
-void MedeaWindow::on_actionSortModel_triggered()
+void MedeaWindow::on_actionSortNode_triggered()
 {
-   if (nodeView->getSelectedNode()){
-       nodeView->sortNode(nodeView->getSelectedNode());
-   } else {
-       nodeView->sortEntireModel();
-       nodeView->fitToScreen();
-   }
+    if (nodeView->getSelectedNode()){
+        nodeView->sortNode(nodeView->getSelectedNode());
+    } else {
+        nodeView->sortEntireModel();
+        nodeView->fitToScreen();
+    }
 }
+
+
+/**
+ * @brief MedeaWindow::on_actionCenterNode_triggered
+ */
+void MedeaWindow::on_actionCenterNode_triggered()
+{
+    if (nodeView->getSelectedNodeItem()) {
+        nodeView->centerItem(nodeView->getSelectedNodeItem());
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::on_actionPopupNewWindow
+ */
+void MedeaWindow::on_actionPopupNewWindow()
+{
+    if (nodeView->getSelectedNode()) {
+        nodeView->constructNewView(nodeView->getSelectedNode());
+    }
+}
+
 
 /**
  * @brief MedeaWindow::on_actionPaste_triggered

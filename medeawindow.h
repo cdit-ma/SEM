@@ -27,14 +27,14 @@
 #include "Controller/newcontroller.h"
 #include "GUI/attributetablemodel.h"
 
-#include "GUI/dock/docktogglebutton.h"
-#include "GUI/dock/docknodeitem.h"
+#include "GUI/Dock/docktogglebutton.h"
+#include "GUI/Dock/docknodeitem.h"
 
-#include "GUI/dock/partsdockscrollarea.h"
-#include "GUI/dock/definitionsdockscrollarea.h"
-#include "GUI/dock/hardwaredockscrollarea.h"
+#include "GUI/Dock/partsdockscrollarea.h"
+#include "GUI/Dock/definitionsdockscrollarea.h"
+#include "GUI/Dock/hardwaredockscrollarea.h"
 
-#include "GUI/toolbar/toolbarwidgetaction.h"
+#include "GUI/Toolbar/toolbarwidgetaction.h"
 
 #include "GUI/nodeviewminimap.h"
 
@@ -79,8 +79,10 @@ private slots:
     void autoCenterViews();
 
     void on_actionClearModel_triggered();
-    void on_actionSortModel_triggered();
-    //void on_actionSortNode_triggered();
+    void on_actionSortNode_triggered();
+    void on_actionCenterNode_triggered();
+
+    void on_actionPopupNewWindow();
 
     void on_actionPaste_triggered();
     void on_actionExit_triggered();
@@ -115,6 +117,7 @@ private:
     void setupJenkinsSettings();
     void setupMenu(QPushButton* button);
     void setupDock(QHBoxLayout* layout);
+    void setupToolbar();
     void setupController();
     void resetGUI();
     void updateDataTable();
@@ -150,9 +153,17 @@ private:
     DockToggleButton* compDefinitionsButton;
     DockToggleButton* prevPressedButton;
 
-PartsDockScrollArea* partsDock;
+    PartsDockScrollArea* partsDock;
     DefinitionsDockScrollArea* definitionsDock;
     HardwareDockScrollArea* hardwareDock;
+
+    QToolBar* toolbar;
+    QToolButton* cutButton;
+    QToolButton* copyButton;
+    QToolButton* pasteButton;
+    QToolButton* sortButton;
+    QToolButton* centerButton;
+    QToolButton* popupButton;
 
     QTableView* dataTable;
     QGroupBox* dataTableBox;

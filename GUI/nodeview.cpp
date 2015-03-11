@@ -52,12 +52,15 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
 
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    //setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    //setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 
     //Set GraphicsView background-color
-    setStyleSheet("QGraphicsView{ background-color: rgba(175,175,175,255);}");
+    setStyleSheet("QGraphicsView{ background-color: rgba(175,175,175,255); border: 0px;}");
+
 
     //QBrush brush( QColor(100,100,200,250) );
     //scene()->setBackgroundBrush(brush);
@@ -264,6 +267,18 @@ Node *NodeView::getSelectedNode()
 
     return 0;
 }
+
+
+/**
+ * @brief NodeView::getSelectedNodeItem
+ * @return
+ */
+NodeItem *NodeView::getSelectedNodeItem()
+{
+    NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
+    return selectedItem;
+}
+
 
 void NodeView::setParentNodeView(NodeView *n)
 {
@@ -499,7 +514,7 @@ void NodeView::showToolbar(QPoint position)
     Node* selectedNode = this->getSelectedNode();
 
     GraphMLItem* graphmlItem = getGraphMLItemFromGraphML(selectedNode);
-    if (graphmlItem) {
+    if (graphmlItem && graphmlItem->getGraphML()->getDataValue("kind") != "Model") {
         NodeItem* nodeItem = getNodeItemFromGraphMLItem(graphmlItem);
         toolbar->setNodeItem(nodeItem);
         toolbar->move(globalPos);

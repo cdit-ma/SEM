@@ -30,12 +30,14 @@ public:
 
     //Get the Selected Node.
     Node* getSelectedNode();
+    NodeItem* getSelectedNodeItem();
 
     void setParentNodeView(NodeView *n);
     void removeSubView(NodeView* subView);
 
     // this is used by the parts dock
     QStringList getConstructableNodeKinds();
+
 protected:
     //Mouse Handling Methods
     void mouseReleaseEvent(QMouseEvent *event);

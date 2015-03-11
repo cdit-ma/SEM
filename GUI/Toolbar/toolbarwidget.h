@@ -21,7 +21,6 @@ class ToolbarWidget : public QWidget
 public:
     explicit ToolbarWidget(NodeView *parent = 0);
 
-    //void setCurrentNodeItem(NodeItem* item);
     void setNodeItem(NodeItem* item);
 
     void showDefinitionButton(Node *definition);
@@ -34,6 +33,10 @@ protected:
 
 
 signals:
+    void toolbar_paste(QString);
+    void toolbar_sortNode(Node*);
+    void toolbar_centerItem(GraphMLItem*);
+
     void toolbar_goToDefinition(Node* node);
     void toolbar_goToImplementation(Node* node);
     void toolbar_goToInstance(Node* node);
@@ -64,7 +67,10 @@ public slots:
 
     void hideToolbar(bool actionTriggered);
 
-    void testSlot();
+    void getClipboard();
+    void getNode();
+    void getGraphMLItem();
+
 
 private:
     void setupToolBar();
@@ -98,10 +104,18 @@ private:
     Node* definitionNode;
     Node* implementationNode;
 
+    QToolButton* cutButton;
+    QToolButton* copyButton;
+    QToolButton* pasteButton;
+
+    QToolButton* sortButton;
+    QToolButton* centerButton;
+    QToolButton* showNewViewButton;
+
     QToolButton* addChildButton;
     QToolButton* deleteButton;
     QToolButton* connectButton;
-    QToolButton* showNewViewButton;
+
     QToolButton* definitionButton;
     QToolButton* implementationButton;
     QToolButton* instancesButton;
@@ -130,6 +144,7 @@ private:
     ToolbarWidgetAction* outEventPortDefaultAction;
 
     QFrame* frame;
+    int frameVisibilityCount;
     bool eventFromToolbar;
 
     //QList<Node*>* componentInstances;

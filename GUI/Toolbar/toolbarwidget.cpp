@@ -4,6 +4,9 @@
 #include <QDebug>
 #include <QHBoxLayout>
 
+#include <QApplication>
+#include <QClipboard>
+
 
 /**
  * @brief ToolbarWidget::ToolbarWidget
@@ -15,6 +18,8 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     parentNodeView = parent;
     nodeItem = 0;
     prevNodeItem = 0;
+
+    frameVisibilityCount = 0;
     eventFromToolbar = false;
 
     definitionNode = 0;
@@ -25,11 +30,10 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
 
     /*
     setStyleSheet("ToolbarWidget{"
-                  "background-color: rgba(230,230,230,250);"
+                  "background-color: rgba(200,200,200,250);"
                   "}"
-
                   "QToolButton{"
-                  "background-color: rgba(250,250,250,200);"
+                  "background-color: rgba(240,240,240,200);"
                   "}");
     */
 
@@ -37,38 +41,6 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     setupMenus();
     makeConnections();
 }
-
-/*
-void ToolbarWidget::setCurrentNodeItem(NodeItem *item)
-{
-    qDebug() << "setCurrentNodeItem";
-
-    //Dans method.
-    currentSelectedItem = item;
-
-    Node* selectedNode = item->getNode();
-
-    Node* itemDefinition = parentNodeView->hasDefinition(selectedNode);
-    Node* itemImplementation = parentNodeView->hasDefinition(selectedNode);
-
-    showDefinitionButton(itemDefinition);
-    showImplementationButton(itemImplementation);
-
-    QStringList adoptableNodeList = parentNodeView->getAdoptableNodeList(selectedNode);
-    setupAdoptableNodesList(&adoptableNodeList);
-
-    QList<Node*> connectableNodeList = parentNodeView->getConnectableNodes(selectedNode);
-    setupLegalNodesList(&connectableNodeList);
-
-
-    if(selectedNode->getDataValue("kind") == "ComponentAssembly"){
-        QList<Node*> outEventPortDelegates = selectedNode->getChildrenOfKind("OutEventPort", 1);
-        qCritical() << selectedNode->toString() << " Has " << outEventPortDelegates.size() << " OEP's it could use!";
-        QList<Node*> inEventPortDelegates = selectedNode->getChildrenOfKind("InEventPort", 1);
-        qCritical() << selectedNode->toString() << " Has " << inEventPortDelegates.size() << " IEP's it could use!";
-    }
-}
-*/
 
 
 /**
@@ -80,8 +52,8 @@ void ToolbarWidget::setCurrentNodeItem(NodeItem *item)
 void ToolbarWidget::setNodeItem(NodeItem *item)
 {
     nodeItem = item;
-    updateToolButtons();
     updateMenuLists();
+    updateToolButtons();
 }
 
 
@@ -96,6 +68,7 @@ void ToolbarWidget::showDefinitionButton(Node *definition)
     if (definition) {
         definitionNode = definition;
         definitionButton->show();
+        frameVisibilityCount++;
     } else {
         definitionButton->hide();
     }
@@ -113,6 +86,7 @@ void ToolbarWidget::showImplementationButton(Node* implementation)
     if (implementation) {
         implementationNode = implementation;
         implementationButton->show();
+        frameVisibilityCount++;
     } else {
         implementationButton->hide();
     }
@@ -240,14 +214,18 @@ void ToolbarWidget::addEventPorDelegate()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
 
+    /*
     QString nodeKind = "OutEventPortDelegate";
     Node* actionNode = action->getNode();
     if(actionNode->getDataValue("kind").startsWith("InEvent")){
         nodeKind = "InEventPortDelegate";
     }
+    */
+
+    Node* actionNode = action->getNode();
+    QString nodeKind = actionNode->getDataValue("kind");
 
     toolbar_constructConnectedNode(nodeItem->getNode(), actionNode, nodeKind, 1);
-    //emit toolbar_constructEventPortDelegate(nodeItem->getNode(), action->getNode(), 1);
 }
 
 
@@ -278,11 +256,33 @@ void ToolbarWidget::hideToolbar(bool actionTriggered)
 
 
 /**
- * @brief ToolbarWidget::testSlot
+ * @brief ToolbarWidget::getClipboard
  */
-void ToolbarWidget::testSlot()
+void ToolbarWidget::getClipboard()
 {
-   qDebug() << "TEST SLOT";
+    QClipboard *clipboard = QApplication::clipboard();
+    if (clipboard->ownsClipboard()) {
+        emit toolbar_paste(clipboard->text());
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::getNode
+ */
+void ToolbarWidget::getNode()
+{
+   emit toolbar_sortNode(nodeItem->getNode());
+}
+
+
+/**
+ * @brief ToolbarWidget::getGraphMLItem
+ */
+void ToolbarWidget::getGraphMLItem()
+{
+   GraphMLItem* item = dynamic_cast<GraphMLItem*>(nodeItem);
+   emit toolbar_centerItem(item);
 }
 
 
@@ -294,6 +294,12 @@ void ToolbarWidget::setupToolBar()
     QHBoxLayout* layout = new QHBoxLayout();
     QSize buttonSize = QSize(35,35);
 
+    cutButton = new QToolButton(this);
+    copyButton = new QToolButton(this);
+    pasteButton = new QToolButton(this);
+    sortButton = new QToolButton(this);
+    centerButton = new QToolButton(this);
+
     addChildButton = new QToolButton(this);
     connectButton = new QToolButton(this);
     deleteButton = new QToolButton(this);
@@ -301,6 +307,12 @@ void ToolbarWidget::setupToolBar()
     definitionButton = new QToolButton(this);
     implementationButton = new QToolButton(this);
     instancesButton = new QToolButton(this);
+
+    cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
+    copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
+    pasteButton->setIcon(QIcon(":/Resources/Icons/paste.png"));
+    sortButton->setIcon(QIcon(":/Resources/Icons/sort.png"));
+    centerButton->setIcon(QIcon(":/Resources/Icons/autoCenter.png"));
 
     addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode.png"));
     connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
@@ -310,6 +322,12 @@ void ToolbarWidget::setupToolBar()
     implementationButton->setIcon(QIcon(":/Resources/Icons/implementation.png"));
     instancesButton->setIcon(QIcon(":/Resources/Icons/instance.png"));
 
+    cutButton->setFixedSize(buttonSize);
+    copyButton->setFixedSize(buttonSize);
+    pasteButton->setFixedSize(buttonSize);
+    sortButton->setFixedSize(buttonSize);
+    centerButton->setFixedSize(buttonSize);
+
     addChildButton->setFixedSize(buttonSize);
     connectButton->setFixedSize(buttonSize);
     deleteButton->setFixedSize(buttonSize);
@@ -317,6 +335,12 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setFixedSize(buttonSize);
     implementationButton->setFixedSize(buttonSize);
     instancesButton->setFixedSize(buttonSize);
+
+    cutButton->setIconSize(buttonSize*0.6);
+    copyButton->setIconSize(buttonSize*0.65);
+    pasteButton->setIconSize(buttonSize*0.65);
+    sortButton->setIconSize(buttonSize*0.65);
+    centerButton->setIconSize(buttonSize*0.65);
 
     addChildButton->setIconSize(buttonSize*0.65);
     connectButton->setIconSize(buttonSize*0.6);
@@ -326,6 +350,12 @@ void ToolbarWidget::setupToolBar()
     implementationButton->setIconSize(buttonSize);
     instancesButton->setIconSize(buttonSize*0.65);
 
+    cutButton->setToolTip("Cut Node");
+    copyButton->setToolTip("Copy Node");
+    pasteButton->setToolTip("Paste Node");
+    sortButton->setToolTip("Sort Node");
+    centerButton->setToolTip("Center Node");
+
     addChildButton->setToolTip("Add Child Node");
     connectButton->setToolTip("Connect Node");
     deleteButton->setToolTip("Delete Node");
@@ -334,15 +364,34 @@ void ToolbarWidget::setupToolBar()
     implementationButton->setToolTip("Show Implementation");
     instancesButton->setToolTip("Show Instances");
 
+    QFrame* frame1 = new QFrame();
+    QFrame* frame2 = new QFrame();
+    QFrame* frame3 = new QFrame();
+
+    frame1->setFrameShape(QFrame::VLine);
+    frame1->setPalette(QPalette(Qt::darkGray));
+    frame2->setFrameShape(QFrame::VLine);
+    frame2->setPalette(QPalette(Qt::darkGray));
+    frame3->setFrameShape(QFrame::VLine);
+    frame3->setPalette(QPalette(Qt::darkGray));
+
     frame = new QFrame();
+    //frame->setStyleSheet("border: 5px;");
     frame->setFrameShape(QFrame::VLine);
     frame->setPalette(QPalette(Qt::darkGray));
 
+    layout->addWidget(cutButton);
+    layout->addWidget(copyButton);
+    layout->addWidget(pasteButton);
+    layout->addWidget(frame1);
+    layout->addWidget(sortButton);
+    layout->addWidget(centerButton);
+    layout->addWidget(showNewViewButton);
+    layout->addWidget(frame2);
     layout->addWidget(addChildButton);
     layout->addWidget(connectButton);
     layout->addWidget(deleteButton);
     layout->addWidget(frame);
-    layout->addWidget(showNewViewButton);
     layout->addWidget(definitionButton);
     layout->addWidget(implementationButton);
     layout->addWidget(instancesButton);
@@ -426,6 +475,12 @@ void ToolbarWidget::makeConnections()
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
 
+    connect(cutButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(copyButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(pasteButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(sortButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(centerButton, SIGNAL(clicked()), this, SLOT(hide()));
+
     connectToView();
 }
 
@@ -445,12 +500,20 @@ void ToolbarWidget::connectToView()
 
     connect(this, SIGNAL(toolbar_constructNode(QString, int)), parentNodeView, SLOT(constructNode(QString, int)));
     connect(this, SIGNAL(toolbar_constructEdge(Node*,Node*)), parentNodeView, SLOT(constructEdge(Node*,Node*)));
-
     connect(this, SIGNAL(toolbar_constructComponentInstance(Node*,Node*,int)), parentNodeView, SLOT(constructComponentInstance(Node*,Node*,int)));
-
     connect(this, SIGNAL(toolbar_constructConnectedNode(Node*,Node*,QString,  int)), parentNodeView, SLOT(constructConnectedComponents(Node*,Node*,QString, int)));
 
     connect(this, SIGNAL(toolbar_constructNewView(Node*)), parentNodeView, SLOT(constructNewView(Node*)));
+
+    connect(cutButton, SIGNAL(clicked()), parentNodeView, SLOT(cut()));
+    connect(copyButton, SIGNAL(clicked()), parentNodeView, SLOT(copy()));
+    connect(pasteButton, SIGNAL(clicked()), this, SLOT(getClipboard()));
+    connect(this, SIGNAL(toolbar_paste(QString)), parentNodeView, SLOT(paste(QString)));
+
+    connect(sortButton, SIGNAL(clicked()), this, SLOT(getNode()));
+    connect(this, SIGNAL(toolbar_sortNode(Node*)), parentNodeView, SLOT(sortNode(Node*)));
+    connect(centerButton, SIGNAL(clicked()), this, SLOT(getGraphMLItem()));
+    connect(this, SIGNAL(toolbar_centerItem(GraphMLItem*)), parentNodeView, SLOT(centerItem(GraphMLItem*)));
 }
 
 
@@ -460,23 +523,21 @@ void ToolbarWidget::connectToView()
  */
 void ToolbarWidget::updateToolButtons()
 {
-    QString nodeKind = nodeItem->getNodeKind();
-    bool showFrame = true;
-
     // show/hide the delete button depending on the nodeKind
+    QString nodeKind = nodeItem->getNodeKind();
     if (nodeKind.endsWith("Definitions") || nodeKind == "ManagementComponent") {
         deleteButton->hide();
-        showFrame = false;
     } else {
         deleteButton->show();
     }
 
-    // hide frame if nodeKind.startsWith("Hardware") & showNewView is the only button visible
-    if (nodeKind.startsWith("Hardware") || nodeKind == "ManagementComponent" && !showFrame) {
-        frame->hide();
-    } else {
+    // if any of the defn/impl/inst buttons are visible, frameVisibilityCount > 0
+    if (frameVisibilityCount > 0) {
         frame->show();
+    } else {
+        frame->hide();
     }
+    frameVisibilityCount = 0;
 }
 
 
@@ -486,7 +547,7 @@ void ToolbarWidget::updateToolButtons()
  */
 void ToolbarWidget::updateMenuLists()
 {
-    // TODO: Do check here for differences in current list and
+    // TODO: Do check here for differences between current list and
     // new list for menus instead of just clearing them
     clearMenus();
 
@@ -513,6 +574,7 @@ void ToolbarWidget::setupInstancesList(QList<Node*> instances)
         return;
     } else {
         instancesButton->show();
+        frameVisibilityCount++;
     }
 
     for (int i=0; i<instances.count(); i++) {

@@ -63,10 +63,6 @@ private:
     int height;
     bool selected;
 
-    const static int DEFAULT = 0;
-    const static int DISABLED = 1;
-    const static int SELECTED = 2;
-
 };
 
 #endif // DOCKTOGGLEBUTTON_H

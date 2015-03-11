@@ -209,7 +209,7 @@ void DockScrollArea::setupLayout()
     setWidgetResizable(true);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setStyleSheet("QScrollArea {"
-                  "background-color: rgba(255,255,255,180);"
+                  "background-color: rgba(250,250,250,240);"
                   "border: 0px;"
                   "border-radius: 10px;"
                   "padding-top: 10px;"
