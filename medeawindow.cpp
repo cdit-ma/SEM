@@ -106,10 +106,10 @@ void MedeaWindow::initialiseGUI()
     nodeView->setMinimumSize(windowWidth, windowHeight);
 
     // setup widgets
-    projectName->setFlat(true);
-    projectName->setFixedWidth(rightPanelWidth*0.8);
     menuButton->setFixedSize(50,45);
     menuButton->setIconSize(menuButton->size());
+    projectName->setFlat(true);
+    projectName->setFixedWidth(rightPanelWidth-menuButton->width()-10);
     searchButton->setFixedSize(45, 28);
     searchButton->setIconSize(searchButton->size()*0.65);
     searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
@@ -156,13 +156,13 @@ void MedeaWindow::initialiseGUI()
     titleLayout->addWidget(menuButton, 1);
     titleLayout->addSpacerItem(new QSpacerItem(10, 0));
     titleLayout->addWidget(projectName, 1);
-    titleLayout->addStretch(7);
+    titleLayout->addStretch();
 
     topHLayout->setMargin(0);
     topHLayout->setSpacing(0);
-    topHLayout->addLayout(titleLayout, 3);
-    topHLayout->addStretch();
-    topHLayout->addWidget(toolbar, 3);
+    topHLayout->addLayout(titleLayout);
+    topHLayout->addStretch(1);
+    topHLayout->addWidget(toolbar);
     topHLayout->addStretch(1);
 
     leftVlayout->addLayout(topHLayout, 10);
@@ -359,13 +359,14 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
  */
 void MedeaWindow::setupToolbar()
 {
-    QSize buttonSize = QSize(40,40);
+    QSize buttonSize = QSize(46,40);
 
-    toolbar->setFixedHeight(buttonSize.height()+10);
+    toolbar->setFixedSize(buttonSize.width()*7, buttonSize.height()+10);
     toolbar->setStyleSheet("QToolButton{"
                            "border: 1px solid grey;"
                            "border-radius: 10px;"
-                           "background-color: rgba(200,200,200,150);"
+                           "background-color: rgba(200,200,200,225);"
+                           "margin: 0px 3px 0px 3px;"
                            "}");
 
     cutButton = new QToolButton(this);
@@ -403,15 +404,12 @@ void MedeaWindow::setupToolbar()
     centerButton->setToolTip("Center Node");
     popupButton->setToolTip("Show Node In New Window");
 
-    QWidget* spacerWidget = new QWidget();
     QWidget* spacerWidget1 = new QWidget();
     QWidget* spacerWidget2 = new QWidget();
-    spacerWidget->setFixedWidth(5);
-    spacerWidget1->setFixedWidth(15);
-    spacerWidget2->setFixedWidth(15);
+    spacerWidget1->setFixedWidth(5);
+    spacerWidget2->setFixedWidth(5);
 
     toolbar->addWidget(cutButton);
-    //toolbar->addWidget(spacerWidget);
     toolbar->addWidget(copyButton);
     toolbar->addWidget(pasteButton);
     toolbar->addWidget(spacerWidget1);

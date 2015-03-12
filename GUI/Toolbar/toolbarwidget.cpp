@@ -28,14 +28,15 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     setBackgroundRole(QPalette::Dark);
     setWindowFlags(windowFlags() | Qt::Popup);
 
-    /*
     setStyleSheet("ToolbarWidget{"
-                  "background-color: rgba(200,200,200,250);"
+                  "background-color: rgba(240,240,240,240);"
                   "}"
+
                   "QToolButton{"
-                  "background-color: rgba(240,240,240,200);"
+                  "background-color: white;"
+                  "border: 1px solid grey;"
+                  "border-radius: 10px;"
                   "}");
-    */
 
     setupToolBar();
     setupMenus();
@@ -261,7 +262,7 @@ void ToolbarWidget::hideToolbar(bool actionTriggered)
 void ToolbarWidget::setupToolBar()
 {
     QHBoxLayout* layout = new QHBoxLayout();
-    QSize buttonSize = QSize(35,35);
+    QSize buttonSize = QSize(39,39);
 
     addChildButton = new QToolButton(this);
     connectButton = new QToolButton(this);
@@ -290,7 +291,7 @@ void ToolbarWidget::setupToolBar()
     addChildButton->setIconSize(buttonSize*0.65);
     connectButton->setIconSize(buttonSize*0.6);
     deleteButton->setIconSize(buttonSize*0.75);
-    showNewViewButton->setIconSize(buttonSize*0.55);
+    showNewViewButton->setIconSize(buttonSize*0.6);
     definitionButton->setIconSize(buttonSize);
     implementationButton->setIconSize(buttonSize);
     instancesButton->setIconSize(buttonSize*0.65);
