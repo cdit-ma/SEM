@@ -35,9 +35,12 @@ public:
     QList<NodeEdge*> getEdgeItems();
     void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
+    QRectF minimumVisibleRect() const;
     bool isSelected();
+    bool isPositionLocked();
     bool isPainted();
     bool isAncestorSelected();
+    void setDrawGrid(bool value);
 
     void addChildNodeItem(NodeItem* child);
     void removeChildNodeItem(NodeItem* child);
@@ -45,6 +48,8 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     bool hasChildren();
+    bool labelPressed(QPointF mousePosition);
+    bool iconPressed(QPointF mousePosition);
 
     bool isExpanded();
     bool isHidden();
@@ -52,6 +57,8 @@ public:
 
     void addNodeEdge(NodeEdge* line);
     void removeNodeEdge(NodeEdge* line);
+    void adjustPos(QPointF delta);
+
 
     double getWidth();
     double getHeight();
@@ -66,10 +73,12 @@ public:
     QList<NodeItem*> getChildNodeItems();
     bool isPermanentlyCentered();
 
+    qreal getGridSize();
 
 signals:
     void NodeItem_SortModel();
     void NodeItem_MoveSelection(QPointF delta);
+    void NodeItem_MoveFinished();
 
     //Node Edge Signals
     void setEdgeVisibility(bool visible);
@@ -108,11 +117,15 @@ public slots:
 
     void updateHeight(NodeItem* child);
 
+    void updateModelPosition();
+
     void sceneRectChanged(QRectF sceneRect);
+    void setNewLabel(QString label = "");
 
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
@@ -122,12 +135,16 @@ private:
     void setWidth(qreal width);
     void setHeight(qreal height);
 
+    void updateGridLines(bool updateX = false, bool updateY = false);
+
     void setPermanentlyInvisible(bool isInvisible);
     void setupAspect();
     void setupBrushes();
     void setupIcon();
     void setupLabel();
     void setupGraphMLConnections();
+
+
 
     void setPaintObject(bool paint);
 
@@ -150,6 +167,9 @@ private:
 
     double getCornerRadius();
     double getMaxLabelWidth();
+
+    QColor invertColor(QColor oldColor);
+
     double getItemMargin() const;
 
 
@@ -160,17 +180,21 @@ private:
     void setPos(qreal x, qreal y);
     void setPos(const QPointF &pos);
 
-    //Visual Components
-    QGraphicsTextItem* label;
     QGraphicsPixmapItem* icon;
     QGraphicsPixmapItem* lockIcon;
     QGraphicsProxyWidget *proxyWidget;
+    QGraphicsProxyWidget *labelWidget;
     QPushButton *expandButton;
+    QPushButton* labelButton;
 
     QList<NodeEdge*> connections;
 
     bool nodeSelected;
     bool isNodePressed;
+    bool drawGrid;
+
+    int X_GRID_POS;
+    int Y_GRID_POS;
 
     QString nodeKind;
     QString fileID;
@@ -193,6 +217,10 @@ private:
     //QPointF initialScenePressPosition;
     bool hasSelectionMoved;
 
+
+    QVector<QLineF> xGridLines;
+    QVector<QLineF> yGridLines;
+
     QList<NodeItem*> childNodeItems;
 
     //Used to store the Color/Brush/Pen for the selected Style.
@@ -204,6 +232,9 @@ private:
     QPen selectedPen;
 
     bool hasDefinition;
+    bool onGrid;
+
+    bool LOCKED_POSITION;
 
     bool PAINT_OBJECT;
 
