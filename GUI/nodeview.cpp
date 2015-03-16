@@ -47,7 +47,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     //Set QT Options for this QGraphicsView
     setDragMode(ScrollHandDrag);
-    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
+    setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
     setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
@@ -1569,18 +1569,20 @@ void NodeView::fitToScreen()
 
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
         if (nodeItem && nodeItem->isPainted()) {
+            // recently changed from using the item's boundingRect to just
+            // using it's width and height to center all items properly
             QPointF pf = nodeItem->scenePos();
             if (pf.x() < leftMostX) {
                 leftMostX = pf.x();
             }
-            if ((pf.x()+nodeItem->boundingRect().width()) > rightMostX) {
-                rightMostX = pf.x() + nodeItem->boundingRect().width();
+            if ((pf.x()+nodeItem->getWidth()) > rightMostX) {
+                rightMostX = pf.x() + nodeItem->getWidth();
             }
             if (pf.y() < topMostY) {
                 topMostY = pf.y();
             }
-            if ((pf.y()+nodeItem->boundingRect().height()) > bottomMostY) {
-                bottomMostY = pf.y() + nodeItem->boundingRect().height();
+            if ((pf.y()+nodeItem->getHeight()) > bottomMostY) {
+                bottomMostY = pf.y() + nodeItem->getHeight();
             }
         }
     }

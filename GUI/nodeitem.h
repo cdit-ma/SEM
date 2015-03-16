@@ -39,7 +39,6 @@ public:
     bool isPainted();
     bool isAncestorSelected();
 
-
     void addChildNodeItem(NodeItem* child);
     void removeChildNodeItem(NodeItem* child);
     bool intersectsRectangle(QRectF rect);
@@ -76,11 +75,7 @@ signals:
     void setEdgeVisibility(bool visible);
     void setEdgeSelected(bool selected);
 
-
-
     void centerViewAspects();
-
-
 
     //DockNodeItem Signals
     void updateDockNodeItem();
@@ -105,9 +100,8 @@ public slots:
 
     void setPermanentlyCentralized(bool centralized);
 
-        void aspectsChanged(QStringList aspects);
+    void aspectsChanged(QStringList aspects);
     void sort();
-
 
     void addExpandButton();
     void expandItem(bool show);
@@ -116,10 +110,12 @@ public slots:
 
     void sceneRectChanged(QRectF sceneRect);
 
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+
 
 private:
     NodeItem* getChildNodeItemFromNode(Node* child);
@@ -134,8 +130,6 @@ private:
     void setupGraphMLConnections();
 
     void setPaintObject(bool paint);
-
-
 
     void updateGraphMLSize();
     void updateGraphMLPosition();
@@ -156,6 +150,8 @@ private:
 
     double getCornerRadius();
     double getMaxLabelWidth();
+    double getItemMargin() const;
+
 
 
     NodeItem* parentNodeItem;
@@ -163,7 +159,6 @@ private:
 
     void setPos(qreal x, qreal y);
     void setPos(const QPointF &pos);
-
 
     //Visual Components
     QGraphicsTextItem* label;
@@ -192,8 +187,6 @@ private:
     double prevWidth;
     double prevHeight;
 
-
-
     QPointF nextChildPosition;
 
     QPointF previousScenePosition;
@@ -221,9 +214,12 @@ private:
 
     QRectF currentSceneRect;
 
+    QPixmap pixmap;
+    QString stringLabel;
+
+    QGraphicsTextItem* textItem;
 
     // GraphMLItem interface
-public slots:
 
 };
 

@@ -9,21 +9,24 @@
 #include <QRubberBand>
 #include <QPixmap>
 #include <QBitmap>
+#include <QTextBlockFormat>
+#include <QTextCursor>
 
 #define MODEL_WIDTH 19200
 #define MODEL_HEIGHT 10800
 #define COLUMN_COUNT 2
-#define MINIMUM_HEIGHT_RATIO 7
-#define LABEL_LENGTH 16
+#define MINIMUM_HEIGHT_RATIO 4
+#define LABEL_LINE_LENGTH 12
+#define LABEL_RATIO 1.1
+#define FONT_RATIO 0.1
+
 
 
 NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW):  GraphMLItem(node, GraphMLItem::NODE_ITEM)
 {
-
     Q_INIT_RESOURCE(resources);
     setParentItem(parent);
     parentNodeItem = parent;
-
 
     nodeSelected = false;
     isNodePressed = false;
@@ -42,6 +45,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     initialHeight = 0;
     label  = 0;
 
+    textItem = 0;
+
     nodeKind = getGraphML()->getDataValue("kind");
 
     QString parentNodeKind = "";
@@ -55,7 +60,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
             setHeight(width);
             expanded = true;
         } else {
-            setHeight(width/7);
+            //setHeight(width/7);
+            setHeight(width);
         }
 
         parentNodeKind = parent->getGraphML()->getDataValue("kind");
@@ -80,7 +86,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     prevWidth = width;
     prevHeight = height;
 
-    minimumHeight = initialWidth / MINIMUM_HEIGHT_RATIO;
+    minimumHeight = initialWidth;// MINIMUM_HEIGHT_RATIO;
     minimumWidth = initialWidth;
 
     //Update Width and Height with values from the GraphML Model If they have them.
@@ -90,12 +96,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         if (width < initialWidth) {
             width = initialWidth;
         }
-
         if (height < initialHeight) {
             height = initialHeight;
         }
     }
-
 
     //Update GraphML Model for size/position if they have been changed.
     updateGraphMLSize();
@@ -105,8 +109,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     setupAspect();
     setupBrushes();
-    setupLabel();
     setupIcon();
+    setupLabel();
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
@@ -169,22 +173,47 @@ QList<NodeEdge *> NodeItem::getEdgeItems()
 
 void NodeItem::setParentItem(QGraphicsItem *parent)
 {
-   NodeItem* nodeItem = dynamic_cast<NodeItem*>(parent);
-   if(nodeItem){
+    NodeItem* nodeItem = dynamic_cast<NodeItem*>(parent);
+    if(nodeItem){
         nodeItem->addChildNodeItem(this);
         connect(nodeItem, SIGNAL(nodeItemMoved()), this, SLOT(parentNodeItemMoved()));
-   }
-   QGraphicsItem::setParentItem(parent);
+    }
+    QGraphicsItem::setParentItem(parent);
 }
 
 
 QRectF NodeItem::boundingRect() const
 {
-    int brushSize = selectedPen.width();
-    if(nodeKind == "Model"){
+    int brushSize = 0;//selectedPen.width();
+    if (nodeKind == "Model") {
         brushSize = 0;
     }
-    return QRectF(-brushSize, -brushSize, width + (brushSize *2), height + (brushSize *2));
+
+    qreal topLeftX = 0;
+    qreal topLeftY = 0;
+    qreal bottomRightX = width + (brushSize * 2);
+    qreal bottomRightY = height + (brushSize * 2);
+
+
+    /*
+     * topLeftX is always gonna have a margin
+     * topLeftY doesn't need it
+     * bottomRightX needs it only if width <= minWidth
+     * bottomRightY needs double the margin to fit the label textItem in
+     */
+    float itemMargin = getItemMargin();
+
+
+    bottomRightX += itemMargin/2;
+
+    if (width <= minimumWidth) {
+        bottomRightX += itemMargin/2;
+    }
+    if (PAINT_OBJECT && !nodeKind.endsWith("Definitions")) {
+        bottomRightY += itemMargin;
+    }
+
+    return QRectF(QPointF(topLeftX, topLeftY), QPointF(bottomRightX, bottomRightY));
 }
 
 bool NodeItem::isSelected()
@@ -226,19 +255,13 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
     if(PAINT_OBJECT){
-        QRectF rectangle(0, 0, width, height);
-
-        float headerWidth = width;
-        float headerHeight = minimumHeight;
 
         QPen Pen;
         QBrush Brush;
-
 
         if(nodeSelected){
             Brush = selectedBrush;
@@ -246,6 +269,21 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }else{
             Brush = brush;
             Pen = pen;
+        }
+
+        QRectF rectangle = boundingRect();
+        rectangle.setWidth(rectangle.width() - Pen.width());
+        rectangle.setHeight(rectangle.height() - Pen.width());
+        rectangle.translate(Pen.width()/2, Pen.width()/2);
+
+
+
+        // this hides the backgound color of items with minimum size
+        if (!nodeKind.isNull() && !nodeKind.endsWith("Definitions")) {
+            if (width == minimumWidth && height == minimumHeight) {
+                //Pen.setColor(Qt::transparent);
+                Brush.setColor(Qt::transparent);
+            }
         }
 
         QBrush HeaderBrush = Brush;
@@ -267,34 +305,12 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
+
         qreal cornerRadius = getCornerRadius();
 
         painter->setPen(Pen);
         painter->setBrush(Brush);
-
         painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
-
-        QPainterPath UpperSidePath;
-        QPolygonF UpperPolygon;
-        UpperPolygon << QPointF(0,0) << QPointF(headerWidth,0) << QPointF(headerWidth,headerHeight) << QPointF(0,headerHeight);
-        UpperSidePath.addPolygon(UpperPolygon);
-
-        painter->setBrush(HeaderBrush);
-        painter->setClipping(true);
-        painter->setClipPath(UpperSidePath);
-
-        painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
-
-        if(expanded){
-            if(headerHeight + selectedPen.width()  < height){
-                QPen linePen = selectedPen;
-                linePen.setStyle(Qt::DotLine);
-                linePen.setColor(QColor(100,100,100));
-                painter->setPen(linePen);
-                painter->drawLine(QPointF(0,headerHeight), QPointF(width, headerHeight));
-            }
-        }
-
     }
 
 }
@@ -311,7 +327,7 @@ bool NodeItem::hasChildren()
  */
 bool NodeItem::isHidden()
 {
-   return hidden;
+    return hidden;
 }
 
 double NodeItem::getWidth()
@@ -348,7 +364,12 @@ void NodeItem::removeNodeEdge(NodeEdge *line)
 
 double NodeItem::getChildWidth()
 {
-    return initialWidth / COLUMN_COUNT + 1;
+    /*
+    if(this->getGraphML()->getDataValue("kind") == "DeploymentDefinitions" || parentNodeItem == 0){
+        return (initialWidth / MINIMUM_HEIGHT_RATIO) * 2;
+    }*/
+    return initialWidth / MINIMUM_HEIGHT_RATIO;
+    //return initialWidth / COLUMN_COUNT + 1;
 }
 
 
@@ -377,7 +398,11 @@ QPointF NodeItem::getNextChildPos()
  */
 void NodeItem::resetNextChildPos()
 {
-    nextChildPosition = QPointF(getCornerRadius()/2, minimumHeight);
+    if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
+        nextChildPosition = QPointF(getCornerRadius()/2, getCornerRadius());
+    } else {
+        nextChildPosition = QPointF(getCornerRadius()/2, (1 + 2.5 * FONT_RATIO) * minimumHeight);
+    }
 }
 
 
@@ -406,7 +431,10 @@ void NodeItem::setSelected(bool selected)
             this->setZValue(0);
         }
 
+
+
         update();
+        updateTextLabel();
         emit setEdgeSelected(selected);
     }
 }
@@ -487,199 +515,191 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
  */
 void NodeItem::sort()
 {
+    if (!label) {
+        return;
+    }
 
     //emit triggerAction("Sorting Children");
 
-    float topY;
-    float gapY;
+    float topY = getCornerRadius();
+    float gapY = topY;
+    float gapX = gapY;
 
-        // if it's a main node item, it will have no icon
-        if (!PAINT_OBJECT || nodeKind.endsWith("Definitions")) {
-            topY = label->x() + label->boundingRect().height()  + getCornerRadius();
-            gapY = topY;
-        } else {
-            if(icon){
-                topY = (icon->boundingRect().height()*icon->scale()) + getCornerRadius();
-            }
-            gapY = topY/1.8;
-        }
+    float rowWidth = gapX/2;
+    float colHeight = topY;
 
-        float gapX = gapY;
+    float maxHeight = 0;
+    float maxWidth = 0;
 
-        float inCol = topY;
-        float outCol = topY;
-        float attCol = topY;
+    float labelHeight = 3 * FONT_RATIO * minimumHeight;
+    float inCol = minimumHeight + labelHeight;
+    float outCol = minimumHeight + labelHeight;
+    float attCol = minimumHeight + labelHeight;
 
-        float rowWidth = gapX;
-        float colHeight = topY;
+    int numberOfItems = 0;
 
-        float maxHeight = 0;
-        float maxWidth = 0;
+    bool componentLayout = (nodeKind.contains("Component"));
+    bool componentAssembly = (nodeKind == "ComponentAssembly");
+    bool fileContainsComponents = (nodeKind == "File" && getChildrenKind().contains("Component"));
+    bool componentHasChildren = false;
 
-        int numberOfItems = 0;
-
-        bool componentLayout = (nodeKind.contains("Component"));
-        bool componentAssembly = (nodeKind == "ComponentAssembly");
-        bool fileContainsComponents = (nodeKind == "File" && getChildrenKind().contains("Component"));
-        bool componentHasChildren = false;
-
-        // if this item is a File and contains Components for its children,
-        // check if any of them has children and increase gapX accordingly
-        if (fileContainsComponents || componentAssembly) {
-            for(int i = 0 ; i < childNodeItems.size() ; i++){
-                NodeItem* nodeItem = childNodeItems[i];
-
-                if (nodeItem && (nodeItem->getChildNodeItems().count() > 0)) {
-                    componentHasChildren = true;
-                    break;
-                }
+    // if this item is a File/ComponentAssembly and contains Components for its children,
+    // check if any of them has children and increase gapX accordingly
+    if (fileContainsComponents || componentAssembly) {
+        for(int i = 0 ; i < childNodeItems.size() ; i++){
+            NodeItem* nodeItem = childNodeItems[i];
+            if (nodeItem && (nodeItem->getChildNodeItems().count() > 0)) {
+                componentHasChildren = true;
+                break;
             }
         }
+    }
 
-        // if the node item's children are Components or ComponentInstances
-        // leave more gap for the in/out event ports along its edges
-        if ((fileContainsComponents || componentAssembly) && componentHasChildren) {
-            gapY = topY;
-            gapX = gapY;
-            rowWidth = gapX;
-        }
+    // if the node item's children are Components or ComponentInstances
+    // leave more gap for the in/out event ports along its edges
+    if ((fileContainsComponents || componentAssembly) && componentHasChildren) {
+        gapY = topY;
+        gapX = gapY;
+        rowWidth = gapX;
+    }
 
-        // position children differently for DeploymentDefinitions
-        if (nodeKind == "DeploymentDefinitions") {
-            rowWidth = 0;
-            colHeight = 0;
-            gapY = 0;
-        } else if (nodeKind == "Model") {
-            rowWidth = 0;
-            colHeight = 0;
-        }
 
-        foreach(Node* child, getNode()->getChildren(0)){
-            NodeItem* nodeItem = getChildNodeItemFromNode(child);
-            // check that it's a NodeItem and that it's visible
-            if (nodeItem  && nodeItem->isVisible()) {
+    // position children differently for DeploymentDefinitions
+    if (nodeKind == "Model" || nodeKind == "DeploymentDefinitions") {
+        rowWidth = 0;
+        colHeight = 0;
+    }
 
-                // if child == DeploymentDefinitions and all of
-                // it's children are invisible, don't sort it
-                if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
-                    bool childrenAreInAspect = false;
-                    for(int i = 0; i < childNodeItems.size(); i++){
-                        NodeItem *nodeItm = childNodeItems[i];
-                        if (nodeItm && nodeItm->isVisible()) {
-                            childrenAreInAspect = true;
-                            break;
-                        }
-                    }
-                    if (!childrenAreInAspect) {
+    foreach(Node* child, getNode()->getChildren(0)){
+
+        NodeItem* nodeItem = getChildNodeItemFromNode(child);
+
+        // check that it's a NodeItem and that it's visible
+        if (nodeItem  && nodeItem->isVisible()) {
+
+            // if child == DeploymentDefinitions and all of
+            // it's children are invisible, don't sort it
+            if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
+                bool childrenAreInAspect = false;
+                for(int i = 0; i < childNodeItems.size(); i++){
+                    NodeItem *nodeItm = childNodeItems[i];
+                    if (nodeItm && nodeItm->isVisible()) {
+                        childrenAreInAspect = true;
                         break;
                     }
                 }
-
-                int childWidth = nodeItem->boundingRect().width();
-                int childHeight = nodeItem->boundingRect().height();
-
-                // if the origWidth is not used, when a node is sorted and it
-                // only had one child to begin with, it will always only have
-                // one node per row and hence one column, once sorted
-                // this allows there to be at most 2 child nodes per row
-
-                if ((rowWidth + childWidth) > (initialWidth*1.5)) {
-                    colHeight += maxHeight + gapY;
-
-                    if (rowWidth > maxWidth) {
-                        maxWidth = rowWidth - gapX;
-                    }
-
-                    maxHeight = childHeight;
-
-                    if (nodeKind == "Model") {
-                        rowWidth = 0;
-                    } else {
-                        rowWidth = gapX;
-                    }
+                if (!childrenAreInAspect) {
+                    break;
                 }
-
-                // store the maximum height for each row
-                if (childHeight > maxHeight) {
-                    maxHeight = childHeight;
-                }
-
-                if (componentLayout) {
-
-                    QString nodeKind = nodeItem->getGraphML()->getDataValue("kind");
-                    float newX = 0;
-                    float newY = 0;
-
-                    if (nodeKind.startsWith("InEvent")) {
-                        newY = inCol;
-                        newX = 0 - (childWidth/2);
-                        inCol += childHeight + gapY;
-                    } else if (nodeKind.startsWith("OutEvent")) {
-                        newY = outCol;
-                        newX = width - (childWidth/2);
-                        outCol += childHeight + gapY;
-                    } else {
-                        newX = (width/2) - (childWidth/2);
-                        newY = attCol;
-                        attCol += childHeight + gapY;
-                    }
-
-                    GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "x", QString::number(newX));
-                    GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "y", QString::number(newY));
-
-                } else {
-                    GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "x", QString::number(rowWidth));
-                    GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "y", QString::number(colHeight));
-                    rowWidth += childWidth + gapX;
-
-                }
-
-                numberOfItems++;
             }
-        }
 
-        if (numberOfItems > 0) {
+            int childWidth = nodeItem->boundingRect().width();
+            int childHeight = nodeItem->boundingRect().height();
 
-            if (componentLayout) {
+            // if the origWidth is not used, when a node is sorted and it
+            // only had one child to begin with, it will always only have
+            // one node per row and hence one column, once sorted
+            // this allows there to be at most 2 child nodes per row
 
-                float max_height = inCol;
-                if (outCol > max_height) {
-                    max_height = outCol;
-                }
-                if (attCol > max_height) {
-                    max_height = attCol;
-                }
-                GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(max_height));
-
-            } else {
+            if ((rowWidth + childWidth) > (minimumWidth*1.5)) {
+                colHeight += maxHeight + gapY;
 
                 if (rowWidth > maxWidth) {
                     maxWidth = rowWidth - gapX;
                 }
 
-                if (nodeKind == "DeploymentDefinitions") {
-                    GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth));
-                    GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight));
-                    return;
-                }
+                maxHeight = childHeight;
 
-                if (nodeKind == "Model") {
-                    GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth));
-                    GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight));
-                    return;
-                }
-
-                if ((maxWidth + gapX) > initialWidth) {
-                    GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth + gapX));
+                if (nodeKind == "Model" || nodeKind == "DeploymentDefinitions") {
+                    rowWidth = 0;
                 } else {
-                    GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(initialWidth));
+                    rowWidth = gapX/2;
                 }
+            }
+
+            // store the maximum height for each row
+            if (childHeight > maxHeight) {
+                maxHeight = childHeight;
+            }
+
+            if (componentLayout) {
+
+                QString nodeKind = nodeItem->getGraphML()->getDataValue("kind");
+                float newX = 0;
+                float newY = 0;
+
+                if (nodeKind.startsWith("InEvent")) {
+                    newY = inCol;
+                    newX = 0 - (childWidth/2);
+                    inCol += childHeight + gapY;
+                } else if (nodeKind.startsWith("OutEvent")) {
+                    newY = outCol;
+                    newX = width - (childWidth/2);
+                    outCol += childHeight + gapY;
+                } else {
+                    newX = (width/2) - (childWidth/2);
+                    newY = attCol;
+                    attCol += childHeight + gapY;
+                }
+
+                GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "x", QString::number(newX));
+                GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "y", QString::number(newY));
+
+            } else {
+                GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "x", QString::number(rowWidth));
+                GraphMLItem_SetGraphMLData(nodeItem->getGraphML(), "y", QString::number(colHeight));
+                rowWidth += childWidth + gapX;
+            }
+
+            numberOfItems++;
+        }
+    }
+
+    if (numberOfItems > 0) {
+
+        if (componentLayout) {
+
+            float max_height = inCol;
+            if (outCol > max_height) {
+                max_height = outCol;
+            }
+            if (attCol > max_height) {
+                max_height = attCol;
+            }
+
+            if (max_height < minimumHeight) {
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(minimumHeight));
+            } else {
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(max_height));
+            }
+
+        } else {
+
+            if (rowWidth > maxWidth) {
+                maxWidth = rowWidth - gapX;
+            }
+
+            if (nodeKind == "Model" || nodeKind == "DeploymentDefinitions") {
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth));
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight));
+                return;
+            }
+
+            if ((maxWidth + gapX) < minimumWidth) {
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(minimumWidth));
+            } else {
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth + gapX));
+            }
+
+            if ((colHeight + maxHeight + gapY) < minimumHeight) {
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(minimumHeight));
+            } else {
                 GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
             }
         }
+    }
 
-        resetNextChildPos();
-
+    resetNextChildPos();
 }
 
 
@@ -687,6 +707,9 @@ void NodeItem::sort()
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
 
+    if(!PAINT_OBJECT){
+        QGraphicsItem::mousePressEvent(event);
+    }
 
     switch (event->button()) {
 
@@ -743,7 +766,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
     default:
         break;
-}
+    }
 }
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
@@ -824,14 +847,15 @@ void NodeItem::setWidth(qreal width)
     if(this->width != width){
 
         bool updateModel = false;
-        if(width < initialWidth){
+        if(width < minimumWidth){
             //qWarning() << "NodeItem::setWidth() Width provided less than Minimum.";
-            width = initialWidth;
+            width = minimumWidth;
             updateModel = true;
         }
+
         this->width = width;
         updateExpandButton();
-        updateTextLabel();
+        //updateTextLabel();
         updateChildrenOnChange();
 
         if(updateModel){
@@ -845,9 +869,10 @@ void NodeItem::setHeight(qreal height)
 {
     if(this->height != height){
         bool updateModel = false;
-        if(height < initialHeight){
-            //qWarning() << "NodeItem::setHeight() Height provided less than Minimum.";
-            height = initialHeight;
+
+        if(height < minimumHeight){
+            //qWarning() << "NodeItem::setWidth() Width provided less than Minimum.";
+            height = minimumHeight;
             updateModel = true;
         }
 
@@ -857,6 +882,15 @@ void NodeItem::setHeight(qreal height)
         if(updateModel){
             updateGraphMLSize();
         }
+
+        // update this label's textItem position
+        /*if (textItem) {
+            if (icon) {
+                textItem->setPos(0, icon->x()+(icon->boundingRect().height()*icon->scale()));
+            } else {
+                textItem->setPos(0, height);
+            }
+        }*/
     }
 }
 
@@ -899,31 +933,41 @@ bool NodeItem::isAncestorSelected()
 
 void NodeItem::updateTextLabel(QString text)
 {
-    if(label){
-        if(text == 0){
-            if(getGraphML()){
-                text = getGraphML()->getDataValue("label");
-            }
-        }
-        label->setPlainText(text);
+    if(!textItem){
+        return;
+    }
 
-        int brushSize = selectedPen.width();
-        qreal availableWidth = width - (getCornerRadius()/2 + minimumHeight + brushSize);
-        if(icon){
-            availableWidth -= (getCornerRadius()/2 + minimumHeight + brushSize);
-        }
+    if(text == ""){
+        text = getGraphML()->getDataValue("label");
+    }
 
-        qreal labelWidth = label->boundingRect().width();
-        if(labelWidth > availableWidth){
-            qreal ratio = availableWidth / labelWidth;
-            qreal fitChars = (text.size() * ratio) - 2;
-            text.truncate(fitChars);
-            label->setPlainText(text + "..");
+    QString remainingText = text;
+    QString line1 = text;
+    QString line2 = "";
+
+    if(remainingText.length() > LABEL_LINE_LENGTH){
+        line1.truncate(LABEL_LINE_LENGTH);
+
+        if(!isSelected()){
+            line1.truncate(LABEL_LINE_LENGTH -2);
+            line1 = line1 + "..";
+        }
+        remainingText.remove(0, LABEL_LINE_LENGTH);
+    }
+
+    if(remainingText.length() > 0){
+        if(isSelected()){
+            line2 = remainingText;
+            line2.truncate(LABEL_LINE_LENGTH);
         }
     }
 
+    textItem->setHtml("<center>" + line1 + "<br / >"+ line2+ "</center>");
+    qreal xPos = (boundingRect().width() - textItem->boundingRect().width())/2;
+    textItem->setPos(xPos, minimumHeight);
 
 }
+
 
 void NodeItem::updateExpandButton()
 {
@@ -1026,17 +1070,24 @@ void NodeItem::setupBrushes()
         color = QColor(0,50,100);
     }
 
-    else if(nodeKind== "BehaviourDefinitions"){
-        color = QColor(250,250,250);
+    /*
+     * Changed these to match the view button colors
+     */
+    else if(nodeKind == "BehaviourDefinitions"){
+        //color = QColor(240,240,240);
+        color = QColor(254,184,126);
     }
-    else if(nodeKind== "InterfaceDefinitions"){
-        color = QColor(250,250,250);
+    else if(nodeKind == "InterfaceDefinitions"){
+        //color = QColor(240,240,240);
+        color = QColor(110,210,210);
     }
-    else if(nodeKind== "HardwareDefinitions"){
-        color = QColor(250,250,250);
+    else if(nodeKind == "HardwareDefinitions"){
+        //color = QColor(240,240,240);
+        color = QColor(110,170,220);
     }
-    else if(nodeKind== "AssemblyDefinitions"){
-        color = QColor(250,250,250);
+    else if(nodeKind == "AssemblyDefinitions"){
+        //color = QColor(240,240,240);
+        color = QColor(255,160,160);
     }
 
     else if(nodeKind== "File"){
@@ -1132,30 +1183,135 @@ void NodeItem::aspectsChanged(QStringList aspects)
 
 
 /**
- * @brief NodeItem::setLabelFont
+ * @brief NodeItem::setupIcon
+ * This sets up the scale and tranformation of this item's icon
+ * if it has one. It also updates the pos for this item's label.
+ */
+void NodeItem::setupIcon()
+{
+    QString nodeKind = getGraphML()->getDataValue("kind");
+
+    // get the icon images
+    QImage image( ":/Resources/Icons/" + nodeKind + ".png");
+    if (!image.isNull()) {
+        icon = new QGraphicsPixmapItem(QPixmap::fromImage(image), this);
+    }
+    QImage lockImage (":/Resources/Icons/lock.png");
+    if (!lockImage.isNull()){
+        lockIcon = new QGraphicsPixmapItem(QPixmap::fromImage(lockImage), this);
+    }
+
+    if (icon) {
+        float iconPercent = 1;
+        qreal iconHeight = icon->boundingRect().height();
+        qreal iconWidth = icon->boundingRect().width();
+        qreal scaleFactor = (iconPercent * minimumHeight / iconHeight);
+
+        icon->setScale(scaleFactor);
+        icon->setTransformationMode(Qt::SmoothTransformation);
+
+        int brushSize = selectedPen.width();
+        icon->setPos((getCornerRadius()/2 + brushSize) ,0);
+
+        iconWidth *= scaleFactor;
+        iconHeight *= scaleFactor;
+
+        qreal lockScale = .25;
+        qreal lockHeight = lockIcon->boundingRect().height();
+        qreal lockScaleFactor = lockScale * ((minimumHeight) / lockHeight);
+
+        if (lockIcon){
+            lockIcon->setScale(lockScaleFactor);
+            lockHeight *= lockScaleFactor;
+            lockIcon->setTransformationMode(Qt::SmoothTransformation);
+            lockIcon->setPos(brushSize, (iconHeight/2) - (lockHeight/2));
+        }
+
+
+        qreal xPos = (boundingRect().width() - iconWidth)/2;
+
+        icon->setX(xPos);
+        icon->setY((minimumHeight - iconHeight) /2);
+
+        // update the label's position
+        //label->setX(label->x() + iconWidth);
+        //icon->setX(icon->x() + ((label->boundingRect().width()-iconWidth) / 2));
+        //label->setY(icon->y() + iconHeight);
+    }
+}
+
+
+/**
+ * @brief NodeItem::setupLabel
  * This sets up the font and size of the label.
- * It also stores a fixed, default size for its children.
  */
 void NodeItem::setupLabel()
 {
-    QFont font("Arial");
-    double fontSize = .25 * minimumHeight;
-    //qCritical() << this->getGraphML()->toString();
+    // this allows temporary sorting for all but the Model
+    label = new QGraphicsTextItem(0);
 
-    if(fontSize < 0){
-        fontSize = 1;
-    }else if(fontSize > 1000){
-        fontSize = 1000;
+    // this updates this item's label (stringLabel)
+    if (!nodeKind.isNull()) {
+        //if (nodeKind == "Model" || nodeKind == "DeploymentDefinitions") {
+        if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
+            return;
+        }
+        updateTextLabel(nodeKind);
     }
-    //qCritical() << fontSize;
+
+    // setup font and pixmap size
+    float fontSize = FONT_RATIO * minimumHeight;
+
+    QFont font("Arial");
     font.setPointSize(fontSize);
 
-    label = new QGraphicsTextItem(this);
-    label->setFont(font);
 
-    int brushSize = selectedPen.width();
-    label->setPos(getCornerRadius()/2 + brushSize , (minimumHeight - label->boundingRect().height())/2);
+
+
+
+    // setup the pixmap item
+    textItem = new QGraphicsTextItem(this);
+    textItem->setPos(0, height);
+    textItem->setFont(font);
+    //textItem->setTextWidth(LABEL_RATIO * minimumWidth);
+    textItem->setTextWidth(LABEL_RATIO * minimumWidth);
+
     updateTextLabel(getGraphML()->getDataValue("label"));
+
+    /*
+    double pixW = 15000;
+    double pixH = 2000;
+    float fontSize = 500;
+
+    QPixmap pix(pixW, pixH);
+    QPainter painter(  &pix );
+    painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
+    painter.setFont( QFont("Arial", fontSize));
+    painter.drawText(QPointF(0, (pixH/2) + fontSize/2), "123456789|123456789|123456789|123456789|");
+
+    QGraphicsPixmapItem * textItem = new QGraphicsPixmapItem(this);
+    //textItem->setPixmap(pix);
+    textItem->setPixmap(pixmap);
+    textItem->setTransformationMode(Qt::SmoothTransformation);
+
+    qreal textHeight = textItem->boundingRect().height();
+
+    qreal desiredHeight = FONT_RATIO * minimumHeight;
+    qreal scaleFactor = textHeight / desiredHeight;
+    textItem->setScale(1/scaleFactor);
+    */
+
+    /*
+    QFont font("Arial");
+    font.setPointSize(fontSize);
+
+    label = new QGraphicsTextItem(0);
+    label->setFont(font);
+    label->setTextWidth(LABEL_RATIO * minimumWidth);
+
+    updateTextLabel(getGraphML()->getDataValue("label"));
+    label->setPos((minimumWidth - label->boundingRect().width())/ 2, minimumHeight + ((FONT_RATIO) * minimumHeight));
+    */
 }
 
 
@@ -1252,61 +1408,6 @@ void NodeItem::retrieveGraphMLData()
 
 
 /**
- * @brief NodeItem::setupIcon
- * This sets up the scale and tranformation of this item's icon
- * if it has one. It also sets the pos for this item's label.
- */
-void NodeItem::setupIcon()
-{
-    QString nodeKind = getGraphML()->getDataValue("kind");
-
-    QImage image( ":/Resources/Icons/" + nodeKind + ".png");
-    if (!image.isNull()) {
-        icon = new QGraphicsPixmapItem(QPixmap::fromImage(image), this);
-    }
-    QImage lockImage (":/Resources/Icons/lock.png");
-    if(!lockImage.isNull()){
-        lockIcon = new QGraphicsPixmapItem(QPixmap::fromImage(lockImage), this);
-    }
-
-    if(icon){
-        qreal lockScale = .25;
-        qreal iconHeight = icon->boundingRect().height();
-        qreal iconWidth = icon->boundingRect().width();
-        qreal scaleFactor = (minimumHeight / iconHeight);
-
-        qreal lockHeight = lockIcon->boundingRect().height();
-        qreal lockWidth = lockIcon->boundingRect().width();
-        qreal lockScaleFactor = lockScale * ((minimumHeight) / lockHeight);
-
-
-        icon->setScale(scaleFactor);
-        icon->setTransformationMode(Qt::SmoothTransformation);
-
-        int brushSize = selectedPen.width();
-        icon->setPos((getCornerRadius()/2 + brushSize) ,0);
-
-
-
-        iconWidth *= scaleFactor;
-        iconHeight *= scaleFactor;
-
-        if(lockIcon){
-            lockIcon->setScale(lockScaleFactor);
-
-            lockHeight *= lockScaleFactor;
-
-            lockIcon->setTransformationMode(Qt::SmoothTransformation);
-            lockIcon->setPos(brushSize, (iconHeight/2) - (lockHeight/2));
-        }
-
-
-        label->setX(label->x() + iconWidth);
-    }
-}
-
-
-/**
  * @brief NodeItem::getChildren
  * @return
  */
@@ -1368,11 +1469,19 @@ double NodeItem::getMaxLabelWidth()
     return 0;
 }
 
+double NodeItem::getItemMargin() const
+{
+    return (minimumHeight / MINIMUM_HEIGHT_RATIO) * (1 + (3 * FONT_RATIO));
+}
+
+
+
 /**
  * @brief NodeItem::addExpandButton
  */
 void NodeItem::addExpandButton()
 {
+    /*
     if (icon != 0) {
         if (nodeKind!= "Hardware" && nodeKind != "ManagementComponent") {
 
@@ -1412,6 +1521,7 @@ void NodeItem::addExpandButton()
             connect(expandButton, SIGNAL(clicked(bool)), this, SLOT(expandItem(bool)));
         }
     }
+*/
 }
 
 /**
@@ -1489,8 +1599,6 @@ void NodeItem::updateHeight(NodeItem *child)
             if (parentNodeItem) {
                 emit updateParentHeight(this);
             }
-        } else {
-            //qDebug() << "No change in height";
         }
     }
 }
@@ -1503,7 +1611,7 @@ void NodeItem::updateHeight(NodeItem *child)
  */
 void NodeItem::sceneRectChanged(QRectF sceneRect)
 {
-   currentSceneRect = sceneRect;
+    currentSceneRect = sceneRect;
 }
 
 

@@ -117,10 +117,10 @@ void MedeaWindow::initialiseGUI()
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     workloadButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
-    assemblyButton->setStyleSheet("background-color: rgba(230,130,130,0.9);");
-    hardwareButton->setStyleSheet("background-color: rgba(80,140,190,0.9);");
-    definitionsButton->setStyleSheet("background-color: rgba(80,180,180,0.9);");
-    workloadButton->setStyleSheet("background-color: rgba(224,154,96,0.9);");
+    assemblyButton->setStyleSheet("background-color: rgb(230,130,130);");
+    hardwareButton->setStyleSheet("background-color: rgb(80,140,190);");
+    definitionsButton->setStyleSheet("background-color: rgb(80,180,180);");
+    workloadButton->setStyleSheet("background-color: rgb(224,154,96);");
     searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
     projectName->setStyleSheet("font-size: 16px; text-align: left;");
     menuButton->setStyleSheet("QPushButton{ background-color: rgba(220,220,220,0.5); }"
