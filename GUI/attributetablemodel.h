@@ -20,6 +20,8 @@ public:
     AttributeTableModel(GraphMLItem* guiItem, QObject* parent = 0);
     ~AttributeTableModel();
 
+signals:
+    void editMultilineData(GraphMLData* data);
 public slots:
     void updatedData(GraphMLData* data);
     void removedData(GraphMLData* data);
@@ -42,6 +44,7 @@ private:
     bool isNode;
     GraphML* attachedGraphML;
     QList<GraphMLData*> attachedData;
+    QStringList hiddenKeyNames;
 };
 
 #endif // ATTRIBUTETABLEMODEL_H

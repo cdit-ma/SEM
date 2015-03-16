@@ -2,13 +2,26 @@
 #include "QDebug"
 #include "nodeitem.h"
 #include "nodeedge.h"
+#include <QGridLayout>
+#include <QDialog>
+#include <QPlainTextEdit>
+#include <QDialogButtonBox>
 
 AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QAbstractTableModel(item)
 {
     Q_UNUSED(parent);
     guiItem = item;
     attachedGraphML = guiItem->getGraphML();
+    if(attachedGraphML->isNode()){
+        QString kind = attachedGraphML->getDataValue("kind");
+        if(!(kind == "Aggregate" || kind == "AggregateInstance" || kind == "Member" || kind == "MemberInstance")){
+            hiddenKeyNames << "sortOrder";
+        }
+    }
+
+    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "kind";
     setupDataBinding();
+
 }
 
 AttributeTableModel::~AttributeTableModel()
@@ -41,10 +54,13 @@ void AttributeTableModel::removedData(GraphMLData *toRemove)
 void AttributeTableModel::addData(GraphMLData *data)
 {
     if(!attachedData.contains(data)){
-        beginInsertRows(QModelIndex(), attachedData.size(), attachedData.size());
-        this->attachedData.append(data);
-        updatedData(data);
-        endInsertRows();
+        if(!hiddenKeyNames.contains(data->getKeyName())){
+            connect(data, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+            beginInsertRows(QModelIndex(), attachedData.size(), attachedData.size());
+            attachedData.append(data);
+            updatedData(data);
+            endInsertRows();
+        }
     }
 }
 
@@ -82,6 +98,22 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
             return QVariant();
         }
     }
+
+    if (role == Qt::EditRole) {
+        GraphMLData* data = attachedData.at(index.row());
+
+        QString keyName = data->getKeyName();
+        switch(index.column()){
+        case 0:
+            return data->getKey()->getName();
+        case 1:{
+            return data->getValue();
+        }
+        default:
+            return QVariant();
+        }
+    }
+
     return QVariant();
 
 }
@@ -95,9 +127,9 @@ QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientatio
     if (orientation == Qt::Horizontal) {
         switch (section) {
         case 0:
-            return tr("Data Name");
+            return tr("Key");
         case 1:
-            return tr("Data Value");
+            return tr("Value");
 
         default:
             return QVariant();
@@ -181,16 +213,16 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 
 }
 
+
 void AttributeTableModel::setupDataBinding()
 {
     if(attachedGraphML){
         connect(attachedGraphML, SIGNAL(dataRemoved(GraphMLData*)), this, SLOT(removedData(GraphMLData*)));
         connect(attachedGraphML, SIGNAL(dataAdded(GraphMLData*)), this, SLOT(addData(GraphMLData*)));
 
-        attachedData = attachedGraphML->getData();
 
-        foreach(GraphMLData* data, attachedData){
-            connect(data, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
+        foreach(GraphMLData* data, attachedGraphML->getData()){
+            addData(data);
         }
     }
 }

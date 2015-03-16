@@ -83,6 +83,9 @@ void MedeaWindow::initialiseGUI()
     nodeView = new NodeView();
     toolbar = new QToolBar();
     dataTable = new QTableView();
+
+
+    //dataTable->set
     dataTableBox = new QGroupBox();
     projectName = new QPushButton("Model");
     assemblyButton = new QPushButton("Assembly");
@@ -104,6 +107,7 @@ void MedeaWindow::initialiseGUI()
     this->setCentralWidget(nodeView);
     this->setMinimumSize(windowWidth, windowHeight);
     nodeView->setMinimumSize(windowWidth, windowHeight);
+
 
     // setup widgets
     menuButton->setFixedSize(50,45);
@@ -128,7 +132,9 @@ void MedeaWindow::initialiseGUI()
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setFixedWidth(rightPanelWidth);
+
     dataTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
     tableLayout->setMargin(0);
     tableLayout->setContentsMargins(0,0,0,0);
     tableLayout->addWidget(dataTable);
@@ -293,6 +299,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     // set deafult view aspects centering to automatic
     autoCenterOn = true;
+
+
 }
 
 
@@ -574,6 +582,11 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
 
     // update dataTable size
     updateDataTable();
+}
+
+void MedeaWindow::editMultiLineData(GraphMLData *data)
+{
+
 }
 
 /**
@@ -1047,7 +1060,6 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
  */
 void MedeaWindow::updateDataTable()
 {
-
     QAbstractItemModel* tableModel = dataTable->model();
     qreal height = 0;
     int vOffset = 0;
@@ -1086,7 +1098,8 @@ void MedeaWindow::updateDataTable()
         dataTableBox->setMask(QRegion(0, 0, w, h, QRegion::Rectangle));
     }
 
-    dataTableBox->repaint();
+    dataTable->resizeColumnToContents(0);
+    //dataTableBox->repaint();
 }
 
 
@@ -1099,6 +1112,8 @@ void MedeaWindow::loadJenkinsData(int code)
     QStringList files;
     files << myProcess->readAll();
 
+    exportFileName = "c:/jenkins.xml";
+    writeExportedProject(files[0]);
     window_ImportProjects(files);
 
     // sort and center view aspects

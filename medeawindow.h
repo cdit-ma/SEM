@@ -65,6 +65,8 @@ signals:
     void clearDocks();
 
 private slots:
+
+    void editMultiLineData(GraphMLData* data);
     void setAspects(QStringList aspects);
 
     void sortAndCenterViewAspects();

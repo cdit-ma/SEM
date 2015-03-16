@@ -37,6 +37,8 @@ private:
 
     QList<GraphMLData*> keysData;
 
+    QList<QChar> invalidLabelCharacters;
+
     TYPE type;
     QString typeStr;
     QString defaultValue;

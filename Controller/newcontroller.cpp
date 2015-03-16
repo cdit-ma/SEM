@@ -924,14 +924,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
 
     QList<GraphMLData*> data;
 
-    QString labelString= "";
-    for(int i=0; i < nodeKind.size(); i++){
-        if(nodeKind.at(i).isUpper() && i > 0){
-            labelString += " ";
-        }
-        labelString += nodeKind.at(i);
-    }
-
+    QString labelString= nodeKind;
 
 
     data.append(new GraphMLData(kindKey, nodeKind));
@@ -1141,7 +1134,7 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
                 //Check for label_XXX
                 else if(childLabel.startsWith(newLabel)){
                     QString remaining = childLabel.right(childLabel.size() - newLabel.size());
-                    if(remaining.size() > 1 && remaining.contains("_")){
+                    if(remaining.size() > 1 && remaining.contains("-")){
                         QString number = remaining.right(remaining.size() - 1);
                         bool isNumber= false;
                         number.toInt(&isNumber);
@@ -1152,7 +1145,7 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
                 }
             }
             if(sameLabelCount > 0){
-                newLabel = newLabel + QString("_%1").arg(sameLabelCount);
+                newLabel = newLabel + QString("-%1").arg(sameLabelCount);
             }
         }
 
@@ -1920,9 +1913,9 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
     }else{
         //Set the value.
         if(child->isImpl()){
-            setGraphMLData(child, "label", def_Label->getValue() + "_Impl");
+            setGraphMLData(child, "label", def_Label->getValue() + "-Impl");
         }else{
-            setGraphMLData(child, "label", def_Label->getValue() + "_Inst");
+            setGraphMLData(child, "label", def_Label->getValue() + "-Inst");
         }
     }
 }
@@ -2305,11 +2298,11 @@ void NewController::setupManagementComponents()
     Node* plNode = constructChildNode(assemblyDefinitions, dancePlanLauncherData);
     Node* lsdNode = constructChildNode(assemblyDefinitions, ddsLoggingServerData);
 
-    emNode->getData("label")->setValue("DANCE_EXECUTION_MANAGER");
-    plNode->getData("label")->setValue("DANCE_PLAN_LAUNCHER");
-    lsdNode->getData("label")->setValue("DDS_LOGGING_SERVER");
+    emNode->getData("label")->setValue("DANCE-EXECUTION-MANAGER");
+    plNode->getData("label")->setValue("DANCE-PLAN-LAUNCHER");
+    lsdNode->getData("label")->setValue("DDS-LOGGING-SERVER");
 
-	managementComponents.insert("DANCE_EXECUTION_MANAGER",dynamic_cast<ManagementComponent*>(emNode));
+    managementComponents.insert("DANCE_EXECUTION_MANAGER",dynamic_cast<ManagementComponent*>(emNode));
     managementComponents.insert("DANCE_PLAN_LAUNCHER",dynamic_cast<ManagementComponent*>(plNode));
     managementComponents.insert("DDS_LOGGING_SERVER",dynamic_cast<ManagementComponent*>(lsdNode));
 }

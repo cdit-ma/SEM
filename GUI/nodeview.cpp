@@ -31,6 +31,7 @@
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
 
+    constructedFromToolbar = false;
     CENTRALIZED_ON_ITEM = false;
     IS_SUB_VIEW = subView;
     controller = 0;
@@ -533,6 +534,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
 
     NodeItem* parentNodeItem = 0;
+
     if(parentNode){
         GraphMLItem* parentGUI = getGraphMLItemFromHash(parentNode->getID());
         parentNodeItem = getNodeItemFromGraphMLItem(parentGUI);
@@ -545,13 +547,12 @@ void NodeView::view_ConstructNodeGUI(Node *node)
             return;
         }
     }
-    // NodeItem* parentNodeItem = getNodeItemFromNode(parentNode);
 
 
     NodeItem* nodeItem = new NodeItem(node, parentNodeItem, currentAspects, IS_SUB_VIEW);
 
+
     storeGraphMLItemInHash(nodeItem);
-    //nodeItems.append(nodeItem);
 
     //Connect the Generic Functionality.
     connectGraphMLItemToController(nodeItem, node);
@@ -564,6 +565,12 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     // send necessary signals when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
+
+
+    if(constructedFromToolbar){
+        nodeItem->setNewLabel();
+        constructedFromToolbar = false;
+    }
 }
 
 
@@ -693,6 +700,7 @@ void NodeView::constructNode(QString nodeKind, int sender)
 
     NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
     if (selectedItem) {
+        constructedFromToolbar = true;
         if (sender == 0) {
             view_ConstructNode(getSelectedNode(), nodeKind, selectedItem->getNextChildPos());
         } else if (sender == 1) {
@@ -898,6 +906,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
             if(nodeItem){
                 connect(nodeItem, SIGNAL(NodeItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
                 connect(nodeItem, SIGNAL(NodeItem_SortModel()), this, SLOT(sortModel()));
+                connect(nodeItem, SIGNAL(NodeItem_MoveFinished()), this, SLOT(moveFinished()));
             }
         }else{
             //Specific SubView Functionality.
@@ -1388,18 +1397,34 @@ void NodeView::moveSelection(QPointF delta)
 
         GraphML* graphml = graphMLItem->getGraphML();
         if(graphml && graphml->isNode()){
+            NodeItem* nodeItem = (NodeItem*) graphMLItem;
+            /*
+            nodeItem->adjustPos(delta);
+*/
+
             GraphMLData* xData = graphml->getData("x");
             GraphMLData* yData = graphml->getData("y");
 
             float x = xData->getValue().toFloat() + delta.x();
             float y = yData->getValue().toFloat() + delta.y();
 
-
-
             view_SetGraphMLData(graphml, "x", QString::number(x));
             view_SetGraphMLData(graphml, "y", QString::number(y));
+
         }
     }
+}
+
+void NodeView::moveFinished()
+{
+    foreach(QString ID, selectedIDs){
+        GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
+        if(currentItem && currentItem->isNodeItem()){
+            NodeItem* nodeItem = (NodeItem*) currentItem;
+            nodeItem->updateModelPosition();
+        }
+    }
+
 }
 
 

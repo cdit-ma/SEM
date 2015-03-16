@@ -99,6 +99,7 @@ signals:
     void view_edgeDestructed();
 
 public slots:
+
     void constructEventPortDelegate(Node *assm, Node *eventPortInstance);
     void constructNode(QString nodeKind, int sender);
     void setDefaultAspects();
@@ -118,6 +119,7 @@ public slots:
 
     void appendToSelection(GraphMLItem* item);
     void moveSelection(QPointF delta);
+    void moveFinished();
     void clearSelection();
 
 
@@ -270,6 +272,7 @@ private:
     QList<NodeView*> subViews;
 
     bool AUTO_CENTER_ASPECTS;
+    bool constructedFromToolbar;
 
     bool toolbarJustClosed;
 

@@ -3,7 +3,7 @@
 #include "node.h"
 
 #include <QDebug>
-
+#include <QMessageBox>
 int GraphMLKey::_Did =0;
 
 GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(GraphML::KEY, name)
@@ -43,7 +43,7 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
 
     setDefaultProtected(false);
 
-    //this->type = type;
+    invalidLabelCharacters << '*' << '.' << '"' << '/' << '\\' << '[' << ']' << ':' << ';' << '|' << '=' << ',' << '_' << ' ';
 }
 
 GraphMLKey::~GraphMLKey()
@@ -115,8 +115,21 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
         newValue.toFloat(&ok);
         break;
     case STRING:{
-
         ok = true;
+        if(getName() == "label"){
+            if(newValue.size() > 32)
+            {
+                QMessageBox::warning(0, "Label Warning!", "Label is longer than 32 characters!", QMessageBox::Ok);
+            }
+
+            foreach(QChar letter, newValue){
+                if(invalidLabelCharacters.contains(letter)){
+                    QMessageBox::critical(0, "Invalid Character in Label!", "Character '" + QString(letter) + "' is not allowed in label!", QMessageBox::Ok);
+                    ok = false;
+                }
+            }
+       }
+
         break;
     }
     default:
