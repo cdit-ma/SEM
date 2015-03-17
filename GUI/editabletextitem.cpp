@@ -60,7 +60,7 @@ void EditableTextItem::focusOutEvent(QFocusEvent *event)
 {
     QString newValue = getStringValue();
     if(newValue != previousValue){
-        qCritical() << newValue;
+        //qCritical() << newValue;
         emit textUpdated(newValue);
     }
     setEditable(false);
