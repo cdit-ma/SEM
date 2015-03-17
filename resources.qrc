@@ -81,5 +81,6 @@
         <file>Resources/Icons/autoCenter.png</file>
         <file>Resources/Icons/searchIcon.png</file>
         <file>Resources/Icons/instance.png</file>
+        <file>Resources/Icons/center.png</file>
     </qresource>
 </RCC>

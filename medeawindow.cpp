@@ -395,7 +395,7 @@ void MedeaWindow::setupToolbar()
     copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
     pasteButton->setIcon(QIcon(":/Resources/Icons/paste.png"));
     sortButton->setIcon(QIcon(":/Resources/Icons/sort.png"));
-    centerButton->setIcon(QIcon(":/Resources/Icons/autoCenter.png"));
+    centerButton->setIcon(QIcon(":/Resources/Icons/center.png"));
     popupButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
 
     cutButton->setFixedSize(buttonSize);
@@ -409,7 +409,7 @@ void MedeaWindow::setupToolbar()
     copyButton->setIconSize(buttonSize*0.65);
     pasteButton->setIconSize(buttonSize*0.65);
     sortButton->setIconSize(buttonSize*0.65);
-    centerButton->setIconSize(buttonSize*0.65);
+    centerButton->setIconSize(buttonSize*0.75);
     popupButton->setIconSize(buttonSize*0.65);
 
     cutButton->setToolTip("Cut Node");
