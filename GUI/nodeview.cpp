@@ -494,8 +494,8 @@ void NodeView::setAspects(QStringList aspects)
         centerAspects();
     }
 
+    view_AspectsChanged(aspects); // need this for all cases
     view_GUIAspectChanged(aspects);
-
     clearSelection();
 }
 
@@ -1614,14 +1614,14 @@ void NodeView::fitToScreen()
             if (pf.x() < leftMostX) {
                 leftMostX = pf.x();
             }
-            if ((pf.x()+nodeItem->getWidth()) > rightMostX) {
-                rightMostX = pf.x() + nodeItem->getWidth();
+            if ((pf.x() + nodeItem->boundingRect().width()) > rightMostX) {
+                rightMostX = pf.x() + nodeItem->boundingRect().width();
             }
             if (pf.y() < topMostY) {
                 topMostY = pf.y();
             }
-            if ((pf.y()+nodeItem->getHeight()) > bottomMostY) {
-                bottomMostY = pf.y() + nodeItem->getHeight();
+            if ((pf.y() + nodeItem->boundingRect().height()) > bottomMostY) {
+                bottomMostY = pf.y() + nodeItem->boundingRect().height();
             }
         }
     }

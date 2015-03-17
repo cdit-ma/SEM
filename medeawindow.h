@@ -143,10 +143,10 @@ private:
     QAction* edit_copy;
     QAction* edit_paste;
     QAction* view_fitToScreen;
-    QAction* view_autoCenterView;
     QAction* view_goToDefinition;
     QAction* view_goToImplementation;
-    QAction* view_gridLines;
+    QAction* view_autoCenterView;
+    QAction* view_showGridLines;
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_sortModel;

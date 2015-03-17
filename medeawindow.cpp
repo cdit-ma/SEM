@@ -274,17 +274,15 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/zoomToFit.png"), "Fit To Sreen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
-    view_autoCenterView = view_menu->addAction(QIcon(":/Resources/Icons/autoCenter.png"), "Manually Center Views");
     view_menu->addSeparator();
     view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go to Definition");
     view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
     view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go to Implementation");
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
-
-    view_gridLines = view_menu->addAction("Toggle Gridlines");
-    view_gridLines->setCheckable(true);
-    view_gridLines->setChecked(false);
-    view_gridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
+    view_menu->addSeparator();
+    view_autoCenterView = view_menu->addAction("Automatically Center Views");
+    view_showGridLines = view_menu->addAction("Show Grid Lines");
+    view_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
@@ -297,6 +295,12 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     button->setMenu(menu);
 
+    // setup toggle actions
+    view_autoCenterView->setCheckable(true);
+    view_autoCenterView->setChecked(true);
+    view_showGridLines->setCheckable(true);
+    view_showGridLines->setChecked(false);
+
     // initially disable model & goto menu actions
     model_validateModel->setEnabled(false);
     view_goToDefinition->setEnabled(false);
@@ -304,8 +308,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     // set deafult view aspects centering to automatic
     autoCenterOn = true;
-
-
 }
 
 
@@ -507,12 +509,13 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
-    connect(view_autoCenterView, SIGNAL(triggered()), this, SLOT(autoCenterViews()));
+    //connect(view_autoCenterView, SIGNAL(triggered()), this, SLOT(autoCenterViews()));
+    connect(view_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(setAutoCenterViewAspects(bool)));
+    connect(view_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
     connect(view_goToDefinition, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
     connect(model_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
-    connect(view_gridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
 

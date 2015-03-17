@@ -61,7 +61,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     initialWidth = 0;
     initialHeight = 0;
 
-
     textItem = 0;
 
     nodeKind = getGraphML()->getDataValue("kind");
@@ -92,10 +91,12 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         setHeight(MODEL_HEIGHT);
     }
 
+    /*
     if (parentNodeKind== "Component" || parentNodeKind== "ComponentInstance") {
         setWidth(width/2);
         setHeight(height/2);
     }
+    */
 
     initialWidth = width;
     initialHeight = height;
@@ -232,9 +233,9 @@ QRectF NodeItem::boundingRect() const
     }
 
 
-   //if (PAINT_OBJECT && !nodeKind.endsWith("Definitions")) {
+    //if (PAINT_OBJECT && !nodeKind.endsWith("Definitions")) {
     //    bottomRightY += itemMargin;
-   //}
+    //}
 
 
     return QRectF(QPointF(topLeftX, topLeftY), QPointF(bottomRightX, bottomRightY));
@@ -252,8 +253,6 @@ QRectF NodeItem::minimumVisibleRect() const
 
 QPointF NodeItem::getGridPosition(int x, int y)
 {
-    qCritical() << x << ":" <<  y;
-
     QPointF bottomLeft = minimumVisibleRect().bottomLeft();
     bottomLeft.setX(bottomLeft.x() + (x * getGridSize()));
     bottomLeft.setY(bottomLeft.y() + (y * getGridSize()));
@@ -499,17 +498,36 @@ double NodeItem::getChildWidth()
  */
 QPointF NodeItem::getNextChildPos()
 {
+    QPointF position;
 
-    QPointF position = getGridPosition(nextX, nextY);
-    nextX += 3;
+    if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
 
-    QPointF nextPosition = getGridPosition(nextX, nextY);
+        position = nextChildPosition;
 
-    if((nextPosition.x() + getChildWidth() + getGridSize()) > boundingRect().width()){
-        nextX = 0;
-        nextY += 3;
+        // update nexChildPosition to the next available position
+        nextChildPosition.setX(nextChildPosition.x() + getChildWidth() + getGridSize());
+
+        // reset nextChildPosition.x if child is going to be out of bounds
+        if ((nextChildPosition.x() + getChildWidth() + (getGridSize()/2)) > boundingRect().width()) {
+            nextChildPosition.setX(getGridSize()/2);
+            nextChildPosition.setY(nextChildPosition.y() + getChildWidth() + getGridSize());
+        }
+
+    } else {
+
+        position = getGridPosition(nextX, nextY);
+        nextX += 3;
+
+        QPointF nextPosition = getGridPosition(nextX, nextY);
+
+        if ((nextPosition.x() + getChildWidth() + getGridSize()) > boundingRect().width()) {
+            nextX = 0;
+            nextY += 3;
+        }
     }
+
     return position;
+
     /*
     QPointF nextPos = nextChildPosition;
 
@@ -522,7 +540,8 @@ QPointF NodeItem::getNextChildPos()
         nextChildPosition.setX(getCornerRadius()/2);
     }
 
-    return nextPos;*/
+    return nextPos;
+    */
 }
 
 /**
@@ -531,7 +550,8 @@ QPointF NodeItem::getNextChildPos()
 void NodeItem::resetNextChildPos()
 {
     if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
-        nextChildPosition = QPointF(getCornerRadius()/2, getCornerRadius());
+        //nextChildPosition = QPointF(getCornerRadius()/2, getCornerRadius()/2);
+        nextChildPosition = QPointF(getGridSize()/2, getGridSize()/2);
     } else {
         nextChildPosition = QPointF(getCornerRadius()/2, (1 + 2.5 * FONT_RATIO) * minimumHeight);
     }
@@ -648,28 +668,15 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
  */
 void NodeItem::sort()
 {
+    /*
     if (!textItem) {
         return;
     }
+    */
 
     //emit triggerAction("Sorting Children");
 
-    float topY = getCornerRadius();
-    float gapY = topY;
-    float gapX = gapY;
-
-    float rowWidth = gapX/2;
-    float colHeight = topY;
-
-    float maxHeight = 0;
-    float maxWidth = 0;
-
-    float labelHeight = 3 * FONT_RATIO * minimumHeight;
-    float inCol = minimumHeight + labelHeight;
-    float outCol = minimumHeight + labelHeight;
-    float attCol = minimumHeight + labelHeight;
-
-    int numberOfItems = 0;
+    bool permanentlyHiddenContainer = (nodeKind == "Model" || nodeKind == "DeploymentDefinitions");
 
     bool componentLayout = (nodeKind.contains("Component"));
     bool componentAssembly = (nodeKind == "ComponentAssembly");
@@ -688,6 +695,25 @@ void NodeItem::sort()
         }
     }
 
+    //float topY = getCornerRadius();
+    float topY = getGridSize()/2;
+    float gapY = topY;
+    float gapX = gapY;
+
+    float labelHeight = 3 * FONT_RATIO * minimumHeight;
+    float colHeight = minimumHeight + labelHeight;
+    float rowWidth = gapX;
+
+    float inCol = colHeight;
+    float outCol = colHeight;
+    float attCol = colHeight;
+
+    float maxHeight = 0;
+    float maxWidth = 0;
+
+    int numberOfItems = 0;
+
+    /*
     // if the node item's children are Components or ComponentInstances
     // leave more gap for the in/out event ports along its edges
     if ((fileContainsComponents || componentAssembly) && componentHasChildren) {
@@ -695,39 +721,41 @@ void NodeItem::sort()
         gapX = gapY;
         rowWidth = gapX;
     }
+    */
 
-
-    // position children differently for DeploymentDefinitions
-    if (nodeKind == "Model" || nodeKind == "DeploymentDefinitions") {
-        rowWidth = 0;
+    // position children differently for Model and DeploymentDefinitions
+    if (permanentlyHiddenContainer) {
+        //rowWidth = 0;
         colHeight = 0;
+    } else if (nodeKind.endsWith("Definitions")) {
+        colHeight = topY;
     }
 
-    foreach(Node* child, getNode()->getChildren(0)){
+
+    foreach (Node* child, getNode()->getChildren(0)) {
 
         NodeItem* nodeItem = getChildNodeItemFromNode(child);
 
-
+        /*
         foreach(Node* child, getNode()->getChildren(0)){
             NodeItem* nodeItem = getChildNodeItemFromNode(child);
-            // check that it's a NodeItem and that it's visible
-            if (nodeItem  && nodeItem->isVisible() && !nodeItem->isPositionLocked()) {
+        */
 
+        // check that it's a NodeItem and that it's visible
+        if (nodeItem && nodeItem->isVisible() && !nodeItem->isPositionLocked()) {
 
-                // if child == DeploymentDefinitions and all of
-                // it's children are invisible, don't sort it
-                if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
-                    bool childrenAreInAspect = false;
-                    for(int i = 0; i < childNodeItems.size(); i++){
-                        NodeItem *nodeItm = childNodeItems[i];
-                        if (nodeItm && nodeItm->isVisible()) {
-                            childrenAreInAspect = true;
-                            break;
-                        }
-                    }
-                    if (!childrenAreInAspect) {
+            // if child == DeploymentDefinitions and all of it's children are invisible, don't sort it
+            if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
+                bool childrenAreInAspect = false;
+                for(int i = 0; i < childNodeItems.size(); i++){
+                    NodeItem *nodeItm = childNodeItems[i];
+                    if (nodeItm && nodeItm->isVisible()) {
+                        childrenAreInAspect = true;
                         break;
                     }
+                }
+                if (!childrenAreInAspect) {
+                    break;
                 }
             }
 
@@ -748,10 +776,10 @@ void NodeItem::sort()
 
                 maxHeight = childHeight;
 
-                if (nodeKind == "Model" || nodeKind == "DeploymentDefinitions") {
+                if (permanentlyHiddenContainer) {
                     rowWidth = 0;
                 } else {
-                    rowWidth = gapX/2;
+                    rowWidth = gapX;
                 }
             }
 
@@ -817,7 +845,7 @@ void NodeItem::sort()
                 maxWidth = rowWidth - gapX;
             }
 
-            if (nodeKind == "Model" || nodeKind == "DeploymentDefinitions") {
+            if (permanentlyHiddenContainer) {
                 GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth));
                 GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight));
                 return;
@@ -826,18 +854,20 @@ void NodeItem::sort()
             if ((maxWidth + gapX) < minimumWidth) {
                 GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(minimumWidth));
             } else {
-                GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth + gapX));
+                //GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth + gapX));
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(maxWidth - gapX));
             }
 
             if ((colHeight + maxHeight + gapY) < minimumHeight) {
                 GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(minimumHeight));
             } else {
-                GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
+                //GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight + gapY));
+                GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(colHeight + maxHeight - gapY));
             }
         }
     }
 
-    resetNextChildPos();
+    //resetNextChildPos();
 }
 
 
@@ -1832,7 +1862,7 @@ void NodeItem::expandItem(bool show)
 {
     for(int i = 0 ; i < childNodeItems.size() ; i++){
         NodeItem* nodeItem = childNodeItems[i];
-        if(nodeItem){
+        if (nodeItem) {
             nodeItem->setVisible(show);
         }
     }
@@ -1841,32 +1871,29 @@ void NodeItem::expandItem(bool show)
     GraphMLData* wData = 0;
     GraphMLData* hData = 0;
 
-    if(modelEntity){
+    if (modelEntity) {
         wData = modelEntity->getData("width");
         hData = modelEntity->getData("height");
     }
 
     if (show) {
-        //expandButton->setText("-");
-        if(wData){
+        if (wData) {
             wData->setValue(QString::number(prevWidth));
         }
-        if(hData){
+        if (hData) {
             hData->setValue(QString::number(prevHeight));
-
         }
+
     } else {
-        //expandButton->setText("+");
 
         prevWidth = width;
         prevHeight = height;
 
-        if(wData){
+        if (wData) {
             wData->setValue(QString::number(minimumWidth));
         }
-        if(hData){
+        if (hData) {
             hData->setValue(QString::number(minimumHeight));
-
         }
     }
 
@@ -1874,8 +1901,6 @@ void NodeItem::expandItem(bool show)
 
     prepareGeometryChange();
     update();
-
-
 }
 
 
@@ -1893,16 +1918,10 @@ void NodeItem::updateHeight(NodeItem *child)
 
         if (diffHeight > 0) {
 
-
             qreal newSize = height + diffHeight + selectedPen.width();
-
             newSize = (ceil(newSize / getGridSize())) * getGridSize();
 
-
             GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(newSize));
-
-            //setWidth(height);
-
             GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(newSize));
 
             // recurse while there is a parent node item
@@ -1913,6 +1932,7 @@ void NodeItem::updateHeight(NodeItem *child)
         }
     }
 }
+
 
 void NodeItem::updateModelPosition()
 {
@@ -1946,16 +1966,6 @@ Node *NodeItem::getNode()
 QString NodeItem::getNodeKind()
 {
     return nodeKind;
-
-    /*
-    qDebug() << "getNodeKind()";
-    if (!nodeKind.isNull()) {
-        return nodeKind;
-    } else {
-        qDebug() << "nodeKind is NULL";
-    }
-    return 0;
-    */
 }
 
 

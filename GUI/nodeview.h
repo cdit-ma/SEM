@@ -162,11 +162,7 @@ public slots:
     void sortNode(Node* node, Node* topMostNode = 0);
 
     void fitToScreen();
-
-
-    //void centerAspects();
     void centerAspects();
-
 
     void goToDefinition(Node* node);
     void goToImplementation(Node* node);
