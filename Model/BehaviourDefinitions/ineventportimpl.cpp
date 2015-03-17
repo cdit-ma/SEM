@@ -39,9 +39,16 @@ bool InEventPortImpl::canConnect(Node* attachableObject)
         return false;
     }
 
-    if(!oep){
+    if(!oep && this->getParentNode() == attachableObject->getParentNode()){
+#ifdef DEBUG_MODE
+        qWarning() << "Can Only connect to contained children";
+#endif
         return false;
+
     }
+    //if(!oep){
+    //    return false;
+    //}
 
     return Node::canConnect(attachableObject);
 }

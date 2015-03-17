@@ -837,6 +837,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
     QString childNodeKind = getDataValueFromKeyName(nodeData, "kind");
     QString childNodeType = getDataValueFromKeyName(nodeData, "type");
 
+
     Node* node = constructTypedNode(childNodeKind, childNodeType);
     //Enforce Default Data!
     QList<GraphMLData*> requiredData = constructGraphMLDataVector(childNodeKind);
@@ -1735,7 +1736,9 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
         }
         return  new DeploymentDefinitions();
     }else if(nodeKind == "HardwareNode"){
-        if(hardwareNodes.contains(nodeLabel))
+        if(hardwareNodes.contains(nodeLabel)){
+            return hardwareNodes[nodeLabel];
+        }
         return new HardwareNode();
     }else if(nodeKind == "HardwareCluster"){
         return new HardwareCluster();

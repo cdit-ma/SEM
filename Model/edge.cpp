@@ -117,6 +117,9 @@ bool Edge::isDeploymentLink()
     if(source->getDataValue("kind").endsWith("ComponentInstance") && destination->getDataValue("kind").startsWith("Hardware")){
         return true;
     }
+    if(source->getDataValue("kind").endsWith("ComponentAssembly") && destination->getDataValue("kind").startsWith("Hardware")){
+        return true;
+    }
     return false;
 }
 
