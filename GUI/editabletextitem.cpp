@@ -72,11 +72,9 @@ void EditableTextItem::focusOutEvent(QFocusEvent *event)
 QString EditableTextItem::getStringValue()
 {
     QString value = toPlainText().simplified();
-
     value.replace(QString('\n'), QString(""));
     value.replace(QString('\r'), QString(""));
     value.replace(QString(' '), QString(""));
-
     return value;
 }
 

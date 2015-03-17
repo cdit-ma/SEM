@@ -753,14 +753,20 @@ void NodeView::constructComponentInstance(Node* assm, Node* defn, int sender)
 
 void NodeView::constructConnectedComponents(Node *parentNode, Node *node, QString kind, int sender)
 {
+
     if (parentNode && node) {
+        qCritical() << kind;
+        qCritical() << "DOING STUFF";
         view_TriggerAction("Dock/Toolbar: Constructing ComponentInstance");
 
         GraphMLItem *graphMLItem = getGraphMLItemFromGraphML(parentNode);
         if (sender == 0) {
+
             NodeItem *nodeItem = getNodeItemFromGraphMLItem(graphMLItem);
+            //qCrutucal() << nodeItem->getGraphML()->toString();
             view_ConstructConnectedComponents(parentNode, node, kind, nodeItem->getNextChildPos());
         } else if (sender == 1) {
+            //qCrutucal() << nodeItem->getGraphML()->toString();
             view_ConstructConnectedComponents(parentNode, node, kind, graphMLItem->mapFromScene(menuPosition));
         }
 

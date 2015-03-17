@@ -1105,8 +1105,10 @@ void MedeaWindow::updateDataTable()
         dataTableBox->setMask(QRegion(0, 0, w, h, QRegion::Rectangle));
     }
 
-    dataTable->resizeColumnToContents(0);
-    //dataTableBox->repaint();
+    if(dataTable->model() != 0){
+        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    }
 }
 
 

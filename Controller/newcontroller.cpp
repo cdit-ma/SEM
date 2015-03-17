@@ -652,7 +652,8 @@ void NewController::constructComponentInstance(Node *assembly, Node *definition,
 void NewController::constructConnectedComponents(Node *parent, Node *connectedNode, QString kind, QPointF relativePosition)
 {
     Node* newNode = constructChildNode(parent, constructGraphMLDataVector(kind));
-
+    bool gotEdge = false;
+    qCritical()<<"constructConnectedComponents";
     if(newNode){
         //Update the position
         setGraphMLData(newNode, "x", QString::number(relativePosition.x()));
@@ -664,6 +665,10 @@ void NewController::constructConnectedComponents(Node *parent, Node *connectedNo
         if(!newNode->isConnected(newNode)){
             constructEdge(connectedNode, newNode);
         }
+        gotEdge = newNode->isConnected(newNode);
+    }
+    if(!gotEdge){
+        destructNode(newNode, false);
     }
 }
 
@@ -839,6 +844,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
 
 
     Node* node = constructTypedNode(childNodeKind, childNodeType);
+
     //Enforce Default Data!
     QList<GraphMLData*> requiredData = constructGraphMLDataVector(childNodeKind);
 

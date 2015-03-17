@@ -215,16 +215,16 @@ void ToolbarWidget::addEventPorDelegate()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
 
-    /*
-    QString nodeKind = "OutEventPortDelegate";
     Node* actionNode = action->getNode();
+    QString nodeKind = actionNode->getDataValue("kind");
+
     if(actionNode->getDataValue("kind").startsWith("InEvent")){
         nodeKind = "InEventPortDelegate";
     }
-    */
+    if(actionNode->getDataValue("kind").startsWith("OutEvent")){
+        nodeKind = "OutEventPortDelegate";
+    }
 
-    Node* actionNode = action->getNode();
-    QString nodeKind = actionNode->getDataValue("kind");
 
     toolbar_constructConnectedNode(nodeItem->getNode(), actionNode, nodeKind, 1);
 }
@@ -628,7 +628,10 @@ void ToolbarWidget::setupInEventPortInstanceList()
 {
     foreach (ToolbarWidgetAction* instanceAction, inEventPort_componentInstanceMenu->getWidgetActions()) {
 
+
         QList<Node*> children = instanceAction->getNode()->getChildren(0);
+        InEventPortDelegate* test = new InEventPortDelegate();
+
 
         foreach (Node* child, children) {
             if (child->getDataValue("kind") == "InEventPortInstance") {
