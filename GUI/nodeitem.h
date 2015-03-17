@@ -18,6 +18,7 @@
 #include "../Model/graphmldata.h"
 #include "attributetablemodel.h"
 #include "graphmlitem.h"
+#include "editabletextitem.h"
 
 class NodeEdge;
 
@@ -36,6 +37,8 @@ public:
     void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
     QRectF minimumVisibleRect() const;
+
+    QPointF getGridPosition(int x, int y);
     bool isSelected();
     bool isPositionLocked();
     bool isPainted();
@@ -122,6 +125,8 @@ public slots:
     void sceneRectChanged(QRectF sceneRect);
     void setNewLabel(QString label = "");
 
+    //Turn off visible gridlines;
+    void toggleGridLines(bool on);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -220,6 +225,7 @@ private:
 
     QVector<QLineF> xGridLines;
     QVector<QLineF> yGridLines;
+    bool GRIDLINES_VISIBLE;
 
     QList<NodeItem*> childNodeItems;
 
@@ -230,6 +236,9 @@ private:
     QBrush brush;
     QPen pen;
     QPen selectedPen;
+
+    int nextX;
+    int nextY;
 
     bool hasDefinition;
     bool onGrid;
@@ -248,7 +257,7 @@ private:
     QPixmap pixmap;
     QString stringLabel;
 
-    QGraphicsTextItem* textItem;
+    EditableTextItem* textItem;
 
     // GraphMLItem interface
 

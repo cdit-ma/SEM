@@ -30,7 +30,7 @@
 
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
-
+    GRID_LINES_ON = false;
     constructedFromToolbar = false;
     CENTRALIZED_ON_ITEM = false;
     IS_SUB_VIEW = subView;
@@ -566,9 +566,10 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     // send necessary signals when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
 
+    nodeItem->toggleGridLines(GRID_LINES_ON);
 
     if(constructedFromToolbar){
-        nodeItem->setNewLabel();
+        //nodeItem->setNewLabel();
         constructedFromToolbar = false;
     }
 }
@@ -907,6 +908,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
                 connect(nodeItem, SIGNAL(NodeItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
                 connect(nodeItem, SIGNAL(NodeItem_SortModel()), this, SLOT(sortModel()));
                 connect(nodeItem, SIGNAL(NodeItem_MoveFinished()), this, SLOT(moveFinished()));
+                connect(this, SIGNAL(view_ToggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
             }
         }else{
             //Specific SubView Functionality.
@@ -1499,6 +1501,12 @@ void NodeView::resetModel()
 
     sortAspects();
     setAspects(defaultAspects);
+}
+
+void NodeView::toggleGridLines(bool gridOn)
+{
+    GRID_LINES_ON = gridOn;
+    emit view_ToggleGridLines(GRID_LINES_ON);
 }
 
 

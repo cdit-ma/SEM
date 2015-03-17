@@ -98,6 +98,8 @@ signals:
     void view_edgeConstructed();
     void view_edgeDestructed();
 
+    void view_ToggleGridLines(bool on);
+
 public slots:
 
     void constructEventPortDelegate(Node *assm, Node *eventPortInstance);
@@ -128,7 +130,7 @@ public slots:
     void sortAspects();
     void resetModel();
 
-
+    void toggleGridLines(bool gridOn);
     void setAutoCenterViewAspects(bool center);
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
     void constructGUIItem(GraphML* item);
@@ -274,6 +276,7 @@ private:
     bool AUTO_CENTER_ASPECTS;
     bool constructedFromToolbar;
 
+    bool GRID_LINES_ON;
     bool toolbarJustClosed;
 
 

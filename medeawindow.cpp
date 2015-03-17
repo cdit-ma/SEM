@@ -281,6 +281,11 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go to Implementation");
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
 
+    view_gridLines = view_menu->addAction("Toggle Gridlines");
+    view_gridLines->setCheckable(true);
+    view_gridLines->setChecked(false);
+    view_gridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
+
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     model_sortModel = model_menu->addAction(QIcon(":/Resources/Icons/sort.png"), "Sort Model");
@@ -507,7 +512,9 @@ void MedeaWindow::makeConnections()
     connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
     connect(model_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
+    connect(view_gridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
+
 
     connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
     connect(copyButton, SIGNAL(clicked()), nodeView, SLOT(copy()));

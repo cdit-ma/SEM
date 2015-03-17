@@ -93,7 +93,8 @@ medeawindow.h \
     GUI/Dock/dockscrollarea.h \
     GUI/Dock/docktogglebutton.h \
     GUI/Dock/hardwaredockscrollarea.h \
-    GUI/Dock/partsdockscrollarea.h
+    GUI/Dock/partsdockscrollarea.h \
+    GUI/editabletextitem.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -163,7 +164,8 @@ SOURCES += \
     GUI/Dock/dockscrollarea.cpp \
     GUI/Dock/docktogglebutton.cpp \
     GUI/Dock/hardwaredockscrollarea.cpp \
-    GUI/Dock/partsdockscrollarea.cpp
+    GUI/Dock/partsdockscrollarea.cpp \
+    GUI/editabletextitem.cpp
 
 FORMS += \
 
