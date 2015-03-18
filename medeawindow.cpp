@@ -12,7 +12,7 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QPicture>
-
+#include "GUI/Table/comboboxtabledelegate.h"
 #include <QToolButton>
 #include <QToolBar>
 
@@ -80,6 +80,10 @@ void MedeaWindow::initialiseGUI()
     nodeView = new NodeView();
     toolbar = new QToolBar();
     dataTable = new QTableView();
+    delegate = new ComboBoxTableDelegate(0);
+
+
+    dataTable->setItemDelegateForColumn(2, delegate);
 
     dataTableBox = new QGroupBox();
     projectName = new QPushButton("Model");
@@ -292,7 +296,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_autoCenterView->setCheckable(true);
     view_autoCenterView->setChecked(true);
     view_showGridLines->setCheckable(true);
-    view_showGridLines->setChecked(false);
+    view_showGridLines->setChecked(true);
 
     // initially disable model & goto menu actions
     model_validateModel->setEnabled(false);
@@ -367,7 +371,7 @@ void MedeaWindow::setupToolbar()
 {
     QSize buttonSize = QSize(46,40);
 
-    toolbar->setFixedSize(buttonSize.width()*7, buttonSize.height()+10);
+    toolbar->setFixedSize(buttonSize.width()*9, buttonSize.height()+10);
     toolbar->setStyleSheet("QToolButton{"
                            "border: 1px solid grey;"
                            "border-radius: 10px;"
@@ -381,6 +385,8 @@ void MedeaWindow::setupToolbar()
     sortButton = new QToolButton(this);
     centerButton = new QToolButton(this);
     popupButton = new QToolButton(this);
+    snapToGridButton = new QToolButton(this);
+    snapChildrenToGridButton = new QToolButton(this);
 
     cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
     copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
@@ -388,6 +394,8 @@ void MedeaWindow::setupToolbar()
     sortButton->setIcon(QIcon(":/Resources/Icons/sort.png"));
     centerButton->setIcon(QIcon(":/Resources/Icons/center.png"));
     popupButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
+    snapToGridButton->setIcon(QIcon(":/Resources/Icons/autoCenter.png"));
+    snapChildrenToGridButton->setIcon(QIcon(":/Resources/Icons/center.png"));
 
     cutButton->setFixedSize(buttonSize);
     copyButton->setFixedSize(buttonSize);
@@ -395,6 +403,8 @@ void MedeaWindow::setupToolbar()
     sortButton->setFixedSize(buttonSize);
     centerButton->setFixedSize(buttonSize);
     popupButton->setFixedSize(buttonSize);
+    snapToGridButton->setFixedSize(buttonSize);
+    snapChildrenToGridButton->setFixedSize(buttonSize);
 
     cutButton->setIconSize(buttonSize*0.6);
     copyButton->setIconSize(buttonSize*0.65);
@@ -402,6 +412,9 @@ void MedeaWindow::setupToolbar()
     sortButton->setIconSize(buttonSize*0.65);
     //centerButton->setIconSize(buttonSize*0.65);
     popupButton->setIconSize(buttonSize*0.65);
+    snapToGridButton->setIconSize(buttonSize*0.65);
+    snapChildrenToGridButton->setIconSize(buttonSize*0.65);
+
 
     cutButton->setToolTip("Cut Node");
     copyButton->setToolTip("Copy Node");
@@ -409,9 +422,12 @@ void MedeaWindow::setupToolbar()
     sortButton->setToolTip("Sort Node");
     centerButton->setToolTip("Center Node");
     popupButton->setToolTip("Show Node In New Window");
+    snapToGridButton->setToolTip("Snap Node to Parents Grid");
+    snapChildrenToGridButton->setToolTip("Snap Children Nodes to Grid");
 
     QWidget* spacerWidget1 = new QWidget();
     QWidget* spacerWidget2 = new QWidget();
+
     spacerWidget1->setFixedWidth(5);
     spacerWidget2->setFixedWidth(5);
 
@@ -424,6 +440,9 @@ void MedeaWindow::setupToolbar()
     toolbar->addWidget(sortButton);
     toolbar->addWidget(centerButton);
     toolbar->addWidget(popupButton);
+    toolbar->addSeparator();
+    toolbar->addWidget(snapToGridButton);
+    toolbar->addWidget(snapChildrenToGridButton);
 }
 
 
@@ -514,6 +533,8 @@ void MedeaWindow::makeConnections()
     connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
     connect(centerButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
     connect(popupButton, SIGNAL(clicked()), this, SLOT(on_actionPopupNewWindow()));
+    connect(snapToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapToGrid()));
+    connect(snapChildrenToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapChildrenToGrid()));
 
     connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
     connect(nodeView, SIGNAL(view_UndoListChanged(QStringList)), this, SLOT(updateUndoStates(QStringList)));
@@ -1104,7 +1125,8 @@ void MedeaWindow::updateDataTable()
 
     if(dataTable->model() != 0){
         dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+        dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+        dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
     }
 }
 
