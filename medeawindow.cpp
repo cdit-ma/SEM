@@ -706,11 +706,13 @@ void MedeaWindow::on_actionClearModel_triggered()
  */
 void MedeaWindow::on_actionSortNode_triggered()
 {
+    //nodeView->view_TriggerAction("Medea: Sorting Node");
+
     if (nodeView->getSelectedNode()){
         nodeView->sortNode(nodeView->getSelectedNode());
     } else {
         nodeView->sortEntireModel();
-        nodeView->fitToScreen();
+        //nodeView->fitToScreen();
     }
 }
 

@@ -376,7 +376,6 @@ void NodeView::constructNewView(Node *centeredOn)
  */
 void NodeView::sortEntireModel()
 {
-    emit view_TriggerAction("View: Sorting entire Model");
     sortNode(controller->getModel());
 }
 
@@ -385,7 +384,6 @@ void NodeView::sortEntireModel()
  * @brief NodeView::sortNode
  * This method recursively sorts the provided node.
  * It sorts from the lowest level children back up to the provided node.
- * @todo
  * @param node
  */
 void NodeView::sortNode(Node *node, Node* topMostNode)
@@ -750,11 +748,19 @@ void NodeView::constructComponentInstance(Node* assm, Node* defn, int sender)
     }
 }
 
+
+/**
+ * @brief NodeView::constructConnectedNode
+ * @param parentNode
+ * @param node
+ * @param kind
+ * @param sender
+ */
 void NodeView::constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender)
 {
-    if (parentNode && node) {
-        view_TriggerAction("Dock/Toolbar: Constructing ComponentInstance");
+    view_TriggerAction("Dock/Toolbar: Constructing ComponentInstance");
 
+    if (parentNode && node) {
         GraphMLItem *graphMLItem = getGraphMLItemFromGraphML(parentNode);
         if (sender == 0) {
 

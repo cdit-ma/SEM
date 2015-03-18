@@ -731,7 +731,6 @@ void NodeItem::sort()
         colHeight = topY;
     }
 
-
     foreach (Node* child, getNode()->getChildren(0)) {
 
         NodeItem* nodeItem = getChildNodeItemFromNode(child);
@@ -742,7 +741,7 @@ void NodeItem::sort()
         */
 
         // check that it's a NodeItem and that it's visible
-        if (nodeItem && nodeItem->isVisible() && !nodeItem->isPositionLocked()) {
+        if (nodeKind == "Model" || (nodeItem && nodeItem->isVisible() && !nodeItem->isPositionLocked())) {
 
             // if child == DeploymentDefinitions and all of it's children are invisible, don't sort it
             if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
