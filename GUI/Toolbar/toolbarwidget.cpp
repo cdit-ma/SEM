@@ -1,11 +1,10 @@
 #include "toolbarwidget.h"
 #include "toolbarwidgetmenu.h"
 
-#include <QDebug>
-#include <QHBoxLayout>
-
 #include <QApplication>
 #include <QClipboard>
+#include <QHBoxLayout>
+#include <QDebug>
 
 
 /**
@@ -118,14 +117,12 @@ void ToolbarWidget::leaveEvent(QEvent* e)
 }
 
 
-
 /**
  * @brief ToolbarWidget::goToDefinition
  * This sends a signal to the view to center the selected nodeitem's definition.
  */
 void ToolbarWidget::goToDefinition()
 {
-    //emit toolbar_goToDefinition(nodeItem->getNode());
     nodeView->goToDefinition(nodeItem->getNode());
 }
 
@@ -136,7 +133,6 @@ void ToolbarWidget::goToDefinition()
  */
 void ToolbarWidget::goToImplementation()
 {
-    //emit toolbar_goToImplementation(nodeItem->getNode());
     nodeView->goToImplementation(nodeItem->getNode());
 }
 
@@ -146,7 +142,6 @@ void ToolbarWidget::goToImplementation()
  */
 void ToolbarWidget::goToInstance()
 {
-    //emit toolbar_goToInstance(instanceOptionMenu->getParentAction()->getNode());
     nodeView->goToInstance(instanceOptionMenu->getParentAction()->getNode());
 }
 
@@ -158,7 +153,6 @@ void ToolbarWidget::goToInstance()
 void ToolbarWidget::addChildNode()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    //emit toolbar_constructNode(action->getKind(), 1);
     nodeView->constructNode(action->getKind(), 1);
 }
 
@@ -170,7 +164,6 @@ void ToolbarWidget::addChildNode()
 void ToolbarWidget::connectNodes()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    //emit toolbar_constructEdge(nodeItem->getNode(), action->getNode());
     nodeView->constructEdge(nodeItem->getNode(), action->getNode());
 }
 
@@ -184,7 +177,6 @@ void ToolbarWidget::makeNewView()
     // pop up the selected node into a new window
     QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
     if (button) {
-        //emit toolbar_constructNewView(nodeView->getSelectedNode());
         nodeView->constructNewView(nodeView->getSelectedNode());
         return;
     }
@@ -193,13 +185,10 @@ void ToolbarWidget::makeNewView()
     QAction* action = qobject_cast<QAction*>(QObject::sender());
     if (action) {
         if (action->parentWidget() == definitionMenu) {
-            //emit toolbar_constructNewView(definitionNode);
             nodeView->constructNewView(definitionNode);
         } else if (action->parentWidget() == implementationMenu) {
-            //emit toolbar_constructNewView(implementationNode);
             nodeView->constructNewView(implementationNode);
         } else if (action->parentWidget() == instanceOptionMenu) {
-            //emit toolbar_constructNewView(instanceOptionMenu->getParentAction()->getNode());
             nodeView->constructNewView(instanceOptionMenu->getParentAction()->getNode());
         }
     }
@@ -213,7 +202,6 @@ void ToolbarWidget::makeNewView()
 void ToolbarWidget::addComponentInstance()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    //emit toolbar_constructComponentInstance(nodeItem->getNode(), action->getNode(), 1);
     nodeView->constructComponentInstance(nodeItem->getNode(), action->getNode(), 1);
 }
 
@@ -235,7 +223,6 @@ void ToolbarWidget::addEventPorDelegate()
         nodeKind = "OutEventPortDelegate";
     }
 
-    //toolbar_constructConnectedNode(nodeItem->getNode(), actionNode, nodeKind, 1);
     nodeView->constructConnectedNode(nodeItem->getNode(), actionNode, nodeKind, 1);
 }
 
@@ -260,7 +247,6 @@ void ToolbarWidget::hideToolbar(bool actionTriggered)
     if (!eventFromToolbar) {
         hide();
         if (!actionTriggered) {
-            //emit toolbar_closed();
             nodeView->toolbarClosed();
         }
     }
@@ -407,29 +393,7 @@ void ToolbarWidget::makeConnections()
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
 
-    connectToView();
-}
-
-
-/**
- * @brief ToolbarWidget::connectToView
- */
-void ToolbarWidget::connectToView()
-{
-    connect(this, SIGNAL(toolbar_closed()), nodeView, SLOT(toolbarClosed()));
-
-    connect(this, SIGNAL(toolbar_goToDefinition(Node*)), nodeView, SLOT(goToDefinition(Node*)));
-    connect(this, SIGNAL(toolbar_goToImplementation(Node*)), nodeView, SLOT(goToImplementation(Node*)));
-    connect(this, SIGNAL(toolbar_goToInstance(Node*)), nodeView, SLOT(goToInstance(Node*)));
-
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
-
-    connect(this, SIGNAL(toolbar_constructNode(QString, int)), nodeView, SLOT(constructNode(QString, int)));
-    connect(this, SIGNAL(toolbar_constructEdge(Node*,Node*)), nodeView, SLOT(constructEdge(Node*,Node*)));
-    connect(this, SIGNAL(toolbar_constructComponentInstance(Node*,Node*,int)), nodeView, SLOT(constructComponentInstance(Node*,Node*,int)));
-    connect(this, SIGNAL(toolbar_constructConnectedNode(Node*,Node*,QString,  int)), nodeView, SLOT(constructConnectedNode(Node*,Node*,QString, int)));
-
-    connect(this, SIGNAL(toolbar_constructNewView(Node*)), nodeView, SLOT(constructNewView(Node*)));
 }
 
 
@@ -639,10 +603,7 @@ void ToolbarWidget::setupInEventPortInstanceList()
 {
     foreach (ToolbarWidgetAction* instanceAction, inEventPort_componentInstanceMenu->getWidgetActions()) {
 
-
         QList<Node*> children = instanceAction->getNode()->getChildren(0);
-        InEventPortDelegate* test = new InEventPortDelegate();
-
 
         foreach (Node* child, children) {
             if (child->getDataValue("kind") == "InEventPortInstance") {

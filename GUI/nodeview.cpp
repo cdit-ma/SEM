@@ -323,7 +323,7 @@ void NodeView::constructNewView(Node *centeredOn)
     QDialog* newViewWindow = new QDialog(this, flags);
     newViewWindow->setWindowModality(Qt::NonModal);
 
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    QVBoxLayout *mainLayout = new QVBoxLayout();
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
     Node* firstNode = centeredOn;
@@ -752,10 +752,7 @@ void NodeView::constructComponentInstance(Node* assm, Node* defn, int sender)
 
 void NodeView::constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender)
 {
-
     if (parentNode && node) {
-        qCritical() << kind;
-        qCritical() << "DOING STUFF";
         view_TriggerAction("Dock/Toolbar: Constructing ComponentInstance");
 
         GraphMLItem *graphMLItem = getGraphMLItemFromGraphML(parentNode);
@@ -768,9 +765,7 @@ void NodeView::constructConnectedNode(Node *parentNode, Node *node, QString kind
             //qCrutucal() << nodeItem->getGraphML()->toString();
             view_ConstructConnectedComponents(parentNode, node, kind, graphMLItem->mapFromScene(menuPosition));
         }
-
     }
-
 }
 
 

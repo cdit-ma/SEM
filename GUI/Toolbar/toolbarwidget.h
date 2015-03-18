@@ -29,21 +29,6 @@ public:
 protected:
     virtual void enterEvent(QEvent*);
     virtual void leaveEvent(QEvent*);
-
-signals:
-    void toolbar_goToDefinition(Node* node);
-    void toolbar_goToImplementation(Node* node);
-    void toolbar_goToInstance(Node* node);
-
-    void toolbar_constructNode(QString nodeKind, int sender);
-    void toolbar_constructEdge(Node* src, Node* dst);
-    void toolbar_constructNewView(Node* node);
-
-    void toolbar_constructComponentInstance(Node* assm, Node* defn, int sender);
-    void toolbar_constructConnectedNode(Node* parentNode, Node* node, QString nodeKind, int sender);
-
-    void toolbar_closed();
-
 public slots:
     void goToDefinition();
     void goToImplementation();
@@ -64,7 +49,6 @@ private:
     void setupToolBar();
     void setupMenus();
     void makeConnections();
-    void connectToView();
     void updateToolButtons();
     void updateMenuLists();
 
