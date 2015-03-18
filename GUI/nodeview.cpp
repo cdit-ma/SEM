@@ -306,7 +306,6 @@ QList<Node *> NodeView::getConnectableNodes(Node *node)
 
 void NodeView::constructNewView(Node *centeredOn)
 {
-
     if(IS_SUB_VIEW){
         //Cannot make subviews of subviews.
         return;
@@ -691,7 +690,7 @@ void NodeView::view_SetOpacity(GraphML *graphML, qreal opacity)
 }
 
 /**
- * @brief NodeView::view_constructNode
+ * @brief NodeView::constructNode
  * @param nodeKind - kind of node to construct
  * @param sender - 0 = DockScrollArea, 1 = ToolbarWidget
  */
@@ -751,7 +750,7 @@ void NodeView::constructComponentInstance(Node* assm, Node* defn, int sender)
     }
 }
 
-void NodeView::constructConnectedComponents(Node *parentNode, Node *node, QString kind, int sender)
+void NodeView::constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender)
 {
 
     if (parentNode && node) {
@@ -1712,11 +1711,11 @@ void NodeView::centerAspects()
 
 
 /**
- * @brief NodeView::view_sortModel
+ * @brief NodeView::sortModel
+ * This tells the controller to sort the model.
  */
 void NodeView::sortModel()
 {
-
     if(!controller){
         return;
     }
@@ -1746,15 +1745,15 @@ void NodeView::sortModel()
     }
 }
 
+
 /**
-void NodeView::centerAspects()
+ * @brief NodeView::clearModel
+ * This tells the controller to clear the model.
+ * This is called from MedeaWindow.
+ */
+void NodeView::clearModel()
 {
-    if(!controller){
-        return;
+    if (controller) {
+        controller->clearModel();
     }
-    QStringList oldAspects = currentAspects;
-    sortAspects();
-    centerItem(getNodeItemFromNode(controller->getModel()));
-    currentAspects = oldAspects;
 }
-*/

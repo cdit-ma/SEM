@@ -31,7 +31,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     controller = 0;
     myProcess = 0;
     minimap = 0;
-    checkedViewAspects.clear();;
+    //checkedViewAspects.clear();;
 
     setupJenkinsSettings();
 
@@ -40,17 +40,14 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     makeConnections();
     newProject();
 
-    // this is used for when a file is dragged and
-    // dropped on top of this tool's icon
     /*
+    // this is used for when a file is dragged and dropped on top of this tool's icon
     if(graphMLFile.length() != 0){
         QStringList files;
         files.append(graphMLFile);
         importGraphMLFiles(files);
     }
     */
-
-    //this->view_SetGUIEnabled(false);
 }
 
 
@@ -84,8 +81,6 @@ void MedeaWindow::initialiseGUI()
     toolbar = new QToolBar();
     dataTable = new QTableView();
 
-
-    //dataTable->set
     dataTableBox = new QGroupBox();
     projectName = new QPushButton("Model");
     assemblyButton = new QPushButton("Assembly");
@@ -107,7 +102,6 @@ void MedeaWindow::initialiseGUI()
     this->setCentralWidget(nodeView);
     this->setMinimumSize(windowWidth, windowHeight);
     nodeView->setMinimumSize(windowWidth, windowHeight);
-
 
     // setup widgets
     menuButton->setFixedSize(50,45);
@@ -132,8 +126,7 @@ void MedeaWindow::initialiseGUI()
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setFixedWidth(rightPanelWidth);
-
-    dataTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    //dataTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     tableLayout->setMargin(0);
     tableLayout->setContentsMargins(0,0,0,0);
@@ -305,9 +298,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_validateModel->setEnabled(false);
     view_goToDefinition->setEnabled(false);
     view_goToImplementation->setEnabled(false);
-
-    // set deafult view aspects centering to automatic
-    autoCenterOn = true;
 }
 
 
@@ -371,6 +361,7 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
 
 /**
  * @brief MedeaWindow::setupToolbar
+ * Initialise and setup toolbar widgets.
  */
 void MedeaWindow::setupToolbar()
 {
@@ -409,7 +400,7 @@ void MedeaWindow::setupToolbar()
     copyButton->setIconSize(buttonSize*0.65);
     pasteButton->setIconSize(buttonSize*0.65);
     sortButton->setIconSize(buttonSize*0.65);
-    centerButton->setIconSize(buttonSize*0.75);
+    //centerButton->setIconSize(buttonSize*0.65);
     popupButton->setIconSize(buttonSize*0.65);
 
     cutButton->setToolTip("Cut Node");
@@ -444,7 +435,7 @@ void MedeaWindow::setupController()
     if (controller) {
         delete controller;
     }
-    if(thread){
+    if (thread) {
         delete thread;
     }
     controller = 0;
@@ -460,14 +451,13 @@ void MedeaWindow::setupController()
     }
 
     controller->connectView(nodeView);
-    connectToController();
     controller->initializeModel();
-
 }
 
 
 /**
  * @brief MedeaWindow::resetGUI
+ * This is called everytime a new project is created.
  */
 void MedeaWindow::resetGUI()
 {
@@ -476,7 +466,6 @@ void MedeaWindow::resetGUI()
     selectedNode = 0;
 
     setupController();
-
 }
 
 
@@ -488,7 +477,7 @@ void MedeaWindow::makeConnections()
 {
     connect(this, SIGNAL(setupViewLayout()), this, SLOT(sortAndCenterViewAspects()));
     connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
-    connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setAspects(QStringList)));
+    connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setViewAspects(QStringList)));
     connect(nodeView, SIGNAL(setGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
@@ -509,15 +498,15 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
-    //connect(view_autoCenterView, SIGNAL(triggered()), this, SLOT(autoCenterViews()));
     connect(view_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(setAutoCenterViewAspects(bool)));
     connect(view_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
     connect(view_goToDefinition, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
-    connect(model_clearModel, SIGNAL(triggered()), this, SLOT(on_actionClearModel_triggered()));
-    connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
-    connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
+    connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
+    connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
+
+    connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
     connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
     connect(copyButton, SIGNAL(clicked()), nodeView, SLOT(copy()));
@@ -566,16 +555,6 @@ void MedeaWindow::makeConnections()
 
 
 /**
- * @brief MedeaWindow::connectToController
- * Connect signals and slots to the controller.
- */
-void MedeaWindow::connectToController()
-{
-    connect(model_clearModel, SIGNAL(triggered()), controller, SLOT(clearModel()));
-}
-
-
-/**
  * @brief MedeaWindow::resizeEvent
  * The width of the scroll areas and group boxes in the dock are fixed.
  * The height changes depending on window size and content.
@@ -594,10 +573,12 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
     updateDataTable();
 }
 
+
 void MedeaWindow::editMultiLineData(GraphMLData *data)
 {
 
 }
+
 
 /**
  * @brief MedeaWindow::sortAndCenterModel
@@ -607,7 +588,6 @@ void MedeaWindow::editMultiLineData(GraphMLData *data)
 void MedeaWindow::sortAndCenterViewAspects()
 {
     if (nodeView) {
-        //Change to Emits!
         nodeView->centerAspects();
         nodeView->fitToScreen();
     }
@@ -699,23 +679,6 @@ void MedeaWindow::on_actionExport_GraphML_triggered()
 
 
 /**
- * @brief MedeaWindow::on_actionAutoCenterViews_triggered
- * This tells the nodeView to set the automatic centering of view aspects on/off.
- */
-void MedeaWindow::autoCenterViews()
-{
-    if (autoCenterOn) {
-        autoCenterOn = false;
-        view_autoCenterView->setText("Automatically Center Views");
-    } else {
-        autoCenterOn = true;
-        view_autoCenterView->setText("Manually Center Views");
-    }
-    nodeView->setAutoCenterViewAspects(autoCenterOn);
-}
-
-
-/**
  * @brief MedeaWindow::on_clearModel_triggered
  * When the model is cleared or the new project menu is triggered,
  * this method resets the model, clears any current selection,
@@ -728,6 +691,7 @@ void MedeaWindow::on_actionClearModel_triggered()
         nodeView->resetModel();
 
         clearDocks();
+
         // TODO: create method to set the initial values for objects
         partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
     }
@@ -736,6 +700,9 @@ void MedeaWindow::on_actionClearModel_triggered()
 
 /**
  * @brief MedeaWindow::on_actionSortModel_triggered
+ * This is called whne the sortNode tool button is triggered.
+ * If there is a selected node, recursively sort it.
+ * If there isn't, recursively sort the model.
  */
 void MedeaWindow::on_actionSortNode_triggered()
 {
@@ -750,6 +717,8 @@ void MedeaWindow::on_actionSortNode_triggered()
 
 /**
  * @brief MedeaWindow::on_actionCenterNode_triggered
+ * This is called whne the centerNode tool button is triggered.
+ * It zooms into and centers on the selected node.
  */
 void MedeaWindow::on_actionCenterNode_triggered()
 {
@@ -761,6 +730,8 @@ void MedeaWindow::on_actionCenterNode_triggered()
 
 /**
  * @brief MedeaWindow::on_actionPopupNewWindow
+ * This is called whne the popupNode tool button is triggered.
+ * It pops up the selected node to a new window.
  */
 void MedeaWindow::on_actionPopupNewWindow()
 {
@@ -784,12 +755,19 @@ void MedeaWindow::on_actionPaste_triggered()
 
 /**
  * @brief MedeaWindow::on_actionExit_triggered
+ * This is called when the menu's exit action is triggered.
+ * It closes the application.
  */
 void MedeaWindow::on_actionExit_triggered()
 {
     close();
 }
 
+
+/**
+ * @brief MedeaWindow::writeExportedProject
+ * @param data
+ */
 void MedeaWindow::writeExportedProject(QString data)
 {
     try {
@@ -812,8 +790,6 @@ void MedeaWindow::writeExportedProject(QString data)
         QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
     }
 }
-
-
 
 
 /**
@@ -897,15 +873,15 @@ void MedeaWindow::changeWindowTitle(QString label)
 
 
 /**
- * @brief MedeaWindow::updateAspects
- * Add view aspect to checkedViewAspects when the corresponding button
- * is clicked and remove it when it's unclick then update the view.
+ * @brief MedeaWindow::updateViewAspects
+ * When a view aspect button is clicked, add/remove the corresponding
+ * view aspect to/from the checkedViewAspects list.
  */
 void MedeaWindow::updateViewAspects()
 {
     QStringList newAspects = checkedViewAspects;
-
     QPushButton *sourceButton = qobject_cast<QPushButton*>(QObject::sender());
+
     if (sourceButton) {
         QString view = sourceButton->text();
         if (view == "Interface") {
@@ -920,7 +896,8 @@ void MedeaWindow::updateViewAspects()
             newAspects.removeAll(view);
         }
     }
-    if(newAspects != checkedViewAspects){
+
+    if (newAspects != checkedViewAspects) {
         window_AspectsChanged(newAspects);
     }
 }
@@ -928,6 +905,7 @@ void MedeaWindow::updateViewAspects()
 
 /**
  * @brief MedeaWindow::goToDefinition
+ * Centralise on the selected node's definition.
  */
 void MedeaWindow::goToDefinition()
 {
@@ -939,6 +917,7 @@ void MedeaWindow::goToDefinition()
 
 /**
  * @brief MedeaWindow::goToImplementation
+ * Centralise on the selected node's implementation.
  */
 void MedeaWindow::goToImplementation()
 {
@@ -947,7 +926,12 @@ void MedeaWindow::goToImplementation()
     }
 }
 
-void MedeaWindow::setAspects(QStringList aspects)
+
+/**
+ * @brief MedeaWindow::setViewAspects
+ * @param aspects
+ */
+void MedeaWindow::setViewAspects(QStringList aspects)
 {
     definitionsButton->setChecked(aspects.contains("Definitions"));
     workloadButton->setChecked(aspects.contains("Workload"));
@@ -957,9 +941,10 @@ void MedeaWindow::setAspects(QStringList aspects)
 }
 
 
-
 /**
  * @brief MedeaWindow::setGoToMenuActions
+ * This gets called everytime a node is selected.
+ * It enables/disables the menu's goTo functions depending on the selected node.
  * @param action
  * @param node
  */
@@ -972,22 +957,30 @@ void MedeaWindow::setGoToMenuActions(QString action, bool enabled)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::resetView
+ * This is called everytime a new project is created.
+ * It resets the view's turned on aspects to th default.
+ */
 void MedeaWindow::resetView()
 {
-    if(nodeView){
+    if (nodeView) {
         nodeView->setDefaultAspects();
     }
 }
 
 
+/**
+ * @brief MedeaWindow::newProject
+ * This is called everytime a new project is created.
+ * It clears the model and resets the GUI and view.
+ */
 void MedeaWindow::newProject()
 {
-    // clear view and reset gui
     resetGUI();
     on_actionClearModel_triggered();
     nodeView->view_ClearHistory();
-
-    //Set default View.
     resetView();
 }
 
@@ -1024,7 +1017,7 @@ bool MedeaWindow::exportProject()
  */
 void MedeaWindow::setAttributeModel(AttributeTableModel *model)
 {
-    if(model){
+    if (model) {
         updateDataTable();
     }
     dataTable->setModel(model);
@@ -1058,7 +1051,6 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
     }
 
     prevPressedButton = b;
-    //update();
 }
 
 
@@ -1140,13 +1132,13 @@ void MedeaWindow::loadJenkinsData(int code)
 void MedeaWindow::importProjects(QStringList files)
 {
     QStringList projects;
-    foreach(QString fileName, files){
+    foreach (QString fileName, files) {
         try {
             QFile file(fileName);
 
             bool fileOpened = file.open(QFile::ReadOnly | QFile::Text);
 
-            if(!fileOpened){
+            if (!fileOpened) {
                 QMessageBox::critical(this, "File Error", "Unable to open file: '" + fileName + "'! Check Permissions and Try Again!", QMessageBox::Ok);
                 return;
             }
@@ -1160,8 +1152,7 @@ void MedeaWindow::importProjects(QStringList files)
             return;
         }
     }
-    if(projects.size() > 0){
-
+    if (projects.size() > 0) {
         window_ImportProjects(projects);
         nodeView->centerAspects();
     }

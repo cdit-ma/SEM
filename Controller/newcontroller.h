@@ -104,6 +104,8 @@ public slots:
   void validationError(GraphML* graphML, QString error);
 
 
+  // moved to public so that NodeView can access it
+  void clearModel();
 
 
 
@@ -128,7 +130,7 @@ private slots:
     void deleteSelection(QStringList selectedIDs);
     void duplicateSelection(QStringList selectedIDs);
 
-    void clearModel();
+    //void clearModel();
 
     void undo();
     void redo();

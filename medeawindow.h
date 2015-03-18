@@ -14,30 +14,25 @@
 #include <QMenu>
 #include <QAction>
 #include <QProcess>
-
 #include <QThread>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QSpacerItem>
-
-#include <QDebug>
 #include <QClipboard>
 #include <QItemSelectionModel>
+#include <QDebug>
 
 #include "Controller/newcontroller.h"
 #include "GUI/attributetablemodel.h"
+#include "GUI/nodeviewminimap.h"
 
 #include "GUI/Dock/docktogglebutton.h"
 #include "GUI/Dock/docknodeitem.h"
-
 #include "GUI/Dock/partsdockscrollarea.h"
 #include "GUI/Dock/definitionsdockscrollarea.h"
 #include "GUI/Dock/hardwaredockscrollarea.h"
 
 #include "GUI/Toolbar/toolbarwidgetaction.h"
-
-#include "GUI/nodeviewminimap.h"
-
 
 
 class MedeaWindow : public QMainWindow
@@ -56,29 +51,18 @@ signals:
     void window_AspectsChanged(QStringList aspects);
     void window_SortModel();
 
-
-    //Leave
-    void updateToolbarAdoptableNodesList(QStringList nodeList);
-    void checkDockScrollBar();
+    //void updateToolbarAdoptableNodesList(QStringList nodeList);
     void setupViewLayout();
-    void sendComponentDefinitions(QList<Node*>* definitions);
+    void checkDockScrollBar();
     void clearDocks();
 
 private slots:
-
-    void editMultiLineData(GraphMLData* data);
-    void setAspects(QStringList aspects);
-
-    void sortAndCenterViewAspects();
-
     void loadJenkinsData(int code);
 
     void on_actionImportJenkinsNode();
     void on_actionNew_Project_triggered();
     void on_actionImport_GraphML_triggered();
     void on_actionExport_GraphML_triggered();
-
-    void autoCenterViews();
 
     void on_actionClearModel_triggered();
     void on_actionSortNode_triggered();
@@ -96,17 +80,20 @@ private slots:
 
     void changeWindowTitle(QString label);
 
-    void dockButtonPressed(QString buttonName);
-
     void setAttributeModel(AttributeTableModel* model);
 
+    void editMultiLineData(GraphMLData* data);
 
+    void dockButtonPressed(QString buttonName);
+
+    void setViewAspects(QStringList aspects);
+    void sortAndCenterViewAspects();
     void updateViewAspects();
+
+    void setGoToMenuActions(QString action, bool enabled);
 
     void goToDefinition();
     void goToImplementation();
-
-    void setGoToMenuActions(QString action, bool enabled);
 
 private:
     void resetView();
@@ -115,7 +102,6 @@ private:
     void importProjects(QStringList files);
     void initialiseGUI();
     void makeConnections();
-    void connectToController();
     void setupJenkinsSettings();
     void setupMenu(QPushButton* button);
     void setupDock(QHBoxLayout* layout);
@@ -123,8 +109,6 @@ private:
     void setupController();
     void resetGUI();
     void updateDataTable();
-
-    bool isEnabled;
 
     QMenu* menu;
     QMenu* file_menu;
@@ -177,19 +161,17 @@ private:
     QPushButton* workloadButton;
     QPushButton* definitionsButton;
 
-    NodeView* nodeView;
     NewController* controller;
+    NodeView* nodeView;
+    NodeViewMinimap* minimap;
     Node* prevSelectedNode;
     Node* selectedNode;
 
-    NodeViewMinimap* minimap;
-
-    QThread* thread;
     int boxWidth;
     int boxHeight;
-    bool autoCenterOn;
     QStringList checkedViewAspects;
 
+    QThread* thread;
     QProcess *myProcess;
     QString DEPGEN_ROOT;
     QString JENKINS_ADDRESS;

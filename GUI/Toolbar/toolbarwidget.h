@@ -26,11 +26,9 @@ public:
     void showDefinitionButton(Node *definition);
     void showImplementationButton(Node* implementation);
 
-
 protected:
     virtual void enterEvent(QEvent*);
     virtual void leaveEvent(QEvent*);
-
 
 signals:
     void toolbar_goToDefinition(Node* node);
@@ -45,7 +43,6 @@ signals:
     void toolbar_constructConnectedNode(Node* parentNode, Node* node, QString nodeKind, int sender);
 
     void toolbar_closed();
-
 
 public slots:
     void goToDefinition();
@@ -62,7 +59,6 @@ public slots:
     void attachOptionMenu();
 
     void hideToolbar(bool actionTriggered);
-
 
 private:
     void setupToolBar();
@@ -86,8 +82,7 @@ private:
 
     void clearMenus();
 
-
-    NodeView* parentNodeView;
+    NodeView* nodeView;
     NodeItem* currentSelectedItem;
 
     NodeItem* nodeItem;
@@ -138,8 +133,6 @@ private:
     QFrame* frame;
     int frameVisibilityCount;
     bool eventFromToolbar;
-
-    //QList<Node*>* componentInstances;
 
 };
 

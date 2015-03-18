@@ -103,7 +103,6 @@ signals:
 public slots:
 
     void constructEventPortDelegate(Node *assm, Node *eventPortInstance);
-    void constructNode(QString nodeKind, int sender);
     void setDefaultAspects();
     void setEnabled(bool);
 
@@ -111,7 +110,6 @@ public slots:
 
 
     void view_SelectModel();
-
 
     void duplicate();
     void copy();
@@ -143,9 +141,10 @@ public slots:
 
     void setRubberBandMode(bool On);
 
-
     void showToolbar(QPoint position);
+
     void sortModel();
+    void clearModel();
 
     void view_SelectGraphML(GraphML* graphML, bool setSelected=true);
     void view_CenterGraphML(GraphML* graphML);
@@ -153,10 +152,6 @@ public slots:
 
     void view_SortNode(Node* node);
     void view_SetOpacity(GraphML* graphML, qreal opacity);
-
-
-    void constructNewView(Node* centeredOn);
-    
 
     void sortEntireModel();
     void sortNode(Node* node, Node* topMostNode = 0);
@@ -169,10 +164,11 @@ public slots:
     void goToInstance(Node *node);
 
     void deleteSelection();
-    //void view_ConstructNode(QString nodeKind);
+    void constructNode(QString nodeKind, int sender);
     void constructEdge(Node* src, Node* dst);
     void constructComponentInstance(Node *assm, Node *defn, int sender);
-    void constructConnectedComponents(Node *parentNode, Node *node, QString kind, int sender);
+    void constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender);
+    void constructNewView(Node* centeredOn);
 
     void componentInstanceConstructed(Node* node);
 
