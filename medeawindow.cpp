@@ -12,7 +12,7 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QPicture>
-#include "GUI/Table/comboboxtabledelegate.h"
+//#include "GUI/Table/comboboxtabledelegate.h"
 #include <QToolButton>
 #include <QToolBar>
 
@@ -80,10 +80,9 @@ void MedeaWindow::initialiseGUI()
     nodeView = new NodeView();
     toolbar = new QToolBar();
     dataTable = new QTableView();
-    delegate = new ComboBoxTableDelegate(0);
 
-
-    dataTable->setItemDelegateForColumn(2, delegate);
+    //delegate = new ComboBoxTableDelegate(0);
+    //dataTable->setItemDelegateForColumn(2, delegate);
 
     dataTableBox = new QGroupBox();
     projectName = new QPushButton("Model");
@@ -269,7 +268,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     edit_paste = edit_menu->addAction(QIcon(":/Resources/Icons/paste.png"), "Paste");
     edit_paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
 
-    view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/zoomToFit.png"), "Fit To Sreen");
+    view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/fitToScreen.png"), "Fit To Sreen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
     view_menu->addSeparator();
     view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go to Definition");
@@ -371,7 +370,7 @@ void MedeaWindow::setupToolbar()
 {
     QSize buttonSize = QSize(46,40);
 
-    toolbar->setFixedSize(buttonSize.width()*9, buttonSize.height()+10);
+    toolbar->setIconSize(buttonSize*0.6);
     toolbar->setStyleSheet("QToolButton{"
                            "border: 1px solid grey;"
                            "border-radius: 10px;"
@@ -387,6 +386,9 @@ void MedeaWindow::setupToolbar()
     popupButton = new QToolButton(this);
     snapToGridButton = new QToolButton(this);
     snapChildrenToGridButton = new QToolButton(this);
+    zoomToFitButton = new QToolButton(this);
+    fitToScreenButton = new QToolButton(this);
+    duplicateButton = new QToolButton(this);
 
     cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
     copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
@@ -394,8 +396,11 @@ void MedeaWindow::setupToolbar()
     sortButton->setIcon(QIcon(":/Resources/Icons/sort.png"));
     centerButton->setIcon(QIcon(":/Resources/Icons/center.png"));
     popupButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
-    snapToGridButton->setIcon(QIcon(":/Resources/Icons/autoCenter.png"));
-    snapChildrenToGridButton->setIcon(QIcon(":/Resources/Icons/center.png"));
+    snapToGridButton->setIcon(QIcon(":/Resources/Icons/snapToGrid.png"));
+    snapChildrenToGridButton->setIcon(QIcon(":/Resources/Icons/snapChildrenToGrid.png"));
+    zoomToFitButton->setIcon(QIcon(":/Resources/Icons/zoomToFit.png"));
+    fitToScreenButton->setIcon(QIcon(":/Resources/Icons/fitToScreen.png"));
+    duplicateButton->setIcon(QIcon(":/Resources/Icons/duplicate.png"));
 
     cutButton->setFixedSize(buttonSize);
     copyButton->setFixedSize(buttonSize);
@@ -405,44 +410,68 @@ void MedeaWindow::setupToolbar()
     popupButton->setFixedSize(buttonSize);
     snapToGridButton->setFixedSize(buttonSize);
     snapChildrenToGridButton->setFixedSize(buttonSize);
-
-    cutButton->setIconSize(buttonSize*0.6);
-    copyButton->setIconSize(buttonSize*0.65);
-    pasteButton->setIconSize(buttonSize*0.65);
-    sortButton->setIconSize(buttonSize*0.65);
-    //centerButton->setIconSize(buttonSize*0.65);
-    popupButton->setIconSize(buttonSize*0.65);
-    snapToGridButton->setIconSize(buttonSize*0.65);
-    snapChildrenToGridButton->setIconSize(buttonSize*0.65);
-
+    zoomToFitButton->setFixedSize(buttonSize);
+    fitToScreenButton->setFixedSize(buttonSize);
+    duplicateButton->setFixedSize(buttonSize);
 
     cutButton->setToolTip("Cut Node");
     copyButton->setToolTip("Copy Node");
     pasteButton->setToolTip("Paste Node");
     sortButton->setToolTip("Sort Node");
-    centerButton->setToolTip("Center Node");
+    centerButton->setToolTip("Center on Node");
     popupButton->setToolTip("Show Node In New Window");
-    snapToGridButton->setToolTip("Snap Node to Parents Grid");
+    snapToGridButton->setToolTip("Snap Node to Grid");
     snapChildrenToGridButton->setToolTip("Snap Children Nodes to Grid");
+    zoomToFitButton->setToolTip("Zoom to fit Node");
+    fitToScreenButton->setToolTip("Fit View to Screen");
+    duplicateButton->setToolTip("Duplicate Node");
 
+    QWidget* spacerWidgetLeft = new QWidget();
+    QWidget* spacerWidgetRight = new QWidget();
     QWidget* spacerWidget1 = new QWidget();
     QWidget* spacerWidget2 = new QWidget();
+    QWidget* spacerWidget3 = new QWidget();
+    QWidget* spacerWidget4 = new QWidget();
+    QWidget* spacerWidget5 = new QWidget();
+    QWidget* spacerWidget6 = new QWidget();
 
+    spacerWidgetLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    spacerWidgetRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidget1->setFixedWidth(5);
     spacerWidget2->setFixedWidth(5);
+    spacerWidget3->setFixedWidth(5);
+    spacerWidget4->setFixedWidth(5);
+    spacerWidget5->setFixedWidth(5);
+    spacerWidget6->setFixedWidth(5);
 
+    toolbar->addWidget(spacerWidgetLeft);
     toolbar->addWidget(cutButton);
     toolbar->addWidget(copyButton);
     toolbar->addWidget(pasteButton);
+    toolbar->addWidget(duplicateButton);
     toolbar->addWidget(spacerWidget1);
     toolbar->addSeparator();
     toolbar->addWidget(spacerWidget2);
-    toolbar->addWidget(sortButton);
+    toolbar->addWidget(fitToScreenButton);
     toolbar->addWidget(centerButton);
-    toolbar->addWidget(popupButton);
+    toolbar->addWidget(zoomToFitButton);
+    toolbar->addWidget(spacerWidget3);
     toolbar->addSeparator();
-    toolbar->addWidget(snapToGridButton);
+    toolbar->addWidget(spacerWidget4);
+    toolbar->addWidget(sortButton);
     toolbar->addWidget(snapChildrenToGridButton);
+    toolbar->addWidget(snapToGridButton);
+    //toolbar->addWidget(spacerWidget5);
+    //toolbar->addSeparator();
+    //toolbar->addWidget(spacerWidget6);
+    //toolbar->addWidget(popupButton);
+    toolbar->addWidget(spacerWidgetRight);
+
+    popupButton->hide();
+
+    toolbar->setFixedSize(toolbar->contentsRect().width(), buttonSize.height()+10);
+
+    //this->addToolBar(toolbar);
 }
 
 
@@ -531,7 +560,6 @@ void MedeaWindow::makeConnections()
     connect(copyButton, SIGNAL(clicked()), nodeView, SLOT(copy()));
     connect(pasteButton, SIGNAL(clicked()), this, SLOT(on_actionPaste_triggered()));
     connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
-    connect(centerButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
     connect(popupButton, SIGNAL(clicked()), this, SLOT(on_actionPopupNewWindow()));
     connect(snapToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapToGrid()));
     connect(snapChildrenToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapChildrenToGrid()));
@@ -572,6 +600,11 @@ void MedeaWindow::makeConnections()
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
+
+    connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
+    connect(centerButton, SIGNAL(clicked()), nodeView, SLOT(centerOnItem()));
+    connect(fitToScreenButton, SIGNAL(clicked()), nodeView, SLOT(fitToScreen()));
+    connect(duplicateButton, SIGNAL(clicked()), nodeView, SLOT(duplicate()));
 }
 
 
@@ -727,13 +760,12 @@ void MedeaWindow::on_actionClearModel_triggered()
  */
 void MedeaWindow::on_actionSortNode_triggered()
 {
-    //nodeView->view_TriggerAction("Medea: Sorting Node");
+    nodeView->view_TriggerAction("Medea: Sorting Node");
 
     if (nodeView->getSelectedNode()){
         nodeView->sortNode(nodeView->getSelectedNode());
     } else {
         nodeView->sortEntireModel();
-        //nodeView->fitToScreen();
     }
 }
 

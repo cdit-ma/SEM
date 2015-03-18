@@ -139,6 +139,7 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
     QPointF getClosestGridPoint(QPointF currentPosition);
+    QPointF getClosestBoundedGridPoint(QPointF topLeft, QPointF bottomRight);
 
 
 private:

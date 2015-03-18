@@ -95,7 +95,6 @@ medeawindow.h \
     GUI/Dock/hardwaredockscrollarea.h \
     GUI/Dock/partsdockscrollarea.h \
     GUI/editabletextitem.h \
-    GUI/Table/comboboxtabledelegate.h
 
 SOURCES += \
     GUI/attributetablemodel.cpp \
@@ -167,7 +166,6 @@ SOURCES += \
     GUI/Dock/hardwaredockscrollarea.cpp \
     GUI/Dock/partsdockscrollarea.cpp \
     GUI/editabletextitem.cpp \
-    GUI/Table/comboboxtabledelegate.cpp
 
 FORMS += \
 

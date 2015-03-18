@@ -389,6 +389,7 @@ void NodeView::sortEntireModel()
 void NodeView::sortNode(Node *node, Node* topMostNode)
 {
     if (!topMostNode) {
+        emit view_TriggerAction("View: Sorting Node");
         topMostNode = node;
     }
 
@@ -494,6 +495,23 @@ void NodeView::setAspects(QStringList aspects)
     view_AspectsChanged(aspects); // need this for all cases
     view_GUIAspectChanged(aspects);
     clearSelection();
+}
+
+
+/**
+ * @brief NodeView::centerOnItem
+ * This should center on the selected node without changing the view's scale.
+ * At the moment, this only works upto a certain scale.
+ */
+void NodeView::centerOnItem()
+{
+    if (getSelectedNode()) {
+        NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
+        QRectF itemRect = selectedItem->boundingRect();
+        itemRect.translate(selectedItem->scenePos());
+        adjustSceneRect(itemRect);
+        centerOn(itemRect.center());
+    }
 }
 
 

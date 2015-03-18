@@ -82,5 +82,9 @@
         <file>Resources/Icons/searchIcon.png</file>
         <file>Resources/Icons/instance.png</file>
         <file>Resources/Icons/center.png</file>
+        <file>Resources/Icons/fitToScreen.png</file>
+        <file>Resources/Icons/snapChildrenToGrid.png</file>
+        <file>Resources/Icons/snapToGrid.png</file>
+        <file>Resources/Icons/duplicate.png</file>
     </qresource>
 </RCC>

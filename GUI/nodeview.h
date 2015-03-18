@@ -177,6 +177,8 @@ public slots:
 
     void setAspects(QStringList aspects);
 
+    void centerOnItem();
+
 private:
 
     void view_ConstructNodeGUI(Node* node);
