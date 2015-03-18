@@ -26,6 +26,7 @@ public slots:
     void updatedData(GraphMLData* data);
     void removedData(GraphMLData* data);
     void addData(GraphMLData* data);
+
     // QAbstractItemModel interface
 public:
     int rowCount(const QModelIndex &parent) const;

@@ -101,7 +101,8 @@ signals:
     void view_ToggleGridLines(bool on);
 
 public slots:
-
+    void snapToGrid();
+    void snapChildrenToGrid();
     void constructEventPortDelegate(Node *assm, Node *eventPortInstance);
     void setDefaultAspects();
     void setEnabled(bool);

@@ -33,6 +33,7 @@
 #include "GUI/Dock/hardwaredockscrollarea.h"
 
 #include "GUI/Toolbar/toolbarwidgetaction.h"
+#include "GUI/table/comboboxtabledelegate.h"
 
 
 class MedeaWindow : public QMainWindow
@@ -151,6 +152,11 @@ private:
     QToolButton* sortButton;
     QToolButton* centerButton;
     QToolButton* popupButton;
+    QToolButton* snapToGridButton;
+    QToolButton* snapChildrenToGridButton;
+
+
+    ComboBoxTableDelegate* delegate;
 
     QTableView* dataTable;
     QGroupBox* dataTableBox;

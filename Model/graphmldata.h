@@ -7,10 +7,12 @@
 #include <QString>
 
 class GraphMLData: public GraphML{
-        Q_OBJECT
+    Q_OBJECT
 public:
     GraphMLData(GraphMLKey* key, QString value);
     ~GraphMLData();
+    void setParent(GraphML* parent);
+    GraphML* getParent();
 
     void setValue(QString value);
     void setProtected(bool setProtected);
@@ -36,6 +38,8 @@ signals:
     void dataChanged(GraphMLData* data);
     void valueChanged(QString value);
 private:
+    GraphML* Parent;
+
     GraphMLData* parentData;
     QList<GraphMLData*> childData;
     QString value;

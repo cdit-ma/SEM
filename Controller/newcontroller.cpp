@@ -363,12 +363,14 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
             enforceUniqueLabel(node, dataValue);
  		}else if(keyName == "sortOrder"){
             Node* node = dynamic_cast<Node*>(parent);
-            enforceUniqueSortOrder(node, dataValue.toInt());
-            QString newSortOrder = node->getDataValue("sortOrder");
+            if(dataValue != "-1"){
+                enforceUniqueSortOrder(node, dataValue.toInt());
+                QString newSortOrder = node->getDataValue("sortOrder");
 
-            if(action.dataValue == newSortOrder){
-                //Don't add an action for the initial setting!
-                addAction = false;
+                if(action.dataValue == newSortOrder){
+                    //Don't add an action for the initial setting!
+                    addAction = false;
+                }
             }
         }else{
             data->setValue(dataValue);
@@ -749,6 +751,14 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         attribute->setDefaultProtected(true);
     }
 
+    if(name == "type"){
+        QStringList validValues;
+        QStringList keysValues;
+        keysValues << "Attribute" << "Member";
+        validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger" << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber" << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
+        attribute->appendValidValues(keysValues, validValues);
+    }
+
     //Add it to the list of GraphMLKeys.
     keys.append(attribute);
     return attribute;
@@ -960,10 +970,16 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
         data.append(new GraphMLData(typeKey, "Constant"));
         data.append(new GraphMLData(frequencyKey, "1.0"));
     }
+    if(nodeKind == "Process"){
+        GraphMLKey* codeKey = constructGraphMLKey("code", "string", "node");
+        GraphMLKey* actionOnKey = constructGraphMLKey("actionOn", "string", "node");
+        data.append(new GraphMLData(codeKey, ""));
+        data.append(new GraphMLData(actionOnKey, "Mainprocess"));
+    }
     if(nodeKind == "Member"){
         GraphMLKey* keyKey = constructGraphMLKey("key", "boolean", "node");
         data.append(new GraphMLData(keyKey, "false"));
-        data.append(new GraphMLData(typeKey, "string"));
+        data.append(new GraphMLData(typeKey, "String"));
     }
     if(nodeKind == "MemberInstance"){
         GraphMLKey* keyKey = constructGraphMLKey("key", "boolean", "node");
@@ -972,7 +988,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
         data.append(new GraphMLData(keyKey, "false"));
     }
     if(nodeKind == "Attribute"){
-        data.append(new GraphMLData(typeKey, ""));
+        data.append(new GraphMLData(typeKey, "String"));
     }
     if(nodeKind == "AttributeInstance"){
         GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");

@@ -2,7 +2,7 @@
 #define GRAPHMLKEY_H
 #include <QString>
 #include "graphml.h"
-
+#include <QMap>
 class GraphMLData;
 class GraphMLKey: public GraphML
 {
@@ -17,10 +17,15 @@ public:
     void setDefaultProtected(bool setProtected);
     bool isProtected();
 
+    void appendValidValues(QStringList nodeKinds, QStringList values);
+    void appendValidValues(QString nodeKind, QStringList values);
+
     void setDefaultValue(QString value);
     QString getDefaultValue() const;
 
     bool equals(GraphMLKey* key);
+    bool gotSelectableValues(QString nodeKind);
+    QStringList getSelectableValues(QString nodeKind);
 
     QString validateDataChange(GraphMLData* data, QString newValue);
 
@@ -31,11 +36,15 @@ public:
     QString getForKindString();
 private:
 
+    void addValidValue(QString nodeKind, QString value);
+
     GraphML::KIND forKind;
     QString forKindStr;
     bool protectedKey;
 
     QList<GraphMLData*> keysData;
+
+    QMultiMap<QString, QString> validValues;
 
     QList<QChar> invalidLabelCharacters;
 

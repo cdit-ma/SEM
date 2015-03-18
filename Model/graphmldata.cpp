@@ -30,6 +30,16 @@ GraphMLData::~GraphMLData()
 
 }
 
+void GraphMLData::setParent(GraphML *parent)
+{
+    Parent = parent;
+}
+
+GraphML *GraphMLData::getParent()
+{
+    return Parent;
+}
+
 QString GraphMLData::getValue() const
 {
     return this->value;

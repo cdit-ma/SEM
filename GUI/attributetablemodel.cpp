@@ -65,6 +65,7 @@ void AttributeTableModel::addData(GraphMLData *data)
 }
 
 
+
 int AttributeTableModel::rowCount(const QModelIndex &parent) const
 {
     Q_UNUSED(parent);
@@ -75,7 +76,7 @@ int AttributeTableModel::columnCount(const QModelIndex &parent) const
 {
     //Key Name, Data, For, Type
     Q_UNUSED(parent)
-    return 2;
+    return 3;
 }
 
 QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
@@ -86,13 +87,30 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
     if (index.row() >= attachedData.size() || index.row() < 0)
         return QVariant();
 
+    if (role == Qt::DecorationRole) {
+        GraphMLData* data = attachedData.at(index.row());
+        switch(index.column()){
+        case 0:
+            if(data->isProtected()){
+                QImage* image = new QImage(":/Resources/Icons/lock.png");
+                QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
+                QPixmap pixmap(QPixmap::fromImage(scaledImage));
+                return pixmap;
+            }
+
+        }
+    }
+
+
     if (role == Qt::DisplayRole) {
         GraphMLData* data = attachedData.at(index.row());
 
         switch(index.column()){
         case 0:
-            return data->getKey()->getName();
+            return "";
         case 1:
+            return data->getKey()->getName();
+        case 2:
             return data->getValue();
         default:
             return QVariant();
@@ -105,13 +123,21 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
         QString keyName = data->getKeyName();
         switch(index.column()){
         case 0:
+            return data->isProtected();
+        case 1:
             return data->getKey()->getName();
-        case 1:{
+        case 2:
             return data->getValue();
-        }
+
         default:
             return QVariant();
         }
+    }
+    if(role == -1){
+        GraphMLData* data = attachedData.at(index.row());
+        QVariant v(QMetaType::QObjectStar, &data);
+
+        return v;
     }
 
     return QVariant();
@@ -127,8 +153,10 @@ QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientatio
     if (orientation == Qt::Horizontal) {
         switch (section) {
         case 0:
-            return tr("Key");
+            return tr("");
         case 1:
+            return tr("Key");
+        case 2:
             return tr("Value");
 
         default:
@@ -145,7 +173,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
 
         GraphMLData* data = attachedData.at(row);
 
-        if (index.column() == 1 && data && !data->isProtected()){
+        if (index.column() == 2 && data && !data->isProtected()){
             guiItem->GraphMLItem_TriggerAction("Updated Table Cell");
             guiItem->GraphMLItem_SetGraphMLData(guiItem->getGraphML(), data->getKey()->getName(), value.toString());
 
@@ -196,7 +224,7 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled;
-    if(index.column() == 1){
+    if(index.column() == 2){
         if(index.isValid()) {
             int row = index.row();
 

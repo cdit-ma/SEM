@@ -30,7 +30,7 @@
 
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
-    GRID_LINES_ON = false;
+    GRID_LINES_ON = true;
     constructedFromToolbar = false;
     CENTRALIZED_ON_ITEM = false;
     IS_SUB_VIEW = subView;
@@ -1304,6 +1304,22 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
     QGraphicsView::keyReleaseEvent(event);
 
+}
+
+void NodeView::snapToGrid()
+{
+    NodeItem* currentSelected= getSelectedNodeItem();
+    if(currentSelected){
+        currentSelected->snapToGrid();
+    }
+}
+
+void NodeView::snapChildrenToGrid()
+{
+    NodeItem* currentSelected= getSelectedNodeItem();
+    if(currentSelected){
+        currentSelected->snapChildrenToGrid();
+    }
 }
 
 void NodeView::setDefaultAspects()

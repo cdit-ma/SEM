@@ -241,19 +241,39 @@ QRectF NodeItem::boundingRect() const
     return QRectF(QPointF(topLeftX, topLeftY), QPointF(bottomRightX, bottomRightY));
 }
 
-QRectF NodeItem::minimumVisibleRect() const
+QRectF NodeItem::minimumVisibleRect()
 {
-    qreal topLeftX = getItemMargin() /2;
-    qreal topLeftY = getItemMargin() /2;
 
-    qreal bottomRightX = topLeftX + minimumWidth + topLeftX;
-    qreal bottomRightY = topLeftY + minimumHeight + topLeftY;
-    return QRectF(QPointF(topLeftX, topLeftY), QPointF(bottomRightX, bottomRightY));
+    return QRectF(QPointF(0, 0), QPointF(minimumWidth + getItemMargin(), minimumHeight + getItemMargin()));
+}
+
+QRectF NodeItem::gridRect()
+{
+    QRectF rectangle;
+    if(isExpanded()){
+        QPointF topLeft = minimumVisibleRect().bottomLeft();
+        if(nodeKind.endsWith("Definitions")){
+            topLeft = minimumVisibleRect().topLeft();
+        }
+
+        QPointF bottomRight = boundingRect().bottomRight();
+
+        topLeft += QPointF(getGridSize(), getGridSize());
+        bottomRight -= QPointF(getGridSize(), getGridSize());
+        rectangle = QRectF(topLeft, bottomRight);
+
+        int xGrids = qRound(rectangle.width() / getGridSize());
+        int yGrids = qRound(rectangle.height() / getGridSize());
+        rectangle.setWidth(xGrids * getGridSize());
+        rectangle.setHeight(yGrids * getGridSize());
+    }
+
+    return rectangle;
 }
 
 QPointF NodeItem::getGridPosition(int x, int y)
 {
-    QPointF bottomLeft = minimumVisibleRect().bottomLeft();
+    QPointF bottomLeft = gridRect().bottomLeft();
     bottomLeft.setX(bottomLeft.x() + (x * getGridSize()));
     bottomLeft.setY(bottomLeft.y() + (y * getGridSize()));
     return bottomLeft;
@@ -303,10 +323,7 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    Q_UNUSED(option);
-    Q_UNUSED(widget);
-
-    if(PAINT_OBJECT){
+     if(PAINT_OBJECT){
 
         QPen Pen;
         QBrush Brush;
@@ -369,12 +386,22 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawRoundedRect(rectangle, cornerRadius, cornerRadius);
 
         /*
+         * Show bounding Rectangle for size
         if(textItem){
             QRectF textRect = textItem->boundingRect();
             textRect.translate(textItem->pos());
             painter->drawRect(textRect);
         }*/
-        if(isExpanded() && textItem){
+
+/*
+ * show MINIMUM visible rect
+        if(textItem){
+            QRectF textRect = minimumVisibleRect();
+            //textRect.translate(textItem->pos());
+            painter->drawRect(textRect);
+        }
+*/
+        if(isExpanded() && textItem && (width != minimumWidth)){
             painter->setPen(pen);
             qreal yPos = minimumHeight + textItem->boundingRect().height();
             QLineF line = QLineF(Pen.width(), yPos, boundingRect().width() - Pen.width(), yPos);
@@ -390,7 +417,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         linePen.setStyle(Qt::DashLine);
         linePen.setWidth(minimumWidth / 1000);
-        linePen.setColor(QColor(100,100,100));
+        linePen.setColor(QColor(0,0,0));
         painter->setPen(linePen);
 
         painter->drawLines(xGridLines);
@@ -1098,44 +1125,21 @@ void NodeItem::setHeight(qreal height)
 
 void NodeItem::updateGridLines(bool updateX, bool updateY)
 {
-    if(minimumWidth > 0 && minimumHeight > 0 && GRIDLINES_VISIBLE){
+    if(GRIDLINES_VISIBLE){
+        QRectF boundingGridRect = gridRect();
+        qreal errorPercent = .10;
+        xGridLines.clear();
+        yGridLines.clear();
 
-        QRectF fullRect = boundingRect();
 
-        QRectF noGridRect = minimumVisibleRect();
-
-
-
-        if(updateX){
-            xGridLines.clear();
-
-            //Vertical Lines
-            for(qreal x = fullRect.left(); x < fullRect.right(); x += getGridSize()){
-                qreal yTop = noGridRect.bottom();
-                qreal yBot = fullRect.bottom();
-
-                //if(x < (noGridRect.x() + noGridRect.width())){
-                //    yTop = noGridRect.bottom();
-                //}
-                xGridLines << QLineF(x, yTop, x, yBot);
-            }
+        for(qreal x = boundingGridRect.left(); x <= boundingGridRect.right() + (errorPercent * getGridSize()); x += getGridSize()){
+            xGridLines << QLineF(x, boundingGridRect.top(), x, boundingGridRect.bottom());
         }
-        if(updateY){
-            yGridLines.clear();
-            for(qreal y = noGridRect.bottom() + getGridSize(); y < fullRect.bottom(); y += getGridSize()){
 
-                qreal xLeft = fullRect.left();
-                qreal xRight = fullRect.right();
-
-                //if(y < (noGridRect.y() + noGridRect.height())){
-                //    xLeft = noGridRect.right();
-                //}
-
-                yGridLines << QLineF(xLeft, y, xRight, y);
-            }
+        for(qreal y = boundingGridRect.top(); y <= boundingGridRect.bottom() + (errorPercent * getGridSize()); y += getGridSize()){
+            yGridLines << QLineF(boundingGridRect.left(), y, boundingGridRect.right(), y);
         }
     }
-
 }
 
 void NodeItem::setPermanentlyInvisible(bool isInvisible)
@@ -1413,6 +1417,7 @@ void NodeItem::setPos(const QPointF &pos)
     if(pos != this->pos()){
         //Check parent Position./
         //Lock onto Grid lines.
+        /*
         if(GRIDLINES_VISIBLE && parentNodeItem){
             double parentWidth = parentNodeItem->boundingRect().width();
             double parentHeight = parentNodeItem->boundingRect().height();
@@ -1457,8 +1462,9 @@ void NodeItem::setPos(const QPointF &pos)
 
             QGraphicsItem::setPos(newPosition);
         }else{
-            QGraphicsItem::setPos(pos);
         }
+        */
+        QGraphicsItem::setPos(pos);
         updateChildrenOnChange();
     }
 }
@@ -1545,7 +1551,7 @@ void NodeItem::setupIcon()
         }
 
 
-        qreal xPos = (boundingRect().width() - iconWidth)/2;
+        qreal xPos = (minimumVisibleRect().width() - iconWidth)/2;
 
         icon->setX(xPos);
         icon->setY((minimumHeight - iconHeight) /2);
@@ -1671,6 +1677,33 @@ void NodeItem::toggleGridLines(bool on)
     GRIDLINES_VISIBLE = on;
     if(on){
         updateGridLines(true,true);
+    }
+}
+
+void NodeItem::snapToGrid()
+{
+    if(parentNodeItem && isVisible()){
+        QPointF centerPosition = minimumVisibleRect().center();
+        QPointF currentPosition = pos() + centerPosition;
+        QPointF gridPosition = parentNodeItem->getClosestGridPoint(currentPosition);
+        if(gridPosition != currentPosition){
+            setPos(gridPosition - centerPosition);
+        }
+    }
+}
+
+void NodeItem::snapChildrenToGrid()
+{
+
+    foreach(NodeItem *child, childNodeItems){
+        if(child->isVisible()){
+            QPointF localPosition = child->minimumVisibleRect().center();
+            QPointF childPosition = child->pos() + localPosition;
+            QPointF newPosition = getClosestGridPoint(childPosition);
+            if(childPosition != newPosition){
+                child->setPos(newPosition - localPosition);
+            }
+        }
     }
 }
 
@@ -2008,7 +2041,7 @@ void NodeItem::resetSize()
  */
 bool NodeItem::isExpanded()
 {
-    return expanded && this->childNodeItems.size() > 0;
+    return expanded ;//&& this->childNodeItems.size() > 0;
 }
 
 
@@ -2035,6 +2068,22 @@ void NodeItem::removeExpandButton()
         delete expandButton;
         expandButton = 0;
     }
+}
+
+QPointF NodeItem::getClosestGridPoint(QPointF referencePoint)
+{
+    int gridSize = getGridSize();
+
+    double gridX = referencePoint.x() / gridSize;
+    int closestGridX = qRound(gridX);
+
+    double gridY = referencePoint.y() / gridSize;
+    int closestGridY = qRound(gridY);
+
+    referencePoint.setX(closestGridX * gridSize);
+    referencePoint.setY(closestGridY * gridSize);
+
+    return referencePoint;
 }
 
 

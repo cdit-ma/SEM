@@ -145,6 +145,7 @@ void GraphML::attachData(GraphMLData *data)
                 }
             }
             if(data){
+                data->setParent(this);
                 attachedData.append(data);
                 emit dataAdded(data);
             }
@@ -161,6 +162,7 @@ void GraphML::removeData(GraphMLData *data)
 {
     int index = attachedData.indexOf(data);
     attachedData.removeAll(data);
+    data->setParent(0);
     emit dataRemoved(data);
 }
 

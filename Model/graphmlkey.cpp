@@ -61,6 +61,22 @@ bool GraphMLKey::isProtected()
     return protectedKey;
 }
 
+void GraphMLKey::appendValidValues(QStringList nodeKinds, QStringList values)
+{
+    foreach(QString nodeKind, nodeKinds){
+        foreach(QString value, values){
+            addValidValue(nodeKind, value);
+        }
+    }
+}
+
+void GraphMLKey::appendValidValues(QString nodeKind, QStringList values)
+{
+    foreach(QString value, values){
+        addValidValue(nodeKind, value);
+    }
+}
+
 void GraphMLKey::setDefaultValue(QString value)
 {
     defaultValue = value;
@@ -83,6 +99,18 @@ bool GraphMLKey::equals(GraphMLKey *key)
         return false;
     }
     return true;
+}
+
+bool GraphMLKey::gotSelectableValues(QString nodeKind)
+{
+    return validValues.contains(nodeKind);
+}
+
+QStringList GraphMLKey::getSelectableValues(QString nodeKind)
+{
+    QStringList vValues = validValues.values(nodeKind);
+    vValues.sort();
+    return vValues;
 }
 
 QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
@@ -187,6 +215,13 @@ QString GraphMLKey::getTypeString()
 QString GraphMLKey::getForKindString()
 {
     return this->forKindStr;
+}
+
+void GraphMLKey::addValidValue(QString nodeKind, QString value)
+{
+    if(!validValues.contains(nodeKind,value)){
+        validValues.insert(nodeKind, value);
+    }
 }
 
 

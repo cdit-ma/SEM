@@ -36,7 +36,8 @@ public:
     QList<NodeEdge*> getEdgeItems();
     void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
-    QRectF minimumVisibleRect() const;
+    QRectF minimumVisibleRect();
+    QRectF gridRect();
 
     QPointF getGridPosition(int x, int y);
     bool isSelected();
@@ -128,11 +129,16 @@ public slots:
     //Turn off visible gridlines;
     void toggleGridLines(bool on);
 
+    void snapToGrid();
+    void snapChildrenToGrid();
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+
+    QPointF getClosestGridPoint(QPointF currentPosition);
 
 
 private:
@@ -164,6 +170,7 @@ private:
 
     bool hasExpandButton();
     void removeExpandButton();
+
 
     bool expanded;
     bool permanentlyCentralized;
@@ -203,6 +210,7 @@ private:
 
     QString nodeKind;
     QString fileID;
+
 
     double width;
     double height;
