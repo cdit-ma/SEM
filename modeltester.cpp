@@ -1,5 +1,5 @@
 #include "modeltester.h"
-#include "Controller/newcontroller.h"
+#include "Controller/controller.h"
 #include <QDebug>
 #ifdef _WIN32
 #define _WINSOCKAPI_    // stops windows.h including winsock.h

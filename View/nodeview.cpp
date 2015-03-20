@@ -406,7 +406,8 @@ void NodeView::sortNode(Node *node, Node* topMostNode)
             }
             // otherwise, iterate sorting upto the topMost node
             nodeItem = nodeItem->getParentNodeItem();
-            nodeItem->sort();
+            //nodeItem->sort();
+            nodeItem->newSort();
         }
     } else {
         // go to the lowest level child and start sorting from there
@@ -667,7 +668,8 @@ void NodeView::view_SortNode(Node *node)
 {
     NodeItem* nodeItem = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(node->getID()));
     if(nodeItem){
-        nodeItem->sort();
+        //nodeItem->sort();
+        nodeItem->newSort();
     }
 
 }
@@ -1788,11 +1790,13 @@ void NodeView::sortModel()
     NodeItem* modelItem = getNodeItemFromNode(model);
 
     if(deploymentDefinitionItem){
-        deploymentDefinitionItem->sort();
+        //deploymentDefinitionItem->sort();
+        deploymentDefinitionItem->newSort();
     }
 
     if(modelItem){
-        modelItem->sort();
+        //modelItem->sort();
+        modelItem->newSort();
     }
 }
 

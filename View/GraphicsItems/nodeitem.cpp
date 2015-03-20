@@ -42,7 +42,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     LOCKED_POSITION = false;
     drawGrid = false;
 
-
     nodeSelected = false;
     isNodePressed = false;
     permanentlyCentralized = false;
@@ -57,7 +56,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     lockIcon = 0;
     labelWidget = 0;
     proxyWidget = 0;
-    expandButton = 0;
     initialWidth = 0;
     initialHeight = 0;
 
@@ -83,7 +81,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         parentNodeKind = parent->getGraphML()->getDataValue("kind");
 
         // connect this item to its parent item
-        connect(this, SIGNAL(addExpandButtonToParent()), parent, SLOT(addExpandButton()));
         connect(this, SIGNAL(updateParentHeight(NodeItem*)), parent, SLOT(updateHeight(NodeItem*)));
 
     } else {
@@ -134,13 +131,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     }else{
         setPaintObject(true);
     }
-
-    // if this item has a parent and it's the first child of that parent
-    // send a signal to the parent to add an expandButton and sort it
-    if (parent && parent->getChildNodeItems().count() == 1) {
-        emit addExpandButtonToParent();
-    }
-
 
     aspectsChanged(aspects);
 
@@ -299,7 +289,6 @@ void NodeItem::removeChildNodeItem(NodeItem *child)
 {
     childNodeItems.removeAll(child);
     if(childNodeItems.size() == 0){
-        removeExpandButton();
         resetSize();
     }
 }
@@ -315,7 +304,7 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-     if(PAINT_OBJECT){
+    if(PAINT_OBJECT){
 
         QPen Pen;
         QBrush Brush;
@@ -385,7 +374,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             painter->drawRect(textRect);
         }*/
 
-/*
+        /*
  * show MINIMUM visible rect
         if(textItem){
             QRectF textRect = minimumVisibleRect();
@@ -515,7 +504,7 @@ void NodeItem::adjustPos(QPointF delta)
 
 double NodeItem::getChildWidth()
 {
-     return initialWidth / MINIMUM_HEIGHT_RATIO;
+    return initialWidth / MINIMUM_HEIGHT_RATIO;
 }
 
 
@@ -525,26 +514,20 @@ double NodeItem::getChildWidth()
  */
 QPointF NodeItem::getNextChildPos()
 {
-    QPointF position;
-
-    position = getGridPosition(nextX, nextY);
+    QPointF position = getGridPosition(nextX, nextY);
     nextX += 3;
 
     QPointF nextPosition = getGridPosition(nextX, nextY);
-
 
     if ((nextPosition.x() + getChildWidth()) > boundingRect().width()) {
         nextX = 1;
         nextY += 3;
     }
 
-
     nextPosition.setX(nextPosition.x() - getChildWidth()/2);
     nextPosition.setY(nextPosition.y() - getChildWidth()/2);
     return position;
 }
-
-
 
 
 void NodeItem::setOpacity(qreal opacity)
@@ -572,9 +555,6 @@ void NodeItem::setSelected(bool selected)
         }else{
             this->setZValue(0);
         }
-
-
-
 
         update();
         updateTextLabel();
@@ -850,25 +830,25 @@ void NodeItem::sort()
             }
         }
     }
-
-    //resetNextChildPos();
 }
 
+
+/**
+ * @brief NodeItem::newSort
+ */
 void NodeItem::newSort()
 {
-    //
     //Get the number of un-locked items
     QList<NodeItem*> toSortItems;
     QList<NodeItem*> lockedItems;
 
-
     foreach (Node* child, getNode()->getChildren(0)) {
-        if(child){
+        if (child) {
             NodeItem* nodeItem = getChildNodeItemFromNode(child);
-            if(nodeItem){
-                if(nodeItem->isLocked()){
+            if (nodeItem) {
+                if (nodeItem->isLocked()) {
                     lockedItems.append(nodeItem);
-                }else if(nodeItem->isVisible()){
+                } else if (nodeItem->isVisible() || nodeKind == "Model" || nodeKind == "DeploymentDefinitions"){
                     toSortItems.append(nodeItem);
                 }
             }
@@ -880,31 +860,29 @@ void NodeItem::newSort()
 
     bool finishedLayout = false;
 
-    int x=1;
-    int y=1;
+    int x = 1;
+    int y = 1;
 
     NodeItem* nextItem = 0;
-    for(y; y <= (gridSize * 3) -1; y+=3){
-        x=1;
-        for(x; x <= (gridSize * 3) -1; x+=3){
-            if(toSortItems.size() > 0){
+    for (y; y <= (gridSize * 3) - 1; y += 3) {
+        x = 1;
+        for (x; x <= (gridSize * 3) - 1; x += 3) {
+            if (toSortItems.size() > 0) {
                 nextItem = toSortItems.takeFirst();
                 nextItem->setCenterPos(getGridPosition(x,y));
                 nextItem->updateParentHeight(nextItem);
-            }else{
+            } else {
                 finishedLayout = true;
                 break;
             }
         }
-
-        if(finishedLayout){
+        if (finishedLayout) {
             break;
         }
     }
 
     nextX = x;
     nextY = y;
-
 }
 
 
@@ -933,9 +911,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         }
 
         previousScenePosition = event->scenePos();
-
-
-
         hasSelectionMoved = false;
         isNodePressed = true;
 
@@ -967,7 +942,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         //emit triggerSelected(this);
         //emit triggerSelected(getGraphML());
         break;
-
     }
 
     default:
@@ -1028,8 +1002,6 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 
         }
-
-
 
         hasSelectionMoved = false;
         isNodePressed = false;
@@ -1099,18 +1071,14 @@ void NodeItem::setWidth(qreal width)
 
         this->width = width;
 
-        updateExpandButton();
         updateTextLabel();
         updateChildrenOnChange();
-
 
         if(updateModel){
             updateGraphMLSize();
         }
 
         updateGridLines(true, true);
-
-
     }
 
 }
@@ -1255,20 +1223,6 @@ void NodeItem::updateTextLabel(QString text)
 
 }
 
-
-void NodeItem::updateExpandButton()
-{
-    if(expandButton){
-        int brushSize = selectedPen.width();
-        QPoint currentPos = expandButton->pos();
-        qreal buttonSize = expandButton->width();
-
-        //New Position
-        QPoint newPos(width - (getCornerRadius()/2) - buttonSize - brushSize, (minimumHeight - buttonSize)/2);
-
-        expandButton->move(newPos);
-    }
-}
 
 void NodeItem::setupAspect()
 {
@@ -1809,53 +1763,6 @@ double NodeItem::getItemMargin() const
     return (minimumHeight / MINIMUM_HEIGHT_RATIO) * (1 + (3 * FONT_RATIO));
 }
 
-/**
- * @brief NodeItem::addExpandButton
- */
-void NodeItem::addExpandButton()
-{
-    /*
-    if (icon != 0) {
-        if (nodeKind!= "Hardware" && nodeKind != "ManagementComponent") {
-
-            QFont font("Arial");
-            qreal buttonSize = .7 * minimumHeight;
-            font.setPointSize(buttonSize/2);
-
-            expandButton = new QPushButton("-");
-            expandButton->setFont(font);
-            expandButton->setFixedSize(buttonSize, buttonSize);
-
-            //QString testString = QString("This is a test %1, T.txt").arg(expandButton->width());
-            QString penWidth = QString::number(pen.width());
-            QString borderRadius = QString::number(expandButton->width()/2);
-            expandButton->setStyleSheet("QPushButton {"
-                                        "background-color: rgba(255,255,255,250);"
-                                        "border:" + penWidth + "px solid gray;"
-                                        "border-radius:" + borderRadius + "px;"
-                                        "padding: 0px;"
-                                        "margin: 0px;"
-                                        "}");
-
-            // this rounds the expandButton and its proxy
-            QRegion region(expandButton->rect(), QRegion::RegionType::Ellipse);
-            expandButton->setMask(region);
-
-            int brushSize = selectedPen.width();
-            expandButton->move(width - (getCornerRadius()/2) - buttonSize - brushSize, (minimumHeight - buttonSize)/2);
-
-            proxyWidget = new QGraphicsProxyWidget(this);
-            proxyWidget->setWidget(expandButton);
-
-            // setup and connect button
-            expanded = true;
-            expandButton->setCheckable(true);
-            expandButton->setChecked(true);
-            connect(expandButton, SIGNAL(clicked(bool)), this, SLOT(expandItem(bool)));
-        }
-    }
-*/
-}
 
 /**
  * @brief NodeItem::expandItem
@@ -1990,8 +1897,7 @@ void NodeItem::setHidden(bool h)
 
 /**
  * @brief NodeItem::resetSize
- * Reset this node item's size to its default size
- * and sort its children if there are any.
+ * Reset this node item's size to its default size.
  */
 void NodeItem::resetSize()
 {
@@ -2016,31 +1922,6 @@ bool NodeItem::isExpanded()
     return expanded ;//&& this->childNodeItems.size() > 0;
 }
 
-
-/**
- * @brief NodeItem::hasExpandButton
- * @return
- */
-bool NodeItem::hasExpandButton()
-{
-    if (expandButton == 0) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
-
-/**
- * @brief NodeItem::removeExpandButton
- */
-void NodeItem::removeExpandButton()
-{
-    if (expandButton) {
-        delete expandButton;
-        expandButton = 0;
-    }
-}
 
 QPointF NodeItem::getClosestGridPoint(QPointF referencePoint)
 {

@@ -81,7 +81,6 @@ public:
     QList<NodeItem*> getChildNodeItems();
     bool isPermanentlyCentered();
 
-
     qreal getGridSize();
 
 signals:
@@ -99,7 +98,6 @@ signals:
     void updateDockNodeItem();
     void updateOpacity(qreal opacity);
 
-    void addExpandButtonToParent();
     void updateParentHeight(NodeItem* child);
 
     void recentralizeAfterChange(GraphML* item);
@@ -124,7 +122,6 @@ public slots:
     void newSort();
 
 
-    void addExpandButton();
     void expandItem(bool show);
 
     void updateHeight(NodeItem* child);
@@ -174,11 +171,6 @@ private:
     void retrieveGraphMLData();
 
     void updateTextLabel(QString text=0);
-    void updateExpandButton();
-
-    bool hasExpandButton();
-    void removeExpandButton();
-
 
     bool expanded;
     bool permanentlyCentralized;
@@ -204,7 +196,6 @@ private:
     QGraphicsPixmapItem* lockIcon;
     QGraphicsProxyWidget *proxyWidget;
     QGraphicsProxyWidget *labelWidget;
-    QPushButton *expandButton;
     QPushButton* labelButton;
 
     QList<EdgeItem*> connections;
