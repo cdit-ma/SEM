@@ -1172,8 +1172,6 @@ void MedeaWindow::loadJenkinsData(int code)
     QStringList files;
     files << myProcess->readAll();
 
-    exportFileName = "c:/jenkins.xml";
-    writeExportedProject(files[0]);
     window_ImportProjects(files);
 
     // sort and center view aspects
