@@ -1,5 +1,5 @@
 #include "nodeitem.h"
-#include "nodeedge.h"
+#include "edgeitem.h"
 #include "nodeview.h"
 
 #include <QGraphicsTextItem>
@@ -474,7 +474,7 @@ double NodeItem::getHeight()
 }
 
 
-void NodeItem::addNodeEdge(EdgeItem *line)
+void NodeItem::addEdgeItem(EdgeItem *line)
 {
     connect(this, SIGNAL(nodeItemMoved()), line, SLOT(updateEdge()));
     NodeItem* item = this;
@@ -488,7 +488,7 @@ void NodeItem::addNodeEdge(EdgeItem *line)
     connections.append(line);
 }
 
-void NodeItem::removeNodeEdge(EdgeItem *line)
+void NodeItem::removeEdgeItem(EdgeItem *line)
 {
     connections.removeAll(line);
 }
@@ -571,6 +571,7 @@ void NodeItem::setOpacity(qreal opacity)
 
     foreach(EdgeItem* edge, connections){
         if(edge->getSource()->opacity() != 0 && edge->getDestination()->opacity() != 0){
+
             edge->setOpacity(opacity);
         }else{
             edge->setOpacity(0);

@@ -1,6 +1,6 @@
 #include "attributetablemodel.h"
 #include "../nodeitem.h"
-#include "../nodeedge.h"
+#include "../edgeitem.h"
 #include <QGridLayout>
 #include <QDebug>
 #include <QDialog>

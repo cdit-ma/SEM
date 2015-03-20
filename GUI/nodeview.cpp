@@ -610,7 +610,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 
         //Add it to the list of EdgeItems in the Model.
         storeGraphMLItemInHash(nodeEdge);
-        //nodeEdges.append(nodeEdge);
+
 
         connectGraphMLItemToController(nodeEdge, edge);
 

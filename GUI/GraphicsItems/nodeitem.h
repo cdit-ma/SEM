@@ -59,8 +59,8 @@ public:
     bool isHidden();
     void setHidden(bool hidden);
 
-    void addNodeEdge(EdgeItem* line);
-    void removeNodeEdge(EdgeItem* line);
+    void addEdgeItem(EdgeItem* line);
+    void removeEdgeItem(EdgeItem* line);
     void adjustPos(QPointF delta);
 
 

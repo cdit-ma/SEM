@@ -1,4 +1,4 @@
-#include "nodeedge.h"
+#include "edgeitem.h"
 #include "graphmlitem.h"
 #include <QDebug>
 
@@ -72,15 +72,15 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     width = circleRadius * 2;
     height =  width;
 
-    source->addNodeEdge(this);
-    destination->addNodeEdge(this);
+    source->addEdgeItem(this);
+    destination->addEdgeItem(this);
 
     setupBrushes();
     updateLines();
     updateLabel();
     setLabelFont();
 
-    GraphMLData* descriptionData = edge->getData("description");
+    GraphMLData* descriptionData = edge->getData("label");
 
     if(descriptionData)
         connect(descriptionData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
@@ -99,10 +99,10 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
 EdgeItem::~EdgeItem()
 {
     if(source){
-        source->removeNodeEdge(this);
+        source->removeEdgeItem(this);
     }
     if(destination){
-        destination->removeNodeEdge(this);
+        destination->removeEdgeItem(this);
     }
 
     while(!lineItems.isEmpty()){
