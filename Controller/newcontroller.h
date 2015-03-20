@@ -2,7 +2,7 @@
 #define NEWCONTROLLER_H
 #include <QStack>
 #include "../Model/model.h"
-#include "../GUI/nodeedge.h"
+#include "../GUI/edgeitem.h"
 #include "../ValidationEngine/validationengine.h"
 
 

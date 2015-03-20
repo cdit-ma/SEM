@@ -66,7 +66,6 @@ medeawindow.h \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
     ValidationEngine/validationengine.h \
     ValidationEngine/Plugins/interfacedefinitionplugin.h \
-    GUI/nodeedge.h \
     Model/InterfaceDefinitions/memberinstance.h \
     Model/InterfaceDefinitions/aggregateinstance.h \
     Model/InterfaceDefinitions/memberinstance.h \
@@ -82,7 +81,6 @@ medeawindow.h \
     GUI/partsdockscrollarea.h \
     GUI/hardwaredockscrollarea.h \
     GUI/definitionsdockscrollarea.h \
-    GUI/graphmlviewitem.h \
     GUI/nodetable.h \
     GUI/Toolbar/toolbarwidget.h \
     GUI/Toolbar/toolbarwidgetaction.h \
@@ -95,7 +93,8 @@ medeawindow.h \
     GUI/Dock/partsdockscrollarea.h \
     GUI/editabletextitem.h \
     GUI/Table/comboboxtabledelegate.h \
-    GUI/Table/attributetablemodel.h
+    GUI/Table/attributetablemodel.h \
+    GUI/edgeitem.h
 
 SOURCES += \
     GUI/nodeitem.cpp \
@@ -146,7 +145,6 @@ SOURCES += \
     ValidationEngine/validationplugin.cpp \
     ValidationEngine/Plugins/interfacedefinitionplugin.cpp \
     medeawindow.cpp \
-    GUI/nodeedge.cpp \
     Model/InterfaceDefinitions/memberinstance.cpp \
     Model/InterfaceDefinitions/aggregateinstance.cpp \
     Model/InterfaceDefinitions/memberinstance.cpp \
@@ -155,7 +153,6 @@ SOURCES += \
     Model/DeploymentDefinitions/outeventportdelegate.cpp \
     modeltester.cpp \
     GUI/nodeviewminimap.cpp \
-    GUI/graphmlviewitem.cpp \
     GUI/Toolbar/toolbarwidget.cpp \
     GUI/Toolbar/toolbarwidgetaction.cpp \
     GUI/Toolbar/toolbarwidgetmenu.cpp \
@@ -167,7 +164,8 @@ SOURCES += \
     GUI/Dock/partsdockscrollarea.cpp \
     GUI/editabletextitem.cpp \
     GUI/Table/comboboxtabledelegate.cpp \
-    GUI/Table/attributetablemodel.cpp
+    GUI/Table/attributetablemodel.cpp \
+    GUI/edgeitem.cpp
 
 FORMS += \
 

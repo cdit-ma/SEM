@@ -83,8 +83,8 @@ void MedeaWindow::initialiseGUI()
     toolbar = new QToolBar();
     dataTable = new QTableView();
 
-    //delegate = new ComboBoxTableDelegate(0);
-    //dataTable->setItemDelegateForColumn(2, delegate);
+    delegate = new ComboBoxTableDelegate(0);
+    dataTable->setItemDelegateForColumn(2, delegate);
 
     dataTableBox = new QGroupBox();
     projectName = new QPushButton("Model");
