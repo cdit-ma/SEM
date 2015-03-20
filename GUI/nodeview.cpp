@@ -507,10 +507,14 @@ void NodeView::centerOnItem()
 {
     if (getSelectedNode()) {
         NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
-        QRectF itemRect = selectedItem->boundingRect();
-        itemRect.translate(selectedItem->scenePos());
+        QRectF itemRect = selectedItem->sceneBoundingRect();
         adjustSceneRect(itemRect);
         centerOn(itemRect.center());
+        /*
+        qreal prevScale = transform().m11();
+        centerItem(selectedItem);
+        scale(prevScale/transform().m11(), prevScale/transform().m11());
+        */
     }
 }
 

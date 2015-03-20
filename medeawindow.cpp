@@ -40,6 +40,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     makeConnections();
     newProject();
 
+    // this only needs to happen once, the whole time the application is open
+    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
+
     /*
     // this is used for when a file is dragged and dropped on top of this tool's icon
     if(graphMLFile.length() != 0){
@@ -81,8 +84,8 @@ void MedeaWindow::initialiseGUI()
     toolbar = new QToolBar();
     dataTable = new QTableView();
 
-    delegate = new ComboBoxTableDelegate(0);
-    dataTable->setItemDelegateForColumn(2, delegate);
+    //delegate = new ComboBoxTableDelegate(0);
+    //dataTable->setItemDelegateForColumn(2, delegate);
 
     dataTableBox = new QGroupBox();
     projectName = new QPushButton("Model");
@@ -470,8 +473,6 @@ void MedeaWindow::setupToolbar()
     popupButton->hide();
 
     toolbar->setFixedSize(toolbar->contentsRect().width(), buttonSize.height()+10);
-
-    //this->addToolBar(toolbar);
 }
 
 
@@ -482,16 +483,19 @@ void MedeaWindow::setupController()
 {
     if (controller) {
         delete controller;
+        controller = 0;
     }
     if (thread) {
         delete thread;
+        thread = 0;
     }
-    controller = 0;
-    thread = 0;
+
+    //controller = 0;
+    //thread = 0;
 
     controller = new NewController();
 
-    if(THREADING){
+    if (THREADING) {
         //IMPLEMENT THREADING!
         thread = new QThread();
         thread->start();
@@ -564,6 +568,11 @@ void MedeaWindow::makeConnections()
     connect(snapToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapToGrid()));
     connect(snapChildrenToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapChildrenToGrid()));
 
+    connect(duplicateButton, SIGNAL(clicked()), nodeView, SLOT(duplicate()));
+    connect(fitToScreenButton, SIGNAL(clicked()), nodeView, SLOT(fitToScreen()));
+    connect(centerButton, SIGNAL(clicked()), nodeView, SLOT(centerOnItem()));
+    connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
+
     connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
     connect(nodeView, SIGNAL(view_UndoListChanged(QStringList)), this, SLOT(updateUndoStates(QStringList)));
     connect(nodeView, SIGNAL(view_RedoListChanged(QStringList)), this, SLOT(updateRedoStates(QStringList)));
@@ -579,7 +588,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_enableDocks(bool)), compDefinitionsButton, SLOT(enableDock(bool)));
     connect(nodeView, SIGNAL(view_enableDocks(bool)), hardwareNodesButton, SLOT(enableDock(bool)));
 
-    connect(this, SIGNAL(clearDocks()), partsDock, SLOT(clear()));
+    //connect(this, SIGNAL(clearDocks()), partsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
 
@@ -600,11 +609,6 @@ void MedeaWindow::makeConnections()
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
-
-    connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
-    connect(centerButton, SIGNAL(clicked()), nodeView, SLOT(centerOnItem()));
-    connect(fitToScreenButton, SIGNAL(clicked()), nodeView, SLOT(fitToScreen()));
-    connect(duplicateButton, SIGNAL(clicked()), nodeView, SLOT(duplicate()));
 }
 
 
@@ -746,8 +750,12 @@ void MedeaWindow::on_actionClearModel_triggered()
 
         clearDocks();
 
-        // TODO: create method to set the initial values for objects
+        /*
+        // disconnected partsDock from the clearDocks signal
+        // it doesn't need to be cleared the whole time the application is open
+        // moved initial populating of partsDock to the constructor
         partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
+        */
     }
 }
 
