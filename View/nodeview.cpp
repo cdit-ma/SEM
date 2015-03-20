@@ -1,5 +1,5 @@
 #include "nodeview.h"
-#include "../Controller/newcontroller.h"
+#include "../Controller/controller.h"
 #include "toolbar/toolbarwidget.h"
 #include "dock/docktogglebutton.h"
 

@@ -14,9 +14,9 @@
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
 
-#include "../Model/node.h"
-#include "../Model/graphmldata.h"
-#include "table/attributetablemodel.h"
+#include "../../Model/node.h"
+#include "../../Model/graphmldata.h"
+#include "../table/attributetablemodel.h"
 #include "graphmlitem.h"
 #include "editabletextitem.h"
 

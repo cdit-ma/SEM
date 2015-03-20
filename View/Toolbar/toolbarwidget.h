@@ -2,7 +2,7 @@
 #define TOOLBARWIDGET_H
 
 #include "../nodeview.h"
-#include "../nodeitem.h"
+#include "../GraphicsItems/nodeitem.h"
 #include "toolbarwidgetaction.h"
 
 #include <QWidget>

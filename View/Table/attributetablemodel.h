@@ -6,7 +6,7 @@
 
 #include "../../Model/graphmldata.h"
 #include "../../Model/graphml.h"
-#include "../graphmlitem.h"
+#include "../GraphicsItems/graphmlitem.h"
 #include <QVector>
 
 class NodeItem;

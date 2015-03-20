@@ -1,6 +1,6 @@
 #include "nodeitem.h"
 #include "edgeitem.h"
-#include "nodeview.h"
+#include "../nodeview.h"
 
 #include <QGraphicsTextItem>
 #include <QDebug>

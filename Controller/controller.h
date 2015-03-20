@@ -2,8 +2,7 @@
 #define NEWCONTROLLER_H
 #include <QStack>
 #include "../Model/model.h"
-#include "../GUI/edgeitem.h"
-#include "../ValidationEngine/validationengine.h"
+#include "../View/GraphicsItems/edgeitem.h"
 
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
@@ -99,11 +98,6 @@ public slots:
     //Used to Export a GraphML XML document representation of the Model.
   void exportGraphMLDocument();
 
-  //Validator Slots
-  void validateModel();
-  void validationError(GraphML* graphML, QString error);
-
-
   // moved to public so that NodeView can access it
   void clearModel();
 
@@ -194,9 +188,6 @@ private:
 
     //Constructs and setups all required Entities inside the Model Node.
     void setupModel();
-
-    //Sets up the Validation Engine.
-    void setupValidator();
 
     //Binds matching GraphMLData elements from the Node Child, to the Node Definition.
     void bindGraphMLData(Node* definition, Node* instance);
@@ -331,7 +322,7 @@ private:
     int currentActionID;
 
 
-    ValidationEngine* validator;
+
     };
 
 #endif // NEWCONTROLLER_H

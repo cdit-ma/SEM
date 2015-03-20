@@ -5,9 +5,9 @@
 #include <QObject>
 
 #include "nodeitem.h"
-#include "../Model/node.h"
-#include "../Model/edge.h"
-#include "../Model/graphmldata.h"
+#include "../../Model/node.h"
+#include "../../Model/edge.h"
+#include "../../Model/graphmldata.h"
 
 
 class EdgeItem: public GraphMLItem

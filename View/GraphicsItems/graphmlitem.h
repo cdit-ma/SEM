@@ -2,7 +2,7 @@
 #define GRAPHMLITEM_H
 #include <QObject>
 #include <QGraphicsItem>
-#include "../Model/graphml.h"
+#include "../../Model/graphml.h"
 
 
 class AttributeTableModel;

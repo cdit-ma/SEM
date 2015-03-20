@@ -22,20 +22,18 @@
 #include <QItemSelectionModel>
 #include <QDebug>
 
-#include "Controller/newcontroller.h"
-#include "GUI/Table/comboboxtabledelegate.h"
-#include "GUI/Table/attributetablemodel.h"
-#include "GUI/nodeviewminimap.h"
+#include "Controller/controller.h"
+#include "View/Table/comboboxtabledelegate.h"
+#include "View/Table/attributetablemodel.h"
+#include "View/nodeviewminimap.h"
 
-#include "GUI/Dock/docktogglebutton.h"
-#include "GUI/Dock/docknodeitem.h"
-#include "GUI/Dock/partsdockscrollarea.h"
-#include "GUI/Dock/definitionsdockscrollarea.h"
-#include "GUI/Dock/hardwaredockscrollarea.h"
+#include "View/Dock/docktogglebutton.h"
+#include "View/Dock/docknodeitem.h"
+#include "View/Dock/partsdockscrollarea.h"
+#include "View/Dock/definitionsdockscrollarea.h"
+#include "View/Dock/hardwaredockscrollarea.h"
 
-#include "GUI/Toolbar/toolbarwidgetaction.h"
-//#include "GUI/table/comboboxtabledelegate.h"
-
+#include "View/Toolbar/toolbarwidgetaction.h"
 
 class MedeaWindow : public QMainWindow
 {

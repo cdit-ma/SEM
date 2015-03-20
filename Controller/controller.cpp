@@ -1,7 +1,6 @@
-#include "newcontroller.h"
-#include "../GUI/nodeview.h"
+#include "controller.h"
+#include "../View/nodeview.h"
 #include <QDebug>
-#include "../ValidationEngine/Plugins/interfacedefinitionplugin.h"
 #include <algorithm>
 #include <QDateTime>
 #include <QMessageBox>
@@ -124,8 +123,6 @@ void NewController::connectView(NodeView *view)
 void NewController::initializeModel()
 {
     setupModel();
-    setupValidator();
-
     clearHistory();
 }
 
@@ -140,7 +137,6 @@ NewController::~NewController()
         delete key;
     }
 
-    delete validator;
 }
 
 QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges, bool GUI_USED)
@@ -322,18 +318,6 @@ void NewController::clearModel()
     childNodes.clear();
 
     clearUndoRedoStacks();
-}
-
-void NewController::validateModel()
-{
-    if(validator && model){
-        validator->validateModel(model);
-    }
-}
-
-void NewController::validationError(GraphML *graphML, QString error)
-{
-
 }
 
 
@@ -1887,13 +1871,7 @@ void NewController::setupModel()
     redoActionStack.clear();
 }
 
-void NewController::setupValidator()
-{
-    validator = new ValidationEngine();
-    ValidationPlugin* interfacePlugin = new InterfaceDefinitionPlugin();
-    connect(interfacePlugin, SIGNAL(validationPlugin_HighlightError(GraphML*,QString)), this, SLOT(validationError(GraphML*,QString)));
-    validator->addPlugin(interfacePlugin);
-}
+
 
 void NewController::bindGraphMLData(Node *definition, Node *child)
 {

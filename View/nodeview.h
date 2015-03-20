@@ -1,8 +1,8 @@
 #ifndef NODEVIEW_H//
 #define NODEVIEW_H
 
-#include "../Controller/newcontroller.h"
-#include "nodeitem.h"
+#include "../Controller/controller.h"
+#include "GraphicsItems/nodeitem.h"
 #include "Dock/dockscrollarea.h"
 
 #include <QGraphicsView>

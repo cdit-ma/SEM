@@ -1,5 +1,5 @@
 #include "medeawindow.h"
-#include "Controller/newcontroller.h"
+#include "Controller/controller.h"
 
 #include <QDebug>
 #include <QObject>
@@ -633,6 +633,10 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
 
 void MedeaWindow::editMultiLineData(GraphMLData *data)
 {
+    //
+    if(data){
+
+    }
 
 }
 
@@ -1154,13 +1158,17 @@ void MedeaWindow::updateDataTable()
  */
 void MedeaWindow::loadJenkinsData(int code)
 {
-    QStringList files;
-    files << myProcess->readAll();
+    if(code == 0){
+        QStringList files;
+        files << myProcess->readAll();
 
-    window_ImportProjects(files);
+        window_ImportProjects(files);
 
-    // sort and center view aspects
-    nodeView->centerAspects();
+        // sort and center view aspects
+        nodeView->centerAspects();
+    }else{
+        QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
+    }
 }
 
 
