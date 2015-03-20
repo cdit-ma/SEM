@@ -19,7 +19,6 @@ LIBS += -lpsapi
 
 HEADERS += \
 medeawindow.h \
-    GUI/attributetablemodel.h \
     GUI/nodeitem.h \
     GUI/nodeview.h \
     Model/edge.h \
@@ -95,9 +94,10 @@ medeawindow.h \
     GUI/Dock/hardwaredockscrollarea.h \
     GUI/Dock/partsdockscrollarea.h \
     GUI/editabletextitem.h \
+    GUI/Table/comboboxtabledelegate.h \
+    GUI/Table/attributetablemodel.h
 
 SOURCES += \
-    GUI/attributetablemodel.cpp \
     GUI/nodeitem.cpp \
     GUI/nodeview.cpp \
     Model/edge.cpp \
@@ -166,6 +166,8 @@ SOURCES += \
     GUI/Dock/hardwaredockscrollarea.cpp \
     GUI/Dock/partsdockscrollarea.cpp \
     GUI/editabletextitem.cpp \
+    GUI/Table/comboboxtabledelegate.cpp \
+    GUI/Table/attributetablemodel.cpp
 
 FORMS += \
 

@@ -4,13 +4,13 @@
 #include <QAbstractTableModel>
 
 
-#include "../Model/graphmldata.h"
-#include "../Model/graphml.h"
-#include "graphmlitem.h"
+#include "../../Model/graphmldata.h"
+#include "../../Model/graphml.h"
+#include "../graphmlitem.h"
 #include <QVector>
 
 class NodeItem;
-class NodeEdge;
+class EdgeItem;
 class GraphMLItem;
 
 class AttributeTableModel : public QAbstractTableModel

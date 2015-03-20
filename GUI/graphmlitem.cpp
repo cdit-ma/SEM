@@ -1,6 +1,6 @@
 #include "graphmlitem.h"
 #include "../Model/graphml.h"
-#include "attributetablemodel.h"
+#include "table/attributetablemodel.h"
 #include <QObject>
 #include <QDebug>
 
@@ -35,7 +35,7 @@ bool GraphMLItem::isNodeItem()
     return kind == NODE_ITEM;
 }
 
-bool GraphMLItem::isNodeEdge()
+bool GraphMLItem::isEdgeItem()
 {
     return kind == NODE_EDGE;
 }

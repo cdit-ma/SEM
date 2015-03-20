@@ -61,7 +61,7 @@ bool GraphMLKey::isProtected()
     return protectedKey;
 }
 
-void GraphMLKey::appendValidValues(QStringList nodeKinds, QStringList values)
+void GraphMLKey::appendValidValues(QStringList values, QStringList nodeKinds)
 {
     foreach(QString nodeKind, nodeKinds){
         foreach(QString value, values){
@@ -70,7 +70,7 @@ void GraphMLKey::appendValidValues(QStringList nodeKinds, QStringList values)
     }
 }
 
-void GraphMLKey::appendValidValues(QString nodeKind, QStringList values)
+void GraphMLKey::appendValidValues(QStringList values, QString nodeKind)
 {
     foreach(QString value, values){
         addValidValue(nodeKind, value);
@@ -103,12 +103,24 @@ bool GraphMLKey::equals(GraphMLKey *key)
 
 bool GraphMLKey::gotSelectableValues(QString nodeKind)
 {
-    return validValues.contains(nodeKind);
+    QString ALL("ALL");
+
+    if(validValues.contains(nodeKind)){
+        return true;
+    }
+
+    return validValues.contains(ALL);
 }
 
 QStringList GraphMLKey::getSelectableValues(QString nodeKind)
 {
-    QStringList vValues = validValues.values(nodeKind);
+    QString ALL("ALL");
+    QStringList vValues;
+    if(validValues.contains(nodeKind)){
+        vValues = validValues.values(nodeKind);
+    }else if(validValues.contains(ALL)){
+        vValues = validValues.values(ALL);
+    }
     vValues.sort();
     return vValues;
 }

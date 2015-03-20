@@ -23,7 +23,8 @@
 #include <QDebug>
 
 #include "Controller/newcontroller.h"
-#include "GUI/attributetablemodel.h"
+#include "GUI/Table/comboboxtabledelegate.h"
+#include "GUI/Table/attributetablemodel.h"
 #include "GUI/nodeviewminimap.h"
 
 #include "GUI/Dock/docktogglebutton.h"
@@ -93,8 +94,6 @@ private slots:
 
     void setGoToMenuActions(QString action, bool enabled);
 
-    void goToDefinition();
-    void goToImplementation();
 
 private:
     void resetView();
@@ -158,7 +157,7 @@ private:
     QToolButton* fitToScreenButton;
     QToolButton* duplicateButton;
 
-    //ComboBoxTableDelegate* delegate;
+    ComboBoxTableDelegate* delegate;
 
     QTableView* dataTable;
     QGroupBox* dataTableBox;
@@ -172,8 +171,6 @@ private:
     NewController* controller;
     NodeView* nodeView;
     NodeViewMinimap* minimap;
-    Node* prevSelectedNode;
-    Node* selectedNode;
 
     int boxWidth;
     int boxHeight;

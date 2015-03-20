@@ -756,7 +756,13 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         QStringList keysValues;
         keysValues << "Attribute" << "Member";
         validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger" << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber" << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
-        attribute->appendValidValues(keysValues, validValues);
+        attribute->appendValidValues(validValues, keysValues);
+    }
+
+    if(type == "boolean"){
+        QStringList validValues;
+        validValues << "true" << "false";
+        attribute->appendValidValues(validValues);
     }
 
     //Add it to the list of GraphMLKeys.
@@ -1168,7 +1174,7 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
                 }
             }
             if(sameLabelCount > 0){
-                newLabel = newLabel + QString("-%1").arg(sameLabelCount);
+                newLabel = newLabel + QString("_%1").arg(sameLabelCount);
             }
         }
 
@@ -1915,7 +1921,9 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
         if(child->getDataValue("kind") == "AggregateInstance" || child->getDataValue("kind") == "MemberInstance"){
             bindSort = true;
         }
-        bindLabels = true;
+        if(child->getDataValue("kind") != "ComponentInstance"){
+            bindLabels = true;
+        }
     }
 
     if(bindTypes){
@@ -1938,9 +1946,9 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
     }else{
         //Set the value.
         if(child->isImpl()){
-            setGraphMLData(child, "label", def_Label->getValue() + "-Impl");
+            setGraphMLData(child, "label", def_Label->getValue() + "_Impl");
         }else{
-            setGraphMLData(child, "label", def_Label->getValue() + "-Inst");
+            setGraphMLData(child, "label", def_Label->getValue() + "_Inst");
         }
     }
 }

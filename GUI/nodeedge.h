@@ -10,13 +10,13 @@
 #include "../Model/graphmldata.h"
 
 
-class NodeEdge: public GraphMLItem
+class EdgeItem: public GraphMLItem
 {
     Q_OBJECT
 
 public:
-    NodeEdge(Edge *edge, NodeItem* s, NodeItem* d);
-    ~NodeEdge();
+    EdgeItem(Edge *edge, NodeItem* s, NodeItem* d);
+    ~EdgeItem();
 
     QRectF boundingRect() const;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);

@@ -16,11 +16,11 @@
 
 #include "../Model/node.h"
 #include "../Model/graphmldata.h"
-#include "attributetablemodel.h"
+#include "table/attributetablemodel.h"
 #include "graphmlitem.h"
 #include "editabletextitem.h"
 
-class NodeEdge;
+class EdgeItem;
 
 class NodeItem : public GraphMLItem
 {
@@ -33,7 +33,7 @@ public:
 
     NodeItem* getParentNodeItem();
 
-    QList<NodeEdge*> getEdgeItems();
+    QList<EdgeItem*> getEdgeItems();
     void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
     QRectF minimumVisibleRect();
@@ -59,8 +59,8 @@ public:
     bool isHidden();
     void setHidden(bool hidden);
 
-    void addNodeEdge(NodeEdge* line);
-    void removeNodeEdge(NodeEdge* line);
+    void addNodeEdge(EdgeItem* line);
+    void removeNodeEdge(EdgeItem* line);
     void adjustPos(QPointF delta);
 
 
@@ -200,7 +200,7 @@ private:
     QPushButton *expandButton;
     QPushButton* labelButton;
 
-    QList<NodeEdge*> connections;
+    QList<EdgeItem*> connections;
 
     bool nodeSelected;
     bool isNodePressed;

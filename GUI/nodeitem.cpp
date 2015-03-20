@@ -177,7 +177,7 @@ NodeItem *NodeItem::getParentNodeItem()
     return dynamic_cast<NodeItem*>(parentItem());
 }
 
-QList<NodeEdge *> NodeItem::getEdgeItems()
+QList<EdgeItem *> NodeItem::getEdgeItems()
 {
     return this->connections;
 }
@@ -474,7 +474,7 @@ double NodeItem::getHeight()
 }
 
 
-void NodeItem::addNodeEdge(NodeEdge *line)
+void NodeItem::addNodeEdge(EdgeItem *line)
 {
     connect(this, SIGNAL(nodeItemMoved()), line, SLOT(updateEdge()));
     NodeItem* item = this;
@@ -488,7 +488,7 @@ void NodeItem::addNodeEdge(NodeEdge *line)
     connections.append(line);
 }
 
-void NodeItem::removeNodeEdge(NodeEdge *line)
+void NodeItem::removeNodeEdge(EdgeItem *line)
 {
     connections.removeAll(line);
 }
@@ -569,7 +569,7 @@ void NodeItem::setOpacity(qreal opacity)
     QGraphicsItem::setOpacity(opacity);
     emit updateOpacity(opacity);
 
-    foreach(NodeEdge* edge, connections){
+    foreach(EdgeItem* edge, connections){
         if(edge->getSource()->opacity() != 0 && edge->getDestination()->opacity() != 0){
             edge->setOpacity(opacity);
         }else{
@@ -946,8 +946,10 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     switch (event->button()) {
     case Qt::LeftButton:{
         if(labelPressed(event->pos())){
-            textItem->setEditable(true);
-            textItem->forceMousePress(event);
+            if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
+                textItem->setEditable(true);
+                textItem->forceMousePress(event);
+            }
         }
 
         if(iconPressed(event->pos())){
@@ -1551,7 +1553,7 @@ void NodeItem::setupLabel()
 
 
     // setup font and pixmap size
-    float fontSize = FONT_RATIO * minimumHeight;
+    float fontSize = qMax(FONT_RATIO * minimumHeight, 1.0);
 
     QFont font("Arial");
     font.setPointSize(fontSize);
@@ -2058,6 +2060,7 @@ void NodeItem::removeExpandButton()
 QPointF NodeItem::getClosestGridPoint(QPointF referencePoint)
 {
     int gridSize = getGridSize();
+
 
     double gridX = referencePoint.x() / gridSize;
     int closestGridX = qRound(gridX);

@@ -2,7 +2,7 @@
 #include "graphmlitem.h"
 #include <QDebug>
 
-NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, GraphMLItem::NODE_EDGE)
+EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, GraphMLItem::NODE_EDGE)
 {
     label = 0;
     IS_VISIBLE = true;
@@ -96,7 +96,7 @@ NodeEdge::NodeEdge(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     setVisible(IS_VISIBLE);
 }
 
-NodeEdge::~NodeEdge()
+EdgeItem::~EdgeItem()
 {
     if(source){
         source->removeNodeEdge(this);
@@ -117,13 +117,13 @@ NodeEdge::~NodeEdge()
     delete label;
 }
 
-QRectF NodeEdge::boundingRect() const
+QRectF EdgeItem::boundingRect() const
 {
     int brushSize = selectedPen.width();
     return QRectF(-brushSize, -brushSize, width + (brushSize *2), height + (brushSize *2));
 }
 
-void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
@@ -155,24 +155,24 @@ void NodeEdge::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 }
 
-NodeItem *NodeEdge::getSource()
+NodeItem *EdgeItem::getSource()
 {
     return source;
 }
 
-NodeItem *NodeEdge::getDestination()
+NodeItem *EdgeItem::getDestination()
 {
     return destination;
 }
 
 
-void NodeEdge::setOpacity(qreal opacity)
+void EdgeItem::setOpacity(qreal opacity)
 {
     Q_UNUSED(opacity);
 }
 
 
-void NodeEdge::setSelected(bool selected)
+void EdgeItem::setSelected(bool selected)
 {
     IS_SELECTED = selected;
 
@@ -200,7 +200,7 @@ void NodeEdge::setSelected(bool selected)
     update();
 }
 
-void NodeEdge::setVisible(bool visible)
+void EdgeItem::setVisible(bool visible)
 {
     NodeItem* start = source;
     NodeItem* finish = destination;
@@ -228,14 +228,14 @@ void NodeEdge::setVisible(bool visible)
     forceVisible(isVisible);
 }
 
-void NodeEdge::updateEdge()
+void EdgeItem::updateEdge()
 {
     if(source && destination){
         updateLines();
     }
 }
 
-void NodeEdge::graphMLDataChanged(GraphMLData *data)
+void EdgeItem::graphMLDataChanged(GraphMLData *data)
 {
     if(data){
         QString dataKey = data->getKey()->getName();
@@ -247,7 +247,7 @@ void NodeEdge::graphMLDataChanged(GraphMLData *data)
     }
 }
 
-void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(!IS_VISIBLE){
         event->setAccepted(false);
@@ -273,16 +273,18 @@ void NodeEdge::mousePressEvent(QGraphicsSceneMouseEvent *event)
     };
 }
 
-void NodeEdge::setLabelFont()
+void EdgeItem::setLabelFont()
 {
     QFont font("Arial");
-    font.setPointSize(.25 * 2*circleRadius);
+    float fontSize = qMax(.25 * 2*circleRadius, 1.0);
+
+    font.setPointSize(fontSize);
 
     label->setFont(font);
 
 }
 
-void NodeEdge::updateLabel()
+void EdgeItem::updateLabel()
 {
     QString labelText = getGraphML()->getDataValue("description");
     if(labelText == ""){
@@ -298,7 +300,7 @@ void NodeEdge::updateLabel()
     }
 }
 
-void NodeEdge::setupBrushes()
+void EdgeItem::setupBrushes()
 {
     int penWidth = 4;
 
@@ -343,7 +345,7 @@ void NodeEdge::setupBrushes()
     selectedArrowPen.setWidth(2 * penWidth);
 }
 
-void NodeEdge::forceVisible(bool visible)
+void EdgeItem::forceVisible(bool visible)
 {
     foreach(QGraphicsLineItem* line, lineItems){
         line->setVisible(visible);
@@ -355,13 +357,13 @@ void NodeEdge::forceVisible(bool visible)
     QGraphicsItem::setVisible(visible);
 }
 
-void NodeEdge::aspectsChanged(QStringList aspects)
+void EdgeItem::aspectsChanged(QStringList aspects)
 {
     //Do Nothing.
 }
 
 
-void NodeEdge::updateLines()
+void EdgeItem::updateLines()
 {
     //The Top Left of the Circle will be the center point.
     NodeItem* start = source;

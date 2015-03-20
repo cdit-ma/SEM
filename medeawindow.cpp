@@ -12,7 +12,7 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QPicture>
-//#include "GUI/Table/comboboxtabledelegate.h"
+
 #include <QToolButton>
 #include <QToolBar>
 
@@ -77,8 +77,7 @@ void MedeaWindow::initialiseGUI()
 {
     // initialise variables
     prevPressedButton = 0;
-    prevSelectedNode = 0;
-    selectedNode = 0;
+
 
     nodeView = new NodeView();
     toolbar = new QToolBar();
@@ -514,8 +513,7 @@ void MedeaWindow::setupController()
 void MedeaWindow::resetGUI()
 {
     prevPressedButton = 0;
-    prevSelectedNode = 0;
-    selectedNode = 0;
+
 
     setupController();
 }
@@ -552,8 +550,9 @@ void MedeaWindow::makeConnections()
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(setAutoCenterViewAspects(bool)));
     connect(view_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
-    connect(view_goToDefinition, SIGNAL(triggered()), this, SLOT(goToDefinition()));
-    connect(view_goToImplementation, SIGNAL(triggered()), this, SLOT(goToImplementation()));
+
+    connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(goToDefinition()));
+    connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(goToImplementation()));
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
@@ -966,29 +965,6 @@ void MedeaWindow::updateViewAspects()
 }
 
 
-/**
- * @brief MedeaWindow::goToDefinition
- * Centralise on the selected node's definition.
- */
-void MedeaWindow::goToDefinition()
-{
-    if (selectedNode) {
-        nodeView->goToDefinition(selectedNode);
-    }
-}
-
-
-/**
- * @brief MedeaWindow::goToImplementation
- * Centralise on the selected node's implementation.
- */
-void MedeaWindow::goToImplementation()
-{
-    if (selectedNode) {
-        nodeView->goToImplementation(selectedNode);
-    }
-}
-
 
 /**
  * @brief MedeaWindow::setViewAspects
@@ -1083,6 +1059,7 @@ void MedeaWindow::setAttributeModel(AttributeTableModel *model)
     if (model) {
         updateDataTable();
     }
+    dataTable->clearSelection();
     dataTable->setModel(model);
     updateDataTable();
 }

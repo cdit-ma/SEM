@@ -18,14 +18,14 @@ public:
     bool isProtected();
 
     void appendValidValues(QStringList nodeKinds, QStringList values);
-    void appendValidValues(QString nodeKind, QStringList values);
+    void appendValidValues(QStringList values, QString nodeKind="ALL");
 
     void setDefaultValue(QString value);
     QString getDefaultValue() const;
 
     bool equals(GraphMLKey* key);
-    bool gotSelectableValues(QString nodeKind);
-    QStringList getSelectableValues(QString nodeKind);
+    bool gotSelectableValues(QString nodeKind="ALL");
+    QStringList getSelectableValues(QString nodeKind="ALL");
 
     QString validateDataChange(GraphMLData* data, QString newValue);
 

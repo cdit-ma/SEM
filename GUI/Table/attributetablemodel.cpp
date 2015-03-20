@@ -1,8 +1,8 @@
 #include "attributetablemodel.h"
-#include "QDebug"
-#include "nodeitem.h"
-#include "nodeedge.h"
+#include "../nodeitem.h"
+#include "../nodeedge.h"
 #include <QGridLayout>
+#include <QDebug>
 #include <QDialog>
 #include <QPlainTextEdit>
 #include <QDialogButtonBox>
@@ -208,7 +208,6 @@ bool AttributeTableModel::removeRows(int position, int rows, const QModelIndex &
                 anyRemoved = true;
                 guiItem->GraphMLItem_TriggerAction("Removed Table Cell");
             }
-
             guiItem->GraphMLItem_DestructGraphMLData(guiItem->getGraphML(), data->getKey()->getName());
         }else{
             allRemoved = false;

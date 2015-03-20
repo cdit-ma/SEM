@@ -160,9 +160,10 @@ public slots:
     void fitToScreen();
     void centerAspects();
 
-    void goToDefinition(Node* node);
-    void goToImplementation(Node* node);
-    void goToInstance(Node *node);
+
+    void goToDefinition(Node* node=0);
+    void goToImplementation(Node* node=0);
+    void goToInstance(Node *node=0);
 
     void deleteSelection();
     void constructNode(QString nodeKind, int sender);
@@ -218,7 +219,7 @@ private:
 
     NodeItem* getNodeItemFromNode(Node* node);
     NodeItem* getNodeItemFromGraphMLItem(GraphMLItem* item);
-    NodeEdge* getEdgeItemFromGraphMLItem(GraphMLItem* item);
+    EdgeItem* getEdgeItemFromGraphMLItem(GraphMLItem* item);
     GraphMLItem *getGraphMLItemFromGraphML(GraphML* item);
 
     GraphMLItem* getGraphMLItemFromHash(QString ID);

@@ -606,7 +606,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         //We have valid GUI elements for both ends of this edge.
 
         //Construct a new GUI Element for this edge.
-        NodeEdge* nodeEdge = new NodeEdge(edge, srcGUI, dstGUI);
+        EdgeItem* nodeEdge = new EdgeItem(edge, srcGUI, dstGUI);
 
         //Add it to the list of EdgeItems in the Model.
         storeGraphMLItemInHash(nodeEdge);
@@ -955,11 +955,11 @@ NodeItem *NodeView::getNodeItemFromGraphMLItem(GraphMLItem *item)
     return 0;
 }
 
-NodeEdge *NodeView::getEdgeItemFromGraphMLItem(GraphMLItem *item)
+EdgeItem *NodeView::getEdgeItemFromGraphMLItem(GraphMLItem *item)
 {
 
-    if(item && item->isNodeEdge()){
-        return (NodeEdge*) item;
+    if(item && item->isEdgeItem()){
+        return (EdgeItem*) item;
     }
     return 0;
 }
@@ -1678,6 +1678,9 @@ void NodeView::fitToScreen()
  */
 void NodeView::goToDefinition(Node *node)
 {
+    if(!node){
+        node = getSelectedNode();
+    }
     if (node) {
         Node* defn = hasDefinition(node);
         if (defn) {
@@ -1699,6 +1702,10 @@ void NodeView::goToDefinition(Node *node)
  */
 void NodeView::goToImplementation(Node *node)
 {
+    if(!node){
+        node = getSelectedNode();
+    }
+
     if (node) {
         Node* impl = hasImplementation(node);
         if (impl) {
@@ -1718,6 +1725,10 @@ void NodeView::goToImplementation(Node *node)
  */
 void NodeView::goToInstance(Node *node)
 {
+    if(!node){
+        node = getSelectedNode();
+    }
+
     if (node) {
 
         addAspect("Assembly");
@@ -1733,6 +1744,7 @@ void NodeView::goToInstance(Node *node)
  */
 void NodeView::deleteSelection()
 {
+    view_SetAttributeModel(0);
     view_Delete(selectedIDs);
 }
 

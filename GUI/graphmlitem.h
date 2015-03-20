@@ -19,7 +19,7 @@ public:
     AttributeTableModel* getAttributeTable();
 
     bool isNodeItem();
-    bool isNodeEdge();
+    bool isEdgeItem();
 
     virtual void setSelected(bool selected) = 0;
     virtual void setOpacity(qreal opacity) = 0;
