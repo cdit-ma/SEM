@@ -874,10 +874,9 @@ void NodeItem::newSort()
             }
         }
     }
-    qCritical() << toSortItems.size();
+
     //Calculate the grid size required to fit all of sortItems.
     int gridSize = ceil(sqrt((float)toSortItems.size()));
-    qCritical() << "GridSize: " << gridSize;
 
     bool finishedLayout = false;
 
@@ -885,20 +884,20 @@ void NodeItem::newSort()
     int y=1;
 
     qCritical() << gridSize * 3;
-    for(x; x <= (gridSize * 3) -1; x+=3){
-        y=1;
-        for(y; y <= (gridSize * 3) -1; y+=3){
+    NodeItem* nextItem = 0;
+    for(y; y <= (gridSize * 3) -1; y+=3){
+        x=1;
+        for(x; x <= (gridSize * 3) -1; x+=3){
             if(toSortItems.size() > 0){
-                NodeItem* nextItem = toSortItems.takeFirst();
-
+                nextItem = toSortItems.takeFirst();
                 nextItem->setCenterPos(getGridPosition(x,y));
                 nextItem->updateParentHeight(nextItem);
-                //updateParentHeight(nextItem);
             }else{
                 finishedLayout = true;
                 break;
             }
         }
+
         if(finishedLayout){
             break;
         }
