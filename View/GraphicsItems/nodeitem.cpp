@@ -883,7 +883,6 @@ void NodeItem::newSort()
     int x=1;
     int y=1;
 
-    qCritical() << gridSize * 3;
     NodeItem* nextItem = 0;
     for(y; y <= (gridSize * 3) -1; y+=3){
         x=1;
