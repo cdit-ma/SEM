@@ -1744,7 +1744,7 @@ void NodeView::goToInstance(Node *node)
  */
 void NodeView::deleteSelection()
 {
-    view_SetAttributeModel(0);
+    //view_SetAttributeModel(0);
     view_Delete(selectedIDs);
 }
 

@@ -37,8 +37,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     GRIDLINES_VISIBLE = false;
 
-    nextX = 0;
-    nextY = 0;
+    nextX = 1;
+    nextY = 1;
     LOCKED_POSITION = false;
     drawGrid = false;
 
@@ -141,7 +141,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         emit addExpandButtonToParent();
     }
 
-    resetNextChildPos();
+
     aspectsChanged(aspects);
 
 
@@ -277,7 +277,7 @@ bool NodeItem::isSelected()
     return nodeSelected;
 }
 
-bool NodeItem::isPositionLocked()
+bool NodeItem::isLocked()
 {
     return LOCKED_POSITION;
 }
@@ -300,7 +300,6 @@ void NodeItem::removeChildNodeItem(NodeItem *child)
     childNodeItems.removeAll(child);
     if(childNodeItems.size() == 0){
         removeExpandButton();
-        resetNextChildPos();
         resetSize();
     }
 }
@@ -493,6 +492,19 @@ void NodeItem::removeEdgeItem(EdgeItem *line)
     connections.removeAll(line);
 }
 
+void NodeItem::setCenterPos(QPointF pos)
+{
+    //pos is the new center Position.
+    pos -= minimumVisibleRect().center();
+
+    setPos(pos);
+}
+
+QPointF NodeItem::centerPos()
+{
+    return pos() + minimumVisibleRect().center();
+}
+
 void NodeItem::adjustPos(QPointF delta)
 {
     QPointF currentPos = pos();
@@ -521,8 +533,8 @@ QPointF NodeItem::getNextChildPos()
     QPointF nextPosition = getGridPosition(nextX, nextY);
 
 
-    if ((nextPosition.x() + getChildWidth() + getGridSize()) > boundingRect().width()) {
-        nextX = 0;
+    if ((nextPosition.x() + getChildWidth()) > boundingRect().width()) {
+        nextX = 1;
         nextY += 3;
     }
 
@@ -533,18 +545,6 @@ QPointF NodeItem::getNextChildPos()
 }
 
 
-/**
- * @brief NodeItem::resetNextChildPos
- */
-void NodeItem::resetNextChildPos()
-{
-    if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
-        //nextChildPosition = QPointF(getCornerRadius()/2, getCornerRadius()/2);
-        nextChildPosition = QPointF(getGridSize()/2, getGridSize()/2);
-    } else {
-        nextChildPosition = QPointF(getCornerRadius()/2, (1 + 2.5 * FONT_RATIO) * minimumHeight);
-    }
-}
 
 
 void NodeItem::setOpacity(qreal opacity)
@@ -606,14 +606,14 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
 
         if(dataKey == "x" || dataKey == "y"){
             //Update the Position
-            QPointF newPosition = pos();
+            QPointF newCenterPos = centerPos();
 
             if(dataKey == "x"){
-                newPosition.setX(dataValue.toFloat());
+                newCenterPos.setX(dataValue.toFloat());
             }else if(dataKey == "y"){
-                newPosition.setY(dataValue.toFloat());
+                newCenterPos.setY(dataValue.toFloat());
             }
-            setPos(newPosition);
+            setCenterPos(newCenterPos);
 
         }else if(dataKey == "width" || dataKey == "height"){
             //Update the Size
@@ -726,7 +726,7 @@ void NodeItem::sort()
         NodeItem* nodeItem = getChildNodeItemFromNode(child);
 
         // check that it's a NodeItem and that it's visible
-        if (nodeKind == "Model" || (nodeItem && nodeItem->isVisible() && !nodeItem->isPositionLocked())) {
+        if (nodeKind == "Model" || (nodeItem && nodeItem->isVisible() && !nodeItem->isLocked())) {
 
             // if child == DeploymentDefinitions and all of it's children are invisible, don't sort it
             if (nodeItem->getNodeKind() == "DeploymentDefinitions") {
@@ -857,6 +857,56 @@ void NodeItem::sort()
 void NodeItem::newSort()
 {
     //
+    //Get the number of un-locked items
+    QList<NodeItem*> toSortItems;
+    QList<NodeItem*> lockedItems;
+
+
+    foreach (Node* child, getNode()->getChildren(0)) {
+        if(child){
+            NodeItem* nodeItem = getChildNodeItemFromNode(child);
+            if(nodeItem){
+                if(nodeItem->isLocked()){
+                    lockedItems.append(nodeItem);
+                }else if(nodeItem->isVisible()){
+                    toSortItems.append(nodeItem);
+                }
+            }
+        }
+    }
+    qCritical() << toSortItems.size();
+    //Calculate the grid size required to fit all of sortItems.
+    int gridSize = ceil(sqrt((float)toSortItems.size()));
+    qCritical() << "GridSize: " << gridSize;
+
+    bool finishedLayout = false;
+
+    int x=1;
+    int y=1;
+
+    qCritical() << gridSize * 3;
+    for(x; x <= (gridSize * 3) -1; x+=3){
+        y=1;
+        for(y; y <= (gridSize * 3) -1; y+=3){
+            if(toSortItems.size() > 0){
+                NodeItem* nextItem = toSortItems.takeFirst();
+
+                nextItem->setCenterPos(getGridPosition(x,y));
+                nextItem->updateParentHeight(nextItem);
+                //updateParentHeight(nextItem);
+            }else{
+                finishedLayout = true;
+                break;
+            }
+        }
+        if(finishedLayout){
+            break;
+        }
+    }
+
+    nextX = x;
+    nextY = y;
+
 }
 
 
@@ -991,7 +1041,8 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         if (PAINT_OBJECT) {
             if (event->modifiers().testFlag(Qt::ControlModifier)) {
                 GraphMLItem_TriggerAction("Sorting Node");
-                sort();
+                newSort();
+                //sort();
             } else {
                 GraphMLItem_SetCentered(this);
             }
@@ -1380,56 +1431,6 @@ void NodeItem::setPos(qreal x, qreal y)
 void NodeItem::setPos(const QPointF &pos)
 {
     if(pos != this->pos()){
-        //Check parent Position./
-        //Lock onto Grid lines.
-        /*
-        if(GRIDLINES_VISIBLE && parentNodeItem){
-            double parentWidth = parentNodeItem->boundingRect().width();
-            double parentHeight = parentNodeItem->boundingRect().height();
-            int gridSize = parentNodeItem->getGridSize();
-
-            double newX = pos.x() + boundingRect().width()/2;
-            double newY = pos.y() + boundingRect().height()/2;
-
-            double gridX = newX / gridSize;
-            int closestGridX = qRound(gridX);
-
-            double deltaX = gridX - closestGridX;
-
-            double gridY = newY / gridSize;
-            int closestGridY = qRound(gridY);
-
-            double deltaY = gridY - closestGridY;
-
-            QPointF newPosition = pos;
-            int lockCount = 0;
-
-            if(abs(deltaX) <= SNAP_PERCENTAGE){
-                newPosition.setX(closestGridX * gridSize - boundingRect().width()/2);
-                lockCount++;
-            }
-
-            if(abs(deltaY) <= SNAP_PERCENTAGE){
-                newPosition.setY(closestGridY * gridSize - boundingRect().height()/2);
-                lockCount++;
-            }
-
-            if(lockCount == 2){
-                X_GRID_POS = closestGridX / gridSize;
-                Y_GRID_POS = closestGridY / gridSize;
-
-                onGrid = true;
-                //LOCKED_POSITION = true;
-            }else{
-                onGrid = false;
-                //LOCKED_POSITION = false;
-            }
-
-            QGraphicsItem::setPos(newPosition);
-        }else{
-        }
-        */
-
         //Get the initial Width
         QGraphicsItem::setPos(pos);
         updateChildrenOnChange();
@@ -1651,20 +1652,9 @@ void NodeItem::toggleGridLines(bool on)
 void NodeItem::snapToGrid()
 {
     if(parentNodeItem && isVisible()){
-        QPointF centerPosition = minimumVisibleRect().center();
-        QPointF currentPosition = pos() + centerPosition;
-        //QPointF gridPosition = parentNodeItem->getClosestGridPoint(currentPosition);
+        QPointF gridPosition = parentNodeItem->getClosestGridPoint(centerPos());
 
-        QRectF minRect = minimumVisibleRect();
-        minRect.translate(pos());
-        QPointF gridPosition = parentNodeItem->getClosestBoundedGridPoint(minRect.topLeft(), minRect.bottomRight());
-
-        if(gridPosition != currentPosition){
-            setPos(gridPosition - centerPosition);
-            // this needs to be called because setPos isn't immediately updating the node's pos
-            // if it's not called, the item jumps back to it's prev pos when dragged
-           // updateGraphMLPosition();
-        }
+        setCenterPos(gridPosition);
     }
 }
 
@@ -1672,6 +1662,8 @@ void NodeItem::snapChildrenToGrid()
 {
     foreach(NodeItem *child, childNodeItems){
         if(child->isVisible()){
+            child->snapToGrid();
+            /*
             QPointF localPosition = child->minimumVisibleRect().center();
             QPointF childPosition = child->pos() + localPosition;
             QPointF newPosition = getClosestGridPoint(childPosition);
@@ -1682,6 +1674,7 @@ void NodeItem::snapChildrenToGrid()
                 // if it's not called, the item jumps back to it's prev pos when dragged
                 //child->updateGraphMLPosition();
             }
+            */
         }
     }
 }
@@ -1705,8 +1698,9 @@ void NodeItem::updateGraphMLPosition()
     if(modelEntity){
         GraphMLData* xData = modelEntity->getData("x");
         GraphMLData* yData = modelEntity->getData("y");
-        xData->setValue(QString::number(pos().x()));
-        yData->setValue(QString::number(pos().y()));
+        QPointF center = centerPos();
+        xData->setValue(QString::number(center.x()));
+        yData->setValue(QString::number(center.y()));
     }
 }
 
@@ -1727,7 +1721,7 @@ void NodeItem::retrieveGraphMLData()
     double graphmlX = getGraphML()->getDataValue("x").toDouble();
     double graphmlY = getGraphML()->getDataValue("y").toDouble();
 
-    setPos(graphmlX, graphmlY);
+    setCenterPos(QPointF(graphmlX, graphmlY));
 
     if(graphmlWidth != 0 && graphmlHeight != 0){
         setWidth(graphmlWidth);
@@ -1948,8 +1942,8 @@ void NodeItem::updateHeight(NodeItem *child)
 
 void NodeItem::updateModelPosition()
 {
-    GraphMLItem_SetGraphMLData(getGraphML(), "x", QString::number(pos().x()));
-    GraphMLItem_SetGraphMLData(getGraphML(), "y", QString::number(pos().y()));
+    GraphMLItem_SetGraphMLData(getGraphML(), "x", QString::number(centerPos().x()));
+    GraphMLItem_SetGraphMLData(getGraphML(), "y", QString::number(centerPos().y()));
     onGrid = false;
 }
 
@@ -2052,56 +2046,29 @@ void NodeItem::removeExpandButton()
 
 QPointF NodeItem::getClosestGridPoint(QPointF referencePoint)
 {
-    int gridSize = getGridSize();
+    qreal gridSize = getGridSize();
 
+    qreal gridX = qRound(referencePoint.x() / gridSize) * gridSize;
+    qreal gridY = qRound(referencePoint.y() / gridSize) * gridSize;
 
-    double gridX = referencePoint.x() / gridSize;
-    int closestGridX = qRound(gridX);
+    // bound the closest grid point to the gridRect
+    if(referencePoint.x() < gridRect().left()){
+        gridX = gridRect().left() + gridSize;
+    }else if(referencePoint.x() > gridRect().right()){
+        gridX = gridRect().right() - gridSize;
+    }
 
-    double gridY = referencePoint.y() / gridSize;
-    int closestGridY = qRound(gridY);
-
-    referencePoint.setX(closestGridX * gridSize);
-    referencePoint.setY(closestGridY * gridSize);
+    if(referencePoint.y() < gridRect().top()){
+        gridY = gridRect().top() + gridSize;
+    }else if(referencePoint.y() > gridRect().bottom()){
+        gridY = gridRect().bottom() - gridSize;
+    }
+    referencePoint.setX(gridX);
+    referencePoint.setY(gridY);
 
     return referencePoint;
 }
 
 
-/**
- * @brief NodeItem::getClosestBoundedGridPoint
- * Return the closest grid point to the midpoint of topLeft and bottomRight within gridRect.
- * @param topLeft
- * @param bottomRight
- * @return
- */
-QPointF NodeItem::getClosestBoundedGridPoint(QPointF topLeft, QPointF bottomRight)
-{
-    QPointF centerPoint = QPointF((bottomRight.x()+topLeft.x())/2, (bottomRight.y()+topLeft.y())/2);
-    double gridX = centerPoint.x() / getGridSize();
-    double gridY = centerPoint.y() / getGridSize();
-
-    QPointF closestGridPoint = QPointF(gridX * getGridSize(), gridY * getGridSize());
-    double itemWidth = bottomRight.x() - topLeft.x();
-    double itemHeight = bottomRight.y() - topLeft.y();
-
-    // bound the closest grid point to the gridRect
-    if (closestGridPoint.x()-(itemWidth/2) <= gridRect().left()) {
-        closestGridPoint.setX(gridRect().left() + getGridSize());
-    } else if (closestGridPoint.x()+(itemWidth/2) >= gridRect().right()) {
-        closestGridPoint.setX(gridRect().right() - getGridSize());
-    } else {
-        closestGridPoint.setX(qRound(gridX) * getGridSize());
-    }
-    if (closestGridPoint.y()-(itemHeight/2) <= gridRect().top()) {
-        closestGridPoint.setY(gridRect().top() + getGridSize());
-    } else if (closestGridPoint.y()+(itemHeight/2) >= gridRect().bottom()) {
-        closestGridPoint.setY(gridRect().bottom() - getGridSize());
-    } else {
-        closestGridPoint.setY( qRound(gridY) * getGridSize());
-    }
-
-    return closestGridPoint;
-}
 
 

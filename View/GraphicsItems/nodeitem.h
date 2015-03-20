@@ -37,11 +37,12 @@ public:
     void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
     QRectF minimumVisibleRect();
+
     QRectF gridRect();
 
     QPointF getGridPosition(int x, int y);
     bool isSelected();
-    bool isPositionLocked();
+    bool isLocked();
     bool isPainted();
     bool isAncestorSelected();
     void setDrawGrid(bool value);
@@ -59,8 +60,12 @@ public:
     bool isHidden();
     void setHidden(bool hidden);
 
+
     void addEdgeItem(EdgeItem* line);
     void removeEdgeItem(EdgeItem* line);
+
+    void setCenterPos(QPointF pos);
+    QPointF centerPos();
     void adjustPos(QPointF delta);
 
 
@@ -70,12 +75,12 @@ public:
     double getChildWidth();
 
     QPointF getNextChildPos();
-    void resetNextChildPos();
 
     Node* getNode();
     QString getNodeKind();
     QList<NodeItem*> getChildNodeItems();
     bool isPermanentlyCentered();
+
 
     qreal getGridSize();
 
@@ -142,7 +147,6 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
 
     QPointF getClosestGridPoint(QPointF currentPosition);
-    QPointF getClosestBoundedGridPoint(QPointF topLeft, QPointF bottomRight);
 
 
 private:
