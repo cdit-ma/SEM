@@ -1147,7 +1147,7 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
                 //Check for label_XXX
                 else if(childLabel.startsWith(newLabel)){
                     QString remaining = childLabel.right(childLabel.size() - newLabel.size());
-                    if(remaining.size() > 1 && remaining.contains("-")){
+                    if(remaining.size() > 1 && remaining.contains("_")){
                         QString number = remaining.right(remaining.size() - 1);
                         bool isNumber= false;
                         number.toInt(&isNumber);

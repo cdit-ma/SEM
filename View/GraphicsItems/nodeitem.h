@@ -116,6 +116,9 @@ public slots:
     void aspectsChanged(QStringList aspects);
     void sort();
 
+    void newSort();
+
+
     void addExpandButton();
     void expandItem(bool show);
 

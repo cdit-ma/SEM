@@ -38,7 +38,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     GRIDLINES_VISIBLE = false;
 
     nextX = 0;
-    nextY = 1;
+    nextY = 0;
     LOCKED_POSITION = false;
     drawGrid = false;
 
@@ -266,10 +266,10 @@ QRectF NodeItem::gridRect()
 
 QPointF NodeItem::getGridPosition(int x, int y)
 {
-    QPointF bottomLeft = gridRect().bottomLeft();
-    bottomLeft.setX(bottomLeft.x() + (x * getGridSize()));
-    bottomLeft.setY(bottomLeft.y() + (y * getGridSize()));
-    return bottomLeft;
+    QPointF topLeft = gridRect().topLeft();
+    topLeft.setX(topLeft.x() + (x * getGridSize()));
+    topLeft.setY(topLeft.y() + (y * getGridSize()));
+    return topLeft;
 }
 
 bool NodeItem::isSelected()
@@ -503,12 +503,7 @@ void NodeItem::adjustPos(QPointF delta)
 
 double NodeItem::getChildWidth()
 {
-    /*
-    if(this->getGraphML()->getDataValue("kind") == "DeploymentDefinitions" || parentNodeItem == 0){
-        return (initialWidth / MINIMUM_HEIGHT_RATIO) * 2;
-    }*/
-    return initialWidth / MINIMUM_HEIGHT_RATIO;
-    //return initialWidth / COLUMN_COUNT + 1;
+     return initialWidth / MINIMUM_HEIGHT_RATIO;
 }
 
 
@@ -520,32 +515,20 @@ QPointF NodeItem::getNextChildPos()
 {
     QPointF position;
 
-    if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
+    position = getGridPosition(nextX, nextY);
+    nextX += 3;
 
-        position = nextChildPosition;
+    QPointF nextPosition = getGridPosition(nextX, nextY);
 
-        // update nexChildPosition to the next available position
-        nextChildPosition.setX(nextChildPosition.x() + getChildWidth() + getGridSize());
 
-        // reset nextChildPosition.x if child is going to be out of bounds
-        if ((nextChildPosition.x() + getChildWidth() + (getGridSize()/2)) > boundingRect().width()) {
-            nextChildPosition.setX(getGridSize()/2);
-            nextChildPosition.setY(nextChildPosition.y() + getChildWidth() + getGridSize());
-        }
-
-    } else {
-
-        position = getGridPosition(nextX, nextY);
-        nextX += 3;
-
-        QPointF nextPosition = getGridPosition(nextX, nextY);
-
-        if ((nextPosition.x() + getChildWidth() + getGridSize()) > boundingRect().width()) {
-            nextX = 0;
-            nextY += 3;
-        }
+    if ((nextPosition.x() + getChildWidth() + getGridSize()) > boundingRect().width()) {
+        nextX = 0;
+        nextY += 3;
     }
 
+
+    nextPosition.setX(nextPosition.x() - getChildWidth()/2);
+    nextPosition.setY(nextPosition.y() - getChildWidth()/2);
     return position;
 }
 
@@ -869,6 +852,11 @@ void NodeItem::sort()
     }
 
     //resetNextChildPos();
+}
+
+void NodeItem::newSort()
+{
+    //
 }
 
 
@@ -1441,8 +1429,11 @@ void NodeItem::setPos(const QPointF &pos)
         }else{
         }
         */
+
+        //Get the initial Width
         QGraphicsItem::setPos(pos);
         updateChildrenOnChange();
+        updateGraphMLPosition();
     }
 }
 
@@ -1672,7 +1663,7 @@ void NodeItem::snapToGrid()
             setPos(gridPosition - centerPosition);
             // this needs to be called because setPos isn't immediately updating the node's pos
             // if it's not called, the item jumps back to it's prev pos when dragged
-            updateGraphMLPosition();
+           // updateGraphMLPosition();
         }
     }
 }
@@ -1689,7 +1680,7 @@ void NodeItem::snapChildrenToGrid()
                 child->setPos(newPosition - localPosition);
                 // this needs to be called because setPos isn't immediately updating the node's pos
                 // if it's not called, the item jumps back to it's prev pos when dragged
-                child->updateGraphMLPosition();
+                //child->updateGraphMLPosition();
             }
         }
     }
@@ -1926,23 +1917,24 @@ void NodeItem::expandItem(bool show)
 
 /**
  * @brief NodeItem::updateHeight
- * Expand this item's height to fit the newly added child.
- * This only gets called by painted items and not Definitions containers.
+ * Expand this item's height to fit the newly added child and grow to the next grid line size.
+ * This only gets called by painted items.
  * @param child
  */
 void NodeItem::updateHeight(NodeItem *child)
 {
-    if (PAINT_OBJECT && !nodeKind.endsWith("Definitions")) {
-
-        double diffHeight = (child->pos().y() + child->getHeight()) - height;
+    if (PAINT_OBJECT){
+        qreal childBottomY = child->boundingRect().height() + child->pos().y();
+        qreal gridBottomY = gridRect().height() + gridRect().top();
+        qreal diffHeight = childBottomY - gridBottomY;
 
         if (diffHeight > 0) {
+            qreal requiredHeight = height + diffHeight;
+            //Expand to next Grid Line
+            qreal gridHeight = ceil(requiredHeight/getGridSize()) * getGridSize();
 
-            qreal newSize = height + diffHeight + selectedPen.width();
-            newSize = (ceil(newSize / getGridSize())) * getGridSize();
-
-            GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(newSize));
-            GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(newSize));
+            GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(gridHeight));
+            GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(gridHeight));
 
             // recurse while there is a parent node item
             NodeItem* parentNodeItem = dynamic_cast<NodeItem*>(parentItem());
