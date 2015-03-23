@@ -2,6 +2,7 @@
 #include "../Controller/controller.h"
 #include "toolbar/toolbarwidget.h"
 #include "dock/docktogglebutton.h"
+#include <limits>
 
 //Qt includes
 #include <QGraphicsScene>
@@ -25,7 +26,7 @@
 
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
-#define MIN_ZOOM 0.01
+#define MIN_ZOOM 0.05
 #define MAX_ZOOM 0.5
 
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
@@ -42,7 +43,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     SHIFT_DOWN = false;
     AUTO_CENTER_ASPECTS = true;
 
-    //Construct a Scene for this NodeView.
     setScene(new QGraphicsScene(this));
 
 
@@ -53,10 +53,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
 
-    //setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    //setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
 
     //Set GraphicsView background-color
@@ -76,6 +74,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     allAspects << "Workload";
 
     defaultAspects << "Assembly";
+
+    nonDrawnItemKinds << "DeploymentDefinitions";// << "HardwareDefinitions";
 
 
     //create toolbar widget
@@ -162,7 +162,6 @@ void NodeView::adjustSceneRect(QRectF rectToCenter)
 {
     QRectF viewRect = getVisibleRect();
     QRectF newRec = scene()->itemsBoundingRect();
-    QRectF prevSceneRect = sceneRect();
 
     qreal multiplier = (viewRect.height() / rectToCenter.height()) - 1;
     qreal neededXGap = qAbs((viewRect.width() - (rectToCenter.width()*multiplier)) / 2);
@@ -174,26 +173,22 @@ void NodeView::adjustSceneRect(QRectF rectToCenter)
 
     // check to make sure that there is enough space around the items boundingRect within
     // the scene before centering it; if there isn't, add the needed space to the sceneRect
-    if (leftXGap < neededXGap) {
+    if (leftXGap < neededXGap && neededXGap > 0) {
+
         newRec.setX(newRec.x()-neededXGap);
         newRec.setWidth(newRec.width()+neededXGap);
         setSceneRect(newRec);
-    } else if (rightXGap < neededXGap) {
+    } else if (rightXGap < neededXGap && neededXGap > 0 ) {
         newRec.setWidth(newRec.width()+neededXGap);
         setSceneRect(newRec);
     }
-    if (topYGap < neededYGap) {
+    if (topYGap < neededYGap && neededYGap > 0) {
         newRec.setY(newRec.y()-neededYGap);
         newRec.setHeight(newRec.height()+neededYGap);
         setSceneRect(newRec);
-    } else if (bottomYGap < neededYGap) {
+    } else if (bottomYGap < neededYGap && neededYGap > 0) {
         newRec.setHeight(newRec.height()+neededYGap);
         setSceneRect(newRec);
-    }
-
-    // send a signal to the node items if there has been a change to the sceneRect
-    if (newRec.width() != prevSceneRect.width() || newRec.height() != prevSceneRect.height()) {
-        //emit sceneRectChanged(newRec);
     }
 }
 
@@ -552,21 +547,30 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     Node* parentNode = node->getParentNode();
 
+    QString nodeKind = node->getDataValue("kind");
+    if(nonDrawnItemKinds.contains(nodeKind)){
+        return;
+    }
 
     NodeItem* parentNodeItem = 0;
-
-    if(parentNode){
-        GraphMLItem* parentGUI = getGraphMLItemFromHash(parentNode->getID());
+    Node* modelParent = parentNode;
+    while(modelParent){
+        GraphMLItem* parentGUI = getGraphMLItemFromHash(modelParent->getID());
         parentNodeItem = getNodeItemFromGraphMLItem(parentGUI);
-    }
-
-
-    if(IS_SUB_VIEW){
-        if(!parentNodeItem && node->getDataValue("kind") != "Model"){
-            qCritical() << "NodeView::view_ConstructNodeGUI() SUB_VIEW probably not meant to build this item as we don't have it's parent.";
-            return;
+        if(parentNodeItem){
+            break;
         }
+        modelParent = modelParent->getParentNode();
     }
+
+
+
+    if(!parentNodeItem && node->getDataValue("kind") != "Model"){
+        qCritical() << "NodeView::view_ConstructNodeGUI() SUB_VIEW probably not meant to build this item as we don't have it's parent.";
+        return;
+    }
+
+
 
 
     NodeItem* nodeItem = new NodeItem(node, parentNodeItem, currentAspects, IS_SUB_VIEW);
@@ -636,33 +640,6 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 }
 
 
-void NodeView::view_SelectGraphML(GraphML *graphML, bool setSelected)
-{
-    if(graphML){
-        GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
-        if(guiItem){
-            guiItem->setSelected(setSelected);
-
-            if(setSelected){
-                emit view_SetAttributeModel(guiItem->getAttributeTable());
-
-                // Added this to update the selectedID list
-                // using this method wasn't updating the list and so clearSelection
-                // wasn't unselecting whatever was selected here
-                selectedIDs.append(graphML->getID());
-
-                // send necessary signals when a node has been selected
-                if(graphML->isNode()){
-					nodeSelected_signalUpdates((Node*)graphML);
-                }
-				
-                return;
-            }
-        }
-    }
-
-    emit view_SetAttributeModel(0);
-}
 
 void NodeView::view_SortNode(Node *node)
 {
@@ -1189,9 +1166,9 @@ GraphMLItem *NodeView::getGraphMLItemFromHash(QString ID)
     if(guiItems.contains(ID)){
         return guiItems[ID];
     }else{
-        if(!IS_SUB_VIEW){
-            qCritical() << "Cannot find GraphMLItem from Lookup Hash. ID: " << ID;
-        }
+        //if(!IS_SUB_VIEW){
+        //qCritical() << "Cannot find GraphMLItem from Lookup Hash. ID: " << ID;
+        //}
     }
     return 0;
 }
@@ -1595,12 +1572,13 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
     QList<NodeItem*> nodeItems;
     nodeItems << modelItem;
 
+    clearSelection();
     while(nodeItems.size() > 0){
         NodeItem* currentNode = nodeItems.takeFirst();
         Node* node = currentNode->getNode();
 
         if(currentNode->intersectsRectangle(selectionRectangle) && currentNode->isVisible() && currentNode->isPainted()){
-            view_SelectGraphML(node, true);
+            appendToSelection(currentNode);
         }else{
             nodeItems << currentNode->getChildNodeItems();
         }
@@ -1648,8 +1626,6 @@ void NodeView::fitToScreen()
 
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
         if (nodeItem && nodeItem->isPainted()) {
-            // recently changed from using the item's boundingRect to just
-            // using it's width and height to center all items properly
             QPointF pf = nodeItem->scenePos();
             if (pf.x() < leftMostX) {
                 leftMostX = pf.x();
@@ -1680,7 +1656,7 @@ void NodeView::fitToScreen()
  */
 void NodeView::goToDefinition(Node *node)
 {
-    if(!node){
+    if (!node) {
         node = getSelectedNode();
     }
     if (node) {
@@ -1688,8 +1664,12 @@ void NodeView::goToDefinition(Node *node)
         if (defn) {
             // make sure the Definitions view aspect is on
             addAspect("Definitions");
-            view_SelectGraphML(defn, true);
-            centerItem(getGraphMLItemFromGraphML(defn));
+            GraphMLItem* guiItem = getGraphMLItemFromGraphML(defn);
+            if(guiItem){
+                clearSelection();
+                appendToSelection(guiItem);
+                centerItem(guiItem);
+            }
         }
     }
 }
@@ -1704,19 +1684,21 @@ void NodeView::goToDefinition(Node *node)
  */
 void NodeView::goToImplementation(Node *node)
 {
-    if(!node){
+    if (!node) {
         node = getSelectedNode();
     }
 
     if (node) {
         Node* impl = hasImplementation(node);
         if (impl) {
-
-            // make sure the Definitions view aspect is on
+            // make sure the Workload view aspect is on
             addAspect("Workload");
-
-            view_SelectGraphML(impl, true);
-            centerItem(getGraphMLItemFromGraphML(impl));
+            GraphMLItem* guiItem = getGraphMLItemFromGraphML(impl);
+            if(guiItem){
+                clearSelection();
+                appendToSelection(guiItem);
+                centerItem(guiItem);
+            }
         }
     }
 }
@@ -1725,19 +1707,19 @@ void NodeView::goToImplementation(Node *node)
  * @brief NodeView::goToInstance
  * @param node
  */
-void NodeView::goToInstance(Node *node)
+void NodeView::goToInstance(Node *instance)
 {
-    if(!node){
-        node = getSelectedNode();
+    if (!instance) {
+        return;
     }
 
-    if (node) {
+    // make sure the Assembly view aspect is on
+    addAspect("Assembly");
 
-        addAspect("Assembly");
-
-        view_SelectGraphML(node, true);
-        centerItem(getGraphMLItemFromGraphML(node));
-    }
+    GraphMLItem* guiItem = getGraphMLItemFromGraphML(instance);
+    clearSelection();
+    appendToSelection(guiItem);
+    centerItem(guiItem);
 }
 
 /**
@@ -1765,37 +1747,23 @@ void NodeView::centerAspects()
 
 /**
  * @brief NodeView::sortModel
- * This tells the controller to sort the model.
+ * This gets the model from the controller and then sorts it.
  */
 void NodeView::sortModel()
 {
     if(!controller){
         return;
     }
+
     Model* model = controller->getModel();
 
     if(!model){
         qCritical() << "NodeView::view_sortModel() Model from Controller is NULL";
         return;
     }
-    QList<Node*> deploymentDefinitions = model->getChildrenOfKind("DeploymentDefinitions", 0);
 
-    if(deploymentDefinitions.size() != 1){
-        qCritical() << "NodeView::view_sortModel() Model doens't contain a DeploymentDefinition!";
-        return;
-    }
-
-
-    NodeItem* deploymentDefinitionItem = getNodeItemFromNode(deploymentDefinitions.at(0));
     NodeItem* modelItem = getNodeItemFromNode(model);
-
-    if(deploymentDefinitionItem){
-        //deploymentDefinitionItem->sort();
-        deploymentDefinitionItem->newSort();
-    }
-
     if(modelItem){
-        //modelItem->sort();
         modelItem->newSort();
     }
 }

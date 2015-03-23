@@ -103,7 +103,7 @@ signals:
     void recentralizeAfterChange(GraphML* item);
 
     void nodeItemMoved();
-    //void itemMovedOutOfScene(NodeItem* item);
+    void itemMovedOutOfScene(NodeItem* item);
 
 
 public slots:

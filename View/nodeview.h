@@ -147,7 +147,7 @@ public slots:
     void sortModel();
     void clearModel();
 
-    void view_SelectGraphML(GraphML* graphML, bool setSelected=true);
+
     void view_CenterGraphML(GraphML* graphML);
     void view_LockCenteredGraphML(GraphML* graphML);
 
@@ -163,7 +163,7 @@ public slots:
 
     void goToDefinition(Node* node=0);
     void goToImplementation(Node* node=0);
-    void goToInstance(Node *node=0);
+    void goToInstance(Node *instance=0);
 
     void deleteSelection();
     void constructNode(QString nodeKind, int sender);
@@ -257,6 +257,7 @@ private:
 
 
     QList<NodeItem*> getNodeItemsList();
+    QStringList nonDrawnItemKinds;
 
     void showAllAspects();
 

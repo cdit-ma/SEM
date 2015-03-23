@@ -198,6 +198,7 @@ void MedeaWindow::initialiseGUI()
     nodeView->setLayout(mainHLayout);
 
     // setup mini map
+
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
 
@@ -211,6 +212,7 @@ void MedeaWindow::initialiseGUI()
     minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
 
     rightVlayout->addWidget(minimap);
+
 
     // other settings
     assemblyButton->setCheckable(true);
