@@ -130,6 +130,7 @@ private:
     QAction* view_goToImplementation;
     QAction* view_autoCenterView;
     QAction* view_showGridLines;
+    QAction* view_selectOnConstruction;
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_sortModel;

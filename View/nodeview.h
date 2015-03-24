@@ -121,7 +121,7 @@ public slots:
     void appendToSelection(GraphMLItem* item);
     void moveSelection(QPointF delta);
     void moveFinished();
-    void clearSelection(bool updateTable=true);
+    void clearSelection(bool updateTable=true, bool fullClear = true);
 
 
     void view_ClearHistory();
@@ -130,7 +130,8 @@ public slots:
     void resetModel();
 
     void toggleGridLines(bool gridOn);
-    void setAutoCenterViewAspects(bool center);
+    void autoCenterAspects(bool center);
+    void selectNodeOnConstruction(bool select);
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
     void constructGUIItem(GraphML* item);
     void destructGUIItem(QString ID);
@@ -271,11 +272,11 @@ private:
     QList<NodeView*> subViews;
 
     bool AUTO_CENTER_ASPECTS;
-    bool constructedFromToolbar;
-
     bool GRID_LINES_ON;
-    bool toolbarJustClosed;
+    bool SELECT_ON_CONSTRUCTION;
 
+    bool constructedFromToolbar;
+    bool toolbarJustClosed;
 
 
     //Selection Lists

@@ -275,14 +275,15 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/fitToScreen.png"), "Fit To Sreen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
     view_menu->addSeparator();
-    view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go to Definition");
+    view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go To Definition");
     view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
-    view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go to Implementation");
+    view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go To Implementation");
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
-    view_autoCenterView = view_menu->addAction("Automatically Center Views");
     view_showGridLines = view_menu->addAction("Show Grid Lines");
     view_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
+    view_autoCenterView = view_menu->addAction("Automatically Center Views");
+    view_selectOnConstruction = view_menu->addAction("Select Node On Construction");
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
@@ -300,6 +301,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_autoCenterView->setChecked(true);
     view_showGridLines->setCheckable(true);
     view_showGridLines->setChecked(true);
+    view_selectOnConstruction->setCheckable(true);
+    view_selectOnConstruction->setChecked(true);
 
     // initially disable model & goto menu actions
     model_validateModel->setEnabled(false);
@@ -534,7 +537,6 @@ void MedeaWindow::makeConnections()
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
 
-
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
@@ -550,8 +552,9 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
-    connect(view_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(setAutoCenterViewAspects(bool)));
+    connect(view_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
     connect(view_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
+    connect(view_selectOnConstruction, SIGNAL(triggered(bool)), nodeView, SLOT(selectNodeOnConstruction(bool)));
 
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(goToDefinition()));
     connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(goToImplementation()));

@@ -98,21 +98,44 @@ ToolbarWidgetAction* ToolbarWidgetMenu::getParentAction()
 
 
 /**
+ * @brief ToolbarWidgetMenu::getWidgetAction
+ * @param node
+ * @return
+ */
+ToolbarWidgetAction* ToolbarWidgetMenu::getWidgetAction(Node* node)
+{
+    foreach (ToolbarWidgetAction* action, widgetActions) {
+        Node* actionNode = action->getNode();
+        if (actionNode && actionNode == node) {
+            return action;
+        }
+    }
+    return 0;
+}
+
+
+/**
  * @brief ToolbarWidgetMenu::clearMenu
  * This clears this menu's actions. If the action is stored in the toolbar
  * it removes it from the menu, otherwise it deletes the action.
  */
 void ToolbarWidgetMenu::clearMenu()
 {
+    //qDebug() << "clearMenu()";
     QMutableListIterator<ToolbarWidgetAction*> it(widgetActions);
     while (it.hasNext()) {
         ToolbarWidgetAction *action = it.next();
         // actions that are stored in the toolbar widget can't be deleted
         if (action->isDeletable()) {
+            //qDebug() << "Deleting action . . .";
             delete action;
+            //qDebug() << "Deleted action.";
         } else {
+            //qDebug() << "Removing action . . .";
             removeAction(action);
+            //qDebug() << "Removed action.";
         }
+        //qDebug() << "end clearMenu()";
     }
     widgetActions.clear();
 }

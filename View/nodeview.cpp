@@ -31,7 +31,6 @@
 
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
-    GRID_LINES_ON = true;
     constructedFromToolbar = false;
     CENTRALIZED_ON_ITEM = false;
     IS_SUB_VIEW = subView;
@@ -41,7 +40,10 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     rubberBand = 0;
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
+
     AUTO_CENTER_ASPECTS = true;
+    GRID_LINES_ON = true;
+    SELECT_ON_CONSTRUCTION = true;
 
     setScene(new QGraphicsScene(this));
 
@@ -527,11 +529,8 @@ void NodeView::showToolbar(QPoint position)
     menuPosition = mapToScene(position);
 
     // update toolbar position and connect selected node item
-    Node* selectedNode = this->getSelectedNode();
-
-    GraphMLItem* graphmlItem = getGraphMLItemFromGraphML(selectedNode);
-    if (graphmlItem && graphmlItem->getGraphML()->getDataValue("kind") != "Model") {
-        NodeItem* nodeItem = getNodeItemFromGraphMLItem(graphmlItem);
+    NodeItem* nodeItem = getNodeItemFromNode(getSelectedNode());
+    if (nodeItem && nodeItem->isPainted()) {
         toolbar->setNodeItem(nodeItem);
         toolbar->move(globalPos);
         toolbar->show();
@@ -563,34 +562,25 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         modelParent = modelParent->getParentNode();
     }
 
-
-
     if(!parentNodeItem && node->getDataValue("kind") != "Model"){
         qCritical() << "NodeView::view_ConstructNodeGUI() SUB_VIEW probably not meant to build this item as we don't have it's parent.";
         return;
     }
 
-
-
-
     NodeItem* nodeItem = new NodeItem(node, parentNodeItem, currentAspects, IS_SUB_VIEW);
-
 
     storeGraphMLItemInHash(nodeItem);
 
     //Connect the Generic Functionality.
     connectGraphMLItemToController(nodeItem, node);
 
-
     if(scene() && !scene()->items().contains(nodeItem)){
         //Add to model.
         scene()->addItem(nodeItem);
     }
 
-    // send necessary signals when a node has been constructed
+    // send/do necessary signals/updates when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
-
-    nodeItem->toggleGridLines(GRID_LINES_ON);
 
     if(constructedFromToolbar){
         //nodeItem->setNewLabel();
@@ -812,12 +802,13 @@ void NodeView::componentInstanceConstructed(Node *node)
 
 
 /**
- * @brief NodeView::updateSceneRect
+ * @brief NodeView::fitInSceneRect
  */
 void NodeView::fitInSceneRect(GraphMLItem* item)
 {
     adjustSceneRect(item->sceneBoundingRect());
 }
+
 
 void NodeView::setGraphMLItemAsSelected(GraphMLItem *item)
 {
@@ -1014,6 +1005,7 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
     }
 }
 
+
 /**
  * @brief NodeView::nodeDestructed_signalUpdates
  * This gets called whenever a node has been destructed.
@@ -1026,6 +1018,7 @@ void NodeView::nodeDestructed_signalUpdates()
     emit view_nodeDestructed();
 }
 
+
 /**
  * @brief NodeView::nodeConstructed_signalUpdates
  * This is called whenever a node is constructed.
@@ -1034,6 +1027,13 @@ void NodeView::nodeDestructed_signalUpdates()
  */void NodeView::nodeConstructed_signalUpdates(NodeItem *nodeItem)
 {
     emit view_nodeConstructed(nodeItem);
+
+    nodeItem->toggleGridLines(GRID_LINES_ON);
+
+    if (SELECT_ON_CONSTRUCTION) {
+        clearSelection(true, false);
+        appendToSelection(nodeItem);
+    }
 }
 
 
@@ -1463,17 +1463,17 @@ void NodeView::moveFinished()
  * This gets called when either the view or the model is pressed.
  * It clears the selection.
  */
-void NodeView::clearSelection(bool updateTable)
+void NodeView::clearSelection(bool updateTable, bool fullClear)
 {
-    while(!selectedIDs.isEmpty()){
+    while (!selectedIDs.isEmpty()) {
         QString currentID = selectedIDs.takeFirst();
         GraphMLItem* currentItem = getGraphMLItemFromHash(currentID);
-        if(currentItem){
+        if (currentItem) {
             currentItem->setSelected(false);
         }
     }
 
-    if(updateTable){
+    if (updateTable) {
         view_SetAttributeModel(0);
     }
 
@@ -1481,9 +1481,10 @@ void NodeView::clearSelection(bool updateTable)
     // if the call came from a painted node item, then it's just to deselect nodes
     // in case the parent of the node you're trying to select is already selected
     NodeItem* senderItem = dynamic_cast<NodeItem*>(QObject::sender());
-    if (senderItem && senderItem->isPainted()) {
+    if ((senderItem && senderItem->isPainted()) || !fullClear) {
         return;
     }
+
     emit view_nodeSelected(0);
 }
 
@@ -1548,9 +1549,21 @@ void NodeView::toggleGridLines(bool gridOn)
  * It sets the automatic centering of the view aspects on and off.
  * @param center
  */
-void NodeView::setAutoCenterViewAspects(bool center)
+void NodeView::autoCenterAspects(bool center)
 {
     AUTO_CENTER_ASPECTS = center;
+}
+
+
+/**
+ * @brief NodeView::setSelectOnConstruction
+ * This is called from the MedeaWindow menu.
+ * It sets the selection of newly constucted node on and off.
+ * @param select
+ */
+void NodeView::selectNodeOnConstruction(bool select)
+{
+    SELECT_ON_CONSTRUCTION = select;
 }
 
 

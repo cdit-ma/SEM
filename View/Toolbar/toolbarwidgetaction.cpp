@@ -51,7 +51,7 @@ ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString ac
     willHaveMenu = false;
     deletable = true;
 
-    if (actionKind == "file" || actionKind == "eventPort") {
+    if (actionKind == "file" || actionKind == "eventPort" || actionKind == "parent") {
         willHaveMenu = true;
     } else if (actionKind == "instance") {
         kind = "ComponentInstance";

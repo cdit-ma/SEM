@@ -372,7 +372,7 @@ void ToolbarWidget::setupMenus()
     inEventPortDefaultAction = new ToolbarWidgetAction("info", "There are no InEventPorts.", this);
     outEventPortDefaultAction = new ToolbarWidgetAction("info", "There are no OutEventPorts.", this);
 
-    // hidden menus for COmponentInstances and InEvent/OutEvent PortDelegates
+    // hidden menus for parent Nodes, ComponentInstances and InEvent/OutEvent PortDelegates
     fileMenu = new ToolbarWidgetMenu(componentInstanceAction, fileDefaultAction, addMenu);
     inEventPort_componentInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, eventPort_componentInstanceDefaultAction, addMenu);
     outEventPort_componentInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, eventPort_componentInstanceDefaultAction, addMenu);
@@ -431,8 +431,11 @@ void ToolbarWidget::updateMenuLists()
     // new list for menus instead of just clearing them
     clearMenus();
 
+    qDebug() << "Setup adoptable list";
     setupAdoptableNodesList(nodeView->getAdoptableNodeList(nodeItem->getNode()));
+    qDebug() << "Setup legal nodes list";
     setupLegalNodesList(nodeView->getConnectableNodes(nodeItem->getNode()));
+    qDebug() << "Setup instance list";
     setupInstancesList(nodeItem->getNode()->getInstances());
 
     // if selected node is a ComponentAssembly, get the Files and ComponentInstance lists
@@ -519,6 +522,35 @@ void ToolbarWidget::setupLegalNodesList(QList<Node*> nodeList)
         connectMenu->addWidgetAction(action);
         connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
     }
+
+    /*
+    for (int i=0; i<nodeList.count(); i++) {
+
+        Node* parentNode = nodeList.at(i)->getParentNode();
+
+        if (parentNode && parentNode->getDataValue("kind") != "Model") {
+
+            ToolbarWidgetAction* parentAction = connectMenu->getWidgetAction(parentNode);
+            ToolbarWidgetMenu* parentActionMenu = 0;
+
+            if (parentAction) {
+                parentActionMenu = parentAction->getMenu();
+            } else {
+                parentAction = new ToolbarWidgetAction(nodeList.at(i)->getParentNode(), connectMenu, "parent");
+                parentActionMenu = new ToolbarWidgetMenu(parentAction, 0, connectMenu);
+            }
+
+            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList.at(i), parentActionMenu);
+            parentActionMenu->addWidgetAction(action);
+
+            connectMenu->addWidgetAction(parentAction);
+            connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
+
+        } else {
+            qDebug() << "Toolbar: Current node's parent node is NULL.";
+        }
+    }
+    */
 }
 
 
@@ -650,6 +682,7 @@ void ToolbarWidget::setupOutEventPortInstanceList()
  */
 void ToolbarWidget::clearMenus()
 {
+    //qDebug() << "--- clearMenus ---";
     addMenu->clearMenu();
     connectMenu->clearMenu();
     fileMenu->clearMenu();

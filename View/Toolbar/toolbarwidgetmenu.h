@@ -17,6 +17,7 @@ public:
 
     void addWidgetAction(ToolbarWidgetAction* action);
     QList<ToolbarWidgetAction*> getWidgetActions();
+    ToolbarWidgetAction* getWidgetAction(Node* node);
 
     void setParentAction(ToolbarWidgetAction* widgetAction);
     ToolbarWidgetAction* getParentAction();

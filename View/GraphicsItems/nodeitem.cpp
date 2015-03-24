@@ -192,16 +192,7 @@ QRectF NodeItem::boundingRect() const
     qreal bottomRightX = width;
     qreal bottomRightY = height;
 
-    /*
-    if (nodeKind == "Model") {
-        qDebug() << "------ boundingRect() ------";
-        qDebug() << "width: " << width;
-        qDebug() << "height: " << height;
-    }
-    */
-
     float itemMargin = getItemMargin();
-
     bottomRightX += itemMargin/2;
     bottomRightY += itemMargin/2;
 
@@ -224,6 +215,7 @@ QRectF NodeItem::minimumVisibleRect()
 QRectF NodeItem::gridRect()
 {
     QRectF rectangle;
+
     if (isExpanded()) {
         QPointF topLeft = minimumVisibleRect().bottomLeft();
         if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
@@ -241,6 +233,7 @@ QRectF NodeItem::gridRect()
         rectangle.setWidth(xGrids * getGridSize());
         rectangle.setHeight(yGrids * getGridSize());
     }
+
     return rectangle;
 }
 
@@ -312,6 +305,10 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             Pen = pen;
         }
 
+        if(onGrid){
+            Pen.setColor(invertColor(Pen.color()));
+        }
+
         QRectF rectangle = boundingRect();
         rectangle.setWidth(rectangle.width() - Pen.width());
         rectangle.setHeight(rectangle.height() - Pen.width());
@@ -341,10 +338,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
         qreal cornerRadius = getCornerRadius();
-
-        if(onGrid){
-            Pen.setColor(invertColor(Pen.color()));
-        }
 
         painter->setPen(Pen);
         painter->setBrush(Brush);
@@ -554,6 +547,9 @@ void NodeItem::setSelected(bool selected)
         updateTextLabel();
         emit setEdgeSelected(selected);
     }
+
+    // need to update onGrid here
+    onGrid = false;
 }
 
 
@@ -869,7 +865,6 @@ void NodeItem::newSort()
 
     int x = 1;
     int y = 1;
-
 
     NodeItem* nextItem = 0;
     for (y; y <= (gridSize * 3) - 1; y += 3) {
@@ -1577,8 +1572,6 @@ QPointF NodeItem::isOverGrid(const QPointF position)
     if(this->parentNodeItem){
         closestGridPoint = parentNodeItem->getClosestGridPoint(centerPosition);
     }
-
-
 
     QLineF line(centerPosition, closestGridPoint);
 

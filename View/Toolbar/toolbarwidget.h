@@ -16,8 +16,8 @@ class ToolbarWidgetMenu;
 
 class ToolbarWidget : public QWidget
 {
-
     Q_OBJECT
+
 public:
     explicit ToolbarWidget(NodeView *parent = 0);
 
@@ -29,6 +29,7 @@ public:
 protected:
     virtual void enterEvent(QEvent*);
     virtual void leaveEvent(QEvent*);
+
 public slots:
     void goToDefinition();
     void goToImplementation();

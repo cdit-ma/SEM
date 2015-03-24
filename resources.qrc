@@ -86,5 +86,6 @@
         <file>Resources/Icons/snapChildrenToGrid.png</file>
         <file>Resources/Icons/snapToGrid.png</file>
         <file>Resources/Icons/duplicate.png</file>
+        <file>Resources/Icons/unlock.png</file>
     </qresource>
 </RCC>
