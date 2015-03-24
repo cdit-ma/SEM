@@ -26,7 +26,7 @@
 
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
-#define MIN_ZOOM 0.05
+#define MIN_ZOOM 0.01
 #define MAX_ZOOM 0.5
 
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)

@@ -192,12 +192,21 @@ QRectF NodeItem::boundingRect() const
     qreal bottomRightX = width;
     qreal bottomRightY = height;
 
+    /*
+    if (nodeKind == "Model") {
+        qDebug() << "------ boundingRect() ------";
+        qDebug() << "width: " << width;
+        qDebug() << "height: " << height;
+    }
+    */
+
     float itemMargin = getItemMargin();
 
     bottomRightX += itemMargin/2;
     bottomRightY += itemMargin/2;
 
     if (width <= minimumWidth) {
+        // what if after the itemMargin is added width is still <= minWidth?
         bottomRightX += itemMargin/2;
         bottomRightY += itemMargin/2;
     }
@@ -308,7 +317,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         rectangle.setHeight(rectangle.height() - Pen.width());
         rectangle.translate(Pen.width()/2, Pen.width()/2);
 
-
         if(this->childNodeItems.size() == 0 && !nodeKind.endsWith("Definitions")){
             Brush.setColor(Qt::transparent);
         }
@@ -317,7 +325,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         QColor HeaderBrushColor = HeaderBrush.color();
 
         HeaderBrushColor.setAlpha(255);
-
         HeaderBrush.setColor(HeaderBrushColor);
 
         Node* node = getNode();
@@ -332,7 +339,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 lockIcon->setVisible(hasDefinition);
             }
         }
-
 
         qreal cornerRadius = getCornerRadius();
 
@@ -420,7 +426,6 @@ bool NodeItem::iconPressed(QPointF mousePosition)
         }
     }
     return false;
-
 }
 
 
@@ -823,10 +828,9 @@ void NodeItem::newSort()
     QMap<int, NodeItem*> toSortMap;
     QList<NodeItem*> lockedItems;
 
-
     foreach(NodeItem* child, getChildNodeItems()){
         Node* childNode = child->getNode();
-        if(!child->isVisible()){
+        if(!child->isVisible() && nodeKind != "Model"){
             continue;
         }
         if(child->isLocked()){
@@ -1069,7 +1073,6 @@ void NodeItem::setWidth(qreal width)
 
         bool updateModel = false;
         if(width < minimumWidth){
-            //qWarning() << "NodeItem::setWidth() Width provided less than Minimum.";
             width = minimumWidth;
             updateModel = true;
         }
@@ -1095,7 +1098,6 @@ void NodeItem::setHeight(qreal height)
         bool updateModel = false;
 
         if(height < minimumHeight){
-            //qWarning() << "NodeItem::setWidth() Width provided less than Minimum.";
             height = minimumHeight;
             updateModel = true;
         }
