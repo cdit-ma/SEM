@@ -443,19 +443,6 @@ void EdgeItem::updateLines()
     float sourceParentX = source->getParentNodeItem()->scenePos().x() + (source->getParentNodeItem()->getWidth() /2);;
     float destinationParentX = destination->getParentNodeItem()->scenePos().x() + (destination->getParentNodeItem()->getWidth() /2);;
 
-    /*
-//OLD CASE
-    if(sX < sPX){
-        sourceWidthMult = -1;
-        startLeft = true;
-    }
-
-    if(fX < fPX){
-        finishWidthMult = -1;
-        finishLeft = true;
-    }
-    */
-
     if(sourceX < sourceParentX){
         sourceWidthMult = -1;
         startLeft = true;

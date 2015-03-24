@@ -160,6 +160,8 @@ private:
     void setupLabel();
     void setupGraphMLConnections();
 
+    QPointF isOverGrid(const QPointF position);
+
 
 
     void setPaintObject(bool paint);

@@ -24,7 +24,7 @@
 #define FONT_RATIO 0.1
 
 #define GRID_RATIO 7
-#define SNAP_PERCENTAGE .25
+#define SNAP_PERCENTAGE .20
 
 
 /**
@@ -477,6 +477,7 @@ void NodeItem::setCenterPos(QPointF pos)
 {
     //pos is the new center Position.
     pos -= minimumVisibleRect().center();
+    //QGraphicsItem::setPos(pos);
 
     setPos(pos);
 }
@@ -1397,11 +1398,11 @@ void NodeItem::setPos(qreal x, qreal y)
 
 void NodeItem::setPos(const QPointF &pos)
 {
-    if(pos != this->pos()){
-        //Get the initial Width
+
+    if(pos != this->pos()){       
+        isOverGrid(pos);
         QGraphicsItem::setPos(pos);
         updateChildrenOnChange();
-        updateGraphMLPosition();
     }
 }
 
@@ -1568,6 +1569,29 @@ void NodeItem::setupGraphMLConnections()
     }
 }
 
+QPointF NodeItem::isOverGrid(const QPointF position)
+{
+    QPointF centerPosition = position + minimumVisibleRect().center();
+
+    QPointF closestGridPoint;
+    if(this->parentNodeItem){
+        closestGridPoint = parentNodeItem->getClosestGridPoint(centerPosition);
+    }
+
+
+
+    QLineF line(centerPosition, closestGridPoint);
+
+    if((line.length()/ minimumWidth) <= SNAP_PERCENTAGE){
+        //QGraphicsItem::setPos(closestGridPoint - minimumVisibleRect().center());
+        onGrid = true;
+        return closestGridPoint;
+    }else{
+        onGrid = false;
+        return QPointF();
+    }
+}
+
 
 void NodeItem::setNewLabel(QString newLabel)
 {
@@ -1662,6 +1686,7 @@ void NodeItem::updateGraphMLPosition()
         xData->setValue(QString::number(center.x()));
         yData->setValue(QString::number(center.y()));
     }
+
 }
 
 
@@ -1863,6 +1888,13 @@ void NodeItem::updateHeight(NodeItem *child)
 
 void NodeItem::updateModelPosition()
 {
+    if(GRIDLINES_VISIBLE){
+        QPointF gridPoint = isOverGrid(pos());
+        if(!gridPoint.isNull()){
+            setCenterPos(gridPoint);
+        }
+    }
+
     GraphMLItem_SetGraphMLData(getGraphML(), "x", QString::number(centerPos().x()));
     GraphMLItem_SetGraphMLData(getGraphML(), "y", QString::number(centerPos().y()));
     onGrid = false;
