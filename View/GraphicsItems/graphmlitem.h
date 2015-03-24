@@ -38,7 +38,7 @@ signals:
     void GraphMLItem_DestructGraphMLData(GraphML*, QString);
 
     void GraphMLItem_AppendSelected(GraphMLItem*);
-    void GraphMLItem_ClearSelection();
+    void GraphMLItem_ClearSelection(bool updateTable);
     void GraphMLItem_MovedOutOfScene(GraphMLItem*);
 private:
     GraphML* attachedGraph;

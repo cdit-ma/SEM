@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <QDateTime>
 #include <QMessageBox>
+
+#define USE_LOGGING true
+
 bool UNDO = true;
 bool REDO = false;
 bool SETUP_AS_INSTANCE = true;
@@ -11,6 +14,13 @@ bool SETUP_AS_IMPL = false;
 
 NewController::NewController()
 {
+
+    logFile = new QFile("output.log");
+    if (!logFile->open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text)){
+        //CANNOT OPEN LOG FILE.
+
+    }
+
     UNDOING = false;
     REDOING = false;
     CUT_USED = false;
@@ -347,10 +357,7 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
             data->setValue(dataValue);
         }
 
-
-        if(addAction){
-            addActionToStack(action);
-        }
+        addActionToStack(action, addAction);
     }else{
         qCritical() << "view_UpdateGraphMLData() Doesn't Contain GraphMLData for Key: " << keyName;
         return;
@@ -382,9 +389,8 @@ void NewController::attachGraphMLData(GraphML *parent, GraphMLData *data, bool a
 
     parent->attachData(data);
 
-    if(addAction){
-        addActionToStack(action);
-    }
+
+    addActionToStack(action, addAction);
 
 }
 
@@ -418,9 +424,9 @@ void NewController::destructGraphMLData(GraphML *parent, QString keyName, bool a
         action.parentDataID.append(parentDataID);
     }
 
-    if(addAction){
-        addActionToStack(action);
-    }
+
+    addActionToStack(action, addAction);
+
 
     parent->removeData(data);
     delete data;
@@ -914,7 +920,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
 
     QList<GraphMLData*> data;
 
-    QString labelString= nodeKind;
+    QString labelString = nodeKind;
 
 
     data.append(new GraphMLData(kindKey, nodeKind));
@@ -928,14 +934,15 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
 
     //Attach Node Specific Data.
 
-    if(nodeKind == "ManagementComponent"){
+    if(nodeKind == "ManagementComponent"){      
         data.append(new GraphMLData(typeKey, ""));
+
     }
     if(nodeKind == "Model"){
         GraphMLKey* middlewareKey = constructGraphMLKey("middleware", "string", "node");
         GraphMLKey* projectUUID = constructGraphMLKey("projectUUID", "string", "node");
-        QDateTime currentTime = QDateTime::currentDateTime();
-        data.append(new GraphMLData(projectUUID, currentTime.toString("yyyy-MM-dd|hh-mm")));
+
+        data.append(new GraphMLData(projectUUID, getTimeStamp()));
         data.append(new GraphMLData(middlewareKey, "tao"));
     }
     if(nodeKind == "PeriodicEvent"){
@@ -1308,7 +1315,7 @@ bool NewController::destructNode(Node *node, bool addAction)
         }
     }
 
-    if(!node->wasGenerated() && addAction){
+    if(!node->wasGenerated()){
         //Add an action to reverse this action.
         ActionItem action;
         action.actionKind = GraphML::NODE;
@@ -1318,8 +1325,7 @@ bool NewController::destructNode(Node *node, bool addAction)
         if(node->getParentNode()){
             action.parentID = node->getParentNode()->getID();
         }
-
-        addActionToStack(action);
+        addActionToStack(action, addAction);
     }
 
     removeGraphMLFromHash(ID);
@@ -1373,7 +1379,7 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     }
 
     //If the Edge Wasn't Generated, and we are meant to add an Action for this removal, Add an undo state.
-    if(!edge->wasGenerated() && addAction){
+    if(!edge->wasGenerated()){
         ActionItem action;
         action.actionType = DESTRUCTED;
         action.actionKind = GraphML::EDGE;
@@ -1384,7 +1390,7 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
         foreach(GraphMLData* data, edge->getData()){
             action.dataValues.append(data->toStringList());
         }
-        addActionToStack(action);
+        addActionToStack(action, addAction);
     }
 
     //Node* toDeleteNode = 0;
@@ -1617,6 +1623,11 @@ bool NewController::_attachGraphMLData(GraphML *item, QList<GraphMLData *> dataL
         }else{
             attachGraphMLData(item, data, addAction);
         }
+
+        GraphMLData* updateData = item->getData(currentKey);
+        if(updateData && !updateData->isProtected()){
+            updateData->setProtected(data->isProtected());
+        }
     }
     return true;
 }
@@ -1628,18 +1639,25 @@ bool NewController::_attachGraphMLData(GraphML *item, GraphMLData *data, bool ad
     return _attachGraphMLData(item, dataList, addAction);
 }
 
-void NewController::addActionToStack(ActionItem action)
+void NewController::addActionToStack(ActionItem action, bool useAction)
 {
     //Get Current Action ID and action.
     action.actionID = currentActionID;
     action.actionName = currentAction;
+    action.timestamp = getTimeStamp();
 
-    if(UNDOING){
-        redoActionStack.push(action);
-    }else{
-        undoActionStack.push(action);
+    if(useAction){
+        if(UNDOING){
+            redoActionStack.push(action);
+        }else{
+            undoActionStack.push(action);
+        }
+        updateViewUndoRedoLists();
     }
-    updateViewUndoRedoLists();
+
+    if(USE_LOGGING){
+        logAction(action);
+    }
 }
 
 void NewController::undoRedo(bool undo)
@@ -1724,6 +1742,59 @@ void NewController::undoRedo(bool undo)
 
         UNDOING = false;
         REDOING = false;
+}
+
+void NewController::logAction(ActionItem item)
+{
+
+    QTextStream out(logFile);
+
+    //QString
+    QString actionType;
+    QString actionKind;
+    QString extraInfo = "";
+
+    if(item.actionType == CONSTRUCTED){
+        actionType = "C";
+    }
+    if(item.actionType == DESTRUCTED){
+        actionType = "D";
+    }
+    if(item.actionType == MODIFIED){
+        actionType = "M";
+    }
+
+    if(item.actionKind == GraphML::NODE){
+        actionKind = "NODE";
+        extraInfo += "\t\tLabel: '" + item.itemLabel + '"';
+        extraInfo += "\t\tKind: '" + item.itemKind + '"';
+
+    }
+    if(item.actionKind == GraphML::EDGE){
+        actionKind = "EDGE";
+        //if(item.actionType == CONSTRUCTED){
+        extraInfo += "\t\tSRC_ID: '" + item.srcID + '"';
+        extraInfo += "\t\tDST_ID: '" + item.dstID + '"';
+        //}
+
+    }
+    if(item.actionKind == GraphML::DATA){
+        actionKind = "DATA";
+        extraInfo += "\t\tKey: '" + item.keyName +"'";
+        if(item.actionType == MODIFIED){
+            extraInfo += "\t\tPrevious Value: '" + item.dataValue + '"';
+        }
+    }
+
+
+    out << item.timestamp << "\t" << actionType << "\t" << actionKind << "\t" << item.ID;
+    if(extraInfo != ""){
+        out << extraInfo;
+    }
+    out << "\n";
+
+
+
 }
 
 void NewController::clearHistory()
@@ -1854,6 +1925,8 @@ void NewController::constructNodeGUI(Node *node)
     action.actionType = CONSTRUCTED;
     action.actionKind = GraphML::NODE;
     action.ID = node->getID();
+    action.itemLabel = node->getDataValue("label");
+    action.itemKind = node->getDataValue("kind");
 
     if(node->getParentNode()){
         //Set the ParentNode ID if we have a Parent.
@@ -1944,7 +2017,7 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
         def_Label->bindData(child_Label);
     }else{
         //Set the value.
-        if(child->wasGenerated()){
+        if(child_Label->getValue().startsWith(child->getDataValue("kind"))){
             if(child->isImpl()){
                 setGraphMLData(child, "label", def_Label->getValue() + "_Impl");
             }else{
@@ -2212,14 +2285,21 @@ void NewController::constructEdgeGUI(Edge *edge)
     GraphMLKey* descriptionKey = constructGraphMLKey("description", "string", "edge");
 
 
+    //Get Source and Destination of the Edge.
+    Node* src = edge->getSource();
+    Node* dst = edge->getDestination();
+
+    if(src && dst){
+        action.srcID = src->getID();
+        action.dstID = dst->getID();
+    }
+
     //Add Action to the Undo/Redo Stack
     if(!edge->wasGenerated()){
         addActionToStack(action);
     }
 
-    //Get Source and Destination of the Edge.
-    Node* src = edge->getSource();
-    Node* dst = edge->getDestination();
+
 
     if(!src || !dst){
         qCritical() << "Source and Desitnation null";
@@ -2308,20 +2388,20 @@ void NewController::setupManagementComponents()
     QList<GraphMLData*> ddsLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
 
     foreach(GraphMLData* data, executionManagerData){
-        if(data->getKeyName() == "type"){
+        if(data->getKeyName() == "type" || data->getKeyName() == "label"){
             data->setValue("DANCE_EXECUTION_MANAGER");
             data->setProtected(true);
         }
     }
     foreach(GraphMLData* data, dancePlanLauncherData){
-        if(data->getKeyName() == "type"){
+        if(data->getKeyName() == "type" || data->getKeyName() == "label"){
             data->setValue("DANCE_PLAN_LAUNCHER");
             data->setProtected(true);
         }
     }
 
     foreach(GraphMLData* data, ddsLoggingServerData){
-        if(data->getKeyName() == "type"){
+        if(data->getKeyName() == "type" || data->getKeyName() == "label"){
             data->setValue("DDS_LOGGING_SERVER");
             data->setProtected(true);
         }
@@ -2332,9 +2412,6 @@ void NewController::setupManagementComponents()
     Node* plNode = constructChildNode(assemblyDefinitions, dancePlanLauncherData);
     Node* lsdNode = constructChildNode(assemblyDefinitions, ddsLoggingServerData);
 
-    emNode->getData("label")->setValue("DANCE-EXECUTION-MANAGER");
-    plNode->getData("label")->setValue("DANCE-PLAN-LAUNCHER");
-    lsdNode->getData("label")->setValue("DDS-LOGGING-SERVER");
 
     managementComponents.insert("DANCE_EXECUTION_MANAGER",dynamic_cast<ManagementComponent*>(emNode));
     managementComponents.insert("DANCE_PLAN_LAUNCHER",dynamic_cast<ManagementComponent*>(plNode));
@@ -2419,6 +2496,12 @@ bool NewController::isGraphMLInModel(GraphML *item)
     }else{
         return false;
     }
+}
+
+QString NewController::getTimeStamp()
+{
+    QDateTime currentTime = QDateTime::currentDateTime();
+    return currentTime.toString("yyyy-MM-dd | hh:mm:ss");
 }
 
 Model *NewController::getModel()

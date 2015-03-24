@@ -263,7 +263,7 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
         if (!event->modifiers().testFlag(Qt::ControlModifier)){
             //Clear First if Control isn't pressed!
-            GraphMLItem_ClearSelection();
+            GraphMLItem_ClearSelection(false);
         }
         GraphMLItem_AppendSelected(this);
 

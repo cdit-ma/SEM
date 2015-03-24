@@ -121,7 +121,7 @@ public slots:
     void appendToSelection(GraphMLItem* item);
     void moveSelection(QPointF delta);
     void moveFinished();
-    void clearSelection();
+    void clearSelection(bool updateTable=true);
 
 
     void view_ClearHistory();

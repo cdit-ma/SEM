@@ -23,6 +23,7 @@
 #include <QDebug>
 
 #include "Controller/controller.h"
+
 #include "View/Table/comboboxtabledelegate.h"
 #include "View/Table/attributetablemodel.h"
 #include "View/nodeviewminimap.h"

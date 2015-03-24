@@ -918,7 +918,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if(!isSelected()){
             if (!event->modifiers().testFlag(Qt::ControlModifier)){
                 //Check for parent selection.
-                GraphMLItem_ClearSelection();
+                GraphMLItem_ClearSelection(false);
             }
             GraphMLItem_AppendSelected(this);
         }
@@ -932,7 +932,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if(!isSelected()){
             if (!event->modifiers().testFlag(Qt::ControlModifier)){
                 //Check for parent selection.
-                GraphMLItem_ClearSelection();
+                GraphMLItem_ClearSelection(false);
             }
             GraphMLItem_AppendSelected(this);
         }
@@ -987,7 +987,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     switch (event->button()) {
     case Qt::LeftButton:{
         if(!PAINT_OBJECT){
-            GraphMLItem_ClearSelection();
+            GraphMLItem_ClearSelection(true);
             return;
         }
 

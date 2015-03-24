@@ -895,7 +895,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
         }
 
         if(GUIItem){
-            connect(GUIItem, SIGNAL(GraphMLItem_ClearSelection()), this, SLOT(clearSelection()));
+            connect(GUIItem, SIGNAL(GraphMLItem_ClearSelection(bool)), this, SLOT(clearSelection(bool)));
             connect(GUIItem, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_MovedOutOfScene(GraphMLItem*)), this, SLOT(fitInSceneRect(GraphMLItem*)));
@@ -1266,42 +1266,45 @@ void NodeView::wheelEvent(QWheelEvent *event)
 
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
-    bool CONTROL = event->modifiers() & Qt::ControlModifier;
-    bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
-    if(CONTROL && SHIFT){
-        if(!RUBBERBAND_MODE){
-            setRubberBandMode(true);
+    if(this->hasFocus()){
+        bool CONTROL = event->modifiers() & Qt::ControlModifier;
+        bool SHIFT = event->modifiers() & Qt::ShiftModifier;
+
+        if(CONTROL && SHIFT){
+            if(!RUBBERBAND_MODE){
+                setRubberBandMode(true);
+            }
+        }else{
+            if(RUBBERBAND_MODE){
+                setRubberBandMode(false);
+            }
         }
-    }else{
-        if(RUBBERBAND_MODE){
-            setRubberBandMode(false);
+
+        if(CONTROL && event->key() == Qt::Key_A){
+            selectAll();
+        }
+
+        if(CONTROL && event->key() == Qt::Key_D){
+            duplicate();
+        }
+
+        // Added this to clear selection
+        if (event->key() == Qt::Key_Escape){
+            clearSelection();
         }
     }
-
-    if(CONTROL && event->key() == Qt::Key_A){
-        selectAll();
-    }
-
-    if(CONTROL && event->key() == Qt::Key_D){
-        duplicate();
-    }
-
-    // Added this to clear selection
-    if (event->key() == Qt::Key_Escape){
-        clearSelection();
-    }
-
     QGraphicsView::keyPressEvent(event);
 }
 
 void NodeView::keyReleaseEvent(QKeyEvent *event)
 {
+    if(this->hasFocus()){
+        if(event->key() == Qt::Key_Delete){
+            deleteSelection();
+        }
 
-    if(event->key() == Qt::Key_Delete){
-        deleteSelection();
     }
-
 
     QGraphicsView::keyReleaseEvent(event);
 
@@ -1360,7 +1363,7 @@ void NodeView::view_SelectModel()
 {
     Model* model = controller->getModel();
     GraphMLItem* modelItem = getGraphMLItemFromGraphML(model);
-    clearSelection();
+    clearSelection(false);
     appendToSelection(modelItem);
 }
 
@@ -1391,7 +1394,7 @@ void NodeView::selectAll()
     if(node){
         NodeItem* nodeItem = getNodeItemFromNode(node);
         if(nodeItem){
-            clearSelection();
+            clearSelection(false);
             foreach(NodeItem* child, nodeItem->getChildNodeItems()){
                 if(child->isVisible()){
                     appendToSelection(child);
@@ -1458,7 +1461,7 @@ void NodeView::moveFinished()
  * This gets called when either the view or the model is pressed.
  * It clears the selection.
  */
-void NodeView::clearSelection()
+void NodeView::clearSelection(bool updateTable)
 {
     while(!selectedIDs.isEmpty()){
         QString currentID = selectedIDs.takeFirst();
@@ -1466,6 +1469,10 @@ void NodeView::clearSelection()
         if(currentItem){
             currentItem->setSelected(false);
         }
+    }
+
+    if(updateTable){
+        view_SetAttributeModel(0);
     }
 
     // this stops the docks/dock buttons from disabling when they don't need to
@@ -1666,7 +1673,7 @@ void NodeView::goToDefinition(Node *node)
             addAspect("Definitions");
             GraphMLItem* guiItem = getGraphMLItemFromGraphML(defn);
             if(guiItem){
-                clearSelection();
+                clearSelection(false);
                 appendToSelection(guiItem);
                 centerItem(guiItem);
             }
@@ -1695,7 +1702,7 @@ void NodeView::goToImplementation(Node *node)
             addAspect("Workload");
             GraphMLItem* guiItem = getGraphMLItemFromGraphML(impl);
             if(guiItem){
-                clearSelection();
+                clearSelection(false);
                 appendToSelection(guiItem);
                 centerItem(guiItem);
             }
@@ -1717,7 +1724,7 @@ void NodeView::goToInstance(Node *instance)
     addAspect("Assembly");
 
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(instance);
-    clearSelection();
+    clearSelection(false);
     appendToSelection(guiItem);
     centerItem(guiItem);
 }
@@ -1728,7 +1735,7 @@ void NodeView::goToInstance(Node *instance)
  */
 void NodeView::deleteSelection()
 {
-    //view_SetAttributeModel(0);
+    view_SetAttributeModel(0);
     view_Delete(selectedIDs);
 }
 

@@ -21,6 +21,8 @@ struct ActionItem{
     ACTION_TYPE actionType;
     GraphML::KIND actionKind;
     QString parentID;
+    QString itemLabel;
+    QString itemKind;
     QString srcID;
     QString dstID;
     QString ID;
@@ -28,13 +30,14 @@ struct ActionItem{
     QString dataValue;
     QString removedXML;
 
+    QString timestamp;
+
     //In the form KeyName, KeyType, KeyFor, Data Value, isProtected.
     QList<QStringList> dataValues;
     //In the form ID
     QList<QStringList> boundDataIDs;
     QList<QString> parentDataID;
 
-    QString boundDataID;
     QString actionName;
     int actionID;
 };
@@ -224,10 +227,12 @@ private:
     void reverseAction(ActionItem action);
 
     //Adds an ActionItem to the Undo/Redo Stack depending on the State of the application.
-    void addActionToStack(ActionItem action);
+    void addActionToStack(ActionItem action, bool addAction=true);
 
     //Undo's/Redo's all of the ActionItems in the Stack which have been performed since the last operation.
     void undoRedo(bool undo=true);
+
+    void logAction(ActionItem item);
 
     void clearHistory();
     Node* constructTypedNode(QString nodeKind, QString nodeType="", QString nodeLabel="");
@@ -267,6 +272,7 @@ private:
     QStack<ActionItem> undoActionStack;
     QStack<ActionItem> redoActionStack;
 
+    QString getTimeStamp();
     QString getDataValueFromKeyName(QList<GraphMLData*> dataList, QString keyName);
 
     //Provides a lookup for IDs.
@@ -310,7 +316,9 @@ private:
     bool CUT_USED;
     int actionCount;
     QString currentAction;
+    QFile* logFile;
     int currentActionID;
+
 
 
 

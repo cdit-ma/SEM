@@ -533,7 +533,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(setGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
-    connect(projectName, SIGNAL(clicked()), nodeView, SLOT(clearSelection()));
+
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
@@ -1112,7 +1112,11 @@ void MedeaWindow::updateDataTable()
     qreal height = 0;
     int vOffset = 0;
 
-    dataTable->setVisible(true);
+    if(tableModel){
+        dataTable->setVisible(true);
+    }else{
+        dataTable->setVisible(false);
+    }
 
     if (tableModel) {
         int rowCount = tableModel->rowCount() + 1;
@@ -1146,7 +1150,7 @@ void MedeaWindow::updateDataTable()
         dataTableBox->setMask(QRegion(0, 0, w, h, QRegion::Rectangle));
     }
 
-    if(dataTable->model() != 0){
+    if(tableModel){
         dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
         dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
         dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
