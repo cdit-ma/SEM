@@ -141,8 +141,7 @@ private:
     //Clears the Undo/Redo Action Stacks.
     void clearUndoRedoStacks();
 
-    //Get a list of all NodsortModele ID's
-    QStringList getNodeIDS();
+
 
     //Exports a Selection of Containers to export into GraphML
     QString _exportGraphMLDocument(QStringList nodeIDs, bool allEdges = false, bool GUI_USED=false);
@@ -180,6 +179,7 @@ private:
     bool destructNode(Node* node, bool addAction = true);
     bool destructEdge(Edge* edge, bool addAction = true);
 
+
     //Constructs a Vector of basic GraphMLData entities required for creating a Node.
     QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition = QPointF(0,0));
 
@@ -211,7 +211,8 @@ private:
     void setupManagementComponents();
 
     void enforceUniqueLabel(Node* node, QString newLabel = "");
-	void enforceUniqueSortOrder(Node* node, int position);
+    void enforceUniqueSortOrder(Node* node, int position =-1);
+
 
     //Returns true if the Model Entities can be connected.
     bool isEdgeLegal(Node* src, Node* dst);
@@ -268,12 +269,9 @@ private:
 
     QString getDataValueFromKeyName(QList<GraphMLData*> dataList, QString keyName);
 
-    //Provides a lookup for old IDs.
+    //Provides a lookup for IDs.
     QHash<QString, QString> IDLookupHash;
     QHash<QString, GraphML*> IDLookupGraphMLHash;
-
-    //The Element which is currently Centered
-    GraphML* centeredGraphML;
 
     //A list of Node's which are considered Containers, and aren't part of constructable Nodes.
     QStringList containerNodeKinds;
@@ -292,21 +290,15 @@ private:
     bool UNDOING;
     bool REDOING;
 
-    bool KEY_CONTROL_DOWN;
-    bool KEY_SHIFT_DOWN;
-
-    qreal HIDDEN_OPACITY;
-
     Model* model;
+
     Node* behaviourDefinitions;
     Node* deploymentDefinitions;
     Node* interfaceDefinitions;
     Node* hardwareDefinitions;
     Node* assemblyDefinitions;
-    QList<Node*> immutableContainerNodes;
 
 
-    //ManagementNodes
     QHash<QString, ManagementComponent*> managementComponents;
     QHash<QString, HardwareNode*> hardwareNodes;
     QHash<QString, HardwareCluster*> hardwareClusters;
@@ -315,7 +307,6 @@ private:
 
     QStringList deleteIDs;
 
-    bool DELETING;
     bool CUT_USED;
     int actionCount;
     QString currentAction;

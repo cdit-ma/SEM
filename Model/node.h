@@ -39,21 +39,19 @@ public:
     virtual bool canAdoptChild(Node *node);
 
     //Adds the Node provided to the list of children.
-    void addChild(Node *child, int position = -1);
+    void addChild(Node *child);
 
     bool containsChild(Node* child);
 
-    int getNextOrderNumber();
-
-    bool swapChildPositions(int pos1, int pos2);
-
-    //Gets the Children of this Node to a desired Depth.
+     //Gets the Children of this Node to a desired Depth.
     //-1 = Recurse forever.
     QList<Node *> getChildren(int depth =-1);
 
+    QList<Node *> getSiblings();
+
     QList<Node *> getChildrenOfKind(QString kindStr, int depth =-1);
 
-    Node* getChild(int position);
+    //Node* getChild(int position);
 
 
     int childrenCount();
@@ -135,7 +133,7 @@ private:
     void setParentNode(Node* parent);
 
 
-
+    QList<Node*> getOrderedChildNodes();
 
     int sortOrder;
 
@@ -148,7 +146,8 @@ private:
     QList<Node*> implementations;
 
     //The list of contained children GraphML elements. (Top level only)
-    QMap<int,Node*> orderedChildren;
+    //QMap<int,Node*> orderedChildren;
+    QList<Node*> children;
 
     //The list of contained Edge elements in this graph. (Top level only)
     QList<Edge *> edges;

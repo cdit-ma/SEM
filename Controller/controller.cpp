@@ -12,13 +12,8 @@ bool SETUP_AS_IMPL = false;
 NewController::NewController()
 {
     UNDOING = false;
-    DELETING = false;
     REDOING = false;
     CUT_USED = false;
-    KEY_CONTROL_DOWN = false;
-    KEY_SHIFT_DOWN = false;
-    HIDDEN_OPACITY = 0.10;
-
     model = 0;
 
     //Construct
@@ -33,8 +28,6 @@ NewController::NewController()
     currentAction = "";
 
 
-    centeredGraphML = 0;
-
     viewAspects << "Assembly" << "Workload" << "Definitions" << "Hardware";
     protectedKeyNames << "x" << "y" << "kind"; //<< "width" << "height";
 
@@ -48,7 +41,7 @@ NewController::NewController()
     definitionNodeKinds << "Member" << "Aggregate";
     definitionNodeKinds << "InEventPort"  << "OutEventPort";
     definitionNodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
-    //definitionNodeKinds << "AggregateInstance" << "MemberInstance";
+    definitionNodeKinds << "AggregateInstance";
     definitionNodeKinds << "ComponentImpl";
 
 
@@ -128,7 +121,7 @@ void NewController::initializeModel()
 
 NewController::~NewController()
 {
-    DELETING = true;
+    //DELETING = true;
     destructNode(model, false);
 
 
@@ -178,9 +171,7 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
 
     foreach(QString ID, nodeIDs){
         Node* node = getNodeFromID(ID);
-        if(!node){
-            qCritical() << "Dead Node";
-        }
+
         foreach(Edge* edge, node->getEdges()){
             Node* src = (Node*) edge->getSource();
             Node* dst = (Node*) edge->getDestination();
@@ -267,10 +258,6 @@ QStringList NewController::getConstructableNodeKinds()
     return constructableNodeKinds;
 }
 
-QStringList NewController::getNodeIDS()
-{
-    return nodeIDs;
-}
 
 
 void NewController::exportGraphMLDocument()
@@ -345,17 +332,17 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
         if(keyName == "label"){
             Node* node = dynamic_cast<Node*>(parent);
             enforceUniqueLabel(node, dataValue);
+
  		}else if(keyName == "sortOrder"){
             Node* node = dynamic_cast<Node*>(parent);
-            if(dataValue != "-1"){
-                enforceUniqueSortOrder(node, dataValue.toInt());
-                QString newSortOrder = node->getDataValue("sortOrder");
+            enforceUniqueSortOrder(node, dataValue.toInt());
+            QString newSortOrder = node->getDataValue("sortOrder");
 
-                if(action.dataValue == newSortOrder){
-                    //Don't add an action for the initial setting!
-                    addAction = false;
-                }
+            if(action.dataValue == newSortOrder){
+                //Don't add an action for the initial setting!
+                addAction = false;
             }
+
         }else{
             data->setValue(dataValue);
         }
@@ -372,9 +359,9 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
 
 void NewController::attachGraphMLData(GraphML *parent, GraphMLData *data, bool addAction)
 {
-    if(DELETING){
-        return;
-    }
+    //if(DELETING){
+    //    return;
+    //}
     if(!parent){
         qCritical() << "attachGraphMLData() Parent is NULL!";
         return;
@@ -391,6 +378,7 @@ void NewController::attachGraphMLData(GraphML *parent, GraphMLData *data, bool a
     action.actionType = CONSTRUCTED;
     action.actionKind = GraphML::DATA;
     action.keyName = data->getKeyName();
+
 
     parent->attachData(data);
 
@@ -528,7 +516,6 @@ void NewController::copy(QStringList selectedIDs)
     }
 
     CUT_USED = false;
-
     //Export the GraphML for those Nodes.
     QString result = _exportGraphMLDocument(selectedIDs, false, true);
 
@@ -540,7 +527,6 @@ void NewController::cut(QStringList selectedIDs)
 {
     //Run Copy
     if(canCopyIDs(selectedIDs)){
-        CUT_USED = true;
         controller_ViewSetEnabled(false);
 
         triggerAction("Cutting Selected IDs");
@@ -549,7 +535,7 @@ void NewController::cut(QStringList selectedIDs)
         deleteSelection(selectedIDs);
 
         controller_ViewSetEnabled(true);
-
+        CUT_USED = true;
     }
 }
 
@@ -607,6 +593,7 @@ void NewController::paste(Node *parentNode, QString xmlData)
 
         if(parentNode){
             triggerAction("Pasting Selection.");
+            qCritical() << "CUT USED: " << CUT_USED;
             _importGraphMLXML(xmlData, parentNode, CUT_USED);
             CUT_USED = false;
         }
@@ -887,17 +874,13 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
 
     if(!isGraphMLInModel(node)){
         if(parentNode->canAdoptChild(node)){
-            //Adopt the Node.
- 			//Get the ID.
-            int sortPosition = parentNode->getNextOrderNumber();
-            parentNode->addChild(node, sortPosition);
+            parentNode->addChild(node);
 
-            //Update the SortOrder Data.
-            //Force Unique labels.
+            //Force Unique labels and Sort Order. Can only happen after adoption.
             enforceUniqueLabel(node);
-            //Build gui
+            enforceUniqueSortOrder(node);
+
             constructNodeGUI(node);
-            setGraphMLData(node, "sortOrder", QString::number(sortPosition));
         }else{
             delete node;
             return 0;
@@ -940,7 +923,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     data.append(new GraphMLData(widthKey, "0"));
     data.append(new GraphMLData(heightKey, "0"));
     data.append(new GraphMLData(labelKey, labelString));
-	data.append(new GraphMLData(sortKey, "-1"));
+    data.append(new GraphMLData(sortKey, "-1"));
 
 
     //Attach Node Specific Data.
@@ -1122,104 +1105,129 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
 
 
 
-void NewController::enforceUniqueLabel(Node *node, QString newLabel)
+void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
 {
-    if(node){
-        if(newLabel == ""){
-            newLabel = node->getDataValue("label");
-        }
+    if(!node){
+        return;
+    }
 
-        QString originalLabel = newLabel;
-        Node* parentNode = node->getParentNode();
-        if(parentNode){
+    Node* parentNode = node->getParentNode();
 
-            int sameLabelCount = 0;
-            foreach(Node* childNode, parentNode->getChildren(0)){
-                if(childNode == node){
-                    continue;
+    if(nodeLabel == ""){
+        nodeLabel = node->getDataValue("label");
+    }
+
+    int maxNumber = -1;
+    QList<int> sameLabelNumbers;
+
+    //If we have no parent node we don't need to enforce unique labels.
+    if(parentNode){
+        foreach(Node* siblingNode, parentNode->getChildren(0)){
+            if(siblingNode == node){
+                //Don't force uniquity on self.
+                continue;
+            }
+            QString siblingLabel = siblingNode->getDataValue("label");
+
+            if(siblingLabel == nodeLabel){
+                sameLabelNumbers << 0;
+                if(0 > maxNumber){
+                    maxNumber = 0;
                 }
-                QString childLabel = childNode->getDataValue("label");
+            }else if(siblingLabel.startsWith(nodeLabel)){
+                //If sibling's label begins with nodeLabel, check for underscores and numbers for uniquity.
+                QString labelRemainder = siblingLabel.right(siblingLabel.size() - nodeLabel.size());
 
-                //Check for exact equal
-                if(childLabel == newLabel){
-                    sameLabelCount++;
-                }
-                //Check for label_XXX
-                else if(childLabel.startsWith(newLabel)){
-                    QString remaining = childLabel.right(childLabel.size() - newLabel.size());
-                    if(remaining.size() > 1 && remaining.contains("_")){
-                        QString number = remaining.right(remaining.size() - 1);
-                        bool isNumber= false;
-                        number.toInt(&isNumber);
-                        if(isNumber){
-                            sameLabelCount ++;
+                if(labelRemainder.startsWith("_") && labelRemainder.count("_") == 1){
+                    labelRemainder = labelRemainder.right(labelRemainder.size() - 1);
+
+                    bool isInt;
+                    int number = labelRemainder.toInt(&isInt);
+                    if(isInt && number > 0){
+                        if(number > maxNumber){
+                            maxNumber = number;
                         }
+                        sameLabelNumbers << number;
                     }
                 }
             }
-            if(sameLabelCount > 0){
-                newLabel = newLabel + QString("_%1").arg(sameLabelCount);
-            }
         }
-
-
-        node->updateDataValue("label", newLabel);
-
-
     }
+    int labelID = 0;
+
+
+    for(labelID; labelID <= maxNumber; labelID++){
+        if(!sameLabelNumbers.contains(labelID)){
+            break;
+        }
+    }
+
+    if(labelID > 0){
+        nodeLabel += QString("_%1").arg(labelID);
+    }
+
+
+     node->updateDataValue("label", nodeLabel);
 }
 
 void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
 {
+    if(!node){
+        return;
+    }
+
     Node* parentNode = node->getParentNode();
 
     if(parentNode){
-        //Get the original value for sortOrder.
-        int originalPosition = node->getDataValue("sortOrder").toInt();
+        bool toInt;
+        int maxSortOrder = parentNode->childrenCount() -1;
+
+        int originalPosition = node->getDataValue("sortOrder").toInt(&toInt);
+
+        //Got original Position.
+        if(originalPosition == -1){
+            originalPosition = parentNode->childrenCount() - 1;
+        }
+
+        //If newPosition == -1 and originalPosition == -1 we should set the sort Order to the next child size.
+        if(newPosition == -1){
+            newPosition = originalPosition;
+        }
+
 
         //Bound the new value for sortOrder based on the parent size.
         if(newPosition >= parentNode->childrenCount()){
             newPosition = parentNode->childrenCount() - 1;
         }
 
+        //Bound the new value for sortOrder base on minimum  children
         if(newPosition < 0){
             newPosition = 0;
-        }
-
-
-        //If we haven't set the position yet, just update the value.
-        if(originalPosition == -1){
-            node->updateDataValue("sortOrder", QString::number(newPosition));
-            return;
         }
 
         int lowerPos = qMin(originalPosition, newPosition);
         int upperPos = qMax(originalPosition, newPosition);
 
-        //Go from top to bottom
+        //If we are updating. refactor.
+        if(originalPosition == newPosition){
+            lowerPos = originalPosition;
+            upperPos = maxSortOrder;
+        }
+
+        int modifier = 1;
         if(newPosition > originalPosition){
-            for(int i = lowerPos; i < upperPos; i ++){
-                Node* lowerNode = parentNode->getChild(i);
-                Node* upperNode = parentNode->getChild(i+1);
-                if(upperNode && lowerNode){
-                    parentNode->swapChildPositions(i, i + 1);
-                    lowerNode->updateDataValue("sortOrder", QString::number(i+1));
-                    upperNode->updateDataValue("sortOrder", QString::number(i));
-                }
-            }
-            //Swap UP
-        }else{
-            for(int i = upperPos; i > lowerPos; i --){
-                Node* lowerNode = parentNode->getChild(i);
-                Node* upperNode = parentNode->getChild(i-1);
-                if(upperNode && lowerNode){
-                    parentNode->swapChildPositions(i, i - 1);
-                    lowerNode->updateDataValue("sortOrder", QString::number(i-1));
-                    upperNode->updateDataValue("sortOrder", QString::number(i));
-                }
+            modifier = -1;
+        }
+
+        bool isInt;
+        foreach(Node* sibling, node->getSiblings()){
+            int currentPos = sibling->getDataValue("sortOrder").toInt(&isInt);
+            if(isInt && currentPos >= lowerPos && currentPos <= upperPos){
+                sibling->updateDataValue("sortOrder", QString::number(currentPos + modifier));
             }
         }
     }
+    node->updateDataValue("sortOrder", QString::number(newPosition));
 }
 
 bool NewController::destructNode(Node *node, bool addAction)
@@ -1260,7 +1268,20 @@ bool NewController::destructNode(Node *node, bool addAction)
     QString ID = node->getID();
 
 
-    //DEAL WITH THE WIERD CASE OF DELETEEDGE.
+
+    bool toInt;
+    int nodePos = node->getDataValue("sortOrder").toInt(&toInt);
+    //Update sort order for silbings.
+    if(toInt){
+        foreach(Node* sibling, node->getSiblings()){
+            int siblingPos = sibling->getDataValue("sortOrder").toInt(&toInt);
+            if(toInt){
+                if(siblingPos > nodePos){
+                    sibling->updateDataValue("sortOrder", QString::number(siblingPos-1));
+                }
+            }
+        }
+    }
 
     if(addAction){
         //Export only if we are add this node to reverse state.
@@ -1923,10 +1944,12 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
         def_Label->bindData(child_Label);
     }else{
         //Set the value.
-        if(child->isImpl()){
-            setGraphMLData(child, "label", def_Label->getValue() + "_Impl");
-        }else{
-            setGraphMLData(child, "label", def_Label->getValue() + "_Inst");
+        if(child->wasGenerated()){
+            if(child->isImpl()){
+                setGraphMLData(child, "label", def_Label->getValue() + "_Impl");
+            }else{
+                setGraphMLData(child, "label", def_Label->getValue() + "_Inst");
+            }
         }
     }
 }
@@ -2529,6 +2552,12 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 //Construct a GraphMLData object out of the xml, using the key found in keyLookup
                 GraphMLData *data = new GraphMLData(keyLookup[keyID], dataValue);
 
+                //If we aren't linking the ID's we don't need to maintain sortOrder!
+                if(!linkID && data->getKeyName() == "sortOrder"){
+                    delete data;
+                    continue;
+                }
+
                 //Attach the data to the current object.
                 switch(nowInside){
                 //Attach the Data to the TempEdge if we are currently inside an Edge.
@@ -2544,11 +2573,9 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 }
                 default:
                     //Delete the newly constructed object. We don't need it
-                    delete(data);
+                    delete data;
                 }
-            }
-            if(xml.isEndElement()){
-            }
+            }            
         }else if(tagName == "key"){
             if(xml.isStartElement()){
                 nowInside = GraphML::KEY;

@@ -81,44 +81,19 @@ bool Node::canAdoptChild(Node *node)
     return true;
 }
 
-void Node::addChild(Node *child, int position)
+void Node::addChild(Node *child)
 {
     if(child && !containsChild(child)){
-        if(orderedChildren.contains(position)){
-#ifdef DEBUG_MODE
-            qWarning() << "Node::addChild() Got Node at position " << position;
-#endif
-            return;
-        }
-        orderedChildren.insert(position, child);
+        children << child;
         child->setParentNode(this);
     }
 }
 
 bool Node::containsChild(Node *child)
 {
-    return orderedChildren.values().contains(child);
+    return children.contains(child);
 }
 
-int Node::getNextOrderNumber()
-{
-    return orderedChildren.size();
-}
-
-bool Node::swapChildPositions(int pos1, int pos2)
-{
-    if(pos1 == pos2){
-        return true;
-    }
-    if(orderedChildren.contains(pos1) && orderedChildren.contains(pos2)){
-        Node* pos1Node = orderedChildren.take(pos1);
-        Node* pos2Node = orderedChildren.take(pos2);
-        orderedChildren.insert(pos1, pos2Node);
-        orderedChildren.insert(pos2, pos1Node);
-        return true;
-    }
-    return false;
-}
 
 
 
@@ -126,10 +101,7 @@ QList<Node *> Node::getChildren(int depth)
 {
     QList<Node *> childList;
 
-    //Add direct Children
-    //childList += children;
-    childList += orderedChildren.values();
-
+    childList += getOrderedChildNodes();
     //While we still have Children, Recurse
     if(depth != 0){
         //Add children's children.
@@ -138,6 +110,19 @@ QList<Node *> Node::getChildren(int depth)
         }
     }
 
+    return childList;
+}
+
+QList<Node *> Node::getSiblings()
+{
+    QList<Node *> childList;
+    if(getParentNode()){
+        foreach(Node* sibling, getParentNode()->getChildren(0)){
+            if(sibling!= this){
+                childList << sibling;
+            }
+        }
+    }
     return childList;
 }
 
@@ -154,6 +139,7 @@ QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
     return returnableList;
 }
 
+/*
 Node *Node::getChild(int position)
 {
     if(orderedChildren.contains(position)){
@@ -162,9 +148,10 @@ Node *Node::getChild(int position)
     return 0;
 }
 
+*/
 int Node::childrenCount()
 {
-    return orderedChildren.size();
+    return children.size();
 }
 
 int Node::edgeCount()
@@ -175,16 +162,13 @@ int Node::edgeCount()
 void Node::removeChild(Node *child)
 {
     if(child){
-        int key = orderedChildren.key(child, -1);
-        if(key != -1){
-            orderedChildren.remove(key);
-        }
+        children.removeAll(child);
     }
 }
 
 void Node::removeChildren()
 {
-    orderedChildren.clear();
+    children.clear();\
 }
 
 bool Node::ancestorOf(Node *node)
@@ -451,4 +435,17 @@ void Node::removeEdge(Edge *edge)
 void Node::setParentNode(Node *parent)
 {
     parentNode = parent;
+}
+
+QList<Node *> Node::getOrderedChildNodes()
+{
+    QMap<QString, Node*> orderedList;
+
+    foreach(Node* child, children){
+        QString sortID = child->getDataValue("sortOrder");
+        orderedList.insertMulti(sortID, child);
+    }
+    return orderedList.values();
+
+
 }
