@@ -88,9 +88,7 @@ signals:
     void view_ConstructComponentInstance(Node* parent, Node* definition, QPointF position);
     void view_ClearHistoryStates();
 
-
- // new signals for docks
-	void setGoToMenuActions(QString action, bool);
+    // signals for the docks
     void view_enableDocks(bool enable);
     void view_nodeConstructed(NodeItem* nodeItem);
     void view_nodeSelected(Node* node);
@@ -98,7 +96,11 @@ signals:
     void view_edgeConstructed();
     void view_edgeDestructed();
 
-    void view_ToggleGridLines(bool on);
+    // signals for MEDEA menu
+    void view_updateGoToMenuActions(QString action, bool enable);
+    void view_showWindowToolbar();
+
+    void view_toggleGridLines(bool on);
 
 public slots:
     void snapToGrid();
@@ -238,7 +240,7 @@ private:
 
     QStringList allAspects;
 
-    QPointF menuPosition;
+    QPointF toolbarPosition;
 
     QStringList currentAspects;
     QRubberBand* rubberBand;
@@ -280,7 +282,7 @@ private:
     bool GRID_LINES_ON;
     bool SELECT_ON_CONSTRUCTION;
 
-    bool constructedFromToolbar;
+    bool constructedFromImport;
     bool toolbarJustClosed;
 
 

@@ -31,7 +31,7 @@
 
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
-    constructedFromToolbar = false;
+    constructedFromImport = true;
     CENTRALIZED_ON_ITEM = false;
     IS_SUB_VIEW = subView;
     controller = 0;
@@ -41,12 +41,11 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
 
-    AUTO_CENTER_ASPECTS = true;
-    GRID_LINES_ON = true;
-    SELECT_ON_CONSTRUCTION = true;
+    //AUTO_CENTER_ASPECTS = true;
+    //GRID_LINES_ON = true;
+    //SELECT_ON_CONSTRUCTION = true;
 
     setScene(new QGraphicsScene(this));
-
 
     //Set QT Options for this QGraphicsView
     setDragMode(ScrollHandDrag);
@@ -78,8 +77,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     defaultAspects << "Assembly";
 
-    nonDrawnItemKinds << "DeploymentDefinitions";// << "HardwareDefinitions";
-
+    nonDrawnItemKinds << "DeploymentDefinitions";
 
     //create toolbar widget
     toolbar = new ToolbarWidget(this);
@@ -519,22 +517,27 @@ void NodeView::centerOnItem()
 
 
 /**
- * @brief NodeView::showContextMenu
- * This is called when there is a mouse right-click event on a node item.
+ * @brief NodeView::showToolbar
+ * This is called when there is a mouse right-click event.
+ * It show/hides the context or window toolbar depending on where the right click happened.
  * @param position
  */
 void NodeView::showToolbar(QPoint position)
 {
 	// use mouse click position when constructing node items from toolbar
     QPoint globalPos = mapToGlobal(position);
-    menuPosition = mapToScene(position);
+    toolbarPosition = mapToScene(position);
 
-    // update toolbar position and connect selected node item
+    // when a painted nodeitem is selected, show context toolbar
     NodeItem* nodeItem = getNodeItemFromNode(getSelectedNode());
-    if (nodeItem && nodeItem->isPainted()) {
+    if (nodeItem && nodeItem->isPainted() && nodeItem->sceneBoundingRect().contains(toolbarPosition)) {
+        // update toolbar position and connect selected node item
         toolbar->setNodeItem(nodeItem);
         toolbar->move(globalPos);
         toolbar->show();
+    } else {
+        // show/hide MEDEA toolbar
+        view_showWindowToolbar();
     }
 }
 
@@ -583,19 +586,20 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     // send/do necessary signals/updates when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
 
-
-    if (SELECT_ON_CONSTRUCTION && constructedFromToolbar) {
+    // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
+    // the node's label is automatically selected and editable
+    if (SELECT_ON_CONSTRUCTION && !constructedFromImport) {
         clearSelection(true, false);
         appendToSelection(nodeItem);
         centerOnItem();
         nodeItem->setNewLabel();
     }
 
-    if(constructedFromToolbar){
-        //nodeItem->setNewLabel();
-        constructedFromToolbar = false;
+    // only do the SELECT_ON_CONSTRUCTION stuff if the node was constructed
+    // using the dock/toolbar and not from GraphML import - reset check
+    if (!constructedFromImport) {
+        constructedFromImport = true;
     }
-
 }
 
 
@@ -699,11 +703,11 @@ void NodeView::constructNode(QString nodeKind, int sender)
 
     NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
     if (selectedItem) {
-        constructedFromToolbar = true;
+        constructedFromImport = false;
         if (sender == 0) {
             view_ConstructNode(getSelectedNode(), nodeKind, selectedItem->getNextChildPos());
         } else if (sender == 1) {
-            view_ConstructNode(getSelectedNode(), nodeKind, selectedItem->mapFromScene(menuPosition));
+            view_ConstructNode(getSelectedNode(), nodeKind, selectedItem->mapFromScene(toolbarPosition));
         }
     }
 }
@@ -743,7 +747,7 @@ void NodeView::constructComponentInstance(Node* assm, Node* defn, int sender)
             NodeItem *nodeItem = getNodeItemFromGraphMLItem(graphMLItem);
             view_ConstructComponentInstance(assembly, definition, nodeItem->getNextChildPos());
         } else if (sender == 1) {
-            view_ConstructComponentInstance(assembly, definition, graphMLItem->mapFromScene(menuPosition));
+            view_ConstructComponentInstance(assembly, definition, graphMLItem->mapFromScene(toolbarPosition));
         }
 
     }
@@ -770,7 +774,7 @@ void NodeView::constructConnectedNode(Node *parentNode, Node *node, QString kind
             view_ConstructConnectedComponents(parentNode, node, kind, nodeItem->getNextChildPos());
         } else if (sender == 1) {
             //qCrutucal() << nodeItem->getGraphML()->toString();
-            view_ConstructConnectedComponents(parentNode, node, kind, graphMLItem->mapFromScene(menuPosition));
+            view_ConstructConnectedComponents(parentNode, node, kind, graphMLItem->mapFromScene(toolbarPosition));
         }
     }
 }
@@ -789,7 +793,7 @@ void NodeView::constructEventPortDelegate(Node *assm, Node *eventPortInstance)
     if (assembly) {
         GraphMLItem *graphMLItem = getGraphMLItemFromGraphML(assembly);
         QString portKind = eventPortInstance->getDataValue("kind") + "Delegate";
-        view_ConstructConnectedComponents(assm, eventPortInstance,portKind, graphMLItem->mapFromScene(menuPosition));
+        view_ConstructConnectedComponents(assm, eventPortInstance,portKind, graphMLItem->mapFromScene(toolbarPosition));
     }
 }
 
@@ -918,7 +922,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
                 connect(nodeItem, SIGNAL(NodeItem_SortModel()), this, SLOT(sortModel()));
                 connect(nodeItem, SIGNAL(NodeItem_MoveFinished()), this, SLOT(moveFinished()));
                 connect(nodeItem, SIGNAL(NodeItem_ResizeFinished()), this, SLOT(resizeFinished()));
-                connect(this, SIGNAL(view_ToggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
+                connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
             }
         }else{
             //Specific SubView Functionality.
@@ -1006,8 +1010,8 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
         Node* hasImpl = hasImplementation(node);
 
         // update goto menu actions
-        emit setGoToMenuActions("definition", hasDefn);
-        emit setGoToMenuActions("implementation", hasImpl);
+        emit view_updateGoToMenuActions("definition", hasDefn);
+        emit view_updateGoToMenuActions("implementation", hasImpl);
 
         // update goto toolbar buttons
         toolbar->showDefinitionButton(hasDefn);
@@ -1039,10 +1043,7 @@ void NodeView::nodeDestructed_signalUpdates()
  */void NodeView::nodeConstructed_signalUpdates(NodeItem *nodeItem)
 {
     emit view_nodeConstructed(nodeItem);
-
     nodeItem->toggleGridLines(GRID_LINES_ON);
-
-
 }
 
 
@@ -1062,8 +1063,8 @@ void NodeView::edgeConstructed_signalUpdates(Node *src)
     toolbar->showImplementationButton(hasImpl);
 
     // update node goto menu actions
-    emit setGoToMenuActions("definition", hasDefn);
-    emit setGoToMenuActions("implementation", hasImpl);
+    emit view_updateGoToMenuActions("definition", hasDefn);
+    emit view_updateGoToMenuActions("implementation", hasImpl);
 }
 
 /**
@@ -1532,6 +1533,7 @@ void NodeView::clearSelection(bool updateTable, bool fullClear)
         return;
     }
 
+    // update docks
     emit view_nodeSelected(0);
 }
 
@@ -1586,7 +1588,7 @@ void NodeView::resetModel()
 void NodeView::toggleGridLines(bool gridOn)
 {
     GRID_LINES_ON = gridOn;
-    emit view_ToggleGridLines(GRID_LINES_ON);
+    emit view_toggleGridLines(GRID_LINES_ON);
 }
 
 

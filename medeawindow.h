@@ -52,10 +52,11 @@ signals:
     void window_AspectsChanged(QStringList aspects);
     void window_SortModel();
 
-    //void updateToolbarAdoptableNodesList(QStringList nodeList);
-    void setupViewLayout();
     void checkDockScrollBar();
     void clearDocks();
+
+public slots:
+    void setupDefaultSettings();
 
 private slots:
     void loadJenkinsData(int code);
@@ -88,26 +89,26 @@ private slots:
     void dockButtonPressed(QString buttonName);
 
     void setViewAspects(QStringList aspects);
-    void sortAndCenterViewAspects();
     void updateViewAspects();
 
-    void setGoToMenuActions(QString action, bool enabled);
+    void setGoToMenuActions(QString action, bool enable);
 
+    void showWindowToolbar();
 
 private:
+    void resetGUI();
     void resetView();
     void newProject();
-    bool exportProject();
-    void importProjects(QStringList files);
     void initialiseGUI();
     void makeConnections();
+    void setupController();
     void setupJenkinsSettings();
     void setupMenu(QPushButton* button);
     void setupDock(QHBoxLayout* layout);
     void setupToolbar();
-    void setupController();
-    void resetGUI();
     void updateDataTable();
+    bool exportProject();
+    void importProjects(QStringList files);
 
     QMenu* menu;
     QMenu* file_menu;

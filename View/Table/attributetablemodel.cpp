@@ -87,6 +87,14 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
     if (index.row() >= attachedData.size() || index.row() < 0)
         return QVariant();
 
+    // center align the Values column
+    if (role == Qt::TextAlignmentRole) {
+        switch(index.column()){
+        case 2:
+            return Qt::AlignCenter;
+        }
+    }
+
     if (role == Qt::DecorationRole) {
         GraphMLData* data = attachedData.at(index.row());
         switch(index.column()){
@@ -107,7 +115,6 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
         }
     }
 
-
     if (role == Qt::DisplayRole) {
         GraphMLData* data = attachedData.at(index.row());
 
@@ -116,7 +123,8 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
             return QVariant();
             break;
         case 1:
-            return data->getKey()->getName();
+            // added ":" after each key
+            return data->getKey()->getName() + ":";
         case 2:
             return data->getValue();
         default:
@@ -181,13 +189,13 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
         return v;
     }
 
+
     return QVariant();
 
 }
 
 QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-
     if (role != Qt::DisplayRole)
         return QVariant();
 

@@ -31,7 +31,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     controller = 0;
     myProcess = 0;
     minimap = 0;
-    //checkedViewAspects.clear();;
 
     setupJenkinsSettings();
 
@@ -39,9 +38,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseGUI();
     makeConnections();
     newProject();
-
-    // this only needs to happen once, the whole time the application is open
-    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
 
     /*
     // this is used for when a file is dragged and dropped on top of this tool's icon
@@ -198,7 +194,6 @@ void MedeaWindow::initialiseGUI()
     nodeView->setLayout(mainHLayout);
 
     // setup mini map
-
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
 
@@ -212,7 +207,6 @@ void MedeaWindow::initialiseGUI()
     minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
 
     rightVlayout->addWidget(minimap);
-
 
     // other settings
     assemblyButton->setCheckable(true);
@@ -298,11 +292,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     // setup toggle actions
     view_autoCenterView->setCheckable(true);
-    view_autoCenterView->setChecked(true);
     view_showGridLines->setCheckable(true);
-    view_showGridLines->setChecked(true);
     view_selectOnConstruction->setCheckable(true);
-    view_selectOnConstruction->setChecked(true);
 
     // initially disable model & goto menu actions
     model_validateModel->setEnabled(false);
@@ -377,6 +368,7 @@ void MedeaWindow::setupToolbar()
 {
     QSize buttonSize = QSize(46,40);
 
+    //toolbar->setContentsMargins(0,0,0,0);
     toolbar->setIconSize(buttonSize*0.6);
     toolbar->setStyleSheet("QToolButton{"
                            "border: 1px solid grey;"
@@ -439,17 +431,14 @@ void MedeaWindow::setupToolbar()
     QWidget* spacerWidget2 = new QWidget();
     QWidget* spacerWidget3 = new QWidget();
     QWidget* spacerWidget4 = new QWidget();
-    QWidget* spacerWidget5 = new QWidget();
-    QWidget* spacerWidget6 = new QWidget();
+    int spacerWidth = 3;
 
     spacerWidgetLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidgetRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    spacerWidget1->setFixedWidth(5);
-    spacerWidget2->setFixedWidth(5);
-    spacerWidget3->setFixedWidth(5);
-    spacerWidget4->setFixedWidth(5);
-    spacerWidget5->setFixedWidth(5);
-    spacerWidget6->setFixedWidth(5);
+    spacerWidget1->setFixedWidth(spacerWidth);
+    spacerWidget2->setFixedWidth(spacerWidth);
+    spacerWidget3->setFixedWidth(spacerWidth);
+    spacerWidget4->setFixedWidth(spacerWidth);
 
     toolbar->addWidget(spacerWidgetLeft);
     toolbar->addWidget(cutButton);
@@ -468,15 +457,12 @@ void MedeaWindow::setupToolbar()
     toolbar->addWidget(sortButton);
     toolbar->addWidget(snapChildrenToGridButton);
     toolbar->addWidget(snapToGridButton);
-    //toolbar->addWidget(spacerWidget5);
-    //toolbar->addSeparator();
-    //toolbar->addWidget(spacerWidget6);
-    //toolbar->addWidget(popupButton);
     toolbar->addWidget(spacerWidgetRight);
 
+    //toolbar->addWidget(popupButton);
     popupButton->hide();
 
-    toolbar->setFixedSize(toolbar->contentsRect().width(), buttonSize.height()+10);
+    toolbar->setFixedSize(toolbar->contentsRect().width(), buttonSize.height()+spacerWidth);
 }
 
 
@@ -518,8 +504,6 @@ void MedeaWindow::setupController()
 void MedeaWindow::resetGUI()
 {
     prevPressedButton = 0;
-
-
     setupController();
 }
 
@@ -530,10 +514,10 @@ void MedeaWindow::resetGUI()
  */
 void MedeaWindow::makeConnections()
 {
-    connect(this, SIGNAL(setupViewLayout()), this, SLOT(sortAndCenterViewAspects()));
     connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
     connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setViewAspects(QStringList)));
-    connect(nodeView, SIGNAL(setGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
+    connect(nodeView, SIGNAL(view_updateGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
+    connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
 
@@ -647,20 +631,6 @@ void MedeaWindow::editMultiLineData(GraphMLData *data)
 
 
 /**
- * @brief MedeaWindow::sortAndCenterModel
- * This force sorts the main definitions containers before they are hidden.
- * The visible view aspect(s) is then centered.
- */
-void MedeaWindow::sortAndCenterViewAspects()
-{
-    if (nodeView) {
-        nodeView->centerAspects();
-        nodeView->fitToScreen();
-    }
-}
-
-
-/**
  * @brief MedeaWindow::setupJenkinsSettings
  */
 void MedeaWindow::setupJenkinsSettings()
@@ -674,6 +644,27 @@ void MedeaWindow::setupJenkinsSettings()
     JENKINS_USERNAME = Settings.value("JENKINS_USERNAME").toString();
     JENKINS_PASSWORD = Settings.value("JENKINS_PASSWORD").toString();
     Settings.endGroup();
+}
+
+
+/**
+ * @brief MedeaWindow::setupDefaultSettings
+ * This force sorts and centers the definitions containers before they are hidden.
+ * It also sets the default values for toggle menu actions and populates the parts dock.
+ */
+void MedeaWindow::setupDefaultSettings()
+{
+    view_autoCenterView->setChecked(true);
+    view_showGridLines->setChecked(true);
+    view_selectOnConstruction->setChecked(true);
+
+    if (nodeView) {
+        nodeView->centerAspects();
+        nodeView->fitToScreen();
+    }
+
+    // this only needs to happen once, the whole time the application is open
+    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
 }
 
 
@@ -996,12 +987,26 @@ void MedeaWindow::setViewAspects(QStringList aspects)
  * @param action
  * @param node
  */
-void MedeaWindow::setGoToMenuActions(QString action, bool enabled)
+void MedeaWindow::setGoToMenuActions(QString action, bool enable)
 {
     if (action == "definition") {
-        view_goToDefinition->setEnabled(enabled);
+        view_goToDefinition->setEnabled(enable);
     } else if (action == "implementation") {
-        view_goToImplementation->setEnabled(enabled);
+        view_goToImplementation->setEnabled(enable);
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::showWindowToolbar
+ * Show/hide the window toolbar when the user right clicks on a !PAINTED item or the view.
+ */
+void MedeaWindow::showWindowToolbar()
+{
+    if (toolbar->isVisible()) {
+        toolbar->hide();
+    } else {
+        toolbar->show();
     }
 }
 
@@ -1112,21 +1117,20 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
 void MedeaWindow::updateDataTable()
 {
     QAbstractItemModel* tableModel = dataTable->model();
-    qreal height = 0;
-    int vOffset = 0;
 
     if(tableModel){
         dataTable->setVisible(true);
     }else{
         dataTable->setVisible(false);
+        return;
     }
 
-    if (tableModel) {
-        int rowCount = tableModel->rowCount() + 1;
-        for (int i = 0; i < rowCount; i++) {
-            height += dataTable->rowHeight(i);
-        }
-        vOffset = dataTable->verticalHeader()->size().width() + 21;
+    int rowCount = tableModel->rowCount() + 1;
+    int vOffset = dataTable->verticalHeader()->size().width() + 21;
+    double height = 0;
+
+    for (int i = 0; i < rowCount; i++) {
+        height += dataTable->rowHeight(i);
     }
 
     int maxHeight = dataTableBox->height();
@@ -1153,11 +1157,11 @@ void MedeaWindow::updateDataTable()
         dataTableBox->setMask(QRegion(0, 0, w, h, QRegion::Rectangle));
     }
 
-    if(tableModel){
-        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-        dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-    }
+    // center the contents of the Values column
+    tableModel->setData(tableModel->index(0,2), Qt::TextAlignmentRole);
+    dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
 }
 
 
@@ -1173,7 +1177,7 @@ void MedeaWindow::loadJenkinsData(int code)
 
         window_ImportProjects(files);
 
-        // sort and center view aspects
+        // center view aspects
         nodeView->centerAspects();
     }else{
         QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);

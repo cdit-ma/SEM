@@ -212,18 +212,16 @@ void ToolbarWidget::addComponentInstance()
 void ToolbarWidget::addEventPorDelegate()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
+    QString nodeKind = action->getKind();
 
-    Node* actionNode = action->getNode();
-    QString nodeKind = actionNode->getDataValue("kind");
-
-    if(actionNode->getDataValue("kind").startsWith("InEvent")){
+    if(nodeKind.startsWith("InEvent")){
         nodeKind = "InEventPortDelegate";
     }
-    if(actionNode->getDataValue("kind").startsWith("OutEvent")){
+    if(nodeKind.startsWith("OutEvent")){
         nodeKind = "OutEventPortDelegate";
     }
 
-    nodeView->constructConnectedNode(nodeItem->getNode(), actionNode, nodeKind, 1);
+    nodeView->constructConnectedNode(nodeItem->getNode(), action->getNode(), nodeKind, 1);
 }
 
 

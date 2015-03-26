@@ -692,20 +692,8 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
 }
 
 
-
-
 /**
- * @brief NodeItem::sort
- * This methods sorts this node item's children one by one, from left to right
- * until it can't fit it inside this item's origWidth in which case it moves it
- * to the next row. The maxHeight per row is being used to get the new y pos for
- * the next row. The maxWidth per column isn't currently being stored but it will
- * need to be for future sorting.
- *
- * The sorting for Components/ComponentInstances is different. The in/out event
- * ports are placed on the item's left/right edge respectively and the attributes
- * in the middle. A bigger gap is also required for nodes containing Components
- * to prevent the in/out event ports from overlapping each other.
+ * @brief NodeItem::newSort
  */
 void NodeItem::newSort()
 {
@@ -744,6 +732,7 @@ void NodeItem::newSort()
             toSortMap.insertMulti(currentSortOffset + sortPosition, child);
         }
     }
+
     QList<NodeItem*>  toSortItems = toSortMap.values();
 
     //Calculate the grid size required to fit all of sortItems.
@@ -755,13 +744,21 @@ void NodeItem::newSort()
     int y = 1;
 
     NodeItem* nextItem = 0;
-    for (y; y <= (gridSize * 3) - 1; y += 3) {
+
+    // make the gap between view aspects smaller
+    int increment = 3;
+    if (nodeKind == "Model") {
+        increment = 2;
+    }
+
+    for (y; y <= (gridSize * increment) - 1; y += increment) {
         x = 1;
-        for (x; x <= (gridSize * 3) - 1; x += 3) {
+        for (x; x <= (gridSize * increment) - 1; x += increment) {
             if (toSortItems.size() > 0) {
                 nextItem = toSortItems.takeFirst();
                 nextItem->setCenterPos(getGridPosition(x,y));
                 nextItem->updateParentHeight(nextItem);
+
             } else {
                 finishedLayout = true;
                 break;
