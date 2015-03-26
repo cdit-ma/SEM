@@ -192,7 +192,7 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
             bool exportEdge = false;
             if(containsSrc && containsDst){
                 exportEdge = true;
-            }else if(containsSrc){
+            }else if(containsSrc || containsDst){
                 if((edge->isAggregateLink() || edge->isInstanceLink() || edge->isImplLink())){
                     if(GUI_USED){
                         controller_DialogMessage(MESSAGE, "", src);

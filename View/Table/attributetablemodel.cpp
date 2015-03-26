@@ -15,7 +15,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
     if(attachedGraphML->isNode()){
         QString kind = attachedGraphML->getDataValue("kind");
         if(!(kind == "Aggregate" || kind == "AggregateInstance" || kind == "Member" || kind == "MemberInstance")){
-            //hiddenKeyNames << "sortOrder";
+            hiddenKeyNames << "sortOrder";
         }
     }
 
@@ -96,7 +96,13 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
                 QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
                 QPixmap pixmap(QPixmap::fromImage(scaledImage));
                 return pixmap;
+            }else{
+                QImage* image = new QImage(":/Resources/Icons/unlock.png");
+                QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
+                QPixmap pixmap(QPixmap::fromImage(scaledImage));
+                return pixmap;
             }
+            break;
 
         }
     }
@@ -107,7 +113,8 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
         switch(index.column()){
         case 0:
-            return "";
+            return QVariant();
+            break;
         case 1:
             return data->getKey()->getName();
         case 2:
@@ -122,12 +129,46 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
         QString keyName = data->getKeyName();
         switch(index.column()){
-        case 0:
-            return data->isProtected();
+        case 0:{
+            return 0;
+            break;
+
+        }
         case 1:
             return data->getKey()->getName();
+            break;
         case 2:
             return data->getValue();
+            break;
+
+        default:
+            return QVariant();
+        }
+    }
+
+    if (role == Qt::ToolTipRole) {
+        GraphMLData* data = attachedData.at(index.row());
+        QString keyName = data->getKeyName();
+        switch(index.column()){
+        case 0:{
+            if(data->isProtected()){
+                if(data->getParentData()){
+                    return QString("Data is currently Locked and Bound to another GraphMLData.");
+                }else{
+                    return QString("Data is currently Locked.");
+                }
+            }else{
+                return QString("Data is currrently Un-Locked.");
+            }
+            break;
+
+        }
+        case 1:
+            return data->getKey()->getName();
+            break;
+        case 2:
+            return data->getValue();
+            break;
 
         default:
             return QVariant();
@@ -173,11 +214,18 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
 
         GraphMLData* data = attachedData.at(row);
 
+        if(index.column() == 0 && data){
+            data->setProtected(!data->isProtected());
+            emit(dataChanged(index, index));
+            return true;
+        }
+
         if (index.column() == 2 && data && !data->isProtected()){
             guiItem->GraphMLItem_TriggerAction("Updated Table Cell");
             guiItem->GraphMLItem_SetGraphMLData(guiItem->getGraphML(), data->getKey()->getName(), value.toString());
 
             emit(dataChanged(index, index));
+            return true;
         }
     }
 
@@ -223,6 +271,20 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::ItemIsEnabled;
+    if(index.column() == 0){
+        if(index.isValid()) {
+            int row = index.row();
+
+            GraphMLData* data = attachedData.at(row);
+            bool isEditable = data->getParentData() == 0;
+
+            if (data && isEditable){
+                return QAbstractTableModel::flags(index)  | Qt::ItemIsEditable | Qt::ItemIsEnabled;
+            }else{
+                return (QAbstractTableModel::flags(index)  ^ Qt::ItemIsEnabled);
+            }
+        }
+    }
     if(index.column() == 2){
         if(index.isValid()) {
             int row = index.row();

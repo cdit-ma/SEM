@@ -582,10 +582,18 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     // send/do necessary signals/updates when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
 
+
+    if (SELECT_ON_CONSTRUCTION && constructedFromToolbar) {
+        clearSelection(true, false);
+        appendToSelection(nodeItem);
+        nodeItem->setNewLabel();
+    }
+
     if(constructedFromToolbar){
         //nodeItem->setNewLabel();
         constructedFromToolbar = false;
     }
+
 }
 
 
@@ -1030,10 +1038,7 @@ void NodeView::nodeDestructed_signalUpdates()
 
     nodeItem->toggleGridLines(GRID_LINES_ON);
 
-    if (SELECT_ON_CONSTRUCTION) {
-        clearSelection(true, false);
-        appendToSelection(nodeItem);
-    }
+
 }
 
 

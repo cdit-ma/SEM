@@ -107,6 +107,7 @@ signals:
 
 
 public slots:
+
     void parentNodeItemMoved();
     //Model Signals
     void graphMLDataChanged(GraphMLData *data);

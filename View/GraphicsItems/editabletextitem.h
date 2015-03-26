@@ -8,10 +8,8 @@ class EditableTextItem : public QGraphicsTextItem
     Q_OBJECT
 public:
     explicit EditableTextItem(QGraphicsItem *parent = 0);
-    void setClickable(bool clickable);
-    void setEditable(bool editable);
-    bool isEditable();
-    void forceMousePress(QGraphicsSceneMouseEvent* event);
+    void setEditMode(bool editMode = true);
+    void startEditMode(bool );
 
 signals:
     void textUpdated(QString data);
@@ -26,7 +24,7 @@ protected:
 
 private:
     QString getStringValue();
-     QString previousValue;
+    QString previousValue;
 
      // QGraphicsItem interface
 

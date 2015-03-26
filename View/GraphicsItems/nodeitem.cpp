@@ -960,8 +960,10 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     case Qt::LeftButton:{
         if(labelPressed(event->pos())){
             if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
-                textItem->setEditable(true);
-                textItem->forceMousePress(event);
+                //textItem->setEditable(true);
+                textItem->setEditMode(true);
+                //textItem->stealFocus();
+                //textItem->forceMousePress(event);
             }
         }
 
@@ -1588,29 +1590,18 @@ QPointF NodeItem::isOverGrid(const QPointF position)
 
 void NodeItem::setNewLabel(QString newLabel)
 {
-    if(newLabel == ""){
-        if(getGraphML() && textItem){
+    if(getGraphML()){
+        if(newLabel != ""){
             GraphMLData* labelData = getGraphML()->getData("label");
-            if(labelData && !labelData->isProtected()){
-                QString currentLabel = labelData->getValue();
-                QColor oldColor = this->textItem->defaultTextColor();
+            GraphMLItem_TriggerAction("Set New Label");
+            GraphMLItem_SetGraphMLData(getGraphML(), "label", newLabel);
+        }else{
+           if(textItem){
+               textItem->setEditMode(true);
 
-                textItem->setDefaultTextColor(QColor(0,0,255));
-
-                bool ok;
-                newLabel = QInputDialog::getText(0, "Set New Label", "Value:", QLineEdit::Normal, currentLabel, &ok);
-
-                textItem->setDefaultTextColor(oldColor);
-                if(!ok){
-                    return;
-                }
-
-            }
+           }
         }
     }
-    GraphMLItem_TriggerAction("Set New Label");
-    GraphMLItem_SetGraphMLData(getGraphML(), "label", newLabel);
-
 }
 
 

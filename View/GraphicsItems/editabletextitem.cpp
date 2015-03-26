@@ -10,60 +10,53 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent) :
 {
     setFlag(ItemIsFocusable, false);
     setFlag(ItemIsSelectable, false);
-    setClickable(false);
-    setEditable(false);
+    setTextInteractionFlags(Qt::NoTextInteraction);
+
 }
 
-void EditableTextItem::setClickable(bool clickable)
+void EditableTextItem::setEditMode(bool editMode)
 {
-    //setFlag(ItemIsFocusable, clickable);
-    //setFlag(ItemIsSelectable, clickable);
-}
-
-
-void EditableTextItem::setEditable(bool editable)
-{
-    if(editable && textInteractionFlags() == Qt::NoTextInteraction){
+    if(editMode){
         setTextInteractionFlags(Qt::TextEditorInteraction);
-        setFocus(Qt::MouseFocusReason); // this gives the item keyboard focus
-        setSelected(true);
+        setFocus(Qt::MouseFocusReason);
+
+        //Construct a fake mouse press event.
+        QGraphicsSceneMouseEvent* fakePress = new QGraphicsSceneMouseEvent(QEvent::GraphicsSceneMouseDoubleClick);
+        fakePress->setScenePos(scenePos());
+        fakePress->setPos(pos());
+        fakePress->setButtons(Qt::LeftButton);
+        fakePress->setButton(Qt::LeftButton);
+        fakePress->setModifiers(Qt::NoModifier);
+        mouseDoubleClickEvent(fakePress);
+
+        //Select All Text.
+        QTextCursor c = textCursor();
+        c.select(QTextCursor::Document);
+        setTextCursor(c);
         previousValue = getStringValue();
-
-
-    }
-    if(!editable && textInteractionFlags() == Qt::TextEditorInteraction){
+    }else{
         setTextInteractionFlags(Qt::NoTextInteraction);
+
+        //Update the the value of this Text Item.
+        QString newValue = getStringValue();
+        if(newValue != previousValue){
+            textUpdated(newValue);
+        }
+
+        //Clear Selection.
         QTextCursor c = textCursor();
         c.clearSelection();
-        this->setTextCursor(c);
+        setTextCursor(c);
         clearFocus();
     }
 }
 
-bool EditableTextItem::isEditable()
-{
-    return textInteractionFlags() == Qt::TextEditorInteraction;
-}
 
-void EditableTextItem::forceMousePress(QGraphicsSceneMouseEvent *event)
-{
-    this->setSelected(true);
-    this->setFocus(Qt::MouseFocusReason);
-    QGraphicsTextItem::mousePressEvent(event);
-    QTextCursor c = textCursor();
-    c.select(QTextCursor::Document);
-    setTextCursor(c);
-}
 
 
 void EditableTextItem::focusOutEvent(QFocusEvent *event)
 {
-    QString newValue = getStringValue();
-    if(newValue != previousValue){
-        //qCritical() << newValue;
-        emit textUpdated(newValue);
-    }
-    setEditable(false);
+    setEditMode(false);
 }
 
 
@@ -78,15 +71,16 @@ QString EditableTextItem::getStringValue()
     return value;
 }
 
+
 void EditableTextItem::keyPressEvent(QKeyEvent *event)
 {
     //Check for Enter pressing!
     if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return){
-        focusOutEvent(0);
+        setEditMode(false);
         return;
     }else if(event->key() == Qt::Key_Escape){
-        setHtml("<center>" + previousValue + "</center>");
-        focusOutEvent(0);
+        setPlainText(previousValue);
+        setEditMode(false);
         return;
     }
     QGraphicsTextItem::keyPressEvent(event);
