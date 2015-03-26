@@ -120,7 +120,9 @@ public slots:
 
     void appendToSelection(GraphMLItem* item);
     void moveSelection(QPointF delta);
+    void resizeSelection(QSizeF delta);
     void moveFinished();
+    void resizeFinished();
     void clearSelection(bool updateTable=true, bool fullClear = true);
 
 
@@ -270,6 +272,9 @@ private:
     bool IS_SUB_VIEW;
 
     QList<NodeView*> subViews;
+
+    bool IS_RESIZING;
+    bool IS_MOVING;
 
     bool AUTO_CENTER_ASPECTS;
     bool GRID_LINES_ON;

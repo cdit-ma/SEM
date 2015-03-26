@@ -28,6 +28,7 @@ class NodeItem : public GraphMLItem
     Q_INTERFACES(QGraphicsItem)
 
 public:
+      enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
     NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW=false);
     ~NodeItem();
 
@@ -52,9 +53,14 @@ public:
     bool intersectsRectangle(QRectF rect);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-    bool hasChildren();
+    bool hasVisibleChildren();
+
     bool labelPressed(QPointF mousePosition);
     bool iconPressed(QPointF mousePosition);
+
+
+    NodeItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
+
 
     bool isExpanded();
     bool isHidden();
@@ -67,6 +73,7 @@ public:
     void setCenterPos(QPointF pos);
     QPointF centerPos();
     void adjustPos(QPointF delta);
+    void adjustSize(QSizeF delta);
 
 
     double getWidth();
@@ -86,7 +93,9 @@ public:
 signals:
     void NodeItem_SortModel();
     void NodeItem_MoveSelection(QPointF delta);
+    void NodeItem_ResizeSelection(QSizeF delta);
     void NodeItem_MoveFinished();
+    void NodeItem_ResizeFinished();
 
     //Node Edge Signals
     void setEdgeVisibility(bool visible);
@@ -107,7 +116,8 @@ signals:
 
 
 public slots:
-
+    QPolygonF getResizePolygon();
+    //QRectF
     void parentNodeItemMoved();
     //Model Signals
     void graphMLDataChanged(GraphMLData *data);
@@ -118,7 +128,6 @@ public slots:
     void setPermanentlyCentralized(bool centralized);
 
     void aspectsChanged(QStringList aspects);
-    void sort();
 
     void newSort();
 
@@ -128,6 +137,7 @@ public slots:
     void updateHeight(NodeItem* child);
 
     void updateModelPosition();
+    void updateModelSize();
 
     void sceneRectChanged(QRectF sceneRect);
     void setNewLabel(QString label = "");
@@ -143,14 +153,16 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
 
     QPointF getClosestGridPoint(QPointF currentPosition);
 
 
 private:
-    NodeItem* getChildNodeItemFromNode(Node* child);
     void setWidth(qreal width);
     void setHeight(qreal height);
+    NodeItem* getChildNodeItemFromNode(Node* child);
+
 
     void updateGridLines(bool updateX = false, bool updateY = false);
 
@@ -204,6 +216,7 @@ private:
     QList<EdgeItem*> connections;
 
     bool nodeSelected;
+    bool nodeResizing;
     bool isNodePressed;
     bool drawGrid;
 
@@ -212,6 +225,8 @@ private:
 
     QString nodeKind;
     QString fileID;
+
+    NodeItem::RESIZE_TYPE currentResizeMode;
 
 
     double width;
@@ -231,6 +246,7 @@ private:
     QPointF previousScenePosition;
     //QPointF initialScenePressPosition;
     bool hasSelectionMoved;
+    bool hasSelectionResized;
 
 
     QVector<QLineF> xGridLines;

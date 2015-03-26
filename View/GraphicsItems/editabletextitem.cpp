@@ -3,15 +3,19 @@
 #include <QTextCursor>
 #include <QDebug>
 #include <QKeyEvent>
+#include <QCursor>
 
 
-EditableTextItem::EditableTextItem(QGraphicsItem *parent) :
+EditableTextItem::EditableTextItem(QGraphicsItem *parent, int truncationLength) :
     QGraphicsTextItem(parent)
 {
+    fullValue = "";
+    previousValue = "";
     setFlag(ItemIsFocusable, false);
     setFlag(ItemIsSelectable, false);
     setTextInteractionFlags(Qt::NoTextInteraction);
-
+    setAcceptHoverEvents(true);
+    this->truncationLength = truncationLength;
 }
 
 void EditableTextItem::setEditMode(bool editMode)
@@ -29,18 +33,24 @@ void EditableTextItem::setEditMode(bool editMode)
         fakePress->setModifiers(Qt::NoModifier);
         mouseDoubleClickEvent(fakePress);
 
+        QGraphicsTextItem::setPlainText(fullValue);
+        //setPlainText(fullValue);
         //Select All Text.
         QTextCursor c = textCursor();
         c.select(QTextCursor::Document);
         setTextCursor(c);
-        previousValue = getStringValue();
+
+        //previousValue = getStringValue();
     }else{
         setTextInteractionFlags(Qt::NoTextInteraction);
 
-        //Update the the value of this Text Item.
-        QString newValue = getStringValue();
-        if(newValue != previousValue){
-            textUpdated(newValue);
+        QString currentValue = toPlainText();
+        qCritical() << currentValue;
+        if(fullValue != previousFullValue){
+            qCritical() <<" UPDATING WITH: "<< fullValue;
+            textUpdated(fullValue);
+            setText(fullValue);
+            //setPlainText(fullValue);
         }
 
         //Clear Selection.
@@ -51,12 +61,31 @@ void EditableTextItem::setEditMode(bool editMode)
     }
 }
 
+void EditableTextItem::setText(QString newText)
+{
+     if(newText.length() > truncationLength){
+         newText.truncate(truncationLength);
+         newText += "...";
+     }
+
+     QGraphicsTextItem::setPlainText(newText);
+
+
+
+}
+
+
 
 
 
 void EditableTextItem::focusOutEvent(QFocusEvent *event)
 {
     setEditMode(false);
+}
+
+void EditableTextItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+{
+    this->setCursor(Qt::IBeamCursor);
 }
 
 
@@ -79,7 +108,7 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
         setEditMode(false);
         return;
     }else if(event->key() == Qt::Key_Escape){
-        setPlainText(previousValue);
+        //setPlainText(previousValue);
         setEditMode(false);
         return;
     }

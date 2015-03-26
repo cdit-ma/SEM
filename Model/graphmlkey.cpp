@@ -44,7 +44,7 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
     setDefaultProtected(false);
 
     invalidLabelCharacters << '*' << '.' << '[' << ']'<< ';' << '|' << ',' <<  '%';
-    //invalidLabelCharacters << '"' << '/' << '\\' << '=' << ':' << ' ';
+    invalidLabelCharacters << '"' << '/' << '\\' << '=' << ':' << ' ' << '<' << '>';
 }
 
 GraphMLKey::~GraphMLKey()

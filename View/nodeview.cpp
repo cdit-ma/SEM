@@ -51,7 +51,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //Set QT Options for this QGraphicsView
     setDragMode(ScrollHandDrag);
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
-    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    //setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    setTransformationAnchor(QGraphicsView::AnchorViewCenter);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
 
@@ -586,6 +587,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     if (SELECT_ON_CONSTRUCTION && constructedFromToolbar) {
         clearSelection(true, false);
         appendToSelection(nodeItem);
+        centerOnItem();
         nodeItem->setNewLabel();
     }
 
@@ -912,8 +914,10 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
 
             if(nodeItem){
                 connect(nodeItem, SIGNAL(NodeItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
+                connect(nodeItem, SIGNAL(NodeItem_ResizeSelection(QSizeF)), this, SLOT(resizeSelection(QSizeF)));
                 connect(nodeItem, SIGNAL(NodeItem_SortModel()), this, SLOT(sortModel()));
                 connect(nodeItem, SIGNAL(NodeItem_MoveFinished()), this, SLOT(moveFinished()));
+                connect(nodeItem, SIGNAL(NodeItem_ResizeFinished()), this, SLOT(resizeFinished()));
                 connect(this, SIGNAL(view_ToggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
             }
         }else{
@@ -1271,8 +1275,16 @@ void NodeView::wheelEvent(QWheelEvent *event)
 
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
+    if(IS_MOVING){
+        //FINALIZE MOVE
+        moveFinished();
+    }
+    if(IS_RESIZING){
+        resizeFinished();
+    }
 
     if(this->hasFocus()){
+
         bool CONTROL = event->modifiers() & Qt::ControlModifier;
         bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
@@ -1432,8 +1444,39 @@ void NodeView::moveSelection(QPointF delta)
         if(graphml && graphml->isNode()){
             NodeItem* nodeItem = (NodeItem*) graphMLItem;
             nodeItem->adjustPos(delta);
+            IS_MOVING = true;
         }
     }
+}
+
+void NodeView::resizeSelection(QSizeF delta)
+{
+    if(!getSelectedNode()){
+        return;
+    }
+
+    foreach(QString ID, selectedIDs){
+        IS_RESIZING = true;
+        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+        GraphML* graphml = graphMLItem->getGraphML();
+        if(graphml && graphml->isNode()){
+            NodeItem* nodeItem = (NodeItem*) graphMLItem;
+            nodeItem->adjustSize(delta);
+
+            /*
+            GraphMLData* xData = graphml->getData("width");
+            GraphMLData* yData = graphml->getData("height");
+
+            float x = xData->getValue().toFloat() + delta.x();
+            float y = yData->getValue().toFloat() + delta.y();
+
+            view_SetGraphMLData(graphml, "width", QString::number(x));
+            view_SetGraphMLData(graphml, "height", QString::number(y));
+            */
+
+        }
+    }
+
 }
 
 void NodeView::moveFinished()
@@ -1444,6 +1487,19 @@ void NodeView::moveFinished()
             NodeItem* nodeItem = (NodeItem*) currentItem;
             nodeItem->updateModelPosition();
         }
+    }
+    IS_MOVING = false;
+}
+
+void NodeView::resizeFinished()
+{
+    foreach(QString ID, selectedIDs){
+        GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
+        if(currentItem && currentItem->isNodeItem()){
+            NodeItem* nodeItem = (NodeItem*) currentItem;
+            nodeItem->updateModelSize();
+        }
+        IS_RESIZING = false;
     }
 
 }

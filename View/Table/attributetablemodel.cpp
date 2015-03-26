@@ -19,7 +19,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
         }
     }
 
-    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "kind";
+    hiddenKeyNames /*<< "width" << "height"*/ <<  "x" << "y" << "kind";
     setupDataBinding();
 
 }
