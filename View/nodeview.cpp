@@ -1432,20 +1432,6 @@ void NodeView::moveSelection(QPointF delta)
         if(graphml && graphml->isNode()){
             NodeItem* nodeItem = (NodeItem*) graphMLItem;
             nodeItem->adjustPos(delta);
-
-
-            /*
-*/
-
-            //GraphMLData* xData = graphml->getData("x");
-            //GraphMLData* yData = graphml->getData("y");
-
-            //float x = xData->getValue().toFloat() + delta.x();
-            //float y = yData->getValue().toFloat() + delta.y();
-
-            //view_SetGraphMLData(graphml, "x", QString::number(x));
-            //view_SetGraphMLData(graphml, "y", QString::number(y));
-
         }
     }
 }

@@ -119,7 +119,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     //Update GraphML Model for size/position if they have been changed.
     updateGraphMLSize();
-    updateGraphMLPosition();
+
+    updateModelPosition();
+    //updateGraphMLPosition();
 
     setupGraphMLConnections();
 
@@ -485,6 +487,7 @@ void NodeItem::adjustPos(QPointF delta)
 {
     QPointF currentPos = pos();
     currentPos += delta;
+    hasSelectionMoved = true;
     setPos(currentPos);
 }
 
@@ -549,7 +552,7 @@ void NodeItem::setSelected(bool selected)
     }
 
     // need to update onGrid here
-    onGrid = false;
+    //onGrid = false;
 }
 
 
@@ -1579,7 +1582,9 @@ QPointF NodeItem::isOverGrid(const QPointF position)
 
     if((line.length()/ minimumWidth) <= SNAP_PERCENTAGE){
         //QGraphicsItem::setPos(closestGridPoint - minimumVisibleRect().center());
-        onGrid = true;
+        if(hasSelectionMoved){
+            onGrid = true;
+        }
         return closestGridPoint;
     }else{
         onGrid = false;
