@@ -270,7 +270,7 @@ void NodeItem::childPosUpdated()
     w = qMax(w, width);
     h = qMax(h, height);
 
-    qCritical() << width << " x " << height;
+    //qCritical() << width << " x " << height;
 
     //w = qMax(w, width);
     //h = qMax(h, height);
@@ -688,11 +688,11 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
 
 
             if(dataKey == "width"){
-                qCritical() << dataValue;
+                //qCritical() << dataValue;
 
                 setWidth(dataValue.toFloat());
             }else if(dataKey == "height"){
-                qCritical() << dataValue;
+                //qCritical() << dataValue;
                 setHeight(dataValue.toFloat());
             }
 
@@ -1052,7 +1052,7 @@ void NodeItem::setWidth(qreal w)
         QRectF childRect = getMinimumChildRect();
 
         if(w <= childRect.width()){
-            qCritical() << "W:AM I CHANGING";
+            //qCritical() << "W:AM I CHANGING";
             w = childRect.width();
         }
 
@@ -1074,7 +1074,7 @@ void NodeItem::setHeight(qreal h)
         QRectF childRect = getMinimumChildRect();
 
         if(h <= childRect.height()){
-            qCritical() << "H:AM I CHANGING";
+            //qCritical() << "H:AM I CHANGING";
             h = childRect.height();
         }
 

@@ -1586,7 +1586,6 @@ void NodeView::sortAspects()
 void NodeView::resetModel()
 {
     view_TriggerAction("Resetting Model");
-
     foreach(NodeItem* nodeItem, getNodeItemsList()){
         if (nodeItem) {
             nodeItem->resetSize();
@@ -1600,7 +1599,6 @@ void NodeView::resetModel()
 
 void NodeView::toggleGridLines(bool gridOn)
 {
-    qDebug() << "Show Grid Lines: " << gridOn;
     GRID_LINES_ON = gridOn;
     emit view_toggleGridLines(GRID_LINES_ON);
 }
@@ -1614,7 +1612,6 @@ void NodeView::toggleGridLines(bool gridOn)
  */
 void NodeView::autoCenterAspects(bool center)
 {
-    qDebug() << "Auto Center Aspects: " << center;
     AUTO_CENTER_ASPECTS = center;
 }
 
@@ -1627,7 +1624,6 @@ void NodeView::autoCenterAspects(bool center)
  */
 void NodeView::selectNodeOnConstruction(bool select)
 {
-    qDebug() << "Select On Construction: " << select;
     SELECT_ON_CONSTRUCTION = select;
 }
 
