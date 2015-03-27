@@ -121,21 +121,17 @@ ToolbarWidgetAction* ToolbarWidgetMenu::getWidgetAction(Node* node)
  */
 void ToolbarWidgetMenu::clearMenu()
 {
-    //qDebug() << "clearMenu()";
     QMutableListIterator<ToolbarWidgetAction*> it(widgetActions);
     while (it.hasNext()) {
         ToolbarWidgetAction *action = it.next();
         // actions that are stored in the toolbar widget can't be deleted
-        if (action->isDeletable()) {
+        if (action && action->isDeletable()) {
             //qDebug() << "Deleting action . . .";
             delete action;
             //qDebug() << "Deleted action.";
         } else {
-            //qDebug() << "Removing action . . .";
             removeAction(action);
-            //qDebug() << "Removed action.";
         }
-        //qDebug() << "end clearMenu()";
     }
     widgetActions.clear();
 }

@@ -128,7 +128,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setFlag(ItemIgnoresParentOpacity);
     setFlag(ItemSendsGeometryChanges);
     setAcceptHoverEvents(true);
-     //QGraphicsItem::setAcceptsHoverEvents
+    //QGraphicsItem::setAcceptsHoverEvents
 
     setCacheMode(QGraphicsItem::NoCache);
 
@@ -200,8 +200,8 @@ QRectF NodeItem::boundingRect() const
 
     if (width <= minimumWidth) {
         // what if after the itemMargin is added width is still <= minWidth?
-    //    bottomRightX += itemMargin/2;
-    //    bottomRightY += itemMargin/2;
+        //    bottomRightX += itemMargin/2;
+        //    bottomRightY += itemMargin/2;
     }
 
     return QRectF(QPointF(topLeftX, topLeftY), QPointF(bottomRightX, bottomRightY));
@@ -232,7 +232,7 @@ QRectF NodeItem::gridRect()
 
         QPointF bottomRight = boundingRect().bottomRight();
 
-       // topLeft += QPointF(getGridSize(), getGridSize());
+        // topLeft += QPointF(getGridSize(), getGridSize());
         bottomRight -= QPointF(getGridSize(), getGridSize());
         rectangle = QRectF(topLeft, bottomRight);
 
@@ -385,30 +385,30 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
 
-    if(isExpanded() && hasVisibleChildren() && textItem && (width != minimumWidth)){
-        painter->setPen(pen);
-        qreal yPos = minimumHeight + textItem->boundingRect().height();
-        QLineF line = QLineF(Pen.width(), yPos, boundingRect().width() - Pen.width(), yPos);
-        painter->drawLine(line);
-    }
+        if(isExpanded() && hasVisibleChildren() && textItem && (width != minimumWidth)){
+            painter->setPen(pen);
+            qreal yPos = minimumHeight + textItem->boundingRect().height();
+            QLineF line = QLineF(Pen.width(), yPos, boundingRect().width() - Pen.width(), yPos);
+            painter->drawLine(line);
+        }
 
 
-    painter->drawRect(getMinimumChildRect());
+        //painter->drawRect(getMinimumChildRect());
 
-    //New Code
-    if(GRIDLINES_VISIBLE && PAINT_OBJECT && drawGrid){
-        painter->setClipping(false);
-        QPen linePen = painter->pen();
+        //New Code
+        if(GRIDLINES_VISIBLE && PAINT_OBJECT && drawGrid){
+            painter->setClipping(false);
+            QPen linePen = painter->pen();
 
-        linePen.setStyle(Qt::DashLine);
-        linePen.setWidth(minimumWidth / 1000);
-        linePen.setColor(QColor(0,0,0));
-        painter->setPen(linePen);
+            linePen.setStyle(Qt::DashLine);
+            linePen.setWidth(minimumWidth / 1000);
+            linePen.setColor(QColor(0,0,0));
+            painter->setPen(linePen);
 
-        painter->drawLines(xGridLines);
-        painter->drawLines(yGridLines);
+            painter->drawLines(xGridLines);
+            painter->drawLines(yGridLines);
 
-    }
+        }
 
     }
 }
@@ -796,6 +796,8 @@ void NodeItem::newSort()
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(!PAINT_OBJECT){
+        // clear selection when pressing on a !PAINTED item
+        GraphMLItem_ClearSelection(false);
         QGraphicsItem::mousePressEvent(event);
     }
 
@@ -814,8 +816,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             //emit clearSelection();
             return;
         }
-
-
 
         previousScenePosition = event->scenePos();
         hasSelectionMoved = false;
@@ -861,11 +861,14 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(!PAINT_OBJECT){
-        return;
-    }
     switch (event->button()) {
-    case Qt::LeftButton:{
+    case Qt::LeftButton:
+
+        // added this to center aspects when double-clicking on !PAINTED items
+        if(!PAINT_OBJECT){
+            GraphMLItem_CenterAspects();
+            return;
+        }
 
         if(labelPressed(event->pos())){
             if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
@@ -885,15 +888,9 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             break;
         }
 
-
         GraphMLItem_SetCentered(this);
-        break;
-    }
-    default:{
 
     }
-    }
-
 }
 
 
@@ -925,7 +922,9 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         }
 
         hasSelectionResized = false;
-        //setCursor(Qt::OpenHandCursor);
+
+        // have to reset cursor here otherwise it's stuck on Qt::SizeAllCursor after being moved
+        setCursor(Qt::OpenHandCursor);
 
         nodeResizing = false;
         hasSelectionMoved = false;
@@ -1013,25 +1012,25 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 
 
-     if(nodeSelected){
+    if(nodeSelected){
 
-            currentResizeMode = resizeEntered(event->pos());
+        currentResizeMode = resizeEntered(event->pos());
 
-            if(currentResizeMode == RESIZE){
-                setCursor(Qt::SizeFDiagCursor);
-                changedCursor = true;
-            }else if(currentResizeMode == HORIZONTAL_RESIZE){
-                setCursor(Qt::SizeHorCursor);
-                changedCursor = true;
-            }else if(currentResizeMode == VERTICAL_RESIZE){
-                setCursor(Qt::SizeVerCursor);
-                changedCursor = true;
-            }
+        if(currentResizeMode == RESIZE){
+            setCursor(Qt::SizeFDiagCursor);
+            changedCursor = true;
+        }else if(currentResizeMode == HORIZONTAL_RESIZE){
+            setCursor(Qt::SizeHorCursor);
+            changedCursor = true;
+        }else if(currentResizeMode == VERTICAL_RESIZE){
+            setCursor(Qt::SizeVerCursor);
+            changedCursor = true;
+        }
     }
 
-     if(!changedCursor){
-         setCursor(Qt::OpenHandCursor);
-     }
+    if(!changedCursor){
+        setCursor(Qt::OpenHandCursor);
+    }
 
 }
 
@@ -1091,29 +1090,29 @@ void NodeItem::setHeight(qreal h)
 
 void NodeItem::setSize(qreal w, qreal h)
 {
-     QRectF childRect = getMinimumChildRect();
+    QRectF childRect = getMinimumChildRect();
 
-     if(w != width || height != h ){
+    if(w != width || height != h ){
 
-         if(w <= childRect.width()){
-             w = childRect.width();
-         }
-         if(h <= childRect.height()){
-             h = childRect.height();
-         }
+        if(w <= childRect.width()){
+            w = childRect.width();
+        }
+        if(h <= childRect.height()){
+            h = childRect.height();
+        }
 
-         prepareGeometryChange();
-         height = h;
+        prepareGeometryChange();
+        height = h;
 
-         width= w;
+        width= w;
 
-         updateTextLabel();
-         updateGridLines();
+        updateTextLabel();
+        updateGridLines();
 
-         //updateModelSize();
-         updateParent();
+        //updateModelSize();
+        updateParent();
 
-     }
+    }
 }
 
 
@@ -1380,7 +1379,7 @@ void NodeItem::setPos(qreal x, qreal y)
 void NodeItem::setPos(const QPointF &pos)
 {
 
-    if(pos != this->pos()){       
+    if(pos != this->pos()){
         isOverGrid(pos);
         QGraphicsItem::setPos(pos);
 
@@ -1392,9 +1391,9 @@ void NodeItem::setPos(const QPointF &pos)
 void NodeItem::updateParent()
 {
     if(parentNodeItem){
-       //qCritical() <<"Before: "<< parentNodeItem->childrenBoundingRect();
-       parentNodeItem->childPosUpdated();
-       //qCritical() <<"After: "<< parentNodeItem->childrenBoundingRect();
+        //qCritical() <<"Before: "<< parentNodeItem->childrenBoundingRect();
+        parentNodeItem->childPosUpdated();
+        //qCritical() <<"After: "<< parentNodeItem->childrenBoundingRect();
     }
 }
 
@@ -1593,12 +1592,12 @@ void NodeItem::setNewLabel(QString newLabel)
 {
     if(getGraphML()){
         if(newLabel != ""){
-                GraphMLItem_TriggerAction("Set New Label");
-                GraphMLItem_SetGraphMLData(getGraphML(), "label", newLabel);
-            }else{
-           if(textItem){
-               textItem->setEditMode(true);
-           }
+            GraphMLItem_TriggerAction("Set New Label");
+            GraphMLItem_SetGraphMLData(getGraphML(), "label", newLabel);
+        }else{
+            if(textItem){
+                textItem->setEditMode(true);
+            }
         }
     }
 }

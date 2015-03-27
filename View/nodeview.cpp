@@ -50,18 +50,15 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //Set QT Options for this QGraphicsView
     setDragMode(ScrollHandDrag);
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
-    //setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     setTransformationAnchor(QGraphicsView::AnchorViewCenter);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
 
-   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
     //Set GraphicsView background-color
     setStyleSheet("QGraphicsView{ background-color: rgba(175,175,175,255); border: 0px;}");
-
 
     //QBrush brush( QColor(100,100,200,250) );
     //scene()->setBackgroundBrush(brush);
@@ -433,6 +430,8 @@ void NodeView::centerItem(GraphMLItem *item)
     if (!item) {
         qCritical() << "No GUI item to Center";
         return;
+    } else {
+        //qDebug() << "Centering item: " << item->getGraphML()->getDataValue("kind");
     }
 
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
@@ -525,7 +524,7 @@ void NodeView::centerOnItem()
  */
 void NodeView::showToolbar(QPoint position)
 {
-	// use mouse click position when constructing node items from toolbar
+    // use mouse click position when constructing node items from toolbar
     QPoint globalPos = mapToGlobal(position);
     toolbarPosition = mapToScene(position);
 
@@ -730,7 +729,7 @@ void NodeView::constructEdge(Node *src, Node *dst)
     view_TriggerAction("Dock/Toolbar: Constructing Edge");
     view_ConstructEdge(src, dst);
 
-	// send necessary signals when an edge has been constucted
+    // send necessary signals when an edge has been constucted
     edgeConstructed_signalUpdates(src);
 }
 
@@ -861,12 +860,12 @@ NewController *NodeView::getController()
  */
 QList<Node*> NodeView::getFiles()
 {
-	QList<Node*> returnList;
+    QList<Node*> returnList;
     Model* model = controller->getModel();
     if (model) {
         returnList = model->getChildrenOfKind("File");
     }
-	return returnList;
+    return returnList;
 }
 
 
@@ -876,12 +875,12 @@ QList<Node*> NodeView::getFiles()
  */
 QList<Node*> NodeView::getComponents()
 {
-	QList<Node*> returnList;
+    QList<Node*> returnList;
     Model* model = controller->getModel();
     if (model) {
         returnList = model->getChildrenOfKind("Component");
     }
-	return returnList;
+    return returnList;
 }
 
 
@@ -987,7 +986,7 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
         if(item){
             //disconnect(item, SIGNAL(GraphMLItem_SetGraphMLData(GraphMLItem*,QString,QString)), this, SLOT(setGraphMLData(GraphMLItem*,QString,QString)));
             if(scene()->items().contains(item)){
-				// send necessary signals when a node has been destructed
+                // send necessary signals when a node has been destructed
                 nodeDestructed_signalUpdates();
                 scene()->removeItem(item);
                 delete item;
@@ -1280,6 +1279,25 @@ void NodeView::wheelEvent(QWheelEvent *event)
         scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
     }
 }
+
+
+/**
+ * @brief NodeView::mouseDoubleClickEvent
+ * @param event
+ */
+void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    QPointF scenePos = mapToScene(event->pos());
+    QGraphicsItem* itemUnderMouse = scene()->itemAt(scenePos, QTransform());
+
+    // added this to center aspects when double-clicking on the view
+    if(!itemUnderMouse && event->button() == Qt::LeftButton){
+        centerAspects();
+    }
+
+    QGraphicsView::mouseDoubleClickEvent(event);
+}
+
 
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
@@ -1582,19 +1600,21 @@ void NodeView::resetModel()
 
 void NodeView::toggleGridLines(bool gridOn)
 {
+    qDebug() << "Show Grid Lines: " << gridOn;
     GRID_LINES_ON = gridOn;
     emit view_toggleGridLines(GRID_LINES_ON);
 }
 
 
 /**
- * @brief NodeView::autoCenterViewAspects
+ * @brief NodeView::autoCenterAspects
  * This is called from the MedeaWindow menu.
  * It sets the automatic centering of the view aspects on and off.
  * @param center
  */
 void NodeView::autoCenterAspects(bool center)
 {
+    qDebug() << "Auto Center Aspects: " << center;
     AUTO_CENTER_ASPECTS = center;
 }
 
@@ -1607,6 +1627,7 @@ void NodeView::autoCenterAspects(bool center)
  */
 void NodeView::selectNodeOnConstruction(bool select)
 {
+    qDebug() << "Select On Construction: " << select;
     SELECT_ON_CONSTRUCTION = select;
 }
 

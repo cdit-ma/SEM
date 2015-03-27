@@ -38,7 +38,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseGUI();
     makeConnections();
     newProject();
-    //setupDefaultSettings();
 
     /*
     // this is used for when a file is dragged and dropped on top of this tool's icon
@@ -369,7 +368,6 @@ void MedeaWindow::setupToolbar()
 {
     QSize buttonSize = QSize(46,40);
 
-    //toolbar->setContentsMargins(0,0,0,0);
     toolbar->setIconSize(buttonSize*0.6);
     toolbar->setStyleSheet("QToolButton{"
                            "border: 1px solid grey;"
@@ -655,8 +653,12 @@ void MedeaWindow::setupJenkinsSettings()
  */
 void MedeaWindow::setupDefaultSettings()
 {
+    // need to set initial toggle action values as well as trigger them
+    view_autoCenterView->setChecked(true);
     view_autoCenterView->triggered(true);
+    view_showGridLines->setChecked(true);
     view_showGridLines->triggered(true);
+    view_selectOnConstruction->setChecked(false);
     view_selectOnConstruction->triggered(false);
 
     if (nodeView) {

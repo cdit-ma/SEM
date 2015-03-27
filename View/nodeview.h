@@ -45,6 +45,8 @@ protected:
     void mousePressEvent(QMouseEvent* event);
     void wheelEvent(QWheelEvent* event);
 
+    void mouseDoubleClickEvent(QMouseEvent *event);
+
     //Keyboard Handling Methods
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
