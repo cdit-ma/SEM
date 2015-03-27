@@ -41,6 +41,11 @@ public:
 
     QRectF gridRect();
 
+
+    QRectF getMinimumChildRect();
+
+    void childPosUpdated();
+
     QPointF getGridPosition(int x, int y);
     bool isSelected();
     bool isLocked();
@@ -107,7 +112,7 @@ signals:
     void updateDockNodeItem();
     void updateOpacity(qreal opacity);
 
-    void updateParentHeight(NodeItem* child);
+
 
     void recentralizeAfterChange(GraphML* item);
 
@@ -140,6 +145,7 @@ public slots:
     void updateModelSize();
 
     void sceneRectChanged(QRectF sceneRect);
+    void labelUpdated(QString newLabel);
     void setNewLabel(QString label = "");
 
     //Turn off visible gridlines;
@@ -161,10 +167,11 @@ protected:
 private:
     void setWidth(qreal width);
     void setHeight(qreal height);
+    void setSize(qreal w, qreal h);
     NodeItem* getChildNodeItemFromNode(Node* child);
 
 
-    void updateGridLines(bool updateX = false, bool updateY = false);
+    void updateGridLines();
 
     void setPermanentlyInvisible(bool isInvisible);
     void setupAspect();
@@ -189,6 +196,7 @@ private:
 
     bool expanded;
     bool permanentlyCentralized;
+
 
     QStringList getChildrenKind();
 
@@ -215,6 +223,7 @@ private:
 
     QList<EdgeItem*> connections;
 
+    void updateParent();
     bool nodeSelected;
     bool nodeResizing;
     bool isNodePressed;
@@ -277,6 +286,8 @@ private:
     int depth;
 
     bool permanentlyInvisible;
+
+    bool firstReposition;
 
     QRectF currentSceneRect;
 

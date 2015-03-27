@@ -75,7 +75,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     allAspects << "Definitions";
     allAspects << "Workload";
 
-    defaultAspects << "Assembly";
+    //defaultAspects << "Assembly";
+    defaultAspects << "Definitions";
 
     nonDrawnItemKinds << "DeploymentDefinitions";
 
@@ -588,12 +589,18 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
     // the node's label is automatically selected and editable
-    if (SELECT_ON_CONSTRUCTION && !constructedFromImport) {
-        clearSelection(true, false);
-        appendToSelection(nodeItem);
-        centerOnItem();
-        nodeItem->setNewLabel();
+
+    if(!constructedFromImport){
+        if(GRID_LINES_ON){
+            nodeItem->snapToGrid();
+        }
+        if(SELECT_ON_CONSTRUCTION){
+            clearSelection(true, false);
+            appendToSelection(nodeItem);
+            nodeItem->setNewLabel();
+        }
     }
+
 
     // only do the SELECT_ON_CONSTRUCTION stuff if the node was constructed
     // using the dock/toolbar and not from GraphML import - reset check
@@ -810,7 +817,7 @@ void NodeView::componentInstanceConstructed(Node *node)
     GraphMLItem* graphMLItem = getGraphMLItemFromGraphML(node);
     NodeItem* nodeItem = getNodeItemFromGraphMLItem(graphMLItem);
     if (nodeItem) {
-        nodeItem->updateParentHeight(nodeItem);
+
     }
 }
 
@@ -1463,18 +1470,6 @@ void NodeView::resizeSelection(QSizeF delta)
         if(graphml && graphml->isNode()){
             NodeItem* nodeItem = (NodeItem*) graphMLItem;
             nodeItem->adjustSize(delta);
-
-            /*
-            GraphMLData* xData = graphml->getData("width");
-            GraphMLData* yData = graphml->getData("height");
-
-            float x = xData->getValue().toFloat() + delta.x();
-            float y = yData->getValue().toFloat() + delta.y();
-
-            view_SetGraphMLData(graphml, "width", QString::number(x));
-            view_SetGraphMLData(graphml, "height", QString::number(y));
-            */
-
         }
     }
 
@@ -1494,6 +1489,7 @@ void NodeView::moveFinished()
 
 void NodeView::resizeFinished()
 {
+
     foreach(QString ID, selectedIDs){
         GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
         if(currentItem && currentItem->isNodeItem()){
@@ -1502,7 +1498,6 @@ void NodeView::resizeFinished()
         }
         IS_RESIZING = false;
     }
-
 }
 
 

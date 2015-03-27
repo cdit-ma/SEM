@@ -7,10 +7,10 @@ class EditableTextItem : public QGraphicsTextItem
 {
     Q_OBJECT
 public:
-    explicit EditableTextItem(QGraphicsItem *parent = 0, int truncationLength = 12);
+    explicit EditableTextItem(QGraphicsItem *parent = 0);
     void setEditMode(bool editMode = true);
-    void startEditMode(bool );
-    void setText(QString newText);
+    void setPlainText(const QString &text);
+    void setTextWidth(qreal width);
 signals:
     void textUpdated(QString data);
 
@@ -23,17 +23,13 @@ protected:
 
 
 private:
+    QString getTruncatedText(const QString text );
     QString getStringValue();
 
-    QString previousFullValue;
-    QString previousValue;
-    QString fullValue;
+    QString currentFullValue;
+    QString currentTruncValue;
+    bool inEditingMode;
 
-    int truncationLength;
-     // QGraphicsItem interface
-
-
-     // QGraphicsItem interface
 protected:
      void keyPressEvent(QKeyEvent *event);
 

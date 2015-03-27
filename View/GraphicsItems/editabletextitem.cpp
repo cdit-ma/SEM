@@ -3,25 +3,31 @@
 #include <QTextCursor>
 #include <QDebug>
 #include <QKeyEvent>
+#include <QFontMetrics>
 #include <QCursor>
 
 
-EditableTextItem::EditableTextItem(QGraphicsItem *parent, int truncationLength) :
+EditableTextItem::EditableTextItem(QGraphicsItem *parent) :
     QGraphicsTextItem(parent)
 {
-    fullValue = "";
-    previousValue = "";
+    currentFullValue = "";
+    currentTruncValue = "";
+
+    inEditingMode = false;
     setFlag(ItemIsFocusable, false);
     setFlag(ItemIsSelectable, false);
     setTextInteractionFlags(Qt::NoTextInteraction);
     setAcceptHoverEvents(true);
-    this->truncationLength = truncationLength;
 }
 
 void EditableTextItem::setEditMode(bool editMode)
 {
-    if(editMode){
+    if(!inEditingMode && editMode){
+        //Set the Editing Mode
+        inEditingMode = true;
+        //Set the Flag
         setTextInteractionFlags(Qt::TextEditorInteraction);
+        //Gain the focus of the TextItem
         setFocus(Qt::MouseFocusReason);
 
         //Construct a fake mouse press event.
@@ -31,26 +37,31 @@ void EditableTextItem::setEditMode(bool editMode)
         fakePress->setButtons(Qt::LeftButton);
         fakePress->setButton(Qt::LeftButton);
         fakePress->setModifiers(Qt::NoModifier);
+        //Send the MousePress event to the DoubleClick Handler.
         mouseDoubleClickEvent(fakePress);
 
-        QGraphicsTextItem::setPlainText(fullValue);
-        //setPlainText(fullValue);
-        //Select All Text.
+        //Update the textItem to have the full value instead of the truncated value.
+        QGraphicsTextItem::setPlainText(currentFullValue);
+
+        //Select the entire TextItem field
         QTextCursor c = textCursor();
         c.select(QTextCursor::Document);
         setTextCursor(c);
-
-        //previousValue = getStringValue();
-    }else{
+    }else if(inEditingMode && !editMode){
+        //Set the Editing Mode
+        inEditingMode = false;
+        //Set the Flag
         setTextInteractionFlags(Qt::NoTextInteraction);
 
+        //Get the current Value of the TextItem (Should be Non-Truncated value)
         QString currentValue = toPlainText();
-        qCritical() << currentValue;
-        if(fullValue != previousFullValue){
-            qCritical() <<" UPDATING WITH: "<< fullValue;
-            textUpdated(fullValue);
-            setText(fullValue);
-            //setPlainText(fullValue);
+
+        //Check if the value is different to the previous fullValue.
+        if(currentFullValue != currentValue){
+            textUpdated(currentValue);
+        }else{
+            //Set the text as the current Truncated text.
+            QGraphicsTextItem::setPlainText(currentTruncValue);
         }
 
         //Clear Selection.
@@ -61,31 +72,59 @@ void EditableTextItem::setEditMode(bool editMode)
     }
 }
 
-void EditableTextItem::setText(QString newText)
+void EditableTextItem::setPlainText(const QString &text)
 {
-     if(newText.length() > truncationLength){
-         newText.truncate(truncationLength);
-         newText += "...";
-     }
+    if(currentFullValue != text){
+        currentFullValue = text;
+        currentTruncValue = getTruncatedText(text);
+        QGraphicsTextItem::setPlainText(currentTruncValue);
+    }
 
-     QGraphicsTextItem::setPlainText(newText);
-
-
+    QGraphicsTextItem::setPlainText(currentTruncValue);
 
 }
 
+void EditableTextItem::setTextWidth(qreal width)
+{
+    QGraphicsTextItem::setTextWidth(width);
 
-
+    QString newTruncValue = getTruncatedText(currentFullValue);
+    if(newTruncValue != currentTruncValue){
+        currentTruncValue = newTruncValue;
+        QGraphicsTextItem::setPlainText(newTruncValue);
+    }
+}
 
 
 void EditableTextItem::focusOutEvent(QFocusEvent *event)
 {
-    setEditMode(false);
+    if(inEditingMode){
+        //Only exit Edit mode if we are currently editing.
+        setEditMode(false);
+    }
 }
 
 void EditableTextItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    this->setCursor(Qt::IBeamCursor);
+    setCursor(Qt::IBeamCursor);
+}
+
+QString EditableTextItem::getTruncatedText(const QString text)
+{
+    QFontMetrics fm(font());
+
+    QString newText = text;
+    qreal newTextWidth = fm.width(newText);
+    qreal ratio = newTextWidth / QGraphicsTextItem::textWidth();
+
+    //Magic.
+    if(ratio >= .98){
+        //Calculate the number of characters we can fit.
+        int stringLength = (newText.size() / ratio) - 3;
+        newText.truncate(stringLength);
+        newText += "...";
+    }
+    return newText;
 }
 
 
@@ -104,12 +143,10 @@ QString EditableTextItem::getStringValue()
 void EditableTextItem::keyPressEvent(QKeyEvent *event)
 {
     //Check for Enter pressing!
-    if(event->key() == Qt::Key_Enter || event->key() == Qt::Key_Return){
-        setEditMode(false);
-        return;
-    }else if(event->key() == Qt::Key_Escape){
-        //setPlainText(previousValue);
-        setEditMode(false);
+    int keyPressed = event->key();
+
+    if(keyPressed == Qt::Key_Enter || keyPressed == Qt::Key_Return || keyPressed == Qt::Key_Escape){
+        focusOutEvent(0);
         return;
     }
     QGraphicsTextItem::keyPressEvent(event);

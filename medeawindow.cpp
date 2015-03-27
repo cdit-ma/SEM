@@ -38,6 +38,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseGUI();
     makeConnections();
     newProject();
+    //setupDefaultSettings();
 
     /*
     // this is used for when a file is dragged and dropped on top of this tool's icon
@@ -654,9 +655,9 @@ void MedeaWindow::setupJenkinsSettings()
  */
 void MedeaWindow::setupDefaultSettings()
 {
-    view_autoCenterView->setChecked(true);
-    view_showGridLines->setChecked(true);
-    view_selectOnConstruction->setChecked(true);
+    view_autoCenterView->triggered(true);
+    view_showGridLines->triggered(true);
+    view_selectOnConstruction->triggered(false);
 
     if (nodeView) {
         nodeView->centerAspects();
@@ -1158,7 +1159,6 @@ void MedeaWindow::updateDataTable()
     }
 
     // center the contents of the Values column
-    tableModel->setData(tableModel->index(0,2), Qt::TextAlignmentRole);
     dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
