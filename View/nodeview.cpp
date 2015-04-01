@@ -1346,18 +1346,89 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
         if(event->key() == Qt::Key_Delete){
             deleteSelection();
         }
-
     }
 
     QGraphicsView::keyReleaseEvent(event);
 
 }
 
-void NodeView::snapToGrid()
+void NodeView::alignSelectionHorizontally()
 {
-    NodeItem* currentSelected= getSelectedNodeItem();
-    if(currentSelected){
-        currentSelected->snapToGrid();
+    alignSelectionOnGrid(HORIZONTAL);
+}
+
+void NodeView::alignSelectionVertically()
+{
+    alignSelectionOnGrid(VERTICAL);
+}
+
+void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
+{
+    int itemCount=0;
+    qreal averageY=0;
+    qreal averageX=0;
+
+    QGraphicsItem* sharedParent = 0;
+    if(!(alignment == VERTICAL || alignment == HORIZONTAL)){
+        return;
+    }
+
+    foreach(QString ID, selectedIDs){
+        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+        if(graphMLItem && graphMLItem->isNodeItem()){
+            NodeItem* nodeItem = (NodeItem*) graphMLItem;
+            if(!sharedParent){
+                sharedParent = graphMLItem->parentItem();
+            }else if(sharedParent != graphMLItem->parentItem()){
+                showDialogMessage(WARNING, "Cannot Align Selection which aren't contained by the same Parent.", graphMLItem->getGraphML());
+                return;
+            }
+
+            averageX += nodeItem->centerPos().x();
+            averageY += nodeItem->centerPos().y();
+            itemCount++;
+        }
+    }
+
+    averageX /= itemCount;
+    averageY /= itemCount;
+
+    qCritical() <<"AverageX: "<< averageX;
+    qCritical() <<"AverageY: "<< averageY;
+
+
+    QPointF centerPoint;
+    if(sharedParent){
+        //Find closest Grid Line
+        NodeItem* parent = (NodeItem*)sharedParent;
+        centerPoint = parent->getClosestGridPoint(QPointF(averageX, averageY));
+    }
+
+    foreach(QString ID, selectedIDs){
+        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+        if(graphMLItem && graphMLItem->isNodeItem()){
+            NodeItem* nodeItem = (NodeItem*) graphMLItem;
+            QPointF pos = nodeItem->centerPos();
+
+            if(alignment == VERTICAL){
+                pos.setX(centerPoint.x());
+            }
+            if(alignment == HORIZONTAL){
+                pos.setY(centerPoint.y());
+            }
+            nodeItem->setCenterPos(pos);
+        }
+    }
+}
+
+void NodeView::snapSelectionToGrid()
+{
+    foreach(QString ID, selectedIDs){
+        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+        if(graphMLItem && graphMLItem->isNodeItem()){
+            NodeItem* nodeItem = (NodeItem*) graphMLItem;
+            nodeItem->snapToGrid();
+        }
     }
 }
 
@@ -1462,6 +1533,42 @@ void NodeView::appendToSelection(GraphMLItem *item)
 
 void NodeView::moveSelection(QPointF delta)
 {
+    bool canReduceX = true;
+    bool canReduceY = true;
+
+    foreach(QString ID, selectedIDs){
+        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+
+
+        GraphML* graphml = graphMLItem->getGraphML();
+        if(graphml && graphml->isNode()){
+            NodeItem* nodeItem = (NodeItem*) graphMLItem;
+            QPointF resultingPosition = nodeItem->pos() + delta;
+
+            qreal minX = 0;
+            qreal minY = 0;
+            if(nodeItem->getParentNodeItem()){
+                QRectF gridRect = nodeItem->getParentNodeItem()->gridRect();
+                minX = gridRect.left();
+                minY = gridRect.top();
+            }
+
+            if(resultingPosition.x() < minX){
+                canReduceX = false;
+            }
+            if(resultingPosition.y() < minY ){
+                canReduceY = false;
+            }
+        }
+    }
+
+    if(!canReduceX){
+        delta.setX(0);
+    }
+
+    if(!canReduceY){
+        delta.setY(0);
+    }
     foreach(QString ID, selectedIDs){
         GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
 

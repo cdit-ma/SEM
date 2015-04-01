@@ -21,6 +21,7 @@ class NodeView : public QGraphicsView
     friend class NewController;
     Q_OBJECT
 public:
+    enum ALIGN{NONE, HORIZONTAL, VERTICAL};
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
 
@@ -105,8 +106,13 @@ signals:
     void view_toggleGridLines(bool on);
 
 public slots:
-    void snapToGrid();
+
+    void alignSelectionHorizontally();
+    void alignSelectionVertically();
+
+    void snapSelectionToGrid();
     void snapChildrenToGrid();
+
     void constructEventPortDelegate(Node *assm, Node *eventPortInstance);
     void setDefaultAspects();
     void setEnabled(bool);
@@ -189,6 +195,7 @@ public slots:
 
 private:
 
+    void alignSelectionOnGrid(ALIGN alignment = NONE);
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
 

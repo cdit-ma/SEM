@@ -28,7 +28,7 @@ class NodeItem : public GraphMLItem
     Q_INTERFACES(QGraphicsItem)
 
 public:
-      enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
+    enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
     NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW=false);
     ~NodeItem();
 
@@ -38,6 +38,9 @@ public:
     void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
     QRectF minimumVisibleRect();
+
+
+    QPointF getClosestGridPoint(QPointF currentPosition);
 
     QRectF gridRect();
 
@@ -49,6 +52,7 @@ public:
     QPointF getGridPosition(int x, int y);
     bool isSelected();
     bool isLocked();
+    void setLocked(bool locked);
     bool isPainted();
     bool isAncestorSelected();
     void setDrawGrid(bool value);
@@ -80,6 +84,10 @@ public:
     void adjustPos(QPointF delta);
     void adjustSize(QSizeF delta);
 
+    void drawOutline(QRectF translateOutline);
+    void clearOutlines();
+
+
 
     double getWidth();
     double getHeight();
@@ -87,6 +95,7 @@ public:
     double getChildWidth();
 
     QPointF getNextChildPos();
+    void itterateNextSpace();
 
     Node* getNode();
     QString getNodeKind();
@@ -161,7 +170,6 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
 
-    QPointF getClosestGridPoint(QPointF currentPosition);
 
 
 private:
@@ -201,6 +209,7 @@ private:
     QStringList getChildrenKind();
 
     double getCornerRadius();
+    double getChildCornerRadius();
     double getMaxLabelWidth();
 
     QColor invertColor(QColor oldColor);
@@ -237,18 +246,21 @@ private:
 
     NodeItem::RESIZE_TYPE currentResizeMode;
 
-
+    QList<QRectF> outlines;
+    //Current Width/Height
     double width;
     double height;
 
-    double initialWidth;
-    double initialHeight;
+    //double initialWidth;
+    //double initialHeight;
 
     double minimumHeight;
     double minimumWidth;
 
-    double prevWidth;
-    double prevHeight;
+    double expandedHeight;
+    double expandedWidth;
+    //double prevWidth;
+    //double prevHeight;
 
     QPointF nextChildPosition;
 

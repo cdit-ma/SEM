@@ -1119,7 +1119,9 @@ void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
     }
 
     Node* parentNode = node->getParentNode();
-
+    if(node->getDataValue("kind") == "Process"){
+        return;
+    }
     if(nodeLabel == ""){
         nodeLabel = node->getDataValue("label");
     }
