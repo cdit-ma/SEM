@@ -17,6 +17,8 @@ public slots:
     void nodeConstructed(NodeItem* nodeItem);
     void nodeDestructed(NodeItem* nodeItem);
 
+    void resortFileLayoutItems(DockNodeItem* fileItem);
+
 private:
     QStringList definitions_notAllowedKinds;
     QHash<NodeItem*, QVBoxLayout*> fileLayoutItems;

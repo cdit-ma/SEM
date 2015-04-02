@@ -195,17 +195,11 @@ void DockNodeItem::updateTextLabel()
  */
 void DockNodeItem::paintEvent(QPaintEvent *e)
 {
-    /*if (fileLabel) {
-        setStyleSheet("QPushButton:hover{"
-                      "background-color: rgba(0,0,0,0);"
-                      "}");
-    } else {*/
     setStyleSheet("QPushButton:hover{"
                   "background-color: rgba(0,0,0,0);"
                   "border: 1px solid black;"
                   "border-radius: 5px;"
                   "}");
-    //}
 
     QPushButton::paintEvent(e);
 }
@@ -214,6 +208,8 @@ void DockNodeItem::paintEvent(QPaintEvent *e)
 /**
  * @brief DockNodeItem::buttonPressed
  * This is called whenever this dock item is clicked.
+ * If it's a file label, show/hide its children and update the textLabel.
+ * If it's not a file label, send
  */
 void DockNodeItem::clicked()
 {
@@ -260,6 +256,7 @@ void DockNodeItem::deleteLater()
 void DockNodeItem::updateData()
 {
     setLabel(nodeItem->getNode()->getDataValue("label"));
+    emit dockItem_fileRelabelled(this);
     repaint();
 }
 

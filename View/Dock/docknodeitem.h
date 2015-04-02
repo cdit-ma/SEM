@@ -27,6 +27,7 @@ protected:
 signals:
     void dockItem_clicked();
     void dockItem_fileClicked(bool show);
+    void dockItem_fileRelabelled(DockNodeItem* fileItem);
     void dockItem_removeFromDock(DockNodeItem* dockItem);
 
 public slots:

@@ -92,8 +92,14 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
             fileLayoutItems[fileItem] = new QVBoxLayout();
             fileLayoutItems[fileItem]->addWidget(fileDockItem);
 
+            addDockNodeItem(fileDockItem, false);
+            resortFileLayoutItems(fileDockItem);
+            connect(fileDockItem, SIGNAL(dockItem_fileRelabelled(DockNodeItem*)), this, SLOT(resortFileLayoutItems(DockNodeItem*)));
+
+
+            /*
             QString newFileName = fileItem->getNode()->getDataValue("label");
-            bool inserted = false;
+            bool layoutInserted = false;
 
             // iterate through the items in this dock's layout
             for (int i = 0; i < getLayout()->count(); i++) {
@@ -108,17 +114,20 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
                     if (compare <= 0) {
                         getLayout()->insertLayout(i, fileLayoutItems[fileItem]);
                         addDockNodeItem(fileDockItem, false);
-                        inserted = true;
+                        layoutInserted = true;
                         break;
                     }
                 }
             }
 
-            // add the layout which now contains the File label
-            if (!inserted) {
+            // if there was no spot to insert the new File layout, add it to this dock's layout
+            if (!layoutInserted) {
                 getLayout()->addLayout(fileLayoutItems[fileItem]);
                 addDockNodeItem(fileDockItem, false);
             }
+            */
+
+
         }
 
         // connect the new dock item to its parent file item
@@ -156,4 +165,48 @@ void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
             fileLayoutItems.remove(fileItem);
         }
     }
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::resortFileLayoutItems
+ * @param fileItem
+ */
+void DefinitionsDockScrollArea::resortFileLayoutItems(DockNodeItem *fileItem)
+{
+    if (fileItem) {
+
+        NodeItem* fileNodeItem = fileItem->getNodeItem();
+
+        if (getDockNodeItem(fileNodeItem)) {
+            getLayout()->removeItem(fileLayoutItems[fileNodeItem]);
+        }
+
+        QString filename = fileNodeItem->getNode()->getDataValue("label");
+        bool layoutInserted = false;
+
+        // iterate through the items in this dock's layout
+        for (int i = 0; i < getLayout()->count(); i++) {
+
+            NodeItem* currentFile = fileLayoutItems.key((QVBoxLayout*)getLayout()->itemAt(i));
+
+            // compare existing file names to the new file name
+            // insert the new File into the correct alphabetical spot in the layout
+            if (currentFile) {
+                QString currentFileName = currentFile->getNode()->getDataValue("label");
+                int compare = filename.compare(currentFileName, Qt::CaseInsensitive);
+                if (compare <= 0) {
+                    getLayout()->insertLayout(i, fileLayoutItems[fileNodeItem]);
+                    layoutInserted = true;
+                    break;
+                }
+            }
+        }
+
+        // if there was no spot to insert the new File layout, add it to this dock's layout
+        if (!layoutInserted) {
+            getLayout()->addLayout(fileLayoutItems[fileNodeItem]);
+        }
+    }
+
 }
