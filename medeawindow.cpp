@@ -422,7 +422,7 @@ void MedeaWindow::setupToolbar()
     snapChildrenToGridButton->setToolTip("Snap Children Nodes to Grid");
     zoomToFitButton->setToolTip("Zoom to fit Node");
     fitToScreenButton->setToolTip("Fit View to Screen");
-    duplicateButton->setToolTip("Duplicate Node");
+    duplicateButton->setToolTip("Replicate Node");
 
     QWidget* spacerWidgetLeft = new QWidget();
     QWidget* spacerWidgetRight = new QWidget();
@@ -552,7 +552,7 @@ void MedeaWindow::makeConnections()
     connect(pasteButton, SIGNAL(clicked()), this, SLOT(on_actionPaste_triggered()));
     connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
     connect(popupButton, SIGNAL(clicked()), this, SLOT(on_actionPopupNewWindow()));
-    connect(snapToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapToGrid()));
+    connect(snapToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapSelectionToGrid()));
     connect(snapChildrenToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapChildrenToGrid()));
 
     connect(duplicateButton, SIGNAL(clicked()), nodeView, SLOT(duplicate()));
@@ -579,11 +579,12 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
 
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
-
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_nodeDestructed()), partsDock, SLOT(updateDock()));
+
+    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
 
     connect(nodeView, SIGNAL(view_nodeSelected(Node*)), partsDock, SLOT(updateCurrentNodeItem(Node*)));
     connect(nodeView, SIGNAL(view_nodeSelected(Node*)), definitionsDock, SLOT(updateCurrentNodeItem(Node*)));
@@ -655,15 +656,15 @@ void MedeaWindow::setupDefaultSettings()
 {
     // need to set initial toggle action values as well as trigger them
     view_autoCenterView->setChecked(true);
-    view_autoCenterView->triggered(true);
     view_showGridLines->setChecked(true);
-    view_showGridLines->triggered(true);
     view_selectOnConstruction->setChecked(false);
+
+    view_autoCenterView->triggered(true);
+    view_showGridLines->triggered(true);
     view_selectOnConstruction->triggered(false);
 
     if (nodeView) {
         nodeView->centerAspects();
-        nodeView->fitToScreen();
     }
 
     // this only needs to happen once, the whole time the application is open

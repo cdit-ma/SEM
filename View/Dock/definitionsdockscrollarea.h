@@ -15,9 +15,11 @@ public slots:
     virtual void updateDock();
 
     void nodeConstructed(NodeItem* nodeItem);
+    void nodeDestructed(NodeItem* nodeItem);
 
 private:
     QStringList definitions_notAllowedKinds;
+    QHash<NodeItem*, QVBoxLayout*> fileLayoutItems;
 
 };
 

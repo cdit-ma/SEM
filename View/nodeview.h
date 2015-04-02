@@ -94,8 +94,8 @@ signals:
     // signals for the docks
     void view_enableDocks(bool enable);
     void view_nodeConstructed(NodeItem* nodeItem);
+    void view_nodeDestructed(NodeItem* nodeItem);
     void view_nodeSelected(Node* node);
-    void view_nodeDestructed();
     void view_edgeConstructed();
     void view_edgeDestructed();
 
@@ -221,8 +221,8 @@ private:
     bool removeGraphMLItemFromHash(QString ID);
 
     void nodeConstructed_signalUpdates(NodeItem* nodeItem);
+    void nodeDestructed_signalUpdates(NodeItem *nodeItem);
     void nodeSelected_signalUpdates(Node *node);
-    void nodeDestructed_signalUpdates();
     void edgeConstructed_signalUpdates(Node* src);
 
     Node* hasDefinition(Node* node);

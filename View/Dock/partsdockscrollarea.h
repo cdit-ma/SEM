@@ -13,10 +13,9 @@ public:
     void addDockNodeItems(QStringList nodeKinds);
     DockNodeItem* getDockNodeItem(QString kind);
 
-    virtual void updateDock();
-
 public slots:
     virtual void dockNodeItemClicked();
+    virtual void updateDock();
 
 private:    
     QStringList parts_notAllowedKinds;

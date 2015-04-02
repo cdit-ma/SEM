@@ -74,7 +74,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     nodeKind = getGraphML()->getDataValue("kind");
 
     QString parentNodeKind = "";
-    if (parent) {        
+    if (parent) {
         setVisible(parent->isExpanded());
 
         //width = parent->getChildWidth();
@@ -200,12 +200,6 @@ QRectF NodeItem::boundingRect() const
     bottomRightY += itemMargin/2;
     bottomRightX += itemMargin/2;
     bottomRightY += itemMargin/2;
-
-    if (width <= minimumWidth) {
-        // what if after the itemMargin is added width is still <= minWidth?
-        //    bottomRightX += itemMargin/2;
-        //    bottomRightY += itemMargin/2;
-    }
 
     return QRectF(QPointF(topLeftX, topLeftY), QPointF(bottomRightX, bottomRightY));
 }
@@ -670,19 +664,33 @@ QPointF NodeItem::getNextChildPos()
         }
     }
     while(true){
-        QPointF nextPosition = getGridPosition(currentX, currentY);
 
+        QPointF nextPosition = getGridPosition(currentX, currentY);
 
         if(!childrenPath.contains(nextPosition)){
             return nextPosition;
         }else{
+
+            /*
             if((nextPosition.x() + childWidth) > boundingRect().width()){
                 currentX = 1;
                 currentY += 1;
             }else{
                 currentX += 1;
             }
+            */
 
+            if ((nextPosition.x() + childWidth) > boundingRect().width()) {
+                if (currentX >= currentY) {
+                    currentX = 1;
+                    currentY += 1;
+                } else {
+                    //currentY = 1; // this puts it in an infinite loop!
+                    currentX += 1;
+                }
+            } else {
+                currentX += 1;
+            }
         }
     }
 
@@ -818,6 +826,9 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
  */
 void NodeItem::newSort()
 {
+    // added this so sort can be un-done
+    GraphMLItem_TriggerAction("NodeItem: Sorting Node");
+
     //Get the number of un-locked items
     QMap<int, NodeItem*> toSortMap;
     QList<NodeItem*> lockedItems;
@@ -864,13 +875,13 @@ void NodeItem::newSort()
     int x = 1;
     int y = 1;
 
-    NodeItem* nextItem = 0;
-
     // make the gap between view aspects smaller
     int increment = 3;
     if (nodeKind == "Model") {
         increment = 2;
     }
+
+    NodeItem* nextItem = 0;
 
     for (y; y <= (gridSize * increment) - 1; y += increment) {
         x = 1;
@@ -878,8 +889,6 @@ void NodeItem::newSort()
             if (toSortItems.size() > 0) {
                 nextItem = toSortItems.takeFirst();
                 nextItem->setCenterPos(getGridPosition(x,y));
-
-
             } else {
                 finishedLayout = true;
                 break;

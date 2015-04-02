@@ -41,10 +41,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
 
-    //AUTO_CENTER_ASPECTS = true;
-    //GRID_LINES_ON = true;
-    //SELECT_ON_CONSTRUCTION = true;
-
     setScene(new QGraphicsScene(this));
 
     //Set QT Options for this QGraphicsView
@@ -72,7 +68,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     allAspects << "Definitions";
     allAspects << "Workload";
 
-    //defaultAspects << "Assembly";
     defaultAspects << "Definitions";
 
     nonDrawnItemKinds << "DeploymentDefinitions";
@@ -597,6 +592,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
             clearSelection(true, false);
             appendToSelection(nodeItem);
             nodeItem->setNewLabel();
+            centerOnItem();
         }
     }
 
@@ -949,7 +945,6 @@ NodeItem *NodeView::getNodeItemFromGraphMLItem(GraphMLItem *item)
 
 EdgeItem *NodeView::getEdgeItemFromGraphMLItem(GraphMLItem *item)
 {
-
     if(item && item->isEdgeItem()){
         return (EdgeItem*) item;
     }
@@ -987,7 +982,10 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
             //disconnect(item, SIGNAL(GraphMLItem_SetGraphMLData(GraphMLItem*,QString,QString)), this, SLOT(setGraphMLData(GraphMLItem*,QString,QString)));
             if(scene()->items().contains(item)){
                 // send necessary signals when a node has been destructed
-                nodeDestructed_signalUpdates();
+                if(item->isNodeItem()){
+                    NodeItem* nodeItem = (NodeItem*) item;
+                    nodeDestructed_signalUpdates(nodeItem);
+                }
                 scene()->removeItem(item);
                 delete item;
             }
@@ -1034,10 +1032,10 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
  * It sends signals to update whatever needs updating.
  * @param node
  */
-void NodeView::nodeDestructed_signalUpdates()
+void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
 {
     emit view_nodeSelected(0);
-    emit view_nodeDestructed();
+    emit view_nodeDestructed(nodeItem);
 }
 
 
@@ -1911,6 +1909,7 @@ void NodeView::goToInstance(Node *instance)
     appendToSelection(guiItem);
     centerItem(guiItem);
 }
+
 
 /**
  * @brief NodeView::view_deleteSelectedNode

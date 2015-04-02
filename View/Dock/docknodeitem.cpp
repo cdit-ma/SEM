@@ -14,17 +14,29 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
     QPushButton(parent)
 {
     nodeItem = item;
+    parentDockItem = 0;
+    fileLabel = false;
+    expanded = true;
 
     if (nodeItem) {
         this->kind = nodeItem->getNodeKind();
         label = nodeItem->getNode()->getDataValue("label");
         connectToNodeItem();
+
+        // if kind == FileLabel, don't create an icon
+        if (kind == "FileLabel") {
+            fileLabel = true;
+            this->kind = kind;
+        }
+
     } else {
         this->kind = kind;
         label = kind;
     }
 
     setupLayout();
+    updateTextLabel();
+
     connect(this, SIGNAL(clicked()), this , SLOT(clicked()));
 }
 
@@ -58,8 +70,8 @@ QString DockNodeItem::getKind()
  */
 void DockNodeItem::setLabel(QString newLabel)
 {
-   label = newLabel;
-   textLabel->setText(label);
+    label = newLabel;
+    textLabel->setText(label);
 }
 
 
@@ -70,7 +82,18 @@ void DockNodeItem::setLabel(QString newLabel)
  */
 QString DockNodeItem::getLabel()
 {
-   return label;
+    return label;
+}
+
+
+/**
+ * @brief DockNodeItem::setParentDockNodeItem
+ * @param parentItem
+ */
+void DockNodeItem::setParentDockNodeItem(DockNodeItem *parentItem)
+{
+    parentDockItem = parentItem;
+    connect(parentDockItem, SIGNAL(dockItem_fileClicked(bool)), this, SLOT(parentDockItemClicked(bool)));
 }
 
 
@@ -82,42 +105,51 @@ QString DockNodeItem::getLabel()
 void DockNodeItem::setupLayout()
 {
     QVBoxLayout *layout = new QVBoxLayout();
-    QLabel* imageLabel = new QLabel(this);
-    textLabel = new QLabel(label, this);
-
-    setFlat(true);
-    setFixedSize(100, 100);
-    setStyleSheet("margin: 0px; padding: 0px;");
+    layout->setMargin(0);
+    layout->setSpacing(2);
 
     // make the font size smaller to fit the whole text inside textLabel
+    textLabel = new QLabel(label, this);
     QFont font = textLabel->font();
     if (kind.length() > 18) {
         QFontMetrics fm(font);
         font.setPointSizeF(fm.boundingRect(kind).width()/kind.size()*1.3);
+    } else if (fileLabel) {
+        font.setPointSizeF(10);
     } else {
         font.setPointSizeF(7.75);
     }
 
+    setFlat(true);
+    setStyleSheet("margin: 0px; padding: 0px;");
+
+    if (fileLabel) {
+        setFixedSize(100, 28);
+        textLabel->setAlignment(Qt::AlignHCenter);
+    } else {
+        setFixedSize(100, 100);
+        textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    }
+
     textLabel->setFont(font);
-    textLabel->setFixedSize(width(), 21);
-    textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    textLabel->setFixedSize(width()-2, 21);
 
-    QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
-    QImage scaledImage = image->scaled(width(),
-                                       height()-textLabel->height(),
-                                       Qt::KeepAspectRatio,
-                                       Qt::SmoothTransformation);
+    if (!fileLabel) {
+        QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
+        QImage scaledImage = image->scaled(width(),
+                                           height()-textLabel->height(),
+                                           Qt::KeepAspectRatio,
+                                           Qt::SmoothTransformation);
 
-    imageLabel->setBackgroundRole(QPalette::Base);
-    imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-    imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
+        QLabel* imageLabel = new QLabel(this);
+        imageLabel->setBackgroundRole(QPalette::Base);
+        imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+        imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
+        layout->addWidget(imageLabel);
+        layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+    }
 
-    layout->addWidget(imageLabel);
     layout->addWidget(textLabel);
-
-    layout->setMargin(0);
-    layout->setSpacing(2);
-    layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
     layout->setAlignment(textLabel, Qt::AlignHCenter);
 
     setLayout(layout);
@@ -136,17 +168,44 @@ void DockNodeItem::connectToNodeItem()
 
 
 /**
+ * @brief DockNodeItem::updateTextLabel
+ */
+void DockNodeItem::updateTextLabel()
+{
+    if (fileLabel) {
+        if (expanded) {
+            textLabel->setStyleSheet("margin: 1px 0px 0px;"
+                                     "padding: 2px 0px 2px;"
+                                     "border-radius: 5px;"
+                                     "background-color: rgba(208,197,134,0.85);");
+        } else {
+            textLabel->setStyleSheet("margin: 1px 0px 0px;"
+                                     "padding: 2px 0px 2px;"
+                                     "border-radius: 5px;"
+                                     "background-color: rgba(138,127,64,0.75);");
+        }
+    }
+}
+
+
+/**
  * @brief DockNodeItem::paintEvent
  * Change the node image (button icon) depending on the node type.
  * @param e
  */
 void DockNodeItem::paintEvent(QPaintEvent *e)
 {
+    /*if (fileLabel) {
+        setStyleSheet("QPushButton:hover{"
+                      "background-color: rgba(0,0,0,0);"
+                      "}");
+    } else {*/
     setStyleSheet("QPushButton:hover{"
                   "background-color: rgba(0,0,0,0);"
                   "border: 1px solid black;"
                   "border-radius: 5px;"
                   "}");
+    //}
 
     QPushButton::paintEvent(e);
 }
@@ -158,7 +217,27 @@ void DockNodeItem::paintEvent(QPaintEvent *e)
  */
 void DockNodeItem::clicked()
 {
-    emit dockItem_clicked();
+    if (!fileLabel) {
+        emit dockItem_clicked();
+    } else {
+        if (expanded) {
+            expanded = false;
+        } else {
+            expanded = true;
+        }
+        updateTextLabel();
+        emit dockItem_fileClicked(expanded);
+    }
+}
+
+
+/**
+ * @brief DockNodeItem::parentDockItemClicked
+ * Show/hide this dock item when its parent dock item is clicked.
+ */
+void DockNodeItem::parentDockItemClicked(bool show)
+{
+    setVisible(show);
 }
 
 

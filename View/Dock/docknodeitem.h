@@ -19,15 +19,19 @@ public:
     void setLabel(QString newLabel);
     QString getLabel();
 
+    void setParentDockNodeItem(DockNodeItem* parentItem);
+
 protected:
     void paintEvent(QPaintEvent* e);
 
 signals:
     void dockItem_clicked();
+    void dockItem_fileClicked(bool show);
     void dockItem_removeFromDock(DockNodeItem* dockItem);
 
 public slots:
     void clicked();
+    void parentDockItemClicked(bool show);
     void deleteLater();
 
     void updateData();
@@ -36,13 +40,18 @@ public slots:
 private:
     void setupLayout();
     void connectToNodeItem();
+    void updateTextLabel();
 
     NodeItem* nodeItem;
+    DockNodeItem* parentDockItem;
 
     QString kind;
     QString label;
 
     QLabel* textLabel;
+
+    bool fileLabel;
+    bool expanded;
 
 };
 

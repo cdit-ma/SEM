@@ -41,6 +41,8 @@ void HardwareDockScrollArea::dockNodeItemClicked()
 
 /**
  * @brief DefinitionsDockScrollArea::updateDock
+ * This is called whenever a node item is selected.
+ * It checks to see if this dock should be enabled for the currently selected item.
  */
 void HardwareDockScrollArea::updateDock()
 {

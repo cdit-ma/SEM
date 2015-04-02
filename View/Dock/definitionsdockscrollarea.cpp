@@ -42,7 +42,6 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     if (selectedNode) {
         Node* dockNode = sender->getNodeItem()->getNode();
         if (selectedNode->getDataValue("kind") == "ComponentAssembly") {
-
             getNodeView()->constructComponentInstance(selectedNode, dockNode, 0);
         } else if (selectedNode->getDataValue("kind") == "ComponentInstance") {
             getNodeView()->view_ConstructEdge(selectedNode,  dockNode);
@@ -53,6 +52,8 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
 
 /**
  * @brief DefinitionsDockScrollArea::updateDock
+ * This is called whenever a node item is selected.
+ * It checks to see if this dock should be enabled for the currently selected item.
  */
 void DefinitionsDockScrollArea::updateDock()
 {
@@ -65,6 +66,7 @@ void DefinitionsDockScrollArea::updateDock()
         }
         return;
     }
+
     DockScrollArea::updateDock();
 }
 
@@ -77,8 +79,81 @@ void DefinitionsDockScrollArea::updateDock()
  */
 void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 {
-   if (nodeItem->getNodeKind() == "Component") {
-       DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
-       addDockNodeItem(dockItem);
-   }
+    if (nodeItem->getNodeKind() == "Component") {
+
+        DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
+        NodeItem* fileItem = nodeItem->getParentNodeItem();
+
+        // check if there is already a layout and label for the parent File
+        if (!fileLayoutItems[fileItem]) {
+
+            // create a new File label and add it to the File's layout
+            DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
+            fileLayoutItems[fileItem] = new QVBoxLayout();
+            fileLayoutItems[fileItem]->addWidget(fileDockItem);
+
+            QString newFileName = fileItem->getNode()->getDataValue("label");
+            bool inserted = false;
+
+            // iterate through the items in this dock's layout
+            for (int i = 0; i < getLayout()->count(); i++) {
+
+                NodeItem* currentFile = fileLayoutItems.key((QVBoxLayout*)getLayout()->itemAt(i));
+
+                // compare existing file names to the new file name
+                // insert the new File into the correct alphabetical spot in the layout
+                if (currentFile) {
+                    QString currentFileName = currentFile->getNode()->getDataValue("label");
+                    int compare = newFileName.compare(currentFileName, Qt::CaseInsensitive);
+                    if (compare <= 0) {
+                        getLayout()->insertLayout(i, fileLayoutItems[fileItem]);
+                        addDockNodeItem(fileDockItem, false);
+                        inserted = true;
+                        break;
+                    }
+                }
+            }
+
+            // add the layout which now contains the File label
+            if (!inserted) {
+                getLayout()->addLayout(fileLayoutItems[fileItem]);
+                addDockNodeItem(fileDockItem, false);
+            }
+        }
+
+        // connect the new dock item to its parent file item
+        DockNodeItem* parentItem = getDockNodeItem(fileItem);
+        if (parentItem) {
+            dockItem->setParentDockNodeItem(parentItem);
+        }
+
+        // add new dock item to its parent's File's layout
+        fileLayoutItems[fileItem]->addWidget(dockItem);
+        addDockNodeItem(dockItem, false);
+    }
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::nodeDestructed
+ * This gets called when a node has been destructed.
+ * If it's of type Component, this checks if the Component's parent File no longer
+ * has any children. If it doesn't remove the File's layout and label from this dock.
+ * @param nodeItem
+ */
+void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
+{
+    if (nodeItem->getNodeKind() == "Component") {
+        NodeItem* fileItem = nodeItem->getParentNodeItem();
+        if (fileItem->getChildNodeItems().count() == 1) {
+            DockNodeItem* fileDockItem = getDockNodeItem(fileItem);
+            if (fileDockItem) {
+                removeDockNodeItemFromList(fileDockItem);
+                delete fileDockItem;
+            }
+            delete fileLayoutItems[fileItem];
+            getLayout()->removeItem(fileLayoutItems[fileItem]);
+            fileLayoutItems.remove(fileItem);
+        }
+    }
 }

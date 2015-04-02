@@ -12,7 +12,6 @@
 #include "../GraphicsItems/nodeitem.h"
 #include "docknodeitem.h"
 
-
 class DockToggleButton;
 class DockNodeItem;
 class NodeView;
@@ -26,7 +25,8 @@ public:
 
     void setNotAllowedKinds(QStringList kinds);
 
-    void addDockNodeItem(DockNodeItem* item);
+    void addDockNodeItem(DockNodeItem* item, bool addToLayout = true);
+    DockNodeItem* getDockNodeItem(NodeItem* item);
     QList<DockNodeItem*> getDockNodeItems();
 
     NodeItem* getCurrentNodeItem();
@@ -36,10 +36,15 @@ public:
     NodeView* getNodeView();
     QStringList getAdoptableNodeListFromView();
 
+    QVBoxLayout* getLayout();
+
 protected:
     void paintEvent(QPaintEvent *e);
 
 public slots:
+    virtual void dockNodeItemClicked() = 0;
+    virtual void updateDock();
+
     void updateCurrentNodeItem(Node* selectedNode);
 
     void activate();
@@ -47,9 +52,6 @@ public slots:
     void checkScrollBar();
 
     void removeDockNodeItemFromList(DockNodeItem* item);
-
-    virtual void dockNodeItemClicked() = 0;
-    virtual void updateDock();
 
 private:
     void setupLayout();
@@ -59,10 +61,9 @@ private:
     NodeItem* currentNodeItem;
     DockToggleButton *parentButton;
 
+    QVBoxLayout* layout;
     QString label;
     bool activated;
-
-    QVBoxLayout* layout;
 
     QList<DockNodeItem*> dockNodeItems;
     QStringList notAllowedKinds;

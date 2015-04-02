@@ -26,6 +26,7 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
 
 /**
  * @brief PartsDockScrollArea::updateDock
+ * This is called whenever a node item is selected, constructed or destructed.
  * This checks the new adoptable nodes list to see which dock node
  * items need to either be hidden or shown from this dock.
  */
@@ -37,8 +38,7 @@ void PartsDockScrollArea::updateDock()
         return;
     }
 
-    // when the selected node can't adopt anything,
-    // disbale parentButton and hide this dock
+    // when the selected node can't adopt anything, disbale this dock and its parentButton
     if (getDockNodeItems().count() == 0) {
         getParentButton()->enableDock(false);
         return;

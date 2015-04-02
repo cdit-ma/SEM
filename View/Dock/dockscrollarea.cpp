@@ -102,18 +102,51 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
 
 
 /**
+ * @brief DockScrollArea::getLayout
+ * @return
+ */
+QVBoxLayout *DockScrollArea::getLayout()
+{
+    return layout;
+}
+
+
+/**
  * @brief DockScrollArea::addDockNodeItem
  * This adds a new dock item to this dock's list and layout.
  * It also connects the dock item's basic signals to this dock.
  * @param item
+ * @param addToLayout
  */
-void DockScrollArea::addDockNodeItem(DockNodeItem *item)
+void DockScrollArea::addDockNodeItem(DockNodeItem *item, bool addToLayout)
 {
     dockNodeItems.append(item);
-    layout->addWidget(item);
+
+    if (addToLayout) {
+        layout->addWidget(item);
+    }
 
     connect(item, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
     connect(item, SIGNAL(dockItem_removeFromDock(DockNodeItem*)), this, SLOT(removeDockNodeItemFromList(DockNodeItem*)));
+}
+
+
+/**
+ * @brief DockScrollArea::getDockNodeItem
+ * This checks if this dock already contains a dock node item attached to item.
+ * @param item
+ * @return
+ */
+DockNodeItem *DockScrollArea::getDockNodeItem(NodeItem *item)
+{
+    if (item) {
+        foreach (DockNodeItem* dockItem, dockNodeItems) {
+            if (dockItem->getNodeItem() == item) {
+                return dockItem;
+            }
+        }
+    }
+    return 0;
 }
 
 
@@ -122,7 +155,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem *item)
  * Returns the dock node items contained in this dock.
  * @return
  */
-QList<DockNodeItem *> DockScrollArea::getDockNodeItems()
+QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
 {
     return dockNodeItems;
 }
@@ -132,9 +165,9 @@ QList<DockNodeItem *> DockScrollArea::getDockNodeItems()
  * @brief DockScrollArea::updateDock
  * If the currently selected node kind is contained in notAllowedKinds,
  * it means that this dock can't be used for the selected node.
- * If so, hide this dock and disable its parentButton.
- * If currentNodeItem is NULL, it means that there is no selected node
- * or, there is a signal missing to set currentNodeItem to 0.
+ * If so, disable this dock and its parentButton.
+ * If currentNodeItem is NULL, it means that there is no selected node,
+ * or there is a signal missing to set currentNodeItem to 0.
  */
 void DockScrollArea::updateDock()
 {
