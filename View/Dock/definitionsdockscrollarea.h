@@ -10,6 +10,8 @@ class DefinitionsDockScrollArea : public DockScrollArea
 public:
     explicit DefinitionsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent = 0);
 
+    QList<DockNodeItem*> getDockNodeItems();
+
 public slots:
     virtual void dockNodeItemClicked();
     virtual void updateDock();
@@ -17,11 +19,14 @@ public slots:
     void nodeConstructed(NodeItem* nodeItem);
     void nodeDestructed(NodeItem* nodeItem);
 
-    void resortFileLayoutItems(DockNodeItem* fileItem);
+    void resortDockItems(DockNodeItem* dockItem);
 
 private:
     QStringList definitions_notAllowedKinds;
     QHash<NodeItem*, QVBoxLayout*> fileLayoutItems;
+
+    QVBoxLayout* mainLayout;
+    QVBoxLayout* itemsLayout;
 
 };
 

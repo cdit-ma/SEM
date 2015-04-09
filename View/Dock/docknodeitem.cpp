@@ -98,6 +98,26 @@ void DockNodeItem::setParentDockNodeItem(DockNodeItem *parentItem)
 
 
 /**
+ * @brief DockNodeItem::getParentDockNodeItem
+ * @return
+ */
+DockNodeItem *DockNodeItem::getParentDockNodeItem()
+{
+    return parentDockItem;
+}
+
+
+/**
+ * @brief DockNodeItem::isFileLabel
+ * @return
+ */
+bool DockNodeItem::isFileLabel()
+{
+    return fileLabel;
+}
+
+
+/**
  * @brief DockNodeItem::setupLayout
  * Sets up the visual layout for dock items.
  * A groupbox is used to group the text and image labels.
@@ -256,7 +276,7 @@ void DockNodeItem::deleteLater()
 void DockNodeItem::updateData()
 {
     setLabel(nodeItem->getNode()->getDataValue("label"));
-    emit dockItem_fileRelabelled(this);
+    emit dockItem_relabelled(this);
     repaint();
 }
 

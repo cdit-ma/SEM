@@ -20,6 +20,9 @@ public:
     QString getLabel();
 
     void setParentDockNodeItem(DockNodeItem* parentItem);
+    DockNodeItem* getParentDockNodeItem();
+
+    bool isFileLabel();
 
 protected:
     void paintEvent(QPaintEvent* e);
@@ -27,7 +30,7 @@ protected:
 signals:
     void dockItem_clicked();
     void dockItem_fileClicked(bool show);
-    void dockItem_fileRelabelled(DockNodeItem* fileItem);
+    void dockItem_relabelled(DockNodeItem* fileItem);
     void dockItem_removeFromDock(DockNodeItem* dockItem);
 
 public slots:
