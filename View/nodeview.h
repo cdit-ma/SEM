@@ -39,6 +39,8 @@ public:
     // this is used by the parts dock
     QStringList getConstructableNodeKinds();
 
+    void appendToSelection(Node* node);
+
 protected:
     //Mouse Handling Methods
     void mouseReleaseEvent(QMouseEvent *event);
@@ -106,7 +108,6 @@ signals:
     void view_toggleGridLines(bool on);
 
 public slots:
-
     void alignSelectionHorizontally();
     void alignSelectionVertically();
 

@@ -67,7 +67,6 @@ DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *
 
     // make connections
     connect(this, SIGNAL(pressed()), this, SLOT(on_buttonPressed()));
-
     connect(this, SIGNAL(dockButton_pressed(QString)), window, SLOT(dockButtonPressed(QString)));
 }
 
@@ -249,14 +248,17 @@ void DockToggleButton::setColor(int state)
  */
 void DockToggleButton::setEnabled(bool enable)
 {
+    QPushButton::setEnabled(enable);
+
     // if there is no change to this button's enabled state, don't change its colour
     if (isEnabled() == enable) {
         return;
     }
+
     if (enable) {
         setColor(DEFAULT);
     } else {
+        setSelected(false);
         setColor(DISABLED);
     }
-    QPushButton::setEnabled(enable);
 }

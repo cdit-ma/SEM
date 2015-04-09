@@ -109,6 +109,7 @@ private:
     void updateDataTable();
     bool exportProject();
     void importProjects(QStringList files);
+    void enableHardwareDock();
 
     QMenu* menu;
     QMenu* file_menu;

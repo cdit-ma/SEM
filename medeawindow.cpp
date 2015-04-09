@@ -610,7 +610,7 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    boxHeight = this->height()*0.73;
+    boxHeight = this->height()*0.77;
     partsDock->setMinimumHeight(boxHeight);
     definitionsDock->setMinimumHeight(boxHeight);
     hardwareDock->setMinimumHeight(boxHeight);
@@ -654,7 +654,7 @@ void MedeaWindow::setupJenkinsSettings()
  */
 void MedeaWindow::setupDefaultSettings()
 {
-    // need to set initial toggle action values as well as trigger them
+    // need to set initial toggle action values before triggering them
     view_autoCenterView->setChecked(true);
     view_showGridLines->setChecked(true);
     view_selectOnConstruction->setChecked(false);
@@ -1180,8 +1180,12 @@ void MedeaWindow::loadJenkinsData(int code)
 
         window_ImportProjects(files);
 
+        // this selects the newly constructed hardware cluster and show the hardware dock
+        enableHardwareDock();
+
         // center view aspects
         nodeView->centerAspects();
+
     }else{
         QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
     }
@@ -1219,4 +1223,46 @@ void MedeaWindow::importProjects(QStringList files)
         window_ImportProjects(projects);
         nodeView->centerAspects();
     }
+}
+
+
+/**
+ * @brief MedeaWindow::enableHardwareDock
+ * This is called after the Jnkins nodes are imported.
+ * It selects the newly constructed Hardware cluster and opens the hardware dock.
+ */
+void MedeaWindow::enableHardwareDock()
+{
+    // make sure that the Harware aspects is turned on
+    if (!hardwareButton->isChecked()) {
+        hardwareButton->setChecked(true);
+        hardwareButton->clicked();
+    }
+
+    /*
+    bool prevCheckedState = view_selectOnConstruction->isChecked();
+    if (!view_selectOnConstruction->isChecked()) {
+        view_selectOnConstruction->triggered(true);
+    }
+    */
+
+    Model* model = controller->getModel();
+    if (model) {
+        QList<Node*> hardwareClusters = model->getChildrenOfKind("HardwareCluster");
+        if (hardwareClusters.count() > 0) {
+            nodeView->appendToSelection(hardwareClusters.at(0));
+        }
+    }
+
+    // if the hardware dock isn't already open, open it
+    // Note: this is called before the cluster is selected so the button is still disabled
+    if (/*hardwareNodesButton->isEnabled() &&*/ !hardwareNodesButton->getSelected()) {
+        hardwareNodesButton->pressed();
+    }
+
+    /*
+    // reset view_selectOnConstruction's checked state
+    view_selectOnConstruction->triggered(prevCheckedState);
+    */
+
 }

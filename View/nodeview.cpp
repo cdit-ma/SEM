@@ -473,19 +473,13 @@ void NodeView::setAspects(QStringList aspects)
     currentAspects = aspects;
 
     if(!IS_SUB_VIEW && AUTO_CENTER_ASPECTS){
-        /*
-        //SORT ASPECTS
-        sortAspects();
-        //centerAspects();
-        //Update the aspects.
-        emit view_AspectsChanged(aspects);
-        fitToScreen();
-        */
         centerAspects();
     }
 
     view_AspectsChanged(aspects); // need this for all cases
     view_GUIAspectChanged(aspects);
+
+    // TODO: only need to clear the selection if the selected item is now hidden
     clearSelection();
 }
 
@@ -577,6 +571,15 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         //Add to model.
         scene()->addItem(nodeItem);
     }
+
+    /*
+    // select hardware clusters on construction
+    if (nodeItem->getNodeKind() == "HardwareCluster") {
+        //clearSelection(true, false);
+        nodeItem->setSelected(true);
+        appendToSelection(nodeItem);
+    }
+    */
 
     // send/do necessary signals/updates when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
@@ -888,6 +891,16 @@ QList<Node*> NodeView::getComponents()
 QStringList NodeView::getConstructableNodeKinds()
 {
     return controller->getConstructableNodeKinds();
+}
+
+
+/**
+ * @brief NodeView::appendToSelection
+ * @param node
+ */
+void NodeView::appendToSelection(Node *node)
+{
+   appendToSelection(getGraphMLItemFromGraphML(node));
 }
 
 

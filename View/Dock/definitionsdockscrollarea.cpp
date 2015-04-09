@@ -111,20 +111,14 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
         // check if there is already a layout and label for the parent File
         if (!fileLayoutItems[fileItem]) {
 
-            // this is used to keep the File label at the top when it is contracted
-            //QWidget* spacerWidget = new QWidget(this);
-            //spacerWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Maximum);
-
             // create a new File label and add it to the File's layout
             DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
             fileLayoutItems[fileItem] = new QVBoxLayout();
             fileLayoutItems[fileItem]->addWidget(fileDockItem);
-            //fileLayoutItems[fileItem]->addWidget(spacerWidget);
 
             addDockNodeItem(fileDockItem, false);
             resortDockItems(fileDockItem);
             connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
-
         }
 
         // connect the new dock item to its parent file item
@@ -171,7 +165,6 @@ void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
                 }
                 // remove and delete the file layout
                 fileLayoutItems.remove(fileItem);
-                //getLayout()->removeItem(fileLayout);
                 itemsLayout->removeItem(fileLayout);
                 delete fileLayout;
 
@@ -204,7 +197,6 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
         // remove the dock item from its layout before inserting it to the right spot
         if (getDockNodeItem(dockNodeItem)) {
             if (isFileLabel) {
-                //layout = getLayout();
                 layout = itemsLayout;
                 layout->removeItem(fileLayoutItems[dockNodeItem]);
             } else {

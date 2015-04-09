@@ -172,12 +172,14 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
 void DockScrollArea::updateDock()
 {
     if (currentNodeItem) {
-        if (!notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
+        if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
+            parentButton->enableDock(false);
+        } else {
             parentButton->enableDock(true);
-            return;
         }
+    } else {
+        parentButton->enableDock(false);
     }
-    parentButton->enableDock(false);
 }
 
 
