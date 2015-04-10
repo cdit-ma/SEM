@@ -695,6 +695,7 @@ QList<Node *> NewController::getConnectableNodes(Node *src)
 
 
 
+
 QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attributeID)
 {
     //Get the Attributes of the current XML entity.

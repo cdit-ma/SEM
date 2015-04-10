@@ -166,5 +166,9 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
         focusOutEvent(0);
         return;
     }
+    if(keyPressed == Qt::Key_Delete){
+        event->setAccepted(true);
+        //return;
+    }
     QGraphicsTextItem::keyPressEvent(event);
 }

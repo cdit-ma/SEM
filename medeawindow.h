@@ -35,6 +35,7 @@
 #include "View/Dock/hardwaredockscrollarea.h"
 
 #include "View/Toolbar/toolbarwidgetaction.h"
+#include "GUI/appsettings.h"
 
 class MedeaWindow : public QMainWindow
 {
@@ -59,6 +60,9 @@ public slots:
     void setupDefaultSettings();
 
 private slots:
+    void loadSettings();
+    void saveSettings();
+
     void loadJenkinsData(int code);
 
     void on_actionImportJenkinsNode();
@@ -73,6 +77,8 @@ private slots:
     void on_actionPopupNewWindow();
 
     void on_actionPaste_triggered();
+    void on_SearchTextChanged(QString text);
+    void on_actionSearch();
     void on_actionExit_triggered();
 
     void writeExportedProject(QString data);
@@ -96,6 +102,7 @@ private slots:
     void showWindowToolbar();
 
 private:
+
     void resetGUI();
     void resetView();
     void newProject();
@@ -133,9 +140,13 @@ private:
     QAction* view_autoCenterView;
     QAction* view_showGridLines;
     QAction* view_selectOnConstruction;
+
+
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_sortModel;
+
+    QAction* settings_ChangeSettings;
 
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
@@ -159,6 +170,9 @@ private:
     QToolButton* fitToScreenButton;
     QToolButton* duplicateButton;
 
+    QToolButton* alignSelectionVertical;
+    QToolButton* alignSelectionHorizontal;
+
     ComboBoxTableDelegate* delegate;
 
     QTableView* dataTable;
@@ -169,6 +183,10 @@ private:
     QPushButton* hardwareButton;
     QPushButton* workloadButton;
     QPushButton* definitionsButton;
+    QPushButton* searchButton;
+    QLineEdit* searchBar;
+
+    AppSettings* appSettings;
 
     NewController* controller;
     NodeView* nodeView;
@@ -189,6 +207,10 @@ private:
 
 
     QString exportFileName;
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *);
 };
 
 #endif // MEDEAWINDOW_H

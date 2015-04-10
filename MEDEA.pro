@@ -81,7 +81,9 @@ HEADERS += \
     View/nodeview.h \
     View/nodeviewminimap.h \
     medeawindow.h \
-    modeltester.h
+    modeltester.h \
+    GUI/appsettings.h \
+    GUI/keyeditwidget.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -147,7 +149,9 @@ SOURCES += \
     View/nodeviewminimap.cpp \
     main.cpp \
     medeawindow.cpp \
-    modeltester.cpp
+    modeltester.cpp \
+    GUI/appsettings.cpp \
+    GUI/keyeditwidget.cpp
 
 FORMS += \
 

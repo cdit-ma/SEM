@@ -15,6 +15,7 @@
 
 #include <QToolButton>
 #include <QToolBar>
+#include <QSettings>
 
 
 #define THREADING false
@@ -26,7 +27,15 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
-    // this needs to happen before the menu is set up and connected
+    thread = 0;
+    nodeView = 0;
+    controller = 0;
+    myProcess = 0;
+    minimap = 0;
+    appSettings = 0;
+    appSettings = new AppSettings(this);
+
+    //loadSettings();
     setupJenkinsSettings();
 
     // initialise gui and connect signals and slots
@@ -34,6 +43,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     makeConnections();
     newProject();
 
+    on_SearchTextChanged("");
     /*
     // this is used for when a file is dragged and dropped on top of this tool's icon
     if(graphMLFile.length() != 0){
@@ -50,6 +60,10 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
  */
 MedeaWindow::~MedeaWindow()
 {
+    if(appSettings){
+        saveSettings();
+        delete appSettings;
+    }
     if (controller) {
         delete controller;
     }
@@ -72,7 +86,12 @@ void MedeaWindow::initialiseGUI()
     controller = 0;
 
     prevPressedButton = 0;
+	myProcess = 0;
+    controller = 0;
+
+    prevPressedButton = 0;
     firstTableUpdate = true;
+
 
     nodeView = new NodeView();
     toolbar = new QToolBar();
@@ -87,8 +106,8 @@ void MedeaWindow::initialiseGUI()
     definitionsButton = new QPushButton("Interface");
 
     QPushButton *menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
-    QLineEdit *searchBar = new QLineEdit();
-    QPushButton *searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
+    searchBar = new QLineEdit();
+    searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
     QVBoxLayout *tableLayout = new QVBoxLayout();
 
     // set window size; used for graphicsview and main widget
@@ -109,11 +128,10 @@ void MedeaWindow::initialiseGUI()
     searchButton->setFixedSize(45, 28);
     searchButton->setIconSize(searchButton->size()*0.65);
     searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
-    searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
+	searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
     projectName->setStyleSheet("font-size: 16px; text-align: left;");
     menuButton->setStyleSheet("QPushButton{ background-color: rgba(220,220,220,0.5); }"
                               "QPushButton::menu-indicator{ image: none; }");
-
     assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
@@ -235,6 +253,10 @@ void MedeaWindow::setupMenu(QPushButton *button)
     menu->addSeparator();
     model_menu = menu->addMenu(QIcon(":/Resources/Icons/model.png"), "Model");
     menu->addSeparator();
+
+    settings_ChangeSettings = menu->addAction(QIcon(":/Resources/Icons/settings.png"), "Settings");
+
+
     exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Exit");
 
     file_newProject = file_menu->addAction(QIcon(":/Resources/Icons/new_project.png"), "New Project");
@@ -284,6 +306,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_sortModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
+
+
 
     exit->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
 
@@ -386,6 +410,8 @@ void MedeaWindow::setupToolbar()
     zoomToFitButton = new QToolButton(this);
     fitToScreenButton = new QToolButton(this);
     duplicateButton = new QToolButton(this);
+    alignSelectionVertical = new QToolButton(this);
+    alignSelectionHorizontal = new QToolButton(this);
 
     cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
     copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
@@ -399,6 +425,10 @@ void MedeaWindow::setupToolbar()
     fitToScreenButton->setIcon(QIcon(":/Resources/Icons/fitToScreen.png"));
     duplicateButton->setIcon(QIcon(":/Resources/Icons/duplicate.png"));
 
+    alignSelectionVertical->setText("|");
+    alignSelectionHorizontal->setText("_");
+
+
     cutButton->setFixedSize(buttonSize);
     copyButton->setFixedSize(buttonSize);
     pasteButton->setFixedSize(buttonSize);
@@ -410,6 +440,8 @@ void MedeaWindow::setupToolbar()
     zoomToFitButton->setFixedSize(buttonSize);
     fitToScreenButton->setFixedSize(buttonSize);
     duplicateButton->setFixedSize(buttonSize);
+    alignSelectionVertical->setFixedSize(buttonSize);
+    alignSelectionHorizontal->setFixedSize(buttonSize);
 
     cutButton->setToolTip("Cut Node");
     copyButton->setToolTip("Copy Node");
@@ -417,11 +449,13 @@ void MedeaWindow::setupToolbar()
     sortButton->setToolTip("Sort Node");
     centerButton->setToolTip("Center on Node");
     popupButton->setToolTip("Show Node In New Window");
-    snapToGridButton->setToolTip("Snap Node to Grid");
+    snapToGridButton->setToolTip("Snap Selected Nodes to Grid");
     snapChildrenToGridButton->setToolTip("Snap Children Nodes to Grid");
     zoomToFitButton->setToolTip("Zoom to fit Node");
     fitToScreenButton->setToolTip("Fit View to Screen");
     duplicateButton->setToolTip("Replicate Node");
+    alignSelectionVertical->setToolTip("Align Selected Nodes Vertically");
+    alignSelectionHorizontal->setToolTip("Align Selected Nodes Horizontally");
 
     QWidget* spacerWidgetLeft = new QWidget();
     QWidget* spacerWidgetRight = new QWidget();
@@ -455,6 +489,8 @@ void MedeaWindow::setupToolbar()
     toolbar->addWidget(sortButton);
     toolbar->addWidget(snapChildrenToGridButton);
     toolbar->addWidget(snapToGridButton);
+    toolbar->addWidget(alignSelectionVertical);
+    toolbar->addWidget(alignSelectionHorizontal);
     toolbar->addWidget(spacerWidgetRight);
 
     //toolbar->addWidget(popupButton);
@@ -512,12 +548,15 @@ void MedeaWindow::resetGUI()
  */
 void MedeaWindow::makeConnections()
 {
+
     connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
     connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setViewAspects(QStringList)));
     connect(nodeView, SIGNAL(view_updateGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
     connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
+
+    connect(settings_ChangeSettings, SIGNAL(triggered()), appSettings, SLOT(launchSettingsUI()));
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
@@ -531,6 +570,11 @@ void MedeaWindow::makeConnections()
     connect(edit_cut, SIGNAL(triggered()), nodeView, SLOT(cut()));
     connect(edit_copy, SIGNAL(triggered()), nodeView, SLOT(copy()));
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
+
+    connect(searchButton, SIGNAL(pressed()), this, SLOT(on_actionSearch()));
+    connect(searchBar, SIGNAL(textChanged(QString)), this, SLOT(on_SearchTextChanged(QString)));
+    connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch()));
+
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
@@ -551,10 +595,13 @@ void MedeaWindow::makeConnections()
     connect(pasteButton, SIGNAL(clicked()), this, SLOT(on_actionPaste_triggered()));
     connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
     connect(popupButton, SIGNAL(clicked()), this, SLOT(on_actionPopupNewWindow()));
+
     connect(snapToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapSelectionToGrid()));
     connect(snapChildrenToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapChildrenToGrid()));
 
     connect(duplicateButton, SIGNAL(clicked()), nodeView, SLOT(duplicate()));
+    connect(alignSelectionHorizontal, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
+    connect(alignSelectionVertical, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
     connect(fitToScreenButton, SIGNAL(clicked()), nodeView, SLOT(fitToScreen()));
     connect(centerButton, SIGNAL(clicked()), nodeView, SLOT(centerOnItem()));
     connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
@@ -580,7 +627,10 @@ void MedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
+	connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
 
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
@@ -668,6 +718,44 @@ void MedeaWindow::setupDefaultSettings()
 
     // this only needs to happen once, the whole time the application is open
     partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
+}
+
+void MedeaWindow::loadSettings()
+{
+    QPoint pos;
+    QSize size;
+    QSettings* settings = appSettings->getSettings();
+    settings->beginGroup("MainWindow");
+    pos.setX(settings->value("x").toInt());
+    pos.setY(settings->value("y").toInt());
+    size.setWidth(settings->value("width").toInt());
+    size.setHeight(settings->value("height").toInt());
+
+    if(settings->value("maximized").toString() == "true"){
+        setWindowState(windowState() | Qt::WindowMaximized);
+    }
+
+
+    resize(size);
+    move(pos);
+    settings->endGroup();
+
+
+}
+
+void MedeaWindow::saveSettings()
+{
+    qCritical() << "SAVING SETTINGS";
+    //SAVE width/height
+    QSettings* settings = appSettings->getSettings();
+    settings->beginGroup("MainWindow");
+    settings->setValue("width", size().width());
+    settings->setValue("height", size().height());
+    settings->setValue("x", pos().x());
+    settings->setValue("y", pos().y());
+    settings->setValue("maximized", isMaximized());
+    settings->setValue("aspects", checkedViewAspects);
+    settings->endGroup();
 }
 
 
@@ -814,6 +902,34 @@ void MedeaWindow::on_actionPaste_triggered()
     QClipboard *clipboard = QApplication::clipboard();
     if (clipboard->ownsClipboard()) {
         window_PasteData(clipboard->text());
+    }
+}
+
+void MedeaWindow::on_SearchTextChanged(QString text)
+{
+    if(text.length() != 0){
+        searchButton->setEnabled(true);
+    }else{
+        searchButton->setEnabled(false);
+    }
+
+}
+
+void MedeaWindow::on_actionSearch()
+{
+    QString searchText = searchBar->text();
+    if(nodeView && searchText != ""){
+        QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::NODE_ITEM);
+        QString messageBoxText;
+        foreach(GraphMLItem* guiItem, returnedItems){
+            messageBoxText += "* "+ guiItem->getGraphML()->toString() + "\n";
+        }
+        if(messageBoxText == ""){
+            messageBoxText = "Search Yielded no results";
+        }
+
+        QMessageBox::information(this, "Search Results: '"+searchText+"'", messageBoxText, QMessageBox::Ok);
+        searchBar->clear();
     }
 }
 
@@ -1225,6 +1341,21 @@ void MedeaWindow::importProjects(QStringList files)
     if (projects.size() > 0) {
         window_ImportProjects(projects);
         nodeView->centerAspects();
+    }
+}
+
+void MedeaWindow::closeEvent(QCloseEvent * e)
+{
+    return;
+    QMessageBox::StandardButton resBtn = QMessageBox::question( this, "MEDEA",
+                                                                    tr("Are you sure?\n"),
+                                                                    QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
+                                                                    QMessageBox::Yes);
+    if (resBtn != QMessageBox::Yes) {
+        e->ignore();
+    } else {
+        e->accept();
+        delete this;
     }
 }
 

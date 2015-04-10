@@ -9,6 +9,10 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    QCoreApplication::setOrganizationName("Defence Information Group");
+    QCoreApplication::setApplicationName("MEDEA");
+
+
     QString GraphMLFile = 0;
     if(argc == 2){
         GraphMLFile = QString(argv[1]);

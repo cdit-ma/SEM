@@ -317,6 +317,24 @@ void NodeView::removeSubView(NodeView *subView)
     }
 }
 
+QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIND kind)
+{
+
+    QList<GraphMLItem*> returnable;
+
+    foreach(GraphMLItem* guiItem, guiItems){
+        GraphML* gml = guiItem->getGraphML();
+        if((kind == GraphMLItem::NODE_ITEM && guiItem->isNodeItem()) || (kind == GraphMLItem::NODE_EDGE && guiItem->isEdgeItem())){
+            if(gml->getDataValue("label").toLower().contains(searchString.toLower())){
+                returnable.append(guiItem);
+            }
+        }
+    }
+
+    return returnable;
+
+}
+
 QStringList NodeView::getAdoptableNodeList(Node *node)
 {
     return controller->getAdoptableNodeKinds(node);
@@ -1605,18 +1623,18 @@ void NodeView::moveSelection(QPointF delta)
             if(resultingPosition.x() < minX){
                 canReduceX = false;
             }
-            if(resultingPosition.y() < minY ){
+            if(resultingPosition.y() < minY){
                 canReduceY = false;
             }
         }
     }
 
     if(!canReduceX){
-        delta.setX(0);
+        delta.setX(qMax(0.0, delta.x()));
     }
 
     if(!canReduceY){
-        delta.setY(0);
+        delta.setY(qMax(0.0, delta.y()));
     }
     foreach(QString ID, selectedIDs){
         GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);

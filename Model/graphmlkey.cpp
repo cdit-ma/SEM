@@ -44,7 +44,7 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
     setDefaultProtected(false);
 
     invalidLabelCharacters << '*' << '.' << '[' << ']'<< ';' << '|' << ',' <<  '%';
-    invalidLabelCharacters << '"' << '/' << '\\' << '=' << ':' << ' ' << '<' << '>';
+    invalidLabelCharacters << '"' << '/' << '\\' << '=' << ':' << ' ' << '<' << '>' << '\t';
 }
 
 GraphMLKey::~GraphMLKey()
@@ -163,7 +163,8 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
                 QMessageBox::warning(0, "Label Warning!", "Label is longer than 32 characters!", QMessageBox::Ok);
             }
 
-            //newValue.replace(QString(" "), QString("_"));
+            newValue.replace(QString(" "), QString("_"));
+            newValue.replace(QString("\t"), QString("_"));
             foreach(QChar letter, newValue){
 
                 if(invalidLabelCharacters.contains(letter)){

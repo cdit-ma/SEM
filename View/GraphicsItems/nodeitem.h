@@ -217,6 +217,7 @@ private:
     QColor invertColor(QColor oldColor);
 
     double getItemMargin() const;
+    double getChildItemMargin() const;
 
 
 
@@ -282,6 +283,7 @@ private:
     QColor selectedColor;
     QColor color;
     QBrush selectedBrush;
+    QRectF newRect;
     QBrush brush;
     QPen pen;
     QPen selectedPen;
@@ -290,6 +292,8 @@ private:
     int nextY;
 
     bool hasDefinition;
+
+
     bool onGrid;
 
     bool LOCKED_POSITION;

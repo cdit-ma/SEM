@@ -37,6 +37,8 @@ public:
     void setParentNodeView(NodeView *n);
     void removeSubView(NodeView* subView);
 
+    QList<GraphMLItem *> search(QString searchString, GraphMLItem::GUI_KIND kind);
+
     // this is used by the parts dock
     QStringList getConstructableNodeKinds();
 
