@@ -112,6 +112,8 @@ signals:
 
     void view_toggleGridLines(bool on);
 
+    void view_updateProgressStatus(int value, QString status);
+
 public slots:
     void alignSelectionHorizontally();
     void alignSelectionVertically();

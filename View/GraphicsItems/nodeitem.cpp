@@ -103,7 +103,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     expandedWidth = width;
     expandedHeight = height;
 
-
     /*
     if(!IN_SUBVIEW){
         if (width < initialWidth) {
@@ -116,7 +115,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     //Update Width and Height with values from the GraphML Model If they have them.
     retrieveGraphMLData();
-
 
     //Update GraphML Model for size/position if they have been changed.
     updateGraphMLSize();
@@ -766,11 +764,11 @@ void NodeItem::setSelected(bool selected)
 
 void NodeItem::setVisible(bool visible)
 {
-    bool isCurrentlyVisible = isVisible();
-    if(isCurrentlyVisible != visible){
+    //bool isCurrentlyVisible = isVisible();
+    //if(isCurrentlyVisible != visible){
         QGraphicsItem::setVisible(visible);
         emit setEdgeVisibility(visible);
-    }
+    //}
 }
 
 
@@ -1521,30 +1519,15 @@ void NodeItem::setPos(const QPointF &pos)
 {
     if(pos != this->pos()){
 
-        QPointF newPoint = pos;
+        isOverGrid(pos);
 
-        /*
-
-        if (!nodeKind.contains("Definitions")) {
-            if(newPoint.x() < 0){
-                newPoint.setX(0);
-            }
-            if(newPoint.y() < 0){
-                newPoint.setY(0);
-            }
-        }
-
-        isOverGrid(newPoint);
-
-        QGraphicsItem::setPos(newPoint);
+        QGraphicsItem::setPos(pos);
 
         updateChildrenOnChange();
         updateParent();
-    */
-        QGraphicsItem::setPos(newPoint);
     }
-
 }
+
 
 void NodeItem::updateParent()
 {
@@ -1586,6 +1569,11 @@ void NodeItem::aspectsChanged(QStringList aspects)
     // if not visible, unselect node item
     if (!isVisible()) {
         setSelected(false);
+    } else {
+        if (nodeKind == "ManagementComponents") {
+            qDebug() << "aspectsChanged()";
+            snapToGrid();
+        }
     }
 }
 

@@ -84,25 +84,26 @@ private slots:
     void writeExportedProject(QString data);
     void updateUndoStates(QStringList list);
     void updateRedoStates(QStringList list);
+
     void setClipboard(QString value);
+    void setAttributeModel(AttributeTableModel* model);
+
+    void setViewAspects(QStringList aspects);
+    void updateViewAspects();
 
     void changeWindowTitle(QString label);
 
-    void setAttributeModel(AttributeTableModel* model);
+    void setGoToMenuActions(QString action, bool enable);
 
     void editMultiLineData(GraphMLData* data);
 
     void dockButtonPressed(QString buttonName);
 
-    void setViewAspects(QStringList aspects);
-    void updateViewAspects();
-
-    void setGoToMenuActions(QString action, bool enable);
+    void updateProgressStatus(int value, QString status);
 
     void showWindowToolbar();
 
 private:
-
     void resetGUI();
     void resetView();
     void newProject();

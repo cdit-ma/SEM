@@ -73,7 +73,6 @@ void NewController::connectView(NodeView *view)
 {
     view->setController(this);
 
-
     //Connect SIGNALS to view Slots (ALL VIEWS)
     connect(this, SIGNAL(controller_GraphMLConstructed(GraphML*)), view, SLOT(constructGUIItem(GraphML*)));
     connect(this, SIGNAL(controller_GraphMLDestructed(QString)), view, SLOT(destructGUIItem(QString)));
@@ -87,6 +86,7 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(controller_StatusChanged(QString)), view, SIGNAL(view_StatusChanged(QString)));
         connect(this, SIGNAL(controller_UndoListChanged(QStringList)), view, SIGNAL(view_UndoListChanged(QStringList)));
         connect(this, SIGNAL(controller_RedoListChanged(QStringList)), view, SIGNAL(view_RedoListChanged(QStringList)));
+        connect(this, SIGNAL(controller_ActionProgressChanged(int,QString)), view, SIGNAL(view_updateProgressStatus(int,QString)));
 
         //Signals to the View.
         connect(this, SIGNAL(controller_DialogMessage(MESSAGE_TYPE,QString, GraphML*)), view, SLOT(showDialogMessage(MESSAGE_TYPE,QString, GraphML*)));

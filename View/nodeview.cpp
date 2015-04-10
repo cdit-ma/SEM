@@ -1604,13 +1604,21 @@ void NodeView::moveSelection(QPointF delta)
     bool canReduceY = true;
 
     foreach(QString ID, selectedIDs){
-        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
 
+        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
 
         GraphML* graphml = graphMLItem->getGraphML();
         if(graphml && graphml->isNode()){
+
             NodeItem* nodeItem = (NodeItem*) graphMLItem;
             QPointF resultingPosition = nodeItem->pos() + delta;
+
+            // added this so that the Definitions containers can be moved outside of the Model
+            if (nodeItem->getNodeKind().endsWith("Definitions")) {
+                canReduceX = true;
+                canReduceY = true;
+                continue;
+            }
 
             qreal minX = 0;
             qreal minY = 0;

@@ -27,15 +27,7 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
-    thread = 0;
-    nodeView = 0;
-    controller = 0;
-    myProcess = 0;
-    minimap = 0;
-    appSettings = 0;
-    appSettings = new AppSettings(this);
-
-    //loadSettings();
+    // this needs to happen before the menu is set up and connected
     setupJenkinsSettings();
 
     // initialise gui and connect signals and slots
@@ -44,6 +36,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     newProject();
 
     on_SearchTextChanged("");
+
     /*
     // this is used for when a file is dragged and dropped on top of this tool's icon
     if(graphMLFile.length() != 0){
@@ -79,24 +72,20 @@ MedeaWindow::~MedeaWindow()
  * and setup the view, scene and menu.
  */
 void MedeaWindow::initialiseGUI()
-{
+{    
     // initialise variables
     thread = 0;
     myProcess = 0;
     controller = 0;
 
     prevPressedButton = 0;
-	myProcess = 0;
-    controller = 0;
-
-    prevPressedButton = 0;
     firstTableUpdate = true;
-
 
     nodeView = new NodeView();
     toolbar = new QToolBar();
     dataTable = new QTableView();
     delegate = new ComboBoxTableDelegate(0);
+    appSettings = new AppSettings(this);
 
     dataTableBox = new QGroupBox();
     projectName = new QPushButton("Model");
@@ -548,10 +537,11 @@ void MedeaWindow::resetGUI()
  */
 void MedeaWindow::makeConnections()
 {
-
     connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
     connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setViewAspects(QStringList)));
     connect(nodeView, SIGNAL(view_updateGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
+    connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
+    connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
     connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
@@ -639,13 +629,12 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeSelected(Node*)), definitionsDock, SLOT(updateCurrentNodeItem(Node*)));
     connect(nodeView, SIGNAL(view_nodeSelected(Node*)), hardwareDock, SLOT(updateCurrentNodeItem(Node*)));
 
-    connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
+    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
 
     // this needs fixing
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 
-    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
 }
 
 
@@ -1225,6 +1214,16 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
 
 
 /**
+ * @brief MedeaWindow::updateProgressStatus
+ * This updates the progress bar values.
+ */
+void MedeaWindow::updateProgressStatus(int value, QString status)
+{
+    //qDebug() << "Status: " << value << "% " << status;
+}
+
+
+/**
  * @brief MedeaWindow::updateDataTable
  * Update the dataTable size whenever a node is selected/deselected,
  * when a new model is loaded and when the window is resized.
@@ -1387,6 +1386,7 @@ void MedeaWindow::enableDeploymentViewAspect()
         if (hardwareClusters.count() > 0) {
             // at the moment, this method assumes that the only cluster is the Jenkins cluster
             nodeView->appendToSelection(hardwareClusters.at(0));
+            nodeView->snapSelectionToGrid();
         }
     }
 
