@@ -49,7 +49,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     onGrid = false;
     firstReposition = true;
 
-
     nextX = 1;
     nextY = 1;
 
@@ -57,7 +56,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     isNodePressed = false;
     permanentlyCentralized = false;
     permanentlyInvisible = false;
-    hidden = false;
     expanded = true;
     hasSelectionMoved = false;
     hasDefinition = false;
@@ -72,6 +70,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     height = 0;
 
     nodeKind = getGraphML()->getDataValue("kind");
+
+    hidden = false;
+    /*
+    if (nodeKind == "HardwareNode") {
+        setHidden(true);
+    }
+    */
 
     QString parentNodeKind = "";
     if (parent) {
@@ -1503,8 +1508,6 @@ void NodeItem::setupBrushes()
     selectedPen.setColor(Qt::blue);
     selectedPen.setWidth(24);
 
-
-
 }
 
 
@@ -1517,12 +1520,18 @@ void NodeItem::setPos(qreal x, qreal y)
 void NodeItem::setPos(const QPointF &pos)
 {
     if(pos != this->pos()){
+
         QPointF newPoint = pos;
-        if(newPoint.x() < 0){
-            newPoint.setX(0);
-        }
-        if(newPoint.y() < 0){
-            newPoint.setY(0);
+
+        /*
+
+        if (!nodeKind.contains("Definitions")) {
+            if(newPoint.x() < 0){
+                newPoint.setX(0);
+            }
+            if(newPoint.y() < 0){
+                newPoint.setY(0);
+            }
         }
 
         isOverGrid(newPoint);
@@ -1531,7 +1540,10 @@ void NodeItem::setPos(const QPointF &pos)
 
         updateChildrenOnChange();
         updateParent();
+    */
+        QGraphicsItem::setPos(newPoint);
     }
+
 }
 
 void NodeItem::updateParent()
@@ -1654,6 +1666,7 @@ void NodeItem::setupLabel()
     //textItem = new QGraphicsTextItem(this);
     textItem = new EditableTextItem(this);
     connect(textItem, SIGNAL(textUpdated(QString)),this, SLOT(labelUpdated(QString)));
+    connect(textItem, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
     //textItem->setTextInteractionFlags(Qt::NoTextInteraction);
 
     textItem->setToolTip("Double Click to Edit Label");
@@ -2056,7 +2069,6 @@ void NodeItem::updateHeight(NodeItem *child)
 
 void NodeItem::updateModelPosition()
 {
-
     if(hasSelectionMoved){
         setLocked(onGrid);
     }
@@ -2133,7 +2145,7 @@ QString NodeItem::getNodeKind()
  */
 void NodeItem::setHidden(bool h)
 {
-    hidden  = h;
+    hidden = h;
     setVisible(!h);
 }
 

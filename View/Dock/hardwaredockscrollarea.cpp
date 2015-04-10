@@ -46,8 +46,6 @@ void HardwareDockScrollArea::dockNodeItemClicked()
  */
 void HardwareDockScrollArea::updateDock()
 {
-    //qDebug() << "Hardware Dock: updateDock()";
-
     // special case - ComponentInstance
     // it's only an allowed kind if it has a definition
     if (getCurrentNodeItem() && getCurrentNodeItem()->getNodeKind() == "ComponentInstance") {

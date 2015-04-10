@@ -24,6 +24,8 @@
 #include <QVBoxLayout>
 #include <QTime>
 
+#include <QTableView>
+
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 #define MIN_ZOOM 0.01
@@ -32,12 +34,15 @@
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
     constructedFromImport = true;
-    CENTRALIZED_ON_ITEM = false;
+    toolbarJustClosed = false;
+    editingNodeItemLabel = false;
+
     IS_SUB_VIEW = subView;
     controller = 0;
-    toolbarJustClosed = false;
     parentNodeView = 0;
     rubberBand = 0;
+
+    CENTRALIZED_ON_ITEM = false;
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
 
@@ -238,6 +243,36 @@ QList<NodeItem*> NodeView::getNodeItemsList()
 void NodeView::showAllAspects()
 {
     view_AspectsChanged(allAspects);
+}
+
+
+/**
+ * @brief NodeView::allowedFocus
+ * This returns whether the widget in focus should allow the
+ * selected node to be deleted when delete is pressed.
+ * @param widget
+ * @return
+ */
+bool NodeView::allowedFocus(QWidget *widget)
+{
+    // the view has focus but the focus is on the editable text item
+    if (this->hasFocus() && editingNodeItemLabel) {
+        return false;
+    }
+
+    // the data table has focus
+    QTableView* tv = dynamic_cast<QTableView*>(widget);
+    if (tv) {
+        return false;
+    }
+
+    // either the search bar or the expanding line edit on the data table has focus
+    QLineEdit* le = dynamic_cast<QLineEdit*>(widget);
+    if (le) {
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -504,6 +539,16 @@ void NodeView::centerOnItem()
     }
 }
 
+/**
+ * @brief NodeView::editableItemHasFocus
+ * This tells the view whether the user is currently editing a node item's label or not.
+ * @param hasFocus
+ */
+void NodeView::editableItemHasFocus(bool hasFocus)
+{
+    editingNodeItemLabel = hasFocus;
+}
+
 
 /**
  * @brief NodeView::showToolbar
@@ -572,21 +617,11 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         scene()->addItem(nodeItem);
     }
 
-    /*
-    // select hardware clusters on construction
-    if (nodeItem->getNodeKind() == "HardwareCluster") {
-        //clearSelection(true, false);
-        nodeItem->setSelected(true);
-        appendToSelection(nodeItem);
-    }
-    */
-
     // send/do necessary signals/updates when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
 
     // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
     // the node's label is automatically selected and editable
-
     if(!constructedFromImport){
         if(GRID_LINES_ON){
             nodeItem->snapToGrid();
@@ -598,7 +633,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
             centerOnItem();
         }
     }
-
 
     // only do the SELECT_ON_CONSTRUCTION stuff if the node was constructed
     // using the dock/toolbar and not from GraphML import - reset check
@@ -900,7 +934,7 @@ QStringList NodeView::getConstructableNodeKinds()
  */
 void NodeView::appendToSelection(Node *node)
 {
-   appendToSelection(getGraphMLItemFromGraphML(node));
+    appendToSelection(getGraphMLItemFromGraphML(node));
 }
 
 
@@ -938,6 +972,8 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
                 connect(nodeItem, SIGNAL(NodeItem_MoveFinished()), this, SLOT(moveFinished()));
                 connect(nodeItem, SIGNAL(NodeItem_ResizeFinished()), this, SLOT(resizeFinished()));
                 connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
+
+                connect(nodeItem, SIGNAL(Nodeitem_HasFocus(bool)), this, SLOT(editableItemHasFocus(bool)));
             }
         }else{
             //Specific SubView Functionality.
@@ -1352,8 +1388,10 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 }
 
 void NodeView::keyReleaseEvent(QKeyEvent *event)
-{
-    if(this->hasFocus()){
+{   
+    bool allowedFocusWidget = allowedFocus(focusWidget());
+
+    if(allowedFocusWidget){
         if(event->key() == Qt::Key_Delete){
             deleteSelection();
         }

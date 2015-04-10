@@ -20,6 +20,7 @@ class NodeView : public QGraphicsView
     friend class ToolbarWidget;
     friend class NewController;
     Q_OBJECT
+
 public:
     enum ALIGN{NONE, HORIZONTAL, VERTICAL};
     NodeView(bool subView = false, QWidget *parent = 0);
@@ -53,6 +54,8 @@ protected:
     //Keyboard Handling Methods
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
+
+    bool viewportEvent(QEvent *);
 
 signals:
     void view_SetClipboardBuffer(QString);
@@ -194,8 +197,9 @@ public slots:
 
     void centerOnItem();
 
-private:
+    void editableItemHasFocus(bool hasFocus);
 
+private:
     void alignSelectionOnGrid(ALIGN alignment = NONE);
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
@@ -276,8 +280,6 @@ private:
 
     void showAllAspects();
 
-
-   
     ToolbarWidget* toolbar;
 
 
@@ -294,13 +296,13 @@ private:
 
     bool constructedFromImport;
     bool toolbarJustClosed;
-
+    bool editingNodeItemLabel;
 
     //Selection Lists
     QStringList selectedIDs;
     QStringList defaultAspects;
-protected:
-    bool viewportEvent(QEvent *);
+
+    bool allowedFocus(QWidget* widget);
 
 };
 

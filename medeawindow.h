@@ -109,7 +109,7 @@ private:
     void updateDataTable();
     bool exportProject();
     void importProjects(QStringList files);
-    void enableHardwareDock();
+    void enableDeploymentViewAspect();
 
     QMenu* menu;
     QMenu* file_menu;
@@ -176,6 +176,8 @@ private:
 
     int boxWidth;
     int boxHeight;
+    bool firstTableUpdate;
+
     QStringList checkedViewAspects;
 
     QThread* thread;

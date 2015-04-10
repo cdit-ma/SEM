@@ -26,12 +26,7 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
-    thread = 0;
-    nodeView = 0;
-    controller = 0;
-    myProcess = 0;
-    minimap = 0;
-
+    // this needs to happen before the menu is set up and connected
     setupJenkinsSettings();
 
     // initialise gui and connect signals and slots
@@ -72,15 +67,17 @@ MedeaWindow::~MedeaWindow()
 void MedeaWindow::initialiseGUI()
 {
     // initialise variables
-    prevPressedButton = 0;
+    thread = 0;
+    myProcess = 0;
+    controller = 0;
 
+    prevPressedButton = 0;
+    firstTableUpdate = true;
 
     nodeView = new NodeView();
     toolbar = new QToolBar();
     dataTable = new QTableView();
-
     delegate = new ComboBoxTableDelegate(0);
-    dataTable->setItemDelegateForColumn(2, delegate);
 
     dataTableBox = new QGroupBox();
     projectName = new QPushButton("Model");
@@ -112,6 +109,11 @@ void MedeaWindow::initialiseGUI()
     searchButton->setFixedSize(45, 28);
     searchButton->setIconSize(searchButton->size()*0.65);
     searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
+    searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
+    projectName->setStyleSheet("font-size: 16px; text-align: left;");
+    menuButton->setStyleSheet("QPushButton{ background-color: rgba(220,220,220,0.5); }"
+                              "QPushButton::menu-indicator{ image: none; }");
+
     assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
@@ -120,14 +122,12 @@ void MedeaWindow::initialiseGUI()
     hardwareButton->setStyleSheet("background-color: rgb(80,140,190);");
     definitionsButton->setStyleSheet("background-color: rgb(80,180,180);");
     workloadButton->setStyleSheet("background-color: rgb(224,154,96);");
-    searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
-    projectName->setStyleSheet("font-size: 16px; text-align: left;");
-    menuButton->setStyleSheet("QPushButton{ background-color: rgba(220,220,220,0.5); }"
-                              "QPushButton::menu-indicator{ image: none; }");
+
 
     // setup and add dataTable/dataTableBox widget/layout
+    dataTable->setItemDelegateForColumn(2, delegate);
     dataTable->setFixedWidth(rightPanelWidth);
-    //dataTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     tableLayout->setMargin(0);
     tableLayout->setContentsMargins(0,0,0,0);
@@ -139,7 +139,6 @@ void MedeaWindow::initialiseGUI()
                                 "background-color: rgba(0,0,0,0);"
                                 "border: 0px;"
                                 "}");
-
     // layouts
     QHBoxLayout *mainHLayout = new QHBoxLayout();
     QHBoxLayout *topHLayout = new QHBoxLayout();
@@ -203,7 +202,7 @@ void MedeaWindow::initialiseGUI()
     minimap->setInteractive(false);
 
     minimap->setFixedWidth(rightPanelWidth);
-    minimap->setFixedHeight(rightPanelWidth/16 * 10);
+    minimap->setFixedHeight(rightPanelWidth/1.6);
     minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
 
     rightVlayout->addWidget(minimap);
@@ -214,7 +213,7 @@ void MedeaWindow::initialiseGUI()
     definitionsButton->setCheckable(true);
     workloadButton->setCheckable(true);
 
-    // setup the menu and dock
+    // setup the menu, dock and toolbar
     setupMenu(menuButton);
     setupDock(bodyLayout);
     setupToolbar();
@@ -321,7 +320,7 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, compDefinitionsButton);
     hardwareDock = new HardwareDockScrollArea("Hardware Nodes", nodeView, hardwareNodesButton);
 
-    // width of the containers is fixed
+    // width of the containers are fixed
     boxWidth = (partsButton->getWidth()*3) + 30;
 
     // set buttonBox's size and get rid of its border
@@ -1074,9 +1073,6 @@ bool MedeaWindow::exportProject()
  */
 void MedeaWindow::setAttributeModel(AttributeTableModel *model)
 {
-    if (model) {
-        updateDataTable();
-    }
     dataTable->clearSelection();
     dataTable->setModel(model);
     updateDataTable();
@@ -1129,10 +1125,14 @@ void MedeaWindow::updateDataTable()
         return;
     }
 
-    int rowCount = tableModel->rowCount() + 1;
-    int vOffset = dataTable->verticalHeader()->size().width() + 21;
-    double height = 0;
+    int rowCount = tableModel->rowCount();
+    int vOffset = dataTable->horizontalHeader()->size().height();
+    if (!firstTableUpdate) {
+        vOffset += 2; // this check is only added to get rid of the initial extra gap in height
+    }
 
+    // calculate the required height
+    int height = 0;
     for (int i = 0; i < rowCount; i++) {
         height += dataTable->rowHeight(i);
     }
@@ -1140,6 +1140,7 @@ void MedeaWindow::updateDataTable()
     int maxHeight = dataTableBox->height();
     int newHeight = height + vOffset;
 
+    // check if the datatable should be hidden or if its height needs restricting
     if (maxHeight == 0) {
         dataTable->setVisible(false);
     } else if (newHeight > maxHeight) {
@@ -1149,6 +1150,7 @@ void MedeaWindow::updateDataTable()
     }
 
     dataTable->repaint();
+    firstTableUpdate = false;
 
     int w = dataTable->width();
     int h = dataTable->height();
@@ -1161,7 +1163,7 @@ void MedeaWindow::updateDataTable()
         dataTableBox->setMask(QRegion(0, 0, w, h, QRegion::Rectangle));
     }
 
-    // center the contents of the Values column
+    // center the contents of the "Values" column
     dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
@@ -1180,8 +1182,9 @@ void MedeaWindow::loadJenkinsData(int code)
 
         window_ImportProjects(files);
 
-        // this selects the newly constructed hardware cluster and show the hardware dock
-        enableHardwareDock();
+        // this selects the Jenkins hardware cluster, opens the hardware dock
+        // and show the Deployment view aspects (Assembly & Hardware)
+        enableDeploymentViewAspect();
 
         // center view aspects
         nodeView->centerAspects();
@@ -1227,42 +1230,37 @@ void MedeaWindow::importProjects(QStringList files)
 
 
 /**
- * @brief MedeaWindow::enableHardwareDock
- * This is called after the Jnkins nodes are imported.
- * It selects the newly constructed Hardware cluster and opens the hardware dock.
+ * @brief MedeaWindow::enableDeploymentViewAspect
+ * This is called after the Jenkins nodes are imported.
+ * It selects the Jenkins hardware cluster, opens the hardware dock and display
+ * the Assembly and Hardware view aspects if they aren't already turned on.
  */
-void MedeaWindow::enableHardwareDock()
+void MedeaWindow::enableDeploymentViewAspect()
 {
-    // make sure that the Harware aspects is turned on
+    // make sure that the Assembly aspect is turned on
+    if (!assemblyButton->isChecked()) {
+        assemblyButton->setChecked(true);
+        assemblyButton->clicked();
+    }
+
+    // make sure that the Harware aspect is turned on
     if (!hardwareButton->isChecked()) {
         hardwareButton->setChecked(true);
         hardwareButton->clicked();
     }
 
-    /*
-    bool prevCheckedState = view_selectOnConstruction->isChecked();
-    if (!view_selectOnConstruction->isChecked()) {
-        view_selectOnConstruction->triggered(true);
-    }
-    */
-
+    // select the Jenkins hardware cluster after construction
     Model* model = controller->getModel();
     if (model) {
         QList<Node*> hardwareClusters = model->getChildrenOfKind("HardwareCluster");
         if (hardwareClusters.count() > 0) {
+            // at the moment, this method assumes that the only cluster is the Jenkins cluster
             nodeView->appendToSelection(hardwareClusters.at(0));
         }
     }
 
     // if the hardware dock isn't already open, open it
-    // Note: this is called before the cluster is selected so the button is still disabled
-    if (/*hardwareNodesButton->isEnabled() &&*/ !hardwareNodesButton->getSelected()) {
+    if (hardwareNodesButton->isEnabled() && !hardwareNodesButton->getSelected()) {
         hardwareNodesButton->pressed();
     }
-
-    /*
-    // reset view_selectOnConstruction's checked state
-    view_selectOnConstruction->triggered(prevCheckedState);
-    */
-
 }

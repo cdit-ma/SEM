@@ -128,6 +128,8 @@ signals:
     void nodeItemMoved();
     void itemMovedOutOfScene(NodeItem* item);
 
+    void Nodeitem_HasFocus(bool hasFocus);
+
 
 public slots:
     QPolygonF getResizePolygon();

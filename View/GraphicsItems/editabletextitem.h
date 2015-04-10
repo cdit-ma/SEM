@@ -11,13 +11,15 @@ public:
     void setEditMode(bool editMode = true);
     void setPlainText(const QString &text);
     void setTextWidth(qreal width);
+
 signals:
     void textUpdated(QString data);
 
-
+    void editableItem_hasFocus(bool hasFocus);
 
     // QGraphicsItem interface
 protected:
+    void focusInEvent(QFocusEvent*);
     void focusOutEvent(QFocusEvent* event);
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
 

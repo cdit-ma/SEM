@@ -96,11 +96,28 @@ void EditableTextItem::setTextWidth(qreal width)
 }
 
 
+/**
+ * @brief EditableTextItem::focusInEvent
+ * This is used to tell the view that the focus is on this item.
+ * @param event
+ */
+void EditableTextItem::focusInEvent(QFocusEvent*)
+{
+    // if we're in editing mode, tell the view that this item has focus
+    if (inEditingMode) {
+        emit editableItem_hasFocus(true);
+    }
+}
+
+
 void EditableTextItem::focusOutEvent(QFocusEvent *event)
 {
     if(inEditingMode){
         //Only exit Edit mode if we are currently editing.
         setEditMode(false);
+
+        // if we're done editing, tell the view that this item no longer has focus
+        emit editableItem_hasFocus(false);
     }
 }
 

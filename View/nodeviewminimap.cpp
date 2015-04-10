@@ -30,7 +30,7 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     painter->setPen(pen);
     painter->drawRect(viewport);
 
-    painter->drawRect(this->sceneRect());
+    //painter->drawRect(this->sceneRect());
 
     qreal w_step = viewport.width() / GRID_COUNT;
     qreal h_step = w_step;
