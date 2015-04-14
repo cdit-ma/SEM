@@ -607,21 +607,21 @@ void NewController::paste(Node *parentNode, QString xmlData)
 }
 
 /**
-     * @brief NewController::constructComponentInstance
-     * @param assembly
-     * @param definition
-     * @param center
-     */
+ * @brief NewController::constructComponentInstance
+ * @param assembly
+ * @param definition
+ * @param center
+ */
 void NewController::constructComponentInstance(Node *assembly, Node *definition, QPointF center)
 {
     QString instanceKind = getNodeInstanceKind(definition);
     Node* instance = constructChildNode(assembly, constructGraphMLDataVector(instanceKind));
 
     if(instance){
-        //Update the position
+        // update the position
         setGraphMLData(instance, "x", QString::number(center.x()));
         setGraphMLData(instance, "y", QString::number(center.y()));
-
+        // construct edge between instance and definition
         constructEdge(instance, definition);
     }
 

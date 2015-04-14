@@ -141,7 +141,7 @@ public slots:
     void resizeSelection(QSizeF delta);
     void moveFinished();
     void resizeFinished();
-    void clearSelection(bool updateTable=true, bool fullClear = true);
+    void clearSelection(bool updateTable = true, bool updateDocks = true);
 
 
     void view_ClearHistory();

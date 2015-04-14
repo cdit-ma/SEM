@@ -771,7 +771,7 @@ void NodeView::constructNode(QString nodeKind, int sender)
 
 
 /**
- * @brief NodeView::view_ConstructEdgeAction
+ * @brief NodeView::constructEdge
  * @param src
  * @param dst
  */
@@ -859,15 +859,19 @@ void NodeView::constructEventPortDelegate(Node *assm, Node *eventPortInstance)
 /**
  * @brief NodeView::componentInstanceConstructed
  * This is called when a ComponentInstance is created with a definition.
- * It forces an update on its parent's height after inheriting graphML values from its definition.
+ * It makes sure that ComponentInstance is selected if the SELECT_ON_CONSTRUCTION is turned on.
  * @param node
  */
 void NodeView::componentInstanceConstructed(Node *node)
 {
-    GraphMLItem* graphMLItem = getGraphMLItemFromGraphML(node);
-    NodeItem* nodeItem = getNodeItemFromGraphMLItem(graphMLItem);
-    if (nodeItem) {
-
+    if (SELECT_ON_CONSTRUCTION) {
+        NodeItem* nodeItem = getNodeItemFromNode(node);
+        if (nodeItem) {
+            clearSelection(true, false);
+            appendToSelection(nodeItem);
+            nodeItem->setNewLabel();
+            centerOnItem();
+        }
     }
 }
 
@@ -1073,6 +1077,13 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
     return false;
 }
 
+
+/**
+ * @brief NodeView::nodeSelected_signalUpdates
+ * This gets called whenever a node has been selected.
+ * It sends signals to update whatever needs updating.
+ * @param node
+ */
 void NodeView::nodeSelected_signalUpdates(Node *node)
 {
     if (node) {
@@ -1115,6 +1126,16 @@ void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
 {
     emit view_nodeConstructed(nodeItem);
     nodeItem->toggleGridLines(GRID_LINES_ON);
+
+    // hide all AggregateInstances except for in OutEventPortImpls
+    // its initial pos is (0,0) - snap it to its parent grid
+    if (nodeItem && nodeItem->getNodeKind() == "AggregateInstance") {
+        nodeItem->snapToGrid();
+        NodeItem* parentItem = nodeItem->getParentNodeItem();
+        if (parentItem && parentItem->getNodeKind() != "OutEventPortImpl") {
+            nodeItem->setHidden(true);
+        }
+    }
 }
 
 
@@ -1706,7 +1727,7 @@ void NodeView::resizeFinished()
  * This gets called when either the view or the model is pressed.
  * It clears the selection.
  */
-void NodeView::clearSelection(bool updateTable, bool fullClear)
+void NodeView::clearSelection(bool updateTable, bool updateDocks)
 {
     while (!selectedIDs.isEmpty()) {
         QString currentID = selectedIDs.takeFirst();
@@ -1720,16 +1741,18 @@ void NodeView::clearSelection(bool updateTable, bool fullClear)
         view_SetAttributeModel(0);
     }
 
-    // this stops the docks/dock buttons from disabling when they don't need to
+    // this stops unnecessary disabling of docks/dock buttons
     // if the call came from a painted node item, then it's just to deselect nodes
     // in case the parent of the node you're trying to select is already selected
     NodeItem* senderItem = dynamic_cast<NodeItem*>(QObject::sender());
-    if ((senderItem && senderItem->isPainted()) || !fullClear) {
+    if (senderItem && senderItem->isPainted()) {
         return;
     }
 
     // update docks
-    emit view_nodeSelected(0);
+    if (updateDocks) {
+        emit view_nodeSelected(0);
+    }
 }
 
 
@@ -1994,6 +2017,7 @@ void NodeView::goToInstance(Node *instance)
  */
 void NodeView::deleteSelection()
 {
+    view_TriggerAction("Toolbar: Destructing Selection");
     view_SetAttributeModel(0);
     view_Delete(selectedIDs);
 }

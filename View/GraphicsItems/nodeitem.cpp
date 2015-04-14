@@ -57,6 +57,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     permanentlyCentralized = false;
     permanentlyInvisible = false;
     expanded = true;
+    hidden = false;
     hasSelectionMoved = false;
     hasDefinition = false;
 
@@ -70,13 +71,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     height = 0;
 
     nodeKind = getGraphML()->getDataValue("kind");
-
-    hidden = false;
-    /*
-    if (nodeKind == "HardwareNode") {
-        setHidden(true);
-    }
-    */
 
     QString parentNodeKind = "";
     if (parent) {
@@ -143,6 +137,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         setPaintObject(true);
     }
 
+    // why is the EventPortInstance permanently invisible?
     if (parentNodeKind.endsWith("EventPortInstance")){
         setPermanentlyInvisible(true);
     }
@@ -764,11 +759,8 @@ void NodeItem::setSelected(bool selected)
 
 void NodeItem::setVisible(bool visible)
 {
-    //bool isCurrentlyVisible = isVisible();
-    //if(isCurrentlyVisible != visible){
-        QGraphicsItem::setVisible(visible);
-        emit setEdgeVisibility(visible);
-    //}
+    QGraphicsItem::setVisible(visible);
+    emit setEdgeVisibility(visible);
 }
 
 
@@ -1569,11 +1561,6 @@ void NodeItem::aspectsChanged(QStringList aspects)
     // if not visible, unselect node item
     if (!isVisible()) {
         setSelected(false);
-    } else {
-        if (nodeKind == "ManagementComponents") {
-            qDebug() << "aspectsChanged()";
-            snapToGrid();
-        }
     }
 }
 
@@ -1993,12 +1980,12 @@ void NodeItem::expandItem(bool show)
         return;
     }
 
-
     //Hide the children.
     foreach(NodeItem* nodeItem, childNodeItems){
-        nodeItem->setVisible(show);
+        if (!nodeItem->isHidden()) {
+            nodeItem->setVisible(show);
+        }
     }
-
 
     expanded = show;
 

@@ -56,7 +56,8 @@ QList<DockNodeItem *> DefinitionsDockScrollArea::getDockNodeItems()
 /**
  * @brief DefinitionsDockScrollArea::dock_itemClicked
  * When an item in this dock is clicked, it tries to either add a ComponentInstance
- * or connect a ComponentInstance to an existing Component if that action is allowed.
+ * or connect a ComponentInstance to the clicked Component if that action is allowed.
+ * If a ComponentImpl is selected, it tries to connect it to the clicked Component.
  */
 void DefinitionsDockScrollArea::dockNodeItemClicked()
 {
@@ -65,10 +66,11 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
 
     if (selectedNode) {
         Node* dockNode = sender->getNodeItem()->getNode();
-        if (selectedNode->getDataValue("kind") == "ComponentAssembly") {
+        QString selectedNodeKind = selectedNode->getDataValue("kind");
+        if (selectedNodeKind == "ComponentAssembly") {
             getNodeView()->constructComponentInstance(selectedNode, dockNode, 0);
-        } else if (selectedNode->getDataValue("kind") == "ComponentInstance") {
-            getNodeView()->view_ConstructEdge(selectedNode,  dockNode);
+        } else if (selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ComponentImpl") {
+            getNodeView()->constructEdge(selectedNode, dockNode);
         }
     }
 }
