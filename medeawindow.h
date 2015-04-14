@@ -195,6 +195,7 @@ private:
 
     int boxWidth;
     int boxHeight;
+
     bool firstTableUpdate;
 
     QStringList checkedViewAspects;

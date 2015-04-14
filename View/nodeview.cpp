@@ -79,6 +79,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     //create toolbar widget
     toolbar = new ToolbarWidget(this);
+    centerPoint = QPointF(0,0);
 
 }
 
@@ -144,7 +145,7 @@ NodeView::~NodeView()
  * Get the current rectangle visualised by this NodeView
  * @return
  */
-QRectF NodeView::getVisibleRect( )
+QRectF NodeView::getVisibleRect()
 {
     QPointF topLeft = mapToScene(0,0);
     QPointF bottomRight = mapToScene(viewport()->width(),viewport()->height());
@@ -215,6 +216,9 @@ void NodeView::centerRect(QRectF rect, float extraspace)
     adjustSceneRect(rect);
     fitInView(rect, Qt::KeepAspectRatio);
     centerOn(rectCenter);
+
+    // update view center point
+    updateViewCenterPoint();
 }
 
 
@@ -545,15 +549,14 @@ void NodeView::setAspects(QStringList aspects)
 void NodeView::centerOnItem()
 {
     if (getSelectedNode()) {
+
         NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
         QRectF itemRect = selectedItem->sceneBoundingRect();
         adjustSceneRect(itemRect);
         centerOn(itemRect.center());
-        /*
-        qreal prevScale = transform().m11();
-        centerItem(selectedItem);
-        scale(prevScale/transform().m11(), prevScale/transform().m11());
-        */
+
+        // update view center point
+        updateViewCenterPoint();
     }
 }
 
@@ -957,6 +960,44 @@ QStringList NodeView::getConstructableNodeKinds()
 void NodeView::appendToSelection(Node *node)
 {
     appendToSelection(getGraphMLItemFromGraphML(node));
+}
+
+
+/**
+ * @brief NodeView::updateViewCenterPoint
+ */
+void NodeView::updateViewCenterPoint()
+{
+    prevCenterPoint = centerPoint;
+    centerPoint = getVisibleRect().center();
+}
+
+
+/**
+ * @brief NodeView::getPreviousViewCenterPoint
+ * @return
+ */
+QPointF NodeView::getPreviousViewCenterPoint()
+{
+    return prevCenterPoint;
+}
+
+
+/**
+ * @brief NodeView::recenterView
+ * This is called every time the MEDEA window is resized.
+ * It recenters the view on its previous center point before the window was resized.
+ */
+void NodeView::recenterView()
+{
+    QSize minWindowSize(1300, 800);
+    QPointF topLeft = prevCenterPoint - QPointF(minWindowSize.width()/2, minWindowSize.height()/2);
+    QRectF rect = QRectF(topLeft, minWindowSize);
+    adjustSceneRect(rect);
+    centerOn(rect.center());
+
+    // update view center point
+    updateViewCenterPoint();
 }
 
 
@@ -1956,7 +1997,8 @@ void NodeView::goToDefinition(Node *node)
             if(guiItem){
                 clearSelection(false);
                 appendToSelection(guiItem);
-                centerItem(guiItem);
+                //centerItem(guiItem);
+                centerOnItem();
             }
         }
     }
@@ -1985,7 +2027,8 @@ void NodeView::goToImplementation(Node *node)
             if(guiItem){
                 clearSelection(false);
                 appendToSelection(guiItem);
-                centerItem(guiItem);
+                //centerItem(guiItem);
+                centerOnItem();
             }
         }
     }
@@ -2007,7 +2050,8 @@ void NodeView::goToInstance(Node *instance)
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(instance);
     clearSelection(false);
     appendToSelection(guiItem);
-    centerItem(guiItem);
+    //centerItem(guiItem);
+    centerOnItem();
 }
 
 

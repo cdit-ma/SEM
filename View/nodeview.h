@@ -44,6 +44,11 @@ public:
 
     void appendToSelection(Node* node);
 
+    void updateViewCenterPoint();
+    QPointF getPreviousViewCenterPoint();
+
+    void recenterView();
+
 protected:
     //Mouse Handling Methods
     void mouseReleaseEvent(QMouseEvent *event);
@@ -307,6 +312,9 @@ private:
     QStringList defaultAspects;
 
     bool allowedFocus(QWidget* widget);
+
+    QPointF centerPoint;
+    QPointF prevCenterPoint;
 
 };
 

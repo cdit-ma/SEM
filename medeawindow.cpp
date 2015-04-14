@@ -117,7 +117,7 @@ void MedeaWindow::initialiseGUI()
     searchButton->setFixedSize(45, 28);
     searchButton->setIconSize(searchButton->size()*0.65);
     searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
-	searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
+    searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
     projectName->setStyleSheet("font-size: 16px; text-align: left;");
     menuButton->setStyleSheet("QPushButton{ background-color: rgba(220,220,220,0.5); }"
                               "QPushButton::menu-indicator{ image: none; }");
@@ -619,7 +619,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
-	connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
 
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
@@ -647,6 +647,10 @@ void MedeaWindow::makeConnections()
 void MedeaWindow::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
+
+    // update the stored view center point and re-center the view
+    nodeView->updateViewCenterPoint();
+    nodeView->recenterView();
 
     boxHeight = this->height()*0.77;
     partsDock->setMinimumHeight(boxHeight);
@@ -1347,9 +1351,9 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
 {
     return;
     QMessageBox::StandardButton resBtn = QMessageBox::question( this, "MEDEA",
-                                                                    tr("Are you sure?\n"),
-                                                                    QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
-                                                                    QMessageBox::Yes);
+                                                                tr("Are you sure?\n"),
+                                                                QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
+                                                                QMessageBox::Yes);
     if (resBtn != QMessageBox::Yes) {
         e->ignore();
     } else {
