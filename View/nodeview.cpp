@@ -547,7 +547,6 @@ void NodeView::setAspects(QStringList aspects)
  * @brief NodeView::centerOnItem
  * This centers on the selected node and zooms in/out enough so that the node
  * is roughly one fifth of the set minimum window/view height.
- * Note: This only works upto a certain scale.
  */
 void NodeView::centerOnItem()
 {
@@ -556,16 +555,26 @@ void NodeView::centerOnItem()
         NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
         QRectF itemRect = selectedItem->sceneBoundingRect();
 
+        // if the selected node is a main container, just use centerItem()
+        // we would only ever want to center and zoom into it
+        QString nodeKind = selectedItem->getNodeKind();
+        if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
+            centerItem(selectedItem);
+            return;
+        }
+
         // set the centralised height to be 1/5 of the minimum window height
         double desiredHeight = this->minimumHeight() / 5;
         double itemHeight = itemRect.height();
         double scaleIncrement = 1.01;
 
+        /*
         // set the desired height for the main containers to be the same as centerItem
         QString nodeKind = selectedItem->getNodeKind();
         if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
             desiredHeight = this->viewport()->height() / VIEW_PADDING;
         }
+        */
 
         // if the scaled height is less than the desired, increase scale by 0.01
         while ((itemHeight * transform().m11()) < desiredHeight) {
