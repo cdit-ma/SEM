@@ -132,8 +132,13 @@ public slots:
 
     void showDialogMessage(MESSAGE_TYPE type, QString message, GraphML* item = 0);
 
+    void view_ClearHistory();
+    void clearView();
 
     void view_SelectModel();
+    void resetModel();
+    void clearModel();
+    void sortModel();
 
     void duplicate();
     void copy();
@@ -148,12 +153,6 @@ public slots:
     void resizeFinished();
     void clearSelection(bool updateTable = true, bool updateDocks = true);
 
-
-    void view_ClearHistory();
-    void toolbarClosed();
-    void sortAspects();
-    void resetModel();
-
     void toggleGridLines(bool gridOn);
     void autoCenterAspects(bool center);
     void selectNodeOnConstruction(bool select);
@@ -161,18 +160,12 @@ public slots:
     void constructGUIItem(GraphML* item);
     void destructGUIItem(QString ID);
 
-
-    //void removeNodeItem(NodeItem* item);
-    void centerItem(GraphMLItem* item);
-    void clearView();
+    void showManagementComponents(bool show);
 
     void setRubberBandMode(bool On);
 
     void showToolbar(QPoint position);
-
-    void sortModel();
-    void clearModel();
-
+    void toolbarClosed();
 
     void view_CenterGraphML(GraphML* graphML);
     void view_LockCenteredGraphML(GraphML* graphML);
@@ -183,9 +176,15 @@ public slots:
     void sortEntireModel();
     void sortNode(Node* node, Node* topMostNode = 0);
 
-    void fitToScreen();
+    void setAspects(QStringList aspects);
+    void sortAspects();
     void centerAspects();
 
+    void fitToScreen();
+    void fitInSceneRect(GraphMLItem *item);
+
+    void centerOnItem();
+    void centerItem(GraphMLItem* item);
 
     void goToDefinition(Node* node=0);
     void goToImplementation(Node* node=0);
@@ -199,12 +198,6 @@ public slots:
     void constructNewView(Node* centeredOn);
 
     void componentInstanceConstructed(Node* node);
-
-    void fitInSceneRect(GraphMLItem *item);
-
-    void setAspects(QStringList aspects);
-
-    void centerOnItem();
 
     void editableItemHasFocus(bool hasFocus);
 

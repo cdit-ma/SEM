@@ -1533,6 +1533,10 @@ void NodeItem::updateParent()
 
 void NodeItem::aspectsChanged(QStringList aspects)
 {
+    if (nodeKind == "ManagementComponent") {
+        qDebug() << "ManagementComponent: hidden = " << hidden;
+    }
+
     if(hidden || !PAINT_OBJECT || permanentlyInvisible){
         return;
     }

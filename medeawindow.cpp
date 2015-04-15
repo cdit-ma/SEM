@@ -244,10 +244,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     menu->addSeparator();
     model_menu = menu->addMenu(QIcon(":/Resources/Icons/model.png"), "Model");
     menu->addSeparator();
-
     settings_ChangeSettings = menu->addAction(QIcon(":/Resources/Icons/settings.png"), "Settings");
-
-
     exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Exit");
 
     file_newProject = file_menu->addAction(QIcon(":/Resources/Icons/new_project.png"), "New Project");
@@ -278,18 +275,20 @@ void MedeaWindow::setupMenu(QPushButton *button)
     edit_paste = edit_menu->addAction(QIcon(":/Resources/Icons/paste.png"), "Paste");
     edit_paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
 
-    view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/fitToScreen.png"), "Fit To Sreen");
+    view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/fitToScreen.png"), "Fit to Screen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
     view_menu->addSeparator();
-    view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go To Definition");
+    view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go to Definition");
     view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
-    view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go To Implementation");
+    view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go to Implementation");
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
+    view_menu->addSeparator();
+    view_showManagementComponents = view_menu->addAction("Show Management Components");
     view_menu->addSeparator();
     view_showGridLines = view_menu->addAction("Show Grid Lines");
     view_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
     view_autoCenterView = view_menu->addAction("Automatically Center Views");
-    view_selectOnConstruction = view_menu->addAction("Select Node On Construction");
+    view_selectOnConstruction = view_menu->addAction("Select Node on Construction");
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
@@ -298,16 +297,13 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
 
-
-
-    exit->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_1));
-
     button->setMenu(menu);
 
     // setup toggle actions
     view_autoCenterView->setCheckable(true);
     view_showGridLines->setCheckable(true);
     view_selectOnConstruction->setCheckable(true);
+    view_showManagementComponents->setCheckable(true);
 
     // initially disable model & goto menu actions
     model_validateModel->setEnabled(false);
@@ -562,17 +558,17 @@ void MedeaWindow::makeConnections()
     connect(edit_cut, SIGNAL(triggered()), nodeView, SLOT(cut()));
     connect(edit_copy, SIGNAL(triggered()), nodeView, SLOT(copy()));
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
+    connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
     connect(searchButton, SIGNAL(pressed()), this, SLOT(on_actionSearch()));
     connect(searchBar, SIGNAL(textChanged(QString)), this, SLOT(on_SearchTextChanged(QString)));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch()));
 
-    connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
-
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
     connect(view_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
     connect(view_selectOnConstruction, SIGNAL(triggered(bool)), nodeView, SLOT(selectNodeOnConstruction(bool)));
+    connect(view_showManagementComponents, SIGNAL(triggered(bool)), nodeView, SLOT(showManagementComponents(bool)));
 
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(goToDefinition()));
     connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(goToImplementation()));
@@ -613,16 +609,12 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_enableDocks(bool)), compDefinitionsButton, SLOT(enableDock(bool)));
     connect(nodeView, SIGNAL(view_enableDocks(bool)), hardwareNodesButton, SLOT(enableDock(bool)));
 
-    //connect(this, SIGNAL(clearDocks()), partsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
 
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
-    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
 
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
@@ -702,10 +694,12 @@ void MedeaWindow::setupDefaultSettings()
     view_autoCenterView->setChecked(true);
     view_showGridLines->setChecked(true);
     view_selectOnConstruction->setChecked(false);
+    view_showManagementComponents->setChecked(false);
 
     view_autoCenterView->triggered(true);
     view_showGridLines->triggered(true);
     view_selectOnConstruction->triggered(false);
+    view_showManagementComponents->triggered(false);
 
     if (nodeView) {
         nodeView->centerAspects();

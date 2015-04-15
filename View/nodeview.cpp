@@ -4,7 +4,6 @@
 #include "dock/docktogglebutton.h"
 #include <limits>
 
-//Qt includes
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
 #include <QTextStream>
@@ -23,7 +22,6 @@
 #include <QAction>
 #include <QVBoxLayout>
 #include <QTime>
-
 #include <QTableView>
 
 #define ZOOM_SCALE_INCREMENTOR 1.05
@@ -33,6 +31,11 @@
 
 #define VIEW_PADDING 1.25
 
+/**
+ * @brief NodeView::NodeView
+ * @param subView
+ * @param parent
+ */
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
     constructedFromImport = true;
@@ -81,8 +84,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     //create toolbar widget
     toolbar = new ToolbarWidget(this);
-    centerPoint = QPointF(0,0);
-
 }
 
 
@@ -594,6 +595,7 @@ void NodeView::centerOnItem()
         updateViewCenterPoint();
     }
 }
+
 
 /**
  * @brief NodeView::editableItemHasFocus
@@ -1209,6 +1211,12 @@ void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
         if (parentItem && parentItem->getNodeKind() != "OutEventPortImpl") {
             nodeItem->setHidden(true);
         }
+    }
+
+    // initially hide all ManagementComponents
+    if (nodeItem && nodeItem->getNodeKind() == "ManagementComponent") {
+        qDebug() << nodeItem->getNodeKind();
+        nodeItem->setHidden(true);
     }
 }
 
@@ -1968,6 +1976,32 @@ void NodeView::constructGUIItem(GraphML *item){
 void NodeView::destructGUIItem(QString ID)
 {
     removeGraphMLItemFromHash(ID);
+}
+
+
+/**
+ * @brief NodeView::showManagementComponents
+ * @param show
+ */
+void NodeView::showManagementComponents(bool show)
+{
+    QList<Node*> managementComponents;
+    Model* model = controller->getModel();
+    if (model) {
+        managementComponents = model->getChildrenOfKind("ManagementComponent");
+    }
+
+    // this goes through all the ManagementComponents and shows/hides them
+    foreach (Node* node, managementComponents) {
+        NodeItem* nodeItem = getNodeItemFromNode(node);
+        if (nodeItem) {
+            nodeItem->setHidden(!show);
+            if (show) {
+                // just because it's no longer hidden doesn't mean that it's in aspect
+                nodeItem->aspectsChanged(currentAspects);
+            }
+        }
+    }
 }
 
 

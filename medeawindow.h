@@ -103,6 +103,9 @@ private slots:
 
     void showWindowToolbar();
 
+protected:
+    void closeEvent(QCloseEvent *);
+
 private:
     void resetGUI();
     void resetView();
@@ -138,10 +141,10 @@ private:
     QAction* view_fitToScreen;
     QAction* view_goToDefinition;
     QAction* view_goToImplementation;
+    QAction* view_showManagementComponents;
     QAction* view_autoCenterView;
     QAction* view_showGridLines;
     QAction* view_selectOnConstruction;
-
 
     QAction* model_validateModel;
     QAction* model_clearModel;
@@ -207,12 +210,8 @@ private:
     QString JENKINS_USERNAME;
     QString JENKINS_PASSWORD;
 
-
     QString exportFileName;
 
-    // QWidget interface
-protected:
-    void closeEvent(QCloseEvent *);
 };
 
 #endif // MEDEAWINDOW_H
