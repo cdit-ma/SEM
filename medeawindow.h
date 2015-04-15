@@ -19,6 +19,7 @@
 #include <QHBoxLayout>
 #include <QSpacerItem>
 #include <QClipboard>
+#include <QProgressBar>
 #include <QItemSelectionModel>
 #include <QDebug>
 
@@ -173,14 +174,12 @@ private:
     QToolButton* zoomToFitButton;
     QToolButton* fitToScreenButton;
     QToolButton* duplicateButton;
-
     QToolButton* alignSelectionVertical;
     QToolButton* alignSelectionHorizontal;
 
-    ComboBoxTableDelegate* delegate;
-
     QTableView* dataTable;
     QGroupBox* dataTableBox;
+    ComboBoxTableDelegate* delegate;
 
     QPushButton *projectName;
     QPushButton* assemblyButton;
@@ -189,6 +188,8 @@ private:
     QPushButton* definitionsButton;
     QPushButton* searchButton;
     QLineEdit* searchBar;
+
+    QProgressBar* progressBar;
 
     AppSettings* appSettings;
 

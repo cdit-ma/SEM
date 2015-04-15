@@ -86,21 +86,23 @@ void MedeaWindow::initialiseGUI()
 
     nodeView = new NodeView();
     toolbar = new QToolBar();
-    dataTable = new QTableView();
-    delegate = new ComboBoxTableDelegate(0);
     appSettings = new AppSettings(this);
+    progressBar = new QProgressBar(this);
 
+    dataTable = new QTableView();
     dataTableBox = new QGroupBox();
+    delegate = new ComboBoxTableDelegate(0);
+
     projectName = new QPushButton("Model");
     assemblyButton = new QPushButton("Assembly");
     hardwareButton = new QPushButton("Hardware");
     workloadButton = new QPushButton("Behaviour");
     definitionsButton = new QPushButton("Interface");
 
-    QPushButton *menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
     searchBar = new QLineEdit();
     searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
-    QVBoxLayout *tableLayout = new QVBoxLayout();
+
+    QPushButton *menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
 
     // set the size for the right panel where the view buttons and data table are located
     int rightPanelWidth = 210;
@@ -123,6 +125,7 @@ void MedeaWindow::initialiseGUI()
     projectName->setStyleSheet("font-size: 16px; text-align: left;");
     menuButton->setStyleSheet("QPushButton{ background-color: rgba(220,220,220,0.5); }"
                               "QPushButton::menu-indicator{ image: none; }");
+
     assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
@@ -132,12 +135,17 @@ void MedeaWindow::initialiseGUI()
     definitionsButton->setStyleSheet("background-color: rgb(80,180,180);");
     workloadButton->setStyleSheet("background-color: rgb(224,154,96);");
 
+    // setup the progress bar
+    progressBar->setFixedSize(rightPanelWidth/2, 20);
+    progressBar->setStyleSheet("QProgressBar{ text-align: center; }");
+    progressBar->setVisible(false);
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setItemDelegateForColumn(2, delegate);
     dataTable->setFixedWidth(rightPanelWidth);
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
+    QVBoxLayout *tableLayout = new QVBoxLayout();
     tableLayout->setMargin(0);
     tableLayout->setContentsMargins(0,0,0,0);
     tableLayout->addWidget(dataTable);
@@ -226,6 +234,11 @@ void MedeaWindow::initialiseGUI()
     setupMenu(menuButton);
     setupDock(bodyLayout);
     setupToolbar();
+
+    // add progress bar to the body layout after the dock has been set up
+    bodyLayout->addStretch();
+    bodyLayout->addWidget(progressBar);
+    bodyLayout->addStretch();
 }
 
 
@@ -366,7 +379,7 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     dockLayout->addStretch();
 
     layout->addLayout(dockLayout, 1);
-    layout->addStretch(3);
+    //layout->addStretch(3);
 }
 
 
@@ -1219,7 +1232,26 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
-    //qDebug() << "Status: " << value << "% " << status;
+    // if something's in progress, show progress bar
+    if (!progressBar->isVisible()) {
+        progressBar->setVisible(true);
+    }
+
+    // if there is a provided status, display it in progress bar
+    if (status != "") {
+        progressBar->setFormat(status);
+    } else {
+        progressBar->setFormat("Loading...");
+    }
+
+    // update value
+    progressBar->setValue(value);
+
+    // once we reach 100%, reset the progress bar then hide it
+    if (value == 100) {
+        progressBar->setVisible(false);
+        progressBar->reset();
+    }
 }
 
 
