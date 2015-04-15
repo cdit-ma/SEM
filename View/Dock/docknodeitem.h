@@ -45,6 +45,7 @@ private:
     void setupLayout();
     void connectToNodeItem();
     void updateTextLabel();
+    void updateStyleSheet();
 
     NodeItem* nodeItem;
     DockNodeItem* parentDockItem;

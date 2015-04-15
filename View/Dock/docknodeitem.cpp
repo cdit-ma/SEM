@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QDebug>
 
+#define MAX_LABEL_LENGTH 14
 
 /**
  * @brief DockNodeItem::DockNodeItem
@@ -35,6 +36,7 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
     }
 
     setupLayout();
+    updateStyleSheet();
     updateTextLabel();
 
     connect(this, SIGNAL(clicked()), this , SLOT(clicked()));
@@ -71,7 +73,7 @@ QString DockNodeItem::getKind()
 void DockNodeItem::setLabel(QString newLabel)
 {
     label = newLabel;
-    textLabel->setText(label);
+    updateTextLabel();
 }
 
 
@@ -128,20 +130,17 @@ void DockNodeItem::setupLayout()
     layout->setMargin(0);
     layout->setSpacing(2);
 
-    // make the font size smaller to fit the whole text inside textLabel
     textLabel = new QLabel(label, this);
+
     QFont font = textLabel->font();
-    if (kind.length() > 18) {
-        QFontMetrics fm(font);
-        font.setPointSizeF(fm.boundingRect(kind).width()/kind.size()*1.3);
-    } else if (fileLabel) {
+    if (fileLabel) {
         font.setPointSizeF(10);
     } else {
-        font.setPointSizeF(7.75);
+        font.setPointSizeF(8);
     }
 
-    setFlat(true);
-    setStyleSheet("margin: 0px; padding: 0px;");
+    textLabel->setFont(font);
+    textLabel->setFixedSize(width()-2, 21);
 
     if (fileLabel) {
         setFixedSize(100, 28);
@@ -150,9 +149,6 @@ void DockNodeItem::setupLayout()
         setFixedSize(100, 100);
         textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     }
-
-    textLabel->setFont(font);
-    textLabel->setFixedSize(width()-2, 21);
 
     if (!fileLabel) {
         QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
@@ -172,6 +168,8 @@ void DockNodeItem::setupLayout()
     layout->addWidget(textLabel);
     layout->setAlignment(textLabel, Qt::AlignHCenter);
 
+    setFlat(true);
+    setStyleSheet("margin: 0px; padding: 0px;");
     setLayout(layout);
 }
 
@@ -189,8 +187,41 @@ void DockNodeItem::connectToNodeItem()
 
 /**
  * @brief DockNodeItem::updateTextLabel
+ * This checks whether the displayed label needs truncating or not.
+ * If label.length() is greater than MAX_LABEL_LENGTH, truncate it.
  */
 void DockNodeItem::updateTextLabel()
+{
+    QString newLabel = label;
+    int maxLength = MAX_LABEL_LENGTH;
+
+    // file labels have a bigger font and can therefore fit less chars
+    if (fileLabel) {
+        maxLength -= 2;
+    }
+
+    if (label.length() >= maxLength) {
+
+        QFontMetrics fm(textLabel->fontMetrics());
+        QString truncatedLabel = label;
+        int textWidth = fm.width(label + "__");
+
+        if (textWidth > this->width()) {
+            truncatedLabel.truncate(maxLength - 1);
+            truncatedLabel += "..";
+            newLabel = truncatedLabel;
+        }
+    }
+
+    textLabel->setText(newLabel);
+}
+
+
+/**
+ * @brief DockNodeItem::updateStyleSheet
+ * This updates the stylesheet of a file label when it's expanded/contracted.
+ */
+void DockNodeItem::updateStyleSheet()
 {
     if (fileLabel) {
         if (expanded) {
@@ -241,7 +272,7 @@ void DockNodeItem::clicked()
         } else {
             expanded = true;
         }
-        updateTextLabel();
+        updateStyleSheet();
         emit dockItem_fileClicked(expanded);
     }
 }

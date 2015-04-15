@@ -1203,20 +1203,24 @@ void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
     emit view_nodeConstructed(nodeItem);
     nodeItem->toggleGridLines(GRID_LINES_ON);
 
-    // hide all AggregateInstances except for in OutEventPortImpls
-    // its initial pos is (0,0) - snap it to its parent grid
-    if (nodeItem && nodeItem->getNodeKind() == "AggregateInstance") {
+    if (nodeItem) {
+
+        // snap it to its parent grid
         nodeItem->snapToGrid();
-        NodeItem* parentItem = nodeItem->getParentNodeItem();
-        if (parentItem && parentItem->getNodeKind() != "OutEventPortImpl") {
+
+        // hide all AggregateInstances except for in OutEventPortImpls
+        if (nodeItem->getNodeKind() == "AggregateInstance") {
+            NodeItem* parentItem = nodeItem->getParentNodeItem();
+            if (parentItem && parentItem->getNodeKind() != "OutEventPortImpl") {
+                nodeItem->setHidden(true);
+            }
+        }
+
+        // initially hide all ManagementComponents
+        if (nodeItem->getNodeKind() == "ManagementComponent") {
             nodeItem->setHidden(true);
         }
-    }
 
-    // initially hide all ManagementComponents
-    if (nodeItem && nodeItem->getNodeKind() == "ManagementComponent") {
-        qDebug() << nodeItem->getNodeKind();
-        nodeItem->setHidden(true);
     }
 }
 
@@ -1957,8 +1961,6 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
 }
 
 
-
-
 void NodeView::constructGUIItem(GraphML *item){
 
     Node* node = dynamic_cast<Node*>(item);
@@ -1972,6 +1974,7 @@ void NodeView::constructGUIItem(GraphML *item){
     }
 
 }
+
 
 void NodeView::destructGUIItem(QString ID)
 {
@@ -2065,7 +2068,6 @@ void NodeView::goToDefinition(Node *node)
             if(guiItem){
                 clearSelection(false);
                 appendToSelection(guiItem);
-                //centerItem(guiItem);
                 centerOnItem();
             }
         }
@@ -2095,12 +2097,12 @@ void NodeView::goToImplementation(Node *node)
             if(guiItem){
                 clearSelection(false);
                 appendToSelection(guiItem);
-                //centerItem(guiItem);
                 centerOnItem();
             }
         }
     }
 }
+
 
 /**
  * @brief NodeView::goToInstance
@@ -2118,7 +2120,6 @@ void NodeView::goToInstance(Node *instance)
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(instance);
     clearSelection(false);
     appendToSelection(guiItem);
-    //centerItem(guiItem);
     centerOnItem();
 }
 
