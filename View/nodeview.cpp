@@ -29,7 +29,9 @@
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 #define MIN_ZOOM 0.01
-#define MAX_ZOOM 0.5
+#define MAX_ZOOM 1.5
+
+#define VIEW_PADDING 1.25
 
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
@@ -201,7 +203,7 @@ void NodeView::adjustSceneRect(QRectF rectToCenter)
 void NodeView::centerRect(QRectF rect, float extraspace)
 {
     QPointF rectCenter = rect.center();
-    float extraSpace = 1.25;
+    float extraSpace = VIEW_PADDING;
 
     // check if there is a specified value for extraspace
     if (extraspace > 0) {
@@ -482,8 +484,6 @@ void NodeView::centerItem(GraphMLItem *item)
     if (!item) {
         qCritical() << "No GUI item to Center";
         return;
-    } else {
-        //qDebug() << "Centering item: " << item->getGraphML()->getDataValue("kind");
     }
 
     QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
@@ -538,13 +538,16 @@ void NodeView::setAspects(QStringList aspects)
 
     // TODO: only need to clear the selection if the selected item is now hidden
     clearSelection();
+
+    //qDebug() << "scale: " << transform().m11();
 }
 
 
 /**
  * @brief NodeView::centerOnItem
- * This should center on the selected node without changing the view's scale.
- * At the moment, this only works upto a certain scale.
+ * This centers on the selected node and zooms in/out enough so that the node
+ * is roughly one fifth of the set minimum window/view height.
+ * Note: This only works upto a certain scale.
  */
 void NodeView::centerOnItem()
 {
@@ -552,6 +555,29 @@ void NodeView::centerOnItem()
 
         NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
         QRectF itemRect = selectedItem->sceneBoundingRect();
+
+        // set the centralised height to be 1/5 of the minimum window height
+        double desiredHeight = this->minimumHeight() / 5;
+        double itemHeight = itemRect.height();
+        double scaleIncrement = 1.01;
+
+        // set the desired height for the main containers to be the same as centerItem
+        QString nodeKind = selectedItem->getNodeKind();
+        if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
+            desiredHeight = this->viewport()->height() / VIEW_PADDING;
+        }
+
+        // if the scaled height is less than the desired, increase scale by 0.01
+        while ((itemHeight * transform().m11()) < desiredHeight) {
+            scale(scaleIncrement, scaleIncrement);
+        }
+
+        // if the scaled height is more than the desired, decrease scale by 0.01
+        while ((itemHeight * transform().m11()) > desiredHeight) {
+            scale(1/scaleIncrement, 1/scaleIncrement);
+        }
+
+        // adjust the scene rect to make sure that the view can centralise on the item
         adjustSceneRect(itemRect);
         centerOn(itemRect.center());
 
@@ -965,6 +991,8 @@ void NodeView::appendToSelection(Node *node)
 
 /**
  * @brief NodeView::updateViewCenterPoint
+ * This updates the previous and current view center point.
+ * This needs to be called every time the view is centered on something.
  */
 void NodeView::updateViewCenterPoint()
 {
@@ -990,11 +1018,7 @@ QPointF NodeView::getPreviousViewCenterPoint()
  */
 void NodeView::recenterView()
 {
-    QSize minWindowSize(1300, 800);
-    QPointF topLeft = prevCenterPoint - QPointF(minWindowSize.width()/2, minWindowSize.height()/2);
-    QRectF rect = QRectF(topLeft, minWindowSize);
-    adjustSceneRect(rect);
-    centerOn(rect.center());
+    centerOn(prevCenterPoint);
 
     // update view center point
     updateViewCenterPoint();
@@ -1405,6 +1429,7 @@ void NodeView::wheelEvent(QWheelEvent *event)
         // Zooming out
         scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
     }
+    //qDebug() << "scale: " << transform().m11();
 }
 
 

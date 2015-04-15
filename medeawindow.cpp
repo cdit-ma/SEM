@@ -19,6 +19,9 @@
 
 
 #define THREADING false
+#define MIN_WIDTH 1300
+#define MIN_HEIGHT 800
+
 
 /**
  * @brief MedeaWindow::MedeaWindow
@@ -99,15 +102,14 @@ void MedeaWindow::initialiseGUI()
     searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
     QVBoxLayout *tableLayout = new QVBoxLayout();
 
-    // set window size; used for graphicsview and main widget
-    int windowWidth = 1300;
-    int windowHeight = 800;
+    // set the size for the right panel where the view buttons and data table are located
     int rightPanelWidth = 210;
 
     // set central widget and window size
     this->setCentralWidget(nodeView);
-    this->setMinimumSize(windowWidth, windowHeight);
-    nodeView->setMinimumSize(windowWidth, windowHeight);
+    this->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
+    nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
+    nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
 
     // setup widgets
     menuButton->setFixedSize(50,45);
