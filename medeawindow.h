@@ -10,6 +10,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QTableView>
+#include <QListView>
 #include <QTextEdit>
 #include <QMenu>
 #include <QAction>
@@ -58,7 +59,7 @@ signals:
     void clearDocks();
 
 public slots:
-    void setupDefaultSettings();
+    void setupInitialSettings();
 
 private slots:
     void loadSettings();
@@ -82,6 +83,8 @@ private slots:
     void on_actionSearch();
     void on_actionExit_triggered();
 
+    void on_searchResultItem_clicked();
+
     void writeExportedProject(QString data);
     void updateUndoStates(QStringList list);
     void updateRedoStates(QStringList list);
@@ -100,6 +103,7 @@ private slots:
 
     void dockButtonPressed(QString buttonName);
 
+    void menuActionTriggered();
     void updateProgressStatus(int value, QString status);
 
     void showWindowToolbar();
@@ -117,6 +121,7 @@ private:
     void setupJenkinsSettings();
     void setupMenu(QPushButton* button);
     void setupDock(QHBoxLayout* layout);
+    void setupSearchTools();
     void setupToolbar();
     void updateDataTable();
     bool exportProject();
@@ -146,7 +151,6 @@ private:
     QAction* view_autoCenterView;
     QAction* view_showGridLines;
     QAction* view_selectOnConstruction;
-
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_sortModel;
@@ -157,7 +161,6 @@ private:
     DockToggleButton* hardwareNodesButton;
     DockToggleButton* compDefinitionsButton;
     DockToggleButton* prevPressedButton;
-
     PartsDockScrollArea* partsDock;
     DefinitionsDockScrollArea* definitionsDock;
     HardwareDockScrollArea* hardwareDock;
@@ -177,19 +180,28 @@ private:
     QToolButton* alignSelectionVertical;
     QToolButton* alignSelectionHorizontal;
 
-    QTableView* dataTable;
-    QGroupBox* dataTableBox;
-    ComboBoxTableDelegate* delegate;
-
     QPushButton *projectName;
     QPushButton* assemblyButton;
     QPushButton* hardwareButton;
     QPushButton* workloadButton;
     QPushButton* definitionsButton;
-    QPushButton* searchButton;
-    QLineEdit* searchBar;
 
     QProgressBar* progressBar;
+    QString progressAction;
+
+    QHBoxLayout* searchLayout;
+    QToolButton* searchButton;
+    QLineEdit* searchBar;
+    QMenu* searchOptionMenu;
+    QListView* searchSuggestions;
+    QListView* searchResults;
+    QVBoxLayout* resultsLayout;
+
+    QHash<QPushButton*, GraphMLItem*> searchItems;
+
+    QTableView* dataTable;
+    QGroupBox* dataTableBox;
+    ComboBoxTableDelegate* delegate;
 
     AppSettings* appSettings;
 

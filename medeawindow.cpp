@@ -38,7 +38,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     makeConnections();
     newProject();
 
-    on_SearchTextChanged("");
+    //on_SearchTextChanged("");
 
     /*
     // this is used for when a file is dragged and dropped on top of this tool's icon
@@ -99,13 +99,7 @@ void MedeaWindow::initialiseGUI()
     workloadButton = new QPushButton("Behaviour");
     definitionsButton = new QPushButton("Interface");
 
-    searchBar = new QLineEdit();
-    searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
-
     QPushButton *menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
-
-    // set the size for the right panel where the view buttons and data table are located
-    int rightPanelWidth = 210;
 
     // set central widget and window size
     this->setCentralWidget(nodeView);
@@ -113,18 +107,17 @@ void MedeaWindow::initialiseGUI()
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
 
+    // set the size for the right panel where the view buttons and data table are located
+    int rightPanelWidth = 210;
+
     // setup widgets
     menuButton->setFixedSize(50,45);
     menuButton->setIconSize(menuButton->size());
-    projectName->setFlat(true);
-    projectName->setFixedWidth(rightPanelWidth-menuButton->width()-10);
-    searchButton->setFixedSize(45, 28);
-    searchButton->setIconSize(searchButton->size()*0.65);
-    searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
-    searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
-    projectName->setStyleSheet("font-size: 16px; text-align: left;");
     menuButton->setStyleSheet("QPushButton{ background-color: rgba(220,220,220,0.5); }"
                               "QPushButton::menu-indicator{ image: none; }");
+    projectName->setFlat(true);
+    projectName->setFixedWidth(rightPanelWidth-menuButton->width()-10);
+    projectName->setStyleSheet("font-size: 16px; text-align: left;");
 
     assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
@@ -136,9 +129,14 @@ void MedeaWindow::initialiseGUI()
     workloadButton->setStyleSheet("background-color: rgb(224,154,96);");
 
     // setup the progress bar
-    progressBar->setFixedSize(rightPanelWidth/2, 20);
-    progressBar->setStyleSheet("QProgressBar{ text-align: center; }");
+    progressBar->setFixedSize(rightPanelWidth, 25);
+    progressBar->setStyleSheet("QProgressBar{ text-align: center; color: black;}");
     progressBar->setVisible(false);
+
+    QVBoxLayout *progressLayout = new QVBoxLayout();
+    progressLayout->addStretch(3);
+    progressLayout->addWidget(progressBar);
+    progressLayout->addStretch(4);
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setItemDelegateForColumn(2, delegate);
@@ -156,15 +154,30 @@ void MedeaWindow::initialiseGUI()
                                 "background-color: rgba(0,0,0,0);"
                                 "border: 0px;"
                                 "}");
+
+
+    // setup mini map
+    minimap = new NodeViewMinimap();
+    minimap->setScene(nodeView->scene());
+
+    minimap->scale(.002,.002);
+    minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
+    minimap->setInteractive(false);
+
+    minimap->setFixedWidth(rightPanelWidth);
+    minimap->setFixedHeight(rightPanelWidth/1.6);
+    minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
+
     // layouts
     QHBoxLayout *mainHLayout = new QHBoxLayout();
     QHBoxLayout *topHLayout = new QHBoxLayout();
     QVBoxLayout *leftVlayout = new QVBoxLayout();
     QVBoxLayout *rightVlayout =  new QVBoxLayout();
     QHBoxLayout *titleLayout = new QHBoxLayout();
-    QHBoxLayout *searchLayout = new QHBoxLayout();
     QHBoxLayout *bodyLayout = new QHBoxLayout();
     QGridLayout *viewButtonsGrid = new QGridLayout();
+    searchLayout = new QHBoxLayout();
 
     // setup layouts for widgets
     titleLayout->setMargin(0);
@@ -185,9 +198,6 @@ void MedeaWindow::initialiseGUI()
     leftVlayout->addStretch(1);
     leftVlayout->addLayout(bodyLayout, 50);
 
-    searchLayout->addWidget(searchBar, 3);
-    searchLayout->addWidget(searchButton, 1);
-
     viewButtonsGrid->addWidget(definitionsButton, 1, 1);
     viewButtonsGrid->addWidget(workloadButton, 1, 2);
     viewButtonsGrid->addWidget(assemblyButton, 2, 1);
@@ -201,6 +211,7 @@ void MedeaWindow::initialiseGUI()
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
     rightVlayout->addStretch();
     rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
+    rightVlayout->addWidget(minimap);
 
     mainHLayout->setMargin(0);
     mainHLayout->setSpacing(0);
@@ -209,35 +220,21 @@ void MedeaWindow::initialiseGUI()
     mainHLayout->setContentsMargins(25, 25, 25, 25);
     nodeView->setLayout(mainHLayout);
 
-    // setup mini map
-    minimap = new NodeViewMinimap();
-    minimap->setScene(nodeView->scene());
-
-    minimap->scale(.002,.002);
-    minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
-    minimap->setInteractive(false);
-
-    minimap->setFixedWidth(rightPanelWidth);
-    minimap->setFixedHeight(rightPanelWidth/1.6);
-    minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
-
-    rightVlayout->addWidget(minimap);
-
     // other settings
     assemblyButton->setCheckable(true);
     hardwareButton->setCheckable(true);
     definitionsButton->setCheckable(true);
     workloadButton->setCheckable(true);
 
-    // setup the menu, dock and toolbar
+    // setup the menu, dock, search tools and toolbar
     setupMenu(menuButton);
     setupDock(bodyLayout);
+    setupSearchTools();
     setupToolbar();
 
-    // add progress bar to the body layout after the dock has been set up
+    // add progress bar layout to the body layout after the dock has been set up
     bodyLayout->addStretch();
-    bodyLayout->addWidget(progressBar);
+    bodyLayout->addLayout(progressLayout);
     bodyLayout->addStretch();
 }
 
@@ -384,6 +381,45 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
 
 
 /**
+ * @brief MedeaWindow::setupSearchTools
+ * @param layout
+ */
+void MedeaWindow::setupSearchTools()
+{
+    searchBar = new QLineEdit();
+    searchButton = new QToolButton(this);
+    searchOptionMenu = new QMenu(this);
+    searchSuggestions = new QListView(searchBar);
+    searchResults = new QListView();
+
+    QVBoxLayout* resultsMainLayout = new QVBoxLayout();
+    resultsLayout = new QVBoxLayout();
+    int rightPanelWidth = 210;
+
+    resultsMainLayout->addLayout(resultsLayout);
+    resultsMainLayout->addStretch();
+
+    searchButton->setIcon(QIcon(":/Resources/Icons/search_icon.png"));
+    searchButton->setFixedSize(45, 28);
+    searchButton->setIconSize(searchButton->size()*0.65);
+    searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
+    searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
+
+    searchSuggestions->setViewMode(QListView::ListMode);
+    searchSuggestions->setVisible(false);
+
+    searchResults->setLayout(resultsMainLayout);
+    searchResults->setVisible(false);
+
+    searchButton->setMenu(searchOptionMenu);
+    searchButton->setPopupMode(QToolButton::MenuButtonPopup);
+
+    searchLayout->addWidget(searchBar, 3);
+    searchLayout->addWidget(searchButton, 1);
+}
+
+
+/**
  * @brief MedeaWindow::setupToolbar
  * Initialise and setup toolbar widgets.
  */
@@ -426,8 +462,7 @@ void MedeaWindow::setupToolbar()
     duplicateButton->setIcon(QIcon(":/Resources/Icons/duplicate.png"));
 
     alignSelectionVertical->setText("|");
-    alignSelectionHorizontal->setText("_");
-
+    alignSelectionHorizontal->setText("--");
 
     cutButton->setFixedSize(buttonSize);
     copyButton->setFixedSize(buttonSize);
@@ -553,7 +588,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_updateGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
-    connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
+    //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
 
@@ -566,6 +601,9 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_ExportProject()), nodeView, SIGNAL(view_ExportProject()));
     connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SIGNAL(view_ImportProjects(QStringList)));
 
+    connect(edit_undo, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
+    connect(edit_redo, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
+
     connect(edit_undo, SIGNAL(triggered()), nodeView, SIGNAL(view_Undo()));
     connect(edit_redo, SIGNAL(triggered()), nodeView, SIGNAL(view_Redo()));
     connect(edit_cut, SIGNAL(triggered()), nodeView, SLOT(cut()));
@@ -574,7 +612,7 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
     connect(searchButton, SIGNAL(pressed()), this, SLOT(on_actionSearch()));
-    connect(searchBar, SIGNAL(textChanged(QString)), this, SLOT(on_SearchTextChanged(QString)));
+    //connect(searchBar, SIGNAL(textChanged(QString)), this, SLOT(on_SearchTextChanged(QString)));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch()));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
@@ -697,11 +735,12 @@ void MedeaWindow::setupJenkinsSettings()
 
 
 /**
- * @brief MedeaWindow::setupDefaultSettings
+ * @brief MedeaWindow::setupInitialSettings
  * This force sorts and centers the definitions containers before they are hidden.
- * It also sets the default values for toggle menu actions and populates the parts dock.
+ * It also sets the default values for toggle menu actions and populates the parts
+ * dock and search option menu. This is only called once.
  */
-void MedeaWindow::setupDefaultSettings()
+void MedeaWindow::setupInitialSettings()
 {
     // need to set initial toggle action values before triggering them
     view_autoCenterView->setChecked(true);
@@ -720,7 +759,18 @@ void MedeaWindow::setupDefaultSettings()
 
     // this only needs to happen once, the whole time the application is open
     partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
+
+    // setup search option menu once the nodeView and controller have been
+    // constructed and connected - should only need to do this once
+    QStringList nodeKinds = nodeView->getConstructableNodeKinds();
+    nodeKinds.sort(); // sort alphabetically
+    foreach (QString kind, nodeKinds) {
+        QAction* action = searchOptionMenu->addAction(kind);
+        action->setCheckable(true);
+        action->setChecked(true);
+    }
 }
+
 
 void MedeaWindow::loadSettings()
 {
@@ -741,9 +791,8 @@ void MedeaWindow::loadSettings()
     resize(size);
     move(pos);
     settings->endGroup();
-
-
 }
+
 
 void MedeaWindow::saveSettings()
 {
@@ -766,6 +815,8 @@ void MedeaWindow::saveSettings()
  */
 void MedeaWindow::on_actionImportJenkinsNode()
 {
+    progressAction = "Importing Jenkins";
+
     QString program = "python Jenkins-Groovy-Runner.py";
     program +=" -s " + JENKINS_ADDRESS;
     program +=" -u " + JENKINS_USERNAME;
@@ -806,6 +857,8 @@ void MedeaWindow::on_actionNew_Project_triggered()
  */
 void MedeaWindow::on_actionImport_GraphML_triggered()
 {
+    progressAction = "Importing GraphML";
+
     QStringList files = QFileDialog::getOpenFileNames(
                 this,
                 "Select one or more files to open",
@@ -824,6 +877,7 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
  */
 void MedeaWindow::on_actionExport_GraphML_triggered()
 {
+    progressAction = "Exporting GraphML";
     exportProject();
 }
 
@@ -836,6 +890,8 @@ void MedeaWindow::on_actionExport_GraphML_triggered()
  */
 void MedeaWindow::on_actionClearModel_triggered()
 {
+    progressAction = "Clearing Model";
+
     if (nodeView) {
         nodeView->clearSelection();
         nodeView->resetModel();
@@ -860,6 +916,8 @@ void MedeaWindow::on_actionClearModel_triggered()
  */
 void MedeaWindow::on_actionSortNode_triggered()
 {
+    progressAction = "Sorting Model";
+
     nodeView->view_TriggerAction("Medea: Sorting Node");
 
     if (nodeView->getSelectedNode()){
@@ -877,6 +935,8 @@ void MedeaWindow::on_actionSortNode_triggered()
  */
 void MedeaWindow::on_actionCenterNode_triggered()
 {
+    progressAction = "Centering Node";
+
     if (nodeView->getSelectedNodeItem()) {
         nodeView->centerItem(nodeView->getSelectedNodeItem());
     }
@@ -890,6 +950,8 @@ void MedeaWindow::on_actionCenterNode_triggered()
  */
 void MedeaWindow::on_actionPopupNewWindow()
 {
+    progressAction = "Opening New Window";
+
     if (nodeView->getSelectedNode()) {
         nodeView->constructNewView(nodeView->getSelectedNode());
     }
@@ -901,6 +963,8 @@ void MedeaWindow::on_actionPopupNewWindow()
  */
 void MedeaWindow::on_actionPaste_triggered()
 {
+    progressAction = "Pasting Data";
+
     QClipboard *clipboard = QApplication::clipboard();
     if (clipboard->ownsClipboard()) {
         window_PasteData(clipboard->text());
@@ -909,9 +973,9 @@ void MedeaWindow::on_actionPaste_triggered()
 
 void MedeaWindow::on_SearchTextChanged(QString text)
 {
-    if(text.length() != 0){
+    if (text.length() != 0) {
         searchButton->setEnabled(true);
-    }else{
+    } else {
         searchButton->setEnabled(false);
     }
 
@@ -919,19 +983,36 @@ void MedeaWindow::on_SearchTextChanged(QString text)
 
 void MedeaWindow::on_actionSearch()
 {
+    progressAction = "Searching Model";
+
     QString searchText = searchBar->text();
-    if(nodeView && searchText != ""){
+    if (nodeView && searchText != "") {
+
         QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::NODE_ITEM);
-        QString messageBoxText;
-        foreach(GraphMLItem* guiItem, returnedItems){
-            messageBoxText += "* "+ guiItem->getGraphML()->toString() + "\n";
-        }
-        if(messageBoxText == ""){
-            messageBoxText = "Search Yielded no results";
+
+        if (returnedItems.count() == 0) {
+            QMessageBox::information(this, "Search Results", "No Results", QMessageBox::Ok);
+            return;
         }
 
-        QMessageBox::information(this, "Search Results: '"+searchText+"'", messageBoxText, QMessageBox::Ok);
-        searchBar->clear();
+        // clear the list view and the old search items
+        searchItems.clear();
+        for (int i = resultsLayout->count()-1; i >= 0; i--) {
+            resultsLayout->removeItem(resultsLayout->itemAt(i));
+            delete resultsLayout->itemAt(i);
+        }
+
+        foreach (GraphMLItem* guiItem, returnedItems) {
+            GraphML* graphML = guiItem->getGraphML();
+            QPushButton* itemButton = new QPushButton(this);
+            itemButton->setText(graphML->getDataValue("label") + " [" + graphML->getID() + "]");
+            connect(itemButton, SIGNAL(clicked()), this, SLOT(on_searchResultItem_clicked()));
+            resultsLayout->addWidget(itemButton);
+            searchItems[itemButton] = guiItem;
+        }
+
+        // show popup list view
+        searchResults->show();
     }
 }
 
@@ -944,6 +1025,19 @@ void MedeaWindow::on_actionSearch()
 void MedeaWindow::on_actionExit_triggered()
 {
     close();
+}
+
+
+/**
+ * @brief MedeaWindow::on_searchResultItem_clicked
+ */
+void MedeaWindow::on_searchResultItem_clicked()
+{
+    QPushButton* clickedButton = qobject_cast<QPushButton*>(QObject::sender());
+    GraphMLItem* clickedItem = searchItems[clickedButton];
+
+    // should it also select it on the canvas?
+    nodeView->centerOnItem(clickedItem);
 }
 
 
@@ -1133,6 +1227,21 @@ void MedeaWindow::showWindowToolbar()
 
 
 /**
+ * @brief MedeaWindow::menuActionTriggered
+ * This method is only used to update the displayed text in the progress bar.
+ */
+void MedeaWindow::menuActionTriggered()
+{
+    QAction* action = qobject_cast<QAction*>(QObject::sender());
+    if (action->text().contains("Undo")) {
+        progressAction = "Undoing Action";
+    } else if (action->text().contains("Redo")) {
+        progressAction = "Redoing Action";
+    }
+}
+
+
+/**
  * @brief MedeaWindow::resetView
  * This is called everytime a new project is created.
  * It resets the view's turned on aspects to th default.
@@ -1152,6 +1261,8 @@ void MedeaWindow::resetView()
  */
 void MedeaWindow::newProject()
 {
+    progressAction = "Setting up New Project";
+
     resetGUI();
     on_actionClearModel_triggered();
     nodeView->view_ClearHistory();
@@ -1237,12 +1348,17 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
         progressBar->setVisible(true);
     }
 
+    /*
     // if there is a provided status, display it in progress bar
     if (status != "") {
         progressBar->setFormat(status);
     } else {
         progressBar->setFormat("Loading...");
     }
+    */
+
+    // update displayed text
+    progressBar->setFormat(progressAction + "...");
 
     // update value
     progressBar->setValue(value);
@@ -1343,7 +1459,7 @@ void MedeaWindow::loadJenkinsData(int code)
 
 
 /**
- * @brief MedeaWindow::importGraphMLFiles
+ * @brief MedeaWindow::importProjects
  * @param files
  */
 void MedeaWindow::importProjects(QStringList files)

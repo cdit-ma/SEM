@@ -326,7 +326,6 @@ void NodeView::removeSubView(NodeView *subView)
 
 QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIND kind)
 {
-
     QList<GraphMLItem*> returnable;
 
     foreach(GraphMLItem* guiItem, guiItems){
@@ -339,7 +338,6 @@ QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIN
     }
 
     return returnable;
-
 }
 
 QStringList NodeView::getAdoptableNodeList(Node *node)
@@ -549,18 +547,27 @@ void NodeView::setAspects(QStringList aspects)
  * This centers on the selected node and zooms in/out enough so that the node
  * is roughly one fifth of the set minimum window/view height.
  */
-void NodeView::centerOnItem()
+void NodeView::centerOnItem(GraphMLItem *item)
 {
-    if (getSelectedNode()) {
+    NodeItem* itemToCenter = 0;
 
-        NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
-        QRectF itemRect = selectedItem->sceneBoundingRect();
+    if (item) {
+        itemToCenter = qobject_cast<NodeItem*>(item);
+    } else {
+        if (getSelectedNode()) {
+            itemToCenter = getNodeItemFromNode(getSelectedNode());
+        }
+    }
+
+    if (itemToCenter) {
+
+        QRectF itemRect = itemToCenter->sceneBoundingRect();
 
         // if the selected node is a main container, just use centerItem()
         // we would only ever want to center and zoom into it
-        QString nodeKind = selectedItem->getNodeKind();
+        QString nodeKind = itemToCenter->getNodeKind();
         if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
-            centerItem(selectedItem);
+            centerItem(itemToCenter);
             return;
         }
 
@@ -571,7 +578,7 @@ void NodeView::centerOnItem()
 
         /*
         // set the desired height for the main containers to be the same as centerItem
-        QString nodeKind = selectedItem->getNodeKind();
+        QString nodeKind = itemToCenter->getNodeKind();
         if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
             desiredHeight = this->viewport()->height() / VIEW_PADDING;
         }

@@ -6,7 +6,6 @@
 #include <QHBoxLayout>
 #include <QDebug>
 
-
 /**
  * @brief ToolbarWidget::ToolbarWidget
  * @param parent

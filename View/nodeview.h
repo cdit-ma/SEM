@@ -183,7 +183,7 @@ public slots:
     void fitToScreen();
     void fitInSceneRect(GraphMLItem *item);
 
-    void centerOnItem();
+    void centerOnItem(GraphMLItem* item = 0);
     void centerItem(GraphMLItem* item);
 
     void goToDefinition(Node* node=0);
