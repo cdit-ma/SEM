@@ -104,6 +104,8 @@ public:
 
     qreal getGridSize();
 
+    QStringList getAspects();
+
 signals:
     void NodeItem_SortModel();
     void NodeItem_MoveSelection(QPointF delta);

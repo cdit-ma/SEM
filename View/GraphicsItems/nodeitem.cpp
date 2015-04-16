@@ -1877,6 +1877,18 @@ qreal NodeItem::getGridSize()
     return minimumVisibleRect().width() / GRID_RATIO;// -1);
 }
 
+
+/**
+ * @brief NodeItem::getAspects
+ * This returns the view aspects that this node item belongs to.
+ * @return
+ */
+QStringList NodeItem::getAspects()
+{
+   return viewAspects;
+}
+
+
 QPolygonF NodeItem::getResizePolygon()
 {
     QPointF bottomRight = boundingRect().bottomRight();

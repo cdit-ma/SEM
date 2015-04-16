@@ -388,9 +388,9 @@ void MedeaWindow::setupSearchTools()
 {
     searchBar = new QLineEdit();
     searchButton = new QToolButton(this);
-    searchOptionMenu = new QMenu(this);
+    searchOptionMenu = new QMenu(searchButton);
     searchSuggestions = new QListView(searchBar);
-    searchResults = new QListView();
+    searchResults = new QDialog();
 
     QVBoxLayout* resultsMainLayout = new QVBoxLayout();
     resultsLayout = new QVBoxLayout();
@@ -402,6 +402,9 @@ void MedeaWindow::setupSearchTools()
     searchButton->setIcon(QIcon(":/Resources/Icons/search_icon.png"));
     searchButton->setFixedSize(45, 28);
     searchButton->setIconSize(searchButton->size()*0.65);
+    searchButton->setMenu(searchOptionMenu);
+    searchButton->setPopupMode(QToolButton::MenuButtonPopup);
+
     searchBar->setFixedSize(rightPanelWidth - searchButton->width() - 5, 25);
     searchBar->setStyleSheet("background-color: rgba(230,230,230,1);");
 
@@ -409,10 +412,9 @@ void MedeaWindow::setupSearchTools()
     searchSuggestions->setVisible(false);
 
     searchResults->setLayout(resultsMainLayout);
+    searchResults->setMinimumWidth(rightPanelWidth);
+    searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
-
-    searchButton->setMenu(searchOptionMenu);
-    searchButton->setPopupMode(QToolButton::MenuButtonPopup);
 
     searchLayout->addWidget(searchBar, 3);
     searchLayout->addWidget(searchButton, 1);
@@ -611,9 +613,9 @@ void MedeaWindow::makeConnections()
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
-    connect(searchButton, SIGNAL(pressed()), this, SLOT(on_actionSearch()));
+    connect(searchButton, SIGNAL(pressed()), this, SLOT(on_actionSearch_triggered()));
     //connect(searchBar, SIGNAL(textChanged(QString)), this, SLOT(on_SearchTextChanged(QString)));
-    connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch()));
+    connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
@@ -767,7 +769,7 @@ void MedeaWindow::setupInitialSettings()
     foreach (QString kind, nodeKinds) {
         QAction* action = searchOptionMenu->addAction(kind);
         action->setCheckable(true);
-        action->setChecked(true);
+        //action->setChecked(true);
     }
 }
 
@@ -786,7 +788,6 @@ void MedeaWindow::loadSettings()
     if(settings->value("maximized").toString() == "true"){
         setWindowState(windowState() | Qt::WindowMaximized);
     }
-
 
     resize(size);
     move(pos);
@@ -981,28 +982,57 @@ void MedeaWindow::on_SearchTextChanged(QString text)
 
 }
 
-void MedeaWindow::on_actionSearch()
-{
+
+/**
+ * @brief MedeaWindow::on_actionSearch_triggered
+ * This is called when the search button is clicked.
+ * It pops up a dialog listing the items in the search results,
+ * or an information message if there are none.
+ */
+void MedeaWindow::on_actionSearch_triggered()
+{    
+    QStringList checkedKinds = getCheckedKinds();
+
+    // if there is no option checked, display the search option menu
+    if (checkedKinds.count() == 0) {
+        searchButton->showMenu();
+        return;
+    }
+
     progressAction = "Searching Model";
 
     QString searchText = searchBar->text();
     if (nodeView && searchText != "") {
 
         QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::NODE_ITEM);
+        QList<GraphMLItem*> itemsToDisplay;
 
-        if (returnedItems.count() == 0) {
-            QMessageBox::information(this, "Search Results", "No Results", QMessageBox::Ok);
+        // filter the list - check if the guiItem's kind is checked in the search option
+        foreach (GraphMLItem* guiItem, returnedItems) {
+            if (checkedKinds.contains(guiItem->getGraphML()->getDataValue("kind"))) {
+                itemsToDisplay.append(guiItem);
+            }
+        }
+
+        // if no items match the search checked kinds, display message box
+        if (itemsToDisplay.count() == 0) {
+            QMessageBox::information(this, "Search Results", "Search Not Found   ", QMessageBox::Ok);
             return;
         }
 
         // clear the list view and the old search items
         searchItems.clear();
         for (int i = resultsLayout->count()-1; i >= 0; i--) {
+            // remove the layout item's widget, then remove the layout item
+            if (resultsLayout->itemAt(i)->widget()) {
+                delete resultsLayout->itemAt(i)->widget();
+            }
             resultsLayout->removeItem(resultsLayout->itemAt(i));
             delete resultsLayout->itemAt(i);
         }
 
-        foreach (GraphMLItem* guiItem, returnedItems) {
+        // for each items to display, create a button for it and add it to the results layout
+        foreach (GraphMLItem* guiItem, itemsToDisplay) {
             GraphML* graphML = guiItem->getGraphML();
             QPushButton* itemButton = new QPushButton(this);
             itemButton->setText(graphML->getDataValue("label") + " [" + graphML->getID() + "]");
@@ -1030,11 +1060,25 @@ void MedeaWindow::on_actionExit_triggered()
 
 /**
  * @brief MedeaWindow::on_searchResultItem_clicked
+ * This is called when an item (button) from the search result list is clicked.
+ * It tells the view to center on the clicked item.
  */
 void MedeaWindow::on_searchResultItem_clicked()
 {
     QPushButton* clickedButton = qobject_cast<QPushButton*>(QObject::sender());
     GraphMLItem* clickedItem = searchItems[clickedButton];
+
+    // make sure the view aspect the the item belongs to is turned on
+    NodeItem* nodeItem = qobject_cast<NodeItem*>(clickedItem);
+    QStringList neededAspects = checkedViewAspects;
+    foreach (QString aspect, nodeItem->getAspects()) {
+        if (!checkedViewAspects.contains(aspect)) {
+            neededAspects.append(aspect);
+        }
+    }
+
+    // update view aspects
+    setViewAspects(neededAspects);
 
     // should it also select it on the canvas?
     nodeView->centerOnItem(clickedItem);
@@ -1542,4 +1586,20 @@ void MedeaWindow::enableDeploymentViewAspect()
     if (hardwareNodesButton->isEnabled() && !hardwareNodesButton->getSelected()) {
         hardwareNodesButton->pressed();
     }
+}
+
+
+/**
+ * @brief MedeaWindow::getCheckedKinds
+ * @return
+ */
+QStringList MedeaWindow::getCheckedKinds()
+{
+    QStringList checkedKinds;
+    for (int i = 0; i < searchOptionMenu->actions().count(); i++) {
+        if (searchOptionMenu->actions().at(i)->isChecked()) {
+            checkedKinds.append(searchOptionMenu->actions().at(i)->text());
+        }
+    }
+    return checkedKinds;
 }

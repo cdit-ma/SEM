@@ -214,7 +214,7 @@ private:
 
     bool isSubView();
     bool isMainView();
-    bool isAspectVisible(QString aspect);
+
     void addAspect(QString aspect);
     void removeAspect(QString aspect);
 

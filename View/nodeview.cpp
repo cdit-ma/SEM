@@ -107,14 +107,9 @@ bool NodeView::isMainView()
     return !IS_SUB_VIEW;
 }
 
-bool NodeView::isAspectVisible(QString aspect)
-{
-    return currentAspects.contains(aspect);
-}
-
 void NodeView::addAspect(QString aspect)
 {
-    if(!isAspectVisible(aspect)){
+    if(!currentAspects.contains(aspect)){
         QStringList newAspects = currentAspects;
         newAspects.append(aspect);
         setAspects(newAspects);
@@ -123,7 +118,7 @@ void NodeView::addAspect(QString aspect)
 
 void NodeView::removeAspect(QString aspect)
 {
-    if(isAspectVisible(aspect)){
+    if(currentAspects.contains(aspect)){
         QStringList newAspects = currentAspects;
         newAspects.removeAll(aspect);
         setAspects(newAspects);
@@ -528,17 +523,16 @@ void NodeView::setAspects(QStringList aspects)
 {
     currentAspects = aspects;
 
-    if(!IS_SUB_VIEW && AUTO_CENTER_ASPECTS){
+    // set change in view aspects to the node items and the gui
+    view_AspectsChanged(aspects);
+    view_GUIAspectChanged(aspects);
+
+    if (!IS_SUB_VIEW && AUTO_CENTER_ASPECTS) {
         centerAspects();
     }
 
-    view_AspectsChanged(aspects); // need this for all cases
-    view_GUIAspectChanged(aspects);
-
     // TODO: only need to clear the selection if the selected item is now hidden
     clearSelection();
-
-    //qDebug() << "scale: " << transform().m11();
 }
 
 
