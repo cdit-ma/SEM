@@ -75,7 +75,7 @@
         <file>Resources/Icons/popup.png</file>
         <file>Resources/Icons/lock.png</file>
         <file>Resources/Icons/info.png</file>
-        <file>Resources/Icons/menu_arrow.png</file>
+        <file>Resources/Icons/menu_right_arrow.png</file>
         <file>Resources/Icons/model.png</file>
         <file>Resources/Icons/sort.png</file>
         <file>Resources/Icons/autoCenter.png</file>
@@ -87,5 +87,7 @@
         <file>Resources/Icons/snapToGrid.png</file>
         <file>Resources/Icons/duplicate.png</file>
         <file>Resources/Icons/unlock.png</file>
+        <file>Resources/Icons/menu_down_arrow.png</file>
+        <file>Resources/Icons/settings.png</file>
     </qresource>
 </RCC>

@@ -4,10 +4,12 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QMainWindow>
 
 #include "../View/GraphicsItems/graphmlitem.h"
 #include "../View/GraphicsItems/nodeitem.h"
 
+class MedeaWindow;
 
 class SearchItemButton : public QPushButton
 {
@@ -15,8 +17,7 @@ class SearchItemButton : public QPushButton
 public:
     explicit SearchItemButton(GraphMLItem* item, QWidget *parent = 0);
 
-    GraphMLItem* getGraphMLItem();
-    QString getNodeKind();
+    void connectToWindow(QMainWindow* window);
 
 signals:
     void searchItem_centerOnItem(GraphMLItem* item);

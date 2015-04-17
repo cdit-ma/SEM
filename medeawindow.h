@@ -21,6 +21,7 @@
 #include <QSpacerItem>
 #include <QClipboard>
 #include <QProgressBar>
+#include <QCheckBox>
 #include <QItemSelectionModel>
 #include <QDebug>
 
@@ -112,6 +113,8 @@ private slots:
     void updateProgressStatus(int value, QString status);
 
     void searchItemClicked();
+    void searchMenuButtonClicked();
+    void updateSearchLineEdits();
 
     void showWindowToolbar();
 
@@ -135,7 +138,7 @@ private:
     void importProjects(QStringList files);
     void enableDeploymentViewAspect();
 
-    QStringList getCheckedKinds();
+    QStringList getCheckedItems(int menu);
 
     QMenu* menu;
     QMenu* file_menu;
@@ -200,12 +203,24 @@ private:
     QString progressAction;
 
     QHBoxLayout* searchLayout;
-    QToolButton* searchButton;
-    QLineEdit* searchBar;
-    QMenu* searchOptionMenu;
+    QPushButton* searchButton;
     QListView* searchSuggestions;
     QDialog* searchResults;
     QVBoxLayout* resultsLayout;
+
+    QPushButton* searchOptionButton;
+    QLineEdit* searchBar;
+    QMenu* searchOptionMenu;
+    QPushButton* viewAspectsButton;
+    QLineEdit* viewAspectsBar;
+    QMenu* viewAspectsMenu;
+    QPushButton* nodeKindsButton;
+    QLineEdit* nodeKindsBar;
+    QMenu* nodeKindsMenu;
+
+    QString searchBarDefaultText;
+    QString viewAspectsBarDefaultText;
+    QString nodeKindsDefaultText;
 
     QHash<QPushButton*, GraphMLItem*> searchItems;
 

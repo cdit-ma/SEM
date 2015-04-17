@@ -1,4 +1,6 @@
 #include "searchitembutton.h"
+#include "../medeawindow.h"
+
 #include <QDebug>
 
 /**
@@ -26,27 +28,25 @@ SearchItemButton::SearchItemButton(GraphMLItem* item, QWidget *parent) :
 
 
 /**
- * @brief SearchItemButton::getGraphMLItem
- * @return
+ * @brief SearchItemButton::connectToWindow
+ * This connects the signals and slots to the MEDEA window.
  */
-GraphMLItem *SearchItemButton::getGraphMLItem()
+void SearchItemButton::connectToWindow(QMainWindow* window)
 {
-    return graphMLItem;
-}
-
-
-/**
- * @brief SearchItemButton::getNodeKind
- * @return
- */
-QString SearchItemButton::getNodeKind()
-{
-    return graphMLItem->getGraphML()->getDataValue("kind");
+    MedeaWindow* medea = dynamic_cast<MedeaWindow*>(window);
+    if (medea) {
+        connect(this, SIGNAL(clicked()), medea, SLOT(searchItemClicked()));
+        connect(this, SIGNAL(searchItem_centerOnItem(GraphMLItem*)), medea, SLOT(on_searchResultItem_clicked(GraphMLItem*)));
+        connect(medea, SIGNAL(window_searchItemClicked(SearchItemButton*)), this, SLOT(itemClicked(SearchItemButton*)));
+    }
 }
 
 
 /**
  * @brief SearchItemButton::itemClicked
+ * This is called every time this item is clicked.
+ * It updates the selected state and the color of this button accordingly.
+ * If this item is selected, it sends a signal to MEDEA to center on its graphMLItem.
  */
 void SearchItemButton::itemClicked()
 {
@@ -63,6 +63,10 @@ void SearchItemButton::itemClicked()
 
 /**
  * @brief SearchItemButton::itemClicked
+ * This is called every time a SearchItemButton is clicked.
+ * A signal is sent by MEDEA to say which item was clicked.
+ * If this item is currently selected and the clicked item was not this item,
+ * animate a click to deselect this item and hence update its color.
  * @param item
  */
 void SearchItemButton::itemClicked(SearchItemButton *item)
@@ -75,6 +79,7 @@ void SearchItemButton::itemClicked(SearchItemButton *item)
 
 /**
  * @brief SearchItemButton::setupLayout
+ * This sets up the layout and widgets within this button.
  */
 void SearchItemButton::setupLayout()
 {
@@ -88,7 +93,8 @@ void SearchItemButton::setupLayout()
     setMinimumSize(250, 50);
 
     // setup icon label
-    QImage* image = new QImage(":/Resources/Icons/" + getNodeKind() + ".png");
+    QString graphMLKind = graphMLItem->getGraphML()->getDataValue("kind");
+    QImage* image = new QImage(":/Resources/Icons/" + graphMLKind + ".png");
     QImage scaledImage = image->scaled((minimumWidth() / 4) - marginOffset,
                                        minimumHeight() - marginOffset,
                                        Qt::KeepAspectRatio,
@@ -132,6 +138,7 @@ void SearchItemButton::setupLayout()
 
 /**
  * @brief SearchItemButton::updateColor
+ * This updates this button's color depending on its selected state.
  * @param selected
  */
 void SearchItemButton::updateColor(bool selected)

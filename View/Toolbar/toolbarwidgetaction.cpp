@@ -194,7 +194,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 
     // if this action is going to have a menu, add menu_arrow icon to the widget
     if (willHaveMenu) {
-        QImage* menuImage = new QImage(":/Resources/Icons/menu_arrow.png");
+        QImage* menuImage = new QImage(":/Resources/Icons/menu_right_arrow.png");
         QImage scaledMenuImage = menuImage->scaled(actionButton->height()/2.5,
                                            actionButton->height()/2.5,
                                            Qt::KeepAspectRatio,

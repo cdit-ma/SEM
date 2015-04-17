@@ -44,10 +44,11 @@ public:
 
     void appendToSelection(Node* node);
 
-    void updateViewCenterPoint();
     QPointF getPreviousViewCenterPoint();
-
+    void updateViewCenterPoint();
     void recenterView();
+
+    QStringList getAllAspects();
 
 protected:
     //Mouse Handling Methods

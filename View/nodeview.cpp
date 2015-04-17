@@ -1037,6 +1037,16 @@ void NodeView::recenterView()
 }
 
 
+/**
+ * @brief NodeView::getAllAspects
+ * @return
+ */
+QStringList NodeView::getAllAspects()
+{
+   return allAspects;
+}
+
+
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
 {
     if(GUIItem){
