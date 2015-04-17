@@ -87,7 +87,9 @@ void MedeaWindow::initialiseGUI()
     nodeView = new NodeView();
     toolbar = new QToolBar();
     appSettings = new AppSettings(this);
+
     progressBar = new QProgressBar(this);
+    progressLabel = new QLabel(this);
 
     dataTable = new QTableView();
     dataTableBox = new QGroupBox();
@@ -129,12 +131,30 @@ void MedeaWindow::initialiseGUI()
     workloadButton->setStyleSheet("background-color: rgb(224,154,96);");
 
     // setup the progress bar
-    progressBar->setFixedSize(rightPanelWidth, 25);
-    progressBar->setStyleSheet("QProgressBar{ text-align: center; color: black;}");
     progressBar->setVisible(false);
+    progressBar->setFixedSize(rightPanelWidth*2, 20);
+    progressBar->setStyleSheet("QProgressBar {"
+                               "border: 2px solid gray;"
+                               "border-radius: 10px;"
+                               "background: rgb(220,220,220);"
+                               "text-align: center;"
+                               "color: black;"
+                               "}"
+
+                               "QProgressBar::chunk {"
+                               "border-radius: 7px;"
+                               "background: rgb(80,220,120);"
+                               "}");
+
+    progressLabel->setVisible(false);
+    progressLabel->setFixedSize(rightPanelWidth*2, 40);
+    progressLabel->setAlignment(Qt::AlignCenter);
+    progressLabel->setStyleSheet("color: black; font: 14px;");
+    //qDebug() << "font size: " << progressLabel->font().pointSize();
 
     QVBoxLayout *progressLayout = new QVBoxLayout();
     progressLayout->addStretch(3);
+    progressLayout->addWidget(progressLabel);
     progressLayout->addWidget(progressBar);
     progressLayout->addStretch(4);
 
@@ -386,11 +406,11 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
  */
 void MedeaWindow::setupSearchTools()
 {
-    searchBar = new QLineEdit();
+    searchBar = new QLineEdit(this);
     searchButton = new QToolButton(this);
     searchOptionMenu = new QMenu(searchButton);
     searchSuggestions = new QListView(searchBar);
-    searchResults = new QDialog();
+    searchResults = new QDialog(this);
 
     QVBoxLayout* resultsMainLayout = new QVBoxLayout();
     resultsLayout = new QVBoxLayout();
@@ -1027,8 +1047,9 @@ void MedeaWindow::on_actionSearch_triggered()
             if (resultsLayout->itemAt(i)->widget()) {
                 delete resultsLayout->itemAt(i)->widget();
             }
-            resultsLayout->removeItem(resultsLayout->itemAt(i));
-            delete resultsLayout->itemAt(i);
+            // might not need to delete the layout item - just the widget
+            //resultsLayout->removeItem(resultsLayout->itemAt(i));
+            //delete resultsLayout->itemAt(i);
         }
 
         // for each items to display, create a button for it and add it to the results layout
@@ -1078,10 +1099,12 @@ void MedeaWindow::on_searchResultItem_clicked()
     }
 
     // update view aspects
-    setViewAspects(neededAspects);
+    window_AspectsChanged(neededAspects);
 
-    // should it also select it on the canvas?
+    nodeView->clearSelection();
+    nodeView->appendToSelection(nodeItem->getNode());
     nodeView->centerOnItem(clickedItem);
+    //nodeView->centerItem(clickedItem);
 }
 
 
@@ -1389,26 +1412,20 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
 {
     // if something's in progress, show progress bar
     if (!progressBar->isVisible()) {
+        progressLabel->setVisible(true);
         progressBar->setVisible(true);
     }
 
-    /*
-    // if there is a provided status, display it in progress bar
-    if (status != "") {
-        progressBar->setFormat(status);
-    } else {
-        progressBar->setFormat("Loading...");
-    }
-    */
-
     // update displayed text
-    progressBar->setFormat(progressAction + "...");
+    //progressBar->setFormat(progressAction + "...");
+    progressLabel->setText(progressAction + "...");
 
     // update value
     progressBar->setValue(value);
 
     // once we reach 100%, reset the progress bar then hide it
     if (value == 100) {
+        progressLabel->setVisible(false);
         progressBar->setVisible(false);
         progressBar->reset();
     }

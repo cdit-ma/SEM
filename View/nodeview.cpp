@@ -515,7 +515,7 @@ void NodeView::setRubberBandMode(bool On)
 
 
 /**
- * @brief NodeView::setViewAspects
+ * @brief NodeView::setAspects
  * This is called whenever the view aspect buttons are clicked.
  * @param aspects
  */

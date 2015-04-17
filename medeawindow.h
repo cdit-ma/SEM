@@ -189,6 +189,7 @@ private:
     QPushButton* definitionsButton;
 
     QProgressBar* progressBar;
+    QLabel* progressLabel;
     QString progressAction;
 
     QHBoxLayout* searchLayout;
