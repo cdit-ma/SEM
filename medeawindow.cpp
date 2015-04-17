@@ -150,7 +150,6 @@ void MedeaWindow::initialiseGUI()
     progressLabel->setFixedSize(rightPanelWidth*2, 40);
     progressLabel->setAlignment(Qt::AlignCenter);
     progressLabel->setStyleSheet("color: black; font: 14px;");
-    //qDebug() << "font size: " << progressLabel->font().pointSize();
 
     QVBoxLayout *progressLayout = new QVBoxLayout();
     progressLayout->addStretch(3);
@@ -253,9 +252,9 @@ void MedeaWindow::initialiseGUI()
     setupToolbar();
 
     // add progress bar layout to the body layout after the dock has been set up
-    bodyLayout->addStretch();
+    bodyLayout->addStretch(4);
     bodyLayout->addLayout(progressLayout);
-    bodyLayout->addStretch();
+    bodyLayout->addStretch(3);
 }
 
 
@@ -432,7 +431,7 @@ void MedeaWindow::setupSearchTools()
     searchSuggestions->setVisible(false);
 
     searchResults->setLayout(resultsMainLayout);
-    searchResults->setMinimumWidth(rightPanelWidth);
+    searchResults->setMinimumWidth(rightPanelWidth + 80);
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
 
@@ -785,11 +784,11 @@ void MedeaWindow::setupInitialSettings()
     // setup search option menu once the nodeView and controller have been
     // constructed and connected - should only need to do this once
     QStringList nodeKinds = nodeView->getConstructableNodeKinds();
-    nodeKinds.sort(); // sort alphabetically
+    nodeKinds.removeDuplicates();
+    nodeKinds.sort();
     foreach (QString kind, nodeKinds) {
         QAction* action = searchOptionMenu->addAction(kind);
         action->setCheckable(true);
-        //action->setChecked(true);
     }
 }
 
@@ -1036,6 +1035,9 @@ void MedeaWindow::on_actionSearch_triggered()
 
         // if no items match the search checked kinds, display message box
         if (itemsToDisplay.count() == 0) {
+            if (searchResults->isVisible()) {
+                searchResults->setVisible(false);
+            }
             QMessageBox::information(this, "Search Results", "Search Not Found   ", QMessageBox::Ok);
             return;
         }
@@ -1047,19 +1049,15 @@ void MedeaWindow::on_actionSearch_triggered()
             if (resultsLayout->itemAt(i)->widget()) {
                 delete resultsLayout->itemAt(i)->widget();
             }
-            // might not need to delete the layout item - just the widget
-            //resultsLayout->removeItem(resultsLayout->itemAt(i));
-            //delete resultsLayout->itemAt(i);
         }
 
-        // for each items to display, create a button for it and add it to the results layout
+        // for each item to display, create a button for it and add it to the results layout
         foreach (GraphMLItem* guiItem, itemsToDisplay) {
-            GraphML* graphML = guiItem->getGraphML();
-            QPushButton* itemButton = new QPushButton(this);
-            itemButton->setText(graphML->getDataValue("label") + " [" + graphML->getID() + "]");
-            connect(itemButton, SIGNAL(clicked()), this, SLOT(on_searchResultItem_clicked()));
-            resultsLayout->addWidget(itemButton);
-            searchItems[itemButton] = guiItem;
+            SearchItemButton* searchItem = new SearchItemButton(guiItem, this);
+            connect(searchItem, SIGNAL(clicked()), this, SLOT(searchItemClicked()));
+            connect(searchItem, SIGNAL(searchItem_centerOnItem(GraphMLItem*)), this, SLOT(on_searchResultItem_clicked(GraphMLItem*)));
+            connect(this, SIGNAL(window_searchItemClicked(SearchItemButton*)), searchItem, SLOT(itemClicked(SearchItemButton*)));
+            resultsLayout->addWidget(searchItem);
         }
 
         // show popup list view
@@ -1084,11 +1082,8 @@ void MedeaWindow::on_actionExit_triggered()
  * This is called when an item (button) from the search result list is clicked.
  * It tells the view to center on the clicked item.
  */
-void MedeaWindow::on_searchResultItem_clicked()
+void MedeaWindow::on_searchResultItem_clicked(GraphMLItem *clickedItem)
 {
-    QPushButton* clickedButton = qobject_cast<QPushButton*>(QObject::sender());
-    GraphMLItem* clickedItem = searchItems[clickedButton];
-
     // make sure the view aspect the the item belongs to is turned on
     NodeItem* nodeItem = qobject_cast<NodeItem*>(clickedItem);
     QStringList neededAspects = checkedViewAspects;
@@ -1417,7 +1412,6 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
     }
 
     // update displayed text
-    //progressBar->setFormat(progressAction + "...");
     progressLabel->setText(progressAction + "...");
 
     // update value
@@ -1429,6 +1423,18 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
         progressBar->setVisible(false);
         progressBar->reset();
     }
+
+    update();
+}
+
+
+/**
+ * @brief MedeaWindow::searchItemClicked
+ */
+void MedeaWindow::searchItemClicked()
+{
+   SearchItemButton* itemClicked = qobject_cast<SearchItemButton*>(QObject::sender());
+   window_searchItemClicked(itemClicked);
 }
 
 

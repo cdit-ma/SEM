@@ -37,6 +37,9 @@
 #include "View/Dock/hardwaredockscrollarea.h"
 
 #include "View/Toolbar/toolbarwidgetaction.h"
+
+#include "GUI/searchitembutton.h"
+
 #include "GUI/appsettings.h"
 
 class MedeaWindow : public QMainWindow
@@ -54,6 +57,8 @@ signals:
     void window_ImportProjects(QStringList file);
     void window_AspectsChanged(QStringList aspects);
     void window_SortModel();
+
+    void window_searchItemClicked(SearchItemButton* item);
 
     void checkDockScrollBar();
     void clearDocks();
@@ -83,7 +88,7 @@ private slots:
     void on_actionSearch_triggered();
     void on_actionExit_triggered();
 
-    void on_searchResultItem_clicked();
+    void on_searchResultItem_clicked(GraphMLItem* clickedItem);
 
     void writeExportedProject(QString data);
     void updateUndoStates(QStringList list);
@@ -105,6 +110,8 @@ private slots:
 
     void menuActionTriggered();
     void updateProgressStatus(int value, QString status);
+
+    void searchItemClicked();
 
     void showWindowToolbar();
 

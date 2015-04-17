@@ -83,7 +83,8 @@ HEADERS += \
     medeawindow.h \
     modeltester.h \
     GUI/appsettings.h \
-    GUI/keyeditwidget.h
+    GUI/keyeditwidget.h \
+    GUI/searchitembutton.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -151,7 +152,8 @@ SOURCES += \
     medeawindow.cpp \
     modeltester.cpp \
     GUI/appsettings.cpp \
-    GUI/keyeditwidget.cpp
+    GUI/keyeditwidget.cpp \
+    GUI/searchitembutton.cpp
 
 FORMS += \
 
