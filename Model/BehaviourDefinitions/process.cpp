@@ -13,11 +13,13 @@ Process::~Process()
 
 bool Process::canConnect(Node* attachableObject)
 {
-
-    return Node::canConnect(attachableObject);
+    Q_UNUSED(attachableObject);
+    return false;
+    //return Node::canConnect(attachableObject);
 }
 
 bool Process::canAdoptChild(Node *child)
 {
-    return Node::canAdoptChild(child);
+    Q_UNUSED(child);
+    return false; //Node::canAdoptChild(child);
 }

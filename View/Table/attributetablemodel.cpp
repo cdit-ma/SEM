@@ -14,12 +14,14 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
     attachedGraphML = guiItem->getGraphML();
     if(attachedGraphML->isNode()){
         QString kind = attachedGraphML->getDataValue("kind");
-        if(!(kind == "Aggregate" || kind == "AggregateInstance" || kind == "Member" || kind == "MemberInstance")){
+        if(!(kind == "Aggregate" || kind == "AggregateInstance"
+             || kind == "Member" || kind == "MemberInstance"
+             || kind == "Condition" || kind == "Process")){
             hiddenKeyNames << "sortOrder";
         }
     }
 
-    hiddenKeyNames /*<< "width" << "height"*/ <<  "x" << "y" << "kind";
+    hiddenKeyNames << "width" << "height" <<  "x" << "y"; // << "kind";
     setupDataBinding();
 
 }

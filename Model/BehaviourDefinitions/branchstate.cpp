@@ -16,6 +16,15 @@ BranchState::~BranchState()
 bool BranchState::canConnect(Node* attachableObject)
 {
     Termination* terminate = dynamic_cast<Termination*>(attachableObject);
+
+    //Limit connections to the parent (ie ComponentImpl) children
+    Node* parentNode = getParentNode();
+    if(parentNode){
+        if(!parentNode->isAncestorOf(attachableObject)){
+            return false;
+        }
+    }
+
     if(!terminate){
         //TODO: Implement a check for singular terminate only.
 #ifdef DEBUG_MODE

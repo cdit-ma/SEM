@@ -1,4 +1,8 @@
 #include "outeventportimpl.h"
+#include "workload.h"
+#include "branchstate.h"
+#include "outeventportimpl.h"
+#include "termination.h"
 #include <QDebug>
 #include "../InterfaceDefinitions/outeventport.h"
 #include "../InterfaceDefinitions/member.h"
@@ -53,18 +57,25 @@ bool OutEventPortImpl::canConnect(Node* attachableObject)
                 }
             }
         }
-    }else{
+    }else{ // not definition connection, must be behaviour connection
+
+        //Limit connections to the parent (ie ComponentImpl) children
         if(aParent){
             if(!aParent->isAncestorOf(attachableObject)){
-                #ifdef DEBUG_MODE
-                qWarning() << "Can only connect to items owned by Component Impl!";
-                #endif
                 return false;
             }
         }
+
+        // Limit connections in behavior to Workload BranchState OutEventPortImpl and Termination.
+        Workload* workload = dynamic_cast<Workload*>(attachableObject);
+        BranchState* branchstate = dynamic_cast<BranchState*>(attachableObject);
+        OutEventPortImpl* outeventportimpl = dynamic_cast<OutEventPortImpl*>(attachableObject);
+        Termination* terminate = dynamic_cast<Termination*>(attachableObject);
+
+        if (!workload && !branchstate && !outeventportimpl && !terminate){
+            return false;
+        }
     }
-
-
 
     return Node::canConnect(attachableObject);
 }

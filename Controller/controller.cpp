@@ -954,8 +954,24 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     if(nodeKind == "Process"){
         GraphMLKey* codeKey = constructGraphMLKey("code", "string", "node");
         GraphMLKey* actionOnKey = constructGraphMLKey("actionOn", "string", "node");
+        GraphMLKey* workerKey = constructGraphMLKey("worker", "string", "node");
+        GraphMLKey* folderKey = constructGraphMLKey("folder", "string", "node");
+        GraphMLKey* fileKey = constructGraphMLKey("file", "string", "node");
+        GraphMLKey* operationKey = constructGraphMLKey("operation", "string", "node");
+        GraphMLKey* complexityKey = constructGraphMLKey("complexity", "string", "node");
+        GraphMLKey* parametersKey = constructGraphMLKey("parameters", "string", "node");
         data.append(new GraphMLData(codeKey, ""));
         data.append(new GraphMLData(actionOnKey, "Mainprocess"));
+        data.append(new GraphMLData(workerKey, ""));
+        data.append(new GraphMLData(folderKey, ""));
+        data.append(new GraphMLData(fileKey, ""));
+        data.append(new GraphMLData(operationKey, ""));
+        data.append(new GraphMLData(complexityKey, ""));
+        data.append(new GraphMLData(parametersKey, ""));
+    }
+    if(nodeKind == "Condition"){
+        GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
+        data.append(new GraphMLData(valueKey, ""));
     }
     if(nodeKind == "Member"){
         GraphMLKey* keyKey = constructGraphMLKey("key", "boolean", "node");
@@ -975,7 +991,11 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
         GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
         data.append(new GraphMLData(valueKey, ""));
     }
-
+    if(nodeKind == "Variable"){
+        data.append(new GraphMLData(typeKey, "String"));
+        GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
+        data.append(new GraphMLData(valueKey, ""));
+    }
     if(nodeKind == "OutEventPortInstance" || nodeKind == "InEventPortInstance"){
         GraphMLKey* topicKey = constructGraphMLKey("topicName", "string", "node");
         data.append(new GraphMLData(topicKey, ""));
@@ -1993,10 +2013,13 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
         bindTypes = false;
     }
     if((child->isInstance() || child->isImpl()) || (def_Type && def_Label)){
-        if(child->getDataValue("kind") == "AggregateInstance" || child->getDataValue("kind") == "MemberInstance"){
-            bindSort = true;
-        }
-        if(child->getDataValue("kind") != "ComponentInstance"){
+        // cannot bind AggregateInstance sortOrder causes problems, and not really necessary for MemberInstance
+        //if(child->getDataValue("kind") == "AggregateInstance" || child->getDataValue("kind") == "MemberInstance"){
+        //    bindSort = true;
+        //}
+        if(child->getDataValue("kind") != "ComponentInstance"
+           // allow AggregateInstance in InterfaceDefinition Aggregates to have different label to definiton
+           && child->getDataValue("kind") != "AggregateInstance" && child->getParentNode()->getDataValue("kind") != "Aggregate") {
             bindLabels = true;
         }
     }

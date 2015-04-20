@@ -1222,7 +1222,9 @@ void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
         // hide all AggregateInstances except for in OutEventPortImpls
         if (nodeItem->getNodeKind() == "AggregateInstance") {
             NodeItem* parentItem = nodeItem->getParentNodeItem();
-            if (parentItem && parentItem->getNodeKind() != "OutEventPortImpl") {
+            if (parentItem && (parentItem->getNodeKind() != "OutEventPortImpl"
+                               && parentItem->getNodeKind() != "Aggregate"))
+            {
                 nodeItem->setHidden(true);
             }
         }
