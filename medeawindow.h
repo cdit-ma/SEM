@@ -114,6 +114,7 @@ private slots:
 
     void searchItemClicked();
     void searchMenuButtonClicked(bool checked);
+    void searchMenuClosed();
     void updateSearchLineEdits();
 
     void showWindowToolbar();

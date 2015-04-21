@@ -76,15 +76,20 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     if (parent) {
         setVisible(parent->isExpanded());
 
-        //width = parent->getChildWidth();
-        setWidth(parent->getChildWidth());
-        setHeight(width);
+        if (nodeKind.endsWith("Definitions")) {
+            setWidth(parent->getWidth()/2);
+            setHeight(parent->getHeight()/2);
+        } else {
+            setWidth(parent->getChildWidth());
+            setHeight(width);
+        }
+
         parentNodeKind = parent->getGraphML()->getDataValue("kind");
 
         // connect this item to its parent item
         //connect(this, SIGNAL(updateParentHeight(NodeItem*)), parent, SLOT(updateHeight(NodeItem*)));
 
-    }else{
+    } else {
         setWidth(MODEL_WIDTH);
         setHeight(MODEL_HEIGHT);
     }
@@ -215,7 +220,6 @@ QRectF NodeItem::gridRect()
 
     if (isExpanded()) {
 
-
         QPointF topLeft = minimumVisibleRect().bottomLeft();
 
         if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
@@ -251,7 +255,8 @@ void NodeItem::childPosUpdated()
     qreal w = rectf.width();
     qreal h = rectf.height();
 
-    if(firstReposition){
+    // don't square the Model and Definitions containers
+    if(firstReposition && nodeKind != "Model" && !nodeKind.endsWith("Definitions")){
         firstReposition = false;
         //qCritical() << "FORCE SQUARED";
         if(w > h){
@@ -635,7 +640,11 @@ void NodeItem::clearOutlines()
 
 double NodeItem::getChildWidth()
 {
-    return minimumWidth / MINIMUM_HEIGHT_RATIO;
+    if (nodeKind == "Model") {
+        return MODEL_WIDTH/2;
+    } else {
+        return minimumWidth / MINIMUM_HEIGHT_RATIO;
+    }
 }
 
 
@@ -868,19 +877,27 @@ void NodeItem::newSort()
     bool finishedLayout = false;
 
     int x = 1;
-    int y = 1;
+    int y = 2;
 
     // make the gap between view aspects smaller
-    int increment = 3;
+    int xIncrement = 3;
+    int yIncrement = 3;
+
     if (nodeKind == "Model") {
-        increment = 2;
+        xIncrement = 5;
     }
 
     NodeItem* nextItem = 0;
 
-    for (y; y <= (gridSize * increment) - 1; y += increment) {
-        x = 1;
-        for (x; x <= (gridSize * increment) - 1; x += increment) {
+    for (y; y <= (gridSize * yIncrement) - 1; y += yIncrement) {
+
+        if (nodeKind == "Model") {
+            x = 2;
+        } else {
+            x = 1;
+        }
+
+        for (x; x <= (gridSize * xIncrement) - 1; x += xIncrement) {
             if (toSortItems.size() > 0) {
                 nextItem = toSortItems.takeFirst();
                 nextItem->setCenterPos(getGridPosition(x,y));
@@ -889,6 +906,7 @@ void NodeItem::newSort()
                 break;
             }
         }
+
         if (finishedLayout) {
             break;
         }
@@ -1874,7 +1892,11 @@ bool NodeItem::isPermanentlyCentered()
 
 qreal NodeItem::getGridSize()
 {
-    return minimumVisibleRect().width() / GRID_RATIO;// -1);
+    if (nodeKind == "Model") { // || nodeKind.endsWith("Definitions")) {
+        return minimumVisibleRect().width() / (GRID_RATIO + 2);
+    } else {
+        return minimumVisibleRect().width() / GRID_RATIO;
+    }
 }
 
 

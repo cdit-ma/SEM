@@ -203,13 +203,11 @@ void DockNodeItem::updateTextLabel()
     if (label.length() >= maxLength) {
 
         QFontMetrics fm(textLabel->fontMetrics());
-        QString truncatedLabel = label;
-        int textWidth = fm.width(label + "__");
+        int textWidth = fm.width(newLabel + "__");
 
         if (textWidth > this->width()) {
-            truncatedLabel.truncate(maxLength - 1);
-            truncatedLabel += "..";
-            newLabel = truncatedLabel;
+            newLabel.truncate(maxLength - 1);
+            newLabel += "..";
         }
     }
 

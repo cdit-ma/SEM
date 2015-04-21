@@ -459,6 +459,7 @@ void MedeaWindow::setupSearchTools()
     viewAspectsButton->setIconSize(viewAspectsButton->size()*0.6);
     viewAspectsButton->setCheckable(true);
     viewAspectsBar->setFixedWidth(rightPanelWidth - viewAspectsButton->width() - aspectsLabel->width() - 30);
+    viewAspectsBar->setToolTip("Search Aspects: " + viewAspectsBarDefaultText);
     viewAspectsBar->setEnabled(false);
     viewAspectsMenu->setFixedWidth(viewAspectsBar->width() + viewAspectsButton->width());
 
@@ -499,6 +500,7 @@ void MedeaWindow::setupSearchTools()
     nodeKindsButton->setIconSize(nodeKindsButton->size()*0.6);
     nodeKindsButton->setCheckable(true);
     nodeKindsBar->setFixedWidth(rightPanelWidth - nodeKindsButton->width() - kindsLabel->width() - 30);
+    nodeKindsBar->setToolTip("Search Kinds: " + nodeKindsDefaultText);
     nodeKindsBar->setEnabled(false);
     nodeKindsMenu->setFixedWidth(nodeKindsBar->width() + nodeKindsButton->width());
 
@@ -714,11 +716,15 @@ void MedeaWindow::makeConnections()
     connect(searchBar, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(updateSearchLineEdits()));
     connect(searchBar, SIGNAL(editingFinished()), this, SLOT(updateSearchLineEdits()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
-    connect(searchButton, SIGNAL(clicked()), this, SLOT(on_actionSearch_triggered()));
 
+    connect(searchButton, SIGNAL(clicked()), this, SLOT(on_actionSearch_triggered()));
     connect(searchOptionButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(viewAspectsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(nodeKindsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
+
+    //connect(searchOptionMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
+    connect(viewAspectsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
+    connect(nodeKindsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
@@ -1138,7 +1144,11 @@ void MedeaWindow::on_actionSearch_triggered()
         foreach (GraphMLItem* guiItem, returnedItems) {
             NodeItem* nodeItem = dynamic_cast<NodeItem*>(guiItem);
             bool isInAspect = true;
-            // first check if the guiItem is in one of the checked view aspects
+            // if the item is hidden, don't show it in the search results
+            if (nodeItem->isHidden()) {
+                continue;
+            }
+            // check if the guiItem is in one of the checked view aspects
             foreach (QString aspect, nodeItem->getAspects()) {
                 if (!checkedViews.contains(aspect)) {
                     isInAspect = false;
@@ -1216,7 +1226,6 @@ void MedeaWindow::on_searchResultItem_clicked(GraphMLItem *clickedItem)
     nodeView->clearSelection();
     nodeView->appendToSelection(nodeItem->getNode());
     nodeView->centerOnItem(clickedItem);
-    //nodeView->centerItem(clickedItem);
 }
 
 
@@ -1545,6 +1554,7 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
 
 /**
  * @brief MedeaWindow::searchItemClicked
+ * This is called when one of the search results items is clicked.
  */
 void MedeaWindow::searchItemClicked()
 {
@@ -1579,8 +1589,29 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
         if (checked) {
             menu->exec(widget->mapToGlobal(widget->rect().bottomLeft()));
         } else {
+            /*
+            if (menu->isVisible()) {
+                menu->close();
+            } else {
+                senderButton->clicked(true);
+            }
+            */
             menu->close();
         }
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::searchMenuClosed
+ * When a search menu is closed, uncheck the button it's attached to.
+ */
+void MedeaWindow::searchMenuClosed()
+{
+    QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
+    QPushButton* button = qobject_cast<QPushButton*>(menu->parentWidget());
+    if (button && button->isChecked()) {
+        button->setChecked(false);
     }
 }
 
@@ -1615,19 +1646,22 @@ void MedeaWindow::updateSearchLineEdits()
 
     if (menu) {
         QLineEdit* lineEdit = 0;
+        QString textLabel;
         QString defaultText;
         QStringList checkedItemsList;
 
         if (menu == viewAspectsMenu) {
             lineEdit = viewAspectsBar;
+            textLabel = "Search Aspects: ";
             defaultText = viewAspectsBarDefaultText;
             checkedItemsList = getCheckedItems(0);
         } else if (menu == nodeKindsMenu) {
             lineEdit = nodeKindsBar;
+            textLabel = "Search Kinds: ";
             defaultText = nodeKindsDefaultText;
             checkedItemsList = getCheckedItems(1);
         } else {
-            qDebug() << "updateSearchLineEdits:: Not checking for this menu.";
+            qDebug() << "MedeaWindow::updateSearchLineEdits - Not checking for this menu.";
             return;
         }
 
@@ -1644,6 +1678,7 @@ void MedeaWindow::updateSearchLineEdits()
 
         // keep the cursor at the front so that the start of the text is always visible
         lineEdit->setCursorPosition(0);
+        lineEdit->setToolTip(textLabel + lineEdit->text());
     }
 }
 

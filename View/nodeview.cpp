@@ -29,7 +29,7 @@
 #define MIN_ZOOM 0.01
 #define MAX_ZOOM 1.5
 
-#define VIEW_PADDING 1.25
+#define VIEW_PADDING 1.1
 
 /**
  * @brief NodeView::NodeView
