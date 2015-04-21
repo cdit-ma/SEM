@@ -413,7 +413,7 @@ void MedeaWindow::setupSearchTools()
     searchBar = new QLineEdit(searchBarDefaultText, this);
     searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
     searchOptionButton = new QPushButton(QIcon(":/Resources/Icons/settings.png"), "");
-    searchOptionMenu = new QMenu(searchButton);
+    searchOptionMenu = new QMenu(searchOptionButton);
     searchSuggestions = new QListView(searchButton);
     searchResults = new QDialog(this);
 
@@ -428,6 +428,7 @@ void MedeaWindow::setupSearchTools()
 
     searchOptionButton->setFixedSize(30, 28);
     searchOptionButton->setIconSize(searchButton->size()*0.7);
+    searchOptionButton->setCheckable(true);
 
     searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2) - 5, 25);
     searchBar->setStyleSheet("background-color: rgb(230,230,230);");
@@ -459,6 +460,7 @@ void MedeaWindow::setupSearchTools()
 
     viewAspectsButton->setFixedSize(20, 20);
     viewAspectsButton->setIconSize(viewAspectsButton->size()*0.6);
+    viewAspectsButton->setCheckable(true);
     viewAspectsBar->setFixedWidth(rightPanelWidth - viewAspectsButton->width() - aspectsLabel->width() - 30);
     viewAspectsBar->setEnabled(false);
     viewAspectsMenu->setFixedWidth(viewAspectsBar->width() + viewAspectsButton->width());
@@ -498,6 +500,7 @@ void MedeaWindow::setupSearchTools()
 
     nodeKindsButton->setFixedSize(20, 20);
     nodeKindsButton->setIconSize(nodeKindsButton->size()*0.6);
+    nodeKindsButton->setCheckable(true);
     nodeKindsBar->setFixedWidth(rightPanelWidth - nodeKindsButton->width() - kindsLabel->width() - 30);
     nodeKindsBar->setEnabled(false);
     nodeKindsMenu->setFixedWidth(nodeKindsBar->width() + nodeKindsButton->width());
@@ -714,9 +717,9 @@ void MedeaWindow::makeConnections()
     connect(searchButton, SIGNAL(clicked()), this, SLOT(on_actionSearch_triggered()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
 
-    connect(searchOptionButton, SIGNAL(clicked()), this, SLOT(searchMenuButtonClicked()));
-    connect(viewAspectsButton, SIGNAL(clicked()), this, SLOT(searchMenuButtonClicked()));
-    connect(nodeKindsButton, SIGNAL(clicked()), this, SLOT(searchMenuButtonClicked()));
+    connect(searchOptionButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
+    connect(viewAspectsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
+    connect(nodeKindsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
@@ -1556,10 +1559,8 @@ void MedeaWindow::searchItemClicked()
  * This menu is called when one of the menu buttons in the search options is clicked.
  * This determines which menu was clicked and where to display it.
  */
-void MedeaWindow::searchMenuButtonClicked()
+void MedeaWindow::searchMenuButtonClicked(bool checked)
 {
-    //qDebug() << "searchMenuButtonClicked";
-
     QPushButton* senderButton = qobject_cast<QPushButton*>(QObject::sender());
     QWidget* widget = 0;
     QMenu* menu = 0;
@@ -1576,15 +1577,10 @@ void MedeaWindow::searchMenuButtonClicked()
     }
 
     if (widget && menu) {
-        if (menu->isVisible()) {
-            //qDebug() << "Close Menu";
-            menu->close();
-            //qDebug() << "Menu closed";
-        } else {
-            //qDebug() << "Show Menu!";
+        if (checked) {
             menu->exec(widget->mapToGlobal(widget->rect().bottomLeft()));
-            //qDebug() << "Menu executed!";
-            //qDebug() << "Menu isVisible(): " << menu->isVisible();
+        } else {
+            menu->close();
         }
     }
 }

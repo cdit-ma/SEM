@@ -113,7 +113,7 @@ private slots:
     void updateProgressStatus(int value, QString status);
 
     void searchItemClicked();
-    void searchMenuButtonClicked();
+    void searchMenuButtonClicked(bool checked);
     void updateSearchLineEdits();
 
     void showWindowToolbar();
