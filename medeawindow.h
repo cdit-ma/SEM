@@ -184,14 +184,13 @@ private:
     QToolButton* pasteButton;
     QToolButton* sortButton;
     QToolButton* centerButton;
-    QToolButton* popupButton;
     QToolButton* snapToGridButton;
     QToolButton* snapChildrenToGridButton;
     QToolButton* zoomToFitButton;
     QToolButton* fitToScreenButton;
     QToolButton* duplicateButton;
-    QToolButton* alignSelectionVertical;
-    QToolButton* alignSelectionHorizontal;
+    QToolButton* undoButton;
+    QToolButton* redoButton;
 
     QPushButton *projectName;
     QPushButton* assemblyButton;

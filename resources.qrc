@@ -89,5 +89,7 @@
         <file>Resources/Icons/unlock.png</file>
         <file>Resources/Icons/menu_down_arrow.png</file>
         <file>Resources/Icons/settings.png</file>
+        <file>Resources/Icons/alignHorizontally.png</file>
+        <file>Resources/Icons/alignVertically.png</file>
     </qresource>
 </RCC>

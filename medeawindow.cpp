@@ -528,70 +528,57 @@ void MedeaWindow::setupToolbar()
 {
     QSize buttonSize = QSize(46,40);
 
-    toolbar->setIconSize(buttonSize*0.6);
-    toolbar->setStyleSheet("QToolButton{"
-                           "border: 1px solid grey;"
-                           "border-radius: 10px;"
-                           "background-color: rgba(200,200,200,225);"
-                           "margin: 0px 3px 0px 3px;"
-                           "}");
-
     cutButton = new QToolButton(this);
     copyButton = new QToolButton(this);
     pasteButton = new QToolButton(this);
     sortButton = new QToolButton(this);
     centerButton = new QToolButton(this);
-    popupButton = new QToolButton(this);
     snapToGridButton = new QToolButton(this);
     snapChildrenToGridButton = new QToolButton(this);
     zoomToFitButton = new QToolButton(this);
     fitToScreenButton = new QToolButton(this);
     duplicateButton = new QToolButton(this);
-    alignSelectionVertical = new QToolButton(this);
-    alignSelectionHorizontal = new QToolButton(this);
+    undoButton = new QToolButton(this);
+    redoButton = new QToolButton(this);
 
     cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
     copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
     pasteButton->setIcon(QIcon(":/Resources/Icons/paste.png"));
     sortButton->setIcon(QIcon(":/Resources/Icons/sort.png"));
     centerButton->setIcon(QIcon(":/Resources/Icons/center.png"));
-    popupButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
     snapToGridButton->setIcon(QIcon(":/Resources/Icons/snapToGrid.png"));
     snapChildrenToGridButton->setIcon(QIcon(":/Resources/Icons/snapChildrenToGrid.png"));
     zoomToFitButton->setIcon(QIcon(":/Resources/Icons/zoomToFit.png"));
     fitToScreenButton->setIcon(QIcon(":/Resources/Icons/fitToScreen.png"));
     duplicateButton->setIcon(QIcon(":/Resources/Icons/duplicate.png"));
-
-    alignSelectionVertical->setText("|");
-    alignSelectionHorizontal->setText("--");
+    undoButton->setIcon(QIcon(":/Resources/Icons/undo.png"));
+    redoButton->setIcon(QIcon(":/Resources/Icons/redo.png"));
 
     cutButton->setFixedSize(buttonSize);
     copyButton->setFixedSize(buttonSize);
     pasteButton->setFixedSize(buttonSize);
     sortButton->setFixedSize(buttonSize);
     centerButton->setFixedSize(buttonSize);
-    popupButton->setFixedSize(buttonSize);
     snapToGridButton->setFixedSize(buttonSize);
     snapChildrenToGridButton->setFixedSize(buttonSize);
     zoomToFitButton->setFixedSize(buttonSize);
     fitToScreenButton->setFixedSize(buttonSize);
     duplicateButton->setFixedSize(buttonSize);
-    alignSelectionVertical->setFixedSize(buttonSize);
-    alignSelectionHorizontal->setFixedSize(buttonSize);
+    undoButton->setFixedSize(buttonSize);
+    redoButton->setFixedSize(buttonSize);
 
-    cutButton->setToolTip("Cut Node");
-    copyButton->setToolTip("Copy Node");
-    pasteButton->setToolTip("Paste Node");
-    sortButton->setToolTip("Sort Node");
-    centerButton->setToolTip("Center on Node");
-    popupButton->setToolTip("Show Node In New Window");
-    snapToGridButton->setToolTip("Snap Selected Nodes to Grid");
-    snapChildrenToGridButton->setToolTip("Snap Children Nodes to Grid");
-    zoomToFitButton->setToolTip("Zoom to fit Node");
-    fitToScreenButton->setToolTip("Fit View to Screen");
-    duplicateButton->setToolTip("Replicate Node");
-    alignSelectionVertical->setToolTip("Align Selected Nodes Vertically");
-    alignSelectionHorizontal->setToolTip("Align Selected Nodes Horizontally");
+    cutButton->setToolTip("Cut");
+    copyButton->setToolTip("Copy");
+    pasteButton->setToolTip("Paste");
+    sortButton->setToolTip("Sort Model/Selection");
+    centerButton->setToolTip("Center On Selection");
+    snapToGridButton->setToolTip("Snap Selection To Grid");
+    snapChildrenToGridButton->setToolTip("Snap Selection's Children to Grid");
+    zoomToFitButton->setToolTip("Zoom To Fit Selection");
+    fitToScreenButton->setToolTip("Fit View To Screen");
+    duplicateButton->setToolTip("Replicate");
+    undoButton->setToolTip("Undo");
+    redoButton->setToolTip("Redo");
 
     QWidget* spacerWidgetLeft = new QWidget();
     QWidget* spacerWidgetRight = new QWidget();
@@ -599,6 +586,8 @@ void MedeaWindow::setupToolbar()
     QWidget* spacerWidget2 = new QWidget();
     QWidget* spacerWidget3 = new QWidget();
     QWidget* spacerWidget4 = new QWidget();
+    //QWidget* spacerWidget5 = new QWidget();
+    //QWidget* spacerWidget6 = new QWidget();
     int spacerWidth = 3;
 
     spacerWidgetLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -607,32 +596,42 @@ void MedeaWindow::setupToolbar()
     spacerWidget2->setFixedWidth(spacerWidth);
     spacerWidget3->setFixedWidth(spacerWidth);
     spacerWidget4->setFixedWidth(spacerWidth);
+    //spacerWidget5->setFixedWidth(spacerWidth);
+    //spacerWidget6->setFixedWidth(spacerWidth);
 
     toolbar->addWidget(spacerWidgetLeft);
+    toolbar->addWidget(undoButton);
+    toolbar->addWidget(redoButton);
+    toolbar->addWidget(spacerWidget1);
+    toolbar->addSeparator();
+    toolbar->addWidget(spacerWidget2);
     toolbar->addWidget(cutButton);
     toolbar->addWidget(copyButton);
     toolbar->addWidget(pasteButton);
     toolbar->addWidget(duplicateButton);
-    toolbar->addWidget(spacerWidget1);
-    toolbar->addSeparator();
-    toolbar->addWidget(spacerWidget2);
-    toolbar->addWidget(fitToScreenButton);
-    toolbar->addWidget(centerButton);
-    toolbar->addWidget(zoomToFitButton);
     toolbar->addWidget(spacerWidget3);
     toolbar->addSeparator();
     toolbar->addWidget(spacerWidget4);
+    toolbar->addWidget(fitToScreenButton);
+    toolbar->addWidget(centerButton);
+    toolbar->addWidget(zoomToFitButton);
     toolbar->addWidget(sortButton);
-    toolbar->addWidget(snapChildrenToGridButton);
-    toolbar->addWidget(snapToGridButton);
-    toolbar->addWidget(alignSelectionVertical);
-    toolbar->addWidget(alignSelectionHorizontal);
+    //toolbar->addWidget(snapChildrenToGridButton);
+    //toolbar->addWidget(snapToGridButton);
     toolbar->addWidget(spacerWidgetRight);
 
-    //toolbar->addWidget(popupButton);
-    popupButton->hide();
+    // not sure if these are wanted in the toolbar
+    snapChildrenToGridButton->hide();
+    snapToGridButton->hide();
 
+    toolbar->setIconSize(buttonSize*0.6);
     toolbar->setFixedSize(toolbar->contentsRect().width(), buttonSize.height()+spacerWidth);
+    toolbar->setStyleSheet("QToolButton{"
+                           "border: 1px solid grey;"
+                           "border-radius: 10px;"
+                           "background-color: rgba(200,200,200,225);"
+                           "margin: 0px 3px 0px 3px;"
+                           "}");
 }
 
 
@@ -743,18 +742,18 @@ void MedeaWindow::makeConnections()
     connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
     connect(copyButton, SIGNAL(clicked()), nodeView, SLOT(copy()));
     connect(pasteButton, SIGNAL(clicked()), this, SLOT(on_actionPaste_triggered()));
-    connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
-    connect(popupButton, SIGNAL(clicked()), this, SLOT(on_actionPopupNewWindow()));
-
-    connect(snapToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapSelectionToGrid()));
-    connect(snapChildrenToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapChildrenToGrid()));
-
     connect(duplicateButton, SIGNAL(clicked()), nodeView, SLOT(duplicate()));
-    connect(alignSelectionHorizontal, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
-    connect(alignSelectionVertical, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
+
     connect(fitToScreenButton, SIGNAL(clicked()), nodeView, SLOT(fitToScreen()));
     connect(centerButton, SIGNAL(clicked()), nodeView, SLOT(centerOnItem()));
     connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
+
+    connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
+    connect(snapToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapSelectionToGrid()));
+    connect(snapChildrenToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapChildrenToGrid()));
+
+    connect(undoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Undo()));
+    connect(redoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Redo()));
 
     connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
     connect(nodeView, SIGNAL(view_UndoListChanged(QStringList)), this, SLOT(updateUndoStates(QStringList)));
@@ -774,6 +773,10 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
 
+    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), partsDock, SLOT(updateCurrentNodeItem(Node*)));
+    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), definitionsDock, SLOT(updateCurrentNodeItem(Node*)));
+    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), hardwareDock, SLOT(updateCurrentNodeItem(Node*)));
+
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
@@ -781,9 +784,11 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
 
-    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), partsDock, SLOT(updateCurrentNodeItem(Node*)));
-    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), definitionsDock, SLOT(updateCurrentNodeItem(Node*)));
-    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), hardwareDock, SLOT(updateCurrentNodeItem(Node*)));
+    connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
+
+    connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(updateDock()));
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));

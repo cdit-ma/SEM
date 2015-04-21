@@ -53,6 +53,8 @@ private:
     void updateToolButtons();
     void updateMenuLists();
 
+    void multipleSelection();
+
     void setupInstancesList(QList<Node*> instances);
 
     void setupAdoptableNodesList(QStringList nodeKinds);
@@ -76,21 +78,18 @@ private:
     Node* definitionNode;
     Node* implementationNode;
 
-    QToolButton* cutButton;
-    QToolButton* copyButton;
-    QToolButton* pasteButton;
-
-    QToolButton* sortButton;
-    QToolButton* centerButton;
-    QToolButton* showNewViewButton;
-
     QToolButton* addChildButton;
     QToolButton* deleteButton;
     QToolButton* connectButton;
 
+    QToolButton* showNewViewButton;
+
     QToolButton* definitionButton;
     QToolButton* implementationButton;
     QToolButton* instancesButton;
+
+    QToolButton* alignVerticallyButton;
+    QToolButton* alignHorizontallyButton;
 
     ToolbarWidgetAction* componentInstanceAction;
     ToolbarWidgetAction* inEventPortDelegateAction;
@@ -118,6 +117,8 @@ private:
     QFrame* frame;
     int frameVisibilityCount;
     bool eventFromToolbar;
+    QList<QToolButton*> singleSelectionToolButtons;
+    QList<QToolButton*> multipleSelectionToolButtons;
 
 };
 

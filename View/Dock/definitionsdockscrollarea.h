@@ -22,6 +22,9 @@ public slots:
     void resortDockItems(DockNodeItem* dockItem);
 
 private:
+    void hideImplementedComponents();
+    void showAllComponents();
+
     QStringList definitions_notAllowedKinds;
     QHash<NodeItem*, QVBoxLayout*> fileLayoutItems;
 

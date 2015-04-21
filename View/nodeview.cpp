@@ -621,16 +621,25 @@ void NodeView::showToolbar(QPoint position)
     QPoint globalPos = mapToGlobal(position);
     toolbarPosition = mapToScene(position);
 
-    // when a painted nodeitem is selected, show context toolbar
-    NodeItem* nodeItem = getNodeItemFromNode(getSelectedNode());
-    if (nodeItem && nodeItem->isPainted() && nodeItem->sceneBoundingRect().contains(toolbarPosition)) {
-        // update toolbar position and connect selected node item
-        toolbar->setNodeItem(nodeItem);
+    // only show the toolbar if there is at least one item selected
+    if (selectedIDs.count() > 0) {
+        // if there are multiple items selected, update toolbar to only show align buttons
+        if (selectedIDs.count() > 1) {
+            toolbar->setNodeItem(0);
+        } else {
+            // connect selected node item to toolbar
+            NodeItem* nodeItem = getNodeItemFromNode(getSelectedNode());
+            if (nodeItem && nodeItem->isPainted() && nodeItem->sceneBoundingRect().contains(toolbarPosition)) {
+                toolbar->setNodeItem(nodeItem);
+            }
+        }
+
+        // update toolbar position
         toolbar->move(globalPos);
         toolbar->show();
-    } else {
+
         // show/hide MEDEA toolbar
-        view_showWindowToolbar();
+        //view_showWindowToolbar();
     }
 }
 
@@ -1043,7 +1052,7 @@ void NodeView::recenterView()
  */
 QStringList NodeView::getAllAspects()
 {
-   return allAspects;
+    return allAspects;
 }
 
 
@@ -1139,11 +1148,18 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
         if(item){
             //disconnect(item, SIGNAL(GraphMLItem_SetGraphMLData(GraphMLItem*,QString,QString)), this, SLOT(setGraphMLData(GraphMLItem*,QString,QString)));
             if(scene()->items().contains(item)){
+
                 // send necessary signals when a node has been destructed
-                if(item->isNodeItem()){
+                if (item->isNodeItem()) {
                     NodeItem* nodeItem = (NodeItem*) item;
                     nodeDestructed_signalUpdates(nodeItem);
                 }
+
+                // send signal to docks when an edge has been destructed
+                if (item->isEdgeItem()) {
+                    view_edgeDestructed();
+                }
+
                 scene()->removeItem(item);
                 delete item;
             }
@@ -1173,7 +1189,7 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
  */
 void NodeView::nodeSelected_signalUpdates(Node *node)
 {
-    if (node) {
+    if (selectedIDs.count() == 1 && node) {
 
         Node* hasDefn = hasDefinition(node);
         Node* hasImpl = hasImplementation(node);
@@ -1256,6 +1272,9 @@ void NodeView::edgeConstructed_signalUpdates(Node *src)
     // update node goto menu actions
     emit view_updateGoToMenuActions("definition", hasDefn);
     emit view_updateGoToMenuActions("implementation", hasImpl);
+
+    // update docks
+    emit view_edgeConstructed();
 }
 
 /**
@@ -1581,9 +1600,8 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
     averageX /= itemCount;
     averageY /= itemCount;
 
-    qCritical() <<"AverageX: "<< averageX;
-    qCritical() <<"AverageY: "<< averageY;
-
+    //qCritical() <<"AverageX: "<< averageX;
+    //qCritical() <<"AverageY: "<< averageY;
 
     QPointF centerPoint;
     if(sharedParent){

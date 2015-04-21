@@ -50,9 +50,14 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
  */
 void ToolbarWidget::setNodeItem(NodeItem *item)
 {
-    nodeItem = item;
-    updateMenuLists();
-    updateToolButtons();
+    if (item) {
+        nodeItem = item;
+        updateToolButtons();
+        updateMenuLists();
+    } else {
+        // if item is null, it means that there are multiple items selected
+        multipleSelection();
+    }
 }
 
 
@@ -265,6 +270,8 @@ void ToolbarWidget::setupToolBar()
     definitionButton = new QToolButton(this);
     implementationButton = new QToolButton(this);
     instancesButton = new QToolButton(this);
+    alignVerticallyButton = new QToolButton(this);
+    alignHorizontallyButton = new QToolButton(this);
 
     addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode.png"));
     connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
@@ -273,6 +280,8 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setIcon(QIcon(":/Resources/Icons/definition.png"));
     implementationButton->setIcon(QIcon(":/Resources/Icons/implementation.png"));
     instancesButton->setIcon(QIcon(":/Resources/Icons/instance.png"));
+    alignVerticallyButton->setIcon(QIcon(":/Resources/Icons/alignVertically.png"));
+    alignHorizontallyButton->setIcon(QIcon(":/Resources/Icons/alignHorizontally.png"));
 
     addChildButton->setFixedSize(buttonSize);
     connectButton->setFixedSize(buttonSize);
@@ -281,6 +290,8 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setFixedSize(buttonSize);
     implementationButton->setFixedSize(buttonSize);
     instancesButton->setFixedSize(buttonSize);
+    alignVerticallyButton->setFixedSize(buttonSize);
+    alignHorizontallyButton->setFixedSize(buttonSize);
 
     addChildButton->setIconSize(buttonSize*0.65);
     connectButton->setIconSize(buttonSize*0.6);
@@ -289,14 +300,18 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setIconSize(buttonSize);
     implementationButton->setIconSize(buttonSize);
     instancesButton->setIconSize(buttonSize*0.65);
+    alignVerticallyButton->setIconSize(buttonSize);
+    alignHorizontallyButton->setIconSize(buttonSize);
 
     addChildButton->setToolTip("Add Child Node");
     connectButton->setToolTip("Connect Node");
-    deleteButton->setToolTip("Delete Node");
+    deleteButton->setToolTip("Delete Selection");
     showNewViewButton->setToolTip("Show in New Window");
     definitionButton->setToolTip("Show Definition");
     implementationButton->setToolTip("Show Implementation");
     instancesButton->setToolTip("Show Instances");
+    alignVerticallyButton->setToolTip("Align Selection Vertically");
+    alignHorizontallyButton->setToolTip("Align Selection Horizontally");
 
     frame = new QFrame();
     frame->setFrameShape(QFrame::VLine);
@@ -305,6 +320,8 @@ void ToolbarWidget::setupToolBar()
     layout->addWidget(addChildButton);
     layout->addWidget(connectButton);
     layout->addWidget(deleteButton);
+    layout->addWidget(alignVerticallyButton);
+    layout->addWidget(alignHorizontallyButton);
     layout->addWidget(frame);
     layout->addWidget(showNewViewButton);
     layout->addWidget(definitionButton);
@@ -313,6 +330,18 @@ void ToolbarWidget::setupToolBar()
 
     layout->setMargin(5);
     setLayout(layout);
+
+    // add tool buttons for single selection to list
+    singleSelectionToolButtons.append(addChildButton);
+    singleSelectionToolButtons.append(connectButton);
+    singleSelectionToolButtons.append(showNewViewButton);
+    singleSelectionToolButtons.append(definitionButton);
+    singleSelectionToolButtons.append(implementationButton);
+    singleSelectionToolButtons.append(instancesButton);
+
+    // add tool buttons for multiple selection to list
+    multipleSelectionToolButtons.append(alignVerticallyButton);
+    multipleSelectionToolButtons.append(alignHorizontallyButton);
 }
 
 
@@ -387,9 +416,14 @@ void ToolbarWidget::makeConnections()
     connect(implementationMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
     connect(instancesMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
 
-    connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
+    connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
+    connect(alignHorizontallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
+
+    connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(alignVerticallyButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(alignHorizontallyButton, SIGNAL(clicked()), this, SLOT(hide()));
 }
 
 
@@ -399,6 +433,11 @@ void ToolbarWidget::makeConnections()
  */
 void ToolbarWidget::updateToolButtons()
 {
+    // first, hide the buttons that are only for multilple selection
+    foreach (QToolButton* button, multipleSelectionToolButtons) {
+        button->hide();
+    }
+
     // show/hide the delete button depending on the nodeKind
     QString nodeKind = nodeItem->getNodeKind();
     if (nodeKind.endsWith("Definitions") || nodeKind == "ManagementComponent") {
@@ -414,6 +453,9 @@ void ToolbarWidget::updateToolButtons()
         frame->hide();
     }
     frameVisibilityCount = 0;
+
+    // always show show new view button
+    showNewViewButton->show();
 }
 
 
@@ -436,6 +478,32 @@ void ToolbarWidget::updateMenuLists()
     if (nodeItem->getNodeKind() == "ComponentAssembly") {
         setupFilesList(nodeView->getFiles());
         setupChildrenComponentInstanceList(nodeItem->getNode()->getChildrenOfKind("ComponentInstance"));
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::multipleSelection
+ * This is called when the user right-clicks on the view and there are
+ * multiple items selected. It hides the majority of the tool buttons
+ * and only displays the ones that can be used for multiple items.
+ */
+void ToolbarWidget::multipleSelection()
+{
+    // hide the buttons that are only for a single selection
+    foreach (QToolButton* button, singleSelectionToolButtons) {
+        button->hide();
+    }
+
+    // hide the frame used as a separator
+    frame->hide();
+
+    // show the delete button - multiple selection can be deleted at the same time
+    deleteButton->show();
+
+    // show the buttons for multiple selection
+    foreach (QToolButton* button, multipleSelectionToolButtons) {
+        button->show();
     }
 }
 
