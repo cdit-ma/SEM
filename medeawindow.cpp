@@ -315,10 +315,12 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_menu->addSeparator();
     view_showManagementComponents = view_menu->addAction("Show Management Components");
     view_menu->addSeparator();
-    view_showGridLines = view_menu->addAction("Show Grid Lines");
-    view_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
     view_autoCenterView = view_menu->addAction("Automatically Center Views");
     view_selectOnConstruction = view_menu->addAction("Select Node on Construction");
+    view_showGridLines = view_menu->addAction("Use Grid Lines");
+    view_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
+    //view_snapToGrid = view_menu->addAction("Use Grid Lines");
+    //view_snapChildrenToGrid = view_menu->addAction("Use Grid Lines");
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
@@ -782,12 +784,14 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
 
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
-    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
+    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(nodeDestructed()));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
 
-    connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(updateDock()));
+    //connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(updateDock()));
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));

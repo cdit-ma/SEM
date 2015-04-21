@@ -74,6 +74,15 @@ void PartsDockScrollArea::updateDock()
 
 
 /**
+ * @brief PartsDockScrollArea::nodeDestructed
+ */
+void PartsDockScrollArea::nodeDestructed()
+{
+   DockScrollArea::updateCurrentNodeItem(0);
+}
+
+
+/**
  * @brief PartsDockScrollArea::addDockNodeItems
  * Add adoptable dock node items to dock.
  * This creates a groupbox for each adoptable node kind

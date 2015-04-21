@@ -632,7 +632,6 @@ void NewController::constructConnectedComponents(Node *parent, Node *connectedNo
 {
     Node* newNode = constructChildNode(parent, constructGraphMLDataVector(kind));
     bool gotEdge = false;
-    qCritical()<<"constructConnectedComponents";
     if(newNode){
         //Update the position
         setGraphMLData(newNode, "x", QString::number(relativePosition.x()));

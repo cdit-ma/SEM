@@ -127,7 +127,6 @@ public slots:
     void snapSelectionToGrid();
     void snapChildrenToGrid();
 
-    void constructEventPortDelegate(Node *assm, Node *eventPortInstance);
     void setDefaultAspects();
     void setEnabled(bool);
 
@@ -183,6 +182,7 @@ public slots:
 
     void fitToScreen();
     void fitInSceneRect(GraphMLItem *item);
+    void fitSelectionInView();
 
     void centerOnItem(GraphMLItem* item = 0);
     void centerItem(GraphMLItem* item);
@@ -194,7 +194,6 @@ public slots:
     void deleteSelection();
     void constructNode(QString nodeKind, int sender);
     void constructEdge(Node* src, Node* dst);
-    void constructComponentInstance(Node *assm, Node *defn, int sender);
     void constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender);
     void constructNewView(Node* centeredOn);
 
@@ -206,7 +205,6 @@ private:
     void alignSelectionOnGrid(ALIGN alignment = NONE);
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
-
 
     void setGraphMLItemAsSelected(GraphMLItem* item);
 
@@ -228,14 +226,6 @@ private:
     void storeGraphMLItemInHash(GraphMLItem* item);
     bool removeGraphMLItemFromHash(QString ID);
 
-    void nodeConstructed_signalUpdates(NodeItem* nodeItem);
-    void nodeDestructed_signalUpdates(NodeItem *nodeItem);
-    void nodeSelected_signalUpdates(Node *node);
-    void edgeConstructed_signalUpdates(Node* src);
-
-    Node* hasDefinition(Node* node);
-    Node* hasImplementation(Node* node);
-
     bool isItemsAncestorSelected(GraphMLItem* selectedItem);
     void unsetItemsDescendants(GraphMLItem* selectedItem);
 
@@ -245,6 +235,26 @@ private:
     GraphMLItem *getGraphMLItemFromGraphML(GraphML* item);
 
     GraphMLItem* getGraphMLItemFromHash(QString ID);
+
+
+
+    void nodeConstructed_signalUpdates(NodeItem* nodeItem);
+    void nodeDestructed_signalUpdates(NodeItem *nodeItem);
+    void nodeSelected_signalUpdates(Node *node);
+    void edgeConstructed_signalUpdates(Node* src);
+
+    Node* hasDefinition(Node* node);
+    Node* hasImplementation(Node* node);
+
+    QRectF getVisibleRect();
+    void adjustSceneRect(QRectF rectToCenter);
+    void centerRect(QRectF rect, float extraspace = 0);
+
+    QList<NodeItem*> getNodeItemsList();
+
+    void showAllAspects();
+
+    bool allowedFocus(QWidget* widget);
 
     NewController* controller;
 
@@ -269,19 +279,10 @@ private:
     QPoint rubberBandOrigin;
     bool once;
 
-    QRectF getVisibleRect();
-    void adjustSceneRect(QRectF rectToCenter);
-    void centerRect(QRectF rect, float extraspace = 0);
-
     bool CONTROL_DOWN;
     bool SHIFT_DOWN;
 
-
-
-    QList<NodeItem*> getNodeItemsList();
     QStringList nonDrawnItemKinds;
-
-    void showAllAspects();
 
     ToolbarWidget* toolbar;
 
@@ -304,8 +305,6 @@ private:
     //Selection Lists
     QStringList selectedIDs;
     QStringList defaultAspects;
-
-    bool allowedFocus(QWidget* widget);
 
     QPointF centerPoint;
     QPointF prevCenterPoint;

@@ -548,9 +548,7 @@ void NodeView::centerOnItem(GraphMLItem *item)
     if (item) {
         itemToCenter = qobject_cast<NodeItem*>(item);
     } else {
-        if (getSelectedNode()) {
-            itemToCenter = getNodeItemFromNode(getSelectedNode());
-        }
+        itemToCenter = getSelectedNodeItem();
     }
 
     if (itemToCenter) {
@@ -628,7 +626,7 @@ void NodeView::showToolbar(QPoint position)
             toolbar->setNodeItem(0);
         } else {
             // connect selected node item to toolbar
-            NodeItem* nodeItem = getNodeItemFromNode(getSelectedNode());
+            NodeItem* nodeItem = getSelectedNodeItem();
             if (nodeItem && nodeItem->isPainted() && nodeItem->sceneBoundingRect().contains(toolbarPosition)) {
                 toolbar->setNodeItem(nodeItem);
             }
@@ -742,6 +740,9 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
             scene()->addItem(nodeEdge);
         }
 
+        // send necessary signals when an edge has been constucted
+        edgeConstructed_signalUpdates(src);
+
 
     }else{
         if(!IS_SUB_VIEW){
@@ -799,6 +800,7 @@ void NodeView::view_SetOpacity(GraphML *graphML, qreal opacity)
     }
 }
 
+
 /**
  * @brief NodeView::constructNode
  * @param nodeKind - kind of node to construct
@@ -808,13 +810,13 @@ void NodeView::constructNode(QString nodeKind, int sender)
 {
     view_TriggerAction("Dock/Toolbar: Constructing Node");
 
-    NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
+    NodeItem* selectedItem = getSelectedNodeItem();
     if (selectedItem) {
         constructedFromImport = false;
         if (sender == 0) {
-            view_ConstructNode(getSelectedNode(), nodeKind, selectedItem->getNextChildPos());
+            view_ConstructNode(selectedItem->getNode(), nodeKind, selectedItem->getNextChildPos());
         } else if (sender == 1) {
-            view_ConstructNode(getSelectedNode(), nodeKind, selectedItem->mapFromScene(toolbarPosition));
+            view_ConstructNode(selectedItem->getNode(), nodeKind, selectedItem->mapFromScene(toolbarPosition));
         }
     }
 }
@@ -829,81 +831,29 @@ void NodeView::constructEdge(Node *src, Node *dst)
 {
     view_TriggerAction("Dock/Toolbar: Constructing Edge");
     view_ConstructEdge(src, dst);
-
-    // send necessary signals when an edge has been constucted
-    edgeConstructed_signalUpdates(src);
-}
-
-
-/**
- * @brief NodeView::view_addComponentInstance
- * @param assm - ComponentAssembly (selected node)
- * @param defn - Component from selected dock/toolbar item
- * @param sender - 0 = DockScrollArea, 1 = ToolbarWidget
- */
-void NodeView::constructComponentInstance(Node* assm, Node* defn, int sender)
-{
-    emit view_TriggerAction("Dock/Toolbar: Constructing ComponentInstance");
-
-    ComponentAssembly* assembly = dynamic_cast<ComponentAssembly*>(assm);
-    Component* definition = dynamic_cast<Component*>(defn);
-
-    if (assembly && definition) {
-        GraphMLItem *graphMLItem = getGraphMLItemFromGraphML(assembly);
-        if (sender == 0) {
-            NodeItem *nodeItem = getNodeItemFromGraphMLItem(graphMLItem);
-            view_ConstructComponentInstance(assembly, definition, nodeItem->getNextChildPos());
-        } else if (sender == 1) {
-            view_ConstructComponentInstance(assembly, definition, graphMLItem->mapFromScene(toolbarPosition));
-        }
-
-    }
 }
 
 
 /**
  * @brief NodeView::constructConnectedNode
- * @param parentNode
- * @param node
- * @param kind
- * @param sender
+ * @param parentNode - selected node's parent node
+ * @param node - selected node
+ * @param kind - node kind to construct
+ * @param sender - 0 = DockScrollArea, 1 = ToolbarWidget
  */
 void NodeView::constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender)
 {
-    view_TriggerAction("Dock/Toolbar: Constructing ComponentInstance");
+    view_TriggerAction("Dock/Toolbar: Constructing Connected Node");
 
     if (parentNode && node) {
-        GraphMLItem *graphMLItem = getGraphMLItemFromGraphML(parentNode);
+        NodeItem *nodeItem = getNodeItemFromNode(parentNode);
         if (sender == 0) {
-
-            NodeItem *nodeItem = getNodeItemFromGraphMLItem(graphMLItem);
-            //qCrutucal() << nodeItem->getGraphML()->toString();
             view_ConstructConnectedComponents(parentNode, node, kind, nodeItem->getNextChildPos());
         } else if (sender == 1) {
-            //qCrutucal() << nodeItem->getGraphML()->toString();
-            view_ConstructConnectedComponents(parentNode, node, kind, graphMLItem->mapFromScene(toolbarPosition));
+            view_ConstructConnectedComponents(parentNode, node, kind, nodeItem->mapFromScene(toolbarPosition));
         }
     }
 }
-
-
-/**
- * @brief NodeView::view_constructEventPortDelegate
- * @param assm
- * @param eventPortInstance
- */
-void NodeView::constructEventPortDelegate(Node *assm, Node *eventPortInstance)
-{
-    view_TriggerAction("Toolbar: Constructing EventPortDelegate");
-
-    ComponentAssembly* assembly = dynamic_cast<ComponentAssembly*>(assm);
-    if (assembly) {
-        GraphMLItem *graphMLItem = getGraphMLItemFromGraphML(assembly);
-        QString portKind = eventPortInstance->getDataValue("kind") + "Delegate";
-        view_ConstructConnectedComponents(assm, eventPortInstance,portKind, graphMLItem->mapFromScene(toolbarPosition));
-    }
-}
-
 
 
 /**
@@ -928,10 +878,30 @@ void NodeView::componentInstanceConstructed(Node *node)
 
 /**
  * @brief NodeView::fitInSceneRect
+ * This is called when the selected node item is moved outside of the scene rect.
+ * It adjusts the scene rect to fit the node item.
  */
 void NodeView::fitInSceneRect(GraphMLItem* item)
 {
     adjustSceneRect(item->sceneBoundingRect());
+}
+
+
+/**
+ * @brief NodeView::fitSelectionInView
+ * This is called when the selected node item is resized.
+ * It checks to see if the whole node item is visible in the view.
+ * If it's not, zoom in/out accordingly.
+ */
+void NodeView::fitSelectionInView()
+{
+    qDebug() << "fitSelectionInView";
+    NodeItem* selectedItem = getSelectedNodeItem();
+    if (selectedItem) { // && getVisibleRect().contains(selectedItem->sceneBoundingRect())) {
+        //centerOn(selectedItem);
+        //centerRect(selectedItem->sceneBoundingRect());
+        //fitInView(selectedItem, Qt::KeepAspectRatio);
+    }
 }
 
 
@@ -1204,6 +1174,8 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
 
         emit view_nodeSelected(getSelectedNode());
     }
+
+    //fitSelectionInView();
 }
 
 
@@ -1215,7 +1187,7 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
  */
 void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
 {
-    emit view_nodeSelected(0);
+    //emit view_nodeSelected(0);
     emit view_nodeDestructed(nodeItem);
 }
 
@@ -1710,15 +1682,12 @@ void NodeView::paste(QString xmlData)
 
 void NodeView::selectAll()
 {
-    Node* node = this->getSelectedNode();
-    if(node){
-        NodeItem* nodeItem = getNodeItemFromNode(node);
-        if(nodeItem){
-            clearSelection(false);
-            foreach(NodeItem* child, nodeItem->getChildNodeItems()){
-                if(child->isVisible()){
-                    appendToSelection(child);
-                }
+    NodeItem* nodeItem = getSelectedNodeItem();
+    if(nodeItem){
+        clearSelection(false);
+        foreach(NodeItem* child, nodeItem->getChildNodeItems()){
+            if(child->isVisible()){
+                appendToSelection(child);
             }
         }
     }
@@ -1735,6 +1704,8 @@ void NodeView::appendToSelection(GraphMLItem *item)
 
     //Set this item as Selected.
     setGraphMLItemAsSelected(item);
+
+    //fitSelectionInView();
 }
 
 void NodeView::moveSelection(QPointF delta)

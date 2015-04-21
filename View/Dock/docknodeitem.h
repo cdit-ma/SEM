@@ -22,7 +22,14 @@ public:
     void setParentDockNodeItem(DockNodeItem* parentItem);
     DockNodeItem* getParentDockNodeItem();
 
+    void addChildDockItem(DockNodeItem* dockItem);
+    QList<DockNodeItem*> getChildrenDockItems();
+
+    void setHidden(bool hideItem);
+    bool isHidden();
+
     bool isFileLabel();
+    bool isExpanded();
 
 protected:
     void paintEvent(QPaintEvent* e);
@@ -33,6 +40,8 @@ signals:
     void dockItem_relabelled(DockNodeItem* fileItem);
     void dockItem_removeFromDock(DockNodeItem* dockItem);
 
+    void dockItem_hidden();
+
 public slots:
     void clicked();
     void parentDockItemClicked(bool show);
@@ -40,6 +49,8 @@ public slots:
 
     void updateData();
     void setOpacity(double opacity);
+
+    void childDockItemHidden();
 
 private:
     void setupLayout();
@@ -49,6 +60,7 @@ private:
 
     NodeItem* nodeItem;
     DockNodeItem* parentDockItem;
+    QList<DockNodeItem*> childrenDockItems;
 
     QString kind;
     QString label;
@@ -57,6 +69,7 @@ private:
 
     bool fileLabel;
     bool expanded;
+    bool hidden;
 
 };
 

@@ -18,8 +18,10 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
     parentDockItem = 0;
     fileLabel = false;
     expanded = true;
+    hidden = false;
 
     if (nodeItem) {
+
         this->kind = nodeItem->getNodeKind();
         label = nodeItem->getNode()->getDataValue("label");
         connectToNodeItem();
@@ -96,6 +98,7 @@ void DockNodeItem::setParentDockNodeItem(DockNodeItem *parentItem)
 {
     parentDockItem = parentItem;
     connect(parentDockItem, SIGNAL(dockItem_fileClicked(bool)), this, SLOT(parentDockItemClicked(bool)));
+    connect(this, SIGNAL(dockItem_hidden()), parentDockItem, SLOT(childDockItemHidden()));
 }
 
 
@@ -110,12 +113,68 @@ DockNodeItem *DockNodeItem::getParentDockNodeItem()
 
 
 /**
+ * @brief DockNodeItem::appendChildDockItem
+ * @param dockItem
+ */
+void DockNodeItem::addChildDockItem(DockNodeItem *dockItem)
+{
+    childrenDockItems.append(dockItem);
+}
+
+
+/**
+ * @brief DockNodeItem::getChildrenDockItems
+ * @return
+ */
+QList<DockNodeItem *> DockNodeItem::getChildrenDockItems()
+{
+    return childrenDockItems;
+}
+
+
+/**
+ * @brief DockNodeItem::setHidden
+ * @param hide
+ */
+void DockNodeItem::setHidden(bool hideItem)
+{
+    hidden = hideItem;
+    emit dockItem_hidden();
+    if (hideItem) {
+        hide();
+    } else if (parentDockItem->isExpanded()) {
+        show();
+    }
+}
+
+
+/**
+ * @brief DockNodeItem::isHidden
+ * @return
+ */
+bool DockNodeItem::isHidden()
+{
+    return hidden;
+}
+
+
+/**
  * @brief DockNodeItem::isFileLabel
  * @return
  */
 bool DockNodeItem::isFileLabel()
 {
     return fileLabel;
+}
+
+
+/**
+ * @brief DockNodeItem::isExpanded
+ * @return
+ */
+bool DockNodeItem::isExpanded()
+{
+    return expanded;
 }
 
 
@@ -282,7 +341,9 @@ void DockNodeItem::clicked()
  */
 void DockNodeItem::parentDockItemClicked(bool show)
 {
-    setVisible(show);
+    if (!isHidden()) {
+        setVisible(show);
+    }
 }
 
 
@@ -324,5 +385,27 @@ void DockNodeItem::setOpacity(double opacity)
         setEnabled(true);
     }
     repaint();
+}
+
+
+/**
+ * @brief DockNodeItem::childHidden
+ * This is called whenever a File's child dock item is hidden.
+ * If all of the File's children dock items are hidden, hide the File label.
+ */
+void DockNodeItem::childDockItemHidden()
+{
+    bool hideFileLabel = true;
+    foreach (DockNodeItem* dockItem, childrenDockItems) {
+        if (!dockItem->isHidden()) {
+            hideFileLabel = false;
+            break;
+        }
+    }
+    if (hideFileLabel) {
+        hide();
+    } else {
+        show();
+    }
 }
 

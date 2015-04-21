@@ -206,7 +206,8 @@ void ToolbarWidget::makeNewView()
 void ToolbarWidget::addComponentInstance()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    nodeView->constructComponentInstance(nodeItem->getNode(), action->getNode(), 1);
+    nodeView->constructConnectedNode(nodeItem->getNode(), action->getNode(), "ComponentInstance", 1);
+
 }
 
 

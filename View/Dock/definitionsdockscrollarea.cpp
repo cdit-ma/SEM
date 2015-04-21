@@ -17,7 +17,6 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     // populate list of not allowed kinds
     definitions_notAllowedKinds.append("Model");
     definitions_notAllowedKinds.append("InterfaceDefinitions");
-    definitions_notAllowedKinds.append("BehaviourDefinitions");
     definitions_notAllowedKinds.append("DeploymentDefinitions");
     definitions_notAllowedKinds.append("AssemblyDefinitions");
     definitions_notAllowedKinds.append("HardwareDefinitions");
@@ -41,7 +40,7 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
  * This returns the list of existing dock node items; not including file labels.
  * @return
  */
-QList<DockNodeItem *> DefinitionsDockScrollArea::getDockNodeItems()
+QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
 {
     QList<DockNodeItem*> dockNodeItems;
     foreach (DockNodeItem* item, DockScrollArea::getDockNodeItems()) {
@@ -68,9 +67,11 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
         Node* dockNode = sender->getNodeItem()->getNode();
         QString selectedNodeKind = selectedNode->getDataValue("kind");
         if (selectedNodeKind == "ComponentAssembly") {
-            getNodeView()->constructComponentInstance(selectedNode, dockNode, 0);
+            getNodeView()->constructConnectedNode(selectedNode, dockNode, "ComponentInstance", 0);
         } else if (selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ComponentImpl") {
             getNodeView()->constructEdge(selectedNode, dockNode);
+        } else if (selectedNodeKind == "BehaviourDefinitions") {
+            getNodeView()->constructConnectedNode(selectedNode, dockNode, "ComponentImpl", 0);
         }
     }
 }
@@ -83,8 +84,7 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
  */
 void DefinitionsDockScrollArea::updateDock()
 {
-    // make sure all Components are shown to begin with
-    showAllComponents();
+    DockScrollArea::updateDock();
 
     // special cases - ComponentInstance & ComponentImpl
     // they're only allowed kinds if they don't have a definition
@@ -96,14 +96,19 @@ void DefinitionsDockScrollArea::updateDock()
                 getParentButton()->enableDock(false);
                 return;
             } else if (nodeKind == "ComponentImpl") {
-                // if the selected item is a ComponentImpl w/o a definition,
+                // if the selected item is a ComponentImpl without a definition,
                 // hide Components that already have an implementation
                 hideImplementedComponents();
             }
+        } else if (nodeKind == "BehaviourDefinitions") {
+            // if the selected item is the BehaviourDefinitions,
+            // hide Components that already have an implementation
+            hideImplementedComponents();
+        } else {
+            // make sure all Components are shown for all the other allowed kinds
+            showAllComponents();
         }
     }
-
-    DockScrollArea::updateDock();
 }
 
 
@@ -137,6 +142,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
         DockNodeItem* parentItem = getDockNodeItem(fileItem);
         if (parentItem) {
             dockItem->setParentDockNodeItem(parentItem);
+            parentItem->addChildDockItem(dockItem);
         }
 
         // add new dock item to its parent's File's layout
@@ -190,6 +196,16 @@ void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
             delete dockItem;
         }
     }
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::refreshDock
+ */
+void DefinitionsDockScrollArea::refreshDock()
+{
+    showAllComponents();
+    updateDock();
 }
 
 
@@ -279,12 +295,12 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
  */
 void DefinitionsDockScrollArea::hideImplementedComponents()
 {
-   foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-       NodeItem* componentItem = dockItem->getNodeItem();
-       if (componentItem->getNode()->getImplementations().count() > 0) {
-           dockItem->hide();
-       }
-   }
+    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        NodeItem* componentItem = dockItem->getNodeItem();
+        if (componentItem->getNode()->getImplementations().count() > 0) {
+            dockItem->setHidden(true);
+        }
+    }
 }
 
 
@@ -296,6 +312,6 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
 void DefinitionsDockScrollArea::showAllComponents()
 {
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-        dockItem->show();
+        dockItem->setHidden(false);
     }
 }
