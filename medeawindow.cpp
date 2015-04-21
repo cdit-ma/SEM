@@ -417,9 +417,6 @@ void MedeaWindow::setupSearchTools()
     searchSuggestions = new QListView(searchButton);
     searchResults = new QDialog(this);
 
-    connect(searchBar, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(updateSearchLineEdits()));
-    connect(searchBar, SIGNAL(editingFinished()), this, SLOT(updateSearchLineEdits()));
-
     resultsMainLayout->addLayout(resultsLayout);
     resultsMainLayout->addStretch();
 
@@ -456,7 +453,7 @@ void MedeaWindow::setupSearchTools()
     viewAspectsMenu = new QMenu(viewAspectsButton);
 
     aspectsLabel->setFixedWidth(50);
-    aspectsLabel->setAlignment(Qt::AlignRight);
+    aspectsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     viewAspectsButton->setFixedSize(20, 20);
     viewAspectsButton->setIconSize(viewAspectsButton->size()*0.6);
@@ -496,7 +493,7 @@ void MedeaWindow::setupSearchTools()
     nodeKindsMenu = new QMenu(nodeKindsButton);
 
     kindsLabel->setFixedWidth(50);
-    kindsLabel->setAlignment(Qt::AlignRight);
+    kindsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     nodeKindsButton->setFixedSize(20, 20);
     nodeKindsButton->setIconSize(nodeKindsButton->size()*0.6);
@@ -714,8 +711,10 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
     //connect(searchBar, SIGNAL(textChanged(QString)), this, SLOT(on_SearchTextChanged(QString)));
-    connect(searchButton, SIGNAL(clicked()), this, SLOT(on_actionSearch_triggered()));
+    connect(searchBar, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(updateSearchLineEdits()));
+    connect(searchBar, SIGNAL(editingFinished()), this, SLOT(updateSearchLineEdits()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
+    connect(searchButton, SIGNAL(clicked()), this, SLOT(on_actionSearch_triggered()));
 
     connect(searchOptionButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(viewAspectsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
