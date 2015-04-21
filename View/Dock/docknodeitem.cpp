@@ -123,6 +123,16 @@ void DockNodeItem::addChildDockItem(DockNodeItem *dockItem)
 
 
 /**
+ * @brief DockNodeItem::removeChildDockItem
+ * @param dockItem
+ */
+void DockNodeItem::removeChildDockItem(DockNodeItem *dockItem)
+{
+    childrenDockItems.removeAll(dockItem);
+}
+
+
+/**
  * @brief DockNodeItem::getChildrenDockItems
  * @return
  */

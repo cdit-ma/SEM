@@ -171,11 +171,11 @@ void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
 
             NodeItem* fileItem = nodeItem->getParentNodeItem();
             QVBoxLayout* fileLayout = fileLayoutItems[fileItem];
+            DockNodeItem* fileDockItem = getDockNodeItem(fileItem);
 
             // if the node item to be deleted is the last child node item of fileItem,
             // remove the file layout & label from their lists and then delete them
             if (fileItem->getChildNodeItems().count() == 1) {
-                DockNodeItem* fileDockItem = getDockNodeItem(fileItem);
                 if (fileDockItem) {
                     // remove and delete the file label
                     removeDockNodeItemFromList(fileDockItem);
@@ -187,8 +187,9 @@ void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
                 delete fileLayout;
 
             } else {
-                // otherwise, just remove the dock item from its layout
+                // otherwise, just remove the dock item from its layout and the File's list
                 fileLayout->removeWidget(dockItem);
+                fileDockItem->removeChildDockItem(dockItem);
             }
 
             // remove and delete the dock item
