@@ -23,6 +23,7 @@ public:
     DockNodeItem* getParentDockNodeItem();
 
     void addChildDockItem(DockNodeItem* dockItem);
+    void removeChildDockItem(DockNodeItem* dockItem);
     QList<DockNodeItem*> getChildrenDockItems();
 
     void setHidden(bool hideItem);

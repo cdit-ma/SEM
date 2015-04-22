@@ -1290,6 +1290,12 @@ bool NewController::destructNode(Node *node, bool addAction)
             qCritical() << "Cannot delete hardwareDefinitions. Must be deleted from Definition.";
             return false;
         }
+
+        // Added this here to stop the user from being able to cut or delete the model
+        if((Node*)model == node){
+            qCritical() << "Cannot delete Model!";
+            return false;
+        }
     }
 
     //Gotta Delete in Order.
