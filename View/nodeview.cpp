@@ -725,13 +725,15 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         //Add it to the list of EdgeItems in the Model.
         storeGraphMLItemInHash(nodeEdge);
 
-
         connectGraphMLItemToController(nodeEdge, edge);
 
-        /******************************************************************/
         // show hidden hardware node before the new edge is added to scene
+        // sort its parent so that the newly visible hardware node can be easily seen
         if (dstGUI->getGraphML()->getDataValue("kind") == "HardwareNode") {
             dstGUI->setHidden(false);
+            if (dstGUI->getParentNodeItem()) {
+                dstGUI->getParentNodeItem()->newSort();
+            }
         }
 
 

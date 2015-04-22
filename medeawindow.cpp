@@ -784,13 +784,11 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
 
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
-    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(nodeDestructed()));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
 
-    //connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(updateDock()));
 

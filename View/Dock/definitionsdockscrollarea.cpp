@@ -151,6 +151,8 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
         resortDockItems(dockItem);
         connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
     }
+
+    refreshDock();
 }
 
 
@@ -196,6 +198,11 @@ void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
             removeDockNodeItemFromList(dockItem);
             delete dockItem;
         }
+    }
+
+    // if the destructed node was the previously selected, clear this donc's selection
+    if (!getNodeView()->getSelectedNode()) {
+        DockScrollArea::updateCurrentNodeItem(0);
     }
 }
 

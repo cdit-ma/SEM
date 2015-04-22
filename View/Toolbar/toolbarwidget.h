@@ -37,10 +37,8 @@ public slots:
 
     void addChildNode();
     void connectNodes();
+    void addConnectedNode();
     void makeNewView();
-
-    void addComponentInstance();
-    void addEventPorDelegate();
 
     void attachOptionMenu();
 
@@ -60,8 +58,8 @@ private:
     void setupAdoptableNodesList(QStringList nodeKinds);
     void setupLegalNodesList(QList<Node*> nodeList);
 
-    void setupFilesList(QList<Node*> files);
-    void setupComponentInstanceList(QList<Node*> components);
+    void setupFilesList(QList<Node*> files, QString kind);
+    void setupComponentList(QList<Node*> components);
 
     void setupChildrenComponentInstanceList(QList<Node*> componentInstances);
     void setupInEventPortInstanceList();
@@ -91,6 +89,7 @@ private:
     QToolButton* alignVerticallyButton;
     QToolButton* alignHorizontallyButton;
 
+    ToolbarWidgetAction* componentImplAction;
     ToolbarWidgetAction* componentInstanceAction;
     ToolbarWidgetAction* inEventPortDelegateAction;
     ToolbarWidgetAction* outEventPortDelegateAction;

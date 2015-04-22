@@ -23,7 +23,8 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
     willHaveMenu = false;
     deletable = true;
 
-    if (nodeKind == "ComponentInstance" || nodeKind == "InEventPortDelegate" || nodeKind == "OutEventPortDelegate") {
+    if (nodeKind == "ComponentInstance" || nodeKind == "ComponentImpl" ||
+            nodeKind == "InEventPortDelegate" || nodeKind == "OutEventPortDelegate") {
         willHaveMenu = true;
         deletable = false;
     } else if (nodeKind == "info") {
@@ -53,8 +54,6 @@ ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString ac
 
     if (actionKind == "file" || actionKind == "eventPort" || actionKind == "parent") {
         willHaveMenu = true;
-    } else if (actionKind == "instance") {
-        kind = "ComponentInstance";
     }
 }
 
