@@ -19,6 +19,7 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
     parts_notAllowedKinds.append("HardwareDefinitions");
     parts_notAllowedKinds.append("ManagementComponent");
     parts_notAllowedKinds.append("HardwareCluster");
+    parts_notAllowedKinds.append("HardwareNode");
     parts_notAllowedKinds.append("ComponentInstance");
     setNotAllowedKinds(parts_notAllowedKinds);
 }

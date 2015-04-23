@@ -115,6 +115,8 @@ void NewController::connectView(NodeView *view)
         connect(view, SIGNAL(view_ConstructComponentInstance(Node*,Node*,QPointF)), this, SLOT(constructComponentInstance(Node*,Node*,QPointF)));
         connect(view, SIGNAL(view_ConstructConnectedComponents(Node*,Node*,QString,QPointF)), this, SLOT(constructConnectedComponents(Node*,Node*,QString,QPointF)));
 
+        connect(view, SIGNAL(view_DestructEdge(Edge*)), this, SLOT(destructHardwareEdge(Edge*)));
+
         //Undo SLOTS
         connect(view, SIGNAL(view_TriggerAction(QString)), this, SLOT(triggerAction(QString)));
         connect(view, SIGNAL(view_SetGraphMLData(GraphML*,QString,QString)), this, SLOT(setGraphMLData(GraphML*,QString,QString)));
@@ -448,6 +450,17 @@ void NewController::constructEdge(Node *src, Node *dst)
 {
     constructEdgeWithData(src, dst);
 }
+
+
+/**
+ * @brief NewController::destructHardwareEdge
+ * @param edge
+ */
+void NewController::destructHardwareEdge(Edge* edge)
+{
+    destructEdge(edge, true);
+}
+
 
 Edge* NewController::constructEdgeWithGraphMLData(Node *src, Node *dst, QList<GraphMLData *> data, QString previousID)
 {

@@ -798,6 +798,8 @@ void MedeaWindow::makeConnections()
     // this needs fixing
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 
+    connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*)), nodeView, SLOT(destructEdge(Edge*)));
+    connect(definitionsDock, SIGNAL(dock_clickHardwareNode(Node*,NodeItem*)), hardwareDock, SLOT(clickHardwareDockItem(Node*,NodeItem*)));
 }
 
 

@@ -72,6 +72,8 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
             getNodeView()->constructEdge(selectedNode, dockNode);
         } else if (selectedNodeKind == "BehaviourDefinitions") {
             getNodeView()->constructConnectedNode(selectedNode, dockNode, "ComponentImpl", 0);
+        } else if (selectedNodeKind == "HardwareNode") {
+            emit dock_clickHardwareNode(dockNode, getNodeView()->getSelectedNodeItem());
         }
     }
 }

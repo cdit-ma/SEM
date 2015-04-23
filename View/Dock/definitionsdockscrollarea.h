@@ -12,6 +12,9 @@ public:
 
     QList<DockNodeItem*> getDockNodeItems();
 
+signals:
+    void dock_clickHardwareNode(Node* selectedNode, NodeItem* hardwareNodeItem);
+
 public slots:
     virtual void dockNodeItemClicked();
     virtual void updateDock();

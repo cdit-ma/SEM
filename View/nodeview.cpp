@@ -879,6 +879,17 @@ void NodeView::componentInstanceConstructed(Node *node)
 
 
 /**
+ * @brief NodeView::destructEdge
+ * @param edge
+ */
+void NodeView::destructEdge(Edge *edge)
+{
+    getNodeItemFromNode(edge->getDestination())->setHidden(true);
+    view_DestructEdge(edge);
+}
+
+
+/**
  * @brief NodeView::fitInSceneRect
  * This is called when the selected node item is moved outside of the scene rect.
  * It adjusts the scene rect to fit the node item.

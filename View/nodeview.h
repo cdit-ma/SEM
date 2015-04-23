@@ -104,6 +104,8 @@ signals:
     void view_ConstructComponentInstance(Node* parent, Node* definition, QPointF position);
     void view_ClearHistoryStates();
 
+    void view_DestructEdge(Edge*);
+
     // signals for the docks
     void view_enableDocks(bool enable);
     void view_nodeConstructed(NodeItem* nodeItem);
@@ -198,6 +200,8 @@ public slots:
     void constructNewView(Node* centeredOn);
 
     void componentInstanceConstructed(Node* node);
+
+    void destructEdge(Edge* edge);
 
     void editableItemHasFocus(bool hasFocus);
 
