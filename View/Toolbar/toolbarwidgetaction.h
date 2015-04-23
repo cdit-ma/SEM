@@ -50,6 +50,7 @@ private:
 
     QPushButton* actionButton;
     ToolbarWidgetMenu* widgetMenu;
+    ToolbarWidgetMenu* prevWidgetMenu;
 
     bool willHaveMenu;
     bool deletable;

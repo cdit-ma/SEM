@@ -161,17 +161,17 @@ void ToolbarWidgetMenu::leaveEvent(QEvent * e)
 
 /**
  * @brief ToolbarWidgetMenu::close
- * If the close event didn't come from this menu, check if it came from its parent menu.
+ * This menu is closed by either having one of its actions triggered or the user clicking
+ * outside of it. Send a signal to its parent to check if the parent also needs to be hidden.
  */
 void ToolbarWidgetMenu::close()
 {
-    //emit resetActionState();
-    if (!eventFromMenu || actionTriggered) {
-        QToolButton* button = qobject_cast<QToolButton*>(parent());
-        if (button) {
-            emit toolbarMenu_hideToolbar(actionTriggered);
-        } else {
-            emit toolbarMenu_closeParentMenu(actionTriggered);
+    QToolButton* parentButton = qobject_cast<QToolButton*>(parent());
+    if (parentButton) {
+        emit toolbarMenu_hideToolbar(actionTriggered);
+    } else {
+        if (!eventFromMenu && !actionTriggered) {
+            emit toolbarMenu_closeParentMenu();
         }
     }
     actionTriggered = false;
@@ -180,20 +180,13 @@ void ToolbarWidgetMenu::close()
 
 /**
  * @brief ToolbarWidgetMenu::closeMenu
- * This is called by the children menus when they are closed by an
- * event not from them. If the event didn't come from this menu either,
+ * This is called by the children menus when they are closed by an event
+ * not triggered by them. If the event didn't come from this menu either,
  * send the same check signal to its parent then close it.
  */
-void ToolbarWidgetMenu::closeMenu(bool triggered)
+void ToolbarWidgetMenu::closeMenu()
 {
-    if (!eventFromMenu || triggered) {
-        QToolButton* button = qobject_cast<QToolButton*>(parent());
-        if (button) {
-            emit toolbarMenu_hideToolbar(triggered);
-        } else {
-            emit toolbarMenu_closeParentMenu(triggered);
-        }
-        //emit resetActionState();
+    if (!eventFromMenu && !actionTriggered) {
         hide();
     }
 }
@@ -201,7 +194,8 @@ void ToolbarWidgetMenu::closeMenu(bool triggered)
 
 /**
  * @brief ToolbarWidgetMenu::hideMenu
- * If an action in this menu is triggered and that action doesn't have a menu, hide this menu.
+ * If an action in this menu is triggered and that action doesn't
+ * have a menu or a child menu is triggered, hide this menu.
  * @param action
  */
 void ToolbarWidgetMenu::hideMenu(QAction *action)
@@ -209,10 +203,15 @@ void ToolbarWidgetMenu::hideMenu(QAction *action)
     ToolbarWidgetAction* widgetAction = dynamic_cast<ToolbarWidgetAction*>(action);
     if (!widgetAction || (widgetAction && widgetAction->getMenu() == 0)) {
         actionTriggered = true;
-        hide();
-        close();
+    } else {
+        actionTriggered = false;
     }
-    actionTriggered = false;
+
+    emit toolbarMenu_parentTriggered(actionTriggered);
+
+    if (actionTriggered) {
+        hide();
+    }
 }
 
 
@@ -223,7 +222,17 @@ void ToolbarWidgetMenu::hideMenu(QAction *action)
  */
 void ToolbarWidgetMenu::connectChildMenu(ToolbarWidgetMenu* menu)
 {
-    connect(menu, SIGNAL(toolbarMenu_closeParentMenu(bool)), this, SLOT(closeMenu(bool)));
+    connect(menu, SIGNAL(toolbarMenu_closeParentMenu()), this, SLOT(closeMenu()));
+}
+
+
+/**
+ * @brief ToolbarWidgetMenu::setParentTriggered
+ * @param triggered
+ */
+void ToolbarWidgetMenu::setParentTriggered(bool triggered)
+{
+    actionTriggered = triggered;
 }
 
 

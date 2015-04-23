@@ -399,12 +399,10 @@ void ToolbarWidget::setupMenus()
 
     // default actions for when some of the menus are empty
     fileDefaultAction = new ToolbarWidgetAction("info", "There are no Files.", this);
-    eventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly has no ComponentInstances.", this);
-    inEventPortDefaultAction = new ToolbarWidgetAction("info", "There are no InEventPorts.", this);
-    outEventPortDefaultAction = new ToolbarWidgetAction("info", "There are no OutEventPorts.", this);
+    eventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any ComponentInstances.", this);
 
-    // hidden menus for parent Nodes, ComponentInstances and InEvent/OutEvent PortDelegates
-    fileMenu = new ToolbarWidgetMenu(componentInstanceAction, fileDefaultAction, addMenu);
+    // hidden menus for parent nodes, ComponentInstances, ComponentImpls and In/Out EventPortDelegates
+    fileMenu = new ToolbarWidgetMenu(0, fileDefaultAction, addMenu);
     inEventPort_componentInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, eventPort_componentInstanceDefaultAction, addMenu);
     outEventPort_componentInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, eventPort_componentInstanceDefaultAction, addMenu);
 }
@@ -663,7 +661,7 @@ void ToolbarWidget::setupFilesList(QList<Node*> files, QString kind)
         fileMenu->addWidgetAction(fileAction);
     }
 
-    setupComponentList(nodeView->getComponents());
+    setupComponentList(nodeView->getComponents(), kind);
 }
 
 
@@ -672,9 +670,16 @@ void ToolbarWidget::setupFilesList(QList<Node*> files, QString kind)
  * This sets up the Components menu list. It gets the updated list from the view.
  * @param components
  */
-void ToolbarWidget::setupComponentList(QList<Node*> components)
+void ToolbarWidget::setupComponentList(QList<Node*> components, QString kind)
 {
     for (int i = 0; i < components.count(); i++) {
+
+        if (kind == "impl") {
+            if (components.at(i)->getImplementations().count() > 0) {
+                continue;
+            }
+        }
+
         foreach (QAction* action, fileMenu->actions()) {
 
             ToolbarWidgetAction* fileAction = qobject_cast<ToolbarWidgetAction*>(action);

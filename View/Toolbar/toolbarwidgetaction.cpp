@@ -64,9 +64,13 @@ ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString ac
  */
 void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu *menu)
 {
-    widgetMenu = menu;
+    prevWidgetMenu = widgetMenu;
+    if (prevWidgetMenu) {
+        disconnect(this, SIGNAL(triggered()), prevWidgetMenu, SLOT(execMenu()));
+    }
 
-    //connect(widgetMenu, SIGNAL(aboutToHide()), this, SLOT(actionButtonUnclicked()));
+    widgetMenu = menu;
+    connect(widgetMenu, SIGNAL(aboutToHide()), this, SLOT(actionButtonUnclicked()));
     connect(this, SIGNAL(triggered()), widgetMenu, SLOT(execMenu()));
 }
 
@@ -249,7 +253,6 @@ void ToolbarWidgetAction::actionButtonClicked()
  */
 void ToolbarWidgetAction::actionButtonUnclicked()
 {
-    //qDebug() << "ToolbarWidgetAction::actionButtonUnclicked()";
     actionButton->setChecked(false);
     actionButton->repaint();
 }

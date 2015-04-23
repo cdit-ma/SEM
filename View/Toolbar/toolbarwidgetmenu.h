@@ -27,20 +27,23 @@ protected:
     virtual void leaveEvent(QEvent*);
 
 signals:
-    void toolbarMenu_hideToolbar(bool triggered);
-    void toolbarMenu_closeParentMenu(bool triggered);
     void toolbarMenu_connectToParentMenu(ToolbarWidgetMenu* menu);
-
     void toolbarMenu_resetActionState();
+
+    void toolbarMenu_hideToolbar(bool triggered);
+    void toolbarMenu_closeParentMenu();
+
+    void toolbarMenu_parentTriggered(bool triggered);
 
 public slots:
     void close();
-    void closeMenu(bool triggered);
+    void closeMenu();
     void hideMenu(QAction* action);
     void execMenu();
 
     void setupDefaultAction();
     void connectChildMenu(ToolbarWidgetMenu* menu);
+    void setParentTriggered(bool triggered);
 
 private:    
     ToolbarWidgetAction* parentAction;

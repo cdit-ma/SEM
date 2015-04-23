@@ -59,7 +59,7 @@ private:
     void setupLegalNodesList(QList<Node*> nodeList);
 
     void setupFilesList(QList<Node*> files, QString kind);
-    void setupComponentList(QList<Node*> components);
+    void setupComponentList(QList<Node*> components, QString kind);
 
     void setupChildrenComponentInstanceList(QList<Node*> componentInstances);
     void setupInEventPortInstanceList();
@@ -107,11 +107,7 @@ private:
     ToolbarWidgetMenu* outEventPort_componentInstanceMenu;
 
     ToolbarWidgetAction* fileDefaultAction;
-    ToolbarWidgetAction* componentInstanceDefaultAction;
-
     ToolbarWidgetAction* eventPort_componentInstanceDefaultAction;
-    ToolbarWidgetAction* inEventPortDefaultAction;
-    ToolbarWidgetAction* outEventPortDefaultAction;
 
     QFrame* frame;
     int frameVisibilityCount;
