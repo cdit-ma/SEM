@@ -46,17 +46,17 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
  * @brief ToolbarWidget::setNodeItem
  * This only gets called when the toolbar is about to show.
  * Set nodeItem to the currectly selected item and update applicable tool buttons and menus.
+ * If there are multiple items selected, only update the buttons that are for multiple selection.
  * @param item
  */
-void ToolbarWidget::setNodeItem(NodeItem *item)
+void ToolbarWidget::setNodeItem(QList<NodeItem*> items)
 {
-    if (item) {
-        nodeItem = item;
+    if (items.count() == 1) {
+        nodeItem = items.at(0);
         updateToolButtons();
         updateMenuLists();
-    } else {
-        // if item is null, it means that there are multiple items selected
-        multipleSelection();
+    } else if (items.count() > 1) {
+        multipleSelection(items);
     }
 }
 
@@ -310,8 +310,8 @@ void ToolbarWidget::setupToolBar()
     definitionButton->setIconSize(buttonSize);
     implementationButton->setIconSize(buttonSize);
     instancesButton->setIconSize(buttonSize*0.65);
-    alignVerticallyButton->setIconSize(buttonSize);
-    alignHorizontallyButton->setIconSize(buttonSize);
+    alignVerticallyButton->setIconSize(buttonSize*0.8);
+    alignHorizontallyButton->setIconSize(buttonSize*0.8);
 
     addChildButton->setToolTip("Add Child Node");
     connectButton->setToolTip("Connect Node");
@@ -512,8 +512,9 @@ void ToolbarWidget::updateMenuLists()
  * This is called when the user right-clicks on the view and there are
  * multiple items selected. It hides the majority of the tool buttons
  * and only displays the ones that can be used for multiple items.
+ * @param items
  */
-void ToolbarWidget::multipleSelection()
+void ToolbarWidget::multipleSelection(QList<NodeItem*> items)
 {
     // hide the buttons that are only for a single selection
     foreach (QToolButton* button, singleSelectionToolButtons) {
@@ -526,9 +527,21 @@ void ToolbarWidget::multipleSelection()
     // show the delete button - multiple selection can be deleted at the same time
     deleteButton->show();
 
-    // show the buttons for multiple selection
+    NodeItem* prevParentItem = 0;
+    bool showButtons = true;
+
+    // only show the group alignment buttons if all the selected items have the same parent
+    foreach (NodeItem* item, items) {
+        NodeItem* parentItem = item->getParentNodeItem();
+        if (prevParentItem && (prevParentItem != parentItem)) {
+            showButtons = false;
+            break;
+        }
+        prevParentItem = parentItem;
+    }
+
     foreach (QToolButton* button, multipleSelectionToolButtons) {
-        button->show();
+        button->setVisible(showButtons);
     }
 }
 

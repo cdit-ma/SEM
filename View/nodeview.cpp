@@ -670,20 +670,27 @@ void NodeView::showToolbar(QPoint position)
 
     // only show the toolbar if there is at least one item selected
     if (selectedIDs.count() > 0) {
-        // if there are multiple items selected, update toolbar to only show align buttons
-        if (selectedIDs.count() > 1) {
-            toolbar->setNodeItem(0);
-        } else {
-            // connect selected node item to toolbar
-            NodeItem* nodeItem = getSelectedNodeItem();
-            if (nodeItem && nodeItem->isPainted() && nodeItem->sceneBoundingRect().contains(toolbarPosition)) {
-                toolbar->setNodeItem(nodeItem);
+
+        bool toolbarPositionContained = false;
+
+        QList<NodeItem*> selectedItems;
+        foreach (QString id, selectedIDs) {
+            NodeItem* selectedItem = (NodeItem*)guiItems[id];
+            if (selectedItem && selectedItem->isPainted()) {
+                selectedItems.append(selectedItem);
+                if (selectedItem->sceneBoundingRect().contains(toolbarPosition)) {
+                    toolbarPositionContained = true;
+                }
             }
         }
 
-        // update toolbar position
-        toolbar->move(globalPos);
-        toolbar->show();
+        // only update and show the toolbar if the right-click
+        // happened inside one of the selected items
+        if (toolbarPositionContained) {
+            toolbar->setNodeItem(selectedItems);
+            toolbar->move(globalPos);
+            toolbar->show();
+        }
 
         // show/hide MEDEA toolbar
         //view_showWindowToolbar();
