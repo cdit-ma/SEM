@@ -415,6 +415,8 @@ void NodeView::constructNewView(Node *centeredOn)
 
 /**
  * @brief NodeView::showConnectedNodes
+ * This method shows, selects and centers all of the nodes that are
+ * connected to the currently selected node.
  */
 void NodeView::showConnectedNodes()
 {
@@ -422,34 +424,29 @@ void NodeView::showConnectedNodes()
 
     if (node) {
 
-        // for each of the selected node's edges, store all source
-        // nodes if the selected node is the edge's destination
-        QList<NodeItem*> srcNodeItems;
+        QList<NodeItem*> connectedNodeItems;
         foreach (Edge* edge, node->getEdges()) {
-            Node* dstNode = edge->getDestination();
-            if (dstNode != node) {
-                continue;
+            Node* connectedNode = edge->getSource();
+            if (connectedNode == node) {
+                connectedNode = edge->getDestination();
             }
-            NodeItem* srcNodeItem = getNodeItemFromNode(edge->getSource());
-            srcNodeItems.append(srcNodeItem);
+            NodeItem* connectedNodeItem = getNodeItemFromNode(connectedNode);
+            connectedNodeItems.append(connectedNodeItem);
         }
 
-        if (srcNodeItems.count() > 0) {
-
-            foreach (NodeItem* srcItem, srcNodeItems) {
+        if (connectedNodeItems.count() > 0) {
+            foreach (NodeItem* item, connectedNodeItems) {
                 // make sure the aspect(s) that the nodeItem belongs to is turned on
-                foreach (QString aspect, srcItem->getAspects()) {
+                foreach (QString aspect, item->getAspects()) {
                     addAspect(aspect);
                 }
                 // add connected nodes to selection
-                appendToSelection(srcItem);
+                appendToSelection(item);
             }
-
             // add the selected node to the list of items to center
-            srcNodeItems.append(getNodeItemFromNode(node));
-
+            connectedNodeItems.append(getNodeItemFromNode(node));
             // fit the connected nodes' rectangle to the screen
-            fitToScreen(srcNodeItems, 1.35);
+            fitToScreen(connectedNodeItems, 1.35);
         }
     }
 }
@@ -687,7 +684,7 @@ void NodeView::showToolbar(QPoint position)
         // only update and show the toolbar if the right-click
         // happened inside one of the selected items
         if (toolbarPositionContained) {
-            toolbar->setNodeItem(selectedItems);
+            toolbar->updateSelectedNodeItem(selectedItems);
             toolbar->move(globalPos);
             toolbar->show();
         }

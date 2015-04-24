@@ -21,7 +21,7 @@ class ToolbarWidget : public QWidget
 public:
     explicit ToolbarWidget(NodeView *parent = 0);
 
-    void setNodeItem(QList<NodeItem *> items);
+    void updateSelectedNodeItem(QList<NodeItem *> items);
 
     void showDefinitionButton(Node *definition);
     void showImplementationButton(Node* implementation);
@@ -99,6 +99,7 @@ private:
     ToolbarWidgetMenu* connectMenu;
     ToolbarWidgetMenu* definitionMenu;
     ToolbarWidgetMenu* implementationMenu;
+    //ToolbarWidgetMenu* showConnectionsMenu;
 
     ToolbarWidgetMenu* instancesMenu;
     ToolbarWidgetMenu* instanceOptionMenu;

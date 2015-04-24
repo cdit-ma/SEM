@@ -274,7 +274,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     menu->addSeparator();
     model_menu = menu->addMenu(QIcon(":/Resources/Icons/model.png"), "Model");
     menu->addSeparator();
-    settings_ChangeSettings = menu->addAction(QIcon(":/Resources/Icons/settings.png"), "Settings");
+    settings_Menu = menu->addMenu(QIcon(":/Resources/Icons/settings.png"), "Settings");
     exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Exit");
 
     file_newProject = file_menu->addAction(QIcon(":/Resources/Icons/new_project.png"), "New Project");
@@ -313,14 +313,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go to Implementation");
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
+    view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "Show Connected Nodes");
     view_showManagementComponents = view_menu->addAction("Show Management Components");
-    view_menu->addSeparator();
-    view_autoCenterView = view_menu->addAction("Automatically Center Views");
-    view_selectOnConstruction = view_menu->addAction("Select Node on Construction");
-    view_showGridLines = view_menu->addAction("Use Grid Lines");
-    view_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
-    //view_snapToGrid = view_menu->addAction("Use Grid Lines");
-    //view_snapChildrenToGrid = view_menu->addAction("Use Grid Lines");
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
@@ -329,12 +323,19 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
 
+    settings_showGridLines = settings_Menu->addAction("Use Grid Lines");
+    settings_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
+    settings_selectOnConstruction = settings_Menu->addAction("Select Node On Construction");
+    settings_autoCenterView = settings_Menu->addAction("Automatically Center Views");
+    settings_Menu->addSeparator();
+    settings_ChangeSettings = settings_Menu->addAction("More Settings...");
+
     button->setMenu(menu);
 
     // setup toggle actions
-    view_autoCenterView->setCheckable(true);
-    view_showGridLines->setCheckable(true);
-    view_selectOnConstruction->setCheckable(true);
+    settings_autoCenterView->setCheckable(true);
+    settings_showGridLines->setCheckable(true);
+    settings_selectOnConstruction->setCheckable(true);
     view_showManagementComponents->setCheckable(true);
 
     // initially disable model & goto menu actions
@@ -694,8 +695,6 @@ void MedeaWindow::makeConnections()
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
 
-    connect(settings_ChangeSettings, SIGNAL(triggered()), appSettings, SLOT(launchSettingsUI()));
-
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
@@ -713,6 +712,22 @@ void MedeaWindow::makeConnections()
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
+    connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
+    connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(goToImplementation()));
+    connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(goToDefinition()));
+    connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
+    connect(view_showManagementComponents, SIGNAL(triggered(bool)), nodeView, SLOT(showManagementComponents(bool)));
+
+    connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
+    connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
+
+    connect(settings_ChangeSettings, SIGNAL(triggered()), appSettings, SLOT(launchSettingsUI()));
+    connect(settings_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
+    connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
+    connect(settings_selectOnConstruction, SIGNAL(triggered(bool)), nodeView, SLOT(selectNodeOnConstruction(bool)));
+
+    connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
+
     //connect(searchBar, SIGNAL(textChanged(QString)), this, SLOT(on_SearchTextChanged(QString)));
     connect(searchBar, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(updateSearchLineEdits()));
     connect(searchBar, SIGNAL(editingFinished()), this, SLOT(updateSearchLineEdits()));
@@ -726,20 +741,6 @@ void MedeaWindow::makeConnections()
     //connect(searchOptionMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
     connect(viewAspectsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
     connect(nodeKindsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
-
-    connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
-    connect(view_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
-    connect(view_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
-    connect(view_selectOnConstruction, SIGNAL(triggered(bool)), nodeView, SLOT(selectNodeOnConstruction(bool)));
-    connect(view_showManagementComponents, SIGNAL(triggered(bool)), nodeView, SLOT(showManagementComponents(bool)));
-
-    connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(goToDefinition()));
-    connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(goToImplementation()));
-
-    connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
-    connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
-
-    connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
     connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
     connect(copyButton, SIGNAL(clicked()), nodeView, SLOT(copy()));
@@ -861,14 +862,14 @@ void MedeaWindow::setupJenkinsSettings()
 void MedeaWindow::setupInitialSettings()
 {
     // need to set initial toggle action values before triggering them
-    view_autoCenterView->setChecked(true);
-    view_showGridLines->setChecked(true);
-    view_selectOnConstruction->setChecked(false);
+    settings_autoCenterView->setChecked(true);
+    settings_showGridLines->setChecked(true);
+    settings_selectOnConstruction->setChecked(false);
     view_showManagementComponents->setChecked(false);
 
-    view_autoCenterView->triggered(true);
-    view_showGridLines->triggered(true);
-    view_selectOnConstruction->triggered(false);
+    settings_autoCenterView->triggered(true);
+    settings_showGridLines->triggered(true);
+    settings_selectOnConstruction->triggered(false);
     view_showManagementComponents->triggered(false);
 
     if (nodeView) {

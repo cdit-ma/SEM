@@ -146,6 +146,7 @@ private:
     QMenu* edit_menu;
     QMenu* view_menu;
     QMenu* model_menu;
+    QMenu* settings_Menu;
 
     QAction* exit;
     QAction* file_newProject;
@@ -160,16 +161,14 @@ private:
     QAction* view_fitToScreen;
     QAction* view_goToDefinition;
     QAction* view_goToImplementation;
+    QAction* view_showConnectedNodes;
     QAction* view_showManagementComponents;
-    QAction* view_autoCenterView;
-    QAction* view_selectOnConstruction;
-    QAction* view_showGridLines;
-    //QAction* view_snapToGrid;
-    //QAction* view_snapChildrenToGrid;
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_sortModel;
-
+    QAction* settings_autoCenterView;
+    QAction* settings_selectOnConstruction;
+    QAction* settings_showGridLines;
     QAction* settings_ChangeSettings;
 
     DockToggleButton* partsButton;

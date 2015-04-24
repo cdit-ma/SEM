@@ -17,11 +17,10 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     nodeItem = 0;
     prevNodeItem = 0;
 
-    frameVisibilityCount = 0;
-    eventFromToolbar = false;
-
     definitionNode = 0;
     implementationNode = 0;
+
+    eventFromToolbar = false;
 
     setBackgroundRole(QPalette::Dark);
     setWindowFlags(windowFlags() | Qt::Popup);
@@ -43,13 +42,13 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
 
 
 /**
- * @brief ToolbarWidget::setNodeItem
+ * @brief ToolbarWidget::updateSelectedNodeItem
  * This only gets called when the toolbar is about to show.
  * Set nodeItem to the currectly selected item and update applicable tool buttons and menus.
  * If there are multiple items selected, only update the buttons that are for multiple selection.
- * @param item
+ * @param items
  */
-void ToolbarWidget::setNodeItem(QList<NodeItem*> items)
+void ToolbarWidget::updateSelectedNodeItem(QList<NodeItem*> items)
 {
     if (items.count() == 1) {
         nodeItem = items.at(0);
@@ -72,7 +71,6 @@ void ToolbarWidget::showDefinitionButton(Node *definition)
     if (definition) {
         definitionNode = definition;
         definitionButton->show();
-        frameVisibilityCount++;
     } else {
         definitionButton->hide();
     }
@@ -90,7 +88,6 @@ void ToolbarWidget::showImplementationButton(Node* implementation)
     if (implementation) {
         implementationNode = implementation;
         implementationButton->show();
-        frameVisibilityCount++;
     } else {
         implementationButton->hide();
     }
@@ -282,7 +279,7 @@ void ToolbarWidget::setupToolBar()
     connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
     deleteButton->setIcon(QIcon(":/Resources/Icons/deleteNode.png"));
     showNewViewButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
-    showConnectionsButton->setIcon(QIcon(":/Resources/Icons/hardwareConnections.png"));
+    showConnectionsButton->setIcon(QIcon(":/Resources/Icons/connections.png"));
     definitionButton->setIcon(QIcon(":/Resources/Icons/definition.png"));
     implementationButton->setIcon(QIcon(":/Resources/Icons/implementation.png"));
     instancesButton->setIcon(QIcon(":/Resources/Icons/instance.png"));
@@ -305,8 +302,8 @@ void ToolbarWidget::setupToolBar()
     addChildButton->setIconSize(buttonSize*0.65);
     connectButton->setIconSize(buttonSize*0.6);
     deleteButton->setIconSize(buttonSize*0.75);
-    showNewViewButton->setIconSize(buttonSize*0.6);
-    showConnectionsButton->setIconSize(buttonSize*2);
+    showNewViewButton->setIconSize(buttonSize*0.55);
+    showConnectionsButton->setIconSize(buttonSize*0.75);
     definitionButton->setIconSize(buttonSize);
     implementationButton->setIconSize(buttonSize);
     instancesButton->setIconSize(buttonSize*0.65);
@@ -333,9 +330,9 @@ void ToolbarWidget::setupToolBar()
     layout->addWidget(deleteButton);
     layout->addWidget(alignVerticallyButton);
     layout->addWidget(alignHorizontallyButton);
-    layout->addWidget(showConnectionsButton);
     layout->addWidget(frame);
     layout->addWidget(showNewViewButton);
+    layout->addWidget(showConnectionsButton);
     layout->addWidget(definitionButton);
     layout->addWidget(implementationButton);
     layout->addWidget(instancesButton);
@@ -462,20 +459,13 @@ void ToolbarWidget::updateToolButtons()
         deleteButton->show();
     }
 
-    // if the selected node item is a hardware node/cluster, show showConnectionsButton
-    if (nodeKind == "HardwareNode" || nodeKind == "HardwareCluster") {
+    // check if the selected node item has other node items connected to it (edges)
+    // Note: ComponentAssembly apparently has a connection to itself?
+    if (nodeItem->getNode()->getEdges().count() > 0) {
         showConnectionsButton->show();
     } else {
         showConnectionsButton->hide();
     }
-
-    // if any of the defn/impl/inst buttons are visible, frameVisibilityCount > 0
-    if (frameVisibilityCount > 0) {
-        frame->show();
-    } else {
-        frame->hide();
-    }
-    frameVisibilityCount = 0;
 
     // always show show new view button
     showNewViewButton->show();
@@ -558,7 +548,6 @@ void ToolbarWidget::setupInstancesList(QList<Node*> instances)
         return;
     } else {
         instancesButton->show();
-        frameVisibilityCount++;
     }
     // create a ToolbarWidgetAction for each instance and connect it
     for (int i = 0; i < instances.count(); i++) {
