@@ -182,22 +182,23 @@ public slots:
     void sortAspects();
     void centerAspects();
 
-    void fitToScreen();
+    void fitToScreen(QList<NodeItem*> itemsToCenter = QList<NodeItem*>(), double extraSpace = 0);
     void fitInSceneRect(GraphMLItem *item);
     void fitSelectionInView();
 
     void centerOnItem(GraphMLItem* item = 0);
     void centerItem(GraphMLItem* item);
 
-    void goToDefinition(Node* node=0);
-    void goToImplementation(Node* node=0);
-    void goToInstance(Node *instance=0);
+    void goToDefinition(Node* node = 0);
+    void goToImplementation(Node* node = 0);
+    void goToInstance(Node *instance = 0);
 
     void deleteSelection();
     void constructNode(QString nodeKind, int sender);
     void constructEdge(Node* src, Node* dst);
     void constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender);
     void constructNewView(Node* centeredOn);
+    void showConnectedNodes();
 
     void componentInstanceConstructed(Node* node);
 
@@ -252,7 +253,7 @@ private:
 
     QRectF getVisibleRect();
     void adjustSceneRect(QRectF rectToCenter);
-    void centerRect(QRectF rect, float extraspace = 0);
+    void centerRect(QRectF rect, double extraspace = 0);
 
     QList<NodeItem*> getNodeItemsList();
 

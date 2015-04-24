@@ -19,8 +19,6 @@ public slots:
 
     void nodeConstructed(NodeItem* nodeItem);
 
-    void clickHardwareDockItem(Node* component, NodeItem* hardwareNodeItem);
-
 private:
     QStringList hardware_notAllowedKinds;
     Node* component;

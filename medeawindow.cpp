@@ -792,14 +792,13 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(updateDock()));
 
+    connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*)), nodeView, SLOT(destructEdge(Edge*)));
+
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
 
     // this needs fixing
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
-
-    connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*)), nodeView, SLOT(destructEdge(Edge*)));
-    connect(definitionsDock, SIGNAL(dock_clickHardwareNode(Node*,NodeItem*)), hardwareDock, SLOT(clickHardwareDockItem(Node*,NodeItem*)));
 }
 
 
@@ -833,7 +832,6 @@ void MedeaWindow::editMultiLineData(GraphMLData *data)
     if(data){
 
     }
-
 }
 
 
@@ -1278,6 +1276,9 @@ void MedeaWindow::updateUndoStates(QStringList list)
         edit_undo->setEnabled(true);
     }
 
+    // TODO: Use undo states for the progress bar label
+
+    /*
     edit_undo->setText(QString("Undo [%1]").arg(list.size()));
 
     QMenu* menu = edit_undo->menu();
@@ -1292,6 +1293,7 @@ void MedeaWindow::updateUndoStates(QStringList list)
         newUndo->setEnabled(false);
         menu->addAction(newUndo);
     }
+    */
 }
 
 
@@ -1307,6 +1309,9 @@ void MedeaWindow::updateRedoStates(QStringList list)
         edit_redo->setEnabled(true);
     }
 
+    // TODO: Use redo states for the progress bar label
+
+    /*
     edit_redo->setText(QString("Redo [%1]").arg(list.size()));
 
     QMenu* menu = edit_redo->menu();
@@ -1321,6 +1326,7 @@ void MedeaWindow::updateRedoStates(QStringList list)
         newRedo->setEnabled(false);
         menu->addAction(newRedo);
     }
+    */
 }
 
 
@@ -1854,6 +1860,7 @@ void MedeaWindow::enableDeploymentViewAspect()
         QList<Node*> hardwareClusters = model->getChildrenOfKind("HardwareCluster");
         if (hardwareClusters.count() > 0) {
             // at the moment, this method assumes that the only cluster is the Jenkins cluster
+            nodeView->clearSelection(true, false);
             nodeView->appendToSelection(hardwareClusters.at(0));
             nodeView->snapSelectionToGrid();
         }

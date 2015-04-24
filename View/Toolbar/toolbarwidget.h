@@ -81,6 +81,7 @@ private:
     QToolButton* connectButton;
 
     QToolButton* showNewViewButton;
+    QToolButton* showConnectionsButton;
 
     QToolButton* definitionButton;
     QToolButton* implementationButton;

@@ -196,10 +196,10 @@ void NodeView::adjustSceneRect(QRectF rectToCenter)
  * This centers the provided rectangle in the view.
  * @param rect
  */
-void NodeView::centerRect(QRectF rect, float extraspace)
+void NodeView::centerRect(QRectF rect, double extraspace)
 {
     QPointF rectCenter = rect.center();
-    float extraSpace = VIEW_PADDING;
+    double extraSpace = VIEW_PADDING;
 
     // check if there is a specified value for extraspace
     if (extraspace > 0) {
@@ -412,6 +412,49 @@ void NodeView::constructNewView(Node *centeredOn)
 
 }
 
+
+/**
+ * @brief NodeView::showConnectedNodes
+ */
+void NodeView::showConnectedNodes()
+{
+    Node* node = getSelectedNode();
+
+    if (node) {
+
+        // for each of the selected node's edges, store all source
+        // nodes if the selected node is the edge's destination
+        QList<NodeItem*> srcNodeItems;
+        foreach (Edge* edge, node->getEdges()) {
+            Node* dstNode = edge->getDestination();
+            if (dstNode != node) {
+                continue;
+            }
+            NodeItem* srcNodeItem = getNodeItemFromNode(edge->getSource());
+            srcNodeItems.append(srcNodeItem);
+        }
+
+        if (srcNodeItems.count() > 0) {
+
+            foreach (NodeItem* srcItem, srcNodeItems) {
+                // make sure the aspect(s) that the nodeItem belongs to is turned on
+                foreach (QString aspect, srcItem->getAspects()) {
+                    addAspect(aspect);
+                }
+                // add connected nodes to selection
+                appendToSelection(srcItem);
+            }
+
+            // add the selected node to the list of items to center
+            srcNodeItems.append(getNodeItemFromNode(node));
+
+            // fit the connected nodes' rectangle to the screen
+            fitToScreen(srcNodeItems, 1.35);
+        }
+    }
+}
+
+
 /**
  * @brief NodeView::sortEntireModel
  * This method sorts the enitre model.
@@ -531,8 +574,14 @@ void NodeView::setAspects(QStringList aspects)
         centerAspects();
     }
 
-    // TODO: only need to clear the selection if the selected item is now hidden
-    clearSelection();
+    // only need to clear the selection if any of the selected items is now not in aspect
+    foreach (QString id, selectedIDs) {
+        NodeItem* item = (NodeItem*)guiItems[id];
+        if (!item->isInAspect()) {
+            clearSelection();
+            break;
+        }
+    }
 }
 
 
@@ -678,11 +727,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     //Connect the Generic Functionality.
     connectGraphMLItemToController(nodeItem, node);
 
-    if(scene() && !scene()->items().contains(nodeItem)){
-        //Add to model.
-        scene()->addItem(nodeItem);
-    }
-
     // send/do necessary signals/updates when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
 
@@ -704,6 +748,11 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     // using the dock/toolbar and not from GraphML import - reset check
     if (!constructedFromImport) {
         constructedFromImport = true;
+    }
+
+    // add the newly constructed node item to the scene
+    if(!scene()->items().contains(nodeItem)){
+        scene()->addItem(nodeItem);
     }
 }
 
@@ -1200,7 +1249,6 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
  */
 void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
 {
-    //emit view_nodeSelected(0);
     emit view_nodeDestructed(nodeItem);
 }
 
@@ -1213,7 +1261,8 @@ void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
  */void NodeView::nodeConstructed_signalUpdates(NodeItem *nodeItem)
 {
     emit view_nodeConstructed(nodeItem);
-    nodeItem->toggleGridLines(GRID_LINES_ON);
+    emit view_AspectsChanged(currentAspects);
+    emit view_toggleGridLines(GRID_LINES_ON);
 
     if (nodeItem) {
 
@@ -1234,7 +1283,6 @@ void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
         if (nodeItem->getNodeKind() == "ManagementComponent") {
             nodeItem->setHidden(true);
         }
-
     }
 }
 
@@ -2026,8 +2074,12 @@ void NodeView::showManagementComponents(bool show)
 /**
  * @brief NodeView::fitToScreen
  * This makes sure that all the visible items fit and are centered within the view.
+ * If there is a list provided, only go through the items in the list.
+ * Otherwise, go through all the item on the scene.
+ * @param itemsToCenter
+ * @param extraSpace
  */
-void NodeView::fitToScreen()
+void NodeView::fitToScreen(QList<NodeItem*> itemsToCenter, double extraSpace)
 {
     QRectF itemsRec = scene()->itemsBoundingRect();
     float leftMostX = itemsRec.bottomRight().x();
@@ -2035,12 +2087,15 @@ void NodeView::fitToScreen()
     float topMostY = itemsRec.bottomRight().y();
     float bottomMostY = itemsRec.topLeft().y();
 
+    // if there is no list provided, use the full node items list
+    if (itemsToCenter.isEmpty()) {
+        itemsToCenter = getNodeItemsList();
+    }
+
     // go through each item and store the left/right/top/bottom most coordinates
     // of the visible items to create the visible itemsBoundingRect to center on
-    foreach (QGraphicsItem* item, scene()->items(itemsRec)) {
-
-        NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
-        if (nodeItem && nodeItem->isPainted()) {
+    foreach (NodeItem* nodeItem, itemsToCenter) {
+        if (nodeItem && nodeItem->isPainted() && nodeItem->isInAspect()) {
             QPointF pf = nodeItem->scenePos();
             if (pf.x() < leftMostX) {
                 leftMostX = pf.x();
@@ -2058,7 +2113,7 @@ void NodeView::fitToScreen()
     }
 
     QRectF visibleItemsRec = QRectF(leftMostX, topMostY, abs((rightMostX-leftMostX)), abs((bottomMostY-topMostY)));
-    centerRect(visibleItemsRec);
+    centerRect(visibleItemsRec, extraSpace);
 }
 
 

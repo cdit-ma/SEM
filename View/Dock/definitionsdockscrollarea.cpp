@@ -22,6 +22,7 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("HardwareDefinitions");
     definitions_notAllowedKinds.append("ManagementComponent");
     definitions_notAllowedKinds.append("HardwareCluster");
+    definitions_notAllowedKinds.append("HardwareNode");
     definitions_notAllowedKinds.append("File");
     definitions_notAllowedKinds.append("Component");
     setNotAllowedKinds(definitions_notAllowedKinds);
@@ -72,8 +73,6 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
             getNodeView()->constructEdge(selectedNode, dockNode);
         } else if (selectedNodeKind == "BehaviourDefinitions") {
             getNodeView()->constructConnectedNode(selectedNode, dockNode, "ComponentImpl", 0);
-        } else if (selectedNodeKind == "HardwareNode") {
-            emit dock_clickHardwareNode(dockNode, getNodeView()->getSelectedNodeItem());
         }
     }
 }

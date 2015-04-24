@@ -37,7 +37,6 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
  */
 void HardwareDockScrollArea::dockNodeItemClicked()
 {
-    qDebug() << "dock clicked";
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
     Node* selectedNode;
     if (component) {
@@ -95,21 +94,5 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
         DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
         addDockNodeItem(dockItem);
         nodeItem->setHidden(true);
-    }
-}
-
-
-/**
- * @brief HardwareDockScrollArea::clickHardwareDockItem
- * @param hardwareNode
- */
-void HardwareDockScrollArea::clickHardwareDockItem(Node *component, NodeItem *hardwareNodeItem)
-{
-    qDebug() << "HELLO";
-    DockNodeItem* dockItem = getDockNodeItem(hardwareNodeItem);
-    qDebug() << "HELLO2";
-    if (dockItem) {
-        this->component = component;
-        dockItem->clicked();
     }
 }

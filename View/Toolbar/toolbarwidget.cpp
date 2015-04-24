@@ -271,6 +271,7 @@ void ToolbarWidget::setupToolBar()
     connectButton = new QToolButton(this);
     deleteButton = new QToolButton(this);
     showNewViewButton = new QToolButton(this);
+    showConnectionsButton = new QToolButton(this);
     definitionButton = new QToolButton(this);
     implementationButton = new QToolButton(this);
     instancesButton = new QToolButton(this);
@@ -281,16 +282,20 @@ void ToolbarWidget::setupToolBar()
     connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
     deleteButton->setIcon(QIcon(":/Resources/Icons/deleteNode.png"));
     showNewViewButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
+    showConnectionsButton->setIcon(QIcon(":/Resources/Icons/hardwareConnections.png"));
     definitionButton->setIcon(QIcon(":/Resources/Icons/definition.png"));
     implementationButton->setIcon(QIcon(":/Resources/Icons/implementation.png"));
     instancesButton->setIcon(QIcon(":/Resources/Icons/instance.png"));
     alignVerticallyButton->setIcon(QIcon(":/Resources/Icons/alignVertically.png"));
     alignHorizontallyButton->setIcon(QIcon(":/Resources/Icons/alignHorizontally.png"));
 
+    deleteButton->setStyleSheet("padding-right: 3px;");
+
     addChildButton->setFixedSize(buttonSize);
     connectButton->setFixedSize(buttonSize);
     deleteButton->setFixedSize(buttonSize);
     showNewViewButton->setFixedSize(buttonSize);
+    showConnectionsButton->setFixedSize(buttonSize);
     definitionButton->setFixedSize(buttonSize);
     implementationButton->setFixedSize(buttonSize);
     instancesButton->setFixedSize(buttonSize);
@@ -301,6 +306,7 @@ void ToolbarWidget::setupToolBar()
     connectButton->setIconSize(buttonSize*0.6);
     deleteButton->setIconSize(buttonSize*0.75);
     showNewViewButton->setIconSize(buttonSize*0.6);
+    showConnectionsButton->setIconSize(buttonSize*2);
     definitionButton->setIconSize(buttonSize);
     implementationButton->setIconSize(buttonSize);
     instancesButton->setIconSize(buttonSize*0.65);
@@ -311,6 +317,7 @@ void ToolbarWidget::setupToolBar()
     connectButton->setToolTip("Connect Node");
     deleteButton->setToolTip("Delete Selection");
     showNewViewButton->setToolTip("Show in New Window");
+    showConnectionsButton->setToolTip("Show Connected Nodes");
     definitionButton->setToolTip("Show Definition");
     implementationButton->setToolTip("Show Implementation");
     instancesButton->setToolTip("Show Instances");
@@ -326,6 +333,7 @@ void ToolbarWidget::setupToolBar()
     layout->addWidget(deleteButton);
     layout->addWidget(alignVerticallyButton);
     layout->addWidget(alignHorizontallyButton);
+    layout->addWidget(showConnectionsButton);
     layout->addWidget(frame);
     layout->addWidget(showNewViewButton);
     layout->addWidget(definitionButton);
@@ -339,6 +347,7 @@ void ToolbarWidget::setupToolBar()
     singleSelectionToolButtons.append(addChildButton);
     singleSelectionToolButtons.append(connectButton);
     singleSelectionToolButtons.append(showNewViewButton);
+    singleSelectionToolButtons.append(showConnectionsButton);
     singleSelectionToolButtons.append(definitionButton);
     singleSelectionToolButtons.append(implementationButton);
     singleSelectionToolButtons.append(instancesButton);
@@ -420,14 +429,17 @@ void ToolbarWidget::makeConnections()
     connect(implementationMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
     connect(instancesMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
 
-    connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
-    connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
-    connect(alignHorizontallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
-    connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
-
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignVerticallyButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(showConnectionsButton, SIGNAL(clicked()), this, SLOT(hide()));
+
+    connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
+    connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
+    connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
+    connect(alignHorizontallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
+    connect(showConnectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
 }
 
 
@@ -448,6 +460,13 @@ void ToolbarWidget::updateToolButtons()
         deleteButton->hide();
     } else {
         deleteButton->show();
+    }
+
+    // if the selected node item is a hardware node/cluster, show showConnectionsButton
+    if (nodeKind == "HardwareNode" || nodeKind == "HardwareCluster") {
+        showConnectionsButton->show();
+    } else {
+        showConnectionsButton->hide();
     }
 
     // if any of the defn/impl/inst buttons are visible, frameVisibilityCount > 0

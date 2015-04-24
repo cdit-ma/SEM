@@ -91,5 +91,6 @@
         <file>Resources/Icons/settings.png</file>
         <file>Resources/Icons/alignHorizontally.png</file>
         <file>Resources/Icons/alignVertically.png</file>
+        <file>Resources/Icons/hardwareConnections.png</file>
     </qresource>
 </RCC>

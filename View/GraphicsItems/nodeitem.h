@@ -105,6 +105,7 @@ public:
     qreal getGridSize();
 
     QStringList getAspects();
+    bool isInAspect();
 
 signals:
     void NodeItem_SortModel();
@@ -225,6 +226,7 @@ private:
 
     NodeItem* parentNodeItem;
     QStringList viewAspects;
+    QStringList currentViewAspects;
 
     void setPos(qreal x, qreal y);
     void setPos(const QPointF &pos);
@@ -293,21 +295,17 @@ private:
     int nextX;
     int nextY;
 
-    bool hasDefinition;
-
-
+    bool inAspect;
+    bool hidden;
     bool onGrid;
+    bool hasDefinition;
+    bool permanentlyInvisible;
+    bool firstReposition;
 
     bool LOCKED_POSITION;
-
     bool PAINT_OBJECT;
 
-    bool hidden;
     int depth;
-
-    bool permanentlyInvisible;
-
-    bool firstReposition;
 
     QRectF currentSceneRect;
 

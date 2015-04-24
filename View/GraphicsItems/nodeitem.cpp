@@ -1463,7 +1463,7 @@ void NodeItem::setupBrushes()
         color = QColor(0,250,250);
     }
     else if(nodeKind== "HardwareCluster"){
-        color = QColor(0,50,100);
+        color = QColor(200,200,150);
     }
 
     /*
@@ -1558,23 +1558,17 @@ void NodeItem::aspectsChanged(QStringList aspects)
         return;
     }
 
-    bool allMatched = true;
-    foreach(QString aspect, viewAspects){
-        if(!aspects.contains(aspect)){
-            allMatched = false;
-            break;
-        }
-    }
+    //bool prevVisible = isVisible();
 
-    bool prevVisible = isVisible();
+    currentViewAspects = aspects;
+    setVisible(isInAspect());
 
-    setVisible(allMatched && (viewAspects.size() > 0));
-
+    /*
     // if the view aspects have been changed, update pos of edges
-    //if(prevVisible != isVisible()){
-    //    emit update
-    //    emit updateEdgePosition();
-    //}
+    if(prevVisible != isVisible()){
+        emit updateEdgePosition();
+    }
+    */
 
     // if not visible, unselect node item
     if (!isVisible()) {
@@ -1907,7 +1901,34 @@ qreal NodeItem::getGridSize()
  */
 QStringList NodeItem::getAspects()
 {
-   return viewAspects;
+    return viewAspects;
+}
+
+
+/**
+ * @brief NodeItem::isInAspect
+ * This returns whether this node item is in the currently viewed aspects or not.
+ * @return
+ */
+bool NodeItem::isInAspect()
+{
+    // if this node item doesn't belong to any view aspects,
+    // or there are currently no view aspects turned on, return false
+    if (viewAspects.count() == 0 || currentViewAspects.count() == 0) {
+        return false;
+    }
+
+    // otherwise, check the list of currently viewed aspects to see if it contains
+    // all of the aspects that need to be turned on for this item to be visible
+    bool inAspect = true;
+    foreach(QString aspect, viewAspects){
+        if(!currentViewAspects.contains(aspect)){
+            inAspect = false;
+            break;
+        }
+    }
+
+    return inAspect;
 }
 
 
@@ -2178,7 +2199,7 @@ void NodeItem::resetSize()
  */
 bool NodeItem::isExpanded()
 {
-    return expanded ;
+    return expanded;
 }
 
 
