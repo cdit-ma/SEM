@@ -162,7 +162,8 @@ RESOURCES += \
 
 OTHER_FILES += \
     Resources/Scripts/jenkins-cli.jar \
-    Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy
+    Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy \
+    settings.ini
 
 #Copy Files to install directory
 JENKINSCLIJAR.path = $$OUT_PWD/Resources/Scripts/
@@ -171,5 +172,10 @@ JENKINSCLIJAR.files += Resources/Scripts/jenkins-cli.jar
 JENKINSGROOVY.path = $$OUT_PWD/Resources/Scripts/
 JENKINSGROOVY.files += Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy
 
+SETTINGSFILE.path = $$OUT_PWD
+SETTINGSFILE.files += settings.ini
+
+
 INSTALLS += JENKINSGROOVY
 INSTALLS += JENKINSCLIJAR
+INSTALLS += SETTINGSFILE

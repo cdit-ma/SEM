@@ -850,7 +850,6 @@ void MedeaWindow::setupJenkinsSettings()
     JENKINS_ADDRESS =  settings->value("url").toString();
     JENKINS_USERNAME =  settings->value("username").toString();
     JENKINS_PASSWORD =  settings->value("password").toString();
-    qCritical() << JENKINS_ADDRESS;
     settings->endGroup();
 }
 
@@ -863,6 +862,7 @@ void MedeaWindow::setupJenkinsSettings()
  */
 void MedeaWindow::setupInitialSettings()
 {
+    QSettings* settings = appSettings->getSettings();
     // need to set initial toggle action values before triggering them
     settings_autoCenterView->setChecked(true);
     settings_showGridLines->setChecked(true);
@@ -966,8 +966,8 @@ void MedeaWindow::on_actionImportJenkinsNode()
     QDir dir;
 
     myProcess->setWorkingDirectory(dir.absolutePath() + "/Resources/Scripts");
-    qCritical() << myProcess->workingDirectory();
-    qCritical() << program;
+    //qCritical() << myProcess->workingDirectory();
+    //qCritical() << program;
     //myProcess->setWorkingDirectory(DEPGEN_ROOT + "/scripts");
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(loadJenkinsData(int)));
     myProcess->start(program);
@@ -1776,7 +1776,7 @@ void MedeaWindow::updateDataTable()
  */
 void MedeaWindow::loadJenkinsData(int code)
 {
-    qCritical() << "Load Jenkins Data";
+
     if(code == 0){
         QStringList files;
         files << myProcess->readAll();
