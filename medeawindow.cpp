@@ -32,7 +32,11 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
     // this needs to happen before the menu is set up and connected
+    appSettings = new AppSettings(this);
+
     setupJenkinsSettings();
+
+
 
     // initialise gui and connect signals and slots
     initialiseGUI();
@@ -87,7 +91,7 @@ void MedeaWindow::initialiseGUI()
 
     nodeView = new NodeView();
     toolbar = new QToolBar();
-    appSettings = new AppSettings(this);
+
 
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
@@ -841,15 +845,13 @@ void MedeaWindow::editMultiLineData(GraphMLData *data)
  */
 void MedeaWindow::setupJenkinsSettings()
 {
-    DEPGEN_ROOT = QString(qgetenv("DEPGEN_ROOT"));
-
-    QSettings Settings(DEPGEN_ROOT+"/release/config.ini", QSettings::IniFormat);
-
-    Settings.beginGroup("Jenkins-Settings");
-    JENKINS_ADDRESS = Settings.value("JENKINS_ADDRESS").toString();
-    JENKINS_USERNAME = Settings.value("JENKINS_USERNAME").toString();
-    JENKINS_PASSWORD = Settings.value("JENKINS_PASSWORD").toString();
-    Settings.endGroup();
+    QSettings* settings = appSettings->getSettings();
+    settings->beginGroup("Jenkins");
+    JENKINS_ADDRESS =  settings->value("url").toString();
+    JENKINS_USERNAME =  settings->value("username").toString();
+    JENKINS_PASSWORD =  settings->value("password").toString();
+    qCritical() << JENKINS_ADDRESS;
+    settings->endGroup();
 }
 
 
@@ -952,14 +954,21 @@ void MedeaWindow::on_actionImportJenkinsNode()
 {
     progressAction = "Importing Jenkins";
 
-    QString program = "python Jenkins-Groovy-Runner.py";
-    program +=" -s " + JENKINS_ADDRESS;
-    program +=" -u " + JENKINS_USERNAME;
-    program +=" -p " + JENKINS_PASSWORD;
-    program +=" -g  Jenkins_Construct_GraphMLNodesList.groovy";
+    QString groovyScript = "Jenkins_Construct_GraphMLNodesList.groovy";
+
+    QString program = "java -jar jenkins-cli.jar";
+    program += " -s " + JENKINS_ADDRESS;
+    program += " groovy " + groovyScript;
+    program += " --username " + JENKINS_USERNAME;
+    program += " --password " + JENKINS_PASSWORD;
 
     myProcess = new QProcess(this);
-    myProcess->setWorkingDirectory(DEPGEN_ROOT + "/scripts");
+    QDir dir;
+
+    myProcess->setWorkingDirectory(dir.absolutePath() + "/Resources/Scripts");
+    qCritical() << myProcess->workingDirectory();
+    qCritical() << program;
+    //myProcess->setWorkingDirectory(DEPGEN_ROOT + "/scripts");
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(loadJenkinsData(int)));
     myProcess->start(program);
 }
@@ -1767,6 +1776,7 @@ void MedeaWindow::updateDataTable()
  */
 void MedeaWindow::loadJenkinsData(int code)
 {
+    qCritical() << "Load Jenkins Data";
     if(code == 0){
         QStringList files;
         files << myProcess->readAll();

@@ -244,7 +244,8 @@ private:
 
     QThread* thread;
     QProcess *myProcess;
-    QString DEPGEN_ROOT;
+
+    //QString DEPGEN_ROOT;
     QString JENKINS_ADDRESS;
     QString JENKINS_USERNAME;
     QString JENKINS_PASSWORD;
