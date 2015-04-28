@@ -158,13 +158,14 @@ public slots:
     void toggleGridLines(bool gridOn);
     void autoCenterAspects(bool center);
     void selectNodeOnConstruction(bool select);
-    void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
-    void constructGUIItem(GraphML* item);
-    void destructGUIItem(QString ID);
-
     void showManagementComponents(bool show);
+    void toggleZoomAnchor(bool underMouse);
 
     void setRubberBandMode(bool On);
+    void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
+
+    void constructGUIItem(GraphML* item);
+    void destructGUIItem(QString ID);
 
     void showToolbar(QPoint position);
     void toolbarClosed();

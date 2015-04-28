@@ -93,5 +93,6 @@
         <file>Resources/Icons/alignVertically.png</file>
         <file>Resources/Icons/hardwareConnections.png</file>
         <file>Resources/Icons/connections.png</file>
+        <file>Resources/Icons/connectedHardwareNode.png</file>
     </qresource>
 </RCC>

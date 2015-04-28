@@ -220,13 +220,18 @@ void DockNodeItem::setupLayout()
     }
 
     if (!fileLabel) {
-        QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
-        QImage scaledImage = image->scaled(width(),
-                                           height()-textLabel->height(),
-                                           Qt::KeepAspectRatio,
-                                           Qt::SmoothTransformation);
 
-        QLabel* imageLabel = new QLabel(this);
+        QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
+        QImage scaledImage = scaleImage(image);
+
+        // if this dock item's kind is a HardwareNode, store 2 scaled
+        // images to switch between for when highlighting dock item
+        if (kind == "HardwareNode") {
+            defaultImg = scaledImage;
+            highlightImg = scaleImage(new QImage(":/Resources/Icons/connectedHardwareNode.png"));
+        }
+
+        imageLabel = new QLabel(this);
         imageLabel->setBackgroundRole(QPalette::Base);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
@@ -238,7 +243,6 @@ void DockNodeItem::setupLayout()
     layout->setAlignment(textLabel, Qt::AlignHCenter);
 
     setFlat(true);
-    setStyleSheet("margin: 0px; padding: 0px;");
     setLayout(layout);
 }
 
@@ -291,18 +295,32 @@ void DockNodeItem::updateTextLabel()
 void DockNodeItem::updateStyleSheet()
 {
     if (fileLabel) {
+        QString textLabelBackground;
         if (expanded) {
-            textLabel->setStyleSheet("margin: 1px 0px 0px;"
-                                     "padding: 2px 0px 2px;"
-                                     "border-radius: 5px;"
-                                     "background-color: rgba(208,197,134,0.85);");
+            textLabelBackground = "background-color: rgba(208,197,134,0.85);";
         } else {
-            textLabel->setStyleSheet("margin: 1px 0px 0px;"
-                                     "padding: 2px 0px 2px;"
-                                     "border-radius: 5px;"
-                                     "background-color: rgba(138,127,64,0.75);");
+            textLabelBackground = "background-color: rgba(138,127,64,0.75);";
         }
+        textLabel->setStyleSheet("margin: 1px 0px 0px;"
+                                 "padding: 2px 0px 2px;"
+                                 "border-radius: 5px;"
+                                 + textLabelBackground);
     }
+}
+
+
+/**
+ * @brief DockNodeItem::scaleImage
+ * @param img
+ * @return
+ */
+QImage DockNodeItem::scaleImage(QImage* img)
+{
+    QImage scaledImage = img->scaled(width(),
+                                     height()-textLabel->height(),
+                                     Qt::KeepAspectRatio,
+                                     Qt::SmoothTransformation);
+    return scaledImage;
 }
 
 
@@ -313,8 +331,13 @@ void DockNodeItem::updateStyleSheet()
  */
 void DockNodeItem::paintEvent(QPaintEvent *e)
 {
-    setStyleSheet("QPushButton:hover{"
-                  "background-color: rgba(0,0,0,0);"
+    setStyleSheet("QPushButton{"
+                  "background-color: rgba(200,0,0,0);"
+                  "margin: 0px;"
+                  "padding: 0px;"
+                  "}"
+
+                  "QPushButton:hover{"
                   "border: 1px solid black;"
                   "border-radius: 5px;"
                   "}");
@@ -416,6 +439,21 @@ void DockNodeItem::childDockItemHidden()
         hide();
     } else {
         show();
+    }
+}
+
+
+/**
+ * @brief DockNodeItem::highlightDockItem
+ * This adds/removes highlight to this dock item.
+ * @param node
+ */
+void DockNodeItem::highlightDockItem(Node *node)
+{
+    if (node && node == getNodeItem()->getNode()) {
+        imageLabel->setPixmap(QPixmap::fromImage(highlightImg));
+    } else {
+        imageLabel->setPixmap(QPixmap::fromImage(defaultImg));
     }
 }
 

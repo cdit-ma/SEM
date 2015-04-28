@@ -53,11 +53,14 @@ public slots:
 
     void childDockItemHidden();
 
+    void highlightDockItem(Node* node);
+
 private:
     void setupLayout();
     void connectToNodeItem();
     void updateTextLabel();
     void updateStyleSheet();
+    QImage scaleImage(QImage* img);
 
     NodeItem* nodeItem;
     DockNodeItem* parentDockItem;
@@ -67,6 +70,10 @@ private:
     QString label;
 
     QLabel* textLabel;
+    QLabel* imageLabel;
+
+    QImage defaultImg;
+    QImage highlightImg;
 
     bool fileLabel;
     bool expanded;

@@ -167,8 +167,9 @@ private:
     QAction* model_clearModel;
     QAction* model_sortModel;
     QAction* settings_autoCenterView;
-    QAction* settings_selectOnConstruction;
+    QAction* settings_viewZoomAnchor;
     QAction* settings_showGridLines;
+    QAction* settings_selectOnConstruction;
     QAction* settings_ChangeSettings;
 
     DockToggleButton* partsButton;

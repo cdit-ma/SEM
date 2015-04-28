@@ -25,8 +25,6 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
     hardware_notAllowedKinds.append("ComponentImpl");
     hardware_notAllowedKinds.append("HardwareNode");
     setNotAllowedKinds(hardware_notAllowedKinds);
-
-    component = 0;
 }
 
 
@@ -38,24 +36,18 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
 void HardwareDockScrollArea::dockNodeItemClicked()
 {
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
-    Node* selectedNode;
-    if (component) {
-        selectedNode = component;
-        component = 0;
-    } else {
-        selectedNode = getNodeView()->getSelectedNode();
-    }
+    Node* senderNode = sender->getNodeItem()->getNode();
+    Node* selectedNode = getNodeView()->getSelectedNode();
 
     if (selectedNode) {
         QString nodeKind = selectedNode->getDataValue("kind");
         // are there any other kinds I should care about?
         if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance") {
-            foreach (Edge *edge, selectedNode->getEdges()) {
-                if (edge->getDestination() != sender->getNodeItem()->getNode()) {
-                    emit dock_destructEdge(edge);
-                }
+            Edge* hardwareEdge = getHardwareConnection(selectedNode);
+            if (hardwareEdge && hardwareEdge->getDestination() != senderNode) {
+                emit dock_destructEdge(hardwareEdge);
             }
-            getNodeView()->view_ConstructEdge(getNodeView()->getSelectedNode(), sender->getNodeItem()->getNode());
+            getNodeView()->view_ConstructEdge(selectedNode, senderNode);
         }
     }
 }
@@ -70,14 +62,29 @@ void HardwareDockScrollArea::updateDock()
 {
     DockScrollArea::updateDock();
 
-    // special case - ComponentInstance
-    // it's only an allowed kind if it has a definition
-    if (getCurrentNodeItem() && getCurrentNodeItem()->getNodeKind() == "ComponentInstance") {
-        Node* inst = getCurrentNodeItem()->getNode();
-        if (!inst->getDefinition()) {
-            getParentButton()->enableDock(false);
+    if (getCurrentNodeItem()) {
+
+        QString nodeKind = getCurrentNodeItem()->getNodeKind();
+        Node* node = getCurrentNodeItem()->getNode();
+
+        // special case - ComponentInstance
+        // it's only an allowed kind if it has a definition
+        if (nodeKind == "ComponentInstance") {
+            if (!node->getDefinition()) {
+                getParentButton()->enableDock(false);
+            }
         }
-        return;
+
+        if (getParentButton()->isEnabled()) {
+            if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance") {
+                // check if selected node is already connected to a hardware node
+                // if it is, highlight corresponding hardware dock node item
+                Edge* hardwareEdge = getHardwareConnection(node);
+                if (hardwareEdge) {
+                    emit dock_higlightDockItem(hardwareEdge->getDestination());
+                }
+            }
+        }
     }
 }
 
@@ -94,5 +101,22 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
         DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
         addDockNodeItem(dockItem);
         nodeItem->setHidden(true);
+        connect(this, SIGNAL(dock_higlightDockItem(Node*)), dockItem, SLOT(highlightDockItem(Node*)));
     }
+}
+
+
+/**
+ * @brief HardwareDockScrollArea::getHardwareConnection
+ * @param selectedNode
+ * @return
+ */
+Edge* HardwareDockScrollArea::getHardwareConnection(Node *selectedNode)
+{
+    foreach (Edge *edge, selectedNode->getEdges()) {
+        if (edge->getDestination()->getDataValue("kind") == "HardwareNode") {
+            return edge;
+        }
+    }
+    return 0;
 }

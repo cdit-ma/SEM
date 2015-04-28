@@ -330,16 +330,19 @@ void MedeaWindow::setupMenu(QPushButton *button)
     settings_showGridLines = settings_Menu->addAction("Use Grid Lines");
     settings_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
     settings_selectOnConstruction = settings_Menu->addAction("Select Node On Construction");
+    settings_Menu->addSeparator();
     settings_autoCenterView = settings_Menu->addAction("Automatically Center Views");
+    settings_viewZoomAnchor = settings_Menu->addAction("Zoom View Under Mouse");
     settings_Menu->addSeparator();
     settings_ChangeSettings = settings_Menu->addAction("More Settings...");
 
     button->setMenu(menu);
 
     // setup toggle actions
-    settings_autoCenterView->setCheckable(true);
     settings_showGridLines->setCheckable(true);
     settings_selectOnConstruction->setCheckable(true);
+    settings_autoCenterView->setCheckable(true);
+    settings_viewZoomAnchor->setCheckable(true);
     view_showManagementComponents->setCheckable(true);
 
     // initially disable model & goto menu actions
@@ -726,9 +729,10 @@ void MedeaWindow::makeConnections()
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
 
     connect(settings_ChangeSettings, SIGNAL(triggered()), appSettings, SLOT(launchSettingsUI()));
-    connect(settings_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
     connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
     connect(settings_selectOnConstruction, SIGNAL(triggered(bool)), nodeView, SLOT(selectNodeOnConstruction(bool)));
+    connect(settings_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
+    connect(settings_viewZoomAnchor, SIGNAL(triggered(bool)), nodeView, SLOT(toggleZoomAnchor(bool)));
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
@@ -742,7 +746,7 @@ void MedeaWindow::makeConnections()
     connect(viewAspectsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(nodeKindsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
 
-    //connect(searchOptionMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
+    connect(searchOptionMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
     connect(viewAspectsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
     connect(nodeKindsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
 
@@ -880,18 +884,6 @@ void MedeaWindow::setupInitialSettings()
 
     // this only needs to happen once, the whole time the application is open
     partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
-
-    /*
-    // setup search option menu once the nodeView and controller have been
-    // constructed and connected - should only need to do this once
-    QStringList nodeKinds = nodeView->getConstructableNodeKinds();
-    nodeKinds.removeDuplicates();
-    nodeKinds.sort();
-    foreach (QString kind, nodeKinds) {
-        QAction* action = searchOptionMenu->addAction(kind);
-        action->setCheckable(true);
-    }
-    */
 
     // populate view aspects menu  once the nodeView and controller have been
     // constructed and connected - should only need to do this once
@@ -1612,15 +1604,8 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
 
     if (widget && menu) {
         if (checked) {
-            menu->exec(widget->mapToGlobal(widget->rect().bottomLeft()));
+            menu->popup(widget->mapToGlobal(widget->rect().bottomLeft()));
         } else {
-            /*
-            if (menu->isVisible()) {
-                menu->close();
-            } else {
-                senderButton->clicked(true);
-            }
-            */
             menu->close();
         }
     }
@@ -1636,7 +1621,20 @@ void MedeaWindow::searchMenuClosed()
     QMenu* menu = qobject_cast<QMenu*>(QObject::sender());
     QPushButton* button = qobject_cast<QPushButton*>(menu->parentWidget());
     if (button && button->isChecked()) {
+
+        //close this levels button
         button->setChecked(false);
+
+        //get the point of the cursor and the main SearchOptionMenu
+        QPoint topLeft = searchOptionMenu->mapToParent(searchOptionMenu->rect().topLeft());
+        QPoint bottomRight = searchOptionMenu->mapToParent(searchOptionMenu->rect().bottomRight());
+        QRect menuRect(topLeft, bottomRight);
+
+        //if the mouse is not within the confines of the searchOptionMenu, then close the searchOptionMenu too
+        if (!menuRect.contains(QCursor::pos())) {
+            searchOptionMenu->close();
+            searchOptionButton->setChecked(false);
+        }
     }
 }
 

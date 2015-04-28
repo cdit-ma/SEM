@@ -330,9 +330,12 @@ void NodeItem::removeChildNodeItem(NodeItem *child)
 
 bool NodeItem::intersectsRectangle(QRectF sceneRect)
 {
+    /*
     QRectF itemRectangle = boundingRect();
     itemRectangle.moveTo(scenePos());
     return sceneRect.contains(itemRectangle);
+    */
+    return sceneRect.contains(sceneBoundingRect());
 }
 
 
@@ -1463,7 +1466,7 @@ void NodeItem::setupBrushes()
         color = QColor(0,250,250);
     }
     else if(nodeKind== "HardwareCluster"){
-        color = QColor(200,200,150);
+        color = QColor(200,200,200);
     }
 
     /*

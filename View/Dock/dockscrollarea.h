@@ -27,6 +27,7 @@ public:
 
     void addDockNodeItem(DockNodeItem* item, bool addToLayout = true);
     DockNodeItem* getDockNodeItem(NodeItem* item);
+    DockNodeItem* getDockNodeItem(Node* node);
     QList<DockNodeItem*> getDockNodeItems();
 
     NodeItem* getCurrentNodeItem();

@@ -12,6 +12,7 @@ public:
     
 signals:
     void dock_destructEdge(Edge* edge);
+    void dock_higlightDockItem(Node* node);
 
 public slots:
     virtual void dockNodeItemClicked();
@@ -20,8 +21,9 @@ public slots:
     void nodeConstructed(NodeItem* nodeItem);
 
 private:
+    Edge* getHardwareConnection(Node* selectedNode);
+
     QStringList hardware_notAllowedKinds;
-    Node* component;
 
 };
 

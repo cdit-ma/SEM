@@ -303,7 +303,7 @@ void ToolbarWidget::setupToolBar()
     connectButton->setIconSize(buttonSize*0.6);
     deleteButton->setIconSize(buttonSize*0.75);
     showNewViewButton->setIconSize(buttonSize*0.55);
-    showConnectionsButton->setIconSize(buttonSize*0.75);
+    showConnectionsButton->setIconSize(buttonSize*0.7);
     definitionButton->setIconSize(buttonSize);
     implementationButton->setIconSize(buttonSize);
     instancesButton->setIconSize(buttonSize*0.65);

@@ -56,9 +56,9 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //Set QT Options for this QGraphicsView
     setDragMode(ScrollHandDrag);
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
-    setTransformationAnchor(QGraphicsView::AnchorViewCenter);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -2015,10 +2015,9 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
     nodeItems << modelItem;
 
     clearSelection();
+
     while(nodeItems.size() > 0){
         NodeItem* currentNode = nodeItems.takeFirst();
-        Node* node = currentNode->getNode();
-
         if(currentNode->intersectsRectangle(selectionRectangle) && currentNode->isVisible() && currentNode->isPainted()){
             appendToSelection(currentNode);
         }else{
@@ -2071,6 +2070,22 @@ void NodeView::showManagementComponents(bool show)
                 nodeItem->aspectsChanged(currentAspects);
             }
         }
+    }
+}
+
+
+/**
+ * @brief NodeView::toggleZoomAnchor
+ * This slot switches the view's zoom anchor.
+ * This is called by one of the menu action's in MEDEA.
+ * @param underMouse
+ */
+void NodeView::toggleZoomAnchor(bool underMouse)
+{
+    if (underMouse) {
+        setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
+    } else {
+        setTransformationAnchor(QGraphicsView::AnchorViewCenter);
     }
 }
 

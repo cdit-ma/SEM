@@ -151,6 +151,21 @@ DockNodeItem *DockScrollArea::getDockNodeItem(NodeItem *item)
 
 
 /**
+ * @brief DockScrollArea::getDockNodeItem
+ * @param node
+ * @return
+ */
+DockNodeItem *DockScrollArea::getDockNodeItem(Node *node)
+{
+   if (node) {
+       NodeItem* nodeItem = getNodeView()->getNodeItemFromNode(node);
+       return getDockNodeItem(nodeItem);
+   }
+   return 0;
+}
+
+
+/**
  * @brief DockScrollArea::getDockNodeItems
  * Returns the dock node items contained in this dock.
  * @return
