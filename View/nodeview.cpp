@@ -1179,8 +1179,6 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
             selectedIDs.removeAll(ID);
         }
 
-
-
         if(item){
             //disconnect(item, SIGNAL(GraphMLItem_SetGraphMLData(GraphMLItem*,QString,QString)), this, SLOT(setGraphMLData(GraphMLItem*,QString,QString)));
             if(scene()->items().contains(item)){
