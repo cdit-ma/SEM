@@ -1391,8 +1391,7 @@ void NodeItem::setupAspect()
         if(nodeKind == "ManagementComponent"){
             viewAspects.append("Hardware");
             viewAspects.append("Assembly");
-        }
-        else if(nodeKind == "HardwareDefinitions"){
+        }else if(nodeKind == "HardwareDefinitions"){
             viewAspects.append("Hardware");
         }else if(nodeKind == "AssemblyDefinitions"){
             viewAspects.append("Assembly");
@@ -1553,17 +1552,19 @@ void NodeItem::updateParent()
 
 
 void NodeItem::aspectsChanged(QStringList aspects)
-{
+{    
+    currentViewAspects = aspects;
+
     if(hidden || !PAINT_OBJECT || permanentlyInvisible){
         return;
     }
+
     if(this->getParentNodeItem() && !getParentNodeItem()->isExpanded()){
         return;
     }
 
     //bool prevVisible = isVisible();
 
-    currentViewAspects = aspects;
     setVisible(isInAspect());
 
     /*

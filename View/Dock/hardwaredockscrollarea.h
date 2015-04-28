@@ -12,7 +12,7 @@ public:
     
 signals:
     void dock_destructEdge(Edge* edge);
-    void dock_higlightDockItem(Node* node);
+    void dock_higlightDockItem(Node* node = 0);
 
 public slots:
     virtual void dockNodeItemClicked();

@@ -64,6 +64,8 @@ void HardwareDockScrollArea::updateDock()
 
     if (getCurrentNodeItem()) {
 
+        qDebug() << "Update Hardware dock";
+
         QString nodeKind = getCurrentNodeItem()->getNodeKind();
         Node* node = getCurrentNodeItem()->getNode();
 
@@ -72,6 +74,7 @@ void HardwareDockScrollArea::updateDock()
         if (nodeKind == "ComponentInstance") {
             if (!node->getDefinition()) {
                 getParentButton()->enableDock(false);
+                return;
             }
         }
 
@@ -82,6 +85,8 @@ void HardwareDockScrollArea::updateDock()
                 Edge* hardwareEdge = getHardwareConnection(node);
                 if (hardwareEdge) {
                     emit dock_higlightDockItem(hardwareEdge->getDestination());
+                } else {
+                    emit dock_higlightDockItem();
                 }
             }
         }

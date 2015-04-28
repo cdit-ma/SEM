@@ -2114,7 +2114,7 @@ void NodeView::fitToScreen(QList<NodeItem*> itemsToCenter, double extraSpace)
     // go through each item and store the left/right/top/bottom most coordinates
     // of the visible items to create the visible itemsBoundingRect to center on
     foreach (NodeItem* nodeItem, itemsToCenter) {
-        if (nodeItem && nodeItem->isPainted() && nodeItem->isInAspect()) {
+        if (nodeItem && nodeItem->isPainted() && !nodeItem->isHidden() && nodeItem->isInAspect()) {
             QPointF pf = nodeItem->scenePos();
             if (pf.x() < leftMostX) {
                 leftMostX = pf.x();
