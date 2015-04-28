@@ -46,7 +46,7 @@ public slots:
     virtual void dockNodeItemClicked() = 0;
     virtual void updateDock();
 
-    void updateCurrentNodeItem(Node* selectedNode);
+    void updateCurrentNodeItem();
 
     void activate();
     void clear();

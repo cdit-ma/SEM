@@ -87,26 +87,26 @@ void DefinitionsDockScrollArea::updateDock()
 {
     DockScrollArea::updateDock();
 
-    // special cases - ComponentInstance & ComponentImpl
-    // they're only allowed kinds if they don't have a definition
     if (getCurrentNodeItem()) {
+
         QString nodeKind =  getCurrentNodeItem()->getNodeKind();
+
+        // check for special cases - ComponentInstance & ComponentImpl
+        // they're only allowed kinds if they don't have a definition
+        // if the selected item is the BehaviourDefinitions or a ComponentImpl without
+        // a definition, hide Components that already have an implementation
+
         if (nodeKind == "ComponentInstance" || nodeKind == "ComponentImpl") {
             Node* node = getCurrentNodeItem()->getNode();
             if (node->getDefinition()) {
                 getParentButton()->enableDock(false);
-                return;
             } else if (nodeKind == "ComponentImpl") {
-                // if the selected item is a ComponentImpl without a definition,
-                // hide Components that already have an implementation
                 hideImplementedComponents();
             }
         } else if (nodeKind == "BehaviourDefinitions") {
-            // if the selected item is the BehaviourDefinitions,
-            // hide Components that already have an implementation
             hideImplementedComponents();
         } else {
-            // make sure all Components are shown for all the other allowed kinds
+            // make sure all the Components are shown for all the other allowed kinds
             showAllComponents();
         }
     }
@@ -201,9 +201,9 @@ void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
         }
     }
 
-    // if the destructed node was the previously selected, clear this donc's selection
+    // if the destructed node was selected before it was destroyed, clear this dock's selection
     if (!getNodeView()->getSelectedNode()) {
-        DockScrollArea::updateCurrentNodeItem(0);
+        DockScrollArea::updateCurrentNodeItem();
     }
 }
 
@@ -293,14 +293,14 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
             }
         }
     }
-
 }
 
 
 /**
  * @brief DefinitionsDockScrollArea::hideImplementedComponents
- * This method is called when a ComponentImpl that's not connected to a definition is selected.
- * It hides all the Components that are already connected to a ComponentImpl.
+ * This method is called when the BehaviourDefinitions or a
+ * ComponentImpl that is not connected to a definition is selected.
+ * It hides all the Components that already have an implementation.
  */
 void DefinitionsDockScrollArea::hideImplementedComponents()
 {
@@ -316,7 +316,7 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
 /**
  * @brief DefinitionsDockScrollArea::showAllComponents
  * This is called everytime a node item is selected.
- * It initially shows all the Components this dock before updateDock() filters it.
+ * It shows all the Components in this dock.
  */
 void DefinitionsDockScrollArea::showAllComponents()
 {

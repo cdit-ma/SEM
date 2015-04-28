@@ -92,7 +92,6 @@ void MedeaWindow::initialiseGUI()
     nodeView = new NodeView();
     toolbar = new QToolBar();
 
-
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
 
@@ -777,23 +776,21 @@ void MedeaWindow::makeConnections()
     connect(definitionsButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
 
-    connect(nodeView, SIGNAL(view_enableDocks(bool)), partsButton, SLOT(enableDock(bool)));
-    connect(nodeView, SIGNAL(view_enableDocks(bool)), compDefinitionsButton, SLOT(enableDock(bool)));
-    connect(nodeView, SIGNAL(view_enableDocks(bool)), hardwareNodesButton, SLOT(enableDock(bool)));
-
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
 
-    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), partsDock, SLOT(updateCurrentNodeItem(Node*)));
-    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), definitionsDock, SLOT(updateCurrentNodeItem(Node*)));
-    connect(nodeView, SIGNAL(view_nodeSelected(Node*)), hardwareDock, SLOT(updateCurrentNodeItem(Node*)));
+    connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
+    connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
+    connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
 
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
 
+    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
+    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(nodeDestructed()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
-    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(nodeDestructed()));
+    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(nodeDestructed(NodeItem*)));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
@@ -1633,7 +1630,11 @@ void MedeaWindow::searchMenuClosed()
         //if the mouse is not within the confines of the searchOptionMenu, then close the searchOptionMenu too
         if (!menuRect.contains(QCursor::pos())) {
             searchOptionMenu->close();
-            searchOptionButton->setChecked(false);
+        }
+
+        //if user has clicked on button, catch that case to not re-open the menu
+        if (searchOptionButton->rect().contains(searchOptionButton->mapFromGlobal(QCursor::pos()))) {
+            searchOptionButton->setChecked(true);
         }
     }
 }

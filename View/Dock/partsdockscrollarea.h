@@ -17,10 +17,7 @@ public slots:
     virtual void dockNodeItemClicked();
     virtual void updateDock();
 
-    void nodeDestructed();
-
 private:    
-    QStringList parts_notAllowedKinds;
     QStringList displayedItems;
 
 };

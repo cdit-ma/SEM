@@ -11,18 +11,7 @@
  * @param parent
  */
 PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent) :
-    DockScrollArea(label, view, parent)
-{
-    // populate list of not allowed kinds
-    parts_notAllowedKinds.append("Model");
-    parts_notAllowedKinds.append("DeploymentDefinitions");
-    parts_notAllowedKinds.append("HardwareDefinitions");
-    parts_notAllowedKinds.append("ManagementComponent");
-    parts_notAllowedKinds.append("HardwareCluster");
-    parts_notAllowedKinds.append("HardwareNode");
-    parts_notAllowedKinds.append("ComponentInstance");
-    setNotAllowedKinds(parts_notAllowedKinds);
-}
+    DockScrollArea(label, view, parent) {}
 
 
 /**
@@ -33,22 +22,24 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
  */
 void PartsDockScrollArea::updateDock()
 {
-    // check selected node kind against notAllowedKinds list first
+    // this will enable/disable the dock depending on whether there's a selected item
     DockScrollArea::updateDock();
     if (!getParentButton()->isEnabled()) {
         return;
     }
 
-    // when the selected node can't adopt anything, disbale this dock and its parentButton
-    if (getDockNodeItems().count() == 0) {
+    // NOTE: AdoptableNodeList from view is incorrect when deleteing node using undo.
+    QStringList itemsToDisplay = getAdoptableNodeListFromView();
+    QStringList newDisplayedItems;
+
+    //qDebug() << "itemsToDisplay#: " << itemsToDisplay.count();
+    //qDebug() << "displayedItems#: " << displayedItems.count();
+
+    // when the selected node can't adopt anything, disbale the dock and its parentButton
+    if (itemsToDisplay.count() == 0) {
         getParentButton()->enableDock(false);
         return;
     }
-
-    // NOTE: AdoptableNodeList from view is incorrect when deleteing node using undo.
-
-    QStringList itemsToDisplay = getAdoptableNodeListFromView();
-    QStringList newDisplayedItems;
 
     // compare the list of itemsToDisplay against the list of displayedItems
     for (int i = 0; i < displayedItems.count(); i++) {
@@ -71,15 +62,6 @@ void PartsDockScrollArea::updateDock()
 
     // update list of currently displayed dock node items
     displayedItems = newDisplayedItems;
-}
-
-
-/**
- * @brief PartsDockScrollArea::nodeDestructed
- */
-void PartsDockScrollArea::nodeDestructed()
-{
-   DockScrollArea::updateCurrentNodeItem(0);
 }
 
 

@@ -19,9 +19,11 @@ public slots:
     virtual void updateDock();
 
     void nodeConstructed(NodeItem* nodeItem);
+    void nodeDestructed(NodeItem* nodeItem);
 
 private:
     Edge* getHardwareConnection(Node* selectedNode);
+    void highlightHardwareConnection();
 
     QStringList hardware_notAllowedKinds;
 

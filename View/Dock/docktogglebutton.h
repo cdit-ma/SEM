@@ -28,6 +28,7 @@ public:
     QString getKind();
 
     void setEnabled(bool enable);
+    bool isEnabled();
 
 protected:
     void paintEvent(QPaintEvent* e);
@@ -62,6 +63,7 @@ private:
     int width;
     int height;
     bool selected;
+    bool enabled;
 
 };
 

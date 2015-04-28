@@ -113,8 +113,6 @@ public slots:
     //Constructs and Edge between Source and Destination
     void constructEdge(Node* source, Node* destination);
 
-    void destructHardwareEdge(Edge* edge);
-
     void constructComponentInstance(Node *assembly, Node* definition, QPointF point);
     void constructConnectedComponents(Node* parent, Node* connectedNode, QString kind , QPointF relativePosition);
 

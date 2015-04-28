@@ -22,6 +22,7 @@ DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *
     QPushButton(parent)
 {
     selected = false;
+    enabled = false;
 
     defaultPenWidth = 1;
     selectedPenWidth = 2;
@@ -148,7 +149,7 @@ void DockToggleButton::paintEvent(QPaintEvent *e)
 
 
 /**
- * @brief DockToggleButton::hideGroupBox
+ * @brief DockToggleButton::hideContainer
  * When this button's groupbox was the last one displayed,
  * this method is called by the main window to make sure that
  * it is hidden before another groupbox is displayed.
@@ -227,16 +228,20 @@ void DockToggleButton::enableDock(bool enable)
 void DockToggleButton::setColor(int state)
 {
     penWidth = defaultPenWidth;
-    if (state == DEFAULT) {
+    switch (state) {
+    case DEFAULT:
         penColor = defaultPenColor;
         brushColor = defaultBrushColor;
-    } else if (state == DISABLED) {
+        break;
+    case DISABLED:
         penColor = disabledPenColor;
         brushColor = disabledBrushColor;
-    } else if (state = SELECTED) {
+        break;
+    case SELECTED:
         penWidth = selectedPenWidth;
         penColor = selectedPenColor;
         brushColor = selectedBrushColor;
+        break;
     }
     repaint();
 }
@@ -249,16 +254,27 @@ void DockToggleButton::setColor(int state)
 void DockToggleButton::setEnabled(bool enable)
 {
     QPushButton::setEnabled(enable);
-
-    // if there is no change to this button's enabled state, don't change its colour
-    if (isEnabled() == enable) {
-        return;
-    }
+    enabled = enable;
 
     if (enable) {
-        setColor(DEFAULT);
+        if (selected) {
+            setColor(SELECTED);
+        } else {
+            setColor(DEFAULT);
+        }
     } else {
         setSelected(false);
         setColor(DISABLED);
     }
+}
+
+
+/**
+ * @brief DockToggleButton::isEnabled
+ * QT's isEnabled() is as "reliable" as Qt's isVisible().
+ * @return
+ */
+bool DockToggleButton::isEnabled()
+{
+    return enabled;
 }

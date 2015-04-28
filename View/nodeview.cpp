@@ -425,13 +425,15 @@ void NodeView::showConnectedNodes()
     if (node) {
 
         QList<NodeItem*> connectedNodeItems;
+
+        // store the outer edges of the selected node
         foreach (Edge* edge, node->getEdges()) {
-            Node* connectedNode = edge->getSource();
-            if (connectedNode == node) {
-                connectedNode = edge->getDestination();
+            if (!node->isAncestorOf(edge->getSource())) {
+                connectedNodeItems.append(getNodeItemFromNode(edge->getSource()));
             }
-            NodeItem* connectedNodeItem = getNodeItemFromNode(connectedNode);
-            connectedNodeItems.append(connectedNodeItem);
+            if (!node->isAncestorOf(edge->getDestination())) {
+                connectedNodeItems.append(getNodeItemFromNode(edge->getDestination()));
+            }
         }
 
         if (connectedNodeItems.count() > 0) {
@@ -937,8 +939,8 @@ void NodeView::componentInstanceConstructed(Node *node)
  */
 void NodeView::destructEdge(Edge *edge)
 {
-    getNodeItemFromNode(edge->getDestination())->setHidden(true);
-    view_DestructEdge(edge);
+    //getNodeItemFromNode(edge->getDestination())->setHidden(true);
+    view_Delete(QStringList() << edge->getID());
 }
 
 
@@ -1191,6 +1193,22 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
 
                 // send signal to docks when an edge has been destructed
                 if (item->isEdgeItem()) {
+                    NodeItem* destination = ((EdgeItem*)item)->getDestination();
+                    if(destination->getNodeKind() == "HardwareNode"){
+                        Node* node = (Node*)destination->getGraphML();
+                        bool hasEdges = false;
+
+                        foreach(Edge* edge, node->getEdges()){
+                            if(edge && edge->isDeploymentLink() && edge->getID() != ID){
+                                hasEdges = true;
+                            }
+                        }
+                        if(!hasEdges){
+                            destination->setHidden(true);
+                        }
+                    }
+
+
                     view_edgeDestructed();
                 }
 
@@ -1236,7 +1254,7 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
         toolbar->showDefinitionButton(hasDefn);
         toolbar->showImplementationButton(hasImpl);
 
-        emit view_nodeSelected(getSelectedNode());
+        emit view_nodeSelected();
     }
 
     //fitSelectionInView();
@@ -1903,7 +1921,7 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
 
     // update docks
     if (updateDocks) {
-        emit view_nodeSelected(0);
+        emit view_nodeSelected();
     }
 }
 

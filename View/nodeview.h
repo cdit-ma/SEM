@@ -104,13 +104,10 @@ signals:
     void view_ConstructComponentInstance(Node* parent, Node* definition, QPointF position);
     void view_ClearHistoryStates();
 
-    void view_DestructEdge(Edge*);
-
     // signals for the docks
-    void view_enableDocks(bool enable);
     void view_nodeConstructed(NodeItem* nodeItem);
     void view_nodeDestructed(NodeItem* nodeItem);
-    void view_nodeSelected(Node* node);
+    void view_nodeSelected();
     void view_edgeConstructed();
     void view_edgeDestructed();
 

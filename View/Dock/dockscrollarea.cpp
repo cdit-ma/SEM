@@ -38,9 +38,9 @@ void DockScrollArea::setNotAllowedKinds(QStringList kinds)
  * @brief DockScrollArea::updateCurrentNodeItem
  * This sets nodeItem to be the currently selected node item.
  */
-void DockScrollArea::updateCurrentNodeItem(Node* selectedNode)
+void DockScrollArea::updateCurrentNodeItem()
 {
-    currentNodeItem = nodeView->getNodeItemFromNode(selectedNode);
+    currentNodeItem = nodeView->getSelectedNodeItem();
     updateDock();
 }
 
@@ -157,11 +157,8 @@ DockNodeItem *DockScrollArea::getDockNodeItem(NodeItem *item)
  */
 DockNodeItem *DockScrollArea::getDockNodeItem(Node *node)
 {
-   if (node) {
-       NodeItem* nodeItem = getNodeView()->getNodeItemFromNode(node);
-       return getDockNodeItem(nodeItem);
-   }
-   return 0;
+    NodeItem* nodeItem = getNodeView()->getNodeItemFromNode(node);
+    return getDockNodeItem(nodeItem);
 }
 
 
