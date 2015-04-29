@@ -8,6 +8,7 @@ QT       += core
 QT       += xml
 QT       += gui
 QT       += widgets
+QT       += xmlpatterns
 
 TARGET = MEDEA
 
@@ -84,7 +85,8 @@ HEADERS += \
     modeltester.h \
     GUI/appsettings.h \
     GUI/keyeditwidget.h \
-    GUI/searchitembutton.h
+    GUI/searchitembutton.h \
+    View/Validate/validatedialog.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -153,7 +155,8 @@ SOURCES += \
     modeltester.cpp \
     GUI/appsettings.cpp \
     GUI/keyeditwidget.cpp \
-    GUI/searchitembutton.cpp
+    GUI/searchitembutton.cpp \
+    View/Validate/validatedialog.cpp
 
 FORMS += \
 
@@ -163,7 +166,8 @@ RESOURCES += \
 OTHER_FILES += \
     Resources/Scripts/jenkins-cli.jar \
     Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy \
-    settings.ini
+    settings.ini \
+    Resources/Scripts/MEDEA.xsl
 
 #Copy Files to install directory
 JENKINSCLIJAR.path = $$OUT_PWD/Resources/Scripts/

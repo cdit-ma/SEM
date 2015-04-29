@@ -25,6 +25,9 @@
 #include <QItemSelectionModel>
 #include <QDebug>
 
+#include <QXmlQuery>
+#include <QXmlResultItems>
+
 #include "Controller/controller.h"
 
 #include "View/Table/comboboxtabledelegate.h"
@@ -38,6 +41,8 @@
 #include "View/Dock/hardwaredockscrollarea.h"
 
 #include "View/Toolbar/toolbarwidgetaction.h"
+
+#include "View/Validate/validatedialog.h"
 
 #include "GUI/searchitembutton.h"
 
@@ -81,6 +86,7 @@ private slots:
     void on_actionClearModel_triggered();
     void on_actionSortNode_triggered();
     void on_actionCenterNode_triggered();
+    void on_actionValidate_triggered();
 
     void on_actionPopupNewWindow();
 
@@ -253,6 +259,8 @@ private:
     QString JENKINS_PASSWORD;
 
     QString exportFileName;
+
+    ValidateDialog validateResults;
 
 };
 

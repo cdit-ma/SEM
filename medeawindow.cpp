@@ -345,7 +345,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_showManagementComponents->setCheckable(true);
 
     // initially disable model & goto menu actions
-    model_validateModel->setEnabled(false);
+    //model_validateModel->setEnabled(false);
     view_goToDefinition->setEnabled(false);
     view_goToImplementation->setEnabled(false);
 }
@@ -692,6 +692,8 @@ void MedeaWindow::resetGUI()
  */
 void MedeaWindow::makeConnections()
 {
+    validateResults.connectToWindow(this);
+
     connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
     connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setViewAspects(QStringList)));
     connect(nodeView, SIGNAL(view_updateGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
@@ -726,6 +728,7 @@ void MedeaWindow::makeConnections()
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
+    connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
 
     connect(settings_ChangeSettings, SIGNAL(triggered()), appSettings, SLOT(launchSettingsUI()));
     connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
@@ -1058,6 +1061,110 @@ void MedeaWindow::on_actionSortNode_triggered()
     } else {
         nodeView->sortEntireModel();
     }
+}
+
+
+/**
+ * @brief MedeaWindow::on_actionValidate_triggered
+ * This is called to validate a model, and will display a list of errors.
+ */
+void MedeaWindow::on_actionValidate_triggered()
+{
+    progressAction = "Validating Model";
+
+    nodeView->view_TriggerAction("Medea: Validate");
+
+    QDir dir;
+    QString absPath = dir.absolutePath();
+    QString scriptPath = absPath + "/Resources/Scripts";
+    //qDebug() << absPath;
+
+    // First export Model to temporary file in scripts directory
+    exportFileName = scriptPath + "/tmp.graphml";
+    emit window_ExportProject();
+
+    // transform .graphml to report.xml
+    // The MEDEA.xsl transform is produced by Schematron/iso_svrl_for_xslt1.xsl
+    QString program = "Xalan";
+    QStringList arguments;
+    QString inputFile = "tmp.graphml";
+    QString outputFile = "report.xml";
+    arguments << "-o" << outputFile
+              << inputFile
+              << "MEDEA.xsl";
+
+    QProcess *myProcess = new QProcess(this);
+    myProcess->setWorkingDirectory( scriptPath );
+
+    qDebug() << program << " " << arguments;
+
+    myProcess->start(program, arguments);
+    myProcess->waitForFinished();
+
+    // launch window of messages from report.xml
+    QString filename = scriptPath + "/report.xml";
+    QFile xmlFile(filename);
+    if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly))
+        return;
+
+    // Query the graphml to get a list of all Files to process.
+    QXmlQuery query;
+    query.bindVariable("graphmlFile", &xmlFile);
+    const QString queryMessages = QString("declare namespace svrl = \"http://purl.oclc.org/dsdl/svrl\"; doc('file:///%1')//svrl:schematron-output/svrl:failed-assert/string()")
+            .arg(xmlFile.fileName());
+    query.setQuery(queryMessages);
+    QStringList messagesResult;
+    query.evaluateTo(&messagesResult);
+
+    xmlFile.close();
+
+    validateResults.setupItemsTable(&messagesResult);
+    validateResults.show();
+/*
+    if (!messagesResult.empty())
+    {
+        QString message;
+        for (int i = 0; i < messagesResult.size(); ++i) {
+            qDebug() << messagesResult.at(i);
+        }
+    }
+
+    // if no items in validate result display message box
+    if (messagesResult.empty()) {
+        if (validateResults->isVisible()) {
+            validateResults->setVisible(false);
+        }
+        QMessageBox::information(this, "Validate Results", "No Errors Found   ", QMessageBox::Ok);
+        return;
+    }
+
+    // clear the list view and the old search items
+    for (int i = resultsLayout->count()-1; i >= 0; i--) {
+        // remove the layout item's widget, then remove the layout item
+        if (resultsLayout->itemAt(i)->widget()) {
+            delete resultsLayout->itemAt(i)->widget();
+        }
+    }
+
+    // for each item to display, create a button for it and add it to the results layout
+    for (int row = 0; row < messagesResult.count(); ++row) {
+        //itemsTable->insertRow(row);
+        QString reportMessage = (messagesResult)[row];
+        QString id = reportMessage.split('[').last().split(']').first();
+        QString message = reportMessage.split(']').last();
+
+        //QTableWidgetItem *name = new QTableWidgetItem(message);
+        //name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+        //itemsTable->setItem(row, 0, name);
+        GraphMLItem* guiItem = nodeView->getGraphMLItemFromHash(id);
+        SearchItemButton* searchItem = new SearchItemButton(guiItem, this);
+        searchItem->connectToWindow(this);
+        resultsLayout->addWidget(searchItem);
+    }
+
+    // show popup list view
+    validateResults->show();
+*/
 }
 
 
