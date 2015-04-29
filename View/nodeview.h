@@ -176,7 +176,7 @@ public slots:
     void sortEntireModel();
     void sortNode(Node* node, Node* topMostNode = 0);
 
-    void setAspects(QStringList aspects);
+    void setAspects(QStringList aspects, bool centerViewAspects = true);
     void sortAspects();
     void centerAspects();
 
@@ -203,6 +203,8 @@ public slots:
     void destructEdge(Edge* edge);
 
     void editableItemHasFocus(bool hasFocus);
+
+    void selectAndCenter(GraphMLItem* item = 0, QString ID = "");
 
 private:
     void alignSelectionOnGrid(ALIGN alignment = NONE);

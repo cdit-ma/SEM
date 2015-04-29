@@ -560,8 +560,9 @@ void NodeView::setRubberBandMode(bool On)
  * @brief NodeView::setAspects
  * This is called whenever the view aspect buttons are clicked.
  * @param aspects
+ * @param centerViewAspects
  */
-void NodeView::setAspects(QStringList aspects)
+void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
 {
     currentAspects = aspects;
 
@@ -569,7 +570,7 @@ void NodeView::setAspects(QStringList aspects)
     view_AspectsChanged(aspects);
     view_GUIAspectChanged(aspects);
 
-    if (!IS_SUB_VIEW && AUTO_CENTER_ASPECTS) {
+    if (!IS_SUB_VIEW && AUTO_CENTER_ASPECTS && centerViewAspects) {
         centerAspects();
     }
 
@@ -652,6 +653,46 @@ void NodeView::centerOnItem(GraphMLItem *item)
 void NodeView::editableItemHasFocus(bool hasFocus)
 {
     editingNodeItemLabel = hasFocus;
+}
+
+
+/**
+ * @brief NodeView::selectAndCenter
+ * @param ID
+ * @param item
+ */
+void NodeView::selectAndCenter(GraphMLItem *item, QString ID)
+{
+    if (!item) {
+        item = guiItems[ID];
+    }
+
+    if (item) {
+
+        NodeItem* nodeItem = qobject_cast<NodeItem*>(item);
+
+        // make sure the view aspect the the item belongs to is turned on
+        QStringList neededAspects = currentAspects;
+        foreach (QString aspect, nodeItem->getAspects()) {
+            if (!currentAspects.contains(aspect)) {
+                neededAspects.append(aspect);
+            }
+        }
+
+        // update view aspects
+        setAspects(neededAspects, false);
+
+        // make sure that the parent of nodeItem (if there is one) is expanded
+        NodeItem* parentItem = nodeItem->getParentNodeItem();
+        if (parentItem && !parentItem->isExpanded()) {
+            parentItem->expandItem(true);
+        }
+
+        // clear the selection, select the item and then center on it
+        clearSelection();
+        appendToSelection(nodeItem->getNode());
+        centerOnItem(item);
+    }
 }
 
 
@@ -1560,6 +1601,7 @@ void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
 
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
+    qDebug() << event->key();
     if(IS_MOVING){
         //FINALIZE MOVE
         moveFinished();

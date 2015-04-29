@@ -90,6 +90,7 @@ private slots:
     void on_actionExit_triggered();
 
     void on_searchResultItem_clicked(GraphMLItem* clickedItem);
+    void on_validationItem_clicked(QString ID);
 
     void writeExportedProject(QString data);
     void updateUndoStates(QStringList list);

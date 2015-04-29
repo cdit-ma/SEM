@@ -256,6 +256,9 @@ void DockToggleButton::setEnabled(bool enable)
     QPushButton::setEnabled(enable);
     enabled = enable;
 
+    //qDebug() << "enabled: " << enabled;
+    //qDebug() << "isEnabled: " << QPushButton::isEnabled();
+
     if (enable) {
         if (selected) {
             setColor(SELECTED);
@@ -271,7 +274,7 @@ void DockToggleButton::setEnabled(bool enable)
 
 /**
  * @brief DockToggleButton::isEnabled
- * QT's isEnabled() is as "reliable" as Qt's isVisible().
+ * QT's isEnabled() is as "reliable" as its isVisible().
  * @return
  */
 bool DockToggleButton::isEnabled()

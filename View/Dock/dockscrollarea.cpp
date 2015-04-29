@@ -178,8 +178,7 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
  * If the currently selected node kind is contained in notAllowedKinds,
  * it means that this dock can't be used for the selected node.
  * If so, disable this dock and its parentButton.
- * If currentNodeItem is NULL, it means that there is no selected node,
- * or there is a signal missing to set currentNodeItem to 0.
+ * If currentNodeItem is NULL, it means that there is no selected node.
  */
 void DockScrollArea::updateDock()
 {

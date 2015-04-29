@@ -1217,21 +1217,17 @@ void MedeaWindow::on_actionExit_triggered()
  */
 void MedeaWindow::on_searchResultItem_clicked(GraphMLItem *clickedItem)
 {
-    // make sure the view aspect the the item belongs to is turned on
-    NodeItem* nodeItem = qobject_cast<NodeItem*>(clickedItem);
-    QStringList neededAspects = checkedViewAspects;
-    foreach (QString aspect, nodeItem->getAspects()) {
-        if (!checkedViewAspects.contains(aspect)) {
-            neededAspects.append(aspect);
-        }
-    }
+    nodeView->selectAndCenter(clickedItem);
+}
 
-    // update view aspects
-    window_AspectsChanged(neededAspects);
 
-    nodeView->clearSelection();
-    nodeView->appendToSelection(nodeItem->getNode());
-    nodeView->centerOnItem(clickedItem);
+/**
+ * @brief MedeaWindow::on_validationItem_clicked
+ * @param ID
+ */
+void MedeaWindow::on_validationItem_clicked(QString ID)
+{
+    nodeView->selectAndCenter(0, ID);
 }
 
 
@@ -1828,6 +1824,11 @@ void MedeaWindow::importProjects(QStringList files)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::closeEvent
+ * @param e
+ */
 void MedeaWindow::closeEvent(QCloseEvent * e)
 {
     return;
