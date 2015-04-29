@@ -128,13 +128,12 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 
         // check if there is already a layout and label for the parent File
         if (!fileLayoutItems[fileItem]) {
-
             // create a new File label and add it to the File's layout
             DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
             fileLayoutItems[fileItem] = new QVBoxLayout();
             fileLayoutItems[fileItem]->addWidget(fileDockItem);
 
-            addDockNodeItem(fileDockItem, false);
+            addDockNodeItem(fileDockItem, -1, false);
             resortDockItems(fileDockItem);
             connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
         }
@@ -148,7 +147,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 
         // add new dock item to its parent's File's layout
         fileLayoutItems[fileItem]->addWidget(dockItem);
-        addDockNodeItem(dockItem, false);
+        addDockNodeItem(dockItem, -1, false);
         resortDockItems(dockItem);
         connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
     }
@@ -224,74 +223,65 @@ void DefinitionsDockScrollArea::refreshDock()
  */
 void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
 {
-    if (dockItem) {
+    NodeItem* dockNodeItem = dockItem->getNodeItem();
+    bool isFileLabel = dockItem->isFileLabel();
+    QVBoxLayout* layout = 0;
 
-        NodeItem* dockNodeItem = dockItem->getNodeItem();
-        bool isFileLabel = dockItem->isFileLabel();
-
-        QVBoxLayout* layout = 0;
-
-        // remove the dock item from its layout before inserting it to the right spot
-        if (getDockNodeItem(dockNodeItem)) {
-            if (isFileLabel) {
-                layout = itemsLayout;
-                layout->removeItem(fileLayoutItems[dockNodeItem]);
-            } else {
-                DockNodeItem* parentDockItem = dockItem->getParentDockNodeItem();
-                if (parentDockItem) {
-                    layout = fileLayoutItems[parentDockItem->getNodeItem()];
-                    layout->removeWidget(dockItem);
-                }
+    // remove the dock item from its layout before re-inserting it to the right spot
+    if (getDockNodeItem(dockNodeItem)) {
+        if (isFileLabel) {
+            layout = itemsLayout;
+            layout->removeItem(fileLayoutItems[dockNodeItem]);
+        } else {
+            DockNodeItem* parentDockItem = dockItem->getParentDockNodeItem();
+            if (parentDockItem) {
+                layout = fileLayoutItems[parentDockItem->getNodeItem()];
+                layout->removeWidget(dockItem);
             }
         }
+    }
 
-        QString dockItemLabel = dockNodeItem->getNode()->getDataValue("label");
-        int count = layout->count();
-        bool dockItemInserted = false;
+    QString dockItemLabel = dockItem->getLabel();
 
-        // iterate through the items in this dock's layout
-        for (int i = 0; i < count; i++) {
+    // iterate through the items in this dock's layout
+    for (int i = 0; i < layout->count(); i++) {
 
-            NodeItem* currentNodeItem = 0;
-            if (isFileLabel) {
-                currentNodeItem = fileLayoutItems.key((QVBoxLayout*)layout->itemAt(i));
-            } else {
-                DockNodeItem* currentDockItem = dynamic_cast<DockNodeItem*>(layout->itemAt(i)->widget());
-                if (currentDockItem) {
-                    if (currentDockItem->isFileLabel()) {
-                        continue; // don't compare to the File label
-                    }
-                    currentNodeItem = currentDockItem->getNodeItem();
-                }
-            }
+           QString currentDockItemLabel;
+           if (isFileLabel) {
+               NodeItem* currentNodeItem = fileLayoutItems.key((QVBoxLayout*)layout->itemAt(i));
+               if (currentNodeItem) {
+                   currentDockItemLabel = currentNodeItem->getNode()->getDataValue("label");
+               }
+           } else {
+               DockNodeItem* currentDockItem = dynamic_cast<DockNodeItem*>(layout->itemAt(i)->widget());
+               if (currentDockItem && !currentDockItem->isFileLabel()) {
+                   currentDockItemLabel = currentDockItem->getLabel();
+               }
+           }
 
-            // compare existing file names to the new file name
-            // insert the new File into the correct alphabetical spot in the layout
-            if (currentNodeItem) {
+           // if for some reason the label is empty, skip to the next item
+           if (currentDockItemLabel.isEmpty()) {
+               continue;
+           }
 
-                QString currentDockItemLabel = currentNodeItem->getNode()->getDataValue("label");
-                int compare = dockItemLabel.compare(currentDockItemLabel, Qt::CaseInsensitive);
+           // compare existing file names to the new file name
+           // insert the new File into the correct alphabetical spot in the layout
+           int compare = dockItemLabel.compare(currentDockItemLabel, Qt::CaseInsensitive);
+           if (compare <= 0) {
+               if (isFileLabel) {
+                   layout->insertLayout(i, fileLayoutItems[dockNodeItem]);
+               } else {
+                   layout->insertWidget(i, dockItem);
+               }
+               return;
+           }
+    }
 
-                if (compare <= 0) {
-                    if (isFileLabel) {
-                        layout->insertLayout(i, fileLayoutItems[dockNodeItem]);
-                    } else {
-                        layout->insertWidget(i, dockItem);
-                    }
-                    dockItemInserted = true;
-                    break;
-                }
-            }
-        }
-
-        // if there was no spot to insert the new File layout, add it to this dock's layout
-        if (!dockItemInserted) {
-            if (isFileLabel) {
-                layout->addLayout(fileLayoutItems[dockNodeItem]);
-            } else {
-                layout->addWidget(dockItem);
-            }
-        }
+    // if there was no spot to insert the new File layout, add it to the end of the layout
+    if (isFileLabel) {
+        layout->addLayout(fileLayoutItems[dockNodeItem]);
+    } else {
+        layout->addWidget(dockItem);
     }
 }
 

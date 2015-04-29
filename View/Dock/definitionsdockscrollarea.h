@@ -19,8 +19,8 @@ public slots:
     void nodeConstructed(NodeItem* nodeItem);
     void nodeDestructed(NodeItem* nodeItem);
 
-    void refreshDock();
     void resortDockItems(DockNodeItem* dockItem);
+    void refreshDock();
 
 private:
     void hideImplementedComponents();

@@ -27,7 +27,7 @@ bool HardwareCluster::canAdoptChild(Node *child)
      //Is this child a HardwareNode?
     if(!hardwareNode){
 //#ifdef DEBUG_MODE
-        qWarning() << "HardwareCluster can only adopt HardwareNodes";
+        //qWarning() << "HardwareCluster can only adopt HardwareNodes";
 //#endif
         return false;
     }

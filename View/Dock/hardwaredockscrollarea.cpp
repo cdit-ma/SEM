@@ -40,13 +40,25 @@ void HardwareDockScrollArea::dockNodeItemClicked()
     Node* selectedNode = getNodeView()->getSelectedNode();
 
     if (selectedNode) {
+
         QString nodeKind = selectedNode->getDataValue("kind");
+
         // NOTE: Are there any other kinds I should care about?
         if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance") {
+
             Edge* hardwareEdge = getHardwareConnection(selectedNode);
-            if (hardwareEdge && hardwareEdge->getDestination() != senderNode) {
-                emit dock_destructEdge(hardwareEdge);
+
+            // check if the selected node is already connected to a hardware node
+            // if it is, check if the user is trying to connect to a different node
+            if (hardwareEdge) {
+                if (hardwareEdge->getDestination() != senderNode) {
+                    emit dock_destructEdge(hardwareEdge);
+                } else {
+                    // trying to connect to the same node; do nothing
+                    return;
+                }
             }
+
             getNodeView()->view_ConstructEdge(selectedNode, senderNode);
         }
     }
@@ -91,14 +103,11 @@ void HardwareDockScrollArea::updateDock()
 void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 {
     if (nodeItem->getNodeKind() == "HardwareNode") {
-
         DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
-        addDockNodeItem(dockItem);
+        insertDockNodeItem(dockItem);
         nodeItem->setHidden(true);
         connect(this, SIGNAL(dock_higlightDockItem(Node*)), dockItem, SLOT(highlightDockItem(Node*)));
-
-        // when undoing - in case an edge was reconstructed before the hardware node
-        //highlightHardwareConnection();
+        connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
     }
 }
 
@@ -110,6 +119,47 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 void HardwareDockScrollArea::nodeDestructed(NodeItem *nodeItem)
 {
 
+}
+
+
+/**
+ * @brief HardwareDockScrollArea::insertDockNodeItem
+ * This method gets called every time a new dock item has been added to this dock.
+ * It also gets called when one of the dock items is relabelled.
+ * It keeps the dock items in this dock in alphabetical order.
+ * @param dockItem
+ */
+void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
+{
+    if (getDockNodeItems().count() > 0) {
+
+        // if the dock item has already been added to this dock,
+        // remove it from the this dock's list and layout
+        if (getDockNodeItems().contains(dockItem)) {
+            //removeDockNodeItemFromList(dockItem);
+            getLayout()->removeWidget(dockItem);
+        }
+
+        QString dockItemLabel = dockItem->getLabel();
+
+        // iterate through all the dock items and insert the provided dock item
+        //for (int i = 0; i < getDockNodeItems().count(); i++) {
+        for (int i = 0; i < getLayout()->count(); i++) {
+            DockNodeItem* currentItem = dynamic_cast<DockNodeItem*>(getLayout()->itemAt(i)->widget());
+            if (currentItem) {
+                QString currentLabel = currentItem->getLabel();
+                int compare = dockItemLabel.compare(currentLabel, Qt::CaseInsensitive);
+                if (compare <= 0) {
+                    addDockNodeItem(dockItem, i);
+                    return;
+                }
+            }
+        }
+    }
+
+    // if there's currently no item in this dock or the dock item
+    // wasn't inserted, just add it to the end of the layout
+    addDockNodeItem(dockItem);
 }
 
 

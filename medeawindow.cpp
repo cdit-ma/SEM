@@ -31,12 +31,10 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
-    // this needs to happen before the menu is set up and connected
     appSettings = new AppSettings(this);
 
+    // this needs to happen before the menu is set up and connected
     setupJenkinsSettings();
-
-
 
     // initialise gui and connect signals and slots
     initialiseGUI();
@@ -86,11 +84,11 @@ void MedeaWindow::initialiseGUI()
     myProcess = 0;
     controller = 0;
 
-    prevPressedButton = 0;
-    firstTableUpdate = true;
-
     nodeView = new NodeView();
     toolbar = new QToolBar();
+
+    prevPressedButton = 0;
+    firstTableUpdate = true;
 
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
@@ -273,8 +271,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     menu = new QMenu();
     file_menu = menu->addMenu(QIcon(":/Resources/Icons/file_menu.png"), "File");
     edit_menu = menu->addMenu(QIcon(":/Resources/Icons/edit_menu.png"), "Edit");
-    view_menu = menu->addMenu(QIcon(":/Resources/Icons/view.png"), "View");
     menu->addSeparator();
+    view_menu = menu->addMenu(QIcon(":/Resources/Icons/view.png"), "View");
     model_menu = menu->addMenu(QIcon(":/Resources/Icons/model.png"), "Model");
     menu->addSeparator();
     settings_Menu = menu->addMenu(QIcon(":/Resources/Icons/settings.png"), "Settings");
@@ -791,6 +789,9 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
 
     connect(nodeView, SIGNAL(view_GraphMLItemDeleted(QString)), partsDock, SLOT(graphMLDestructed(QString)));
+    //connect(nodeView, SIGNAL(view_GraphMLItemDeleted(QString)), definitionsDock, SLOT(graphMLDestructed(QString)));
+    //connect(nodeView, SIGNAL(view_GraphMLItemDeleted(QString)), hardwareDock, SLOT(graphMLDestructed(QString)));
+
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
     //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(nodeDestructed(NodeItem*)));

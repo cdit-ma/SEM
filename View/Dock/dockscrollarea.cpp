@@ -144,14 +144,19 @@ QVBoxLayout *DockScrollArea::getLayout()
  * This adds a new dock item to this dock's list and layout.
  * It also connects the dock item's basic signals to this dock.
  * @param item
+ * @param insertIndex
  * @param addToLayout
  */
-void DockScrollArea::addDockNodeItem(DockNodeItem *item, bool addToLayout)
+void DockScrollArea::addDockNodeItem(DockNodeItem *item, int insertIndex, bool addToLayout)
 {
     dockNodeItems.append(item);
 
     if (addToLayout) {
-        layout->addWidget(item);
+        if (insertIndex == -1) {
+            layout->addWidget(item);
+        } else {
+            layout->insertWidget(insertIndex, item);
+        }
     }
 
     connect(item, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));

@@ -38,7 +38,7 @@ protected:
 signals:
     void dockItem_clicked();
     void dockItem_fileClicked(bool show);
-    void dockItem_relabelled(DockNodeItem* fileItem);
+    void dockItem_relabelled(DockNodeItem* dockItem);
     void dockItem_removeFromDock(DockNodeItem* dockItem);
 
     void dockItem_hidden();
@@ -78,6 +78,7 @@ private:
     bool fileLabel;
     bool expanded;
     bool hidden;
+    bool highlighted;
 
 };
 

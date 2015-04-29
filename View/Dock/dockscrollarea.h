@@ -25,7 +25,7 @@ public:
 
     void setNotAllowedKinds(QStringList kinds);
 
-    void addDockNodeItem(DockNodeItem* item, bool addToLayout = true);
+    void addDockNodeItem(DockNodeItem* item, int insertIndex = -1, bool addToLayout = true);
     DockNodeItem* getDockNodeItem(NodeItem* item);
     DockNodeItem* getDockNodeItem(Node* node);
     QList<DockNodeItem*> getDockNodeItems();

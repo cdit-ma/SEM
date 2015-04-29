@@ -21,6 +21,8 @@ public slots:
     void nodeConstructed(NodeItem* nodeItem);
     void nodeDestructed(NodeItem* nodeItem);
 
+    void insertDockNodeItem(DockNodeItem* dockItem);
+
 private:
     Edge* getHardwareConnection(Node* selectedNode);
     void highlightHardwareConnection();

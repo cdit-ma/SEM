@@ -19,6 +19,7 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
     fileLabel = false;
     expanded = true;
     hidden = false;
+    highlighted = false;
 
     if (nodeItem) {
 
@@ -331,16 +332,21 @@ QPixmap DockNodeItem::getScaledPixmap(QImage* img)
  */
 void DockNodeItem::paintEvent(QPaintEvent *e)
 {
+    QString onHoverStyleSheet;
+    if (highlighted) {
+        onHoverStyleSheet = "";
+    } else {
+        onHoverStyleSheet = "QPushButton:hover{ "
+                "border: 1px solid black;"
+                "border-radius: 5px; }";
+    }
+
     setStyleSheet("QPushButton{"
                   "background-color: rgba(200,0,0,0);"
                   "margin: 0px;"
                   "padding: 0px;"
                   "}"
-
-                  "QPushButton:hover{"
-                  "border: 1px solid black;"
-                  "border-radius: 5px;"
-                  "}");
+                  + onHoverStyleSheet);
 
     QPushButton::paintEvent(e);
 }
@@ -451,9 +457,13 @@ void DockNodeItem::childDockItemHidden()
 void DockNodeItem::highlightDockItem(Node *node)
 {
     if (node && node == getNodeItem()->getNode()) {
-        imageLabel->setPixmap(highlightPixmap);
+        if (!highlighted) {
+            imageLabel->setPixmap(highlightPixmap);
+            highlighted = true;
+        }
     } else {
         imageLabel->setPixmap(defaultPixmap);
+        highlighted = false;
     }
 }
 
