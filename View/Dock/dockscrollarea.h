@@ -45,7 +45,7 @@ protected:
 public slots:
     virtual void dockNodeItemClicked() = 0;
     virtual void updateDock();
-
+    void graphMLDestructed(QString ID);
     void updateCurrentNodeItem();
 
     void activate();
@@ -59,6 +59,7 @@ private:
     void setParentButton(DockToggleButton* parent);
 
     NodeView* nodeView;
+    QString currentNodeItemID;
     NodeItem* currentNodeItem;
     DockToggleButton *parentButton;
 

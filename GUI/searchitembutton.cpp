@@ -47,6 +47,7 @@ void SearchItemButton::connectToWindow(QMainWindow* window)
  * This is called every time this item is clicked.
  * It updates the selected state and the color of this button accordingly.
  * If this item is selected, it sends a signal to MEDEA to center on its graphMLItem.
+ * @param changeColor
  */
 void SearchItemButton::itemClicked()
 {
@@ -90,7 +91,7 @@ void SearchItemButton::setupLayout()
     int marginOffset = 8;
 
     setFlat(true);
-    setMinimumSize(250, 50);
+    setMinimumSize(300, 50);
 
     // setup icon label
     QString graphMLKind = graphMLItem->getGraphML()->getDataValue("kind");

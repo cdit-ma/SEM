@@ -152,6 +152,9 @@ void HardwareDockScrollArea::highlightHardwareConnection()
             } else {
                 emit dock_higlightDockItem();
             }
+        } else {
+            // remove higlight for any other kinds
+            emit dock_higlightDockItem();
         }
     }
 }

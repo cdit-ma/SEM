@@ -313,11 +313,11 @@ void ToolbarWidget::setupToolBar()
     addChildButton->setToolTip("Add Child Node");
     connectButton->setToolTip("Connect Node");
     deleteButton->setToolTip("Delete Selection");
-    showNewViewButton->setToolTip("Show in New Window");
-    showConnectionsButton->setToolTip("Show Connected Nodes");
-    definitionButton->setToolTip("Show Definition");
-    implementationButton->setToolTip("Show Implementation");
-    instancesButton->setToolTip("Show Instances");
+    showNewViewButton->setToolTip("View in New Window");
+    showConnectionsButton->setToolTip("View Connections");
+    definitionButton->setToolTip("View Definition");
+    implementationButton->setToolTip("View Implementation");
+    instancesButton->setToolTip("View Instances");
     alignVerticallyButton->setToolTip("Align Selection Vertically");
     alignHorizontallyButton->setToolTip("Align Selection Horizontally");
 
@@ -405,7 +405,7 @@ void ToolbarWidget::setupMenus()
 
     // default actions for when some of the menus are empty
     fileDefaultAction = new ToolbarWidgetAction("info", "There are no Files.", this);
-    eventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any ComponentInstances.", this);
+    eventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any EventPorts that are connected to an Aggregate.", this);
 
     // hidden menus for parent nodes, ComponentInstances, ComponentImpls and In/Out EventPortDelegates
     fileMenu = new ToolbarWidgetMenu(0, fileDefaultAction, addMenu);
@@ -759,21 +759,36 @@ void ToolbarWidget::setupInEventPortInstanceList()
 {
     foreach (ToolbarWidgetAction* instanceAction, inEventPort_componentInstanceMenu->getWidgetActions()) {
 
-        QList<Node*> children = instanceAction->getNode()->getChildren(0);
+        QList<Node*> iep_instances = instanceAction->getNode()->getChildrenOfKind("InEventPortInstance");
 
-        foreach (Node* child, children) {
-            // for each InEventPortInstance, create an action and add it to parent ComponentInstance's menu
-            if (child->getDataValue("kind") == "InEventPortInstance") {
-                ToolbarWidgetAction* eventPortAction = new ToolbarWidgetAction(child, inEventPort_componentInstanceMenu, "");
-                if (instanceAction->getMenu()) {
-                    instanceAction->getMenu()->addWidgetAction(eventPortAction);
-                    connect(eventPortAction, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
-                } else {
-                    qDebug() << "setupInEventPortInstanceList - ComponentInstance doesn't have a menu!";
+        // for each InEventPortInstance, create an action and add it to parent ComponentInstance's menu
+        foreach (Node* iep_inst, iep_instances) {
+            // can only connect an EventPort Delegate to an EventPort connected to an Aggregate
+            Node* defn = iep_inst->getDefinition();
+            if (defn) {
+                EventPort* ep = (EventPort*)defn;
+                if (!ep->getAggregate()) {
+                    continue;
                 }
+            }
+            ToolbarWidgetAction* eventPortAction = new ToolbarWidgetAction(iep_inst, inEventPort_componentInstanceMenu, "");
+            if (instanceAction->getMenu()) {
+                instanceAction->getMenu()->addWidgetAction(eventPortAction);
+                connect(eventPortAction, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
+            } else {
+                qDebug() << "setupInEventPortInstanceList - ComponentInstance doesn't have a menu!";
             }
         }
     }
+
+    // if none of the ComponentInstances contain valid EventPortInstances,
+    foreach (ToolbarWidgetAction* instanceAction, inEventPort_componentInstanceMenu->getWidgetActions()) {
+        if (instanceAction->getMenu()->getWidgetActions().count() > 0) {
+            return;
+        }
+    }
+    // hide the ComponentInstanceMenu and show default action
+    inEventPort_componentInstanceMenu->clearMenu();
 }
 
 
@@ -786,21 +801,39 @@ void ToolbarWidget::setupOutEventPortInstanceList()
 {
     foreach (ToolbarWidgetAction* instanceAction, outEventPort_componentInstanceMenu->getWidgetActions()) {
 
-        QList<Node*> children = instanceAction->getNode()->getChildren(0);
+        QList<Node*> oep_instances = instanceAction->getNode()->getChildrenOfKind("OutEventPortInstance");
 
-        foreach (Node* child, children) {
-            // for each OutnEventPortInstance, create an action and add it to parent ComponentInstance's menu
-            if (child->getDataValue("kind") == "OutEventPortInstance") {
-                ToolbarWidgetAction* eventPortAction = new ToolbarWidgetAction(child, outEventPort_componentInstanceMenu, "");
-                if (instanceAction->getMenu()) {
-                    instanceAction->getMenu()->addWidgetAction(eventPortAction);
-                    connect(eventPortAction, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
-                } else {
-                    qDebug() << "setupOutEventPortInstanceList - ComponentInstance doesn't have a menu!";
+        // for each OutnEventPortInstance, create an action and add it to parent ComponentInstance's menu
+        foreach (Node* oep_inst, oep_instances) {
+            // can only connect an EventPort Delegate to an EventPort connected to an Aggregate
+            Node* defn = oep_inst->getDefinition();
+            if (defn) {
+                EventPort* ep = (EventPort*)defn;
+                if (!ep->getAggregate()) {
+                    continue;
                 }
+            }
+            ToolbarWidgetAction* eventPortAction = new ToolbarWidgetAction(oep_inst, outEventPort_componentInstanceMenu, "");
+            if (instanceAction->getMenu()) {
+                instanceAction->getMenu()->addWidgetAction(eventPortAction);
+                connect(eventPortAction, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
+            } else {
+                qDebug() << "setupOutEventPortInstanceList - ComponentInstance doesn't have a menu!";
             }
         }
     }
+
+    // TODO: The outEventPort_componentInstanceMenu is not showing up when there is an
+    // InEventPort present on the canvas. It works fine othewise.
+
+    // if none of the ComponentInstances contain valid EventPortInstances
+    foreach (ToolbarWidgetAction* instanceAction, outEventPort_componentInstanceMenu->getWidgetActions()) {
+        if (instanceAction->getMenu()->getWidgetActions().count() > 0) {
+            return;
+        }
+    }
+    // hide the ComponentInstanceMenu and show default action
+    outEventPort_componentInstanceMenu->clearMenu();
 }
 
 

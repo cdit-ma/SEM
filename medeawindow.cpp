@@ -316,8 +316,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go to Implementation");
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
-    view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "Show Connected Nodes");
-    view_showManagementComponents = view_menu->addAction("Show Management Components");
+    view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "View Connections");
+    view_showManagementComponents = view_menu->addAction("View Management Components");
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
@@ -443,7 +443,7 @@ void MedeaWindow::setupSearchTools()
     searchSuggestions->setVisible(false);
 
     searchResults->setLayout(resultsMainLayout);
-    searchResults->setMinimumWidth(rightPanelWidth + 60);
+    searchResults->setMinimumWidth(rightPanelWidth + 110);
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
 
@@ -790,8 +790,8 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
 
+    connect(nodeView, SIGNAL(view_GraphMLItemDeleted(QString)), partsDock, SLOT(graphMLDestructed(QString)));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
-    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(nodeDestructed()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
     //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(nodeDestructed(NodeItem*)));
 
@@ -1281,6 +1281,7 @@ void MedeaWindow::on_actionExit_triggered()
 void MedeaWindow::on_searchResultItem_clicked(GraphMLItem *clickedItem)
 {
     nodeView->selectAndCenter(clickedItem);
+    //nodeView->selectAndCenter(0, clickedItem->getGraphML()->getID());
 }
 
 

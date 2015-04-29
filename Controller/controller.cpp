@@ -829,6 +829,8 @@ void NewController::removeGraphMLFromHash(QString ID)
         }else if(item->getKind() == GraphML::EDGE){
             edgeIDs.removeOne(ID);
         }
+
+
         if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
             qCritical() << "Hash Map Inconsistency detected!";
         }

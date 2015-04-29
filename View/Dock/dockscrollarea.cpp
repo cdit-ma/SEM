@@ -41,7 +41,35 @@ void DockScrollArea::setNotAllowedKinds(QStringList kinds)
 void DockScrollArea::updateCurrentNodeItem()
 {
     currentNodeItem = nodeView->getSelectedNodeItem();
+
+    if (currentNodeItem) {
+        currentNodeItemID = currentNodeItem->getGraphML()->getID();
+    } else {
+        currentNodeItemID = "";
+    }
+
     updateDock();
+
+    /*
+    //if(currentNodeItemID != "-1"){
+
+    //}else{
+
+    //}
+    //if(currentNodeItemID)
+    if(currentNodeItemID != "-1"){
+
+        currentNodeItem = nodeView->getSelectedNodeItem();
+        if(currentNodeItem){
+            currentNodeItemID = currentNodeItem->getGraphML()->getID();
+        }else{
+            //currentNodeItemID = "";
+        }
+        qCritical() << currentNodeItemID;
+    }else{
+        updateDock();
+    }
+    */
 }
 
 
@@ -182,14 +210,34 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
  */
 void DockScrollArea::updateDock()
 {
-    if (currentNodeItem) {
-        if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
-            parentButton->enableDock(false);
+    //qDebug() << "updateDock(): currentID = " << currentNodeItemID;
+
+    if (currentNodeItemID != "-1") {
+        if (currentNodeItem) {
+            if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
+                parentButton->enableDock(false);
+            } else {
+                parentButton->enableDock(true);
+            }
         } else {
-            parentButton->enableDock(true);
+            // no current node item selected
+            parentButton->enableDock(false);
         }
     } else {
+        // current node item deleted
         parentButton->enableDock(false);
+    }
+}
+
+
+/**
+ * @brief DockScrollArea::graphMLDestructed
+ * @param ID
+ */
+void DockScrollArea::graphMLDestructed(QString ID)
+{
+    if (ID == currentNodeItemID) {
+        currentNodeItemID = "-1";
     }
 }
 

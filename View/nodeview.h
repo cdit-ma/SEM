@@ -66,6 +66,7 @@ protected:
     bool viewportEvent(QEvent *);
 
 signals:
+    void view_GraphMLItemDeleted(QString ID);
     void view_SetClipboardBuffer(QString);
     void view_UndoListChanged(QStringList);
     void view_RedoListChanged(QStringList);
@@ -246,7 +247,10 @@ private:
     void nodeConstructed_signalUpdates(NodeItem* nodeItem);
     void nodeDestructed_signalUpdates(NodeItem *nodeItem);
     void nodeSelected_signalUpdates(Node *node);
-    void edgeConstructed_signalUpdates(Node* src);
+    void edgeConstructed_signalUpdates(Edge* edge);
+    void edgeDestructed_signalUpdates(Edge* edge, QString ID = "");
+
+    void updateGoToActionsEnabled(Node* selectedNode = 0);
 
     Node* hasDefinition(Node* node);
     Node* hasImplementation(Node* node);

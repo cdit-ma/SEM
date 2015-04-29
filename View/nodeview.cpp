@@ -337,6 +337,12 @@ QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIN
 
 QStringList NodeView::getAdoptableNodeList(Node *node)
 {
+    /*
+    if(node){
+        if (node->childrenCount() > 0)
+            qDebug() << node->getChildren(0)[0]->toString();
+    }
+    */
     return controller->getAdoptableNodeKinds(node);
 }
 
@@ -839,7 +845,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         }
 
         // send necessary signals when an edge has been constucted
-        edgeConstructed_signalUpdates(src);
+        edgeConstructed_signalUpdates(edge);
 
 
     }else{
@@ -980,7 +986,6 @@ void NodeView::componentInstanceConstructed(Node *node)
  */
 void NodeView::destructEdge(Edge *edge)
 {
-    //getNodeItemFromNode(edge->getDestination())->setHidden(true);
     view_Delete(QStringList() << edge->getID());
 }
 
@@ -1004,13 +1009,15 @@ void NodeView::fitInSceneRect(GraphMLItem* item)
  */
 void NodeView::fitSelectionInView()
 {
+    /*
     qDebug() << "fitSelectionInView";
     NodeItem* selectedItem = getSelectedNodeItem();
     if (selectedItem) { // && getVisibleRect().contains(selectedItem->sceneBoundingRect())) {
-        //centerOn(selectedItem);
-        //centerRect(selectedItem->sceneBoundingRect());
-        //fitInView(selectedItem, Qt::KeepAspectRatio);
+        centerOn(selectedItem);
+        centerRect(selectedItem->sceneBoundingRect());
+        fitInView(selectedItem, Qt::KeepAspectRatio);
     }
+    */
 }
 
 
@@ -1229,28 +1236,15 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
                 // send necessary signals when a node has been destructed
                 if (item->isNodeItem()) {
                     NodeItem* nodeItem = (NodeItem*) item;
+                    view_GraphMLItemDeleted(ID);
                     nodeDestructed_signalUpdates(nodeItem);
                 }
 
-                // send signal to docks when an edge has been destructed
+                // send necessary signals when an edge has been destructed
                 if (item->isEdgeItem()) {
-                    NodeItem* destination = ((EdgeItem*)item)->getDestination();
-                    if(destination->getNodeKind() == "HardwareNode"){
-                        Node* node = (Node*)destination->getGraphML();
-                        bool hasEdges = false;
-
-                        foreach(Edge* edge, node->getEdges()){
-                            if(edge && edge->isDeploymentLink() && edge->getID() != ID){
-                                hasEdges = true;
-                            }
-                        }
-                        if(!hasEdges){
-                            destination->setHidden(true);
-                        }
-                    }
-
-
-                    view_edgeDestructed();
+                    EdgeItem* edgeItem = (EdgeItem*) item;
+                    Edge* edge = qobject_cast<Edge*>(edgeItem->getGraphML());
+                    edgeDestructed_signalUpdates(edge, ID);
                 }
 
                 scene()->removeItem(item);
@@ -1275,30 +1269,38 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
 
 
 /**
- * @brief NodeView::nodeSelected_signalUpdates
- * This gets called whenever a node has been selected.
+ * @brief NodeView::nodeConstructed_signalUpdates
+ * This is called whenever a node is constructed.
  * It sends signals to update whatever needs updating.
  * @param node
- */
-void NodeView::nodeSelected_signalUpdates(Node *node)
+ */void NodeView::nodeConstructed_signalUpdates(NodeItem *nodeItem)
 {
-    if (selectedIDs.count() == 1 && node) {
+    // update the docks and the toolbar/menu goTo functions
+    updateGoToActionsEnabled(getSelectedNode());
+    emit view_nodeConstructed(nodeItem);
 
-        Node* hasDefn = hasDefinition(node);
-        Node* hasImpl = hasImplementation(node);
+    // send specific current view states to the newly constaructed node item
+    emit view_AspectsChanged(currentAspects);
+    emit view_toggleGridLines(GRID_LINES_ON);
 
-        // update goto menu actions
-        emit view_updateGoToMenuActions("definition", hasDefn);
-        emit view_updateGoToMenuActions("implementation", hasImpl);
+    // snap node item to its parent's grid
+    nodeItem->snapToGrid();
 
-        // update goto toolbar buttons
-        toolbar->showDefinitionButton(hasDefn);
-        toolbar->showImplementationButton(hasImpl);
-
-        emit view_nodeSelected();
+    // initially hide all ManagementComponents
+    if (nodeItem->getNodeKind() == "ManagementComponent") {
+        nodeItem->setHidden(true);
     }
 
-    //fitSelectionInView();
+    // hide all AggregateInstances except for in OutEventPortImpls
+    if (nodeItem->getNodeKind() == "AggregateInstance") {
+        NodeItem* parentItem = nodeItem->getParentNodeItem();
+        if (parentItem && (parentItem->getNodeKind() != "OutEventPortImpl"
+                           && parentItem->getNodeKind() != "AggregateInstance"
+                           && parentItem->getNodeKind() != "Aggregate"))
+        {
+            nodeItem->setHidden(true);
+        }
+    }
 }
 
 
@@ -1310,42 +1312,32 @@ void NodeView::nodeSelected_signalUpdates(Node *node)
  */
 void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
 {
+    // update the docks and the toolbar/menu goTo functions
+    updateGoToActionsEnabled(getSelectedNode());
     emit view_nodeDestructed(nodeItem);
 }
 
 
 /**
- * @brief NodeView::nodeConstructed_signalUpdates
- * This is called whenever a node is constructed.
+ * @brief NodeView::nodeSelected_signalUpdates
+ * This gets called whenever a node has been selected.
  * It sends signals to update whatever needs updating.
  * @param node
- */void NodeView::nodeConstructed_signalUpdates(NodeItem *nodeItem)
+ */
+void NodeView::nodeSelected_signalUpdates(Node *node)
 {
-    emit view_nodeConstructed(nodeItem);
-    emit view_AspectsChanged(currentAspects);
-    emit view_toggleGridLines(GRID_LINES_ON);
-
-    if (nodeItem) {
-
-        // snap it to its parent grid
-        nodeItem->snapToGrid();
-
-        // hide all AggregateInstances except for in OutEventPortImpls
-        if (nodeItem->getNodeKind() == "AggregateInstance") {
-            NodeItem* parentItem = nodeItem->getParentNodeItem();
-            if (parentItem && (parentItem->getNodeKind() != "OutEventPortImpl"
-                               && parentItem->getNodeKind() != "AggregateInstance"
-                               && parentItem->getNodeKind() != "Aggregate"))
-            {
-                nodeItem->setHidden(true);
-            }
-        }
-
-        // initially hide all ManagementComponents
-        if (nodeItem->getNodeKind() == "ManagementComponent") {
-            nodeItem->setHidden(true);
-        }
+    if (selectedIDs.count() == 1) {
+        // update the toolbar/menu goTo functions
+        updateGoToActionsEnabled(node);
+    } else {
+        // disable the toolbar/menu goTo functions
+        updateGoToActionsEnabled();
     }
+
+    // update the docks regardless of the number of items selected
+    emit view_nodeSelected();
+
+    //fitSelectionInView();
 }
 
 
@@ -1353,24 +1345,74 @@ void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
  * @brief NodeView::edgeConstructed_signalUpdates
  * This gets called whenever an edge is constructed.
  * It sends signals to update whatever needs updating.
- * @param src
+ * @param edge
  */
-void NodeView::edgeConstructed_signalUpdates(Node *src)
+void NodeView::edgeConstructed_signalUpdates(Edge *edge)
 {
-    Node* hasDefn = hasDefinition(src);
-    Node* hasImpl = hasImplementation(src);
+    // update the docks and the toolbar/menu goTo functions
+    updateGoToActionsEnabled(getSelectedNode());
+    emit view_edgeConstructed();
+}
 
-    // update specific tool buttons when a new edge is constructed
+
+/**
+ * @brief NodeView::edgeDestructed_signalUpdates
+ * This gets called whenever an edge is destructed.
+ * It sends signals to update whatever needs updating.
+ * @param edge
+ * @param ID
+ */
+void NodeView::edgeDestructed_signalUpdates(Edge *edge, QString ID)
+{
+    // update the docks and the toolbar/menu goTo functions
+    updateGoToActionsEnabled(getSelectedNode());
+    emit view_edgeDestructed();
+
+    // check if destructed edge's destination is a HardwareNode
+    NodeItem* destination = getNodeItemFromNode(edge->getDestination());
+    if (destination && destination->getNodeKind() == "HardwareNode") {
+        Node* node = destination->getNode();
+        bool hasEdges = false;
+        // check if it is connected to anything else
+        foreach (Edge* edge, node->getEdges()) {
+            if (edge->isDeploymentLink() && edge->getID() != ID) {
+                hasEdges = true;
+                break;
+            }
+        }
+        if (!hasEdges) {
+            // if it's not, hide the HarwareNode node item
+            destination->setHidden(true);
+        }
+    }
+}
+
+
+/**
+ * @brief NodeView::updateGoToActionsEnabled
+ * This method updates the enabled state of the MEDEA window's menu actions
+ * and the toolbar's tool buttons for the goToDefinition/goToImplementation
+ * functions based on the currently selected node.
+ */
+void NodeView::updateGoToActionsEnabled(Node *selectedNode)
+{
+    Node* hasDefn = 0;
+    Node* hasImpl = 0;
+
+    if (selectedNode) {
+        hasDefn = hasDefinition(selectedNode);
+        hasImpl = hasImplementation(selectedNode);
+    }
+
+    // update goto toolbar buttons
     toolbar->showDefinitionButton(hasDefn);
     toolbar->showImplementationButton(hasImpl);
 
-    // update node goto menu actions
+    // update goto menu actions
     emit view_updateGoToMenuActions("definition", hasDefn);
     emit view_updateGoToMenuActions("implementation", hasImpl);
-
-    // update docks
-    emit view_edgeConstructed();
 }
+
 
 /**
  * @brief NodeView::hasDefinition
@@ -1413,6 +1455,7 @@ Node* NodeView::hasImplementation(Node *node)
     }
     return 0;
 }
+
 
 bool NodeView::isItemsAncestorSelected(GraphMLItem *selectedItem)
 {
@@ -1601,7 +1644,6 @@ void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
 
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
-    qDebug() << event->key();
     if(IS_MOVING){
         //FINALIZE MOVE
         moveFinished();

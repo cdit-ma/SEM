@@ -222,19 +222,19 @@ void DockNodeItem::setupLayout()
     if (!fileLabel) {
 
         QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
-        QImage scaledImage = scaleImage(image);
+        QPixmap scaledPixmap = getScaledPixmap(image);
 
         // if this dock item's kind is a HardwareNode, store 2 scaled
         // images to switch between for when highlighting dock item
         if (kind == "HardwareNode") {
-            defaultImg = scaledImage;
-            highlightImg = scaleImage(new QImage(":/Resources/Icons/connectedHardwareNode.png"));
+            defaultPixmap = scaledPixmap;
+            highlightPixmap = getScaledPixmap(new QImage(":/Resources/Icons/connectedHardwareNode.png"));
         }
 
         imageLabel = new QLabel(this);
         imageLabel->setBackgroundRole(QPalette::Base);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
+        imageLabel->setPixmap(scaledPixmap);
         layout->addWidget(imageLabel);
         layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
     }
@@ -310,17 +310,17 @@ void DockNodeItem::updateStyleSheet()
 
 
 /**
- * @brief DockNodeItem::scaleImage
+ * @brief DockNodeItem::getScaledPixmap
  * @param img
  * @return
  */
-QImage DockNodeItem::scaleImage(QImage* img)
+QPixmap DockNodeItem::getScaledPixmap(QImage* img)
 {
     QImage scaledImage = img->scaled(width(),
                                      height()-textLabel->height(),
                                      Qt::KeepAspectRatio,
                                      Qt::SmoothTransformation);
-    return scaledImage;
+    return QPixmap::fromImage(scaledImage);
 }
 
 
@@ -451,9 +451,9 @@ void DockNodeItem::childDockItemHidden()
 void DockNodeItem::highlightDockItem(Node *node)
 {
     if (node && node == getNodeItem()->getNode()) {
-        imageLabel->setPixmap(QPixmap::fromImage(highlightImg));
+        imageLabel->setPixmap(highlightPixmap);
     } else {
-        imageLabel->setPixmap(QPixmap::fromImage(defaultImg));
+        imageLabel->setPixmap(defaultPixmap);
     }
 }
 

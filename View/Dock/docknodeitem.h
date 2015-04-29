@@ -60,7 +60,7 @@ private:
     void connectToNodeItem();
     void updateTextLabel();
     void updateStyleSheet();
-    QImage scaleImage(QImage* img);
+    QPixmap getScaledPixmap(QImage* img);
 
     NodeItem* nodeItem;
     DockNodeItem* parentDockItem;
@@ -72,8 +72,8 @@ private:
     QLabel* textLabel;
     QLabel* imageLabel;
 
-    QImage defaultImg;
-    QImage highlightImg;
+    QPixmap defaultPixmap;
+    QPixmap highlightPixmap;
 
     bool fileLabel;
     bool expanded;
