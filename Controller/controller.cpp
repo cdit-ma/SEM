@@ -1145,13 +1145,14 @@ void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
     }
 
     Node* parentNode = node->getParentNode();
-    if(node->getDataValue("kind") == "Process"){
-        return;
-    }
+
     if(nodeLabel == ""){
         nodeLabel = node->getDataValue("label");
     }
-
+    if(node->getDataValue("kind") == "Process"){
+        node->updateDataValue("label", nodeLabel);
+        return;
+    }
     int maxNumber = -1;
     QList<int> sameLabelNumbers;
 

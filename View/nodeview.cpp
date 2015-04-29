@@ -1293,6 +1293,7 @@ void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
         if (nodeItem->getNodeKind() == "AggregateInstance") {
             NodeItem* parentItem = nodeItem->getParentNodeItem();
             if (parentItem && (parentItem->getNodeKind() != "OutEventPortImpl"
+                               && parentItem->getNodeKind() != "AggregateInstance"
                                && parentItem->getNodeKind() != "Aggregate"))
             {
                 nodeItem->setHidden(true);
