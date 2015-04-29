@@ -49,6 +49,7 @@ public:
     void recenterView();
 
     QStringList getAllAspects();
+    void viewDeploymentAspect();
 
 protected:
     //Mouse Handling Methods
@@ -119,6 +120,7 @@ signals:
     void view_toggleGridLines(bool on);
 
     void view_updateProgressStatus(int value, QString status);
+    void view_displayNotification(QString notification);
 
 public slots:
     void alignSelectionHorizontally();

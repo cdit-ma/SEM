@@ -59,7 +59,7 @@ void HardwareDockScrollArea::dockNodeItemClicked()
                 }
             }
 
-            getNodeView()->view_ConstructEdge(selectedNode, senderNode);
+            getNodeView()->constructEdge(selectedNode, senderNode);
         }
     }
 }

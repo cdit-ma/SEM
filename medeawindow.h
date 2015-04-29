@@ -117,12 +117,18 @@ private slots:
     void dockButtonPressed(QString buttonName);
 
     void menuActionTriggered();
+
     void updateProgressStatus(int value, QString status);
 
     void searchItemClicked();
     void searchMenuButtonClicked(bool checked);
     void searchMenuClosed();
     void updateSearchLineEdits();
+
+    void displayNotification(QString notification = "");
+    void checkNotificationsQueue();
+
+    void graphicsItemSelected();
 
     void showWindowToolbar();
 
@@ -144,7 +150,7 @@ private:
     void updateDataTable();
     bool exportProject();
     void importProjects(QStringList files);
-    void enableDeploymentViewAspect();
+    void showImportedHardwareNodes();
 
     QStringList getCheckedItems(int menu);
 
@@ -166,6 +172,8 @@ private:
     QAction* edit_copy;
     QAction* edit_paste;
     QAction* view_fitToScreen;
+    QAction* view_snapToGrid;
+    QAction* view_snapChildrenToGrid;
     QAction* view_goToDefinition;
     QAction* view_goToImplementation;
     QAction* view_showConnectedNodes;
@@ -193,8 +201,6 @@ private:
     QToolButton* pasteButton;
     QToolButton* sortButton;
     QToolButton* centerButton;
-    QToolButton* snapToGridButton;
-    QToolButton* snapChildrenToGridButton;
     QToolButton* zoomToFitButton;
     QToolButton* fitToScreenButton;
     QToolButton* duplicateButton;
@@ -210,6 +216,10 @@ private:
     QProgressBar* progressBar;
     QLabel* progressLabel;
     QString progressAction;
+
+    QLabel* notificationsBar;
+    QTimer* notificationTimer;
+    QQueue<QString> notificationsQueue;
 
     QHBoxLayout* searchLayout;
     QPushButton* searchButton;

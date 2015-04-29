@@ -93,6 +93,9 @@ void MedeaWindow::initialiseGUI()
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
 
+    notificationsBar = new QLabel("Hello", this);
+    notificationTimer = new QTimer(this);
+
     dataTable = new QTableView();
     dataTableBox = new QGroupBox();
     delegate = new ComboBoxTableDelegate(0);
@@ -153,11 +156,22 @@ void MedeaWindow::initialiseGUI()
     progressLabel->setAlignment(Qt::AlignCenter);
     progressLabel->setStyleSheet("color: black; font: 14px;");
 
+    notificationsBar->setVisible(false);
+    notificationsBar->setFixedHeight(40);
+    notificationsBar->setAlignment(Qt::AlignCenter);
+    notificationsBar->setStyleSheet("background-color: rgba(250,250,250,0.25);"
+                                    "color: rgb(50,50,50);"
+                                    "border-radius: 10px;"
+                                    "padding: 0px 15px;"
+                                    "font: 16px;");
+                                    //"font-weight: bold;");
+
     QVBoxLayout *progressLayout = new QVBoxLayout();
     progressLayout->addStretch(3);
     progressLayout->addWidget(progressLabel);
     progressLayout->addWidget(progressBar);
     progressLayout->addStretch(4);
+    progressLayout->addWidget(notificationsBar);
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setItemDelegateForColumn(2, delegate);
@@ -306,12 +320,15 @@ void MedeaWindow::setupMenu(QPushButton *button)
     edit_paste = edit_menu->addAction(QIcon(":/Resources/Icons/paste.png"), "Paste");
     edit_paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
 
-    view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/fitToScreen.png"), "Fit to Screen");
+    view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/fitToScreen.png"), "Fit To Screen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
     view_menu->addSeparator();
-    view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go to Definition");
+    view_snapToGrid = view_menu->addAction(QIcon(":/Resources/Icons/snapToGrid.png"), "Snap Selection To Grid");
+    view_snapChildrenToGrid = view_menu->addAction(QIcon(":/Resources/Icons/snapChildrenToGrid.png"), "Snap Selection's Children To Grid");
+    view_menu->addSeparator();
+    view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go To Definition");
     view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
-    view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go to Implementation");
+    view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go To Implementation");
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
     view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "View Connections");
@@ -343,9 +360,9 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_showManagementComponents->setCheckable(true);
 
     // initially disable model & goto menu actions
-    //model_validateModel->setEnabled(false);
     view_goToDefinition->setEnabled(false);
     view_goToImplementation->setEnabled(false);
+    view_showConnectedNodes->setEnabled(false);
 }
 
 
@@ -540,8 +557,6 @@ void MedeaWindow::setupToolbar()
     pasteButton = new QToolButton(this);
     sortButton = new QToolButton(this);
     centerButton = new QToolButton(this);
-    snapToGridButton = new QToolButton(this);
-    snapChildrenToGridButton = new QToolButton(this);
     zoomToFitButton = new QToolButton(this);
     fitToScreenButton = new QToolButton(this);
     duplicateButton = new QToolButton(this);
@@ -553,8 +568,6 @@ void MedeaWindow::setupToolbar()
     pasteButton->setIcon(QIcon(":/Resources/Icons/paste.png"));
     sortButton->setIcon(QIcon(":/Resources/Icons/sort.png"));
     centerButton->setIcon(QIcon(":/Resources/Icons/center.png"));
-    snapToGridButton->setIcon(QIcon(":/Resources/Icons/snapToGrid.png"));
-    snapChildrenToGridButton->setIcon(QIcon(":/Resources/Icons/snapChildrenToGrid.png"));
     zoomToFitButton->setIcon(QIcon(":/Resources/Icons/zoomToFit.png"));
     fitToScreenButton->setIcon(QIcon(":/Resources/Icons/fitToScreen.png"));
     duplicateButton->setIcon(QIcon(":/Resources/Icons/duplicate.png"));
@@ -566,8 +579,6 @@ void MedeaWindow::setupToolbar()
     pasteButton->setFixedSize(buttonSize);
     sortButton->setFixedSize(buttonSize);
     centerButton->setFixedSize(buttonSize);
-    snapToGridButton->setFixedSize(buttonSize);
-    snapChildrenToGridButton->setFixedSize(buttonSize);
     zoomToFitButton->setFixedSize(buttonSize);
     fitToScreenButton->setFixedSize(buttonSize);
     duplicateButton->setFixedSize(buttonSize);
@@ -579,8 +590,6 @@ void MedeaWindow::setupToolbar()
     pasteButton->setToolTip("Paste");
     sortButton->setToolTip("Sort Model/Selection");
     centerButton->setToolTip("Center On Selection");
-    snapToGridButton->setToolTip("Snap Selection To Grid");
-    snapChildrenToGridButton->setToolTip("Snap Selection's Children to Grid");
     zoomToFitButton->setToolTip("Zoom To Fit Selection");
     fitToScreenButton->setToolTip("Fit View To Screen");
     duplicateButton->setToolTip("Replicate");
@@ -623,13 +632,7 @@ void MedeaWindow::setupToolbar()
     toolbar->addWidget(centerButton);
     toolbar->addWidget(zoomToFitButton);
     toolbar->addWidget(sortButton);
-    //toolbar->addWidget(snapChildrenToGridButton);
-    //toolbar->addWidget(snapToGridButton);
     toolbar->addWidget(spacerWidgetRight);
-
-    // not sure if these are wanted in the toolbar
-    snapChildrenToGridButton->hide();
-    snapToGridButton->hide();
 
     toolbar->setIconSize(buttonSize*0.6);
     toolbar->setFixedSize(toolbar->contentsRect().width(), buttonSize.height()+spacerWidth);
@@ -699,6 +702,13 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
 
+    connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
+    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
+
+    connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
+    connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
+    connect(nodeView, SIGNAL(view_displayNotification(QString)), this, SLOT(displayNotification(QString)));
+
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(view_SelectModel()));
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
@@ -719,6 +729,8 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
+    connect(view_snapToGrid, SIGNAL(triggered()), nodeView, SLOT(snapSelectionToGrid()));
+    connect(view_snapChildrenToGrid, SIGNAL(triggered()), nodeView, SLOT(snapChildrenToGrid()));
     connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(goToImplementation()));
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(goToDefinition()));
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
@@ -729,6 +741,7 @@ void MedeaWindow::makeConnections()
     connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
 
     connect(settings_ChangeSettings, SIGNAL(triggered()), appSettings, SLOT(launchSettingsUI()));
+    connect(settings_showGridLines, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
     connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
     connect(settings_selectOnConstruction, SIGNAL(triggered(bool)), nodeView, SLOT(selectNodeOnConstruction(bool)));
     connect(settings_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
@@ -758,10 +771,7 @@ void MedeaWindow::makeConnections()
     connect(fitToScreenButton, SIGNAL(clicked()), nodeView, SLOT(fitToScreen()));
     connect(centerButton, SIGNAL(clicked()), nodeView, SLOT(centerOnItem()));
     connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
-
     connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
-    connect(snapToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapSelectionToGrid()));
-    connect(snapChildrenToGridButton, SIGNAL(clicked()), nodeView, SLOT(snapChildrenToGrid()));
 
     connect(undoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Undo()));
     connect(redoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Redo()));
@@ -804,8 +814,7 @@ void MedeaWindow::makeConnections()
 
     connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*)), nodeView, SLOT(destructEdge(Edge*)));
 
-    connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
-    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
+    connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
     // this needs fixing
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
@@ -1491,7 +1500,8 @@ void MedeaWindow::showWindowToolbar()
 
 /**
  * @brief MedeaWindow::menuActionTriggered
- * This method is only used to update the displayed text in the progress bar.
+ * This method is used to update the displayed text in the progress bar
+ * and to update the enabled state of the snap to grid functions.
  */
 void MedeaWindow::menuActionTriggered()
 {
@@ -1500,6 +1510,9 @@ void MedeaWindow::menuActionTriggered()
         progressAction = "Undoing Action";
     } else if (action->text().contains("Redo")) {
         progressAction = "Redoing Action";
+    } else if (action->text().contains("Grid Lines")) {
+        view_snapToGrid->setEnabled(settings_showGridLines->isChecked());
+        view_snapChildrenToGrid->setEnabled(settings_showGridLines->isChecked());
     }
 }
 
@@ -1769,6 +1782,54 @@ void MedeaWindow::updateSearchLineEdits()
 
 
 /**
+ * @brief MedeaWindow::displayNotification
+ * @param notification
+ */
+void MedeaWindow::displayNotification(QString notification)
+{
+    // add new notification to the queue
+    if (!notification.isEmpty()) {
+        notificationsQueue.enqueue(notification);
+    }
+
+    if (!notificationTimer->isActive()) {
+        notification = notificationsQueue.dequeue();
+        notificationsBar->setText(notification);
+        notificationsBar->show();
+        notificationTimer->start(2000);
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::checkNotificationsQueue
+ */
+void MedeaWindow::checkNotificationsQueue()
+{
+    notificationTimer->stop();
+
+    // if there are still notifications waiting to be displayed, display them in order
+    if (notificationsQueue.count() > 0) {
+        displayNotification();
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::graphicsItemSelected
+ * Added this slot to update anything that needs updating when a graphics item is selected.
+ */
+void MedeaWindow::graphicsItemSelected()
+{
+    if (nodeView->getSelectedNode()) {
+        view_showConnectedNodes->setEnabled(true);
+    } else {
+        view_showConnectedNodes->setEnabled(false);
+    }
+}
+
+
+/**
  * @brief MedeaWindow::updateDataTable
  * Update the dataTable size whenever a node is selected/deselected,
  * when a new model is loaded and when the window is resized.
@@ -1845,7 +1906,7 @@ void MedeaWindow::loadJenkinsData(int code)
 
         // this selects the Jenkins hardware cluster, opens the hardware dock
         // and show the Deployment view aspects (Assembly & Hardware)
-        enableDeploymentViewAspect();
+        showImportedHardwareNodes();
 
         // center view aspects
         nodeView->centerAspects();
@@ -1911,24 +1972,15 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
 
 
 /**
- * @brief MedeaWindow::enableDeploymentViewAspect
+ * @brief MedeaWindow::showImportedHardwareNodes
  * This is called after the Jenkins nodes are imported.
  * It selects the Jenkins hardware cluster, opens the hardware dock and display
  * the Assembly and Hardware view aspects if they aren't already turned on.
  */
-void MedeaWindow::enableDeploymentViewAspect()
+void MedeaWindow::showImportedHardwareNodes()
 {
-    // make sure that the Assembly aspect is turned on
-    if (!assemblyButton->isChecked()) {
-        assemblyButton->setChecked(true);
-        assemblyButton->clicked();
-    }
-
-    // make sure that the Harware aspect is turned on
-    if (!hardwareButton->isChecked()) {
-        hardwareButton->setChecked(true);
-        hardwareButton->clicked();
-    }
+    // make sure that the aspects for Deployment are turned on
+    nodeView->viewDeploymentAspect();
 
     // select the Jenkins hardware cluster after construction
     Model* model = controller->getModel();

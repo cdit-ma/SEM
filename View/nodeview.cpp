@@ -933,6 +933,8 @@ void NodeView::constructNode(QString nodeKind, int sender)
  */
 void NodeView::constructEdge(Node *src, Node *dst)
 {
+    emit view_displayNotification("Connected " + src->getDataValue("label") +
+                                  " to " + dst->getDataValue("label"));
     view_TriggerAction("Dock/Toolbar: Constructing Edge");
     view_ConstructEdge(src, dst);
 }
@@ -986,6 +988,8 @@ void NodeView::componentInstanceConstructed(Node *node)
  */
 void NodeView::destructEdge(Edge *edge)
 {
+    emit view_displayNotification("Disconnected " + edge->getSource()->getDataValue("label") +
+                                  " from " + edge->getDestination()->getDataValue("label"));
     view_Delete(QStringList() << edge->getID());
 }
 
@@ -1139,6 +1143,18 @@ void NodeView::recenterView()
 QStringList NodeView::getAllAspects()
 {
     return allAspects;
+}
+
+
+/**
+ * @brief NodeView::viewDeploymentAspect
+ * This makes sure that the view aspects needed for Deployment are turned on.
+ */
+void NodeView::viewDeploymentAspect()
+{
+    emit view_displayNotification("Turned on Deployment view aspects");
+    addAspect("Assembly");
+    addAspect("Hardware");
 }
 
 
@@ -2167,8 +2183,9 @@ void NodeView::showManagementComponents(bool show)
         if (nodeItem) {
             nodeItem->setHidden(!show);
             if (show) {
-                // just because it's no longer hidden doesn't mean that it's in aspect
-                nodeItem->aspectsChanged(currentAspects);
+                // make sure that the aspects for Deployment are turned on
+                viewDeploymentAspect();
+                nodeItem->snapToGrid(); // sort here instead?
             }
         }
     }
