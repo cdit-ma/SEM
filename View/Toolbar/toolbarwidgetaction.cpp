@@ -146,31 +146,24 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     actionButton = new QPushButton(parent);
     actionButton->setMouseTracking(true);
 
+    QString onHoverStyleSheet;
+    QString onCheckedStyleSheet;
+
     if (isEnabled()) {
-        actionButton->setMinimumSize(160, 33);
-        actionButton->setStyleSheet("QPushButton{"
-                                    "border: 0px;"
-                                    "margin: 0px;"
-                                    "padding: 0px;"
-                                    "background-color: rgba(0,0,0,0);"
-                                    "}"
-
-                                    "QPushButton:hover{"
-                                    "background-color: rgba(10,10,10,50);"
-                                    "}"
-
-                                    "QPushButton:checked{"
-                                    "background-color: rgba(10,10,10,50);"
-                                    "}");
-    } else {
-        actionButton->setMinimumSize(label.size()*7.25, 33);
-        actionButton->setStyleSheet("QPushButton{"
-                                    "border: 0px;"
-                                    "margin: 0px;"
-                                    "padding: 0px;"
-                                    "background-color: rgba(0,0,0,0);"
-                                    "}");
+        //minSize = QSize(160, 33);
+        onHoverStyleSheet = "QPushButton:hover{ background-color: rgba(10,10,10,50); }";
+        onCheckedStyleSheet = "QPushButton:checked{ background-color: rgba(10,10,10,50); }";
     }
+
+    actionButton->setMinimumHeight(33);
+    actionButton->setStyleSheet("QPushButton{"
+                                "border: 0px;"
+                                "margin: 0px;"
+                                "padding: 0px;"
+                                "background-color: rgba(0,0,0,0);"
+                                "}"
+                                + onHoverStyleSheet
+                                + onCheckedStyleSheet);
 
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setMargin(0);
@@ -195,6 +188,8 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     layout->addWidget(textLabel);
     actionButton->setLayout(layout);
 
+    int minWidth = textLabel->fontMetrics().width(label) + imageLabel->width();
+
     // if this action is going to have a menu, add menu_arrow icon to the widget
     if (willHaveMenu) {
         QImage* menuImage = new QImage(":/Resources/Icons/menu_right_arrow.png");
@@ -207,7 +202,10 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
         menuImageLabel->setFixedSize(scaledMenuImage.size());
         menuImageLabel->setStyleSheet("background-color: rgba(0,0,0,0);");
         layout->addWidget(menuImageLabel);
+        minWidth += menuImageLabel->width();
     }
+
+    actionButton->setMinimumWidth(minWidth + 20);
 
     connect(this, SIGNAL(hovered()), this, SLOT(hover()));
     connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
