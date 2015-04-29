@@ -1120,51 +1120,7 @@ void MedeaWindow::on_actionValidate_triggered()
 
     validateResults.setupItemsTable(&messagesResult);
     validateResults.show();
-/*
-    if (!messagesResult.empty())
-    {
-        QString message;
-        for (int i = 0; i < messagesResult.size(); ++i) {
-            qDebug() << messagesResult.at(i);
-        }
-    }
 
-    // if no items in validate result display message box
-    if (messagesResult.empty()) {
-        if (validateResults->isVisible()) {
-            validateResults->setVisible(false);
-        }
-        QMessageBox::information(this, "Validate Results", "No Errors Found   ", QMessageBox::Ok);
-        return;
-    }
-
-    // clear the list view and the old search items
-    for (int i = resultsLayout->count()-1; i >= 0; i--) {
-        // remove the layout item's widget, then remove the layout item
-        if (resultsLayout->itemAt(i)->widget()) {
-            delete resultsLayout->itemAt(i)->widget();
-        }
-    }
-
-    // for each item to display, create a button for it and add it to the results layout
-    for (int row = 0; row < messagesResult.count(); ++row) {
-        //itemsTable->insertRow(row);
-        QString reportMessage = (messagesResult)[row];
-        QString id = reportMessage.split('[').last().split(']').first();
-        QString message = reportMessage.split(']').last();
-
-        //QTableWidgetItem *name = new QTableWidgetItem(message);
-        //name->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-        //itemsTable->setItem(row, 0, name);
-        GraphMLItem* guiItem = nodeView->getGraphMLItemFromHash(id);
-        SearchItemButton* searchItem = new SearchItemButton(guiItem, this);
-        searchItem->connectToWindow(this);
-        resultsLayout->addWidget(searchItem);
-    }
-
-    // show popup list view
-    validateResults->show();
-*/
 }
 
 
