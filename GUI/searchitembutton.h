@@ -37,7 +37,7 @@ private:
     QLabel* parentLabel;
 
     bool selected;
-
+    bool triggeredWithin;
 };
 
 #endif // SEARCHITEMBUTTON_H
