@@ -7,7 +7,7 @@ class EditableTextItem : public QGraphicsTextItem
 {
     Q_OBJECT
 public:
-    explicit EditableTextItem(QGraphicsItem *parent = 0);
+    explicit EditableTextItem(QGraphicsItem *parent = 0, int maximumLength = 64);
     void setEditMode(bool editMode = true);
     void setPlainText(const QString &text);
     void setTextWidth(qreal width);
@@ -31,6 +31,7 @@ private:
     QString currentFullValue;
     QString currentTruncValue;
     bool inEditingMode;
+    int maxLength;
 
 protected:
      void keyPressEvent(QKeyEvent *event);

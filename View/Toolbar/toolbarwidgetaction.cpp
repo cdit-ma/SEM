@@ -16,6 +16,7 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
     QWidgetAction(parent)
 {           
     node = 0;
+    actionButton = 0;
     kind = nodeKind;
     label = nodeKind;
 
@@ -69,9 +70,10 @@ void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu *menu)
         disconnect(this, SIGNAL(triggered()), prevWidgetMenu, SLOT(execMenu()));
     }
 
+
     widgetMenu = menu;
-    connect(widgetMenu, SIGNAL(aboutToHide()), this, SLOT(actionButtonUnclicked()));
     connect(this, SIGNAL(triggered()), widgetMenu, SLOT(execMenu()));
+
 }
 
 
@@ -242,15 +244,4 @@ void ToolbarWidgetAction::actionButtonPressed()
 void ToolbarWidgetAction::actionButtonClicked()
 {
     emit trigger();
-}
-
-
-/**
- * @brief ToolbarWidgetAction::actionButtonUnclicked
- * This method corrects the checked state of actionButton when the menu is hidden.
- */
-void ToolbarWidgetAction::actionButtonUnclicked()
-{
-    actionButton->setChecked(false);
-    actionButton->repaint();
 }

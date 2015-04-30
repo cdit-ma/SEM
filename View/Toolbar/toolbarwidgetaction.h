@@ -40,7 +40,6 @@ public slots:
     void hover();
     void actionButtonPressed();
     void actionButtonClicked();
-    void actionButtonUnclicked();
 
 private:
     Node* node;

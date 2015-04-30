@@ -40,6 +40,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setParentItem(parent);
     parentNodeItem = parent;
 
+    inSubView = IN_SUBVIEW;
     nodeResizing = false;
 
     currentResizeMode = NodeItem::NO_RESIZE;
@@ -69,6 +70,11 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     proxyWidget = 0;
     width = 0;
     height = 0;
+    expandedWidth = 0;
+    expandedHeight = 0;
+    minimumWidth = 0;
+    minimumHeight = 0;
+
 
     nodeKind = getGraphML()->getDataValue("kind");
 
@@ -80,8 +86,11 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
             setWidth(parent->getWidth()/2);
             setHeight(parent->getHeight()/2);
         } else {
+
             setWidth(parent->getChildWidth());
             setHeight(width);
+
+
         }
 
         parentNodeKind = parent->getGraphML()->getDataValue("kind");
@@ -101,16 +110,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     //Set Maximum Size
     expandedWidth = width;
     expandedHeight = height;
-
-    /*
-    if(!IN_SUBVIEW){
-        if (width < initialWidth) {
-            width = initialWidth;
-        }
-        if (height < initialHeight) {
-            height = initialHeight;
-        }
-    }*/
 
     //Update Width and Height with values from the GraphML Model If they have them.
     retrieveGraphMLData();
@@ -143,9 +142,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     }
 
     // why is the EventPortInstance permanently invisible?
-    if (parentNodeKind.endsWith("EventPortInstance")){
-        setPermanentlyInvisible(true);
-    }
+    //if (parentNodeKind.endsWith("EventPortInstance")){
+    //    setPermanentlyInvisible(true);
+    //}
 
     aspectsChanged(aspects);
 
@@ -153,6 +152,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         parentNodeItem->childPosUpdated();
     }
     outlines.clear();
+
+    if(IN_SUBVIEW){
+        setVisible(true);
+    }
 }
 
 
@@ -800,6 +803,9 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
             setCenterPos(newCenterPos);
 
         }else if(dataKey == "width" || dataKey == "height"){
+            if(dataValue == "inf"){
+                dataValue = QString::number(MODEL_WIDTH);
+            }
             //Update the Size
             prepareGeometryChange();
 
@@ -988,6 +994,9 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
+    if(inSubView){
+        return;
+    }
     switch (event->button()) {
     case Qt::LeftButton:
 
@@ -1111,6 +1120,8 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
         }else{
             if(hasSelectionMoved == false){
+                qCritical() << "ADD ACTION";
+                //qCritical() << "UNDO ACTIONB ADDED";
                 emit GraphMLItem_TriggerAction("Moving Selection");
                 setCursor(Qt::SizeAllCursor);
                 if(parentNodeItem){
@@ -1263,7 +1274,7 @@ void NodeItem::setSize(qreal w, qreal h)
         updateTextLabel();
         updateGridLines();
 
-        //updateModelSize();
+        updateModelSize();
         updateParent();
 
     }
@@ -1347,6 +1358,7 @@ void NodeItem::updateTextLabel(QString newLabel)
     textItem->setTextWidth(width);
 
     if(newLabel != ""){
+        qCritical() << newLabel;
         textItem->setPlainText(newLabel);
     }
 }
@@ -1355,14 +1367,20 @@ QRectF NodeItem::getMinimumChildRect()
 {
     qreal itemMargin = getItemMargin()/2;
 
+
+
     QPointF topLeft(itemMargin, itemMargin);
     QPointF bottomRight(itemMargin + minimumWidth, itemMargin + minimumHeight);
 
 
     bool hasChildren = false;
     bool hasUncontainedChildren = false;
+
+
     foreach(NodeItem* child, childNodeItems){
+
         if(child->isVisible()){
+        //if(!child->isHidden()){
             hasChildren = true;
             qreal childMaxX = child->pos().x() + child->boundingRect().width();
             qreal childMaxY = child->pos().y() + child->boundingRect().height();
@@ -1544,9 +1562,7 @@ void NodeItem::setPos(const QPointF &pos)
 void NodeItem::updateParent()
 {
     if(parentNodeItem){
-        //qCritical() <<"Before: "<< parentNodeItem->childrenBoundingRect();
         parentNodeItem->childPosUpdated();
-        //qCritical() <<"After: "<< parentNodeItem->childrenBoundingRect();
     }
 }
 
@@ -1848,13 +1864,20 @@ void NodeItem::updateChildrenOnChange()
 
 void NodeItem::retrieveGraphMLData()
 {
+
     double graphmlHeight = getGraphML()->getDataValue("height").toDouble();
     double graphmlWidth = getGraphML()->getDataValue("width").toDouble();
+
 
     //Update the position with values from the GraphML Model if they have them.
     double graphmlX = getGraphML()->getDataValue("x").toDouble();
     double graphmlY = getGraphML()->getDataValue("y").toDouble();
 
+    if(inSubView){
+        qCritical() << "X: " << graphmlX;
+        qCritical() << "Y: " << graphmlY;
+        qCritical() << pos();
+    }
     setCenterPos(QPointF(graphmlX, graphmlY));
 
     if(graphmlHeight > height || graphmlWidth > width){
@@ -2039,12 +2062,6 @@ void NodeItem::expandItem(bool show)
         return;
     }
 
-    //Hide the children.
-    foreach(NodeItem* nodeItem, childNodeItems){
-        if (!nodeItem->isHidden()) {
-            nodeItem->setVisible(show);
-        }
-    }
 
     expanded = show;
 
@@ -2057,8 +2074,21 @@ void NodeItem::expandItem(bool show)
         GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(expandedWidth));
         GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(expandedHeight));
     } else {
+
+        //qreal mW = minimumVisibleRect().width();
+        //qreal mH = minimumVisibleRect().width();
+        //GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(mW));
+        //GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(mH));
         GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(minimumWidth));
         GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(minimumHeight));
+
+    }
+
+    //Hide the children.
+    foreach(NodeItem* nodeItem, childNodeItems){
+        if (!nodeItem->isHidden()) {
+            nodeItem->setVisible(show);
+        }
     }
 
 
@@ -2124,6 +2154,7 @@ void NodeItem::updateModelPosition()
 
 void NodeItem::updateModelSize()
 {
+
     GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(width));
     GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(height));
     if(this->parentNodeItem){
@@ -2145,12 +2176,14 @@ void NodeItem::sceneRectChanged(QRectF sceneRect)
 void NodeItem::labelUpdated(QString newLabel)
 {
     if(getGraphML()){
-        QString currentLabel = getGraphML()->getDataValue("label");
 
-        if(currentLabel != newLabel){
+        QString currentLabel = getGraphML()->getDataValue("label");
+        qCritical() << "Tell Controller nwe label is: " << newLabel;
+
+        //if(currentLabel != newLabel){
             GraphMLItem_TriggerAction("Set New Label");
             GraphMLItem_SetGraphMLData(getGraphML(), "label", newLabel);
-        }
+        //}
     }
 }
 

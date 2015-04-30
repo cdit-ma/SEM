@@ -280,6 +280,10 @@ void NewController::exportGraphMLDocument()
 
 void NewController::clearModel()
 {
+ 	int reply = QMessageBox::question(0, "Clear Model", "Do wish you to clear the model and all Undo/Redo States?", QMessageBox::Yes|QMessageBox::No);
+    if (reply != QMessageBox::Yes) {
+        return;
+    }
     triggerAction("Clearing Model");
 
     QList<Node*> childNodes = interfaceDefinitions->getChildren(0);
@@ -339,21 +343,23 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
     if(data){
         action.dataValue = data->getValue();
 
-        if(keyName == "label"){
-            Node* node = dynamic_cast<Node*>(parent);
-            enforceUniqueLabel(node, dataValue);
+        if(parent->isNode()){
+            Node* node = (Node*)parent;
+            if(keyName == "label"){
+                enforceUniqueLabel(node, dataValue);
+            }else if(keyName == "sortOrder"){
+                enforceUniqueSortOrder(node, dataValue.toInt());
+                QString newSortOrder = node->getDataValue("sortOrder");
 
- 		}else if(keyName == "sortOrder"){
-            Node* node = dynamic_cast<Node*>(parent);
-            enforceUniqueSortOrder(node, dataValue.toInt());
-            QString newSortOrder = node->getDataValue("sortOrder");
-
-            if(action.dataValue == newSortOrder){
-                //Don't add an action for the initial setting!
-                addAction = false;
+                if(action.dataValue == newSortOrder){
+                    //Don't add an action for the initial setting!
+                    addAction = false;
+                }
+            }else{
+                data->setValue(dataValue);
             }
-
-        }else{
+        }
+        if(parent->isEdge()){
             data->setValue(dataValue);
         }
 
@@ -829,8 +835,6 @@ void NewController::removeGraphMLFromHash(QString ID)
         }else if(item->getKind() == GraphML::EDGE){
             edgeIDs.removeOne(ID);
         }
-
-
         if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
             qCritical() << "Hash Map Inconsistency detected!";
         }
@@ -1050,6 +1054,7 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
     int nodesMatched = 0;
     bool requiresLabelAndType = false;
     QString definitionKind = definition->getDataValue("kind");
+
     if(definitionKind == "Attribute" || definitionKind.startsWith("Member")){
         requiresLabelAndType = true;
     }
@@ -1118,6 +1123,8 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
 
         if(!instanceNode){
             qCritical() << "constructDefinitionRelative(): Couldn't construct a Relative Node.";
+            //if(!parent->getDataValue("kind").endsWith("EventPortInstance")){
+            //}
             return 0;
         }
 
@@ -1142,6 +1149,8 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
 
 void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
 {
+ 	QString toSetLabel = nodeLabel;
+    QString currentLabel = node->getDataValue("label");
     if(!node){
         return;
     }
@@ -1155,6 +1164,11 @@ void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
         node->updateDataValue("label", nodeLabel);
         return;
     }
+    if(node->getDataValue("kind") == "Process"){
+        node->updateDataValue("label", nodeLabel);
+        return;
+    }
+
     int maxNumber = -1;
     QList<int> sameLabelNumbers;
 
@@ -1206,6 +1220,10 @@ void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
 
 
      node->updateDataValue("label", nodeLabel);
+		if(currentLabel == nodeLabel && nodeLabel != toSetLabel){
+         GraphMLData* labelData = node->getData("label");
+         emit labelData->dataChanged(labelData);
+     }
 }
 
 void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
@@ -2100,12 +2118,14 @@ bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
     //For each child contained in the Definition, which itself is a definition, construct an Instance/Impl inside the Parent Instance/Impl.
     foreach(Node* child, definition->getChildren(0)){
         if(child && child->isDefinition()){
-            //Construct relationships between the children which matched the definitionChild.
-            int instancesConnected = constructDefinitionRelative(node, child, instance);
+           if(!node->getDataValue("kind").endsWith("EventPortInstance")){
+                //Construct relationships between the children which matched the definitionChild.
+                int instancesConnected = constructDefinitionRelative(node, child, instance);
 
-            if(instancesConnected == 0){
-                qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << node->toString();
-                return false;
+                if(instancesConnected == 0){
+                    qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << node->toString();
+                    return false;
+                }
             }
         }
     }

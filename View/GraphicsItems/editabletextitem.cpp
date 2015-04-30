@@ -7,11 +7,12 @@
 #include <QCursor>
 
 
-EditableTextItem::EditableTextItem(QGraphicsItem *parent) :
+EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     QGraphicsTextItem(parent)
 {
     currentFullValue = "";
     currentTruncValue = "";
+    maxLength = maximumLength;
 
     inEditingMode = false;
     setFlag(ItemIsFocusable, false);
@@ -56,7 +57,11 @@ void EditableTextItem::setEditMode(bool editMode)
         //Get the current Value of the TextItem (Should be Non-Truncated value)
         QString currentValue = toPlainText();
 
-        //Check if the value is different to the previous fullValue.
+        qCritical() << "Previous Full Value: " << currentFullValue;
+        qCritical() << "Current Value: " << currentValue;
+        ////Check if the value is different to the previous fullValue.
+        ///
+        /// q
         if(currentFullValue != currentValue){
             textUpdated(currentValue);
         }else{
@@ -69,6 +74,8 @@ void EditableTextItem::setEditMode(bool editMode)
         c.clearSelection();
         setTextCursor(c);
         clearFocus();
+
+
     }
 }
 
@@ -77,11 +84,8 @@ void EditableTextItem::setPlainText(const QString &text)
     if(currentFullValue != text){
         currentFullValue = text;
         currentTruncValue = getTruncatedText(text);
-        QGraphicsTextItem::setPlainText(currentTruncValue);
     }
-
     QGraphicsTextItem::setPlainText(currentTruncValue);
-
 }
 
 void EditableTextItem::setTextWidth(qreal width)
@@ -112,13 +116,14 @@ void EditableTextItem::focusInEvent(QFocusEvent*)
 
 void EditableTextItem::focusOutEvent(QFocusEvent *event)
 {
-    if(inEditingMode){
+    qCritical() << "FOCUSED OUT";
+    //if(inEditingMode){
         //Only exit Edit mode if we are currently editing.
         setEditMode(false);
 
         // if we're done editing, tell the view that this item no longer has focus
         emit editableItem_hasFocus(false);
-    }
+    //}
 }
 
 void EditableTextItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
@@ -134,8 +139,7 @@ QString EditableTextItem::getTruncatedText(const QString text)
     qreal newTextWidth = fm.width(newText);
     qreal ratio = newTextWidth / QGraphicsTextItem::textWidth();
 
-    //Magic.
-    if(ratio >= .98){
+    if(ratio >= .97){
         //Calculate the number of characters we can fit.
         int stringLength = (newText.size() / ratio) - 3;
         newText.truncate(stringLength);
@@ -171,4 +175,5 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
         //return;
     }
     QGraphicsTextItem::keyPressEvent(event);
+
 }

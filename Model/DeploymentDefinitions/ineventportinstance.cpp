@@ -15,7 +15,9 @@ InEventPortInstance::~InEventPortInstance()
 
 bool InEventPortInstance::canAdoptChild(Node *child)
 {
-    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
+    return false;
+    /*AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
+
 
     if(!aggregateInstance || (aggregateInstance && this->childrenCount() > 0)){
 #ifdef DEBUG_MODE
@@ -25,6 +27,7 @@ bool InEventPortInstance::canAdoptChild(Node *child)
     }
 
     return Node::canAdoptChild(child);
+*/
 }
 
 

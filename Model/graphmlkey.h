@@ -2,6 +2,7 @@
 #define GRAPHMLKEY_H
 #include <QString>
 #include "graphml.h"
+#include <QStringList>
 #include <QMap>
 class GraphMLData;
 class GraphMLKey: public GraphML
@@ -35,6 +36,7 @@ public:
     QString getTypeString();
     QString getForKindString();
 private:
+    bool isValidValue(QString number, TYPE type);
 
     void addValidValue(QString nodeKind, QString value);
 
@@ -46,7 +48,7 @@ private:
 
     QMultiMap<QString, QString> validValues;
 
-    QList<QChar> invalidLabelCharacters;
+    QStringList invalidLabelCharacters;
 
     TYPE type;
     QString typeStr;

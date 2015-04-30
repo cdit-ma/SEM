@@ -4,7 +4,9 @@
 
 #include <QDebug>
 #include <QMessageBox>
+#define LABEL_TRUNCATE_LENGTH 64
 int GraphMLKey::_Did =0;
+
 
 GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(GraphML::KEY, name)
 {
@@ -43,8 +45,8 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
 
     setDefaultProtected(false);
 
-    invalidLabelCharacters << '*' << '.' << '[' << ']'<< ';' << '|' << ',' <<  '%';
-    invalidLabelCharacters << '"' << '/' << '\\' << '=' << ':' << ' ' << '<' << '>' << '\t';
+    invalidLabelCharacters << "*" << "." << "[" << "]"<< ";" << "|" << "," <<  "%";
+    invalidLabelCharacters << "\"" << "'"  << "/" << "\\" << "=" << ":" << " " << "<" << ">" << "\t";
 }
 
 GraphMLKey::~GraphMLKey()
@@ -130,13 +132,13 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
 {
 
     bool ok = false;
-
+    bool validValue = isValidValue(newValue, type);
 
     switch(type){
     case BOOLEAN:
         newValue = newValue.toLower();
         if(newValue == "true" || newValue == "false"){
-            return newValue;
+            ok = true;
         }
         break;
     case INT:
@@ -158,9 +160,10 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
     case STRING:{
         ok = true;
         if(getName() == "label"){
-            if(newValue.size() > 64)
+            if(newValue.size() >= LABEL_TRUNCATE_LENGTH)
             {
-                QMessageBox::warning(0, "Label Warning!", "Label is longer than 32 characters!", QMessageBox::Ok);
+                QMessageBox::warning(0, "Label Warning!", "Label has been truncated to the first 64 characters.", QMessageBox::Ok);
+                newValue.truncate(LABEL_TRUNCATE_LENGTH - 1);
             }
 
             newValue.replace(QString(" "), QString("_"));
@@ -168,8 +171,9 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
             foreach(QChar letter, newValue){
 
                 if(invalidLabelCharacters.contains(letter)){
-                    QMessageBox::critical(0, "Invalid Character in Label!", "Character '" + QString(letter) + "' is not allowed in label!", QMessageBox::Ok);
+                    QMessageBox::critical(0, "Invalid Character in Label!", "Not allowed characters are: " + invalidLabelCharacters.join(" "), QMessageBox::Ok);
                     ok = false;
+                    break;
                 }
             }
        }
@@ -183,13 +187,10 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
         ok = true;
     }
 
-    if(ok){
-
-
+    if(ok && validValue){
         return newValue;
-    }else{
-        return data->getValue();
     }
+    return data->getValue();
 }
 
 
@@ -229,6 +230,16 @@ QString GraphMLKey::getTypeString()
 QString GraphMLKey::getForKindString()
 {
     return this->forKindStr;
+}
+
+bool GraphMLKey::isValidValue(QString number, TYPE type)
+{
+    if(type == INT || type == DOUBLE || type == LONG || type == FLOAT){
+        if(number == "inf"){
+            return false;
+        }
+    }
+    return true;
 }
 
 void GraphMLKey::addValidValue(QString nodeKind, QString value)

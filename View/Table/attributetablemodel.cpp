@@ -21,7 +21,8 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
         }
     }
 
-    hiddenKeyNames << "width" << "height" <<  "x" << "y"; // << "kind";
+    hiddenKeyNames;// << "width" << "height" <<  "x" << "y"; // << "kind";
+    permanentlyLockedKeyNames << "kind";
     setupDataBinding();
 
 }
@@ -117,6 +118,18 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
         }
     }
 
+    if(role == Qt::CheckStateRole){
+        GraphMLData* data = attachedData.at(index.row());
+        switch(index.column()){
+        case 0:
+            if(data->isProtected()){
+                return Qt::Checked;
+            }else{
+               return Qt::Unchecked;
+            }
+        }
+    }
+
     if (role == Qt::DisplayRole) {
         GraphMLData* data = attachedData.at(index.row());
 
@@ -200,26 +213,66 @@ QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientatio
 
 bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
+    if(role == Qt::CheckStateRole){
+        GraphMLData* data = attachedData.at(index.row());
+
+        if(index.column() == 0 && data){
+            if(!permanentlyLockedKeyNames.contains(data->getKeyName())){
+                data->setProtected(value.toBool());
+                dataChanged(index, index);
+                return true;
+            }
+        }
+/*
+        switch(index.column()){
+        case 0:
+            if(data->isProtected()){
+                return Qt::Checked;
+            }else{
+               return Qt::Unchecked;
+            }
+
+        }
+        */
+    }
+
     if (index.isValid() && role == Qt::EditRole) {
         int row = index.row();
 
         GraphMLData* data = attachedData.at(row);
-
+/*
         if(index.column() == 0 && data){
-            data->setProtected(!data->isProtected());
-            dataChanged(index, index);
-            return true;
+            if(!permanentlyLockedKeyNames.contains(data->getKeyName())){
+                data->setProtected(!data->isProtected());
+                dataChanged(index, index);
+                return true;
+            }
         }
+        */
+
+
 
         if (index.column() == 2 && data && !data->isProtected()){
-            guiItem->GraphMLItem_TriggerAction("Updated Table Cell");
+            guiItem->GraphMLItem_TriggerAction("Updated Table Cell");        
             guiItem->GraphMLItem_SetGraphMLData(guiItem->getGraphML(), data->getKey()->getName(), value.toString());
-
             dataChanged(index, index);
             return true;
         }
     }
 
+    /*
+    if(role == Qt::CheckStateRole){
+        GraphMLData* data = attachedData.at(index.row());
+        switch(index.column()){
+        case 0:
+            if(data->isProtected()){
+                return Qt::Checked;
+            }else{
+               return Qt::Unchecked;
+            }
+        }
+    }
+*/
     return false;
 }
 
@@ -267,9 +320,10 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 
             GraphMLData* data = attachedData.at(row);
             bool isEditable = data->getParentData() == 0;
+            isEditable = !permanentlyLockedKeyNames.contains(data->getKeyName());
 
             if (data && isEditable){
-                return QAbstractTableModel::flags(index)  | Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsUserCheckable;
+                return QAbstractTableModel::flags(index) | /*Qt::ItemIsEditable |*/ Qt::ItemIsEnabled | Qt::ItemIsUserCheckable;
             }else{
                 return (QAbstractTableModel::flags(index)  ^ Qt::ItemIsEnabled);
             }

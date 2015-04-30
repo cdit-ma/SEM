@@ -45,6 +45,7 @@ private:
     bool isNode;
     GraphML* attachedGraphML;
     QList<GraphMLData*> attachedData;
+    QStringList permanentlyLockedKeyNames;
     QStringList hiddenKeyNames;
 };
 

@@ -31,9 +31,10 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+	// this needs to happen before the menu is set up and connected
     appSettings = new AppSettings(this);
 
-    // this needs to happen before the menu is set up and connected
+    
     setupJenkinsSettings();
 
     // initialise gui and connect signals and slots
@@ -992,6 +993,8 @@ void MedeaWindow::on_actionNew_Project_triggered()
         if (!exportProject()) {
             return;
         }
+    }else{
+        return;
     }
 
     newProject();
@@ -1279,6 +1282,7 @@ void MedeaWindow::on_actionSearch_triggered()
  */
 void MedeaWindow::on_actionExit_triggered()
 {
+
     close();
 }
 

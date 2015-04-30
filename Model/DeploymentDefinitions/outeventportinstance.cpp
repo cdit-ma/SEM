@@ -20,6 +20,9 @@ OutEventPortInstance::~OutEventPortInstance()
 
 bool OutEventPortInstance::canAdoptChild(Node *child)
 {
+    return false;
+
+    /*
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
 
     if(!aggregateInstance || (aggregateInstance && this->childrenCount() > 0)){
@@ -30,10 +33,13 @@ bool OutEventPortInstance::canAdoptChild(Node *child)
     }
 
     return Node::canAdoptChild(child);
+    */
+
 }
 
 bool OutEventPortInstance::canConnect(Node* attachableObject)
 {
+
     OutEventPort* outEventPort = dynamic_cast<OutEventPort*> (attachableObject);
 
     InEventPortInstance* inEventPortInstance = dynamic_cast<InEventPortInstance*>(attachableObject);

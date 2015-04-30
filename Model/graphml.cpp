@@ -69,6 +69,7 @@ QString GraphML::getID()
 void GraphML::updateDataValue(QString keyName, QString value)
 {
     GraphMLData* data = getData(keyName);
+
     if(data != 0){
         data->setValue(value);
     }else{

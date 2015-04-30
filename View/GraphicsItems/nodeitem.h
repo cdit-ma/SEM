@@ -220,7 +220,7 @@ private:
     QColor invertColor(QColor oldColor);
 
     double getItemMargin() const;
-    double getChildItemMargin() const;
+    //double getChildItemMargin();// const;
 
 
 
@@ -244,6 +244,7 @@ private:
     bool nodeResizing;
     bool isNodePressed;
     bool drawGrid;
+    bool inSubView;
 
     int X_GRID_POS;
     int Y_GRID_POS;

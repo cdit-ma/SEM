@@ -400,10 +400,12 @@ void NodeView::constructNewView(Node *centeredOn)
         }
         newView->setAspects(newAspects);
 
+
         QList<Node*> toConstruct;
         toConstruct << centeredOn->getChildren();
 
         while(centeredOn){
+            qCritical() << "Making Items";
             toConstruct.insert(0,centeredOn);
             centeredOn = centeredOn->getParentNode();
         }
@@ -749,6 +751,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     if(!node){
         qCritical() << "Node is Null.";
     }
+
 
     Node* parentNode = node->getParentNode();
 
@@ -1604,6 +1607,7 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
 void NodeView::mousePressEvent(QMouseEvent *event)
 {   
+    qCritical() << event->modifiers();
     if(toolbarJustClosed){
         toolbarJustClosed = false;
         return;
@@ -1668,20 +1672,22 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         resizeFinished();
     }
 
-    if(this->hasFocus()){
 
-        bool CONTROL = event->modifiers() & Qt::ControlModifier;
-        bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
-        if(CONTROL && SHIFT){
-            if(!RUBBERBAND_MODE){
-                setRubberBandMode(true);
-            }
-        }else{
-            if(RUBBERBAND_MODE){
-                setRubberBandMode(false);
-            }
+    bool CONTROL = event->modifiers() & Qt::ControlModifier;
+    bool SHIFT = event->modifiers() & Qt::ShiftModifier;
+
+    if(CONTROL && SHIFT){
+        if(!RUBBERBAND_MODE){
+            setRubberBandMode(true);
         }
+    }else{
+        if(RUBBERBAND_MODE){
+            setRubberBandMode(false);
+        }
+    }
+
+    if(this->hasFocus()){
 
         if(CONTROL && event->key() == Qt::Key_A){
             selectAll();
