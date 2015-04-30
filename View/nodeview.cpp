@@ -1747,7 +1747,7 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
             if(!sharedParent){
                 sharedParent = graphMLItem->parentItem();
             }else if(sharedParent != graphMLItem->parentItem()){
-                showDialogMessage(WARNING, "Cannot Align Selection which aren't contained by the same Parent.", graphMLItem->getGraphML());
+                showDialogMessage(WARNING, "Selection Issue", "Cannot Align Selection which aren't contained by the same Parent.", graphMLItem->getGraphML(), true);
                 return;
             }
 
@@ -1820,19 +1820,19 @@ void NodeView::setEnabled(bool enabled)
 
 
 
-void NodeView::showDialogMessage(MESSAGE_TYPE type, QString message, GraphML *item)
+void NodeView::showDialogMessage(MESSAGE_TYPE type, QString title, QString message, GraphML *item, bool centralizeItem)
 {
 
-    if(item){
+    if(item && centralizeItem){
         centerItem(getGraphMLItemFromGraphML(item));
     }
     if(message != ""){
         if(type == CRITICAL){
-            QMessageBox::critical(this, "Error", message, QMessageBox::Ok);
+            QMessageBox::critical(this, "Error: " + title, message, QMessageBox::Ok);
         }else if(type == WARNING){
-            QMessageBox::warning(this, "Warning", message, QMessageBox::Ok);
+            QMessageBox::warning(this, "Warning: " + title, message, QMessageBox::Ok);
         }else{
-            QMessageBox::information(this, "Message", message, QMessageBox::Ok);
+            QMessageBox::information(this, "Message: " + title, message, QMessageBox::Ok);
         }
     }
 }

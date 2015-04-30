@@ -249,7 +249,7 @@ QStringList NewController::getNodeKinds(Node *parent)
 {
     QStringList empty;
     if(parent){
-        if(parent->isImpl() || parent->getParentNode()->isImpl()){
+        if(parent->isImpl() || (parent->getParentNode() && parent->getParentNode()->isImpl())){
             return behaviourNodeKinds;
         }else if(!parent->isInstance()){
             return definitionNodeKinds;

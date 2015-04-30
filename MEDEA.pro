@@ -10,6 +10,7 @@ QT       += gui
 QT       += widgets
 QT       += xmlpatterns
 
+
 TARGET = MEDEA
 
 TEMPLATE = app
@@ -179,7 +180,11 @@ JENKINSGROOVY.files += Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groo
 SETTINGSFILE.path = $$OUT_PWD
 SETTINGSFILE.files += settings.ini
 
+XSLFILE.path = $$OUT_PWD/Resources/Scripts/
+XSLFILE.files += Resources/Scripts/MEDEA.xsl
+
 
 INSTALLS += JENKINSGROOVY
 INSTALLS += JENKINSCLIJAR
 INSTALLS += SETTINGSFILE
+INSTALLS += XSLFILE

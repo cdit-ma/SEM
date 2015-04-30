@@ -2178,12 +2178,11 @@ void NodeItem::labelUpdated(QString newLabel)
     if(getGraphML()){
 
         QString currentLabel = getGraphML()->getDataValue("label");
-        qCritical() << "Tell Controller nwe label is: " << newLabel;
 
-        //if(currentLabel != newLabel){
+        if(currentLabel != newLabel){
             GraphMLItem_TriggerAction("Set New Label");
             GraphMLItem_SetGraphMLData(getGraphML(), "label", newLabel);
-        //}
+        }
     }
 }
 

@@ -132,7 +132,7 @@ public slots:
     void setDefaultAspects();
     void setEnabled(bool);
 
-    void showDialogMessage(MESSAGE_TYPE type, QString message, GraphML* item = 0);
+    void showDialogMessage(MESSAGE_TYPE type, QString title, QString message, GraphML* item = 0, bool centralizeItem = false);
 
     void view_ClearHistory();
     void clearView();
