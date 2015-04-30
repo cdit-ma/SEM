@@ -334,7 +334,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_menu->addSeparator();
     view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "View Connections");
     view_showManagementComponents = view_menu->addAction("View Management Components");
-    view_showManagementComponents->setShortcut(QKeySequence(Qt::Key_M));
+    view_showManagementComponents->setShortcut(QKeySequence(Qt::CTRL +Qt::Key_M));
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
