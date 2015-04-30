@@ -41,7 +41,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     constructedFromImport = true;
     toolbarJustClosed = false;
     editingNodeItemLabel = false;
-
+    managementComponentVisible = false;
     IS_SUB_VIEW = subView;
     controller = 0;
     parentNodeView = 0;
@@ -1329,7 +1329,7 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
 
     // initially hide all ManagementComponents
     if (nodeItem->getNodeKind() == "ManagementComponent") {
-        nodeItem->setHidden(true);
+        nodeItem->setHidden(!managementComponentVisible);
     }
 
     // hide all AggregateInstances except for in OutEventPortImpls
@@ -2217,6 +2217,8 @@ void NodeView::showManagementComponents(bool show)
             }
         }
     }
+
+    managementComponentVisible = show;
 }
 
 

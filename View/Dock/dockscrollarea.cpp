@@ -217,19 +217,30 @@ void DockScrollArea::updateDock()
 {
     //qDebug() << "updateDock(): currentID = " << currentNodeItemID;
 
-
-    if (currentNodeItem) {
-        if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
-            parentButton->enableDock(false);
+    if(currentNodeItemID != "-1"){
+        if (currentNodeItem) {
+            if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
+                parentButton->enableDock(false);
+            } else {
+                parentButton->enableDock(true);
+            }
         } else {
-            parentButton->enableDock(true);
+            // no current node item selected
+            parentButton->enableDock(false);
         }
-    } else {
-        // no current node item selected
-        parentButton->enableDock(false);
     }
 
 
+}
+
+void DockScrollArea::nodeDeleted(QString childID, QString parentID)
+{
+    if(parentID == getSelectedNodeID())
+    {
+        updateDock();
+    }else if(childID == getSelectedNodeID()){
+        currentNodeItemID = "-1";
+    }
 }
 
 

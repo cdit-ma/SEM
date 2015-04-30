@@ -46,7 +46,7 @@ protected:
 public slots:
     virtual void dockNodeItemClicked() = 0;
     virtual void updateDock();
-
+    void nodeDeleted(QString childID, QString parentID);
     void updateCurrentNodeItem();
 
     void activate();

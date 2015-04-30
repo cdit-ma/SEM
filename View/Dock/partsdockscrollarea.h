@@ -17,7 +17,7 @@ public slots:
     virtual void dockNodeItemClicked();
     virtual void updateDock();
 
-    void nodeDeleted(QString childID, QString parentID);
+
 
 private:    
     QStringList displayedItems;

@@ -1410,17 +1410,11 @@ bool NewController::destructNode(Node *node, bool addAction)
     }
     if(hCNode){
         QString nodeName = hCNode->getDataValue("label");
-        qCritical() << hardwareClusters.size();
         hardwareClusters.remove(nodeName);
-        qCritical() << hardwareClusters.size();
     }
     if(mCNode){
         QString nodeName = mCNode->getDataValue("label");
-
-        qCritical() << managementComponents.size();
         managementComponents.remove(nodeName);
-
-        qCritical() << managementComponents.size();
     }
 
     delete node;

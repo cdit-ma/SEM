@@ -307,7 +307,7 @@ private:
 
     bool IS_RESIZING;
     bool IS_MOVING;
-
+    bool managementComponentVisible;
     bool AUTO_CENTER_ASPECTS;
     bool GRID_LINES_ON;
     bool SELECT_ON_CONSTRUCTION;
