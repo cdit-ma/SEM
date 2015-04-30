@@ -217,34 +217,22 @@ void DockScrollArea::updateDock()
 {
     //qDebug() << "updateDock(): currentID = " << currentNodeItemID;
 
-    if (currentNodeItemID != "-1") {
-        if (currentNodeItem) {
-            if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
-                parentButton->enableDock(false);
-            } else {
-                parentButton->enableDock(true);
-            }
-        } else {
-            // no current node item selected
+
+    if (currentNodeItem) {
+        if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
             parentButton->enableDock(false);
+        } else {
+            parentButton->enableDock(true);
         }
     } else {
-        // current node item deleted
+        // no current node item selected
         parentButton->enableDock(false);
     }
+
+
 }
 
 
-/**
- * @brief DockScrollArea::graphMLDestructed
- * @param ID
- */
-void DockScrollArea::graphMLDestructed(QString ID)
-{
-    if (ID == currentNodeItemID) {
-        currentNodeItemID = "-1";
-    }
-}
 
 
 /**
@@ -268,6 +256,11 @@ void DockScrollArea::paintEvent(QPaintEvent *e)
 void DockScrollArea::removeDockNodeItemFromList(DockNodeItem *item)
 {
     dockNodeItems.removeAll(item);
+}
+
+QString DockScrollArea::getSelectedNodeID()
+{
+    return currentNodeItemID;
 }
 
 

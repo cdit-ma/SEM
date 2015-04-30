@@ -60,6 +60,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     expanded = true;
     hidden = false;
     hasSelectionMoved = false;
+    hasSelectionResized = false;
+
     hasDefinition = false;
 
     icon = 0;
@@ -1274,7 +1276,7 @@ void NodeItem::setSize(qreal w, qreal h)
         updateTextLabel();
         updateGridLines();
 
-        updateModelSize();
+        //updateModelSize();
         updateParent();
 
     }
@@ -1358,7 +1360,7 @@ void NodeItem::updateTextLabel(QString newLabel)
     textItem->setTextWidth(width);
 
     if(newLabel != ""){
-        qCritical() << newLabel;
+        //qCritical() << newLabel;
         textItem->setPlainText(newLabel);
     }
 }
@@ -2155,10 +2157,12 @@ void NodeItem::updateModelPosition()
 void NodeItem::updateModelSize()
 {
 
+
     GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(width));
     GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(height));
-    if(this->parentNodeItem){
-        //parentNodeItem->updateModelSize();
+
+    if(parentNodeItem){
+        parentNodeItem->updateModelSize();
     }
 }
 

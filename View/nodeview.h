@@ -67,7 +67,10 @@ protected:
     bool viewportEvent(QEvent *);
 
 signals:
-    void view_GraphMLItemDeleted(QString ID);
+
+    void view_NodeDeleted(QString childID, QString parentID="");
+    void view_EdgeDeleted(QString srcID, QString dstID);
+
     void view_SetClipboardBuffer(QString);
     void view_UndoListChanged(QStringList);
     void view_RedoListChanged(QStringList);
@@ -196,7 +199,7 @@ public slots:
 
     void deleteSelection();
     void constructNode(QString nodeKind, int sender);
-    void constructEdge(Node* src, Node* dst);
+    void constructEdge(Node* src, Node* dst, bool triggerAction=true);
     void constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender);
     void constructNewView(Node* centeredOn);
     void showConnectedNodes();

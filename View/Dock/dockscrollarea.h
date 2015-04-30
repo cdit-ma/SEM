@@ -38,6 +38,7 @@ public:
     QStringList getAdoptableNodeListFromView();
 
     QVBoxLayout* getLayout();
+    QString getSelectedNodeID();
 
 protected:
     void paintEvent(QPaintEvent *e);
@@ -45,7 +46,7 @@ protected:
 public slots:
     virtual void dockNodeItemClicked() = 0;
     virtual void updateDock();
-    void graphMLDestructed(QString ID);
+
     void updateCurrentNodeItem();
 
     void activate();
@@ -55,6 +56,7 @@ public slots:
     void removeDockNodeItemFromList(DockNodeItem* item);
 
 private:
+
     void setupLayout();
     void setParentButton(DockToggleButton* parent);
 

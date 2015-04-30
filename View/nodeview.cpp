@@ -50,6 +50,9 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     CENTRALIZED_ON_ITEM = false;
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
+    IS_RESIZING = false;
+    IS_MOVING = false;
+
 
     setScene(new QGraphicsScene(this));
 
@@ -517,6 +520,7 @@ bool NodeView::viewportEvent(QEvent * e)
 }
 
 
+
 /**
  * @brief NodeView::centreItem
  * This method scales and translates the scene to center on the item.
@@ -934,11 +938,13 @@ void NodeView::constructNode(QString nodeKind, int sender)
  * @param src
  * @param dst
  */
-void NodeView::constructEdge(Node *src, Node *dst)
+void NodeView::constructEdge(Node *src, Node *dst, bool triggerAction)
 {
     emit view_displayNotification("Connected " + src->getDataValue("label") +
                                   " to " + dst->getDataValue("label"));
-    view_TriggerAction("Dock/Toolbar: Constructing Edge");
+    if(triggerAction){
+        view_TriggerAction("Dock/Toolbar: Constructing Edge");
+    }
     view_ConstructEdge(src, dst);
 }
 
@@ -1155,7 +1161,21 @@ QStringList NodeView::getAllAspects()
  */
 void NodeView::viewDeploymentAspect()
 {
-    emit view_displayNotification("Turned on Deployment view aspects");
+    /*
+    QStringList neededAspects = currentAspects;
+    neededAspects.append("Assembly");
+    neededAspects.append("Hardware");
+    neededAspects.removeDuplicates();
+    if (neededAspects.count() != currentAspects.count()) {
+        emit view_displayNotification("Turned on Deployment view aspects");
+        setAspects(neededAspects);
+    }
+    */
+
+    // only show a notification if there has been a change in view aspects
+    if (!currentAspects.contains("Assembly") || !currentAspects.contains("Hardware")) {
+        emit view_displayNotification("Turned on Deployment view aspects");
+    }
     addAspect("Assembly");
     addAspect("Hardware");
 }
@@ -1255,7 +1275,6 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
                 // send necessary signals when a node has been destructed
                 if (item->isNodeItem()) {
                     NodeItem* nodeItem = (NodeItem*) item;
-                    view_GraphMLItemDeleted(ID);
                     nodeDestructed_signalUpdates(nodeItem);
                 }
 
@@ -1268,6 +1287,9 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
 
                 scene()->removeItem(item);
                 delete item;
+                //view_GraphMLItemDeleted(ID);
+
+
             }
             return true;
         }
@@ -1606,8 +1628,7 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
 
 void NodeView::mousePressEvent(QMouseEvent *event)
-{   
-    qCritical() << event->modifiers();
+{
     if(toolbarJustClosed){
         toolbarJustClosed = false;
         return;
@@ -1987,6 +2008,7 @@ void NodeView::moveFinished()
 
 void NodeView::resizeFinished()
 {
+    qCritical() << "RESIZE Finshed";
 
     foreach(QString ID, selectedIDs){
         GraphMLItem* currentItem = getGraphMLItemFromHash(ID);

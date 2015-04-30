@@ -17,11 +17,12 @@ signals:
 public slots:
     virtual void dockNodeItemClicked();
     virtual void updateDock();
-
-    void nodeConstructed(NodeItem* nodeItem);
-    void nodeDestructed(NodeItem* nodeItem);
+    void edgeDeleted(QString srcID, QString dstID);
 
     void insertDockNodeItem(DockNodeItem* dockItem);
+
+    void nodeConstructed(NodeItem* nodeItem);
+    void refreshDock();
 
 private:
     Edge* getHardwareConnection(Node* selectedNode);

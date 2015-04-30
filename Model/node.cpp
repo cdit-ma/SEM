@@ -96,6 +96,25 @@ bool Node::containsChild(Node *child)
 
 
 
+QList<Edge *> Node::getEdges(int depth)
+{
+
+    QList<Edge *> edgeList;
+
+    edgeList += getOrderedEdges();
+    //While we still have Children, Recurse
+    if(depth != 0){
+        //Add children's children.
+        foreach(Node* child, getChildren(0)){
+            foreach(Edge* edge, child->getEdges(depth - 1)){
+                if(!edgeList.contains(edge)){
+                    edgeList += edge;
+                }
+            }
+        }
+    }
+    return edgeList;
+}
 
 QList<Node *> Node::getChildren(int depth)
 {
@@ -263,27 +282,7 @@ bool Node::containsEdge(Edge *edge)
     return edges.contains(edge);
 }
 
-QList<Edge *> Node::getEdges(int depth)
-{
-    QList<Edge *> edgeList;
 
-    foreach(Edge* edge, edges){
-        if(!edgeList.contains(edge)){
-            edgeList += edge;
-        }
-    }
-
-    if(depth != 0){
-        foreach(Node* child, getChildren(0)){
-            foreach(Edge* edge, child->getEdges(depth - 1)){
-                if(!edgeList.contains(edge)){
-                    edgeList += edge;
-                }
-            }
-        }
-    }
-    return edgeList;
-}
 
 QList<GraphMLKey *> Node::getKeys(int depth)
 {
@@ -447,5 +446,27 @@ QList<Node *> Node::getOrderedChildNodes()
     }
     return orderedList.values();
 
+
+}
+
+QList<Edge *> Node::getOrderedEdges()
+{
+    QMap<int, Edge*> orderedList;
+
+    foreach(Edge* edge, edges){
+        if(edge->isAggregateLink()){
+            orderedList.insertMulti(2,edge);
+        }else if(edge->isImplLink()){
+            orderedList.insertMulti(1,edge);
+        }else if(edge->isInstanceLink()){
+            orderedList.insertMulti(0,edge);
+        }else if(edge->isDelegateLink()){
+            orderedList.insertMulti(3,edge);
+        }else{
+            orderedList.insertMulti(4, edge);
+        }
+    }
+
+    return orderedList.values();
 
 }

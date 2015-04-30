@@ -30,6 +30,7 @@ struct ActionItem{
     QString dataValue;
     QString removedXML;
 
+    int actionItemID;
     QString timestamp;
 
     //In the form KeyName, KeyType, KeyFor, Data Value, isProtected.
@@ -78,6 +79,10 @@ signals:
   void controller_ExportedProject(QString);
   void controller_GraphMLError(GraphML*, QString);
   void controller_GraphMLConstructed(GraphML*);
+
+  void controller_NodeDeleted(QString childID, QString parentID="");
+  void controller_EdgeDeleted(QString srcID, QString dstID);
+
   void controller_GraphMLDestructed(QString);
   void controller_ProjectNameChanged(QString);
   void controller_RedoListChanged(QStringList);
@@ -85,6 +90,7 @@ signals:
   void controller_StatusChanged(QString);
   void controller_UndoListChanged(QStringList);
   void controller_ViewSetEnabled(bool);
+
 
   // Re-added this for now
   void componentInstanceConstructed(Node* node);
@@ -223,7 +229,7 @@ private:
     bool isNodeKindImplemented(QString nodeKind);
 
     //Used by Undo/Redo to reverse an ActionItem from the Stacks.
-    void reverseAction(ActionItem action);
+    bool reverseAction(ActionItem action);
 
     //Adds an ActionItem to the Undo/Redo Stack depending on the State of the application.
     void addActionToStack(ActionItem action, bool addAction=true);
@@ -308,7 +314,7 @@ private:
     QHash<QString, HardwareNode*> hardwareNodes;
     QHash<QString, HardwareCluster*> hardwareClusters;
 
-
+    int previousUndos;
 
     QStringList deleteIDs;
 
@@ -317,7 +323,7 @@ private:
     QString currentAction;
     QFile* logFile;
     int currentActionID;
-
+    int currentActionItemID;
 
 
 

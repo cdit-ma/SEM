@@ -39,7 +39,6 @@ bool OutEventPortInstance::canAdoptChild(Node *child)
 
 bool OutEventPortInstance::canConnect(Node* attachableObject)
 {
-
     OutEventPort* outEventPort = dynamic_cast<OutEventPort*> (attachableObject);
 
     InEventPortInstance* inEventPortInstance = dynamic_cast<InEventPortInstance*>(attachableObject);
@@ -62,7 +61,13 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
 
     if(outEventPortDelegate || inEventPortInstance){
            EventPort* oEP = dynamic_cast<EventPort*>(getDefinition());
-           if(!oEP || !oEP->getAggregate()){
+           if(!oEP){
+#ifdef DEBUG_MODE
+               qWarning() << "OutEventPortInstance cannot be connected to a Delegate until it has a Definition.";
+               return false;
+#endif
+           }
+           if(!oEP->getAggregate()){
 #ifdef DEBUG_MODE
                qWarning() << "OutEventPortInstance cannot be connected until it has a connected Aggregate in it's definition.";
 #endif

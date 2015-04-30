@@ -334,6 +334,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_menu->addSeparator();
     view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "View Connections");
     view_showManagementComponents = view_menu->addAction("View Management Components");
+    view_showManagementComponents->setShortcut(QKeySequence(Qt::Key_M));
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
@@ -788,30 +789,34 @@ void MedeaWindow::makeConnections()
     connect(definitionsButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
 
-    connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
+    connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
 
     connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
-    connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
+    connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
 
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
 
-    connect(nodeView, SIGNAL(view_GraphMLItemDeleted(QString)), partsDock, SLOT(graphMLDestructed(QString)));
-    //connect(nodeView, SIGNAL(view_GraphMLItemDeleted(QString)), definitionsDock, SLOT(graphMLDestructed(QString)));
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
+
+
+
     //connect(nodeView, SIGNAL(view_GraphMLItemDeleted(QString)), hardwareDock, SLOT(graphMLDestructed(QString)));
+    //connect(nodeView, SIGNAL(view_GraphMLItemDeleted(QString)), definitionsDock, SLOT(graphMLDestructed(QString)));
 
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
-    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(nodeDestructed(NodeItem*)));
 
-    connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
 
+    connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(refreshDock()));
-    connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(updateDock()));
 
     connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*)), nodeView, SLOT(destructEdge(Edge*)));
 
@@ -1109,7 +1114,7 @@ void MedeaWindow::on_actionValidate_triggered()
     QProcess *myProcess = new QProcess(this);
     myProcess->setWorkingDirectory( scriptPath );
 
-    qDebug() << program << " " << arguments;
+    //qDebug() << program << " " << arguments;
 
     myProcess->start(program, arguments);
     myProcess->waitForFinished();

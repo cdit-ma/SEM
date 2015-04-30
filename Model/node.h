@@ -134,6 +134,7 @@ private:
 
 
     QList<Node*> getOrderedChildNodes();
+    QList<Edge*> getOrderedEdges();
 
     int sortOrder;
 

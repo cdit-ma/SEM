@@ -145,6 +145,20 @@ bool Edge::isComponentLink()
     return false;
 }
 
+bool Edge::isDelegateLink()
+{
+    if(source->getDataValue("kind").endsWith("EventPortInstance") && destination->getDataValue("kind").endsWith("EventPortDelegate")){
+        return true;
+    }
+
+    if(destination->getDataValue("kind").endsWith("EventPortInstance") && source->getDataValue("kind").endsWith("EventPortDelegate")){
+        return true;
+    }
+
+    return false;
+
+}
+
 
 
 bool Edge::contains(Node *item)

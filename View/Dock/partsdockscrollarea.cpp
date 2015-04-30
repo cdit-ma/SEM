@@ -64,6 +64,13 @@ void PartsDockScrollArea::updateDock()
     displayedItems = newDisplayedItems;
 }
 
+void PartsDockScrollArea::nodeDeleted(QString childID, QString parentID)
+{
+    if (parentID == getSelectedNodeID()) {
+        updateDock();
+    }
+}
+
 
 /**
  * @brief PartsDockScrollArea::addDockNodeItems

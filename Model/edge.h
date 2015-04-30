@@ -35,6 +35,7 @@ public:
     bool isAssemblyLink();
     bool isComponentLink();
 
+    bool isDelegateLink();
     bool contains(Node *item);
     QString toString();
 

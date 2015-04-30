@@ -52,6 +52,7 @@ void HardwareDockScrollArea::dockNodeItemClicked()
             // if it is, check if the user is trying to connect to a different node
             if (hardwareEdge) {
                 if (hardwareEdge->getDestination() != senderNode) {
+                    getNodeView()->view_TriggerAction("Deploying Component on Node");
                     emit dock_destructEdge(hardwareEdge);
                 } else {
                     // trying to connect to the same node; do nothing
@@ -59,7 +60,7 @@ void HardwareDockScrollArea::dockNodeItemClicked()
                 }
             }
 
-            getNodeView()->constructEdge(selectedNode, senderNode);
+            getNodeView()->constructEdge(selectedNode, senderNode, false);
         }
     }
 }
@@ -93,6 +94,13 @@ void HardwareDockScrollArea::updateDock()
     }
 }
 
+void HardwareDockScrollArea::edgeDeleted(QString srcID, QString dstID)
+{
+    if(getSelectedNodeID() == srcID || getSelectedNodeID() == dstID){
+        updateDock();
+    }
+}
+
 
 /**
  * @brief HardwareDockScrollArea::nodeConstructed
@@ -113,12 +121,16 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 
 
 /**
- * @brief HardwareDockScrollArea::nodeDestructed
- * @param nodeItem
+ * @brief HardwareDockScrollArea::refreshDock
  */
-void HardwareDockScrollArea::nodeDestructed(NodeItem *nodeItem)
+void HardwareDockScrollArea::refreshDock()
 {
-
+    // if a node was destructed and it was previously selected, clear this dock's selection
+    if (!getNodeView()->getSelectedNode()) {
+        DockScrollArea::updateCurrentNodeItem();
+    }
+    emit dock_higlightDockItem();
+    updateDock();
 }
 
 
@@ -192,14 +204,18 @@ void HardwareDockScrollArea::highlightHardwareConnection()
     // we only care if there is a selected item and the Hardware dock is enabled
     if (selectedItem && getParentButton()->isEnabled()) {
 
+        //qDebug() << "highlightHardwareConnection";
+
         QString nodeKind = selectedItem->getNodeKind();
 
         // NOTE: Is there any other kinds that can be connected to a Harware Node/Cluster?
         if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance") {
             Edge* hardwareEdge = getHardwareConnection(selectedItem->getNode());
             if (hardwareEdge) {
+                //qDebug() << "Highlight item";
                 emit dock_higlightDockItem(hardwareEdge->getDestination());
             } else {
+                //qDebug() << "Remove highlight";
                 emit dock_higlightDockItem();
             }
         } else {
