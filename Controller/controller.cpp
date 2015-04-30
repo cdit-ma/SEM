@@ -89,7 +89,7 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(controller_ActionProgressChanged(int,QString)), view, SIGNAL(view_updateProgressStatus(int,QString)));
 
         //Signals to the View.
-        connect(this, SIGNAL(controller_DialogMessage(MESSAGE_TYPE,QString, GraphML*)), view, SLOT(showDialogMessage(MESSAGE_TYPE,QString, GraphML*)));
+        connect(this, SIGNAL(controller_DialogMessage(MESSAGE_TYPE, QString, QString, GraphML*)), view, SLOT(showDialogMessage(MESSAGE_TYPE,QString, QString, GraphML*)));
 
         // Re-added this for now
         connect(this, SIGNAL(componentInstanceConstructed(Node*)), view, SLOT(componentInstanceConstructed(Node*)));
@@ -195,7 +195,7 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
             }else if(containsSrc || containsDst){
                 if((edge->isAggregateLink() || edge->isInstanceLink() || edge->isImplLink())){
                     if(GUI_USED){
-                        controller_DialogMessage(MESSAGE, "", src);
+                        controller_DialogMessage(MESSAGE, "", "", src);
                         int reply = QMessageBox::question(0, "Copy Question", "The current selection contains edges not fully encapsulated by selection, would you still like to copy these Edges?", QMessageBox::Yes|QMessageBox::No);
                         if (reply == QMessageBox::Yes) {
                             exportAllEdges = true;
@@ -603,7 +603,7 @@ void NewController::paste(Node *parentNode, QString xmlData)
 {
 
     if(!parentNode){
-        controller_DialogMessage(WARNING, "Please Select a Node to Paste Into!");
+        controller_DialogMessage(WARNING, "Paste Issue" ,"Please Select a Node to Paste Into!");
         return;
     }
     if(isGraphMLValid(xmlData) && xmlData != ""){
@@ -754,6 +754,7 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         attribute->appendValidValues(validValues);
     }
 
+    connect(attribute, SIGNAL(model_DialogMessage(QString,QString,GraphML*)), this, SLOT(dialogMessage(QString,QString,GraphML*)));
     //Add it to the list of GraphMLKeys.
     keys.append(attribute);
     return attribute;
@@ -2569,6 +2570,12 @@ Model *NewController::getModel()
     return model;
 }
 
+void NewController::dialogMessage(QString title, QString message, GraphML *item)
+{
+    controller_DialogMessage(MODEL, title, message, item);
+
+}
+
 void NewController::importProjects(QStringList documents)
 {
     controller_ViewSetEnabled(false);
@@ -2577,7 +2584,7 @@ void NewController::importProjects(QStringList documents)
     foreach(QString document, documents){
         bool result = _importGraphMLXML(document, getModel());
         if(!result){
-            controller_DialogMessage(WARNING, "Cannot Import Document!", getModel());
+            controller_DialogMessage(CRITICAL, "Import Issue", "Cannot Import Document!", getModel());
         }
     }
 
@@ -2624,13 +2631,13 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
     if(parent->isInstance() || parent->isImpl()){
         if(!(UNDOING || REDOING)){
-            emit controller_DialogMessage(CRITICAL, "Cannot Import or Paste into a Instance/Implementation", parent);
+            emit controller_DialogMessage(CRITICAL, "Importing", "Cannot Import or Paste into a Instance/Implementation", parent);
             return false;
         }
     }
 
     if(!isGraphMLValid(document)){
-        emit controller_DialogMessage(CRITICAL, "Cannot Import; Invalid GraphML document.", parent);
+        emit controller_DialogMessage(CRITICAL, "Importing", "Cannot Import; Invalid GraphML document.", parent);
         return false;
     }
 
@@ -2780,7 +2787,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 Node* newNode = constructChildNode(parent, currentNodeData);
 
                 if(!newNode){
-                    emit controller_DialogMessage(CRITICAL, QString("Import Error; Line #%1: Node Cannot Adopt child Node!").arg(xml.lineNumber()), parent);
+                    emit controller_DialogMessage(CRITICAL, "Importing", QString("Line #%1: Node Cannot Adopt child Node!").arg(xml.lineNumber()), parent);
                     break;
                 }
 
@@ -2832,7 +2839,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         }
 
         if(!(s && d)){
-            emit controller_DialogMessage(CRITICAL, QString("Import Error: Got Invalid Edge!"));
+            emit controller_DialogMessage(CRITICAL, "Importing", QString("Import Error: Got Invalid Edge!"));
             continue;
         }
 
@@ -2878,7 +2885,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
         bool retry = true;
         if(retryCount[edge.id] > maxRetry){
-            emit controller_DialogMessage(CRITICAL, QString("Import Error: Cannot Construct Edge!"));
+            emit controller_DialogMessage(CRITICAL, "Importing", QString("Import Error: Cannot Construct Edge!"));
             if(!s->isConnected(d)){
                 qCritical() << "Cannot Created Edge:" << edge.id;
             }
@@ -2927,7 +2934,7 @@ bool NewController::canCopyIDs(QStringList IDs)
         }
 
         if(node->getParentNode() != parent){
-            controller_DialogMessage(WARNING, "Can only Cut or Copy Nodes which share the same Parent.", node);
+            controller_DialogMessage(WARNING,"Copy",  "Can only Cut or Copy Nodes which share the same Parent.", node);
             return false;
         }
     }

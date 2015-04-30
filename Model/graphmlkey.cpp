@@ -3,7 +3,6 @@
 #include "node.h"
 
 #include <QDebug>
-#include <QMessageBox>
 #define LABEL_TRUNCATE_LENGTH 64
 int GraphMLKey::_Did =0;
 
@@ -162,7 +161,7 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
         if(getName() == "label"){
             if(newValue.size() >= LABEL_TRUNCATE_LENGTH)
             {
-                QMessageBox::warning(0, "Label Warning!", "Label has been truncated to the first 64 characters.", QMessageBox::Ok);
+                model_DialogMessage("GrapMLKey Validation Issue", "Label has been truncated to the first 64 characters.", this);
                 newValue.truncate(LABEL_TRUNCATE_LENGTH - 1);
             }
 
@@ -171,7 +170,7 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
             foreach(QChar letter, newValue){
 
                 if(invalidLabelCharacters.contains(letter)){
-                    QMessageBox::critical(0, "Invalid Character in Label!", "Not allowed characters are: " + invalidLabelCharacters.join(" "), QMessageBox::Ok);
+                    model_DialogMessage("GrapMLKey Validation Issue: Invalid Characters in Label", "Not allowed characters are: " + invalidLabelCharacters.join(" "), this);
                     ok = false;
                     break;
                 }

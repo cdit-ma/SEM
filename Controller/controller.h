@@ -6,7 +6,7 @@
 
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
-enum MESSAGE_TYPE{CRITICAL, WARNING, MESSAGE};
+enum MESSAGE_TYPE{CRITICAL, WARNING, MESSAGE, MODEL};
 
 struct EdgeTemp
 {
@@ -74,7 +74,7 @@ public:
 
 signals:
   void controller_ActionProgressChanged(int, QString = "");
-  void controller_DialogMessage(MESSAGE_TYPE, QString, GraphML* = 0);
+  void controller_DialogMessage(MESSAGE_TYPE, QString, QString, GraphML* = 0);
   void controller_ExportedProject(QString);
   void controller_GraphMLError(GraphML*, QString);
   void controller_GraphMLConstructed(GraphML*);
@@ -91,6 +91,7 @@ signals:
 
 
 public slots:
+  void dialogMessage(QString title, QString message, GraphML* item=0);
   void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
   void attachGraphMLData(GraphML* parent, GraphMLData* data, bool addAction = true);
   void destructGraphMLData(GraphML* parent, QString keyName, bool addAction = true);
