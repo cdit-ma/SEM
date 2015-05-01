@@ -130,10 +130,47 @@ void MedeaWindow::initialiseGUI()
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     workloadButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
+
+    QString border = "border-right: 2px; border-bottom: 3px; border-left: 1px; border-top: 1px;";
+    QString checkedBorder = "border-right: 1px; border-bottom: 1px; border-left: 2px; border-top: 3px;";
+    QString borderStyle = "border-style: solid; border-color: rgb(100,100,100); border-radius: 8px;";
+    QString font = "font: 13px;";
+
+    assemblyButton->setStyleSheet("QPushButton{ background-color: rgb(230,130,130);"
+                                  + border + borderStyle + font + "}"
+                                  "QPushButton:checked{ background-color:"
+                                  "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 0.5, x3: 0 y3: 1.0,"
+                                  "stop: 0 rgb(255,200,200), stop: 0.5 rgb(255,200,200),"
+                                  "stop: 0.5 rgb(250,160,160), stop: 1.0  rgb(240,140,140));"
+                                  + checkedBorder + borderStyle + "}");
+    hardwareButton->setStyleSheet("QPushButton{ background-color: rgb(80,140,190);"
+                                  + border + borderStyle + font + "}"
+                                  "QPushButton:checked{ background-color:"
+                                  "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 0.5, x3: 0 y3: 1.0,"
+                                  "stop: 0 rgb(115,200,250), stop: 0.5 rgb(115,200,250),"
+                                  "stop: 0.5 rgb(110,170,220), stop: 1.0  rgb(90,150,200));"
+                                  + checkedBorder + borderStyle + "}");
+    definitionsButton->setStyleSheet("QPushButton{ background-color: rgb(80,180,180);"
+                                     + border + borderStyle + font + "}"
+                                     "QPushButton:checked{ background-color:"
+                                     "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 0.5, x3: 0 y3: 1.0,"
+                                     "stop: 0 rgb(125,240,240), stop: 0.5 rgb(125,240,240),"
+                                     "stop: 0.5 rgb(110,210,210), stop: 1.0  rgb(90,190,190));"
+                                     + checkedBorder + borderStyle + "}");
+    workloadButton->setStyleSheet("QPushButton{ background-color: rgb(224,154,96);"
+                                  + border + borderStyle + font + "}"
+                                  "QPushButton:checked{ background-color:"
+                                  "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 0.5, x3: 0 y3: 1.0,"
+                                  "stop: 0 rgb(255,224,166), stop: 0.5 rgb(255,224,166),"
+                                  "stop: 0.5 rgb(250,190,130), stop: 1.0  rgb(234,164,106));"
+                                  + checkedBorder + borderStyle + "}");
+
+    /*
     assemblyButton->setStyleSheet("background-color: rgb(230,130,130);");
     hardwareButton->setStyleSheet("background-color: rgb(80,140,190);");
     definitionsButton->setStyleSheet("background-color: rgb(80,180,180);");
     workloadButton->setStyleSheet("background-color: rgb(224,154,96);");
+    */
 
     // setup the progress bar
     progressBar->setVisible(false);
@@ -563,6 +600,7 @@ void MedeaWindow::setupToolbar()
 
     toolbarButton->setCheckable(true);
     toolbarButton->setStyleSheet("QToolButton:!checked{ background-color: rgba(180,180,180,225); }"
+                                 //"QToolButton{ border-radius: 20px; }"
                                  "QToolButton:hover:!checked{ background-color: rgba(210,210,210,225); }");
 
     cutButton = new QToolButton(this);
