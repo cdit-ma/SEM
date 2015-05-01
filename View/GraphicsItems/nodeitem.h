@@ -222,14 +222,16 @@ private:
     double getItemMargin() const;
     //double getChildItemMargin();// const;
 
+    void setPos(qreal x, qreal y);
+    void setPos(const QPointF &pos);
 
+    void showLockMenu();
+
+    QMenu* lockMenu;
 
     NodeItem* parentNodeItem;
     QStringList viewAspects;
     QStringList currentViewAspects;
-
-    void setPos(qreal x, qreal y);
-    void setPos(const QPointF &pos);
 
     QGraphicsPixmapItem* icon;
     QGraphicsPixmapItem* lockIcon;

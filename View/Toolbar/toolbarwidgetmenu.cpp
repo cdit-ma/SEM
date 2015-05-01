@@ -18,15 +18,12 @@ ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction *widgetAction, ToolbarW
     actionTriggered = false;
 
     // set parentAction
-    if (widgetAction) {
-        setParentAction(widgetAction);
-    }
+    setParentAction(widgetAction);
 
     // if the parent of this menu is of type ToolbarWidgetMenu, connect to it
     ToolbarWidgetMenu* parentMenu = qobject_cast<ToolbarWidgetMenu*>(parent);
     if (parentMenu) {
-        connect(this, SIGNAL(toolbarMenu_connectToParentMenu(ToolbarWidgetMenu*)), parentMenu, SLOT(connectChildMenu(ToolbarWidgetMenu*)));
-        emit toolbarMenu_connectToParentMenu(this);
+        connect(this, SIGNAL(toolbarMenu_closeParentMenu()), parentMenu, SLOT(closeMenu()));
     }
 
     connect(this, SIGNAL(triggered(QAction*)), this, SLOT(hideMenu(QAction*)));
@@ -54,6 +51,7 @@ void ToolbarWidgetMenu::execMenu()
             }
         }
         exec(parentAction->getButtonPos());
+        //parentAction->menuOpened();
     }
 }
 
@@ -126,9 +124,7 @@ void ToolbarWidgetMenu::clearMenu()
         ToolbarWidgetAction *action = it.next();
         // actions that are stored in the toolbar widget can't be deleted
         if (action && action->isDeletable()) {
-            //qDebug() << "Deleting action . . .";
             delete action;
-            //qDebug() << "Deleted action.";
         } else {
             removeAction(action);
         }
@@ -175,6 +171,9 @@ void ToolbarWidgetMenu::close()
         }
     }
     actionTriggered = false;
+    if (parentAction) {
+        parentAction->menuClosed();
+    }
 }
 
 
@@ -216,17 +215,6 @@ void ToolbarWidgetMenu::hideMenu(QAction *action)
 
 
 /**
- * @brief ToolbarWidgetMenu::connectChildMenu
- * This connects the child menu to this menu and its parentAction.
- * @param menu
- */
-void ToolbarWidgetMenu::connectChildMenu(ToolbarWidgetMenu* menu)
-{
-    connect(menu, SIGNAL(toolbarMenu_closeParentMenu()), this, SLOT(closeMenu()));
-}
-
-
-/**
  * @brief ToolbarWidgetMenu::setParentTriggered
  * @param triggered
  */
@@ -242,10 +230,12 @@ void ToolbarWidgetMenu::setParentTriggered(bool triggered)
  */
 void ToolbarWidgetMenu::setParentAction(ToolbarWidgetAction *widgetAction)
 {
-    // attach this menu to its parentAction
     parentAction = widgetAction;
-    parentAction->setMenu(this);
-    //connect(this, SIGNAL(resetActionState()), parentAction, SLOT(actionButtonUnclicked()));
+
+    // attach this menu to its parentAction
+    if (widgetAction) {
+        parentAction->setMenu(this);
+    }
 }
 
 

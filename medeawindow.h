@@ -130,7 +130,7 @@ private slots:
 
     void graphicsItemSelected();
 
-    void showWindowToolbar();
+    void showWindowToolbar(bool checked);
 
 protected:
     void closeEvent(QCloseEvent *);
@@ -181,6 +181,7 @@ private:
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_sortModel;
+    QAction* settings_displayWindowToolbar;
     QAction* settings_autoCenterView;
     QAction* settings_viewZoomAnchor;
     QAction* settings_showGridLines;
@@ -196,6 +197,10 @@ private:
     HardwareDockScrollArea* hardwareDock;
 
     QToolBar* toolbar;
+    QWidgetAction* toolbarAction;
+    QWidgetAction* leftSpacerAction;
+    QWidgetAction* rightSpacerAction;
+    QToolButton* toolbarButton;
     QToolButton* cutButton;
     QToolButton* copyButton;
     QToolButton* pasteButton;

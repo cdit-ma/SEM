@@ -70,10 +70,8 @@ void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu *menu)
         disconnect(this, SIGNAL(triggered()), prevWidgetMenu, SLOT(execMenu()));
     }
 
-
     widgetMenu = menu;
     connect(this, SIGNAL(triggered()), widgetMenu, SLOT(execMenu()));
-
 }
 
 
@@ -196,9 +194,9 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     if (willHaveMenu) {
         QImage* menuImage = new QImage(":/Resources/Icons/menu_right_arrow.png");
         QImage scaledMenuImage = menuImage->scaled(actionButton->height()/2.5,
-                                           actionButton->height()/2.5,
-                                           Qt::KeepAspectRatio,
-                                           Qt::SmoothTransformation);
+                                                   actionButton->height()/2.5,
+                                                   Qt::KeepAspectRatio,
+                                                   Qt::SmoothTransformation);
         QLabel* menuImageLabel = new QLabel(actionButton);
         menuImageLabel->setPixmap(QPixmap::fromImage(scaledMenuImage));
         menuImageLabel->setFixedSize(scaledMenuImage.size());
@@ -209,9 +207,11 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 
     actionButton->setMinimumWidth(minWidth + 20);
 
-    connect(this, SIGNAL(hovered()), this, SLOT(hover()));
-    connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
-    connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
+    if (isEnabled()) {
+        connect(this, SIGNAL(hovered()), this, SLOT(hover()));
+        connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
+        connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
+    }
 
     return actionButton;
 }
@@ -244,4 +244,22 @@ void ToolbarWidgetAction::actionButtonPressed()
 void ToolbarWidgetAction::actionButtonClicked()
 {
     emit trigger();
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::menuOpened
+ */
+void ToolbarWidgetAction::menuOpened()
+{
+   actionButton->setChecked(true);
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::menuClosed
+ */
+void ToolbarWidgetAction::menuClosed()
+{
+    actionButton->setChecked(false);
 }

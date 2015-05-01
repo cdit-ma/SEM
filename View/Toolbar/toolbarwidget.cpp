@@ -313,7 +313,7 @@ void ToolbarWidget::setupToolBar()
     addChildButton->setToolTip("Add Child Node");
     connectButton->setToolTip("Connect Node");
     deleteButton->setToolTip("Delete Selection");
-    showNewViewButton->setToolTip("View in New Window");
+    showNewViewButton->setToolTip("View In New Window");
     showConnectionsButton->setToolTip("View Connections");
     definitionButton->setToolTip("View Definition");
     implementationButton->setToolTip("View Implementation");
@@ -404,7 +404,7 @@ void ToolbarWidget::setupMenus()
     outEventPortDelegateAction = new ToolbarWidgetAction("OutEventPortDelegate", "", addMenu);
 
     // default actions for when some of the menus are empty
-    fileDefaultAction = new ToolbarWidgetAction("info", "There are no Files.", this);
+    fileDefaultAction = new ToolbarWidgetAction("info", "There are no Files containing Components.", this);
     eventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any EventPorts that are connected to an Aggregate.", this);
 
     // hidden menus for parent nodes, ComponentInstances, ComponentImpls and In/Out EventPortDelegates
@@ -743,7 +743,6 @@ void ToolbarWidget::setupChildrenComponentInstanceList(QList<Node*> componentIns
                 ToolbarWidgetMenu* outEventPortMenu = new ToolbarWidgetMenu(outEvent_instanceAction, 0, outEventPort_componentInstanceMenu);
                 outEventPort_componentInstanceMenu->addWidgetAction(outEvent_instanceAction);
             }
-
         }
 
         // setup menu lists for InEventPort/OutEventPort Delegates

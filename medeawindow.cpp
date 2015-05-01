@@ -34,7 +34,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     // this needs to happen before the menu is set up and connected
     appSettings = new AppSettings(this);
 
-    
     setupJenkinsSettings();
 
     // initialise gui and connect signals and slots
@@ -343,6 +342,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
 
+    settings_displayWindowToolbar = settings_Menu->addAction("Display Toolbar");
+    settings_Menu->addSeparator();
     settings_showGridLines = settings_Menu->addAction("Use Grid Lines");
     settings_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
     settings_selectOnConstruction = settings_Menu->addAction("Select Node On Construction");
@@ -355,6 +356,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     button->setMenu(menu);
 
     // setup toggle actions
+    settings_displayWindowToolbar->setCheckable(true);
     settings_showGridLines->setCheckable(true);
     settings_selectOnConstruction->setCheckable(true);
     settings_autoCenterView->setCheckable(true);
@@ -434,6 +436,7 @@ void MedeaWindow::setupSearchTools()
     QVBoxLayout* resultsMainLayout = new QVBoxLayout();
     resultsLayout = new QVBoxLayout();
     int rightPanelWidth = RIGHT_PANEL_WIDTH;
+    int searchBarHeight = 28;
 
     searchBarDefaultText = "Search Here...";
     searchBar = new QLineEdit(searchBarDefaultText, this);
@@ -446,14 +449,14 @@ void MedeaWindow::setupSearchTools()
     resultsMainLayout->addLayout(resultsLayout);
     resultsMainLayout->addStretch();
 
-    searchButton->setFixedSize(30, 28);
+    searchButton->setFixedSize(30, searchBarHeight);
     searchButton->setIconSize(searchButton->size()*0.65);
 
-    searchOptionButton->setFixedSize(30, 28);
+    searchOptionButton->setFixedSize(30, searchBarHeight);
     searchOptionButton->setIconSize(searchButton->size()*0.7);
     searchOptionButton->setCheckable(true);
 
-    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2) - 5, 28);
+    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2) - 5, searchBarHeight-3);
     searchBar->setStyleSheet("background-color: rgb(230,230,230);");
 
     searchSuggestions->setViewMode(QListView::ListMode);
@@ -554,6 +557,14 @@ void MedeaWindow::setupToolbar()
 {
     QSize buttonSize = QSize(46,40);
 
+    toolbarButton = new QToolButton(this);
+    toolbarAction = new QWidgetAction(this);
+    toolbarAction->setDefaultWidget(toolbarButton);
+
+    toolbarButton->setCheckable(true);
+    toolbarButton->setStyleSheet("QToolButton:!checked{ background-color: rgba(180,180,180,225); }"
+                                 "QToolButton:hover:!checked{ background-color: rgba(210,210,210,225); }");
+
     cutButton = new QToolButton(this);
     copyButton = new QToolButton(this);
     pasteButton = new QToolButton(this);
@@ -565,6 +576,7 @@ void MedeaWindow::setupToolbar()
     undoButton = new QToolButton(this);
     redoButton = new QToolButton(this);
 
+    toolbarButton->setIcon(QIcon(":/Resources/Icons/toolbar.png"));
     cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
     copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
     pasteButton->setIcon(QIcon(":/Resources/Icons/paste.png"));
@@ -576,6 +588,7 @@ void MedeaWindow::setupToolbar()
     undoButton->setIcon(QIcon(":/Resources/Icons/undo.png"));
     redoButton->setIcon(QIcon(":/Resources/Icons/redo.png"));
 
+    toolbarButton->setFixedSize(buttonSize);
     cutButton->setFixedSize(buttonSize);
     copyButton->setFixedSize(buttonSize);
     pasteButton->setFixedSize(buttonSize);
@@ -587,6 +600,7 @@ void MedeaWindow::setupToolbar()
     undoButton->setFixedSize(buttonSize);
     redoButton->setFixedSize(buttonSize);
 
+    toolbarButton->setToolTip("Expand Toolbar");
     cutButton->setToolTip("Cut");
     copyButton->setToolTip("Copy");
     pasteButton->setToolTip("Paste");
@@ -604,9 +618,14 @@ void MedeaWindow::setupToolbar()
     QWidget* spacerWidget2 = new QWidget();
     QWidget* spacerWidget3 = new QWidget();
     QWidget* spacerWidget4 = new QWidget();
-    //QWidget* spacerWidget5 = new QWidget();
-    //QWidget* spacerWidget6 = new QWidget();
+    QWidget* spacerWidget5 = new QWidget();
+    QWidget* spacerWidget6 = new QWidget();
     int spacerWidth = 3;
+
+    leftSpacerAction = new QWidgetAction(this);
+    rightSpacerAction = new QWidgetAction(this);
+    leftSpacerAction->setDefaultWidget(spacerWidgetLeft);
+    rightSpacerAction->setDefaultWidget(spacerWidgetRight);
 
     spacerWidgetLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidgetRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -614,10 +633,14 @@ void MedeaWindow::setupToolbar()
     spacerWidget2->setFixedWidth(spacerWidth);
     spacerWidget3->setFixedWidth(spacerWidth);
     spacerWidget4->setFixedWidth(spacerWidth);
-    //spacerWidget5->setFixedWidth(spacerWidth);
-    //spacerWidget6->setFixedWidth(spacerWidth);
+    spacerWidget5->setFixedWidth(spacerWidth);
+    spacerWidget6->setFixedWidth(spacerWidth);
 
-    toolbar->addWidget(spacerWidgetLeft);
+    toolbar->addAction(leftSpacerAction);
+    toolbar->addAction(toolbarAction);
+    toolbar->addWidget(spacerWidget5);
+    toolbar->addSeparator();
+    toolbar->addWidget(spacerWidget6);
     toolbar->addWidget(undoButton);
     toolbar->addWidget(redoButton);
     toolbar->addWidget(spacerWidget1);
@@ -634,14 +657,14 @@ void MedeaWindow::setupToolbar()
     toolbar->addWidget(centerButton);
     toolbar->addWidget(zoomToFitButton);
     toolbar->addWidget(sortButton);
-    toolbar->addWidget(spacerWidgetRight);
+    toolbar->addAction(rightSpacerAction);
 
     toolbar->setIconSize(buttonSize*0.6);
     toolbar->setFixedSize(toolbar->contentsRect().width(), buttonSize.height()+spacerWidth);
     toolbar->setStyleSheet("QToolButton{"
                            "border: 1px solid grey;"
                            "border-radius: 10px;"
-                           "background-color: rgba(200,200,200,225);"
+                           "background-color: rgba(210,210,210,225);"
                            "margin: 0px 3px 0px 3px;"
                            "}");
 }
@@ -744,12 +767,13 @@ void MedeaWindow::makeConnections()
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
     connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
 
-    connect(settings_ChangeSettings, SIGNAL(triggered()), appSettings, SLOT(launchSettingsUI()));
+    connect(settings_displayWindowToolbar, SIGNAL(triggered(bool)), this, SLOT(showWindowToolbar(bool)));
     connect(settings_showGridLines, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
     connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
     connect(settings_selectOnConstruction, SIGNAL(triggered(bool)), nodeView, SLOT(selectNodeOnConstruction(bool)));
     connect(settings_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
     connect(settings_viewZoomAnchor, SIGNAL(triggered(bool)), nodeView, SLOT(toggleZoomAnchor(bool)));
+    connect(settings_ChangeSettings, SIGNAL(triggered()), appSettings, SLOT(launchSettingsUI()));
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
@@ -767,6 +791,7 @@ void MedeaWindow::makeConnections()
     connect(viewAspectsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
     connect(nodeKindsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
 
+    connect(toolbarButton, SIGNAL(clicked(bool)), this, SLOT(showWindowToolbar(bool)));
     connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
     connect(copyButton, SIGNAL(clicked()), nodeView, SLOT(copy()));
     connect(pasteButton, SIGNAL(clicked()), this, SLOT(on_actionPaste_triggered()));
@@ -881,16 +906,23 @@ void MedeaWindow::setupJenkinsSettings()
 void MedeaWindow::setupInitialSettings()
 {
     QSettings* settings = appSettings->getSettings();
+
     // need to set initial toggle action values before triggering them
+    settings_displayWindowToolbar->setChecked(true);
     settings_autoCenterView->setChecked(true);
     settings_showGridLines->setChecked(true);
     settings_selectOnConstruction->setChecked(false);
     view_showManagementComponents->setChecked(false);
 
+    settings_displayWindowToolbar->triggered(true);
     settings_autoCenterView->triggered(true);
     settings_showGridLines->triggered(true);
     settings_selectOnConstruction->triggered(false);
     view_showManagementComponents->triggered(false);
+
+    // initially show, but contract the toolbar
+    toolbarButton->setChecked(false);
+    toolbarButton->clicked(false);
 
     if (nodeView) {
         nodeView->centerAspects();
@@ -1217,10 +1249,10 @@ void MedeaWindow::on_actionSearch_triggered()
         checkedKinds.removeDuplicates();
     }
 
-    progressAction = "Searching Model";
+    //progressAction = "Searching Model";
 
     QString searchText = searchBar->text();
-    if (nodeView && searchText != "") {
+    if (nodeView && searchText != "" && searchText != searchBarDefaultText) {
 
         QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::NODE_ITEM);
         QList<GraphMLItem*> itemsToDisplay;
@@ -1493,14 +1525,31 @@ void MedeaWindow::setGoToMenuActions(QString action, bool enable)
 
 /**
  * @brief MedeaWindow::showWindowToolbar
- * Show/hide the window toolbar when the user right clicks on a !PAINTED item or the view.
+ * If the signal came from the menu, show/hide the toolbar.
+ * Otherwise if it came from toolbarButton, expand/contract the toolbar.
  */
-void MedeaWindow::showWindowToolbar()
+void MedeaWindow::showWindowToolbar(bool checked)
 {
-    if (toolbar->isVisible()) {
-        toolbar->hide();
-    } else {
-        toolbar->show();
+    QAction* senderAction = qobject_cast<QAction*>(QObject::sender());
+    if (senderAction) {
+        toolbar->setVisible(checked);
+        return;
+    }
+
+    QToolButton* senderButton = qobject_cast<QToolButton*>(QObject::sender());
+    if (senderButton) {
+        if (checked) {
+            toolbarButton->setToolTip("Contract Toolbar");
+        } else {
+            // NOTE: hover/focus doesn't leave the button until you move the mouse
+            toolbarButton->setToolTip("Expand Toolbar");
+        }
+        // show/hide all tool buttons except for toolbarButton and the left/right spacer widgets
+        foreach (QAction* action, toolbar->actions()) {
+            if (action != toolbarAction && action != leftSpacerAction && action != rightSpacerAction) {
+                action->setVisible(checked);
+            }
+        }
     }
 }
 
@@ -2015,6 +2064,7 @@ void MedeaWindow::showImportedHardwareNodes()
 
 /**
  * @brief MedeaWindow::getCheckedItems
+ * This returns a list of the checked items from the search sub-menus.
  * @param menu - 0 = viewAspects, 1 = nodeKinds
  * @return
  */

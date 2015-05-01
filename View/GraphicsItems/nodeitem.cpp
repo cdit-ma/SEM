@@ -77,7 +77,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     minimumWidth = 0;
     minimumHeight = 0;
 
-
     nodeKind = getGraphML()->getDataValue("kind");
 
     QString parentNodeKind = "";
@@ -936,6 +935,12 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         QGraphicsItem::mousePressEvent(event);
     }
 
+    if (lockIcon && lockIcon->sceneBoundingRect().contains(event->scenePos())) {
+        qDebug() << "LOCK ICON PRESSED";
+        showLockMenu();
+        return;
+    }
+
     switch (event->button()) {
 
     case Qt::MiddleButton:{
@@ -1558,6 +1563,15 @@ void NodeItem::setPos(const QPointF &pos)
         updateChildrenOnChange();
         updateParent();
     }
+}
+
+
+/**
+ * @brief NodeItem::showLockMenu
+ */
+void NodeItem::showLockMenu()
+{
+
 }
 
 

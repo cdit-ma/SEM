@@ -41,6 +41,9 @@ public slots:
     void actionButtonPressed();
     void actionButtonClicked();
 
+    void menuOpened();
+    void menuClosed();
+
 private:
     Node* node;
 
