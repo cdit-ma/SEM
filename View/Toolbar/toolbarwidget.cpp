@@ -695,12 +695,15 @@ void ToolbarWidget::setupComponentList(QList<Node*> components, QString kind)
 {
     for (int i = 0; i < components.count(); i++) {
 
+        // if selected node is the BehaviourDefinitions, don't
+        // include already implemented Components in the menu
         if (kind == "impl") {
             if (components.at(i)->getImplementations().count() > 0) {
                 continue;
             }
         }
 
+        // add the Component to its parent File's menu
         foreach (QAction* action, fileMenu->actions()) {
 
             ToolbarWidgetAction* fileAction = qobject_cast<ToolbarWidgetAction*>(action);
@@ -730,12 +733,12 @@ void ToolbarWidget::setupChildrenComponentInstanceList(QList<Node*> componentIns
     if (componentInstances.count() > 0) {
 
         foreach (Node* instance, componentInstances) {
-
             if (instance->getChildrenOfKind("InEventPortInstance").count() > 0) {
                 ToolbarWidgetAction* inEvent_instanceAction = new ToolbarWidgetAction(instance, inEventPort_componentInstanceMenu, "eventPort");
                 ToolbarWidgetMenu* inEventPortMenu = new ToolbarWidgetMenu(inEvent_instanceAction, 0, inEventPort_componentInstanceMenu);
                 inEventPort_componentInstanceMenu->addWidgetAction(inEvent_instanceAction);
-            } else if (instance->getChildrenOfKind("OutEventPortInstance").count() > 0) {
+            }
+            if (instance->getChildrenOfKind("OutEventPortInstance").count() > 0) {
                 ToolbarWidgetAction* outEvent_instanceAction = new ToolbarWidgetAction(instance, outEventPort_componentInstanceMenu, "eventPort");
                 ToolbarWidgetMenu* outEventPortMenu = new ToolbarWidgetMenu(outEvent_instanceAction, 0, outEventPort_componentInstanceMenu);
                 outEventPort_componentInstanceMenu->addWidgetAction(outEvent_instanceAction);
@@ -757,6 +760,8 @@ void ToolbarWidget::setupChildrenComponentInstanceList(QList<Node*> componentIns
  */
 void ToolbarWidget::setupInEventPortInstanceList()
 {
+    bool hasValidInEventPortInstance = false;
+
     foreach (ToolbarWidgetAction* instanceAction, inEventPort_componentInstanceMenu->getWidgetActions()) {
 
         QList<Node*> iep_instances = instanceAction->getNode()->getChildrenOfKind("InEventPortInstance");
@@ -775,20 +780,16 @@ void ToolbarWidget::setupInEventPortInstanceList()
             if (instanceAction->getMenu()) {
                 instanceAction->getMenu()->addWidgetAction(eventPortAction);
                 connect(eventPortAction, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
-            } else {
-                qDebug() << "setupInEventPortInstanceList - ComponentInstance doesn't have a menu!";
             }
+            hasValidInEventPortInstance = true;
         }
     }
 
-    // if none of the ComponentInstances contain valid EventPortInstances,
-    foreach (ToolbarWidgetAction* instanceAction, inEventPort_componentInstanceMenu->getWidgetActions()) {
-        if (instanceAction->getMenu()->getWidgetActions().count() > 0) {
-            return;
-        }
-    }
+    // if none of the ComponentInstances contain valid EventPortInstances
     // hide the ComponentInstanceMenu and show default action
-    inEventPort_componentInstanceMenu->clearMenu();
+    if (!hasValidInEventPortInstance) {
+        inEventPort_componentInstanceMenu->clearMenu();
+    }
 }
 
 
@@ -799,6 +800,8 @@ void ToolbarWidget::setupInEventPortInstanceList()
  */
 void ToolbarWidget::setupOutEventPortInstanceList()
 {
+    bool hasValidOutEventPortInstance = false;
+
     foreach (ToolbarWidgetAction* instanceAction, outEventPort_componentInstanceMenu->getWidgetActions()) {
 
         QList<Node*> oep_instances = instanceAction->getNode()->getChildrenOfKind("OutEventPortInstance");
@@ -817,23 +820,16 @@ void ToolbarWidget::setupOutEventPortInstanceList()
             if (instanceAction->getMenu()) {
                 instanceAction->getMenu()->addWidgetAction(eventPortAction);
                 connect(eventPortAction, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
-            } else {
-                qDebug() << "setupOutEventPortInstanceList - ComponentInstance doesn't have a menu!";
             }
+            hasValidOutEventPortInstance = true;
         }
     }
-
-    // TODO: The outEventPort_componentInstanceMenu is not showing up when there is an
-    // InEventPort present on the canvas. It works fine othewise.
 
     // if none of the ComponentInstances contain valid EventPortInstances
-    foreach (ToolbarWidgetAction* instanceAction, outEventPort_componentInstanceMenu->getWidgetActions()) {
-        if (instanceAction->getMenu()->getWidgetActions().count() > 0) {
-            return;
-        }
-    }
     // hide the ComponentInstanceMenu and show default action
-    outEventPort_componentInstanceMenu->clearMenu();
+    if (!hasValidOutEventPortInstance) {
+        outEventPort_componentInstanceMenu->clearMenu();
+    }
 }
 
 

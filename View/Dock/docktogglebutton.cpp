@@ -184,6 +184,12 @@ int DockToggleButton::getWidth()
     return width;
 }
 
+
+/**
+ * @brief DockToggleButton::getKind
+ * Returns the kind of this button.
+ * @return - P, D, H
+ */
 QString DockToggleButton::getKind()
 {
     return kind;
@@ -255,9 +261,6 @@ void DockToggleButton::setEnabled(bool enable)
 {
     QPushButton::setEnabled(enable);
     enabled = enable;
-
-    //qDebug() << "enabled: " << enabled;
-    //qDebug() << "isEnabled: " << QPushButton::isEnabled();
 
     if (enable) {
         if (selected) {

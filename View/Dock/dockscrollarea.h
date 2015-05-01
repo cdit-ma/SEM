@@ -30,15 +30,15 @@ public:
     DockNodeItem* getDockNodeItem(Node* node);
     QList<DockNodeItem*> getDockNodeItems();
 
-    NodeItem* getCurrentNodeItem();
     DockToggleButton* getParentButton();
+    NodeItem* getCurrentNodeItem();
+    QString getCurrentNodeID();
+
     QString getLabel();
+    QVBoxLayout* getLayout();
 
     NodeView* getNodeView();
     QStringList getAdoptableNodeListFromView();
-
-    QVBoxLayout* getLayout();
-    QString getSelectedNodeID();
 
 protected:
     void paintEvent(QPaintEvent *e);
@@ -46,17 +46,16 @@ protected:
 public slots:
     virtual void dockNodeItemClicked() = 0;
     virtual void updateDock();
-    void nodeDeleted(QString childID, QString parentID);
+
     void updateCurrentNodeItem();
+    void nodeDeleted(QString nodeID, QString parentID);
+    void removeDockNodeItemFromList(DockNodeItem* item);
 
     void activate();
     void clear();
     void checkScrollBar();
 
-    void removeDockNodeItemFromList(DockNodeItem* item);
-
 private:
-
     void setupLayout();
     void setParentButton(DockToggleButton* parent);
 

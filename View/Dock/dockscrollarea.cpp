@@ -49,27 +49,6 @@ void DockScrollArea::updateCurrentNodeItem()
     }
 
     updateDock();
-
-    /*
-    //if(currentNodeItemID != "-1"){
-
-    //}else{
-
-    //}
-    //if(currentNodeItemID)
-    if(currentNodeItemID != "-1"){
-
-        currentNodeItem = nodeView->getSelectedNodeItem();
-        if(currentNodeItem){
-            currentNodeItemID = currentNodeItem->getGraphML()->getID();
-        }else{
-            //currentNodeItemID = "";
-        }
-        qCritical() << currentNodeItemID;
-    }else{
-        updateDock();
-    }
-    */
 }
 
 
@@ -211,12 +190,9 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
  * If the currently selected node kind is contained in notAllowedKinds,
  * it means that this dock can't be used for the selected node.
  * If so, disable this dock and its parentButton.
- * If currentNodeItem is NULL, it means that there is no selected node.
  */
 void DockScrollArea::updateDock()
 {
-    //qDebug() << "updateDock(): currentID = " << currentNodeItemID;
-
     if(currentNodeItemID != "-1"){
         if (currentNodeItem) {
             if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
@@ -228,22 +204,28 @@ void DockScrollArea::updateDock()
             // no current node item selected
             parentButton->enableDock(false);
         }
+    } else {
+        // current node item deleted
+        parentButton->enableDock(false);
     }
-
-
 }
 
-void DockScrollArea::nodeDeleted(QString childID, QString parentID)
+
+/**
+ * @brief DockScrollArea::nodeDeleted
+ * This tells the dock if a node has been deleted.
+ * It either updates dock for the selected node or it disables this dock.
+ * @param nodeID
+ * @param parentID
+ */
+void DockScrollArea::nodeDeleted(QString nodeID, QString parentID)
 {
-    if(parentID == getSelectedNodeID())
-    {
+    if (parentID == getCurrentNodeID()) {
         updateDock();
-    }else if(childID == getSelectedNodeID()){
+    } else if (nodeID == getCurrentNodeID()) {
         currentNodeItemID = "-1";
     }
 }
-
-
 
 
 /**
@@ -269,7 +251,14 @@ void DockScrollArea::removeDockNodeItemFromList(DockNodeItem *item)
     dockNodeItems.removeAll(item);
 }
 
-QString DockScrollArea::getSelectedNodeID()
+
+/**
+ * @brief DockScrollArea::getCurrentNodeID
+ * This method returns the current node item's ID.
+ * @return -1 = node item was deleted
+ *         "" = no selected node item
+ */
+QString DockScrollArea::getCurrentNodeID()
 {
     return currentNodeItemID;
 }
@@ -337,29 +326,22 @@ void DockScrollArea::setParentButton(DockToggleButton *parent)
 
 /**
  * @brief DockScrollArea::checkScrollBar
- * This still needs fixing.
- * isVisible() doesn't return the correct value.
+ * This still needs fixing; isVisible() doesn't return the correct value.
  */
 void DockScrollArea::checkScrollBar()
 {
+    QString paddingRight = "";
+
     if (verticalScrollBar()->isVisible()) {
-        //qDebug() << "Vertical scroll bar is visible";
-        setStyleSheet("QScrollArea {"
-                      "background-color: rgba(255,255,255,180);"
-                      "border: 0px;"
-                      "border-radius: 10px;"
-                      "padding-top: 10px;"
-                      "padding-right: 5px;"
-                      "}");
-    } else {
-        //qDebug() << "Vertical scroll bar is NOT visible";
-        setStyleSheet("QScrollArea {"
-                      "background-color: rgba(255,255,255,180);"
-                      "border: 0px;"
-                      "border-radius: 10px;"
-                      "padding-top: 10px;"
-                      "}");
+        paddingRight = "padding-right: 5px;";
     }
+
+    setStyleSheet("QScrollArea {"
+                  "background-color: rgba(255,255,255,180);"
+                  "border: 0px;"
+                  "border-radius: 10px;"
+                  "padding-top: 10px;"
+                  + paddingRight + "}");
 }
 
 

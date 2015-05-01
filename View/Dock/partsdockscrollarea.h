@@ -14,10 +14,8 @@ public:
     DockNodeItem* getDockNodeItem(QString kind);
 
 public slots:
-    virtual void dockNodeItemClicked();
-    virtual void updateDock();
-
-
+    void dockNodeItemClicked();
+    void updateDock();
 
 private:    
     QStringList displayedItems;

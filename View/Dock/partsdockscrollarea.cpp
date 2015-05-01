@@ -29,11 +29,9 @@ void PartsDockScrollArea::updateDock()
     }
 
     // NOTE: AdoptableNodeList from view is incorrect when deleteing node using undo.
+    // FIX: Added signal in the controller for when the node is actually deleted.
     QStringList itemsToDisplay = getAdoptableNodeListFromView();
     QStringList newDisplayedItems;
-
-    //qDebug() << "itemsToDisplay#: " << itemsToDisplay.count();
-    //qDebug() << "displayedItems#: " << displayedItems.count();
 
     // when the selected node can't adopt anything, disbale the dock and its parentButton
     if (itemsToDisplay.count() == 0) {

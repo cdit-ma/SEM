@@ -31,7 +31,7 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
-	// this needs to happen before the menu is set up and connected
+    // this needs to happen before the menu is set up and connected
     appSettings = new AppSettings(this);
 
     
@@ -165,7 +165,7 @@ void MedeaWindow::initialiseGUI()
                                     "border-radius: 10px;"
                                     "padding: 0px 15px;"
                                     "font: 16px;");
-                                    //"font-weight: bold;");
+    //"font-weight: bold;");
 
     QVBoxLayout *progressLayout = new QVBoxLayout();
     progressLayout->addStretch(3);
@@ -453,7 +453,7 @@ void MedeaWindow::setupSearchTools()
     searchOptionButton->setIconSize(searchButton->size()*0.7);
     searchOptionButton->setCheckable(true);
 
-    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2) - 5, 25);
+    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2) - 5, 28);
     searchBar->setStyleSheet("background-color: rgb(230,230,230);");
 
     searchSuggestions->setViewMode(QListView::ListMode);
@@ -702,7 +702,9 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_updateGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
+
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
+    connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
@@ -792,6 +794,10 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
 
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
+
     connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
@@ -800,21 +806,11 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
 
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
-
-
-    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
-
-
-
-    //connect(nodeView, SIGNAL(view_GraphMLItemDeleted(QString)), hardwareDock, SLOT(graphMLDestructed(QString)));
-    //connect(nodeView, SIGNAL(view_GraphMLItemDeleted(QString)), definitionsDock, SLOT(graphMLDestructed(QString)));
-
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
+
+    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
@@ -823,8 +819,6 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(refreshDock()));
 
     connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*)), nodeView, SLOT(destructEdge(Edge*)));
-
-    connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
     // this needs fixing
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
@@ -1524,8 +1518,9 @@ void MedeaWindow::menuActionTriggered()
     } else if (action->text().contains("Redo")) {
         progressAction = "Redoing Action";
     } else if (action->text().contains("Grid Lines")) {
-        view_snapToGrid->setEnabled(settings_showGridLines->isChecked());
-        view_snapChildrenToGrid->setEnabled(settings_showGridLines->isChecked());
+        // in case the grid lines are turned on, this will check if there
+        // is a selected item before it turns the snap to grid functions on
+        graphicsItemSelected();
     }
 }
 
@@ -1836,8 +1831,12 @@ void MedeaWindow::graphicsItemSelected()
 {
     if (nodeView->getSelectedNode()) {
         view_showConnectedNodes->setEnabled(true);
+        view_snapToGrid->setEnabled(settings_showGridLines->isChecked());
+        view_snapChildrenToGrid->setEnabled(settings_showGridLines->isChecked());
     } else {
         view_showConnectedNodes->setEnabled(false);
+        view_snapToGrid->setEnabled(false);
+        view_snapChildrenToGrid->setEnabled(false);
     }
 }
 

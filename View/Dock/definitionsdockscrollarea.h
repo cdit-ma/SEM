@@ -13,8 +13,8 @@ public:
     QList<DockNodeItem*> getDockNodeItems();
 
 public slots:
-    virtual void dockNodeItemClicked();
-    virtual void updateDock();
+    void dockNodeItemClicked();
+    void updateDock();
 
     void nodeConstructed(NodeItem* nodeItem);
     void nodeDestructed(NodeItem* nodeItem);

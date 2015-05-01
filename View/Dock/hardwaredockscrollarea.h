@@ -15,14 +15,14 @@ signals:
     void dock_higlightDockItem(Node* node = 0);
 
 public slots:
-    virtual void dockNodeItemClicked();
-    virtual void updateDock();
-    void edgeDeleted(QString srcID, QString dstID);
+    void dockNodeItemClicked();
+    void updateDock();
 
     void insertDockNodeItem(DockNodeItem* dockItem);
+    void refreshDock();
 
     void nodeConstructed(NodeItem* nodeItem);
-    void refreshDock();
+    void edgeDeleted(QString srcID, QString dstID);
 
 private:
     Edge* getHardwareConnection(Node* selectedNode);
