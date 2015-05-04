@@ -318,6 +318,7 @@ void NodeView::setParentNodeView(NodeView *n)
 void NodeView::removeSubView(NodeView *subView)
 {
     if(subViews.contains(subView)){
+        qCritical() << "REMOVING SUBVIEW";
         subViews.removeAll(subView);
     }
 }
