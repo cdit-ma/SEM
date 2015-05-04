@@ -10,9 +10,9 @@
 #include <QLineEdit>
 
 
-AppSettings::AppSettings(QWidget *parent):QObject(parent)
+AppSettings::AppSettings(QString applicationPath, QWidget *parent):QObject(parent)
 {
-    settings = new QSettings("settings.ini", QSettings::IniFormat);
+    settings = new QSettings(applicationPath+"/settings.ini", QSettings::IniFormat);
 
 }
 

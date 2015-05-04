@@ -1684,6 +1684,7 @@ void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
 
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
+    /*
     if(IS_MOVING){
         //FINALIZE MOVE
         moveFinished();
@@ -1697,7 +1698,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
-    if(CONTROL && SHIFT){
+    if(CONTROL && SHIFT){ß
         if(!RUBBERBAND_MODE){
             setRubberBandMode(true);
         }
@@ -1721,12 +1722,12 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         if (event->key() == Qt::Key_Escape){
             clearSelection();
         }
-    }
+    }*/
     QGraphicsView::keyPressEvent(event);
 }
 
 void NodeView::keyReleaseEvent(QKeyEvent *event)
-{   
+{   /*
     bool allowedFocusWidget = allowedFocus(focusWidget());
 
     if(allowedFocusWidget){
@@ -1734,7 +1735,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
             deleteSelection();
         }
     }
-
+*/
     QGraphicsView::keyReleaseEvent(event);
 
 }

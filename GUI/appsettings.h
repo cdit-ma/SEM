@@ -10,7 +10,7 @@ class AppSettings: public QObject
 {
     Q_OBJECT
 public:
-    AppSettings(QWidget* parent);
+    AppSettings(QString applicationPath, QWidget* parent);
     QSettings* getSettings();
 
 

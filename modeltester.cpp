@@ -76,16 +76,20 @@ void ModelTester::sleep(int ms){
     #ifdef _WIN32
         Sleep(ms);
     #else
-        usleep(ms*1000);
+        sleep(ms);
 #endif
 }
 
 float ModelTester::getMemoryUsage()
 {
+    #ifdef _WIN32
     PROCESS_MEMORY_COUNTERS memCounter;
     bool result = GetProcessMemoryInfo(GetCurrentProcess(), &memCounter, sizeof( memCounter ));
     if(result){
         return memCounter.WorkingSetSize / 1024.0;
     }
+
+#endif
     return 0;
+
 }

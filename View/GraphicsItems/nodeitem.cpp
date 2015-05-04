@@ -14,6 +14,7 @@
 #include <QTextBlockFormat>
 
 #include <QTextCursor>
+#include <math.h>
 
 #define MODEL_WIDTH 19200
 #define MODEL_HEIGHT 10800

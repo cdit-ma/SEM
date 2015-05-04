@@ -161,6 +161,8 @@ private:
     QMenu* model_menu;
     QMenu* settings_Menu;
 
+    QString applicationDirectory;
+
     QAction* exit;
     QAction* file_newProject;
     QAction* file_importGraphML;

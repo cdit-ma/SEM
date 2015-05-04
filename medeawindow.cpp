@@ -31,8 +31,10 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+
+    applicationDirectory = QApplication::applicationDirPath() + "/";
     // this needs to happen before the menu is set up and connected
-    appSettings = new AppSettings(this);
+    appSettings = new AppSettings(applicationDirectory, this);
 
     setupJenkinsSettings();
 
@@ -513,6 +515,7 @@ void MedeaWindow::setupSearchTools()
     QLabel* aspectsLabel = new QLabel("Aspect(s):", this);
     QGroupBox* aspectsGroup = new QGroupBox(this);
     QHBoxLayout* aspectsLayout = new QHBoxLayout();
+
     viewAspectsBarDefaultText = "Entire Model";
     viewAspectsBar = new QLineEdit(viewAspectsBarDefaultText, this);
     viewAspectsButton = new QPushButton(QIcon(":/Resources/Icons/menu_down_arrow.png"), "");
@@ -603,6 +606,7 @@ void MedeaWindow::setupToolbar()
                                  //"QToolButton{ border-radius: 20px; }"
                                  "QToolButton:hover:!checked{ background-color: rgba(210,210,210,225); }");
 
+
     cutButton = new QToolButton(this);
     copyButton = new QToolButton(this);
     pasteButton = new QToolButton(this);
@@ -686,6 +690,7 @@ void MedeaWindow::setupToolbar()
     toolbar->addWidget(spacerWidget2);
     toolbar->addWidget(cutButton);
     toolbar->addWidget(copyButton);
+
     toolbar->addWidget(pasteButton);
     toolbar->addWidget(duplicateButton);
     toolbar->addWidget(spacerWidget3);
@@ -699,12 +704,16 @@ void MedeaWindow::setupToolbar()
 
     toolbar->setIconSize(buttonSize*0.6);
     toolbar->setFixedSize(toolbar->contentsRect().width(), buttonSize.height()+spacerWidth);
+    toolbar->setStyle(QStyleFactory::create("windows"));
     toolbar->setStyleSheet("QToolButton{"
                            "border: 1px solid grey;"
                            "border-radius: 10px;"
                            "background-color: rgba(210,210,210,225);"
                            "margin: 0px 3px 0px 3px;"
-                           "}");
+                           "}"
+                           );
+
+
 }
 
 
@@ -883,6 +892,33 @@ void MedeaWindow::makeConnections()
 
     connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*)), nodeView, SLOT(destructEdge(Edge*)));
 
+    //For mac
+    addAction(exit);
+    addAction(file_newProject);
+    addAction(file_importGraphML);
+    addAction(file_exportGraphML);
+    addAction(file_importJenkinsNodes);
+    addAction(edit_undo);
+    addAction(edit_redo);
+    addAction(edit_cut);
+    addAction(edit_copy);
+    addAction(edit_paste);
+    addAction(view_fitToScreen);
+    addAction(view_snapToGrid);
+    addAction(view_snapChildrenToGrid);
+    addAction(view_goToDefinition);
+    addAction(view_goToImplementation);
+    addAction(view_showConnectedNodes);
+    addAction(view_showManagementComponents);
+    addAction(model_validateModel);
+    addAction(model_clearModel);
+    addAction(model_sortModel);
+    addAction(settings_displayWindowToolbar);
+    addAction(settings_autoCenterView);
+    addAction(settings_viewZoomAnchor);
+    addAction(settings_showGridLines);
+    addAction(settings_selectOnConstruction);
+    addAction(settings_ChangeSettings);
     // this needs fixing
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 }
@@ -1041,11 +1077,13 @@ void MedeaWindow::on_actionImportJenkinsNode()
     myProcess = new QProcess(this);
     QDir dir;
 
-    myProcess->setWorkingDirectory(dir.absolutePath() + "/Resources/Scripts");
+    myProcess->setWorkingDirectory(applicationDirectory + "/Resources/Scripts/");
     //qCritical() << myProcess->workingDirectory();
     //qCritical() << program;
     //myProcess->setWorkingDirectory(DEPGEN_ROOT + "/scripts");
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(loadJenkinsData(int)));
+   qCritical() << applicationDirectory + "/Resources/Scripts/";
+    qCritical() << program;
     myProcess->start(program);
 }
 
@@ -1084,7 +1122,7 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
     QStringList files = QFileDialog::getOpenFileNames(
                 this,
                 "Select one or more files to open",
-                "c:\\",
+                "",
                 "GraphML Documents (*.graphml *.xml)");
 
     importProjects(files);
@@ -1161,8 +1199,7 @@ void MedeaWindow::on_actionValidate_triggered()
     nodeView->view_TriggerAction("Medea: Validate");
 
     QDir dir;
-    QString absPath = dir.absolutePath();
-    QString scriptPath = absPath + "/Resources/Scripts";
+    QString scriptPath = applicationDirectory + "/Resources/Scripts";
     //qDebug() << absPath;
 
     // First export Model to temporary file in scripts directory
@@ -1248,9 +1285,8 @@ void MedeaWindow::on_actionPaste_triggered()
     progressAction = "Pasting Data";
 
     QClipboard *clipboard = QApplication::clipboard();
-    if (clipboard->ownsClipboard()) {
-        window_PasteData(clipboard->text());
-    }
+    window_PasteData(clipboard->text());
+
 }
 
 void MedeaWindow::on_SearchTextChanged(QString text)
@@ -1649,7 +1685,7 @@ bool MedeaWindow::exportProject()
 {
     QString filename = QFileDialog::getSaveFileName(this,
                                                     "Export .graphML",
-                                                    "C:\\",
+                                                    "",
                                                     "GraphML Documents (*.graphML *.xml)");
 
     if (filename != "") {

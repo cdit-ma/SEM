@@ -2,6 +2,7 @@
 #define NODE_H
 
 #include "graphml.h"
+#include "edge.h"
 #include <QMap>
 
 #include <QString>

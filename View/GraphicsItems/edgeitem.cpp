@@ -1,6 +1,7 @@
 #include "edgeitem.h"
 #include "graphmlitem.h"
 #include <QDebug>
+#include <math.h>
 
 EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, GraphMLItem::NODE_EDGE)
 {

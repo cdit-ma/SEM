@@ -17,7 +17,6 @@ TEMPLATE = app
 
 #DEFINES += DEBUG_MODE
 
-LIBS += -lpsapi
 
 HEADERS += \
     Controller/controller.h \
@@ -60,7 +59,6 @@ HEADERS += \
     Model/blanknode.h \
     Model/edge.h \
     Model/graphml.h \
-    Model/graphmlcontainer.h \
     Model/graphmldata.h \
     Model/graphmlkey.h \
     Model/model.h \
@@ -188,3 +186,22 @@ INSTALLS += JENKINSGROOVY
 INSTALLS += JENKINSCLIJAR
 INSTALLS += SETTINGSFILE
 INSTALLS += XSLFILE
+
+mac{
+    MJENKINSCLIJAR.path = Contents/MacOS/Resources/Scripts/
+    MJENKINSCLIJAR.files += Resources/Scripts/jenkins-cli.jar
+
+    MJENKINSGROOVY.path = Contents/MacOS/Resources/Scripts/
+    MJENKINSGROOVY.files += Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy
+
+    MSETTINGSFILE.path = Contents/MacOS/
+    MSETTINGSFILE.files += settings.ini
+
+    MXSLFILE.path = Contents/MacOS/Resources/Scripts/
+    MXSLFILE.files += Resources/Scripts/MEDEA.xsl
+
+    QMAKE_BUNDLE_DATA += MJENKINSGROOVY
+    QMAKE_BUNDLE_DATA += MJENKINSCLIJAR
+    QMAKE_BUNDLE_DATA += MSETTINGSFILE
+    QMAKE_BUNDLE_DATA += MXSLFILE
+}

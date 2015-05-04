@@ -45,7 +45,7 @@ DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *
     setText(label);
     setFixedSize(width + 10, height + 10);
 
-    QPixmap pixmap = 0;
+    QPixmap pixmap;
     if (label == "P") {
         pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/parts.png"));
     } else if (label == "H") {
