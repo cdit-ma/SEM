@@ -727,11 +727,14 @@ void NodeView::showToolbar(QPoint position)
         QList<NodeItem*> selectedItems;
         foreach (QString id, selectedIDs) {
             // Check for EdgeItems!!!
-            NodeItem* selectedItem = (NodeItem*)guiItems[id];
-            if (selectedItem && selectedItem->isPainted()) {
-                selectedItems.append(selectedItem);
-                if (selectedItem->sceneBoundingRect().contains(toolbarPosition)) {
-                    toolbarPositionContained = true;
+            GraphMLItem* guiItem = guiItems[id];
+            if(guiItem->isNodeItem()){
+                NodeItem* selectedItem = (NodeItem*)guiItem;
+                if (selectedItem && selectedItem->isPainted()) {
+                    selectedItems.append(selectedItem);
+                    if (selectedItem->sceneBoundingRect().contains(toolbarPosition)) {
+                        toolbarPositionContained = true;
+                    }
                 }
             }
         }
@@ -1685,7 +1688,7 @@ void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
 
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
-    /*
+
     if(IS_MOVING){
         //FINALIZE MOVE
         moveFinished();
@@ -1699,7 +1702,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
-    if(CONTROL && SHIFT){ß
+    if(CONTROL && SHIFT){
         if(!RUBBERBAND_MODE){
             setRubberBandMode(true);
         }
@@ -1723,12 +1726,12 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         if (event->key() == Qt::Key_Escape){
             clearSelection();
         }
-    }*/
+    }
     QGraphicsView::keyPressEvent(event);
 }
 
 void NodeView::keyReleaseEvent(QKeyEvent *event)
-{   /*
+{
     bool allowedFocusWidget = allowedFocus(focusWidget());
 
     if(allowedFocusWidget){
@@ -1736,7 +1739,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
             deleteSelection();
         }
     }
-*/
+
     QGraphicsView::keyReleaseEvent(event);
 
 }

@@ -368,25 +368,25 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_snapChildrenToGrid = view_menu->addAction(QIcon(":/Resources/Icons/snapChildrenToGrid.png"), "Snap Selection's Children To Grid");
     view_menu->addSeparator();
     view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go To Definition");
-    view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
+    //view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
     view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go To Implementation");
-    view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
+    //view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
     view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "View Connections");
     view_showManagementComponents = view_menu->addAction("View Management Components");
-    view_showManagementComponents->setShortcut(QKeySequence(Qt::CTRL +Qt::Key_M));
+    //view_showManagementComponents->setShortcut(QKeySequence(Qt::CTRL +Qt::Key_M));
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
-    model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
+    //model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     model_sortModel = model_menu->addAction(QIcon(":/Resources/Icons/sort.png"), "Sort Model");
-    model_sortModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    //model_sortModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
 
     settings_displayWindowToolbar = settings_Menu->addAction("Display Toolbar");
     settings_Menu->addSeparator();
     settings_showGridLines = settings_Menu->addAction("Use Grid Lines");
-    settings_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
+    //settings_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
     settings_selectOnConstruction = settings_Menu->addAction("Select Node On Construction");
     settings_Menu->addSeparator();
     settings_autoCenterView = settings_Menu->addAction("Automatically Center Views");
