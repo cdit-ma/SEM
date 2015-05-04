@@ -116,14 +116,13 @@ void EditableTextItem::focusInEvent(QFocusEvent*)
 
 void EditableTextItem::focusOutEvent(QFocusEvent *event)
 {
-    qCritical() << "FOCUSED OUT";
-    //if(inEditingMode){
+    if(inEditingMode){
         //Only exit Edit mode if we are currently editing.
         setEditMode(false);
 
         // if we're done editing, tell the view that this item no longer has focus
         emit editableItem_hasFocus(false);
-    //}
+    }
 }
 
 void EditableTextItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)

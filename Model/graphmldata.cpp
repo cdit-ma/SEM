@@ -110,7 +110,7 @@ QStringList GraphMLData::getBoundIDS()
 void GraphMLData::setValue(QString newValue)
 {
     if(key){
-        if(newValue != value){
+       if(newValue != value){
             QString updatedValue = key->validateDataChange(this, newValue);
 
             if(updatedValue != value){

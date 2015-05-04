@@ -488,8 +488,8 @@ void MedeaWindow::setupSearchTools()
     int searchBarHeight = 28;
 
     QHBoxLayout* headerLayout = new QHBoxLayout();
-    QLabel* objectLabel = new QLabel("Object Name:", this);
-    QLabel* parentLabel = new QLabel("Parent Name:", this);
+    QLabel* objectLabel = new QLabel("Entity Label:", this);
+    QLabel* parentLabel = new QLabel("Parent Entity Label:", this);
     QLabel* iconHolder = new QLabel(this);
     int searchItemMinWidth = 300;
     int marginOffset = 8;
@@ -1124,7 +1124,7 @@ void MedeaWindow::on_actionNew_Project_triggered()
         if (!exportProject()) {
             return;
         }
-    }else{
+    }else if(saveProject != QMessageBox::No){
         return;
     }
 
@@ -2112,7 +2112,7 @@ void MedeaWindow::importProjects(QStringList files)
  */
 void MedeaWindow::closeEvent(QCloseEvent * e)
 {
-    //return;
+    return;
     QMessageBox::StandardButton resBtn = QMessageBox::question( this, "MEDEA",
                                                                 tr("Are you sure?\n"),
                                                                 QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,

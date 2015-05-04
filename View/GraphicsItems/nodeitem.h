@@ -135,6 +135,7 @@ signals:
 
 
 public slots:
+
     QPolygonF getResizePolygon();
     //QRectF
     void parentNodeItemMoved();
@@ -178,6 +179,7 @@ protected:
 
 
 private:
+    void updateModelData();
     void setWidth(qreal width);
     void setHeight(qreal height);
     void setSize(qreal w, qreal h);
@@ -186,7 +188,6 @@ private:
 
     void updateGridLines();
 
-    void setPermanentlyInvisible(bool isInvisible);
     void setupAspect();
     void setupBrushes();
     void setupIcon();
@@ -199,7 +200,6 @@ private:
 
     void setPaintObject(bool paint);
 
-    void updateGraphMLSize();
     void updateGraphMLPosition();
 
     void updateChildrenOnChange();
@@ -302,7 +302,6 @@ private:
     bool hidden;
     bool onGrid;
     bool hasDefinition;
-    bool permanentlyInvisible;
     bool firstReposition;
 
     bool LOCKED_POSITION;

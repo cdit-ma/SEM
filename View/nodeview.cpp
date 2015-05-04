@@ -790,6 +790,8 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     //Connect the Generic Functionality.
     connectGraphMLItemToController(nodeItem, node);
 
+
+
     // send/do necessary signals/updates when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
 
@@ -2012,7 +2014,6 @@ void NodeView::moveFinished()
 
 void NodeView::resizeFinished()
 {
-    qCritical() << "RESIZE Finshed";
 
     foreach(QString ID, selectedIDs){
         GraphMLItem* currentItem = getGraphMLItemFromHash(ID);

@@ -57,7 +57,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     nodeSelected = false;
     isNodePressed = false;
     permanentlyCentralized = false;
-    permanentlyInvisible = false;
     expanded = true;
     hidden = false;
     hasSelectionMoved = false;
@@ -113,14 +112,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     expandedWidth = width;
     expandedHeight = height;
 
+
     //Update Width and Height with values from the GraphML Model If they have them.
     retrieveGraphMLData();
-
-    //Update GraphML Model for size/position if they have been changed.
-    updateGraphMLSize();
-
-    updateModelPosition();
-    //updateGraphMLPosition();
 
     setupGraphMLConnections();
 
@@ -143,12 +137,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         setPaintObject(true);
     }
 
-    // why is the EventPortInstance permanently invisible?
-    //if (parentNodeKind.endsWith("EventPortInstance")){
-    //    setPermanentlyInvisible(true);
-    //}
 
-    aspectsChanged(aspects);
+    //aspectsChanged(aspects);
 
     if(parentNodeItem){
         parentNodeItem->childPosUpdated();
@@ -157,6 +147,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     if(IN_SUBVIEW){
         setVisible(true);
+    }else{
+        updateModelData();
     }
 }
 
@@ -275,12 +267,22 @@ void NodeItem::childPosUpdated()
     w = qMax(w, width);
     h = qMax(h, height);
 
+
+
     //qCritical() << width << " x " << height;
 
     //w = qMax(w, width);
     //h = qMax(h, height);
+    bool updateModel = false;
+    if(w != width || h!= height){
+        updateModel = true;
+    }
+
     setSize(w, h);
-    updateParent();
+
+    if(updateModel){
+        updateModelSize();
+    }
 }
 
 
@@ -811,13 +813,9 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
             //Update the Size
             prepareGeometryChange();
 
-
             if(dataKey == "width"){
-                //qCritical() << dataValue;
-
                 setWidth(dataValue.toFloat());
-            }else if(dataKey == "height"){
-                //qCritical() << dataValue;
+            }else if(dataKey == "height"){              
                 setHeight(dataValue.toFloat());
             }
 
@@ -912,6 +910,7 @@ void NodeItem::newSort()
             if (toSortItems.size() > 0) {
                 nextItem = toSortItems.takeFirst();
                 nextItem->setCenterPos(getGridPosition(x,y));
+                nextItem->updateModelPosition();
             } else {
                 finishedLayout = true;
                 break;
@@ -1183,6 +1182,24 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 }
 
+void NodeItem::updateModelData()
+{
+
+    //Give the current Width and height. update the width/height variable in the GraphML Model.
+    GraphML* modelEntity = getGraphML();
+    if(modelEntity){
+        GraphMLData* wData = modelEntity->getData("width");
+        GraphMLData* hData = modelEntity->getData("height");
+        GraphMLData* xData = modelEntity->getData("x");
+        GraphMLData* yData = modelEntity->getData("y");
+        wData->setValue(QString::number(width));
+        hData->setValue(QString::number(height));
+        QPointF center = centerPos();
+        xData->setValue(QString::number(center.x()));
+        yData->setValue(QString::number(center.y()));
+    }
+}
+
 
 NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
 {
@@ -1213,8 +1230,6 @@ void NodeItem::setWidth(qreal w)
 
         width = w;
 
-
-
         updateTextLabel();
         updateChildrenOnChange();
         updateGridLines();
@@ -1223,11 +1238,7 @@ void NodeItem::setWidth(qreal w)
         if(updateModel){
             updateModelSize();
         }
-
-
     }
-
-
 }
 
 
@@ -1309,13 +1320,6 @@ void NodeItem::updateGridLines()
 }
 
 
-void NodeItem::setPermanentlyInvisible(bool isInvisible)
-{
-    permanentlyInvisible = isInvisible;
-    setVisible(permanentlyInvisible);
-}
-
-
 void NodeItem::setPaintObject(bool paint)
 {
     PAINT_OBJECT = paint;
@@ -1386,8 +1390,7 @@ QRectF NodeItem::getMinimumChildRect()
 
 
     foreach(NodeItem* child, childNodeItems){
-
-        if(child->isVisible()){
+        if(child->isVisible() || isExpanded()){
         //if(!child->isHidden()){
             hasChildren = true;
             qreal childMaxX = child->pos().x() + child->boundingRect().width();
@@ -1588,7 +1591,7 @@ void NodeItem::aspectsChanged(QStringList aspects)
 {    
     currentViewAspects = aspects;
 
-    if(hidden || !PAINT_OBJECT || permanentlyInvisible){
+    if(hidden || !PAINT_OBJECT){
         return;
     }
 
@@ -1841,18 +1844,6 @@ void NodeItem::snapChildrenToGrid()
 }
 
 
-void NodeItem::updateGraphMLSize()
-{
-    //Give the current Width and height. update the width/height variable in the GraphML Model.
-    GraphML* modelEntity = getGraphML();
-    if(modelEntity){
-        GraphMLData* wData = modelEntity->getData("width");
-        GraphMLData* hData = modelEntity->getData("height");
-        wData->setValue(QString::number(width));
-        hData->setValue(QString::number(height));
-    }
-}
-
 
 void NodeItem::updateGraphMLPosition()
 {
@@ -1896,19 +1887,24 @@ void NodeItem::retrieveGraphMLData()
         qCritical() << pos();
     }
     setCenterPos(QPointF(graphmlX, graphmlY));
+    prepareGeometryChange();
 
     if(graphmlHeight > height || graphmlWidth > width){
-        //qCritical() << "Expanded Given.";
         expandedWidth = graphmlWidth;
         expandedHeight = graphmlHeight;
-        expandItem(true);
+        width = expandedWidth;
+        height = expandedHeight;
+        expanded = true;
+        //expandItem(true);
     }else if(graphmlHeight != 0 && graphmlWidth != 0){
-        //qCritical() << "Not Expanding";
-        expandItem(false);
+        expanded = false;
+        //expandItem(false);
     }else{
-        //qCritical() << "No value; Expanding";
-        expandItem(true);
+        expanded = true;
+        //expandItem(true);
     }
+
+
 }
 
 
@@ -2080,11 +2076,11 @@ void NodeItem::expandItem(bool show)
     }
 
 
+    prepareGeometryChange();
     expanded = show;
 
     if(show){
         QRectF childRec = getMinimumChildRect();
-
         expandedWidth = qMax(childRec.width(), expandedWidth);
         expandedHeight = qMax(childRec.height(), expandedHeight);
 
@@ -2104,8 +2100,8 @@ void NodeItem::expandItem(bool show)
     }
 
 
-    prepareGeometryChange();
-    update();
+    //prepareGeometryChange();
+    //update();
 }
 
 
@@ -2166,7 +2162,6 @@ void NodeItem::updateModelPosition()
 
 void NodeItem::updateModelSize()
 {
-
 
     GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(width));
     GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(height));

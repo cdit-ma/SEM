@@ -362,7 +362,7 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
                     //Don't add an action for the initial setting!
                     addAction = false;
                 }
-            }else{
+            }else{                
                 data->setValue(dataValue);
             }
         }
