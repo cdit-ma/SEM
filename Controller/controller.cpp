@@ -348,6 +348,7 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
     if(data){
 
         action.dataValue = data->getValue();
+        //qCritical() << dataValue;
 
         if(parent->isNode()){
             Node* node = (Node*)parent;

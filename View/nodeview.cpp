@@ -408,7 +408,6 @@ void NodeView::constructNewView(Node *centeredOn)
         toConstruct << centeredOn->getChildren();
 
         while(centeredOn){
-            qCritical() << "Making Items";
             toConstruct.insert(0,centeredOn);
             centeredOn = centeredOn->getParentNode();
         }

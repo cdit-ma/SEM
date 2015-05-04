@@ -1201,15 +1201,19 @@ void NodeItem::setWidth(qreal w)
 
 
         bool updateModel = false;
-        if(w <= childRect.width()){
-            w = childRect.width();
-            updateModel = true;
+
+        if(isExpanded()){
+            qCritical() <<"Currently Expanding";
+            if(w <= childRect.width()){
+                w = childRect.width();
+                updateModel = true;
+            }
+            expandedWidth = w;
         }
 
         width = w;
-        if(isExpanded()){
-            expandedWidth = w;
-        }
+
+
 
         updateTextLabel();
         updateChildrenOnChange();
@@ -1234,18 +1238,15 @@ void NodeItem::setHeight(qreal h)
         QRectF childRect = getMinimumChildRect();
 
         bool updateModel = false;
-        if(h <= childRect.height()){
-            //qCritical() << "H:AM I CHANGING";
-            h = childRect.height();
-            updateModel = true;
+        if(isExpanded()){
+            if(h <= childRect.height()){
+                h = childRect.height();
+                updateModel = true;
+            }
+            expandedHeight = h;
         }
 
         height = h;
-
-        if(isExpanded()){
-            expandedHeight = h;
-
-        }
 
         updateGridLines();
         updateChildrenOnChange();
@@ -2090,11 +2091,6 @@ void NodeItem::expandItem(bool show)
         GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(expandedWidth));
         GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(expandedHeight));
     } else {
-
-        //qreal mW = minimumVisibleRect().width();
-        //qreal mH = minimumVisibleRect().width();
-        //GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(mW));
-        //GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(mH));
         GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(minimumWidth));
         GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(minimumHeight));
 
