@@ -15,6 +15,9 @@ TARGET = MEDEA
 
 TEMPLATE = app
 
+win32{
+LIBS += -lpsapi
+}
 #DEFINES += DEBUG_MODE
 
 
@@ -168,40 +171,45 @@ OTHER_FILES += \
     settings.ini \
     Resources/Scripts/MEDEA.xsl
 
-#Copy Files to install directory
-JENKINSCLIJAR.path = $$OUT_PWD/Resources/Scripts/
+
+#Define $$OUTPUT_DIR
+win32{
+    #Set the Output directory.
+    CONFIG(release, debug|release) {
+        OUTPUT_DIR = $$OUT_PWD/release/
+    }
+    CONFIG(debug, debug|release) {
+        OUTPUT_DIR = $$OUT_PWD/debug/
+    }
+}
+mac{
+    OUTPUT_DIR = Contents/MacOS/
+}
+
+
 JENKINSCLIJAR.files += Resources/Scripts/jenkins-cli.jar
+JENKINSCLIJAR.path = $$OUTPUT_DIR/Resources/Scripts/
 
-JENKINSGROOVY.path = $$OUT_PWD/Resources/Scripts/
 JENKINSGROOVY.files += Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy
+JENKINSGROOVY.path = $$OUTPUT_DIR/Resources/Scripts/
 
-SETTINGSFILE.path = $$OUT_PWD
 SETTINGSFILE.files += settings.ini
+SETTINGSFILE.path = $$OUTPUT_DIR/
 
-XSLFILE.path = $$OUT_PWD/Resources/Scripts/
 XSLFILE.files += Resources/Scripts/MEDEA.xsl
+XSLFILE.path = $$OUTPUT_DIR/Resources/Scripts/
 
-
-INSTALLS += JENKINSGROOVY
-INSTALLS += JENKINSCLIJAR
-INSTALLS += SETTINGSFILE
-INSTALLS += XSLFILE
+#Copy files
+win32{
+    INSTALLS += JENKINSCLIJAR
+    INSTALLS += JENKINSGROOVY
+    INSTALLS += SETTINGSFILE
+    INSTALLS += XSLFILE
+}
 
 mac{
-    MJENKINSCLIJAR.path = Contents/MacOS/Resources/Scripts/
-    MJENKINSCLIJAR.files += Resources/Scripts/jenkins-cli.jar
-
-    MJENKINSGROOVY.path = Contents/MacOS/Resources/Scripts/
-    MJENKINSGROOVY.files += Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy
-
-    MSETTINGSFILE.path = Contents/MacOS/
-    MSETTINGSFILE.files += settings.ini
-
-    MXSLFILE.path = Contents/MacOS/Resources/Scripts/
-    MXSLFILE.files += Resources/Scripts/MEDEA.xsl
-
-    QMAKE_BUNDLE_DATA += MJENKINSGROOVY
-    QMAKE_BUNDLE_DATA += MJENKINSCLIJAR
-    QMAKE_BUNDLE_DATA += MSETTINGSFILE
-    QMAKE_BUNDLE_DATA += MXSLFILE
+    QMAKE_BUNDLE_DATA += JENKINSCLIJAR
+    QMAKE_BUNDLE_DATA += JENKINSGROOVY
+    QMAKE_BUNDLE_DATA += SETTINGSFILE
+    QMAKE_BUNDLE_DATA += XSLFILE
 }
