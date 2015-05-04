@@ -2112,7 +2112,7 @@ void MedeaWindow::importProjects(QStringList files)
  */
 void MedeaWindow::closeEvent(QCloseEvent * e)
 {
-    return;
+    //return;
     QMessageBox::StandardButton resBtn = QMessageBox::question( this, "MEDEA",
                                                                 tr("Are you sure?\n"),
                                                                 QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
