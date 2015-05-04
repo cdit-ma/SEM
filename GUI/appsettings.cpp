@@ -41,12 +41,6 @@ void AppSettings::launchSettingsUI()
 
     foreach(QString group, settings->childGroups()){
 
-
-
-        //settingsLayout->addLayout(groupLayout);
-        //QLabel* groupSetting = new QLabel(group);
-        //groupLayout->addWidget(groupSetting);
-
         settings->beginGroup(group);
 
 
@@ -58,7 +52,6 @@ void AppSettings::launchSettingsUI()
         groupBox->setLayout(groupLayout);
 
         foreach(QString key, settings->childKeys()){
-            qCritical() << settings->value(key).typeName();
             KeyEditWidget* keyEdit = new KeyEditWidget(0,group, key, settings->value(key));
             connect(keyEdit, SIGNAL(valueChanged(QString,QString,QString)), this, SLOT(settingChanged(QString,QString,QString)));
             groupLayout->addLayout(keyEdit->getLayout());

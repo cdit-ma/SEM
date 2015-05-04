@@ -17,8 +17,6 @@ KeyEditWidget::KeyEditWidget(QObject *parent, QString g, QString k, QVariant v)
     horizontalLayout = new QHBoxLayout();
 
 
-    qCritical() << v;
-
     QLabel* keyLabel = new QLabel(keyName);
     horizontalLayout->addWidget(keyLabel);
 

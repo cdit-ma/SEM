@@ -33,7 +33,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 {
 
     applicationDirectory = QApplication::applicationDirPath() + "/";
-    qCritical() << applicationDirectory;
+    //Critical() << applicationDirectory;
     // this needs to happen before the menu is set up and connected
     appSettings = new AppSettings(applicationDirectory, this);
 

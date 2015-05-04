@@ -1204,7 +1204,6 @@ void NodeItem::setWidth(qreal w)
         bool updateModel = false;
 
         if(isExpanded()){
-            qCritical() <<"Currently Expanding";
             if(w <= childRect.width()){
                 w = childRect.width();
                 updateModel = true;

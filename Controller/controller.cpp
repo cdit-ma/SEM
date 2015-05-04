@@ -622,7 +622,6 @@ void NewController::paste(Node *parentNode, QString xmlData)
 
         if(parentNode){
             triggerAction("Pasting Selection.");
-            qCritical() << "CUT USED: " << CUT_USED;
             _importGraphMLXML(xmlData, parentNode, CUT_USED);
             CUT_USED = false;
         }
