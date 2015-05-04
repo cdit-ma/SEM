@@ -726,6 +726,7 @@ void NodeView::showToolbar(QPoint position)
 
         QList<NodeItem*> selectedItems;
         foreach (QString id, selectedIDs) {
+            // Check for EdgeItems!!!
             NodeItem* selectedItem = (NodeItem*)guiItems[id];
             if (selectedItem && selectedItem->isPainted()) {
                 selectedItems.append(selectedItem);
