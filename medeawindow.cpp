@@ -133,6 +133,7 @@ void MedeaWindow::initialiseGUI()
     definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     workloadButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
 
+    /*
     QString border = "border-right: 2px; border-bottom: 3px; border-left: 1px; border-top: 1px;";
     QString checkedBorder = "border-right: 1px; border-bottom: 1px; border-left: 2px; border-top: 3px;";
     QString borderStyle = "border-style: solid; border-color: rgb(100,100,100); border-radius: 8px;";
@@ -166,13 +167,12 @@ void MedeaWindow::initialiseGUI()
                                   "stop: 0 rgb(255,224,166), stop: 0.5 rgb(255,224,166),"
                                   "stop: 0.5 rgb(250,190,130), stop: 1.0  rgb(234,164,106));"
                                   + checkedBorder + borderStyle + "}");
+                                  */
 
-    /*
     assemblyButton->setStyleSheet("background-color: rgb(230,130,130);");
     hardwareButton->setStyleSheet("background-color: rgb(80,140,190);");
     definitionsButton->setStyleSheet("background-color: rgb(80,180,180);");
     workloadButton->setStyleSheet("background-color: rgb(224,154,96);");
-    */
 
     // setup the progress bar
     progressBar->setVisible(false);
@@ -472,11 +472,6 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
  */
 void MedeaWindow::setupSearchTools()
 {
-    QVBoxLayout* resultsMainLayout = new QVBoxLayout();
-    resultsLayout = new QVBoxLayout();
-    int rightPanelWidth = RIGHT_PANEL_WIDTH;
-    int searchBarHeight = 28;
-
     searchBarDefaultText = "Search Here...";
     searchBar = new QLineEdit(searchBarDefaultText, this);
     searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
@@ -485,6 +480,29 @@ void MedeaWindow::setupSearchTools()
     searchSuggestions = new QListView(searchButton);
     searchResults = new QDialog(this);
 
+    QVBoxLayout* resultsMainLayout = new QVBoxLayout();
+    resultsLayout = new QVBoxLayout();
+    int rightPanelWidth = RIGHT_PANEL_WIDTH;
+    int searchBarHeight = 28;
+
+    QHBoxLayout* headerLayout = new QHBoxLayout();
+    QLabel* objectLabel = new QLabel("Object Name:", this);
+    QLabel* parentLabel = new QLabel("Parent Name:", this);
+    QLabel* iconHolder = new QLabel(this);
+    int searchItemMinWidth = 300;
+    int marginOffset = 8;
+
+    iconHolder->setFixedWidth(42);
+    objectLabel->setMinimumWidth(searchItemMinWidth/2 - marginOffset);
+    parentLabel->setMinimumWidth(searchItemMinWidth/2 - marginOffset);
+
+    headerLayout->setMargin(2);
+    headerLayout->setSpacing(5);
+    headerLayout->addWidget(objectLabel);
+    headerLayout->addWidget(iconHolder);
+    headerLayout->addWidget(parentLabel);
+
+    resultsMainLayout->addLayout(headerLayout);
     resultsMainLayout->addLayout(resultsLayout);
     resultsMainLayout->addStretch();
 

@@ -1128,7 +1128,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
         }else{
             if(hasSelectionMoved == false){
-                qCritical() << "ADD ACTION";
+                //qCritical() << "ADD ACTION";
                 //qCritical() << "UNDO ACTIONB ADDED";
                 emit GraphMLItem_TriggerAction("Moving Selection");
                 setCursor(Qt::SizeAllCursor);
