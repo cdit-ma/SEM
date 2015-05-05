@@ -122,6 +122,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setupBrushes();
     setupIcon();
     setupLabel();
+    setupLockMenu();
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
@@ -498,6 +499,20 @@ bool NodeItem::iconPressed(QPointF mousePosition)
     return false;
 }
 
+/**
+ * @brief NodeItem::lockPressed
+ * @param mousePosition
+ * @return
+ */
+bool NodeItem::lockPressed(QPointF mousePosition)
+{
+    if (lockIcon) {
+        if (lockIcon->sceneBoundingRect().contains(mousePosition)) {
+            return true;
+        }
+    }
+    return false;
+}
 NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
 {
     if(getResizePolygon().containsPoint(mousePosition, Qt::WindingFill)){
@@ -935,8 +950,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         QGraphicsItem::mousePressEvent(event);
     }
 
-    if (lockIcon && lockIcon->sceneBoundingRect().contains(event->scenePos())) {
-        qDebug() << "LOCK ICON PRESSED";
+    if (lockPressed(event->scenePos())) {
         showLockMenu();
         return;
     }
@@ -1391,7 +1405,7 @@ QRectF NodeItem::getMinimumChildRect()
 
     foreach(NodeItem* child, childNodeItems){
         if(child->isVisible() || isExpanded()){
-        //if(!child->isHidden()){
+            //if(!child->isHidden()){
             hasChildren = true;
             qreal childMaxX = child->pos().x() + child->boundingRect().width();
             qreal childMaxY = child->pos().y() + child->boundingRect().height();
@@ -1570,13 +1584,54 @@ void NodeItem::setPos(const QPointF &pos)
 }
 
 
+
+/**
+ * @brief NodeItem::setupLockMenu
+ */
+void NodeItem::setupLockMenu()
+{
+    lockMenu = new QMenu();
+    lockPos = new QWidgetAction(this);
+    lockSize = new QWidgetAction(this);
+    lockLabel = new QWidgetAction(this);
+    lockSortOrder = new QWidgetAction(this);
+    menuOpen = false;
+
+    QCheckBox* cb1 = new QCheckBox("Position");
+    QCheckBox* cb2 = new QCheckBox("Size");
+    QCheckBox* cb3 = new QCheckBox("Label");
+    QCheckBox* cb4 = new QCheckBox("Sort Order");
+
+    lockPos->setDefaultWidget(cb1);
+    lockSize->setDefaultWidget(cb2);
+    lockLabel->setDefaultWidget(cb3);
+    lockSortOrder->setDefaultWidget(cb4);
+
+    lockMenu->addAction(lockPos);
+    lockMenu->addAction(lockSize);
+    lockMenu->addAction(lockLabel);
+    lockMenu->addAction(lockSortOrder);
+
+    connect(lockMenu, SIGNAL(aboutToHide()), this, SLOT(menuClosed()));
+}
+
 /**
  * @brief NodeItem::showLockMenu
  */
 void NodeItem::showLockMenu()
 {
-
+    if (lockIcon) {
+        if (menuOpen) {
+            lockMenu->close();
+            menuOpen = false;
+        } else {
+            lockMenu->popup(lockIcon->sceneBoundingRect().bottomLeft().toPoint());
+            menuOpen = true;
+        }
+    }
 }
+
+
 
 
 void NodeItem::updateParent()
@@ -1843,6 +1898,16 @@ void NodeItem::snapChildrenToGrid()
     }
 }
 
+
+
+/**
+ * @brief NodeItem::menuClosed
+ */
+void NodeItem::menuClosed()
+{
+    //menuOpen = true;
+    //showLockMenu();
+}
 
 
 void NodeItem::updateGraphMLPosition()

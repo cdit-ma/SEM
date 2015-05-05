@@ -13,6 +13,9 @@
 #include <iostream>
 #include <QGraphicsProxyWidget>
 #include <QPushButton>
+#include <QMenu>
+#include <QWidgetAction>
+#include <QCheckBox>
 
 #include "../../Model/node.h"
 #include "../../Model/graphmldata.h"
@@ -66,6 +69,7 @@ public:
 
     bool labelPressed(QPointF mousePosition);
     bool iconPressed(QPointF mousePosition);
+    bool lockPressed(QPointF mousePosition);
 
 
     NodeItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
@@ -169,6 +173,8 @@ public slots:
     void snapToGrid();
     void snapChildrenToGrid();
 
+    void menuClosed();
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
@@ -225,9 +231,15 @@ private:
     void setPos(qreal x, qreal y);
     void setPos(const QPointF &pos);
 
+    void setupLockMenu();
     void showLockMenu();
 
     QMenu* lockMenu;
+    QWidgetAction* lockPos;
+    QWidgetAction* lockSize;
+    QWidgetAction* lockLabel;
+    QWidgetAction* lockSortOrder;
+    bool menuOpen;
 
     NodeItem* parentNodeItem;
     QStringList viewAspects;
