@@ -67,9 +67,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     icon = 0;
     lockIcon = 0;
     textItem = 0;
-    labelButton = 0;
-    labelWidget = 0;
-    proxyWidget = 0;
     width = 0;
     height = 0;
     expandedWidth = 0;
@@ -499,6 +496,7 @@ bool NodeItem::iconPressed(QPointF mousePosition)
     return false;
 }
 
+
 /**
  * @brief NodeItem::lockPressed
  * @param mousePosition
@@ -506,13 +504,15 @@ bool NodeItem::iconPressed(QPointF mousePosition)
  */
 bool NodeItem::lockPressed(QPointF mousePosition)
 {
-    if (lockIcon) {
+    if (lockIcon && lockIcon->isVisible()) {
         if (lockIcon->sceneBoundingRect().contains(mousePosition)) {
             return true;
         }
     }
     return false;
 }
+
+
 NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
 {
     if(getResizePolygon().containsPoint(mousePosition, Qt::WindingFill)){
@@ -830,7 +830,7 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
 
             if(dataKey == "width"){
                 setWidth(dataValue.toFloat());
-            }else if(dataKey == "height"){              
+            }else if(dataKey == "height"){
                 setHeight(dataValue.toFloat());
             }
 
@@ -946,13 +946,9 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(!PAINT_OBJECT){
         // clear selection when pressing on a !PAINTED item
-        GraphMLItem_ClearSelection(false);
+        //GraphMLItem_ClearSelection(false);
+        GraphMLItem_ClearSelection(true); // need to update table!
         QGraphicsItem::mousePressEvent(event);
-    }
-
-    if (lockPressed(event->scenePos())) {
-        showLockMenu();
-        return;
     }
 
     switch (event->button()) {
@@ -968,6 +964,12 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         // when the model is pressed
         if(!PAINT_OBJECT){
             //emit clearSelection();
+            return;
+        }
+
+        // check if the lock icon was clicked
+        if (lockPressed(event->scenePos())) {
+            emit NodeItem_showLockMenu(this);
             return;
         }
 
@@ -1595,7 +1597,6 @@ void NodeItem::setupLockMenu()
     lockSize = new QWidgetAction(this);
     lockLabel = new QWidgetAction(this);
     lockSortOrder = new QWidgetAction(this);
-    menuOpen = false;
 
     QCheckBox* cb1 = new QCheckBox("Position");
     QCheckBox* cb2 = new QCheckBox("Size");
@@ -1612,26 +1613,21 @@ void NodeItem::setupLockMenu()
     lockMenu->addAction(lockLabel);
     lockMenu->addAction(lockSortOrder);
 
+    QFont font = lockMenu->font();
+    font.setPointSize(9);
+
+    lockMenu->setFont(font);
+    lockMenu->setFixedSize(110, 93);
+    lockMenu->setAttribute(Qt::WA_TranslucentBackground);
+    lockMenu->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+    lockMenu->setStyleSheet("QCheckBox::checked{ color: darkRed; font-weight: bold; }"
+                            "QCheckBox{ padding: 3px; }"
+                            "QMenu{ padding: 5px;"
+                            "border-radius: 8px;"
+                            "background-color: rgba(240,240,240,245); }");
+
     connect(lockMenu, SIGNAL(aboutToHide()), this, SLOT(menuClosed()));
 }
-
-/**
- * @brief NodeItem::showLockMenu
- */
-void NodeItem::showLockMenu()
-{
-    if (lockIcon) {
-        if (menuOpen) {
-            lockMenu->close();
-            menuOpen = false;
-        } else {
-            lockMenu->popup(lockIcon->sceneBoundingRect().bottomLeft().toPoint());
-            menuOpen = true;
-        }
-    }
-}
-
-
 
 
 void NodeItem::updateParent()
@@ -1899,14 +1895,12 @@ void NodeItem::snapChildrenToGrid()
 }
 
 
-
 /**
  * @brief NodeItem::menuClosed
  */
 void NodeItem::menuClosed()
 {
-    //menuOpen = true;
-    //showLockMenu();
+    emit NodeItem_lockMenuClosed(this);
 }
 
 
@@ -2034,6 +2028,29 @@ bool NodeItem::isInAspect()
     }
 
     return inAspect;
+}
+
+
+/**
+ * @brief NodeItem::getLockMenu
+ * @return
+ */
+QMenu* NodeItem::getLockMenu()
+{
+    return lockMenu;
+}
+
+
+/**
+ * @brief NodeItem::getLockIconSceneRect
+ * @return
+ */
+QRectF NodeItem::getLockIconSceneRect()
+{
+    if (lockIcon) {
+        return lockIcon->sceneBoundingRect();
+    }
+    return QRectF();
 }
 
 

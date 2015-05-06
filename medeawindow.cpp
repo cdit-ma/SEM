@@ -32,9 +32,9 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
-
     applicationDirectory = QApplication::applicationDirPath() + "/";
     //Critical() << applicationDirectory;
+
     // this needs to happen before the menu is set up and connected
     appSettings = new AppSettings(applicationDirectory, this);
 
@@ -44,8 +44,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseGUI();
     makeConnections();
     newProject();
-
-    //on_SearchTextChanged("");
 
     /*
     // this is used for when a file is dragged and dropped on top of this tool's icon
@@ -100,8 +98,8 @@ void MedeaWindow::initialiseGUI()
     notificationsBar = new QLabel("Hello", this);
     notificationTimer = new QTimer(this);
 
-    dataTable = new QTableView();
-    dataTableBox = new QGroupBox();
+    dataTableBox = new QGroupBox(this);
+    dataTable = new QTableView(dataTableBox);
     delegate = new ComboBoxTableDelegate(0);
 
     projectName = new QPushButton("Model");
@@ -118,6 +116,9 @@ void MedeaWindow::initialiseGUI()
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
 
+    //this->setAttribute(Qt::WA_TranslucentBackground);
+    //this->setStyleSheet("MedeaWindow{ background-color: transparent; }");
+
     // set the size for the right panel where the view buttons and data table are located
     int rightPanelWidth = RIGHT_PANEL_WIDTH;
 
@@ -127,8 +128,8 @@ void MedeaWindow::initialiseGUI()
     menuButton->setStyleSheet("QPushButton{ background-color: rgba(220,220,220,0.5); }"
                               "QPushButton::menu-indicator{ image: none; }");
     projectName->setFlat(true);
-    projectName->setFixedWidth(rightPanelWidth-menuButton->width()-10);
-    projectName->setStyleSheet("font-size: 16px; text-align: left;");
+    //projectName->setFixedWidth(rightPanelWidth-menuButton->width()-10);
+    projectName->setStyleSheet("font-size: 16px; text-align: left; padding: 8px;");
 
     assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
@@ -205,7 +206,6 @@ void MedeaWindow::initialiseGUI()
                                     "border-radius: 10px;"
                                     "padding: 0px 15px;"
                                     "font: 16px;");
-    //"font-weight: bold;");
 
     QVBoxLayout *progressLayout = new QVBoxLayout();
     progressLayout->addStretch(3);
@@ -224,6 +224,7 @@ void MedeaWindow::initialiseGUI()
     tableLayout->setContentsMargins(0,0,0,0);
     tableLayout->addWidget(dataTable);
 
+    dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
     dataTableBox->setFixedWidth(rightPanelWidth);
     dataTableBox->setLayout(tableLayout);
     dataTableBox->setStyleSheet("QGroupBox {"
@@ -231,6 +232,8 @@ void MedeaWindow::initialiseGUI()
                                 "border: 0px;"
                                 "}");
 
+    connect(dataTable, SIGNAL(viewportEntered()), this, SLOT(test()));
+    connect(dataTableBox, SIGNAL(clicked()), this, SLOT(test()));
 
     // setup mini map
     minimap = new NodeViewMinimap();
@@ -698,6 +701,17 @@ void MedeaWindow::setupToolbar()
     spacerWidget5->setFixedWidth(spacerWidth);
     spacerWidget6->setFixedWidth(spacerWidth);
 
+    /*
+    spacerWidgetLeft->setAttribute(Qt::WA_TransparentForMouseEvents);
+    spacerWidgetRight->setAttribute(Qt::WA_TransparentForMouseEvents);
+    spacerWidget1->setAttribute(Qt::WA_TransparentForMouseEvents);
+    spacerWidget2->setAttribute(Qt::WA_TransparentForMouseEvents);
+    spacerWidget3->setAttribute(Qt::WA_TransparentForMouseEvents);
+    spacerWidget4->setAttribute(Qt::WA_TransparentForMouseEvents);
+    spacerWidget5->setAttribute(Qt::WA_TransparentForMouseEvents);
+    spacerWidget6->setAttribute(Qt::WA_TransparentForMouseEvents);
+    */
+
     toolbar->addAction(leftSpacerAction);
     toolbar->addAction(toolbarAction);
     toolbar->addWidget(spacerWidget5);
@@ -732,8 +746,6 @@ void MedeaWindow::setupToolbar()
                            "margin: 0px 3px 0px 3px;"
                            "}"
                            );
-
-
 }
 
 
@@ -844,7 +856,6 @@ void MedeaWindow::makeConnections()
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
-    //connect(searchBar, SIGNAL(textChanged(QString)), this, SLOT(on_SearchTextChanged(QString)));
     connect(searchBar, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(updateSearchLineEdits()));
     connect(searchBar, SIGNAL(editingFinished()), this, SLOT(updateSearchLineEdits()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
@@ -1102,7 +1113,7 @@ void MedeaWindow::on_actionImportJenkinsNode()
     //qCritical() << program;
     //myProcess->setWorkingDirectory(DEPGEN_ROOT + "/scripts");
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(loadJenkinsData(int)));
-   qCritical() << applicationDirectory + "/Resources/Scripts/";
+    qCritical() << applicationDirectory + "/Resources/Scripts/";
     qCritical() << program;
     myProcess->start(program);
 }
@@ -1306,16 +1317,6 @@ void MedeaWindow::on_actionPaste_triggered()
 
     QClipboard *clipboard = QApplication::clipboard();
     window_PasteData(clipboard->text());
-
-}
-
-void MedeaWindow::on_SearchTextChanged(QString text)
-{
-    if (text.length() != 0) {
-        searchButton->setEnabled(true);
-    } else {
-        searchButton->setEnabled(false);
-    }
 
 }
 
@@ -1551,6 +1552,8 @@ void MedeaWindow::changeWindowTitle(QString label)
 {
     setWindowTitle("MEDEA - " + label);
     projectName->setText(label);
+    projectName->setFixedSize(projectName->fontMetrics().width(label) + 20,
+                              projectName->height());
 }
 
 
@@ -1644,7 +1647,35 @@ void MedeaWindow::showWindowToolbar(bool checked)
                 action->setVisible(checked);
             }
         }
+        if (!checked) {
+            // TODO: Mask invisible parts of the toolbar so that mouse events are passed through
+            QWidget* widget = toolbarAction->defaultWidget();
+            QPointF wp = widget->pos();
+            //wp = mapFromGlobal(wp.toPoint());
+            //wp = mapToGlobal(wp.toPoint());
+            wp = mapFromGlobal(widget->pos());
+            wp = widget->mapTo(toolbar, wp.toPoint());
+            wp = mapToGlobal(wp.toPoint());
+            /*
+            qDebug() << "toolbar.pos = " << toolbar->pos();
+            qDebug() << "toolbar->width() = " << toolbar->width();
+            qDebug() << "toolbar->width()/2 = " << toolbar->width()/2;
+            qDebug() << "Widget.pos = " << widget->pos();
+            qDebug() << "Widget.pos mapped = " << mapToParent( widget->pos());
+            qDebug() << "Widget.pos mapped = " << mapFromGlobal(wp.toPoint());
+            */
+            QRect regionRect(wp.x(), 0, toolbar->width(), toolbar->height());
+            toolbar->setMask(QRegion(regionRect, QRegion::Rectangle));
+        } else {
+            toolbar->setMask(QRegion());
+        }
     }
+}
+
+
+void MedeaWindow::test()
+{
+    qDebug() << "datatTableBox clicked!";
 }
 
 
@@ -2033,6 +2064,7 @@ void MedeaWindow::updateDataTable()
 
     // update the visible region of the groupbox to fit the dataTable
     if (w == 0 || h == 0) {
+        // TODO:: This isn't allowing mouse events to pass through!
         dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
     } else {
         dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents, false);

@@ -47,6 +47,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     parentNodeView = 0;
     rubberBand = 0;
 
+    prevLockMenuOpened = 0;
+
     CENTRALIZED_ON_ITEM = false;
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
@@ -69,8 +71,12 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //Set GraphicsView background-color
     setStyleSheet("QGraphicsView{ background-color: rgba(175,175,175,255); border: 0px;}");
 
-    //QBrush brush( QColor(100,100,200,250) );
-    //scene()->setBackgroundBrush(brush);
+    /*
+    scene()->setBackgroundBrush(QBrush(Qt::white));
+    this->setAttribute(Qt::WA_TranslucentBackground);
+    this->setWindowFlags(Qt::FramelessWindowHint);
+    setStyleSheet("QGraphicsView{ background-color: rgba(255,255,255,200); border: 0px;}");
+    */
 
     //Set The rubberband Mode.
     setRubberBandMode(false);
@@ -709,6 +715,65 @@ void NodeView::selectAndCenter(GraphMLItem *item, QString ID)
 
 
 /**
+ * @brief NodeView::showNodeItemLockMenu
+ * This slot shows/hides the provided nodeItem's lock menu.
+ * @param nodeItem
+ */
+void NodeView::showNodeItemLockMenu(NodeItem *nodeItem)
+{
+    //qDebug() << "NodeItem: " << nodeItem->getNode()->getDataValue("label");
+    //qDebug() << "prevLockedMenuOpened: " << prevLockMenuOpened;
+
+    QMenu* menu = nodeItem->getLockMenu();
+    if (menu) {
+        if (menu == prevLockMenuOpened) {
+            menu->close();
+            prevLockMenuOpened = 0;
+        } else {
+
+            /*
+            qDebug() << "nodeItem lock pos = " << nodeItem->getLockIconPos();
+            qDebug() << "mapToGlobal = " << menuPos;
+            qDebug() << "mapFromGlobal = " << mapFromGlobal(nodeItem->getLockIconPos());
+            qDebug() << "mapToParent = " << mapToParent(nodeItem->getLockIconPos());
+            qDebug() << "mapFromParent = " << mapFromParent(nodeItem->getLockIconPos());
+            qDebug() << "mapFromScene = " << mapFromScene(nodeItem->getLockIconPos());
+            qDebug() << "mapToScene = " << mapToScene(nodeItem->getLockIconPos());
+            */
+
+            QRectF lockRect = nodeItem->getLockIconSceneRect();
+            QPoint offset(lockRect.width()/5, -lockRect.width()/15);
+            QPointF menuPos = mapFromScene(lockRect.bottomLeft() + offset);
+            menuPos = mapToGlobal(menuPos.toPoint());
+            menu->popup(menuPos.toPoint());
+
+            prevLockMenuOpened = menu;
+        }
+    }
+}
+
+
+/**
+ * @brief NodeView::nodeItemLockMenuClosed
+ * This checks to see if the nodeItem's lock menu was closed by clicking on lock icon.
+ * If it wasn't, reset prevLockMenuOpened so that showNodeItemLockMenu works correctly.
+ * @param nodeItem
+ */
+void NodeView::nodeItemLockMenuClosed(NodeItem* nodeItem)
+{
+    QPointF viewPos = mapFromScene(nodeItem->getLockIconSceneRect().topLeft());
+    QPointF globalPos = mapToGlobal(viewPos.toPoint());
+    QRectF rect(globalPos, nodeItem->getLockIconSceneRect().size()*transform().m11());
+
+    if (!rect.contains(QCursor::pos())) {
+        prevLockMenuOpened = 0;
+        //emit view_nodeItemLockMenuClosed(nodeItem);
+    }
+}
+
+
+
+/**
  * @brief NodeView::showToolbar
  * This is called when there is a mouse right-click event.
  * It show/hides the context or window toolbar depending on where the right click happened.
@@ -1223,6 +1288,9 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
                 connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
 
                 connect(nodeItem, SIGNAL(Nodeitem_HasFocus(bool)), this, SLOT(editableItemHasFocus(bool)));
+
+                connect(nodeItem, SIGNAL(NodeItem_showLockMenu(NodeItem*)), this, SLOT(showNodeItemLockMenu(NodeItem*)));
+                connect(nodeItem, SIGNAL(NodeItem_lockMenuClosed(NodeItem*)), this, SLOT(nodeItemLockMenuClosed(NodeItem*)));
             }
         }else{
             //Specific SubView Functionality.
@@ -1635,9 +1703,17 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
+    //qDebug() << "HELLO";
     if(toolbarJustClosed){
         toolbarJustClosed = false;
         return;
+    }
+
+    // TODO: Need to catch the case where the menu is closed
+    // when MEDEA window steals the focus
+    // need this in case there is an opened lock menu
+    if (prevLockMenuOpened && prevLockMenuOpened->isVisible()) {
+        prevLockMenuOpened->close();
     }
 
     //If we have the Rubberband mode on, set the origin.
@@ -1677,6 +1753,11 @@ void NodeView::wheelEvent(QWheelEvent *event)
  */
 void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
 {
+    // need this in case there is an opened lock menu
+    if (prevLockMenuOpened && prevLockMenuOpened->isVisible()) {
+        prevLockMenuOpened->close();
+    }
+
     QPointF scenePos = mapToScene(event->pos());
     QGraphicsItem* itemUnderMouse = scene()->itemAt(scenePos, QTransform());
 
@@ -2061,17 +2142,16 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
 }
 
 
-
 void NodeView::view_ClearHistory()
 {
     view_ClearHistoryStates();
 }
 
+
 void NodeView::toolbarClosed()
 {
     toolbarJustClosed = true;
 }
-
 
 
 /**

@@ -125,6 +125,8 @@ signals:
     void view_updateProgressStatus(int value, QString status);
     void view_displayNotification(QString notification);
 
+    void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
+
 public slots:
     void alignSelectionHorizontally();
     void alignSelectionVertically();
@@ -211,6 +213,9 @@ public slots:
     void editableItemHasFocus(bool hasFocus);
 
     void selectAndCenter(GraphMLItem* item = 0, QString ID = "");
+
+    void showNodeItemLockMenu(NodeItem* nodeItem);
+    void nodeItemLockMenuClosed(NodeItem *nodeItem);
 
 private:
     void alignSelectionOnGrid(ALIGN alignment = NONE);
@@ -322,6 +327,8 @@ private:
 
     QPointF centerPoint;
     QPointF prevCenterPoint;
+
+    QMenu* prevLockMenuOpened;
 
 };
 

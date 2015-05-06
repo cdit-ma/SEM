@@ -91,9 +91,8 @@ private slots:
     void on_actionPopupNewWindow();
 
     void on_actionPaste_triggered();
-    void on_SearchTextChanged(QString text);
-    void on_actionSearch_triggered();
     void on_actionExit_triggered();
+    void on_actionSearch_triggered();
 
     void on_searchResultItem_clicked(GraphMLItem* clickedItem);
     void on_validationItem_clicked(QString ID);
@@ -131,6 +130,8 @@ private slots:
     void graphicsItemSelected();
 
     void showWindowToolbar(bool checked);
+
+    void test();
 
 protected:
     void closeEvent(QCloseEvent *);

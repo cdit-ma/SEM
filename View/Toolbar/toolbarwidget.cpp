@@ -22,18 +22,23 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
 
     eventFromToolbar = false;
 
-    setBackgroundRole(QPalette::Dark);
-    setWindowFlags(windowFlags() | Qt::Popup);
-
-    setStyleSheet("ToolbarWidget{"
-                  "background-color: rgba(240,240,240,240);"
-                  "}"
-
-                  "QToolButton{"
+    setAttribute(Qt::WA_TranslucentBackground);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
+    setStyleSheet("QToolButton{"
                   "background-color: white;"
                   "border: 1px solid grey;"
                   "border-radius: 10px;"
                   "}");
+
+    // these frames, combined with the set attribute and flags, allow
+    // the toolbar to have a translucent background and a mock shadow
+    shadowFrame = new QFrame(this);
+    shadowFrame->setStyleSheet("background-color: rgba(50,50,50,150);"
+                               "border-radius: 10px;");
+
+    mainFrame = new QFrame(this);
+    mainFrame->setStyleSheet("background-color: rgba(250,250,250,200);"
+                             "border-radius: 8px;");
 
     setupToolBar();
     setupMenus();
@@ -57,6 +62,11 @@ void ToolbarWidget::updateSelectedNodeItem(QList<NodeItem*> items)
     } else if (items.count() > 1) {
         multipleSelection(items);
     }
+
+    // update the toolbar & frame sizes after the tool buttons have been updated
+    mainFrame->setFixedSize(layout()->sizeHint());
+    shadowFrame->setFixedSize(layout()->sizeHint() + QSize(3,3));
+    setFixedSize(shadowFrame->size());
 }
 
 
@@ -339,6 +349,7 @@ void ToolbarWidget::setupToolBar()
     layout->addWidget(instancesButton);
 
     layout->setMargin(5);
+    layout->setAlignment(Qt::AlignTop);
     setLayout(layout);
 
     // add tool buttons for single selection to list

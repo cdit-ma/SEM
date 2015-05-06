@@ -111,6 +111,8 @@ private:
     ToolbarWidgetAction* fileDefaultAction;
     ToolbarWidgetAction* eventPort_componentInstanceDefaultAction;
 
+    QFrame* mainFrame;
+    QFrame* shadowFrame;
     QFrame* frame;
     int frameVisibilityCount;
     bool eventFromToolbar;

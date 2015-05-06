@@ -91,8 +91,6 @@ public:
     void drawOutline(QRectF translateOutline);
     void clearOutlines();
 
-
-
     double getWidth();
     double getHeight();
     void resetSize();
@@ -111,12 +109,20 @@ public:
     QStringList getAspects();
     bool isInAspect();
 
+    QMenu* getLockMenu();
+    QRectF getLockIconSceneRect();
+
 signals:
     void NodeItem_SortModel();
     void NodeItem_MoveSelection(QPointF delta);
     void NodeItem_ResizeSelection(QSizeF delta);
     void NodeItem_MoveFinished();
     void NodeItem_ResizeFinished();
+
+    void Nodeitem_HasFocus(bool hasFocus);
+
+    void NodeItem_showLockMenu(NodeItem* nodeItem);
+    void NodeItem_lockMenuClosed(NodeItem* nodeItem);
 
     //Node Edge Signals
     void setEdgeVisibility(bool visible);
@@ -128,18 +134,13 @@ signals:
     void updateDockNodeItem();
     void updateOpacity(qreal opacity);
 
-
-
     void recentralizeAfterChange(GraphML* item);
 
     void nodeItemMoved();
     void itemMovedOutOfScene(NodeItem* item);
 
-    void Nodeitem_HasFocus(bool hasFocus);
-
 
 public slots:
-
     QPolygonF getResizePolygon();
     //QRectF
     void parentNodeItemMoved();
@@ -232,14 +233,12 @@ private:
     void setPos(const QPointF &pos);
 
     void setupLockMenu();
-    void showLockMenu();
 
     QMenu* lockMenu;
     QWidgetAction* lockPos;
     QWidgetAction* lockSize;
     QWidgetAction* lockLabel;
     QWidgetAction* lockSortOrder;
-    bool menuOpen;
 
     NodeItem* parentNodeItem;
     QStringList viewAspects;
@@ -247,9 +246,6 @@ private:
 
     QGraphicsPixmapItem* icon;
     QGraphicsPixmapItem* lockIcon;
-    QGraphicsProxyWidget *proxyWidget;
-    QGraphicsProxyWidget *labelWidget;
-    QPushButton* labelButton;
 
     QList<EdgeItem*> connections;
 

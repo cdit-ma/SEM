@@ -170,7 +170,10 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     imageLabel->setStyleSheet("background-color: rgba(0,0,0,0);");
 
     QLabel* textLabel = new QLabel(label, actionButton);
+    QFont font = textLabel->font();
+    font.setPointSizeF(8.5);
     textLabel->setFixedHeight(25);
+    textLabel->setFont(font);
     textLabel->setStyleSheet("background-color: rgba(0,0,0,0);");
 
     layout->addSpacerItem(new QSpacerItem(5,0));
@@ -195,7 +198,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
         minWidth += menuImageLabel->width();
     }
 
-    actionButton->setMinimumWidth(minWidth + 20);
+    actionButton->setMinimumWidth(minWidth + 30);
 
     if (isEnabled()) {
         connect(this, SIGNAL(hovered()), this, SLOT(hover()));
