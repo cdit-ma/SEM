@@ -3,6 +3,7 @@
 
 #include "../../Model/node.h"
 #include "toolbarwidget.h"
+#include "toolbarwidgetbutton.h"
 
 #include <QWidget>
 #include <QWidgetAction>
@@ -38,6 +39,7 @@ signals:
 
 public slots:
     void hover();
+    void endHover();
     void actionButtonPressed();
     void actionButtonClicked();
 
@@ -50,7 +52,7 @@ private:
     QString kind;
     QString label;
 
-    QPushButton* actionButton;
+    ToolbarWidgetButton* actionButton;
     ToolbarWidgetMenu* widgetMenu;
     ToolbarWidgetMenu* prevWidgetMenu;
 

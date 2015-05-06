@@ -235,6 +235,7 @@ void ToolbarWidget::addConnectedNode()
 void ToolbarWidget::attachOptionMenu()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
+    qDebug() << "action = " << action;
     instanceOptionMenu->setParentAction(action);
 }
 

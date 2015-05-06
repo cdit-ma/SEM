@@ -143,17 +143,9 @@ QPoint ToolbarWidgetAction::getButtonPos()
  */
 QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 {
-    actionButton = new QPushButton(parent);
+
+    actionButton = new ToolbarWidgetButton(parent);
     actionButton->setMouseTracking(true);
-
-    QString onHoverStyleSheet;
-    QString onCheckedStyleSheet;
-
-    if (isEnabled()) {
-        //minSize = QSize(160, 33);
-        onHoverStyleSheet = "QPushButton:hover{ background-color: rgba(10,10,10,50); }";
-        onCheckedStyleSheet = "QPushButton:checked{ background-color: rgba(10,10,10,50); }";
-    }
 
     actionButton->setMinimumHeight(33);
     actionButton->setStyleSheet("QPushButton{"
@@ -161,9 +153,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
                                 "margin: 0px;"
                                 "padding: 0px;"
                                 "background-color: rgba(0,0,0,0);"
-                                "}"
-                                + onHoverStyleSheet
-                                + onCheckedStyleSheet);
+                                "}");
 
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setMargin(0);
@@ -211,6 +201,8 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
         connect(this, SIGNAL(hovered()), this, SLOT(hover()));
         connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
         connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
+        connect(actionButton, SIGNAL(mouseEntered()), this, SLOT(hover()));
+        connect(actionButton, SIGNAL(mouseExited()), this, SLOT(endHover()));
     }
 
     return actionButton;
@@ -223,8 +215,29 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
  */
 void ToolbarWidgetAction::hover()
 {
+    QPalette pal = actionButton->palette();
+    pal.setColor(QPalette::Button, QColor(10,10,10,50));
+    actionButton->setAutoFillBackground(true);
+    actionButton->setPalette(pal);
+    actionButton->update();
+
     actionButton->grabMouse();
     actionButton->releaseMouse();
+}
+
+/**
+ * @brief ToolbarWidgetAction::endHover
+ * This slot is called when the mouse leaves a hover
+ */
+void ToolbarWidgetAction::endHover()
+{
+    if(!actionButton->getCheck()) {
+        QPalette pal = actionButton->palette();
+        pal.setColor(QPalette::Button, QColor(0,0,0,0));
+        actionButton->setAutoFillBackground(true);
+        actionButton->setPalette(pal);
+        actionButton->update();
+    }
 }
 
 
@@ -243,6 +256,13 @@ void ToolbarWidgetAction::actionButtonPressed()
  */
 void ToolbarWidgetAction::actionButtonClicked()
 {
+    QPalette pal = actionButton->palette();
+    pal.setColor(QPalette::Button, QColor(10,10,10,50));
+    actionButton->setAutoFillBackground(true);
+    actionButton->setPalette(pal);
+    actionButton->update();
+
+    actionButton->setCheck(true);
     emit trigger();
 }
 
@@ -252,7 +272,7 @@ void ToolbarWidgetAction::actionButtonClicked()
  */
 void ToolbarWidgetAction::menuOpened()
 {
-   actionButton->setChecked(true);
+   actionButton->setCheck(true);
 }
 
 
@@ -261,5 +281,5 @@ void ToolbarWidgetAction::menuOpened()
  */
 void ToolbarWidgetAction::menuClosed()
 {
-    actionButton->setChecked(false);
+    actionButton->setCheck(false);
 }

@@ -88,7 +88,8 @@ HEADERS += \
     GUI/appsettings.h \
     GUI/keyeditwidget.h \
     GUI/searchitembutton.h \
-    View/Validate/validatedialog.h
+    View/Validate/validatedialog.h \
+    View/Toolbar/toolbarwidgetbutton.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -158,7 +159,8 @@ SOURCES += \
     GUI/appsettings.cpp \
     GUI/keyeditwidget.cpp \
     GUI/searchitembutton.cpp \
-    View/Validate/validatedialog.cpp
+    View/Validate/validatedialog.cpp \
+    View/Toolbar/toolbarwidgetbutton.cpp
 
 FORMS += \
 
