@@ -332,8 +332,6 @@ private:
     QString stringLabel;
 
     EditableTextItem* textItem;
-    QPainterPath childrenPath;
-
     NodeView* view;
     // GraphMLItem interface
 

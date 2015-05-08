@@ -18,20 +18,14 @@
 
 #define MODEL_WIDTH 19200
 #define MODEL_HEIGHT 10800
-//#define MODEL_WIDTH 76800
-//#define MODEL_HEIGHT 43200
-//#define MINIMUM_HEIGHT_RATIO 7
-//#define MINIMUM_HEIGHT_RATIO 4
+
 #define LABEL_LINE_LENGTH 10
-#define LABEL_RATIO 1.1
 #define FONT_RATIO 0.1
 
-#define GRID_RATIO 25
-//#define GRID_RATIO 7
 #define SNAP_PERCENTAGE .25
 #define ASPECT_SIZE_RATIO 3
-#define ENTITY_SIZE_RATIO 7
-
+#define ENTITY_SIZE_RATIO 6
+#define GRID_RATIO 10.5
 
 /**
  * @brief NodeItem::NodeItem
@@ -217,12 +211,13 @@ QRectF NodeItem::currentItemRect()
  */
 QRectF NodeItem::gridRect()
 {
+    minimumVisibleRect();
     QPointF topLeft = getMinimumChildRect().topLeft();
     QPointF bottomRight = currentItemRect().bottomRight();
 
     //If it has an icon,
     if (icon){
-        topLeft += QPointF(0,minimumHeight);
+        topLeft += QPointF(0, minimumHeight);
     }
 
     return QRectF(topLeft, bottomRight);
@@ -424,9 +419,12 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
 
+        painter->drawRect(getMinimumChildRect());
+        //painter->drawRect(minimumVisibleRect());
+        //painter->drawRect(gridRect());;
 
         //New Code
-        if(GRIDLINES_VISIBLE && PAINT_OBJECT==PAINT_OBJECT && drawGrid){
+        if(GRIDLINES_VISIBLE && PAINT_OBJECT && drawGrid){
             painter->setClipping(false);
             QPen linePen = painter->pen();
 
@@ -440,12 +438,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         }
 
-
-        //painter->drawPoint(minimumVisibleRect().center());
-        //getChi
-        painter->drawRect(getMinimumChildRect());
-        //painter->drawRect(gridRect());
-        //painter->drawPoint(boundingRect().center());
         if(outlines.size() > 0){
             foreach(QRectF childrec, outlines){
                 QPen linePen = painter->pen();
@@ -706,16 +698,13 @@ double NodeItem::getChildHeight()
  */
 QPointF NodeItem::getNextChildPos(bool currentlySorting)
 {
-
-
-    qreal childWidth = getChildWidth();
-    qreal childHeight = getChildHeight();
-
-    childrenPath = QPainterPath();
+    QPainterPath childrenPath = QPainterPath();
+    bool hasChildren = false;
 
     foreach(NodeItem* child, getChildNodeItems()){
         if(child->isInAspect() && !child->isHidden()){
             if(!currentlySorting || (currentlySorting && child->isSorted())){
+                hasChildren = true;
                 QRectF childRect =  child->boundingRect();
                 childRect.translate(child->pos());
                 childrenPath.addRect(childRect);
@@ -723,38 +712,94 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
         }
     }
 
+    bool growWidth = boundingRect().width() < boundingRect().height();
     int currentX = 0;
     int currentY = 0;
+    int minX = 100;
+    int minY = 100;
+    bool gridFull = false;
+
+    while(true){
+        QPointF newPos = getGridPosition(currentX, currentY);
+        QRectF childRect = getChildBoundingRect();
+        childRect.translate(newPos - childRect.center());
+
+        bool itemCollision = childrenPath.intersects(childRect);
+
+        bool inGrid = childRect.top() >= gridRect().top() && childRect.left() >= gridRect().left() ;
+        bool rightOfGrid = childRect.right() >= gridRect().right();
+        bool belowGrid = childRect.bottom() >= gridRect().bottom();
+
+        if(inGrid || gridFull){
+            if(!itemCollision){
+                //If there is no collision and we are in the Grid, or there is no room in the grid. Return!
+                return newPos;
+            }
+        }
+
+        //If we are either in the Grid, or we have no Children, we should keep track of the MinX and MinY
+        if(inGrid || !hasChildren){
+            minX = qMin(currentX, minX);
+            minY = qMin(currentY, minY);
+        }
+
+        //Try Next Column
+        //If we aren't Right of the grid, or the grid is full, and we should grow right.
+        if(!rightOfGrid || (gridFull && growWidth)){
+            currentX++;
+            continue;
+        }
+
+        //Try Next Row
+        //If we aren't Right of the grid, or the grid is full, and we are growing down.
+        if(!belowGrid || (gridFull && !growWidth)){
+            currentY++;
+            currentX=0;
+            continue;
+        }
+
+        //If we get here we are out of Grid Spaces, and should set our currentX/currentY
+        if(!gridFull){
+            gridFull = true;
+            if(growWidth){
+                currentY = minY;
+            }else{
+                currentX = minX;
+            }
+        }
+    }
+
+    /* CATHLYNS CODE FOR THE SAME THING.
+    // get the starting grid coordinate for the child items
+    double startingGridPoint = ceil(getChildBoundingRect().width()/getGridSize()) / 2;
+    int currentX = startingGridPoint;
+    int currentY = startingGridPoint;
 
     int maxX = 0;
-    int minX = 1000;
     bool xOutsideOfGrid = false;
     bool yOutsideOfGrid = false;
 
-    while(true){
-        //Get next center position to try.
+    while (true) {
 
+        // get the next position
         QPointF nextPosition = getGridPosition(currentX, currentY);
         QRectF childRect = getChildBoundingRect();
         childRect.translate(nextPosition - childRect.center());
 
         if (childrenPath.intersects(childRect)) {
-           if(gridRect().contains(childRect)){
-               if(currentX < minX){
-
-                   minX = currentX;
-               }
-           }
             xOutsideOfGrid = false;
             yOutsideOfGrid = false;
             currentX++;
         } else {
-            if (gridRect().contains(childRect)){
-                qCritical() << "Got Value From here";
+            if (gridRect().intersects(childRect)){
                 return nextPosition;
             } else {
                 if (xOutsideOfGrid && yOutsideOfGrid) {
-                    break;
+                    QPointF finalPosition = getGridPosition(maxX, startingGridPoint);
+                    if(boundingRect().width() > boundingRect().height()){
+                        finalPosition = getGridPosition(startingGridPoint, currentY);
+                    }
+                    return finalPosition;
                 }
                 if (xOutsideOfGrid) {
                     yOutsideOfGrid = true;
@@ -763,26 +808,12 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
                     if(currentX > maxX){
                         maxX = currentX;
                     }
-                    if(currentX < minX){
-
-                        minX = currentX;
-                    }
-                    currentX = minX;
+                    currentX = startingGridPoint;
                     currentY++;
                 }
             }
         }
-    }
-    qCritical() << "Min X: " << minX;
-    qCritical() << "Max X: " << maxX;
-
-    QPointF finalPosition = getGridPosition(maxX, 0);
-    if(boundingRect().width() > boundingRect().height()){
-        finalPosition = getGridPosition(minX, currentY);
-    }
-    qCritical() << "Broke Loop for value";
-    return finalPosition;
-
+        */
 }
 
 
@@ -1402,7 +1433,7 @@ QRectF NodeItem::getMinimumChildRect()
     qreal itemMargin = getItemMargin()/2;
 
     QPointF topLeft(itemMargin, itemMargin);
-    QPointF bottomRight(itemMargin + minimumWidth, itemMargin + minimumHeight);
+    QPointF bottomRight((itemMargin) + minimumWidth, (itemMargin) + minimumHeight);
 
     foreach(NodeItem* child, childNodeItems){
         if(child->isVisible() || isExpanded()){
@@ -1686,7 +1717,7 @@ void NodeItem::setupIcon()
     }
 
     if (icon) {
-        float iconPercent = 1;
+        float iconPercent = 1 - (3 * FONT_RATIO);
         qreal iconHeight = icon->boundingRect().height();
         qreal iconWidth = icon->boundingRect().width();
         qreal scaleFactor = (iconPercent * minimumHeight / iconHeight);
@@ -1750,7 +1781,10 @@ void NodeItem::setupLabel()
 
     //qreal xPos = getItemMargin()/2 + selectedPen.widthF();
     //qreal xPos = (boundingRect().width() - textItem->boundingRect().width())/2;
-    textItem->setPos(icon->pos().x(), minimumHeight);
+
+    qreal midPoint = minimumVisibleRect().center().x();
+
+    textItem->setPos((1+FONT_RATIO)* getItemMargin()/2, minimumHeight - (FONT_RATIO * minimumHeight));
     textItem->setFont(font);
 
     updateTextLabel(getGraphML()->getDataValue("label"));
@@ -2146,12 +2180,12 @@ QColor NodeItem::invertColor(QColor oldColor)
 
 double NodeItem::getItemMargin() const
 {
-    return (minimumHeight / ENTITY_SIZE_RATIO) * (1 + (3 * FONT_RATIO));
+    return (minimumHeight / ENTITY_SIZE_RATIO);// * (1 + (3 * FONT_RATIO));
 }
 
 double NodeItem::getChildItemMargin()
 {
-    return (getItemMargin() / ENTITY_SIZE_RATIO) * (1 + (3 * FONT_RATIO));
+    return (getItemMargin() / ENTITY_SIZE_RATIO);// * (1 + (3 * FONT_RATIO));
 }
 
 
