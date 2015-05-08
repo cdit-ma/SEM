@@ -233,6 +233,7 @@ void MedeaWindow::initialiseGUI()
                                 "}");
 
     connect(dataTable, SIGNAL(viewportEntered()), this, SLOT(test()));
+    connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
     connect(dataTableBox, SIGNAL(clicked()), this, SLOT(test()));
 
     // setup mini map
@@ -310,6 +311,7 @@ void MedeaWindow::initialiseGUI()
     setupDock(bodyLayout);
     setupSearchTools();
     setupToolbar();
+    setupMultiLineBox();
 
     // add progress bar layout to the body layout after the dock has been set up
     bodyLayout->addStretch(4);
@@ -2216,4 +2218,88 @@ QStringList MedeaWindow::getCheckedItems(int menu)
     }
 
     return checkedKinds;
+}
+
+
+
+
+/**
+ * @brief MedeaWindow::setupMultiLineBox
+ */
+void MedeaWindow::setupMultiLineBox()
+{
+    //QDialog that pops up
+    popupMultiLine = new QDialog(this);
+    //take focus from the window
+    popupMultiLine->setModal(true);
+    //remove the '?' from the title bar
+    popupMultiLine->setWindowFlags(popupMultiLine->windowFlags() & (~Qt::WindowContextHelpButtonHint));
+
+    //Sexy Layout Stuff
+    QGridLayout *gridLayout = new QGridLayout(popupMultiLine);
+
+    //Text Edit Box
+    txtMultiLine = new QPlainTextEdit();
+    //make tab width mode civilized
+    txtMultiLine->setTabStopWidth(40);
+
+    //Make look purrdy!
+    txtMultiLine->setObjectName(QString::fromUtf8("txtMultiline"));
+    gridLayout->addWidget(txtMultiLine, 0, 0, 1, 1);
+    QDialogButtonBox *buttonBox = new QDialogButtonBox();
+    buttonBox->setObjectName(QString::fromUtf8("buttonBox"));
+    buttonBox->setOrientation(Qt::Horizontal);
+    buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+    gridLayout->addWidget(buttonBox, 1, 0, 1, 1);
+
+    //hook up OK/Cancel boxes
+    connect(buttonBox,SIGNAL(accepted()),this,SLOT(dialogAccepted()));
+    connect(buttonBox,SIGNAL(rejected()),this,SLOT(dialogRejected()));
+}
+
+/**
+ * @brief MedeaWindow::dataTableDoubleClicked
+ * an item in dataTable was double clicked on - Open a multiline text box (if applicable) so the user can put in multi-line data
+ * @param QModelIndex: Details about the index that was double clicked on
+ */
+void MedeaWindow::dataTableDoubleClicked(QModelIndex index)
+{
+    //find whether we should popup the window
+    QVariant needsMultiLine = index.model()->data(index, -2);
+
+    //Only do this if it's in column 2
+    if(needsMultiLine == true) {
+
+        popupMultiLine->setWindowTitle("Editing: " + index.model()->data(index, -3).toString());
+
+        QVariant value = index.model()->data(index, Qt::DisplayRole);
+
+        txtMultiLine->setPlainText(value.toString());
+
+        //Show me the box!
+        popupMultiLine->show();
+
+        //store the QModelIndex to update the value
+        clickedModelIndex = index;
+    }
+}
+
+/**
+ * @brief MedeaWindow::dialogAccepted
+ * Update the data in the text fields
+ */
+void MedeaWindow::dialogAccepted()
+{
+    //Update the table and close
+    dataTable->model()->setData(clickedModelIndex, QVariant(txtMultiLine->toPlainText()), Qt::EditRole);
+    popupMultiLine->close();
+}
+
+/**
+ * @brief MedeaWindow::dialogRejected
+ * Close the Multi-Line dialog box
+ */
+void MedeaWindow::dialogRejected()
+{
+    popupMultiLine->close();
 }

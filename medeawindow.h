@@ -133,6 +133,13 @@ private slots:
 
     void test();
 
+
+
+    //multi-line popup for QTableView (SLOTS)
+    void dataTableDoubleClicked(QModelIndex);
+    void dialogAccepted();
+    void dialogRejected();
+
 protected:
     void closeEvent(QCloseEvent *);
 
@@ -148,6 +155,7 @@ private:
     void setupDock(QHBoxLayout* layout);
     void setupSearchTools();
     void setupToolbar();
+    void setupMultiLineBox();
     void updateDataTable();
     bool exportProject();
     void importProjects(QStringList files);
@@ -279,6 +287,12 @@ private:
     QString exportFileName;
 
     ValidateDialog validateResults;
+
+
+    //multi-line popup for QTableView (VARIABLES)
+    QDialog *popupMultiLine;
+    QPlainTextEdit *txtMultiLine;
+    QModelIndex clickedModelIndex;
 
 };
 

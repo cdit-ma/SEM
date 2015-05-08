@@ -23,6 +23,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
 
     hiddenKeyNames; //;<< "width" << "height" <<  "x" << "y"; // << "kind";
     permanentlyLockedKeyNames << "kind";
+    multiLineKeyNames << "code";
     setupDataBinding();
 
 }
@@ -115,6 +116,15 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
             }
             break;
 
+        case 2:
+            if(popupMultiLine(index)) {
+                QImage* image = new QImage(":/Resources/Icons/lock.png");
+                QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
+                QPixmap pixmap(QPixmap::fromImage(scaledImage));
+                return pixmap;
+            }
+            break;
+
         }
     }
 
@@ -125,7 +135,7 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
             if(data->isProtected()){
                 return Qt::Checked;
             }else{
-               return Qt::Unchecked;
+                return Qt::Unchecked;
             }
         }
     }
@@ -186,6 +196,18 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
         return v;
     }
+
+    //Role of -2 gives back a true/false value as to whether the multi-Line popup window should be visible or not
+    if(role == -2) {
+        return popupMultiLine(index);
+    }
+
+    if(role == -3) {
+        GraphMLData* data = attachedData.at(index.row());
+        if(data) {
+            return data->getKeyName();
+        }
+    }
     return QVariant();
 
 }
@@ -223,7 +245,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
                 return true;
             }
         }
-/*
+        /*
         switch(index.column()){
         case 0:
             if(data->isProtected()){
@@ -240,7 +262,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
         int row = index.row();
 
         GraphMLData* data = attachedData.at(row);
-/*
+        /*
         if(index.column() == 0 && data){
             if(!permanentlyLockedKeyNames.contains(data->getKeyName())){
                 data->setProtected(!data->isProtected());
@@ -253,7 +275,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
 
 
         if (index.column() == 2 && data && !data->isProtected()){
-            guiItem->GraphMLItem_TriggerAction("Updated Table Cell");        
+            guiItem->GraphMLItem_TriggerAction("Updated Table Cell");
             guiItem->GraphMLItem_SetGraphMLData(guiItem->getGraphML(), data->getKey()->getName(), value.toString());
             dataChanged(index, index);
             return true;
@@ -358,4 +380,26 @@ void AttributeTableModel::setupDataBinding()
             addData(data);
         }
     }
+}
+
+
+/**
+ * @brief AttributeTableModel::popupMultiLine
+ * @param index
+ * @return
+ */
+bool AttributeTableModel::popupMultiLine(const QModelIndex &index) const
+{
+    GraphMLData* data = attachedData.at(index.row());
+    if(data && index.column() == 2) {
+        //Check types
+        if(multiLineKeyNames.contains(data->getKeyName())) {
+            //check if String
+            if (data->getKey()->getType() == GraphMLKey::STRING) {
+                return true;
+            }
+            //more types here :D
+        }
+    }
+    return false;
 }

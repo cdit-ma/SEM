@@ -40,6 +40,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
 private:
     void setupDataBinding();
+    bool popupMultiLine(const QModelIndex &index) const;
     GraphMLItem* guiItem;
 
     bool isNode;
@@ -47,6 +48,7 @@ private:
     QList<GraphMLData*> attachedData;
     QStringList permanentlyLockedKeyNames;
     QStringList hiddenKeyNames;
+    QStringList multiLineKeyNames;
 };
 
 #endif // ATTRIBUTETABLEMODEL_H
