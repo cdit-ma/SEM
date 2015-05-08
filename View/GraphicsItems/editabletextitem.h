@@ -12,6 +12,7 @@ public:
     void setPlainText(const QString &text);
     void setTextWidth(qreal width);
 
+
 signals:
     void textUpdated(QString data);
 
@@ -31,6 +32,7 @@ private:
     QString currentFullValue;
     QString currentTruncValue;
     bool inEditingMode;
+    qreal textWidth;
     int maxLength;
 
 protected:

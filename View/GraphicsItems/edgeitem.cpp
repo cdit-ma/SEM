@@ -223,9 +223,10 @@ void EdgeItem::setVisible(bool visible)
 
 
     bool isVisible = false;
-    if(IS_VISIBLE && start->isVisible() && finish->isVisible()){
+    if(IS_VISIBLE && start->isVisible() && finish->isVisible() && (start != finish)){
         isVisible = true;
     }
+
     if(isVisible){
         //UPDATE EDGE
         updateEdge();

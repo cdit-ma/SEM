@@ -23,7 +23,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
 
     hiddenKeyNames; //;<< "width" << "height" <<  "x" << "y"; // << "kind";
     permanentlyLockedKeyNames << "kind";
-    multiLineKeyNames << "code";
+ 	multiLineKeyNames << "code";
     setupDataBinding();
 
 }
@@ -94,28 +94,36 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
     // center align the Values column
     if (role == Qt::TextAlignmentRole) {
         switch(index.column()){
-        case 2:
+        case 1:
+            return Qt::AlignLeft | Qt::AlignVCenter;
+        case 2:{
             return Qt::AlignCenter;
+
+            /*GraphMLData* data = attachedData.at(index.row());
+            if(data->getKey()->isNumber()){
+                return Qt::AlignRight | Qt::AlignVCenter;
+            }else{
+                return Qt::AlignLeft | Qt::AlignVCenter;
+            }*/
+
+
+        }
         }
     }
 
-    if (role == Qt::DecorationRole) {
+/*
+    if (role == Qt::FontRole){
+        switch(index.column()){
+        case 1:
+            QFont bolded = QFont();
+            bolded.setBold(true);
+        return QVariant::fromValue(bolded);
+        }
+
+    }*/
+if (role == Qt::DecorationRole) {
         GraphMLData* data = attachedData.at(index.row());
         switch(index.column()){
-        case 0:
-            if(data->isProtected()){
-                QImage* image = new QImage(":/Resources/Icons/lock.png");
-                QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
-                QPixmap pixmap(QPixmap::fromImage(scaledImage));
-                return pixmap;
-            }else{
-                QImage* image = new QImage(":/Resources/Icons/unlock.png");
-                QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
-                QPixmap pixmap(QPixmap::fromImage(scaledImage));
-                return pixmap;
-            }
-            break;
-
         case 2:
             if(popupMultiLine(index)) {
                 QImage* image = new QImage(":/Resources/Icons/lock.png");
@@ -123,10 +131,21 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
                 QPixmap pixmap(QPixmap::fromImage(scaledImage));
                 return pixmap;
             }
-            break;
+           break;
+
 
         }
     }
+
+    if (role == Qt::BackgroundRole){
+        if(index.column() < 2){
+         return QVariant::fromValue(QColor(240,240,240));
+        }
+    }
+
+
+
+
 
     if(role == Qt::CheckStateRole){
         GraphMLData* data = attachedData.at(index.row());
@@ -146,7 +165,6 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
         switch(index.column()){
         case 0:
             return QVariant();
-            break;
         case 1:
             return data->getKey()->getName();
         case 2:
@@ -197,7 +215,7 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
         return v;
     }
 
-    //Role of -2 gives back a true/false value as to whether the multi-Line popup window should be visible or not
+ 	//Role of -2 gives back a true/false value as to whether the multi-Line popup window should be visible or not
     if(role == -2) {
         return popupMultiLine(index);
     }
@@ -214,18 +232,29 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
 
 QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    if (role != Qt::DisplayRole)
-        return QVariant();
+    if (role == Qt::DecorationRole && orientation == Qt::Horizontal) {
+        if(section == 0){
+            QImage* image = new QImage(":/Resources/Icons/lock.png");
+            QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
+            QPixmap pixmap(QPixmap::fromImage(scaledImage));
+            return pixmap;
+        }
+    }
+     if (role == Qt::ToolTipRole) {
+          if(section == 0){
+              return QString("Locked Attributes");
+          }
+     }
 
-    if (orientation == Qt::Horizontal) {
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal) {
         switch (section) {
         case 0:
-            return tr("");
+            break;
+
         case 1:
             return tr("Key");
         case 2:
             return tr("Value");
-
         default:
             return QVariant();
         }
@@ -241,7 +270,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
         if(index.column() == 0 && data){
             if(!permanentlyLockedKeyNames.contains(data->getKeyName())){
                 data->setProtected(value.toBool());
-                dataChanged(index, index);
+                dataChanged(index, index.sibling(index.row(),index.column()+2));
                 return true;
             }
         }
@@ -262,7 +291,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
         int row = index.row();
 
         GraphMLData* data = attachedData.at(row);
-        /*
+		/*
         if(index.column() == 0 && data){
             if(!permanentlyLockedKeyNames.contains(data->getKeyName())){
                 data->setProtected(!data->isProtected());

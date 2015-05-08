@@ -18,6 +18,7 @@ public:
     void setDefaultProtected(bool setProtected);
     bool isProtected();
 
+    bool isNumber();
     void appendValidValues(QStringList nodeKinds, QStringList values);
     void appendValidValues(QStringList values, QString nodeKind="ALL");
 

@@ -87,7 +87,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     allAspects << "Definitions";
     allAspects << "Workload";
 
-    defaultAspects << "Definitions";
+    //defaultAspects << "Definitions";
+    defaultAspects << "Assembly";
 
     nonDrawnItemKinds << "DeploymentDefinitions";
 
@@ -525,6 +526,17 @@ bool NodeView::viewportEvent(QEvent * e)
     return QGraphicsView::viewportEvent(e);
 }
 
+void NodeView::minimapPan(QPointF delta)
+{
+    qCritical() << "TRANSLATE";
+    //this->setTransformationAnchor();
+    ViewportAnchor currentAnchor = transformationAnchor();
+    setTransformationAnchor(NoAnchor);
+    translate(delta.x(), delta.y());
+    setTransformationAnchor(currentAnchor);
+
+}
+
 
 
 /**
@@ -850,7 +862,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     }
 
     NodeItem* nodeItem = new NodeItem(node, parentNodeItem, currentAspects, IS_SUB_VIEW);
-
+    nodeItem->setGraphicsView(this);
     storeGraphMLItemInHash(nodeItem);
 
     //Connect the Generic Functionality.
@@ -998,7 +1010,10 @@ void NodeView::constructNode(QString nodeKind, int sender)
         if (sender == 0) {
             view_ConstructNode(selectedItem->getNode(), nodeKind, selectedItem->getNextChildPos());
         } else if (sender == 1) {
-            view_ConstructNode(selectedItem->getNode(), nodeKind, selectedItem->mapFromScene(toolbarPosition));
+            //Get Grid Position.
+            QPointF position = selectedItem->mapFromScene(toolbarPosition);
+            QPointF newPosition = selectedItem->getClosestGridPoint(position);
+            view_ConstructNode(selectedItem->getNode(), nodeKind, newPosition);
         }
     }
 }
@@ -1869,9 +1884,6 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
     averageX /= itemCount;
     averageY /= itemCount;
 
-    //qCritical() <<"AverageX: "<< averageX;
-    //qCritical() <<"AverageY: "<< averageY;
-
     QPointF centerPoint;
     if(sharedParent){
         //Find closest Grid Line
@@ -1891,7 +1903,9 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
             if(alignment == HORIZONTAL){
                 pos.setY(centerPoint.y());
             }
+            pos = nodeItem->getParentNodeItem()->getClosestGridPoint(pos);
             nodeItem->setCenterPos(pos);
+            nodeItem->setLocked(true);
         }
     }
 }
@@ -1915,7 +1929,7 @@ void NodeView::snapChildrenToGrid()
     }
 }
 
-void NodeView::setDefaultAspects()
+void NodeView:: setDefaultAspects()
 {
     currentAspects.clear();
     setAspects(defaultAspects);
@@ -2477,6 +2491,7 @@ void NodeView::centerAspects()
  */
 void NodeView::sortModel()
 {
+    /*&
     if(!controller){
         return;
     }
@@ -2492,6 +2507,7 @@ void NodeView::sortModel()
     if(modelItem){
         modelItem->newSort();
     }
+    */
 }
 
 

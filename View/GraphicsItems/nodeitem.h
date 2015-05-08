@@ -24,6 +24,7 @@
 #include "editabletextitem.h"
 
 class EdgeItem;
+class NodeView;
 
 class NodeItem : public GraphMLItem
 {
@@ -41,18 +42,21 @@ public:
     void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
     QRectF minimumVisibleRect();
+    QRectF currentItemRect();
 
 
-    QPointF getClosestGridPoint(QPointF currentPosition);
+    QPointF getClosestGridPoint(QPointF childCenterPoint);
 
     QRectF gridRect();
 
-
+    QRectF getChildBoundingRect();
     QRectF getMinimumChildRect();
 
     void childPosUpdated();
 
     QPointF getGridPosition(int x, int y);
+
+
     bool isSelected();
     bool isLocked();
     void setLocked(bool locked);
@@ -69,7 +73,7 @@ public:
 
     bool labelPressed(QPointF mousePosition);
     bool iconPressed(QPointF mousePosition);
-    bool lockPressed(QPointF mousePosition);
+	bool lockPressed(QPointF mousePosition);
 
 
     NodeItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
@@ -95,8 +99,9 @@ public:
     double getHeight();
     void resetSize();
     double getChildWidth();
+    double getChildHeight();
 
-    QPointF getNextChildPos();
+    QPointF getNextChildPos(bool currentlySorting=false);
     void itterateNextSpace();
 
     Node* getNode();
@@ -107,9 +112,14 @@ public:
     qreal getGridSize();
 
     QStringList getAspects();
-    bool isInAspect();
 
-    QMenu* getLockMenu();
+    void setGraphicsView(QGraphicsView* view);
+
+    bool isInAspect();
+    bool isSorted();
+    void setSorted(bool isSorted);
+
+	QMenu* getLockMenu();
     QRectF getLockIconSceneRect();
 
 signals:
@@ -119,11 +129,10 @@ signals:
     void NodeItem_MoveFinished();
     void NodeItem_ResizeFinished();
 
-    void Nodeitem_HasFocus(bool hasFocus);
+ 	void Nodeitem_HasFocus(bool hasFocus);
 
     void NodeItem_showLockMenu(NodeItem* nodeItem);
     void NodeItem_lockMenuClosed(NodeItem* nodeItem);
-
     //Node Edge Signals
     void setEdgeVisibility(bool visible);
     void setEdgeSelected(bool selected);
@@ -159,8 +168,6 @@ public slots:
 
     void expandItem(bool show);
 
-    void updateHeight(NodeItem* child);
-
     void updateModelPosition();
     void updateModelSize();
 
@@ -174,8 +181,7 @@ public slots:
     void snapToGrid();
     void snapChildrenToGrid();
 
-    void menuClosed();
-
+ 	void menuClosed();
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
@@ -201,7 +207,7 @@ private:
     void setupLabel();
     void setupGraphMLConnections();
 
-    QPointF isOverGrid(const QPointF position);
+    QPointF isOverGrid(const QPointF centerPosition);
 
 
 
@@ -227,18 +233,20 @@ private:
     QColor invertColor(QColor oldColor);
 
     double getItemMargin() const;
-    //double getChildItemMargin();// const;
+    double getChildItemMargin();// const;
 
     void setPos(qreal x, qreal y);
     void setPos(const QPointF &pos);
 
-    void setupLockMenu();
+ 	 	void setupLockMenu();
+
 
     QMenu* lockMenu;
     QWidgetAction* lockPos;
     QWidgetAction* lockSize;
     QWidgetAction* lockLabel;
     QWidgetAction* lockSortOrder;
+    bool isAlreadySorted;
 
     NodeItem* parentNodeItem;
     QStringList viewAspects;
@@ -255,6 +263,7 @@ private:
     bool isNodePressed;
     bool drawGrid;
     bool inSubView;
+    QGraphicsView* parentView;
 
     int X_GRID_POS;
     int Y_GRID_POS;
@@ -323,7 +332,9 @@ private:
     QString stringLabel;
 
     EditableTextItem* textItem;
+    QPainterPath childrenPath;
 
+    NodeView* view;
     // GraphMLItem interface
 
 };

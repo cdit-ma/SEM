@@ -128,6 +128,7 @@ signals:
     void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
 
 public slots:
+    void minimapPan(QPointF delta);
     void alignSelectionHorizontally();
     void alignSelectionVertically();
 

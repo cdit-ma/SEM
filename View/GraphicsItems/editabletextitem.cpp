@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QKeyEvent>
 #include <QFontMetrics>
+#include <QTextDocument>
 #include <QCursor>
 
 
@@ -19,6 +20,9 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     setFlag(ItemIsSelectable, false);
     setTextInteractionFlags(Qt::NoTextInteraction);
     setAcceptHoverEvents(true);
+    QTextDocument* document = this->document();
+    document->setDocumentMargin(0);
+    setDocument(document);
 }
 
 void EditableTextItem::setEditMode(bool editMode)
@@ -90,12 +94,18 @@ void EditableTextItem::setPlainText(const QString &text)
 
 void EditableTextItem::setTextWidth(qreal width)
 {
+    textWidth = width;
     QGraphicsTextItem::setTextWidth(width);
 
-    QString newTruncValue = getTruncatedText(currentFullValue);
-    if(newTruncValue != currentTruncValue){
-        currentTruncValue = newTruncValue;
-        QGraphicsTextItem::setPlainText(newTruncValue);
+    if(width > 15){
+        setVisible(true);
+        QString newTruncValue = getTruncatedText(currentFullValue);
+        if(newTruncValue != currentTruncValue){
+            currentTruncValue = newTruncValue;
+            QGraphicsTextItem::setPlainText(newTruncValue);
+        }
+    }else{
+        setVisible(false);
     }
 }
 
@@ -135,15 +145,22 @@ QString EditableTextItem::getTruncatedText(const QString text)
     QFontMetrics fm(font());
 
     QString newText = text;
-    qreal newTextWidth = fm.width(newText);
-    qreal ratio = newTextWidth / QGraphicsTextItem::textWidth();
 
-    if(ratio >= .97){
-        //Calculate the number of characters we can fit.
-        int stringLength = (newText.size() / ratio) - 3;
-        newText.truncate(stringLength);
-        newText += "...";
+
+    //Allow for Margins at high zoom levels
+    qreal availableWidth = (.8 * textWidth) - 5;
+
+    while(newText.size() >= 3){
+        qreal truncWidth = fm.width(newText);
+        if(truncWidth < availableWidth){
+            break;
+        }
+        newText.truncate(newText.size() - 3);
+        newText.append("..");
     }
+
+    //setVisible(newText.size() > 2);
+
     return newText;
 }
 

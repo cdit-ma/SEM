@@ -63,6 +63,12 @@ bool GraphMLKey::isProtected()
     return protectedKey;
 }
 
+bool GraphMLKey::isNumber()
+{
+    return type == INT || type == DOUBLE || type == FLOAT || type == LONG;
+
+}
+
 void GraphMLKey::appendValidValues(QStringList values, QStringList nodeKinds)
 {
     foreach(QString nodeKind, nodeKinds){

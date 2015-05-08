@@ -249,6 +249,8 @@ void MedeaWindow::initialiseGUI()
     minimap->setFixedHeight(rightPanelWidth/1.6);
     minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
 
+
+
     // layouts
     QHBoxLayout *mainHLayout = new QHBoxLayout();
     QHBoxLayout *topHLayout = new QHBoxLayout();
@@ -812,7 +814,7 @@ void MedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
-
+    connect(minimap, SIGNAL(viewportRectMoved(QPointF)), nodeView, SLOT(minimapPan(QPointF)));
     connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
     connect(nodeView, SIGNAL(view_displayNotification(QString)), this, SLOT(displayNotification(QString)));
