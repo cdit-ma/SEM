@@ -726,12 +726,62 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
     int currentX = 0;
     int currentY = 0;
 
+    int maxX = 0;
+    int minX = 1000;
+    bool xOutsideOfGrid = false;
+    bool yOutsideOfGrid = false;
+
     while(true){
+        //Get next center position to try.
 
+        QPointF nextPosition = getGridPosition(currentX, currentY);
+        QRectF childRect = getChildBoundingRect();
+        childRect.translate(nextPosition - childRect.center());
 
+        if (childrenPath.intersects(childRect)) {
+           if(gridRect().contains(childRect)){
+               if(currentX < minX){
 
+                   minX = currentX;
+               }
+           }
+            xOutsideOfGrid = false;
+            yOutsideOfGrid = false;
+            currentX++;
+        } else {
+            if (gridRect().contains(childRect)){
+                qCritical() << "Got Value From here";
+                return nextPosition;
+            } else {
+                if (xOutsideOfGrid && yOutsideOfGrid) {
+                    break;
+                }
+                if (xOutsideOfGrid) {
+                    yOutsideOfGrid = true;
+                } else {
+                    xOutsideOfGrid = true;
+                    if(currentX > maxX){
+                        maxX = currentX;
+                    }
+                    if(currentX < minX){
+
+                        minX = currentX;
+                    }
+                    currentX = minX;
+                    currentY++;
+                }
+            }
+        }
     }
+    qCritical() << "Min X: " << minX;
+    qCritical() << "Max X: " << maxX;
 
+    QPointF finalPosition = getGridPosition(maxX, 0);
+    if(boundingRect().width() > boundingRect().height()){
+        finalPosition = getGridPosition(minX, currentY);
+    }
+    qCritical() << "Broke Loop for value";
+    return finalPosition;
 
 }
 
