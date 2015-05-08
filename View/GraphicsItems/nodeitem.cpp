@@ -26,6 +26,8 @@
 #define ASPECT_SIZE_RATIO 3
 #define ENTITY_SIZE_RATIO 6
 #define GRID_RATIO 10.5
+//#define ENTITY_SIZE_RATIO 7
+//#define GRID_RATIO 25
 
 /**
  * @brief NodeItem::NodeItem
@@ -701,6 +703,7 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
     QPainterPath childrenPath = QPainterPath();
     bool hasChildren = false;
 
+    // add the children's bounding rectangles to the children path
     foreach(NodeItem* child, getChildNodeItems()){
         if(child->isInAspect() && !child->isHidden()){
             if(!currentlySorting || (currentlySorting && child->isSorted())){
@@ -712,6 +715,7 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
         }
     }
 
+    /* Found a bug. When you add a child inside one of the child, it stops growing the width.
     bool growWidth = boundingRect().width() < boundingRect().height();
     int currentX = 0;
     int currentY = 0;
@@ -768,52 +772,70 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
             }
         }
     }
+    */
 
-    /* CATHLYNS CODE FOR THE SAME THING.
-    // get the starting grid coordinate for the child items
+    ///* CATHLYNS CODE FOR THE SAME THING.
+    // work out how many grid cells are needed per child item
+    // divide it by 2 - only need half the number of cells to fit the center of the item
     double startingGridPoint = ceil(getChildBoundingRect().width()/getGridSize()) / 2;
-    int currentX = startingGridPoint;
-    int currentY = startingGridPoint;
+    double currentX = startingGridPoint;
+    double currentY = startingGridPoint;
 
-    int maxX = 0;
+    double maxX = 0;
     bool xOutsideOfGrid = false;
     bool yOutsideOfGrid = false;
 
     while (true) {
 
-        // get the next position
+        // get the next position; construct a child rect at that position
         QPointF nextPosition = getGridPosition(currentX, currentY);
         QRectF childRect = getChildBoundingRect();
         childRect.translate(nextPosition - childRect.center());
 
+        // check if the child rect collides with an existing child item
         if (childrenPath.intersects(childRect)) {
+            // if so, check the next x position
+            currentX++;
+            // collision means that current position is inside the grid
             xOutsideOfGrid = false;
             yOutsideOfGrid = false;
-            currentX++;
         } else {
-            if (gridRect().intersects(childRect)){
+
+            // if there is no collision and the current position is inside the grid
+            // it's a valid position - return it
+            if (gridRect().contains(childRect)){
                 return nextPosition;
+            }
+
+            // if both the current x and y are outside of the grid,
+            // it means that there is no available spot in the grid
+            if (xOutsideOfGrid && yOutsideOfGrid) {
+                // return a new position depending on which of the width/height is bigger
+                QPointF finalPosition = getGridPosition(maxX, startingGridPoint);
+                if (boundingRect().width() > boundingRect().height()) {
+                    finalPosition = getGridPosition(startingGridPoint, currentY);
+                }
+                return finalPosition;
+            }
+
+            // if the current x is outside of the grid, because the current y has already been
+            // incremented when the x was reset, it means that it is also outside of the grid
+            if (xOutsideOfGrid) {
+                yOutsideOfGrid = true;
             } else {
-                if (xOutsideOfGrid && yOutsideOfGrid) {
-                    QPointF finalPosition = getGridPosition(maxX, startingGridPoint);
-                    if(boundingRect().width() > boundingRect().height()){
-                        finalPosition = getGridPosition(startingGridPoint, currentY);
-                    }
-                    return finalPosition;
+                // when it gets into this case, it means that the current x is outside of the grid
+                xOutsideOfGrid = true;
+                // store the maximum x
+                if(currentX > maxX){
+                    maxX = currentX;
                 }
-                if (xOutsideOfGrid) {
-                    yOutsideOfGrid = true;
-                } else {
-                    xOutsideOfGrid = true;
-                    if(currentX > maxX){
-                        maxX = currentX;
-                    }
-                    currentX = startingGridPoint;
-                    currentY++;
-                }
+                // reset the current x then check the next y position
+                currentX = startingGridPoint;
+                currentY++;
             }
         }
-        */
+    }
+    //*/
 }
 
 
@@ -1005,7 +1027,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             return;
         }
 
-	// check if the lock icon was clicked
+        // check if the lock icon was clicked
         if (lockPressed(event->scenePos())) {
             emit NodeItem_showLockMenu(this);
             return;
@@ -1620,7 +1642,7 @@ void NodeItem::setPos(const QPointF &pos)
  */
 void NodeItem::setupLockMenu()
 {
-	lockMenu = new QMenu();
+    lockMenu = new QMenu();
     lockPos = new QWidgetAction(this);
     lockSize = new QWidgetAction(this);
     lockLabel = new QWidgetAction(this);
@@ -1717,7 +1739,7 @@ void NodeItem::setupIcon()
     }
 
     if (icon) {
-        float iconPercent = 1 - (3 * FONT_RATIO);
+        float iconPercent = 1 - FONT_RATIO;
         qreal iconHeight = icon->boundingRect().height();
         qreal iconWidth = icon->boundingRect().width();
         qreal scaleFactor = (iconPercent * minimumHeight / iconHeight);
@@ -1776,16 +1798,15 @@ void NodeItem::setupLabel()
     connect(textItem, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
     //textItem->setTextInteractionFlags(Qt::NoTextInteraction);
 
-    textItem->setToolTip("Double Click to Edit Label");
-    textItem->setTextWidth(minimumWidth);
-
     //qreal xPos = getItemMargin()/2 + selectedPen.widthF();
     //qreal xPos = (boundingRect().width() - textItem->boundingRect().width())/2;
 
-    qreal midPoint = minimumVisibleRect().center().x();
+    float offset = 1 + 3*FONT_RATIO;
 
-    textItem->setPos((1+FONT_RATIO)* getItemMargin()/2, minimumHeight - (FONT_RATIO * minimumHeight));
+    textItem->setPos(offset * getItemMargin()/2, minimumHeight - (FONT_RATIO * minimumHeight));
+    textItem->setTextWidth(minimumWidth - offset); // this isn't changing the textItem width!
     textItem->setFont(font);
+    textItem->setToolTip("Double Click to Edit Label");
 
     updateTextLabel(getGraphML()->getDataValue("label"));
 }
@@ -2355,7 +2376,7 @@ QPointF NodeItem::getClosestGridPoint(QPointF centerPoint)
     //Offset the centerPoint by the starting position of the gridRect so we can do easy division.
     QPointF gridOffset = gridRect().topLeft();
     if(nodeKind == "Model"){
-        qCritical() << gridOffset;
+        //qCritical() << gridOffset;
     }
     centerPoint -= gridOffset;
 

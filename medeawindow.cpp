@@ -224,7 +224,8 @@ void MedeaWindow::initialiseGUI()
     tableLayout->setContentsMargins(0,0,0,0);
     tableLayout->addWidget(dataTable);
 
-    dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
+    //dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
+    //dataTableBox->setMask(QRegion(0, 0, 0, 0, QRegion::Rectangle));
     dataTableBox->setFixedWidth(rightPanelWidth);
     dataTableBox->setLayout(tableLayout);
     dataTableBox->setStyleSheet("QGroupBox {"
@@ -705,9 +706,9 @@ void MedeaWindow::setupToolbar()
     spacerWidget5->setFixedWidth(spacerWidth);
     spacerWidget6->setFixedWidth(spacerWidth);
 
-    /*
     spacerWidgetLeft->setAttribute(Qt::WA_TransparentForMouseEvents);
     spacerWidgetRight->setAttribute(Qt::WA_TransparentForMouseEvents);
+    /*
     spacerWidget1->setAttribute(Qt::WA_TransparentForMouseEvents);
     spacerWidget2->setAttribute(Qt::WA_TransparentForMouseEvents);
     spacerWidget3->setAttribute(Qt::WA_TransparentForMouseEvents);
@@ -2070,6 +2071,7 @@ void MedeaWindow::updateDataTable()
     if (w == 0 || h == 0) {
         // TODO:: This isn't allowing mouse events to pass through!
         dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
+        //dataTableBox->setMask(QRegion(0, 0, 0, 0, QRegion::Rectangle));
     } else {
         dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents, false);
         dataTableBox->setMask(QRegion(0, 0, w, h, QRegion::Rectangle));
