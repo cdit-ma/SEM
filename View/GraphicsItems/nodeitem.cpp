@@ -337,7 +337,7 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    if(PAINT_OBJECT == PAINT_OBJECT){
+    if(PAINT_OBJECT) { // == PAINT_OBJECT){
         QPen Pen;
         QBrush Brush;
 
@@ -353,15 +353,10 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 Pen.setWidth(penWidth);
             }
 
-
-
         }else{
             Brush = brush;
             Pen = pen;
         }
-
-
-
 
         QRectF rectangle = boundingRect();
         rectangle.setWidth(rectangle.width() - Pen.width());
@@ -370,9 +365,11 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         if(!hasVisibleChildren() && !nodeKind.endsWith("Definitions")){
             Brush.setColor(Qt::transparent);
-
         }
-        if(onGrid){
+
+        // only change the transparency of node item if the GRID is turned on,
+        // it's over a valid grid point and it's not an aspect node item
+        if(onGrid && !nodeKind.endsWith("Definitions")){
             QColor brushColor = Brush.color();
             if(brushColor.alpha() > 120){
                 brushColor.setAlpha(120);
@@ -421,7 +418,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
 
-        painter->drawRect(getMinimumChildRect());
+        //painter->drawRect(getMinimumChildRect());
         //painter->drawRect(minimumVisibleRect());
         //painter->drawRect(gridRect());;
 
@@ -677,7 +674,7 @@ void NodeItem::clearOutlines()
 double NodeItem::getChildWidth()
 {
     if (nodeKind == "Model") {
-        return MODEL_WIDTH / ASPECT_SIZE_RATIO;
+        return MODEL_WIDTH / (ASPECT_SIZE_RATIO - 0.35);
     } else {
         return minimumWidth / ENTITY_SIZE_RATIO;
     }
@@ -686,7 +683,7 @@ double NodeItem::getChildWidth()
 double NodeItem::getChildHeight()
 {
     if (nodeKind == "Model") {
-        return MODEL_HEIGHT / ASPECT_SIZE_RATIO;
+        return MODEL_HEIGHT / (ASPECT_SIZE_RATIO + 0.35);
     } else {
         return minimumWidth / ENTITY_SIZE_RATIO;
     }
@@ -1627,7 +1624,11 @@ void NodeItem::setPos(const QPointF &pos)
 
         QGraphicsItem::setPos(pos);
 
-        isOverGrid(centerPos());
+        // need to check if GRID is turned on
+        if (GRIDLINES_VISIBLE) {
+            isOverGrid(centerPos());
+        }
+
         //isOverGrid(pos + minimumVisibleRect().center());
 
         updateChildrenOnChange();
@@ -1801,7 +1802,7 @@ void NodeItem::setupLabel()
     //qreal xPos = getItemMargin()/2 + selectedPen.widthF();
     //qreal xPos = (boundingRect().width() - textItem->boundingRect().width())/2;
 
-    float offset = 1 + 3*FONT_RATIO;
+    double offset = 1 + 3*FONT_RATIO;
 
     textItem->setPos(offset * getItemMargin()/2, minimumHeight - (FONT_RATIO * minimumHeight));
     textItem->setTextWidth(minimumWidth - offset); // this isn't changing the textItem width!
@@ -2259,8 +2260,8 @@ void NodeItem::updateModelPosition()
     if(hasSelectionMoved){
         setLocked(onGrid);
     }
+
     if(GRIDLINES_VISIBLE){
-        //QPointF gridPoint = isOverGrid(centerPos());
         QPointF gridPoint = isOverGrid(centerPos());
         if(!gridPoint.isNull()){
             setCenterPos(gridPoint);

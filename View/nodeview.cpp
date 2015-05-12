@@ -2491,7 +2491,6 @@ void NodeView::centerAspects()
  */
 void NodeView::sortModel()
 {
-    /*&
     if(!controller){
         return;
     }
@@ -2507,7 +2506,6 @@ void NodeView::sortModel()
     if(modelItem){
         modelItem->newSort();
     }
-    */
 }
 
 
