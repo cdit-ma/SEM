@@ -673,6 +673,8 @@ void NodeItem::clearOutlines()
 
 double NodeItem::getChildWidth()
 {
+    // added an offset of 0.35 here and in getChildHeight
+    // to make the gap between the view aspects uniform
     if (nodeKind == "Model") {
         return MODEL_WIDTH / (ASPECT_SIZE_RATIO - 0.35);
     } else {
