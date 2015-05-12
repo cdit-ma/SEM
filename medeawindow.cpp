@@ -232,10 +232,11 @@ void MedeaWindow::initialiseGUI()
                                 "background-color: rgba(0,0,0,0);"
                                 "border: 0px;"
                                 "}");
-
+    /*
     connect(dataTable, SIGNAL(viewportEntered()), this, SLOT(test()));
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
     connect(dataTableBox, SIGNAL(clicked()), this, SLOT(test()));
+    */
 
     // setup mini map
     minimap = new NodeViewMinimap();
@@ -249,8 +250,6 @@ void MedeaWindow::initialiseGUI()
     minimap->setFixedWidth(rightPanelWidth);
     minimap->setFixedHeight(rightPanelWidth/1.6);
     minimap->setStyleSheet("background-color: rgba(125,125,125,225);");
-
-
 
     // layouts
     QHBoxLayout *mainHLayout = new QHBoxLayout();
@@ -273,7 +272,7 @@ void MedeaWindow::initialiseGUI()
     topHLayout->setMargin(0);
     topHLayout->setSpacing(0);
     topHLayout->addLayout(titleLayout);
-    topHLayout->addStretch(1);
+    topHLayout->addStretch(2);
     topHLayout->addWidget(toolbar);
     topHLayout->addStretch(1);
 
@@ -376,29 +375,25 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_snapChildrenToGrid = view_menu->addAction(QIcon(":/Resources/Icons/snapChildrenToGrid.png"), "Snap Selection's Children To Grid");
     view_menu->addSeparator();
     view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go To Definition");
-    //view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
     view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go To Implementation");
-    //view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
     view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "View Connections");
     view_showManagementComponents = view_menu->addAction("View Management Components");
     //view_showManagementComponents->setShortcut(QKeySequence(Qt::CTRL +Qt::Key_M));
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
-    //model_clearModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Q));
     model_sortModel = model_menu->addAction(QIcon(":/Resources/Icons/sort.png"), "Sort Model");
-    //model_sortModel->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
 
-    settings_displayWindowToolbar = settings_Menu->addAction("Display Toolbar");
-    settings_Menu->addSeparator();
     settings_showGridLines = settings_Menu->addAction("Use Grid Lines");
-    //settings_showGridLines->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_G));
     settings_selectOnConstruction = settings_Menu->addAction("Select Node On Construction");
     settings_Menu->addSeparator();
     settings_autoCenterView = settings_Menu->addAction("Automatically Center Views");
     settings_viewZoomAnchor = settings_Menu->addAction("Zoom View Under Mouse");
+    settings_Menu->addSeparator();
+    settings_displayWindowToolbar = settings_Menu->addAction("Display Toolbar");
+    settings_editWindowToolbar = settings_Menu->addAction("Toolbar Settings");
     settings_Menu->addSeparator();
     settings_ChangeSettings = settings_Menu->addAction("More Settings...");
 
@@ -412,7 +407,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     settings_viewZoomAnchor->setCheckable(true);
     view_showManagementComponents->setCheckable(true);
 
-    // initially disable model & goto menu actions
+    // initially disable these actions
     view_goToDefinition->setEnabled(false);
     view_goToImplementation->setEnabled(false);
     view_showConnectedNodes->setEnabled(false);
@@ -626,14 +621,15 @@ void MedeaWindow::setupToolbar()
     QSize buttonSize = QSize(46,40);
 
     toolbarButton = new QToolButton(this);
-    toolbarAction = new QWidgetAction(this);
-    toolbarAction->setDefaultWidget(toolbarButton);
-
     toolbarButton->setCheckable(true);
     toolbarButton->setStyleSheet("QToolButton:!checked{ background-color: rgba(180,180,180,225); }"
+                                 // make button round so it stands out?
                                  //"QToolButton{ border-radius: 20px; }"
                                  "QToolButton:hover:!checked{ background-color: rgba(210,210,210,225); }");
 
+    toggleGridButton = new QToolButton(this);
+    toggleGridButton->setCheckable(true);
+    toggleGridButton->setStyleSheet("QToolButton:checked{ background-color: rgba(180,180,180,225); }");
 
     cutButton = new QToolButton(this);
     copyButton = new QToolButton(this);
@@ -645,6 +641,9 @@ void MedeaWindow::setupToolbar()
     duplicateButton = new QToolButton(this);
     undoButton = new QToolButton(this);
     redoButton = new QToolButton(this);
+    alignVerticalButton = new QToolButton(this);
+    alignHorizontalButton = new QToolButton(this);
+    popupButton = new QToolButton(this);
 
     toolbarButton->setIcon(QIcon(":/Resources/Icons/toolbar.png"));
     cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
@@ -657,6 +656,10 @@ void MedeaWindow::setupToolbar()
     duplicateButton->setIcon(QIcon(":/Resources/Icons/duplicate.png"));
     undoButton->setIcon(QIcon(":/Resources/Icons/undo.png"));
     redoButton->setIcon(QIcon(":/Resources/Icons/redo.png"));
+    toggleGridButton->setIcon(QIcon(":/Resources/Icons/grid.png"));
+    alignVerticalButton->setIcon(QIcon(":/Resources/Icons/alignVertically.png"));
+    alignHorizontalButton->setIcon(QIcon(":/Resources/Icons/alignHorizontally.png"));
+    popupButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
 
     toolbarButton->setFixedSize(buttonSize);
     cutButton->setFixedSize(buttonSize);
@@ -669,6 +672,10 @@ void MedeaWindow::setupToolbar()
     duplicateButton->setFixedSize(buttonSize);
     undoButton->setFixedSize(buttonSize);
     redoButton->setFixedSize(buttonSize);
+    toggleGridButton->setFixedSize(buttonSize);
+    alignVerticalButton->setFixedSize(buttonSize);
+    alignHorizontalButton->setFixedSize(buttonSize);
+    popupButton->setFixedSize(buttonSize);
 
     toolbarButton->setToolTip("Expand Toolbar");
     cutButton->setToolTip("Cut");
@@ -681,68 +688,53 @@ void MedeaWindow::setupToolbar()
     duplicateButton->setToolTip("Replicate");
     undoButton->setToolTip("Undo");
     redoButton->setToolTip("Redo");
+    toggleGridButton->setToolTip("Turn On Grid Lines");
+    alignVerticalButton->setToolTip("Align Selection Vertically");
+    alignHorizontalButton->setToolTip("Align Selection Horizontally");
+    popupButton->setToolTip("View Selection In New Window");
 
     QWidget* spacerWidgetLeft = new QWidget();
     QWidget* spacerWidgetRight = new QWidget();
-    QWidget* spacerWidget1 = new QWidget();
-    QWidget* spacerWidget2 = new QWidget();
-    QWidget* spacerWidget3 = new QWidget();
-    QWidget* spacerWidget4 = new QWidget();
-    QWidget* spacerWidget5 = new QWidget();
-    QWidget* spacerWidget6 = new QWidget();
-    int spacerWidth = 3;
-
-    leftSpacerAction = new QWidgetAction(this);
-    rightSpacerAction = new QWidgetAction(this);
-    leftSpacerAction->setDefaultWidget(spacerWidgetLeft);
-    rightSpacerAction->setDefaultWidget(spacerWidgetRight);
+    QWidget* spacerLeftMost = new QWidget();
+    QWidget* spacerLeftMid = new QWidget();
+    QWidget* spacerRightMid = new QWidget();
+    QWidget* spacerRightMost = new QWidget();
+    int spacerWidth = 15;
 
     spacerWidgetLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidgetRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    spacerWidget1->setFixedWidth(spacerWidth);
-    spacerWidget2->setFixedWidth(spacerWidth);
-    spacerWidget3->setFixedWidth(spacerWidth);
-    spacerWidget4->setFixedWidth(spacerWidth);
-    spacerWidget5->setFixedWidth(spacerWidth);
-    spacerWidget6->setFixedWidth(spacerWidth);
-
     spacerWidgetLeft->setAttribute(Qt::WA_TransparentForMouseEvents);
     spacerWidgetRight->setAttribute(Qt::WA_TransparentForMouseEvents);
-    /*
-    spacerWidget1->setAttribute(Qt::WA_TransparentForMouseEvents);
-    spacerWidget2->setAttribute(Qt::WA_TransparentForMouseEvents);
-    spacerWidget3->setAttribute(Qt::WA_TransparentForMouseEvents);
-    spacerWidget4->setAttribute(Qt::WA_TransparentForMouseEvents);
-    spacerWidget5->setAttribute(Qt::WA_TransparentForMouseEvents);
-    spacerWidget6->setAttribute(Qt::WA_TransparentForMouseEvents);
-    */
 
-    toolbar->addAction(leftSpacerAction);
-    toolbar->addAction(toolbarAction);
-    toolbar->addWidget(spacerWidget5);
-    toolbar->addSeparator();
-    toolbar->addWidget(spacerWidget6);
-    toolbar->addWidget(undoButton);
-    toolbar->addWidget(redoButton);
-    toolbar->addWidget(spacerWidget1);
-    toolbar->addSeparator();
-    toolbar->addWidget(spacerWidget2);
-    toolbar->addWidget(cutButton);
-    toolbar->addWidget(copyButton);
+    spacerLeftMost->setFixedWidth(spacerWidth);
+    spacerLeftMid->setFixedWidth(spacerWidth);
+    spacerRightMid->setFixedWidth(spacerWidth);
+    spacerRightMost->setFixedWidth(spacerWidth);
 
-    toolbar->addWidget(pasteButton);
-    toolbar->addWidget(duplicateButton);
-    toolbar->addWidget(spacerWidget3);
-    toolbar->addSeparator();
-    toolbar->addWidget(spacerWidget4);
-    toolbar->addWidget(fitToScreenButton);
-    toolbar->addWidget(centerButton);
-    toolbar->addWidget(zoomToFitButton);
-    toolbar->addWidget(sortButton);
-    toolbar->addAction(rightSpacerAction);
+    leftSpacerAction = toolbar->addWidget(spacerWidgetLeft);
+    toolbarAction = toolbar->addWidget(toolbarButton);
+    leftMostSpacer = toolbar->addWidget(spacerLeftMost);
+    QAction* undoAction = toolbar->addWidget(undoButton);
+    QAction* redoAction = toolbar->addWidget(redoButton);
+    leftMidSpacer = toolbar->addWidget(spacerLeftMid);
+    QAction* cutAction = toolbar->addWidget(cutButton);
+    QAction* copyAction = toolbar->addWidget(copyButton);
+    QAction* pasteAction = toolbar->addWidget(pasteButton);
+    QAction* duplicateAction = toolbar->addWidget(duplicateButton);
+    rightMidSpacer = toolbar->addWidget(spacerRightMid);
+    QAction* fitToScreenAction = toolbar->addWidget(fitToScreenButton);
+    QAction* centerAction = toolbar->addWidget(centerButton);
+    QAction* zoomToFitAction = toolbar->addWidget(zoomToFitButton);
+    QAction* sortAction = toolbar->addWidget(sortButton);
+    rightMostSpacer = toolbar->addWidget(spacerRightMost);
+    QAction* toggleGridAction = toolbar->addWidget(toggleGridButton);
+    QAction* alignVerticalAction = toolbar->addWidget(alignVerticalButton);
+    QAction* alignHorizontalAction = toolbar->addWidget(alignHorizontalButton);
+    QAction* popupAction = toolbar->addWidget(popupButton);
+    rightSpacerAction = toolbar->addWidget(spacerWidgetRight);
 
     toolbar->setIconSize(buttonSize*0.6);
-    toolbar->setFixedSize(toolbar->contentsRect().width(), buttonSize.height()+spacerWidth);
+    toolbar->setMinimumSize(toolbar->contentsRect().width(), buttonSize.height()+spacerWidth);
     toolbar->setStyle(QStyleFactory::create("windows"));
     toolbar->setStyleSheet("QToolButton{"
                            "border: 1px solid grey;"
@@ -750,7 +742,63 @@ void MedeaWindow::setupToolbar()
                            "background-color: rgba(210,210,210,225);"
                            "margin: 0px 3px 0px 3px;"
                            "}"
+                           "QToolButton:hover{ border: 2px solid grey; }"
+                           "QToolButton:pressed{ background-color: rgba(240,240,240,240); }"
                            );
+
+    // keep a list of all the tool buttons and create a checkbox for each one
+    toolbarActions[cutAction] = new QCheckBox("Cut", this);
+    toolbarActions[copyAction] = new QCheckBox("Copy", this);
+    toolbarActions[pasteAction] = new QCheckBox("Paste", this);
+    toolbarActions[sortAction] = new QCheckBox("Sort", this);
+    toolbarActions[centerAction] = new QCheckBox("Center On", this);
+    toolbarActions[zoomToFitAction] = new QCheckBox("Zoom To Fit", this);
+    toolbarActions[fitToScreenAction] = new QCheckBox("Fit To Screen", this);
+    toolbarActions[duplicateAction] = new QCheckBox("Replicate", this);
+    toolbarActions[undoAction] = new QCheckBox("Undo", this);
+    toolbarActions[redoAction] = new QCheckBox("Redo", this);
+    toolbarActions[toggleGridAction] = new QCheckBox("Toggle Grid Lines", this);
+    toolbarActions[alignVerticalAction] = new QCheckBox("Align Vertically", this);
+    toolbarActions[alignHorizontalAction] = new QCheckBox("Align Horizontally", this);
+    toolbarActions[popupAction] = new QCheckBox("Popup New Window", this);
+
+    // group actions into sections
+    leftMostActions[undoAction] = 1;
+    leftMostActions[redoAction] = 1;
+    leftMidActions[cutAction] = 1;
+    leftMidActions[copyAction] = 1;
+    leftMidActions[pasteAction] = 1;
+    leftMidActions[duplicateAction] = 1;
+    rightMidActions[fitToScreenAction] = 1;
+    rightMidActions[centerAction] = 1;
+    rightMidActions[zoomToFitAction] = 1;
+    rightMidActions[sortAction] = 1;
+    rightMostActions[toggleGridAction] = 1;
+    rightMostActions[alignVerticalAction] = 1;
+    rightMostActions[alignHorizontalAction] = 1;
+    rightMostActions[popupAction] = 1;
+
+    // add checkboxes to the toolbar settings popup dialog
+    QVBoxLayout* layout = new QVBoxLayout();
+    foreach (QCheckBox* cb, toolbarActions.values() ) {
+
+        layout->addWidget(cb);
+        connect(cb, SIGNAL(clicked(bool)), this, SLOT(updateCheckedToolbarActions(bool)));
+
+        // initially hide some of the tool buttons
+        if (cb->text().contains("Grid") || cb->text().contains("Align") || cb->text().contains("Popup")) {
+            cb->clicked(false);
+            cb->setChecked(false);
+        } else {
+            cb->setChecked(true);
+            checkedToolbarActions.append(toolbarActions.key(cb));
+        }
+    }
+
+    toolbarSettingsDialog = new QDialog(this);
+    toolbarSettingsDialog->setLayout(layout);
+    toolbarSettingsDialog->setWindowTitle("Available Tool Buttons");
+    toolbarSettingsDialog->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }");
 }
 
 
@@ -852,12 +900,15 @@ void MedeaWindow::makeConnections()
     connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
 
     connect(settings_displayWindowToolbar, SIGNAL(triggered(bool)), this, SLOT(showWindowToolbar(bool)));
-    connect(settings_showGridLines, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
-    connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
+    connect(settings_editWindowToolbar, SIGNAL(triggered()), toolbarSettingsDialog, SLOT(show()));
     connect(settings_selectOnConstruction, SIGNAL(triggered(bool)), nodeView, SLOT(selectNodeOnConstruction(bool)));
     connect(settings_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
     connect(settings_viewZoomAnchor, SIGNAL(triggered(bool)), nodeView, SLOT(toggleZoomAnchor(bool)));
     connect(settings_ChangeSettings, SIGNAL(triggered()), appSettings, SLOT(launchSettingsUI()));
+
+    connect(settings_showGridLines, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
+    connect(settings_showGridLines, SIGNAL(triggered(bool)), toggleGridButton, SLOT(setChecked(bool)));
+    connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
@@ -879,14 +930,18 @@ void MedeaWindow::makeConnections()
     connect(copyButton, SIGNAL(clicked()), nodeView, SLOT(copy()));
     connect(pasteButton, SIGNAL(clicked()), this, SLOT(on_actionPaste_triggered()));
     connect(duplicateButton, SIGNAL(clicked()), nodeView, SLOT(duplicate()));
-
     connect(fitToScreenButton, SIGNAL(clicked()), nodeView, SLOT(fitToScreen()));
     connect(centerButton, SIGNAL(clicked()), nodeView, SLOT(centerOnItem()));
     connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
     connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
-
     connect(undoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Undo()));
     connect(redoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Redo()));
+    connect(alignVerticalButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
+    connect(alignHorizontalButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
+    connect(popupButton, SIGNAL(clicked()), nodeView, SLOT(constructNewView()));
+
+    connect(toggleGridButton, SIGNAL(clicked(bool)), settings_showGridLines, SLOT(setChecked(bool)));
+    connect(toggleGridButton, SIGNAL(clicked(bool)), settings_showGridLines, SIGNAL(triggered(bool)));
 
     connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
     connect(nodeView, SIGNAL(view_UndoListChanged(QStringList)), this, SLOT(updateUndoStates(QStringList)));
@@ -955,6 +1010,7 @@ void MedeaWindow::makeConnections()
     addAction(settings_showGridLines);
     addAction(settings_selectOnConstruction);
     addAction(settings_ChangeSettings);
+
     // this needs fixing
     //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 }
@@ -1033,6 +1089,7 @@ void MedeaWindow::setupInitialSettings()
     // initially show, but contract the toolbar
     toolbarButton->setChecked(false);
     toolbarButton->clicked(false);
+    //toggleGridButton->setChecked(false);
 
     if (nodeView) {
         nodeView->centerAspects();
@@ -1646,48 +1703,70 @@ void MedeaWindow::showWindowToolbar(bool checked)
             // NOTE: hover/focus doesn't leave the button until you move the mouse
             toolbarButton->setToolTip("Expand Toolbar");
         }
-        // show/hide all tool buttons except for toolbarButton and the left/right spacer widgets
-        foreach (QAction* action, toolbar->actions()) {
-            if (action != toolbarAction && action != leftSpacerAction && action != rightSpacerAction) {
-                action->setVisible(checked);
-            }
-        }
-        if (!checked) {
-            // TODO: Mask invisible parts of the toolbar so that mouse events are passed through
-            QWidget* widget = toolbarAction->defaultWidget();
-            QPointF wp = widget->pos();
-            //wp = mapFromGlobal(wp.toPoint());
-            //wp = mapToGlobal(wp.toPoint());
-            wp = mapFromGlobal(widget->pos());
-            wp = widget->mapTo(toolbar, wp.toPoint());
-            wp = mapToGlobal(wp.toPoint());
-            /*
-            qDebug() << "toolbar.pos = " << toolbar->pos();
-            qDebug() << "toolbar->width() = " << toolbar->width();
-            qDebug() << "toolbar->width()/2 = " << toolbar->width()/2;
-            qDebug() << "Widget.pos = " << widget->pos();
-            qDebug() << "Widget.pos mapped = " << mapToParent( widget->pos());
-            qDebug() << "Widget.pos mapped = " << mapFromGlobal(wp.toPoint());
-            */
-            QRect regionRect(wp.x(), 0, toolbar->width(), toolbar->height());
-            toolbar->setMask(QRegion(regionRect, QRegion::Rectangle));
-        } else {
-            toolbar->setMask(QRegion());
+        // show/hide all tool buttons
+        foreach (QAction* action, checkedToolbarActions) {
+            action->setVisible(checked);
         }
     }
 }
 
 
-void MedeaWindow::test()
+/**
+ * @brief MedeaWindow::updateCheckedToolbarActions
+ * This updates the list of checked toolbar actions and sets the corresponding
+ * toolbutton's visibility depending on checked and if the toolbar is expanded.
+ * @param checked
+ */
+void MedeaWindow::updateCheckedToolbarActions(bool checked)
 {
-    qDebug() << "datatTableBox clicked!";
+    QCheckBox* cb = qobject_cast<QCheckBox*>(QObject::sender());
+    QAction* action = toolbarActions.key(cb);
+
+    if (checked) {
+        checkedToolbarActions.append(action);
+    } else {
+        checkedToolbarActions.removeAll(action);
+    }
+
+    action->setVisible(checked && toolbarButton->isChecked());
+
+    QHash<QAction*, int> actionGroup;
+    QAction* spacerAction;
+
+    if (leftMostActions.contains(action)) {
+        leftMostActions[action] = checked;
+        actionGroup = leftMostActions;
+        spacerAction = leftMostSpacer;
+    } else if (leftMidActions.contains(action)) {
+        leftMidActions[action] = checked;
+        actionGroup = leftMidActions;
+        spacerAction = leftMidSpacer;
+    } else if (rightMidActions.contains(action)) {
+        rightMidActions[action] = checked;
+        actionGroup = rightMidActions;
+        spacerAction = rightMidSpacer;
+    } else if (rightMostActions.contains(action)) {
+        rightMostActions[action] = checked;
+        actionGroup = rightMostActions;
+        spacerAction = rightMostSpacer;
+    }
+
+    // check if any of the spacer actions need to be hidden
+    bool hideSpacer = true;
+    foreach (int visible, actionGroup.values()) {
+        if (visible) {
+            hideSpacer = false;
+            break;
+        }
+    }
+    spacerAction->setVisible(!hideSpacer);
 }
 
 
 /**
  * @brief MedeaWindow::menuActionTriggered
- * This method is used to update the displayed text in the progress bar
- * and to update the enabled state of the snap to grid functions.
+ * This method is used to update the displayed text in the progress bar, update
+ * tooltips and update the enabled state of the snap to grid functions.
  */
 void MedeaWindow::menuActionTriggered()
 {
@@ -1697,6 +1776,14 @@ void MedeaWindow::menuActionTriggered()
     } else if (action->text().contains("Redo")) {
         progressAction = "Redoing Action";
     } else if (action->text().contains("Grid Lines")) {
+
+        // update toggleGridButton's tooltip
+        if (settings_showGridLines->isChecked()) {
+            toggleGridButton->setToolTip("Turn Off Grid Lines");
+        } else {
+            toggleGridButton->setToolTip("Turn On Grid Lines");
+        }
+
         // in case the grid lines are turned on, this will check if there
         // is a selected item before it turns the snap to grid functions on
         graphicsItemSelected();
@@ -2223,8 +2310,6 @@ QStringList MedeaWindow::getCheckedItems(int menu)
 
     return checkedKinds;
 }
-
-
 
 
 /**

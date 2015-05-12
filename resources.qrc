@@ -95,5 +95,6 @@
         <file>Resources/Icons/connections.png</file>
         <file>Resources/Icons/connectedHardwareNode.png</file>
         <file>Resources/Icons/toolbar.png</file>
+        <file>Resources/Icons/grid.png</file>
     </qresource>
 </RCC>

@@ -369,9 +369,13 @@ void NodeView::constructNewView(Node *centeredOn)
         //Cannot make subviews of subviews.
         return;
     }
-    //centeredOn = getSelectedNode();
+
     if(!centeredOn){
-        return;
+        //return;
+
+        // added this here and added a default for centeredOn
+        // so that MEDEA's toolbar can use this slot
+        centeredOn = getSelectedNode();
     }
 
     Qt::WindowFlags flags = 0;
@@ -396,7 +400,6 @@ void NodeView::constructNewView(Node *centeredOn)
     mainLayout->addWidget(newView);
     newViewWindow->setLayout(mainLayout);
     newViewWindow->show();
-
 
     if(this->controller){
         controller->connectView(newView);

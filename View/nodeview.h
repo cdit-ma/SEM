@@ -204,7 +204,7 @@ public slots:
     void constructNode(QString nodeKind, int sender);
     void constructEdge(Node* src, Node* dst, bool triggerAction=true);
     void constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender);
-    void constructNewView(Node* centeredOn);
+    void constructNewView(Node* centeredOn = 0);
     void showConnectedNodes();
 
     void componentInstanceConstructed(Node* node);

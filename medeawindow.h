@@ -130,9 +130,7 @@ private slots:
     void graphicsItemSelected();
 
     void showWindowToolbar(bool checked);
-
-    void test();
-
+    void updateCheckedToolbarActions(bool checked);
 
 
     //multi-line popup for QTableView (SLOTS)
@@ -193,6 +191,7 @@ private:
     QAction* model_clearModel;
     QAction* model_sortModel;
     QAction* settings_displayWindowToolbar;
+    QAction* settings_editWindowToolbar;
     QAction* settings_autoCenterView;
     QAction* settings_viewZoomAnchor;
     QAction* settings_showGridLines;
@@ -208,9 +207,9 @@ private:
     HardwareDockScrollArea* hardwareDock;
 
     QToolBar* toolbar;
-    QWidgetAction* toolbarAction;
-    QWidgetAction* leftSpacerAction;
-    QWidgetAction* rightSpacerAction;
+    QAction* toolbarAction;
+    QAction* leftSpacerAction;
+    QAction* rightSpacerAction;
     QToolButton* toolbarButton;
     QToolButton* cutButton;
     QToolButton* copyButton;
@@ -222,6 +221,14 @@ private:
     QToolButton* duplicateButton;
     QToolButton* undoButton;
     QToolButton* redoButton;
+    QToolButton* toggleGridButton;
+    QToolButton* alignVerticalButton;
+    QToolButton* alignHorizontalButton;
+    QToolButton* popupButton;
+    QAction* leftMostSpacer;
+    QAction* leftMidSpacer;
+    QAction* rightMidSpacer;
+    QAction* rightMostSpacer;
 
     QPushButton *projectName;
     QPushButton* assemblyButton;
@@ -236,6 +243,10 @@ private:
     QLabel* notificationsBar;
     QTimer* notificationTimer;
     QQueue<QString> notificationsQueue;
+
+    QTableView* dataTable;
+    QGroupBox* dataTableBox;
+    ComboBoxTableDelegate* delegate;
 
     QHBoxLayout* searchLayout;
     QPushButton* searchButton;
@@ -257,27 +268,32 @@ private:
     QString viewAspectsBarDefaultText;
     QString nodeKindsDefaultText;
 
-    QHash<QPushButton*, GraphMLItem*> searchItems;
-
-    QTableView* dataTable;
-    QGroupBox* dataTableBox;
-    ComboBoxTableDelegate* delegate;
-
     AppSettings* appSettings;
+
+    ValidateDialog validateResults;
+    QDialog* toolbarSettingsDialog;
 
     NewController* controller;
     NodeView* nodeView;
     NodeViewMinimap* minimap;
 
+    QThread* thread;
+    QProcess *myProcess;
+
+    QHash<QPushButton*, GraphMLItem*> searchItems;
+    QHash<QAction*, QCheckBox*> toolbarActions;
+    QList<QAction*> checkedToolbarActions;
+    QStringList checkedViewAspects;
+
+    QHash<QAction*, int> leftMostActions;
+    QHash<QAction*, int> leftMidActions;
+    QHash<QAction*, int> rightMidActions;
+    QHash<QAction*, int> rightMostActions;
+
     int boxWidth;
     int boxHeight;
 
     bool firstTableUpdate;
-
-    QStringList checkedViewAspects;
-
-    QThread* thread;
-    QProcess *myProcess;
 
     //QString DEPGEN_ROOT;
     QString JENKINS_ADDRESS;
@@ -285,9 +301,6 @@ private:
     QString JENKINS_PASSWORD;
 
     QString exportFileName;
-
-    ValidateDialog validateResults;
-
 
     //multi-line popup for QTableView (VARIABLES)
     QDialog *popupMultiLine;
