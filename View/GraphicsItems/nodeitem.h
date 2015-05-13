@@ -242,10 +242,6 @@ private:
     double getChildItemMargin();// const;
 
     QSizeF getModelSize();
-    QPointF getModelPosition();
-    QSizeF getCurrentSize();
-    QColor invertColor(QColor oldColor);
-
 
 
     bool drawGridlines();
@@ -310,7 +306,6 @@ private:
 
     NodeItem::RESIZE_TYPE currentResizeMode;
 
-    QList<QRectF> outlines;
     QHash<QString, QRectF> outlineMap;
 
     //Current Width/Height

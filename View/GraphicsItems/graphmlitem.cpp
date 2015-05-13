@@ -9,6 +9,9 @@ GraphMLItem::GraphMLItem(GraphML *attachedGraph, GraphMLItem::GUI_KIND kind)
     this->attachedGraph = attachedGraph;
     table = new AttributeTableModel(this);
     this->kind = kind;
+    if(attachedGraph){
+        this->ID = attachedGraph->getID();
+    }
 }
 
 GraphMLItem::~GraphMLItem()
@@ -38,4 +41,9 @@ bool GraphMLItem::isNodeItem()
 bool GraphMLItem::isEdgeItem()
 {
     return kind == NODE_EDGE;
+}
+
+QString GraphMLItem::getID()
+{
+    return this->ID;
 }

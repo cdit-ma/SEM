@@ -147,15 +147,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     }
 
 
-    //if(parentNodeItem){
-    //updateParent();
+
     updateParentModel();
-        //parentNodeItem->updateModelSize();
-    //}
-    //aspectsChanged(aspects);
-
-
-    outlines.clear();
 
     if(IN_SUBVIEW){
         setVisible(true);
@@ -194,7 +187,7 @@ void NodeItem::setParentItem(QGraphicsItem *parent)
     NodeItem* nodeItem = dynamic_cast<NodeItem*>(parent);
     if(nodeItem){
         nodeItem->addChildNodeItem(this);
-        connect(nodeItem, SIGNAL(nodeItemMoved()), this, SLOT(parentNodeItemMoved()));
+        //connect(nodeItem, SIGNAL(nodeItemMoved()), this, SLOT(parentNodeItemMoved()));
     }
     QGraphicsItem::setParentItem(parent);
 }
@@ -264,15 +257,23 @@ QRectF NodeItem::getChildBoundingRect()
 
 void NodeItem::childPosUpdated()
 {
+    if(!getGraphML()){
+        return;
+    }
+
     QSizeF minSize = getMinimumChildRect().size();
-    QSizeF modelSize = getModelSize();
+
+    double modelWidth = getGraphML()->getDataValue("width").toDouble();
+    double modelHeight = getGraphML()->getDataValue("height").toDouble();
 
     //Maximize on the current size in the Model and the minimum child rectangle
-    qreal newWidth = qMax(minSize.width(), modelSize.width());
-    qreal newHeight = qMax(minSize.height(), modelSize.height());
+    if(minSize.width() > modelWidth){
+        setWidth(minSize.width());
+    }
 
-    setWidth(newWidth);
-    setHeight(newHeight);
+    if(minSize.height() > modelHeight){
+        setHeight(minSize.height());
+    }
 }
 
 
@@ -319,9 +320,11 @@ void NodeItem::addChildNodeItem(NodeItem *child)
 void NodeItem::removeChildNodeItem(NodeItem *child)
 {
     childNodeItems.removeAll(child);
+    removeChildOutline(child);
     if(childNodeItems.size() == 0){
         resetSize();
     }
+
 }
 
 
@@ -369,7 +372,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
         //If the Node is over a Gridline, set the background Brush to transluscent.
-        if(isNodeOnGrid){
+        if(isNodeOnGrid && hasSelectionMoved){
             QColor brushColor = Brush.color();
             if(brushColor.alpha() > 120){
                 brushColor.setAlpha(120);
@@ -614,20 +617,17 @@ void NodeItem::adjustSize(QSizeF delta)
 void NodeItem::addChildOutline(NodeItem *nodeItem, QPointF gridPoint)
 {
     prepareGeometryChange();
-
-    QString ID = nodeItem->getGraphML()->getID();
     QRectF nodeRect = nodeItem->boundingRect();
     QPointF deltaPos = gridPoint - nodeItem->minimumVisibleRect().center();
     nodeRect.translate(deltaPos);
-    outlineMap.insert(ID, nodeRect);
+    outlineMap.insert(nodeItem->getID(), nodeRect);
 }
 
 void NodeItem::removeChildOutline(NodeItem *nodeItem)
 {
-    QString ID = nodeItem->getGraphML()->getID();
-     if(outlineMap.contains(ID)){
-        //prepareGeometryChange();
-       // outlineMap.remove(ID);
+     if(outlineMap.contains(nodeItem->getID())){
+        prepareGeometryChange();
+        outlineMap.remove(nodeItem->getID());
      }
 }
 
@@ -1410,27 +1410,20 @@ NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
 void NodeItem::setWidth(qreal w)
 {   
     if(isExpanded()){
-        //if(hasVisibleChildren()){
-            w = qMax(w, getMinimumChildRect().width());
-            expandedWidth = w;
-        //}else{
-            //w = minimumWidth;
-        //}//
-
+        w = qMax(w, getMinimumChildRect().width());
+        expandedWidth = w;
     }else{
         w = minimumWidth;
     }
 
-    //if(width == w){
-   //     return;
-   // }
+
     prepareGeometryChange();
     width = w;
 
     updateTextLabel();
+
     updateChildrenOnChange();
     calculateGridlines();
-
     updateParent();
 
 }
@@ -1450,7 +1443,6 @@ void NodeItem::setHeight(qreal h)
 
     calculateGridlines();
     updateChildrenOnChange();
-
     updateParent();
 }
 
@@ -1738,19 +1730,14 @@ void NodeItem::setPos(qreal x, qreal y)
 void NodeItem::setPos(const QPointF &pos)
 {
     if(pos != this->pos()){
-
         prepareGeometryChange();
         QGraphicsItem::setPos(pos);
 
         // need to check if GRID is turned on
-        //if (GRIDLINES_ON) {
-        //    isOverGrid(centerPos());
-        //}
+        isOverGrid(centerPos());
 
-        //isOverGrid(pos + minimumVisibleRect().center());
-
-        //updateChildrenOnChange();
-        //updateParent();
+        updateChildrenOnChange();
+        updateParent();
     }
 }
 
@@ -1804,7 +1791,6 @@ void NodeItem::updateParent()
 {
     if(parentNodeItem){
         parentNodeItem->childPosUpdated();
-        //parentNodeItem->updateModelSize();
     }
 }
 
@@ -1812,7 +1798,6 @@ void NodeItem::updateParentModel()
 {
     if(parentNodeItem){
        parentNodeItem->updateModelSize();
-       //parentNodeItem->updateParentModel();
     }
 }
 
@@ -2004,9 +1989,8 @@ QPointF NodeItem::isOverGrid(const QPointF centerPosition)
 
     //If the distance is less than the SNAP_PERCENTAGE
     if((distance / minimumWidth) <= SNAP_PERCENTAGE){
-        isNodeOnGrid = true;
-
-        if(hasSelectionMoved){
+        if(isNodeOnGrid || hasSelectionMoved){
+            isNodeOnGrid = true;
             parentNodeItem->addChildOutline(this, gridPoint);
         }
         return gridPoint;
@@ -2103,7 +2087,7 @@ void NodeItem::updateGraphMLPosition()
 
 void NodeItem::updateChildrenOnChange()
 {
-    emit nodeItemMoved();
+    nodeItemMoved();
 
     if(this->isPermanentlyCentered()){
         emit recentralizeAfterChange(getGraphML());
@@ -2283,7 +2267,7 @@ QPolygonF NodeItem::getResizePolygon()
 void NodeItem::parentNodeItemMoved()
 {
 
-    emit nodeItemMoved();
+    nodeItemMoved();
     if(isPermanentlyCentered()){
         emit recentralizeAfterChange(getGraphML());
     }
@@ -2348,33 +2332,7 @@ QSizeF NodeItem::getModelSize()
     return QSizeF(graphmlWidth, graphmlHeight);
 }
 
-QPointF NodeItem::getModelPosition()
-{
 
-    float xPos = 0;
-    float yPos = 0;
-    if(getGraphML()){
-        xPos = getGraphML()->getDataValue("x").toDouble();
-        yPos = getGraphML()->getDataValue("y").toDouble();
-    }
-
-    return QPointF(xPos, yPos);
-
-}
-
-QSizeF NodeItem::getCurrentSize()
-{
-    return QSizeF(width, height);
-}
-
-
-QColor NodeItem::invertColor(QColor oldColor)
-{
-    int red = 255 - oldColor.red();
-    int green = 255 - oldColor.green();
-    int blue = 255 - oldColor.blue();
-    return QColor(red, green, blue);
-}
 
 bool NodeItem::drawGridlines()
 {
@@ -2399,31 +2357,32 @@ double NodeItem::getChildItemMargin()
  */
 void NodeItem::setNodeExpanded(bool expanded)
 {
-    if(!getGraphML()){
-        return;
-    }
     //Can't Contract a Definition or Model
-    if(nodeKind.endsWith("Definitions") || nodeKind == "Model"){
+    if(!getGraphML() || nodeKind.endsWith("Definitions") || nodeKind == "Model"){
         isNodeExpanded = true;
         return;
     }
-    qCritical() << "setNodeExpanded: " << expanded;
+
+    //If our state is already set, don't do anything!
+    if(isNodeExpanded == expanded){
+        return;
+    }
+
     isNodeExpanded = expanded;
 
-    //Hide the children.
+    //Show/Hide the non-hidden children.
     foreach(NodeItem* nodeItem, childNodeItems){
-        if (!nodeItem->isHidden()) {
+        if (!nodeItem->isHidden()){
             nodeItem->setVisible(expanded);
         }
     }
+
     if(isExpanded()){
-        //Expanding
+        //Set the width/height to their expanded values.
         setWidth(expandedWidth);
         setHeight(expandedHeight);
     } else {
-        //Contracting
-        qCritical() << minimumWidth;
-        qCritical() << minimumHeight;
+        //Set the width/height to their minimum values.
         setWidth(minimumWidth);
         setHeight(minimumHeight);
     }
@@ -2439,14 +2398,11 @@ void NodeItem::updateModelPosition()
     //Update the Parent Model's size first to make sure that the undo states are correct.
     updateParentModel();
 
-    if(GRIDLINES_ON){
-        //if we are over a grid line (or within a snap ratio)
-        QPointF gridPoint = isOverGrid(centerPos());
-        if(!gridPoint.isNull()){
-            //Setting new Center POint
-            setCenterPos(gridPoint);
-        }
-
+    //if we are over a grid line (or within a snap ratio)
+    QPointF gridPoint = isOverGrid(centerPos());
+    if(!gridPoint.isNull()){
+        //Setting new Center Point
+        setCenterPos(gridPoint);
         //If the node moved via the mouse, lock it.
         if(hasSelectionMoved){
             setLocked(isNodeOnGrid);
@@ -2457,11 +2413,8 @@ void NodeItem::updateModelPosition()
     GraphMLItem_SetGraphMLData(getGraphML(), "y", QString::number(centerPos().y()));
 
 
-    if(GRIDLINES_ON){
-        if(parentNodeItem){
-            parentNodeItem->removeChildOutline(this);
-        }
-        isNodeOnGrid = false;
+    if(!isNodeOnGrid && parentNodeItem){
+        parentNodeItem->removeChildOutline(this);
     }
 }
 
@@ -2470,6 +2423,13 @@ void NodeItem::updateModelSize()
     //Update the Size in the model.
     GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(width));
     GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(height));
+
+    //If we are over a gridline already.
+    if(isNodeOnGrid){
+        //Update the gridPoint.
+        QPointF gridPoint = isOverGrid(centerPos());
+    }
+
     //Make sure the parentModel is updated.
     updateParentModel();
 }

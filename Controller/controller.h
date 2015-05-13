@@ -143,7 +143,7 @@ private slots:
 
 
 private:
-    bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false);
+    bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPosition=false);
 
     bool canCopyIDs(QStringList IDs);
     //Clears the Undo/Redo Action Stacks.

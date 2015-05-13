@@ -20,6 +20,7 @@ public:
 
     bool isNodeItem();
     bool isEdgeItem();
+    QString getID();
 
     virtual void setSelected(bool selected) = 0;
     virtual void setOpacity(qreal opacity) = 0;
@@ -46,6 +47,7 @@ private:
     AttributeTableModel* table;
 
     GUI_KIND kind;
+    QString ID;
 
     // QGraphicsItem interface
 };
