@@ -2681,7 +2681,7 @@ void NewController::clearUndoHistory()
     clearHistory();
 }
 
-bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkID, bool resetPosition)
+bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkID, bool resetPos)
 {
     //Key Lookup provides a way for the original key "id" to be linked with the internal object GraphMLKey
     QMap<QString , GraphMLKey*> keyLookup;
