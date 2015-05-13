@@ -342,13 +342,15 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
 
 
 
-
     GraphMLData* data = parent->getData(keyName);
 
     if(data){
-
         action.dataValue = data->getValue();
-        //qCritical() << dataValue;
+
+        if(dataValue == action.dataValue){
+            //Don't update if we have got the same value in the model.
+            return;
+        }
 
         if(parent->isNode()){
             Node* node = (Node*)parent;
@@ -365,19 +367,16 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
             }else{                
                 data->setValue(dataValue);
             }
-        }
-        if(parent->isEdge()){
+        }else if(parent->isEdge()){
             data->setValue(dataValue);
-        }
-
-        if(data->getValue() != dataValue){
-            addActionToStack(action, addAction);
-
         }
 
     }else{
         qCritical() << "view_UpdateGraphMLData() Doesn't Contain GraphMLData for Key: " << keyName;
         return;
+    }
+    if(addAction){
+        addActionToStack(action, addAction);
     }
 }
 
@@ -456,7 +455,7 @@ void NewController::destructGraphMLData(GraphML *parent, QString keyName, bool a
 void NewController::constructNode(Node *parentNode, QString kind, QPointF centerPoint)
 {
     if(kind != ""){
-        triggerAction("Constructing Child Node");
+        //triggerAction("Constructing Child Node");
         constructChildNode(parentNode, constructGraphMLDataVector(kind, centerPoint));
     }
 }
@@ -622,7 +621,7 @@ void NewController::paste(Node *parentNode, QString xmlData)
 
         if(parentNode){
             triggerAction("Pasting Selection.");
-            _importGraphMLXML(xmlData, parentNode, CUT_USED);
+            _importGraphMLXML(xmlData, parentNode, CUT_USED, true);
             CUT_USED = false;
         }
     }
@@ -1809,7 +1808,6 @@ void NewController::undoRedo(bool undo)
 
         //This vector will store all ActionItems which match topActionID
         QList<ActionItem> toReverse;
-
         while(!actionStack.isEmpty()){
             //Get the top-most action.
             ActionItem action = actionStack.top();
@@ -1825,8 +1823,8 @@ void NewController::undoRedo(bool undo)
             }
         }
 
+
         actionCount = toReverse.size();
-        //qCritical() << "Actions to Reverse: " << actionCount;
 
         int maxRetry = 3;
         QHash<int, int> retryCount;
@@ -2074,11 +2072,13 @@ void NewController::constructNodeGUI(Node *node)
         action.parentID = node->getParentNode()->getID();
     }
 
-    //Add Action to the Undo/Redo Stack.
-    addActionToStack(action);
+
 
     //Add the node to the list of nodes constructed.
     storeGraphMLInHash(node);
+
+    //Add Action to the Undo/Redo Stack.
+    addActionToStack(action);
 }
 
 void NewController::setupModel()
@@ -2681,7 +2681,7 @@ void NewController::clearUndoHistory()
     clearHistory();
 }
 
-bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkID)
+bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkID, bool resetPosition)
 {
     //Key Lookup provides a way for the original key "id" to be linked with the internal object GraphMLKey
     QMap<QString , GraphMLKey*> keyLookup;
@@ -2714,6 +2714,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         parent = getModel();
     }
 
+
     if(parent->isInstance() || parent->isImpl()){
         if(!(UNDOING || REDOING)){
             emit controller_DialogMessage(CRITICAL, "Importing", "Cannot Import or Paste into a Instance/Implementation", parent);
@@ -2725,6 +2726,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         emit controller_DialogMessage(CRITICAL, "Importing", "Cannot Import; Invalid GraphML document.", parent);
         return false;
     }
+    Node* topParent = parent;
+
 
     //Now we know we have no errors, so read Stream again.
     QXmlStreamReader xml(document);
@@ -2791,6 +2794,11 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 if(!linkID && data->getKeyName() == "sortOrder"){
                     delete data;
                     continue;
+                }
+
+
+                if((topParent == parent) && resetPosition && (data->getKeyName() == "x" || data->getKeyName() == "y")){
+                    data->setValue("-1");
                 }
 
                 //Attach the data to the current object.

@@ -718,7 +718,8 @@ void NodeView::selectAndCenter(GraphMLItem *item, QString ID)
         // make sure that the parent of nodeItem (if there is one) is expanded
         NodeItem* parentItem = nodeItem->getParentNodeItem();
         if (parentItem && !parentItem->isExpanded()) {
-            parentItem->expandItem(true);
+            //parentItem->setNodeExpanded(true);
+            //parentItem->setNodeExpanded(true);
         }
 
         // clear the selection, select the item and then center on it
@@ -840,10 +841,10 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         qCritical() << "Node is Null.";
     }
 
-
     Node* parentNode = node->getParentNode();
 
     QString nodeKind = node->getDataValue("kind");
+
     if(nonDrawnItemKinds.contains(nodeKind)){
         return;
     }
@@ -864,9 +865,41 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         return;
     }
 
+    //Expanded parent
+
+    if(!constructedFromImport){
+        if(parentNodeItem){
+            if(!parentNodeItem->isExpanded()){
+                parentNodeItem->setNodeExpanded(true);
+                //parentNodeItem->setNodeExpanded(true);
+            }
+        }
+    }
+
+
+    //Check for Pasted data, which will have x,y set to -1
+    //SHRINK SIZE.
+    QString xPos = node->getDataValue("x");
+    QString yPos = node->getDataValue("y");
+    bool resetSize = xPos == yPos && xPos == "-1";
+
+    //qreal multiplier = 1;
+    if(resetSize){
+        QPointF newPosition = parentNodeItem->getNextChildPos();
+        node->getData("x")->setValue(QString::number(newPosition.x()));
+        node->getData("y")->setValue(QString::number(newPosition.y()));
+    }
+
+
     NodeItem* nodeItem = new NodeItem(node, parentNodeItem, currentAspects, IS_SUB_VIEW);
+    //if(!constructedFromImport){
+    //    nodeItem->setNodeExpanded(true);
+    //}
+
+
     nodeItem->setGraphicsView(this);
     storeGraphMLItemInHash(nodeItem);
+
 
     //Connect the Generic Functionality.
     connectGraphMLItemToController(nodeItem, node);
@@ -1123,18 +1156,35 @@ void NodeView::fitSelectionInView()
 }
 
 
-void NodeView::setGraphMLItemAsSelected(GraphMLItem *item)
+void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
 {
     QString itemID = item->getGraphML()->getID();
 
-    if(!selectedIDs.contains(itemID)){
-        selectedIDs.append(itemID);
-        item->setSelected(true);
-        if(item->isNodeItem()){
-            NodeItem* nodeItem = (NodeItem*) item;
-            nodeSelected_signalUpdates(nodeItem->getNode());
+    if(setSelected){
+        if(!selectedIDs.contains(itemID)){
+            selectedIDs.append(itemID);
+            item->setSelected(true);
+            if(item->isNodeItem()){
+                NodeItem* nodeItem = (NodeItem*) item;
+                nodeSelected_signalUpdates(nodeItem->getNode());
+            }
+            emit view_SetAttributeModel(item->getAttributeTable());
         }
-        emit view_SetAttributeModel(item->getAttributeTable());
+    }else{
+        if(selectedIDs.contains(itemID)){
+            emit view_SetAttributeModel(0);
+            selectedIDs.removeAll(itemID);
+
+
+            if(selectedIDs.size() > 0){
+                GraphMLItem* item = getGraphMLItemFromHash(selectedIDs.last());
+                if(item){
+                    view_SetAttributeModel(item->getAttributeTable());
+                }
+            }
+            item->setSelected(false);
+        }
+
     }
 
 }
@@ -1283,6 +1333,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
         if(GUIItem){
             connect(GUIItem, SIGNAL(GraphMLItem_ClearSelection(bool)), this, SLOT(clearSelection(bool)));
             connect(GUIItem, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
+            connect(GUIItem, SIGNAL(GraphMLItem_RemoveSelected(GraphMLItem*)), this, SLOT(removeFromSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_MovedOutOfScene(GraphMLItem*)), this, SLOT(fitInSceneRect(GraphMLItem*)));
             connect(this, SIGNAL(view_AspectsChanged(QStringList)), GUIItem, SLOT(aspectsChanged(QStringList)));
@@ -2017,9 +2068,20 @@ void NodeView::appendToSelection(GraphMLItem *item)
     unsetItemsDescendants(item);
 
     //Set this item as Selected.
-    setGraphMLItemAsSelected(item);
+    setGraphMLItemSelected(item, true);
 
     //fitSelectionInView();
+}
+
+void NodeView::removeFromSelection(GraphMLItem *item)
+{
+    if(!isItemsAncestorSelected(item)){
+        return;
+    }
+    //Set this item as Selected.
+    setGraphMLItemSelected(item, false);
+
+
 }
 
 void NodeView::moveSelection(QPointF delta)

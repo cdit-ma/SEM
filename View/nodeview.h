@@ -155,6 +155,7 @@ public slots:
     void selectAll();
 
     void appendToSelection(GraphMLItem* item);
+    void removeFromSelection(GraphMLItem* item);
     void moveSelection(QPointF delta);
     void resizeSelection(QSizeF delta);
     void moveFinished();
@@ -223,7 +224,7 @@ private:
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
 
-    void setGraphMLItemAsSelected(GraphMLItem* item);
+    void setGraphMLItemSelected(GraphMLItem* item, bool setSelected);
 
     NewController* getController();
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);

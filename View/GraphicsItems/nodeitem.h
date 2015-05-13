@@ -36,12 +36,17 @@ public:
     NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW=false);
     ~NodeItem();
 
+
+    void setGridVisible(bool visible);
+
+
     NodeItem* getParentNodeItem();
 
     QList<EdgeItem*> getEdgeItems();
     void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
     QRectF minimumVisibleRect();
+    QRectF expandedVisibleRect();
     QRectF currentItemRect();
 
 
@@ -62,7 +67,7 @@ public:
     void setLocked(bool locked);
     bool isPainted();
     bool isAncestorSelected();
-    void setDrawGrid(bool value);
+
 
     void addChildNodeItem(NodeItem* child);
     void removeChildNodeItem(NodeItem* child);
@@ -92,8 +97,9 @@ public:
     void adjustPos(QPointF delta);
     void adjustSize(QSizeF delta);
 
-    void drawOutline(QRectF translateOutline);
-    void clearOutlines();
+    void addChildOutline(NodeItem* nodeItem, QPointF gridPoint);
+    void removeChildOutline(NodeItem* nodeItem);
+
 
     double getWidth();
     double getHeight();
@@ -102,7 +108,6 @@ public:
     double getChildHeight();
 
     QPointF getNextChildPos(bool currentlySorting=false);
-    void itterateNextSpace();
 
     Node* getNode();
     QString getNodeKind();
@@ -134,8 +139,8 @@ signals:
     void NodeItem_showLockMenu(NodeItem* nodeItem);
     void NodeItem_lockMenuClosed(NodeItem* nodeItem);
     //Node Edge Signals
-    void setEdgeVisibility(bool visible);
-    void setEdgeSelected(bool selected);
+    void setEdgesVisibility(bool visible);
+    void setEdgesSelected(bool selected);
 
     void centerViewAspects();
 
@@ -164,9 +169,10 @@ public slots:
     void aspectsChanged(QStringList aspects);
 
     void newSort();
+    void modelSort();
 
-
-    void expandItem(bool show);
+    //void expandNode(bool expand);
+    void setNodeExpanded(bool expanded);
 
     void updateModelPosition();
     void updateModelSize();
@@ -192,53 +198,62 @@ protected:
 
 
 private:
+    bool compareTo2Decimals(qreal num1, qreal num2);
     void updateModelData();
+
+
+    void resizeToOptimumSize();
     void setWidth(qreal width);
     void setHeight(qreal height);
     void setSize(qreal w, qreal h);
-    NodeItem* getChildNodeItemFromNode(Node* child);
-
-
-    void updateGridLines();
-
+    void setPos(qreal x, qreal y);
+    void setPos(const QPointF &pos);
+    void calculateGridlines();
     void setupAspect();
     void setupBrushes();
     void setupIcon();
     void setupLabel();
     void setupGraphMLConnections();
+    void setupLockMenu();
+    void setPaintObject(bool paint);
+    void updateGraphMLPosition();
+    void updateChildrenOnChange();
+    void retrieveGraphMLData();
+    void updateTextLabel(QString text=0);
+    void updateParent();
+    void updateParentModel();
 
+
+
+    QStringList getChildrenKind();
+    NodeItem* getChildNodeItemFromNode(Node* child);
     QPointF isOverGrid(const QPointF centerPosition);
 
 
 
-    void setPaintObject(bool paint);
-
-    void updateGraphMLPosition();
-
-    void updateChildrenOnChange();
-    void retrieveGraphMLData();
-
-    void updateTextLabel(QString text=0);
-
-    bool expanded;
-    bool permanentlyCentralized;
 
 
-    QStringList getChildrenKind();
+
 
     double getCornerRadius();
     double getChildCornerRadius();
     double getMaxLabelWidth();
-
-    QColor invertColor(QColor oldColor);
-
     double getItemMargin() const;
     double getChildItemMargin();// const;
 
-    void setPos(qreal x, qreal y);
-    void setPos(const QPointF &pos);
+    QSizeF getModelSize();
+    QPointF getModelPosition();
+    QSizeF getCurrentSize();
+    QColor invertColor(QColor oldColor);
 
- 	 	void setupLockMenu();
+
+
+    bool drawGridlines();
+
+
+
+
+
 
 
     QMenu* lockMenu;
@@ -246,7 +261,7 @@ private:
     QWidgetAction* lockSize;
     QWidgetAction* lockLabel;
     QWidgetAction* lockSortOrder;
-    bool isAlreadySorted;
+
 
     NodeItem* parentNodeItem;
     QStringList viewAspects;
@@ -257,84 +272,87 @@ private:
 
     QList<EdgeItem*> connections;
 
-    void updateParent();
-    bool nodeSelected;
-    bool nodeResizing;
-    bool isNodePressed;
-    bool drawGrid;
-    bool inSubView;
+
     QGraphicsView* parentView;
 
-    int X_GRID_POS;
-    int Y_GRID_POS;
-
     QString nodeKind;
+    QString minimumHeightStr;
     QString fileID;
+
+    bool isNodeExpanded;
+    bool isNodePressed;
+    bool isNodeSelected;
+    bool isGridVisible;
+    bool isInSubView;
+    bool isNodeCentralized;
+    bool isNodeSorted;
+
+    bool isNodeOnGrid;
+
+    bool hasSelectionMoved;
+    bool hasSelectionResized;
+
+    bool GRIDLINES_ON;
+
+
+
+
+    bool hidden;
+    bool hasDefinition;
+
+    bool LOCKED_POSITION;
+    bool PAINT_OBJECT;
+
+
+
+
+
 
     NodeItem::RESIZE_TYPE currentResizeMode;
 
     QList<QRectF> outlines;
+    QHash<QString, QRectF> outlineMap;
+
     //Current Width/Height
     double width;
     double height;
-
-    //double initialWidth;
-    //double initialHeight;
 
     double minimumHeight;
     double minimumWidth;
 
     double expandedHeight;
     double expandedWidth;
-    //double prevWidth;
-    //double prevHeight;
-
-    QPointF nextChildPosition;
 
     QPointF previousScenePosition;
-    //QPointF initialScenePressPosition;
-    bool hasSelectionMoved;
-    bool hasSelectionResized;
+
+
 
 
     QVector<QLineF> xGridLines;
     QVector<QLineF> yGridLines;
-    bool GRIDLINES_VISIBLE;
+
 
     QList<NodeItem*> childNodeItems;
 
     //Used to store the Color/Brush/Pen for the selected Style.
     QColor selectedColor;
     QColor color;
+
     QBrush selectedBrush;
-    QRectF newRect;
     QBrush brush;
     QPen pen;
     QPen selectedPen;
 
-    int nextX;
-    int nextY;
 
-    bool inAspect;
-    bool hidden;
-    bool onGrid;
-    bool hasDefinition;
-    bool firstReposition;
 
-    bool LOCKED_POSITION;
-    bool PAINT_OBJECT;
 
-    int depth;
+
 
     QRectF currentSceneRect;
 
-    QPixmap pixmap;
-    QString stringLabel;
 
     EditableTextItem* textItem;
     NodeView* view;
-    // GraphMLItem interface
-
 };
 
 #endif // NODEITEM_H

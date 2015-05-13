@@ -2148,7 +2148,7 @@ void MedeaWindow::updateDataTable()
         dataTable->resize(dataTable->width(), newHeight);
     }
 
-    dataTable->repaint();
+    //dataTable->repaint();
     firstTableUpdate = false;
 
     int w = dataTable->width();

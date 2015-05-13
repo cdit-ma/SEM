@@ -61,11 +61,6 @@ void EditableTextItem::setEditMode(bool editMode)
         //Get the current Value of the TextItem (Should be Non-Truncated value)
         QString currentValue = toPlainText();
 
-        qCritical() << "Previous Full Value: " << currentFullValue;
-        qCritical() << "Current Value: " << currentValue;
-        ////Check if the value is different to the previous fullValue.
-        ///
-        /// q
         if(currentFullValue != currentValue){
             textUpdated(currentValue);
         }else{
@@ -148,7 +143,7 @@ QString EditableTextItem::getTruncatedText(const QString text)
 
 
     //Allow for Margins at high zoom levels
-    qreal availableWidth = (.8 * textWidth) - 5;
+    qreal availableWidth = (textWidth) - 5;
 
     while(newText.size() >= 3){
         qreal truncWidth = fm.width(newText);

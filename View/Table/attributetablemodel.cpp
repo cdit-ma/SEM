@@ -94,10 +94,16 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
     // center align the Values column
     if (role == Qt::TextAlignmentRole) {
         switch(index.column()){
+
         case 1:
             return Qt::AlignLeft | Qt::AlignVCenter;
         case 2:{
-            return Qt::AlignCenter;
+            if(popupMultiLine(index)) {
+                return Qt::AlignLeft | Qt::AlignTop;
+            }else{
+                return Qt::AlignCenter;
+
+            }
 
             /*GraphMLData* data = attachedData.at(index.row());
             if(data->getKey()->isNumber()){
@@ -126,7 +132,7 @@ if (role == Qt::DecorationRole) {
         switch(index.column()){
         case 2:
             if(popupMultiLine(index)) {
-                QImage* image = new QImage(":/Resources/Icons/lock.png");
+                QImage* image = new QImage(":/Resources/Icons/popup.png");
                 QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
                 QPixmap pixmap(QPixmap::fromImage(scaledImage));
                 return pixmap;
