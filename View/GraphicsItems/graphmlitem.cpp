@@ -1,6 +1,6 @@
 #include "graphmlitem.h"
 #include "../../Model/graphml.h"
-#include "../table/attributetablemodel.h"
+#include "../Table/attributetablemodel.h"
 #include <QObject>
 #include <QDebug>
 

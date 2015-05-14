@@ -19,7 +19,7 @@
 
 #include "../../Model/node.h"
 #include "../../Model/graphmldata.h"
-#include "../table/attributetablemodel.h"
+#include "../Table/attributetablemodel.h"
 #include "graphmlitem.h"
 #include "editabletextitem.h"
 

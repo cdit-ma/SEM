@@ -1,7 +1,7 @@
 #include "nodeview.h"
 #include "../Controller/controller.h"
-#include "toolbar/toolbarwidget.h"
-#include "dock/docktogglebutton.h"
+#include "Toolbar/toolbarwidget.h"
+#include "Dock/docktogglebutton.h"
 #include <limits>
 
 #include <QGraphicsScene>

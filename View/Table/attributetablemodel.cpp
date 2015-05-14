@@ -96,12 +96,12 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
         switch(index.column()){
 
         case 1:
-            return Qt::AlignLeft | Qt::AlignVCenter;
+            return QVariant(Qt::AlignLeft | Qt::AlignVCenter);
         case 2:{
             if(popupMultiLine(index)) {
-                return Qt::AlignLeft | Qt::AlignTop;
+                return QVariant(Qt::AlignLeft | Qt::AlignTop);
             }else{
-                return Qt::AlignCenter;
+                return QVariant(Qt::AlignCenter);
 
             }
         }

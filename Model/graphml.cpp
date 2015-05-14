@@ -1,6 +1,6 @@
 #include "graphml.h"
 #include "graphmldata.h"
-#include <qdebug>
+#include <QDebug>
 int GraphML::_Uid = 0;
 
 GraphML::GraphML(GraphML::KIND kind, QString name):QObject(0)

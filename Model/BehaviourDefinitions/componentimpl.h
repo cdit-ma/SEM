@@ -2,7 +2,7 @@
 #define COMPONENTBEHAVIOUR_H
 #include "../node.h"
 
-#include <Qstring>
+#include <QString>
 
 class Component;
 class ComponentImpl: public Node

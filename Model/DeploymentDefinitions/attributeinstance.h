@@ -2,7 +2,7 @@
 #define ATTRIBUTEINSTANCE_H
 #include "../node.h"
 
-#include <Qstring>
+#include <QString>
 
 class Attribute;
 class AttributeImpl;

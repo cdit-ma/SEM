@@ -1,7 +1,7 @@
 #include "assemblydefinitions.h"
 #include "componentassembly.h"
 #include "managementcomponent.h"
-#include <qdebug>
+#include <QDebug>
 AssemblyDefinitions::AssemblyDefinitions():Node()
 {
 }
