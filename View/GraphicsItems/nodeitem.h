@@ -74,7 +74,10 @@ public:
     bool intersectsRectangle(QRectF rect);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-    bool hasVisibleChildren();
+    bool hasVisibleChildren();\
+
+
+    bool modelCirclePressed(QPointF mousePosition);
 
     bool labelPressed(QPointF mousePosition);
     bool iconPressed(QPointF mousePosition);
@@ -339,6 +342,7 @@ private:
     QPen selectedPen;
 
 
+    QPointF modelCenterPoint;
 
 
 

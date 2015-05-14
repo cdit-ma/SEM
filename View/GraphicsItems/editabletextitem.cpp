@@ -14,6 +14,7 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     currentFullValue = "";
     currentTruncValue = "";
     maxLength = maximumLength;
+    centerJustified = false;
 
     inEditingMode = false;
     setFlag(ItemIsFocusable, false);
@@ -46,7 +47,11 @@ void EditableTextItem::setEditMode(bool editMode)
         mouseDoubleClickEvent(fakePress);
 
         //Update the textItem to have the full value instead of the truncated value.
-        QGraphicsTextItem::setPlainText(currentFullValue);
+        if(centerJustified){
+            QGraphicsTextItem::setHtml("<center>" + currentFullValue + "</center>");
+        }else{
+            QGraphicsTextItem::setPlainText(currentFullValue);
+        }
 
         //Select the entire TextItem field
         QTextCursor c = textCursor();
@@ -64,8 +69,12 @@ void EditableTextItem::setEditMode(bool editMode)
         if(currentFullValue != currentValue){
             textUpdated(currentValue);
         }else{
-            //Set the text as the current Truncated text.
-            QGraphicsTextItem::setPlainText(currentTruncValue);
+            if(centerJustified){
+                QGraphicsTextItem::setHtml("<center>" + currentTruncValue + "</center>");
+            }else{
+                 //Set the text as the current Truncated text.
+                QGraphicsTextItem::setPlainText(currentTruncValue);
+            }
         }
 
         //Clear Selection.
@@ -84,7 +93,11 @@ void EditableTextItem::setPlainText(const QString &text)
         currentFullValue = text;
         currentTruncValue = getTruncatedText(text);
     }
-    QGraphicsTextItem::setPlainText(currentTruncValue);
+    if(centerJustified){
+        QGraphicsTextItem::setHtml("<center>" + currentTruncValue + "</center>");
+    }else{
+        QGraphicsTextItem::setPlainText(currentTruncValue);
+    }
 }
 
 void EditableTextItem::setTextWidth(qreal width)
@@ -102,6 +115,12 @@ void EditableTextItem::setTextWidth(qreal width)
     }else{
         setVisible(false);
     }
+}
+
+void EditableTextItem::setCenterJustified()
+{
+    centerJustified = true;
+
 }
 
 

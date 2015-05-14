@@ -6,7 +6,7 @@ class File : public Node
 {
     Q_OBJECT
 public:
-    File(QString name ="");
+    File(QString name = "");
     ~File();
 
     // GraphML interface
@@ -17,6 +17,7 @@ public:
 public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
+
 };
 
 #endif // FILE_H

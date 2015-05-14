@@ -2797,7 +2797,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 }
 
 
-                if((topParent == parent) && resetPosition && (data->getKeyName() == "x" || data->getKeyName() == "y")){
+                if((topParent == parent) && /*resetPosition &&*/ (data->getKeyName() == "x" || data->getKeyName() == "y")){
                     data->setValue("-1");
                 }
 

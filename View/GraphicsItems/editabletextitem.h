@@ -11,6 +11,7 @@ public:
     void setEditMode(bool editMode = true);
     void setPlainText(const QString &text);
     void setTextWidth(qreal width);
+    void setCenterJustified();
 
 
 signals:
@@ -28,7 +29,7 @@ protected:
 private:
     QString getTruncatedText(const QString text );
     QString getStringValue();
-
+    bool centerJustified;
     QString currentFullValue;
     QString currentTruncValue;
     bool inEditingMode;

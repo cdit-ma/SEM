@@ -274,6 +274,11 @@ void NodeItem::childPosUpdated()
     if(minSize.height() > modelHeight){
         setHeight(minSize.height());
     }
+
+    if(nodeKind == "Model"){
+        //Sort after any model changes!
+        newSort();
+    }
 }
 
 
@@ -341,7 +346,7 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    if(PAINT_OBJECT == PAINT_OBJECT){
+    if(PAINT_OBJECT){
         QPen Pen;
         QBrush Brush;
 
@@ -367,9 +372,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         rectangle.setHeight(rectangle.height() - Pen.width());
         rectangle.translate(Pen.width()/2, Pen.width()/2);
 
-        if(!hasVisibleChildren() && !nodeKind.endsWith("Definitions")){
-            Brush.setColor(Qt::transparent);
-        }
+
 
         //If the Node is over a Gridline, set the background Brush to transluscent.
         if(isNodeOnGrid && hasSelectionMoved){
@@ -378,6 +381,10 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 brushColor.setAlpha(120);
             }
             Brush.setColor(brushColor);
+        }
+
+        if(!hasVisibleChildren() && !nodeKind.endsWith("Definitions")){
+            Brush.setColor(Qt::transparent);
         }
 
         Node* node = getNode();
@@ -405,11 +412,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             painter->drawLine(line);
         }
 
-
-        //painter->drawRect(getMinimumChildRect());
-        //painter->drawRect(minimumVisibleRect());
-        //painter->drawRect(gridRect());;
-
         //New Code
         if(drawGridlines()){
             painter->setClipping(false);
@@ -429,25 +431,102 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         //Draw the Outlines
-        foreach(QRectF rect, outlineMap){
-            painter->setBrush(Qt::NoBrush);
+        if(this->isExpanded()){
+            foreach(QRectF rect, outlineMap){
 
-            QPen linePen;
-            linePen.setColor(Qt::white);
-            linePen.setStyle(Qt::DotLine);
+                painter->setBrush(Qt::NoBrush);
 
+                QPen linePen;
+                linePen.setColor(Qt::white);
+                linePen.setStyle(Qt::DotLine);
+
+                if(parentView){
+                    qreal scaleX = parentView->transform().m11();
+                    qreal penWidth = 5.0/scaleX;
+                    penWidth = qMax(penWidth, 1.0);
+                    linePen.setWidth(penWidth);
+                }
+
+                painter->setPen(linePen);
+
+                double radius = getChildCornerRadius();
+                painter->drawRoundedRect(rect, radius, radius);
+            }
+        }
+    }
+
+    if(nodeKind == "Model" && !modelCenterPoint.isNull()){
+
+
+
+
+        double radius = getItemMargin();
+        QRect clippingCircle(QPoint(modelCenterPoint.toPoint() - QPoint(radius,radius)), QPoint(modelCenterPoint.toPoint() + QPoint(radius,radius)));
+
+        QBrush circleBrush;
+        painter->setClipping(true);
+        QRegion clipCircle(clippingCircle, QRegion::Ellipse);
+        painter->setClipRegion(clipCircle);
+
+        circleBrush.setColor(Qt::white);
+        circleBrush.setStyle(Qt::SolidPattern);
+        painter->setBrush(circleBrush);
+
+
+        double middleButton = radius / 2;
+
+        QRectF tLR(modelCenterPoint - QPointF(radius,radius), modelCenterPoint);
+        QRectF tRR(modelCenterPoint - QPointF(0,radius), modelCenterPoint + QPointF(radius,0));
+        QRectF bLR(modelCenterPoint - QPointF(radius,0), modelCenterPoint + QPointF(0,radius));
+        QRectF bRR(modelCenterPoint,  modelCenterPoint + QPointF(radius,radius));
+
+
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(QColor(110,210,210));
+        painter->drawRect(tLR);
+        painter->setBrush(QColor(254,184,126));
+        painter->drawRect(tRR);
+        painter->setBrush(QColor(255,160,160));
+        painter->drawRect(bLR);
+        painter->setBrush(QColor(110,170,220));
+        painter->drawRect(bRR);
+
+
+
+        circleBrush.setColor(Qt::gray);
+
+        painter->setBrush(circleBrush);
+
+
+        if(isNodeSelected){
+            QPen pen = selectedPen;
             if(parentView){
                 qreal scaleX = parentView->transform().m11();
                 qreal penWidth = 5.0/scaleX;
                 penWidth = qMax(penWidth, 1.0);
-                linePen.setWidth(penWidth);
+                pen.setWidth(penWidth);
+                painter->setPen(pen);
             }
-
-            painter->setPen(linePen);
-
-            double radius = getChildCornerRadius();
-            painter->drawRoundedRect(rect, radius, radius);
         }
+
+
+        painter->drawEllipse(modelCenterPoint, middleButton, middleButton);
+
+
+
+        if(textItem){
+            painter->setPen(Qt::NoPen);
+            QRectF textRect = textItem->boundingRect();
+            textRect.translate(textItem->pos());
+            painter->drawRect(textRect);
+        }
+
+
+
+
+
+
+
     }
 }
 
@@ -460,6 +539,20 @@ bool NodeItem::hasVisibleChildren()
         }
     }
     return false;
+}
+
+bool NodeItem::modelCirclePressed(QPointF mousePosition)
+{
+    if(modelCenterPoint.isNull()){
+        return false;
+    }
+
+    QLineF distance = QLineF(mousePosition, modelCenterPoint);
+    if(distance.length() < getItemMargin()/2){
+        return true;
+    }
+    return false;
+
 }
 
 
@@ -1048,50 +1141,43 @@ void NodeItem::modelSort()
 
     //Move top Left Item to top of Model
     topLeft->setPos(topLeftPos);
-    QPointF centerPoint = topLeftPos + topLeft->boundingRect().bottomRight() + gapSize;
+    modelCenterPoint = topLeftPos + topLeft->boundingRect().bottomRight() + gapSize;
+
+    //UPDATE TEXT
+    if(textItem){
+        qreal labelX = modelCenterPoint.x() - (textItem->boundingRect().width()/2);
+        qreal labelY = modelCenterPoint.y() - (textItem->boundingRect().height()/2);
+
+        textItem->setPos(labelX, labelY);
+    }
+
+
+
+
 
     //Move Top Right
-    QPointF topRightPos = centerPoint + QPointF(gapSize.x(), - gapSize.y() - topRight->boundingRect().height());
+    QPointF topRightPos = modelCenterPoint + QPointF(gapSize.x(), - gapSize.y() - topRight->boundingRect().height());
     topRight->setPos(topRightPos);
 
     //Move Top Right
-    QPointF botLeftPos = centerPoint + QPointF(-gapSize.x() - bottomLeft->boundingRect().width(),gapSize.y());
+    QPointF botLeftPos = modelCenterPoint + QPointF(-gapSize.x() - bottomLeft->boundingRect().width(),gapSize.y());
     bottomLeft->setPos(botLeftPos);
 
 
     //Move Bottom Right
-    QPointF botRightPos = centerPoint + gapSize;
+    QPointF botRightPos = modelCenterPoint + gapSize;
     bottomRight->setPos(botRightPos);
 
-    foreach(NodeItem* child, childNodeItems){
-        child->updateModelPosition();
-    }
-
+    //Update the model size to contain the new size.
     resizeToOptimumSize();
 }
-
-/*
-void NodeItem::expandNode(bool expand)
-{
-    //setNodeExpanded(expand);
-
-    if(isExpanded()){
-        //Expanding
-        setWidth(expandedWidth);
-        setHeight(expandedHeight);
-    } else {
-        //Contracting
-        qCritical() << minimumWidth;
-        qCritical() << minimumHeight;
-        setWidth(minimumWidth);
-        setHeight(minimumHeight);
-    }
-}*/
 
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(!PAINT_OBJECT){
+
+
+    if(!PAINT_OBJECT && nodeKind != "Model"){
         // clear selection when pressing on a !PAINTED item
         //GraphMLItem_ClearSelection(false);
         GraphMLItem_ClearSelection(true); // need to update table!
@@ -1101,16 +1187,10 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     switch (event->button()) {
 
     case Qt::MiddleButton:{
-        if(!PAINT_OBJECT){
-            return;
-        }
         break;
     }
     case Qt::LeftButton:{
-        // unselect any selected node item
-        // when the model is pressed
-        if(!PAINT_OBJECT){
-            //emit clearSelection();
+        if(nodeKind == "Model" && !modelCirclePressed(event->pos())){
             return;
         }
 
@@ -1119,13 +1199,12 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             emit NodeItem_showLockMenu(this);
             return;
         }
+
         previousScenePosition = event->scenePos();
         hasSelectionMoved = false;
         isNodePressed = true;
 
-        if(isSelected()){
 
-        }
         if(!isSelected()){
             if (event->modifiers().testFlag(Qt::ControlModifier)){
                 //CONTROL PRESSED
@@ -1140,12 +1219,10 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 GraphMLItem_RemoveSelected(this);
             }
         }
-
-
         break;
     }
     case Qt::RightButton:{
-        if(!PAINT_OBJECT){
+        if(nodeKind == "Model" && !modelCirclePressed(event->pos())){
             return;
         }
 
@@ -1156,12 +1233,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             }
             GraphMLItem_AppendSelected(this);
         }
-
-        //emit setSelection(this);
-
-        //Select this node, and construct a child node.
-        //emit triggerSelected(this);
-        //emit triggerSelected(getGraphML());
         break;
     }
 
@@ -1180,7 +1251,7 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     case Qt::LeftButton:
 
         // added this to center aspects when double-clicking on !PAINTED items
-        if(!PAINT_OBJECT){
+        if(!PAINT_OBJECT && nodeKind != "Model"){
             GraphMLItem_CenterAspects();
             return;
         }
@@ -1195,24 +1266,21 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
         }
 
         if(iconPressed(event->pos())){
-
             if(isExpanded()){
                 GraphMLItem_TriggerAction("Contracted Node Item");
             }else{
                 GraphMLItem_TriggerAction("Expanded Node Item");
             }
-            //bool setExpanded = !isExpanded();
 
             setNodeExpanded(!isExpanded());
-            //expandedNodeExt(!isExpanded());
             updateModelSize();
-            //updateParentModel();
 
             break;
         }
         if(hasVisibleChildren() && resizeEntered(event->pos()) == RESIZE){
             GraphMLItem_TriggerAction("Optimizes Size of NodeItem");
             resizeToOptimumSize();
+            updateModelSize();
             break;
         }
 
@@ -1226,7 +1294,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     switch (event->button()) {
     case Qt::LeftButton:{
-        if(!PAINT_OBJECT){
+        if(!PAINT_OBJECT && nodeKind != "Model"){
             GraphMLItem_ClearSelection(true);
             return;
         }
@@ -1263,17 +1331,18 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         break;
     }
     case Qt::MiddleButton:{
-        if (PAINT_OBJECT) {
-            if (event->modifiers().testFlag(Qt::ControlModifier)) {
-                GraphMLItem_TriggerAction("Sorting Node");
-                newSort();
-                //sort();
-            } else {
-                GraphMLItem_SetCentered(this);
-            }
-        } else {
+        if(!PAINT_OBJECT && nodeKind != "Model"){
             emit centerViewAspects();
+            return;
         }
+
+        if (event->modifiers().testFlag(Qt::ControlModifier)) {
+            GraphMLItem_TriggerAction("Sorting Node");
+            newSort();
+        } else {
+            GraphMLItem_SetCentered(this);
+        }
+
         break;
     }
 
@@ -1391,7 +1460,7 @@ void NodeItem::resizeToOptimumSize()
 {
     setWidth(getMinimumChildRect().width());
     setHeight(getMinimumChildRect().height());
-    updateModelSize();
+    //updateModelSize();
 }
 
 NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
@@ -1548,7 +1617,11 @@ void NodeItem::updateTextLabel(QString newLabel)
         return;
     }
 
-    textItem->setTextWidth(width);
+    if(nodeKind != "Model"){
+        textItem->setTextWidth(width);
+    }else{
+        textItem->setTextWidth(getItemMargin() * 2);
+    }
 
     if(newLabel != ""){
         //qCritical() << newLabel;
@@ -1791,7 +1864,10 @@ void NodeItem::updateParent()
 {
     if(parentNodeItem){
         parentNodeItem->childPosUpdated();
+    }else{
+
     }
+
 }
 
 void NodeItem::updateParentModel()
@@ -1909,12 +1985,16 @@ void NodeItem::setupIcon()
 void NodeItem::setupLabel()
 {
     // this updates this item's label
-    if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
+    if (nodeKind.endsWith("Definitions")) {
         return;
     }
 
 
     float fontSize = qMax((LABEL_RATIO / 2) * minimumHeight, 1.0);
+    if(nodeKind == "Model"){
+         fontSize = qMax(getItemMargin() * LABEL_RATIO, 1.0);
+    }
+
     QFont font("Arial", fontSize);
 
     textItem = new EditableTextItem(this);
@@ -1923,6 +2003,12 @@ void NodeItem::setupLabel()
     textItem->setToolTip("Double Click to Edit Label");
 
     textItem->setTextWidth(minimumWidth);
+
+    if(nodeKind == "Model"){
+        textItem->setCenterJustified();
+        textItem->setTextWidth(getItemMargin() * 2);
+
+    }
 
     qreal labelX = (minimumVisibleRect().width() - textItem->boundingRect().width()) /2;  
     qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);
@@ -2429,6 +2515,7 @@ void NodeItem::updateModelSize()
         //Update the gridPoint.
         QPointF gridPoint = isOverGrid(centerPos());
     }
+
 
     //Make sure the parentModel is updated.
     updateParentModel();
