@@ -885,16 +885,16 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     //qreal multiplier = 1;
     if(resetSize){
-        QPointF newPosition = parentNodeItem->getNextChildPos();
+        QPointF newPosition;
+        if(parentNodeItem){
+            newPosition = parentNodeItem->getNextChildPos();
+        }
         node->getData("x")->setValue(QString::number(newPosition.x()));
         node->getData("y")->setValue(QString::number(newPosition.y()));
     }
 
 
     NodeItem* nodeItem = new NodeItem(node, parentNodeItem, currentAspects, IS_SUB_VIEW);
-    //if(!constructedFromImport){
-    //    nodeItem->setNodeExpanded(true);
-    //}
 
 
     nodeItem->setGraphicsView(this);

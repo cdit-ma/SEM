@@ -943,9 +943,9 @@ void NodeItem::setSelected(bool selected)
         //Bring the item to the front.
         if(isNodeSelected){
             if(parentNodeItem){
-                parentNodeItem->setZValue(1000);
+                parentNodeItem->setZValue(1);
             }
-            setZValue(1000);
+            setZValue(1);
         }else{
             setZValue(0);
         }

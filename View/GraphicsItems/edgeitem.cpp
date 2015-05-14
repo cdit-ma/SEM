@@ -177,6 +177,7 @@ void EdgeItem::setSelected(bool selected)
 {
     IS_SELECTED = selected;
 
+
     foreach(QGraphicsLineItem* line, lineItems){
         if(selected){
             line->setPen(selectedPen);
@@ -375,6 +376,8 @@ void EdgeItem::updateLines()
     //The Top Left of the Circle will be the center point.
     NodeItem* start = source;
     NodeItem* finish = destination;
+
+    setZValue(qMax(start->zValue(), finish->zValue()) +1);
 
     //Set start to the top most visible parent.
     while(start && !(start->isVisible() && start->isPainted())){
