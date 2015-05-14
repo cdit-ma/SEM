@@ -104,29 +104,10 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
                 return Qt::AlignCenter;
 
             }
-
-            /*GraphMLData* data = attachedData.at(index.row());
-            if(data->getKey()->isNumber()){
-                return Qt::AlignRight | Qt::AlignVCenter;
-            }else{
-                return Qt::AlignLeft | Qt::AlignVCenter;
-            }*/
-
-
         }
         }
     }
 
-/*
-    if (role == Qt::FontRole){
-        switch(index.column()){
-        case 1:
-            QFont bolded = QFont();
-            bolded.setBold(true);
-        return QVariant::fromValue(bolded);
-        }
-
-    }*/
 if (role == Qt::DecorationRole) {
         GraphMLData* data = attachedData.at(index.row());
         switch(index.column()){

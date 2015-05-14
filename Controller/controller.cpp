@@ -756,6 +756,13 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger" << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber" << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
         attribute->appendValidValues(validValues, keysValues);
     }
+    if(name == "middleware"){
+        QStringList validValues;
+        QStringList keysValues;
+        keysValues << "Model";
+        validValues << "tao" << "rtidds" << "opensplice" << "coredx" << "tcpip";
+        attribute->appendValidValues(validValues, keysValues);
+    }
 
     if(type == "boolean"){
         QStringList validValues;
