@@ -1301,13 +1301,20 @@ void MedeaWindow::on_actionValidate_triggered()
 
     // transform .graphml to report.xml
     // The MEDEA.xsl transform is produced by Schematron/iso_svrl_for_xslt1.xsl
-    QString program = "Xalan";
+    QString program = "java";
     QStringList arguments;
     QString inputFile = "tmp.graphml";
     QString outputFile = "report.xml";
-    arguments << "-o" << outputFile
-              << inputFile
-              << "MEDEA.xsl";
+    arguments << "-jar" << "xalan.jar"
+              << "-in" << inputFile
+              << "-xsl" << "MEDEA.xsl"
+              << "-out" << outputFile;
+
+// alternative if using xalan-c
+//  QString program =  "Xalan";
+//  arguments << "-o" << outputFile
+//            << inputFile
+//            << "MEDEA.xsl";
 
     QProcess *myProcess = new QProcess(this);
     myProcess->setWorkingDirectory( scriptPath );

@@ -16,10 +16,10 @@ TARGET = MEDEA
 TEMPLATE = app
 
 win32{
-LIBS += -lpsapi
+    LIBS += -lpsapi
 }
-#DEFINES += DEBUG_MODE
 
+#DEFINES += DEBUG_MODE
 
 HEADERS += \
     Controller/controller.h \
@@ -171,7 +171,15 @@ OTHER_FILES += \
     Resources/Scripts/jenkins-cli.jar \
     Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy \
     settings.ini \
-    Resources/Scripts/MEDEA.xsl
+    Resources/Scripts/MEDEA.xsl \
+    Resources/Scripts/serializer.jar \
+    Resources/Scripts/xalan.jar \
+    Resources/Scripts/xercesImpl.jar \
+    Resources/Scripts/xml-apis.jar \
+    Resources/Scripts/serializer.jar \
+    Resources/Scripts/xalan.jar \
+    Resources/Scripts/xercesImpl.jar \
+    Resources/Scripts/xml-apis.jar
 
 
 #Define $$OUTPUT_DIR
@@ -180,10 +188,16 @@ win32{
     CONFIG(release, debug|release) {
         OUTPUT_DIR = $$OUT_PWD/release/
     }
+
     CONFIG(debug, debug|release) {
         OUTPUT_DIR = $$OUT_PWD/debug/
     }
 }
+
+linux-g++{
+    OUTPUT_DIR = $$OUT_PWD/
+}
+
 mac{
     OUTPUT_DIR = Contents/MacOS/
 }
@@ -201,17 +215,38 @@ SETTINGSFILE.path = $$OUTPUT_DIR/
 XSLFILE.files += Resources/Scripts/MEDEA.xsl
 XSLFILE.path = $$OUTPUT_DIR/Resources/Scripts/
 
-#Copy files
-win32{
+XALANJAR.files += Resources/Scripts/xalan.jar
+XALANJAR.path = $$OUTPUT_DIR/Resources/Scripts/
+
+SERIALIZERJAR.files += Resources/Scripts/serializer.jar
+SERIALIZERJAR.path = $$OUTPUT_DIR/Resources/Scripts/
+
+XERCESIMPLJAR.files += Resources/Scripts/xercesImpl.jar
+XERCESIMPLJAR.path = $$OUTPUT_DIR/Resources/Scripts/
+
+XMLAPISJAR.files += Resources/Scripts/xml-apis.jar
+XMLAPISJAR.path = $$OUTPUT_DIR/Resources/Scripts/
+
+#Copy files for Windows and Linux
+linux-g++ | win32{
     INSTALLS += JENKINSCLIJAR
     INSTALLS += JENKINSGROOVY
     INSTALLS += SETTINGSFILE
     INSTALLS += XSLFILE
+    INSTALLS += XALANJAR
+    INSTALLS += SERIALIZERJAR
+    INSTALLS += XERCESIMPLJAR
+    INSTALLS += XMLAPISJAR
 }
 
+#Copy files for MacOS
 mac{
     QMAKE_BUNDLE_DATA += JENKINSCLIJAR
     QMAKE_BUNDLE_DATA += JENKINSGROOVY
     QMAKE_BUNDLE_DATA += SETTINGSFILE
     QMAKE_BUNDLE_DATA += XSLFILE
+    QMAKE_BUNDLE_DATA += XALANJAR
+    QMAKE_BUNDLE_DATA += SERIALIZERJAR
+    QMAKE_BUNDLE_DATA += XERCESIMPLJAR
+    QMAKE_BUNDLE_DATA += XMLAPISJAR
 }
