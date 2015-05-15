@@ -143,6 +143,8 @@ signals:
 
     void NodeItem_showLockMenu(NodeItem* nodeItem);
     void NodeItem_lockMenuClosed(NodeItem* nodeItem);
+
+
     //Node Edge Signals
     void setEdgesVisibility(bool visible);
     void setEdgesSelected(bool selected);
@@ -156,7 +158,6 @@ signals:
     void recentralizeAfterChange(GraphML* item);
 
     void nodeItemMoved();
-    void itemMovedOutOfScene(NodeItem* item);
 
 
 public slots:
@@ -306,6 +307,9 @@ private:
 
     bool LOCKED_POSITION;
     bool PAINT_OBJECT;
+
+    bool isNodeMoving;
+
 
 
 

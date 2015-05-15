@@ -28,6 +28,7 @@
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 #define MIN_ZOOM 0.01
 #define MAX_ZOOM 1.5
+#define MAX_ZOOM_RATIO 50
 
 #define VIEW_PADDING 1.1
 
@@ -87,8 +88,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     allAspects << "Definitions";
     allAspects << "Workload";
 
-    //defaultAspects << "Definitions";
-    defaultAspects << "Assembly";
+    defaultAspects << "Definitions";
+    //defaultAspects << "Assembly";
 
     nonDrawnItemKinds << "DeploymentDefinitions";
 
@@ -162,51 +163,12 @@ QRectF NodeView::getVisibleRect()
 
 
 /**
- * @brief NodeView::adjustSceneRect
- * This makes the necessary adjustments to the sceneRect to be able to center on rectToCenter.
- * @param rectToCenter
- */
-void NodeView::adjustSceneRect(QRectF rectToCenter)
-{
-    QRectF viewRect = getVisibleRect();
-    QRectF newRec = scene()->itemsBoundingRect();
-
-    qreal multiplier = (viewRect.height() / rectToCenter.height()) - 1;
-    qreal neededXGap = qAbs((viewRect.width() - (rectToCenter.width()*multiplier)) / 2);
-    qreal neededYGap = qAbs((viewRect.height() - (rectToCenter.height()*multiplier)) / 2);
-    qreal leftXGap = qAbs((rectToCenter.x() - sceneRect().x()) * multiplier);
-    qreal rightXGap = qAbs((sceneRect().x() + sceneRect().width() - (rectToCenter.x() + rectToCenter.width()))  * multiplier);
-    qreal topYGap = qAbs((rectToCenter.y() - sceneRect().y()) * multiplier);
-    qreal bottomYGap = qAbs(((sceneRect().y() + sceneRect().height()) - (rectToCenter.y() + rectToCenter.height())) * multiplier);
-
-    // check to make sure that there is enough space around the items boundingRect within
-    // the scene before centering it; if there isn't, add the needed space to the sceneRect
-    if (leftXGap < neededXGap && neededXGap > 0) {
-
-        newRec.setX(newRec.x()-neededXGap);
-        newRec.setWidth(newRec.width()+neededXGap);
-        setSceneRect(newRec);
-    } else if (rightXGap < neededXGap && neededXGap > 0 ) {
-        newRec.setWidth(newRec.width()+neededXGap);
-        setSceneRect(newRec);
-    }
-    if (topYGap < neededYGap && neededYGap > 0) {
-        newRec.setY(newRec.y()-neededYGap);
-        newRec.setHeight(newRec.height()+neededYGap);
-        setSceneRect(newRec);
-    } else if (bottomYGap < neededYGap && neededYGap > 0) {
-        newRec.setHeight(newRec.height()+neededYGap);
-        setSceneRect(newRec);
-    }
-}
-
-
-/**
  * @brief NodeView::centerRect
  * This centers the provided rectangle in the view.
  * @param rect
+ * @param extraspace
  */
-void NodeView::centerRect(QRectF rect, double extraspace)
+void NodeView::centerRect(QRectF rect, double extraspace, double desiredSize)
 {
     QPointF rectCenter = rect.center();
     double extraSpace = VIEW_PADDING;
@@ -217,15 +179,44 @@ void NodeView::centerRect(QRectF rect, double extraspace)
     }
 
     // add extra space to the visible itemsBoundingRect to create a margin in the view
-    rect.setWidth(rect.width()*extraSpace*extraSpace);
+    rect.setWidth(rect.width()*extraSpace);
     rect.setHeight(rect.height()*extraSpace);
 
-    // adjust the sceneRect to be able to center on rect, then fit and center rect in view
-    adjustSceneRect(rect);
-    fitInView(rect, Qt::KeepAspectRatio);
-    centerOn(rectCenter);
+    double sizeToCompare = qMax(rect.width(), rect.height());
+    double scaleIncrement = 1.01;
 
-    // update view center point
+    if (desiredSize == 0) {
+        if (rect.width() > rect.height()) {
+            desiredSize = viewport()->width();
+        } else {
+            desiredSize = viewport()->height();
+        }
+    }
+
+    //desiredSize = viewport()->height();
+
+    // scale the view until the desired size for the rect is reached
+    while ((sizeToCompare * transform().m11()) < desiredSize) {
+        scale(scaleIncrement, scaleIncrement);
+    }
+    while ((sizeToCompare * transform().m11()) > desiredSize) {
+        scale(1/scaleIncrement, 1/scaleIncrement);
+    }
+
+    // center the view on rect
+    centerViewOn(rectCenter);
+}
+
+
+/**
+ * @brief NodeView::centerViewOn
+ * @param rect
+ */
+void NodeView::centerViewOn(QPointF center)
+{
+    NodeItem* modelItem = getNodeItemFromNode(controller->getModel());
+    QPointF deltaPos = getVisibleRect().center() - center;
+    modelItem->adjustPos(deltaPos);
     updateViewCenterPoint();
 }
 
@@ -246,15 +237,6 @@ QList<NodeItem*> NodeView::getNodeItemsList()
     }
 
     return nodeItems;
-}
-
-
-/**
- * @brief NodeView::showAllViewAspects
- */
-void NodeView::showAllAspects()
-{
-    view_AspectsChanged(allAspects);
 }
 
 
@@ -494,7 +476,7 @@ void NodeView::sortEntireModel()
 void NodeView::sortNode(Node *node, Node* topMostNode)
 {
     if (!topMostNode) {
-        emit view_TriggerAction("View: Sorting Node");
+        triggerAction("View: Sorting Node");
         topMostNode = node;
     }
 
@@ -529,6 +511,13 @@ bool NodeView::viewportEvent(QEvent * e)
     return QGraphicsView::viewportEvent(e);
 }
 
+void NodeView::triggerAction(QString action)
+{
+    //qCritical() << "NodeView CenterPoint: " << centerPoint;
+    viewCenterPointStack.append(centerPoint);
+    view_TriggerAction(action);
+}
+
 void NodeView::minimapPan(QPointF delta)
 {
     qCritical() << "TRANSLATE";
@@ -555,7 +544,7 @@ void NodeView::centerItem(GraphMLItem *item)
         return;
     }
 
-    QRectF itemRect = ((QGraphicsItem*)item)->sceneBoundingRect();
+    QRectF itemRect = item->sceneBoundingRect();
     centerRect(itemRect);
 }
 
@@ -604,7 +593,7 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
     view_GUIAspectChanged(aspects);
 
     if (!IS_SUB_VIEW && AUTO_CENTER_ASPECTS && centerViewAspects) {
-        centerAspects();
+        fitToScreen();
     }
 
     // only need to clear the selection if any of the selected items is now not in aspect
@@ -621,59 +610,30 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
 /**
  * @brief NodeView::centerOnItem
  * This centers on the selected node and zooms in/out enough so that the node
- * is roughly one fifth of the set minimum window/view height.
+ * is roughly one fourth of the set minimum window/view height.
  */
 void NodeView::centerOnItem(GraphMLItem *item)
 {
-    NodeItem* itemToCenter = 0;
+    NodeItem* nodeItem = 0;
 
     if (item) {
-        itemToCenter = qobject_cast<NodeItem*>(item);
+        nodeItem = qobject_cast<NodeItem*>(item);
     } else {
-        itemToCenter = getSelectedNodeItem();
+        nodeItem = getSelectedNodeItem();
     }
 
-    if (itemToCenter) {
-
-        QRectF itemRect = itemToCenter->sceneBoundingRect();
+    if (nodeItem) {
 
         // if the selected node is a main container, just use centerItem()
         // we would only ever want to center and zoom into it
-        QString nodeKind = itemToCenter->getNodeKind();
+        QString nodeKind = nodeItem->getNodeKind();
         if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
-            centerItem(itemToCenter);
+            centerItem(nodeItem);
             return;
         }
 
-        // set the centralised height to be 1/5 of the minimum window height
-        double desiredHeight = this->minimumHeight() / 5;
-        double itemHeight = itemRect.height();
-        double scaleIncrement = 1.01;
-
-        /*
-        // set the desired height for the main containers to be the same as centerItem
-        QString nodeKind = itemToCenter->getNodeKind();
-        if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
-            desiredHeight = this->viewport()->height() / VIEW_PADDING;
-        }
-        */
-
-        // if the scaled height is less than the desired, increase scale by 0.01
-        while ((itemHeight * transform().m11()) < desiredHeight) {
-            scale(scaleIncrement, scaleIncrement);
-        }
-
-        // if the scaled height is more than the desired, decrease scale by 0.01
-        while ((itemHeight * transform().m11()) > desiredHeight) {
-            scale(1/scaleIncrement, 1/scaleIncrement);
-        }
-
-        // adjust the scene rect to make sure that the view can centralise on the item
-        adjustSceneRect(itemRect);
-        centerOn(itemRect.center());
-
-        // update view center point
-        updateViewCenterPoint();
+        // set the centralised height to be 1/4 of the minimum window height
+        centerRect(nodeItem->sceneBoundingRect(), 0, minimumHeight()/4);
     }
 }
 
@@ -737,32 +697,17 @@ void NodeView::selectAndCenter(GraphMLItem *item, QString ID)
  */
 void NodeView::showNodeItemLockMenu(NodeItem *nodeItem)
 {
-    //qDebug() << "NodeItem: " << nodeItem->getNode()->getDataValue("label");
-    //qDebug() << "prevLockedMenuOpened: " << prevLockMenuOpened;
-
     QMenu* menu = nodeItem->getLockMenu();
     if (menu) {
         if (menu == prevLockMenuOpened) {
             menu->close();
             prevLockMenuOpened = 0;
         } else {
-
-            /*
-            qDebug() << "nodeItem lock pos = " << nodeItem->getLockIconPos();
-            qDebug() << "mapToGlobal = " << menuPos;
-            qDebug() << "mapFromGlobal = " << mapFromGlobal(nodeItem->getLockIconPos());
-            qDebug() << "mapToParent = " << mapToParent(nodeItem->getLockIconPos());
-            qDebug() << "mapFromParent = " << mapFromParent(nodeItem->getLockIconPos());
-            qDebug() << "mapFromScene = " << mapFromScene(nodeItem->getLockIconPos());
-            qDebug() << "mapToScene = " << mapToScene(nodeItem->getLockIconPos());
-            */
-
             QRectF lockRect = nodeItem->getLockIconSceneRect();
             QPoint offset(lockRect.width()/5, -lockRect.width()/15);
             QPointF menuPos = mapFromScene(lockRect.bottomLeft() + offset);
             menuPos = mapToGlobal(menuPos.toPoint());
             menu->popup(menuPos.toPoint());
-
             prevLockMenuOpened = menu;
         }
     }
@@ -787,6 +732,53 @@ void NodeView::nodeItemLockMenuClosed(NodeItem* nodeItem)
     }
 }
 
+
+/**
+ * @brief NodeView::keepSelectionFullyVisible
+ * This is called whenever a node item is moved or resized.
+ * If the item is selected, adjust the view rect accordingly to
+ * fit the whole item then center on the adjusted view rect.
+ * @param nodeItem
+ */
+void NodeView::keepSelectionFullyVisible(GraphMLItem *nodeItem)
+{
+    if (!nodeItem) {
+        return;
+    }
+
+
+
+    if (!selectedIDs.contains(nodeItem->getID())) {
+        return;
+    }
+
+    QRectF viewRect = getVisibleRect();
+    QRectF itemRect = nodeItem->sceneBoundingRect();
+    bool viewRectChanged = false;
+
+    // grow the view rect to fit the selected item(s)
+    if (itemRect.top() < viewRect.top()) {
+        viewRect.setTop(itemRect.top());
+        viewRectChanged = true;
+    }
+    if (itemRect.bottom() > viewRect.bottom()) {
+        //qreal delta = itemRect.bottom() - viewRect.bottom();
+        //viewRect.translate(QPointF(0,delta));
+        viewRect.setBottom(itemRect.bottom());
+        viewRectChanged = true;
+    }
+    if (itemRect.left() < viewRect.left()) {
+        viewRect.setLeft(itemRect.left());
+        viewRectChanged = true;
+    }
+    if (itemRect.right() > viewRect.right()) {
+        viewRect.setRight(itemRect.right());
+        viewRectChanged = true;
+    }
+    if (viewRectChanged) {
+        centerRect(viewRect);
+    }
+}
 
 
 /**
@@ -831,57 +823,6 @@ void NodeView::showToolbar(QPoint position)
 
         // show/hide MEDEA toolbar
         //view_showWindowToolbar();
-    }
-}
-
-/**
- * @brief NodeView::keepSelectionFullyVisible
- * This is called whenever a node item is moved or resized.
- * If the item is selected, adjust the view rect accordingly to
- * fit the whole item then center on the adjusted view rect.
- * @param nodeItem
- */
-void NodeView::keepSelectionFullyVisible(GraphMLItem *nodeItem)
-{
-    if (!nodeItem) {
-        return;
-    }
-
-    // sort the Model when the any of the aspects have grown
-    // regardless of whether it's selected or not
-    //if (nodeItem->getNodeKind().endsWith("Definitions")) {
-    //    nodeItem->getParentNodeItem()->modelSort();
-    //}
-
-
-    if (!selectedIDs.contains(nodeItem->getID())) {
-        return;
-    }
-
-    QRectF viewRect = getVisibleRect();
-    QRectF itemRect = nodeItem->sceneBoundingRect();
-    bool changed = false;
-
-    // grow the view rect to fit the selected item(s)
-    if (itemRect.top() < viewRect.top()) {
-        viewRect.setTop(itemRect.top());
-        changed = true;
-    }
-    if (itemRect.bottom() > viewRect.bottom()) {
-        viewRect.setBottom(itemRect.bottom());
-        changed = true;
-    }
-    if (itemRect.left() < viewRect.left()) {
-        viewRect.setLeft(itemRect.left());
-        changed = true;
-    }
-    if (itemRect.right() > viewRect.right()) {
-        viewRect.setRight(itemRect.right());
-        changed = true;
-    }
-
-    if (changed) {
-        centerRect(viewRect);
     }
 }
 
@@ -1088,7 +1029,7 @@ void NodeView::view_SetOpacity(GraphML *graphML, qreal opacity)
  */
 void NodeView::constructNode(QString nodeKind, int sender)
 {
-    view_TriggerAction("Dock/Toolbar: Constructing Node");
+    triggerAction("Dock/Toolbar: Constructing Node");
 
     NodeItem* selectedItem = getSelectedNodeItem();
     if (selectedItem) {
@@ -1110,12 +1051,12 @@ void NodeView::constructNode(QString nodeKind, int sender)
  * @param src
  * @param dst
  */
-void NodeView::constructEdge(Node *src, Node *dst, bool triggerAction)
+void NodeView::constructEdge(Node *src, Node *dst, bool trigger)
 {
     emit view_displayNotification("Connected " + src->getDataValue("label") +
                                   " to " + dst->getDataValue("label"));
-    if(triggerAction){
-        view_TriggerAction("Dock/Toolbar: Constructing Edge");
+    if(trigger){
+        triggerAction("Dock/Toolbar: Constructing Edge");
     }
     view_ConstructEdge(src, dst);
 }
@@ -1130,7 +1071,7 @@ void NodeView::constructEdge(Node *src, Node *dst, bool triggerAction)
  */
 void NodeView::constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender)
 {
-    view_TriggerAction("Dock/Toolbar: Constructing Connected Node");
+    triggerAction("Dock/Toolbar: Constructing Connected Node");
 
     if (parentNode && node) {
         NodeItem *nodeItem = getNodeItemFromNode(parentNode);
@@ -1174,37 +1115,6 @@ void NodeView::destructEdge(Edge *edge)
     emit view_displayNotification("Disconnected " + edge->getSource()->getDataValue("label") +
                                   " from " + edge->getDestination()->getDataValue("label"));
     view_Delete(QStringList() << edge->getID());
-}
-
-
-/**
- * @brief NodeView::fitInSceneRect
- * This is called when the selected node item is moved outside of the scene rect.
- * It adjusts the scene rect to fit the node item.
- */
-void NodeView::fitInSceneRect(GraphMLItem* item)
-{
-    adjustSceneRect(item->sceneBoundingRect());
-}
-
-
-/**
- * @brief NodeView::fitSelectionInView
- * This is called when the selected node item is resized.
- * It checks to see if the whole node item is visible in the view.
- * If it's not, zoom in/out accordingly.
- */
-void NodeView::fitSelectionInView()
-{
-    /*
-    qDebug() << "fitSelectionInView";
-    NodeItem* selectedItem = getSelectedNodeItem();
-    if (selectedItem) { // && getVisibleRect().contains(selectedItem->sceneBoundingRect())) {
-        centerOn(selectedItem);
-        centerRect(selectedItem->sceneBoundingRect());
-        fitInView(selectedItem, Qt::KeepAspectRatio);
-    }
-    */
 }
 
 
@@ -1329,10 +1239,7 @@ QPointF NodeView::getPreviousViewCenterPoint()
  */
 void NodeView::recenterView()
 {
-    centerOn(prevCenterPoint);
-
-    // update view center point
-    updateViewCenterPoint();
+  centerViewOn(prevCenterPoint);
 }
 
 
@@ -1352,17 +1259,6 @@ QStringList NodeView::getAllAspects()
  */
 void NodeView::viewDeploymentAspect()
 {
-    /*
-    QStringList neededAspects = currentAspects;
-    neededAspects.append("Assembly");
-    neededAspects.append("Hardware");
-    neededAspects.removeDuplicates();
-    if (neededAspects.count() != currentAspects.count()) {
-        emit view_displayNotification("Turned on Deployment view aspects");
-        setAspects(neededAspects);
-    }
-    */
-
     // only show a notification if there has been a change in view aspects
     if (!currentAspects.contains("Assembly") || !currentAspects.contains("Hardware")) {
         emit view_displayNotification("Turned on Deployment view aspects");
@@ -1387,19 +1283,19 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
             connect(GUIItem, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_RemoveSelected(GraphMLItem*)), this, SLOT(removeFromSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
-            connect(GUIItem, SIGNAL(GraphMLItem_MovedOutOfScene(GraphMLItem*)), this, SLOT(keepSelectionFullyVisible(GraphMLItem* )));
+            connect(GUIItem, SIGNAL(GraphMLItem_PositionSizeChanged(GraphMLItem*)), this, SLOT(keepSelectionFullyVisible(GraphMLItem* )));
             //connect(GUIItem, SIGNAL(GraphMLItem_MovedOutOfScene(GraphMLItem*)), this, SLOT(fitInSceneRect(GraphMLItem*)));
             connect(this, SIGNAL(view_AspectsChanged(QStringList)), GUIItem, SLOT(aspectsChanged(QStringList)));
         }
 
         if(!IS_SUB_VIEW){
-            connect(GUIItem, SIGNAL(GraphMLItem_TriggerAction(QString)),  this, SIGNAL(view_TriggerAction(QString)));
+            connect(GUIItem, SIGNAL(GraphMLItem_TriggerAction(QString)),  this, SLOT(triggerAction(QString)));
 
             connect(GUIItem, SIGNAL(GraphMLItem_SetGraphMLData(GraphML*,QString,QString)), this, SIGNAL(view_SetGraphMLData(GraphML*,QString,QString)));
             connect(GUIItem, SIGNAL(GraphMLItem_ConstructGraphMLData(GraphML*,QString)), this, SIGNAL(view_ConstructGraphMLData(GraphML*,QString)));
             connect(GUIItem, SIGNAL(GraphMLItem_DestructGraphMLData(GraphML*,QString)), this, SIGNAL(view_DestructGraphMLData(GraphML*,QString)));
 
-            connect(GUIItem, SIGNAL(GraphMLItem_CenterAspects()), this, SLOT(centerAspects()));
+            connect(GUIItem, SIGNAL(GraphMLItem_CenterAspects()), this, SLOT(fitToScreen()));
 
             if(nodeItem){
                 connect(nodeItem, SIGNAL(NodeItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
@@ -1413,6 +1309,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
 
                 connect(nodeItem, SIGNAL(NodeItem_showLockMenu(NodeItem*)), this, SLOT(showNodeItemLockMenu(NodeItem*)));
                 connect(nodeItem, SIGNAL(NodeItem_lockMenuClosed(NodeItem*)), this, SLOT(nodeItemLockMenuClosed(NodeItem*)));
+
             }
         }else{
             //Specific SubView Functionality.
@@ -1795,13 +1692,11 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
     QPointF scenePos = mapToScene(event->pos());
     QGraphicsItem* itemUnderMouse = scene()->itemAt(scenePos, QTransform());
 
-    if(!itemUnderMouse){
+  if(!itemUnderMouse){
+        // sort and center current view aspects
+        // sort and center current view aspects
         if(event->button() == Qt::MiddleButton){
-            //Sort and center current view aspects
-            centerAspects();
-        }else{
-            //Clear selection and disable dock buttons
-            clearSelection();
+            fitToScreen();
         }
     }
 
@@ -1825,7 +1720,6 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
-    //qDebug() << "HELLO";
     if(toolbarJustClosed){
         toolbarJustClosed = false;
         return;
@@ -1846,6 +1740,16 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         drawingRubberBand = true;
     }
 
+    QPointF scenePos = mapToScene(event->pos());
+    QGraphicsItem* itemUnderMouse = scene()->itemAt(scenePos, QTransform());
+
+    if(!itemUnderMouse){
+        // clear selection and disable dock buttons
+        if(event->button() == Qt::LeftButton){
+            clearSelection();
+        }
+    }
+
     QGraphicsView::mousePressEvent(event);
 }
 
@@ -1857,6 +1761,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
  */
 void NodeView::wheelEvent(QWheelEvent *event)
 {
+    /*
     // Scale the view / do the zoom
     if(event->delta() > 0 && transform().m11() < MAX_ZOOM) {
         // Zoom in
@@ -1865,7 +1770,22 @@ void NodeView::wheelEvent(QWheelEvent *event)
         // Zooming out
         scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
     }
-    //qDebug() << "scale: " << transform().m11();
+    */
+
+    QRectF viewRect = viewport()->rect();
+    QRectF sceneRect(QPointF(0,0), sceneRect().size()*transform().m11());
+
+    if (event->delta() > 0) {
+        // zoom in - maximum scale is when the scene is 50 times the size of the view
+        if (viewRect.width()*MAX_ZOOM_RATIO > sceneRect.width()) {
+            scale(ZOOM_SCALE_INCREMENTOR, ZOOM_SCALE_INCREMENTOR);
+        }
+    } else if (event->delta() < 0) {
+        // zoom out - minimum scale is when the view is twice the size of the scene
+        if (viewRect.width() < sceneRect.width()*2) {
+            scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
+        }
+    }
 }
 
 
@@ -1885,7 +1805,7 @@ void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
 
     // added this to center aspects when double-clicking on the view
     if(!itemUnderMouse && event->button() == Qt::LeftButton){
-        centerAspects();
+        fitToScreen();
     }
 
     QGraphicsView::mouseDoubleClickEvent(event);
@@ -2036,7 +1956,7 @@ void NodeView::snapChildrenToGrid()
     }
 }
 
-void NodeView:: setDefaultAspects()
+void NodeView::setDefaultAspects()
 {
     currentAspects.clear();
     setAspects(defaultAspects);
@@ -2111,11 +2031,38 @@ void NodeView::selectAll()
     }
 }
 
+void NodeView::undo()
+{
+    QPointF center;
+    if(viewCenterPointStack.isEmpty()){
+        center = viewCenterPointStack.takeFirst();
+    }
+
+    if(controller){
+        controller->undo();
+        //centerViewOn(center);
+    }
+}
+
+void NodeView::redo()
+{
+    QPointF center;
+    if(viewCenterPointStack.isEmpty()){
+        center = viewCenterPointStack.takeFirst();
+    }
+
+    if(controller){
+        controller->redo();
+        centerViewOn(center);
+    }
+}
 void NodeView::appendToSelection(GraphMLItem *item)
 {
     if(isItemsAncestorSelected(item)){
         return;
     }
+
+    //qDebug() << "appendToSelection: " << item->sceneBoundingRect().bottom();
 
     //Unset Items Descendant Items.
     unsetItemsDescendants(item);
@@ -2218,15 +2165,17 @@ void NodeView::resizeSelection(QSizeF delta)
 
 void NodeView::moveFinished()
 {
+    IS_MOVING = false;
+
     foreach(QString ID, selectedIDs){
         GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
         if(currentItem && currentItem->isNodeItem()){
             NodeItem* nodeItem = (NodeItem*) currentItem;
             nodeItem->setNodeMoving(false);
             nodeItem->updateModelPosition();
+            //keepSelectionFullyVisible(nodeItem);
         }
     }
-    IS_MOVING = false;
 }
 
 void NodeView::resizeFinished()
@@ -2291,35 +2240,20 @@ void NodeView::toolbarClosed()
 
 
 /**
- * @brief NodeView::sortAspects
- * This method forces all of the view aspects to be visible and then sorts them.
- * It then sets the view aspects back to how it was before this method was called.
- */
-void NodeView::sortAspects()
-{
-    QStringList oldAspect = currentAspects;
-    showAllAspects();
-    sortModel();
-    view_AspectsChanged(oldAspect);
-}
-
-
-/**
  * @brief NodeView::resetModel
  * This method is called after the model is cleared.
  * It resets the size, sorts and centers the model.
  */
 void NodeView::resetModel()
 {
-    view_TriggerAction("Resetting Model");
+    triggerAction("Resetting Model");
     foreach(NodeItem* nodeItem, getNodeItemsList()){
         if (nodeItem) {
             nodeItem->resetSize();
         }
     }
 
-
-    sortAspects();
+    sortModel();
     setAspects(defaultAspects);
 }
 
@@ -2589,43 +2523,27 @@ void NodeView::goToInstance(Node *instance)
  */
 void NodeView::deleteSelection()
 {
-    view_TriggerAction("Toolbar: Destructing Selection");
+    triggerAction("Toolbar: Destructing Selection");
     view_SetAttributeModel(0);
     view_Delete(selectedIDs);
 }
 
 
-/**
- * @brief NodeView::centerAspects
- * This sends a signal to the controller to center on the current view aspects.
- */
-void NodeView::centerAspects()
-{
-    sortAspects();
-    centerItem(getNodeItemFromNode(controller->getModel()));
-    fitToScreen();
-}
-
 
 /**
  * @brief NodeView::sortModel
  * This gets the model from the controller and then sorts it.
+ * Sorting the model sorts the view aspects.
  */
 void NodeView::sortModel()
 {
-    if(!controller){
+    if (!controller) {
         return;
     }
 
     Model* model = controller->getModel();
-
-    if(!model){
-        qCritical() << "NodeView::view_sortModel() Model from Controller is NULL";
-        return;
-    }
-
     NodeItem* modelItem = getNodeItemFromNode(model);
-    if(modelItem){
+    if (model && modelItem) {
         modelItem->newSort();
     }
 }

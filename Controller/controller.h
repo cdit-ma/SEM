@@ -122,7 +122,8 @@ public slots:
 
     void constructComponentInstance(Node *assembly, Node* definition, QPointF point);
     void constructConnectedComponents(Node* parent, Node* connectedNode, QString kind , QPointF relativePosition);
-
+    void undo();
+    void redo();
 
 private slots:
      //Edit Functionality
@@ -134,8 +135,7 @@ private slots:
 
     //void clearModel();
 
-    void undo();
-    void redo();
+
 
     void triggerAction(QString actionName);
     void clearUndoHistory();

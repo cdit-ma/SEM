@@ -30,9 +30,10 @@
 
 #include "Controller/controller.h"
 
+#include "View/nodeviewminimap.h"
+
 #include "View/Table/comboboxtabledelegate.h"
 #include "View/Table/attributetablemodel.h"
-#include "View/nodeviewminimap.h"
 
 #include "View/Dock/docktogglebutton.h"
 #include "View/Dock/docknodeitem.h"
@@ -47,6 +48,8 @@
 #include "GUI/searchitembutton.h"
 
 #include "GUI/appsettings.h"
+
+#include "GUI/eventfilter.h"
 
 class MedeaWindow : public QMainWindow
 {
@@ -139,7 +142,8 @@ private slots:
     void dialogRejected();
 
 protected:
-    void closeEvent(QCloseEvent *);
+    void closeEvent(QCloseEvent*);
+    void mousePressEvent(QMouseEvent* event);
 
 private:
     void resetGUI();
@@ -252,6 +256,7 @@ private:
     QPushButton* searchButton;
     QListView* searchSuggestions;
     QDialog* searchResults;
+    QScrollArea* scrollableSearchResults;
     QVBoxLayout* resultsLayout;
 
     QPushButton* searchOptionButton;

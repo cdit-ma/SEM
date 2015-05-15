@@ -3014,6 +3014,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
    return true;
 }
 
+
 bool NewController::canCopyIDs(QStringList IDs)
 {
     Node* parent = 0;

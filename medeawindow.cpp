@@ -32,6 +32,11 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+    /*
+    EventFilter* filter = new EventFilter(this);
+    this->installEventFilter(filter);
+    */
+
     applicationDirectory = QApplication::applicationDirPath() + "/";
     //Critical() << applicationDirectory;
 
@@ -272,9 +277,9 @@ void MedeaWindow::initialiseGUI()
     topHLayout->setMargin(0);
     topHLayout->setSpacing(0);
     topHLayout->addLayout(titleLayout);
-    topHLayout->addStretch(2);
+    topHLayout->addStretch(5);
     topHLayout->addWidget(toolbar);
-    topHLayout->addStretch(1);
+    topHLayout->addStretch(4);
 
     leftVlayout->addLayout(topHLayout, 10);
     leftVlayout->addStretch(1);
@@ -485,6 +490,10 @@ void MedeaWindow::setupSearchTools()
     searchSuggestions = new QListView(searchButton);
     searchResults = new QDialog(this);
 
+    QVBoxLayout* layout = new QVBoxLayout();
+    QWidget* scrollableWidget = new QWidget(this);
+    scrollableSearchResults = new QScrollArea(this);
+
     QVBoxLayout* resultsMainLayout = new QVBoxLayout();
     resultsLayout = new QVBoxLayout();
     int rightPanelWidth = RIGHT_PANEL_WIDTH;
@@ -524,8 +533,23 @@ void MedeaWindow::setupSearchTools()
     searchSuggestions->setViewMode(QListView::ListMode);
     searchSuggestions->setVisible(false);
 
-    searchResults->setLayout(resultsMainLayout);
+    scrollableWidget->setMinimumWidth(rightPanelWidth + 110);
+    scrollableWidget->setLayout(resultsMainLayout);
+    scrollableSearchResults->setWidget(scrollableWidget);
+    scrollableSearchResults->setWidgetResizable(true);
+    layout->addWidget(scrollableSearchResults);
+
+    /*
+    //QPoint dialogPos = searchResults->mapFromParent(QPoint(0, height() / 2));
+    //dialogPos = searchResults->mapToParent((dialogPos));
+    QPoint dialogPos = this->mapToGlobal(this->pos());
+    dialogPos = QPoint(0, dialogPos.y()*2);
+    searchResults->move(dialogPos);
+    */
+
+    searchResults->setLayout(layout);
     searchResults->setMinimumWidth(rightPanelWidth + 110);
+    searchResults->setMinimumHeight(height() / 2);
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
 
@@ -699,7 +723,7 @@ void MedeaWindow::setupToolbar()
     QWidget* spacerLeftMid = new QWidget();
     QWidget* spacerRightMid = new QWidget();
     QWidget* spacerRightMost = new QWidget();
-    int spacerWidth = 15;
+    int spacerWidth = 8;
 
     spacerWidgetLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     spacerWidgetRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
@@ -740,7 +764,7 @@ void MedeaWindow::setupToolbar()
                            "border: 1px solid grey;"
                            "border-radius: 10px;"
                            "background-color: rgba(210,210,210,225);"
-                           "margin: 0px 3px 0px 3px;"
+                           "margin: 0px 1px;"
                            "}"
                            "QToolButton:hover{ border: 2px solid grey; }"
                            "QToolButton:pressed{ background-color: rgba(240,240,240,240); }"
@@ -880,8 +904,8 @@ void MedeaWindow::makeConnections()
     connect(edit_undo, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
     connect(edit_redo, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
 
-    connect(edit_undo, SIGNAL(triggered()), nodeView, SIGNAL(view_Undo()));
-    connect(edit_redo, SIGNAL(triggered()), nodeView, SIGNAL(view_Redo()));
+    connect(edit_undo, SIGNAL(triggered()), nodeView, SLOT(undo()));
+    connect(edit_redo, SIGNAL(triggered()), nodeView, SLOT(redo()));
     connect(edit_cut, SIGNAL(triggered()), nodeView, SLOT(cut()));
     connect(edit_copy, SIGNAL(triggered()), nodeView, SLOT(copy()));
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
@@ -1092,7 +1116,7 @@ void MedeaWindow::setupInitialSettings()
     //toggleGridButton->setChecked(false);
 
     if (nodeView) {
-        nodeView->centerAspects();
+        nodeView->fitToScreen();
     }
 
     // this only needs to happen once, the whole time the application is open
@@ -1271,7 +1295,7 @@ void MedeaWindow::on_actionSortNode_triggered()
 {
     progressAction = "Sorting Model";
 
-    nodeView->view_TriggerAction("Medea: Sorting Node");
+    nodeView->triggerAction("Medea: Sorting Node");
 
     if (nodeView->getSelectedNode()){
         nodeView->sortNode(nodeView->getSelectedNode());
@@ -1289,7 +1313,7 @@ void MedeaWindow::on_actionValidate_triggered()
 {
     progressAction = "Validating Model";
 
-    nodeView->view_TriggerAction("Medea: Validate");
+    nodeView->triggerAction("Medea: Validate");
 
     QDir dir;
     QString scriptPath = applicationDirectory + "/Resources/Scripts";
@@ -1448,6 +1472,10 @@ void MedeaWindow::on_actionSearch_triggered()
             if (searchResults->isVisible()) {
                 searchResults->setVisible(false);
             }
+            /*
+            if (scrollableSearchResults->isVisible()) {
+                scrollableSearchResults->setVisible(false);
+            }*/
             QMessageBox::information(this, "Search Results", "Search Not Found   ", QMessageBox::Ok);
             return;
         }
@@ -1469,6 +1497,7 @@ void MedeaWindow::on_actionSearch_triggered()
         }
 
         // show popup list view
+        //scrollableSearchResults->show();
         searchResults->show();
     }
 }
@@ -1714,6 +1743,7 @@ void MedeaWindow::showWindowToolbar(bool checked)
         foreach (QAction* action, checkedToolbarActions) {
             action->setVisible(checked);
         }
+        //toolbar->setFixedSize(toolbar->contentsRect().width(), toolbar->minimumHeight());
     }
 }
 
@@ -2164,10 +2194,10 @@ void MedeaWindow::updateDataTable()
     // update the visible region of the groupbox to fit the dataTable
     if (w == 0 || h == 0) {
         // TODO:: This isn't allowing mouse events to pass through!
-        dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
-        //dataTableBox->setMask(QRegion(0, 0, 0, 0, QRegion::Rectangle));
+        //dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
+        dataTableBox->setMask(QRegion(0, 0, 0, 0, QRegion::Rectangle));
     } else {
-        dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents, false);
+        //dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents, false);
         dataTableBox->setMask(QRegion(0, 0, w, h, QRegion::Rectangle));
     }
 
@@ -2196,7 +2226,7 @@ void MedeaWindow::loadJenkinsData(int code)
         showImportedHardwareNodes();
 
         // center view aspects
-        nodeView->centerAspects();
+        nodeView->fitToScreen();
 
     }else{
         QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
@@ -2233,7 +2263,7 @@ void MedeaWindow::importProjects(QStringList files)
     }
     if (projects.size() > 0) {
         window_ImportProjects(projects);
-        nodeView->centerAspects();
+        nodeView->fitToScreen();
     }
 }
 
@@ -2255,6 +2285,25 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
         e->accept();
         delete this;
     }
+}
+
+
+/**
+ * @brief MedeaWindow::mousePressEvent
+ * @param event
+ */
+void MedeaWindow::mousePressEvent(QMouseEvent *event)
+{
+    //qDebug() << "MEDEA: mousePress";
+
+    QRect toolbarRect = toolbar->rect();
+    toolbarRect.translate(toolbar->pos());
+    if (toolbarRect.contains(event->pos())) {
+        //qDebug() << "Inside toolbar";
+        event->ignore();
+    }
+
+    QMainWindow::mousePressEvent(event);
 }
 
 

@@ -343,7 +343,7 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    if(PAINT_OBJECT == PAINT_OBJECT){
+    if(PAINT_OBJECT){// == PAINT_OBJECT){
         QPen Pen;
         QBrush Brush;
 
@@ -711,7 +711,6 @@ void NodeItem::adjustSize(QSizeF delta)
     qreal newWidth = getWidth() + delta.width();
     qreal newHeight = getHeight() + delta.height();
 
-
     setWidth(newWidth);
     setHeight(newHeight);
 }
@@ -728,10 +727,10 @@ void NodeItem::addChildOutline(NodeItem *nodeItem, QPointF gridPoint)
 
 void NodeItem::removeChildOutline(NodeItem *nodeItem)
 {
-     if(outlineMap.contains(nodeItem->getID())){
+    if(outlineMap.contains(nodeItem->getID())){
         prepareGeometryChange();
         outlineMap.remove(nodeItem->getID());
-     }
+    }
 }
 
 
@@ -764,7 +763,6 @@ double NodeItem::getChildHeight()
  */
 QPointF NodeItem::getNextChildPos(bool currentlySorting)
 {
-
     QPainterPath childrenPath = QPainterPath();
     bool hasChildren = false;
 
@@ -780,6 +778,7 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
         }
     }
 
+    /*
     //Based on BoundingRect
     //bool growWidth = boundingRect().width() < boundingRect().height();
     //grow width based on GridRect.
@@ -852,74 +851,76 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
             }
         }
     }
+	*/
 
+    // CATHLYNS CODE FOR THE SAME THING.
+    // work out how many grid cells are needed per child item
+    // divide it by 2 - only need half the number of cells to fit the center of the item
+    double startingGridPoint = ceil(getChildBoundingRect().width()/getGridSize()) / 2;
+    double currentX = startingGridPoint;
+    double currentY = startingGridPoint;
 
+    double maxX = 0;
+    bool xOutsideOfGrid = false;
+    bool yOutsideOfGrid = false;
 
+    while (true) {
 
-/*
-       // CATHLYNS CODE FOR THE SAME THING.
-       // work out how many grid cells are needed per child item
-       // divide it by 2 - only need half the number of cells to fit the center of the item
-       double startingGridPoint = ceil(getChildBoundingRect().width()/getGridSize()) / 2;
-       double currentX = startingGridPoint;
-       double currentY = startingGridPoint;
+        // get the next position; construct a child rect at that position
+        QPointF nextPosition = getGridPosition(currentX, currentY);
+        QRectF childRect = getChildBoundingRect();
+        childRect.translate(nextPosition - childRect.center());
 
-       double maxX = 0;
-       bool xOutsideOfGrid = false;
-       bool yOutsideOfGrid = false;
+        // check if the child rect collides with an existing child item
+        if (childrenPath.intersects(childRect)) {
+            // if so, check the next x position
+            currentX++;
+            // collision means that current position is inside the grid
+            xOutsideOfGrid = false;
+            yOutsideOfGrid = false;
+        } else {
 
-       while (true) {
+            // if there is no collision and the current position is inside the grid
+            // it's a valid position - return it
+            /*
+            if (nodeKind.endsWith("Definitions") && gridRect().intersects(childRect)){
+                return nextPosition;
+            } else if (!nodeKind.endsWith("Definitions") && gridRect().intersects(childRect)) {
+                return nextPosition;
+            }*/
 
-           // get the next position; construct a child rect at that position
-           QPointF nextPosition = getGridPosition(currentX, currentY);
-           QRectF childRect = getChildBoundingRect();
-           childRect.translate(nextPosition - childRect.center());
+            if (gridRect().intersects(childRect)){
+                return nextPosition;
+            }
 
-           // check if the child rect collides with an existing child item
-           if (childrenPath.intersects(childRect)) {
-               // if so, check the next x position
-               currentX++;
-               // collision means that current position is inside the grid
-               xOutsideOfGrid = false;
-               yOutsideOfGrid = false;
-           } else {
+            // if both the current x and y are outside of the grid,
+            // it means that there is no available spot in the grid
+            if (xOutsideOfGrid && yOutsideOfGrid) {
+                // return a new position depending on which of the width/height is bigger
+                QPointF finalPosition = getGridPosition(maxX, startingGridPoint);
+                if (boundingRect().width() > boundingRect().height()) {
+                    finalPosition = getGridPosition(startingGridPoint, currentY);
+                }
+                return finalPosition;
+            }
 
-               // if there is no collision and the current position is inside the grid
-               // it's a valid position - return it
-               if (gridRect().contains(childRect)){
-                   return nextPosition;
-               }
-
-               // if both the current x and y are outside of the grid,
-               // it means that there is no available spot in the grid
-               if (xOutsideOfGrid && yOutsideOfGrid) {
-                   // return a new position depending on which of the width/height is bigger
-                   QPointF finalPosition = getGridPosition(maxX, startingGridPoint);
-                   if (boundingRect().width() > boundingRect().height()) {
-                       finalPosition = getGridPosition(startingGridPoint, currentY);
-                   }
-                   return finalPosition;
-               }
-
-               // if the current x is outside of the grid, because the current y has already been
-               // incremented when the x was reset, it means that it is also outside of the grid
-               if (xOutsideOfGrid) {
-                   yOutsideOfGrid = true;
-               } else {
-                   // when it gets into this case, it means that the current x is outside of the grid
-                   xOutsideOfGrid = true;
-                   // store the maximum x
-                   if(currentX > maxX){
-                       maxX = currentX;
-                   }
-                   // reset the current x then check the next y position
-                   currentX = startingGridPoint;
-                   currentY++;
-               }
-           }
-       }
-*/
-
+            // if the current x is outside of the grid, because the current y has already been
+            // incremented when the x was reset, it means that it is also outside of the grid
+            if (xOutsideOfGrid) {
+                yOutsideOfGrid = true;
+            } else {
+                // when it gets into this case, it means that the current x is outside of the grid
+                xOutsideOfGrid = true;
+                // store the maximum x
+                if(currentX > maxX){
+                    maxX = currentX;
+                }
+                // reset the current x then check the next y position
+                currentX = startingGridPoint;
+                currentY++;
+            }
+        }
+    }
 }
 
 
@@ -1007,6 +1008,8 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
             if(previousValue != dataValue){
                 updateModelPosition();
             }
+
+
         }else if(dataKey == "width" || dataKey == "height"){
             if(dataValue == "inf"){
                 dataValue = QString::number(MODEL_WIDTH);
@@ -1035,6 +1038,7 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
             if(previousValue != dataValue){
                 updateModelSize();
             }
+
         }
         else if(dataKey == "label"){
 
@@ -1136,6 +1140,9 @@ void NodeItem::modelSort()
 
     QPointF gapSize = QPointF(MODEL_WIDTH / 128, MODEL_WIDTH / 128);
 
+    //double margin = qMax(topLeft->boundingRect().width(), topLeft->boundingRect().height());
+    //QPointF topLeftPos = QPointF(margin, margin);
+
     QPointF topLeftPos = QPointF(getItemMargin(), getItemMargin());
     qreal deltaX = topLeft->boundingRect().width() - bottomLeft->boundingRect().width();
     qreal deltaY = topLeft->boundingRect().height() - topRight->boundingRect().height();
@@ -1146,8 +1153,6 @@ void NodeItem::modelSort()
     if(deltaY < 0){
         topLeftPos.setY(topLeftPos.y() + abs(deltaY));
     }
-
-
 
     //Move top Left Item to top of Model
     topLeft->setPos(topLeftPos);
@@ -1185,13 +1190,12 @@ void NodeItem::modelSort()
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-
-
-    if(!PAINT_OBJECT && nodeKind != "Model"){
-        // clear selection when pressing on a !PAINTED item
-        //GraphMLItem_ClearSelection(false);
-        GraphMLItem_ClearSelection(true); // need to update table!
-        QGraphicsItem::mousePressEvent(event);
+    if(!PAINT_OBJECT){
+        if(nodeKind == "Model" && !modelCirclePressed(event->pos())){\
+            GraphMLItem_ClearSelection(true); // need to update table!
+            QGraphicsItem::mousePressEvent(event);
+            return;
+        }
     }
 
     switch (event->button()) {
@@ -1200,9 +1204,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         break;
     }
     case Qt::LeftButton:{
-        if(nodeKind == "Model" && !modelCirclePressed(event->pos())){
-            return;
-        }
+
 
         // check if the lock icon was clicked
         if (lockPressed(event->scenePos())) {
@@ -1310,7 +1312,6 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             return;
         }
 
-        // check if item is still inside sceneRect after it's been moved
         if (hasSelectionMoved){
 
             if(parentNodeItem){
@@ -1366,10 +1367,9 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(!PAINT_OBJECT){
+    if(!PAINT_OBJECT || nodeKind.endsWith("Definitions")){
         return;
     }
-
 
     if(isNodePressed && isNodeSelected){
 
@@ -1513,6 +1513,7 @@ void NodeItem::setWidth(qreal w)
     updateParent();
     isOverGrid(centerPos());
 
+    //emit NodeItem_resized(this);
 }
 
 
@@ -1845,6 +1846,11 @@ void NodeItem::setPos(const QPointF &pos)
 
         updateChildrenOnChange();
         updateParent();
+
+        //if (!parentView->sceneRect().contains(scenePos()) ||
+        //        !parentView->sceneRect().contains(scenePos().x()+width, scenePos().y()+height)) {
+        //    GraphMLItem_MovedOutOfScene(this);
+        //}
     }
 }
 
@@ -1898,13 +1904,14 @@ void NodeItem::updateParent()
 {
     if(parentNodeItem){
         parentNodeItem->childPosUpdated();
+        //fitToScreen(this);
     }
 }
 
 void NodeItem::updateParentModel()
 {
     if(parentNodeItem){
-       parentNodeItem->updateModelSize();
+        parentNodeItem->updateModelSize();
     }
 }
 
@@ -2385,6 +2392,7 @@ void NodeItem::parentNodeItemMoved()
 {
 
     nodeItemMoved();
+
     if(isPermanentlyCentered()){
         emit recentralizeAfterChange(getGraphML());
     }
@@ -2534,7 +2542,7 @@ void NodeItem::updateModelPosition()
         parentNodeItem->removeChildOutline(this);
     }
 
-    GraphMLItem_MovedOutOfScene(this);
+    GraphMLItem_PositionSizeChanged(this);
 
 
 
@@ -2560,7 +2568,7 @@ void NodeItem::updateModelSize()
         setLocked(isNodeOnGrid);
     }
 
-    GraphMLItem_MovedOutOfScene(this);
+    GraphMLItem_PositionSizeChanged(this);
 }
 
 

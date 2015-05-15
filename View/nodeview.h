@@ -128,7 +128,7 @@ signals:
     void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
 
 public slots:
-    void keepSelectionFullyVisible(GraphMLItem *nodeItem);
+    void triggerAction(QString action);
     void minimapPan(QPointF delta);
     void alignSelectionHorizontally();
     void alignSelectionVertically();
@@ -154,6 +154,9 @@ public slots:
     void cut();
     void paste(QString xmlData);
     void selectAll();
+
+    void undo();
+    void redo();
 
     void appendToSelection(GraphMLItem* item);
     void removeFromSelection(GraphMLItem* item);
@@ -188,12 +191,10 @@ public slots:
     void sortNode(Node* node, Node* topMostNode = 0);
 
     void setAspects(QStringList aspects, bool centerViewAspects = true);
-    void sortAspects();
-    void centerAspects();
+    //void sortAspects();
+    //void centerAspects();
 
     void fitToScreen(QList<NodeItem*> itemsToCenter = QList<NodeItem*>(), double extraSpace = 0);
-    void fitInSceneRect(GraphMLItem *item);
-    void fitSelectionInView();
 
     void centerOnItem(GraphMLItem* item = 0);
     void centerItem(GraphMLItem* item);
@@ -219,6 +220,8 @@ public slots:
 
     void showNodeItemLockMenu(NodeItem* nodeItem);
     void nodeItemLockMenuClosed(NodeItem *nodeItem);
+
+    void keepSelectionFullyVisible(GraphMLItem* nodeItem);
 
 private:
     void alignSelectionOnGrid(ALIGN alignment = NONE);
@@ -269,12 +272,10 @@ private:
     Node* hasImplementation(Node* node);
 
     QRectF getVisibleRect();
-    void adjustSceneRect(QRectF rectToCenter);
-    void centerRect(QRectF rect, double extraspace = 0);
+    void centerRect(QRectF rect, double extraspace = 0, double desiredSize = 0);
+    void centerViewOn(QPointF center);
 
     QList<NodeItem*> getNodeItemsList();
-
-    void showAllAspects();
 
     bool allowedFocus(QWidget* widget);
 
@@ -312,6 +313,8 @@ private:
     bool IS_SUB_VIEW;
 
     QList<NodeView*> subViews;
+
+    QStack<QPointF> viewCenterPointStack;
 
     bool IS_RESIZING;
     bool IS_MOVING;

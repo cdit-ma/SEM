@@ -35,9 +35,14 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     pen.setWidth(LINEWIDTH);
     pen.setColor(QColor(255,0,0));
     painter->setPen(pen);
-    painter->setBrush(QBrush(QColor(255,255,255,50)));
+    //painter->setBrush(QBrush(QColor(255,255,255,50)));
     painter->drawRect(viewport);
 
+    pen.setWidth(LINEWIDTH);
+    pen.setColor(QColor(0,255,255));
+    painter->setPen(pen);
+
+    painter->drawRect(scene()->sceneRect());
 
 }
 
