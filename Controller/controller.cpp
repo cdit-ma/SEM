@@ -47,7 +47,7 @@ NewController::NewController()
     containerNodeKinds << "HardwareDefinitions" << "AssemblyDefinitions" << "ManagementComponent";
     containerNodeKinds << "HardwareCluster";
 
-    definitionNodeKinds << "File" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" ;
+    definitionNodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" ;
     definitionNodeKinds << "Member" << "Aggregate";
     definitionNodeKinds << "InEventPort"  << "OutEventPort";
     definitionNodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
@@ -2027,8 +2027,8 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
         return new AttributeInstance();
     }else if(nodeKind == "AttributeImpl"){
         return new AttributeImpl();
-    }else if(nodeKind == "File"){
-        return new File();
+    }else if(nodeKind == "IDL"){
+        return new IDL();
     }else if(nodeKind == "Member"){
         return new Member();
     }else if(nodeKind == "Aggregate"){

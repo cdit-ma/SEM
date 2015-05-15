@@ -57,7 +57,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     parentNodeItem = parent;
     isNodeSelected = false;
-
+    isSelectionMoving = false;
+    isSelectionResizing = false;
 
 
     isNodeSorted = false;
@@ -346,7 +347,7 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    if(PAINT_OBJECT){
+    if(PAINT_OBJECT == PAINT_OBJECT){
         QPen Pen;
         QBrush Brush;
 
@@ -375,7 +376,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         //If the Node is over a Gridline, set the background Brush to transluscent.
-        if(isNodeOnGrid && hasSelectionMoved){
+        if(isNodeOnGrid && (isSelectionMoving || isSelectionResizing)){
             QColor brushColor = Brush.color();
             if(brushColor.alpha() > 120){
                 brushColor.setAlpha(120);
@@ -627,6 +628,21 @@ NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
     return NO_RESIZE;
 }
 
+void NodeItem::setNodeMoving(bool moving)
+{
+    isSelectionMoving = moving;
+
+
+}
+
+void NodeItem::setNodeResizing(bool resizing)
+{
+    isSelectionResizing = resizing;
+    if(!isSelectionResizing){
+        currentResizeMode == NO_RESIZE;
+    }
+}
+
 
 /**
  * @brief NodeItem::isHidden
@@ -692,7 +708,7 @@ void NodeItem::adjustPos(QPointF delta)
     setLocked(false);
     QPointF currentPos = pos();
     currentPos += delta;
-    hasSelectionMoved = true;
+    //hasSelectionMoved = true;
     setPos(currentPos);
 }
 
@@ -1202,6 +1218,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
         previousScenePosition = event->scenePos();
         hasSelectionMoved = false;
+        hasSelectionResized = false;
         isNodePressed = true;
 
 
@@ -1308,16 +1325,17 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
             if (!currentSceneRect.contains(scenePos()) ||
                     !currentSceneRect.contains(scenePos().x()+width, scenePos().y()+height)) {
-                GraphMLItem_MovedOutOfScene(this);
+                //GraphMLItem_MovedOutOfScene(this);
             }
-            NodeItem_MoveFinished();
 
-            hasSelectionMoved = false;
+            isSelectionMoving = false;
+            NodeItem_MoveFinished();
         }
 
         if(hasSelectionResized){
+            isSelectionResizing = false;
             NodeItem_ResizeFinished();
-            hasSelectionResized = false;
+
         }
         currentResizeMode = NO_RESIZE;
 
@@ -1365,18 +1383,20 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             if(!hasSelectionResized){
                 GraphMLItem_TriggerAction("Resizing Selection");
                 hasSelectionResized = true;
+                isSelectionResizing = true;
             }
-            QPointF delta = (event->scenePos() - previousScenePosition);
+            if(isSelectionResizing){
+                QPointF delta = (event->scenePos() - previousScenePosition);
+                QSizeF dSize(delta.x(), delta.y());
 
-            QSizeF dSize(delta.x(), delta.y());
+                if(currentResizeMode == HORIZONTAL_RESIZE){
+                    dSize.setHeight(0);
+                }else if(currentResizeMode == VERTICAL_RESIZE){
+                    dSize.setWidth(0);
+                }
 
-            if(currentResizeMode == HORIZONTAL_RESIZE){
-                dSize.setHeight(0);
-            }else if(currentResizeMode == VERTICAL_RESIZE){
-                dSize.setWidth(0);
+                NodeItem_ResizeSelection(dSize);
             }
-
-            NodeItem_ResizeSelection(dSize);
 
         }else{
             if(hasSelectionMoved == false){
@@ -1386,10 +1406,13 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
                     parentNodeItem->setGridVisible(true);
                 }
                 hasSelectionMoved = true;
+                isSelectionMoving = true;
             }
-            QPointF delta = (event->scenePos() - previousScenePosition);
+            if(isSelectionMoving){
+                QPointF delta = (event->scenePos() - previousScenePosition);
 
-            NodeItem_MoveSelection(delta);
+                NodeItem_MoveSelection(delta);
+            }
         }
         previousScenePosition = event->scenePos();
 
@@ -1494,6 +1517,7 @@ void NodeItem::setWidth(qreal w)
     updateChildrenOnChange();
     calculateGridlines();
     updateParent();
+    isOverGrid(centerPos());
 
 }
 
@@ -1513,6 +1537,7 @@ void NodeItem::setHeight(qreal h)
     calculateGridlines();
     updateChildrenOnChange();
     updateParent();
+    isOverGrid(centerPos());
 }
 
 void NodeItem::setSize(qreal w, qreal h)
@@ -1692,6 +1717,23 @@ void NodeItem::setupBrushes()
 {
     QString nodeKind= getGraphML()->getDataValue("kind");
 
+
+    if(nodeKind == "BehaviourDefinitions"){
+        color = QColor(254,184,126);
+    }
+    else if(nodeKind == "InterfaceDefinitions"){
+        color = QColor(110,210,210);
+    }
+    else if(nodeKind == "HardwareDefinitions"){
+        color = QColor(110,170,220);
+    }
+    else if(nodeKind == "AssemblyDefinitions"){
+        color = QColor(255,160,160);
+    }else{
+        color = QColor(200,200,200);
+    }
+    /*
+
     if(nodeKind== "OutEventPort"){
         color = QColor(0,250,0);
     }
@@ -1741,9 +1783,7 @@ void NodeItem::setupBrushes()
         color = QColor(200,200,200);
     }
 
-    /*
-     * Changed these to match the view button colors
-     */
+
     else if(nodeKind == "BehaviourDefinitions"){
         //color = QColor(240,240,240);
         color = QColor(254,184,126);
@@ -1778,7 +1818,7 @@ void NodeItem::setupBrushes()
         color = QColor(100,100,100);
     }else{
         color = QColor(0,100,0);
-    }
+    }*/
 
 
     selectedColor = color;
@@ -1864,10 +1904,7 @@ void NodeItem::updateParent()
 {
     if(parentNodeItem){
         parentNodeItem->childPosUpdated();
-    }else{
-
     }
-
 }
 
 void NodeItem::updateParentModel()
@@ -2075,7 +2112,7 @@ QPointF NodeItem::isOverGrid(const QPointF centerPosition)
 
     //If the distance is less than the SNAP_PERCENTAGE
     if((distance / minimumWidth) <= SNAP_PERCENTAGE){
-        if(isNodeOnGrid || hasSelectionMoved){
+        if(isNodeOnGrid || isSelectionMoving || isSelectionResizing){
             isNodeOnGrid = true;
             parentNodeItem->addChildOutline(this, gridPoint);
         }
@@ -2083,7 +2120,7 @@ QPointF NodeItem::isOverGrid(const QPointF centerPosition)
     }else{
         isNodeOnGrid = false;
 
-        if(hasSelectionMoved){
+        if(isSelectionMoving || isSelectionResizing){
             parentNodeItem->removeChildOutline(this);
         }
         return QPointF();
@@ -2502,6 +2539,11 @@ void NodeItem::updateModelPosition()
     if(!isNodeOnGrid && parentNodeItem){
         parentNodeItem->removeChildOutline(this);
     }
+
+    GraphMLItem_MovedOutOfScene(this);
+
+
+
 }
 
 void NodeItem::updateModelSize()
@@ -2519,6 +2561,8 @@ void NodeItem::updateModelSize()
 
     //Make sure the parentModel is updated.
     updateParentModel();
+
+    GraphMLItem_MovedOutOfScene(this);
 }
 
 

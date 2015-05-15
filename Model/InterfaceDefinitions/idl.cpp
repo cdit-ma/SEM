@@ -1,24 +1,24 @@
-#include "file.h"
+#include "idl.h"
 #include "component.h"
 #include "aggregate.h"
 #include <QDebug>
-File::File(QString name): Node()
+IDL::IDL(QString name): Node()
 {
 
 }
 
-File::~File()
+IDL::~IDL()
 {
 
 }
 
-bool File::canConnect(Node* attachableObject)
+bool IDL::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;
 }
 
-bool File::canAdoptChild(Node *item)
+bool IDL::canAdoptChild(Node *item)
 {
     Component* component = dynamic_cast<Component*>(item);
     Aggregate* aggregate = dynamic_cast<Aggregate*>(item);

@@ -23,7 +23,7 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("ManagementComponent");
     definitions_notAllowedKinds.append("HardwareCluster");
     definitions_notAllowedKinds.append("HardwareNode");
-    definitions_notAllowedKinds.append("File");
+    definitions_notAllowedKinds.append("IDL");
     definitions_notAllowedKinds.append("Component");
     setNotAllowedKinds(definitions_notAllowedKinds);
 

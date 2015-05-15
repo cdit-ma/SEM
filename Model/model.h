@@ -54,7 +54,7 @@
 #include "InterfaceDefinitions/component.h"
 #include "InterfaceDefinitions/outeventport.h"
 #include "InterfaceDefinitions/ineventport.h"
-#include "InterfaceDefinitions/file.h"
+#include "InterfaceDefinitions/idl.h"
 #include "InterfaceDefinitions/aggregate.h"
 #include "InterfaceDefinitions/member.h"
 

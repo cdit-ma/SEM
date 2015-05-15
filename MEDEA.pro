@@ -53,7 +53,6 @@ HEADERS += \
     Model/InterfaceDefinitions/attribute.h \
     Model/InterfaceDefinitions/component.h \
     Model/InterfaceDefinitions/eventport.h \
-    Model/InterfaceDefinitions/file.h \
     Model/InterfaceDefinitions/ineventport.h \
     Model/InterfaceDefinitions/interfacedefinitions.h \
     Model/InterfaceDefinitions/member.h \
@@ -89,7 +88,8 @@ HEADERS += \
     GUI/keyeditwidget.h \
     GUI/searchitembutton.h \
     View/Validate/validatedialog.h \
-    View/Toolbar/toolbarwidgetbutton.h
+    View/Toolbar/toolbarwidgetbutton.h \
+    Model/InterfaceDefinitions/idl.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -123,7 +123,6 @@ SOURCES += \
     Model/InterfaceDefinitions/attribute.cpp \
     Model/InterfaceDefinitions/component.cpp \
     Model/InterfaceDefinitions/eventport.cpp \
-    Model/InterfaceDefinitions/file.cpp \
     Model/InterfaceDefinitions/ineventport.cpp \
     Model/InterfaceDefinitions/interfacedefinitions.cpp \
     Model/InterfaceDefinitions/member.cpp \
@@ -160,7 +159,8 @@ SOURCES += \
     GUI/keyeditwidget.cpp \
     GUI/searchitembutton.cpp \
     View/Validate/validatedialog.cpp \
-    View/Toolbar/toolbarwidgetbutton.cpp
+    View/Toolbar/toolbarwidgetbutton.cpp \
+    Model/InterfaceDefinitions/idl.cpp
 
 FORMS += \
 

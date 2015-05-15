@@ -834,6 +834,57 @@ void NodeView::showToolbar(QPoint position)
     }
 }
 
+/**
+ * @brief NodeView::keepSelectionFullyVisible
+ * This is called whenever a node item is moved or resized.
+ * If the item is selected, adjust the view rect accordingly to
+ * fit the whole item then center on the adjusted view rect.
+ * @param nodeItem
+ */
+void NodeView::keepSelectionFullyVisible(GraphMLItem *nodeItem)
+{
+    if (!nodeItem) {
+        return;
+    }
+
+    // sort the Model when the any of the aspects have grown
+    // regardless of whether it's selected or not
+    //if (nodeItem->getNodeKind().endsWith("Definitions")) {
+    //    nodeItem->getParentNodeItem()->modelSort();
+    //}
+
+
+    if (!selectedIDs.contains(nodeItem->getID())) {
+        return;
+    }
+
+    QRectF viewRect = getVisibleRect();
+    QRectF itemRect = nodeItem->sceneBoundingRect();
+    bool changed = false;
+
+    // grow the view rect to fit the selected item(s)
+    if (itemRect.top() < viewRect.top()) {
+        viewRect.setTop(itemRect.top());
+        changed = true;
+    }
+    if (itemRect.bottom() > viewRect.bottom()) {
+        viewRect.setBottom(itemRect.bottom());
+        changed = true;
+    }
+    if (itemRect.left() < viewRect.left()) {
+        viewRect.setLeft(itemRect.left());
+        changed = true;
+    }
+    if (itemRect.right() > viewRect.right()) {
+        viewRect.setRight(itemRect.right());
+        changed = true;
+    }
+
+    if (changed) {
+        centerRect(viewRect);
+    }
+}
+
 
 void NodeView::view_ConstructNodeGUI(Node *node)
 {
@@ -871,7 +922,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         if(parentNodeItem){
             if(!parentNodeItem->isExpanded()){
                 parentNodeItem->setNodeExpanded(true);
-                //parentNodeItem->setNodeExpanded(true);
             }
         }
     }
@@ -1084,11 +1134,13 @@ void NodeView::constructConnectedNode(Node *parentNode, Node *node, QString kind
 
     if (parentNode && node) {
         NodeItem *nodeItem = getNodeItemFromNode(parentNode);
+        constructedFromImport = false;
         if (sender == 0) {
             view_ConstructConnectedComponents(parentNode, node, kind, nodeItem->getNextChildPos());
         } else if (sender == 1) {
             view_ConstructConnectedComponents(parentNode, node, kind, nodeItem->mapFromScene(toolbarPosition));
         }
+
     }
 }
 
@@ -1206,7 +1258,7 @@ QList<Node*> NodeView::getFiles()
     QList<Node*> returnList;
     Model* model = controller->getModel();
     if (model) {
-        returnList = model->getChildrenOfKind("File");
+        returnList = model->getChildrenOfKind("IDL");
     }
     return returnList;
 }
@@ -1335,7 +1387,8 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
             connect(GUIItem, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_RemoveSelected(GraphMLItem*)), this, SLOT(removeFromSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
-            connect(GUIItem, SIGNAL(GraphMLItem_MovedOutOfScene(GraphMLItem*)), this, SLOT(fitInSceneRect(GraphMLItem*)));
+            connect(GUIItem, SIGNAL(GraphMLItem_MovedOutOfScene(GraphMLItem*)), this, SLOT(keepSelectionFullyVisible(GraphMLItem* )));
+            //connect(GUIItem, SIGNAL(GraphMLItem_MovedOutOfScene(GraphMLItem*)), this, SLOT(fitInSceneRect(GraphMLItem*)));
             connect(this, SIGNAL(view_AspectsChanged(QStringList)), GUIItem, SLOT(aspectsChanged(QStringList)));
         }
 
@@ -2137,6 +2190,7 @@ void NodeView::moveSelection(QPointF delta)
         GraphML* graphml = graphMLItem->getGraphML();
         if(graphml && graphml->isNode()){
             NodeItem* nodeItem = (NodeItem*) graphMLItem;
+            nodeItem->setNodeMoving(true);
             nodeItem->adjustPos(delta);
             IS_MOVING = true;
         }
@@ -2155,6 +2209,7 @@ void NodeView::resizeSelection(QSizeF delta)
         GraphML* graphml = graphMLItem->getGraphML();
         if(graphml && graphml->isNode()){
             NodeItem* nodeItem = (NodeItem*) graphMLItem;
+            nodeItem->setNodeResizing(true);
             nodeItem->adjustSize(delta);
         }
     }
@@ -2167,6 +2222,7 @@ void NodeView::moveFinished()
         GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
         if(currentItem && currentItem->isNodeItem()){
             NodeItem* nodeItem = (NodeItem*) currentItem;
+            nodeItem->setNodeMoving(false);
             nodeItem->updateModelPosition();
         }
     }
@@ -2180,6 +2236,7 @@ void NodeView::resizeFinished()
         GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
         if(currentItem && currentItem->isNodeItem()){
             NodeItem* nodeItem = (NodeItem*) currentItem;
+            nodeItem->setNodeResizing(false);
             nodeItem->updateModelSize();
         }
         IS_RESIZING = false;

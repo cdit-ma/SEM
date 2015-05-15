@@ -1,5 +1,5 @@
 #include "interfacedefinitions.h"
-#include "file.h"
+#include "idl.h"
 #include <QDebug>
 InterfaceDefinitions::InterfaceDefinitions(): Node()
 {
@@ -18,7 +18,7 @@ bool InterfaceDefinitions::canConnect(Node* attachableObject)
 
 bool InterfaceDefinitions::canAdoptChild(Node *child)
 {
-    File* file = dynamic_cast<File*>(child);
+    IDL* file = dynamic_cast<IDL*>(child);
 
     if(!file){
 #ifdef DEBUG_MODE

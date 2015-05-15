@@ -87,6 +87,8 @@ public:
     NodeItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
 
 
+    void setNodeMoving(bool moving);
+    void setNodeResizing(bool resizing);
     bool isExpanded();
     bool isHidden();
     void setHidden(bool hidden);
@@ -288,7 +290,10 @@ private:
 
     bool isNodeOnGrid;
 
+    bool isSelectionMoving;
     bool hasSelectionMoved;
+
+    bool isSelectionResizing;
     bool hasSelectionResized;
 
     bool GRIDLINES_ON;

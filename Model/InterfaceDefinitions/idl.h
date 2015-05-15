@@ -1,13 +1,13 @@
-#ifndef FILE_H
-#define FILE_H
+#ifndef IDL_H
+#define IDL_H
 #include "../node.h"
 
-class File : public Node
+class IDL : public Node
 {
     Q_OBJECT
 public:
-    File(QString name = "");
-    ~File();
+    IDL(QString name = "");
+    ~IDL();
 
     // GraphML interface
 public:
@@ -20,4 +20,4 @@ public:
 
 };
 
-#endif // FILE_H
+#endif // IDL_H
