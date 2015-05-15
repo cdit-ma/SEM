@@ -52,14 +52,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     Q_INIT_RESOURCE(resources);
     setParentItem(parent);
 
-
-
-
     parentNodeItem = parent;
     isNodeSelected = false;
-    isSelectionMoving = false;
-    isSelectionResizing = false;
-
+    setNodeResizing(false);
+    setNodeMoving(false);
 
     isNodeSorted = false;
 
@@ -631,8 +627,6 @@ NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
 void NodeItem::setNodeMoving(bool moving)
 {
     isSelectionMoving = moving;
-
-
 }
 
 void NodeItem::setNodeResizing(bool resizing)
@@ -2527,7 +2521,7 @@ void NodeItem::updateModelPosition()
         //Setting new Center Point
         setCenterPos(gridPoint);
         //If the node moved via the mouse, lock it.
-        if(hasSelectionMoved){
+        if(hasSelectionResized || hasSelectionMoved){
             setLocked(isNodeOnGrid);
         }
     }
@@ -2561,6 +2555,10 @@ void NodeItem::updateModelSize()
 
     //Make sure the parentModel is updated.
     updateParentModel();
+
+    if(hasSelectionResized || hasSelectionMoved){
+        setLocked(isNodeOnGrid);
+    }
 
     GraphMLItem_MovedOutOfScene(this);
 }
