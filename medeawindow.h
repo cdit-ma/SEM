@@ -49,8 +49,6 @@
 
 #include "GUI/appsettings.h"
 
-#include "GUI/eventfilter.h"
-
 class MedeaWindow : public QMainWindow
 {
     Q_OBJECT
@@ -58,7 +56,6 @@ class MedeaWindow : public QMainWindow
 public:
     explicit MedeaWindow(QString graphMLFile=0, QWidget* parent = 0);
     ~MedeaWindow();
-    void resizeEvent(QResizeEvent* event);
 
 signals:
     void window_PasteData(QString value);
@@ -114,8 +111,6 @@ private slots:
 
     void setGoToMenuActions(QString action, bool enable);
 
-    void editMultiLineData(GraphMLData* data);
-
     void dockButtonPressed(QString buttonName);
 
     void menuActionTriggered();
@@ -132,9 +127,16 @@ private slots:
 
     void graphicsItemSelected();
 
-    void showWindowToolbar(bool checked);
-    void updateCheckedToolbarActions(bool checked);
+    void showDocks(bool checked);
+    void detachDocks(bool checked);
+    void detachedDockClosed();
 
+    void showWindowToolbar(bool checked);
+    void detachWindowToolbar(bool checked);
+    void detachedToolbarClosed();
+    void updateCheckedToolbarActions(bool checked = true);
+
+    void updateWidgetMask(QWidget* widget, QWidget* maskWidget, bool check = false, QSize border = QSize());
 
     //multi-line popup for QTableView (SLOTS)
     void dataTableDoubleClicked(QModelIndex);
@@ -143,7 +145,8 @@ private slots:
 
 protected:
     void closeEvent(QCloseEvent*);
-    void mousePressEvent(QMouseEvent* event);
+    void resizeEvent(QResizeEvent* event);
+    void changeEvent(QEvent * event);
 
 private:
     void resetGUI();
@@ -151,6 +154,7 @@ private:
     void newProject();
     void initialiseGUI();
     void makeConnections();
+
     void setupController();
     void setupJenkinsSettings();
     void setupMenu(QPushButton* button);
@@ -158,7 +162,10 @@ private:
     void setupSearchTools();
     void setupToolbar();
     void setupMultiLineBox();
+
+    void updateWidgetsOnWindowChanged();
     void updateDataTable();
+
     bool exportProject();
     void importProjects(QStringList files);
     void showImportedHardwareNodes();
@@ -194,7 +201,10 @@ private:
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_sortModel;
+    QAction* settings_displayDocks;
+    QAction* settings_detachDocks;
     QAction* settings_displayWindowToolbar;
+    QAction* settings_detachWindowToolbar;
     QAction* settings_editWindowToolbar;
     QAction* settings_autoCenterView;
     QAction* settings_viewZoomAnchor;
@@ -209,6 +219,15 @@ private:
     PartsDockScrollArea* partsDock;
     DefinitionsDockScrollArea* definitionsDock;
     HardwareDockScrollArea* hardwareDock;
+
+    QDialog* dockStandAloneDialog;
+    QGroupBox* docksArea;
+    QGroupBox* dockButtonsBox;
+    QVBoxLayout* dockLayout;
+
+    QDialog* toolbarStandAloneDialog;
+    QGroupBox* toolbarArea;
+    QVBoxLayout* toolbarLayout;
 
     QToolBar* toolbar;
     QAction* toolbarAction;
@@ -229,8 +248,12 @@ private:
     QToolButton* alignVerticalButton;
     QToolButton* alignHorizontalButton;
     QToolButton* popupButton;
+    QToolButton* backButton;
+    QToolButton* forwardButton;
     QAction* leftMostSpacer;
     QAction* leftMidSpacer;
+    QAction* midLeftSpacer;
+    QAction* midRightSpacer;
     QAction* rightMidSpacer;
     QAction* rightMostSpacer;
 
@@ -286,19 +309,20 @@ private:
     QProcess *myProcess;
 
     QHash<QPushButton*, GraphMLItem*> searchItems;
-    QHash<QAction*, QCheckBox*> toolbarActions;
+    QMap<QAction*, QCheckBox*> toolbarActions;
     QList<QAction*> checkedToolbarActions;
+    QList<QAction*> checkedToolbarSpacers;
     QStringList checkedViewAspects;
 
     QHash<QAction*, int> leftMostActions;
     QHash<QAction*, int> leftMidActions;
+    QHash<QAction*, int> midLeftActions;
+    QHash<QAction*, int> midRightActions;
     QHash<QAction*, int> rightMidActions;
     QHash<QAction*, int> rightMostActions;
 
-    int boxWidth;
-    int boxHeight;
-
-    bool firstTableUpdate;
+    QPointF toolbarButtonPos;
+    int boxWidth, boxHeight;
 
     //QString DEPGEN_ROOT;
     QString JENKINS_ADDRESS;

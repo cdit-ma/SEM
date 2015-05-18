@@ -20,7 +20,7 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
     hardware_notAllowedKinds.append("BehaviourDefinitions");
     hardware_notAllowedKinds.append("DeploymentDefinitions");
     hardware_notAllowedKinds.append("AssemblyDefinitions");
-    hardware_notAllowedKinds.append("File");
+    hardware_notAllowedKinds.append("IDL");
     hardware_notAllowedKinds.append("Component");
     hardware_notAllowedKinds.append("ComponentImpl");
     hardware_notAllowedKinds.append("HardwareNode");

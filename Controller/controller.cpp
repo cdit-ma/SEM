@@ -506,6 +506,8 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<QStringLi
 
 void NewController::triggerAction(QString actionName)
 {
+    //qDebug() << "action: " << actionName;
+
     actionCount++;
     currentAction = actionName;
     currentActionID = actionCount;

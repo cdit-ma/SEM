@@ -43,7 +43,7 @@ bool ToolbarWidgetButton::getCheck()
  */
 void ToolbarWidgetButton::enterEvent(QEvent *e)
 {
-    qDebug() << "MouseEnter";
+    //qDebug() << "MouseEnter";
     emit mouseEntered();
     QWidget::enterEvent(e);
 }
@@ -53,7 +53,7 @@ void ToolbarWidgetButton::enterEvent(QEvent *e)
  */
 void ToolbarWidgetButton::leaveEvent(QEvent *e)
 {
-    qDebug() << "mouseExit";
+    //qDebug() << "mouseExit";
     emit mouseExited();
     QWidget::leaveEvent(e);
 }

@@ -144,9 +144,9 @@ public slots:
     void view_ClearHistory();
     void clearView();
 
-    void view_SelectModel();
     void resetModel();
     void clearModel();
+    void selectModel();
     void sortModel();
 
     void duplicate();
@@ -184,17 +184,11 @@ public slots:
     void view_CenterGraphML(GraphML* graphML);
     void view_LockCenteredGraphML(GraphML* graphML);
 
-    void view_SortNode(Node* node);
-    void view_SetOpacity(GraphML* graphML, qreal opacity);
-
     void sortEntireModel();
     void sortNode(Node* node, Node* topMostNode = 0);
 
     void setAspects(QStringList aspects, bool centerViewAspects = true);
-    //void sortAspects();
-    //void centerAspects();
-
-    void fitToScreen(QList<NodeItem*> itemsToCenter = QList<NodeItem*>(), double extraSpace = 0);
+    void fitToScreen(QList<NodeItem*> itemsToCenter = QList<NodeItem*>(), double padding = 0, bool addToMap = true);
 
     void centerOnItem(GraphMLItem* item = 0);
     void centerItem(GraphMLItem* item);
@@ -221,7 +215,9 @@ public slots:
     void showNodeItemLockMenu(NodeItem* nodeItem);
     void nodeItemLockMenuClosed(NodeItem *nodeItem);
 
-    void keepSelectionFullyVisible(GraphMLItem* nodeItem);
+    void keepSelectionFullyVisible(GraphMLItem* item);
+    void moveViewBack();
+    void moveViewForward();
 
 private:
     void alignSelectionOnGrid(ALIGN alignment = NONE);
@@ -272,12 +268,23 @@ private:
     Node* hasImplementation(Node* node);
 
     QRectF getVisibleRect();
-    void centerRect(QRectF rect, double extraspace = 0, double desiredSize = 0);
+    void centerRect(QRectF rect, double padding = 0, bool addToMap = true, double sizeRatio = 1);
+
     void centerViewOn(QPointF center);
+    void recenterView(QPointF modelPos, QRectF centeredRect, bool addToMap = false);
+
+    NodeItem* getModelItem();
+    QPointF getModelScenePos();
+
+    int getMapSize();
+    void addToMaps(QPointF modelPos, QRectF centeredRect);
+    void clearMaps(int fromKey = 0);
 
     QList<NodeItem*> getNodeItemsList();
 
     bool allowedFocus(QWidget* widget);
+
+
 
     NewController* controller;
 
@@ -315,6 +322,8 @@ private:
     QList<NodeView*> subViews;
 
     QStack<QPointF> viewCenterPointStack;
+    QStack<QPointF> viewModelPositions;
+    QStack<QRectF> viewCenteredRectangles;
 
     bool IS_RESIZING;
     bool IS_MOVING;
@@ -334,8 +343,14 @@ private:
     QPointF centerPoint;
     QPointF prevCenterPoint;
 
-    QMenu* prevLockMenuOpened;
+    int initialRect;
+    bool viewMovedBackForward;
 
+    int currentMapKey;
+    QMap<int, QPointF> modelPositions;
+    QMap<int, QRectF> centeredRects;
+
+    QMenu* prevLockMenuOpened;
 };
 
 #endif // NODEVIEW_H

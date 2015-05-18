@@ -4,7 +4,8 @@
 #include <QMouseEvent>
 #include <QPen>
 #define GRID_COUNT 50
-#define LINEWIDTH 400
+//#define LINEWIDTH 400
+#define LINEWIDTH 120
 #define GRACE 1000
 
 NodeViewMinimap::NodeViewMinimap(QObject *parent)
@@ -19,6 +20,10 @@ void NodeViewMinimap::viewportRectChanged(QRectF viewport)
     //viewport.setWidth(viewport.width() + GRACE + LINEWIDTH);
     //viewport.setHeight(viewport.height() + GRACE + LINEWIDTH);
     this->viewport = viewport;
+
+    if (scene()) {
+        fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
+    }
 }
 
 bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
@@ -30,7 +35,7 @@ bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 
 void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
-
+    /*
     QPen pen;
     pen.setWidth(LINEWIDTH);
     pen.setColor(QColor(255,0,0));
@@ -42,8 +47,35 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     pen.setColor(QColor(0,255,255));
     painter->setPen(pen);
 
-    painter->drawRect(scene()->sceneRect());
+    //painter->drawRect(scene()->sceneRect());
+    */
 
+    // this darkens the area in the scene that's not currently visualised by the view
+    // it also still draws a rectangle representing what is currently shown in the view
+    if (scene()) {
+        QRectF sr = sceneRect();
+        QRectF left(sr.x(), sr.y(), viewport.left() - sr.x(), sr.height());
+        QRectF topMid(left.topRight(), QSize(viewport.width(), viewport.y() - sr.y()));
+        QRectF right(viewport.right(), sr.y(), sr.width() - topMid.right(), sr.height());
+        QRectF bottomMid(viewport.bottomLeft(), QSize(viewport.width(), sr.height() - viewport.bottom()));
+
+        QPainterPath path;
+        path.addRect(left);
+        path.addRect(topMid);
+        path.addRect(right);
+        path.addRect(bottomMid);
+        path.setFillRule(Qt::WindingFill);
+
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(QBrush(QColor(0,0,0,40)));
+        painter->drawPath(path);
+        painter->setBrush(Qt::NoBrush);
+
+        QPen pen(QColor(250,250,250));
+        pen.setWidth(LINEWIDTH);
+        painter->setPen(pen);
+        painter->drawRect(viewport);
+    }
 }
 
 void NodeViewMinimap::mousePressEvent(QMouseEvent *event)

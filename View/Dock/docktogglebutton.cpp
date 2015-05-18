@@ -220,10 +220,10 @@ void DockToggleButton::on_buttonPressed()
  */
 void DockToggleButton::enableDock(bool enable)
 {
-   if (!enable) {
-       hideContainer();
-   }
-   setEnabled(enable);
+    if (!enable) {
+        hideContainer();
+    }
+    setEnabled(enable);
 }
 
 

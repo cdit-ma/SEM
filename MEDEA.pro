@@ -89,8 +89,7 @@ HEADERS += \
     GUI/searchitembutton.h \
     View/Validate/validatedialog.h \
     View/Toolbar/toolbarwidgetbutton.h \
-    Model/InterfaceDefinitions/idl.h \
- 	GUI/eventfilter.h
+	Model/InterfaceDefinitions/idl.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -161,8 +160,7 @@ SOURCES += \
     GUI/searchitembutton.cpp \
     View/Validate/validatedialog.cpp \
     View/Toolbar/toolbarwidgetbutton.cpp \
-    Model/InterfaceDefinitions/idl.cpp \
-	GUI/eventfilter.cpp
+	Model/InterfaceDefinitions/idl.cpp
 
 FORMS += \
 

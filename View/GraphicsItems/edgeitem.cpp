@@ -209,7 +209,7 @@ void EdgeItem::setVisible(bool visible)
     if(!source->isVisible()){
         if(sourceParent){
             if(sourceParent->isVisible()){
-                 start = sourceParent;
+                start = sourceParent;
             }
         }
     }
@@ -217,7 +217,7 @@ void EdgeItem::setVisible(bool visible)
     if(!destination->isVisible()){
         if(destinationParent){
             if(destinationParent->isVisible()){
-                 finish = destinationParent;
+                finish = destinationParent;
             }
         }
     }
@@ -274,7 +274,6 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             GraphMLItem_ClearSelection(false);
         }
         GraphMLItem_AppendSelected(this);
-
 
         break;
     }

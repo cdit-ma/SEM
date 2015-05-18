@@ -96,5 +96,7 @@
         <file>Resources/Icons/connectedHardwareNode.png</file>
         <file>Resources/Icons/toolbar.png</file>
         <file>Resources/Icons/grid.png</file>
+        <file>Resources/Icons/back.png</file>
+        <file>Resources/Icons/forward.png</file>
     </qresource>
 </RCC>

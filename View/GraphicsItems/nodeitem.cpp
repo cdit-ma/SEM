@@ -456,8 +456,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
 
-
-        double radius = getItemMargin();
+        int offSet = 100;
+        double radius = getItemMargin() + offSet;
         QRect clippingCircle(QPoint(modelCenterPoint.toPoint() - QPoint(radius,radius)), QPoint(modelCenterPoint.toPoint() + QPoint(radius,radius)));
 
         QBrush circleBrush;
@@ -470,13 +470,12 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setBrush(circleBrush);
 
 
-        double middleButton = radius / 2;
+        double middleButton = radius / 2;        
 
         QRectF tLR(modelCenterPoint - QPointF(radius,radius), modelCenterPoint);
         QRectF tRR(modelCenterPoint - QPointF(0,radius), modelCenterPoint + QPointF(radius,0));
         QRectF bLR(modelCenterPoint - QPointF(radius,0), modelCenterPoint + QPointF(0,radius));
         QRectF bRR(modelCenterPoint,  modelCenterPoint + QPointF(radius,radius));
-
 
         painter->setPen(Qt::NoPen);
         painter->setBrush(QColor(110,210,210));
@@ -487,7 +486,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawRect(bLR);
         painter->setBrush(QColor(110,170,220));
         painter->drawRect(bRR);
-
 
 
         circleBrush.setColor(Qt::gray);
@@ -510,18 +508,40 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawEllipse(modelCenterPoint, middleButton, middleButton);
 
 
-
         if(textItem){
+
             painter->setPen(Qt::NoPen);
+
+            /*
+             * This draws 2 gray rectangles; it makes it look
+             * like the aspects are attached to the model
+             */
+            /*
+            double gapSize = MODEL_WIDTH / 128;
+
+            // horizontal rect
+            QRectF trh(0, 0, radius*2, gapSize.y()*2+5);
+            trh.translate(textItem->pos().x() -offSet, textItem->pos().y() - 44);
+            painter->drawRect(trh);
+
+            // vertical rect
+            QRectF trv(0, 0, trh.height(), trh.width());
+            trv.translate(modelCenterPoint - QPointF(trh.height()/2, trh.width()/2));
+            painter->drawRect(trv);
+            */
+
+            // this evens out the colours around the model button
+            QRectF textRect = textItem->boundingRect();
+            textRect.translate(textItem->pos() + QPoint(textRect.width()/4, 0));
+            textRect.setWidth(textRect.width()/2);
+            painter->drawRect(textRect);
+
+            /*
             QRectF textRect = textItem->boundingRect();
             textRect.translate(textItem->pos());
             painter->drawRect(textRect);
+            */
         }
-
-
-
-
-
 
 
     }
@@ -1264,7 +1284,11 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     case Qt::LeftButton:
 
         // added this to center aspects when double-clicking on !PAINTED items
-        if(!PAINT_OBJECT && nodeKind != "Model"){
+        //if(!PAINT_OBJECT && nodeKind != "Model"){
+
+        // needed to change it to this other wise you can't center
+        // the aspects by double clicking on the model
+        if(!PAINT_OBJECT && !modelCirclePressed(event->pos())){
             GraphMLItem_CenterAspects();
             return;
         }
@@ -1345,7 +1369,8 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::MiddleButton:{
         if(!PAINT_OBJECT && nodeKind != "Model"){
-            emit centerViewAspects();
+            //emit centerViewAspects();
+            GraphMLItem_CenterAspects();
             return;
         }
 
@@ -2045,7 +2070,6 @@ void NodeItem::setupLabel()
     if(nodeKind == "Model"){
         textItem->setCenterJustified();
         textItem->setTextWidth(getItemMargin() * 2);
-
     }
 
     qreal labelX = (minimumVisibleRect().width() - textItem->boundingRect().width()) /2;  

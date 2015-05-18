@@ -195,7 +195,9 @@ void DockScrollArea::updateDock()
 {
     if(currentNodeItemID != "-1"){
         if (currentNodeItem) {
-            if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
+            if (currentNodeItem->getNodeKind() == "Model") {
+                parentButton->enableDock(false);
+            } else if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
                 parentButton->enableDock(false);
             } else {
                 parentButton->enableDock(true);

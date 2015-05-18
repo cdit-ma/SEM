@@ -149,7 +149,7 @@ signals:
     void setEdgesVisibility(bool visible);
     void setEdgesSelected(bool selected);
 
-    void centerViewAspects();
+    //void centerViewAspects();
 
     //DockNodeItem Signals
     void updateDockNodeItem();
