@@ -32,7 +32,7 @@
 #define MAX_ZOOM_RATIO 50
 #define MIN_ZOOM_RATIO 2
 
-#define VIEW_PADDING 1.1
+#define VIEW_PADDING 1.25
 
 
 /**

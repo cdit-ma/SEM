@@ -16,8 +16,9 @@
 #include <QTextCursor>
 #include <math.h>
 
-#define MODEL_WIDTH 19200
-#define MODEL_HEIGHT 10800
+#define MODEL_WIDTH 1920
+#define MODEL_HEIGHT 1080
+
 
 //#define MARGIN_RATIO 0.15 //LARGE
 #define MARGIN_RATIO 0.1 //NORMAL
@@ -27,18 +28,17 @@
 #define ICON_RATIO 0.8 //NORMAL
 //#define ICON_RATIO 0.9 //COMPACT
 
-//#define ENTITY_SIZE_RATIO 2 //LARGE
-//#define ENTITY_SIZE_RATIO 4 //NORMAL
-#define ENTITY_SIZE_RATIO 6 //COMPACT
+
+//RATIO FROM ASPECT TO FIRST ENTITY.
+#define ENTITY_SIZE_RATIO 6
+//RATIO FROM MODEL TO ASPECTS
+#define ASPECT_SIZE_RATIO 3
 
 #define LABEL_RATIO (1 - ICON_RATIO)
 
 #define SNAP_PERCENTAGE .25
-#define ASPECT_SIZE_RATIO 3
-//#define ENTITY_SIZE_RATIO 7
-//#define GRID_RATIO 25
 
-#define GRID_RATIO (ENTITY_SIZE_RATIO * 1.75)
+#define GRID_RATIO 1.75
 
 /**
  * @brief NodeItem::NodeItem
@@ -516,11 +516,11 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
              * This draws 2 gray rectangles; it makes it look
              * like the aspects are attached to the model
              */
-            /*
+
             double gapSize = MODEL_WIDTH / 128;
 
             // horizontal rect
-            QRectF trh(0, 0, radius*2, gapSize.y()*2+5);
+            QRectF trh(0, 0, radius*2, gapSize*2+5);
             trh.translate(textItem->pos().x() -offSet, textItem->pos().y() - 44);
             painter->drawRect(trh);
 
@@ -528,14 +528,15 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             QRectF trv(0, 0, trh.height(), trh.width());
             trv.translate(modelCenterPoint - QPointF(trh.height()/2, trh.width()/2));
             painter->drawRect(trv);
-            */
+
+            /*
 
             // this evens out the colours around the model button
             QRectF textRect = textItem->boundingRect();
             textRect.translate(textItem->pos() + QPoint(textRect.width()/4, 0));
             textRect.setWidth(textRect.width()/2);
             painter->drawRect(textRect);
-
+*/
             /*
             QRectF textRect = textItem->boundingRect();
             textRect.translate(textItem->pos());
@@ -760,18 +761,20 @@ double NodeItem::getChildWidth()
     // added an offset of 0.35 here and in getChildHeight
     // to make the gap between the view aspects uniform
     if (nodeKind == "Model") {
-        return MODEL_WIDTH / (ASPECT_SIZE_RATIO - 0.35);
-    } else {
+        return MODEL_WIDTH / ASPECT_SIZE_RATIO;
+    } else if(nodeKind.endsWith("Definitions")) {
         return minimumWidth / ENTITY_SIZE_RATIO;
+    }else{
+        return minimumWidth;
     }
 }
 
 double NodeItem::getChildHeight()
 {
     if (nodeKind == "Model") {
-        return MODEL_HEIGHT / (ASPECT_SIZE_RATIO + 0.35);
+        return MODEL_HEIGHT / ASPECT_SIZE_RATIO;
     } else {
-        return minimumWidth / ENTITY_SIZE_RATIO;
+        return getChildWidth();
     }
 
 }
@@ -2309,8 +2312,8 @@ bool NodeItem::isPermanentlyCentered()
 
 
 qreal NodeItem::getGridSize()
-{ 
-    return minimumVisibleRect().width() / GRID_RATIO;
+{
+    return getChildBoundingRect().width() / GRID_RATIO;
 }
 
 
@@ -2448,13 +2451,20 @@ QStringList NodeItem::getChildrenKind()
  */
 double NodeItem::getCornerRadius()
 {
-    return getItemMargin();
+    double itemMargin = getItemMargin();
+    if(nodeKind.endsWith("Definitions")){
+        itemMargin *= 2;
+    }
+    return itemMargin;
 }
 
 double NodeItem::getChildCornerRadius()
 {
-    return getChildItemMargin();//getCornerRadius() /  ENTITY_SIZE_RATIO;
-
+    double itemMargin = getItemMargin();
+    if(nodeKind.endsWith("Definitions")){
+        itemMargin /= ENTITY_SIZE_RATIO;
+    }
+    return itemMargin;
 }
 
 
@@ -2491,12 +2501,16 @@ bool NodeItem::drawGridlines()
 
 double NodeItem::getItemMargin() const
 {
-    return MARGIN_RATIO * minimumWidth;
+    if(nodeKind.endsWith("Definitions")){
+        return (MARGIN_RATIO * minimumWidth) / ASPECT_SIZE_RATIO;
+    }
+    return (MARGIN_RATIO * minimumWidth);
 }
 
 double NodeItem::getChildItemMargin()
 {
-    return getItemMargin() / ENTITY_SIZE_RATIO;
+    return getItemMargin();
+
 }
 
 
