@@ -876,7 +876,7 @@ void NodeView::moveViewBack()
             recenterView(modelPositions[currentMapKey], centeredRects[currentMapKey]);
             viewMovedBackForward = true;
         } else {
-            qWarning() << "NodeView::moveViewBack - Can't go back any further";
+            //qWarning() << "NodeView::moveViewBack - Can't go back any further";
         }
     }
 }
@@ -898,7 +898,7 @@ void NodeView::moveViewForward()
             recenterView(modelPositions[currentMapKey], centeredRects[currentMapKey]);
             viewMovedBackForward = true;
         } else {
-            qWarning() << "NodeView::moveViewForward - Can't go forward any further";
+            //qWarning() << "NodeView::moveViewForward - Can't go forward any further";
         }
     }
 }

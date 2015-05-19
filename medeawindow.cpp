@@ -1060,6 +1060,8 @@ void MedeaWindow::makeConnections()
 
     connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*)), nodeView, SLOT(destructEdge(Edge*)));
 
+    connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
+
     //For mac
     addAction(exit);
     addAction(file_newProject);
