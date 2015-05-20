@@ -321,8 +321,8 @@ void ToolbarWidget::setupToolBar()
     alignVerticallyButton->setIconSize(buttonSize*0.8);
     alignHorizontallyButton->setIconSize(buttonSize*0.8);
 
-    addChildButton->setToolTip("Add Child Node");
-    connectButton->setToolTip("Connect Node");
+    addChildButton->setToolTip("Add Child Entity");
+    connectButton->setToolTip("Connect Entity");
     deleteButton->setToolTip("Delete Selection");
     showNewViewButton->setToolTip("View In New Window");
     showConnectionsButton->setToolTip("View Connections");
@@ -416,13 +416,14 @@ void ToolbarWidget::setupMenus()
     outEventPortDelegateAction = new ToolbarWidgetAction("OutEventPortDelegate", "", addMenu);
 
     // default actions for when some of the menus are empty
-    fileDefaultAction = new ToolbarWidgetAction("info", "There are no Files containing Components.", this);
-    eventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any EventPorts that are connected to an Aggregate.", this);
+    fileDefaultAction = new ToolbarWidgetAction("info", "There are no IDL files containing Components.", this);
+    inEventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", this);
+    outEventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", this);
 
     // hidden menus for parent nodes, ComponentInstances, ComponentImpls and In/Out EventPortDelegates
     fileMenu = new ToolbarWidgetMenu(0, fileDefaultAction, addMenu);
-    inEventPort_componentInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, eventPort_componentInstanceDefaultAction, addMenu);
-    outEventPort_componentInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, eventPort_componentInstanceDefaultAction, addMenu);
+    inEventPort_componentInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, inEventPort_componentInstanceDefaultAction, addMenu);
+    outEventPort_componentInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, outEventPort_componentInstanceDefaultAction, addMenu);
 }
 
 
@@ -472,7 +473,7 @@ void ToolbarWidget::updateToolButtons()
     }
 
     // check if the selected node item has other node items connected to it (edges)
-    // Note: ComponentAssembly apparently has a connection to itself?
+    // NOTE: ComponentAssembly apparently has a connection to itself?
     if (nodeItem->getNode()->getEdges().count() > 0) {
         showConnectionsButton->show();
     } else {
@@ -480,7 +481,10 @@ void ToolbarWidget::updateToolButtons()
     }
 
     // always show show new view button
-    showNewViewButton->show();
+    //showNewViewButton->show();
+
+    // DEMO CHANGE: always hide for now
+    showNewViewButton->hide();
 }
 
 
@@ -649,7 +653,7 @@ void ToolbarWidget::setupLegalNodesList(QList<Node*> nodeList)
             connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
 
         } else {
-            qDebug() << "Toolbar: Current node's parent node is NULL.";
+            qWarning() << "Toolbar: Current entity's parent entity is NULL.";
         }
     }
 }

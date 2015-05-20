@@ -225,9 +225,10 @@ private:
     QGroupBox* dockButtonsBox;
     QVBoxLayout* dockLayout;
 
-    QDialog* toolbarStandAloneDialog;
-    QGroupBox* toolbarArea;
-    QVBoxLayout* toolbarLayout;
+    // DEMO CHANGE
+    //QDialog* toolbarStandAloneDialog;
+    //QGroupBox* toolbarArea;
+    //QVBoxLayout* toolbarLayout;
 
     QToolBar* toolbar;
     QAction* toolbarAction;

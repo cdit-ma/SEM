@@ -29,15 +29,8 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
-    /*
-    EventFilter* filter = new EventFilter(this);
-    this->installEventFilter(filter);
-    */
-
-    applicationDirectory = QApplication::applicationDirPath() + "/";
-    //Critical() << applicationDirectory;
-
     // this needs to happen before the menu is set up and connected
+    applicationDirectory = QApplication::applicationDirPath() + "/";
     appSettings = new AppSettings(applicationDirectory, this);
 
     setupJenkinsSettings();
@@ -91,7 +84,9 @@ void MedeaWindow::initialiseGUI()
 
     nodeView = new NodeView();
 
-    toolbarArea = new QGroupBox(this);
+    // DEMO CHANGE
+    toolbar = new QToolBar();
+    //toolbarArea = new QGroupBox(this);
 
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
@@ -234,7 +229,9 @@ void MedeaWindow::initialiseGUI()
     topHLayout->setSpacing(0);
     topHLayout->addLayout(titleLayout);
     topHLayout->addStretch(1);
-    topHLayout->addWidget(toolbarArea);
+    // DEMO CHANGE
+    topHLayout->addWidget(toolbar);
+    //topHLayout->addWidget(toolbarArea);
     topHLayout->addStretch(1);
 
     leftVlayout->addLayout(topHLayout);
@@ -351,13 +348,14 @@ void MedeaWindow::setupMenu(QPushButton *button)
     settings_Menu->addSeparator();
     settings_autoCenterView = settings_Menu->addAction("Automatically Center Views");
     settings_viewZoomAnchor = settings_Menu->addAction("Zoom View Under Mouse");
-    settings_selectOnConstruction = settings_Menu->addAction("Select Node On Construction");
+    settings_selectOnConstruction = settings_Menu->addAction("Select Entity On Construction");
     settings_Menu->addSeparator();
     settings_displayDocks = settings_Menu->addAction("Display Dock");
     settings_detachDocks = settings_Menu->addAction("Detach Dock");
     settings_Menu->addSeparator();
     settings_displayWindowToolbar = settings_Menu->addAction("Display Toolbar");
-    settings_detachWindowToolbar = settings_Menu->addAction("Detach Toolbar");
+    // DEMO CHANGE
+    //settings_detachWindowToolbar = settings_Menu->addAction("Detach Toolbar");
     settings_editWindowToolbar = settings_Menu->addAction("Toolbar Settings");
     settings_Menu->addSeparator();
     settings_ChangeSettings = settings_Menu->addAction("More Settings...");
@@ -368,7 +366,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     settings_displayDocks->setCheckable(true);
     settings_detachDocks->setCheckable(true);
     settings_displayWindowToolbar->setCheckable(true);
-    settings_detachWindowToolbar->setCheckable(true);
+    // DEMO CHANGE
+    //settings_detachWindowToolbar->setCheckable(true);
     settings_showGridLines->setCheckable(true);
     settings_selectOnConstruction->setCheckable(true);
     settings_autoCenterView->setCheckable(true);
@@ -403,7 +402,7 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     compDefinitionsButton = new DockToggleButton("D", this);
 
     partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
-    definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, compDefinitionsButton);
+    definitionsDock = new DefinitionsDockScrollArea("Component Definitions", nodeView, compDefinitionsButton);
     hardwareDock = new HardwareDockScrollArea("Hardware Nodes", nodeView, hardwareNodesButton);
 
     // width of the containers are fixed
@@ -630,12 +629,15 @@ void MedeaWindow::setupSearchTools()
  */
 void MedeaWindow::setupToolbar()
 {
+    // DEMO CHANGE
+    /*
     toolbar = new QToolBar();
     toolbarStandAloneDialog = new QDialog(this);
 
     toolbarLayout = new QVBoxLayout();
     QVBoxLayout* toolbarDialogLayout = new QVBoxLayout();
     QVBoxLayout* toolbarAreaLayout = new QVBoxLayout();
+    */
 
     toolbarButton = new QToolButton(this);
     toolbarButton->setCheckable(true);
@@ -783,6 +785,8 @@ void MedeaWindow::setupToolbar()
                            "QToolButton:pressed{ background-color: rgba(240,240,240,240); }"
                            );
 
+    // DEMO CHANGE
+    /*
     toolbarLayout->setMargin(0);
     toolbarLayout->setSpacing(0);
     toolbarLayout->addWidget(toolbar);
@@ -804,6 +808,7 @@ void MedeaWindow::setupToolbar()
     toolbarStandAloneDialog->setWindowTitle("MEDEA - Toolbar");
     toolbarStandAloneDialog->setStyleSheet("padding: 0px; margin: 0px; background-color: rgba(175,175,175,255);");
     toolbarStandAloneDialog->setLayout(toolbarDialogLayout);
+    */
 
     // keep a list of all the tool buttons and create a checkbox for each one
     toolbarActions[backAction] = new QCheckBox("Back", this);
@@ -851,14 +856,25 @@ void MedeaWindow::setupToolbar()
 
     // add checkboxes to the toolbar settings popup dialog
     QVBoxLayout* layout = new QVBoxLayout();
+    QStringList initiallyHidden (QStringList() << "Grid" << "Popup" << "Align" << "Back" << "Forward");
+
     foreach (QCheckBox* cb, toolbarActions.values() ) {
+
         layout->addWidget(cb);
         connect(cb, SIGNAL(clicked(bool)), this, SLOT(updateCheckedToolbarActions(bool)));
+
         // initially hide some of the tool buttons
-        if (cb->text().contains("Grid") || cb->text().contains("Align") || cb->text().contains("Popup")) {
-            cb->clicked(false);
-            cb->setChecked(false);
-        } else {
+        bool hidden = false;
+        foreach (QString s, initiallyHidden) {
+            if (cb->text().contains(s)) {
+                cb->clicked(false);
+                cb->setChecked(false);
+                hidden = true;
+                break;
+            }
+        }
+
+        if (!hidden) {
             cb->setChecked(true);
             checkedToolbarActions.append(toolbarActions.key(cb));
         }
@@ -971,7 +987,8 @@ void MedeaWindow::makeConnections()
     connect(settings_displayDocks, SIGNAL(triggered(bool)), this, SLOT(showDocks(bool)));
     connect(settings_detachDocks, SIGNAL(triggered(bool)), this, SLOT(detachDocks(bool)));
     connect(settings_displayWindowToolbar, SIGNAL(triggered(bool)), this, SLOT(showWindowToolbar(bool)));
-    connect(settings_detachWindowToolbar, SIGNAL(triggered(bool)), this, SLOT(detachWindowToolbar(bool)));
+    // DEMO CHANGE
+    //connect(settings_detachWindowToolbar, SIGNAL(triggered(bool)), this, SLOT(detachWindowToolbar(bool)));
     connect(settings_editWindowToolbar, SIGNAL(triggered()), toolbarSettingsDialog, SLOT(show()));
     connect(settings_selectOnConstruction, SIGNAL(triggered(bool)), nodeView, SLOT(selectNodeOnConstruction(bool)));
     connect(settings_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
@@ -1029,7 +1046,8 @@ void MedeaWindow::makeConnections()
     connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
 
     connect(dockStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedDockClosed()));
-    connect(toolbarStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedToolbarClosed()));
+    // DEMO CHANGE
+    //connect(toolbarStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedToolbarClosed()));
 
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
@@ -1161,7 +1179,10 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
 
     // update the masks' regions
     updateWidgetMask(docksArea, dockButtonsBox, true);
-    updateWidgetMask(toolbarArea, toolbarButton, true,  QSize(10,10));
+
+    // DEMO CHANGE
+    updateWidgetMask(toolbar, toolbarButton, true,  QSize(10,10));
+    //updateWidgetMask(toolbarArea, toolbarButton, true,  QSize(10,10));
 
     // update the stored view center point and re-center the view
     if (nodeView && controller) {
@@ -1202,7 +1223,8 @@ void MedeaWindow::setupInitialSettings()
     settings_displayDocks->setChecked(true);
     settings_detachDocks->setChecked(false);
     settings_displayWindowToolbar->setChecked(true);
-    settings_detachWindowToolbar->setChecked(false);
+    // DEMO CHANGE
+    //settings_detachWindowToolbar->setChecked(false);
     settings_autoCenterView->setChecked(true);
     settings_showGridLines->setChecked(true);
     settings_selectOnConstruction->setChecked(false);
@@ -1211,7 +1233,8 @@ void MedeaWindow::setupInitialSettings()
     settings_displayDocks->triggered(true);
     settings_detachDocks->triggered(false);
     settings_displayWindowToolbar->triggered(true);
-    settings_detachWindowToolbar->triggered(false);
+    // DEMO CHANGE
+    //settings_detachWindowToolbar->triggered(false);
     settings_autoCenterView->triggered(true);
     settings_showGridLines->triggered(true);
     settings_selectOnConstruction->triggered(false);
@@ -1824,9 +1847,11 @@ void MedeaWindow::showWindowToolbar(bool checked)
 {
     QAction* senderAction = qobject_cast<QAction*>(QObject::sender());
     if (senderAction) {
-        toolbarArea->setVisible(!settings_detachWindowToolbar->isChecked() && checked);
-        toolbarStandAloneDialog->setVisible(settings_detachWindowToolbar->isChecked() && checked);
-        settings_detachWindowToolbar->setEnabled(checked);
+        // DEMO CHANGE
+        toolbar->setVisible(checked);
+        //toolbarArea->setVisible(!settings_detachWindowToolbar->isChecked() && checked);
+        //toolbarStandAloneDialog->setVisible(settings_detachWindowToolbar->isChecked() && checked);
+        //settings_detachWindowToolbar->setEnabled(checked);
         return;
     }
 
@@ -1841,13 +1866,16 @@ void MedeaWindow::showWindowToolbar(bool checked)
         }
         if (checked) {
             toolbarButton->setToolTip("Contract Toolbar");
-            toolbarArea->clearMask();
+            // DEMO CHANGE
+            toolbar->clearMask();
+            //toolbarArea->clearMask();
         } else {
             // NOTE: hover/focus doesn't leave the button until you move the mouse
             toolbarButton->setToolTip("Expand Toolbar");
             toolbarButton->update();
-            //toolbarButton->move(toolbarButtonPos);
-            updateWidgetMask(toolbarArea, toolbarButton, false, QSize(10,10));
+            //updateWidgetMask(toolbarArea, toolbarButton, false, QSize(10,10));
+            // DEMO CHANGE
+            updateWidgetMask(toolbar, toolbarButton, false, QSize(10,10));
         }
     }
 }
@@ -1859,6 +1887,8 @@ void MedeaWindow::showWindowToolbar(bool checked)
  */
 void MedeaWindow::detachWindowToolbar(bool checked)
 {
+    // DEMO CHANGE
+    /*
     QVBoxLayout* fromLayout;
     QVBoxLayout* toLayout;
 
@@ -1894,6 +1924,7 @@ void MedeaWindow::detachWindowToolbar(bool checked)
         toolbarAction->setVisible(true);
         updateCheckedToolbarActions();
     }
+    */
 }
 
 
@@ -1956,6 +1987,8 @@ void MedeaWindow::updateCheckedToolbarActions(bool checked)
             spacerAction = rightMostSpacer;
         }
 
+        // DEMO CHANGE
+        /*
         // if the toolbar dialog is visible, the midRightSpacer
         // is hidden on purpose; don't change its visibility
         if (toolbarStandAloneDialog->isVisible()) {
@@ -1964,6 +1997,7 @@ void MedeaWindow::updateCheckedToolbarActions(bool checked)
             }
             toolbarStandAloneDialog->resize(toolbarLayout->sizeHint());
         }
+        */
 
     } else {
         // this happens when the toolbar has been re-attached to the main window

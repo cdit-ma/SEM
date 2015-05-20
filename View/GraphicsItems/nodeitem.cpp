@@ -532,7 +532,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setBrush(circleBrush);
 
 
-        double middleButton = radius / 2;        
+        double middleButton = radius / 2;
 
         QRectF tLR(modelCenterPoint - QPointF(radius,radius), modelCenterPoint);
         QRectF tRR(modelCenterPoint - QPointF(0,radius), modelCenterPoint + QPointF(radius,0));
@@ -941,7 +941,7 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
     }
 
 /*
-    // CATHLYNS CODE FOR THE SAME THING.
+       // CATHLYNS CODE FOR THE SAME THING. TEST
     // work out how many grid cells are needed per child item
     // divide it by 2 - only need half the number of cells to fit the center of the item
     double startingGridPoint = ceil(getChildBoundingRect().width()/getGridSize()) / 2;
@@ -961,27 +961,23 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
 
         // check if the child rect collides with an existing child item
         if (childrenPath.intersects(childRect)) {
+
             // if so, check the next x position
             currentX++;
+
             // collision means that current position is inside the grid
             xOutsideOfGrid = false;
             yOutsideOfGrid = false;
+
         } else {
 
             // if there is no collision and the current position is inside the grid
             // it's a valid position - return it
-
-            //if (nodeKind.endsWith("Definitions") && gridRect().intersects(childRect)){
-            //    return nextPosition;
-            //} else if (!nodeKind.endsWith("Definitions") && gridRect().intersects(childRect)) {
-            //    return nextPosition;
-            //}
-
-            if (gridRect().intersects(childRect)){
+            if (gridRect().contains(nextPosition)) {
                 return nextPosition;
             }
 
-            // if both the current x and y are outside of the grid,
+            // if both currentX and currentY are outside of the grid,
             // it means that there is no available spot in the grid
             if (xOutsideOfGrid && yOutsideOfGrid) {
                 // return a new position depending on which of the width/height is bigger
@@ -992,21 +988,22 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
                 return finalPosition;
             }
 
-            // if the current x is outside of the grid, because the current y has already been
-            // incremented when the x was reset, it means that it is also outside of the grid
+            // because currentY was incremented when currentX was outside
+            // of the grid, it means that it is now also out of the grid
             if (xOutsideOfGrid) {
                 yOutsideOfGrid = true;
             } else {
-                // when it gets into this case, it means that the current x is outside of the grid
+                // when it gets into this case, it means that currentX is outside of the grid
                 xOutsideOfGrid = true;
                 // store the maximum x
-                if(currentX > maxX){
+                if (currentX > maxX) {
                     maxX = currentX;
                 }
-                // reset the current x then check the next y position
+                // reset currentX then check the next y position
                 currentX = startingGridPoint;
                 currentY++;
             }
+
         }
     }
 */
@@ -2128,7 +2125,7 @@ void NodeItem::setupLabel()
 
     float fontSize = qMax((LABEL_RATIO / 2) * minimumHeight, 1.0);
     if(nodeKind == "Model"){
-         fontSize = qMax(getItemMargin() * LABEL_RATIO, 1.0);
+        fontSize = qMax(getItemMargin() * LABEL_RATIO, 1.0);
     }
 
     QFont font("Arial", fontSize);
@@ -2145,7 +2142,7 @@ void NodeItem::setupLabel()
         textItem->setTextWidth(getItemMargin() * 2);
     }
 
-    qreal labelX = (minimumVisibleRect().width() - textItem->boundingRect().width()) /2;  
+    qreal labelX = (minimumVisibleRect().width() - textItem->boundingRect().width()) /2;
     qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);
 
     textItem->setFont(font);

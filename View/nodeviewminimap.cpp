@@ -5,7 +5,7 @@
 #include <QPen>
 #define GRID_COUNT 50
 //#define LINEWIDTH 400
-#define LINEWIDTH 120
+#define LINEWIDTH 12
 #define GRACE 1000
 
 NodeViewMinimap::NodeViewMinimap(QObject *parent)

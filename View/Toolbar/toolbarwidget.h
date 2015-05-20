@@ -109,7 +109,8 @@ private:
     ToolbarWidgetMenu* outEventPort_componentInstanceMenu;
 
     ToolbarWidgetAction* fileDefaultAction;
-    ToolbarWidgetAction* eventPort_componentInstanceDefaultAction;
+    ToolbarWidgetAction* inEventPort_componentInstanceDefaultAction;
+    ToolbarWidgetAction* outEventPort_componentInstanceDefaultAction;
 
     QFrame* mainFrame;
     QFrame* shadowFrame;
