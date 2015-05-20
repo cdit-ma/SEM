@@ -30,7 +30,7 @@
 
 
 //RATIO FROM ASPECT TO FIRST ENTITY.
-#define ENTITY_SIZE_RATIO 8
+#define ENTITY_SIZE_RATIO 10
 //RATIO FROM MODEL TO ASPECTS
 #define ASPECT_SIZE_RATIO 3
 
@@ -436,12 +436,12 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 qreal xRight = boundingRect().right() - getItemMargin();
                 qreal xLeft = xRight - getItemMargin();
 
-                QLineF line = QLineF(gridRect().left(), yBot, xLeft, yBot);
+                QLineF line = QLineF(gridRect().left(), gridRect().top(), xRight, gridRect().top());
                 QPolygonF triangle;
                 triangle.append(QPointF(xLeft,yTop));
                 triangle.append(QPointF(xRight,yTop));
                 triangle.append(QPointF(xLeft,yBot));
-
+                painter->drawLine(line);
                 painter->setPen(pen);
                 painter->setPen(altPen);
                 painter->drawPolygon(triangle,Qt::WindingFill);
@@ -459,7 +459,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 triangle.append(QPointF(xRight,yBot));
                 triangle.append(QPointF(xLeft,yBot));
                 painter->setPen(pen);
-
+                //painter->drawLine(line);
                 painter->setPen(altPen);
                 painter->drawPolygon(triangle,Qt::WindingFill);
             }
@@ -484,26 +484,23 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         //Draw the Outlines
-        if(this->isExpanded()){
+        if(this->isExpanded() && GRIDLINES_ON){
             foreach(QRectF rect, outlineMap){
-
+                QRectF newRectangle = rect;
                 painter->setBrush(Qt::NoBrush);
 
-                QPen linePen;
+                QPen linePen = pen;
                 linePen.setColor(Qt::white);
                 linePen.setStyle(Qt::DotLine);
+                linePen.setWidth(linePen.width() *2);
 
-                if(parentView){
-                    qreal scaleX = parentView->transform().m11();
-                    qreal penWidth = 5.0/scaleX;
-                    penWidth = qMax(penWidth, 1.0);
-                    linePen.setWidth(penWidth);
-                }
+                newRectangle.setWidth(rect.width() + (linePen.widthF()/2));
+                newRectangle.setHeight(rect.height() + (linePen.widthF()/2));
+                newRectangle.translate(-linePen.widthF()/2,-linePen.widthF()/2);
 
                 painter->setPen(linePen);
-
                 double radius = getChildCornerRadius();
-                painter->drawRoundedRect(rect, radius, radius);
+                painter->drawRoundedRect(newRectangle, radius, radius);
             }
         }
     }
@@ -1170,7 +1167,7 @@ void NodeItem::newSort()
         if(!child->isVisible()){ //&& nodeKind != "Model"){
             continue;
         }
-        if(child->isLocked()){
+        if(child->isLocked() && GRIDLINES_ON){
             child->setSorted(true);
             lockedItems.append(child);
             continue;
@@ -2197,6 +2194,10 @@ void NodeItem::setupGraphMLConnections()
 QPointF NodeItem::isOverGrid(const QPointF centerPosition)
 {  
     if(!GRIDLINES_ON || !parentNodeItem || nodeKind.endsWith("Definitions")){
+        if(parentNodeItem){
+            isNodeOnGrid = false;
+            parentNodeItem->removeChildOutline(this);
+        }
         return QPointF();
     }
 
