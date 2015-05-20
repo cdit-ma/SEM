@@ -863,7 +863,7 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
         }
     }
 
-
+    /*
     //Based on BoundingRect
     bool growWidth = boundingRect().width() < boundingRect().height();
     //grow width based on GridRect.
@@ -936,9 +936,9 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
             }
         }
     }
-
-/*
-       // CATHLYNS CODE FOR THE SAME THING. TEST
+    */
+    ///*
+    // CATHLYNS CODE FOR THE SAME THING. TEST
     // work out how many grid cells are needed per child item
     // divide it by 2 - only need half the number of cells to fit the center of the item
     double startingGridPoint = ceil(getChildBoundingRect().width()/getGridSize()) / 2;
@@ -958,19 +958,16 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
 
         // check if the child rect collides with an existing child item
         if (childrenPath.intersects(childRect)) {
-
             // if so, check the next x position
             currentX++;
-
             // collision means that current position is inside the grid
             xOutsideOfGrid = false;
             yOutsideOfGrid = false;
-
         } else {
-
             // if there is no collision and the current position is inside the grid
             // it's a valid position - return it
-            if (gridRect().contains(nextPosition)) {
+            //if (gridRect().contains(nextPosition)) {
+            if (gridRect().contains(childRect)) {
                 return nextPosition;
             }
 
@@ -1000,10 +997,9 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
                 currentX = startingGridPoint;
                 currentY++;
             }
-
         }
     }
-*/
+    //*/
 }
 
 
@@ -1109,10 +1105,10 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
 
                 //If the value of the height is bigger than the minimumHeight, we should expand.
                 if(!isExpanded() && expand){
-                    qCritical() << "Expanding";
+                    //qCritical() << "Expanding";
                     setNodeExpanded(true);
                 }else if(isExpanded() && contract){
-                    qCritical() << "Contracting";
+                    //qCritical() << "Contracting";
                     setNodeExpanded(false);
                 }
 
@@ -2666,6 +2662,9 @@ void NodeItem::updateModelPosition()
 
 void NodeItem::updateModelSize()
 {
+    double prevWidth = getGraphML()->getDataValue("width").toDouble();
+    double prevHeight = getGraphML()->getDataValue("height").toDouble();
+
     //Update the Size in the model.
     GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(width));
     GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(height));
@@ -2684,7 +2683,9 @@ void NodeItem::updateModelSize()
         setLocked(isNodeOnGrid);
     }
 
-    GraphMLItem_PositionSizeChanged(this);
+    if (width > prevWidth || height > prevHeight) {
+        GraphMLItem_PositionSizeChanged(this, true);
+    }
 }
 
 

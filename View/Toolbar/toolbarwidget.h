@@ -38,7 +38,9 @@ public slots:
     void addChildNode();
     void connectNodes();
     void addConnectedNode();
+
     void makeNewView();
+    void exportGraphMLSnippet();
 
     void attachOptionMenu();
 
@@ -90,6 +92,8 @@ private:
     QToolButton* alignVerticallyButton;
     QToolButton* alignHorizontallyButton;
 
+    QToolButton* exportSnippetButton;
+
     ToolbarWidgetAction* componentImplAction;
     ToolbarWidgetAction* componentInstanceAction;
     ToolbarWidgetAction* inEventPortDelegateAction;
@@ -99,7 +103,6 @@ private:
     ToolbarWidgetMenu* connectMenu;
     ToolbarWidgetMenu* definitionMenu;
     ToolbarWidgetMenu* implementationMenu;
-    //ToolbarWidgetMenu* showConnectionsMenu;
 
     ToolbarWidgetMenu* instancesMenu;
     ToolbarWidgetMenu* instanceOptionMenu;

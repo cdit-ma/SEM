@@ -221,7 +221,7 @@ public slots:
     void showNodeItemLockMenu(NodeItem* nodeItem);
     void nodeItemLockMenuClosed(NodeItem *nodeItem);
 
-    void keepSelectionFullyVisible(GraphMLItem* item);
+    void keepSelectionFullyVisible(GraphMLItem* item, bool sizeChanged = false);
     void moveViewBack();
     void moveViewForward();
 
@@ -342,6 +342,7 @@ private:
     bool constructedFromImport;
     bool toolbarJustClosed;
     bool editingNodeItemLabel;
+    bool pasting;
 
     //Selection Lists
     QStringList selectedIDs;

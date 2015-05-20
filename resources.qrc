@@ -98,5 +98,6 @@
         <file>Resources/Icons/grid.png</file>
         <file>Resources/Icons/back.png</file>
         <file>Resources/Icons/forward.png</file>
+        <file>Resources/Icons/snippet.png</file>
     </qresource>
 </RCC>

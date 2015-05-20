@@ -41,7 +41,7 @@ signals:
     void GraphMLItem_AppendSelected(GraphMLItem*);
     void GraphMLItem_RemoveSelected(GraphMLItem*);
     void GraphMLItem_ClearSelection(bool updateTable);
-    void GraphMLItem_PositionSizeChanged(GraphMLItem*);
+    void GraphMLItem_PositionSizeChanged(GraphMLItem*, bool = false);
 private:
     GraphML* attachedGraph;
     AttributeTableModel* table;

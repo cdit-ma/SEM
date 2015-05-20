@@ -39,22 +39,17 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     // this darkens the area in the scene that's not currently visualised by the view
     // it also still draws a rectangle representing what is currently shown in the view
     if (scene()) {
-        QRectF sr = sceneRect();
-        QRectF left(sr.x(), sr.y(), viewport.left() - sr.x(), sr.height());
-        QRectF topMid(left.topRight(), QSize(viewport.width(), viewport.y() - sr.y()));
-        QRectF right(viewport.right(), sr.y(), sr.width() - topMid.right(), sr.height());
-        QRectF bottomMid(viewport.bottomLeft(), QSize(viewport.width(), sr.height() - viewport.bottom()));
+        QRectF scenePath = sceneRect();
+        double padding = sceneRect().width()/8;
+        scenePath.adjust(-padding, -padding, padding, padding);
 
-        QPainterPath path;
-        path.addRect(left);
-        path.addRect(topMid);
-        path.addRect(right);
-        path.addRect(bottomMid);
-
-        path.setFillRule(Qt::WindingFill);
+        QPainterPath path, viewPath;
+        path.addRect(scenePath);
+        viewPath.addRect(viewport);
+        path -= viewPath;
 
         painter->setPen(Qt::NoPen);
-        painter->setBrush(QBrush(QColor(0,0,0,40)));
+        painter->setBrush(QBrush(QColor(0,0,0,50)));
         painter->drawPath(path);
         painter->setBrush(Qt::NoBrush);
 
@@ -64,6 +59,7 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
         painter->drawRect(viewport);
     }
 }
+
 
 void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
 {

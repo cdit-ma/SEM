@@ -160,8 +160,8 @@ void MedeaWindow::initialiseGUI()
     notificationsBar->setVisible(false);
     notificationsBar->setFixedHeight(40);
     notificationsBar->setAlignment(Qt::AlignCenter);
-    notificationsBar->setStyleSheet("background-color: rgba(250,250,250,0.25);"
-                                    "color: rgb(50,50,50);"
+    notificationsBar->setStyleSheet("background-color: rgba(250,250,250,0.5);"
+                                    "color: rgb(30,30,30);"
                                     "border-radius: 10px;"
                                     "padding: 0px 15px;"
                                     "font: 16px;");
@@ -769,7 +769,8 @@ void MedeaWindow::setupToolbar()
     toolbar->setIconSize(buttonSize*0.6);
     toolbar->setMinimumSize(toolbar->contentsRect().width(), buttonSize.height()+spacerWidth);
     toolbar->setStyle(QStyleFactory::create("windows"));
-    toolbar->setStyleSheet("QToolbar{ border: 0px; padding: 0px; margin: 0px; }"
+    toolbar->setStyleSheet(//"background-color: red;"
+                           "QToolbar{ border: 0px; padding: 0px; margin: 0px; }"
                            "QToolButton{"
                            "border: 1px solid;"
                            "border-color: rgba(160,160,160,225);"
@@ -1124,7 +1125,7 @@ void MedeaWindow::makeConnections()
 /**
  * @brief MedeaWindow::resizeEvent
  * This is called when the main window is resized.
- * It doesn't however, pick up on maximise/un-maximise events.
+ * It doesn't however, always pick up on maximise/un-maximise events.
  * @param event
  */
 void MedeaWindow::resizeEvent(QResizeEvent *event)
@@ -2038,16 +2039,16 @@ void MedeaWindow::updateWidgetMask(QWidget *widget, QWidget *maskWidget, bool ch
         return;
     }
 
-    QPointF p;
+    QPointF pos;
     if (maskWidget == toolbarButton) {
-        p = toolbarButtonPos;
+        pos = toolbarButtonPos;
     } else {
-        p = maskWidget->pos();
+        pos = maskWidget->pos();
     }
 
     widget->clearMask();
-    widget->setMask(QRegion(p.x() - border.width()/2,
-                            p.y() - border.width()/2,
+    widget->setMask(QRegion(pos.x() - border.width()/2,
+                            pos.y() - border.width()/2,
                             maskWidget->width() + border.width(),
                             maskWidget->height() + border.width(),
                             QRegion::Rectangle));

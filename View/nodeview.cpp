@@ -27,7 +27,7 @@
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 
-#define MAX_ZOOM_RATIO 50
+#define MAX_ZOOM_RATIO 10
 #define MIN_ZOOM_RATIO 2
 
 #define VIEW_PADDING 1.25
@@ -879,7 +879,7 @@ void NodeView::nodeItemLockMenuClosed(NodeItem* nodeItem)
  * fit the whole item then center on the adjusted view rect.
  * @param item - graphics item that was changed
  */
-void NodeView::keepSelectionFullyVisible(GraphMLItem* item)
+void NodeView::keepSelectionFullyVisible(GraphMLItem* item, bool sizeChanged)
 {
     if (!item || !selectedIDs.contains(item->getID())) {
         return;
@@ -890,34 +890,18 @@ void NodeView::keepSelectionFullyVisible(GraphMLItem* item)
     QRectF itemRect = item->sceneBoundingRect();
 
     // translate the view rect to fit the selected item(s)
-    if (itemRect.top() < viewRect.top()) {
+    if (itemRect.top() < viewRect.top() && !sizeChanged) {
         viewRect.translate(0, itemRect.top() - viewRect.top());
     }
     if (itemRect.bottom() > viewRect.bottom()) {
         viewRect.translate(0, itemRect.bottom() - viewRect.bottom());
     }
-    if (itemRect.left() < viewRect.left()) {
+    if (itemRect.left() < viewRect.left() && !sizeChanged) {
         viewRect.translate(itemRect.left() - viewRect.left(), 0);
     }
     if (itemRect.right() > viewRect.right()) {
         viewRect.translate(itemRect.right() - viewRect.right(), 0);
     }
-
-    // grow the view rect to fit the selected item(s)
-    /*
-    if (itemRect.top() < viewRect.top()) {
-        viewRect.setTop(itemRect.top());
-    }
-    if (itemRect.bottom() > viewRect.bottom()) {
-        viewRect.setBottom(itemRect.bottom());
-    }
-    if (itemRect.left() < viewRect.left()) {
-        viewRect.setLeft(itemRect.left());
-    }
-    if (itemRect.right() > viewRect.right()) {
-        viewRect.setRight(itemRect.right());
-    }
-    */
 
     // if the view rect was changed, recenter on it
     if (viewRect != origViewRect) {
@@ -1495,7 +1479,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
             connect(GUIItem, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_RemoveSelected(GraphMLItem*)), this, SLOT(removeFromSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
-            connect(GUIItem, SIGNAL(GraphMLItem_PositionSizeChanged(GraphMLItem*)), this, SLOT(keepSelectionFullyVisible(GraphMLItem* )));
+            connect(GUIItem, SIGNAL(GraphMLItem_PositionSizeChanged(GraphMLItem*,bool)), this, SLOT(keepSelectionFullyVisible(GraphMLItem*,bool)));
             //connect(GUIItem, SIGNAL(GraphMLItem_MovedOutOfScene(GraphMLItem*)), this, SLOT(fitInSceneRect(GraphMLItem*)));
             connect(this, SIGNAL(view_AspectsChanged(QStringList)), GUIItem, SLOT(aspectsChanged(QStringList)));
         }
@@ -1647,6 +1631,11 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
         {
             nodeItem->setHidden(true);
         }
+    }
+
+    // if currently pasting, select pasted item
+    if (pasting) {
+        appendToSelection(nodeItem);
     }
 }
 
@@ -2255,7 +2244,10 @@ void NodeView::cut()
 void NodeView::paste(QString xmlData)
 {
     Node* selectedNode = this->getSelectedNode();
+    pasting = true;
+    clearSelection();
     view_Paste(selectedNode, xmlData);
+    pasting = false;
 }
 
 void NodeView::selectAll()
@@ -2348,7 +2340,8 @@ void NodeView::appendToSelection(GraphMLItem *item)
     //Set this item as Selected.
     setGraphMLItemSelected(item, true);
 
-    //fitSelectionInView();
+    // when an item is selected, do we want to fit it in the view?
+    keepSelectionFullyVisible(item);
 }
 
 void NodeView::removeFromSelection(GraphMLItem *item)

@@ -208,6 +208,15 @@ void ToolbarWidget::makeNewView()
 
 
 /**
+ * @brief ToolbarWidget::exportGraphMLSnippet
+ */
+void ToolbarWidget::exportGraphMLSnippet()
+{
+    qDebug() << "Export GraphML Snippet";
+}
+
+
+/**
  * @brief ToolbarWidget::addConnectedNode
  * Send a signal to the view to construct a connected node.
  * It can either be a ComponentImpl, ComponentInstance or In/Out EventPortDelegates.
@@ -245,7 +254,6 @@ void ToolbarWidget::addConnectedNode()
 void ToolbarWidget::attachOptionMenu()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    qDebug() << "action = " << action;
     instanceOptionMenu->setParentAction(action);
 }
 
@@ -285,6 +293,7 @@ void ToolbarWidget::setupToolBar()
     instancesButton = new QToolButton(this);
     alignVerticallyButton = new QToolButton(this);
     alignHorizontallyButton = new QToolButton(this);
+    exportSnippetButton = new QToolButton(this);
 
     addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode.png"));
     connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
@@ -296,6 +305,7 @@ void ToolbarWidget::setupToolBar()
     instancesButton->setIcon(QIcon(":/Resources/Icons/instance.png"));
     alignVerticallyButton->setIcon(QIcon(":/Resources/Icons/alignVertically.png"));
     alignHorizontallyButton->setIcon(QIcon(":/Resources/Icons/alignHorizontally.png"));
+    exportSnippetButton->setIcon(QIcon(":/Resources/Icons/snippet.png"));
 
     deleteButton->setStyleSheet("padding-right: 3px;");
 
@@ -309,17 +319,19 @@ void ToolbarWidget::setupToolBar()
     instancesButton->setFixedSize(buttonSize);
     alignVerticallyButton->setFixedSize(buttonSize);
     alignHorizontallyButton->setFixedSize(buttonSize);
+    exportSnippetButton->setFixedSize(buttonSize);
 
     addChildButton->setIconSize(buttonSize*0.65);
     connectButton->setIconSize(buttonSize*0.6);
     deleteButton->setIconSize(buttonSize*0.75);
     showNewViewButton->setIconSize(buttonSize*0.55);
-    showConnectionsButton->setIconSize(buttonSize*0.7);
-    definitionButton->setIconSize(buttonSize);
-    implementationButton->setIconSize(buttonSize);
-    instancesButton->setIconSize(buttonSize*0.65);
+    showConnectionsButton->setIconSize(buttonSize*0.65);
+    definitionButton->setIconSize(buttonSize*0.6);
+    implementationButton->setIconSize(buttonSize*0.7);
+    instancesButton->setIconSize(buttonSize*0.7);
     alignVerticallyButton->setIconSize(buttonSize*0.8);
     alignHorizontallyButton->setIconSize(buttonSize*0.8);
+    exportSnippetButton->setIconSize(buttonSize*0.7);
 
     addChildButton->setToolTip("Add Child Entity");
     connectButton->setToolTip("Connect Entity");
@@ -331,6 +343,7 @@ void ToolbarWidget::setupToolBar()
     instancesButton->setToolTip("View Instances");
     alignVerticallyButton->setToolTip("Align Selection Vertically");
     alignHorizontallyButton->setToolTip("Align Selection Horizontally");
+    exportSnippetButton->setToolTip("Export GraphML Snippet");
 
     frame = new QFrame();
     frame->setFrameShape(QFrame::VLine);
@@ -343,6 +356,7 @@ void ToolbarWidget::setupToolBar()
     layout->addWidget(alignHorizontallyButton);
     layout->addWidget(frame);
     layout->addWidget(showNewViewButton);
+    layout->addWidget(exportSnippetButton);
     layout->addWidget(showConnectionsButton);
     layout->addWidget(definitionButton);
     layout->addWidget(implementationButton);
@@ -351,6 +365,8 @@ void ToolbarWidget::setupToolBar()
     layout->setMargin(5);
     layout->setAlignment(Qt::AlignTop);
     setLayout(layout);
+
+    //exportSnippetButton->hide();
 
     // add tool buttons for single selection to list
     singleSelectionToolButtons.append(addChildButton);
@@ -364,6 +380,7 @@ void ToolbarWidget::setupToolBar()
     // add tool buttons for multiple selection to list
     multipleSelectionToolButtons.append(alignVerticallyButton);
     multipleSelectionToolButtons.append(alignHorizontallyButton);
+    //multipleSelectionToolButtons.append(exportSnippetButton);
 }
 
 
@@ -438,18 +455,21 @@ void ToolbarWidget::makeConnections()
     connect(definitionMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
     connect(implementationMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
     connect(instancesMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
+    connect(instanceOptionMenu, SIGNAL(triggered(QAction*)), instancesMenu, SIGNAL(triggered(QAction*)));
 
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignVerticallyButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showConnectionsButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(exportSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
 
-    connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
     connect(showConnectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
+    connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
+    connect(exportSnippetButton, SIGNAL(clicked()), this, SLOT(exportGraphMLSnippet()));
 }
 
 
