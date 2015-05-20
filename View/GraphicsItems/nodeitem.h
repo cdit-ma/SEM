@@ -49,6 +49,8 @@ public:
     QRectF expandedVisibleRect();
     QRectF currentItemRect();
 
+    int getEdgeItemIndex(EdgeItem* item = 0);
+    int getEdgeItemCount();
 
     QPointF getClosestGridPoint(QPointF childCenterPoint);
 
