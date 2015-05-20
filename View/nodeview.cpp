@@ -26,8 +26,6 @@
 
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
-#define MIN_ZOOM 0.01
-#define MAX_ZOOM 1.5
 
 #define MAX_ZOOM_RATIO 50
 #define MIN_ZOOM_RATIO 2
@@ -59,6 +57,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     IS_RESIZING = false;
     IS_MOVING = false;
 
+    MINIMAP_EVENT = false;
     setScene(new QGraphicsScene(this));
 
     //Set QT Options for this QGraphicsView
@@ -67,6 +66,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     setTransformationAnchor(QGraphicsView::AnchorViewCenter);
+
+
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -531,13 +532,78 @@ bool NodeView::viewportEvent(QEvent * e)
     return QGraphicsView::viewportEvent(e);
 }
 
+void NodeView::minimapPressed(QMouseEvent *event)
+{
+    MINIMAP_EVENT = true;
+    mousePressEvent(event);
+    //MINIMAP_EVENT = false;
+}
+
+void NodeView::minimapReleased(QMouseEvent *event)
+{
+    //MINIMAP_EVENT = true;
+    mouseReleaseEvent(event);
+    MINIMAP_EVENT = false;
+
+    // MINIMAP_EVENT = false;
+
+}
+
+void NodeView::minimapMoved(QMouseEvent *event)
+{
+    //MINIMAP_EVENT = true;
+    mouseMoveEvent(event);
+     //MINIMAP_EVENT = false;
+}
+
+void NodeView::scrollEvent(int delta)
+{
+
+
+    ViewportAnchor currentAnchor = transformationAnchor();
+    //setTransformationAnchor(AnchorUnderMouse);
+    QRectF viewRect = viewport()->rect();
+    QRectF scaledSceneRect(QPointF(0,0), sceneRect().size()*transform().m11());
+
+    if (delta > 0) {
+        // zoom in - maximum scale is when the scene is 50 times the size of the view
+        if (viewRect.width()*MAX_ZOOM_RATIO > scaledSceneRect.width()) {
+            scale(ZOOM_SCALE_INCREMENTOR, ZOOM_SCALE_INCREMENTOR);
+        }
+    } else if (delta < 0) {
+        // zoom out - minimum scale is when the view is twice the size of the scene
+        if (viewRect.width() < scaledSceneRect.width()*MIN_ZOOM_RATIO) {
+            scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
+        }
+    }
+    //setTransformationAnchor(currentAnchor);
+
+    //ViewportAnchor currentAnchor = resizeAnchor();
+
+}
+
+
+
 
 void NodeView::minimapPan(QPointF delta)
 {
+    //QRectF rectangle = getVisibleRect();
+    //rectangle.translate(delta);
+
+    //getModelItem()->adjustPos(delta);
+    //updateViewCenterPoint();
+
+    //centerViewOn(getVisibleRect().center() + delta);
+    //qCritical() << "Before: " << getVisibleRect().center();
+
     ViewportAnchor currentAnchor = transformationAnchor();
     setTransformationAnchor(NoAnchor);
-    translate(delta.x(), delta.y());
+    translate(-delta.x(), -delta.y());
     setTransformationAnchor(currentAnchor);
+
+    //qCritical() << "After: "  << getVisibleRect().center();
+
+     //*/
 }
 
 
@@ -1829,6 +1895,11 @@ GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
  */
 void NodeView::mouseReleaseEvent(QMouseEvent *event)
 {
+    if(MINIMAP_EVENT){
+        QGraphicsView::mouseReleaseEvent(event);
+        return;
+    }
+
     if(RUBBERBAND_MODE && drawingRubberBand){
         //Get the Top Left and Bottom Right corners of the Rectangle.
         QPoint screenOrigin = rubberBand->pos();
@@ -1859,6 +1930,11 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
  */
 void NodeView::mouseMoveEvent(QMouseEvent *event)
 {
+    if(MINIMAP_EVENT){
+        QGraphicsView::mouseMoveEvent(event);
+        return;
+    }
+
     if(RUBBERBAND_MODE && drawingRubberBand){
         //Move rubberband to the position on the screen.
         rubberBand->setGeometry(QRect(rubberBandOrigin, event->pos()).normalized());
@@ -1880,6 +1956,10 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
  */
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
+    if(MINIMAP_EVENT){
+        QGraphicsView::mousePressEvent(event);
+        return;
+    }
     if(toolbarJustClosed){
         toolbarJustClosed = false;
         return;
@@ -1920,20 +2000,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
  */
 void NodeView::wheelEvent(QWheelEvent *event)
 {
-    QRectF viewRect = viewport()->rect();
-    QRectF scaledSceneRect(QPointF(0,0), sceneRect().size()*transform().m11());
-
-    if (event->delta() > 0) {
-        // zoom in - maximum scale is when the scene is 50 times the size of the view
-        if (viewRect.width()*MAX_ZOOM_RATIO > scaledSceneRect.width()) {
-            scale(ZOOM_SCALE_INCREMENTOR, ZOOM_SCALE_INCREMENTOR);
-        }
-    } else if (event->delta() < 0) {
-        // zoom out - minimum scale is when the view is twice the size of the scene
-        if (viewRect.width() < scaledSceneRect.width()*MIN_ZOOM_RATIO) {
-            scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
-        }
-    }
+    scrollEvent(event->delta());
 }
 
 

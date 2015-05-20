@@ -43,6 +43,7 @@ void EditableTextItem::setEditMode(bool editMode)
         fakePress->setButtons(Qt::LeftButton);
         fakePress->setButton(Qt::LeftButton);
         fakePress->setModifiers(Qt::NoModifier);
+
         //Send the MousePress event to the DoubleClick Handler.
         mouseDoubleClickEvent(fakePress);
 
@@ -58,10 +59,13 @@ void EditableTextItem::setEditMode(bool editMode)
         c.select(QTextCursor::Document);
         setTextCursor(c);
     }else if(inEditingMode && !editMode){
+
+
         //Set the Editing Mode
         inEditingMode = false;
         //Set the Flag
         setTextInteractionFlags(Qt::NoTextInteraction);
+
 
         //Get the current Value of the TextItem (Should be Non-Truncated value)
         QString currentValue = toPlainText();

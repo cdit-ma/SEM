@@ -12,6 +12,7 @@ GraphMLItem::GraphMLItem(GraphML *attachedGraph, GraphMLItem::GUI_KIND kind)
     if(attachedGraph){
         this->ID = attachedGraph->getID();
     }
+    setFlag(QGraphicsItem::ItemIsSelectable, false);
 }
 
 GraphMLItem::~GraphMLItem()

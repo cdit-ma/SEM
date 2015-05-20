@@ -128,6 +128,12 @@ signals:
     void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
 
 public slots:
+    void minimapPressed(QMouseEvent* event);
+
+    void minimapReleased(QMouseEvent* event);
+    void minimapMoved(QMouseEvent* event);
+
+    void scrollEvent(int delta);
     void triggerAction(QString action);
     void minimapPan(QPointF delta);
     void alignSelectionHorizontally();
@@ -304,6 +310,7 @@ private:
     QString NodeType;
     qreal totalScaleFactor;
 
+    bool MINIMAP_EVENT;
     bool RUBBERBAND_MODE;
     bool drawingRubberBand;
     QPoint rubberBandOrigin;

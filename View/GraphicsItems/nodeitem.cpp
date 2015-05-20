@@ -1275,6 +1275,11 @@ void NodeItem::modelSort()
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    if(!contains(event->pos())){
+        QGraphicsItem::mousePressEvent(event);
+        return;
+    }
+
     if(!PAINT_OBJECT){
         if(nodeKind == "Model" && !modelCirclePressed(event->pos())){\
             GraphMLItem_ClearSelection(true); // need to update table!

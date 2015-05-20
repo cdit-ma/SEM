@@ -196,7 +196,7 @@ void MedeaWindow::initialiseGUI()
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
 
-    minimap->scale(.002,.002);
+    //minimap->scale(.002,.002);
     minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
     minimap->setInteractive(false);
@@ -948,7 +948,15 @@ void MedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
-    connect(minimap, SIGNAL(viewportRectMoved(QPointF)), nodeView, SLOT(minimapPan(QPointF)));
+
+    connect(minimap, SIGNAL(minimap_Pressed(QMouseEvent*)), nodeView, SLOT(minimapPressed(QMouseEvent*)));
+    connect(minimap, SIGNAL(minimap_Moved(QMouseEvent*)), nodeView, SLOT(minimapMoved(QMouseEvent*)));
+    connect(minimap, SIGNAL(minimap_Released(QMouseEvent*)), nodeView, SLOT(minimapReleased(QMouseEvent*)));
+    //connect(minimap, SIGNAL(minimap_Panned(QPointF)), nodeView, SLOT(minimapPan(QPointF)));
+
+    connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(scrollEvent(int)));
+
+
     connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
     connect(nodeView, SIGNAL(view_displayNotification(QString)), this, SLOT(displayNotification(QString)));

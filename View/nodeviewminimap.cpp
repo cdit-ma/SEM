@@ -5,22 +5,23 @@
 #include <QPen>
 #define GRID_COUNT 50
 //#define LINEWIDTH 400
-#define LINEWIDTH 12
+#define LINEWIDTH 10
 #define GRACE 1000
+
+#define ZOOM_SCALE_INCREMENTOR 1.05
+#define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
+#define MAX_ZOOM_RATIO 50
+#define MIN_ZOOM_RATIO 2
 
 NodeViewMinimap::NodeViewMinimap(QObject *parent)
 {
     isPanning = false;
+    setMouseTracking(true);
 }
 
 void NodeViewMinimap::viewportRectChanged(QRectF viewport)
 {
-    //viewport.translate(-GRACE , -GRACE);
-    //viewport.translate(-LINEWIDTH / 2 , -LINEWIDTH / 2);
-    //viewport.setWidth(viewport.width() + GRACE + LINEWIDTH);
-    //viewport.setHeight(viewport.height() + GRACE + LINEWIDTH);
     this->viewport = viewport;
-
     if (scene()) {
         fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
     }
@@ -35,21 +36,6 @@ bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 
 void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
-    /*
-    QPen pen;
-    pen.setWidth(LINEWIDTH);
-    pen.setColor(QColor(255,0,0));
-    painter->setPen(pen);
-    //painter->setBrush(QBrush(QColor(255,255,255,50)));
-    painter->drawRect(viewport);
-
-    pen.setWidth(LINEWIDTH);
-    pen.setColor(QColor(0,255,255));
-    painter->setPen(pen);
-
-    //painter->drawRect(scene()->sceneRect());
-    */
-
     // this darkens the area in the scene that's not currently visualised by the view
     // it also still draws a rectangle representing what is currently shown in the view
     if (scene()) {
@@ -64,6 +50,7 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
         path.addRect(topMid);
         path.addRect(right);
         path.addRect(bottomMid);
+
         path.setFillRule(Qt::WindingFill);
 
         painter->setPen(Qt::NoPen);
@@ -80,45 +67,67 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 
 void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
 {
-
-
-    if(viewportContainsPoint(event->pos())){
+    if(viewportContainsPoint(event->pos()) && event->button() == Qt::LeftButton){
         isPanning = true;
-        previousScenePosition = mapToScene(event->pos());
+
+        lastEventPos = sceneRect().topLeft() - QPointF(10000,10000);
+
+
+        QPointF newPoint = mapToScene(lastEventPos.toPoint());
+
+        QMouseEvent* fakePress = new QMouseEvent( (QEvent::MouseButtonPress), newPoint.toPoint(),
+                Qt::LeftButton,
+                Qt::LeftButton,
+                Qt::NoModifier);
+
+        minimap_Pressed(fakePress);
+        previousScenePosition = event->pos();
     }
-    QGraphicsView::mousePressEvent(event);
+    event->setAccepted(true);
 
 }
 
 void NodeViewMinimap::mouseReleaseEvent(QMouseEvent *event)
 {
-
-
-     if(viewportContainsPoint(event->pos())){
-         isPanning = false;
-        qCritical() << "Mouse Releaserd";
-    }
      isPanning = false;
-     QGraphicsView::mouseReleaseEvent(event);
 
+
+     QMouseEvent* fakePress = new QMouseEvent( (QEvent::MouseButtonRelease), lastEventPos,
+             Qt::LeftButton,
+             Qt::NoButton,
+             Qt::NoModifier);
+
+     minimap_Released(fakePress);
+     event->setAccepted(true);
 }
 
 void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
 {
 
-
-     if(viewportContainsPoint(event->pos())){
+   // if(viewportContainsPoint(event->pos())){
         if(isPanning){
-            //qCritical() << "PANNINH";
-            QPointF tmp2 = mapToScene(event->pos());
-            QPointF tmp = tmp2-mapToScene(previousScenePosition.toPoint());
-            viewportRectMoved(-tmp);
-            previousScenePosition = event->pos();
+
+            //event->sc
+            QPointF currentPos = event->pos();
+            QPointF delta = currentPos - previousScenePosition;
+            lastEventPos -= delta;
 
 
-        }
-    }
+            QPointF newPoint = mapToScene(lastEventPos.toPoint());
 
-     QGraphicsView::mouseMoveEvent(event);
+            QMouseEvent *fakePress = new QMouseEvent(QEvent::MouseMove, newPoint.toPoint(),
+                    Qt::LeftButton,
+                    Qt::LeftButton,
+                    Qt::NoModifier);
 
+            minimap_Moved(fakePress);
+            //lastEventPos -= delta;
+            previousScenePosition = currentPos;
+       }
+   // }
+}
+
+void NodeViewMinimap::wheelEvent(QWheelEvent *event)
+{
+    minimap_Scrolled(event->delta());
 }
