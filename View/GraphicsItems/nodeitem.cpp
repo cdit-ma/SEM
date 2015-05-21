@@ -558,7 +558,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
 
-        int offSet = 100;
+        int offSet = 0; //100;
         double radius = getItemMargin() + offSet;
         QRect clippingCircle(QPoint(modelCenterPoint.toPoint() - QPoint(radius,radius)), QPoint(modelCenterPoint.toPoint() + QPoint(radius,radius)));
 
@@ -619,32 +619,22 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
              * This draws 2 gray rectangles; it makes it look
              * like the aspects are attached to the model
              */
+            //double gapSize = MODEL_WIDTH / 128;
 
-            /*
-            double gapSize = MODEL_WIDTH / 128;
-
-            // horizontal rect
-            QRectF trh(0, 0, radius*2, gapSize*2+5);
-            trh.translate(textItem->pos().x() -offSet, textItem->pos().y() - 44);
-            painter->drawRect(trh);
+            //QRectF textRect = textItem->boundingRect();
+            //textRect.translate(textItem->pos());
+            //painter->drawRect(textRect);
 
             // vertical rect
-            QRectF trv(0, 0, trh.height(), trh.width());
-            trv.translate(modelCenterPoint - QPointF(trh.height()/2, trh.width()/2));
-            painter->drawRect(trv);
-
-
+            //QRectF trv(0, 0, textRect.height(), textRect.width());
+            //trv.translate(modelCenterPoint - QPointF(textRect.height()/2, textRect.width()/2));
+            //painter->drawRect(trv);
 
             // this evens out the colours around the model button
             QRectF textRect = textItem->boundingRect();
-            textRect.translate(textItem->pos() + QPoint(textRect.width()/4, 0));
-            textRect.setWidth(textRect.width()/2);
+            textRect.translate(textItem->pos() + QPoint(textRect.width()/4 + selectedPen.width()/2, 0));
+            textRect.setWidth(textRect.width()/2 - selectedPen.width());
             painter->drawRect(textRect);
-            */
-            QRectF textRect = textItem->boundingRect();
-            textRect.translate(textItem->pos());
-            painter->drawRect(textRect);
-
         }
 
 
@@ -1788,8 +1778,7 @@ void NodeItem::updateTextLabel(QString newLabel)
         textItem->setTextWidth(getItemMargin() * 2);
     }
 
-    if(newLabel != ""){
-        //qCritical() << newLabel;
+    if (newLabel != "" && nodeKind != "Model") {
         textItem->setPlainText(newLabel);
     }
 }
@@ -2173,7 +2162,6 @@ void NodeItem::setupLabel()
         return;
     }
 
-
     float fontSize = qMax((LABEL_RATIO / 2) * minimumHeight, 1.0);
     if(nodeKind == "Model"){
         fontSize = qMax(getItemMargin() * LABEL_RATIO, 1.0);
@@ -2191,6 +2179,7 @@ void NodeItem::setupLabel()
     if(nodeKind == "Model"){
         textItem->setCenterJustified();
         textItem->setTextWidth(getItemMargin() * 2);
+        textItem->setPlainText("Model");
     }
 
     qreal labelX = (minimumVisibleRect().width() - textItem->boundingRect().width()) /2;

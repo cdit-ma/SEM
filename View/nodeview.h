@@ -193,6 +193,7 @@ public slots:
     void sortEntireModel();
     void sortNode(Node* node, Node* topMostNode = 0);
 
+    void centerAspect(QString aspect);
     void setAspects(QStringList aspects, bool centerViewAspects = true);
     void fitToScreen(QList<NodeItem*> itemsToCenter = QList<NodeItem*>(), double padding = 0, bool addToMap = true);
 

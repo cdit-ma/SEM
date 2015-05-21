@@ -46,7 +46,7 @@
 #include "View/Validate/validatedialog.h"
 
 #include "GUI/searchitembutton.h"
-
+#include "GUI/aspecttogglewidget.h"
 #include "GUI/appsettings.h"
 
 class MedeaWindow : public QMainWindow
@@ -69,8 +69,11 @@ signals:
     void checkDockScrollBar();
     void clearDocks();
 
+    void window_aspectToggleDoubleClicked(AspectToggleWidget* aspect);
+
 public slots:
     void setupInitialSettings();
+    void aspectToggleClicked(bool checked, int state);
 
 private slots:
     void loadSettings();
@@ -231,8 +234,9 @@ private:
     QVBoxLayout* toolbarLayout;
 
     QGroupBox* titleToolbarBox;
-    QIcon expandIcon;
-    QIcon contractIcon;
+    QLabel* toolbarButtonLabel;
+    QPixmap expandPixmap;
+    QPixmap contractPixmap;
 
     QToolBar* toolbar;
     QAction* toolbarAction;
@@ -255,6 +259,7 @@ private:
     QToolButton* popupButton;
     QToolButton* backButton;
     QToolButton* forwardButton;
+    QToolButton* deleteButton;
     QToolButton* contextToolbarButton;
     QAction* leftMostSpacer;
     QAction* leftMidSpacer;
@@ -264,10 +269,18 @@ private:
     QAction* rightMostSpacer;
 
     QPushButton *projectName;
+
+    AspectToggleWidget* definitionsToggle;
+    AspectToggleWidget* workloadToggle;
+    AspectToggleWidget* assemblyToggle;
+    AspectToggleWidget* hardwareToggle;
+
+    /*
     QPushButton* assemblyButton;
     QPushButton* hardwareButton;
     QPushButton* workloadButton;
     QPushButton* definitionsButton;
+    */
 
     QProgressBar* progressBar;
     QLabel* progressLabel;

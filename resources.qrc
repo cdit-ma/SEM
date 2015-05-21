@@ -100,5 +100,6 @@
         <file>Resources/Icons/forward.png</file>
         <file>Resources/Icons/snippet.png</file>
         <file>Resources/Icons/menu_up_arrow.png</file>
+        <file>Resources/Icons/delete.png</file>
     </qresource>
 </RCC>

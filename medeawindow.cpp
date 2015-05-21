@@ -97,12 +97,12 @@ void MedeaWindow::initialiseGUI()
     titleToolbarBox = new QGroupBox(this);
     projectName = new QPushButton("Model");
 
+    /*
     assemblyButton = new QPushButton("Assembly");
     hardwareButton = new QPushButton("Hardware");
     workloadButton = new QPushButton("Behaviour");
     definitionsButton = new QPushButton("Interface");
-
-    QPushButton *menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
+    */
 
     // set central widget and window size
     this->setCentralWidget(nodeView);
@@ -110,20 +110,27 @@ void MedeaWindow::initialiseGUI()
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
 
-    //this->setAttribute(Qt::WA_TranslucentBackground);
-    //this->setStyleSheet("MedeaWindow{ background-color: transparent; }");
-
     // set the size for the right panel where the view buttons and data table are located
     int rightPanelWidth = RIGHT_PANEL_WIDTH;
 
     // setup widgets
+    QPushButton* menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
     menuButton->setFixedSize(50,45);
     menuButton->setIconSize(menuButton->size());
     menuButton->setStyleSheet("QPushButton{ background-color: rgb(200,200,200); }"
                               "QPushButton::menu-indicator{ image: none; }");
+
     projectName->setFlat(true);
     projectName->setStyleSheet("font-size: 16px; text-align: left; padding: 8px;");
 
+    definitionsToggle = new AspectToggleWidget("Definitions", rightPanelWidth/2.15, this);
+    workloadToggle = new AspectToggleWidget("Behaviour", rightPanelWidth/2.15, this);
+    assemblyToggle = new AspectToggleWidget("Assembly", rightPanelWidth/2.15, this);
+    hardwareToggle = new AspectToggleWidget("Hardware", rightPanelWidth/2.15, this);
+
+    definitionsToggle->setClicked(true);
+
+    /*
     assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
     definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
@@ -133,6 +140,7 @@ void MedeaWindow::initialiseGUI()
     hardwareButton->setStyleSheet("background-color: rgb(80,140,190);");
     definitionsButton->setStyleSheet("background-color: rgb(80,180,180);");
     workloadButton->setStyleSheet("background-color: rgb(224,154,96);");
+    */
 
     // setup progress bar
     progressBar->setVisible(false);
@@ -249,10 +257,17 @@ void MedeaWindow::initialiseGUI()
     leftVlayout->addLayout(bodyLayout);
     leftVlayout->addStretch();
 
+    viewButtonsGrid->addWidget(definitionsToggle, 1, 1);
+    viewButtonsGrid->addWidget(workloadToggle, 1, 2);
+    viewButtonsGrid->addWidget(assemblyToggle, 2, 1);
+    viewButtonsGrid->addWidget(hardwareToggle, 2, 2);
+
+    /*
     viewButtonsGrid->addWidget(definitionsButton, 1, 1);
     viewButtonsGrid->addWidget(workloadButton, 1, 2);
     viewButtonsGrid->addWidget(assemblyButton, 2, 1);
     viewButtonsGrid->addWidget(hardwareButton, 2, 2);
+    */
 
     rightVlayout->setMargin(0);
     rightVlayout->setSpacing(0);
@@ -274,10 +289,12 @@ void MedeaWindow::initialiseGUI()
     nodeView->setLayout(mainHLayout);
 
     // other settings
+    /*
     assemblyButton->setCheckable(true);
     hardwareButton->setCheckable(true);
     definitionsButton->setCheckable(true);
     workloadButton->setCheckable(true);
+    */
 
     // setup the menu, dock, search tools and toolbar
     setupMenu(menuButton);
@@ -672,9 +689,6 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
                                  "QToolButton:checked{ background-color: rgba(180,180,180,225); }"
                                  "QToolButton:hover{ background-color: rgba(210,210,210,235); }");
 
-    expandIcon = QIcon(":/Resources/Icons/menu_down_arrow.png");
-    contractIcon = QIcon(":/Resources/Icons/menu_up_arrow.png");
-
     toggleGridButton = new QToolButton(this);
     toggleGridButton->setCheckable(true);
     toggleGridButton->setStyleSheet("QToolButton:checked{ background-color: rgba(180,180,180,225); }");
@@ -694,9 +708,9 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     popupButton = new QToolButton(this);
     backButton = new QToolButton(this);
     forwardButton = new QToolButton(this);
+    deleteButton = new QToolButton(this);
     contextToolbarButton = new QToolButton(this);
 
-    toolbarButton->setIcon(expandIcon);
     cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
     copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
     pasteButton->setIcon(QIcon(":/Resources/Icons/paste.png"));
@@ -713,6 +727,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     popupButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
     backButton->setIcon(QIcon(":/Resources/Icons/back.png"));
     forwardButton->setIcon(QIcon(":/Resources/Icons/forward.png"));
+    deleteButton->setIcon(QIcon(":/Resources/Icons/delete.png"));
     contextToolbarButton->setIcon(QIcon(":/Resources/Icons/toolbar.png"));
 
     QSize buttonSize = QSize(46,40);
@@ -733,6 +748,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     popupButton->setFixedSize(buttonSize);
     backButton->setFixedSize(buttonSize);
     forwardButton->setFixedSize(buttonSize);
+    deleteButton->setFixedSize(buttonSize);
     contextToolbarButton->setFixedSize(buttonSize);
 
     toolbarButton->setToolTip("Expand Toolbar");
@@ -752,7 +768,27 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     popupButton->setToolTip("View Selection In New Window");
     backButton->setToolTip("Go Back");
     forwardButton->setToolTip("Go Forward");
+    deleteButton->setToolTip("Delete Selection");
     contextToolbarButton->setToolTip("Show Context Toolbar");
+
+    // setup swappable pixmap for the toolbarButton
+    QImage* expandImg = new QImage(":/Resources/Icons/menu_down_arrow.png");
+    QImage* contractImg = new QImage(":/Resources/Icons/menu_up_arrow.png");
+    *expandImg = expandImg->scaled(toolbarButton->width(), toolbarButton->height(),
+                                   Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    *contractImg = contractImg->scaled(toolbarButton->width(), toolbarButton->height(),
+                                       Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    expandPixmap = QPixmap::fromImage(*expandImg);
+    contractPixmap = QPixmap::fromImage(*contractImg);
+
+    toolbarButtonLabel = new QLabel(this);
+    toolbarButtonLabel->setPixmap(expandPixmap);
+
+    QVBoxLayout* labelLayout = new QVBoxLayout();
+    labelLayout->setMargin(0);
+    labelLayout->addWidget(toolbarButtonLabel);
+    labelLayout->setAlignment(toolbarButtonLabel, Qt::AlignCenter);
+    toolbarButton->setLayout(labelLayout);
 
     QWidget* spacerWidgetLeft = new QWidget();
     QWidget* spacerWidgetRight = new QWidget();
@@ -776,6 +812,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
 
     leftSpacerAction = toolbar->addWidget(spacerWidgetLeft);
     QAction* contextToolbarAction = toolbar->addWidget(contextToolbarButton);
+    QAction* deleteAction = toolbar->addWidget(deleteButton);
     leftMostSpacer = toolbar->addWidget(spacerLeftMost);
     QAction* backAction = toolbar->addWidget(backButton);
     QAction* forwardAction = toolbar->addWidget(forwardButton);
@@ -837,9 +874,10 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     */
 
     // keep a list of all the tool buttons and create a checkbox for each one
-    toolbarActions[contextToolbarAction] = new QCheckBox("Context Toolbar", this);
     toolbarActions[backAction] = new QCheckBox("Back", this);
     toolbarActions[forwardAction] = new QCheckBox("Forward", this);
+    toolbarActions[contextToolbarAction] = new QCheckBox("Context Toolbar", this);
+    toolbarActions[deleteAction] = new QCheckBox("Delete", this);
     toolbarActions[toggleGridAction] = new QCheckBox("Toggle Grid Lines", this);
     toolbarActions[popupAction] = new QCheckBox("Popup New Window", this);
     toolbarActions[cutAction] = new QCheckBox("Cut", this);
@@ -1066,6 +1104,7 @@ void MedeaWindow::makeConnections()
     connect(popupButton, SIGNAL(clicked()), nodeView, SLOT(constructNewView()));
     connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
     connect(forwardButton, SIGNAL(clicked()), nodeView, SLOT(moveViewForward()));
+    connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(contextToolbarButton, SIGNAL(clicked()), nodeView, SLOT(showToolbar()));
 
     connect(toggleGridButton, SIGNAL(clicked(bool)), settings_showGridLines, SLOT(setChecked(bool)));
@@ -1077,10 +1116,12 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
     connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(changeWindowTitle(QString)));
 
+    /*
     connect(assemblyButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(hardwareButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(definitionsButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
     connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
+    */
 
     connect(dockStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedDockClosed()));
     // DEMO CHANGE
@@ -1268,6 +1309,7 @@ void MedeaWindow::setupInitialSettings()
     toolbarButton->clicked(false);
 
     if (nodeView) {
+        nodeView->setDefaultAspects();
         nodeView->fitToScreen();
     }
 
@@ -1291,6 +1333,62 @@ void MedeaWindow::setupInitialSettings()
 
     // hide initial notifications
     notificationsBar->hide();
+}
+
+
+/**
+ * @brief MedeaWindow::aspectToggleClicked
+ * @param checked
+ * @param state
+ */
+void MedeaWindow::aspectToggleClicked(bool checked, int state)
+{
+    AspectToggleWidget* senderAspect = qobject_cast<AspectToggleWidget*>(QObject::sender());
+
+    if (senderAspect) {
+
+        QStringList newAspects = checkedViewAspects;
+        QString aspect = senderAspect->getText();
+
+        if (aspect == "Interface") {
+            aspect = "Definitions";
+        } else if (aspect == "Behaviour") {
+            aspect = "Workload";
+        }
+
+        if (!checked) {
+            newAspects.removeAll(aspect);
+        } else {
+
+            switch (state) {
+            case -1:
+                break;
+            case 0:
+                if (!newAspects.contains(aspect)) {
+                    newAspects.append(aspect);
+                }
+                break;
+            case 1:
+                newAspects.clear();
+                newAspects.append(aspect);
+                emit window_aspectToggleDoubleClicked(senderAspect);
+                break;
+            case 2:
+                if (!newAspects.contains(aspect)) {
+                    newAspects.append(aspect);
+                }
+                break;
+            }
+        }
+
+        window_AspectsChanged(newAspects);
+
+        // if state == MIDDLECLICKED, center on the toggled
+        // aspect after the list of aspects has been updated
+        if (checked && state == 2) {
+            nodeView->centerAspect(aspect);
+        }
+    }
 }
 
 
@@ -1354,8 +1452,8 @@ void MedeaWindow::on_actionImportJenkinsNode()
     //qCritical() << program;
     //myProcess->setWorkingDirectory(DEPGEN_ROOT + "/scripts");
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(loadJenkinsData(int)));
-    qCritical() << applicationDirectory + "/Resources/Scripts/";
-    qCritical() << program;
+    //qCritical() << applicationDirectory + "/Resources/Scripts/";
+    //qCritical() << program;
     myProcess->start(program);
 }
 
@@ -1376,7 +1474,7 @@ void MedeaWindow::on_actionNew_Project_triggered()
         if (!exportProject()) {
             return;
         }
-    }else if(saveProject != QMessageBox::No){
+    } else if (saveProject != QMessageBox::No){
         return;
     }
 
@@ -1427,6 +1525,7 @@ void MedeaWindow::on_actionClearModel_triggered()
     if (nodeView) {
         nodeView->clearSelection();
         nodeView->resetModel();
+        nodeView->setDefaultAspects();
         clearDocks();
     }
 }
@@ -1707,7 +1806,9 @@ void MedeaWindow::writeExportedProject(QString data)
         out << data;
         file.close();
 
-        QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: '" + exportFileName +"'!", QMessageBox::Ok);
+        //QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: '" + exportFileName +"'!", QMessageBox::Ok);
+        displayNotification("Successfully Exported GraphML Document");
+
     }catch(...){
         QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
     }
@@ -1842,10 +1943,18 @@ void MedeaWindow::updateViewAspects()
  */
 void MedeaWindow::setViewAspects(QStringList aspects)
 {
+    /*
     definitionsButton->setChecked(aspects.contains("Definitions"));
     workloadButton->setChecked(aspects.contains("Workload"));
     assemblyButton->setChecked(aspects.contains("Assembly"));
     hardwareButton->setChecked(aspects.contains("Hardware"));
+    */
+
+    definitionsToggle->setClicked(aspects.contains("Definitions"));
+    workloadToggle->setClicked(aspects.contains("Workload"));
+    assemblyToggle->setClicked(aspects.contains("Assembly"));
+    hardwareToggle->setClicked(aspects.contains("Hardware"));
+
     checkedViewAspects = aspects;
 }
 
@@ -1897,12 +2006,12 @@ void MedeaWindow::showWindowToolbar(bool checked)
         }
         if (checked) {
             toolbarButton->setToolTip("Contract Toolbar");
-            //toolbarButton->icon().swap(contractIcon);
+            toolbarButtonLabel->setPixmap(contractPixmap);
             toolbar->clearMask();
         } else {
             // NOTE: hover/focus doesn't leave the button until you move the mouse
             toolbarButton->setToolTip("Expand Toolbar");
-            //toolbarButton->icon().swap(expandIcon);
+            toolbarButtonLabel->setPixmap(expandPixmap);
             toolbar->setMask(QRegion(0,0,1,1, QRegion::Ellipse));
         }
     }
@@ -2106,7 +2215,7 @@ void MedeaWindow::resetView()
 {
     if (nodeView) {
         nodeView->view_ClearHistory();
-        //nodeView->setDefaultAspects();
+        nodeView->setDefaultAspects();
     }
 }
 
@@ -2506,7 +2615,7 @@ void MedeaWindow::updateDataTable()
     }
 
     // update the visible region of the groupbox to fit the dataTable
-    if (dataTable->width() == 0 || dataTable->height() == 0) {
+    if (dataTable->height() == 0) {
         dataTableBox->setVisible(false);
     } else {
         updateWidgetMask(dataTableBox, dataTable);

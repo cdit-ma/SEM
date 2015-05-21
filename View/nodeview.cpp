@@ -94,8 +94,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     allAspects << "Definitions";
     allAspects << "Workload";
 
-    defaultAspects << "Definitions";
-    //defaultAspects << "Assembly";
+    //defaultAspects << "Definitions";
+    defaultAspects << "Assembly";
     //defaultAspects << "Hardware";
 
     nonDrawnItemKinds << "DeploymentDefinitions";
@@ -725,6 +725,34 @@ void NodeView::sortNode(Node *node, Node* topMostNode)
 
 
 /**
+ * @brief NodeView::centerAspect
+ * @param aspect
+ */
+void NodeView::centerAspect(QString aspect)
+{
+    if (controller) {
+
+        Node* model = controller->getModel();
+        Node* aspectNode = 0;
+
+        if (model) {
+            if (aspect == "Definitions") {
+                aspect = "Interface";
+            } else if (aspect == "Workload") {
+                aspect = "Behaviour";
+            }
+            aspect += "Definitions";
+            aspectNode = model->getChildrenOfKind(aspect).at(0);
+        }
+
+        if (aspectNode) {
+            centerOnItem(getNodeItemFromNode(aspectNode));
+        }
+    }
+}
+
+
+/**
  * @brief NodeView::sortEntireModel
  * This recursively sorts the enitre model.
  */
@@ -900,6 +928,8 @@ void NodeView::keepSelectionFullyVisible(GraphMLItem* item, bool sizeChanged)
     QRectF itemRect = item->sceneBoundingRect();
 
     // translate the view rect to fit the selected item(s)
+    // we only really need to check the bottom right corner
+    // of the view if the item has increased in size
     if (itemRect.top() < viewRect.top() && !sizeChanged) {
         viewRect.translate(0, itemRect.top() - viewRect.top());
     }
@@ -2891,9 +2921,13 @@ void NodeView::goToInstance(Node *instance)
  */
 void NodeView::deleteSelection()
 {
-    triggerAction("Toolbar: Destructing Selection");
-    view_SetAttributeModel(0);
-    view_Delete(selectedIDs);
+    if (selectedIDs.count() > 0) {
+        triggerAction("Toolbar: Destructing Selection");
+        view_SetAttributeModel(0);
+        view_Delete(selectedIDs);
+    } else {
+        view_displayNotification("Select Entity/Connection To Delete");
+    }
 }
 
 
@@ -2912,7 +2946,6 @@ void NodeView::resetModel()
     }
 
     sortModel();
-    setAspects(defaultAspects);
 }
 
 
