@@ -24,6 +24,8 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     QTextDocument* document = this->document();
     document->setDocumentMargin(0);
     setDocument(document);
+
+
 }
 
 void EditableTextItem::setEditMode(bool editMode)

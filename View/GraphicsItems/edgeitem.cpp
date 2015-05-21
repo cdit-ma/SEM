@@ -3,6 +3,9 @@
 #include <QDebug>
 #include <math.h>
 
+#define EDGE_SPACE_RATIO 0.8
+#define EDGE_GAP_RATIO ((1 - EDGE_SPACE_RATIO)/2)
+
 EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, GraphMLItem::NODE_EDGE)
 {
     label = 0;
@@ -18,6 +21,8 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     source = s;
     destination = d;
 
+    visibleDestination = 0;
+    visibleSource = 0;
     sourceParent = 0;
     destinationParent = 0;
 
@@ -70,12 +75,15 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
 
 
     //Setup Sizes.
-    circleRadius = (s->boundingRect().width() + d->boundingRect().width()) / 30;
+    circleRadius = (s->boundingRect().width() + d->boundingRect().width()) / 10;
     width = circleRadius * 2;
     height =  width;
 
     source->addEdgeItem(this);
     destination->addEdgeItem(this);
+
+
+
 
     setupBrushes();
     updateLines();
@@ -89,7 +97,7 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
 
 
 
-
+    hasMovedFromCenter = false;
     //Set Flags
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
@@ -134,6 +142,7 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
+
     if(IS_VISIBLE){
         QPen Pen;
         QBrush Brush;
@@ -156,8 +165,10 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         label->setPos(circleRadius - (label->boundingRect().width()/2), circleRadius - (label->boundingRect().height()/2));
-        circle_path.addEllipse(rectangle);
-        painter->drawPath(circle_path);
+
+
+        painter->drawEllipse(rectangle);
+
     }
 }
 
@@ -307,6 +318,7 @@ void EdgeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QPointF delta = (event->scenePos() - previousScenePosition);
         this->moveBy(delta.x(),delta.y());
         previousScenePosition = event->scenePos();
+        hasMovedFromCenter = true;
         return;
     }
 
@@ -316,6 +328,14 @@ void EdgeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     IS_MOVING = false;
     updateLines();
+}
+
+void EdgeItem::resetEdgeCenter(NodeItem* visibleSource, NodeItem* visibleDestination)
+{
+    QPointF centerPoint = (visibleSource->sceneBoundingRect().center() + visibleDestination->sceneBoundingRect().center()) /2;
+    centerPoint -= QPointF(circleRadius, circleRadius);
+    setPos(centerPoint);
+
 }
 
 void EdgeItem::setLabelFont()
@@ -413,6 +433,11 @@ void EdgeItem::forceVisible(bool visible)
     QGraphicsItem::setVisible(visible);
 }
 
+QPointF EdgeItem::getEdgeCenterPoint()
+{
+    return pos() + QPointF(circleRadius, circleRadius);
+}
+
 void EdgeItem::aspectsChanged(QStringList aspects)
 {
     //Do Nothing.
@@ -421,279 +446,125 @@ void EdgeItem::aspectsChanged(QStringList aspects)
 
 void EdgeItem::updateLines()
 {
-    //The Top Left of the Circle will be the center point.
-    NodeItem* start = source;
-    NodeItem* finish = destination;
 
-    int startEdgeCount = start->getEdgeItemCount();
-    int finishEdgeCount = finish->getEdgeItemCount();
-    int startEdgeID = start->getEdgeItemIndex(this)+1;
-    int finishEdgeID = finish->getEdgeItemIndex(this)+1;
+    NodeItem* visibleSrc = source;
+    NodeItem* visibleDst = destination;
 
-
-
-    qreal SPACE = 0.8;
-    qreal startYOffset = ((1-SPACE)/2) * start->boundingRect().height();
-    qreal startSpace = SPACE * start->boundingRect().height();
-
-    qreal finishYOffset = ((1-SPACE)/2) * finish->boundingRect().height();
-    qreal finishSpace = SPACE * finish->boundingRect().height();
-
-    qreal offsetSPerID = startSpace / (startEdgeCount + 1);
-    qreal offsetFPerID = finishSpace / (finishEdgeCount + 1);
-
-
-    qCritical() <<"startYOffset" <<  startYOffset;
-    qCritical()<< "finishYOffset"<<  finishYOffset;
-
-    startYOffset  += offsetSPerID * startEdgeID;
-    finishYOffset += offsetFPerID * finishEdgeID;
-    startYOffset -= 0;//start->boundingRect().height()/2;
-    finishYOffset -= 0;//finish->boundingRect().height()/2;
-
-    qCritical() <<"startYOffset" <<  startYOffset;
-    qCritical()<< "finishYOffset"<<  finishYOffset;
-
-    setZValue(qMax(start->zValue(), finish->zValue()) +1);
-
-    //Set start to the top most visible parent.
-    while(start && !(start->isVisible() && start->isPainted())){
-        start = start->getParentNodeItem();
+    //Get current visibleSrc
+    while(visibleSrc && !visibleSrc->isVisible()){
+        visibleSrc = visibleSrc->getParentNodeItem();
     }
 
-    //Set finish to the top most visible parent.
-    while(finish && !(finish->isVisible() && finish->isPainted())){
-        finish = finish->getParentNodeItem();
+    //Get current visibleDst
+    while(visibleDst && !visibleDst->isVisible()){
+        visibleDst = visibleDst->getParentNodeItem();
     }
 
-    //If start or finish aren't visible, don't update or draw!
-    if(!(start && finish)){
+    //If we don't have both end points, set edge as invisible, and do nothing.
+    if(!visibleSrc || !visibleDst){
         forceVisible(false);
         return;
     }
 
-    //If this line is meant to be visible, and both the start/finish is visible, set it as visible.
-    if(IS_VISIBLE && start->isVisible() && finish->isVisible()){
-        forceVisible(true);
+
+    QRectF srcRect = visibleSrc->sceneBoundingRect();
+    QRectF dstRect = visibleDst->sceneBoundingRect();
+
+    LINE_SIDE srcSide = LEFT;
+    LINE_SIDE dstSide = LEFT;
+    LINE_DIRECTION srcDir = DOWN;
+    LINE_DIRECTION dstDir = DOWN;
+
+    //Work out if the Source's Center Point is on the left or the right of the EdgeCenterPoint
+    if(srcRect.center().x() <= getEdgeCenterPoint().x()){
+        srcSide = RIGHT;
+    }
+
+    //Work out if the Destination's Center Point is on the left or the right of the EdgeCenterPoint
+    if(dstRect.center().x() <= getEdgeCenterPoint().x()){
+        dstSide = RIGHT;
+    }
+
+    //Work out if the Source's Center Point is above or below the EdgeCenterPoint
+    if(srcRect.center().y() <= getEdgeCenterPoint().y()){
+        srcDir = UP;
+    }
+
+    //Work out if the Source's Center Point is above or below the EdgeCenterPoint
+    if(dstRect.center().y() <= getEdgeCenterPoint().y()){
+        dstDir = UP;
+    }
+
+    //If our new parent is different to our previous, remove the edge from the listings of the previous.
+    if(visibleSrc != visibleSource){
+        if(visibleSource){
+            visibleSource->removeVisibleParentForEdgeItem(this);
+        }
+        visibleSource = visibleSrc;
+        visibleSrc->setVisibleParentForEdgeItem(this, srcSide == RIGHT);
+    }
+
+    //If our new parent is different to our previous, remove the edge from the listings of the previous.
+    if(visibleDst != visibleDestination){
+        if(visibleDestination){
+            visibleDestination->removeVisibleParentForEdgeItem(this);
+        }
+        visibleDestination = visibleDst;
+        visibleDst->setVisibleParentForEdgeItem(this, dstSide == RIGHT);
+    }
+
+    //Get the start/end points.
+    QPointF edgeSrc;
+    QPointF edgeDst;
+
+    //Set X for edgeSrc
+    if(srcSide == LEFT){
+        edgeSrc.setX(srcRect.left());
     }else{
-        forceVisible(false);
-        return;
+        edgeSrc.setX(srcRect.right());
     }
 
-    NodeItem* startParent = start->getParentNodeItem();
-    NodeItem* finishParent = finish->getParentNodeItem();
+    //Set Y for edgeSrc
+    int srcEdgeCount = visibleSrc->getNumberOfEdgeItems(srcSide == RIGHT);
+    int srcIndex = visibleSrc->getIndexOfEdgeItem(this, srcSide == RIGHT);
 
 
-    //Get Start Size Modifier
-    float sDX = start->boundingRect().width() / 2;
-    float sDY = startYOffset;
-    //float sDX = start->getWidth() / 2;
-    //float sDY = start->getHeight() / 2;
+    qreal srcYOffset = EDGE_GAP_RATIO * srcRect.height() + (((srcIndex + 1.0) / (srcEdgeCount + 1.0)) * (EDGE_SPACE_RATIO * srcRect.height()));
+    edgeSrc.setY(srcRect.top() + srcYOffset);
 
-    //Get Start Parent Size Modifier
-    float sPDX = startParent->boundingRect().width() / 2;
+     qCritical() << "srcEdgeCount: " << srcEdgeCount;
+      qCritical() << "srcIndex: " << srcIndex;
 
-    //Get Finish Size Modifier
-    float fDX = finish->boundingRect().width() / 2;
-    float fDY = finishYOffset;
+     qCritical() << "srcYOffset: " << srcYOffset;
 
-    //float fDX = finish->getWidth() / 2;
-    //float fDY = finish->getHeight() / 2;
-
-    //Get Finish Parent Size Modifier
-    float fPDX = finishParent->boundingRect().width() / 2;
-
-    //Get Start Center
-    float sX = start->scenePos().x() + sDX;
-    float sY = start->scenePos().y() + sDY;
-
-    //Get Start Parent Center
-    float sPX = startParent->scenePos().x() + sPDX;
-
-    //Get Finish Center
-    float fX = finish->scenePos().x() + fDX;
-    float fY = finish->scenePos().y() + fDY;
-
-    //Get Finish Parent Center
-    float fPX = finishParent->scenePos().x() + fPDX;
-
-    //Use this to determine direction of addition of Width.
-    int sourceWidthMult = 1;
-    int finishWidthMult = 1;
-
-    //If StartLeft == true, line is coming out the left of Start, else; coming out the right.
-    bool startLeft = false;
-    //If finishLeft == true, line is coming out the left of Finish, else; coming out the right.
-    bool finishLeft = false;
-    //If usingStart == true, line is using the X coordinate of the Start, else; the X Coordinate of the Finish.
-    bool usingStart = false;
-
-    //Calculate if the source is on the left or right of the sourceParentcomponent.
-    float sourceX = source->scenePos().x() + (source->getWidth() /2);
-    float destinationX = destination->scenePos().x() + (destination->getWidth() /2);
-
-    NodeItem* startParentP = startParent->getParentNodeItem();
-    NodeItem* finishParentP = finishParent->getParentNodeItem();
-    if(!(startParentP && finishParentP)){
-        return;
-    }
-    if(startParentP == finishParentP || startParentP->isAncestorOf(finishParentP) || finishParentP->isAncestorOf(startParentP)){
-
-        startLeft = false;
-        finishLeft = true;
-        finishWidthMult = -1;
+    //Set X for edgeDst
+    if(dstSide == LEFT){
+        edgeDst.setX(dstRect.left());
     }else{
-
-        float sourceParentX = source->getParentNodeItem()->scenePos().x() + (source->getParentNodeItem()->getWidth() /2);;
-        float destinationParentX = destination->getParentNodeItem()->scenePos().x() + (destination->getParentNodeItem()->getWidth() /2);;
-
-        if(sourceX < sourceParentX){
-            sourceWidthMult = -1;
-            startLeft = true;
-        }
-
-
-        if(destinationX < destinationParentX){
-            finishWidthMult = -1;
-            finishLeft = true;
-        }
+        edgeDst.setX(dstRect.right());
     }
 
-    bool usingCenter = finishLeft != startLeft;
+    //Set Y for edgeSrc
+    int dstEdgeCount = visibleDst->getNumberOfEdgeItems(dstSide == RIGHT);
+    int dstIndex = visibleDst->getIndexOfEdgeItem(this, dstSide == RIGHT);
 
-    sX = sX + (sourceWidthMult * sDX);
-    fX = fX + (finishWidthMult * fDX);
-
-    float deltaX = abs(fX - sX);
-    float deltaY = abs(fY - sY);
-
-    //Work out the change in distance across the Y Axis.
-    float d = 2 * (deltaY / log(deltaY));
+    qreal dstYOffset = (EDGE_GAP_RATIO * dstRect.height()) + (((dstIndex + 1.0) / (dstEdgeCount + 1.0)) * (EDGE_SPACE_RATIO * dstRect.height()));
+    edgeDst.setY(dstRect.top() + dstYOffset);
 
 
-    //Work out the end of the start/finish Line segments..
-    float sLX = sX + (d * sourceWidthMult);
-    float fLX = fX + (d * finishWidthMult);
-
-    //Calculate the center of the Point.
+    QPointF srcTest = mapFromScene(edgeSrc);
+    QPointF dstTest = mapFromScene(edgeDst);
+    lineItems[0]->setLine(QLineF(srcTest, dstTest));
 
 
 
-    float mX = ((sLX + fLX) / 2) - 2*circleRadius;
-    float mY = ((sY + fY) / 2) - circleRadius;
+    //Find our current Visible Parent
 
-    //if s and f aren't drawing from the same side as their respective parents.
-    if(!usingCenter){
-        if(startLeft){
-            //Start and Finish both leave to the Left, so minimize;
-            if(sLX < fLX){
-                usingStart = true;
-                mX = sLX;
-            }else{
-                mX = fLX;
-            }
-        }else{
-            //Start and Finish both leave to the right, so maximize;
-            if(sLX > sX){
-                if(sLX > fLX){
-                    usingStart = true;
-                    mX = sLX;
-                }else{
-                    mX = fLX;
-                }
-            }
-        }
-        mX -= circleRadius;
+    if(!hasMovedFromCenter){
+        resetEdgeCenter(visibleSrc, visibleDst);
+        //Recalulate
     }
+    setZValue(qMax(visibleSrc->zValue(), visibleDst->zValue()) +1);
 
-    mX = this->pos().x();
-    mY = this->pos().y();
-
-    //Set the Center.
-    //setPos(mX, mY);
-
-
-    //Update based on the Translation of setPos()
-    sX -= mX;
-    sY -= mY;
-    sLX -= mX;
-
-    fX -= mX;
-    fY -= mY;
-    fLX -= mX;
-
-    //Set mX and mY to the centre of the mid point object.
-    mX = circleRadius;
-    mY = circleRadius;
-
-    //Calculate the Arrow size, based of the radius of the connection.
-    //When the finish point is on the right, we need to reverse the arrowHeadSize.
-    int arrowHeadDepth = -finishWidthMult * (circleRadius * 3);
-    int arrowHeadHeight = arrowHeadDepth / (1.5);
-
-    int arrowTailDepth = -sourceWidthMult * (circleRadius * 3);
-    int arrowTailHeight = arrowTailDepth / (1.5);
-
-
-
-    if(lineItems.size() == 6){
-        lineItems[0]->setLine(sX, sY, sLX, sY);
-
-
-
-        if((usingCenter && (sLX > mX) && startLeft)){// || (!usingCenter && !usingStart)){
-            qCritical() << "GROW mY";
-            //Grow towards mY first
-            lineItems[1]->setLine(sLX, sY, sLX, mY);
-            lineItems[2]->setLine(sLX, mY, mX, mY);
-
-        }else{
-             qCritical() << "GROW mX";
-            //Grow towards mX first
-
-            lineItems[1]->setLine(sLX, sY, mX, sY);
-            lineItems[2]->setLine(mX, sY, mX, mY);
-
-
-
-        }
-
-        if(usingCenter && (fLX > mX) && finishLeft){ //|| (!usingCenter && !usingStart)){
-            qCritical() << "GROW fY";
-            //Grow towards fY first
-            lineItems[3]->setLine(mX, mY, mX, fY);
-            lineItems[4]->setLine(mX, fY, fLX, fY);
-
-
-
-
-        }else{
-
-            qCritical() << "GROW fX";
-            //Grow towards fX first
-            lineItems[3]->setLine(mX, mY, fLX, mY);
-            lineItems[4]->setLine(fLX, mY, fLX, fY);
-
-
-        }
-
-
-        lineItems[5]->setLine(fLX, fY, fX, fY);
-    }
-
-    //Set the Arrow Head!
-    if(arrowHeadLines.size() == 3){
-        arrowHeadLines[0]->setLine(fX, fY, fX - arrowHeadDepth, fY - (arrowHeadHeight/2));
-        arrowHeadLines[1]->setLine(fX - arrowHeadDepth, fY - (arrowHeadHeight/2), fX - arrowHeadDepth, fY + (arrowHeadHeight/2));
-        arrowHeadLines[2]->setLine(fX - arrowHeadDepth, fY + (arrowHeadHeight/2), fX, fY);
-    }
-
-    if(arrowTailLines.size() == 3){
-        arrowTailLines[0]->setLine(sX, sY - arrowTailHeight/2, sX - arrowTailDepth, sY);
-        arrowTailLines[1]->setLine(sX - arrowTailDepth, sY, sX, sY + arrowTailHeight/2);
-        arrowTailLines[2]->setLine(sX, sY + arrowTailHeight/2, sX, sY - arrowTailHeight/2);
-    }
-
-    prepareGeometryChange();
-    update();
+    forceVisible(true);
 }

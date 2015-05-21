@@ -37,6 +37,11 @@ public:
     ~NodeItem();
 
 
+    void setVisibleParentForEdgeItem(EdgeItem *line, bool RIGHT = false);
+    int getIndexOfEdgeItem(EdgeItem* line, bool RIGHT = false);
+    int getNumberOfEdgeItems(bool RIGHT = false);
+    void removeVisibleParentForEdgeItem(EdgeItem* line);
+
     void setGridVisible(bool visible);
 
 
@@ -274,7 +279,7 @@ private:
     QGraphicsPixmapItem* icon;
     QGraphicsPixmapItem* lockIcon;
 
-    QList<EdgeItem*> connections;
+
 
 
     QGraphicsView* parentView;
@@ -312,12 +317,6 @@ private:
 
     bool isNodeMoving;
 
-
-
-
-
-
-
     NodeItem::RESIZE_TYPE currentResizeMode;
 
     QHash<QString, QRectF> outlineMap;
@@ -334,7 +333,11 @@ private:
 
     QPointF previousScenePosition;
 
+    //USED TO DETERMINE THE NUMBER OF EDGES.
+    QList<EdgeItem*> connections;
 
+    QList<EdgeItem*> currentLeftEdges;
+    QList<EdgeItem*> currentRightEdges;
 
 
     QVector<QLineF> xGridLines;

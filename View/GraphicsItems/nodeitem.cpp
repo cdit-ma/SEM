@@ -166,6 +166,49 @@ NodeItem::~NodeItem()
     delete textItem;
 }
 
+/**
+ * @brief NodeItem::setVisibleParentForEdgeItem
+ * @param line
+ * @param RIGHT
+ * @return The index of the
+ */
+void NodeItem::setVisibleParentForEdgeItem(EdgeItem *line, bool RIGHT)
+{
+    if(RIGHT){
+        if(!currentRightEdges.contains(line)){
+            currentRightEdges.append(line);
+        }
+    }else{
+        if(!currentLeftEdges.contains(line)){
+            currentLeftEdges.append(line);
+        }
+    }
+}
+
+int NodeItem::getIndexOfEdgeItem(EdgeItem *line, bool RIGHT)
+{
+    if(RIGHT){
+        return currentRightEdges.indexOf(line);
+    }else{
+        return currentLeftEdges.indexOf(line);
+    }
+}
+
+int NodeItem::getNumberOfEdgeItems(bool RIGHT)
+{
+    if(RIGHT){
+        return currentRightEdges.count();
+    }else{
+        return currentLeftEdges.count();
+    }
+}
+
+void NodeItem::removeVisibleParentForEdgeItem(EdgeItem *line)
+{
+    currentRightEdges.removeAll(line);
+    currentLeftEdges.removeAll(line);
+}
+
 
 NodeItem *NodeItem::getParentNodeItem()
 {
@@ -1462,6 +1505,9 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
+
+
+
     if(!PAINT_OBJECT || nodeKind.endsWith("Definitions")){
         //QGraphicsItem::mouseMoveEvent(event);
         //event->setAccepted(false);
@@ -1512,6 +1558,11 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
+    if(!contains(event->pos())){
+        QGraphicsItem::hoverMoveEvent(event);
+        return;
+    }
+
     bool changedCursor = false;
     if(hasVisibleChildren() && iconPressed(event->pos())){
         setCursor(Qt::PointingHandCursor);

@@ -15,6 +15,8 @@ class EdgeItem: public GraphMLItem
     Q_OBJECT
 
 public:
+    enum LINE_SIDE{LEFT,RIGHT};
+    enum LINE_DIRECTION{UP, DOWN};
     EdgeItem(Edge *edge, NodeItem* s, NodeItem* d);
     ~EdgeItem();
 
@@ -40,12 +42,15 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event );
 
 private:
+    void resetEdgeCenter(NodeItem* visibleSource, NodeItem* visibleDestination);
     void setLabelFont();
     void updateLabel();
     void updateLines();
 
     void setupBrushes();
     void forceVisible(bool visible);
+
+    QPointF getEdgeCenterPoint();
 
     QPainterPath* painterPath;
 
@@ -57,6 +62,9 @@ private:
     NodeItem* destinationParent;
     NodeItem* source;
     NodeItem* destination;
+
+    NodeItem* visibleSource;
+    NodeItem* visibleDestination;
 
 
     bool IS_SELECTED;
@@ -94,6 +102,8 @@ private:
 
     bool inScene;
     bool instanceLink;
+
+    bool hasMovedFromCenter;
 
     // GraphMLItem interface
 public slots:
