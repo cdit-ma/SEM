@@ -2483,11 +2483,8 @@ void MedeaWindow::updateDataTable()
         dataTableBox->setVisible(true);
     } else {
         dataTableBox->setVisible(false);
-        return; // this is the freaking reason why it wasn't re-allowing mouse events!!!
+        return;
     }
-
-    int vOffset = dataTable->horizontalHeader()->size().height();
-    vOffset += 2; // this check is only added to get rid of the initial extra gap in height
 
     // calculate the required height
     int height = 0;
@@ -2495,13 +2492,11 @@ void MedeaWindow::updateDataTable()
         height += dataTable->rowHeight(i);
     }
 
-    //int maxHeight = dataTableBox->height();
+    int vOffset = dataTable->horizontalHeader()->size().height() + 2;
+    int maxHeight = dataTableBox->height();
     int newHeight = height + vOffset;
 
-    dataTable->resize(dataTable->width(), newHeight);
-
     // check if the datatable should be hidden or if its height needs restricting
-    /*
     if (maxHeight == 0) {
         dataTableBox->setVisible(false);
     } else if (newHeight > maxHeight) {
@@ -2509,16 +2504,11 @@ void MedeaWindow::updateDataTable()
     } else {
         dataTable->resize(dataTable->width(), newHeight);
     }
-    */
-
-    int w = dataTable->width();
-    int h = dataTable->height();
 
     // update the visible region of the groupbox to fit the dataTable
-    if (w == 0 || h == 0) {
+    if (dataTable->width() == 0 || dataTable->height() == 0) {
         dataTableBox->setVisible(false);
     } else {
-        //dataTableBox->setMask(QRegion(0, 0, w, h, QRegion::Rectangle));
         updateWidgetMask(dataTableBox, dataTable);
     }
 
