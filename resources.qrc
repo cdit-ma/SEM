@@ -99,5 +99,6 @@
         <file>Resources/Icons/back.png</file>
         <file>Resources/Icons/forward.png</file>
         <file>Resources/Icons/snippet.png</file>
+        <file>Resources/Icons/menu_up_arrow.png</file>
     </qresource>
 </RCC>

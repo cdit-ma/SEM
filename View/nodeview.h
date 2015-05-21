@@ -184,7 +184,7 @@ public slots:
     void constructGUIItem(GraphML* item);
     void destructGUIItem(QString ID);
 
-    void showToolbar(QPoint position);
+    void showToolbar(QPoint position = QPoint());
     void toolbarClosed();
 
     void view_CenterGraphML(GraphML* graphML);

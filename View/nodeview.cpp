@@ -556,7 +556,7 @@ void NodeView::minimapMoved(QMouseEvent *event)
 {
     //MINIMAP_EVENT = true;
     mouseMoveEvent(event);
-     //MINIMAP_EVENT = false;
+    //MINIMAP_EVENT = false;
 }
 
 void NodeView::scrollEvent(int delta)
@@ -606,7 +606,7 @@ void NodeView::minimapPan(QPointF delta)
 
     //qCritical() << "After: "  << getVisibleRect().center();
 
-     //*/
+    //*/
 }
 
 
@@ -775,6 +775,9 @@ void NodeView::centerOnItem(GraphMLItem* item)
 
         // set the centralised height to be 1/4 of the window height
         centerRect(nodeItem->sceneBoundingRect(), 0, true, 0.25);
+
+    } else {
+        view_displayNotification("Select Entity To Center On");
     }
 }
 
@@ -888,6 +891,10 @@ void NodeView::keepSelectionFullyVisible(GraphMLItem* item, bool sizeChanged)
         return;
     }
 
+    if (item->getGraphML()->getDataValue("kind") == "Model") {
+        return;
+    }
+
     QRectF origViewRect = getVisibleRect();
     QRectF viewRect = origViewRect;
     QRectF itemRect = item->sceneBoundingRect();
@@ -965,10 +972,6 @@ void NodeView::moveViewForward()
  */
 void NodeView::showToolbar(QPoint position)
 {
-    // use mouse click position when constructing node items from toolbar
-    QPoint globalPos = mapToGlobal(position);
-    toolbarPosition = mapToScene(position);
-
     // only show the toolbar if there is at least one node item selected
     if (selectedIDs.count() > 0) {
 
@@ -978,6 +981,19 @@ void NodeView::showToolbar(QPoint position)
             if (item->isPainted() && selectedIDs.contains(item->getID())) {
                 selectedItems.append(item);
             }
+        }
+
+        // use mouse click position when constructing node items from toolbar
+        QPointF globalPos = mapToGlobal(position);
+        toolbarPosition = mapToScene(position);
+
+        // this case happens when this is called from the window toolbar
+        // show the toolbar positioned at the first selected item's center
+        if (position.isNull() && selectedItems.count() > 0) {
+            QPointF itemScenePos = selectedItems.at(0)->sceneBoundingRect().center();
+            globalPos = mapFromScene(itemScenePos);
+            globalPos = mapToGlobal(globalPos.toPoint());
+            toolbarPosition = itemScenePos;
         }
 
         // find out if the user right-clicked on one of the selected items
@@ -992,9 +1008,12 @@ void NodeView::showToolbar(QPoint position)
         // only show the toolbar if the right-click happened inside one of the selected items
         if (toolbarPositionContained) {
             toolbar->updateSelectedNodeItem(selectedItems);
-            toolbar->move(globalPos);
+            toolbar->move(globalPos.toPoint());
             toolbar->show();
         }
+
+    } else {
+        view_displayNotification("Select An Entity First");
     }
 
     // show/hide MEDEA toolbar
@@ -2113,7 +2132,11 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
  */
 void NodeView::alignSelectionHorizontally()
 {
-    alignSelectionOnGrid(HORIZONTAL);
+    if (selectedIDs.count() > 0) {
+        alignSelectionOnGrid(HORIZONTAL);
+    } else {
+        view_displayNotification("No Selected Entities to Align");
+    }
 }
 
 
@@ -2124,7 +2147,11 @@ void NodeView::alignSelectionHorizontally()
  */
 void NodeView::alignSelectionVertically()
 {
-    alignSelectionOnGrid(VERTICAL);
+    if (selectedIDs.count() > 0) {
+        alignSelectionOnGrid(VERTICAL);
+    } else {
+        view_displayNotification("No Selected Entities to Align");
+    }
 }
 
 
@@ -2248,29 +2275,70 @@ void NodeView::showDialogMessage(MESSAGE_TYPE type, QString title, QString messa
 }
 
 
+/**
+ * @brief NodeView::duplicate
+ */
 void NodeView::duplicate()
 {
-    view_Duplicate(selectedIDs);
+    if (selectedIDs.count() > 0) {
+        view_Duplicate(selectedIDs);
+    } else {
+        view_displayNotification("Select Entity(s) To Replicate");
+    }
 }
 
+
+/**
+ * @brief NodeView::copy
+ */
 void NodeView::copy()
 {
-    view_Copy(selectedIDs);
+    if (selectedIDs.count() > 0) {
+        view_Copy(selectedIDs);
+    } else {
+        view_displayNotification("Select Entity(s) To Copy");
+    }
 }
 
+
+/**
+ * @brief NodeView::cut
+ */
 void NodeView::cut()
 {
-    view_Cut(selectedIDs);
+    if (selectedIDs.count() > 0) {
+        view_Cut(selectedIDs);
+    } else {
+        view_displayNotification("Select Entity(s) To Cut");
+    }
 }
 
+
+/**
+ * @brief NodeView::paste
+ * @param xmlData
+ */
 void NodeView::paste(QString xmlData)
 {
+    // NOTE: not sure why these strings are in the clipboard to begin with
+    // Not sure how to check if there's anything to paste or not
+    /*
+    if (xmlData.isEmpty() || xmlData == "setClipboard" || xmlData == "paste") {
+        view_displayNotification("Clipboard Is Empty");
+        return;
+    }
+    */
     Node* selectedNode = this->getSelectedNode();
+    if (!selectedNode) {
+        view_displayNotification("Select Entity To Paste Into");
+        return;
+    }
     pasting = true;
     clearSelection();
     view_Paste(selectedNode, xmlData);
     pasting = false;
 }
+
 
 void NodeView::selectAll()
 {
@@ -2363,7 +2431,7 @@ void NodeView::appendToSelection(GraphMLItem *item)
     setGraphMLItemSelected(item, true);
 
     // when an item is selected, do we want to fit it in the view?
-    if (!item->getGraphML()->getDataValue("kind").endsWith("Definitions")) {
+    if (!item->getGraphML()->getDataValue("kind").endsWith("Definitions") ) {
         keepSelectionFullyVisible(item);
     }
 }
@@ -2652,14 +2720,20 @@ void NodeView::showManagementComponents(bool show)
         managementComponents = model->getChildrenOfKind("ManagementComponent");
     }
 
+    if (show) {
+        // make sure that the aspects for Deployment are turned on
+        viewDeploymentAspect();
+        view_displayNotification("Diplayed Management Components");
+    } else {
+        view_displayNotification("Hidden Management Components");
+    }
+
     // this goes through all the ManagementComponents and shows/hides them
     foreach (Node* node, managementComponents) {
         NodeItem* nodeItem = getNodeItemFromNode(node);
         if (nodeItem) {
             nodeItem->setHidden(!show);
             if (show) {
-                // make sure that the aspects for Deployment are turned on
-                viewDeploymentAspect();
                 nodeItem->snapToGrid(); // sort here instead?
             }
         }
@@ -2851,6 +2925,9 @@ void NodeView::clearModel()
 {
     if (controller) {
         controller->clearModel();
+        if (dynamic_cast<QAction*>(QObject::sender())) {
+            view_displayNotification("Cleared Model");
+        }
     }
 }
 

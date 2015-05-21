@@ -160,7 +160,7 @@ private:
     void setupMenu(QPushButton* button);
     void setupDock(QHBoxLayout* layout);
     void setupSearchTools();
-    void setupToolbar();
+    void setupToolbar(QVBoxLayout* layout);
     void setupMultiLineBox();
 
     void updateWidgetsOnWindowChanged();
@@ -228,13 +228,16 @@ private:
     // DEMO CHANGE
     //QDialog* toolbarStandAloneDialog;
     //QGroupBox* toolbarArea;
-    //QVBoxLayout* toolbarLayout;
+    QVBoxLayout* toolbarLayout;
+
+    QGroupBox* titleToolbarBox;
+    QIcon expandIcon;
+    QIcon contractIcon;
 
     QToolBar* toolbar;
     QAction* toolbarAction;
     QAction* leftSpacerAction;
     QAction* rightSpacerAction;
-    QToolButton* showToolbarButton;
     QToolButton* toolbarButton;
     QToolButton* cutButton;
     QToolButton* copyButton;
@@ -252,6 +255,7 @@ private:
     QToolButton* popupButton;
     QToolButton* backButton;
     QToolButton* forwardButton;
+    QToolButton* contextToolbarButton;
     QAction* leftMostSpacer;
     QAction* leftMidSpacer;
     QAction* midLeftSpacer;
