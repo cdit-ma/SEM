@@ -343,6 +343,7 @@ private:
     bool toolbarJustClosed;
     bool editingNodeItemLabel;
     bool pasting;
+    bool panning;
 
     //Selection Lists
     QStringList selectedIDs;

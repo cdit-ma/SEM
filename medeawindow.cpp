@@ -87,6 +87,7 @@ void MedeaWindow::initialiseGUI()
     // DEMO CHANGE
     toolbar = new QToolBar();
     //toolbarArea = new QGroupBox(this);
+    //showToolbarButton = new QToolButton(this);
 
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
@@ -136,7 +137,19 @@ void MedeaWindow::initialiseGUI()
     definitionsButton->setStyleSheet("background-color: rgb(80,180,180);");
     workloadButton->setStyleSheet("background-color: rgb(224,154,96);");
 
-    // setup the progress bar
+    /*
+    // setup toolbar container and toggle button
+    QHBoxLayout* toolbarHLayout = new QHBoxLayout();
+    QVBoxLayout* toolbarVLayout = new QVBoxLayout();
+    toolbarHLayout->addStretch();
+    toolbarHLayout->addWidget(showToolbarButton);
+    toolbarHLayout->addStretch();
+    toolbarVLayout->addLayout(toolbarHLayout);
+    toolbarVLayout->addWidget(toolbar);
+    showToolbarButton->setIcon(QIcon(":/Resources/Icons/menu_down_arrow.png"));
+    */
+
+    // setup progress bar
     progressBar->setVisible(false);
     progressBar->setFixedSize(rightPanelWidth*2, 20);
     progressBar->setStyleSheet("QProgressBar {"
@@ -229,6 +242,7 @@ void MedeaWindow::initialiseGUI()
     topHLayout->setSpacing(0);
     topHLayout->addLayout(titleLayout);
     topHLayout->addStretch(1);
+    //topHLayout->addLayout(toolbarVLayout);
     // DEMO CHANGE
     topHLayout->addWidget(toolbar);
     //topHLayout->addWidget(toolbarArea);
@@ -1231,7 +1245,7 @@ void MedeaWindow::setupInitialSettings()
     // need to set initial toggle action values before triggering them
     settings_displayDocks->setChecked(true);
     settings_detachDocks->setChecked(false);
-    settings_displayWindowToolbar->setChecked(true);
+    //settings_displayWindowToolbar->setChecked(true);
     // DEMO CHANGE
     //settings_detachWindowToolbar->setChecked(false);
     settings_autoCenterView->setChecked(true);
@@ -1241,7 +1255,7 @@ void MedeaWindow::setupInitialSettings()
 
     settings_displayDocks->triggered(true);
     settings_detachDocks->triggered(false);
-    settings_displayWindowToolbar->triggered(true);
+    //settings_displayWindowToolbar->triggered(true);
     // DEMO CHANGE
     //settings_detachWindowToolbar->triggered(false);
     settings_autoCenterView->triggered(true);
@@ -1250,8 +1264,8 @@ void MedeaWindow::setupInitialSettings()
     view_showManagementComponents->triggered(false);
 
     // initially show, but contract the toolbar
-    toolbarButton->setChecked(false);
-    toolbarButton->clicked(false);
+    //toolbarButton->setChecked(false);
+    //toolbarButton->clicked(false);
 
     if (nodeView) {
         nodeView->fitToScreen();

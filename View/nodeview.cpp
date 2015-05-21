@@ -57,6 +57,9 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     IS_RESIZING = false;
     IS_MOVING = false;
 
+    pasting = false;
+    panning = false;
+
     MINIMAP_EVENT = false;
     setScene(new QGraphicsScene(this));
 
@@ -1900,6 +1903,8 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         return;
     }
 
+    panning = false;
+
     QPointF scenePos = mapToScene(event->pos());
     QGraphicsItem* itemUnderMouse = scene()->itemAt(scenePos, QTransform());
     if (!itemUnderMouse) {
@@ -1933,6 +1938,20 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
         return;
     }
 
+    /*
+    if (panning && getModelItem()) {
+        QPointF mousePos = mapToScene(event->pos());
+
+        ViewportAnchor currentAnchor = transformationAnchor();
+        setTransformationAnchor(NoAnchor);
+        translate(mousePos.x(), mousePos.y());
+        setTransformationAnchor(currentAnchor);
+
+        //QPointF delta = getModelScenePos() - mousePos;
+        //getModelItem()->adjustPos(delta);
+    }
+    */
+
     QGraphicsView::mouseMoveEvent(event);
 }
 
@@ -1954,6 +1973,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         return;
     }
 
+
     // TODO: Need to catch the case where the menu is closed
     // when MEDEA window steals the focus
     // need this in case there is an opened lock menu
@@ -1968,6 +1988,8 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         rubberBand->setGeometry(QRect(rubberBandOrigin, QSize()));
         drawingRubberBand = true;
     }
+
+    panning = true;
 
     QPointF scenePos = mapToScene(event->pos());
     QGraphicsItem* itemUnderMouse = scene()->itemAt(scenePos, QTransform());
@@ -2341,7 +2363,9 @@ void NodeView::appendToSelection(GraphMLItem *item)
     setGraphMLItemSelected(item, true);
 
     // when an item is selected, do we want to fit it in the view?
-    keepSelectionFullyVisible(item);
+    if (!item->getGraphML()->getDataValue("kind").endsWith("Definitions")) {
+        keepSelectionFullyVisible(item);
+    }
 }
 
 void NodeView::removeFromSelection(GraphMLItem *item)

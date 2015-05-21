@@ -1303,7 +1303,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         hasSelectionResized = false;
         isNodePressed = true;
 
-
         if(!isSelected()){
             if (event->modifiers().testFlag(Qt::ControlModifier)){
                 //CONTROL PRESSED
@@ -1318,6 +1317,11 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 GraphMLItem_RemoveSelected(this);
             }
         }
+
+        /*if (nodeKind.endsWith("Definitions")) {
+            QGraphicsItem::mousePressEvent(event);
+        }*/
+
         break;
     }
     case Qt::RightButton:{
@@ -1428,7 +1432,9 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         // have to reset cursor here otherwise it's stuck on Qt::SizeAllCursor after being moved
         setCursor(Qt::OpenHandCursor);
 
-
+        /*if (nodeKind.endsWith("Definitions")) {
+            QGraphicsItem::mouseReleaseEvent(event);
+        }*/
 
         isNodePressed = false;
         break;
@@ -1459,6 +1465,8 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(!PAINT_OBJECT || nodeKind.endsWith("Definitions")){
+        //QGraphicsItem::mouseMoveEvent(event);
+        //event->setAccepted(false);
         return;
     }
 

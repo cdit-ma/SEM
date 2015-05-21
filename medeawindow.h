@@ -234,6 +234,7 @@ private:
     QAction* toolbarAction;
     QAction* leftSpacerAction;
     QAction* rightSpacerAction;
+    QToolButton* showToolbarButton;
     QToolButton* toolbarButton;
     QToolButton* cutButton;
     QToolButton* copyButton;
