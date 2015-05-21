@@ -36,6 +36,8 @@ public slots:
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event );
 
 private:
     void setLabelFont();
@@ -49,6 +51,7 @@ private:
 
     QVector<QGraphicsLineItem*> lineItems;
     QVector<QGraphicsLineItem*> arrowHeadLines;
+    QVector<QGraphicsLineItem*> arrowTailLines;
 
     NodeItem* sourceParent;
     NodeItem* destinationParent;
@@ -65,10 +68,15 @@ private:
 
     bool IS_COMPONENT_LINK;
 
+    bool IS_MOVING;
+    QPointF previousScenePosition;
     QPen pen;
     QPen arrowPen;
     QPen selectedPen;
     QPen selectedArrowPen;
+
+    QPen arrowHeadPen;
+    QPen arrowTailPen;
 
     QBrush selectedBrush;
     QBrush brush;

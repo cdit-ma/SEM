@@ -1101,15 +1101,13 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
                 previousValue = QString::number(height);
 
                 bool expand = dataValue.toDouble() > height;
-                bool contract = (dataValue == minimumHeightStr);
+                bool contract = dataValue == minimumHeightStr;
 
                 //If the value of the height is bigger than the minimumHeight, we should expand.
                 if(!isExpanded() && expand){
-                    //qCritical() << "Expanding";
-                    setNodeExpanded(true);
+                   setNodeExpanded(true);
                 }else if(isExpanded() && contract){
-                    //qCritical() << "Contracting";
-                    setNodeExpanded(false);
+                   setNodeExpanded(false);
                 }
 
                 //Then set the height.
@@ -1644,10 +1642,6 @@ void NodeItem::setSize(qreal w, qreal h)
     return;
 
     if(w != width || height != h ){
-        //if()
-        //w = qMax(childRect.width(), w);
-        //h = qMax(childRect.height(), h);
-
         prepareGeometryChange();
 
         height = h;

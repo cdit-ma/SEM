@@ -65,6 +65,7 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
         lineItems.append(new QGraphicsLineItem(this));
         lineItems.append(new QGraphicsLineItem(this));
         arrowHeadLines.append(new QGraphicsLineItem(this));
+        arrowTailLines.append(new QGraphicsLineItem(this));
     }
 
 
@@ -112,6 +113,10 @@ EdgeItem::~EdgeItem()
     }
     while(!arrowHeadLines.isEmpty()){
         QGraphicsLineItem *lineI = arrowHeadLines.takeFirst();
+        delete lineI;
+    }
+    while(!arrowTailLines.isEmpty()){
+        QGraphicsLineItem *lineI = arrowTailLines.takeFirst();
         delete lineI;
     }
 
@@ -188,12 +193,24 @@ void EdgeItem::setSelected(bool selected)
     }
 
     foreach(QGraphicsLineItem* line, arrowHeadLines){
+        //if(selected){
+        //    line->setPen(selectedArrowPen);
+       // }else{
+            line->setPen(arrowHeadPen);
+       // }
+        //line->update();
+    }
+    foreach(QGraphicsLineItem* line, arrowTailLines){
+
+         line->setPen(arrowTailPen);
+         /*
         if(selected){
             line->setPen(selectedArrowPen);
         }else{
             line->setPen(arrowPen);
         }
         line->update();
+        */
     }
 
     label->setVisible(selected);
@@ -274,10 +291,31 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             GraphMLItem_ClearSelection(false);
         }
         GraphMLItem_AppendSelected(this);
+        IS_MOVING = true;
 
+        previousScenePosition = event->scenePos();
         break;
     }
     };
+}
+
+void EdgeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+{
+
+    if(IS_MOVING){
+
+        QPointF delta = (event->scenePos() - previousScenePosition);
+        this->moveBy(delta.x(),delta.y());
+        previousScenePosition = event->scenePos();
+        return;
+    }
+
+}
+
+void EdgeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    IS_MOVING = false;
+    updateLines();
 }
 
 void EdgeItem::setLabelFont()
@@ -309,7 +347,7 @@ void EdgeItem::updateLabel()
 
 void EdgeItem::setupBrushes()
 {
-    int penWidth = 4;
+    int penWidth = 2;
 
     QColor selectedColor;
     QColor color;
@@ -325,7 +363,7 @@ void EdgeItem::setupBrushes()
         color = QColor(180, 0, 180);
     }else if(IS_COMPONENT_LINK){
         color = QColor(0, 180 , 180);
-        penWidth *= 2;
+        //penWidth *= 2;
         pen.setStyle(Qt::SolidLine);
     }else{
         color = QColor(50, 50, 50);
@@ -342,14 +380,22 @@ void EdgeItem::setupBrushes()
     pen.setWidth(penWidth);
 
     selectedPen.setColor(selectedColor);
-    selectedPen.setWidth(2 * penWidth);
+    selectedPen.setWidth(penWidth);
+
+    if(source->getNodeKind() == "OutEventPortInstance"){
+        arrowTailPen.setColor(Qt::red);
+    }
+
+    if(destination->getNodeKind() == "InEventPortInstance"){
+        arrowHeadPen.setColor(Qt::green);
+    }
 
     arrowPen.setColor(selectedColor);
     arrowPen.setStyle(Qt::SolidLine);
     arrowPen.setWidth(penWidth);
 
     selectedArrowPen.setColor(selectedColor);
-    selectedArrowPen.setWidth(2 * penWidth);
+    selectedArrowPen.setWidth(penWidth);
 }
 
 void EdgeItem::forceVisible(bool visible)
@@ -358,6 +404,9 @@ void EdgeItem::forceVisible(bool visible)
         line->setVisible(visible);
     }
     foreach(QGraphicsLineItem* line, arrowHeadLines){
+        line->setVisible(visible);
+    }
+    foreach(QGraphicsLineItem* line, arrowTailLines){
         line->setVisible(visible);
     }
 
@@ -375,6 +424,35 @@ void EdgeItem::updateLines()
     //The Top Left of the Circle will be the center point.
     NodeItem* start = source;
     NodeItem* finish = destination;
+
+    int startEdgeCount = start->getEdgeItemCount();
+    int finishEdgeCount = finish->getEdgeItemCount();
+    int startEdgeID = start->getEdgeItemIndex(this)+1;
+    int finishEdgeID = finish->getEdgeItemIndex(this)+1;
+
+
+
+    qreal SPACE = 0.8;
+    qreal startYOffset = ((1-SPACE)/2) * start->boundingRect().height();
+    qreal startSpace = SPACE * start->boundingRect().height();
+
+    qreal finishYOffset = ((1-SPACE)/2) * finish->boundingRect().height();
+    qreal finishSpace = SPACE * finish->boundingRect().height();
+
+    qreal offsetSPerID = startSpace / (startEdgeCount + 1);
+    qreal offsetFPerID = finishSpace / (finishEdgeCount + 1);
+
+
+    qCritical() <<"startYOffset" <<  startYOffset;
+    qCritical()<< "finishYOffset"<<  finishYOffset;
+
+    startYOffset  += offsetSPerID * startEdgeID;
+    finishYOffset += offsetFPerID * finishEdgeID;
+    startYOffset -= 0;//start->boundingRect().height()/2;
+    finishYOffset -= 0;//finish->boundingRect().height()/2;
+
+    qCritical() <<"startYOffset" <<  startYOffset;
+    qCritical()<< "finishYOffset"<<  finishYOffset;
 
     setZValue(qMax(start->zValue(), finish->zValue()) +1);
 
@@ -407,18 +485,23 @@ void EdgeItem::updateLines()
 
 
     //Get Start Size Modifier
-    float sDX = start->getWidth() / 2;
-    float sDY = start->getHeight() / 2;
+    float sDX = start->boundingRect().width() / 2;
+    float sDY = startYOffset;
+    //float sDX = start->getWidth() / 2;
+    //float sDY = start->getHeight() / 2;
 
     //Get Start Parent Size Modifier
-    float sPDX = startParent->getWidth() / 2;
+    float sPDX = startParent->boundingRect().width() / 2;
 
     //Get Finish Size Modifier
-    float fDX = finish->getWidth() / 2;
-    float fDY = finish->getHeight() / 2;
+    float fDX = finish->boundingRect().width() / 2;
+    float fDY = finishYOffset;
+
+    //float fDX = finish->getWidth() / 2;
+    //float fDY = finish->getHeight() / 2;
 
     //Get Finish Parent Size Modifier
-    float fPDX = finishParent->getWidth() / 2;
+    float fPDX = finishParent->boundingRect().width() / 2;
 
     //Get Start Center
     float sX = start->scenePos().x() + sDX;
@@ -449,17 +532,31 @@ void EdgeItem::updateLines()
     float sourceX = source->scenePos().x() + (source->getWidth() /2);
     float destinationX = destination->scenePos().x() + (destination->getWidth() /2);
 
-    float sourceParentX = source->getParentNodeItem()->scenePos().x() + (source->getParentNodeItem()->getWidth() /2);;
-    float destinationParentX = destination->getParentNodeItem()->scenePos().x() + (destination->getParentNodeItem()->getWidth() /2);;
-
-    if(sourceX < sourceParentX){
-        sourceWidthMult = -1;
-        startLeft = true;
+    NodeItem* startParentP = startParent->getParentNodeItem();
+    NodeItem* finishParentP = finishParent->getParentNodeItem();
+    if(!(startParentP && finishParentP)){
+        return;
     }
+    if(startParentP == finishParentP || startParentP->isAncestorOf(finishParentP) || finishParentP->isAncestorOf(startParentP)){
 
-    if(destinationX < destinationParentX){
-        finishWidthMult = -1;
+        startLeft = false;
         finishLeft = true;
+        finishWidthMult = -1;
+    }else{
+
+        float sourceParentX = source->getParentNodeItem()->scenePos().x() + (source->getParentNodeItem()->getWidth() /2);;
+        float destinationParentX = destination->getParentNodeItem()->scenePos().x() + (destination->getParentNodeItem()->getWidth() /2);;
+
+        if(sourceX < sourceParentX){
+            sourceWidthMult = -1;
+            startLeft = true;
+        }
+
+
+        if(destinationX < destinationParentX){
+            finishWidthMult = -1;
+            finishLeft = true;
+        }
     }
 
     bool usingCenter = finishLeft != startLeft;
@@ -479,7 +576,10 @@ void EdgeItem::updateLines()
     float fLX = fX + (d * finishWidthMult);
 
     //Calculate the center of the Point.
-    float mX = ((sLX + fLX) / 2) - circleRadius;
+
+
+
+    float mX = ((sLX + fLX) / 2) - 2*circleRadius;
     float mY = ((sY + fY) / 2) - circleRadius;
 
     //if s and f aren't drawing from the same side as their respective parents.
@@ -506,8 +606,11 @@ void EdgeItem::updateLines()
         mX -= circleRadius;
     }
 
+    mX = this->pos().x();
+    mY = this->pos().y();
+
     //Set the Center.
-    setPos(mX, mY);
+    //setPos(mX, mY);
 
 
     //Update based on the Translation of setPos()
@@ -525,40 +628,70 @@ void EdgeItem::updateLines()
 
     //Calculate the Arrow size, based of the radius of the connection.
     //When the finish point is on the right, we need to reverse the arrowHeadSize.
-    int arrowHeadSize = -finishWidthMult * (circleRadius / 2);
+    int arrowHeadDepth = -finishWidthMult * (circleRadius * 3);
+    int arrowHeadHeight = arrowHeadDepth / (1.5);
+
+    int arrowTailDepth = -sourceWidthMult * (circleRadius * 3);
+    int arrowTailHeight = arrowTailDepth / (1.5);
+
 
 
     if(lineItems.size() == 6){
         lineItems[0]->setLine(sX, sY, sLX, sY);
 
-        if((usingCenter && (sLX > mX) && startLeft) || (!usingCenter && !usingStart)){
-            //Grow towards mX first
-            lineItems[1]->setLine(sLX, sY, mX, sY);
-            lineItems[2]->setLine(mX, sY, mX, mY);
-        }else{
+
+
+        if((usingCenter && (sLX > mX) && startLeft)){// || (!usingCenter && !usingStart)){
+            qCritical() << "GROW mY";
             //Grow towards mY first
             lineItems[1]->setLine(sLX, sY, sLX, mY);
             lineItems[2]->setLine(sLX, mY, mX, mY);
+
+        }else{
+             qCritical() << "GROW mX";
+            //Grow towards mX first
+
+            lineItems[1]->setLine(sLX, sY, mX, sY);
+            lineItems[2]->setLine(mX, sY, mX, mY);
+
+
+
         }
 
-        if((!usingCenter && usingStart)){
+        if(usingCenter && (fLX > mX) && finishLeft){ //|| (!usingCenter && !usingStart)){
+            qCritical() << "GROW fY";
             //Grow towards fY first
             lineItems[3]->setLine(mX, mY, mX, fY);
             lineItems[4]->setLine(mX, fY, fLX, fY);
+
+
+
+
         }else{
+
+            qCritical() << "GROW fX";
             //Grow towards fX first
             lineItems[3]->setLine(mX, mY, fLX, mY);
             lineItems[4]->setLine(fLX, mY, fLX, fY);
+
+
         }
+
 
         lineItems[5]->setLine(fLX, fY, fX, fY);
     }
 
     //Set the Arrow Head!
     if(arrowHeadLines.size() == 3){
-        arrowHeadLines[0]->setLine(fX, fY, fX - arrowHeadSize, fY - (arrowHeadSize/2));
-        arrowHeadLines[1]->setLine(fX - arrowHeadSize, fY - (arrowHeadSize/2), fX - arrowHeadSize, fY + (arrowHeadSize/2));
-        arrowHeadLines[2]->setLine(fX - arrowHeadSize, fY + (arrowHeadSize/2), fX, fY);
+        arrowHeadLines[0]->setLine(fX, fY, fX - arrowHeadDepth, fY - (arrowHeadHeight/2));
+        arrowHeadLines[1]->setLine(fX - arrowHeadDepth, fY - (arrowHeadHeight/2), fX - arrowHeadDepth, fY + (arrowHeadHeight/2));
+        arrowHeadLines[2]->setLine(fX - arrowHeadDepth, fY + (arrowHeadHeight/2), fX, fY);
+    }
+
+    if(arrowTailLines.size() == 3){
+        arrowTailLines[0]->setLine(sX, sY - arrowTailHeight/2, sX - arrowTailDepth, sY);
+        arrowTailLines[1]->setLine(sX - arrowTailDepth, sY, sX, sY + arrowTailHeight/2);
+        arrowTailLines[2]->setLine(sX, sY + arrowTailHeight/2, sX, sY - arrowTailHeight/2);
     }
 
     prepareGeometryChange();
