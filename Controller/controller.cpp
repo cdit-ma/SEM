@@ -65,6 +65,9 @@ NewController::NewController()
     constructableNodeKinds << "InEventPortInstance" << "InEventPortImpl";
     constructableNodeKinds << "OutEventPortInstance" << "OutEventPortImpl" << "HardwareNode";
 
+    snippetableParentKinds << "ComponentImpl" << "InterfaceDefinitions";
+    nonSnippetableKinds << "OutEventPortImpl" << "InEventPortImpl";
+
     constructableNodeKinds.append(definitionNodeKinds);
     constructableNodeKinds.append(behaviourNodeKinds);
 }
@@ -96,6 +99,8 @@ void NewController::connectView(NodeView *view)
 
         // Re-added this for now
         connect(this, SIGNAL(componentInstanceConstructed(Node*)), view, SLOT(componentInstanceConstructed(Node*)));
+        connect(this, SIGNAL(controller_ExportedSnippet(QString,QString)), view, SIGNAL(view_ExportedSnippet(QString,QString)));
+
     }
 
     if(view->isMainView()){
@@ -103,6 +108,8 @@ void NewController::connectView(NodeView *view)
         //File SLOTS
         connect(view, SIGNAL(view_ExportProject()), this, SLOT(exportGraphMLDocument()));
         connect(view, SIGNAL(view_ImportProjects(QStringList)), this, SLOT(importProjects(QStringList)));
+        connect(view, SIGNAL(view_ImportSnippet(QStringList ,QString ,QString)), this, SLOT(importSelectionSnippet(QStringList,QString,QString)));
+        connect(view, SIGNAL(view_ExportSnippet(QStringList)), this, SLOT(exportSelectionSnippet(QStringList)));
 
         //Edit SLOTS
         connect(view, SIGNAL(view_Undo()), this, SLOT(undo()));
@@ -121,6 +128,8 @@ void NewController::connectView(NodeView *view)
         //Undo SLOTS
         connect(view, SIGNAL(view_TriggerAction(QString)), this, SLOT(triggerAction(QString)));
         connect(view, SIGNAL(view_SetGraphMLData(GraphML*,QString,QString)), this, SLOT(setGraphMLData(GraphML*,QString,QString)));
+
+
     }
 }
 
@@ -536,7 +545,7 @@ void NewController::redo()
 
 void NewController::copy(QStringList selectedIDs)
 {
-    if(!canCopyIDs(selectedIDs)){
+    if(!canCopy(selectedIDs)){
         return;
     }
 
@@ -551,7 +560,7 @@ void NewController::copy(QStringList selectedIDs)
 void NewController::cut(QStringList selectedIDs)
 {
     //Run Copy
-    if(canCopyIDs(selectedIDs)){
+    if(canCopy(selectedIDs)){
         controller_ViewSetEnabled(false);
 
         triggerAction("Cutting Selected IDs");
@@ -594,7 +603,7 @@ void NewController::deleteSelection(QStringList selectedIDs)
 void NewController::duplicateSelection(QStringList selectedIDs)
 {
 
-    if(!canCopyIDs(selectedIDs)){
+    if(!canCopy(selectedIDs)){
         return;
     }
 
@@ -2691,6 +2700,69 @@ void NewController::importProjects(QStringList documents)
     controller_ViewSetEnabled(true);
 }
 
+void NewController::exportSelectionSnippet(QStringList selection)
+{
+
+    if(!canExportSnippet(selection)){
+        return;
+    }
+
+    CUT_USED = false;
+    //Export the GraphML for those Nodes.
+    QString result = _exportGraphMLDocument(selection, false, false);
+
+    Node* parent = getSharedParent(selection);
+    if(!parent){
+        return;
+    }
+    QString parentKind = parent->getDataValue("kind");
+
+    if(parentKind != "" && result != ""){
+        controller_ExportedSnippet(parentKind, result);
+    }
+}
+
+/**
+ * @brief NewController::importSelectionSnippet
+ * @param selection the Selection which should only contain 1 node.
+ * @param fileName the name of file (No Path) ie. LABEL.<PARENT_KIND>.snippet
+ * @param fileData the XML data from the file.
+ */
+void NewController::importSelectionSnippet(QStringList selection, QString fileName, QString fileData)
+{
+    if(!canImportSnippet(selection)){
+        return;
+    }
+
+
+    //Get parentName
+    Node* parent = getSharedParent(selection);
+
+    QStringList fileNameSplit = fileName.split('.');
+    if(fileNameSplit.length() != 3){
+        return;
+    }
+
+    QString userName = fileNameSplit[0];
+    QString fileParentKind = fileNameSplit[1];
+    QString fileFormat = fileNameSplit[2];
+
+    //Valide the fileParentKind
+    if(fileParentKind != parent->getDataValue("kind")){
+        return;
+    }
+
+    //Validate fileFormat
+    if(fileFormat != "graphml" || fileFormat != "snippet"){
+        return;
+    }
+
+    triggerAction("Importing Snippet: " + userName);
+    _importGraphMLXML(fileData, parent, false, false);
+}
+
+
+
 void NewController::clearUndoHistory()
 {
     clearHistory();
@@ -3023,7 +3095,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 }
 
 
-bool NewController::canCopyIDs(QStringList IDs)
+bool NewController::canCopy(QStringList IDs)
 {
     Node* parent = 0;
     if(IDs.length() == 0){
@@ -3050,6 +3122,86 @@ bool NewController::canCopyIDs(QStringList IDs)
     return true;
 }
 
+bool NewController::canCut(QStringList selection)
+{
+    return canCopy(selection);
+}
+
+bool NewController::canPaste(QStringList selection)
+{
+    if(selection.length() == 1){
+        return true;
+    }
+    return false;
+}
+
+bool NewController::canExportSnippet(QStringList IDs)
+{
+    Node* parent = 0;
+    if(IDs.length() == 0){
+        return false;
+    }
+
+    foreach(QString ID, IDs){
+        Node* node = getNodeFromID(ID);
+        Edge* edge = getEdgeFromID(ID);
+        if(!node && !edge){
+            return false;
+        }
+        if(edge){
+            continue;
+        }
+        if(nonSnippetableKinds.contains(node->getDataValue("kind"))){
+            return false;
+        }
+        if(!parent){
+            //Set the firstParent to the first Nodes parent.
+            parent = node->getParentNode();
+            if(!snippetableParentKinds.contains(parent->getDataValue("kind"))){
+                return false;
+            }
+        }else if(node->getParentNode() != parent){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool NewController::canImportSnippet(QStringList selection)
+{
+    if(!canPaste(selection)){
+        return false;
+    }
+    Node* parent = getSharedParent(selection);
+    if(!parent){
+        return false;
+    }
+
+    if(snippetableParentKinds.contains(parent->getDataValue("kind"))){
+        return true;
+    }
+    return false;
+}
+
+Node* NewController::getSharedParent(QStringList IDs)
+{
+    Node* parent = 0;
+
+    foreach(QString ID, IDs){
+        Node* node = getNodeFromID(ID);
+        if(!node){
+            continue;
+        }
+        if(!parent){
+            //Set the firstParent to the first Nodes parent.
+            parent = node->getParentNode();
+        }else if(node->getParentNode() != parent){
+            return 0;
+        }
+    }
+    return parent;
+}
+
 QString NewController::getDataValueFromKeyName(QList<GraphMLData *> dataList, QString keyName)
 {
     foreach(GraphMLData* data, dataList){
@@ -3059,3 +3211,5 @@ QString NewController::getDataValueFromKeyName(QList<GraphMLData *> dataList, QS
     }
     return "";
 }
+
+

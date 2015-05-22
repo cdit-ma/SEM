@@ -175,10 +175,12 @@ NodeItem::~NodeItem()
 void NodeItem::setVisibleParentForEdgeItem(EdgeItem *line, bool RIGHT)
 {
     if(RIGHT){
+        qCritical() << "ADDING TO RIGHT SIDE";
         if(!currentRightEdges.contains(line)){
             currentRightEdges.append(line);
         }
     }else{
+        qCritical() << "ADDING TO LEFT SIDE";
         if(!currentLeftEdges.contains(line)){
             currentLeftEdges.append(line);
         }

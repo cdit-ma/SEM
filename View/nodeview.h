@@ -79,6 +79,11 @@ signals:
     void view_ExportedProject(QString data);
     void view_ImportProjects(QStringList data);
 
+    void view_ExportedSnippet(QString parentName, QString snippetXMLData);
+    void view_ExportSnippet(QStringList selection);
+    void view_ImportSnippet(QStringList selection, QString fileName, QString fileData);
+
+
     void view_Copy(QStringList IDs);
     void view_Cut(QStringList IDs);
     void view_Paste(Node* parent, QString xmlData);
@@ -128,6 +133,8 @@ signals:
     void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
 
 public slots:
+    void exportSnippet();
+    void importSnippet(QString fileName, QString fileData);
     void minimapPressed(QMouseEvent* event);
 
     void minimapReleased(QMouseEvent* event);
@@ -154,6 +161,7 @@ public slots:
     void clearModel();
     void selectModel();
     void sortModel();
+
 
     void duplicate();
     void copy();

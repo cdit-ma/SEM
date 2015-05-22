@@ -495,23 +495,44 @@ void EdgeItem::updateLines()
         dstDir = UP;
     }
 
-    //If our new parent is different to our previous, remove the edge from the listings of the previous.
-    if(visibleSrc != visibleSource){
-        if(visibleSource){
-            visibleSource->removeVisibleParentForEdgeItem(this);
+
+    bool removeSrcEdge = false;
+    if(visibleSource){
+        //If our new visual parent is differing from our previous, remove the edge.
+        if(visibleSrc != visibleSource){
+            removeSrcEdge = true;
         }
-        visibleSource = visibleSrc;
-        visibleSrc->setVisibleParentForEdgeItem(this, srcSide == RIGHT);
+        //If the edge has changed sides on its visual parent, remove the edge, so we can re-add it on the right side.
+        if(visibleSource->getIndexOfEdgeItem(this, srcSide == RIGHT) == -1){
+            removeSrcEdge = true;
+        }
     }
 
-    //If our new parent is different to our previous, remove the edge from the listings of the previous.
-    if(visibleDst != visibleDestination){
-        if(visibleDestination){
-            visibleDestination->removeVisibleParentForEdgeItem(this);
-        }
-        visibleDestination = visibleDst;
-        visibleDst->setVisibleParentForEdgeItem(this, dstSide == RIGHT);
+    if(removeSrcEdge){
+        visibleSource->removeVisibleParentForEdgeItem(this);
     }
+
+    visibleSource = visibleSrc;
+    visibleSrc->setVisibleParentForEdgeItem(this, srcSide == RIGHT);
+
+    bool removeDstEdge = false;
+    if(visibleDestination){
+        //If our new visual parent is differing from our previous, remove the edge.
+        if(visibleDst != visibleDestination){
+            removeDstEdge = true;
+        }
+        //If the edge has changed sides on its visual parent, remove the edge, so we can re-add it on the right side.
+        if(visibleDestination->getIndexOfEdgeItem(this, dstSide == RIGHT) == -1){
+            removeDstEdge = true;
+        }
+    }
+
+    if(removeDstEdge){
+        visibleDestination->removeVisibleParentForEdgeItem(this);
+    }
+
+    visibleDestination = visibleDst;
+    visibleDst->setVisibleParentForEdgeItem(this, dstSide == RIGHT);
 
     //Get the start/end points.
     QPointF edgeSrc;
@@ -532,10 +553,9 @@ void EdgeItem::updateLines()
     qreal srcYOffset = EDGE_GAP_RATIO * srcRect.height() + (((srcIndex + 1.0) / (srcEdgeCount + 1.0)) * (EDGE_SPACE_RATIO * srcRect.height()));
     edgeSrc.setY(srcRect.top() + srcYOffset);
 
-     qCritical() << "srcEdgeCount: " << srcEdgeCount;
-      qCritical() << "srcIndex: " << srcIndex;
-
-     qCritical() << "srcYOffset: " << srcYOffset;
+    qCritical() << "srcEdgeCount: " << srcEdgeCount;
+    qCritical() << "srcIndex: " << srcIndex;
+    qCritical() << "srcYOffset: " << srcYOffset;
 
     //Set X for edgeDst
     if(dstSide == LEFT){

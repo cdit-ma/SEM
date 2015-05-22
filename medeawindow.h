@@ -101,6 +101,7 @@ private slots:
     void on_validationItem_clicked(QString ID);
 
     void writeExportedProject(QString data);
+    void writeExportedSnippet(QString parentName, QString snippetXMLData);
     void updateUndoStates(QStringList list);
     void updateRedoStates(QStringList list);
 

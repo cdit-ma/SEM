@@ -71,29 +71,37 @@ public:
     //Gets the Model Node.
     Model* getModel();
 
+    bool canCopy(QStringList selection);
+    bool canCut(QStringList selection);
+    bool canPaste(QStringList selection);
+    bool canExportSnippet(QStringList selection);
+    bool canImportSnippet(QStringList selection);
 
 
 signals:
-  void controller_ActionProgressChanged(int, QString = "");
-  void controller_DialogMessage(MESSAGE_TYPE, QString, QString, GraphML* = 0);
-  void controller_ExportedProject(QString);
-  void controller_GraphMLError(GraphML*, QString);
-  void controller_GraphMLConstructed(GraphML*);
+    void controller_ActionProgressChanged(int, QString = "");
+    void controller_DialogMessage(MESSAGE_TYPE, QString, QString, GraphML* = 0);
 
-  void controller_NodeDeleted(QString childID, QString parentID="");
-  void controller_EdgeDeleted(QString srcID, QString dstID);
+    void controller_ExportedProject(QString);
+    void controller_ExportedSnippet(QString parentName, QString snippetXMLData);
 
-  void controller_GraphMLDestructed(QString);
-  void controller_ProjectNameChanged(QString);
-  void controller_RedoListChanged(QStringList);
-  void controller_SetClipboardBuffer(QString);
-  void controller_StatusChanged(QString);
-  void controller_UndoListChanged(QStringList);
-  void controller_ViewSetEnabled(bool);
+    void controller_GraphMLError(GraphML*, QString);
+    void controller_GraphMLConstructed(GraphML*);
+
+    void controller_NodeDeleted(QString childID, QString parentID="");
+    void controller_EdgeDeleted(QString srcID, QString dstID);
+
+    void controller_GraphMLDestructed(QString);
+    void controller_ProjectNameChanged(QString);
+    void controller_RedoListChanged(QStringList);
+    void controller_SetClipboardBuffer(QString);
+    void controller_StatusChanged(QString);
+    void controller_UndoListChanged(QStringList);
+    void controller_ViewSetEnabled(bool);
 
 
-  // Re-added this for now
-  void componentInstanceConstructed(Node* node);
+    // Re-added this for now
+    void componentInstanceConstructed(Node* node);
 
 
 public slots:
@@ -104,6 +112,10 @@ public slots:
 
   //Used to Import a GraphML XML document from the GUI/Paste/Undo/Redo
   void importProjects(QStringList data);
+
+
+  void exportSelectionSnippet(QStringList selection);
+  void importSelectionSnippet(QStringList selection, QString fileName, QString fileData);
 
     //Used to Export a GraphML XML document representation of the Model.
   void exportGraphMLDocument();
@@ -145,7 +157,9 @@ private slots:
 private:
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
-    bool canCopyIDs(QStringList IDs);
+
+    Node* getSharedParent(QStringList IDs);
+
     //Clears the Undo/Redo Action Stacks.
     void clearUndoRedoStacks();
 
@@ -288,6 +302,9 @@ private:
     QStringList containerNodeKinds;
     //A List of Node's which are elements in the Model, can be constructed.
     QStringList constructableNodeKinds;
+
+    QStringList snippetableParentKinds;
+    QStringList nonSnippetableKinds;
 
     QStringList behaviourNodeKinds;
     QStringList definitionNodeKinds;

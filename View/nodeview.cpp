@@ -535,6 +535,16 @@ bool NodeView::viewportEvent(QEvent * e)
     return QGraphicsView::viewportEvent(e);
 }
 
+void NodeView::exportSnippet()
+{
+    view_ExportSnippet(selectedIDs);
+}
+
+void NodeView::importSnippet(QString fileName, QString fileData)
+{
+    view_ImportSnippet(selectedIDs, fileName, fileData);
+}
+
 void NodeView::minimapPressed(QMouseEvent *event)
 {
     MINIMAP_EVENT = true;

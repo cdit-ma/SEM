@@ -227,6 +227,8 @@ void ToolbarWidget::makeNewView()
  */
 void ToolbarWidget::exportGraphMLSnippet()
 {
+
+    nodeView->exportSnippet();
     qDebug() << "Export GraphML Snippet";
 }
 

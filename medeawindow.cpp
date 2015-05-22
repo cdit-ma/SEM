@@ -1118,6 +1118,8 @@ void MedeaWindow::makeConnections()
     connect(toggleGridButton, SIGNAL(clicked(bool)), settings_showGridLines, SIGNAL(triggered(bool)));
 
     connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
+    connect(nodeView, SIGNAL(view_ExportedSnippet(QString,QString)), this, SLOT(writeExportedSnippet(QString,QString)));
+
     connect(nodeView, SIGNAL(view_UndoListChanged(QStringList)), this, SLOT(updateUndoStates(QStringList)));
     connect(nodeView, SIGNAL(view_RedoListChanged(QStringList)), this, SLOT(updateRedoStates(QStringList)));
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
@@ -1816,6 +1818,43 @@ void MedeaWindow::writeExportedProject(QString data)
         //QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: '" + exportFileName +"'!", QMessageBox::Ok);
         displayNotification("Successfully Exported GraphML Document");
 
+    }catch(...){
+        QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
+    }
+}
+
+void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLData)
+{
+    try {
+        //Try and Open File.
+
+        QString exportName = QFileDialog::getSaveFileName(this,
+                                                        "Export " + parentName+ ".snippet",
+                                                        "",
+                                                        "GraphML " + parentName + " Snippit (*." + parentName+ ".snippet)");
+
+        if (exportName == "") {
+            return;
+        }
+
+        if(!exportName.toLower().endsWith(".snippet")){
+            return;
+        }
+
+        QFile file(exportName);
+        bool fileOpened = file.open(QIODevice::WriteOnly | QIODevice::Text);
+
+        if(!fileOpened){
+            QMessageBox::critical(this, "File Error", "Unable to open file: '" + exportName + "'! Check Permissions and Try Again!", QMessageBox::Ok);
+            return;
+        }
+
+        //Create stream to write the data.
+        QTextStream out(&file);
+        out << snippetXMLData;
+        file.close();
+
+        QMessageBox::information(this, "Successfully Exported Snippit", "GraphML documented successfully exported to: '" + exportName +"'!", QMessageBox::Ok);
     }catch(...){
         QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
     }
