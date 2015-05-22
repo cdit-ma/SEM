@@ -2140,15 +2140,21 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
         bindTypes = false;
     }
     if((child->isInstance() || child->isImpl()) || (def_Type && def_Label)){
-        // cannot bind AggregateInstance sortOrder causes problems, and not really necessary for MemberInstance
-        //if(child->getDataValue("kind") == "AggregateInstance" || child->getDataValue("kind") == "MemberInstance"){
-        //    bindSort = true;
-        //}
-        if(child->getDataValue("kind") != "ComponentInstance"
-           // allow AggregateInstance in InterfaceDefinition Aggregates to have different label to definiton
-           && child->getDataValue("kind") != "AggregateInstance" && child->getParentNode()->getDataValue("kind") != "Aggregate") {
+        if(child->getDataValue("kind") == "ComponentInstance"){
+            //Allow ComponentInstance to have unique labels
+            bindLabels = false;
+        }else if(child->getDataValue("kind") == "AggregateInstance"){
+            //Allow Aggregates to contain Aggregate Instances with unique labels
+            if(child->getParentNode()->getDataValue("kind") == "Aggregate"){
+                bindLabels = false;
+            }else{
+                bindLabels = true;
+            }
+        }else{
             bindLabels = true;
+
         }
+
     }
 
     if(bindTypes){
