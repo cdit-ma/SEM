@@ -1,18 +1,18 @@
 #include "aspecttogglewidget.h"
 #include "../medeawindow.h"
 
+
+#define SHADOW_OFFSET 3
+
 #define DEFAULT -1
 #define CLICKED 0
 #define DOUBLECLICKED 1
 #define MIDDLECLICKED 2
 
-#define SHADOW_OFFSET 3
-
 
 /**
  * @brief AspectToggleWidget::AspectToggleWidget
  * @param text
- * @param color
  * @param size
  * @param parent
  */
@@ -36,6 +36,7 @@ AspectToggleWidget::AspectToggleWidget(QString text, double size, MedeaWindow* p
 
 /**
  * @brief AspectToggleWidget::getText
+ * This returns the label/name of the aspect this toggle is linked to.
  * @return
  */
 QString AspectToggleWidget::getText()
@@ -46,8 +47,11 @@ QString AspectToggleWidget::getText()
 
 /**
  * @brief AspectToggleWidget::click
- * @param checked
- * @param doubleClick
+ * This is triggered when this toggle is clicked.
+ * It checks what kind of click the event was and sets the CHECKED state
+ * depeding on that. It sends a signal to the window that this was clicked.
+ * @param checked - set CHECKED to this if state allows it
+ * @param state - CLICKED, DOUBLECLICKED, MIDDLECLICKED
  */
 void AspectToggleWidget::click(bool checked, int state)
 {
@@ -65,16 +69,18 @@ void AspectToggleWidget::click(bool checked, int state)
         break;
     }
 
+    // this tells the window to turn this aspect toggle on/off
     emit aspectToggle_clicked(CHECKED, state);
     updateStyleSheet();
 }
 
 
 /**
- * @brief AspectToggleWidget::clicked
+ * @brief AspectToggleWidget::isClicked
+ * This returns the CHECKED state of this toggle.
  * @return
  */
-bool AspectToggleWidget::clicked()
+bool AspectToggleWidget::isClicked()
 {
     return CHECKED;
 }
@@ -82,7 +88,8 @@ bool AspectToggleWidget::clicked()
 
 /**
  * @brief AspectToggleWidget::setClicked
- * @param checked
+ * This sets the CHECKED state of this toggle and updates its stylesheet.
+ * @param checked - new CHECKED state
  */
 void AspectToggleWidget::setClicked(bool checked)
 {
@@ -93,25 +100,34 @@ void AspectToggleWidget::setClicked(bool checked)
 
 /**
  * @brief AspectToggleWidget::mouseReleaseEvent
+ * This triggers the click event when the mouse is released within the bounds
+ * of this toggle. It sends the state of the click, and then resets it.
  * @param event
  */
 void AspectToggleWidget::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::LeftButton) {
-        if (STATE !=  DOUBLECLICKED) {
-            STATE = CLICKED;
+    if (rect().contains(event->pos())) {
+        switch (event->button()) {
+        case Qt::LeftButton:
+            if (STATE !=  DOUBLECLICKED) {
+                STATE = CLICKED;
+            }
+            break;
+        case Qt::MiddleButton:
+            STATE = MIDDLECLICKED;
+            break;
         }
-    } else if (event->button() == Qt::MiddleButton) {
-        STATE = MIDDLECLICKED;
+        click(!CHECKED, STATE);
     }
 
-    click(!CHECKED, STATE);
+    // reset the state
     STATE = DEFAULT;
 }
 
 
 /**
  * @brief AspectToggleWidget::mouseDoubleClickEvent
+ * This updates the current click state of this toggle to DOUBLECLICKED.
  * @param event
  */
 void AspectToggleWidget::mouseDoubleClickEvent(QMouseEvent* event)
@@ -124,7 +140,9 @@ void AspectToggleWidget::mouseDoubleClickEvent(QMouseEvent* event)
 
 /**
  * @brief AspectToggleWidget::aspectDoubleClicked
- * @param aspect
+ * This is called when an aspect toggle has been double-clicked.
+ * If that toggle is not this, then un-click this toggle.
+ * @param aspect - aspect that was doucble-clicked
  */
 void AspectToggleWidget::aspectDoubleClicked(AspectToggleWidget *aspect)
 {
@@ -136,6 +154,7 @@ void AspectToggleWidget::aspectDoubleClicked(AspectToggleWidget *aspect)
 
 /**
  * @brief AspectToggleWidget::setupColorMap
+ * This sets up the colors used for the default and the gradient.
  */
 void AspectToggleWidget::setupColor()
 {
@@ -172,8 +191,8 @@ void AspectToggleWidget::setupColor()
 
 /**
  * @brief AspectToggleWidget::setupLayout
- * @param color
- * @param size
+ * This sets up thid toggle widgets layout.
+ * @param size - fixed size of this widget
  */
 void AspectToggleWidget::setupLayout(double size)
 {
@@ -187,7 +206,7 @@ void AspectToggleWidget::setupLayout(double size)
     updateStyleSheet();
 
     QFont font = this->font();
-    font.setPointSize(10);
+    font.setPointSizeF(8.5);
 
     QLabel* aspectLabel = new QLabel(aspectText, this);
     aspectLabel->setFont(font);

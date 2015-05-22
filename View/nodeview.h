@@ -269,7 +269,7 @@ private:
     void edgeConstructed_signalUpdates(Edge* edge);
     void edgeDestructed_signalUpdates(Edge* edge, QString ID = "");
 
-    void updateGoToActionsEnabled(Node* selectedNode = 0);
+    void updateActionsEnabled(Node* selectedNode = 0);
 
     Node* hasDefinition(Node* node);
     Node* hasImplementation(Node* node);

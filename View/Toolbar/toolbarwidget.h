@@ -26,6 +26,8 @@ public:
     void showDefinitionButton(Node *definition);
     void showImplementationButton(Node* implementation);
 
+    void showExportSnippetButton(bool show);
+
 protected:
     virtual void enterEvent(QEvent*);
     virtual void leaveEvent(QEvent*);
@@ -115,13 +117,17 @@ private:
     ToolbarWidgetAction* inEventPort_componentInstanceDefaultAction;
     ToolbarWidgetAction* outEventPort_componentInstanceDefaultAction;
 
-    QFrame* mainFrame;
-    QFrame* shadowFrame;
-    QFrame* frame;
-    int frameVisibilityCount;
-    bool eventFromToolbar;
     QList<QToolButton*> singleSelectionToolButtons;
     QList<QToolButton*> multipleSelectionToolButtons;
+
+    QFrame* mainFrame;
+    QFrame* shadowFrame;
+    QFrame* snippetFrame;
+    QFrame* alterViewFrame;
+    QFrame* goToFrame;
+
+    bool eventFromToolbar;
+    bool showGoToFrame;
 
 };
 

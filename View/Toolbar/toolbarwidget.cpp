@@ -21,6 +21,7 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     implementationNode = 0;
 
     eventFromToolbar = false;
+    showGoToFrame = false;
 
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
@@ -54,7 +55,7 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
  * @param items
  */
 void ToolbarWidget::updateSelectedNodeItem(QList<NodeItem*> items)
-{
+{   
     if (items.count() == 1) {
         nodeItem = items.at(0);
         updateToolButtons();
@@ -81,6 +82,7 @@ void ToolbarWidget::showDefinitionButton(Node *definition)
     if (definition) {
         definitionNode = definition;
         definitionButton->show();
+        showGoToFrame = true;
     } else {
         definitionButton->hide();
     }
@@ -98,9 +100,22 @@ void ToolbarWidget::showImplementationButton(Node* implementation)
     if (implementation) {
         implementationNode = implementation;
         implementationButton->show();
+        showGoToFrame = true;
     } else {
         implementationButton->hide();
     }
+}
+
+
+/**
+ * @brief ToolbarWidget::showExportSnippetButton
+ * This shows/hides the export GraphML snippet button and its separator frame.
+ * @param show
+ */
+void ToolbarWidget::showExportSnippetButton(bool show)
+{
+    exportSnippetButton->setVisible(show);
+    snippetFrame->setVisible(show);
 }
 
 
@@ -321,17 +336,17 @@ void ToolbarWidget::setupToolBar()
     alignHorizontallyButton->setFixedSize(buttonSize);
     exportSnippetButton->setFixedSize(buttonSize);
 
-    addChildButton->setIconSize(buttonSize*0.65);
+    addChildButton->setIconSize(buttonSize*0.6);
     connectButton->setIconSize(buttonSize*0.6);
     deleteButton->setIconSize(buttonSize*0.75);
     showNewViewButton->setIconSize(buttonSize*0.55);
-    showConnectionsButton->setIconSize(buttonSize*0.65);
-    definitionButton->setIconSize(buttonSize*0.6);
-    implementationButton->setIconSize(buttonSize*0.7);
-    instancesButton->setIconSize(buttonSize*0.7);
+    showConnectionsButton->setIconSize(buttonSize*0.6);
+    definitionButton->setIconSize(buttonSize*0.55);
+    implementationButton->setIconSize(buttonSize*0.6);
+    instancesButton->setIconSize(buttonSize*0.6);
     alignVerticallyButton->setIconSize(buttonSize*0.8);
     alignHorizontallyButton->setIconSize(buttonSize*0.8);
-    exportSnippetButton->setIconSize(buttonSize*0.7);
+    exportSnippetButton->setIconSize(buttonSize*0.65);
 
     addChildButton->setToolTip("Add Child Entity");
     connectButton->setToolTip("Connect Entity");
@@ -345,28 +360,36 @@ void ToolbarWidget::setupToolBar()
     alignHorizontallyButton->setToolTip("Align Selection Horizontally");
     exportSnippetButton->setToolTip("Export GraphML Snippet");
 
-    frame = new QFrame();
-    frame->setFrameShape(QFrame::VLine);
-    frame->setPalette(QPalette(Qt::darkGray));
+    snippetFrame = new QFrame();
+    snippetFrame->setFrameShape(QFrame::VLine);
+    snippetFrame->setPalette(QPalette(Qt::darkGray));
+
+    alterViewFrame = new QFrame();
+    alterViewFrame->setFrameShape(QFrame::VLine);
+    alterViewFrame->setPalette(QPalette(Qt::darkGray));
+
+    goToFrame = new QFrame();
+    goToFrame->setFrameShape(QFrame::VLine);
+    goToFrame->setPalette(QPalette(Qt::darkGray));
 
     layout->addWidget(addChildButton);
     layout->addWidget(connectButton);
     layout->addWidget(deleteButton);
     layout->addWidget(alignVerticallyButton);
     layout->addWidget(alignHorizontallyButton);
-    layout->addWidget(frame);
-    layout->addWidget(showNewViewButton);
+    layout->addWidget(snippetFrame);
     layout->addWidget(exportSnippetButton);
-    layout->addWidget(showConnectionsButton);
+    layout->addWidget(goToFrame);
     layout->addWidget(definitionButton);
     layout->addWidget(implementationButton);
     layout->addWidget(instancesButton);
+    layout->addWidget(alterViewFrame);
+    layout->addWidget(showConnectionsButton);
+    layout->addWidget(showNewViewButton);
 
     layout->setMargin(5);
     layout->setAlignment(Qt::AlignTop);
     setLayout(layout);
-
-    //exportSnippetButton->hide();
 
     // add tool buttons for single selection to list
     singleSelectionToolButtons.append(addChildButton);
@@ -380,7 +403,6 @@ void ToolbarWidget::setupToolBar()
     // add tool buttons for multiple selection to list
     multipleSelectionToolButtons.append(alignVerticallyButton);
     multipleSelectionToolButtons.append(alignHorizontallyButton);
-    //multipleSelectionToolButtons.append(exportSnippetButton);
 }
 
 
@@ -499,14 +521,20 @@ void ToolbarWidget::updateToolButtons()
     // NOTE: ComponentAssembly apparently has a connection to itself?
     if (nodeItem->getNode()->getEdges().count() > 0) {
         showConnectionsButton->show();
+        alterViewFrame->show(); // DEMO CHANGE
     } else {
         showConnectionsButton->hide();
+        alterViewFrame->hide(); // DEMO CHANGE
     }
+
+    // show frame if any of the goto buttons are visible
+    goToFrame->setVisible(showGoToFrame);
+    showGoToFrame = false;
 
     // always show show new view button
     //showNewViewButton->show();
 
-    // DEMO CHANGE: always hide for now
+    // DEMO CHANGE: hide this for now
     showNewViewButton->hide();
 }
 
@@ -550,8 +578,10 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items)
         button->hide();
     }
 
-    // hide the frame used as a separator
-    frame->hide();
+    // hide the frames used as separators
+    snippetFrame->hide();
+    goToFrame->hide();
+    alterViewFrame->hide();
 
     // show the delete button - multiple selection can be deleted at the same time
     deleteButton->show();
@@ -587,6 +617,7 @@ void ToolbarWidget::setupInstancesList(QList<Node*> instances)
         return;
     } else {
         instancesButton->show();
+        showGoToFrame = true;
     }
     // create a ToolbarWidgetAction for each instance and connect it
     for (int i = 0; i < instances.count(); i++) {

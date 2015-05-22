@@ -330,9 +330,10 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     file_newProject = file_menu->addAction(QIcon(":/Resources/Icons/new_project.png"), "New Project");
     file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
-    file_importGraphML = file_menu->addAction(QIcon(":/Resources/Icons/import.png"), "Import");
+    file_importGraphML = file_menu->addAction(QIcon(":/Resources/Icons/import.png"), "Import GraphML");
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
-    file_exportGraphML = file_menu->addAction(QIcon(":/Resources/Icons/export.png"), "Export");
+    file_importGraphMLSnippet = file_menu->addAction(QIcon(":/Resources/Icons/snippet.png"), "Import GraphML Snippet");
+    file_exportGraphML = file_menu->addAction(QIcon(":/Resources/Icons/export.png"), "Export GraphML");
     file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     file_menu->addSeparator();
 
@@ -817,8 +818,8 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     QAction* backAction = toolbar->addWidget(backButton);
     QAction* forwardAction = toolbar->addWidget(forwardButton);
     leftMidSpacer = toolbar->addWidget(spacerLeftMid);
-    QAction* toggleGridAction = toolbar->addWidget(toggleGridButton);
     QAction* popupAction = toolbar->addWidget(popupButton);
+    QAction* toggleGridAction = toolbar->addWidget(toggleGridButton);
     midLeftSpacer = toolbar->addWidget(spacerMidLeft);
     QAction* cutAction = toolbar->addWidget(cutButton);
     QAction* copyAction = toolbar->addWidget(copyButton);
@@ -874,12 +875,12 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     */
 
     // keep a list of all the tool buttons and create a checkbox for each one
-    toolbarActions[backAction] = new QCheckBox("Back", this);
-    toolbarActions[forwardAction] = new QCheckBox("Forward", this);
     toolbarActions[contextToolbarAction] = new QCheckBox("Context Toolbar", this);
     toolbarActions[deleteAction] = new QCheckBox("Delete", this);
+    toolbarActions[backAction] = new QCheckBox("Back", this);
+    toolbarActions[forwardAction] = new QCheckBox("Forward", this);
+    toolbarActions[popupAction] = new QCheckBox("View In New Window", this);
     toolbarActions[toggleGridAction] = new QCheckBox("Toggle Grid Lines", this);
-    toolbarActions[popupAction] = new QCheckBox("Popup New Window", this);
     toolbarActions[cutAction] = new QCheckBox("Cut", this);
     toolbarActions[copyAction] = new QCheckBox("Copy", this);
     toolbarActions[pasteAction] = new QCheckBox("Paste", this);
@@ -921,12 +922,20 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
 
     // add checkboxes to the toolbar settings popup dialog
     QVBoxLayout* checkboxLayout = new QVBoxLayout();
-    QStringList initiallyHidden(QStringList() << "Grid" << "Popup" << "Align" << "Back" << "Forward");
+    QStringList initiallyHidden(QStringList() << "Grid" << "Window" << "Align" << "Back" << "Forward");
+    QStringList disabled(QStringList() << "Window" << "Back" << "Forward");
 
     foreach (QCheckBox* cb, toolbarActions.values() ) {
 
         checkboxLayout->addWidget(cb);
         connect(cb, SIGNAL(clicked(bool)), this, SLOT(updateCheckedToolbarActions(bool)));
+
+        // DEMO CHANGE
+        foreach (QString s, disabled) {
+            if (cb->text().contains(s)) {
+                cb->setEnabled(false);
+            }
+        }
 
         // initially hide some of the tool buttons
         bool hidden = false;
@@ -935,12 +944,10 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
                 cb->clicked(false);
                 cb->setChecked(false);
                 hidden = true;
-                if (cb->text() == "Back" || cb->text() == "Forward") {
-                    cb->setEnabled(false);
-                }
                 break;
             }
         }
+
         if (!hidden) {
             cb->setChecked(true);
             checkedToolbarActions.append(toolbarActions.key(cb));

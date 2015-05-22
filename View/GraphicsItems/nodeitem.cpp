@@ -590,7 +590,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawRect(bRR);
 
 
-        circleBrush.setColor(Qt::gray);
+        //circleBrush.setColor(Qt::gray);
+        circleBrush.setColor(QColor(200,200,200));
 
         painter->setBrush(circleBrush);
 
@@ -1471,7 +1472,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         break;
     }
     case Qt::MiddleButton:{
-        if(!PAINT_OBJECT && nodeKind != "Model"){
+        if(!PAINT_OBJECT) { // && nodeKind != "Model"){
             //emit centerViewAspects();
             GraphMLItem_CenterAspects();
             return;
@@ -1773,7 +1774,7 @@ void NodeItem::updateTextLabel(QString newLabel)
     }
 
     if(nodeKind != "Model"){
-        textItem->setTextWidth(width);
+        //textItem->setTextWidth(width);
     }else{
         textItem->setTextWidth(getItemMargin() * 2);
     }
@@ -2176,11 +2177,13 @@ void NodeItem::setupLabel()
 
     textItem->setTextWidth(minimumWidth);
 
+    /*
     if(nodeKind == "Model"){
         textItem->setCenterJustified();
         textItem->setTextWidth(getItemMargin() * 2);
         textItem->setPlainText("Model");
     }
+    */
 
     qreal labelX = (minimumVisibleRect().width() - textItem->boundingRect().width()) /2;
     qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);

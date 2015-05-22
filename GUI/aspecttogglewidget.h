@@ -15,7 +15,7 @@ public:
 
     QString getText();
 
-    bool clicked();
+    bool isClicked();
     void setClicked(bool checked);
 
 protected:

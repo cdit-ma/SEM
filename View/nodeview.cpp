@@ -1659,7 +1659,7 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
 void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
 {
     // update the docks and the toolbar/menu goTo functions
-    updateGoToActionsEnabled(getSelectedNode());
+    updateActionsEnabled(getSelectedNode());
     emit view_nodeConstructed(nodeItem);
 
     // send specific current view states to the newly constaructed node item
@@ -1701,7 +1701,7 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
 void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
 {
     // update the docks and the toolbar/menu goTo functions
-    updateGoToActionsEnabled(getSelectedNode());
+    updateActionsEnabled(getSelectedNode());
     emit view_nodeDestructed(nodeItem);
 }
 
@@ -1716,10 +1716,10 @@ void NodeView::nodeSelected_signalUpdates(Node* node)
 {
     if (selectedIDs.count() == 1) {
         // update the toolbar/menu goTo functions
-        updateGoToActionsEnabled(node);
+        updateActionsEnabled(node);
     } else {
         // disable the toolbar/menu goTo functions
-        updateGoToActionsEnabled();
+        updateActionsEnabled();
     }
 
     // update the docks regardless of the number of items selected
@@ -1738,7 +1738,7 @@ void NodeView::nodeSelected_signalUpdates(Node* node)
 void NodeView::edgeConstructed_signalUpdates(Edge* edge)
 {
     // update the docks and the toolbar/menu goTo functions
-    updateGoToActionsEnabled(getSelectedNode());
+    updateActionsEnabled(getSelectedNode());
     emit view_edgeConstructed();
 }
 
@@ -1753,7 +1753,7 @@ void NodeView::edgeConstructed_signalUpdates(Edge* edge)
 void NodeView::edgeDestructed_signalUpdates(Edge* edge, QString ID)
 {
     // update the docks and the toolbar/menu goTo functions
-    updateGoToActionsEnabled(getSelectedNode());
+    updateActionsEnabled(getSelectedNode());
     emit view_edgeDestructed();
 
     // check if destructed edge's destination is a HardwareNode
@@ -1777,13 +1777,13 @@ void NodeView::edgeDestructed_signalUpdates(Edge* edge, QString ID)
 
 
 /**
- * @brief NodeView::updateGoToActionsEnabled
+ * @brief NodeView::updateActionsEnabled
  * This method updates the enabled state of the MEDEA window's menu actions
  * and the toolbar's tool buttons for the goToDefinition/goToImplementation
  * functions based on the currently selected node.
  * @param selectedNode
  */
-void NodeView::updateGoToActionsEnabled(Node* selectedNode)
+void NodeView::updateActionsEnabled(Node* selectedNode)
 {
     Node* hasDefn = 0;
     Node* hasImpl = 0;
@@ -1792,6 +1792,9 @@ void NodeView::updateGoToActionsEnabled(Node* selectedNode)
         hasDefn = hasDefinition(selectedNode);
         hasImpl = hasImplementation(selectedNode);
     }
+
+    // update export snippet toolbar button
+    toolbar->showExportSnippetButton(false);
 
     // update goto toolbar buttons
     toolbar->showDefinitionButton(hasDefn);
