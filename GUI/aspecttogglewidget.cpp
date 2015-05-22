@@ -1,7 +1,7 @@
 #include "aspecttogglewidget.h"
 #include "../medeawindow.h"
 
-
+#define HEIGHT_OFFSET 1.3
 #define SHADOW_OFFSET 3
 
 #define DEFAULT -1
@@ -180,11 +180,11 @@ void AspectToggleWidget::setupColor()
         p3_Color = "rgba(250,160,160," + checkedAlpha + ")";
         p4_Color = "rgba(240,140,140," + checkedAlpha + ")";
     } else if (aspectText == "Hardware") {
-        defaultColor = "rgba(80,140,190," + defaultAlpha + ")";
-        p1_Color = "rgba(190,210,215," + checkedAlpha + ")";
-        p2_Color = "rgba(170,190,215," + checkedAlpha + ")";
-        p3_Color = "rgba(130,170,210," + checkedAlpha + ")";
-        p4_Color = "rgba(90,150,200," + checkedAlpha + ")";
+        defaultColor = "rgba(90,150,200," + defaultAlpha + ")";
+        p1_Color = "rgba(200,220,225," + checkedAlpha + ")";
+        p2_Color = "rgba(180,200,225," + checkedAlpha + ")";
+        p3_Color = "rgba(140,180,220," + checkedAlpha + ")";
+        p4_Color = "rgba(100,160,210," + checkedAlpha + ")";
     }
 }
 
@@ -194,19 +194,19 @@ void AspectToggleWidget::setupColor()
  * This sets up thid toggle widgets layout.
  * @param size - fixed size of this widget
  */
-void AspectToggleWidget::setupLayout(double size)
+void AspectToggleWidget::setupLayout(double widgetSize)
 {
-    setFixedSize(size + SHADOW_OFFSET, size + SHADOW_OFFSET);
+    setFixedSize(widgetSize, widgetSize / HEIGHT_OFFSET);
     setStyleSheet("border: none;");
 
-    shadowFrame->setFixedSize(size + SHADOW_OFFSET, size);
+    shadowFrame->setFixedSize(size().width(), size().height());
     shadowFrame->setStyleSheet("background-color: rgba(10,10,10,100); border-radius: 10px;");
 
-    mainFrame->setFixedSize(size, size - SHADOW_OFFSET);
+    mainFrame->setFixedSize(size().width() - SHADOW_OFFSET, size().height() - SHADOW_OFFSET);
     updateStyleSheet();
 
     QFont font = this->font();
-    font.setPointSizeF(8.5);
+    font.setPointSizeF(9);
 
     QLabel* aspectLabel = new QLabel(aspectText, this);
     aspectLabel->setFont(font);
@@ -235,5 +235,4 @@ void AspectToggleWidget::updateStyleSheet()
         mainFrame->move(0, 0);
         mainFrame->setStyleSheet("border-radius: 8px; background-color:" + defaultColor + ";");
     }
-
 }

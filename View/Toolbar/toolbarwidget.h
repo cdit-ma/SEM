@@ -28,6 +28,8 @@ public:
 
     void showSnippetButton(QString button, bool show);
 
+    void updateSeparators();
+
 protected:
     virtual void enterEvent(QEvent*);
     virtual void leaveEvent(QEvent*);

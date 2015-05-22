@@ -128,6 +128,21 @@ void ToolbarWidget::showSnippetButton(QString button, bool show)
 
 
 /**
+ * @brief ToolbarWidget::updateSeparators
+ */
+void ToolbarWidget::updateSeparators()
+{
+    // show frame if any of the snippet buttons are visible
+    snippetFrame->setVisible(showSnippetFrame);
+    showSnippetFrame = false;
+
+    // show frame if any of the goto buttons are visible
+    goToFrame->setVisible(showGoToFrame);
+    showGoToFrame = false;
+}
+
+
+/**
  * @brief ToolbarWidget::enterEvent
  * This is called when the mouse is hovering over the toolbar.
  * @param event
@@ -235,9 +250,7 @@ void ToolbarWidget::makeNewView()
  */
 void ToolbarWidget::exportGraphMLSnippet()
 {
-
     nodeView->exportSnippet();
-    qDebug() << "Export GraphML Snippet";
 }
 
 
@@ -247,7 +260,7 @@ void ToolbarWidget::exportGraphMLSnippet()
 void ToolbarWidget::importGraphMLSnippet()
 {
     Node* parentNode = nodeView->getSelectedNode();
-    if(parentNode){
+    if (parentNode) {
         nodeView->view_ImportSnippet(parentNode->getDataValue("kind"));
     }
 }
@@ -391,13 +404,13 @@ void ToolbarWidget::setupToolBar()
     snippetFrame->setFrameShape(QFrame::VLine);
     snippetFrame->setPalette(QPalette(Qt::darkGray));
 
-    alterViewFrame = new QFrame();
-    alterViewFrame->setFrameShape(QFrame::VLine);
-    alterViewFrame->setPalette(QPalette(Qt::darkGray));
-
     goToFrame = new QFrame();
     goToFrame->setFrameShape(QFrame::VLine);
     goToFrame->setPalette(QPalette(Qt::darkGray));
+
+    alterViewFrame = new QFrame();
+    alterViewFrame->setFrameShape(QFrame::VLine);
+    alterViewFrame->setPalette(QPalette(Qt::darkGray));
 
     layout->addWidget(addChildButton);
     layout->addWidget(connectButton);
@@ -551,19 +564,12 @@ void ToolbarWidget::updateToolButtons()
     // NOTE: ComponentAssembly apparently has a connection to itself?
     if (nodeItem->getNode()->getEdges().count() > 0) {
         showConnectionsButton->show();
-        alterViewFrame->show(); // DEMO CHANGE
     } else {
         showConnectionsButton->hide();
-        alterViewFrame->hide(); // DEMO CHANGE
     }
 
-    // show frame if any of the snippet buttons are visible
-    snippetFrame->setVisible(showSnippetFrame);
-    showSnippetFrame = false;
-
-    // show frame if any of the goto buttons are visible
-    goToFrame->setVisible(showGoToFrame);
-    showGoToFrame = false;
+    // DEMO CHANGE - Don't need this when the popup new window button is back
+    alterViewFrame->setVisible(showConnectionsButton->isVisible());
 
     // always show show new view button
     //showNewViewButton->show();

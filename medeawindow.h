@@ -111,19 +111,18 @@ private slots:
 
     void setClipboard(QString value);
     void setAttributeModel(AttributeTableModel* model);
-
     void setViewAspects(QStringList aspects);
-    void updateViewAspects();
-
-    void changeWindowTitle(QString label);
-
-    void setGoToMenuActions(QString action, bool enable);
-
-    void dockButtonPressed(QString buttonName);
+    void setMenuActionEnabled(QString action, bool enable);
 
     void menuActionTriggered();
 
+    void graphicsItemSelected();
+
+    void dockButtonPressed(QString buttonName);
+
+    void updateWindowTitle(QString newProjectName);
     void updateProgressStatus(int value, QString status);
+    void updateWidgetMask(QWidget* widget, QWidget* maskWidget, bool check = false, QSize border = QSize());
 
     void searchItemClicked();
     void searchMenuButtonClicked(bool checked);
@@ -133,8 +132,6 @@ private slots:
     void displayNotification(QString notification = "");
     void checkNotificationsQueue();
 
-    void graphicsItemSelected();
-
     void showDocks(bool checked);
     void detachDocks(bool checked);
     void detachedDockClosed();
@@ -143,8 +140,6 @@ private slots:
     void detachWindowToolbar(bool checked);
     void detachedToolbarClosed();
     void updateCheckedToolbarActions(bool checked = true);
-
-    void updateWidgetMask(QWidget* widget, QWidget* maskWidget, bool check = false, QSize border = QSize());
 
     //multi-line popup for QTableView (SLOTS)
     void dataTableDoubleClicked(QModelIndex);
@@ -180,14 +175,16 @@ private:
 
     QStringList getCheckedItems(int menu);
 
+    QString applicationDirectory;
+
+    QPushButton *projectName;
+
     QMenu* menu;
     QMenu* file_menu;
     QMenu* edit_menu;
     QMenu* view_menu;
     QMenu* model_menu;
     QMenu* settings_Menu;
-
-    QString applicationDirectory;
 
     QAction* exit;
     QAction* file_newProject;
@@ -275,19 +272,10 @@ private:
     QAction* rightMidSpacer;
     QAction* rightMostSpacer;
 
-    QPushButton *projectName;
-
     AspectToggleWidget* definitionsToggle;
     AspectToggleWidget* workloadToggle;
     AspectToggleWidget* assemblyToggle;
     AspectToggleWidget* hardwareToggle;
-
-    /*
-    QPushButton* assemblyButton;
-    QPushButton* hardwareButton;
-    QPushButton* workloadButton;
-    QPushButton* definitionsButton;
-    */
 
     QProgressBar* progressBar;
     QLabel* progressLabel;
@@ -347,8 +335,9 @@ private:
     QHash<QAction*, int> rightMidActions;
     QHash<QAction*, int> rightMostActions;
 
-    QPointF toolbarButtonPos;
+    QFont guiFont;
     int boxWidth, boxHeight;
+    int minLeftPanelHeight;
 
     //QString DEPGEN_ROOT;
     QString JENKINS_ADDRESS;

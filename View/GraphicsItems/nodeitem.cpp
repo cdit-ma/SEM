@@ -591,7 +591,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         //circleBrush.setColor(Qt::gray);
-        circleBrush.setColor(QColor(200,200,200));
+        circleBrush.setColor(QColor(150,150,150));
 
         painter->setBrush(circleBrush);
 
@@ -655,6 +655,7 @@ bool NodeItem::hasVisibleChildren()
 
 bool NodeItem::modelCirclePressed(QPointF mousePosition)
 {
+
     if(modelCenterPoint.isNull()){
         return false;
     }
@@ -1260,7 +1261,6 @@ void NodeItem::modelSort()
     if(textItem){
         qreal labelX = modelCenterPoint.x() - (textItem->boundingRect().width()/2);
         qreal labelY = modelCenterPoint.y() - (textItem->boundingRect().height()/2);
-
         textItem->setPos(labelX, labelY);
     }
 
@@ -1375,7 +1375,7 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
         // needed to change it to this other wise you can't center
         // the aspects by double clicking on the model
-        if(!PAINT_OBJECT && !modelCirclePressed(event->pos())){
+        if(!PAINT_OBJECT) { // && !modelCirclePressed(event->pos())){
             GraphMLItem_CenterAspects();
             return;
         }
@@ -1759,12 +1759,13 @@ void NodeItem::updateTextLabel(QString newLabel)
     }
 
     if(nodeKind != "Model"){
-        //textItem->setTextWidth(width);
+        textItem->setTextWidth(width);
     }else{
-        textItem->setTextWidth(getItemMargin() * 2);
+        //textItem->setTextWidth(getItemMargin() * 2);
+        return;
     }
 
-    if (newLabel != "" && nodeKind != "Model") {
+    if (newLabel != "") {
         textItem->setPlainText(newLabel);
     }
 }
@@ -2158,17 +2159,15 @@ void NodeItem::setupLabel()
     textItem = new EditableTextItem(this);
     connect(textItem, SIGNAL(textUpdated(QString)),this, SLOT(labelUpdated(QString)));
     connect(textItem, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
-    textItem->setToolTip("Double Click to Edit Label");
 
     textItem->setTextWidth(minimumWidth);
 
-    /*
     if(nodeKind == "Model"){
         textItem->setCenterJustified();
         textItem->setTextWidth(getItemMargin() * 2);
-        textItem->setPlainText("Model");
+    } else {
+        textItem->setToolTip("Double Click to Edit Label");
     }
-    */
 
     qreal labelX = (minimumVisibleRect().width() - textItem->boundingRect().width()) /2;
     qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);

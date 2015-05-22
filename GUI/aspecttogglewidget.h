@@ -30,7 +30,7 @@ public slots:
 
 private:
     void setupColor();
-    void setupLayout(double size);
+    void setupLayout(double widgetSize);
     void updateStyleSheet();
 
     void click(bool checked, int state);

@@ -17,10 +17,12 @@
 #include <QToolBar>
 
 #define THREADING false
-#define MIN_WIDTH 800
-#define MIN_HEIGHT 600
-#define RIGHT_PANEL_WIDTH 230
 
+#define RIGHT_PANEL_WIDTH 230.0
+#define SPACER_HEIGHT 30
+
+#define MIN_WIDTH 1000
+#define MIN_HEIGHT (480 + SPACER_HEIGHT*3)
 
 /**
  * @brief MedeaWindow::MedeaWindow
@@ -76,6 +78,10 @@ MedeaWindow::~MedeaWindow()
  */
 void MedeaWindow::initialiseGUI()
 {    
+    // set all gui widget fonts to this
+    guiFont = QFont("Verdana");
+    guiFont.setPointSizeF(8.5);
+
     // initialise variables
     thread = 0;
     myProcess = 0;
@@ -97,50 +103,30 @@ void MedeaWindow::initialiseGUI()
     titleToolbarBox = new QGroupBox(this);
     projectName = new QPushButton("Model");
 
-    /*
-    assemblyButton = new QPushButton("Assembly");
-    hardwareButton = new QPushButton("Hardware");
-    workloadButton = new QPushButton("Behaviour");
-    definitionsButton = new QPushButton("Interface");
-    */
-
     // set central widget and window size
-    this->setCentralWidget(nodeView);
-    this->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
+    setWindowIcon(QIcon(":/Resources/Icons/medea.png"));
+    setCentralWidget(nodeView);
+    setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
 
     // set the size for the right panel where the view buttons and data table are located
-    int rightPanelWidth = RIGHT_PANEL_WIDTH;
+    double rightPanelWidth = RIGHT_PANEL_WIDTH;
 
     // setup widgets
     QPushButton* menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
-    menuButton->setFixedSize(50,45);
-    menuButton->setIconSize(menuButton->size());
-    menuButton->setStyleSheet("QPushButton{ background-color: rgb(200,200,200); }"
+    menuButton->setFixedSize(55, 45);
+    menuButton->setIconSize(menuButton->size() * 0.75);
+    menuButton->setStyleSheet("QPushButton{ background-color: rgb(210,210,210); }"
                               "QPushButton::menu-indicator{ image: none; }");
 
     projectName->setFlat(true);
     projectName->setStyleSheet("font-size: 16px; text-align: left; padding: 8px;");
 
-    definitionsToggle = new AspectToggleWidget("Definitions", rightPanelWidth/2.15, this);
-    workloadToggle = new AspectToggleWidget("Behaviour", rightPanelWidth/2.15, this);
-    assemblyToggle = new AspectToggleWidget("Assembly", rightPanelWidth/2.15, this);
-    hardwareToggle = new AspectToggleWidget("Hardware", rightPanelWidth/2.15, this);
-
-    definitionsToggle->setClicked(true);
-
-    /*
-    assemblyButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
-    hardwareButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
-    definitionsButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
-    workloadButton->setFixedSize(rightPanelWidth/2.05, rightPanelWidth/2.5);
-
-    assemblyButton->setStyleSheet("background-color: rgb(230,130,130);");
-    hardwareButton->setStyleSheet("background-color: rgb(80,140,190);");
-    definitionsButton->setStyleSheet("background-color: rgb(80,180,180);");
-    workloadButton->setStyleSheet("background-color: rgb(224,154,96);");
-    */
+    definitionsToggle = new AspectToggleWidget("Definitions", rightPanelWidth/2, this);
+    workloadToggle = new AspectToggleWidget("Behaviour", rightPanelWidth/2, this);
+    assemblyToggle = new AspectToggleWidget("Assembly", rightPanelWidth/2, this);
+    hardwareToggle = new AspectToggleWidget("Hardware", rightPanelWidth/2, this);
 
     // setup progress bar
     progressBar->setVisible(false);
@@ -183,6 +169,7 @@ void MedeaWindow::initialiseGUI()
     dataTable->setItemDelegateForColumn(2, delegate);
     dataTable->setFixedWidth(rightPanelWidth);
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    dataTable->setFont(guiFont);
 
     QVBoxLayout *tableLayout = new QVBoxLayout();
     tableLayout->setMargin(0);
@@ -207,7 +194,7 @@ void MedeaWindow::initialiseGUI()
     minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
     minimap->setInteractive(false);
 
-    minimap->setFixedSize(rightPanelWidth, rightPanelWidth/1.6);
+    minimap->setFixedSize(rightPanelWidth + 10, rightPanelWidth/1.6);
     minimap->setStyleSheet("background-color: rgba(155,155,155,155);"
                            "border: 2px solid;"
                            "border-color: rgb(100,100,100);"
@@ -253,31 +240,26 @@ void MedeaWindow::initialiseGUI()
     leftVlayout->setMargin(0);
     leftVlayout->setSpacing(0);
     leftVlayout->addLayout(topHLayout);
-    leftVlayout->addSpacerItem(new QSpacerItem(20, 20));
+    leftVlayout->addSpacerItem(new QSpacerItem(20, 10));
     leftVlayout->addLayout(bodyLayout);
     leftVlayout->addStretch();
 
+    viewButtonsGrid->setSpacing(5);
+    viewButtonsGrid->setContentsMargins(5,0,5,0);
     viewButtonsGrid->addWidget(definitionsToggle, 1, 1);
     viewButtonsGrid->addWidget(workloadToggle, 1, 2);
     viewButtonsGrid->addWidget(assemblyToggle, 2, 1);
     viewButtonsGrid->addWidget(hardwareToggle, 2, 2);
 
-    /*
-    viewButtonsGrid->addWidget(definitionsButton, 1, 1);
-    viewButtonsGrid->addWidget(workloadButton, 1, 2);
-    viewButtonsGrid->addWidget(assemblyButton, 2, 1);
-    viewButtonsGrid->addWidget(hardwareButton, 2, 2);
-    */
-
     rightVlayout->setMargin(0);
     rightVlayout->setSpacing(0);
     rightVlayout->setContentsMargins(0, 10, 0, 0);
     rightVlayout->addLayout(searchLayout, 1);
-    rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
+    rightVlayout->addSpacerItem(new QSpacerItem(20, SPACER_HEIGHT));
     rightVlayout->addLayout(viewButtonsGrid);
-    rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
+    rightVlayout->addSpacerItem(new QSpacerItem(20, SPACER_HEIGHT));
     rightVlayout->addWidget(dataTableBox, 4);
-    rightVlayout->addSpacerItem(new QSpacerItem(20, 30));
+    rightVlayout->addSpacerItem(new QSpacerItem(20, SPACER_HEIGHT));
     rightVlayout->addStretch();
     rightVlayout->addWidget(minimap);
 
@@ -285,16 +267,8 @@ void MedeaWindow::initialiseGUI()
     mainHLayout->setSpacing(0);
     mainHLayout->addLayout(leftVlayout, 4);
     mainHLayout->addLayout(rightVlayout, 1);
-    mainHLayout->setContentsMargins(15, 0, 25, 25);
+    mainHLayout->setContentsMargins(15, 0, 20, 25);
     nodeView->setLayout(mainHLayout);
-
-    // other settings
-    /*
-    assemblyButton->setCheckable(true);
-    hardwareButton->setCheckable(true);
-    definitionsButton->setCheckable(true);
-    workloadButton->setCheckable(true);
-    */
 
     // setup the menu, dock, search tools and toolbar
     setupMenu(menuButton);
@@ -316,7 +290,7 @@ void MedeaWindow::initialiseGUI()
  * @param button
  */
 void MedeaWindow::setupMenu(QPushButton *button)
-{
+{   
     // menu buttons/actions
     menu = new QMenu();
     file_menu = menu->addMenu(QIcon(":/Resources/Icons/file_menu.png"), "File");
@@ -328,12 +302,22 @@ void MedeaWindow::setupMenu(QPushButton *button)
     settings_Menu = menu->addMenu(QIcon(":/Resources/Icons/settings.png"), "Settings");
     exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Exit");
 
+    menu->setFont(guiFont);
+    file_menu->setFont(guiFont);
+    edit_menu->setFont(guiFont);
+    view_menu->setFont(guiFont);
+    model_menu->setFont(guiFont);
+    settings_Menu->setFont(guiFont);
+
     file_newProject = file_menu->addAction(QIcon(":/Resources/Icons/new_project.png"), "New Project");
     file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+    file_menu->addSeparator();
     file_importGraphML = file_menu->addAction(QIcon(":/Resources/Icons/import.png"), "Import GraphML");
+    file_importGraphMLSnippet = file_menu->addAction(QIcon(":/Resources/Icons/importSnippet.png"), "Import GraphML Snippet");
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
+    file_menu->addSeparator();
     file_exportGraphML = file_menu->addAction(QIcon(":/Resources/Icons/export.png"), "Export GraphML");
-    //file_exportGraphMLSnippet = file_menu->addAction(QIcon(":/Resources/Icons/snippet.png"), "Export GraphML Snippet");
+    file_exportGraphMLSnippet = file_menu->addAction(QIcon(":/Resources/Icons/exportSnippet.png"), "Export GraphML Snippet");
     file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     file_menu->addSeparator();
 
@@ -368,7 +352,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_menu->addSeparator();
     view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "View Connections");
     view_showManagementComponents = view_menu->addAction("View Management Components");
-    //view_showManagementComponents->setShortcut(QKeySequence(Qt::CTRL +Qt::Key_M));
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_sortModel = model_menu->addAction(QIcon(":/Resources/Icons/sort.png"), "Sort Model");
@@ -382,7 +365,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     settings_selectOnConstruction = settings_Menu->addAction("Select Entity On Construction");
     settings_Menu->addSeparator();
     settings_displayDocks = settings_Menu->addAction("Display Dock");
-    settings_detachDocks = settings_Menu->addAction("Detach Dock");
+    // DEMO CHANGE
+    //settings_detachDocks = settings_Menu->addAction("Detach Dock");
     settings_Menu->addSeparator();
     settings_displayWindowToolbar = settings_Menu->addAction("Display Toolbar");
     // DEMO CHANGE
@@ -395,7 +379,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     // setup toggle actions
     settings_displayDocks->setCheckable(true);
-    settings_detachDocks->setCheckable(true);
+    // DEMO CHANGE
+    //settings_detachDocks->setCheckable(true);
     settings_displayWindowToolbar->setCheckable(true);
     // DEMO CHANGE
     //settings_detachWindowToolbar->setCheckable(true);
@@ -433,8 +418,8 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     compDefinitionsButton = new DockToggleButton("D", this);
 
     partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
-    definitionsDock = new DefinitionsDockScrollArea("Component Definitions", nodeView, compDefinitionsButton);
-    hardwareDock = new HardwareDockScrollArea("Hardware Nodes", nodeView, hardwareNodesButton);
+    definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, compDefinitionsButton);
+    hardwareDock = new HardwareDockScrollArea("Nodes", nodeView, hardwareNodesButton);
 
     // width of the containers are fixed
     boxWidth = (partsButton->getWidth()*3) + 30;
@@ -443,10 +428,15 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     dockButtonsBox->setStyleSheet("border: 0px; padding: 0px 7px;");
     dockButtonsBox->setFixedSize(boxWidth, 60);
 
-    // set dockScrollAreas sizes
-    partsDock->setMaximumWidth(boxWidth);
-    definitionsDock->setMaximumWidth(boxWidth);
-    hardwareDock->setMaximumWidth(boxWidth);
+    // set dock's size
+    partsDock->setFixedWidth(boxWidth);
+    definitionsDock->setFixedWidth(boxWidth);
+    hardwareDock->setFixedWidth(boxWidth);
+
+    // set dock's font
+    partsDock->widget()->setFont(guiFont);
+    definitionsDock->widget()->setFont(guiFont);
+    hardwareDock->widget()->setFont(guiFont);
 
     // set size policy for buttons
     partsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -484,11 +474,13 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     docksArea->setFixedWidth(boxWidth);
     docksArea->setStyleSheet("border: none; padding: 0px; margin: 0px; background-color: rgba(0,0,0,0);");
     docksArea->setMask(QRegion(0, 0, boxWidth, dockButtonsBox->height(), QRegion::Rectangle));
+    docksArea->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     layout->addWidget(docksArea, 1);
 
     dockStandAloneDialog->setVisible(false);
     dockStandAloneDialog->setLayout(dockDialogLayout);
     dockStandAloneDialog->setFixedWidth(boxWidth + 15);
+    dockStandAloneDialog->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     dockStandAloneDialog->setStyleSheet("QDialog{ background-color: rgba(175,175,175,255); }");
     dockStandAloneDialog->setWindowTitle("MEDEA - Dock");
 }
@@ -505,7 +497,7 @@ void MedeaWindow::setupSearchTools()
     searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
     searchOptionButton = new QPushButton(QIcon(":/Resources/Icons/settings.png"), "");
     searchOptionMenu = new QMenu(searchOptionButton);
-    searchSuggestions = new QListView(searchButton);
+    //searchSuggestions = new QListView(searchButton);
     searchResults = new QDialog(this);
 
     QVBoxLayout* layout = new QVBoxLayout();
@@ -545,11 +537,11 @@ void MedeaWindow::setupSearchTools()
     searchOptionButton->setIconSize(searchButton->size()*0.7);
     searchOptionButton->setCheckable(true);
 
-    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2) - 5, searchBarHeight-3);
+    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight-3);
     searchBar->setStyleSheet("background-color: rgb(230,230,230);");
 
-    searchSuggestions->setViewMode(QListView::ListMode);
-    searchSuggestions->setVisible(false);
+    //searchSuggestions->setViewMode(QListView::ListMode);
+    //searchSuggestions->setVisible(false);
 
     scrollableWidget->setMinimumWidth(rightPanelWidth + 110);
     scrollableWidget->setLayout(resultsMainLayout);
@@ -557,20 +549,13 @@ void MedeaWindow::setupSearchTools()
     scrollableSearchResults->setWidgetResizable(true);
     layout->addWidget(scrollableSearchResults);
 
-    /*
-    //QPoint dialogPos = searchResults->mapFromParent(QPoint(0, height() / 2));
-    //dialogPos = searchResults->mapToParent((dialogPos));
-    QPoint dialogPos = this->mapToGlobal(this->pos());
-    dialogPos = QPoint(0, dialogPos.y()*2);
-    searchResults->move(dialogPos);
-    */
-
     searchResults->setLayout(layout);
     searchResults->setMinimumWidth(rightPanelWidth + 110);
     searchResults->setMinimumHeight(height() / 2);
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
 
+    searchLayout->setContentsMargins(5,0,5,0);
     searchLayout->addWidget(searchBar, 3);
     searchLayout->addWidget(searchButton, 1);
     searchLayout->addWidget(searchOptionButton, 1);
@@ -583,10 +568,10 @@ void MedeaWindow::setupSearchTools()
 
     viewAspectsBarDefaultText = "Entire Model";
     viewAspectsBar = new QLineEdit(viewAspectsBarDefaultText, this);
-    viewAspectsButton = new QPushButton(QIcon(":/Resources/Icons/menu_down_arrow.png"), "");
+    viewAspectsButton = new QPushButton(QIcon(":/Resources/Icons/down_arrow.png"), "");
     viewAspectsMenu = new QMenu(viewAspectsButton);
 
-    aspectsLabel->setFixedWidth(50);
+    aspectsLabel->setMinimumWidth(50);
     aspectsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     viewAspectsButton->setFixedSize(20, 20);
@@ -595,7 +580,7 @@ void MedeaWindow::setupSearchTools()
     viewAspectsBar->setFixedWidth(rightPanelWidth - viewAspectsButton->width() - aspectsLabel->width() - 30);
     viewAspectsBar->setToolTip("Search Aspects: " + viewAspectsBarDefaultText);
     viewAspectsBar->setEnabled(false);
-    viewAspectsMenu->setFixedWidth(viewAspectsBar->width() + viewAspectsButton->width());
+    viewAspectsMenu->setMinimumWidth(viewAspectsBar->width() + viewAspectsButton->width());
 
     aspectsLayout->setMargin(5);
     aspectsLayout->setSpacing(3);
@@ -610,6 +595,7 @@ void MedeaWindow::setupSearchTools()
     foreach (QString aspect, nodeView->getAllAspects()) {
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(aspect, this);
+        checkBox->setFont(guiFont);
         checkBox->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }"
                                 "QCheckBox::checked{ color: green; font-weight: bold; }");
         connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
@@ -624,10 +610,10 @@ void MedeaWindow::setupSearchTools()
     QHBoxLayout* kindsLayout = new QHBoxLayout();
     nodeKindsDefaultText = "All Kinds";
     nodeKindsBar = new QLineEdit(nodeKindsDefaultText, this);
-    nodeKindsButton = new QPushButton(QIcon(":/Resources/Icons/menu_down_arrow.png"), "");
+    nodeKindsButton = new QPushButton(QIcon(":/Resources/Icons/down_arrow.png"), "");
     nodeKindsMenu = new QMenu(nodeKindsButton);
 
-    kindsLabel->setFixedWidth(50);
+    kindsLabel->setMinimumWidth(50);
     kindsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     nodeKindsButton->setFixedSize(20, 20);
@@ -636,7 +622,7 @@ void MedeaWindow::setupSearchTools()
     nodeKindsBar->setFixedWidth(rightPanelWidth - nodeKindsButton->width() - kindsLabel->width() - 30);
     nodeKindsBar->setToolTip("Search Kinds: " + nodeKindsDefaultText);
     nodeKindsBar->setEnabled(false);
-    nodeKindsMenu->setFixedWidth(nodeKindsBar->width() + nodeKindsButton->width());
+    nodeKindsMenu->setMinimumWidth(nodeKindsBar->width() + nodeKindsButton->width());
 
     kindsLayout->setMargin(5);
     kindsLayout->setSpacing(3);
@@ -646,6 +632,14 @@ void MedeaWindow::setupSearchTools()
 
     kindsGroup->setLayout(kindsLayout);
     kindsAction->setDefaultWidget(kindsGroup);
+
+    searchBar->setFont(guiFont);
+    viewAspectsBar->setFont(guiFont);
+    nodeKindsBar->setFont(guiFont);
+    objectLabel->setFont(guiFont);
+    parentLabel->setFont(guiFont);
+    aspectsLabel->setFont(guiFont);
+    kindsLabel->setFont(guiFont);
 
     // add widget actions and their menus to the main search option menu
     searchOptionMenu->addAction(aspectsAction);
@@ -773,8 +767,8 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     contextToolbarButton->setToolTip("Show Context Toolbar");
 
     // setup swappable pixmap for the toolbarButton
-    QImage* expandImg = new QImage(":/Resources/Icons/menu_down_arrow.png");
-    QImage* contractImg = new QImage(":/Resources/Icons/menu_up_arrow.png");
+    QImage* expandImg = new QImage(":/Resources/Icons/down_arrow.png");
+    QImage* contractImg = new QImage(":/Resources/Icons/up_arrow.png");
     *expandImg = expandImg->scaled(toolbarButton->width(), toolbarButton->height(),
                                    Qt::KeepAspectRatio, Qt::SmoothTransformation);
     *contractImg = contractImg->scaled(toolbarButton->width(), toolbarButton->height(),
@@ -927,6 +921,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
 
     foreach (QCheckBox* cb, toolbarActions.values() ) {
 
+        cb->setFont(guiFont);
         checkboxLayout->addWidget(cb);
         connect(cb, SIGNAL(clicked(bool)), this, SLOT(updateCheckedToolbarActions(bool)));
 
@@ -1016,7 +1011,7 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
     connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
     connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setViewAspects(QStringList)));
-    connect(nodeView, SIGNAL(view_updateGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
+    connect(nodeView, SIGNAL(view_updateGoToMenuActions(QString,bool)), this, SLOT(setMenuActionEnabled(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
 
@@ -1069,7 +1064,8 @@ void MedeaWindow::makeConnections()
     connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
 
     connect(settings_displayDocks, SIGNAL(triggered(bool)), this, SLOT(showDocks(bool)));
-    connect(settings_detachDocks, SIGNAL(triggered(bool)), this, SLOT(detachDocks(bool)));
+    // DEMO CHANGE
+    //connect(settings_detachDocks, SIGNAL(triggered(bool)), this, SLOT(detachDocks(bool)));
     connect(settings_displayWindowToolbar, SIGNAL(triggered(bool)), this, SLOT(showWindowToolbar(bool)));
     // DEMO CHANGE
     //connect(settings_detachWindowToolbar, SIGNAL(triggered(bool)), this, SLOT(detachWindowToolbar(bool)));
@@ -1126,14 +1122,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_UndoListChanged(QStringList)), this, SLOT(updateUndoStates(QStringList)));
     connect(nodeView, SIGNAL(view_RedoListChanged(QStringList)), this, SLOT(updateRedoStates(QStringList)));
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
-    connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(changeWindowTitle(QString)));
-
-    /*
-    connect(assemblyButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
-    connect(hardwareButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
-    connect(definitionsButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
-    connect(workloadButton, SIGNAL(clicked()), this, SLOT(updateViewAspects()));
-    */
+    connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(updateWindowTitle(QString)));
 
     connect(dockStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedDockClosed()));
     // DEMO CHANGE
@@ -1197,9 +1186,6 @@ void MedeaWindow::makeConnections()
     addAction(settings_showGridLines);
     addAction(settings_selectOnConstruction);
     addAction(settings_ChangeSettings);
-
-    // this needs fixing
-    //connect(this, SIGNAL(checkDockScrollBar()), partsContainer, SLOT(checkScrollBar()));
 }
 
 
@@ -1238,26 +1224,21 @@ void MedeaWindow::changeEvent(QEvent *event)
  */
 void MedeaWindow::updateWidgetsOnWindowChanged()
 {
-    double windowRatio = 0.8;
-    double containerRatio = 0.9;
+    // update dock's widget sizes, containers and and mask
+    boxHeight = height() - titleToolbarBox->height() - dockButtonsBox->height() - SPACER_HEIGHT;
+    docksArea->setFixedHeight(boxHeight*2);
+    dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_HEIGHT/2);
 
-    // check where the dock is currently being shown and base its height on that
-    if (settings_detachDocks->isChecked()) {
-        boxHeight = dockStandAloneDialog->height() * windowRatio;
-    } else {
-        boxHeight = this->height() * windowRatio;
+    /*
+    double newHeight = docksArea->height();
+    if (dockStandAloneDialog->isVisible()) {
+        newHeight *= 2;
     }
+    partsDock->parentHeightChanged(newHeight);
+    definitionsDock->parentHeightChanged(newHeight);
+    hardwareDock->parentHeightChanged(newHeight);
+    */
 
-    // update the dock's and their containers' sizes
-    partsDock->setMinimumHeight(boxHeight * containerRatio);
-    definitionsDock->setMinimumHeight(boxHeight * containerRatio);
-    hardwareDock->setMinimumHeight(boxHeight * containerRatio);
-
-    docksArea->setMinimumHeight(boxHeight);
-    //dockStandAloneDialog->setMinimumHeight(boxHeight + 30);
-    dockStandAloneDialog->setFixedHeight(boxHeight + 30);
-
-    // update the masks' regions
     updateWidgetMask(docksArea, dockButtonsBox, true);
 
     // update the stored view center point and re-center the view
@@ -1266,7 +1247,7 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
         nodeView->recenterView();
     }
 
-    // update dataTable size
+    // update dataTable mask and size
     updateDataTable();
 }
 
@@ -1297,7 +1278,8 @@ void MedeaWindow::setupInitialSettings()
 
     // need to set initial toggle action values before triggering them
     settings_displayDocks->setChecked(true);
-    settings_detachDocks->setChecked(false);
+    // DEMO CHANGE
+    //settings_detachDocks->setChecked(false);
     settings_displayWindowToolbar->setChecked(true);
     // DEMO CHANGE
     //settings_detachWindowToolbar->setChecked(false);
@@ -1307,7 +1289,8 @@ void MedeaWindow::setupInitialSettings()
     view_showManagementComponents->setChecked(false);
 
     settings_displayDocks->triggered(true);
-    settings_detachDocks->triggered(false);
+    // DEMO CHANGE
+    //settings_detachDocks->triggered(false);
     settings_displayWindowToolbar->triggered(true);
     // DEMO CHANGE
     //settings_detachWindowToolbar->triggered(false);
@@ -1336,6 +1319,7 @@ void MedeaWindow::setupInitialSettings()
     foreach (QString kind, nodeKinds) {
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(kind, this);
+        checkBox->setFont(guiFont);
         checkBox->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }"
                                 "QCheckBox::checked{ color: green; font-weight: bold; }");
         connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
@@ -1733,10 +1717,6 @@ void MedeaWindow::on_actionSearch_triggered()
             if (searchResults->isVisible()) {
                 searchResults->setVisible(false);
             }
-            /*
-            if (scrollableSearchResults->isVisible()) {
-                scrollableSearchResults->setVisible(false);
-            }*/
             QMessageBox::information(this, "Search Results", "Search Not Found   ", QMessageBox::Ok);
             return;
         }
@@ -1757,8 +1737,11 @@ void MedeaWindow::on_actionSearch_triggered()
             resultsLayout->addWidget(searchItem);
         }
 
-        // show popup list view
-        //scrollableSearchResults->show();
+        // move the search results dialog to the bottom left of the window
+        // so that it doesn't get in the way of centered search items
+        searchResults->move(pos() + QPoint(5, height() - searchResults->height() - 25));
+
+        // show search results
         searchResults->show();
     }
 }
@@ -1832,9 +1815,9 @@ void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLDat
         //Try and Open File.
 
         QString exportName = QFileDialog::getSaveFileName(this,
-                                                        "Export " + parentName+ ".snippet",
-                                                        "",
-                                                        "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)");
+                                                          "Export " + parentName+ ".snippet",
+                                                          "",
+                                                          "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)");
 
         if (exportName == "") {
             return;
@@ -1970,48 +1953,16 @@ void MedeaWindow::setClipboard(QString value)
 
 
 /**
- * @brief MedeaWindow::updateProjectName
- * @param label
+ * @brief MedeaWindow::updateWindowTitle
+ * @param newProjectName
  */
-void MedeaWindow::changeWindowTitle(QString label)
+void MedeaWindow::updateWindowTitle(QString newProjectName)
 {
-    setWindowTitle("MEDEA - " + label);
-    projectName->setText(label);
-    projectName->setFixedSize(projectName->fontMetrics().width(label) + 20,
+    setWindowTitle("MEDEA - " + newProjectName);
+    projectName->setText(newProjectName);
+    projectName->setFixedSize(projectName->fontMetrics().width(newProjectName) + 20,
                               projectName->height());
 }
-
-
-/**
- * @brief MedeaWindow::updateViewAspects
- * When a view aspect button is clicked, add/remove the corresponding
- * view aspect to/from the checkedViewAspects list.
- */
-void MedeaWindow::updateViewAspects()
-{
-    QStringList newAspects = checkedViewAspects;
-    QPushButton *sourceButton = qobject_cast<QPushButton*>(QObject::sender());
-
-    if (sourceButton) {
-        QString view = sourceButton->text();
-        if (view == "Interface") {
-            view = "Definitions";
-        } else if (view == "Behaviour") {
-            view = "Workload";
-        }
-
-        if (sourceButton->isChecked() && !newAspects.contains(view)) {
-            newAspects.append(view);
-        } else {
-            newAspects.removeAll(view);
-        }
-    }
-
-    if (newAspects != checkedViewAspects) {
-        window_AspectsChanged(newAspects);
-    }
-}
-
 
 
 /**
@@ -2037,18 +1988,22 @@ void MedeaWindow::setViewAspects(QStringList aspects)
 
 
 /**
- * @brief MedeaWindow::setGoToMenuActions
+ * @brief MedeaWindow::setMenuActionEnabled
  * This gets called everytime a node is selected.
- * It enables/disables the menu's goTo functions depending on the selected node.
+ * It enables/disables the specified menu action depending on the selected node.
  * @param action
  * @param node
  */
-void MedeaWindow::setGoToMenuActions(QString action, bool enable)
+void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
 {
     if (action == "definition") {
         view_goToDefinition->setEnabled(enable);
     } else if (action == "implementation") {
         view_goToImplementation->setEnabled(enable);
+    } else if (action == "exportSnippet") {
+        file_exportGraphMLSnippet->setEnabled(enable);
+    } else if (action == "importSnippet") {
+        file_importGraphMLSnippet->setEnabled(enable);
     }
 }
 
@@ -2615,14 +2570,16 @@ void MedeaWindow::graphicsItemSelected()
  */
 void MedeaWindow::showDocks(bool checked)
 {
-    dockStandAloneDialog->setVisible(settings_detachDocks->isChecked() && checked);
-    docksArea->setVisible(!settings_detachDocks->isChecked() && checked);
-    settings_detachDocks->setEnabled(checked);
+    // DEMO CHANGE
+    //dockStandAloneDialog->setVisible(settings_detachDocks->isChecked() && checked);
+    //docksArea->setVisible(!settings_detachDocks->isChecked() && checked);
+    docksArea->setVisible(checked);
+    //settings_detachDocks->setEnabled(checked);
 }
 
 
 /**
- * @brief MedeaWindow::updateDockView
+ * @brief MedeaWindow::detachDocks
  */
 void MedeaWindow::detachDocks(bool checked)
 {
@@ -2643,6 +2600,27 @@ void MedeaWindow::detachDocks(bool checked)
 
     dockStandAloneDialog->setVisible(settings_displayDocks->isChecked() && checked);
     docksArea->setVisible(settings_displayDocks->isChecked() && !checked);
+
+    /*
+    if (dockStandAloneDialog->isVisible()) {
+        double h = dockStandAloneDialog->height();
+        dockStandAloneDialog->setFixedHeight(h*2);
+        partsDock->parentHeightChanged(dockStandAloneDialog->height());
+        definitionsDock->parentHeightChanged(dockStandAloneDialog->height());
+        hardwareDock->parentHeightChanged(dockStandAloneDialog->height());
+        dockStandAloneDialog->setFixedHeight(h);
+    }
+    */
+
+    /*
+    double newHeight = docksArea->height();
+    if (dockStandAloneDialog->isVisible()) {
+        newHeight *= 2;
+    }
+    partsDock->parentHeightChanged(newHeight);
+    definitionsDock->parentHeightChanged(newHeight);
+    hardwareDock->parentHeightChanged(newHeight);
+    */
 }
 
 

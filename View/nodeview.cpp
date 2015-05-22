@@ -27,7 +27,7 @@
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 
-#define MAX_ZOOM_RATIO 10
+#define MAX_ZOOM_RATIO 20
 #define MIN_ZOOM_RATIO 2
 
 #define VIEW_PADDING 1.25
@@ -76,7 +76,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
 
     //Set GraphicsView background-color
-    setStyleSheet("QGraphicsView{ background-color: rgba(175,175,175,255); border: 0px;}");
+    //setStyleSheet("QGraphicsView{ background-color: rgba(175,175,175,255); border: 0px;}");
+    setStyleSheet("QGraphicsView{ background-color: rgba(170,170,170,255); border: 0px;}");
 
     /*
     scene()->setBackgroundBrush(QBrush(Qt::white));
@@ -1734,8 +1735,6 @@ void NodeView::nodeSelected_signalUpdates(Node* node)
 
     // update the docks regardless of the number of items selected
     emit view_nodeSelected();
-
-    //keepSelectionFullyVisible();
 }
 
 
@@ -1805,25 +1804,26 @@ void NodeView::updateActionsEnabled(Node* selectedNode)
 
     bool canExport = false;
     bool canImport = false;
-    // update snippet toolbar buttons
-    if(this->controller){
-        if(controller->canExportSnippet(selectedIDs)){
-            canExport = true;
-        }
-        if(controller->canImportSnippet(selectedIDs)){
-            canImport = true;
-        }
+
+    if (controller && selectedNode) {
+        canExport = controller->canExportSnippet(selectedIDs);
+        canImport = controller->canImportSnippet(selectedIDs);
     }
+
+    // update menu actions
+    emit view_updateGoToMenuActions("definition", hasDefn);
+    emit view_updateGoToMenuActions("implementation", hasImpl);
+    emit view_updateGoToMenuActions("exportSnippet", canExport);
+    emit view_updateGoToMenuActions("importSnippet", canImport);
+
+    // update toolbar buttons
+    toolbar->showDefinitionButton(hasDefn);
+    toolbar->showImplementationButton(hasImpl);
     toolbar->showSnippetButton("export", canExport);
     toolbar->showSnippetButton("import", canImport);
 
-    // update goto toolbar buttons
-    toolbar->showDefinitionButton(hasDefn);
-    toolbar->showImplementationButton(hasImpl);
-
-    // update goto menu actions
-    emit view_updateGoToMenuActions("definition", hasDefn);
-    emit view_updateGoToMenuActions("implementation", hasImpl);
+    // update the toolbar's separators in case any of them need to be hidden
+    toolbar->updateSeparators();
 }
 
 
@@ -2651,6 +2651,10 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
     if (updateDocks) {
         emit view_nodeSelected();
     }
+
+
+    // update menu and toolbar actions
+    updateActionsEnabled();
 }
 
 

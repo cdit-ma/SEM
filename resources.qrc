@@ -75,7 +75,7 @@
         <file>Resources/Icons/popup.png</file>
         <file>Resources/Icons/lock.png</file>
         <file>Resources/Icons/info.png</file>
-        <file>Resources/Icons/menu_right_arrow.png</file>
+        <file>Resources/Icons/right_arrow.png</file>
         <file>Resources/Icons/model.png</file>
         <file>Resources/Icons/sort.png</file>
         <file>Resources/Icons/autoCenter.png</file>
@@ -87,7 +87,7 @@
         <file>Resources/Icons/snapToGrid.png</file>
         <file>Resources/Icons/duplicate.png</file>
         <file>Resources/Icons/unlock.png</file>
-        <file>Resources/Icons/menu_down_arrow.png</file>
+        <file>Resources/Icons/down_arrow.png</file>
         <file>Resources/Icons/settings.png</file>
         <file>Resources/Icons/alignHorizontally.png</file>
         <file>Resources/Icons/alignVertically.png</file>
@@ -98,9 +98,10 @@
         <file>Resources/Icons/grid.png</file>
         <file>Resources/Icons/back.png</file>
         <file>Resources/Icons/forward.png</file>
-        <file>Resources/Icons/menu_up_arrow.png</file>
+        <file>Resources/Icons/up_arrow.png</file>
         <file>Resources/Icons/delete.png</file>
         <file>Resources/Icons/exportSnippet.png</file>
         <file>Resources/Icons/importSnippet.png</file>
+        <file>Resources/Icons/medea.png</file>
     </qresource>
 </RCC>

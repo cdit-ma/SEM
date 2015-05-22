@@ -136,6 +136,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem *item, int insertIndex, bool a
         } else {
             layout->insertWidget(insertIndex, item);
         }
+        //updateScrollBar();
     }
 
     connect(item, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
@@ -280,24 +281,34 @@ void DockScrollArea::dockNodeItemClicked() {}
  */
 void DockScrollArea::setupLayout()
 {
-    layout = new QVBoxLayout(this);
-    QGroupBox* groupBox = new QGroupBox(0);
+    QFont guiFont = QFont("Verdana");
+    guiFont.setPointSizeF(8.5);
 
+    QLabel* dockLabel = new QLabel(label, this);
+    mainLayout = new QVBoxLayout();
+    layout = new QVBoxLayout();
+
+    dockLabel->setFont(guiFont);
+    dockLabel->setFixedWidth(width());
+    dockLabel->setStyleSheet("padding-left: 8px;");
+
+    QGroupBox* groupBox = new QGroupBox(0);
     groupBox->setLayout(layout);
-    groupBox->setTitle(label);
-    groupBox->setFixedSize(140, 140);
-    groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     groupBox->setStyleSheet("QGroupBox {"
-                            "background-color: rgba(255,255,255,0);"
+                            "background-color: rgba(0,0,0,0);"
                             "border: 0px;"
-                            "padding: 10px;"
+                            "padding: 25px 10px;"
                             "}");
 
-    // find a better way to position the elements in the centre of the layout
-    layout->setAlignment(Qt::AlignHCenter);
+    layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     layout->setSpacing(5);
-    layout->setSizeConstraint(QLayout::SetMinimumSize);
 
+    mainLayout->addWidget(dockLabel);
+    mainLayout->setAlignment(dockLabel, Qt::AlignLeft);
+    mainLayout->addWidget(groupBox);
+    mainLayout->addStretch();
+
+    setLayout(mainLayout);
     setWidget(groupBox);
     setVisible(false);
     setWidgetResizable(true);
@@ -308,9 +319,6 @@ void DockScrollArea::setupLayout()
                   "border-radius: 10px;"
                   "padding-top: 10px;"
                   "}");
-
-    // this centers the groupbox and dock node items
-    setAlignment(Qt::AlignHCenter);
 }
 
 
@@ -327,15 +335,19 @@ void DockScrollArea::setParentButton(DockToggleButton *parent)
 
 
 /**
- * @brief DockScrollArea::checkScrollBar
- * This still needs fixing; isVisible() doesn't return the correct value.
+ * @brief DockScrollArea::updateScrollBar
  */
-void DockScrollArea::checkScrollBar()
+void DockScrollArea::updateScrollBar()
 {
-    QString paddingRight = "";
+    bool scrollbarVisible = false;
+    if (layout->sizeHint().height() > height()) {
+        scrollbarVisible = true;
+    }
 
-    if (verticalScrollBar()->isVisible()) {
-        paddingRight = "padding-right: 5px;";
+    // update stylesheet to add/remove extra padding
+    QString extraPadding = "padding-left: 0px; padding-right: 0px;";
+    if (scrollbarVisible) {
+        extraPadding = "padding-left: 8px; padding-right: 8px;";
     }
 
     setStyleSheet("QScrollArea {"
@@ -343,7 +355,7 @@ void DockScrollArea::checkScrollBar()
                   "border: 0px;"
                   "border-radius: 10px;"
                   "padding-top: 10px;"
-                  + paddingRight + "}");
+                  + extraPadding + "}");
 }
 
 
@@ -374,4 +386,14 @@ void DockScrollArea::clear()
         delete dockNodeItems.at(i);
     }
     dockNodeItems.clear();
+    updateScrollBar();
+}
+
+
+/**
+ * @brief DockScrollArea::parentHeightChanged
+ */
+void DockScrollArea::parentHeightChanged(double height)
+{
+    resize(width(), height);
 }

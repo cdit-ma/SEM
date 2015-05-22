@@ -81,7 +81,6 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
         addDockNodeItem(item);
     }
 
-    //checkScrollBar();
     repaint();
 
     // initialise list of displayed items
