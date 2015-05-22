@@ -242,6 +242,15 @@ void ToolbarWidget::exportGraphMLSnippet()
 
 
 /**
+ * @brief ToolbarWidget::importGraphMLSnippet
+ */
+void ToolbarWidget::importGraphMLSnippet()
+{
+
+}
+
+
+/**
  * @brief ToolbarWidget::addConnectedNode
  * Send a signal to the view to construct a connected node.
  * It can either be a ComponentImpl, ComponentInstance or In/Out EventPortDelegates.
@@ -504,6 +513,7 @@ void ToolbarWidget::makeConnections()
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(showConnectionsButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(exportSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(importSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
 
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
@@ -511,6 +521,7 @@ void ToolbarWidget::makeConnections()
     connect(showConnectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
     connect(exportSnippetButton, SIGNAL(clicked()), this, SLOT(exportGraphMLSnippet()));
+    connect(importSnippetButton, SIGNAL(clicked()), this, SLOT(importGraphMLSnippet()));
 }
 
 
