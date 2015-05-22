@@ -81,7 +81,9 @@ signals:
 
     void view_ExportedSnippet(QString parentName, QString snippetXMLData);
     void view_ExportSnippet(QStringList selection);
-    void view_ImportSnippet(QStringList selection, QString fileName, QString fileData);
+    void view_ImportedSnippet(QStringList selection, QString fileName, QString fileData);
+
+    void view_ImportSnippet(QString nodeKind);
 
 
     void view_Copy(QStringList IDs);

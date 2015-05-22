@@ -71,6 +71,8 @@ signals:
 
     void window_aspectToggleDoubleClicked(AspectToggleWidget* aspect);
 
+    void window_ImportSnippet(QString fileName, QString fileData);
+
 public slots:
     void setupInitialSettings();
     void aspectToggleClicked(bool checked, int state);
@@ -102,6 +104,8 @@ private slots:
 
     void writeExportedProject(QString data);
     void writeExportedSnippet(QString parentName, QString snippetXMLData);
+    void importSnippet(QString parentName);
+
     void updateUndoStates(QStringList list);
     void updateRedoStates(QStringList list);
 
@@ -189,6 +193,7 @@ private:
     QAction* file_newProject;
     QAction* file_importGraphML;
     QAction* file_exportGraphMLSnippet;
+    QAction* file_importGraphMLSnippet;
     QAction* file_exportGraphML;
     QAction* file_importJenkinsNodes;
     QAction* edit_undo;

@@ -37,10 +37,10 @@ public:
     ~NodeItem();
 
 
-    void setVisibleParentForEdgeItem(EdgeItem *line, bool RIGHT = false);
-    int getIndexOfEdgeItem(EdgeItem* line, bool RIGHT = false);
+    void setVisibleParentForEdgeItem(QString ID, bool RIGHT = false);
+    int getIndexOfEdgeItem(QString ID, bool RIGHT = false);
     int getNumberOfEdgeItems(bool RIGHT = false);
-    void removeVisibleParentForEdgeItem(EdgeItem* line);
+    void removeVisibleParentForEdgeItem(QString ID);
 
     void setGridVisible(bool visible);
 
@@ -173,7 +173,6 @@ public slots:
     void parentNodeItemMoved();
     //Model Signals
     void graphMLDataChanged(GraphMLData *data);
-    void setOpacity(qreal opacity);
     void setSelected(bool selected);
     void setVisible(bool visible);
 
@@ -336,8 +335,8 @@ private:
     //USED TO DETERMINE THE NUMBER OF EDGES.
     QList<EdgeItem*> connections;
 
-    QList<EdgeItem*> currentLeftEdges;
-    QList<EdgeItem*> currentRightEdges;
+    QStringList currentLeftEdgeIDs;
+    QStringList currentRightEdgeIDs;
 
 
     QVector<QLineF> xGridLines;

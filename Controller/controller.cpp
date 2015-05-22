@@ -24,6 +24,7 @@ NewController::NewController()
     UNDOING = false;
     REDOING = false;
     CUT_USED = false;
+    IMPORTING_SNIPPET = false;
     model = 0;
     //Construct
     behaviourDefinitions = 0;
@@ -108,7 +109,7 @@ void NewController::connectView(NodeView *view)
         //File SLOTS
         connect(view, SIGNAL(view_ExportProject()), this, SLOT(exportGraphMLDocument()));
         connect(view, SIGNAL(view_ImportProjects(QStringList)), this, SLOT(importProjects(QStringList)));
-        connect(view, SIGNAL(view_ImportSnippet(QStringList ,QString ,QString)), this, SLOT(importSelectionSnippet(QStringList,QString,QString)));
+        connect(view, SIGNAL(view_ImportedSnippet(QStringList ,QString ,QString)), this, SLOT(importSelectionSnippet(QStringList,QString,QString)));
         connect(view, SIGNAL(view_ExportSnippet(QStringList)), this, SLOT(exportSelectionSnippet(QStringList)));
 
         //Edit SLOTS
@@ -2733,10 +2734,7 @@ void NewController::importSelectionSnippet(QStringList selection, QString fileNa
     if(!canImportSnippet(selection)){
         return;
     }
-
-
-    //Get parentName
-    Node* parent = getSharedParent(selection);
+    Node* parent = getSingleNode(selection);
 
     QStringList fileNameSplit = fileName.split('.');
     if(fileNameSplit.length() != 3){
@@ -2747,18 +2745,21 @@ void NewController::importSelectionSnippet(QStringList selection, QString fileNa
     QString fileParentKind = fileNameSplit[1];
     QString fileFormat = fileNameSplit[2];
 
+
     //Valide the fileParentKind
     if(fileParentKind != parent->getDataValue("kind")){
         return;
     }
 
     //Validate fileFormat
-    if(fileFormat != "graphml" || fileFormat != "snippet"){
+    if(fileFormat != "graphml" && fileFormat != "snippet"){
         return;
     }
 
     triggerAction("Importing Snippet: " + userName);
+    IMPORTING_SNIPPET = true;
     _importGraphMLXML(fileData, parent, false, false);
+    IMPORTING_SNIPPET = false;
 }
 
 
@@ -2766,6 +2767,15 @@ void NewController::importSelectionSnippet(QStringList selection, QString fileNa
 void NewController::clearUndoHistory()
 {
     clearHistory();
+}
+
+Node *NewController::getSingleNode(QStringList IDs)
+{
+    foreach(QString ID, IDs){
+        return getNodeFromID(ID);
+    }
+    return 0;
+
 }
 
 bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkID, bool resetPos)
@@ -2803,7 +2813,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
 
     if(parent->isInstance() || parent->isImpl()){
-        if(!(UNDOING || REDOING)){
+        if(!(UNDOING || REDOING || IMPORTING_SNIPPET)){
             emit controller_DialogMessage(CRITICAL, "Importing", "Cannot Import or Paste into a Instance/Implementation", parent);
             return false;
         }
@@ -3157,6 +3167,9 @@ bool NewController::canExportSnippet(QStringList IDs)
         if(!parent){
             //Set the firstParent to the first Nodes parent.
             parent = node->getParentNode();
+            if(!parent){
+                return false;
+            }
             if(!snippetableParentKinds.contains(parent->getDataValue("kind"))){
                 return false;
             }
@@ -3169,10 +3182,10 @@ bool NewController::canExportSnippet(QStringList IDs)
 
 bool NewController::canImportSnippet(QStringList selection)
 {
-    if(!canPaste(selection)){
+    if(selection.length() != 1){
         return false;
     }
-    Node* parent = getSharedParent(selection);
+    Node* parent = getNodeFromID(selection[0]);
     if(!parent){
         return false;
     }

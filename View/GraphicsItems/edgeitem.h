@@ -28,7 +28,6 @@ public:
 
 
 public slots:
-    void setOpacity(qreal opacity);
 
     void setSelected(bool selected);
     void setVisible(bool visible);
@@ -52,11 +51,10 @@ private:
 
     QPointF getEdgeCenterPoint();
 
+    bool deleting;
     QPainterPath* painterPath;
 
     QVector<QGraphicsLineItem*> lineItems;
-    QVector<QGraphicsLineItem*> arrowHeadLines;
-    QVector<QGraphicsLineItem*> arrowTailLines;
 
     NodeItem* sourceParent;
     NodeItem* destinationParent;
@@ -86,9 +84,14 @@ private:
     QPen arrowHeadPen;
     QPen arrowTailPen;
 
+    QPolygonF arrowTail;
+    QPolygonF arrowHead;
+
     QBrush selectedBrush;
     QBrush brush;
 
+    QBrush tailBrush;
+    QBrush headBrush;
 
     int circleRadius;
     int width;
@@ -97,7 +100,7 @@ private:
     QRect bRec;
 
     QLineF line;
-    QLineF arrowHead;
+   // QLineF arrowHead;
     QGraphicsTextItem* label;
 
     bool inScene;

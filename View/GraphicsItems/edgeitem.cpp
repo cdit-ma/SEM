@@ -3,11 +3,16 @@
 #include <QDebug>
 #include <math.h>
 
+#define EDGE_WIDTH 1
 #define EDGE_SPACE_RATIO 0.8
+#define ARROW_COUNT 6.0
+#define ARROW_HEIGHT_RATIO (EDGE_SPACE_RATIO / ARROW_COUNT)
+#define ARROW_TAIL_LENGTH ARROW_HEIGHT_RATIO
 #define EDGE_GAP_RATIO ((1 - EDGE_SPACE_RATIO)/2)
 
 EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, GraphMLItem::NODE_EDGE)
 {
+    deleting = false;
     label = 0;
     IS_VISIBLE = true;
     IS_SELECTED = false;
@@ -66,16 +71,15 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
 
     //Construct lines.
 
-    for(int i=0; i < 3; i++){
+    for(int i=0; i < 6; i++){
         lineItems.append(new QGraphicsLineItem(this));
-        lineItems.append(new QGraphicsLineItem(this));
-        arrowHeadLines.append(new QGraphicsLineItem(this));
-        arrowTailLines.append(new QGraphicsLineItem(this));
+        lineItems[i]->setZValue(999);
     }
 
 
     //Setup Sizes.
-    circleRadius = (s->boundingRect().width() + d->boundingRect().width()) / 10;
+    circleRadius = (ARROW_HEIGHT_RATIO * source->minimumVisibleRect().height()) / 2;
+
     width = circleRadius * 2;
     height =  width;
 
@@ -104,37 +108,56 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     setFlag(ItemIsSelectable);
 
     setVisible(IS_VISIBLE);
+    setZValue(1000);
 }
 
 EdgeItem::~EdgeItem()
 {
+
+    deleting = true;
     if(source){
+        source->removeVisibleParentForEdgeItem(getID());
         source->removeEdgeItem(this);
     }
     if(destination){
+        destination->removeVisibleParentForEdgeItem(getID());
         destination->removeEdgeItem(this);
+    }
+    if(visibleSource){
+        visibleSource->removeVisibleParentForEdgeItem(getID());
+    }
+
+    if(visibleDestination){
+        visibleDestination->removeVisibleParentForEdgeItem(getID());
     }
 
     while(!lineItems.isEmpty()){
         QGraphicsLineItem *lineI = lineItems.takeFirst();
         delete lineI;
     }
-    while(!arrowHeadLines.isEmpty()){
-        QGraphicsLineItem *lineI = arrowHeadLines.takeFirst();
-        delete lineI;
-    }
-    while(!arrowTailLines.isEmpty()){
-        QGraphicsLineItem *lineI = arrowTailLines.takeFirst();
-        delete lineI;
-    }
+
 
     delete label;
 }
 
 QRectF EdgeItem::boundingRect() const
 {
-    int brushSize = selectedPen.width();
-    return QRectF(-brushSize, -brushSize, width + (brushSize *2), height + (brushSize *2));
+    QRectF bRect;
+    bRect.setTopLeft(QPointF(-circleRadius,-circleRadius));
+    bRect.setBottomRight(QPointF(circleRadius, circleRadius));
+
+    QRectF tailBR = mapFromScene(arrowTail).boundingRect();
+    QRectF headBR = mapFromScene(arrowHead).boundingRect();
+
+    QPointF tL;
+    QPointF bR;
+    tL.setX(qMin(qMin(tailBR.left(), headBR.left()), bRect.left()));
+    tL.setY(qMin(qMin(tailBR.top(), headBR.top()), bRect.top()));
+
+    bR.setX(qMax(qMax(tailBR.right(), headBR.right()), bRect.right()));
+    bR.setY(qMax(qMax(tailBR.bottom(), headBR.bottom()), bRect.bottom()));
+
+    return QRectF(tL, bR);
 }
 
 void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -158,16 +181,19 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setBrush(Brush);
         painter->setPen(Pen);
 
-        QPainterPath circle_path;
-
-        QRectF rectangle(QPointF(0,0), QPointF(circleRadius * 2, circleRadius * 2));
-
-
-
-        label->setPos(circleRadius - (label->boundingRect().width()/2), circleRadius - (label->boundingRect().height()/2));
+        QRectF rectangle(QPointF(-circleRadius + (Pen.widthF()/2),-circleRadius+ (Pen.widthF()/2)), QPointF(circleRadius - (Pen.widthF()/2), circleRadius - (Pen.widthF()/2)));
+        label->setPos(- (label->boundingRect().width()/2), - (label->boundingRect().height()/2));
 
 
         painter->drawEllipse(rectangle);
+        painter->setPen(Qt::NoPen);
+
+
+        painter->setBrush(tailBrush);
+        painter->drawPolygon(mapFromScene(arrowTail));
+
+        painter->setBrush(headBrush);
+        painter->drawPolygon(mapFromScene(arrowHead));
 
     }
 }
@@ -183,14 +209,11 @@ NodeItem *EdgeItem::getDestination()
 }
 
 
-void EdgeItem::setOpacity(qreal opacity)
-{
-    Q_UNUSED(opacity);
-}
-
-
 void EdgeItem::setSelected(bool selected)
 {
+    if(deleting){
+        return;
+    }
     IS_SELECTED = selected;
 
 
@@ -203,26 +226,6 @@ void EdgeItem::setSelected(bool selected)
         line->update();
     }
 
-    foreach(QGraphicsLineItem* line, arrowHeadLines){
-        //if(selected){
-        //    line->setPen(selectedArrowPen);
-       // }else{
-            line->setPen(arrowHeadPen);
-       // }
-        //line->update();
-    }
-    foreach(QGraphicsLineItem* line, arrowTailLines){
-
-         line->setPen(arrowTailPen);
-         /*
-        if(selected){
-            line->setPen(selectedArrowPen);
-        }else{
-            line->setPen(arrowPen);
-        }
-        line->update();
-        */
-    }
 
     label->setVisible(selected);
 
@@ -266,13 +269,16 @@ void EdgeItem::setVisible(bool visible)
 
 void EdgeItem::updateEdge()
 {
-    if(source && destination){
+    if(source && destination && !deleting){
         updateLines();
     }
 }
 
 void EdgeItem::graphMLDataChanged(GraphMLData *data)
 {
+    if(deleting){
+        return;
+    }
     if(data){
         QString dataKey = data->getKey()->getName();
         QString dataValue = data->getValue();
@@ -285,10 +291,17 @@ void EdgeItem::graphMLDataChanged(GraphMLData *data)
 
 void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    QRectF itemCircle = QRectF(-circleRadius,-circleRadius,width,height);
+
+    if(!itemCircle.contains(event->pos())){
+        event->setAccepted(false);
+        return;
+    }
     if(!IS_VISIBLE){
         event->setAccepted(false);
         return;
     }
+
     switch (event->button()) {
 
     case Qt::MiddleButton:{
@@ -312,20 +325,45 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void EdgeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
+    QRectF itemCircle = QRectF(-circleRadius,-circleRadius,width,height);
+
 
     if(IS_MOVING){
+        foreach(QGraphicsLineItem* line, lineItems){
+            line->setVisible(false);
+        }
+
 
         QPointF delta = (event->scenePos() - previousScenePosition);
         this->moveBy(delta.x(),delta.y());
         previousScenePosition = event->scenePos();
         hasMovedFromCenter = true;
         return;
+    }else{
+        if(!itemCircle.contains(event->pos())){
+            event->setAccepted(false);
+            return;
+        }
     }
 
 }
 
 void EdgeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    QRectF itemCircle = QRectF(-circleRadius,-circleRadius,width,height);
+
+
+
+    if(!itemCircle.contains(event->pos())){
+        event->setAccepted(false);
+        return;
+    }
+
+    if(IS_MOVING){
+        foreach(QGraphicsLineItem* line, lineItems){
+            line->setVisible(true);
+        }
+    }
     IS_MOVING = false;
     updateLines();
 }
@@ -367,66 +405,40 @@ void EdgeItem::updateLabel()
 
 void EdgeItem::setupBrushes()
 {
-    int penWidth = 2;
+
 
     QColor selectedColor;
     QColor color;
 
-    pen.setStyle(Qt::DashLine);
-    if(IS_INSTANCE_LINK){
-        color = QColor(0, 0, 180);
-    }else if(IS_IMPL_LINK){
-        color = QColor(0, 180, 0);
-    }else if(IS_AGG_LINK){
-        color = QColor(180, 0, 0);
-    }else if(IS_DEPLOYMENT_LINK){
-        color = QColor(180, 0, 180);
-    }else if(IS_COMPONENT_LINK){
-        color = QColor(0, 180 , 180);
-        //penWidth *= 2;
-        pen.setStyle(Qt::SolidLine);
-    }else{
-        color = QColor(50, 50, 50);
-    }
+    pen.setStyle(Qt::SolidLine);
+    color = QColor(100,100,100);
 
-    selectedColor = color;
-    //color.setAlpha(150);
-    //selectedColor.setAlpha(250);
+    selectedColor = Qt::blue;
 
     brush = QBrush(color);
     selectedBrush = QBrush(selectedColor);
 
     pen.setColor(color);
-    pen.setWidth(penWidth);
+    pen.setWidth(EDGE_WIDTH);
 
     selectedPen.setColor(selectedColor);
-    selectedPen.setWidth(penWidth);
+    selectedPen.setWidth(EDGE_WIDTH);
+
+    headBrush = QBrush(color);
+    tailBrush = QBrush(color);
 
     if(source->getNodeKind() == "OutEventPortInstance"){
-        arrowTailPen.setColor(Qt::red);
+        headBrush = QBrush(QColor(200,0,0));
     }
 
     if(destination->getNodeKind() == "InEventPortInstance"){
-        arrowHeadPen.setColor(Qt::green);
+        tailBrush = QBrush(QColor(0,200,0));
     }
-
-    arrowPen.setColor(selectedColor);
-    arrowPen.setStyle(Qt::SolidLine);
-    arrowPen.setWidth(penWidth);
-
-    selectedArrowPen.setColor(selectedColor);
-    selectedArrowPen.setWidth(penWidth);
 }
 
 void EdgeItem::forceVisible(bool visible)
 {
     foreach(QGraphicsLineItem* line, lineItems){
-        line->setVisible(visible);
-    }
-    foreach(QGraphicsLineItem* line, arrowHeadLines){
-        line->setVisible(visible);
-    }
-    foreach(QGraphicsLineItem* line, arrowTailLines){
         line->setVisible(visible);
     }
 
@@ -446,6 +458,11 @@ void EdgeItem::aspectsChanged(QStringList aspects)
 
 void EdgeItem::updateLines()
 {
+    if(IS_IMPL_LINK || IS_INSTANCE_LINK){
+        forceVisible(false);
+        return;
+    }
+
 
     NodeItem* visibleSrc = source;
     NodeItem* visibleDst = destination;
@@ -503,17 +520,17 @@ void EdgeItem::updateLines()
             removeSrcEdge = true;
         }
         //If the edge has changed sides on its visual parent, remove the edge, so we can re-add it on the right side.
-        if(visibleSource->getIndexOfEdgeItem(this, srcSide == RIGHT) == -1){
+        if(visibleSource->getIndexOfEdgeItem(getID(), srcSide == RIGHT) == -1){
             removeSrcEdge = true;
         }
     }
 
     if(removeSrcEdge){
-        visibleSource->removeVisibleParentForEdgeItem(this);
+        visibleSource->removeVisibleParentForEdgeItem(getID());
     }
 
     visibleSource = visibleSrc;
-    visibleSrc->setVisibleParentForEdgeItem(this, srcSide == RIGHT);
+    visibleSrc->setVisibleParentForEdgeItem(getID(), srcSide == RIGHT);
 
     bool removeDstEdge = false;
     if(visibleDestination){
@@ -522,69 +539,120 @@ void EdgeItem::updateLines()
             removeDstEdge = true;
         }
         //If the edge has changed sides on its visual parent, remove the edge, so we can re-add it on the right side.
-        if(visibleDestination->getIndexOfEdgeItem(this, dstSide == RIGHT) == -1){
+        if(visibleDestination->getIndexOfEdgeItem(getID(), dstSide == RIGHT) == -1){
             removeDstEdge = true;
         }
     }
 
     if(removeDstEdge){
-        visibleDestination->removeVisibleParentForEdgeItem(this);
+        visibleDestination->removeVisibleParentForEdgeItem(getID());
     }
 
     visibleDestination = visibleDst;
-    visibleDst->setVisibleParentForEdgeItem(this, dstSide == RIGHT);
+    visibleDst->setVisibleParentForEdgeItem(getID(), dstSide == RIGHT);
+
+
+    if(visibleDst == visibleSrc){
+        forceVisible(false);
+        return;
+    }
 
     //Get the start/end points.
     QPointF edgeSrc;
     QPointF edgeDst;
 
+    int srcArrowSideFlip = 1;
+    int dstArrowSideFlip = 1;
+
+
     //Set X for edgeSrc
     if(srcSide == LEFT){
         edgeSrc.setX(srcRect.left());
+        srcArrowSideFlip = -1;
     }else{
         edgeSrc.setX(srcRect.right());
     }
 
     //Set Y for edgeSrc
     int srcEdgeCount = visibleSrc->getNumberOfEdgeItems(srcSide == RIGHT);
-    int srcIndex = visibleSrc->getIndexOfEdgeItem(this, srcSide == RIGHT);
+    int srcIndex = visibleSrc->getIndexOfEdgeItem(getID(), srcSide == RIGHT);
 
 
     qreal srcYOffset = EDGE_GAP_RATIO * srcRect.height() + (((srcIndex + 1.0) / (srcEdgeCount + 1.0)) * (EDGE_SPACE_RATIO * srcRect.height()));
     edgeSrc.setY(srcRect.top() + srcYOffset);
 
-    qCritical() << "srcEdgeCount: " << srcEdgeCount;
-    qCritical() << "srcIndex: " << srcIndex;
-    qCritical() << "srcYOffset: " << srcYOffset;
+
 
     //Set X for edgeDst
     if(dstSide == LEFT){
         edgeDst.setX(dstRect.left());
     }else{
         edgeDst.setX(dstRect.right());
+        dstArrowSideFlip = -1;
     }
 
     //Set Y for edgeSrc
     int dstEdgeCount = visibleDst->getNumberOfEdgeItems(dstSide == RIGHT);
-    int dstIndex = visibleDst->getIndexOfEdgeItem(this, dstSide == RIGHT);
+    int dstIndex = visibleDst->getIndexOfEdgeItem(getID(), dstSide == RIGHT);
 
     qreal dstYOffset = (EDGE_GAP_RATIO * dstRect.height()) + (((dstIndex + 1.0) / (dstEdgeCount + 1.0)) * (EDGE_SPACE_RATIO * dstRect.height()));
     edgeDst.setY(dstRect.top() + dstYOffset);
 
 
-    QPointF srcTest = mapFromScene(edgeSrc);
-    QPointF dstTest = mapFromScene(edgeDst);
-    lineItems[0]->setLine(QLineF(srcTest, dstTest));
+    //Calculate Arrow Heads
+    QPointF srcItemPos = mapFromScene(edgeSrc);
+    QPointF dstItemPos = mapFromScene(edgeDst);
+
+    qreal arrowHeight = ARROW_HEIGHT_RATIO * visibleSrc->minimumVisibleRect().height();
+
+    QPointF arrowTailTL = edgeSrc -  QPointF(0, (arrowHeight / 2));
+    QPointF arrowTailMR = edgeSrc +  (srcArrowSideFlip * QPointF(arrowHeight, 0));
+    QPointF arrowTailBL = edgeSrc +  QPointF(0, (arrowHeight / 2));
+    arrowTail.clear();
+    arrowTail.append(arrowTailTL);
+    arrowTail.append(arrowTailMR);
+    arrowTail.append(arrowTailBL);
+    arrowTail.append(arrowTailTL);
 
 
 
-    //Find our current Visible Parent
+    QPointF xOffset = QPointF((-dstArrowSideFlip) * arrowHeight, 0);
+    QPointF arrowHeadTL = edgeDst + xOffset -  QPointF(0, (arrowHeight / 2));
+    QPointF arrowHeadMR = edgeDst + xOffset + (dstArrowSideFlip * QPointF(arrowHeight, 0));
+    QPointF arrowHeadBL = edgeDst + xOffset + QPointF(0, (arrowHeight / 2));
+    arrowHead.clear();
+    arrowHead.append(arrowHeadTL);
+    arrowHead.append(arrowHeadMR);
+    arrowHead.append(arrowHeadBL);
+    arrowHead.append(arrowHeadTL);
+
+
+    arrowHeadMR = mapFromScene(arrowHeadMR + xOffset);
+    arrowTailMR = mapFromScene(arrowTailMR);
+
+
+    qreal arrowEndWidth = ARROW_TAIL_LENGTH * visibleDst->minimumVisibleRect().height();
+    QPointF arrowTailEnd = arrowTailMR + QPointF((srcArrowSideFlip) * arrowEndWidth, 0);
+
+    QPointF arrowHeadEnd = arrowHeadMR + QPointF((-dstArrowSideFlip) * arrowEndWidth, 0);
+
+    QPointF headPoint = QPointF(arrowTailEnd.x(), 0);
+    QPointF tailPoint = QPointF(arrowHeadEnd.x(), 0);
+
+    lineItems[0]->setLine(QLineF(arrowTailMR, arrowTailEnd));
+    lineItems[1]->setLine(QLineF(arrowTailEnd, headPoint));
+    lineItems[2]->setLine(QLineF(headPoint, QPointF(-circleRadius,0)));
+    lineItems[3]->setLine(QLineF(QPointF(circleRadius,0), tailPoint));
+    lineItems[4]->setLine(QLineF(tailPoint, arrowHeadEnd));
+    lineItems[5]->setLine(QLineF(arrowHeadEnd, arrowHeadMR));
+
 
     if(!hasMovedFromCenter){
         resetEdgeCenter(visibleSrc, visibleDst);
         //Recalulate
     }
-    setZValue(qMax(visibleSrc->zValue(), visibleDst->zValue()) +1);
+    setZValue(1000);
 
     forceVisible(true);
+    prepareGeometryChange();
 }

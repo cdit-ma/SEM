@@ -333,7 +333,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     file_importGraphML = file_menu->addAction(QIcon(":/Resources/Icons/import.png"), "Import GraphML");
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_exportGraphML = file_menu->addAction(QIcon(":/Resources/Icons/export.png"), "Export GraphML");
-    file_exportGraphMLSnippet = file_menu->addAction(QIcon(":/Resources/Icons/snippet.png"), "Export GraphML Snippet");
+    //file_exportGraphMLSnippet = file_menu->addAction(QIcon(":/Resources/Icons/snippet.png"), "Export GraphML Snippet");
     file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     file_menu->addSeparator();
 
@@ -1011,6 +1011,9 @@ void MedeaWindow::makeConnections()
 {
     validateResults.connectToWindow(this);
 
+    connect(nodeView, SIGNAL(view_ImportSnippet(QString)), this, SLOT(importSnippet(QString)));
+
+    connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
     connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
     connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setViewAspects(QStringList)));
     connect(nodeView, SIGNAL(view_updateGoToMenuActions(QString,bool)), this, SLOT(setGoToMenuActions(QString,bool)));
@@ -1831,7 +1834,7 @@ void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLDat
         QString exportName = QFileDialog::getSaveFileName(this,
                                                         "Export " + parentName+ ".snippet",
                                                         "",
-                                                        "GraphML " + parentName + " Snippit (*." + parentName+ ".snippet)");
+                                                        "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)");
 
         if (exportName == "") {
             return;
@@ -1858,6 +1861,34 @@ void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLDat
     }catch(...){
         QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
     }
+}
+
+void MedeaWindow::importSnippet(QString parentName)
+{
+
+    QString snippetFileName = QFileDialog::getOpenFileName(
+                this,
+                "Import " + parentName+ ".snippet",
+                "",
+                "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)");
+
+
+    QFile file(snippetFileName);
+
+    bool fileOpened = file.open(QFile::ReadOnly | QFile::Text);
+
+    if (!fileOpened) {
+        QMessageBox::critical(this, "File Error", "Unable to open file: '" + snippetFileName + "'! Check Permissions and Try Again!", QMessageBox::Ok);
+        return;
+    }
+
+    QTextStream fileStream(&file);
+    QString snippetFileData = fileStream.readAll();
+    file.close();
+
+    QFileInfo fileInfo(file.fileName());
+
+    window_ImportSnippet(fileInfo.fileName(), snippetFileData);
 }
 
 

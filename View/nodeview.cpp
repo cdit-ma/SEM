@@ -94,8 +94,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     allAspects << "Definitions";
     allAspects << "Workload";
 
-    //defaultAspects << "Definitions";
-    defaultAspects << "Assembly";
+    defaultAspects << "Definitions";
+    //defaultAspects << "Assembly";
     //defaultAspects << "Hardware";
 
     nonDrawnItemKinds << "DeploymentDefinitions";
@@ -542,7 +542,7 @@ void NodeView::exportSnippet()
 
 void NodeView::importSnippet(QString fileName, QString fileData)
 {
-    view_ImportSnippet(selectedIDs, fileName, fileData);
+    view_ImportedSnippet(selectedIDs, fileName, fileData);
 }
 
 void NodeView::minimapPressed(QMouseEvent *event)
@@ -1803,9 +1803,19 @@ void NodeView::updateActionsEnabled(Node* selectedNode)
         hasImpl = hasImplementation(selectedNode);
     }
 
+    bool canExport = false;
+    bool canImport = false;
     // update snippet toolbar buttons
-    toolbar->showSnippetButton("export", true);
-    toolbar->showSnippetButton("import", true);
+    if(this->controller){
+        if(controller->canExportSnippet(selectedIDs)){
+            canExport = true;
+        }
+        if(controller->canImportSnippet(selectedIDs)){
+            canImport = true;
+        }
+    }
+    toolbar->showSnippetButton("export", canExport);
+    toolbar->showSnippetButton("import", canImport);
 
     // update goto toolbar buttons
     toolbar->showDefinitionButton(hasDefn);
@@ -2475,9 +2485,9 @@ void NodeView::appendToSelection(GraphMLItem *item)
     setGraphMLItemSelected(item, true);
 
     // when an item is selected, do we want to fit it in the view?
-    if (!item->getGraphML()->getDataValue("kind").endsWith("Definitions") ) {
-        keepSelectionFullyVisible(item);
-    }
+    //if (!item->getGraphML()->getDataValue("kind").endsWith("Definitions") ) {
+    //    keepSelectionFullyVisible(item);
+    //}
 }
 
 void NodeView::removeFromSelection(GraphMLItem *item)

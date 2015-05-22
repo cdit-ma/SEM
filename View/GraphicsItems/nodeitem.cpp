@@ -172,43 +172,41 @@ NodeItem::~NodeItem()
  * @param RIGHT
  * @return The index of the
  */
-void NodeItem::setVisibleParentForEdgeItem(EdgeItem *line, bool RIGHT)
+void NodeItem::setVisibleParentForEdgeItem(QString ID, bool RIGHT)
 {
     if(RIGHT){
-        qCritical() << "ADDING TO RIGHT SIDE";
-        if(!currentRightEdges.contains(line)){
-            currentRightEdges.append(line);
+        if(!currentRightEdgeIDs.contains(ID)){
+            currentRightEdgeIDs.append(ID);
         }
     }else{
-        qCritical() << "ADDING TO LEFT SIDE";
-        if(!currentLeftEdges.contains(line)){
-            currentLeftEdges.append(line);
+        if(!currentLeftEdgeIDs.contains(ID)){
+            currentLeftEdgeIDs.append(ID);
         }
     }
 }
 
-int NodeItem::getIndexOfEdgeItem(EdgeItem *line, bool RIGHT)
+int NodeItem::getIndexOfEdgeItem(QString ID, bool RIGHT)
 {
     if(RIGHT){
-        return currentRightEdges.indexOf(line);
+        return currentRightEdgeIDs.indexOf(ID);
     }else{
-        return currentLeftEdges.indexOf(line);
+        return currentLeftEdgeIDs.indexOf(ID);
     }
 }
 
 int NodeItem::getNumberOfEdgeItems(bool RIGHT)
 {
     if(RIGHT){
-        return currentRightEdges.count();
+        return currentRightEdgeIDs.count();
     }else{
-        return currentLeftEdges.count();
+        return currentLeftEdgeIDs.count();
     }
 }
 
-void NodeItem::removeVisibleParentForEdgeItem(EdgeItem *line)
+void NodeItem::removeVisibleParentForEdgeItem(QString ID)
 {
-    currentRightEdges.removeAll(line);
-    currentLeftEdges.removeAll(line);
+    currentRightEdgeIDs.removeAll(ID);
+    currentLeftEdgeIDs.removeAll(ID);
 }
 
 
@@ -797,7 +795,7 @@ void NodeItem::addEdgeItem(EdgeItem *line)
 void NodeItem::removeEdgeItem(EdgeItem *line)
 {
     connections.removeAll(line);
-    nodeItemMoved();
+    //nodeItemMoved();
 }
 
 
@@ -1040,21 +1038,6 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
 
 
 
-
-void NodeItem::setOpacity(qreal opacity)
-{
-    QGraphicsItem::setOpacity(opacity);
-    emit updateOpacity(opacity);
-
-    foreach(EdgeItem* edge, connections){
-        if(edge->getSource()->opacity() != 0 && edge->getDestination()->opacity() != 0){
-
-            edge->setOpacity(opacity);
-        }else{
-            edge->setOpacity(0);
-        }
-    }
-}
 
 
 /**

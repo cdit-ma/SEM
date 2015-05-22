@@ -23,8 +23,6 @@ public:
     QString getID();
 
     virtual void setSelected(bool selected) = 0;
-    virtual void setOpacity(qreal opacity) = 0;
-
 public slots:
     virtual void graphMLDataChanged(GraphMLData*) = 0;
     virtual void aspectsChanged(QStringList aspects) = 0;

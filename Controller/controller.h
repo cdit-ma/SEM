@@ -155,6 +155,7 @@ private slots:
 
 
 private:
+    Node* getSingleNode(QStringList IDs);
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
 
@@ -317,6 +318,7 @@ private:
     //Used to tell if we are currently Undo-ing/Redo-ing in the system.
     bool UNDOING;
     bool REDOING;
+    bool IMPORTING_SNIPPET;
 
     Model* model;
 

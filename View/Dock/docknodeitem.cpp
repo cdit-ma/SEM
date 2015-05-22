@@ -254,7 +254,6 @@ void DockNodeItem::setupLayout()
 void DockNodeItem::connectToNodeItem()
 {
     connect(nodeItem, SIGNAL(updateDockNodeItem()), this, SLOT(updateData()));
-    connect(nodeItem, SIGNAL(updateOpacity(qreal)), this, SLOT(setOpacity(qreal)));
     connect(nodeItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
 }
 

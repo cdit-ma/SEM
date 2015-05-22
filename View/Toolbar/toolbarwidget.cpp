@@ -246,7 +246,10 @@ void ToolbarWidget::exportGraphMLSnippet()
  */
 void ToolbarWidget::importGraphMLSnippet()
 {
-
+    Node* parentNode = nodeView->getSelectedNode();
+    if(parentNode){
+        nodeView->view_ImportSnippet(parentNode->getDataValue("kind"));
+    }
 }
 
 
