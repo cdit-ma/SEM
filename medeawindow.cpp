@@ -332,8 +332,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
     file_importGraphML = file_menu->addAction(QIcon(":/Resources/Icons/import.png"), "Import GraphML");
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
-    file_importGraphMLSnippet = file_menu->addAction(QIcon(":/Resources/Icons/snippet.png"), "Import GraphML Snippet");
     file_exportGraphML = file_menu->addAction(QIcon(":/Resources/Icons/export.png"), "Export GraphML");
+    file_exportGraphMLSnippet = file_menu->addAction(QIcon(":/Resources/Icons/snippet.png"), "Export GraphML Snippet");
     file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     file_menu->addSeparator();
 

@@ -187,7 +187,7 @@ private:
     QAction* exit;
     QAction* file_newProject;
     QAction* file_importGraphML;
-    QAction* file_importGraphMLSnippet;
+    QAction* file_exportGraphMLSnippet;
     QAction* file_exportGraphML;
     QAction* file_importJenkinsNodes;
     QAction* edit_undo;
