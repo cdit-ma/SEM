@@ -1803,8 +1803,9 @@ void NodeView::updateActionsEnabled(Node* selectedNode)
         hasImpl = hasImplementation(selectedNode);
     }
 
-    // update export snippet toolbar button
-    toolbar->showExportSnippetButton(false);
+    // update snippet toolbar buttons
+    toolbar->showSnippetButton("export", true);
+    toolbar->showSnippetButton("import", true);
 
     // update goto toolbar buttons
     toolbar->showDefinitionButton(hasDefn);

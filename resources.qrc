@@ -98,8 +98,9 @@
         <file>Resources/Icons/grid.png</file>
         <file>Resources/Icons/back.png</file>
         <file>Resources/Icons/forward.png</file>
-        <file>Resources/Icons/snippet.png</file>
         <file>Resources/Icons/menu_up_arrow.png</file>
         <file>Resources/Icons/delete.png</file>
+        <file>Resources/Icons/exportSnippet.png</file>
+        <file>Resources/Icons/importSnippet.png</file>
     </qresource>
 </RCC>

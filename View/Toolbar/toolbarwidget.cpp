@@ -21,6 +21,7 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     implementationNode = 0;
 
     eventFromToolbar = false;
+    showSnippetFrame = false;
     showGoToFrame = false;
 
     setAttribute(Qt::WA_TranslucentBackground);
@@ -110,12 +111,19 @@ void ToolbarWidget::showImplementationButton(Node* implementation)
 /**
  * @brief ToolbarWidget::showExportSnippetButton
  * This shows/hides the export GraphML snippet button and its separator frame.
+ * @param button
  * @param show
  */
-void ToolbarWidget::showExportSnippetButton(bool show)
+void ToolbarWidget::showSnippetButton(QString button, bool show)
 {
-    exportSnippetButton->setVisible(show);
-    snippetFrame->setVisible(show);
+    if (button == "export") {
+        exportSnippetButton->setVisible(show);
+    } else if (button == "import") {
+        importSnippetButton->setVisible(show);
+    }
+    if (show) {
+        showSnippetFrame = true;
+    }
 }
 
 
@@ -311,6 +319,7 @@ void ToolbarWidget::setupToolBar()
     alignVerticallyButton = new QToolButton(this);
     alignHorizontallyButton = new QToolButton(this);
     exportSnippetButton = new QToolButton(this);
+    importSnippetButton = new QToolButton(this);
 
     addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode.png"));
     connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
@@ -322,7 +331,8 @@ void ToolbarWidget::setupToolBar()
     instancesButton->setIcon(QIcon(":/Resources/Icons/instance.png"));
     alignVerticallyButton->setIcon(QIcon(":/Resources/Icons/alignVertically.png"));
     alignHorizontallyButton->setIcon(QIcon(":/Resources/Icons/alignHorizontally.png"));
-    exportSnippetButton->setIcon(QIcon(":/Resources/Icons/snippet.png"));
+    exportSnippetButton->setIcon(QIcon(":/Resources/Icons/exportSnippet.png"));
+    importSnippetButton->setIcon(QIcon(":/Resources/Icons/importSnippet.png"));
 
     deleteButton->setStyleSheet("padding-right: 3px;");
 
@@ -337,6 +347,7 @@ void ToolbarWidget::setupToolBar()
     alignVerticallyButton->setFixedSize(buttonSize);
     alignHorizontallyButton->setFixedSize(buttonSize);
     exportSnippetButton->setFixedSize(buttonSize);
+    importSnippetButton->setFixedSize(buttonSize);
 
     addChildButton->setIconSize(buttonSize*0.6);
     connectButton->setIconSize(buttonSize*0.6);
@@ -349,6 +360,7 @@ void ToolbarWidget::setupToolBar()
     alignVerticallyButton->setIconSize(buttonSize*0.8);
     alignHorizontallyButton->setIconSize(buttonSize*0.8);
     exportSnippetButton->setIconSize(buttonSize*0.65);
+    importSnippetButton->setIconSize(buttonSize*0.65);
 
     addChildButton->setToolTip("Add Child Entity");
     connectButton->setToolTip("Connect Entity");
@@ -361,6 +373,7 @@ void ToolbarWidget::setupToolBar()
     alignVerticallyButton->setToolTip("Align Selection Vertically");
     alignHorizontallyButton->setToolTip("Align Selection Horizontally");
     exportSnippetButton->setToolTip("Export GraphML Snippet");
+    importSnippetButton->setToolTip("Import GraphML Snippet");
 
     snippetFrame = new QFrame();
     snippetFrame->setFrameShape(QFrame::VLine);
@@ -381,6 +394,7 @@ void ToolbarWidget::setupToolBar()
     layout->addWidget(alignHorizontallyButton);
     layout->addWidget(snippetFrame);
     layout->addWidget(exportSnippetButton);
+    layout->addWidget(importSnippetButton);
     layout->addWidget(goToFrame);
     layout->addWidget(definitionButton);
     layout->addWidget(implementationButton);
@@ -528,6 +542,10 @@ void ToolbarWidget::updateToolButtons()
         showConnectionsButton->hide();
         alterViewFrame->hide(); // DEMO CHANGE
     }
+
+    // show frame if any of the snippet buttons are visible
+    snippetFrame->setVisible(showSnippetFrame);
+    showSnippetFrame = false;
 
     // show frame if any of the goto buttons are visible
     goToFrame->setVisible(showGoToFrame);

@@ -26,7 +26,7 @@ public:
     void showDefinitionButton(Node *definition);
     void showImplementationButton(Node* implementation);
 
-    void showExportSnippetButton(bool show);
+    void showSnippetButton(QString button, bool show);
 
 protected:
     virtual void enterEvent(QEvent*);
@@ -95,6 +95,7 @@ private:
     QToolButton* alignHorizontallyButton;
 
     QToolButton* exportSnippetButton;
+    QToolButton* importSnippetButton;
 
     ToolbarWidgetAction* componentImplAction;
     ToolbarWidgetAction* componentInstanceAction;
@@ -127,6 +128,7 @@ private:
     QFrame* goToFrame;
 
     bool eventFromToolbar;
+    bool showSnippetFrame;
     bool showGoToFrame;
 
 };
