@@ -42,7 +42,9 @@ public slots:
     void addConnectedNode();
 
     void makeNewView();
+
     void exportGraphMLSnippet();
+    void importGraphMLSnippet();
 
     void attachOptionMenu();
 
