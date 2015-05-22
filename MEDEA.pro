@@ -89,7 +89,8 @@ HEADERS += \
     GUI/searchitembutton.h \
     View/Validate/validatedialog.h \
     View/Toolbar/toolbarwidgetbutton.h \
-	Model/InterfaceDefinitions/idl.h
+	Model/InterfaceDefinitions/idl.h \
+    GUI/aspecttogglewidget.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -160,7 +161,8 @@ SOURCES += \
     GUI/searchitembutton.cpp \
     View/Validate/validatedialog.cpp \
     View/Toolbar/toolbarwidgetbutton.cpp \
-	Model/InterfaceDefinitions/idl.cpp
+	Model/InterfaceDefinitions/idl.cpp \
+    GUI/aspecttogglewidget.cpp
 
 FORMS += \
 
