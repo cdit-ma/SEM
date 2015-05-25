@@ -1377,7 +1377,7 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
         // needed to change it to this other wise you can't center
         // the aspects by double clicking on the model
-        if(!PAINT_OBJECT) { // && !modelCirclePressed(event->pos())){
+        if(!PAINT_OBJECT  && !modelCirclePressed(event->pos())){
             GraphMLItem_CenterAspects();
             return;
         }
@@ -1763,8 +1763,8 @@ void NodeItem::updateTextLabel(QString newLabel)
     if(nodeKind != "Model"){
         textItem->setTextWidth(width);
     }else{
-        //textItem->setTextWidth(getItemMargin() * 2);
-        return;
+        textItem->setTextWidth(getItemMargin());
+        //return;
     }
 
     if (newLabel != "") {
@@ -2173,7 +2173,7 @@ void NodeItem::setupLabel()
 
     if(nodeKind == "Model"){
         textItem->setCenterJustified();
-        textItem->setTextWidth(getItemMargin() * 2);
+        textItem->setTextWidth(getItemMargin());
     } else {
         textItem->setToolTip("Double Click to Edit Label");
     }
