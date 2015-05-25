@@ -306,8 +306,6 @@ void NodeView::adjustModelPosition(QPointF delta)
             //Translate
             edge->adjustPos(delta);
         }
-        qCritical() << "Model Position: " << getModelItem()->pos();
-        qCritical() << "Model Position SP: " << getModelItem()->scenePos();
     }
 }
 
