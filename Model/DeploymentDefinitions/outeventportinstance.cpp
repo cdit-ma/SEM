@@ -64,8 +64,8 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
            if(!oEP){
 #ifdef DEBUG_MODE
                qWarning() << "OutEventPortInstance cannot be connected to a Delegate until it has a Definition.";
-               return false;
 #endif
+               return false;
            }
            if(!oEP->getAggregate()){
 #ifdef DEBUG_MODE

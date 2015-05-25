@@ -293,11 +293,14 @@ private:
     NodeItem* getModelItem();
     QPointF getModelScenePos();
 
+    void adjustModelPosition(QPointF delta);
+
     int getMapSize();
     void addToMaps(QPointF modelPos, QRectF centeredRect);
     void clearMaps(int fromKey = 0);
 
     QList<NodeItem*> getNodeItemsList();
+    QList<EdgeItem*> getEdgeItemsList();
 
     bool allowedFocus(QWidget* widget);
 

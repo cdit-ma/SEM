@@ -240,10 +240,8 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap, double siz
 void NodeView::centerViewOn(QPointF center)
 {
     QPointF deltaPos = getVisibleRect().center() - center;
-    if (getModelItem()) {
-        getModelItem()->adjustPos(deltaPos);
-        updateViewCenterPoint();
-    }
+    adjustModelPosition(deltaPos);
+    updateViewCenterPoint();
 }
 
 
@@ -260,10 +258,9 @@ void NodeView::recenterView(QPointF modelPos, QRectF centeredRect, bool addToMap
     QPointF prevDeltaPos = getVisibleRect().center() - modelPos;
     QPointF currentDeltaPos = getVisibleRect().center() - getModelScenePos();
     QPointF deltaPos = currentDeltaPos - prevDeltaPos;
-    if (getModelItem()) {
-        getModelItem()->adjustPos(deltaPos);
-        updateViewCenterPoint();
-    }
+
+    adjustModelPosition(deltaPos);
+    updateViewCenterPoint();
 
     // after translating the model, zoom to fit on the rect
     centerRect(centeredRect, 0, addToMap);
@@ -294,6 +291,24 @@ QPointF NodeView::getModelScenePos()
     }
     qWarning() << "NodeView::getModelScenePos - There is no model item.";
     return QPointF();
+}
+
+/**
+ * @brief NodeView::adjustModelPosition When the model position is changed, we need to translate all of the edges.
+ * @param delta
+ */
+void NodeView::adjustModelPosition(QPointF delta)
+{
+    if(getModelItem()){
+        getModelItem()->adjustPos(delta);
+
+        foreach(EdgeItem* edge, getEdgeItemsList()){
+            //Translate
+            edge->adjustPos(delta);
+        }
+        qCritical() << "Model Position: " << getModelItem()->pos();
+        qCritical() << "Model Position SP: " << getModelItem()->scenePos();
+    }
 }
 
 
@@ -355,6 +370,17 @@ QList<NodeItem*> NodeView::getNodeItemsList()
         }
     }
     return nodeItems;
+}
+
+QList<EdgeItem *> NodeView::getEdgeItemsList()
+{
+    QList<EdgeItem*> edgeItems;
+    foreach (GraphMLItem* item, guiItems) {
+        if (item->isEdgeItem()) {
+            edgeItems.append((EdgeItem*)item);
+        }
+    }
+    return edgeItems;
 }
 
 
@@ -686,6 +712,7 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
         fitToScreen();
     }
 
+
     // only need to clear the selection if any of the selected items is now not in aspect
     foreach (QString id, selectedIDs) {
         NodeItem* item = (NodeItem*)guiItems[id];
@@ -694,6 +721,8 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
             break;
         }
     }
+
+
 }
 
 
@@ -1172,6 +1201,19 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 
     if(srcGUI != 0 && dstGUI != 0){
         //We have valid GUI elements for both ends of this edge.
+        bool constructEdge = true;
+
+        if(edge->isAggregateLink() || edge->isDeploymentLink() || edge->isInstanceLink() || edge->isImplLink()){
+            constructEdge = false;
+        }
+
+        if(edge->isAssemblyLink() || edge->isDelegateLink() || edge->isComponentLink()){
+            constructEdge = true;
+        }
+
+        if(!constructEdge){
+            return;
+        }
 
         //Construct a new GUI Element for this edge.
         EdgeItem* nodeEdge = new EdgeItem(edge, srcGUI, dstGUI);
@@ -1190,11 +1232,15 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
             }
         }
 
-
-        if(!scene()->items().contains(nodeEdge)){
-            //Add to model.
-            scene()->addItem(nodeEdge);
+        //Add to model
+        NodeItem* model = getModelItem();
+        if(model && !model->childItems().contains(nodeEdge)){
+            nodeEdge->setParentItem(model);
         }
+        //if(!scene()->items().contains(nodeEdge)){
+         //   //Add to model.
+        //    scene()->addItem(nodeEdge);
+        //}
 
         // send necessary signals when an edge has been constucted
         edgeConstructed_signalUpdates(edge);
@@ -1544,7 +1590,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
             connect(GUIItem, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_PositionSizeChanged(GraphMLItem*,bool)), this, SLOT(keepSelectionFullyVisible(GraphMLItem*,bool)));
             //connect(GUIItem, SIGNAL(GraphMLItem_MovedOutOfScene(GraphMLItem*)), this, SLOT(fitInSceneRect(GraphMLItem*)));
-            connect(this, SIGNAL(view_AspectsChanged(QStringList)), GUIItem, SLOT(aspectsChanged(QStringList)));
+
         }
 
         if(!IS_SUB_VIEW){
@@ -1557,6 +1603,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
             connect(GUIItem, SIGNAL(GraphMLItem_CenterAspects()), this, SLOT(fitToScreen()));
 
             if(nodeItem){
+                connect(this, SIGNAL(view_AspectsChanged(QStringList)), nodeItem, SLOT(aspectsChanged(QStringList)));
                 connect(nodeItem, SIGNAL(NodeItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
                 connect(nodeItem, SIGNAL(NodeItem_ResizeSelection(QSizeF)), this, SLOT(resizeSelection(QSizeF)));
                 connect(nodeItem, SIGNAL(NodeItem_SortModel()), this, SLOT(sortModel()));
@@ -1674,7 +1721,8 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
     emit view_nodeConstructed(nodeItem);
 
     // send specific current view states to the newly constaructed node item
-    emit view_AspectsChanged(currentAspects);
+    //view_AspectsChanged(currentAspects);
+    nodeItem->aspectsChanged(currentAspects);
     emit view_toggleGridLines(GRID_LINES_ON);
 
     // snap node item to its parent's grid

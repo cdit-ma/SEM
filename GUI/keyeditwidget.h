@@ -21,6 +21,8 @@ public slots:
 
 private:
     QString keyName;
+    QString hrKeyName;
+
     QString groupName;
     QString newValue;
 

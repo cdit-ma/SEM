@@ -766,7 +766,7 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
     if(name == "type"){
         QStringList validValues;
         QStringList keysValues;
-        keysValues << "Attribute" << "Member";
+        keysValues << "Attribute" << "Member" << "Variable";
         validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger" << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber" << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
         attribute->appendValidValues(validValues, keysValues);
     }
@@ -774,7 +774,7 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         QStringList validValues;
         QStringList keysValues;
         keysValues << "Model";
-        validValues << "tao" << "rtidds" << "opensplice" << "coredx" << "tcpip";
+        validValues << "tao" << "rtidds" << "opensplice" << "coredx" << "tcpip" << "qpidpb" ;
         attribute->appendValidValues(validValues, keysValues);
     }
 
@@ -782,6 +782,14 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         QStringList validValues;
         validValues << "true" << "false";
         attribute->appendValidValues(validValues);
+    }
+
+    if (name == "actionOn") {
+        QStringList validValues;
+        QStringList keysValues;
+        keysValues << "Process";
+        validValues << "Activate" << "Preprocess" << "Mainprocess" << "Postprocess" << "Passivate";
+        attribute->appendValidValues(validValues, keysValues);
     }
 
     connect(attribute, SIGNAL(model_DialogMessage(QString,QString,GraphML*)), this, SLOT(dialogMessage(QString,QString,GraphML*)));

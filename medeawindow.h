@@ -78,6 +78,7 @@ public slots:
     void aspectToggleClicked(bool checked, int state);
 
 private slots:
+
     void loadSettings();
     void saveSettings();
 

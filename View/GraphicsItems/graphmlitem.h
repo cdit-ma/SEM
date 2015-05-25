@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QGraphicsItem>
 #include "../../Model/graphml.h"
-
+#include "../../Model/graphmldata.h"
 
 class AttributeTableModel;
 class GraphMLItem: public QObject, public QGraphicsItem
@@ -25,7 +25,6 @@ public:
     virtual void setSelected(bool selected) = 0;
 public slots:
     virtual void graphMLDataChanged(GraphMLData*) = 0;
-    virtual void aspectsChanged(QStringList aspects) = 0;
 
 signals:
     void GraphMLItem_TriggerAction(QString actionName);

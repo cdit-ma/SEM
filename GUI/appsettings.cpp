@@ -21,11 +21,12 @@ QSettings* AppSettings::getSettings()
     return settings;
 }
 
-void AppSettings::settingChanged(QString g , QString n , QString v)
+void AppSettings::settingUpdated(QString g , QString n , QString v)
 {
     settings->beginGroup(g);
-     settings->setValue(n,v);
-     settings->endGroup();
+    settings->setValue(n,v);
+    settings->endGroup();
+    settingChanged(g,n,v);
 }
 
 
@@ -33,7 +34,6 @@ void AppSettings::launchSettingsUI()
 {
     QWidget* settingsGui = new QWidget(0);
     //QWidget* settingsGui = new QWidget((QWidget*)parent());
-
 
 
     QVBoxLayout *settingsLayout = new QVBoxLayout();
@@ -53,7 +53,7 @@ void AppSettings::launchSettingsUI()
 
         foreach(QString key, settings->childKeys()){
             KeyEditWidget* keyEdit = new KeyEditWidget(0,group, key, settings->value(key));
-            connect(keyEdit, SIGNAL(valueChanged(QString,QString,QString)), this, SLOT(settingChanged(QString,QString,QString)));
+            connect(keyEdit, SIGNAL(valueChanged(QString,QString,QString)), this, SLOT(settingUpdated(QString,QString,QString)));
             groupLayout->addLayout(keyEdit->getLayout());
         }
         settings->endGroup();

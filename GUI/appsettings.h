@@ -13,22 +13,15 @@ public:
     AppSettings(QString applicationPath, QWidget* parent);
     QSettings* getSettings();
 
-
-
+signals:
+    void settingChanged(QString settingGroup, QString settingName, QString settingValue);
 public slots:
-    void settingChanged(QString, QString, QString);
+    void settingUpdated(QString, QString, QString);
     void launchSettingsUI();
     void updateSetting();
 
 private:
     QSettings* settings;
-
-
-
-
-
-
-
 };
 
 

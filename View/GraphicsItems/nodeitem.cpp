@@ -779,12 +779,13 @@ double NodeItem::getHeight()
 
 void NodeItem::addEdgeItem(EdgeItem *line)
 {
-    connect(this, SIGNAL(nodeItemMoved()), line, SLOT(updateEdge()));
     NodeItem* item = this;
     while(item){
         //Connect the Visibility of the edges of this node, so that if this node's parent was to be set invisbile, we any edges would be invisible.
         connect(item, SIGNAL(setEdgesVisibility(bool)), line, SLOT(setVisible(bool)));
+        connect(item, SIGNAL(nodeItemMoved()), line, SLOT(updateEdge()));
         item = dynamic_cast<NodeItem*>(item->parentItem());
+
     }
     connect(this, SIGNAL(setEdgesSelected(bool)), line, SLOT(setSelected(bool)));
 
@@ -818,6 +819,7 @@ QPointF NodeItem::centerPos()
 void NodeItem::adjustPos(QPointF delta)
 {
     setLocked(false);
+
     QPointF currentPos = pos();
     currentPos += delta;
     //hasSelectionMoved = true;
@@ -1969,6 +1971,7 @@ void NodeItem::setPos(const QPointF &pos)
         updateChildrenOnChange();
         updateParent();
 
+
         //if (!parentView->sceneRect().contains(scenePos()) ||
         //        !parentView->sceneRect().contains(scenePos().x()+width, scenePos().y()+height)) {
         //    GraphMLItem_MovedOutOfScene(this);
@@ -2038,21 +2041,27 @@ void NodeItem::updateParentModel()
 }
 
 
-void NodeItem::aspectsChanged(QStringList aspects)
+void NodeItem::aspectsChanged(QStringList visibleAspects)
 {
-    currentViewAspects = aspects;
-
     if(hidden || !PAINT_OBJECT){
         return;
     }
 
-    if(this->getParentNodeItem() && !getParentNodeItem()->isExpanded()){
+    if(getParentNodeItem() && !getParentNodeItem()->isExpanded()){
         return;
     }
 
+    bool visible = true;
+    foreach(QString requiredAspect, viewAspects){
+        if(!visibleAspects.contains(requiredAspect)){
+            visible = false;
+        }
+    }
+    isNodeInAspect = visible;
+
     //bool prevVisible = isVisible();
 
-    setVisible(isInAspect());
+    setVisible(visible);
 
     /*
     // if the view aspects have been changed, update pos of edges
@@ -2430,12 +2439,18 @@ void NodeItem::setGraphicsView(QGraphicsView *view)
     parentView = view;
 }
 
+bool NodeItem::isInAspect()
+{
+    return isNodeInAspect;
+}
+
 
 /**
  * @brief NodeItem::isInAspect
  * This returns whether this node item is in the currently viewed aspects or not.
  * @return
  */
+/*
 bool NodeItem::isInAspect()
 {
     // if this node item doesn't belong to any view aspects,
@@ -2447,7 +2462,9 @@ bool NodeItem::isInAspect()
     // otherwise, check the list of currently viewed aspects to see if it contains
     // all of the aspects that need to be turned on for this item to be visible
     bool inAspect = true;
-    foreach(QString aspect, viewAspects){
+
+    for(int i = 0; i < viewAspects.size();i++){
+        QString aspect = viewAspects[i];
         if(!currentViewAspects.contains(aspect)){
             inAspect = false;
             break;
@@ -2456,6 +2473,7 @@ bool NodeItem::isInAspect()
 
     return inAspect;
 }
+*/
 /**
  * @brief NodeItem::getLockMenu
  * @return

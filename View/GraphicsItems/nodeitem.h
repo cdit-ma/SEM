@@ -273,7 +273,7 @@ private:
 
     NodeItem* parentNodeItem;
     QStringList viewAspects;
-    QStringList currentViewAspects;
+    //QStringList currentViewAspects;
 
     QGraphicsPixmapItem* icon;
     QGraphicsPixmapItem* lockIcon;
@@ -294,6 +294,7 @@ private:
     bool isInSubView;
     bool isNodeCentralized;
     bool isNodeSorted;
+    bool isNodeInAspect;
 
     bool isNodeOnGrid;
 

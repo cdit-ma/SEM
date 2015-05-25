@@ -12,12 +12,16 @@ KeyEditWidget::KeyEditWidget(QObject *parent, QString g, QString k, QVariant v)
 {
     groupName = g;
     keyName = k;
+    hrKeyName = keyName;
+
+    hrKeyName = hrKeyName.replace("_", " ");
+
 
 
     horizontalLayout = new QHBoxLayout();
 
 
-    QLabel* keyLabel = new QLabel(keyName);
+    QLabel* keyLabel = new QLabel(hrKeyName);
     horizontalLayout->addWidget(keyLabel);
 
 
@@ -90,6 +94,4 @@ void KeyEditWidget::_valueChanged(QString value)
 {
     newValue = value;
     valueChanged(groupName, keyName, newValue);
-
-
 }
