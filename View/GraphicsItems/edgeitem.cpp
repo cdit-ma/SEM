@@ -298,7 +298,7 @@ void EdgeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         }
 
         QPointF delta = event->scenePos() - previousScenePosition;
-        moveBy(delta.x(),delta.y());
+        //moveBy(delta.x(),delta.y());
         previousScenePosition = event->scenePos();
 
         CENTER_MOVED = true;
