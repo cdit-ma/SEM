@@ -32,7 +32,7 @@ void AppSettings::settingChanged(QString g , QString n , QString v)
 void AppSettings::launchSettingsUI()
 {
     QWidget* settingsGui = new QWidget(0);
-
+    //QWidget* settingsGui = new QWidget((QWidget*)parent());
 
 
 

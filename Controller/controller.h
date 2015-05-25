@@ -121,7 +121,7 @@ public slots:
   void exportGraphMLDocument();
 
   // moved to public so that NodeView can access it
-  void clearModel();
+  bool clearModel();
 
 
 

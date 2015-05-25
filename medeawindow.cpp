@@ -104,7 +104,6 @@ void MedeaWindow::initialiseGUI()
     projectName = new QPushButton("Model");
 
     // set central widget and window size
-    setWindowIcon(QIcon(":/Resources/Icons/medea.png"));
     setCentralWidget(nodeView);
     setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
@@ -232,10 +231,10 @@ void MedeaWindow::initialiseGUI()
 
     topHLayout->setMargin(0);
     topHLayout->setSpacing(0);
-    topHLayout->addWidget(titleToolbarBox);
-    topHLayout->addStretch(1);
-    topHLayout->addLayout(toolbarContainerLayout);
-    topHLayout->addStretch(1);
+    topHLayout->addWidget(titleToolbarBox, 1);
+    topHLayout->addStretch(5);
+    topHLayout->addLayout(toolbarContainerLayout, 1);
+    topHLayout->addStretch(4);
 
     leftVlayout->setMargin(0);
     leftVlayout->setSpacing(0);
@@ -300,7 +299,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_menu = menu->addMenu(QIcon(":/Resources/Icons/model.png"), "Model");
     menu->addSeparator();
     settings_Menu = menu->addMenu(QIcon(":/Resources/Icons/settings.png"), "Settings");
-    exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Exit");
+    exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Quit Medea");
 
     menu->setFont(guiFont);
     file_menu->setFont(guiFont);
@@ -312,12 +311,12 @@ void MedeaWindow::setupMenu(QPushButton *button)
     file_newProject = file_menu->addAction(QIcon(":/Resources/Icons/new_project.png"), "New Project");
     file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
     file_menu->addSeparator();
-    file_importGraphML = file_menu->addAction(QIcon(":/Resources/Icons/import.png"), "Import GraphML");
-    file_importGraphMLSnippet = file_menu->addAction(QIcon(":/Resources/Icons/importSnippet.png"), "Import GraphML Snippet");
+    file_importGraphML = file_menu->addAction(QIcon(":/Resources/Icons/import.png"), "Import");
+    file_importSnippet = file_menu->addAction(QIcon(":/Resources/Icons/importSnippet.png"), "Import Snippet");
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_menu->addSeparator();
-    file_exportGraphML = file_menu->addAction(QIcon(":/Resources/Icons/export.png"), "Export GraphML");
-    file_exportGraphMLSnippet = file_menu->addAction(QIcon(":/Resources/Icons/exportSnippet.png"), "Export GraphML Snippet");
+    file_exportGraphML = file_menu->addAction(QIcon(":/Resources/Icons/export.png"), "Export");
+    file_exportSnippet = file_menu->addAction(QIcon(":/Resources/Icons/exportSnippet.png"), "Export Snippet");
     file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     file_menu->addSeparator();
 
@@ -348,7 +347,9 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_snapChildrenToGrid = view_menu->addAction(QIcon(":/Resources/Icons/snapChildrenToGrid.png"), "Snap Selection's Children To Grid");
     view_menu->addSeparator();
     view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go To Definition");
+    view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
     view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go To Implementation");
+    view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
     view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "View Connections");
     view_showManagementComponents = view_menu->addAction("View Management Components");
@@ -359,10 +360,10 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
 
     settings_showGridLines = settings_Menu->addAction("Use Grid Lines");
+    settings_selectOnConstruction = settings_Menu->addAction("Select Entity On Construction");
     settings_Menu->addSeparator();
     settings_autoCenterView = settings_Menu->addAction("Automatically Center Views");
     settings_viewZoomAnchor = settings_Menu->addAction("Zoom View Under Mouse");
-    settings_selectOnConstruction = settings_Menu->addAction("Select Entity On Construction");
     settings_Menu->addSeparator();
     settings_displayDocks = settings_Menu->addAction("Display Dock");
     // DEMO CHANGE
@@ -415,10 +416,10 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
 
     partsButton = new DockToggleButton("P", this);
     hardwareNodesButton = new DockToggleButton("H", this);
-    compDefinitionsButton = new DockToggleButton("D", this);
+    definitionsButton = new DockToggleButton("D", this);
 
     partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
-    definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, compDefinitionsButton);
+    definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, definitionsButton);
     hardwareDock = new HardwareDockScrollArea("Nodes", nodeView, hardwareNodesButton);
 
     // width of the containers are fixed
@@ -441,12 +442,14 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     // set size policy for buttons
     partsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     hardwareNodesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    compDefinitionsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    definitionsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     // set keyboard shortcuts for dock buttons
+    /*
     partsButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
     hardwareNodesButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_H));
-    compDefinitionsButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+    definitionsButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
+    */
 
     // remove extra space in layouts
     dockButtonsHlayout->setMargin(0);
@@ -458,7 +461,7 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
 
     // add widgets to/and layouts
     dockButtonsHlayout->addWidget(partsButton);
-    dockButtonsHlayout->addWidget(compDefinitionsButton);
+    dockButtonsHlayout->addWidget(definitionsButton);
     dockButtonsHlayout->addWidget(hardwareNodesButton);
     dockButtonsHlayout->setAlignment(Qt::AlignHCenter);
     dockButtonsBox->setLayout(dockButtonsHlayout);
@@ -1101,7 +1104,7 @@ void MedeaWindow::makeConnections()
     connect(duplicateButton, SIGNAL(clicked()), nodeView, SLOT(duplicate()));
     connect(fitToScreenButton, SIGNAL(clicked()), nodeView, SLOT(fitToScreen()));
     connect(centerButton, SIGNAL(clicked()), nodeView, SLOT(centerOnItem()));
-    connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionCenterNode_triggered()));
+    connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionFitCenterNode_triggered()));
     connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
     connect(undoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Undo()));
     connect(redoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Redo()));
@@ -1411,7 +1414,7 @@ void MedeaWindow::loadSettings()
 
 void MedeaWindow::saveSettings()
 {
-    qCritical() << "SAVING SETTINGS";
+    //qCritical() << "SAVING SETTINGS";
     //SAVE width/height
     QSettings* settings = appSettings->getSettings();
     settings->beginGroup("MainWindow");
@@ -1464,7 +1467,8 @@ void MedeaWindow::on_actionNew_Project_triggered()
     QMessageBox::StandardButton saveProject = QMessageBox::question(this,
                                                                     "Creating A New Project",
                                                                     "Current project will be closed.\nSave changes?",
-                                                                    QMessageBox::Yes | QMessageBox::No);
+                                                                    QMessageBox::Yes | QMessageBox::No,
+                                                                    QMessageBox::Yes);
     if (saveProject == QMessageBox::Yes) {
         // if failed to export, do nothing
         if (!exportProject()) {
@@ -1543,7 +1547,7 @@ void MedeaWindow::on_actionSortNode_triggered()
         nodeView->sortNode(nodeView->getSelectedNode());
     } else {
         nodeView->sortEntireModel();
-        displayNotification("Sorted Whole Model");
+        displayNotification("Sorted entire Model.");
     }
 }
 
@@ -1614,18 +1618,18 @@ void MedeaWindow::on_actionValidate_triggered()
 
 
 /**
- * @brief MedeaWindow::on_actionCenterNode_triggered
+ * @brief MedeaWindow::on_actionFitCenterNode_triggered
  * This is called whne the centerNode tool button is triggered.
  * It zooms into and centers on the selected node.
  */
-void MedeaWindow::on_actionCenterNode_triggered()
+void MedeaWindow::on_actionFitCenterNode_triggered()
 {
     progressAction = "Centering Node";
 
     if (nodeView->getSelectedNodeItem()) {
         nodeView->centerItem(nodeView->getSelectedNodeItem());
     } else {
-        displayNotification("Select Entity To Center On");
+        displayNotification("Select entity to zoom and center on.");
     }
 }
 
@@ -1653,7 +1657,6 @@ void MedeaWindow::on_actionPaste_triggered()
     progressAction = "Pasting Data";
 
     QClipboard *clipboard = QApplication::clipboard();
-    qDebug() << "clipboard text: " << clipboard->text();
     window_PasteData(clipboard->text());
 
 }
@@ -1792,7 +1795,7 @@ void MedeaWindow::writeExportedProject(QString data)
         bool fileOpened = file.open(QIODevice::WriteOnly | QIODevice::Text);
 
         if(!fileOpened){
-            QMessageBox::critical(this, "File Error", "Unable to open file: '" + exportFileName + "'! Check Permissions and Try Again!", QMessageBox::Ok);
+            QMessageBox::critical(this, "File Error", "Unable to open file: '" + exportFileName + "'! Check permissions and try again.", QMessageBox::Ok);
             return;
         }
 
@@ -1802,7 +1805,7 @@ void MedeaWindow::writeExportedProject(QString data)
         file.close();
 
         //QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: '" + exportFileName +"'!", QMessageBox::Ok);
-        displayNotification("Successfully Exported GraphML Document");
+        displayNotification("Successfully exported GraphML document.");
 
     }catch(...){
         QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
@@ -1831,7 +1834,7 @@ void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLDat
         bool fileOpened = file.open(QIODevice::WriteOnly | QIODevice::Text);
 
         if(!fileOpened){
-            QMessageBox::critical(this, "File Error", "Unable to open file: '" + exportName + "'! Check Permissions and Try Again!", QMessageBox::Ok);
+            QMessageBox::critical(this, "File Error", "Unable to open file: '" + exportName + "'! Check permissions and try again.", QMessageBox::Ok);
             return;
         }
 
@@ -1840,7 +1843,9 @@ void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLDat
         out << snippetXMLData;
         file.close();
 
-        QMessageBox::information(this, "Successfully Exported Snippit", "GraphML documented successfully exported to: '" + exportName +"'!", QMessageBox::Ok);
+        //QMessageBox::information(this, "Successfully Exported Snippit", "GraphML documented successfully exported to: '" + exportName +"'!", QMessageBox::Ok);
+        displayNotification("Successfully exported GraphML Snippet document.");
+
     }catch(...){
         QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
     }
@@ -1861,7 +1866,7 @@ void MedeaWindow::importSnippet(QString parentName)
     bool fileOpened = file.open(QFile::ReadOnly | QFile::Text);
 
     if (!fileOpened) {
-        QMessageBox::critical(this, "File Error", "Unable to open file: '" + snippetFileName + "'! Check Permissions and Try Again!", QMessageBox::Ok);
+        QMessageBox::critical(this, "File Error", "Unable to open file: '" + snippetFileName + "'! Check permissions and try again.", QMessageBox::Ok);
         return;
     }
 
@@ -1971,13 +1976,6 @@ void MedeaWindow::updateWindowTitle(QString newProjectName)
  */
 void MedeaWindow::setViewAspects(QStringList aspects)
 {
-    /*
-    definitionsButton->setChecked(aspects.contains("Definitions"));
-    workloadButton->setChecked(aspects.contains("Workload"));
-    assemblyButton->setChecked(aspects.contains("Assembly"));
-    hardwareButton->setChecked(aspects.contains("Hardware"));
-    */
-
     definitionsToggle->setClicked(aspects.contains("Definitions"));
     workloadToggle->setClicked(aspects.contains("Workload"));
     assemblyToggle->setClicked(aspects.contains("Assembly"));
@@ -2001,9 +1999,9 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
     } else if (action == "implementation") {
         view_goToImplementation->setEnabled(enable);
     } else if (action == "exportSnippet") {
-        file_exportGraphMLSnippet->setEnabled(enable);
+        file_exportSnippet->setEnabled(enable);
     } else if (action == "importSnippet") {
-        file_importGraphMLSnippet->setEnabled(enable);
+        file_importSnippet->setEnabled(enable);
     }
 }
 
@@ -2284,7 +2282,7 @@ bool MedeaWindow::exportProject()
             emit window_ExportProject();
             return true;
         }else{
-            QMessageBox::critical(this, "Error", "You must Export using the either .graphML or .xml extensions.", QMessageBox::Ok);
+            QMessageBox::critical(this, "Error", "You must export using either a .graphML or .xml extension.", QMessageBox::Ok);
             //CALL AGAIN IF WE Don't get a a .graphML file or a .xml File
             return exportProject();
         }
@@ -2320,7 +2318,7 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
     } else if (buttonName == "H") {
         b = hardwareNodesButton;
     } else if (buttonName == "D") {
-        b = compDefinitionsButton;
+        b = definitionsButton;
     }
 
     // if the previously activated groupbox is still on display, hide it
@@ -2335,7 +2333,7 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
     // this allows mouse events to pass through the dock's hidden
     // groupbox when none of the docks are currently opened
     if (!partsButton->getSelected() &&
-            !compDefinitionsButton->getSelected() &&
+            !definitionsButton->getSelected() &&
             !hardwareNodesButton->getSelected()) {
         updateWidgetMask(docksArea, dockButtonsBox);
     } else {
@@ -2723,7 +2721,7 @@ void MedeaWindow::importProjects(QStringList files)
             bool fileOpened = file.open(QFile::ReadOnly | QFile::Text);
 
             if (!fileOpened) {
-                QMessageBox::critical(this, "File Error", "Unable to open file: '" + fileName + "'! Check Permissions and Try Again!", QMessageBox::Ok);
+                QMessageBox::critical(this, "File Error", "Unable to open file: '" + fileName + "'! Check permissions and try again.", QMessageBox::Ok);
                 return;
             }
 
@@ -2749,10 +2747,9 @@ void MedeaWindow::importProjects(QStringList files)
  */
 void MedeaWindow::closeEvent(QCloseEvent * e)
 {
-    return;
     QMessageBox::StandardButton resBtn = QMessageBox::question( this, "MEDEA",
-                                                                tr("Are you sure?\n"),
-                                                                QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
+                                                                tr("Are you sure you want to quit Medea?\n"),
+                                                                QMessageBox::Cancel | QMessageBox::Yes,
                                                                 QMessageBox::Yes);
     if (resBtn != QMessageBox::Yes) {
         e->ignore();

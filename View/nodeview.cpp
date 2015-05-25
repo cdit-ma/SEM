@@ -816,7 +816,7 @@ void NodeView::centerOnItem(GraphMLItem* item)
         centerRect(nodeItem->sceneBoundingRect(), 0, true, 0.25);
 
     } else {
-        view_displayNotification("Select Entity To Center On");
+        view_displayNotification("Select entity to center on.");
     }
 }
 
@@ -1054,7 +1054,7 @@ void NodeView::showToolbar(QPoint position)
         }
 
     } else {
-        view_displayNotification("Select An Entity First");
+        view_displayNotification("Select an entity first.");
     }
 
     // show/hide MEDEA toolbar
@@ -1275,8 +1275,8 @@ void NodeView::constructNode(QString nodeKind, int sender)
  */
 void NodeView::constructEdge(Node* src, Node* dst, bool trigger)
 {
-    emit view_displayNotification("Connected " + src->getDataValue("label") +
-                                  " to " + dst->getDataValue("label"));
+    view_displayNotification("Connected " + src->getDataValue("label") +
+                             " to " + dst->getDataValue("label") + ".");
     if (trigger) {
         triggerAction("Dock/Toolbar: Constructing Edge");
     }
@@ -1376,8 +1376,8 @@ void NodeView::componentInstanceConstructed(Node* node)
  */
 void NodeView::destructEdge(Edge* edge)
 {
-    emit view_displayNotification("Disconnected " + edge->getSource()->getDataValue("label") +
-                                  " from " + edge->getDestination()->getDataValue("label"));
+    view_displayNotification("Disconnected " + edge->getSource()->getDataValue("label") +
+                             " from " + edge->getDestination()->getDataValue("label") + ".");
     view_Delete(QStringList() << edge->getID());
 }
 
@@ -1520,7 +1520,7 @@ void NodeView::viewDeploymentAspect()
 {
     // only show a notification if there has been a change in view aspects
     if (!currentAspects.contains("Assembly") || !currentAspects.contains("Hardware")) {
-        emit view_displayNotification("Turned on Deployment view aspects");
+        view_displayNotification("Turned on Deployment view aspects.");
     }
     addAspect("Assembly");
     addAspect("Hardware");
@@ -2189,7 +2189,7 @@ void NodeView::alignSelectionHorizontally()
     if (selectedIDs.count() > 0) {
         alignSelectionOnGrid(HORIZONTAL);
     } else {
-        view_displayNotification("No Selected Entities to Align");
+        view_displayNotification("No selected entities to align.");
     }
 }
 
@@ -2204,7 +2204,7 @@ void NodeView::alignSelectionVertically()
     if (selectedIDs.count() > 0) {
         alignSelectionOnGrid(VERTICAL);
     } else {
-        view_displayNotification("No Selected Entities to Align");
+        view_displayNotification("No selected entities to align.");
     }
 }
 
@@ -2227,7 +2227,8 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
             if(!sharedParent){
                 sharedParent = graphMLItem->parentItem();
             }else if(sharedParent != graphMLItem->parentItem()){
-                showDialogMessage(WARNING, "Selection Issue", "Cannot Align Selection which aren't contained by the same Parent.", graphMLItem->getGraphML(), true);
+                //showDialogMessage(WARNING, "Selection Issue", "Cannot Align Selection which aren't contained by the same Parent.", graphMLItem->getGraphML(), true);
+                view_displayNotification("Cannot align entities which aren't contained by the same parent.");
                 return;
             }
 
@@ -2321,9 +2322,11 @@ void NodeView::showDialogMessage(MESSAGE_TYPE type, QString title, QString messa
         if(type == CRITICAL){
             QMessageBox::critical(this, "Error: " + title, message, QMessageBox::Ok);
         }else if(type == WARNING){
-            QMessageBox::warning(this, "Warning: " + title, message, QMessageBox::Ok);
+            //QMessageBox::warning(this, "Warning: " + title, message, QMessageBox::Ok);
+            view_displayNotification(message);
         }else{
-            QMessageBox::information(this, "Message: " + title, message, QMessageBox::Ok);
+            //QMessageBox::information(this, "Message: " + title, message, QMessageBox::Ok);
+            view_displayNotification(message);
         }
     }
 }
@@ -2337,7 +2340,7 @@ void NodeView::duplicate()
     if (selectedIDs.count() > 0) {
         view_Duplicate(selectedIDs);
     } else {
-        view_displayNotification("Select Entity(s) To Replicate");
+        view_displayNotification("Select entity(s) to replicate.");
     }
 }
 
@@ -2350,7 +2353,7 @@ void NodeView::copy()
     if (selectedIDs.count() > 0) {
         view_Copy(selectedIDs);
     } else {
-        view_displayNotification("Select Entity(s) To Copy");
+        view_displayNotification("Select entity(s) to copy.");
     }
 }
 
@@ -2363,7 +2366,7 @@ void NodeView::cut()
     if (selectedIDs.count() > 0) {
         view_Cut(selectedIDs);
     } else {
-        view_displayNotification("Select Entity(s) To Cut");
+        view_displayNotification("Select entity(s) to cut.");
     }
 }
 
@@ -2384,7 +2387,7 @@ void NodeView::paste(QString xmlData)
     */
     Node* selectedNode = this->getSelectedNode();
     if (!selectedNode) {
-        view_displayNotification("Select Entity To Paste Into");
+        //view_displayNotification("Select entity to paste into.");
         return;
     }
     pasting = true;
@@ -2781,9 +2784,9 @@ void NodeView::showManagementComponents(bool show)
     if (show) {
         // make sure that the aspects for Deployment are turned on
         viewDeploymentAspect();
-        view_displayNotification("Diplayed Management Components");
+        view_displayNotification("Diplayed Management Components.");
     } else {
-        view_displayNotification("Hidden Management Components");
+        view_displayNotification("Hidden Management Components.");
     }
 
     // this goes through all the ManagementComponents and shows/hides them
@@ -2828,16 +2831,22 @@ void NodeView::toggleZoomAnchor(bool underMouse)
  */
 void NodeView::fitToScreen(QList<NodeItem*> itemsToCenter, double padding, bool addToMap)
 {
-    QRectF itemsRec = scene()->itemsBoundingRect();
-    float leftMostX = itemsRec.bottomRight().x();
-    float rightMostX = itemsRec.topLeft().x();
-    float topMostY = itemsRec.bottomRight().y();
-    float bottomMostY = itemsRec.topLeft().y();
+    // if there are no aspects turned on, center on the model item
+    if (getModelItem() && currentAspects.count() == 0) {
+        centerRect(getModelItem()->sceneBoundingRect(), padding, addToMap);
+        return;
+    }
 
     // if there is no list provided, use the full node items list
     if (itemsToCenter.isEmpty()) {
         itemsToCenter = getNodeItemsList();
     }
+
+    QRectF itemsRec = scene()->itemsBoundingRect();
+    float leftMostX = itemsRec.bottomRight().x();
+    float rightMostX = itemsRec.topLeft().x();
+    float topMostY = itemsRec.bottomRight().y();
+    float bottomMostY = itemsRec.topLeft().y();
 
     // go through each item and store the left/right/top/bottom most coordinates
     // of the visible items to create the visible itemsBoundingRect to center on
@@ -2950,11 +2959,19 @@ void NodeView::goToInstance(Node *instance)
 void NodeView::deleteSelection()
 {
     if (selectedIDs.count() > 0) {
+        if (getSelectedNodeItem()) {
+            QString kind = getSelectedNodeItem()->getNodeKind();
+            if (kind == "Model" || kind.endsWith("Definitions")) {
+                view_displayNotification("Cannot delete selection!");
+                return;
+            }
+
+        }
         triggerAction("Toolbar: Destructing Selection");
         view_SetAttributeModel(0);
         view_Delete(selectedIDs);
     } else {
-        view_displayNotification("Select Entity/Connection To Delete");
+        view_displayNotification("Select entity(s)/connection(s) to delete.");
     }
 }
 
@@ -2985,9 +3002,9 @@ void NodeView::resetModel()
 void NodeView::clearModel()
 {
     if (controller) {
-        controller->clearModel();
-        if (dynamic_cast<QAction*>(QObject::sender())) {
-            view_displayNotification("Cleared Model");
+        bool cleared = controller->clearModel();
+        if (dynamic_cast<QAction*>(QObject::sender()) && cleared) {
+            view_displayNotification("Cleared Model.");
         }
     }
 }

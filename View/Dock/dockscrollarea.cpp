@@ -285,30 +285,38 @@ void DockScrollArea::setupLayout()
     guiFont.setPointSizeF(8.5);
 
     QLabel* dockLabel = new QLabel(label, this);
-    mainLayout = new QVBoxLayout();
-    layout = new QVBoxLayout();
-
     dockLabel->setFont(guiFont);
-    dockLabel->setFixedWidth(width());
+    dockLabel->setFixedSize(width(), dockLabel->fontMetrics().height());
     dockLabel->setStyleSheet("padding-left: 8px;");
 
     QGroupBox* groupBox = new QGroupBox(0);
-    groupBox->setLayout(layout);
     groupBox->setStyleSheet("QGroupBox {"
                             "background-color: rgba(0,0,0,0);"
                             "border: 0px;"
-                            "padding: 25px 10px;"
+                            "padding: 0px 10px;"
                             "}");
+
+    mainLayout = new QVBoxLayout();
+    layout = new QVBoxLayout();
 
     layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     layout->setSpacing(5);
+    groupBox->setLayout(layout);
 
     mainLayout->addWidget(dockLabel);
     mainLayout->setAlignment(dockLabel, Qt::AlignLeft);
     mainLayout->addWidget(groupBox);
     mainLayout->addStretch();
 
-    setLayout(mainLayout);
+    QGroupBox* mainBox = new QGroupBox(this);
+    mainBox->setLayout(mainLayout);
+
+    QVBoxLayout* thisLayout = new QVBoxLayout();
+    thisLayout->addWidget(mainBox);
+    setLayout(thisLayout);
+
+    //setLayout(mainLayout);
+    //setWidget(groupBox);
     setWidget(groupBox);
     setVisible(false);
     setWidgetResizable(true);

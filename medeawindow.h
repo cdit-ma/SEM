@@ -90,7 +90,7 @@ private slots:
 
     void on_actionClearModel_triggered();
     void on_actionSortNode_triggered();
-    void on_actionCenterNode_triggered();
+    void on_actionFitCenterNode_triggered();
     void on_actionValidate_triggered();
 
     void on_actionPopupNewWindow();
@@ -189,9 +189,9 @@ private:
     QAction* exit;
     QAction* file_newProject;
     QAction* file_importGraphML;
-    QAction* file_exportGraphMLSnippet;
-    QAction* file_importGraphMLSnippet;
+    QAction* file_importSnippet;
     QAction* file_exportGraphML;
+    QAction* file_exportSnippet;
     QAction* file_importJenkinsNodes;
     QAction* edit_undo;
     QAction* edit_redo;
@@ -221,7 +221,7 @@ private:
 
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
-    DockToggleButton* compDefinitionsButton;
+    DockToggleButton* definitionsButton;
     DockToggleButton* prevPressedButton;
     PartsDockScrollArea* partsDock;
     DefinitionsDockScrollArea* definitionsDock;
