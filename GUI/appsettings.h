@@ -1,18 +1,22 @@
-
 #ifndef APPSETTINGS_H
 #define APPSETTINGS_H
 
+#include <QDialog>
 #include <QSettings>
-#include <QObject>
+#include <QHash>
 #include "keyeditwidget.h"
 
-class AppSettings: public QObject
+class AppSettings: public QDialog
 {
     Q_OBJECT
 public:
-    AppSettings(QString applicationPath, QWidget* parent);
+    AppSettings(QWidget *parent = 0, QString applicationPath="");
     QSettings* getSettings();
+    void loadSettings();
+    QString getSetting(QString keyName="");
+    void setSetting(QString keyName, QVariant value);
 
+    QString getReadableValue(const QString value);
 signals:
     void settingChanged(QString settingGroup, QString settingName, QString settingValue);
 public slots:
@@ -21,7 +25,10 @@ public slots:
     void updateSetting();
 
 private:
+    QString getGroup(QString keyName);
+    void setupLayout();
     QSettings* settings;
+    QHash<QString, QString> keyToGroupMap;
 };
 
 

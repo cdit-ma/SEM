@@ -16,6 +16,28 @@
 #include <QToolButton>
 #include <QToolBar>
 
+
+//USER SETTINGS
+#define WINDOW_X "01-01-Position_X"
+#define WINDOW_Y "01-02-Position_Y"
+#define WINDOW_W "01-03-Width"
+#define WINDOW_H "01-04-Height"
+#define WINDOW_MAX_STATE "01-05-Maximized"
+#define AUTO_CENTER_VIEW "02-01-Auto_Center_View"
+#define SELECT_ON_CREATION "02-02-Select_Entity_On_Creation"
+#define ZOOM_ANCHOR_ON_MOUSE "02-03-Zoom_View_Under_Mouse"
+#define USE_GRID "02-04-Use_Grid_Lines"
+#define ASPECT_D "03-01-Definitions"
+#define ASPECT_W "03-02-Workload"
+#define ASPECT_A "03-03-Assembly"
+#define ASPECT_H "03-04-Hardware"
+#define DOCK_VISIBLE "04-01-Hide_Dock"
+#define TOOLBAR_VISIBLE "05-01-Hide_Toolbar="
+#define TOOLBAR_EXPANDED "05-02-Expand_Toolbar"
+#define JENKINS_URL "06-01-URL"
+#define JENKINS_USER "06-02-Username"
+#define JENKINS_PASS "06-03-Password"
+
 #define THREADING false
 
 #define RIGHT_PANEL_WIDTH 230.0
@@ -33,23 +55,13 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 {
     // this needs to happen before the menu is set up and connected
     applicationDirectory = QApplication::applicationDirPath() + "/";
-    appSettings = new AppSettings(applicationDirectory, this);
-
-    setupJenkinsSettings();
+    appSettings = new AppSettings(this, applicationDirectory);
+    connect(appSettings, SIGNAL(settingChanged(QString,QString,QString)), this, SLOT(settingChanged(QString, QString, QString)));
 
     // initialise gui and connect signals and slots
     initialiseGUI();
     makeConnections();
     newProject();
-
-    /*
-    // this is used for when a file is dragged and dropped on top of this tool's icon
-    if(graphMLFile.length() != 0){
-        QStringList files;
-        files.append(graphMLFile);
-        importGraphMLFiles(files);
-    }
-    */
 }
 
 
@@ -68,6 +80,76 @@ MedeaWindow::~MedeaWindow()
     if (nodeView) {
         delete nodeView;
     }
+}
+
+
+void MedeaWindow::settingChanged(QString groupName, QString keyName, QString value)
+{
+    Q_UNUSED(groupName);
+
+    bool isBool = false;
+    bool isInt = false;
+    int intValue = value.toInt(&isInt);
+    bool boolValue = false;
+    if(value == "true" || value == "false"){
+        isBool = true;
+        if(value == "true"){
+            boolValue = true;
+        }
+    }
+
+
+
+    if(keyName == WINDOW_X && isInt){
+        move(intValue, pos().y());
+    }else if(keyName == WINDOW_Y && isInt){
+        move(pos().x(), intValue);
+    }else if(keyName == WINDOW_W && isInt){
+        resize(intValue, size().height());
+    }else if(keyName == WINDOW_H && isInt){
+        resize(size().width(), intValue);
+    }else if(keyName == WINDOW_MAX_STATE && isBool){
+        if(boolValue){
+            setWindowState(Qt::WindowMaximized);
+        }else{
+            setWindowState(Qt::WindowNoState);
+        }
+    }else if(keyName == AUTO_CENTER_VIEW && isBool){
+        nodeView->autoCenterAspects(boolValue);
+    }else if(keyName == SELECT_ON_CREATION && isBool){
+        nodeView->selectNodeOnConstruction(boolValue);
+    }else if(keyName == ZOOM_ANCHOR_ON_MOUSE && isBool){
+        nodeView->toggleZoomAnchor(boolValue);
+    }else if(keyName == USE_GRID && isBool){
+        toggleAndTriggerAction(settings_showGridLines, boolValue);
+    }else if(keyName == DOCK_VISIBLE && isBool){
+        showDocks(!boolValue);
+    }else if(keyName == TOOLBAR_VISIBLE && isBool){
+        showWindowToolbar(!boolValue);
+    }else if(keyName == TOOLBAR_EXPANDED && isBool){
+        toolbarButton->setChecked(boolValue);
+        toolbarButton->clicked(boolValue);
+    }else if(keyName == ASPECT_D && isBool){
+        definitionsToggle->setClicked(boolValue);
+        definitionsToggle->aspectToggle_clicked(boolValue, 0);
+    }else if(keyName == ASPECT_W && isBool){
+        workloadToggle->setClicked(boolValue);
+        workloadToggle->aspectToggle_clicked(boolValue, 0);
+    }else if(keyName == ASPECT_A && isBool){
+        assemblyToggle->setClicked(boolValue);
+        assemblyToggle->aspectToggle_clicked(boolValue, 0);
+    }else if(keyName == ASPECT_H && isBool){
+        hardwareToggle->setClicked(boolValue);
+        hardwareToggle->aspectToggle_clicked(boolValue, 0);
+    }else if(keyName == JENKINS_URL && value == ""){
+        file_importJenkinsNodes->setEnabled(false);
+    }
+
+
+
+
+
+
 }
 
 
@@ -320,13 +402,10 @@ void MedeaWindow::setupMenu(QPushButton *button)
     file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     file_menu->addSeparator();
 
-    // only create the menu item if JENKINS_ADDRESS is not null
-    if (JENKINS_ADDRESS != "") {
-        file_importJenkinsNodes = file_menu->addAction(QIcon(":/Resources/Icons/jenkins.png"), "Import Jenkins Nodes");
-        file_importJenkinsNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
-    } else {
-        file_importJenkinsNodes = 0;
-    }
+
+    file_importJenkinsNodes = file_menu->addAction(QIcon(":/Resources/Icons/jenkins.png"), "Import Jenkins Nodes");
+    file_importJenkinsNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
+
 
     edit_undo = edit_menu->addAction(QIcon(":/Resources/Icons/undo.png"), "Undo");
     edit_undo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
@@ -359,36 +438,13 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
 
-    settings_showGridLines = settings_Menu->addAction("Use Grid Lines");
-    settings_selectOnConstruction = settings_Menu->addAction("Select Entity On Construction");
-    settings_Menu->addSeparator();
-    settings_autoCenterView = settings_Menu->addAction("Automatically Center Views");
-    settings_viewZoomAnchor = settings_Menu->addAction("Zoom View Under Mouse");
-    settings_Menu->addSeparator();
-    settings_displayDocks = settings_Menu->addAction("Display Dock");
-    // DEMO CHANGE
-    //settings_detachDocks = settings_Menu->addAction("Detach Dock");
-    settings_Menu->addSeparator();
-    settings_displayWindowToolbar = settings_Menu->addAction("Display Toolbar");
-    // DEMO CHANGE
-    //settings_detachWindowToolbar = settings_Menu->addAction("Detach Toolbar");
-    settings_editWindowToolbar = settings_Menu->addAction("Toolbar Settings");
-    settings_Menu->addSeparator();
-    settings_ChangeSettings = settings_Menu->addAction("More Settings...");
 
+    settings_showGridLines = new QAction(this);
+    settings_editWindowToolbar = settings_Menu->addAction(QIcon(":/Resources/Icons/toolbar.png"), "Toolbar Settings");
+    settings_changeSettings = settings_Menu->addAction(QIcon(":/Resources/Icons/medea.png"), "App Settings");
     button->setMenu(menu);
 
     // setup toggle actions
-    settings_displayDocks->setCheckable(true);
-    // DEMO CHANGE
-    //settings_detachDocks->setCheckable(true);
-    settings_displayWindowToolbar->setCheckable(true);
-    // DEMO CHANGE
-    //settings_detachWindowToolbar->setCheckable(true);
-    settings_showGridLines->setCheckable(true);
-    settings_selectOnConstruction->setCheckable(true);
-    settings_autoCenterView->setCheckable(true);
-    settings_viewZoomAnchor->setCheckable(true);
     view_showManagementComponents->setCheckable(true);
 
     // initially disable these actions
@@ -956,6 +1012,8 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     toolbarSettingsDialog->setLayout(checkboxLayout);
     toolbarSettingsDialog->setWindowTitle("Available Tool Buttons");
     toolbarSettingsDialog->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }");
+    toolbarSettingsDialog->setModal(true);
+    toolbarSettingsDialog->setWindowFlags(toolbarSettingsDialog->windowFlags() & (~Qt::WindowContextHelpButtonHint));
 }
 
 
@@ -1066,21 +1124,9 @@ void MedeaWindow::makeConnections()
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
     connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
 
-    connect(settings_displayDocks, SIGNAL(triggered(bool)), this, SLOT(showDocks(bool)));
-    // DEMO CHANGE
-    //connect(settings_detachDocks, SIGNAL(triggered(bool)), this, SLOT(detachDocks(bool)));
-    connect(settings_displayWindowToolbar, SIGNAL(triggered(bool)), this, SLOT(showWindowToolbar(bool)));
-    // DEMO CHANGE
-    //connect(settings_detachWindowToolbar, SIGNAL(triggered(bool)), this, SLOT(detachWindowToolbar(bool)));
-    connect(settings_editWindowToolbar, SIGNAL(triggered()), toolbarSettingsDialog, SLOT(show()));
-    connect(settings_selectOnConstruction, SIGNAL(triggered(bool)), nodeView, SLOT(selectNodeOnConstruction(bool)));
-    connect(settings_autoCenterView, SIGNAL(triggered(bool)), nodeView, SLOT(autoCenterAspects(bool)));
-    connect(settings_viewZoomAnchor, SIGNAL(triggered(bool)), nodeView, SLOT(toggleZoomAnchor(bool)));
-    connect(settings_ChangeSettings, SIGNAL(triggered()), appSettings, SLOT(launchSettingsUI()));
-
-    connect(settings_showGridLines, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
-    connect(settings_showGridLines, SIGNAL(triggered(bool)), toggleGridButton, SLOT(setChecked(bool)));
+    connect(settings_changeSettings, SIGNAL(triggered()), appSettings, SLOT(show()));
     connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
+    connect(settings_editWindowToolbar, SIGNAL(triggered()), toolbarSettingsDialog, SLOT(show()));
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
@@ -1116,6 +1162,8 @@ void MedeaWindow::makeConnections()
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(contextToolbarButton, SIGNAL(clicked()), nodeView, SLOT(showToolbar()));
 
+
+    connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
     connect(toggleGridButton, SIGNAL(clicked(bool)), settings_showGridLines, SLOT(setChecked(bool)));
     connect(toggleGridButton, SIGNAL(clicked(bool)), settings_showGridLines, SIGNAL(triggered(bool)));
 
@@ -1183,12 +1231,8 @@ void MedeaWindow::makeConnections()
     addAction(model_validateModel);
     addAction(model_clearModel);
     addAction(model_sortModel);
-    addAction(settings_displayWindowToolbar);
-    addAction(settings_autoCenterView);
-    addAction(settings_viewZoomAnchor);
     addAction(settings_showGridLines);
-    addAction(settings_selectOnConstruction);
-    addAction(settings_ChangeSettings);
+    addAction(settings_changeSettings);
 }
 
 
@@ -1217,6 +1261,12 @@ void MedeaWindow::changeEvent(QEvent *event)
     if (event->type() == QEvent::WindowStateChange) {
         updateWidgetsOnWindowChanged();
     }
+}
+
+void MedeaWindow::toggleAndTriggerAction(QAction *action, bool value)
+{
+    action->setChecked(value);
+    action->triggered(value);
 }
 
 
@@ -1255,18 +1305,6 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
 }
 
 
-/**
- * @brief MedeaWindow::setupJenkinsSettings
- */
-void MedeaWindow::setupJenkinsSettings()
-{
-    QSettings* settings = appSettings->getSettings();
-    settings->beginGroup("Jenkins");
-    JENKINS_ADDRESS =  settings->value("url").toString();
-    JENKINS_USERNAME =  settings->value("username").toString();
-    JENKINS_PASSWORD =  settings->value("password").toString();
-    settings->endGroup();
-}
 
 
 /**
@@ -1277,61 +1315,31 @@ void MedeaWindow::setupJenkinsSettings()
  */
 void MedeaWindow::setupInitialSettings()
 {
-    QSettings* settings = appSettings->getSettings();
+     appSettings->loadSettings();
+     toggleAndTriggerAction(view_showManagementComponents, false);
 
-    // need to set initial toggle action values before triggering them
-    settings_displayDocks->setChecked(true);
-    // DEMO CHANGE
-    //settings_detachDocks->setChecked(false);
-    settings_displayWindowToolbar->setChecked(true);
-    // DEMO CHANGE
-    //settings_detachWindowToolbar->setChecked(false);
-    settings_autoCenterView->setChecked(true);
-    settings_showGridLines->setChecked(true);
-    settings_selectOnConstruction->setChecked(false);
-    view_showManagementComponents->setChecked(false);
+     // this only needs to happen once, the whole time the application is open
+     partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
 
-    settings_displayDocks->triggered(true);
-    // DEMO CHANGE
-    //settings_detachDocks->triggered(false);
-    settings_displayWindowToolbar->triggered(true);
-    // DEMO CHANGE
-    //settings_detachWindowToolbar->triggered(false);
-    settings_autoCenterView->triggered(true);
-    settings_showGridLines->triggered(true);
-    settings_selectOnConstruction->triggered(false);
-    view_showManagementComponents->triggered(false);
+     // populate view aspects menu  once the nodeView and controller have been
+     // constructed and connected - should only need to do this once
+     QStringList nodeKinds = nodeView->getConstructableNodeKinds();
+     nodeKinds.removeDuplicates();
+     nodeKinds.sort();
+     foreach (QString kind, nodeKinds) {
+         QWidgetAction* action = new QWidgetAction(this);
+         QCheckBox* checkBox = new QCheckBox(kind, this);
+         checkBox->setFont(guiFont);
+         checkBox->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }"
+                                 "QCheckBox::checked{ color: green; font-weight: bold; }");
+         connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
+         action->setDefaultWidget(checkBox);
+         nodeKindsMenu->addAction(action);
+     }
 
-    // initially show, but contract the toolbar
-    toolbarButton->setChecked(false);
-    toolbarButton->clicked(false);
+     // hide initial notifications
+     notificationsBar->hide();
 
-    if (nodeView) {
-        nodeView->setDefaultAspects();
-        nodeView->fitToScreen();
-    }
-
-    // this only needs to happen once, the whole time the application is open
-    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
-
-    // populate view aspects menu  once the nodeView and controller have been
-    // constructed and connected - should only need to do this once
-    QStringList nodeKinds = nodeView->getConstructableNodeKinds();
-    nodeKinds.removeDuplicates();
-    nodeKinds.sort();
-    foreach (QString kind, nodeKinds) {
-        QWidgetAction* action = new QWidgetAction(this);
-        QCheckBox* checkBox = new QCheckBox(kind, this);
-        checkBox->setFont(guiFont);
-        checkBox->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }"
-                                "QCheckBox::checked{ color: green; font-weight: bold; }");
-        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
-        action->setDefaultWidget(checkBox);
-        nodeKindsMenu->addAction(action);
-    }
-
-    // hide initial notifications
-    notificationsBar->hide();
 }
 
 
@@ -1391,40 +1399,22 @@ void MedeaWindow::aspectToggleClicked(bool checked, int state)
 }
 
 
-void MedeaWindow::loadSettings()
-{
-    QPoint pos;
-    QSize size;
-    QSettings* settings = appSettings->getSettings();
-    settings->beginGroup("MainWindow");
-    pos.setX(settings->value("x").toInt());
-    pos.setY(settings->value("y").toInt());
-    size.setWidth(settings->value("width").toInt());
-    size.setHeight(settings->value("height").toInt());
-
-    if(settings->value("maximized").toString() == "true"){
-        setWindowState(windowState() | Qt::WindowMaximized);
-    }
-
-    resize(size);
-    move(pos);
-    settings->endGroup();
-}
-
 
 void MedeaWindow::saveSettings()
 {
-    //qCritical() << "SAVING SETTINGS";
-    //SAVE width/height
-    QSettings* settings = appSettings->getSettings();
-    settings->beginGroup("MainWindow");
-    settings->setValue("width", size().width());
-    settings->setValue("height", size().height());
-    settings->setValue("x", pos().x());
-    settings->setValue("y", pos().y());
-    settings->setValue("maximized", isMaximized());
-    settings->setValue("aspects", checkedViewAspects);
-    settings->endGroup();
+    //Write Settings on Quit.
+    if(appSettings){
+        appSettings->setSetting(TOOLBAR_EXPANDED, toolbarButton->isChecked());
+
+        if(isMaximized()){
+            appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
+        }else{
+            appSettings->setSetting(WINDOW_W, size().width());
+            appSettings->setSetting(WINDOW_H, size().height());
+            appSettings->setSetting(WINDOW_X, pos().x());
+            appSettings->setSetting(WINDOW_Y, pos().y());
+        }
+    }
 }
 
 
@@ -1437,11 +1427,23 @@ void MedeaWindow::on_actionImportJenkinsNode()
 
     QString groovyScript = "Jenkins_Construct_GraphMLNodesList.groovy";
 
+
+    QString jenkinsUrl = appSettings->getSetting(JENKINS_URL);
+    QString jenkinsUser = appSettings->getSetting(JENKINS_USER);
+    QString jenkinsPass = appSettings->getSetting(JENKINS_PASS);
+
+    qCritical() << jenkinsUrl;
+
+    if(jenkinsUrl == "" || jenkinsUser == "" || jenkinsPass == ""){
+        displayNotification("Jenkins requires a valid URL, Username and Password!");
+        return;
+    }
+
     QString program = "java -jar jenkins-cli.jar";
-    program += " -s " + JENKINS_ADDRESS;
+    program += " -s " + jenkinsUrl;
     program += " groovy " + groovyScript;
-    program += " --username " + JENKINS_USERNAME;
-    program += " --password " + JENKINS_PASSWORD;
+    program += " --username " + jenkinsUser;
+    program += " --password " + jenkinsPass;
 
     myProcess = new QProcess(this);
     QDir dir;
@@ -2014,6 +2016,7 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
  */
 void MedeaWindow::showWindowToolbar(bool checked)
 {
+    /*
     QAction* senderAction = qobject_cast<QAction*>(QObject::sender());
     if (senderAction) {
         // DEMO CHANGE
@@ -2024,6 +2027,7 @@ void MedeaWindow::showWindowToolbar(bool checked)
         //settings_detachWindowToolbar->setEnabled(checked);
         return;
     }
+    */
 
     QToolButton* senderButton = qobject_cast<QToolButton*>(QObject::sender());
     if (senderButton) {
@@ -2044,6 +2048,9 @@ void MedeaWindow::showWindowToolbar(bool checked)
             toolbarButtonLabel->setPixmap(expandPixmap);
             toolbar->setMask(QRegion(0,0,1,1, QRegion::Ellipse));
         }
+    } else {
+        toolbar->setVisible(checked);
+        toolbarButton->setVisible(checked);
     }
 }
 
@@ -2100,8 +2107,8 @@ void MedeaWindow::detachWindowToolbar(bool checked)
  */
 void MedeaWindow::detachedToolbarClosed()
 {
-    settings_displayWindowToolbar->setChecked(false);
-    settings_displayWindowToolbar->triggered(false);
+    //settings_displayWindowToolbar->setChecked(false);
+    //settings_displayWindowToolbar->triggered(false);
 }
 
 
@@ -2115,7 +2122,7 @@ void MedeaWindow::updateCheckedToolbarActions(bool checked)
 {
     QCheckBox* cb = dynamic_cast<QCheckBox*>(QObject::sender());
     QHash<QAction*, int> actionGroup;
-    QAction* spacerAction;
+    QAction* spacerAction = 0;
 
     if (cb) {
 
@@ -2152,6 +2159,8 @@ void MedeaWindow::updateCheckedToolbarActions(bool checked)
             rightMostActions[action] = checked;
             actionGroup = rightMostActions;
             spacerAction = rightMostSpacer;
+        }else{
+            //TODO deal with this case!
         }
 
         // DEMO CHANGE
@@ -2175,14 +2184,16 @@ void MedeaWindow::updateCheckedToolbarActions(bool checked)
 
     // check if any of the spacer actions need to be hidden
     foreach (int visible, actionGroup.values()) {
-        if (visible) {
+        if (visible && spacerAction) {
             spacerAction->setVisible(toolbarButton->isChecked());
             checkedToolbarSpacers.append(spacerAction);
             return;
         }
     }
-    spacerAction->setVisible(false);
-    checkedToolbarSpacers.removeAll(spacerAction);
+    if(spacerAction){
+        spacerAction->setVisible(false);
+        checkedToolbarSpacers.removeAll(spacerAction);
+    }
 }
 
 
@@ -2596,8 +2607,10 @@ void MedeaWindow::detachDocks(bool checked)
     fromLayout->removeItem(dockLayout);
     toLayout->addLayout(dockLayout);
 
-    dockStandAloneDialog->setVisible(settings_displayDocks->isChecked() && checked);
-    docksArea->setVisible(settings_displayDocks->isChecked() && !checked);
+    docksArea->setVisible(!checked);
+
+    //dockStandAloneDialog->setVisible(settings_displayDocks->isChecked() && checked);
+    //docksArea->setVisible(settings_displayDocks->isChecked() && !checked);
 
     /*
     if (dockStandAloneDialog->isVisible()) {
@@ -2627,8 +2640,8 @@ void MedeaWindow::detachDocks(bool checked)
  */
 void MedeaWindow::detachedDockClosed()
 {
-    settings_displayDocks->setChecked(false);
-    settings_displayDocks->triggered(false);
+    //settings_displayDocks->setChecked(false);
+    //settings_displayDocks->triggered(false);
 }
 
 

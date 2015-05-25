@@ -1062,7 +1062,7 @@ void NodeItem::setSelected(bool selected)
             setZValue(0);
         }
 
-        update();
+        //update();
         setEdgesSelected(selected);
     }
 }

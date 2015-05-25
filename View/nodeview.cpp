@@ -1232,13 +1232,13 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 
         //Add to model
         NodeItem* model = getModelItem();
-        if(model && !model->childItems().contains(nodeEdge)){
-            nodeEdge->setParentItem(model);
-        }
-        //if(!scene()->items().contains(nodeEdge)){
-         //   //Add to model.
-        //    scene()->addItem(nodeEdge);
+        //if(model && !model->childItems().contains(nodeEdge)){
+        //    nodeEdge->setParentItem(model);
         //}
+        if(!scene()->items().contains(nodeEdge)){
+         //   //Add to model.
+            scene()->addItem(nodeEdge);
+        }
 
         // send necessary signals when an edge has been constucted
         edgeConstructed_signalUpdates(edge);

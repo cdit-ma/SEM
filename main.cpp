@@ -2,6 +2,7 @@
 #include <QtDebug>
 #include <QObject>
 
+#include <QFont>
 #include "medeawindow.h"
 #include "modeltester.h"
 
@@ -13,6 +14,12 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setOrganizationName("Defence Information Group");
     QCoreApplication::setApplicationName("MEDEA");
+
+    QFont font = QFont("Verdana");
+    font.setPointSizeF(8.5);
+
+
+    a.setFont(font);
 
     QString GraphMLFile = 0;
     if (argc == 2) {

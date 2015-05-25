@@ -69,11 +69,6 @@ private:
     bool HAS_MOVED;
     bool CENTER_MOVED;
 
-    bool IS_INSTANCE_LINK;
-    bool IS_IMPL_LINK;
-    bool IS_AGG_LINK;
-    bool IS_DEPLOYMENT_LINK;
-    bool IS_COMPONENT_LINK;
 
 
     //Used to keep track of the position of the EdgeItem

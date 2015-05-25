@@ -74,12 +74,12 @@ signals:
     void window_ImportSnippet(QString fileName, QString fileData);
 
 public slots:
+    void settingChanged(QString groupName, QString keyName, QString value);
     void setupInitialSettings();
     void aspectToggleClicked(bool checked, int state);
 
 private slots:
 
-    void loadSettings();
     void saveSettings();
 
     void loadJenkinsData(int code);
@@ -142,6 +142,7 @@ private slots:
     void detachedToolbarClosed();
     void updateCheckedToolbarActions(bool checked = true);
 
+
     //multi-line popup for QTableView (SLOTS)
     void dataTableDoubleClicked(QModelIndex);
     void dialogAccepted();
@@ -153,6 +154,10 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+
+    void toggleAndTriggerAction(QAction* action, bool value);
+
+
     void resetGUI();
     void resetView();
     void newProject();
@@ -160,7 +165,6 @@ private:
     void makeConnections();
 
     void setupController();
-    void setupJenkinsSettings();
     void setupMenu(QPushButton* button);
     void setupDock(QHBoxLayout* layout);
     void setupSearchTools();
@@ -209,16 +213,10 @@ private:
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_sortModel;
-    QAction* settings_displayDocks;
-    QAction* settings_detachDocks;
-    QAction* settings_displayWindowToolbar;
-    QAction* settings_detachWindowToolbar;
-    QAction* settings_editWindowToolbar;
-    QAction* settings_autoCenterView;
-    QAction* settings_viewZoomAnchor;
+
     QAction* settings_showGridLines;
-    QAction* settings_selectOnConstruction;
-    QAction* settings_ChangeSettings;
+    QAction* settings_editWindowToolbar;
+    QAction* settings_changeSettings;
 
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
@@ -341,10 +339,6 @@ private:
     int minLeftPanelHeight;
 
     //QString DEPGEN_ROOT;
-    QString JENKINS_ADDRESS;
-    QString JENKINS_USERNAME;
-    QString JENKINS_PASSWORD;
-
     QString exportFileName;
 
     //multi-line popup for QTableView (VARIABLES)

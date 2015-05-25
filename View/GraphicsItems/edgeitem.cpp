@@ -21,43 +21,11 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     HAS_MOVED = false;
     CENTER_MOVED = false;
 
-    IS_INSTANCE_LINK = edge->isInstanceLink();
-    IS_IMPL_LINK = edge->isImplLink();
-    IS_AGG_LINK = edge->isAggregateLink();
-    IS_DEPLOYMENT_LINK = edge->isDeploymentLink();
-    IS_COMPONENT_LINK = edge->isComponentLink() || edge->isAssemblyLink();
 
     source = s;
     destination = d;
     visibleDestination = 0;
     visibleSource = 0;
-
-    if(IS_INSTANCE_LINK || IS_IMPL_LINK){
-        Node* src = edge->getSource();
-        Node* dst = edge->getDestination();
-
-        if(dst->getParentNode()->isDefinition() && (src->getParentNode()->isImpl() || src->getParentNode()->isInstance())){
-            //Don't show Non-Top Most Instance Links
-            IS_VISIBLE = false;
-        }
-        if(dst->getDataValue("kind") == "AggregateInstance"){
-            IS_VISIBLE = false;
-        }
-        if(src->getDataValue("kind") == "MemberInstance"){
-            IS_VISIBLE = false;
-        }
-        if(src->getDataValue("kind") == "AggregateInstance"){
-            IS_VISIBLE = false;
-        }
-    }
-
-    if(IS_AGG_LINK){
-        Node* src = edge->getSource();
-        if(src->isInstance()){
-            //Don't show Aggregate Links to Instances.
-            IS_VISIBLE = false;
-        }
-    }
 
 
     //Construct lines.
@@ -72,8 +40,6 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     //Add the Edge Item to the source/destination.
     source->addEdgeItem(this);
     destination->addEdgeItem(this);
-
-
 
 
     setupBrushes();
@@ -420,14 +386,23 @@ void EdgeItem::setupBrushes()
     tailBrush = QBrush(color);
     selectedTailBrush = QBrush(selectedColor);
 
-    if(source->getNodeKind() == "OutEventPortInstance"){
-        headBrush = QBrush(QColor(200,0,0));
+    if(source->getNodeKind() == "OutEventPortInstance" || source->getNodeKind() == "OutEventPortDelegate"){
+        tailBrush = QBrush(QColor(0,200,0));
+        selectedTailBrush = tailBrush;
+    }
+    if(destination->getNodeKind() == "OutEventPortInstance" || destination->getNodeKind() == "OutEventPortDelegate"){
+        headBrush = QBrush(QColor(0,200,0));
         selectedHeadBrush = headBrush;
     }
 
-    if(destination->getNodeKind() == "InEventPortInstance"){
-        tailBrush = QBrush(QColor(0,200,0));
+    if(source->getNodeKind() == "InEventPortInstance" || source->getNodeKind() == "InEventPortDelegate"){
+        tailBrush = QBrush(QColor(200,0,0));
         selectedTailBrush = tailBrush;
+    }
+
+    if(destination->getNodeKind() == "InEventPortInstance" || source->getNodeKind() == "InEventPortDelegate"){
+        headBrush = QBrush(QColor(200,0,0));
+        selectedHeadBrush = headBrush;
     }
 }
 
@@ -442,10 +417,6 @@ void EdgeItem::setLineVisibility(bool visible)
 
 void EdgeItem::updateLines()
 {
-    if(IS_IMPL_LINK || IS_INSTANCE_LINK){
-        setVisible(false);
-        return;
-    }
 
     NodeItem* visibleSrc = source;
     NodeItem* visibleDst = destination;
@@ -508,7 +479,7 @@ void EdgeItem::updateLines()
         }
         //If the edge has changed sides on its visual parent, remove the edge, so we can re-add it on the right side.
         if(visibleSource->getIndexOfEdgeItem(getID(), srcSide == RIGHT) == -1){
-            qCritical() << "Removing Source Edge";
+            //qCritical() << "Removing Source Edge";
             removeSrcEdge = true;
         }
     }
