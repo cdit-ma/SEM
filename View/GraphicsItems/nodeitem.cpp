@@ -2043,6 +2043,7 @@ void NodeItem::updateParentModel()
 
 void NodeItem::aspectsChanged(QStringList visibleAspects)
 {
+    /*
     if(hidden || !PAINT_OBJECT){
         return;
     }
@@ -2050,6 +2051,7 @@ void NodeItem::aspectsChanged(QStringList visibleAspects)
     if(getParentNodeItem() && !getParentNodeItem()->isExpanded()){
         return;
     }
+    */
 
     bool visible = true;
     foreach(QString requiredAspect, viewAspects){
@@ -2058,6 +2060,16 @@ void NodeItem::aspectsChanged(QStringList visibleAspects)
         }
     }
     isNodeInAspect = visible;
+
+    // still need to update the isInAspect state in both these cases
+    // just don't change the visibility of the node item
+    if(hidden || !PAINT_OBJECT){
+        return;
+    }
+    if(getParentNodeItem() && !getParentNodeItem()->isExpanded()){
+        return;
+    }
+
 
     //bool prevVisible = isVisible();
 
@@ -2785,7 +2797,15 @@ QString NodeItem::getNodeKind()
 void NodeItem::setHidden(bool h)
 {
     hidden = h;
-    setVisible(!h);
+    //setVisible(!h);
+
+    // when the item is no longer hidden, we needs to check if it's in aspect
+    // and if its parent is visible before we can display it in the view
+    bool parentExpanded = true;
+    if (getParentNodeItem()) {
+        parentExpanded = getParentNodeItem()->isExpanded();
+    }
+    setVisible(!h && isInAspect() && parentExpanded);
 }
 
 

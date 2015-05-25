@@ -27,7 +27,7 @@
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 
-#define MAX_ZOOM_RATIO 20
+#define MAX_ZOOM_RATIO 50
 #define MIN_ZOOM_RATIO 2
 
 #define VIEW_PADDING 1.25
@@ -594,12 +594,9 @@ void NodeView::minimapMoved(QMouseEvent *event)
     //MINIMAP_EVENT = false;
 }
 
+
 void NodeView::scrollEvent(int delta)
 {
-
-
-    ViewportAnchor currentAnchor = transformationAnchor();
-    //setTransformationAnchor(AnchorUnderMouse);
     QRectF viewRect = viewport()->rect();
     QRectF scaledSceneRect(QPointF(0,0), sceneRect().size()*transform().m11());
 
@@ -614,10 +611,6 @@ void NodeView::scrollEvent(int delta)
             scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
         }
     }
-    //setTransformationAnchor(currentAnchor);
-
-    //ViewportAnchor currentAnchor = resizeAnchor();
-
 }
 
 
@@ -1229,14 +1222,13 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
                 dstGUI->getParentNodeItem()->newSort();
             }
         }
-
         //Add to model
         NodeItem* model = getModelItem();
         //if(model && !model->childItems().contains(nodeEdge)){
         //    nodeEdge->setParentItem(model);
         //}
         if(!scene()->items().contains(nodeEdge)){
-         //   //Add to model.
+            //   //Add to model.
             scene()->addItem(nodeEdge);
         }
 
@@ -1857,10 +1849,10 @@ void NodeView::updateActionsEnabled(Node* selectedNode)
     }
 
     // update menu actions
-    emit view_updateGoToMenuActions("definition", hasDefn);
-    emit view_updateGoToMenuActions("implementation", hasImpl);
-    emit view_updateGoToMenuActions("exportSnippet", canExport);
-    emit view_updateGoToMenuActions("importSnippet", canImport);
+    emit view_updateMenuActionEnabled("definition", hasDefn);
+    emit view_updateMenuActionEnabled("implementation", hasImpl);
+    emit view_updateMenuActionEnabled("exportSnippet", canExport);
+    emit view_updateMenuActionEnabled("importSnippet", canImport);
 
     // update toolbar buttons
     toolbar->showDefinitionButton(hasDefn);
@@ -2197,11 +2189,13 @@ void NodeView::keyPressEvent(QKeyEvent *event)
             duplicate();
         }
 
-        // Added this to clear selection
-        if (event->key() == Qt::Key_Escape){
-            clearSelection();
-        }
     }
+
+    // Added this to clear selection
+    if (event->key() == Qt::Key_Escape){
+        clearSelection();
+    }
+
     QGraphicsView::keyPressEvent(event);
 }
 
@@ -2484,6 +2478,10 @@ void NodeView::undo()
 
         // undo the action
         controller->undo();
+
+        // Added this cause edges aren't being drawn anymore and the docks
+        // need to know when an edge is constructed/destructed
+        emit view_edgeDestructed();
     }
 }
 
@@ -2515,6 +2513,10 @@ void NodeView::redo()
 
         // redo the action
         controller->redo();
+
+        // Added this cause edges aren't being drawn anymore and the docks
+        // need to know when an edge is constructed/destructed
+        emit view_edgeDestructed();
     }
 }
 
@@ -2537,6 +2539,24 @@ void NodeView::appendToSelection(GraphMLItem *item)
     //if (!item->getGraphML()->getDataValue("kind").endsWith("Definitions") ) {
     //    keepSelectionFullyVisible(item);
     //}
+
+    // you shouldn't be able to cut, copy or paste the definitions containers
+    if (getSelectedNodeItem()) {
+        QString kind = getSelectedNodeItem()->getNodeKind();
+        if (kind == "Model" || kind.endsWith("Definitions")) {
+            emit view_updateMenuActionEnabled("cut", false);
+            emit view_updateMenuActionEnabled("copy", false);
+            emit view_updateMenuActionEnabled("paste", false);
+            return;
+        }
+    }
+
+    // update enabled states of cut, copy & paste everytime something is selected
+    if (controller) {
+        emit view_updateMenuActionEnabled("cut", controller->canCut(selectedIDs));
+        emit view_updateMenuActionEnabled("copy", controller->canCopy(selectedIDs));
+        emit view_updateMenuActionEnabled("paste", controller->canPaste(selectedIDs));
+    }
 }
 
 void NodeView::removeFromSelection(GraphMLItem *item)

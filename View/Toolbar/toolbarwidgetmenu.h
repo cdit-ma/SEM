@@ -16,6 +16,8 @@ public:
     void clearMenu();
 
     void addWidgetAction(ToolbarWidgetAction* action);
+    void removeWidgetAction(ToolbarWidgetAction* action);
+
     QList<ToolbarWidgetAction*> getWidgetActions();
     ToolbarWidgetAction* getWidgetAction(Node* node);
 

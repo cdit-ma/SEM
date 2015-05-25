@@ -61,6 +61,9 @@ void HardwareDockScrollArea::dockNodeItemClicked()
             }
 
             getNodeView()->constructEdge(selectedNode, senderNode, false);
+
+            // highlight hardware connection after it's been constructed
+            highlightHardwareConnection();
         }
     }
 }
@@ -212,18 +215,14 @@ void HardwareDockScrollArea::highlightHardwareConnection()
     // we only care if there is a selected item and the Hardware dock is enabled
     if (selectedItem && getParentButton()->isEnabled()) {
 
-        //qDebug() << "highlightHardwareConnection";
-
         QString nodeKind = selectedItem->getNodeKind();
 
         // NOTE: Is there any other kinds that can be connected to a Harware Node/Cluster?
         if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance") {
             Edge* hardwareEdge = getHardwareConnection(selectedItem->getNode());
             if (hardwareEdge) {
-                //qDebug() << "Highlight item";
                 emit dock_higlightDockItem(hardwareEdge->getDestination());
             } else {
-                //qDebug() << "Remove highlight";
                 emit dock_higlightDockItem();
             }
         } else {

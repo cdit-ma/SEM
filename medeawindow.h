@@ -79,9 +79,7 @@ public slots:
     void aspectToggleClicked(bool checked, int state);
 
 private slots:
-
     void saveSettings();
-
     void loadJenkinsData(int code);
 
     void on_actionImportJenkinsNode();
@@ -118,6 +116,7 @@ private slots:
     void menuActionTriggered();
 
     void graphicsItemSelected();
+    void graphicsItemDeleted();
 
     void dockButtonPressed(QString buttonName);
 
@@ -142,7 +141,6 @@ private slots:
     void detachedToolbarClosed();
     void updateCheckedToolbarActions(bool checked = true);
 
-
     //multi-line popup for QTableView (SLOTS)
     void dataTableDoubleClicked(QModelIndex);
     void dialogAccepted();
@@ -154,10 +152,6 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
-
-    void toggleAndTriggerAction(QAction* action, bool value);
-
-
     void resetGUI();
     void resetView();
     void newProject();
@@ -178,11 +172,14 @@ private:
     void importProjects(QStringList files);
     void showImportedHardwareNodes();
 
+    void toggleAndTriggerAction(QAction* action, bool value);
+
     QStringList getCheckedItems(int menu);
 
     QString applicationDirectory;
 
     QPushButton *projectName;
+    QGroupBox* menuTitleBox;
 
     QMenu* menu;
     QMenu* file_menu;
@@ -213,10 +210,9 @@ private:
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_sortModel;
-
-    QAction* settings_showGridLines;
-    QAction* settings_editWindowToolbar;
-    QAction* settings_changeSettings;
+    QAction* settings_useGridLines;
+    QAction* settings_editToolbarButtons;
+    QAction* settings_changeAppSettings;
 
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
@@ -236,7 +232,6 @@ private:
     //QGroupBox* toolbarArea;
     QVBoxLayout* toolbarLayout;
 
-    QGroupBox* titleToolbarBox;
     QLabel* toolbarButtonLabel;
     QPixmap expandPixmap;
     QPixmap contractPixmap;

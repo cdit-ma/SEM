@@ -74,6 +74,19 @@ void ToolbarWidgetMenu::addWidgetAction(ToolbarWidgetAction* action)
 
 
 /**
+ * @brief ToolbarWidgetMenu::removeWidgetAction
+ * @param action
+ */
+void ToolbarWidgetMenu::removeWidgetAction(ToolbarWidgetAction *action)
+{
+   if (action && action->isDeletable()) {
+       widgetActions.removeAll(action);
+       delete action;
+   }
+}
+
+
+/**
  * @brief ToolbarWidgetMenu::getWidgetActions
  * This returns the widgetActions list.
  * @return

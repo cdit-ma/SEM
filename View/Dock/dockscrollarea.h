@@ -25,8 +25,6 @@ public:
 
     void setNotAllowedKinds(QStringList kinds);
 
-    void updateScrollBar();
-
     void addDockNodeItem(DockNodeItem* item, int insertIndex = -1, bool addToLayout = true);
     DockNodeItem* getDockNodeItem(NodeItem* item);
     DockNodeItem* getDockNodeItem(Node* node);

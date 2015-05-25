@@ -28,7 +28,7 @@ public:
 
     void showSnippetButton(QString button, bool show);
 
-    void updateSeparators();
+    void updateSeparators(bool snippet = true, bool goTo = true);
 
 protected:
     virtual void enterEvent(QEvent*);
@@ -132,6 +132,7 @@ private:
     QFrame* goToFrame;
 
     bool eventFromToolbar;
+    bool showToolbar;
     bool showSnippetFrame;
     bool showGoToFrame;
 

@@ -12,12 +12,18 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QPicture>
-
 #include <QToolButton>
 #include <QToolBar>
 
+#define THREADING false
 
-//USER SETTINGS
+#define RIGHT_PANEL_WIDTH 230.0
+#define SPACER_HEIGHT 30
+
+#define MIN_WIDTH 1000
+#define MIN_HEIGHT (480 + SPACER_HEIGHT*3)
+
+// USER SETTINGS
 #define WINDOW_X "01-01-Position_X"
 #define WINDOW_Y "01-02-Position_Y"
 #define WINDOW_W "01-03-Width"
@@ -38,16 +44,10 @@
 #define JENKINS_USER "06-02-Username"
 #define JENKINS_PASS "06-03-Password"
 
-#define THREADING false
-
-#define RIGHT_PANEL_WIDTH 230.0
-#define SPACER_HEIGHT 30
-
-#define MIN_WIDTH 1000
-#define MIN_HEIGHT (480 + SPACER_HEIGHT*3)
 
 /**
  * @brief MedeaWindow::MedeaWindow
+ * @param graphMLFile
  * @param parent
  */
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
@@ -70,7 +70,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
  */
 MedeaWindow::~MedeaWindow()
 {
-    if(appSettings){
+    if (appSettings) {
         saveSettings();
         delete appSettings;
     }
@@ -83,22 +83,26 @@ MedeaWindow::~MedeaWindow()
 }
 
 
+/**
+ * @brief MedeaWindow::settingChanged
+ * @param groupName
+ * @param keyName
+ * @param value
+ */
 void MedeaWindow::settingChanged(QString groupName, QString keyName, QString value)
 {
     Q_UNUSED(groupName);
 
     bool isBool = false;
+    bool boolValue = false;
     bool isInt = false;
     int intValue = value.toInt(&isInt);
-    bool boolValue = false;
     if(value == "true" || value == "false"){
         isBool = true;
         if(value == "true"){
             boolValue = true;
         }
     }
-
-
 
     if(keyName == WINDOW_X && isInt){
         move(intValue, pos().y());
@@ -121,7 +125,7 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == ZOOM_ANCHOR_ON_MOUSE && isBool){
         nodeView->toggleZoomAnchor(boolValue);
     }else if(keyName == USE_GRID && isBool){
-        toggleAndTriggerAction(settings_showGridLines, boolValue);
+        toggleAndTriggerAction(settings_useGridLines, boolValue);
     }else if(keyName == DOCK_VISIBLE && isBool){
         showDocks(!boolValue);
     }else if(keyName == TOOLBAR_VISIBLE && isBool){
@@ -144,12 +148,6 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == JENKINS_URL && value == ""){
         file_importJenkinsNodes->setEnabled(false);
     }
-
-
-
-
-
-
 }
 
 
@@ -182,7 +180,7 @@ void MedeaWindow::initialiseGUI()
     dataTable = new QTableView(dataTableBox);
     delegate = new ComboBoxTableDelegate(0);
 
-    titleToolbarBox = new QGroupBox(this);
+    menuTitleBox = new QGroupBox(this);
     projectName = new QPushButton("Model");
 
     // set central widget and window size
@@ -248,16 +246,17 @@ void MedeaWindow::initialiseGUI()
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setItemDelegateForColumn(2, delegate);
-    dataTable->setFixedWidth(rightPanelWidth);
+    dataTable->setFixedWidth(rightPanelWidth + 10);
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setFont(guiFont);
 
     QVBoxLayout *tableLayout = new QVBoxLayout();
     tableLayout->setMargin(0);
-    tableLayout->setContentsMargins(0,0,0,0);
+    tableLayout->setContentsMargins(5,0,0,0);
     tableLayout->addWidget(dataTable);
 
-    dataTableBox->setFixedWidth(rightPanelWidth);
+    dataTableBox->setFixedWidth(rightPanelWidth + 20);
+    dataTableBox->setContentsMargins(0,0,0,0);
     dataTableBox->setLayout(tableLayout);
     dataTableBox->setStyleSheet("QGroupBox {"
                                 "background-color: rgba(0,0,0,0);"
@@ -270,15 +269,14 @@ void MedeaWindow::initialiseGUI()
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
 
-    //minimap->scale(.002,.002);
     minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
     minimap->setInteractive(false);
 
     minimap->setFixedSize(rightPanelWidth + 10, rightPanelWidth/1.6);
-    minimap->setStyleSheet("background-color: rgba(155,155,155,155);"
+    minimap->setStyleSheet("background-color: rgba(180,180,180,230);"
                            "border: 2px solid;"
-                           "border-color: rgb(100,100,100);"
+                           "border-color: rgb(80,80,80);"
                            "border-radius: 8px;");
 
     // layouts
@@ -302,20 +300,20 @@ void MedeaWindow::initialiseGUI()
 
     toolbarContainerLayout->setMargin(0);
     toolbarContainerLayout->setSpacing(0);
-    toolbarContainerLayout->setContentsMargins(0, 5, 0, 0);
+    toolbarContainerLayout->setContentsMargins(0, 3, 0, 0);
 
-    titleToolbarBox->setLayout(titleLayout);
-    titleToolbarBox->setFixedHeight(menuButton->height() + 30);
-    titleToolbarBox->setStyleSheet("QGroupBox{ border: none; background-color: rgba(0,0,0,0); }");
-    titleToolbarBox->setMask(QRegion(0, (titleToolbarBox->height() - menuButton->height()) / 2,
-                                     menuButton->width() + projectName->width(), menuButton->height(),
-                                     QRegion::Rectangle));
+    menuTitleBox->setLayout(titleLayout);
+    menuTitleBox->setFixedHeight(menuButton->height() + 30);
+    menuTitleBox->setStyleSheet("QGroupBox{ border: none; background-color: rgba(0,0,0,0); }");
+    menuTitleBox->setMask(QRegion(0, (menuTitleBox->height() - menuButton->height()) / 2,
+                                  menuButton->width() + projectName->width(), menuButton->height(),
+                                  QRegion::Rectangle));
 
     topHLayout->setMargin(0);
     topHLayout->setSpacing(0);
-    topHLayout->addWidget(titleToolbarBox, 1);
+    topHLayout->addWidget(menuTitleBox, 1);
     topHLayout->addStretch(5);
-    topHLayout->addLayout(toolbarContainerLayout, 1);
+    topHLayout->addLayout(toolbarContainerLayout);
     topHLayout->addStretch(4);
 
     leftVlayout->setMargin(0);
@@ -439,9 +437,9 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
 
 
-    settings_showGridLines = new QAction(this);
-    settings_editWindowToolbar = settings_Menu->addAction(QIcon(":/Resources/Icons/toolbar.png"), "Toolbar Settings");
-    settings_changeSettings = settings_Menu->addAction(QIcon(":/Resources/Icons/medea.png"), "App Settings");
+    settings_useGridLines = new QAction(this);
+    settings_editToolbarButtons = settings_Menu->addAction(QIcon(":/Resources/Icons/toolbar.png"), "Toolbar Settings");
+    settings_changeAppSettings = settings_Menu->addAction(QIcon(":/Resources/Icons/medea.png"), "App Settings");
     button->setMenu(menu);
 
     // setup toggle actions
@@ -499,13 +497,6 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     partsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     hardwareNodesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     definitionsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-
-    // set keyboard shortcuts for dock buttons
-    /*
-    partsButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
-    hardwareNodesButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_H));
-    definitionsButton->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
-    */
 
     // remove extra space in layouts
     dockButtonsHlayout->setMargin(0);
@@ -892,7 +883,8 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     rightSpacerAction = toolbar->addWidget(spacerWidgetRight);
 
     toolbar->setIconSize(buttonSize*0.6);
-    toolbar->setMinimumSize(toolbar->contentsRect().width(), buttonSize.height()+spacerWidth);
+    toolbar->setMinimumSize(toolbar->rect().width(), buttonSize.height()+spacerWidth);
+    toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     toolbar->setStyle(QStyleFactory::create("windows"));
 
     toolbarLayout->setMargin(0);
@@ -1003,6 +995,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
         }
 
         if (!hidden) {
+            cb->clicked(true);
             cb->setChecked(true);
             checkedToolbarActions.append(toolbarActions.key(cb));
         }
@@ -1030,9 +1023,6 @@ void MedeaWindow::setupController()
         delete thread;
         thread = 0;
     }
-
-    //controller = 0;
-    //thread = 0;
 
     controller = new NewController();
 
@@ -1072,7 +1062,7 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
     connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
     connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setViewAspects(QStringList)));
-    connect(nodeView, SIGNAL(view_updateGoToMenuActions(QString,bool)), this, SLOT(setMenuActionEnabled(QString,bool)));
+    connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setMenuActionEnabled(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
 
@@ -1085,8 +1075,6 @@ void MedeaWindow::makeConnections()
     connect(minimap, SIGNAL(minimap_Pressed(QMouseEvent*)), nodeView, SLOT(minimapPressed(QMouseEvent*)));
     connect(minimap, SIGNAL(minimap_Moved(QMouseEvent*)), nodeView, SLOT(minimapMoved(QMouseEvent*)));
     connect(minimap, SIGNAL(minimap_Released(QMouseEvent*)), nodeView, SLOT(minimapReleased(QMouseEvent*)));
-    //connect(minimap, SIGNAL(minimap_Panned(QPointF)), nodeView, SLOT(minimapPan(QPointF)));
-
     connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(scrollEvent(int)));
 
     connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
@@ -1124,9 +1112,9 @@ void MedeaWindow::makeConnections()
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
     connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
 
-    connect(settings_changeSettings, SIGNAL(triggered()), appSettings, SLOT(show()));
-    connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
-    connect(settings_editWindowToolbar, SIGNAL(triggered()), toolbarSettingsDialog, SLOT(show()));
+    connect(settings_changeAppSettings, SIGNAL(triggered()), appSettings, SLOT(show()));
+    connect(settings_useGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
+    connect(settings_editToolbarButtons, SIGNAL(triggered()), toolbarSettingsDialog, SLOT(show()));
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
@@ -1162,10 +1150,9 @@ void MedeaWindow::makeConnections()
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(contextToolbarButton, SIGNAL(clicked()), nodeView, SLOT(showToolbar()));
 
-
-    connect(settings_showGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
-    connect(toggleGridButton, SIGNAL(clicked(bool)), settings_showGridLines, SLOT(setChecked(bool)));
-    connect(toggleGridButton, SIGNAL(clicked(bool)), settings_showGridLines, SIGNAL(triggered(bool)));
+    connect(settings_useGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
+    connect(toggleGridButton, SIGNAL(clicked(bool)), settings_useGridLines, SLOT(setChecked(bool)));
+    connect(toggleGridButton, SIGNAL(clicked(bool)), settings_useGridLines, SIGNAL(triggered(bool)));
 
     connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
     connect(nodeView, SIGNAL(view_ExportedSnippet(QString,QString)), this, SLOT(writeExportedSnippet(QString,QString)));
@@ -1181,6 +1168,8 @@ void MedeaWindow::makeConnections()
 
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
+
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
 
     connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
@@ -1231,8 +1220,8 @@ void MedeaWindow::makeConnections()
     addAction(model_validateModel);
     addAction(model_clearModel);
     addAction(model_sortModel);
-    addAction(settings_showGridLines);
-    addAction(settings_changeSettings);
+    addAction(settings_useGridLines);
+    addAction(settings_changeAppSettings);
 }
 
 
@@ -1263,6 +1252,12 @@ void MedeaWindow::changeEvent(QEvent *event)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::toggleAndTriggerAction
+ * @param action
+ * @param value
+ */
 void MedeaWindow::toggleAndTriggerAction(QAction *action, bool value)
 {
     action->setChecked(value);
@@ -1278,7 +1273,7 @@ void MedeaWindow::toggleAndTriggerAction(QAction *action, bool value)
 void MedeaWindow::updateWidgetsOnWindowChanged()
 {
     // update dock's widget sizes, containers and and mask
-    boxHeight = height() - titleToolbarBox->height() - dockButtonsBox->height() - SPACER_HEIGHT;
+    boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height() - SPACER_HEIGHT;
     docksArea->setFixedHeight(boxHeight*2);
     dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_HEIGHT/2);
 
@@ -1315,30 +1310,30 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
  */
 void MedeaWindow::setupInitialSettings()
 {
-     appSettings->loadSettings();
-     toggleAndTriggerAction(view_showManagementComponents, false);
+    appSettings->loadSettings();
+    toggleAndTriggerAction(view_showManagementComponents, false);
 
-     // this only needs to happen once, the whole time the application is open
-     partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
+    // this only needs to happen once, the whole time the application is open
+    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
 
-     // populate view aspects menu  once the nodeView and controller have been
-     // constructed and connected - should only need to do this once
-     QStringList nodeKinds = nodeView->getConstructableNodeKinds();
-     nodeKinds.removeDuplicates();
-     nodeKinds.sort();
-     foreach (QString kind, nodeKinds) {
-         QWidgetAction* action = new QWidgetAction(this);
-         QCheckBox* checkBox = new QCheckBox(kind, this);
-         checkBox->setFont(guiFont);
-         checkBox->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }"
-                                 "QCheckBox::checked{ color: green; font-weight: bold; }");
-         connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
-         action->setDefaultWidget(checkBox);
-         nodeKindsMenu->addAction(action);
-     }
+    // populate view aspects menu  once the nodeView and controller have been
+    // constructed and connected - should only need to do this once
+    QStringList nodeKinds = nodeView->getConstructableNodeKinds();
+    nodeKinds.removeDuplicates();
+    nodeKinds.sort();
+    foreach (QString kind, nodeKinds) {
+        QWidgetAction* action = new QWidgetAction(this);
+        QCheckBox* checkBox = new QCheckBox(kind, this);
+        checkBox->setFont(guiFont);
+        checkBox->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }"
+                                "QCheckBox::checked{ color: green; font-weight: bold; }");
+        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
+        action->setDefaultWidget(checkBox);
+        nodeKindsMenu->addAction(action);
+    }
 
-     // hide initial notifications
-     notificationsBar->hide();
+    // hide initial notifications
+    notificationsBar->hide();
 
 }
 
@@ -2004,6 +1999,15 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
         file_exportSnippet->setEnabled(enable);
     } else if (action == "importSnippet") {
         file_importSnippet->setEnabled(enable);
+    } else if (action == "cut") {
+        edit_cut->setEnabled(enable);
+        cutButton->setEnabled(enable);
+    } else if (action == "copy") {
+        edit_copy->setEnabled(enable);
+        copyButton->setEnabled(enable);
+    } else if (action == "paste") {
+        edit_paste->setEnabled(enable);
+        pasteButton->setEnabled(enable);
     }
 }
 
@@ -2159,8 +2163,9 @@ void MedeaWindow::updateCheckedToolbarActions(bool checked)
             rightMostActions[action] = checked;
             actionGroup = rightMostActions;
             spacerAction = rightMostSpacer;
-        }else{
-            //TODO deal with this case!
+        } else {
+            // this case is when contextToolbar/delete button is checked/unchecked
+            return;
         }
 
         // DEMO CHANGE
@@ -2190,10 +2195,9 @@ void MedeaWindow::updateCheckedToolbarActions(bool checked)
             return;
         }
     }
-    if(spacerAction){
-        spacerAction->setVisible(false);
-        checkedToolbarSpacers.removeAll(spacerAction);
-    }
+
+    spacerAction->setVisible(false);
+    checkedToolbarSpacers.removeAll(spacerAction);
 }
 
 
@@ -2213,7 +2217,7 @@ void MedeaWindow::updateWidgetMask(QWidget *widget, QWidget *maskWidget, bool ch
     widget->setMask(QRegion(pos.x() - border.width()/2,
                             pos.y() - border.width()/2,
                             maskWidget->width() + border.width(),
-                            maskWidget->height() + border.width(),
+                            maskWidget->height() + border.height(),
                             QRegion::Rectangle));
 }
 
@@ -2233,7 +2237,7 @@ void MedeaWindow::menuActionTriggered()
     } else if (action->text().contains("Grid Lines")) {
 
         // update toggleGridButton's tooltip
-        if (settings_showGridLines->isChecked()) {
+        if (settings_useGridLines->isChecked()) {
             toggleGridButton->setToolTip("Turn Off Grid Lines");
         } else {
             toggleGridButton->setToolTip("Turn On Grid Lines");
@@ -2563,13 +2567,25 @@ void MedeaWindow::graphicsItemSelected()
 {
     if (nodeView->getSelectedNode()) {
         view_showConnectedNodes->setEnabled(true);
-        view_snapToGrid->setEnabled(settings_showGridLines->isChecked());
-        view_snapChildrenToGrid->setEnabled(settings_showGridLines->isChecked());
+        view_snapToGrid->setEnabled(settings_useGridLines->isChecked());
+        view_snapChildrenToGrid->setEnabled(settings_useGridLines->isChecked());
     } else {
         view_showConnectedNodes->setEnabled(false);
         view_snapToGrid->setEnabled(false);
         view_snapChildrenToGrid->setEnabled(false);
     }
+}
+
+
+/**
+ * @brief MedeaWindow::graphicsItemDeleted
+ * This is currently called when a node item is deleted.
+ * It stops the data table from displaying an emty white rectangle
+ * when the item that was deleted was previously selected.
+ */
+void MedeaWindow::graphicsItemDeleted()
+{
+    updateDataTable();
 }
 
 

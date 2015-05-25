@@ -136,7 +136,6 @@ void DockScrollArea::addDockNodeItem(DockNodeItem *item, int insertIndex, bool a
         } else {
             layout->insertWidget(insertIndex, item);
         }
-        //updateScrollBar();
     }
 
     connect(item, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
@@ -281,14 +280,11 @@ void DockScrollArea::dockNodeItemClicked() {}
  */
 void DockScrollArea::setupLayout()
 {
-    QFont guiFont = QFont("Verdana");
-    guiFont.setPointSizeF(8.5);
-
     QGroupBox* groupBox = new QGroupBox(0);
     groupBox->setTitle(label);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     groupBox->setStyleSheet("QGroupBox {"
-                            "background-color: rgba(0,0,0,0);"
+                            "background-color: rgba(255,255,255,0);"
                             "border: 0px;"
                             "padding: 10px;"
                             "padding-left: 15px;"
@@ -326,31 +322,6 @@ void DockScrollArea::setParentButton(DockToggleButton *parent)
 
 
 /**
- * @brief DockScrollArea::updateScrollBar
- */
-void DockScrollArea::updateScrollBar()
-{
-    bool scrollbarVisible = false;
-    if (layout->sizeHint().height() > height()) {
-        scrollbarVisible = true;
-    }
-
-    // update stylesheet to add/remove extra padding
-    QString extraPadding = "padding-left: 0px; padding-right: 0px;";
-    if (scrollbarVisible) {
-        extraPadding = "padding-left: 8px; padding-right: 8px;";
-    }
-
-    setStyleSheet("QScrollArea {"
-                  "background-color: rgba(255,255,255,180);"
-                  "border: 0px;"
-                  "border-radius: 10px;"
-                  "padding-top: 10px;"
-                  + extraPadding + "}");
-}
-
-
-/**
  * @brief DockScrollArea::activate
  * This shows or hides the scroll area and its groupbox.
  */
@@ -377,7 +348,6 @@ void DockScrollArea::clear()
         delete dockNodeItems.at(i);
     }
     dockNodeItems.clear();
-    updateScrollBar();
 }
 
 

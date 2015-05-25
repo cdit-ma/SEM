@@ -4,7 +4,7 @@
 #include <QLabel>
 #include <QDebug>
 
-#define MAX_LABEL_LENGTH 14
+#define MAX_LABEL_LENGTH 13
 
 /**
  * @brief DockNodeItem::DockNodeItem

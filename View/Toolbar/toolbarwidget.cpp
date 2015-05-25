@@ -21,6 +21,7 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     implementationNode = 0;
 
     eventFromToolbar = false;
+    showToolbar = false;
     showSnippetFrame = false;
     showGoToFrame = false;
 
@@ -63,12 +64,20 @@ void ToolbarWidget::updateSelectedNodeItem(QList<NodeItem*> items)
         updateMenuLists();
     } else if (items.count() > 1) {
         multipleSelection(items);
+    } else {
+        // it shouldn't get to this function if there aren't any selected items
+        return;
     }
 
     // update the toolbar & frame sizes after the tool buttons have been updated
     mainFrame->setFixedSize(layout()->sizeHint());
     shadowFrame->setFixedSize(layout()->sizeHint() + QSize(3,3));
     setFixedSize(shadowFrame->size());
+
+    mainFrame->setVisible(showToolbar);
+    shadowFrame->setVisible(showToolbar);
+    setVisible(showToolbar);
+    showToolbar = false;
 }
 
 
@@ -84,6 +93,7 @@ void ToolbarWidget::showDefinitionButton(Node *definition)
         definitionNode = definition;
         definitionButton->show();
         showGoToFrame = true;
+        showToolbar = true;
     } else {
         definitionButton->hide();
     }
@@ -102,6 +112,7 @@ void ToolbarWidget::showImplementationButton(Node* implementation)
         implementationNode = implementation;
         implementationButton->show();
         showGoToFrame = true;
+        showToolbar = true;
     } else {
         implementationButton->hide();
     }
@@ -123,22 +134,29 @@ void ToolbarWidget::showSnippetButton(QString button, bool show)
     }
     if (show) {
         showSnippetFrame = true;
+        showToolbar = true;
     }
 }
 
 
 /**
  * @brief ToolbarWidget::updateSeparators
+ * @param snippet
+ * @param goTo
  */
-void ToolbarWidget::updateSeparators()
+void ToolbarWidget::updateSeparators(bool snippet, bool goTo)
 {
     // show frame if any of the snippet buttons are visible
-    snippetFrame->setVisible(showSnippetFrame);
-    showSnippetFrame = false;
+    if (snippet) {
+        snippetFrame->setVisible(showSnippetFrame);
+        showSnippetFrame = false;
+    }
 
     // show frame if any of the goto buttons are visible
-    goToFrame->setVisible(showGoToFrame);
-    showGoToFrame = false;
+    if (goTo) {
+        goToFrame->setVisible(showGoToFrame);
+        showGoToFrame = false;
+    }
 }
 
 
@@ -499,7 +517,7 @@ void ToolbarWidget::setupMenus()
     outEventPortDelegateAction = new ToolbarWidgetAction("OutEventPortDelegate", "", addMenu);
 
     // default actions for when some of the menus are empty
-    fileDefaultAction = new ToolbarWidgetAction("info", "There are no IDL files containing Components.", this);
+    fileDefaultAction = new ToolbarWidgetAction("info", "There are no IDL files containing Components that are valid for this action.", this);
     inEventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", this);
     outEventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", this);
 
@@ -558,18 +576,22 @@ void ToolbarWidget::updateToolButtons()
         deleteButton->hide();
     } else {
         deleteButton->show();
+        showToolbar = true;
     }
 
     // check if the selected node item has other node items connected to it (edges)
     // NOTE: ComponentAssembly apparently has a connection to itself?
     if (nodeItem->getNode()->getEdges().count() > 0) {
+        // DEMO CHANGE - Don't need this when the popup new window button is back
+        alterViewFrame->show();
         showConnectionsButton->show();
+        showToolbar = true;
     } else {
+        // DEMO CHANGE - Don't need this when the popup new window button is back
+        alterViewFrame->hide();
         showConnectionsButton->hide();
     }
 
-    // DEMO CHANGE - Don't need this when the popup new window button is back
-    alterViewFrame->setVisible(showConnectionsButton->isVisible());
 
     // always show show new view button
     //showNewViewButton->show();
@@ -642,6 +664,10 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items)
     foreach (QToolButton* button, multipleSelectionToolButtons) {
         button->setVisible(showButtons);
     }
+
+    if (showButtons) {
+        showToolbar = true;
+    }
 }
 
 
@@ -658,7 +684,11 @@ void ToolbarWidget::setupInstancesList(QList<Node*> instances)
     } else {
         instancesButton->show();
         showGoToFrame = true;
+        showToolbar = true;
     }
+
+    updateSeparators(false);
+
     // create a ToolbarWidgetAction for each instance and connect it
     for (int i = 0; i < instances.count(); i++) {
         ToolbarWidgetAction* action  = new ToolbarWidgetAction(instances.at(i), this);
@@ -681,6 +711,7 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
         return;
     } else {
         addChildButton->show();
+        showToolbar = true;
     }
 
     // populate addMenu
@@ -720,6 +751,7 @@ void ToolbarWidget::setupLegalNodesList(QList<Node*> nodeList)
         return;
     } else {
         connectButton->show();
+        showToolbar = true;
     }
 
     // populate connectMenu
@@ -805,8 +837,8 @@ void ToolbarWidget::setupComponentList(QList<Node*> components, QString kind)
 {
     for (int i = 0; i < components.count(); i++) {
 
-        // if selected node is the BehaviourDefinitions, don't
-        // include already implemented Components in the menu
+        // if selected node is the BehaviourDefinitions or an undefined ComponentImpl,
+        // don't include already implemented Components in the menu
         if (kind == "impl") {
             if (components.at(i)->getImplementations().count() > 0) {
                 continue;
@@ -826,6 +858,14 @@ void ToolbarWidget::setupComponentList(QList<Node*> components, QString kind)
                 fileAction->getMenu()->addWidgetAction(action);
                 break;
             }
+        }
+    }
+
+    // if the fileAction's menu doesn't have any actions, remove it from the file menu
+    foreach (QAction* action, fileMenu->actions()) {
+        ToolbarWidgetAction* fileAction = qobject_cast<ToolbarWidgetAction*>(action);
+        if (fileAction->getMenu() && fileAction->getMenu()->getWidgetActions().count() == 0) {
+            fileMenu->removeWidgetAction(fileAction);
         }
     }
 }

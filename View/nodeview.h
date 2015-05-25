@@ -124,7 +124,7 @@ signals:
     void view_edgeDestructed();
 
     // signals for MEDEA menu
-    void view_updateGoToMenuActions(QString action, bool enable);
+    void view_updateMenuActionEnabled(QString action, bool enable);
     void view_showWindowToolbar();
 
     void view_toggleGridLines(bool on);

@@ -28,13 +28,13 @@ DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *
     selectedPenWidth = 2;
     penWidth = defaultPenWidth;
 
-    defaultPenColor = QColor(120,120,120);
+    defaultPenColor = QColor(100,100,100);
     disabledPenColor = QColor(150,150,150);
     selectedPenColor = Qt::blue;
     penColor = defaultPenColor;
 
-    defaultBrushColor = QColor(235, 235, 235);
-    disabledBrushColor = QColor(205, 205, 205);
+    defaultBrushColor = QColor(230, 230, 230);
+    disabledBrushColor = QColor(180, 180, 180);
     selectedBrushColor = Qt::white;
     brushColor = defaultBrushColor;
 
@@ -100,7 +100,6 @@ bool DockToggleButton::getSelected()
 void DockToggleButton::setSelected(bool b)
 {
     selected = b;
-    repaint();
 }
 
 
@@ -249,7 +248,6 @@ void DockToggleButton::setColor(int state)
         brushColor = selectedBrushColor;
         break;
     }
-    repaint();
 }
 
 
