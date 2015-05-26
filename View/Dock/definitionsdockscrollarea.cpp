@@ -25,6 +25,32 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("HardwareNode");
     definitions_notAllowedKinds.append("IDL");
     definitions_notAllowedKinds.append("Component");
+    definitions_notAllowedKinds.append("Aggregate");
+    definitions_notAllowedKinds.append("Member");
+    definitions_notAllowedKinds.append("AggregateInstance");
+    definitions_notAllowedKinds.append("MemberInstance");
+    definitions_notAllowedKinds.append("InEventPort");
+    definitions_notAllowedKinds.append("OutEventPort");
+    definitions_notAllowedKinds.append("Attribute");
+    definitions_notAllowedKinds.append("ComponentImpl");
+    definitions_notAllowedKinds.append("InEventPortImpl");
+    definitions_notAllowedKinds.append("OutEventPortImpl");
+    definitions_notAllowedKinds.append("AttributeImpl");
+    definitions_notAllowedKinds.append("Workload");
+    definitions_notAllowedKinds.append("Process");
+    definitions_notAllowedKinds.append("BranchState");
+    definitions_notAllowedKinds.append("Condition");
+    definitions_notAllowedKinds.append("Termination");
+    definitions_notAllowedKinds.append("Variable");
+    definitions_notAllowedKinds.append("PeriodicEvent");
+    definitions_notAllowedKinds.append("ComponentInstance");
+    definitions_notAllowedKinds.append("InEventPortInstance");
+    definitions_notAllowedKinds.append("OutEventPortInstance");
+    definitions_notAllowedKinds.append("AttributeInstance");
+    definitions_notAllowedKinds.append("InEventPortDelegate");
+    definitions_notAllowedKinds.append("OutEventPortDelegate");
+
+
     setNotAllowedKinds(definitions_notAllowedKinds);
 
     // setup definitions-dock specific layout

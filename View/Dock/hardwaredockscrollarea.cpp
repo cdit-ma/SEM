@@ -24,6 +24,29 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
     hardware_notAllowedKinds.append("Component");
     hardware_notAllowedKinds.append("ComponentImpl");
     hardware_notAllowedKinds.append("HardwareNode");
+    hardware_notAllowedKinds.append("Aggregate");
+    hardware_notAllowedKinds.append("Member");
+    hardware_notAllowedKinds.append("AggregateInstance");
+    hardware_notAllowedKinds.append("MemberInstance");
+    hardware_notAllowedKinds.append("InEventPort");
+    hardware_notAllowedKinds.append("OutEventPort");
+    hardware_notAllowedKinds.append("Attribute");
+    hardware_notAllowedKinds.append("InEventPortImpl");
+    hardware_notAllowedKinds.append("OutEventPortImpl");
+    hardware_notAllowedKinds.append("AttributeImpl");
+    hardware_notAllowedKinds.append("Workload");
+    hardware_notAllowedKinds.append("Process");
+    hardware_notAllowedKinds.append("BranchState");
+    hardware_notAllowedKinds.append("Condition");
+    hardware_notAllowedKinds.append("Termination");
+    hardware_notAllowedKinds.append("Variable");
+    hardware_notAllowedKinds.append("PeriodicEvent");
+    hardware_notAllowedKinds.append("InEventPortInstance");
+    hardware_notAllowedKinds.append("OutEventPortInstance");
+    hardware_notAllowedKinds.append("AttributeInstance");
+    hardware_notAllowedKinds.append("InEventPortDelegate");
+    hardware_notAllowedKinds.append("OutEventPortDelegate");
+
     setNotAllowedKinds(hardware_notAllowedKinds);
 }
 
