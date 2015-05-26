@@ -44,6 +44,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     toolbarJustClosed = false;
     editingNodeItemLabel = false;
     managementComponentVisible = false;
+    importFromJenkins = false;
     IS_SUB_VIEW = subView;
     controller = 0;
     parentNodeView = 0;
@@ -560,6 +561,16 @@ bool NodeView::viewportEvent(QEvent * e)
     return QGraphicsView::viewportEvent(e);
 }
 
+void NodeView::loadJenkinsNodes(QString fileData)
+{
+    importFromJenkins = true;
+    if(controller){
+        controller->importProjects(QStringList(fileData));
+    }
+    importFromJenkins = false;
+
+}
+
 void NodeView::exportSnippet()
 {
     view_ExportSnippet(selectedIDs);
@@ -1024,6 +1035,16 @@ void NodeView::moveViewForward()
     }
 }
 
+void NodeView::enableClipboardActions(QStringList IDs)
+{
+    if (controller) {
+        emit view_updateMenuActionEnabled("cut", controller->canCut(selectedIDs));
+        emit view_updateMenuActionEnabled("copy", controller->canCopy(selectedIDs));
+        emit view_updateMenuActionEnabled("replicate", controller->canCopy(selectedIDs));
+        emit view_updateMenuActionEnabled("paste", controller->canPaste(selectedIDs));
+    }
+}
+
 
 /**
  * @brief NodeView::showToolbar
@@ -1093,6 +1114,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     QString nodeKind = node->getDataValue("kind");
 
     if(nonDrawnItemKinds.contains(nodeKind)){
+        noGuiIDHash[node->getID()] = nodeKind;
         return;
     }
 
@@ -1113,8 +1135,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     }
 
     //Expanded parent
-
-    if(!constructedFromImport){
+    if(!constructedFromImport || importFromJenkins){
         if(parentNodeItem){
             if(!parentNodeItem->isExpanded()){
                 parentNodeItem->setNodeExpanded(true);
@@ -1158,10 +1179,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
     // the node's label is automatically selected and editable
     if(!constructedFromImport){
-        if(GRID_LINES_ON){
-            nodeItem->snapToGrid();
-        }
-        if(SELECT_ON_CONSTRUCTION){
+        if(SELECT_ON_CONSTRUCTION && !importFromJenkins){
             clearSelection(true, false);
             appendToSelection(nodeItem);
             nodeItem->setNewLabel();
@@ -1184,13 +1202,17 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
 void NodeView::view_ConstructEdgeGUI(Edge *edge)
 {
+
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
     NodeItem* srcGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(src->getID()));
     NodeItem* dstGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(dst->getID()));
 
+
+    edgeConstructed_signalUpdates(edge);
     if(srcGUI != 0 && dstGUI != 0){
+        // send necessary signals when an edge has been constucted
         //We have valid GUI elements for both ends of this edge.
         bool constructEdge = true;
 
@@ -1232,11 +1254,13 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
             scene()->addItem(nodeEdge);
         }
 
-        // send necessary signals when an edge has been constucted
-        edgeConstructed_signalUpdates(edge);
+
+
 
 
     }else{
+        //Store non created edge ID
+        noGuiIDHash[edge->getID()] = "Edge";
         if(!IS_SUB_VIEW){
             qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
         }
@@ -1410,10 +1434,13 @@ void NodeView::componentInstanceConstructed(Node* node)
  * This is called when an edge is destroyed.
  * @param edge
  */
-void NodeView::destructEdge(Edge* edge)
+void NodeView::destructEdge(Edge* edge, bool addAction)
 {
     view_displayNotification("Disconnected " + edge->getSource()->getDataValue("label") +
                              " from " + edge->getDestination()->getDataValue("label") + ".");
+    if (addAction) {
+        triggerAction("Dock/Toolbar: Destructing Edge");
+    }
     view_Delete(QStringList() << edge->getID());
 }
 
@@ -1657,6 +1684,7 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
             selectedIDs.removeAll(ID);
         }
 
+
         if(item){
             //disconnect(item, SIGNAL(GraphMLItem_SetGraphMLData(GraphMLItem*,QString,QString)), this, SLOT(setGraphMLData(GraphMLItem*,QString,QString)));
             if(scene()->items().contains(item)){
@@ -1676,9 +1704,8 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
 
                 scene()->removeItem(item);
                 delete item;
+
                 //view_GraphMLItemDeleted(ID);
-
-
             }
             return true;
         }
@@ -1689,7 +1716,15 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
                 this->parent()->deleteLater();
             }
         }
-    }else{
+    }else if(noGuiIDHash.contains(ID)){
+        if(noGuiIDHash[ID] == "edge"){
+            view_edgeDestructed();
+        }else{
+            //Change nodeDestructed to maybe take an ID instead of item.
+        }
+        noGuiIDHash.remove(ID);
+    }
+    else{
         if(!IS_SUB_VIEW){
             qCritical() << "Could not find GraphMLItem from Hash!" << ID;
         }
@@ -1716,11 +1751,16 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
     emit view_toggleGridLines(GRID_LINES_ON);
 
     // snap node item to its parent's grid
-    nodeItem->snapToGrid();
+    //nodeItem->snapToGrid();
 
     // initially hide all ManagementComponents
     if (nodeItem->getNodeKind() == "ManagementComponent") {
         nodeItem->setHidden(!managementComponentVisible);
+    }
+
+    //Hide HardwareNodes.
+    if (nodeItem->getNodeKind() == "HardwareNode") {
+        nodeItem->setHidden(false);
     }
 
     // hide all AggregateInstances except for in OutEventPortImpls
@@ -1801,7 +1841,8 @@ void NodeView::edgeDestructed_signalUpdates(Edge* edge, QString ID)
 {
     // update the docks and the toolbar/menu goTo functions
     updateActionsEnabled(getSelectedNode());
-    emit view_edgeDestructed();
+    //emit view_edgeDestructed();
+
 
     // check if destructed edge's destination is a HardwareNode
     NodeItem* destination = getNodeItemFromNode(edge->getDestination());
@@ -1843,7 +1884,7 @@ void NodeView::updateActionsEnabled(Node* selectedNode)
     bool canExport = false;
     bool canImport = false;
 
-    if (controller && selectedNode) {
+    if (controller) {
         canExport = controller->canExportSnippet(selectedIDs);
         canImport = controller->canImportSnippet(selectedIDs);
     }
@@ -2348,6 +2389,7 @@ void NodeView::setDefaultAspects()
 
 void NodeView::setEnabled(bool enabled)
 {
+    //HIDE STUFF
     QGraphicsView::setEnabled(enabled);
 }
 
@@ -2358,6 +2400,7 @@ void NodeView::showDialogMessage(MESSAGE_TYPE type, QString title, QString messa
     if(item && centralizeItem){
         centerItem(getGraphMLItemFromGraphML(item));
     }
+    qCritical() << "GOT MESSAGE: " << message;
     if(message != ""){
         if(type == CRITICAL){
             QMessageBox::critical(this, "Error: " + title, message, QMessageBox::Ok);
@@ -2470,18 +2513,14 @@ void NodeView::undo()
         */
 
         // keep the view centered on the same spot
-        if (getMapSize() > 0) {
+       /* if (getMapSize() > 0) {
             QPointF pos = modelPositions[getMapSize() - 1];
             QRectF rect = centeredRects[getMapSize() - 1];
             recenterView(pos, rect, true);
-        }
+        }*/
 
         // undo the action
         controller->undo();
-
-        // Added this cause edges aren't being drawn anymore and the docks
-        // need to know when an edge is constructed/destructed
-        emit view_edgeDestructed();
     }
 }
 
@@ -2505,18 +2544,15 @@ void NodeView::redo()
         */
 
         // keep the view centered on the same spot
-        if (getMapSize() > 0) {
+        /*if (getMapSize() > 0) {
             QPointF pos = modelPositions[getMapSize() - 1];
             QRectF rect = centeredRects[getMapSize() - 1];
             recenterView(pos, rect, true);
-        }
+        }*/
 
         // redo the action
         controller->redo();
 
-        // Added this cause edges aren't being drawn anymore and the docks
-        // need to know when an edge is constructed/destructed
-        emit view_edgeDestructed();
     }
 }
 
@@ -2540,23 +2576,8 @@ void NodeView::appendToSelection(GraphMLItem *item)
     //    keepSelectionFullyVisible(item);
     //}
 
-    // you shouldn't be able to cut, copy or paste the definitions containers
-    if (getSelectedNodeItem()) {
-        QString kind = getSelectedNodeItem()->getNodeKind();
-        if (kind == "Model" || kind.endsWith("Definitions")) {
-            emit view_updateMenuActionEnabled("cut", false);
-            emit view_updateMenuActionEnabled("copy", false);
-            emit view_updateMenuActionEnabled("paste", false);
-            return;
-        }
-    }
-
     // update enabled states of cut, copy & paste everytime something is selected
-    if (controller) {
-        emit view_updateMenuActionEnabled("cut", controller->canCut(selectedIDs));
-        emit view_updateMenuActionEnabled("copy", controller->canCopy(selectedIDs));
-        emit view_updateMenuActionEnabled("paste", controller->canPaste(selectedIDs));
-    }
+    enableClipboardActions(selectedIDs);
 }
 
 void NodeView::removeFromSelection(GraphMLItem *item)
@@ -2710,6 +2731,11 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
         view_SetAttributeModel(0);
     }
 
+    // update menu and toolbar actions
+    updateActionsEnabled();
+
+    enableClipboardActions(selectedIDs);
+
     // this stops unnecessary disabling of docks/dock buttons
     // if the call came from a painted node item, just clear the selection
     NodeItem* senderItem = dynamic_cast<NodeItem*>(QObject::sender());
@@ -2720,10 +2746,6 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
     if (updateDocks) {
         emit view_nodeSelected();
     }
-
-
-    // update menu and toolbar actions
-    updateActionsEnabled();
 }
 
 
@@ -2841,10 +2863,16 @@ void NodeView::destructGUIItem(QString ID)
  */
 void NodeView::showManagementComponents(bool show)
 {
-    QList<Node*> managementComponents;
+
+    Node* assemblyDefinition;
     Model* model = controller->getModel();
     if (model) {
-        managementComponents = model->getChildrenOfKind("ManagementComponent");
+        QList<Node*> result = model->getChildrenOfKind("AssemblyDefinitions");
+        if(result.size() == 1){
+            assemblyDefinition = result[0];
+        }else{
+            return;
+        }
     }
 
     if (show) {
@@ -2856,14 +2884,19 @@ void NodeView::showManagementComponents(bool show)
     }
 
     // this goes through all the ManagementComponents and shows/hides them
-    foreach (Node* node, managementComponents) {
+    foreach (Node* node, assemblyDefinition->getChildren(0)){
         NodeItem* nodeItem = getNodeItemFromNode(node);
-        if (nodeItem) {
+        if(nodeItem->getNodeKind() == "ManagementComponent"){
             nodeItem->setHidden(!show);
-            if (show) {
-                nodeItem->snapToGrid(); // sort here instead?
-            }
+            nodeItem->setSorted(false);
+        }else{
+            nodeItem->setSorted(true);
         }
+    }
+
+    NodeItem* assemblyNI = getNodeItemFromNode(assemblyDefinition);
+    if(assemblyNI){
+        assemblyNI->newSort();
     }
 
     managementComponentVisible = show;

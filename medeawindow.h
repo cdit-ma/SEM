@@ -61,6 +61,7 @@ signals:
     void window_PasteData(QString value);
     void window_ExportProject();
     void window_ImportProjects(QStringList file);
+    void window_LoadJenkinsNodes(QString fileData);
     void window_AspectsChanged(QStringList aspects);
     void window_SortModel();
 

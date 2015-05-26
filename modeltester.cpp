@@ -21,7 +21,7 @@ ModelTester::ModelTester()
     float postInitializeMemory = getMemoryUsage();
     qCritical() << "Memory Usage after Initialize: " << postInitializeMemory << "KB.";
 
-    QFile file("C:/newVUAV.graphml");
+    QFile file("C:/Users/QT5/Desktop/Models/vUAVmedea.graphML");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
         qDebug() << "could not open file for read";
@@ -31,13 +31,14 @@ ModelTester::ModelTester()
     QString xmlText = in.readAll();
     file.close();
 
-    int repeatCount = 10;
-    int loadCount = 2;
+    int repeatCount = 1;
+    int loadCount = 1;
 
-      sleep(20);
 
+    sleep(5);
     float priorMemory = getMemoryUsage();
     float previousGrowth = 0;
+    sleep(5);
     for(int j = 0 ; j < repeatCount; j++){
         float beforeLoad = getMemoryUsage();
         if(beforeLoad > priorMemory){
@@ -46,29 +47,30 @@ ModelTester::ModelTester()
 
         //controller->view_TriggerAction("Loading GraphML");
         for(int i = 0 ; i < loadCount; i++){
+            controller->importProjects(QStringList(xmlText));
             //controller->view_Paste(xmlText);
         }
 
         float afterLoad = getMemoryUsage();
-        //qCritical() << "Memory Usage After Load: " << afterLoad << "KB.";
+        qCritical() << "Memory Usage After Load: " << afterLoad << "KB.";
 
         //controller->view_Undo();
 
-        //controller->view_ClearModel();
+        controller->clearModel();
         sleep(20);
         float afterClear = getMemoryUsage();
 
-        //qCritical() << "Memory Usage After Clear: " << afterClear << "KB.";
+        qCritical() << "Memory Usage After Clear: " << afterClear << "KB.";
     }
 
 
     xmlText = "";
 
-    delete controller;
-    sleep(1);
-    float afterDelete = getMemoryUsage();
-    qCritical() << "Memory Usage After Delete: " << afterDelete << "KB.";
-    qCritical() << "Total Memory Growth: " << afterDelete-initialMemory << "KB.";
+    //delete controller;
+    //sleep(10);
+    //float afterDelete = getMemoryUsage();
+    //qCritical() << "Memory Usage After Delete: " << afterDelete << "KB.";
+   // qCritical() << "Total Memory Growth: " << afterDelete-initialMemory << "KB.";
 
 }
 

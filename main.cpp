@@ -27,6 +27,8 @@ int main(int argc, char *argv[])
     MedeaWindow *w = new MedeaWindow(GraphMLFile);
     w->show();
     w->setupInitialSettings();
+    //ModelTester* modelTester = new ModelTester();
+
 
     return a.exec();
 }

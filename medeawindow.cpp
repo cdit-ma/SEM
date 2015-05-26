@@ -1089,6 +1089,7 @@ void MedeaWindow::makeConnections()
     connect(file_importJenkinsNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
     connect(this, SIGNAL(window_ExportProject()), nodeView, SIGNAL(view_ExportProject()));
     connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SIGNAL(view_ImportProjects(QStringList)));
+    connect(this, SIGNAL(window_LoadJenkinsNodes(QString)), nodeView, SLOT(loadJenkinsNodes(QString)));
 
     connect(edit_undo, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
     connect(edit_redo, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
@@ -1175,6 +1176,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
 
+
     connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
@@ -1188,6 +1190,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
 
     connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), definitionsDock, SLOT(refreshDock()));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
@@ -1195,7 +1198,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(refreshDock()));
 
-    connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*)), nodeView, SLOT(destructEdge(Edge*)));
+    connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*, bool)), nodeView, SLOT(destructEdge(Edge*, bool)));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
 
@@ -2008,6 +2011,8 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
     } else if (action == "paste") {
         edit_paste->setEnabled(enable);
         pasteButton->setEnabled(enable);
+    }else if (action == "replicate") {
+        duplicateButton->setEnabled(enable);
     }
 }
 
@@ -2718,17 +2723,16 @@ void MedeaWindow::loadJenkinsData(int code)
 {
 
     if(code == 0){
-        QStringList files;
-        files << myProcess->readAll();
+        QString jenkinsXML = myProcess->readAll();
+        showImportedHardwareNodes();
 
-        window_ImportProjects(files);
+        window_LoadJenkinsNodes(jenkinsXML);
 
         // this selects the Jenkins hardware cluster, opens the hardware dock
         // and show the Deployment view aspects (Assembly & Hardware)
-        showImportedHardwareNodes();
 
         // center view aspects
-        nodeView->fitToScreen();
+        //nodeView->fitToScreen();
 
     }else{
         QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
@@ -2803,8 +2807,7 @@ void MedeaWindow::showImportedHardwareNodes()
     // select the Jenkins hardware cluster after construction
     Model* model = controller->getModel();
     if (model) {
-        QList<Node*> hardwareClusters = model->getChildrenOfKind("HardwareCluster");
-        if (hardwareClusters.count() > 0) {
+        QList<Node*> hardwareClusters = model->getChildrenOfKind("HardwareCluster"); if (hardwareClusters.count() > 0) {
             // at the moment, this method assumes that the only cluster is the Jenkins cluster
             nodeView->clearSelection(true, false);
             nodeView->appendToSelection(hardwareClusters.at(0));

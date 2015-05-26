@@ -1188,6 +1188,11 @@ void NodeItem::newSort()
             lockedItems.append(child);
             continue;
         }
+        //Treat sorted items as locked items.
+        if(child->isSorted() && GRIDLINES_ON){
+            lockedItems.append(child);
+            continue;
+        }
 
         Node* childParent = childNode->getParentNode();
 
@@ -1781,7 +1786,7 @@ QRectF NodeItem::getMinimumChildRect()
     QPointF bottomRight((itemMargin) + minimumWidth, (itemMargin) + minimumHeight);
 
     foreach(NodeItem* child, childNodeItems){
-        if(child->isVisible() || isExpanded()){
+        if((child->isVisible() || isExpanded())){// && !child->isHidden()){
             qreal childMaxX = child->pos().x() + child->boundingRect().width() + childItemMargin;
             qreal childMaxY = child->pos().y() + child->boundingRect().height() + childItemMargin;
 
@@ -2649,8 +2654,6 @@ double NodeItem::getChildItemMargin()
  */
 void NodeItem::setNodeExpanded(bool expanded)
 {
-
-
     //Can't Contract a Definition or Model
     if(!getGraphML() || nodeKind.endsWith("Definitions") || nodeKind == "Model"){
         isNodeExpanded = true;
@@ -2661,8 +2664,6 @@ void NodeItem::setNodeExpanded(bool expanded)
     if(isNodeExpanded == expanded){
         return;
     }
-
-
 
     isNodeExpanded = expanded;
 

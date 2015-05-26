@@ -291,17 +291,17 @@ void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 void EdgeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(IS_MOVING){
-        if(!HAS_MOVED){
-            //Set Lines as invisible.
-            setLineVisibility(false);
-            HAS_MOVED = true;
-        }
+        //if(!HAS_MOVED){
+        //    //Set Lines as invisible.
+        //    setLineVisibility(false);
+        //    HAS_MOVED = true;
+        //}
 
         QPointF delta = event->scenePos() - previousScenePosition;
         //moveBy(delta.x(),delta.y());
         previousScenePosition = event->scenePos();
 
-        CENTER_MOVED = true;
+        //CENTER_MOVED = true;
     }else{
         if(!isPointInCircle(event->pos())){
             event->setAccepted(false);
@@ -335,7 +335,10 @@ bool EdgeItem::isPointInCircle(QPointF position)
 
 void EdgeItem::resetEdgeCenter(NodeItem* visibleSource, NodeItem* visibleDestination)
 {
-    QPointF centerPoint = (visibleSource->sceneBoundingRect().center() + visibleDestination->sceneBoundingRect().center()) /2;
+    QPointF srcCenter = visibleSource->mapToScene(visibleSource->minimumVisibleRect().center());
+    QPointF dstCenter = visibleDestination->mapToScene(visibleDestination->minimumVisibleRect().center());
+
+    QPointF centerPoint = (srcCenter + dstCenter) / 2;
 
     setPos(centerPoint);
     CENTER_MOVED = false;
@@ -400,7 +403,7 @@ void EdgeItem::setupBrushes()
         selectedTailBrush = tailBrush;
     }
 
-    if(destination->getNodeKind() == "InEventPortInstance" || source->getNodeKind() == "InEventPortDelegate"){
+    if(destination->getNodeKind() == "InEventPortInstance" || destination->getNodeKind() == "InEventPortDelegate"){
         headBrush = QBrush(QColor(200,0,0));
         selectedHeadBrush = headBrush;
     }

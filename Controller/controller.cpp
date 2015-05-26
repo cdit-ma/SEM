@@ -82,8 +82,10 @@ void NewController::connectView(NodeView *view)
     connect(this, SIGNAL(controller_GraphMLDestructed(QString)), view, SLOT(destructGUIItem(QString)));
     connect(this, SIGNAL(controller_ViewSetEnabled(bool)), view, SLOT(setEnabled(bool)));
 
+    //Used by the Dock to keep the dock in the correct state.
     connect(this, SIGNAL(controller_NodeDeleted(QString,QString)), view, SIGNAL(view_NodeDeleted(QString,QString)));
     connect(this, SIGNAL(controller_EdgeDeleted(QString,QString)), view, SIGNAL(view_EdgeDeleted(QString,QString)));
+
 
     if(view->isMainView()){
         //Pass Through Signals to GUI.
@@ -376,8 +378,15 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
                     //Don't add an action for the initial setting!
                     addAction = false;
                 }
-            }else{                
+            }else if(keyName == "x" || keyName == "y"){
+                if(action.dataValue != "-1" && dataValue == "-1"){
+                    //Don't Set
+                    return;
+                }
                 data->setValue(dataValue);
+            }else{
+                data->setValue(dataValue);
+
             }
         }else if(parent->isEdge()){
             data->setValue(dataValue);
@@ -824,7 +833,7 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
         return edge;
     }else{
         if(!source->isConnected(destination)){
-            qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
+            //qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
         }
         return 0;
     }
@@ -1497,8 +1506,6 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
         //qCritical() << "DESTRUCTING EDGE:" << edge->toString();
 
         addActionToStack(action, addAction);
-    }else{
-        qCritical() << "Edge Was Generated";
     }
 
     //Node* toDeleteNode = 0;
@@ -2990,7 +2997,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 if(!newNode){
                     //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
                     qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
-                    emit controller_DialogMessage(WARNING, "Paste Error", "Cannot paste into this entity.", parent);
+                    emit controller_DialogMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent);
                     break;
                 }
 
@@ -3088,9 +3095,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
         bool retry = true;
         if(retryCount[edge.id] > maxRetry){
-            emit controller_DialogMessage(CRITICAL, "Import Error", "Cannot construct edge!");
             if(!s->isConnected(d)){
-                qCritical() << "Cannot Created Edge:" << edge.id;
+                emit controller_DialogMessage(CRITICAL, "Import Error", "Cannot construct edge!");
             }
             retry = false;
         }
@@ -3131,6 +3137,9 @@ bool NewController::canCopy(QStringList IDs)
         if(!node){
             //Probably an Edge!
             continue;
+        }
+        if (node->getDataValue("kind").endsWith("Definitions") || node->getDataValue("kind") == "Model") {
+            return false;
         }
         if(!parent){
             //Set the firstParent to the first Nodes parent.

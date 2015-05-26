@@ -67,7 +67,6 @@ protected:
     bool viewportEvent(QEvent *);
 
 signals:
-
     void view_NodeDeleted(QString childID, QString parentID="");
     void view_EdgeDeleted(QString srcID, QString dstID);
 
@@ -135,6 +134,7 @@ signals:
     void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
 
 public slots:
+    void loadJenkinsNodes(QString fileData);
     void exportSnippet();
     void importSnippet(QString fileName, QString fileData);
     void minimapPressed(QMouseEvent* event);
@@ -223,7 +223,7 @@ public slots:
 
     void componentInstanceConstructed(Node* node);
 
-    void destructEdge(Edge* edge);
+    void destructEdge(Edge* edge, bool addAction=true);
 
     void editableItemHasFocus(bool hasFocus);
 
@@ -237,6 +237,7 @@ public slots:
     void moveViewForward();
 
 private:
+    void enableClipboardActions(QStringList IDs );
     void alignSelectionOnGrid(ALIGN alignment = NONE);
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
@@ -312,6 +313,8 @@ private:
     bool CENTRALIZED_ON_ITEM;
 
     QHash<QString, GraphMLItem*> guiItems;
+    //Contains QString ID and either Node/Edge for kind
+    QHash<QString, QString> noGuiIDHash;
 
     NodeView* parentNodeView;
 
@@ -368,6 +371,7 @@ private:
 
     int initialRect;
     bool viewMovedBackForward;
+    bool importFromJenkins;
 
     int currentMapKey;
     QMap<int, QPointF> modelPositions;

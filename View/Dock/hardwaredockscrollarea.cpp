@@ -65,9 +65,10 @@ void HardwareDockScrollArea::dockNodeItemClicked()
     if (selectedNode) {
 
         QString nodeKind = selectedNode->getDataValue("kind");
+        bool triggerAction = true;
 
         // NOTE: Are there any other kinds I should care about?
-        if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance") {
+        if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance" || nodeKind == "ManagementComponent") {
 
             Edge* hardwareEdge = getHardwareConnection(selectedNode);
 
@@ -76,14 +77,15 @@ void HardwareDockScrollArea::dockNodeItemClicked()
             if (hardwareEdge) {
                 if (hardwareEdge->getDestination() != senderNode) {
                     getNodeView()->view_TriggerAction("Deploying Component on Node");
-                    emit dock_destructEdge(hardwareEdge);
+                    triggerAction = false;
+                    emit dock_destructEdge(hardwareEdge, true);
                 } else {
                     // trying to connect to the same node; do nothing
                     return;
                 }
             }
 
-            getNodeView()->constructEdge(selectedNode, senderNode, false);
+            getNodeView()->constructEdge(selectedNode, senderNode, triggerAction);
 
             // highlight hardware connection after it's been constructed
             highlightHardwareConnection();
@@ -147,7 +149,6 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
     if (nodeItem->getNodeKind() == "HardwareNode") {
         DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
         insertDockNodeItem(dockItem);
-        nodeItem->setHidden(true);
         connect(this, SIGNAL(dock_higlightDockItem(Node*)), dockItem, SLOT(highlightDockItem(Node*)));
         connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
     }
