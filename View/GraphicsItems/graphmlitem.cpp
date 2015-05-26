@@ -2,6 +2,8 @@
 #include "../../Model/graphml.h"
 #include "../Table/attributetablemodel.h"
 #include <QObject>
+#include <QStyleOptionGraphicsItem>
+#include <QPainter>
 #include <QDebug>
 
 GraphMLItem::GraphMLItem(GraphML *attachedGraph, GraphMLItem::GUI_KIND kind)

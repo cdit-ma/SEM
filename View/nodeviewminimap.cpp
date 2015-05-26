@@ -19,12 +19,16 @@ NodeViewMinimap::NodeViewMinimap(QObject *parent)
     setMouseTracking(true);
 }
 
-void NodeViewMinimap::viewportRectChanged(QRectF viewport)
+void NodeViewMinimap::centerView()
 {
-    this->viewport = viewport;
     if (scene()) {
         fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
     }
+}
+
+void NodeViewMinimap::viewportRectChanged(QRectF viewport)
+{
+    this->viewport = viewport;
 }
 
 bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)

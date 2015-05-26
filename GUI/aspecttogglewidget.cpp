@@ -167,7 +167,7 @@ void AspectToggleWidget::setupColor()
         p2_Color = "rgba(170,240,240," + checkedAlpha + ")";
         p3_Color = "rgba(120,210,210," + checkedAlpha + ")";
         p4_Color = "rgba(90,190,190," + checkedAlpha + ")";
-    } else if (aspectText == "Behaviour") {
+    } else if (aspectText == "Workload") {
         defaultColor = "rgba(224,154,96," + defaultAlpha + ")";
         p1_Color = "rgba(255,230,206," + checkedAlpha + ")";
         p2_Color = "rgba(255,230,206," + checkedAlpha + ")";

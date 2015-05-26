@@ -399,6 +399,7 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    painter->setClipRect(option->exposedRect);
     if(PAINT_OBJECT){// == PAINT_OBJECT){
         QPen Pen;
         QBrush Brush;
@@ -421,9 +422,9 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         QRectF rectangle = boundingRect();
-        rectangle.setWidth(rectangle.width() - Pen.width());
-        rectangle.setHeight(rectangle.height() - Pen.width());
-        rectangle.translate(Pen.width()/2, Pen.width()/2);
+        rectangle.setWidth(rectangle.width() - Pen.width()*2);
+        rectangle.setHeight(rectangle.height() - Pen.width()*2);
+        rectangle.translate(Pen.width(), Pen.width());
 
 
 
@@ -535,11 +536,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 QPen linePen = pen;
                 linePen.setColor(Qt::white);
                 linePen.setStyle(Qt::DotLine);
-                linePen.setWidth(linePen.width() *2);
-
-                newRectangle.setWidth(rect.width() + (linePen.widthF()/2));
-                newRectangle.setHeight(rect.height() + (linePen.widthF()/2));
-                newRectangle.translate(-linePen.widthF()/2,-linePen.widthF()/2);
+                linePen.setWidth(linePen.width() *2);           
 
                 painter->setPen(linePen);
                 double radius = getChildCornerRadius();
@@ -1644,6 +1641,10 @@ void NodeItem::setWidth(qreal w)
     updateParent();
     isOverGrid(centerPos());
 
+    if(getNodeKind() == "Model"){
+        emit model_PositionChanged();
+    }
+
     //emit NodeItem_resized(this);
 }
 
@@ -1664,6 +1665,10 @@ void NodeItem::setHeight(qreal h)
     updateChildrenOnChange();
     updateParent();
     isOverGrid(centerPos());
+
+    if(getNodeKind() == "Model"){
+        emit model_PositionChanged();
+    }
 }
 
 void NodeItem::setSize(qreal w, qreal h)
@@ -1981,6 +1986,9 @@ void NodeItem::setPos(const QPointF &pos)
         //        !parentView->sceneRect().contains(scenePos().x()+width, scenePos().y()+height)) {
         //    GraphMLItem_MovedOutOfScene(this);
         //}
+        if(getNodeKind() == "Model"){
+            emit model_PositionChanged();
+        }
     }
 }
 

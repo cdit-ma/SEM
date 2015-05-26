@@ -242,7 +242,7 @@ void HardwareDockScrollArea::highlightHardwareConnection()
         QString nodeKind = selectedItem->getNodeKind();
 
         // NOTE: Is there any other kinds that can be connected to a Harware Node/Cluster?
-        if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance") {
+        if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance" || nodeKind == "ManagementComponent") {
             Edge* hardwareEdge = getHardwareConnection(selectedItem->getNode());
             if (hardwareEdge) {
                 emit dock_higlightDockItem(hardwareEdge->getDestination());

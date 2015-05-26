@@ -2,6 +2,8 @@
 #include "graphmlitem.h"
 #include <QDebug>
 #include <math.h>
+#include <QStyleOptionGraphicsItem>
+#include <QPainter>
 
 #define EDGE_WIDTH 1
 #define EDGE_SPACE_RATIO 0.8
@@ -126,8 +128,11 @@ void EdgeItem::adjustPos(QPointF delta)
 
 void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    Q_UNUSED(option);
+
     Q_UNUSED(widget);
+
+
+    painter->setClipRect(option->exposedRect);
 
     if(IS_VISIBLE){
         QPen Pen = pen;

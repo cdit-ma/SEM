@@ -90,7 +90,8 @@ HEADERS += \
     View/Validate/validatedialog.h \
     View/Toolbar/toolbarwidgetbutton.h \
 	Model/InterfaceDefinitions/idl.h \
-    GUI/aspecttogglewidget.h
+    GUI/aspecttogglewidget.h \
+    View/GraphicsItems/test.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -162,7 +163,8 @@ SOURCES += \
     View/Validate/validatedialog.cpp \
     View/Toolbar/toolbarwidgetbutton.cpp \
 	Model/InterfaceDefinitions/idl.cpp \
-    GUI/aspecttogglewidget.cpp
+    GUI/aspecttogglewidget.cpp \
+    View/GraphicsItems/test.cpp
 
 FORMS += \
 

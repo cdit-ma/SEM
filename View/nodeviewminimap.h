@@ -8,7 +8,7 @@ class NodeViewMinimap : public QGraphicsView
     Q_OBJECT
 public:
     explicit NodeViewMinimap(QObject *parent = 0);
-
+    ;
 signals:
     void minimap_Panned(QPointF delta);
     void minimap_Scrolled(int delta);
@@ -18,8 +18,10 @@ signals:
     void minimap_Released(QMouseEvent* event);
 
 
+
 public slots:
     void viewportRectChanged(QRectF viewport);
+    void centerView();
 
 private:
     QRectF viewport;

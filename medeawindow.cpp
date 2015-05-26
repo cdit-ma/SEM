@@ -203,7 +203,7 @@ void MedeaWindow::initialiseGUI()
     projectName->setStyleSheet("font-size: 16px; text-align: left; padding: 8px;");
 
     definitionsToggle = new AspectToggleWidget("Definitions", rightPanelWidth/2, this);
-    workloadToggle = new AspectToggleWidget("Behaviour", rightPanelWidth/2, this);
+    workloadToggle = new AspectToggleWidget("Workload", rightPanelWidth/2, this);
     assemblyToggle = new AspectToggleWidget("Assembly", rightPanelWidth/2, this);
     hardwareToggle = new AspectToggleWidget("Hardware", rightPanelWidth/2, this);
 
@@ -243,6 +243,7 @@ void MedeaWindow::initialiseGUI()
     progressLayout->addWidget(progressBar);
     progressLayout->addStretch(4);
     progressLayout->addWidget(notificationsBar);
+    //progressLayout->setAlignment(notificationsBar, Qt::AlignBottom);
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setItemDelegateForColumn(2, delegate);
@@ -255,7 +256,7 @@ void MedeaWindow::initialiseGUI()
     tableLayout->setContentsMargins(5,0,0,0);
     tableLayout->addWidget(dataTable);
 
-    dataTableBox->setFixedWidth(rightPanelWidth + 20);
+    dataTableBox->setFixedWidth(rightPanelWidth + 10);
     dataTableBox->setContentsMargins(0,0,0,0);
     dataTableBox->setLayout(tableLayout);
     dataTableBox->setStyleSheet("QGroupBox {"
@@ -278,7 +279,7 @@ void MedeaWindow::initialiseGUI()
                            "border: 2px solid;"
                            "border-color: rgb(80,80,80);"
                            "border-radius: 8px;");
-
+    minimap->centerView();
     // layouts
     QHBoxLayout *mainHLayout = new QHBoxLayout();
     QHBoxLayout *topHLayout = new QHBoxLayout();
@@ -359,6 +360,7 @@ void MedeaWindow::initialiseGUI()
     // add progress bar layout to the body layout after the dock has been set up
     bodyLayout->addStretch(4);
     bodyLayout->addLayout(progressLayout);
+    //bodyLayout->setAlignment(progressLayout, Qt::AlignBottom);
     bodyLayout->addStretch(3);
 }
 
@@ -1076,6 +1078,7 @@ void MedeaWindow::makeConnections()
     connect(minimap, SIGNAL(minimap_Moved(QMouseEvent*)), nodeView, SLOT(minimapMoved(QMouseEvent*)));
     connect(minimap, SIGNAL(minimap_Released(QMouseEvent*)), nodeView, SLOT(minimapReleased(QMouseEvent*)));
     connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(scrollEvent(int)));
+    connect(nodeView, SIGNAL(view_ModelSizeChanged()), minimap, SLOT(centerView()));
 
     connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
@@ -1357,9 +1360,10 @@ void MedeaWindow::aspectToggleClicked(bool checked, int state)
 
         if (aspect == "Interface") {
             aspect = "Definitions";
-        } else if (aspect == "Behaviour") {
+        } /*else if (aspect == "Behaviour") {
             aspect = "Workload";
         }
+        */
 
         if (!checked) {
             newAspects.removeAll(aspect);
@@ -1430,7 +1434,6 @@ void MedeaWindow::on_actionImportJenkinsNode()
     QString jenkinsUser = appSettings->getSetting(JENKINS_USER);
     QString jenkinsPass = appSettings->getSetting(JENKINS_PASS);
 
-    qCritical() << jenkinsUrl;
 
     if(jenkinsUrl == "" || jenkinsUser == "" || jenkinsPass == ""){
         displayNotification("Jenkins requires a valid URL, Username and Password!");
@@ -2710,7 +2713,8 @@ void MedeaWindow::updateDataTable()
 
     // align the contents of the datatable
     dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Interactive);
+    dataTable->horizontalHeader()->resizeSection(1, dataTable->width()/3);
     dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
 }
 

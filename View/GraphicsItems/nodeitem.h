@@ -140,6 +140,7 @@ public:
     QRectF getLockIconSceneRect();
 
 signals:
+    void model_PositionChanged();
     void NodeItem_SortModel();
     void NodeItem_MoveSelection(QPointF delta);
     void NodeItem_ResizeSelection(QSizeF delta);
@@ -366,6 +367,8 @@ private:
 
     EditableTextItem* textItem;
     NodeView* view;
+
+
 };
 
 #endif // NODEITEM_H

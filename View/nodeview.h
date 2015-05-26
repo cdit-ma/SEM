@@ -67,6 +67,7 @@ protected:
     bool viewportEvent(QEvent *);
 
 signals:
+    void view_ModelSizeChanged();
     void view_NodeDeleted(QString childID, QString parentID="");
     void view_EdgeDeleted(QString srcID, QString dstID);
 

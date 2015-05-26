@@ -1620,6 +1620,9 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
             connect(GUIItem, SIGNAL(GraphMLItem_CenterAspects()), this, SLOT(fitToScreen()));
 
             if(nodeItem){
+                if(nodeItem->getNodeKind() == "Model"){
+                    connect(nodeItem, SIGNAL(model_PositionChanged()), this, SIGNAL(view_ModelSizeChanged()));
+                }
                 connect(this, SIGNAL(view_AspectsChanged(QStringList)), nodeItem, SLOT(aspectsChanged(QStringList)));
                 connect(nodeItem, SIGNAL(NodeItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
                 connect(nodeItem, SIGNAL(NodeItem_ResizeSelection(QSizeF)), this, SLOT(resizeSelection(QSizeF)));
