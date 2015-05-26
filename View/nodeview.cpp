@@ -1633,7 +1633,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
 
                 connect(nodeItem, SIGNAL(Nodeitem_HasFocus(bool)), this, SLOT(editableItemHasFocus(bool)));
 
-                connect(nodeItem, SIGNAL(NodeItem_showLockMenu(NodeItem*)), this, SLOT(showNodeItemLockMenu(NodeItem*)));
+                //connect(nodeItem, SIGNAL(NodeItem_showLockMenu(NodeItem*)), this, SLOT(showNodeItemLockMenu(NodeItem*)));
                 //connect(nodeItem, SIGNAL(NodeItem_lockMenuClosed(NodeItem*)), this, SLOT(nodeItemLockMenuClosed(NodeItem*)));
 
             }

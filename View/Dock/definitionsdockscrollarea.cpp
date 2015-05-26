@@ -32,7 +32,7 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("InEventPort");
     definitions_notAllowedKinds.append("OutEventPort");
     definitions_notAllowedKinds.append("Attribute");
-    definitions_notAllowedKinds.append("ComponentImpl");
+    //definitions_notAllowedKinds.append("ComponentImpl");
     definitions_notAllowedKinds.append("InEventPortImpl");
     definitions_notAllowedKinds.append("OutEventPortImpl");
     definitions_notAllowedKinds.append("AttributeImpl");
