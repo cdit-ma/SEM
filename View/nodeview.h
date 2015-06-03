@@ -130,7 +130,7 @@ signals:
     void view_toggleGridLines(bool on);
 
     void view_updateProgressStatus(int value, QString status);
-    void view_displayNotification(QString notification);
+    void view_displayNotification(QString notification, int seqNum = 0, int totalNum = 1);
 
     void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
 
@@ -358,8 +358,10 @@ private:
     bool SELECT_ON_CONSTRUCTION;
 
     bool constructedFromImport;
+    bool importFromJenkins;
     bool toolbarJustClosed;
     bool editingNodeItemLabel;
+
     bool pasting;
     bool panning;
 
@@ -372,7 +374,9 @@ private:
 
     int initialRect;
     bool viewMovedBackForward;
-    bool importFromJenkins;
+
+    int notificationNumber;
+    int numberOfNotifications;
 
     int currentMapKey;
     QMap<int, QPointF> modelPositions;

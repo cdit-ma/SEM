@@ -103,5 +103,17 @@
         <file>Resources/Icons/exportSnippet.png</file>
         <file>Resources/Icons/importSnippet.png</file>
         <file>Resources/Icons/medea.png</file>
+        <file>Resources/Icons/connected_Linux_amd64.png</file>
+        <file>Resources/Icons/connected_Linux_arm.png</file>
+        <file>Resources/Icons/connected_Linux_x86.png</file>
+        <file>Resources/Icons/connected_Windows7_amd64.png</file>
+        <file>Resources/Icons/connected_Windows7_arm.png</file>
+        <file>Resources/Icons/connected_Windows7_x86.png</file>
+        <file>Resources/Icons/Linux_amd64.png</file>
+        <file>Resources/Icons/Linux_arm.png</file>
+        <file>Resources/Icons/Linux_x86.png</file>
+        <file>Resources/Icons/Windows7_amd64.png</file>
+        <file>Resources/Icons/Windows7_arm.png</file>
+        <file>Resources/Icons/Windows7_x86.png</file>
     </qresource>
 </RCC>

@@ -176,7 +176,7 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
             foreach(QChar letter, newValue){
 
                 if(invalidLabelCharacters.contains(letter)){
-                    model_DialogMessage("GrapMLKey Validation Issue: Invalid Characters in Label", "Not allowed characters are: " + invalidLabelCharacters.join(" "), this);
+                    model_DialogMessage("GrapMLKey Validation Issue", "Invalid characters in label. Not allowed characters are: " + invalidLabelCharacters.join(" "), this);
                     ok = false;
                     break;
                 }

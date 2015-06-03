@@ -203,11 +203,7 @@ void DockNodeItem::setupLayout()
     textLabel = new QLabel(label, this);
 
     QFont font = textLabel->font();
-    if (fileLabel) {
-        font.setPointSizeF(10);
-    } else {
-        font.setPointSizeF(8);
-    }
+    font.setPointSizeF(8);
 
     textLabel->setFont(font);
     textLabel->setFixedSize(width()-2, 21);
@@ -225,11 +221,18 @@ void DockNodeItem::setupLayout()
         QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
         QPixmap scaledPixmap = getScaledPixmap(image);
 
-        // if this dock item's kind is a HardwareNode, store 2 scaled
-        // images to switch between for when highlighting dock item
-        if (kind == "HardwareNode") {
+        if (kind == "HardwareNode" && nodeItem) {
+            QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
+            QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
+            QString hardwareKind = hardwareOS + "_" + hardwareArch;
+
+            image = new QImage(":/Resources/Icons/" + hardwareKind + ".png");
+            scaledPixmap = getScaledPixmap(image);
+
+            // if this dock item's kind is a HardwareNode, store 2 scaled
+            // images to switch between for when highlighting dock item
             defaultPixmap = scaledPixmap;
-            highlightPixmap = getScaledPixmap(new QImage(":/Resources/Icons/connectedHardwareNode.png"));
+            highlightPixmap = getScaledPixmap(new QImage(":/Resources/Icons/connected_" + hardwareKind + ".png"));
         }
 
         imageLabel = new QLabel(this);

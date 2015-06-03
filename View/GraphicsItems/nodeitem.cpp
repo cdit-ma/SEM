@@ -2111,6 +2111,12 @@ void NodeItem::setupIcon()
 {
     QString nodeKind = getGraphML()->getDataValue("kind");
 
+    if (nodeKind == "HardwareNode") {
+        QString hardwareOS = (getNode()->getDataValue("os")).remove(QChar::Space);
+        QString hardwareArch = getNode()->getDataValue("architecture");
+        nodeKind = hardwareOS + "_" + hardwareArch;
+    }
+
     // get the icon images
     QImage image( ":/Resources/Icons/" + nodeKind + ".png");
     if (!image.isNull()) {

@@ -173,7 +173,7 @@ void MedeaWindow::initialiseGUI()
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
 
-    notificationsBar = new QLabel("Hello", this);
+    notificationsBar = new QLabel("", this);
     notificationTimer = new QTimer(this);
 
     dataTableBox = new QGroupBox(this);
@@ -231,11 +231,11 @@ void MedeaWindow::initialiseGUI()
     notificationsBar->setVisible(false);
     notificationsBar->setFixedHeight(40);
     notificationsBar->setAlignment(Qt::AlignCenter);
-    notificationsBar->setStyleSheet("background-color: rgba(250,250,250,0.5);"
+    notificationsBar->setStyleSheet("background-color: rgba(250,250,250,0.85);"
                                     "color: rgb(30,30,30);"
                                     "border-radius: 10px;"
                                     "padding: 0px 15px;"
-                                    "font: 16px;");
+                                    "font: 14px;");
 
     QVBoxLayout *progressLayout = new QVBoxLayout();
     progressLayout->addStretch(3);
@@ -243,7 +243,7 @@ void MedeaWindow::initialiseGUI()
     progressLayout->addWidget(progressBar);
     progressLayout->addStretch(4);
     progressLayout->addWidget(notificationsBar);
-    //progressLayout->setAlignment(notificationsBar, Qt::AlignBottom);
+    progressLayout->setAlignment(notificationsBar, Qt::AlignCenter);
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setItemDelegateForColumn(2, delegate);
@@ -1082,7 +1082,7 @@ void MedeaWindow::makeConnections()
 
     connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
-    connect(nodeView, SIGNAL(view_displayNotification(QString)), this, SLOT(displayNotification(QString)));
+    connect(nodeView, SIGNAL(view_displayNotification(QString,int,int)), this, SLOT(displayNotification(QString,int,int)));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(selectModel()));
 
@@ -1340,7 +1340,7 @@ void MedeaWindow::setupInitialSettings()
 
     // hide initial notifications
     notificationsBar->hide();
-
+    notificationTimer->stop();
 }
 
 
@@ -1436,7 +1436,7 @@ void MedeaWindow::on_actionImportJenkinsNode()
 
 
     if(jenkinsUrl == "" || jenkinsUser == "" || jenkinsPass == ""){
-        displayNotification("Jenkins requires a valid URL, Username and Password!");
+        displayNotification("Jenkins requires a valid URL, username and password!");
         return;
     }
 
@@ -2371,6 +2371,12 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
+    if (notificationTimer->isActive()) {
+        leftOverTime = notificationTimer->remainingTime();
+        notificationsBar->hide();
+        notificationTimer->stop();
+    }
+
     // if something's in progress, show progress bar
     if (!progressBar->isVisible()) {
         progressLabel->setVisible(true);
@@ -2388,6 +2394,11 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
         progressLabel->setVisible(false);
         progressBar->setVisible(false);
         progressBar->reset();
+        if (leftOverTime > 0) {
+            notificationsBar->show();
+            notificationTimer->start(leftOverTime);
+            leftOverTime = 0;
+        }
     }
 }
 
@@ -2536,22 +2547,37 @@ void MedeaWindow::updateSearchLineEdits()
 /**
  * @brief MedeaWindow::displayNotification
  * @param notification
+ * @param seqNum
+ * @param totalNum
  */
-void MedeaWindow::displayNotification(QString notification)
+void MedeaWindow::displayNotification(QString notification, int seqNum, int totalNum)
 {
+    if (totalNum > 1) {
+        multipleNotification[seqNum] = notification;
+        if (multipleNotification.count() == totalNum) {
+            notification = "";
+            for (int i = 0; i < totalNum; i++) {
+                notification += multipleNotification[i] + " ";
+            }
+            multipleNotification.clear();
+        } else {
+            return;
+        }
+    }
+
     // add new notification to the queue
     if (!notification.isEmpty()) {
         notificationsQueue.enqueue(notification);
     }
 
-    if (!notificationTimer->isActive()) {
+    if (!notificationTimer->isActive() && !notificationsQueue.isEmpty()) {
         notification = notificationsQueue.dequeue();
         notificationsBar->setText(notification);
+        notificationsBar->setFixedWidth(notificationsBar->fontMetrics().width(notification) + 30);
         notificationsBar->show();
-        notificationTimer->start(2000);
+        notificationTimer->start(5000);
     }
 }
-
 
 /**
  * @brief MedeaWindow::checkNotificationsQueue
@@ -2728,15 +2754,15 @@ void MedeaWindow::loadJenkinsData(int code)
 
     if(code == 0){
         QString jenkinsXML = myProcess->readAll();
-        showImportedHardwareNodes();
 
+        // make sure that the aspects for Deployment are turned on (Assembly & Hardware)
+        nodeView->viewDeploymentAspect();
+
+        // import Jenkins
         window_LoadJenkinsNodes(jenkinsXML);
 
-        // this selects the Jenkins hardware cluster, opens the hardware dock
-        // and show the Deployment view aspects (Assembly & Hardware)
-
-        // center view aspects
-        //nodeView->fitToScreen();
+        // this selects the Jenkins hardware cluster and opens the hardware dock
+        showImportedHardwareNodes();
 
     }else{
         QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
@@ -2805,9 +2831,6 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
  */
 void MedeaWindow::showImportedHardwareNodes()
 {
-    // make sure that the aspects for Deployment are turned on
-    nodeView->viewDeploymentAspect();
-
     // select the Jenkins hardware cluster after construction
     Model* model = controller->getModel();
     if (model) {
@@ -2815,7 +2838,6 @@ void MedeaWindow::showImportedHardwareNodes()
             // at the moment, this method assumes that the only cluster is the Jenkins cluster
             nodeView->clearSelection(true, false);
             nodeView->appendToSelection(hardwareClusters.at(0));
-            nodeView->snapSelectionToGrid();
         }
     }
 

@@ -130,7 +130,7 @@ private slots:
     void searchMenuClosed();
     void updateSearchLineEdits();
 
-    void displayNotification(QString notification = "");
+    void displayNotification(QString notification = "",  int seqNum = 0, int totalNum = 1);
     void checkNotificationsQueue();
 
     void showDocks(bool checked);
@@ -279,6 +279,8 @@ private:
     QLabel* notificationsBar;
     QTimer* notificationTimer;
     QQueue<QString> notificationsQueue;
+    QHash<int, QString> multipleNotification;
+    int leftOverTime;
 
     QTableView* dataTable;
     QGroupBox* dataTableBox;

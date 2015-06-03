@@ -111,6 +111,9 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     currentMapKey = -1;
     initialRect = 0;
     viewMovedBackForward = false;
+
+    numberOfNotifications = 1;
+    notificationNumber = 0;
 }
 
 
@@ -1336,7 +1339,13 @@ void NodeView::constructNode(QString nodeKind, int sender)
 void NodeView::constructEdge(Node* src, Node* dst, bool trigger)
 {
     view_displayNotification("Connected " + src->getDataValue("label") +
-                             " to " + dst->getDataValue("label") + ".");
+                             " to " + dst->getDataValue("label") + ".",
+                             notificationNumber, numberOfNotifications);
+
+    // reset notification seq and total number
+    numberOfNotifications = 1;
+    notificationNumber = 0;
+
     if (trigger) {
         triggerAction("Dock/Toolbar: Constructing Edge");
     }
@@ -1436,8 +1445,12 @@ void NodeView::componentInstanceConstructed(Node* node)
  */
 void NodeView::destructEdge(Edge* edge, bool addAction)
 {
+    numberOfNotifications = 2;
+    notificationNumber = 0;
     view_displayNotification("Disconnected " + edge->getSource()->getDataValue("label") +
-                             " from " + edge->getDestination()->getDataValue("label") + ".");
+                             " from " + edge->getDestination()->getDataValue("label") + ".",
+                             notificationNumber++, numberOfNotifications);
+
     if (addAction) {
         triggerAction("Dock/Toolbar: Destructing Edge");
     }
@@ -1583,7 +1596,9 @@ void NodeView::viewDeploymentAspect()
 {
     // only show a notification if there has been a change in view aspects
     if (!currentAspects.contains("Assembly") || !currentAspects.contains("Hardware")) {
-        view_displayNotification("Turned on Deployment view aspects.");
+        view_displayNotification("Turned on Deployment view aspects.",  notificationNumber, numberOfNotifications);
+    } else if (numberOfNotifications > 1) {
+        view_displayNotification("",  notificationNumber, numberOfNotifications);
     }
     addAspect("Assembly");
     addAspect("Hardware");
@@ -2393,17 +2408,17 @@ void NodeView::setDefaultAspects()
 void NodeView::setEnabled(bool enabled)
 {
     //HIDE STUFF
-    QGraphicsView::setEnabled(enabled);
+    //QGraphicsView::setEnabled(enabled);
+
+
 }
 
 
 void NodeView::showDialogMessage(MESSAGE_TYPE type, QString title, QString message, GraphML *item, bool centralizeItem)
 {
-
     if(item && centralizeItem){
         centerItem(getGraphMLItemFromGraphML(item));
     }
-    qCritical() << "GOT MESSAGE: " << message;
     if(message != ""){
         if(type == CRITICAL){
             QMessageBox::critical(this, "Error: " + title, message, QMessageBox::Ok);
@@ -2412,7 +2427,11 @@ void NodeView::showDialogMessage(MESSAGE_TYPE type, QString title, QString messa
             view_displayNotification(message);
         }else{
             //QMessageBox::information(this, "Message: " + title, message, QMessageBox::Ok);
-            view_displayNotification(message);
+            if (type == MODEL) {
+                QMessageBox::information(this, "Message: " + title, message, QMessageBox::Ok);
+            } else {
+                view_displayNotification(message);
+            }
         }
     }
 }
@@ -2866,7 +2885,6 @@ void NodeView::destructGUIItem(QString ID)
  */
 void NodeView::showManagementComponents(bool show)
 {
-
     Node* assemblyDefinition;
     Model* model = controller->getModel();
     if (model) {
@@ -2878,12 +2896,21 @@ void NodeView::showManagementComponents(bool show)
         }
     }
 
+    numberOfNotifications = 2;
+    notificationNumber = 0;
+
+    // make sure that the aspects for Deployment are turned on
     if (show) {
-        // make sure that the aspects for Deployment are turned on
         viewDeploymentAspect();
-        view_displayNotification("Diplayed Management Components.");
+        notificationNumber++;
+    }  else {
+        numberOfNotifications = 1;
+    }
+
+    if (show) {
+        view_displayNotification("Diplayed Management Components.", notificationNumber, numberOfNotifications);
     } else {
-        view_displayNotification("Hidden Management Components.");
+        view_displayNotification("Hidden Management Components.", notificationNumber, numberOfNotifications);
     }
 
     // this goes through all the ManagementComponents and shows/hides them
@@ -2903,6 +2930,10 @@ void NodeView::showManagementComponents(bool show)
     }
 
     managementComponentVisible = show;
+
+    // reset notification seq and total number
+    numberOfNotifications = 1;
+    notificationNumber = 0;
 }
 
 
