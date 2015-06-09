@@ -76,9 +76,11 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     hasSelectionResized = false;
 
     hasDefinition = false;
+    highlighted = false;
 
     icon = 0;
     lockIcon = 0;
+    hardwareIcon = 0;
     textItem = 0;
     width = 0;
     height = 0;
@@ -269,7 +271,7 @@ QRectF NodeItem::currentItemRect()
 
 int NodeItem::getEdgeItemIndex(EdgeItem *item)
 {
-     return connections.indexOf(item);
+    return connections.indexOf(item);
 
 }
 
@@ -454,6 +456,14 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
+
+        if (highlighted && parentView){
+            qreal penWidth = qMax(5.0/parentView->transform().m11(), 1.0);
+            Pen.setWidth(penWidth);
+            Pen.setStyle(Qt::DashLine);
+        }
+
+
         painter->setPen(Pen);
         painter->setBrush(Brush);
 
@@ -536,7 +546,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 QPen linePen = pen;
                 linePen.setColor(Qt::white);
                 linePen.setStyle(Qt::DotLine);
-                linePen.setWidth(linePen.width() *2);           
+                linePen.setWidth(linePen.width() *2);
 
                 painter->setPen(linePen);
                 double radius = getChildCornerRadius();
@@ -1124,9 +1134,9 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
 
                 //If the value of the height is bigger than the minimumHeight, we should expand.
                 if(!isExpanded() && expand){
-                   setNodeExpanded(true);
+                    setNodeExpanded(true);
                 }else if(isExpanded() && contract){
-                   setNodeExpanded(false);
+                    setNodeExpanded(false);
                 }
 
                 //Then set the height.
@@ -2118,7 +2128,7 @@ void NodeItem::setupIcon()
     }
 
     // get the icon images
-    QImage image( ":/Resources/Icons/" + nodeKind + ".png");
+    QImage image (":/Resources/Icons/" + nodeKind + ".png");
     if (!image.isNull()) {
         icon = new QGraphicsPixmapItem(QPixmap::fromImage(image), this);
         icon->setTransformationMode(Qt::SmoothTransformation);
@@ -2128,7 +2138,6 @@ void NodeItem::setupIcon()
     if (!lockImage.isNull()){
         lockIcon = new QGraphicsPixmapItem(QPixmap::fromImage(lockImage), this);
         lockIcon->setTransformationMode(Qt::SmoothTransformation);
-        lockIcon->setToolTip("Click to see Locked Attributes");
     }
 
     if (icon) {
@@ -2173,8 +2182,20 @@ void NodeItem::setupIcon()
     }
 
 
+    QImage hardwareImage (":/Resources/Icons/redHardwareNode.png");
+    if (!hardwareImage.isNull()) {
+        hardwareIcon = new QGraphicsPixmapItem(QPixmap::fromImage(hardwareImage), this);
+        hardwareIcon->setTransformationMode(Qt::SmoothTransformation);
+        hardwareIcon->setToolTip("Not all children entities are deployed to the same hardware node.");
 
+        qreal iconSpace = ((1 - ICON_RATIO) * minimumHeight)/2;
+        qreal iconWidth = hardwareIcon->boundingRect().width();
+        qreal scaleFactor = (iconSpace / iconWidth);
 
+        hardwareIcon->setScale(scaleFactor);
+        hardwareIcon->setPos(boundingRect().width() - getItemMargin() - iconWidth*scaleFactor, getItemMargin());
+        hardwareIcon->setVisible(false);
+    }
 }
 
 
@@ -2528,6 +2549,31 @@ QRectF NodeItem::getLockIconSceneRect()
 }
 
 
+/**
+ * @brief NodeItem::higlightNodeItem
+ * @param highlight
+ */
+void NodeItem::higlightNodeItem(bool highlight)
+{
+    highlighted = highlight;
+    if (highlight) {
+        pen.setColor(Qt::red);
+    } else {
+        pen.setColor(Qt::gray);
+    }
+}
+
+
+/**
+ * @brief NodeItem::showHardwareIcon
+ * @param show
+ */
+void NodeItem::showHardwareIcon(bool show)
+{
+    hardwareIcon->setVisible(show && this->isVisible());
+}
+
+
 
 bool NodeItem::isSorted()
 {
@@ -2729,9 +2775,6 @@ void NodeItem::updateModelPosition()
     }
 
     GraphMLItem_PositionSizeChanged(this);
-
-
-
 }
 
 void NodeItem::updateModelSize()
@@ -2759,6 +2802,12 @@ void NodeItem::updateModelSize()
 
     if (width > prevWidth || height > prevHeight) {
         GraphMLItem_PositionSizeChanged(this, true);
+    }
+
+    if (hardwareIcon) {
+        qreal iconWidth = hardwareIcon->boundingRect().width();
+        qreal scaleFactor = hardwareIcon->scale();
+        hardwareIcon->setPos(boundingRect().width() - getItemMargin() - iconWidth*scaleFactor, getItemMargin());
     }
 }
 

@@ -22,6 +22,7 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
 
     eventFromToolbar = false;
     showToolbar = false;
+    showAlterViewFrame = false;
     showSnippetFrame = false;
     showGoToFrame = false;
 
@@ -60,12 +61,14 @@ void ToolbarWidget::updateSelectedNodeItem(QList<NodeItem*> items)
 {   
     if (items.count() == 1) {
         nodeItem = items.at(0);
+        alterModelToolButtons.clear();
         updateToolButtons();
         updateMenuLists();
     } else if (items.count() > 1) {
         multipleSelection(items);
     } else {
         // it shouldn't get to this function if there aren't any selected items
+        qWarning() << "ToolbarWidget::updateSelectedNodeItem - There are no selected items.";
         return;
     }
 
@@ -576,6 +579,7 @@ void ToolbarWidget::updateToolButtons()
         deleteButton->hide();
     } else {
         deleteButton->show();
+        alterModelToolButtons.append(deleteButton);
         showToolbar = true;
     }
 
@@ -583,15 +587,15 @@ void ToolbarWidget::updateToolButtons()
     // NOTE: ComponentAssembly apparently has a connection to itself?
     if (nodeItem->getNode()->getEdges().count() > 0) {
         // DEMO CHANGE - Don't need this when the popup new window button is back
-        alterViewFrame->show();
+        //alterViewFrame->show();
         showConnectionsButton->show();
+        showAlterViewFrame = true;
         showToolbar = true;
     } else {
         // DEMO CHANGE - Don't need this when the popup new window button is back
-        alterViewFrame->hide();
+        //alterViewFrame->hide();
         showConnectionsButton->hide();
     }
-
 
     // always show show new view button
     //showNewViewButton->show();
@@ -623,6 +627,9 @@ void ToolbarWidget::updateMenuLists()
     } else if (nodeItem->getNodeKind() == "BehaviourDefinitions") {
         setupFilesList(nodeView->getFiles(), "impl");
     }
+
+    alterViewFrame->setVisible(showAlterViewFrame && alterModelToolButtons.count() > 0);
+    showAlterViewFrame = false;
 }
 
 
@@ -665,9 +672,7 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items)
         button->setVisible(showButtons);
     }
 
-    if (showButtons) {
-        showToolbar = true;
-    }
+    showToolbar = true;
 }
 
 
@@ -711,6 +716,7 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
         return;
     } else {
         addChildButton->show();
+        alterModelToolButtons.append(addChildButton);
         showToolbar = true;
     }
 
@@ -751,6 +757,7 @@ void ToolbarWidget::setupLegalNodesList(QList<Node*> nodeList)
         return;
     } else {
         connectButton->show();
+        alterModelToolButtons.append(connectButton);
         showToolbar = true;
     }
 

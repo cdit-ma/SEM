@@ -1038,6 +1038,69 @@ void NodeView::moveViewForward()
     }
 }
 
+
+/**
+ * @brief NodeView::highlightDeployment
+ * @param selectedNode
+ */
+void NodeView::highlightDeployment(Node* selectedNode)
+{
+    if (!highlightedNodeItems.isEmpty()) {
+        highlightedNodeItems.takeLast()->showHardwareIcon(false);
+        foreach (NodeItem* item, highlightedNodeItems) {
+            item->higlightNodeItem(false);
+        }
+        highlightedNodeItems.clear();
+    }
+
+    // if there is no selected node, it means that we only wanna remove
+    // the highlight from the previously hiughlighted node items
+    if (!selectedNode) {
+        repaint();
+        return;
+    }
+
+    Node* parentDeploymentLink = 0;
+    foreach (Edge* edge, selectedNode->getEdges(0)) {
+        if (edge->isDeploymentLink()) {
+            parentDeploymentLink = edge->getDestination();
+            break;
+        }
+    }
+
+    // if the parent doesn't have a deployment link, do nothing
+    if (!parentDeploymentLink) {
+        return;
+    }
+
+    // check the selected node's children's deployment link
+    NodeItem* selectedItem = getNodeItemFromNode(selectedNode);
+    foreach (NodeItem* childItem, selectedItem->getChildNodeItems()) {
+        foreach (Edge* edge, childItem->getNode()->getEdges(0)) {
+            if (edge->isDeploymentLink() && edge->getDestination() != parentDeploymentLink) {
+                childItem->higlightNodeItem(true);
+                childItem->update();
+                highlightedNodeItems.append(childItem);
+                break;
+            }
+        }
+    }
+
+    // if there are higlighted children, display notification
+    if (highlightedNodeItems.count() > 0) {
+        highlightedNodeItems.append(selectedItem);
+        selectedItem->showHardwareIcon(true);
+        view_displayNotification("The selected entinity has children that are deployed to a different node.");
+    }
+
+    repaint();
+}
+
+
+/**
+ * @brief NodeView::enableClipboardActions
+ * @param IDs
+ */
 void NodeView::enableClipboardActions(QStringList IDs)
 {
     if (controller) {
@@ -1212,8 +1275,8 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     NodeItem* srcGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(src->getID()));
     NodeItem* dstGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(dst->getID()));
 
-
     edgeConstructed_signalUpdates(edge);
+
     if(srcGUI != 0 && dstGUI != 0){
         // send necessary signals when an edge has been constucted
         //We have valid GUI elements for both ends of this edge.
@@ -1349,6 +1412,7 @@ void NodeView::constructEdge(Node* src, Node* dst, bool trigger)
     if (trigger) {
         triggerAction("Dock/Toolbar: Constructing Edge");
     }
+
     view_ConstructEdge(src, dst);
 }
 
@@ -1454,6 +1518,7 @@ void NodeView::destructEdge(Edge* edge, bool addAction)
     if (addAction) {
         triggerAction("Dock/Toolbar: Destructing Edge");
     }
+
     view_Delete(QStringList() << edge->getID());
 }
 
@@ -1844,6 +1909,11 @@ void NodeView::edgeConstructed_signalUpdates(Edge* edge)
 {
     // update the docks and the toolbar/menu goTo functions
     updateActionsEnabled(getSelectedNode());
+
+    // update highlighted children items
+    highlightDeployment(getSelectedNode());
+
+    // update the docks
     emit view_edgeConstructed();
 }
 
@@ -2535,7 +2605,7 @@ void NodeView::undo()
         */
 
         // keep the view centered on the same spot
-       /* if (getMapSize() > 0) {
+        /* if (getMapSize() > 0) {
             QPointF pos = modelPositions[getMapSize() - 1];
             QRectF rect = centeredRects[getMapSize() - 1];
             recenterView(pos, rect, true);
@@ -2584,8 +2654,6 @@ void NodeView::appendToSelection(GraphMLItem *item)
     if(isItemsAncestorSelected(item)){
         return;
     }
-
-    //qDebug() << "appendToSelection: " << item->sceneBoundingRect().bottom();
 
     //Unset Items Descendant Items.
     unsetItemsDescendants(item);

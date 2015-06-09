@@ -262,7 +262,7 @@ void MedeaWindow::initialiseGUI()
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setItemDelegateForColumn(2, delegate);
-    dataTable->setFixedWidth(rightPanelWidth + 10);
+    dataTable->setFixedWidth(rightPanelWidth + 5);
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setFont(guiFont);
 
@@ -1101,7 +1101,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
 
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
-    connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
+    connect(this, SIGNAL(window_highlightDeployment(Node*)), nodeView, SLOT(highlightDeployment(Node*)));
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
@@ -1219,6 +1219,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
 
+    connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
     connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
@@ -1231,6 +1232,8 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
+
+    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), nodeView, SLOT(highlightDeployment()));
 
     connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), definitionsDock, SLOT(refreshDock()));
@@ -2433,6 +2436,16 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
         b = prevB;
     }
 
+    // if the hardware dock was opened or closed, send a signal to either highlight or
+    // remove the highlight of the selected node's children based on their deployment link
+    if (prevPressedButton == hardwareNodesButton || b == hardwareNodesButton) {
+        if (nodeView && hardwareNodesButton->getSelected()) {
+            emit window_highlightDeployment(nodeView->getSelectedNode());
+        } else {
+            emit window_highlightDeployment();
+        }
+    }
+
     prevPressedButton = b;
 
     // this allows mouse events to pass through the dock's hidden
@@ -2685,6 +2698,11 @@ void MedeaWindow::graphicsItemSelected()
         view_showConnectedNodes->setEnabled(true);
         view_snapToGrid->setEnabled(settings_useGridLines->isChecked());
         view_snapChildrenToGrid->setEnabled(settings_useGridLines->isChecked());
+
+        if (hardwareNodesButton->getSelected()) {
+            emit window_highlightDeployment(nodeView->getSelectedNode());
+        }
+
     } else {
         view_showConnectedNodes->setEnabled(false);
         view_snapToGrid->setEnabled(false);
@@ -2822,7 +2840,7 @@ void MedeaWindow::updateDataTable()
     // align the contents of the datatable
     dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
     dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Interactive);
-    dataTable->horizontalHeader()->resizeSection(1, dataTable->width()/3);
+    dataTable->horizontalHeader()->resizeSection(1, dataTable->width()/4);
     dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
 }
 

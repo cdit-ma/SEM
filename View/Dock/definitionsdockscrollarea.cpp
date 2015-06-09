@@ -43,13 +43,12 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("Termination");
     definitions_notAllowedKinds.append("Variable");
     definitions_notAllowedKinds.append("PeriodicEvent");
-    definitions_notAllowedKinds.append("ComponentInstance");
+    //definitions_notAllowedKinds.append("ComponentInstance");
     definitions_notAllowedKinds.append("InEventPortInstance");
     definitions_notAllowedKinds.append("OutEventPortInstance");
     definitions_notAllowedKinds.append("AttributeInstance");
     definitions_notAllowedKinds.append("InEventPortDelegate");
     definitions_notAllowedKinds.append("OutEventPortDelegate");
-
 
     setNotAllowedKinds(definitions_notAllowedKinds);
 

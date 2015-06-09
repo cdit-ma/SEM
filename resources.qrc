@@ -121,5 +121,6 @@
         <file>Resources/Icons/jenkins_label.png</file>
         <file>Resources/Icons/jenkins_build.png</file>
         <file>Resources/Icons/jenkins_nodes.png</file>
+        <file>Resources/Icons/redHardwareNode.png</file>
     </qresource>
 </RCC>

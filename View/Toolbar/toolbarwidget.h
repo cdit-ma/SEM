@@ -124,6 +124,7 @@ private:
 
     QList<QToolButton*> singleSelectionToolButtons;
     QList<QToolButton*> multipleSelectionToolButtons;
+    QList<QToolButton*> alterModelToolButtons;
 
     QFrame* mainFrame;
     QFrame* shadowFrame;
@@ -133,6 +134,7 @@ private:
 
     bool eventFromToolbar;
     bool showToolbar;
+    bool showAlterViewFrame;
     bool showSnippetFrame;
     bool showGoToFrame;
 

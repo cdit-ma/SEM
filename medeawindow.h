@@ -67,18 +67,19 @@ signals:
     void window_PasteData(QString value);
     void window_ExportProject();
     void window_ImportProjects(QStringList file);
+    void window_ImportSnippet(QString fileName, QString fileData);
     void window_LoadJenkinsNodes(QString fileData);
+
     void window_AspectsChanged(QStringList aspects);
     void window_SortModel();
 
     void window_searchItemClicked(SearchItemButton* item);
+    void window_aspectToggleDoubleClicked(AspectToggleWidget* aspect);
+
+    void window_highlightDeployment(Node* selectedNode = 0);
 
     void checkDockScrollBar();
     void clearDocks();
-
-    void window_aspectToggleDoubleClicked(AspectToggleWidget* aspect);
-
-    void window_ImportSnippet(QString fileName, QString fileData);
 
 public slots:
     void settingChanged(QString groupName, QString keyName, QString value);

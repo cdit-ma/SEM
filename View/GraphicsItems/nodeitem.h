@@ -139,6 +139,9 @@ public:
 	QMenu* getLockMenu();
     QRectF getLockIconSceneRect();
 
+    void higlightNodeItem(bool highlight);
+    void showHardwareIcon(bool show);
+
 signals:
     void model_PositionChanged();
     void NodeItem_SortModel();
@@ -201,6 +204,7 @@ public slots:
     void snapChildrenToGrid();
 
  	void menuClosed();
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
@@ -278,9 +282,7 @@ private:
 
     QGraphicsPixmapItem* icon;
     QGraphicsPixmapItem* lockIcon;
-
-
-
+    QGraphicsPixmapItem* hardwareIcon;
 
     QGraphicsView* parentView;
 
@@ -308,8 +310,7 @@ private:
     bool GRIDLINES_ON;
 
 
-
-
+    bool highlighted;
     bool hidden;
     bool hasDefinition;
 

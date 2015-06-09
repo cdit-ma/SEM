@@ -237,6 +237,8 @@ public slots:
     void moveViewBack();
     void moveViewForward();
 
+    void highlightDeployment(Node *selectedNode = 0);
+
 private:
     void enableClipboardActions(QStringList IDs );
     void alignSelectionOnGrid(ALIGN alignment = NONE);
@@ -383,6 +385,8 @@ private:
     QMap<int, QRectF> centeredRects;
 
     QMenu* prevLockMenuOpened;
+
+    QList<NodeItem*> highlightedNodeItems;
 };
 
 #endif // NODEVIEW_H
