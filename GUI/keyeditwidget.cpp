@@ -1,5 +1,4 @@
 #include "keyeditwidget.h"
-#include "appsettings.h"
 
 #include <QHBoxLayout>
 #include <QVariant>
@@ -9,35 +8,59 @@
 #include <QDebug>
 #include <QComboBox>
 #include <QSpinBox>
+#include <QTextBrowser>
+#include <QAbstractTextDocumentLayout>
+#include <QPushButton>
+#include <QEventLoop>
 
-KeyEditWidget::KeyEditWidget(AppSettings *parent, QString g, QString k, QVariant v)
+KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v, QString description, QString customType)
 {
     groupName = g;
     keyName = k;
-    hrKeyName = parent->getReadableValue(k);
-
+    hrKeyName = keyNameHR;
+    descriptionBox = 0;
+    difference = 0;
     newValue ="";
 
+
+    vLayout = new QVBoxLayout();
+
+    vLayout->setSpacing(0);
+    vLayout->setMargin(0);
+    setLayout(vLayout);
 
     QHBoxLayout* hLayout = new QHBoxLayout();
     hLayout->setSpacing(0);
     hLayout->setMargin(0);
-    setLayout(hLayout);
+
+    vLayout->addLayout(hLayout);
+
 
 
     QLabel* keyLabel = new QLabel(hrKeyName);
+
+    if(description != ""){
+        descriptionBox = new QTextBrowser() ;
+
+        descriptionBox->setReadOnly(true);
+        descriptionBox->setStyleSheet("font-size: 10px;color:#333;border:0px;");// background-color:#F0F0F0;");
+        descriptionBox->setHtml(description);
+        descriptionBox->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+
+
+        descriptionBox->setAttribute(Qt::WA_DontShowOnScreen);
+        descriptionBox->show();
+
+        int height = descriptionBox->document()->documentLayout()->documentSize().height();
+        height +=  descriptionBox->document()->documentMargin() * 2;
+        height +=  descriptionBox->contentsMargins().top() + descriptionBox->contentsMargins().bottom();
+        descriptionBox->setFixedHeight(height);
+        vLayout->addWidget(descriptionBox);
+    }
+
     hLayout->addWidget(keyLabel);
 
     labelBox = keyLabel;
-
-
-    keyLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Maximum);
-
-
-
-
-    //hLayout->setStretch(0,-1);
-    //hLayout->setStretch(1,1);
 
     bool isInt;
 
@@ -60,6 +83,9 @@ KeyEditWidget::KeyEditWidget(AppSettings *parent, QString g, QString k, QVariant
     if(stringListValue.size() == 1){
         isStringList = false;
     }
+
+    bool isFile = customType == "File";
+
 
 
 
@@ -84,7 +110,17 @@ KeyEditWidget::KeyEditWidget(AppSettings *parent, QString g, QString k, QVariant
         this->oldValue = QString::number(intValue);
 
         valueBox = intEdit;
-    }else if(stringValue != ""){
+    }else if(customType == "File"){
+        QLineEdit* lineEdit = new QLineEdit();
+        lineEdit->setEnabled(false);
+
+        hLayout->addWidget(lineEdit);
+        lineEdit->setText(stringValue);
+        connect(lineEdit, SIGNAL(textChanged(QString)), this, SLOT(_valueChanged(QString)));
+        connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(_editingFinished()));
+        this->oldValue = stringValue;
+        valueBox = lineEdit;
+    }else{
         QLineEdit* lineEdit = new QLineEdit();
         hLayout->addWidget(lineEdit);
         lineEdit->setText(stringValue);
@@ -94,6 +130,26 @@ KeyEditWidget::KeyEditWidget(AppSettings *parent, QString g, QString k, QVariant
 
         valueBox = lineEdit;
     }
+
+
+    setFixedHeight(vLayout->sizeHint().height());
+
+
+}
+
+QString KeyEditWidget::getKeyName()
+{
+    return keyName;
+}
+
+QString KeyEditWidget::getGroupName()
+{
+    return groupName;
+}
+
+QString KeyEditWidget::getValue()
+{
+    return oldValue;
 }
 
 void KeyEditWidget::_boolChanged(bool value)

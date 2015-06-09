@@ -2,6 +2,8 @@
 #define KEYEDITWIDGET_H
 
 #include <QWidget>
+#include <QTextBrowser>
+#include <QVBoxLayout>
 
 
 class AppSettings;
@@ -9,7 +11,11 @@ class KeyEditWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit KeyEditWidget(AppSettings* parent, QString groupName, QString keyName, QVariant valueVar);
+    explicit KeyEditWidget(QString groupName, QString keyName, QString keyNameHR, QVariant valueVar, QString description="", QString customType="");
+    QString getKeyName();
+    QString getGroupName();
+    QString getValue();
+
 signals:
     void valueChanged(QString groupName, QString keyName, QString value);
 
@@ -19,6 +25,7 @@ public slots:
     void _valueChanged(QString value);
     void _editingFinished();
 
+
 private:
     QString keyName;
     QString hrKeyName;
@@ -26,9 +33,16 @@ private:
     QString groupName;
     QString newValue;
     QString oldValue;
+    QString descriptionValue;
 
+
+    int difference;
+    QVBoxLayout* oldLayout;
+    QVBoxLayout* vLayout;
     QWidget *valueBox;
     QWidget *labelBox;
+    QTextBrowser* descriptionBox;
+
 
 
 };

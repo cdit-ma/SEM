@@ -25,8 +25,13 @@
 #include <QItemSelectionModel>
 #include <QDebug>
 
+#include <QTemporaryFile>
+
 #include <QXmlQuery>
 #include <QXmlResultItems>
+
+#include "Jenkins/jenkinsmanager.h"
+#include "Jenkins/GUI/jenkinsstartjobwidget.h"
 
 #include "Controller/controller.h"
 
@@ -48,7 +53,6 @@
 #include "GUI/searchitembutton.h"
 #include "GUI/aspecttogglewidget.h"
 #include "GUI/appsettings.h"
-
 class MedeaWindow : public QMainWindow
 {
     Q_OBJECT
@@ -58,6 +62,8 @@ public:
     ~MedeaWindow();
 
 signals:
+    void jenkins_RunGroovyScript(QString groovyScriptPath);
+
     void window_PasteData(QString value);
     void window_ExportProject();
     void window_ImportProjects(QStringList file);
@@ -79,11 +85,16 @@ public slots:
     void setupInitialSettings();
     void aspectToggleClicked(bool checked, int state);
 
+    void exportTempFile();
+    void jenkins_InvokeJob(QString filePath);
+
 private slots:
     void saveSettings();
-    void loadJenkinsData(int code);
 
+    void gotJenkinsNodeGraphML(QString graphML);
     void on_actionImportJenkinsNode();
+
+
     void on_actionNew_Project_triggered();
     void on_actionImport_GraphML_triggered();
     void on_actionExport_GraphML_triggered();
@@ -153,6 +164,7 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+    void initialiseJenkinsManager();
     void resetGUI();
     void resetView();
     void newProject();
@@ -177,6 +189,8 @@ private:
 
     QStringList getCheckedItems(int menu);
 
+    QTemporaryFile* writeTemporaryFile(QString data);
+
     QString applicationDirectory;
 
     QPushButton *projectName;
@@ -187,6 +201,7 @@ private:
     QMenu* edit_menu;
     QMenu* view_menu;
     QMenu* model_menu;
+    QMenu* jenkins_menu;
     QMenu* settings_Menu;
 
     QAction* exit;
@@ -195,7 +210,7 @@ private:
     QAction* file_importSnippet;
     QAction* file_exportGraphML;
     QAction* file_exportSnippet;
-    QAction* file_importJenkinsNodes;
+
     QAction* edit_undo;
     QAction* edit_redo;
     QAction* edit_cut;
@@ -214,6 +229,9 @@ private:
     QAction* settings_useGridLines;
     QAction* settings_editToolbarButtons;
     QAction* settings_changeAppSettings;
+
+    QAction* jenkins_ImportNodes;
+    QAction* jenkins_ExecuteJob;
 
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
@@ -316,8 +334,8 @@ private:
     NodeView* nodeView;
     NodeViewMinimap* minimap;
 
-    QThread* thread;
-    QProcess *myProcess;
+    QThread* controllerThread;
+
 
     QHash<QPushButton*, GraphMLItem*> searchItems;
     QMap<QAction*, QCheckBox*> toolbarActions;
@@ -332,18 +350,25 @@ private:
     QHash<QAction*, int> rightMidActions;
     QHash<QAction*, int> rightMostActions;
 
+
     QFont guiFont;
     int boxWidth, boxHeight;
     int minLeftPanelHeight;
 
     //QString DEPGEN_ROOT;
     QString exportFileName;
+    QString tempFileName;
+    bool tempExport;
 
     //multi-line popup for QTableView (VARIABLES)
     QDialog *popupMultiLine;
     QPlainTextEdit *txtMultiLine;
     QModelIndex clickedModelIndex;
 
+    JenkinsManager* jenkinsManager;
+    QAction* jenkins_getJobParameters;
+
 };
+
 
 #endif // MEDEAWINDOW_H

@@ -133,7 +133,8 @@ void AppSettings::setupLayout()
 
         //For each key, construct a KeyEditWidget to change the setting of that key.
         foreach(QString key, settings->childKeys()){
-            KeyEditWidget* keyEdit = new KeyEditWidget(this, group, key, settings->value(key));
+
+            KeyEditWidget* keyEdit = new KeyEditWidget( group, key, getReadableValue(key), settings->value(key));
 
             if(!keyToGroupMap.contains(key)){
                 keyToGroupMap.insert(key, group);

@@ -115,5 +115,11 @@
         <file>Resources/Icons/Windows7_amd64.png</file>
         <file>Resources/Icons/Windows7_arm.png</file>
         <file>Resources/Icons/Windows7_x86.png</file>
+        <file>Resources/Icons/jenkins_building.gif</file>
+        <file>Resources/Icons/jenkins_built.png</file>
+        <file>Resources/Icons/jenkins_failed.png</file>
+        <file>Resources/Icons/jenkins_label.png</file>
+        <file>Resources/Icons/jenkins_build.png</file>
+        <file>Resources/Icons/jenkins_nodes.png</file>
     </qresource>
 </RCC>

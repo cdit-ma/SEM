@@ -11,6 +11,7 @@
 #include <QHeaderView>
 #include <QScrollBar>
 #include <QSettings>
+#include <QTemporaryFile>
 #include <QPicture>
 #include <QToolButton>
 #include <QToolBar>
@@ -43,6 +44,8 @@
 #define JENKINS_URL "06-01-URL"
 #define JENKINS_USER "06-02-Username"
 #define JENKINS_PASS "06-03-Password"
+#define JENKINS_JOB "06-04-MEDEA_Jobname"
+
 
 
 /**
@@ -58,7 +61,10 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     appSettings = new AppSettings(this, applicationDirectory);
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QString)), this, SLOT(settingChanged(QString, QString, QString)));
 
-    // initialise gui and connect signals and slots
+    tempExport = false;
+
+    initialiseJenkinsManager();
+
     initialiseGUI();
     makeConnections();
     newProject();
@@ -80,6 +86,17 @@ MedeaWindow::~MedeaWindow()
     if (nodeView) {
         delete nodeView;
     }
+
+    if(jenkinsManager){
+        jenkinsManager->deleteLater();
+    }
+
+
+    if(controllerThread){
+        controllerThread->terminate();
+        delete controllerThread;
+    }
+
 }
 
 
@@ -145,8 +162,6 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == ASPECT_H && isBool){
         hardwareToggle->setClicked(boolValue);
         hardwareToggle->aspectToggle_clicked(boolValue, 0);
-    }else if(keyName == JENKINS_URL && value == ""){
-        file_importJenkinsNodes->setEnabled(false);
     }
 }
 
@@ -158,15 +173,15 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
  */
 void MedeaWindow::initialiseGUI()
 {    
+
     // set all gui widget fonts to this
     guiFont = QFont("Verdana");
     guiFont.setPointSizeF(8.5);
 
     // initialise variables
-    thread = 0;
-    myProcess = 0;
     controller = 0;
     prevPressedButton = 0;
+    controllerThread = 0;
 
     nodeView = new NodeView();
 
@@ -379,6 +394,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     menu->addSeparator();
     view_menu = menu->addMenu(QIcon(":/Resources/Icons/view.png"), "View");
     model_menu = menu->addMenu(QIcon(":/Resources/Icons/model.png"), "Model");
+    jenkins_menu = menu->addMenu(QIcon(":/Resources/Icons/jenkins.png"), "Jenkins");
     menu->addSeparator();
     settings_Menu = menu->addMenu(QIcon(":/Resources/Icons/settings.png"), "Settings");
     exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Quit Medea");
@@ -403,8 +419,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     file_menu->addSeparator();
 
 
-    file_importJenkinsNodes = file_menu->addAction(QIcon(":/Resources/Icons/jenkins.png"), "Import Jenkins Nodes");
-    file_importJenkinsNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
+
 
 
     edit_undo = edit_menu->addAction(QIcon(":/Resources/Icons/undo.png"), "Undo");
@@ -443,6 +458,23 @@ void MedeaWindow::setupMenu(QPushButton *button)
     settings_editToolbarButtons = settings_Menu->addAction(QIcon(":/Resources/Icons/toolbar.png"), "Toolbar Settings");
     settings_changeAppSettings = settings_Menu->addAction(QIcon(":/Resources/Icons/medea.png"), "App Settings");
     button->setMenu(menu);
+
+
+    //Setup Jenkins Menu
+
+    QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB);
+    //Generic Jenkins Functionality.
+    jenkins_ImportNodes = jenkins_menu->addAction(QIcon(":/Resources/Icons/jenkins_nodes.png"), "Import Nodes");
+    jenkins_ImportNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
+
+    jenkins_ExecuteJob = jenkins_menu->addAction(QIcon(":/Resources/Icons/jenkins_build.png"), "Launch: " + jenkinsJobName);
+
+    if(!jenkinsManager || !jenkinsManager->hasValidSettings()){
+        jenkins_menu->setEnabled(false);
+    }
+    if(jenkinsJobName == ""){
+        jenkins_ExecuteJob->setEnabled(false);
+    }
 
     // setup toggle actions
     view_showManagementComponents->setCheckable(true);
@@ -1021,18 +1053,18 @@ void MedeaWindow::setupController()
         delete controller;
         controller = 0;
     }
-    if (thread) {
-        delete thread;
-        thread = 0;
+    if (controllerThread) {
+        delete controllerThread;
+        controllerThread = 0;
     }
 
     controller = new NewController();
 
     if (THREADING) {
         //IMPLEMENT THREADING!
-        thread = new QThread();
-        thread->start();
-        controller->moveToThread(thread);
+        controllerThread = new QThread();
+        controllerThread->start();
+        controller->moveToThread(controllerThread);
     }
 
     controller->connectView(nodeView);
@@ -1089,7 +1121,8 @@ void MedeaWindow::makeConnections()
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
-    connect(file_importJenkinsNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
+
+
     connect(this, SIGNAL(window_ExportProject()), nodeView, SIGNAL(view_ExportProject()));
     connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SIGNAL(view_ImportProjects(QStringList)));
     connect(this, SIGNAL(window_LoadJenkinsNodes(QString)), nodeView, SLOT(loadJenkinsNodes(QString)));
@@ -1115,6 +1148,13 @@ void MedeaWindow::makeConnections()
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
     connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
+
+
+    //Jenkins Settings
+    connect(jenkins_ExecuteJob, SIGNAL(triggered()), this, SLOT(exportTempFile()));
+    connect(jenkins_ImportNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
+
+
 
     connect(settings_changeAppSettings, SIGNAL(triggered()), appSettings, SLOT(show()));
     connect(settings_useGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
@@ -1210,7 +1250,7 @@ void MedeaWindow::makeConnections()
     addAction(file_newProject);
     addAction(file_importGraphML);
     addAction(file_exportGraphML);
-    addAction(file_importJenkinsNodes);
+
     addAction(edit_undo);
     addAction(edit_redo);
     addAction(edit_cut);
@@ -1256,6 +1296,30 @@ void MedeaWindow::changeEvent(QEvent *event)
     if (event->type() == QEvent::WindowStateChange) {
         updateWidgetsOnWindowChanged();
     }
+}
+
+void MedeaWindow::initialiseJenkinsManager()
+{
+    jenkinsManager = 0;
+
+    QString jenkinsUrl = appSettings->getSetting(JENKINS_URL);
+    QString jenkinsUser = appSettings->getSetting(JENKINS_USER);
+    QString jenkinsPass = appSettings->getSetting(JENKINS_PASS);
+
+    if(jenkinsUrl != "" && jenkinsUser != "" && jenkinsPass != ""){
+        jenkinsManager = new JenkinsManager(applicationDirectory + "Resources/Scripts/", jenkinsUrl, jenkinsUser, jenkinsPass);
+    }
+
+}
+
+void MedeaWindow::jenkins_InvokeJob(QString filePath)
+{
+     QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB);
+
+     if(jenkinsManager){
+         JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
+         jenkinsSJ->requestJob(jenkinsJobName, filePath);
+     }
 }
 
 
@@ -1400,6 +1464,14 @@ void MedeaWindow::aspectToggleClicked(bool checked, int state)
     }
 }
 
+void MedeaWindow::exportTempFile()
+{
+    tempExport = true;
+    //tempFileName = "C:/MEDEA/build-MEDEA-Desktop_Qt_5_3_0_MSVC2010_OpenGL_32bit-Debug2/debug/Resources/Scripts/"+ projectName->text() + ".graphml";
+    tempFileName = QDir::tempPath() + "/" + projectName->text() + ".graphml";
+    emit window_ExportProject();
+
+}
 
 
 void MedeaWindow::saveSettings()
@@ -1419,6 +1491,26 @@ void MedeaWindow::saveSettings()
     }
 }
 
+/**
+ * @brief MedeaWindow::gotJenkinsNodeGraphML Called by a JenkinsRequest with the GraphML string which represents the nodes in the Jenkins Server. Data gets imported into the model.
+ * @param jenkinsXML The GraphML representation of the Jenkins Nodes List.
+ */
+void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
+{
+    if(jenkinsXML != ""){
+        // make sure that the aspects for Deployment are turned on (Assembly & Hardware)
+        nodeView->viewDeploymentAspect();
+
+        // import Jenkins
+        window_LoadJenkinsNodes(jenkinsXML);
+
+        // this selects the Jenkins hardware cluster and opens the hardware dock
+        showImportedHardwareNodes();
+    }else{
+        QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
+    }
+}
+
 
 /**
  * @brief MedeaWindow::on_actionImportJenkinsNode
@@ -1427,36 +1519,16 @@ void MedeaWindow::on_actionImportJenkinsNode()
 {
     progressAction = "Importing Jenkins";
 
-    QString groovyScript = "Jenkins_Construct_GraphMLNodesList.groovy";
+    if(jenkinsManager){
+        QString groovyScript = applicationDirectory + "/Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy";
 
+        JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
+        connect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
+        connect(jenkinsGS, SIGNAL(gotGroovyScriptOutput(QString)), this, SLOT(gotJenkinsNodeGraphML(QString)));
 
-    QString jenkinsUrl = appSettings->getSetting(JENKINS_URL);
-    QString jenkinsUser = appSettings->getSetting(JENKINS_USER);
-    QString jenkinsPass = appSettings->getSetting(JENKINS_PASS);
-
-
-    if(jenkinsUrl == "" || jenkinsUser == "" || jenkinsPass == ""){
-        displayNotification("Jenkins requires a valid URL, username and password!");
-        return;
+        jenkins_RunGroovyScript(groovyScript);
+        disconnect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
     }
-
-    QString program = "java -jar jenkins-cli.jar";
-    program += " -s " + jenkinsUrl;
-    program += " groovy " + groovyScript;
-    program += " --username " + jenkinsUser;
-    program += " --password " + jenkinsPass;
-
-    myProcess = new QProcess(this);
-    QDir dir;
-
-    myProcess->setWorkingDirectory(applicationDirectory + "/Resources/Scripts/");
-    //qCritical() << myProcess->workingDirectory();
-    //qCritical() << program;
-    //myProcess->setWorkingDirectory(DEPGEN_ROOT + "/scripts");
-    connect(myProcess, SIGNAL(finished(int)), this, SLOT(loadJenkinsData(int)));
-    //qCritical() << applicationDirectory + "/Resources/Scripts/";
-    //qCritical() << program;
-    myProcess->start(program);
 }
 
 
@@ -1793,12 +1865,16 @@ void MedeaWindow::on_validationItem_clicked(QString ID)
 void MedeaWindow::writeExportedProject(QString data)
 {
     try {
+        QString fileName = exportFileName;
+        if(tempExport){
+            fileName = tempFileName;
+        }
         //Try and Open File.
-        QFile file(exportFileName);
+        QFile file(fileName);
         bool fileOpened = file.open(QIODevice::WriteOnly | QIODevice::Text);
 
         if(!fileOpened){
-            QMessageBox::critical(this, "File Error", "Unable to open file: '" + exportFileName + "'! Check permissions and try again.", QMessageBox::Ok);
+            QMessageBox::critical(this, "File Error", "Unable to open file: '" + fileName + "'! Check permissions and try again.", QMessageBox::Ok);
             return;
         }
 
@@ -1809,6 +1885,12 @@ void MedeaWindow::writeExportedProject(QString data)
 
         //QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: '" + exportFileName +"'!", QMessageBox::Ok);
         displayNotification("Successfully exported GraphML document.");
+
+        if(tempExport){
+            tempExport = false;
+            //Link to the function!
+            jenkins_InvokeJob(fileName);
+        }
 
     }catch(...){
         QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
@@ -2746,31 +2828,6 @@ void MedeaWindow::updateDataTable()
 
 
 /**
- * @brief MedeaWindow::loadJenkinsData
- * @param code
- */
-void MedeaWindow::loadJenkinsData(int code)
-{
-
-    if(code == 0){
-        QString jenkinsXML = myProcess->readAll();
-
-        // make sure that the aspects for Deployment are turned on (Assembly & Hardware)
-        nodeView->viewDeploymentAspect();
-
-        // import Jenkins
-        window_LoadJenkinsNodes(jenkinsXML);
-
-        // this selects the Jenkins hardware cluster and opens the hardware dock
-        showImportedHardwareNodes();
-
-    }else{
-        QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
-    }
-}
-
-
-/**
  * @brief MedeaWindow::importProjects
  * @param files
  */
@@ -2810,6 +2867,7 @@ void MedeaWindow::importProjects(QStringList files)
  */
 void MedeaWindow::closeEvent(QCloseEvent * e)
 {
+    /*
     QMessageBox::StandardButton resBtn = QMessageBox::question( this, "MEDEA",
                                                                 tr("Are you sure you want to quit Medea?\n"),
                                                                 QMessageBox::Cancel | QMessageBox::Yes,
@@ -2819,7 +2877,8 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
     } else {
         e->accept();
         delete this;
-    }
+    }*/
+    delete this;
 }
 
 
@@ -2876,6 +2935,22 @@ QStringList MedeaWindow::getCheckedItems(int menu)
     }
 
     return checkedKinds;
+}
+
+QTemporaryFile* MedeaWindow::writeTemporaryFile(QString data)
+{
+    QTemporaryFile* tempFile = new QTemporaryFile();
+    bool fileOpened = tempFile->open();
+
+    if(!fileOpened){
+        QMessageBox::critical(this, "File Error", "Cannot open Temp File to Write.", QMessageBox::Ok);
+    }
+
+    QTextStream out(tempFile);
+    out << data;
+    tempFile->close();
+
+    return tempFile;
 }
 
 

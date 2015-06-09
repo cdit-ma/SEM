@@ -90,7 +90,12 @@ HEADERS += \
     View/Validate/validatedialog.h \
     View/Toolbar/toolbarwidgetbutton.h \
 	Model/InterfaceDefinitions/idl.h \
-    GUI/aspecttogglewidget.h
+    GUI/aspecttogglewidget.h \
+    Jenkins/GUI/jenkinsjobmonitorwidget.h \
+    Jenkins/GUI/jenkinsloadingwidget.h \
+    Jenkins/GUI/jenkinsstartjobwidget.h \
+    Jenkins/jenkinsmanager.h \
+    Jenkins/jenkinsrequest.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -162,7 +167,12 @@ SOURCES += \
     View/Validate/validatedialog.cpp \
     View/Toolbar/toolbarwidgetbutton.cpp \
     Model/InterfaceDefinitions/idl.cpp \
-    GUI/aspecttogglewidget.cpp
+    GUI/aspecttogglewidget.cpp \
+    Jenkins/GUI/jenkinsjobmonitorwidget.cpp \
+    Jenkins/GUI/jenkinsloadingwidget.cpp \
+    Jenkins/GUI/jenkinsstartjobwidget.cpp \
+    Jenkins/jenkinsmanager.cpp \
+    Jenkins/jenkinsrequest.cpp
 
 FORMS += \
 
