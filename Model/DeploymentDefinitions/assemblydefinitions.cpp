@@ -1,6 +1,7 @@
 #include "assemblydefinitions.h"
 #include "componentassembly.h"
 #include "managementcomponent.h"
+#include "blackboxinstance.h"
 #include <QDebug>
 AssemblyDefinitions::AssemblyDefinitions():Node()
 {
@@ -22,11 +23,12 @@ bool AssemblyDefinitions::canAdoptChild(Node *child)
 
     ComponentAssembly* component = dynamic_cast<ComponentAssembly *>(child);
     ManagementComponent* managementComponent = dynamic_cast<ManagementComponent *>(child);
+    BlackBoxInstance* blackBoxInstance = dynamic_cast<BlackBoxInstance *>(child);
 
 
-    if(!component && !managementComponent){
+    if(!component && !managementComponent && !blackBoxInstance){
 #ifdef DEBUG_MODE
-        qWarning() << "AssemblyDefinitions can only adopt a ComponentAssembly or ManagementComponent Node";
+        qWarning() << "AssemblyDefinitions can only adopt a ComponentAssembly, ManagementComponent or BlackBoxInstance Node";
 #endif
         return false;
     }

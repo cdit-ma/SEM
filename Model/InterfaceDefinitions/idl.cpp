@@ -1,6 +1,7 @@
 #include "idl.h"
 #include "component.h"
 #include "aggregate.h"
+
 #include <QDebug>
 IDL::IDL(QString name): Node()
 {
@@ -22,6 +23,7 @@ bool IDL::canAdoptChild(Node *item)
 {
     Component* component = dynamic_cast<Component*>(item);
     Aggregate* aggregate = dynamic_cast<Aggregate*>(item);
+
 
     if(!component && !aggregate){
         return false;

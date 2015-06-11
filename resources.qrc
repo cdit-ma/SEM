@@ -122,5 +122,7 @@
         <file>Resources/Icons/jenkins_build.png</file>
         <file>Resources/Icons/jenkins_nodes.png</file>
         <file>Resources/Icons/redHardwareNode.png</file>
+        <file>Resources/Icons/BlackBox.png</file>
+        <file>Resources/Icons/BlackBoxInstance.png</file>
     </qresource>
 </RCC>

@@ -1,5 +1,7 @@
 #include "interfacedefinitions.h"
 #include "idl.h"
+#include "blackbox.h"
+
 #include <QDebug>
 InterfaceDefinitions::InterfaceDefinitions(): Node()
 {
@@ -19,10 +21,10 @@ bool InterfaceDefinitions::canConnect(Node* attachableObject)
 bool InterfaceDefinitions::canAdoptChild(Node *child)
 {
     IDL* file = dynamic_cast<IDL*>(child);
-
-    if(!file){
+    BlackBox* blackBox = dynamic_cast<BlackBox*>(child);
+    if(!file && !blackBox){
 #ifdef DEBUG_MODE
-        qWarning() << "InterfaceDefinitions can only adopt a File Node";
+        qWarning() << "InterfaceDefinitions can only adopt a File or BlackBox Node";
 #endif
         return false;
     }

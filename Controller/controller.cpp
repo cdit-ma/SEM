@@ -48,7 +48,7 @@ NewController::NewController()
     containerNodeKinds << "HardwareDefinitions" << "AssemblyDefinitions" << "ManagementComponent";
     containerNodeKinds << "HardwareCluster";
 
-    definitionNodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" ;
+    definitionNodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" << "BlackBox" << "BlackBoxInstance";
     definitionNodeKinds << "Member" << "Aggregate";
     definitionNodeKinds << "InEventPort"  << "OutEventPort";
     definitionNodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
@@ -2080,6 +2080,10 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
         return new Termination();
     }else if(nodeKind == "Variable"){
         return new Variable();
+    }else if(nodeKind == "BlackBox"){
+        return new BlackBox();
+    }else if(nodeKind == "BlackBoxInstance"){
+        return new BlackBoxInstance();
     }else{
         qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
         return new BlankNode();
@@ -2574,6 +2578,7 @@ void NewController::setupManagementComponents()
     QList<GraphMLData*> executionManagerData = constructGraphMLDataVector("ManagementComponent") ;
     QList<GraphMLData*> dancePlanLauncherData = constructGraphMLDataVector("ManagementComponent") ;
     QList<GraphMLData*> ddsLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
+    QList<GraphMLData*> qpidBrokerData = constructGraphMLDataVector("ManagementComponent") ;
 
     foreach(GraphMLData* data, executionManagerData){
         if(data->getKeyName() == "type" || data->getKeyName() == "label"){
@@ -2595,10 +2600,20 @@ void NewController::setupManagementComponents()
         }
     }
 
+    foreach(GraphMLData* data, qpidBrokerData){
+        if(data->getKeyName() == "type" || data->getKeyName() == "label"){
+            data->setValue("QPID_BROKER");
+            data->setProtected(true);
+        }
+    }
+
+
+
 
     Node* emNode = constructChildNode(assemblyDefinitions, executionManagerData);
     Node* plNode = constructChildNode(assemblyDefinitions, dancePlanLauncherData);
     Node* lsdNode = constructChildNode(assemblyDefinitions, ddsLoggingServerData);
+    Node* qpidNode = constructChildNode(assemblyDefinitions, qpidBrokerData);
 
 
     //managementComponents.insert("DANCE_EXECUTION_MANAGER",dynamic_cast<ManagementComponent*>(emNode));

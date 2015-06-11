@@ -95,7 +95,9 @@ HEADERS += \
     Jenkins/GUI/jenkinsloadingwidget.h \
     Jenkins/GUI/jenkinsstartjobwidget.h \
     Jenkins/jenkinsmanager.h \
-    Jenkins/jenkinsrequest.h
+    Jenkins/jenkinsrequest.h \
+    Model/InterfaceDefinitions/blackbox.h \
+    Model/DeploymentDefinitions/blackboxinstance.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -172,7 +174,9 @@ SOURCES += \
     Jenkins/GUI/jenkinsloadingwidget.cpp \
     Jenkins/GUI/jenkinsstartjobwidget.cpp \
     Jenkins/jenkinsmanager.cpp \
-    Jenkins/jenkinsrequest.cpp
+    Jenkins/jenkinsrequest.cpp \
+    Model/InterfaceDefinitions/blackbox.cpp \
+    Model/DeploymentDefinitions/blackboxinstance.cpp
 
 FORMS += \
 

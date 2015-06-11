@@ -58,7 +58,8 @@
 #include "InterfaceDefinitions/aggregate.h"
 #include "InterfaceDefinitions/member.h"
 
-
+#include "InterfaceDefinitions/blackbox.h"
+#include "DeploymentDefinitions/blackboxinstance.h"
 
 
 

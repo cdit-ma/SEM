@@ -1,0 +1,63 @@
+#include "blackboxinstance.h"
+#include <QDebug>
+#include "../InterfaceDefinitions/blackbox.h"
+#include "outeventportinstance.h"
+#include "ineventportinstance.h"
+
+
+BlackBoxInstance::BlackBoxInstance():Node(Node::NT_INSTANCE)
+{
+}
+
+BlackBoxInstance::~BlackBoxInstance()
+{
+
+}
+
+bool BlackBoxInstance::canAdoptChild(Node *child)
+{
+    OutEventPortInstance* outEventPortInstance = dynamic_cast<OutEventPortInstance*>(child);
+    InEventPortInstance* inEventPortInstance = dynamic_cast<InEventPortInstance*>(child);
+
+    if(!(outEventPortInstance || inEventPortInstance)){
+#ifdef DEBUG_MODE
+        qWarning() << "BlackBox Instance can only Adopt a OutEventPortInstance or InEventPortInstance.";
+#endif
+        return false;
+    }
+
+    return Node::canAdoptChild(child);
+
+}
+
+//A ComponentInstance can be connected to:
+//Connected to a Definition:
+// + Component (If it has no definition already)
+bool BlackBoxInstance::canConnect(Node *attachableObject)
+{
+     BlackBox* blackBox = dynamic_cast<BlackBox*> (attachableObject);
+
+     if(!blackBox){
+#ifdef DEBUG_MODE
+        qWarning() << "BlackBoxInstance Node can only be connected to a BlackBox.";
+#endif
+         return false;
+     }
+     if(blackBox && getDefinition()){
+#ifdef DEBUG_MODE
+        qWarning() << "BlackBoxInstance Node can only be connected to one BlackBox.";
+#endif
+         return false;
+     }
+
+     if(blackBox){
+         if(blackBox->getInstances().size() != 0){
+#ifdef DEBUG_MODE
+        qWarning() << "BlackBoxInstance Node can only be connected to a BlackBox with no BlackBoxInstance";
+#endif
+        return false;
+         }
+     }
+
+     return Node::canConnect(attachableObject);
+}
