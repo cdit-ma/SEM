@@ -2119,7 +2119,7 @@ void NodeItem::aspectsChanged(QStringList visibleAspects)
  */
 void NodeItem::setupIcon()
 {
-    QString nodeKind = getGraphML()->getDataValue("kind");
+    QString nodeKind = getNodeKind();
 
     if (nodeKind == "HardwareNode") {
         QString hardwareOS = (getNode()->getDataValue("os")).remove(QChar::Space);
@@ -2129,7 +2129,7 @@ void NodeItem::setupIcon()
 
     // get the icon images
     QImage image (":/Resources/Icons/" + nodeKind + ".png");
-    if (!image.isNull()) {
+    if (!image.isNull() && !nodeKind.endsWith("Definitions")) {
         icon = new QGraphicsPixmapItem(QPixmap::fromImage(image), this);
         icon->setTransformationMode(Qt::SmoothTransformation);
         icon->setToolTip("Double Click to Expand/Contract Node");

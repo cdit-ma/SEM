@@ -124,5 +124,9 @@
         <file>Resources/Icons/redHardwareNode.png</file>
         <file>Resources/Icons/BlackBox.png</file>
         <file>Resources/Icons/BlackBoxInstance.png</file>
+        <file>Resources/Icons/AssemblyDefinitions.png</file>
+        <file>Resources/Icons/BehaviourDefinitions.png</file>
+        <file>Resources/Icons/HardwareDefinitions.png</file>
+        <file>Resources/Icons/InterfaceDefinitions.png</file>
     </qresource>
 </RCC>
