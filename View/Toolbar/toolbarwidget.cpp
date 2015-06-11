@@ -623,7 +623,7 @@ void ToolbarWidget::updateMenuLists()
     // for the add ComponentInstance and In/OutEventPortDelegate menus respectively
     if (nodeItem->getNodeKind() == "ComponentAssembly") {
         setupFilesList(nodeView->getFiles(), "inst");
-        setupChildrenComponentInstanceList(nodeItem->getNode()->getChildrenOfKind("ComponentInstance"));
+        setupChildrenComponentInstanceList(nodeItem->getNode()->getChildrenOfKind("ComponentInstance",0 ));
     } else if (nodeItem->getNodeKind() == "BehaviourDefinitions") {
         setupFilesList(nodeView->getFiles(), "impl");
     }

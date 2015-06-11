@@ -441,14 +441,31 @@ void EdgeItem::updateLines()
 
     //If we don't have both end points, set edge as invisible, and do nothing.
     if(!visibleSrc || !visibleDst){
+
         setVisible(false);
+        if(visibleSrc){
+            visibleSrc->removeVisibleParentForEdgeItem(getID());
+            visibleSource = 0;
+        }
+        if(visibleDst){
+            visibleDst->removeVisibleParentForEdgeItem(getID());
+            visibleDestination = 0;
+        }
         return;
     }
 
     if(visibleSrc == visibleDst){
         setVisible(false);
+        visibleSrc->removeVisibleParentForEdgeItem(getID());
+        visibleDst->removeVisibleParentForEdgeItem(getID());
+        visibleDestination = 0;
+        visibleSource  = 0;
         return;
     }
+
+
+
+
 
     QRectF srcRect = visibleSrc->sceneBoundingRect();
     QRectF dstRect = visibleDst->sceneBoundingRect();
@@ -497,6 +514,7 @@ void EdgeItem::updateLines()
     }
 
     visibleSource = visibleSrc;
+
     visibleSrc->setVisibleParentForEdgeItem(getID(), srcSide == RIGHT);
 
     bool removeDstEdge = false;
@@ -515,15 +533,12 @@ void EdgeItem::updateLines()
         visibleDestination->removeVisibleParentForEdgeItem(getID());
     }
 
+
+
+
     visibleDestination = visibleDst;
     visibleDst->setVisibleParentForEdgeItem(getID(), dstSide == RIGHT);
 
-
-    if(visibleDst == visibleSrc){
-        setLineVisibility(false);
-        qCritical() << "MATCHING SOURCE";
-        return;
-    }
 
     //Get the start/end points.
     QPointF edgeSrc;
@@ -546,6 +561,8 @@ void EdgeItem::updateLines()
     int srcIndex = visibleSrc->getIndexOfEdgeItem(getID(), srcSide == RIGHT);
 
 
+
+
     qreal srcYOffset = EDGE_GAP_RATIO * srcRect.height() + (((srcIndex + 1.0) / (srcEdgeCount + 1.0)) * (EDGE_SPACE_RATIO * srcRect.height()));
     edgeSrc.setY(srcRect.top() + srcYOffset);
 
@@ -562,6 +579,7 @@ void EdgeItem::updateLines()
     //Set Y for edgeSrc
     int dstEdgeCount = visibleDst->getNumberOfEdgeItems(dstSide == RIGHT);
     int dstIndex = visibleDst->getIndexOfEdgeItem(getID(), dstSide == RIGHT);
+
 
     qreal dstYOffset = (EDGE_GAP_RATIO * dstRect.height()) + (((dstIndex + 1.0) / (dstEdgeCount + 1.0)) * (EDGE_SPACE_RATIO * dstRect.height()));
     edgeDst.setY(dstRect.top() + dstYOffset);
@@ -615,10 +633,7 @@ void EdgeItem::updateLines()
 
     if(!CENTER_MOVED){
         resetEdgeCenter(visibleSrc, visibleDst);
-    }//else{
-
-       // resetEdgeCenter(visibleSrc, visibleDst);
-    //}
+    }
 
 
     setVisible(true);

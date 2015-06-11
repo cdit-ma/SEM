@@ -155,10 +155,18 @@ bool OutEventPortDelegate::canConnect(Node* attachableObject)
 #endif
             return false;
         }
-        EventPort* oEP = dynamic_cast<EventPort*>(this->getOutEventPortInstance()->getDefinition());
-        EventPort* oEP2 = dynamic_cast<EventPort*>(outEventPortDelegate->getOutEventPortInstance()->getDefinition());
 
-        if(oEP != oEP2){
+        EventPort* oEP = 0;
+        EventPort* oEP2 = 0;
+
+        if(this->getOutEventPortInstance()){
+            oEP = dynamic_cast<EventPort*>(this->getOutEventPortInstance()->getDefinition());
+        }
+        if(outEventPortDelegate->getOutEventPortInstance()){
+            oEP2 = dynamic_cast<EventPort*>(outEventPortDelegate->getOutEventPortInstance()->getDefinition());
+        }
+
+        if(oEP != oEP2 && (oEP2 != 0)){
 #ifdef DEBUG_MODE
             qWarning() << "OutEventPortDelegate cannot be connected to an OutEventPortDelegate Which doesn't share the same definition.";
 #endif

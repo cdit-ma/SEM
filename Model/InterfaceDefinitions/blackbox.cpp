@@ -1,7 +1,7 @@
 #include "blackbox.h"
 #include "outeventport.h"
 #include "ineventport.h"
-
+#include <QDebug>
 BlackBox::BlackBox():Node(Node::NT_DEFINITION)
 {
 }

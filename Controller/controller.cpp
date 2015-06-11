@@ -2607,18 +2607,10 @@ void NewController::setupManagementComponents()
         }
     }
 
-
-
-
     Node* emNode = constructChildNode(assemblyDefinitions, executionManagerData);
     Node* plNode = constructChildNode(assemblyDefinitions, dancePlanLauncherData);
     Node* lsdNode = constructChildNode(assemblyDefinitions, ddsLoggingServerData);
     Node* qpidNode = constructChildNode(assemblyDefinitions, qpidBrokerData);
-
-
-    //managementComponents.insert("DANCE_EXECUTION_MANAGER",dynamic_cast<ManagementComponent*>(emNode));
-    //managementComponents.insert("DANCE_PLAN_LAUNCHER",dynamic_cast<ManagementComponent*>(plNode));
-    //managementComponents.insert("DDS_LOGGING_SERVER",dynamic_cast<ManagementComponent*>(lsdNode));
 }
 
 GraphML *NewController::getGraphMLFromID(QString ID)

@@ -125,10 +125,18 @@ bool InEventPortDelegate::canConnect(Node* attachableObject)
     }
 
     if(inEventPortInstance){
+        if(inEventPortInstance->getParentNode()){
+            if(inEventPortInstance->getParentNode()->getParentNode() != getParentNode()){
+                #ifdef DEBUG_MODE
+                qWarning() << "InEventPortDelegate cannot be connected to an inEventPortInstance which is not at the same depth!";
+                #endif
+                return false;
+            }
+        }
         if(!getParentNode()->isAncestorOf(inEventPortInstance)){
-#ifdef DEBUG_MODE
-            qWarning() << "InEventPortDelegate cannot be connected to an inEventPortInstance not contained in the same Assembly!";
-#endif
+    #ifdef DEBUG_MODE
+                qWarning() << "InEventPortDelegate cannot be connected to an inEventPortInstance not contained in the same Assembly!";
+    #endif
             return false;
         }
     }

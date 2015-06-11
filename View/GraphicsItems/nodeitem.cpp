@@ -179,10 +179,12 @@ void NodeItem::setVisibleParentForEdgeItem(QString ID, bool RIGHT)
     if(RIGHT){
         if(!currentRightEdgeIDs.contains(ID)){
             currentRightEdgeIDs.append(ID);
+            nodeItemMoved();
         }
     }else{
         if(!currentLeftEdgeIDs.contains(ID)){
             currentLeftEdgeIDs.append(ID);
+            nodeItemMoved();
         }
     }
 }
@@ -207,8 +209,11 @@ int NodeItem::getNumberOfEdgeItems(bool RIGHT)
 
 void NodeItem::removeVisibleParentForEdgeItem(QString ID)
 {
-    currentRightEdgeIDs.removeAll(ID);
-    currentLeftEdgeIDs.removeAll(ID);
+    int count = currentRightEdgeIDs.removeAll(ID);
+    count += currentLeftEdgeIDs.removeAll(ID);
+    if(count > 0){
+        nodeItemMoved();
+    }
 }
 
 
