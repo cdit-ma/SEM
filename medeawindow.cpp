@@ -1269,6 +1269,10 @@ void MedeaWindow::makeConnections()
     addAction(model_validateModel);
     addAction(model_clearModel);
     addAction(model_sortModel);
+
+    addAction(jenkins_ExecuteJob);
+    addAction(jenkins_ImportNodes);
+
     addAction(settings_useGridLines);
     addAction(settings_changeAppSettings);
 }
@@ -1493,6 +1497,7 @@ void MedeaWindow::saveSettings()
         }
     }
 }
+
 
 /**
  * @brief MedeaWindow::gotJenkinsNodeGraphML Called by a JenkinsRequest with the GraphML string which represents the nodes in the Jenkins Server. Data gets imported into the model.

@@ -141,6 +141,7 @@ public:
 
     void higlightNodeItem(bool highlight);
     void showHardwareIcon(bool show);
+    QList<NodeItem *> deploymentView(bool on, NodeItem* selectedItem = 0);
 
 signals:
     void model_PositionChanged();

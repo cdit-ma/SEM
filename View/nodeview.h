@@ -386,7 +386,7 @@ private:
 
     QMenu* prevLockMenuOpened;
 
-    QList<NodeItem*> highlightedNodeItems;
+    QString prevSelectedNodeID;
 };
 
 #endif // NODEVIEW_H

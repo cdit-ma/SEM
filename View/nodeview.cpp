@@ -1045,52 +1045,59 @@ void NodeView::moveViewForward()
  */
 void NodeView::highlightDeployment(Node* selectedNode)
 {
-    if (!highlightedNodeItems.isEmpty()) {
-        highlightedNodeItems.takeLast()->showHardwareIcon(false);
-        foreach (NodeItem* item, highlightedNodeItems) {
-            item->higlightNodeItem(false);
+    // clear highlighted node items
+    if (guiItems.contains(prevSelectedNodeID)) {
+        GraphMLItem* item = guiItems[prevSelectedNodeID];
+        if (item->isNodeItem()) {
+            ((NodeItem*)item)->deploymentView(false);
         }
-        highlightedNodeItems.clear();
     }
 
     // if there is no selected node, it means that we only wanna remove
-    // the highlight from the previously hiughlighted node items
-    if (!selectedNode) {
-        repaint();
-        return;
-    }
+    // the highlight from the previously highlighted node items
+    bool justClearing = false;
 
-    Node* parentDeploymentLink = 0;
-    foreach (Edge* edge, selectedNode->getEdges(0)) {
-        if (edge->isDeploymentLink()) {
-            parentDeploymentLink = edge->getDestination();
-            break;
-        }
-    }
+    if (selectedNode) {
 
-    // if the parent doesn't have a deployment link, do nothing
-    if (!parentDeploymentLink) {
-        return;
-    }
-
-    // check the selected node's children's deployment link
-    NodeItem* selectedItem = getNodeItemFromNode(selectedNode);
-    foreach (NodeItem* childItem, selectedItem->getChildNodeItems()) {
-        foreach (Edge* edge, childItem->getNode()->getEdges(0)) {
-            if (edge->isDeploymentLink() && edge->getDestination() != parentDeploymentLink) {
-                childItem->higlightNodeItem(true);
-                childItem->update();
-                highlightedNodeItems.append(childItem);
-                break;
+        // if there are higlighted children, display notification
+        NodeItem* selectedItem = getNodeItemFromNode(selectedNode);
+        if (selectedItem) {
+            if (!selectedItem->deploymentView(true, selectedItem).isEmpty()) {
+                view_displayNotification("The selected entinity has children that are deployed to a different node.");
             }
         }
+
+        prevSelectedNodeID = selectedNode->getID();
+
+    } else {
+        prevSelectedNodeID = "";
+        justClearing = true;
     }
 
-    // if there are higlighted children, display notification
-    if (highlightedNodeItems.count() > 0) {
-        highlightedNodeItems.append(selectedItem);
-        selectedItem->showHardwareIcon(true);
-        view_displayNotification("The selected entinity has children that are deployed to a different node.");
+    // check if any ComponentAssemblies, ComponentInstances or ManagementComponents
+    // have children deployed to a different node; show red hardware icon
+    if (controller) {
+        Model* model = controller->getModel();
+        if (model) {
+            foreach (Node* assm, model->getChildrenOfKind("ComponentAssembly")) {
+                NodeItem* assmItem = getNodeItemFromNode(assm);
+                if (assmItem) {
+                    assmItem->deploymentView(true && !justClearing);
+                }
+            }
+            foreach (Node* inst, model->getChildrenOfKind("ComponentInstance")) {
+                NodeItem* instItem = getNodeItemFromNode(inst);
+                if (instItem) {
+                    instItem->deploymentView(true && !justClearing);
+                }
+            }
+            foreach (Node* mngt, model->getChildrenOfKind("ManagementComponent")) {
+                NodeItem* mngtItem = getNodeItemFromNode(mngt);
+                if (mngtItem) {
+                    mngtItem->deploymentView(true && !justClearing);
+                }
+            }
+        }
     }
 
     repaint();

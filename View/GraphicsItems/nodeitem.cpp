@@ -2551,6 +2551,9 @@ QRectF NodeItem::getLockIconSceneRect()
 
 /**
  * @brief NodeItem::higlightNodeItem
+ * If highlight is true, this method highlights this node item to show that
+ * the hardware node that it's deployed to is different to its parent's.
+ * This is also used to remove the highlight when the deployment view is turned off.
  * @param highlight
  */
 void NodeItem::higlightNodeItem(bool highlight)
@@ -2566,11 +2569,72 @@ void NodeItem::higlightNodeItem(bool highlight)
 
 /**
  * @brief NodeItem::showHardwareIcon
+ * When the deployment view is on, this shows the red hardware icon denoting
+ * that this item has a child that is deployed to a different hardware node.
  * @param show
  */
 void NodeItem::showHardwareIcon(bool show)
 {
     hardwareIcon->setVisible(show && this->isVisible());
+}
+
+
+/**
+ * @brief NodeItem::deploymentView
+ * @param on
+ * @param selectedItem
+ * @return
+ */
+QList<NodeItem*> NodeItem::deploymentView(bool on, NodeItem* selectedItem)
+{
+    QList<NodeItem*> chlidrenDeployedToDifferentNode;
+
+    if (on) {
+
+        Node* deploymentLink = 0;
+
+        // get the hardware node that this item is deployed to
+        foreach (Edge* edge, getNode()->getEdges(0)) {
+            if (edge->isDeploymentLink()) {
+                deploymentLink = edge->getDestination();
+                break;
+            }
+        }
+
+        // if this item isn't connected to a hardware node, do nothing
+        if (!deploymentLink) {
+            return chlidrenDeployedToDifferentNode;
+        }
+
+        // check this item's children's deployment links
+        foreach (NodeItem* childItem, getChildNodeItems()) {
+            foreach (Edge* edge, childItem->getNode()->getEdges(0)) {
+                if (edge->isDeploymentLink() && edge->getDestination() != deploymentLink) {
+                    if (selectedItem && selectedItem == this) {
+                        childItem->higlightNodeItem(true);
+                    }
+                    chlidrenDeployedToDifferentNode.append(childItem);
+                    break;
+                }
+            }
+        }
+
+        // if there are children deployed to a different node, show red hardware icon
+        if (!chlidrenDeployedToDifferentNode.isEmpty()) {
+            showHardwareIcon(true);
+        }
+
+    } else {
+
+        // remove highlight and hide the red hradware icon
+        foreach (NodeItem* childItem, getChildNodeItems()) {
+            childItem->higlightNodeItem(false);
+        }
+
+        showHardwareIcon(false);
+    }
+
+    return chlidrenDeployedToDifferentNode;
 }
 
 
