@@ -97,7 +97,8 @@ HEADERS += \
     Jenkins/jenkinsmanager.h \
     Jenkins/jenkinsrequest.h \
     Model/InterfaceDefinitions/blackbox.h \
-    Model/DeploymentDefinitions/blackboxinstance.h
+    Model/DeploymentDefinitions/blackboxinstance.h \
+    GUI/codeeditor.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -176,7 +177,8 @@ SOURCES += \
     Jenkins/jenkinsmanager.cpp \
     Jenkins/jenkinsrequest.cpp \
     Model/InterfaceDefinitions/blackbox.cpp \
-    Model/DeploymentDefinitions/blackboxinstance.cpp
+    Model/DeploymentDefinitions/blackboxinstance.cpp \
+    GUI/codeeditor.cpp
 
 FORMS += \
 

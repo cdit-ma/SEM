@@ -1,5 +1,6 @@
 #include "medeawindow.h"
 #include "Controller/controller.h"
+#include "codeeditor.h"
 
 #include <QDebug>
 #include <QObject>
@@ -2993,7 +2994,7 @@ void MedeaWindow::setupMultiLineBox()
     QGridLayout *gridLayout = new QGridLayout(popupMultiLine);
 
     //Text Edit Box
-    txtMultiLine = new QPlainTextEdit();
+    txtMultiLine = new CodeEditor();
     //make tab width mode civilized
     txtMultiLine->setTabStopWidth(40);
 

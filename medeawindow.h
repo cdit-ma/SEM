@@ -53,6 +53,8 @@
 #include "GUI/searchitembutton.h"
 #include "GUI/aspecttogglewidget.h"
 #include "GUI/appsettings.h"
+#include "GUI/codeeditor.h"
+
 class MedeaWindow : public QMainWindow
 {
     Q_OBJECT
@@ -363,7 +365,7 @@ private:
 
     //multi-line popup for QTableView (VARIABLES)
     QDialog *popupMultiLine;
-    QPlainTextEdit *txtMultiLine;
+    CodeEditor *txtMultiLine;
     QModelIndex clickedModelIndex;
 
     JenkinsManager* jenkinsManager;
