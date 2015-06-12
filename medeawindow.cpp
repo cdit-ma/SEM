@@ -1,6 +1,6 @@
 #include "medeawindow.h"
 #include "Controller/controller.h"
-#include "codeeditor.h"
+#include "GUI/codeeditor.h"
 
 #include <QDebug>
 #include <QObject>

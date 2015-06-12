@@ -1,8 +1,11 @@
 #ifndef CODEEDITOR_H
 #define CODEEDITOR_H
 
+#include <QSyntaxHighlighter>
 #include <QPlainTextEdit>
 #include <QObject>
+
+#include "syntaxhighlighter.h"
 
 class QPaintEvent;
 class QResizeEvent;
@@ -27,11 +30,20 @@ protected:
 
 private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
-    void highlightCurrentLine();
     void updateLineNumberArea(const QRect &, int);
 
+    void highlightCurrentLine();
+    void matchParentheses();
+
 private:
+    SyntaxHighlighter *highlighter;
     QWidget *lineNumberArea;
+
+    bool matchLeftParenthesis(QTextBlock currentBlock, int index, int numRightParentheses);
+    bool matchRightParenthesis(QTextBlock currentBlock, int index, int numLeftParentheses);
+    void createParenthesisSelection(int pos);
+
+    QList<QTextEdit::ExtraSelection> highlights;
 };
 
 
