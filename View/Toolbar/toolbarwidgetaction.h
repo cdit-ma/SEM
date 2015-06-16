@@ -18,7 +18,7 @@ class ToolbarWidgetAction : public QWidgetAction
     Q_OBJECT
 public:
     explicit ToolbarWidgetAction(QString nodeKind, QString textLabel = "", QWidget *parent = 0);
-    explicit ToolbarWidgetAction(Node* node, QWidget *parent = 0, QString actionKind = "");
+    explicit ToolbarWidgetAction(Node* node, QWidget *parent = 0, bool willHaveMenu = false);
 
     void setMenu(ToolbarWidgetMenu* widgetMenu);
     ToolbarWidgetMenu* getMenu();

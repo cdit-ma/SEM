@@ -261,6 +261,7 @@ private:
 
     QList<Node*> getFiles();
     QList<Node*> getComponents();
+    QList<Node*> getBlackBoxes();
 
     void storeGraphMLItemInHash(GraphMLItem* item);
     bool removeGraphMLItemFromHash(QString ID);

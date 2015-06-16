@@ -24,7 +24,7 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
     willHaveMenu = false;
     deletable = true;
 
-    if (nodeKind == "ComponentInstance" || nodeKind == "ComponentImpl" ||
+    if (nodeKind == "ComponentInstance" || nodeKind == "ComponentImpl" || nodeKind == "BlackBoxInstance" ||
             nodeKind == "InEventPortDelegate" || nodeKind == "OutEventPortDelegate") {
         willHaveMenu = true;
         deletable = false;
@@ -42,7 +42,7 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
  * @param parent
  * @param actionKind
  */
-ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString actionKind) :
+ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, bool willHaveMenu) :
     QWidgetAction(parent)
 {
     this->node = node;
@@ -50,12 +50,8 @@ ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, QString ac
     label = node->getDataValue("label");
 
     widgetMenu = 0;
-    willHaveMenu = false;
     deletable = true;
-
-    if (actionKind == "file" || actionKind == "eventPort" || actionKind == "parent") {
-        willHaveMenu = true;
-    }
+    this->willHaveMenu = willHaveMenu;
 }
 
 

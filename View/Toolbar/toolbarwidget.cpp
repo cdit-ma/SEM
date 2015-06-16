@@ -298,8 +298,15 @@ void ToolbarWidget::addConnectedNode()
     ToolbarWidgetMenu* parentMenu = qobject_cast<ToolbarWidgetMenu*>(action->parentWidget());
     ToolbarWidgetAction* menuParentAction = parentMenu->getParentAction();
 
+    if (action && parentMenu) {
+        qDebug() << "action: " << action;
+        qDebug() << "parentMenu: " << parentMenu;
+    }
+
     // check which action was triggered & where it originates from to determine the nodeKind to construct
     if (menuParentAction) {
+
+        qDebug() << "menuParentAction: " << menuParentAction;
 
         QString kindToConstruct;
 
@@ -311,6 +318,8 @@ void ToolbarWidget::addConnectedNode()
             kindToConstruct = "InEventPortDelegate";
         } else if (menuParentAction == outEventPortDelegateAction) {
             kindToConstruct = "OutEventPortDelegate";
+        } else if (menuParentAction == blackBoxInstanceAction) {
+            kindToConstruct = "BlackBoxInstance";
         }
 
         nodeView->constructConnectedNode(nodeItem->getNode(), action->getNode(), kindToConstruct, 1);
@@ -513,21 +522,29 @@ void ToolbarWidget::setupMenus()
     connect(inst_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
     inst_popup->setEnabled(false);
 
-    // this is used when ComponentInstance can be adopted by the current node
+    // these widget actions are not deletable - when their parent menu is cleared, they're only hidden
     componentImplAction = new ToolbarWidgetAction("ComponentImpl", "", addMenu);
     componentInstanceAction = new ToolbarWidgetAction("ComponentInstance", "", addMenu);
     inEventPortDelegateAction = new ToolbarWidgetAction("InEventPortDelegate", "", addMenu);
     outEventPortDelegateAction = new ToolbarWidgetAction("OutEventPortDelegate", "", addMenu);
+    blackBoxInstanceAction = new ToolbarWidgetAction("BlackBoxInstance", "", addMenu);
 
-    // default actions for when some of the menus are empty
+    // default actions for when visible menus are empty
     fileDefaultAction = new ToolbarWidgetAction("info", "There are no IDL files containing Components that are valid for this action.", this);
     inEventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", this);
     outEventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", this);
+    blackBoxInstanceDefaultAction = new ToolbarWidgetAction("info", "There is no existing BlackBox that does not already have an instance.", this);
 
-    // hidden menus for parent nodes, ComponentInstances, ComponentImpls and In/Out EventPortDelegates
+    // hidden menus for parent nodes, ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
     fileMenu = new ToolbarWidgetMenu(0, fileDefaultAction, addMenu);
     inEventPort_componentInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, inEventPort_componentInstanceDefaultAction, addMenu);
     outEventPort_componentInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, outEventPort_componentInstanceDefaultAction, addMenu);
+    blackBoxInstanceMenu = new ToolbarWidgetMenu(blackBoxInstanceAction, blackBoxInstanceDefaultAction, addMenu);
+
+    qDebug() << "this - " << this;
+    qDebug() << "addMenu - " << addMenu;
+    qDebug() << "blackBoxInstanceAction - " << blackBoxInstanceAction;
+    qDebug() << "blackBoxInstanceMenu - " << blackBoxInstanceMenu;
 }
 
 
@@ -597,7 +614,7 @@ void ToolbarWidget::updateToolButtons()
         showConnectionsButton->hide();
     }
 
-    // always show show new view button
+    // always show showNewView button
     //showNewViewButton->show();
 
     // DEMO CHANGE: hide this for now
@@ -623,9 +640,11 @@ void ToolbarWidget::updateMenuLists()
     // for the add ComponentInstance and In/OutEventPortDelegate menus respectively
     if (nodeItem->getNodeKind() == "ComponentAssembly") {
         setupFilesList(nodeView->getFiles(), "inst");
-        setupChildrenComponentInstanceList(nodeItem->getNode()->getChildrenOfKind("ComponentInstance",0 ));
+        setupChildrenComponentInstanceList(nodeItem->getNode()->getChildrenOfKind("ComponentInstance", 0));
     } else if (nodeItem->getNodeKind() == "BehaviourDefinitions") {
         setupFilesList(nodeView->getFiles(), "impl");
+    } else if (nodeItem->getNodeKind() == "AssemblyDefinitions") {
+        setupBlackBoxList(nodeView->getBlackBoxes());
     }
 
     alterViewFrame->setVisible(showAlterViewFrame && alterModelToolButtons.count() > 0);
@@ -734,8 +753,10 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
             action = inEventPortDelegateAction;
         } else if (nodeKind == "OutEventPortDelegate") {
             action = outEventPortDelegateAction;
+        } else if (nodeKind == "BlackBoxInstance") {
+            action = blackBoxInstanceAction;
         } else {
-            action  = new ToolbarWidgetAction(nodeKind, "", this);
+            action  = new ToolbarWidgetAction(nodeKind, "", addMenu);
             connect(action, SIGNAL(triggered()), this, SLOT(addChildNode()));
         }
 
@@ -767,7 +788,8 @@ void ToolbarWidget::setupLegalNodesList(QList<Node*> nodeList)
         Node* parentNode = nodeList.at(i)->getParentNode();
 
         // if the current node has a parent, check if there is already an action for it
-        // if not, create one; if there is, add the node's action to the parent action's menu
+        // if not, create one and attach a menu to it
+        // if there is, add the node's action to the parent action's menu
         if (parentNode && parentNode->getDataValue("kind") != "Model") {
 
             ToolbarWidgetAction* parentAction = connectMenu->getWidgetAction(parentNode);
@@ -776,7 +798,7 @@ void ToolbarWidget::setupLegalNodesList(QList<Node*> nodeList)
             if (parentAction) {
                 parentActionMenu = parentAction->getMenu();
             } else {
-                parentAction = new ToolbarWidgetAction(nodeList.at(i)->getParentNode(), connectMenu, "parent");
+                parentAction = new ToolbarWidgetAction(parentNode, connectMenu, true);
                 parentActionMenu = new ToolbarWidgetMenu(parentAction, 0, connectMenu);
                 connectMenu->addWidgetAction(parentAction);
             }
@@ -826,7 +848,7 @@ void ToolbarWidget::setupFilesList(QList<Node*> files, QString kind)
 
     // populate fileMenu
     for (int i = 0; i < fileWithComponents.count(); i++) {
-        ToolbarWidgetAction* fileAction = new ToolbarWidgetAction(fileWithComponents.at(i), fileMenu, "file");
+        ToolbarWidgetAction* fileAction = new ToolbarWidgetAction(fileWithComponents.at(i), fileMenu, true);
         ToolbarWidgetMenu* fileActionMenu = new ToolbarWidgetMenu(fileAction, 0, fileMenu);
         fileMenu->addWidgetAction(fileAction);
     }
@@ -879,6 +901,46 @@ void ToolbarWidget::setupComponentList(QList<Node*> components, QString kind)
 
 
 /**
+ * @brief ToolbarWidget::setupBlackBoxList
+ * This sets up the BlackBox menu list. It gets the updated list from the view.
+ * @param blackBoxes
+ */
+void ToolbarWidget::setupBlackBoxList(QList<Node*> blackBoxes)
+{
+    for (int i = 0; i < blackBoxes.count(); i++) {
+
+        // skip the black boxes that already has an instance
+        if (!blackBoxes.at(i)->getInstances().isEmpty()) {
+            continue;
+        }
+
+        Node* parentNode = blackBoxes.at(i)->getParentNode();
+
+        // if the current node has a parent, check if there is already an action for it
+        // if not, create one and attach a menu to it
+        // if there is, add the node's action to the parent action's menu
+        if (parentNode && parentNode->getDataValue("kind") != "Model") {
+
+            ToolbarWidgetAction* parentAction = blackBoxInstanceMenu->getWidgetAction(parentNode);
+            ToolbarWidgetMenu* parentActionMenu = 0;
+
+            if (parentAction) {
+                parentActionMenu = parentAction->getMenu();
+            } else {
+                parentAction = new ToolbarWidgetAction(parentNode, blackBoxInstanceMenu, true);
+                parentActionMenu = new ToolbarWidgetMenu(parentAction, 0, blackBoxInstanceMenu);
+                blackBoxInstanceMenu->addWidgetAction(parentAction);
+            }
+
+            ToolbarWidgetAction* action = new ToolbarWidgetAction(blackBoxes.at(i), blackBoxInstanceMenu);
+            parentActionMenu->addWidgetAction(action);
+            connect(action, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
+        }
+    }
+}
+
+
+/**
  * @brief ToolbarWidget::setupChildrenComponentInstanceList
  * This sets up the menu list of children ComponentInstances inside the selected node item.
  * It gets the updated list from the view.
@@ -891,12 +953,12 @@ void ToolbarWidget::setupChildrenComponentInstanceList(QList<Node*> componentIns
 
         foreach (Node* instance, componentInstances) {
             if (instance->getChildrenOfKind("InEventPortInstance").count() > 0) {
-                ToolbarWidgetAction* inEvent_instanceAction = new ToolbarWidgetAction(instance, inEventPort_componentInstanceMenu, "eventPort");
+                ToolbarWidgetAction* inEvent_instanceAction = new ToolbarWidgetAction(instance, inEventPort_componentInstanceMenu, true);
                 ToolbarWidgetMenu* inEventPortMenu = new ToolbarWidgetMenu(inEvent_instanceAction, 0, inEventPort_componentInstanceMenu);
                 inEventPort_componentInstanceMenu->addWidgetAction(inEvent_instanceAction);
             }
             if (instance->getChildrenOfKind("OutEventPortInstance").count() > 0) {
-                ToolbarWidgetAction* outEvent_instanceAction = new ToolbarWidgetAction(instance, outEventPort_componentInstanceMenu, "eventPort");
+                ToolbarWidgetAction* outEvent_instanceAction = new ToolbarWidgetAction(instance, outEventPort_componentInstanceMenu, true);
                 ToolbarWidgetMenu* outEventPortMenu = new ToolbarWidgetMenu(outEvent_instanceAction, 0, outEventPort_componentInstanceMenu);
                 outEventPort_componentInstanceMenu->addWidgetAction(outEvent_instanceAction);
             }
@@ -1000,5 +1062,6 @@ void ToolbarWidget::clearMenus()
     fileMenu->clearMenu();
     inEventPort_componentInstanceMenu->clearMenu();
     outEventPort_componentInstanceMenu->clearMenu();
+    blackBoxInstanceMenu->clearMenu();
     instancesMenu->clearMenu();
 }

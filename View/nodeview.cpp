@@ -1100,7 +1100,7 @@ void NodeView::highlightDeployment(Node* selectedNode)
         }
     }
 
-    repaint();
+    //repaint();
 }
 
 
@@ -1168,7 +1168,7 @@ void NodeView::showToolbar(QPoint position)
         }
 
     } else {
-        view_displayNotification("Select an entity first.");
+        view_displayNotification("Select an entity first to show the context toolbar.");
     }
 
     // show/hide MEDEA toolbar
@@ -1436,6 +1436,11 @@ void NodeView::constructConnectedNode(Node* parentNode, Node* node, QString kind
     triggerAction("Dock/Toolbar: Constructing Connected Node");
 
     if (parentNode && node) {
+
+        qDebug() << "parentNode: " << parentNode->getDataValue("label");
+        qDebug() << "actionNode: " << node->getDataValue("label");
+        qDebug() << "kind: " << kind;
+
         NodeItem *nodeItem = getNodeItemFromNode(parentNode);
         constructedFromImport = false;
         if (sender == 0) {
@@ -1595,6 +1600,21 @@ QList<Node*> NodeView::getComponents()
     Model* model = controller->getModel();
     if (model) {
         returnList = model->getChildrenOfKind("Component");
+    }
+    return returnList;
+}
+
+
+/**
+ * @brief NodeView::getBlackBoxes
+ * @return - list of BlackBox definitions
+ */
+QList<Node*> NodeView::getBlackBoxes()
+{
+    QList<Node*> returnList;
+    Model* model = controller->getModel();
+    if (model) {
+        returnList = model->getChildrenOfKind("BlackBox");
     }
     return returnList;
 }

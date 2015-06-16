@@ -9,8 +9,8 @@ class ToolbarWidgetMenu : public QMenu
 {
     Q_OBJECT
 public:
-    explicit ToolbarWidgetMenu(ToolbarWidgetAction* widgetAction = 0,
-                               ToolbarWidgetAction *action = 0,
+    explicit ToolbarWidgetMenu(ToolbarWidgetAction* parent_action = 0,
+                               ToolbarWidgetAction *default_action = 0,
                                QWidget *parent = 0);
 
     void clearMenu();
@@ -42,7 +42,6 @@ public slots:
     void execMenu();
 
     void setupDefaultAction();
-    void setParentTriggered(bool triggered);
 
 private:    
     ToolbarWidgetAction* parentAction;

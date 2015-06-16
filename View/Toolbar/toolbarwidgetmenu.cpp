@@ -8,17 +8,17 @@
  * @param action
  * @param parent
  */
-ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction *widgetAction, ToolbarWidgetAction* action, QWidget *parent) :
+ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction *parent_action, ToolbarWidgetAction* default_action, QWidget *parent):
     QMenu(parent)
 {
-    defaultAction = action;
+    defaultAction = default_action;
     widgetActions = QList<ToolbarWidgetAction*>();
 
     eventFromMenu = false;
     actionTriggered = false;
 
     // set parentAction
-    setParentAction(widgetAction);
+    setParentAction(parent_action);
 
     // if the parent of this menu is of type ToolbarWidgetMenu, connect to it
     ToolbarWidgetMenu* parentMenu = qobject_cast<ToolbarWidgetMenu*>(parent);
@@ -224,16 +224,6 @@ void ToolbarWidgetMenu::hideMenu(QAction *action)
     if (actionTriggered) {
         hide();
     }
-}
-
-
-/**
- * @brief ToolbarWidgetMenu::setParentTriggered
- * @param triggered
- */
-void ToolbarWidgetMenu::setParentTriggered(bool triggered)
-{
-    actionTriggered = triggered;
 }
 
 

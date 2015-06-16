@@ -68,6 +68,7 @@ private:
 
     void setupFilesList(QList<Node*> files, QString kind);
     void setupComponentList(QList<Node*> components, QString kind);
+    void setupBlackBoxList(QList<Node*> blackBoxes);
 
     void setupChildrenComponentInstanceList(QList<Node*> componentInstances);
     void setupInEventPortInstanceList();
@@ -121,6 +122,10 @@ private:
     ToolbarWidgetAction* fileDefaultAction;
     ToolbarWidgetAction* inEventPort_componentInstanceDefaultAction;
     ToolbarWidgetAction* outEventPort_componentInstanceDefaultAction;
+
+    ToolbarWidgetAction* blackBoxInstanceDefaultAction;
+    ToolbarWidgetAction* blackBoxInstanceAction;
+    ToolbarWidgetMenu* blackBoxInstanceMenu;
 
     QList<QToolButton*> singleSelectionToolButtons;
     QList<QToolButton*> multipleSelectionToolButtons;
