@@ -540,11 +540,6 @@ void ToolbarWidget::setupMenus()
     inEventPort_componentInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, inEventPort_componentInstanceDefaultAction, addMenu);
     outEventPort_componentInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, outEventPort_componentInstanceDefaultAction, addMenu);
     blackBoxInstanceMenu = new ToolbarWidgetMenu(blackBoxInstanceAction, blackBoxInstanceDefaultAction, addMenu);
-
-    qDebug() << "this - " << this;
-    qDebug() << "addMenu - " << addMenu;
-    qDebug() << "blackBoxInstanceAction - " << blackBoxInstanceAction;
-    qDebug() << "blackBoxInstanceMenu - " << blackBoxInstanceMenu;
 }
 
 

@@ -106,7 +106,11 @@ signals:
 
 public slots:
   void dialogMessage(QString title, QString message, GraphML* item=0);
+
+  void setGraphMLData(QString parentID, QString keyName, QString dataValue, bool addAction = true);
+
   void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
+
   void attachGraphMLData(GraphML* parent, GraphMLData* data, bool addAction = true);
   void destructGraphMLData(GraphML* parent, QString keyName, bool addAction = true);
 

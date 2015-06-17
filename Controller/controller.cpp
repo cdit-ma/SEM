@@ -130,7 +130,7 @@ void NewController::connectView(NodeView *view)
 
         //Undo SLOTS
         connect(view, SIGNAL(view_TriggerAction(QString)), this, SLOT(triggerAction(QString)));
-        connect(view, SIGNAL(view_SetGraphMLData(GraphML*,QString,QString)), this, SLOT(setGraphMLData(GraphML*,QString,QString)));
+        connect(view, SIGNAL(view_SetGraphMLData(QString,QString,QString)), this, SLOT(setGraphMLData(QString,QString,QString)));
 
 
     }
@@ -342,6 +342,7 @@ bool NewController::clearModel()
 
 void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dataValue, bool addAction)
 {
+
     if(!parent){
         qCritical() << "view_UpdateGraphMLData() Cannot Update GraphMLData for NULL GraphML object.";
         return;
@@ -353,6 +354,7 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
     action.actionType = MODIFIED;
     action.actionKind = GraphML::DATA;
     action.keyName = keyName;
+
 
 
 
@@ -2707,6 +2709,15 @@ Model *NewController::getModel()
 void NewController::dialogMessage(QString title, QString message, GraphML *item)
 {
     controller_DialogMessage(MODEL, title, message, item);
+
+}
+
+void NewController::setGraphMLData(QString parentID, QString keyName, QString dataValue, bool addAction)
+{
+    GraphML* graphML = getGraphMLFromID(parentID);
+    if(graphML){
+        setGraphMLData(graphML, keyName, dataValue, addAction);
+    }
 
 }
 

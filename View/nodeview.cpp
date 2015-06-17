@@ -908,48 +908,6 @@ void NodeView::selectAndCenter(GraphMLItem* item, QString ID)
 }
 
 
-/**
- * @brief NodeView::showNodeItemLockMenu
- * This slot shows/hides the provided nodeItem's lock menu.
- * @param nodeItem
- */
-void NodeView::showNodeItemLockMenu(NodeItem* nodeItem)
-{
-    QMenu* menu = nodeItem->getLockMenu();
-    if (menu) {
-        if (menu == prevLockMenuOpened) {
-            menu->close();
-            prevLockMenuOpened = 0;
-        } else {
-            QRectF lockRect = nodeItem->getLockIconSceneRect();
-            QPoint offset(lockRect.width()/5, -lockRect.width()/15);
-            QPointF menuPos = mapFromScene(lockRect.bottomLeft() + offset);
-            menuPos = mapToGlobal(menuPos.toPoint());
-            menu->popup(menuPos.toPoint());
-            prevLockMenuOpened = menu;
-        }
-    }
-}
-
-
-/**
- * @brief NodeView::nodeItemLockMenuClosed
- * This checks to see if the nodeItem's lock menu was closed by clicking on lock icon.
- * If it wasn't, reset prevLockMenuOpened so that showNodeItemLockMenu works correctly.
- * @param nodeItem
- */
-void NodeView::nodeItemLockMenuClosed(NodeItem* nodeItem)
-{
-    QPointF viewPos = mapFromScene(nodeItem->getLockIconSceneRect().topLeft());
-    QPointF globalPos = mapToGlobal(viewPos.toPoint());
-    QRectF rect(globalPos, nodeItem->getLockIconSceneRect().size()*transform().m11());
-
-    if (!rect.contains(QCursor::pos())) {
-        prevLockMenuOpened = 0;
-        //emit view_nodeItemLockMenuClosed(nodeItem);
-    }
-}
-
 
 /**
  * @brief NodeView::keepSelectionFullyVisible
@@ -1237,7 +1195,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     NodeItem* nodeItem = new NodeItem(node, parentNodeItem, currentAspects, IS_SUB_VIEW);
 
 
-    nodeItem->setGraphicsView(this);
+    nodeItem->setNodeView(this);
     storeGraphMLItemInHash(nodeItem);
 
 
@@ -1437,12 +1395,9 @@ void NodeView::constructConnectedNode(Node* parentNode, Node* node, QString kind
 
     if (parentNode && node) {
 
-        qDebug() << "parentNode: " << parentNode->getDataValue("label");
-        qDebug() << "actionNode: " << node->getDataValue("label");
-        qDebug() << "kind: " << kind;
-
         NodeItem *nodeItem = getNodeItemFromNode(parentNode);
         constructedFromImport = false;
+
         if (sender == 0) {
             view_ConstructConnectedComponents(parentNode, node, kind, nodeItem->getNextChildPos());
         } else if (sender == 1) {
@@ -1696,6 +1651,18 @@ void NodeView::viewDeploymentAspect()
     addAspect("Hardware");
 }
 
+QImage NodeView::getImage(QString imageName)
+{
+    if(imageLookup.contains(imageName)){
+         return imageLookup[imageName];
+     }else{
+         QImage image(":/Resources/Icons/" + imageName + ".png");
+         imageLookup[imageName] = image;
+         return image;
+     }
+
+}
+
 
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
 {
@@ -1720,7 +1687,8 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *gra
         if(!IS_SUB_VIEW){
             connect(GUIItem, SIGNAL(GraphMLItem_TriggerAction(QString)),  this, SLOT(triggerAction(QString)));
 
-            connect(GUIItem, SIGNAL(GraphMLItem_SetGraphMLData(GraphML*,QString,QString)), this, SIGNAL(view_SetGraphMLData(GraphML*,QString,QString)));
+
+            connect(GUIItem, SIGNAL(GraphMLItem_SetGraphMLData(QString,QString,QString)), this, SIGNAL(view_SetGraphMLData(QString,QString,QString)));
             connect(GUIItem, SIGNAL(GraphMLItem_ConstructGraphMLData(GraphML*,QString)), this, SIGNAL(view_ConstructGraphMLData(GraphML*,QString)));
             connect(GUIItem, SIGNAL(GraphMLItem_DestructGraphMLData(GraphML*,QString)), this, SIGNAL(view_DestructGraphMLData(GraphML*,QString)));
 
@@ -2505,9 +2473,7 @@ void NodeView::setDefaultAspects()
 void NodeView::setEnabled(bool enabled)
 {
     //HIDE STUFF
-    //QGraphicsView::setEnabled(enabled);
-
-
+    QGraphicsView::setEnabled(enabled);
 }
 
 

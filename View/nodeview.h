@@ -51,6 +51,10 @@ public:
     QStringList getAllAspects();
     void viewDeploymentAspect();
 
+    QImage getImage(QString imageName);
+
+
+
 protected:
     //Mouse Handling Methods
     void mouseReleaseEvent(QMouseEvent *event);
@@ -94,7 +98,7 @@ signals:
     void view_Undo();
     void view_Redo();
 
-    void view_SetGraphMLData(GraphML*, QString, QString);
+    void view_SetGraphMLData(QString, QString, QString);
     void view_ConstructGraphMLData(GraphML*, QString);
     void view_DestructGraphMLData(GraphML*, QString);
 
@@ -230,8 +234,6 @@ public slots:
 
     void selectAndCenter(GraphMLItem* item = 0, QString ID = "");
 
-    void showNodeItemLockMenu(NodeItem* nodeItem);
-    void nodeItemLockMenuClosed(NodeItem *nodeItem);
 
     void keepSelectionFullyVisible(GraphMLItem* item, bool sizeChanged = false);
     void moveViewBack();
@@ -384,6 +386,7 @@ private:
     int currentMapKey;
     QMap<int, QPointF> modelPositions;
     QMap<int, QRectF> centeredRects;
+    QHash<QString, QImage> imageLookup;
 
     QMenu* prevLockMenuOpened;
 

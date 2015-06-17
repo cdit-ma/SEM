@@ -1005,6 +1005,12 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     QStringList initiallyHidden(QStringList() << "Grid" << "Window" << "Align" << "Back" << "Forward");
     QStringList disabled(QStringList() << "Window" << "Back" << "Forward");
 
+    /*
+    foreach (QAction* action, toolbarActions.keys()) {
+        action->setEnabled(true);
+    }
+    */
+
     foreach (QCheckBox* cb, toolbarActions.values() ) {
 
         cb->setFont(guiFont);
@@ -2136,7 +2142,9 @@ void MedeaWindow::showWindowToolbar(bool checked)
     if (senderButton) {
         // show/hide all tool buttons
         foreach (QAction* action, checkedToolbarActions) {
+            //bool enabled = action->isEnabled();
             action->setVisible(checked);
+            //action->setEnabled(enabled);
         }
         foreach (QAction* spacer, checkedToolbarSpacers) {
             spacer->setVisible(checked);

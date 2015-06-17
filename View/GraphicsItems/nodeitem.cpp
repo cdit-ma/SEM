@@ -169,7 +169,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
  */
 NodeItem::~NodeItem()
 {   
-    if(getNodeView() && !getNodeView()->isDeleting()){
+    if(getNodeView()){
         if (parentNodeItem) {
             parentNodeItem->removeChildNodeItem(this->getID());
         }
@@ -422,7 +422,9 @@ bool NodeItem::isPainted()
 void NodeItem::addChildNodeItem(NodeItem *child)
 {
     if(!childNodeItems.contains(child->getID())){
+        qCritical() << "GOT CHIDL" << child->getGraphML()->toString();
         childNodeItems.insert(child->getID(), child);
+        childrenIDs.append(child->getID());
         //childNodeItems.append(child);
     }
 }
@@ -1310,14 +1312,18 @@ void NodeItem::newSort()
 
 void NodeItem::modelSort()
 {
-    if(childNodeItems.size() != 4 || nodeKind != "Model"){
+     QList<NodeItem*> children = getChildNodeItems();
+
+    if(children.size() != 4 || nodeKind != "Model"){
         return;
     }
 
-    NodeItem* topLeft = childNodeItems.values()[0];
-    NodeItem* topRight = childNodeItems.values()[1];
-    NodeItem* bottomLeft = childNodeItems.values()[2];
-    NodeItem* bottomRight = childNodeItems.values()[3];
+
+
+    NodeItem* topLeft = children[0];
+    NodeItem* topRight = children[1];
+    NodeItem* bottomLeft = children[2];
+    NodeItem* bottomRight = children[3];
 
     QPointF gapSize = QPointF(MODEL_WIDTH / 128, MODEL_WIDTH / 128);
 
@@ -1763,7 +1769,7 @@ void NodeItem::setWidth(qreal w)
     prepareGeometryChange();
     width = w;
 
-    updateTextLabel();
+    //updateTextLabel();
 
     calculateGridlines();
     updateParent();
@@ -1823,7 +1829,7 @@ void NodeItem::setSize(qreal w, qreal h)
             expandedHeight = h;
         }
 
-        updateTextLabel();
+        //updateTextLabel();
         calculateGridlines();
 
         updateParent();
@@ -1893,6 +1899,7 @@ void NodeItem::updateTextLabel(QString newLabel)
         return;
     }
 
+
     if(nodeKind != "Model"){
         textItem->setTextWidth(width);
     }else{
@@ -1901,6 +1908,7 @@ void NodeItem::updateTextLabel(QString newLabel)
     }
 
     if (newLabel != "") {
+
         textItem->setPlainText(newLabel);
     }
 }
@@ -2340,6 +2348,8 @@ void NodeItem::setupLabel()
     textItem->setFont(font);
     textItem->setPos(labelX, labelY);
 
+
+
     updateTextLabel(getGraphMLDataValue("label"));
 }
 
@@ -2526,12 +2536,13 @@ void NodeItem::retrieveGraphMLData()
     qCritical() << modelY;
 
 */
-    /*if(!getGraphML()->isDeleting()){
+    if(!getGraphML()->isDeleting()){
         graphMLDataChanged(getGraphML()->getData("width"));
         graphMLDataChanged(getGraphML()->getData("height"));
         graphMLDataChanged(getGraphML()->getData("x"));
         graphMLDataChanged(getGraphML()->getData("y"));
-    }*/
+        graphMLDataChanged(getGraphML()->getData("label"));
+    }
 
 
 /*
@@ -2571,12 +2582,18 @@ void NodeItem::retrieveGraphMLData()
 
 
 /**
- * @brief NodeItem::getChildren
+ * @brief NodeItem::getChildNodeItems
  * @return
  */
 QList<NodeItem *> NodeItem::getChildNodeItems()
 {
-    return childNodeItems.values();
+    QList<NodeItem*> insertOrderList;
+
+    foreach(QString ID, childrenIDs){
+        insertOrderList.append(childNodeItems[ID]);
+    }
+    return insertOrderList;
+
 }
 
 
@@ -2827,7 +2844,7 @@ void NodeItem::graphMLDataChanged(QString keyName, QString type, QString value)
 
         }
         if(previousValue != value){
-            updateModelSize();
+            updateortize();
         }
 
     }
