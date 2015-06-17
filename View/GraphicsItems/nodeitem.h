@@ -373,6 +373,7 @@ private:
 
 
     QHash<QString, NodeItem*> childNodeItems;
+    QStringList childrenIDs;
     //QList<NodeItem*> childNodeItems;
 
     //Used to store the Color/Brush/Pen for the selected Style.

@@ -36,7 +36,7 @@ GraphMLItem::~GraphMLItem()
 
 QString GraphMLItem::getGraphMLDataValue(QString key)
 {
-    if(getGraphML() && getGraphML()->isDeleting()){
+    if(getGraphML() && !getGraphML()->isDeleting()){
         GraphMLData* data = getGraphML()->getData(key);
         if(!data->isDeleting() && data->getParent() == getGraphML()){
             return data->getValue();
