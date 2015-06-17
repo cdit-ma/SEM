@@ -113,10 +113,11 @@ if (role == Qt::DecorationRole) {
         switch(index.column()){
         case 2:
             if(popupMultiLine(index)) {
+                /*
                 QImage* image = new QImage(":/Resources/Icons/popup.png");
                 QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
                 QPixmap pixmap(QPixmap::fromImage(scaledImage));
-                return pixmap;
+                return pixmap;*/
             }
            break;
 
@@ -221,10 +222,18 @@ QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientatio
 {
     if (role == Qt::DecorationRole && orientation == Qt::Horizontal) {
         if(section == 0){
+            QImage image(":/Resources/Icons/lock.png");
+            QImage scaledImage = image.scaled(15, 15, Qt::KeepAspectRatio);
+            QPixmap pixmap(QPixmap::fromImage(scaledImage));
+            return pixmap;
+
+            //QImage image(":/")
+            /*
             QImage* image = new QImage(":/Resources/Icons/lock.png");
             QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
             QPixmap pixmap(QPixmap::fromImage(scaledImage));
             return pixmap;
+            */
         }
     }
      if (role == Qt::ToolTipRole) {
@@ -292,7 +301,8 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
 
         if (index.column() == 2 && data && !data->isProtected()){
             guiItem->GraphMLItem_TriggerAction("Updated Table Cell");
-            guiItem->GraphMLItem_SetGraphMLData(guiItem->getGraphML(), data->getKey()->getName(), value.toString());
+
+            guiItem->GraphMLItem_SetGraphMLData(guiItem->getID(), data->getKey()->getName(), value.toString());
             dataChanged(index, index);
             return true;
         }
