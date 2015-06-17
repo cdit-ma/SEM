@@ -153,7 +153,7 @@ void DockNodeItem::setHidden(bool hideItem)
     emit dockItem_hidden();
     if (hideItem) {
         hide();
-    } else if (parentDockItem->isExpanded()) {
+    } else if (parentDockItem && parentDockItem->isExpanded()) {
         show();
     }
 }
@@ -408,7 +408,7 @@ void DockNodeItem::updateData()
 {
     setLabel(nodeItem->getNode()->getDataValue("label"));
     emit dockItem_relabelled(this);
-    repaint();
+    //repaint();
 }
 
 
@@ -425,7 +425,7 @@ void DockNodeItem::setOpacity(double opacity)
     } else {
         setEnabled(true);
     }
-    repaint();
+    ///repaint();
 }
 
 

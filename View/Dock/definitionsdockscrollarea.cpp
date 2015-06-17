@@ -112,6 +112,9 @@ void DefinitionsDockScrollArea::updateDock()
 {
     DockScrollArea::updateDock();
 
+    if(getCurrentNodeID() == "-1"){
+        return;
+    }
     if (getCurrentNodeItem()) {
 
         QString nodeKind =  getCurrentNodeItem()->getNodeKind();
@@ -268,13 +271,17 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
 
     QString dockItemLabel = dockItem->getLabel();
 
+	return;
+	if(!layout){
+		
+	}
     // iterate through the items in this dock's layout
     for (int i = 0; i < layout->count(); i++) {
 
            QString currentDockItemLabel;
            if (isFileLabel) {
                NodeItem* currentNodeItem = fileLayoutItems.key((QVBoxLayout*)layout->itemAt(i));
-               if (currentNodeItem) {
+               if (currentNodeItem &&  currentNodeItem->getNode()){
                    currentDockItemLabel = currentNodeItem->getNode()->getDataValue("label");
                }
            } else {

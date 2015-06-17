@@ -171,5 +171,5 @@ void SearchItemButton::updateColor(bool selected)
                       "background: rgb(240,240,240);"
                       "}");
     }
-    repaint();
+    //repaint();
 }

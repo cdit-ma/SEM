@@ -46,7 +46,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     managementComponentVisible = false;
     importFromJenkins = false;
     IS_SUB_VIEW = subView;
-    controller = 0;
+    //controller = 0;
     parentNodeView = 0;
     rubberBand = 0;
 
@@ -114,6 +114,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     numberOfNotifications = 1;
     notificationNumber = 0;
+
+    connect(this, SIGNAL(view_ImportProjects(QStringList)), this , SLOT(lockMutex()));
 }
 
 
@@ -158,7 +160,7 @@ void NodeView::removeAspect(QString aspect)
 NodeView::~NodeView()
 {
     //Clear the current Selected Attribute Model so that the GUI doesn't crash.
-    view_SetAttributeModel(0);
+    setAttributeModel(0);
 
     if(this->parentNodeView){
         parentNodeView->removeSubView(this);
@@ -560,18 +562,26 @@ void NodeView::constructNewView(Node* centeredOn)
 
 bool NodeView::viewportEvent(QEvent * e)
 {
-    emit view_ViewportRectChanged(getVisibleRect());
+   // emit view_ViewportRectChanged(getVisibleRect());
     return QGraphicsView::viewportEvent(e);
+}
+
+void NodeView::setAttributeModel(GraphMLItem *item)
+{
+    if(item){
+        currentTableID = item->getID();
+        emit view_SetAttributeModel(item->getAttributeTable());
+    }else{
+        currentTableID = "";
+        emit view_SetAttributeModel(0);
+    }
 }
 
 void NodeView::loadJenkinsNodes(QString fileData)
 {
     importFromJenkins = true;
-    if(controller){
-        controller->importProjects(QStringList(fileData));
-    }
+    emit view_ImportProjects(QStringList(fileData));
     importFromJenkins = false;
-
 }
 
 void NodeView::exportSnippet()
@@ -676,8 +686,8 @@ void NodeView::setRubberBandMode(bool On)
  */
 void NodeView::clearView()
 {
-    scene()->clear();
-    viewport()->update();
+    //scene()->clear();
+    //viewport()->update();
 }
 
 
@@ -1298,6 +1308,17 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     }
 }
 
+void NodeView::lockMutex()
+{
+    //qCritical() << "Trying to Lock!";
+    actionMutex.tryLock();
+}
+
+void NodeView::unlockMutex()
+{
+    actionMutex.unlock();
+}
+
 
 void NodeView::view_CenterGraphML(GraphML *graphML)
 {
@@ -1502,18 +1523,18 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
                 NodeItem* nodeItem = (NodeItem*) item;
                 nodeSelected_signalUpdates(nodeItem->getNode());
             }
-            emit view_SetAttributeModel(item->getAttributeTable());
+            setAttributeModel(item);
         }
     }else{
         if(selectedIDs.contains(itemID)){
-            emit view_SetAttributeModel(0);
+            setAttributeModel(0);
             selectedIDs.removeAll(itemID);
 
 
             if(selectedIDs.size() > 0){
                 GraphMLItem* item = getGraphMLItemFromHash(selectedIDs.last());
                 if(item){
-                    view_SetAttributeModel(item->getAttributeTable());
+                    setAttributeModel(item);
                 }
             }
             item->setSelected(false);
@@ -1654,12 +1675,12 @@ void NodeView::viewDeploymentAspect()
 QImage NodeView::getImage(QString imageName)
 {
     if(imageLookup.contains(imageName)){
-         return imageLookup[imageName];
-     }else{
-         QImage image(":/Resources/Icons/" + imageName + ".png");
-         imageLookup[imageName] = image;
-         return image;
-     }
+        return imageLookup[imageName];
+    }else{
+        QImage image(":/Resources/Icons/" + imageName + ".png");
+        imageLookup[imageName] = image;
+        return image;
+    }
 
 }
 
@@ -1753,7 +1774,7 @@ void NodeView::storeGraphMLItemInHash(GraphMLItem *item)
 }
 
 bool NodeView::removeGraphMLItemFromHash(QString ID)
-{
+{/*
     if(guiItems.contains(ID)){
         GraphMLItem* item = guiItems[ID];
         guiItems.remove(ID);
@@ -1807,7 +1828,81 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
             qCritical() << "Could not find GraphMLItem from Hash!" << ID;
         }
     }
+    return false;*/
+    //return true;
+    if(guiItems.contains(ID)){
+        GraphMLItem* item = guiItems[ID];
+        guiItems.remove(ID);
+
+        if(selectedIDs.contains(ID)){
+            selectedIDs.removeAll(ID);
+        }
+
+
+        if(ID == currentTableID){
+            setAttributeModel(0);
+        }
+
+        if(item){
+
+
+            //disconnect(item, SIGNAL(GraphMLItem_SetGraphMLData(GraphMLItem*,QString,QString)), this, SLOT(setGraphMLData(GraphMLItem*,QString,QString)));
+            //if(scene()->items().contains(item)){
+
+            //if(ID == currentTableID){
+            //    setAttributeModel(o);
+            //}
+
+
+            // send necessary signals when a node has been destructed
+            //if (item->isNodeItem()) {
+            //    NodeItem nodeItem = (NodeItem) item;
+            //    nodeDestructed_signalUpdates(nodeItem);
+            //}
+
+            /*
+
+                    // send necessary signals when an edge has been destructed
+                    if (item->isEdgeItem()) {
+                        EdgeItem edgeItem = (EdgeItem) item;
+                        Edge* edge = qobject_cast<Edge*>(edgeItem->getGraphML());
+                       // edgeDestructed_signalUpdates(edge, ID);
+                    }
+                    */
+
+
+            item->detach();
+            //scene()->removeItem(item);
+            this->scene()->removeItem(item);
+            //delete item;
+            item->deleteLater();;
+
+            //view_GraphMLItemDeleted(ID);
+            //}
+            return true;
+        }
+
+        if(IS_SUB_VIEW){
+            if(CENTRALIZED_ON_ITEM && centralizedItemID == ID){
+                //CALL DELETE ON DIALOG
+                this->parent()->deleteLater();
+            }
+        }
+    }else if(noGuiIDHash.contains(ID)){
+        if(noGuiIDHash[ID] == "edge"){
+            view_edgeDestructed();
+        }else{
+            //Change nodeDestructed to maybe take an ID instead of item.
+        }
+        noGuiIDHash.remove(ID);
+    }
+    else{
+        if(!IS_SUB_VIEW){
+            //qCritical() << "Could not find GraphMLItem from Hash!" << ID;
+        }
+    }
     return false;
+
 }
 
 
@@ -2474,6 +2569,11 @@ void NodeView::setEnabled(bool enabled)
 {
     //HIDE STUFF
     QGraphicsView::setEnabled(enabled);
+
+
+    if(enabled){
+        unlockMutex();
+    }
 }
 
 
@@ -2605,7 +2705,8 @@ void NodeView::undo()
         }*/
 
         // undo the action
-        controller->undo();
+        emit this->view_Undo();
+        //controller->undo();
     }
 }
 
@@ -2636,7 +2737,8 @@ void NodeView::redo()
         }*/
 
         // redo the action
-        controller->redo();
+        emit this->view_Redo();
+        //controller->redo();
 
     }
 }
@@ -2811,7 +2913,7 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
     }
 
     if (updateTable) {
-        view_SetAttributeModel(0);
+        setAttributeModel(0);
     }
 
     // update menu and toolbar actions
@@ -3162,7 +3264,7 @@ void NodeView::deleteSelection()
 
         }
         triggerAction("Toolbar: Destructing Selection");
-        view_SetAttributeModel(0);
+        setAttributeModel(0);
         view_Delete(selectedIDs);
     } else {
         view_displayNotification("Select entity(s)/connection(s) to delete.");
@@ -3195,12 +3297,13 @@ void NodeView::resetModel()
  */
 void NodeView::clearModel()
 {
+    return;/*
     if (controller) {
-        bool cleared = controller->clearModel();
+        //bool cleared = controller->clearModel();
         if (dynamic_cast<QAction*>(QObject::sender()) && cleared) {
             view_displayNotification("Cleared Model.");
         }
-    }
+    }*/
 }
 
 

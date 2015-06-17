@@ -422,16 +422,15 @@ bool NodeItem::isPainted()
 void NodeItem::addChildNodeItem(NodeItem *child)
 {
     if(!childNodeItems.contains(child->getID())){
-        qCritical() << "GOT CHIDL" << child->getGraphML()->toString();
         childNodeItems.insert(child->getID(), child);
         childrenIDs.append(child->getID());
-        //childNodeItems.append(child);
     }
 }
 
 
 void NodeItem::removeChildNodeItem(QString ID)
 {
+    childrenIDs.removeAll(ID);
     int removed = childNodeItems.remove(ID);
     removeChildOutline(ID);
     if(childNodeItems.size() == 0){
@@ -958,7 +957,7 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
 
     // add the children's bounding rectangles to the children path
     foreach(NodeItem* child, getChildNodeItems()){
-        if(child->isInAspect() && !child->isHidden()){
+        if(child && child->isInAspect() && !child->isHidden()){
             if(!currentlySorting || (currentlySorting && child->isSorted())){
                 hasChildren = true;
                 QRectF childRect =  child->boundingRect();
@@ -1903,13 +1902,15 @@ void NodeItem::updateTextLabel(QString newLabel)
     if(nodeKind != "Model"){
         textItem->setTextWidth(width);
     }else{
+        textItem->setVisible(true);
         textItem->setTextWidth(getItemMargin());
+
         //return;
     }
 
     if (newLabel != "") {
-
         textItem->setPlainText(newLabel);
+        textItem->setParent(this);;
     }
 }
 
@@ -2347,8 +2348,6 @@ void NodeItem::setupLabel()
 
     textItem->setFont(font);
     textItem->setPos(labelX, labelY);
-
-
 
     updateTextLabel(getGraphMLDataValue("label"));
 }

@@ -367,6 +367,9 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
             int row = index.row();
 
             GraphMLData* data = attachedData.at(row);
+			if(!data->getParent()){
+                return 0;
+			}
             bool isEditable = data->getParentData() == 0;
             isEditable = !permanentlyLockedKeyNames.contains(data->getKeyName());
 

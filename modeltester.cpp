@@ -47,7 +47,8 @@ ModelTester::ModelTester()
 
         //controller->view_TriggerAction("Loading GraphML");
         for(int i = 0 ; i < loadCount; i++){
-            controller->importProjects(QStringList(xmlText));
+
+            //controller->importProjects(QStringList(xmlText));
             //controller->view_Paste(xmlText);
         }
 
@@ -56,7 +57,7 @@ ModelTester::ModelTester()
 
         //controller->view_Undo();
 
-        controller->clearModel();
+        //controller->clearModel();
         sleep(20);
         float afterClear = getMemoryUsage();
 

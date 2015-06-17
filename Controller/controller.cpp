@@ -1456,8 +1456,8 @@ bool NewController::destructNode(Node *node, bool addAction)
         managementComponents.remove(nodeName);
     }
 
-    delete node;
     controller_NodeDeleted(ID, parentID);
+    delete node;
     return true;
 }
 
@@ -1538,10 +1538,11 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     //Remove it from the hash of GraphML
     removeGraphMLFromHash(ID);
 
+    controller_EdgeDeleted(srcID, dstID);
+
     //Delete it.
     delete edge;
 
-    controller_EdgeDeleted(srcID, dstID);
     return true;
 }
 

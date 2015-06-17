@@ -56,6 +56,10 @@ public:
     void initializeModel();
     void connectView(NodeView* view);
 
+    //Gets the Model Node.
+    Model* getModel();
+
+
     //Get a list of all Node Kinds
     QStringList getNodeKinds(Node* parent);
     //Get a list of all View Aspects
@@ -67,15 +71,15 @@ public:
     //QStringList getAdoptableNodeKinds(Node* parent);
 
     QList<Node*> getConnectableNodes(Node* src = 0);
-
-    //Gets the Model Node.
-    Model* getModel();
-
     bool canCopy(QStringList selection);
     bool canCut(QStringList selection);
     bool canPaste(QStringList selection);
     bool canExportSnippet(QStringList selection);
     bool canImportSnippet(QStringList selection);
+
+
+private:
+
 
 
 signals:
@@ -104,7 +108,7 @@ signals:
     void componentInstanceConstructed(Node* node);
 
 
-public slots:
+private slots:
   void dialogMessage(QString title, QString message, GraphML* item=0);
 
   void setGraphMLData(QString parentID, QString keyName, QString dataValue, bool addAction = true);

@@ -139,6 +139,11 @@ signals:
     void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
 
 public slots:
+    void setAttributeModel(GraphMLItem* item);
+
+    void lockMutex();
+    void unlockMutex();
+
     void loadJenkinsNodes(QString fileData);
     void exportSnippet();
     void importSnippet(QString fileName, QString fileData);
@@ -246,6 +251,8 @@ private:
     void alignSelectionOnGrid(ALIGN alignment = NONE);
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
+
+
 
     void setGraphMLItemSelected(GraphMLItem* item, bool setSelected);
 
@@ -391,6 +398,10 @@ private:
     QMenu* prevLockMenuOpened;
 
     QString prevSelectedNodeID;
+
+    QMutex actionMutex;
+
+    QString currentTableID;
 };
 
 #endif // NODEVIEW_H
