@@ -8,6 +8,7 @@ GraphML::GraphML(GraphML::KIND kind, QString name):QObject(0)
     this->Uid = ++_Uid;
     this->kind = kind;
     this->setName(name);
+    this->_deleting = false;
     setGenerated(false);
 }
 
@@ -21,8 +22,14 @@ bool GraphML::isEdge()
     return kind == GraphML::EDGE;
 }
 
+bool GraphML::isDeleting()
+{
+    return _deleting;
+}
+
 GraphML::~GraphML()
 {
+    _deleting = true;
     removeData();
 }
 
@@ -31,6 +38,7 @@ void GraphML::removeData(){
     while(attachedData.size() > 0){
         GraphMLData* data = attachedData.takeFirst();
         delete data;
+        //data->deleteLater();
     }
 }
 
@@ -95,10 +103,12 @@ QString GraphML::getDataValue(QString keyName)
 
 GraphMLData *GraphML::getData(QString keyName)
 {
-    for(int i=0; i < attachedData.size(); i++){
-        if(attachedData[i]->getKey() != 0){
-            if(attachedData[i]->getKey()->getName() == keyName){
-                return this->attachedData[i];
+    if(!_deleting){
+        for(int i=0; i < attachedData.size(); i++){
+            if(attachedData[i]->getKey() != 0){
+                if(attachedData[i]->getKey()->getName() == keyName){
+                    return this->attachedData[i];
+                }
             }
         }
     }
@@ -107,11 +117,13 @@ GraphMLData *GraphML::getData(QString keyName)
 
 GraphMLData *GraphML::getData(GraphMLKey *key)
 {
-    for(int i=0; i < attachedData.size(); i++){
-        if(attachedData[i]->getKey() == key){
-            return this->attachedData[i];
+    if(!_deleting){
+        for(int i=0; i < attachedData.size(); i++){
+            if(attachedData[i]->getKey() == key){
+                return this->attachedData[i];
+            }
         }
-    }
+      }
     return 0;
 
 }

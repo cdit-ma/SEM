@@ -9,15 +9,19 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
     }else{
         this->setValue(value);
     }
+    if(key){
+        this->keyName = key->getName();
+        this->type = key->getTypeString();
+    }
 
     //Set to default.
     parentData = 0;
+    this->Parent = 0;
     setProtected(key->isProtected());
 }
 
 GraphMLData::~GraphMLData()
 {
-    std::string value = this->value.toStdString();
     if(this->parentData){
         this->parentData->unbindData(this);
     }
@@ -52,10 +56,7 @@ GraphMLKey *GraphMLData::getKey()
 
 QString GraphMLData::getKeyName()
 {
-    if(key){
-        return key->getName();
-    }
-    return "";
+    return keyName;
 }
 
 QString GraphMLData::toGraphML(qint32 indentationLevel)

@@ -5,7 +5,10 @@
 #include "../../Model/graphml.h"
 #include "../../Model/graphmldata.h"
 
+
+class NodeView;
 class AttributeTableModel;
+
 class GraphMLItem: public QObject, public QGraphicsItem
 {
     Q_OBJECT
@@ -14,9 +17,14 @@ class GraphMLItem: public QObject, public QGraphicsItem
 public:
     enum GUI_KIND{NODE_ITEM, NODE_EDGE};
     GraphMLItem(GraphML* attachedGraph, GUI_KIND kind);
+    void detach();
     ~GraphMLItem();
+    QString getGraphMLDataValue(QString key);
     GraphML* getGraphML();
     AttributeTableModel* getAttributeTable();
+
+    void setNodeView(NodeView* view);
+    NodeView* getNodeView();
 
     bool isNodeItem();
     bool isEdgeItem();
@@ -24,6 +32,7 @@ public:
 
     virtual void setSelected(bool selected) = 0;
 public slots:
+    //virtual void graphMLDataChanged(QString name, QString key, QString value) = 0;
     virtual void graphMLDataChanged(GraphMLData*) = 0;
 
 signals:
@@ -31,7 +40,7 @@ signals:
     void GraphMLItem_SetCentered(GraphMLItem*);
     void GraphMLItem_CenterAspects();
 
-    void GraphMLItem_SetGraphMLData(GraphML*, QString, QString);
+    void GraphMLItem_SetGraphMLData(QString, QString, QString);
     void GraphMLItem_ConstructGraphMLData(GraphML*, QString);
     void GraphMLItem_DestructGraphMLData(GraphML*, QString);
 
@@ -40,9 +49,11 @@ signals:
     void GraphMLItem_ClearSelection(bool updateTable);
     void GraphMLItem_PositionSizeChanged(GraphMLItem*, bool = false);
 private:
+    bool IS_DELETING;
     GraphML* attachedGraph;
     AttributeTableModel* table;
 
+    NodeView* nodeView;
     GUI_KIND kind;
     QString ID;
 

@@ -37,6 +37,13 @@ public:
     ~NodeItem();
 
 
+    //Used Methods
+    void setZValue(qreal z);
+    void restoreZValue();
+
+
+
+
     void setVisibleParentForEdgeItem(QString ID, bool RIGHT = false);
     int getIndexOfEdgeItem(QString ID, bool RIGHT = false);
     int getNumberOfEdgeItems(bool RIGHT = false);
@@ -77,7 +84,7 @@ public:
 
 
     void addChildNodeItem(NodeItem* child);
-    void removeChildNodeItem(NodeItem* child);
+    void removeChildNodeItem(QString ID);
     bool intersectsRectangle(QRectF rect);
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
@@ -88,7 +95,6 @@ public:
 
     bool labelPressed(QPointF mousePosition);
     bool iconPressed(QPointF mousePosition);
-	bool lockPressed(QPointF mousePosition);
 
 
     NodeItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
@@ -97,6 +103,7 @@ public:
     void setNodeMoving(bool moving);
     void setNodeResizing(bool resizing);
     bool isExpanded();
+    bool isContracted();
     bool isHidden();
     void setHidden(bool hidden);
 
@@ -110,7 +117,7 @@ public:
     void adjustSize(QSizeF delta);
 
     void addChildOutline(NodeItem* nodeItem, QPointF gridPoint);
-    void removeChildOutline(NodeItem* nodeItem);
+    void removeChildOutline(QString ID);
 
 
     double getWidth();
@@ -130,20 +137,24 @@ public:
 
     QStringList getAspects();
 
-    void setGraphicsView(QGraphicsView* view);
+
 
     bool isInAspect();
     bool isSorted();
     void setSorted(bool isSorted);
 
-	QMenu* getLockMenu();
-    QRectF getLockIconSceneRect();
+
 
     void higlightNodeItem(bool highlight);
     void showHardwareIcon(bool show);
     QList<NodeItem *> deploymentView(bool on, NodeItem* selectedItem = 0);
 
 signals:
+    //Node Edge Signals
+    void setEdgeVisibility(bool visible);
+    void setEdgeSelected(bool selected);
+
+
     void model_PositionChanged();
     void NodeItem_SortModel();
     void NodeItem_MoveSelection(QPointF delta);
@@ -157,9 +168,7 @@ signals:
     void NodeItem_lockMenuClosed(NodeItem* nodeItem);
 
 
-    //Node Edge Signals
-    void setEdgesVisibility(bool visible);
-    void setEdgesSelected(bool selected);
+
 
     //void centerViewAspects();
 
@@ -169,17 +178,23 @@ signals:
 
     void recentralizeAfterChange(GraphML* item);
 
+
     void nodeItemMoved();
 
 
 public slots:
-    QPolygonF getResizePolygon();
-    //QRectF
+    //USED METHODS
+    void graphMLDataChanged(GraphMLData *data);
+
+    void setSelected(bool selected);
+    void setVisibilty(bool visible);
+
+
     void parentNodeItemMoved();
     //Model Signals
-    void graphMLDataChanged(GraphMLData *data);
-    void setSelected(bool selected);
-    void setVisible(bool visible);
+
+
+
 
     void setPermanentlyCentralized(bool centralized);
 
@@ -216,6 +231,20 @@ protected:
 
 
 private:
+    bool IS_DELETING;
+
+//USED METHODS
+    QRectF iconRect();
+    QRectF lockIconRect();
+    QRectF deploymentIconRect();
+    QPolygonF resizePolygon();
+
+
+
+    //USED PARAMETERS;
+    bool hasIcon;
+    bool showDeploymentWarningIcon;
+
     bool compareTo2Decimals(qreal num1, qreal num2);
     void updateModelData();
 
@@ -251,6 +280,8 @@ private:
 
 
 
+    //QPixmap iconPixmap;
+    //QImage iconImage;
 
 
     double getCornerRadius();
@@ -279,13 +310,7 @@ private:
 
     NodeItem* parentNodeItem;
     QStringList viewAspects;
-    //QStringList currentViewAspects;
 
-    QGraphicsPixmapItem* icon;
-    QGraphicsPixmapItem* lockIcon;
-    QGraphicsPixmapItem* hardwareIcon;
-
-    QGraphicsView* parentView;
 
     QString nodeKind;
     QString minimumHeightStr;
@@ -319,7 +344,7 @@ private:
     bool PAINT_OBJECT;
 
     bool isNodeMoving;
-
+    qreal oldZValue;
     NodeItem::RESIZE_TYPE currentResizeMode;
 
     QHash<QString, QRectF> outlineMap;
@@ -347,7 +372,8 @@ private:
     QVector<QLineF> yGridLines;
 
 
-    QList<NodeItem*> childNodeItems;
+    QHash<QString, NodeItem*> childNodeItems;
+    //QList<NodeItem*> childNodeItems;
 
     //Used to store the Color/Brush/Pen for the selected Style.
     QColor selectedColor;
@@ -368,8 +394,6 @@ private:
 
 
     EditableTextItem* textItem;
-    NodeView* view;
-
 
 };
 

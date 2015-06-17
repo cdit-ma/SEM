@@ -43,6 +43,8 @@ private:
     GraphMLData* parentData;
     QList<GraphMLData*> childData;
     QString value;
+    QString keyName;
+    QString type;
     bool protectedData;
 
     GraphMLKey* key;

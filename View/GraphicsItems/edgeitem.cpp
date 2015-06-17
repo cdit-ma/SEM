@@ -4,6 +4,7 @@
 #include <math.h>
 #include <QStyleOptionGraphicsItem>
 #include <QPainter>
+#include "../nodeview.h"
 
 #define EDGE_WIDTH 1
 #define EDGE_SPACE_RATIO 0.8
@@ -61,22 +62,24 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
 
 EdgeItem::~EdgeItem()
 {
-
     IS_DELETING = true;
-    if(source){
-        source->removeVisibleParentForEdgeItem(getID());
-        source->removeEdgeItem(this);
-    }
-    if(destination){
-        destination->removeVisibleParentForEdgeItem(getID());
-        destination->removeEdgeItem(this);
-    }
-    if(visibleSource){
-        visibleSource->removeVisibleParentForEdgeItem(getID());
-    }
+    if(getNodeView() && !getNodeView()->isDeleting()){
+        if(source){
+            source->removeVisibleParentForEdgeItem(getID());
+            source->removeEdgeItem(this);
+        }
+        if(destination){
+            destination->removeVisibleParentForEdgeItem(getID());
+            destination->removeEdgeItem(this);
+        }
 
-    if(visibleDestination){
-        visibleDestination->removeVisibleParentForEdgeItem(getID());
+        if(visibleSource){
+            visibleSource->removeVisibleParentForEdgeItem(getID());
+        }
+
+        if(visibleDestination){
+            visibleDestination->removeVisibleParentForEdgeItem(getID());
+        }
     }
 
     while(!lineSegments.isEmpty()){
@@ -248,6 +251,11 @@ void EdgeItem::graphMLDataChanged(GraphMLData *data)
             updateLabel();
         }
     }
+}
+
+void EdgeItem::graphMLDataChanged(QString name, QString key, QString value)
+{
+    //DO NOTHING
 }
 
 void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -511,11 +519,17 @@ void EdgeItem::updateLines()
 
     if(removeSrcEdge){
         visibleSource->removeVisibleParentForEdgeItem(getID());
+        disconnect(visibleSource, SIGNAL(nodeItemMoved()), this, SLOT(updateEdge()));
     }
 
     visibleSource = visibleSrc;
+    if(visibleSource){
+        disconnect(visibleSource, SIGNAL(nodeItemMoved()), this, SLOT(updateEdge()));
+        connect(visibleSource, SIGNAL(nodeItemMoved()), this, SLOT(updateEdge()));
+    }
 
     visibleSrc->setVisibleParentForEdgeItem(getID(), srcSide == RIGHT);
+
 
     bool removeDstEdge = false;
     if(visibleDestination){
@@ -531,6 +545,7 @@ void EdgeItem::updateLines()
 
     if(removeDstEdge){
         visibleDestination->removeVisibleParentForEdgeItem(getID());
+        disconnect(visibleDestination, SIGNAL(nodeItemMoved()), this, SLOT(updateEdge()));
     }
 
 
@@ -538,6 +553,11 @@ void EdgeItem::updateLines()
 
     visibleDestination = visibleDst;
     visibleDst->setVisibleParentForEdgeItem(getID(), dstSide == RIGHT);
+
+    if(visibleDestination){
+        disconnect(visibleDestination, SIGNAL(nodeItemMoved()), this, SLOT(updateEdge()));
+        connect(visibleDestination, SIGNAL(nodeItemMoved()), this, SLOT(updateEdge()));
+    }
 
 
     //Get the start/end points.

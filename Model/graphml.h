@@ -21,6 +21,7 @@ public:
 
     bool isNode();
     bool isEdge();
+    bool isDeleting();
 
     //The destructor.
     ~GraphML();
@@ -90,6 +91,8 @@ private:
     QString deletingXML;
 
     bool generated;
+
+    bool _deleting;
 
     //The ID of this graphml object.
     QString id;
