@@ -53,6 +53,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setParentItem(parent);
 
     parentNodeItem = parent;
+    showDeploymentWarningIcon = false;
     isNodeSelected = false;
     setNodeResizing(false);
     setNodeMoving(false);
@@ -60,7 +61,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     isNodeSorted = false;
 
     isInSubView = IN_SUBVIEW;
-    parentView = 0;
+
 
     currentResizeMode = NodeItem::NO_RESIZE;
     LOCKED_POSITION = false;
@@ -78,9 +79,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     hasDefinition = false;
     highlighted = false;
 
-    icon = 0;
-    lockIcon = 0;
-    hardwareIcon = 0;
+
     textItem = 0;
     width = 0;
     height = 0;
@@ -88,17 +87,22 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     expandedHeight = 0;
     minimumWidth = 0;
     minimumHeight = 0;
-
+//setItemIndexMethod(QGraphicsScene::NoIndex);
     nodeKind = getGraphML()->getDataValue("kind");
+
+    hasIcon = true;
+    if(nodeKind.endsWith("Definitions") || nodeKind == "Model"){
+        hasIcon = false;
+    }
 
     QString parentNodeKind = "";
     if (parent) {
-        setVisible(parent->isExpanded());
+        setVisibilty(parent->isExpanded());
 
         setWidth(parent->getChildWidth());
         setHeight(parent->getChildHeight());
 
-        parentNodeKind = parent->getGraphML()->getDataValue("kind");
+        parentNodeKind = parent->getGraphMLDataValue("kind");
 
     } else {
         setWidth(MODEL_WIDTH);
@@ -127,9 +131,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     setupAspect();
     setupBrushes();
-    setupIcon();
+   //setupIcon();
     setupLabel();
-    setupLockMenu();
+    //setupLockMenu();
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
@@ -137,9 +141,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setAcceptHoverEvents(true);
     //QGraphicsItem::setAcceptsHoverEvents
 
-    setCacheMode(QGraphicsItem::NoCache);
+    //setCacheMode(QGraphicsItem::NoCache);
 
-    if(getGraphML()->getDataValue("kind") == "Model" || getGraphML()->getDataValue("kind") == "DeploymentDefinitions"){
+    if(nodeKind == "Model" || nodeKind == "DeploymentDefinitions"){
         setPaintObject(false);
     }else{
         setPaintObject(true);
@@ -150,10 +154,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     updateParentModel();
 
     if(IN_SUBVIEW){
-        setVisible(true);
+        setVisibilty(true);
     }else{
         updateModelData();
     }
+
+    IS_DELETING = false;
+    //this->iconPixmap = QPixmap::fromImage(QImage(":/Resources/Icons/" + nodeKind + ".png"));
 }
 
 
@@ -161,17 +168,43 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
  * @brief NodeItem::~NodeItem
  */
 NodeItem::~NodeItem()
-{
-    if (parentNodeItem) {
-        parentNodeItem->removeChildNodeItem(this);
+{   
+    if(getNodeView() && !getNodeView()->isDeleting()){
+        if (parentNodeItem) {
+            parentNodeItem->removeChildNodeItem(this->getID());
+        }
     }
     delete textItem;
 }
 
 /**
+ * @brief NodeItem::setZValue Overides the QGraphicsItem::setZValue function to recurse up it's parentNodeItem and set the Z-Value on its parents.
+ * @param z The ZValue to set.
+ */
+void NodeItem::setZValue(qreal z)
+{
+    oldZValue = zValue();
+    if(parentNodeItem){
+        parentNodeItem->setZValue(z);
+    }
+    QGraphicsItem::setZValue(z);
+}
+
+/**
+ * @brief NodeItem::restoreZValue Resets the Z-Value back to it's original Z-Value (Calls SetZValue())
+ */
+void NodeItem::restoreZValue()
+{
+    qreal zValue = oldZValue;
+    setZValue(zValue);
+    oldZValue = zValue;
+}
+
+
+/**
  * @brief NodeItem::setVisibleParentForEdgeItem
  * @param line
- * @param RIGHT
+ * @param RIGH
  * @return The index of the
  */
 void NodeItem::setVisibleParentForEdgeItem(QString ID, bool RIGHT)
@@ -179,13 +212,18 @@ void NodeItem::setVisibleParentForEdgeItem(QString ID, bool RIGHT)
     if(RIGHT){
         if(!currentRightEdgeIDs.contains(ID)){
             currentRightEdgeIDs.append(ID);
-            nodeItemMoved();
+            if(currentRightEdgeIDs.size() > 1){
+                nodeItemMoved();
+            }
         }
     }else{
         if(!currentLeftEdgeIDs.contains(ID)){
             currentLeftEdgeIDs.append(ID);
-            nodeItemMoved();
+            if(currentLeftEdgeIDs.size() > 1){
+                nodeItemMoved();
+            }
         }
+
     }
 }
 
@@ -297,7 +335,7 @@ QRectF NodeItem::gridRect()
     QPointF bottomRight = expandedVisibleRect().bottomRight();
 
     //If it has an icon,
-    if (icon){
+    if(hasIcon){
         topLeft += QPointF(0, minimumHeight);
     }
     //Enforce at least one grid in height. Size!
@@ -323,8 +361,15 @@ void NodeItem::childPosUpdated()
 
     QSizeF minSize = getMinimumChildRect().size();
 
-    double modelWidth = getGraphML()->getDataValue("width").toDouble();
-    double modelHeight = getGraphML()->getDataValue("height").toDouble();
+    bool okay = false;
+    double modelWidth = getGraphMLDataValue("width").toDouble(&okay);
+    if(!okay){
+        return;
+    }
+    double modelHeight = getGraphMLDataValue("height").toDouble(&okay);
+    if(!okay){
+        return;
+    }
 
     //Maximize on the current size in the Model and the minimum child rectangle
     if(minSize.width() > modelWidth){
@@ -376,20 +421,21 @@ bool NodeItem::isPainted()
 
 void NodeItem::addChildNodeItem(NodeItem *child)
 {
-    if(!childNodeItems.contains(child)){
-        childNodeItems.append(child);
+    if(!childNodeItems.contains(child->getID())){
+        childNodeItems.insert(child->getID(), child);
+        //childNodeItems.append(child);
     }
 }
 
 
-void NodeItem::removeChildNodeItem(NodeItem *child)
+void NodeItem::removeChildNodeItem(QString ID)
 {
-    childNodeItems.removeAll(child);
-    removeChildOutline(child);
+    int removed = childNodeItems.remove(ID);
+    removeChildOutline(ID);
     if(childNodeItems.size() == 0){
+        prepareGeometryChange();
         resetSize();
     }
-
 }
 
 
@@ -406,7 +452,15 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    if(IS_DELETING){
+        return;
+    }
+
     painter->setClipRect(option->exposedRect);
+
+
+
+
     if(PAINT_OBJECT){// == PAINT_OBJECT){
         QPen Pen;
         QBrush Brush;
@@ -415,8 +469,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             //Check current View zoom
             Brush = selectedBrush;
             Pen = selectedPen;
-            if(parentView){
-                qreal scaleX = parentView->transform().m11();
+            if(getNodeView()){
+                qreal scaleX = getNodeView()->transform().m11();
                 qreal penWidth = 5.0/scaleX;
                 penWidth = qMax(penWidth, 1.0);
                 Pen.setWidth(penWidth);
@@ -451,19 +505,17 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         Node* node = getNode();
 
         if(node && (node->isInstance() || node->isImpl())){
-            if(node->getDefinition()){
-                hasDefinition = true;
-                lockIcon->setVisible(true);
-            }else{
-                Brush.setStyle(Qt::BDiagPattern);
-                hasDefinition = false;
-                lockIcon->setVisible(false);
+            hasDefinition = node->getDefinition();
+
+            if(!hasDefinition){
+                 Brush.setStyle(Qt::BDiagPattern);
             }
         }
 
 
-        if (highlighted && parentView){
-            qreal penWidth = qMax(5.0/parentView->transform().m11(), 1.0);
+
+        if (highlighted && getNodeView()){
+            qreal penWidth = qMax(5.0/ getNodeView()->transform().m11(), 1.0);
             Pen.setWidth(penWidth);
             Pen.setStyle(Qt::DashLine);
         }
@@ -610,8 +662,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         if(isNodeSelected){
             QPen pen = selectedPen;
-            if(parentView){
-                qreal scaleX = parentView->transform().m11();
+            if(getNodeView()){
+                qreal scaleX = getNodeView()->transform().m11();
                 qreal penWidth = 5.0/scaleX;
                 penWidth = qMax(penWidth, 1.0);
                 pen.setWidth(penWidth);
@@ -651,6 +703,21 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
 
+    }
+
+    //Paint the Icon
+    if(hasIcon){
+        painter->drawImage(iconRect(), getNodeView()->getImage(nodeKind));
+    }
+
+    //If a Node has a Definition, paint a Lock Icon
+    if(hasDefinition){
+        painter->drawImage(lockIconRect(), getNodeView()->getImage("lock"));
+    }
+
+    //If this Node has a Deployment Warning, paint a Red Hardware Icon
+    if(showDeploymentWarningIcon){
+        painter->drawImage(deploymentIconRect(), getNodeView()->getImage("redHardwareNode"));
     }
 }
 
@@ -696,13 +763,8 @@ bool NodeItem::labelPressed(QPointF mousePosition)
 
 bool NodeItem::iconPressed(QPointF mousePosition)
 {
-    if(icon){
-        QRectF labelRect = icon->boundingRect();
-        labelRect.setWidth(labelRect.width() * icon->scale());
-        labelRect.setHeight(labelRect.height() * icon->scale());
-        labelRect.translate(icon->pos());
-
-        if(labelRect.contains(mousePosition)){
+    if(hasIcon){
+        if(iconRect().contains(mousePosition)){
             return true;
         }
     }
@@ -710,40 +772,30 @@ bool NodeItem::iconPressed(QPointF mousePosition)
 }
 
 
-/**
- * @brief NodeItem::lockPressed
- * @param mousePosition
- * @return
- */
-bool NodeItem::lockPressed(QPointF mousePosition)
-{
-    if (lockIcon && lockIcon->isVisible()) {
-        if (lockIcon->sceneBoundingRect().contains(mousePosition)) {
-            return true;
-        }
-    }
-    return false;
-}
 NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
 {
-    if(getResizePolygon().containsPoint(mousePosition, Qt::WindingFill)){
+    //Check if the Mouse is in the Bottom Right Corner.
+    if(resizePolygon().containsPoint(mousePosition, Qt::WindingFill)){
         return RESIZE;
     }
 
-    qreal rectSize =  selectedPen.widthF() * 2;
     qreal cornerRadius = getCornerRadius();
 
-    QPointF topLeft = boundingRect().topRight() + QPointF(-rectSize, cornerRadius);
+    //Calculate the Corners for the Horizontal resize
+    QPointF topLeft = boundingRect().topRight() + QPointF(-cornerRadius, cornerRadius);
     QPointF bottomRight = boundingRect().bottomRight() - QPointF(0, cornerRadius);
 
-    QRectF horizontalRect = QRectF(topLeft, bottomRight);
-    if(horizontalRect.contains(mousePosition)){
+    //Check if the mouse is contained in the rectangle on the right of the NodeItem.
+    QRectF horizontalResizeRectangle = QRectF(topLeft, bottomRight);
+    if(horizontalResizeRectangle.contains(mousePosition)){
         return HORIZONTAL_RESIZE;
     }
 
-    QPointF bottomLeft = boundingRect().bottomLeft() + QPointF(cornerRadius, -rectSize);
+    //Calculate the Corners for the Vertical resize
+    QPointF bottomLeft = boundingRect().bottomLeft() + QPointF(cornerRadius, -cornerRadius);
     bottomRight = boundingRect().bottomRight() + QPointF(-cornerRadius, 0);
 
+    //Check if the mouse is contained in the rectangle on the bottom of the NodeItem.
     QRectF verticalRect = QRectF(bottomLeft, bottomRight);
     if(verticalRect.contains(mousePosition)){
         return VERTICAL_RESIZE;
@@ -792,17 +844,18 @@ double NodeItem::getHeight()
 void NodeItem::addEdgeItem(EdgeItem *line)
 {
     NodeItem* item = this;
+    /*
     while(item){
         //Connect the Visibility of the edges of this node, so that if this node's parent was to be set invisbile, we any edges would be invisible.
-        connect(item, SIGNAL(setEdgesVisibility(bool)), line, SLOT(setVisible(bool)));
+        connect(item, SIGNAL(setEdgeVisibility(bool)), line, SLOT(setVisibilty(bool)));
         connect(item, SIGNAL(nodeItemMoved()), line, SLOT(updateEdge()));
         item = dynamic_cast<NodeItem*>(item->parentItem());
 
-    }
-    connect(this, SIGNAL(setEdgesSelected(bool)), line, SLOT(setSelected(bool)));
+    connect(this, SIGNAL(setEdgeSelected(bool)), line, SLOT(setSelected(bool)));
+    }*/
 
     connections.append(line);
-    nodeItemMoved();
+    //nodeItemMoved();
 }
 
 
@@ -857,11 +910,11 @@ void NodeItem::addChildOutline(NodeItem *nodeItem, QPointF gridPoint)
     outlineMap.insert(nodeItem->getID(), nodeRect);
 }
 
-void NodeItem::removeChildOutline(NodeItem *nodeItem)
+void NodeItem::removeChildOutline(QString ID)
 {
-    if(outlineMap.contains(nodeItem->getID())){
+    if(outlineMap.contains(ID)){
         prepareGeometryChange();
-        outlineMap.remove(nodeItem->getID());
+        outlineMap.remove(ID);
     }
 }
 
@@ -897,6 +950,7 @@ double NodeItem::getChildHeight()
  */
 QPointF NodeItem::getNextChildPos(bool currentlySorting)
 {
+
     QPainterPath childrenPath = QPainterPath();
     bool hasChildren = false;
 
@@ -912,7 +966,7 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
         }
     }
 
-    /*
+    /*v
     //Based on BoundingRect
     bool growWidth = boundingRect().width() < boundingRect().height();
     //grow width based on GridRect.
@@ -922,7 +976,7 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
     int currentY = 0;
     bool minXSet = false;
     bool minYSet = false;
-    int minX = 0;
+    int minX = 0;0
     int minY = 0;
     bool gridFull = false;
 
@@ -1061,32 +1115,34 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
  */
 void NodeItem::setSelected(bool selected)
 {
+    //If the current state of the NodeItem's selection is different to the one provided.
     if(isNodeSelected != selected){
         isNodeSelected = selected;
 
-        //Bring the item to the front.
         if(isNodeSelected){
-            if(parentNodeItem){
-                parentNodeItem->setZValue(1);
-            }
-            setZValue(1);
+            //Bring the item to the front if selected.
+            setZValue(zValue() + 1);
         }else{
-            setZValue(0);
+            //Restore the items previous ZValue.
+            restoreZValue();
         }
 
+        //Tell the QGraphicsItem to redraw.
         prepareGeometryChange();
-        setEdgesSelected(selected);
+
+        //Tell any edges which are connected to this NodeItem to be selected.
+        emit setEdgeSelected(selected);
     }
 }
 
 /**
- * @brief NodeItem::setVisible Changes the Visibility of the NodeItem, notifies connected edges.
+ * @brief NodeItem::setVisibilty Changes the Visibility of the NodeItem also notifies all connected edges.
  * @param visible
  */
-void NodeItem::setVisible(bool visible)
+void NodeItem::setVisibilty(bool visible)
 {
     QGraphicsItem::setVisible(visible);
-    setEdgesVisibility(visible);
+    emit setEdgeVisibility(visible);
 }
 
 
@@ -1096,73 +1152,80 @@ void NodeItem::setPermanentlyCentralized(bool centralized)
 }
 
 
+/**
+ * @brief NodeItem::graphMLDataChanged This method is called when any connected GraphMLData object updates their value.
+ * @param data The GraphMLData which has been changed.
+ */
 void NodeItem::graphMLDataChanged(GraphMLData* data)
 {
-    if(data){
-        QString dataKey = data->getKeyName();
-        QString dataValue = data->getValue();
-        QString previousValue;
+    //If we have a GraphML() object and the parent of the data provided is this.
+    if(getGraphML() && data && data->getParent() == getGraphML() && !getGraphML()->isDeleting()){
+        QString keyName = data->getKeyName();
+        QString value = data->getValue();
+        double valueD = value.toDouble();
 
-        if(dataKey == "x" || dataKey == "y"){
+        QString oldValue;
 
-            //Update the Position
-            QPointF newCenter = centerPos();
+        if(keyName == "x" || keyName == "y"){
+            //If data is related to the position of the NodeItem
+            //Get the current center position.
+            QPointF center = centerPos();
 
-            if(dataKey == "x"){
-                previousValue = QString::number(newCenter.x());
-                newCenter.setX(dataValue.toDouble());
-            }else if(dataKey == "y"){
-                previousValue = QString::number(newCenter.y());
-                newCenter.setY(dataValue.toDouble());
+            if(keyName == "x"){
+                //Store the old value
+                oldValue = QString::number(center.x());
+                center.setX(valueD);
+            }else if(keyName == "y"){
+                //Store the old value
+                oldValue = QString::number(center.y());
+                center.setY(valueD);
             }
 
-            setCenterPos(newCenter);
+            //Update the center position.
+            setCenterPos(center);
 
-            if(previousValue != dataValue){
+            //If the value has changed, update the position in the Model.
+            if(oldValue != value){
                 updateModelPosition();
             }
 
+        }else if(keyName == "width" || keyName == "height"){
+            //If data is related to the size of the NodeItem
 
-        }else if(dataKey == "width" || dataKey == "height"){
-            if(dataValue == "inf"){
-                dataValue = QString::number(MODEL_WIDTH);
-            }
+            if(keyName == "width"){
+                //Store the old value
+                oldValue = QString::number(width);
+                setWidth(valueD);
+            }else if(keyName == "height"){
+                //Store the old value
+                oldValue = QString::number(height);
 
-            if(dataKey == "width"){
-                previousValue = QString::number(width);
-                setWidth(dataValue.toDouble());
-            }else if(dataKey == "height"){
-                previousValue = QString::number(height);
+                //If NodeItem is contracted and the new value is bigger than the minimum height.
+                bool setExpanded = isContracted() && valueD > minimumHeight;
 
-                bool expand = dataValue.toDouble() > height;
-                bool contract = dataValue == minimumHeightStr;
+                //If NodeItem is expanded and the new value is equal to the minimum height (String comparison to ignore sigfigs)
+                bool setContracted = isExpanded() && valueD == minimumHeight;
 
-                //If the value of the height is bigger than the minimumHeight, we should expand.
-                if(!isExpanded() && expand){
+                if(setExpanded){
                     setNodeExpanded(true);
-                }else if(isExpanded() && contract){
+                }
+                if(setContracted){
                     setNodeExpanded(false);
                 }
 
-                //Then set the height.
-                setHeight(dataValue.toDouble());
-
-            }
-            if(previousValue != dataValue){
-                updateModelSize();
+                setHeight(valueD);
             }
 
-        }
-        else if(dataKey == "label"){
-
-            if(dataValue != ""){
-                updateTextLabel(dataValue);
+            //If the value has changed, update the size in the Model.
+            if(oldValue != value){
+                updateModelPosition();
             }
-
+        }else if(keyName == "label"){
+            //Update the Label
+            updateTextLabel(value);
             // update connected dock node item
             emit updateDockNodeItem();
         }
-
     }
 }
 
@@ -1251,10 +1314,10 @@ void NodeItem::modelSort()
         return;
     }
 
-    NodeItem* topLeft = childNodeItems[0];
-    NodeItem* topRight = childNodeItems[1];
-    NodeItem* bottomLeft = childNodeItems[2];
-    NodeItem* bottomRight = childNodeItems[3];
+    NodeItem* topLeft = childNodeItems.values()[0];
+    NodeItem* topRight = childNodeItems.values()[1];
+    NodeItem* bottomLeft = childNodeItems.values()[2];
+    NodeItem* bottomRight = childNodeItems.values()[3];
 
     QPointF gapSize = QPointF(MODEL_WIDTH / 128, MODEL_WIDTH / 128);
 
@@ -1328,11 +1391,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     case Qt::LeftButton:{
 
 
-        // check if the lock icon was clicked
-        if (lockPressed(event->scenePos())) {
-            emit NodeItem_showLockMenu(this);
-            return;
-        }
+
 
         previousScenePosition = event->scenePos();
         hasSelectionMoved = false;
@@ -1590,6 +1649,61 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 }
 
+/**
+ * @brief NodeItem::iconRect
+ * @return - The QRectF which represents the position for the Icon
+ */
+QRectF NodeItem::iconRect()
+{
+    //Construct a Rectangle to represent the icon size at the origin
+    QRectF icon = QRectF(0,0, ICON_RATIO * minimumWidth, ICON_RATIO * minimumHeight);
+
+    //Translate to centralize the icon in the horizontal space
+    icon.translate(((1 - ICON_RATIO)/2) * minimumWidth, 0);
+
+    //Translate to move the icon to its position
+    icon.translate(getItemMargin(), getItemMargin());
+
+    return icon;
+}
+
+/**
+ * @brief NodeItem::lockIconRect
+ * @return The QRectF which represents the position for the Lock Icon
+ */
+QRectF NodeItem::lockIconRect()
+{
+    //Calculate the size of the lock icon
+    qreal iconSize = ((1 - ICON_RATIO) * minimumWidth) / 2;
+
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF lockIcon = QRectF(0,0, iconSize, iconSize);
+
+    //Translate to move the icon to its position
+    lockIcon.translate(getItemMargin(), getItemMargin());
+
+    return lockIcon;
+}
+
+/**
+ * @brief NodeItem::deploymentIconRect
+ * @return The QRectF which represents the position for the Deployment Icon
+ */
+QRectF NodeItem::deploymentIconRect()
+{
+    //Calculate the size of the lock icon
+    qreal iconSize = ((1 - ICON_RATIO) * minimumWidth) / 2;
+
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF deploymentIcon = QRectF(0,0, iconSize, iconSize);
+
+    //Translate to move the icon to its position
+    deploymentIcon.translate(getItemMargin() + width - iconSize, getItemMargin());
+
+    return deploymentIcon;
+
+}
+
 bool NodeItem::compareTo2Decimals(qreal num1, qreal num2)
 {
     int number1To3 = qRound(num1 * 100.0);
@@ -1651,7 +1765,6 @@ void NodeItem::setWidth(qreal w)
 
     updateTextLabel();
 
-    updateChildrenOnChange();
     calculateGridlines();
     updateParent();
     isOverGrid(centerPos());
@@ -1659,6 +1772,8 @@ void NodeItem::setWidth(qreal w)
     if(getNodeKind() == "Model"){
         emit model_PositionChanged();
     }
+
+    emit nodeItemMoved();
 
     //emit NodeItem_resized(this);
 }
@@ -1684,6 +1799,8 @@ void NodeItem::setHeight(qreal h)
     if(getNodeKind() == "Model"){
         emit model_PositionChanged();
     }
+
+    emit nodeItemMoved();
 }
 
 void NodeItem::setSize(qreal w, qreal h)
@@ -1739,16 +1856,7 @@ void NodeItem::setPaintObject(bool paint)
 {
     PAINT_OBJECT = paint;
 
-    if(icon){
-        icon->setVisible(paint);
-    }
-    if(lockIcon){
-        if(hasDefinition){
-            lockIcon->setVisible(paint);
-        }else{
-            lockIcon->setVisible(false);
-        }
-    }
+
     if(textItem){
         textItem->setVisible(paint);
     }
@@ -1859,7 +1967,7 @@ void NodeItem::setupAspect()
 
 void NodeItem::setupBrushes()
 {
-    QString nodeKind= getGraphML()->getDataValue("kind");
+    //QString nodeKind= getGraphML()->getDataValue("kind");
 
 
     if(nodeKind == "BehaviourDefinitions"){
@@ -1993,17 +2101,12 @@ void NodeItem::setPos(const QPointF &pos)
         // need to check if GRID is turned on
         isOverGrid(centerPos());
 
-        updateChildrenOnChange();
         updateParent();
 
-
-        //if (!parentView->sceneRect().contains(scenePos()) ||
-        //        !parentView->sceneRect().contains(scenePos().x()+width, scenePos().y()+height)) {
-        //    GraphMLItem_MovedOutOfScene(this);
-        //}
         if(getNodeKind() == "Model"){
             emit model_PositionChanged();
         }
+        emit nodeItemMoved();
     }
 }
 
@@ -2101,14 +2204,8 @@ void NodeItem::aspectsChanged(QStringList visibleAspects)
 
     //bool prevVisible = isVisible();
 
-    setVisible(visible);
+    setVisibilty(visible);
 
-    /*
-    // if the view aspects have been changed, update pos of edges
-    if(prevVisible != isVisible()){
-        emit updateEdgePosition();
-    }
-    */
 
     // if not visible, unselect node item
     if (!isVisible()) {
@@ -2124,6 +2221,7 @@ void NodeItem::aspectsChanged(QStringList visibleAspects)
  */
 void NodeItem::setupIcon()
 {
+    /*
     QString nodeKind = getNodeKind();
 
     if (nodeKind == "HardwareNode") {
@@ -2201,6 +2299,7 @@ void NodeItem::setupIcon()
         hardwareIcon->setPos(boundingRect().width() - getItemMargin() - iconWidth*scaleFactor, getItemMargin());
         hardwareIcon->setVisible(false);
     }
+    */
 }
 
 
@@ -2241,7 +2340,7 @@ void NodeItem::setupLabel()
     textItem->setFont(font);
     textItem->setPos(labelX, labelY);
 
-    updateTextLabel(getGraphML()->getDataValue("label"));
+    updateTextLabel(getGraphMLDataValue("label"));
 }
 
 
@@ -2292,7 +2391,7 @@ QPointF NodeItem::isOverGrid(const QPointF centerPosition)
     if(!GRIDLINES_ON || !parentNodeItem || nodeKind.endsWith("Definitions")){
         if(parentNodeItem){
             isNodeOnGrid = false;
-            parentNodeItem->removeChildOutline(this);
+            parentNodeItem->removeChildOutline(getID());
         }
         return QPointF();
     }
@@ -2313,7 +2412,7 @@ QPointF NodeItem::isOverGrid(const QPointF centerPosition)
         isNodeOnGrid = false;
 
         if(isSelectionMoving || isSelectionResizing){
-            parentNodeItem->removeChildOutline(this);
+            parentNodeItem->removeChildOutline(getID());
         }
         return QPointF();
     }
@@ -2325,7 +2424,7 @@ void NodeItem::setNewLabel(QString newLabel)
     if(getGraphML()){
         if(newLabel != ""){
             GraphMLItem_TriggerAction("Set New Label");
-            GraphMLItem_SetGraphMLData(getGraphML(), "label", newLabel);
+            GraphMLItem_SetGraphMLData(getID(), "label", newLabel);
         }else{
             if(textItem){
                 textItem->setEditMode(true);
@@ -2412,18 +2511,30 @@ void NodeItem::updateChildrenOnChange()
 
 void NodeItem::retrieveGraphMLData()
 {
-    QString modelHeight = getGraphML()->getDataValue("height");
-    QString modelWidth = getGraphML()->getDataValue("width");
-    QString modelX = getGraphML()->getDataValue("x");
-    QString modelY = getGraphML()->getDataValue("y");
 
-    graphMLDataChanged(getGraphML()->getData("width"));
-    graphMLDataChanged(getGraphML()->getData("height"));
-    graphMLDataChanged(getGraphML()->getData("x"));
-    graphMLDataChanged(getGraphML()->getData("y"));
-    /*
+    if(!getGraphML()){
+        return;
+    }
+   // QString modelHeight = getGraphML()->getDataValue("height");
+   // QString modelWidth = getGraphML()->getDataValue("width");
+   // QString modelX = getGraphML()->getDataValue("x");
+   // QString modelY = getGraphML()->getDataValue("y");
+/*
+    qCritical() << modelHeight;
+    qCritical() << modelWidth;
+    qCritical() << modelX;
+    qCritical() << modelY;
+
+*/
+    /*if(!getGraphML()->isDeleting()){
+        graphMLDataChanged(getGraphML()->getData("width"));
+        graphMLDataChanged(getGraphML()->getData("height"));
+        graphMLDataChanged(getGraphML()->getData("x"));
+        graphMLDataChanged(getGraphML()->getData("y"));
+    }*/
 
 
+/*
     //Update the position with values from the GraphML Model if they have them.
     double graphmlX = getGraphML()->getDataValue("x").toDouble();
     double graphmlY = getGraphML()->getDataValue("y").toDouble();
@@ -2465,7 +2576,7 @@ void NodeItem::retrieveGraphMLData()
  */
 QList<NodeItem *> NodeItem::getChildNodeItems()
 {
-    return childNodeItems;
+    return childNodeItems.values();
 }
 
 
@@ -2491,10 +2602,7 @@ QStringList NodeItem::getAspects()
     return viewAspects;
 }
 
-void NodeItem::setGraphicsView(QGraphicsView *view)
-{
-    parentView = view;
-}
+
 
 bool NodeItem::isInAspect()
 {
@@ -2531,27 +2639,8 @@ bool NodeItem::isInAspect()
     return inAspect;
 }
 */
-/**
- * @brief NodeItem::getLockMenu
- * @return
- */
-QMenu* NodeItem::getLockMenu()
-{
-    return lockMenu;
-}
 
 
-/**
- * @brief NodeItem::getLockIconSceneRect
- * @return
- */
-QRectF NodeItem::getLockIconSceneRect()
-{
-    if (lockIcon) {
-        return lockIcon->sceneBoundingRect();
-    }
-    return QRectF();
-}
 
 
 /**
@@ -2580,7 +2669,7 @@ void NodeItem::higlightNodeItem(bool highlight)
  */
 void NodeItem::showHardwareIcon(bool show)
 {
-    hardwareIcon->setVisible(show && this->isVisible());
+    showDeploymentWarningIcon = show;
 }
 
 
@@ -2655,7 +2744,11 @@ void NodeItem::setSorted(bool isSorted)
 }
 
 
-QPolygonF NodeItem::getResizePolygon()
+/**
+ * @brief NodeItem::resizePolygon
+ * @return Gets a QPolygonF which represents the bottom right triangle resize area for a NodeItem.
+ */
+QPolygonF NodeItem::resizePolygon()
 {
     QPointF bottomRight = boundingRect().bottomRight();
     qreal cornerRadius = getCornerRadius();
@@ -2679,13 +2772,78 @@ QPolygonF NodeItem::getResizePolygon()
 
 void NodeItem::parentNodeItemMoved()
 {
-
+    //If parent moved, this moved, and thus children of this moved.
     nodeItemMoved();
-
-    if(isPermanentlyCentered()){
-        emit recentralizeAfterChange(getGraphML());
-    }
 }
+/*
+
+void NodeItem::graphMLDataChanged(QString keyName, QString type, QString value)
+{
+    QString previousValue;
+
+    if(keyName == "x" || keyName == "y"){
+
+        //Update the Position
+        QPointF newCenter = centerPos();
+
+        if(keyName == "x"){
+            previousValue = QString::number(newCenter.x());
+            newCenter.setX(value.toDouble());
+        }else if(keyName == "y"){
+            previousValue = QString::number(newCenter.y());
+            newCenter.setY(value.toDouble());
+        }
+
+        setCenterPos(newCenter);
+
+        if(previousValue != value){
+            updateModelPosition();
+        }
+
+
+    }else if(keyName == "width" || keyName == "height"){
+        if(value == "inf"){
+            value = QString::number(MODEL_WIDTH);
+        }
+
+        if(keyName == "width"){
+            previousValue = QString::number(width);
+            setWidth(value.toDouble());
+        }else if(keyName == "height"){
+            previousValue = QString::number(height);
+
+            bool expand = value.toDouble() > height;
+            bool contract = value == minimumHeightStr;
+
+            //If the value of the height is bigger than the minimumHeight, we should expand.
+            if(!isExpanded() && expand){
+                setNodeExpanded(true);
+            }else if(isExpanded() && contract){
+                setNodeExpanded(false);
+            }
+
+            //Then set the height.
+            setHeight(value.toDouble());
+
+        }
+        if(previousValue != value){
+            updateModelSize();
+        }
+
+    }
+    else if(keyName == "label"){
+
+        if(value != ""){
+            updateTextLabel(value);
+        }
+
+        // update connected dock node item
+        emit updateDockNodeItem();
+    }
+
+
+
+}*/
 
 
 /**
@@ -2745,10 +2903,12 @@ QSizeF NodeItem::getModelSize()
 
     float graphmlHeight = 0;
     float graphmlWidth = 0;
-    if(getGraphML()){
-        graphmlWidth = getGraphML()->getDataValue("width").toDouble();
-        graphmlHeight = getGraphML()->getDataValue("height").toDouble();
-    }
+
+    graphmlWidth = getGraphMLDataValue("width").toDouble();
+    graphmlHeight = getGraphMLDataValue("height").toDouble();
+
+
+
 
     return QSizeF(graphmlWidth, graphmlHeight);
 }
@@ -2799,7 +2959,7 @@ void NodeItem::setNodeExpanded(bool expanded)
     //Show/Hide the non-hidden children.
     foreach(NodeItem* nodeItem, childNodeItems){
         if (!nodeItem->isHidden()){
-            nodeItem->setVisible(expanded);
+            nodeItem->setVisibilty(expanded);
         }
     }
 
@@ -2835,12 +2995,12 @@ void NodeItem::updateModelPosition()
         }
     }
 
-    GraphMLItem_SetGraphMLData(getGraphML(), "x", QString::number(centerPos().x()));
-    GraphMLItem_SetGraphMLData(getGraphML(), "y", QString::number(centerPos().y()));
+    GraphMLItem_SetGraphMLData(getID(), "x", QString::number(centerPos().x()));
+    GraphMLItem_SetGraphMLData(getID(), "y", QString::number(centerPos().y()));
 
 
     if(!isNodeOnGrid && parentNodeItem){
-        parentNodeItem->removeChildOutline(this);
+        parentNodeItem->removeChildOutline(getID());
     }
 
     GraphMLItem_PositionSizeChanged(this);
@@ -2848,12 +3008,12 @@ void NodeItem::updateModelPosition()
 
 void NodeItem::updateModelSize()
 {
-    double prevWidth = getGraphML()->getDataValue("width").toDouble();
-    double prevHeight = getGraphML()->getDataValue("height").toDouble();
+    //double prevWidth = ("width").toDouble();
+    //double prevHeight = getGraphML()->getDataValue("height").toDouble();
 
     //Update the Size in the model.
-    GraphMLItem_SetGraphMLData(getGraphML(), "width", QString::number(width));
-    GraphMLItem_SetGraphMLData(getGraphML(), "height", QString::number(height));
+    GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
+    GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
 
     //If we are over a gridline already.
     if(isNodeOnGrid){
@@ -2869,15 +3029,10 @@ void NodeItem::updateModelSize()
         setLocked(isNodeOnGrid);
     }
 
-    if (width > prevWidth || height > prevHeight) {
+    //if (width > prevWidth || height > prevHeight) {
         GraphMLItem_PositionSizeChanged(this, true);
-    }
+    //}
 
-    if (hardwareIcon) {
-        qreal iconWidth = hardwareIcon->boundingRect().width();
-        qreal scaleFactor = hardwareIcon->scale();
-        hardwareIcon->setPos(boundingRect().width() - getItemMargin() - iconWidth*scaleFactor, getItemMargin());
-    }
 }
 
 
@@ -2895,11 +3050,11 @@ void NodeItem::labelUpdated(QString newLabel)
 {
     if(getGraphML()){
 
-        QString currentLabel = getGraphML()->getDataValue("label");
+        QString currentLabel = getGraphMLDataValue("label");
 
         if(currentLabel != newLabel){
             GraphMLItem_TriggerAction("Set New Label");
-            GraphMLItem_SetGraphMLData(getGraphML(), "label", newLabel);
+            GraphMLItem_SetGraphMLData(getID(), "label", newLabel);
         }
     }
 }
@@ -2907,7 +3062,10 @@ void NodeItem::labelUpdated(QString newLabel)
 
 Node *NodeItem::getNode()
 {
-    return dynamic_cast<Node*>(getGraphML());
+    //if(!IS_DELETING){
+       return (Node*)getGraphML();
+    //}
+    //return 0;
 }
 
 
@@ -2938,7 +3096,7 @@ void NodeItem::setHidden(bool h)
     if (getParentNodeItem()) {
         parentExpanded = getParentNodeItem()->isExpanded();
     }
-    setVisible(!h && isInAspect() && parentExpanded);
+    setVisibilty(!h && isInAspect() && parentExpanded);
 }
 
 
@@ -2948,11 +3106,8 @@ void NodeItem::setHidden(bool h)
  */
 void NodeItem::resetSize()
 {
-    GraphML* id = getGraphML();
-    if(id){
-        GraphMLItem_SetGraphMLData(this->getGraphML(), "height", QString::number(minimumHeight));
-        GraphMLItem_SetGraphMLData(this->getGraphML(), "width", QString::number(minimumWidth));
-    }
+    GraphMLItem_SetGraphMLData(getID(), "height", QString::number(minimumHeight));
+    GraphMLItem_SetGraphMLData(getID(), "width", QString::number(minimumWidth));
 }
 
 
@@ -2962,6 +3117,11 @@ void NodeItem::resetSize()
 bool NodeItem::isExpanded()
 {
     return isNodeExpanded;
+}
+
+bool NodeItem::isContracted()
+{
+    return !isExpanded();
 }
 
 /**
