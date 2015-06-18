@@ -141,8 +141,6 @@ signals:
 public slots:
     void setAttributeModel(GraphMLItem* item);
 
-    void lockMutex();
-    void unlockMutex();
 
     void loadJenkinsNodes(QString fileData);
     void exportSnippet();
@@ -399,7 +397,7 @@ private:
 
     QString prevSelectedNodeID;
 
-    QMutex actionMutex;
+    QMutex viewMutex;
 
     QString currentTableID;
 };

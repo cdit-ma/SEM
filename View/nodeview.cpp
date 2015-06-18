@@ -115,7 +115,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     numberOfNotifications = 1;
     notificationNumber = 0;
 
-    connect(this, SIGNAL(view_ImportProjects(QStringList)), this , SLOT(lockMutex()));
 }
 
 
@@ -1307,18 +1306,6 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         }
     }
 }
-
-void NodeView::lockMutex()
-{
-    //qCritical() << "Trying to Lock!";
-    actionMutex.tryLock();
-}
-
-void NodeView::unlockMutex()
-{
-    actionMutex.unlock();
-}
-
 
 void NodeView::view_CenterGraphML(GraphML *graphML)
 {
@@ -2572,7 +2559,7 @@ void NodeView::setEnabled(bool enabled)
 
 
     if(enabled){
-        unlockMutex();
+        viewMutex.unlock();
     }
 }
 
@@ -2705,7 +2692,9 @@ void NodeView::undo()
         }*/
 
         // undo the action
-        emit this->view_Undo();
+        if(viewMutex.tryLock()) {
+            emit this->view_Undo();
+        }
         //controller->undo();
     }
 }
@@ -2737,7 +2726,9 @@ void NodeView::redo()
         }*/
 
         // redo the action
-        emit this->view_Redo();
+        if(viewMutex.tryLock()) {
+            emit this->view_Redo();
+        }
         //controller->redo();
 
     }

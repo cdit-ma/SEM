@@ -1131,13 +1131,10 @@ void MedeaWindow::makeConnections()
 
 
     connect(this, SIGNAL(window_ExportProject()), nodeView, SIGNAL(view_ExportProject()));
-    connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SLOT(lockMutex()));
     connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SIGNAL(view_ImportProjects(QStringList)));
     connect(this, SIGNAL(window_LoadJenkinsNodes(QString)), nodeView, SLOT(loadJenkinsNodes(QString)));
 
-     connect(edit_undo, SIGNAL(triggered()), nodeView, SLOT(lockMutex()));
     connect(edit_undo, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
-     connect(edit_redo, SIGNAL(triggered()), nodeView, SLOT(lockMutex()));
     connect(edit_redo, SIGNAL(triggered()), this, SLOT(menuActionTriggered()));
 
     connect(edit_undo, SIGNAL(triggered()), nodeView, SLOT(undo()));
