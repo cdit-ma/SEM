@@ -83,6 +83,10 @@ private:
 
 
 signals:
+
+    void controller_ActionFinished();
+
+
     void controller_ActionProgressChanged(int, QString = "");
     void controller_DialogMessage(MESSAGE_TYPE, QString, QString, GraphML* = 0);
 
@@ -107,6 +111,28 @@ signals:
     // Re-added this for now
     void componentInstanceConstructed(Node* node);
 
+private slots:
+    //Cleaned up and commented.
+    void cut(QStringList IDs);
+    void copy(QStringList IDs);
+    void paste(QString ID, QString xmlData);
+    void replicate(QStringList IDs);
+    void remove(QStringList IDs);
+
+    void undo();
+    void redo();
+
+    void importProjects(QStringList xmlDataList);
+
+
+private:
+    bool _paste(QString ID, QString xmlData, bool addAction = true);
+    bool _cut(QStringList IDs, bool addAction = true);
+    bool _copy(QStringList IDs);
+    bool _remove(QStringList IDs, bool addAction = true);
+    bool _replicate(QStringList IDs, bool addAction = true);
+    bool _importProjects(QStringList xmlDataList, bool addAction = true);
+
 
 private slots:
   void dialogMessage(QString title, QString message, GraphML* item=0);
@@ -118,8 +144,7 @@ private slots:
   void attachGraphMLData(GraphML* parent, GraphMLData* data, bool addAction = true);
   void destructGraphMLData(GraphML* parent, QString keyName, bool addAction = true);
 
-  //Used to Import a GraphML XML document from the GUI/Paste/Undo/Redo
-  void importProjects(QStringList data);
+
 
 
   void exportSelectionSnippet(QStringList selection);
@@ -142,16 +167,10 @@ private slots:
 
     void constructComponentInstance(Node *assembly, Node* definition, QPointF point);
     void constructConnectedComponents(Node* parent, Node* connectedNode, QString kind , QPointF relativePosition);
-    void undo();
-    void redo();
+
 
 private slots:
      //Edit Functionality
-    void cut(QStringList selectedIDs);
-    void copy(QStringList selectedIDs);
-    void paste(Node* parentNode, QString xmlData);
-    void deleteSelection(QStringList selectedIDs);
-    void duplicateSelection(QStringList selectedIDs);
 
     //void clearModel();
 
@@ -165,6 +184,7 @@ private slots:
 private:
     Node* getSingleNode(QStringList IDs);
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
+
 
 
     Node* getSharedParent(QStringList IDs);
@@ -343,7 +363,7 @@ private:
 
     int previousUndos;
 
-    QStringList deleteIDs;
+    QStringList connectedLinkedIDs;
 
     bool CUT_USED;
     int actionCount;

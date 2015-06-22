@@ -425,14 +425,23 @@ bool NodeView::allowedFocus(QWidget *widget)
  */
 Node* NodeView::getSelectedNode()
 {
+  NodeItem* nodeItem = getSelectedNodeItem();
+  if(nodeItem){
+      return nodeItem->getNode();
+  }
+  return 0;
+}
+
+QString NodeView::getSelectedNodeID()
+{
     if (selectedIDs.size() == 1) {
         QString ID = selectedIDs[0];
         GraphMLItem* item = getGraphMLItemFromHash(ID);
         if (item->isNodeItem()) {
-            return (Node*)item->getGraphML();
+            return item->getID();
         }
     }
-    return 0;
+    return "";
 }
 
 
@@ -443,8 +452,11 @@ Node* NodeView::getSelectedNode()
  */
 NodeItem* NodeView::getSelectedNodeItem()
 {
-    NodeItem* selectedItem = getNodeItemFromNode(getSelectedNode());
-    return selectedItem;
+    QString ID = getSelectedNodeID();
+    if(ID != ""){
+        return (NodeItem*) getGraphMLItemFromHash(ID);
+    }
+    return 0;
 }
 
 
@@ -565,6 +577,21 @@ bool NodeView::viewportEvent(QEvent * e)
     return QGraphicsView::viewportEvent(e);
 }
 
+/**
+ * @brief NodeView::actionFinished Called when the Controller has finished running an Action
+ */
+void NodeView::actionFinished()
+{
+    qCritical() << "Unlock Mutex";
+
+    //Reset
+    pasting = false;
+    importFromJenkins = false;
+
+
+    viewMutex.unlock();
+}
+
 void NodeView::setAttributeModel(GraphMLItem *item)
 {
     if(item){
@@ -576,11 +603,19 @@ void NodeView::setAttributeModel(GraphMLItem *item)
     }
 }
 
+void NodeView::importProjects(QStringList xmlDataList)
+{
+    if(!xmlDataList.isEmpty()){
+        if(viewMutex.tryLock()){
+            emit this->view_ImportProjects(xmlDataList);
+        }
+    }
+}
+
 void NodeView::loadJenkinsNodes(QString fileData)
 {
     importFromJenkins = true;
-    emit view_ImportProjects(QStringList(fileData));
-    importFromJenkins = false;
+    importProjects(QStringList(fileData));
 }
 
 void NodeView::exportSnippet()
@@ -2558,9 +2593,9 @@ void NodeView::setEnabled(bool enabled)
     QGraphicsView::setEnabled(enabled);
 
 
-    if(enabled){
-        viewMutex.unlock();
-    }
+    //if(enabled){
+    //    viewMutex.unlock();
+    //}
 }
 
 
@@ -2593,7 +2628,9 @@ void NodeView::showDialogMessage(MESSAGE_TYPE type, QString title, QString messa
 void NodeView::duplicate()
 {
     if (selectedIDs.count() > 0) {
-        view_Duplicate(selectedIDs);
+        if(viewMutex.tryLock()){
+            emit view_Duplicate(selectedIDs);
+        }
     } else {
         view_displayNotification("Select entity(s) to replicate.");
     }
@@ -2606,7 +2643,9 @@ void NodeView::duplicate()
 void NodeView::copy()
 {
     if (selectedIDs.count() > 0) {
-        view_Copy(selectedIDs);
+        if(viewMutex.tryLock()){
+            emit view_Copy(selectedIDs);
+        }
     } else {
         view_displayNotification("Select entity(s) to copy.");
     }
@@ -2618,10 +2657,16 @@ void NodeView::copy()
  */
 void NodeView::cut()
 {
+    //If we have got something selected.
     if (selectedIDs.count() > 0) {
-        view_Cut(selectedIDs);
+        //Try and Lock the Mutex before the operation.
+        if(viewMutex.tryLock()){
+            //Clear the Attribute Table Model
+            setAttributeModel(0);
+            emit view_Cut(selectedIDs);
+        }
     } else {
-        view_displayNotification("Select entity(s) to cut.");
+            view_displayNotification("Select entity(s) to cut.");
     }
 }
 
@@ -2632,23 +2677,21 @@ void NodeView::cut()
  */
 void NodeView::paste(QString xmlData)
 {
-    // NOTE: not sure why these strings are in the clipboard to begin with
-    // Not sure how to check if there's anything to paste or not
-    /*
-    if (xmlData.isEmpty() || xmlData == "setClipboard" || xmlData == "paste") {
-        view_displayNotification("Clipboard Is Empty");
-        return;
-    }
-    */
-    Node* selectedNode = this->getSelectedNode();
-    if (!selectedNode) {
+    QString ID = getSelectedNodeID();
+
+    if (ID == "") {
         //view_displayNotification("Select entity to paste into.");
         return;
     }
-    pasting = true;
-    clearSelection();
-    view_Paste(selectedNode, xmlData);
-    pasting = false;
+
+    if(viewMutex.tryLock()){
+        //Pasting gets cleared in actionFinished()
+        pasting = true;
+        //Clear before pasting
+        clearSelection();
+        //Tell the Controller to paste.
+        emit view_Paste(ID, xmlData);
+    }
 }
 
 
@@ -2656,7 +2699,7 @@ void NodeView::selectAll()
 {
     NodeItem* nodeItem = getSelectedNodeItem();
     if(nodeItem){
-        clearSelection(false);
+        clearSelection();
         foreach(NodeItem* child, nodeItem->getChildNodeItems()){
             if(child->isVisible()){
                 appendToSelection(child);
@@ -2673,29 +2716,10 @@ void NodeView::selectAll()
  */
 void NodeView::undo()
 {
-    if (controller) {
-
-        /*
-        // center the view on the corresponding pos/rect
-        if (!viewModelPositions.isEmpty() && !viewCenteredRectangles.isEmpty() ) {
-            QRectF rect = viewCenteredRectangles.takeFirst();
-            QPointF pos = viewModelPositions.takeFirst();
-            recenterView(pos, rect, true);
-        }
-        */
-
-        // keep the view centered on the same spot
-        /* if (getMapSize() > 0) {
-            QPointF pos = modelPositions[getMapSize() - 1];
-            QRectF rect = centeredRects[getMapSize() - 1];
-            recenterView(pos, rect, true);
-        }*/
-
-        // undo the action
-        if(viewMutex.tryLock()) {
-            emit this->view_Undo();
-        }
-        //controller->undo();
+    // undo the action
+    if(viewMutex.tryLock()) {
+        clearSelection();
+        emit this->view_Undo();
     }
 }
 
@@ -2707,30 +2731,11 @@ void NodeView::undo()
  */
 void NodeView::redo()
 {
-    if (controller) {
 
-        /*
-        // center the view on the corresponding pos/rect
-        if (!viewModelPositions.isEmpty() && !viewCenteredRectangles.isEmpty() ) {
-            QRectF rect = viewCenteredRectangles.takeFirst();
-            QPointF pos = viewModelPositions.takeFirst();
-            recenterView(pos, rect, true);
-        }
-        */
-
-        // keep the view centered on the same spot
-        /*if (getMapSize() > 0) {
-            QPointF pos = modelPositions[getMapSize() - 1];
-            QRectF rect = centeredRects[getMapSize() - 1];
-            recenterView(pos, rect, true);
-        }*/
-
-        // redo the action
-        if(viewMutex.tryLock()) {
-            emit this->view_Redo();
-        }
-        //controller->redo();
-
+    // redo the action
+    if(viewMutex.tryLock()) {
+        clearSelection();
+        emit this->view_Redo();
     }
 }
 
@@ -3252,11 +3257,13 @@ void NodeView::deleteSelection()
                 view_displayNotification("Cannot delete selection!");
                 return;
             }
-
         }
-        triggerAction("Toolbar: Destructing Selection");
-        setAttributeModel(0);
-        view_Delete(selectedIDs);
+
+        if(viewMutex.tryLock()){
+            //Clear the Attribute Table Model
+            setAttributeModel(0);
+            emit view_Delete(selectedIDs);
+        }
     } else {
         view_displayNotification("Select entity(s)/connection(s) to delete.");
     }

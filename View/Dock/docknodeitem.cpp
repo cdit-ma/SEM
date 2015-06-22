@@ -224,7 +224,7 @@ void DockNodeItem::setupLayout()
             *image = parentDock->getNodeView()->getImage(kind);
         }
 
-        QImage* hardwareImage = 0;
+        QImage* hardwareImage  = new QImage();
         if (kind == "HardwareNode" && nodeItem) {
             QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
             QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");

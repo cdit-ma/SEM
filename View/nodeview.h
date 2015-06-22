@@ -32,6 +32,7 @@ public:
 
     //Get the Selected Node.
     Node* getSelectedNode();
+    QString getSelectedNodeID();
     NodeItem* getSelectedNodeItem();
 
     void setParentNodeView(NodeView *n);
@@ -70,6 +71,9 @@ protected:
 
     bool viewportEvent(QEvent *);
 
+private slots:
+    void actionFinished();
+
 signals:
     void view_ModelSizeChanged();
     void view_NodeDeleted(QString childID, QString parentID="");
@@ -92,7 +96,7 @@ signals:
 
     void view_Copy(QStringList IDs);
     void view_Cut(QStringList IDs);
-    void view_Paste(Node* parent, QString xmlData);
+    void view_Paste(QString ID, QString xmlData);
     void view_Delete(QStringList IDs);
     void view_Duplicate(QStringList IDs);
     void view_Undo();
@@ -140,7 +144,7 @@ signals:
 
 public slots:
     void setAttributeModel(GraphMLItem* item);
-
+    void importProjects(QStringList xmlDataList);
 
     void loadJenkinsNodes(QString fileData);
     void exportSnippet();

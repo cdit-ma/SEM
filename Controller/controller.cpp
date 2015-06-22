@@ -107,7 +107,8 @@ void NewController::connectView(NodeView *view)
     }
 
     if(view->isMainView()){
-        connect(view, SIGNAL(view_Duplicate(QStringList)), this, SLOT(duplicateSelection(QStringList)));
+        connect(this, SIGNAL(controller_ActionFinished()), view, SLOT(actionFinished()));
+        connect(view, SIGNAL(view_Duplicate(QStringList)), this, SLOT(replicate(QStringList)));
         //File SLOTS
         connect(view, SIGNAL(view_ExportProject()), this, SLOT(exportGraphMLDocument()));
         connect(view, SIGNAL(view_ImportProjects(QStringList)), this, SLOT(importProjects(QStringList)));
@@ -117,10 +118,10 @@ void NewController::connectView(NodeView *view)
         //Edit SLOTS
         connect(view, SIGNAL(view_Undo()), this, SLOT(undo()));
         connect(view, SIGNAL(view_Redo()), this, SLOT(redo()));
-        connect(view, SIGNAL(view_Delete(QStringList)), this, SLOT(deleteSelection(QStringList)));
+        connect(view, SIGNAL(view_Delete(QStringList)), this, SLOT(remove(QStringList)));
         connect(view, SIGNAL(view_Copy(QStringList)), this, SLOT(copy(QStringList)));
         connect(view, SIGNAL(view_Cut(QStringList)), this, SLOT(cut(QStringList)));
-        connect(view, SIGNAL(view_Paste(Node*,QString)), this, SLOT(paste(Node*,QString)));
+        connect(view, SIGNAL(view_Paste(QString,QString)), this, SLOT(paste(QString,QString)));
 
         //Node Slots
         connect(view, SIGNAL(view_ConstructEdge(Node*,Node*)), this, SLOT(constructEdge(Node*,Node*)));
@@ -549,107 +550,223 @@ void NewController::clearUndoRedoStacks()
 void NewController::undo()
 {
     undoRedo(UNDO);
+    emit controller_ActionFinished();
 }
 
 void NewController::redo()
 {
     undoRedo(REDO);
+    emit controller_ActionFinished();
 }
 
 
-void NewController::copy(QStringList selectedIDs)
+/**
+ * @brief NewController::copy
+ * @param selectedIDs
+ */
+void NewController::copy(QStringList IDs)
 {
-    if(!canCopy(selectedIDs)){
-        return;
-    }
-
-    CUT_USED = false;
-    //Export the GraphML for those Nodes.
-    QString result = _exportGraphMLDocument(selectedIDs, false, true);
-
-    //Tell the view to place the resulting GraphML String into the Copy buffer.
-    controller_SetClipboardBuffer(result);
+    _copy(IDs);
+    emit controller_ActionFinished();
 }
 
-void NewController::cut(QStringList selectedIDs)
+/**
+ * @brief NewController::remove
+ * @param selectedIDs
+ */
+void NewController::remove(QStringList IDs)
 {
-    //Run Copy
-    if(canCopy(selectedIDs)){
-        controller_ViewSetEnabled(false);
-
-        triggerAction("Cutting Selected IDs");
-
-        copy(selectedIDs);
-        deleteSelection(selectedIDs);
-
-        controller_ViewSetEnabled(true);
-        CUT_USED = true;
-    }
+    _remove(IDs);
+    emit controller_ActionFinished();
 }
 
-void NewController::deleteSelection(QStringList selectedIDs)
+/**
+ * @brief NewController::replicate Du
+ * @param IDs
+ */
+void NewController::replicate(QStringList IDs)
 {
-    bool disableGUI = selectedIDs.length() > 1;
-    if(disableGUI){
-        controller_ViewSetEnabled(false);
-    }
-   // triggerAction("Deleting Selection");
-
-    while(!selectedIDs.isEmpty()){
-        QString ID = selectedIDs.takeFirst();
-        deleteIDs.clear();
-        GraphML* graphML = getGraphMLFromID(ID);
-        if(graphML){
-            if(graphML->isNode()){
-                destructNode((Node*)graphML);
-            }else if (graphML->isEdge()){
-                destructEdge((Edge*)graphML);
-            }
-        }
-        selectedIDs = deleteIDs + selectedIDs;
-
-    }
-    if(disableGUI){
-        controller_ViewSetEnabled(true);
-    }
+    _replicate(IDs);
+    emit controller_ActionFinished();
 }
 
-void NewController::duplicateSelection(QStringList selectedIDs)
+/**
+ * @brief NewController::cut Copies a selection of IDs and then deletes them.
+ * @param selectedIDs The ID's of the entities to copy.
+ */
+void NewController::cut(QStringList IDs)
 {
-
-    if(!canCopy(selectedIDs)){
-        return;
-    }
-
-    Node* node = getNodeFromID(selectedIDs.first());
-    if(!node){
-        return;
-    }
-    Node* parentNode = node->getParentNode();
-
-
-    QString result = _exportGraphMLDocument(selectedIDs, true);
-    if(parentNode && result != ""){
-        _importGraphMLXML(result, parentNode);
-    }
+    _cut(IDs);
+    emit controller_ActionFinished();
 }
 
-void NewController::paste(Node *parentNode, QString xmlData)
-{
 
+
+/**
+ * @brief NewController::paste Tells the Controller to Paste
+ * @param ID - The ID of the node to paste into
+ * @param xmlData - The GraphML Data to paste.
+ */
+void NewController::paste(QString ID, QString xmlData)
+{
+    _paste(ID, xmlData);
+
+    emit controller_ActionFinished();
+}
+
+/**
+ * @brief NewController::_paste Pastes graphml Data into the Node specified by the ID provided.
+ * @param ID - The ID of the node to paste into
+ * @param xmlData - The GraphML Data to paste.
+ * @param addAction - Adds a Action in the Undo/Redo Stack
+ * @return Action successful.
+ */
+bool NewController::_paste(QString ID, QString xmlData, bool addAction)
+{
+    bool success = true;
+
+    Node* parentNode = getNodeFromID(ID);
     if(!parentNode){
         controller_DialogMessage(WARNING, "Paste" ,"Please select an entity to paste into.");
-        return;
-    }
-    if(isGraphMLValid(xmlData) && xmlData != ""){
-        //Paste it into the current Selected Node,
+        success = false;
+    }else{
+        if(isGraphMLValid(xmlData) && xmlData != ""){
+            if(addAction){
+                triggerAction("Pasting Selection.");
+            }
 
-        if(parentNode){
-            triggerAction("Pasting Selection.");
-            _importGraphMLXML(xmlData, parentNode, CUT_USED, true);
+            //Paste it into the current Selected Node,
+            success = _importGraphMLXML(xmlData, parentNode, CUT_USED, true);
             CUT_USED = false;
         }
     }
+    return success;
+}
+
+/**
+ * @brief NewController::_cut - Copies (to GraphML) a selection of GraphML Entities from their IDs and then deletes them.
+ * @param IDs - The ID's of the entities to cut.
+ * @param addAction - Adds a Action in the Undo/Redo Stack
+ * @return Action successful.
+ */
+bool NewController::_cut(QStringList IDs, bool addAction)
+{
+    bool success = true;
+
+    //If we have copied some nodes.
+    if(_copy(IDs)){
+        if(addAction){
+            triggerAction("Cutting Selected IDs");
+        }
+        CUT_USED = true;
+        _remove(IDs, false);
+    }else{
+        success = false;
+    }
+
+    return success;
+}
+
+/**
+ * @brief NewController::_copy - Copies (to GraphML) a selection of GraphML Entities from their IDs
+ * @param IDs - The ID's of the entities to copy.
+ * @param triggerAction - Adds a Action in the Undo/Redo Stack
+ * @return Action successful.
+ */
+bool NewController::_copy(QStringList IDs)
+{
+    bool success = false;
+    if(canCopy(IDs)){
+
+        CUT_USED = false;
+        //Export the GraphML for those Nodes.
+        QString result = _exportGraphMLDocument(IDs, false, true);
+
+        //Tell the view to place the resulting GraphML String into the Copy buffer.
+        controller_SetClipboardBuffer(result);
+
+        success = true;
+    }
+    return success;
+}
+
+/**
+ * @brief NewController::_remove - Removes the selection of GraphML Entities from their IDs
+ * @param IDs - The ID's of the entities to remove.
+ * @param triggerAction - Adds a Action in the Undo/Redo Stack
+ * @return Action successful.
+ */
+bool NewController::_remove(QStringList IDs, bool addAction)
+{
+    bool success = false;
+    if(IDs.length() > 0){
+        controller_ViewSetEnabled(false);
+
+        if(addAction){
+            triggerAction("Removing Selection");
+        }
+
+        while(!IDs.isEmpty()){
+            QString ID = IDs.takeFirst();
+            //Clear the list of related IDs.
+            connectedLinkedIDs.clear();
+            GraphML* graphML = getGraphMLFromID(ID);
+            if(graphML){
+                if(graphML->isNode()){
+                    destructNode((Node*)graphML);
+                }else if (graphML->isEdge()){
+                    destructEdge((Edge*)graphML);
+                }
+            }
+            //Add any related ID's which need deleting to the top of the stack.
+            IDs = connectedLinkedIDs + IDs;
+        }
+        controller_ViewSetEnabled(true);
+        success = true;
+    }
+    return success;
+}
+
+bool NewController::_replicate(QStringList IDs, bool addAction)
+{
+    bool success = false;
+
+    if(canCopy(IDs)){
+        Node* node = getNodeFromID(IDs.first());
+        if(node && node->getParentNode()){
+            //Export the GraphML
+            QString graphml = _exportGraphMLDocument(IDs, true);
+            if(addAction){
+                triggerAction("Replicating Selection");
+            }
+            //Import the GraphML
+            success = _importGraphMLXML(graphml, node->getParentNode());
+        }
+    }
+    return success;
+}
+
+bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
+{
+    bool success = false;
+
+    if(xmlDataList.length() > 0){
+        controller_ViewSetEnabled(false);
+        if(addAction){
+            triggerAction("Importing GraphML Projects.");
+        }
+
+        foreach(QString xmlData, xmlDataList){
+            bool result = _importGraphMLXML(xmlData, getModel());
+            if(!result){
+                controller_DialogMessage(CRITICAL, "Import Error", "Cannot import document.", getModel());
+            }
+        }
+
+        controller_ViewSetEnabled(true);
+        success = true;
+    }
+    return success;
 }
 
 /**
@@ -2399,7 +2516,7 @@ bool NewController::teardownAggregateRelationship(EventPort *eventPort, Aggregat
         Node* child = aggregateInstances[0];
         if(child){
             //Add the AggregateInstance to the list of Nodes to delete.
-            deleteIDs.append(child->getID());
+            connectedLinkedIDs.append(child->getID());
         }else{
             return false;
         }
@@ -2445,7 +2562,7 @@ bool NewController:: teardownDefinitionRelationship(Node *definition, Node *node
     //Remove Instance Node, by placing it in the selected Edges list.
 
 
-    deleteIDs.append(node->getID());
+    connectedLinkedIDs.append(node->getID());
 
     return true;
 }
@@ -2722,19 +2839,14 @@ void NewController::setGraphMLData(QString parentID, QString keyName, QString da
 
 }
 
-void NewController::importProjects(QStringList documents)
+/**
+ * @brief NewController::importProjects
+ * @param xmlDataList
+ */
+void NewController::importProjects(QStringList xmlDataList)
 {
-    controller_ViewSetEnabled(false);
-    triggerAction("Importing Documents");
-
-    foreach(QString document, documents){
-        bool result = _importGraphMLXML(document, getModel());
-        if(!result){
-            controller_DialogMessage(CRITICAL, "Import Error", "Cannot import document.", getModel());
-        }
-    }
-
-    controller_ViewSetEnabled(true);
+    _importProjects(xmlDataList);
+    emit controller_ActionFinished();
 }
 
 void NewController::exportSelectionSnippet(QStringList selection)
