@@ -93,7 +93,6 @@ public:
 
 
     bool modelCirclePressed(QPointF mousePosition);
-
     bool labelPressed(QPointF mousePosition);
     bool iconPressed(QPointF mousePosition);
 
@@ -276,10 +275,6 @@ private:
     QStringList getChildrenKind();
     NodeItem* getChildNodeItemFromNode(Node* child);
     QPointF isOverGrid(const QPointF centerPosition);
-
-
-
-
 
     //QPixmap iconPixmap;
     //QImage iconImage;

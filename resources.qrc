@@ -93,7 +93,6 @@
         <file>Resources/Icons/alignVertically.png</file>
         <file>Resources/Icons/hardwareConnections.png</file>
         <file>Resources/Icons/connections.png</file>
-        <file>Resources/Icons/connectedHardwareNode.png</file>
         <file>Resources/Icons/toolbar.png</file>
         <file>Resources/Icons/grid.png</file>
         <file>Resources/Icons/back.png</file>
@@ -103,12 +102,6 @@
         <file>Resources/Icons/exportSnippet.png</file>
         <file>Resources/Icons/importSnippet.png</file>
         <file>Resources/Icons/medea.png</file>
-        <file>Resources/Icons/connected_Linux_amd64.png</file>
-        <file>Resources/Icons/connected_Linux_arm.png</file>
-        <file>Resources/Icons/connected_Linux_x86.png</file>
-        <file>Resources/Icons/connected_Windows7_amd64.png</file>
-        <file>Resources/Icons/connected_Windows7_arm.png</file>
-        <file>Resources/Icons/connected_Windows7_x86.png</file>
         <file>Resources/Icons/Linux_amd64.png</file>
         <file>Resources/Icons/Linux_arm.png</file>
         <file>Resources/Icons/Linux_x86.png</file>
@@ -128,5 +121,6 @@
         <file>Resources/Icons/BehaviourDefinitions.png</file>
         <file>Resources/Icons/HardwareDefinitions.png</file>
         <file>Resources/Icons/InterfaceDefinitions.png</file>
+        <file>Resources/Icons/warning.png</file>
     </qresource>
 </RCC>

@@ -2718,7 +2718,7 @@ void NodeView::undo()
 {
     // undo the action
     if(viewMutex.tryLock()) {
-        clearSelection();
+        //clearSelection();
         emit this->view_Undo();
     }
 }
@@ -2734,7 +2734,7 @@ void NodeView::redo()
 
     // redo the action
     if(viewMutex.tryLock()) {
-        clearSelection();
+        //clearSelection();
         emit this->view_Redo();
     }
 }

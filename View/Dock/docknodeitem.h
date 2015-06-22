@@ -44,13 +44,11 @@ signals:
 public slots:
     void clicked();
     void parentDockItemClicked(bool show);
-    void deleteLater();
 
     void updateData();
-    void setOpacity(double opacity);
+    void deleteLater();
 
     void childDockItemHidden();
-
     void highlightDockItem(Node* node);
 
 private:
@@ -58,7 +56,6 @@ private:
     void connectToNodeItem();
     void updateTextLabel();
     void updateStyleSheet();
-    QPixmap getScaledPixmap(QImage* img);
 
     DockScrollArea* parentDock;
     NodeItem* nodeItem;
@@ -71,14 +68,12 @@ private:
     QLabel* textLabel;
     QLabel* imageLabel;
 
-    QPixmap defaultPixmap;
-    QPixmap highlightPixmap;
+    QString highlightColor;
 
     bool fileLabel;
     bool expanded;
     bool hidden;
     bool highlighted;
-
 };
 
 #endif // DOCKNODEITEM_H

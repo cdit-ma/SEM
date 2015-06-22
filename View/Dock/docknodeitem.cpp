@@ -206,7 +206,7 @@ void DockNodeItem::setupLayout()
     QFont font = textLabel->font();
     font.setPointSizeF(8);
 
-    textLabel->setFont(font);
+    textLabel->setFont(QFont(textLabel->font().family(), 8));
     textLabel->setFixedSize(width()-2, 21);
 
     if (fileLabel) {
@@ -224,37 +224,31 @@ void DockNodeItem::setupLayout()
             *image = parentDock->getNodeView()->getImage(kind);
         }
 
-        QImage* hardwareImage  = new QImage();
-        if (kind == "HardwareNode" && nodeItem) {
+        if (nodeItem && kind == "HardwareNode") {
             QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
             QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
             QString hardwareKind = hardwareOS + "_" + hardwareArch;
             if (parentDock && parentDock->getNodeView()) {
                 *image = parentDock->getNodeView()->getImage(hardwareKind);
-                *hardwareImage = parentDock->getNodeView()->getImage("connected_" + hardwareKind);
             }
+            highlightColor = "rgba(90,150,200,210)";
         }
 
         if (!image) {
-            qDebug() << "DockNodeItem::setupLayout - Image is null";
+            qWarning() << "DockNodeItem::setupLayout - Image is null";
         }
 
-        QPixmap scaledPixmap = getScaledPixmap(image);
-
-        // if this dock item's kind is a HardwareNode, store 2 scaled
-        // images to switch between for when highlighting dock item
-        if (kind == "HardwareNode") {
-            defaultPixmap = scaledPixmap;
-            highlightPixmap = getScaledPixmap(hardwareImage);
-            //highlightColor = "rgba(90,150,200)";
-        }
+        QPixmap scaledPixmap = QPixmap::fromImage(image->scaled(width(),
+                                             height()-textLabel->height(),
+                                             Qt::KeepAspectRatio,
+                                             Qt::SmoothTransformation));
 
         imageLabel = new QLabel(this);
-        imageLabel->setBackgroundRole(QPalette::Base);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         imageLabel->setPixmap(scaledPixmap);
         layout->addWidget(imageLabel);
         layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+
     }
 
     layout->addWidget(textLabel);
@@ -263,13 +257,12 @@ void DockNodeItem::setupLayout()
     setFlat(true);
     setLayout(layout);
     setStyleSheet("QPushButton{"
-                  "background-color: rgba(200,0,0,0);"
-                  "margin: 0px;"
-                  "padding: 0px;"
+                  "border-radius: 5px;"
+                  "background-color: rgba(0,0,0,0);"
                   "}"
-                  "QPushButton:hover{ "
+                  "QPushButton:hover{"
                   "border: 1px solid black;"
-                  "border-radius: 5px; }");
+                  "}");
 }
 
 
@@ -335,25 +328,6 @@ void DockNodeItem::updateStyleSheet()
 
 
 /**
- * @brief DockNodeItem::getScaledPixmap
- * @param img
- * @return
- */
-QPixmap DockNodeItem::getScaledPixmap(QImage* img)
-{
-    if (!img) {
-        return QPixmap();
-    }
-
-    QImage scaledImage = img->scaled(width(),
-                                     height()-textLabel->height(),
-                                     Qt::KeepAspectRatio,
-                                     Qt::SmoothTransformation);
-    return QPixmap::fromImage(scaledImage);
-}
-
-
-/**
  * @brief DockNodeItem::buttonPressed
  * This is called whenever this dock item is clicked.
  * If it's a file label, show/hide its children and update the textLabel.
@@ -412,23 +386,6 @@ void DockNodeItem::updateData()
 
 
 /**
- * @brief DockNodeItem::setOpacity
- * This disables this button when SHIFT is held down and the currently
- * selected node can't be connected to this button.
- * @param opacity
- */
-void DockNodeItem::setOpacity(double opacity)
-{
-    if (opacity < 1) {
-        setEnabled(false);
-    } else {
-        setEnabled(true);
-    }
-    ///repaint();
-}
-
-
-/**
  * @brief DockNodeItem::childHidden
  * This is called whenever a File's child dock item is hidden.
  * If all of the File's children dock items are hidden, hide the File label.
@@ -457,14 +414,23 @@ void DockNodeItem::childDockItemHidden()
  */
 void DockNodeItem::highlightDockItem(Node *node)
 {
+    QString backgroundColor = "rgba(0,0,0,0);";
+    QString hoverBorder = "1px solid black;";
+
     if (node && node == getNodeItem()->getNode()) {
-        if (!highlighted) {
-            imageLabel->setPixmap(highlightPixmap);
-            highlighted = true;
+        if (highlighted) {
+            return;
         }
-    } else {
-        imageLabel->setPixmap(defaultPixmap);
-        highlighted = false;
+        backgroundColor = highlightColor;
+        hoverBorder = "none;";
     }
+
+    setStyleSheet("QPushButton{"
+                  "border-radius: 5px;"
+                  "background-color:" + backgroundColor +
+                  "}"
+                  "QPushButton:hover{"
+                  "border:" + hoverBorder +
+                  "}");
 }
 

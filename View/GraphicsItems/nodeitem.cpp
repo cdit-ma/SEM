@@ -716,9 +716,9 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawImage(lockIconRect(), getNodeView()->getImage("lock"));
     }
 
-    //If this Node has a Deployment Warning, paint a Red Hardware Icon
+    //If this Node has a Deployment Warning, paint a warning Icon
     if(showDeploymentWarningIcon){
-        painter->drawImage(deploymentIconRect(), getNodeView()->getImage("redHardwareNode"));
+        painter->drawImage(deploymentIconRect(), getNodeView()->getImage("warning"));
     }
 }
 
@@ -1622,12 +1622,26 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         return;
     }
 
+    QString tooltip;
     bool changedCursor = false;
+
     if(hasVisibleChildren() && iconPressed(event->pos())){
         setCursor(Qt::PointingHandCursor);
         changedCursor = true;
+        tooltip = "Double-click to expand/contract entity.";
     }
 
+    // show tool tips
+    QPointF eventPos = event->pos();
+    if (labelPressed(eventPos)) {
+        //tooltip = ;
+    } else if (lockIconRect().contains(eventPos)) {
+        tooltip = "This entity instance has a definition.";
+    } else if (deploymentIconRect().contains(eventPos)) {
+        tooltip = "Not all children entities are deployed to the same hardware node.";
+    }
+
+    setToolTip(tooltip);
 
     if(!isExpanded() || !hasVisibleChildren()){
         return;
