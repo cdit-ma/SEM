@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QLabel>
 
+class DockScrollArea;
 
 class DockNodeItem : public QPushButton
 {
@@ -59,6 +60,7 @@ private:
     void updateStyleSheet();
     QPixmap getScaledPixmap(QImage* img);
 
+    DockScrollArea* parentDock;
     NodeItem* nodeItem;
     DockNodeItem* parentDockItem;
     QList<DockNodeItem*> childrenDockItems;

@@ -14,6 +14,7 @@
 DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
     QPushButton(parent)
 {
+    parentDock = dynamic_cast<DockScrollArea*>(parent);
     nodeItem = item;
     parentDockItem = 0;
     fileLabel = false;
@@ -218,21 +219,34 @@ void DockNodeItem::setupLayout()
 
     if (!fileLabel) {
 
-        QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
-        QPixmap scaledPixmap = getScaledPixmap(image);
+        QImage* image = new QImage();
+        if (parentDock && parentDock->getNodeView()) {
+            *image = parentDock->getNodeView()->getImage(kind);
+        }
 
+        QImage* hardwareImage = 0;
         if (kind == "HardwareNode" && nodeItem) {
             QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
             QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
             QString hardwareKind = hardwareOS + "_" + hardwareArch;
+            if (parentDock && parentDock->getNodeView()) {
+                *image = parentDock->getNodeView()->getImage(hardwareKind);
+                *hardwareImage = parentDock->getNodeView()->getImage("connected_" + hardwareKind);
+            }
+        }
 
-            image = new QImage(":/Resources/Icons/" + hardwareKind + ".png");
-            scaledPixmap = getScaledPixmap(image);
+        if (!image) {
+            qDebug() << "DockNodeItem::setupLayout - Image is null";
+        }
 
-            // if this dock item's kind is a HardwareNode, store 2 scaled
-            // images to switch between for when highlighting dock item
+        QPixmap scaledPixmap = getScaledPixmap(image);
+
+        // if this dock item's kind is a HardwareNode, store 2 scaled
+        // images to switch between for when highlighting dock item
+        if (kind == "HardwareNode") {
             defaultPixmap = scaledPixmap;
-            highlightPixmap = getScaledPixmap(new QImage(":/Resources/Icons/connected_" + hardwareKind + ".png"));
+            highlightPixmap = getScaledPixmap(hardwareImage);
+            //highlightColor = "rgba(90,150,200)";
         }
 
         imageLabel = new QLabel(this);
@@ -327,6 +341,10 @@ void DockNodeItem::updateStyleSheet()
  */
 QPixmap DockNodeItem::getScaledPixmap(QImage* img)
 {
+    if (!img) {
+        return QPixmap();
+    }
+
     QImage scaledImage = img->scaled(width(),
                                      height()-textLabel->height(),
                                      Qt::KeepAspectRatio,

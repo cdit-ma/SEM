@@ -271,10 +271,10 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
 
     QString dockItemLabel = dockItem->getLabel();
 
-	return;
 	if(!layout){
-		
+        return;
 	}
+
     // iterate through the items in this dock's layout
     for (int i = 0; i < layout->count(); i++) {
 
