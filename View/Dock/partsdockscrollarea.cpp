@@ -60,7 +60,7 @@ void PartsDockScrollArea::updateDock()
 
     // update list of currently displayed dock node items
     displayedItems = newDisplayedItems;
-}
+ }
 
 
 /**
@@ -80,8 +80,6 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
         DockNodeItem *item = new DockNodeItem(nodeKinds.at(i), 0, this);
         addDockNodeItem(item);
     }
-
-    //repaint();
 
     // initialise list of displayed items
     displayedItems = nodeKinds;

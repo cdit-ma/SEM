@@ -248,6 +248,14 @@ void DockNodeItem::setupLayout()
 
     setFlat(true);
     setLayout(layout);
+    setStyleSheet("QPushButton{"
+                  "background-color: rgba(200,0,0,0);"
+                  "margin: 0px;"
+                  "padding: 0px;"
+                  "}"
+                  "QPushButton:hover{ "
+                  "border: 1px solid black;"
+                  "border-radius: 5px; }");
 }
 
 
@@ -324,33 +332,6 @@ QPixmap DockNodeItem::getScaledPixmap(QImage* img)
                                      Qt::KeepAspectRatio,
                                      Qt::SmoothTransformation);
     return QPixmap::fromImage(scaledImage);
-}
-
-
-/**
- * @brief DockNodeItem::paintEvent
- * Change the node image (button icon) depending on the node type.
- * @param e
- */
-void DockNodeItem::paintEvent(QPaintEvent *e)
-{
-    QString onHoverStyleSheet;
-    if (highlighted) {
-        onHoverStyleSheet = "";
-    } else {
-        onHoverStyleSheet = "QPushButton:hover{ "
-                "border: 1px solid black;"
-                "border-radius: 5px; }";
-    }
-
-    setStyleSheet("QPushButton{"
-                  "background-color: rgba(200,0,0,0);"
-                  "margin: 0px;"
-                  "padding: 0px;"
-                  "}"
-                  + onHoverStyleSheet);
-
-    QPushButton::paintEvent(e);
 }
 
 

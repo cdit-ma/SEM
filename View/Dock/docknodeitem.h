@@ -32,9 +32,6 @@ public:
     bool isFileLabel();
     bool isExpanded();
 
-protected:
-    void paintEvent(QPaintEvent* e);
-
 signals:
     void dockItem_clicked();
     void dockItem_fileClicked(bool show);
