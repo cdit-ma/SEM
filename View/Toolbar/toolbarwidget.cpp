@@ -877,7 +877,7 @@ void ToolbarWidget::setupComponentList(QList<Node*> components, QString kind)
 
             // search for the Component's parent File action then add the Component's action to its menu
             if (fileID == fileAction->getNode()->getID()) {
-                ToolbarWidgetAction* action = new ToolbarWidgetAction(components.at(i), fileMenu, "");
+                ToolbarWidgetAction* action = new ToolbarWidgetAction(components.at(i), fileMenu);
                 connect(action, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
                 fileAction->getMenu()->addWidgetAction(action);
                 break;
