@@ -1047,8 +1047,6 @@ void NodeView::moveViewForward()
  */
 void NodeView::highlightDeployment(Node* selectedNode)
 {
-    qDebug() << "highlightDeployment";
-
     // clear highlighted node items
     if (guiItems.contains(prevSelectedNodeID)) {
         GraphMLItem* item = guiItems[prevSelectedNodeID];
@@ -1077,8 +1075,6 @@ void NodeView::highlightDeployment(Node* selectedNode)
         prevSelectedNodeID = "";
         justClearing = true;
     }
-
-    qDebug() << "justClearing: " << justClearing;
 
     // check if any ComponentAssemblies, ComponentInstances or ManagementComponents
     // have children deployed to a different node; show red hardware icon

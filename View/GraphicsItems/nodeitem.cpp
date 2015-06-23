@@ -514,7 +514,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
 
-        // scale the highlighted border
+        // highlighted border
         if (highlighted && getNodeView()){
             qreal penWidth = qMax(5.0/ getNodeView()->transform().m11(), 1.0);
             Pen.setWidth(penWidth);
