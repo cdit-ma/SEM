@@ -48,7 +48,10 @@ public slots:
     virtual void updateDock();
 
     void updateCurrentNodeItem();
+
     void nodeDeleted(QString nodeID, QString parentID);
+    void nodeDeleted(QString ID);
+
     void removeDockNodeItemFromList(DockNodeItem* item);
 
     void activate();

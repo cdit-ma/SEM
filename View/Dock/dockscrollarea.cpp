@@ -231,6 +231,20 @@ void DockScrollArea::nodeDeleted(QString nodeID, QString parentID)
 
 
 /**
+ * @brief DockScrollArea::nodeDeleted
+ * @param ID
+ */
+void DockScrollArea::nodeDeleted(QString ID)
+{
+    if (ID == getCurrentNodeID()) {
+        currentNodeItemID = "-1";
+    }
+    // need to check if current node item is the parent of the deleted node
+    // if so, need to update dock
+}
+
+
+/**
  * @brief DockScrollArea::paintEvent
  * Still trying to catch when the scrollbar appears/disappears to adjust dock size.
  * @param e

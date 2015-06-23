@@ -625,6 +625,21 @@ void NodeView::actionFinished()
 
     updateActionsEnabled();
 
+    // TODO
+    // added this here to update docks when a graphical item is deleted
+    // will need to have the same parameters as old signals
+    // deletedItems is populated in destructGUIItem()
+    // still need a signal for when edges are deleted - with srcID & dstID
+    foreach (QString ID, deletedItems.keys()) {
+        GraphML::KIND kind = deletedItems.value(ID);
+        if (kind == GraphML::NODE) {
+            emit view_NodeDeleted(ID);
+        } else if (kind == GraphML::EDGE) {
+            //emit view_EdgeDeleted(ID);
+        }
+    }
+    deletedItems.clear();
+
     viewMutex.unlock();
 }
 
@@ -3053,6 +3068,7 @@ void NodeView::constructGUIItem(GraphML *item){
 void NodeView::destructGUIItem(QString ID, GraphML::KIND kind)
 {
     removeGraphMLItemFromHash(ID);
+    deletedItems[ID] = kind;
 }
 
 

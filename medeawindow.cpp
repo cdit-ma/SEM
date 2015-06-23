@@ -1221,11 +1221,17 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
 
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
+    //connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
 
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
+    //connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
+    //connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
+    //connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
+
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString)), this, SLOT(graphicsItemDeleted()));
+
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString)), partsDock, SLOT(nodeDeleted(QString)));
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString)), hardwareDock, SLOT(nodeDeleted(QString)));
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString)), definitionsDock, SLOT(nodeDeleted(QString)));
 
     connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
@@ -1241,10 +1247,10 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
 
-    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
+    //connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
 
-    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), definitionsDock, SLOT(refreshDock()));
+    //connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
+    //connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), definitionsDock, SLOT(refreshDock()));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
@@ -2738,10 +2744,12 @@ void MedeaWindow::graphicsItemDeleted()
 
     // added this here for when edges are deleted
     // we need to check first if there's a selected node before clearing the deployment highlight
+    /*
     if (nodeView) {
         qDebug() << "Edge deleted";
         emit window_highlightDeployment(nodeView->getSelectedNode());
     }
+    */
 }
 
 

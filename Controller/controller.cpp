@@ -739,6 +739,8 @@ bool NewController::_copy(QStringList IDs)
         controller_SetClipboardBuffer(result);
 
         success = true;
+    } else {
+        emit controller_DisplayMessage(WARNING, "Error", "Cannot copy/cut selection.", parent->getID());
     }
     return success;
 }
@@ -766,16 +768,18 @@ bool NewController::_remove(QStringList IDs, bool addAction)
             GraphML* graphML = getGraphMLFromID(ID);
             if(graphML){
                 if(graphML->isNode()){
-                    destructNode((Node*)graphML);
+                    //destructNode((Node*)graphML);
+                    success = destructNode((Node*)graphML);
                 }else if (graphML->isEdge()){
-                    destructEdge((Edge*)graphML);
+                    //destructEdge((Edge*)graphML);
+                    success = destructEdge((Edge*)graphML);
                 }
             }
             //Add any related ID's which need deleting to the top of the stack.
             IDs = connectedLinkedIDs + IDs;
         }
         controller_ViewSetEnabled(true);
-        success = true;
+        //success = true;
     }
     return success;
 }
@@ -1187,7 +1191,7 @@ void NewController::removeGraphMLFromHash(QString ID)
         GraphML* item = IDLookupGraphMLHash[ID];
         if(item)
         {
-            controller_GraphMLDestructed(ID, item->getKind());
+            emit controller_GraphMLDestructed(ID, item->getKind());
         }else
         {
             qCritical() << "GOT ITEM NOT IN CONTROLLER HASH";

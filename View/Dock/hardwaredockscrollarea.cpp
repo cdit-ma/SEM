@@ -135,6 +135,16 @@ void HardwareDockScrollArea::edgeDeleted(QString srcID, QString dstID)
 
 
 /**
+ * @brief HardwareDockScrollArea::edgeDeleted
+ * @param ID
+ */
+void HardwareDockScrollArea::edgeDeleted(QString ID)
+{
+    // do check here
+}
+
+
+/**
  * @brief HardwareDockScrollArea::nodeConstructed
  * This gets called whenever a node has been constructed.
  * It checks to see if a dock item needs to be constucted for the new node.

@@ -21,7 +21,9 @@ public slots:
     void refreshDock();
 
     void nodeConstructed(NodeItem* nodeItem);
+
     void edgeDeleted(QString srcID, QString dstID);
+    void edgeDeleted(QString ID);
 
 private:
     Edge* getHardwareConnection(Node* selectedNode);

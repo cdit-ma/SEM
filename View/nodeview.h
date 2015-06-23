@@ -82,8 +82,11 @@ private slots:
 
 signals:
     void view_ModelSizeChanged();
-    void view_NodeDeleted(QString childID, QString parentID="");
-    void view_EdgeDeleted(QString srcID, QString dstID);
+
+    //void view_NodeDeleted(QString childID, QString parentID="");
+    //void view_EdgeDeleted(QString srcID, QString dstID);
+    void view_NodeDeleted(QString ID);
+    void view_EdgeDeleted(QString ID);
 
     void view_SetClipboardBuffer(QString);
     void view_UndoListChanged(QStringList);
@@ -414,7 +417,9 @@ private:
     int currentMapKey;
     QMap<int, QPointF> modelPositions;
     QMap<int, QRectF> centeredRects;
+
     QHash<QString, QImage> imageLookup;
+    QHash<QString, GraphML::KIND> deletedItems;
 
     QMenu* prevLockMenuOpened;
 
