@@ -64,7 +64,7 @@ private:
     void setupInstancesList(QList<Node*> instances);
 
     void setupAdoptableNodesList(QStringList nodeKinds);
-    void setupLegalNodesList(QList<Node*> nodeList);
+    void setupLegalNodesList(QList<NodeItem *> nodeList);
 
     void setupFilesList(QList<Node*> files, QString kind);
     void setupComponentList(QList<Node*> components, QString kind);

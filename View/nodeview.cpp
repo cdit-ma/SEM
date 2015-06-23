@@ -491,15 +491,28 @@ QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIN
 }
 
 
-QStringList NodeView::getAdoptableNodeList(Node* node)
+QStringList NodeView::getAdoptableNodeList(QString ID)
 {
-    return controller->getAdoptableNodeKinds(node);
+    return controller->getAdoptableNodeKinds(ID);
 }
 
 
-QList<Node*> NodeView::getConnectableNodes(Node* node)
+QStringList NodeView::getConnectableNodes(QString ID)
 {
-    return controller->getConnectableNodes(node);
+    return controller->getConnectableNodes(ID);
+}
+
+QList<NodeItem *> NodeView::getConnectableNodeItems(QString ID)
+{
+    QList<NodeItem*> nodeItems;
+    QStringList IDs = controller->getConnectableNodes(ID);
+    foreach(QString cID, IDs){
+        NodeItem* nodeItem = getNodeItemFromID(cID);
+        if(nodeItem){
+            nodeItems.append(nodeItem);
+        }
+    }
+    return nodeItems;
 }
 
 
@@ -592,6 +605,13 @@ void NodeView::actionFinished()
     viewMutex.unlock();
 }
 
+void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID)
+{
+    int reply = QMessageBox::question(this, title, message, QMessageBox::Yes | QMessageBox::No);
+    bool yes = reply == QMessageBox::Yes;
+    emit view_QuestionAnswered(yes);
+}
+
 void NodeView::setAttributeModel(GraphMLItem *item)
 {
     if(item){
@@ -607,7 +627,7 @@ void NodeView::importProjects(QStringList xmlDataList)
 {
     if(!xmlDataList.isEmpty()){
         if(viewMutex.tryLock()){
-            emit this->view_ImportProjects(xmlDataList);
+            emit view_ImportProjects(xmlDataList);
         }
     }
 }
@@ -620,12 +640,16 @@ void NodeView::loadJenkinsNodes(QString fileData)
 
 void NodeView::exportSnippet()
 {
-    view_ExportSnippet(selectedIDs);
+    if(viewMutex.tryLock()){
+        emit view_ExportSnippet(selectedIDs);
+    }
 }
 
 void NodeView::importSnippet(QString fileName, QString fileData)
 {
-    view_ImportedSnippet(selectedIDs, fileName, fileData);
+    if(viewMutex.tryLock()){
+        emit view_ImportedSnippet(selectedIDs, fileName, fileData);
+    }
 }
 
 void NodeView::minimapPressed(QMouseEvent *event)
@@ -2210,6 +2234,16 @@ NodeItem *NodeView::getNodeItemFromNode(Node *node)
     return getNodeItemFromGraphMLItem(getGraphMLItemFromGraphML(node));
 }
 
+NodeItem *NodeView::getNodeItemFromID(QString ID)
+{
+    NodeItem* node = 0;
+    GraphMLItem* g = getGraphMLItemFromHash(ID);
+    if(g && g->isNodeItem()){
+        node = (NodeItem*) g;
+    }
+    return node;
+}
+
 GraphMLItem *NodeView::getGraphMLItemFromHash(QString ID)
 {
     if(guiItems.contains(ID)){
@@ -2599,23 +2633,24 @@ void NodeView::setEnabled(bool enabled)
 }
 
 
-void NodeView::showDialogMessage(MESSAGE_TYPE type, QString title, QString message, GraphML *item, bool centralizeItem)
+void NodeView::showMessage(MESSAGE_TYPE type, QString title, QString message, QString ID, bool centralizeItem)
 {
+    GraphMLItem* item = getGraphMLItemFromHash(ID);
     if(item && centralizeItem){
-        centerItem(getGraphMLItemFromGraphML(item));
+        centerItem(item);
     }
     if(message != ""){
         if(type == CRITICAL){
             QMessageBox::critical(this, "Error: " + title, message, QMessageBox::Ok);
         }else if(type == WARNING){
             //QMessageBox::warning(this, "Warning: " + title, message, QMessageBox::Ok);
-            view_displayNotification(message);
+            emit view_displayNotification(message);
         }else{
             //QMessageBox::information(this, "Message: " + title, message, QMessageBox::Ok);
             if (type == MODEL) {
                 QMessageBox::information(this, "Message: " + title, message, QMessageBox::Ok);
             } else {
-                view_displayNotification(message);
+                emit view_displayNotification(message);
             }
         }
     }

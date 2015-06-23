@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <QDateTime>
 #include <QMessageBox>
+#include <QEventLoop>
 
 #define USE_LOGGING true
 
@@ -14,6 +15,7 @@ bool SETUP_AS_IMPL = false;
 
 NewController::NewController()
 {
+    qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
 
     logFile = new QFile("output.log");
     if (!logFile->open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text)){
@@ -98,22 +100,27 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(controller_ActionProgressChanged(int,QString)), view, SIGNAL(view_updateProgressStatus(int,QString)));
 
         //Signals to the View.
-        connect(this, SIGNAL(controller_DialogMessage(MESSAGE_TYPE, QString, QString, GraphML*)), view, SLOT(showDialogMessage(MESSAGE_TYPE,QString, QString, GraphML*)));
+        connect(this, SIGNAL(controller_DisplayMessage(MESSAGE_TYPE, QString, QString, QString)), view, SLOT(showMessage(MESSAGE_TYPE,QString,QString,QString)));
 
         // Re-added this for now
         connect(this, SIGNAL(componentInstanceConstructed(Node*)), view, SLOT(componentInstanceConstructed(Node*)));
         connect(this, SIGNAL(controller_ExportedSnippet(QString,QString)), view, SIGNAL(view_ExportedSnippet(QString,QString)));
 
+        connect(this, SIGNAL(controller_AskQuestion(MESSAGE_TYPE, QString, QString, QString)), view, SLOT(showQuestion(MESSAGE_TYPE,QString,QString,QString)));
+
+        connect(view, SIGNAL(view_QuestionAnswered(bool)), this, SLOT(gotQuestionAnswer(bool)));
     }
 
     if(view->isMainView()){
         connect(this, SIGNAL(controller_ActionFinished()), view, SLOT(actionFinished()));
         connect(view, SIGNAL(view_Duplicate(QStringList)), this, SLOT(replicate(QStringList)));
         //File SLOTS
-        connect(view, SIGNAL(view_ExportProject()), this, SLOT(exportGraphMLDocument()));
+        connect(view, SIGNAL(view_ExportProject()), this, SLOT(exportProject()));
         connect(view, SIGNAL(view_ImportProjects(QStringList)), this, SLOT(importProjects(QStringList)));
-        connect(view, SIGNAL(view_ImportedSnippet(QStringList ,QString ,QString)), this, SLOT(importSelectionSnippet(QStringList,QString,QString)));
-        connect(view, SIGNAL(view_ExportSnippet(QStringList)), this, SLOT(exportSelectionSnippet(QStringList)));
+
+
+        connect(view, SIGNAL(view_ImportedSnippet(QStringList,QString,QString)), this, SLOT(importSnippet(QStringList,QString,QString)));
+        connect(view, SIGNAL(view_ExportSnippet(QStringList)), this, SLOT(exportSnippet(QStringList)));
 
         //Edit SLOTS
         connect(view, SIGNAL(view_Undo()), this, SLOT(undo()));
@@ -211,11 +218,11 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
             }else if(containsSrc || containsDst){
                 if((edge->isAggregateLink() || edge->isInstanceLink() || edge->isImplLink() || edge->isDelegateLink())){
                     if(GUI_USED){
-                        controller_DialogMessage(MESSAGE, "", "", src);
-                        int reply = QMessageBox::question(0, "Copy Selection", "The current selection contains edges that are not fully encapsulated. Would you like to copy these edges?", QMessageBox::Yes | QMessageBox::No);
-                        if (reply == QMessageBox::Yes) {
-                            exportAllEdges = true;
-                        }
+                        controller_DisplayMessage(MESSAGE, "", "", src->getID());
+
+                        exportAllEdges = askQuestion(CRITICAL, "Copy Selection?", "The current selection contains edges that are not fully encapsulated. Would you like to copy these edges?", src->getID());
+
+
                         GUI_USED = false;
                     }
                     if(exportAllEdges){
@@ -286,13 +293,6 @@ QStringList NewController::getConstructableNodeKinds()
 
 
 
-void NewController::exportGraphMLDocument()
-{
-    if(model){
-        QString data = _exportGraphMLDocument(model);
-        controller_ExportedProject(data);
-    }
-}
 
 bool NewController::clearModel()
 {
@@ -627,7 +627,7 @@ bool NewController::_paste(QString ID, QString xmlData, bool addAction)
 
     Node* parentNode = getNodeFromID(ID);
     if(!parentNode){
-        controller_DialogMessage(WARNING, "Paste" ,"Please select an entity to paste into.");
+        controller_DisplayMessage(WARNING, "Paste" ,"Please select an entity to paste into.");
         success = false;
     }else{
         if(isGraphMLValid(xmlData) && xmlData != ""){
@@ -693,7 +693,7 @@ bool NewController::_copy(QStringList IDs)
 /**
  * @brief NewController::_remove - Removes the selection of GraphML Entities from their IDs
  * @param IDs - The ID's of the entities to remove.
- * @param triggerAction - Adds a Action in the Undo/Redo Stack
+ * @param addAction - Adds a Action in the Undo/Redo Stack
  * @return Action successful.
  */
 bool NewController::_remove(QStringList IDs, bool addAction)
@@ -727,6 +727,12 @@ bool NewController::_remove(QStringList IDs, bool addAction)
     return success;
 }
 
+/**
+ * @brief NewController::_replicate
+ * @param IDs
+ * @param addAction - Adds a Action in the Undo/Redo Stack
+ * @return Action successful.
+ */
 bool NewController::_replicate(QStringList IDs, bool addAction)
 {
     bool success = false;
@@ -746,6 +752,12 @@ bool NewController::_replicate(QStringList IDs, bool addAction)
     return success;
 }
 
+/**
+ * @brief NewController::_importProjects
+ * @param xmlDataList
+ * @param addAction - Adds a Action in the Undo/Redo Stack
+ * @return Action successful.
+ */
 bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
 {
     bool success = false;
@@ -759,7 +771,7 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
         foreach(QString xmlData, xmlDataList){
             bool result = _importGraphMLXML(xmlData, getModel());
             if(!result){
-                controller_DialogMessage(CRITICAL, "Import Error", "Cannot import document.", getModel());
+                controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
             }
         }
 
@@ -767,6 +779,90 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
         success = true;
     }
     return success;
+}
+
+/**
+ * @brief NewController::_importSelectionSnippet Imports a Snippet into a selection.
+ * @param IDs The selected ID to import into.
+ * @param fileName The name of the snippet filename.
+ * @param fileData The GraphML data in the snippet.
+ * @param addAction - Adds a Action in the Undo/Redo Stack
+ * @return Action successful.
+ */
+bool NewController::_importSnippet(QStringList IDs, QString fileName, QString fileData, bool addAction)
+{
+    bool success = false;
+    if(canImportSnippet(IDs)){
+        Node* parent = getSingleNode(IDs);
+        if(parent){
+            QStringList fileNameSplit = fileName.split('.');
+            if(fileNameSplit.length() != 3){
+                return false;
+            }
+
+            QString userFileName = fileNameSplit[0];
+            QString fileParentKind = fileNameSplit[1];
+            QString fileFormat = fileNameSplit[2];
+
+
+            //Valide the fileParentKind
+            if(fileParentKind != parent->getDataValue("kind")){
+                return false;
+            }
+
+            //Validate fileFormat
+            if(fileFormat != "graphml" && fileFormat != "snippet"){
+                return false;
+            }
+
+            if(addAction){
+                triggerAction("Importing Snippet: " + userFileName);
+            }
+            IMPORTING_SNIPPET = true;
+            success = _importGraphMLXML(fileData, parent, false, false);
+            IMPORTING_SNIPPET = false;
+        }
+    }
+    return success;
+}
+
+/**
+ * @brief NewController::_exportSnippet Exports a selection of GraphML entities.
+ * @param IDs - The IDs of the entities to try and export.
+ * @return Action successful.
+ */
+bool NewController::_exportSnippet(QStringList IDs)
+{
+    bool success = false;
+    if(canExportSnippet(IDs)){
+        CUT_USED = false;
+
+        //Export the GraphML for those Nodes.
+        QString graphmlRepresentation = _exportGraphMLDocument(IDs, false, false);
+
+        Node* parent = getSharedParent(IDs);
+        QString parentKind = parent->getDataValue("kind");
+        if(parent && parentKind != "" && graphmlRepresentation != ""){
+            controller_ExportedSnippet(parentKind, graphmlRepresentation);
+            success = true;
+        }
+    }
+    return success;
+}
+
+/**
+ * @brief NewController::_exportProject Exports the Entire GraphML Model.
+ * Calls controller_ExportedProject on success.
+ * @return Action successful.
+ */
+bool NewController::_exportProject()
+{
+    if(model){
+        QString data = _exportGraphMLDocument(model);
+        controller_ExportedProject(data);
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -815,9 +911,11 @@ void NewController::constructConnectedComponents(Node *parent, Node *connectedNo
 
 
 
-QStringList NewController::getAdoptableNodeKinds(Node *parent)
+QStringList NewController::getAdoptableNodeKinds(QString ID)
 {
     QStringList adoptableNodeTypes;
+
+    Node* parent = getNodeFromID(ID);
 
     if(parent){
         foreach(QString nodeKind, getNodeKinds(parent)){
@@ -840,15 +938,17 @@ QStringList NewController::getAdoptableNodeKinds(Node *parent)
     return adoptableNodeTypes;
 }
 
-QList<Node *> NewController::getConnectableNodes(Node *src)
+QStringList NewController::getConnectableNodes(QString srcID)
 {
-    QList<Node*> legalNodes;
-
-    foreach (QString ID, nodeIDs) {
-        Node* dst = getNodeFromID(ID);
-        if(src && dst && dst != src){
-            if (src->canConnect(dst)){
-                legalNodes.append(dst);
+    QStringList legalNodes;
+    Node* src = getNodeFromID(srcID);
+    if(src){
+        foreach (QString ID, nodeIDs) {
+            Node* dst = getNodeFromID(ID);
+            if(dst && ID != srcID){
+                if (src->canConnect(dst)){
+                    legalNodes.append(ID);
+                }
             }
         }
     }
@@ -920,7 +1020,7 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         attribute->appendValidValues(validValues, keysValues);
     }
 
-    connect(attribute, SIGNAL(model_DialogMessage(QString,QString,GraphML*)), this, SLOT(dialogMessage(QString,QString,GraphML*)));
+    connect(attribute, SIGNAL(model_DisplayMessage(QString,QString,QString)), this, SLOT(displayMessage(QString,QString,QString)));
     //Add it to the list of GraphMLKeys.
     keys.append(attribute);
     return attribute;
@@ -2824,10 +2924,17 @@ Model *NewController::getModel()
     return model;
 }
 
-void NewController::dialogMessage(QString title, QString message, GraphML *item)
+/**
+ * @brief NewController::displayMessage Called by the Model when a message needs to be visualised
+ * Emits controller_DisplayMessage
+ * @param title - The title of the message
+ * @param message - The message
+ * @param ID - The entity ID of which the message relates to.
+ */
+void NewController::displayMessage(QString title, QString message, QString ID)
 {
-    controller_DialogMessage(MODEL, title, message, item);
-
+    //Emit a signal to the view.
+    emit controller_DisplayMessage(MODEL, title, message, ID);
 }
 
 void NewController::setGraphMLData(QString parentID, QString keyName, QString dataValue, bool addAction)
@@ -2849,72 +2956,59 @@ void NewController::importProjects(QStringList xmlDataList)
     emit controller_ActionFinished();
 }
 
-void NewController::exportSelectionSnippet(QStringList selection)
+/**
+ * @brief NewController::exportProject
+ */
+void NewController::exportProject()
 {
-
-    if(!canExportSnippet(selection)){
-        return;
-    }
-
-    CUT_USED = false;
-    //Export the GraphML for those Nodes.
-    QString result = _exportGraphMLDocument(selection, false, false);
-
-    Node* parent = getSharedParent(selection);
-    if(!parent){
-        return;
-    }
-    QString parentKind = parent->getDataValue("kind");
-
-    if(parentKind != "" && result != ""){
-        controller_ExportedSnippet(parentKind, result);
-    }
+    _exportProject();
+    emit controller_ActionFinished();
 }
 
 /**
- * @brief NewController::importSelectionSnippet
- * @param selection the Selection which should only contain 1 node.
- * @param fileName the name of file (No Path) ie. LABEL.<PARENT_KIND>.snippet
- * @param fileData the XML data from the file.
+ * @brief NewController::importSnippet Imports a Snippet of GraphML into the selection defined by ID provided
+ * @param IDs - The current Selection List
+ * @param fileName - The name of the Snippet imported LABEL.<PARENT_KIND>.snippet
+ * @param fileData - The graphml data of the snippet.
  */
-void NewController::importSelectionSnippet(QStringList selection, QString fileName, QString fileData)
+void NewController::importSnippet(QStringList IDs, QString fileName, QString fileData)
 {
-    if(!canImportSnippet(selection)){
-        return;
-    }
-    Node* parent = getSingleNode(selection);
-
-    QStringList fileNameSplit = fileName.split('.');
-    if(fileNameSplit.length() != 3){
-        return;
-    }
-
-    QString userName = fileNameSplit[0];
-    QString fileParentKind = fileNameSplit[1];
-    QString fileFormat = fileNameSplit[2];
-
-
-    //Valide the fileParentKind
-    if(fileParentKind != parent->getDataValue("kind")){
-        return;
-    }
-
-    //Validate fileFormat
-    if(fileFormat != "graphml" && fileFormat != "snippet"){
-        return;
-    }
-
-    triggerAction("Importing Snippet: " + userName);
-    IMPORTING_SNIPPET = true;
-    _importGraphMLXML(fileData, parent, false, false);
-    IMPORTING_SNIPPET = false;
+    _importSnippet(IDs, fileName, fileData);
+    emit controller_ActionFinished();
 }
 
+void NewController::exportSnippet(QStringList IDs)
+{
+    _exportSnippet(IDs);
+    emit controller_ActionFinished();
+}
+
+void NewController::gotQuestionAnswer(bool answer)
+{
+    questionAnswer = answer;
+    emit controller_GotQuestionAnswer();
+}
 
 
 void NewController::clearUndoHistory()
 {
     clearHistory();
+}
+
+bool NewController::askQuestion(MESSAGE_TYPE messageType, QString questionTitle, QString question, QString ID)
+{
+    //Construct a EventLoop which waits for the View to answer the question.
+    QEventLoop waitLoop;
+    questionAnswer = false;
+
+    connect(this, SIGNAL(controller_GotQuestionAnswer()), &waitLoop, SLOT(quit()));
+
+    emit controller_AskQuestion(messageType, questionTitle, question, ID);
+
+    waitLoop.exec();
+
+    qCritical() << "GOT ANSWER: " << questionAnswer;
+    return questionAnswer;
 }
 
 Node *NewController::getSingleNode(QStringList IDs)
@@ -2963,13 +3057,13 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     if(parent->isInstance() || parent->isImpl()){
         if(!(UNDOING || REDOING || IMPORTING_SNIPPET)){
             //emit controller_DialogMessage(CRITICAL, "Error", "Cannot import or paste into an Instance/Implementation.", parent);
-            emit controller_DialogMessage(WARNING, "Error", "Cannot import or paste into an Instance/Implementation.", parent);
+            emit controller_DisplayMessage(WARNING, "Error", "Cannot import or paste into an Instance/Implementation.", parent->getID());
             return false;
         }
     }
 
     if(!isGraphMLValid(document)){
-        emit controller_DialogMessage(CRITICAL, "Import Error", "Cannot import; invalid GraphML document.", parent);
+        emit controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import; invalid GraphML document.", parent->getID());
         return false;
     }
     Node* topParent = parent;
@@ -3128,7 +3222,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 if(!newNode){
                     //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
                     qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
-                    emit controller_DialogMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent);
+                    emit controller_DisplayMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent->getID());
                     break;
                 }
 
@@ -3180,7 +3274,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         }
 
         if(!(s && d)){
-            emit controller_DialogMessage(CRITICAL, "Import Error", "Got invalid edge!");
+            emit controller_DisplayMessage(CRITICAL, "Import Error", "Got invalid edge!");
             continue;
         }
 
@@ -3227,7 +3321,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         bool retry = true;
         if(retryCount[edge.id] > maxRetry){
             if(!s->isConnected(d)){
-                emit controller_DialogMessage(CRITICAL, "Import Error", "Cannot construct edge!");
+                emit controller_DisplayMessage(CRITICAL, "Import Error", "Cannot construct edge!");
             }
             retry = false;
         }
@@ -3278,7 +3372,7 @@ bool NewController::canCopy(QStringList IDs)
         }
 
         if(node->getParentNode() != parent){
-            controller_DialogMessage(WARNING, "Error", "Can only copy or cut entities which share the same parent.", node);
+            controller_DisplayMessage(WARNING, "Error", "Can only copy or cut entities which share the same parent.", ID);
             return false;
         }
     }

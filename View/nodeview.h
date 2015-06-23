@@ -141,8 +141,10 @@ signals:
     void view_displayNotification(QString notification, int seqNum = 0, int totalNum = 1);
 
     void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
+    void view_QuestionAnswered(bool answer);
 
 public slots:
+    void showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID);
     void setAttributeModel(GraphMLItem* item);
     void importProjects(QStringList xmlDataList);
 
@@ -166,7 +168,7 @@ public slots:
     void setDefaultAspects();
     void setEnabled(bool);
 
-    void showDialogMessage(MESSAGE_TYPE type, QString title, QString message, GraphML* item = 0, bool centralizeItem = false);
+    void showMessage(MESSAGE_TYPE type, QString title, QString message, QString ID, bool centralizeItem = false);
 
     void view_ClearHistory();
     void clearView();
@@ -267,8 +269,9 @@ private:
     void addAspect(QString aspect);
     void removeAspect(QString aspect);
 
- 	QStringList getAdoptableNodeList(Node* node=0);
-    QList<Node*> getConnectableNodes(Node* node=0);
+    QStringList getAdoptableNodeList(QString ID);
+    QStringList getConnectableNodes(QString ID);
+    QList<NodeItem*> getConnectableNodeItems(QString ID);
 
     QList<Node*> getFiles();
     QList<Node*> getComponents();
@@ -281,6 +284,7 @@ private:
     void unsetItemsDescendants(GraphMLItem* selectedItem);
 
     NodeItem* getNodeItemFromNode(Node* node);
+    NodeItem* getNodeItemFromID(QString ID);
     NodeItem* getNodeItemFromGraphMLItem(GraphMLItem* item);
     EdgeItem* getEdgeItemFromGraphMLItem(GraphMLItem* item);
     GraphMLItem *getGraphMLItemFromGraphML(GraphML* item);

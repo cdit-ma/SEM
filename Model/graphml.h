@@ -76,7 +76,7 @@ signals:
     //Used to inform models if data has been removed.
     void dataRemoved(GraphMLData* data);
     void dataAdded(GraphMLData* data);
-    void model_DialogMessage(QString title, QString message, GraphML* node = 0);
+    void model_DisplayMessage(QString title, QString message, QString ID);
 public slots:
     void updateDataValue(QString key, QString value);
 

@@ -167,7 +167,7 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
         if(getName() == "label"){
             if(newValue.size() >= LABEL_TRUNCATE_LENGTH)
             {
-                model_DialogMessage("GrapMLKey Validation Issue", "Label has been truncated to the first 64 characters.", this);
+                model_DisplayMessage("GrapMLKey Validation Issue", "Label has been truncated to the first 64 characters.", data->getParent()->getID());
                 newValue.truncate(LABEL_TRUNCATE_LENGTH - 1);
             }
 
@@ -176,7 +176,7 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
             foreach(QChar letter, newValue){
 
                 if(invalidLabelCharacters.contains(letter)){
-                    model_DialogMessage("GrapMLKey Validation Issue", "Invalid characters in label. Not allowed characters are: " + invalidLabelCharacters.join(" "), this);
+                    model_DisplayMessage("GrapMLKey Validation Issue", "Invalid characters in label. Not allowed characters are: " + invalidLabelCharacters.join(" "), data->getParent()->getID());
                     ok = false;
                     break;
                 }

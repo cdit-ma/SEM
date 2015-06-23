@@ -67,10 +67,10 @@ public:
 
     QStringList getConstructableNodeKinds();
     //Returns a list of Kinds which can be adopted by a Node.
-    QStringList getAdoptableNodeKinds(Node* parent = 0);
+    QStringList getAdoptableNodeKinds(QString ID);
     //QStringList getAdoptableNodeKinds(Node* parent);
 
-    QList<Node*> getConnectableNodes(Node* src = 0);
+    QStringList getConnectableNodes(QString srcID);
     bool canCopy(QStringList selection);
     bool canCut(QStringList selection);
     bool canPaste(QStringList selection);
@@ -86,9 +86,12 @@ signals:
 
     void controller_ActionFinished();
 
+    void controller_GotQuestionAnswer();
+
 
     void controller_ActionProgressChanged(int, QString = "");
-    void controller_DialogMessage(MESSAGE_TYPE, QString, QString, GraphML* = 0);
+    void controller_DisplayMessage(MESSAGE_TYPE, QString title, QString message, QString ID="");
+    void controller_AskQuestion(MESSAGE_TYPE, QString title, QString message, QString ID="");
 
     void controller_ExportedProject(QString);
     void controller_ExportedSnippet(QString parentName, QString snippetXMLData);
@@ -123,7 +126,12 @@ private slots:
     void redo();
 
     void importProjects(QStringList xmlDataList);
+    void importSnippet(QStringList IDs, QString fileName, QString fileData);
 
+    void exportProject();
+    void exportSnippet(QStringList IDs);
+
+    void gotQuestionAnswer(bool answer);
 
 private:
     bool _paste(QString ID, QString xmlData, bool addAction = true);
@@ -132,32 +140,24 @@ private:
     bool _remove(QStringList IDs, bool addAction = true);
     bool _replicate(QStringList IDs, bool addAction = true);
     bool _importProjects(QStringList xmlDataList, bool addAction = true);
+    bool _importSnippet(QStringList IDs, QString fileName, QString fileData, bool addAction = true);
+    bool _exportSnippet(QStringList IDs);
+    bool _exportProject();
+
 
 
 private slots:
-  void dialogMessage(QString title, QString message, GraphML* item=0);
+    void displayMessage(QString title, QString message, QString ID);
 
-  void setGraphMLData(QString parentID, QString keyName, QString dataValue, bool addAction = true);
+    void setGraphMLData(QString parentID, QString keyName, QString dataValue, bool addAction = true);
 
-  void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
+    void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
 
-  void attachGraphMLData(GraphML* parent, GraphMLData* data, bool addAction = true);
-  void destructGraphMLData(GraphML* parent, QString keyName, bool addAction = true);
+    void attachGraphMLData(GraphML* parent, GraphMLData* data, bool addAction = true);
+    void destructGraphMLData(GraphML* parent, QString keyName, bool addAction = true);
 
-
-
-
-  void exportSelectionSnippet(QStringList selection);
-  void importSelectionSnippet(QStringList selection, QString fileName, QString fileData);
-
-    //Used to Export a GraphML XML document representation of the Model.
-  void exportGraphMLDocument();
-
-  // moved to public so that NodeView can access it
-  bool clearModel();
-
-
-
+    // moved to public so that NodeView can access it
+    bool clearModel();
 
     //Constructs a Node (kind = nodeKind) centered at position centerPoint
     void constructNode(Node* parentNode, QString nodeKind, QPointF centerPoint);
@@ -168,20 +168,13 @@ private slots:
     void constructComponentInstance(Node *assembly, Node* definition, QPointF point);
     void constructConnectedComponents(Node* parent, Node* connectedNode, QString kind , QPointF relativePosition);
 
-
-private slots:
-     //Edit Functionality
-
-    //void clearModel();
-
-
-
     void triggerAction(QString actionName);
     void clearUndoHistory();
 
 
 
 private:
+    bool askQuestion(MESSAGE_TYPE, QString questionTitle, QString question, QString ID);
     Node* getSingleNode(QStringList IDs);
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
@@ -372,8 +365,9 @@ private:
     int currentActionID;
     int currentActionItemID;
 
+    bool questionAnswer;
 
 
-    };
+};
 
 #endif // NEWCONTROLLER_H

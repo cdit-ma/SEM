@@ -627,8 +627,8 @@ void ToolbarWidget::updateMenuLists()
     // new list for menus instead of just clearing them
     clearMenus();
 
-    setupAdoptableNodesList(nodeView->getAdoptableNodeList(nodeItem->getNode()));
-    setupLegalNodesList(nodeView->getConnectableNodes(nodeItem->getNode()));
+    setupAdoptableNodesList(nodeView->getAdoptableNodeList(nodeItem->getID()));
+    setupLegalNodesList(nodeView->getConnectableNodeItems(nodeItem->getID()));
     setupInstancesList(nodeItem->getNode()->getInstances());
 
     // if selected node is a ComponentAssembly, get the Files and ComponentInstance lists
@@ -765,7 +765,7 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
  * This sets up the menu list of nodes the selected node item can connect to.
  * @param nodeList
  */
-void ToolbarWidget::setupLegalNodesList(QList<Node*> nodeList)
+void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
 {
     // if the selected node can't connect to anything, hide the connect button
     if (nodeList.count() == 0) {
@@ -779,26 +779,25 @@ void ToolbarWidget::setupLegalNodesList(QList<Node*> nodeList)
 
     // populate connectMenu
     for (int i = 0; i < nodeList.count(); i++) {
-
-        Node* parentNode = nodeList.at(i)->getParentNode();
+        NodeItem* parentNode = nodeList.at(i)->getParentNodeItem();
 
         // if the current node has a parent, check if there is already an action for it
         // if not, create one and attach a menu to it
         // if there is, add the node's action to the parent action's menu
-        if (parentNode && parentNode->getDataValue("kind") != "Model") {
+        if (parentNode && parentNode->getNodeKind() != "Model") {
 
-            ToolbarWidgetAction* parentAction = connectMenu->getWidgetAction(parentNode);
+            ToolbarWidgetAction* parentAction = connectMenu->getWidgetAction(parentNode->getNode());
             ToolbarWidgetMenu* parentActionMenu = 0;
 
             if (parentAction) {
                 parentActionMenu = parentAction->getMenu();
             } else {
-                parentAction = new ToolbarWidgetAction(parentNode, connectMenu, true);
+                parentAction = new ToolbarWidgetAction(parentNode->getNode(), connectMenu, true);
                 parentActionMenu = new ToolbarWidgetMenu(parentAction, 0, connectMenu);
                 connectMenu->addWidgetAction(parentAction);
             }
 
-            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList.at(i), parentActionMenu);
+            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList.at(i)->getNode(), parentActionMenu);
             parentActionMenu->addWidgetAction(action);
             connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
 

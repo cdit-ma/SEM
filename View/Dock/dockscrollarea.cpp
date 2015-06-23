@@ -104,7 +104,7 @@ NodeView *DockScrollArea::getNodeView()
  */
 QStringList DockScrollArea::getAdoptableNodeListFromView()
 {
-    return nodeView->getAdoptableNodeList(nodeView->getSelectedNode());
+    return nodeView->getAdoptableNodeList(nodeView->getSelectedNodeID());
 }
 
 
