@@ -8,6 +8,8 @@
 #include <QJsonObject>
 #include <QProcess>
 #include <QRegularExpression>
+#include <QAuthenticator>
+#include <QUrlQuery>
 
 #define TIME_OUT_MS 15000
 
@@ -18,8 +20,13 @@
 JenkinsRequest::JenkinsRequest(JenkinsManager *m)
 {
     manager = m;
+    terminated = false;
     //networkManager = 0;
     timeOutMS = TIME_OUT_MS;
+
+    //Connect the unexpected Termination signal to a slot.
+    connect(this, SIGNAL(unexpectedTermination()), this, SLOT(_unexpectedTermination()));
+    connect(this, SIGNAL(requestFinished()), this, SLOT(deleteLater()));
 
     if(!manager){
         qCritical() << "Cannot Construct JenkinsRequest, JenkinsManager provided is NULL";
@@ -51,21 +58,74 @@ QByteArray JenkinsRequest::wget(QString url)
     //The returnable byteArray.
     QByteArray byteArray;
 
-    //If we don't have a networkManager, we should construct one.
-    QNetworkAccessManager *networkManager = new QNetworkAccessManager();
 
-    if(!networkManager){
-        qCritical() << "Cannot Construct Network Manager";
-        return byteArray;
+    QNetworkAccessManager* networkManager = getNetworkManager();
+
+    if(networkManager && manager){
+       //qCritical() << "Requesting URL: " << url;
+
+        //Construct the post request, Authenticated
+        QNetworkRequest request = manager->getAuthenticatedRequest(url);
+
+
+        //Request the URL from the networkManager.
+        QNetworkReply* reply =  networkManager->get(request);
+
+        //Wait for the reply.
+        byteArray = waitForReply(reply);
+
+        //Free up the memory of the Network Reply
+        reply->deleteLater();
     }
-    managers.append(networkManager);
 
-    //qCritical() << "Requesting URL: " << url;
+    //Return the byteArray
+    return byteArray;
+}
 
-    //Request the URL from the networkManager.
-    QNetworkReply* reply =  networkManager->get(QNetworkRequest(QUrl(url)));
+/**
+ * @brief JenkinsRequest::post Uses a QNetworkAccessManager to post to a URL with the Data Provided.
+ * @param url - The Url to post.
+ * @param data - The ByteArray for the data to post. Defaults to Empty.
+ * @return - The ByteArray response from the url posted to. Can be empty if the Request Failed, or there was nothing returned.
+ */
+QByteArray JenkinsRequest::post(QString url, QByteArray data)
+{
+    QByteArray byteArray;
 
+    QNetworkAccessManager* networkManager = getNetworkManager();
+
+    if(networkManager && manager){
+        //qCritical() << "Posting to URL: " << url;
+        //Construct the post request, Authenticated
+        QNetworkRequest request = manager->getAuthenticatedRequest(url);
+
+        //Post to the URL from the networkManager.
+        QNetworkReply* reply =  networkManager->post(request, data);
+
+        //Wait for the reply.
+        byteArray = waitForReply(reply);
+
+        //Free up the memory of the Network Reply
+        reply->deleteLater();
+    }
+
+    return byteArray;
+}
+
+/**
+ * @brief JenkinsRequest::waitForReply Waits for either a timeout or a termination or a finished signal on the QNetworkReply, returns the data
+ * @param reply - The Network request reply object.
+ * @return - The Data returned from the request.
+ */
+QByteArray JenkinsRequest::waitForReply(QNetworkReply *reply)
+{
+    QByteArray byteArray;
     bool processing = true;
+
+    //Construct a timeout timer.
+    QTimer* timeOutTimer = new QTimer();
+    timeOutTimer->setSingleShot(true);
+
     while(processing){
         bool timedOut = false;
         qint64 bytesAvailable = reply->bytesAvailable();
@@ -74,21 +134,18 @@ QByteArray JenkinsRequest::wget(QString url)
         if(reply->isRunning() && bytesAvailable == 0){
             //qCritical() << "Process is Running, waiting for new data";
 
-            //Construct a timeout timer.
-            QTimer* timeOutTimer = new QTimer();
-            timeOutTimer->setSingleShot(true);
+
 
             //Construct a EventLoop which waits for the QNetworkReply to be finished, or more data to become available, or the timer to finish.
             QEventLoop waitLoop;
             connect(reply, SIGNAL(readyRead()), &waitLoop, SLOT(quit()));
             connect(reply, SIGNAL(finished()), &waitLoop, SLOT(quit()));
+            //Connect the unexpectedTermination to the wait loop.
+            connect(this, SIGNAL(unexpectedTermination()), &waitLoop, SLOT(quit()));
             connect(timeOutTimer, SIGNAL(timeout()), &waitLoop, SLOT(quit()));
 
             //Start the timer.
             timeOutTimer->start(timeOutMS);
-
-            //Wait for something to quit the EventLoop
-            waitLoop.exec();
 
             //Check the state of the timer.
             timedOut = !timeOutTimer->isActive();
@@ -96,11 +153,11 @@ QByteArray JenkinsRequest::wget(QString url)
             //Stop the timer.
             timeOutTimer->stop();
 
-            //Clear the memory of the timer
-            timeOutTimer->deleteLater();
-
             //After the readyRead signal, or timeout, update the available bytes
             bytesAvailable = reply->bytesAvailable();
+
+            //Wait for something to quit the EventLoop
+            waitLoop.exec();
         }
 
         //If we have bytes, read them and append them to the data we already have.
@@ -114,7 +171,7 @@ QByteArray JenkinsRequest::wget(QString url)
         if(reply->atEnd() && (reply->isFinished() || timedOut)){
             if(timedOut){
                 emit requestFailed();
-                qCritical() << "wget: Timed Out: " << url;
+                qCritical() << "Timed Out: " << reply->url();
             }
             if(reply->error() != QNetworkReply::NoError){
                 emit requestFailed();
@@ -124,14 +181,8 @@ QByteArray JenkinsRequest::wget(QString url)
             processing = false;
         }
     }
-    //Free up the memory of the Network Reply
-    reply->deleteLater();
-
-
-    //delete networkManager;
-    //networkManager->deleteLater();
-
-    //Return the byteArray
+    //Delete the timer
+    timeOutTimer->deleteLater();
     return byteArray;
 }
 
@@ -163,12 +214,21 @@ QByteArray JenkinsRequest::runProcess(QString command)
             QEventLoop waitLoop;
             connect(process, SIGNAL(readyRead()), &waitLoop, SLOT(quit()));
             connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
+            connect(this, SIGNAL(unexpectedTermination()), &waitLoop, SLOT(quit()));
 
             //Wait for something to quit the EventLoop
             waitLoop.exec();
 
             //After the readyRead signal, or timeout, update the bytesAvailable
             bytesAvailable = process->bytesAvailable();
+
+            //Check for termination.
+            if(terminated){
+                //qCritical() << "Terminating the Jenkins Request!";
+                //Terminate the process.
+                process->terminate();
+                bytesAvailable = 0;
+            }
         }
 
         //If we have bytes, read them, and output them!
@@ -176,7 +236,7 @@ QByteArray JenkinsRequest::runProcess(QString command)
             QByteArray newData = process->read(bytesAvailable);
 
             QString stringData(newData);
-            if(stringData != ""){
+            if(stringData.length() > 0){
                 //Send a signal with the live output.
                 gotLiveCLIOutput(this->jobName, this->buildNumber, this->activeConfiguration, stringData);
             }
@@ -191,10 +251,31 @@ QByteArray JenkinsRequest::runProcess(QString command)
             processing = false;
         }
     }
+
     //Free the memory of the Process
     delete process;
     //Return the byte Array.
     return byteArray;
+}
+
+
+/**
+ * @brief JenkinsRequest::getNetworkManager Gets a new QNetworkAccessManager to use, Connects the Authentication request into the JenkinsManager
+ * @return The QNetworkAccess Manager
+ */
+QNetworkAccessManager *JenkinsRequest::getNetworkManager()
+{
+    //If we don't have a networkManager, we should construct one.
+    QNetworkAccessManager *networkManager = new QNetworkAccessManager();
+
+    if(networkManager){
+        //Add it to the list of networkManagers
+        managers.append(networkManager);
+    }else{
+        qCritical() << "Cannot construct QNetworkAccessManager";
+    }
+
+    return networkManager;
 }
 
 /**
@@ -317,6 +398,10 @@ void JenkinsRequest::getJobState(QString jobName, int buildNumber, QString activ
     JOB_STATE currentState = _getJobState(jobName, buildNumber, activeConfiguration);
     JOB_STATE previousState = currentState;
 
+    //Construct a timeout timer.
+    QTimer* timeOutTimer = new QTimer();
+    timeOutTimer->setSingleShot(true);
+
     //While the job is either building or not yet existant.
     while(currentState == BUILDING || currentState == NO_JOB){
         //qCritical() << "GETTING JOB STATE" << jobName << buildNumber << activeConfiguration;
@@ -327,23 +412,32 @@ void JenkinsRequest::getJobState(QString jobName, int buildNumber, QString activ
             firstTime = false;
         }
 
-        //Construct a timeout timer.
-        QTimer* timeOutTimer = new QTimer();
-        timeOutTimer->setSingleShot(true);
-
         //Construct a EventLoop which waits for the timer to finish.
         QEventLoop waitLoop;
         connect(timeOutTimer, SIGNAL(timeout()), &waitLoop, SLOT(quit()));
+        connect(this, SIGNAL(unexpectedTermination()), &waitLoop, SLOT(quit()));
+
+        //Start the timer
         timeOutTimer->start(timeOutMS);
 
         //Wait for something to quit the EventLoop
         waitLoop.exec();
+
+        //Stop the timer
         timeOutTimer->stop();
-        timeOutTimer->deleteLater();
+
+        //Check for termination
+        if(terminated){
+            //qCritical() << "Terminating the Jenkins Request!";
+            break;
+        }
 
         //Update the current state.
         currentState = _getJobState(jobName, buildNumber, activeConfiguration);
     }
+
+    //Delete the timer
+    timeOutTimer->deleteLater();
 
     //emit a gotJobStateChange signal as the job is either BUILT or FAILED
     emit gotJobStateChange(this->jobName, this->buildNumber, this->activeConfiguration, currentState);
@@ -374,14 +468,14 @@ void JenkinsRequest::runGroovyScript(QString groovyScriptPath)
 }
 
 /**
- * @brief JenkinsRequest::getJobConsoleOutput Gets the console output of a Jenkins job. If the job is still running, it will emit the gotLiveCLIOutput as data becomes available in the pipe. Once Finished it will Emit a gotJobConsoleOutput signal. Emits a requestFinished signal on completion.
- * @param jobName The name of the Jenkins job
- * @param buildNumber The build number of the job
- * @param activeConfiguration The name of the Active Configuration (Can be empty for the root job)
+ * @brief JenkinsRequest::getJobConsoleOutput - Requests the Console Output from a job.
+ * @param jobName
+ * @param buildNumber
+ * @param activeConfiguration
  */
 void JenkinsRequest::getJobConsoleOutput(QString jobName, int buildNumber, QString activeConfiguration)
 {
-    //Store the Parameters so that other signals can send the appropriate data.
+    //Store the parameters provided.
     storeRequestParameters(jobName, buildNumber, activeConfiguration);
 
     //If we have been provided a valid activeConfiguration, append this to the jobName
@@ -395,18 +489,57 @@ void JenkinsRequest::getJobConsoleOutput(QString jobName, int buildNumber, QStri
         buildNo = QString::number(buildNumber);
     }
 
-    //Construct the console CLI request command
-    QString command = "console " + jobName + " " + buildNo + " -f";
 
-    //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
-    QByteArray commandData = runProcess(manager->getCLICommand(command));
+    //Get the current state of the job.
+    JOB_STATE currentState = _getJobState(this->jobName, this->buildNumber, this->activeConfiguration);
+    QString previousData = "";
 
-    //Parse the returned data as a String
-    QString consoleOutput = QString(commandData);
+    QString consoleURL = manager->getURL() + "job/" + jobName + "/" + buildNo + "/consoleText";
 
-    //Call the SIGNAL to send the data back.
-    emit gotJobConsoleOutput(this->jobName, this->buildNumber, this->activeConfiguration, consoleOutput);
+    //Construct a timeout timer.
+    QTimer* timeOutTimer = new QTimer();
+    timeOutTimer->setSingleShot(true);
 
+    //While the job is either building or not yet existant.
+    while(currentState == BUILDING || currentState == NO_JOB){
+
+
+        //Construct a EventLoop which waits for the timer to finish.
+        QEventLoop waitLoop;
+        connect(timeOutTimer, SIGNAL(timeout()), &waitLoop, SLOT(quit()));
+        connect(this, SIGNAL(unexpectedTermination()), &waitLoop, SLOT(quit()));
+
+        timeOutTimer->start(2000);
+
+        //Wait for something to quit the EventLoop
+        waitLoop.exec();
+        timeOutTimer->stop();
+
+        //Check for termination
+        if(terminated){
+            //qCritical() << "Terminating the Jenkins Request!";
+            break;
+        }
+
+        //Update the console data.
+        if(currentState == BUILDING){
+            //Get console output from wget
+            QString currentData = wget(consoleURL);
+            if(currentData.size() > previousData.size()){
+                int from = previousData.size();
+                //Send a signal with the live output.
+                emit gotLiveCLIOutput(this->jobName, this->buildNumber, this->activeConfiguration, currentData.mid(from));
+                previousData = currentData;
+            }
+        }
+
+        //Update the current state.
+        currentState = _getJobState(this->jobName, this->buildNumber, this->activeConfiguration);
+    }
+    //Delete the timer
+    timeOutTimer->deleteLater();
+    //emit a gotJobStateChange signal as the job is either BUILT or FAILED
+    emit gotJobConsoleOutput(this->jobName, this->buildNumber, this->activeConfiguration, previousData);
     //Call the SIGNAL to teardown the JenkinsRequest
     emit requestFinished();
 
@@ -448,6 +581,7 @@ void JenkinsRequest::buildJob(QString jobName, Jenkins_JobParameters jobParamete
    //Add options to pipe the output of the root job.
    command += "-s -v ";
 
+
    //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
    QByteArray commandData = runProcess(manager->getCLICommand(command));
 
@@ -475,6 +609,22 @@ void JenkinsRequest::buildJob(QString jobName, Jenkins_JobParameters jobParamete
 
    //Gets the Job State of the Root Job, and will call the SIGNAL to teardown the JenkinsRequest
    getJobState(jobName, buildNumber, "");
+}
+
+void JenkinsRequest::stopJob(QString jobName, int buildNumber, QString activeConfiguration)
+{
+    if(activeConfiguration != ""){
+        jobName += "/" + activeConfiguration;
+    }
+
+    QString stopURL  = manager->getURL() + "job/" + jobName + "/" + QString::number(buildNumber) + "/stop";
+    post(stopURL);
+    emit requestFinished();
+}
+
+void JenkinsRequest::_unexpectedTermination()
+{
+    terminated = true;
 }
 
 /**
@@ -539,6 +689,8 @@ JOB_STATE JenkinsRequest::_getJobState(QString jobName, int buildNumber, QString
             QString result = configData["result"].toString();
             if(result == "SUCCESS"){
                 return BUILT;
+            }else if(result == "ABORTED"){
+                return ABORTED;
             }else{
                 return FAILED;
             }

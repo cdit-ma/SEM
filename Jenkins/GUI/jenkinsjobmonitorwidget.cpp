@@ -23,10 +23,12 @@ JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager
     this->jenkins = jenkins;
     this->jobName = jobName;
     this->buildNumber = -1;
+    spinning = 0;
     requestedConsoleOutput = false;
 
     setWindowTitle("Jenkins Job Monitor");
     setWindowIcon(QIcon(":/Resources/Icons/jenkins_build.png"));
+
 
     setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333; ");
 
@@ -34,6 +36,11 @@ JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager
 
     //Request the JenkinsData
     getJenkinsData();
+
+
+    for(int i =0; i < 255;i++){
+        buildingTabs[i] = false;
+    }
 
     //Turn off the Other Buttons.
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -87,13 +94,23 @@ void JenkinsJobMonitorWidget::setupLayout()
 
     //Set up a QLabel for the Building Icon
     jobIcon = new QLabel(":/Resources/Icons/jenkins_build.png");
+
+    //Setup a QPushButton to stop the job.
+    stopButton = new QPushButton(QIcon(":/Resources/Icons/stop.png"),"");
+    stopButton->setStyleSheet("border: 0px solid black;");
+    stopButton->setFixedSize(QSize(24,24));
+    stopButton->setToolTip("Stop the Job.");
+    connect(stopButton, SIGNAL(pressed()), this, SLOT(stopPressed()));
+
     //Setup a QLabel for the Job Name
     jobLabel = new QLabel(jobName);
     jobLabel->setStyleSheet("font-family: Helvetica, Arial, sans-serif; font-size: 18px;  font-weight: bold;");
 
+
     titleLayout->addWidget(jobIcon);
-    titleLayout->addWidget(jobLabel);
-    titleLayout->addStretch();
+    titleLayout->addWidget(jobLabel,1);
+    titleLayout->addWidget(stopButton);
+    //titleLayout->addStretch();
 
     verticalLayout->addWidget(titleWidget);
 
@@ -116,26 +133,43 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
 
     QString resourceName = "";
 
+    int index = configurations.indexOf(activeConfiguration);
 
     if(state == BUILDING){
         if(activeConfiguration == ""){
             QMovie* movie = new QMovie(this);
             movie->setFileName(":/Resources/Icons/jenkins_building.gif");
             movie->start();
+
             jobIcon->setMovie(movie);
             jobLabel->setText(jobName + " Build #" + QString::number(buildNumber));
+
+            if(!spinning){
+                spinning = new QMovie(this);
+                spinning->setFileName(":/Resources/Icons/jenkins_waiting.gif");
+                spinning->start();
+                connect(spinning, SIGNAL(frameChanged(int)), this, SLOT(frameChanged(int)));
+            }
         }
+        buildingTabs[index] = true;
     }else if(state == BUILT){
         resourceName = ":/Resources/Icons/jenkins_built.png";
+        buildingTabs[index] = false;
     }else if(state == FAILED){
         resourceName = ":/Resources/Icons/jenkins_failed.png";
+        buildingTabs[index] = false;
+    }else if(state == ABORTED){
+        resourceName = ":/Resources/Icons/jenkins_aborted.png";
+        buildingTabs[index] = false;
     }
 
-    int index = configurations.indexOf(activeConfiguration);
     if(index >=0 && resourceName != ""){
         if(activeConfiguration == ""){
             jobIcon->setPixmap(QPixmap::fromImage(QImage(resourceName)));
+            //Hide the Stop Button.
+            stopButton->setVisible(false);
         }
+
         tabWidget->setTabIcon(index, QIcon(resourceName));
     }
 }
@@ -168,6 +202,7 @@ void JenkinsJobMonitorWidget::jobStateChanged(QString jobName, int buildNumber, 
         loadingWidget->hideLoadingBar();
         titleWidget->setVisible(true);
         tabWidget->setVisible(true);
+
 
         //Get each ActiveConfigurations console output
         foreach(QString configuration, configurations){
@@ -247,9 +282,35 @@ void JenkinsJobMonitorWidget::gotJobConsoleOutput(QString jobName, int buildNumb
         //Append the consoleOutput to the end of the QTextBrowser which matches the activeConfiguration.
         if(configurationBrowsers.contains(activeConfiguration)){
             QTextBrowser* output = configurationBrowsers[activeConfiguration];
+
             output->moveCursor (QTextCursor::End);
             output->insertPlainText (consoleOutput);
             output->moveCursor (QTextCursor::End);
+        }
+    }
+}
+
+void JenkinsJobMonitorWidget::stopPressed()
+{
+    if(this->jobName != ""  && buildNumber > 0){
+        //Construct a new JenkinsRequest Object.
+        JenkinsRequest* jenkinsStop = jenkins->getJenkinsRequest(this);
+        //Connect the emit signals from this Thread to the JenkinsRequest Thread.
+        connect(this, SIGNAL(stopJob(QString,int,QString)), jenkinsStop, SLOT(stopJob(QString,int,QString)));
+        emit stopJob(jobName, buildNumber, "");
+        qCritical() << "Trying to stop!";
+    }
+}
+
+void JenkinsJobMonitorWidget::frameChanged(int frame)
+{
+    if(spinning){
+        QPixmap pixmap = spinning->currentPixmap();
+
+        for(int i = 0; i < tabWidget->children().count(); i++){
+            if(buildingTabs[i]){
+                tabWidget->setTabIcon(i, QIcon(pixmap));
+            }
         }
     }
 }

@@ -1783,7 +1783,7 @@ void NodeItem::setWidth(qreal w)
     prepareGeometryChange();
     width = w;
 
-    //updateTextLabel();
+    updateTextLabel();
 
     calculateGridlines();
     updateParent();

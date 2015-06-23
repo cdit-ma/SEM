@@ -8,7 +8,8 @@ enum JOB_STATE{
     NO_JOB = 0,
     BUILDING,
     BUILT,
-    FAILED
+    FAILED,
+    ABORTED
 };
 
 struct Jenkins_Job_Parameter{
@@ -52,6 +53,8 @@ signals:
 
     void gotGroovyScriptOutput(QString consoleOutput);
 
+    void unexpectedTermination();
+
 
 private slots:
     //Slots are listed as private so they cannot be called directly, only connected too. All of these Slots have a matching return signal.
@@ -66,10 +69,16 @@ private slots:
 
     //Requests
     void buildJob(QString jobName, Jenkins_JobParameters jobParameters);
+    void stopJob(QString jobName, int buildNumber, QString activeConfiguration="");
+    void _unexpectedTermination();
 private:
     //CLI and HTTP getters
     QByteArray wget(QString url);
+    QByteArray post(QString url, QByteArray data = QByteArray());
+    QByteArray waitForReply(QNetworkReply* reply);
     QByteArray runProcess(QString command);
+
+    QNetworkAccessManager* getNetworkManager();
 
     //SLOT helper methods
     bool _isJobAMatrixProject(QString jobName);
@@ -83,6 +92,7 @@ private:
     QString activeConfiguration;
     int buildNumber;
     int timeOutMS;
+    bool terminated;
 
     //The parent JenkinsManager
     JenkinsManager* manager;

@@ -29,19 +29,26 @@ signals:
     void getJobConsoleOutput(QString jobName, int buildNumber, QString activeConfiguration);
     void getJobActiveConfigurations(QString jobName);
     void getJobState(QString jobName, int buildNumber, QString activeConfiguration);
+    void stopJob(QString jobName, int buildNumber, QString activeConfiguration);
 
 public slots:
     void jobStateChanged(QString jobName, int buildNumber, QString activeConfiguration, JOB_STATE jobState);
-
     void gotJobActiveConfigurations(QString jobName, QStringList activeConfigurations);
     void gotJobConsoleOutput(QString jobName, int buildNumber, QString activeConfiguration, QString consoleOutput);
 
+private slots:
+    void stopPressed();
+    void frameChanged(int frame);
 
 private:
+    QMovie* spinning;
     QString jobName;
     int buildNumber;
 
+    bool buildingTabs[255];
+
     QLabel* jobIcon;
+    QPushButton* stopButton;
     QLabel* jobLabel;
 
     QTabWidget* tabWidget;

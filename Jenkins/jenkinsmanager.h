@@ -11,6 +11,8 @@
 #include <QVector>
 #include <QHash>
 #include <QThread>
+#include <QNetworkReply>
+#include <QAuthenticator>
 
 class JenkinsManager: public QObject
 {
@@ -19,12 +21,13 @@ class JenkinsManager: public QObject
 
     Q_OBJECT
 public:
-    JenkinsManager(QString cliPath, QString url, QString username, QString password);
+    JenkinsManager(QString cliPath, QString url, QString username, QString password, QString token);
     bool hasValidSettings();
     JenkinsRequest* getJenkinsRequest(QObject* parent = 0, bool deleteOnCompletion = true);
 
 private:
     void storeJobConfiguration(QString jobName, QJsonDocument json);
+    QNetworkRequest getAuthenticatedRequest(QString url);
     QJsonDocument getJobConfiguration(QString jobName);
 
     void jenkinsRequestFinished(JenkinsRequest* request);
@@ -41,6 +44,7 @@ private:
     QString url;
     QString username;
     QString password;
+    QString token;
     QString cliPath;
 
     //A Hash lookup of Jenkins Jobs JSON Documents

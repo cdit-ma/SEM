@@ -46,6 +46,7 @@
 #define JENKINS_USER "06-02-Username"
 #define JENKINS_PASS "06-03-Password"
 #define JENKINS_JOB "06-04-MEDEA_Jobname"
+#define JENKINS_TOKEN "06-05-API_Token"
 
 
 
@@ -1319,9 +1320,10 @@ void MedeaWindow::initialiseJenkinsManager()
     QString jenkinsUrl = appSettings->getSetting(JENKINS_URL);
     QString jenkinsUser = appSettings->getSetting(JENKINS_USER);
     QString jenkinsPass = appSettings->getSetting(JENKINS_PASS);
+    QString jenkinsToken = appSettings->getSetting(JENKINS_TOKEN);
 
     if(jenkinsUrl != "" && jenkinsUser != "" && jenkinsPass != ""){
-        jenkinsManager = new JenkinsManager(applicationDirectory + "Resources/Scripts/", jenkinsUrl, jenkinsUser, jenkinsPass);
+        jenkinsManager = new JenkinsManager(applicationDirectory + "Resources/Scripts/", jenkinsUrl, jenkinsUser, jenkinsPass, jenkinsToken);
     }
 
 }

@@ -1,126 +1,132 @@
 <RCC>
     <qresource prefix="/">
+        <file>Resources/Icons/activate.png</file>
+        <file>Resources/Icons/addChildNode.png</file>
+        <file>Resources/Icons/addChildNode2.png</file>
         <file>Resources/Icons/Aggregate.png</file>
+        <file>Resources/Icons/AggregateInstance.png</file>
+        <file>Resources/Icons/alignHorizontally.png</file>
+        <file>Resources/Icons/alignVertically.png</file>
+        <file>Resources/Icons/AssemblyDefinitions.png</file>
         <file>Resources/Icons/Attribute.png</file>
+        <file>Resources/Icons/AttributeImpl.png</file>
+        <file>Resources/Icons/AttributeInstance.png</file>
+        <file>Resources/Icons/autoCenter.png</file>
+        <file>Resources/Icons/back.png</file>
+        <file>Resources/Icons/BehaviourDefinitions.png</file>
+        <file>Resources/Icons/BlackBox.png</file>
+        <file>Resources/Icons/BlackBoxInstance.png</file>
         <file>Resources/Icons/BranchState.png</file>
+        <file>Resources/Icons/cancel.png</file>
+        <file>Resources/Icons/center.png</file>
+        <file>Resources/Icons/clear.png</file>
         <file>Resources/Icons/Complexity.png</file>
-        <file>Resources/Icons/Condition.png</file>
-        <file>Resources/Icons/Event.png</file>
-        <file>Resources/Icons/HardwareCluster.png</file>
-        <file>Resources/Icons/HardwareNode.png</file>
-        <file>Resources/Icons/InEventPort.png</file>
-        <file>Resources/Icons/InMember.png</file>
-        <file>Resources/Icons/Member.png</file>
-        <file>Resources/Icons/OutEventPort.png</file>
-        <file>Resources/Icons/OutMember.png</file>
-        <file>Resources/Icons/Parameter.png</file>
-        <file>Resources/Icons/PeriodicEvent.png</file>
-        <file>Resources/Icons/Postprocess.png</file>
-        <file>Resources/Icons/Preprocess.png</file>
-        <file>Resources/Icons/Process.png</file>
-        <file>Resources/Icons/ProvidedRequestPort.png</file>
-        <file>Resources/Icons/RequiredRequestPort.png</file>
-        <file>Resources/Icons/Termination.png</file>
-        <file>Resources/Icons/Variable.png</file>
-        <file>Resources/Icons/Workload.png</file>
+        <file>Resources/Icons/Component.png</file>
         <file>Resources/Icons/ComponentAssembly.png</file>
         <file>Resources/Icons/ComponentImpl.png</file>
         <file>Resources/Icons/ComponentInstance.png</file>
-        <file>Resources/Icons/AttributeImpl.png</file>
-        <file>Resources/Icons/AttributeInstance.png</file>
-        <file>Resources/Icons/InEventPortImpl.png</file>
-        <file>Resources/Icons/InEventPortInstance.png</file>
-        <file>Resources/Icons/OutEventPortImpl.png</file>
-        <file>Resources/Icons/OutEventPortInstance.png</file>
-        <file>Resources/Icons/MemberInstance.png</file>
-        <file>Resources/Icons/AggregateInstance.png</file>
-        <file>Resources/Icons/IDL.png</file>
-        <file>Resources/Icons/Component.png</file>
-        <file>Resources/Icons/menuIcon.png</file>
-        <file>Resources/Icons/clear.png</file>
-        <file>Resources/Icons/search_icon.png</file>
-        <file>Resources/Icons/undo.png</file>
-        <file>Resources/Icons/validate.png</file>
-        <file>Resources/Icons/zoomToFit.png</file>
+        <file>Resources/Icons/Condition.png</file>
+        <file>Resources/Icons/connections.png</file>
+        <file>Resources/Icons/connectNode.png</file>
         <file>Resources/Icons/copy.png</file>
+        <file>Resources/Icons/cpu.png</file>
         <file>Resources/Icons/cut.png</file>
+        <file>Resources/Icons/db.png</file>
+        <file>Resources/Icons/definition.png</file>
+        <file>Resources/Icons/delete.png</file>
+        <file>Resources/Icons/deleteNode.png</file>
+        <file>Resources/Icons/deleteNode2.png</file>
+        <file>Resources/Icons/down_arrow.png</file>
+        <file>Resources/Icons/duplicate.png</file>
+        <file>Resources/Icons/edit_menu.png</file>
+        <file>Resources/Icons/Event.png</file>
         <file>Resources/Icons/exit.png</file>
         <file>Resources/Icons/export.png</file>
-        <file>Resources/Icons/import.png</file>
-        <file>Resources/Icons/new_project.png</file>
-        <file>Resources/Icons/paste.png</file>
-        <file>Resources/Icons/redo.png</file>
-        <file>Resources/Icons/view.png</file>
-        <file>Resources/Icons/jenkins.png</file>
-        <file>Resources/Icons/edit_menu.png</file>
-        <file>Resources/Icons/file_menu.png</file>
-        <file>Resources/Icons/hdd.png</file>
-        <file>Resources/Icons/ram.png</file>
-        <file>Resources/Icons/log.png</file>
-        <file>Resources/Icons/db.png</file>
-        <file>Resources/Icons/activate.png</file>
-        <file>Resources/Icons/cpu.png</file>
-        <file>Resources/Icons/passivate.png</file>
-        <file>Resources/Icons/ManagementComponent.png</file>
-        <file>Resources/Icons/Component.png</file>
-        <file>Resources/Icons/InEventPortDelegate.png</file>
-        <file>Resources/Icons/OutEventPortDelegate.png</file>
-        <file>Resources/Icons/connectNode.png</file>
-        <file>Resources/Icons/addChildNode.png</file>
-        <file>Resources/Icons/deleteNode.png</file>
-        <file>Resources/Icons/definition.png</file>
-        <file>Resources/Icons/implementation.png</file>
-        <file>Resources/Icons/parts.png</file>
-        <file>Resources/Icons/goto.png</file>
-        <file>Resources/Icons/popup.png</file>
-        <file>Resources/Icons/lock.png</file>
-        <file>Resources/Icons/info.png</file>
-        <file>Resources/Icons/right_arrow.png</file>
-        <file>Resources/Icons/model.png</file>
-        <file>Resources/Icons/sort.png</file>
-        <file>Resources/Icons/autoCenter.png</file>
-        <file>Resources/Icons/searchIcon.png</file>
-        <file>Resources/Icons/instance.png</file>
-        <file>Resources/Icons/center.png</file>
-        <file>Resources/Icons/fitToScreen.png</file>
-        <file>Resources/Icons/snapChildrenToGrid.png</file>
-        <file>Resources/Icons/snapToGrid.png</file>
-        <file>Resources/Icons/duplicate.png</file>
-        <file>Resources/Icons/unlock.png</file>
-        <file>Resources/Icons/down_arrow.png</file>
-        <file>Resources/Icons/settings.png</file>
-        <file>Resources/Icons/alignHorizontally.png</file>
-        <file>Resources/Icons/alignVertically.png</file>
-        <file>Resources/Icons/hardwareConnections.png</file>
-        <file>Resources/Icons/connections.png</file>
-        <file>Resources/Icons/toolbar.png</file>
-        <file>Resources/Icons/grid.png</file>
-        <file>Resources/Icons/back.png</file>
-        <file>Resources/Icons/forward.png</file>
-        <file>Resources/Icons/up_arrow.png</file>
-        <file>Resources/Icons/delete.png</file>
         <file>Resources/Icons/exportSnippet.png</file>
+        <file>Resources/Icons/file_menu.png</file>
+        <file>Resources/Icons/fitToScreen.png</file>
+        <file>Resources/Icons/forward.png</file>
+        <file>Resources/Icons/goto.png</file>
+        <file>Resources/Icons/grid.png</file>
+        <file>Resources/Icons/HardwareCluster.png</file>
+        <file>Resources/Icons/hardwareConnections.png</file>
+        <file>Resources/Icons/HardwareDefinitions.png</file>
+        <file>Resources/Icons/HardwareNode.png</file>
+        <file>Resources/Icons/hdd.png</file>
+        <file>Resources/Icons/IDL.png</file>
+        <file>Resources/Icons/implementation.png</file>
+        <file>Resources/Icons/import.png</file>
         <file>Resources/Icons/importSnippet.png</file>
-        <file>Resources/Icons/medea.png</file>
-        <file>Resources/Icons/Linux_amd64.png</file>
-        <file>Resources/Icons/Linux_arm.png</file>
-        <file>Resources/Icons/Linux_x86.png</file>
-        <file>Resources/Icons/Windows7_amd64.png</file>
-        <file>Resources/Icons/Windows7_arm.png</file>
-        <file>Resources/Icons/Windows7_x86.png</file>
+        <file>Resources/Icons/InEventPort.png</file>
+        <file>Resources/Icons/InEventPortDelegate.png</file>
+        <file>Resources/Icons/InEventPortImpl.png</file>
+        <file>Resources/Icons/InEventPortInstance.png</file>
+        <file>Resources/Icons/info.png</file>
+        <file>Resources/Icons/InMember.png</file>
+        <file>Resources/Icons/instance.png</file>
+        <file>Resources/Icons/InterfaceDefinitions.png</file>
+        <file>Resources/Icons/jenkins.png</file>
+        <file>Resources/Icons/jenkins_aborted.png</file>
+        <file>Resources/Icons/jenkins_build.png</file>
         <file>Resources/Icons/jenkins_building.gif</file>
         <file>Resources/Icons/jenkins_built.png</file>
         <file>Resources/Icons/jenkins_failed.png</file>
         <file>Resources/Icons/jenkins_label.png</file>
-        <file>Resources/Icons/jenkins_build.png</file>
         <file>Resources/Icons/jenkins_nodes.png</file>
+        <file>Resources/Icons/jenkins_waiting.gif</file>
+        <file>Resources/Icons/Linux_amd64.png</file>
+        <file>Resources/Icons/Linux_arm.png</file>
+        <file>Resources/Icons/Linux_x86.png</file>
+        <file>Resources/Icons/lock.png</file>
+        <file>Resources/Icons/log.png</file>
+        <file>Resources/Icons/ManagementComponent.png</file>
+        <file>Resources/Icons/medea.png</file>
+        <file>Resources/Icons/Member.png</file>
+        <file>Resources/Icons/MemberInstance.png</file>
+        <file>Resources/Icons/menuIcon.png</file>
+        <file>Resources/Icons/menuIcon2.png</file>
+        <file>Resources/Icons/model.png</file>
+        <file>Resources/Icons/new_project.png</file>
+        <file>Resources/Icons/OutEventPort.png</file>
+        <file>Resources/Icons/OutEventPortDelegate.png</file>
+        <file>Resources/Icons/OutEventPortImpl.png</file>
+        <file>Resources/Icons/OutEventPortInstance.png</file>
+        <file>Resources/Icons/OutMember.png</file>
+        <file>Resources/Icons/Parameter.png</file>
+        <file>Resources/Icons/parts.png</file>
+        <file>Resources/Icons/passivate.png</file>
+        <file>Resources/Icons/paste.png</file>
+        <file>Resources/Icons/PeriodicEvent.png</file>
+        <file>Resources/Icons/popup.png</file>
+        <file>Resources/Icons/Postprocess.png</file>
+        <file>Resources/Icons/Preprocess.png</file>
+        <file>Resources/Icons/Process.png</file>
+        <file>Resources/Icons/ProvidedRequestPort.png</file>
+        <file>Resources/Icons/ram.png</file>
         <file>Resources/Icons/redHardwareNode.png</file>
-        <file>Resources/Icons/BlackBox.png</file>
-        <file>Resources/Icons/BlackBoxInstance.png</file>
-        <file>Resources/Icons/AssemblyDefinitions.png</file>
-        <file>Resources/Icons/BehaviourDefinitions.png</file>
-        <file>Resources/Icons/HardwareDefinitions.png</file>
-        <file>Resources/Icons/InterfaceDefinitions.png</file>
+        <file>Resources/Icons/redo.png</file>
+        <file>Resources/Icons/RequiredRequestPort.png</file>
+        <file>Resources/Icons/right_arrow.png</file>
+        <file>Resources/Icons/search_icon.png</file>
+        <file>Resources/Icons/searchIcon.png</file>
+        <file>Resources/Icons/settings.png</file>
+        <file>Resources/Icons/snapChildrenToGrid.png</file>
+        <file>Resources/Icons/snapToGrid.png</file>
+        <file>Resources/Icons/sort.png</file>
+        <file>Resources/Icons/stop.png</file>
+        <file>Resources/Icons/Termination.png</file>
+        <file>Resources/Icons/toolbar.png</file>
+        <file>Resources/Icons/undo.png</file>
+        <file>Resources/Icons/unlock.png</file>
+        <file>Resources/Icons/up_arrow.png</file>
+        <file>Resources/Icons/validate.png</file>
+        <file>Resources/Icons/Variable.png</file>
+        <file>Resources/Icons/view.png</file>
         <file>Resources/Icons/warning.png</file>
+        <file>Resources/Icons/Windows7_amd64.png</file>
+        <file>Resources/Icons/Windows7_arm.png</file>
+        <file>Resources/Icons/Windows7_x86.png</file>
+        <file>Resources/Icons/Workload.png</file>
+        <file>Resources/Icons/zoomToFit.png</file>
     </qresource>
 </RCC>

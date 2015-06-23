@@ -7,8 +7,9 @@
  * @param url The URL for the Jenkins Server (ie. http://129.127.9.91:2488)
  * @param username The username for the Jenkins Server
  * @param password The password for the Jenkins Server
+ * @todo Discover way of removing password from .ini
  */
-JenkinsManager::JenkinsManager(QString cliPath, QString url, QString username, QString password)
+JenkinsManager::JenkinsManager(QString cliPath, QString url, QString username, QString password, QString token)
 {
     //Register the Types used as parameters JenkinsRequest so signals/slots can be connected.
     qRegisterMetaType<QPair<QByteArray,QByteArray> >();
@@ -20,11 +21,12 @@ JenkinsManager::JenkinsManager(QString cliPath, QString url, QString username, Q
     this->url = url;
     this->username = username;
     this->password = password;
+    this->token = token;
 }
 
 bool JenkinsManager::hasValidSettings()
 {
-    return cliPath != "" && url != "" && username != "" && password != "";
+    return cliPath != "" && url != "" && username != "" && password != "" && token != "";
 }
 
 /**
@@ -34,7 +36,7 @@ bool JenkinsManager::hasValidSettings()
 JenkinsRequest *JenkinsManager::getJenkinsRequest(QObject *parent, bool deleteOnCompletion)
 {
     //Construct and start a new QThread
-    QThread* thread = new QThread(parent);
+    QThread* thread = new QThread();
     thread->start();
 
     //Construct a new JenkinsRequest, with the JenkinsManager passed as a parameter
@@ -49,8 +51,11 @@ JenkinsRequest *JenkinsManager::getJenkinsRequest(QObject *parent, bool deleteOn
 
     if(parent){
         //If the parent has been destroyed
-        connect(parent, SIGNAL(destroyed()), request, SLOT(deleteLater()));
+        connect(parent, SIGNAL(destroyed()), request, SIGNAL(unexpectedTermination()));
     }
+
+    //Connect the destruction of the thread to delete the request
+    //connect(thread, SIGNAL(finished()), request, SLOT(deleteLater()));
 
     //Connect the destruction of the request to terminate the thread.
     connect(request, SIGNAL(destroyed()), thread, SLOT(quit()));
@@ -58,17 +63,16 @@ JenkinsRequest *JenkinsManager::getJenkinsRequest(QObject *parent, bool deleteOn
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
 
 
-
     requests.append(request);
     //qCritical() << "Got: " << requests.size() << " Active Threads";
     return request;
 }
 
+
 void JenkinsManager::jenkinsRequestFinished(JenkinsRequest *request)
 {
    int number = requests.removeAll(request);
    // qCritical() << "Jenkins Request ID: " << number << "Terminated!";
-
 }
 
 /**
@@ -88,7 +92,31 @@ QString JenkinsManager::getURL()
 void JenkinsManager::storeJobConfiguration(QString jobName, QJsonDocument json)
 {
     jobsJSON[jobName] = json;
- }
+}
+
+/**
+ * @brief JenkinsManager::getAuthenticatedRequest - Returns an Authenticated QNetworkRequest.
+ * @param url - The URL to request.
+ * @return - A QNetworkRequest Object which contains the token.
+ */
+QNetworkRequest JenkinsManager::getAuthenticatedRequest(QString url)
+{
+    QNetworkRequest request;
+    //Set the URL
+    request.setUrl(QUrl(url));
+
+    // HTTP Basic authentication header value: base64(username:password)
+    QString concatenated = username + ":" + token;
+    QByteArray data = concatenated.toLocal8Bit().toBase64();
+    QString headerData = "Basic " + data;
+
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/x-www-form-urlencoded"));
+    request.setRawHeader("User-Agent", "JenkinsManager-Request");
+    request.setRawHeader("Authorization", headerData.toLocal8Bit());
+
+    return request;
+}
+
 
 /**
  * @brief JenkinsManager::getJobConfiguration Gets the JSON configuration for the Jenkins Job. It may return a Null QJsonDocument if there is none stored.
