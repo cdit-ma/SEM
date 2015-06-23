@@ -59,6 +59,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setNodeMoving(false);
 
     isNodeSorted = false;
+    nodeLabel = "";
 
     isInSubView = IN_SUBVIEW;
 
@@ -159,7 +160,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         updateModelData();
     }
 
-    IS_DELETING = false;
     //this->iconPixmap = QPixmap::fromImage(QImage(":/Resources/Icons/" + nodeKind + ".png"));
 }
 
@@ -453,9 +453,6 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    if(IS_DELETING){
-        return;
-    }
 
     painter->setClipRect(option->exposedRect);
 
@@ -1909,6 +1906,10 @@ void NodeItem::setGridVisible(bool visible)
 
 void NodeItem::updateTextLabel(QString newLabel)
 {
+    if(newLabel != ""){
+        nodeLabel = newLabel;
+    }
+
     if(!textItem){
         return;
     }
@@ -3106,6 +3107,11 @@ Node *NodeItem::getNode()
 QString NodeItem::getNodeKind()
 {
     return nodeKind;
+}
+
+QString NodeItem::getNodeLabel()
+{
+    return nodeLabel;
 }
 
 

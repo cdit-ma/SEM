@@ -76,16 +76,12 @@ void HardwareDockScrollArea::dockNodeItemClicked()
             // if it is, check if the user is trying to connect to a different node
             if (hardwareEdge) {
                 if (hardwareEdge->getDestination() != senderNode) {
-                    getNodeView()->view_TriggerAction("Deploying Component on Node");
-                    triggerAction = false;
-                    emit dock_destructEdge(hardwareEdge, true);
-                } else {
-                    // trying to connect to the same node; do nothing
-                    return;
+                    getNodeView()->changeEdgeDestination(hardwareEdge->getSource()->getID(), hardwareEdge->getDestination()->getID(), senderNode->getID());
                 }
+                return;
             }
 
-            getNodeView()->constructEdge(selectedNode, senderNode, triggerAction);
+            getNodeView()->constructEdge(selectedNode->getID(), senderNode->getID(), triggerAction);
 
             // highlight hardware connection after it's been constructed
             highlightHardwareConnection();

@@ -71,11 +71,19 @@ public:
     //QStringList getAdoptableNodeKinds(Node* parent);
 
     QStringList getConnectableNodes(QString srcID);
+    QStringList getNodesOfKind(QString kind, QString ID="", int depth=-1);
+
     bool canCopy(QStringList selection);
     bool canCut(QStringList selection);
     bool canPaste(QStringList selection);
     bool canExportSnippet(QStringList selection);
     bool canImportSnippet(QStringList selection);
+
+    QString getDefinition(QString ID);
+    QString getImplementation(QString ID);
+    QStringList getInstances(QString ID);
+    QString getAggregate(QString ID);
+
 
 
 private:
@@ -99,10 +107,10 @@ signals:
     void controller_GraphMLError(GraphML*, QString);
     void controller_GraphMLConstructed(GraphML*);
 
-    void controller_NodeDeleted(QString childID, QString parentID="");
-    void controller_EdgeDeleted(QString srcID, QString dstID);
 
-    void controller_GraphMLDestructed(QString);
+    void controller_GraphMLDestructed(QString ID, GraphML::KIND kind);
+
+
     void controller_ProjectNameChanged(QString);
     void controller_RedoListChanged(QStringList);
     void controller_SetClipboardBuffer(QString);
@@ -160,11 +168,13 @@ private slots:
     bool clearModel();
 
     //Constructs a Node (kind = nodeKind) centered at position centerPoint
-    void constructNode(Node* parentNode, QString nodeKind, QPointF centerPoint);
+    void constructNode(QString parentID, QString nodeKind, QPointF centerPoint);
 
     //Constructs and Edge between Source and Destination
-    void constructEdge(Node* source, Node* destination);
+    void constructEdge(QString srcID, QString dstID);
 
+    void constructConnectedNode(QString parentID, QString connectedID, QString kind, QPointF relativePos);
+    void changeEdgeDestination(QString srcID,  QString dstID, QString newDstID );
     void constructComponentInstance(Node *assembly, Node* definition, QPointF point);
     void constructConnectedComponents(Node* parent, Node* connectedNode, QString kind , QPointF relativePosition);
 

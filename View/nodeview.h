@@ -54,6 +54,12 @@ public:
 
     QImage getImage(QString imageName);
 
+    NodeItem* getImplementation(QString ID);
+    QList<NodeItem*> getInstances(QString ID);
+    NodeItem* getDefinition(QString ID);
+    NodeItem* getAggregate(QString ID);
+
+
 
 
 protected:
@@ -90,7 +96,7 @@ signals:
     void view_ExportedSnippet(QString parentName, QString snippetXMLData);
     void view_ExportSnippet(QStringList selection);
     void view_ImportedSnippet(QStringList selection, QString fileName, QString fileData);
-
+    void view_ChangeEdgeDestination(QString srcID, QString dstID, QString newDstID);
     void view_ImportSnippet(QString nodeKind);
 
 
@@ -118,10 +124,10 @@ signals:
 
     //SIGNALS for the Controller
     void view_TriggerAction(QString action);
-    void view_ConstructNode(Node* parent, QString nodeKind, QPointF position);
-    void view_ConstructEdge(Node* source, Node* destination);
-    void view_ConstructConnectedComponents(Node* parent, Node* connectedNode, QString nodeKind, QPointF position);
-    void view_ConstructComponentInstance(Node* parent, Node* definition, QPointF position);
+    void view_ConstructNode(QString parentID, QString nodeKind, QPointF position);
+    void view_ConstructEdge(QString srcID, QString dstID);
+    void view_ConstructConnectedNode(QString parentID, QString relativeID, QString nodeKind, QPointF position);
+
     void view_ClearHistoryStates();
 
     // signals for the docks
@@ -206,13 +212,13 @@ public slots:
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
 
     void constructGUIItem(GraphML* item);
-    void destructGUIItem(QString ID);
+    void destructGUIItem(QString ID, GraphML::KIND kind);
 
     void showToolbar(QPoint position = QPoint());
     void toolbarClosed();
 
     void view_CenterGraphML(GraphML* graphML);
-    void view_LockCenteredGraphML(GraphML* graphML);
+    void view_LockCenteredGraphML(QString ID);
 
     void sortEntireModel();
     void sortNode(Node* node, Node* topMostNode = 0);
@@ -224,20 +230,29 @@ public slots:
     void centerOnItem(GraphMLItem* item = 0);
     void centerItem(GraphMLItem* item);
 
+    void centerItem(QString ID = "");
+    void centerDefinition(QString ID = "");
+    void centerImplementation(QString ID = "");
+
     void goToDefinition(Node* node = 0);
     void goToImplementation(Node* node = 0);
     void goToInstance(Node *instance = 0);
 
     void deleteSelection();
     void constructNode(QString nodeKind, int sender);
-    void constructEdge(Node* src, Node* dst, bool triggerAction=true);
-    void constructConnectedNode(Node *parentNode, Node *node, QString kind, int sender);
-    void constructNewView(Node* centeredOn = 0);
+    void constructEdge(QString srcID, QString dstID, bool triggerAction=true);
+    void changeEdgeDestination(QString srcID, QString dstID, QString newDstID);
+
+    void deleteFromIDs(QStringList IDs);
+    void constructConnectedNode(QString parentID, QString dstID, QString kind, int sender);
+
+    void constructNewView(QString nodeID="");
+
+    QList<NodeItem*> getNodeItemsOfKind(QString kind, QString ID="", int depth=-1);
     void showConnectedNodes();
 
     void componentInstanceConstructed(Node* node);
 
-    void destructEdge(Edge* edge, bool addAction=true);
 
     void editableItemHasFocus(bool hasFocus);
 
@@ -251,6 +266,8 @@ public slots:
     void highlightDeployment(Node *selectedNode = 0);
 
 private:
+    void _deleteFromIDs(QStringList IDs);
+
     void enableClipboardActions(QStringList IDs );
     void alignSelectionOnGrid(ALIGN alignment = NONE);
     void view_ConstructNodeGUI(Node* node);
@@ -272,6 +289,7 @@ private:
     QStringList getAdoptableNodeList(QString ID);
     QStringList getConnectableNodes(QString ID);
     QList<NodeItem*> getConnectableNodeItems(QString ID);
+    QList<NodeItem*> getNodeInstances(QString ID);
 
     QList<Node*> getFiles();
     QList<Node*> getComponents();
@@ -299,10 +317,7 @@ private:
     void edgeConstructed_signalUpdates(Edge* edge);
     void edgeDestructed_signalUpdates(Edge* edge, QString ID = "");
 
-    void updateActionsEnabled(Node* selectedNode = 0);
-
-    Node* hasDefinition(Node* node);
-    Node* hasImplementation(Node* node);
+    void updateActionsEnabled();
 
     QRectF getVisibleRect();
     void centerRect(QRectF rect, double padding = 0, bool addToMap = true, double sizeRatio = 1);

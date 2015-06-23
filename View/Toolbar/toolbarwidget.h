@@ -23,8 +23,8 @@ public:
 
     void updateSelectedNodeItem(QList<NodeItem *> items);
 
-    void showDefinitionButton(Node *definition);
-    void showImplementationButton(Node* implementation);
+    void showDefinitionButton(QString definitionID);
+    void showImplementationButton(QString implementationID);
 
     void showSnippetButton(QString button, bool show);
 
@@ -61,16 +61,16 @@ private:
 
     void multipleSelection(QList<NodeItem *> items);
 
-    void setupInstancesList(QList<Node*> instances);
+    void setupInstancesList(QList<NodeItem*> instances);
 
     void setupAdoptableNodesList(QStringList nodeKinds);
     void setupLegalNodesList(QList<NodeItem *> nodeList);
 
-    void setupFilesList(QList<Node*> files, QString kind);
-    void setupComponentList(QList<Node*> components, QString kind);
-    void setupBlackBoxList(QList<Node*> blackBoxes);
+    void setupFilesList(QList<NodeItem*> files, QString kind);
+    void setupComponentList(QList<NodeItem*> components, QString kind);
+    void setupBlackBoxList(QList<NodeItem*> blackBoxes);
 
-    void setupChildrenComponentInstanceList(QList<Node*> componentInstances);
+    void setupChildrenComponentInstanceList(QList<NodeItem *> componentInstances);
     void setupInEventPortInstanceList();
     void setupOutEventPortInstanceList();
 
@@ -82,8 +82,8 @@ private:
     NodeItem* nodeItem;
     NodeItem* prevNodeItem;
 
-    Node* definitionNode;
-    Node* implementationNode;
+    QString definitionNodeID;
+    QString implementationNodeID;
 
     QToolButton* addChildButton;
     QToolButton* deleteButton;

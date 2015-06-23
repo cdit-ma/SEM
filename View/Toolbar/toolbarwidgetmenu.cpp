@@ -113,11 +113,11 @@ ToolbarWidgetAction* ToolbarWidgetMenu::getParentAction()
  * @param node
  * @return
  */
-ToolbarWidgetAction* ToolbarWidgetMenu::getWidgetAction(Node* node)
+ToolbarWidgetAction* ToolbarWidgetMenu::getWidgetAction(NodeItem *nodeItem)
 {
     foreach (ToolbarWidgetAction* action, widgetActions) {
-        Node* actionNode = action->getNode();
-        if (actionNode && actionNode == node) {
+        NodeItem* actionNode = action->getNodeItem();
+        if (actionNode && actionNode == nodeItem) {
             return action;
         }
     }

@@ -86,18 +86,19 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
  */
 void DefinitionsDockScrollArea::dockNodeItemClicked()
 {
-    Node* selectedNode = getNodeView()->getSelectedNode();
+    NodeItem* selectedNodeItem = getNodeView()->getSelectedNodeItem();
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
 
-    if (selectedNode) {
-        Node* dockNode = sender->getNodeItem()->getNode();
-        QString selectedNodeKind = selectedNode->getDataValue("kind");
+    if (selectedNodeItem && sender) {
+        NodeItem* dockNodeItem = sender->getNodeItem();
+        QString selectedNodeKind = selectedNodeItem->getNodeKind();
+
         if (selectedNodeKind == "ComponentAssembly") {
-            getNodeView()->constructConnectedNode(selectedNode, dockNode, "ComponentInstance", 0);
+            getNodeView()->constructConnectedNode(selectedNodeItem->getID(), dockNodeItem->getID(), "ComponentInstance", 0);
         } else if (selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ComponentImpl") {
-            getNodeView()->constructEdge(selectedNode, dockNode);
+            getNodeView()->constructEdge(selectedNodeItem->getID(), dockNodeItem->getID(), "ComponentInstance");
         } else if (selectedNodeKind == "BehaviourDefinitions") {
-            getNodeView()->constructConnectedNode(selectedNode, dockNode, "ComponentImpl", 0);
+            getNodeView()->constructConnectedNode(selectedNodeItem->getID(), dockNodeItem->getID(), "ComponentImpl", 0);
         }
     }
 }
@@ -281,8 +282,8 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
            QString currentDockItemLabel;
            if (isFileLabel) {
                NodeItem* currentNodeItem = fileLayoutItems.key((QVBoxLayout*)layout->itemAt(i));
-               if (currentNodeItem &&  currentNodeItem->getNode()){
-                   currentDockItemLabel = currentNodeItem->getNode()->getDataValue("label");
+               if (currentNodeItem){
+                   currentDockItemLabel = currentNodeItem->getNodeLabel();
                }
            } else {
                DockNodeItem* currentDockItem = dynamic_cast<DockNodeItem*>(layout->itemAt(i)->widget());

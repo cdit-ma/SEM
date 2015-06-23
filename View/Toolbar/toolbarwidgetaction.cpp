@@ -15,7 +15,7 @@
 ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QWidget *parent) :
     QWidgetAction(parent)
 {           
-    node = 0;
+    nodeItem = 0;
     actionButton = 0;
     kind = nodeKind;
     label = nodeKind;
@@ -42,12 +42,14 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
  * @param parent
  * @param actionKind
  */
-ToolbarWidgetAction::ToolbarWidgetAction(Node* node, QWidget *parent, bool willHaveMenu) :
+ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, QWidget *parent, bool willHaveMenu) :
     QWidgetAction(parent)
 {
-    this->node = node;
-    kind = node->getDataValue("kind");
-    label = node->getDataValue("label");
+    this->nodeItem = nodeItem;
+    if(nodeItem){
+        kind = nodeItem->getNodeKind();
+        label =  nodeItem->getNodeLabel();
+    }
 
     widgetMenu = 0;
     deletable = true;
@@ -82,12 +84,12 @@ ToolbarWidgetMenu* ToolbarWidgetAction::getMenu()
 
 
 /**
- * @brief ToolbarWidgetAction::getNode
+ * @brief ToolbarWidgetAction::getNodeItem
  * @return
  */
-Node *ToolbarWidgetAction::getNode()
+NodeItem *ToolbarWidgetAction::getNodeItem()
 {
-    return node;
+    return nodeItem;
 }
 
 

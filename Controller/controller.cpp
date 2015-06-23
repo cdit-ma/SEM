@@ -16,6 +16,7 @@ bool SETUP_AS_IMPL = false;
 NewController::NewController()
 {
     qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
+    qRegisterMetaType<GraphML::KIND>("GraphML::KIND");
 
     logFile = new QFile("output.log");
     if (!logFile->open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text)){
@@ -81,12 +82,11 @@ void NewController::connectView(NodeView *view)
 
     //Connect SIGNALS to view Slots (ALL VIEWS)
     connect(this, SIGNAL(controller_GraphMLConstructed(GraphML*)), view, SLOT(constructGUIItem(GraphML*)));
-    connect(this, SIGNAL(controller_GraphMLDestructed(QString)), view, SLOT(destructGUIItem(QString)));
+
+    connect(this, SIGNAL(controller_GraphMLDestructed(QString, GraphML::KIND)), view, SLOT(destructGUIItem(QString,GraphML::KIND)));
+
     connect(this, SIGNAL(controller_ViewSetEnabled(bool)), view, SLOT(setEnabled(bool)));
 
-    //Used by the Dock to keep the dock in the correct state.
-    connect(this, SIGNAL(controller_NodeDeleted(QString,QString)), view, SIGNAL(view_NodeDeleted(QString,QString)));
-    connect(this, SIGNAL(controller_EdgeDeleted(QString,QString)), view, SIGNAL(view_EdgeDeleted(QString,QString)));
 
 
     if(view->isMainView()){
@@ -107,7 +107,7 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(controller_ExportedSnippet(QString,QString)), view, SIGNAL(view_ExportedSnippet(QString,QString)));
 
         connect(this, SIGNAL(controller_AskQuestion(MESSAGE_TYPE, QString, QString, QString)), view, SLOT(showQuestion(MESSAGE_TYPE,QString,QString,QString)));
-
+        connect(view, SIGNAL(view_ChangeEdgeDestination(QString,QString,QString)), this, SLOT(changeEdgeDestination(QString,QString,QString)));
         connect(view, SIGNAL(view_QuestionAnswered(bool)), this, SLOT(gotQuestionAnswer(bool)));
     }
 
@@ -131,10 +131,11 @@ void NewController::connectView(NodeView *view)
         connect(view, SIGNAL(view_Paste(QString,QString)), this, SLOT(paste(QString,QString)));
 
         //Node Slots
-        connect(view, SIGNAL(view_ConstructEdge(Node*,Node*)), this, SLOT(constructEdge(Node*,Node*)));
-        connect(view, SIGNAL(view_ConstructNode(Node*,QString,QPointF)), this, SLOT(constructNode(Node*,QString,QPointF)));
-        connect(view, SIGNAL(view_ConstructComponentInstance(Node*,Node*,QPointF)), this, SLOT(constructComponentInstance(Node*,Node*,QPointF)));
-        connect(view, SIGNAL(view_ConstructConnectedComponents(Node*,Node*,QString,QPointF)), this, SLOT(constructConnectedComponents(Node*,Node*,QString,QPointF)));
+        connect(view, SIGNAL(view_ConstructEdge(QString,QString)), this, SLOT(constructEdge(QString,QString)));
+        connect(view, SIGNAL(view_ConstructNode(QString,QString,QPointF)), this, SLOT(constructNode(QString,QString,QPointF)));
+
+
+        connect(view, SIGNAL(view_ConstructConnectedNode(QString,QString,QString,QPointF)), this, SLOT(constructConnectedNode(QString,QString,QString,QPointF)));
 
         //Undo SLOTS
         connect(view, SIGNAL(view_TriggerAction(QString)), this, SLOT(triggerAction(QString)));
@@ -476,17 +477,69 @@ void NewController::destructGraphMLData(GraphML *parent, QString keyName, bool a
 
 
 
-void NewController::constructNode(Node *parentNode, QString kind, QPointF centerPoint)
+void NewController::constructNode(QString parentID, QString kind, QPointF centerPoint)
 {
     if(kind != ""){
-        //triggerAction("Constructing Child Node");
+        Node* parentNode = getNodeFromID(parentID);
+        triggerAction("Constructing Child Node");
         constructChildNode(parentNode, constructGraphMLDataVector(kind, centerPoint));
     }
+    emit controller_ActionFinished();
 }
 
-void NewController::constructEdge(Node *src, Node *dst)
+void NewController::constructEdge(QString srcID, QString dstID)
 {
+    Node* src = getNodeFromID(srcID);
+    Node* dst = getNodeFromID(dstID);
     constructEdgeWithData(src, dst);
+    emit controller_ActionFinished();
+}
+
+void NewController::constructConnectedNode(QString parentID, QString connectedID, QString kind, QPointF relativePos)
+{
+    Node* parentNode = getNodeFromID(parentID);
+    Node* connectedNode = getNodeFromID(connectedID);
+    if(parentNode && connectedNode){
+        triggerAction("Constructed Connected Node");
+        Node* newNode = constructChildNode(parentNode, constructGraphMLDataVector(kind));
+        bool gotEdge = false;
+        if(newNode){
+            //Update the position
+            setGraphMLData(newNode, "x", QString::number(relativePos.x()));
+            setGraphMLData(newNode, "y", QString::number(relativePos.y()));
+
+            constructEdgeWithData(newNode, connectedNode);
+
+            //Try the alternate connection.
+            if(!newNode->isConnected(newNode)){
+                constructEdgeWithData(connectedNode, newNode);
+            }
+            gotEdge = newNode->isConnected(newNode);
+        }
+        //If we can't connect destruct the node we created.
+        if(!gotEdge){
+            destructNode(newNode, false);
+        }
+    }
+    emit controller_ActionFinished();
+}
+
+void NewController::changeEdgeDestination(QString srcID, QString dstID, QString newDstID)
+{
+    Node* src = getNodeFromID(srcID);
+    Node* dst = getNodeFromID(dstID);
+    Node* newDst = getNodeFromID(newDstID);
+    if(src && dst && newDst){
+        Edge* edge = src->getConnectingEdge(dst);
+        if(edge){
+            triggerAction("Changing Edge Destination");
+            if(destructEdge(edge, true)){
+                constructEdgeWithData(src, newDst);
+            }
+        }
+    }
+
+    emit controller_ActionFinished();
 }
 
 
@@ -881,7 +934,7 @@ void NewController::constructComponentInstance(Node *assembly, Node *definition,
         setGraphMLData(instance, "x", QString::number(center.x()));
         setGraphMLData(instance, "y", QString::number(center.y()));
         // construct edge between instance and definition
-        constructEdge(instance, definition);
+        constructEdgeWithData(instance, definition);
     }
 
     emit componentInstanceConstructed(instance);
@@ -896,11 +949,11 @@ void NewController::constructConnectedComponents(Node *parent, Node *connectedNo
         setGraphMLData(newNode, "x", QString::number(relativePosition.x()));
         setGraphMLData(newNode, "y", QString::number(relativePosition.y()));
 
-        constructEdge(newNode, connectedNode);
+        constructEdgeWithData(newNode, connectedNode);
 
         //Try the alternate connection.
         if(!newNode->isConnected(newNode)){
-            constructEdge(connectedNode, newNode);
+            constructEdgeWithData(connectedNode, newNode);
         }
         gotEdge = newNode->isConnected(newNode);
     }
@@ -953,6 +1006,49 @@ QStringList NewController::getConnectableNodes(QString srcID)
         }
     }
     return legalNodes;
+}
+
+QStringList NewController::getInstances(QString ID)
+{
+    QStringList instances;
+    Node* node = getNodeFromID(ID);
+    if(node){
+        foreach(Node* instance, node->getInstances()){
+            if(instance){
+                instances.append(instance->getID());
+            }
+        }
+    }
+    return instances;
+}
+
+QString NewController::getAggregate(QString ID)
+{
+    QString aggrID;
+    Node* node = getNodeFromID(ID);
+    if(node){
+        EventPort* eventPort = dynamic_cast<EventPort*>(node);
+        if(eventPort && eventPort->getAggregate()){
+            aggrID = eventPort->getAggregate()->getID();
+        }
+    }
+    return aggrID;
+
+}
+
+QStringList NewController::getNodesOfKind(QString kind, QString ID, int depth)
+{
+    QStringList children;
+    if(ID == ""){
+        ID = getModel()->getID();
+    }
+    Node* parentNode = getNodeFromID(ID);
+    if(parentNode){
+        foreach(Node* child, parentNode->getChildrenOfKind(kind, depth)){
+            children.append(child->getID());
+        }
+    }
+    return children;
 }
 
 
@@ -1091,7 +1187,10 @@ void NewController::removeGraphMLFromHash(QString ID)
         GraphML* item = IDLookupGraphMLHash[ID];
         if(item)
         {
-            controller_GraphMLDestructed(ID);
+            controller_GraphMLDestructed(ID, item->getKind());
+        }else
+        {
+            qCritical() << "GOT ITEM NOT IN CONTROLLER HASH";
         }
 
         IDLookupGraphMLHash.remove(ID);
@@ -1654,7 +1753,7 @@ bool NewController::destructNode(Node *node, bool addAction)
         addActionToStack(action, addAction);
     }
 
-      removeGraphMLFromHash(ID);
+    removeGraphMLFromHash(ID);
 
 
     HardwareNode* hNode = dynamic_cast<HardwareNode*>(node);
@@ -1673,7 +1772,7 @@ bool NewController::destructNode(Node *node, bool addAction)
         managementComponents.remove(nodeName);
     }
 
-    controller_NodeDeleted(ID, parentID);
+
     delete node;
     return true;
 }
@@ -1755,11 +1854,8 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     //Remove it from the hash of GraphML
     removeGraphMLFromHash(ID);
 
-    controller_EdgeDeleted(srcID, dstID);
-
     //Delete it.
     delete edge;
-
     return true;
 }
 
@@ -2567,7 +2663,7 @@ bool NewController::setupAggregateRelationship(EventPort *eventPort, Aggregate *
 
     if(!edge){
         //Construct an Edge between the AggregateInstance an Aggregate
-        constructEdge(aggregateInstance, aggregate);
+        constructEdgeWithData(aggregateInstance, aggregate);
         edge = aggregateInstance->getConnectingEdge(aggregate);
         //Set it is AutoGenerated as to not make an undo state for it.
         edge->setGenerated(true);
@@ -3441,6 +3537,40 @@ bool NewController::canImportSnippet(QStringList selection)
         return true;
     }
     return false;
+}
+
+QString NewController::getDefinition(QString ID)
+{
+    Node* original = getNodeFromID(ID);
+    if(original){
+        Node* node = original;
+        while (node && node->getDefinition()) {
+            node = node->getDefinition();
+        }
+        if (node != original) {
+            return node->getID();
+        }
+    }
+    return "";
+}
+
+QString NewController::getImplementation(QString ID)
+{
+    Node* original = getNodeFromID(ID);
+    if(original){
+        QString definitionID = getDefinition(ID);
+        Node* node = getNodeFromID(definitionID);
+        if(definitionID != ""){
+            node = original;
+        }
+        if (node && node->getImplementations().size() > 0) {
+            Node* impl = node->getImplementations().at(0);
+            if (impl != original) {
+                return impl->getID();
+            }
+        }
+    }
+    return "";
 }
 
 Node* NewController::getSharedParent(QStringList IDs)

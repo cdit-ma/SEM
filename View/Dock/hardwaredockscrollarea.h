@@ -11,7 +11,6 @@ public:
     explicit HardwareDockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
     
 signals:
-    void dock_destructEdge(Edge* edge, bool addAction);
     void dock_higlightDockItem(Node* node = 0);
 
 public slots:

@@ -130,6 +130,7 @@ public:
 
     Node* getNode();
     QString getNodeKind();
+    QString getNodeLabel();
     QList<NodeItem*> getChildNodeItems();
     bool isPermanentlyCentered();
 
@@ -231,7 +232,6 @@ protected:
 
 
 private:
-    bool IS_DELETING;
 
 //USED METHODS
     QRectF iconRect();
@@ -266,7 +266,7 @@ private:
     void updateGraphMLPosition();
     void updateChildrenOnChange();
     void retrieveGraphMLData();
-    void updateTextLabel(QString text=0);
+    void updateTextLabel(QString text="");
     void updateParent();
     void updateParentModel();
 
@@ -309,6 +309,7 @@ private:
 
 
     QString nodeKind;
+    QString nodeLabel;
     QString minimumHeightStr;
     QString fileID;
 

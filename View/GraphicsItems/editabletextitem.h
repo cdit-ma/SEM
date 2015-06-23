@@ -12,6 +12,7 @@ public:
     void setPlainText(const QString &text);
     void setTextWidth(qreal width);
     void setCenterJustified();
+    QString getStringValue();
 
 
 signals:
@@ -28,7 +29,7 @@ protected:
 
 private:
     QString getTruncatedText(const QString text );
-    QString getStringValue();
+
     bool centerJustified;
     QString currentFullValue;
     QString currentTruncValue;

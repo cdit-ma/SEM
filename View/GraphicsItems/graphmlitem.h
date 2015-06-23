@@ -57,6 +57,7 @@ private:
     GUI_KIND kind;
     QString ID;
 
+
     // QGraphicsItem interface
 };
 

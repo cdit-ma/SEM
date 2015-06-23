@@ -18,12 +18,12 @@ class ToolbarWidgetAction : public QWidgetAction
     Q_OBJECT
 public:
     explicit ToolbarWidgetAction(QString nodeKind, QString textLabel = "", QWidget *parent = 0);
-    explicit ToolbarWidgetAction(Node* node, QWidget *parent = 0, bool willHaveMenu = false);
+    explicit ToolbarWidgetAction(NodeItem* nodeItem, QWidget *parent = 0, bool willHaveMenu = false);
 
     void setMenu(ToolbarWidgetMenu* widgetMenu);
     ToolbarWidgetMenu* getMenu();
 
-    Node* getNode();
+    NodeItem* getNodeItem();
     QString getKind();
 
     bool isDeletable();
@@ -47,7 +47,7 @@ public slots:
     void menuClosed();
 
 private:
-    Node* node;
+    NodeItem* nodeItem;
 
     QString kind;
     QString label;

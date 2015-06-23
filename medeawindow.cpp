@@ -1252,7 +1252,6 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(refreshDock()));
 
-    connect(hardwareDock, SIGNAL(dock_destructEdge(Edge*, bool)), nodeView, SLOT(destructEdge(Edge*, bool)));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
 
@@ -1736,7 +1735,7 @@ void MedeaWindow::on_actionPopupNewWindow()
     progressAction = "Opening New Window";
 
     if (nodeView->getSelectedNode()) {
-        nodeView->constructNewView(nodeView->getSelectedNode());
+        nodeView->constructNewView(nodeView->getSelectedNodeID());
     }
 }
 
