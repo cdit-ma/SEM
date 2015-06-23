@@ -145,7 +145,7 @@ public:
 
 
 
-    void higlightNodeItem(bool highlight);
+    void highlightNodeItem(bool highlight);
     void showHardwareIcon(bool show);
     QList<NodeItem *> deploymentView(bool on, NodeItem* selectedItem = 0);
 

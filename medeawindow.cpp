@@ -1240,7 +1240,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(refreshDock()));
     connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
 
-    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), nodeView, SLOT(highlightDeployment()));
+    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
 
     connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), definitionsDock, SLOT(refreshDock()));
@@ -2708,7 +2708,7 @@ void MedeaWindow::checkNotificationsQueue()
  */
 void MedeaWindow::graphicsItemSelected()
 {
-    if (nodeView->getSelectedNode()) {
+    if (nodeView && nodeView->getSelectedNode()) {
         view_showConnectedNodes->setEnabled(true);
         view_snapToGrid->setEnabled(settings_useGridLines->isChecked());
         view_snapChildrenToGrid->setEnabled(settings_useGridLines->isChecked());
@@ -2734,6 +2734,13 @@ void MedeaWindow::graphicsItemSelected()
 void MedeaWindow::graphicsItemDeleted()
 {
     updateDataTable();
+
+    // added this here for when edges are deleted
+    // we need to check first if there's a selected node before clearing the deployment highlight
+    if (nodeView) {
+        qDebug() << "Edge deleted";
+        emit window_highlightDeployment(nodeView->getSelectedNode());
+    }
 }
 
 

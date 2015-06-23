@@ -514,11 +514,12 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
 
-
+        // scale the highlighted border
         if (highlighted && getNodeView()){
             qreal penWidth = qMax(5.0/ getNodeView()->transform().m11(), 1.0);
             Pen.setWidth(penWidth);
             Pen.setStyle(Qt::DashLine);
+            Pen.setColor(Qt::red);
         }
 
 
@@ -534,8 +535,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             brush.setStyle(Qt::SolidPattern);
             painter->setBrush(brush);
 
-
             painter->setPen(pen);
+
             QPen altPen = pen;
             altPen.setColor(brush.color());
 
@@ -554,7 +555,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 triangle.append(QPointF(xRight,yTop));
                 triangle.append(QPointF(xLeft,yBot));
                 painter->drawLine(line);
-                painter->setPen(pen);
+                //painter->setPen(pen);
                 painter->setPen(altPen);
                 painter->drawPolygon(triangle,Qt::WindingFill);
             }else{
@@ -1628,10 +1629,9 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     if(hasVisibleChildren() && iconPressed(event->pos())){
         setCursor(Qt::PointingHandCursor);
         changedCursor = true;
-        tooltip = "Double-click to expand/contract entity.";
+        tooltip = "Double click to expand/contract entity.";
     }
 
-    // show tool tips
     QPointF eventPos = event->pos();
     if (labelPressed(eventPos)) {
         //tooltip = ;
@@ -1641,6 +1641,7 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         tooltip = "Not all children entities are deployed to the same hardware node.";
     }
 
+    // update/show tool tip depending on where the mouse is
     setToolTip(tooltip);
 
     if(!isExpanded() || !hasVisibleChildren()){
@@ -2354,7 +2355,7 @@ void NodeItem::setupLabel()
         textItem->setCenterJustified();
         textItem->setTextWidth(getItemMargin());
     } else {
-        textItem->setToolTip("Double Click to Edit Label");
+        textItem->setToolTip("Double click to edit label.");
     }
 
     qreal labelX = (minimumVisibleRect().width() - textItem->boundingRect().width()) /2;
@@ -2680,14 +2681,9 @@ bool NodeItem::isInAspect()
  * This is also used to remove the highlight when the deployment view is turned off.
  * @param highlight
  */
-void NodeItem::higlightNodeItem(bool highlight)
+void NodeItem::highlightNodeItem(bool highlight)
 {
     highlighted = highlight;
-    if (highlight) {
-        pen.setColor(Qt::red);
-    } else {
-        pen.setColor(Qt::gray);
-    }
 }
 
 
@@ -2700,6 +2696,7 @@ void NodeItem::higlightNodeItem(bool highlight)
 void NodeItem::showHardwareIcon(bool show)
 {
     showDeploymentWarningIcon = show;
+    //update(deploymentIconRect());
 }
 
 
@@ -2735,7 +2732,7 @@ QList<NodeItem*> NodeItem::deploymentView(bool on, NodeItem* selectedItem)
             foreach (Edge* edge, childItem->getNode()->getEdges(0)) {
                 if (edge->isDeploymentLink() && edge->getDestination() != deploymentLink) {
                     if (selectedItem && selectedItem == this) {
-                        childItem->higlightNodeItem(true);
+                        childItem->highlightNodeItem(true);
                     }
                     chlidrenDeployedToDifferentNode.append(childItem);
                     break;
@@ -2752,11 +2749,14 @@ QList<NodeItem*> NodeItem::deploymentView(bool on, NodeItem* selectedItem)
 
         // remove highlight and hide the red hradware icon
         foreach (NodeItem* childItem, getChildNodeItems()) {
-            childItem->higlightNodeItem(false);
+            childItem->highlightNodeItem(false);
         }
 
         showHardwareIcon(false);
     }
+
+    // need to update here otherwise the visual changes aren't applied till the mouse is moved
+    update();
 
     return chlidrenDeployedToDifferentNode;
 }
