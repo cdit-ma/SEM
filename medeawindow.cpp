@@ -1107,6 +1107,8 @@ void MedeaWindow::makeConnections()
 {
     validateResults.connectToWindow(this);
 
+    connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
+
     connect(nodeView, SIGNAL(view_ImportSnippet(QString)), this, SLOT(importSnippet(QString)));
 
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
@@ -1349,6 +1351,14 @@ void MedeaWindow::jenkins_InvokeJob(QString filePath)
      }
 }
 
+void MedeaWindow::jenkinsNodesLoaded()
+{
+    // if the hardware dock isn't already open, open it
+    if (hardwareNodesButton->isEnabled() && !hardwareNodesButton->getSelected()) {
+        hardwareNodesButton->pressed();
+    }
+}
+
 
 /**
  * @brief MedeaWindow::toggleAndTriggerAction
@@ -1529,14 +1539,8 @@ void MedeaWindow::saveSettings()
 void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
 {
     if(jenkinsXML != ""){
-        // make sure that the aspects for Deployment are turned on (Assembly & Hardware)
-        nodeView->viewDeploymentAspect();
-
         // import Jenkins
-        window_LoadJenkinsNodes(jenkinsXML);
-
-        // this selects the Jenkins hardware cluster and opens the hardware dock
-        showImportedHardwareNodes();
+        emit window_LoadJenkinsNodes(jenkinsXML);
     }else{
         QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
     }
@@ -2941,29 +2945,6 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
 }
 
 
-/**
- * @brief MedeaWindow::showImportedHardwareNodes
- * This is called after the Jenkins nodes are imported.
- * It selects the Jenkins hardware cluster, opens the hardware dock and display
- * the Assembly and Hardware view aspects if they aren't already turned on.
- */
-void MedeaWindow::showImportedHardwareNodes()
-{
-    // select the Jenkins hardware cluster after construction
-    Model* model = controller->getModel();
-    if (model) {
-        QList<Node*> hardwareClusters = model->getChildrenOfKind("HardwareCluster"); if (hardwareClusters.count() > 0) {
-            // at the moment, this method assumes that the only cluster is the Jenkins cluster
-            nodeView->clearSelection(true, false);
-            nodeView->appendToSelection(hardwareClusters.at(0));
-        }
-    }
-
-    // if the hardware dock isn't already open, open it
-    if (hardwareNodesButton->isEnabled() && !hardwareNodesButton->getSelected()) {
-        hardwareNodesButton->pressed();
-    }
-}
 
 
 /**

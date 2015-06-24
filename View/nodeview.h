@@ -87,7 +87,7 @@ private slots:
 signals:
 
 
-
+    void view_OpenHardwareDock();
     void view_ModelSizeChanged();
     void view_Clear();
     void view_ProjectCleared();
@@ -276,6 +276,7 @@ public slots:
     void highlightDeployment(Node *selectedNode = 0);
 
 private:
+    void selectJenkinsImportedNodes();
 
     void ensureAspect(QString ID);
 
@@ -404,6 +405,8 @@ private:
     bool GRID_LINES_ON;
     bool SELECT_ON_CONSTRUCTION;
 
+
+    bool toolbarDockConstruction;
     bool constructedFromImport;
     bool importFromJenkins;
     bool toolbarJustClosed;

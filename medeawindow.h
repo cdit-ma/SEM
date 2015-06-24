@@ -94,6 +94,7 @@ public slots:
     void jenkins_InvokeJob(QString filePath);
 
 private slots:
+    void jenkinsNodesLoaded();
     void saveSettings();
 
     void gotJenkinsNodeGraphML(QString graphML);
@@ -161,6 +162,7 @@ private slots:
     //multi-line popup for QTableView (SLOTS)
     void dataTableDoubleClicked(QModelIndex);
     void dialogAccepted();
+
     void dialogRejected();
 
 protected:
@@ -188,7 +190,7 @@ private:
 
     bool exportProject();
     void importProjects(QStringList files);
-    void showImportedHardwareNodes();
+
 
     void toggleAndTriggerAction(QAction* action, bool value);
 

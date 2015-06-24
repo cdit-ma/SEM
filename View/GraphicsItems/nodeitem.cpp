@@ -124,6 +124,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     expandedHeight = height;
 
 
+    setupLabel();
     //Update Width and Height with values from the GraphML Model If they have them.
     retrieveGraphMLData();
 
@@ -132,7 +133,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setupAspect();
     setupBrushes();
    //setupIcon();
-    setupLabel();
+
     //setupLockMenu();
 
     setFlag(ItemDoesntPropagateOpacityToChildren);
@@ -1220,6 +1221,7 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
         }else if(keyName == "label"){
             //Update the Label
             updateTextLabel(value);
+
             // update connected dock node item
             emit updateDockNodeItem();
         }
@@ -2444,19 +2446,6 @@ QPointF NodeItem::isOverGrid(const QPointF centerPosition)
 }
 
 
-void NodeItem::setNewLabel(QString newLabel)
-{
-    if(getGraphML()){
-        if(newLabel != ""){
-            GraphMLItem_TriggerAction("Set New Label");
-            GraphMLItem_SetGraphMLData(getID(), "label", newLabel);
-        }else{
-            if(textItem){
-                textItem->setEditMode(true);
-            }
-        }
-    }
-}
 
 
 void NodeItem::toggleGridLines(bool on)
@@ -3029,10 +3018,32 @@ void NodeItem::labelUpdated(QString newLabel)
         QString currentLabel = getGraphMLDataValue("label");
 
         if(currentLabel != newLabel){
-            GraphMLItem_TriggerAction("Set New Label");
-            GraphMLItem_SetGraphMLData(getID(), "label", newLabel);
+            if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
+                GraphMLItem_TriggerAction("Set New Label");
+                GraphMLItem_SetGraphMLData(getID(), "label", newLabel);
+            }
         }
     }
+}
+
+void NodeItem::setNewLabel(QString newLabel)
+{
+    if(getGraphML()){
+           if(newLabel != ""){
+               if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
+                   GraphMLItem_TriggerAction("Set New Label");
+                   GraphMLItem_SetGraphMLData(getID(), "label", newLabel);
+               }
+           }else{
+               if(textItem){
+                   if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
+
+                   textItem->setEditMode(true);
+                   }
+               }
+           }
+    }
+
 }
 
 

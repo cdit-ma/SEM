@@ -59,7 +59,10 @@ void DockScrollArea::updateCurrentNodeItem()
  */
 NodeItem *DockScrollArea::getCurrentNodeItem()
 {
-    return currentNodeItem;
+    if(currentNodeItemID != ""){
+        return currentNodeItem;
+    }
+    return 0;
 }
 
 
@@ -204,7 +207,7 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
  */
 void DockScrollArea::updateDock()
 {
-    if(currentNodeItemID != "-1"){
+    if(currentNodeItemID != ""){
         if (currentNodeItem) {
             if (currentNodeItem->getNodeKind() == "Model") {
                 parentButton->enableDock(false);
@@ -239,7 +242,7 @@ void DockScrollArea::nodeDeleted(QString nodeID, QString parentID)
     if (parentID == getCurrentNodeID()) {
         updateDock();
     } else if (nodeID == getCurrentNodeID()) {
-        currentNodeItemID = "-1";
+        currentNodeItemID = "";
     }
 }
 

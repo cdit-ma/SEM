@@ -99,7 +99,7 @@ void HardwareDockScrollArea::updateDock()
 {
     DockScrollArea::updateDock();
 
-    if (getCurrentNodeItem()) {
+    if (getCurrentNodeItem() && getCurrentNodeID() != "-1") {
 
         QString nodeKind = getCurrentNodeItem()->getNodeKind();
         Node* node = getCurrentNodeItem()->getNode();

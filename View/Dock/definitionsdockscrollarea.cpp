@@ -113,7 +113,7 @@ void DefinitionsDockScrollArea::updateDock()
 {
     DockScrollArea::updateDock();
 
-    if(getCurrentNodeID() == "-1"){
+    if(getCurrentNodeID() == ""){
         return;
     }
     if (getCurrentNodeItem()) {
@@ -216,6 +216,8 @@ void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
                 fileLayoutItems.remove(fileItem);
                 itemsLayout->removeItem(fileLayout);
                 delete fileLayout;
+                removeDockNodeItemFromList(fileDockItem);
+
 
             } else {
                 // otherwise, just remove the dock item from its layout and the File's list
@@ -227,6 +229,10 @@ void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
             removeDockNodeItemFromList(dockItem);
             delete dockItem;
         }
+    }else if(nodeItem->getNodeKind() == "File"){
+
+
+
     }
 
     // if the destructed node was selected before it was destroyed, clear this dock's selection
@@ -252,6 +258,7 @@ void DefinitionsDockScrollArea::refreshDock()
  */
 void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
 {
+
     NodeItem* dockNodeItem = dockItem->getNodeItem();
     bool isFileLabel = dockItem->isFileLabel();
     QVBoxLayout* layout = 0;
@@ -276,6 +283,7 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
         return;
 	}
 
+    qCritical() << "Layout: " << layout->count();
     // iterate through the items in this dock's layout
     for (int i = 0; i < layout->count(); i++) {
 

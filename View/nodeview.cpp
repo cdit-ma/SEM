@@ -46,6 +46,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     toolbarJustClosed = false;
     editingNodeItemLabel = false;
     managementComponentVisible = false;
+    toolbarDockConstruction = false;
     importFromJenkins = false;
     IS_SUB_VIEW = subView;
     //controller = 0;
@@ -647,7 +648,13 @@ void NodeView::actionFinished()
 {
     //Reset
     pasting = false;
-    importFromJenkins = false;
+
+    if(importFromJenkins){
+        emit view_OpenHardwareDock();
+        importFromJenkins = false;
+    }
+    toolbarDockConstruction = false;
+    constructedFromImport = false;
 
     updateActionsEnabled();
 
@@ -702,6 +709,8 @@ void NodeView::importProjects(QStringList xmlDataList)
 {
     if(!xmlDataList.isEmpty()){
         if(viewMutex.tryLock()){
+            constructedFromImport = true;
+            clearSelection(true,false);
             emit view_ImportProjects(xmlDataList);
         }
     }
@@ -710,6 +719,7 @@ void NodeView::importProjects(QStringList xmlDataList)
 void NodeView::loadJenkinsNodes(QString fileData)
 {
     importFromJenkins = true;
+    viewDeploymentAspect();
     importProjects(QStringList(fileData));
 }
 
@@ -1359,7 +1369,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     }
 
     //Expanded parent
-    if(!constructedFromImport || importFromJenkins){
+    if(toolbarDockConstruction || importFromJenkins){
         if(parentNodeItem){
             if(!parentNodeItem->isExpanded()){
                 parentNodeItem->setNodeExpanded(true);
@@ -1402,19 +1412,11 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
     // the node's label is automatically selected and editable
-    if(!constructedFromImport){
-        if(SELECT_ON_CONSTRUCTION && !importFromJenkins){
-            clearSelection(true, false);
-            appendToSelection(nodeItem);
-            nodeItem->setNewLabel();
-            centerOnItem();
-        }
-    }
-
-    // only do the SELECT_ON_CONSTRUCTION stuff if the node was constructed
-    // using the dock/toolbar and not from GraphML import - reset check
-    if (!constructedFromImport) {
-        constructedFromImport = true;
+    if(toolbarDockConstruction && SELECT_ON_CONSTRUCTION){
+        clearSelection(true, false);
+        appendToSelection(nodeItem);
+        nodeItem->setNewLabel();
+        centerOnItem();
     }
 
     // add the newly constructed node item to the scene
@@ -1530,7 +1532,7 @@ void NodeView::constructNode(QString nodeKind, int sender)
     if(viewMutex.tryLock()){
         NodeItem* selectedItem = getSelectedNodeItem();
         if (selectedItem) {
-            constructedFromImport = false;
+            toolbarDockConstruction = true;
             if (sender == 0) {
                 // if from dock, place at next available position on grid
                 view_ConstructNode(selectedItem->getID(), nodeKind, selectedItem->getNextChildPos());
@@ -1600,6 +1602,7 @@ void NodeView::constructConnectedNode(QString parentID, QString dstID, QString k
     if(viewMutex.tryLock()){
         NodeItem *nodeItem = getNodeItemFromID(parentID);
         if(nodeItem){
+            toolbarDockConstruction = true;
             QPointF position;
             if (sender == 0){
                 position = nodeItem->getNextChildPos();
@@ -2049,7 +2052,7 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
     }
 
     // if currently pasting, select pasted item
-    if (pasting) {
+    if (pasting || importFromJenkins) {
         appendToSelection(nodeItem);
     }
 }
