@@ -52,6 +52,25 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
 
 
 /**
+ * @brief HardwareDockScrollArea::onNodeDeleted
+ * @param ID
+ */
+void HardwareDockScrollArea::onNodeDeleted(QString ID)
+{
+    refreshDock();
+}
+
+
+/**
+ * @brief HardwareDockScrollArea::onEdgeDeleted
+ */
+void HardwareDockScrollArea::onEdgeDeleted()
+{
+    refreshDock();
+}
+
+
+/**
  * @brief HardwareDockScrollArea::dock_itemClicked
  * When an item in this dock is clicked, if it's allowed, it connects the
  * selected node to the selected hardware node from the dock.
@@ -237,9 +256,4 @@ void HardwareDockScrollArea::highlightHardwareConnection()
             emit dock_higlightDockItem();
         }
     }
-}
-
-void HardwareDockScrollArea::onEdgeDeleted()
-{
-    updateDock();
 }

@@ -12,9 +12,13 @@ public:
 
     QList<DockNodeItem*> getDockNodeItems();
 
+    void onNodeDeleted(QString ID);
+    void onEdgeDeleted();
+
 public slots:
     void dockNodeItemClicked();
     void updateDock();
+    void clear();
 
     void nodeConstructed(NodeItem* nodeItem);
     void nodeDestructed(NodeItem* nodeItem);
@@ -32,14 +36,6 @@ private:
     QVBoxLayout* mainLayout;
     QVBoxLayout* itemsLayout;
 
-
-    // DockScrollArea interface
-public:
-    void onEdgeDeleted();
-
-    // DockScrollArea interface
-public slots:
-    void clear();
 };
 
 #endif // DEFINITIONSDOCKSCROLLAREA_H

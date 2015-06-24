@@ -80,6 +80,7 @@ signals:
     void window_aspectToggleDoubleClicked(AspectToggleWidget* aspect);
 
     void window_highlightDeployment(Node* selectedNode = 0);
+    void window_updateActionsEnabled();
 
     void checkDockScrollBar();
     void clearDocks();
@@ -99,7 +100,6 @@ private slots:
 
     void gotJenkinsNodeGraphML(QString graphML);
     void on_actionImportJenkinsNode();
-
 
     void on_actionNew_Project_triggered();
     void on_actionImport_GraphML_triggered();

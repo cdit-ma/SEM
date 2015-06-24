@@ -663,27 +663,6 @@ void NodeView::actionFinished()
         clearingModel = false;
     }
 
-
-
-
-
-
-/*
-    // TODO
-    // added this here to update docks when a graphical item is deleted
-    // will need to have the same parameters as old signals
-    // deletedItems is populated in destructGUIItem()
-    // still need a signal for when edges are deleted - with srcID & dstID
-    foreach (QString ID, deletedItems.keys()) {
-        GraphML::KIND kind = deletedItems.value(ID);
-        if (kind == GraphML::NODE) {
-            emit view_NodeDeleted(ID);
-        } else if (kind == GraphML::EDGE) {
-            //emit view_EdgeDeleted(ID);
-        }
-    }
-    deletedItems.clear();
-*/
     viewMutex.unlock();
 }
 
@@ -2096,8 +2075,7 @@ void NodeView::nodeSelected_signalUpdates(Node* node)
  * @param edge
  */
 void NodeView::edgeConstructed_signalUpdates(Edge* edge)
-{  
-
+{
     // update highlighted children items
     highlightDeployment(getSelectedNode());
 
@@ -2115,9 +2093,8 @@ void NodeView::edgeConstructed_signalUpdates(Edge* edge)
  */
 void NodeView::edgeDestructed_signalUpdates(Edge* edge, QString ID)
 {
-    // update the docks and the toolbar/menu goTo functions
+    // update the toolbar/menu goTo functions
     //emit view_edgeDestructed();
-
 
     // check if destructed edge's destination is a HardwareNode
     NodeItem* destination = getNodeItemFromNode(edge->getDestination());
@@ -2148,6 +2125,7 @@ void NodeView::edgeDestructed_signalUpdates(Edge* edge, QString ID)
  */
 void NodeView::updateActionsEnabled()
 {
+    //qDebug() << "updateActionsEnabled";
     QString ID = getSelectedNodeID();
 
     QString defnID;
@@ -3113,7 +3091,6 @@ void NodeView::constructGUIItem(GraphML *item){
 void NodeView::destructGUIItem(QString ID, GraphML::KIND kind)
 {
     removeGraphMLItemFromHash(ID);
-    deletedItems[ID] = kind;
 }
 
 

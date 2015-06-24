@@ -1108,7 +1108,6 @@ void MedeaWindow::makeConnections()
     validateResults.connectToWindow(this);
 
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
-
     connect(nodeView, SIGNAL(view_ImportSnippet(QString)), this, SLOT(importSnippet(QString)));
 
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
@@ -1164,17 +1163,13 @@ void MedeaWindow::makeConnections()
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
     connect(view_showManagementComponents, SIGNAL(triggered(bool)), nodeView, SLOT(showManagementComponents(bool)));
 
-
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
     connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
 
-
     //Jenkins Settings
     connect(jenkins_ExecuteJob, SIGNAL(triggered()), this, SLOT(exportTempFile()));
     connect(jenkins_ImportNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
-
-
 
     connect(settings_changeAppSettings, SIGNAL(triggered()), appSettings, SLOT(show()));
     connect(settings_useGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
@@ -1230,18 +1225,20 @@ void MedeaWindow::makeConnections()
     // DEMO CHANGE
     //connect(toolbarStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedToolbarClosed()));
 
+    // This does absolutely nothing!!!
+    connect(this, SIGNAL(window_updateActionsEnabled()), nodeView, SLOT(setEnabled(bool)));
+
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
 
-
     //connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
+    //connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
 
     connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
 
-
-    //connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
+    connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
     connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
@@ -1251,21 +1248,20 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
 
-    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(refreshDock()));
-    connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
-
-    //connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
+    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
+    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(refreshDock()));
+    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
 
     connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), definitionsDock, SLOT(edgeDeleted(QString, QString)));
 
+    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), nodeView, SLOT(highlightDeployment()));
+
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
 
-    connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(refreshDock()));
-    connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(refreshDock()));
-
+    //connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(refreshDock()));
+    //connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(refreshDock()));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
 
@@ -2161,15 +2157,15 @@ void MedeaWindow::showWindowToolbar(bool checked)
 
     QToolButton* senderButton = qobject_cast<QToolButton*>(QObject::sender());
     if (senderButton) {
+
         // show/hide all tool buttons
         foreach (QAction* action, checkedToolbarActions) {
-            //bool enabled = action->isEnabled();
             action->setVisible(checked);
-            //action->setEnabled(enabled);
         }
         foreach (QAction* spacer, checkedToolbarSpacers) {
             spacer->setVisible(checked);
         }
+
         if (checked) {
             toolbarButton->setToolTip("Contract Toolbar");
             toolbarButtonLabel->setPixmap(contractPixmap);
@@ -2180,10 +2176,13 @@ void MedeaWindow::showWindowToolbar(bool checked)
             toolbarButtonLabel->setPixmap(expandPixmap);
             toolbar->setMask(QRegion(0,0,1,1, QRegion::Ellipse));
         }
+
     } else {
         toolbar->setVisible(checked);
         toolbarButton->setVisible(checked);
     }
+
+    emit window_updateActionsEnabled();
 }
 
 

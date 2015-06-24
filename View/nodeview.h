@@ -389,7 +389,6 @@ private:
 
     ToolbarWidget* toolbar;
 
-
     bool IS_SUB_VIEW;
 
     QList<NodeView*> subViews;
@@ -433,7 +432,6 @@ private:
     QMap<int, QRectF> centeredRects;
 
     QHash<QString, QImage> imageLookup;
-    QHash<QString, GraphML::KIND> deletedItems;
 
     QMenu* prevLockMenuOpened;
 

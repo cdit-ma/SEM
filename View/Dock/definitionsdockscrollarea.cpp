@@ -79,6 +79,64 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
 
 
 /**
+ * @brief DefinitionsDockScrollArea::onNodeDeleted
+ * @param ID
+ */
+void DefinitionsDockScrollArea::onNodeDeleted(QString ID)
+{
+    qDebug() << "onNodeDeleted";
+
+    DockNodeItem* dockItem = getDockNodeItem(ID);
+
+    if (dockItem) {
+
+        NodeItem* fileItem = dockItem->getNodeItem()->getParentNodeItem();
+        QVBoxLayout* fileLayout = fileLayoutItems[fileItem];
+        DockNodeItem* fileDockItem = getDockNodeItem(fileItem);
+
+        // if the node item to be deleted is the last child node item of fileItem,
+        // remove the file layout & label from their lists and then delete them
+        if (fileItem->getChildNodeItems().count() == 1) {
+            if (fileDockItem) {
+                // remove and delete the file label
+                removeDockNodeItemFromList(fileDockItem);
+                delete fileDockItem;
+            }
+            // remove and delete the file layout
+            fileLayoutItems.remove(fileItem);
+            itemsLayout->removeItem(fileLayout);
+            delete fileLayout;
+            removeDockNodeItemFromList(fileDockItem);
+
+
+        } else {
+            // otherwise, just remove the dock item from its layout and the File's list
+            fileLayout->removeWidget(dockItem);
+            fileDockItem->removeChildDockItem(dockItem);
+        }
+
+        // remove and delete the dock item
+        removeDockNodeItemFromList(dockItem);
+        delete dockItem;
+
+        // if the destructed node was selected before it was destroyed, clear this dock's selection
+        if (!getNodeView()->getSelectedNode()) {
+            DockScrollArea::updateCurrentNodeItem();
+        }
+    }
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::onEdgeDeleted
+ */
+void DefinitionsDockScrollArea::onEdgeDeleted()
+{
+    refreshDock();
+}
+
+
+/**
  * @brief DefinitionsDockScrollArea::dock_itemClicked
  * When an item in this dock is clicked, it tries to either add a ComponentInstance
  * or connect a ComponentInstance to the clicked Component if that action is allowed.
@@ -194,6 +252,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
  */
 void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
 {
+    /*
     if (nodeItem->getNodeKind() == "Component") {
 
         DockNodeItem* dockItem = getDockNodeItem(nodeItem);
@@ -239,6 +298,7 @@ void DefinitionsDockScrollArea::nodeDestructed(NodeItem *nodeItem)
     if (!getNodeView()->getSelectedNode()) {
         DockScrollArea::updateCurrentNodeItem();
     }
+    */
 }
 
 
@@ -258,7 +318,7 @@ void DefinitionsDockScrollArea::refreshDock()
  */
 void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
 {
-
+    //*
     NodeItem* dockNodeItem = dockItem->getNodeItem();
     bool isFileLabel = dockItem->isFileLabel();
     QVBoxLayout* layout = 0;
@@ -279,42 +339,43 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
 
     QString dockItemLabel = dockItem->getLabel();
 
-	if(!layout){
+    if(!layout){
         return;
-	}
+    }
+
 
     // iterate through the items in this dock's layout
     for (int i = 0; i < layout->count(); i++) {
 
-           QString currentDockItemLabel;
-           if (isFileLabel) {
-               NodeItem* currentNodeItem = fileLayoutItems.key((QVBoxLayout*)layout->itemAt(i));
-               if (currentNodeItem){
-                   currentDockItemLabel = currentNodeItem->getNodeLabel();
-               }
-           } else {
-               DockNodeItem* currentDockItem = dynamic_cast<DockNodeItem*>(layout->itemAt(i)->widget());
-               if (currentDockItem && !currentDockItem->isFileLabel()) {
-                   currentDockItemLabel = currentDockItem->getLabel();
-               }
-           }
+        QString currentDockItemLabel;
+        if (isFileLabel) {
+            NodeItem* currentNodeItem = fileLayoutItems.key((QVBoxLayout*)layout->itemAt(i));
+            if (currentNodeItem){
+                currentDockItemLabel = currentNodeItem->getNodeLabel();
+            }
+        } else {
+            DockNodeItem* currentDockItem = dynamic_cast<DockNodeItem*>(layout->itemAt(i)->widget());
+            if (currentDockItem && !currentDockItem->isFileLabel()) {
+                currentDockItemLabel = currentDockItem->getLabel();
+            }
+        }
 
-           // if for some reason the label is empty, skip to the next item
-           if (currentDockItemLabel.isEmpty()) {
-               continue;
-           }
+        // if for some reason the label is empty, skip to the next item
+        if (currentDockItemLabel.isEmpty()) {
+            continue;
+        }
 
-           // compare existing file names to the new file name
-           // insert the new File into the correct alphabetical spot in the layout
-           int compare = dockItemLabel.compare(currentDockItemLabel, Qt::CaseInsensitive);
-           if (compare <= 0) {
-               if (isFileLabel) {
-                   layout->insertLayout(i, fileLayoutItems[dockNodeItem]);
-               } else {
-                   layout->insertWidget(i, dockItem);
-               }
-               return;
-           }
+        // compare existing file names to the new file name
+        // insert the new File into the correct alphabetical spot in the layout
+        int compare = dockItemLabel.compare(currentDockItemLabel, Qt::CaseInsensitive);
+        if (compare <= 0) {
+            if (isFileLabel) {
+                layout->insertLayout(i, fileLayoutItems[dockNodeItem]);
+            } else {
+                layout->insertWidget(i, dockItem);
+            }
+            return;
+        }
     }
 
     // if there was no spot to insert the new File layout, add it to the end of the layout
@@ -323,6 +384,7 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
     } else {
         layout->addWidget(dockItem);
     }
+    //*/
 }
 
 
@@ -357,13 +419,15 @@ void DefinitionsDockScrollArea::showAllComponents()
     }
 }
 
-void DefinitionsDockScrollArea::onEdgeDeleted()
-{
-    refreshDock();
-}
 
+/**
+ * @brief DefinitionsDockScrollArea::clear
+ */
 void DefinitionsDockScrollArea::clear()
 {
-    qCritical() << "CLEARING LIST";
+    /*foreach (NodeItem* item, fileLayoutItems.keys()) {
+        delete item;
+    }*/
+
     fileLayoutItems.clear();
 }

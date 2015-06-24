@@ -110,10 +110,16 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
     return nodeView->getAdoptableNodeList(nodeView->getSelectedNodeID());
 }
 
-void DockScrollArea::onEdgeDeleted()
-{
 
-}
+/**
+ * @brief DockScrollArea::onNodeDeleted
+ */
+void DockScrollArea::onNodeDeleted(QString ID) {}
+
+/**
+ * @brief DockScrollArea::onEdgeDeleted
+ */
+void DockScrollArea::onEdgeDeleted() {}
 
 
 /**
@@ -136,24 +142,31 @@ QVBoxLayout *DockScrollArea::getLayout()
  */
 void DockScrollArea::addDockNodeItem(DockNodeItem *item, int insertIndex, bool addToLayout)
 {
-    dockNodeItems.append(item);
+    if (item) {
 
-    if(item && item->getNodeItem()){
-        QString ID = item->getNodeItem()->getID();
-        if(!dockNodeIDs.contains(ID) && ID != ""){
-            dockNodeIDs.append(ID);
-        }
-    }
-    if (addToLayout) {
-        if (insertIndex == -1) {
-            layout->addWidget(item);
-        } else {
-            layout->insertWidget(insertIndex, item);
-        }
-    }
+        dockNodeItems.append(item);
 
-    connect(item, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
-    connect(item, SIGNAL(dockItem_removeFromDock(DockNodeItem*)), this, SLOT(removeDockNodeItemFromList(DockNodeItem*)));
+        if(item->getNodeItem()){
+            QString ID = item->getNodeItem()->getID();
+            if(!dockNodeIDs.contains(ID) && ID != ""){
+                dockNodeIDs.append(ID);
+            }
+        }
+
+        if (addToLayout) {
+            if (insertIndex == -1) {
+                layout->addWidget(item);
+            } else {
+                layout->insertWidget(insertIndex, item);
+            }
+        }
+
+        connect(item, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
+        connect(item, SIGNAL(dockItem_removeFromDock(DockNodeItem*)), this, SLOT(removeDockNodeItemFromList(DockNodeItem*)));
+
+    } else {
+        qWarning() << "DockScrollArea::addDockNodeItem - Item is null.";
+    }
 }
 
 
@@ -181,9 +194,21 @@ DockNodeItem *DockScrollArea::getDockNodeItem(NodeItem *item)
  * @param node
  * @return
  */
-DockNodeItem *DockScrollArea::getDockNodeItem(Node *node)
+DockNodeItem *DockScrollArea::getDockNodeItem(Node* node)
 {
     NodeItem* nodeItem = getNodeView()->getNodeItemFromNode(node);
+    return getDockNodeItem(nodeItem);
+}
+
+
+/**
+ * @brief DockScrollArea::getDockNodeItem
+ * @param nodeID
+ * @return
+ */
+DockNodeItem *DockScrollArea::getDockNodeItem(QString nodeID)
+{
+    NodeItem* nodeItem = getNodeView()->getNodeItemFromID(nodeID);
     return getDockNodeItem(nodeItem);
 }
 
@@ -236,24 +261,28 @@ void DockScrollArea::updateDock()
  */
 void DockScrollArea::nodeDeleted(QString nodeID, QString parentID)
 {
-    qCritical() << "DockScrollArea::nodeDeleted :" << nodeID << " parent: " << parentID;
-
-
     if (parentID == getCurrentNodeID()) {
         updateDock();
     } else if (nodeID == getCurrentNodeID()) {
         currentNodeItemID = "";
+    } else if (dockNodeIDs.contains(nodeID)) {
+        onNodeDeleted(nodeID);
     }
 }
 
+
+/**
+ * @brief DockScrollArea::edgeDeleted
+ * @param srcID
+ * @param dstID
+ */
 void DockScrollArea::edgeDeleted(QString srcID, QString dstID)
 {
-    //qCritical() << "DockScrollArea::edgeDeleted";
-    if(dockNodeIDs.contains(srcID) || dockNodeIDs.contains(dstID)){
+    if (dockNodeIDs.contains(srcID) || dockNodeIDs.contains(dstID)){
         onEdgeDeleted();
-        //updateDock();
     }
 }
+
 
 /**
  * @brief DockScrollArea::paintEvent
@@ -372,7 +401,6 @@ void DockScrollArea::activate()
  */
 void DockScrollArea::clear()
 {
-    qCritical() << "DOCK SCROLL AREA: CLEAR()";
     for (int i=0; i<dockNodeItems.count(); i++) {
         layout->removeWidget(dockNodeItems.at(i));
         delete dockNodeItems.at(i);

@@ -28,6 +28,7 @@ public:
     void addDockNodeItem(DockNodeItem* item, int insertIndex = -1, bool addToLayout = true);
     DockNodeItem* getDockNodeItem(NodeItem* item);
     DockNodeItem* getDockNodeItem(Node* node);
+    DockNodeItem* getDockNodeItem(QString nodeID);
     QList<DockNodeItem*> getDockNodeItems();
 
     DockToggleButton* getParentButton();
@@ -40,23 +41,25 @@ public:
     NodeView* getNodeView();
     QStringList getAdoptableNodeListFromView();
 
+    virtual void onNodeDeleted(QString ID);
     virtual void onEdgeDeleted();
+
 protected:
     void paintEvent(QPaintEvent *e);
 
 public slots:
     virtual void dockNodeItemClicked() = 0;
     virtual void updateDock();
+    virtual void clear();
+
+    virtual void nodeDeleted(QString nodeID, QString parentID);
+    void edgeDeleted(QString srcID, QString dstID);
 
     void updateCurrentNodeItem();
-
-    void nodeDeleted(QString nodeID, QString parentID);
-    void edgeDeleted(QString srcID, QString dstID);
 
     void removeDockNodeItemFromList(DockNodeItem* item);
 
     void activate();
-    virtual void clear();
 
     void parentHeightChanged(double height);
 

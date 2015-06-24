@@ -9,6 +9,9 @@ class HardwareDockScrollArea : public DockScrollArea
     
 public:
     explicit HardwareDockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
+
+    void onNodeDeleted(QString ID);
+    void onEdgeDeleted();
     
 signals:
     void dock_higlightDockItem(Node* node = 0);
@@ -22,7 +25,6 @@ public slots:
 
     void nodeConstructed(NodeItem* nodeItem);
 
-
 private:
     Edge* getHardwareConnection(Node* selectedNode);
     void highlightHardwareConnection();
@@ -32,7 +34,6 @@ private:
 
     // DockScrollArea interface
 public:
-    void onEdgeDeleted();
 };
 
 #endif // HARDWAREDOCKSCROLLAREA_H
