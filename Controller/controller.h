@@ -144,7 +144,7 @@ private slots:
     //MODEL Functionality
     void displayMessage(QString title, QString message, QString ID);
 
-    void clearHistory();
+        void clearHistory();
 
 private:
     //Helper functions.

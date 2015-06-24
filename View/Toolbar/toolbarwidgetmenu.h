@@ -52,6 +52,14 @@ private:
 
     ToolbarWidgetAction* defaultAction;
 
+
+    // QWidget interface
+protected:
+    void mousePressEvent(QMouseEvent *event);
+
+    // QWidget interface
+protected:
+    void mouseDoubleClickEvent(QMouseEvent *event);
 };
 
 #endif // TOOLBARWIDGETMENU_H

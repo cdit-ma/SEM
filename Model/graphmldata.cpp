@@ -112,6 +112,7 @@ void GraphMLData::setValue(QString newValue)
 {
     if(key){
        if(newValue != value){
+
             QString updatedValue = key->validateDataChange(this, newValue);
 
             if(updatedValue != value){
@@ -121,6 +122,7 @@ void GraphMLData::setValue(QString newValue)
                 }
             }
             emit dataChanged(this);
+            qCritical() << "Emitting: " << this->getKeyName() << ":" << value;
             emit valueChanged(value);
         }
     }

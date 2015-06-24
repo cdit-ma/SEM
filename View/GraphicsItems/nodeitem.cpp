@@ -1179,6 +1179,7 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
                 center.setY(valueD);
             }
 
+            qCritical() << "Key: " << keyName << " = " << value;
             //Update the center position.
             setCenterPos(center);
 
@@ -1232,17 +1233,16 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
 /**
  * @brief NodeItem::newSort
  */
-void NodeItem::newSort(bool addAction)
+void NodeItem::newSort()
 {
     if(nodeKind == "Model"){
         modelSort();
         return;
     }
 
-    if(addAction){
-        // added this so sort can be un-done
-        GraphMLItem_TriggerAction("NodeItem: Sorting Node");
-    }
+
+    // added this so sort can be un-done
+    GraphMLItem_TriggerAction("NodeItem: Sorting Node");
 
     //Get the number of un-locked items
     QMap<int, NodeItem*> toSortMap;

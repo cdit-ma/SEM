@@ -198,7 +198,7 @@ public slots:
 
     void aspectsChanged(QStringList aspects);
 
-    void newSort(bool addAction = true);
+    void newSort();
     void modelSort();
 
     //void expandNode(bool expand);
