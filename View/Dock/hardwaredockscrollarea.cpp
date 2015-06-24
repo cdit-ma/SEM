@@ -199,6 +199,7 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
  */
 Edge* HardwareDockScrollArea::getHardwareConnection(Node *selectedNode)
 {
+    return 0;
     foreach (Edge *edge, selectedNode->getEdges(0)) {
         if (edge->isDeploymentLink()) {
             return edge;

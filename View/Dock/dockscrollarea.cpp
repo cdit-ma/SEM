@@ -381,6 +381,7 @@ void DockScrollArea::clear()
     dockNodeItems.clear();
     currentNodeItem = 0;
     currentNodeItemID ="";
+
 }
 
 
