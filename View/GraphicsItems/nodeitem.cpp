@@ -711,7 +711,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     //If a Node has a Definition, paint a Lock Icon
     if(hasDefinition){
-        painter->drawImage(lockIconRect(), getNodeView()->getImage("lock"));
+        painter->drawImage(lockIconRect(), getNodeView()->getImage("definition"));
     }
 
     //If this Node has a Deployment Warning, paint a warning Icon

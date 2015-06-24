@@ -740,7 +740,7 @@ bool NewController::_copy(QStringList IDs)
 
         success = true;
     } else {
-        emit controller_DisplayMessage(WARNING, "Error", "Cannot copy/cut selection.", parent->getID());
+        //emit controller_DisplayMessage(WARNING, "Error", "Cannot copy/cut selection.", parent->getID());
     }
     return success;
 }
