@@ -208,8 +208,11 @@ DockNodeItem *DockScrollArea::getDockNodeItem(Node* node)
  */
 DockNodeItem *DockScrollArea::getDockNodeItem(QString nodeID)
 {
-    NodeItem* nodeItem = getNodeView()->getNodeItemFromID(nodeID);
-    return getDockNodeItem(nodeItem);
+    if (dockNodeIDs.contains(nodeID)) {
+        NodeItem* nodeItem = getNodeView()->getNodeItemFromID(nodeID);
+        return getDockNodeItem(nodeItem);
+    }
+    return 0;
 }
 
 
