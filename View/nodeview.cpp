@@ -1417,6 +1417,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         appendToSelection(nodeItem);
         nodeItem->setNewLabel();
         centerOnItem();
+        toolbarDockConstruction = false;
     }
 
     // add the newly constructed node item to the scene
@@ -3352,7 +3353,6 @@ void NodeView::resetModel(bool addAction)
 
     sortModel();
     emit view_ProjectCleared();
-    qCritical() << "Emitting:  resetModel";
 }
 
 

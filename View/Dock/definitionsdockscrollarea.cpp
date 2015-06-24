@@ -283,7 +283,6 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
         return;
 	}
 
-    qCritical() << "Layout: " << layout->count();
     // iterate through the items in this dock's layout
     for (int i = 0; i < layout->count(); i++) {
 

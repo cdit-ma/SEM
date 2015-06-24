@@ -1163,42 +1163,42 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
         double valueD = value.toDouble();
 
         QString oldValue;
+        QString newValue;
 
         if(keyName == "x" || keyName == "y"){
             //If data is related to the position of the NodeItem
             //Get the current center position.
-            QPointF center = centerPos();
+            QPointF oldCenter = centerPos();
 
-            if(keyName == "x"){
-                //Store the old value
-                oldValue = QString::number(center.x());
-                center.setX(valueD);
+            QPointF newCenter = centerPos();
+
+            if(keyName == "x"){                
+                newCenter.setX(valueD);
             }else if(keyName == "y"){
-                //Store the old value
-                oldValue = QString::number(center.y());
-                center.setY(valueD);
+                newCenter.setY(valueD);
             }
 
-            qCritical() << "Key: " << keyName << " = " << value;
             //Update the center position.
-            setCenterPos(center);
+            setCenterPos(newCenter);
 
-            //If the value has changed, update the position in the Model.
-            if(oldValue != value){
-                updateModelPosition();
+            //Check if the X or Y has changed.
+            newCenter = centerPos();
+
+            if(newCenter.x() != oldCenter.x()){
+                emit GraphMLItem_SetGraphMLData(getID(), "x", QString::number(newCenter.x()));
             }
-
+            if(newCenter.y() != oldCenter.y()){
+                emit GraphMLItem_SetGraphMLData(getID(), "y", QString::number(newCenter.y()));
+            }
         }else if(keyName == "width" || keyName == "height"){
             //If data is related to the size of the NodeItem
 
+            double oldWidth = width;
+            double oldHeight = height;
+
             if(keyName == "width"){
-                //Store the old value
-                oldValue = QString::number(width);
                 setWidth(valueD);
             }else if(keyName == "height"){
-                //Store the old value
-                oldValue = QString::number(height);
-
                 //If NodeItem is contracted and the new value is bigger than the minimum height.
                 bool setExpanded = isContracted() && valueD > minimumHeight;
 
@@ -1215,9 +1215,12 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
                 setHeight(valueD);
             }
 
-            //If the value has changed, update the size in the Model.
-            if(oldValue != value){
-                updateModelPosition();
+             //Check if the Width or Height has changed.
+            if(oldWidth != width){
+                emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
+            }
+            if(oldHeight != height){
+                emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
             }
         }else if(keyName == "label"){
             //Update the Label
@@ -1254,7 +1257,6 @@ void NodeItem::newSort()
             //RESET SIZE.
             child->setWidth(getChildWidth());
             child->setHeight(getChildHeight());
-            //child->updateModelSize();
         }
         if(!child->isVisible()){ //&& nodeKind != "Model"){
             continue;
@@ -1753,7 +1755,6 @@ void NodeItem::resizeToOptimumSize()
 {
     setWidth(getMinimumChildRect().width());
     setHeight(getMinimumChildRect().height());
-    //updateModelSize();
 }
 
 NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)

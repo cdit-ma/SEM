@@ -385,8 +385,6 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
                 }
             }else if(keyName == "x" || keyName == "y"){
                 if(action.dataValue != "-1" && dataValue == "-1"){
-                    qCritical() << "GOT NEGATIVE";
-                    //Don't Set
                     return;
                 }
                 data->setValue(dataValue);
@@ -583,8 +581,6 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<QStringLi
 
 void NewController::triggerAction(QString actionName)
 {
-
-    qCritical() << "ACTION: " << actionName << actionCount;
 
     actionCount++;
     currentAction = actionName;
@@ -2120,7 +2116,6 @@ void NewController::undoRedo(bool undo)
 
         //If this action has the same ID, we should undo it.
         if(action.actionID == topActionID){
-            qCritical() << action.actionName;
             toReverse.append(action);
             //Remove if from the action stack.
             actionStack.pop();
@@ -2141,8 +2136,6 @@ void NewController::undoRedo(bool undo)
     int actionsReversed = 0;
     while(!toReverse.isEmpty()){
         ActionItem reverseState = toReverse.takeFirst();
-        qCritical() << "Reversing Action:";
-
         bool success = reverseAction(reverseState);
         if(!success){
 

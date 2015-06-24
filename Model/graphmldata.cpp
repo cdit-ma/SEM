@@ -122,7 +122,6 @@ void GraphMLData::setValue(QString newValue)
                 }
             }
             emit dataChanged(this);
-            qCritical() << "Emitting: " << this->getKeyName() << ":" << value;
             emit valueChanged(value);
         }
     }

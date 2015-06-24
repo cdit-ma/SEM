@@ -256,18 +256,14 @@ void ToolbarWidgetMenu::setupDefaultAction()
 void ToolbarWidgetMenu::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton){
-        event->accept();
-    }else{
-        event->ignore();
+        QMenu::mousePressEvent(event);
     }
 }
 
 void ToolbarWidgetMenu::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton){
-        event->accept();
-    }else{
-        event->ignore();
+        QWidget::mouseDoubleClickEvent(event);
     }
 }
 
