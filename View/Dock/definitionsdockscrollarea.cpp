@@ -329,8 +329,10 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
 {
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
         NodeItem* componentItem = dockItem->getNodeItem();
-        if (componentItem->getNode()->getImplementations().count() > 0) {
-            dockItem->setHidden(true);
+        if(componentItem){
+            if(getNodeView()->getImplementation(componentItem->getID())){
+                dockItem->setHidden(true);
+            }
         }
     }
 }
@@ -346,4 +348,15 @@ void DefinitionsDockScrollArea::showAllComponents()
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
         dockItem->setHidden(false);
     }
+}
+
+void DefinitionsDockScrollArea::onEdgeDeleted()
+{
+    refreshDock();
+}
+
+void DefinitionsDockScrollArea::clear()
+{
+    qCritical() << "CLEARING LIST";
+    fileLayoutItems.clear();
 }

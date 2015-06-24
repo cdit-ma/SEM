@@ -119,30 +119,6 @@ void HardwareDockScrollArea::updateDock()
 }
 
 
-/**
- * @brief HardwareDockScrollArea::edgeDeleted
- * This tells the dock if an edge has been deleted.
- * If either of the srcID or dstID matches the current node item ID, update the dock.
- * @param srcID
- * @param dstID
- */
-void HardwareDockScrollArea::edgeDeleted(QString srcID, QString dstID)
-{
-    if(getCurrentNodeID() == srcID || getCurrentNodeID() == dstID){
-        updateDock();
-    }
-}
-
-
-/**
- * @brief HardwareDockScrollArea::edgeDeleted
- * @param ID
- */
-void HardwareDockScrollArea::edgeDeleted(QString ID)
-{
-    // do check here
-}
-
 
 /**
  * @brief HardwareDockScrollArea::nodeConstructed
@@ -260,4 +236,9 @@ void HardwareDockScrollArea::highlightHardwareConnection()
             emit dock_higlightDockItem();
         }
     }
+}
+
+void HardwareDockScrollArea::onEdgeDeleted()
+{
+    updateDock();
 }

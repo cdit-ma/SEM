@@ -59,6 +59,10 @@ public:
     NodeItem* getDefinition(QString ID);
     NodeItem* getAggregate(QString ID);
 
+    bool isSubView();
+    bool isTerminating();
+
+
 
 
 
@@ -81,12 +85,16 @@ private slots:
     void actionFinished();
 
 signals:
-    void view_ModelSizeChanged();
 
-    //void view_NodeDeleted(QString childID, QString parentID="");
-    //void view_EdgeDeleted(QString srcID, QString dstID);
-    void view_NodeDeleted(QString ID);
-    void view_EdgeDeleted(QString ID);
+
+
+    void view_ModelSizeChanged();
+    void view_Clear();
+    void view_ProjectCleared();
+
+    void view_NodeDeleted(QString ID, QString parentID="");
+    void view_EdgeDeleted(QString srcID, QString dstID);
+
 
     void view_SetClipboardBuffer(QString);
     void view_UndoListChanged(QStringList);
@@ -123,8 +131,6 @@ signals:
     void view_AspectsChanged(QStringList aspects);
     void view_GUIAspectChanged(QStringList aspects);
 
-    void view_StatusChanged(QString status);
-
     //SIGNALS for the Controller
     void view_TriggerAction(QString action);
     void view_ConstructNode(QString parentID, QString nodeKind, QPointF position);
@@ -146,7 +152,7 @@ signals:
 
     void view_toggleGridLines(bool on);
 
-    void view_updateProgressStatus(int value, QString status);
+    void view_updateProgressStatus(int percent, QString action);
     void view_displayNotification(QString notification, int seqNum = 0, int totalNum = 1);
 
     void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
@@ -159,6 +165,7 @@ public slots:
 
     void loadJenkinsNodes(QString fileData);
     void exportSnippet();
+    void exportProject();
     void importSnippet(QString fileName, QString fileData);
     void minimapPressed(QMouseEvent* event);
 
@@ -182,7 +189,8 @@ public slots:
     void view_ClearHistory();
     void clearView();
 
-    void resetModel();
+
+    void resetModel(bool addAction = true);
     void clearModel();
     void selectModel();
     void sortModel();
@@ -232,6 +240,7 @@ public slots:
 
     void centerOnItem(GraphMLItem* item = 0);
     void centerItem(GraphMLItem* item);
+    void centralizedItemMoved();
 
     void centerItem(QString ID = "");
     void centerDefinition(QString ID = "");
@@ -254,8 +263,6 @@ public slots:
     QList<NodeItem*> getNodeItemsOfKind(QString kind, QString ID="", int depth=-1);
     void showConnectedNodes();
 
-    void componentInstanceConstructed(Node* node);
-
 
     void editableItemHasFocus(bool hasFocus);
 
@@ -269,6 +276,9 @@ public slots:
     void highlightDeployment(Node *selectedNode = 0);
 
 private:
+
+    void ensureAspect(QString ID);
+
     void _deleteFromIDs(QStringList IDs);
 
     void enableClipboardActions(QStringList IDs );
@@ -283,10 +293,11 @@ private:
     NewController* getController();
     void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
 
-    bool isSubView();
+
     bool isMainView();
 
     void addAspect(QString aspect);
+
     void removeAspect(QString aspect);
 
     QStringList getAdoptableNodeList(QString ID);
@@ -427,7 +438,10 @@ private:
 
     QMutex viewMutex;
 
+    bool isDestructing;
     QString currentTableID;
+
+    bool clearingModel;
 };
 
 #endif // NODEVIEW_H

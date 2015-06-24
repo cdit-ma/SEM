@@ -32,6 +32,14 @@ private:
     QVBoxLayout* mainLayout;
     QVBoxLayout* itemsLayout;
 
+
+    // DockScrollArea interface
+public:
+    void onEdgeDeleted();
+
+    // DockScrollArea interface
+public slots:
+    void clear();
 };
 
 #endif // DEFINITIONSDOCKSCROLLAREA_H

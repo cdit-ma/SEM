@@ -55,6 +55,7 @@
 #include "GUI/appsettings.h"
 #include "GUI/codeeditor.h"
 
+
 class MedeaWindow : public QMainWindow
 {
     Q_OBJECT
@@ -84,6 +85,7 @@ signals:
     void clearDocks();
 
 public slots:
+    void projectCleared();
     void settingChanged(QString groupName, QString keyName, QString value);
     void setupInitialSettings();
     void aspectToggleClicked(bool checked, int state);
@@ -354,6 +356,7 @@ private:
     QHash<QAction*, int> rightMostActions;
 
 
+    bool modelCleared;
     QFont guiFont;
     int boxWidth, boxHeight;
     int minLeftPanelHeight;

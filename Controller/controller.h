@@ -85,65 +85,72 @@ public:
     QString getAggregate(QString ID);
 
 
-
-private:
-
-
-
 signals:
-
+    void controller_ActionProgressChanged(int percent, QString action="");
     void controller_ActionFinished();
 
-    void controller_GotQuestionAnswer();
-
-
-    void controller_ActionProgressChanged(int, QString = "");
-    void controller_DisplayMessage(MESSAGE_TYPE, QString title, QString message, QString ID="");
     void controller_AskQuestion(MESSAGE_TYPE, QString title, QString message, QString ID="");
+    void controller_GotQuestionAnswer();
+    void controller_DisplayMessage(MESSAGE_TYPE, QString title, QString message, QString ID="");
 
     void controller_ExportedProject(QString);
     void controller_ExportedSnippet(QString parentName, QString snippetXMLData);
 
-    void controller_GraphMLError(GraphML*, QString);
     void controller_GraphMLConstructed(GraphML*);
-
-
     void controller_GraphMLDestructed(QString ID, GraphML::KIND kind);
 
-
     void controller_ProjectNameChanged(QString);
+
     void controller_RedoListChanged(QStringList);
-    void controller_SetClipboardBuffer(QString);
-    void controller_StatusChanged(QString);
     void controller_UndoListChanged(QStringList);
-    void controller_ViewSetEnabled(bool);
 
+    void controller_SetClipboardBuffer(QString);
 
-    // Re-added this for now
-    void componentInstanceConstructed(Node* node);
-
+    void controller_SetViewEnabled(bool);
 private slots:
-    //Cleaned up and commented.
+    //Clipboard functionality
     void cut(QStringList IDs);
     void copy(QStringList IDs);
     void paste(QString ID, QString xmlData);
     void replicate(QStringList IDs);
+
+    void importSnippet(QStringList IDs, QString fileName, QString fileData);
+    void exportSnippet(QStringList IDs);
+
+    //Toolbar/Dock Functionality
     void remove(QStringList IDs);
+    void clear();
 
     void undo();
     void redo();
 
-    void importProjects(QStringList xmlDataList);
-    void importSnippet(QStringList IDs, QString fileName, QString fileData);
+    void constructNode(QString parentID, QString nodeKind, QPointF centerPoint);
+    void constructEdge(QString srcID, QString dstID);
+    void constructConnectedNode(QString parentID, QString connectedID, QString kind, QPointF relativePos);
+    void changeEdgeDestination(QString srcID,  QString dstID, QString newDstID );
+    void setGraphMLData(QString parentID, QString keyName, QString dataValue);
 
+
+    void triggerAction(QString actionName);
+
+
+    void importProjects(QStringList xmlDataList);
     void exportProject();
-    void exportSnippet(QStringList IDs);
+
 
     void gotQuestionAnswer(bool answer);
 
+
+    //MODEL Functionality
+    void displayMessage(QString title, QString message, QString ID);
+
+    void clearHistory();
+
 private:
+    //Helper functions.
     bool _paste(QString ID, QString xmlData, bool addAction = true);
     bool _cut(QStringList IDs, bool addAction = true);
+    bool _clear();
     bool _copy(QStringList IDs);
     bool _remove(QStringList IDs, bool addAction = true);
     bool _replicate(QStringList IDs, bool addAction = true);
@@ -153,47 +160,26 @@ private:
     bool _exportProject();
 
 
-
-private slots:
-    void displayMessage(QString title, QString message, QString ID);
-
-    void setGraphMLData(QString parentID, QString keyName, QString dataValue, bool addAction = true);
-
-    void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
-
+private:
     void attachGraphMLData(GraphML* parent, GraphMLData* data, bool addAction = true);
     void destructGraphMLData(GraphML* parent, QString keyName, bool addAction = true);
 
-    // moved to public so that NodeView can access it
-    bool clearModel();
 
-    //Constructs a Node (kind = nodeKind) centered at position centerPoint
-    void constructNode(QString parentID, QString nodeKind, QPointF centerPoint);
 
-    //Constructs and Edge between Source and Destination
-    void constructEdge(QString srcID, QString dstID);
-
-    void constructConnectedNode(QString parentID, QString connectedID, QString kind, QPointF relativePos);
-    void changeEdgeDestination(QString srcID,  QString dstID, QString newDstID );
-    void constructComponentInstance(Node *assembly, Node* definition, QPointF point);
-    void constructConnectedComponents(Node* parent, Node* connectedNode, QString kind , QPointF relativePosition);
-
-    void triggerAction(QString actionName);
-    void clearUndoHistory();
 
 
 
 private:
-    bool askQuestion(MESSAGE_TYPE, QString questionTitle, QString question, QString ID);
+    void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
+    void clearUndoHistory();
+
+    bool askQuestion(MESSAGE_TYPE, QString questionTitle, QString question, QString ID="");
     Node* getSingleNode(QStringList IDs);
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
 
 
     Node* getSharedParent(QStringList IDs);
-
-    //Clears the Undo/Redo Action Stacks.
-    void clearUndoRedoStacks();
 
 
 
@@ -285,7 +271,7 @@ private:
 
     void logAction(ActionItem item);
 
-    void clearHistory();
+
     Node* constructTypedNode(QString nodeKind, QString nodeType="", QString nodeLabel="");
 
 

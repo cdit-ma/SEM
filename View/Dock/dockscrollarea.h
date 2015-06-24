@@ -40,6 +40,7 @@ public:
     NodeView* getNodeView();
     QStringList getAdoptableNodeListFromView();
 
+    virtual void onEdgeDeleted();
 protected:
     void paintEvent(QPaintEvent *e);
 
@@ -50,12 +51,12 @@ public slots:
     void updateCurrentNodeItem();
 
     void nodeDeleted(QString nodeID, QString parentID);
-    void nodeDeleted(QString ID);
+    void edgeDeleted(QString srcID, QString dstID);
 
     void removeDockNodeItemFromList(DockNodeItem* item);
 
     void activate();
-    void clear();
+    virtual void clear();
 
     void parentHeightChanged(double height);
 
@@ -74,6 +75,7 @@ private:
     bool activated;
 
     QList<DockNodeItem*> dockNodeItems;
+    QStringList dockNodeIDs;
     QStringList notAllowedKinds;
 
 };

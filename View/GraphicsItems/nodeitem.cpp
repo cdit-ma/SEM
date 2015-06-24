@@ -71,14 +71,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     isNodeOnGrid = false;
 
     isNodePressed = false;
-    isNodeCentralized = false;
     isNodeExpanded = true;
     hidden = false;
     hasSelectionMoved = false;
     hasSelectionResized = false;
 
     hasDefinition = false;
-    highlighted = false;
+    highlighted = false;\
 
 
     textItem = 0;
@@ -170,10 +169,14 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 NodeItem::~NodeItem()
 {   
     if(getNodeView()){
-        if (parentNodeItem) {
-            parentNodeItem->removeChildNodeItem(this->getID());
+        if(!getNodeView()->isTerminating()){
+            if(parentNodeItem){
+                //Only unstitch if we aren't terminating
+                 parentNodeItem->removeChildNodeItem(getID());
+            }
         }
     }
+
     delete textItem;
 }
 
@@ -1145,11 +1148,6 @@ void NodeItem::setVisibilty(bool visible)
 }
 
 
-void NodeItem::setPermanentlyCentralized(bool centralized)
-{
-    isNodeCentralized = centralized;
-}
-
 
 /**
  * @brief NodeItem::graphMLDataChanged This method is called when any connected GraphMLData object updates their value.
@@ -1232,15 +1230,17 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
 /**
  * @brief NodeItem::newSort
  */
-void NodeItem::newSort()
+void NodeItem::newSort(bool addAction)
 {
     if(nodeKind == "Model"){
         modelSort();
         return;
     }
 
-    // added this so sort can be un-done
-    GraphMLItem_TriggerAction("NodeItem: Sorting Node");
+    if(addAction){
+        // added this so sort can be un-done
+        GraphMLItem_TriggerAction("NodeItem: Sorting Node");
+    }
 
     //Get the number of un-locked items
     QMap<int, NodeItem*> toSortMap;
@@ -2527,10 +2527,6 @@ void NodeItem::updateGraphMLPosition()
 void NodeItem::updateChildrenOnChange()
 {
     nodeItemMoved();
-
-    if(this->isPermanentlyCentered()){
-        emit recentralizeAfterChange(getGraphML());
-    }
 }
 
 
@@ -2540,17 +2536,7 @@ void NodeItem::retrieveGraphMLData()
     if(!getGraphML()){
         return;
     }
-   // QString modelHeight = getGraphML()->getDataValue("height");
-   // QString modelWidth = getGraphML()->getDataValue("width");
-   // QString modelX = getGraphML()->getDataValue("x");
-   // QString modelY = getGraphML()->getDataValue("y");
-/*
-    qCritical() << modelHeight;
-    qCritical() << modelWidth;
-    qCritical() << modelX;
-    qCritical() << modelY;
 
-*/
     if(!getGraphML()->isDeleting()){
         graphMLDataChanged(getGraphML()->getData("width"));
         graphMLDataChanged(getGraphML()->getData("height"));
@@ -2558,41 +2544,6 @@ void NodeItem::retrieveGraphMLData()
         graphMLDataChanged(getGraphML()->getData("y"));
         graphMLDataChanged(getGraphML()->getData("label"));
     }
-
-
-/*
-    //Update the position with values from the GraphML Model if they have them.
-    double graphmlX = getGraphML()->getDataValue("x").toDouble();
-    double graphmlY = getGraphML()->getDataValue("y").toDouble();
-
-    if(isInSubView){
-        qCritical() << "X: " << graphmlX;
-        qCritical() << "Y: " << graphmlY;
-        qCritical() << pos();
-    }
-    setCenterPos(QPointF(graphmlX, graphmlY));
-    prepareGeometryChange();
-
-    if(graphmlHeight > height || graphmlWidth > width){
-        qCritical() << "STATED AS EXPANDED";
-        expandedWidth = graphmlWidth;
-        expandedHeight = graphmlHeight;
-        //width = expandedWidth;
-        //height = expandedHeight;
-        //isNodeExpanded = true;
-        setNodeExpanded(true);
-        //expandItem(true);
-    }else if(graphmlHeight != 0 && graphmlWidth != 0){
-        //isNodeExpanded = false;
-        setNodeExpanded(false);
-        //expandItem(false);
-    }else{
-        //isNodeExpanded = true;
-         setNodeExpanded(true);
-        //expandItem(true);
-    }*/
-
-
 }
 
 
@@ -2609,12 +2560,6 @@ QList<NodeItem *> NodeItem::getChildNodeItems()
     }
     return insertOrderList;
 
-}
-
-
-bool NodeItem::isPermanentlyCentered()
-{
-    return isNodeCentralized;
 }
 
 

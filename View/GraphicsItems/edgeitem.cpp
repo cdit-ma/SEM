@@ -21,6 +21,7 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     IS_VISIBLE = true;
     IS_DELETING = false;
     IS_SELECTED = false;
+    IS_HIDDEN = false;
     HAS_MOVED = false;
     CENTER_MOVED = false;
 
@@ -183,6 +184,12 @@ NodeItem *EdgeItem::getDestination()
     return destination;
 }
 
+void EdgeItem::setHidden(bool hidden)
+{
+    this->IS_HIDDEN = hidden;
+    setVisible(!hidden);
+}
+
 
 void EdgeItem::setSelected(bool selected)
 {
@@ -240,6 +247,9 @@ void EdgeItem::updateEdge()
 
 void EdgeItem::graphMLDataChanged(GraphMLData *data)
 {
+    if(IS_HIDDEN){
+        return;
+    }
     if(IS_DELETING){
         return;
     }
@@ -433,6 +443,9 @@ void EdgeItem::setLineVisibility(bool visible)
 
 void EdgeItem::updateLines()
 {
+    if(IS_HIDDEN){
+        return;
+    }
 
     NodeItem* visibleSrc = source;
     NodeItem* visibleDst = destination;

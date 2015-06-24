@@ -22,7 +22,7 @@ public:
 
     NodeItem* getSource();
     NodeItem* getDestination();
-
+    void setHidden(bool hidden);
 public slots:
     void setSelected(bool selected);
     void setVisible(bool visible);
@@ -65,6 +65,7 @@ private:
     bool IS_VISIBLE;
     bool LINES_VISIBLE;
     bool IS_DELETING;
+    bool IS_HIDDEN;
     bool IS_SELECTED;
     bool IS_MOVING;
     bool HAS_MOVED;

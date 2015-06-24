@@ -58,6 +58,7 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+    modelCleared = false;
     // this needs to happen before the menu is set up and connected
     applicationDirectory = QApplication::applicationDirPath() + "/";
     appSettings = new AppSettings(this, applicationDirectory);
@@ -101,6 +102,12 @@ MedeaWindow::~MedeaWindow()
 
 }
 
+void MedeaWindow::projectCleared()
+{
+    qCritical()<< "CLEARING DOCKS IN MEDEA";
+    clearDocks();
+
+}
 
 /**
  * @brief MedeaWindow::settingChanged
@@ -1059,6 +1066,7 @@ void MedeaWindow::setupController()
 {
     if (controller) {
         delete controller;
+
         controller = 0;
     }
     if (controllerThread) {
@@ -1107,6 +1115,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setMenuActionEnabled(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
+    connect(nodeView, SIGNAL(view_ProjectCleared()), this, SLOT(projectCleared()));
 
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
     connect(this, SIGNAL(window_highlightDeployment(Node*)), nodeView, SLOT(highlightDeployment(Node*)));
@@ -1131,7 +1140,7 @@ void MedeaWindow::makeConnections()
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
 
 
-    connect(this, SIGNAL(window_ExportProject()), nodeView, SIGNAL(view_ExportProject()));
+    connect(this, SIGNAL(window_ExportProject()), nodeView, SLOT(exportProject()));
     connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SLOT(importProjects(QStringList)));
     connect(this, SIGNAL(window_LoadJenkinsNodes(QString)), nodeView, SLOT(loadJenkinsNodes(QString)));
 
@@ -1152,6 +1161,7 @@ void MedeaWindow::makeConnections()
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(goToDefinition()));
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
     connect(view_showManagementComponents, SIGNAL(triggered(bool)), nodeView, SLOT(showManagementComponents(bool)));
+
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
     connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
@@ -1221,19 +1231,15 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
 
+
     //connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
 
-    //connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
-    //connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
-    //connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
 
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString)), this, SLOT(graphicsItemDeleted()));
 
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString)), partsDock, SLOT(nodeDeleted(QString)));
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString)), hardwareDock, SLOT(nodeDeleted(QString)));
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString)), definitionsDock, SLOT(nodeDeleted(QString)));
-
-    connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
+    //connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
     connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
@@ -1249,8 +1255,8 @@ void MedeaWindow::makeConnections()
 
     //connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
 
-    //connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
-    //connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), definitionsDock, SLOT(refreshDock()));
+    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), definitionsDock, SLOT(edgeDeleted(QString, QString)));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
@@ -1426,6 +1432,9 @@ void MedeaWindow::setupInitialSettings()
     // hide initial notifications
     notificationsBar->hide();
     notificationTimer->stop();
+
+    //We have finished loading settings. reset state of Controller undo states.
+    nodeView->view_ClearHistory();
 }
 
 
@@ -1595,7 +1604,7 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
     importProjects(files);
 
     // clear item selection
-    nodeView->clearSelection();
+    //nodeView->clearSelection();
 }
 
 
@@ -1617,14 +1626,14 @@ void MedeaWindow::on_actionExport_GraphML_triggered()
  */
 void MedeaWindow::on_actionClearModel_triggered()
 {
-    progressAction = "Clearing Model";
+    //progressAction = "Clearing Model";
 
-    if (nodeView) {
-        nodeView->clearSelection();
-        nodeView->resetModel();
-        nodeView->setDefaultAspects();
-        clearDocks();
-    }
+    //if (nodeView) {
+    //    nodeView->clearSelection();
+    //    nodeView->resetModel();
+    //    nodeView->setDefaultAspects();
+    //    clearDocks();
+    //}
 }
 
 
@@ -1993,6 +2002,7 @@ void MedeaWindow::importSnippet(QString parentName)
  */
 void MedeaWindow::updateUndoStates(QStringList list)
 {
+
     if (list.size() == 0) {
         edit_undo->setEnabled(false);
     } else {
@@ -2389,6 +2399,7 @@ void MedeaWindow::newProject()
     progressAction = "Setting up New Project";
 
     resetGUI();
+
     on_actionClearModel_triggered();
     resetView();
 }
@@ -2740,7 +2751,7 @@ void MedeaWindow::graphicsItemSelected()
  */
 void MedeaWindow::graphicsItemDeleted()
 {
-    updateDataTable();
+    //updateDataTable();
 
     // added this here for when edges are deleted
     // we need to check first if there's a selected node before clearing the deployment highlight

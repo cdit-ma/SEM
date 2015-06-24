@@ -132,7 +132,6 @@ public:
     QString getNodeKind();
     QString getNodeLabel();
     QList<NodeItem*> getChildNodeItems();
-    bool isPermanentlyCentered();
 
     qreal getGridSize();
 
@@ -177,7 +176,7 @@ signals:
     void updateDockNodeItem();
     void updateOpacity(qreal opacity);
 
-    void recentralizeAfterChange(GraphML* item);
+
 
 
     void nodeItemMoved();
@@ -197,11 +196,9 @@ public slots:
 
 
 
-    void setPermanentlyCentralized(bool centralized);
-
     void aspectsChanged(QStringList aspects);
 
-    void newSort();
+    void newSort(bool addAction = true);
     void modelSort();
 
     //void expandNode(bool expand);
@@ -318,7 +315,6 @@ private:
     bool isNodeSelected;
     bool isGridVisible;
     bool isInSubView;
-    bool isNodeCentralized;
     bool isNodeSorted;
     bool isNodeInAspect;
 

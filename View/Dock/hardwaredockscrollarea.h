@@ -22,8 +22,6 @@ public slots:
 
     void nodeConstructed(NodeItem* nodeItem);
 
-    void edgeDeleted(QString srcID, QString dstID);
-    void edgeDeleted(QString ID);
 
 private:
     Edge* getHardwareConnection(Node* selectedNode);
@@ -31,6 +29,10 @@ private:
 
     QStringList hardware_notAllowedKinds;
 
+
+    // DockScrollArea interface
+public:
+    void onEdgeDeleted();
 };
 
 #endif // HARDWAREDOCKSCROLLAREA_H

@@ -107,6 +107,11 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
     return nodeView->getAdoptableNodeList(nodeView->getSelectedNodeID());
 }
 
+void DockScrollArea::onEdgeDeleted()
+{
+
+}
+
 
 /**
  * @brief DockScrollArea::getLayout
@@ -130,6 +135,12 @@ void DockScrollArea::addDockNodeItem(DockNodeItem *item, int insertIndex, bool a
 {
     dockNodeItems.append(item);
 
+    if(item && item->getNodeItem()){
+        QString ID = item->getNodeItem()->getID();
+        if(!dockNodeIDs.contains(ID) && ID != ""){
+            dockNodeIDs.append(ID);
+        }
+    }
     if (addToLayout) {
         if (insertIndex == -1) {
             layout->addWidget(item);
@@ -222,6 +233,9 @@ void DockScrollArea::updateDock()
  */
 void DockScrollArea::nodeDeleted(QString nodeID, QString parentID)
 {
+    qCritical() << "DockScrollArea::nodeDeleted :" << nodeID << " parent: " << parentID;
+
+
     if (parentID == getCurrentNodeID()) {
         updateDock();
     } else if (nodeID == getCurrentNodeID()) {
@@ -229,20 +243,14 @@ void DockScrollArea::nodeDeleted(QString nodeID, QString parentID)
     }
 }
 
-
-/**
- * @brief DockScrollArea::nodeDeleted
- * @param ID
- */
-void DockScrollArea::nodeDeleted(QString ID)
+void DockScrollArea::edgeDeleted(QString srcID, QString dstID)
 {
-    if (ID == getCurrentNodeID()) {
-        currentNodeItemID = "-1";
+    //qCritical() << "DockScrollArea::edgeDeleted";
+    if(dockNodeIDs.contains(srcID) || dockNodeIDs.contains(dstID)){
+        onEdgeDeleted();
+        //updateDock();
     }
-    // need to check if current node item is the parent of the deleted node
-    // if so, need to update dock
 }
-
 
 /**
  * @brief DockScrollArea::paintEvent
@@ -264,7 +272,11 @@ void DockScrollArea::paintEvent(QPaintEvent *e)
  */
 void DockScrollArea::removeDockNodeItemFromList(DockNodeItem *item)
 {
-    dockNodeItems.removeAll(item);
+    if(item){
+        dockNodeItems.removeAll(item);
+        QString ID = item->getNodeItem()->getID();
+        dockNodeIDs.removeAll(ID);
+    }
 }
 
 
@@ -357,11 +369,15 @@ void DockScrollArea::activate()
  */
 void DockScrollArea::clear()
 {
+    qCritical() << "DOCK SCROLL AREA: CLEAR()";
     for (int i=0; i<dockNodeItems.count(); i++) {
         layout->removeWidget(dockNodeItems.at(i));
         delete dockNodeItems.at(i);
     }
+    dockNodeIDs.clear();
     dockNodeItems.clear();
+    currentNodeItem = 0;
+    currentNodeItemID ="";
 }
 
 

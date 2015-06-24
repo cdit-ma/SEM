@@ -257,7 +257,7 @@ void ToolbarWidget::makeNewView()
         } else if (action->parentWidget() == implementationMenu) {
             nodeView->constructNewView(implementationNodeID);
         } else if (action->parentWidget() == instanceOptionMenu) {
-           // nodeView->constructNewView(instanceOptionMenu->getParentAction()->getNode());
+            nodeView->constructNewView(instanceOptionMenu->getParentAction()->getNodeItem()->getID());
         }
     }
 }
@@ -490,7 +490,7 @@ void ToolbarWidget::setupMenus()
     QAction* defn_popup = definitionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Definition");
     connect(defn_goTo, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(defn_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
-    defn_popup->setEnabled(false);
+    //defn_popup->setEnabled(false);
 
     implementationMenu = new ToolbarWidgetMenu(0, 0, implementationButton);
     implementationButton->setPopupMode(QToolButton::InstantPopup);
@@ -500,7 +500,7 @@ void ToolbarWidget::setupMenus()
     QAction* impl_popup = implementationMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Implementation");
     connect(impl_goTo, SIGNAL(triggered()), this, SLOT(goToImplementation()));
     connect(impl_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
-    impl_popup->setEnabled(false);
+    //impl_popup->setEnabled(false);
 
     instancesMenu = new ToolbarWidgetMenu(0, 0, instancesButton);
     instanceOptionMenu = new ToolbarWidgetMenu(0, 0, instancesMenu);
@@ -511,7 +511,7 @@ void ToolbarWidget::setupMenus()
     QAction* inst_popup = instanceOptionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Instance");
     connect(inst_goTo, SIGNAL(triggered()), this, SLOT(goToInstance()));
     connect(inst_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
-    inst_popup->setEnabled(false);
+    //inst_popup->setEnabled(false);
 
     // these widget actions are not deletable - when their parent menu is cleared, they're only hidden
     componentImplAction = new ToolbarWidgetAction("ComponentImpl", "", addMenu);
@@ -601,10 +601,7 @@ void ToolbarWidget::updateToolButtons()
     }
 
     // always show showNewView button
-    //showNewViewButton->show();
-
-    // DEMO CHANGE: hide this for now
-    showNewViewButton->hide();
+    showNewViewButton->show();
 }
 
 
