@@ -253,16 +253,26 @@ void ToolbarWidgetMenu::setupDefaultAction()
     }
 }
 
+
+/**
+ * @brief ToolbarWidgetMenu::mousePressEvent
+ * @param event
+ */
 void ToolbarWidgetMenu::mousePressEvent(QMouseEvent *event)
 {
-    if(event->button() == Qt::LeftButton){
+    if (event->button() == Qt::LeftButton) {
         QMenu::mousePressEvent(event);
     }
 }
 
+
+/**
+ * @brief ToolbarWidgetMenu::mouseDoubleClickEvent
+ * @param event
+ */
 void ToolbarWidgetMenu::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    if(event->button() == Qt::LeftButton){
+    if (event->button() == Qt::LeftButton) {
         QWidget::mouseDoubleClickEvent(event);
     }
 }

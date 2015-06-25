@@ -643,7 +643,7 @@ QList<NodeItem *> NodeView::getNodeItemsOfKind(QString kind, QString ID, int dep
 
 bool NodeView::viewportEvent(QEvent * e)
 {
-    // emit view_ViewportRectChanged(getVisibleRect());
+    emit view_ViewportRectChanged(getVisibleRect());
     return QGraphicsView::viewportEvent(e);
 }
 

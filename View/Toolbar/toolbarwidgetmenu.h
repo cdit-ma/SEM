@@ -25,8 +25,10 @@ public:
     ToolbarWidgetAction* getParentAction();
 
 protected:
-    virtual void enterEvent(QEvent*);
-    virtual void leaveEvent(QEvent*);
+    void enterEvent(QEvent*);
+    void leaveEvent(QEvent*);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseDoubleClickEvent(QMouseEvent *event);
 
 signals:
     void toolbarMenu_resetActionState();
@@ -52,14 +54,6 @@ private:
 
     ToolbarWidgetAction* defaultAction;
 
-
-    // QWidget interface
-protected:
-    void mousePressEvent(QMouseEvent *event);
-
-    // QWidget interface
-protected:
-    void mouseDoubleClickEvent(QMouseEvent *event);
 };
 
 #endif // TOOLBARWIDGETMENU_H

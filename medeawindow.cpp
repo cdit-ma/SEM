@@ -1589,9 +1589,6 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
                 "GraphML Documents (*.graphml *.xml)");
 
     importProjects(files);
-
-    // clear item selection
-    //nodeView->clearSelection();
 }
 
 
