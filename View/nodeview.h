@@ -58,9 +58,11 @@ public:
     QList<NodeItem*> getInstances(QString ID);
     NodeItem* getDefinition(QString ID);
     NodeItem* getAggregate(QString ID);
+    NodeItem* getDeployedNode(QString ID);
 
     bool isSubView();
     bool isTerminating();
+    bool isNodeKindDeployable(QString nodeKind);
 
 
 
@@ -135,6 +137,7 @@ signals:
     void view_TriggerAction(QString action);
     void view_ConstructNode(QString parentID, QString nodeKind, QPointF position);
     void view_ConstructEdge(QString srcID, QString dstID);
+    void view_DestructEdge(QString srcID, QString dstID);
     void view_ConstructConnectedNode(QString parentID, QString relativeID, QString nodeKind, QPointF position);
 
     void view_ClearHistoryStates();
@@ -253,6 +256,7 @@ public slots:
     void deleteSelection();
     void constructNode(QString nodeKind, int sender);
     void constructEdge(QString srcID, QString dstID, bool triggerAction=true);
+    void destructEdge(QString srcID, QString dstID, bool triggerAction=true);
     void changeEdgeDestination(QString srcID, QString dstID, QString newDstID);
 
     void deleteFromIDs(QStringList IDs);

@@ -26,11 +26,13 @@ public:
     void setNotAllowedKinds(QStringList kinds);
 
     void addDockNodeItem(DockNodeItem* item, int insertIndex = -1, bool addToLayout = true);
-    DockNodeItem* getDockNodeItem(NodeItem* item);
-    DockNodeItem* getDockNodeItem(Node* node);
+    //DockNodeItem* getDockNodeItem(NodeItem* item);
+    //DockNodeItem* getDockNodeItem(Node* node);
     DockNodeItem* getDockNodeItem(QString nodeID);
     QList<DockNodeItem*> getDockNodeItems();
 
+    bool isDockOpen();
+    void setDockEnabled(bool enabled);
     DockToggleButton* getParentButton();
     NodeItem* getCurrentNodeItem();
     QString getCurrentNodeID();
@@ -77,7 +79,7 @@ private:
     QString label;
     bool activated;
 
-    QList<DockNodeItem*> dockNodeItems;
+    QHash<QString, DockNodeItem*> dockNodeItems;
     QStringList dockNodeIDs;
     QStringList notAllowedKinds;
 

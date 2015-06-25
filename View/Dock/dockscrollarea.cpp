@@ -43,7 +43,7 @@ void DockScrollArea::updateCurrentNodeItem()
     currentNodeItem = nodeView->getSelectedNodeItem();
 
     if (currentNodeItem) {
-        currentNodeItemID = currentNodeItem->getGraphML()->getID();
+        currentNodeItemID = currentNodeItem->getID();
     } else {
         currentNodeItemID = "";
     }
@@ -107,14 +107,31 @@ NodeView *DockScrollArea::getNodeView()
  */
 QStringList DockScrollArea::getAdoptableNodeListFromView()
 {
-    return nodeView->getAdoptableNodeList(nodeView->getSelectedNodeID());
+    if(nodeView){
+        if(currentNodeItemID != ""){
+            return nodeView->getAdoptableNodeList(currentNodeItemID);
+        }
+    }
+    return QStringList();
 }
 
 
 /**
  * @brief DockScrollArea::onNodeDeleted
  */
-void DockScrollArea::onNodeDeleted(QString ID) {}
+void DockScrollArea::onNodeDeleted(QString ID) {
+    if(dockNodeItems.contains(ID)){
+        DockNodeItem* item = dockNodeItems[ID];
+        if(item){
+            removeDockNodeItemFromList(item);
+            if(layout){
+                layout->removeWidget(item);
+            }
+            item->deleteLater();
+        }
+        this->update();
+    }
+}
 
 /**
  * @brief DockScrollArea::onEdgeDeleted
@@ -143,14 +160,14 @@ QVBoxLayout *DockScrollArea::getLayout()
 void DockScrollArea::addDockNodeItem(DockNodeItem *item, int insertIndex, bool addToLayout)
 {
     if (item) {
+        QString ID = item->getID();
 
-        dockNodeItems.append(item);
+        if(!dockNodeItems.contains(ID)){
+            dockNodeItems[ID] = item;
+        }
+        if(!dockNodeIDs.contains(ID)){
+             dockNodeIDs.append(ID);
 
-        if(item->getNodeItem()){
-            QString ID = item->getNodeItem()->getID();
-            if(!dockNodeIDs.contains(ID) && ID != ""){
-                dockNodeIDs.append(ID);
-            }
         }
 
         if (addToLayout) {
@@ -176,6 +193,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem *item, int insertIndex, bool a
  * @param item
  * @return
  */
+/*
 DockNodeItem *DockScrollArea::getDockNodeItem(NodeItem *item)
 {
     if (item) {
@@ -186,7 +204,7 @@ DockNodeItem *DockScrollArea::getDockNodeItem(NodeItem *item)
         }
     }
     return 0;
-}
+}*/
 
 
 /**
@@ -194,11 +212,13 @@ DockNodeItem *DockScrollArea::getDockNodeItem(NodeItem *item)
  * @param node
  * @return
  */
+/*
 DockNodeItem *DockScrollArea::getDockNodeItem(Node* node)
 {
     NodeItem* nodeItem = getNodeView()->getNodeItemFromNode(node);
     return getDockNodeItem(nodeItem);
 }
+*/
 
 
 /**
@@ -208,9 +228,8 @@ DockNodeItem *DockScrollArea::getDockNodeItem(Node* node)
  */
 DockNodeItem *DockScrollArea::getDockNodeItem(QString nodeID)
 {
-    if (dockNodeIDs.contains(nodeID)) {
-        NodeItem* nodeItem = getNodeView()->getNodeItemFromID(nodeID);
-        return getDockNodeItem(nodeItem);
+    if(dockNodeItems.contains(nodeID)){
+        return dockNodeItems[nodeID];
     }
     return 0;
 }
@@ -223,7 +242,22 @@ DockNodeItem *DockScrollArea::getDockNodeItem(QString nodeID)
  */
 QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
 {
-    return dockNodeItems;
+    return dockNodeItems.values();
+}
+
+bool DockScrollArea::isDockOpen()
+{
+    if(getParentButton()){
+        return getParentButton()->isEnabled();
+    }
+    return false;
+}
+
+void DockScrollArea::setDockEnabled(bool enabled)
+{
+    if(getParentButton()){
+        getParentButton()->enableDock(enabled);
+    }
 }
 
 
@@ -264,13 +298,19 @@ void DockScrollArea::updateDock()
  */
 void DockScrollArea::nodeDeleted(QString nodeID, QString parentID)
 {
+
+
+
     if (parentID == getCurrentNodeID()) {
         updateDock();
     } else if (nodeID == getCurrentNodeID()) {
         currentNodeItemID = "";
-    } else if (dockNodeIDs.contains(nodeID)) {
+    }
+
+    if(dockNodeIDs.contains(nodeID)){
         onNodeDeleted(nodeID);
     }
+
 }
 
 
@@ -308,8 +348,8 @@ void DockScrollArea::paintEvent(QPaintEvent *e)
 void DockScrollArea::removeDockNodeItemFromList(DockNodeItem *item)
 {
     if(item){
-        dockNodeItems.removeAll(item);
-        QString ID = item->getNodeItem()->getID();
+        QString ID = item->getID();
+        dockNodeItems.remove(ID);
         dockNodeIDs.removeAll(ID);
     }
 }
@@ -404,10 +444,11 @@ void DockScrollArea::activate()
  */
 void DockScrollArea::clear()
 {
-    for (int i=0; i<dockNodeItems.count(); i++) {
-        layout->removeWidget(dockNodeItems.at(i));
-        delete dockNodeItems.at(i);
+    while(!dockNodeItems.keys().isEmpty()){
+        QString ID = dockNodeItems.keys().first();
+        onNodeDeleted(ID);
     }
+
     dockNodeIDs.clear();
     dockNodeItems.clear();
     currentNodeItem = 0;

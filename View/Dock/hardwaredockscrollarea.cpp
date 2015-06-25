@@ -57,7 +57,7 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
  */
 void HardwareDockScrollArea::onNodeDeleted(QString ID)
 {
-    refreshDock();
+    DockScrollArea::onNodeDeleted(ID);
 }
 
 
@@ -66,6 +66,7 @@ void HardwareDockScrollArea::onNodeDeleted(QString ID)
  */
 void HardwareDockScrollArea::onEdgeDeleted()
 {
+
     refreshDock();
 }
 
@@ -77,34 +78,36 @@ void HardwareDockScrollArea::onEdgeDeleted()
  */
 void HardwareDockScrollArea::dockNodeItemClicked()
 {
-    DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
-    Node* senderNode = sender->getNodeItem()->getNode();
-    Node* selectedNode = getNodeView()->getSelectedNode();
+    NodeItem* selectedNodeItem = getNodeView()->getSelectedNodeItem();
+    DockNodeItem* dockNodeItem = dynamic_cast<DockNodeItem*>(sender());
 
-    if (selectedNode) {
 
-        QString nodeKind = selectedNode->getDataValue("kind");
-        bool triggerAction = true;
+    if (selectedNodeItem && dockNodeItem) {
+        QString selectedNodeID = selectedNodeItem->getID();
+        QString selectedNodeKind = selectedNodeItem->getNodeKind();
+        QString dockNodeID = dockNodeItem->getID();
+        NodeItem* deployedNodeItem = getNodeView()->getDeployedNode(selectedNodeID);
+        QString deployedNodeID;
 
-        // NOTE: Are there any other kinds I should care about?
-        if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance" || nodeKind == "ManagementComponent") {
-
-            Edge* hardwareEdge = getHardwareConnection(selectedNode);
-
-            // check if the selected node is already connected to a hardware node
-            // if it is, check if the user is trying to connect to a different node
-            if (hardwareEdge) {
-                if (hardwareEdge->getDestination() != senderNode) {
-                    getNodeView()->changeEdgeDestination(hardwareEdge->getSource()->getID(), hardwareEdge->getDestination()->getID(), senderNode->getID());
-                }
-                return;
-            }
-
-            getNodeView()->constructEdge(selectedNode->getID(), senderNode->getID(), triggerAction);
-
-            // highlight hardware connection after it's been constructed
-            highlightHardwareConnection();
+        if(deployedNodeItem){
+            deployedNodeID = deployedNodeItem->getID();
         }
+
+        if(selectedNodeKind == "ComponentAssembly" || selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ManagementComponent"){
+            if(deployedNodeItem){
+                if(deployedNodeID == dockNodeID){
+                    //If this node is already deployed to the dock Item clicked. Unconnect it.
+                    getNodeView()->destructEdge(selectedNodeID, dockNodeID);
+                }else{
+                    //Deployed to something else, change the edge.
+                    getNodeView()->changeEdgeDestination(selectedNodeID, deployedNodeID, dockNodeID);
+                }
+            }else{
+                //Not Deployed
+                getNodeView()->constructEdge(selectedNodeID, dockNodeID, true);
+            }
+        }
+        highlightHardwareConnection();
     }
 }
 
@@ -147,10 +150,11 @@ void HardwareDockScrollArea::updateDock()
  */
 void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 {
-    if (nodeItem->getNodeKind() == "HardwareNode") {
+
+    if (nodeItem->getNodeKind() == "HardwareNode" || nodeItem->getNodeKind() == "HardwareCluster" ) {
         DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
         insertDockNodeItem(dockItem);
-        connect(this, SIGNAL(dock_higlightDockItem(Node*)), dockItem, SLOT(highlightDockItem(Node*)));
+        connect(this, SIGNAL(dock_higlightDockItem(NodeItem*)), dockItem, SLOT(highlightDockItem(NodeItem*)));
         connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
     }
 }
@@ -210,22 +214,12 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
     addDockNodeItem(dockItem);
 }
 
-
-/**
- * @brief HardwareDockScrollArea::getHardwareConnection
- * @param selectedNode
- * @return
- */
-Edge* HardwareDockScrollArea::getHardwareConnection(Node *selectedNode)
+void HardwareDockScrollArea::removeDockNodeItem(QString ID)
 {
-    return 0;
-    foreach (Edge *edge, selectedNode->getEdges(0)) {
-        if (edge->isDeploymentLink()) {
-            return edge;
-        }
-    }
-    return 0;
+
 }
+
+
 
 
 /**
@@ -237,23 +231,15 @@ Edge* HardwareDockScrollArea::getHardwareConnection(Node *selectedNode)
 void HardwareDockScrollArea::highlightHardwareConnection()
 {
     NodeItem* selectedItem = getCurrentNodeItem();
-
+    NodeItem* hardwareItem = 0;
     // we only care if there is a selected item and the Hardware dock is enabled
-    if (selectedItem && getParentButton()->isEnabled()) {
-
+    if (selectedItem && isDockOpen()) {
         QString nodeKind = selectedItem->getNodeKind();
+        QString nodeID = selectedItem->getID();
 
-        // NOTE: Is there any other kinds that can be connected to a Harware Node/Cluster?
-        if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance" || nodeKind == "ManagementComponent") {
-            Edge* hardwareEdge = getHardwareConnection(selectedItem->getNode());
-            if (hardwareEdge) {
-                emit dock_higlightDockItem(hardwareEdge->getDestination());
-            } else {
-                emit dock_higlightDockItem();
-            }
-        } else {
-            // remove higlight for any other kinds
-            emit dock_higlightDockItem();
+        if(getNodeView()->isNodeKindDeployable(nodeKind)){
+            hardwareItem = getNodeView()->getDeployedNode(nodeID);
         }
+        emit dock_higlightDockItem(hardwareItem);
     }
 }

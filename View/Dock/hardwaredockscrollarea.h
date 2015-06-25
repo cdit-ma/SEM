@@ -14,19 +14,18 @@ public:
     void onEdgeDeleted();
     
 signals:
-    void dock_higlightDockItem(Node* node = 0);
-
+    void dock_higlightDockItem(NodeItem* = 0);
 public slots:
     void dockNodeItemClicked();
     void updateDock();
 
     void insertDockNodeItem(DockNodeItem* dockItem);
+    void removeDockNodeItem(QString ID);
     void refreshDock();
 
     void nodeConstructed(NodeItem* nodeItem);
 
 private:
-    Edge* getHardwareConnection(Node* selectedNode);
     void highlightHardwareConnection();
 
     QStringList hardware_notAllowedKinds;

@@ -83,6 +83,7 @@ public:
     QString getImplementation(QString ID);
     QStringList getInstances(QString ID);
     QString getAggregate(QString ID);
+    QString getDeployedHardwareID(QString ID);
 
 
 signals:
@@ -126,6 +127,7 @@ private slots:
 
     void constructNode(QString parentID, QString nodeKind, QPointF centerPoint);
     void constructEdge(QString srcID, QString dstID);
+    void destructEdge(QString srcID, QString dstID);
     void constructConnectedNode(QString parentID, QString connectedID, QString kind, QPointF relativePos);
     void changeEdgeDestination(QString srcID,  QString dstID, QString newDstID );
     void setGraphMLData(QString parentID, QString keyName, QString dataValue);

@@ -27,6 +27,7 @@ public:
     void removeChildDockItem(DockNodeItem* dockItem);
     QList<DockNodeItem*> getChildrenDockItems();
 
+    QString getID();
     void setHidden(bool hideItem);
     bool isHidden();
 
@@ -42,18 +43,19 @@ signals:
     void dockItem_hidden();
 
 public slots:
+    void labelChanged(QString label);
     void clicked();
     void parentDockItemClicked(bool show);
+
 
     void updateData();
     void deleteLater();
 
     void childDockItemHidden();
-    void highlightDockItem(Node* node);
+    void highlightDockItem(NodeItem* node);
 
 private:
     void setupLayout();
-    void connectToNodeItem();
     void updateTextLabel();
     void updateStyleSheet();
 
@@ -64,6 +66,7 @@ private:
 
     QString kind;
     QString label;
+    QString ID;
 
     QLabel* textLabel;
     QLabel* imageLabel;

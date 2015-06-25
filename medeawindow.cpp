@@ -1226,7 +1226,7 @@ void MedeaWindow::makeConnections()
     //connect(toolbarStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedToolbarClosed()));
 
     // This does absolutely nothing!!!
-    connect(this, SIGNAL(window_updateActionsEnabled()), nodeView, SLOT(setEnabled(bool)));
+    //connect(this, SIGNAL(window_updateActionsEnabled()), nodeView, SLOT(setEnabled(bool)));
 
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));

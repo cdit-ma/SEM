@@ -23,10 +23,16 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
     highlighted = false;
 
     if (nodeItem) {
-
+        this->ID = nodeItem->getID();
         this->kind = nodeItem->getNodeKind();
-        label = nodeItem->getNode()->getDataValue("label");
-        connectToNodeItem();
+        this->label = nodeItem->getNodeLabel();
+
+        if(nodeItem->getNode()){
+            GraphMLData* label = nodeItem->getNode()->getData("label");
+            if(label){
+                connect(label, SIGNAL(valueChanged(QString)), this, SLOT(labelChanged(QString)));
+            }
+        }
 
         // if kind == FileLabel, don't create an icon
         if (kind == "FileLabel") {
@@ -35,8 +41,10 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
         }
 
     } else {
+        //Must be a parts Dock!
         this->kind = kind;
         label = kind;
+        this->ID = kind;
     }
 
     setupLayout();
@@ -120,6 +128,7 @@ DockNodeItem *DockNodeItem::getParentDockNodeItem()
  */
 void DockNodeItem::addChildDockItem(DockNodeItem *dockItem)
 {
+    //qCritical() << "DockNodeItem: " + this->getID() + " Added: " + dockItem->getID();
     childrenDockItems.append(dockItem);
 }
 
@@ -130,7 +139,8 @@ void DockNodeItem::addChildDockItem(DockNodeItem *dockItem)
  */
 void DockNodeItem::removeChildDockItem(DockNodeItem *dockItem)
 {
-    childrenDockItems.removeAll(dockItem);
+    int count = childrenDockItems.removeAll(dockItem);
+    //qCritical() << "DockNodeItem: " << this->getID() << " Deleted: " << dockItem->getID() << count;
 }
 
 
@@ -141,6 +151,11 @@ void DockNodeItem::removeChildDockItem(DockNodeItem *dockItem)
 QList<DockNodeItem *> DockNodeItem::getChildrenDockItems()
 {
     return childrenDockItems;
+}
+
+QString DockNodeItem::getID()
+{
+    return this->ID;
 }
 
 
@@ -189,6 +204,13 @@ bool DockNodeItem::isExpanded()
     return expanded;
 }
 
+void DockNodeItem::labelChanged(QString label)
+{
+    setLabel(label);
+    emit dockItem_relabelled(this);
+}
+
+
 
 /**
  * @brief DockNodeItem::setupLayout
@@ -224,12 +246,14 @@ void DockNodeItem::setupLayout()
             *image = parentDock->getNodeView()->getImage(kind);
         }
 
-        if (nodeItem && kind == "HardwareNode") {
-            QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
-            QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
-            QString hardwareKind = hardwareOS + "_" + hardwareArch;
-            if (parentDock && parentDock->getNodeView()) {
-                *image = parentDock->getNodeView()->getImage(hardwareKind);
+        if (nodeItem && kind.startsWith("Hardware")){
+            if(kind == "HardwareNode"){
+                QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
+                QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
+                QString hardwareKind = hardwareOS + "_" + hardwareArch;
+                if (parentDock && parentDock->getNodeView()) {
+                    *image = parentDock->getNodeView()->getImage(hardwareKind);
+                }
             }
             highlightColor = "rgba(90,150,200,210)";
         }
@@ -263,16 +287,6 @@ void DockNodeItem::setupLayout()
                   "QPushButton:hover{"
                   "border: 1px solid black;"
                   "}");
-}
-
-
-/**
- * @brief DockNodeItem::connectToNodeItem
- */
-void DockNodeItem::connectToNodeItem()
-{
-    connect(nodeItem, SIGNAL(updateDockNodeItem()), this, SLOT(updateData()));
-    connect(nodeItem, SIGNAL(destroyed()), this, SLOT(deleteLater()));
 }
 
 
@@ -380,7 +394,7 @@ void DockNodeItem::deleteLater()
 void DockNodeItem::updateData()
 {
     setLabel(nodeItem->getNode()->getDataValue("label"));
-    emit dockItem_relabelled(this);
+
     //repaint();
 }
 
@@ -412,12 +426,12 @@ void DockNodeItem::childDockItemHidden()
  * This adds/removes highlight to this dock item.
  * @param node
  */
-void DockNodeItem::highlightDockItem(Node *node)
+void DockNodeItem::highlightDockItem(NodeItem *node)
 {
     QString backgroundColor = "rgba(0,0,0,0);";
     QString hoverBorder = "1px solid black;";
 
-    if (node && node == getNodeItem()->getNode()) {
+    if (node == getNodeItem()) {
         if (highlighted) {
             return;
         }

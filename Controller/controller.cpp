@@ -90,6 +90,7 @@ void NewController::connectView(NodeView *view)
 
 
     if(view->isMainView()){
+        connect(view, SIGNAL(view_DestructEdge(QString,QString)), this, SLOT(destructEdge(QString,QString)));
         //Pass Through Signals to GUI.
         connect(view, SIGNAL(view_ClearHistoryStates()), this, SLOT(clearHistory()));
         connect(view, SIGNAL(view_Clear()), this, SLOT(clear()));
@@ -494,6 +495,20 @@ void NewController::constructEdge(QString srcID, QString dstID)
     Node* src = getNodeFromID(srcID);
     Node* dst = getNodeFromID(dstID);
     constructEdgeWithData(src, dst);
+    emit controller_ActionFinished();
+}
+
+void NewController::destructEdge(QString srcID, QString dstID)
+{
+    Node* src = getNodeFromID(srcID);
+    Node* dst = getNodeFromID(dstID);
+
+    if(src && dst){
+        Edge* edge = src->getConnectingEdge(dst);
+        if(edge){
+            destructEdge(edge, true);
+        }
+    }
     emit controller_ActionFinished();
 }
 
@@ -988,6 +1003,24 @@ QString NewController::getAggregate(QString ID)
     }
     return aggrID;
 
+}
+
+QString NewController::getDeployedHardwareID(QString ID)
+{
+    QString deplID;
+    Node* node = getNodeFromID(ID);
+    if(node){
+        foreach(Edge* edge, node->getEdges(0)){
+            if(edge->isDeploymentLink()){
+                if(edge->getSource() == node){
+                    deplID = edge->getDestination()->getID();
+                }else{
+                    deplID = edge->getSource()->getID();
+                }
+            }
+        }
+    }
+    return deplID;
 }
 
 QStringList NewController::getNodesOfKind(QString kind, QString ID, int depth)
@@ -1955,14 +1988,10 @@ bool NewController::reverseAction(ActionItem action)
 
             if(attachedItem){
                 //Restore the Data Value;
-                qCritical() << action.dataValue;
-                qCritical() << action.keyName;
                 setGraphMLData(attachedItem, action.keyName, action.dataValue);
                 return true;
             }else{
                 //if(!IS_SUB_VIEW){
-                qCritical() << action.ID << " " << action.keyName <<  action.dataValue;
-                qCritical() << "Cannot find Item";
                 return false;
                 //}
             }

@@ -24,42 +24,43 @@ void PartsDockScrollArea::updateDock()
 {
     // this will enable/disable the dock depending on whether there's a selected item
     DockScrollArea::updateDock();
-    if (!getParentButton()->isEnabled()) {
+
+    if(!isDockOpen()){
         return;
     }
 
-    // NOTE: AdoptableNodeList from view is incorrect when deleteing node using undo.
-    // FIX: Added signal in the controller for when the node is actually deleted.
-    QStringList itemsToDisplay = getAdoptableNodeListFromView();
-    QStringList newDisplayedItems;
 
-    // when the selected node can't adopt anything, disbale the dock and its parentButton
-    if (itemsToDisplay.count() == 0) {
-        getParentButton()->enableDock(false);
-        return;
-    }
 
-    // compare the list of itemsToDisplay against the list of displayedItems
-    for (int i = 0; i < displayedItems.count(); i++) {
-        QString item = displayedItems.at(i);
-        // if item in displayedItems is contained in itemsToDisplay, remove it from itemsToDisplay
-        // otherwise, item shouldn't be displayed anymore; hide it
-        if (itemsToDisplay.contains(item)) {
-            itemsToDisplay.removeAll(item);
-            newDisplayedItems.append(item);
-        } else {
-            getDockNodeItem(item)->hide();
+    QStringList kindsToShow = getAdoptableNodeListFromView();
+
+    foreach(QString kind, displayedItems){
+        if(kindsToShow.contains(kind)){
+            kindsToShow.removeAll(kind);
+        }else{
+            DockNodeItem* dockNodeItem = getDockNodeItem(kind);
+            if(dockNodeItem){
+                dockNodeItem->hide();
+                displayedItems.removeAll(kind);
+            }else{
+                qCritical() << "Dont have item" << kind;
+            }
         }
     }
 
-    // show all the hidden dock node items with kind in itemsToDisplay
-    for (int i = 0; i < itemsToDisplay.count(); i++) {
-        getDockNodeItem(itemsToDisplay.at(i))->show();
-        newDisplayedItems.append(itemsToDisplay.at(i));
+    //Got nothing to show. So Hide the Dock!
+    if(displayedItems.isEmpty() && kindsToShow.isEmpty()){
+        setDockEnabled(false);
+    }else{
+        foreach(QString kind, kindsToShow){
+            DockNodeItem* dockNodeItem = getDockNodeItem(kind);
+            if(dockNodeItem){
+                dockNodeItem->show();
+                displayedItems.append(kind);
+            }else{
+                qCritical() << "Dont have item" << kind;
+            }
+        }
     }
-
-    // update list of currently displayed dock node items
-    displayedItems = newDisplayedItems;
  }
 
 
@@ -72,13 +73,15 @@ void PartsDockScrollArea::updateDock()
  */
 void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
 {
-    clear();
     nodeKinds.removeDuplicates();
     nodeKinds.sort();
 
-    for (int i = 0; i < nodeKinds.count(); i++) {
-        DockNodeItem *item = new DockNodeItem(nodeKinds.at(i), 0, this);
-        addDockNodeItem(item);
+    foreach(QString kind, nodeKinds){
+        if(!getDockNodeItem(kind)){
+
+        }
+        DockNodeItem* dockNodeItem = new DockNodeItem(kind, 0, this);
+        addDockNodeItem(dockNodeItem);
     }
 
     // initialise list of displayed items
@@ -94,12 +97,8 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
  */
 DockNodeItem* PartsDockScrollArea::getDockNodeItem(QString kind)
 {
-    foreach (DockNodeItem* item, getDockNodeItems()) {
-        if (item->getKind() == kind) {
-            return item;
-        }
-    }
-    return 0;
+    //DockNodeItems are indexed by their kind for the parts list.
+    return DockScrollArea::getDockNodeItem(kind);
 }
 
 

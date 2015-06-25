@@ -154,7 +154,7 @@ void NodeView::ensureAspect(QString ID)
 
              newAspects.removeDuplicates();
              setAspects(newAspects);
-             qCritical() << newAspects;
+
         }
     }
 }
@@ -167,6 +167,14 @@ bool NodeView::isSubView()
 bool NodeView::isTerminating()
 {
     return isDestructing;
+}
+
+bool NodeView::isNodeKindDeployable(QString nodeKind)
+{
+    if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance" || nodeKind == "ManagementComponent") {
+        return true;
+    }
+    return false;
 }
 
 bool NodeView::isMainView()
@@ -507,7 +515,6 @@ void NodeView::setParentNodeView(NodeView *n)
 void NodeView::removeSubView(NodeView *subView)
 {
     if(subViews.contains(subView)){
-        qCritical() << "REMOVING SUBVIEW";
         subViews.removeAll(subView);
     }
 }
@@ -609,7 +616,6 @@ void NodeView::constructNewView(QString nodeID)
             newView->constructGUIItem(constructList.takeFirst());
         }
 
-        qCritical() << "LOCKING";
         newView->view_LockCenteredGraphML(nodeID);
 
 
@@ -1558,9 +1564,38 @@ void NodeView::constructEdge(QString srcID, QString dstID, bool trigger)
     }
 }
 
+void NodeView::destructEdge(QString srcID, QString dstID, bool triggerAction)
+{
+     if(viewMutex.tryLock()){
+         NodeItem* srcNode = getNodeItemFromID(srcID);
+         NodeItem* dstNode = getNodeItemFromID(dstID);
+         if(srcNode && dstNode){
+             view_displayNotification("Disconnected " + srcNode->getNodeLabel() +
+                                      " from " + dstNode->getNodeLabel() + ".",
+                                      notificationNumber, numberOfNotifications);
+             // reset notification seq and total number
+             numberOfNotifications = 1;
+             notificationNumber = 0;
+         }
+         emit view_DestructEdge(srcID, dstID);
+     }
+}
+
 void NodeView::changeEdgeDestination(QString srcID, QString dstID, QString newDstID)
 {
     if(viewMutex.tryLock()){
+        NodeItem* srcNode = getNodeItemFromID(srcID);
+        NodeItem* dstNode = getNodeItemFromID(dstID);
+        NodeItem* newDstNode = getNodeItemFromID(newDstID);
+        if(srcNode && dstNode && newDstNode){
+
+            view_displayNotification("Disconnected " + srcNode->getNodeLabel() +
+                                     " from " + dstNode->getNodeLabel() + " and connected to " + newDstNode->getNodeLabel() + ".",
+                                     notificationNumber, numberOfNotifications);
+            // reset notification seq and total number
+            numberOfNotifications = 1;
+            notificationNumber = 0;
+        }
         emit view_ChangeEdgeDestination(srcID, dstID, newDstID);
     }
 }
@@ -1857,6 +1892,16 @@ NodeItem *NodeView::getAggregate(QString ID)
         aggr = getNodeItemFromID(aggID);
     }
     return aggr;
+}
+
+NodeItem *NodeView::getDeployedNode(QString ID)
+{
+    NodeItem* hardwareItem = 0;
+    if(controller){
+        QString deplyID = controller->getDeployedHardwareID(ID);
+        hardwareItem = getNodeItemFromID(deplyID);
+    }
+    return hardwareItem;
 }
 
 

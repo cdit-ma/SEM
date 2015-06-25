@@ -21,7 +21,6 @@ public slots:
     void clear();
 
     void nodeConstructed(NodeItem* nodeItem);
-    void nodeDestructed(NodeItem* nodeItem);
 
     void resortDockItems(DockNodeItem* dockItem);
     void refreshDock();
@@ -31,7 +30,7 @@ private:
     void showAllComponents();
 
     QStringList definitions_notAllowedKinds;
-    QHash<NodeItem*, QVBoxLayout*> fileLayoutItems;
+    QHash<QString, QVBoxLayout*> fileLayoutItems;
 
     QVBoxLayout* mainLayout;
     QVBoxLayout* itemsLayout;
