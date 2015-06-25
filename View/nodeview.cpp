@@ -1174,9 +1174,9 @@ void NodeView::moveViewForward()
 
 /**
  * @brief NodeView::highlightDeployment
- * @param selectedNode
+ * @param clear
  */
-void NodeView::highlightDeployment(Node* selectedNode)
+void NodeView::highlightDeployment(bool clear)
 {
     // clear highlighted node items
     if (guiItems.contains(prevSelectedNodeID)) {
@@ -1184,27 +1184,6 @@ void NodeView::highlightDeployment(Node* selectedNode)
         if (item->isNodeItem()) {
             ((NodeItem*)item)->deploymentView(false);
         }
-    }
-
-    // if there is no selected node, it means that we either only wanna remove the
-    // highlight from the previously highlighted node items or an edge has been deleted
-    bool justClearing = false;
-
-    if (selectedNode) {
-
-        // if there are higlighted children, display notification
-        NodeItem* selectedItem = getNodeItemFromNode(selectedNode);
-        if (selectedItem) {
-            if (!selectedItem->deploymentView(true, selectedItem).isEmpty()) {
-                view_displayNotification("The selected entity has children that are deployed to a different node.");
-            }
-        }
-
-        prevSelectedNodeID = selectedNode->getID();
-
-    } else {
-        prevSelectedNodeID = "";
-        justClearing = true;
     }
 
     // check if any ComponentAssemblies, ComponentInstances or ManagementComponents
@@ -1215,26 +1194,39 @@ void NodeView::highlightDeployment(Node* selectedNode)
             foreach (Node* assm, model->getChildrenOfKind("ComponentAssembly")) {
                 NodeItem* assmItem = getNodeItemFromNode(assm);
                 if (assmItem) {
-                    assmItem->deploymentView(true && !justClearing);
+                    assmItem->deploymentView(true && !clear);
                 }
             }
             foreach (Node* inst, model->getChildrenOfKind("ComponentInstance")) {
                 NodeItem* instItem = getNodeItemFromNode(inst);
                 if (instItem) {
-                    instItem->deploymentView(true && !justClearing);
+                    instItem->deploymentView(true && !clear);
                 }
             }
             foreach (Node* mngt, model->getChildrenOfKind("ManagementComponent")) {
                 NodeItem* mngtItem = getNodeItemFromNode(mngt);
                 if (mngtItem) {
-                    mngtItem->deploymentView(true && !justClearing);
+                    mngtItem->deploymentView(true && !clear);
                 }
             }
         }
     }
 
-    //repaint();
+    if (clear) {
+        prevSelectedNodeID = "";
+        return;
+    }
+
+    NodeItem* selectedNodeItem = getSelectedNodeItem();
+    if (selectedNodeItem) {
+        if (!selectedNodeItem->deploymentView(true, selectedNodeItem).isEmpty()) {
+            // if there are higlighted children, display notification
+            view_displayNotification("The selected entity has children that are deployed to a different node.");
+        }
+        prevSelectedNodeID = selectedNodeItem->getID();
+    }
 }
+
 
 void NodeView::_deleteFromIDs(QStringList IDs)
 {
@@ -2007,12 +1999,12 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
             if(item->isNodeItem()){
                 NodeItem* nodeItem = (NodeItem*)item;
                 if(nodeItem->getParentNodeItem()){
-                    emit view_NodeDeleted(nodeItem->getID(), nodeItem->getParentNodeItem()->getID());
+                    emit view_nodeDeleted(nodeItem->getID(), nodeItem->getParentNodeItem()->getID());
                 }
             }else if (item->isEdgeItem()){
                 EdgeItem* edgeItem = (EdgeItem*)item;
                 if(edgeItem->getSource() && edgeItem->getDestination()){
-                    emit view_EdgeDeleted(edgeItem->getSource()->getID(), edgeItem->getDestination()->getID());
+                    emit view_edgeDeleted(edgeItem->getSource()->getID(), edgeItem->getDestination()->getID());
                 }
             }
 
@@ -2094,7 +2086,7 @@ void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
     qCritical() << "NODE ITEM DELETED";
     // update the docks and the toolbar/menu goTo functions
     //updateActionsEnabled(getSelectedNode());
-    emit view_nodeDestructed(nodeItem);
+    //emit view_nodeDestructed(nodeItem);
 }
 
 
@@ -2122,7 +2114,8 @@ void NodeView::nodeSelected_signalUpdates(Node* node)
 void NodeView::edgeConstructed_signalUpdates(Edge* edge)
 {
     // update highlighted children items
-    highlightDeployment(getSelectedNode());
+    //highlightDeployment(getSelectedNode());
+    highlightDeployment(false);
 
     // update the docks
     emit view_edgeConstructed();

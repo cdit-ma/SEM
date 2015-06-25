@@ -15,12 +15,12 @@ public:
     
 signals:
     void dock_higlightDockItem(NodeItem* = 0);
+
 public slots:
     void dockNodeItemClicked();
     void updateDock();
 
     void insertDockNodeItem(DockNodeItem* dockItem);
-    void removeDockNodeItem(QString ID);
     void refreshDock();
 
     void nodeConstructed(NodeItem* nodeItem);
@@ -30,9 +30,6 @@ private:
 
     QStringList hardware_notAllowedKinds;
 
-
-    // DockScrollArea interface
-public:
 };
 
 #endif // HARDWAREDOCKSCROLLAREA_H

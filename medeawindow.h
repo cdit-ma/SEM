@@ -79,7 +79,8 @@ signals:
     void window_searchItemClicked(SearchItemButton* item);
     void window_aspectToggleDoubleClicked(AspectToggleWidget* aspect);
 
-    void window_highlightDeployment(Node* selectedNode = 0);
+    //void window_highlightDeployment(Node* selectedNode = 0);
+    void window_highlightDeployment(bool clear = false);
     void window_updateActionsEnabled();
 
     void checkDockScrollBar();

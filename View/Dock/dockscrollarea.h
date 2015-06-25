@@ -21,18 +21,17 @@ class DockScrollArea : public QScrollArea
     Q_OBJECT
 
 public:
-    explicit DockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
+    explicit DockScrollArea(QString label, NodeView* view, DockToggleButton* parent);
 
     void setNotAllowedKinds(QStringList kinds);
 
     void addDockNodeItem(DockNodeItem* item, int insertIndex = -1, bool addToLayout = true);
-    //DockNodeItem* getDockNodeItem(NodeItem* item);
-    //DockNodeItem* getDockNodeItem(Node* node);
     DockNodeItem* getDockNodeItem(QString nodeID);
     QList<DockNodeItem*> getDockNodeItems();
 
-    bool isDockOpen();
+    bool isDockEnabled();
     void setDockEnabled(bool enabled);
+
     DockToggleButton* getParentButton();
     NodeItem* getCurrentNodeItem();
     QString getCurrentNodeID();
@@ -46,9 +45,6 @@ public:
     virtual void onNodeDeleted(QString ID);
     virtual void onEdgeDeleted();
 
-protected:
-    void paintEvent(QPaintEvent *e);
-
 public slots:
     virtual void dockNodeItemClicked() = 0;
     virtual void updateDock();
@@ -61,23 +57,24 @@ public slots:
 
     void removeDockNodeItemFromList(DockNodeItem* item);
 
-    void activate();
-
     void parentHeightChanged(double height);
+
+    void on_parentButtonPressed();
 
 private:
     void setupLayout();
     void setParentButton(DockToggleButton* parent);
 
     NodeView* nodeView;
-    QString currentNodeItemID;
-    NodeItem* currentNodeItem;
     DockToggleButton *parentButton;
+
+    NodeItem* currentNodeItem;
+    QString currentNodeItemID;
 
     QVBoxLayout* mainLayout;
     QVBoxLayout* layout;
     QString label;
-    bool activated;
+    bool dockOpen;
 
     QHash<QString, DockNodeItem*> dockNodeItems;
     QStringList dockNodeIDs;

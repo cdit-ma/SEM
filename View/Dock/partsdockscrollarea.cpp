@@ -25,11 +25,10 @@ void PartsDockScrollArea::updateDock()
     // this will enable/disable the dock depending on whether there's a selected item
     DockScrollArea::updateDock();
 
-    if(!isDockOpen()){
+    // if the dock is disabled, there is no need to update
+    if (!isDockEnabled()) {
         return;
     }
-
-
 
     QStringList kindsToShow = getAdoptableNodeListFromView();
 
@@ -48,20 +47,20 @@ void PartsDockScrollArea::updateDock()
     }
 
     //Got nothing to show. So Hide the Dock!
-    if(displayedItems.isEmpty() && kindsToShow.isEmpty()){
+    if (displayedItems.isEmpty() && kindsToShow.isEmpty()) {
         setDockEnabled(false);
-    }else{
-        foreach(QString kind, kindsToShow){
+    } else {
+        foreach (QString kind, kindsToShow) {
             DockNodeItem* dockNodeItem = getDockNodeItem(kind);
-            if(dockNodeItem){
+            if (dockNodeItem) {
                 dockNodeItem->show();
                 displayedItems.append(kind);
-            }else{
+            } else {
                 qCritical() << "Dont have item" << kind;
             }
         }
     }
- }
+}
 
 
 /**
@@ -76,8 +75,8 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
     nodeKinds.removeDuplicates();
     nodeKinds.sort();
 
-    foreach(QString kind, nodeKinds){
-        if(!getDockNodeItem(kind)){
+    foreach (QString kind, nodeKinds) {
+        if (!getDockNodeItem(kind)) {
 
         }
         DockNodeItem* dockNodeItem = new DockNodeItem(kind, 0, this);

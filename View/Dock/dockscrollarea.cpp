@@ -10,14 +10,14 @@
  * @param view
  * @param parent
  */
-DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton *parent) :
+DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton* parent) :
     QScrollArea(parent)
 {
     nodeView = view;
     currentNodeItem = 0;
 
     this->label = label;
-    activated = false;
+    dockOpen = false;
 
     setParentButton(parent);
     setupLayout();
@@ -57,9 +57,9 @@ void DockScrollArea::updateCurrentNodeItem()
  * Returns the current node item.
  * @return
  */
-NodeItem *DockScrollArea::getCurrentNodeItem()
+NodeItem* DockScrollArea::getCurrentNodeItem()
 {
-    if(currentNodeItemID != ""){
+    if (currentNodeItemID != "") {
         return currentNodeItem;
     }
     return 0;
@@ -71,7 +71,7 @@ NodeItem *DockScrollArea::getCurrentNodeItem()
  * Returns this dock's parent button (DockToggleButton).
  * @return
  */
-DockToggleButton *DockScrollArea::getParentButton()
+DockToggleButton* DockScrollArea::getParentButton()
 {
     return parentButton;
 }
@@ -93,7 +93,7 @@ QString DockScrollArea::getLabel()
  * Returns the NodeView this dock is attached to.
  * @return
  */
-NodeView *DockScrollArea::getNodeView()
+NodeView* DockScrollArea::getNodeView()
 {
     return nodeView;
 }
@@ -107,10 +107,8 @@ NodeView *DockScrollArea::getNodeView()
  */
 QStringList DockScrollArea::getAdoptableNodeListFromView()
 {
-    if(nodeView){
-        if(currentNodeItemID != ""){
-            return nodeView->getAdoptableNodeList(currentNodeItemID);
-        }
+    if (nodeView && currentNodeItemID != "") {
+        return nodeView->getAdoptableNodeList(currentNodeItemID);
     }
     return QStringList();
 }
@@ -118,20 +116,20 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
 
 /**
  * @brief DockScrollArea::onNodeDeleted
+ * @param ID
  */
-void DockScrollArea::onNodeDeleted(QString ID) {
-    if(dockNodeItems.contains(ID)){
+void DockScrollArea::onNodeDeleted(QString ID)
+{
+    if (dockNodeItems.contains(ID)) {
         DockNodeItem* item = dockNodeItems[ID];
-        if(item){
+        if (item) {
             removeDockNodeItemFromList(item);
-            if(layout){
-                layout->removeWidget(item);
-            }
             item->deleteLater();
         }
-        this->update();
+        updateDock();
     }
 }
+
 
 /**
  * @brief DockScrollArea::onEdgeDeleted
@@ -160,6 +158,7 @@ QVBoxLayout *DockScrollArea::getLayout()
 void DockScrollArea::addDockNodeItem(DockNodeItem *item, int insertIndex, bool addToLayout)
 {
     if (item) {
+
         QString ID = item->getID();
 
         if(!dockNodeItems.contains(ID)){
@@ -167,7 +166,6 @@ void DockScrollArea::addDockNodeItem(DockNodeItem *item, int insertIndex, bool a
         }
         if(!dockNodeIDs.contains(ID)){
              dockNodeIDs.append(ID);
-
         }
 
         if (addToLayout) {
@@ -189,46 +187,13 @@ void DockScrollArea::addDockNodeItem(DockNodeItem *item, int insertIndex, bool a
 
 /**
  * @brief DockScrollArea::getDockNodeItem
- * This checks if this dock already contains a dock node item attached to item.
- * @param item
- * @return
- */
-/*
-DockNodeItem *DockScrollArea::getDockNodeItem(NodeItem *item)
-{
-    if (item) {
-        foreach (DockNodeItem* dockItem, dockNodeItems) {
-            if (dockItem->getNodeItem() == item) {
-                return dockItem;
-            }
-        }
-    }
-    return 0;
-}*/
-
-
-/**
- * @brief DockScrollArea::getDockNodeItem
- * @param node
- * @return
- */
-/*
-DockNodeItem *DockScrollArea::getDockNodeItem(Node* node)
-{
-    NodeItem* nodeItem = getNodeView()->getNodeItemFromNode(node);
-    return getDockNodeItem(nodeItem);
-}
-*/
-
-
-/**
- * @brief DockScrollArea::getDockNodeItem
+ * This checks if this dock already contains a dock node item attached to nodeID.
  * @param nodeID
  * @return
  */
 DockNodeItem *DockScrollArea::getDockNodeItem(QString nodeID)
 {
-    if(dockNodeItems.contains(nodeID)){
+    if (dockNodeItems.contains(nodeID)) {
         return dockNodeItems[nodeID];
     }
     return 0;
@@ -245,17 +210,27 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
     return dockNodeItems.values();
 }
 
-bool DockScrollArea::isDockOpen()
+
+/**
+ * @brief DockScrollArea::isDockEnabled
+ * @return
+ */
+bool DockScrollArea::isDockEnabled()
 {
-    if(getParentButton()){
+    if (getParentButton()) {
         return getParentButton()->isEnabled();
     }
     return false;
 }
 
+
+/**
+ * @brief DockScrollArea::setDockEnabled
+ * @param enabled
+ */
 void DockScrollArea::setDockEnabled(bool enabled)
 {
-    if(getParentButton()){
+    if (getParentButton()) {
         getParentButton()->enableDock(enabled);
     }
 }
@@ -269,22 +244,22 @@ void DockScrollArea::setDockEnabled(bool enabled)
  */
 void DockScrollArea::updateDock()
 {
-    if(currentNodeItemID != ""){
+    if (currentNodeItemID != "") {
         if (currentNodeItem) {
             if (currentNodeItem->getNodeKind() == "Model") {
-                parentButton->enableDock(false);
+                setDockEnabled(false);
             } else if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {
-                parentButton->enableDock(false);
+                setDockEnabled(false);
             } else {
-                parentButton->enableDock(true);
+                setDockEnabled(true);
             }
         } else {
             // no current node item selected
-            parentButton->enableDock(false);
+            setDockEnabled(false);
         }
     } else {
         // current node item deleted
-        parentButton->enableDock(false);
+        setDockEnabled(false);
     }
 }
 
@@ -298,19 +273,22 @@ void DockScrollArea::updateDock()
  */
 void DockScrollArea::nodeDeleted(QString nodeID, QString parentID)
 {
+    if (dockNodeIDs.contains(nodeID)) {
+        onNodeDeleted(nodeID);
+    }
 
-
-
+    /*
     if (parentID == getCurrentNodeID()) {
         updateDock();
     } else if (nodeID == getCurrentNodeID()) {
         currentNodeItemID = "";
     }
+    */
 
-    if(dockNodeIDs.contains(nodeID)){
-        onNodeDeleted(nodeID);
+    // need to update on both cases to enable/disable the dock correctly
+    if (nodeID == getCurrentNodeID() || parentID == getCurrentNodeID()) {
+        updateCurrentNodeItem();
     }
-
 }
 
 
@@ -328,18 +306,6 @@ void DockScrollArea::edgeDeleted(QString srcID, QString dstID)
 
 
 /**
- * @brief DockScrollArea::paintEvent
- * Still trying to catch when the scrollbar appears/disappears to adjust dock size.
- * @param e
- */
-void DockScrollArea::paintEvent(QPaintEvent *e)
-{
-    //qDebug() << verticalScrollBar()->isVisible();
-    QScrollArea::paintEvent(e);
-}
-
-
-/**
  * @brief DockScrollArea::removeDockNodeItemFromList
  * This is called whenever a DockNodeItem is deleted.
  * It removes the deleted item from this dock's list.
@@ -347,10 +313,12 @@ void DockScrollArea::paintEvent(QPaintEvent *e)
  */
 void DockScrollArea::removeDockNodeItemFromList(DockNodeItem *item)
 {
-    if(item){
-        QString ID = item->getID();
-        dockNodeItems.remove(ID);
-        dockNodeIDs.removeAll(ID);
+    if (item) {
+        dockNodeItems.remove(item->getID());
+        dockNodeIDs.removeAll(item->getID());
+        if (layout) {
+            layout->removeWidget(item);
+        }
     }
 }
 
@@ -358,8 +326,7 @@ void DockScrollArea::removeDockNodeItemFromList(DockNodeItem *item)
 /**
  * @brief DockScrollArea::getCurrentNodeID
  * This method returns the current node item's ID.
- * @return -1 = node item was deleted
- *         "" = no selected node item
+ * @return "" - current node item was deleted/no selected node item
  */
 QString DockScrollArea::getCurrentNodeID()
 {
@@ -418,22 +385,22 @@ void DockScrollArea::setParentButton(DockToggleButton *parent)
 {
     parentButton = parent;
     parentButton->setContainer(this);
-    connect(parentButton, SIGNAL(pressed()), this, SLOT(activate()));
+    connect(parentButton, SIGNAL(pressed()), this, SLOT(on_parentButtonPressed()));
 }
 
 
 /**
- * @brief DockScrollArea::activate
+ * @brief DockScrollArea::on_parentButtonPressed
  * This shows or hides the scroll area and its groupbox.
  */
-void DockScrollArea::activate()
+void DockScrollArea::on_parentButtonPressed()
 {
-    if (activated) {
+    if (dockOpen) {
         setVisible(false);
-        activated = false;
+        dockOpen = false;
     } else {
         setVisible(true);
-        activated = true;
+        dockOpen = true;
     }
 }
 
@@ -444,7 +411,7 @@ void DockScrollArea::activate()
  */
 void DockScrollArea::clear()
 {
-    while(!dockNodeItems.keys().isEmpty()){
+    while (!dockNodeItems.keys().isEmpty()) {
         QString ID = dockNodeItems.keys().first();
         onNodeDeleted(ID);
     }
@@ -452,13 +419,13 @@ void DockScrollArea::clear()
     dockNodeIDs.clear();
     dockNodeItems.clear();
     currentNodeItem = 0;
-    currentNodeItemID ="";
-
+    currentNodeItemID = "";
 }
 
 
 /**
  * @brief DockScrollArea::parentHeightChanged
+ * @param height
  */
 void DockScrollArea::parentHeightChanged(double height)
 {

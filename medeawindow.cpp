@@ -1011,7 +1011,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     // add checkboxes to the toolbar settings popup dialog
     QVBoxLayout* checkboxLayout = new QVBoxLayout();
     QStringList initiallyHidden(QStringList() << "Grid" << "Window" << "Align" << "Back" << "Forward");
-    QStringList disabled(QStringList() << "Window" << "Back" << "Forward");
+    QStringList disabled(QStringList() << "Back" << "Forward");
 
     /*
     foreach (QAction* action, toolbarActions.keys()) {
@@ -1119,7 +1119,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_ProjectCleared()), this, SLOT(projectCleared()));
 
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
-    connect(this, SIGNAL(window_highlightDeployment(Node*)), nodeView, SLOT(highlightDeployment(Node*)));
+    connect(this, SIGNAL(window_highlightDeployment(bool)), nodeView, SLOT(highlightDeployment(bool)));
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
@@ -1225,18 +1225,12 @@ void MedeaWindow::makeConnections()
     // DEMO CHANGE
     //connect(toolbarStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedToolbarClosed()));
 
-    // This does absolutely nothing!!!
-    //connect(this, SIGNAL(window_updateActionsEnabled()), nodeView, SLOT(setEnabled(bool)));
-
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
 
-    //connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
-    //connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), this, SLOT(graphicsItemDeleted()));
-
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_NodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
 
     connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
@@ -1248,20 +1242,13 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
 
-    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), partsDock, SLOT(updateDock()));
-    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), hardwareDock, SLOT(refreshDock()));
-    //connect(nodeView, SIGNAL(view_nodeDestructed(NodeItem*)), definitionsDock, SLOT(nodeDestructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), definitionsDock, SLOT(edgeDeleted(QString, QString)));
 
-    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), definitionsDock, SLOT(edgeDeleted(QString, QString)));
-
-    connect(nodeView, SIGNAL(view_EdgeDeleted(QString,QString)), nodeView, SLOT(highlightDeployment()));
+    connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), nodeView, SLOT(highlightDeployment()));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
-
-    //connect(nodeView, SIGNAL(view_edgeDestructed()), hardwareDock, SLOT(refreshDock()));
-    //connect(nodeView, SIGNAL(view_edgeDestructed()), definitionsDock, SLOT(refreshDock()));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
 
@@ -1441,6 +1428,9 @@ void MedeaWindow::setupInitialSettings()
 
     //We have finished loading settings. reset state of Controller undo states.
     nodeView->view_ClearHistory();
+
+    // initially disable all the docks
+    nodeView->view_nodeSelected();
 }
 
 
@@ -1460,10 +1450,7 @@ void MedeaWindow::aspectToggleClicked(bool checked, int state)
 
         if (aspect == "Interface") {
             aspect = "Definitions";
-        } /*else if (aspect == "Behaviour") {
-            aspect = "Workload";
         }
-        */
 
         if (!checked) {
             newAspects.removeAll(aspect);
@@ -2475,9 +2462,11 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
     // remove the highlight of the selected node's children based on their deployment link
     if (prevPressedButton == hardwareNodesButton || b == hardwareNodesButton) {
         if (nodeView && hardwareNodesButton->getSelected()) {
-            emit window_highlightDeployment(nodeView->getSelectedNode());
-        } else {
+            //emit window_highlightDeployment(nodeView->getSelectedNode());
             emit window_highlightDeployment();
+        } else {
+            //emit window_highlightDeployment();
+            emit window_highlightDeployment(true);
         }
     }
 
@@ -2735,7 +2724,8 @@ void MedeaWindow::graphicsItemSelected()
         view_snapChildrenToGrid->setEnabled(settings_useGridLines->isChecked());
 
         if (hardwareNodesButton->getSelected()) {
-            emit window_highlightDeployment(nodeView->getSelectedNode());
+            //emit window_highlightDeployment(nodeView->getSelectedNode());
+            emit window_highlightDeployment();
         }
 
     } else {

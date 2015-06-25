@@ -85,27 +85,30 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
 void DefinitionsDockScrollArea::onNodeDeleted(QString ID)
 {
     DockNodeItem* dockItem = getDockNodeItem(ID);
-    if(!dockItem){
+    if (!dockItem) {
         return;
     }
 
-    if(dockItem->isFileLabel()){
-        //It's a Node
+    if (dockItem->isFileLabel()) {
+
+        //Its a Node
 
         //Get File Layout
-        if(fileLayoutItems.contains(ID)){
+        if (fileLayoutItems.contains(ID)) {
             QVBoxLayout* fileLayout = fileLayoutItems[ID];
-            if(fileLayout){
+            if (fileLayout) {
                 itemsLayout->removeItem(fileLayout);
                 fileLayout->deleteLater();
                 fileLayoutItems.remove(ID);
             }
         }
-    }else{
+
+     } else {
+
         //Its a Component
         DockNodeItem* fileDockItem = dockItem->getParentDockNodeItem();
 
-        if(!fileDockItem){
+        if (!fileDockItem) {
             qCritical() << "Deleting Component, but has no parent file.";
             return;
         }
@@ -116,7 +119,7 @@ void DefinitionsDockScrollArea::onNodeDeleted(QString ID)
         //If there is only 1 Component Stored in the File, we should delete the File too!
         bool deleteFileLayout = fileDockItem->getChildrenDockItems().count() == 1;
 
-        if(fileLayout){
+        if (fileLayout) {
             //Remove this Component from the File Layout
             fileLayout->removeWidget(dockItem);
             fileDockItem->removeChildDockItem(dockItem);
@@ -125,7 +128,7 @@ void DefinitionsDockScrollArea::onNodeDeleted(QString ID)
             DockScrollArea::onNodeDeleted(ID);
         }
 
-        if(deleteFileLayout){
+        if (deleteFileLayout) {
             //Destruct the Files' DockNodeItem
             DockScrollArea::onNodeDeleted(fileID);
         }
@@ -178,10 +181,18 @@ void DefinitionsDockScrollArea::updateDock()
 {
     DockScrollArea::updateDock();
 
-    if(getCurrentNodeID() == ""){
+    // if the dock is disabled, there is no need to update
+    if (!isDockEnabled()) {
         return;
     }
+
+    // the first check should catch this case
+    if (!getCurrentNodeItem() || getCurrentNodeID() == "") {
+        return;
+    }
+
     if (getCurrentNodeItem()) {
+
         QString nodeKind =  getCurrentNodeItem()->getNodeKind();
 
         // check for special cases - ComponentInstance & ComponentImpl
@@ -218,7 +229,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 
         DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
         NodeItem* fileItem = nodeItem->getParentNodeItem();
-        if(!fileItem){
+        if (!fileItem) {
             qCritical() << "COMPONENT HAS NO PARENT";
             return;
         }
@@ -248,7 +259,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
             parentItem->addChildDockItem(dockItem);
         }
 
-        if(fileLayoutItems.contains(fileID)){
+        if (fileLayoutItems.contains(fileID)) {
             QVBoxLayout* fileLayout = fileLayoutItems[fileID];
             fileLayout->addWidget(dockItem);
             addDockNodeItem(dockItem, -1, false);
@@ -278,7 +289,7 @@ void DefinitionsDockScrollArea::refreshDock()
  */
 void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
 {
-    if(!dockItem){
+    if (!dockItem) {
         return;
     }
 
@@ -290,55 +301,52 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
 
     QVBoxLayout* layoutToSort = 0;
 
-    // remove the dock item from its layout before re-inserting it to the right spot
-
     //It's either a file or a Component.
     if (isFileLabel) {
         //If it's a file, Remove the FileLayout from the Items Layout
         layoutToSort = itemsLayout;
         QVBoxLayout* fileLayout = fileLayoutItems[ID];
-        if(fileLayout){
+        if (fileLayout) {
             layoutToSort->removeItem(fileLayout);
         }
     } else {
         //If it's a component, Remove the component from the File Layout.
-        if(parentDockItem){
+        if (parentDockItem) {
             QString parentID = parentDockItem->getID();
             layoutToSort = fileLayoutItems[parentID];
-            if(layoutToSort){
+            if (layoutToSort) {
                 layoutToSort->removeWidget(dockItem);
             }
         }
     }
 
-
-
     if(!layoutToSort){
+        qWarning() << "DefinitionsDockScrollArea::resortDockItems - Layout to sort is null.";
         return;
     }
 
     // iterate through the items in this dock's layout
     for (int i = 0; i < layoutToSort->count(); i++) {
-        QLayoutItem* layoutItem = layoutToSort->itemAt(i);
 
+        QLayoutItem* layoutItem = layoutToSort->itemAt(i);
         QString dockItemLabel;
 
-        if(isFileLabel){
+        if (isFileLabel) {
             //Get the File ID of the layout Item
             QVBoxLayout* fileLayout = dynamic_cast<QVBoxLayout*>(layoutItem);
-            if(fileLayout){
+            if (fileLayout) {
                 QString fileID = fileLayoutItems.key(fileLayout, "");
-                if(fileID != ""){
+                if (fileID != "") {
                     DockNodeItem* dockItem = getDockNodeItem(fileID);
-                    if(dockItem){
+                    if (dockItem) {
                         dockItemLabel = dockItem->getLabel();
                     }
                 }
             }
-        }else{
+        } else {
             //Get the Component ID of the layout item Widget.
             DockNodeItem* dockItem = dynamic_cast<DockNodeItem*>(layoutItem->widget());
-            if(dockItem && !dockItem->isFileLabel()){
+            if (dockItem && !dockItem->isFileLabel()) {
                 dockItemLabel = dockItem->getLabel();
             }
         }
@@ -353,7 +361,7 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
         if (newDockItemLabel.compare(dockItemLabel, Qt::CaseInsensitive) <= 0) {
             if (isFileLabel) {
                 QVBoxLayout* fileLayout = fileLayoutItems[ID];
-                if(fileLayout){
+                if (fileLayout) {
                     layoutToSort->insertLayout(i, fileLayout);
                 }
             } else {
@@ -366,7 +374,7 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
     // if there was no spot to insert the new File layout, add it to the end of the layout
     if (isFileLabel) {
         QVBoxLayout* fileLayout = fileLayoutItems[ID];
-        if(fileLayout){
+        if (fileLayout) {
             layoutToSort->addLayout(fileLayout);
         }
     } else {
@@ -384,12 +392,10 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem *dockItem)
 void DefinitionsDockScrollArea::hideImplementedComponents()
 {
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-        if(dockItem){
+        if (dockItem) {
             QString ID = dockItem->getID();
-            if(getNodeView()){
-                if(getNodeView()->getImplementation(ID)){
-                    dockItem->setHidden(true);
-                }
+            if (getNodeView() && getNodeView()->getImplementation(ID)) {
+                dockItem->setHidden(true);
             }
         }
     }
@@ -414,9 +420,6 @@ void DefinitionsDockScrollArea::showAllComponents()
  */
 void DefinitionsDockScrollArea::clear()
 {
-    /*foreach (NodeItem* item, fileLayoutItems.keys()) {
-        delete item;
-    }*/
-
     fileLayoutItems.clear();
+    DockScrollArea::clear();
 }

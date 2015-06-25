@@ -94,10 +94,6 @@ signals:
     void view_Clear();
     void view_ProjectCleared();
 
-    void view_NodeDeleted(QString ID, QString parentID="");
-    void view_EdgeDeleted(QString srcID, QString dstID);
-
-
     void view_SetClipboardBuffer(QString);
     void view_UndoListChanged(QStringList);
     void view_RedoListChanged(QStringList);
@@ -143,11 +139,11 @@ signals:
     void view_ClearHistoryStates();
 
     // signals for the docks
-    void view_nodeConstructed(NodeItem* nodeItem);
-    void view_nodeDestructed(NodeItem* nodeItem);
     void view_nodeSelected();
+    void view_nodeConstructed(NodeItem* nodeItem);    
+    void view_nodeDeleted(QString ID, QString parentID = "");
     void view_edgeConstructed();
-    void view_edgeDestructed();
+    void view_edgeDeleted(QString srcID, QString dstID);
 
     // signals for MEDEA menu
     void view_updateMenuActionEnabled(QString action, bool enable);
@@ -277,7 +273,7 @@ public slots:
     void moveViewBack();
     void moveViewForward();
 
-    void highlightDeployment(Node *selectedNode = 0);
+    void highlightDeployment(bool clear = false);
 
 private:
     void selectJenkinsImportedNodes();

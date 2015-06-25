@@ -66,7 +66,6 @@ void HardwareDockScrollArea::onNodeDeleted(QString ID)
  */
 void HardwareDockScrollArea::onEdgeDeleted()
 {
-
     refreshDock();
 }
 
@@ -81,32 +80,33 @@ void HardwareDockScrollArea::dockNodeItemClicked()
     NodeItem* selectedNodeItem = getNodeView()->getSelectedNodeItem();
     DockNodeItem* dockNodeItem = dynamic_cast<DockNodeItem*>(sender());
 
-
     if (selectedNodeItem && dockNodeItem) {
+
         QString selectedNodeID = selectedNodeItem->getID();
         QString selectedNodeKind = selectedNodeItem->getNodeKind();
         QString dockNodeID = dockNodeItem->getID();
         NodeItem* deployedNodeItem = getNodeView()->getDeployedNode(selectedNodeID);
         QString deployedNodeID;
 
-        if(deployedNodeItem){
+        if (deployedNodeItem) {
             deployedNodeID = deployedNodeItem->getID();
         }
 
-        if(selectedNodeKind == "ComponentAssembly" || selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ManagementComponent"){
-            if(deployedNodeItem){
-                if(deployedNodeID == dockNodeID){
+        if (selectedNodeKind == "ComponentAssembly" || selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ManagementComponent") {
+            if (deployedNodeItem) {
+                if (deployedNodeID == dockNodeID) {
                     //If this node is already deployed to the dock Item clicked. Unconnect it.
                     getNodeView()->destructEdge(selectedNodeID, dockNodeID);
-                }else{
+                } else {
                     //Deployed to something else, change the edge.
                     getNodeView()->changeEdgeDestination(selectedNodeID, deployedNodeID, dockNodeID);
                 }
-            }else{
+            } else {
                 //Not Deployed
                 getNodeView()->constructEdge(selectedNodeID, dockNodeID, true);
             }
         }
+
         highlightHardwareConnection();
     }
 }
@@ -121,23 +121,30 @@ void HardwareDockScrollArea::updateDock()
 {
     DockScrollArea::updateDock();
 
-    if (getCurrentNodeItem() && getCurrentNodeID() != "-1") {
-
-        QString nodeKind = getCurrentNodeItem()->getNodeKind();
-        Node* node = getCurrentNodeItem()->getNode();
-
-        // check for special case - ComponentInstance
-        // it's only an allowed kind if it has a definition
-        if (nodeKind == "ComponentInstance") {
-            if (!node->getDefinition()) {
-                getParentButton()->enableDock(false);
-                return;
-            }
-        }
-
-        // check if any of the hardware dock items should be highlighted
-        highlightHardwareConnection();
+    // if the dock is disabled, there is no need to update
+    if (!isDockEnabled()) {
+        return;
     }
+
+    // the first check should catch this case
+    if (!getCurrentNodeItem() || getCurrentNodeID() == "") {
+        return;
+    }
+
+    QString nodeKind = getCurrentNodeItem()->getNodeKind();
+    Node* node = getCurrentNodeItem()->getNode();
+
+    // check for special case - ComponentInstance
+    // it's only an allowed kind if it has a definition
+    if (nodeKind == "ComponentInstance") {
+        if (!node->getDefinition()) {
+            getParentButton()->enableDock(false);
+            return;
+        }
+    }
+
+    // check if any of the hardware dock items should be highlighted
+    highlightHardwareConnection();
 }
 
 
@@ -150,12 +157,16 @@ void HardwareDockScrollArea::updateDock()
  */
 void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 {
-
-    if (nodeItem->getNodeKind() == "HardwareNode" || nodeItem->getNodeKind() == "HardwareCluster" ) {
+    if (nodeItem->getNodeKind() == "HardwareNode" || nodeItem->getNodeKind() == "HardwareCluster") {
         DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
         insertDockNodeItem(dockItem);
         connect(this, SIGNAL(dock_higlightDockItem(NodeItem*)), dockItem, SLOT(highlightDockItem(NodeItem*)));
         connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+
+        // if the dock is open, refresh it
+        if (isDockEnabled()) {
+            refreshDock();
+        }
     }
 }
 
@@ -214,13 +225,6 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
     addDockNodeItem(dockItem);
 }
 
-void HardwareDockScrollArea::removeDockNodeItem(QString ID)
-{
-
-}
-
-
-
 
 /**
  * @brief HardwareDockScrollArea::highlightHardwareConnection
@@ -232,14 +236,17 @@ void HardwareDockScrollArea::highlightHardwareConnection()
 {
     NodeItem* selectedItem = getCurrentNodeItem();
     NodeItem* hardwareItem = 0;
+
     // we only care if there is a selected item and the Hardware dock is enabled
-    if (selectedItem && isDockOpen()) {
+    if (selectedItem && isDockEnabled()) {
+
         QString nodeKind = selectedItem->getNodeKind();
         QString nodeID = selectedItem->getID();
 
-        if(getNodeView()->isNodeKindDeployable(nodeKind)){
+        if (getNodeView()->isNodeKindDeployable(nodeKind)) {
             hardwareItem = getNodeView()->getDeployedNode(nodeID);
         }
+
         emit dock_higlightDockItem(hardwareItem);
     }
 }
