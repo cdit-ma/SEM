@@ -36,7 +36,7 @@ bool AssemblyDefinitions::canAdoptChild(Node *child)
         foreach(Node* cChild, getChildren(0)){
             ManagementComponent* mChild = dynamic_cast<ManagementComponent *>(cChild);
 
-            if(mChild->getDataValue("type") == type){
+            if(mChild && mChild->getDataValue("type") == type){
 #ifdef DEBUG_MODE
                 qWarning() << "AssemblyDefinitions can only adopt 1 of a particularly typed ManagementComponent!";
 #endif

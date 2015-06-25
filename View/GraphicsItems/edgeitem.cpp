@@ -47,7 +47,7 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
 
 
     setupBrushes();
-    updateLines();
+    //updateLines();
     updateLabel();
 
     GraphMLData* descriptionData = edge->getData("label");
@@ -55,6 +55,8 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     if(descriptionData){
         connect(descriptionData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
     }
+    connect(s, SIGNAL(setEdgeVisibility(bool)),this, SLOT(updateEdge()));
+    connect(d, SIGNAL(setEdgeVisibility(bool)),this, SLOT(updateEdge()));
 
     resetEdgeCenter(source, destination);
     updateLines();
@@ -87,6 +89,7 @@ EdgeItem::~EdgeItem()
         QGraphicsLineItem *lineI = lineSegments.takeFirst();
         delete lineI;
     }
+
 
 
     delete label;
@@ -472,13 +475,13 @@ void EdgeItem::updateLines()
             visibleDst->removeVisibleParentForEdgeItem(getID());
             visibleDestination = 0;
         }
+
         return;
     }
 
     if(visibleSrc == visibleDst){
         setVisible(false);
         visibleSrc->removeVisibleParentForEdgeItem(getID());
-        visibleDst->removeVisibleParentForEdgeItem(getID());
         visibleDestination = 0;
         visibleSource  = 0;
         return;
@@ -524,8 +527,8 @@ void EdgeItem::updateLines()
             removeSrcEdge = true;
         }
         //If the edge has changed sides on its visual parent, remove the edge, so we can re-add it on the right side.
+
         if(visibleSource->getIndexOfEdgeItem(getID(), srcSide == RIGHT) == -1){
-            //qCritical() << "Removing Source Edge";
             removeSrcEdge = true;
         }
     }

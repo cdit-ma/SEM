@@ -18,6 +18,7 @@ public:
     enum GUI_KIND{NODE_ITEM, NODE_EDGE};
     GraphMLItem(GraphML* attachedGraph, GUI_KIND kind);
     void detach();
+    bool isDeleting();
     ~GraphMLItem();
     QString getGraphMLDataValue(QString key);
     GraphML* getGraphML();

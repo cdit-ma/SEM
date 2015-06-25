@@ -4,6 +4,8 @@
 #include "ineventportimpl.h"
 #include "outeventportimpl.h"
 #include "../InterfaceDefinitions/memberinstance.h"
+#include "../InterfaceDefinitions/idl.h"
+
 #include "condition.h"
 #include "process.h"
 
@@ -46,13 +48,15 @@ bool ComponentImpl::canAdoptChild(Node *child)
     Condition* condition = dynamic_cast<Condition*>(child);
     MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(child);
     Process* process = dynamic_cast<Process*>(child);
+    IDL* idl = dynamic_cast<IDL*>(child);
 
-    if(condition || memberInstance || process){
+    if(condition || memberInstance || process || idl){
         #ifdef DEBUG_MODE
         qWarning() << "ComponentImpl cannot adopt anything outside of Condition, MemberInstance or Process";
 #endif
         return false;
     }
+
 
     return Node::canAdoptChild(child);
 }

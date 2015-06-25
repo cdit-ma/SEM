@@ -210,7 +210,7 @@ void ToolbarWidget::goToImplementation()
  */
 void ToolbarWidget::goToInstance()
 {
-    nodeView->centerItem(instanceOptionMenu->getParentAction()->getNodeItem()->getID());
+    nodeView->centerInstance(instanceOptionMenu->getParentAction()->getNodeItem()->getID());
 }
 
 

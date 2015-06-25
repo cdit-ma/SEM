@@ -181,26 +181,27 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
     //Get all Children and Edges.
     foreach(QString ID, nodeIDs){
         Node* node = getNodeFromID(ID);
-
-        if(containedNodes.contains(node) == false){
-            containedNodes.append(node);
-        }
-
-        //Get all keys used by this node.
-        foreach(GraphMLKey* key, node->getKeys())
-        {
-            //Add the <key> tag to the list of Keys contained.
-            if(!containedKeys.contains(key)){
-                containedKeys.append(key);
-                keyXML += key->toGraphML(1);
+        if(node){
+            if(containedNodes.contains(node) == false){
+                containedNodes.append(node);
             }
-        }
 
-        //Get all Children in this node.
-        foreach(Node* child, node->getChildren()){
-            Node* childNode = dynamic_cast<Node*>(child);
-            if(childNode && (containedNodes.contains(childNode) == false)){
-                containedNodes.append(childNode);
+            //Get all keys used by this node.
+            foreach(GraphMLKey* key, node->getKeys())
+            {
+                //Add the <key> tag to the list of Keys contained.
+                if(!containedKeys.contains(key)){
+                    containedKeys.append(key);
+                    keyXML += key->toGraphML(1);
+                }
+            }
+
+            //Get all Children in this node.
+            foreach(Node* child, node->getChildren()){
+                Node* childNode = dynamic_cast<Node*>(child);
+                if(childNode && (containedNodes.contains(childNode) == false)){
+                    containedNodes.append(childNode);
+                }
             }
         }
     }
@@ -208,49 +209,50 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
 
     foreach(QString ID, nodeIDs){
         Node* node = getNodeFromID(ID);
+        if(node){
+            foreach(Edge* edge, node->getEdges()){
+                Node* src = (Node*) edge->getSource();
+                Node* dst = (Node*) edge->getDestination();
 
-        foreach(Edge* edge, node->getEdges()){
-            Node* src = (Node*) edge->getSource();
-            Node* dst = (Node*) edge->getDestination();
+                //If the source and destination for all edges are inside the selection, then copy it.
+                bool containsSrc = containedNodes.contains(src);
+                bool containsDst = containedNodes.contains(dst);
+                bool exportEdge = false;
+                if(containsSrc && containsDst){
+                    exportEdge = true;
+                }else if(containsSrc || containsDst){
+                    if((edge->isAggregateLink() || edge->isInstanceLink() || edge->isImplLink() || edge->isDelegateLink())){
+                        if(GUI_USED){
+                            controller_DisplayMessage(MESSAGE, "", "", src->getID());
 
-            //If the source and destination for all edges are inside the selection, then copy it.
-            bool containsSrc = containedNodes.contains(src);
-            bool containsDst = containedNodes.contains(dst);
-            bool exportEdge = false;
-            if(containsSrc && containsDst){
-                exportEdge = true;
-            }else if(containsSrc || containsDst){
-                if((edge->isAggregateLink() || edge->isInstanceLink() || edge->isImplLink() || edge->isDelegateLink())){
-                    if(GUI_USED){
-                        controller_DisplayMessage(MESSAGE, "", "", src->getID());
-
-                        exportAllEdges = askQuestion(CRITICAL, "Copy Selection?", "The current selection contains edges that are not fully encapsulated. Would you like to copy these edges?", src->getID());
+                            exportAllEdges = askQuestion(CRITICAL, "Copy Selection?", "The current selection contains edges that are not fully encapsulated. Would you like to copy these edges?", src->getID());
 
 
-                        GUI_USED = false;
-                    }
-                    if(exportAllEdges){
-                        exportEdge = true;
-                    }
-                }
-            }
-
-            if(exportEdge && !containedEdges.contains(edge)){
-                containedEdges.append(edge);
-                edgeXML += edge->toGraphML(2);
-
-                //Get the Keys related to this edge.
-                foreach(GraphMLKey* key, edge->getKeys()){
-                    if(!containedKeys.contains(key)){
-                        containedKeys.append(key);
-                        keyXML += key->toGraphML(1);
+                            GUI_USED = false;
+                        }
+                        if(exportAllEdges){
+                            exportEdge = true;
+                        }
                     }
                 }
-            }
 
+                if(exportEdge && !containedEdges.contains(edge)){
+                    containedEdges.append(edge);
+                    edgeXML += edge->toGraphML(2);
+
+                    //Get the Keys related to this edge.
+                    foreach(GraphMLKey* key, edge->getKeys()){
+                        if(!containedKeys.contains(key)){
+                            containedKeys.append(key);
+                            keyXML += key->toGraphML(1);
+                        }
+                    }
+                }
+
+            }
+            //Export the XML for this node
+            nodeXML += node->toGraphML(2);
         }
-        //Export the XML for this node
-        nodeXML += node->toGraphML(2);
     }
 
     QString returnable = QString("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -635,7 +637,11 @@ void NewController::copy(QStringList IDs)
  */
 void NewController::remove(QStringList IDs)
 {
-    _remove(IDs);
+    bool alldeleted = _remove(IDs);
+    if(!alldeleted){
+        controller_DisplayMessage(WARNING, "Delete Error", "Cannot delete all selected entities.");
+    }
+
     emit controller_ActionFinished();
 }
 
@@ -768,7 +774,8 @@ bool NewController::_copy(QStringList IDs)
  */
 bool NewController::_remove(QStringList IDs, bool addAction)
 {
-    bool success = false;
+    bool allSuccess = true;
+
     if(IDs.length() > 0){
         controller_SetViewEnabled(false);
 
@@ -781,13 +788,22 @@ bool NewController::_remove(QStringList IDs, bool addAction)
             //Clear the list of related IDs.
             connectedLinkedIDs.clear();
             GraphML* graphML = getGraphMLFromID(ID);
+
+
             if(graphML){
                 if(graphML->isNode()){
                     //destructNode((Node*)graphML);
-                    success = destructNode((Node*)graphML);
+
+                    bool success = destructNode((Node*)graphML);
+                    if(!success){
+                        allSuccess = false;
+                    }
                 }else if (graphML->isEdge()){
                     //destructEdge((Edge*)graphML);
-                    success = destructEdge((Edge*)graphML);
+                    bool success = destructEdge((Edge*)graphML);
+                    if(!success){
+                        allSuccess = false;
+                    }
                 }
             }
             //Add any related ID's which need deleting to the top of the stack.
@@ -796,7 +812,7 @@ bool NewController::_remove(QStringList IDs, bool addAction)
         controller_SetViewEnabled(true);
         //success = true;
     }
-    return success;
+    return allSuccess;
 }
 
 /**
@@ -1673,9 +1689,13 @@ bool NewController::destructNode(Node *node, bool addAction)
             qCritical() << "Cannot delete hardwareDefinitions. Must be deleted from Definition.";
             return false;
         }
+        if(node->getDataValue("kind") == "ManagementComponent"){
+            qCritical() << "Cannot delete ManagementComponent. Must be deleted from Definition.";
+            return false;
+        }
 
         // Added this here to stop the user from being able to cut or delete the model
-        if((Node*)model == node){
+        if(model == node){
             qCritical() << "Cannot delete Model!";
             return false;
         }

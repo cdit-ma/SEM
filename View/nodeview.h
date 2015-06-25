@@ -247,6 +247,7 @@ public slots:
     void centerItem(QString ID);
     void centerDefinition(QString ID = "");
     void centerImplementation(QString ID = "");
+    void centerInstance(QString instanceID = "");
 
     void goToDefinition(Node* node = 0);
     void goToImplementation(Node* node = 0);
@@ -362,6 +363,7 @@ private:
     NewController* controller;
 
     QString centralizedItemID;
+    NodeItem* centralizedNodeItem;
     bool CENTRALIZED_ON_ITEM;
 
     QHash<QString, GraphMLItem*> guiItems;
@@ -443,6 +445,7 @@ private:
     QMutex viewMutex;
 
     bool isDestructing;
+    bool updateDeployment;
     QString currentTableID;
 
     bool clearingModel;

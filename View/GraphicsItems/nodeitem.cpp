@@ -168,7 +168,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
  * @brief NodeItem::~NodeItem
  */
 NodeItem::~NodeItem()
-{   
+{
+    currentLeftEdgeIDs.clear();
+    currentRightEdgeIDs.clear();
     if(getNodeView()){
         if(!getNodeView()->isTerminating()){
             if(parentNodeItem){
@@ -233,11 +235,17 @@ void NodeItem::setVisibleParentForEdgeItem(QString ID, bool RIGHT)
 
 int NodeItem::getIndexOfEdgeItem(QString ID, bool RIGHT)
 {
+    int id = -1;
     if(RIGHT){
-        return currentRightEdgeIDs.indexOf(ID);
+        if(currentRightEdgeIDs.contains(ID)){
+            id =  currentRightEdgeIDs.indexOf(ID);
+        }
     }else{
-        return currentLeftEdgeIDs.indexOf(ID);
+        if(currentLeftEdgeIDs.contains(ID)){
+            id = currentLeftEdgeIDs.indexOf(ID);
+        }
     }
+    return id;
 }
 
 int NodeItem::getNumberOfEdgeItems(bool RIGHT)
@@ -251,10 +259,9 @@ int NodeItem::getNumberOfEdgeItems(bool RIGHT)
 
 void NodeItem::removeVisibleParentForEdgeItem(QString ID)
 {
-    int count = currentRightEdgeIDs.removeAll(ID);
-    count += currentLeftEdgeIDs.removeAll(ID);
-    if(count > 0){
-        nodeItemMoved();
+    if(!isDeleting()){
+        currentRightEdgeIDs.removeOne(ID);
+        currentLeftEdgeIDs.removeOne(ID);
     }
 }
 
@@ -847,16 +854,7 @@ double NodeItem::getHeight()
 void NodeItem::addEdgeItem(EdgeItem *line)
 {
     NodeItem* item = this;
-    /*
-    while(item){
-        //Connect the Visibility of the edges of this node, so that if this node's parent was to be set invisbile, we any edges would be invisible.
-        connect(item, SIGNAL(setEdgeVisibility(bool)), line, SLOT(setVisibilty(bool)));
-        connect(item, SIGNAL(nodeItemMoved()), line, SLOT(updateEdge()));
-        item = dynamic_cast<NodeItem*>(item->parentItem());
-        
-    connect(this, SIGNAL(setEdgeSelected(bool)), line, SLOT(setSelected(bool)));
-    }*/
-    
+
     connections.append(line);
     //nodeItemMoved();
 }

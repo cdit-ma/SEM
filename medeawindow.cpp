@@ -150,9 +150,7 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QString value)
 
 void MedeaWindow::projectCleared()
 {
-    qCritical()<< "CLEARING DOCKS IN MEDEA";
     clearDocks();
-
 }
 
 /**
@@ -1164,7 +1162,7 @@ connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
 
 
     
-    connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), nodeView, SLOT(highlightDeployment()));
+    //connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), nodeView, SLOT(highlightDeployment()));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
@@ -2807,7 +2805,10 @@ void MedeaWindow::importProjects(QStringList files)
  */
 void MedeaWindow::closeEvent(QCloseEvent * e)
 {
-    /*
+
+
+
+
     QMessageBox::StandardButton resBtn = QMessageBox::question( this, "MEDEA",
                                                                 tr("Are you sure you want to quit Medea?\n"),
                                                                 QMessageBox::Cancel | QMessageBox::Yes,
@@ -2817,8 +2818,7 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
     } else {
         e->accept();
         delete this;
-    }*/
-    delete this;
+    }
 }
 
 

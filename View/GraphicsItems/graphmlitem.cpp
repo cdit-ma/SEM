@@ -26,6 +26,11 @@ void GraphMLItem::detach()
     attachedGraph = 0;
 }
 
+bool GraphMLItem::isDeleting()
+{
+    return IS_DELETING;
+}
+
 GraphMLItem::~GraphMLItem()
 {
     if(table){

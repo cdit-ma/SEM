@@ -42,6 +42,7 @@
  */
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
+    centralizedNodeItem = 0;
     constructedFromImport = true;
     toolbarJustClosed = false;
     editingNodeItemLabel = false;
@@ -54,6 +55,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     rubberBand = 0;
 
     clearingModel = false;
+    updateDeployment = false;
 
     prevLockMenuOpened = 0;
 
@@ -209,6 +211,7 @@ NodeView::~NodeView()
     if(parentNodeView && !parentNodeView->isTerminating()){
         parentNodeView->removeSubView(this);
     }
+
 }
 
 
@@ -584,7 +587,9 @@ void NodeView::constructNewView(QString nodeID)
         return;
     }
 
+
     MedeaSubWindow* subWindow = new MedeaSubWindow();
+    connect(this, SIGNAL(destroyed()), subWindow, SLOT(deleteLater()));
 
     NodeView* newView = new NodeView(true, subWindow);
     subViews.append(newView);
@@ -602,9 +607,11 @@ void NodeView::constructNewView(QString nodeID)
         controller->connectView(newView);
 
 
+        QList<Edge*> edgeList;
         QList<Node*> constructList;
         //Get the Children
         constructList << currentNode->getChildren();
+        edgeList << currentNode->getEdges();
 
         while(currentNode){
             //Add the Parent of the currentNode
@@ -614,6 +621,9 @@ void NodeView::constructNewView(QString nodeID)
 
         while(!constructList.isEmpty()){
             newView->constructGUIItem(constructList.takeFirst());
+        }
+        while(!edgeList.isEmpty()){
+            newView->constructGUIItem(edgeList.takeFirst());
         }
 
         newView->view_LockCenteredGraphML(nodeID);
@@ -672,6 +682,10 @@ void NodeView::actionFinished()
         clearingModel = false;
     }
 
+    if(updateDeployment){
+        highlightDeployment();
+        updateDeployment = false;
+    }
     updateActionsEnabled();
 
     viewMutex.unlock();
@@ -989,7 +1003,16 @@ void NodeView::centerDefinition(QString ID)
 {
     if(controller){
         QString definitionID =  controller->getDefinition(ID);
-        centerItem(definitionID);
+
+        GraphMLItem *definition = getNodeItemFromID(definitionID);
+
+        if(definition){
+            // make sure the Assembly view aspect is on
+            addAspect("Definitions");
+            clearSelection(false);
+            appendToSelection(definition);
+            centerOnItem();
+        }
     }
 }
 
@@ -997,7 +1020,31 @@ void NodeView::centerImplementation(QString ID)
 {
     if(controller){
         QString implementationID =  controller->getImplementation(ID);
-        centerItem(implementationID);
+        GraphMLItem *impl = getNodeItemFromID(implementationID);
+
+        if(impl){
+            // make sure the Assembly view aspect is on
+            addAspect("Workload");
+            clearSelection(false);
+            appendToSelection(impl);
+            centerOnItem();
+        }
+    }
+
+}
+
+void NodeView::centerInstance(QString instanceID)
+{
+    if(controller){
+        GraphMLItem *instance = getNodeItemFromID(instanceID);
+
+        if(instance){
+            // make sure the Assembly view aspect is on
+            addAspect("Assembly");
+            clearSelection(false);
+            appendToSelection(instance);
+            centerOnItem();
+        }
     }
 
 }
@@ -1328,6 +1375,17 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         qCritical() << "Node is Null.";
     }
 
+    if(IS_SUB_VIEW){
+        if(centralizedNodeItem && centralizedNodeItem->getNode()){
+            Node* subView = centralizedNodeItem->getNode();
+            if(!subView->isAncestorOf(node)){
+                return;
+            }
+        }
+    }
+
+
+
     Node* parentNode = node->getParentNode();
 
     QString nodeKind = node->getDataValue("kind");
@@ -1418,6 +1476,16 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
+    if(IS_SUB_VIEW){
+        if(centralizedNodeItem && centralizedNodeItem->getNode()){
+            Node* subView = centralizedNodeItem->getNode();
+            if(!(subView->isAncestorOf(src) && subView->isAncestorOf(dst))){
+                return;
+            }
+        }
+    }
+
+
     NodeItem* srcGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(src->getID()));
     NodeItem* dstGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(dst->getID()));
 
@@ -1441,6 +1509,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         //Construct a new GUI Element for this edge.
         EdgeItem* nodeEdge = new EdgeItem(edge, srcGUI, dstGUI);
 
+        nodeEdge->setNodeView(this);
         //Add it to the list of EdgeItems in the Model.
         storeGraphMLItemInHash(nodeEdge);
 
@@ -1498,6 +1567,7 @@ void NodeView::view_LockCenteredGraphML(QString ID)
     NodeItem* nodeItem = getNodeItemFromID(ID);
     if(nodeItem){
         centralizedItemID = ID;
+        centralizedNodeItem = nodeItem;
         CENTRALIZED_ON_ITEM = true;
         connect(nodeItem, SIGNAL(nodeItemMoved()), this, SLOT(centralizedItemMoved()));
         centerItem(ID);
@@ -2026,6 +2096,7 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
                 }
             }else if (item->isEdgeItem()){
                 EdgeItem* edgeItem = (EdgeItem*)item;
+                updateDeployment = true;
                 if(edgeItem->getSource() && edgeItem->getDestination()){
                     emit view_edgeDeleted(edgeItem->getSource()->getID(), edgeItem->getDestination()->getID());
                 }
@@ -2033,9 +2104,11 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
 
 
 
+
             item->detach();
-            scene()->removeItem(item);
-            item->deleteLater();
+            //FIXED BUGS.
+            //scene()->removeItem(item);
+            delete item;
 
         }
         if(IS_SUB_VIEW){
@@ -3138,6 +3211,8 @@ void NodeView::constructGUIItem(GraphML *item){
 
     Node* node = dynamic_cast<Node*>(item);
     Edge* edge = dynamic_cast<Edge*>(item);
+
+
     if(node){
         view_ConstructNodeGUI(node);
     }else if(edge){
