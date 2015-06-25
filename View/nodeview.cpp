@@ -654,20 +654,25 @@ void NodeView::actionFinished()
 {
     //Reset
     pasting = false;
+    toolbarDockConstruction = false;
 
-    if(importFromJenkins){
+    if (constructedFromImport) {
+        // added this here to re-centralise on the model after import
+        fitToScreen();
+    }
+    constructedFromImport = false;
+
+    if (importFromJenkins) {
         emit view_OpenHardwareDock();
         importFromJenkins = false;
     }
-    toolbarDockConstruction = false;
-    constructedFromImport = false;
 
-    updateActionsEnabled();
-
-    if(clearingModel){
+    if (clearingModel) {
         resetModel(false);
         clearingModel = false;
     }
+
+    updateActionsEnabled();
 
     viewMutex.unlock();
 }
