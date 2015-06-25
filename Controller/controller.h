@@ -78,6 +78,8 @@ public:
     bool canPaste(QStringList selection);
     bool canExportSnippet(QStringList selection);
     bool canImportSnippet(QStringList selection);
+    bool canUndo();
+    bool canRedo();
 
     QString getDefinition(QString ID);
     QString getImplementation(QString ID);

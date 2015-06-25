@@ -83,6 +83,8 @@ protected:
 
     bool viewportEvent(QEvent *);
 
+private:
+    void sortNode(Node* node, Node* topMostNode = 0);
 private slots:
     void actionFinished();
 
@@ -230,18 +232,19 @@ public slots:
     void view_CenterGraphML(GraphML* graphML);
     void view_LockCenteredGraphML(QString ID);
 
+    void sort();
     void sortEntireModel();
-    void sortNode(Node* node, Node* topMostNode = 0);
+
 
     void centerAspect(QString aspect);
     void setAspects(QStringList aspects, bool centerViewAspects = true);
     void fitToScreen(QList<NodeItem*> itemsToCenter = QList<NodeItem*>(), double padding = 0, bool addToMap = true);
 
     void centerOnItem(GraphMLItem* item = 0);
-    void centerItem(GraphMLItem* item);
+    void centerItem(GraphMLItem* item=0);
     void centralizedItemMoved();
 
-    void centerItem(QString ID = "");
+    void centerItem(QString ID);
     void centerDefinition(QString ID = "");
     void centerImplementation(QString ID = "");
 
@@ -256,7 +259,7 @@ public slots:
     void changeEdgeDestination(QString srcID, QString dstID, QString newDstID);
 
     void deleteFromIDs(QStringList IDs);
-    void constructConnectedNode(QString parentID, QString dstID, QString kind, int sender);
+    void constructConnectedNode(QString parentID, QString dstID, QString kind, int sender=0);
 
     void constructNewView(QString nodeID="");
 

@@ -5,6 +5,7 @@
 #include "ineventportdelegate.h"
 #include "../edge.h"
 #include "outeventportdelegate.h"
+#include "blackboxinstance.h"
 #include <QDebug>
 ComponentAssembly::ComponentAssembly():Node()
 {
@@ -19,13 +20,14 @@ bool ComponentAssembly::canAdoptChild(Node *child)
 {
     ComponentAssembly* componentAssembly = dynamic_cast<ComponentAssembly*>(child);
     ComponentInstance* componentInstance = dynamic_cast<ComponentInstance*> (child);
+    BlackBoxInstance* blackBoxInstance = dynamic_cast<BlackBoxInstance*> (child);
     InEventPortDelegate* inEventPortDelegate = dynamic_cast<InEventPortDelegate*> (child);
     OutEventPortDelegate* outEventPortDelegate = dynamic_cast<OutEventPortDelegate*> (child);
 
     //Is this child a ComponentInstance?
-    if(!componentInstance && !inEventPortDelegate && !outEventPortDelegate && !componentAssembly){
+    if(!componentInstance && !inEventPortDelegate && !outEventPortDelegate && !componentAssembly && !blackBoxInstance){
 #ifdef DEBUG_MODE
-        qWarning() << "Assembly Node can only adopt a ComponentInstance, ComponentAssembly, InEventPortDelegate or OutEventPortDelegate Node";
+        qWarning() << "Assembly Node can only adopt a ComponentInstance, ComponentAssembly, BlackBoxInstance, InEventPortDelegate or OutEventPortDelegate Node";
 #endif
         return false;
     }

@@ -100,7 +100,8 @@ HEADERS += \
     Model/DeploymentDefinitions/blackboxinstance.h \
     GUI/codeeditor.h \
     GUI/syntaxhighlighter.h \
-    medeasubwindow.h
+    medeasubwindow.h \
+    GUI/actionbutton.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -182,7 +183,8 @@ SOURCES += \
     Model/DeploymentDefinitions/blackboxinstance.cpp \
     GUI/codeeditor.cpp \
     GUI/syntaxhighlighter.cpp \
-    medeasubwindow.cpp
+    medeasubwindow.cpp \
+    GUI/actionbutton.cpp
 
 FORMS += \
 

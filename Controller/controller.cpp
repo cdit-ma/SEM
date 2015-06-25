@@ -604,13 +604,17 @@ void NewController::triggerAction(QString actionName)
 
 void NewController::undo()
 {
-    undoRedo(UNDO);
+    if(canUndo()){
+        undoRedo(UNDO);
+    }
     emit controller_ActionFinished();
 }
 
 void NewController::redo()
 {
-    undoRedo(REDO);
+    if(canRedo()){
+        undoRedo(REDO);
+    }
     emit controller_ActionFinished();
 }
 
@@ -3535,6 +3539,17 @@ bool NewController::canImportSnippet(QStringList selection)
         return true;
     }
     return false;
+}
+
+bool NewController::canUndo()
+{
+    return !undoActionStack.isEmpty();
+}
+
+bool NewController::canRedo()
+{
+
+    return !redoActionStack.isEmpty();
 }
 
 QString NewController::getDefinition(QString ID)

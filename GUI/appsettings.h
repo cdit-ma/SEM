@@ -3,7 +3,9 @@
 
 #include <QDialog>
 #include <QSettings>
+#include <QScrollArea>
 #include <QHash>
+#include <QGroupBox>
 #include "keyeditwidget.h"
 
 class AppSettings: public QDialog
@@ -23,12 +25,17 @@ public slots:
     void settingUpdated(QString, QString, QString);
     void launchSettingsUI();
     void updateSetting();
+    void groupToggled(bool toggled);
+    void show();
 
 private:
     QString getGroup(QString keyName);
     void setupLayout();
     QSettings* settings;
     QHash<QString, QString> keyToGroupMap;
+    QList<KeyEditWidget*> settingsWidgets;
+    QScrollArea* scrollArea;
+
 };
 
 

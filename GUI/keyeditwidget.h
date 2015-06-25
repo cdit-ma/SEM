@@ -44,7 +44,13 @@ private:
     QTextBrowser* descriptionBox;
 
 
+    QPalette normalPal;
+    QPalette highlightPal;
 
+    // QWidget interface
+protected:
+    void enterEvent(QEvent *);
+    void leaveEvent(QEvent *);
 };
 
 #endif // KEYEDITWIDGET_H

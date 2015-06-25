@@ -964,6 +964,9 @@ void NodeView::sortEntireModel()
  */
 void NodeView::centerItem(GraphMLItem *item)
 {
+    if(!item){
+        item = getSelectedNodeItem();
+    }
     if (item) {
         centerRect(item->sceneBoundingRect());
     }
@@ -1502,6 +1505,17 @@ void NodeView::view_LockCenteredGraphML(QString ID)
     }
 }
 
+void NodeView::sort()
+{
+    Node* node = getSelectedNode();
+    if(node){
+        sortNode(node);
+    }else{
+        sortEntireModel();
+    }
+
+}
+
 
 /**
  * @brief NodeView::constructNode
@@ -1616,10 +1630,14 @@ void NodeView::constructConnectedNode(QString parentID, QString dstID, QString k
         if(nodeItem){
             toolbarDockConstruction = true;
             QPointF position;
+
             if (sender == 0){
+                qCritical() << nodeItem->getNextChildPos();
                 position = nodeItem->getNextChildPos();
             } else if (sender == 1) {
-                position = nodeItem->mapFromScene(toolbarPosition);
+                // if from toolbar, place at closest grid point to the toolbar's position
+                QPointF closestGridPos = nodeItem->getClosestGridPoint(nodeItem->mapFromScene(toolbarPosition));
+                position = closestGridPos;
             }
             emit view_ConstructConnectedNode(parentID, dstID, kind, position);
         }

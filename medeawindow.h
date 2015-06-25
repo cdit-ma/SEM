@@ -32,6 +32,7 @@
 
 #include "Jenkins/jenkinsmanager.h"
 #include "Jenkins/GUI/jenkinsstartjobwidget.h"
+#include "GUI/actionbutton.h"
 
 #include "Controller/controller.h"
 
@@ -86,9 +87,14 @@ signals:
     void checkDockScrollBar();
     void clearDocks();
 
+private:
+   void toolbarSettingChanged(QString keyName, QString value);
 public slots:
     void projectCleared();
     void settingChanged(QString groupName, QString keyName, QString value);
+
+
+
     void setupInitialSettings();
     void aspectToggleClicked(bool checked, int state);
 
@@ -183,7 +189,11 @@ private:
     void setupMenu(QPushButton* button);
     void setupDock(QHBoxLayout* layout);
     void setupSearchTools();
+
     void setupToolbar(QVBoxLayout* layout);
+    bool constructToolbarButton(QToolBar* toolbar, QAction* action, QString actionName);
+
+
     void setupMultiLineBox();
 
     void updateWidgetsOnWindowChanged();
@@ -210,7 +220,6 @@ private:
     QMenu* view_menu;
     QMenu* model_menu;
     QMenu* jenkins_menu;
-    QMenu* settings_Menu;
 
     QAction* exit;
     QAction* file_newProject;
@@ -224,6 +233,9 @@ private:
     QAction* edit_cut;
     QAction* edit_copy;
     QAction* edit_paste;
+    QAction* edit_replicate;
+    QAction* edit_delete;
+
     QAction* view_fitToScreen;
     QAction* view_snapToGrid;
     QAction* view_snapChildrenToGrid;
@@ -234,12 +246,27 @@ private:
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_sortModel;
-    QAction* settings_useGridLines;
+
     QAction* settings_editToolbarButtons;
     QAction* settings_changeAppSettings;
 
     QAction* jenkins_ImportNodes;
     QAction* jenkins_ExecuteJob;
+
+    QAction* actionSort;
+    QAction* actionCenter;
+    QAction* actionZoomToFit;
+    QAction* actionFitToScreen;
+    QAction* actionAlignVertically;
+    QAction* actionAlignHorizontally;
+    QAction* actionPopupSubview;
+    QAction* actionBack;
+    QAction* actionForward;
+    QAction* actionToggleGrid;
+    QAction* actionContextMenu;
+
+
+
 
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
@@ -267,25 +294,20 @@ private:
     QAction* toolbarAction;
     QAction* leftSpacerAction;
     QAction* rightSpacerAction;
+
+
+
     QToolButton* toolbarButton;
-    QToolButton* cutButton;
-    QToolButton* copyButton;
-    QToolButton* pasteButton;
-    QToolButton* sortButton;
-    QToolButton* centerButton;
-    QToolButton* zoomToFitButton;
-    QToolButton* fitToScreenButton;
-    QToolButton* duplicateButton;
-    QToolButton* undoButton;
-    QToolButton* redoButton;
-    QToolButton* toggleGridButton;
-    QToolButton* alignVerticalButton;
-    QToolButton* alignHorizontalButton;
-    QToolButton* popupButton;
-    QToolButton* backButton;
-    QToolButton* forwardButton;
-    QToolButton* deleteButton;
-    QToolButton* contextToolbarButton;
+
+    QHash<QString, QAction*> toolbarActionLookup;
+    QHash<QString, ActionButton*> toolbarButtonLookup;
+
+
+
+
+
+    QAction* toolbar_Sort;
+
     QAction* leftMostSpacer;
     QAction* leftMidSpacer;
     QAction* midLeftSpacer;
@@ -376,6 +398,11 @@ private:
 
     JenkinsManager* jenkinsManager;
     QAction* jenkins_getJobParameters;
+
+
+    QAction* action_ContextMenu;
+
+    ActionButton* toolbar_ContextMenu;
 
 };
 

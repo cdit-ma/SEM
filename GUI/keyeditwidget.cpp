@@ -22,8 +22,16 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     difference = 0;
     newValue ="";
 
+    normalPal = palette();
+
+    highlightPal = palette();
+    highlightPal.setColor(QPalette::Background, QColor(249,249,249));
+
+    setAutoFillBackground(true);
 
     vLayout = new QVBoxLayout();
+
+
 
     vLayout->setSpacing(0);
     vLayout->setMargin(0);
@@ -36,8 +44,9 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     vLayout->addLayout(hLayout);
 
 
-
-    QLabel* keyLabel = new QLabel(hrKeyName);
+    QPushButton* keyLabel = new QPushButton(hrKeyName);
+    keyLabel->setFlat(true);
+    keyLabel->setStyleSheet("background-color: rgba(0,0,0,0); border: 0px; text-align: left;");
 
     if(description != ""){
         descriptionBox = new QTextBrowser() ;
@@ -90,7 +99,12 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
 
     if(isBool){
+        //Set the label as stretched.
+        hLayout->setStretch(0,1);
+
         QCheckBox* checkBox = new QCheckBox();
+        connect(keyLabel, SIGNAL(clicked()), checkBox, SLOT(click()));
+
         checkBox->setChecked(boolValue);
         connect(checkBox,SIGNAL(clicked(bool)), this, SLOT(_boolChanged(bool)));
         connect(checkBox, SIGNAL(clicked()), this, SLOT(_editingFinished()));
@@ -102,7 +116,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         QSpinBox* intEdit = new QSpinBox(0);
         intEdit->setRange(0,4000);
 
-        hLayout->addWidget(intEdit);
+        hLayout->addWidget(intEdit,1);
         intEdit->setValue(intValue);
         connect(intEdit, SIGNAL(valueChanged(QString)), this, SLOT(_valueChanged(QString)));
         connect(intEdit, SIGNAL(editingFinished()), this, SLOT(_editingFinished()));
@@ -114,7 +128,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         QLineEdit* lineEdit = new QLineEdit();
         lineEdit->setEnabled(false);
 
-        hLayout->addWidget(lineEdit);
+        hLayout->addWidget(lineEdit,1);
         lineEdit->setText(stringValue);
         connect(lineEdit, SIGNAL(textChanged(QString)), this, SLOT(_valueChanged(QString)));
         connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(_editingFinished()));
@@ -122,7 +136,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         valueBox = lineEdit;
     }else{
         QLineEdit* lineEdit = new QLineEdit();
-        hLayout->addWidget(lineEdit);
+        hLayout->addWidget(lineEdit,1);
         lineEdit->setText(stringValue);
         connect(lineEdit, SIGNAL(textChanged(QString)), this, SLOT(_valueChanged(QString)));
         connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(_editingFinished()));
@@ -152,6 +166,7 @@ QString KeyEditWidget::getValue()
     return oldValue;
 }
 
+
 void KeyEditWidget::_boolChanged(bool value)
 {
     newValue = "false";
@@ -171,4 +186,16 @@ void KeyEditWidget::_editingFinished()
         valueChanged(groupName, keyName, newValue);
         oldValue = newValue;
     }
+}
+
+void KeyEditWidget::enterEvent(QEvent *)
+{
+    this->setPalette(highlightPal);
+
+}
+
+void KeyEditWidget::leaveEvent(QEvent *)
+{
+    this->setPalette(normalPal);
+
 }

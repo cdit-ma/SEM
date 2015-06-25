@@ -625,12 +625,10 @@ void ToolbarWidget::updateMenuLists()
         if (nodeItem->getNodeKind() == "ComponentAssembly") {
             setupFilesList(nodeView->getNodeItemsOfKind("IDL"), "inst");
             //Only look 1 layer deep for component Instances.
-
+            setupBlackBoxList(nodeView->getNodeItemsOfKind("BlackBox"));
             setupChildrenComponentInstanceList(nodeView->getNodeItemsOfKind("ComponentInstance", nodeItem->getID(), 0));
         } else if (nodeItem->getNodeKind() == "BehaviourDefinitions") {
             setupFilesList(nodeView->getNodeItemsOfKind("IDL"), "impl");
-        } else if (nodeItem->getNodeKind() == "AssemblyDefinitions") {
-            setupBlackBoxList(nodeView->getNodeItemsOfKind("BlackBox"));
         }
     }
 

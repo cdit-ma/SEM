@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QGroupBox>
+#include <QScrollArea>
 #include <QLineEdit>
 #include <QDialog>
 
@@ -19,6 +20,13 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(paren
 
     setModal(true);
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
+
+
+    scrollArea = new QScrollArea();
+    scrollArea->setWidget(this);
+    scrollArea->setMinimumWidth(350);
+    scrollArea->setMinimumHeight(350);
+    scrollArea->setWidgetResizable(true);
 }
 
 QSettings* AppSettings::getSettings()
@@ -65,6 +73,11 @@ void AppSettings::setSetting(QString keyName, QVariant value)
     }
 }
 
+void AppSettings::show()
+{
+    scrollArea->show();
+}
+
 QString AppSettings::getReadableValue(const QString value)
 {
     QString returnable = value;
@@ -97,15 +110,48 @@ void AppSettings::updateSetting()
 
 }
 
+void AppSettings::groupToggled(bool toggled)
+{
+
+    QGroupBox* groupBox = dynamic_cast<QGroupBox*>(sender());
+    if(groupBox){
+        QString groupTitle = groupBox->title();
+
+
+        int groupBoxPadding = groupBox->layout()->spacing();
+
+        int initialHeight = 20;
+        int expandedHeight = initialHeight + groupBox->layout()->margin() * 2;
+
+        foreach(KeyEditWidget* edit, settingsWidgets){
+            if(getReadableValue(edit->getGroupName()) == groupTitle){
+                expandedHeight += groupBoxPadding + edit->height();
+                edit->setVisible(toggled);
+            }
+        }
+        if(toggled){
+            groupBox->setFixedHeight(expandedHeight);
+        }else{
+            groupBox->setFixedHeight(initialHeight);
+        }
+    }
+}
+
+
 QString AppSettings::getGroup(QString keyName)
 {
     return keyToGroupMap[keyName];
 
 }
 
+
 void AppSettings::setupLayout()
 {
+
     QVBoxLayout *vLayout = new QVBoxLayout();
+
+
+
     setLayout(vLayout);
 
     //For each group in Settings.ini
@@ -113,10 +159,14 @@ void AppSettings::setupLayout()
         //Open Group
         settings->beginGroup(group);
 
+
+
         //Construct Group Box to group Items
         QGroupBox* groupBox = new QGroupBox();
+        groupBox->setCheckable(true);
+        groupBox->setChecked(false);
         groupBox->setTitle(getReadableValue(group));
-
+        connect(groupBox, SIGNAL(toggled(bool)), this, SLOT(groupToggled(bool)));
 
         QFont keyFont = font();
         keyFont.setBold(false);
@@ -131,6 +181,7 @@ void AppSettings::setupLayout()
         QVBoxLayout* groupVLayout = new QVBoxLayout();
         groupBox->setLayout(groupVLayout);
 
+
         //For each key, construct a KeyEditWidget to change the setting of that key.
         foreach(QString key, settings->childKeys()){
 
@@ -139,6 +190,8 @@ void AppSettings::setupLayout()
             if(!keyToGroupMap.contains(key)){
                 keyToGroupMap.insert(key, group);
             }
+            settingsWidgets.append(keyEdit);
+
             //Connect the valueChanged signal to this, to update the settings.ini file.
             connect(keyEdit, SIGNAL(valueChanged(QString,QString,QString)), this, SLOT(settingUpdated(QString,QString,QString)));
 
@@ -147,5 +200,7 @@ void AppSettings::setupLayout()
             keyEdit->setFont(keyFont);
         }
         settings->endGroup();
+        emit groupBox->toggled(false);
     }
+    vLayout->addStretch();
 }

@@ -14,6 +14,7 @@
 #include <QSettings>
 #include <QTemporaryFile>
 #include <QPicture>
+#include "GUI/actionbutton.h"
 #include <QToolButton>
 #include <QToolBar>
 
@@ -24,6 +25,10 @@
 
 #define MIN_WIDTH 1000
 #define MIN_HEIGHT (480 + SPACER_HEIGHT*3)
+
+#define TOOLBAR_BUTTON_WIDTH 46
+#define TOOLBAR_BUTTON_HEIGHT 40
+
 
 // USER SETTINGS
 #define WINDOW_X "01-01-Position_X"
@@ -40,14 +45,33 @@
 #define ASPECT_A "03-03-Assembly"
 #define ASPECT_H "03-04-Hardware"
 #define DOCK_VISIBLE "04-01-Hide_Dock"
-#define TOOLBAR_VISIBLE "05-01-Hide_Toolbar="
-#define TOOLBAR_EXPANDED "05-02-Expand_Toolbar"
+#define TOOLBAR_VISIBLE "05-00-Hide_Toolbar"
+#define TOOLBAR_EXPANDED "05-00-Expand_Toolbar"
 #define JENKINS_URL "06-01-URL"
 #define JENKINS_USER "06-02-Username"
 #define JENKINS_PASS "06-03-Password"
 #define JENKINS_JOB "06-04-MEDEA_Jobname"
 #define JENKINS_TOKEN "06-05-API_Token"
 
+#define TOOLBAR_SETTINGS "05-Toolbar_Settings"
+#define TOOLBAR_CONTEXT "05-01-Context_Toolbar"
+#define TOOLBAR_UNDO "05-02-Undo"
+#define TOOLBAR_REDO "05-03-Redo"
+#define TOOLBAR_CUT "05-04-Cut"
+#define TOOLBAR_COPY "05-05-Copy"
+#define TOOLBAR_PASTE "05-06-Paste"
+#define TOOLBAR_REPLICATE "05-07-Replicate"
+#define TOOLBAR_DELETE_ENTITIES "05-08-Delete_Entities"
+#define TOOLBAR_POPUP_SUBVIEW "05-09-Popup_SubView"
+#define TOOLBAR_GRID_LINES "05-10-Toggle_Grid_Lines"
+#define TOOLBAR_FIT_TO_SCREEN "05-11-Fit_To_Screen"
+#define TOOLBAR_CENTER_ON_ENTITY "05-12-Center_On_Entity"
+#define TOOLBAR_ZOOM_TO_FIT "05-13-Zoom_To_Fit"
+#define TOOLBAR_SORT "05-14-Sort"
+#define TOOLBAR_VERT_ALIGN "05-15-Vertical_Align_Entities"
+#define TOOLBAR_HORIZ_ALIGN "05-16-Horizontal_Align_Entities"
+#define TOOLBAR_BACK "05-17-Back"
+#define TOOLBAR_FORWARD "05-18-Forward"
 
 
 /**
@@ -102,6 +126,28 @@ MedeaWindow::~MedeaWindow()
 
 }
 
+void MedeaWindow::toolbarSettingChanged(QString keyName, QString value)
+{
+    bool isBool = false;
+    bool boolValue = false;
+    if(value == "true" || value == "false"){
+        isBool = true;
+        if(value == "true"){
+            boolValue = true;
+        }
+    }
+    if(!isBool){
+        return;
+    }
+
+    if(toolbarActionLookup.contains(keyName)){
+        QAction* action = toolbarActionLookup[keyName];
+        if(action){
+            action->setVisible(boolValue);
+        }
+    }
+}
+
 void MedeaWindow::projectCleared()
 {
     qCritical()<< "CLEARING DOCKS IN MEDEA";
@@ -117,7 +163,9 @@ void MedeaWindow::projectCleared()
  */
 void MedeaWindow::settingChanged(QString groupName, QString keyName, QString value)
 {
-    Q_UNUSED(groupName);
+    if(groupName==TOOLBAR_SETTINGS){
+        toolbarSettingChanged(keyName, value);
+    }
 
     bool isBool = false;
     bool boolValue = false;
@@ -151,7 +199,7 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == ZOOM_ANCHOR_ON_MOUSE && isBool){
         nodeView->toggleZoomAnchor(boolValue);
     }else if(keyName == USE_GRID && isBool){
-        toggleAndTriggerAction(settings_useGridLines, boolValue);
+        toggleAndTriggerAction(actionToggleGrid, boolValue);
     }else if(keyName == DOCK_VISIBLE && isBool){
         showDocks(!boolValue);
     }else if(keyName == TOOLBAR_VISIBLE && isBool){
@@ -171,6 +219,10 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == ASPECT_H && isBool){
         hardwareToggle->setClicked(boolValue);
         hardwareToggle->aspectToggle_clicked(boolValue, 0);
+    }
+
+    if(keyName.startsWith(TOOLBAR_SETTINGS)){
+
     }
 }
 
@@ -405,7 +457,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_menu = menu->addMenu(QIcon(":/Resources/Icons/model.png"), "Model");
     jenkins_menu = menu->addMenu(QIcon(":/Resources/Icons/jenkins.png"), "Jenkins");
     menu->addSeparator();
-    settings_Menu = menu->addMenu(QIcon(":/Resources/Icons/settings.png"), "Settings");
+
+    settings_changeAppSettings = menu->addAction(QIcon(":/Resources/Icons/settings.png"), "Settings");
     exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Quit Medea");
 
     menu->setFont(guiFont);
@@ -413,7 +466,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     edit_menu->setFont(guiFont);
     view_menu->setFont(guiFont);
     model_menu->setFont(guiFont);
-    settings_Menu->setFont(guiFont);
 
     file_newProject = file_menu->addAction(QIcon(":/Resources/Icons/new_project.png"), "New Project");
     file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
@@ -442,6 +494,9 @@ void MedeaWindow::setupMenu(QPushButton *button)
     edit_copy->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
     edit_paste = edit_menu->addAction(QIcon(":/Resources/Icons/paste.png"), "Paste");
     edit_paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
+    edit_replicate = edit_menu->addAction(QIcon(":/Resources/Icons/duplicate.png"), "Replicate");
+    edit_menu->addSeparator();
+    edit_delete = edit_menu->addAction(QIcon(":/Resources/Icons/delete.png"), "Delete Selection");
 
     view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/fitToScreen.png"), "Fit To Screen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
@@ -463,9 +518,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
 
 
-    settings_useGridLines = new QAction(this);
-    settings_editToolbarButtons = settings_Menu->addAction(QIcon(":/Resources/Icons/toolbar.png"), "Toolbar Settings");
-    settings_changeAppSettings = settings_Menu->addAction(QIcon(":/Resources/Icons/medea.png"), "App Settings");
+
+
     button->setMenu(menu);
 
 
@@ -492,6 +546,42 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_goToDefinition->setEnabled(false);
     view_goToImplementation->setEnabled(false);
     view_showConnectedNodes->setEnabled(false);
+
+
+
+    actionSort = new QAction(QIcon(":/Resources/Icons/sort.png"), "Sort", this);
+    actionSort->setToolTip("Sort model/selection");
+
+    actionCenter = new QAction(QIcon(":/Resources/Icons/center.png"), "Center Entity", this);
+    actionCenter->setToolTip("Center entity without zooming");
+
+    actionZoomToFit = new QAction(QIcon(":/Resources/Icons/zoomToFit.png"), "Zoom to Fit Selection", this);
+    actionZoomToFit->setToolTip("Center selection and zoom in to fit");
+
+    actionFitToScreen = new QAction(QIcon(":/Resources/Icons/fitToScreen.png"), "Fit Model to Screen", this);
+    actionFitToScreen->setToolTip("Show entire Model");
+
+    actionAlignVertically = new QAction(QIcon(":/Resources/Icons/alignVertically.png"), "Align Selection Vertically", this);
+    actionAlignVertically->setToolTip("Align selection vertically");
+
+    actionAlignHorizontally = new QAction(QIcon(":/Resources/Icons/alignHorizontally.png"), "Align Selection Horizontally", this);
+    actionAlignHorizontally->setToolTip("Align selection horizontally");
+
+    actionPopupSubview = new QAction(QIcon(":/Resources/Icons/popup.png"), "Show Selection in New Window", this);
+    actionPopupSubview->setToolTip("Show selection in new window");
+
+    actionBack = new QAction(QIcon(":/Resources/Icons/back.png"), "Navigate Back", this);
+    actionBack->setToolTip("Navigate back");
+
+    actionForward = new QAction(QIcon(":/Resources/Icons/forward.png"), "Navigate Forward", this);
+    actionForward->setToolTip("Navigate forward");
+
+    actionContextMenu = new QAction(QIcon(":/Resources/Icons/toolbar.png"), "Show Context Toolbar", this);
+    actionContextMenu->setToolTip("Show context toolbar");
+
+    actionToggleGrid = new QAction(QIcon(":/Resources/Icons/grid.png"), "Toggle Grid Lines", this);
+    actionToggleGrid->setToolTip("Turn grid on/off");
+    actionToggleGrid->setCheckable(true);
 }
 
 
@@ -747,13 +837,10 @@ void MedeaWindow::setupSearchTools()
  */
 void MedeaWindow::setupToolbar(QVBoxLayout *layout)
 {
-    // DEMO CHANGE
-    /*
-    toolbarStandAloneDialog = new QDialog(this);
-    QVBoxLayout* toolbarDialogLayout = new QVBoxLayout();
-    QVBoxLayout* toolbarAreaLayout = new QVBoxLayout();
-    */
+    toolbar = new QToolBar();
+    toolbarLayout = new QVBoxLayout();
 
+    //Set Stylesheet for QToolButtons
     setStyleSheet("QToolButton{"
                   "border: 1px solid;"
                   "border-color: rgba(160,160,160,225);"
@@ -766,297 +853,111 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
                   "border-color: rgba(140,140,140,225);"
                   "background-color: rgba(230,230,230,230);"
                   "}"
-                  "QToolButton:pressed{ background-color: rgba(240,240,240,240); }");
+                  "QToolButton:pressed{ background-color: rgba(240,240,240,240);}"
+                  "QToolButton:checked{ background-color: rgba(180,180,180,225);}");
 
-    toolbar = new QToolBar();
-    toolbarLayout = new QVBoxLayout();
 
     toolbarButton = new QToolButton(this);
+    toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
     toolbarButton->setCheckable(true);
     toolbarButton->setStyleSheet("QToolButton{ background-color: rgba(200,200,200,225); border-radius: 5px; }"
                                  "QToolButton:checked{ background-color: rgba(180,180,180,225); }"
                                  "QToolButton:hover{ background-color: rgba(210,210,210,235); }");
 
-    toggleGridButton = new QToolButton(this);
-    toggleGridButton->setCheckable(true);
-    toggleGridButton->setStyleSheet("QToolButton:checked{ background-color: rgba(180,180,180,225); }");
 
-    cutButton = new QToolButton(this);
-    copyButton = new QToolButton(this);
-    pasteButton = new QToolButton(this);
-    sortButton = new QToolButton(this);
-    centerButton = new QToolButton(this);
-    zoomToFitButton = new QToolButton(this);
-    fitToScreenButton = new QToolButton(this);
-    duplicateButton = new QToolButton(this);
-    undoButton = new QToolButton(this);
-    redoButton = new QToolButton(this);
-    alignVerticalButton = new QToolButton(this);
-    alignHorizontalButton = new QToolButton(this);
-    popupButton = new QToolButton(this);
-    backButton = new QToolButton(this);
-    forwardButton = new QToolButton(this);
-    deleteButton = new QToolButton(this);
-    contextToolbarButton = new QToolButton(this);
 
-    cutButton->setIcon(QIcon(":/Resources/Icons/cut.png"));
-    copyButton->setIcon(QIcon(":/Resources/Icons/copy.png"));
-    pasteButton->setIcon(QIcon(":/Resources/Icons/paste.png"));
-    sortButton->setIcon(QIcon(":/Resources/Icons/sort.png"));
-    centerButton->setIcon(QIcon(":/Resources/Icons/center.png"));
-    zoomToFitButton->setIcon(QIcon(":/Resources/Icons/zoomToFit.png"));
-    fitToScreenButton->setIcon(QIcon(":/Resources/Icons/fitToScreen.png"));
-    duplicateButton->setIcon(QIcon(":/Resources/Icons/duplicate.png"));
-    undoButton->setIcon(QIcon(":/Resources/Icons/undo.png"));
-    redoButton->setIcon(QIcon(":/Resources/Icons/redo.png"));
-    toggleGridButton->setIcon(QIcon(":/Resources/Icons/grid.png"));
-    alignVerticalButton->setIcon(QIcon(":/Resources/Icons/alignVertically.png"));
-    alignHorizontalButton->setIcon(QIcon(":/Resources/Icons/alignHorizontally.png"));
-    popupButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
-    backButton->setIcon(QIcon(":/Resources/Icons/back.png"));
-    forwardButton->setIcon(QIcon(":/Resources/Icons/forward.png"));
-    deleteButton->setIcon(QIcon(":/Resources/Icons/delete.png"));
-    contextToolbarButton->setIcon(QIcon(":/Resources/Icons/toolbar.png"));
+    QImage expandImage(":/Resources/Icons/down_arrow.png");
+    QImage contractImage(":/Resources/Icons/up_arrow.png");
+    expandImage = expandImage.scaled(toolbarButton->width(), toolbarButton->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    contractImage = contractImage.scaled(toolbarButton->width(), toolbarButton->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-    QSize buttonSize = QSize(46,40);
-    toolbarButton->setFixedSize(buttonSize.width(), buttonSize.height()/2);
-    cutButton->setFixedSize(buttonSize);
-    copyButton->setFixedSize(buttonSize);
-    pasteButton->setFixedSize(buttonSize);
-    sortButton->setFixedSize(buttonSize);
-    centerButton->setFixedSize(buttonSize);
-    zoomToFitButton->setFixedSize(buttonSize);
-    fitToScreenButton->setFixedSize(buttonSize);
-    duplicateButton->setFixedSize(buttonSize);
-    undoButton->setFixedSize(buttonSize);
-    redoButton->setFixedSize(buttonSize);
-    toggleGridButton->setFixedSize(buttonSize);
-    alignVerticalButton->setFixedSize(buttonSize);
-    alignHorizontalButton->setFixedSize(buttonSize);
-    popupButton->setFixedSize(buttonSize);
-    backButton->setFixedSize(buttonSize);
-    forwardButton->setFixedSize(buttonSize);
-    deleteButton->setFixedSize(buttonSize);
-    contextToolbarButton->setFixedSize(buttonSize);
-
-    toolbarButton->setToolTip("Expand Toolbar");
-    cutButton->setToolTip("Cut");
-    copyButton->setToolTip("Copy");
-    pasteButton->setToolTip("Paste");
-    sortButton->setToolTip("Sort Model/Selection");
-    centerButton->setToolTip("Center On Selection");
-    zoomToFitButton->setToolTip("Zoom To Fit Selection");
-    fitToScreenButton->setToolTip("Fit View To Screen");
-    duplicateButton->setToolTip("Replicate");
-    undoButton->setToolTip("Undo");
-    redoButton->setToolTip("Redo");
-    toggleGridButton->setToolTip("Turn On Grid Lines");
-    alignVerticalButton->setToolTip("Align Selection Vertically");
-    alignHorizontalButton->setToolTip("Align Selection Horizontally");
-    popupButton->setToolTip("View Selection In New Window");
-    backButton->setToolTip("Go Back");
-    forwardButton->setToolTip("Go Forward");
-    deleteButton->setToolTip("Delete Selection");
-    contextToolbarButton->setToolTip("Show Context Toolbar");
-
-    // setup swappable pixmap for the toolbarButton
-    QImage* expandImg = new QImage(":/Resources/Icons/down_arrow.png");
-    QImage* contractImg = new QImage(":/Resources/Icons/up_arrow.png");
-    *expandImg = expandImg->scaled(toolbarButton->width(), toolbarButton->height(),
-                                   Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    *contractImg = contractImg->scaled(toolbarButton->width(), toolbarButton->height(),
-                                       Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    expandPixmap = QPixmap::fromImage(*expandImg);
-    contractPixmap = QPixmap::fromImage(*contractImg);
+    expandPixmap = QPixmap::fromImage(expandImage);
+    contractPixmap = QPixmap::fromImage(contractImage);
 
     toolbarButtonLabel = new QLabel(this);
     toolbarButtonLabel->setPixmap(expandPixmap);
-
     QVBoxLayout* labelLayout = new QVBoxLayout();
     labelLayout->setMargin(0);
     labelLayout->addWidget(toolbarButtonLabel);
     labelLayout->setAlignment(toolbarButtonLabel, Qt::AlignCenter);
     toolbarButton->setLayout(labelLayout);
 
-    QWidget* spacerWidgetLeft = new QWidget();
-    QWidget* spacerWidgetRight = new QWidget();
-    QWidget* spacerLeftMost = new QWidget();
-    QWidget* spacerLeftMid = new QWidget();
-    QWidget* spacerMidLeft = new QWidget();
-    QWidget* spacerMidRight = new QWidget();
-    QWidget* spacerRightMid = new QWidget();
-    QWidget* spacerRightMost = new QWidget();
-    int spacerWidth = 8;
 
-    spacerWidgetLeft->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    spacerWidgetRight->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
-    spacerLeftMost->setFixedWidth(spacerWidth);
-    spacerLeftMid->setFixedWidth(spacerWidth);
-    spacerMidLeft->setFixedWidth(spacerWidth);
-    spacerMidRight->setFixedWidth(spacerWidth);
-    spacerRightMid->setFixedWidth(spacerWidth);
-    spacerRightMost->setFixedWidth(spacerWidth);
 
-    leftSpacerAction = toolbar->addWidget(spacerWidgetLeft);
-    QAction* contextToolbarAction = toolbar->addWidget(contextToolbarButton);
-    QAction* deleteAction = toolbar->addWidget(deleteButton);
-    leftMostSpacer = toolbar->addWidget(spacerLeftMost);
-    QAction* backAction = toolbar->addWidget(backButton);
-    QAction* forwardAction = toolbar->addWidget(forwardButton);
-    leftMidSpacer = toolbar->addWidget(spacerLeftMid);
-    QAction* popupAction = toolbar->addWidget(popupButton);
-    QAction* toggleGridAction = toolbar->addWidget(toggleGridButton);
-    midLeftSpacer = toolbar->addWidget(spacerMidLeft);
-    QAction* cutAction = toolbar->addWidget(cutButton);
-    QAction* copyAction = toolbar->addWidget(copyButton);
-    QAction* pasteAction = toolbar->addWidget(pasteButton);
-    QAction* duplicateAction = toolbar->addWidget(duplicateButton);
-    midRightSpacer = toolbar->addWidget(spacerMidRight);
-    QAction* fitToScreenAction = toolbar->addWidget(fitToScreenButton);
-    QAction* centerAction = toolbar->addWidget(centerButton);
-    QAction* zoomToFitAction = toolbar->addWidget(zoomToFitButton);
-    QAction* sortAction = toolbar->addWidget(sortButton);
-    rightMidSpacer = toolbar->addWidget(spacerRightMid);
-    QAction* alignVerticalAction = toolbar->addWidget(alignVerticalButton);
-    QAction* alignHorizontalAction = toolbar->addWidget(alignHorizontalButton);
-    rightMostSpacer = toolbar->addWidget(spacerRightMost);
-    QAction* undoAction = toolbar->addWidget(undoButton);
-    QAction* redoAction = toolbar->addWidget(redoButton);
-    rightSpacerAction = toolbar->addWidget(spacerWidgetRight);
 
-    toolbar->setIconSize(buttonSize*0.6);
-    toolbar->setMinimumSize(toolbar->rect().width(), buttonSize.height()+spacerWidth);
-    toolbar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    toolbar->setStyle(QStyleFactory::create("windows"));
+    constructToolbarButton(toolbar, actionContextMenu, TOOLBAR_CONTEXT);
+    constructToolbarButton(toolbar, edit_delete, TOOLBAR_DELETE_ENTITIES);
+    toolbar->addSeparator();
+    constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
+    constructToolbarButton(toolbar, edit_redo, TOOLBAR_REDO);
+    toolbar->addSeparator();
+    constructToolbarButton(toolbar, edit_cut, TOOLBAR_CUT);
+    constructToolbarButton(toolbar, edit_copy, TOOLBAR_COPY);
+    constructToolbarButton(toolbar, edit_paste, TOOLBAR_PASTE);
+    constructToolbarButton(toolbar, edit_replicate, TOOLBAR_REPLICATE);
+    toolbar->addSeparator();
 
-    toolbarLayout->setMargin(0);
-    toolbarLayout->setSpacing(0);
-    toolbarLayout->addWidget(toolbar);
+
+    constructToolbarButton(toolbar, actionFitToScreen, TOOLBAR_FIT_TO_SCREEN);
+    constructToolbarButton(toolbar, actionCenter, TOOLBAR_CENTER_ON_ENTITY);
+    constructToolbarButton(toolbar, actionZoomToFit, TOOLBAR_ZOOM_TO_FIT);
+    constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
+    toolbar->addSeparator();
+    constructToolbarButton(toolbar, actionPopupSubview, TOOLBAR_POPUP_SUBVIEW);
+    constructToolbarButton(toolbar, actionToggleGrid, TOOLBAR_GRID_LINES);
+
+    //toolbar->addSeparator();
+    constructToolbarButton(toolbar, actionAlignVertically, TOOLBAR_VERT_ALIGN);
+    constructToolbarButton(toolbar, actionAlignHorizontally, TOOLBAR_HORIZ_ALIGN);
+    //toolbar->addSeparator();
+    constructToolbarButton(toolbar, actionBack, TOOLBAR_BACK);
+    constructToolbarButton(toolbar, actionForward, TOOLBAR_FORWARD);
+
 
     QHBoxLayout* toolbarHLayout = new QHBoxLayout();
     toolbarHLayout->addStretch();
     toolbarHLayout->addWidget(toolbarButton);
     toolbarHLayout->addStretch();
+
+
     layout->addLayout(toolbarHLayout);
     layout->addLayout(toolbarLayout);
+    layout->addStretch();
+    toolbarLayout->addWidget(toolbar);
 
-    // DEMO CHANGE
-    /*
-    toolbarAreaLayout->setMargin(0);
-    toolbarAreaLayout->setSpacing(0);
-    toolbarAreaLayout->addLayout(toolbarLayout);
 
-    toolbarDialogLayout->setMargin(2);
-    toolbarDialogLayout->setSpacing(0);
 
-    toolbarArea->setStyleSheet("QGroupBox{ border: none; padding: 0px; margin: 0px; background-color: rgba(0,0,0,0); }");
-    toolbarArea->setMinimumSize(toolbar->contentsRect().width(), buttonSize.height()+spacerWidth);
-    toolbarArea->setLayout(toolbarAreaLayout);
+    toolbar->setStyle(QStyleFactory::create("windows"));
 
-    toolbarStandAloneDialog->setVisible(false);
-    toolbarStandAloneDialog->setFixedHeight(buttonSize.height()+spacerWidth*1.5);
-    toolbarStandAloneDialog->setMinimumWidth(toolbar->contentsRect().width());
-    toolbarStandAloneDialog->setWindowTitle("MEDEA - Toolbar");
-    toolbarStandAloneDialog->setStyleSheet("padding: 0px; margin: 0px; background-color: rgba(175,175,175,255);");
-    toolbarStandAloneDialog->setLayout(toolbarDialogLayout);
-    */
+    //Implement Button.
 
-    // keep a list of all the tool buttons and create a checkbox for each one
-    toolbarActions[contextToolbarAction] = new QCheckBox("Context Toolbar", this);
-    toolbarActions[deleteAction] = new QCheckBox("Delete", this);
-    toolbarActions[backAction] = new QCheckBox("Back", this);
-    toolbarActions[forwardAction] = new QCheckBox("Forward", this);
-    toolbarActions[popupAction] = new QCheckBox("View In New Window", this);
-    toolbarActions[toggleGridAction] = new QCheckBox("Toggle Grid Lines", this);
-    toolbarActions[cutAction] = new QCheckBox("Cut", this);
-    toolbarActions[copyAction] = new QCheckBox("Copy", this);
-    toolbarActions[pasteAction] = new QCheckBox("Paste", this);
-    toolbarActions[duplicateAction] = new QCheckBox("Replicate", this);
-    toolbarActions[fitToScreenAction] = new QCheckBox("Fit To Screen", this);
-    toolbarActions[centerAction] = new QCheckBox("Center On", this);
-    toolbarActions[zoomToFitAction] = new QCheckBox("Zoom To Fit", this);
-    toolbarActions[sortAction] = new QCheckBox("Sort", this);
-    toolbarActions[alignVerticalAction] = new QCheckBox("Align Vertically", this);
-    toolbarActions[alignHorizontalAction] = new QCheckBox("Align Horizontally", this);
-    toolbarActions[undoAction] = new QCheckBox("Undo", this);
-    toolbarActions[redoAction] = new QCheckBox("Redo", this);
-
-    // group actions into sections
-    leftMostActions[backAction] = 1;
-    leftMostActions[forwardAction] = 1;
-    leftMidActions[toggleGridAction] = 1;
-    leftMidActions[popupAction] = 1;
-    midLeftActions[cutAction] = 1;
-    midLeftActions[copyAction] = 1;
-    midLeftActions[pasteAction] = 1;
-    midLeftActions[duplicateAction] = 1;
-    midRightActions[fitToScreenAction] = 1;
-    midRightActions[centerAction] = 1;
-    midRightActions[zoomToFitAction] = 1;
-    midRightActions[sortAction] = 1;
-    rightMidActions[alignVerticalAction] = 1;
-    rightMidActions[alignHorizontalAction] = 1;
-    rightMostActions[undoAction] = 1;
-    rightMostActions[redoAction] = 1;
-
-    // store spacer actions in a list too
-    checkedToolbarSpacers.append(leftMostSpacer);
-    checkedToolbarSpacers.append(leftMidSpacer);
-    checkedToolbarSpacers.append(midLeftSpacer);
-    checkedToolbarSpacers.append(midRightSpacer);
-    checkedToolbarSpacers.append(rightMidSpacer);
-    checkedToolbarSpacers.append(rightMostSpacer);
-
-    // add checkboxes to the toolbar settings popup dialog
-    QVBoxLayout* checkboxLayout = new QVBoxLayout();
-    QStringList initiallyHidden(QStringList() << "Grid" << "Window" << "Align" << "Back" << "Forward");
-    QStringList disabled(QStringList() << "Back" << "Forward");
-
-    /*
-    foreach (QAction* action, toolbarActions.keys()) {
-        action->setEnabled(true);
-    }
-    */
-
-    foreach (QCheckBox* cb, toolbarActions.values() ) {
-
-        cb->setFont(guiFont);
-        checkboxLayout->addWidget(cb);
-        connect(cb, SIGNAL(clicked(bool)), this, SLOT(updateCheckedToolbarActions(bool)));
-
-        // DEMO CHANGE
-        foreach (QString s, disabled) {
-            if (cb->text().contains(s)) {
-                cb->setEnabled(false);
-            }
-        }
-
-        // initially hide some of the tool buttons
-        bool hidden = false;
-        foreach (QString s, initiallyHidden) {
-            if (cb->text().contains(s)) {
-                cb->clicked(false);
-                cb->setChecked(false);
-                hidden = true;
-                break;
-            }
-        }
-
-        if (!hidden) {
-            cb->clicked(true);
-            cb->setChecked(true);
-            checkedToolbarActions.append(toolbarActions.key(cb));
-        }
-    }
-
-    toolbarSettingsDialog = new QDialog(this);
-    toolbarSettingsDialog->setLayout(checkboxLayout);
-    toolbarSettingsDialog->setWindowTitle("Available Tool Buttons");
-    toolbarSettingsDialog->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }");
-    toolbarSettingsDialog->setModal(true);
-    toolbarSettingsDialog->setWindowFlags(toolbarSettingsDialog->windowFlags() & (~Qt::WindowContextHelpButtonHint));
 }
+
+bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QString actionName)
+{
+    if(toolbar && action && actionName != ""){
+        QSize buttonSize = QSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT);
+        toolbar->setIconSize(buttonSize*0.6);
+
+        ActionButton* actionButton = new ActionButton(action);
+        actionButton->setFixedSize(buttonSize);
+        QAction* toolAction = toolbar->addWidget(actionButton);
+        if(!toolbarActionLookup.contains(actionName)){
+            toolbarActionLookup[actionName] = toolAction;
+        }else{
+            qCritical() << "Duplicate Actions";
+        }
+        if(!toolbarButtonLookup.contains(actionName)){
+            toolbarButtonLookup[actionName] = actionButton;
+        }else{
+            qCritical() << "Duplicate Actions";
+        }
+        return true;
+    }
+    return false;
+}
+
 
 
 /**
@@ -1172,8 +1073,7 @@ void MedeaWindow::makeConnections()
     connect(jenkins_ImportNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
 
     connect(settings_changeAppSettings, SIGNAL(triggered()), appSettings, SLOT(show()));
-    connect(settings_useGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
-    connect(settings_editToolbarButtons, SIGNAL(triggered()), toolbarSettingsDialog, SLOT(show()));
+    connect(actionToggleGrid, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
@@ -1191,20 +1091,34 @@ void MedeaWindow::makeConnections()
     connect(nodeKindsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
 
     connect(toolbarButton, SIGNAL(clicked(bool)), this, SLOT(showWindowToolbar(bool)));
-    connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
-    connect(copyButton, SIGNAL(clicked()), nodeView, SLOT(copy()));
-    connect(pasteButton, SIGNAL(clicked()), this, SLOT(on_actionPaste_triggered()));
-    connect(duplicateButton, SIGNAL(clicked()), nodeView, SLOT(duplicate()));
-    connect(fitToScreenButton, SIGNAL(clicked()), nodeView, SLOT(fitToScreen()));
-    connect(centerButton, SIGNAL(clicked()), nodeView, SLOT(centerOnItem()));
+
+    connect(edit_delete, SIGNAL(triggered()), nodeView, SLOT(deleteSelection()));
+    connect(actionFitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
+    connect(actionCenter, SIGNAL(triggered()), nodeView, SLOT(centerOnItem()));
+    connect(actionSort, SIGNAL(triggered()), nodeView, SLOT(sort()));
+
+    connect(actionZoomToFit, SIGNAL(triggered()), nodeView, SLOT(centerItem()));
+
+    connect(actionAlignHorizontally, SIGNAL(triggered()), nodeView, SLOT(alignSelectionHorizontally()));
+    connect(actionAlignVertically, SIGNAL(triggered()), nodeView, SLOT(alignSelectionVertically()));
+    connect(actionContextMenu, SIGNAL(triggered()), nodeView, SLOT(showToolbar()));
+    connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
+    connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
+
+
+
+    //connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
+    /*
     connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionFitCenterNode_triggered()));
+
     connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
     connect(undoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Undo()));
     connect(redoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Redo()));
     connect(alignVerticalButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
     connect(alignHorizontalButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
     connect(popupButton, SIGNAL(clicked()), nodeView, SLOT(constructNewView()));
-    connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
+
+connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
     connect(forwardButton, SIGNAL(clicked()), nodeView, SLOT(moveViewForward()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(contextToolbarButton, SIGNAL(clicked()), nodeView, SLOT(showToolbar()));
@@ -1212,6 +1126,7 @@ void MedeaWindow::makeConnections()
     connect(settings_useGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
     connect(toggleGridButton, SIGNAL(clicked(bool)), settings_useGridLines, SLOT(setChecked(bool)));
     connect(toggleGridButton, SIGNAL(clicked(bool)), settings_useGridLines, SIGNAL(triggered(bool)));
+    */
 
     connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
     connect(nodeView, SIGNAL(view_ExportedSnippet(QString,QString)), this, SLOT(writeExportedSnippet(QString,QString)));
@@ -1228,6 +1143,7 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
 
+    
     connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
@@ -1242,9 +1158,12 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
 
+    
     connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), definitionsDock, SLOT(edgeDeleted(QString, QString)));
 
+
+    
     connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), nodeView, SLOT(highlightDeployment()));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
@@ -1263,6 +1182,7 @@ void MedeaWindow::makeConnections()
     addAction(edit_cut);
     addAction(edit_copy);
     addAction(edit_paste);
+    addAction(edit_replicate);
     addAction(view_fitToScreen);
     addAction(view_snapToGrid);
     addAction(view_snapChildrenToGrid);
@@ -1277,8 +1197,10 @@ void MedeaWindow::makeConnections()
     addAction(jenkins_ExecuteJob);
     addAction(jenkins_ImportNodes);
 
-    addAction(settings_useGridLines);
+    addAction(actionToggleGrid);
     addAction(settings_changeAppSettings);
+
+
 }
 
 
@@ -1326,12 +1248,12 @@ void MedeaWindow::initialiseJenkinsManager()
 
 void MedeaWindow::jenkins_InvokeJob(QString filePath)
 {
-     QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB);
+    QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB);
 
-     if(jenkinsManager){
-         JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
-         jenkinsSJ->requestJob(jenkinsJobName, filePath);
-     }
+    if(jenkinsManager){
+        JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
+        jenkinsSJ->requestJob(jenkinsJobName, filePath);
+    }
 }
 
 void MedeaWindow::jenkinsNodesLoaded()
@@ -1428,6 +1350,7 @@ void MedeaWindow::setupInitialSettings()
 
     //We have finished loading settings. reset state of Controller undo states.
     nodeView->view_ClearHistory();
+	
 
     // initially disable all the docks
     nodeView->view_nodeSelected();
@@ -1629,6 +1552,7 @@ void MedeaWindow::on_actionClearModel_triggered()
  */
 void MedeaWindow::on_actionSortNode_triggered()
 {
+    /*
     progressAction = "Sorting Model";
 
     nodeView->triggerAction("Medea: Sorting Node");
@@ -1638,7 +1562,7 @@ void MedeaWindow::on_actionSortNode_triggered()
     } else {
         nodeView->sortEntireModel();
         displayNotification("Sorted entire Model.");
-    }
+    }*/
 }
 
 
@@ -2105,15 +2029,14 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
         file_importSnippet->setEnabled(enable);
     } else if (action == "cut") {
         edit_cut->setEnabled(enable);
-        cutButton->setEnabled(enable);
     } else if (action == "copy") {
         edit_copy->setEnabled(enable);
-        copyButton->setEnabled(enable);
     } else if (action == "paste") {
         edit_paste->setEnabled(enable);
-        pasteButton->setEnabled(enable);
     }else if (action == "replicate") {
-        duplicateButton->setEnabled(enable);
+        edit_replicate->setEnabled(enable);
+    }else if (action == "remove") {
+        edit_delete->setEnabled(enable);
     }
 }
 
@@ -2126,47 +2049,19 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
  */
 void MedeaWindow::showWindowToolbar(bool checked)
 {
-    /*
-    QAction* senderAction = qobject_cast<QAction*>(QObject::sender());
-    if (senderAction) {
-        // DEMO CHANGE
-        toolbar->setVisible(checked);
-        toolbarButton->setVisible(checked);
-        //toolbarArea->setVisible(!settings_detachWindowToolbar->isChecked() && checked);
-        //toolbarStandAloneDialog->setVisible(settings_detachWindowToolbar->isChecked() && checked);
-        //settings_detachWindowToolbar->setEnabled(checked);
-        return;
-    }
-    */
-
-    QToolButton* senderButton = qobject_cast<QToolButton*>(QObject::sender());
-    if (senderButton) {
-
-        // show/hide all tool buttons
-        foreach (QAction* action, checkedToolbarActions) {
-            action->setVisible(checked);
-        }
-        foreach (QAction* spacer, checkedToolbarSpacers) {
-            spacer->setVisible(checked);
-        }
-
-        if (checked) {
-            toolbarButton->setToolTip("Contract Toolbar");
-            toolbarButtonLabel->setPixmap(contractPixmap);
-            toolbar->clearMask();
-        } else {
-            // NOTE: hover/focus doesn't leave the button until you move the mouse
-            toolbarButton->setToolTip("Expand Toolbar");
-            toolbarButtonLabel->setPixmap(expandPixmap);
-            toolbar->setMask(QRegion(0,0,1,1, QRegion::Ellipse));
-        }
-
+    if (checked) {
+        toolbarButton->setToolTip("Contract Toolbar");
+        toolbarButtonLabel->setPixmap(contractPixmap);
+        toolbar->clearMask();
     } else {
-        toolbar->setVisible(checked);
-        toolbarButton->setVisible(checked);
+        // NOTE: hover/focus doesn't leave the button until you move the mouse
+        toolbarButton->setToolTip("Expand Toolbar");
+        toolbarButtonLabel->setPixmap(expandPixmap);
+        toolbar->setMask(QRegion(0,0,1,1, QRegion::Ellipse));
     }
 
-    emit window_updateActionsEnabled();
+    toolbar->setVisible(checked);
+    return;
 }
 
 
@@ -2348,12 +2243,6 @@ void MedeaWindow::menuActionTriggered()
     } else if (action->text().contains("Grid Lines")) {
 
         // update toggleGridButton's tooltip
-        if (settings_useGridLines->isChecked()) {
-            toggleGridButton->setToolTip("Turn Off Grid Lines");
-        } else {
-            toggleGridButton->setToolTip("Turn On Grid Lines");
-        }
-
         // in case the grid lines are turned on, this will check if there
         // is a selected item before it turns the snap to grid functions on
         graphicsItemSelected();
@@ -2458,12 +2347,10 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
     // if the hardware dock was opened or closed, send a signal to either highlight or
     // remove the highlight of the selected node's children based on their deployment link
     if (prevPressedButton == hardwareNodesButton || b == hardwareNodesButton) {
-        if (nodeView && hardwareNodesButton->getSelected()) {
-            //emit window_highlightDeployment(nodeView->getSelectedNode());
-            emit window_highlightDeployment();
+        if (nodeView && hardwareNodesButton->getSelected()) {           
+ 			emit window_highlightDeployment();
         } else {
-            //emit window_highlightDeployment();
-            emit window_highlightDeployment(true);
+ 			emit window_highlightDeployment(true);
         }
     }
 
@@ -2715,21 +2602,25 @@ void MedeaWindow::checkNotificationsQueue()
  */
 void MedeaWindow::graphicsItemSelected()
 {
+    if (hardwareNodesButton->getSelected()) {
+        if(nodeView){
+            emit window_highlightDeployment(nodeView->getSelectedNode());
+        }
+    }
+    /*
     if (nodeView && nodeView->getSelectedNode()) {
         view_showConnectedNodes->setEnabled(true);
         view_snapToGrid->setEnabled(settings_useGridLines->isChecked());
         view_snapChildrenToGrid->setEnabled(settings_useGridLines->isChecked());
 
-        if (hardwareNodesButton->getSelected()) {
-            //emit window_highlightDeployment(nodeView->getSelectedNode());
-            emit window_highlightDeployment();
-        }
+
 
     } else {
         view_showConnectedNodes->setEnabled(false);
         view_snapToGrid->setEnabled(false);
         view_snapChildrenToGrid->setEnabled(false);
     }
+    */
 }
 
 
