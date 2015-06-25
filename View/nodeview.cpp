@@ -140,20 +140,20 @@ void NodeView::ensureAspect(QString ID)
     if(nodeItem){
         Node* node = nodeItem->getNode();
         if(node){
-             QStringList newAspects = currentAspects;
+            QStringList newAspects = currentAspects;
 
-             if(node->isDefinition()){
-                 newAspects.append("Definitions");
-             }
-             if(node->isImpl()){
-                 newAspects.append("Behaviour");
-             }
-             if(node->isInstance()){
-                 newAspects.append("Assembly");
-             }
+            if(node->isDefinition()){
+                newAspects.append("Definitions");
+            }
+            if(node->isImpl()){
+                newAspects.append("Behaviour");
+            }
+            if(node->isInstance()){
+                newAspects.append("Assembly");
+            }
 
-             newAspects.removeDuplicates();
-             setAspects(newAspects);
+            newAspects.removeDuplicates();
+            setAspects(newAspects);
 
         }
     }
@@ -1563,19 +1563,19 @@ void NodeView::constructEdge(QString srcID, QString dstID, bool trigger)
 
 void NodeView::destructEdge(QString srcID, QString dstID, bool triggerAction)
 {
-     if(viewMutex.tryLock()){
-         NodeItem* srcNode = getNodeItemFromID(srcID);
-         NodeItem* dstNode = getNodeItemFromID(dstID);
-         if(srcNode && dstNode){
-             view_displayNotification("Disconnected " + srcNode->getNodeLabel() +
-                                      " from " + dstNode->getNodeLabel() + ".",
-                                      notificationNumber, numberOfNotifications);
-             // reset notification seq and total number
-             numberOfNotifications = 1;
-             notificationNumber = 0;
-         }
-         emit view_DestructEdge(srcID, dstID);
-     }
+    if(viewMutex.tryLock()){
+        NodeItem* srcNode = getNodeItemFromID(srcID);
+        NodeItem* dstNode = getNodeItemFromID(dstID);
+        if(srcNode && dstNode){
+            view_displayNotification("Disconnected " + srcNode->getNodeLabel() +
+                                     " from " + dstNode->getNodeLabel() + ".",
+                                     notificationNumber, numberOfNotifications);
+            // reset notification seq and total number
+            numberOfNotifications = 1;
+            notificationNumber = 0;
+        }
+        emit view_DestructEdge(srcID, dstID);
+    }
 }
 
 void NodeView::changeEdgeDestination(QString srcID, QString dstID, QString newDstID)
