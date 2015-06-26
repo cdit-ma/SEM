@@ -246,9 +246,9 @@ private:
     void updateModelData();
 
 
-    void resizeToOptimumSize();
-    void setWidth(qreal width);
-    void setHeight(qreal height);
+    void resizeToOptimumSize(bool updateParent=true);
+    void setWidth(qreal width, bool updateParent=true);
+    void setHeight(qreal height, bool updateParent=true);
     void setSize(qreal w, qreal h);
     void setPos(qreal x, qreal y);
     void setPos(const QPointF &pos);

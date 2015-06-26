@@ -155,7 +155,7 @@ signals:
 
     void view_toggleGridLines(bool on);
 
-    void view_updateProgressStatus(int percent, QString action);
+    void view_updateProgressStatus(int percent, QString action="");
     void view_displayNotification(QString notification, int seqNum = 0, int totalNum = 1);
 
     void view_nodeItemLockMenuClosed(NodeItem* nodeItem);
@@ -209,7 +209,7 @@ public slots:
     void undo();
     void redo();
 
-    void appendToSelection(GraphMLItem* item);
+    void appendToSelection(GraphMLItem* item, bool updateActions=true);
     void removeFromSelection(GraphMLItem* item);
     void moveSelection(QPointF delta);
     void resizeSelection(QSizeF delta);

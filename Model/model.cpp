@@ -4,6 +4,7 @@
 
 Model::Model(): Node()
 {
+    setTop();
 }
 
 Model::~Model()

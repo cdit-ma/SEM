@@ -13,6 +13,7 @@ Node::Node(Node::NODE_TYPE type) : GraphML(GraphML::NODE)
     definition = 0;
     parentNode = 0;
     sortOrder = -1;
+    childCount = 0;
 }
 
 void Node::setSortPosition(int i)
@@ -30,11 +31,21 @@ int Node::getSortPosition()
     return sortOrder;
 }
 
+QList<int> Node::getTreeIndex()
+{
+    return treeIndex;
+}
+
 Node::~Node()
 {
     if(parentNode){
         parentNode->removeChild(this);
     }
+}
+
+void Node::setTop()
+{
+    this->treeIndex.append(0);
 }
 
 QString Node::toString()
@@ -90,7 +101,7 @@ void Node::addChild(Node *child)
 {
     if(child && !containsChild(child)){
         children << child;
-        child->setParentNode(this);
+        child->setParentNode(this, childCount++);
     }
 }
 
@@ -197,11 +208,27 @@ void Node::removeChildren()
 
 bool Node::ancestorOf(Node *node)
 {
-    return getChildren().contains(node) || this == node;
+    QList<int> otherTree = node->getTreeIndex();
+
+    if(this == node){
+        return true;
+    }
+
+    if(this->treeIndex.size() > otherTree.size()){
+        return false;
+    }
+
+    for(int i=0; i<treeIndex.size(); i++){
+        if(treeIndex.at(i) != otherTree.at(i)){
+            return false;
+        }
+    }
+    return true;
 }
 
 bool Node::ancestorOf(Edge *edge)
 {
+    qCritical() << "TEST";
     return getEdges().contains(edge);
 }
 
@@ -220,14 +247,21 @@ bool Node::isAncestorOf(GraphML *item)
 
 bool Node::isDescendantOf(Node *node)
 {
-    if(parentNode){
-        if(parentNode == node || parentNode->containsChild(node)){
-            return true;
-        }else{
-            return parentNode->isDescendantOf(node);
+    QList<int> otherTree = node->getTreeIndex();
+
+    if(this == node){
+        return false;
+    }
+    if(this->treeIndex.size() > otherTree.size()){
+        return false;
+    }
+
+    for(int i=0; i< otherTree.size(); i++){
+        if(treeIndex.at(i) != otherTree.at(i)){
+            return false;
         }
     }
-    return false;
+    return true;
 }
 
 bool Node::canConnect(Node *node)
@@ -436,8 +470,10 @@ void Node::removeEdge(Edge *edge)
     edges.removeAll(edge);
 }
 
-void Node::setParentNode(Node *parent)
+void Node::setParentNode(Node *parent, int index)
 {
+    this->treeIndex = parent->getTreeIndex();
+    this->treeIndex.append(index);
     parentNode = parent;
 }
 

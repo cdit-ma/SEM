@@ -723,8 +723,10 @@ void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, Q
 void NodeView::setAttributeModel(GraphMLItem *item, bool tellSubView)
 {
     if(item){
-        currentTableID = item->getID();
-        emit view_SetAttributeModel(item->getAttributeTable());
+        if(currentTableID != item->getID()){
+            currentTableID = item->getID();
+            emit view_SetAttributeModel(item->getAttributeTable());
+        }
     }else{
 
         currentTableID = "";
@@ -934,6 +936,21 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
  */
 void NodeView::sortNode(Node *node, Node* topMostNode)
 {
+
+    triggerAction("View: Sorting Node");
+    emit view_updateProgressStatus(0, "Sorting Selected Entities");
+    int count = 0;
+    foreach(QString ID, selectedIDs){
+        count +=100;
+        NodeItem* nodeItem = getNodeItemFromID(ID);
+        if(nodeItem){
+            nodeItem->newSort();
+        }
+        emit view_updateProgressStatus(count / selectedIDs.count());
+    }
+    emit view_updateProgressStatus(100);
+
+    /*
     if (!topMostNode) {
         triggerAction("View: Sorting Node");
         topMostNode = node;
@@ -959,7 +976,7 @@ void NodeView::sortNode(Node *node, Node* topMostNode)
         foreach (NodeItem* child, nodeItem->getChildNodeItems()) {
             sortNode(child->getNode(), topMostNode);
         }
-    }
+    }*/
 }
 
 
@@ -1491,7 +1508,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     // the node's label is automatically selected and editable
     if(toolbarDockConstruction && SELECT_ON_CONSTRUCTION){
         clearSelection(true, false);
-        appendToSelection(nodeItem);
+        appendToSelection(nodeItem, false);
         nodeItem->setNewLabel();
         centerOnItem();
         toolbarDockConstruction = false;
@@ -1802,13 +1819,32 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
 
     if(setSelected){
         if(!selectedIDs.contains(itemID)){
-            selectedIDs.append(itemID);
+            int nodeItemSize = 0;
+            if(item->isNodeItem()){
+                nodeItemSize = ((NodeItem*)item)->getNode()->getTreeIndex().size();
+            }
+            //Find spot for selectedID;
+            int position = selectedIDs.count();
+            for(int i = 0;i < selectedIDs.count();i++){
+                NodeItem* node = getNodeItemFromID(selectedIDs[i]);
+                if(node){
+                    int currentPos = node->getNode()->getTreeIndex().size();
+                    if(nodeItemSize > currentPos){
+                        position = i;
+                        break;
+
+                    }
+                }
+            }
+            selectedIDs.insert(position, itemID);
             item->setSelected(true);
             if(item->isNodeItem()){
                 NodeItem* nodeItem = (NodeItem*) item;
                 nodeSelected_signalUpdates(nodeItem->getNode());
             }
-            setAttributeModel(item);
+            if(selectedIDs.count() != 1){
+                setAttributeModel(item);
+            }
         }
     }else{
         if(selectedIDs.contains(itemID)){
@@ -2395,6 +2431,7 @@ void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
 
     Node* selectedModelNode = (Node*) selectedModelItem;
 
+
     QStringList currentlySelectedIDs;
     currentlySelectedIDs.append(selectedIDs);
 
@@ -2933,9 +2970,10 @@ void NodeView::selectAll()
         clearSelection();
         foreach(NodeItem* child, nodeItem->getChildNodeItems()){
             if(child->isVisible()){
-                appendToSelection(child);
+                appendToSelection(child, false);
             }
         }
+        enableClipboardActions(selectedIDs);
     }
 }
 
@@ -2973,7 +3011,7 @@ void NodeView::redo()
 }
 
 
-void NodeView::appendToSelection(GraphMLItem *item)
+void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 {
     if(isItemsAncestorSelected(item)){
         return;
@@ -2990,8 +3028,10 @@ void NodeView::appendToSelection(GraphMLItem *item)
     //    keepSelectionFullyVisible(item);
     //}
 
-    // update enabled states of cut, copy & paste everytime something is selected
-    enableClipboardActions(selectedIDs);
+    if(updateActions){
+        // update enabled states of cut, copy & paste everytime something is selected
+        enableClipboardActions(selectedIDs);
+    }
 }
 
 void NodeView::removeFromSelection(GraphMLItem *item)

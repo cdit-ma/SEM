@@ -1323,13 +1323,13 @@ void NodeItem::modelSort()
         return;
     }
     
-    
+
     
     NodeItem* topLeft = children[0];
     NodeItem* topRight = children[1];
     NodeItem* bottomLeft = children[2];
     NodeItem* bottomRight = children[3];
-    
+
     QPointF gapSize = QPointF(MODEL_WIDTH / 128, MODEL_WIDTH / 128);
     
     //double margin = qMax(topLeft->boundingRect().width(), topLeft->boundingRect().height());
@@ -1338,7 +1338,8 @@ void NodeItem::modelSort()
     QPointF topLeftPos = QPointF(getItemMargin(), getItemMargin());
     qreal deltaX = topLeft->boundingRect().width() - bottomLeft->boundingRect().width();
     qreal deltaY = topLeft->boundingRect().height() - topRight->boundingRect().height();
-    
+
+
     if(deltaX < 0){
         topLeftPos.setX(topLeftPos.x() + abs(deltaX));
     }
@@ -1358,7 +1359,7 @@ void NodeItem::modelSort()
     }
     
     
-    
+
     
     
     //Move Top Right
@@ -1375,7 +1376,7 @@ void NodeItem::modelSort()
     bottomRight->setPos(botRightPos);
     
     //Update the model size to contain the new size.
-    resizeToOptimumSize();
+    resizeToOptimumSize(false);
 }
 
 
@@ -1755,10 +1756,12 @@ void NodeItem::updateModelData()
     }
 }
 
-void NodeItem::resizeToOptimumSize()
+void NodeItem::resizeToOptimumSize(bool updateParent)
 {
-    setWidth(getMinimumChildRect().width());
-    setHeight(getMinimumChildRect().height());
+    QRectF rect = getMinimumChildRect();
+
+    setWidth(rect.width(), updateParent);
+    setHeight(rect.height(), updateParent);
 }
 
 NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
@@ -1774,15 +1777,20 @@ NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
 
 
 
-void NodeItem::setWidth(qreal w)
+void NodeItem::setWidth(qreal w, bool updateParent)
 {   
-    bool updateParent = false;
+    bool widthChanged = false;
+
 
     if(isExpanded()){
         w = qMax(w, getMinimumChildRect().width());
         expandedWidth = w;
     }else{
         w = minimumWidth;
+    }
+
+    if(w > width || w < width){
+        widthChanged = true;
     }
     
     
@@ -1801,7 +1809,7 @@ void NodeItem::setWidth(qreal w)
     }
 
 
-    if(updateParent && getParentNodeItem()){
+    if(updateParent && widthChanged && getParentNodeItem()){
         getParentNodeItem()->childUpdated();
     }
     
@@ -1809,21 +1817,18 @@ void NodeItem::setWidth(qreal w)
 }
 
 
-void NodeItem::setHeight(qreal h)
+void NodeItem::setHeight(qreal h, bool updateParent)
 {
-    bool updateParent = false;
+    bool heightChanged = false;
     if(isExpanded()){
         h = qMax(h, getMinimumChildRect().height());
         expandedHeight = h;
     }else{
         h = minimumHeight;
     }
-    if(h > height || h < height){
-        updateParent = true;
-    }
 
     if(h > height || h < height){
-        updateParent = true;
+        heightChanged = true;
     }
 
     prepareGeometryChange();
@@ -1839,7 +1844,7 @@ void NodeItem::setHeight(qreal h)
     }
     
 
-    if(updateParent && getParentNodeItem()){
+    if(updateParent && heightChanged && getParentNodeItem()){
         getParentNodeItem()->childUpdated();
     }
     emit nodeItemMoved();
@@ -1976,6 +1981,7 @@ QRectF NodeItem::getMinimumChildRect()
             }
         }
     }
+
     
     QRectF rectangle = QRectF(topLeft, bottomRight);
     return rectangle;

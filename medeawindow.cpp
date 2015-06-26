@@ -2335,7 +2335,9 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
     }
 
     // update displayed text
-    progressLabel->setText(progressAction + "...");
+    if(status != ""){
+        progressLabel->setText(status + "...");
+    }
 
     // update value
     progressBar->setValue(value);
@@ -2767,7 +2769,6 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
         e->ignore();
     } else {
         e->accept();
-        delete this;
     }
 }
 

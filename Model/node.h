@@ -22,6 +22,7 @@ public:
 
     void setSortPosition(int i);
     int getSortPosition();
+    QList<int> getTreeIndex();
     ~Node();
 
 signals:
@@ -32,7 +33,7 @@ signals:
 
 public:
     //Child Node Methods
-
+    void setTop();
     virtual QString toString();
     Node* getParentNode();
 
@@ -131,11 +132,14 @@ private:
     //Remove an edge which is connected to this graphml object.
     void addEdge(Edge *edge);
     void removeEdge(Edge *edge);
-    void setParentNode(Node* parent);
+    void setParentNode(Node* parent, int index);
 
 
     QList<Node*> getOrderedChildNodes();
     QList<Edge*> getOrderedEdges();
+
+    QList<int> treeIndex;
+    int childCount;
 
     int sortOrder;
 

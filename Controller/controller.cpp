@@ -174,10 +174,10 @@ NewController::~NewController()
     destructNode(model, false);
 
 
-    while(keys.size() > 0){
-        GraphMLKey* key = keys.takeFirst();
-        delete key;
-    }
+   // while(keys.size() > 0){
+   //     GraphMLKey* key = keys.takeFirst();
+   //     delete key;
+    //}
 
 }
 
@@ -322,6 +322,8 @@ bool NewController::_clear()
     bool reply = askQuestion(CRITICAL, "Clear Model?", "Are you sure you want to clear the model? You cannot undo this action.");
     if(reply){
         triggerAction("Clearing Model");
+
+        emit controller_ActionProgressChanged(0,"Clearing Model");
         QList<Node*> childNodes = interfaceDefinitions->getChildren(0);
         // while(!childNodes.isEmpty())
         for(int i=0; i < childNodes.size(); i++){
@@ -654,9 +656,9 @@ void NewController::copy(QStringList IDs)
  */
 void NewController::remove(QStringList IDs)
 {
-    bool alldeleted = _remove(IDs);
-    if(!alldeleted){
+    if(!_remove(IDs)){
         controller_DisplayMessage(WARNING, "Delete Error", "Cannot delete all selected entities.");
+         emit controller_ActionProgressChanged(100);
     }
 
     emit controller_ActionFinished();
@@ -667,7 +669,9 @@ void NewController::remove(QStringList IDs)
  */
 void NewController::clear()
 {
-    _clear();
+    if(!_clear()){
+        emit controller_ActionProgressChanged(100);
+    }
     emit controller_ActionFinished();
 }
 
@@ -677,8 +681,9 @@ void NewController::clear()
  */
 void NewController::replicate(QStringList IDs)
 {
-    qCritical() << IDs;
-    _replicate(IDs);
+    if(!_replicate(IDs)){
+        emit controller_ActionProgressChanged(100);
+    }
     emit controller_ActionFinished();
 }
 
@@ -688,7 +693,9 @@ void NewController::replicate(QStringList IDs)
  */
 void NewController::cut(QStringList IDs)
 {
-    _cut(IDs);
+    if(!_cut(IDs)){
+        emit controller_ActionProgressChanged(100);
+    }
     emit controller_ActionFinished();
 }
 
@@ -727,6 +734,7 @@ bool NewController::_paste(QString ID, QString xmlData, bool addAction)
         if(isGraphMLValid(xmlData) && xmlData != ""){
             if(addAction){
                 triggerAction("Pasting Selection.");
+                emit controller_ActionProgressChanged(0, "Pasting Selection");
             }
 
             //Paste it into the current Selected Node,
@@ -754,6 +762,7 @@ bool NewController::_cut(QStringList IDs, bool addAction)
     if(_copy(IDs)){
         if(addAction){
             triggerAction("Cutting Selected IDs");
+            emit controller_ActionProgressChanged(0, "Cutting Selection");
         }
         CUT_USED = true;
         _remove(IDs, false);
@@ -807,8 +816,10 @@ bool NewController::_remove(QStringList IDs, bool addAction)
 
         if(addAction){
             triggerAction("Removing Selection");
+            emit controller_ActionProgressChanged(0,"Removing Selection");
         }
-
+        int count=IDs.count();
+        int deleted=0;
         while(!IDs.isEmpty()){
             QString ID = IDs.takeFirst();
             //Clear the list of related IDs.
@@ -818,10 +829,9 @@ bool NewController::_remove(QStringList IDs, bool addAction)
 
             if(graphML){
                 if(graphML->isNode()){
-                    bool canDelete = true;
                     Node* node = (Node*)graphML;
 
-                    bool success = destructNode((Node*)graphML);
+                    bool success = destructNode(node);
                     if(!success){
                         allSuccess = false;
                     }
@@ -836,7 +846,13 @@ bool NewController::_remove(QStringList IDs, bool addAction)
             }
             //Add any related ID's which need deleting to the top of the stack.
             IDs = connectedLinkedIDs + IDs;
+            deleted++;
+            if(IDs.count() > 0){
+                emit controller_ActionProgressChanged((deleted/IDs.count() * 100));
+            }
+
         }
+        emit controller_ActionProgressChanged(100);
         controller_SetViewEnabled(true);
         //success = true;
     }
@@ -857,6 +873,7 @@ bool NewController::_replicate(QStringList IDs, bool addAction)
 
         Node* node = getFirstNodeFromList(IDs);
         if(node && node->getParentNode()){
+            emit controller_ActionProgressChanged(0,"Replicating Selection");
             //Export the GraphML
             QString graphml = _exportGraphMLDocument(IDs, false, true);
             if(addAction){
@@ -864,7 +881,7 @@ bool NewController::_replicate(QStringList IDs, bool addAction)
             }
             //Import the GraphML
             if(node->getParentNode()){
-                success = _paste(node->getParentNode()->getID(),graphml);
+                success = _paste(node->getParentNode()->getID(),graphml, false);
             }
         }
     }
@@ -885,6 +902,7 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
         controller_SetViewEnabled(false);
         if(addAction){
             triggerAction("Importing GraphML Projects.");
+            emit controller_ActionProgressChanged(0,"Importing Projects");
         }
 
         foreach(QString xmlData, xmlDataList){
@@ -937,6 +955,7 @@ bool NewController::_importSnippet(QStringList IDs, QString fileName, QString fi
 
             if(addAction){
                 triggerAction("Importing Snippet: " + userFileName);
+                emit controller_ActionProgressChanged(0,"Importing Snippets");
             }
             IMPORTING_SNIPPET = true;
             success = _importGraphMLXML(fileData, parent, false, false);
@@ -2204,7 +2223,12 @@ void NewController::undoRedo(bool undo)
         }else{
             actionsReversed ++;
             int percentage = (actionsReversed*100) / actionCount;
-            controller_ActionProgressChanged(percentage, "Undoing");
+            if(UNDOING){
+                controller_ActionProgressChanged(percentage, "Undoing");
+            }
+            if(REDOING){
+                controller_ActionProgressChanged(percentage, "Redoing");
+            }
         }
     }
     retryCount.clear();
@@ -3109,7 +3133,9 @@ void NewController::setGraphMLData(QString parentID, QString keyName, QString da
  */
 void NewController::importProjects(QStringList xmlDataList)
 {
-    _importProjects(xmlDataList);
+    if(!_importProjects(xmlDataList)){
+        emit controller_ActionProgressChanged(100);
+    }
     emit controller_ActionFinished();
 }
 
@@ -3130,7 +3156,9 @@ void NewController::exportProject()
  */
 void NewController::importSnippet(QStringList IDs, QString fileName, QString fileData)
 {
-    _importSnippet(IDs, fileName, fileData);
+    if(!_importSnippet(IDs, fileName, fileData)){
+        emit controller_ActionProgressChanged(100);
+    }
     emit controller_ActionFinished();
 }
 
