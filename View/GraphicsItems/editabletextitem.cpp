@@ -16,16 +16,19 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     maxLength = maximumLength;
     centerJustified = false;
 
+
     inEditingMode = false;
     setFlag(ItemIsFocusable, false);
     setFlag(ItemIsSelectable, false);
     setTextInteractionFlags(Qt::NoTextInteraction);
     setAcceptHoverEvents(true);
-    QTextDocument* document = this->document();
-    document->setDocumentMargin(0);
-    setDocument(document);
-
-
+    doc = this->document();
+    doc->setDocumentMargin(0);
+    doc->setTextWidth(this->textWidth);
+    QTextOption option = doc->defaultTextOption();
+    option.setWrapMode(QTextOption::WrapAnywhere);
+    doc->setDefaultTextOption(option);
+    setDocument(doc);
 }
 
 void EditableTextItem::setEditMode(bool editMode)
@@ -109,6 +112,7 @@ void EditableTextItem::setPlainText(const QString &text)
 void EditableTextItem::setTextWidth(qreal width)
 {
     textWidth = width;
+    doc->setTextWidth(width);
     QGraphicsTextItem::setTextWidth(width);
 
     if(width > 15){
@@ -201,9 +205,13 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
 {
     //Check for Enter pressing!
     int keyPressed = event->key();
+     bool CONTROL = event->modifiers() & Qt::ControlModifier;
 
     if(keyPressed == Qt::Key_Enter || keyPressed == Qt::Key_Return || keyPressed == Qt::Key_Escape){
         focusOutEvent(0);
+        return;
+    }
+    if(keyPressed == Qt::Key_V && CONTROL){
         return;
     }
     if(keyPressed == Qt::Key_Delete){
@@ -213,3 +221,4 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
     QGraphicsTextItem::keyPressEvent(event);
 
 }
+

@@ -694,8 +694,7 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items)
     foreach (QToolButton* button, multipleSelectionToolButtons) {
         button->setVisible(showButtons);
     }
-
-    showToolbar = true;
+    showToolbar = showButtons;
 }
 
 

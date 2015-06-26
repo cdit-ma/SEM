@@ -25,6 +25,8 @@ protected:
     void focusInEvent(QFocusEvent*);
     void focusOutEvent(QFocusEvent* event);
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
+    void keyPressEvent(QKeyEvent *event);
+
 
 
 private:
@@ -36,9 +38,7 @@ private:
     bool inEditingMode;
     qreal textWidth;
     int maxLength;
-
-protected:
-     void keyPressEvent(QKeyEvent *event);
+    QTextDocument* doc;
 
 
 };
