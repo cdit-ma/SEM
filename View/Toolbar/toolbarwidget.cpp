@@ -183,6 +183,14 @@ void ToolbarWidget::leaveEvent(QEvent* e)
     QWidget::leaveEvent(e);
 }
 
+void ToolbarWidget::updateActionEnabled(QString actionName, bool enabled)
+{
+    if(actionName == "delete" && deleteButton){
+        deleteButton->setVisible(enabled);
+    }
+
+}
+
 
 /**
  * @brief ToolbarWidget::goToDefinition
@@ -578,13 +586,13 @@ void ToolbarWidget::updateToolButtons()
 
     // show/hide the delete button depending on the nodeKind
     QString nodeKind = nodeItem->getNodeKind();
-    if (nodeKind.endsWith("Definitions") || nodeKind == "ManagementComponent") {
-        deleteButton->hide();
-    } else {
-        deleteButton->show();
-        alterModelToolButtons.append(deleteButton);
-        showToolbar = true;
-    }
+    //if (nodeKind.endsWith("Definitions") || nodeKind == "ManagementComponent") {
+    //    deleteButton->hide();
+    //} else {
+    //    deleteButton->show();
+    //    alterModelToolButtons.append(deleteButton);
+    //    showToolbar = true;
+    //}
 
     // check if the selected node item has other node items connected to it (edges)
     // NOTE: ComponentAssembly apparently has a connection to itself?
@@ -657,7 +665,7 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items)
     alterViewFrame->hide();
 
     // show the delete button - multiple selection can be deleted at the same time
-    deleteButton->show();
+    //deleteButton->show();
 
     NodeItem* prevParentItem = 0;
     bool showButtons = true;

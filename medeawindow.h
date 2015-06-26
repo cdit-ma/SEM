@@ -130,8 +130,7 @@ private slots:
     void writeExportedSnippet(QString parentName, QString snippetXMLData);
     void importSnippet(QString parentName);
 
-    void updateUndoStates(QStringList list);
-    void updateRedoStates(QStringList list);
+
 
     void setClipboard(QString value);
     void setAttributeModel(AttributeTableModel* model);

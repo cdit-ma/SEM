@@ -111,8 +111,7 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(controller_ExportedProject(QString)), view, SIGNAL(view_ExportedProject(QString)));
         connect(this, SIGNAL(controller_SetClipboardBuffer(QString)), view, SIGNAL(view_SetClipboardBuffer(QString)));
 
-        connect(this, SIGNAL(controller_UndoListChanged(QStringList)), view, SIGNAL(view_UndoListChanged(QStringList)));
-        connect(this, SIGNAL(controller_RedoListChanged(QStringList)), view, SIGNAL(view_RedoListChanged(QStringList)));
+
         connect(this, SIGNAL(controller_ActionProgressChanged(int,QString)), view, SIGNAL(view_updateProgressStatus(int,QString)));
 
         //Signals to the View.
@@ -129,7 +128,7 @@ void NewController::connectView(NodeView *view)
 
     if(view->isMainView()){
         connect(this, SIGNAL(controller_ActionFinished()), view, SLOT(actionFinished()));
-        connect(view, SIGNAL(view_Duplicate(QStringList)), this, SLOT(replicate(QStringList)));
+        connect(view, SIGNAL(view_Replicate(QStringList)), this, SLOT(replicate(QStringList)));
         //File SLOTS
         connect(view, SIGNAL(view_ExportProject()), this, SLOT(exportProject()));
         connect(view, SIGNAL(view_ImportProjects(QStringList)), this, SLOT(importProjects(QStringList)));
@@ -234,7 +233,7 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
                 if(containsSrc && containsDst){
                     exportEdge = true;
                 }else if(containsSrc || containsDst){
-                    if((edge->isAggregateLink() || edge->isInstanceLink() || edge->isImplLink() || edge->isDelegateLink())){
+                    if((edge->isAggregateLink() || edge->isInstanceLink() || edge->isImplLink() || edge->isDelegateLink() || edge->isDeploymentLink())){
                         if(GUI_USED){
                             controller_DisplayMessage(MESSAGE, "", "", src->getID());
 
@@ -678,6 +677,7 @@ void NewController::clear()
  */
 void NewController::replicate(QStringList IDs)
 {
+    qCritical() << IDs;
     _replicate(IDs);
     emit controller_ActionFinished();
 }
@@ -797,6 +797,9 @@ bool NewController::_copy(QStringList IDs)
  */
 bool NewController::_remove(QStringList IDs, bool addAction)
 {
+    if(!canDelete(IDs)){
+        return false;
+    }
     bool allSuccess = true;
 
     if(IDs.length() > 0){
@@ -817,25 +820,12 @@ bool NewController::_remove(QStringList IDs, bool addAction)
                 if(graphML->isNode()){
                     bool canDelete = true;
                     Node* node = (Node*)graphML;
-                    if(node->getParentNode()){
-                        if(node->isImpl() || node->getParentNode()->isImpl()){
-                            if(node->getDataValue("kind") != "OutEventPortImpl"){
-                                emit controller_DisplayMessage(WARNING, "Cannot Delete Impl", "Cannot Delete From Inside an Impl", ID);
-                                canDelete = false;
-                            }
-                        }
-                        if(node->isInstance() && node->getParentNode()->isInstance()){
-                            emit controller_DisplayMessage(WARNING, "Cannot Delete Instance", "Cannot Delete From Inside an Instance", ID);
-                            canDelete = false;
-                        }
+
+                    bool success = destructNode((Node*)graphML);
+                    if(!success){
+                        allSuccess = false;
                     }
-                    //destructNode((Node*)graphML);
-                    if(canDelete){
-                        bool success = destructNode((Node*)graphML);
-                        if(!success){
-                            allSuccess = false;
-                        }
-                    }
+
                 }else if (graphML->isEdge()){
                     //destructEdge((Edge*)graphML);
                     bool success = destructEdge((Edge*)graphML);
@@ -864,17 +854,17 @@ bool NewController::_replicate(QStringList IDs, bool addAction)
     bool success = false;
 
     if(canCopy(IDs)){
-        Node* node = getNodeFromID(IDs.first());
+
+        Node* node = getFirstNodeFromList(IDs);
         if(node && node->getParentNode()){
             //Export the GraphML
-            QString graphml = _exportGraphMLDocument(IDs, true);
+            QString graphml = _exportGraphMLDocument(IDs, false, true);
             if(addAction){
                 triggerAction("Replicating Selection");
             }
             //Import the GraphML
-            success = _importGraphMLXML(graphml, node->getParentNode());
-            if(!success){
-
+            if(node->getParentNode()){
+                success = _paste(node->getParentNode()->getID(),graphml);
             }
         }
     }
@@ -1710,38 +1700,7 @@ bool NewController::destructNode(Node *node, bool addAction)
         return true;
     }
     if(addAction){
-        if(behaviourDefinitions == node){
-            qCritical() << "Cannot delete behaviourDefinitions. Must be deleted from Definition.";
-            return false;
-            //behaviourDefinitions = 0;
-        }
-        if(deploymentDefinitions == node){
-            qCritical() << "Cannot delete deploymentDefinitions. Must be deleted from Definition.";
-            return false;
-            //deploymentDefinitions = 0;
-        }
-        if(interfaceDefinitions == node){
-            qCritical() << "Cannot delete interfaceDefinitions. Must be deleted from Definition.";
-            return false;
-            //interfaceDefinitions = 0;
-        }
-        if(assemblyDefinitions == node){
-            qCritical() << "Cannot delete assemblyDefinitions. Must be deleted from Definition.";
-            return false;
-            //assemblyDefinitions = 0;
-        }
-        if(hardwareDefinitions == node){
-            qCritical() << "Cannot delete hardwareDefinitions. Must be deleted from Definition.";
-            return false;
-        }
-        if(node->getDataValue("kind") == "ManagementComponent"){
-            qCritical() << "Cannot delete ManagementComponent. Must be deleted from Definition.";
-            return false;
-        }
-
-        // Added this here to stop the user from being able to cut or delete the model
-        if(model == node){
-            qCritical() << "Cannot delete Model!";
+        if(!canDeleteNode(node)){
             return false;
         }
     }
@@ -2324,6 +2283,40 @@ void NewController::logAction(ActionItem item)
 
 
 
+}
+
+bool NewController::canDeleteNode(Node *node)
+{
+    if(!node){
+        return false;
+    }
+    // Added this here to stop the user from being able to cut or delete the model
+    if(model == node){
+        return false;
+    }
+
+    if(behaviourDefinitions == node){
+        return false;
+        //behaviourDefinitions = 0;
+    }
+    if(deploymentDefinitions == node){
+        return false;
+        //deploymentDefinitions = 0;
+    }
+    if(interfaceDefinitions == node){
+        return false;
+    }
+    if(assemblyDefinitions == node){
+        return false;
+    }
+    if(hardwareDefinitions == node){
+        return false;
+    }
+    if(node->getDataValue("kind") == "ManagementComponent"){
+        return false;
+    }
+
+    return true;
 }
 
 void NewController::clearHistory()
@@ -2995,6 +2988,18 @@ Node *NewController::getNodeFromID(QString ID)
     return getNodeFromGraphML(graphML);
 }
 
+Node *NewController::getFirstNodeFromList(QStringList IDs)
+{
+    Node* node = 0;
+    foreach(QString ID, IDs){
+         GraphML* graphML = getGraphMLFromID(ID);
+         if(graphML && graphML->isNode()){
+             node = (Node*)graphML;
+         }
+    }
+    return node;
+}
+
 
 Edge *NewController::getEdgeFromID(QString ID)
 {
@@ -3527,7 +3532,7 @@ bool NewController::canCopy(QStringList IDs)
             continue;
         }
         gotNode = true;
-        if (node->getDataValue("kind").endsWith("Definitions") || node->getDataValue("kind") == "Model") {
+        if(!canDeleteNode(node)){
             return false;
         }
         if(!parent){
@@ -3543,9 +3548,62 @@ bool NewController::canCopy(QStringList IDs)
     return gotNode;
 }
 
+bool NewController::canReplicate(QStringList selection)
+{
+    //Uses can cut for the moment to try catch replication of implemenations.
+    if(!canCut(selection)){
+        return false;
+    }
+    //Find selections parent, to see if paste would work
+    Node* parentNode = 0;
+
+    foreach(QString ID, selection){
+        Node* node = getNodeFromID(ID);
+
+        if(!node){
+            //Probably an Edge!
+            continue;
+        }
+        if(node->getParentNode()){
+            if(!parentNode){
+                parentNode = node->getParentNode();
+            }
+            if(parentNode != node->getParentNode()){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 bool NewController::canCut(QStringList selection)
 {
-    return canCopy(selection);
+    return canCopy(selection) && canDelete(selection);
+}
+
+bool NewController::canDelete(QStringList selection)
+{
+    foreach(QString ID, selection){
+        Node* node = getNodeFromID(ID);
+        if(!node){
+            continue;
+        }
+        if(!canDeleteNode(node)){
+            return false;
+        }
+        if(node->getParentNode()){
+            if(node->isImpl() && node->getDefinition()){
+                if(node->getDataValue("kind") != "OutEventPortImpl"){
+                    return false;
+                }
+            }
+
+            if(node->isInstance() && node->getParentNode()->isInstance()){
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 bool NewController::canPaste(QStringList selection)

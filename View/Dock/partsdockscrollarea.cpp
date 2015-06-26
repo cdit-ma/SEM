@@ -41,24 +41,24 @@ void PartsDockScrollArea::updateDock()
                 dockNodeItem->hide();
                 displayedItems.removeAll(kind);
             }else{
+
                 //qCritical() << "Dont have item" << kind;
             }
         }
     }
 
     //Got nothing to show. So Hide the Dock!
-    if (displayedItems.isEmpty() && kindsToShow.isEmpty()) {
-        setDockEnabled(false);
-    } else {
-        foreach (QString kind, kindsToShow) {
-            DockNodeItem* dockNodeItem = getDockNodeItem(kind);
-            if (dockNodeItem) {
-                dockNodeItem->show();
-                displayedItems.append(kind);
-            } else {
-                //qCritical() << "Dont have item" << kind;
-            }
+    foreach (QString kind, kindsToShow) {
+        DockNodeItem* dockNodeItem = getDockNodeItem(kind);
+        if (dockNodeItem) {
+            dockNodeItem->show();
+            displayedItems.append(kind);
+        } else {
+            //qCritical() << "Dont have item" << kind;
         }
+    }
+    if(displayedItems.isEmpty()){
+        setDockEnabled(false);
     }
 }
 

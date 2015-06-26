@@ -1132,8 +1132,7 @@ connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
     connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
     connect(nodeView, SIGNAL(view_ExportedSnippet(QString,QString)), this, SLOT(writeExportedSnippet(QString,QString)));
 
-    connect(nodeView, SIGNAL(view_UndoListChanged(QStringList)), this, SLOT(updateUndoStates(QStringList)));
-    connect(nodeView, SIGNAL(view_RedoListChanged(QStringList)), this, SLOT(updateRedoStates(QStringList)));
+
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
     connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(updateWindowTitle(QString)));
 
@@ -1923,73 +1922,6 @@ void MedeaWindow::importSnippet(QString parentName)
 
 
 /**
- * @brief MedeaWindow::updateUndoStates
- * @param list
- */
-void MedeaWindow::updateUndoStates(QStringList list)
-{
-
-    if (list.size() == 0) {
-        edit_undo->setEnabled(false);
-    } else {
-        edit_undo->setEnabled(true);
-    }
-
-    // TODO: Use undo states for the progress bar label
-
-    /*
-    edit_undo->setText(QString("Undo [%1]").arg(list.size()));
-
-    QMenu* menu = edit_undo->menu();
-    if (menu) {
-        menu->clear();
-    } else {
-        menu = new QMenu();
-        edit_undo->setMenu(menu);
-    }
-    foreach (QString item, list) {
-        QAction* newUndo = new QAction(item, menu);
-        newUndo->setEnabled(false);
-        menu->addAction(newUndo);
-    }
-    */
-}
-
-
-/**
- * @brief MedeaWindow::updateRedoStates
- * @param list
- */
-void MedeaWindow::updateRedoStates(QStringList list)
-{
-    if (list.size() == 0) {
-        edit_redo->setEnabled(false);
-    } else {
-        edit_redo->setEnabled(true);
-    }
-
-    // TODO: Use redo states for the progress bar label
-
-    /*
-    edit_redo->setText(QString("Redo [%1]").arg(list.size()));
-
-    QMenu* menu = edit_redo->menu();
-    if (menu) {
-        menu->clear();
-    } else {
-        menu = new QMenu();
-        edit_redo->setMenu(menu);
-    }
-    foreach (QString item, list) {
-        QAction* newRedo = new QAction(item, menu);
-        newRedo->setEnabled(false);
-        menu->addAction(newRedo);
-    }
-    */
-}
-
-
-/**
  * @brief MedeaWindow::setClipboard
  * @param value
  */
@@ -2053,8 +1985,12 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
         edit_paste->setEnabled(enable);
     }else if (action == "replicate") {
         edit_replicate->setEnabled(enable);
-    }else if (action == "remove") {
+    }else if (action == "delete") {
         edit_delete->setEnabled(enable);
+    }else if (action == "undo") {
+        edit_undo->setEnabled(enable);
+    }else if (action == "redo") {
+        edit_redo->setEnabled(enable);
     }
 }
 

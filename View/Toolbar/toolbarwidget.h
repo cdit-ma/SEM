@@ -35,6 +35,7 @@ protected:
     virtual void leaveEvent(QEvent*);
 
 public slots:
+    void updateActionEnabled(QString actionName, bool enabled);
     void goToDefinition();
     void goToImplementation();
     void goToInstance();

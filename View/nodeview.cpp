@@ -113,6 +113,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //create toolbar widget
     toolbar = new ToolbarWidget(this);
 
+    connect(this, SIGNAL(view_updateMenuActionEnabled(QString,bool)), toolbar, SLOT(updateActionEnabled(QString, bool)));
+
     // initialise the view's center point
     centerPoint = getVisibleRect().center();
 
@@ -1314,8 +1316,11 @@ void NodeView::enableClipboardActions(QStringList IDs)
     if (controller) {
         emit view_updateMenuActionEnabled("cut", controller->canCut(selectedIDs));
         emit view_updateMenuActionEnabled("copy", controller->canCopy(selectedIDs));
-        emit view_updateMenuActionEnabled("replicate", controller->canCopy(selectedIDs));
+        emit view_updateMenuActionEnabled("replicate", controller->canReplicate(selectedIDs));
         emit view_updateMenuActionEnabled("paste", controller->canPaste(selectedIDs));
+        emit view_updateMenuActionEnabled("delete", controller->canDelete(selectedIDs));
+        emit view_updateMenuActionEnabled("undo", controller->canUndo());
+        emit view_updateMenuActionEnabled("redo", controller->canRedo());
     }
 }
 
@@ -2647,6 +2652,7 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
     if(allowedFocusWidget){
         if(event->key() == Qt::Key_Delete){
+
             deleteSelection();
         }
     }
@@ -2826,7 +2832,11 @@ void NodeView::replicate()
 {
     if (selectedIDs.count() > 0) {
         if(viewMutex.tryLock()){
-            emit view_Duplicate(selectedIDs);
+            pasting = true;
+            //Clear before pasting
+            QStringList duplicateList = selectedIDs;
+            clearSelection();
+            emit view_Replicate(duplicateList);
         }
     } else {
         view_displayNotification("Select entity(s) to replicate.");

@@ -75,7 +75,9 @@ public:
     QStringList getNodesOfKind(QString kind, QString ID="", int depth=-1);
 
     bool canCopy(QStringList selection);
+    bool canReplicate(QStringList selection);
     bool canCut(QStringList selection);
+    bool canDelete(QStringList selection);
     bool canPaste(QStringList selection);
     bool canExportSnippet(QStringList selection);
     bool canImportSnippet(QStringList selection);
@@ -276,6 +278,8 @@ private:
 
     void logAction(ActionItem item);
 
+    bool canDeleteNode(Node* node);
+
 
     Node* constructTypedNode(QString nodeKind, QString nodeType="", QString nodeLabel="");
 
@@ -288,6 +292,7 @@ private:
     //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
     GraphML* getGraphMLFromID(QString ID);
     Node* getNodeFromID(QString ID);
+    Node* getFirstNodeFromList(QStringList ID);
     Edge* getEdgeFromID(QString ID);
 
     //Used to find old ID's which may have been deleted from the Model. Will find the replacement ID if they exist.

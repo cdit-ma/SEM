@@ -100,8 +100,7 @@ signals:
     void view_ProjectCleared();
 
     void view_SetClipboardBuffer(QString);
-    void view_UndoListChanged(QStringList);
-    void view_RedoListChanged(QStringList);
+
     void view_ProjectNameChanged(QString);
     void view_ExportProject();
     void view_ExportedProject(QString data);
@@ -118,7 +117,7 @@ signals:
     void view_Cut(QStringList IDs);
     void view_Paste(QString ID, QString xmlData);
     void view_Delete(QStringList IDs);
-    void view_Duplicate(QStringList IDs);
+    void view_Replicate(QStringList IDs);
     void view_Undo();
     void view_Redo();
 
