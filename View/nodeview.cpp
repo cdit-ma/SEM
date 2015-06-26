@@ -1842,7 +1842,7 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
                 NodeItem* nodeItem = (NodeItem*) item;
                 nodeSelected_signalUpdates(nodeItem->getNode());
             }
-            if(selectedIDs.count() != 1){
+            if(selectedIDs.count() == 1){
                 setAttributeModel(item);
             }
         }
@@ -2685,7 +2685,9 @@ void NodeView::keyPressEvent(QKeyEvent *event)
     if(this->hasFocus()){
 
         if(CONTROL && event->key() == Qt::Key_A){
-            selectAll();
+            if (!editingNodeItemLabel) {
+                selectAll();
+            }
         }
 
         if(CONTROL && event->key() == Qt::Key_D){

@@ -59,6 +59,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setNodeResizing(false);
     setNodeMoving(false);
     nodeWasOnGrid = false;
+
     
     isNodeSorted = false;
     nodeLabel = "";
@@ -792,6 +793,9 @@ NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
     //Check if the Mouse is in the Bottom Right Corner.
     if(resizePolygon().containsPoint(mousePosition, Qt::WindingFill)){
         return RESIZE;
+    }
+    if(this->nodeKind.endsWith("Definitions")){
+        return NO_RESIZE;
     }
     
     qreal cornerRadius = getCornerRadius();
@@ -1581,7 +1585,6 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
     
     if(isNodePressed && isNodeSelected){
-        
         if(currentResizeMode != NO_RESIZE){
             if(!hasSelectionResized){
                 GraphMLItem_TriggerAction("Resizing Selection");
@@ -1667,12 +1670,19 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
             setCursor(Qt::SizeVerCursor);
             changedCursor = true;
         }
+        //qCritical() << currentResizeMode;
     }
     
     if(!changedCursor){
         setCursor(Qt::OpenHandCursor);
     }
     
+}
+
+void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+{
+    currentResizeMode = NO_RESIZE;
+    setCursor(Qt::OpenHandCursor);
 }
 
 /**

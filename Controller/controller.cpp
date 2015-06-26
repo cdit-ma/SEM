@@ -3569,7 +3569,7 @@ bool NewController::canCopy(QStringList IDs)
         }
 
         if(node->getParentNode() != parent){
-            controller_DisplayMessage(WARNING, "Error", "Can only copy or cut entities which share the same parent.", ID);
+            //controller_DisplayMessage(WARNING, "Error", "Can only copy or cut entities which share the same parent.", ID);
             return false;
         }
     }

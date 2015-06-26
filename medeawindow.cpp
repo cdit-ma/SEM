@@ -1903,7 +1903,9 @@ void MedeaWindow::importSnippet(QString parentName)
                 "",
                 "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)");
 
-
+    if(snippetFileName.isNull()){
+        return;
+    }
     QFile file(snippetFileName);
 
     bool fileOpened = file.open(QFile::ReadOnly | QFile::Text);
@@ -1942,7 +1944,7 @@ void MedeaWindow::updateWindowTitle(QString newProjectName)
 {
     setWindowTitle("MEDEA - " + newProjectName);
     projectName->setText(newProjectName);
-    projectName->setFixedSize(projectName->fontMetrics().width(newProjectName) + 20,
+    projectName->setFixedSize(200,
                               projectName->height());
 }
 
