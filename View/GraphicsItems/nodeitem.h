@@ -264,7 +264,9 @@ private:
     void updateChildrenOnChange();
     void retrieveGraphMLData();
     void updateTextLabel(QString text="");
-    void updateParent();
+    void updateParent(bool update);
+
+    void childUpdated();
     void updateParentModel();
 
 
@@ -319,9 +321,12 @@ private:
     bool isNodeInAspect;
 
     bool isNodeOnGrid;
+    bool nodeWasOnGrid;
 
     bool isSelectionMoving;
     bool hasSelectionMoved;
+
+
 
     bool isSelectionResizing;
     bool hasSelectionResized;
@@ -377,6 +382,7 @@ private:
     QBrush brush;
     QPen pen;
     QPen selectedPen;
+    bool updatedAlready;
 
 
     QPointF modelCenterPoint;

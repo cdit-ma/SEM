@@ -11,6 +11,7 @@
 ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction *parent_action, ToolbarWidgetAction* default_action, QWidget *parent):
     QMenu(parent)
 {
+    this->
     defaultAction = default_action;
     widgetActions = QList<ToolbarWidgetAction*>();
 

@@ -230,6 +230,10 @@ void ToolbarWidget::addChildNode()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
     nodeView->constructNode(action->getKind(), 1);
+
+    if (addChildButton->menu()) {
+        addChildButton->menu()->hide();
+    }
 }
 
 
@@ -241,6 +245,10 @@ void ToolbarWidget::connectNodes()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
     nodeView->constructEdge(nodeItem->getID(), action->getNodeItem()->getID());
+
+    if (connectButton->menu()) {
+        connectButton->menu()->hide();
+    }
 }
 
 
@@ -539,6 +547,9 @@ void ToolbarWidget::setupMenus()
     inEventPort_componentInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, inEventPort_componentInstanceDefaultAction, addMenu);
     outEventPort_componentInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, outEventPort_componentInstanceDefaultAction, addMenu);
     blackBoxInstanceMenu = new ToolbarWidgetMenu(blackBoxInstanceAction, blackBoxInstanceDefaultAction, addMenu);
+
+    qCritical() << "Connect Menu: " << connectMenu;
+
 }
 
 

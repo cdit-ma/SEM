@@ -52,11 +52,13 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     Q_INIT_RESOURCE(resources);
     setParentItem(parent);
     
+    updatedAlready = false;
     parentNodeItem = parent;
     showDeploymentWarningIcon = false;
     isNodeSelected = false;
     setNodeResizing(false);
     setNodeMoving(false);
+    nodeWasOnGrid = false;
     
     isNodeSorted = false;
     nodeLabel = "";
@@ -69,7 +71,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     GRIDLINES_ON = false;
     isGridVisible = false;
     isNodeOnGrid = false;
-    
+
     isNodePressed = false;
     isNodeExpanded = true;
     hidden = false;
@@ -87,7 +89,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     expandedHeight = 0;
     minimumWidth = 0;
     minimumHeight = 0;
-    //setItemIndexMethod(QGraphicsScene::NoIndex);
+
     nodeKind = getGraphML()->getDataValue("kind");
     
     hasIcon = true;
@@ -158,6 +160,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         setVisibilty(true);
     }else{
         updateModelData();
+    }
+
+    if(getParentNodeItem()){
+        getParentNodeItem()->childUpdated();
     }
     
     //this->iconPixmap = QPixmap::fromImage(QImage(":/Resources/Icons/" + nodeKind + ".png"));
@@ -1188,6 +1194,9 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
             if(newCenter.y() != oldCenter.y()){
                 emit GraphMLItem_SetGraphMLData(getID(), "y", QString::number(newCenter.y()));
             }
+
+
+
         }else if(keyName == "width" || keyName == "height"){
             //If data is related to the size of the NodeItem
             
@@ -1770,6 +1779,8 @@ NodeItem *NodeItem::getChildNodeItemFromNode(Node *child)
 
 void NodeItem::setWidth(qreal w)
 {   
+    bool updateParent = false;
+
     if(isExpanded()){
         w = qMax(w, getMinimumChildRect().width());
         expandedWidth = w;
@@ -1784,40 +1795,56 @@ void NodeItem::setWidth(qreal w)
     updateTextLabel();
     
     calculateGridlines();
-    updateParent();
+    //updateParent();
+
     isOverGrid(centerPos());
     
     if(getNodeKind() == "Model"){
         emit model_PositionChanged();
     }
+
+
+    if(updateParent && getParentNodeItem()){
+        getParentNodeItem()->childUpdated();
+    }
     
     emit nodeItemMoved();
-    
-    //emit NodeItem_resized(this);
 }
 
 
 void NodeItem::setHeight(qreal h)
 {
+    bool updateParent = false;
     if(isExpanded()){
         h = qMax(h, getMinimumChildRect().height());
         expandedHeight = h;
     }else{
         h = minimumHeight;
     }
-    
+    if(h > height || h < height){
+        updateParent = true;
+    }
+
+    if(h > height || h < height){
+        updateParent = true;
+    }
+
     prepareGeometryChange();
     height = h;
     
     calculateGridlines();
     updateChildrenOnChange();
-    updateParent();
+
     isOverGrid(centerPos());
     
     if(getNodeKind() == "Model"){
         emit model_PositionChanged();
     }
     
+
+    if(updateParent && getParentNodeItem()){
+        getParentNodeItem()->childUpdated();
+    }
     emit nodeItemMoved();
 }
 
@@ -1844,7 +1871,7 @@ void NodeItem::setSize(qreal w, qreal h)
         //updateTextLabel();
         calculateGridlines();
         
-        updateParent();
+        //updateParent();
     }
 }
 
@@ -2127,10 +2154,15 @@ void NodeItem::setPos(const QPointF &pos)
         // need to check if GRID is turned on
         isOverGrid(centerPos());
         
-        updateParent();
+
+        //updateParent();
         
         if(getNodeKind() == "Model"){
             emit model_PositionChanged();
+        }
+
+        if(getParentNodeItem()){
+            getParentNodeItem()->childPosUpdated();
         }
         emit nodeItemMoved();
     }
@@ -2182,11 +2214,44 @@ void NodeItem::setupLockMenu()
 }
 
 
-void NodeItem::updateParent()
+void NodeItem::updateParent(bool update)
 {
-    if(parentNodeItem){
-        parentNodeItem->childPosUpdated();
-        //fitToScreen(this);
+    if(update){
+        updatedAlready = true;
+        childPosUpdated();
+    }
+}
+
+//Dont be N-Factorial
+void NodeItem::childUpdated()
+{
+    if(!getGraphML()){
+        return;
+    }
+
+    QSizeF minSize = getMinimumChildRect().size();
+
+    bool okay = false;
+    double modelWidth = getGraphMLDataValue("width").toDouble(&okay);
+    if(!okay){
+        return;
+    }
+    double modelHeight = getGraphMLDataValue("height").toDouble(&okay);
+    if(!okay){
+        return;
+    }
+
+    //Maximize on the current size in the Model and the minimum child rectangle
+    if(minSize.width() > modelWidth){
+        setWidth(minSize.width());
+    }
+
+    if(minSize.height() > modelHeight){
+        setHeight(minSize.height());
+    }
+    if(nodeKind == "Model"){
+        //Sort after any model changes!
+        newSort();
     }
 }
 
@@ -2414,34 +2479,33 @@ void NodeItem::setupGraphMLConnections()
 
 QPointF NodeItem::isOverGrid(const QPointF centerPosition)
 {  
+
     if(!GRIDLINES_ON || !parentNodeItem || nodeKind.endsWith("Definitions")){
-        if(parentNodeItem){
-            isNodeOnGrid = false;
-            parentNodeItem->removeChildOutline(getID());
+            if(parentNodeItem){
+                isNodeOnGrid = false;
+                parentNodeItem->removeChildOutline(getID());
+            }
+            return QPointF();
         }
-        return QPointF();
-    }
-    
-    QPointF gridPoint = parentNodeItem->getClosestGridPoint(centerPosition);
-    
-    //Calculate the distance between the centerPosition and the closestGrid
-    qreal distance = QLineF(centerPosition, gridPoint).length();
-    
-    //If the distance is less than the SNAP_PERCENTAGE
-    if((distance / minimumWidth) <= SNAP_PERCENTAGE){
-        if(isNodeOnGrid || isSelectionMoving || isSelectionResizing){
-            isNodeOnGrid = true;
-            parentNodeItem->addChildOutline(this, gridPoint);
+
+        QPointF gridPoint = parentNodeItem->getClosestGridPoint(centerPosition);
+
+        //Calculate the distance between the centerPosition and the closestGrid
+        qreal distance = QLineF(centerPosition, gridPoint).length();
+
+        //If the distance is less than the SNAP_PERCENTAGE
+        if((distance / minimumWidth) <= SNAP_PERCENTAGE){
+            if(hasSelectionMoved || hasSelectionResized){
+                isNodeOnGrid = true;
+                parentNodeItem->addChildOutline(this, gridPoint);
+                return gridPoint;
+            }
         }
-        return gridPoint;
-    }else{
         isNodeOnGrid = false;
-        
-        if(isSelectionMoving || isSelectionResizing){
-            parentNodeItem->removeChildOutline(getID());
-        }
+        parentNodeItem->removeChildOutline(getID());
+
         return QPointF();
-    }
+
 }
 
 

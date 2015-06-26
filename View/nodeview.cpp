@@ -1744,7 +1744,7 @@ void NodeView::showConnectedNodes()
         QList<NodeItem*> connectedNodeItems;
 
         // store the outer edges of the selected node
-        foreach (Edge* edge, node->getEdges()) {
+        foreach (Edge* edge, node->getEdges(0)) {
             if (!node->isAncestorOf(edge->getSource())) {
                 connectedNodeItems.append(getNodeItemFromNode(edge->getSource()));
             }
@@ -3063,6 +3063,7 @@ void NodeView::resizeSelection(QSizeF delta)
 void NodeView::moveFinished()
 {
     IS_MOVING = false;
+
 
     foreach(QString ID, selectedIDs){
         GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
