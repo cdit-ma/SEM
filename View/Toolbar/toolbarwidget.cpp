@@ -58,7 +58,7 @@ void ToolbarWidget::updateSelectedNodeItem(QList<NodeItem*> items)
 {   
     if (items.count() == 1) {
         nodeItem = items.at(0);
-        alterModelToolButtons.clear();
+        //alterModelToolButtons.clear();
         updateToolButtons();
         updateMenuLists();
     } else if (items.count() > 1) {
@@ -146,6 +146,8 @@ void ToolbarWidget::showSnippetButton(QString button, bool show)
  */
 void ToolbarWidget::updateSeparators(bool snippet, bool goTo)
 {
+    //alterViewFrame->setVisible(addChildButton->isVisible() || connectButton->isVisible() || deleteButton->isVisible() || showSnippetFrame || showGoToFrame);
+
     // show frame if any of the snippet buttons are visible
     if (snippet) {
         snippetFrame->setVisible(showSnippetFrame);
@@ -183,12 +185,21 @@ void ToolbarWidget::leaveEvent(QEvent* e)
     QWidget::leaveEvent(e);
 }
 
+
+/**
+ * @brief ToolbarWidget::updateActionEnabled
+ * @param actionName
+ * @param enabled
+ */
 void ToolbarWidget::updateActionEnabled(QString actionName, bool enabled)
 {
-    if(actionName == "delete" && deleteButton){
+    if (actionName == "delete" && deleteButton) {
         deleteButton->setVisible(enabled);
     }
-
+    if (enabled) {
+        showAlterViewFrame = true;
+        showToolbar = true;
+    }
 }
 
 
@@ -592,24 +603,13 @@ void ToolbarWidget::updateToolButtons()
         button->hide();
     }
 
-    // show/hide the delete button depending on the nodeKind
-    QString nodeKind = nodeItem->getNodeKind();
-    //if (nodeKind.endsWith("Definitions") || nodeKind == "ManagementComponent") {
-    //    deleteButton->hide();
-    //} else {
-    //    deleteButton->show();
-    //    alterModelToolButtons.append(deleteButton);
-    //    showToolbar = true;
-    //}
-
     // check if the selected node item has other node items connected to it (edges)
     // NOTE: ComponentAssembly apparently has a connection to itself?
     if (nodeItem->getNode()->getEdges().count() > 0) {
         // DEMO CHANGE - Don't need this when the popup new window button is back
         //alterViewFrame->show();
         showConnectionsButton->show();
-        showAlterViewFrame = true;
-        showToolbar = true;
+        //showToolbar = true;
     } else {
         // DEMO CHANGE - Don't need this when the popup new window button is back
         //alterViewFrame->hide();
@@ -618,6 +618,7 @@ void ToolbarWidget::updateToolButtons()
 
     // always show showNewView button
     showNewViewButton->show();
+    showToolbar = true;
 }
 
 
@@ -630,6 +631,7 @@ void ToolbarWidget::updateMenuLists()
     // TODO: Do check here for differences between current list and
     // new list for menus instead of just clearing them
     clearMenus();
+    showAlterViewFrame = false;
 
     if(nodeItem){
         setupAdoptableNodesList(nodeView->getAdoptableNodeList(nodeItem->getID()));
@@ -648,8 +650,9 @@ void ToolbarWidget::updateMenuLists()
         }
     }
 
-    alterViewFrame->setVisible(showAlterViewFrame && alterModelToolButtons.count() > 0);
-    showAlterViewFrame = false;
+    alterViewFrame->setVisible(showAlterViewFrame || showSnippetFrame || showGoToFrame);
+    //alterViewFrame->setVisible(showSnippetFrame || showGoToFrame);
+    //alterViewFrame->setVisible(showAlterViewFrame && alterModelToolButtons.count() > 0);
 }
 
 
@@ -736,7 +739,8 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
         return;
     } else {
         addChildButton->show();
-        alterModelToolButtons.append(addChildButton);
+        //alterModelToolButtons.append(addChildButton);
+        showAlterViewFrame = true;
         showToolbar = true;
     }
 
@@ -779,7 +783,8 @@ void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
         return;
     } else {
         connectButton->show();
-        alterModelToolButtons.append(connectButton);
+        //alterModelToolButtons.append(connectButton);
+        showAlterViewFrame = true;
         showToolbar = true;
     }
 
