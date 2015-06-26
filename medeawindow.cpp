@@ -601,6 +601,7 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
 
     partsButton = new DockToggleButton("P", this);
     hardwareNodesButton = new DockToggleButton("H", this);
+
     definitionsButton = new DockToggleButton("D", this);
 
     partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
@@ -1017,8 +1018,9 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
     connect(nodeView, SIGNAL(view_ProjectCleared()), this, SLOT(projectCleared()));
 
+    connect(hardwareNodesButton, SIGNAL(dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
-    connect(this, SIGNAL(window_highlightDeployment(bool)), nodeView, SLOT(highlightDeployment(bool)));
+    //connect(this, SIGNAL(window_highlightDeployment(bool)), nodeView, SLOT(highlightDeployment(bool)));
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
@@ -1507,7 +1509,7 @@ void MedeaWindow::on_actionNew_Project_triggered()
         if (!exportProject()) {
             return;
         }
-    } else if (saveProject != QMessageBox::No){
+    }else{
         return;
     }
 
@@ -2298,15 +2300,7 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
         b = prevB;
     }
 
-    // if the hardware dock was opened or closed, send a signal to either highlight or
-    // remove the highlight of the selected node's children based on their deployment link
-    if (prevPressedButton == hardwareNodesButton || b == hardwareNodesButton) {
-        if (nodeView && hardwareNodesButton->getSelected()) {           
- 			emit window_highlightDeployment();
-        } else {
- 			emit window_highlightDeployment(true);
-        }
-    }
+
 
     prevPressedButton = b;
 
@@ -2556,11 +2550,11 @@ void MedeaWindow::checkNotificationsQueue()
  */
 void MedeaWindow::graphicsItemSelected()
 {
-    if (hardwareNodesButton->getSelected()) {
-        if(nodeView){
-            emit window_highlightDeployment(nodeView->getSelectedNode());
-        }
-    }
+    //if (hardwareNodesButton->getSelected()) {
+    //    if(nodeView){
+    //        emit window_highlightDeployment();
+    //    }
+    //}
     /*
     if (nodeView && nodeView->getSelectedNode()) {
         view_showConnectedNodes->setEnabled(true);

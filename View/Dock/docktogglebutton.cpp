@@ -210,6 +210,7 @@ void DockToggleButton::on_buttonPressed()
         setColor(SELECTED);
     }
     emit dockButton_pressed(this->text());
+    emit dockOpen(selected);
 }
 
 

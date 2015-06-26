@@ -264,8 +264,6 @@ private:
     void updateChildrenOnChange();
     void retrieveGraphMLData();
     void updateTextLabel(QString text="");
-    void updateParent(bool update);
-
     void childUpdated();
 
 

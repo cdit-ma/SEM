@@ -52,7 +52,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     Q_INIT_RESOURCE(resources);
     setParentItem(parent);
     
-    updatedAlready = false;
+
     parentNodeItem = parent;
     showDeploymentWarningIcon = false;
     isNodeSelected = false;
@@ -1194,8 +1194,6 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
                 emit GraphMLItem_SetGraphMLData(getID(), "y", QString::number(newCenter.y()));
             }
 
-
-
         }else if(keyName == "width" || keyName == "height"){
             //If data is related to the size of the NodeItem
             
@@ -2213,13 +2211,6 @@ void NodeItem::setupLockMenu()
 }
 
 
-void NodeItem::updateParent(bool update)
-{
-    if(update){
-        updatedAlready = true;
-        childPosUpdated();
-    }
-}
 
 //Dont be N-Factorial
 void NodeItem::childUpdated()
@@ -2464,30 +2455,33 @@ QPointF NodeItem::isOverGrid(const QPointF centerPosition)
 {  
 
     if(!GRIDLINES_ON || !parentNodeItem || nodeKind.endsWith("Definitions")){
-            if(parentNodeItem){
-                isNodeOnGrid = false;
-                parentNodeItem->removeChildOutline(getID());
-            }
-            return QPointF();
+        if(parentNodeItem){
+            isNodeOnGrid = false;
+            parentNodeItem->removeChildOutline(getID());
         }
-
-        QPointF gridPoint = parentNodeItem->getClosestGridPoint(centerPosition);
-
-        //Calculate the distance between the centerPosition and the closestGrid
-        qreal distance = QLineF(centerPosition, gridPoint).length();
-
-        //If the distance is less than the SNAP_PERCENTAGE
-        if((distance / minimumWidth) <= SNAP_PERCENTAGE){
-            if(hasSelectionMoved || hasSelectionResized){
-                isNodeOnGrid = true;
-                parentNodeItem->addChildOutline(this, gridPoint);
-                return gridPoint;
-            }
-        }
-        isNodeOnGrid = false;
-        parentNodeItem->removeChildOutline(getID());
-
         return QPointF();
+    }
+
+    QPointF gridPoint = parentNodeItem->getClosestGridPoint(centerPosition);
+
+    //Calculate the distance between the centerPosition and the closestGrid
+    qreal distance = QLineF(centerPosition, gridPoint).length();
+
+    //If the distance is less than the SNAP_PERCENTAGE
+    if((distance / minimumWidth) <= SNAP_PERCENTAGE){
+        if(isNodeOnGrid || isSelectionMoving || isSelectionResizing){
+            isNodeOnGrid = true;
+            parentNodeItem->addChildOutline(this, gridPoint);
+        }
+        return gridPoint;
+    }else{
+        isNodeOnGrid = false;
+
+        if(isSelectionMoving || isSelectionResizing){
+            parentNodeItem->removeChildOutline(getID());
+        }
+        return QPointF();
+    }
 
 }
 

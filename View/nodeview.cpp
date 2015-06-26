@@ -49,6 +49,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     managementComponentVisible = false;
     toolbarDockConstruction = false;
     importFromJenkins = false;
+    hardwareDockOpen = false;
     IS_SUB_VIEW = subView;
     //controller = 0;
     parentNodeView = 0;
@@ -689,10 +690,25 @@ void NodeView::actionFinished()
     if(updateDeployment){
         highlightDeployment();
         updateDeployment = false;
+    }else{
+        //CHeck in here.
+
+       /// qCritical() << "Check if dock is open";
+        //highlightDeployment();;
     }
     updateActionsEnabled();
 
     viewMutex.unlock();
+}
+
+void NodeView::hardwareDockOpened(bool opened)
+{
+    this->hardwareDockOpen = opened;
+    if(opened){
+        highlightDeployment();
+    }else{
+        highlightDeployment(true);
+    }
 }
 
 
@@ -724,7 +740,7 @@ void NodeView::importProjects(QStringList xmlDataList)
     if(!xmlDataList.isEmpty()){
         if(viewMutex.tryLock()){
             constructedFromImport = true;
-            clearSelection(true,false);
+            clearSelection();
             emit view_ImportProjects(xmlDataList);
         }
     }
@@ -754,7 +770,11 @@ void NodeView::exportProject()
 void NodeView::importSnippet(QString fileName, QString fileData)
 {
     if(viewMutex.tryLock()){
-        emit view_ImportedSnippet(selectedIDs, fileName, fileData);
+        pasting = true;
+        //Clear before pasting
+        QStringList duplicateList = selectedIDs;
+        clearSelection();
+        emit view_ImportedSnippet(duplicateList, fileName, fileData);
     }
 }
 
@@ -1243,6 +1263,7 @@ void NodeView::moveViewForward()
  */
 void NodeView::highlightDeployment(bool clear)
 {
+
     // clear highlighted node items
     if (guiItems.contains(prevSelectedNodeID)) {
         GraphMLItem* item = guiItems[prevSelectedNodeID];
@@ -2210,7 +2231,10 @@ void NodeView::nodeSelected_signalUpdates(Node* node)
 {
     updateActionsEnabled();
 
-    // update the docks regardless of the number of items selected
+    // update the highlighted deployment nodes.
+    if(hardwareDockOpen){
+        highlightDeployment();
+    }
     emit view_nodeSelected();
 }
 
@@ -2223,10 +2247,10 @@ void NodeView::nodeSelected_signalUpdates(Node* node)
  */
 void NodeView::edgeConstructed_signalUpdates(Edge* edge)
 {
-    // update highlighted children items
-    //highlightDeployment(getSelectedNode());
-    highlightDeployment(false);
-
+    // update the highlighted deployment nodes.
+    if(hardwareDockOpen){
+        highlightDeployment();
+    }
     // update the docks
     emit view_edgeConstructed();
 }

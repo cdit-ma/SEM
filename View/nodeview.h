@@ -162,6 +162,7 @@ signals:
     void view_QuestionAnswered(bool answer);
 
 public slots:
+    void hardwareDockOpened(bool opened);
     void showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID);
     void setAttributeModel(GraphMLItem* item=0, bool tellSubView=false);
     void importProjects(QStringList xmlDataList);
@@ -450,6 +451,7 @@ private:
     bool updateDeployment;
     QString currentTableID;
 
+    bool hardwareDockOpen;
     bool clearingModel;
 };
 
