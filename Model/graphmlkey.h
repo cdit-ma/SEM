@@ -4,6 +4,7 @@
 #include "graphml.h"
 #include <QStringList>
 #include <QMap>
+#include <QHash>
 class GraphMLData;
 class GraphMLKey: public GraphML
 {
@@ -49,7 +50,7 @@ private:
 
     QMultiMap<QString, QString> validValues;
 
-    QStringList invalidLabelCharacters;
+    QHash<QString, QStringList> invalidCharacters;
 
     TYPE type;
     QString typeStr;

@@ -45,6 +45,7 @@ void AttributeTableModel::updatedData(GraphMLData *data)
 
 void AttributeTableModel::removedData(GraphMLData *toRemove)
 {
+    qCritical() << "UPDATING TABLE";
     //Remove the model index.
     int index = attachedData.indexOf(toRemove);
     if(index != -1){

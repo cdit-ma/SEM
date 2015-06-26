@@ -66,6 +66,7 @@ public:
     QStringList getViewAspects();
 
     QStringList getConstructableNodeKinds();
+    QStringList getGUIConstructableNodeKinds();
     //Returns a list of Kinds which can be adopted by a Node.
     QStringList getAdoptableNodeKinds(QString ID);
     //QStringList getAdoptableNodeKinds(Node* parent);
@@ -324,6 +325,7 @@ private:
     QStringList containerNodeKinds;
     //A List of Node's which are elements in the Model, can be constructed.
     QStringList constructableNodeKinds;
+    QStringList guiConstructableNodeKinds;
 
     QStringList snippetableParentKinds;
     QStringList nonSnippetableKinds;
@@ -366,6 +368,7 @@ private:
     int currentActionItemID;
 
     bool questionAnswer;
+    bool DELETING;
 
 
 };

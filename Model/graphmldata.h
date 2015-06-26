@@ -36,7 +36,7 @@ public:
     QStringList getBoundIDS();
 signals:
     void dataChanged(GraphMLData* data);
-    void valueChanged(QString value);
+    void valueChanged(QString value, QString key="");
 private:
     GraphML* Parent;
 

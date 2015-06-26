@@ -6,6 +6,12 @@
 #include "../InterfaceDefinitions/memberinstance.h"
 #include "../InterfaceDefinitions/idl.h"
 
+#include "branchstate.h"
+#include "periodicevent.h"
+#include "termination.h"
+#include "variable.h"
+#include "workload.h"
+
 #include "condition.h"
 #include "process.h"
 
@@ -28,13 +34,13 @@ bool ComponentImpl::canConnect(Node* attachableObject)
     }
 
     if(getDefinition()){
-        #ifdef DEBUG_MODE
+#ifdef DEBUG_MODE
         qWarning() << "ComponentImpl already has a definition already";
 #endif
         return false;
     }
     if(component->getImplementations().count() != 0){
-        #ifdef DEBUG_MODE
+#ifdef DEBUG_MODE
         qWarning() << "ComponentImpl cannot be connected to a Component which already has an Implementation.";
 #endif
         return false;
@@ -45,18 +51,23 @@ bool ComponentImpl::canConnect(Node* attachableObject)
 
 bool ComponentImpl::canAdoptChild(Node *child)
 {
-    Condition* condition = dynamic_cast<Condition*>(child);
-    MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(child);
-    Process* process = dynamic_cast<Process*>(child);
-    IDL* idl = dynamic_cast<IDL*>(child);
+    BranchState* branchState = dynamic_cast<BranchState*>(child);
+    PeriodicEvent* periodicEvent = dynamic_cast<PeriodicEvent*>(child);
+    Termination* termination = dynamic_cast<Termination*>(child);
+    Variable* variable = dynamic_cast<Variable*>(child);
+    Workload* workload = dynamic_cast<Workload*>(child);
 
-    if(condition || memberInstance || process || idl){
-        #ifdef DEBUG_MODE
+
+    OutEventPortImpl* outEventPortImpl = dynamic_cast<OutEventPortImpl*>(child);
+    InEventPortImpl* inEventPortImpl = dynamic_cast<InEventPortImpl*>(child);
+    AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(child);
+
+    if(!(branchState || periodicEvent || termination || variable || workload || outEventPortImpl || inEventPortImpl || attributeImpl)){
+#ifdef DEBUG_MODE
         qWarning() << "ComponentImpl cannot adopt anything outside of Condition, MemberInstance or Process";
 #endif
         return false;
     }
-
 
     return Node::canAdoptChild(child);
 }

@@ -78,6 +78,11 @@ bool Node::canAdoptChild(Node *node)
         return false;
     }
 
+    if(node->getDefinition()){
+        qCritical() << "CANNOT ADOPT SOMETHING WITH A DEFINITION";
+        return false;
+    }
+
     return true;
 }
 

@@ -206,7 +206,7 @@ NodeView::~NodeView()
 {
     isDestructing = true;
     //Clear the current Selected Attribute Model so that the GUI doesn't crash.
-    setAttributeModel(0);
+    setAttributeModel(0, true);
 
     if(parentNodeView && !parentNodeView->isTerminating()){
         parentNodeView->removeSubView(this);
@@ -581,6 +581,9 @@ QList<NodeItem *> NodeView::getNodeInstances(QString ID)
 
 void NodeView::constructNewView(QString nodeID)
 {
+    if(nodeID == ""){
+        nodeID = getSelectedNodeID();
+    }
     NodeItem* nodeItem = getNodeItemFromID(nodeID);
 
     if(IS_SUB_VIEW || nodeID == "" || !nodeItem){
@@ -627,8 +630,7 @@ void NodeView::constructNewView(QString nodeID)
         }
 
         newView->view_LockCenteredGraphML(nodeID);
-
-
+        connect(this, SIGNAL(view_ClearSubViewAttributeTable()), newView, SIGNAL(view_ClearSubViewAttributeTable()));
         subWindow->show();
     }else{
         delete subWindow;
@@ -691,6 +693,8 @@ void NodeView::actionFinished()
     viewMutex.unlock();
 }
 
+
+
 void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID)
 {
     int reply = QMessageBox::question(this, title, message, QMessageBox::Yes | QMessageBox::No);
@@ -698,14 +702,18 @@ void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, Q
     emit view_QuestionAnswered(yes);
 }
 
-void NodeView::setAttributeModel(GraphMLItem *item)
+void NodeView::setAttributeModel(GraphMLItem *item, bool tellSubView)
 {
     if(item){
         currentTableID = item->getID();
         emit view_SetAttributeModel(item->getAttributeTable());
     }else{
+
         currentTableID = "";
         emit view_SetAttributeModel(0);
+        if(!IS_SUB_VIEW && tellSubView){
+            emit view_ClearSubViewAttributeTable();
+        }
     }
 }
 
@@ -1288,7 +1296,7 @@ void NodeView::_deleteFromIDs(QStringList IDs)
     if (IDs.count() > 0) {
         if(viewMutex.tryLock()){
             //Clear the Attribute Table Model
-            setAttributeModel(0);
+            setAttributeModel(0, true);
             emit view_Delete(IDs);
         }
     } else {
@@ -1854,8 +1862,9 @@ QList<Node*> NodeView::getBlackBoxes()
  */
 QStringList NodeView::getConstructableNodeKinds()
 {
-    return controller->getConstructableNodeKinds();
+    return controller->getGUIConstructableNodeKinds();
 }
+
 
 
 void NodeView::appendToSelection(Node *node)
@@ -2614,7 +2623,7 @@ void NodeView::keyPressEvent(QKeyEvent *event)
         }
 
         if(CONTROL && event->key() == Qt::Key_D){
-            duplicate();
+            replicate();
         }
 
     }
@@ -2813,7 +2822,7 @@ void NodeView::showMessage(MESSAGE_TYPE type, QString title, QString message, QS
 /**
  * @brief NodeView::duplicate
  */
-void NodeView::duplicate()
+void NodeView::replicate()
 {
     if (selectedIDs.count() > 0) {
         if(viewMutex.tryLock()){
@@ -2850,7 +2859,7 @@ void NodeView::cut()
         //Try and Lock the Mutex before the operation.
         if(viewMutex.tryLock()){
             //Clear the Attribute Table Model
-            setAttributeModel(0);
+            setAttributeModel(0, true);
             emit view_Cut(selectedIDs);
         }
     } else {
@@ -2907,7 +2916,7 @@ void NodeView::undo()
     // undo the action
     if(viewMutex.tryLock()) {
         //clearSelection();
-        setAttributeModel(0);
+        setAttributeModel(0, true);
         emit this->view_Undo();
     }
 }
@@ -2924,7 +2933,7 @@ void NodeView::redo()
     // redo the action
     if(viewMutex.tryLock()) {
         //clearSelection();
-        setAttributeModel(0);
+        setAttributeModel(0,true);
         emit this->view_Redo();
     }
 }
@@ -3099,7 +3108,7 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
     }
 
     if (updateTable) {
-        setAttributeModel(0);
+        setAttributeModel(0,false);
     }
 
     // update menu and toolbar actions

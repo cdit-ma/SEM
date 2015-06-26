@@ -32,6 +32,7 @@ bool ComponentInstance::canAdoptChild(Node *child)
         return false;
     }
 
+
     return Node::canAdoptChild(child);
 }
 

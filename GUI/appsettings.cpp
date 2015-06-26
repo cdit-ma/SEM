@@ -27,6 +27,11 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(paren
     scrollArea->setMinimumWidth(350);
     scrollArea->setMinimumHeight(350);
     scrollArea->setWidgetResizable(true);
+    connect(this, SIGNAL(destroyed()), scrollArea, SLOT(deleteLater()));
+}
+
+AppSettings::~AppSettings()
+{
 }
 
 QSettings* AppSettings::getSettings()

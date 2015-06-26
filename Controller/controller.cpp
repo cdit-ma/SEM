@@ -26,6 +26,7 @@ NewController::NewController()
 
     UNDOING = false;
     REDOING = false;
+    DELETING = false;
     CUT_USED = false;
     IMPORTING_SNIPPET = false;
     model = 0;
@@ -59,6 +60,10 @@ NewController::NewController()
     definitionNodeKinds << "ComponentImpl";
 
 
+
+
+
+
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload";
     behaviourNodeKinds << "OutEventPortImpl";
 
@@ -74,6 +79,14 @@ NewController::NewController()
 
     constructableNodeKinds.append(definitionNodeKinds);
     constructableNodeKinds.append(behaviourNodeKinds);
+
+    constructableNodeKinds.removeDuplicates();
+
+    guiConstructableNodeKinds.append(definitionNodeKinds);
+    guiConstructableNodeKinds.append(behaviourNodeKinds);
+    guiConstructableNodeKinds.removeAll("AggregateInstance");
+    guiConstructableNodeKinds.removeDuplicates();
+    guiConstructableNodeKinds.sort();
 }
 
 void NewController::connectView(NodeView *view)
@@ -158,7 +171,7 @@ void NewController::initializeModel()
 
 NewController::~NewController()
 {
-    //DELETING = true;
+    DELETING = true;
     destructNode(model, false);
 
 
@@ -295,6 +308,11 @@ QStringList NewController::getViewAspects()
 QStringList NewController::getConstructableNodeKinds()
 {
     return constructableNodeKinds;
+}
+
+QStringList NewController::getGUIConstructableNodeKinds()
+{
+    return guiConstructableNodeKinds;
 }
 
 
@@ -683,7 +701,9 @@ void NewController::cut(QStringList IDs)
  */
 void NewController::paste(QString ID, QString xmlData)
 {
-    _paste(ID, xmlData);
+    if(!_paste(ID, xmlData)){
+        emit controller_ActionProgressChanged(100);
+    }
 
     emit controller_ActionFinished();
 }
@@ -711,6 +731,9 @@ bool NewController::_paste(QString ID, QString xmlData, bool addAction)
 
             //Paste it into the current Selected Node,
             success = _importGraphMLXML(xmlData, parentNode, CUT_USED, true);
+            if(!success){
+
+            }
             CUT_USED = false;
         }
     }
@@ -792,11 +815,26 @@ bool NewController::_remove(QStringList IDs, bool addAction)
 
             if(graphML){
                 if(graphML->isNode()){
+                    bool canDelete = true;
+                    Node* node = (Node*)graphML;
+                    if(node->getParentNode()){
+                        if(node->isImpl() || node->getParentNode()->isImpl()){
+                            if(node->getDataValue("kind") != "OutEventPortImpl"){
+                                emit controller_DisplayMessage(WARNING, "Cannot Delete Impl", "Cannot Delete From Inside an Impl", ID);
+                                canDelete = false;
+                            }
+                        }
+                        if(node->isInstance() && node->getParentNode()->isInstance()){
+                            emit controller_DisplayMessage(WARNING, "Cannot Delete Instance", "Cannot Delete From Inside an Instance", ID);
+                            canDelete = false;
+                        }
+                    }
                     //destructNode((Node*)graphML);
-
-                    bool success = destructNode((Node*)graphML);
-                    if(!success){
-                        allSuccess = false;
+                    if(canDelete){
+                        bool success = destructNode((Node*)graphML);
+                        if(!success){
+                            allSuccess = false;
+                        }
                     }
                 }else if (graphML->isEdge()){
                     //destructEdge((Edge*)graphML);
@@ -835,6 +873,9 @@ bool NewController::_replicate(QStringList IDs, bool addAction)
             }
             //Import the GraphML
             success = _importGraphMLXML(graphml, node->getParentNode());
+            if(!success){
+
+            }
         }
     }
     return success;
@@ -860,6 +901,7 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
             bool result = _importGraphMLXML(xmlData, getModel());
             if(!result){
                 controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
+
             }
         }
 
@@ -908,6 +950,9 @@ bool NewController::_importSnippet(QStringList IDs, QString fileName, QString fi
             }
             IMPORTING_SNIPPET = true;
             success = _importGraphMLXML(fileData, parent, false, false);
+            if(!success){
+
+            }
             IMPORTING_SNIPPET = false;
         }
     }
@@ -1272,7 +1317,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
 
             constructNodeGUI(node);
         }else{
-            delete node;
+            destructNode(node, false);
             return 0;
         }
     }
@@ -1955,12 +2000,12 @@ bool NewController::reverseAction(ActionItem action)
             Node* dst = getNodeFromID(action.dstID);
 
             //qCritical() << "Redo: Delete Edge Between: " << action.srcID << " AND " << action.dstID;
-
-            if(src->isConnected(dst)){
-                return true;
-            }
+           
 
             if(src && dst){
+				if(src->isConnected(dst)){
+					return true;
+				}
                 if(isEdgeLegal(src,dst)){
                     constructEdgeWithData(src ,dst, action.dataValues, action.ID);
                     if(src->isConnected(dst)){
@@ -2225,6 +2270,10 @@ void NewController::undoRedo(bool undo)
 
 void NewController::logAction(ActionItem item)
 {
+	if(DELETING){
+		return;
+	}
+
 
     QTextStream out(logFile);
 
@@ -3336,7 +3385,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
                     qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
                     emit controller_DisplayMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent->getID());
-                    break;
+					return false;
                 }
 
                 //Clear the Node Data List.
@@ -3346,7 +3395,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 parent = newNode;
 
                 //Navigate back to the correct parent.
-                while(parentDepth > 0){
+                while(parent && parentDepth > 0){
                     parent = parent->getParentNode();
                     parentDepth --;
                 }

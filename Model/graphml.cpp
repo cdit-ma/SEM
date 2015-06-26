@@ -37,7 +37,11 @@ GraphML::~GraphML()
 void GraphML::removeData(){
     while(attachedData.size() > 0){
         GraphMLData* data = attachedData.takeFirst();
-        delete data;
+        if(data){
+            data->setParent(0);
+        }
+
+        data->deleteLater();
         //data->deleteLater();
     }
 }
@@ -163,6 +167,7 @@ void GraphML::attachData(GraphMLData *data)
                 emit dataAdded(data);
             }
         }else{
+
 #ifdef DEBUG_MODE
             qWarning() << "Cannot attach <data> to this object. Wrong Kind!";
             qWarning() << data->getKey()->getForKind() << " != " << this->getKind();

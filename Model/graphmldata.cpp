@@ -3,6 +3,9 @@
 
 GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
 {
+    //Set to default.
+    parentData = 0;
+    Parent = 0;
     this->key = key;
     if(value == ""){
         this->setValue(key->getDefaultValue());
@@ -14,9 +17,7 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
         this->type = key->getTypeString();
     }
 
-    //Set to default.
-    parentData = 0;
-    this->Parent = 0;
+
     setProtected(key->isProtected());
 }
 
@@ -122,7 +123,7 @@ void GraphMLData::setValue(QString newValue)
                 }
             }
             emit dataChanged(this);
-            emit valueChanged(value);
+            emit valueChanged(value, keyName);
         }
     }
 }

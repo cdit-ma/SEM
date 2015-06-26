@@ -59,6 +59,10 @@ bool OutEventPortImpl::canConnect(Node* attachableObject)
         }
     }else{ // not definition connection, must be behaviour connection
 
+        //Cannot connect to an undefined thing.
+        if(!this->getDefinition()){
+            return false;
+        }
         //Limit connections to the parent (ie ComponentImpl) children
         if(aParent){
             if(!aParent->isAncestorOf(attachableObject)){

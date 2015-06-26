@@ -26,7 +26,7 @@ signals:
     void window_Resized();
 
 public slots:
-    void setAttributeModel(AttributeTableModel* model);
+    void setAttributeModel(AttributeTableModel* model=0);
 
 
     // QWidget interface

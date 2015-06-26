@@ -1051,6 +1051,7 @@ void MedeaWindow::makeConnections()
     connect(edit_redo, SIGNAL(triggered()), nodeView, SLOT(redo()));
     connect(edit_cut, SIGNAL(triggered()), nodeView, SLOT(cut()));
     connect(edit_copy, SIGNAL(triggered()), nodeView, SLOT(copy()));
+    connect(edit_replicate, SIGNAL(triggered()), nodeView, SLOT(replicate()));
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
 
@@ -1094,6 +1095,8 @@ void MedeaWindow::makeConnections()
     connect(actionFitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(actionCenter, SIGNAL(triggered()), nodeView, SLOT(centerOnItem()));
     connect(actionSort, SIGNAL(triggered()), nodeView, SLOT(sort()));
+
+    connect(actionPopupSubview, SIGNAL(triggered()), nodeView, SLOT(constructNewView()));
 
     connect(actionZoomToFit, SIGNAL(triggered()), nodeView, SLOT(centerItem()));
 
@@ -1191,6 +1194,18 @@ connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
     addAction(model_validateModel);
     addAction(model_clearModel);
     addAction(model_sortModel);
+
+    addAction(actionSort);
+    addAction(actionCenter);
+    addAction(actionZoomToFit);
+    addAction(actionFitToScreen);
+    addAction(actionAlignVertically);
+    addAction(actionAlignHorizontally);
+    addAction(actionPopupSubview);
+    addAction(actionBack);
+    addAction(actionForward);
+    addAction(actionToggleGrid);
+    addAction(actionContextMenu);
 
     addAction(jenkins_ExecuteJob);
     addAction(jenkins_ImportNodes);
@@ -1323,15 +1338,14 @@ void MedeaWindow::setupInitialSettings()
     appSettings->loadSettings();
     toggleAndTriggerAction(view_showManagementComponents, false);
 
+    QStringList guiKinds = nodeView->getConstructableNodeKinds();
     // this only needs to happen once, the whole time the application is open
-    partsDock->addDockNodeItems(nodeView->getConstructableNodeKinds());
+    partsDock->addDockNodeItems(guiKinds);
 
     // populate view aspects menu  once the nodeView and controller have been
     // constructed and connected - should only need to do this once
-    QStringList nodeKinds = nodeView->getConstructableNodeKinds();
-    nodeKinds.removeDuplicates();
-    nodeKinds.sort();
-    foreach (QString kind, nodeKinds) {
+
+    foreach (QString kind, guiKinds) {
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(kind, this);
         checkBox->setFont(guiFont);
@@ -1448,6 +1462,9 @@ void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
     }else{
         QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
     }
+    if(jenkins_ImportNodes){
+        jenkins_ImportNodes->setEnabled(true);
+    }
 }
 
 
@@ -1465,7 +1482,10 @@ void MedeaWindow::on_actionImportJenkinsNode()
         connect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
         connect(jenkinsGS, SIGNAL(gotGroovyScriptOutput(QString)), this, SLOT(gotJenkinsNodeGraphML(QString)));
 
-        jenkins_RunGroovyScript(groovyScript);
+        if(jenkins_ImportNodes){
+            this->jenkins_ImportNodes->setEnabled(false);
+        }
+        emit jenkins_RunGroovyScript(groovyScript);
         disconnect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
     }
 }

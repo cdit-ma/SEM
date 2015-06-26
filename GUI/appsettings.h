@@ -13,6 +13,7 @@ class AppSettings: public QDialog
     Q_OBJECT
 public:
     AppSettings(QWidget *parent = 0, QString applicationPath="");
+    ~AppSettings();
     QSettings* getSettings();
     void loadSettings();
     QString getSetting(QString keyName="");

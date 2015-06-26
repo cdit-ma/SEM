@@ -43,9 +43,11 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
     this->defaultValue = "";
 
     setDefaultProtected(false);
+    invalidCharacters["folder"] << "|" << "," << "*" << "?" << "<" << ">";
+    invalidCharacters["file"] << "|" << "," << ":" << "*" << "?" << "<" << ">" << "/" << "\\";
 
-    invalidLabelCharacters << "*" << "." << "[" << "]"<< ";" << "|" << "," <<  "%";
-    invalidLabelCharacters << "\"" << "'"  << "/" << "\\" << "=" << ":" << " " << "<" << ">" << "\t";
+    invalidCharacters["label"] << "*" << "." << "[" << "]"<< ";" << "|" << "," <<  "%";
+    invalidCharacters["label"] << "\"" << "'"  << "/" << "\\" << "=" << ":" << " " << "<" << ">" << "\t";
 }
 
 GraphMLKey::~GraphMLKey()
@@ -164,19 +166,27 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
         break;
     case STRING:{
         ok = true;
-        if(getName() == "label"){
-            if(newValue.size() >= LABEL_TRUNCATE_LENGTH)
-            {
-                model_DisplayMessage("GrapMLKey Validation Issue", "Label has been truncated to the first 64 characters.", data->getParent()->getID());
-                newValue.truncate(LABEL_TRUNCATE_LENGTH - 1);
+
+        if(getName() == "label" || getName() == "file" || getName() == "folder"){
+            QString ID;
+            if(data->getParent()){
+                ID = data->getParent()->getID();
             }
 
-            newValue.replace(QString(" "), QString("_"));
-            newValue.replace(QString("\t"), QString("_"));
-            foreach(QChar letter, newValue){
+            if(getName() == "label"){
+                if(newValue.size() >= LABEL_TRUNCATE_LENGTH){
+                    model_DisplayMessage("GraphMLKey Validation Issue", "Label has been truncated to the first 64 characters.", ID);
+                    newValue.truncate(LABEL_TRUNCATE_LENGTH - 1);
 
-                if(invalidLabelCharacters.contains(letter)){
-                    model_DisplayMessage("GrapMLKey Validation Issue", "Invalid characters in label. Not allowed characters are: " + invalidLabelCharacters.join(" "), data->getParent()->getID());
+                }
+                newValue.replace(QString(" "), QString("_"));
+                newValue.replace(QString("\t"), QString("_"));
+            }
+
+            foreach(QChar letter, newValue){
+                if(invalidCharacters[getName()].contains(letter)){
+                    qCritical() << newValue;
+                    model_DisplayMessage("GraphMLKey Validation Issue", "Invalid characters in " + getName() + ". Not allowed characters are: " + invalidCharacters[getName()].join(" "), ID);
                     ok = false;
                     break;
                 }

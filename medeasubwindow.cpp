@@ -17,6 +17,7 @@ MedeaSubWindow::MedeaSubWindow(QWidget *parent) :
     dataTable = 0;
     dataTableBox = 0;
     setWindowFlags(flags);
+    resize(650,400);
 
     setWindowTitle("MEDEA Sub View");
 
@@ -107,6 +108,7 @@ void MedeaSubWindow::setNodeView(NodeView *view)
     nodeView = view;
     connect(view, SIGNAL(destroyed()), this, SLOT(deleteLater()));
     connect(this, SIGNAL(window_Resized()), view, SLOT(centralizedItemMoved()));
+    connect(view, SIGNAL(view_ClearSubViewAttributeTable()), this, SLOT(setAttributeModel()));
     connect(view, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     if(mainLayout){
         mainLayout->addWidget(view,1);

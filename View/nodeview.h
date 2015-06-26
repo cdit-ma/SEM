@@ -30,6 +30,8 @@ public:
     void setController(NewController* controller);
     void disconnectController();
 
+
+
     //Get the Selected Node.
     Node* getSelectedNode();
     QString getSelectedNodeID();
@@ -89,6 +91,7 @@ private slots:
     void actionFinished();
 
 signals:
+    void view_ClearSubViewAttributeTable();
 
 
     void view_OpenHardwareDock();
@@ -161,7 +164,7 @@ signals:
 
 public slots:
     void showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID);
-    void setAttributeModel(GraphMLItem* item);
+    void setAttributeModel(GraphMLItem* item=0, bool tellSubView=false);
     void importProjects(QStringList xmlDataList);
 
     void loadJenkinsNodes(QString fileData);
@@ -197,7 +200,7 @@ public slots:
     void sortModel();
 
 
-    void duplicate();
+    void replicate();
     void copy();
     void cut();
     void paste(QString xmlData);
