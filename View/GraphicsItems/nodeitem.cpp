@@ -154,8 +154,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     
     
     
-    updateParentModel();
-    
+
     if(IN_SUBVIEW){
         setVisibilty(true);
     }else{
@@ -2255,26 +2254,10 @@ void NodeItem::childUpdated()
     }
 }
 
-void NodeItem::updateParentModel()
-{
-    if(parentNodeItem){
-        parentNodeItem->updateModelSize();
-    }
-}
-
 
 void NodeItem::aspectsChanged(QStringList visibleAspects)
 {
-    /*
-    if(hidden || !PAINT_OBJECT){
-        return;
-    }
-    
-    if(getParentNodeItem() && !getParentNodeItem()->isExpanded()){
-        return;
-    }
-    */
-    
+
     bool visible = true;
     foreach(QString requiredAspect, viewAspects){
         if(!visibleAspects.contains(requiredAspect)){
@@ -3012,8 +2995,7 @@ void NodeItem::setNodeExpanded(bool expanded)
 void NodeItem::updateModelPosition()
 {
     //Update the Parent Model's size first to make sure that the undo states are correct.
-    updateParentModel();
-    
+
     //if we are over a grid line (or within a snap ratio)
     QPointF gridPoint = isOverGrid(centerPos());
     if(!gridPoint.isNull()){
@@ -3051,9 +3033,6 @@ void NodeItem::updateModelSize()
         QPointF gridPoint = isOverGrid(centerPos());
     }
     
-    
-    //Make sure the parentModel is updated.
-    updateParentModel();
     
     if(hasSelectionResized || hasSelectionMoved){
         setLocked(isNodeOnGrid);

@@ -267,7 +267,6 @@ private:
     void updateParent(bool update);
 
     void childUpdated();
-    void updateParentModel();
 
 
 
