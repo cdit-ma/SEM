@@ -275,7 +275,7 @@ void MedeaWindow::initialiseGUI()
 
     projectName->setFlat(true);
     projectName->setStyleSheet("font-size: 16px; text-align: left; padding: 8px;");
-    projectName->setFixedSize(200, projectName->height());
+    projectName->setFixedWidth(200);
 
     definitionsToggle = new AspectToggleWidget("Definitions", rightPanelWidth/2, this);
     workloadToggle = new AspectToggleWidget("Workload", rightPanelWidth/2, this);
@@ -1946,6 +1946,7 @@ void MedeaWindow::updateWindowTitle(QString newProjectName)
 {
     setWindowTitle("MEDEA - " + newProjectName);
     projectName->setText(newProjectName);
+    //projectName->setFixedSize(200, projectName->height());
 }
 
 
