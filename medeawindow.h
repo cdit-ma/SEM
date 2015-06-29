@@ -55,6 +55,7 @@
 #include "GUI/aspecttogglewidget.h"
 #include "GUI/appsettings.h"
 #include "GUI/codeeditor.h"
+#include <QAbstractMessageHandler>
 
 
 class MedeaWindow : public QMainWindow
@@ -87,6 +88,7 @@ signals:
 
 private:
    void toolbarSettingChanged(QString keyName, QString value);
+   void enableTempExport(bool enable);
 public slots:
     void projectCleared();
     void settingChanged(QString groupName, QString keyName, QString value);
@@ -96,8 +98,11 @@ public slots:
     void setupInitialSettings();
     void aspectToggleClicked(bool checked, int state);
 
+    void jenkinsExport();
+    void validateExport();
     void exportTempFile();
     void jenkins_InvokeJob(QString filePath);
+    void validate_Exported(QString tempModelPath);
 
 private slots:
     void jenkinsNodesLoaded();
@@ -110,10 +115,11 @@ private slots:
     void on_actionImport_GraphML_triggered();
     void on_actionExport_GraphML_triggered();
 
-    void on_actionClearModel_triggered();
-    void on_actionSortNode_triggered();
+
     void on_actionFitCenterNode_triggered();
+
     void on_actionValidate_triggered();
+    void validationComplete(int code);
 
     void on_actionPopupNewWindow();
 
@@ -121,7 +127,7 @@ private slots:
     void on_actionExit_triggered();
     void on_actionSearch_triggered();
 
-    void on_searchResultItem_clicked(GraphMLItem* clickedItem);
+    void on_searchResultItem_clicked(QString ID);
     void on_validationItem_clicked(QString ID);
 
     void writeExportedProject(QString data);
@@ -242,7 +248,6 @@ private:
     QAction* view_showManagementComponents;
     QAction* model_validateModel;
     QAction* model_clearModel;
-    QAction* model_sortModel;
 
     QAction* settings_editToolbarButtons;
     QAction* settings_changeAppSettings;
@@ -400,6 +405,10 @@ private:
     QAction* action_ContextMenu;
 
     ActionButton* toolbar_ContextMenu;
+
+    bool jenkins_TempExport;
+    bool validate_TempExport;
+    QString validation_report_path;
 
 };
 

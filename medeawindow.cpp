@@ -89,6 +89,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QString)), this, SLOT(settingChanged(QString, QString, QString)));
 
     tempExport = false;
+    validate_TempExport = false;
+    jenkins_TempExport = false;
 
     initialiseJenkinsManager();
 
@@ -145,6 +147,17 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QString value)
         if(action){
             action->setVisible(boolValue);
         }
+    }
+}
+
+void MedeaWindow::enableTempExport(bool enable)
+{
+    //Disable the actions which use Temporary exporting!
+    if(jenkins_ExecuteJob){
+        jenkins_ExecuteJob->setEnabled(enable);
+    }
+    if(model_validateModel){
+        model_validateModel->setEnabled(enable);
     }
 }
 
@@ -513,7 +526,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_showManagementComponents = view_menu->addAction("View Management Components");
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
-    model_sortModel = model_menu->addAction(QIcon(":/Resources/Icons/sort.png"), "Sort Model");
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
 
@@ -972,6 +984,7 @@ void MedeaWindow::setupController()
         controller = 0;
     }
     if (controllerThread) {
+        controllerThread->terminate();
         delete controllerThread;
         controllerThread = 0;
     }
@@ -1019,6 +1032,9 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
     connect(nodeView, SIGNAL(view_ProjectCleared()), this, SLOT(projectCleared()));
+    connect(file_importSnippet, SIGNAL(triggered()), nodeView, SLOT(request_ImportSnippet()));
+    connect(file_exportSnippet, SIGNAL(triggered()), nodeView, SLOT(exportSnippet()));
+
 
     connect(hardwareNodesButton, SIGNAL(dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
@@ -1068,7 +1084,7 @@ void MedeaWindow::makeConnections()
     connect(view_showManagementComponents, SIGNAL(triggered(bool)), nodeView, SLOT(showManagementComponents(bool)));
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
-    connect(model_sortModel, SIGNAL(triggered()), this, SLOT(on_actionSortNode_triggered()));
+
     connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
 
     //Jenkins Settings
@@ -1196,7 +1212,6 @@ connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
     addAction(view_showManagementComponents);
     addAction(model_validateModel);
     addAction(model_clearModel);
-    addAction(model_sortModel);
 
     addAction(actionSort);
     addAction(actionCenter);
@@ -1272,6 +1287,36 @@ void MedeaWindow::jenkins_InvokeJob(QString filePath)
     }
 }
 
+void MedeaWindow::validate_Exported(QString tempModelPath)
+{
+    QString scriptPath = applicationDirectory + "/Resources/Scripts";
+
+    // transform .graphml to report.xml
+    // The MEDEA.xsl transform is produced by Schematron/iso_svrl_for_xslt1.xsl
+    QString program = "java";
+    QStringList arguments;
+
+    validation_report_path = QDir::tempPath() + "/" + projectName->text() + "_ValidateReport.xml";
+
+    arguments << "-jar" << "xalan.jar"
+              << "-in" << tempModelPath
+              << "-xsl" << "MEDEA.xsl"
+              << "-out" << validation_report_path;
+
+    // alternative if using xalan-c
+    //  QString program =  "Xalan";
+    //  arguments << "-o" << outputFile
+    //            << inputFile
+    //            << "MEDEA.xsl";
+
+    QProcess *myProcess = new QProcess(this);
+    myProcess->setWorkingDirectory(scriptPath);
+
+    connect(myProcess, SIGNAL(finished(int)), this, SLOT(validationComplete(int)));
+    connect(myProcess, SIGNAL(finished(int)), myProcess, SLOT(deleteLater()));
+    myProcess->start(program, arguments);
+}
+
 void MedeaWindow::jenkinsNodesLoaded()
 {
     // if the hardware dock isn't already open, open it
@@ -1341,14 +1386,16 @@ void MedeaWindow::setupInitialSettings()
     appSettings->loadSettings();
     toggleAndTriggerAction(view_showManagementComponents, false);
 
-    QStringList guiKinds = nodeView->getConstructableNodeKinds();
+    QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
     // this only needs to happen once, the whole time the application is open
     partsDock->addDockNodeItems(guiKinds);
+
+    QStringList allKinds = nodeView->getAllNodeKinds();
 
     // populate view aspects menu  once the nodeView and controller have been
     // constructed and connected - should only need to do this once
 
-    foreach (QString kind, guiKinds) {
+    foreach (QString kind, allKinds) {
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(kind, this);
         checkBox->setFont(guiFont);
@@ -1425,13 +1472,25 @@ void MedeaWindow::aspectToggleClicked(bool checked, int state)
     }
 }
 
+void MedeaWindow::jenkinsExport()
+{
+    jenkins_TempExport = true;
+    exportTempFile();
+}
+
+void MedeaWindow::validateExport()
+{
+    validate_TempExport = true;
+    exportTempFile();
+}
+
 void MedeaWindow::exportTempFile()
 {
     tempExport = true;
     //tempFileName = "C:/MEDEA/build-MEDEA-Desktop_Qt_5_3_0_MSVC2010_OpenGL_32bit-Debug2/debug/Resources/Scripts/"+ projectName->text() + ".graphml";
     tempFileName = QDir::tempPath() + "/" + projectName->text() + ".graphml";
+    enableTempExport(false);
     emit window_ExportProject();
-
 }
 
 
@@ -1502,14 +1561,16 @@ void MedeaWindow::on_actionNew_Project_triggered()
 {
     // ask user if they want to save current project before closing it
     QMessageBox::StandardButton saveProject = QMessageBox::question(this,
-                                                                    "Creating A New Project",
+                                                                    "MEDEA - New Project",
                                                                     "Current project will be closed.\nSave changes?",
-                                                                    QMessageBox::Yes | QMessageBox::No,
-                                                                    QMessageBox::Yes);
-    if (saveProject == QMessageBox::Yes) {
-        // if failed to export, do nothing
-        if (!exportProject()) {
-            return;
+                                                                    QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
+
+    if (saveProject == QMessageBox::Yes || saveProject == QMessageBox::No) {
+        if(saveProject == QMessageBox::Yes){
+            // if failed to export, do nothing
+            if (!exportProject()) {
+                return;
+            }
         }
     }else{
         return;
@@ -1546,46 +1607,6 @@ void MedeaWindow::on_actionExport_GraphML_triggered()
 }
 
 
-/**
- * @brief MedeaWindow::on_clearModel_triggered
- * When the model is cleared or the new project menu is triggered,
- * this method resets the model, clears any current selection,
- * disables the dock buttons and clears the dock containers.
- */
-void MedeaWindow::on_actionClearModel_triggered()
-{
-    //progressAction = "Clearing Model";
-
-    //if (nodeView) {
-    //    nodeView->clearSelection();
-    //    nodeView->resetModel();
-    //    nodeView->setDefaultAspects();
-    //    clearDocks();
-    //}
-}
-
-
-/**
- * @brief MedeaWindow::on_actionSortModel_triggered
- * This is called whne the sortNode tool button is triggered.
- * If there is a selected node, recursively sort it.
- * If there isn't, recursively sort the model.
- */
-void MedeaWindow::on_actionSortNode_triggered()
-{
-    /*
-    progressAction = "Sorting Model";
-
-    nodeView->triggerAction("Medea: Sorting Node");
-
-    if (nodeView->getSelectedNode()){
-        nodeView->sortNode(nodeView->getSelectedNode());
-    } else {
-        nodeView->sortEntireModel();
-        displayNotification("Sorted entire Model.");
-    }*/
-}
-
 
 /**
  * @brief MedeaWindow::on_actionValidate_triggered
@@ -1593,62 +1614,45 @@ void MedeaWindow::on_actionSortNode_triggered()
  */
 void MedeaWindow::on_actionValidate_triggered()
 {
-    progressAction = "Validating Model";
+    //progressAction = "Validating Model";
+    displayNotification("Running XSL Validation on Model");
 
-    nodeView->triggerAction("Medea: Validate");
+    validateExport();
+}
 
-    QDir dir;
-    QString scriptPath = applicationDirectory + "/Resources/Scripts";
-    //qDebug() << absPath;
+void MedeaWindow::validationComplete(int code)
+{
+    if(code == 0){
+        //validation_report_path
+        QFile xmlFile(validation_report_path);
+        if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
+            displayNotification("XSL Validation failed to produce a report.");
+            return;
+        }
 
-    // First export Model to temporary file in scripts directory
-    exportFileName = scriptPath + "/tmp.graphml";
-    emit window_ExportProject();
+        // Query the graphml to get a list of all Files to process.
+        QXmlQuery query;
+        query.bindVariable("graphmlFile", &xmlFile);
+        const QString queryMessages = QString("declare namespace svrl = \"http://purl.oclc.org/dsdl/svrl\"; doc('file:///%1')//svrl:schematron-output/svrl:failed-assert/string()")
+                .arg(xmlFile.fileName());
+        query.setQuery(queryMessages);
 
-    // transform .graphml to report.xml
-    // The MEDEA.xsl transform is produced by Schematron/iso_svrl_for_xslt1.xsl
-    QString program = "java";
-    QStringList arguments;
-    QString inputFile = "tmp.graphml";
-    QString outputFile = "report.xml";
-    arguments << "-jar" << "xalan.jar"
-              << "-in" << inputFile
-              << "-xsl" << "MEDEA.xsl"
-              << "-out" << outputFile;
+        QStringList messagesResult;
+        bool result = query.evaluateTo(&messagesResult);
 
-    // alternative if using xalan-c
-    //  QString program =  "Xalan";
-    //  arguments << "-o" << outputFile
-    //            << inputFile
-    //            << "MEDEA.xsl";
+        xmlFile.close();
 
-    QProcess *myProcess = new QProcess(this);
-    myProcess->setWorkingDirectory( scriptPath );
 
-    //qDebug() << program << " " << arguments;
+        if(!result){
+            displayNotification("Cannot run QXmlQuery on Validation Report.");
+        }else{
+            validateResults.setupItemsTable(messagesResult);
+            validateResults.show();
+        }
+    }else{
+        displayNotification("XSL Validation failed with error code: " + QString::number(code));
+    }
 
-    myProcess->start(program, arguments);
-    myProcess->waitForFinished();
-
-    // launch window of messages from report.xml
-    QString filename = scriptPath + "/report.xml";
-    QFile xmlFile(filename);
-    if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly))
-        return;
-
-    // Query the graphml to get a list of all Files to process.
-    QXmlQuery query;
-    query.bindVariable("graphmlFile", &xmlFile);
-    const QString queryMessages = QString("declare namespace svrl = \"http://purl.oclc.org/dsdl/svrl\"; doc('file:///%1')//svrl:schematron-output/svrl:failed-assert/string()")
-            .arg(xmlFile.fileName());
-    query.setQuery(queryMessages);
-    QStringList messagesResult;
-    query.evaluateTo(&messagesResult);
-
-    xmlFile.close();
-
-    validateResults.setupItemsTable(&messagesResult);
-    validateResults.show();
 }
 
 
@@ -1716,7 +1720,7 @@ void MedeaWindow::on_actionSearch_triggered()
 
     // if there are no checked kinds, search for all kinds
     if (checkedKinds.count() == 0) {
-        checkedKinds = nodeView->getConstructableNodeKinds();
+        checkedKinds = nodeView->getAllNodeKinds();
         checkedKinds.removeDuplicates();
     }
 
@@ -1802,9 +1806,10 @@ void MedeaWindow::on_actionExit_triggered()
  * This is called when an item (button) from the search result list is clicked.
  * It tells the view to center on the clicked item.
  */
-void MedeaWindow::on_searchResultItem_clicked(GraphMLItem *clickedItem)
+void MedeaWindow::on_searchResultItem_clicked(QString ID)
 {
-    nodeView->selectAndCenter(clickedItem);
+
+    nodeView->selectAndCenter(0, ID);
 }
 
 
@@ -1844,12 +1849,23 @@ void MedeaWindow::writeExportedProject(QString data)
         file.close();
 
         //QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: '" + exportFileName +"'!", QMessageBox::Ok);
-        displayNotification("Successfully exported GraphML document.");
+        if(!tempExport){
+            displayNotification("Successfully exported GraphML document.");
+        }
 
         if(tempExport){
             tempExport = false;
-            //Link to the function!
-            jenkins_InvokeJob(fileName);
+            if(jenkins_TempExport){
+                //Link to the function!
+                jenkins_InvokeJob(fileName);
+                jenkins_TempExport = false;
+            }
+            if(validate_TempExport){
+                validate_Exported(fileName);
+                validate_TempExport = false;
+            }
+            enableTempExport(true);
+
         }
 
     }catch(...){
@@ -2235,7 +2251,6 @@ void MedeaWindow::newProject()
 
     resetGUI();
 
-    on_actionClearModel_triggered();
     resetView();
 }
 
@@ -2760,11 +2775,7 @@ void MedeaWindow::importProjects(QStringList files)
  */
 void MedeaWindow::closeEvent(QCloseEvent * e)
 {
-
-
-
-
-    QMessageBox::StandardButton resBtn = QMessageBox::question( this, "MEDEA",
+    QMessageBox::StandardButton resBtn = QMessageBox::question( this, "MEDEA - Quit Confirmation",
                                                                 tr("Are you sure you want to quit Medea?\n"),
                                                                 QMessageBox::Cancel | QMessageBox::Yes,
                                                                 QMessageBox::Yes);

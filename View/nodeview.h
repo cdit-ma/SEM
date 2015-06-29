@@ -43,7 +43,8 @@ public:
     QList<GraphMLItem *> search(QString searchString, GraphMLItem::GUI_KIND kind);
 
     // this is used by the parts dock
-    QStringList getConstructableNodeKinds();
+    QStringList getGUIConstructableNodeKinds();
+    QStringList getAllNodeKinds();
 
     void appendToSelection(Node* node);
 
@@ -162,6 +163,7 @@ signals:
     void view_QuestionAnswered(bool answer);
 
 public slots:
+    void request_ImportSnippet();
     void hardwareDockOpened(bool opened);
     void showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID);
     void setAttributeModel(GraphMLItem* item=0, bool tellSubView=false);

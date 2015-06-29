@@ -291,27 +291,6 @@ void ToolbarWidget::makeNewView()
 
 
 /**
- * @brief ToolbarWidget::exportGraphMLSnippet
- */
-void ToolbarWidget::exportGraphMLSnippet()
-{
-    nodeView->exportSnippet();
-}
-
-
-/**
- * @brief ToolbarWidget::importGraphMLSnippet
- */
-void ToolbarWidget::importGraphMLSnippet()
-{
-    Node* parentNode = nodeView->getSelectedNode();
-    if (parentNode) {
-        nodeView->view_ImportSnippet(parentNode->getDataValue("kind"));
-    }
-}
-
-
-/**
  * @brief ToolbarWidget::addConnectedNode
  * Send a signal to the view to construct a connected node.
  * It can either be a ComponentImpl, ComponentInstance or In/Out EventPortDelegates.
@@ -587,8 +566,10 @@ void ToolbarWidget::makeConnections()
     connect(alignHorizontallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
     connect(showConnectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
-    connect(exportSnippetButton, SIGNAL(clicked()), this, SLOT(exportGraphMLSnippet()));
-    connect(importSnippetButton, SIGNAL(clicked()), this, SLOT(importGraphMLSnippet()));
+
+
+    connect(importSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ImportSnippet()));
+    connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(exportSnippet()));
 }
 
 

@@ -13,6 +13,7 @@ SearchItemButton::SearchItemButton(GraphMLItem* item, QWidget *parent) :
 {
     if (item) {
         graphMLItem = item;
+        ID = graphMLItem->getID();
     } else {
         qWarning() << "SearchItemButton:: Cannot create a search item button with a NULL graphMLItem.";
         return;
@@ -20,6 +21,7 @@ SearchItemButton::SearchItemButton(GraphMLItem* item, QWidget *parent) :
 
     selected = false;
     triggeredWithin = false;
+
 
     setupLayout();
     updateColor(selected);
@@ -37,7 +39,7 @@ void SearchItemButton::connectToWindow(QMainWindow* window)
     MedeaWindow* medea = dynamic_cast<MedeaWindow*>(window);
     if (medea) {
         connect(this, SIGNAL(clicked()), medea, SLOT(searchItemClicked()));
-        connect(this, SIGNAL(searchItem_centerOnItem(GraphMLItem*)), medea, SLOT(on_searchResultItem_clicked(GraphMLItem*)));
+        connect(this, SIGNAL(searchItem_centerOnItem(QString)), medea, SLOT(on_searchResultItem_clicked(QString)));
         connect(medea, SIGNAL(window_searchItemClicked(SearchItemButton*)), this, SLOT(itemClicked(SearchItemButton*)));
     }
 }
@@ -63,7 +65,7 @@ void SearchItemButton::itemClicked()
         selected = false;
     } else {
         selected = true;
-        searchItem_centerOnItem(graphMLItem);
+        searchItem_centerOnItem(ID);
     }
 
     updateColor(selected);

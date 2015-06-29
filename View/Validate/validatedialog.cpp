@@ -12,15 +12,34 @@ ValidateDialog::ValidateDialog(QWidget *parent)
     itemsTable = new QTableWidget(1, 1);
     itemsTable->horizontalHeader()->setVisible(false);
 
-    buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
-    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+
+    spinning = 0;
+    buttonLayout = new QHBoxLayout();
+    titleLayout = new QHBoxLayout();
+    statusIcon = new QLabel();
+    label = new QLabel("Validation Report");
+    label->setStyleSheet("font-family: Helvetica, Arial, sans-serif; font-size: 18px;  font-weight: bold;");
+    titleLayout->addWidget(statusIcon);
+    titleLayout->addWidget(label,1);
+
+
+    QPushButton* closeButton = new QPushButton("Close");
+    QPushButton* revalidateButton = new QPushButton(QIcon(":/Resources/Icons/validate.png"),"Re-Validate");
+
+
+
+    connect(closeButton, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(revalidateButton, SIGNAL(clicked()), this, SLOT(revalidate()));
+    buttonLayout->addStretch();
+    buttonLayout->addWidget(revalidateButton);
+    buttonLayout->addWidget(closeButton);
 
     QGridLayout *mainLayout = new QGridLayout;
     mainLayout->setSizeConstraint(QLayout::SetNoConstraint);
-    mainLayout->addWidget(itemsTable, 0, 0);
-    mainLayout->addWidget(buttonBox, 1, 0);
-    mainLayout->setRowStretch(2, 1);
+    mainLayout->addLayout(titleLayout,0,0);
+    mainLayout->addWidget(itemsTable, 1, 0);
+    mainLayout->addLayout(buttonLayout, 2, 0);
+    mainLayout->setRowStretch(1, 1);
 
     setLayout(mainLayout);
 
@@ -31,7 +50,7 @@ ValidateDialog::ValidateDialog(QWidget *parent)
 
     setWindowModality(Qt::NonModal);
     setWindowFlags(flags);
-    setWindowTitle(tr("Validation Report"));
+    setWindowTitle(tr("MEDEA - Validation Report"));
 
     connect( itemsTable, SIGNAL( cellClicked (int, int) ), this, SLOT( cellSelected( int, int ) ) );
 
@@ -46,10 +65,11 @@ void ValidateDialog::connectToWindow(QMainWindow* window)
     MedeaWindow* medea = dynamic_cast<MedeaWindow*>(window);
     if (medea) {
         connect(this, SIGNAL(searchItem_centerOnItem(QString)), medea, SLOT(on_validationItem_clicked(QString)));
+        connect(this, SIGNAL(revalidate_Model()), medea, SLOT(on_actionValidate_triggered()));
     }
 }
 
-void ValidateDialog::setupItemsTable(QStringList *items)
+void ValidateDialog::setupItemsTable(QStringList items)
 {
     /* clear table and remove excess rows */
     itemsTable->clear();
@@ -59,9 +79,9 @@ void ValidateDialog::setupItemsTable(QStringList *items)
     }
 
     /* populate table with validation messages */
-    for (int row = 0; row < items->count(); ++row) {
+    for (int row = 0; row < items.count(); ++row) {
         itemsTable->insertRow(row);
-        QString reportMessage = (*items)[row];
+        QString reportMessage = items[row];
         QString id = reportMessage.split('[').last().split(']').first();
         QString message = reportMessage.split(']').last();
         itemsID.append(id);
@@ -70,7 +90,16 @@ void ValidateDialog::setupItemsTable(QStringList *items)
         itemsTable->setSelectionBehavior( QAbstractItemView::SelectRows );
         itemsTable->setSelectionMode( QAbstractItemView::SingleSelection );
         itemsTable->setItem(row, 0, name);
+    }
 
+    if(items.count() == 0){
+        label->setText("Validation Succeeded!");
+        QImage successImage(":/Resources/Icons/jenkins_built.png");
+        statusIcon->setPixmap(QPixmap::fromImage(successImage));
+    }else{
+        label->setText("Validation Failed! " + QString::number(items.count()) + " Issues!");
+        QImage failImage(":/Resources/Icons/jenkins_failed.png");
+        statusIcon->setPixmap(QPixmap::fromImage(failImage));
     }
 
     itemsTable->resizeColumnsToContents();
@@ -82,4 +111,17 @@ void ValidateDialog::cellSelected(int nRow, int nCol)
     //qDebug() << "Cell at row "+QString::number(nRow)+"was clicked.";
     searchItem_centerOnItem(itemsID[nRow]);
     Q_UNUSED(nCol);
+}
+
+void ValidateDialog::revalidate()
+{
+    if(!spinning){
+        spinning = new QMovie(this);
+        spinning->setFileName(":/Resources/Icons/jenkins_waiting.gif");
+        spinning->start();
+    }
+    statusIcon->setPixmap(QPixmap());
+    statusIcon->setMovie(spinning);
+    label->setText("Re-Validating Model");
+    emit revalidate_Model();
 }

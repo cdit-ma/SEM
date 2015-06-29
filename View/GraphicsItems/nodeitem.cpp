@@ -388,18 +388,20 @@ void NodeItem::childPosUpdated()
         return;
     }
     
-    //Maximize on the current size in the Model and the minimum child rectangle
-    if(minSize.width() > modelWidth){
-        setWidth(minSize.width());
-    }
-    
-    if(minSize.height() > modelHeight){
-        setHeight(minSize.height());
-    }
+
     
     if(nodeKind == "Model"){
         //Sort after any model changes!
         newSort();
+    }
+
+    //Maximize on the current size in the Model and the minimum child rectangle
+    if(minSize.width() > modelWidth){
+        setWidth(minSize.width());
+    }
+
+    if(minSize.height() > modelHeight){
+        setHeight(minSize.height());
     }
 }
 
@@ -794,9 +796,9 @@ NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
     if(resizePolygon().containsPoint(mousePosition, Qt::WindingFill)){
         return RESIZE;
     }
-    if(this->nodeKind.endsWith("Definitions")){
-        return NO_RESIZE;
-    }
+    //if(this->nodeKind.endsWith("Definitions")){
+    //    return NO_RESIZE;
+    //}
     
     qreal cornerRadius = getCornerRadius();
     
@@ -1169,9 +1171,6 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
         QString value = data->getValue();
         double valueD = value.toDouble();
         
-        QString oldValue;
-        QString newValue;
-        
         if(keyName == "x" || keyName == "y"){
             //If data is related to the position of the NodeItem
             //Get the current center position.
@@ -1224,10 +1223,10 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
             }
             
             //Check if the Width or Height has changed.
-            if(oldWidth != width){
+            if(oldWidth != width || width != valueD){
                 emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
             }
-            if(oldHeight != height){
+            if(oldHeight != height || height != valueD){
                 emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
             }
         }else if(keyName == "label"){
@@ -1578,7 +1577,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     
     
     
-    if(!PAINT_OBJECT || nodeKind.endsWith("Definitions")){
+    if(!PAINT_OBJECT){//|| nodeKind.endsWith("Definitions")){
         //QGraphicsItem::mouseMoveEvent(event);
         //event->setAccepted(false);
         return;
@@ -1605,7 +1604,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             }
             
         }else{
-            if(hasSelectionMoved == false){
+            if(hasSelectionMoved == false && !nodeKind.endsWith("Definitions")){
                 GraphMLItem_TriggerAction("Moving Selection");
                 setCursor(Qt::SizeAllCursor);
                 if(parentNodeItem){
@@ -2247,18 +2246,31 @@ void NodeItem::childUpdated()
         return;
     }
 
+    bool widthChanged = false;
+    bool heightChanged = false;
     //Maximize on the current size in the Model and the minimum child rectangle
     if(minSize.width() > modelWidth){
         setWidth(minSize.width());
+        widthChanged = true;
     }
 
     if(minSize.height() > modelHeight){
         setHeight(minSize.height());
+        heightChanged = true;
     }
+
     if(nodeKind == "Model"){
         //Sort after any model changes!
         newSort();
     }
+    if(widthChanged){
+       emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
+    }
+
+    if(heightChanged){
+        emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
+    }
+
 }
 
 

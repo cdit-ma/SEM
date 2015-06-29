@@ -79,6 +79,7 @@ NewController::NewController()
 
     constructableNodeKinds.append(definitionNodeKinds);
     constructableNodeKinds.append(behaviourNodeKinds);
+    constructableNodeKinds << "ManagementComponent";
 
     constructableNodeKinds.removeDuplicates();
 
@@ -304,7 +305,7 @@ QStringList NewController::getViewAspects()
     return viewAspects;
 }
 
-QStringList NewController::getConstructableNodeKinds()
+QStringList NewController::getAllNodeKinds()
 {
     return constructableNodeKinds;
 }
@@ -358,6 +359,7 @@ bool NewController::_clear()
 
         clearHistory();
 
+        emit controller_ActionProgressChanged(100);
         return true;
     }
     return reply;

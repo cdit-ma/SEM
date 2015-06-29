@@ -701,6 +701,14 @@ void NodeView::actionFinished()
     viewMutex.unlock();
 }
 
+void NodeView::request_ImportSnippet()
+{
+    NodeItem* nodeItem = this->getSelectedNodeItem();
+    if (nodeItem) {
+        emit view_ImportSnippet(nodeItem->getNodeKind());
+    }
+}
+
 void NodeView::hardwareDockOpened(bool opened)
 {
     this->hardwareDockOpen = opened;
@@ -1153,7 +1161,7 @@ void NodeView::editableItemHasFocus(bool hasFocus)
 void NodeView::selectAndCenter(GraphMLItem* item, QString ID)
 {
     if (!item) {
-        item = guiItems[ID];
+        item = getGraphMLItemFromHash(ID);
     }
 
     if (item && item->isNodeItem()) {
@@ -1181,6 +1189,8 @@ void NodeView::selectAndCenter(GraphMLItem* item, QString ID)
         clearSelection();
         appendToSelection(nodeItem->getNode());
         centerOnItem(item);
+    }else{
+        view_displayNotification("Entity no longer exists!");
     }
 }
 
@@ -1922,9 +1932,20 @@ QList<Node*> NodeView::getBlackBoxes()
  * This method gets the constuctable node kinds list from the controller.
  * @return
  */
-QStringList NodeView::getConstructableNodeKinds()
+QStringList NodeView::getGUIConstructableNodeKinds()
 {
-    return controller->getGUIConstructableNodeKinds();
+    if(controller){
+        return controller->getGUIConstructableNodeKinds();
+    }
+    return QStringList();
+}
+
+QStringList NodeView::getAllNodeKinds()
+{
+    if(controller){
+        return controller->getAllNodeKinds();
+    }
+    return QStringList();
 }
 
 

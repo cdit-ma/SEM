@@ -47,8 +47,6 @@ public slots:
 
     void makeNewView();
 
-    void exportGraphMLSnippet();
-    void importGraphMLSnippet();
 
     void attachOptionMenu();
 

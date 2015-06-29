@@ -65,7 +65,7 @@ public:
     //Get a list of all View Aspects
     QStringList getViewAspects();
 
-    QStringList getConstructableNodeKinds();
+    QStringList getAllNodeKinds();
     QStringList getGUIConstructableNodeKinds();
     //Returns a list of Kinds which can be adopted by a Node.
     QStringList getAdoptableNodeKinds(QString ID);

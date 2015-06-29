@@ -18,19 +18,25 @@ public:
 
     void connectToWindow(QMainWindow* window);
 
-    void setupItemsTable(QStringList *items = 0);
+    void setupItemsTable(QStringList items);
 
 signals:
     void searchItem_centerOnItem(QString id);
+    void revalidate_Model();
 
 private slots:
     void cellSelected(int nRow, int nCol);
-
+    void revalidate();
 private:
 
     QStringList itemsID;
     QTableWidget * itemsTable;
-    QDialogButtonBox *buttonBox;
+    QHBoxLayout* buttonLayout;
+    QHBoxLayout* titleLayout;
+
+    QLabel* label;
+    QLabel* statusIcon;
+    QMovie* spinning;
 };
 
 #endif // VALIDATIONDIALOG_H
