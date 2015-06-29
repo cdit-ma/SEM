@@ -107,7 +107,7 @@ MedeaWindow::~MedeaWindow()
 {
     if (appSettings) {
         saveSettings();
-        delete appSettings;
+        appSettings->deleteLater();
     }
     if (controller) {
         delete controller;
@@ -950,6 +950,10 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
 bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QString actionName)
 {
     if(toolbar && action && actionName != ""){
+        if(actionName == TOOLBAR_BACK || actionName == TOOLBAR_FORWARD){
+            return false;
+        }
+
         QSize buttonSize = QSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT);
         toolbar->setIconSize(buttonSize*0.6);
 
@@ -966,6 +970,7 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
         }else{
             qCritical() << "Duplicate Actions";
         }
+
         return true;
     }
     return false;
@@ -1088,7 +1093,7 @@ void MedeaWindow::makeConnections()
     connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
 
     //Jenkins Settings
-    connect(jenkins_ExecuteJob, SIGNAL(triggered()), this, SLOT(exportTempFile()));
+    connect(jenkins_ExecuteJob, SIGNAL(triggered()), this, SLOT(jenkinsExport()));
     connect(jenkins_ImportNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
 
     connect(settings_changeAppSettings, SIGNAL(triggered()), appSettings, SLOT(show()));
@@ -2781,8 +2786,10 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
                                                                 QMessageBox::Yes);
     if (resBtn != QMessageBox::Yes) {
         e->ignore();
+
     } else {
         e->accept();
+        deleteLater();
     }
 }
 

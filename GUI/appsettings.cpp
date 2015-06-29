@@ -27,11 +27,13 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(paren
     scrollArea->setMinimumWidth(350);
     scrollArea->setMinimumHeight(350);
     scrollArea->setWidgetResizable(true);
+    scrollArea->setWindowTitle("MEDEA - Settings");
     connect(this, SIGNAL(destroyed()), scrollArea, SLOT(deleteLater()));
 }
 
 AppSettings::~AppSettings()
 {
+    this->close();
 }
 
 QSettings* AppSettings::getSettings()
