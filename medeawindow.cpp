@@ -275,6 +275,7 @@ void MedeaWindow::initialiseGUI()
 
     projectName->setFlat(true);
     projectName->setStyleSheet("font-size: 16px; text-align: left; padding: 8px;");
+    projectName->setFixedSize(200, projectName->height());
 
     definitionsToggle = new AspectToggleWidget("Definitions", rightPanelWidth/2, this);
     workloadToggle = new AspectToggleWidget("Workload", rightPanelWidth/2, this);
@@ -354,6 +355,7 @@ void MedeaWindow::initialiseGUI()
                            "border-color: rgb(80,80,80);"
                            "border-radius: 8px;");
     minimap->centerView();
+
     // layouts
     QHBoxLayout *mainHLayout = new QHBoxLayout();
     QHBoxLayout *topHLayout = new QHBoxLayout();
@@ -389,7 +391,7 @@ void MedeaWindow::initialiseGUI()
     topHLayout->addWidget(menuTitleBox, 1);
     topHLayout->addStretch(5);
     topHLayout->addLayout(toolbarContainerLayout);
-    topHLayout->addStretch(4);
+    topHLayout->addStretch(5);
 
     leftVlayout->setMargin(0);
     leftVlayout->setSpacing(0);
@@ -1944,8 +1946,6 @@ void MedeaWindow::updateWindowTitle(QString newProjectName)
 {
     setWindowTitle("MEDEA - " + newProjectName);
     projectName->setText(newProjectName);
-    projectName->setFixedSize(200,
-                              projectName->height());
 }
 
 
