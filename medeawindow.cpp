@@ -1017,7 +1017,7 @@ void MedeaWindow::resetGUI()
     prevPressedButton = 0;
     hardwareDock->clearSelected();
     definitionsDock->clearSelected();
-    //partsDock->clearSelected();
+    ////partsDock->clearSelected();
     setupController();
 }
 

@@ -3153,7 +3153,6 @@ void NodeView::resizeSelection(QSizeF delta)
 
 void NodeView::moveFinished()
 {
-    qCritical() << "MOVE FINISHED";
     IS_MOVING = false;
 
 
