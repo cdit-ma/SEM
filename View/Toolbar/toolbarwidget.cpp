@@ -77,7 +77,10 @@ void ToolbarWidget::updateSelectedNodeItem(QList<NodeItem*> items)
     mainFrame->setVisible(showToolbar);
     shadowFrame->setVisible(showToolbar);
     setVisible(showToolbar);
+
     showToolbar = false;
+    showAlterViewFrame = false;
+    alterModelToolButtons.clear();
 }
 
 
@@ -146,7 +149,12 @@ void ToolbarWidget::showSnippetButton(QString button, bool show)
  */
 void ToolbarWidget::updateSeparators(bool snippet, bool goTo)
 {
-    //alterViewFrame->setVisible(addChildButton->isVisible() || connectButton->isVisible() || deleteButton->isVisible() || showSnippetFrame || showGoToFrame);
+    //showAlterViewFrame = showAlterViewFrame || showSnippetFrame || showGoToFrame;
+    /*
+    if (showSnippetFrame || showGoToFrame) {
+        alterViewFrame->show();
+    }
+    */
 
     // show frame if any of the snippet buttons are visible
     if (snippet) {
@@ -197,6 +205,7 @@ void ToolbarWidget::updateActionEnabled(QString actionName, bool enabled)
         deleteButton->setVisible(enabled);
     }
     if (enabled) {
+        alterModelToolButtons.append(deleteButton);
         showAlterViewFrame = true;
         showToolbar = true;
     }
@@ -567,7 +576,6 @@ void ToolbarWidget::makeConnections()
     connect(showConnectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
 
-
     connect(importSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ImportSnippet()));
     connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(exportSnippet()));
 }
@@ -590,6 +598,7 @@ void ToolbarWidget::updateToolButtons()
         // DEMO CHANGE - Don't need this when the popup new window button is back
         //alterViewFrame->show();
         showConnectionsButton->show();
+        //showAlterViewFrame = true;
         //showToolbar = true;
     } else {
         // DEMO CHANGE - Don't need this when the popup new window button is back
@@ -599,6 +608,7 @@ void ToolbarWidget::updateToolButtons()
 
     // always show showNewView button
     showNewViewButton->show();
+    //showAlterViewFrame = true;
     showToolbar = true;
 }
 
@@ -631,9 +641,13 @@ void ToolbarWidget::updateMenuLists()
         }
     }
 
-    alterViewFrame->setVisible(showAlterViewFrame || showSnippetFrame || showGoToFrame);
+    //showAlterViewFrame = showAlterViewFrame || showSnippetFrame || showGoToFrame;
+    //showAlterViewFrame = showAlterViewFrame || goToFrame->isVisible() || snippetFrame->isVisible();
+    //alterViewFrame->setVisible(showAlterViewFrame);
     //alterViewFrame->setVisible(showSnippetFrame || showGoToFrame);
-    //alterViewFrame->setVisible(showAlterViewFrame && alterModelToolButtons.count() > 0);
+    //alterViewFrame->setVisible(alterModelToolButtons.count() > 0 || goToFrame->isVisible() || snippetFrame->isVisible());
+    alterViewFrame->setVisible(showAlterViewFrame || alterModelToolButtons.count() > 0);
+    //showAlterViewFrame = false;
 }
 
 
@@ -719,8 +733,8 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
         return;
     } else {
         addChildButton->show();
-        //alterModelToolButtons.append(addChildButton);
-        showAlterViewFrame = true;
+        alterModelToolButtons.append(addChildButton);
+        //showAlterViewFrame = true;
         showToolbar = true;
     }
 
@@ -763,8 +777,8 @@ void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
         return;
     } else {
         connectButton->show();
-        //alterModelToolButtons.append(connectButton);
-        showAlterViewFrame = true;
+        alterModelToolButtons.append(connectButton);
+        //showAlterViewFrame = true;
         showToolbar = true;
     }
 

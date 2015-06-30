@@ -49,6 +49,8 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("AttributeInstance");
     definitions_notAllowedKinds.append("InEventPortDelegate");
     definitions_notAllowedKinds.append("OutEventPortDelegate");
+    definitions_notAllowedKinds.append("BlackBox");
+    definitions_notAllowedKinds.append("BlackBoxInstance");
 
     setNotAllowedKinds(definitions_notAllowedKinds);
 
@@ -204,6 +206,8 @@ void DefinitionsDockScrollArea::updateDock()
             Node* node = getCurrentNodeItem()->getNode();
             if (node->getDefinition()) {
                 setDockEnabled(false);
+            } else if (nodeKind == "ComponentInstance") {
+                showAllComponents();
             } else if (nodeKind == "ComponentImpl") {
                 hideImplementedComponents();
             }

@@ -639,7 +639,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     
     if(nodeKind == "Model" && !modelCenterPoint.isNull()){
         
-        
+
         
         int offSet = 0; //100;
         double radius = getItemMargin() + offSet;
@@ -656,6 +656,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         
         
         double middleButton = radius / 2;
+
         
         QRectF tLR(modelCenterPoint - QPointF(radius,radius), modelCenterPoint);
         QRectF tRR(modelCenterPoint - QPointF(0,radius), modelCenterPoint + QPointF(radius,0));
@@ -671,13 +672,17 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->drawRect(bLR);
         painter->setBrush(QColor(110,170,220));
         painter->drawRect(bRR);
-        
-        
+
+        painter->setPen(QPen(QColor(170,170,170,255), 5));
+        painter->setBrush(QBrush());
+        painter->drawEllipse(modelCenterPoint, radius, radius);
+        painter->setPen(Qt::NoPen);
+
         //circleBrush.setColor(Qt::gray);
         circleBrush.setColor(QColor(150,150,150));
         
         painter->setBrush(circleBrush);
-        
+
         
         if(isNodeSelected){
             QPen pen = selectedPen;
@@ -690,10 +695,30 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
         
+        /*
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(QColor(110,210,210));
+        painter->drawRect(tLR);
+        painter->setBrush(QColor(254,184,126));
+        painter->drawRect(tRR);
+        painter->setBrush(QColor(255,160,160));
+        painter->drawRect(bLR);
+        painter->setBrush(QColor(110,170,220));
+        painter->drawRect(bRR);
         
-        
+        QPainterPath modelRectPath, modelEllipsePath, leftOverPath;
+        modelRectPath.addRect(tLR);
+        modelRectPath.addRect(tRR);
+        modelRectPath.addRect(bLR);
+        modelRectPath.addRect(bRR);
+        modelEllipsePath.addEllipse(modelCenterPoint, radius, radius);
+        leftOverPath = modelRectPath - modelEllipsePath;
+
+        painter->setPen(Qt::NoPen);
+        painter->fillPath(leftOverPath, QBrush(Qt::red));
+        */
+
         painter->drawEllipse(modelCenterPoint, middleButton, middleButton);
-        
         
         if(textItem){
             

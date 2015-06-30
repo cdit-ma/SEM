@@ -41,7 +41,6 @@ void PartsDockScrollArea::updateDock()
                 dockNodeItem->hide();
                 displayedItems.removeAll(kind);
             }else{
-
                 //qCritical() << "Dont have item" << kind;
             }
         }

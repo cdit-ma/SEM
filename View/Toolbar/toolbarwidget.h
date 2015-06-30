@@ -129,7 +129,7 @@ private:
 
     QList<QToolButton*> singleSelectionToolButtons;
     QList<QToolButton*> multipleSelectionToolButtons;
-    //QList<QToolButton*> alterModelToolButtons;
+    QList<QToolButton*> alterModelToolButtons;
 
     QFrame* mainFrame;
     QFrame* shadowFrame;
