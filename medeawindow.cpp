@@ -111,10 +111,10 @@ MedeaWindow::~MedeaWindow()
         appSettings->deleteLater();
     }
     if (controller) {
-        delete controller;
+        controller->deleteLater();
     }
     if (nodeView) {
-        delete nodeView;
+        nodeView->deleteLater();
     }
 
     if(jenkinsManager){
@@ -124,7 +124,7 @@ MedeaWindow::~MedeaWindow()
 
     if(controllerThread){
         controllerThread->terminate();
-        delete controllerThread;
+        controllerThread->deleteLater();
     }
 
 }
