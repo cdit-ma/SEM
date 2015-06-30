@@ -751,14 +751,20 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     
     //Paint the Icon
     if(hasIcon){
-        painter->drawImage(iconRect(), getNodeView()->getImage(nodeKind));
+        if (nodeKind == "HardwareNode") {
+            QString hardwareOS = (getNode()->getDataValue("os")).remove(QChar::Space);
+            QString hardwareArch = getNode()->getDataValue("architecture");
+            painter->drawImage(iconRect(), getNodeView()->getImage(hardwareOS + "_" + hardwareArch));
+        }else {
+            painter->drawImage(iconRect(), getNodeView()->getImage(nodeKind));
+        }
     }
-    
+
     //If a Node has a Definition, paint a Lock Icon
     if(hasDefinition){
         painter->drawImage(lockIconRect(), getNodeView()->getImage("definition"));
     }
-    
+
     //If this Node has a Deployment Warning, paint a warning Icon
     if(showDeploymentWarningIcon){
         painter->drawImage(deploymentIconRect(), getNodeView()->getImage("warning"));
@@ -3116,7 +3122,7 @@ void NodeItem::updateModelSize()
     
     //if (width > prevWidth || height > prevHeight) {
     GraphMLItem_PositionSizeChanged(this, true);
-    //}  
+    //}
 }
 
 
