@@ -165,6 +165,7 @@ private slots:
     void detachedDockClosed();
 
     void showWindowToolbar(bool checked);
+    void setToolbarVisibility(bool visible);
     void detachWindowToolbar(bool checked);
     void detachedToolbarClosed();
     void updateCheckedToolbarActions(bool checked = true);

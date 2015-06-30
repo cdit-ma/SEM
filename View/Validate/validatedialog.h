@@ -34,6 +34,7 @@ private:
     QHBoxLayout* buttonLayout;
     QHBoxLayout* titleLayout;
 
+    QPushButton* revalidateButton;
     QLabel* label;
     QLabel* statusIcon;
     QMovie* spinning;

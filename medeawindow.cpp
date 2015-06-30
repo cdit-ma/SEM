@@ -45,8 +45,8 @@
 #define ASPECT_A "03-03-Assembly"
 #define ASPECT_H "03-04-Hardware"
 #define DOCK_VISIBLE "04-01-Hide_Dock"
-#define TOOLBAR_VISIBLE "05-00-Hide_Toolbar"
-#define TOOLBAR_EXPANDED "05-00-Expand_Toolbar"
+#define TOOLBAR_VISIBLE "05-00-00-Hide_Toolbar"
+#define TOOLBAR_EXPANDED "05-00-01-Expand_Toolbar"
 #define JENKINS_URL "06-01-URL"
 #define JENKINS_USER "06-02-Username"
 #define JENKINS_PASS "06-03-Password"
@@ -86,6 +86,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     // this needs to happen before the menu is set up and connected
     applicationDirectory = QApplication::applicationDirPath() + "/";
     appSettings = new AppSettings(this, applicationDirectory);
+    appSettings->setModal(true);
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QString)), this, SLOT(settingChanged(QString, QString, QString)));
 
     tempExport = false;
@@ -214,10 +215,13 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == DOCK_VISIBLE && isBool){
         showDocks(!boolValue);
     }else if(keyName == TOOLBAR_VISIBLE && isBool){
-        showWindowToolbar(!boolValue);
+        setToolbarVisibility(!boolValue);
+        settingChanged(groupName,TOOLBAR_EXPANDED, appSettings->getSetting(TOOLBAR_EXPANDED));
     }else if(keyName == TOOLBAR_EXPANDED && isBool){
-        toolbarButton->setChecked(boolValue);
-        toolbarButton->clicked(boolValue);
+        if(appSettings->getSetting(TOOLBAR_VISIBLE) != "true"){
+            toolbarButton->setChecked(boolValue);
+            toolbarButton->clicked(boolValue);
+        }
     }else if(keyName == ASPECT_D && isBool){
         definitionsToggle->setClicked(boolValue);
         definitionsToggle->aspectToggle_clicked(boolValue, 0);
@@ -985,12 +989,13 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
 void MedeaWindow::setupController()
 {
     if (controller) {
-        controller->deleteLater();
+        //controller->deleteLater();
+        delete controller;
         controller = 0;
     }
     if (controllerThread) {
         controllerThread->terminate();
-        controllerThread->deleteLater();
+        delete controllerThread;
         controllerThread = 0;
     }
 
@@ -1015,9 +1020,6 @@ void MedeaWindow::setupController()
 void MedeaWindow::resetGUI()
 {
     prevPressedButton = 0;
-    hardwareDock->clearSelected();
-    definitionsDock->clearSelected();
-    partsDock->clearSelected();
     setupController();
 }
 
@@ -1587,8 +1589,8 @@ void MedeaWindow::on_actionNew_Project_triggered()
     }
 
     if(nodeView){
-        projectCleared();
         nodeView->destroySubViews();
+        projectCleared();
     }
     //if(model_clearModel){
     //    model_clearModel->trigger();
@@ -2055,6 +2057,17 @@ void MedeaWindow::showWindowToolbar(bool checked)
 
     toolbar->setVisible(checked);
     return;
+}
+
+void MedeaWindow::setToolbarVisibility(bool visible)
+{
+    if(toolbarButton){
+        toolbarButton->setVisible(visible);
+    }
+    if(toolbar){
+        toolbar->setVisible(visible);
+    }
+
 }
 
 

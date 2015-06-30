@@ -15,19 +15,24 @@
 
 AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(parent)
 {
-    settings = new QSettings(applicationPath+"/settings.ini", QSettings::IniFormat);
-    setupLayout();
-
-    setModal(true);
-    setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
-
+    settings = new QSettings(applicationPath + "/settings.ini", QSettings::IniFormat);
 
     scrollArea = new QScrollArea();
-    scrollArea->setWidget(this);
     scrollArea->setMinimumWidth(350);
     scrollArea->setMinimumHeight(350);
     scrollArea->setWidgetResizable(true);
     scrollArea->setWindowTitle("MEDEA - Settings");
+    scrollArea->setWidget(this);
+
+    setupLayout();
+
+
+    setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
+
+    this->setModal(true);
+
+
+
     connect(this, SIGNAL(destroyed()), scrollArea, SLOT(deleteLater()));
 }
 
@@ -156,9 +161,6 @@ void AppSettings::setupLayout()
 {
 
     QVBoxLayout *vLayout = new QVBoxLayout();
-
-
-
     setLayout(vLayout);
 
     //For each group in Settings.ini

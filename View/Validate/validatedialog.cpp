@@ -24,7 +24,7 @@ ValidateDialog::ValidateDialog(QWidget *parent)
 
 
     QPushButton* closeButton = new QPushButton("Close");
-    QPushButton* revalidateButton = new QPushButton(QIcon(":/Resources/Icons/validate.png"),"Re-Validate");
+    revalidateButton = new QPushButton(QIcon(":/Resources/Icons/validate.png"),"Re-Validate");
 
 
 
@@ -101,6 +101,7 @@ void ValidateDialog::setupItemsTable(QStringList items)
         QImage failImage(":/Resources/Icons/jenkins_failed.png");
         statusIcon->setPixmap(QPixmap::fromImage(failImage));
     }
+    revalidateButton->setEnabled(true);
 
     itemsTable->resizeColumnsToContents();
     setMinimumWidth(itemsTable->width());
@@ -120,6 +121,7 @@ void ValidateDialog::revalidate()
         spinning->setFileName(":/Resources/Icons/jenkins_waiting.gif");
         spinning->start();
     }
+    revalidateButton->setEnabled(false);
     statusIcon->setPixmap(QPixmap());
     statusIcon->setMovie(spinning);
     label->setText("Re-Validating Model");
