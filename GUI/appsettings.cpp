@@ -26,12 +26,8 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(paren
 
     setupLayout();
 
-
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
-
     this->setModal(true);
-
-
 
     connect(this, SIGNAL(destroyed()), scrollArea, SLOT(deleteLater()));
 }
