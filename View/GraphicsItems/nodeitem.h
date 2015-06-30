@@ -283,6 +283,8 @@ private:
     double getItemMargin() const;
     double getChildItemMargin();// const;
 
+    double ignoreInsignificantFigures(double model, double current);
+
     QSizeF getModelSize();
 
 

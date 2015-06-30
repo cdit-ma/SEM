@@ -163,7 +163,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     }
 
     if(getParentNodeItem()){
-        getParentNodeItem()->childUpdated();
+        getParentNodeItem()->childPosUpdated();
+        getParentNodeItem()->updateModelSize();
     }
     
     //this->iconPixmap = QPixmap::fromImage(QImage(":/Resources/Icons/" + nodeKind + ".png"));
@@ -1190,10 +1191,16 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
             //Check if the X or Y has changed.
             newCenter = centerPos();
             
-            if(newCenter.x() != oldCenter.x()){
+            if(keyName == "x" && (newCenter.x() != oldCenter.x())){
+                //double newX = ignoreInsignificantFigures(newCenter.x(), oldCenter.x());
+
+                //emit GraphMLItem_SetGraphMLData(getID(), "x", QString::number(newX));
                 emit GraphMLItem_SetGraphMLData(getID(), "x", QString::number(newCenter.x()));
             }
-            if(newCenter.y() != oldCenter.y()){
+            if(keyName == "y" && (newCenter.y() != oldCenter.y())){
+                //double newY = ignoreInsignificantFigures(newCenter.y(), oldCenter.y());
+
+                //emit GraphMLItem_SetGraphMLData(getID(), "y", QString::number(newY));
                 emit GraphMLItem_SetGraphMLData(getID(), "y", QString::number(newCenter.y()));
             }
 
@@ -1222,12 +1229,18 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
                 setHeight(valueD);
             }
             
+            double newWidth = ignoreInsignificantFigures(valueD, width);
+            double newHeight = ignoreInsignificantFigures(valueD, height);
+
             //Check if the Width or Height has changed.
-            if(oldWidth != width || width != valueD){
-                emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
+            //if(keyName == "width" && (oldWidth != width || width != valueD)){
+            if(keyName == "width" && newWidth != valueD){
+                emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(newWidth));
             }
-            if(oldHeight != height || height != valueD){
-                emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
+            //if(keyName == "height" && (oldHeight != height || height != valueD)){
+            //if(keyName == "height" && (oldHeight != height || height != valueD)){
+            if(keyName == "height" && newHeight != valueD){
+                emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(newHeight));
             }
         }else if(keyName == "label"){
             //Update the Label
@@ -2263,13 +2276,13 @@ void NodeItem::childUpdated()
         //Sort after any model changes!
         newSort();
     }
-    if(widthChanged){
-       emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
-    }
+    //if(widthChanged){
+    //   emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
+    //}
 
-    if(heightChanged){
-        emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
-    }
+    //if(heightChanged){
+    //    emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
+    //}
 
 }
 
@@ -2971,6 +2984,15 @@ double NodeItem::getChildItemMargin()
     
 }
 
+double NodeItem::ignoreInsignificantFigures(double model, double current)
+{
+    double absDifferences = abs(model-current);
+    if(absDifferences > .1){
+        return current;
+    }
+    return model;
+}
+
 
 /**
  * @brief NodeItem::expandItem
@@ -3028,6 +3050,9 @@ void NodeItem::updateModelPosition()
             setLocked(isNodeOnGrid);
         }
     }
+    if(parentNodeItem){
+        parentNodeItem->updateModelSize();
+    }
     
     GraphMLItem_SetGraphMLData(getID(), "x", QString::number(centerPos().x()));
     GraphMLItem_SetGraphMLData(getID(), "y", QString::number(centerPos().y()));
@@ -3036,15 +3061,19 @@ void NodeItem::updateModelPosition()
     if(!isNodeOnGrid && parentNodeItem){
         parentNodeItem->removeChildOutline(getID());
     }
+
     
     GraphMLItem_PositionSizeChanged(this);
 }
 
 void NodeItem::updateModelSize()
 {
-    //double prevWidth = ("width").toDouble();
-    //double prevHeight = getGraphML()->getDataValue("height").toDouble();
-    
+    if(nodeKind == "Model"){
+        return;
+    }
+    if(this->parentNodeItem){
+        parentNodeItem->updateModelSize();
+    }
     //Update the Size in the model.
     GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
     GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
@@ -3062,8 +3091,7 @@ void NodeItem::updateModelSize()
     
     //if (width > prevWidth || height > prevHeight) {
     GraphMLItem_PositionSizeChanged(this, true);
-    //}
-    
+    //}  
 }
 
 
@@ -3179,6 +3207,9 @@ bool NodeItem::isExpanded()
 
 bool NodeItem::isContracted()
 {
+    if(this->childItems().count() ==0){
+        return true;
+    }
     return !isExpanded();
 }
 
