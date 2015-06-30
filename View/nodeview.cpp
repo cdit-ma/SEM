@@ -214,7 +214,13 @@ NodeView::~NodeView()
     if(parentNodeView && !parentNodeView->isTerminating()){
         parentNodeView->removeSubView(this);
     }
+}
 
+void NodeView::destroySubViews()
+{
+    while(!subViews.isEmpty()){
+        delete subViews.first();
+    }
 }
 
 

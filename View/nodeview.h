@@ -26,6 +26,7 @@ public:
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
 
+    void destroySubViews();
     //Set Controller
     void setController(NewController* controller);
     void disconnectController();
