@@ -201,15 +201,19 @@ QByteArray JenkinsRequest::runProcess(QStringList command)
     process->setReadChannel(QProcess::StandardOutput);
     process->setWorkingDirectory(manager->getCLIPath());
 
+
     QString program = command.at(0);
     command.removeFirst();
-
+#if defined(Q_OS_WIN)
     QString args = command.join(" ");
     process->setNativeArguments(args);
+    process->start(program);
+#else
+     process->start(program, command);
+#endif
 
     qCritical() << program;
     qCritical() << command;
-    process->start(program);
 
     bool processing = true;
     while(processing){

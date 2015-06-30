@@ -35,7 +35,7 @@ private:
 
     //CLI getter helper functions.
     QString getURL();
-    QString getCLIPrefix();
+    QStringList getCLIPrefix();
     QStringList getCLILoginSuffix();
     QString getCLIPath();
     QStringList getCLICommand(QString cliCommand);

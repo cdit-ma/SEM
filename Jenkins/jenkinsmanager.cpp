@@ -132,9 +132,13 @@ QJsonDocument JenkinsManager::getJobConfiguration(QString jobName)
  * @brief JenkinsManager::getCLIPrefix Gets the java -jar prefix for the jenkins-cli call. Uses the stored URL.
  * @return A QString containing the command prefix.
  */
-QString JenkinsManager::getCLIPrefix()
+QStringList JenkinsManager::getCLIPrefix()
 {
-    return "java -jar jenkins-cli.jar -s " + url;
+    QStringList returnable;
+    returnable << "java";
+    returnable << "-jar jenkins-cli.jar";
+    returnable << "-s " + url;
+    return returnable;
 }
 
 /**
@@ -166,9 +170,9 @@ QString JenkinsManager::getCLIPath()
 QStringList JenkinsManager::getCLICommand(QString cliCommand)
 {
     QStringList returnable;
-    returnable.append(getCLIPrefix() + " " +cliCommand);
+    returnable.append(getCLIPrefix());
+    returnable << cliCommand;
     returnable.append(getCLILoginSuffix());
-    qCritical() << returnable;
     return returnable;
 }
 
