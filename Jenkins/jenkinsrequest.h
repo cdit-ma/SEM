@@ -76,7 +76,7 @@ private:
     QByteArray wget(QString url);
     QByteArray post(QString url, QByteArray data = QByteArray());
     QByteArray waitForReply(QNetworkReply* reply);
-    QByteArray runProcess(QString command);
+    QByteArray runProcess(QStringList command);
 
     QNetworkAccessManager* getNetworkManager();
 
