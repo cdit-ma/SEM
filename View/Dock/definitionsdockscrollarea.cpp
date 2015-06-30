@@ -409,6 +409,7 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
  */
 void DefinitionsDockScrollArea::showAllComponents()
 {
+
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
         dockItem->setHidden(false);
     }
@@ -420,6 +421,6 @@ void DefinitionsDockScrollArea::showAllComponents()
  */
 void DefinitionsDockScrollArea::clear()
 {
-    fileLayoutItems.clear();
     DockScrollArea::clear();
+    fileLayoutItems.clear();
 }

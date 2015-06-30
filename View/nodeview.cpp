@@ -600,7 +600,7 @@ void NodeView::constructNewView(QString nodeID)
     NodeView* newView = new NodeView(true, subWindow);
     subViews.append(newView);
 
-    newView->setAspects(currentAspects);
+    newView->setAspects(allAspects);
     newView->setParentNodeView(this);
 
     subWindow->setNodeView(newView);
@@ -1627,6 +1627,7 @@ void NodeView::view_LockCenteredGraphML(QString ID)
 
     NodeItem* nodeItem = getNodeItemFromID(ID);
     if(nodeItem){
+
         centralizedItemID = ID;
         centralizedNodeItem = nodeItem;
         CENTRALIZED_ON_ITEM = true;
@@ -2367,6 +2368,9 @@ void NodeView::updateActionsEnabled()
         implID = controller->getImplementation(ID);
         canExport = controller->canExportSnippet(selectedIDs);
         canImport = controller->canImportSnippet(selectedIDs);
+
+        emit view_updateMenuActionEnabled("undo", controller->canUndo());
+        emit view_updateMenuActionEnabled("redo", controller->canRedo());
     }
 
 
@@ -3149,6 +3153,7 @@ void NodeView::resizeSelection(QSizeF delta)
 
 void NodeView::moveFinished()
 {
+    qCritical() << "MOVE FINISHED";
     IS_MOVING = false;
 
 
@@ -3157,6 +3162,7 @@ void NodeView::moveFinished()
         if(currentItem && currentItem->isNodeItem()){
             NodeItem* nodeItem = (NodeItem*) currentItem;
             nodeItem->setNodeMoving(false);
+            //nodeItem->updateModel();
             nodeItem->updateModelPosition();
         }
     }
@@ -3170,6 +3176,7 @@ void NodeView::resizeFinished()
         if(currentItem && currentItem->isNodeItem()){
             NodeItem* nodeItem = (NodeItem*) currentItem;
             nodeItem->setNodeResizing(false);
+            //nodeItem->updateModel();
             nodeItem->updateModelSize();
         }
         IS_RESIZING = false;

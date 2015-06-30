@@ -411,6 +411,8 @@ void DockScrollArea::on_parentButtonPressed()
  */
 void DockScrollArea::clear()
 {
+    currentNodeItem = 0;
+    currentNodeItemID = "";
     while (!dockNodeItems.keys().isEmpty()) {
         QString ID = dockNodeItems.keys().first();
         onNodeDeleted(ID);
@@ -418,8 +420,6 @@ void DockScrollArea::clear()
 
     dockNodeIDs.clear();
     dockNodeItems.clear();
-    currentNodeItem = 0;
-    currentNodeItemID = "";
 }
 
 

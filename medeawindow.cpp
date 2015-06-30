@@ -1015,6 +1015,9 @@ void MedeaWindow::setupController()
 void MedeaWindow::resetGUI()
 {
     prevPressedButton = 0;
+    hardwareDock->clear();
+    definitionsDock->clear();
+    partsDock->clear();
     setupController();
 }
 
