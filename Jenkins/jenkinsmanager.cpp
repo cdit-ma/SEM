@@ -132,32 +132,18 @@ QJsonDocument JenkinsManager::getJobConfiguration(QString jobName)
  * @brief JenkinsManager::getCLIPrefix Gets the java -jar prefix for the jenkins-cli call. Uses the stored URL.
  * @return A QString containing the command prefix.
  */
-QStringList JenkinsManager::getCLIPrefix()
+QString JenkinsManager::getCLIPrefix()
 {
-    QStringList returnable;
-    returnable << "java";
-    returnable << "-jar jenkins-cli.jar";
-    returnable << "-s " + url;
-    return returnable;
+    return "java -jar jenkins-cli.jar -s " + url + " ";
 }
 
 /**
  * @brief JenkinsManager::getCLILoginSuffix Gets the parameters for to authenticate commands on the Jenkins Server. Uses stored Username and Password.
  * @return A QString containing the command prefix.
  */
-QStringList JenkinsManager::getCLILoginSuffix()
+QString JenkinsManager::getCLILoginSuffix()
 {
-    QString safePassword;
-#if defined(Q_OS_WIN)
-    safePassword = password;
-#else
-    safePassword = password.replace("!", "\\!");
-#endif
-
-    QStringList returnable;
-    returnable << "--username " + username;
-    returnable << "--password " + safePassword;
-    return returnable;
+    return " --username " + username + " --password " + password;
 }
 
 /**
@@ -174,12 +160,8 @@ QString JenkinsManager::getCLIPath()
  * @param cliCommand The command to issue the Jenkins CLI server.
  * @return The ready to execute terminal command.
  */
-QStringList JenkinsManager::getCLICommand(QString cliCommand)
+QString JenkinsManager::getCLICommand(QString cliCommand)
 {
-    QStringList returnable;
-    returnable.append(getCLIPrefix());
-    returnable << cliCommand;
-    returnable.append(getCLILoginSuffix());
-    return returnable;
+    return getCLIPrefix() + cliCommand + getCLILoginSuffix();
 }
 

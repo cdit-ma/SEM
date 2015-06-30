@@ -191,7 +191,7 @@ QByteArray JenkinsRequest::waitForReply(QNetworkReply *reply)
  * @param command The complete command to execute.
  * @return The entire output of the process's execution.
  */
-QByteArray JenkinsRequest::runProcess(QStringList command)
+QByteArray JenkinsRequest::runProcess(QString command)
 {
     //The returnable byteArray.
     QByteArray byteArray;
@@ -202,18 +202,8 @@ QByteArray JenkinsRequest::runProcess(QStringList command)
     process->setWorkingDirectory(manager->getCLIPath());
 
 
-    QString program = command.at(0);
-    command.removeFirst();
-#if defined(Q_OS_WIN)
-    QString args = command.join(" ");
-    process->setNativeArguments(args);
-    process->start(program);
-#else
-     process->start(program, command);
-#endif
 
-    qCritical() << program;
-    qCritical() << command;
+    process->start(command);
 
     bool processing = true;
     while(processing){
