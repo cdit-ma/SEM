@@ -898,7 +898,7 @@ bool NewController::_replicate(QStringList IDs, bool addAction)
  */
 bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
 {
-    bool success = false;
+    bool success = true;
 
     if(xmlDataList.length() > 0){
         controller_SetViewEnabled(false);
@@ -911,12 +911,11 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
             bool result = _importGraphMLXML(xmlData, getModel());
             if(!result){
                 controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
-
+                success = false;
             }
         }
 
         controller_SetViewEnabled(true);
-        success = true;
     }
     return success;
 }
