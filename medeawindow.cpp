@@ -1586,6 +1586,7 @@ void MedeaWindow::on_actionNew_Project_triggered()
     }
 
     if(nodeView){
+        projectCleared();
         nodeView->destroySubViews();
     }
     //if(model_clearModel){

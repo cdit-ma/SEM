@@ -414,8 +414,12 @@ void DockScrollArea::clear()
    clearSelected();
 
     while (!dockNodeItems.keys().isEmpty()) {
+
         QString ID = dockNodeItems.keys().first();
-        onNodeDeleted(ID);
+        DockNodeItem* item =  dockNodeItems.take(ID);
+        if(item){
+            item->deleteLater();;
+        }
     }
 
     dockNodeIDs.clear();
