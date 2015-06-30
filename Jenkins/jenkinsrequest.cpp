@@ -201,7 +201,8 @@ QByteArray JenkinsRequest::runProcess(QString command)
     process->setReadChannel(QProcess::StandardOutput);
     process->setWorkingDirectory(manager->getCLIPath());
 
-
+    qCritical() << "PATH: " << manager->getCLIPath();
+    qCritical() << "COMMAND:" << command;
 
     process->start(command);
 
