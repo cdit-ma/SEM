@@ -1015,9 +1015,9 @@ void MedeaWindow::setupController()
 void MedeaWindow::resetGUI()
 {
     prevPressedButton = 0;
-    hardwareDock->clear();
-    definitionsDock->clear();
-    partsDock->clear();
+    hardwareDock->clearSelected();
+    definitionsDock->clearSelected();
+    //partsDock->clearSelected();
     setupController();
 }
 
@@ -1582,7 +1582,12 @@ void MedeaWindow::on_actionNew_Project_triggered()
         }
     }else{
         return;
+
     }
+
+    //if(model_clearModel){
+    //    model_clearModel->trigger();
+    //}
 
     newProject();
 }
@@ -2256,6 +2261,8 @@ void MedeaWindow::resetView()
 void MedeaWindow::newProject()
 {
     progressAction = "Setting up New Project";
+
+
 
     resetGUI();
 

@@ -49,6 +49,7 @@ public slots:
     virtual void dockNodeItemClicked() = 0;
     virtual void updateDock();
     virtual void clear();
+    void clearSelected();
 
     virtual void nodeDeleted(QString nodeID, QString parentID);
     void edgeDeleted(QString srcID, QString dstID);
