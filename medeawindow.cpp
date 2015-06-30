@@ -607,6 +607,7 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     dockStandAloneDialog = new QDialog(this);
     docksArea = new QGroupBox(this);
     dockButtonsBox = new QGroupBox();
+    dockButtonsBox->setStyle(QStyleFactory::create("windows"));
 
     dockLayout = new QVBoxLayout();
     QVBoxLayout* dockDialogLayout = new QVBoxLayout();
@@ -984,13 +985,12 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
 void MedeaWindow::setupController()
 {
     if (controller) {
-        delete controller;
-
+        controller->deleteLater();
         controller = 0;
     }
     if (controllerThread) {
         controllerThread->terminate();
-        delete controllerThread;
+        controllerThread->deleteLater();
         controllerThread = 0;
     }
 
