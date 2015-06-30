@@ -147,9 +147,16 @@ QStringList JenkinsManager::getCLIPrefix()
  */
 QStringList JenkinsManager::getCLILoginSuffix()
 {
+    QString safePassword;
+#if defined(Q_OS_WIN)
+    safePassword = password;
+#else
+    safePassword = password.replace("!", "\\!");
+#endif
+
     QStringList returnable;
     returnable << "--username " + username;
-    returnable << "--password " + password;
+    returnable << "--password " + safePassword;
     return returnable;
 }
 
