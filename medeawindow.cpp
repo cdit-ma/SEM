@@ -1282,56 +1282,9 @@ void MedeaWindow::initialiseJenkinsManager()
     if(jenkinsUrl != "" && jenkinsUser != "" && jenkinsPass != ""){
         jenkinsManager = new JenkinsManager(applicationDirectory + "Resources/Scripts/", jenkinsUrl, jenkinsUser, jenkinsPass, jenkinsToken);
     }
-
-    progressAction = "Importing Jenkins";
-
-    QString groovyScript = "Jenkins_Construct_GraphMLNodesList.groovy";
-
-    QString program = "java -jar jenkins-cli.jar";
-    program += " -s " + jenkinsUrl;
-    program += " groovy " + groovyScript;
-    program += " --username " + jenkinsUser;
-    program += " --password " + jenkinsPass;
-
-    myProcess = new QProcess(this);
-    QDir dir;
-
-    myProcess->setWorkingDirectory(applicationDirectory + "/Resources/Scripts/");
-    //qCritical() << myProcess->workingDirectory();
-    //qCritical() << program;
-    //myProcess->setWorkingDirectory(DEPGEN_ROOT + "/scripts");
-    connect(myProcess, SIGNAL(finished(int)), this, SLOT(loadJenkinsData(int)));
-    qCritical() << applicationDirectory + "/Resources/Scripts/";
-    qCritical() << program;
-    myProcess->start(program);
-
 }
 
 
-/**
- * @brief MedeaWindow::loadJenkinsData
- * @param code
- */
-void MedeaWindow::loadJenkinsData(int code)
-{
-
-    if(code == 0){
-        QStringList files;
-        files << myProcess->readAll();
-
-        window_ImportProjects(files);
-
-        // this selects the Jenkins hardware cluster, opens the hardware dock
-        // and show the Deployment view aspects (Assembly & Hardware)
-        //showImportedHardwareNodes();
-
-        // center view aspects
-        nodeView->fitToScreen();
-
-    }else{
-        QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
-    }
-}
 
 void MedeaWindow::jenkins_InvokeJob(QString filePath)
 {

@@ -200,18 +200,14 @@ QByteArray JenkinsRequest::runProcess(QString command)
     QProcess* process = new QProcess();
     process->setReadChannel(QProcess::StandardOutput);
     process->setWorkingDirectory(manager->getCLIPath());
-
-    qCritical() << "PATH: " << manager->getCLIPath();
-    qCritical() << "COMMAND:" << command;
-
     process->start(command);
 
     bool processing = true;
     while(processing){
         qint64 bytesAvailable = process->bytesAvailable();
 
-        //If the process is running but we have no bytesLeft in our Buffer, wait for more data!
-        if(process->state() == QProcess::Running && bytesAvailable == 0){
+        //If the process is running or starting but we have no bytesLeft in our Buffer, wait for more data!
+        if(process->state() != QProcess::NotRunning && bytesAvailable == 0){
             //qCritical() << "Process is Running, waiting for new data";
 
             //Construct a EventLoop which waits for the QNetworkReply to be finished, or more data to become available.

@@ -105,7 +105,6 @@ public slots:
     void validate_Exported(QString tempModelPath);
 
 private slots:
-    void loadJenkinsData(int code);
     void jenkinsNodesLoaded();
     void saveSettings();
 
@@ -307,7 +306,6 @@ private:
 
 
 
-    QProcess* myProcess;
 
     QAction* toolbar_Sort;
 
