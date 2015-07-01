@@ -317,6 +317,7 @@ void JenkinsJobMonitorWidget::stopPressed()
 
 void JenkinsJobMonitorWidget::frameChanged(int frame)
 {
+    Q_UNUSED(frame);
     if(spinning){
         QPixmap pixmap = spinning->currentPixmap();
 

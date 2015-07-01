@@ -8,7 +8,7 @@
 #include "../InterfaceDefinitions/member.h"
 #include "../InterfaceDefinitions/aggregateinstance.h"
 
-InEventPortImpl::InEventPortImpl(QString name): Node(Node::NT_IMPL)
+InEventPortImpl::InEventPortImpl(): Node(Node::NT_IMPL)
 {
 }
 

@@ -37,7 +37,6 @@ ModelTester::ModelTester()
 
     sleep(5);
     float priorMemory = getMemoryUsage();
-    float previousGrowth = 0;
     sleep(5);
     for(int j = 0 ; j < repeatCount; j++){
         float beforeLoad = getMemoryUsage();

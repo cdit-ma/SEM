@@ -51,6 +51,7 @@ void ComboBoxTableDelegate::setModelData(QWidget *editor, QAbstractItemModel *mo
 
 void ComboBoxTableDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    Q_UNUSED(index);
     editor->setGeometry(option.rect);
 }
 

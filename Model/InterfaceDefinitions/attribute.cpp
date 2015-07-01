@@ -5,7 +5,7 @@
 
 
 
-Attribute::Attribute(QString name):Node(Node::NT_DEFINITION)
+Attribute::Attribute():Node(Node::NT_DEFINITION)
 {
 }
 

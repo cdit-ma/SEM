@@ -93,9 +93,6 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         isStringList = false;
     }
 
-    bool isFile = customType == "File";
-
-
 
 
     if(isBool){

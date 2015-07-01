@@ -2077,6 +2077,7 @@ void MedeaWindow::setToolbarVisibility(bool visible)
  */
 void MedeaWindow::detachWindowToolbar(bool checked)
 {
+    Q_UNUSED(checked);
     // DEMO CHANGE
     /*
     QVBoxLayout* fromLayout;

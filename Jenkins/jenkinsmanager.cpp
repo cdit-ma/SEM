@@ -71,7 +71,7 @@ JenkinsRequest *JenkinsManager::getJenkinsRequest(QObject *parent, bool deleteOn
 
 void JenkinsManager::jenkinsRequestFinished(JenkinsRequest *request)
 {
-   int number = requests.removeAll(request);
+   requests.removeAll(request);
    // qCritical() << "Jenkins Request ID: " << number << "Terminated!";
 }
 

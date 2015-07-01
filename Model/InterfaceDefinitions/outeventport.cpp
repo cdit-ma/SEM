@@ -4,7 +4,7 @@
 #include "aggregate.h"
 #include <QDebug>
 
-OutEventPort::OutEventPort(QString name):EventPort()
+OutEventPort::OutEventPort():EventPort()
 {
 }
 

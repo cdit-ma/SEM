@@ -15,6 +15,7 @@
 
 NodeViewMinimap::NodeViewMinimap(QObject *parent)
 {
+    Q_UNUSED(parent);
     isPanning = false;
     setMouseTracking(true);
 }
@@ -40,6 +41,7 @@ bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 
 void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
+    Q_UNUSED(rect);
     // this darkens the area in the scene that's not currently visualised by the view
     // it also still draws a rectangle representing what is currently shown in the view
     if (scene()) {

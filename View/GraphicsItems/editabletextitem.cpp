@@ -150,6 +150,7 @@ void EditableTextItem::focusInEvent(QFocusEvent*)
 
 void EditableTextItem::focusOutEvent(QFocusEvent *event)
 {
+    Q_UNUSED(event);
     if(inEditingMode){
         //Only exit Edit mode if we are currently editing.
         setEditMode(false);
@@ -161,6 +162,7 @@ void EditableTextItem::focusOutEvent(QFocusEvent *event)
 
 void EditableTextItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
+    Q_UNUSED(event);
     setCursor(Qt::IBeamCursor);
 }
 
