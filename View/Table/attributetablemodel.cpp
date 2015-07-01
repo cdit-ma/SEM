@@ -33,8 +33,6 @@ AttributeTableModel::~AttributeTableModel()
     //qCritical() << "Deleting Table Model";
 }
 
-
-
 void AttributeTableModel::updatedData(GraphMLData *data)
 {
     if(data){
