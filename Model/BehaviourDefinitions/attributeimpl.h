@@ -8,9 +8,7 @@ public:
     AttributeImpl();
     ~AttributeImpl();
 
-    // GraphML interface
 public:
-    
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };

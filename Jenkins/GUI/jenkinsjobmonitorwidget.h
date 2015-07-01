@@ -41,6 +41,8 @@ private slots:
     void frameChanged(int frame);
 
 private:
+
+    QString htmlize(QString consoleOutput);
     QMovie* spinning;
     QString jobName;
     int buildNumber;

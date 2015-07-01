@@ -167,7 +167,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         getParentNodeItem()->updateModelSize();
     }
     
-    //this->iconPixmap = QPixmap::fromImage(QImage(":/Resources/Icons/" + nodeKind + ".png"));
+
+    aspectsChanged(aspects);
+
 }
 
 

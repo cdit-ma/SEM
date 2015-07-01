@@ -273,7 +273,6 @@ void JenkinsJobMonitorWidget::gotJobActiveConfigurations(QString jobName, QStrin
             int seperator = tabName.indexOf("=") + 1;
             tabName = tabName.mid(seperator);
         }
-
         //Add it to the Tabbed Widget.
         tabWidget->addTab(newBrowser, tabName);
     }
@@ -294,10 +293,8 @@ void JenkinsJobMonitorWidget::gotJobConsoleOutput(QString jobName, int buildNumb
         if(configurationBrowsers.contains(activeConfiguration)){
             QTextBrowser* output = configurationBrowsers[activeConfiguration];
 
-
-
             output->moveCursor (QTextCursor::End);
-            output->insertPlainText (consoleOutput);
+            output->insertHtml(htmlize(consoleOutput));
             output->moveCursor (QTextCursor::End);
         }
     }
@@ -320,11 +317,20 @@ void JenkinsJobMonitorWidget::frameChanged(int frame)
     Q_UNUSED(frame);
     if(spinning){
         QPixmap pixmap = spinning->currentPixmap();
-
-        for(int i = 0; i < tabWidget->children().count(); i++){
+        for(int i = 0; i < tabWidget->count(); i++){
             if(buildingTabs[i]){
                 tabWidget->setTabIcon(i, QIcon(pixmap));
             }
         }
     }
+}
+
+QString JenkinsJobMonitorWidget::htmlize(QString consoleOutput)
+{
+    QRegExp regExp("(https?\:\/\/\\S+)");
+    consoleOutput = consoleOutput.replace(regExp, "<a href='\\1'>\\1</a>" );
+    consoleOutput = consoleOutput.replace("\r\n", "<br />");
+    consoleOutput = consoleOutput.replace("\n", "<br />");
+    //Match URLs
+    return consoleOutput;
 }

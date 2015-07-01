@@ -6,8 +6,12 @@
 #include "medeawindow.h"
 #include "modeltester.h"
 
+#include <QString>
+#include <QRegExp>
+
+
 int main(int argc, char *argv[])
-{
+{   
     QApplication a(argc, argv);
     a.setWindowIcon(QIcon(":/Resources/Icons/medea.png"));
     a.setApplicationName("MEDEA");

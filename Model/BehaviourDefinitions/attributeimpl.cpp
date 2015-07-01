@@ -2,10 +2,15 @@
 #include "../InterfaceDefinitions/attribute.h"
 #include <QDebug>
 
+/**
+ * @brief AttributeImpl::AttributeImpl Constructor
+ * Calls Node::NT_IMPL as it is an Implementation of Attribute
+ */
 AttributeImpl::AttributeImpl():Node(Node::NT_IMPL)
 {
 
 }
+
 
 AttributeImpl::~AttributeImpl()
 {
