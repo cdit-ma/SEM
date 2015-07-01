@@ -24,8 +24,10 @@ signals:
     void editMultilineData(GraphMLData* data);
 public slots:
     void updatedData(GraphMLData* data);
+    void removedData(QString ID);
     void removedData(GraphMLData* data);
     void addData(GraphMLData* data);
+    void clearData();
 
     // QAbstractItemModel interface
 public:

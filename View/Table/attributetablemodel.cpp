@@ -43,11 +43,18 @@ void AttributeTableModel::updatedData(GraphMLData *data)
     emit dataChanged(indexA, indexB);
 }
 
+void AttributeTableModel::removedData(QString ID)
+{
+
+}
+
 void AttributeTableModel::removedData(GraphMLData *toRemove)
 {
+    //return;
     qCritical() << "UPDATING TABLE";
     //Remove the model index.
     int index = attachedData.indexOf(toRemove);
+    //qCritical() << index;
     if(index != -1){
         beginRemoveRows(QModelIndex(), index, index);
         attachedData.removeAt(index);
@@ -67,6 +74,14 @@ void AttributeTableModel::addData(GraphMLData *data)
             endInsertRows();
         }
     }
+}
+
+void AttributeTableModel::clearData()
+{
+    qCritical() << "LOST DATA";
+    beginRemoveRows(QModelIndex(),0,attachedData.size());
+    attachedData.clear();
+    endRemoveRows();
 }
 
 
@@ -404,10 +419,13 @@ void AttributeTableModel::setupDataBinding()
     if(attachedGraphML){
         connect(attachedGraphML, SIGNAL(dataRemoved(GraphMLData*)), this, SLOT(removedData(GraphMLData*)));
         connect(attachedGraphML, SIGNAL(dataAdded(GraphMLData*)), this, SLOT(addData(GraphMLData*)));
+        connect(attachedGraphML, SIGNAL(deleting()), this, SLOT(clearData()));
 
 
         foreach(GraphMLData* data, attachedGraphML->getData()){
-            addData(data);
+            if(!hiddenKeyNames.contains(data->getKeyName())){
+                addData(data);
+            }
         }
     }
 }

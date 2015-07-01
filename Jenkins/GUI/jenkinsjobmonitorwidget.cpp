@@ -169,6 +169,16 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
             //Hide the Stop Button.
             stopButton->setVisible(false);
         }
+        if(activeConfiguration != ""){
+            //QTextBrowser* browser = configurationBrowsers[activeConfiguration];
+            //if(browser){
+                //QRegExp regExp("((([A-Za-z]{3,9}:(?:\\/\\/)?)(?:[\\-;:&=\\+\\$,\\w]+@)?[A-Za-z0-9\\.\\-]+|(?:www\\.|[\\-;:&=\\+\\$,\\w]+@)[A-Za-z0-9\\.\\-]+)((?:\\/[\\+~%\\/\\.\\w\\-]*)?\\??(?:[\\-\\+=&;%@\\.\\w]*)#?(?:[\\.\\!\\/\\\\\\w]*))?)");
+                //QString consoleOutput = browser->toPlainText();
+                //consoleOutput = consoleOutput.replace("\r\n)
+                //consoleOutput = consoleOutput.replace(regExp, "<a href=\"\\1\">\\1</a>" );
+                //browser->setHtml(consoleOutput);
+            //}
+        }
 
         tabWidget->setTabIcon(index, QIcon(resourceName));
     }
@@ -249,6 +259,7 @@ void JenkinsJobMonitorWidget::gotJobActiveConfigurations(QString jobName, QStrin
     foreach(QString configuration, configurations){
         QTextBrowser* newBrowser = new QTextBrowser();
         newBrowser->setEnabled(true);
+        newBrowser->setOpenExternalLinks(true);
 
         if(!configurationBrowsers.contains(configuration)){
             configurationBrowsers[configuration] = newBrowser;
@@ -282,6 +293,8 @@ void JenkinsJobMonitorWidget::gotJobConsoleOutput(QString jobName, int buildNumb
         //Append the consoleOutput to the end of the QTextBrowser which matches the activeConfiguration.
         if(configurationBrowsers.contains(activeConfiguration)){
             QTextBrowser* output = configurationBrowsers[activeConfiguration];
+
+
 
             output->moveCursor (QTextCursor::End);
             output->insertPlainText (consoleOutput);

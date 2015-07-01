@@ -742,7 +742,6 @@ void NodeView::setAttributeModel(GraphMLItem *item, bool tellSubView)
             emit view_SetAttributeModel(item->getAttributeTable());
         }
     }else{
-
         currentTableID = "";
         emit view_SetAttributeModel(0);
         if(!IS_SUB_VIEW && tellSubView){
@@ -3020,8 +3019,9 @@ void NodeView::undo()
 {
     // undo the action
     if(viewMutex.tryLock()) {
-        //clearSelection();
-        setAttributeModel(0, true);
+
+        clearSelection(true,true);
+        // setAttributeModel(0, true);
         emit this->view_Undo();
     }
 }

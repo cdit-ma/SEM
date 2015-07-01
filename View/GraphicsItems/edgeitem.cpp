@@ -66,7 +66,7 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
 EdgeItem::~EdgeItem()
 {
     IS_DELETING = true;
-    if(getNodeView()){
+    if(getNodeView() && !getNodeView()->isTerminating()){
         if(source){
             source->removeVisibleParentForEdgeItem(getID());
             source->removeEdgeItem(this);

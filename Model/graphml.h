@@ -73,6 +73,7 @@ public:
 
 
 signals:
+    void deleting();
     //Used to inform models if data has been removed.
     void dataRemoved(GraphMLData* data);
     void dataAdded(GraphMLData* data);

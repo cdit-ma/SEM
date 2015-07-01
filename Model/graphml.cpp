@@ -42,7 +42,6 @@ void GraphML::removeData(){
         }
 
         data->deleteLater();
-        //data->deleteLater();
     }
 }
 
@@ -181,6 +180,8 @@ void GraphML::removeData(GraphMLData *data)
     int index = attachedData.indexOf(data);
     attachedData.removeAll(data);
     data->setParent(0);
+    qCritical() << data->toString();
+    qCritical() << "REMOVING";
     emit dataRemoved(data);
 }
 

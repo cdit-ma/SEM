@@ -15,7 +15,7 @@ println('<key attr.name="shared_directory" attr.type="string" for="node" id="' +
 println('\t<graph edgedefault="directed" id="parentGraph0">');
 println('\t<node id="' + (ID_COUNTER++) + '">');
 println('\t\t<data key="1">HardwareDefinitions</data>');
-println('\t\t<data key="4">HardwareDefinitions</data>');
+println('\t\t<data key="3">HardwareDefinitions</data>');
 println('\t\t<graph edgedefault="directed" id="' + ID_COUNTER + 'G">');
 println('\t\t\t<node id="' + (ID_COUNTER++) + '">');
 println('\t\t\t\t<data key="1">HardwareCluster</data>');
