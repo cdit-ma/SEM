@@ -24,13 +24,13 @@ signals:
     void editMultilineData(GraphMLData* data);
 public slots:
     void updatedData(GraphMLData* data);
-    void removedData(QString ID);
-    void removedData(GraphMLData* data);
+    void removedData(QString dataID);
     void addData(GraphMLData* data);
     void clearData();
 
     // QAbstractItemModel interface
 public:
+
     int rowCount(const QModelIndex &parent) const;
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
@@ -41,13 +41,17 @@ public:
     bool removeRows(int row, int count, const QModelIndex &parent);
     Qt::ItemFlags flags(const QModelIndex &index) const;
 private:
+    int getIndex(QString ID) const;
+    GraphMLData* getData(int row) const;
+
     void setupDataBinding();
     bool popupMultiLine(const QModelIndex &index) const;
     GraphMLItem* guiItem;
 
     bool isNode;
     GraphML* attachedGraphML;
-    QList<GraphMLData*> attachedData;
+    QStringList dataOrder;
+    QHash<QString, GraphMLData*> attachedData;
     QStringList permanentlyLockedKeyNames;
     QStringList hiddenKeyNames;
     QStringList multiLineKeyNames;

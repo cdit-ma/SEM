@@ -182,7 +182,8 @@ void GraphML::removeData(GraphMLData *data)
         attachedData.removeAt(index);
 
         data->setParent(0);
-        emit dataRemoved(data);
+        emit dataRemoved(data->getID());
+        //emit dataRemoved(data);
     }
 }
 

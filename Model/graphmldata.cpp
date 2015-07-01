@@ -33,6 +33,7 @@ GraphMLData::~GraphMLData()
         }
     }
 
+
 }
 
 void GraphMLData::setParent(GraphML *parent)

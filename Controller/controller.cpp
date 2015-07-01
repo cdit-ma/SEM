@@ -494,8 +494,8 @@ void NewController::destructGraphMLData(GraphML *parent, QString keyName, bool a
 
     //Remove the Data to the parent
     parent->removeData(data);
-    data->deleteLater();
-    //    delete data;
+    //data->deleteLater();
+    delete data;
 
     //Add an action to the stack.
     addActionToStack(action, addAction);
@@ -1810,7 +1810,9 @@ bool NewController::destructNode(Node *node, bool addAction)
     }
 
 
+    //node->deleteLater();
     delete node;
+    //delete node;
     return true;
 }
 
@@ -1892,7 +1894,9 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     removeGraphMLFromHash(ID);
 
     //Delete it.
-    delete edge;
+    //delete edge;
+    delete edge;//edge->deleteLater();
+
     return true;
 }
 

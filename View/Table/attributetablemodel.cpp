@@ -37,26 +37,25 @@ AttributeTableModel::~AttributeTableModel()
 
 void AttributeTableModel::updatedData(GraphMLData *data)
 {
-    int position = attachedData.indexOf(data);
-    QModelIndex indexA = this->index(position, 0, QModelIndex());
-    QModelIndex indexB = this->index(position, rowCount(indexA), QModelIndex());
-    emit dataChanged(indexA, indexB);
+    if(data){
+        QString ID = data->getID();
+        int position = getIndex(ID);
+        QModelIndex indexA = this->index(position, 0, QModelIndex());
+        QModelIndex indexB = this->index(position, rowCount(indexA), QModelIndex());
+        emit dataChanged(indexA, indexB);
+    }
 }
 
-void AttributeTableModel::removedData(QString ID)
-{
-
-}
-
-void AttributeTableModel::removedData(GraphMLData *toRemove)
+void AttributeTableModel::removedData(QString dataID)
 {
     //return;
     //Remove the model index.
-    int index = attachedData.indexOf(toRemove);
+
     //qCritical() << index;
+    int index = getIndex(dataID);
     if(index != -1){
         beginRemoveRows(QModelIndex(), index, index);
-        attachedData.removeAt(index);
+        attachedData.remove(dataID);
         endRemoveRows();
     }
 
@@ -64,11 +63,13 @@ void AttributeTableModel::removedData(GraphMLData *toRemove)
 
 void AttributeTableModel::addData(GraphMLData *data)
 {
-    if(!attachedData.contains(data)){
+    QString ID = data->getID();
+
+    if(!attachedData.contains(ID)){
         if(!hiddenKeyNames.contains(data->getKeyName())){
             connect(data, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
             beginInsertRows(QModelIndex(), attachedData.size(), attachedData.size());
-            attachedData.append(data);
+            attachedData.insert(ID, data);
             updatedData(data);
             endInsertRows();
         }
@@ -81,6 +82,20 @@ void AttributeTableModel::clearData()
     beginRemoveRows(QModelIndex(),0,attachedData.size());
     attachedData.clear();
     endRemoveRows();
+}
+
+int AttributeTableModel::getIndex(QString ID) const
+{
+    return attachedData.keys().indexOf(ID);
+}
+
+GraphMLData* AttributeTableModel::getData(int row) const
+{
+    QString ID = attachedData.keys().at(row);
+    if(ID != ""){
+        return attachedData[ID];
+    }
+    return 0;
 }
 
 
@@ -124,7 +139,8 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
     }
 
 if (role == Qt::DecorationRole) {
-        GraphMLData* data = attachedData.at(index.row());
+
+        GraphMLData* data = getData(index.row());
         switch(index.column()){
         case 2:
             if(popupMultiLine(index)) {
@@ -151,7 +167,7 @@ if (role == Qt::DecorationRole) {
 
 
     if(role == Qt::CheckStateRole){
-        GraphMLData* data = attachedData.at(index.row());
+        GraphMLData* data = getData(index.row());
         switch(index.column()){
         case 0:
             if(data->isProtected()){
@@ -163,7 +179,7 @@ if (role == Qt::DecorationRole) {
     }
 
     if (role == Qt::DisplayRole) {
-        GraphMLData* data = attachedData.at(index.row());
+        GraphMLData* data = getData(index.row());
 
         switch(index.column()){
         case 0:
@@ -178,7 +194,7 @@ if (role == Qt::DecorationRole) {
     }
 
     if (role == Qt::EditRole) {
-        GraphMLData* data = attachedData.at(index.row());
+        GraphMLData* data  = getData(index.row());
 
         switch(index.column()){
         case 0:
@@ -191,7 +207,7 @@ if (role == Qt::DecorationRole) {
     }
 
     if (role == Qt::ToolTipRole) {
-        GraphMLData* data = attachedData.at(index.row());
+        GraphMLData* data  = getData(index.row());
 
         switch(index.column()){
         case 0:{
@@ -212,7 +228,7 @@ if (role == Qt::DecorationRole) {
         }
     }
     if(role == -1){
-        GraphMLData* data = attachedData.at(index.row());
+        GraphMLData* data  = getData(index.row());
         QVariant v(QMetaType::QObjectStar, &data);
 
         return v;
@@ -224,7 +240,7 @@ if (role == Qt::DecorationRole) {
     }
 
     if(role == -3) {
-        GraphMLData* data = attachedData.at(index.row());
+        GraphMLData* data = getData(index.row());
         if(data) {
             return data->getKeyName();
         }
@@ -276,7 +292,7 @@ QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientatio
 bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if(role == Qt::CheckStateRole){
-        GraphMLData* data = attachedData.at(index.row());
+        GraphMLData* data  = getData(index.row());
 
         if(index.column() == 0 && data){
             if(!permanentlyLockedKeyNames.contains(data->getKeyName())){
@@ -301,7 +317,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
     if (index.isValid() && role == Qt::EditRole) {
         int row = index.row();
 
-        GraphMLData* data = attachedData.at(row);
+        GraphMLData* data  = getData(index.row());
 		/*
         if(index.column() == 0 && data){
             if(!permanentlyLockedKeyNames.contains(data->getKeyName())){
@@ -356,7 +372,7 @@ bool AttributeTableModel::removeRows(int position, int rows, const QModelIndex &
     bool anyRemoved = false;
 
     for (int row=0; row < rows; ++row) {
-        GraphMLData* data = attachedData.at(position);
+        GraphMLData* data = getData(position);
         if(data && !data->isProtected()){
             if(!anyRemoved){
                 anyRemoved = true;
@@ -381,7 +397,7 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
         if(index.isValid()) {
             int row = index.row();
 
-            GraphMLData* data = attachedData.at(row);
+            GraphMLData* data  = getData(row);
 			if(!data->getParent()){
                 return 0;
 			}
@@ -399,7 +415,7 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
         if(index.isValid()) {
             int row = index.row();
 
-            GraphMLData* data = attachedData.at(row);
+            GraphMLData* data = getData(row);
 
             if (data && data->isProtected()){
                 return (QAbstractTableModel::flags(index)  ^ Qt::ItemIsEnabled);
@@ -416,7 +432,7 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 void AttributeTableModel::setupDataBinding()
 {
     if(attachedGraphML){
-        connect(attachedGraphML, SIGNAL(dataRemoved(GraphMLData*)), this, SLOT(removedData(GraphMLData*)));
+        connect(attachedGraphML, SIGNAL(dataRemoved(QString)), this, SLOT(removedData(QString)));
         connect(attachedGraphML, SIGNAL(dataAdded(GraphMLData*)), this, SLOT(addData(GraphMLData*)));
         connect(attachedGraphML, SIGNAL(deleting()), this, SLOT(clearData()));
 
@@ -437,7 +453,7 @@ void AttributeTableModel::setupDataBinding()
  */
 bool AttributeTableModel::popupMultiLine(const QModelIndex &index) const
 {
-    GraphMLData* data = attachedData.at(index.row());
+    GraphMLData* data = getData(index.row());
     if(data && index.column() == 2) {
         //Check types
         if(multiLineKeyNames.contains(data->getKeyName())) {
