@@ -6,7 +6,7 @@
 #include "attribute.h"
 #include <QDebug>
 
-Component::Component(QString name): Node(Node::NT_DEFINITION)
+Component::Component(): Node(Node::NT_DEFINITION)
 {
 }
 

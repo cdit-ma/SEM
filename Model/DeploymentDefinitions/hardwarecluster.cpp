@@ -4,7 +4,7 @@
 #include "componentinstance.h"
 #include <QDebug>
 
-HardwareCluster::HardwareCluster(QString name):Node()
+HardwareCluster::HardwareCluster():Node()
 {
     //qDebug() << "Constructed Hardwdare Cluster: "<< this->getName();
 }

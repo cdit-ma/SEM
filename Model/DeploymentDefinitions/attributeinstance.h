@@ -11,7 +11,7 @@ class AttributeInstance : public Node
 {
     Q_OBJECT
 public:
-    AttributeInstance(QString name="");
+    AttributeInstance();
     ~AttributeInstance();
 
     // GraphML interface

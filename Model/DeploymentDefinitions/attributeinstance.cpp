@@ -3,7 +3,7 @@
 #include "../DeploymentDefinitions/attributeinstance.h"
 #include <QDebug>
 
-AttributeInstance::AttributeInstance(QString name): Node(Node::NT_INSTANCE)
+AttributeInstance::AttributeInstance(): Node(Node::NT_INSTANCE)
 {
     //qDebug() << "Constructed Attribute: "<< this->getName();
 }

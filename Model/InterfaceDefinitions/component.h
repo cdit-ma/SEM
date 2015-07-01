@@ -8,7 +8,7 @@ class ComponentImpl;
 class Component : public Node
 {
 public:
-    Component(QString name="");
+    Component();
     ~Component();
 
     

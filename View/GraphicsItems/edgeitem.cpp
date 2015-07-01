@@ -277,6 +277,9 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             previousScenePosition = event->scenePos();
             break;
         }
+    default:{
+        break;
+    }
     }
 }
 

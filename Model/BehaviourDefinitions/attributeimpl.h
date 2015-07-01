@@ -5,7 +5,7 @@
 class AttributeImpl : public Node
 {
 public:
-    AttributeImpl(QString name="");
+    AttributeImpl();
     ~AttributeImpl();
 
     // GraphML interface

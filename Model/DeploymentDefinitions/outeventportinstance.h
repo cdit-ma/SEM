@@ -6,7 +6,7 @@ class OutEventPortInstance : public Node
 {
         Q_OBJECT
 public:
-    OutEventPortInstance(QString name="");
+    OutEventPortInstance();
     ~OutEventPortInstance();
     // GraphML interface
 public:

@@ -8,7 +8,7 @@
 #include "../edge.h"
 #include "hardwarenode.h"
 
-ComponentInstance::ComponentInstance(QString name):Node(Node::NT_INSTANCE)
+ComponentInstance::ComponentInstance():Node(Node::NT_INSTANCE)
 {
     //qDebug() << "Constructed ComponentInstance: "<< this->getName();
 }

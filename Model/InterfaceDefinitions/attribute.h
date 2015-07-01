@@ -9,7 +9,7 @@ class AttributeImpl;
 class Attribute : public Node
 {
 public:
-    Attribute(QString name="");
+    Attribute();
     ~Attribute();
 
     // GraphML interface

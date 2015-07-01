@@ -6,7 +6,7 @@ class InEventPortImpl : public Node
 {
     Q_OBJECT
 public:
-    InEventPortImpl(QString name="");
+    InEventPortImpl();
     ~InEventPortImpl();
 
 public:

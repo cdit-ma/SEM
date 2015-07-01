@@ -9,7 +9,7 @@ class InEventPortImpl;
 class InEventPort : public EventPort
 {
 public:
-    InEventPort(QString name="");
+    InEventPort();
     ~InEventPort();
 
     

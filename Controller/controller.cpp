@@ -1532,7 +1532,7 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
         }
 
         if(typeMatched){
-            if(requiresLabelAndType && labelMatched || !requiresLabelAndType){
+            if((requiresLabelAndType && labelMatched) || !requiresLabelAndType){
                 Edge* connectingEdge = constructEdgeWithData(child, definition);
 
                 if(!connectingEdge){
@@ -1637,7 +1637,7 @@ void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
     int labelID = 0;
 
 
-    for(labelID; labelID <= maxNumber; labelID++){
+    for(labelID=0; labelID <= maxNumber; labelID++){
         if(!sameLabelNumbers.contains(labelID)){
             break;
         }

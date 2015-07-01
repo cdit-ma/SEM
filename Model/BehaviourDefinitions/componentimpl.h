@@ -9,7 +9,7 @@ class ComponentImpl: public Node
 {
      Q_OBJECT
 public:
-    ComponentImpl(QString name="");
+    ComponentImpl();
     ~ComponentImpl();    // GraphML interface
     
 

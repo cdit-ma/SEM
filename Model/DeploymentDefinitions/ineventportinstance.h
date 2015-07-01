@@ -6,7 +6,7 @@ class InEventPortInstance : public Node
 {
         Q_OBJECT
 public:
-    InEventPortInstance(QString name="");
+    InEventPortInstance();
     ~InEventPortInstance();
 
 

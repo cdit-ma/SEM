@@ -5,7 +5,7 @@
 class HardwareCluster : public Node
 {
 public:
-    HardwareCluster(QString name="");
+    HardwareCluster();
     ~HardwareCluster();
 
     // GraphML interface

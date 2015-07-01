@@ -6,7 +6,7 @@ class HardwareNode : public Node
 {
     Q_OBJECT
 public:
-    HardwareNode(QString name="");
+    HardwareNode();
     ~HardwareNode();
 public:
     bool canConnect(Node* attachableObject);

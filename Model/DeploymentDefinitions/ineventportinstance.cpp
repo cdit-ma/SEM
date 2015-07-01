@@ -3,7 +3,7 @@
 #include "../InterfaceDefinitions/aggregateinstance.h"
 #include <QDebug>
 
-InEventPortInstance::InEventPortInstance(QString name):Node(Node::NT_INSTANCE)
+InEventPortInstance::InEventPortInstance():Node(Node::NT_INSTANCE)
 {
 }
 

@@ -8,7 +8,7 @@
 #include "../InterfaceDefinitions/member.h"
 #include "../InterfaceDefinitions/aggregateinstance.h"
 
-OutEventPortImpl::OutEventPortImpl(QString name): Node(Node::NT_IMPL)
+OutEventPortImpl::OutEventPortImpl(): Node(Node::NT_IMPL)
 {
     //qDebug() << "Constructed InEventPort: "<< this->getName();
 }

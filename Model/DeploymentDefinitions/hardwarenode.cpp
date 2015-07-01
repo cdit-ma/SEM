@@ -4,7 +4,7 @@
 #include "managementcomponent.h"
 #include <QDebug>
 
-HardwareNode::HardwareNode(QString name):Node()
+HardwareNode::HardwareNode():Node()
 {
     //qDebug() << "Constructed Hardwdare Node: "<< this->getName();
 }

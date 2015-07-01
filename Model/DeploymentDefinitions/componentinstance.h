@@ -8,7 +8,7 @@ class ComponentInstance : public Node
 {
         Q_OBJECT
 public:
-    ComponentInstance(QString name="");
+    ComponentInstance();
     ~ComponentInstance();
 
 public:

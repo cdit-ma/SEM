@@ -6,7 +6,7 @@
 class OutEventPort : public EventPort
 {
 public:
-    OutEventPort(QString name="");
+    OutEventPort();
     ~OutEventPort();
 
     

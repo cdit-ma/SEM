@@ -17,7 +17,7 @@
 
 #include <QDebug>
 
-ComponentImpl::ComponentImpl(QString name):Node(Node::NT_IMPL)
+ComponentImpl::ComponentImpl():Node(Node::NT_IMPL)
 {
 }
 
