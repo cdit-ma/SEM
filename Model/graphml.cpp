@@ -178,11 +178,12 @@ void GraphML::attachData(GraphMLData *data)
 void GraphML::removeData(GraphMLData *data)
 {
     int index = attachedData.indexOf(data);
-    attachedData.removeAll(data);
-    data->setParent(0);
-    qCritical() << data->toString();
-    qCritical() << "REMOVING";
-    emit dataRemoved(data);
+    if(index >= 0){
+        attachedData.removeAt(index);
+
+        data->setParent(0);
+        emit dataRemoved(data);
+    }
 }
 
 void GraphML::attachData(QList<GraphMLData *> data)

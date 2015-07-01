@@ -51,7 +51,6 @@ void AttributeTableModel::removedData(QString ID)
 void AttributeTableModel::removedData(GraphMLData *toRemove)
 {
     //return;
-    qCritical() << "UPDATING TABLE";
     //Remove the model index.
     int index = attachedData.indexOf(toRemove);
     //qCritical() << index;

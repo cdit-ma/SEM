@@ -491,9 +491,11 @@ void NewController::destructGraphMLData(GraphML *parent, QString keyName, bool a
         action.parentDataID.append(data->getParentData()->getID());
     }
 
+
     //Remove the Data to the parent
     parent->removeData(data);
-    delete data;
+    data->deleteLater();
+    //    delete data;
 
     //Add an action to the stack.
     addActionToStack(action, addAction);

@@ -75,6 +75,7 @@ public:
 signals:
     void deleting();
     //Used to inform models if data has been removed.
+    void dataRemoved(QString ID);
     void dataRemoved(GraphMLData* data);
     void dataAdded(GraphMLData* data);
     void model_DisplayMessage(QString title, QString message, QString ID);
