@@ -33,7 +33,6 @@ public:
 
     virtual void setSelected(bool selected) = 0;
 public slots:
-    //virtual void graphMLDataChanged(QString name, QString key, QString value) = 0;
     virtual void graphMLDataChanged(GraphMLData*) = 0;
 
 signals:

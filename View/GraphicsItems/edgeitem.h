@@ -25,7 +25,6 @@ public slots:
     void setVisible(bool visible);
     void updateEdge();
     void graphMLDataChanged(GraphMLData * data);
-    void graphMLDataChanged(QString name, QString key, QString value);
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);

@@ -7,7 +7,7 @@ class OutEventPortImpl : public Node
 {
     Q_OBJECT
 public:
-    OutEventPortImpl(QString name="");
+    OutEventPortImpl();
     ~OutEventPortImpl();
 
 public:

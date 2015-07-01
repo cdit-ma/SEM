@@ -249,10 +249,6 @@ void EdgeItem::graphMLDataChanged(GraphMLData *data)
     }
 }
 
-void EdgeItem::graphMLDataChanged(QString name, QString key, QString value)
-{
-    //DO NOTHING
-}
 
 void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
