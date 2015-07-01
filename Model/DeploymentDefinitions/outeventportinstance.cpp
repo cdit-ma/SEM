@@ -20,21 +20,8 @@ OutEventPortInstance::~OutEventPortInstance()
 
 bool OutEventPortInstance::canAdoptChild(Node *child)
 {
+    Q_UNUSED(child);
     return false;
-
-    /*
-    AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
-
-    if(!aggregateInstance || (aggregateInstance && this->childrenCount() > 0)){
-#ifdef DEBUG_MODE
-        qWarning() << "OutEventPortInstance can only adopt one AggregateInstance";
-#endif
-        return false;
-    }
-
-    return Node::canAdoptChild(child);
-    */
-
 }
 
 bool OutEventPortInstance::canConnect(Node* attachableObject)

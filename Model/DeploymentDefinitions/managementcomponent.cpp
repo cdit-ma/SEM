@@ -35,6 +35,6 @@ bool ManagementComponent::canConnect(Node* attachableObject)
 
 bool ManagementComponent::canAdoptChild(Node *child)
 {
-
+    Q_UNUSED(child);
     return false;
 }

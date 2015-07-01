@@ -15,9 +15,6 @@ public:
     ~EdgeItem();
 
     QRectF boundingRect() const;
-
-    void adjustPos(QPointF delta);
-
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     NodeItem* getSource();

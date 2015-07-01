@@ -133,8 +133,6 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
     }
 
 if (role == Qt::DecorationRole) {
-
-        GraphMLData* data = getData(index.row());
         switch(index.column()){
         case 2:
             if(popupMultiLine(index)) {
@@ -309,19 +307,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
     }
 
     if (index.isValid() && role == Qt::EditRole) {
-        int row = index.row();
-
         GraphMLData* data  = getData(index.row());
-		/*
-        if(index.column() == 0 && data){
-            if(!permanentlyLockedKeyNames.contains(data->getKeyName())){
-                data->setProtected(!data->isProtected());
-                dataChanged(index, index);
-                return true;
-            }
-        }
-        */
-
 
 
         if (index.column() == 2 && data && !data->isProtected()){

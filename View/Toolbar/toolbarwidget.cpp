@@ -834,7 +834,8 @@ void ToolbarWidget::setupFilesList(QList<NodeItem *> files, QString kind)
     // populate fileMenu
     for (int i = 0; i < fileWithComponents.count(); i++) {
         ToolbarWidgetAction* fileAction = new ToolbarWidgetAction(fileWithComponents.at(i), fileMenu, true);
-        ToolbarWidgetMenu* fileActionMenu = new ToolbarWidgetMenu(fileAction, 0, fileMenu);
+        new ToolbarWidgetMenu(fileAction, 0, fileMenu);
+
         fileMenu->addWidgetAction(fileAction);
     }
 
@@ -939,12 +940,12 @@ void ToolbarWidget::setupChildrenComponentInstanceList(QList<NodeItem*> componen
         foreach (NodeItem* instance, componentInstances) {
             if(!nodeView->getNodeItemsOfKind("InEventPortInstance", instance->getID()).isEmpty()){
                 ToolbarWidgetAction* inEvent_instanceAction = new ToolbarWidgetAction(instance, inEventPort_componentInstanceMenu, true);
-                ToolbarWidgetMenu* inEventPortMenu = new ToolbarWidgetMenu(inEvent_instanceAction, 0, inEventPort_componentInstanceMenu);
+                new ToolbarWidgetMenu(inEvent_instanceAction, 0, inEventPort_componentInstanceMenu);
                 inEventPort_componentInstanceMenu->addWidgetAction(inEvent_instanceAction);
             }
             if(!nodeView->getNodeItemsOfKind("OutEventPortInstance", instance->getID()).isEmpty()){
                 ToolbarWidgetAction* outEvent_instanceAction = new ToolbarWidgetAction(instance, outEventPort_componentInstanceMenu, true);
-                ToolbarWidgetMenu* outEventPortMenu = new ToolbarWidgetMenu(outEvent_instanceAction, 0, outEventPort_componentInstanceMenu);
+                new ToolbarWidgetMenu(outEvent_instanceAction, 0, outEventPort_componentInstanceMenu);
                 outEventPort_componentInstanceMenu->addWidgetAction(outEvent_instanceAction);
             }
         }

@@ -115,23 +115,6 @@ QRectF EdgeItem::boundingRect() const
     return QRectF(tL, bR);
 }
 
-void EdgeItem::adjustPos(QPointF delta)
-{
-    /*
-    if(CENTER_MOVED){
-        updateLines();
-    }else{
-        setPos(0,0);
-        updateLines();
-    }
-    return;
-    QPointF currentPos = pos();
-    currentPos += delta;
-    setPos(currentPos);
-    qCritical() << pos();
-    */
-
-}
 
 void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {

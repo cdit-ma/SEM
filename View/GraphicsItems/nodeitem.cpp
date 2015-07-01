@@ -451,7 +451,7 @@ void NodeItem::addChildNodeItem(NodeItem *child)
 void NodeItem::removeChildNodeItem(QString ID)
 {
     childrenIDs.removeAll(ID);
-    int removed = childNodeItems.remove(ID);
+    childNodeItems.remove(ID);
     removeChildOutline(ID);
     if(childNodeItems.size() == 0){
         prepareGeometryChange();
@@ -473,6 +473,7 @@ bool NodeItem::intersectsRectangle(QRectF sceneRect)
 
 void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    Q_UNUSED(widget);
     
     painter->setClipRect(option->exposedRect);
     
@@ -894,17 +895,13 @@ double NodeItem::getHeight()
 
 void NodeItem::addEdgeItem(EdgeItem *line)
 {
-    NodeItem* item = this;
-
     connections.append(line);
-    //nodeItemMoved();
 }
 
 
 void NodeItem::removeEdgeItem(EdgeItem *line)
 {
     connections.removeAll(line);
-    //nodeItemMoved();
 }
 
 
@@ -1236,9 +1233,7 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
         }else if(keyName == "width" || keyName == "height"){
             //If data is related to the size of the NodeItem
             
-            double oldWidth = width;
-            double oldHeight = height;
-            
+
             if(keyName == "width"){
                 setWidth(valueD);
             }else if(keyName == "height"){
@@ -1728,6 +1723,7 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
+    Q_UNUSED(event);
     currentResizeMode = NO_RESIZE;
     setCursor(Qt::OpenHandCursor);
 }

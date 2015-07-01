@@ -822,7 +822,7 @@ bool NewController::_remove(QStringList IDs, bool addAction)
             triggerAction("Removing Selection");
             emit controller_ActionProgressChanged(0,"Removing Selection");
         }
-        int count=IDs.count();
+
         int deleted=0;
         while(!IDs.isEmpty()){
             QString ID = IDs.takeFirst();
@@ -1869,15 +1869,15 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     //Delete the Instan
     if(edge->isInstanceLink()){
         //If Edge represents an Instance relationship; Tear it down.
-        bool success = teardownDefinitionRelationship(destination, source, SETUP_AS_INSTANCE);
+        teardownDefinitionRelationship(destination, source, SETUP_AS_INSTANCE);
     }else if(edge->isImplLink()){
         //If Edge represents an Implementation relationship; Tear it down.
-        bool success = teardownDefinitionRelationship(destination, source, SETUP_AS_IMPL);
+        teardownDefinitionRelationship(destination, source, SETUP_AS_IMPL);
     }else if(edge->isAggregateLink()){
         //If Edge represents an Implementation relationship; Tear it down.
         EventPort* eventPort = dynamic_cast<EventPort*>(source);
         Aggregate* aggregate = dynamic_cast<Aggregate*>(destination);
-        bool success = teardownAggregateRelationship(eventPort, aggregate);
+        teardownAggregateRelationship(eventPort, aggregate);
     }else if(edge->isComponentLink()){
         // UnBind Topics Together.
         GraphMLData* sourceTopicName = source->getData("topicName");
@@ -2846,7 +2846,7 @@ bool NewController::isGraphMLValid(QString inputGraphML)
     //Check for Errors
     while(!xmlErrorChecking.atEnd()){
         xmlErrorChecking.readNext();
-        float lineNumber = xmlErrorChecking.lineNumber();
+        //float lineNumber = xmlErrorChecking.lineNumber();
         if (xmlErrorChecking.hasError()){
             //qCritical() << "isGraphMLValid(): Parsing Error! Line #" << lineNumber;
             //qCritical() << "\t" << xmlErrorChecking.errorString();
@@ -2962,9 +2962,6 @@ void NewController::updateViewUndoRedoLists()
 
 void NewController::setupManagementComponents()
 {
-
-    GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
-
     //EXECUTION MANAGER
     QList<GraphMLData*> executionManagerData = constructGraphMLDataVector("ManagementComponent") ;
     QList<GraphMLData*> dancePlanLauncherData = constructGraphMLDataVector("ManagementComponent") ;
@@ -2998,10 +2995,10 @@ void NewController::setupManagementComponents()
         }
     }
 
-    Node* emNode = constructChildNode(assemblyDefinitions, executionManagerData);
-    Node* plNode = constructChildNode(assemblyDefinitions, dancePlanLauncherData);
-    Node* lsdNode = constructChildNode(assemblyDefinitions, ddsLoggingServerData);
-    Node* qpidNode = constructChildNode(assemblyDefinitions, qpidBrokerData);
+    constructChildNode(assemblyDefinitions, executionManagerData);
+    constructChildNode(assemblyDefinitions, dancePlanLauncherData);
+    constructChildNode(assemblyDefinitions, ddsLoggingServerData);
+    constructChildNode(assemblyDefinitions, qpidBrokerData);
 }
 
 GraphML *NewController::getGraphMLFromID(QString ID)

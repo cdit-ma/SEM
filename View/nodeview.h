@@ -88,7 +88,7 @@ protected:
     bool viewportEvent(QEvent *);
 
 private:
-    void sortNode(Node* node, Node* topMostNode = 0);
+    void sortSelection();
 private slots:
     void actionFinished();
 
@@ -302,7 +302,7 @@ private:
     void setGraphMLItemSelected(GraphMLItem* item, bool setSelected);
 
     NewController* getController();
-    void connectGraphMLItemToController(GraphMLItem* GUIItem, GraphML* graphML);
+    void connectGraphMLItemToController(GraphMLItem* GUIItem);
 
 
     bool isMainView();
@@ -337,9 +337,9 @@ private:
 
 
     void nodeConstructed_signalUpdates(NodeItem* nodeItem);
-    void nodeDestructed_signalUpdates(NodeItem *nodeItem);
-    void nodeSelected_signalUpdates(Node *node);
-    void edgeConstructed_signalUpdates(Edge* edge);
+
+    void nodeSelected_signalUpdates();
+    void edgeConstructed_signalUpdates();
     void edgeDestructed_signalUpdates(Edge* edge, QString ID = "");
 
     void updateActionsEnabled();

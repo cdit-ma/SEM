@@ -365,11 +365,6 @@ void NodeView::adjustModelPosition(QPointF delta)
 {
     if(getModelItem()){
         getModelItem()->adjustPos(delta);
-
-        foreach(EdgeItem* edge, getEdgeItemsList()){
-            //Translate
-            edge->adjustPos(delta);
-        }
     }
 }
 
@@ -729,6 +724,7 @@ void NodeView::hardwareDockOpened(bool opened)
 
 void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID)
 {
+    Q_UNUSED(type);
     int reply = QMessageBox::question(this, title, message, QMessageBox::Yes | QMessageBox::No);
     bool yes = reply == QMessageBox::Yes;
     emit view_QuestionAnswered(yes);
@@ -947,7 +943,7 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
  * @param node
  * @param topMostNode
  */
-void NodeView::sortNode(Node *node, Node* topMostNode)
+void NodeView::sortSelection()
 {
 
     triggerAction("View: Sorting Node");
@@ -962,34 +958,6 @@ void NodeView::sortNode(Node *node, Node* topMostNode)
         emit view_updateProgressStatus(count / selectedIDs.count());
     }
     emit view_updateProgressStatus(100);
-
-    /*
-    if (!topMostNode) {
-        triggerAction("View: Sorting Node");
-        topMostNode = node;
-    }
-
-    NodeItem* nodeItem = getNodeItemFromNode(node);
-
-    // check if node has children
-    if (nodeItem->getChildNodeItems().count() == 0) {
-        // if it doesn't, iterate up to the topMost node
-        while (nodeItem->getParentNodeItem()) {
-            //  if current node == topMost node, return
-            if (nodeItem->getNode() == topMostNode) {
-                break;
-            }
-            // otherwise, iterate sorting upto the topMost node
-            nodeItem = nodeItem->getParentNodeItem();
-            //nodeItem->sort();
-            nodeItem->newSort();
-        }
-    } else {
-        // go to the lowest level child and start sorting from there
-        foreach (NodeItem* child, nodeItem->getChildNodeItems()) {
-            sortNode(child->getNode(), topMostNode);
-        }
-    }*/
 }
 
 
@@ -1027,7 +995,7 @@ void NodeView::centerAspect(QString aspect)
  */
 void NodeView::sortEntireModel()
 {
-    sortNode(controller->getModel());
+    sortSelection();
 }
 
 
@@ -1512,7 +1480,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
 
     //Connect the Generic Functionality.
-    connectGraphMLItemToController(nodeItem, node);
+    connectGraphMLItemToController(nodeItem);
 
 
 
@@ -1555,7 +1523,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     NodeItem* srcGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(src->getID()));
     NodeItem* dstGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(dst->getID()));
 
-    edgeConstructed_signalUpdates(edge);
+    edgeConstructed_signalUpdates();
 
     if(srcGUI != 0 && dstGUI != 0){
         // send necessary signals when an edge has been constucted
@@ -1579,7 +1547,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         //Add it to the list of EdgeItems in the Model.
         storeGraphMLItemInHash(nodeEdge);
 
-        connectGraphMLItemToController(nodeEdge, edge);
+        connectGraphMLItemToController(nodeEdge);
 
         // show hidden hardware node before the new edge is added to scene
         // sort its parent so that the newly visible hardware node can be easily seen
@@ -1592,11 +1560,6 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         if(!constructEdge){
             nodeEdge->setHidden(true);
         }
-        //Add to model
-        NodeItem* model = getModelItem();
-        //if(model && !model->childItems().contains(nodeEdge)){
-        //    nodeEdge->setParentItem(model);
-        //}
         if(!scene()->items().contains(nodeEdge)){
             //   //Add to model.
             scene()->addItem(nodeEdge);
@@ -1644,13 +1607,7 @@ void NodeView::view_LockCenteredGraphML(QString ID)
 
 void NodeView::sort()
 {
-    Node* node = getSelectedNode();
-    if(node){
-        sortNode(node);
-    }else{
-        sortEntireModel();
-    }
-
+    sortSelection();
 }
 
 
@@ -1714,6 +1671,8 @@ void NodeView::constructEdge(QString srcID, QString dstID, bool trigger)
 
 void NodeView::destructEdge(QString srcID, QString dstID, bool triggerAction)
 {
+    Q_UNUSED(triggerAction);
+
     if(viewMutex.tryLock()){
         NodeItem* srcNode = getNodeItemFromID(srcID);
         NodeItem* dstNode = getNodeItemFromID(dstID);
@@ -1855,8 +1814,7 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
             selectedIDs.insert(position, itemID);
             item->setSelected(true);
             if(item->isNodeItem()){
-                NodeItem* nodeItem = (NodeItem*) item;
-                nodeSelected_signalUpdates(nodeItem->getNode());
+                nodeSelected_signalUpdates();
             }
             if(selectedIDs.count() == 1){
                 setAttributeModel(item);
@@ -2088,7 +2046,7 @@ NodeItem *NodeView::getDeployedNode(QString ID)
 }
 
 
-void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem, GraphML *graphML)
+void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
 {
     if(GUIItem){
 
@@ -2270,19 +2228,6 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
 }
 
 
-/**
- * @brief NodeView::nodeDestructed_signalUpdates
- * This gets called whenever a node has been destructed.
- * It sends signals to update whatever needs updating.
- * @param nodeItem
- */
-void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
-{
-    qCritical() << "NODE ITEM DELETED";
-    // update the docks and the toolbar/menu goTo functions
-    //updateActionsEnabled(getSelectedNode());
-    //emit view_nodeDestructed(nodeItem);
-}
 
 
 /**
@@ -2291,7 +2236,7 @@ void NodeView::nodeDestructed_signalUpdates(NodeItem* nodeItem)
  * It sends signals to update whatever needs updating.
  * @param node
  */
-void NodeView::nodeSelected_signalUpdates(Node* node)
+void NodeView::nodeSelected_signalUpdates()
 {
     updateActionsEnabled();
 
@@ -2309,7 +2254,7 @@ void NodeView::nodeSelected_signalUpdates(Node* node)
  * It sends signals to update whatever needs updating.
  * @param edge
  */
-void NodeView::edgeConstructed_signalUpdates(Edge* edge)
+void NodeView::edgeConstructed_signalUpdates()
 {
     // update the highlighted deployment nodes.
     if(hardwareDockOpen){
@@ -3346,6 +3291,7 @@ void NodeView::constructGUIItem(GraphML *item){
 
 void NodeView::destructGUIItem(QString ID, GraphML::KIND kind)
 {
+    Q_UNUSED(kind);
     removeGraphMLItemFromHash(ID);
 }
 

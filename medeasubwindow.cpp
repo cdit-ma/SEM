@@ -167,5 +167,6 @@ void MedeaSubWindow::setupDataTable()
 
 void MedeaSubWindow::resizeEvent(QResizeEvent *event)
 {
+    Q_UNUSED(event);
     emit window_Resized();
 }

@@ -139,7 +139,7 @@ void DockNodeItem::addChildDockItem(DockNodeItem *dockItem)
  */
 void DockNodeItem::removeChildDockItem(DockNodeItem *dockItem)
 {
-    int count = childrenDockItems.removeAll(dockItem);
+    childrenDockItems.removeAll(dockItem);
     //qCritical() << "DockNodeItem: " << this->getID() << " Deleted: " << dockItem->getID() << count;
 }
 

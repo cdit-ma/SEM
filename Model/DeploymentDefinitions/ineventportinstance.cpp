@@ -15,19 +15,8 @@ InEventPortInstance::~InEventPortInstance()
 
 bool InEventPortInstance::canAdoptChild(Node *child)
 {
+    Q_UNUSED(child);
     return false;
-    /*AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
-
-
-    if(!aggregateInstance || (aggregateInstance && this->childrenCount() > 0)){
-#ifdef DEBUG_MODE
-        qWarning() << "InEventPortInstance can only adopt one AggregateInstance";
-#endif
-        return false;
-    }
-
-    return Node::canAdoptChild(child);
-*/
 }
 
 
