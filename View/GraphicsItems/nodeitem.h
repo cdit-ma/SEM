@@ -395,6 +395,8 @@ private:
 
     EditableTextItem* textItem;
 
+    QString nodeHardwareOS;
+    QString nodeHardwareArch;
 };
 
 #endif // NODEITEM_H

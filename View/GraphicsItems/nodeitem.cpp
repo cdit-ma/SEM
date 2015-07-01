@@ -751,13 +751,11 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     
     //Paint the Icon
     if(hasIcon){
-        if (nodeKind == "HardwareNode") {
-            QString hardwareOS = (getNode()->getDataValue("os")).remove(QChar::Space);
-            QString hardwareArch = getNode()->getDataValue("architecture");
-            painter->drawImage(iconRect(), getNodeView()->getImage(hardwareOS + "_" + hardwareArch));
-        }else {
-            painter->drawImage(iconRect(), getNodeView()->getImage(nodeKind));
+        QString imageURL = nodeKind;
+        if(nodeKind == "HardwareNode"){
+            imageURL = nodeHardwareOS.remove(" ") + "_" + nodeHardwareArch;
         }
+        painter->drawImage(iconRect(), getNodeView()->getImage(imageURL));
     }
 
     //If a Node has a Definition, paint a Lock Icon
@@ -1279,6 +1277,12 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
             
             // update connected dock node item
             emit updateDockNodeItem();
+        }else if(keyName == "architecture"){
+            nodeHardwareArch = value;
+            update();
+        }else if(keyName == "os"){
+            nodeHardwareOS = value;
+            update();
         }
     }
 }
@@ -2495,7 +2499,21 @@ void NodeItem::setupGraphMLConnections()
         
         GraphMLData* kindData = modelEntity->getData("kind");
         GraphMLData* labelData = modelEntity->getData("label");
+
+        GraphMLData* osData = modelEntity->getData("os");
+        GraphMLData* archData = modelEntity->getData("architecture");
         
+        if(nodeKind == "HardwareNode"){
+            if(osData){
+                connect(osData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
+                nodeHardwareOS = osData->getValue();
+            }
+            if(archData){
+                connect(archData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
+                nodeHardwareArch = archData->getValue();
+            }
+
+        }
         
         if(xData){
             connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
@@ -3175,6 +3193,7 @@ void NodeItem::setNewLabel(QString newLabel)
 Node *NodeItem::getNode()
 {
     //if(!IS_DELETING){
+
     return (Node*)getGraphML();
     //}
     //return 0;

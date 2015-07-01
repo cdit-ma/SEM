@@ -23,6 +23,8 @@ GraphMLItem::GraphMLItem(GraphML *attachedGraph, GraphMLItem::GUI_KIND kind)
 void GraphMLItem::detach()
 {
     IS_DELETING = true;
+    delete table;
+    table = 0;
     attachedGraph = 0;
 }
 

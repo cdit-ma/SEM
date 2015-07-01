@@ -48,10 +48,6 @@ void AttributeTableModel::updatedData(GraphMLData *data)
 
 void AttributeTableModel::removedData(QString dataID)
 {
-    //return;
-    //Remove the model index.
-
-    //qCritical() << index;
     int index = getIndex(dataID);
     if(index != -1){
         beginRemoveRows(QModelIndex(), index, index);
@@ -434,7 +430,7 @@ void AttributeTableModel::setupDataBinding()
     if(attachedGraphML){
         connect(attachedGraphML, SIGNAL(dataRemoved(QString)), this, SLOT(removedData(QString)));
         connect(attachedGraphML, SIGNAL(dataAdded(GraphMLData*)), this, SLOT(addData(GraphMLData*)));
-        connect(attachedGraphML, SIGNAL(deleting()), this, SLOT(clearData()));
+        connect(attachedGraphML, SIGNAL(destroyed()), this, SLOT(clearData()));
 
 
         foreach(GraphMLData* data, attachedGraphML->getData()){

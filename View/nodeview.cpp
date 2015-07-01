@@ -2206,6 +2206,7 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
             item->detach();
             //FIXED BUGS.
             //scene()->removeItem(item);
+            //item->deleteLater();
             delete item;
 
         }

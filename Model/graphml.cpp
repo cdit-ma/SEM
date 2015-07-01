@@ -180,10 +180,8 @@ void GraphML::removeData(GraphMLData *data)
     int index = attachedData.indexOf(data);
     if(index >= 0){
         attachedData.removeAt(index);
-
         data->setParent(0);
         emit dataRemoved(data->getID());
-        //emit dataRemoved(data);
     }
 }
 
