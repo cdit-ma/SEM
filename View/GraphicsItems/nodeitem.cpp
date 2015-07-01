@@ -14,7 +14,7 @@
 #include <QTextBlockFormat>
 
 #include <QTextCursor>
-#include <math.h>
+#include <cmath>
 
 #define MODEL_WIDTH 1920
 #define MODEL_HEIGHT 1080
@@ -584,7 +584,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 qreal xRight = getMinimumChildRect().right();
                 qreal xLeft = xRight - getItemMargin();
                 
-                QLineF line = QLineF(gridRect().left(), yBot, xRight, yBot);
+
                 QPolygonF triangle;
                 triangle.append(QPointF(xRight,yTop));
                 triangle.append(QPointF(xRight,yBot));
@@ -1387,10 +1387,10 @@ void NodeItem::modelSort()
 
 
     if(deltaX < 0){
-        topLeftPos.setX(topLeftPos.x() + abs(deltaX));
+        topLeftPos.setX(topLeftPos.x() + fabs(deltaX));
     }
     if(deltaY < 0){
-        topLeftPos.setY(topLeftPos.y() + abs(deltaY));
+        topLeftPos.setY(topLeftPos.y() + fabs(deltaY));
     }
     
     //Move top Left Item to top of Model
@@ -1504,7 +1504,7 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
     switch (event->button()) {
-    case Qt::LeftButton:
+    case Qt::LeftButton:{
         
         // added this to center aspects when double-clicking on !PAINTED items
         //if(!PAINT_OBJECT && nodeKind != "Model"){
@@ -1545,7 +1545,9 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
         }
         
         GraphMLItem_SetCentered(this);
-        
+    }
+    default:
+        break;
     }
 }
 
@@ -1905,29 +1907,8 @@ void NodeItem::setHeight(qreal h, bool updateParent)
 
 void NodeItem::setSize(qreal w, qreal h)
 {
-    
-    QRectF childRect = getMinimumChildRect();
-    
     setWidth(w);
     setHeight(h);
-    return;
-    
-    if(w != width || height != h ){
-        prepareGeometryChange();
-        
-        height = h;
-        width = w;
-        
-        if(isExpanded()){
-            expandedWidth = w;
-            expandedHeight = h;
-        }
-        
-        //updateTextLabel();
-        calculateGridlines();
-        
-        //updateParent();
-    }
 }
 
 /**
@@ -3031,7 +3012,7 @@ double NodeItem::getChildItemMargin()
 
 double NodeItem::ignoreInsignificantFigures(double model, double current)
 {
-    double absDifferences = abs(model-current);
+    double absDifferences = fabs(model-current);
     if(absDifferences > .1){
         return current;
     }
@@ -3126,7 +3107,7 @@ void NodeItem::updateModelSize()
     //If we are over a gridline already.
     if(isNodeOnGrid){
         //Update the gridPoint.
-        QPointF gridPoint = isOverGrid(centerPos());
+        isOverGrid(centerPos());
     }
     
     

@@ -5,6 +5,7 @@
 #include <QStyleOptionGraphicsItem>
 #include <QPainter>
 #include "../nodeview.h"
+#include <cmath>
 
 #define EDGE_WIDTH 1
 #define EDGE_SPACE_RATIO 0.8
@@ -293,23 +294,17 @@ void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
         updateLines();
         break;
         }
+    default:{
+        break;
+    }
     }
 }
 
 void EdgeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(IS_MOVING){
-        //if(!HAS_MOVED){
-        //    //Set Lines as invisible.
-        //    setLineVisibility(false);
-        //    HAS_MOVED = true;
-        //}
-
-        QPointF delta = event->scenePos() - previousScenePosition;
-        //moveBy(delta.x(),delta.y());
         previousScenePosition = event->scenePos();
 
-        //CENTER_MOVED = true;
     }else{
         if(!isPointInCircle(event->pos())){
             event->setAccepted(false);
@@ -335,7 +330,7 @@ void EdgeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 bool EdgeItem::isPointInCircle(QPointF position)
 {
-    if(abs(position.x()) < circleRadius && abs(position.y()) < circleRadius){
+    if(fabs(position.x()) < circleRadius && fabs(position.y()) < circleRadius){
         return true;
     }
     return false;
