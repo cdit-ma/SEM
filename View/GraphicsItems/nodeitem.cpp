@@ -676,8 +676,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setBrush(QColor(110,170,220));
         painter->drawRect(bRR);
 
-        painter->setPen(QPen(QColor(170,170,170,255), 5));
-        painter->setBrush(QBrush());
+        painter->setBrush(Qt::NoBrush);
+        painter->setPen(QPen(QColor(170,170,170), 5));
         painter->drawEllipse(modelCenterPoint, radius, radius);
         painter->setPen(Qt::NoPen);
 
