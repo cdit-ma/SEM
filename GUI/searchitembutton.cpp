@@ -22,7 +22,6 @@ SearchItemButton::SearchItemButton(GraphMLItem* item, QWidget *parent) :
     selected = false;
     triggeredWithin = false;
 
-
     setupLayout();
     updateColor(selected);
 
@@ -57,6 +56,7 @@ void SearchItemButton::itemClicked()
     // if this button is already selected and the user clicks on it again,
     // keep it selected - don't unselect it
     if (!triggeredWithin && selected) {
+        searchItem_centerOnItem(ID);
         return;
     }
 

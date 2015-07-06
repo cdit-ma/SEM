@@ -858,7 +858,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     toolbar = new QToolBar();
     toolbarLayout = new QVBoxLayout();
 
-    //Set Stylesheet for QToolButtons
+    // stylesheet for QToolButtons
     setStyleSheet("QToolButton{"
                   "border: 1px solid;"
                   "border-color: rgba(160,160,160,225);"
