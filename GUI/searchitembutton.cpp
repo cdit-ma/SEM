@@ -54,7 +54,7 @@ void SearchItemButton::connectToWindow(QMainWindow* window)
 void SearchItemButton::itemClicked()
 {
     // if this button is already selected and the user clicks on it again,
-    // keep it selected - don't unselect it
+    // re-center on it and keep it selected - don't unselect it
     if (!triggeredWithin && selected) {
         searchItem_centerOnItem(ID);
         return;

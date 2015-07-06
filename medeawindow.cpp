@@ -858,7 +858,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     toolbar = new QToolBar();
     toolbarLayout = new QVBoxLayout();
 
-    // stylesheet for QToolButtons
+    // stylesheet for QToolButtons and the toolbar's separators
     setStyleSheet("QToolButton{"
                   "border: 1px solid;"
                   "border-color: rgba(160,160,160,225);"
@@ -872,8 +872,8 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
                   "background-color: rgba(230,230,230,230);"
                   "}"
                   "QToolButton:pressed{ background-color: rgba(240,240,240,240);}"
-                  "QToolButton:checked{ background-color: rgba(180,180,180,225);}");
-
+                  "QToolButton:checked{ background-color: rgba(180,180,180,225);}"
+                  "QToolBar::separator { background-color: rgba(0,0,0,0); }");
 
     toolbarButton = new QToolButton(this);
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
@@ -881,8 +881,6 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     toolbarButton->setStyleSheet("QToolButton{ background-color: rgba(200,200,200,225); border-radius: 5px; }"
                                  "QToolButton:checked{ background-color: rgba(180,180,180,225); }"
                                  "QToolButton:hover{ background-color: rgba(210,210,210,235); }");
-
-
 
     QImage expandImage(":/Resources/Icons/down_arrow.png");
     QImage contractImage(":/Resources/Icons/up_arrow.png");
