@@ -38,9 +38,9 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
 
 /**
  * @brief ToolbarWidgetAction::ToolbarWidgetAction
- * @param node
+ * @param nodeItem
  * @param parent
- * @param actionKind
+ * @param willHaveMenu
  */
 ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, QWidget *parent, bool willHaveMenu) :
     QWidgetAction(parent)
@@ -156,7 +156,14 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setMargin(0);
 
-    QImage* image = new QImage(":/Resources/Icons/" + kind + ".png");
+    QString actionKind = getKind();
+    if (actionKind == "HardwareNode"){
+        QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
+        QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
+        actionKind = hardwareOS + "_" + hardwareArch;
+    }
+
+    QImage* image = new QImage(":/Resources/Icons/" + actionKind + ".png");
     QImage scaledImage = image->scaled(actionButton->height(),
                                        actionButton->height(),
                                        Qt::KeepAspectRatio,
