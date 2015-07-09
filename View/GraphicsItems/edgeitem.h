@@ -20,6 +20,12 @@ public:
     NodeItem* getSource();
     NodeItem* getDestination();
     void setHidden(bool hidden);
+
+    bool isPointInCircle(QPointF itemPosition);
+
+signals:
+    void edgeItem_eventFromItem();
+
 public slots:
     void setSelected(bool selected);
     void setVisible(bool visible);
@@ -31,7 +37,7 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event );
 private:
-    bool isPointInCircle(QPointF itemPosition);
+    //bool isPointInCircle(QPointF itemPosition);
     void resetEdgeCenter(NodeItem* visibleSource, NodeItem* visibleDestination);
     void updateLabel();
     void updateLines();

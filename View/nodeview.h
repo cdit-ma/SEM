@@ -290,6 +290,8 @@ public slots:
 
     void highlightDeployment(bool clear = false);
 
+    void setEventFromEdgeItem();
+
 private:
     void selectJenkinsImportedNodes();
 
@@ -461,6 +463,7 @@ private:
 
     bool hardwareDockOpen;
     bool clearingModel;
+    bool eventFromEdgeItem;
 };
 
 #endif // NODEVIEW_H

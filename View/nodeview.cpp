@@ -70,6 +70,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     pasting = false;
     panning = false;
 
+    eventFromEdgeItem = false;
+
     MINIMAP_EVENT = false;
     setScene(new QGraphicsScene(this));
 
@@ -1347,6 +1349,15 @@ void NodeView::highlightDeployment(bool clear)
 }
 
 
+/**
+ * @brief NodeView::setEventFromEdgeItem
+ */
+void NodeView::setEventFromEdgeItem()
+{
+    eventFromEdgeItem = true;
+}
+
+
 void NodeView::_deleteFromIDs(QStringList IDs)
 {
     if (IDs.count() > 0) {
@@ -1391,10 +1402,18 @@ void NodeView::showToolbar(QPoint position)
     if (selectedIDs.count() > 0) {
 
         // get all the selected node items
-        QList<NodeItem*> selectedItems;
+        QList<NodeItem*> selectedNodeItems;
         foreach (NodeItem* item, getNodeItemsList()) {
             if (item->isPainted() && selectedIDs.contains(item->getID())) {
-                selectedItems.append(item);
+                selectedNodeItems.append(item);
+            }
+        }
+
+        // get all the selected edge items
+        QList<EdgeItem*> selectedEdgeItems;
+        foreach (EdgeItem* item, getEdgeItemsList()) {
+            if (item->isVisible() && selectedIDs.contains(item->getID())) {
+                selectedEdgeItems.append(item);
             }
         }
 
@@ -1404,8 +1423,8 @@ void NodeView::showToolbar(QPoint position)
 
         // this case happens when this is called from the window toolbar
         // show the toolbar positioned at the first selected item's center
-        if (position.isNull() && selectedItems.count() > 0) {
-            QPointF itemScenePos = selectedItems.at(0)->sceneBoundingRect().center();
+        if (position.isNull() && selectedNodeItems.count() > 0) {
+            QPointF itemScenePos = selectedNodeItems.at(0)->sceneBoundingRect().center();
             globalPos = mapFromScene(itemScenePos);
             globalPos = mapToGlobal(globalPos.toPoint());
             toolbarPosition = itemScenePos;
@@ -1413,16 +1432,30 @@ void NodeView::showToolbar(QPoint position)
 
         // find out if the user right-clicked on one of the selected items
         bool toolbarPositionContained = false;
-        foreach (NodeItem* selectedItem, selectedItems) {
+        foreach (NodeItem* selectedItem, selectedNodeItems) {
             if (selectedItem->sceneBoundingRect().contains(toolbarPosition)) {
                 toolbarPositionContained = true;
                 break;
             }
         }
 
+        /*
+        foreach (EdgeItem* selectedItem, selectedEdgeItems) {
+            if (selectedItem->isPointInCircle(globarPos)) {
+                toolbarPositionContained = true;
+                break;
+            }
+        }
+        */
+
+        if (!selectedEdgeItems.isEmpty() && eventFromEdgeItem) {
+            toolbarPositionContained = true;
+            eventFromEdgeItem = false;
+        }
+
         // only show the toolbar if the right-click happened inside one of the selected items
         if (toolbarPositionContained) {
-            toolbar->updateSelectedNodeItem(selectedItems);
+            toolbar->updateSelectedItems(selectedNodeItems, selectedEdgeItems);
             toolbar->move(globalPos.toPoint());
             toolbar->show();
         }
@@ -2107,6 +2140,11 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
         NodeItem* nodeItem = 0;
         if(GUIItem->isNodeItem()){
             nodeItem = (NodeItem*) GUIItem;
+        }
+
+        if (GUIItem->isEdgeItem()) {
+            EdgeItem* edgeItem = (EdgeItem*) GUIItem;
+            connect(edgeItem, SIGNAL(edgeItem_eventFromItem()), this, SLOT(setEventFromEdgeItem()));
         }
 
         if(GUIItem){
@@ -3068,12 +3106,14 @@ void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 
 void NodeView::removeFromSelection(GraphMLItem *item)
 {
-    if(!isItemsAncestorSelected(item)){
+    // Dan, I commented this out so that edge items can be deselected.
+    // This has allowed the export snippet toolbutton to display in the context toolbar.
+    // I'm not sure if that's going to be a problem. Let me know if it breaks something!
+    /*if(!isItemsAncestorSelected(item)){
         return;
-    }
+    }*/
     //Set this item as Selected.
     setGraphMLItemSelected(item, false);
-
 
 }
 

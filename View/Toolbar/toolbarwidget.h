@@ -3,6 +3,7 @@
 
 #include "../nodeview.h"
 #include "../GraphicsItems/nodeitem.h"
+#include "../GraphicsItems/edgeitem.h"
 #include "toolbarwidgetaction.h"
 
 #include <QWidget>
@@ -21,7 +22,7 @@ class ToolbarWidget : public QWidget
 public:
     explicit ToolbarWidget(NodeView *parent = 0);
 
-    void updateSelectedNodeItem(QList<NodeItem *> items);
+    void updateSelectedItems(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
 
     void showDefinitionButton(QString definitionID);
     void showImplementationButton(QString implementationID);
@@ -59,12 +60,12 @@ private:
     void updateToolButtons();
     void updateMenuLists();
 
-    void multipleSelection(QList<NodeItem *> items);
+    void multipleSelection(QList<NodeItem*> items, QList<EdgeItem*> edgeItems = QList<EdgeItem*>());
 
     void setupInstancesList(QList<NodeItem*> instances);
 
     void setupAdoptableNodesList(QStringList nodeKinds);
-    void setupLegalNodesList(QList<NodeItem *> nodeList);
+    void setupLegalNodesList(QList<NodeItem*> nodeList);
 
     void setupFilesList(QList<NodeItem*> files, QString kind);
     void setupComponentList(QList<NodeItem*> components, QString kind);

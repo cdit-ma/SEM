@@ -54,19 +54,24 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
  * If there are multiple items selected, only update the buttons that are for multiple selection.
  * @param items
  */
-void ToolbarWidget::updateSelectedNodeItem(QList<NodeItem*> items)
+void ToolbarWidget::updateSelectedItems(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems)
 {
-    if (items.count() == 1) {
-        nodeItem = items.at(0);
-        //alterModelToolButtons.clear();
-        updateToolButtons();
-        updateMenuLists();
-    } else if (items.count() > 1) {
-        multipleSelection(items);
+    //alterModelToolButtons.clear();
+
+    if (edgeItems.isEmpty()) {
+        if (nodeItems.count() == 1) {
+            nodeItem = nodeItems.at(0);
+            updateToolButtons();
+            updateMenuLists();
+        } else if (nodeItems.count() > 1) {
+            multipleSelection(nodeItems);
+        } else {
+            // it shouldn't get to this function if there aren't any selected items
+            qWarning() << "ToolbarWidget::updateSelectedNodeItem - There are no selected items.";
+            return;
+        }
     } else {
-        // it shouldn't get to this function if there aren't any selected items
-        qWarning() << "ToolbarWidget::updateSelectedNodeItem - There are no selected items.";
-        return;
+        multipleSelection(nodeItems, edgeItems);
     }
 
     // update the toolbar & frame sizes after the tool buttons have been updated
@@ -196,6 +201,7 @@ void ToolbarWidget::updateActionEnabled(QString actionName, bool enabled)
     if (actionName == "delete" && deleteButton) {
         deleteButton->setVisible(enabled);
         deleteButtonVisible = enabled;
+        alterViewFrame->show();
     }
     if (enabled) {
         showAlterViewFrame = true;
@@ -632,7 +638,7 @@ void ToolbarWidget::updateMenuLists()
         }
     }
 
-    alterViewFrame->setVisible(showAlterViewFrame || showSnippetFrame || showGoToFrame);
+    alterViewFrame->setVisible(showAlterViewFrame || showSnippetFrame || showGoToFrame || deleteButtonVisible);
     //alterViewFrame->setVisible(showSnippetFrame || showGoToFrame);
     //alterViewFrame->setVisible(showAlterViewFrame && alterModelToolButtons.count() > 0);
 }
@@ -645,7 +651,7 @@ void ToolbarWidget::updateMenuLists()
  * and only displays the ones that can be used for multiple items.
  * @param items
  */
-void ToolbarWidget::multipleSelection(QList<NodeItem*> items)
+void ToolbarWidget::multipleSelection(QList<NodeItem*> items, QList<EdgeItem *> edgeItems)
 {
     // hide the buttons that are only for a single selection
     foreach (QToolButton* button, singleSelectionToolButtons) {
@@ -658,7 +664,15 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items)
     alterViewFrame->hide();
 
     // show the delete button - multiple selection can be deleted at the same time
-    //deleteButton->show();
+    if (!edgeItems.isEmpty()) {
+        foreach (QToolButton* button, multipleSelectionToolButtons) {
+            button->setVisible(false);
+        }
+        //deleteButton->show();
+        //showToolbar = true;
+        showToolbar = deleteButtonVisible;
+        return;
+    }
 
     NodeItem* prevParentItem = 0;
     bool showButtons = true;

@@ -255,29 +255,50 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(!isPointInCircle(event->pos())){
         event->setAccepted(false);
+        QGraphicsItem::mousePressEvent(event);
         return;
     }
 
     switch (event->button()) {
-        case Qt::MiddleButton:{
-            GraphMLItem_SetCentered(this);
-            break;
-        }
-        case Qt::LeftButton:{
-            if (!event->modifiers().testFlag(Qt::ControlModifier)){
-                //Clear First if Control isn't pressed!
-                GraphMLItem_ClearSelection(false);
-            }
+    case Qt::MiddleButton:{
+        GraphMLItem_SetCentered(this);
+        break;
+    }
+    case Qt::LeftButton:{
+        if (!event->modifiers().testFlag(Qt::ControlModifier)){
+            //Clear First if Control isn't pressed!
+            GraphMLItem_ClearSelection(false);
+
             GraphMLItem_AppendSelected(this);
-            IS_MOVING = true;
-            HAS_MOVED = false;
-            previousScenePosition = event->scenePos();
-            break;
+
+        } else {
+
+            // need to check previous selected state here!
+            if (IS_SELECTED) {
+                GraphMLItem_RemoveSelected(this);
+            } else {
+                GraphMLItem_AppendSelected(this);
+            }
+
         }
+
+        IS_MOVING = true;
+        HAS_MOVED = false;
+        previousScenePosition = event->scenePos();
+        break;
+    }
+    case Qt::RightButton:{
+        if (!IS_SELECTED) {
+            GraphMLItem_AppendSelected(this);
+        }
+        break;
+    }
     default:{
         break;
     }
     }
+
+    emit edgeItem_eventFromItem();
 }
 
 void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
@@ -288,12 +309,12 @@ void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     }
 
     switch (event->button()) {
-        case Qt::LeftButton:{
+    case Qt::LeftButton:{
         //Double clicking an edge will reset it.
         resetEdgeCenter(visibleSource, visibleDestination);
         updateLines();
         break;
-        }
+    }
     default:{
         break;
     }
