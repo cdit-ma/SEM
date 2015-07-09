@@ -1546,7 +1546,11 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             break;
         }
         
-        GraphMLItem_SetCentered(this);
+        if (nodeKind == "Model") {
+            GraphMLItem_CenterAspects();
+        } else {
+            GraphMLItem_SetCentered(this);
+        }
     }
     default:
         break;
