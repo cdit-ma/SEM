@@ -18,23 +18,92 @@ JenkinsManager::JenkinsManager(QString cliPath, QString url, QString username, Q
 
     //Set instance variables.
     this->cliPath = cliPath;
-    this->url = url;
-    this->username = username;
-    this->password = password;
-    this->token = token;
+    setURL(url);
+    setUsername(username);
+    setPassword(password);
+    setToken(token);
+    settingsValidating = false;
 }
 
-bool JenkinsManager::hasValidSettings()
+QString JenkinsManager::getUsername()
 {
-    return cliPath != "" && url != "" && username != "" && password != "" && token != "";
+    return username;
 }
 
 /**
- * @brief JenkinsManager::getJenkinsRequestThread Constructs a new JenkinsRequest object on it's own thread.
+ * @brief JenkinsManager::setURL Sets the URL for the Jenkins Server. Devalidates the settings for the JenkinsManager upon change.
+ * @param url The URL to set.
+ */
+void JenkinsManager::setURL(QString url)
+{
+    //If the url we are setting is different, update it.
+    if(this->url != url){
+        this->url = url;
+        //Devalidate the settings.
+        settingsValidated = false;
+    }
+}
+
+/**
+ * @brief JenkinsManager::setUsername Sets the Username for the Jenkins Server. Devalidates the settings for the JenkinsManager upon change.
+ * @param username The username to set.
+ */
+void JenkinsManager::setUsername(QString username)
+{
+    //If the username we are setting is different, update it.
+    if(this->username != username){
+        this->username = username;
+        //Devalidate the settings.
+        settingsValidated = false;
+    }
+}
+
+/**
+ * @brief JenkinsManager::setPassword Sets the Password for the Jenkins Server. Devalidates the settings for the JenkinsManager upon change.
+ * @param password The Password to set.
+ */
+void JenkinsManager::setPassword(QString password)
+{
+    //If the password we are setting is different, update.
+    if(this->password != password){
+        this->password = password;
+        //Devalidate the settings.
+        settingsValidated = false;
+    }
+}
+
+/**
+ * @brief JenkinsManager::setPassword Sets the User Token for the Jenkins Server.
+ * @param password The token to set.
+ */
+void JenkinsManager::setToken(QString token)
+{
+    //If the username we are setting is different update.
+    if(this->token != token){
+        this->token = token;
+    }
+}
+
+/**
+ * @brief JenkinsManager::hasValidSettings Returns whether or not the JenkinsManager has validated settings.
+ * @return Valid Settings?
+ */
+bool JenkinsManager::hasValidatedSettings()
+{
+    return settingsValidated;
+}
+
+/**
+ * @brief JenkinsManager::getJenkinsRequestThread Constructs and returns a new JenkinsRequest object on it's own thread.
+ * If JenkinsManager doesn't have hasValidatedSettings(), JenkinsManager will call validateJenkinsSettings().
+ * Which will prevent the JenkinsRequest object from querying any network information until the settings have been validated!
  * @return A JenkinsRequest object.
  */
 JenkinsRequest *JenkinsManager::getJenkinsRequest(QObject *parent, bool deleteOnCompletion)
 {
+    if(!settingsValidated && !settingsValidating){
+        validateJenkinsSettings();
+    }
     //Construct and start a new QThread
     QThread* thread = new QThread();
     thread->start();
@@ -68,11 +137,38 @@ JenkinsRequest *JenkinsManager::getJenkinsRequest(QObject *parent, bool deleteOn
     return request;
 }
 
+void JenkinsManager::gotSettingsValidationResponse(bool valid, QString message)
+{
+    settingsValidating  = false;
+    settingsValidated = valid;
+
+    //Make a Window
+    //Tell Jenkins Requests that we are validated.
+    if(!valid){
+        emit gotInvalidSettings(message);
+    }
+    emit settingsValidationComplete();
+}
+
+/**
+ * @brief JenkinsManager::validateJenkinsSettings Constructs a JenkinsRequest Thread to validate the Jenkins Settings.
+ */
+void JenkinsManager::validateJenkinsSettings()
+{
+    settingsValidating = true;
+
+    JenkinsRequest* jR = getJenkinsRequest();
+    connect(this, SIGNAL(tryValidateSettings()), jR, SLOT(validateJenkinsSettings()));
+    connect(jR, SIGNAL(gotSettingsValidationResponse(bool,QString)), this, SLOT(gotSettingsValidationResponse(bool,QString)));
+
+    emit this->tryValidateSettings();
+    disconnect(this, SIGNAL(tryValidateSettings()), jR, SLOT(validateJenkinsSettings()));
+}
+
 
 void JenkinsManager::jenkinsRequestFinished(JenkinsRequest *request)
 {
    requests.removeAll(request);
-   // qCritical() << "Jenkins Request ID: " << number << "Terminated!";
 }
 
 /**

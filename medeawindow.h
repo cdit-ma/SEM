@@ -86,6 +86,8 @@ signals:
     void checkDockScrollBar();
     void clearDocks();
 
+    void window_DisplayMessage(MESSAGE_TYPE type, QString title, QString message);
+
 private:
    void toolbarSettingChanged(QString keyName, QString value);
    void enableTempExport(bool enable);
@@ -105,10 +107,12 @@ public slots:
     void validate_Exported(QString tempModelPath);
 
 private slots:
+    void invalidJenkinsSettings(QString message);
     void jenkinsNodesLoaded();
     void saveSettings();
 
     void gotJenkinsNodeGraphML(QString graphML);
+    void setImportJenkinsNodeEnabled(bool enabled = true);
     void on_actionImportJenkinsNode();
 
     void on_actionNew_Project_triggered();
@@ -206,6 +210,8 @@ private:
     bool exportProject();
     void importProjects(QStringList files);
 
+    void jenkins_JobName_Changed(QString jobName);
+
 
     void toggleAndTriggerAction(QAction* action, bool value);
 
@@ -246,7 +252,6 @@ private:
     QAction* view_goToDefinition;
     QAction* view_goToImplementation;
     QAction* view_showConnectedNodes;
-    QAction* view_showManagementComponents;
     QAction* model_validateModel;
     QAction* model_clearModel;
 

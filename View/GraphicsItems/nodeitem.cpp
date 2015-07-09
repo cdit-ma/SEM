@@ -80,7 +80,11 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     hasSelectionResized = false;
     
     hasDefinition = false;
-    highlighted = false;\
+    isImplOrInstance = false;
+    if(node){
+        isImplOrInstance = node->isInstance() || node->isImpl();
+    }
+    highlighted = false;
     
     
     textItem = 0;
@@ -523,11 +527,9 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             Brush.setColor(Qt::transparent);
         }
         
-        Node* node = getNode();
-        
-        if(node && (node->isInstance() || node->isImpl())){
-            hasDefinition = node->getDefinition();
-            
+
+        if(getNodeView() && isImplOrInstance){
+            hasDefinition = getNodeView()->getDefinition(getID()) != 0;
             if(!hasDefinition){
                 Brush.setStyle(Qt::BDiagPattern);
             }

@@ -34,6 +34,13 @@ JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager
 
     setupLayout();
 
+    if(jenkins->hasValidatedSettings()){
+        loadingWidget->setWaiting(true);
+    }else{
+        connect(jenkins, SIGNAL(settingsValidationComplete()), loadingWidget, SLOT(authenticationFinished()));
+        connect(jenkins, SIGNAL(gotInvalidSettings(QString)), this, SLOT(reject()));
+    }
+
     //Request the JenkinsData
     getJenkinsData();
 

@@ -48,21 +48,23 @@ JenkinsRequest::~JenkinsRequest()
     }
 }
 
+
 /**
  * @brief JenkinsRequest::wget Uses a QNetworkAccessManager to request a URL. Will timeout after a period of not recieving any data.
  * @param url - The Url to request.
- * @return - The ByteArray downloaded from the url. Can be empty if the Request Failed, or there was nothing to Download.
+ * @return - The returncode of the action and the ByteArray downloaded from the url. Can be empty if the Request Failed, or there was nothing to Download.
  */
-QByteArray JenkinsRequest::wget(QString url)
+QPair<int, QByteArray> JenkinsRequest::wget(QString url)
 {
     //The returnable byteArray.
     QByteArray byteArray;
+    int returnCode = -1;
 
 
     QNetworkAccessManager* networkManager = getNetworkManager();
 
     if(networkManager && manager){
-       //qCritical() << "Requesting URL: " << url;
+        //qCritical() << "Requesting URL: " << url;
 
         //Construct the post request, Authenticated
         QNetworkRequest request = manager->getAuthenticatedRequest(url);
@@ -72,28 +74,30 @@ QByteArray JenkinsRequest::wget(QString url)
         QNetworkReply* reply =  networkManager->get(request);
 
         //Wait for the reply.
-        byteArray = waitForReply(reply);
+        QPair<int, QByteArray> response = waitForReply(reply);
+        returnCode = response.first;
+        byteArray = response.second;
 
         //Free up the memory of the Network Reply
         reply->deleteLater();
     }
 
     //Return the byteArray
-    return byteArray;
+    return QPair<int, QByteArray>(returnCode, byteArray);
 }
 
 /**
  * @brief JenkinsRequest::post Uses a QNetworkAccessManager to post to a URL with the Data Provided.
  * @param url - The Url to post.
  * @param data - The ByteArray for the data to post. Defaults to Empty.
- * @return - The ByteArray response from the url posted to. Can be empty if the Request Failed, or there was nothing returned.
+ * @return - The returncode of the action and the ByteArray response from the url posted to. Can be empty if the Request Failed, or there was nothing returned.
  */
-QByteArray JenkinsRequest::post(QString url, QByteArray data)
+QPair<int, QByteArray> JenkinsRequest::post(QString url, QByteArray data)
 {
     QByteArray byteArray;
 
     QNetworkAccessManager* networkManager = getNetworkManager();
-
+    int returnCode = -1;
     if(networkManager && manager){
         //qCritical() << "Posting to URL: " << url;
         //Construct the post request, Authenticated
@@ -103,21 +107,23 @@ QByteArray JenkinsRequest::post(QString url, QByteArray data)
         QNetworkReply* reply =  networkManager->post(request, data);
 
         //Wait for the reply.
-        byteArray = waitForReply(reply);
+        QPair<int, QByteArray> response = waitForReply(reply);
+        returnCode = response.first;
+        byteArray = response.second;
 
         //Free up the memory of the Network Reply
         reply->deleteLater();
     }
 
-    return byteArray;
+    return QPair<int, QByteArray>(returnCode, byteArray);
 }
 
 /**
  * @brief JenkinsRequest::waitForReply Waits for either a timeout or a termination or a finished signal on the QNetworkReply, returns the data
  * @param reply - The Network request reply object.
- * @return - The Data returned from the request.
+ * @return - The returncode of the action and the Data returned from the request.
  */
-QByteArray JenkinsRequest::waitForReply(QNetworkReply *reply)
+QPair<int, QByteArray> JenkinsRequest::waitForReply(QNetworkReply *reply)
 {
     QByteArray byteArray;
     bool processing = true;
@@ -125,6 +131,7 @@ QByteArray JenkinsRequest::waitForReply(QNetworkReply *reply)
     //Construct a timeout timer.
     QTimer* timeOutTimer = new QTimer();
     timeOutTimer->setSingleShot(true);
+    int returnCode = -1;
 
     while(processing){
         bool timedOut = false;
@@ -176,6 +183,8 @@ QByteArray JenkinsRequest::waitForReply(QNetworkReply *reply)
             if(reply->error() != QNetworkReply::NoError){
                 emit requestFailed();
                 qCritical() << "QNetwork Error: " << reply->errorString();
+            }else{
+                returnCode = 0;
             }
             //Break the loop.
             processing = false;
@@ -183,15 +192,15 @@ QByteArray JenkinsRequest::waitForReply(QNetworkReply *reply)
     }
     //Delete the timer
     timeOutTimer->deleteLater();
-    return byteArray;
+    return QPair<int, QByteArray>(returnCode, byteArray);
 }
 
 /**
  * @brief JenkinsRequest::runProcess Runs a QProcess which will lock until the command passed has completed. Will run for the life of the commands execution. Produces gotLiveCLIOutput signals as data becomes available. Will return the entire Standard Output of the command.
  * @param command The complete command to execute.
- * @return The entire output of the process's execution.
+ * @return The returncode of the action and the entire output of the process's execution.
  */
-QByteArray JenkinsRequest::runProcess(QString command)
+QPair<int, QByteArray> JenkinsRequest::runProcess(QString command)
 {
     //The returnable byteArray.
     QByteArray byteArray;
@@ -252,10 +261,56 @@ QByteArray JenkinsRequest::runProcess(QString command)
         }
     }
 
+
+    int returnCode = process->exitCode();
     //Free the memory of the Process
     delete process;
     //Return the byte Array.
-    return byteArray;
+    return QPair<int, QByteArray>(returnCode, byteArray);
+}
+
+/**
+ * @brief JenkinsRequest::waitForValidSettings Waits for the JenkinsManager to have validated Settings. Will time out after timeOutMS.
+ * @return true/false for valid settings.
+ */
+bool JenkinsRequest::waitForValidSettings()
+{
+    if(manager){
+        if(manager->hasValidatedSettings()){
+            return true;
+        }
+    }
+
+    QTimer* timeOutTimer = new QTimer();
+    timeOutTimer->setSingleShot(true);
+
+    QEventLoop waitLoop;
+    connect(timeOutTimer, SIGNAL(timeout()), &waitLoop, SLOT(quit()));
+    connect(manager, SIGNAL(settingsValidationComplete()), &waitLoop, SLOT(quit()));
+    connect(this, SIGNAL(unexpectedTermination()), &waitLoop, SLOT(quit()));
+
+    //Start the timer
+    timeOutTimer->start(timeOutMS);
+
+    //Wait for something to quit the EventLoop
+    waitLoop.exec();
+    bool timedOut = !timeOutTimer->isActive();
+
+    //Stop the timer
+    timeOutTimer->stop();
+
+    //Delete the timer
+    timeOutTimer->deleteLater();
+
+
+    //Check for termination
+    if(terminated || timedOut){
+        //qCritical() << "Terminating the Jenkins Request!";
+        return false;
+    }else{
+        //Return what the value of the validation returned.
+        return manager->hasValidatedSettings();
+    }
 }
 
 
@@ -307,10 +362,11 @@ QJsonDocument JenkinsRequest::getJobConfiguration(QString jobName, int buildNumb
         QString configurationURL  = manager->getURL() + "job/" + jobName + "/api/json";
 
         //Get the the data from the URL using wget.
-        QByteArray data = wget(configurationURL);
+        QPair<int, QByteArray> response = wget(configurationURL);
+
 
         //Construct a JSON document from the data from wget.
-        configuration = QJsonDocument::fromJson(data);
+        configuration = QJsonDocument::fromJson(response.second);
 
         //If we have a valid JSON document, store it in the manager for future use.
         if(!configuration.isNull()){
@@ -342,41 +398,45 @@ void JenkinsRequest::storeRequestParameters(QString jobName, int buildNumber, QS
  */
 void JenkinsRequest::getJobParameters(QString jobName)
 {
-    //Store the parameters provided.
-    storeRequestParameters(jobName);
+     if(waitForValidSettings()){
+        //Store the parameters provided.
+        storeRequestParameters(jobName);
 
-    Jenkins_JobParameters jobParameters;
+        Jenkins_JobParameters jobParameters;
 
-    //Get the configuration for the Job.
-    QJsonDocument configuration = getJobConfiguration(jobName);
+        //Get the configuration for the Job.
+        QJsonDocument configuration = getJobConfiguration(jobName);
 
-    if(!configuration.isNull()){
-        QJsonObject configData = configuration.object();
+        if(!configuration.isNull()){
+            QJsonObject configData = configuration.object();
 
-        //Get the parameterDefinitions Array from the actions Array.
-        QJsonArray parameters = configData["actions"].toArray()[0].toObject()["parameterDefinitions"].toArray();
+            //Get the parameterDefinitions Array from the actions Array.
+            QJsonArray parameters = configData["actions"].toArray()[0].toObject()["parameterDefinitions"].toArray();
 
-        //For each parameter in the parameters Array, add it to the returnable list.
-        foreach(QJsonValue parameter, parameters){
-            QJsonObject parameterData = parameter.toObject();
+            //For each parameter in the parameters Array, add it to the returnable list.
+            foreach(QJsonValue parameter, parameters){
+                QJsonObject parameterData = parameter.toObject();
 
-            Jenkins_Job_Parameter jobParameter;
+                Jenkins_Job_Parameter jobParameter;
 
-            //Fill the data in the Jenkins_Job_Parameter from the JSON object.
-            jobParameter.name = parameterData["name"].toString();
-            //The type is in format [type]ParameterDefinition, so trim this.
-            jobParameter.type = parameterData["type"].toString().replace("ParameterDefinition","");
-            jobParameter.description = parameterData["description"].toString();
-            jobParameter.defaultValue = parameterData["defaultParameterValue"].toObject()["value"].toString();
+                //Fill the data in the Jenkins_Job_Parameter from the JSON object.
+                jobParameter.name = parameterData["name"].toString();
+                //The type is in format [type]ParameterDefinition, so trim this.
+                jobParameter.type = parameterData["type"].toString().replace("ParameterDefinition","");
+                jobParameter.description = parameterData["description"].toString();
+                jobParameter.defaultValue = parameterData["defaultParameterValue"].toObject()["value"].toString();
 
-            //Add it the jobParameter List
-            jobParameters.append(jobParameter);
+                //Add it the jobParameter List
+                jobParameters.append(jobParameter);
+            }
         }
+
+        //Emit the SIGNAL to send the data back.
+        emit gotJobParameters(jobName, jobParameters);
+
+    }else{
+        emit requestFailed();
     }
-
-    //Emit the SIGNAL to send the data back.
-    emit gotJobParameters(jobName, jobParameters);
-
     //Emit the SIGNAL to state the JenkinsRequest
     emit requestFinished();
 }
@@ -445,24 +505,49 @@ void JenkinsRequest::getJobState(QString jobName, int buildNumber, QString activ
     emit requestFinished();
 }
 
+void JenkinsRequest::validateJenkinsSettings()
+{
+    QString command = "login";
+
+    //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
+
+    QPair<int, QByteArray> response = runProcess(manager->getCLICommand(command));
+    QString result = "";
+    bool success = false;
+    if(response.first == 0){
+        success = true;
+    }else if(response.first == -1){
+        result = "Authentication Failed as user: " + manager->getUsername() + " Failed!";
+    }else if(response.first >= 1){
+        result = "Cannot Reach Server Address";
+    }
+
+    emit gotSettingsValidationResponse(success, result);
+
+    emit requestFinished();
+}
+
 /**
  * @brief JenkinsRequest::runGroovyScript Executes a Groovy Script(File) on the Jenkins Server and returns the data
  * @param groovyScriptPath The Absolute path to the Groovy Script file.
  */
 void JenkinsRequest::runGroovyScript(QString groovyScriptPath)
 {
-    //Construct the console CLI request command
-    QString command = "groovy " + groovyScriptPath;
+    if(waitForValidSettings()){
+        //Construct the console CLI request command
+        QString command = "groovy " + groovyScriptPath;
 
-    //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
-    QByteArray commandData = runProcess(manager->getCLICommand(command));
+        //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
+        QPair<int, QByteArray> response = runProcess(manager->getCLICommand(command));
 
-    //Parse the returned data as a String
-    QString consoleOutput = QString(commandData);
+        //Parse the returned data as a String
+        QString consoleOutput = QString(response.second);
 
-    //Call the SIGNAL to send the data back.
-    emit gotGroovyScriptOutput(consoleOutput);
-
+        //Call the SIGNAL to send the data back.
+        emit gotGroovyScriptOutput(consoleOutput);
+    }else{
+        emit requestFailed();
+    }
     //Call the SIGNAL to teardown the JenkinsRequest
     emit requestFinished();
 }
@@ -475,71 +560,77 @@ void JenkinsRequest::runGroovyScript(QString groovyScriptPath)
  */
 void JenkinsRequest::getJobConsoleOutput(QString jobName, int buildNumber, QString activeConfiguration)
 {
-    //Store the parameters provided.
-    storeRequestParameters(jobName, buildNumber, activeConfiguration);
+    if(waitForValidSettings()){
+        //Store the parameters provided.
+        storeRequestParameters(jobName, buildNumber, activeConfiguration);
 
-    //If we have been provided a valid activeConfiguration, append this to the jobName
-    if(activeConfiguration != ""){
-        jobName += "/" + activeConfiguration;
-    }
-
-    QString buildNo = "";
-    //If we have been provided a valid build number, append this to the jobName
-    if(buildNumber > -1){
-        buildNo = QString::number(buildNumber);
-    }
-
-
-    //Get the current state of the job.
-    JOB_STATE currentState = _getJobState(this->jobName, this->buildNumber, this->activeConfiguration);
-    QString previousData = "";
-
-    QString consoleURL = manager->getURL() + "job/" + jobName + "/" + buildNo + "/consoleText";
-
-    //Construct a timeout timer.
-    QTimer* timeOutTimer = new QTimer();
-    timeOutTimer->setSingleShot(true);
-
-    //While the job is either building or not yet existant.
-    while(currentState == BUILDING || currentState == NO_JOB){
-
-
-        //Construct a EventLoop which waits for the timer to finish.
-        QEventLoop waitLoop;
-        connect(timeOutTimer, SIGNAL(timeout()), &waitLoop, SLOT(quit()));
-        connect(this, SIGNAL(unexpectedTermination()), &waitLoop, SLOT(quit()));
-
-        timeOutTimer->start(2000);
-
-        //Wait for something to quit the EventLoop
-        waitLoop.exec();
-        timeOutTimer->stop();
-
-        //Check for termination
-        if(terminated){
-            //qCritical() << "Terminating the Jenkins Request!";
-            break;
+        //If we have been provided a valid activeConfiguration, append this to the jobName
+        if(activeConfiguration != ""){
+            jobName += "/" + activeConfiguration;
         }
 
-        //Update the console data.
-        if(currentState == BUILDING){
-            //Get console output from wget
-            QString currentData = wget(consoleURL);
-            if(currentData.size() > previousData.size()){
-                int from = previousData.size();
-                //Send a signal with the live output.
-                emit gotLiveCLIOutput(this->jobName, this->buildNumber, this->activeConfiguration, currentData.mid(from));
-                previousData = currentData;
+        QString buildNo = "";
+        //If we have been provided a valid build number, append this to the jobName
+        if(buildNumber > -1){
+            buildNo = QString::number(buildNumber);
+        }
+
+
+        //Get the current state of the job.
+        JOB_STATE currentState = _getJobState(this->jobName, this->buildNumber, this->activeConfiguration);
+        QString previousData = "";
+
+        QString consoleURL = manager->getURL() + "job/" + jobName + "/" + buildNo + "/consoleText";
+
+        //Construct a timeout timer.
+        QTimer* timeOutTimer = new QTimer();
+        timeOutTimer->setSingleShot(true);
+
+        //While the job is either building or not yet existant.
+        while(currentState == BUILDING || currentState == NO_JOB){
+
+
+            //Construct a EventLoop which waits for the timer to finish.
+            QEventLoop waitLoop;
+            connect(timeOutTimer, SIGNAL(timeout()), &waitLoop, SLOT(quit()));
+            connect(this, SIGNAL(unexpectedTermination()), &waitLoop, SLOT(quit()));
+
+            timeOutTimer->start(2000);
+
+            //Wait for something to quit the EventLoop
+            waitLoop.exec();
+            timeOutTimer->stop();
+
+            //Check for termination
+            if(terminated){
+                //qCritical() << "Terminating the Jenkins Request!";
+                break;
             }
-        }
 
-        //Update the current state.
-        currentState = _getJobState(this->jobName, this->buildNumber, this->activeConfiguration);
+            //Update the console data.
+            if(currentState == BUILDING){
+                //Get console output from wget
+                QPair<int, QByteArray> response = wget(consoleURL);
+                QString currentData = response.second;
+                if(currentData.size() > previousData.size()){
+                    int from = previousData.size();
+                    //Send a signal with the live output.
+                    emit gotLiveCLIOutput(this->jobName, this->buildNumber, this->activeConfiguration, currentData.mid(from));
+                    previousData = currentData;
+                }
+            }
+
+            //Update the current state.
+            currentState = _getJobState(this->jobName, this->buildNumber, this->activeConfiguration);
+        }
+        //Delete the timer
+        timeOutTimer->deleteLater();
+        //emit a gotJobStateChange signal as the job is either BUILT or FAILED
+        emit gotJobConsoleOutput(this->jobName, this->buildNumber, this->activeConfiguration, previousData);
+
+    }else{
+        emit requestFailed();
     }
-    //Delete the timer
-    timeOutTimer->deleteLater();
-    //emit a gotJobStateChange signal as the job is either BUILT or FAILED
-    emit gotJobConsoleOutput(this->jobName, this->buildNumber, this->activeConfiguration, previousData);
     //Call the SIGNAL to teardown the JenkinsRequest
     emit requestFinished();
 
@@ -552,14 +643,21 @@ void JenkinsRequest::getJobConsoleOutput(QString jobName, int buildNumber, QStri
  */
 void JenkinsRequest::getJobActiveConfigurations(QString jobName)
 {
-    //Store the jobName
-    storeRequestParameters(jobName);
+    //Wait for valid settings.
+    if(waitForValidSettings()){
 
-    //Get the list of configurations.
-    QStringList configurationList = _getJobActiveConfigurations(jobName);
+        //Store the jobName
+        storeRequestParameters(jobName);
 
-    //Call the SIGNAL to send the data back.
-    emit gotJobActiveConfigurations(jobName, configurationList);
+        //Get the list of configurations.
+        QStringList configurationList = _getJobActiveConfigurations(jobName);
+
+        //Call the SIGNAL to send the data back.
+        emit gotJobActiveConfigurations(jobName, configurationList);
+    }else{
+        emit requestFailed();
+    }
+
     //Call the SIGNAL to teardown the JenkinsRequest
     emit requestFinished();
 }
@@ -571,60 +669,81 @@ void JenkinsRequest::getJobActiveConfigurations(QString jobName)
  */
 void JenkinsRequest::buildJob(QString jobName, Jenkins_JobParameters jobParameters)
 {
-    QString command = "build " + jobName + " ";
+    if(waitForValidSettings()){
+        QString command = "build " + jobName + " ";
 
-    //Serialize arguments.
-    foreach(Jenkins_Job_Parameter parameter, jobParameters){
-        command += "-p " + parameter.name + "=" + parameter.value + " ";
+        //Serialize arguments.
+        foreach(Jenkins_Job_Parameter parameter, jobParameters){
+            command += "-p " + parameter.name + "=" + parameter.value + " ";
+        }
+
+        //Add options to pipe the output of the root job.
+        command += "-s -v ";
+
+
+        //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
+         QPair<int, QByteArray> response = runProcess(manager->getCLICommand(command));
+
+        //Parse the returned data as a String
+        QString result = QString(response.second);
+
+        int buildNumber = -1;
+
+        //If Job is MultiConfiguration. Output tells us which job Number.
+        if(_isJobAMatrixProject(jobName)){
+            //Started [jobName] #[buildNumber]
+            //Construct a Regex Expression to match and get the Number.
+            QRegularExpression regex("Started " + jobName + " #([0-9]+)");
+
+            QRegularExpressionMatch resultMatch = regex.match(result);
+            if(resultMatch.hasMatch()){
+                QString match = resultMatch.captured(1);
+                //If toInt fails, buildNumber will be 0
+                buildNumber = match.toInt();
+                if(buildNumber == 0){
+                    buildNumber = -1;
+                }
+            }
+        }
+
+        //Gets the Job State of the Root Job, and will call the SIGNAL to teardown the JenkinsRequest
+        getJobState(jobName, buildNumber, "");
+    }else{
+         emit requestFailed();
+         emit requestFinished();
     }
-
-   //Add options to pipe the output of the root job.
-   command += "-s -v ";
-
-
-   //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
-   QByteArray commandData = runProcess(manager->getCLICommand(command));
-
-    //Parse the returned data as a String
-   QString result = QString(commandData);
-
-   int buildNumber = -1;
-
-   //If Job is MultiConfiguration. Output tells us which job Number.
-   if(_isJobAMatrixProject(jobName)){
-       //Started [jobName] #[buildNumber]
-       //Construct a Regex Expression to match and get the Number.
-       QRegularExpression regex("Started " + jobName + " #([0-9]+)");
-
-       QRegularExpressionMatch resultMatch = regex.match(result);
-       if(resultMatch.hasMatch()){
-           QString match = resultMatch.captured(1);
-           //If toInt fails, buildNumber will be 0
-           buildNumber = match.toInt();
-           if(buildNumber == 0){
-               buildNumber = -1;
-           }
-       }
-   }
-
-   //Gets the Job State of the Root Job, and will call the SIGNAL to teardown the JenkinsRequest
-   getJobState(jobName, buildNumber, "");
 }
 
+/**
+ * @brief JenkinsRequest::stopJob Sends a request to (and waits) abort a Job on the Jenkins Server.
+ * @param jobName The name of the Jenkins job
+ * @param buildNumber The build number of the job
+ * @param activeConfiguration The name of the Active Configuration (Can be empty for the root job)
+ */
 void JenkinsRequest::stopJob(QString jobName, int buildNumber, QString activeConfiguration)
 {
-    if(activeConfiguration != ""){
-        jobName += "/" + activeConfiguration;
-    }
+    if(waitForValidSettings()){
+        if(activeConfiguration != ""){
+            jobName += "/" + activeConfiguration;
+        }
 
-    QString stopURL  = manager->getURL() + "job/" + jobName + "/" + QString::number(buildNumber) + "/stop";
-    post(stopURL);
+        QString stopURL  = manager->getURL() + "job/" + jobName + "/" + QString::number(buildNumber) + "/stop";
+        post(stopURL);
+    }else{
+        emit requestFailed();
+    }
     emit requestFinished();
 }
 
+/**
+ * @brief JenkinsRequest::_unexpectedTermination Called when this JenkinsRequest JenkinsManager is destroyed.
+ * Sets the state of a terminating variable. and unsets the JenkinsManag.er
+ */
 void JenkinsRequest::_unexpectedTermination()
 {
     terminated = true;
+    //Try unset JenkinsManger
+    manager = 0;
 }
 
 /**

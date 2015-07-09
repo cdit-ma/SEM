@@ -15,7 +15,7 @@
 #include <QPushButton>
 #include <QMenu>
 #include <QWidgetAction>
-#include <QCheckBox>
+#include <QCheckBox>paint
 
 #include "../../Model/node.h"
 #include "../../Model/graphmldata.h"
@@ -337,6 +337,7 @@ private:
     bool highlighted;
     bool hidden;
     bool hasDefinition;
+    bool isImplOrInstance;
 
     bool LOCKED_POSITION;
     bool PAINT_OBJECT;

@@ -22,10 +22,24 @@ class JenkinsManager: public QObject
     Q_OBJECT
 public:
     JenkinsManager(QString cliPath, QString url, QString username, QString password, QString token);
-    bool hasValidSettings();
+    QString getUsername();
+
+    void setURL(QString url);
+    void setUsername(QString username);
+    void setPassword(QString password);
+    void setToken(QString token);
+
+    bool hasValidatedSettings();
     JenkinsRequest* getJenkinsRequest(QObject* parent = 0, bool deleteOnCompletion = true);
 
+signals:
+    void settingsValidationComplete();
+    void tryValidateSettings();
+    void gotInvalidSettings(QString message);
+private slots:
+    void gotSettingsValidationResponse(bool valid, QString message);
 private:
+    void validateJenkinsSettings();
     void storeJobConfiguration(QString jobName, QJsonDocument json);
     QNetworkRequest getAuthenticatedRequest(QString url);
     QJsonDocument getJobConfiguration(QString jobName);
@@ -47,6 +61,8 @@ private:
     QString token;
     QString cliPath;
 
+    bool settingsValidated;
+    bool settingsValidating;
     //A Hash lookup of Jenkins Jobs JSON Documents
     QHash<QString, QJsonDocument> jobsJSON;
     //Vector of all Active JenkinsRequest objects created from this.

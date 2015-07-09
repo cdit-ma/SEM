@@ -51,7 +51,7 @@ JenkinsLoadingWidget::JenkinsLoadingWidget(QWidget *parent):QWidget(parent)
     //Add the title Widget to the Vertical Layout.
 
     //Set up a Label.
-    QLabel* loadingLabel = new QLabel("Waiting for Jenkins CLI...");
+    loadingLabel = new QLabel();
     loadingLabel->setStyleSheet("font-weight: bold;");
 
     //Set up a Progress Bar
@@ -66,6 +66,18 @@ JenkinsLoadingWidget::JenkinsLoadingWidget(QWidget *parent):QWidget(parent)
     loadingLayout->addWidget(progressBar);
     layout->addWidget(loadingBar);
     layout->addStretch();
+    //Set waiting for the Validation
+    setWaiting(false);
+}
+
+void JenkinsLoadingWidget::setWaiting(bool waiting)
+{
+    if(waiting){
+        loadingLabel->setText("Waiting for Jenkins CLI...");
+    }else{
+        loadingLabel->setText("Validating Jenkins Settings...");
+    }
+
 }
 
 /**
@@ -76,4 +88,9 @@ void JenkinsLoadingWidget::hideLoadingBar()
     if(loadingBar){
         loadingBar->hide();
     }
+}
+
+void JenkinsLoadingWidget::authenticationFinished()
+{
+    setWaiting(true);
 }

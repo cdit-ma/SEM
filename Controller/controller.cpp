@@ -3172,7 +3172,6 @@ void NewController::constructDestructMultipleEdges(QStringList srcIDs, QString d
 
     //Have to delete all edges.
     if(allAlreadyDeployed){
-        qCritical() << "DE DEPLOYING";
         foreach (QString srcID, srcIDs) {
             Node* src = getNodeFromID(srcID);
             if(src){

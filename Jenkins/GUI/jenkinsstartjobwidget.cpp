@@ -74,6 +74,14 @@ void JenkinsStartJobWidget::requestJob(QString jobName, QString graphmlFile)
 
     setupLayout(jobName);
 
+    if(jenkins->hasValidatedSettings()){
+        loadingWidget->setWaiting(true);
+    }else{
+        connect(jenkins, SIGNAL(settingsValidationComplete()), loadingWidget, SLOT(authenticationFinished()));
+        connect(jenkins, SIGNAL(gotInvalidSettings(QString)), this, SLOT(reject()));
+    }
+
+
     show();
 
     getJenkinsData(jobName);

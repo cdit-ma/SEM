@@ -195,7 +195,7 @@ public slots:
     void setDefaultAspects();
     void setEnabled(bool);
 
-    void showMessage(MESSAGE_TYPE type, QString title, QString message, QString ID, bool centralizeItem = false);
+    void showMessage(MESSAGE_TYPE type, QString title, QString message, QString ID="", bool centralizeItem = false);
 
     void view_ClearHistory();
     void clearView();

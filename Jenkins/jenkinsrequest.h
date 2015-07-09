@@ -26,7 +26,6 @@ struct Jenkins_Job_Parameter{
 typedef QList<Jenkins_Job_Parameter> Jenkins_JobParameters;
 
 class JenkinsManager;
-
 class JenkinsRequest: public QObject{
     Q_OBJECT
 public:
@@ -45,16 +44,17 @@ signals:
     void gotJobConsoleOutput(QString jobName, int buildNumber, QString activeConfiguration, QString consoleOutput);
     //Emitted, one or more times, by the slot getJobState
     void gotJobStateChange(QString jobName, int buildNumber, QString activeConfiguration, JOB_STATE jobState);
+    //Emitted, Once by the slot validateJenkinsSettings
+    void gotSettingsValidationResponse(bool settingsValid, QString responseMessage);
+    //Emitted, Once by the slot runGroovyScript
+    void gotGroovyScriptOutput(QString consoleOutput);
 
     //Emitted, by any slot which deems the request to have failed.
     void requestFailed();
     //Emitted, by ALL slots once a slot has finished it's function.
     void requestFinished();
-
-    void gotGroovyScriptOutput(QString consoleOutput);
-
+    //Emitted, if the JenkinsManager is destroyed.
     void unexpectedTermination();
-
 
 private slots:
     //Slots are listed as private so they cannot be called directly, only connected too. All of these Slots have a matching return signal.
@@ -63,24 +63,25 @@ private slots:
     void getJobParameters(QString jobName);
     void getJobState(QString jobName, int buildNumber, QString activeConfiguration="");
 
-    void runGroovyScript(QString groovyScriptPath);
-
-
-
     //Requests
+    void runGroovyScript(QString groovyScriptPath);
     void buildJob(QString jobName, Jenkins_JobParameters jobParameters);
     void stopJob(QString jobName, int buildNumber, QString activeConfiguration="");
+    void validateJenkinsSettings();
+
+    //Called if the JenkinsManager has been destroyed.
     void _unexpectedTermination();
 private:
     //CLI and HTTP getters
-    QByteArray wget(QString url);
-    QByteArray post(QString url, QByteArray data = QByteArray());
-    QByteArray waitForReply(QNetworkReply* reply);
-    QByteArray runProcess(QString command);
+    QPair<int, QByteArray> wget(QString url);
+    QPair<int, QByteArray> post(QString url, QByteArray data = QByteArray());
+    QPair<int, QByteArray> waitForReply(QNetworkReply* reply);
+    QPair<int, QByteArray> runProcess(QString command);
 
     QNetworkAccessManager* getNetworkManager();
 
     //SLOT helper methods
+    bool waitForValidSettings();
     bool _isJobAMatrixProject(QString jobName);
     QStringList _getJobActiveConfigurations(QString jobName);
     JOB_STATE _getJobState(QString jobName, int buildNumber, QString activeConfiguration="");
