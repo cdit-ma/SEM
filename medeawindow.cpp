@@ -698,7 +698,7 @@ void MedeaWindow::setupSearchTools()
     searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
     searchOptionButton = new QPushButton(QIcon(":/Resources/Icons/settings.png"), "");
     searchOptionMenu = new QMenu(searchOptionButton);
-    searchSuggestions = new QListView(searchButton);
+    //searchSuggestions = new QListView(searchButton);
     searchResults = new QDialog(this);
 
     QVBoxLayout* layout = new QVBoxLayout();
