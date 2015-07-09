@@ -40,6 +40,7 @@
 #define SELECT_ON_CREATION "02-02-Select_Entity_On_Creation"
 #define ZOOM_ANCHOR_ON_MOUSE "02-03-Zoom_View_Under_Mouse"
 #define USE_GRID "02-04-Use_Grid_Lines"
+#define SHOW_MANAGEMENT_COMPONENTS "02-05-Show_Management_Components"
 #define ASPECT_D "03-01-Definitions"
 #define ASPECT_W "03-02-Workload"
 #define ASPECT_A "03-03-Assembly"
@@ -72,6 +73,7 @@
 #define TOOLBAR_HORIZ_ALIGN "05-16-Horizontal_Align_Entities"
 #define TOOLBAR_BACK "05-17-Back"
 #define TOOLBAR_FORWARD "05-18-Forward"
+
 
 
 /**
@@ -234,7 +236,31 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == ASPECT_H && isBool){
         hardwareToggle->setClicked(boolValue);
         hardwareToggle->aspectToggle_clicked(boolValue, 0);
+    }else if(keyName == JENKINS_URL){
+        if(jenkinsManager){
+            jenkinsManager->setURL(value);
+        }
+    }else if(keyName == JENKINS_USER){
+        if(jenkinsManager){
+            jenkinsManager->setUsername(value);
+        }
+    }else if(keyName == JENKINS_PASS){
+        if(jenkinsManager){
+            jenkinsManager->setPassword(value);
+        }
+    }else if(keyName == JENKINS_TOKEN){
+        if(jenkinsManager){
+            jenkinsManager->setToken(value);
+        }
+    }else if(keyName == JENKINS_JOB){
+        jenkins_JobName_Changed(value);
+    }else if(keyName == SHOW_MANAGEMENT_COMPONENTS && isBool){
+        if(nodeView){
+            nodeView->showManagementComponents(boolValue);
+        }
     }
+
+
 
     if(keyName.startsWith(TOOLBAR_SETTINGS)){
 
@@ -476,7 +502,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     menu->addSeparator();
 
     settings_changeAppSettings = menu->addAction(QIcon(":/Resources/Icons/settings.png"), "Settings");
-    exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Quit Medea");
+    exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Exit");
 
     menu->setFont(guiFont);
     file_menu->setFont(guiFont);
@@ -527,7 +553,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
     view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "View Connections");
-    view_showManagementComponents = view_menu->addAction("View Management Components");
+
 
     model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
     model_menu->addSeparator();
@@ -548,15 +574,12 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     jenkins_ExecuteJob = jenkins_menu->addAction(QIcon(":/Resources/Icons/jenkins_build.png"), "Launch: " + jenkinsJobName);
 
-    if(!jenkinsManager || !jenkinsManager->hasValidSettings()){
+    if(!jenkinsManager){
         jenkins_menu->setEnabled(false);
     }
     if(jenkinsJobName == ""){
         jenkins_ExecuteJob->setEnabled(false);
     }
-
-    // setup toggle actions
-    view_showManagementComponents->setCheckable(true);
 
     // initially disable these actions
     view_goToDefinition->setEnabled(false);
@@ -1032,6 +1055,7 @@ void MedeaWindow::makeConnections()
 
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
     connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
+    connect(this, SIGNAL(window_DisplayMessage(MESSAGE_TYPE,QString,QString)), nodeView, SLOT(showMessage(MESSAGE_TYPE,QString,QString)));
     connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setViewAspects(QStringList)));
     connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setMenuActionEnabled(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
@@ -1086,7 +1110,6 @@ void MedeaWindow::makeConnections()
     connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(goToImplementation()));
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(goToDefinition()));
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
-    connect(view_showManagementComponents, SIGNAL(triggered(bool)), nodeView, SLOT(showManagementComponents(bool)));
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
 
@@ -1214,7 +1237,7 @@ connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
     addAction(view_goToDefinition);
     addAction(view_goToImplementation);
     addAction(view_showConnectedNodes);
-    addAction(view_showManagementComponents);
+
     addAction(model_validateModel);
     addAction(model_clearModel);
 
@@ -1278,6 +1301,7 @@ void MedeaWindow::initialiseJenkinsManager()
 
     if(jenkinsUrl != "" && jenkinsUser != "" && jenkinsPass != ""){
         jenkinsManager = new JenkinsManager(applicationDirectory + "Resources/Scripts/", jenkinsUrl, jenkinsUser, jenkinsPass, jenkinsToken);
+        connect(jenkinsManager, SIGNAL(gotInvalidSettings(QString)), this, SLOT(invalidJenkinsSettings(QString)));
     }
 }
 
@@ -1321,6 +1345,11 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(validationComplete(int)));
     connect(myProcess, SIGNAL(finished(int)), myProcess, SLOT(deleteLater()));
     myProcess->start(program, arguments);
+}
+
+void MedeaWindow::invalidJenkinsSettings(QString message)
+{
+    emit window_DisplayMessage(CRITICAL, "Invalid Jenkins Settings", message);
 }
 
 void MedeaWindow::jenkinsNodesLoaded()
@@ -1390,7 +1419,7 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
 void MedeaWindow::setupInitialSettings()
 {
     appSettings->loadSettings();
-    toggleAndTriggerAction(view_showManagementComponents, false);
+    //toggleAndTriggerAction(view_showManagementComponents, false);
 
     QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
     // this only needs to happen once, the whole time the application is open
@@ -1530,8 +1559,12 @@ void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
     }else{
         QMessageBox::critical(this, "Jenkins Error", "Unable to request Jenkins Data", QMessageBox::Ok);
     }
+}
+
+void MedeaWindow::setImportJenkinsNodeEnabled(bool enabled)
+{
     if(jenkins_ImportNodes){
-        jenkins_ImportNodes->setEnabled(true);
+        jenkins_ImportNodes->setEnabled(enabled);
     }
 }
 
@@ -1549,10 +1582,11 @@ void MedeaWindow::on_actionImportJenkinsNode()
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
         connect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
         connect(jenkinsGS, SIGNAL(gotGroovyScriptOutput(QString)), this, SLOT(gotJenkinsNodeGraphML(QString)));
+        connect(jenkinsGS, SIGNAL(requestFinished()), this, SLOT(setImportJenkinsNodeEnabled()));
 
-        if(jenkins_ImportNodes){
-            this->jenkins_ImportNodes->setEnabled(false);
-        }
+        //Disable the Jenkins Menu Button
+        setImportJenkinsNodeEnabled(false);
+
         emit jenkins_RunGroovyScript(groovyScript);
         disconnect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));
     }
@@ -2048,6 +2082,10 @@ void MedeaWindow::showWindowToolbar(bool checked)
         toolbarButton->setToolTip("Expand Toolbar");
         toolbarButtonLabel->setPixmap(expandPixmap);
         toolbar->setMask(QRegion(0,0,1,1, QRegion::Ellipse));
+    }
+
+    if(appSettings){
+        appSettings->setSetting(TOOLBAR_EXPANDED, checked);
     }
 
     toolbar->setVisible(checked);
@@ -2794,6 +2832,13 @@ void MedeaWindow::importProjects(QStringList files)
     if (projects.size() > 0) {
         window_ImportProjects(projects);
         nodeView->fitToScreen();
+    }
+}
+
+void MedeaWindow::jenkins_JobName_Changed(QString jobName)
+{
+    if(jenkins_ExecuteJob){
+        jenkins_ExecuteJob->setText("Launch: " + jobName);
     }
 }
 

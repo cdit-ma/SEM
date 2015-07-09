@@ -21,11 +21,14 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
     descriptionBox = 0;
     difference = 0;
     newValue ="";
+    highlighted = false;
+
+    hover = false;
 
     normalPal = palette();
+    hoverPal = palette();
+    hoverPal.setColor(QPalette::Background, QColor(249,249,249));
 
-    highlightPal = palette();
-    highlightPal.setColor(QPalette::Background, QColor(249,249,249));
 
     setAutoFillBackground(true);
 
@@ -46,7 +49,8 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
     QPushButton* keyLabel = new QPushButton(hrKeyName);
     keyLabel->setFlat(true);
-    keyLabel->setStyleSheet("background-color: rgba(0,0,0,0); border: 0px; text-align: left;");
+    labelStyleSheet = "background-color: rgba(0,0,0,0); border: 0px; text-align: left; padding-right:2px;";//text-align:right;";
+    keyLabel->setStyleSheet(labelStyleSheet);
 
     if(description != ""){
         descriptionBox = new QTextBrowser() ;
@@ -105,8 +109,10 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         checkBox->setChecked(boolValue);
         connect(checkBox,SIGNAL(clicked(bool)), this, SLOT(_boolChanged(bool)));
         connect(checkBox, SIGNAL(clicked()), this, SLOT(_editingFinished()));
-        hLayout->addWidget(checkBox);
+        hLayout->addWidget(checkBox);//,1);
         valueBox = checkBox;
+
+        keyType = KEY_BOOL;
 
 
     }else if (isInt){
@@ -121,6 +127,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         this->oldValue = QString::number(intValue);
 
         valueBox = intEdit;
+        keyType = KEY_INT;
     }else if(customType == "File"){
         QLineEdit* lineEdit = new QLineEdit();
         lineEdit->setEnabled(false);
@@ -131,6 +138,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         connect(lineEdit, SIGNAL(editingFinished()), this, SLOT(_editingFinished()));
         this->oldValue = stringValue;
         valueBox = lineEdit;
+        keyType = KEY_FILE;
     }else{
         QLineEdit* lineEdit = new QLineEdit();
         hLayout->addWidget(lineEdit,1);
@@ -140,6 +148,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         this->oldValue = stringValue;
 
         valueBox = lineEdit;
+        keyType = KEY_STRING;
     }
 
 
@@ -161,6 +170,70 @@ QString KeyEditWidget::getGroupName()
 QString KeyEditWidget::getValue()
 {
     return oldValue;
+}
+
+void KeyEditWidget::setLabelWidth(int labelWidth)
+{
+    if(labelBox){
+        labelBox->setMinimumWidth(labelWidth+2);
+    }
+
+}
+
+void KeyEditWidget::setValue(QVariant value)
+{
+    QString stringValue = value.toString();
+
+    if(keyType == KEY_INT){
+        bool isInt = false;
+        int intValue = value.toInt(&isInt);
+
+        if(isInt){
+            QSpinBox* intEdit = dynamic_cast<QSpinBox*>(valueBox);
+            if(intEdit){
+                intEdit->setValue(intValue);
+            }
+        }
+    }else if(keyType == KEY_BOOL){
+        bool changeValue = false;
+        bool boolValue = false;
+
+        if(stringValue == "false" || stringValue == "true"){
+            changeValue = true;
+            if(stringValue == "true"){
+                boolValue = true;
+            }
+        }
+        if(changeValue){
+            QCheckBox* boolEdit = dynamic_cast<QCheckBox*>(valueBox);
+            if(boolEdit){
+                boolEdit->setChecked(boolValue);
+            }
+        }
+    }else if(keyType == KEY_STRING || keyType == KEY_FILE){
+        QLineEdit* stringEdit = dynamic_cast<QLineEdit*>(valueBox);
+        if(stringEdit){
+            stringEdit->setText(stringValue);
+        }
+    }
+
+    //Update the value
+    oldValue = stringValue;
+}
+
+void KeyEditWidget::setHighlighted(bool highlighted)
+{
+    if(labelBox){
+        if(this->highlighted != highlighted){
+            this->highlighted = highlighted;
+            if(highlighted){
+                labelBox->setStyleSheet(labelStyleSheet + "color : blue;");
+            }else{
+                labelBox->setStyleSheet(labelStyleSheet);
+            }
+            update();
+        }
+    }
 }
 
 
@@ -185,14 +258,24 @@ void KeyEditWidget::_editingFinished()
     }
 }
 
+void KeyEditWidget::updatePallete()
+{
+    if(hover){
+        setPalette(hoverPal);
+    }else{
+        setPalette(normalPal);
+    }
+}
+
 void KeyEditWidget::enterEvent(QEvent *)
 {
-    this->setPalette(highlightPal);
+    hover = true;
+    updatePallete();
 
 }
 
 void KeyEditWidget::leaveEvent(QEvent *)
 {
-    this->setPalette(normalPal);
-
+    hover = false;
+    updatePallete();
 }

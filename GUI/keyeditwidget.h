@@ -6,6 +6,13 @@
 #include <QVBoxLayout>
 
 
+enum KEY_TYPE{
+    KEY_STRING = 0,
+    KEY_INT,
+    KEY_DOUBLE,
+    KEY_BOOL,
+    KEY_FILE
+};
 class AppSettings;
 class KeyEditWidget : public QWidget
 {
@@ -16,6 +23,10 @@ public:
     QString getGroupName();
     QString getValue();
 
+    void setLabelWidth(int labelWidth);
+    void setValue(QVariant value);
+
+    void setHighlighted(bool highlighted);
 signals:
     void valueChanged(QString groupName, QString keyName, QString value);
 
@@ -27,6 +38,7 @@ public slots:
 
 
 private:
+    void updatePallete();
     QString keyName;
     QString hrKeyName;
 
@@ -35,17 +47,23 @@ private:
     QString oldValue;
     QString descriptionValue;
 
+    bool highlighted;
 
     int difference;
     QVBoxLayout* oldLayout;
     QVBoxLayout* vLayout;
     QWidget *valueBox;
     QWidget *labelBox;
+    QString labelStyleSheet;
     QTextBrowser* descriptionBox;
 
+    KEY_TYPE keyType;
+
+    bool hover;
 
     QPalette normalPal;
-    QPalette highlightPal;
+
+    QPalette hoverPal;
 
     // QWidget interface
 protected:

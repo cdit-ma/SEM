@@ -14,29 +14,47 @@ class AppSettings: public QDialog
 public:
     AppSettings(QWidget *parent = 0, QString applicationPath="");
     ~AppSettings();
+
+
     QSettings* getSettings();
+
     void loadSettings();
-    QString getSetting(QString keyName="");
+
     void setSetting(QString keyName, QVariant value);
+    QString getSetting(QString keyName);
 
     QString getReadableValue(const QString value);
 signals:
-    void settingChanged(QString settingGroup, QString settingName, QString settingValue);
-public slots:
+    void settingChanged(QString settingGroup, QString settingName, QString setti5ngValue);
+private slots:
+    void _settingChanged(QString settingGroup, QString settingName, QString settingValue);
     void settingUpdated(QString, QString, QString);
-    void launchSettingsUI();
-    void updateSetting();
+
+
     void groupToggled(bool toggled);
-    void show();
+
+    void clearSettings(bool applySettings=true);
+
 
 private:
+    void updateApplyButton();
     QString getGroup(QString keyName);
     void setupLayout();
     QSettings* settings;
+
     QHash<QString, QString> keyToGroupMap;
-    QList<KeyEditWidget*> settingsWidgets;
+    //QList<KeyEditWidget*> settingsWidgets;
+
+    QPushButton* applyButton;
+    QHash<QString, KeyEditWidget*> settingsWidgetsHash;
+    QHash<QString, QStringList> changedSettings;
+
     QScrollArea* scrollArea;
 
+
+    // QDialog interface
+public slots:
+    void reject();
 };
 
 
