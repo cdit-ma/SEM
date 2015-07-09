@@ -38,6 +38,9 @@ public:
     QString getSelectedNodeID();
     NodeItem* getSelectedNodeItem();
 
+    QList<NodeItem*> getSelectedNodeItems();
+    QStringList getSelectedNodeIDs();
+
     void setParentNodeView(NodeView *n);
     void removeSubView(NodeView* subView);
 
@@ -111,7 +114,6 @@ signals:
     void view_ExportedSnippet(QString parentName, QString snippetXMLData);
     void view_ExportSnippet(QStringList selection);
     void view_ImportedSnippet(QStringList selection, QString fileName, QString fileData);
-    void view_ChangeEdgeDestination(QString srcID, QString dstID, QString newDstID);
     void view_ImportSnippet(QString nodeKind);
 
 
@@ -141,6 +143,8 @@ signals:
     void view_ConstructEdge(QString srcID, QString dstID);
     void view_DestructEdge(QString srcID, QString dstID);
     void view_ConstructConnectedNode(QString parentID, QString relativeID, QString nodeKind, QPointF position);
+
+    void view_constructDestructEdges(QStringList srcIDs, QString dstID);
 
     void view_ClearHistoryStates();
 
@@ -261,9 +265,10 @@ public slots:
 
     void deleteSelection();
     void constructNode(QString nodeKind, int sender);
-    void constructEdge(QString srcID, QString dstID, bool triggerAction=true);
+    void constructEdge(QString srcID, QString dstID);
     void destructEdge(QString srcID, QString dstID, bool triggerAction=true);
-    void changeEdgeDestination(QString srcID, QString dstID, QString newDstID);
+
+    void constructDestructEdges(QStringList srcIDs, QString dstID);
 
     void deleteFromIDs(QStringList IDs);
     void constructConnectedNode(QString parentID, QString dstID, QString kind, int sender=0);

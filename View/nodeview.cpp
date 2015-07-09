@@ -514,6 +514,36 @@ NodeItem* NodeView::getSelectedNodeItem()
 }
 
 
+/**
+ * @brief NodeView::getSelectedNodeItems
+ * @return
+ */
+QList<NodeItem*> NodeView::getSelectedNodeItems()
+{
+    QList<NodeItem*> selectedItems;
+    foreach (QString ID, selectedIDs) {
+        NodeItem* selectedItem = getNodeItemFromID(ID);
+        if (selectedItem) {
+            selectedItems.append(selectedItem);
+        }
+    }
+    return selectedItems;
+}
+
+QStringList NodeView::getSelectedNodeIDs()
+{
+
+    QStringList selectedItems;
+    foreach (QString ID, selectedIDs) {
+        NodeItem* selectedItem = getNodeItemFromID(ID);
+        if (selectedItem) {
+            selectedItems.append(ID);
+        }
+    }
+    return selectedItems;
+}
+
+
 void NodeView::setParentNodeView(NodeView *n)
 {
     this->parentNodeView = n;
@@ -668,6 +698,10 @@ bool NodeView::viewportEvent(QEvent * e)
  */
 void NodeView::actionFinished()
 {
+    // not sure if this is needed here! - reset notification seq and total number
+    numberOfNotifications = 1;
+    notificationNumber = 0;
+
     //Reset
     pasting = false;
     toolbarDockConstruction = false;
@@ -689,14 +723,11 @@ void NodeView::actionFinished()
     }
 
     if(updateDeployment){
-        highlightDeployment();
+        edgeConstructed_signalUpdates();
         updateDeployment = false;
-    }else{
-        //CHeck in here.
-
-       /// qCritical() << "Check if dock is open";
-        //highlightDeployment();;
     }
+
+
     updateActionsEnabled();
 
     viewMutex.unlock();
@@ -1263,7 +1294,6 @@ void NodeView::moveViewForward()
  */
 void NodeView::highlightDeployment(bool clear)
 {
-
     // clear highlighted node items
     if (guiItems.contains(prevSelectedNodeID)) {
         GraphMLItem* item = guiItems[prevSelectedNodeID];
@@ -1305,6 +1335,9 @@ void NodeView::highlightDeployment(bool clear)
 
     NodeItem* selectedNodeItem = getSelectedNodeItem();
     if (selectedNodeItem) {
+        if (selectedNodeItem->getNodeKind().startsWith("Hardware")) {
+            return;
+        }
         if (!selectedNodeItem->deploymentView(true, selectedNodeItem).isEmpty()) {
             // if there are higlighted children, display notification
             view_displayNotification("The selected entity has children that are deployed to a different node.");
@@ -1523,7 +1556,10 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     NodeItem* srcGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(src->getID()));
     NodeItem* dstGUI = getNodeItemFromGraphMLItem(getGraphMLItemFromHash(dst->getID()));
 
-    edgeConstructed_signalUpdates();
+    if (edge->isDeploymentLink()) {
+        updateDeployment = true;
+    }
+    //edgeConstructed_signalUpdates();
 
     if(srcGUI != 0 && dstGUI != 0){
         // send necessary signals when an edge has been constucted
@@ -1646,34 +1682,39 @@ void NodeView::constructNode(QString nodeKind, int sender)
  * @param dst
  * @param trigger
  */
-void NodeView::constructEdge(QString srcID, QString dstID, bool trigger)
+void NodeView::constructEdge(QString srcID, QString dstID)
 {
-    if(viewMutex.tryLock()){
+    if (viewMutex.tryLock()) {
+
+        qDebug() << "NodeView::constructEdge";
+
         NodeItem* srcNode = getNodeItemFromID(srcID);
         NodeItem* dstNode = getNodeItemFromID(dstID);
-        if(srcNode && dstNode){
+        if (srcNode && dstNode) {
             view_displayNotification("Connected " + srcNode->getNodeLabel() +
                                      " to " + dstNode->getNodeLabel() + ".",
                                      notificationNumber, numberOfNotifications);
         }
 
         // reset notification seq and total number
-        numberOfNotifications = 1;
-        notificationNumber = 0;
+        //numberOfNotifications = 1;
+        //notificationNumber = 0;
 
-        if (trigger) {
-            triggerAction("Dock/Toolbar: Constructing Edge");
-        }
+        triggerAction("Dock/Toolbar: Constructing Edge");
 
         emit view_ConstructEdge(srcID, dstID);
+
+    } else {
+        qDebug() << "NodeView::constructEdge - LOCKED!!!";
     }
 }
+
 
 void NodeView::destructEdge(QString srcID, QString dstID, bool triggerAction)
 {
     Q_UNUSED(triggerAction);
 
-    if(viewMutex.tryLock()){
+    if(viewMutex.tryLock()){        
         NodeItem* srcNode = getNodeItemFromID(srcID);
         NodeItem* dstNode = getNodeItemFromID(dstID);
         if(srcNode && dstNode){
@@ -1681,31 +1722,46 @@ void NodeView::destructEdge(QString srcID, QString dstID, bool triggerAction)
                                      " from " + dstNode->getNodeLabel() + ".",
                                      notificationNumber, numberOfNotifications);
             // reset notification seq and total number
-            numberOfNotifications = 1;
-            notificationNumber = 0;
+            //numberOfNotifications = 1;
+            //notificationNumber = 0;
         }
         emit view_DestructEdge(srcID, dstID);
     }
 }
 
-void NodeView::changeEdgeDestination(QString srcID, QString dstID, QString newDstID)
-{
-    if(viewMutex.tryLock()){
-        NodeItem* srcNode = getNodeItemFromID(srcID);
-        NodeItem* dstNode = getNodeItemFromID(dstID);
-        NodeItem* newDstNode = getNodeItemFromID(newDstID);
-        if(srcNode && dstNode && newDstNode){
 
-            view_displayNotification("Disconnected " + srcNode->getNodeLabel() +
-                                     " from " + dstNode->getNodeLabel() + " and connected to " + newDstNode->getNodeLabel() + ".",
-                                     notificationNumber, numberOfNotifications);
-            // reset notification seq and total number
-            numberOfNotifications = 1;
-            notificationNumber = 0;
+/**
+ * @brief NodeView::constructDestructEdges
+ * @param destruct_srcIDs
+ * @param destruct_dtsIDs
+ * @param construct_srcIDs
+ * @param dstID
+ */
+void NodeView::constructDestructEdges(QStringList srcIDs, QString dstID)
+{
+    if (viewMutex.tryLock()) {
+
+        /*
+        if (!destruct_srcIDs.isEmpty()) {
+            emit view_constructDestructEdges(destruct_srcIDs, destruct_dstIDs, false);
         }
-        emit view_ChangeEdgeDestination(srcID, dstID, newDstID);
+        */
+
+        if (!srcIDs.isEmpty()) {
+            NodeItem* dstNode = getNodeItemFromID(dstID);
+            if (dstNode) {
+                view_displayNotification("Connected selection to " +
+                                         dstNode->getNodeLabel() + ".",
+                                         notificationNumber, numberOfNotifications);
+            }
+            triggerAction("Dock: Destructing/Constructing Multiple Edges");
+            //emit view_constructDestructEdges(construct_srcIDs, QStringList() << dstID, true);
+            emit view_constructDestructEdges(srcIDs, dstID);
+        }
+
     }
 }
+
 
 void NodeView::deleteFromIDs(QStringList IDs)
 {
@@ -1739,8 +1795,6 @@ void NodeView::constructConnectedNode(QString parentID, QString dstID, QString k
         }
     }
 }
-
-
 
 
 /**
@@ -1830,9 +1884,13 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
                 GraphMLItem* item = getGraphMLItemFromHash(selectedIDs.last());
                 if(item){
                     setAttributeModel(item);
+
                 }
             }
             item->setSelected(false);
+            if(item->isNodeItem()){
+                nodeSelected_signalUpdates();
+            }
         }
     }
 }
@@ -2241,7 +2299,7 @@ void NodeView::nodeSelected_signalUpdates()
     updateActionsEnabled();
 
     // update the highlighted deployment nodes.
-    if(hardwareDockOpen){
+    if (hardwareDockOpen) {
         highlightDeployment();
     }
     emit view_nodeSelected();
@@ -2966,7 +3024,7 @@ void NodeView::undo()
     // undo the action
     if(viewMutex.tryLock()) {
 
-        clearSelection(true,true);
+        //clearSelection(true,true);
         // setAttributeModel(0, true);
         emit this->view_Undo();
     }

@@ -79,38 +79,33 @@ void HardwareDockScrollArea::onEdgeDeleted()
  */
 void HardwareDockScrollArea::dockNodeItemClicked()
 {
-    NodeItem* selectedNodeItem = getNodeView()->getSelectedNodeItem();
     DockNodeItem* dockNodeItem = dynamic_cast<DockNodeItem*>(sender());
-
-    if (selectedNodeItem && dockNodeItem) {
-
-        QString selectedNodeID = selectedNodeItem->getID();
-        QString selectedNodeKind = selectedNodeItem->getNodeKind();
-        QString dockNodeID = dockNodeItem->getID();
-        NodeItem* deployedNodeItem = getNodeView()->getDeployedNode(selectedNodeID);
-        QString deployedNodeID;
-
-        if (deployedNodeItem) {
-            deployedNodeID = deployedNodeItem->getID();
-        }
-
-        if (selectedNodeKind == "ComponentAssembly" || selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ManagementComponent") {
-            if (deployedNodeItem) {
-                if (deployedNodeID == dockNodeID) {
-                    //If this node is already deployed to the dock Item clicked. Unconnect it.
-                    getNodeView()->destructEdge(selectedNodeID, dockNodeID);
-                } else {
-                    //Deployed to something else, change the edge.
-                    getNodeView()->changeEdgeDestination(selectedNodeID, deployedNodeID, dockNodeID);
-                }
-            } else {
-                //Not Deployed
-                getNodeView()->constructEdge(selectedNodeID, dockNodeID, true);
-            }
-        }
-
-        highlightHardwareConnection();
+    if (!dockNodeItem) {
+        return;
     }
+
+    QList<NodeItem*> selectedNodeItems = getNodeView()->getSelectedNodeItems();
+    QStringList selectedNodeIDS = getNodeView()->getSelectedNodeIDs();
+
+    QString dockNodeID = dockNodeItem->getID();
+
+    foreach (NodeItem* selectedNodeItem, selectedNodeItems) {
+        if (selectedNodeItem) {
+            QString selectedNodeKind = selectedNodeItem->getNodeKind();
+            if (!getNodeView()->isNodeKindDeployable(selectedNodeKind)) {
+                return;
+            }
+        } else {
+            //This shouldn't happen
+            qCritical() << "Null NodeItem in HardwareDock";
+            return;
+        }
+    }
+
+    //At this point everything in selectedNodeIDs is deployable.
+    //If all nodes in selection are already connected to dockNodeID, disconnect them.
+    //If some nodes in selection aren't connected to dockNodeID, disconnect their deployment edge, and connect to docknodeID.
+    getNodeView()->constructDestructEdges(selectedNodeIDS, dockNodeID);
 }
 
 
@@ -120,33 +115,30 @@ void HardwareDockScrollArea::dockNodeItemClicked()
  * It checks to see if this dock should be enabled for the currently selected item.
  */
 void HardwareDockScrollArea::updateDock()
-{
-    DockScrollArea::updateDock();
+{    
+    QList<NodeItem*> selectedItems = getNodeView()->getSelectedNodeItems();
+    if (selectedItems.isEmpty()) {
+        setDockEnabled(false);
+        return;
+    }
 
     // if the dock is disabled, there is no need to update
-    if (!isDockEnabled()) {
-        return;
-    }
-
-    // the first check should catch this case
-    if (!getCurrentNodeItem() || getCurrentNodeID() == "") {
-        return;
-    }
-
-    QString nodeKind = getCurrentNodeItem()->getNodeKind();
-    Node* node = getCurrentNodeItem()->getNode();
-
-    // check for special case - ComponentInstance
-    // it's only an allowed kind if it has a definition
-    if (nodeKind == "ComponentInstance") {
-        if (!node->getDefinition()) {
-            getParentButton()->enableDock(false);
+    foreach (NodeItem* item, selectedItems) {
+        QString itemKind = item->getNodeKind();
+        if (getNotAllowedKinds().contains(itemKind)) {
+            setDockEnabled(false);
             return;
+        }
+        if (itemKind == "ComponentInstance") {
+            if (!item->getNode()->getDefinition()) {
+                setDockEnabled(false);
+                return;
+            }
         }
     }
 
-    // check if any of the hardware dock items should be highlighted
-    highlightHardwareConnection();
+    setDockEnabled(true);
+    highlightHardwareConnection(selectedItems);
 }
 
 
@@ -179,10 +171,10 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 void HardwareDockScrollArea::refreshDock()
 {
     // if a node was destructed and it was previously selected, clear this dock's selection
-    if (!getNodeView()->getSelectedNode()) {
+    if (!getNodeView()->getSelectedNodeItem()) {
         DockScrollArea::updateCurrentNodeItem();
     }
-    emit dock_higlightDockItem();
+    //emit dock_higlightDockItem();
     updateDock();
 }
 
@@ -233,22 +225,35 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
  * This method checks if the selected node is already connected to a hardware node.
  * If it is, highlight the corresponding dock node item.
  * If it's not, make sure none of the dock items is highlighted
+ * @param selectedItems
  */
-void HardwareDockScrollArea::highlightHardwareConnection()
+void HardwareDockScrollArea::highlightHardwareConnection(QList<NodeItem*> selectedItems)
 {
-    NodeItem* selectedItem = getCurrentNodeItem();
-    NodeItem* hardwareItem = 0;
-
-    // we only care if there is a selected item and the Hardware dock is enabled
-    if (selectedItem && isDockEnabled()) {
-
-        QString nodeKind = selectedItem->getNodeKind();
-        QString nodeID = selectedItem->getID();
-
-        if (getNodeView()->isNodeKindDeployable(nodeKind)) {
-            hardwareItem = getNodeView()->getDeployedNode(nodeID);
-        }
-
-        emit dock_higlightDockItem(hardwareItem);
+    // if there are no deployable node items selected, clear highlighted items
+    if (selectedItems.isEmpty()) {
+        emit dock_higlightDockItem();
+        return;
     }
+
+    NodeItem* item = selectedItems[0];
+    NodeItem* hardwareItem = getNodeView()->getDeployedNode(item->getID());
+
+    if (selectedItems.count() == 1) {
+        emit dock_higlightDockItem(hardwareItem);
+        return;
+    }
+
+    for (int i = 1; i < selectedItems.count(); i++) {
+
+        NodeItem* prevHardwareItem = hardwareItem;
+        item = selectedItems[i];
+        hardwareItem = getNodeView()->getDeployedNode(item->getID());
+
+        if (hardwareItem != prevHardwareItem) {
+            emit dock_higlightDockItem();
+            return;
+        }
+    }
+
+    emit dock_higlightDockItem(hardwareItem);
 }

@@ -1,5 +1,6 @@
 #include "managementcomponent.h"
 #include "hardwarenode.h"
+#include "hardwarecluster.h"
 #include <QDebug>
 
 ManagementComponent::ManagementComponent()
@@ -15,10 +16,11 @@ ManagementComponent::~ManagementComponent()
 bool ManagementComponent::canConnect(Node* attachableObject)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode *>(attachableObject);
+    HardwareCluster* hardwareCluster = dynamic_cast<HardwareCluster*>(attachableObject);
 
-    if(!hardwareNode){
+    if(!hardwareNode && !hardwareCluster){
 #ifdef DEBUG_MODE
-        qWarning() << "Cannot only connect ManagementComponent to 1 HardwareNode.";
+        qWarning() << "Cannot only connect ManagementComponent to 1 HardwareNode or HardwareCluster.";
 #endif
         return false;
     }

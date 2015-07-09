@@ -134,9 +134,10 @@ private slots:
     void constructEdge(QString srcID, QString dstID);
     void destructEdge(QString srcID, QString dstID);
     void constructConnectedNode(QString parentID, QString connectedID, QString kind, QPointF relativePos);
-    void changeEdgeDestination(QString srcID,  QString dstID, QString newDstID );
     void setGraphMLData(QString parentID, QString keyName, QString dataValue);
 
+    void constructDestructMultipleEdges(QStringList srcIDs, QString dstID);
+    void constructDestructEdges(QStringList destruct_srcIDs, QStringList destruct_dstIDs, QStringList construct_srcIDs, QString dstID);
 
     void triggerAction(QString actionName);
 

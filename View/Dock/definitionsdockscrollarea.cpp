@@ -166,7 +166,7 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
         if (selectedNodeKind == "ComponentAssembly") {
             getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, "ComponentInstance", 0);
         } else if (selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ComponentImpl") {
-            getNodeView()->constructEdge(selectedNodeID, dockNodeID, "ComponentInstance");
+            getNodeView()->constructEdge(selectedNodeID, dockNodeID); //, "ComponentInstance");
         } else if (selectedNodeKind == "BehaviourDefinitions") {
             getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, "ComponentImpl", 0);
         }

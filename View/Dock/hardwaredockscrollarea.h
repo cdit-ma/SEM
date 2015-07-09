@@ -26,7 +26,7 @@ public slots:
     void nodeConstructed(NodeItem* nodeItem);
 
 private:
-    void highlightHardwareConnection();
+    void highlightHardwareConnection(QList<NodeItem*> selectedItems);
 
     QStringList hardware_notAllowedKinds;
 

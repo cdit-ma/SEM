@@ -24,6 +24,7 @@ public:
     explicit DockScrollArea(QString label, NodeView* view, DockToggleButton* parent);
 
     void setNotAllowedKinds(QStringList kinds);
+    QStringList getNotAllowedKinds();
 
     void addDockNodeItem(DockNodeItem* item, int insertIndex = -1, bool addToLayout = true);
     DockNodeItem* getDockNodeItem(QString nodeID);

@@ -698,12 +698,13 @@ void MedeaWindow::setupSearchTools()
     searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
     searchOptionButton = new QPushButton(QIcon(":/Resources/Icons/settings.png"), "");
     searchOptionMenu = new QMenu(searchOptionButton);
-    //searchSuggestions = new QListView(searchButton);
+    searchSuggestions = new QListView(searchButton);
     searchResults = new QDialog(this);
 
     QVBoxLayout* layout = new QVBoxLayout();
     QWidget* scrollableWidget = new QWidget(this);
     scrollableSearchResults = new QScrollArea(this);
+    scrollableSearchResults->setWidget(scrollableWidget);
 
     QVBoxLayout* resultsMainLayout = new QVBoxLayout();
     resultsLayout = new QVBoxLayout();
@@ -897,10 +898,6 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     labelLayout->addWidget(toolbarButtonLabel);
     labelLayout->setAlignment(toolbarButtonLabel, Qt::AlignCenter);
     toolbarButton->setLayout(labelLayout);
-
-
-
-
 
     constructToolbarButton(toolbar, actionContextMenu, TOOLBAR_CONTEXT);
     constructToolbarButton(toolbar, edit_delete, TOOLBAR_DELETE_ENTITIES);

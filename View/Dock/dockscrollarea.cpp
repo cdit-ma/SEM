@@ -35,6 +35,16 @@ void DockScrollArea::setNotAllowedKinds(QStringList kinds)
 
 
 /**
+ * @brief DockScrollArea::getNotAllowedKinds
+ * @return
+ */
+QStringList DockScrollArea::getNotAllowedKinds()
+{
+    return notAllowedKinds;
+}
+
+
+/**
  * @brief DockScrollArea::updateCurrentNodeItem
  * This sets nodeItem to be the currently selected node item.
  */
@@ -258,7 +268,7 @@ void DockScrollArea::updateDock()
             setDockEnabled(false);
         }
     } else {
-        // current node item deleted
+        // current node item deleted or there is no current node item selected
         setDockEnabled(false);
     }
 }

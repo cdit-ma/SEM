@@ -104,6 +104,10 @@ void NewController::connectView(NodeView *view)
 
 
     if(view->isMainView()){
+
+        connect(view, SIGNAL(view_constructDestructEdges(QStringList,QString)), this, SLOT(constructDestructMultipleEdges(QStringList,QString)));
+
+
         connect(view, SIGNAL(view_DestructEdge(QString,QString)), this, SLOT(destructEdge(QString,QString)));
         //Pass Through Signals to GUI.
         connect(view, SIGNAL(view_ClearHistoryStates()), this, SLOT(clearHistory()));
@@ -123,7 +127,6 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(controller_ExportedSnippet(QString,QString)), view, SIGNAL(view_ExportedSnippet(QString,QString)));
 
         connect(this, SIGNAL(controller_AskQuestion(MESSAGE_TYPE, QString, QString, QString)), view, SLOT(showQuestion(MESSAGE_TYPE,QString,QString,QString)));
-        connect(view, SIGNAL(view_ChangeEdgeDestination(QString,QString,QString)), this, SLOT(changeEdgeDestination(QString,QString,QString)));
         connect(view, SIGNAL(view_QuestionAnswered(bool)), this, SLOT(gotQuestionAnswer(bool)));
     }
 
@@ -175,9 +178,9 @@ NewController::~NewController()
     destructNode(model, false);
 
 
-   // while(keys.size() > 0){
-   //     GraphMLKey* key = keys.takeFirst();
-   //     delete key;
+    // while(keys.size() > 0){
+    //     GraphMLKey* key = keys.takeFirst();
+    //     delete key;
     //}
 
 }
@@ -390,7 +393,7 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
     if(data){
         action.dataValue = data->getValue();
 
-        if(dataValue == action.dataValue){         
+        if(dataValue == action.dataValue){
             //Don't update if we have got the same value in the model.
             return;
         }
@@ -563,19 +566,29 @@ void NewController::constructConnectedNode(QString parentID, QString connectedID
     emit controller_ActionFinished();
 }
 
-void NewController::changeEdgeDestination(QString srcID, QString dstID, QString newDstID)
+
+/**
+ * @brief NewController::constructDestructEdges
+ * @param srcIDs
+ * @param dstID
+ * @param construct
+ */
+void NewController::constructDestructEdges(QStringList destruct_srcIDs, QStringList destruct_dstIDs, QStringList construct_srcIDs, QString dstID)
 {
-    Node* src = getNodeFromID(srcID);
-    Node* dst = getNodeFromID(dstID);
-    Node* newDst = getNodeFromID(newDstID);
-    if(src && dst && newDst){
-        Edge* edge = src->getConnectingEdge(dst);
-        if(edge){
-            triggerAction("Changing Edge Destination");
-            if(destructEdge(edge, true)){
-                constructEdgeWithData(src, newDst);
+    if (destruct_srcIDs.count() == destruct_dstIDs.count()) {
+        for (int i = 0; i < destruct_srcIDs.count(); i++) {
+            Node* src = getNodeFromID(destruct_srcIDs[i]);
+            Node* dst = getNodeFromID(destruct_dstIDs[i]);
+            if (src && dst) {
+                destructEdge(src->getConnectingEdge(dst), true);
             }
         }
+    }
+
+    foreach (QString srcID, construct_srcIDs) {
+        Node* src = getNodeFromID(srcID);
+        Node* dst = getNodeFromID(dstID);
+        constructEdgeWithData(src, dst);
     }
 
     emit controller_ActionFinished();
@@ -662,7 +675,7 @@ void NewController::remove(QStringList IDs)
 {
     if(!_remove(IDs)){
         controller_DisplayMessage(WARNING, "Delete Error", "Cannot delete all selected entities.");
-         emit controller_ActionProgressChanged(100);
+        emit controller_ActionProgressChanged(100);
     }
 
     emit controller_ActionFinished();
@@ -1985,12 +1998,12 @@ bool NewController::reverseAction(ActionItem action)
             Node* dst = getNodeFromID(action.dstID);
 
             //qCritical() << "Redo: Delete Edge Between: " << action.srcID << " AND " << action.dstID;
-           
+
 
             if(src && dst){
-				if(src->isConnected(dst)){
-					return true;
-				}
+                if(src->isConnected(dst)){
+                    return true;
+                }
                 if(isEdgeLegal(src,dst)){
                     constructEdgeWithData(src ,dst, action.dataValues, action.ID);
                     if(src->isConnected(dst)){
@@ -2260,9 +2273,9 @@ void NewController::undoRedo(bool undo)
 
 void NewController::logAction(ActionItem item)
 {
-	if(DELETING){
-		return;
-	}
+    if(DELETING){
+        return;
+    }
 
 
     QTextStream out(logFile);
@@ -3020,10 +3033,10 @@ Node *NewController::getFirstNodeFromList(QStringList IDs)
 {
     Node* node = 0;
     foreach(QString ID, IDs){
-         GraphML* graphML = getGraphMLFromID(ID);
-         if(graphML && graphML->isNode()){
-             node = (Node*)graphML;
-         }
+        GraphML* graphML = getGraphMLFromID(ID);
+        if(graphML && graphML->isNode()){
+            node = (Node*)graphML;
+        }
     }
     return node;
 }
@@ -3130,6 +3143,67 @@ void NewController::setGraphMLData(QString parentID, QString keyName, QString da
         setGraphMLData(graphML, keyName, dataValue, true);
     }
 }
+
+void NewController::constructDestructMultipleEdges(QStringList srcIDs, QString dstID)
+{
+
+    QList<Edge*> edgesToDelete;
+    bool allAlreadyDeployed = true;
+
+    Node* dst = getNodeFromID(dstID);
+    //Look for destructs
+    foreach(QString ID, srcIDs){
+        QString deployedID = getDeployedHardwareID(ID);
+
+        if(dstID != deployedID){
+            allAlreadyDeployed = false;
+            if(deployedID != ""){
+                Node* src = getNodeFromID(ID);
+                Node* hDst = getNodeFromID(deployedID);
+                Edge* edge = src->getConnectingEdge(hDst);
+                if(edge){
+                    edgesToDelete << edge;;
+                }
+            }
+        }
+    }
+
+    triggerAction("Deploying Multiple Entities to singular Hardware Entity.");
+
+    //Have to delete all edges.
+    if(allAlreadyDeployed){
+        qCritical() << "DE DEPLOYING";
+        foreach (QString srcID, srcIDs) {
+            Node* src = getNodeFromID(srcID);
+            if(src){
+                Edge* edge =  src->getConnectingEdge(dst);
+                if(edge){
+                    destructEdge(edge);
+                }
+            }
+        }
+    }else{
+        //Destruct old deployment edges.
+        while(!edgesToDelete.isEmpty()){
+            Edge *edge = edgesToDelete.takeFirst();
+            if(edge){
+                destructEdge(edge);
+            }
+        }
+
+        //Construct new edges.
+        foreach (QString srcID, srcIDs) {
+            Node* src = getNodeFromID(srcID);
+            Edge* edge =  constructEdgeWithData(src, dst);
+            if(!edge && !src->isConnected(dst)){
+                emit controller_DisplayMessage(WARNING, "Deployment Failed", "Cannot Connect Entity: " + src->toString() + " to Hardware Entity: " + dst->toString(), srcID);
+            }
+        }
+    }
+
+    emit controller_ActionFinished();
+}
+
 
 /**
  * @brief NewController::importProjects
@@ -3422,7 +3496,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
                     qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
                     emit controller_DisplayMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent->getID());
-					return false;
+                    return false;
                 }
 
                 //Clear the Node Data List.
