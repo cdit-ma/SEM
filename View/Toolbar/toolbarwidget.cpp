@@ -195,7 +195,6 @@ void ToolbarWidget::updateActionEnabled(QString actionName, bool enabled)
 {
     if (actionName == "delete" && deleteButton) {
         deleteButton->setVisible(enabled);
-        deleteButtonVisible = enabled;
     }
     if (enabled) {
         showAlterViewFrame = true;
@@ -676,8 +675,7 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items)
     foreach (QToolButton* button, multipleSelectionToolButtons) {
         button->setVisible(showButtons);
     }
-
-    showToolbar = showButtons || deleteButtonVisible;
+    showToolbar = showButtons;
 }
 
 

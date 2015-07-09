@@ -24,9 +24,9 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
 
     if (nodeItem) {
 
-        ID = nodeItem->getID();
-        kind = nodeItem->getNodeKind();
-        label = nodeItem->getNodeLabel();
+        this->ID = nodeItem->getID();
+        this->kind = nodeItem->getNodeKind();
+        this->label = nodeItem->getNodeLabel();
 
         if (nodeItem->getNode()) {
             GraphMLData* label = nodeItem->getNode()->getData("label");
