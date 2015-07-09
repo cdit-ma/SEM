@@ -23,13 +23,14 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
     highlighted = false;
 
     if (nodeItem) {
-        this->ID = nodeItem->getID();
-        this->kind = nodeItem->getNodeKind();
-        this->label = nodeItem->getNodeLabel();
 
-        if(nodeItem->getNode()){
+        ID = nodeItem->getID();
+        kind = nodeItem->getNodeKind();
+        label = nodeItem->getNodeLabel();
+
+        if (nodeItem->getNode()) {
             GraphMLData* label = nodeItem->getNode()->getData("label");
-            if(label){
+            if (label) {
                 connect(label, SIGNAL(valueChanged(QString)), this, SLOT(labelChanged(QString)));
             }
         }
@@ -247,7 +248,7 @@ void DockNodeItem::setupLayout()
         }
 
         if (nodeItem && kind.startsWith("Hardware")){
-            if(kind == "HardwareNode"){
+            if (kind == "HardwareNode") {
                 QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
                 QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
                 QString hardwareKind = hardwareOS + "_" + hardwareArch;

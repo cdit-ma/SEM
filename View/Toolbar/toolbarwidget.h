@@ -143,6 +143,7 @@ private:
     bool showSnippetFrame;
     bool showGoToFrame;
 
+    bool deleteButtonVisible;
 };
 
 #endif // TOOLBARWIDGET_H

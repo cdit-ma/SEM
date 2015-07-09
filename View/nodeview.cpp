@@ -1741,21 +1741,16 @@ void NodeView::constructDestructEdges(QStringList srcIDs, QString dstID)
 {
     if (viewMutex.tryLock()) {
 
-        /*
-        if (!destruct_srcIDs.isEmpty()) {
-            emit view_constructDestructEdges(destruct_srcIDs, destruct_dstIDs, false);
-        }
-        */
-
         if (!srcIDs.isEmpty()) {
+
             NodeItem* dstNode = getNodeItemFromID(dstID);
             if (dstNode) {
                 view_displayNotification("Connected selection to " +
                                          dstNode->getNodeLabel() + ".",
                                          notificationNumber, numberOfNotifications);
             }
+
             triggerAction("Dock: Destructing/Constructing Multiple Edges");
-            //emit view_constructDestructEdges(construct_srcIDs, QStringList() << dstID, true);
             emit view_constructDestructEdges(srcIDs, dstID);
         }
 
