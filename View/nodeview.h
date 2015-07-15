@@ -53,6 +53,7 @@ public:
     void appendToSelection(Node* node);
 
     QPointF getPreviousViewCenterPoint();
+    bool managementComponentsShown();
     void updateViewCenterPoint();
     void recenterView();
 

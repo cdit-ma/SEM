@@ -39,8 +39,9 @@
 #define AUTO_CENTER_VIEW "02-01-Auto_Center_View"
 #define SELECT_ON_CREATION "02-02-Select_Entity_On_Creation"
 #define ZOOM_ANCHOR_ON_MOUSE "02-03-Zoom_View_Under_Mouse"
-#define USE_GRID "02-04-Use_Grid_Lines"
+#define TOGGLE_GRID "02-04-Toggle_Grid_Lines"
 #define SHOW_MANAGEMENT_COMPONENTS "02-05-Show_Management_Components"
+#define TOGGLE_PANNING "02-06-Toggle_Panning_Mode"
 #define ASPECT_D "03-01-Definitions"
 #define ASPECT_W "03-02-Workload"
 #define ASPECT_A "03-03-Assembly"
@@ -64,7 +65,7 @@
 #define TOOLBAR_REPLICATE "05-07-Replicate"
 #define TOOLBAR_DELETE_ENTITIES "05-08-Delete_Entities"
 #define TOOLBAR_POPUP_SUBVIEW "05-09-Popup_SubView"
-#define TOOLBAR_GRID_LINES "05-10-Toggle_Grid_Lines"
+#define TOOLBAR_GRID_LINES "05-10-Grid_Lines"
 #define TOOLBAR_FIT_TO_SCREEN "05-11-Fit_To_Screen"
 #define TOOLBAR_CENTER_ON_ENTITY "05-12-Center_On_Entity"
 #define TOOLBAR_ZOOM_TO_FIT "05-13-Zoom_To_Fit"
@@ -73,8 +74,8 @@
 #define TOOLBAR_HORIZ_ALIGN "05-16-Horizontal_Align_Entities"
 #define TOOLBAR_BACK "05-17-Back"
 #define TOOLBAR_FORWARD "05-18-Forward"
+#define TOOLBAR_PAN_VIEW "05-19-Panning_Mode"
 
-#define TOOLBAR_PAN_MODE "05-19-Toggle_Panning_Mode"
 
 
 
@@ -214,8 +215,10 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
         nodeView->selectNodeOnConstruction(boolValue);
     }else if(keyName == ZOOM_ANCHOR_ON_MOUSE && isBool){
         nodeView->toggleZoomAnchor(boolValue);
-    }else if(keyName == USE_GRID && isBool){
+    }else if(keyName == TOGGLE_GRID && isBool){
         toggleAndTriggerAction(actionToggleGrid, boolValue);
+    }else if(keyName == TOGGLE_PANNING && isBool){
+        toggleAndTriggerAction(actionTogglePanningMode, boolValue);
     }else if(keyName == DOCK_VISIBLE && isBool){
         showDocks(!boolValue);
     }else if(keyName == TOOLBAR_VISIBLE && isBool){
@@ -947,7 +950,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
     toolbar->addSeparator();
     constructToolbarButton(toolbar, actionToggleGrid, TOOLBAR_GRID_LINES);
-    constructToolbarButton(toolbar, actionTogglePanningMode, TOOLBAR_PAN_MODE);
+    constructToolbarButton(toolbar, actionTogglePanningMode, TOOLBAR_PAN_VIEW);
     toolbar->addSeparator();
     constructToolbarButton(toolbar, actionPopupSubview, TOOLBAR_POPUP_SUBVIEW);
 

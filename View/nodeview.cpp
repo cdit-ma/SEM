@@ -2026,6 +2026,11 @@ QPointF NodeView::getPreviousViewCenterPoint()
     return prevCenterPoint;
 }
 
+bool NodeView::managementComponentsShown()
+{
+    return managementComponentVisible;
+}
+
 
 /**
  * @brief NodeView::recenterView
@@ -2292,7 +2297,11 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
 
     // initially hide all ManagementComponents
     if (nodeItem->getNodeKind() == "ManagementComponent") {
-        nodeItem->setHidden(!managementComponentVisible);
+        bool show = managementComponentsShown();
+        if(isSubView() && parentNodeView){
+            show = parentNodeView->managementComponentsShown();
+        }
+        nodeItem->setHidden(!show);
     }
 
     //Hide HardwareNodes.
@@ -3060,7 +3069,8 @@ void NodeView::undo()
     if(viewMutex.tryLock()) {
 
         //clearSelection(true,true);
-        // setAttributeModel(0, true);
+        //clearSelection(true,false);
+        setAttributeModel(0, true);
         emit this->view_Undo();
     }
 }
@@ -3077,6 +3087,7 @@ void NodeView::redo()
     // redo the action
     if(viewMutex.tryLock()) {
         //clearSelection();
+
         setAttributeModel(0,true);
         emit this->view_Redo();
     }

@@ -1385,7 +1385,11 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     data.append(new GraphMLData(yKey, QString::number(relativePosition.y())));
     data.append(new GraphMLData(widthKey, "0"));
     data.append(new GraphMLData(heightKey, "0"));
-    data.append(new GraphMLData(labelKey, labelString));
+
+    if(nodeKind.endsWith("Definitions")){
+    }else{
+        data.append(new GraphMLData(labelKey, labelString));
+    }
     data.append(new GraphMLData(sortKey, "-1"));
 
 
@@ -2551,6 +2555,9 @@ void NewController::setupModel()
     //Clear the Undo/Redo Stacks
     undoActionStack.clear();
     redoActionStack.clear();
+
+    //Update the GUI
+    emit labelData->valueChanged(labelData->getValue());
 }
 
 
