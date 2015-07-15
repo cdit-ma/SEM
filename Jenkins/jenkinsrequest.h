@@ -98,7 +98,8 @@ private:
     //The parent JenkinsManager
     JenkinsManager* manager;
     //The Network Manager for request URLS
-    QList<QNetworkAccessManager*> managers;
+    QNetworkAccessManager* managers;
+    //QList<QNetworkAccessManager*> managers;
 };
 
 #endif // JENKINSREQUEST_H

@@ -15,7 +15,7 @@
 #include <QPushButton>
 #include <QMenu>
 #include <QWidgetAction>
-#include <QCheckBox>paint
+#include <QCheckBox>
 
 #include "../../Model/node.h"
 #include "../../Model/graphmldata.h"

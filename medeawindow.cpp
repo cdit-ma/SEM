@@ -2329,9 +2329,9 @@ void MedeaWindow::newProject()
 bool MedeaWindow::exportProject()
 {
     QString filename = QFileDialog::getSaveFileName(this,
-                                                    "Export .graphML",
+                                                    "Export .graphml",
                                                     "",
-                                                    "GraphML Documents (*.graphML *.xml)");
+                                                    "GraphML Documents (*.graphml *.xml)");
 
     if (filename != "") {
         if(filename.toLower().endsWith(".graphml") || filename.toLower().endsWith(".xml")){
@@ -2339,8 +2339,8 @@ bool MedeaWindow::exportProject()
             emit window_ExportProject();
             return true;
         }else{
-            QMessageBox::critical(this, "Error", "You must export using either a .graphML or .xml extension.", QMessageBox::Ok);
-            //CALL AGAIN IF WE Don't get a a .graphML file or a .xml File
+            QMessageBox::critical(this, "Error", "You must export using either a .graphml or .xml extension.", QMessageBox::Ok);
+            //CALL AGAIN IF WE Don't get a a .graphml file or a .xml File
             return exportProject();
         }
     }
@@ -2761,44 +2761,48 @@ void MedeaWindow::detachedDockClosed()
 void MedeaWindow::updateDataTable()
 {
     QAbstractItemModel* tableModel = dataTable->model();
-    if (tableModel) {
+
+    //Check for Data.
+    bool hasData = tableModel && tableModel->rowCount() > 0;
+
+    if(hasData){
         dataTableBox->setVisible(true);
-    } else {
+    }else{
         dataTableBox->setVisible(false);
-        return;
     }
 
     // calculate the required height
-    int height = 0;
-    for (int i = 0; i < tableModel->rowCount(); i++) {
-        height += dataTable->rowHeight(i);
+
+    int newHeight = 0;
+    int maxHeight = dataTableBox->height();
+    if(hasData){
+        for (int i = 0; i < tableModel->rowCount(); i++) {
+            newHeight += dataTable->rowHeight(i);
+        }
+
+        if(hasData){
+            newHeight += dataTable->horizontalHeader()->size().height();
+            newHeight += dataTable->contentsMargins().top() + dataTable->contentsMargins().bottom();
+        }
     }
 
-    int vOffset = dataTable->horizontalHeader()->size().height() + 2;
-    int maxHeight = dataTableBox->height();
-    int newHeight = height + vOffset;
-
-    // check if the datatable should be hidden or if its height needs restricting
-    if (maxHeight == 0) {
-        dataTableBox->setVisible(false);
-    } else if (newHeight > maxHeight) {
+    if(newHeight > maxHeight){
         dataTable->resize(dataTable->width(), maxHeight);
-    } else {
+    }else{
         dataTable->resize(dataTable->width(), newHeight);
     }
 
     // update the visible region of the groupbox to fit the dataTable
-    if (dataTable->height() == 0) {
-        dataTableBox->setVisible(false);
-    } else {
-        updateWidgetMask(dataTableBox, dataTable);
-    }
 
-    // align the contents of the datatable
-    dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Interactive);
-    dataTable->horizontalHeader()->resizeSection(1, dataTable->width()/4);
-    dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    updateWidgetMask(dataTableBox, dataTable);
+
+    if(hasData){
+        // align the contents of the datatable
+        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Interactive);
+        dataTable->horizontalHeader()->resizeSection(1, dataTable->width()/4);
+        dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    }
 }
 
 

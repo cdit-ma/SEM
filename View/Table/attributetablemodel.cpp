@@ -46,28 +46,77 @@ void AttributeTableModel::updatedData(GraphMLData *data)
 
 void AttributeTableModel::removedData(QString dataID)
 {
+    //Get the Index of the data to be removed.
     int index = getIndex(dataID);
     if(index != -1){
+        //Initiate the removal of the row.
         beginRemoveRows(QModelIndex(), index, index);
+
+        //Remove it from the HashMap.
         attachedData.remove(dataID);
+
+        //Get the DataName of the Key to be removed.
+        QString deleteKey;
+        foreach(QString key, nameLookup.keys()){
+            if(nameLookup[key] == dataID){
+                deleteKey = key;
+                break;
+            }
+        }
+
+        //Remove the DataName from the lookups.
+        nameLookup.remove(deleteKey);
+        dataOrder.removeAll(deleteKey);
+
         endRemoveRows();
     }
-
 }
 
 void AttributeTableModel::addData(GraphMLData *data)
 {
     QString ID = data->getID();
 
+    //If we haven't seen this Data Before.
     if(!attachedData.contains(ID)){
+        //If this data isn't meant to be hidden
         if(!hiddenKeyNames.contains(data->getKeyName())){
+            //Stores the position we need to insert this Data to maintain ordering (LOCKED AT TOP, THEN ALPHA)
+            int insertPosition = 0;
+
+            //If the Data isn't permanently Locked, work out its position.
+            if(!permanentlyLockedKeyNames.contains(data->getKeyName())){
+                //If we don't find a spot, it must go at the end.
+                insertPosition = dataOrder.size();
+
+
+                for(int i=0; i < dataOrder.size(); i++){
+                    QString currentKey = dataOrder[i];
+                    //If the Data at i isn't permanently Locked, check if the data we are inserting belongs before it.
+                    if(!permanentlyLockedKeyNames.contains(currentKey)){
+                        if(data->getKeyName() < dataOrder[i]){
+                            insertPosition = i;
+                            break;
+                       }
+                    }
+                }
+            }
+
             connect(data, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(updatedData(GraphMLData*)));
-            beginInsertRows(QModelIndex(), attachedData.size(), attachedData.size());
+
+            beginInsertRows(QModelIndex(), insertPosition, insertPosition);
             attachedData.insert(ID, data);
+            dataOrder.insert(insertPosition, data->getKeyName());
+            nameLookup.insert(data->getKeyName(), ID);
             updatedData(data);
             endInsertRows();
+
         }
     }
+}
+
+bool AttributeTableModel::hasData() const
+{
+    return !attachedData.isEmpty();
 }
 
 void AttributeTableModel::clearData()
@@ -80,12 +129,18 @@ void AttributeTableModel::clearData()
 
 int AttributeTableModel::getIndex(QString ID) const
 {
+
+
+
     return attachedData.keys().indexOf(ID);
 }
 
 GraphMLData* AttributeTableModel::getData(int row) const
 {
-    QString ID = attachedData.keys().at(row);
+    //GET DATA
+    QString name = dataOrder[row];
+
+    QString ID = nameLookup[name];
     if(ID != ""){
         return attachedData[ID];
     }
@@ -104,7 +159,11 @@ int AttributeTableModel::columnCount(const QModelIndex &parent) const
 {
     //Key Name, Data, For, Type
     Q_UNUSED(parent)
-    return 3;
+    if(hasData()){
+        return 3;
+    }else{
+        return 0;
+    }
 }
 
 QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
@@ -243,6 +302,9 @@ if (role == Qt::DecorationRole) {
 
 QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
+    if(!hasData()){
+        return QVariant();
+    }
     if (role == Qt::DecorationRole && orientation == Qt::Horizontal) {
         if(section == 0){
             QImage image(":/Resources/Icons/lock.png");

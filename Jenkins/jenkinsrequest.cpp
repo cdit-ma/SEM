@@ -19,6 +19,7 @@
  */
 JenkinsRequest::JenkinsRequest(JenkinsManager *m)
 {
+    managers = 0;
     manager = m;
     terminated = false;
     //networkManager = 0;
@@ -43,8 +44,8 @@ JenkinsRequest::~JenkinsRequest()
     if(manager){
         manager->jenkinsRequestFinished(this);
     }
-    while(managers.size() > 0){
-        managers.takeFirst()->deleteLater();
+    if(managers){
+        managers->deleteLater();
     }
 }
 
@@ -321,16 +322,10 @@ bool JenkinsRequest::waitForValidSettings()
 QNetworkAccessManager *JenkinsRequest::getNetworkManager()
 {
     //If we don't have a networkManager, we should construct one.
-    QNetworkAccessManager *networkManager = new QNetworkAccessManager();
-
-    if(networkManager){
-        //Add it to the list of networkManagers
-        managers.append(networkManager);
-    }else{
-        qCritical() << "Cannot construct QNetworkAccessManager";
+    if(!managers){
+        managers = new QNetworkAccessManager();
     }
-
-    return networkManager;
+    return managers;
 }
 
 /**

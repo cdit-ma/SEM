@@ -334,7 +334,7 @@ void JenkinsJobMonitorWidget::frameChanged(int frame)
 
 QString JenkinsJobMonitorWidget::htmlize(QString consoleOutput)
 {
-    QRegExp regExp("(https?\:\/\/\\S+)");
+    QRegExp regExp("(https?://\\S+)");
     consoleOutput = consoleOutput.replace(regExp, "<a href='\\1'>\\1</a>" );
     consoleOutput = consoleOutput.replace("\r\n", "<br />");
     consoleOutput = consoleOutput.replace("\n", "<br />");

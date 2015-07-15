@@ -43,6 +43,7 @@ public:
 private:
     int getIndex(QString ID) const;
     GraphMLData* getData(int row) const;
+    bool hasData() const;
 
     void setupDataBinding();
     bool popupMultiLine(const QModelIndex &index) const;
@@ -50,7 +51,9 @@ private:
 
     bool isNode;
     GraphML* attachedGraphML;
+
     QStringList dataOrder;
+    QHash<QString, QString> nameLookup;
     QHash<QString, GraphMLData*> attachedData;
     QStringList permanentlyLockedKeyNames;
     QStringList hiddenKeyNames;

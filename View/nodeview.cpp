@@ -1719,8 +1719,6 @@ void NodeView::constructEdge(QString srcID, QString dstID)
 {
     if (viewMutex.tryLock()) {
 
-        qDebug() << "NodeView::constructEdge";
-
         NodeItem* srcNode = getNodeItemFromID(srcID);
         NodeItem* dstNode = getNodeItemFromID(dstID);
         if (srcNode && dstNode) {
@@ -1736,9 +1734,6 @@ void NodeView::constructEdge(QString srcID, QString dstID)
         triggerAction("Dock/Toolbar: Constructing Edge");
 
         emit view_ConstructEdge(srcID, dstID);
-
-    } else {
-        qDebug() << "NodeView::constructEdge - LOCKED!!!";
     }
 }
 
@@ -2833,6 +2828,8 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
         return;
     }
 
+
+
     foreach(QString ID, selectedIDs){
         GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
         if(graphMLItem && graphMLItem->isNodeItem()){
@@ -2850,7 +2847,7 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
             itemCount++;
         }
     }
-
+    triggerAction("Aligning Selection");
     averageX /= itemCount;
     averageY /= itemCount;
 
@@ -2876,6 +2873,7 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
             pos = nodeItem->getParentNodeItem()->getClosestGridPoint(pos);
             nodeItem->setCenterPos(pos);
             nodeItem->setLocked(true);
+            nodeItem->updateModelPosition();
         }
     }
 }

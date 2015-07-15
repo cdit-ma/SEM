@@ -136,6 +136,7 @@ void MedeaSubWindow::setupDataTable()
 
         dataTable = new QTableView();
 
+
         dataTable->setEnabled(false);
 
         dataTable->setFixedWidth(RIGHT_PANEL_WIDTH);
@@ -158,7 +159,7 @@ void MedeaSubWindow::setupDataTable()
         dataTable->setStyleSheet("background-color: white;");
 
 
-        dataTableBox->setVisible(false);
+        //dataTableBox->setVisible(false);
         verticalLayout->addWidget(dataTableBox, 0, Qt::AlignLeft | Qt::AlignVCenter);
 
         updateWidgetMask(dataTableBox, dataTable);

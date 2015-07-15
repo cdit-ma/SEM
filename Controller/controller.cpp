@@ -223,6 +223,8 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
     }
 
 
+    bool copySelectionQuestion = false;
+    bool informQuestion = false;
     foreach(QString ID, nodeIDs){
         Node* node = getNodeFromID(ID);
         if(node){
@@ -237,18 +239,19 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
                 if(containsSrc && containsDst){
                     exportEdge = true;
                 }else if(containsSrc || containsDst){
-                    if((edge->isAggregateLink() || edge->isInstanceLink() || edge->isImplLink() || edge->isDelegateLink() || edge->isDeploymentLink())){
-                        if(GUI_USED){
+                    if((edge->isAggregateLink() || edge->isInstanceLink()  || edge->isDeploymentLink())){
+                        if(GUI_USED && !copySelectionQuestion){
                             controller_DisplayMessage(MESSAGE, "", "", src->getID());
-
                             exportAllEdges = askQuestion(CRITICAL, "Copy Selection?", "The current selection contains edges that are not fully encapsulated. Would you like to copy these edges?", src->getID());
-
-
+                            copySelectionQuestion = true;
                             GUI_USED = false;
                         }
                         if(exportAllEdges){
                             exportEdge = true;
                         }
+                    }else if(edge->isImplLink() && !informQuestion){
+                        emit controller_DisplayMessage(WARNING, "Cannot Copy", "MEDEA Cannot copy edges which are Impl edges.", src->getID());
+                        informQuestion = true;
                     }
                 }
 
@@ -3575,6 +3578,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     //Construct the Edges from the EdgeTemp objects
     int maxRetry = 3;
     QHash<QString, int> retryCount;
+    bool errorMessage = false;
 
     while(sortedEdges.size() > 0){
         EdgeTemp edge = sortedEdges.first();
@@ -3592,8 +3596,9 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
         bool retry = true;
         if(retryCount[edge.id] > maxRetry){
-            if(!s->isConnected(d)){
+            if(!s->isConnected(d) && !errorMessage){
                 emit controller_DisplayMessage(CRITICAL, "Import Error", "Cannot construct edge!");
+                errorMessage = true;
             }
             retry = false;
         }
@@ -3688,6 +3693,9 @@ bool NewController::canCut(QStringList selection)
 
 bool NewController::canDelete(QStringList selection)
 {
+    if(selection.size() == 0){
+        return false;
+    }
     foreach(QString ID, selection){
         Node* node = getNodeFromID(ID);
         if(!node){
