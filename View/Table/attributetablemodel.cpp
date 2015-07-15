@@ -171,6 +171,14 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
+    int row = index.row();
+    QString dataName =  dataOrder[row];
+
+    QString keyName = nameLookup[dataName];
+    if(!attachedData.contains(keyName)){
+        return QVariant();
+    }
+
     if (index.row() >= attachedData.size() || index.row() < 0)
         return QVariant();
 
@@ -236,7 +244,7 @@ if (role == Qt::DecorationRole) {
         case 0:
             return QVariant();
         case 1:
-            return data->getKey()->getName();
+            return data->getKeyName();
         case 2:
             return data->getValue();
         default:
@@ -495,6 +503,14 @@ void AttributeTableModel::setupDataBinding()
  */
 bool AttributeTableModel::popupMultiLine(const QModelIndex &index) const
 {
+    int row = index.row();
+   QString dataName =  dataOrder[row];
+
+   QString keyName = nameLookup[dataName];
+   if(!attachedData.contains(keyName)){
+       return false;
+   }
+
     GraphMLData* data = getData(index.row());
     if(data && index.column() == 2) {
         //Check types

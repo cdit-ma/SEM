@@ -115,7 +115,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         setWidth(MODEL_WIDTH);
         setHeight(MODEL_HEIGHT);
     }
-    
     //Set Minimum Size.
     if(nodeKind == "Model"){
         minimumWidth = getChildWidth();
@@ -134,7 +133,8 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setupLabel();
     //Update Width and Height with values from the GraphML Model If they have them.
     retrieveGraphMLData();
-    
+
+
     setupGraphMLConnections();
     
     setupAspect();
@@ -166,6 +166,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         updateModelData();
     }
 
+
     if(getParentNodeItem()){
         getParentNodeItem()->childPosUpdated();
         getParentNodeItem()->updateModelSize();
@@ -173,7 +174,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     
 
     aspectsChanged(aspects);
-
 }
 
 
@@ -1200,9 +1200,10 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
     if(getGraphML() && data && data->getParent() == getGraphML() && !getGraphML()->isDeleting()){
         QString keyName = data->getKeyName();
         QString value = data->getValue();
-        double valueD = value.toDouble();
+        bool isDouble = false;
+        double valueD = value.toDouble(&isDouble);
         
-        if(keyName == "x" || keyName == "y"){
+        if((keyName == "x" || keyName == "y") && isDouble){
             //If data is related to the position of the NodeItem
             //Get the current center position.
             QPointF oldCenter = centerPos();
@@ -1234,29 +1235,27 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
                 emit GraphMLItem_SetGraphMLData(getID(), "y", QString::number(newCenter.y()));
             }
 
-        }else if(keyName == "width" || keyName == "height"){
+        }else if((keyName == "width" || keyName == "height") && isDouble){
             //If data is related to the size of the NodeItem
-            
-
             if(keyName == "width"){
                 setWidth(valueD);
             }else if(keyName == "height"){
                 //If NodeItem is contracted and the new value is bigger than the minimum height.
                 bool setExpanded = isContracted() && valueD > minimumHeight;
-                
+
                 //If NodeItem is expanded and the new value is equal to the minimum height (String comparison to ignore sigfigs)
                 bool setContracted = isExpanded() && valueD == minimumHeight;
-                
+
                 if(setExpanded){
                     setNodeExpanded(true);
                 }
                 if(setContracted){
                     setNodeExpanded(false);
                 }
-                
+
                 setHeight(valueD);
             }
-            
+
             double newWidth = ignoreInsignificantFigures(valueD, width);
             double newHeight = ignoreInsignificantFigures(valueD, height);
 
@@ -3103,7 +3102,7 @@ void NodeItem::updateModelPosition()
 void NodeItem::updateModelSize()
 {
     if(nodeKind == "Model"){
-        return;
+        //return;
     }
     if(this->parentNodeItem){
         parentNodeItem->updateModelSize();

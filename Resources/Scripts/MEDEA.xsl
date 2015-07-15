@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <axsl:stylesheet xmlns:axsl="http://www.w3.org/1999/XSL/Transform" xmlns:sch="http://www.ascc.net/xml/schematron" xmlns:iso="http://purl.oclc.org/dsdl/schematron" xmlns:gml="http://graphml.graphdrawing.org/xmlns" xmlns:xalan="http://xml.apache.org/xalan" version="1.0">
-<!--Implementers: please note that overriding process-prolog or process-root is 
+<!--Implementers: please note that overriding process-prolog or process-root is
     the preferred method for meta-stylesheets to use where possible. -->
 <axsl:param name="archiveDirParameter"/>
 <axsl:param name="archiveNameParameter"/>
@@ -104,8 +104,8 @@
 <axsl:value-of select="concat('.',name(),'-',1+count(preceding-sibling::*[name()=name(current())]),'-')"/>
 </axsl:template>
 <!--MODE: SCHEMATRON-FULL-PATH-3-->
-<!--This mode can be used to generate prefixed XPath for humans 
-	(Top-level element has index)-->
+<!--This mode can be used to generate prefixed XPath for humans
+        (Top-level element has index)-->
 <axsl:template match="node() | @*" mode="schematron-get-full-path-3">
 <axsl:for-each select="ancestor-or-self::*">
 <axsl:text>/</axsl:text>
@@ -148,10 +148,10 @@
 <axsl:template match="/">
 <svrl:schematron-output xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" title="ISO schematron file for MEDEA graphml format" schemaVersion="ISO19757-3">
 <axsl:comment>
-<axsl:value-of select="$archiveDirParameter"/>   
-		 <axsl:value-of select="$archiveNameParameter"/>  
-		 <axsl:value-of select="$fileNameParameter"/>  
-		 <axsl:value-of select="$fileDirParameter"/>
+<axsl:value-of select="$archiveDirParameter"/>
+                 <axsl:value-of select="$archiveNameParameter"/>
+                 <axsl:value-of select="$fileNameParameter"/>
+                 <axsl:value-of select="$fileDirParameter"/>
 </axsl:comment>
 <svrl:ns-prefix-in-attribute-values uri="http://graphml.graphdrawing.org/xmlns" prefix="gml"/>
 <svrl:ns-prefix-in-attribute-values uri="http://xml.apache.org/xalan" prefix="xalan"/>
@@ -253,87 +253,87 @@
 <axsl:param name="nodeMiddlewareKey" select="/gml:graphml/gml:key[@attr.name='middleware'][@for='node']/@id"/>
 <axsl:variable name="PredefinedMemberTypes">
     <Predefined nodeKind="Member" keyName="type" keyType="#ALL" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-		<value>Boolean</value>
-		<value>Byte</value>		
-		<value>Char</value>
-		<value>WideChar</value>
-		<value>ShortInteger</value>
-		<value>LongInteger</value>
-		<value>LongLongInteger</value> 
-		<value>UnsignedShortInteger</value>
-		<value>UnsignedLongInteger</value>
-		<value>UnsignedLongLongInteger</value>
-		<value>FloatNumber</value>
-		<value>DoubleNumber</value> 
-		<value>LongDoubleNumber</value>
-		<value>String</value>
-		<value>WideString</value>
-	</Predefined>
+                <value>Boolean</value>
+                <value>Byte</value>
+                <value>Char</value>
+                <value>WideChar</value>
+                <value>ShortInteger</value>
+                <value>LongInteger</value>
+                <value>LongLongInteger</value>
+                <value>UnsignedShortInteger</value>
+                <value>UnsignedLongInteger</value>
+                <value>UnsignedLongLongInteger</value>
+                <value>FloatNumber</value>
+                <value>DoubleNumber</value>
+                <value>LongDoubleNumber</value>
+                <value>String</value>
+                <value>WideString</value>
+        </Predefined>
   </axsl:variable>
 <axsl:variable name="PredefinedAttributeTypes">
     <Predefined nodeKind="Attribute" keyName="type" keyType="#ALL" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-		<value>Boolean</value>
-		<value>Byte</value>		
-		<value>Char</value>
-		<value>WideChar</value>
-		<value>ShortInteger</value>
-		<value>LongInteger</value>
-		<value>LongLongInteger</value> 
-		<value>UnsignedShortInteger</value>
-		<value>UnsignedLongInteger</value>
-		<value>UnsignedLongLongInteger</value>
-		<value>FloatNumber</value>
-		<value>DoubleNumber</value> 
-		<value>LongDoubleNumber</value>
-		<value>String</value>
-		<value>WideString</value>
-	</Predefined>
+                <value>Boolean</value>
+                <value>Byte</value>
+                <value>Char</value>
+                <value>WideChar</value>
+                <value>ShortInteger</value>
+                <value>LongInteger</value>
+                <value>LongLongInteger</value>
+                <value>UnsignedShortInteger</value>
+                <value>UnsignedLongInteger</value>
+                <value>UnsignedLongLongInteger</value>
+                <value>FloatNumber</value>
+                <value>DoubleNumber</value>
+                <value>LongDoubleNumber</value>
+                <value>String</value>
+                <value>WideString</value>
+        </Predefined>
   </axsl:variable>
 <axsl:variable name="PredefinedAttributeInstanceTypes">
     <Predefined nodeKind="AttributeInstance" keyName="type" keyType="#ALL" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-		<value>Boolean</value>
-		<value>Byte</value>		
-		<value>Char</value>
-		<value>WideChar</value>
-		<value>ShortInteger</value>
-		<value>LongInteger</value>
-		<value>LongLongInteger</value> 
-		<value>UnsignedShortInteger</value>
-		<value>UnsignedLongInteger</value>
-		<value>UnsignedLongLongInteger</value>
-		<value>FloatNumber</value>
-		<value>DoubleNumber</value> 
-		<value>LongDoubleNumber</value>
-		<value>String</value>
-		<value>WideString</value>
-	</Predefined>
+                <value>Boolean</value>
+                <value>Byte</value>
+                <value>Char</value>
+                <value>WideChar</value>
+                <value>ShortInteger</value>
+                <value>LongInteger</value>
+                <value>LongLongInteger</value>
+                <value>UnsignedShortInteger</value>
+                <value>UnsignedLongInteger</value>
+                <value>UnsignedLongLongInteger</value>
+                <value>FloatNumber</value>
+                <value>DoubleNumber</value>
+                <value>LongDoubleNumber</value>
+                <value>String</value>
+                <value>WideString</value>
+        </Predefined>
   </axsl:variable>
 <axsl:variable name="PredefinedBooleanValues">
-	<Predefined nodeKind="#ALL" keyName="#ALL" keyType="boolean" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-		<value>true</value>
-		<value>false</value>		
-	</Predefined>
+        <Predefined nodeKind="#ALL" keyName="#ALL" keyType="boolean" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                <value>true</value>
+                <value>false</value>
+        </Predefined>
   </axsl:variable>
 <axsl:variable name="PredefinedModelMiddleware">
-	<Predefined nodeKind="Model" keyName="middleware" keyType="#ALL" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-		<value>tao</value>
-		<value>rtidds</value>		
-		<value>opensplice</value>
-		<value>tcpip</value>
-	</Predefined>	
+        <Predefined nodeKind="Model" keyName="middleware" keyType="#ALL" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                <value>tao</value>
+                <value>rtidds</value>
+                <value>opensplice</value>
+                <value>tcpip</value>
+        </Predefined>
   </axsl:variable>
 
 <!--PATTERN graphml.checksChecking Model graphml-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking Model graphml</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:graphml/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Model']" priority="1000" mode="M32">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:graphml/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Model']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 <axsl:variable name="middleware" select="$node/gml:data[@key=$nodeMiddlewareKey]/text()"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -345,12 +345,12 @@
 </svrl:successful-report>
 </axsl:if>
 <axsl:variable name="middlewareList">
-			<axsl:for-each select="xalan:nodeset($PredefinedModelMiddleware)/node()[@nodeKind='Model'][@keyName='middleware']//iso:value" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-				<axsl:value-of select="concat(', ', ./)"/>
-			</axsl:for-each>
-		</axsl:variable>
+                        <axsl:for-each select="xalan:nodeset($PredefinedModelMiddleware)/node()[@nodeKind='Model'][@keyName='middleware']//iso:value" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                                <axsl:value-of select="concat(', ', ./)"/>
+                        </axsl:for-each>
+                </axsl:variable>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="xalan:nodeset($PredefinedModelMiddleware)/node()[@nodeKind='Model'][@keyName='middleware']//iso:value[text()=$middleware]"/>
 <axsl:otherwise>
@@ -377,13 +377,13 @@
 <!--PATTERN File.checksChecking File nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking File nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='File']" priority="1000" mode="M33">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='File']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -395,7 +395,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -410,7 +410,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count(key('fileLabels', $label)[gml:data[@key=$nodeKindKey]/text() = 'File'][gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"/>
 <axsl:otherwise>
@@ -425,7 +425,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT warning-->
+                <!--ASSERT warning-->
 <axsl:choose>
 <axsl:when test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Component']) &gt; 0         or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) &gt; 0"/>
 <axsl:otherwise>
@@ -440,7 +440,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) = 0        or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']) &gt; 0            and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Aggregate']) = 0)"/>
 <axsl:otherwise>
@@ -455,7 +455,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Component']) = 0        or (count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Component']) &gt; 0           and count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()!='Component']) = 0)"/>
 <axsl:otherwise>
@@ -479,14 +479,14 @@
 <!--PATTERN Component.checksChecking Component nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking Component nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Component']" priority="1000" mode="M34">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Component']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 <axsl:variable name="childNode" select="$node/gml:graph/gml:node"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -498,7 +498,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -513,7 +513,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count(key('componentLabels', $label)[gml:data[@key=$nodeKindKey]/text() = 'Component'][gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"/>
 <axsl:otherwise>
@@ -528,7 +528,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT warning-->
+                <!--ASSERT warning-->
 <axsl:choose>
 <axsl:when test="count($childNode/gml:data[@key=$nodeKindKey][text()='InEventPort']) &gt; 0        or count($childNode/gml:data[@key=$nodeKindKey][text()='OutEventPort']) &gt; 0        or count($childNode/gml:data[@key=$nodeKindKey][text()='Attribute']) &gt; 0"/>
 <axsl:otherwise>
@@ -543,7 +543,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($childNode/gml:data[@key=$nodeKindKey][text()!='InEventPort' and text()!='OutEventPort' and text()!='Attribute']) = 0"/>
 <axsl:otherwise>
@@ -567,13 +567,13 @@
 <!--PATTERN InEventPort.checksChecking InEventPort nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking InEventPort nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPort']" priority="1000" mode="M35">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPort']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -585,7 +585,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -600,7 +600,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count(//gml:edge[@source=$node/@id]) = 1"/>
 <axsl:otherwise>
@@ -616,7 +616,7 @@
 </axsl:choose>
 <axsl:variable name="aggregateID" select="//gml:edge[@source=$node/@id]/@target"/>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count(//gml:node[@id=$aggregateID]/gml:data[@key=$nodeKindKey][text()='Aggregate']) = 1"/>
 <axsl:otherwise>
@@ -640,13 +640,13 @@
 <!--PATTERN OutEventPort.checksChecking OutEventPort nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking OutEventPort nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPort']" priority="1000" mode="M36">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPort']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -658,7 +658,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,' \/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -673,7 +673,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count(//gml:edge[@source=$node/@id]) = 1"/>
 <axsl:otherwise>
@@ -689,7 +689,7 @@
 </axsl:choose>
 <axsl:variable name="aggregateID" select="//gml:edge[@source=$node/@id]/@target"/>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count(//gml:node[@id=$aggregateID]/gml:data[@key=$nodeKindKey][text()='Aggregate']) = 1"/>
 <axsl:otherwise>
@@ -713,14 +713,14 @@
 <!--PATTERN Attribute.checksChecking Attribute nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking Attribute nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Attribute']" priority="1000" mode="M37">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Attribute']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 <axsl:variable name="type" select="$node/gml:data[@key=$nodeTypeKey]/text()"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -732,7 +732,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -747,12 +747,12 @@
 </axsl:otherwise>
 </axsl:choose>
 <axsl:variable name="typeList">
-			<axsl:for-each select="xalan:nodeset($PredefinedAttributeTypes)/node()[@nodeKind='Attribute'][@keyName='type']//iso:value" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-				<axsl:value-of select="concat(', ', ./)"/>
-			</axsl:for-each>
-		</axsl:variable>
+                        <axsl:for-each select="xalan:nodeset($PredefinedAttributeTypes)/node()[@nodeKind='Attribute'][@keyName='type']//iso:value" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                                <axsl:value-of select="concat(', ', ./)"/>
+                        </axsl:for-each>
+                </axsl:variable>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="xalan:nodeset($PredefinedAttributeTypes)/node()[@nodeKind='Attribute'][@keyName='type']//iso:value[text()=$type]"/>
 <axsl:otherwise>
@@ -779,7 +779,7 @@
 <!--PATTERN Aggregate.checksChecking Aggregate nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking Aggregate nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Aggregate']" priority="1000" mode="M38">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Aggregate']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
@@ -787,7 +787,7 @@
 <axsl:variable name="type" select="$node/gml:data[@key=$nodeTypeKey]/text()"/>
 <axsl:variable name="childNode" select="$node/gml:graph/gml:node"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -799,7 +799,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -814,7 +814,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT warning-->
+                <!--ASSERT warning-->
 <axsl:choose>
 <axsl:when test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Member']) &gt; 0         or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='AggregateInstance']) &gt; 0"/>
 <axsl:otherwise>
@@ -829,7 +829,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($childNode/gml:data[@key=$nodeKindKey][text()!='Member' and text()!='AggregateInstance']) = 0"/>
 <axsl:otherwise>
@@ -853,14 +853,14 @@
 <!--PATTERN Aggregate.AggregateInstance.checksChecking AggregateInstance nodes contained in Files-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking AggregateInstance nodes contained in Files</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID][parent::gml:graph/parent::gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']]/gml:data[@key=$nodeKindKey][text()='AggregateInstance']" priority="1000" mode="M39">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID][parent::gml:graph/parent::gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']]/gml:data[@key=$nodeKindKey][text()='AggregateInstance']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 <axsl:variable name="parentNode" select="$node/parent::gml:graph/parent::gml:node"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="count($parentNode/gml:data[@key=$nodeKindKey][text()='Aggregate']) &gt; 0">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="count($parentNode/gml:data[@key=$nodeKindKey][text()='Aggregate']) &gt; 0">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -872,7 +872,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -887,7 +887,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count(//gml:edge[@source=$node/@id]) = 1"/>
 <axsl:otherwise>
@@ -903,7 +903,7 @@
 </axsl:choose>
 <axsl:variable name="aggregateID" select="//gml:edge[@source=$node/@id]/@target"/>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count(//gml:node[@id=$aggregateID]/gml:data[@key=$nodeKindKey][text()='Aggregate']) = 1"/>
 <axsl:otherwise>
@@ -927,7 +927,7 @@
 <!--PATTERN Member.checksChecking Member nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking Member nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Member']" priority="1000" mode="M40">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Member']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
@@ -935,12 +935,12 @@
 <axsl:variable name="key" select="$node/gml:data[@key=$nodeKeyMemberKey]/text()"/>
 <axsl:variable name="type" select="$node/gml:data[@key=$nodeTypeKey]/text()"/>
 <axsl:variable name="typeList">
-			<axsl:for-each select="xalan:nodeset($PredefinedMemberTypes)/node()[@nodeKind='Member'][@keyName='type']//iso:value" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-				<axsl:value-of select="concat(', ', ./)"/>
-			</axsl:for-each>
-		</axsl:variable>
+                        <axsl:for-each select="xalan:nodeset($PredefinedMemberTypes)/node()[@nodeKind='Member'][@keyName='type']//iso:value" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                                <axsl:value-of select="concat(', ', ./)"/>
+                        </axsl:for-each>
+                </axsl:variable>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -952,7 +952,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -967,7 +967,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="$key='true' or $key='false'"/>
 <axsl:otherwise>
@@ -982,7 +982,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="xalan:nodeset($PredefinedMemberTypes)/node()[@nodeKind='Member'][@keyName='type']//iso:value[text()=$type]"/>
 <axsl:otherwise>
@@ -1009,14 +1009,14 @@
 <!--PATTERN ComponentAssembly.checksChecking ComponentAssembly nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking ComponentAssembly nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='ComponentAssembly']" priority="1000" mode="M41">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='ComponentAssembly']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 <axsl:variable name="childNode" select="$node/gml:graph/gml:node"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -1028,7 +1028,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -1043,7 +1043,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($node/parent::gml:graph/gml:node[gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"/>
 <axsl:otherwise>
@@ -1058,7 +1058,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT warning-->
+                <!--ASSERT warning-->
 <axsl:choose>
 <axsl:when test="count($childNode/gml:data[@key=$nodeKindKey][text()='ComponentAssembly']) &gt; 0        or count($childNode/gml:data[@key=$nodeKindKey][text()='ComponentInstance']) &gt; 0        or count($childNode/gml:data[@key=$nodeKindKey][text()='InEventPortDelegate']) &gt; 0        or count($childNode/gml:data[@key=$nodeKindKey][text()='OutEventPortDelegate']) &gt; 0"/>
 <axsl:otherwise>
@@ -1073,7 +1073,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($childNode/gml:data[@key=$nodeKindKey][text()!='ComponentAssembly' and text()!='ComponentInstance' and text()!='InEventPortDelegate' and text()!='OutEventPortDelegate']) = 0"/>
 <axsl:otherwise>
@@ -1097,14 +1097,14 @@
 <!--PATTERN ComponentInstance.checksChecking ComponentInstance nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking ComponentInstance nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='ComponentInstance']" priority="1000" mode="M42">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='ComponentInstance']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 <axsl:variable name="childNode" select="$node/gml:graph/gml:node"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -1116,7 +1116,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -1131,7 +1131,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($node/parent::gml:graph/gml:node[gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"/>
 <axsl:otherwise>
@@ -1146,7 +1146,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT warning-->
+                <!--ASSERT warning-->
 <axsl:choose>
 <axsl:when test="count($childNode/gml:data[@key=$nodeKindKey][text()='InEventPortInstance']) &gt; 0        or count($childNode/gml:data[@key=$nodeKindKey][text()='OutEventPortInstance']) &gt; 0        or count($childNode/gml:data[@key=$nodeKindKey][text()='AttributeInstance']) &gt; 0"/>
 <axsl:otherwise>
@@ -1161,7 +1161,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($childNode/gml:data[@key=$nodeKindKey][text()!='InEventPortInstance' and text()!='OutEventPortInstance' and text()!='AttributeInstance']) = 0"/>
 <axsl:otherwise>
@@ -1185,13 +1185,13 @@
 <!--PATTERN OutEventPortInstance.checksChecking OutEventPortInstance nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking OutEventPortInstance nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPortInstance']" priority="1000" mode="M43">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPortInstance']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -1203,7 +1203,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -1218,7 +1218,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($node/parent::gml:graph/gml:node[gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"/>
 <axsl:otherwise>
@@ -1234,7 +1234,7 @@
 </axsl:choose>
 <axsl:variable name="sourceEventPortID" select="//gml:edge[@target=$node/@id]/@source"/>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="not($sourceEventPortID) or count(//gml:node[@id=$sourceEventPortID]/gml:data[@key=$nodeKindKey][text() = 'InEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) = 0"/>
 <axsl:otherwise>
@@ -1250,7 +1250,7 @@
 </axsl:choose>
 <axsl:variable name="targetEventPortID" select="//gml:edge[@source=$node/@id]/@target"/>
 
-		<!--ASSERT warning-->
+                <!--ASSERT warning-->
 <axsl:choose>
 <axsl:when test="$targetEventPortID and count(//gml:node[@id=$targetEventPortID]/gml:data[@key=$nodeKindKey][text() = 'InEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) &gt; 0"/>
 <axsl:otherwise>
@@ -1274,13 +1274,13 @@
 <!--PATTERN InEventPortInstance.checksChecking InEventPortInstance nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking InEventPortInstance nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPortInstance']" priority="1000" mode="M44">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPortInstance']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
 <axsl:variable name="label" select="$node/gml:data[@key=$nodeLabelKey]/text()"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -1292,7 +1292,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -1307,7 +1307,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($node/parent::gml:graph/gml:node[gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"/>
 <axsl:otherwise>
@@ -1323,7 +1323,7 @@
 </axsl:choose>
 <axsl:variable name="sourceEventPortID" select="//gml:edge[@target=$node/@id]/@source"/>
 
-		<!--ASSERT warning-->
+                <!--ASSERT warning-->
 <axsl:choose>
 <axsl:when test="$sourceEventPortID and count(//gml:node[@id=$sourceEventPortID]/gml:data[@key=$nodeKindKey][text() = 'OutEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) &gt; 0"/>
 <axsl:otherwise>
@@ -1339,7 +1339,7 @@
 </axsl:choose>
 <axsl:variable name="targetEventPortID" select="//gml:edge[@source=$node/@id]/@target"/>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="not($targetEventPortID) or count(//gml:node[@id=$targetEventPortID]/gml:data[@key=$nodeKindKey][text() = 'OutEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) = 0"/>
 <axsl:otherwise>
@@ -1363,7 +1363,7 @@
 <!--PATTERN AttributeInstance.checksChecking AttributeInstance nodes-->
 <svrl:text xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl">Checking AttributeInstance nodes</svrl:text>
 
-	<!--RULE -->
+        <!--RULE -->
 <axsl:template match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='AttributeInstance']" priority="1000" mode="M45">
 <svrl:fired-rule xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='AttributeInstance']"/>
 <axsl:variable name="node" select="parent::gml:node"/>
@@ -1371,7 +1371,7 @@
 <axsl:variable name="type" select="$node/gml:data[@key=$nodeTypeKey]/text()"/>
 <axsl:variable name="value" select="$node/gml:data[@key=$nodeValueKey]/text()"/>
 
-		<!--REPORT information-->
+                <!--REPORT information-->
 <axsl:if test="$node">
 <svrl:successful-report xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:svrl="http://purl.oclc.org/dsdl/svrl" test="$node">
 <axsl:attribute name="role">information</axsl:attribute>
@@ -1383,7 +1383,7 @@
 </svrl:successful-report>
 </axsl:if>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)"/>
 <axsl:otherwise>
@@ -1398,12 +1398,12 @@
 </axsl:otherwise>
 </axsl:choose>
 <axsl:variable name="typeList">
-			<axsl:for-each select="xalan:nodeset($PredefinedAttributeInstanceTypes)/node()[@nodeKind='AttributeInstance'][@keyName='type']//iso:value" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-				<axsl:value-of select="concat(', ', ./)"/>
-			</axsl:for-each>
-		</axsl:variable>
+                        <axsl:for-each select="xalan:nodeset($PredefinedAttributeInstanceTypes)/node()[@nodeKind='AttributeInstance'][@keyName='type']//iso:value" xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+                                <axsl:value-of select="concat(', ', ./)"/>
+                        </axsl:for-each>
+                </axsl:variable>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="xalan:nodeset($PredefinedAttributeInstanceTypes)/node()[@nodeKind='AttributeInstance'][@keyName='type']//iso:value[text()=$type]"/>
 <axsl:otherwise>
@@ -1421,7 +1421,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="count($node/parent::gml:graph/gml:node[gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"/>
 <axsl:otherwise>
@@ -1436,7 +1436,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT warning-->
+                <!--ASSERT warning-->
 <axsl:choose>
 <axsl:when test="$value and $value != ''"/>
 <axsl:otherwise>
@@ -1451,7 +1451,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="not($type = 'Boolean') or ($type = 'Boolean' and ($value = 'true' or $value = 'false'))"/>
 <axsl:otherwise>
@@ -1466,7 +1466,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="not($type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber')          or (($type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber') and (string(number($value)) != 'NaN'))"/>
 <axsl:otherwise>
@@ -1481,7 +1481,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="not($type = 'UnsignedShortInteger' or $type = 'UnsignedLongInteger' or $type = 'UnsignedLongLongInteger')       or (($type = 'UnsignedShortInteger' or $type = 'UnsignedLongInteger' or $type = 'UnsignedLongLongInteger') and string(number($value)) != 'NaN' and not(contains($value,'.'))  and not(contains($value,'-')))"/>
 <axsl:otherwise>
@@ -1496,7 +1496,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="not($type = 'ShortInteger' or $type = 'LongInteger' or $type = 'LongLongInteger')       or (($type = 'ShortInteger' or $type = 'LongInteger' or $type = 'LongLongInteger') and string(number($value)) != 'NaN' and not(contains($value,'.')) )"/>
 <axsl:otherwise>
@@ -1511,7 +1511,7 @@
 </axsl:otherwise>
 </axsl:choose>
 
-		<!--ASSERT critical-->
+                <!--ASSERT critical-->
 <axsl:choose>
 <axsl:when test="not($type = 'Byte' or $type = 'Char' or $type = 'WideChar')       or (($type = 'Byte' or $type = 'Char' or $type = 'WideChar') and string-length($value) = 1)"/>
 <axsl:otherwise>
