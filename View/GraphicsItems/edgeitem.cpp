@@ -289,6 +289,7 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::RightButton:{
         if (!IS_SELECTED) {
+            GraphMLItem_ClearSelection(false);
             GraphMLItem_AppendSelected(this);
         }
         break;

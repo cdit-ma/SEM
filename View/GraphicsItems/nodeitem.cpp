@@ -1657,7 +1657,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             }
             
         }else{
-            if(hasSelectionMoved == false && !nodeKind.endsWith("Definitions")){
+            if(hasSelectionMoved == false){ // && !nodeKind.endsWith("Definitions")){
                 GraphMLItem_TriggerAction("Moving Selection");
                 setCursor(Qt::SizeAllCursor);
                 if(parentNodeItem){

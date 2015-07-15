@@ -273,6 +273,8 @@ private:
     QAction* actionToggleGrid;
     QAction* actionContextMenu;
 
+    QAction* actionTogglePanningMode;
+
 
 
 

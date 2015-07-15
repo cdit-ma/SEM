@@ -3085,6 +3085,12 @@ void NodeView::redo()
 
 void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 {
+    /*
+    if (PANNING_ON) {
+        return;
+    }
+    */
+
     if(isItemsAncestorSelected(item)){
         return;
     }
@@ -3121,6 +3127,11 @@ void NodeView::removeFromSelection(GraphMLItem *item)
 
 void NodeView::moveSelection(QPointF delta)
 {
+    if (PANNING_ON) {
+        adjustModelPosition(delta);
+        return;
+    }
+
     bool canReduceX = true;
     bool canReduceY = true;
 
@@ -3490,6 +3501,11 @@ void NodeView::toggleZoomAnchor(bool underMouse)
     } else {
         setTransformationAnchor(QGraphicsView::AnchorViewCenter);
     }
+}
+
+void NodeView::togglePanning(bool panning)
+{
+    PANNING_ON = panning;
 }
 
 

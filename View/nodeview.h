@@ -229,6 +229,7 @@ public slots:
     void selectNodeOnConstruction(bool select);
     void showManagementComponents(bool show);
     void toggleZoomAnchor(bool underMouse);
+    void togglePanning(bool panning);
 
     void setRubberBandMode(bool On);
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
@@ -421,7 +422,7 @@ private:
     bool AUTO_CENTER_ASPECTS;
     bool GRID_LINES_ON;
     bool SELECT_ON_CONSTRUCTION;
-
+    bool PANNING_ON;
 
     bool toolbarDockConstruction;
     bool constructedFromImport;

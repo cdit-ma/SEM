@@ -128,5 +128,6 @@
         <file>Resources/Icons/Windows7_x86.png</file>
         <file>Resources/Icons/Workload.png</file>
         <file>Resources/Icons/zoomToFit.png</file>
+        <file>Resources/Icons/pan.png</file>
     </qresource>
 </RCC>

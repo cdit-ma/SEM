@@ -74,6 +74,8 @@
 #define TOOLBAR_BACK "05-17-Back"
 #define TOOLBAR_FORWARD "05-18-Forward"
 
+#define TOOLBAR_PAN_MODE "05-19-Toggle_Panning_Mode"
+
 
 
 /**
@@ -621,6 +623,10 @@ void MedeaWindow::setupMenu(QPushButton *button)
     actionToggleGrid = new QAction(QIcon(":/Resources/Icons/grid.png"), "Toggle Grid Lines", this);
     actionToggleGrid->setToolTip("Turn grid on/off");
     actionToggleGrid->setCheckable(true);
+
+    actionTogglePanningMode = new QAction(QIcon(":/Resources/Icons/pan.png"), "Toggle Panning Mode", this);
+    actionTogglePanningMode->setToolTip("Turn panning mode on/off");
+    actionTogglePanningMode->setCheckable(true);
 }
 
 
@@ -940,8 +946,10 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     constructToolbarButton(toolbar, actionZoomToFit, TOOLBAR_ZOOM_TO_FIT);
     constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
     toolbar->addSeparator();
-    constructToolbarButton(toolbar, actionPopupSubview, TOOLBAR_POPUP_SUBVIEW);
     constructToolbarButton(toolbar, actionToggleGrid, TOOLBAR_GRID_LINES);
+    constructToolbarButton(toolbar, actionTogglePanningMode, TOOLBAR_PAN_MODE);
+    toolbar->addSeparator();
+    constructToolbarButton(toolbar, actionPopupSubview, TOOLBAR_POPUP_SUBVIEW);
 
     //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionAlignVertically, TOOLBAR_VERT_ALIGN);
@@ -1154,6 +1162,7 @@ void MedeaWindow::makeConnections()
     connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
     connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
 
+    connect(actionTogglePanningMode, SIGNAL(triggered(bool)), nodeView, SLOT(togglePanning(bool)));
 
 
     //connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
@@ -1252,6 +1261,7 @@ connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
     addAction(actionForward);
     addAction(actionToggleGrid);
     addAction(actionContextMenu);
+    addAction(actionTogglePanningMode);
 
     addAction(jenkins_ExecuteJob);
     addAction(jenkins_ImportNodes);
