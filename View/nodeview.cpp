@@ -1195,7 +1195,8 @@ void NodeView::selectAndCenter(GraphMLItem* item, QString ID)
         clearSelection();
         appendToSelection(nodeItem->getNode());
         centerOnItem(item);
-    }else{
+
+    } else {
         view_displayNotification("Entity no longer exists!");
     }
 }
@@ -1211,6 +1212,9 @@ void NodeView::selectAndCenter(GraphMLItem* item, QString ID)
  */
 void NodeView::keepSelectionFullyVisible(GraphMLItem* item, bool sizeChanged)
 {
+    // turning this off for now - need to re-access where and whether this function is useful
+    return;
+
     if (!item || !selectedIDs.contains(item->getID())) {
         return;
     }
@@ -3161,6 +3165,34 @@ void NodeView::moveSelection(QPointF delta)
     if(!canReduceY){
         delta.setY(qMax(0.0, delta.y()));
     }
+
+    // find out if there is an aspect selected
+    bool containsAspectEntity = false;
+    bool allAspectEntities = true;
+
+    foreach(QString ID, selectedIDs){
+        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+        if (graphMLItem && graphMLItem->isNodeItem()) {
+            NodeItem* item = (NodeItem*) graphMLItem;
+            if (item->getNodeKind().endsWith("Definitions")) {
+                containsAspectEntity = true;
+            } else {
+                allAspectEntities = false;
+            }
+        }
+    }
+
+    // if all selected entities are aspects, move the model item accordingly
+    if (allAspectEntities) {
+        adjustModelPosition(delta);
+        return;
+    }
+
+    // if there is at least one aspect selected, don't move any of the selected items
+    if (containsAspectEntity) {
+        return;
+    }
+
     foreach(QString ID, selectedIDs){
         GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
 
