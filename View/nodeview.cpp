@@ -634,9 +634,11 @@ void NodeView::constructNewView(QString nodeID)
 
 
     MedeaSubWindow* subWindow = new MedeaSubWindow();
-    connect(this, SIGNAL(destroyed()), subWindow, SLOT(deleteLater()));
+
+    connect(this, SIGNAL(destroyed()), subWindow, SLOT(reject()));
 
     NodeView* newView = new NodeView(true, subWindow);
+
     subViews.append(newView);
 
     newView->setAspects(allAspects);
@@ -1681,6 +1683,7 @@ void NodeView::view_LockCenteredGraphML(QString ID)
         centralizedNodeItem = nodeItem;
         CENTRALIZED_ON_ITEM = true;
         connect(nodeItem, SIGNAL(nodeItemMoved()), this, SLOT(centralizedItemMoved()));
+        appendToSelection(getGraphMLItemFromHash(ID));
         centerItem(ID);
         ensureAspect(ID);
     }

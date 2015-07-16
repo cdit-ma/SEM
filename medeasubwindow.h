@@ -14,7 +14,6 @@ class MedeaSubWindow : public QDialog
     Q_OBJECT
 public:
     explicit MedeaSubWindow(QWidget *parent = 0);
-    //~MedeaSubWindow();
     void setNodeView(NodeView* view);
 
 private:

@@ -126,7 +126,6 @@ MedeaWindow::~MedeaWindow()
         jenkinsManager->deleteLater();
     }
 
-
     if(controllerThread){
         controllerThread->terminate();
         controllerThread->deleteLater();

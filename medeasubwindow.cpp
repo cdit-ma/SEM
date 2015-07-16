@@ -23,12 +23,6 @@ MedeaSubWindow::MedeaSubWindow(QWidget *parent) :
 
     setupLayout();
 }
-/*
-void MedeaSubWindow::~MedeaSubWindow()
-{
-    qCritical()<< "Destructing";
-
-}*/
 
 void MedeaSubWindow::setupLayout()
 {
@@ -113,6 +107,7 @@ void MedeaSubWindow::setNodeView(NodeView *view)
     if(mainLayout){
         mainLayout->addWidget(view,1);
         setupDataTable();
+        nodeView->setParent(this);
     }
 }
 
@@ -130,7 +125,7 @@ void MedeaSubWindow::setupDataTable()
         horizontalLayout->setMargin(0);
         mainLayout->setContentsMargins(0,0,5,0);
 
-        dataTableBox = new QWidget();
+        dataTableBox = new QWidget(this);
 
 
 
