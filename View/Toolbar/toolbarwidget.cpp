@@ -592,8 +592,7 @@ void ToolbarWidget::updateToolButtons()
     }
 
     // check if the selected node item has other node items connected to it (edges)
-    // NOTE: ComponentAssembly apparently has a connection to itself?
-    if (nodeItem->getNode()->getEdges().count() > 0) {
+    if (nodeItem->getNode()->getEdges(0).count() > 0) {
         // DEMO CHANGE - Don't need this when the popup new window button is back
         //alterViewFrame->show();
         showConnectionsButton->show();

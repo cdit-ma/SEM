@@ -620,6 +620,12 @@ void NodeView::constructNewView(QString nodeID)
     if(nodeID == ""){
         nodeID = getSelectedNodeID();
     }
+
+    if (nodeID == "") {
+        emit view_displayNotification("Select an entity first");
+        return;
+    }
+
     NodeItem* nodeItem = getNodeItemFromID(nodeID);
 
     if(IS_SUB_VIEW || nodeID == "" || !nodeItem){
@@ -729,8 +735,8 @@ void NodeView::actionFinished()
         updateDeployment = false;
     }
 
-
     updateActionsEnabled();
+    enableClipboardActions(selectedIDs);
 
     viewMutex.unlock();
 }
@@ -1391,6 +1397,8 @@ void NodeView::enableClipboardActions(QStringList IDs)
         emit view_updateMenuActionEnabled("undo", controller->canUndo());
         emit view_updateMenuActionEnabled("redo", controller->canRedo());
     }
+
+    emit view_updateMenuActionEnabled("noSelection", getSelectedNodeID() != "");
 }
 
 

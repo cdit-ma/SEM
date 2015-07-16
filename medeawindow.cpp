@@ -931,11 +931,13 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     labelLayout->setAlignment(toolbarButtonLabel, Qt::AlignCenter);
     toolbarButton->setLayout(labelLayout);
 
-    constructToolbarButton(toolbar, actionContextMenu, TOOLBAR_CONTEXT);
-    constructToolbarButton(toolbar, edit_delete, TOOLBAR_DELETE_ENTITIES);
-    toolbar->addSeparator();
     constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
     constructToolbarButton(toolbar, edit_redo, TOOLBAR_REDO);
+    toolbar->addSeparator();
+    constructToolbarButton(toolbar, actionContextMenu, TOOLBAR_CONTEXT);
+    constructToolbarButton(toolbar, edit_delete, TOOLBAR_DELETE_ENTITIES);
+    constructToolbarButton(toolbar, actionPopupSubview, TOOLBAR_POPUP_SUBVIEW);
+
     toolbar->addSeparator();
     constructToolbarButton(toolbar, edit_cut, TOOLBAR_CUT);
     constructToolbarButton(toolbar, edit_copy, TOOLBAR_COPY);
@@ -944,15 +946,13 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     toolbar->addSeparator();
 
 
-    constructToolbarButton(toolbar, actionFitToScreen, TOOLBAR_FIT_TO_SCREEN);
     constructToolbarButton(toolbar, actionCenter, TOOLBAR_CENTER_ON_ENTITY);
     constructToolbarButton(toolbar, actionZoomToFit, TOOLBAR_ZOOM_TO_FIT);
     constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
+    constructToolbarButton(toolbar, actionFitToScreen, TOOLBAR_FIT_TO_SCREEN);
     toolbar->addSeparator();
     constructToolbarButton(toolbar, actionToggleGrid, TOOLBAR_GRID_LINES);
     constructToolbarButton(toolbar, actionTogglePanningMode, TOOLBAR_PAN_VIEW);
-    toolbar->addSeparator();
-    constructToolbarButton(toolbar, actionPopupSubview, TOOLBAR_POPUP_SUBVIEW);
 
     //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionAlignVertically, TOOLBAR_VERT_ALIGN);
@@ -2074,6 +2074,11 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
         edit_undo->setEnabled(enable);
     }else if (action == "redo") {
         edit_redo->setEnabled(enable);
+    }else if (action == "noSelection") {
+        actionCenter->setEnabled(enable);
+        actionZoomToFit->setEnabled(enable);
+        actionSort->setEnabled(enable);
+        actionPopupSubview->setEnabled(enable);
     }
 }
 
@@ -2314,6 +2319,7 @@ void MedeaWindow::resetView()
     if (nodeView) {
         nodeView->view_ClearHistory();
         nodeView->setDefaultAspects();
+        nodeView->clearSelection();
     }
 }
 
