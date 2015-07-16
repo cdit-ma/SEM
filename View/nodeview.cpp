@@ -1415,63 +1415,46 @@ void NodeView::showToolbar(QPoint position)
     // only show the toolbar if there is at least one node item selected
     if (selectedIDs.count() > 0) {
 
-        // get all the selected node items
-        QList<NodeItem*> selectedNodeItems;
-        foreach (NodeItem* item, getNodeItemsList()) {
-            if (item->isPainted() && selectedIDs.contains(item->getID())) {
-                selectedNodeItems.append(item);
-            }
-        }
-
-        // get all the selected edge items
-        QList<EdgeItem*> selectedEdgeItems;
-        foreach (EdgeItem* item, getEdgeItemsList()) {
-            if (item->isVisible() && selectedIDs.contains(item->getID())) {
-                selectedEdgeItems.append(item);
-            }
-        }
+        // this will update the toolbar buttons and menus
+        updateToolbarSelectedItems(true);
 
         // use mouse click position when constructing node items from toolbar
         QPointF globalPos = mapToGlobal(position);
         toolbarPosition = mapToScene(position);
 
+        bool toolbarPositionContained = false;
+
+        foreach (QString ID, selectedIDs) {
+            GraphMLItem* item = getGraphMLItemFromHash(ID);
+            if (item->isNodeItem()) {
+                if (item->sceneBoundingRect().contains(toolbarPosition)) {
+                    toolbarPositionContained = true;
+                    break;
+                }
+            } else if (item->isEdgeItem()) {
+                if (eventFromEdgeItem) {
+                    toolbarPositionContained = true;
+                    eventFromEdgeItem = false;
+                    break;
+                }
+            }
+        }
+
         // this case happens when this is called from the window toolbar
         // show the toolbar positioned at the first selected item's center
+        QList<NodeItem*> selectedNodeItems = getSelectedNodeItems();
         if (position.isNull() && selectedNodeItems.count() > 0) {
             QPointF itemScenePos = selectedNodeItems.at(0)->sceneBoundingRect().center();
             globalPos = mapFromScene(itemScenePos);
             globalPos = mapToGlobal(globalPos.toPoint());
             toolbarPosition = itemScenePos;
-        }
-
-        // find out if the user right-clicked on one of the selected items
-        bool toolbarPositionContained = false;
-        foreach (NodeItem* selectedItem, selectedNodeItems) {
-            if (selectedItem->sceneBoundingRect().contains(toolbarPosition)) {
-                toolbarPositionContained = true;
-                break;
-            }
-        }
-
-        /*
-        foreach (EdgeItem* selectedItem, selectedEdgeItems) {
-            if (selectedItem->isPointInCircle(globarPos)) {
-                toolbarPositionContained = true;
-                break;
-            }
-        }
-        */
-
-        if (!selectedEdgeItems.isEmpty() && eventFromEdgeItem) {
             toolbarPositionContained = true;
-            eventFromEdgeItem = false;
         }
 
         // only show the toolbar if the right-click happened inside one of the selected items
         if (toolbarPositionContained) {
-            toolbar->updateSelectedItems(selectedNodeItems, selectedEdgeItems);
             toolbar->move(globalPos.toPoint());
-            toolbar->show();
+            toolbar->setVisible(true);
         }
 
     } else {
@@ -1661,6 +1644,42 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     }
 }
 
+
+/**
+ * @brief NodeView::updateToolbarSelectedItems
+ * @param showToolbar
+ */
+void NodeView::updateToolbarSelectedItems(bool showToolbar)
+{
+    if (!CONTROL_DOWN && !showToolbar) {
+        return;
+    }
+
+    // only show the toolbar if there is at least one node item selected
+    if (selectedIDs.count() > 0) {
+
+        // get all the selected node items
+        QList<NodeItem*> selectedNodeItems;
+        foreach (NodeItem* item, getSelectedNodeItems()) {
+            if (item->isPainted()) {
+                selectedNodeItems.append(item);
+            }
+        }
+
+        // get all the selected edge items
+        QList<EdgeItem*> selectedEdgeItems;
+        if (selectedNodeItems.count() != selectedIDs.count()) {
+            foreach (EdgeItem* item, getEdgeItemsList()) {
+                if (item->isVisible() && selectedIDs.contains(item->getID())) {
+                    selectedEdgeItems.append(item);
+                }
+            }
+        }
+
+        toolbar->updateSelectedItems(selectedNodeItems, selectedEdgeItems);
+    }
+}
+
 void NodeView::view_CenterGraphML(GraphML *graphML)
 {
     //qCritical() << "Centering on: " << graphML->toString();
@@ -1757,7 +1776,7 @@ void NodeView::destructEdge(QString srcID, QString dstID, bool triggerAction)
 {
     Q_UNUSED(triggerAction);
 
-    if(viewMutex.tryLock()){        
+    if(viewMutex.tryLock()){
         NodeItem* srcNode = getNodeItemFromID(srcID);
         NodeItem* dstNode = getNodeItemFromID(dstID);
         if(srcNode && dstNode){
@@ -3139,6 +3158,9 @@ void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
         // update enabled states of cut, copy & paste everytime something is selected
         enableClipboardActions(selectedIDs);
     }
+
+    // update toolbar selected items
+    updateToolbarSelectedItems();
 }
 
 void NodeView::removeFromSelection(GraphMLItem *item)
@@ -3152,6 +3174,8 @@ void NodeView::removeFromSelection(GraphMLItem *item)
     //Set this item as Selected.
     setGraphMLItemSelected(item, false);
 
+    // update toolbar selected items
+    updateToolbarSelectedItems();
 }
 
 void NodeView::moveSelection(QPointF delta)

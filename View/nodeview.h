@@ -307,7 +307,7 @@ private:
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
 
-
+    void updateToolbarSelectedItems(bool showToolbar = false);
 
     void setGraphMLItemSelected(GraphMLItem* item, bool setSelected);
 

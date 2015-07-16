@@ -1458,7 +1458,21 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         hasSelectionMoved = false;
         hasSelectionResized = false;
         isNodePressed = true;
-        
+
+        // left-clicking on an item should select only the
+        // clicked item whether CTRL is held down or not
+        if (event->modifiers().testFlag(Qt::ControlModifier)) {
+            if (isSelected()) {
+                GraphMLItem_RemoveSelected(this);
+            } else {
+                GraphMLItem_AppendSelected(this);
+            }
+        } else {
+            GraphMLItem_ClearSelection(true);
+            GraphMLItem_AppendSelected(this);
+        }
+
+        /*
         if(!isSelected()){
             if (event->modifiers().testFlag(Qt::ControlModifier)){
                 //CONTROL PRESSED
@@ -1473,6 +1487,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 GraphMLItem_RemoveSelected(this);
             }
         }
+        */
         
         /*if (nodeKind.endsWith("Definitions")) {
             QGraphicsItem::mousePressEvent(event);

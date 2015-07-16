@@ -51,7 +51,9 @@ public slots:
 
     void attachOptionMenu();
 
+    void setVisible(bool visible);
     void hideToolbar(bool actionTriggered);
+    void hide();
 
 private:
     void setupToolBar();

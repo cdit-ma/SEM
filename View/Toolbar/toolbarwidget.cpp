@@ -78,11 +78,6 @@ void ToolbarWidget::updateSelectedItems(QList<NodeItem*> nodeItems, QList<EdgeIt
     mainFrame->setFixedSize(layout()->sizeHint());
     shadowFrame->setFixedSize(layout()->sizeHint() + QSize(3,3));
     setFixedSize(shadowFrame->size());
-
-    mainFrame->setVisible(showToolbar);
-    shadowFrame->setVisible(showToolbar);
-    setVisible(showToolbar);
-    showToolbar = false;
 }
 
 
@@ -343,6 +338,23 @@ void ToolbarWidget::attachOptionMenu()
 
 
 /**
+ * @brief ToolbarWidget::setVisible
+ * @param visible
+ */
+void ToolbarWidget::setVisible(bool visible)
+{
+    bool toolbarVisible = visible && showToolbar;
+    mainFrame->setVisible(toolbarVisible);
+    shadowFrame->setVisible(toolbarVisible);
+    QWidget::setVisible(toolbarVisible);
+
+    if (!visible) {
+        showToolbar = false;
+    }
+}
+
+
+/**
  * @brief ToolbarWidget::hideToolbar
  * This method checks if hiding the menu was triggered by the toolbar.
  * If the event came from outside the toolbar, hide the toolbar and all visible menus.
@@ -355,6 +367,16 @@ void ToolbarWidget::hideToolbar(bool actionTriggered)
             nodeView->toolbarClosed();
         }
     }
+}
+
+
+/**
+ * @brief ToolbarWidget::hide
+ */
+void ToolbarWidget::hide()
+{
+    setVisible(false);
+    showToolbar = false;
 }
 
 
