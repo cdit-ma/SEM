@@ -65,6 +65,7 @@ public:
     NodeItem* getImplementation(QString ID);
     QList<NodeItem*> getInstances(QString ID);
     NodeItem* getDefinition(QString ID);
+    QString getDefinitionID(QString ID);
     NodeItem* getAggregate(QString ID);
     NodeItem* getDeployedNode(QString ID);
 

@@ -1822,7 +1822,6 @@ void NodeView::constructConnectedNode(QString parentID, QString dstID, QString k
             QPointF position;
 
             if (sender == 0){
-                qCritical() << nodeItem->getNextChildPos();
                 position = nodeItem->getNextChildPos();
             } else if (sender == 1) {
                 // if from toolbar, place at closest grid point to the toolbar's position
@@ -2124,6 +2123,14 @@ NodeItem *NodeView::getDefinition(QString ID)
         def = getNodeItemFromID(defID);
     }
     return def;
+}
+
+QString NodeView::getDefinitionID(QString ID)
+{
+    if(controller){
+        return controller->getDefinition(ID);
+    }
+    return "";
 }
 
 NodeItem *NodeView::getAggregate(QString ID)

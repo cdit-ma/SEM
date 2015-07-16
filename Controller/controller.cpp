@@ -7,6 +7,7 @@
 #include <QEventLoop>
 
 #define USE_LOGGING true
+#define LABEL_TRUNCATE_LENGTH 64
 
 bool UNDO = true;
 bool REDO = false;
@@ -249,8 +250,8 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
                         if(exportAllEdges){
                             exportEdge = true;
                         }
-                    }else if(edge->isImplLink() && !informQuestion){
-                        emit controller_DisplayMessage(WARNING, "Cannot Copy", "MEDEA Cannot copy edges which are Impl edges.", src->getID());
+                    }else if(GUI_USED && edge->isImplLink() && !informQuestion){
+                        emit controller_DisplayMessage(WARNING, "Cannot Copy", "Cannot copy edges which are Impl edges.", src->getID());
                         informQuestion = true;
                     }
                 }
@@ -1617,6 +1618,8 @@ void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
         node->updateDataValue("label", nodeLabel);
         return;
     }
+
+
 
     int maxNumber = -1;
     QList<int> sameLabelNumbers;

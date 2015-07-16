@@ -529,7 +529,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         
 
         if(getNodeView() && isImplOrInstance){
-            hasDefinition = getNodeView()->getDefinition(getID()) != 0;
+            hasDefinition = getNodeView()->getDefinitionID(getID()) != "";
             if(!hasDefinition){
                 Brush.setStyle(Qt::BDiagPattern);
             }

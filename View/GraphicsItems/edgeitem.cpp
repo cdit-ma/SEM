@@ -26,7 +26,6 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     HAS_MOVED = false;
     CENTER_MOVED = false;
 
-
     source = s;
     destination = d;
     visibleDestination = 0;
@@ -36,6 +35,7 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     //Construct lines.
     for(int i=0; i < 6; i++){
         lineSegments.append(new QGraphicsLineItem(this));
+        lineSegments[i]->setPen(pen);
     }
 
 
@@ -62,6 +62,9 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem* s, NodeItem* d): GraphMLItem(edge, Grap
     resetEdgeCenter(source, destination);
     updateLines();
     setZValue(1000);
+    IS_SELECTED = true;
+    setSelected(false);
+
 }
 
 EdgeItem::~EdgeItem()
@@ -201,6 +204,8 @@ void EdgeItem::setSelected(bool selected)
 
     //Hide/Show the label if selected.
     label->setVisible(selected);
+    this->update();
+
 }
 
 void EdgeItem::setVisible(bool visible)

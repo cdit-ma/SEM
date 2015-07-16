@@ -5,6 +5,7 @@
 #include <QStringList>
 #include <QMap>
 #include <QHash>
+
 class GraphMLData;
 class GraphMLKey: public GraphML
 {
