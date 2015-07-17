@@ -162,6 +162,7 @@ signals:
     void view_showWindowToolbar();
 
     void view_toggleGridLines(bool on);
+    void view_togglePanningMode(bool on);
 
     void view_updateProgressStatus(int percent, QString action="");
     void view_displayNotification(QString notification, int seqNum = 0, int totalNum = 1);

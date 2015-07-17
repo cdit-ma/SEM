@@ -141,7 +141,6 @@ QPoint ToolbarWidgetAction::getButtonPos()
  */
 QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 {
-
     actionButton = new ToolbarWidgetButton(parent);
     actionButton->setMouseTracking(true);
 

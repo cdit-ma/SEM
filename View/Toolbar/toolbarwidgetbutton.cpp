@@ -21,7 +21,7 @@ ToolbarWidgetButton::~ToolbarWidgetButton()
 }
 
 /**
- * @brief ToolbarWidgetButton::setChecked
+ * @brief ToolbarWidgetButton::setCheck
  * @param checked
  */
 void ToolbarWidgetButton::setCheck(bool checked)
@@ -30,7 +30,7 @@ void ToolbarWidgetButton::setCheck(bool checked)
 }
 
 /**
- * @brief ToolbarWidgetButton::getChecked
+ * @brief ToolbarWidgetButton::getCheck
  * @return
  */
 bool ToolbarWidgetButton::getCheck()

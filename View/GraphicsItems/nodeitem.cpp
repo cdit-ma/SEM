@@ -70,6 +70,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     currentResizeMode = NodeItem::NO_RESIZE;
     LOCKED_POSITION = false;
     GRIDLINES_ON = false;
+    PANNING_ON = false;
     isGridVisible = false;
     isNodeOnGrid = false;
 
@@ -1435,7 +1436,14 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         QGraphicsItem::mousePressEvent(event);
         return;
     }
-    
+
+    // if panning mode is on, don't alter selected state or position of any node items
+    if (PANNING_ON) {
+        qDebug() << "HERE";
+        QGraphicsItem::mousePressEvent(event);
+        return;
+    }
+
     if(!PAINT_OBJECT){
         if(nodeKind == "Model" && !modelCirclePressed(event->pos())){\
             GraphMLItem_ClearSelection(true); // need to update table!
@@ -1443,7 +1451,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             return;
         }
     }
-    
+
     switch (event->button()) {
     
     case Qt::MiddleButton:{
@@ -1451,9 +1459,9 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::LeftButton:{
         
-        
-        
-        
+
+
+
         previousScenePosition = event->scenePos();
         hasSelectionMoved = false;
         hasSelectionResized = false;
@@ -1641,8 +1649,8 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    
-    
+
+
     
     if(!PAINT_OBJECT){//|| nodeKind.endsWith("Definitions")){
         //QGraphicsItem::mouseMoveEvent(event);
@@ -2583,6 +2591,16 @@ void NodeItem::toggleGridLines(bool on)
     if(on){
         calculateGridlines();
     }
+}
+
+
+/**
+ * @brief NodeItem::togglePanningMode
+ * @param on
+ */
+void NodeItem::togglePanningMode(bool on)
+{
+    PANNING_ON = on;
 }
 
 

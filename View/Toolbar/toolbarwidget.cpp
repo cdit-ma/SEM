@@ -376,7 +376,6 @@ void ToolbarWidget::hideToolbar(bool actionTriggered)
 void ToolbarWidget::hide()
 {
     setVisible(false);
-    showToolbar = false;
 }
 
 

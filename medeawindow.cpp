@@ -2332,7 +2332,9 @@ void MedeaWindow::newProject()
 {
     progressAction = "Setting up New Project";
 
-
+    // clear and reset the search bar
+    searchBar->clear();
+    searchBar->setText(searchBarDefaultText);
 
     resetGUI();
 

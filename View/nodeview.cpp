@@ -2226,6 +2226,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
                 connect(nodeItem, SIGNAL(NodeItem_MoveFinished()), this, SLOT(moveFinished()));
                 connect(nodeItem, SIGNAL(NodeItem_ResizeFinished()), this, SLOT(resizeFinished()));
                 connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
+                connect(this, SIGNAL(view_togglePanningMode(bool)), nodeItem, SLOT(togglePanningMode(bool)));
                 connect(nodeItem, SIGNAL(Nodeitem_HasFocus(bool)), this, SLOT(editableItemHasFocus(bool)));
             }
         }
@@ -2333,6 +2334,7 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
     //view_AspectsChanged(currentAspects);
     nodeItem->aspectsChanged(currentAspects);
     emit view_toggleGridLines(GRID_LINES_ON);
+    emit view_togglePanningMode(PANNING_ON);
 
     // snap node item to its parent's grid
     //nodeItem->snapToGrid();
@@ -2725,10 +2727,12 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     QPointF scenePos = mapToScene(event->pos());
     QGraphicsItem* itemUnderMouse = scene()->itemAt(scenePos, QTransform());
     if (!itemUnderMouse) {
-        if (event->button() == Qt::LeftButton) {
+        if (event->button() == Qt::LeftButton || event->button() == Qt::RightButton) {
             // clear the selection and disable dock buttons
             clearSelection();
         }
+    } else {
+        //qDebug() << "Item under mouse";
     }
 
     QGraphicsView::mousePressEvent(event);
@@ -3138,11 +3142,10 @@ void NodeView::redo()
 
 void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 {
-    /*
+    // if panning mode is on, don't allow the user to select anything
     if (PANNING_ON) {
         return;
     }
-    */
 
     if(isItemsAncestorSelected(item)){
         return;
@@ -3190,7 +3193,7 @@ void NodeView::removeFromSelection(GraphMLItem *item)
 void NodeView::moveSelection(QPointF delta)
 {
     if (PANNING_ON) {
-        adjustModelPosition(delta);
+        //adjustModelPosition(delta);
         return;
     }
 
@@ -3565,9 +3568,16 @@ void NodeView::toggleZoomAnchor(bool underMouse)
     }
 }
 
+
+/**
+ * @brief NodeView::togglePanning
+ * @param panning
+ */
 void NodeView::togglePanning(bool panning)
 {
+    clearSelection();
     PANNING_ON = panning;
+    emit view_togglePanningMode(panning);
 }
 
 
