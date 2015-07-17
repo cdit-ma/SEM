@@ -126,7 +126,7 @@ public:
     double getChildWidth();
     double getChildHeight();
 
-    QPointF getNextChildPos(bool currentlySorting=false);
+    QPointF getNextChildPos(QRectF itemRect = QRectF(), bool currentlySorting=false);
 
     Node* getNode();
     QString getNodeKind();

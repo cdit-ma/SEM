@@ -992,12 +992,14 @@ double NodeItem::getChildHeight()
  * @brief NodeItem::getNextChildPos
  * @return
  */
-QPointF NodeItem::getNextChildPos(bool currentlySorting)
+QPointF NodeItem::getNextChildPos(QRectF itemRect, bool currentlySorting)
 {
+    bool useItemRect = !itemRect.isNull();
     
     QPainterPath childrenPath = QPainterPath();
     bool hasChildren = false;
-    
+
+
     // add the children's bounding rectangles to the children path
     foreach(NodeItem* child, getChildNodeItems()){
         if(child && child->isInAspect() && !child->isHidden()){
@@ -1009,82 +1011,7 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
             }
         }
     }
-    
-    /*v
-    //Based on BoundingRect
-    bool growWidth = boundingRect().width() < boundingRect().height();
-    //grow width based on GridRect.
-    // bool growWidth = gridRect().width() < gridRect().height();
-    
-    int currentX = 0;
-    int currentY = 0;
-    bool minXSet = false;
-    bool minYSet = false;
-    int minX = 0;0
-    int minY = 0;
-    bool gridFull = false;
-    
-    while(true){
-        QPointF newPos = getGridPosition(currentX, currentY);
-        //Get the size of the child. In most cases it will be getChildWidth(), getChildHeight();
-        QRectF childRect = getChildBoundingRect();
-        //Translate to the center of the normal childBR
-        childRect.translate(newPos - childRect.center());
-        
-        bool itemCollision = childrenPath.intersects(childRect);
-        
-        bool inGrid = childRect.top() >= gridRect().top() && childRect.left() >= gridRect().left() ;
-        bool rightOfGrid = childRect.right() >= gridRect().right();
-        bool belowGrid = childRect.bottom() >= gridRect().bottom();
-        
-        if(inGrid || gridFull){
-            if(!itemCollision){
-                //If there is no collision and we are in the Grid, or there is no room in the grid. Return!
-                return newPos;
-            }
-        }
-        
-        //If we are either in the Grid, or we have no Children, we should keep track of the MinX and MinY
-        if(inGrid || !hasChildren){
-            if(!minXSet){
-                minX = currentX;
-                minXSet = true;
-            }
-            if(!minYSet){
-                minY = currentY;
-                minYSet = true;
-            }
-            minX = qMin(currentX, minX);
-            minY = qMin(currentY, minY);
-        }
-        
-        //Try Next Column
-        //If we aren't Right of the grid, or the grid is full, and we should grow right.
-        if(!rightOfGrid || (gridFull && growWidth)){
-            currentX++;
-            continue;
-        }
-        
-        //Try Next Row
-        //If we aren't Right of the grid, or the grid is full, and we are growing down.
-        if(!belowGrid || (gridFull && !growWidth)){
-            currentY++;
-            currentX=minX;
-            continue;
-        }
-        
-        //If we get here we are out of Grid Spaces, and should set our currentX/currentY
-        if(!gridFull){
-            gridFull = true;
-            if(growWidth){
-                currentY = minY;
-            }else{
-                currentX = minX;
-            }
-        }
-    }
-    */
-    ///*
+
     // CATHLYNS CODE FOR THE SAME THING. TEST
     // work out how many grid cells are needed per child item
     // divide it by 2 - only need half the number of cells to fit the center of the item
@@ -1095,13 +1022,19 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
     double maxX = 0;
     bool xOutsideOfGrid = false;
     bool yOutsideOfGrid = false;
-    
+
     while (true) {
         
         // get the next position; construct a child rect at that position
         QPointF nextPosition = getGridPosition(currentX, currentY);
         QRectF childRect = getChildBoundingRect();
-        childRect.translate(nextPosition - childRect.center());
+        if(useItemRect){
+            childRect = itemRect;
+            childRect.translate(nextPosition - getChildBoundingRect().center());
+        }else{
+            //Translate to the center of the normal childBR
+            childRect.translate(nextPosition - childRect.center());
+        }
         
         // check if the child rect collides with an existing child item
         if (childrenPath.intersects(childRect)) {
@@ -1146,7 +1079,7 @@ QPointF NodeItem::getNextChildPos(bool currentlySorting)
             }
         }
     }
-    //*/
+
 }
 
 
@@ -1353,8 +1286,9 @@ void NodeItem::newSort()
     
     //Sort Items
     while(toSortItems.size() > 0){
-        NodeItem* item = toSortItems.takeFirst( );
-        item->setCenterPos(getNextChildPos(true));
+        NodeItem* item = toSortItems.takeFirst();
+
+        item->setCenterPos(getNextChildPos(item->boundingRect(), true));
         item->updateModelPosition();
         item->setSorted(true);
     }

@@ -2077,8 +2077,9 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
     }else if (action == "noSelection") {
         actionCenter->setEnabled(enable);
         actionZoomToFit->setEnabled(enable);
-        actionSort->setEnabled(enable);
         actionPopupSubview->setEnabled(enable);
+    }else if(action == "nodesSelected"){
+        actionSort->setEnabled(enable);
     }
 }
 

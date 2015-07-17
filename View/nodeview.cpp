@@ -986,19 +986,24 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
  */
 void NodeView::sortSelection()
 {
-
-    triggerAction("View: Sorting Node");
-    emit view_updateProgressStatus(0, "Sorting Selected Entities");
-    int count = 0;
-    foreach(QString ID, selectedIDs){
-        count +=100;
-        NodeItem* nodeItem = getNodeItemFromID(ID);
-        if(nodeItem){
-            nodeItem->newSort();
+    if(viewMutex.tryLock()){
+        triggerAction("View: Sorting Node");
+        emit view_updateProgressStatus(0, "Sorting Selected Entities");
+        int count = 0;
+        foreach(QString ID, selectedIDs){
+            count +=100;
+            NodeItem* nodeItem = getNodeItemFromID(ID);
+            if(nodeItem){
+                nodeItem->newSort();
+            }
+            emit view_updateProgressStatus(count / selectedIDs.count());
         }
-        emit view_updateProgressStatus(count / selectedIDs.count());
+        emit view_updateProgressStatus(100);
+
+       actionFinished();
     }
-    emit view_updateProgressStatus(100);
+
+
 }
 
 
@@ -1401,6 +1406,7 @@ void NodeView::enableClipboardActions(QStringList IDs)
     }
 
     emit view_updateMenuActionEnabled("noSelection", getSelectedNodeID() != "");
+    emit view_updateMenuActionEnabled("nodesSelected", !getSelectedNodeIDs().isEmpty());
 }
 
 
@@ -1527,13 +1533,18 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     //SHRINK SIZE.
     QString xPos = node->getDataValue("x");
     QString yPos = node->getDataValue("y");
+    QString widthStr = node->getDataValue("width");
+    QString heightStr = node->getDataValue("height");
     bool resetSize = xPos == yPos && xPos == "-1";
 
     //qreal multiplier = 1;
     if(resetSize){
         QPointF newPosition;
         if(parentNodeItem){
-            newPosition = parentNodeItem->getNextChildPos();
+            QRectF itemRect;
+            itemRect.setWidth(widthStr.toDouble());
+            itemRect.setHeight(heightStr.toDouble());
+            newPosition = parentNodeItem->getNextChildPos(itemRect);
         }
         node->getData("x")->setValue(QString::number(newPosition.x()));
         node->getData("y")->setValue(QString::number(newPosition.y()));
@@ -3784,7 +3795,10 @@ void NodeView::sortModel()
     if (!controller) {
         return;
     }
-    if (getModelItem()) {
-        getModelItem()->newSort();
-    }
+     if(viewMutex.tryLock()){
+        if (getModelItem()) {
+            getModelItem()->newSort();
+        }
+        actionFinished();
+     }
 }
