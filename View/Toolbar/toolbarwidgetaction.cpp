@@ -49,6 +49,9 @@ ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, QWidget *parent, bo
     if(nodeItem){
         kind = nodeItem->getNodeKind();
         label =  nodeItem->getNodeLabel();
+        if (label == "") {
+            label = kind;
+        }
     }
 
     widgetMenu = 0;

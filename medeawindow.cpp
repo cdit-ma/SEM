@@ -1460,7 +1460,7 @@ void MedeaWindow::setupInitialSettings()
 
     //We have finished loading settings. reset state of Controller undo states.
     nodeView->view_ClearHistory();
-	
+
 
     // initially disable all the docks
     nodeView->view_nodeSelected();
@@ -2336,10 +2336,36 @@ void MedeaWindow::newProject()
 
     // clear and reset the search bar
     searchBar->clear();
-    //searchBar->setText(searchBarDefaultText);
+
+    foreach (QAction* action, viewAspectsMenu->actions()) {
+        QWidgetAction* widgetAction = qobject_cast<QWidgetAction*>(action);
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(widgetAction->defaultWidget());
+        checkBox->setChecked(false);
+    }
+
+    foreach (QAction* action, nodeKindsMenu->actions()) {
+        QWidgetAction* widgetAction = qobject_cast<QWidgetAction*>(action);
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(widgetAction->defaultWidget());
+        checkBox->setChecked(false);
+    }
+
+    // need to clear search results here
+    QLayoutItem* child;
+    while (resultsLayout->count() != 0) {
+        child = resultsLayout->takeAt(0);
+        /*
+        if(child->layout()) {
+            remove(child->layout());
+        } else if (child->widget()) {
+            delete child->widget();
+        }
+        */
+        delete child;
+    }
+
+    searchResults->close();
 
     resetGUI();
-
     resetView();
 }
 
