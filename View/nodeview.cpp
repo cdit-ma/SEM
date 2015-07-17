@@ -72,6 +72,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     eventFromEdgeItem = false;
 
+    PANNING_ON = false;
+
     MINIMAP_EVENT = false;
     setScene(new QGraphicsScene(this));
 
