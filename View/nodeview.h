@@ -461,7 +461,7 @@ private:
 
     QMutex viewMutex;
 
-    bool isDestructing;
+    bool IS_DESTRUCTING;
     bool updateDeployment;
     QString currentTableID;
 

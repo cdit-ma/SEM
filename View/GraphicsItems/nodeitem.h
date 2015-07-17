@@ -374,6 +374,7 @@ private:
 
 
     QHash<QString, NodeItem*> childNodeItems;
+
     QStringList childrenIDs;
     //QList<NodeItem*> childNodeItems;
 

@@ -61,18 +61,24 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     prevLockMenuOpened = 0;
 
     CENTRALIZED_ON_ITEM = false;
-    CONTROL_DOWN = false;
-    SHIFT_DOWN = false;
+    MINIMAP_EVENT = false;
+    RUBBERBAND_MODE = false;
     IS_RESIZING = false;
     IS_MOVING = false;
-    isDestructing = false;
+    AUTO_CENTER_ASPECTS = false;
+    GRID_LINES_ON = false;
+    SELECT_ON_CONSTRUCTION = false;
+    PANNING_ON = false;
+    CONTROL_DOWN = false;
+    SHIFT_DOWN = false;
+    IS_DESTRUCTING = false;
 
     pasting = false;
     panning = false;
 
     eventFromEdgeItem = false;
 
-    PANNING_ON = false;
+
 
     MINIMAP_EVENT = false;
     setScene(new QGraphicsScene(this));
@@ -175,7 +181,7 @@ bool NodeView::isSubView()
 
 bool NodeView::isTerminating()
 {
-    return isDestructing;
+    return IS_DESTRUCTING;
 }
 
 bool NodeView::isNodeKindDeployable(QString nodeKind)
@@ -211,7 +217,7 @@ void NodeView::removeAspect(QString aspect)
 
 NodeView::~NodeView()
 {
-    isDestructing = true;
+    IS_DESTRUCTING = true;
     //Clear the current Selected Attribute Model so that the GUI doesn't crash.
     setAttributeModel(0, true);
 
@@ -988,17 +994,16 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
  */
 void NodeView::sortSelection()
 {
+
     if(viewMutex.tryLock()){
         triggerAction("View: Sorting Node");
-        emit view_updateProgressStatus(0, "Sorting Selected Entities");
-        int count = 0;
+        emit view_updateProgressStatus(-1, "Sorting Selected Entities");
+
         foreach(QString ID, selectedIDs){
-            count +=100;
             NodeItem* nodeItem = getNodeItemFromID(ID);
             if(nodeItem){
                 nodeItem->newSort();
             }
-            emit view_updateProgressStatus(count / selectedIDs.count());
         }
         emit view_updateProgressStatus(100);
 
@@ -1944,9 +1949,7 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
             if(item->isNodeItem()){
                 nodeSelected_signalUpdates();
             }
-            if(selectedIDs.count() == 1){
-                setAttributeModel(item);
-            }
+
         }
     }else{
         if(selectedIDs.contains(itemID)){
@@ -1954,19 +1957,21 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
             selectedIDs.removeAll(itemID);
 
 
-            if(selectedIDs.size() > 0){
-                GraphMLItem* item = getGraphMLItemFromHash(selectedIDs.last());
-                if(item){
-                    setAttributeModel(item);
-
-                }
-            }
             item->setSelected(false);
             if(item->isNodeItem()){
                 nodeSelected_signalUpdates();
             }
         }
     }
+
+    if(selectedIDs.count() == 1){
+        GraphMLItem* item = getGraphMLItemFromHash(selectedIDs.last());
+        if(item){
+            setAttributeModel(item);
+            return;
+        }
+    }
+    setAttributeModel();
 }
 
 
@@ -2369,9 +2374,9 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
     // hide all AggregateInstances except for in OutEventPortImpls
     if (nodeItem->getNodeKind() == "AggregateInstance") {
         NodeItem* parentItem = nodeItem->getParentNodeItem();
-        if (parentItem && (parentItem->getNodeKind() != "OutEventPortImpl"
-                           && parentItem->getNodeKind() != "AggregateInstance"
-                           && parentItem->getNodeKind() != "Aggregate"))
+        if (parentItem && (parentItem->getNodeKind() != "AggregateInstance"
+                           && parentItem->getNodeKind() != "Aggregate"
+                           && parentItem->getNodeKind() != "OutEventPortImpl"))
         {
             nodeItem->setHidden(true);
         }
@@ -2913,7 +2918,6 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
                 view_displayNotification("Cannot align entities which aren't contained by the same parent.");
                 return;
             }
-
             averageX += nodeItem->centerPos().x();
             averageY += nodeItem->centerPos().y();
             itemCount++;
@@ -2943,8 +2947,8 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
                 pos.setY(center.y());
             }
             pos = nodeItem->getParentNodeItem()->getClosestGridPoint(pos);
+
             nodeItem->setCenterPos(pos);
-            nodeItem->setLocked(true);
             nodeItem->updateModelPosition();
         }
     }
@@ -3536,11 +3540,11 @@ void NodeView::showManagementComponents(bool show)
         numberOfNotifications = 1;
     }
 
-    if (show) {
+    /*if (show) {
         view_displayNotification("Displayed Management Components.", notificationNumber, numberOfNotifications);
     } else {
         view_displayNotification("Hidden Management Components.", notificationNumber, numberOfNotifications);
-    }
+    }*/
 
     // this goes through all the ManagementComponents and shows/hides them
     foreach (Node* node, assemblyDefinition->getChildren(0)){

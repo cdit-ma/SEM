@@ -28,6 +28,7 @@ public:
 
     QVector<GraphMLKey *> getKeys();
 
+    bool isInstanceToInstanceLink();
     bool isInstanceLink();
     bool isImplLink();
     bool isAggregateLink();

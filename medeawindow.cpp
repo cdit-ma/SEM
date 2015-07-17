@@ -1017,6 +1017,7 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
  */
 void MedeaWindow::setupController()
 {
+
     if (controller) {
         //controller->deleteLater();
         delete controller;
@@ -1024,6 +1025,7 @@ void MedeaWindow::setupController()
     }
     if (controllerThread) {
         controllerThread->terminate();
+        //controllerThread->deleteLater();
         delete controllerThread;
         controllerThread = 0;
     }
@@ -2317,7 +2319,8 @@ void MedeaWindow::menuActionTriggered()
  */
 void MedeaWindow::resetView()
 {
-    if (nodeView) {
+    if (nodeView){
+        nodeView->showManagementComponents(true);
         nodeView->view_ClearHistory();
         nodeView->setDefaultAspects();
         nodeView->clearSelection();
@@ -2455,6 +2458,12 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
+    if(value < 0){
+        progressBar->setMaximum(0);
+        value = 0;
+    }else{
+        progressBar->setMaximum(100);
+    }
     if (notificationTimer->isActive()) {
         leftOverTime = notificationTimer->remainingTime();
         notificationsBar->hide();

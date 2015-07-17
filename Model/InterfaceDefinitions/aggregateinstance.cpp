@@ -28,6 +28,12 @@ bool AggregateInstance::canConnect(Node* attachableObject)
 #endif
         return false;
     }
+    if(aggregateInstance && getDefinition()){
+#ifdef DEBUG_MODE
+        qWarning() << "AggregateInstance can only connect to an AggregateInstance which has a definition.";
+#endif
+        return false;
+    }
 
     Node* topMostParent= getParentNode();
     while(topMostParent){

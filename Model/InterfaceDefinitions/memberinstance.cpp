@@ -29,6 +29,7 @@ bool MemberInstance::canConnect(Node* attachableObject)
         return false;
     }
 
+
     return Node::canConnect(attachableObject);
 }
 

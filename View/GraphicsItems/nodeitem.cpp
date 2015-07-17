@@ -864,6 +864,7 @@ NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
 void NodeItem::setNodeMoving(bool moving)
 {
     isSelectionMoving = moving;
+    hasSelectionMoved = true;
 }
 
 void NodeItem::setNodeResizing(bool resizing)
@@ -1373,7 +1374,6 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
     // if panning mode is on, don't alter selected state or position of any node items
     if (PANNING_ON) {
-        qDebug() << "HERE";
         QGraphicsItem::mousePressEvent(event);
         return;
     }
@@ -1491,14 +1491,23 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
         }
         
         if(iconPressed(event->pos())){
-            if(isExpanded()){
-                GraphMLItem_TriggerAction("Contracted Node Item");
-            }else{
-                GraphMLItem_TriggerAction("Expanded Node Item");
+            bool anyVisibleChildren = false;
+            foreach(NodeItem* childNode, childNodeItems){
+                if(!childNode->isHidden()){
+                    anyVisibleChildren = true;
+                    break;
+                }
             }
-            
-            setNodeExpanded(!isExpanded());
-            updateModelSize();
+            if(anyVisibleChildren){
+                if(isExpanded()){
+                    GraphMLItem_TriggerAction("Contracted Node Item");
+                }else{
+                    GraphMLItem_TriggerAction("Expanded Node Item");
+                }
+
+                setNodeExpanded(!isExpanded());
+                updateModelSize();
+            }
             
             break;
         }
@@ -1543,6 +1552,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             
             isSelectionMoving = false;
             NodeItem_MoveFinished();
+        }else{
         }
         
         if(hasSelectionResized){
@@ -1570,7 +1580,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             return;
         }
         
-        if (event->modifiers().testFlag(Qt::ControlModifier)) {
+        if (this->getNodeView() && !getNodeView()->isSubView() && event->modifiers().testFlag(Qt::ControlModifier)) {
             GraphMLItem_TriggerAction("Sorting Node");
             newSort();
         } else {
@@ -1619,7 +1629,12 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             
         }else{
             if(hasSelectionMoved == false){ // && !nodeKind.endsWith("Definitions")){
-                GraphMLItem_TriggerAction("Moving Selection");
+                if(nodeKind.endsWith("Definitions") || nodeKind == "Model"){
+                    //Don't add action.
+                }else{
+                    GraphMLItem_TriggerAction("Moving Selection");
+                }
+
                 setCursor(Qt::SizeAllCursor);
                 if(parentNodeItem){
                     parentNodeItem->setGridVisible(true);
@@ -3044,6 +3059,9 @@ void NodeItem::setNodeExpanded(bool expanded)
 void NodeItem::updateModelPosition()
 {
     //Update the Parent Model's size first to make sure that the undo states are correct.
+    if(nodeKind.endsWith("Definitions")){
+        return;
+    }
 
     //if we are over a grid line (or within a snap ratio)
     QPointF gridPoint = isOverGrid(centerPos());

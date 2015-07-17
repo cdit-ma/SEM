@@ -240,7 +240,9 @@ QString NewController::_exportGraphMLDocument(QStringList nodeIDs, bool allEdges
                 if(containsSrc && containsDst){
                     exportEdge = true;
                 }else if(containsSrc || containsDst){
-                    if((edge->isAggregateLink() || edge->isInstanceLink()  || edge->isDeploymentLink())){
+                    if(edge->isInstanceToInstanceLink()){
+                        exportEdge = false;
+                    }else if(edge->isAggregateLink() || edge->isInstanceLink() || edge->isDeploymentLink()){
                         if(GUI_USED && !copySelectionQuestion){
                             controller_DisplayMessage(MESSAGE, "", "", src->getID());
                             exportAllEdges = askQuestion(CRITICAL, "Copy Selection?", "The current selection contains edges that are not fully encapsulated. Would you like to copy these edges?", src->getID());
@@ -376,6 +378,10 @@ bool NewController::_clear()
 
 void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dataValue, bool addAction)
 {
+    if(DELETING){
+        //Ignore any calls to set whilst deleting.
+        return;
+    }
 
     if(!parent){
         qCritical() << "view_UpdateGraphMLData() Cannot Update GraphMLData for NULL GraphML object.";
@@ -638,7 +644,6 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<QStringLi
 
 void NewController::triggerAction(QString actionName)
 {
-
     actionCount++;
     currentAction = actionName;
     currentActionID = actionCount;
@@ -852,7 +857,7 @@ bool NewController::_remove(QStringList IDs, bool addAction)
                 if(graphML->isNode()){
                     Node* node = (Node*)graphML;
 
-                    bool success = destructNode(node);
+                    bool success = destructNode(node, true);
                     if(!success){
                         allSuccess = false;
                     }
@@ -1799,7 +1804,7 @@ bool NewController::destructNode(Node *node, bool addAction)
         }
     }
 
-    if(!node->wasGenerated()){
+    if(!node->wasGenerated() || addAction){
         //Add an action to reverse this action.
         ActionItem action;
         action.actionKind = GraphML::NODE;
@@ -1872,7 +1877,7 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     dstID = destination->getID();
 
     //If the Edge Wasn't Generated, and we are meant to add an Action for this removal, Add an undo state.
-    if(!edge->wasGenerated()){
+    if(!edge->wasGenerated() || addAction){
         ActionItem action;
         action.actionType = DESTRUCTED;
         action.actionKind = GraphML::EDGE;
@@ -3546,7 +3551,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     QList<EdgeTemp> instanceEdges;
     QList<EdgeTemp> implEdges;
     QList<EdgeTemp> otherEdges;
-
+    bool poppedup = false;
     foreach(EdgeTemp edge, currentEdges){
         Node* s = nodeLookup[edge.source];
         Node* d = nodeLookup[edge.target];
@@ -3559,7 +3564,10 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         }
 
         if(!(s && d)){
-            emit controller_DisplayMessage(CRITICAL, "Import Error", "Got invalid edge!");
+            if(!poppedup){
+                emit controller_DisplayMessage(CRITICAL, "Import Error", "Cannot find all end points of imported edge!");
+                poppedup = true;
+            }
             continue;
         }
 
@@ -3733,7 +3741,7 @@ bool NewController::canPaste(QStringList selection)
 {
     if(selection.size() == 1){
         GraphML* graphml = getGraphMLFromID(selection[0]);\
-        if(graphml && graphml->isNode()){
+        if(graphml && graphml->isNode() && graphml != model){
             return true;
         }
     }
