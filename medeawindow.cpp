@@ -772,6 +772,7 @@ void MedeaWindow::setupSearchTools()
 
     searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight-3);
     searchBar->setStyleSheet("background-color: rgb(230,230,230);");
+    searchBar->setPlaceholderText(searchBarDefaultText);
 
     //searchSuggestions->setViewMode(QListView::ListMode);
     //searchSuggestions->setVisible(false);
@@ -2334,7 +2335,7 @@ void MedeaWindow::newProject()
 
     // clear and reset the search bar
     searchBar->clear();
-    searchBar->setText(searchBarDefaultText);
+    //searchBar->setText(searchBarDefaultText);
 
     resetGUI();
 
@@ -2546,7 +2547,7 @@ void MedeaWindow::updateSearchLineEdits()
     // if the call came from the search bar, check if it either needs to be cleared or reset
     QLineEdit* searchEdit = qobject_cast<QLineEdit*>(QObject::sender());
     if (searchEdit && searchEdit == searchBar) {
-        if (searchBar->hasFocus()) {
+        /*if (searchBar->hasFocus()) {
             if (searchBar->text() == searchBarDefaultText){
                 searchBar->clear();
             }
@@ -2554,7 +2555,7 @@ void MedeaWindow::updateSearchLineEdits()
             if (searchBar->text().length() == 0) {
                 searchBar->setText(searchBarDefaultText);
             }
-        }
+        }*/
         return;
     }
 
