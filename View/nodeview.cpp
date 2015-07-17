@@ -1415,6 +1415,11 @@ void NodeView::showToolbar(QPoint position)
     // only show the toolbar if there is at least one node item selected
     if (selectedIDs.count() > 0) {
 
+        NodeItem* selectedItem = getSelectedNodeItem();
+        if (selectedItem && selectedItem->getNodeKind() == "Model") {
+            return;
+        }
+
         // this will update the toolbar buttons and menus
         updateToolbarSelectedItems(true);
 
@@ -3173,6 +3178,10 @@ void NodeView::removeFromSelection(GraphMLItem *item)
     }*/
     //Set this item as Selected.
     setGraphMLItemSelected(item, false);
+
+    // added this here because actions weren't being enabled/disabled
+    // correctly when selecting/deselting items using the CTRL key
+    enableClipboardActions(selectedIDs);
 
     // update toolbar selected items
     updateToolbarSelectedItems();
