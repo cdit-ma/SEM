@@ -1,4 +1,4 @@
 Version 14:
+* BlackboxInstance entities are now deployable to Hardware* entities
 * Implemented About Page
 * Fixed various bugs.
-* BlackboxInstance entities are now deployable to Hardware* entities
