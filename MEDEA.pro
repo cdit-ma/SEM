@@ -15,8 +15,14 @@ TARGET = MEDEA
 
 TEMPLATE = app
 
-#Used for Icon in windows
-RC_FILE = medea.rc
+win32{
+    #Used for Icon in windows
+    RC_FILE = medea.rc
+}
+
+macx:ICON = $${PWD}/medea.icns
+
+
 
 win32{
     LIBS += -lpsapi
