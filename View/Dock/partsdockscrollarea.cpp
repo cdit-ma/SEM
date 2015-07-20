@@ -40,8 +40,6 @@ void PartsDockScrollArea::updateDock()
             if(dockNodeItem){
                 dockNodeItem->hide();
                 displayedItems.removeAll(kind);
-            }else{
-                //qCritical() << "Dont have item" << kind;
             }
         }
     }
@@ -52,8 +50,6 @@ void PartsDockScrollArea::updateDock()
         if (dockNodeItem) {
             dockNodeItem->show();
             displayedItems.append(kind);
-        } else {
-            //qCritical() << "Dont have item" << kind;
         }
     }
     if(displayedItems.isEmpty()){

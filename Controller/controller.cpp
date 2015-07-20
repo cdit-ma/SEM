@@ -86,7 +86,7 @@ NewController::NewController()
 
     guiConstructableNodeKinds.append(definitionNodeKinds);
     guiConstructableNodeKinds.append(behaviourNodeKinds);
-    guiConstructableNodeKinds.removeAll("AggregateInstance");
+    //guiConstructableNodeKinds.removeAll("AggregateInstance");
     guiConstructableNodeKinds.removeDuplicates();
     guiConstructableNodeKinds.sort();
 }
@@ -1041,6 +1041,13 @@ QStringList NewController::getAdoptableNodeKinds(QString ID)
     if(parent){
         foreach(QString nodeKind, getNodeKinds(parent)){
             //Construct a Node of the Kind nodeKind.
+
+            //Ignore AggregateInstance for all kinds except Aggregate's
+            if(nodeKind == "AggregateInstance"){
+                if(parent->getDataValue("kind") != "Aggregate"){
+                    continue;
+                }
+            }
 
             Node* node = constructTypedNode(nodeKind);
 

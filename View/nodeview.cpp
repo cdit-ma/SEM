@@ -599,8 +599,16 @@ QList<NodeItem *> NodeView::getConnectableNodeItems(QString ID)
 {
     QList<NodeItem*> nodeItems;
     QStringList IDs = controller->getConnectableNodes(ID);
+    NodeItem* src = getNodeItemFromID(ID);
     foreach(QString cID, IDs){
         NodeItem* nodeItem = getNodeItemFromID(cID);
+
+        if(src && nodeItem){
+            //Ignore edges between AggregateInstance and AggregateInstances in Dock
+            if(src->getNodeKind() == "AggregateInstance" && nodeItem->getNodeKind() == "AggregateInstance"){
+                continue;
+            }
+        }
         if(nodeItem){
             nodeItems.append(nodeItem);
         }
