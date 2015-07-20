@@ -942,7 +942,9 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
                   "}"
                   "QToolButton:pressed{ background-color: rgba(240,240,240,240);}"
                   "QToolButton:checked{ background-color: rgba(180,180,180,225);}"
-                  "QToolBar::separator { background-color: rgba(0,0,0,0); }");
+                  "QToolBar::separator { background-color: rgba(0,0,0,0); }"
+                  "QMessageBox{background-color:" + palette().color(QWidget::backgroundRole()).name() + ";}"
+                  );
 
     toolbarButton = new QToolButton(this);
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
@@ -1418,7 +1420,9 @@ void MedeaWindow::aboutMedea()
     aboutString += "<li>Matthew Hart</li>";
     aboutString += "</ul>";
 
-    QMessageBox::about(this, "About MEDEA",aboutString);
+
+
+    QMessageBox::about(this, "About MEDEA", aboutString);
 }
 
 void MedeaWindow::invalidJenkinsSettings(QString message)

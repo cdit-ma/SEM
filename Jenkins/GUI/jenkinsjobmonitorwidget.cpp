@@ -30,7 +30,7 @@ JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager
     setWindowIcon(QIcon(":/Resources/Icons/jenkins_build.png"));
 
 
-    setStyleSheet("QDialog{font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;}");
+    setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;");
 
     setupLayout();
 

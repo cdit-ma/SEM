@@ -49,7 +49,7 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
     QPushButton* keyLabel = new QPushButton(hrKeyName);
     keyLabel->setFlat(true);
-    labelStyleSheet = "QPushButton{background-color: rgba(0,0,0,0); border: 0px; text-align: left; padding-right:2px;}";//text-align:right;";
+    labelStyleSheet = "background-color: rgba(0,0,0,0); border: 0px; text-align: left; padding-right:2px;";//text-align:right;";
     keyLabel->setStyleSheet(labelStyleSheet);
 
     if(description != ""){

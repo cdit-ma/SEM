@@ -11,7 +11,7 @@ Model::~Model()
 {
     removeEdges();
     removeChildren();
-    qWarning() << "Destructed Model.";
+    //qWarning() << "Destructed Model.";
 }
 
 bool Model::canAdoptChild(Node *child)
