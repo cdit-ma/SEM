@@ -207,7 +207,8 @@ OTHER_FILES += \
     Resources/Scripts/xalan.jar \
     Resources/Scripts/xercesImpl.jar \
     Resources/Scripts/xml-apis.jar \
-    medea.rc
+    medea.rc \
+    changelog.txt
 
 
 #Define $$OUTPUT_DIR

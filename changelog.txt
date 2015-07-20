@@ -1,3 +1,4 @@
 Version 14:
 * Implemented About Page
 * Fixed various bugs.
+* BlackboxInstance entities are now deployable to Hardware* entities
