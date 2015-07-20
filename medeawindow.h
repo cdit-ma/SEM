@@ -58,6 +58,7 @@
 #include <QAbstractMessageHandler>
 
 
+
 class MedeaWindow : public QMainWindow
 {
     Q_OBJECT
@@ -109,6 +110,7 @@ public slots:
     void validate_Exported(QString tempModelPath);
 
 private slots:
+    void aboutMedea();
     void invalidJenkinsSettings(QString message);
     void jenkinsNodesLoaded();
     void saveSettings();
@@ -275,6 +277,7 @@ private:
     QAction* actionToggleGrid;
     QAction* actionTogglePanningMode;
     QAction* actionContextMenu;
+    QAction* file_AboutMedea;
 
 
 

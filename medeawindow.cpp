@@ -20,6 +20,8 @@
 
 #define THREADING true
 
+#define MEDEA_VERSION 14
+
 #define RIGHT_PANEL_WIDTH 230.0
 #define SPACER_HEIGHT 30
 
@@ -90,11 +92,13 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
 
+
     launchFilePathArg = graphMLFile;
     loadLaunchedFile = launchFilePathArg != "";
 
     modelCleared = false;
     // this needs to happen before the menu is set up and connected
+
     applicationDirectory = QApplication::applicationDirPath() + "/";
     appSettings = new AppSettings(this, applicationDirectory);
     appSettings->setModal(true);
@@ -104,6 +108,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     validate_TempExport = false;
     jenkins_TempExport = false;
     leftOverTime = 0;
+
 
     initialiseJenkinsManager();
 
@@ -536,6 +541,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     menu->addSeparator();
 
     settings_changeAppSettings = menu->addAction(QIcon(":/Resources/Icons/settings.png"), "Settings");
+    file_AboutMedea = menu->addAction(QIcon(":/Resources/Icons/info.png"),"About MEDEA");
     exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Exit");
 
     menu->setFont(guiFont);
@@ -1132,7 +1138,7 @@ void MedeaWindow::makeConnections()
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
-
+    connect(file_AboutMedea, SIGNAL(triggered()), this, SLOT(aboutMedea()));
 
     connect(this, SIGNAL(window_ExportProject()), nodeView, SLOT(exportProject()));
     connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SLOT(importProjects(QStringList)));
@@ -1305,7 +1311,7 @@ connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
 
     addAction(actionToggleGrid);
     addAction(settings_changeAppSettings);
-
+    addAction(file_AboutMedea);
 
 }
 
@@ -1392,6 +1398,27 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(validationComplete(int)));
     connect(myProcess, SIGNAL(finished(int)), myProcess, SLOT(deleteLater()));
     myProcess->start(program, arguments);
+}
+
+
+/**
+ * @brief MedeaWindow::aboutMedea Constructs the about MEDEA Dialog
+ */
+void MedeaWindow::aboutMedea()
+{
+    QString aboutString;
+    aboutString += "<b>MEDEA " + QString::number(MEDEA_VERSION) + "</b><hr />";
+    aboutString += "Defence Information Group<br />";
+    aboutString += "<i>The University of Adelaide</i><br /><br />";
+    aboutString += "Developers:";
+    aboutString += "<ul>";
+    aboutString += "<li>Dan Fraser</li>";
+    aboutString += "<li>Cathlyn Aston</li>";
+    aboutString += "<li>Marianne Rieckmann</li>";
+    aboutString += "<li>Matthew Hart</li>";
+    aboutString += "</ul>";
+
+    QMessageBox::about(this, "About MEDEA",aboutString);
 }
 
 void MedeaWindow::invalidJenkinsSettings(QString message)

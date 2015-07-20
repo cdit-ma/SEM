@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
         GraphMLFile = QString(argv[1]);
     }
 
+
     MedeaWindow *w = new MedeaWindow(GraphMLFile);
     w->show();
     return a.exec();

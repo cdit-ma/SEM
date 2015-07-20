@@ -49,14 +49,14 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
 
     QPushButton* keyLabel = new QPushButton(hrKeyName);
     keyLabel->setFlat(true);
-    labelStyleSheet = "background-color: rgba(0,0,0,0); border: 0px; text-align: left; padding-right:2px;";//text-align:right;";
+    labelStyleSheet = "QPushButton{background-color: rgba(0,0,0,0); border: 0px; text-align: left; padding-right:2px;}";//text-align:right;";
     keyLabel->setStyleSheet(labelStyleSheet);
 
     if(description != ""){
         descriptionBox = new QTextBrowser() ;
 
         descriptionBox->setReadOnly(true);
-        descriptionBox->setStyleSheet("font-size: 10px;color:#333;border:0px;");// background-color:#F0F0F0;");
+        descriptionBox->setStyleSheet("QTextBrowser{font-size: 10px;color:#333;border:0px;}");// background-color:#F0F0F0;");
         descriptionBox->setHtml(description);
         descriptionBox->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
 
