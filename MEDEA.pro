@@ -208,7 +208,8 @@ OTHER_FILES += \
     Resources/Scripts/xercesImpl.jar \
     Resources/Scripts/xml-apis.jar \
     medea.rc \
-    changelog.txt
+    changelog.txt \
+    application.ico
 
 
 #Define $$OUTPUT_DIR
