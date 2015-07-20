@@ -398,6 +398,8 @@ private:
     int minLeftPanelHeight;
 
     //QString DEPGEN_ROOT;
+    QString launchFilePathArg;
+    bool loadLaunchedFile;
     QString exportFileName;
     QString tempFileName;
     bool tempExport;

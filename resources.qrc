@@ -129,5 +129,6 @@
         <file>Resources/Icons/Workload.png</file>
         <file>Resources/Icons/zoomToFit.png</file>
         <file>Resources/Icons/pan.png</file>
+        <file>Resources/Icons/application.ico</file>
     </qresource>
 </RCC>

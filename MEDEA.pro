@@ -15,6 +15,9 @@ TARGET = MEDEA
 
 TEMPLATE = app
 
+#Used for Icon in windows
+RC_FILE = medea.rc
+
 win32{
     LIBS += -lpsapi
 }
@@ -203,7 +206,8 @@ OTHER_FILES += \
     Resources/Scripts/serializer.jar \
     Resources/Scripts/xalan.jar \
     Resources/Scripts/xercesImpl.jar \
-    Resources/Scripts/xml-apis.jar
+    Resources/Scripts/xml-apis.jar \
+    medea.rc
 
 
 #Define $$OUTPUT_DIR

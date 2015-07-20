@@ -89,6 +89,10 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+
+    launchFilePathArg = graphMLFile;
+    loadLaunchedFile = launchFilePathArg != "";
+
     modelCleared = false;
     // this needs to happen before the menu is set up and connected
     applicationDirectory = QApplication::applicationDirPath() + "/";
@@ -178,6 +182,14 @@ void MedeaWindow::modelReady()
     resetView();
     //Reset the initial settings
     setupInitialSettings();
+
+    //Load loadLaunchedFile
+    if(loadLaunchedFile){
+        QStringList files;
+        files << launchFilePathArg;
+        importProjects(files);
+        loadLaunchedFile = false;
+    }
     //Make the nodeView visable agian!
     if(nodeView){
         nodeView->setEnabled(true);
