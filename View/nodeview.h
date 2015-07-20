@@ -99,6 +99,7 @@ private slots:
 
 signals:
     void view_ClearSubViewAttributeTable();
+    void view_ModelReady();
 
 
     void view_OpenHardwareDock();

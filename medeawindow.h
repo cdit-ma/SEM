@@ -67,6 +67,7 @@ public:
     ~MedeaWindow();
 
 signals:
+    void window_ConnectViewAndSetupModel(NodeView* view);
     void jenkins_RunGroovyScript(QString groovyScriptPath);
 
     void window_PasteData(QString value);
@@ -92,6 +93,7 @@ private:
    void toolbarSettingChanged(QString keyName, QString value);
    void enableTempExport(bool enable);
 public slots:
+    void modelReady();
     void projectCleared();
     void settingChanged(QString groupName, QString keyName, QString value);
 

@@ -92,6 +92,7 @@ public:
 
 
 signals:
+    void controller_ModelReady();
     void controller_ActionProgressChanged(int percent, QString action="");
     void controller_ActionFinished();
 
@@ -114,6 +115,7 @@ signals:
 
     void controller_SetViewEnabled(bool);
 private slots:
+    void connectViewAndSetupModel(NodeView* view);
     //Clipboard functionality
     void cut(QStringList IDs);
     void copy(QStringList IDs);

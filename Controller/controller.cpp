@@ -129,6 +129,7 @@ void NewController::connectView(NodeView *view)
 
         connect(this, SIGNAL(controller_AskQuestion(MESSAGE_TYPE, QString, QString, QString)), view, SLOT(showQuestion(MESSAGE_TYPE,QString,QString,QString)));
         connect(view, SIGNAL(view_QuestionAnswered(bool)), this, SLOT(gotQuestionAnswer(bool)));
+        connect(this, SIGNAL(controller_ModelReady()), view, SIGNAL(view_ModelReady()));
     }
 
     if(view->isMainView()){
@@ -171,6 +172,7 @@ void NewController::initializeModel()
 {
     setupModel();
     clearHistory();
+    emit controller_ModelReady();
 }
 
 NewController::~NewController()
@@ -1127,6 +1129,16 @@ QString NewController::getDeployedHardwareID(QString ID)
         }
     }
     return deplID;
+}
+
+/**
+ * @brief NewController::connectViewAndSetupModel Called
+ * @param view
+ */
+void NewController::connectViewAndSetupModel(NodeView *view)
+{
+    connectView(view);
+    initializeModel();
 }
 
 QStringList NewController::getNodesOfKind(QString kind, QString ID, int depth)

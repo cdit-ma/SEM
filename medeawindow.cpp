@@ -29,6 +29,8 @@
 #define TOOLBAR_BUTTON_WIDTH 46
 #define TOOLBAR_BUTTON_HEIGHT 40
 
+#define NOTIFICATION_TIME 2000
+
 
 // USER SETTINGS
 #define WINDOW_X "01-01-Position_X"
@@ -97,6 +99,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     tempExport = false;
     validate_TempExport = false;
     jenkins_TempExport = false;
+    leftOverTime = 0;
 
     initialiseJenkinsManager();
 
@@ -163,6 +166,21 @@ void MedeaWindow::enableTempExport(bool enable)
     }
     if(model_validateModel){
         model_validateModel->setEnabled(enable);
+    }
+}
+
+/**
+ * @brief MedeaWindow::modelReady - Called whenever a new project is run, after the controller has finished setting up the NodeView/Controller/Model
+ */
+void MedeaWindow::modelReady()
+{
+    //Reset the View.
+    resetView();
+    //Reset the initial settings
+    setupInitialSettings();
+    //Make the nodeView visable agian!
+    if(nodeView){
+        nodeView->setEnabled(true);
     }
 }
 
@@ -1037,10 +1055,11 @@ void MedeaWindow::setupController()
         controllerThread = new QThread();
         controllerThread->start();
         controller->moveToThread(controllerThread);
-    }
 
-    controller->connectView(nodeView);
-    controller->initializeModel();
+    }
+    connect(this, SIGNAL(window_ConnectViewAndSetupModel(NodeView*)), controller, SLOT(connectViewAndSetupModel(NodeView*)));
+
+    emit window_ConnectViewAndSetupModel(nodeView);
 }
 
 
@@ -1064,6 +1083,7 @@ void MedeaWindow::makeConnections()
     validateResults.connectToWindow(this);
 
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
+    connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));
     connect(nodeView, SIGNAL(view_ImportSnippet(QString)), this, SLOT(importSnippet(QString)));
 
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
@@ -1459,6 +1479,9 @@ void MedeaWindow::setupInitialSettings()
     // hide initial notifications
     notificationsBar->hide();
     notificationTimer->stop();
+
+    //Reset time.
+    leftOverTime = 0;
 
     //We have finished loading settings. reset state of Controller undo states.
     nodeView->view_ClearHistory();
@@ -2335,6 +2358,8 @@ void MedeaWindow::resetView()
  */
 void MedeaWindow::newProject()
 {
+    //Disable NodeView.
+    nodeView->setEnabled(false);
     progressAction = "Setting up New Project";
 
     // clear and reset the search bar
@@ -2369,7 +2394,7 @@ void MedeaWindow::newProject()
     searchResults->close();
 
     resetGUI();
-    resetView();
+
 }
 
 
@@ -2647,6 +2672,7 @@ void MedeaWindow::updateSearchLineEdits()
  */
 void MedeaWindow::displayNotification(QString notification, int seqNum, int totalNum)
 {
+
     if (totalNum > 1) {
         multipleNotification[seqNum] = notification;
         if (multipleNotification.count() == totalNum) {
@@ -2670,7 +2696,7 @@ void MedeaWindow::displayNotification(QString notification, int seqNum, int tota
         notificationsBar->setText(notification);
         notificationsBar->setFixedWidth(notificationsBar->fontMetrics().width(notification) + 30);
         notificationsBar->show();
-        notificationTimer->start(5000);
+        notificationTimer->start(NOTIFICATION_TIME);
     }
 }
 
