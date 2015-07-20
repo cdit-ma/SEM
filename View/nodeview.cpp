@@ -186,7 +186,7 @@ bool NodeView::isTerminating()
 
 bool NodeView::isNodeKindDeployable(QString nodeKind)
 {
-    if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance" || nodeKind == "ManagementComponent") {
+    if (nodeKind == "ComponentAssembly" || nodeKind == "ComponentInstance" || nodeKind == "ManagementComponent" || nodeKind == "BlackBoxInstance") {
         return true;
     }
     return false;

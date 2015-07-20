@@ -132,6 +132,10 @@ bool Edge::isDeploymentLink()
         return true;
     }
 
+    if(source->getDataValue("kind").endsWith("BlackBoxInstance") && destination->getDataValue("kind").startsWith("Hardware")){
+        return true;
+    }
+
     return false;
 }
 

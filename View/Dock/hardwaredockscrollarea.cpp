@@ -47,7 +47,7 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
     hardware_notAllowedKinds.append("InEventPortDelegate");
     hardware_notAllowedKinds.append("OutEventPortDelegate");
     hardware_notAllowedKinds.append("BlackBox");
-    hardware_notAllowedKinds.append("BlackBoxInstance");
+    //hardware_notAllowedKinds.append("BlackBoxInstance");
 
     setNotAllowedKinds(hardware_notAllowedKinds);
 }
