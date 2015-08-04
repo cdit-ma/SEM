@@ -16,6 +16,7 @@
 #include <QMenu>
 #include <QWidgetAction>
 #include <QCheckBox>
+#include <QRadioButton>
 
 #include "../../Model/node.h"
 #include "../../Model/graphmldata.h"
@@ -96,6 +97,8 @@ public:
     bool labelPressed(QPointF mousePosition);
     bool iconPressed(QPointF mousePosition);
 
+    bool menuArrowPressed(QPointF mousePosition);
+
 
     NodeItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
 
@@ -143,7 +146,8 @@ public:
     bool isSorted();
     void setSorted(bool isSorted);
 
-
+    QMenu* getChildrenViewOptionMenu();
+    QRectF geChildrenViewOptionMenuSceneRect();
 
     void highlightNodeItem(bool highlight);
     void showHardwareIcon(bool show);
@@ -220,6 +224,7 @@ public slots:
     void snapChildrenToGrid();
 
  	void menuClosed();
+    void updateChildrenViewMode();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -232,6 +237,7 @@ protected:
 
 
 private:
+    void updateDisplayedChildren(int viewMode);
 
 //USED METHODS
     QRectF iconRect();
@@ -256,12 +262,14 @@ private:
     void setPos(qreal x, qreal y);
     void setPos(const QPointF &pos);
     void calculateGridlines();
+
     void setupAspect();
     void setupBrushes();
     void setupIcon();
     void setupLabel();
     void setupGraphMLConnections();
-    void setupLockMenu();
+    void setupChildrenViewOptionMenu();
+
     void setPaintObject(bool paint);
     void updateGraphMLPosition();
     void updateChildrenOnChange();
@@ -293,17 +301,14 @@ private:
     bool drawGridlines();
 
 
+    QMenu* childrenViewOptionMenu;
+    QRadioButton* allChildren;
+    QRadioButton* connectedChildren;
+    QRadioButton* unConnectedChildren;
 
-
-
-
-
-    QMenu* lockMenu;
-    QWidgetAction* lockPos;
-    QWidgetAction* lockSize;
-    QWidgetAction* lockLabel;
-    QWidgetAction* lockSortOrder;
-
+    bool HARDWARE_CLUSTER;
+    int CHILDREN_VIEW_MODE;
+    bool sortTriggerAction;
 
     NodeItem* parentNodeItem;
     QStringList viewAspects;

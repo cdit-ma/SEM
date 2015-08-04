@@ -297,6 +297,9 @@ public slots:
 
     void setEventFromEdgeItem();
 
+    void showHardwareClusterChildrenViewMenu(NodeItem* nodeItem);
+    void hardwareClusterChildrenViewMenuClosed(NodeItem* nodeItem);
+
 private:
     void selectJenkinsImportedNodes();
 
@@ -326,6 +329,7 @@ private:
     QStringList getAdoptableNodeList(QString ID);
     QStringList getConnectableNodes(QString ID);
     QList<NodeItem*> getConnectableNodeItems(QString ID);
+    QList<NodeItem*> getConnectableNodeItems(QStringList IDs = QStringList());
     QList<NodeItem*> getNodeInstances(QString ID);
 
     QList<Node*> getFiles();

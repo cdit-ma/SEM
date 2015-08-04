@@ -618,6 +618,46 @@ QList<NodeItem *> NodeView::getConnectableNodeItems(QString ID)
     return nodeItems;
 }
 
+
+/**
+ * @brief NodeView::getConnectableNodeItems
+ * @param IDs
+ * @return
+ */
+QList<NodeItem*> NodeView::getConnectableNodeItems(QStringList IDs)
+{
+    /*
+    if (IDs.isEmpty()) {
+        IDs = selectedIDs;
+    }
+
+    QHash<QString, int> connectableNodesHash;
+    foreach (QString ID, IDs) {
+        QStringList connectableNodes = getConnectableNodes(ID);
+        connectableNodes.removeDuplicates();
+        foreach (QString cnID, connectableNodes) {
+            connectableNodesHash[cnID] = connectableNodesHash[cnID]++;
+        }
+    }
+
+
+    QList<NodeItem*> sharedLegalNodeItems;
+    foreach (QString hashID, connectableNodesHash.keys()) {
+        if (connectableNodesHash[hashID] == IDs.count()) {
+            NodeItem* item = getNodeItemFromID(hashID);
+            if (item) {
+                sharedLegalNodeItems.append(item);
+            }
+        }
+    }
+
+    return sharedLegalNodeItems;
+    */
+
+    return QList<NodeItem*>();
+}
+
+
 QList<NodeItem *> NodeView::getNodeInstances(QString ID)
 {
     QList<NodeItem*> nodeItems;
@@ -981,7 +1021,6 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
         fitToScreen();
     }
 
-
     // only need to clear the selection if any of the selected items is now not in aspect
     foreach (QString id, selectedIDs) {
         NodeItem* item = (NodeItem*)guiItems[id];
@@ -1017,7 +1056,7 @@ void NodeView::sortSelection()
         }
         emit view_updateProgressStatus(100);
 
-       actionFinished();
+        actionFinished();
     }
 
 
@@ -1392,6 +1431,46 @@ void NodeView::setEventFromEdgeItem()
 }
 
 
+/**
+ * @brief NodeView::showHardwareClusterChildrenViewMenu
+ * @param nodeItem
+ */
+void NodeView::showHardwareClusterChildrenViewMenu(NodeItem *nodeItem)
+{
+    QMenu* menu = nodeItem->getChildrenViewOptionMenu();
+    if (menu) {
+        if (menu == prevLockMenuOpened) {
+            menu->close();
+            prevLockMenuOpened = 0;
+        } else {
+            QRectF lockRect = nodeItem->geChildrenViewOptionMenuSceneRect();
+            QPoint offset(lockRect.width()/5, -lockRect.width()/15);
+            QPointF menuPos = mapFromScene(lockRect.bottomLeft() + offset);
+            menuPos = mapToGlobal(menuPos.toPoint());
+            menu->popup(menuPos.toPoint());
+            prevLockMenuOpened = menu;
+        }
+    }
+}
+
+
+/**
+ * @brief NodeView::hardwareClusterChildrenViewMenuClosed
+ * @param nodeItem
+ */
+void NodeView::hardwareClusterChildrenViewMenuClosed(NodeItem *nodeItem)
+{
+    QPointF viewPos = mapFromScene(nodeItem->geChildrenViewOptionMenuSceneRect().topLeft());
+    QPointF globalPos = mapToGlobal(viewPos.toPoint());
+    QRectF rect(globalPos, nodeItem->geChildrenViewOptionMenuSceneRect().size()*transform().m11());
+
+    if (!rect.contains(QCursor::pos())) {
+        prevLockMenuOpened = 0;
+        //emit view_nodeItemLockMenuClosed(nodeItem);
+    }
+}
+
+
 void NodeView::_deleteFromIDs(QStringList IDs)
 {
     if (IDs.count() > 0) {
@@ -1648,6 +1727,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 
         connectGraphMLItemToController(nodeEdge);
 
+        /*
         // show hidden hardware node before the new edge is added to scene
         // sort its parent so that the newly visible hardware node can be easily seen
         if (dstGUI->getGraphML()->getDataValue("kind") == "HardwareNode") {
@@ -1656,6 +1736,8 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
                 dstGUI->getParentNodeItem()->newSort();
             }
         }
+        */
+
         if(!constructEdge){
             nodeEdge->setHidden(true);
         }
@@ -1827,9 +1909,7 @@ void NodeView::destructEdge(QString srcID, QString dstID, bool triggerAction)
 
 /**
  * @brief NodeView::constructDestructEdges
- * @param destruct_srcIDs
- * @param destruct_dtsIDs
- * @param construct_srcIDs
+ * @param srcIDs
  * @param dstID
  */
 void NodeView::constructDestructEdges(QStringList srcIDs, QString dstID)
@@ -1840,9 +1920,11 @@ void NodeView::constructDestructEdges(QStringList srcIDs, QString dstID)
 
             NodeItem* dstNode = getNodeItemFromID(dstID);
             if (dstNode) {
+                /*
                 view_displayNotification("Connected selection to " +
                                          dstNode->getNodeLabel() + ".",
                                          notificationNumber, numberOfNotifications);
+                                         */
             }
 
             triggerAction("Dock: Destructing/Constructing Multiple Edges");
@@ -2256,6 +2338,10 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
                 connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
                 connect(this, SIGNAL(view_togglePanningMode(bool)), nodeItem, SLOT(togglePanningMode(bool)));
                 connect(nodeItem, SIGNAL(Nodeitem_HasFocus(bool)), this, SLOT(editableItemHasFocus(bool)));
+
+                connect(nodeItem, SIGNAL(NodeItem_showLockMenu(NodeItem*)), this, SLOT(showHardwareClusterChildrenViewMenu(NodeItem*)));
+                connect(nodeItem, SIGNAL(NodeItem_lockMenuClosed(NodeItem*)), this, SLOT(hardwareClusterChildrenViewMenuClosed(NodeItem*)));
+                connect(this, SIGNAL(view_edgeConstructed()), nodeItem, SLOT(updateChildrenViewMode()));
             }
         }
     }
@@ -2367,22 +2453,23 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
     // snap node item to its parent's grid
     //nodeItem->snapToGrid();
 
-    // initially hide all ManagementComponents
-    if (nodeItem->getNodeKind() == "ManagementComponent") {
+    if (nodeItem->getNodeKind().startsWith("Hardware")) {
+
+        // this will update the HardwareClusters' children view mode
+        // and the HardwareNodes' initial visibility
+        updateDeployment = true;
+
+    } else if (nodeItem->getNodeKind() == "ManagementComponent") {
+
         bool show = managementComponentsShown();
-        if(isSubView() && parentNodeView){
+        if (isSubView() && parentNodeView) {
             show = parentNodeView->managementComponentsShown();
         }
         nodeItem->setHidden(!show);
-    }
 
-    //Hide HardwareNodes.
-    if (nodeItem->getNodeKind() == "HardwareNode") {
-        nodeItem->setHidden(false);
-    }
+    } else if (nodeItem->getNodeKind() == "AggregateInstance") {
 
-    // hide all AggregateInstances except for in OutEventPortImpls
-    if (nodeItem->getNodeKind() == "AggregateInstance") {
+        // hide all AggregateInstances except for in OutEventPortImpls
         NodeItem* parentItem = nodeItem->getParentNodeItem();
         if (parentItem && (parentItem->getNodeKind() != "AggregateInstance"
                            && parentItem->getNodeKind() != "Aggregate"
@@ -2390,7 +2477,15 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
         {
             nodeItem->setHidden(true);
         }
+
     }
+
+    /*
+    //Hide HardwareNodes.
+    if (nodeItem->getNodeKind() == "HardwareNode") {
+        nodeItem->setHidden(false);
+    }
+    */
 
     // if currently pasting, select pasted item
     if (pasting || importFromJenkins) {
@@ -2477,7 +2572,6 @@ void NodeView::edgeDestructed_signalUpdates(Edge* edge, QString ID)
  */
 void NodeView::updateActionsEnabled()
 {
-    //qDebug() << "updateActionsEnabled";
     QString ID = getSelectedNodeID();
 
     QString defnID;
@@ -3366,7 +3460,7 @@ void NodeView::view_ClearHistory()
     emit view_ClearHistoryStates();
     viewCenterPointStack.clear();
 
-    // clear the maps used for the moving the view backwards & forwards
+    // clear the maps used for moving the view backwards & forwards
     modelPositions.clear();
     centeredRects.clear();
 }
@@ -3811,10 +3905,10 @@ void NodeView::sortModel()
     if (!controller) {
         return;
     }
-     if(viewMutex.tryLock()){
+    if(viewMutex.tryLock()){
         if (getModelItem()) {
             getModelItem()->newSort();
         }
         actionFinished();
-     }
+    }
 }

@@ -45,9 +45,7 @@ public slots:
     void addChildNode();
     void connectNodes();
     void addConnectedNode();
-
     void makeNewView();
-
 
     void attachOptionMenu();
 

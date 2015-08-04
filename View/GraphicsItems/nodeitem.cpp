@@ -40,6 +40,10 @@
 
 #define GRID_RATIO 1.75
 
+#define ALL 0
+#define CONNECTED 1
+#define UNCONNECTED 2
+
 /**
  * @brief NodeItem::NodeItem
  * @param node
@@ -97,6 +101,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     minimumHeight = 0;
 
     nodeKind = getGraphML()->getDataValue("kind");
+
+    HARDWARE_CLUSTER = (nodeKind == "HardwareCluster");
+    CHILDREN_VIEW_MODE = CONNECTED;
+    sortTriggerAction = true;
     
     hasIcon = true;
     if(nodeKind.endsWith("Definitions") || nodeKind == "Model"){
@@ -141,9 +149,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setupAspect();
     setupBrushes();
     //setupIcon();
-    
-    //setupLockMenu();
-    
+
     setFlag(ItemDoesntPropagateOpacityToChildren);
     setFlag(ItemIgnoresParentOpacity);
     setFlag(ItemSendsGeometryChanges);
@@ -158,7 +164,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         setPaintObject(true);
     }
     
-    
+    if (HARDWARE_CLUSTER) {
+        setupChildrenViewOptionMenu();
+    }
     
 
     if(IN_SUBVIEW){
@@ -765,8 +773,10 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 
     //If a Node has a Definition, paint a Lock Icon
-    if(hasDefinition){
+    if (hasDefinition){
         painter->drawImage(lockIconRect(), getNodeView()->getImage("definition"));
+    } else if (nodeKind == "HardwareCluster") {
+        painter->drawImage(lockIconRect(), getNodeView()->getImage("menu"));
     }
 
     //If this Node has a Deployment Warning, paint a warning Icon
@@ -819,6 +829,23 @@ bool NodeItem::iconPressed(QPointF mousePosition)
 {
     if(hasIcon){
         if(iconRect().contains(mousePosition)){
+            return true;
+        }
+    }
+    return false;
+}
+
+
+/**
+ * @brief NodeItem::menuArrowPressed
+ * @param mousePosition
+ * @return
+ */
+bool NodeItem::menuArrowPressed(QPointF mousePosition)
+{
+    if (HARDWARE_CLUSTER) {
+        QRectF menuButtonRect = mapRectToScene(lockIconRect());
+        if (menuButtonRect.contains(mousePosition)) {
             return true;
         }
     }
@@ -1231,10 +1258,11 @@ void NodeItem::newSort()
         return;
     }
     
-    
-    // added this so sort can be un-done
-    GraphMLItem_TriggerAction("NodeItem: Sorting Node");
-    
+    if (sortTriggerAction) {
+        // added this so sort can be un-done
+        GraphMLItem_TriggerAction("NodeItem: Sorting Node");
+    }
+
     //Get the number of un-locked items
     QMap<int, NodeItem*> toSortMap;
     QList<NodeItem*> lockedItems;
@@ -1393,7 +1421,11 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::LeftButton:{
         
-
+        // check if the lock icon was clicked
+        if (menuArrowPressed(event->scenePos())) {
+            emit NodeItem_showLockMenu(this);
+            return;
+        }
 
 
         previousScenePosition = event->scenePos();
@@ -1666,16 +1698,20 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     if(hasVisibleChildren() && iconPressed(event->pos())){
         setCursor(Qt::PointingHandCursor);
         changedCursor = true;
-        tooltip = "Double click to expand/contract entity.";
+        tooltip = "Double click to expand/contract entity";
     }
     
     QPointF eventPos = event->pos();
     if (labelPressed(eventPos)) {
         //tooltip = ;
     } else if (lockIconRect().contains(eventPos)) {
-        tooltip = "This entity instance has a definition.";
+        if (hasDefinition) {
+            tooltip = "This entity has a definition";
+        } else {
+            tooltip = "Click to change the displayed hardware nodes";
+        }
     } else if (deploymentIconRect().contains(eventPos)) {
-        tooltip = "Not all children entities are deployed to the same hardware node.";
+        tooltip = "Not all children entities are deployed to the same hardware node";
     }
     
     // update/show tool tip depending on where the mouse is
@@ -1712,6 +1748,48 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
     Q_UNUSED(event);
     currentResizeMode = NO_RESIZE;
     setCursor(Qt::OpenHandCursor);
+}
+
+
+/**
+ * @brief NodeItem::updateDisplayedChildren
+ * @param viewMode
+ */
+void NodeItem::updateDisplayedChildren(int viewMode)
+{
+    QList<NodeItem*> childrenItems = getChildNodeItems();
+
+    if (viewMode == ALL) {
+        // show all HarwareNodes
+        foreach (NodeItem* item, childrenItems) {
+            item->setVisible(true && isNodeExpanded);
+        }
+    } else if (viewMode == CONNECTED) {
+        // show connected HarwareNodes
+        foreach (NodeItem* item, childrenItems) {
+            if (item->getEdgeItemCount() > 0) {
+                item->setVisible(true && isNodeExpanded);
+            } else {
+                item->setVisible(false);
+            }
+        }
+    } else if (viewMode == UNCONNECTED) {
+        // show unconnected HarwareNodes
+        foreach (NodeItem* item, childrenItems) {
+            if (item->getEdgeItemCount() == 0) {
+                item->setVisible(true && isNodeExpanded);
+            } else {
+                item->setVisible(false);
+            }
+        }
+    }
+
+    if (viewMode != -1) {
+        CHILDREN_VIEW_MODE = viewMode;
+        sortTriggerAction = false;
+        newSort();
+        sortTriggerAction = true;
+    }
 }
 
 /**
@@ -2192,46 +2270,51 @@ void NodeItem::setPos(const QPointF &pos)
 
 
 /**
- * @brief NodeItem::setupLockMenu
+ * @brief NodeItem::setupChildrenViewOptionMenu
  */
-void NodeItem::setupLockMenu()
+void NodeItem::setupChildrenViewOptionMenu()
 {
-    lockMenu = new QMenu();
-    lockPos = new QWidgetAction(this);
-    lockSize = new QWidgetAction(this);
-    lockLabel = new QWidgetAction(this);
-    lockSortOrder = new QWidgetAction(this);
-    
-    QCheckBox* cb1 = new QCheckBox("Position");
-    QCheckBox* cb2 = new QCheckBox("Size");
-    QCheckBox* cb3 = new QCheckBox("Label");
-    QCheckBox* cb4 = new QCheckBox("Sort Order");
-    
-    lockPos->setDefaultWidget(cb1);
-    lockSize->setDefaultWidget(cb2);
-    lockLabel->setDefaultWidget(cb3);
-    lockSortOrder->setDefaultWidget(cb4);
-    
-    lockMenu->addAction(lockPos);
-    lockMenu->addAction(lockSize);
-    lockMenu->addAction(lockLabel);
-    lockMenu->addAction(lockSortOrder);
-    
-    QFont font = lockMenu->font();
+    childrenViewOptionMenu = new QMenu();
+
+    QFont font = childrenViewOptionMenu->font();
     font.setPointSize(9);
     
-    lockMenu->setFont(font);
-    lockMenu->setFixedSize(110, 93);
-    lockMenu->setAttribute(Qt::WA_TranslucentBackground);
-    lockMenu->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
-    lockMenu->setStyleSheet("QCheckBox::checked{ color: darkRed; font-weight: bold; }"
-                            "QCheckBox{ padding: 3px; }"
-                            "QMenu{ padding: 5px;"
-                            "border-radius: 8px;"
-                            "background-color: rgba(240,240,240,245); }");
+    childrenViewOptionMenu->setFont(font);
+    childrenViewOptionMenu->setFixedSize(115, 68);
+    childrenViewOptionMenu->setAttribute(Qt::WA_TranslucentBackground);
+    childrenViewOptionMenu->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+    childrenViewOptionMenu->setStyleSheet("QRadioButton::checked{ color: darkRed; font-weight: bold; }"
+                                          "QRadioButton{ padding: 3px; }"
+                                          "QMenu{ padding: 5px;"
+                                          "border-radius: 8px;"
+                                          "background-color: rgba(240,240,240,245); }");
+
+    allChildren = new QRadioButton("All");
+    connectedChildren = new QRadioButton("Connected");
+    unConnectedChildren = new QRadioButton("Unconnected");
+
+    QWidgetAction* a1 = new QWidgetAction(this);
+    QWidgetAction* a2 = new QWidgetAction(this);
+    QWidgetAction* a3 = new QWidgetAction(this);
+
+    a1->setDefaultWidget(allChildren);
+    a2->setDefaultWidget(connectedChildren);
+    a3->setDefaultWidget(unConnectedChildren);
+
+    childrenViewOptionMenu->addAction(a1);
+    childrenViewOptionMenu->addAction(a2);
+    childrenViewOptionMenu->addAction(a3);
+
+    connect(allChildren, SIGNAL(clicked()), this, SLOT(updateChildrenViewMode()));
+    connect(connectedChildren, SIGNAL(clicked()), this, SLOT(updateChildrenViewMode()));
+    connect(unConnectedChildren, SIGNAL(clicked()), this, SLOT(updateChildrenViewMode()));
+    connect(allChildren, SIGNAL(clicked()), childrenViewOptionMenu, SLOT(hide()));
+    connect(connectedChildren, SIGNAL(clicked()), childrenViewOptionMenu, SLOT(hide()));
+    connect(unConnectedChildren, SIGNAL(clicked()), childrenViewOptionMenu, SLOT(hide()));
+    connect(childrenViewOptionMenu, SIGNAL(aboutToHide()), this, SLOT(menuClosed()));
     
-    connect(lockMenu, SIGNAL(aboutToHide()), this, SLOT(menuClosed()));
-    
+    // set the intial mode to only show connected HarwareNodes
+    connectedChildren->setChecked(true);
 }
 
 
@@ -2599,6 +2682,54 @@ void NodeItem::menuClosed()
 }
 
 
+/**
+ * @brief NodeItem::updateChildrenViewMode
+ */
+void NodeItem::updateChildrenViewMode()
+{
+    if (HARDWARE_CLUSTER) {
+
+        QRadioButton* action = qobject_cast<QRadioButton*>(QObject::sender());
+        int viewMode = -1;
+
+        if (action) {
+
+            if (action == allChildren) {
+                viewMode = ALL;
+            } else if (action == connectedChildren) {
+                viewMode = CONNECTED;
+            } else if (action == unConnectedChildren) {
+                viewMode = UNCONNECTED;
+            } else {
+                qWarning() << "NodeItem::updateChildrenViewMode - There is no action for this option";
+                return;
+            }
+
+        } else {
+
+            switch (CHILDREN_VIEW_MODE) {
+            case ALL:
+                allChildren->clicked(true);
+                break;
+            case CONNECTED:
+                connectedChildren->clicked(true);
+                break;
+            case UNCONNECTED:
+                unConnectedChildren->clicked(true);
+                break;
+            default:
+                qWarning() << "NodeItem::updateChildrenViewMode - There is no action for this state";
+                break;
+            }
+
+            return;
+        }
+
+        updateDisplayedChildren(viewMode);
+    }
+}
+
+
 void NodeItem::updateGraphMLPosition()
 {
     //Give the current Width and height. update the width/height variable in the GraphML Model.
@@ -2809,6 +2940,30 @@ bool NodeItem::isSorted()
 void NodeItem::setSorted(bool isSorted)
 {
     isNodeSorted = isSorted;
+}
+
+
+/**
+ * @brief NodeItem::getChildrenViewOptionMenu
+ * @return
+ */
+QMenu *NodeItem::getChildrenViewOptionMenu()
+{
+    return childrenViewOptionMenu;
+}
+
+
+/**
+ * @brief NodeItem::geChildrenViewOptionMenuSceneRect
+ * @return
+ */
+QRectF NodeItem::geChildrenViewOptionMenuSceneRect()
+{
+    if (HARDWARE_CLUSTER) {
+        QRectF menuButtonRect = mapRectToScene(lockIconRect());
+        return menuButtonRect;
+    }
+    return QRectF();
 }
 
 
@@ -3032,6 +3187,19 @@ void NodeItem::setNodeExpanded(bool expanded)
     }
     
     isNodeExpanded = expanded;
+
+    // if expanded, only show the HardwareNodes that match the current chidldren view mode
+    if (HARDWARE_CLUSTER && expanded) {
+
+        // this will show/hide HardwareNodes depending on the current view mode
+        updateDisplayedChildren(CHILDREN_VIEW_MODE);
+
+        // this sets the width and height to their expanded values
+        setWidth(expandedWidth);
+        setHeight(expandedHeight);
+
+        return;
+    }
     
     //Show/Hide the non-hidden children.
     foreach(NodeItem* nodeItem, childNodeItems){
@@ -3044,6 +3212,7 @@ void NodeItem::setNodeExpanded(bool expanded)
         //Set the width/height to their expanded values.
         setWidth(expandedWidth);
         setHeight(expandedHeight);
+
     } else {
         //Set the width/height to their minimum values.
         setWidth(minimumWidth);

@@ -130,5 +130,6 @@
         <file>Resources/Icons/zoomToFit.png</file>
         <file>Resources/Icons/pan.png</file>
         <file>Resources/Icons/application.ico</file>
+        <file>Resources/Icons/menu.png</file>
     </qresource>
 </RCC>

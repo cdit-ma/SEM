@@ -66,7 +66,7 @@ void ToolbarWidget::updateSelectedItems(QList<NodeItem*> nodeItems, QList<EdgeIt
         } else if (nodeItems.count() > 1) {
             multipleSelection(nodeItems);
         } else {
-            // it shouldn't get to this function if there aren't any selected items
+            // it shouldn't get to this statement if there aren't any selected items
             qWarning() << "ToolbarWidget::updateSelectedNodeItem - There are no selected items.";
             return;
         }
@@ -710,6 +710,14 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items, QList<EdgeItem *> 
     foreach (QToolButton* button, multipleSelectionToolButtons) {
         button->setVisible(showButtons);
     }
+
+    // show the connect button if there is at least one entity that all the
+    // selected items can connect to; clear and update the connect menu
+    /*
+    QList<NodeItem*> connectableNodeItems = nodeView->getConnectableNodeItems();
+    connectMenu->clearMenu();
+    setupLegalNodesList(connectableNodeItems);
+    */
 
     showToolbar = showButtons || deleteButtonVisible;
 }

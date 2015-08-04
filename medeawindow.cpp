@@ -198,6 +198,7 @@ void MedeaWindow::modelReady()
     //Make the nodeView visable agian!
     if(nodeView){
         nodeView->setEnabled(true);
+        //nodeView->fitToScreen();
     }
 }
 
@@ -1499,15 +1500,14 @@ void MedeaWindow::setupInitialSettings()
     appSettings->loadSettings();
     //toggleAndTriggerAction(view_showManagementComponents, false);
 
+    QStringList allKinds = nodeView->getAllNodeKinds();
     QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
+
     // this only needs to happen once, the whole time the application is open
     partsDock->addDockNodeItems(guiKinds);
 
-    QStringList allKinds = nodeView->getAllNodeKinds();
-
     // populate view aspects menu  once the nodeView and controller have been
     // constructed and connected - should only need to do this once
-
     foreach (QString kind, allKinds) {
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(kind, this);
@@ -1519,7 +1519,7 @@ void MedeaWindow::setupInitialSettings()
         nodeKindsMenu->addAction(action);
     }
 
-    // hide initial notifications
+    // hide initial notifications and reset timer
     notificationsBar->hide();
     notificationTimer->stop();
 
@@ -1529,9 +1529,11 @@ void MedeaWindow::setupInitialSettings()
     //We have finished loading settings. reset state of Controller undo states.
     nodeView->view_ClearHistory();
 
-
     // initially disable all the docks
     nodeView->view_nodeSelected();
+
+    nodeView->fitToScreen();
+    toggleAndTriggerAction(actionFitToScreen, true);
 }
 
 
@@ -2146,6 +2148,8 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
         actionCenter->setEnabled(enable);
         actionZoomToFit->setEnabled(enable);
         actionPopupSubview->setEnabled(enable);
+        // added this after the tag was made
+        actionContextMenu->setEnabled(enable);
     }else if(action == "nodesSelected"){
         actionSort->setEnabled(enable);
     }
