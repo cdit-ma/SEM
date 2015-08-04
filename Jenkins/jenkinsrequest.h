@@ -69,6 +69,8 @@ private slots:
     void stopJob(QString jobName, int buildNumber, QString activeConfiguration="");
     void validateJenkinsSettings();
 
+    void waitForJobNumber(QString jobName, int buildNumber, QString activeConfiguration, QString outputChunk);
+
     //Called if the JenkinsManager has been destroyed.
     void _unexpectedTermination();
 private:
@@ -90,10 +92,12 @@ private:
 
     //Instance variables
     QString jobName;
+    QString currentOutput;
     QString activeConfiguration;
     int buildNumber;
     int timeOutMS;
     bool terminated;
+    bool waitingOnNumber;
 
     //The parent JenkinsManager
     JenkinsManager* manager;

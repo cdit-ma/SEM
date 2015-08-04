@@ -291,7 +291,7 @@ bool JenkinsRequest::waitForValidSettings()
     connect(this, SIGNAL(unexpectedTermination()), &waitLoop, SLOT(quit()));
 
     //Start the timer
-    timeOutTimer->start(timeOutMS);
+    timeOutTimer->start(4 * timeOutMS);
 
     //Wait for something to quit the EventLoop
     waitLoop.exec();
@@ -306,9 +306,10 @@ bool JenkinsRequest::waitForValidSettings()
 
     //Check for termination
     if(terminated || timedOut){
-        //qCritical() << "Terminating the Jenkins Request!";
+        qCritical() << "Terminating the Jenkins Request!";
         return false;
     }else{
+        //
         //Return what the value of the validation returned.
         return manager->hasValidatedSettings();
     }
@@ -516,10 +517,44 @@ void JenkinsRequest::validateJenkinsSettings()
     }else if(response.first >= 1){
         result = "Cannot Reach Server Address";
     }
-
     emit gotSettingsValidationResponse(success, result);
 
     emit requestFinished();
+}
+
+void JenkinsRequest::waitForJobNumber(QString jobName, int buildNumber, QString activeConfiguration, QString outputChunk)
+{
+    if(waitingOnNumber){
+        //Parse the returned data as a String
+
+        currentOutput += outputChunk;
+
+        bool isMatrix = _isJobAMatrixProject(jobName);
+
+        int buildNumber = -1;
+
+        //If Job is MultiConfiguration. Output tells us which job Number.
+        if(isMatrix){
+            //Started [jobName] #[buildNumber]
+            //Construct a Regex Expression to match and get the Number.
+            QRegularExpression regex("Started " + jobName + " #([0-9]+)");
+
+            QRegularExpressionMatch resultMatch = regex.match(currentOutput);
+            if(resultMatch.hasMatch()){
+                QString match = resultMatch.captured(1);
+                //If toInt fails, buildNumber will be 0
+                buildNumber = match.toInt();
+                if(buildNumber == 0){
+                    buildNumber = -1;
+                }
+            }
+        }
+        if(buildNumber > 0){
+            //Gets the Job State of the Root Job, and will call the SIGNAL to teardown the JenkinsRequest
+            getJobState(jobName, buildNumber, "");
+            waitingOnNumber = false;
+        }
+    }
 }
 
 /**
@@ -672,37 +707,19 @@ void JenkinsRequest::buildJob(QString jobName, Jenkins_JobParameters jobParamete
             command += "-p " + parameter.name + "=" + parameter.value + " ";
         }
 
+        storeRequestParameters(jobName);
+
+
         //Add options to pipe the output of the root job.
         command += "-s -v ";
 
+        waitingOnNumber = true;
+        currentOutput = "";
+
+        connect(this, SIGNAL(gotLiveCLIOutput(QString,int,QString,QString)), this, SLOT(waitForJobNumber(QString, int, QString, QString)));
 
         //Execute the Wrapped CLI Command in a process. Will produce gotLiveCLIOutput as data becomes available.
-         QPair<int, QByteArray> response = runProcess(manager->getCLICommand(command));
-
-        //Parse the returned data as a String
-        QString result = QString(response.second);
-
-        int buildNumber = -1;
-
-        //If Job is MultiConfiguration. Output tells us which job Number.
-        if(_isJobAMatrixProject(jobName)){
-            //Started [jobName] #[buildNumber]
-            //Construct a Regex Expression to match and get the Number.
-            QRegularExpression regex("Started " + jobName + " #([0-9]+)");
-
-            QRegularExpressionMatch resultMatch = regex.match(result);
-            if(resultMatch.hasMatch()){
-                QString match = resultMatch.captured(1);
-                //If toInt fails, buildNumber will be 0
-                buildNumber = match.toInt();
-                if(buildNumber == 0){
-                    buildNumber = -1;
-                }
-            }
-        }
-
-        //Gets the Job State of the Root Job, and will call the SIGNAL to teardown the JenkinsRequest
-        getJobState(jobName, buildNumber, "");
+        QPair<int, QByteArray> response = runProcess(manager->getCLICommand(command));
     }else{
          emit requestFailed();
          emit requestFinished();
