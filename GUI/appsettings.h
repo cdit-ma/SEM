@@ -44,6 +44,7 @@ private:
 
     QHash<QString, QString> keyToGroupMap;
     //QList<KeyEditWidget*> settingsWidgets;
+    bool settingsLoaded;
 
     QPushButton* applyButton;
     QHash<QString, KeyEditWidget*> settingsWidgetsHash;

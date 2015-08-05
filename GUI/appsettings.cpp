@@ -23,7 +23,7 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(paren
 {
     //Setup Settings.
     settings = new QSettings(applicationPath + "/settings.ini", QSettings::IniFormat);
-
+    settingsLoaded = false;
     setMinimumWidth(SETTINGS_WIDTH);
     setMinimumHeight(SETTINGS_HEIGHT);
     setWindowTitle("MEDEA - Settings");
@@ -52,15 +52,24 @@ QSettings* AppSettings::getSettings()
  */
 void AppSettings::loadSettings()
 {
+
     foreach(QString group, settings->childGroups()){
         settings->beginGroup(group);
 
+
         foreach(QString key, settings->childKeys()){
+            //Dont reload window settings.
+            if(settingsLoaded && group == "01-Window_Settings"){
+                 continue;
+            }
             QString value = settings->value(key).toString();
             //Foreach Key in each Group in the settings file, emit the signal that the setting has changed.
             emit settingChanged(group ,key, value);
         }
         settings->endGroup();
+    }
+    if(!settingsLoaded){
+        settingsLoaded = true;
     }
 }
 
