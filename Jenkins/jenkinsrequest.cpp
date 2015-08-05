@@ -524,6 +524,9 @@ void JenkinsRequest::validateJenkinsSettings()
 
 void JenkinsRequest::waitForJobNumber(QString jobName, int buildNumber, QString activeConfiguration, QString outputChunk)
 {
+    Q_UNUSED(buildNumber);
+    Q_UNUSED(activeConfiguration);
+
     if(waitingOnNumber){
         //Parse the returned data as a String
 

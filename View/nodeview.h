@@ -100,6 +100,7 @@ private slots:
 signals:
     void view_ClearSubViewAttributeTable();
     void view_ModelReady();
+    void view_EnableDebugLogging(bool enable, QString applicationPath="");
 
 
     void view_OpenHardwareDock();

@@ -2,6 +2,7 @@ Version 15:
 * Implemented a Menu on HardwareCluster entities to allow the hiding/showing of connected HardwareNode entities.
 * Fixed a bug where launching a Jenkins Job would leave the Progress Bar saying "Waiting on Jenkins CLI..." (Only occured on nodes on same network as Jenkins server)
 * Fixed an issue when Pressing "New Project" would load the saved Window Size/Position settings from the settings.ini file.
+* Implemented a Setting for toggling Debug mode logging to an external log file. Also fixed the location of the log file to be the application directory.
 
 Version 14:
 * BlackboxInstance entities are now deployable to Hardware* entities

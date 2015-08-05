@@ -60,6 +60,7 @@ public:
     Model* getModel();
 
 
+
     //Get a list of all Node Kinds
     QStringList getNodeKinds(Node* parent);
     //Get a list of all View Aspects
@@ -115,6 +116,8 @@ signals:
 
     void controller_SetViewEnabled(bool);
 private slots:
+    void enableDebugLogging(bool logMode, QString applicationPath="");
+
     void connectViewAndSetupModel(NodeView* view);
     //Clipboard functionality
     void cut(QStringList IDs);
@@ -349,6 +352,7 @@ private:
     //Used to tell if we are currently Undo-ing/Redo-ing in the system.
     bool UNDOING;
     bool REDOING;
+    bool USE_LOGGING;
     bool IMPORTING_SNIPPET;
 
     Model* model;

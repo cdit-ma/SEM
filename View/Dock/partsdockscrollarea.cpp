@@ -71,11 +71,11 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
     nodeKinds.sort();
 
     foreach (QString kind, nodeKinds) {
+        //If we have already made one of these, we shouldn't remake it.
         if (!getDockNodeItem(kind)) {
-
+            DockNodeItem* dockNodeItem = new DockNodeItem(kind, 0, this);
+            addDockNodeItem(dockNodeItem);
         }
-        DockNodeItem* dockNodeItem = new DockNodeItem(kind, 0, this);
-        addDockNodeItem(dockNodeItem);
     }
 
     // initialise list of displayed items

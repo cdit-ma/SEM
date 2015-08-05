@@ -6,7 +6,7 @@
 #include <QMessageBox>
 #include <QEventLoop>
 
-#define USE_LOGGING true
+
 #define LABEL_TRUNCATE_LENGTH 64
 
 bool UNDO = true;
@@ -19,12 +19,9 @@ NewController::NewController()
     qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
     qRegisterMetaType<GraphML::KIND>("GraphML::KIND");
 
-    logFile = new QFile("output.log");
-    if (!logFile->open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text)){
-        //CANNOT OPEN LOG FILE.
+    logFile = 0;
 
-    }
-
+    USE_LOGGING = false;
     UNDOING = false;
     REDOING = false;
     DELETING = false;
@@ -105,8 +102,8 @@ void NewController::connectView(NodeView *view)
 
 
     if(view->isMainView()){
-
         connect(view, SIGNAL(view_constructDestructEdges(QStringList,QString)), this, SLOT(constructDestructMultipleEdges(QStringList,QString)));
+        connect(view, SIGNAL(view_EnableDebugLogging(bool, QString)), this, SLOT(enableDebugLogging(bool, QString)));
 
 
         connect(view, SIGNAL(view_DestructEdge(QString,QString)), this, SLOT(destructEdge(QString,QString)));
@@ -177,6 +174,9 @@ void NewController::initializeModel()
 
 NewController::~NewController()
 {
+    //Disable Logging
+    enableDebugLogging(false);
+
     DELETING = true;
     destructNode(model, false);
 
@@ -3152,6 +3152,31 @@ QString NewController::getTimeStamp()
 Model *NewController::getModel()
 {
     return model;
+}
+
+void NewController::enableDebugLogging(bool logMode, QString applicationPath)
+{
+    if(logMode){
+        if(applicationPath != ""){
+            applicationPath += "/";
+        }
+        QString filePath = applicationPath + "output.log";
+        logFile = new QFile(filePath);
+        if (!logFile->open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text)){
+            //CANNOT OPEN LOG FILE.
+            emit controller_DisplayMessage(WARNING, "Cannot open Log File to write", "MEDEA Cannot open log file: " + filePath + ". Logging Disabled");
+            USE_LOGGING = false;
+        }else{
+            USE_LOGGING = true;
+        }
+    }else{
+        //Teardown log File.
+        if(logFile){
+            logFile->close();
+            logFile = 0;
+        }
+        USE_LOGGING = false;
+    }
 }
 
 /**

@@ -35,6 +35,7 @@
 
 
 // USER SETTINGS
+#define LOG_DEBUGGING "00-01-Log_Debug_Information"
 #define WINDOW_X "01-01-Position_X"
 #define WINDOW_Y "01-02-Position_Y"
 #define WINDOW_W "01-03-Width"
@@ -243,6 +244,10 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
             setWindowState(Qt::WindowMaximized);
         }else{
             setWindowState(Qt::WindowNoState);
+        }
+    }else if(keyName == LOG_DEBUGGING && isBool){
+        if(nodeView){
+            emit nodeView->view_EnableDebugLogging(boolValue, applicationDirectory);
         }
     }else if(keyName == AUTO_CENTER_VIEW && isBool){
         nodeView->autoCenterAspects(boolValue);
