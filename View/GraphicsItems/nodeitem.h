@@ -153,6 +153,9 @@ public:
     void showHardwareIcon(bool show);
     QList<NodeItem *> deploymentView(bool on, NodeItem* selectedItem = 0);
 
+    int getChildrenViewMode();
+
+
 signals:
     //Node Edge Signals
     void setEdgeVisibility(bool visible);
@@ -184,6 +187,8 @@ signals:
 
 
     void nodeItemMoved();
+
+    void nodeItem_menuClicked(int viewMode);
 
 
 public slots:
@@ -224,7 +229,7 @@ public slots:
     void snapChildrenToGrid();
 
  	void menuClosed();
-    void updateChildrenViewMode();
+    void updateChildrenViewMode(int viewMode = -1);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -309,6 +314,7 @@ private:
     bool HARDWARE_CLUSTER;
     int CHILDREN_VIEW_MODE;
     bool sortTriggerAction;
+    bool eventFromMenu;
 
     NodeItem* parentNodeItem;
     QStringList viewAspects;

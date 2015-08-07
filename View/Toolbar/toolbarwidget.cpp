@@ -206,6 +206,64 @@ void ToolbarWidget::updateActionEnabled(QString actionName, bool enabled)
 
 
 /**
+ * @brief ToolbarWidget::displayAllChildren
+ */
+void ToolbarWidget::displayAllChildren()
+{
+    nodeView->updateDisplayedChildrenNodes(0);
+}
+
+
+/**
+ * @brief ToolbarWidget::displayConnectedChildren
+ */
+void ToolbarWidget::displayConnectedChildren()
+{
+    nodeView->updateDisplayedChildrenNodes(1);
+}
+
+
+/**
+ * @brief ToolbarWidget::displayUnconnectedChildren
+ */
+void ToolbarWidget::displayUnconnectedChildren()
+{
+    nodeView->updateDisplayedChildrenNodes(2);
+}
+
+
+/**
+ * @brief ToolbarWidget::hardwareClusterMenuClicked
+ * @param viewMode
+ */
+void ToolbarWidget::hardwareClusterMenuClicked(int viewMode)
+{
+    switch (viewMode) {
+    case 0:
+        r1->setChecked(true);
+        break;
+    case 1:
+        r2->setChecked(true);
+        break;
+    case 2:
+        r3->setChecked(true);
+        break;
+    default:
+        r1->setAutoExclusive(false);
+        r2->setAutoExclusive(false);
+        r3->setAutoExclusive(false);
+        r1->setChecked(false);
+        r2->setChecked(false);
+        r3->setChecked(false);
+        r1->setAutoExclusive(true);
+        r2->setAutoExclusive(true);
+        r3->setAutoExclusive(true);
+        break;
+    }
+}
+
+
+/**
  * @brief ToolbarWidget::goToDefinition
  * This sends a signal to the view to center on the selected nodeitem's definition.
  */
@@ -400,6 +458,7 @@ void ToolbarWidget::setupToolBar()
     alignHorizontallyButton = new QToolButton(this);
     exportSnippetButton = new QToolButton(this);
     importSnippetButton = new QToolButton(this);
+    displayedChildrenOptionButton = new QToolButton(this);
 
     addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode.png"));
     connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
@@ -413,6 +472,7 @@ void ToolbarWidget::setupToolBar()
     alignHorizontallyButton->setIcon(QIcon(":/Resources/Icons/alignHorizontally.png"));
     exportSnippetButton->setIcon(QIcon(":/Resources/Icons/exportSnippet.png"));
     importSnippetButton->setIcon(QIcon(":/Resources/Icons/importSnippet.png"));
+    displayedChildrenOptionButton->setIcon(QIcon(":/Resources/Icons/settings.png"));
 
     deleteButton->setStyleSheet("padding-right: 3px;");
 
@@ -428,6 +488,7 @@ void ToolbarWidget::setupToolBar()
     alignHorizontallyButton->setFixedSize(buttonSize);
     exportSnippetButton->setFixedSize(buttonSize);
     importSnippetButton->setFixedSize(buttonSize);
+    displayedChildrenOptionButton->setFixedSize(buttonSize);
 
     addChildButton->setIconSize(buttonSize*0.6);
     connectButton->setIconSize(buttonSize*0.6);
@@ -441,6 +502,7 @@ void ToolbarWidget::setupToolBar()
     alignHorizontallyButton->setIconSize(buttonSize*0.8);
     exportSnippetButton->setIconSize(buttonSize*0.65);
     importSnippetButton->setIconSize(buttonSize*0.65);
+    displayedChildrenOptionButton->setIconSize(buttonSize*0.65);
 
     addChildButton->setToolTip("Add Child Entity");
     connectButton->setToolTip("Connect Entity");
@@ -454,6 +516,7 @@ void ToolbarWidget::setupToolBar()
     alignHorizontallyButton->setToolTip("Align Selection Horizontally");
     exportSnippetButton->setToolTip("Export GraphML Snippet");
     importSnippetButton->setToolTip("Import GraphML Snippet");
+    displayedChildrenOptionButton->setToolTip("Change Displayed Nodes");
 
     snippetFrame = new QFrame();
     snippetFrame->setFrameShape(QFrame::VLine);
@@ -482,6 +545,7 @@ void ToolbarWidget::setupToolBar()
     layout->addWidget(alterViewFrame);
     layout->addWidget(showConnectionsButton);
     layout->addWidget(showNewViewButton);
+    layout->addWidget(displayedChildrenOptionButton);
 
     layout->setMargin(5);
     layout->setAlignment(Qt::AlignTop);
@@ -520,6 +584,32 @@ void ToolbarWidget::setupMenus()
     definitionButton->setPopupMode(QToolButton::InstantPopup);
     definitionButton->setMenu(definitionMenu);
 
+    displayedChildrenOptionMenu = new ToolbarWidgetMenu(0, 0, displayedChildrenOptionButton);
+    displayedChildrenOptionButton->setPopupMode(QToolButton::InstantPopup);
+    displayedChildrenOptionButton->setMenu(displayedChildrenOptionMenu);
+
+    QWidgetAction* a1 = new QWidgetAction(this);
+    QWidgetAction* a2 = new QWidgetAction(this);
+    QWidgetAction* a3 = new QWidgetAction(this);
+    r1 = new QRadioButton("All", this);
+    r2 = new QRadioButton("Connected", this);
+    r3 = new QRadioButton("Unconnected", this);
+    a1->setDefaultWidget(r1);
+    a2->setDefaultWidget(r2);
+    a3->setDefaultWidget(r3);
+    displayedChildrenOptionMenu->addAction(a1);
+    displayedChildrenOptionMenu->addAction(a2);
+    displayedChildrenOptionMenu->addAction(a3);
+
+    /*
+    QAction* dco_all = displayedChildrenOptionMenu->addAction("All nodes"); //QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
+    QAction* dco_connected = displayedChildrenOptionMenu->addAction("Connected nodes"); //QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
+    QAction* dco_unconnected = displayedChildrenOptionMenu->addAction("Unconnected nodes"); //QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
+    connect(dco_all, SIGNAL(triggered()), this, SLOT(displayAllChildren()));
+    connect(dco_connected, SIGNAL(triggered()), this, SLOT(displayConnectedChildren()));
+    connect(dco_unconnected, SIGNAL(triggered()), this, SLOT(displayUnconnectedChildren()));
+    */
+
     QAction* defn_goTo = definitionMenu->addAction(QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
     QAction* defn_popup = definitionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Definition");
     connect(defn_goTo, SIGNAL(triggered()), this, SLOT(goToDefinition()));
@@ -540,7 +630,6 @@ void ToolbarWidget::setupMenus()
     instanceOptionMenu = new ToolbarWidgetMenu(0, 0, instancesMenu);
     instancesButton->setPopupMode(QToolButton::InstantPopup);
     instancesButton->setMenu(instancesMenu);
-
     QAction* inst_goTo = instanceOptionMenu->addAction(QIcon(":/Resources/Icons/goto.png"), "Go to Instance");
     QAction* inst_popup = instanceOptionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Instance");
     connect(inst_goTo, SIGNAL(triggered()), this, SLOT(goToInstance()));
@@ -595,9 +684,16 @@ void ToolbarWidget::makeConnections()
     connect(showConnectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
     connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
 
-
     connect(importSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ImportSnippet()));
     connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(exportSnippet()));
+
+    connect(r1, SIGNAL(clicked()), this, SLOT(displayAllChildren()));
+    connect(r2, SIGNAL(clicked()), this, SLOT(displayConnectedChildren()));
+    connect(r3, SIGNAL(clicked()), this, SLOT(displayUnconnectedChildren()));
+    connect(r1, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
+    connect(r2, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
+    connect(r3, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
+    connect(displayedChildrenOptionMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
 }
 
 
@@ -622,6 +718,13 @@ void ToolbarWidget::updateToolButtons()
         // DEMO CHANGE - Don't need this when the popup new window button is back
         //alterViewFrame->hide();
         showConnectionsButton->hide();
+    }
+
+    if (nodeItem->getNodeKind() == "HardwareCluster") {
+        displayedChildrenOptionButton->show();
+        nodeItem->updateChildrenViewMode();
+    } else {
+        displayedChildrenOptionButton->hide();
     }
 
     // always show showNewView button
@@ -695,6 +798,7 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items, QList<EdgeItem *> 
     }
 
     NodeItem* prevParentItem = 0;
+    bool hardwareClusters = true;
     bool showButtons = true;
 
     // only show the group alignment buttons if all the selected items have the same parent
@@ -705,10 +809,20 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items, QList<EdgeItem *> 
             break;
         }
         prevParentItem = parentItem;
+        if (hardwareClusters && item->getNodeKind() != "HardwareCluster") {
+            hardwareClusters = false;
+        }
     }
 
     foreach (QToolButton* button, multipleSelectionToolButtons) {
         button->setVisible(showButtons);
+    }
+
+    if (hardwareClusters) {
+        displayedChildrenOptionButton->show();
+        resetRadioButtons(items);
+    } else {
+        displayedChildrenOptionButton->hide();
     }
 
     // show the connect button if there is at least one entity that all the
@@ -719,7 +833,7 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items, QList<EdgeItem *> 
     setupLegalNodesList(connectableNodeItems);
     */
 
-    showToolbar = showButtons || deleteButtonVisible;
+    showToolbar = showButtons || deleteButtonVisible || hardwareClusters;
 }
 
 
@@ -1094,4 +1208,25 @@ void ToolbarWidget::clearMenus()
     outEventPort_componentInstanceMenu->clearMenu();
     blackBoxInstanceMenu->clearMenu();
     instancesMenu->clearMenu();
+}
+
+
+/**
+ * @brief ToolbarWidget::resetRadioButtons
+ * @param selectedItems
+ */
+void ToolbarWidget::resetRadioButtons(QList<NodeItem*> hardwareClusters)
+{
+    int viewMode = -1;
+    if (!hardwareClusters.isEmpty()) {
+        viewMode = hardwareClusters.at(0)->getChildrenViewMode();
+        for (int i = 1; i < hardwareClusters.count(); i++) {
+            NodeItem* hc = hardwareClusters.at(i);
+            if (hc->getChildrenViewMode() != viewMode) {
+                viewMode = -1;
+                break;
+            }
+        }
+        hardwareClusterMenuClicked(viewMode);
+    }
 }

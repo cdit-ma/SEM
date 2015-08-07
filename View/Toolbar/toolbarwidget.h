@@ -38,6 +38,11 @@ protected:
 public slots:
     void updateActionEnabled(QString actionName, bool enabled);
 
+    void displayAllChildren();
+    void displayConnectedChildren();
+    void displayUnconnectedChildren();
+    void hardwareClusterMenuClicked(int viewMode);
+
     void goToDefinition();
     void goToImplementation();
     void goToInstance();
@@ -75,6 +80,7 @@ private:
     void setupInEventPortInstanceList();
     void setupOutEventPortInstanceList();
 
+    void resetRadioButtons(QList<NodeItem*> hardwareClusters);
     void clearMenus();
 
     NodeView* nodeView;
@@ -103,10 +109,13 @@ private:
     QToolButton* exportSnippetButton;
     QToolButton* importSnippetButton;
 
+    QToolButton* displayedChildrenOptionButton;
+
     ToolbarWidgetAction* componentImplAction;
     ToolbarWidgetAction* componentInstanceAction;
     ToolbarWidgetAction* inEventPortDelegateAction;
     ToolbarWidgetAction* outEventPortDelegateAction;
+    ToolbarWidgetAction* blackBoxInstanceAction;
 
     ToolbarWidgetMenu* addMenu;
     ToolbarWidgetMenu* connectMenu;
@@ -115,18 +124,21 @@ private:
 
     ToolbarWidgetMenu* instancesMenu;
     ToolbarWidgetMenu* instanceOptionMenu;
+    ToolbarWidgetMenu* displayedChildrenOptionMenu;
 
     ToolbarWidgetMenu* fileMenu;
     ToolbarWidgetMenu* inEventPort_componentInstanceMenu;
     ToolbarWidgetMenu* outEventPort_componentInstanceMenu;
+    ToolbarWidgetMenu* blackBoxInstanceMenu;
 
     ToolbarWidgetAction* fileDefaultAction;
     ToolbarWidgetAction* inEventPort_componentInstanceDefaultAction;
     ToolbarWidgetAction* outEventPort_componentInstanceDefaultAction;
-
     ToolbarWidgetAction* blackBoxInstanceDefaultAction;
-    ToolbarWidgetAction* blackBoxInstanceAction;
-    ToolbarWidgetMenu* blackBoxInstanceMenu;
+
+    QRadioButton* r1;
+    QRadioButton* r2;
+    QRadioButton* r3;
 
     QList<QToolButton*> singleSelectionToolButtons;
     QList<QToolButton*> multipleSelectionToolButtons;

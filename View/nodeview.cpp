@@ -123,7 +123,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     //create toolbar widget
     toolbar = new ToolbarWidget(this);
-
     connect(this, SIGNAL(view_updateMenuActionEnabled(QString,bool)), toolbar, SLOT(updateActionEnabled(QString, bool)));
 
     // initialise the view's center point
@@ -484,6 +483,21 @@ bool NodeView::allowedFocus(QWidget *widget)
 
 
 /**
+ * @brief NodeView::updateDisplayedChildrenNodes
+ * @param viewMode
+ */
+void NodeView::updateDisplayedChildrenNodes(int viewMode)
+{
+    foreach (QString ID, selectedIDs) {
+        NodeItem* item = getNodeItemFromID(ID);
+        if (item) {
+            item->updateChildrenViewMode(viewMode);
+        }
+    }
+}
+
+
+/**
  * @brief NodeView::getSelectedNode
  * This returns the currently selected node.
  * If there are multiple nodes selected, it returns null.
@@ -497,6 +511,7 @@ Node* NodeView::getSelectedNode()
     }
     return 0;
 }
+
 
 QString NodeView::getSelectedNodeID()
 {
@@ -2342,6 +2357,8 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
                 connect(nodeItem, SIGNAL(NodeItem_showLockMenu(NodeItem*)), this, SLOT(showHardwareClusterChildrenViewMenu(NodeItem*)));
                 connect(nodeItem, SIGNAL(NodeItem_lockMenuClosed(NodeItem*)), this, SLOT(hardwareClusterChildrenViewMenuClosed(NodeItem*)));
                 connect(this, SIGNAL(view_edgeConstructed()), nodeItem, SLOT(updateChildrenViewMode()));
+                connect(nodeItem, SIGNAL(nodeItem_menuClicked(int)), toolbar, SLOT(hardwareClusterMenuClicked(int)));
+
             }
         }
     }

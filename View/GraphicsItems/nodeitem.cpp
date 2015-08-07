@@ -105,6 +105,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     HARDWARE_CLUSTER = (nodeKind == "HardwareCluster");
     CHILDREN_VIEW_MODE = CONNECTED;
     sortTriggerAction = true;
+    eventFromMenu = true;
     
     hasIcon = true;
     if(nodeKind.endsWith("Definitions") || nodeKind == "Model"){
@@ -1784,7 +1785,7 @@ void NodeItem::updateDisplayedChildren(int viewMode)
         }
     }
 
-    if (viewMode != -1) {
+    if (viewMode != -1 && viewMode != CHILDREN_VIEW_MODE) {
         CHILDREN_VIEW_MODE = viewMode;
         sortTriggerAction = false;
         newSort();
@@ -2314,7 +2315,7 @@ void NodeItem::setupChildrenViewOptionMenu()
     connect(childrenViewOptionMenu, SIGNAL(aboutToHide()), this, SLOT(menuClosed()));
     
     // set the intial mode to only show connected HarwareNodes
-    connectedChildren->setChecked(true);
+    //connectedChildren->setChecked(true);
 }
 
 
@@ -2375,6 +2376,7 @@ void NodeItem::aspectsChanged(QStringList visibleAspects)
             visible = false;
         }
     }
+
     isNodeInAspect = visible;
     
     // still need to update the isInAspect state in both these cases
@@ -2385,7 +2387,20 @@ void NodeItem::aspectsChanged(QStringList visibleAspects)
     if(getParentNodeItem() && !getParentNodeItem()->isExpanded()){
         return;
     }
-    
+
+    if (isNodeInAspect) {
+        if (HARDWARE_CLUSTER) {
+            updateDisplayedChildren(CHILDREN_VIEW_MODE);
+        } else if (nodeKind == "HardwareNode"){
+            if (parentNodeItem) {
+                // only show the HardwareNode if it matches its parent cluster's view mode
+                int viewMode = parentNodeItem->getChildrenViewMode();
+                if (viewMode == CONNECTED && getEdgeItemCount() == 0) {
+                    visible = false;
+                }
+            }
+        }
+    }
     
     //bool prevVisible = isVisible();
     
@@ -2684,13 +2699,14 @@ void NodeItem::menuClosed()
 
 /**
  * @brief NodeItem::updateChildrenViewMode
+ * @param viewMode
  */
-void NodeItem::updateChildrenViewMode()
+void NodeItem::updateChildrenViewMode(int viewMode)
 {
     if (HARDWARE_CLUSTER) {
 
+        // if the sender was an action, it means that this was triggered from the menu
         QRadioButton* action = qobject_cast<QRadioButton*>(QObject::sender());
-        int viewMode = -1;
 
         if (action) {
 
@@ -2705,17 +2721,29 @@ void NodeItem::updateChildrenViewMode()
                 return;
             }
 
+            if (eventFromMenu) {
+                emit nodeItem_menuClicked(viewMode);
+            } else {
+                eventFromMenu = true;
+            }
+
         } else {
+
+            // this happens when this function is called from the context toolbar
+            if (viewMode != -1) {
+                CHILDREN_VIEW_MODE = viewMode;
+                eventFromMenu = false;
+            }
 
             switch (CHILDREN_VIEW_MODE) {
             case ALL:
-                allChildren->clicked(true);
+                allChildren->click();
                 break;
             case CONNECTED:
-                connectedChildren->clicked(true);
+                connectedChildren->click();
                 break;
             case UNCONNECTED:
-                unConnectedChildren->clicked(true);
+                unConnectedChildren->click();
                 break;
             default:
                 qWarning() << "NodeItem::updateChildrenViewMode - There is no action for this state";
@@ -2928,6 +2956,16 @@ QList<NodeItem*> NodeItem::deploymentView(bool on, NodeItem *selectedItem)
     update();
     
     return chlidrenDeployedToDifferentNode;
+}
+
+
+/**
+ * @brief NodeItem::getChildrenViewMode
+ * @return
+ */
+int NodeItem::getChildrenViewMode()
+{
+   return CHILDREN_VIEW_MODE;
 }
 
 

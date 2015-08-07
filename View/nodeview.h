@@ -381,7 +381,7 @@ private:
 
     bool allowedFocus(QWidget* widget);
 
-
+    void updateDisplayedChildrenNodes(int viewMode);
 
     NewController* controller;
 

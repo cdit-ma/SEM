@@ -31,7 +31,7 @@ ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction *parent_action, Toolbar
 
     // this should always have a parent; print warning if it doesn't
     if (!parent) {
-        qDebug() << "WARNING: " << this << " doesn't have a parent. This may cause errors.";
+        qWarning() << "WARNING: " << this << " doesn't have a parent. This may cause errors.";
     }
 }
 
