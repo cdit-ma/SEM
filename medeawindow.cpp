@@ -92,12 +92,12 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
-
-
     launchFilePathArg = graphMLFile;
     loadLaunchedFile = launchFilePathArg != "";
 
+
     modelCleared = false;
+
     // this needs to happen before the menu is set up and connected
 
     applicationDirectory = QApplication::applicationDirPath() + "/";
@@ -109,6 +109,10 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     validate_TempExport = false;
     jenkins_TempExport = false;
     leftOverTime = 0;
+    isWindowMaximized = false;
+    settingsLoading = false;
+    maximizedSettingInitiallyChanged = false;
+
 
 
     initialiseJenkinsManager();
@@ -240,6 +244,9 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == WINDOW_H && isInt){
         resize(size().width(), intValue);
     }else if(keyName == WINDOW_MAX_STATE && isBool){
+        if(boolValue != isWindowMaximized && settingsLoading){
+            maximizedSettingInitiallyChanged = true;
+        }
         if(boolValue){
             setWindowState(Qt::WindowMaximized);
         }else{
@@ -306,10 +313,6 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }
 
 
-
-    if(keyName.startsWith(TOOLBAR_SETTINGS)){
-
-    }
 }
 
 
@@ -348,6 +351,7 @@ void MedeaWindow::initialiseGUI()
     // set central widget and window size
     setCentralWidget(nodeView);
     setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
+
     nodeView->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     nodeView->viewport()->setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
 
@@ -1333,7 +1337,16 @@ connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
 void MedeaWindow::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
+
+    if(isWindowMaximized != this->isMaximized() && maximizedSettingInitiallyChanged){
+        if(nodeView){
+            nodeView->fitToScreen();
+        }
+        maximizedSettingInitiallyChanged = false;
+    }
+    isWindowMaximized == this->isMaximized();
     updateWidgetsOnWindowChanged();
+
 }
 
 
@@ -1345,8 +1358,9 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
  */
 void MedeaWindow::changeEvent(QEvent *event)
 {
+
     QWidget::changeEvent(event);
-    if (event->type() == QEvent::WindowStateChange) {
+    if (event->type() == QEvent::WindowStateChange){
         updateWidgetsOnWindowChanged();
     }
 }
@@ -1502,7 +1516,10 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
  */
 void MedeaWindow::setupInitialSettings()
 {
+    settingsLoading = true;
     appSettings->loadSettings();
+    settingsLoading = false;
+
     //toggleAndTriggerAction(view_showManagementComponents, false);
 
     QStringList allKinds = nodeView->getAllNodeKinds();
@@ -1537,8 +1554,8 @@ void MedeaWindow::setupInitialSettings()
     // initially disable all the docks
     nodeView->view_nodeSelected();
 
-    nodeView->fitToScreen();
-    toggleAndTriggerAction(actionFitToScreen, true);
+    //nodeView->fitToScreen();
+    //toggleAndTriggerAction(actionFitToScreen, true);
 }
 
 

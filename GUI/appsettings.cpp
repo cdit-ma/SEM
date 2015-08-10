@@ -68,6 +68,8 @@ void AppSettings::loadSettings()
         }
         settings->endGroup();
     }
+
+
     if(!settingsLoaded){
         settingsLoaded = true;
     }

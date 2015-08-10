@@ -748,9 +748,10 @@ void NodeView::constructNewView(QString nodeID)
             newView->constructGUIItem(edgeList.takeFirst());
         }
 
-        newView->view_LockCenteredGraphML(nodeID);
+        //newView->view_LockCenteredGraphML(nodeID);
         connect(this, SIGNAL(view_ClearSubViewAttributeTable()), newView, SIGNAL(view_ClearSubViewAttributeTable()));
         subWindow->show();
+        newView->view_LockCenteredGraphML(nodeID);
     }else{
         delete subWindow;
     }
@@ -1830,7 +1831,6 @@ void NodeView::view_LockCenteredGraphML(QString ID)
 
     NodeItem* nodeItem = getNodeItemFromID(ID);
     if(nodeItem){
-
         centralizedItemID = ID;
         centralizedNodeItem = nodeItem;
         CENTRALIZED_ON_ITEM = true;
@@ -1838,6 +1838,7 @@ void NodeView::view_LockCenteredGraphML(QString ID)
         appendToSelection(getGraphMLItemFromHash(ID));
         centerItem(ID);
         ensureAspect(ID);
+
     }
 }
 

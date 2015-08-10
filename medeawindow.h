@@ -406,6 +406,9 @@ private:
     QString exportFileName;
     QString tempFileName;
     bool tempExport;
+    bool isWindowMaximized;
+    bool settingsLoading;
+    bool maximizedSettingInitiallyChanged;
 
     //multi-line popup for QTableView (VARIABLES)
     QDialog *popupMultiLine;
