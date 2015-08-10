@@ -417,8 +417,7 @@ bool AttributeTableModel::removeRows(int position, int rows, const QModelIndex &
 {
     qCritical() << "Got to remove Data";
     Q_UNUSED(parent);
-    bool allRemoved = true;
-
+    //bool allRemoved = true;
     bool anyRemoved = false;
 
     for (int row=0; row < rows; ++row) {
@@ -430,7 +429,7 @@ bool AttributeTableModel::removeRows(int position, int rows, const QModelIndex &
             }
             guiItem->GraphMLItem_DestructGraphMLData(guiItem->getGraphML(), data->getKey()->getName());
         }else{
-            allRemoved = false;
+            //allRemoved = false;
         }
 
     }

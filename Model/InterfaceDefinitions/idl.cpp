@@ -3,7 +3,7 @@
 #include "aggregate.h"
 #include "blackbox.h"
 #include <QDebug>
-IDL::IDL(QString name): Node()
+IDL::IDL(): Node()
 {
 
 }

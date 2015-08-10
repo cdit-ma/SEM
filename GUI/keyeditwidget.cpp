@@ -97,6 +97,8 @@ KeyEditWidget::KeyEditWidget(QString g, QString k, QString keyNameHR, QVariant v
         isStringList = false;
     }
 
+    Q_UNUSED(isStringList);
+
 
 
     if(isBool){

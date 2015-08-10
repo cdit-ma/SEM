@@ -1,6 +1,6 @@
 #include "blanknode.h"
 #include <QDebug>
-BlankNode::BlankNode(QString name):Node()
+BlankNode::BlankNode():Node()
 {
     //qDebug() << "Constructed Blank Node: "<< this->getName();
 }

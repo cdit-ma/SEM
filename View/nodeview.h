@@ -1,4 +1,4 @@
-#ifndef NODEVIEW_H//
+#ifndef NODEVIEW_H
 #define NODEVIEW_H
 
 #include "../Controller/controller.h"
@@ -10,6 +10,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPointF>
 #include <QRubberBand>
+#include <QMutex>
 
 
 class ToolbarWidget;
@@ -308,7 +309,7 @@ private:
 
     void _deleteFromIDs(QStringList IDs);
 
-    void enableClipboardActions(QStringList IDs );
+    void enableClipboardActions();
     void alignSelectionOnGrid(ALIGN alignment = NONE);
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);

@@ -260,6 +260,7 @@ void JenkinsJobMonitorWidget::jobStateChanged(QString jobName, int buildNumber, 
  */
 void JenkinsJobMonitorWidget::gotJobActiveConfigurations(QString jobName, QStringList activeConfigurations)
 {
+    Q_UNUSED(jobName);
     configurations = activeConfigurations;
 
     //Construct a TextBrowser for each Active Configuration.

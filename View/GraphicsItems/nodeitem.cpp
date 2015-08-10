@@ -1026,14 +1026,14 @@ QPointF NodeItem::getNextChildPos(QRectF itemRect, bool currentlySorting)
     bool useItemRect = !itemRect.isNull();
     
     QPainterPath childrenPath = QPainterPath();
-    bool hasChildren = false;
+    //bool hasChildren = false;
 
 
     // add the children's bounding rectangles to the children path
     foreach(NodeItem* child, getChildNodeItems()){
         if(child && child->isInAspect() && !child->isHidden()){
             if(!currentlySorting || (currentlySorting && child->isSorted())){
-                hasChildren = true;
+                //hasChildren = true;
                 QRectF childRect =  child->boundingRect();
                 childRect.translate(child->pos());
                 childrenPath.addRect(childRect);
@@ -2339,17 +2339,17 @@ void NodeItem::childUpdated()
         return;
     }
 
-    bool widthChanged = false;
-    bool heightChanged = false;
+    //bool widthChanged = false;
+    //bool heightChanged = false;
     //Maximize on the current size in the Model and the minimum child rectangle
     if(minSize.width() > modelWidth){
         setWidth(minSize.width());
-        widthChanged = true;
+        //widthChanged = true;
     }
 
     if(minSize.height() > modelHeight){
         setHeight(minSize.height());
-        heightChanged = true;
+        //heightChanged = true;
     }
 
     if(nodeKind == "Model"){

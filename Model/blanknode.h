@@ -5,7 +5,7 @@ class BlankNode: public Node
 {
         Q_OBJECT
 public:
-    BlankNode(QString name=0);
+    BlankNode();
     ~BlankNode();
 
     // GraphML interface

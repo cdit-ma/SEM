@@ -559,7 +559,7 @@ void NewController::constructConnectedNode(QString parentID, QString connectedID
     if(parentNode && connectedNode){
         triggerAction("Constructed Connected Node");
         Node* newNode = constructChildNode(parentNode, constructGraphMLDataVector(kind));
-        bool gotEdge = false;
+        //bool gotEdge = false;
         if(newNode){
             //Update the position
             setGraphMLData(newNode, "x", QString::number(relativePos.x()));
@@ -571,7 +571,7 @@ void NewController::constructConnectedNode(QString parentID, QString connectedID
             if(!newNode->isConnected(newNode)){
                 constructEdgeWithData(connectedNode, newNode);
             }
-            gotEdge = newNode->isConnected(newNode);
+            //gotEdge = newNode->isConnected(newNode);
         }
         //If we can't connect destruct the node we created.
     }

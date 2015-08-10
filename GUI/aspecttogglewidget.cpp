@@ -116,8 +116,11 @@ void AspectToggleWidget::mouseReleaseEvent(QMouseEvent* event)
         case Qt::MiddleButton:
             STATE = MIDDLECLICKED;
             break;
+        default:
+            break;
         }
         click(!CHECKED, STATE);
+
     }
 
     // reset the state

@@ -6,6 +6,7 @@
 
 #include "../medeasubwindow.h"
 
+
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
 #include <QTextStream>
@@ -641,6 +642,7 @@ QList<NodeItem *> NodeView::getConnectableNodeItems(QString ID)
  */
 QList<NodeItem*> NodeView::getConnectableNodeItems(QStringList IDs)
 {
+    Q_UNUSED(IDs);
     /*
     if (IDs.isEmpty()) {
         IDs = selectedIDs;
@@ -811,7 +813,7 @@ void NodeView::actionFinished()
     }
 
     updateActionsEnabled();
-    enableClipboardActions(selectedIDs);
+    enableClipboardActions();
 
     viewMutex.unlock();
 }
@@ -839,6 +841,7 @@ void NodeView::hardwareDockOpened(bool opened)
 void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID)
 {
     Q_UNUSED(type);
+    Q_UNUSED(ID);
     int reply = QMessageBox::question(this, title, message, QMessageBox::Yes | QMessageBox::No);
     bool yes = reply == QMessageBox::Yes;
     emit view_QuestionAnswered(yes);
@@ -1504,7 +1507,7 @@ void NodeView::_deleteFromIDs(QStringList IDs)
  * @brief NodeView::enableClipboardActions
  * @param IDs
  */
-void NodeView::enableClipboardActions(QStringList IDs)
+void NodeView::enableClipboardActions()
 {
     if (controller) {
         emit view_updateMenuActionEnabled("cut", controller->canCut(selectedIDs));
@@ -3237,7 +3240,7 @@ void NodeView::selectAll()
                 appendToSelection(child, false);
             }
         }
-        enableClipboardActions(selectedIDs);
+        enableClipboardActions();
     }
 }
 
@@ -3302,7 +3305,7 @@ void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 
     if(updateActions){
         // update enabled states of cut, copy & paste everytime something is selected
-        enableClipboardActions(selectedIDs);
+        enableClipboardActions();
     }
 
     // update toolbar selected items
@@ -3322,7 +3325,7 @@ void NodeView::removeFromSelection(GraphMLItem *item)
 
     // added this here because actions weren't being enabled/disabled
     // correctly when selecting/deselting items using the CTRL key
-    enableClipboardActions(selectedIDs);
+    enableClipboardActions();
 
     // update toolbar selected items
     updateToolbarSelectedItems();
@@ -3507,7 +3510,7 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
     // update menu and toolbar actions
     updateActionsEnabled();
 
-    enableClipboardActions(selectedIDs);
+    enableClipboardActions();
 
     // this stops unnecessary disabling of docks/dock buttons
     // if the call came from a painted node item, just clear the selection

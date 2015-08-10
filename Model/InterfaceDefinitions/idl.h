@@ -6,7 +6,7 @@ class IDL : public Node
 {
     Q_OBJECT
 public:
-    IDL(QString name = "");
+    IDL();
     ~IDL();
 
     // GraphML interface
