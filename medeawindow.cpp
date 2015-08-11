@@ -149,9 +149,10 @@ MedeaWindow::~MedeaWindow()
         jenkinsManager->deleteLater();
     }
 
-    //if(controllerThread){
-    //    controllerThread->deleteLater();
-    //}
+    /* REMOVED TO STOP UBUNTU CRASH LOGGING
+    if(controllerThread){
+        controllerThread->deleteLater();
+    }*/
 
 }
 
