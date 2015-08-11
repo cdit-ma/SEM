@@ -105,6 +105,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     appSettings->setModal(true);
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QString)), this, SLOT(settingChanged(QString, QString, QString)));
 
+    controllerThread = 0;
+    controller = 0;
     tempExport = false;
     validate_TempExport = false;
     jenkins_TempExport = false;
@@ -119,6 +121,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     initialiseGUI();
     makeConnections();
+
+
     newProject();
 }
 
@@ -132,6 +136,7 @@ MedeaWindow::~MedeaWindow()
         saveSettings();
         appSettings->deleteLater();
     }
+
     if (controller) {
         controller->deleteLater();
     }
@@ -139,14 +144,14 @@ MedeaWindow::~MedeaWindow()
         nodeView->deleteLater();
     }
 
+
     if(jenkinsManager){
         jenkinsManager->deleteLater();
     }
 
-    if(controllerThread){
-        controllerThread->terminate();
-        controllerThread->deleteLater();
-    }
+    //if(controllerThread){
+    //    controllerThread->deleteLater();
+    //}
 
 }
 

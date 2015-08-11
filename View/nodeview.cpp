@@ -748,7 +748,7 @@ void NodeView::constructNewView(QString nodeID)
             newView->constructGUIItem(edgeList.takeFirst());
         }
 
-        //newView->view_LockCenteredGraphML(nodeID);
+        newView->view_LockCenteredGraphML(nodeID);
         connect(this, SIGNAL(view_ClearSubViewAttributeTable()), newView, SIGNAL(view_ClearSubViewAttributeTable()));
         subWindow->show();
         newView->view_LockCenteredGraphML(nodeID);
