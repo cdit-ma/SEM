@@ -20,7 +20,7 @@
 
 #define THREADING true
 
-#define MEDEA_VERSION 15
+#define MEDEA_VERSION 16
 
 #define RIGHT_PANEL_WIDTH 230.0
 #define SPACER_HEIGHT 30

@@ -1,3 +1,7 @@
+Version 16:
+* Fixed MEDEA to work on Ubuntu
+* Fixed all compile warnings on Ubuntu
+
 Version 15:
 * Implemented a Menu on HardwareCluster entities to allow the hiding/showing of connected HardwareNode entities.
 * Fixed a bug where launching a Jenkins Job would leave the Progress Bar saying "Waiting on Jenkins CLI..." (Only occured on nodes on same network as Jenkins server)
