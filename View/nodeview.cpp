@@ -2,9 +2,8 @@
 #include "../Controller/controller.h"
 #include "Toolbar/toolbarwidget.h"
 #include "Dock/docktogglebutton.h"
-#include <limits>
-
 #include "../medeasubwindow.h"
+#include <limits>
 
 
 #include <QGraphicsScene>

@@ -23,17 +23,15 @@ public:
     explicit ToolbarWidget(NodeView *parent = 0);
 
     void updateSelectedItems(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
+    void updateSeparators(bool snippet = true, bool goTo = true);
 
     void showDefinitionButton(QString definitionID);
     void showImplementationButton(QString implementationID);
-
     void showSnippetButton(QString button, bool show);
 
-    void updateSeparators(bool snippet = true, bool goTo = true);
-
 protected:
-    virtual void enterEvent(QEvent*);
-    virtual void leaveEvent(QEvent*);
+    void enterEvent(QEvent* event);
+    void leaveEvent(QEvent* event);
 
 public slots:
     void updateActionEnabled(QString actionName, bool enabled);
@@ -62,15 +60,16 @@ private:
     void setupToolBar();
     void setupMenus();
     void makeConnections();
+
     void updateToolButtons();
     void updateMenuLists();
+    void updateRadioButtons(QList<NodeItem*> hardwareClusters);
 
     void multipleSelection(QList<NodeItem*> items, QList<EdgeItem*> edgeItems = QList<EdgeItem*>());
 
-    void setupInstancesList(QList<NodeItem*> instances);
-
     void setupAdoptableNodesList(QStringList nodeKinds);
     void setupLegalNodesList(QList<NodeItem*> nodeList);
+    void setupInstancesList(QList<NodeItem*> instances);
 
     void setupFilesList(QList<NodeItem*> files, QString kind);
     void setupComponentList(QList<NodeItem*> components, QString kind);
@@ -80,7 +79,6 @@ private:
     void setupInEventPortInstanceList();
     void setupOutEventPortInstanceList();
 
-    void resetRadioButtons(QList<NodeItem*> hardwareClusters);
     void clearMenus();
 
     NodeView* nodeView;
@@ -136,9 +134,9 @@ private:
     ToolbarWidgetAction* outEventPort_componentInstanceDefaultAction;
     ToolbarWidgetAction* blackBoxInstanceDefaultAction;
 
-    QRadioButton* r1;
-    QRadioButton* r2;
-    QRadioButton* r3;
+    QRadioButton* allNodes;
+    QRadioButton* connectedNodes;
+    QRadioButton* unconnectedNodes;
 
     QList<QToolButton*> singleSelectionToolButtons;
     QList<QToolButton*> multipleSelectionToolButtons;
@@ -150,12 +148,12 @@ private:
     QFrame* alterViewFrame;
     QFrame* goToFrame;
 
-    bool eventFromToolbar;
     bool showToolbar;
     bool showAlterViewFrame;
     bool showSnippetFrame;
     bool showGoToFrame;
 
+    bool eventFromToolbar;
     bool deleteButtonVisible;
 };
 

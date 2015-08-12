@@ -93,6 +93,7 @@ signals:
 private:
    void toolbarSettingChanged(QString keyName, QString value);
    void enableTempExport(bool enable);
+
 public slots:
     void modelReady();
     void projectCleared();
@@ -155,6 +156,7 @@ private slots:
     void graphicsItemDeleted();
 
     void dockButtonPressed(QString buttonName);
+    void forceOpenDefinitionsDock();
 
     void updateWindowTitle(QString newProjectName);
     void updateProgressStatus(int value, QString status);

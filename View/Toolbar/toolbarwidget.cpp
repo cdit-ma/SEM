@@ -48,16 +48,15 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
 
 
 /**
- * @brief ToolbarWidget::updateSelectedNodeItem
+ * @brief ToolbarWidget::updateSelectedItems
  * This only gets called when the toolbar is about to show.
  * Set nodeItem to the currectly selected item and update applicable tool buttons and menus.
  * If there are multiple items selected, only update the buttons that are for multiple selection.
- * @param items
+ * @param nodeItems
+ * @param edgeItems
  */
 void ToolbarWidget::updateSelectedItems(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems)
 {
-    //alterModelToolButtons.clear();
-
     if (edgeItems.isEmpty()) {
         if (nodeItems.count() == 1) {
             nodeItem = nodeItems.at(0);
@@ -85,7 +84,7 @@ void ToolbarWidget::updateSelectedItems(QList<NodeItem*> nodeItems, QList<EdgeIt
  * @brief ToolbarWidget::showDefinitionButton
  * This method shows/hides the definitionButton and sets the definitionNode if there is one.
  * This gets called everytime a node item is selected.
- * @param definition
+ * @param definitionID
  */
 void ToolbarWidget::showDefinitionButton(QString definitionID)
 {
@@ -104,7 +103,7 @@ void ToolbarWidget::showDefinitionButton(QString definitionID)
  * @brief ToolbarWidget::showImplementationButton
  * This method shows/hides the implementationButton and sets the implementationNode if there is one.
  * This gets called everytime a node item is selected.
- * @param implementation
+ * @param implementationID
  */
 void ToolbarWidget::showImplementationButton(QString implementationID)
 {
@@ -146,8 +145,6 @@ void ToolbarWidget::showSnippetButton(QString button, bool show)
  */
 void ToolbarWidget::updateSeparators(bool snippet, bool goTo)
 {
-    //alterViewFrame->setVisible(addChildButton->isVisible() || connectButton->isVisible() || deleteButton->isVisible() || showSnippetFrame || showGoToFrame);
-
     // show frame if any of the snippet buttons are visible
     if (snippet) {
         snippetFrame->setVisible(showSnippetFrame);
@@ -167,10 +164,10 @@ void ToolbarWidget::updateSeparators(bool snippet, bool goTo)
  * This is called when the mouse is hovering over the toolbar.
  * @param event
  */
-void ToolbarWidget::enterEvent(QEvent* e)
+void ToolbarWidget::enterEvent(QEvent* event)
 {
     eventFromToolbar = true;
-    QWidget::enterEvent(e);
+    QWidget::enterEvent(event);
 }
 
 
@@ -179,10 +176,10 @@ void ToolbarWidget::enterEvent(QEvent* e)
  * This is called when the mouse is no longer hovering over the toolbar.
  * @param event
  */
-void ToolbarWidget::leaveEvent(QEvent* e)
+void ToolbarWidget::leaveEvent(QEvent* event)
 {
     eventFromToolbar = false;
-    QWidget::leaveEvent(e);
+    QWidget::leaveEvent(event);
 }
 
 
@@ -207,6 +204,7 @@ void ToolbarWidget::updateActionEnabled(QString actionName, bool enabled)
 
 /**
  * @brief ToolbarWidget::displayAllChildren
+ * This sends a signal to the view to display all of the selected hardware cluster(s)'s children nodes.
  */
 void ToolbarWidget::displayAllChildren()
 {
@@ -216,6 +214,7 @@ void ToolbarWidget::displayAllChildren()
 
 /**
  * @brief ToolbarWidget::displayConnectedChildren
+ * This sends a signal to the view to display only the connected children nodes of the selected hardware cluster(s).
  */
 void ToolbarWidget::displayConnectedChildren()
 {
@@ -225,6 +224,7 @@ void ToolbarWidget::displayConnectedChildren()
 
 /**
  * @brief ToolbarWidget::displayUnconnectedChildren
+ * This sends a signal to the view to display only the unconnected children nodes of the selected hardware cluster(s).
  */
 void ToolbarWidget::displayUnconnectedChildren()
 {
@@ -234,30 +234,33 @@ void ToolbarWidget::displayUnconnectedChildren()
 
 /**
  * @brief ToolbarWidget::hardwareClusterMenuClicked
+ * This slot is called everytime a HardwareCluster's menu is triggered.
+ * It updates this toolbar's radio button set corresponding to the menu's actions.
+ * This slot is also used to update the radio button set when there are multiple items selected.
  * @param viewMode
  */
 void ToolbarWidget::hardwareClusterMenuClicked(int viewMode)
 {
     switch (viewMode) {
     case 0:
-        r1->setChecked(true);
+        allNodes->setChecked(true);
         break;
     case 1:
-        r2->setChecked(true);
+        connectedNodes->setChecked(true);
         break;
     case 2:
-        r3->setChecked(true);
+        unconnectedNodes->setChecked(true);
         break;
     default:
-        r1->setAutoExclusive(false);
-        r2->setAutoExclusive(false);
-        r3->setAutoExclusive(false);
-        r1->setChecked(false);
-        r2->setChecked(false);
-        r3->setChecked(false);
-        r1->setAutoExclusive(true);
-        r2->setAutoExclusive(true);
-        r3->setAutoExclusive(true);
+        allNodes->setAutoExclusive(false);
+        connectedNodes->setAutoExclusive(false);
+        unconnectedNodes->setAutoExclusive(false);
+        allNodes->setChecked(false);
+        connectedNodes->setChecked(false);
+        unconnectedNodes->setChecked(false);
+        allNodes->setAutoExclusive(true);
+        connectedNodes->setAutoExclusive(true);
+        unconnectedNodes->setAutoExclusive(true);
         break;
     }
 }
@@ -294,7 +297,7 @@ void ToolbarWidget::goToInstance()
 
 
 /**
- * @brief ToolbarWidget::constructNode
+ * @brief ToolbarWidget::addChildNode
  * Send a signal to the view to construct a new node with the specified kind.
  */
 void ToolbarWidget::addChildNode()
@@ -406,6 +409,7 @@ void ToolbarWidget::setVisible(bool visible)
     shadowFrame->setVisible(toolbarVisible);
     QWidget::setVisible(toolbarVisible);
 
+    // once the toolbar is hidden, reset showToolbar
     if (!visible) {
         showToolbar = false;
     }
@@ -416,6 +420,7 @@ void ToolbarWidget::setVisible(bool visible)
  * @brief ToolbarWidget::hideToolbar
  * This method checks if hiding the menu was triggered by the toolbar.
  * If the event came from outside the toolbar, hide the toolbar and all visible menus.
+ * @param actionTriggered
  */
 void ToolbarWidget::hideToolbar(bool actionTriggered)
 {
@@ -591,30 +596,20 @@ void ToolbarWidget::setupMenus()
     QWidgetAction* a1 = new QWidgetAction(this);
     QWidgetAction* a2 = new QWidgetAction(this);
     QWidgetAction* a3 = new QWidgetAction(this);
-    r1 = new QRadioButton("All", this);
-    r2 = new QRadioButton("Connected", this);
-    r3 = new QRadioButton("Unconnected", this);
-    a1->setDefaultWidget(r1);
-    a2->setDefaultWidget(r2);
-    a3->setDefaultWidget(r3);
+    allNodes = new QRadioButton("All", this);
+    connectedNodes = new QRadioButton("Connected", this);
+    unconnectedNodes = new QRadioButton("Unconnected", this);
+    a1->setDefaultWidget(allNodes);
+    a2->setDefaultWidget(connectedNodes);
+    a3->setDefaultWidget(unconnectedNodes);
     displayedChildrenOptionMenu->addAction(a1);
     displayedChildrenOptionMenu->addAction(a2);
     displayedChildrenOptionMenu->addAction(a3);
-
-    /*
-    QAction* dco_all = displayedChildrenOptionMenu->addAction("All nodes"); //QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
-    QAction* dco_connected = displayedChildrenOptionMenu->addAction("Connected nodes"); //QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
-    QAction* dco_unconnected = displayedChildrenOptionMenu->addAction("Unconnected nodes"); //QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
-    connect(dco_all, SIGNAL(triggered()), this, SLOT(displayAllChildren()));
-    connect(dco_connected, SIGNAL(triggered()), this, SLOT(displayConnectedChildren()));
-    connect(dco_unconnected, SIGNAL(triggered()), this, SLOT(displayUnconnectedChildren()));
-    */
 
     QAction* defn_goTo = definitionMenu->addAction(QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
     QAction* defn_popup = definitionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Definition");
     connect(defn_goTo, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(defn_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
-    //defn_popup->setEnabled(false);
 
     implementationMenu = new ToolbarWidgetMenu(0, 0, implementationButton);
     implementationButton->setPopupMode(QToolButton::InstantPopup);
@@ -624,7 +619,6 @@ void ToolbarWidget::setupMenus()
     QAction* impl_popup = implementationMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Implementation");
     connect(impl_goTo, SIGNAL(triggered()), this, SLOT(goToImplementation()));
     connect(impl_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
-    //impl_popup->setEnabled(false);
 
     instancesMenu = new ToolbarWidgetMenu(0, 0, instancesButton);
     instanceOptionMenu = new ToolbarWidgetMenu(0, 0, instancesMenu);
@@ -634,7 +628,6 @@ void ToolbarWidget::setupMenus()
     QAction* inst_popup = instanceOptionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Instance");
     connect(inst_goTo, SIGNAL(triggered()), this, SLOT(goToInstance()));
     connect(inst_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
-    //inst_popup->setEnabled(false);
 
     // these widget actions are not deletable - when their parent menu is cleared, they're only hidden
     componentImplAction = new ToolbarWidgetAction("ComponentImpl", "", addMenu);
@@ -687,12 +680,12 @@ void ToolbarWidget::makeConnections()
     connect(importSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ImportSnippet()));
     connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(exportSnippet()));
 
-    connect(r1, SIGNAL(clicked()), this, SLOT(displayAllChildren()));
-    connect(r2, SIGNAL(clicked()), this, SLOT(displayConnectedChildren()));
-    connect(r3, SIGNAL(clicked()), this, SLOT(displayUnconnectedChildren()));
-    connect(r1, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
-    connect(r2, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
-    connect(r3, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
+    connect(allNodes, SIGNAL(clicked()), this, SLOT(displayAllChildren()));
+    connect(connectedNodes, SIGNAL(clicked()), this, SLOT(displayConnectedChildren()));
+    connect(unconnectedNodes, SIGNAL(clicked()), this, SLOT(displayUnconnectedChildren()));
+    connect(allNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
+    connect(connectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
+    connect(unconnectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
     connect(displayedChildrenOptionMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
 }
 
@@ -820,7 +813,7 @@ void ToolbarWidget::multipleSelection(QList<NodeItem*> items, QList<EdgeItem *> 
 
     if (hardwareClusters) {
         displayedChildrenOptionButton->show();
-        resetRadioButtons(items);
+        updateRadioButtons(items);
     } else {
         displayedChildrenOptionButton->hide();
     }
@@ -951,7 +944,7 @@ void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
             connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
 
         } else {
-            qWarning() << "Toolbar: Current entity's parent entity is NULL.";
+            qWarning() << "ToolbarWidget::setupLegalNodesList - Current entity's parent entity is NULL.";
         }
     }
 }
@@ -1215,7 +1208,7 @@ void ToolbarWidget::clearMenus()
  * @brief ToolbarWidget::resetRadioButtons
  * @param selectedItems
  */
-void ToolbarWidget::resetRadioButtons(QList<NodeItem*> hardwareClusters)
+void ToolbarWidget::updateRadioButtons(QList<NodeItem*> hardwareClusters)
 {
     int viewMode = -1;
     if (!hardwareClusters.isEmpty()) {

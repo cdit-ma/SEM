@@ -1,11 +1,11 @@
 #include "toolbarwidgetmenu.h"
-
 #include <QDebug>
 
 
 /**
  * @brief ToolbarWidgetMenu::ToolbarWidgetMenu
- * @param action
+ * @param parent_action
+ * @param default_action
  * @param parent
  */
 ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction *parent_action, ToolbarWidgetAction* default_action, QWidget *parent):
@@ -31,7 +31,7 @@ ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction *parent_action, Toolbar
 
     // this should always have a parent; print warning if it doesn't
     if (!parent) {
-        qWarning() << "WARNING: " << this << " doesn't have a parent. This may cause errors.";
+        qWarning() << "ToolbarWidgetMenu::ToolbarWidgetMenu - " << this << " doesn't have a parent. This may cause errors.";
     }
 }
 
@@ -51,7 +51,6 @@ void ToolbarWidgetMenu::execMenu()
             }
         }
         exec(parentAction->getButtonPos());
-        //parentAction->menuOpened();
     }
 }
 
@@ -75,6 +74,7 @@ void ToolbarWidgetMenu::addWidgetAction(ToolbarWidgetAction* action)
 
 /**
  * @brief ToolbarWidgetMenu::removeWidgetAction
+ * This removes the provided ToolbarWidgetAction from the widgetActions list.
  * @param action
  */
 void ToolbarWidgetMenu::removeWidgetAction(ToolbarWidgetAction *action)
@@ -110,7 +110,8 @@ ToolbarWidgetAction* ToolbarWidgetMenu::getParentAction()
 
 /**
  * @brief ToolbarWidgetMenu::getWidgetAction
- * @param node
+ * This returns the ToolbarWidgetAction contained in this menu that is attached to nodeItem.
+ * @param nodeItem
  * @return
  */
 ToolbarWidgetAction* ToolbarWidgetMenu::getWidgetAction(NodeItem *nodeItem)
@@ -183,7 +184,9 @@ void ToolbarWidgetMenu::close()
             emit toolbarMenu_closeParentMenu();
         }
     }
+
     actionTriggered = false;
+
     if (parentAction) {
         parentAction->menuClosed();
     }
@@ -244,6 +247,8 @@ void ToolbarWidgetMenu::setParentAction(ToolbarWidgetAction *widgetAction)
 
 /**
  * @brief ToolbarWidgetMenu::setupDefaultAction
+ * If this menu has a default action, add it to the widgetActions list.
+ * The default action is displayed when there are no other actions in this menu.
  */
 void ToolbarWidgetMenu::setupDefaultAction()
 {
@@ -273,7 +278,7 @@ void ToolbarWidgetMenu::mousePressEvent(QMouseEvent *event)
 void ToolbarWidgetMenu::mouseDoubleClickEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
-        QWidget::mouseDoubleClickEvent(event);
+        QMenu::mouseDoubleClickEvent(event);
     }
 }
 

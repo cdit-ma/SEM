@@ -105,5 +105,10 @@ DockNodeItem* PartsDockScrollArea::getDockNodeItem(QString kind)
 void PartsDockScrollArea::dockNodeItemClicked()
 {
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
-    getNodeView()->constructNode(sender->getKind(), 0);
+    QString nodeKind = sender->getKind();
+    if (nodeKind == "ComponentInstance" || nodeKind == "ComponentImpl") {
+        emit dock_openDefinitionsDock();
+    } else {
+        getNodeView()->constructNode(sender->getKind(), 0);
+    }
 }

@@ -1118,6 +1118,8 @@ void MedeaWindow::makeConnections()
 {
     validateResults.connectToWindow(this);
 
+    connect(partsDock, SIGNAL(dock_openDefinitionsDock()), this, SLOT(forceOpenDefinitionsDock()));
+
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
     connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));
     connect(nodeView, SIGNAL(view_ImportSnippet(QString)), this, SLOT(importSnippet(QString)));
@@ -2549,6 +2551,17 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
     } else {
         docksArea->clearMask();
     }
+}
+
+
+/**
+ * @brief MedeaWindow::forceOpenDefinitionsDock
+ * This slot is called when a DockNodeItem of kind ComponentInstance or ComponentImpl is clicked from the parts dock.
+ */
+void MedeaWindow::forceOpenDefinitionsDock()
+{
+    partsButton->pressed();
+    definitionsButton->pressed();
 }
 
 

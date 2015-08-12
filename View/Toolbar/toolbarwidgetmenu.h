@@ -46,13 +46,12 @@ public slots:
     void setupDefaultAction();
 
 private:    
-    ToolbarWidgetAction* parentAction;
     QList<ToolbarWidgetAction*> widgetActions;
+    ToolbarWidgetAction* parentAction;
+    ToolbarWidgetAction* defaultAction;
 
     bool eventFromMenu;
     bool actionTriggered;
-
-    ToolbarWidgetAction* defaultAction;
 
 };
 

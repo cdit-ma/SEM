@@ -13,6 +13,9 @@ public:
     void addDockNodeItems(QStringList nodeKinds);
     DockNodeItem* getDockNodeItem(QString kind);
 
+signals:
+    void dock_openDefinitionsDock();
+
 public slots:
     void dockNodeItemClicked();
     void updateDock();
