@@ -2,6 +2,7 @@
 #include "Controller/controller.h"
 #include "GUI/codeeditor.h"
 
+
 #include <QDebug>
 #include <QObject>
 #include <QImage>
@@ -211,6 +212,8 @@ void MedeaWindow::modelReady()
         nodeView->setEnabled(true);
         //nodeView->fitToScreen();
     }
+
+   //CUTS* c = new CUTS("c:/HelloWorld.graphml", applicationDirectory + "/Resources/Scripts", "C:/Transforms/");
 }
 
 void MedeaWindow::projectCleared()
@@ -1352,8 +1355,7 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
         }
         maximizedSettingInitiallyChanged = false;
     }
-    isWindowMaximized == this->isMaximized();
-    updateWidgetsOnWindowChanged();
+    isWindowMaximized = this->isMaximized();    updateWidgetsOnWindowChanged();
 
 }
 

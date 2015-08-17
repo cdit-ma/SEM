@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     }
 
 
+
     MedeaWindow *w = new MedeaWindow(GraphMLFile);
     w->show();
     return a.exec();

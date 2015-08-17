@@ -110,7 +110,8 @@ HEADERS += \
     GUI/codeeditor.h \
     GUI/syntaxhighlighter.h \
     medeasubwindow.h \
-    GUI/actionbutton.h
+    GUI/actionbutton.h \
+    CUTS/CUTS.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -193,9 +194,11 @@ SOURCES += \
     GUI/codeeditor.cpp \
     GUI/syntaxhighlighter.cpp \
     medeasubwindow.cpp \
-    GUI/actionbutton.cpp
+    GUI/actionbutton.cpp \
+    CUTS/CUTS.cpp
 
 FORMS += \
+    dialog.ui
 
 RESOURCES += \
     resources.qrc

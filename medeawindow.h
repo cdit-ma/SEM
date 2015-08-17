@@ -51,6 +51,8 @@
 
 #include "View/Validate/validatedialog.h"
 
+#include "CUTS/CUTS.h"
+
 #include "GUI/searchitembutton.h"
 #include "GUI/aspecttogglewidget.h"
 #include "GUI/appsettings.h"

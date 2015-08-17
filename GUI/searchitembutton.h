@@ -9,7 +9,7 @@
 #include "../View/GraphicsItems/graphmlitem.h"
 #include "../View/GraphicsItems/nodeitem.h"
 
-class MedeaWindow;
+//class MedeaWindow;
 
 class SearchItemButton : public QPushButton
 {
