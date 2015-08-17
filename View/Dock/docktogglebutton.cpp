@@ -86,7 +86,7 @@ DockToggleButton::~DockToggleButton()
  * Returns this button's selected state.
  * @return
  */
-bool DockToggleButton::getSelected()
+bool DockToggleButton::isSelected()
 {
     return selected;
 }
@@ -204,10 +204,10 @@ void DockToggleButton::on_buttonPressed()
 {
     if (selected) {
         selected = false;
-        setColor(DEFAULT);
+        setColor(DEFAULT, true);
     } else {
         selected = true;
-        setColor(SELECTED);
+        setColor(SELECTED, true);
     }
     emit dockButton_pressed(this->text());
     emit dockOpen(selected);
@@ -215,23 +215,13 @@ void DockToggleButton::on_buttonPressed()
 
 
 /**
- * @brief DockToggleButton::enableDock
- * @param enable
- */
-void DockToggleButton::enableDock(bool enable)
-{
-    if (!enable) {
-        hideContainer();
-    }
-    setEnabled(enable);
-}
-
-
-/**
  * @brief DockToggleButton::setColor
- * This sets the colour of this toggle buttopn depending on its current state.
+ * This sets the colour of this toggle button depending on its current state.
+ * Repaint the button only if a repaint is required.
+ * @param state
+ * @param needRepaint
  */
-void DockToggleButton::setColor(int state)
+void DockToggleButton::setColor(int state, bool needRepaint)
 {
     penWidth = defaultPenWidth;
     switch (state) {
@@ -249,19 +239,20 @@ void DockToggleButton::setColor(int state)
         brushColor = selectedBrushColor;
         break;
     }
-    repaint();
+    if (needRepaint) {
+        repaint();
+    }
 }
 
 
 /**
  * @brief DockToggleButton::setEnabled
+ * This enables/disables this dock toggle button, updating its selected and enabled state and its colour.
+ * If this button was previously selected, it makes sure that the dock attched to it is closed.
  * @param enable
  */
 void DockToggleButton::setEnabled(bool enable)
 {
-    QPushButton::setEnabled(enable);
-    enabled = enable;
-
     if (enable) {
         if (selected) {
             setColor(SELECTED);
@@ -269,15 +260,18 @@ void DockToggleButton::setEnabled(bool enable)
             setColor(DEFAULT);
         }
     } else {
+        hideContainer();
         setSelected(false);
         setColor(DISABLED);
     }
+    QPushButton::setEnabled(enable);
+    enabled = enable;
 }
 
 
 /**
  * @brief DockToggleButton::isEnabled
- * QT's isEnabled() is as "reliable" as its isVisible().
+ * QT's isEnabled function is as "reliable" as its isVisible function.
  * @return
  */
 bool DockToggleButton::isEnabled()

@@ -1239,7 +1239,7 @@ void MedeaWindow::makeConnections()
     connect(alignHorizontalButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
     connect(popupButton, SIGNAL(clicked()), nodeView, SLOT(constructNewView()));
 
-connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
+    connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
     connect(forwardButton, SIGNAL(clicked()), nodeView, SLOT(moveViewForward()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(contextToolbarButton, SIGNAL(clicked()), nodeView, SLOT(showToolbar()));
@@ -1461,7 +1461,7 @@ void MedeaWindow::invalidJenkinsSettings(QString message)
 void MedeaWindow::jenkinsNodesLoaded()
 {
     // if the hardware dock isn't already open, open it
-    if (hardwareNodesButton->isEnabled() && !hardwareNodesButton->getSelected()) {
+    if (hardwareNodesButton->isEnabled() && !hardwareNodesButton->isSelected()) {
         hardwareNodesButton->pressed();
     }
 }
@@ -2538,15 +2538,13 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
         b = prevB;
     }
 
-
-
     prevPressedButton = b;
 
     // this allows mouse events to pass through the dock's hidden
     // groupbox when none of the docks are currently opened
-    if (!partsButton->getSelected() &&
-            !definitionsButton->getSelected() &&
-            !hardwareNodesButton->getSelected()) {
+    if (!partsButton->isSelected() &&
+            !definitionsButton->isSelected() &&
+            !hardwareNodesButton->isSelected()) {
         updateWidgetMask(docksArea, dockButtonsBox);
     } else {
         docksArea->clearMask();
@@ -2560,8 +2558,10 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
  */
 void MedeaWindow::forceOpenDefinitionsDock()
 {
-    partsButton->pressed();
-    definitionsButton->pressed();
+    if (partsButton->isSelected()) {
+        partsButton->pressed();
+        definitionsButton->pressed();
+    }
 }
 
 

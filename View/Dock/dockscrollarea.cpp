@@ -241,7 +241,7 @@ bool DockScrollArea::isDockEnabled()
 void DockScrollArea::setDockEnabled(bool enabled)
 {
     if (getParentButton()) {
-        getParentButton()->enableDock(enabled);
+        getParentButton()->setEnabled(enabled);
     }
 }
 

@@ -13,12 +13,13 @@ class DockScrollArea;
 class DockToggleButton : public QPushButton
 {
     Q_OBJECT
+
 public:
     explicit DockToggleButton(QString label, MedeaWindow *window, QWidget* parent = 0);
     ~DockToggleButton();
 
-    bool getSelected();
     void setSelected(bool b);
+    bool isSelected();
 
     DockScrollArea* getContainer();
     void setContainer(DockScrollArea* area);
@@ -39,10 +40,9 @@ signals:
 
 public slots:
     void on_buttonPressed();
-    void enableDock(bool enable);
 
 private:
-    void setColor(int state);
+    void setColor(int state, bool needRepaint = false);
 
     DockScrollArea* scrollArea;
 
