@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QHash>
 #include <QXmlResultItems>
+#include <QProcess>
 
 class CUTS: public QObject{
     Q_OBJECT
@@ -20,6 +21,7 @@ public:
     void runTransforms(QString graphml_path, QString output_path);
 
 private slots:
+    void xslFinished(int code, QProcess::ExitStatus status);
     void processGraphML(QString graphml_file);
 private:
     QString wrapQuery(QString query);
@@ -28,9 +30,14 @@ private:
 
     void generateComponentArtifacts(QStringList components);
     void generateComponentInstanceArtifacts(QStringList componentInstances);
+    void generateIDLArtifacts(QStringList idls);
+    void generateModelArtifacts(QStringList mpcFiles);
+    void generateHardwareArtifacts(QStringList hardwareNodes);
 
     void runXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters);
 
+
+     QString getGraphmlName(QString file);
     /*
 
 
@@ -43,7 +50,7 @@ private:
 
 
 
-    QString getGraphmlName(QString file);
+
 
     */
 

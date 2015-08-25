@@ -6,13 +6,14 @@
 #include <QDebug>
 #include <QPair>
 
+#include <QFileInfo>
 
 
 CUTS::CUTS(QString graphmlPath, QString xalanPath, QString transformPath)
 {
     setXalanPath(xalanPath);
     setTransformPath(transformPath);
-    runTransforms(graphmlPath, "C:/Test/");
+    runTransforms(graphmlPath, "C:/Test2/");
 }
 
 CUTS::~CUTS()
@@ -51,6 +52,11 @@ void CUTS::runTransforms(QString graphml_path, QString output_path)
     processGraphML(graphml_path);
 }
 
+void CUTS::xslFinished(int code, QProcess::ExitStatus status)
+{
+    qCritical() << code;
+}
+
 void CUTS::processGraphML(QString graphml_file)
 {
     QFile xmlFile(graphml_file);
@@ -71,6 +77,7 @@ void CUTS::processGraphML(QString graphml_file)
     QStringList deployedComponentDefs;
     QStringList deployedComponentInstances;
     QStringList hardwareIDs;
+    QStringList IDLs;
 
     //Get the List of Keys.
     QXmlResultItems* key_xml = getQueryList(query, "doc($doc)//gml:graphml/gml:key[@for='node']");
@@ -98,7 +105,20 @@ void CUTS::processGraphML(QString graphml_file)
         item = edge_xml->next();
     }
 
-       qCritical() << "HARDWARE";
+    //Get the list of Hardware*
+    QXmlResultItems* idl_xml = getQueryList(query, "doc($doc)//gml:node[gml:data[@key='" + keyIDs["kind"] + "' and string()='IDL']]");
+    item = idl_xml->next();
+
+    while (!item.isNull()) {
+        //Get ID of the Hardware(Node|Cluster)
+        QString label = getQuery(query, "gml:data[@key='" + keyIDs["label"] + "']/string()", &item);
+        IDLs << label;
+
+        //Next Item
+        item = idl_xml->next();
+    }
+
+
     //Get the list of Hardware*
     QXmlResultItems* hardware_xml = getQueryList(query, "doc($doc)//gml:node[gml:data[@key='" + keyIDs["kind"] + "' and starts-with(string(),'Hardware')]]");
     item = hardware_xml->next();
@@ -111,7 +131,6 @@ void CUTS::processGraphML(QString graphml_file)
         item = hardware_xml->next();
     }
 
-     qCritical() << "COMPOENT";
     //Get Component Definitions
     QXmlResultItems* component_xml = getQueryList(query, "doc($doc)//gml:node[gml:data[@key='" + keyIDs["kind"] + "' and string() = 'Component']]");
     item = component_xml->next();
@@ -186,6 +205,8 @@ void CUTS::processGraphML(QString graphml_file)
 
     generateComponentArtifacts(deployedComponentDefs);
     generateComponentInstanceArtifacts(deployedComponentInstances);
+    generateIDLArtifacts(IDLs);
+    generateModelArtifacts(IDLs);
     //qCritical() << "Deployed Definitions: " << deployedComponentDefs;
     //qCritical() << "Deployed Instances: " << deployedC1omponentInstances;
 
@@ -243,7 +264,7 @@ void CUTS::generateComponentInstanceArtifacts(QStringList componentInstances)
     foreach(QString transform, transforms){
         foreach(QString componentInstance, componentInstances){
             QStringList parameters;
-            parameters << "ComponentInstance" << "'" + componentInstance + "'";
+            parameters << "ComponentInstance" << componentInstance;
             QString outputFile = outputPath + componentInstance + "%%QoS.dpd";
             QString xslFile = transformPath + "graphml2" + transform + ".xsl";
             runXSLTransform(graphmlPath, outputFile, xslFile, parameters);
@@ -252,7 +273,60 @@ void CUTS::generateComponentInstanceArtifacts(QStringList componentInstances)
 
 }
 
+void CUTS::generateIDLArtifacts(QStringList idls)
+{
+    QStringList transforms;
+    transforms << "idl" << "mpc";
+    foreach(QString transform, transforms){
+        foreach(QString idl, idls){
+            QStringList parameters;
+            qCritical() << idl;
+            parameters << "File" <<  idl + "." + transform;
+            QString outputFile = outputPath + idl + "." + transform;
+            QString xslFile = transformPath + "graphml2" + transform + ".xsl";
+            runXSLTransform(graphmlPath, outputFile, xslFile, parameters);
+        }
+    }
+
+}
+
+void CUTS::generateModelArtifacts(QStringList mpcFiles)
+{
+    QString modelName = getGraphmlName(graphmlPath);
+
+    runXSLTransform(graphmlPath, outputPath + modelName + ".cdd", transformPath + "graphml2cdd.xsl", QStringList());
+    runXSLTransform(graphmlPath, outputPath + modelName + ".cdp", transformPath + "graphml2cdp.xsl", QStringList());
+    runXSLTransform(graphmlPath, outputPath + modelName + ".ddd", transformPath + "graphml2ddd.xsl", QStringList());
+
+    QStringList mwcParams;
+    mwcParams << "FileList" << "\"" + mpcFiles.join(",") + "\"";
+    runXSLTransform(graphmlPath, outputPath + modelName + ".mwc", transformPath + "graphml2mwc.xsl", mwcParams);
+}
+
 void CUTS::runXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters)
 {
-    qCritical() << outputFilePath;
+    QProcess* xslProcess = new QProcess(this);
+    xslProcess->setWorkingDirectory(transformPath);
+
+    QStringList arguments;
+    arguments << "-jar" << xalanPath + "xalan.jar";
+    arguments << "-in" << inputFilePath;
+    arguments << "-xsl" << xslFilePath;
+    arguments << "-out" << outputFilePath;
+    if(parameters.size() > 0){
+        arguments << "-param";
+        arguments += parameters;
+    }
+    qCritical() << arguments.join(" ");
+    connect(xslProcess, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(xslFinished(int,QProcess::ExitStatus)));
+
+
+    xslProcess->start("java", arguments);
+
+}
+
+QString CUTS::getGraphmlName(QString file)
+{
+    QFileInfo fileInfo = QFileInfo(QFile(file));
+    return fileInfo.baseName();
 }
