@@ -1444,10 +1444,13 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
         GraphMLKey* fileKey = constructGraphMLKey("file", "string", "node");
         GraphMLKey* operationKey = constructGraphMLKey("operation", "string", "node");
         GraphMLKey* complexityKey = constructGraphMLKey("complexity", "string", "node");
+        GraphMLKey* complexityParamsKey = constructGraphMLKey("complexityParameters", "string", "node");
         GraphMLKey* parametersKey = constructGraphMLKey("parameters", "string", "node");
         data.append(new GraphMLData(codeKey, ""));
         data.append(new GraphMLData(actionOnKey, "Mainprocess"));
         data.append(new GraphMLData(workerKey, ""));
+        data.append(new GraphMLData(complexityParamsKey, ""));
+
         data.append(new GraphMLData(folderKey, ""));
         data.append(new GraphMLData(fileKey, ""));
         data.append(new GraphMLData(operationKey, ""));

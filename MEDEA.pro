@@ -111,7 +111,8 @@ HEADERS += \
     GUI/syntaxhighlighter.h \
     medeasubwindow.h \
     GUI/actionbutton.h \
-    CUTS/CUTS.h
+    CUTS/CUTS.h \
+    CUTS/GUI/cutsexecutionwidget.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -195,7 +196,8 @@ SOURCES += \
     GUI/syntaxhighlighter.cpp \
     medeasubwindow.cpp \
     GUI/actionbutton.cpp \
-    CUTS/CUTS.cpp
+    CUTS/CUTS.cpp \
+    CUTS/GUI/cutsexecutionwidget.cpp
 
 FORMS += \
     dialog.ui

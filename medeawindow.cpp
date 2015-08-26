@@ -1,6 +1,7 @@
 #include "medeawindow.h"
 #include "Controller/controller.h"
 #include "GUI/codeeditor.h"
+#include "CUTS/GUI/cutsexecutionwidget.h"
 
 
 #include <QDebug>
@@ -213,7 +214,17 @@ void MedeaWindow::modelReady()
         //nodeView->fitToScreen();
     }
 
-    CUTS* c = new CUTS("/Users/dan/Desktop/model.graphml", applicationDirectory + "/Resources/Scripts/", "C:/Transforms/");
+
+#ifdef _WIN32
+    CUTS* c = new CUTS(applicationDirectory + "/Resources/Scripts/", "C:/Transforms/");
+#else
+    CUTS* c = new CUTS(applicationDirectory + "/Resources/Scripts/", "C:/Transforms/");
+
+#endif
+
+    CUTSExecutionWidget* cWidget = new CUTSExecutionWidget(this, c);
+    cWidget->show();
+
 }
 
 void MedeaWindow::projectCleared()

@@ -11,7 +11,7 @@ class CUTS: public QObject{
 
 public:
     //Constructor
-    CUTS(QString graphmlPath, QString xalanPath, QString transformPath);
+    CUTS(QString xalanPath, QString transformPath);
     ~CUTS();
 
 

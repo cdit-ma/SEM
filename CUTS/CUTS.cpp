@@ -9,11 +9,10 @@
 #include <QFileInfo>
 
 
-CUTS::CUTS(QString graphmlPath, QString xalanPath, QString transformPath)
+CUTS::CUTS(QString xalanPath, QString transformPath)
 {
     setXalanPath(xalanPath);
     setTransformPath(transformPath);
-    runTransforms(graphmlPath, "/Users/dan/Desktop/Test2/");
 }
 
 CUTS::~CUTS()
@@ -220,6 +219,8 @@ void CUTS::processGraphML(QString graphml_file)
         mpcFiles << IDL + ".mpc";
     }
 
+    qCritical() << mpcFiles;
+
     generateModelArtifacts(mpcFiles);
     //qCritical() << "Deployed Definitions: " << deployedComponentDefs;
     //qCritical() << "Deployed Instances: " << deployedC1omponentInstances;
@@ -313,7 +314,8 @@ void CUTS::generateModelArtifacts(QStringList mpcFiles)
     runXSLTransform(graphmlPath, outputPath + modelName + ".ddd", transformPath + "graphml2ddd.xsl", QStringList());
 
     QStringList mwcParams;
-    mwcParams << "FileList" << "\"" + mpcFiles.join(",") + "\"";
+    mwcParams << "FileList";
+    mwcParams << mpcFiles.join(",");
     runXSLTransform(graphmlPath, outputPath + modelName + ".mwc", transformPath + "graphml2mwc.xsl", mwcParams);
 }
 
@@ -331,12 +333,12 @@ void CUTS::runXSLTransform(QString inputFilePath, QString outputFilePath, QStrin
         arguments << "-param";
         arguments += parameters;
     }
-    qCritical() << arguments.join(" ");
-    connect(xslProcess, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(xslFinished(int,QProcess::ExitStatus)));
 
+    connect(xslProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(xslFinished(int,QProcess::ExitStatus)));
 
     xslProcess->start("java", arguments);
 
+    //Store the Process in the hash so we can workout when all files are finished
     processHash[xslProcess] = outputFilePath;
 }
 
