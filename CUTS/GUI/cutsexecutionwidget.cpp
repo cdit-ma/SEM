@@ -22,6 +22,9 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTS *cutsManager)
     this->cutsManager = cutsManager;
     graphmlPathEdit = 0;
     outputPathEdit = 0;
+    generateButton = 0;
+    graphmlPathOk = false;
+    outputPathOk = false;
 
     setWindowTitle("Launch CUTS Execution");
     setWindowIcon(QIcon(":/Resources/Icons/jenkins_build.png"));
@@ -56,6 +59,7 @@ void CUTSExecutionWidget::setGraphMLPath(QString path)
     if(isGraphML && isFile){
         graphmlPathEdit->setText(fileInfo.absoluteFilePath());
         setIconSuccess(graphmlPathIcon, true);
+        graphmlPathOk = true;
     }else{
         if(fileInfo.isDir()){
             graphmlPathEdit->setText("");
@@ -64,7 +68,10 @@ void CUTSExecutionWidget::setGraphMLPath(QString path)
         }
 
         setIconSuccess(graphmlPathIcon, false);
+        graphmlPathOk = false;
     }
+
+    updateButtons();
 }
 
 void CUTSExecutionWidget::setOutputPath(QString outputPath)
@@ -80,10 +87,18 @@ void CUTSExecutionWidget::setOutputPath(QString outputPath)
     outputPathEdit->setText(path);
     if(fileInfo.isDir()){
         setIconSuccess(outputPathIcon, true);
+        outputPathOk = true;
     }else{
-
         setIconSuccess(outputPathIcon, false);
+        outputPathOk = false;
     }
+    updateButtons();
+}
+
+void CUTSExecutionWidget::runGeneration()
+{
+    qCritical() << "Run Generation: " << outputPathEdit->text();
+
 }
 
 void CUTSExecutionWidget::outputPathEdited()
@@ -94,6 +109,18 @@ void CUTSExecutionWidget::outputPathEdited()
 void CUTSExecutionWidget::graphmlPathEdited()
 {
     setGraphMLPath(graphmlPathEdit->text());
+}
+
+void CUTSExecutionWidget::updateButtons()
+{
+    enableGenerateButton(graphmlPathOk && outputPathOk);
+}
+
+void CUTSExecutionWidget::enableGenerateButton(bool enabled)
+{
+    if(generateButton){
+        generateButton->setEnabled(enabled);
+    }
 }
 
 void CUTSExecutionWidget::selectGraphMLPath()
@@ -175,6 +202,10 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
 
     verticalLayout->addLayout(outputLayout);
 
+    generateButton = new QPushButton("Generate Files");
+    verticalLayout->addWidget(generateButton);
+    connect(generateButton, SIGNAL(clicked()), this, SLOT(runGeneration()));
+    enableGenerateButton(false);
 }
 
 QString CUTSExecutionWidget::getDirectory(QString filePath)

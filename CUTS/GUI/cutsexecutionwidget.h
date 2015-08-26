@@ -5,6 +5,7 @@
 #include <QDialog>
 #include <QLineEdit>
 #include <QLabel>
+#include <QPushButton>
 
 
 class CUTSExecutionWidget: public QDialog
@@ -22,6 +23,7 @@ public slots:
     void selectOutputPath();
     void setGraphMLPath(QString path);
     void setOutputPath(QString outputPath);
+    void runGeneration();
 
 
 
@@ -29,6 +31,12 @@ public slots:
     void outputPathEdited();
     void graphmlPathEdited();
 private:
+    void updateButtons();
+
+
+
+    void enableGenerateButton(bool enabled);
+
     void setupLayout(QString modelName);
     QString getDirectory(QString filePath);
 
@@ -39,11 +47,14 @@ private:
     QWidget* titleWidget;
     QWidget* buttonWidget;
 
+    bool graphmlPathOk;
+    bool outputPathOk;
+
     QLineEdit* graphmlPathEdit;
     QLineEdit* outputPathEdit;
     QLabel* graphmlPathIcon;
     QLabel* outputPathIcon;
-
+    QPushButton* generateButton;
     CUTS* cutsManager;
 };
 
