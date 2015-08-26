@@ -25,6 +25,7 @@
 #include <QVBoxLayout>
 #include <QTime>
 #include <QTableView>
+#include <cmath>
 
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
@@ -3642,7 +3643,7 @@ void NodeView::destructGUIItem(QString ID, GraphML::KIND kind)
  */
 void NodeView::showManagementComponents(bool show)
 {
-    Node* assemblyDefinition;
+    Node* assemblyDefinition = 0;
     Model* model = controller->getModel();
     if (model) {
         QList<Node*> result = model->getChildrenOfKind("AssemblyDefinitions");
@@ -3770,7 +3771,7 @@ void NodeView::fitToScreen(QList<NodeItem*> itemsToCenter, double padding, bool 
         }
     }
 
-    QRectF visibleItemsRec = QRectF(leftMostX, topMostY, abs((rightMostX-leftMostX)), abs((bottomMostY-topMostY)));
+    QRectF visibleItemsRec = QRectF(leftMostX, topMostY, fabs((rightMostX-leftMostX)), fabs((bottomMostY-topMostY)));
     centerRect(visibleItemsRec, padding, addToMap);
 }
 

@@ -213,7 +213,7 @@ void MedeaWindow::modelReady()
         //nodeView->fitToScreen();
     }
 
-    CUTS* c = new CUTS("c:/HelloWorld2.graphml", applicationDirectory + "/Resources/Scripts/", "C:/Transforms/");
+    CUTS* c = new CUTS("/Users/dan/Desktop/model.graphml", applicationDirectory + "/Resources/Scripts/", "C:/Transforms/");
 }
 
 void MedeaWindow::projectCleared()

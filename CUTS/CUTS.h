@@ -62,6 +62,8 @@ private:
 
     QHash<QString, QString> idHash;
 
+    QHash<QProcess*, QString> processHash;
+
 
 };
 

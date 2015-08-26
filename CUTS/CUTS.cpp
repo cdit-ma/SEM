@@ -13,7 +13,7 @@ CUTS::CUTS(QString graphmlPath, QString xalanPath, QString transformPath)
 {
     setXalanPath(xalanPath);
     setTransformPath(transformPath);
-    runTransforms(graphmlPath, "C:/Test2/");
+    runTransforms(graphmlPath, "/Users/dan/Desktop/Test2/");
 }
 
 CUTS::~CUTS()
@@ -50,11 +50,15 @@ void CUTS::runTransforms(QString graphml_path, QString output_path)
 
 
     processGraphML(graphml_path);
+    qCritical() << "OUTPUT";
 }
 
 void CUTS::xslFinished(int code, QProcess::ExitStatus status)
 {
-    qCritical() << code;
+    QProcess* senderProcess = dynamic_cast<QProcess*>(sender());
+    if(senderProcess){
+        qCritical() << processHash[senderProcess] << code;
+    }
 }
 
 void CUTS::processGraphML(QString graphml_file)
@@ -71,7 +75,7 @@ void CUTS::processGraphML(QString graphml_file)
     query->bindVariable("doc", &xmlFile);
 
     QHash<QString, QString> keyIDs;
-    QList<QPair<QString, QString>> edges;
+    QList<QPair<QString, QString> > edges;
     QHash<QString, QString> componentDefs;
 
     QStringList deployedComponentDefs;
@@ -206,7 +210,17 @@ void CUTS::processGraphML(QString graphml_file)
     generateComponentArtifacts(deployedComponentDefs);
     generateComponentInstanceArtifacts(deployedComponentInstances);
     generateIDLArtifacts(IDLs);
-    generateModelArtifacts(IDLs);
+
+    QStringList mpcFiles;
+    //Construct a list of MPC files
+    foreach(QString component, deployedComponentDefs){
+        mpcFiles << component + "Impl.mpc";
+    }
+    foreach(QString IDL, IDLs){
+        mpcFiles << IDL + ".mpc";
+    }
+
+    generateModelArtifacts(mpcFiles);
     //qCritical() << "Deployed Definitions: " << deployedComponentDefs;
     //qCritical() << "Deployed Instances: " << deployedC1omponentInstances;
 
@@ -323,6 +337,7 @@ void CUTS::runXSLTransform(QString inputFilePath, QString outputFilePath, QStrin
 
     xslProcess->start("java", arguments);
 
+    processHash[xslProcess] = outputFilePath;
 }
 
 QString CUTS::getGraphmlName(QString file)
