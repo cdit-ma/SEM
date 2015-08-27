@@ -19,6 +19,9 @@ public:
     void setTransformPath(QString transformPath);
 
     void runTransforms(QString graphml_path, QString output_path);
+signals:
+    void generatingFile(QString file_path);
+    void generatedFile(QString file_path, bool success);
 
 private slots:
     void xslFinished(int code, QProcess::ExitStatus status);

@@ -49,14 +49,14 @@ void CUTS::runTransforms(QString graphml_path, QString output_path)
 
 
     processGraphML(graphml_path);
-    qCritical() << "OUTPUT";
 }
 
 void CUTS::xslFinished(int code, QProcess::ExitStatus status)
 {
     QProcess* senderProcess = dynamic_cast<QProcess*>(sender());
     if(senderProcess){
-        qCritical() << processHash[senderProcess] << code;
+        QString outputFilePath = processHash[senderProcess];
+        emit generatedFile(outputFilePath, status == QProcess::ExitStatus::NormalExit);
     }
 }
 
@@ -171,7 +171,6 @@ void CUTS::processGraphML(QString graphml_file)
             QString parentID = getQuery(query, "@id/string()", &parent);
             QString kind = getQuery(query, "gml:data[@key='" + keyIDs["kind"] + "']/string()", &parent);
 
-            qCritical() << label;
             //Check if deployed.
             foreach(edge, edges){
                 if(hardwareIDs.contains(edge.second) && edge.first == parentID){
@@ -219,7 +218,6 @@ void CUTS::processGraphML(QString graphml_file)
         mpcFiles << IDL + ".mpc";
     }
 
-    qCritical() << mpcFiles;
 
     generateModelArtifacts(mpcFiles);
     //qCritical() << "Deployed Definitions: " << deployedComponentDefs;
@@ -295,7 +293,6 @@ void CUTS::generateIDLArtifacts(QStringList idls)
     foreach(QString transform, transforms){
         foreach(QString idl, idls){
             QStringList parameters;
-            qCritical() << idl;
             parameters << "File" <<  idl + "." + transform;
             QString outputFile = outputPath + idl + "." + transform;
             QString xslFile = transformPath + "graphml2" + transform + ".xsl";
@@ -340,6 +337,7 @@ void CUTS::runXSLTransform(QString inputFilePath, QString outputFilePath, QStrin
 
     //Store the Process in the hash so we can workout when all files are finished
     processHash[xslProcess] = outputFilePath;
+    emit generatingFile(outputFilePath);
 }
 
 QString CUTS::getGraphmlName(QString file)

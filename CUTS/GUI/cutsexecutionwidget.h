@@ -6,7 +6,24 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QPushButton>
+#include <QVBoxLayout>
+#include <QMovie>
+#include <QGroupBox>
 
+
+struct FileExtension{
+    QString extension;
+    QStringList files;
+    QStringList filesGenerated;
+
+    QHBoxLayout* layout;
+    QLabel* icon;
+    QLabel* finishedLabel;
+    QLabel* totalLabel;
+    QLabel* slashLabel;
+    QLabel* label;
+    bool allSuccess;
+};
 
 class CUTSExecutionWidget: public QDialog
 {
@@ -25,13 +42,19 @@ public slots:
     void setOutputPath(QString outputPath);
     void runGeneration();
 
+    void fileToBeGenerated(QString filePath);
+    void fileGenerated(QString filePath, bool success);
+
 
 
 
     void outputPathEdited();
     void graphmlPathEdited();
 private:
+    QString getExtension(QString filePath);
     void updateButtons();
+
+    void addFileToLayout(QString filePath);
 
 
 
@@ -50,11 +73,20 @@ private:
     bool graphmlPathOk;
     bool outputPathOk;
 
+
+    QHash<QString, FileExtension> fileExtensionLayouts;
+    QStringList files;
+    QStringList filesGenerated;
+
     QLineEdit* graphmlPathEdit;
     QLineEdit* outputPathEdit;
     QLabel* graphmlPathIcon;
     QLabel* outputPathIcon;
     QPushButton* generateButton;
+    QGroupBox* generatedFilesBox;
+
+    QMovie* loadingMovie;
+    QVBoxLayout* fileLayout;
     CUTS* cutsManager;
 };
 

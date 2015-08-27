@@ -8,6 +8,7 @@
 #include <QLineEdit>
 #include <QDialog>
 #include <QPushButton>
+#include <QLayout>
 #include <QProgressBar>
 #include <QAction>
 #include <QMenu>
@@ -37,6 +38,15 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTS *cutsManager)
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
 
     connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
+    connect(cutsManager, SIGNAL(generatingFile(QString)), this, SLOT(fileToBeGenerated(QString)));
+    connect(cutsManager, SIGNAL(generatedFile(QString,bool)), this, SLOT(fileGenerated(QString, bool)));
+
+    this->setGraphMLPath("C:/Helloworld.graphml");
+    this->setOutputPath("C:/Test2/");
+
+    loadingMovie = new QMovie(this);
+    loadingMovie->setFileName(":/Resources/Icons/jenkins_waiting.gif");
+    loadingMovie->start();
 }
 
 CUTSExecutionWidget::~CUTSExecutionWidget()
@@ -97,8 +107,40 @@ void CUTSExecutionWidget::setOutputPath(QString outputPath)
 
 void CUTSExecutionWidget::runGeneration()
 {
-    qCritical() << "Run Generation: " << outputPathEdit->text();
+    if(cutsManager){
+        cutsManager->runTransforms(graphmlPathEdit->text(), outputPathEdit->text());
+    }
+}
 
+void CUTSExecutionWidget::fileToBeGenerated(QString filePath)
+{
+    files.append(filePath);
+    addFileToLayout(filePath);
+}
+
+void CUTSExecutionWidget::fileGenerated(QString filePath, bool success)
+{
+
+    FileExtension fE = fileExtensionLayouts[getExtension(filePath)];
+
+    fE.filesGenerated.append(filePath);
+
+    if(!success){
+        fE.allSuccess = false;
+    }
+
+    if(fE.filesGenerated.size() == fE.files.size()){
+        setIconSuccess(fE.icon, fE.allSuccess);
+    }
+
+    //Update fileCount
+    fE.finishedLabel->setText(QString::number(fE.filesGenerated.count()));
+
+    //Update the Layouts
+    fileExtensionLayouts[getExtension(filePath)] = fE;
+
+    //Check
+    filesGenerated.append(filePath);
 }
 
 void CUTSExecutionWidget::outputPathEdited()
@@ -111,9 +153,54 @@ void CUTSExecutionWidget::graphmlPathEdited()
     setGraphMLPath(graphmlPathEdit->text());
 }
 
+QString CUTSExecutionWidget::getExtension(QString filePath)
+{
+    return filePath.split(".").last();
+}
+
 void CUTSExecutionWidget::updateButtons()
 {
     enableGenerateButton(graphmlPathOk && outputPathOk);
+}
+
+void CUTSExecutionWidget::addFileToLayout(QString filePath)
+{
+    //Get File Extension
+    QString extension = getExtension(filePath);
+
+    FileExtension fE;
+
+    if(!fileExtensionLayouts.contains(extension)){
+        fE.layout = new QHBoxLayout();
+        fE.icon = new QLabel();
+        fE.finishedLabel = new QLabel("0");
+        fE.slashLabel = new QLabel("/");
+        fE.totalLabel = new QLabel();
+        fE.label = new QLabel("*." + extension + " Files");
+        fE.icon = new QLabel();
+        fE.icon->setFixedSize(16,16);
+        fE.icon->setScaledContents(true);
+
+        fE.icon->setMovie(loadingMovie);
+
+        fE.layout->addWidget(fE.icon);
+        fE.layout->addWidget(fE.finishedLabel);
+        fE.layout->addWidget(fE.slashLabel);
+        fE.layout->addWidget(fE.totalLabel);
+        fE.layout->addWidget(fE.label,1);
+
+        fileLayout->addLayout(fE.layout);
+        fileExtensionLayouts[extension] = fE;
+    }
+    fE = fileExtensionLayouts[extension];
+
+    qCritical() << extension;
+
+    fE.files.append(filePath);
+    //Update fileCount
+    fE.totalLabel->setText(QString::number(fE.files.count()));
+    //Update the Layouts
+    fileExtensionLayouts[extension] = fE;
 }
 
 void CUTSExecutionWidget::enableGenerateButton(bool enabled)
@@ -206,6 +293,14 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
     verticalLayout->addWidget(generateButton);
     connect(generateButton, SIGNAL(clicked()), this, SLOT(runGeneration()));
     enableGenerateButton(false);
+
+    generatedFilesBox = new QGroupBox("Generated Files");
+    fileLayout = new QVBoxLayout();
+    generatedFilesBox->setLayout(fileLayout);
+
+    verticalLayout->addWidget(generatedFilesBox);
+
+
 }
 
 QString CUTSExecutionWidget::getDirectory(QString filePath)
