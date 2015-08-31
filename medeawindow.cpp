@@ -218,7 +218,7 @@ void MedeaWindow::modelReady()
 #ifdef _WIN32
     CUTS* c = new CUTS(applicationDirectory + "/Resources/Scripts/", "C:/Transforms/");
 #else
-    CUTS* c = new CUTS(applicationDirectory + "/Resources/Scripts/", "C:/Transforms/");
+    CUTS* c = new CUTS(applicationDirectory + "/Resources/Scripts/", "/Users/dan/Desktop/Transforms/trunk/");
 
 #endif
 

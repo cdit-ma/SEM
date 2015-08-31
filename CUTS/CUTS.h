@@ -5,6 +5,13 @@
 #include <QHash>
 #include <QXmlResultItems>
 #include <QProcess>
+#include <QQueue>
+
+struct ProcessStruct{
+    QString program;
+    QStringList arguments;
+    QString outputFilePath;
+};
 
 class CUTS: public QObject{
     Q_OBJECT
@@ -24,11 +31,13 @@ signals:
     void generatedFile(QString file_path, bool success);
 
 private slots:
-    void xslFinished(int code, QProcess::ExitStatus status);
+    void processFinished(int code, QProcess::ExitStatus status);
     void processGraphML(QString graphml_file);
 private:
+    QString getGraphmlName(QString file);
     QString wrapQuery(QString query);
     QString getQuery(QXmlQuery* query, QString queryStr, QXmlItem* item=0);
+
     QXmlResultItems* getQueryList(QXmlQuery* query, QString queryStr, QXmlItem* item=0);
 
     void generateComponentArtifacts(QStringList components);
@@ -37,25 +46,16 @@ private:
     void generateModelArtifacts(QStringList mpcFiles);
     void generateHardwareArtifacts(QStringList hardwareNodes);
 
-    void runXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters);
+    void queueXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters);
 
+    void executeProcess(QString program, QStringList arguments, QString outputFilePath="");
 
-     QString getGraphmlName(QString file);
-    /*
-
-
-    void generateIDLArtifacts(QStringList idls);
-    void generateModelArtifacts(QStringList mpcFiles);
-    void generateDeploymentArtifacts(QStringList deployedNodes);
-
-
-    QStringList getComponentInstanceLongNames(QString graphml_file);
+    void processQueue();
 
 
 
 
 
-    */
 
 
     QString transformPath;
@@ -63,8 +63,12 @@ private:
     QString outputPath;
     QString graphmlPath;
 
-    QHash<QString, QString> idHash;
+    //A Queue used to store the Process' which need to be executed
+    QQueue<ProcessStruct> queue;
+    //Used to store the current number of executing Process'
+    int executingProcessCount;
 
+    //A Hash to keep track of the QProcess' and their output files.
     QHash<QProcess*, QString> processHash;
 
 

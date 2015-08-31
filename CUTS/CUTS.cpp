@@ -5,9 +5,11 @@
 #include <QDir>
 #include <QDebug>
 #include <QPair>
+#include <QProcess>
 
 #include <QFileInfo>
 
+#define MAX_EXECUTING_PROCESSES 1
 
 CUTS::CUTS(QString xalanPath, QString transformPath)
 {
@@ -51,13 +53,20 @@ void CUTS::runTransforms(QString graphml_path, QString output_path)
     processGraphML(graphml_path);
 }
 
-void CUTS::xslFinished(int code, QProcess::ExitStatus status)
+void CUTS::processFinished(int code, QProcess::ExitStatus status)
 {
-    QProcess* senderProcess = dynamic_cast<QProcess*>(sender());
-    if(senderProcess){
-        QString outputFilePath = processHash[senderProcess];
-        emit generatedFile(outputFilePath, status == QProcess::ExitStatus::NormalExit);
+    QProcess* process = dynamic_cast<QProcess*>(sender());
+    if(process){
+        //Get the Process, so we can find the matching output file path.
+        QString outputFilePath = processHash[process];
+        //Emit a Signal saying that the file has been produced.
+        emit generatedFile(outputFilePath, code == 0);
     }
+    //Decrement the currentRunningCount
+    executingProcessCount--;
+
+    //Move onto the next items in the Queue.
+    processQueue();
 }
 
 void CUTS::processGraphML(QString graphml_file)
@@ -265,7 +274,7 @@ void CUTS::generateComponentArtifacts(QStringList components)
             parameters << "File" << component + "Impl." + transform;
             QString outputFile = outputPath + component + "Impl." + transform;
             QString xslFile = transformPath + "graphml2" + transform + ".xsl";
-            runXSLTransform(graphmlPath, outputFile, xslFile, parameters);
+            queueXSLTransform(graphmlPath, outputFile, xslFile, parameters);
         }
     }
 }
@@ -280,7 +289,7 @@ void CUTS::generateComponentInstanceArtifacts(QStringList componentInstances)
             parameters << "ComponentInstance" << componentInstance;
             QString outputFile = outputPath + componentInstance + "%%QoS.dpd";
             QString xslFile = transformPath + "graphml2" + transform + ".xsl";
-            runXSLTransform(graphmlPath, outputFile, xslFile, parameters);
+            queueXSLTransform(graphmlPath, outputFile, xslFile, parameters);
         }
     }
 
@@ -296,7 +305,7 @@ void CUTS::generateIDLArtifacts(QStringList idls)
             parameters << "File" <<  idl + "." + transform;
             QString outputFile = outputPath + idl + "." + transform;
             QString xslFile = transformPath + "graphml2" + transform + ".xsl";
-            runXSLTransform(graphmlPath, outputFile, xslFile, parameters);
+            queueXSLTransform(graphmlPath, outputFile, xslFile, parameters);
         }
     }
 
@@ -306,21 +315,18 @@ void CUTS::generateModelArtifacts(QStringList mpcFiles)
 {
     QString modelName = getGraphmlName(graphmlPath);
 
-    runXSLTransform(graphmlPath, outputPath + modelName + ".cdd", transformPath + "graphml2cdd.xsl", QStringList());
-    runXSLTransform(graphmlPath, outputPath + modelName + ".cdp", transformPath + "graphml2cdp.xsl", QStringList());
-    runXSLTransform(graphmlPath, outputPath + modelName + ".ddd", transformPath + "graphml2ddd.xsl", QStringList());
+    queueXSLTransform(graphmlPath, outputPath + modelName + ".cdd", transformPath + "graphml2cdd.xsl", QStringList());
+    queueXSLTransform(graphmlPath, outputPath + modelName + ".cdp", transformPath + "graphml2cdp.xsl", QStringList());
+    queueXSLTransform(graphmlPath, outputPath + modelName + ".ddd", transformPath + "graphml2ddd.xsl", QStringList());
 
     QStringList mwcParams;
     mwcParams << "FileList";
     mwcParams << mpcFiles.join(",");
-    runXSLTransform(graphmlPath, outputPath + modelName + ".mwc", transformPath + "graphml2mwc.xsl", mwcParams);
+    queueXSLTransform(graphmlPath, outputPath + modelName + ".mwc", transformPath + "graphml2mwc.xsl", mwcParams);
 }
 
-void CUTS::runXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters)
+void CUTS::queueXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters)
 {
-    QProcess* xslProcess = new QProcess(this);
-    xslProcess->setWorkingDirectory(transformPath);
-
     QStringList arguments;
     arguments << "-jar" << xalanPath + "xalan.jar";
     arguments << "-in" << inputFilePath;
@@ -331,13 +337,59 @@ void CUTS::runXSLTransform(QString inputFilePath, QString outputFilePath, QStrin
         arguments += parameters;
     }
 
-    connect(xslProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(xslFinished(int,QProcess::ExitStatus)));
+    //Emit that we are to Generate this file.
+    emit generatingFile(outputFilePath);
 
-    xslProcess->start("java", arguments);
+    //Construct and fill a Struct to contain the parameters for the spawned Process.
+    ProcessStruct ps;
+    ps.arguments = arguments;
+    ps.outputFilePath = outputFilePath;
+    ps.program = "java";
+    queue.append(ps);
+
+    //Step into the queue.
+    processQueue();
+}
+
+/**
+ * @brief CUTS::processQueue Ensures that there are MAX_EXECUTING_PROCESSES number of QProcesses currently executing, until there is nothing left in the queue to execute.
+ */
+void CUTS::processQueue()
+{
+    //While there isn't enough processes currently executing
+    while(executingProcessCount <  MAX_EXECUTING_PROCESSES){
+        if(queue.isEmpty()){
+            //Queue is empty, so don't continue;
+            break;
+        }
+        //Enqueue next process.
+        ProcessStruct ps = queue.takeFirst();
+        executeProcess(ps.program, ps.arguments, ps.outputFilePath);
+    }
+}
+
+/**
+ * @brief CUTS::executeProcess Executes a Program, with Arguments.
+ * @param program - The Program to execute
+ * @param arguments - The list of arguments for the program.
+ * @param outputFilePath - The desired output filepath for the file.
+ */
+void CUTS::executeProcess(QString program, QStringList arguments, QString outputFilePath)
+{
+    //Start a QProcess for this program
+    QProcess* process = new QProcess(this);
+    process->setWorkingDirectory(transformPath);
+
+    //Connect the Process' finished Signal
+    connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int,QProcess::ExitStatus)));
+
+    //Execute the QProcess
+    process->start(program, arguments);
 
     //Store the Process in the hash so we can workout when all files are finished
-    processHash[xslProcess] = outputFilePath;
-    emit generatingFile(outputFilePath);
+    processHash[process] = outputFilePath;
+    //Increment the number or currently running Process
+    executingProcessCount++;
 }
 
 QString CUTS::getGraphmlName(QString file)

@@ -41,8 +41,8 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTS *cutsManager)
     connect(cutsManager, SIGNAL(generatingFile(QString)), this, SLOT(fileToBeGenerated(QString)));
     connect(cutsManager, SIGNAL(generatedFile(QString,bool)), this, SLOT(fileGenerated(QString, bool)));
 
-    this->setGraphMLPath("C:/Helloworld.graphml");
-    this->setOutputPath("C:/Test2/");
+    this->setGraphMLPath("/Users/dan/Desktop/model.graphml");
+    this->setOutputPath("/Users/dan/Desktop/Test3/");
 
     loadingMovie = new QMovie(this);
     loadingMovie->setFileName(":/Resources/Icons/jenkins_waiting.gif");
@@ -171,6 +171,7 @@ void CUTSExecutionWidget::addFileToLayout(QString filePath)
     FileExtension fE;
 
     if(!fileExtensionLayouts.contains(extension)){
+        fE.allSuccess = true;
         fE.layout = new QHBoxLayout();
         fE.icon = new QLabel();
         fE.finishedLabel = new QLabel("0");
@@ -193,8 +194,6 @@ void CUTSExecutionWidget::addFileToLayout(QString filePath)
         fileExtensionLayouts[extension] = fE;
     }
     fE = fileExtensionLayouts[extension];
-
-    qCritical() << extension;
 
     fE.files.append(filePath);
     //Update fileCount
