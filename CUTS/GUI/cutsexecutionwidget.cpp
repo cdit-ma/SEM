@@ -1,5 +1,5 @@
 #include "cutsexecutionwidget.h"
-#include "../CUTS.h"
+#include "../cutsmanager.h"
 
 
 #include <QVBoxLayout>
@@ -18,7 +18,7 @@
 #include <QFileDialog>
 
 
-CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTS *cutsManager)
+CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManager)
 {
     this->cutsManager = cutsManager;
     graphmlPathEdit = 0;
@@ -31,6 +31,8 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTS *cutsManager)
     setWindowIcon(QIcon(":/Resources/Icons/jenkins_build.png"));
     setupLayout("MODEL");
 
+    connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
+    setModal(true);
 
     setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;");
 

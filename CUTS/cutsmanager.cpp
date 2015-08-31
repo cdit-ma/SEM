@@ -1,4 +1,4 @@
-#include "CUTS.h"
+#include "cutsmanager.h"
 #include <QFile>
 #include <QXmlQuery>
 #include <QXmlResultItems>
@@ -9,30 +9,42 @@
 
 #include <QFileInfo>
 
-#define MAX_EXECUTING_PROCESSES 1
-
-CUTS::CUTS(QString xalanPath, QString transformPath)
+CUTSManager::CUTSManager(QString xalanPath)
 {
     setXalanPath(xalanPath);
-    setTransformPath(transformPath);
+    executingProcessCount = 0;
+    MAX_EXECUTING_PROCESSES = 1;
 }
 
-CUTS::~CUTS()
+CUTSManager::~CUTSManager()
 {
 
 }
 
-void CUTS::setXalanPath(QString xalanPath)
+void CUTSManager::setXalanPath(QString xalanPath)
 {
+    //Enforce a trailing /
+    if(!xalanPath.endsWith("/")){
+        xalanPath += "/";
+    }
     this->xalanPath = xalanPath;
 }
 
-void CUTS::setTransformPath(QString transformPath)
+void CUTSManager::setTransformPath(QString transformPath)
 {
+    //Enforce a trailing /
+    if(!transformPath.endsWith("/")){
+        transformPath += "/";
+    }
     this->transformPath = transformPath;
+
 }
 
-void CUTS::runTransforms(QString graphml_path, QString output_path)
+void CUTSManager::setThreadLimit(int limit){
+    MAX_EXECUTING_PROCESSES = limit;
+}
+
+void CUTSManager::runTransforms(QString graphml_path, QString output_path)
 {
     QDir dir(output_path);
     if (!dir.exists()) {
@@ -53,7 +65,7 @@ void CUTS::runTransforms(QString graphml_path, QString output_path)
     processGraphML(graphml_path);
 }
 
-void CUTS::processFinished(int code, QProcess::ExitStatus status)
+void CUTSManager::processFinished(int code, QProcess::ExitStatus)
 {
     QProcess* process = dynamic_cast<QProcess*>(sender());
     if(process){
@@ -69,7 +81,7 @@ void CUTS::processFinished(int code, QProcess::ExitStatus status)
     processQueue();
 }
 
-void CUTS::processGraphML(QString graphml_file)
+void CUTSManager::processGraphML(QString graphml_file)
 {
     QFile xmlFile(graphml_file);
     if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly))
@@ -237,12 +249,12 @@ void CUTS::processGraphML(QString graphml_file)
 
 }
 
-QString CUTS::wrapQuery(QString query)
+QString CUTSManager::wrapQuery(QString query)
 {
     return "declare namespace gml = \"http://graphml.graphdrawing.org/xmlns\"; " + query;
 }
 
-QString CUTS::getQuery(QXmlQuery* query, QString queryStr, QXmlItem* item)
+QString CUTSManager::getQuery(QXmlQuery* query, QString queryStr, QXmlItem* item)
 {
     QString value;
     if(item && !item->isNull()){
@@ -253,7 +265,7 @@ QString CUTS::getQuery(QXmlQuery* query, QString queryStr, QXmlItem* item)
     return value.trimmed();
 }
 
-QXmlResultItems *CUTS::getQueryList(QXmlQuery* query, QString queryStr, QXmlItem* item)
+QXmlResultItems *CUTSManager::getQueryList(QXmlQuery* query, QString queryStr, QXmlItem* item)
 {
     QXmlResultItems* results = new QXmlResultItems();
     if(item && !item->isNull()){
@@ -264,7 +276,7 @@ QXmlResultItems *CUTS::getQueryList(QXmlQuery* query, QString queryStr, QXmlItem
     return results;
 }
 
-void CUTS::generateComponentArtifacts(QStringList components)
+void CUTSManager::generateComponentArtifacts(QStringList components)
 {
     QStringList transforms;
     transforms << "mpc" << "cpp" << "h";
@@ -279,7 +291,7 @@ void CUTS::generateComponentArtifacts(QStringList components)
     }
 }
 
-void CUTS::generateComponentInstanceArtifacts(QStringList componentInstances)
+void CUTSManager::generateComponentInstanceArtifacts(QStringList componentInstances)
 {
     QStringList transforms;
     transforms << "dpd";
@@ -295,7 +307,7 @@ void CUTS::generateComponentInstanceArtifacts(QStringList componentInstances)
 
 }
 
-void CUTS::generateIDLArtifacts(QStringList idls)
+void CUTSManager::generateIDLArtifacts(QStringList idls)
 {
     QStringList transforms;
     transforms << "idl" << "mpc";
@@ -311,7 +323,7 @@ void CUTS::generateIDLArtifacts(QStringList idls)
 
 }
 
-void CUTS::generateModelArtifacts(QStringList mpcFiles)
+void CUTSManager::generateModelArtifacts(QStringList mpcFiles)
 {
     QString modelName = getGraphmlName(graphmlPath);
 
@@ -325,7 +337,7 @@ void CUTS::generateModelArtifacts(QStringList mpcFiles)
     queueXSLTransform(graphmlPath, outputPath + modelName + ".mwc", transformPath + "graphml2mwc.xsl", mwcParams);
 }
 
-void CUTS::queueXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters)
+void CUTSManager::queueXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters)
 {
     QStringList arguments;
     arguments << "-jar" << xalanPath + "xalan.jar";
@@ -354,7 +366,7 @@ void CUTS::queueXSLTransform(QString inputFilePath, QString outputFilePath, QStr
 /**
  * @brief CUTS::processQueue Ensures that there are MAX_EXECUTING_PROCESSES number of QProcesses currently executing, until there is nothing left in the queue to execute.
  */
-void CUTS::processQueue()
+void CUTSManager::processQueue()
 {
     //While there isn't enough processes currently executing
     while(executingProcessCount <  MAX_EXECUTING_PROCESSES){
@@ -374,7 +386,7 @@ void CUTS::processQueue()
  * @param arguments - The list of arguments for the program.
  * @param outputFilePath - The desired output filepath for the file.
  */
-void CUTS::executeProcess(QString program, QStringList arguments, QString outputFilePath)
+void CUTSManager::executeProcess(QString program, QStringList arguments, QString outputFilePath)
 {
     //Start a QProcess for this program
     QProcess* process = new QProcess(this);
@@ -392,8 +404,9 @@ void CUTS::executeProcess(QString program, QStringList arguments, QString output
     executingProcessCount++;
 }
 
-QString CUTS::getGraphmlName(QString file)
+QString CUTSManager::getGraphmlName(QString filePath)
 {
-    QFileInfo fileInfo = QFileInfo(QFile(file));
+    QFile file(filePath);
+    QFileInfo fileInfo = QFileInfo(file);
     return fileInfo.baseName();
 }

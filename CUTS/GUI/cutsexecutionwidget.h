@@ -1,6 +1,6 @@
 #ifndef CUTSEXECUTIONWIDGET_H
 #define CUTSEXECUTIONWIDGET_H
-#include "../CUTS.h"
+#include "../cutsmanager.h"
 
 #include <QDialog>
 #include <QLineEdit>
@@ -29,7 +29,7 @@ class CUTSExecutionWidget: public QDialog
 {
     Q_OBJECT
 public:
-    CUTSExecutionWidget(QWidget *parent = 0, CUTS* cutsManager=0);
+    CUTSExecutionWidget(QWidget *parent = 0, CUTSManager* cutsManager=0);
     ~CUTSExecutionWidget();
 
 
@@ -87,7 +87,7 @@ private:
 
     QMovie* loadingMovie;
     QVBoxLayout* fileLayout;
-    CUTS* cutsManager;
+    CUTSManager* cutsManager;
 };
 
 

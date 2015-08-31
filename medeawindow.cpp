@@ -38,6 +38,9 @@
 
 // USER SETTINGS
 #define LOG_DEBUGGING "00-01-Log_Debug_Information"
+#define THREAD_LIMIT "00-02-Thread_Limit"
+#define TRANSFORM_PATH "00-03-XSL_Transform_Path"
+
 #define WINDOW_X "01-01-Position_X"
 #define WINDOW_Y "01-02-Position_Y"
 #define WINDOW_W "01-03-Width"
@@ -111,6 +114,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     controller = 0;
     tempExport = false;
     validate_TempExport = false;
+    cuts_TempExport = false;
     jenkins_TempExport = false;
     leftOverTime = 0;
     isWindowMaximized = false;
@@ -120,6 +124,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
 
     initialiseJenkinsManager();
+    initialiseCUTSManager();
 
     initialiseGUI();
     makeConnections();
@@ -213,18 +218,6 @@ void MedeaWindow::modelReady()
         nodeView->setEnabled(true);
         //nodeView->fitToScreen();
     }
-
-
-#ifdef _WIN32
-    CUTS* c = new CUTS(applicationDirectory + "/Resources/Scripts/", "C:/Transforms/");
-#else
-    CUTS* c = new CUTS(applicationDirectory + "/Resources/Scripts/", "/Users/dan/Desktop/Transforms/trunk/");
-
-#endif
-
-    CUTSExecutionWidget* cWidget = new CUTSExecutionWidget(this, c);
-    cWidget->show();
-
 }
 
 void MedeaWindow::projectCleared()
@@ -275,6 +268,14 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == LOG_DEBUGGING && isBool){
         if(nodeView){
             emit nodeView->view_EnableDebugLogging(boolValue, applicationDirectory);
+        }
+    }else if(keyName == TRANSFORM_PATH){
+        if(cutsManager){
+            cutsManager->setTransformPath(value);
+        }
+    }else if(keyName == THREAD_LIMIT && isInt){
+        if(cutsManager){
+            cutsManager->setThreadLimit(intValue);
         }
     }else if(keyName == AUTO_CENTER_VIEW && isBool){
         nodeView->autoCenterAspects(boolValue);
@@ -641,6 +642,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     //Generic Jenkins Functionality.
     jenkins_ImportNodes = jenkins_menu->addAction(QIcon(":/Resources/Icons/jenkins_nodes.png"), "Import Nodes");
     jenkins_ImportNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
+
+    cuts_runGeneration = jenkins_menu->addAction(QIcon(":/Resources/Icons/cuts.png"), "Launch: Local Deployment");
 
     jenkins_ExecuteJob = jenkins_menu->addAction(QIcon(":/Resources/Icons/jenkins_build.png"), "Launch: " + jenkinsJobName);
 
@@ -1202,6 +1205,8 @@ void MedeaWindow::makeConnections()
 
     //Jenkins Settings
     connect(jenkins_ExecuteJob, SIGNAL(triggered()), this, SLOT(jenkinsExport()));
+    connect(cuts_runGeneration, SIGNAL(triggered()), this, SLOT(cutsExport()));
+
     connect(jenkins_ImportNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
 
     connect(settings_changeAppSettings, SIGNAL(triggered()), appSettings, SLOT(show()));
@@ -1401,6 +1406,24 @@ void MedeaWindow::initialiseJenkinsManager()
     }
 }
 
+void MedeaWindow::initialiseCUTSManager()
+{
+    cutsManager = 0;
+
+    QString xalanPath = applicationDirectory + "/Resources/Scripts/";
+    QString transformPath = appSettings->getSetting(TRANSFORM_PATH);
+
+    //Try Parse Thread limit
+    bool isInt;
+    int threadLimit = appSettings->getSetting(THREAD_LIMIT).toInt(&isInt);
+    if(!isInt){
+        threadLimit = 4;
+    }
+    cutsManager = new CUTSManager(applicationDirectory + "/Resources/Scripts/");
+    cutsManager->setTransformPath(transformPath);
+    cutsManager->setThreadLimit(threadLimit);
+}
+
 
 
 void MedeaWindow::jenkins_InvokeJob(QString filePath)
@@ -1411,6 +1434,16 @@ void MedeaWindow::jenkins_InvokeJob(QString filePath)
         JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
         jenkinsSJ->requestJob(jenkinsJobName, filePath);
     }
+}
+
+void MedeaWindow::cuts_runDeployment(QString filePath)
+{
+    if(cutsManager){
+        CUTSExecutionWidget* cWidget = new CUTSExecutionWidget(this, cutsManager);
+        cWidget->setGraphMLPath(filePath);
+        cWidget->show();
+    }
+
 }
 
 void MedeaWindow::validate_Exported(QString tempModelPath)
@@ -1636,6 +1669,12 @@ void MedeaWindow::aspectToggleClicked(bool checked, int state)
 void MedeaWindow::jenkinsExport()
 {
     jenkins_TempExport = true;
+    exportTempFile();
+}
+
+void MedeaWindow::cutsExport()
+{
+    cuts_TempExport = true;
     exportTempFile();
 }
 
@@ -2038,6 +2077,10 @@ void MedeaWindow::writeExportedProject(QString data)
             if(validate_TempExport){
                 validate_Exported(fileName);
                 validate_TempExport = false;
+            }
+            if(cuts_TempExport){
+                cuts_runDeployment(fileName);
+                cuts_TempExport = false;
             }
             enableTempExport(true);
 

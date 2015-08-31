@@ -51,7 +51,7 @@
 
 #include "View/Validate/validatedialog.h"
 
-#include "CUTS/CUTS.h"
+#include "CUTS/cutsmanager.h"
 
 #include "GUI/searchitembutton.h"
 #include "GUI/aspecttogglewidget.h"
@@ -107,9 +107,12 @@ public slots:
     void aspectToggleClicked(bool checked, int state);
 
     void jenkinsExport();
+    void cutsExport();
     void validateExport();
     void exportTempFile();
     void jenkins_InvokeJob(QString filePath);
+    void cuts_runDeployment(QString filePath);
+
     void validate_Exported(QString tempModelPath);
 
 private slots:
@@ -195,6 +198,9 @@ protected:
 
 private:
     void initialiseJenkinsManager();
+    void initialiseCUTSManager();
+
+
     void resetGUI();
     void resetView();
     void newProject();
@@ -420,7 +426,10 @@ private:
     QModelIndex clickedModelIndex;
 
     JenkinsManager* jenkinsManager;
+    CUTSManager* cutsManager;
+
     QAction* jenkins_getJobParameters;
+    QAction* cuts_runGeneration;
 
 
     QAction* action_ContextMenu;
@@ -428,8 +437,10 @@ private:
     ActionButton* toolbar_ContextMenu;
 
     bool jenkins_TempExport;
+    bool cuts_TempExport;
     bool validate_TempExport;
     QString validation_report_path;
+
 
 };
 

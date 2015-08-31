@@ -1,5 +1,5 @@
-#ifndef CUTS_H
-#define CUTS_H
+#ifndef CUTSMANAGER_H
+#define CUTSMANAGER_H
 
 #include <QObject>
 #include <QHash>
@@ -13,15 +13,15 @@ struct ProcessStruct{
     QString outputFilePath;
 };
 
-class CUTS: public QObject{
+class CUTSManager: public QObject{
     Q_OBJECT
 
 public:
     //Constructor
-    CUTS(QString xalanPath, QString transformPath);
-    ~CUTS();
+    CUTSManager(QString xalanPath);
+    ~CUTSManager();
 
-
+    void setThreadLimit(int limit);
     void setXalanPath(QString xalanPath);
     void setTransformPath(QString transformPath);
 
@@ -58,6 +58,7 @@ private:
 
 
 
+
     QString transformPath;
     QString xalanPath;
     QString outputPath;
@@ -67,6 +68,7 @@ private:
     QQueue<ProcessStruct> queue;
     //Used to store the current number of executing Process'
     int executingProcessCount;
+    int MAX_EXECUTING_PROCESSES;
 
     //A Hash to keep track of the QProcess' and their output files.
     QHash<QProcess*, QString> processHash;
@@ -74,4 +76,4 @@ private:
 
 };
 
-#endif //CUTS_H
+#endif //CUTSMANAGER_H

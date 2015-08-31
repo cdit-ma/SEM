@@ -111,8 +111,8 @@ HEADERS += \
     GUI/syntaxhighlighter.h \
     medeasubwindow.h \
     GUI/actionbutton.h \
-    CUTS/CUTS.h \
-    CUTS/GUI/cutsexecutionwidget.h
+    CUTS/GUI/cutsexecutionwidget.h \
+    CUTS/cutsmanager.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -196,11 +196,10 @@ SOURCES += \
     GUI/syntaxhighlighter.cpp \
     medeasubwindow.cpp \
     GUI/actionbutton.cpp \
-    CUTS/CUTS.cpp \
-    CUTS/GUI/cutsexecutionwidget.cpp
+    CUTS/GUI/cutsexecutionwidget.cpp \
+    CUTS/cutsmanager.cpp
 
-FORMS += \
-    dialog.ui
+FORMS +=
 
 RESOURCES += \
     resources.qrc

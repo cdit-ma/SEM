@@ -133,5 +133,6 @@
         <file>Resources/Icons/menu.png</file>
         <file>Resources/Icons/cross.png</file>
         <file>Resources/Icons/tick.png</file>
+        <file>Resources/Icons/cuts.png</file>
     </qresource>
 </RCC>
