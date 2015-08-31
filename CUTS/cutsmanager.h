@@ -35,8 +35,10 @@ private slots:
     void processGraphML(QString graphml_file);
 private:
     QString getGraphmlName(QString file);
+    QString getGraphmlPath(QString filePath);
     QString wrapQuery(QString query);
     QString getQuery(QXmlQuery* query, QString queryStr, QXmlItem* item=0);
+    bool doesFileExist(QString file);
 
     QXmlResultItems* getQueryList(QXmlQuery* query, QString queryStr, QXmlItem* item=0);
 
@@ -45,6 +47,8 @@ private:
     void generateIDLArtifacts(QStringList idls);
     void generateModelArtifacts(QStringList mpcFiles);
     void generateHardwareArtifacts(QStringList hardwareNodes);
+
+    QString preProcessIDL(QString inputFilePath);
 
     void queueXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters);
 

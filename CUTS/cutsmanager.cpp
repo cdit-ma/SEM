@@ -6,7 +6,7 @@
 #include <QDebug>
 #include <QPair>
 #include <QProcess>
-
+#include <QEventLoop>
 #include <QFileInfo>
 
 CUTSManager::CUTSManager(QString xalanPath)
@@ -57,12 +57,16 @@ void CUTSManager::runTransforms(QString graphml_path, QString output_path)
     if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly))
         return;
 
-
+    //Set output Path
     outputPath = output_path;
-    graphmlPath = graphml_path;
 
+    //Try preprocess the IDL
+    QString outputFile = preProcessIDL(graphml_path);
 
-    processGraphML(graphml_path);
+    if(doesFileExist(outputFile)){
+        //Run The rest of the transforms
+        processGraphML(outputFile);
+    }
 }
 
 void CUTSManager::processFinished(int code, QProcess::ExitStatus)
@@ -87,6 +91,7 @@ void CUTSManager::processGraphML(QString graphml_file)
     if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly))
         return;
 
+    graphmlPath = graphml_file;
     //Check for Deployed Components.
     bool allComponents = false;
 
@@ -241,12 +246,6 @@ void CUTSManager::processGraphML(QString graphml_file)
 
 
     generateModelArtifacts(mpcFiles);
-    //qCritical() << "Deployed Definitions: " << deployedComponentDefs;
-    //qCritical() << "Deployed Instances: " << deployedC1omponentInstances;
-
-    return;
-
-
 }
 
 QString CUTSManager::wrapQuery(QString query)
@@ -263,6 +262,13 @@ QString CUTSManager::getQuery(QXmlQuery* query, QString queryStr, QXmlItem* item
     query->setQuery(wrapQuery(queryStr));
     query->evaluateTo(&value);
     return value.trimmed();
+}
+
+bool CUTSManager::doesFileExist(QString filePath)
+{
+    QFile file(filePath);
+    QFileInfo fileInfo = QFileInfo(file);
+    return fileInfo.isFile() && fileInfo.size() > 0;
 }
 
 QXmlResultItems *CUTSManager::getQueryList(QXmlQuery* query, QString queryStr, QXmlItem* item)
@@ -337,6 +343,41 @@ void CUTSManager::generateModelArtifacts(QStringList mpcFiles)
     queueXSLTransform(graphmlPath, outputPath + modelName + ".mwc", transformPath + "graphml2mwc.xsl", mwcParams);
 }
 
+QString CUTSManager::preProcessIDL(QString inputFilePath)
+{
+    //Emit that we are to Generate this file.
+    emit generatingFile(inputFilePath);
+
+    //Start a QProcess for this program
+    QProcess* process = new QProcess(this);
+    process->setWorkingDirectory(transformPath);
+
+    QString outFileName = outputPath + getGraphmlName(inputFilePath) + ".graphml";
+
+    //Construct the arguments for the xsl transform
+    QStringList arguments;
+    arguments << "-jar" << xalanPath + "xalan.jar";
+    arguments << "-in" << inputFilePath;
+    arguments << "-xsl" << transformPath + "PreprocessIDL.xsl";
+    arguments << "-out" << outFileName;
+
+    //Construct a wait loop to make sure this transform happens first.
+    QEventLoop waitLoop;
+    connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
+
+    //Execute the QProcess
+    process->start("java", arguments);
+
+    //Wait for The process to exit the loop.
+    waitLoop.exec();
+
+    //Emit to the GUI that the file has been generated.
+    emit generatedFile(outFileName, process->exitCode() == 0);
+
+    //Return the filepath of the new Graphml file.
+    return outFileName;
+}
+
 void CUTSManager::queueXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters)
 {
     QStringList arguments;
@@ -409,4 +450,11 @@ QString CUTSManager::getGraphmlName(QString filePath)
     QFile file(filePath);
     QFileInfo fileInfo = QFileInfo(file);
     return fileInfo.baseName();
+}
+
+QString CUTSManager::getGraphmlPath(QString filePath)
+{
+    QFile file(filePath);
+    QFileInfo fileInfo = QFileInfo(file);
+    return fileInfo.absolutePath();
 }
