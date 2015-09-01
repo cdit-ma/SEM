@@ -218,6 +218,7 @@ void MedeaWindow::modelReady()
         nodeView->setEnabled(true);
         //nodeView->fitToScreen();
     }
+    cuts_runGeneration->trigger();
 }
 
 void MedeaWindow::projectCleared()

@@ -43,12 +43,18 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
     connect(cutsManager, SIGNAL(generatingFile(QString)), this, SLOT(fileToBeGenerated(QString)));
     connect(cutsManager, SIGNAL(generatedFile(QString,bool)), this, SLOT(fileGenerated(QString, bool)));
 
-    this->setGraphMLPath("/Users/dan/Desktop/model.graphml");
-    this->setOutputPath("/Users/dan/Desktop/Test3/");
+
 
     loadingMovie = new QMovie(this);
     loadingMovie->setFileName(":/Resources/Icons/jenkins_waiting.gif");
     loadingMovie->start();
+
+    //Set State
+    state = INITIAL;
+    setState(INITIAL);
+
+    setGraphMLPath("/Users/dan/Desktop/model.graphml");
+    setOutputPath("/Users/dan/Desktop/Test3/");
 }
 
 CUTSExecutionWidget::~CUTSExecutionWidget()
@@ -109,9 +115,12 @@ void CUTSExecutionWidget::setOutputPath(QString outputPath)
 
 void CUTSExecutionWidget::runGeneration()
 {
-    if(cutsManager){
-        cutsManager->runTransforms(graphmlPathEdit->text(), outputPathEdit->text());
-    }
+
+}
+
+void CUTSExecutionWidget::nextButtonPressed()
+{
+    stepState();
 }
 
 void CUTSExecutionWidget::fileToBeGenerated(QString filePath)
@@ -143,6 +152,11 @@ void CUTSExecutionWidget::fileGenerated(QString filePath, bool success)
 
     //Check
     filesGenerated.append(filePath);
+
+    //CHECK STATE.
+    if(filesGenerated.size() == files.size()){
+       setState(RAN_XSL);
+    }
 }
 
 void CUTSExecutionWidget::outputPathEdited()
@@ -155,6 +169,58 @@ void CUTSExecutionWidget::graphmlPathEdited()
     setGraphMLPath(graphmlPathEdit->text());
 }
 
+QWidget *CUTSExecutionWidget::setupGenerateWidget()
+{
+    //Construct a ScrollArea
+    generateScrollArea = new QScrollArea();
+    generateWidget = new QWidget();
+
+    generateScrollArea->setWidgetResizable(true);
+    generateScrollArea->setWidget(generateWidget);
+    generateScrollArea->setStyleSheet("QScrollArea{border: none;}");
+
+
+    QVBoxLayout* vLayout = new QVBoxLayout(generateWidget);
+    generateLayout = new QVBoxLayout();
+    vLayout->addLayout(generateLayout);
+    vLayout->addStretch(1);
+    return generateScrollArea;
+}
+
+QWidget *CUTSExecutionWidget::setupBuildWidget()
+{
+    buildScrollArea = new QScrollArea();
+    buildWidget = new QWidget();
+
+    buildScrollArea->setWidgetResizable(true);
+    buildScrollArea->setWidget(buildWidget);
+    buildScrollArea->setStyleSheet("QScrollArea{border: none;}");
+
+
+    QVBoxLayout* vLayout = new QVBoxLayout(buildWidget);
+    buildText = new QTextBrowser();
+    buildText->setPlaceholderText("Build");
+    vLayout->addWidget(buildText);
+    return buildScrollArea;
+}
+
+QWidget *CUTSExecutionWidget::setupExecuteWidget()
+{
+    executeScrollArea = new QScrollArea();
+    executeWidget = new QWidget();
+
+    executeScrollArea->setWidgetResizable(true);
+    executeScrollArea->setWidget(executeWidget);
+    executeScrollArea->setStyleSheet("QScrollArea{border: none;}");
+
+
+    QVBoxLayout* vLayout = new QVBoxLayout(executeWidget);
+    executeText = new QTextBrowser();
+    executeText->setPlaceholderText("Execute");
+    vLayout->addWidget(executeText);
+    return executeScrollArea;
+}
+
 QString CUTSExecutionWidget::getExtension(QString filePath)
 {
     return filePath.split(".").last();
@@ -163,6 +229,20 @@ QString CUTSExecutionWidget::getExtension(QString filePath)
 void CUTSExecutionWidget::updateButtons()
 {
     enableGenerateButton(graphmlPathOk && outputPathOk);
+    if(state <= PARAMETERS_OKAY){
+
+        if(graphmlPathOk && outputPathOk){
+            setState(PARAMETERS_OKAY);
+        }else{
+            setState(INITIAL);
+        }
+    }
+}
+
+void CUTSExecutionWidget::stepState()
+{
+    CUTS_EXECUTION_STATES newState = (CUTS_EXECUTION_STATES) (int(state) + 1);
+    setState(newState);
 }
 
 void CUTSExecutionWidget::addFileToLayout(QString filePath)
@@ -192,7 +272,7 @@ void CUTSExecutionWidget::addFileToLayout(QString filePath)
         fE.layout->addWidget(fE.totalLabel);
         fE.layout->addWidget(fE.label,1);
 
-        fileLayout->addLayout(fE.layout);
+        generateLayout->addLayout(fE.layout);
         fileExtensionLayouts[extension] = fE;
     }
     fE = fileExtensionLayouts[extension];
@@ -258,13 +338,13 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
     graphmlPathEdit = new QLineEdit();
     setIconSuccess(graphmlPathIcon, false);
 
-    QPushButton* modelSelector = new QPushButton("...");
-    connect(modelSelector, SIGNAL(clicked()), this, SLOT(selectGraphMLPath()));
+    graphmlPathButton = new QPushButton("...");
+    connect(graphmlPathButton, SIGNAL(clicked()), this, SLOT(selectGraphMLPath()));
     modelLayout->addWidget(graphmlPathIcon);
     modelLayout->addWidget(modelLabel);
     modelLayout->addWidget(graphmlPathEdit, 1);
     connect(graphmlPathEdit, SIGNAL(editingFinished()), this, SLOT(graphmlPathEdited()));
-    modelLayout->addWidget(modelSelector);
+    modelLayout->addWidget(graphmlPathButton);
 
 
 
@@ -278,15 +358,13 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
     outputPathEdit = new QLineEdit();
     setIconSuccess(outputPathIcon, false);
 
-    QPushButton* outputSelector = new QPushButton("...");
-    connect(outputSelector, SIGNAL(clicked()), this, SLOT(selectOutputPath()));
+    outputPathButton = new QPushButton("...");
+    connect(outputPathButton, SIGNAL(clicked()), this, SLOT(selectOutputPath()));
     outputLayout->addWidget(outputPathIcon);
     outputLayout->addWidget(outputLabel);
     outputLayout->addWidget(outputPathEdit, 1);
     connect(outputPathEdit, SIGNAL(editingFinished()), this, SLOT(outputPathEdited()));
-    outputLayout->addWidget(outputSelector);
-
-
+    outputLayout->addWidget(outputPathButton);
 
     verticalLayout->addLayout(outputLayout);
 
@@ -295,12 +373,28 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
     connect(generateButton, SIGNAL(clicked()), this, SLOT(runGeneration()));
     enableGenerateButton(false);
 
-    generatedFilesBox = new QGroupBox("Generated Files");
-    fileLayout = new QVBoxLayout();
-    generatedFilesBox->setLayout(fileLayout);
 
-    verticalLayout->addWidget(generatedFilesBox);
+    tabWidget = new QTabWidget();
+    verticalLayout->addWidget(tabWidget, 1);
+    tabWidget->addTab(setupGenerateWidget(), QIcon(":/Resources/Icons/refresh.png"), "Generate");
+    tabWidget->addTab(setupBuildWidget(), QIcon(":/Resources/Icons/build.png"), "Build");
+    tabWidget->addTab(setupExecuteWidget(),QIcon(":/Resources/Icons/forward.png"),  "Execute");
 
+
+
+
+
+    //Button Groups.
+    QHBoxLayout* buttonGroups = new QHBoxLayout();
+    verticalLayout->addLayout(buttonGroups);
+    nextButton = new QPushButton("Next");
+    cancelButton = new QPushButton("Cancel");
+
+    connect(nextButton, SIGNAL(clicked()), SLOT(nextButtonPressed()));
+    connect(cancelButton, SIGNAL(clicked()), this, SLOT(close()));
+    buttonGroups->addStretch(1);
+    buttonGroups->addWidget(nextButton);
+    buttonGroups->addWidget(cancelButton);
 
 }
 
@@ -321,3 +415,116 @@ void CUTSExecutionWidget::setIconSuccess(QLabel *label, bool success)
         label->setPixmap(QPixmap::fromImage(QImage(":/Resources/Icons/" + fileName + ".png")));
     }
 }
+
+void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
+{
+    if(state == INITIAL){
+        if(newState == PARAMETERS_OKAY){
+            //ENABLE BUTTON
+            nextButton->setEnabled(true);
+            state = newState;
+        }
+    }else if(state == PARAMETERS_OKAY){
+        //RESET
+        if(newState == INITIAL){
+            state = newState;
+        }else if(newState == RUN_XSL){
+            //Disable the Path/GraphML Button
+            graphmlPathEdit->setEnabled(false);
+            outputPathEdit->setEnabled(false);
+            graphmlPathButton->setEnabled(false);
+            outputPathButton->setEnabled(false);
+
+            //If our Parameters are okay, we can proceed to RUN_XSL
+            cutsManager->runTransforms(graphmlPathEdit->text(), outputPathEdit->text());
+            nextButton->setEnabled(false);
+            state = newState;
+        }
+    }else if(state == RUN_XSL){
+        if(newState == RAN_XSL){
+            //Allow the Tab Widget.
+            tabWidget->setTabEnabled(1, true);
+
+            //Update Next Button
+            nextButton->setIcon(tabWidget->tabIcon(1));
+            nextButton->setText(tabWidget->tabText(1));
+            nextButton->setEnabled(true);
+            state = newState;
+       }
+    }else if(state == RAN_XSL){
+        if(newState == RUN_MWC){
+            //Move to the Build Tab.
+            tabWidget->setCurrentIndex(1);
+            buildText->append("RUNNING MWC\n");
+            state = newState;
+        }
+    }else if(state == RUN_MWC){
+        if(newState == RAN_MWC){
+            buildText->append("RAN MWC\n");
+            //DO SHIFT
+            state = newState;
+        }
+    }else if(state == RAN_MWC){
+        if(newState == RUN_MAKE){
+            buildText->append("RUNNING MAKE\n");
+            //DO SHIFT
+            state = newState;
+        }
+    }else if(state == RUN_MAKE){
+        if(newState == RAN_MAKE){
+            buildText->append("RAN MAKE\n");
+            //Allow the Tab Widget.
+            tabWidget->setTabEnabled(2, true);
+
+            //Update Next Button
+            nextButton->setIcon(tabWidget->tabIcon(2));
+            nextButton->setText(tabWidget->tabText(2));
+            nextButton->setEnabled(true);
+            state = newState;
+        }
+    }else if(state == RAN_MAKE){
+        if(newState == RUN_EXECUTION){
+
+            //Move to the Build Tab.
+            tabWidget->setCurrentIndex(2);
+            state = newState;
+
+            executeText->append("RUNNING EXECUTION\n");
+        }
+    }else if(state == RUN_EXECUTION){
+        if(newState == RAN_EXECUTION){
+            executeText->append("RAN EXECUTION\n");
+            state = newState;
+
+            nextButton->setIcon(tabWidget->tabIcon(2));
+            nextButton->setText("Re-Execute");
+        }
+    }else if(state == RAN_EXECUTION){
+        if(newState == RERUN_EXECUTION){
+            state = RAN_MAKE;
+            setState(RUN_EXECUTION);
+        }
+    }
+
+    //IF WE HAVE BEEN RESET
+    if(state == INITIAL){
+        //Disable all Tabs
+        tabWidget->setTabEnabled(0, true);
+        tabWidget->setTabEnabled(1, false);
+        tabWidget->setTabEnabled(2, false);
+
+        //Enable the Path Buttons again.
+        graphmlPathEdit->setEnabled(true);
+        outputPathEdit->setEnabled(true);
+        graphmlPathButton->setEnabled(true);
+        outputPathButton->setEnabled(true);
+
+
+        //Update Next Button
+        nextButton->setIcon(tabWidget->tabIcon(0));
+        nextButton->setText(tabWidget->tabText(0));
+        nextButton->setEnabled(false);
+        nextButton->setVisible(true);
+    }
+}
+

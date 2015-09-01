@@ -134,5 +134,7 @@
         <file>Resources/Icons/cross.png</file>
         <file>Resources/Icons/tick.png</file>
         <file>Resources/Icons/cuts.png</file>
+        <file>Resources/Icons/refresh.png</file>
+        <file>Resources/Icons/build.png</file>
     </qresource>
 </RCC>

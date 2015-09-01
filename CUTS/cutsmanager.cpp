@@ -345,9 +345,6 @@ void CUTSManager::generateModelArtifacts(QStringList mpcFiles)
 
 QString CUTSManager::preProcessIDL(QString inputFilePath)
 {
-    //Emit that we are to Generate this file.
-    emit generatingFile(inputFilePath);
-
     //Start a QProcess for this program
     QProcess* process = new QProcess(this);
     process->setWorkingDirectory(transformPath);
@@ -370,9 +367,6 @@ QString CUTSManager::preProcessIDL(QString inputFilePath)
 
     //Wait for The process to exit the loop.
     waitLoop.exec();
-
-    //Emit to the GUI that the file has been generated.
-    emit generatedFile(outFileName, process->exitCode() == 0);
 
     //Return the filepath of the new Graphml file.
     return outFileName;

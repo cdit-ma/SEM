@@ -9,7 +9,9 @@
 #include <QVBoxLayout>
 #include <QMovie>
 #include <QGroupBox>
-
+#include <QTabWidget>
+#include <QScrollArea>
+#include <QTextBrowser>
 
 struct FileExtension{
     QString extension;
@@ -24,6 +26,7 @@ struct FileExtension{
     QLabel* label;
     bool allSuccess;
 };
+enum CUTS_EXECUTION_STATES {INITIAL, PARAMETERS_OKAY, RUN_XSL, RAN_XSL, RUN_MWC, RAN_MWC, RUN_MAKE, RAN_MAKE, RUN_EXECUTION, RAN_EXECUTION, RERUN_EXECUTION};
 
 class CUTSExecutionWidget: public QDialog
 {
@@ -42,6 +45,7 @@ public slots:
     void setOutputPath(QString outputPath);
     void runGeneration();
 
+    void nextButtonPressed();
     void fileToBeGenerated(QString filePath);
     void fileGenerated(QString filePath, bool success);
 
@@ -51,8 +55,17 @@ public slots:
     void outputPathEdited();
     void graphmlPathEdited();
 private:
+    QWidget* setupGenerateWidget();
+    QWidget* setupBuildWidget();
+    QWidget* setupExecuteWidget();
+
     QString getExtension(QString filePath);
     void updateButtons();
+
+    void stepState();
+
+
+    void setState(CUTS_EXECUTION_STATES newState);
 
     void addFileToLayout(QString filePath);
 
@@ -79,14 +92,38 @@ private:
     QStringList filesGenerated;
 
     QLineEdit* graphmlPathEdit;
+    QPushButton* graphmlPathButton;
+    QPushButton* outputPathButton;
     QLineEdit* outputPathEdit;
     QLabel* graphmlPathIcon;
     QLabel* outputPathIcon;
     QPushButton* generateButton;
     QGroupBox* generatedFilesBox;
 
+    //Used to store the buttons
+    QPushButton* generateTabButton;
+    QPushButton* buildTabButton;
+    QPushButton* executeTabButton;
+
+    QPushButton* nextButton;
+    QPushButton* cancelButton;
+
+    QTabWidget* tabWidget;
+
+    //Used to store the Widgets of the page.
+    QScrollArea* generateScrollArea;
+    QWidget* generateWidget;
+    QScrollArea* buildScrollArea;
+    QWidget* buildWidget;
+    QScrollArea* executeScrollArea;
+    QWidget* executeWidget;
+
+    CUTS_EXECUTION_STATES state;
+
     QMovie* loadingMovie;
-    QVBoxLayout* fileLayout;
+    QVBoxLayout* generateLayout;
+    QTextBrowser* buildText;
+    QTextBrowser* executeText;
     CUTSManager* cutsManager;
 };
 
