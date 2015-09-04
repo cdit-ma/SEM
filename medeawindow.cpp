@@ -272,11 +272,11 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
         }
     }else if(keyName == TRANSFORM_PATH){
         if(cutsManager){
-            cutsManager->setTransformPath(value);
+            cutsManager->setXSLTransformPath(value);
         }
     }else if(keyName == THREAD_LIMIT && isInt){
         if(cutsManager){
-            cutsManager->setThreadLimit(intValue);
+            cutsManager->setMaxThreadCount(intValue);
         }
     }else if(keyName == AUTO_CENTER_VIEW && isBool){
         nodeView->autoCenterAspects(boolValue);
@@ -1420,9 +1420,10 @@ void MedeaWindow::initialiseCUTSManager()
     if(!isInt){
         threadLimit = 4;
     }
-    cutsManager = new CUTSManager(applicationDirectory + "/Resources/Scripts/");
-    cutsManager->setTransformPath(transformPath);
-    cutsManager->setThreadLimit(threadLimit);
+    cutsManager = new CUTSManager();
+    cutsManager->setXalanJPath(applicationDirectory + "/Resources/Scripts/");
+    cutsManager->setXSLTransformPath(transformPath);
+    cutsManager->setMaxThreadCount(threadLimit);
 }
 
 

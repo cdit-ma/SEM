@@ -23,12 +23,11 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
     this->cutsManager = cutsManager;
     graphmlPathEdit = 0;
     outputPathEdit = 0;
-    generateButton = 0;
     graphmlPathOk = false;
     outputPathOk = false;
 
     setWindowTitle("Launch CUTS Execution");
-    setWindowIcon(QIcon(":/Resources/Icons/jenkins_build.png"));
+    setWindowIcon(QIcon(":/Resources/Icons/cuts.png"));
     setupLayout("MODEL");
 
     connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
@@ -40,8 +39,14 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
 
     connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
-    connect(cutsManager, SIGNAL(generatingFile(QString)), this, SLOT(fileToBeGenerated(QString)));
-    connect(cutsManager, SIGNAL(generatedFile(QString,bool)), this, SLOT(fileGenerated(QString, bool)));
+    connect(cutsManager, SIGNAL(fileToGenerate(QString)), this, SLOT(fileToBeGenerated(QString)));
+    connect(cutsManager, SIGNAL(fileIsGenerated(QString,bool)), this, SLOT(fileGenerated(QString, bool)));
+    connect(cutsManager, SIGNAL(executedXSLGeneration(bool,QString)), this, SLOT(generationFinished(bool,QString)));
+    connect(cutsManager, SIGNAL(executedMWCGeneration(bool, QString)), this, SLOT(generationFinished(bool,QString)));
+    connect(cutsManager, SIGNAL(executedCPPCompilation(bool,QString)), this, SLOT(generationFinished(bool,QString)));
+
+    connect(cutsManager, SIGNAL(gotLiveCPPOutput(QString)), this, SLOT(gotLiveGenerationString(QString)));
+    connect(cutsManager, SIGNAL(gotLiveMWCOutput(QString)), this, SLOT(gotLiveGenerationString(QString)));
 
 
 
@@ -60,6 +65,14 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
 CUTSExecutionWidget::~CUTSExecutionWidget()
 {
 
+}
+
+void CUTSExecutionWidget::stateFinished(int code)
+{
+    qCritical() << code;
+    if(code == 0){
+        stepState();
+    }
 }
 
 void CUTSExecutionWidget::setGraphMLPath(QString path)
@@ -159,6 +172,20 @@ void CUTSExecutionWidget::fileGenerated(QString filePath, bool success)
     }
 }
 
+void CUTSExecutionWidget::generationFinished(bool success, QString errorString)
+{
+    if(success){
+        stepState();
+    }else{
+        qCritical() << errorString;
+    }
+}
+
+void CUTSExecutionWidget::gotLiveGenerationString(QString data)
+{
+    buildText->append(data);
+}
+
 void CUTSExecutionWidget::outputPathEdited()
 {
     setOutputPath(outputPathEdit->text());
@@ -228,15 +255,12 @@ QString CUTSExecutionWidget::getExtension(QString filePath)
 
 void CUTSExecutionWidget::updateButtons()
 {
-    enableGenerateButton(graphmlPathOk && outputPathOk);
-    if(state <= PARAMETERS_OKAY){
-
-        if(graphmlPathOk && outputPathOk){
-            setState(PARAMETERS_OKAY);
-        }else{
-            setState(INITIAL);
-        }
+    if(graphmlPathOk && outputPathOk){
+        setState(PARAMETERS_OKAY);
+    }else{
+        setState(INITIAL);
     }
+
 }
 
 void CUTSExecutionWidget::stepState()
@@ -284,12 +308,6 @@ void CUTSExecutionWidget::addFileToLayout(QString filePath)
     fileExtensionLayouts[extension] = fE;
 }
 
-void CUTSExecutionWidget::enableGenerateButton(bool enabled)
-{
-    if(generateButton){
-        generateButton->setEnabled(enabled);
-    }
-}
 
 void CUTSExecutionWidget::selectGraphMLPath()
 {
@@ -368,12 +386,6 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
 
     verticalLayout->addLayout(outputLayout);
 
-    generateButton = new QPushButton("Generate Files");
-    verticalLayout->addWidget(generateButton);
-    connect(generateButton, SIGNAL(clicked()), this, SLOT(runGeneration()));
-    enableGenerateButton(false);
-
-
     tabWidget = new QTabWidget();
     verticalLayout->addWidget(tabWidget, 1);
     tabWidget->addTab(setupGenerateWidget(), QIcon(":/Resources/Icons/refresh.png"), "Generate");
@@ -436,7 +448,7 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
             outputPathButton->setEnabled(false);
 
             //If our Parameters are okay, we can proceed to RUN_XSL
-            cutsManager->runTransforms(graphmlPathEdit->text(), outputPathEdit->text());
+            cutsManager->executeXSLGeneration(graphmlPathEdit->text(), outputPathEdit->text());
             nextButton->setEnabled(false);
             state = newState;
         }
@@ -454,21 +466,23 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
     }else if(state == RAN_XSL){
         if(newState == RUN_MWC){
             //Move to the Build Tab.
+            state = newState;
             tabWidget->setCurrentIndex(1);
             buildText->append("RUNNING MWC\n");
-            state = newState;
+            cutsManager->executeMWCGeneration("");
         }
     }else if(state == RUN_MWC){
         if(newState == RAN_MWC){
+            state = newState;
             buildText->append("RAN MWC\n");
             //DO SHIFT
-            state = newState;
         }
     }else if(state == RAN_MWC){
         if(newState == RUN_MAKE){
-            buildText->append("RUNNING MAKE\n");
-            //DO SHIFT
             state = newState;
+            buildText->append("RUNNING MAKE\n");
+            cutsManager->executeCPPCompilation("");
+            //DO SHIFT
         }
     }else if(state == RUN_MAKE){
         if(newState == RAN_MAKE){

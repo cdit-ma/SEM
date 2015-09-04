@@ -8,10 +8,16 @@
 
 #include <QString>
 #include <QRegExp>
+#include <QDebug>
+#include <QProcess>
+
+#include <QList>
+#include <QPair>
+
 
 
 int main(int argc, char *argv[])
-{   
+{
     QApplication a(argc, argv);
     a.setWindowIcon(QIcon(":/Resources/Icons/medea.png"));
     a.setApplicationName("MEDEA");

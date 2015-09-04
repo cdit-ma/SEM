@@ -39,6 +39,7 @@ public:
 
 
 public slots:
+    void stateFinished(int code);
     void selectGraphMLPath();
     void selectOutputPath();
     void setGraphMLPath(QString path);
@@ -49,8 +50,8 @@ public slots:
     void fileToBeGenerated(QString filePath);
     void fileGenerated(QString filePath, bool success);
 
-
-
+    void generationFinished(bool success, QString errorString);
+    void gotLiveGenerationString(QString data);
 
     void outputPathEdited();
     void graphmlPathEdited();
@@ -71,7 +72,7 @@ private:
 
 
 
-    void enableGenerateButton(bool enabled);
+
 
     void setupLayout(QString modelName);
     QString getDirectory(QString filePath);
@@ -97,14 +98,10 @@ private:
     QLineEdit* outputPathEdit;
     QLabel* graphmlPathIcon;
     QLabel* outputPathIcon;
-    QPushButton* generateButton;
-    QGroupBox* generatedFilesBox;
+
+
 
     //Used to store the buttons
-    QPushButton* generateTabButton;
-    QPushButton* buildTabButton;
-    QPushButton* executeTabButton;
-
     QPushButton* nextButton;
     QPushButton* cancelButton;
 

@@ -8,66 +8,294 @@
 #include <QProcess>
 #include <QEventLoop>
 #include <QFileInfo>
+#include <QRegularExpressionMatchIterator>
 
-CUTSManager::CUTSManager(QString xalanPath)
+CUTSManager::CUTSManager()
 {
-    setXalanPath(xalanPath);
+    //Initialize starting variables;
     executingProcessCount = 0;
+    xslFailCount = 0;
     MAX_EXECUTING_PROCESSES = 1;
 }
 
 CUTSManager::~CUTSManager()
 {
-
+    //Destructor
 }
 
-void CUTSManager::setXalanPath(QString xalanPath)
+void CUTSManager::setXalanJPath(QString xalanPath)
 {
     //Enforce a trailing /
     if(!xalanPath.endsWith("/")){
         xalanPath += "/";
     }
-    this->xalanPath = xalanPath;
+    this->xalanJPath = xalanPath;
 }
 
-void CUTSManager::setTransformPath(QString transformPath)
+void CUTSManager::setXSLTransformPath(QString transformPath)
 {
     //Enforce a trailing /
     if(!transformPath.endsWith("/")){
         transformPath += "/";
     }
-    this->transformPath = transformPath;
+    this->XSLTransformPath = transformPath;
 
 }
 
-void CUTSManager::setThreadLimit(int limit){
+///
+/// \brief CUTSManager::executeXSLGeneration Generates all required code artifacts for the execution of the graphml document.
+/// \param graphmlPath The path to the graphml document to generate code for.
+/// \param outputPath The path to the place the built files into.
+///
+void CUTSManager::executeXSLGeneration(QString graphmlPath, QString outputPath)
+{
+    //Ensure output directory exists.
+    QDir dir(outputPath);
+    if(!dir.exists()){
+        //Construct directory.
+        if(!dir.mkpath(".")){
+            //If directory can't be made. Error
+            emit executedXSLGeneration(false, "Cannot construct Output directory.");
+            return;
+        }
+    }
+
+    //Ensure graphml file exists
+    if(!isFileReadable(graphmlPath)){
+        emit executedXSLGeneration(false, "File: '" + graphmlPath + "'' either doesn't exist or isn't readable!");
+        return;
+    }
+
+    //Run generation.
+    processGraphml(graphmlPath, outputPath);
+}
+
+void CUTSManager::executeMWCGeneration(QString mwcPath)
+{
+    QProcessEnvironment configuredEnv = getEnvFromScript("/Users/dan/Desktop/configure.sh");
+
+    //Start a QProcess for this program
+    QProcess* process = new QProcess(this);
+    process->setProcessEnvironment(configuredEnv);
+    process->start("python", QStringList() << "/Users/dan/Desktop/env.py");
+    process->waitForFinished();
+    emit gotLiveMWCOutput(configuredEnv.toStringList().join(" "));
+
+    emit executedMWCGeneration(true);
+}
+
+void CUTSManager::executeCPPCompilation(QString makePath)
+{
+    QProcessEnvironment configuredEnv = getEnvFromScript("/Users/dan/Desktop/configure.sh");
+
+    //Start a QProcess for this program
+    QProcess* process = new QProcess(this);
+    process->setProcessEnvironment(configuredEnv);
+    process->start("python", QStringList() << "/Users/dan/Desktop/env.py");
+    process->waitForFinished();
+    emit gotLiveCPPOutput("COMPILING!");
+    emit executedCPPCompilation(true);
+
+}
+
+void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
+{
+    //Run preprocess generation on the graphml, this will be used as the input to all transforms.
+    QString processedGraphmlPath = preProcessIDL(graphmlPath, outputPath);
+
+    if(!isFileReadable(processedGraphmlPath)){
+        emit executedXSLGeneration(false, "Preprocessing graphml document failed!");
+        return;
+    }
+
+    QFile graphmlFile(processedGraphmlPath);
+    if(!graphmlFile.open(QIODevice::ReadOnly)){
+        emit executedXSLGeneration(false, "Cannot read Preprocessed graphml document!");
+        return;
+    }
+
+    //Construct a QXmlQuery object to inspect the graphml.
+    QXmlQuery* query = new QXmlQuery();
+    //Bind the variable doc, to the path of the graphml file.
+    query->bindVariable("doc", &graphmlFile);
+
+
+    QHash<QString, QString> keys;
+    QList<QPair<QString, QString> > edges;
+    QHash<QString, QString> components;
+
+    QStringList deployedComponents;
+    QStringList deployedComponentInstances;
+    QStringList hardwareIDs;
+    QStringList IDLs;
+
+    //Generates code for all components regardless of whether they are deployed.
+    bool generateAllComponents = true;
+
+
+    //Get the id and attr.name attributes of each <key> entities from the graphml
+    QXmlResultItems* keysXML = evaluateQuery2List(query, "doc($doc)//gml:graphml/gml:key[@for='node']");
+    QXmlItem keyXML = keysXML->next();
+
+    while(!keyXML.isNull()){
+        QString ID = evaluateQuery2String(query, "@id/string()", &keyXML);
+        QString name = evaluateQuery2String(query, "@attr.name/string()", &keyXML);
+        keys[name] = ID;
+        keyXML = keysXML->next();
+    }
+
+    //Get the ID's of the source/target of each <edge> entities from the graphml
+    QXmlResultItems* edgesXML = evaluateQuery2List(query, "doc($doc)//gml:edge");
+    QXmlItem edgeXML = edgesXML->next();
+
+    while(!edgeXML.isNull()){
+        QString sourceID = evaluateQuery2String(query, "@source/string()", &edgeXML);
+        QString targetID = evaluateQuery2String(query, "@target/string()", &edgeXML);
+        QPair<QString, QString> edge(sourceID, targetID);
+        edges << edge;
+        edgeXML = edgesXML->next();
+    }
+
+    //Get the label of each <node> entity of kind "IDL"
+    QXmlResultItems* idlsXML = evaluateQuery2List(query, "doc($doc)//gml:node[gml:data[@key='" + keys["kind"] + "' and string()='IDL']]");
+    QXmlItem idlXML = idlsXML->next();
+
+    while(!idlXML.isNull()){
+        QString idl = evaluateQuery2String(query, "gml:data[@key='" + keys["label"] + "']/string()", &idlXML);
+        IDLs << idl;
+        idlXML = idlsXML->next();
+    }
+
+    //Get the ID's of each <node> entity of kind "Hardware*" (HardwareNode/HardwareCluster)
+    QXmlResultItems* hardwaresXML = evaluateQuery2List(query, "doc($doc)//gml:node[gml:data[@key='" + keys["kind"] + "' and starts-with(string(),'Hardware')]]");
+    QXmlItem hardwareXML = hardwaresXML->next();
+
+    while(!hardwareXML.isNull()){
+        QString ID = evaluateQuery2String(query, "@id/string()", &hardwareXML);
+        hardwareIDs << ID;
+        hardwareXML = hardwaresXML->next();
+    }
+
+    //Get the ID and label of each <node> entity of kind "Component"
+    QXmlResultItems* componentsXML = evaluateQuery2List(query, "doc($doc)//gml:node[gml:data[@key='" + keys["kind"] + "' and string() = 'Component']]");
+    QXmlItem componentXML = componentsXML->next();
+
+    while(!componentXML.isNull()){
+        QString ID = evaluateQuery2String(query, "@id/string()", &componentXML);
+        QString label = evaluateQuery2String(query, "gml:data[@key='" + keys["label"] + "']/string()", &componentXML);
+        components[ID] = label;
+        componentXML = componentsXML->next();
+    }
+
+    //Get the ID and label of each <node> entity of kind "ComponentInstance"
+    QXmlResultItems* componentInstancesXML = evaluateQuery2List(query, "doc($doc)//gml:node[gml:data[@key='" + keys["kind"] + "' and string() = 'ComponentInstance']]");
+    QXmlItem componentInstanceXML = componentInstancesXML->next();
+
+    while(!componentInstanceXML.isNull()){
+        QString longLabel;
+        QString definitionLabel;
+        bool isDeployed = false;
+
+        QString instanceID = evaluateQuery2String(query, "@id/string()", &componentInstanceXML);
+
+        //Find the connected Component definition for this instance.
+        QPair<QString,QString> edge;
+        foreach(edge, edges){
+            if(edge.first == instanceID && components.keys().contains(edge.second)){
+                //Got match.
+                definitionLabel = components[edge.second];
+                break;
+            }
+        }
+
+        //Recurse up parent.
+        QXmlItem parent = componentInstanceXML;
+
+        //Get information about parent, deployment and label.
+        while(!parent.isNull()){
+            QString label = evaluateQuery2String(query, "gml:data[@key='" + keys["label"] + "']/string()", &parent);
+            QString ID = evaluateQuery2String(query, "@id/string()", &parent);
+            QString kind = evaluateQuery2String(query, "gml:data[@key='" + keys["kind"] + "']/string()", &parent);
+
+            //If the kind isn't a Component or ComponentAssembly, break loop.
+            if(!kind.startsWith("Component")){
+                break;
+            }
+
+            //Check if parent is deployed.
+            foreach(edge, edges){
+                if(edge.first == ID && hardwareIDs.contains(edge.second)){
+                    isDeployed = true;
+                    break;
+                }
+            }
+
+            //Construct the long label of the ComponentInstance
+            if(longLabel.isEmpty()){
+                longLabel += label;
+            }else{
+                longLabel = label + "%%" + longLabel;
+            }
+
+            //Select parent
+            QXmlResultItems* parentXML = evaluateQuery2List(query, "../..", &parent);
+            parent = parentXML->next();
+        }
+
+        //If this ComponentInstance is deployed, or we are generating all Component Code.
+        if(generateAllComponents || isDeployed){
+            //Append the Component definition, if it's not been seen before.
+            if(!deployedComponents.contains(definitionLabel)){
+                deployedComponents << definitionLabel;
+            }
+
+            //Append the Long label of the Component Instance, if it's not been seen before.
+            if(!deployedComponentInstances.contains(longLabel)){
+                deployedComponentInstances << longLabel;
+            }
+        }
+
+        componentInstanceXML = componentInstancesXML->next();
+    }
+
+    //Close the graphmlFile.
+    graphmlFile.close();
+
+    QStringList mpcFiles;
+
+    //Foreach Component, we expect one Impl.mpc file.
+    foreach(QString component, deployedComponents){
+        mpcFiles << component + "Impl.mpc";
+    }
+
+    //Foreach IDL, we expect one .mpc file.
+    foreach(QString IDL, IDLs){
+        mpcFiles << IDL + ".mpc";
+    }
+
+    QStringList hardwareNodes;
+    hardwareNodes << "localhost";
+
+    //Check queue length.
+    if(queue.size() != 0){
+        qCritical() << "Clearing Queue";
+        queue.clear();
+    }
+
+    queueComponentGeneration(processedGraphmlPath, deployedComponents, outputPath);
+    queueComponentInstanceGeneration(processedGraphmlPath,deployedComponentInstances, outputPath);
+    queueIDLGeneration(processedGraphmlPath,IDLs, outputPath);
+    queueDeploymentGeneration(processedGraphmlPath, mpcFiles, outputPath);
+    queueHardwareGeneration(processedGraphmlPath, hardwareNodes, outputPath);
+
+    //Start Queue
+    processQueue();
+}
+
+void CUTSManager::setMaxThreadCount(int limit){
     MAX_EXECUTING_PROCESSES = limit;
 }
 
-void CUTSManager::runTransforms(QString graphml_path, QString output_path)
-{
-    QDir dir(output_path);
-    if (!dir.exists()) {
-        qCritical() << "Making Directory";
-        dir.mkpath(".");
-    }
-
-    QFile xmlFile(graphml_path);
-
-    if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly))
-        return;
-
-    //Set output Path
-    outputPath = output_path;
-
-    //Try preprocess the IDL
-    QString outputFile = preProcessIDL(graphml_path);
-
-    if(doesFileExist(outputFile)){
-        //Run The rest of the transforms
-        processGraphML(outputFile);
-    }
-}
 
 void CUTSManager::processFinished(int code, QProcess::ExitStatus)
 {
@@ -75,8 +303,12 @@ void CUTSManager::processFinished(int code, QProcess::ExitStatus)
     if(process){
         //Get the Process, so we can find the matching output file path.
         QString outputFilePath = processHash[process];
+
+        if(code != 0){
+            xslFailCount ++;
+        }
         //Emit a Signal saying that the file has been produced.
-        emit generatedFile(outputFilePath, code == 0);
+        emit fileIsGenerated(outputFilePath, code == 0);
     }
     //Decrement the currentRunningCount
     executingProcessCount--;
@@ -85,277 +317,228 @@ void CUTSManager::processFinished(int code, QProcess::ExitStatus)
     processQueue();
 }
 
-void CUTSManager::processGraphML(QString graphml_file)
+
+QProcessEnvironment CUTSManager::getEnvFromScript(QString scriptPath)
 {
-    QFile xmlFile(graphml_file);
-    if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly))
-        return;
+    QProcess* process = new QProcess(this);
 
-    graphmlPath = graphml_file;
-    //Check for Deployed Components.
-    bool allComponents = false;
+    QString program;
+    //Check if windows or *nix
+    QString command;
+    #ifdef _WIN32
+        program = "cmd.exe";
+    #else
+        program = "/bin/sh";
+        //Have to pass a path to the .sh script
+        command = ". ";
+    #endif
 
+    process->start(program);
 
-    QXmlQuery* query = new QXmlQuery();
-    query->bindVariable("doc", &xmlFile);
+    //Construct the command to write to the bash/cmd
+    command += scriptPath + ";set;exit\n";
 
-    QHash<QString, QString> keyIDs;
-    QList<QPair<QString, QString> > edges;
-    QHash<QString, QString> componentDefs;
+    //Run the command
+    process->write(command.toUtf8());
+    //Wait for the process to finish.
+    process->waitForFinished();
+    //Get the output.
+    QString commandOutput = process->readAllStandardOutput();
 
-    QStringList deployedComponentDefs;
-    QStringList deployedComponentInstances;
-    QStringList hardwareIDs;
-    QStringList IDLs;
+    //Regex to find the key/value pair out of ${KEY}=${VALUE}\n
+    QRegularExpression regex("([^=]*)=(.*)\n");
 
-    //Get the List of Keys.
-    QXmlResultItems* key_xml = getQueryList(query, "doc($doc)//gml:graphml/gml:key[@for='node']");
-    QXmlItem item = key_xml->next();
+    QProcessEnvironment environment;
 
-    while (!item.isNull()) {
-        QString ID = getQuery(query, "@id/string()", &item);
-        QString keyName = getQuery(query, "@attr.name/string()", &item);
+    //Get all regex matches.
+    QRegularExpressionMatchIterator matches = regex.globalMatch(commandOutput);
 
-        keyIDs[keyName] = ID;
-        //Next Item
-        item = key_xml->next();
-    }
-
-    QXmlResultItems* edge_xml = getQueryList(query, "doc($doc)//gml:edge");
-    item = edge_xml->next();
-
-    while (!item.isNull()) {
-        QString source = getQuery(query, "@source/string()", &item);
-        QString target = getQuery(query, "@target/string()", &item);
-
-        edges.append(QPair<QString, QString>(source, target));
-
-        //Next Item
-        item = edge_xml->next();
-    }
-
-    //Get the list of Hardware*
-    QXmlResultItems* idl_xml = getQueryList(query, "doc($doc)//gml:node[gml:data[@key='" + keyIDs["kind"] + "' and string()='IDL']]");
-    item = idl_xml->next();
-
-    while (!item.isNull()) {
-        //Get ID of the Hardware(Node|Cluster)
-        QString label = getQuery(query, "gml:data[@key='" + keyIDs["label"] + "']/string()", &item);
-        IDLs << label;
-
-        //Next Item
-        item = idl_xml->next();
-    }
-
-
-    //Get the list of Hardware*
-    QXmlResultItems* hardware_xml = getQueryList(query, "doc($doc)//gml:node[gml:data[@key='" + keyIDs["kind"] + "' and starts-with(string(),'Hardware')]]");
-    item = hardware_xml->next();
-
-    while (!item.isNull()) {
-        //Get ID of the Hardware(Node|Cluster)
-        hardwareIDs << getQuery(query, "@id/string()", &item);;
-
-        //Next Item
-        item = hardware_xml->next();
-    }
-
-    //Get Component Definitions
-    QXmlResultItems* component_xml = getQueryList(query, "doc($doc)//gml:node[gml:data[@key='" + keyIDs["kind"] + "' and string() = 'Component']]");
-    item = component_xml->next();
-
-    while (!item.isNull()){
-        QString ID = getQuery(query, "@id/string()", &item);
-        QString label = getQuery(query, "gml:data[@key='" + keyIDs["label"] + "']/string()", &item);
-        componentDefs[ID] = label;
-        item = component_xml->next();
-    }
-
-    //Get Component Instances
-    QXmlResultItems* componentInstance_xml = getQueryList(query, "doc($doc)//gml:node[gml:data[@key='" + keyIDs["kind"] + "' and string() = 'ComponentInstance']]");
-    item = componentInstance_xml->next();
-
-    while (!item.isNull()){
-        QString longLabel;
-        QString definitionName;
-
-        bool isDeployed = false;
-        QString ID = getQuery(query, "@id/string()", &item);
-
-        QPair<QString,QString> edge;
-        foreach(edge, edges){
-            if(componentDefs.keys().contains(edge.second) && edge.first == ID){
-                definitionName = componentDefs[edge.second];
+    while (matches.hasNext()) {
+        QRegularExpressionMatch match = matches.next();
+        if(match.hasMatch()){
+            QString key = match.captured(1);
+            QString value = match.captured(2);
+            if(key.length() > 0){
+                environment.insert(key, value);
             }
         }
-
-        QXmlItem parent = item;
-
-        //Recurse up parents!
-        while(!parent.isNull()){
-            QString label = getQuery(query, "gml:data[@key='" + keyIDs["label"] + "']/string()", &parent);
-            QString parentID = getQuery(query, "@id/string()", &parent);
-            QString kind = getQuery(query, "gml:data[@key='" + keyIDs["kind"] + "']/string()", &parent);
-
-            //Check if deployed.
-            foreach(edge, edges){
-                if(hardwareIDs.contains(edge.second) && edge.first == parentID){
-                    isDeployed = true;
-                }
-            }
-
-            //If kind isn't a Component or an Assembly, break loop.
-            if(!kind.startsWith("Component")){
-                break;
-            }
-            //Setup LongLabel
-            if(longLabel.isEmpty()){
-                longLabel = label;
-            }else{
-                longLabel = label + "%%" + longLabel;
-            }
-            //Select parent of parent.
-            QXmlResultItems* parent_xml = getQueryList(query, "../..", &parent);
-            parent = parent_xml->next();
-        }
-
-
-        //Add it to the list of used ComponentDefs
-        if((allComponents || isDeployed) && !deployedComponentDefs.contains(definitionName)){
-            deployedComponentDefs << definitionName;
-        }
-        //Add instance to the list of used ComponentInstances
-        if((allComponents || isDeployed) && !deployedComponentInstances.contains(longLabel)){
-            deployedComponentInstances << longLabel;
-        }
-        item = componentInstance_xml->next();
     }
-
-    generateComponentArtifacts(deployedComponentDefs);
-    generateComponentInstanceArtifacts(deployedComponentInstances);
-    generateIDLArtifacts(IDLs);
-
-    QStringList mpcFiles;
-    //Construct a list of MPC files
-    foreach(QString component, deployedComponentDefs){
-        mpcFiles << component + "Impl.mpc";
-    }
-    foreach(QString IDL, IDLs){
-        mpcFiles << IDL + ".mpc";
-    }
-
-
-    generateModelArtifacts(mpcFiles);
+    return environment;
 }
 
-QString CUTSManager::wrapQuery(QString query)
+
+/**
+ * @brief CUTSManager::wrapGraphmlQuery Prepends the namespace definition for the graphml doctype to a query.
+ * @param query the query to execute
+ * @return the query with namespace definition attached.
+ */
+QString CUTSManager::wrapGraphmlQuery(QString query)
 {
     return "declare namespace gml = \"http://graphml.graphdrawing.org/xmlns\"; " + query;
 }
 
-QString CUTSManager::getQuery(QXmlQuery* query, QString queryStr, QXmlItem* item)
+/**
+ * @brief CUTSManager::evaluateQuery2String Runs an XPath query on an XML document, which returns a String
+ * @param query The root query document.
+ * @param queryStr The Stringd XPath query.
+ * @param item the item to query (or null)
+ * @return A string containing the result of the query.
+ */
+QString CUTSManager::evaluateQuery2String(QXmlQuery* query, QString queryStr, QXmlItem* item)
 {
     QString value;
     if(item && !item->isNull()){
         query->setFocus(*item);
     }
-    query->setQuery(wrapQuery(queryStr));
+    query->setQuery(wrapGraphmlQuery(queryStr));
     query->evaluateTo(&value);
     return value.trimmed();
 }
 
-bool CUTSManager::doesFileExist(QString filePath)
+/**
+ * @brief CUTSManager::isFileReadable Checks to see if a file exists, is non-empty and is readable.
+ * @param filePath The path to the file to check
+ * @return
+ */
+bool CUTSManager::isFileReadable(QString filePath)
 {
     QFile file(filePath);
     QFileInfo fileInfo = QFileInfo(file);
-    return fileInfo.isFile() && fileInfo.size() > 0;
+    return fileInfo.isFile() && fileInfo.size() > 0 && fileInfo.isReadable();
 }
 
-QXmlResultItems *CUTSManager::getQueryList(QXmlQuery* query, QString queryStr, QXmlItem* item)
+/**
+ * @brief CUTSManager::runQuery2List Runs an XPath query on an XML document, which returns a list of QXmlItems
+ * @param query The root query document.
+ * @param queryStr The Stringd XPath Query
+ * @param item The item to query (or null)
+ * @return a QXmlResultItem list containing the results of the query.
+ */
+QXmlResultItems *CUTSManager::evaluateQuery2List(QXmlQuery* query, QString queryStr, QXmlItem* item)
 {
+    //Construct a results List.
     QXmlResultItems* results = new QXmlResultItems();
+
+    //If we have been passed an QXmlItem to focus on, use it.
     if(item && !item->isNull()){
         query->setFocus(*item);
     }
-    query->setQuery(wrapQuery(queryStr));
+    //run and evaluate query.
+    query->setQuery(wrapGraphmlQuery(queryStr));
     query->evaluateTo(results);
     return results;
 }
 
-void CUTSManager::generateComponentArtifacts(QStringList components)
+/**
+ * @brief CUTSManager::generateComponentArtifacts Queues the XSL transforms required to build the *.mpc, *.h and *.cpp files for each Component
+ * @param components The list of Components
+ * @param outputPath  The output path for the generated files.
+ */
+void CUTSManager::queueComponentGeneration(QString graphmlPath, QStringList components, QString outputPath)
 {
-    QStringList transforms;
-    transforms << "mpc" << "cpp" << "h";
-    foreach(QString transform, transforms){
+    QStringList transformsExts;
+    transformsExts << "mpc" << "cpp" << "h";
+    foreach(QString transformExt, transformsExts){
         foreach(QString component, components){
+            //Construct the parameters
             QStringList parameters;
-            parameters << "File" << component + "Impl." + transform;
-            QString outputFile = outputPath + component + "Impl." + transform;
-            QString xslFile = transformPath + "graphml2" + transform + ".xsl";
+            parameters << "File" << component + "Impl." + transformExt;
+            QString outputFile = outputPath + component + "Impl." + transformExt;
+            QString xslFile = XSLTransformPath + "graphml2" + transformExt + ".xsl";
+
+            //Queue the XSL Transform
             queueXSLTransform(graphmlPath, outputFile, xslFile, parameters);
         }
     }
 }
 
-void CUTSManager::generateComponentInstanceArtifacts(QStringList componentInstances)
+/**
+ * @brief CUTSManager::queueComponentInstanceGeneration Queues the XSL transforms required to build the *.dpd files for each ComponentInstance
+ * @param componentInstances The list of ComponentInstances
+ * @param outputPath The output path for the generated files.
+ */
+void CUTSManager::queueComponentInstanceGeneration(QString graphmlPath, QStringList componentInstances, QString outputPath)
 {
-    QStringList transforms;
-    transforms << "dpd";
-    foreach(QString transform, transforms){
-        foreach(QString componentInstance, componentInstances){
-            QStringList parameters;
-            parameters << "ComponentInstance" << componentInstance;
-            QString outputFile = outputPath + componentInstance + "%%QoS.dpd";
-            QString xslFile = transformPath + "graphml2" + transform + ".xsl";
-            queueXSLTransform(graphmlPath, outputFile, xslFile, parameters);
-        }
-    }
+    foreach(QString componentInstance, componentInstances){
+        //Construct the parameters
+        QStringList parameters;
+        parameters << "ComponentInstance" << componentInstance;
+        QString outputFile = outputPath + componentInstance + "%%QoS.dpd";
+        QString xslFile = XSLTransformPath + "graphml2dpd.xsl";
 
+        //Queue the XSL Transform
+        queueXSLTransform(graphmlPath, outputFile, xslFile, parameters);
+    }
 }
 
-void CUTSManager::generateIDLArtifacts(QStringList idls)
+/**
+ * @brief CUTSManager::queueIDLGeneration Queues the XSL transforms required to build the *.idl & *.mpc files for each IDL
+ * @param idls The list of IDLs
+ * @param outputPath The output path for the generated files.
+ */
+void CUTSManager::queueIDLGeneration(QString graphmlPath, QStringList idls, QString outputPath)
 {
-    QStringList transforms;
-    transforms << "idl" << "mpc";
-    foreach(QString transform, transforms){
+    QStringList transformsExts;
+    transformsExts << "idl" << "mpc";
+    foreach(QString transformsExt, transformsExts){
         foreach(QString idl, idls){
+            //Construct the parameters
             QStringList parameters;
-            parameters << "File" <<  idl + "." + transform;
-            QString outputFile = outputPath + idl + "." + transform;
-            QString xslFile = transformPath + "graphml2" + transform + ".xsl";
+            parameters << "File" <<  idl + "." + transformsExt;
+            QString outputFile = outputPath + idl + "." + transformsExt;
+            QString xslFile = XSLTransformPath + "graphml2" + transformsExt + ".xsl";
+
+            //Queue the XSL Transform
             queueXSLTransform(graphmlPath, outputFile, xslFile, parameters);
         }
     }
-
 }
 
-void CUTSManager::generateModelArtifacts(QStringList mpcFiles)
+/**
+ * @brief CUTSManager::queueDeploymentGeneration Queues the XSL transforms required to build the *.mwc, *.cdd, *.cdp & *.ddd files for the Model
+ * @param outputPath The output path for the generated files.
+ */
+void CUTSManager::queueDeploymentGeneration(QString graphmlPath, QStringList mpcFiles, QString outputPath)
 {
     QString modelName = getGraphmlName(graphmlPath);
-
-    queueXSLTransform(graphmlPath, outputPath + modelName + ".cdd", transformPath + "graphml2cdd.xsl", QStringList());
-    queueXSLTransform(graphmlPath, outputPath + modelName + ".cdp", transformPath + "graphml2cdp.xsl", QStringList());
-    queueXSLTransform(graphmlPath, outputPath + modelName + ".ddd", transformPath + "graphml2ddd.xsl", QStringList());
 
     QStringList mwcParams;
     mwcParams << "FileList";
     mwcParams << mpcFiles.join(",");
-    queueXSLTransform(graphmlPath, outputPath + modelName + ".mwc", transformPath + "graphml2mwc.xsl", mwcParams);
+
+    QStringList transformsExts;
+    transformsExts << "cdd" << "cdp" << "ddd";
+
+    foreach(QString transformExt, transformsExts){
+        queueXSLTransform(graphmlPath, outputPath + modelName + "." + transformExt, XSLTransformPath + "graphml2" + transformExt + ".xsl", QStringList());
+    }
+
+    queueXSLTransform(graphmlPath, outputPath + modelName + ".mwc", XSLTransformPath + "graphml2mwc.xsl", mwcParams);
 }
 
-QString CUTSManager::preProcessIDL(QString inputFilePath)
+/**
+ * @brief CUTSManager::queueHardwareGeneration
+ * @param hardwareNodes The list of HardwareNodes to generate machine configs
+ * @param outputPath The output path for the generated files.
+ */
+void CUTSManager::queueHardwareGeneration(QString graphmlPath, QStringList hardwareNodes, QString outputPath)
+{
+    //TODO
+}
+
+QString CUTSManager::preProcessIDL(QString inputFilePath, QString outputPath)
 {
     //Start a QProcess for this program
     QProcess* process = new QProcess(this);
-    process->setWorkingDirectory(transformPath);
+    process->setWorkingDirectory(XSLTransformPath);
 
     QString outFileName = outputPath + getGraphmlName(inputFilePath) + ".graphml";
 
     //Construct the arguments for the xsl transform
     QStringList arguments;
-    arguments << "-jar" << xalanPath + "xalan.jar";
+    arguments << "-jar" << xalanJPath + "xalan.jar";
     arguments << "-in" << inputFilePath;
-    arguments << "-xsl" << transformPath + "PreprocessIDL.xsl";
+    arguments << "-xsl" << XSLTransformPath + "PreprocessIDL.xsl";
     arguments << "-out" << outFileName;
 
     //Construct a wait loop to make sure this transform happens first.
@@ -375,7 +558,7 @@ QString CUTSManager::preProcessIDL(QString inputFilePath)
 void CUTSManager::queueXSLTransform(QString inputFilePath, QString outputFilePath, QString xslFilePath, QStringList parameters)
 {
     QStringList arguments;
-    arguments << "-jar" << xalanPath + "xalan.jar";
+    arguments << "-jar" << xalanJPath + "xalan.jar";
     arguments << "-in" << inputFilePath;
     arguments << "-xsl" << xslFilePath;
     arguments << "-out" << outputFilePath;
@@ -385,7 +568,7 @@ void CUTSManager::queueXSLTransform(QString inputFilePath, QString outputFilePat
     }
 
     //Emit that we are to Generate this file.
-    emit generatingFile(outputFilePath);
+    emit fileToGenerate(outputFilePath);
 
     //Construct and fill a Struct to contain the parameters for the spawned Process.
     ProcessStruct ps;
@@ -393,9 +576,6 @@ void CUTSManager::queueXSLTransform(QString inputFilePath, QString outputFilePat
     ps.outputFilePath = outputFilePath;
     ps.program = "java";
     queue.append(ps);
-
-    //Step into the queue.
-    processQueue();
 }
 
 /**
@@ -406,6 +586,15 @@ void CUTSManager::processQueue()
     //While there isn't enough processes currently executing
     while(executingProcessCount <  MAX_EXECUTING_PROCESSES){
         if(queue.isEmpty()){
+            //If we are on our last process.
+            if(executingProcessCount == 0){
+                QString errorString;
+                if(xslFailCount > 0){
+                    errorString = QString::number(xslFailCount) + " XSL generations failed!";
+                }
+                emit executedMWCGeneration(xslFailCount > 0, errorString);
+            }
+            //AT END
             //Queue is empty, so don't continue;
             break;
         }
@@ -425,7 +614,7 @@ void CUTSManager::executeProcess(QString program, QStringList arguments, QString
 {
     //Start a QProcess for this program
     QProcess* process = new QProcess(this);
-    process->setWorkingDirectory(transformPath);
+    process->setWorkingDirectory(XSLTransformPath);
 
     //Connect the Process' finished Signal
     connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int,QProcess::ExitStatus)));
