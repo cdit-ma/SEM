@@ -39,7 +39,7 @@
 // USER SETTINGS
 #define LOG_DEBUGGING "00-01-Log_Debug_Information"
 #define THREAD_LIMIT "00-02-Thread_Limit"
-#define TRANSFORM_PATH "00-03-XSL_Transform_Path"
+#define CUTS_CONFIGURE_PATH "00-03-CUTS_Configure_Script_Path"
 
 #define WINDOW_X "01-01-Position_X"
 #define WINDOW_Y "01-02-Position_Y"
@@ -270,9 +270,9 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
         if(nodeView){
             emit nodeView->view_EnableDebugLogging(boolValue, applicationDirectory);
         }
-    }else if(keyName == TRANSFORM_PATH){
+    }else if(keyName == CUTS_CONFIGURE_PATH){
         if(cutsManager){
-            cutsManager->setXSLTransformPath(value);
+            cutsManager->setCUTSConfigScriptPath(value);
         }
     }else if(keyName == THREAD_LIMIT && isInt){
         if(cutsManager){
@@ -1411,8 +1411,8 @@ void MedeaWindow::initialiseCUTSManager()
 {
     cutsManager = 0;
 
-    QString xalanPath = applicationDirectory + "/Resources/Scripts/";
-    QString transformPath = appSettings->getSetting(TRANSFORM_PATH);
+    QString xalanJPath = applicationDirectory + "/Resources/Binaries/";
+    QString transformPath = applicationDirectory + "/Resources/Transforms/";
 
     //Try Parse Thread limit
     bool isInt;
@@ -1421,7 +1421,7 @@ void MedeaWindow::initialiseCUTSManager()
         threadLimit = 4;
     }
     cutsManager = new CUTSManager();
-    cutsManager->setXalanJPath(applicationDirectory + "/Resources/Scripts/");
+    cutsManager->setXalanJPath(xalanJPath);
     cutsManager->setXSLTransformPath(transformPath);
     cutsManager->setMaxThreadCount(threadLimit);
 }
@@ -1450,7 +1450,9 @@ void MedeaWindow::cuts_runDeployment(QString filePath)
 
 void MedeaWindow::validate_Exported(QString tempModelPath)
 {
-    QString scriptPath = applicationDirectory + "/Resources/Scripts";
+    QString xalanJPath = applicationDirectory + "/Resources/Binaries/";
+    QString scriptPath = applicationDirectory + "/Resources/Scripts/";
+    QString transformsPath = applicationDirectory + "/Resources/Transforms/";
 
     // transform .graphml to report.xml
     // The MEDEA.xsl transform is produced by Schematron/iso_svrl_for_xslt1.xsl
@@ -1459,9 +1461,9 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
 
     validation_report_path = QDir::tempPath() + "/" + projectName->text() + "_ValidateReport.xml";
 
-    arguments << "-jar" << "xalan.jar"
+    arguments << "-jar" << xalanJPath + "xalan.jar"
               << "-in" << tempModelPath
-              << "-xsl" << "MEDEA.xsl"
+              << "-xsl" << transformsPath + "MEDEA.xsl"
               << "-out" << validation_report_path;
 
     // alternative if using xalan-c
@@ -1471,7 +1473,7 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
     //            << "MEDEA.xsl";
 
     QProcess *myProcess = new QProcess(this);
-    myProcess->setWorkingDirectory(scriptPath);
+    //myProcess->setWorkingDirectory(scriptPath);
 
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(validationComplete(int)));
     connect(myProcess, SIGNAL(finished(int)), myProcess, SLOT(deleteLater()));

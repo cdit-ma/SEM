@@ -66,14 +66,5 @@ bool BlackBoxInstance::canConnect(Node *attachableObject)
          }
      }
 
-     if(blackBox){
-         if(blackBox->getInstances().size() != 0){
-#ifdef DEBUG_MODE
-        qWarning() << "BlackBoxInstance Node can only be connected to a BlackBox with no BlackBoxInstance";
-#endif
-        return false;
-         }
-     }
-
      return Node::canConnect(attachableObject);
 }

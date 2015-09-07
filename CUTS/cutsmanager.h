@@ -26,6 +26,7 @@ public:
     void setMaxThreadCount(int limit);
     void setXalanJPath(QString xalanJPath);
     void setXSLTransformPath(QString XSLTransformPath);
+    void setCUTSConfigScriptPath(QString configureScriptPath);
 
 signals:
     //Emitted by the slot queueXSLTransform
@@ -99,6 +100,7 @@ private:
 
     QString XSLTransformPath;
     QString xalanJPath;
+    QString configureScriptPath;
 
     //A Queue used to store the Process' which need to be executed
     QQueue<ProcessStruct> queue;

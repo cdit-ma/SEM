@@ -2615,8 +2615,8 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
         bindTypes = false;
     }
     if((child->isInstance() || child->isImpl()) || (def_Type && def_Label)){
-        if(child->getDataValue("kind") == "ComponentInstance"){
-            //Allow ComponentInstance to have unique labels
+        if(child->getDataValue("kind") == "ComponentInstance" || child->getDataValue("kind") == "BlackBoxInstance"){
+            //Allow ComponentInstance and BlackBoxInstance to have unique labels
             bindLabels = false;
         }else if(child->getDataValue("kind") == "AggregateInstance"){
             //Allow Aggregates to contain Aggregate Instances with unique labels
@@ -2629,7 +2629,6 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
             bindLabels = true;
 
         }
-
     }
 
     if(bindTypes){

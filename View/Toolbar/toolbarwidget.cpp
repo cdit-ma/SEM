@@ -748,7 +748,24 @@ void ToolbarWidget::updateMenuLists()
             setupFilesList(nodeView->getNodeItemsOfKind("IDL"), "inst");
             //Only look 1 layer deep for component Instances.
             setupBlackBoxList(nodeView->getNodeItemsOfKind("BlackBox"));
+
+
+            setupBlackBoxInstanceList(nodeView->getNodeItemsOfKind("BlackBoxInstance", nodeItem->getID(), 0));
             setupChildrenComponentInstanceList(nodeView->getNodeItemsOfKind("ComponentInstance", nodeItem->getID(), 0));
+
+
+            //If we have InEventPorts
+            if(inEventPort_componentInstanceMenu && inEventPort_componentInstanceMenu->hasWidgetActions()){
+                // setup menu lists for InEventPort/OutEventPort Delegates
+                setupInEventPortInstanceList();
+            }
+
+            //If we have OutEventPorts
+            if(outEventPort_componentInstanceMenu && outEventPort_componentInstanceMenu->hasWidgetActions()){
+                // setup menu lists for InEventPort/OutEventPort Delegates
+                setupOutEventPortInstanceList();
+            }
+
         } else if (nodeItem->getNodeKind() == "BehaviourDefinitions") {
             setupFilesList(nodeView->getNodeItemsOfKind("IDL"), "impl");
         }
@@ -1045,12 +1062,6 @@ void ToolbarWidget::setupComponentList(QList<NodeItem *> components, QString kin
 void ToolbarWidget::setupBlackBoxList(QList<NodeItem *> blackBoxes)
 {
     for (int i = 0; i < blackBoxes.count(); i++) {
-
-        // skip the black boxes that already has an instance
-        if(!nodeView->getInstances(blackBoxes.at(i)->getID()).isEmpty()){
-            continue;
-        }
-
         NodeItem* parentNodeItem = blackBoxes.at(i)->getParentNodeItem();
 
         // if the current node has a parent, check if there is already an action for it
@@ -1074,6 +1085,26 @@ void ToolbarWidget::setupBlackBoxList(QList<NodeItem *> blackBoxes)
             connect(action, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
         }
     }
+}
+
+void ToolbarWidget::setupBlackBoxInstanceList(QList<NodeItem *> blackBoxInstances)
+{
+    if (blackBoxInstances.count() > 0) {
+
+        foreach (NodeItem* instance, blackBoxInstances) {
+            if(!nodeView->getNodeItemsOfKind("InEventPortInstance", instance->getID()).isEmpty()){
+                ToolbarWidgetAction* inEvent_instanceAction = new ToolbarWidgetAction(instance, inEventPort_componentInstanceMenu, true);
+                new ToolbarWidgetMenu(inEvent_instanceAction, 0, inEventPort_componentInstanceMenu);
+                inEventPort_componentInstanceMenu->addWidgetAction(inEvent_instanceAction);
+            }
+            if(!nodeView->getNodeItemsOfKind("OutEventPortInstance", instance->getID()).isEmpty()){
+                ToolbarWidgetAction* outEvent_instanceAction = new ToolbarWidgetAction(instance, outEventPort_componentInstanceMenu, true);
+                new ToolbarWidgetMenu(outEvent_instanceAction, 0, outEventPort_componentInstanceMenu);
+                outEventPort_componentInstanceMenu->addWidgetAction(outEvent_instanceAction);
+            }
+        }
+    }
+
 }
 
 
@@ -1101,9 +1132,7 @@ void ToolbarWidget::setupChildrenComponentInstanceList(QList<NodeItem*> componen
             }
         }
 
-        // setup menu lists for InEventPort/OutEventPort Delegates
-        setupInEventPortInstanceList();
-        setupOutEventPortInstanceList();
+
     }
 }
 

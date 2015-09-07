@@ -96,6 +96,11 @@ QList<ToolbarWidgetAction*> ToolbarWidgetMenu::getWidgetActions()
     return widgetActions;
 }
 
+bool ToolbarWidgetMenu::hasWidgetActions()
+{
+    return !widgetActions.isEmpty();
+}
+
 
 /**
  * @brief ToolbarWidgetMenu::getParentAction

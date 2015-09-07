@@ -65,7 +65,7 @@ QPair<int, QByteArray> JenkinsRequest::wget(QString url)
     QNetworkAccessManager* networkManager = getNetworkManager();
 
     if(networkManager && manager){
-        //qCritical() << "Requesting URL: " << url;
+        qCritical() << "Requesting URL: " << url;
 
         //Construct the post request, Authenticated
         QNetworkRequest request = manager->getAuthenticatedRequest(url);

@@ -19,6 +19,7 @@ public:
     void removeWidgetAction(ToolbarWidgetAction* action);
 
     QList<ToolbarWidgetAction*> getWidgetActions();
+    bool hasWidgetActions();
     ToolbarWidgetAction* getWidgetAction(NodeItem* nodeItem);
 
     void setParentAction(ToolbarWidgetAction* widgetAction);

@@ -42,6 +42,11 @@ void CUTSManager::setXSLTransformPath(QString transformPath)
 
 }
 
+void CUTSManager::setCUTSConfigScriptPath(QString configureScriptPath)
+{
+    this->configureScriptPath = configureScriptPath;
+}
+
 ///
 /// \brief CUTSManager::executeXSLGeneration Generates all required code artifacts for the execution of the graphml document.
 /// \param graphmlPath The path to the graphml document to generate code for.
@@ -72,13 +77,15 @@ void CUTSManager::executeXSLGeneration(QString graphmlPath, QString outputPath)
 
 void CUTSManager::executeMWCGeneration(QString mwcPath)
 {
-    QProcessEnvironment configuredEnv = getEnvFromScript("/Users/dan/Desktop/configure.sh");
-
+    QProcessEnvironment configuredEnv = getEnvFromScript(configureScriptPath);
+    //qCritical() << "configuredEnv" << configuredEnv.toStringList();
     //Start a QProcess for this program
     QProcess* process = new QProcess(this);
     process->setProcessEnvironment(configuredEnv);
-    process->start("python", QStringList() << "/Users/dan/Desktop/env.py");
+     process->start("python", QStringList() << "C:/printEnv.py");
+
     process->waitForFinished();
+    qCritical() << process->readAllStandardOutput();
     emit gotLiveMWCOutput(configuredEnv.toStringList().join(" "));
 
     emit executedMWCGeneration(true);
@@ -86,13 +93,14 @@ void CUTSManager::executeMWCGeneration(QString mwcPath)
 
 void CUTSManager::executeCPPCompilation(QString makePath)
 {
-    QProcessEnvironment configuredEnv = getEnvFromScript("/Users/dan/Desktop/configure.sh");
+    QProcessEnvironment configuredEnv = getEnvFromScript(configureScriptPath);
 
     //Start a QProcess for this program
     QProcess* process = new QProcess(this);
     process->setProcessEnvironment(configuredEnv);
-    process->start("python", QStringList() << "/Users/dan/Desktop/env.py");
+    process->start("python", QStringList() << "C:/printEnv.py");
     process->waitForFinished();
+    qCritical() << process->readAllStandardOutput();
     emit gotLiveCPPOutput("COMPILING!");
     emit executedCPPCompilation(true);
 
@@ -327,23 +335,26 @@ QProcessEnvironment CUTSManager::getEnvFromScript(QString scriptPath)
     QString command;
     #ifdef _WIN32
         program = "cmd.exe";
+        command = scriptPath + "&set&exit\n";
     #else
         program = "/bin/sh";
         //Have to pass a path to the .sh script
-        command = ". ";
+        command = ". " + scriptPath + ";set;exit\n";
     #endif
 
     process->start(program);
-
-    //Construct the command to write to the bash/cmd
-    command += scriptPath + ";set;exit\n";
-
+    process->waitForStarted();
+    qCritical() << "Process started";
+    qCritical() << command;
     //Run the command
     process->write(command.toUtf8());
     //Wait for the process to finish.
-    process->waitForFinished();
+    process->waitForFinished(2000);
     //Get the output.
     QString commandOutput = process->readAllStandardOutput();
+    QString commandErrOutput = process->readAllStandardError();
+    //qCritical() << "commandOutput" << commandOutput;
+    //qCritical() << "commandErrOutput" << commandErrOutput;
 
     //Regex to find the key/value pair out of ${KEY}=${VALUE}\n
     QRegularExpression regex("([^=]*)=(.*)\n");
@@ -356,10 +367,12 @@ QProcessEnvironment CUTSManager::getEnvFromScript(QString scriptPath)
     while (matches.hasNext()) {
         QRegularExpressionMatch match = matches.next();
         if(match.hasMatch()){
-            QString key = match.captured(1);
-            QString value = match.captured(2);
+            QString key = match.captured(2).trimmed();
+            QString value = match.captured(3).trimmed();
             if(key.length() > 0){
                 environment.insert(key, value);
+                qCritical() << "Key: " << key;
+                qCritical() << "Value: " << value;
             }
         }
     }

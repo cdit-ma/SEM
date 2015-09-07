@@ -74,6 +74,7 @@ private:
     void setupFilesList(QList<NodeItem*> files, QString kind);
     void setupComponentList(QList<NodeItem*> components, QString kind);
     void setupBlackBoxList(QList<NodeItem*> blackBoxes);
+    void setupBlackBoxInstanceList(QList<NodeItem*> blackBoxInstances);
 
     void setupChildrenComponentInstanceList(QList<NodeItem *> componentInstances);
     void setupInEventPortInstanceList();

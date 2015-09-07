@@ -59,7 +59,7 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
     setState(INITIAL);
 
     setGraphMLPath("/Users/dan/Desktop/model.graphml");
-    setOutputPath("/Users/dan/Desktop/Test3/");
+    setOutputPath("/Users/dan/Desktop/Test2/");
 }
 
 CUTSExecutionWidget::~CUTSExecutionWidget()

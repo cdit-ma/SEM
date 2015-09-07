@@ -219,7 +219,49 @@ OTHER_FILES += \
     Resources/Scripts/xml-apis.jar \
     medea.rc \
     changelog.txt \
-    application.ico
+    application.ico \
+    Resources/Transforms/Absolute2Relative.xsl \
+    Resources/Transforms/Deploy.xsl \
+    Resources/Transforms/ExtractSchFromRNG.xsl \
+    Resources/Transforms/ExtractSchFromXSD.xsl \
+    Resources/Transforms/graphml2cdd.xsl \
+    Resources/Transforms/graphml2cdp.xsl \
+    Resources/Transforms/graphml2cpp.xsl \
+    Resources/Transforms/graphml2ddd.xsl \
+    Resources/Transforms/graphml2deployconfig.xsl \
+    Resources/Transforms/graphml2dpd.xsl \
+    Resources/Transforms/graphml2dts.xsl \
+    Resources/Transforms/graphml2h.xsl \
+    Resources/Transforms/graphml2idl.xsl \
+    Resources/Transforms/graphml2mpc.xsl \
+    Resources/Transforms/graphml2mwc.xsl \
+    Resources/Transforms/graphml2testconfig.xsl \
+    Resources/Transforms/graphmlKeyAttributes.xsl \
+    Resources/Transforms/graphmlKeyVariables.xsl \
+    Resources/Transforms/iso_abstract_expand.xsl \
+    Resources/Transforms/iso_dsdl_include.xsl \
+    Resources/Transforms/iso_schematron_message.xsl \
+    Resources/Transforms/iso_schematron_skeleton_for_xslt1.xsl \
+    Resources/Transforms/iso_svrl_for_xslt1.xsl \
+    Resources/Transforms/MEDEA.xsl \
+    Resources/Transforms/picml2graphml.xsl \
+    Resources/Transforms/PreprocessIDL.xsl \
+    Resources/Transforms/Relative2Absolute.xsl \
+    Resources/Transforms/Scale.xsl \
+    Resources/Transforms/yEdAdd.xsl \
+    Resources/Transforms/yEdDelete.xsl \
+    Resources/Transforms/graphml.dtd \
+    Resources/Transforms/mga.dtd \
+    Resources/Transforms/schematron-skeleton-api.htm \
+    Resources/Transforms/MEDEA.sch \
+    Resources/Transforms/README.txt \
+    Resources/Transforms/SchematronBuild.txt \
+    Resources/Transforms/SchematronReadme.txt \
+    Resources/Binaries/jenkins-cli.jar \
+    Resources/Binaries/serializer.jar \
+    Resources/Binaries/xalan.jar \
+    Resources/Binaries/xercesImpl.jar \
+    Resources/Binaries/xml-apis.jar
 
 
 #Define $$OUTPUT_DIR
@@ -243,50 +285,33 @@ mac{
 }
 
 
-JENKINSCLIJAR.files += Resources/Scripts/jenkins-cli.jar
-JENKINSCLIJAR.path = $$OUTPUT_DIR/Resources/Scripts/
 
-JENKINSGROOVY.files += Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy
-JENKINSGROOVY.path = $$OUTPUT_DIR/Resources/Scripts/
 
-SETTINGSFILE.files += settings.ini
-SETTINGSFILE.path = $$OUTPUT_DIR/
+SETTINGS_FILE.files += settings.ini
+SETTINGS_FILE.path = $$OUTPUT_DIR/
 
-XSLFILE.files += Resources/Scripts/MEDEA.xsl
-XSLFILE.path = $$OUTPUT_DIR/Resources/Scripts/
+SCRIPTS_FILES.files += Resources/Scripts/*
+SCRIPTS_FILES.path = $$OUTPUT_DIR/Resources/Scripts/
 
-XALANJAR.files += Resources/Scripts/xalan.jar
-XALANJAR.path = $$OUTPUT_DIR/Resources/Scripts/
+BINARIES_FILES.files += Resources/Binaries/*
+BINARIES_FILES.path = $$OUTPUT_DIR/Resources/Binaries/
 
-SERIALIZERJAR.files += Resources/Scripts/serializer.jar
-SERIALIZERJAR.path = $$OUTPUT_DIR/Resources/Scripts/
+TRANSFORMS_FILES.files += Resources/Transforms/*
+TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/Transforms/
 
-XERCESIMPLJAR.files += Resources/Scripts/xercesImpl.jar
-XERCESIMPLJAR.path = $$OUTPUT_DIR/Resources/Scripts/
-
-XMLAPISJAR.files += Resources/Scripts/xml-apis.jar
-XMLAPISJAR.path = $$OUTPUT_DIR/Resources/Scripts/
 
 #Copy files for Windows and Linux
 linux-g++ | win32{
-    INSTALLS += JENKINSCLIJAR
-    INSTALLS += JENKINSGROOVY
-    INSTALLS += SETTINGSFILE
-    INSTALLS += XSLFILE
-    INSTALLS += XALANJAR
-    INSTALLS += SERIALIZERJAR
-    INSTALLS += XERCESIMPLJAR
-    INSTALLS += XMLAPISJAR
+    INSTALLS += SETTINGS_FILE
+    INSTALLS += SCRIPTS_FILES
+    INSTALLS += BINARIES_FILES
+    INSTALLS += TRANSFORMS_FILES
 }
 
 #Copy files for MacOS
 mac{
-    QMAKE_BUNDLE_DATA += JENKINSCLIJAR
-    QMAKE_BUNDLE_DATA += JENKINSGROOVY
-    QMAKE_BUNDLE_DATA += SETTINGSFILE
-    QMAKE_BUNDLE_DATA += XSLFILE
-    QMAKE_BUNDLE_DATA += XALANJAR
-    QMAKE_BUNDLE_DATA += SERIALIZERJAR
-    QMAKE_BUNDLE_DATA += XERCESIMPLJAR
-    QMAKE_BUNDLE_DATA += XMLAPISJAR
+    QMAKE_BUNDLE_DATA += SETTINGS_FILE
+    QMAKE_BUNDLE_DATA += SCRIPTS_FILES
+    QMAKE_BUNDLE_DATA += BINARIES_FILES
+    QMAKE_BUNDLE_DATA += TRANSFORMS_FILES
 }
