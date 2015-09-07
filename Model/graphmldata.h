@@ -9,7 +9,7 @@
 class GraphMLData: public GraphML{
     Q_OBJECT
 public:
-    GraphMLData(GraphMLKey* key, QString value);
+    GraphMLData(GraphMLKey* key, QString value="", bool isProtected=false);
     ~GraphMLData();
     void setParent(GraphML* parent);
     GraphML* getParent();

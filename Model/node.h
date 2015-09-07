@@ -43,6 +43,8 @@ public:
     //Adds the Node provided to the list of children.
     void addChild(Node *child);
 
+    QString getNodeKind();
+
     bool containsChild(Node* child);
 
      //Gets the Children of this Node to a desired Depth.

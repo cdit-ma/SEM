@@ -77,15 +77,37 @@ void CUTSManager::executeXSLGeneration(QString graphmlPath, QString outputPath)
 
 void CUTSManager::executeMWCGeneration(QString mwcPath)
 {
+    //get the environment for the mwc generation
     QProcessEnvironment configuredEnv = getEnvFromScript(configureScriptPath);
-    //qCritical() << "configuredEnv" << configuredEnv.toStringList();
-    //Start a QProcess for this program
+
+    QString ACE_ROOT = configuredEnv.value("ACE_ROOT");
+    QString CUTS_ROOT = configuredEnv.value("CUTS_ROOT");
+
+
+    QString program = ACE_ROOT + "/bin/mwc.pl";
+    QStringList args;
+    QString type;
+    QString mwcFilePath;
+
+    //Check if windows or *nix
+    #ifdef _WIN32
+        type = "vc9";
+    #else
+        type = "gnuace";
+    #endif
+
+    args << "-type" << type << "-feature_file" << CUTS_ROOT + "/default.features" << mwcFilePath;
+
     QProcess* process = new QProcess(this);
     process->setProcessEnvironment(configuredEnv);
-     process->start("python", QStringList() << "C:/printEnv.py");
 
+    //Run MWC Generation
+    qCritical() << program << args;
+    process->start(program, args);
     process->waitForFinished();
+
     qCritical() << process->readAllStandardOutput();
+    qCritical() << "FINISH MWC";
     emit gotLiveMWCOutput(configuredEnv.toStringList().join(" "));
 
     emit executedMWCGeneration(true);
@@ -93,14 +115,35 @@ void CUTSManager::executeMWCGeneration(QString mwcPath)
 
 void CUTSManager::executeCPPCompilation(QString makePath)
 {
+    //get the environment for the mwc generation
     QProcessEnvironment configuredEnv = getEnvFromScript(configureScriptPath);
+    QString CUTS_ROOT = configuredEnv.value("CUTS_ROOT");
 
-    //Start a QProcess for this program
+    QString program;
+    QStringList args;
+
+    //Check if windows or *nix
+    #ifdef _WIN32
+        program = "msbuild";
+        QString slnPath;
+        args << slnPath;
+    #else
+        program = "make";
+        QString slnPath;
+        args << "-C" << makePath << "`cat \"" + CUTS_ROOT + "/default.features\"`";
+    #endif
+
     QProcess* process = new QProcess(this);
     process->setProcessEnvironment(configuredEnv);
-    process->start("python", QStringList() << "C:/printEnv.py");
+
+    //Run CPP Generation
+    qCritical() << program << args;
+    process->start(program, args);
     process->waitForFinished();
+
     qCritical() << process->readAllStandardOutput();
+    qCritical() << "FINISH CPP";
+
     emit gotLiveCPPOutput("COMPILING!");
     emit executedCPPCompilation(true);
 
@@ -326,6 +369,11 @@ void CUTSManager::processFinished(int code, QProcess::ExitStatus)
 }
 
 
+/**
+ * @brief CUTSManager::getEnvFromScript Executes a .bat/.sh script and constructs a QProcessEnvironment to put the newly set environment variables into.
+ * @param scriptPath The path to the script file.
+ * @return
+ */
 QProcessEnvironment CUTSManager::getEnvFromScript(QString scriptPath)
 {
     QProcess* process = new QProcess(this);
@@ -344,39 +392,38 @@ QProcessEnvironment CUTSManager::getEnvFromScript(QString scriptPath)
 
     process->start(program);
     process->waitForStarted();
-    qCritical() << "Process started";
-    qCritical() << command;
+
     //Run the command
     process->write(command.toUtf8());
+
     //Wait for the process to finish.
     process->waitForFinished(2000);
+
     //Get the output.
     QString commandOutput = process->readAllStandardOutput();
-    QString commandErrOutput = process->readAllStandardError();
-    //qCritical() << "commandOutput" << commandOutput;
-    //qCritical() << "commandErrOutput" << commandErrOutput;
 
-    //Regex to find the key/value pair out of ${KEY}=${VALUE}\n
-    QRegularExpression regex("([^=]*)=(.*)\n");
 
-    QProcessEnvironment environment;
+    //Compile Regex.
+    QRegularExpression regex("([^=]*)=(.*)");
 
-    //Get all regex matches.
-    QRegularExpressionMatchIterator matches = regex.globalMatch(commandOutput);
+    QProcessEnvironment newEnvironment;
+    //Ignore oldEnvironment
+    QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
 
-    while (matches.hasNext()) {
-        QRegularExpressionMatch match = matches.next();
+      foreach(QString line, commandOutput.split('\n')){
+        QRegularExpressionMatch match = regex.match(line);
         if(match.hasMatch()){
-            QString key = match.captured(2).trimmed();
-            QString value = match.captured(3).trimmed();
+            QString key = match.captured(1);
+            QString value = match.captured(2);
             if(key.length() > 0){
-                environment.insert(key, value);
-                qCritical() << "Key: " << key;
-                qCritical() << "Value: " << value;
+                //Ignore the system environment keys?
+                if(!systemEnvironment.contains(key)){
+                    newEnvironment.insert(key, value);
+                }
             }
-        }
+       }
     }
-    return environment;
+    return newEnvironment;
 }
 
 

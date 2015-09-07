@@ -105,6 +105,11 @@ void Node::addChild(Node *child)
     }
 }
 
+QString Node::getNodeKind()
+{
+    return getDataValue("kind");
+}
+
 bool Node::containsChild(Node *child)
 {
     return children.contains(child);

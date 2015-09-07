@@ -1421,7 +1421,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     //Attach Node Specific Data.
 
     if(nodeKind == "ManagementComponent"){
-        data.append(new GraphMLData(typeKey, ""));
+        data.append(new GraphMLData(typeKey));
 
     }
     if(nodeKind == "Model"){
@@ -1446,20 +1446,20 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
         GraphMLKey* complexityKey = constructGraphMLKey("complexity", "string", "node");
         GraphMLKey* complexityParamsKey = constructGraphMLKey("complexityParameters", "string", "node");
         GraphMLKey* parametersKey = constructGraphMLKey("parameters", "string", "node");
-        data.append(new GraphMLData(codeKey, ""));
+        data.append(new GraphMLData(codeKey));
         data.append(new GraphMLData(actionOnKey, "Mainprocess"));
-        data.append(new GraphMLData(workerKey, ""));
-        data.append(new GraphMLData(complexityParamsKey, ""));
+        data.append(new GraphMLData(workerKey));
+        data.append(new GraphMLData(complexityParamsKey));
 
-        data.append(new GraphMLData(folderKey, ""));
-        data.append(new GraphMLData(fileKey, ""));
-        data.append(new GraphMLData(operationKey, ""));
-        data.append(new GraphMLData(complexityKey, ""));
-        data.append(new GraphMLData(parametersKey, ""));
+        data.append(new GraphMLData(folderKey));
+        data.append(new GraphMLData(fileKey));
+        data.append(new GraphMLData(operationKey));
+        data.append(new GraphMLData(complexityKey));
+        data.append(new GraphMLData(parametersKey));
     }
     if(nodeKind == "Condition"){
         GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
-        data.append(new GraphMLData(valueKey, ""));
+        data.append(new GraphMLData(valueKey));
     }
     if(nodeKind == "Member"){
         GraphMLKey* keyKey = constructGraphMLKey("key", "boolean", "node");
@@ -1469,7 +1469,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     if(nodeKind == "MemberInstance"){
         GraphMLKey* keyKey = constructGraphMLKey("key", "boolean", "node");
         GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
-        data.append(new GraphMLData(valueKey, ""));
+        data.append(new GraphMLData(valueKey));
         data.append(new GraphMLData(keyKey, "false"));
     }
     if(nodeKind == "Attribute"){
@@ -1477,20 +1477,25 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     }
     if(nodeKind == "AttributeInstance"){
         GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
-        data.append(new GraphMLData(valueKey, ""));
+        data.append(new GraphMLData(valueKey));
     }
     if(nodeKind == "Variable"){
         data.append(new GraphMLData(typeKey, "String"));
         GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
-        data.append(new GraphMLData(valueKey, ""));
+        data.append(new GraphMLData(valueKey));
     }
     if(nodeKind == "OutEventPortInstance" || nodeKind == "InEventPortInstance"){
         GraphMLKey* topicKey = constructGraphMLKey("topicName", "string", "node");
-        data.append(new GraphMLData(topicKey, ""));
+        data.append(new GraphMLData(topicKey));
     }
 
     if(nodeKind.endsWith("Instance") ||nodeKind.endsWith("Impl")){
-        data.append(new GraphMLData(typeKey, ""));
+        data.append(new GraphMLData(typeKey));
+    }
+
+    if(nodeKind.contains("EventPort")){
+        data.append(new GraphMLData(typeKey, "", true));
+
     }
     return data;
 }
@@ -2821,6 +2826,17 @@ bool NewController::setupAggregateRelationship(EventPort *eventPort, Aggregate *
 
     //Edge Created Set Aggregate relation.
     eventPort->setAggregate(aggregate);
+
+    //Set Type
+    GraphMLData* eventPortType = eventPort->getData("type");
+    GraphMLData* aggregateLabel = aggregate->getData("label");
+
+    if(eventPortType && aggregateLabel){
+        aggregateLabel->bindData(eventPortType);
+        eventPortType->setValue(aggregateLabel->getValue());
+    }
+
+
     return true;
 }
 
@@ -2833,6 +2849,13 @@ bool NewController::teardownAggregateRelationship(EventPort *eventPort, Aggregat
 
     //Unset the Aggregate
     eventPort->unsetAggregate();
+
+    //Unset Type information;
+    GraphMLData* eventPortType = eventPort->getData("type");
+    if(eventPortType){
+        eventPortType->unsetParentData();
+        eventPortType->setValue("");
+    }
 
     QList<Node*> aggregateInstances = eventPort->getChildrenOfKind("AggregateInstance", 0);
     if(aggregateInstances.size() == 1){
@@ -2961,6 +2984,27 @@ void NewController::constructEdgeGUI(Edge *edge)
             EventPort* eventPort = dynamic_cast<EventPort*>(src);
             Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
             setupAggregateRelationship(eventPort, aggregate);
+        }
+    }
+    if(src->getNodeKind().contains("PortDelegate") || dst->getNodeKind().contains("PortDelegate")){
+        //PORT DELEGATE.
+        Node* delegate = 0;
+        Node* portInstance = 0;
+        if(src->getNodeKind() == "OutEventPortInstance" && dst->getNodeKind() == "OutEventPortDelegate"){
+            delegate = dst;
+            portInstance = src;
+        }else if(src->getNodeKind() == "InEventPortDelegate" && dst->getNodeKind() == "InEventPortInstance"){
+            delegate = src;
+            portInstance = dst;
+        }
+
+        if(delegate && portInstance){
+            GraphMLData* delType = delegate->getData("type");
+            GraphMLData* portType = portInstance->getData("type");
+            if(portType && delType){
+                portType->bindData(delType);
+                portType->setValue(delType->getValue());
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 #include "graphmldata.h"
 #include <QDebug>
 
-GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
+GraphMLData::GraphMLData(GraphMLKey *key, QString value, bool isProtected):GraphML(GraphML::DATA)
 {
     //Set to default.
     parentData = 0;
@@ -17,8 +17,11 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value):GraphML(GraphML::DATA)
         this->type = key->getTypeString();
     }
 
-
-    setProtected(key->isProtected());
+    if(isProtected){
+        setProtected(isProtected);
+    }else{
+        setProtected(key->isProtected());
+    }
 }
 
 GraphMLData::~GraphMLData()
