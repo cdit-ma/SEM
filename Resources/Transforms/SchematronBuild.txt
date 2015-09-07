@@ -1,0 +1,9 @@
+Build the MEDEA transform from the Schematron definition file MEDEA.sch
+> Xalan -p generate-paths "'false'" -o MEDEA.xsl MEDEA.sch ${MEDEA_ROOT}/Transforms/trunk/iso_svrl_for_xslt1.xsl
+or
+> java org.apache.xalan.xslt.Process -IN MEDEA.sch -XSL %MEDEA_ROOT%/Transforms/trunk/iso_svrl_for_xslt1.xsl -PARAM generate-paths "'false'" -OUT MEDEA.xsl
+
+Run the MEDEA.xsl transform on a graphml
+> Xalan -o report.xml HelloWorld.graphml ${MEDEA_ROOT}/Transforms/trunk/MEDEA.xsl
+or
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%/Transforms/trunk/MEDEA.xsl -OUT report.xml
