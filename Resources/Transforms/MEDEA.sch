@@ -111,6 +111,74 @@
 		<value>Remove</value>
 	</Predefined>	
   </let>
+  <let name="PredefinedIDLReservedWords">
+	<Predefined nodeKind="#ALL" keyName="label" keyType="#ALL">
+		<value>abstract</value>
+		<value>any</value>
+		<value>attribute</value>		
+		<value>boolean</value>
+		<value>case</value>
+		<value>char</value>
+		<value>component</value>
+		<value>const</value>
+		<value>consumes</value>
+		<value>context</value>
+		<value>custom</value>
+		<value>default</value>
+		<value>double</value>
+		<value>exception</value>
+		<value>emits</value>
+		<value>enum</value>
+		<value>eventtype</value>
+		<value>factory</value>
+		<value>false</value>
+		<value>finder</value>
+		<value>fixed</value>
+		<value>float</value>
+		<value>getraises</value>
+		<value>home</value>
+		<value>import</value>
+		<value>in</value>
+		<value>inout</value>
+		<value>interface</value>
+		<value>local</value>
+		<value>long</value>
+		<value>module</value>
+		<value>multiple</value>
+		<value>native</value>
+		<value>object</value>
+		<value>octet</value>
+		<value>oneway</value>
+		<value>out</value>
+		<value>primarykey</value>
+		<value>private</value>
+		<value>provides</value>
+		<value>public</value>
+		<value>publishes</value>
+		<value>raises</value>
+		<value>readonly</value>
+		<value>setraises</value>
+		<value>sequence</value>
+		<value>short</value>
+		<value>string</value>
+		<value>struct</value>
+		<value>supports</value>
+		<value>switch</value>
+		<value>true</value>
+		<value>truncatable</value>
+		<value>typedef</value>
+		<value>typeid</value>
+		<value>typeprefix</value>
+		<value>unsigned</value>
+		<value>union</value>
+		<value>uses</value>
+		<value>valuebase</value>
+		<value>valuetype</value>
+		<value>void</value>
+		<value>wchar</value>
+		<value>wstring</value>
+	</Predefined>	
+  </let>
   
   <!-- Define the keys for testing unique labels in the model -->
   <!-- This works, <xsl:key name="fileLabels" match="gml:node[gml:data[@key='d14']/text()='IDL']" use="gml:data[@key='d11']"/> --> 
@@ -265,6 +333,15 @@
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Component label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
 		<assert test="count(key('componentLabels', $label)[gml:data[@key=$nodeKindKey]/text() = 'Component' or gml:data[@key=$nodeKindKey]/text() = 'BlackBox'][gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Component label must be unique within Model</assert>
+
+		<let name="reservedList">
+			<axsl:for-each select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value" xmlns:axsl="http://www.w3.org/1999/XSL/Transform">
+				<axsl:value-of select="concat(. , ', ')" xmlns:axsl="http://www.w3.org/1999/XSL/Transform"/>
+			</axsl:for-each>
+		</let>
+		<assert test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Component label must not be an IDL reserved word </assert> 
+				
 	    <assert test="count($childNode/gml:data[@key=$nodeKindKey][text()='InEventPort']) &gt; 0
 					  or count($childNode/gml:data[@key=$nodeKindKey][text()='OutEventPort']) &gt; 0
 					  or count($childNode/gml:data[@key=$nodeKindKey][text()='Attribute']) &gt; 0" 
@@ -286,7 +363,14 @@
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> BlackBox label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
 		<assert test="count(key('componentLabels', $label)[gml:data[@key=$nodeKindKey]/text() = 'Component' or gml:data[@key=$nodeKindKey]/text() = 'BlackBox'][gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> BlackBox label must be unique within Model</assert>
-	    <assert test="count($childNode/gml:data[@key=$nodeKindKey][text()='InEventPort']) &gt; 0
+		<let name="reservedList">
+			<axsl:for-each select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value" xmlns:axsl="http://www.w3.org/1999/XSL/Transform">
+				<axsl:value-of select="concat(. , ', ')" xmlns:axsl="http://www.w3.org/1999/XSL/Transform"/>
+			</axsl:for-each>
+		</let>
+		<assert test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> BlackBox label must not be an IDL reserved word </assert> 
+		<assert test="count($childNode/gml:data[@key=$nodeKindKey][text()='InEventPort']) &gt; 0
 					  or count($childNode/gml:data[@key=$nodeKindKey][text()='OutEventPort']) &gt; 0" 
 			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> BlackBox should contain InEventPort and OutEventPort kind of entities</assert> 
 		<assert test="count($childNode/gml:data[@key=$nodeKindKey][text()!='InEventPort' and text()!='OutEventPort']) = 0" 
@@ -303,6 +387,13 @@
 			role="information">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPort Validation Rules</report>
 		<assert test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPort label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
+		<let name="reservedList">
+			<axsl:for-each select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value" xmlns:axsl="http://www.w3.org/1999/XSL/Transform">
+				<axsl:value-of select="concat(. , ', ')" xmlns:axsl="http://www.w3.org/1999/XSL/Transform"/>
+			</axsl:for-each>
+		</let>
+		<assert test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPort label must not be an IDL reserved word </assert> 
 		<assert test="count(//gml:edge[@source=$node/@id]) = 1" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPort must be the source connection for one link to an Aggregate entity</assert> 
 		<let name="aggregateID" value="//gml:edge[@source=$node/@id]/@target" />
@@ -318,10 +409,15 @@
 		<let name="label" value="$node/gml:data[@key=$nodeLabelKey]/text()" />
 		<report test="$node"
 			role="information">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPort Validation Rules</report>
-			
 		<assert test="string-length(normalize-space(translate($label,' \/:*?&quot;&gt;&lt;|',''))) = string-length($label)" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPort label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
-			
+		<let name="reservedList">
+			<axsl:for-each select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value" xmlns:axsl="http://www.w3.org/1999/XSL/Transform">
+				<axsl:value-of select="concat(. , ', ')" xmlns:axsl="http://www.w3.org/1999/XSL/Transform"/>
+			</axsl:for-each>
+		</let>
+		<assert test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPort label must not be an IDL reserved word </assert> 
 		<assert test="count(//gml:edge[@source=$node/@id]) = 1" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPort must be the source connection for one link to an Aggregate entity</assert> 
 		<let name="aggregateID" value="//gml:edge[@source=$node/@id]/@target" />
@@ -340,6 +436,13 @@
 			role="information">[<value-of select="$node/@id"/>] <value-of select="$label"/> Attribute Validation Rules</report>
 		<assert test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Attribute label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
+		<let name="reservedList">
+			<axsl:for-each select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value" xmlns:axsl="http://www.w3.org/1999/XSL/Transform">
+				<axsl:value-of select="concat(. , ', ')" xmlns:axsl="http://www.w3.org/1999/XSL/Transform"/>
+			</axsl:for-each>
+		</let>
+		<assert test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Attribute label must not be an IDL reserved word </assert> 
 		<let name="typeList">
 			<axsl:for-each select="xalan:nodeset($PredefinedAttributeTypes)/node()[@nodeKind='Attribute'][@keyName='type']//iso:value" xmlns:axsl="http://www.w3.org/1999/XSL/Transform">
 				<axsl:value-of select="concat(', ', .)"  xmlns:axsl="http://www.w3.org/1999/XSL/Transform"/>
@@ -366,6 +469,13 @@
 			role="information">[<value-of select="$node/@id"/>] <value-of select="$label"/> Aggregate Validation Rules</report>
 		<assert test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Aggregate label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
+		<let name="reservedList">
+			<axsl:for-each select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value" xmlns:axsl="http://www.w3.org/1999/XSL/Transform">
+				<axsl:value-of select="concat(. , ', ')" xmlns:axsl="http://www.w3.org/1999/XSL/Transform"/>
+			</axsl:for-each>
+		</let>
+		<assert test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Aggregate label must not be an IDL reserved word </assert> 
 		<assert test="count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Member']) &gt; 0
 					   or count($node/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='AggregateInstance']) &gt; 0" 
 			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> Aggregate should contain Member and AggregateInstance entities</assert>
@@ -388,6 +498,13 @@
 			role="information">[<value-of select="$node/@id"/>] <value-of select="$label"/> AggregateInstance Validation Rules</report>
 		<assert test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> AggregateInstance label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
+		<let name="reservedList">
+			<axsl:for-each select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value" xmlns:axsl="http://www.w3.org/1999/XSL/Transform">
+				<axsl:value-of select="concat(. , ', ')" xmlns:axsl="http://www.w3.org/1999/XSL/Transform"/>
+			</axsl:for-each>
+		</let>
+		<assert test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> AggregateInstance label must not be an IDL reserved word </assert> 
 		<assert test="count(//gml:edge[@source=$node/@id]) = 1" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> AggregateInstance must be the source connection for one link to an Aggregate entity</assert> 
 		<let name="aggregateID" value="//gml:edge[@source=$node/@id]/@target" />
@@ -414,6 +531,13 @@
 			role="information">[<value-of select="$node/@id"/>] <value-of select="$label"/> Member Validation Rules</report>
 		<assert test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Member label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
+		<let name="reservedList">
+			<axsl:for-each select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value" xmlns:axsl="http://www.w3.org/1999/XSL/Transform">
+				<axsl:value-of select="concat(. , ', ')" xmlns:axsl="http://www.w3.org/1999/XSL/Transform"/>
+			</axsl:for-each>
+		</let>
+		<assert test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Member label must not be an IDL reserved word </assert> 
 		<assert test="$key='true' or $key='false'" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> Member must have a key of true or false</assert> 
 		<assert test="xalan:nodeset($PredefinedMemberTypes)/node()[@nodeKind='Member'][@keyName='type']//iso:value[text()=$type]"

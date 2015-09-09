@@ -160,97 +160,97 @@
 <axsl:attribute name="name">Checking Model graphml</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M35" select="/"/>
+<axsl:apply-templates mode="M36" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">IDL.checks</axsl:attribute>
 <axsl:attribute name="name">Checking IDL entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M36" select="/"/>
+<axsl:apply-templates mode="M37" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">Component.checks</axsl:attribute>
 <axsl:attribute name="name">Checking Component entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M37" select="/"/>
+<axsl:apply-templates mode="M38" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">BlackBox.checks</axsl:attribute>
 <axsl:attribute name="name">Checking BlackBox entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M38" select="/"/>
+<axsl:apply-templates mode="M39" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">InEventPort.checks</axsl:attribute>
 <axsl:attribute name="name">Checking InEventPort entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M39" select="/"/>
+<axsl:apply-templates mode="M40" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">OutEventPort.checks</axsl:attribute>
 <axsl:attribute name="name">Checking OutEventPort entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M40" select="/"/>
+<axsl:apply-templates mode="M41" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">Attribute.checks</axsl:attribute>
 <axsl:attribute name="name">Checking Attribute entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M41" select="/"/>
+<axsl:apply-templates mode="M42" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">Aggregate.checks</axsl:attribute>
 <axsl:attribute name="name">Checking Aggregate entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M42" select="/"/>
+<axsl:apply-templates mode="M43" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">Aggregate.AggregateInstance.checks</axsl:attribute>
 <axsl:attribute name="name">Checking AggregateInstance entities contained in IDLs</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M43" select="/"/>
+<axsl:apply-templates mode="M44" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">Member.checks</axsl:attribute>
 <axsl:attribute name="name">Checking Member entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M44" select="/"/>
+<axsl:apply-templates mode="M45" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">ComponentAssembly.checks</axsl:attribute>
 <axsl:attribute name="name">Checking ComponentAssembly entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M45" select="/"/>
+<axsl:apply-templates mode="M46" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">ComponentInstance.checks</axsl:attribute>
 <axsl:attribute name="name">Checking ComponentInstance entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M46" select="/"/>
+<axsl:apply-templates mode="M47" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">BlackBoxInstance.checks</axsl:attribute>
 <axsl:attribute name="name">Checking BlackBoxInstance entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M47" select="/"/>
+<axsl:apply-templates mode="M48" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">OutEventPortInstance.checks</axsl:attribute>
 <axsl:attribute name="name">Checking OutEventPortInstance entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M48" select="/"/>
+<axsl:apply-templates mode="M49" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">InEventPortInstance.checks</axsl:attribute>
 <axsl:attribute name="name">Checking InEventPortInstance entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M49" select="/"/>
+<axsl:apply-templates mode="M50" select="/"/>
 <svrl:active-pattern>
 <axsl:attribute name="id">AttributeInstance.checks</axsl:attribute>
 <axsl:attribute name="name">Checking AttributeInstance entities</axsl:attribute>
 <axsl:apply-templates/>
 </svrl:active-pattern>
-<axsl:apply-templates mode="M50" select="/"/>
+<axsl:apply-templates mode="M51" select="/"/>
 </svrl:schematron-output>
 </axsl:template>
 
@@ -347,12 +347,80 @@
 		<value>Remove</value>
 	</Predefined>	
   </axsl:variable>
+<axsl:variable name="PredefinedIDLReservedWords">
+	<Predefined xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" nodeKind="#ALL" keyName="label" keyType="#ALL">
+		<value>abstract</value>
+		<value>any</value>
+		<value>attribute</value>		
+		<value>boolean</value>
+		<value>case</value>
+		<value>char</value>
+		<value>component</value>
+		<value>const</value>
+		<value>consumes</value>
+		<value>context</value>
+		<value>custom</value>
+		<value>default</value>
+		<value>double</value>
+		<value>exception</value>
+		<value>emits</value>
+		<value>enum</value>
+		<value>eventtype</value>
+		<value>factory</value>
+		<value>false</value>
+		<value>finder</value>
+		<value>fixed</value>
+		<value>float</value>
+		<value>getraises</value>
+		<value>home</value>
+		<value>import</value>
+		<value>in</value>
+		<value>inout</value>
+		<value>interface</value>
+		<value>local</value>
+		<value>long</value>
+		<value>module</value>
+		<value>multiple</value>
+		<value>native</value>
+		<value>object</value>
+		<value>octet</value>
+		<value>oneway</value>
+		<value>out</value>
+		<value>primarykey</value>
+		<value>private</value>
+		<value>provides</value>
+		<value>public</value>
+		<value>publishes</value>
+		<value>raises</value>
+		<value>readonly</value>
+		<value>setraises</value>
+		<value>sequence</value>
+		<value>short</value>
+		<value>string</value>
+		<value>struct</value>
+		<value>supports</value>
+		<value>switch</value>
+		<value>true</value>
+		<value>truncatable</value>
+		<value>typedef</value>
+		<value>typeid</value>
+		<value>typeprefix</value>
+		<value>unsigned</value>
+		<value>union</value>
+		<value>uses</value>
+		<value>valuebase</value>
+		<value>valuetype</value>
+		<value>void</value>
+		<value>wchar</value>
+		<value>wstring</value>
+	</Predefined>	
+  </axsl:variable>
 
 <!--PATTERN graphml.checksChecking Model graphml-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking Model graphml</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M35" priority="1000" match="gml:graphml/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Model']">
+<axsl:template mode="M36" priority="1000" match="gml:graphml/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Model']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:graphml/gml:graph/gml:node/gml:data[@key=$nodeKindKey][text()='Model']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -392,18 +460,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M35" select="@*|*"/>
+<axsl:apply-templates mode="M36" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M35" priority="-1" match="text()"/>
-<axsl:template mode="M35" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M35" select="@*|*"/>
+<axsl:template mode="M36" priority="-1" match="text()"/>
+<axsl:template mode="M36" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M36" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN IDL.checksChecking IDL entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking IDL entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M36" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='IDL']">
+<axsl:template mode="M37" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='IDL']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='IDL']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -509,18 +577,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M36" select="@*|*"/>
+<axsl:apply-templates mode="M37" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M36" priority="-1" match="text()"/>
-<axsl:template mode="M36" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M36" select="@*|*"/>
+<axsl:template mode="M37" priority="-1" match="text()"/>
+<axsl:template mode="M37" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M37" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN Component.checksChecking Component entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking Component entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M37" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Component']">
+<axsl:template mode="M38" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Component']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Component']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -567,6 +635,26 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
+<axsl:variable name="reservedList">
+			<axsl:for-each xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value">
+				<axsl:value-of select="concat(. , ', ')"/>
+			</axsl:for-each>
+		</axsl:variable>
+
+		<!--ASSERT critical-->
+<axsl:choose>
+<axsl:when test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"/>
+<axsl:otherwise>
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )">
+<axsl:attribute name="role">critical</axsl:attribute>
+<svrl:text>[<axsl:text/>
+<axsl:value-of select="$node/@id"/>
+<axsl:text/>] <axsl:text/>
+<axsl:value-of select="$label"/>
+<axsl:text/> Component label must not be an IDL reserved word </svrl:text>
+</svrl:failed-assert>
+</axsl:otherwise>
+</axsl:choose>
 
 		<!--ASSERT warning-->
 <axsl:choose>
@@ -597,18 +685,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M37" select="@*|*"/>
+<axsl:apply-templates mode="M38" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M37" priority="-1" match="text()"/>
-<axsl:template mode="M37" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M37" select="@*|*"/>
+<axsl:template mode="M38" priority="-1" match="text()"/>
+<axsl:template mode="M38" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M38" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN BlackBox.checksChecking BlackBox entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking BlackBox entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M38" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='BlackBox']">
+<axsl:template mode="M39" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='BlackBox']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='BlackBox']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -655,6 +743,26 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
+<axsl:variable name="reservedList">
+			<axsl:for-each xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value">
+				<axsl:value-of select="concat(. , ', ')"/>
+			</axsl:for-each>
+		</axsl:variable>
+
+		<!--ASSERT critical-->
+<axsl:choose>
+<axsl:when test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"/>
+<axsl:otherwise>
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )">
+<axsl:attribute name="role">critical</axsl:attribute>
+<svrl:text>[<axsl:text/>
+<axsl:value-of select="$node/@id"/>
+<axsl:text/>] <axsl:text/>
+<axsl:value-of select="$label"/>
+<axsl:text/> BlackBox label must not be an IDL reserved word </svrl:text>
+</svrl:failed-assert>
+</axsl:otherwise>
+</axsl:choose>
 
 		<!--ASSERT warning-->
 <axsl:choose>
@@ -685,18 +793,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M38" select="@*|*"/>
+<axsl:apply-templates mode="M39" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M38" priority="-1" match="text()"/>
-<axsl:template mode="M38" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M38" select="@*|*"/>
+<axsl:template mode="M39" priority="-1" match="text()"/>
+<axsl:template mode="M39" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M39" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN InEventPort.checksChecking InEventPort entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking InEventPort entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M39" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPort']">
+<axsl:template mode="M40" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPort']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPort']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -724,6 +832,26 @@
 <axsl:text/>] <axsl:text/>
 <axsl:value-of select="$label"/>
 <axsl:text/> InEventPort label must not contain \/:*?"&gt;&lt;| or space characters</svrl:text>
+</svrl:failed-assert>
+</axsl:otherwise>
+</axsl:choose>
+<axsl:variable name="reservedList">
+			<axsl:for-each xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value">
+				<axsl:value-of select="concat(. , ', ')"/>
+			</axsl:for-each>
+		</axsl:variable>
+
+		<!--ASSERT critical-->
+<axsl:choose>
+<axsl:when test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"/>
+<axsl:otherwise>
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )">
+<axsl:attribute name="role">critical</axsl:attribute>
+<svrl:text>[<axsl:text/>
+<axsl:value-of select="$node/@id"/>
+<axsl:text/>] <axsl:text/>
+<axsl:value-of select="$label"/>
+<axsl:text/> InEventPort label must not be an IDL reserved word </svrl:text>
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
@@ -758,18 +886,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M39" select="@*|*"/>
+<axsl:apply-templates mode="M40" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M39" priority="-1" match="text()"/>
-<axsl:template mode="M39" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M39" select="@*|*"/>
+<axsl:template mode="M40" priority="-1" match="text()"/>
+<axsl:template mode="M40" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M40" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN OutEventPort.checksChecking OutEventPort entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking OutEventPort entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M40" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPort']">
+<axsl:template mode="M41" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPort']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPort']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -797,6 +925,26 @@
 <axsl:text/>] <axsl:text/>
 <axsl:value-of select="$label"/>
 <axsl:text/> OutEventPort label must not contain \/:*?"&gt;&lt;| or space characters</svrl:text>
+</svrl:failed-assert>
+</axsl:otherwise>
+</axsl:choose>
+<axsl:variable name="reservedList">
+			<axsl:for-each xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value">
+				<axsl:value-of select="concat(. , ', ')"/>
+			</axsl:for-each>
+		</axsl:variable>
+
+		<!--ASSERT critical-->
+<axsl:choose>
+<axsl:when test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"/>
+<axsl:otherwise>
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )">
+<axsl:attribute name="role">critical</axsl:attribute>
+<svrl:text>[<axsl:text/>
+<axsl:value-of select="$node/@id"/>
+<axsl:text/>] <axsl:text/>
+<axsl:value-of select="$label"/>
+<axsl:text/> OutEventPort label must not be an IDL reserved word </svrl:text>
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
@@ -831,18 +979,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M40" select="@*|*"/>
+<axsl:apply-templates mode="M41" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M40" priority="-1" match="text()"/>
-<axsl:template mode="M40" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M40" select="@*|*"/>
+<axsl:template mode="M41" priority="-1" match="text()"/>
+<axsl:template mode="M41" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M41" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN Attribute.checksChecking Attribute entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking Attribute entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M41" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Attribute']">
+<axsl:template mode="M42" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Attribute']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Attribute']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -874,6 +1022,26 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
+<axsl:variable name="reservedList">
+			<axsl:for-each xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value">
+				<axsl:value-of select="concat(. , ', ')"/>
+			</axsl:for-each>
+		</axsl:variable>
+
+		<!--ASSERT critical-->
+<axsl:choose>
+<axsl:when test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"/>
+<axsl:otherwise>
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )">
+<axsl:attribute name="role">critical</axsl:attribute>
+<svrl:text>[<axsl:text/>
+<axsl:value-of select="$node/@id"/>
+<axsl:text/>] <axsl:text/>
+<axsl:value-of select="$label"/>
+<axsl:text/> Attribute label must not be an IDL reserved word </svrl:text>
+</svrl:failed-assert>
+</axsl:otherwise>
+</axsl:choose>
 <axsl:variable name="typeList">
 			<axsl:for-each xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" select="xalan:nodeset($PredefinedAttributeTypes)/node()[@nodeKind='Attribute'][@keyName='type']//iso:value">
 				<axsl:value-of select="concat(', ', .)"/>
@@ -897,18 +1065,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M41" select="@*|*"/>
+<axsl:apply-templates mode="M42" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M41" priority="-1" match="text()"/>
-<axsl:template mode="M41" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M41" select="@*|*"/>
+<axsl:template mode="M42" priority="-1" match="text()"/>
+<axsl:template mode="M42" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M42" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN Aggregate.checksChecking Aggregate entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking Aggregate entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M42" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Aggregate']">
+<axsl:template mode="M43" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Aggregate']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Aggregate']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -938,6 +1106,26 @@
 <axsl:text/>] <axsl:text/>
 <axsl:value-of select="$label"/>
 <axsl:text/> Aggregate label must not contain \/:*?"&gt;&lt;| or space characters</svrl:text>
+</svrl:failed-assert>
+</axsl:otherwise>
+</axsl:choose>
+<axsl:variable name="reservedList">
+			<axsl:for-each xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value">
+				<axsl:value-of select="concat(. , ', ')"/>
+			</axsl:for-each>
+		</axsl:variable>
+
+		<!--ASSERT critical-->
+<axsl:choose>
+<axsl:when test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"/>
+<axsl:otherwise>
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )">
+<axsl:attribute name="role">critical</axsl:attribute>
+<svrl:text>[<axsl:text/>
+<axsl:value-of select="$node/@id"/>
+<axsl:text/>] <axsl:text/>
+<axsl:value-of select="$label"/>
+<axsl:text/> Aggregate label must not be an IDL reserved word </svrl:text>
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
@@ -986,18 +1174,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M42" select="@*|*"/>
+<axsl:apply-templates mode="M43" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M42" priority="-1" match="text()"/>
-<axsl:template mode="M42" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M42" select="@*|*"/>
+<axsl:template mode="M43" priority="-1" match="text()"/>
+<axsl:template mode="M43" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M43" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN Aggregate.AggregateInstance.checksChecking AggregateInstance entities contained in IDLs-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking AggregateInstance entities contained in IDLs</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M43" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID][parent::gml:graph/parent::gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']]/gml:data[@key=$nodeKindKey][text()='AggregateInstance']">
+<axsl:template mode="M44" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID][parent::gml:graph/parent::gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']]/gml:data[@key=$nodeKindKey][text()='AggregateInstance']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID][parent::gml:graph/parent::gml:node/gml:data[@key=$nodeKindKey][text()='Aggregate']]/gml:data[@key=$nodeKindKey][text()='AggregateInstance']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -1026,6 +1214,26 @@
 <axsl:text/>] <axsl:text/>
 <axsl:value-of select="$label"/>
 <axsl:text/> AggregateInstance label must not contain \/:*?"&gt;&lt;| or space characters</svrl:text>
+</svrl:failed-assert>
+</axsl:otherwise>
+</axsl:choose>
+<axsl:variable name="reservedList">
+			<axsl:for-each xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value">
+				<axsl:value-of select="concat(. , ', ')"/>
+			</axsl:for-each>
+		</axsl:variable>
+
+		<!--ASSERT critical-->
+<axsl:choose>
+<axsl:when test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"/>
+<axsl:otherwise>
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )">
+<axsl:attribute name="role">critical</axsl:attribute>
+<svrl:text>[<axsl:text/>
+<axsl:value-of select="$node/@id"/>
+<axsl:text/>] <axsl:text/>
+<axsl:value-of select="$label"/>
+<axsl:text/> AggregateInstance label must not be an IDL reserved word </svrl:text>
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
@@ -1060,18 +1268,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M43" select="@*|*"/>
+<axsl:apply-templates mode="M44" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M43" priority="-1" match="text()"/>
-<axsl:template mode="M43" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M43" select="@*|*"/>
+<axsl:template mode="M44" priority="-1" match="text()"/>
+<axsl:template mode="M44" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M44" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN Member.checksChecking Member entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking Member entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M44" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Member']">
+<axsl:template mode="M45" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Member']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='Member']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -1109,6 +1317,26 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
+<axsl:variable name="reservedList">
+			<axsl:for-each xmlns="http://purl.oclc.org/dsdl/schematron" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" select="xalan:nodeset($PredefinedIDLReservedWords)/node()[@keyName='label']//iso:value">
+				<axsl:value-of select="concat(. , ', ')"/>
+			</axsl:for-each>
+		</axsl:variable>
+
+		<!--ASSERT critical-->
+<axsl:choose>
+<axsl:when test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )"/>
+<axsl:otherwise>
+<svrl:failed-assert xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" test="not( contains( $reservedList, concat(translate($label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'), ', ') ) )">
+<axsl:attribute name="role">critical</axsl:attribute>
+<svrl:text>[<axsl:text/>
+<axsl:value-of select="$node/@id"/>
+<axsl:text/>] <axsl:text/>
+<axsl:value-of select="$label"/>
+<axsl:text/> Member label must not be an IDL reserved word </svrl:text>
+</svrl:failed-assert>
+</axsl:otherwise>
+</axsl:choose>
 
 		<!--ASSERT critical-->
 <axsl:choose>
@@ -1142,18 +1370,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M44" select="@*|*"/>
+<axsl:apply-templates mode="M45" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M44" priority="-1" match="text()"/>
-<axsl:template mode="M44" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M44" select="@*|*"/>
+<axsl:template mode="M45" priority="-1" match="text()"/>
+<axsl:template mode="M45" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M45" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN ComponentAssembly.checksChecking ComponentAssembly entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking ComponentAssembly entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M45" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='ComponentAssembly']">
+<axsl:template mode="M46" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='ComponentAssembly']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='ComponentAssembly']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -1230,18 +1458,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M45" select="@*|*"/>
+<axsl:apply-templates mode="M46" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M45" priority="-1" match="text()"/>
-<axsl:template mode="M45" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M45" select="@*|*"/>
+<axsl:template mode="M46" priority="-1" match="text()"/>
+<axsl:template mode="M46" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M46" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN ComponentInstance.checksChecking ComponentInstance entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking ComponentInstance entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M46" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='ComponentInstance']">
+<axsl:template mode="M47" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='ComponentInstance']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='ComponentInstance']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -1318,18 +1546,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M46" select="@*|*"/>
+<axsl:apply-templates mode="M47" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M46" priority="-1" match="text()"/>
-<axsl:template mode="M46" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M46" select="@*|*"/>
+<axsl:template mode="M47" priority="-1" match="text()"/>
+<axsl:template mode="M47" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M47" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN BlackBoxInstance.checksChecking BlackBoxInstance entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking BlackBoxInstance entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M47" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='BlackBoxInstance']">
+<axsl:template mode="M48" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='BlackBoxInstance']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='BlackBoxInstance']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -1406,18 +1634,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M47" select="@*|*"/>
+<axsl:apply-templates mode="M48" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M47" priority="-1" match="text()"/>
-<axsl:template mode="M47" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M47" select="@*|*"/>
+<axsl:template mode="M48" priority="-1" match="text()"/>
+<axsl:template mode="M48" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M48" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN OutEventPortInstance.checksChecking OutEventPortInstance entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking OutEventPortInstance entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M48" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPortInstance']">
+<axsl:template mode="M49" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPortInstance']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPortInstance']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -1495,18 +1723,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M48" select="@*|*"/>
+<axsl:apply-templates mode="M49" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M48" priority="-1" match="text()"/>
-<axsl:template mode="M48" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M48" select="@*|*"/>
+<axsl:template mode="M49" priority="-1" match="text()"/>
+<axsl:template mode="M49" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M49" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN InEventPortInstance.checksChecking InEventPortInstance entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking InEventPortInstance entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M49" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPortInstance']">
+<axsl:template mode="M50" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPortInstance']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPortInstance']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -1584,18 +1812,18 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M49" select="@*|*"/>
+<axsl:apply-templates mode="M50" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M49" priority="-1" match="text()"/>
-<axsl:template mode="M49" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M49" select="@*|*"/>
+<axsl:template mode="M50" priority="-1" match="text()"/>
+<axsl:template mode="M50" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M50" select="@*|*"/>
 </axsl:template>
 
 <!--PATTERN AttributeInstance.checksChecking AttributeInstance entities-->
 <svrl:text xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema">Checking AttributeInstance entities</svrl:text>
 
 	<!--RULE -->
-<axsl:template mode="M50" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='AttributeInstance']">
+<axsl:template mode="M51" priority="1000" match="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='AttributeInstance']">
 <svrl:fired-rule xmlns:svrl="http://purl.oclc.org/dsdl/svrl" xmlns:schold="http://www.ascc.net/xml/schematron" xmlns:xs="http://www.w3.org/2001/XMLSchema" context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='AttributeInstance']"/>
 <axsl:variable select="parent::gml:node" name="node"/>
 <axsl:variable select="$node/gml:data[@key=$nodeLabelKey]/text()" name="label"/>
@@ -1756,10 +1984,10 @@
 </svrl:failed-assert>
 </axsl:otherwise>
 </axsl:choose>
-<axsl:apply-templates mode="M50" select="@*|*"/>
+<axsl:apply-templates mode="M51" select="@*|*"/>
 </axsl:template>
-<axsl:template mode="M50" priority="-1" match="text()"/>
-<axsl:template mode="M50" priority="-2" match="@*|node()">
-<axsl:apply-templates mode="M50" select="@*|*"/>
+<axsl:template mode="M51" priority="-1" match="text()"/>
+<axsl:template mode="M51" priority="-2" match="@*|node()">
+<axsl:apply-templates mode="M51" select="@*|*"/>
 </axsl:template>
 </axsl:stylesheet>
