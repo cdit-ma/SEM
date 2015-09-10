@@ -14,6 +14,7 @@ public:
     void setParent(GraphML* parent);
     GraphML* getParent();
 
+    void clearValue();
     void setValue(QString value);
     void setProtected(bool setProtected);
     bool isProtected();

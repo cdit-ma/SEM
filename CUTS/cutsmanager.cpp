@@ -9,7 +9,8 @@
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QRegularExpressionMatchIterator>
-
+#include <QMessageBox>
+#include <QTime>
 CUTSManager::CUTSManager()
 {
     //Initialize starting variables;
@@ -54,6 +55,7 @@ void CUTSManager::setCUTSConfigScriptPath(QString configureScriptPath)
 ///
 void CUTSManager::executeXSLGeneration(QString graphmlPath, QString outputPath)
 {
+    checkForVisualStudio();
     //Ensure output directory exists.
     QDir dir(outputPath);
     if(!dir.exists()){
@@ -77,6 +79,7 @@ void CUTSManager::executeXSLGeneration(QString graphmlPath, QString outputPath)
 
 void CUTSManager::executeMWCGeneration(QString mwcPath)
 {
+
     //get the environment for the mwc generation
     QProcessEnvironment configuredEnv = getEnvFromScript(configureScriptPath);
 
@@ -84,18 +87,19 @@ void CUTSManager::executeMWCGeneration(QString mwcPath)
     QString CUTS_ROOT = configuredEnv.value("CUTS_ROOT");
 
 
-    QString program = ACE_ROOT + "/bin/mwc.pl";
+    QString program = "perl";
     QStringList args;
     QString type;
-    QString mwcFilePath;
+    QString mwcFilePath = mwcPath + "HelloWorld.mwc";
 
     //Check if windows or *nix
     #ifdef _WIN32
-        type = "vc9";
+        type = "vc" + msbuildVersion;
     #else
         type = "gnuace";
     #endif
 
+    args << ACE_ROOT + "/bin/mwc.pl";
     args << "-type" << type << "-feature_file" << CUTS_ROOT + "/default.features" << mwcFilePath;
 
     QProcess* process = new QProcess(this);
@@ -103,12 +107,13 @@ void CUTSManager::executeMWCGeneration(QString mwcPath)
 
     //Run MWC Generation
     qCritical() << program << args;
-    process->start(program, args);
-    process->waitForFinished();
+    connect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveMWCOutput(QString)));
 
-    qCritical() << process->readAllStandardOutput();
-    qCritical() << "FINISH MWC";
-    emit gotLiveMWCOutput(configuredEnv.toStringList().join(" "));
+    process->start(program, args);
+
+    QString output = monitorProcess(process);
+    emit gotLiveMWCOutput(" FINAL: \n" + output);
+    disconnect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveMWCOutput(QString)));
 
     emit executedMWCGeneration(true);
 }
@@ -117,6 +122,8 @@ void CUTSManager::executeCPPCompilation(QString makePath)
 {
     //get the environment for the mwc generation
     QProcessEnvironment configuredEnv = getEnvFromScript(configureScriptPath);
+
+
     QString CUTS_ROOT = configuredEnv.value("CUTS_ROOT");
 
     QString program;
@@ -124,27 +131,44 @@ void CUTSManager::executeCPPCompilation(QString makePath)
 
     //Check if windows or *nix
     #ifdef _WIN32
-        program = "msbuild";
-        QString slnPath;
-        args << slnPath;
+        program = msbuildPath;
+
+        if(MAX_EXECUTING_PROCESSES > 1){
+            //Multithread
+            args << "/m";
+            args << "/verbosity:minimal";
+        }
+        args << makePath + "HelloWorld.sln";
     #else
         program = "make";
+
+        if(MAX_EXECUTING_PROCESSES > 1){
+            //Multithread
+            args << "-j" << MAX_EXECUTING_PROCESSES;
+        }
+
         QString slnPath;
         args << "-C" << makePath << "`cat \"" + CUTS_ROOT + "/default.features\"`";
     #endif
 
+
     QProcess* process = new QProcess(this);
     process->setProcessEnvironment(configuredEnv);
 
-    //Run CPP Generation
-    qCritical() << program << args;
+
+    //emit gotLiveCPPOutput("Starting: " + program);
     process->start(program, args);
-    process->waitForFinished();
 
-    qCritical() << process->readAllStandardOutput();
-    qCritical() << "FINISH CPP";
+    connect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveCPPOutput(QString)));
 
-    emit gotLiveCPPOutput("COMPILING!");
+    QString output = monitorProcess(process);
+
+    emit gotLiveCPPOutput(" FINAL: \n" + output);
+    disconnect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveCPPOutput(QString)));
+
+
+
+
     emit executedCPPCompilation(true);
 
 }
@@ -343,6 +367,90 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
     processQueue();
 }
 
+QString CUTSManager::monitorProcess(QProcess *process)
+{
+    //The returnable byteArray.
+    QString returnable;
+
+
+    bool processing = true;
+    while(processing){
+        qint64 bytesAvailable = process->bytesAvailable();
+
+        //If the process is running or starting but we have no bytesLeft in our Buffer, wait for more data!
+        if(process->state() != QProcess::NotRunning && bytesAvailable == 0){
+            //qCritical() << "Process is Running, waiting for new data";
+
+            //Construct a EventLoop which waits for the QNetworkReply to be finished, or more data to become available.
+            QEventLoop waitLoop;
+            connect(process, SIGNAL(readyRead()), &waitLoop, SLOT(quit()));
+            connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
+
+            //Wait for something to quit the EventLoop
+            waitLoop.exec();
+
+            //After the readyRead signal, or timeout, update the bytesAvailable
+            bytesAvailable = process->bytesAvailable();
+        }
+
+        //If we have bytes, read them, and output them!
+        if(bytesAvailable > 0){
+            QByteArray newData = process->read(bytesAvailable);
+
+            QString stringData(newData);
+            if(stringData.length() > 0){
+                //Send a signal with the live output.
+                emit _gotLiveOutput(stringData);
+            }
+
+            //Add them to the returnable data.
+            returnable += stringData;
+        }
+
+        //If the process is at the end of the buffer and the Process is no longer Running. Break the loop.
+        if(process->atEnd() && process->state() == QProcess::NotRunning){
+            //qCritical() << "Process is finished!";
+            processing = false;
+        }
+    }
+    return returnable;
+}
+
+void CUTSManager::checkForVisualStudio()
+{
+    QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
+    QString vsToolsPath;
+    QString vsVersion;
+
+    //VS100COMNTOOLS
+    QRegularExpression regex("VS([0-9]*)0COMNTOOLS");
+    foreach(QString key, systemEnvironment.keys()){
+        QRegularExpressionMatch match = regex.match(key);
+        if(match.hasMatch()){
+            qCritical() << match.captured(1);
+            vsVersion = match.captured(2);
+            QString value = systemEnvironment.value(key);
+            vsToolsPath = value;
+        }
+    }
+    qCritical() << vsVersion;
+    if(vsToolsPath == ""){
+        QMessageBox::critical(0, "Cannot find Visual Studio", "Visual Studio cannot be found!", QMessageBox::Ok);
+        return;
+    }
+
+    QProcessEnvironment vsEnv = getEnvFromScript("\"" + vsToolsPath+"VCVarsQueryRegistry.bat\" 32bit No64bit");
+
+
+    QString dotNetFrameworkPath = vsEnv.value("FRAMEWORKDIR32");
+    QString dotNetFrameworkVersion = vsEnv.value("FRAMEWORKVERSION32");
+
+
+    msbuildPath = dotNetFrameworkPath + dotNetFrameworkVersion + "/msbuild.exe";
+    msbuildVersion = vsVersion;
+
+}
+
 void CUTSManager::setMaxThreadCount(int limit){
     MAX_EXECUTING_PROCESSES = limit;
 }
@@ -378,6 +486,7 @@ QProcessEnvironment CUTSManager::getEnvFromScript(QString scriptPath)
 {
     QProcess* process = new QProcess(this);
 
+
     QString program;
     //Check if windows or *nix
     QString command;
@@ -402,24 +511,23 @@ QProcessEnvironment CUTSManager::getEnvFromScript(QString scriptPath)
     //Get the output.
     QString commandOutput = process->readAllStandardOutput();
 
-
     //Compile Regex.
     QRegularExpression regex("([^=]*)=(.*)");
 
     QProcessEnvironment newEnvironment;
     //Ignore oldEnvironment
-    QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
+    //QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
 
       foreach(QString line, commandOutput.split('\n')){
         QRegularExpressionMatch match = regex.match(line);
         if(match.hasMatch()){
-            QString key = match.captured(1);
-            QString value = match.captured(2);
+            QString key = match.captured(1).trimmed();
+            QString value = match.captured(2).trimmed();
             if(key.length() > 0){
                 //Ignore the system environment keys?
-                if(!systemEnvironment.contains(key)){
+                //if(!systemEnvironment.contains(key)){
                     newEnvironment.insert(key, value);
-                }
+                //}
             }
        }
     }

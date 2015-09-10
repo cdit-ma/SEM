@@ -136,5 +136,10 @@
         <file>Resources/Icons/cuts.png</file>
         <file>Resources/Icons/refresh.png</file>
         <file>Resources/Icons/build.png</file>
+        <file>Resources/Icons/generate.png</file>
+        <file>Resources/Icons/search.png</file>
+        <file>Resources/Icons/foldersearch.png</file>
+        <file>Resources/Icons/play.png</file>
+        <file>Resources/Icons/power.png</file>
     </qresource>
 </RCC>

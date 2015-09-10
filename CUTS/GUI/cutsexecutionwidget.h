@@ -12,7 +12,7 @@
 #include <QTabWidget>
 #include <QScrollArea>
 #include <QTextBrowser>
-
+#include <QTime>
 struct FileExtension{
     QString extension;
     QStringList files;
@@ -51,10 +51,13 @@ public slots:
     void fileGenerated(QString filePath, bool success);
 
     void generationFinished(bool success, QString errorString);
-    void gotLiveGenerationString(QString data);
+    void gotLiveMWCOutput(QString data);
+    void gotLiveMakeOutput(QString data);
 
     void outputPathEdited();
     void graphmlPathEdited();
+
+    void tick();
 private:
     QWidget* setupGenerateWidget();
     QWidget* setupBuildWidget();
@@ -74,10 +77,12 @@ private:
 
 
 
-    void setupLayout(QString modelName);
+    void setupLayout();
     QString getDirectory(QString filePath);
 
     void setIconSuccess(QLabel* label, bool success);
+    void updateTimeText(QTime time);
+    void setIconLoading(QLabel* label);
 
 
     //Top Section is contained in a titleWidget.
@@ -119,9 +124,25 @@ private:
 
     QMovie* loadingMovie;
     QVBoxLayout* generateLayout;
-    QTextBrowser* buildText;
     QTextBrowser* executeText;
     CUTSManager* cutsManager;
+
+    QLabel* jobLabel;
+
+    QLabel* mwcIcon;
+    QLabel* mwcLabel;
+    QTime  mwcStartTime;
+    QTextBrowser* mwcTextBrowser;
+
+    QLabel* makeIcon;
+    QLabel* makeLabel;
+    QTextBrowser* makeTextBrowser;
+
+
+    QLabel* currentTaskTime;
+
+    QTime currentTime;
+    QTimer* currentTimer;
 };
 
 

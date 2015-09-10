@@ -574,7 +574,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     settings_changeAppSettings = menu->addAction(QIcon(":/Resources/Icons/settings.png"), "Settings");
     file_AboutMedea = menu->addAction(QIcon(":/Resources/Icons/info.png"),"About MEDEA");
-    exit = menu->addAction(QIcon(":/Resources/Icons/exit.png"), "Exit");
+    exit = menu->addAction(QIcon(":/Resources/Icons/power.png"), "Exit");
 
     menu->setFont(guiFont);
     file_menu->setFont(guiFont);

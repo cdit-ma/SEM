@@ -26,9 +26,10 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(paren
     settingsLoaded = false;
     setMinimumWidth(SETTINGS_WIDTH);
     setMinimumHeight(SETTINGS_HEIGHT);
-    setWindowTitle("MEDEA - Settings");
+    setWindowTitle("Application Settings");
 
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
+    this->setWindowIcon(QIcon(":/Resources/Icons/settings.png"));
     setModal(true);
 
     setupLayout();
@@ -249,11 +250,11 @@ void AppSettings::setupLayout()
         settings->beginGroup(group);
 
 
-
         //Construct Group Box to group Items
         QGroupBox* groupBox = new QGroupBox();
         groupBox->setCheckable(true);
         groupBox->setChecked(false);
+
         groupBox->setTitle(getReadableValue(group));
         connect(groupBox, SIGNAL(toggled(bool)), this, SLOT(groupToggled(bool)));
 

@@ -45,6 +45,7 @@ signals:
     void gotLiveMWCOutput(QString output);
     //Used to send live console output from the executeCPPGeneration
     void gotLiveCPPOutput(QString output);
+    void _gotLiveOutput(QString output);
 public slots:
     //Generates all required artifacts for the provided graphml document.
     void executeXSLGeneration(QString graphmlPath, QString outputPath);
@@ -55,15 +56,14 @@ public slots:
 
     //Called once a QProcess finishes executing
      void processFinished(int code, QProcess::ExitStatus status);
+
 private:
     void processGraphml(QString graphmlPath, QString outputPath);
 
-    void compileCPP(QString make_filePath);
-
-
-
 
 private:
+    QString monitorProcess(QProcess* process);
+    void checkForVisualStudio();
     bool isFileReadable(QString file);
 
     QString wrapGraphmlQuery(QString query);
@@ -101,6 +101,9 @@ private:
     QString XSLTransformPath;
     QString xalanJPath;
     QString configureScriptPath;
+
+    QString msbuildPath;
+    QString msbuildVersion;
 
     //A Queue used to store the Process' which need to be executed
     QQueue<ProcessStruct> queue;

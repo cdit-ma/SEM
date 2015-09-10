@@ -16,6 +16,8 @@
 #include <QDebug>
 
 #include <QFileDialog>
+#include <QTimer>
+#include <QTime>
 
 
 CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManager)
@@ -28,7 +30,7 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
 
     setWindowTitle("Launch CUTS Execution");
     setWindowIcon(QIcon(":/Resources/Icons/cuts.png"));
-    setupLayout("MODEL");
+    setupLayout();
 
     connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
     setModal(true);
@@ -45,8 +47,8 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
     connect(cutsManager, SIGNAL(executedMWCGeneration(bool, QString)), this, SLOT(generationFinished(bool,QString)));
     connect(cutsManager, SIGNAL(executedCPPCompilation(bool,QString)), this, SLOT(generationFinished(bool,QString)));
 
-    connect(cutsManager, SIGNAL(gotLiveCPPOutput(QString)), this, SLOT(gotLiveGenerationString(QString)));
-    connect(cutsManager, SIGNAL(gotLiveMWCOutput(QString)), this, SLOT(gotLiveGenerationString(QString)));
+    connect(cutsManager, SIGNAL(gotLiveCPPOutput(QString)), this, SLOT(gotLiveMakeOutput(QString)));
+    connect(cutsManager, SIGNAL(gotLiveMWCOutput(QString)), this, SLOT(gotLiveMWCOutput(QString)));
 
 
 
@@ -59,7 +61,12 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
     setState(INITIAL);
 
     setGraphMLPath("/Users/dan/Desktop/model.graphml");
-    setOutputPath("/Users/dan/Desktop/Test2/");
+    setOutputPath("c:/Test2/");
+
+    currentTime.start();
+    currentTimer = new QTimer(this);
+    connect(currentTimer, SIGNAL(timeout()), this, SLOT(tick()));
+
 }
 
 CUTSExecutionWidget::~CUTSExecutionWidget()
@@ -89,6 +96,8 @@ void CUTSExecutionWidget::setGraphMLPath(QString path)
 
     if(isGraphML && isFile){
         graphmlPathEdit->setText(fileInfo.absoluteFilePath());
+
+        jobLabel->setText("Local Deployment [" + fileInfo.fileName() + "]");
         setIconSuccess(graphmlPathIcon, true);
         graphmlPathOk = true;
     }else{
@@ -181,9 +190,18 @@ void CUTSExecutionWidget::generationFinished(bool success, QString errorString)
     }
 }
 
-void CUTSExecutionWidget::gotLiveGenerationString(QString data)
+void CUTSExecutionWidget::gotLiveMWCOutput(QString data)
 {
-    buildText->append(data);
+    if(mwcTextBrowser){
+        mwcTextBrowser->append(data);
+    }
+}
+
+void CUTSExecutionWidget::gotLiveMakeOutput(QString data)
+{
+    if(makeTextBrowser){
+        makeTextBrowser->append(data);
+    }
 }
 
 void CUTSExecutionWidget::outputPathEdited()
@@ -194,6 +212,13 @@ void CUTSExecutionWidget::outputPathEdited()
 void CUTSExecutionWidget::graphmlPathEdited()
 {
     setGraphMLPath(graphmlPathEdit->text());
+}
+
+void CUTSExecutionWidget::tick()
+{
+    if(state == RUN_MWC || state == RUN_XSL || state == RUN_MWC || state == RUN_EXECUTION){
+        updateTimeText(currentTime);
+    }
 }
 
 QWidget *CUTSExecutionWidget::setupGenerateWidget()
@@ -225,9 +250,43 @@ QWidget *CUTSExecutionWidget::setupBuildWidget()
 
 
     QVBoxLayout* vLayout = new QVBoxLayout(buildWidget);
-    buildText = new QTextBrowser();
-    buildText->setPlaceholderText("Build");
-    vLayout->addWidget(buildText);
+    QHBoxLayout* mwcLayout = new QHBoxLayout();
+    mwcIcon = new QLabel();
+    mwcIcon->setFixedSize(16,16);
+    mwcIcon->setScaledContents(true);
+    mwcLabel = new QLabel("MWC Generation");
+    mwcLayout->addWidget(mwcIcon);
+    mwcLayout->addWidget(mwcLabel);
+
+
+
+
+
+    mwcTextBrowser = new QTextBrowser();
+    mwcTextBrowser->setPlaceholderText("MWC GENERATION OUTPUT");
+    vLayout->addLayout(mwcLayout);
+    vLayout->addWidget(mwcTextBrowser);
+
+
+
+    QHBoxLayout* makeLayout = new QHBoxLayout();
+    makeIcon = new QLabel();
+    makeIcon->setFixedSize(16,16);
+    makeIcon->setScaledContents(true);
+    //makeIcon->setIcon
+
+    makeLabel = new QLabel("Compiling C++ Code");
+    makeLayout->addWidget(makeIcon);
+    makeLayout->addWidget(makeLabel);
+
+
+
+    makeTextBrowser = new QTextBrowser();
+    makeTextBrowser->setStyleSheet("background-color:black; color:white; font-family:Lucida Console;font-weight: bold; ");
+    makeTextBrowser->setPlaceholderText("C++ Compilation Output");
+    vLayout->addLayout(makeLayout);
+    vLayout->addWidget(makeTextBrowser);
+
     return buildScrollArea;
 }
 
@@ -325,7 +384,7 @@ void CUTSExecutionWidget::selectOutputPath()
 
 }
 
-void CUTSExecutionWidget::setupLayout(QString modelName)
+void CUTSExecutionWidget::setupLayout()
 {
     //Construct a Vertical Layout.
     QVBoxLayout* verticalLayout = new QVBoxLayout(this);
@@ -336,7 +395,7 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
     verticalLayout->addWidget(titleWidget);
 
     //Set up a QLabel for the name of the Jenkins Job
-    QLabel* jobLabel = new QLabel("CUTS - " + modelName);
+    jobLabel = new QLabel("Local Deployment");
     QLabel* iconLabel = new QLabel();
 
     iconLabel->setPixmap(QPixmap::fromImage(QImage(":/Resources/Icons/jenkins_build.png")));
@@ -349,14 +408,17 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
 
 
     QHBoxLayout* modelLayout = new QHBoxLayout();
-    QLabel* modelLabel = new QLabel("Model Path");
+    QLabel* modelLabel = new QLabel("Model:");
+    modelLabel->setToolTip("The absolute path to the model to execute.");
     graphmlPathIcon = new QLabel();
     graphmlPathIcon->setFixedSize(25,25);
     graphmlPathIcon->setScaledContents(true);
     graphmlPathEdit = new QLineEdit();
     setIconSuccess(graphmlPathIcon, false);
 
-    graphmlPathButton = new QPushButton("...");
+    graphmlPathButton = new QPushButton();
+    graphmlPathButton->setIconSize(QSize(20,20));
+    graphmlPathButton->setIcon(QIcon(":/Resources/Icons/foldersearch.png"));
     connect(graphmlPathButton, SIGNAL(clicked()), this, SLOT(selectGraphMLPath()));
     modelLayout->addWidget(graphmlPathIcon);
     modelLayout->addWidget(modelLabel);
@@ -369,14 +431,18 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
     verticalLayout->addLayout(modelLayout);
 
     QHBoxLayout* outputLayout = new QHBoxLayout();
-    QLabel* outputLabel = new QLabel("Output Path");
+    QLabel* outputLabel = new QLabel("Output:");
+    outputLabel->setToolTip("The absolute path to the directory to build code in.");
     outputPathIcon = new QLabel();
     outputPathIcon->setFixedSize(25,25);
     outputPathIcon->setScaledContents(true);
     outputPathEdit = new QLineEdit();
     setIconSuccess(outputPathIcon, false);
 
-    outputPathButton = new QPushButton("...");
+    outputPathButton = new QPushButton();
+    outputPathButton->setIconSize(QSize(20,20));
+    outputPathButton->setIcon(QIcon(":/Resources/Icons/foldersearch.png"));
+
     connect(outputPathButton, SIGNAL(clicked()), this, SLOT(selectOutputPath()));
     outputLayout->addWidget(outputPathIcon);
     outputLayout->addWidget(outputLabel);
@@ -388,7 +454,7 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
 
     tabWidget = new QTabWidget();
     verticalLayout->addWidget(tabWidget, 1);
-    tabWidget->addTab(setupGenerateWidget(), QIcon(":/Resources/Icons/refresh.png"), "Generate");
+    tabWidget->addTab(setupGenerateWidget(), QIcon(":/Resources/Icons/generate.png"), "Generate");
     tabWidget->addTab(setupBuildWidget(), QIcon(":/Resources/Icons/build.png"), "Build");
     tabWidget->addTab(setupExecuteWidget(),QIcon(":/Resources/Icons/forward.png"),  "Execute");
 
@@ -399,12 +465,15 @@ void CUTSExecutionWidget::setupLayout(QString modelName)
     //Button Groups.
     QHBoxLayout* buttonGroups = new QHBoxLayout();
     verticalLayout->addLayout(buttonGroups);
+    currentTaskTime = new QLabel("00:00");
+    currentTaskTime->setVisible(false);
     nextButton = new QPushButton("Next");
     cancelButton = new QPushButton("Cancel");
 
     connect(nextButton, SIGNAL(clicked()), SLOT(nextButtonPressed()));
     connect(cancelButton, SIGNAL(clicked()), this, SLOT(close()));
     buttonGroups->addStretch(1);
+    buttonGroups->addWidget(currentTaskTime);
     buttonGroups->addWidget(nextButton);
     buttonGroups->addWidget(cancelButton);
 
@@ -428,6 +497,38 @@ void CUTSExecutionWidget::setIconSuccess(QLabel *label, bool success)
     }
 }
 
+void CUTSExecutionWidget::updateTimeText(QTime time)
+{
+    if(currentTaskTime){
+        int totalSeconds = time.elapsed() / 1000;
+
+        //Calculate the seconds/mins
+        int mins = totalSeconds / 60;
+        int secs = totalSeconds - (mins * 60);
+
+
+        QString timeText;
+
+        timeText = QString::number(mins) + ":";
+        if(secs < 10){
+            timeText += "0";
+        }
+        timeText += QString::number(secs);
+
+        currentTaskTime->setText(timeText);
+        if(!currentTaskTime->isVisible()){
+            currentTaskTime->setVisible(true);
+        }
+    }
+}
+
+void CUTSExecutionWidget::setIconLoading(QLabel *label)
+{
+    if(label && loadingMovie){
+        label->setMovie(loadingMovie);
+    }
+}
+
 void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
 {
     if(state == INITIAL){
@@ -441,7 +542,14 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
         if(newState == INITIAL){
             state = newState;
         }else if(newState == RUN_XSL){
-            //Disable the Path/GraphML Button
+            state = newState;
+            //Start the timer
+            currentTimer->start(500);
+            currentTime.restart();
+            updateTimeText(currentTime);
+
+            //Disable the Path/GraphML Button.
+             nextButton->setEnabled(false);
             graphmlPathEdit->setEnabled(false);
             outputPathEdit->setEnabled(false);
             graphmlPathButton->setEnabled(false);
@@ -449,11 +557,11 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
 
             //If our Parameters are okay, we can proceed to RUN_XSL
             cutsManager->executeXSLGeneration(graphmlPathEdit->text(), outputPathEdit->text());
-            nextButton->setEnabled(false);
-            state = newState;
         }
     }else if(state == RUN_XSL){
         if(newState == RAN_XSL){
+            state = newState;
+
             //Allow the Tab Widget.
             tabWidget->setTabEnabled(1, true);
 
@@ -461,32 +569,38 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
             nextButton->setIcon(tabWidget->tabIcon(1));
             nextButton->setText(tabWidget->tabText(1));
             nextButton->setEnabled(true);
-            state = newState;
        }
     }else if(state == RAN_XSL){
         if(newState == RUN_MWC){
-            //Move to the Build Tab.
             state = newState;
+
+            currentTime.restart();
+            updateTimeText(currentTime);
+
+            //Move to the Build Tab.
             tabWidget->setCurrentIndex(1);
-            buildText->append("RUNNING MWC\n");
-            cutsManager->executeMWCGeneration("");
+            setIconLoading(mwcIcon);
+            cutsManager->executeMWCGeneration(outputPathEdit->text());
         }
     }else if(state == RUN_MWC){
         if(newState == RAN_MWC){
             state = newState;
-            buildText->append("RAN MWC\n");
-            //DO SHIFT
+            setIconSuccess(mwcIcon, true);
         }
     }else if(state == RAN_MWC){
         if(newState == RUN_MAKE){
             state = newState;
-            buildText->append("RUNNING MAKE\n");
-            cutsManager->executeCPPCompilation("");
+            currentTime.restart();
+            updateTimeText(currentTime);
+
+            setIconLoading(makeIcon);
+            cutsManager->executeCPPCompilation(outputPathEdit->text());
             //DO SHIFT
         }
     }else if(state == RUN_MAKE){
         if(newState == RAN_MAKE){
-            buildText->append("RAN MAKE\n");
+            state = newState;
+            setIconSuccess(makeIcon, true);
             //Allow the Tab Widget.
             tabWidget->setTabEnabled(2, true);
 
@@ -494,14 +608,18 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
             nextButton->setIcon(tabWidget->tabIcon(2));
             nextButton->setText(tabWidget->tabText(2));
             nextButton->setEnabled(true);
-            state = newState;
+            currentTime.restart();
         }
     }else if(state == RAN_MAKE){
         if(newState == RUN_EXECUTION){
+            state = newState;
+
+            currentTime.restart();
+            updateTimeText(currentTime);
 
             //Move to the Build Tab.
             tabWidget->setCurrentIndex(2);
-            state = newState;
+
 
             executeText->append("RUNNING EXECUTION\n");
         }

@@ -1940,6 +1940,18 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
         if(destinationTopicName && sourceTopicName ){
             sourceTopicName->unbindData(destinationTopicName);
         }
+    }else if(edge->isDelegateLink()){
+        Node* del = destination;
+        if(source->getNodeKind().contains("Delegate")){
+            del = source;
+        }
+        if(del){
+            GraphMLData* typeData = del->getData("type");
+            if(typeData){
+                typeData->unsetParentData();
+                typeData->clearValue();
+            }
+        }
     }
 
 
@@ -2854,7 +2866,7 @@ bool NewController::teardownAggregateRelationship(EventPort *eventPort, Aggregat
     GraphMLData* eventPortType = eventPort->getData("type");
     if(eventPortType){
         eventPortType->unsetParentData();
-        eventPortType->setValue("");
+        eventPortType->clearValue();
     }
 
     QList<Node*> aggregateInstances = eventPort->getChildrenOfKind("AggregateInstance", 0);

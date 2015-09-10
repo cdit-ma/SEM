@@ -49,6 +49,11 @@ GraphML *GraphMLData::getParent()
     return Parent;
 }
 
+void GraphMLData::clearValue()
+{
+    setValue("");
+}
+
 QString GraphMLData::getValue() const
 {
     return this->value;
