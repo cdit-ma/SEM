@@ -241,29 +241,35 @@ void DockNodeItem::setupLayout()
     }
 
     if (!fileLabel) {
-
-        QImage* image = new QImage();
-        if (parentDock && parentDock->getNodeView()) {
-            *image = parentDock->getNodeView()->getImage(kind);
-        }
-
-        if (nodeItem && kind.startsWith("Hardware")){
-            if (kind == "HardwareNode") {
-                QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
-                QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
-                QString hardwareKind = hardwareOS + "_" + hardwareArch;
-                if (parentDock && parentDock->getNodeView()) {
-                    *image = parentDock->getNodeView()->getImage(hardwareKind);
-                }
+        QImage image;
+        NodeView* nodeView = parentDock->getNodeView();
+        if(parentDock && nodeView){
+            if(kind != "HardwareNode"){
+                image = nodeView->getImage(kind);
             }
-            highlightColor = "rgba(90,150,200,210)";
+            if(nodeItem && kind.startsWith("Hardware")){
+                if (kind == "HardwareNode"){
+                    QString imagePath;
+                    if(nodeItem->getNode() && nodeItem->getNode()->getDataValue("localhost") == "true"){
+                        imagePath = "localhost";
+                    }else{
+                        QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
+                        QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
+                        imagePath = hardwareOS + "_" + hardwareArch;
+                    }
+                    if (parentDock && parentDock->getNodeView()) {
+                        image = nodeView->getImage(imagePath);
+                    }
+                }
+                highlightColor = "rgba(90,150,200,210)";
+            }
         }
 
-        if (!image) {
+        if (image.isNull()) {
             qWarning() << "DockNodeItem::setupLayout - Image is null";
         }
 
-        QPixmap scaledPixmap = QPixmap::fromImage(image->scaled(width(),
+        QPixmap scaledPixmap = QPixmap::fromImage(image.scaled(width(),
                                              height()-textLabel->height(),
                                              Qt::KeepAspectRatio,
                                              Qt::SmoothTransformation));

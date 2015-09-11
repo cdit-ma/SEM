@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QEventLoop>
 
+#include <QSysInfo>
 
 #define LABEL_TRUNCATE_LENGTH 64
 
@@ -1411,8 +1412,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     data.append(new GraphMLData(widthKey, "0"));
     data.append(new GraphMLData(heightKey, "0"));
 
-    if(nodeKind.endsWith("Definitions")){
-    }else{
+    if(!nodeKind.endsWith("Definitions")){
         data.append(new GraphMLData(labelKey, labelString));
     }
     data.append(new GraphMLData(sortKey, "-1"));
@@ -1471,6 +1471,14 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
         GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
         data.append(new GraphMLData(valueKey));
         data.append(new GraphMLData(keyKey, "false"));
+    }
+    if(nodeKind == "HardwareNode"){
+        GraphMLKey* osKey = constructGraphMLKey("os", "string", "node");
+        GraphMLKey* ipKey = constructGraphMLKey("ip_address", "string", "node");
+        GraphMLKey* archKey = constructGraphMLKey("architecture", "string", "node");
+        data.append(new GraphMLData(osKey));
+        data.append(new GraphMLData(ipKey));
+        data.append(new GraphMLData(archKey));
     }
     if(nodeKind == "Attribute"){
         data.append(new GraphMLData(typeKey, "String"));
@@ -2599,6 +2607,7 @@ void NewController::setupModel()
 
 
     setupManagementComponents();
+    setupLocalNode();
     //Clear the Undo/Redo Stacks
     undoActionStack.clear();
     redoActionStack.clear();
@@ -3107,6 +3116,35 @@ void NewController::setupManagementComponents()
     constructChildNode(assemblyDefinitions, dancePlanLauncherData);
     constructChildNode(assemblyDefinitions, ddsLoggingServerData);
     constructChildNode(assemblyDefinitions, qpidBrokerData);
+}
+
+void NewController::setupLocalNode()
+{
+    //EXECUTION MANAGER
+    QList<GraphMLData*> localNodeData = constructGraphMLDataVector("HardwareNode") ;
+
+    GraphMLKey* localhostKey = constructGraphMLKey("localhost", "boolean", "node");
+    localNodeData.append(new GraphMLData(localhostKey, "true", true));
+
+    foreach(GraphMLData* data, localNodeData){
+        QString keyName = data->getKeyName();
+        if(keyName == "label"){
+            data->setValue("localhost");
+            data->setProtected(true);
+        }else if(keyName == "ip_address"){
+            data->setValue("127.0.0.1");
+            data->setProtected(true);
+        }else if(keyName == "os"){
+            data->setValue("windows");
+            data->setProtected(true);
+        }else if(keyName == "architecture"){
+            data->setValue("amd64");
+            data->setProtected(true);
+        }
+    }
+
+
+    constructChildNode(hardwareDefinitions, localNodeData);
 }
 
 GraphML *NewController::getGraphMLFromID(QString ID)

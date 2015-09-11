@@ -141,5 +141,6 @@
         <file>Resources/Icons/foldersearch.png</file>
         <file>Resources/Icons/play.png</file>
         <file>Resources/Icons/power.png</file>
+        <file>Resources/Icons/localhost.png</file>
     </qresource>
 </RCC>

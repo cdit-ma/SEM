@@ -768,7 +768,11 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(hasIcon){
         QString imageURL = nodeKind;
         if(nodeKind == "HardwareNode"){
-            imageURL = nodeHardwareOS.remove(" ") + "_" + nodeHardwareArch;
+            if(nodeHardwareLocalHost){
+                imageURL = "localhost";
+            }else{
+                imageURL = nodeHardwareOS.remove(" ") + "_" + nodeHardwareArch;
+            }
         }
         painter->drawImage(iconRect(), getNodeView()->getImage(imageURL));
     }
@@ -1148,6 +1152,17 @@ void NodeItem::setSelected(bool selected)
 void NodeItem::setVisibilty(bool visible)
 {
     QGraphicsItem::setVisible(visible);
+
+    if(isLocked()){
+        if(visible){
+            //Put it back on the grid.
+            this->parentNodeItem->addChildOutline(this, this->centerPos());
+        }else{
+            //Remove the outline.
+            this->parentNodeItem->removeChildNodeItem(this->getID());
+        }
+    }
+
     emit setEdgeVisibility(visible);
 }
 
@@ -2392,7 +2407,7 @@ void NodeItem::aspectsChanged(QStringList visibleAspects)
         if (HARDWARE_CLUSTER) {
             updateDisplayedChildren(CHILDREN_VIEW_MODE);
         } else if (nodeKind == "HardwareNode"){
-            if (parentNodeItem) {
+            if (parentNodeItem && parentNodeItem->getNodeKind() == "HardwareCluster") {
                 // only show the HardwareNode if it matches its parent cluster's view mode
                 int viewMode = parentNodeItem->getChildrenViewMode();
                 if (viewMode == CONNECTED && getEdgeItemCount() == 0) {
@@ -2561,6 +2576,7 @@ void NodeItem::setupGraphMLConnections()
 
         GraphMLData* osData = modelEntity->getData("os");
         GraphMLData* archData = modelEntity->getData("architecture");
+        GraphMLData* localNode = modelEntity->getData("localhost");
         
         if(nodeKind == "HardwareNode"){
             if(osData){
@@ -2571,7 +2587,12 @@ void NodeItem::setupGraphMLConnections()
                 connect(archData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
                 nodeHardwareArch = archData->getValue();
             }
-
+            if(localNode){
+                QString value = localNode->getValue();
+                nodeHardwareLocalHost = value == "true";
+            }else{
+                nodeHardwareLocalHost = false;
+            }
         }
         
         if(xData){

@@ -1,5 +1,6 @@
 #include "hardwaredefinitions.h"
 #include "hardwarecluster.h"
+#include "hardwarenode.h"
 #include <QDebug>
 
 HardwareDefinitions::HardwareDefinitions():Node()
@@ -21,11 +22,12 @@ bool HardwareDefinitions::canAdoptChild(Node *child)
 {
 
     HardwareCluster* hardwareCluster = dynamic_cast<HardwareCluster *>(child);
+    HardwareNode* hardwareNode = dynamic_cast<HardwareNode *>(child);
 
 
-    if(!hardwareCluster){
+    if(!hardwareCluster && !hardwareNode){
 #ifdef DEBUG_MODE
-        qWarning() << "HardwareDefinitions can only adopt a HardwareCluster Node";
+        qWarning() << "HardwareDefinitions can only adopt a HardwareCluster Node/ HardwareNode";
 #endif
         return false;
     }

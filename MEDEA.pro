@@ -261,7 +261,8 @@ OTHER_FILES += \
     Resources/Binaries/serializer.jar \
     Resources/Binaries/xalan.jar \
     Resources/Binaries/xercesImpl.jar \
-    Resources/Binaries/xml-apis.jar
+    Resources/Binaries/xml-apis.jar \
+    Resources/Scripts/runCuts.pl
 
 
 #Define $$OUTPUT_DIR

@@ -262,6 +262,7 @@ private:
     void updateViewUndoRedoLists();
 
     void setupManagementComponents();
+    void setupLocalNode();
 
     void enforceUniqueLabel(Node* node, QString newLabel = "");
     void enforceUniqueSortOrder(Node* node, int position =-1);

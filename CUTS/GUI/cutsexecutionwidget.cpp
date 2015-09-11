@@ -46,9 +46,11 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
     connect(cutsManager, SIGNAL(executedXSLGeneration(bool,QString)), this, SLOT(generationFinished(bool,QString)));
     connect(cutsManager, SIGNAL(executedMWCGeneration(bool, QString)), this, SLOT(generationFinished(bool,QString)));
     connect(cutsManager, SIGNAL(executedCPPCompilation(bool,QString)), this, SLOT(generationFinished(bool,QString)));
+    connect(cutsManager, SIGNAL(executedCUTS(bool,QString)), this, SLOT(generationFinished(bool,QString)));
 
     connect(cutsManager, SIGNAL(gotLiveCPPOutput(QString)), this, SLOT(gotLiveMakeOutput(QString)));
     connect(cutsManager, SIGNAL(gotLiveMWCOutput(QString)), this, SLOT(gotLiveMWCOutput(QString)));
+    connect(cutsManager, SIGNAL(gotLiveCUTSOutput(QString)), this, SLOT(gotLiveCUTSOutput(QString)));
 
 
 
@@ -201,6 +203,13 @@ void CUTSExecutionWidget::gotLiveMakeOutput(QString data)
 {
     if(makeTextBrowser){
         makeTextBrowser->append(data);
+    }
+}
+
+void CUTSExecutionWidget::gotLiveCUTSOutput(QString data)
+{
+    if(executeText){
+        executeText->append(data);
     }
 }
 
@@ -620,8 +629,8 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
             //Move to the Build Tab.
             tabWidget->setCurrentIndex(2);
 
-
             executeText->append("RUNNING EXECUTION\n");
+            cutsManager->executeCUTS(outputPathEdit->text());
         }
     }else if(state == RUN_EXECUTION){
         if(newState == RAN_EXECUTION){

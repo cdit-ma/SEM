@@ -21,7 +21,7 @@ class JenkinsManager: public QObject
 
     Q_OBJECT
 public:
-    JenkinsManager(QString cliPath, QString url, QString username, QString password, QString token);
+    JenkinsManager(QString cliBinaryPath, QString url, QString username, QString password, QString token);
     QString getUsername();
 
     void setURL(QString url);
@@ -59,7 +59,8 @@ private:
     QString username;
     QString password;
     QString token;
-    QString cliPath;
+    QString cliBinaryPath;
+    QString scriptPath;
 
     bool settingsValidated;
     bool settingsValidating;

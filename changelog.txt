@@ -1,22 +1,33 @@
 Version 17:
-* Clicking on a ComponentInstance/ComponentImpl dock item from the parts dock will forcefully open the definitions dock.
-* Added a ComplexityParameters <data> to all Process Nodes.
-* Implemented a Local Deployment Mode
-* Allowed BlackBox's to have multiple Instances within deployment.
-** BlackBox Instances can now connect to PortDelegates
+    New Features:
+        * Clicking on a ComponentInstance/ComponentImpl dock item from the parts dock will forcefully open the definitions dock.
+        * Implemented Local Deployment Execution.
+        * Implemented localhost HardwareNode.
+        * Bundled all XSLT tranforms.
+        * Implemented new settings
+            ** Thread_Limit - Sets the max number of concurrent QProcess' used by CUTSManager
+            ** CUTS_Configure_Script_Path - The absolute path to the cuts configure script.
+            ** Show_Local_Node - Turns on/off the localhost node.
+
+    Fixes:
+        * Added a ComplexityParameters <data> to all Process Nodes.
+        * BlackBox Instances can connect to PortDelegate
+        * BlackBox's can now have multiple connection BlackBoxInstance's within deployment.
+        * HardwareDock now shows HardwareClusters at the top.
+        * Updated some icons.
 
 Version 16:
-* Implemented showing/hiding of connected HardwareNodes using the context toolbar. It can be used when one or more HardwareClusters are selected.
-* Fixed MEDEA to work on Ubuntu
-* Fixed all compile warnings on Ubuntu
+    * Implemented showing/hiding of connected HardwareNodes using the context toolbar. It can be used when one or more HardwareClusters are selected.
+    * Fixed MEDEA to work on Ubuntu
+    * Fixed all compile warnings on Ubuntu
 
 Version 15:
-* Implemented a Menu on HardwareCluster entities to allow the hiding/showing of connected HardwareNode entities.
-* Fixed a bug where launching a Jenkins Job would leave the Progress Bar saying "Waiting on Jenkins CLI..." (Only occured on nodes on same network as Jenkins server)
-* Fixed an issue when Pressing "New Project" would load the saved Window Size/Position settings from the settings.ini file.
-* Implemented a Setting for toggling Debug mode logging to an external log file. Also fixed the location of the log file to be the application directory.
+    * Implemented a Menu on HardwareCluster entities to allow the hiding/showing of connected HardwareNode entities.
+    * Fixed a bug where launching a Jenkins Job would leave the Progress Bar saying "Waiting on Jenkins CLI..." (Only occured on nodes on same network as Jenkins server)
+    * Fixed an issue when Pressing "New Project" would load the saved Window Size/Position settings from the settings.ini file.
+    * Implemented a Setting for toggling Debug mode logging to an external log file. Also fixed the location of the log file to be the application directory.
 
 Version 14:
-* BlackboxInstance entities are now deployable to Hardware* entities
-* Implemented About Page
-* Fixed various bugs.
+    * BlackboxInstance entities are now deployable to Hardware* entities
+    * Implemented About Page
+    * Fixed various bugs.

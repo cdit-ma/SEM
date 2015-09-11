@@ -27,6 +27,7 @@ public:
     void setXalanJPath(QString xalanJPath);
     void setXSLTransformPath(QString XSLTransformPath);
     void setCUTSConfigScriptPath(QString configureScriptPath);
+    void setScriptsPath(QString path);
 
 signals:
     //Emitted by the slot queueXSLTransform
@@ -41,10 +42,14 @@ signals:
     //Emitted bt the slot executeCPPCompilation
     void executedCPPCompilation(bool success, QString errorString="");
 
+    //Emitted bt the slot executeCUTS
+    void executedCUTS(bool success, QString errorString="");
+
     //Used to send live console output from the executeMWCGeneration
     void gotLiveMWCOutput(QString output);
     //Used to send live console output from the executeCPPGeneration
     void gotLiveCPPOutput(QString output);
+    void gotLiveCUTSOutput(QString output);
     void _gotLiveOutput(QString output);
 public slots:
     //Generates all required artifacts for the provided graphml document.
@@ -54,6 +59,9 @@ public slots:
     //Compiles all CPP artifacts, based on the provided make file.
     void executeCPPCompilation(QString makePath);
 
+    //Runs CUTS execution
+    void executeCUTS(QString graphmlPath, int executionTime=60);
+
     //Called once a QProcess finishes executing
      void processFinished(int code, QProcess::ExitStatus status);
 
@@ -62,6 +70,7 @@ private:
 
 
 private:
+    bool ensureDirectory(QString dirPath);
     QString monitorProcess(QProcess* process);
     void checkForVisualStudio();
     bool isFileReadable(QString file);
@@ -100,6 +109,7 @@ private:
 
     QString XSLTransformPath;
     QString xalanJPath;
+    QString scriptsPath;
     QString configureScriptPath;
 
     QString msbuildPath;

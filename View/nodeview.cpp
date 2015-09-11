@@ -3694,6 +3694,38 @@ void NodeView::showManagementComponents(bool show)
     notificationNumber = 0;
 }
 
+void NodeView::showLocalNode(bool show)
+{
+    Node* hardwareDefinition = 0;
+    Model* model = controller->getModel();
+    if (model){
+        QList<Node*> result = model->getChildrenOfKind("HardwareDefinitions");
+        if(result.size() == 1){
+            hardwareDefinition = result[0];
+        }else{
+            return;
+        }
+    }
+
+    // this goes through all the ManagementComponents and shows/hides them
+    foreach (Node* node, hardwareDefinition->getChildren(0)){
+        NodeItem* nodeItem = getNodeItemFromNode(node);
+        if(nodeItem->getNodeKind() == "HardwareNode"){
+            nodeItem->setHidden(!show);
+            nodeItem->setSorted(false);
+        }else{
+            nodeItem->setSorted(true);
+        }
+    }
+
+    NodeItem* hardwareNI = getNodeItemFromNode(hardwareDefinition);
+    if(hardwareNI){
+        hardwareNI->newSort();
+    }
+
+    localNodeVisible = show;
+}
+
 
 /**
  * @brief NodeView::toggleZoomAnchor

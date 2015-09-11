@@ -197,15 +197,17 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
             getLayout()->removeWidget(dockItem);
         }
 
-        QString dockItemLabel = dockItem->getLabel();
+        QString dockItemLongName = dockItem->getKind() + dockItem->getLabel();
 
         // iterate through all the dock items and insert the provided dock item
         //for (int i = 0; i < getDockNodeItems().count(); i++) {
         for (int i = 0; i < getLayout()->count(); i++) {
             DockNodeItem* currentItem = dynamic_cast<DockNodeItem*>(getLayout()->itemAt(i)->widget());
-            if (currentItem) {
-                QString currentLabel = currentItem->getLabel();
-                int compare = dockItemLabel.compare(currentLabel, Qt::CaseInsensitive);
+            if (currentItem){
+
+
+                QString longName = currentItem->getKind() + currentItem->getLabel();
+                int compare = dockItemLongName.compare(longName, Qt::CaseInsensitive);
                 if (compare <= 0) {
                     addDockNodeItem(dockItem, i);
                     return;

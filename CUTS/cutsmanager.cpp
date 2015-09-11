@@ -48,6 +48,11 @@ void CUTSManager::setCUTSConfigScriptPath(QString configureScriptPath)
     this->configureScriptPath = configureScriptPath;
 }
 
+void CUTSManager::setScriptsPath(QString path)
+{
+    scriptsPath = path;
+}
+
 ///
 /// \brief CUTSManager::executeXSLGeneration Generates all required code artifacts for the execution of the graphml document.
 /// \param graphmlPath The path to the graphml document to generate code for.
@@ -57,14 +62,8 @@ void CUTSManager::executeXSLGeneration(QString graphmlPath, QString outputPath)
 {
     checkForVisualStudio();
     //Ensure output directory exists.
-    QDir dir(outputPath);
-    if(!dir.exists()){
-        //Construct directory.
-        if(!dir.mkpath(".")){
-            //If directory can't be made. Error
-            emit executedXSLGeneration(false, "Cannot construct Output directory.");
-            return;
-        }
+    if(!ensureDirectory(outputPath)){
+        emit executedXSLGeneration(false, "Cannot construct Output directory.");
     }
 
     //Ensure graphml file exists
@@ -170,6 +169,45 @@ void CUTSManager::executeCPPCompilation(QString makePath)
 
 
     emit executedCPPCompilation(true);
+
+}
+
+void CUTSManager::executeCUTS(QString graphmlPath, int executionTime)
+{
+    //get the environment for the mwc generation
+    QProcessEnvironment configuredEnv = getEnvFromScript(configureScriptPath);
+
+    QProcess* process = new QProcess(this);
+    process->setProcessEnvironment(configuredEnv);
+
+    QString path = getGraphmlPath(graphmlPath);
+    QString modelName = getGraphmlName(graphmlPath);
+
+
+
+
+    QString program = "perl";
+    QStringList args;
+    args << scriptsPath + "runCuts.pl";
+
+    emit gotLiveCUTSOutput("Starting: " + program + " " + args.join(" "));
+    process->setWorkingDirectory(path);
+    process->start(program, args);
+
+    connect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveCUTSOutput(QString)));
+
+    QString output = monitorProcess(process);
+
+    emit gotLiveCUTSOutput(" FINAL: \n" + output);
+    disconnect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveCUTSOutput(QString)));
+
+
+
+
+    emit executedCUTS(true);
+
+
+
 
 }
 
@@ -365,6 +403,18 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
 
     //Start Queue
     processQueue();
+}
+
+bool CUTSManager::ensureDirectory(QString dirPath)
+{
+    QDir dir(dirPath);
+    if(!dir.exists()){
+        //Construct directory.
+        if(!dir.mkpath(".")){
+            return false;
+        }
+    }
+    return true;
 }
 
 QString CUTSManager::monitorProcess(QProcess *process)
@@ -677,8 +727,14 @@ void CUTSManager::queueDeploymentGeneration(QString graphmlPath, QStringList mpc
     QStringList transformsExts;
     transformsExts << "cdd" << "cdp" << "ddd";
 
+    QString descriptorPath = outputPath + "descriptors/";
+
+    if(!ensureDirectory(descriptorPath)){
+        qCritical() << "Can't make directory!";
+    }
+
     foreach(QString transformExt, transformsExts){
-        queueXSLTransform(graphmlPath, outputPath + modelName + "." + transformExt, XSLTransformPath + "graphml2" + transformExt + ".xsl", QStringList());
+        queueXSLTransform(graphmlPath, descriptorPath + modelName + "." + transformExt, XSLTransformPath + "graphml2" + transformExt + ".xsl", QStringList());
     }
 
     queueXSLTransform(graphmlPath, outputPath + modelName + ".mwc", XSLTransformPath + "graphml2mwc.xsl", mwcParams);

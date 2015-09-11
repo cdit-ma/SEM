@@ -52,6 +52,7 @@
 #define TOGGLE_GRID "02-04-Toggle_Grid_Lines"
 #define SHOW_MANAGEMENT_COMPONENTS "02-05-Show_Management_Components"
 #define TOGGLE_PANNING "02-06-Toggle_Panning_Mode"
+#define SHOW_LOCAL_NODE "02-07-Show_Local_Node"
 #define ASPECT_D "03-01-Definitions"
 #define ASPECT_W "03-02-Workload"
 #define ASPECT_A "03-03-Assembly"
@@ -288,7 +289,9 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
         toggleAndTriggerAction(actionToggleGrid, boolValue);
     }else if(keyName == TOGGLE_PANNING && isBool){
         toggleAndTriggerAction(actionTogglePanningMode, boolValue);
-    }else if(keyName == DOCK_VISIBLE && isBool){
+    }
+
+    else if(keyName == DOCK_VISIBLE && isBool){
         showDocks(!boolValue);
     }else if(keyName == TOOLBAR_VISIBLE && isBool){
         setToolbarVisibility(!boolValue);
@@ -331,6 +334,10 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == SHOW_MANAGEMENT_COMPONENTS && isBool){
         if(nodeView){
             nodeView->showManagementComponents(boolValue);
+        }
+    }else if(keyName == SHOW_LOCAL_NODE && isBool){
+        if(nodeView){
+            nodeView->showLocalNode(boolValue);
         }
     }
 
@@ -1402,7 +1409,10 @@ void MedeaWindow::initialiseJenkinsManager()
     QString jenkinsToken = appSettings->getSetting(JENKINS_TOKEN);
 
     if(jenkinsUrl != "" && jenkinsUser != "" && jenkinsPass != ""){
-        jenkinsManager = new JenkinsManager(applicationDirectory + "Resources/Scripts/", jenkinsUrl, jenkinsUser, jenkinsPass, jenkinsToken);
+        QString binaryPath = applicationDirectory + "Resources/Binaries/";
+
+
+        jenkinsManager = new JenkinsManager(binaryPath, jenkinsUrl, jenkinsUser, jenkinsPass, jenkinsToken);
         connect(jenkinsManager, SIGNAL(gotInvalidSettings(QString)), this, SLOT(invalidJenkinsSettings(QString)));
     }
 }
@@ -1413,6 +1423,7 @@ void MedeaWindow::initialiseCUTSManager()
 
     QString xalanJPath = applicationDirectory + "/Resources/Binaries/";
     QString transformPath = applicationDirectory + "/Resources/Transforms/";
+    QString scriptsPath = applicationDirectory + "/Resources/Scripts/";
 
     //Try Parse Thread limit
     bool isInt;
@@ -1424,6 +1435,7 @@ void MedeaWindow::initialiseCUTSManager()
     cutsManager->setXalanJPath(xalanJPath);
     cutsManager->setXSLTransformPath(transformPath);
     cutsManager->setMaxThreadCount(threadLimit);
+    cutsManager->setScriptsPath(scriptsPath);
 }
 
 
@@ -1746,7 +1758,7 @@ void MedeaWindow::on_actionImportJenkinsNode()
     progressAction = "Importing Jenkins";
 
     if(jenkinsManager){
-        QString groovyScript = "Jenkins_Construct_GraphMLNodesList.groovy";
+        QString groovyScript = applicationDirectory + "Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy";
 
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
         connect(this, SIGNAL(jenkins_RunGroovyScript(QString)), jenkinsGS, SLOT(runGroovyScript(QString)));

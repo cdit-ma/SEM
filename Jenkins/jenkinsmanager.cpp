@@ -9,7 +9,7 @@
  * @param password The password for the Jenkins Server
  * @todo Discover way of removing password from .ini
  */
-JenkinsManager::JenkinsManager(QString cliPath, QString url, QString username, QString password, QString token)
+JenkinsManager::JenkinsManager(QString cliBinaryPath, QString url, QString username, QString password, QString token)
 {
     //Register the Types used as parameters JenkinsRequest so signals/slots can be connected.
     qRegisterMetaType<QPair<QByteArray,QByteArray> >();
@@ -17,7 +17,7 @@ JenkinsManager::JenkinsManager(QString cliPath, QString url, QString username, Q
     qRegisterMetaType<JOB_STATE>("JOB_STATE");
 
     //Set instance variables.
-    this->cliPath = cliPath;
+    this->cliBinaryPath = cliBinaryPath;
     setURL(url);
     setUsername(username);
     setPassword(password);
@@ -248,8 +248,9 @@ QString JenkinsManager::getCLILoginSuffix()
  */
 QString JenkinsManager::getCLIPath()
 {
-    return cliPath;
+    return cliBinaryPath;
 }
+
 
 /**
  * @brief JenkinsManager::getCLICommand wraps the plain CLI command with the CLIPrefix and getCLILoginSuffix so it can be executed.

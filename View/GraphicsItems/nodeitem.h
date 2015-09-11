@@ -412,6 +412,7 @@ private:
 
     QString nodeHardwareOS;
     QString nodeHardwareArch;
+    bool nodeHardwareLocalHost;
 };
 
 #endif // NODEITEM_H

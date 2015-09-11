@@ -234,6 +234,7 @@ public slots:
     void autoCenterAspects(bool center);
     void selectNodeOnConstruction(bool select);
     void showManagementComponents(bool show);
+    void showLocalNode(bool show);
     void toggleZoomAnchor(bool underMouse);
     void togglePanning(bool panning);
 
@@ -429,6 +430,7 @@ private:
     bool IS_RESIZING;
     bool IS_MOVING;
     bool managementComponentVisible;
+    bool localNodeVisible;
     bool AUTO_CENTER_ASPECTS;
     bool GRID_LINES_ON;
     bool SELECT_ON_CONSTRUCTION;

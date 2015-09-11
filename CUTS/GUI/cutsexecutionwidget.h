@@ -53,6 +53,7 @@ public slots:
     void generationFinished(bool success, QString errorString);
     void gotLiveMWCOutput(QString data);
     void gotLiveMakeOutput(QString data);
+    void gotLiveCUTSOutput(QString data);
 
     void outputPathEdited();
     void graphmlPathEdited();
