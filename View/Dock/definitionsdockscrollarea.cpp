@@ -71,7 +71,11 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
 QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
 {
     QList<DockNodeItem*> dockNodeItems;
-    foreach (DockNodeItem* item, DockScrollArea::getDockNodeItems()) {
+
+    //Get
+    QList<DockNodeItem*> dockItems = DockScrollArea::getDockNodeItems();
+
+    foreach (DockNodeItem* item, dockItems) {
         if (!item->isFileLabel()) {
             dockNodeItems.append(item);
         }

@@ -315,6 +315,10 @@ private:
     bool isGraphMLInModel(GraphML* item);
 
 
+    QString getSysOS();
+    QString getSysArch();
+    QString getSysOSVersion();
+
     //Stores the GraphMLKey's used by the Model.
     QList<GraphMLKey*> keys;
 

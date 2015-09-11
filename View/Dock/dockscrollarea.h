@@ -28,7 +28,7 @@ public:
 
     void addDockNodeItem(DockNodeItem* item, int insertIndex = -1, bool addToLayout = true);
     DockNodeItem* getDockNodeItem(QString nodeID);
-    QList<DockNodeItem*> getDockNodeItems();
+    virtual QList<DockNodeItem *> getDockNodeItems();
 
     bool isDockEnabled();
     void setDockEnabled(bool enabled);

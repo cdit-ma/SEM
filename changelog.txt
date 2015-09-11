@@ -1,5 +1,6 @@
 Version 17:
     New Features:
+        * Migrated to QTv5.5.0
         * Clicking on a ComponentInstance/ComponentImpl dock item from the parts dock will forcefully open the definitions dock.
         * Implemented Local Deployment Execution.
         * Implemented localhost HardwareNode.

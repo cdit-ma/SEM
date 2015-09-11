@@ -355,7 +355,11 @@ bool NewController::_clear()
         childNodes = hardwareDefinitions->getChildren(0);
         for(int i=0; i < childNodes.size(); i++){
             Node* child = childNodes[i];
-            destructNode(child);
+
+            // don't delete Localhost Nodes
+            if (child->getDataValue("kind") != "HardwareNode") {
+                destructNode(child);
+            }
         }
         childNodes.clear();
         childNodes = assemblyDefinitions->getChildren(0);
@@ -1474,9 +1478,11 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     }
     if(nodeKind == "HardwareNode"){
         GraphMLKey* osKey = constructGraphMLKey("os", "string", "node");
+        GraphMLKey* osVKey = constructGraphMLKey("os_version", "string", "node");
         GraphMLKey* ipKey = constructGraphMLKey("ip_address", "string", "node");
         GraphMLKey* archKey = constructGraphMLKey("architecture", "string", "node");
         data.append(new GraphMLData(osKey));
+        data.append(new GraphMLData(osVKey));
         data.append(new GraphMLData(ipKey));
         data.append(new GraphMLData(archKey));
     }
@@ -3126,6 +3132,9 @@ void NewController::setupLocalNode()
     GraphMLKey* localhostKey = constructGraphMLKey("localhost", "boolean", "node");
     localNodeData.append(new GraphMLData(localhostKey, "true", true));
 
+
+
+
     foreach(GraphMLData* data, localNodeData){
         QString keyName = data->getKeyName();
         if(keyName == "label"){
@@ -3135,13 +3144,18 @@ void NewController::setupLocalNode()
             data->setValue("127.0.0.1");
             data->setProtected(true);
         }else if(keyName == "os"){
-            data->setValue("windows");
+            data->setValue(getSysOS());
+            data->setProtected(true);
+        }else if(keyName == "os_version"){
+            data->setValue(getSysOSVersion());
             data->setProtected(true);
         }else if(keyName == "architecture"){
-            data->setValue("amd64");
+            data->setValue(getSysArch());
             data->setProtected(true);
         }
     }
+
+
 
 
     constructChildNode(hardwareDefinitions, localNodeData);
@@ -3237,6 +3251,39 @@ bool NewController::isGraphMLInModel(GraphML *item)
     }else{
         return false;
     }
+}
+
+QString NewController::getSysOS()
+{
+    QString os = "undefined";
+
+//QTv5.5 introduced QSysInfo changes.
+#if QT_VERSION >= 0x050500
+    os = QSysInfo::productType();
+#endif
+    return os;
+}
+
+QString NewController::getSysArch()
+{
+    QString arch = "undefined";
+
+//QTv5.5 introduced QSysInfo changes.
+#if QT_VERSION >= 0x050500
+    arch = QSysInfo::currentCpuArchitecture();
+#endif
+    return arch;
+}
+
+QString NewController::getSysOSVersion()
+{
+    QString osv = "undefined";
+
+//QTv5.5 introduced QSysInfo changes.
+#if QT_VERSION >= 0x050500
+    osv = QSysInfo::productVersion();
+#endif
+    return osv;
 }
 
 QString NewController::getTimeStamp()
