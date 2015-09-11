@@ -51,7 +51,15 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     toolbarDockConstruction = false;
     importFromJenkins = false;
     hardwareDockOpen = false;
+
+    IS_PANNING = false;
+    HAS_PANNED = false;
+
     IS_SUB_VIEW = subView;
+
+
+
+
     //controller = 0;
     parentNodeView = 0;
     rubberBand = 0;
@@ -63,19 +71,20 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     CENTRALIZED_ON_ITEM = false;
     MINIMAP_EVENT = false;
-    RUBBERBAND_MODE = false;
+
     IS_RESIZING = false;
     IS_MOVING = false;
     AUTO_CENTER_ASPECTS = false;
     GRID_LINES_ON = false;
     SELECT_ON_CONSTRUCTION = false;
-    PANNING_ON = false;
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
     IS_DESTRUCTING = false;
 
     pasting = false;
-    panning = false;
+
+
+    viewState = VS_NONE;
 
     eventFromEdgeItem = false;
 
@@ -85,7 +94,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setScene(new QGraphicsScene(this));
 
     //Set QT Options for this QGraphicsView
-    setDragMode(ScrollHandDrag);
+    setDragMode(NoDrag);
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
     setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
@@ -93,19 +102,12 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
 
 
-    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     //Set GraphicsView background-color
-    //setStyleSheet("QGraphicsView{ background-color: rgba(175,175,175,255); border: 0px;}");
     setStyleSheet("QGraphicsView{ background-color: rgba(170,170,170,255); border: 0px;}");
 
-    /*
-    scene()->setBackgroundBrush(QBrush(Qt::white));
-    this->setAttribute(Qt::WA_TranslucentBackground);
-    this->setWindowFlags(Qt::FramelessWindowHint);
-    setStyleSheet("QGraphicsView{ background-color: rgba(255,255,255,200); border: 0px;}");
-    */
 
     //Set The rubberband Mode.
     setRubberBandMode(false);
@@ -147,6 +149,16 @@ void NodeView::setController(NewController *c)
 void NodeView::disconnectController()
 {
     controller = 0;
+}
+
+NodeView::VIEW_STATE NodeView::getViewState()
+{
+    return viewState;
+}
+
+bool NodeView::hasPanned()
+{
+    return HAS_PANNED;
 }
 
 void NodeView::ensureAspect(QString ID)
@@ -977,18 +989,18 @@ void NodeView::minimapPan(QPointF delta)
 
 void NodeView::setRubberBandMode(bool On)
 {
-
-    if(!rubberBand){
-        rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
-    }
-    if(On && !IS_SUB_VIEW){
-        RUBBERBAND_MODE = true;
-        setDragMode(RubberBandDrag);
-    }else{
-        RUBBERBAND_MODE = false;
-        drawingRubberBand = false;
-        rubberBand->setVisible(false);
-        setDragMode(ScrollHandDrag);
+    if(isMainView()){
+        if(!rubberBand){
+            rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
+        }
+        if(On){
+            setDragMode(RubberBandDrag);
+            setCursor(Qt::CrossCursor);
+        }else{
+            setDragMode(NoDrag);
+            unsetCursor();
+            rubberBand->setVisible(false);
+        }
     }
 }
 
@@ -1533,6 +1545,11 @@ void NodeView::enableClipboardActions()
  */
 void NodeView::showToolbar(QPoint position)
 {
+    if(hasPanned()){
+        //If we have panned, we shouldn't show the tooblar.
+        HAS_PANNED = false;
+        return;
+    }
     // only show the toolbar if there is at least one node item selected
     if (selectedIDs.count() > 0) {
 
@@ -1582,13 +1599,7 @@ void NodeView::showToolbar(QPoint position)
             toolbar->move(globalPos.toPoint());
             toolbar->setVisible(true);
         }
-
-    } else {
-        view_displayNotification("Select an entity first to show the context toolbar.");
     }
-
-    // show/hide MEDEA toolbar
-    //view_showWindowToolbar();
 }
 
 
@@ -2355,7 +2366,6 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
                 connect(nodeItem, SIGNAL(NodeItem_MoveFinished()), this, SLOT(moveFinished()));
                 connect(nodeItem, SIGNAL(NodeItem_ResizeFinished()), this, SLOT(resizeFinished()));
                 connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
-                connect(this, SIGNAL(view_togglePanningMode(bool)), nodeItem, SLOT(togglePanningMode(bool)));
                 connect(nodeItem, SIGNAL(Nodeitem_HasFocus(bool)), this, SLOT(editableItemHasFocus(bool)));
 
                 connect(nodeItem, SIGNAL(NodeItem_showLockMenu(NodeItem*)), this, SLOT(showHardwareClusterChildrenViewMenu(NodeItem*)));
@@ -2469,7 +2479,6 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
     //view_AspectsChanged(currentAspects);
     nodeItem->aspectsChanged(currentAspects);
     emit view_toggleGridLines(GRID_LINES_ON);
-    emit view_togglePanningMode(PANNING_ON);
 
     // snap node item to its parent's grid
     //nodeItem->snapToGrid();
@@ -2746,6 +2755,13 @@ GraphMLItem *NodeView::getGraphMLItemFromHash(QString ID)
     return 0;
 }
 
+GraphMLItem *NodeView::getGraphMLItemFromScreenPos(QPoint pos)
+{
+    QPointF scenePos = mapToScene(pos);
+    QGraphicsItem* item = scene()->itemAt(scenePos, QTransform());
+    return dynamic_cast<GraphMLItem*>(item);
+}
+
 
 
 GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
@@ -2768,26 +2784,32 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         return;
     }
 
-    if(RUBBERBAND_MODE && drawingRubberBand){
-        //Get the Top Left and Bottom Right corners of the Rectangle.
-        QPoint screenOrigin = rubberBand->pos();
-        QPoint screenFinish = screenOrigin + QPoint(rubberBand->width(), rubberBand->height());
-        QPointF sceneOrigin = mapToScene(screenOrigin);
-        QPointF sceneFinish = mapToScene(screenFinish);
-        selectedInRubberBand(sceneOrigin, sceneFinish);
-        setRubberBandMode(false);
-        return;
-    }
-
-    panning = false;
-
-    QPointF scenePos = mapToScene(event->pos());
-    QGraphicsItem* itemUnderMouse = scene()->itemAt(scenePos, QTransform());
-    if (!itemUnderMouse) {
-        if (event->button() == Qt::MiddleButton) {
-            // center on the current view aspects
-            fitToScreen();
+    if(viewState == VS_RUBBERBANDED){
+        if(event->button() == Qt::LeftButton){
+            if(viewState == VS_RUBBERBANDED){
+                QPoint screenOrigin = rubberBand->pos();
+                QPoint screenFinish = screenOrigin + QPoint(rubberBand->width(), rubberBand->height());
+                QPointF sceneOrigin = mapToScene(screenOrigin);
+                QPointF sceneFinish = mapToScene(screenFinish);
+                selectedInRubberBand(sceneOrigin, sceneFinish);
+                rubberBand->setVisible(false);
+                viewState = VS_RUBBERBAND;
+            }
         }
+    }
+    if(viewState == VS_NONE){
+        if(event->button() == Qt::MiddleButton){
+            GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
+
+            if(!item){
+                //If we don't have an item under the mouse. Fit screen to view.
+                fitToScreen();
+            }
+        }
+    }else if(viewState == VS_PANNING || viewState == VS_PANNED){
+        //Clear state.
+        viewState = VS_NONE;
+        unsetCursor();
     }
 
     QGraphicsView::mouseReleaseEvent(event);
@@ -2805,29 +2827,20 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
         return;
     }
 
-    if(RUBBERBAND_MODE && drawingRubberBand){
-        //Move rubberband to the position on the screen.
+    if(viewState == VS_RUBBERBANDED){
         rubberBand->setGeometry(QRect(rubberBandOrigin, event->pos()).normalized());
-        if(!rubberBand->isVisible()){
-            rubberBand->setVisible(true);
-        }
         return;
+    }else if(viewState == VS_PANNING || viewState == VS_PANNED){
+        if(viewState == VS_PANNING){
+            viewState = VS_PANNED;
+        }
+
+        QPointF currentScenePos = mapToScene(event->pos());
+        QPointF delta = currentScenePos - panningSceneOrigin;
+        panningSceneOrigin = currentScenePos;
+
+        adjustModelPosition(delta);
     }
-
-    /*
-    if (panning && getModelItem()) {
-        QPointF mousePos = mapToScene(event->pos());
-
-        ViewportAnchor currentAnchor = transformationAnchor();
-        setTransformationAnchor(NoAnchor);
-        translate(mousePos.x(), mousePos.y());
-        setTransformationAnchor(currentAnchor);
-
-        //QPointF delta = getModelScenePos() - mousePos;
-        //getModelItem()->adjustPos(delta);
-    }
-    */
-
     QGraphicsView::mouseMoveEvent(event);
 }
 
@@ -2857,26 +2870,28 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         prevLockMenuOpened->close();
     }
 
-    //If we have the Rubberband mode on, set the origin.
-    if(RUBBERBAND_MODE){
-        rubberBandOrigin = event->pos();
-        //Move rubberband to the position on the screen.
-        rubberBand->setGeometry(QRect(rubberBandOrigin, QSize()));
-        drawingRubberBand = true;
-    }
 
-    panning = true;
-
-    QPointF scenePos = mapToScene(event->pos());
-    QGraphicsItem* itemUnderMouse = scene()->itemAt(scenePos, QTransform());
-    if (!itemUnderMouse) {
-        if (event->button() == Qt::LeftButton || event->button() == Qt::RightButton) {
+    if(viewState == VS_NONE){
+        GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
+        if(!item && (event->button() == Qt::LeftButton)){
             // clear the selection and disable dock buttons
             clearSelection();
         }
-    } else {
-        //qDebug() << "Item under mouse";
+        if(event->button() == Qt::RightButton){
+            viewState = VS_PANNING;
+            panningSceneOrigin = mapToScene(event->pos());
+            setCursor(Qt::ClosedHandCursor);
+        }
+    }else if(viewState == VS_RUBBERBAND){
+        if(event->button() == Qt::LeftButton){
+            rubberBandOrigin = event->pos();
+            //Move rubberband to the position on the screen.
+            rubberBand->setGeometry(QRect(rubberBandOrigin, QSize()));
+            rubberBand->setVisible(true);
+            viewState = VS_RUBBERBANDED;
+        }
     }
+
 
     QGraphicsView::mousePressEvent(event);
 }
@@ -2936,14 +2951,11 @@ void NodeView::keyPressEvent(QKeyEvent *event)
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
-    if(CONTROL && SHIFT){
-        if(!RUBBERBAND_MODE){
-            setRubberBandMode(true);
-        }
-    }else{
-        if(RUBBERBAND_MODE){
-            setRubberBandMode(false);
-        }
+    bool rubberbandMode = CONTROL && SHIFT;
+    //Only allow transition from none state.
+    if(rubberbandMode && viewState == VS_NONE){
+        viewState = VS_RUBBERBAND;
+        setRubberBandMode(true);
     }
 
     if(this->hasFocus()){
@@ -2976,6 +2988,19 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 void NodeView::keyReleaseEvent(QKeyEvent *event)
 {
     bool allowedFocusWidget = allowedFocus(focusWidget());
+
+
+    bool CONTROL = event->modifiers() & Qt::ControlModifier;
+    bool SHIFT = event->modifiers() & Qt::ShiftModifier;
+
+    bool rubberbandMode = CONTROL && SHIFT;
+
+    //Only allow transition from none state.
+    if(!rubberbandMode && (viewState == VS_RUBBERBAND || viewState == VS_RUBBERBANDED)){
+        viewState = VS_NONE;
+        setRubberBandMode(false);
+    }
+
 
     if(allowedFocusWidget){
         if(event->key() == Qt::Key_Delete){
@@ -3284,11 +3309,6 @@ void NodeView::redo()
 
 void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 {
-    // if panning mode is on, don't allow the user to select anything
-    if (PANNING_ON) {
-        return;
-    }
-
     if(isItemsAncestorSelected(item)){
         return;
     }
@@ -3334,11 +3354,6 @@ void NodeView::removeFromSelection(GraphMLItem *item)
 
 void NodeView::moveSelection(QPointF delta)
 {
-    if (PANNING_ON) {
-        //adjustModelPosition(delta);
-        return;
-    }
-
     bool canReduceX = true;
     bool canReduceY = true;
 
@@ -3600,7 +3615,7 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
     QList<NodeItem*> nodeItems;
     nodeItems << modelItem;
 
-    clearSelection();
+    //clearSelection();
 
     while(nodeItems.size() > 0){
         NodeItem* currentNode = nodeItems.takeFirst();
@@ -3743,16 +3758,6 @@ void NodeView::toggleZoomAnchor(bool underMouse)
 }
 
 
-/**
- * @brief NodeView::togglePanning
- * @param panning
- */
-void NodeView::togglePanning(bool panning)
-{
-    clearSelection();
-    PANNING_ON = panning;
-    emit view_togglePanningMode(panning);
-}
 
 
 /**

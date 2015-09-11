@@ -285,7 +285,6 @@ private:
     QAction* actionBack;
     QAction* actionForward;
     QAction* actionToggleGrid;
-    QAction* actionTogglePanningMode;
     QAction* actionContextMenu;
     QAction* file_AboutMedea;
 

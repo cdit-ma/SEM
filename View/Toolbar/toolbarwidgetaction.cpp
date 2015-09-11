@@ -160,9 +160,14 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 
     QString actionKind = getKind();
     if (actionKind == "HardwareNode"){
-        QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
-        QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
-        actionKind = hardwareOS + "_" + hardwareArch;
+        Node* node = nodeItem->getNode();
+        if(node){
+            if(node->getDataValue("localhost") == "true"){
+                actionKind = "localhost";
+            }else{
+                actionKind = node->getDataValue("os") + "_" + node->getDataValue("architecture");
+            }
+        }
     }
 
     QImage* image = new QImage(":/Resources/Icons/" + actionKind + ".png");
@@ -292,4 +297,5 @@ void ToolbarWidgetAction::menuOpened()
 void ToolbarWidgetAction::menuClosed()
 {
     actionButton->setCheck(false);
+
 }

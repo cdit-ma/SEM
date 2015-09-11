@@ -223,7 +223,6 @@ public slots:
     //Turn off visible gridlines;
     void toggleGridLines(bool on);
 
-    void togglePanningMode(bool on);
 
     void snapToGrid();
     void snapChildrenToGrid();
@@ -345,7 +344,6 @@ private:
     bool hasSelectionResized;
 
     bool GRIDLINES_ON;
-    bool PANNING_ON;
 
     bool highlighted;
     bool hidden;
@@ -401,6 +399,8 @@ private:
 
 
     QPointF modelCenterPoint;
+
+    bool hasPanned;
 
 
 

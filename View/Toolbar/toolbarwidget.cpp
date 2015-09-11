@@ -424,12 +424,12 @@ void ToolbarWidget::setVisible(bool visible)
  */
 void ToolbarWidget::hideToolbar(bool actionTriggered)
 {
-    if (!eventFromToolbar) {
+    //if (!eventFromToolbar) {
         hide();
         if (!actionTriggered) {
             nodeView->toolbarClosed();
         }
-    }
+    //}
 }
 
 

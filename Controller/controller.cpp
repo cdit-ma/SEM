@@ -2407,26 +2407,10 @@ bool NewController::canDeleteNode(Node *node)
         return false;
     }
 
-    if(behaviourDefinitions == node){
-        return false;
-        //behaviourDefinitions = 0;
-    }
-    if(deploymentDefinitions == node){
-        return false;
-        //deploymentDefinitions = 0;
-    }
-    if(interfaceDefinitions == node){
+    if(protectedNodes.contains(node)){
         return false;
     }
-    if(assemblyDefinitions == node){
-        return false;
-    }
-    if(hardwareDefinitions == node){
-        return false;
-    }
-    if(node->getDataValue("kind") == "ManagementComponent"){
-        return false;
-    }
+
 
     return true;
 }
@@ -2610,6 +2594,13 @@ void NewController::setupModel()
     //Construct the second level containers.
     assemblyDefinitions =  constructChildNode(deploymentDefinitions, constructGraphMLDataVector("AssemblyDefinitions"));
     hardwareDefinitions =  constructChildNode(deploymentDefinitions, constructGraphMLDataVector("HardwareDefinitions"));
+
+    protectedNodes << model;
+    protectedNodes << interfaceDefinitions;
+    protectedNodes << behaviourDefinitions;
+    protectedNodes << deploymentDefinitions;
+    protectedNodes << assemblyDefinitions;
+    protectedNodes << hardwareDefinitions;
 
 
     setupManagementComponents();
@@ -3118,10 +3109,10 @@ void NewController::setupManagementComponents()
         }
     }
 
-    constructChildNode(assemblyDefinitions, executionManagerData);
-    constructChildNode(assemblyDefinitions, dancePlanLauncherData);
-    constructChildNode(assemblyDefinitions, ddsLoggingServerData);
-    constructChildNode(assemblyDefinitions, qpidBrokerData);
+    protectedNodes << constructChildNode(assemblyDefinitions, executionManagerData);
+    protectedNodes << constructChildNode(assemblyDefinitions, dancePlanLauncherData);
+    protectedNodes << constructChildNode(assemblyDefinitions, ddsLoggingServerData);
+    protectedNodes << constructChildNode(assemblyDefinitions, qpidBrokerData);
 }
 
 void NewController::setupLocalNode()
@@ -3156,9 +3147,7 @@ void NewController::setupLocalNode()
     }
 
 
-
-
-    constructChildNode(hardwareDefinitions, localNodeData);
+       protectedNodes << constructChildNode(hardwareDefinitions, localNodeData);
 }
 
 GraphML *NewController::getGraphMLFromID(QString ID)

@@ -181,6 +181,7 @@ void ToolbarWidgetMenu::leaveEvent(QEvent * e)
  */
 void ToolbarWidgetMenu::close()
 {
+
     QToolButton* parentButton = qobject_cast<QToolButton*>(parent());
     if (parentButton) {
         emit toolbarMenu_hideToolbar(actionTriggered);
@@ -194,6 +195,9 @@ void ToolbarWidgetMenu::close()
 
     if (parentAction) {
         parentAction->menuClosed();
+    }else{
+        qCritical() << "ONCE";
+        emit toolbarMenu_hideToolbar(actionTriggered);
     }
 }
 

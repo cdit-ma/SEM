@@ -51,8 +51,7 @@
 #define ZOOM_ANCHOR_ON_MOUSE "02-03-Zoom_View_Under_Mouse"
 #define TOGGLE_GRID "02-04-Toggle_Grid_Lines"
 #define SHOW_MANAGEMENT_COMPONENTS "02-05-Show_Management_Components"
-#define TOGGLE_PANNING "02-06-Toggle_Panning_Mode"
-#define SHOW_LOCAL_NODE "02-07-Show_Local_Node"
+#define SHOW_LOCAL_NODE "02-06-Show_Local_Node"
 #define ASPECT_D "03-01-Definitions"
 #define ASPECT_W "03-02-Workload"
 #define ASPECT_A "03-03-Assembly"
@@ -85,7 +84,6 @@
 #define TOOLBAR_HORIZ_ALIGN "05-16-Horizontal_Align_Entities"
 #define TOOLBAR_BACK "05-17-Back"
 #define TOOLBAR_FORWARD "05-18-Forward"
-#define TOOLBAR_PAN_VIEW "05-19-Panning_Mode"
 
 
 
@@ -287,11 +285,7 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
         nodeView->toggleZoomAnchor(boolValue);
     }else if(keyName == TOGGLE_GRID && isBool){
         toggleAndTriggerAction(actionToggleGrid, boolValue);
-    }else if(keyName == TOGGLE_PANNING && isBool){
-        toggleAndTriggerAction(actionTogglePanningMode, boolValue);
-    }
-
-    else if(keyName == DOCK_VISIBLE && isBool){
+    }else if(keyName == DOCK_VISIBLE && isBool){
         showDocks(!boolValue);
     }else if(keyName == TOOLBAR_VISIBLE && isBool){
         setToolbarVisibility(!boolValue);
@@ -702,10 +696,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     actionToggleGrid = new QAction(QIcon(":/Resources/Icons/grid.png"), "Toggle Grid Lines", this);
     actionToggleGrid->setToolTip("Turn grid on/off");
     actionToggleGrid->setCheckable(true);
-
-    actionTogglePanningMode = new QAction(QIcon(":/Resources/Icons/pan.png"), "Toggle Panning Mode", this);
-    actionTogglePanningMode->setToolTip("Turn panning mode on/off");
-    actionTogglePanningMode->setCheckable(true);
 }
 
 
@@ -1031,7 +1021,6 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     constructToolbarButton(toolbar, actionFitToScreen, TOOLBAR_FIT_TO_SCREEN);
     toolbar->addSeparator();
     constructToolbarButton(toolbar, actionToggleGrid, TOOLBAR_GRID_LINES);
-    constructToolbarButton(toolbar, actionTogglePanningMode, TOOLBAR_PAN_VIEW);
 
     //toolbar->addSeparator();
     constructToolbarButton(toolbar, actionAlignVertically, TOOLBAR_VERT_ALIGN);
@@ -1252,7 +1241,6 @@ void MedeaWindow::makeConnections()
     connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
     connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
 
-    connect(actionTogglePanningMode, SIGNAL(triggered(bool)), nodeView, SLOT(togglePanning(bool)));
 
 
     //connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
@@ -1351,7 +1339,7 @@ void MedeaWindow::makeConnections()
     addAction(actionForward);
     addAction(actionToggleGrid);
     addAction(actionContextMenu);
-    addAction(actionTogglePanningMode);
+
 
     addAction(jenkins_ExecuteJob);
     addAction(jenkins_ImportNodes);
@@ -1359,7 +1347,6 @@ void MedeaWindow::makeConnections()
     addAction(actionToggleGrid);
     addAction(settings_changeAppSettings);
     addAction(file_AboutMedea);
-
 }
 
 

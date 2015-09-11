@@ -5,6 +5,8 @@ Version 17:
         * Implemented Local Deployment Execution.
         * Implemented localhost HardwareNode.
         * Bundled all XSLT tranforms.
+        * Implemented Right-Click to Pan as default.
+        * Remove Pan Mode
         * Implemented new settings
             ** Thread_Limit - Sets the max number of concurrent QProcess' used by CUTSManager
             ** CUTS_Configure_Script_Path - The absolute path to the cuts configure script.

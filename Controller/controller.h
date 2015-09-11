@@ -369,6 +369,10 @@ private:
     Node* assemblyDefinitions;
 
 
+    //List of undeleteable nodes
+    QList<Node*> protectedNodes;
+
+
     QHash<QString, ManagementComponent*> managementComponents;
     QHash<QString, HardwareNode*> hardwareNodes;
     QHash<QString, HardwareCluster*> hardwareClusters;

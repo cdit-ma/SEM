@@ -23,6 +23,8 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 
 public:
+    enum VIEW_STATE{VS_NONE, VS_RUBBERBAND, VS_RUBBERBANDED, VS_MOVING, VS_MOVED, VS_RESIZING, VS_RESIZED, VS_PANNING, VS_PANNED};
+
     enum ALIGN{NONE, HORIZONTAL, VERTICAL};
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
@@ -32,8 +34,9 @@ public:
     void setController(NewController* controller);
     void disconnectController();
 
+    VIEW_STATE getViewState();
 
-
+    bool hasPanned();
     //Get the Selected Node.
     Node* getSelectedNode();
     QString getSelectedNodeID();
@@ -165,7 +168,6 @@ signals:
     void view_showWindowToolbar();
 
     void view_toggleGridLines(bool on);
-    void view_togglePanningMode(bool on);
 
     void view_updateProgressStatus(int percent, QString action="");
     void view_displayNotification(QString notification, int seqNum = 0, int totalNum = 1);
@@ -236,7 +238,6 @@ public slots:
     void showManagementComponents(bool show);
     void showLocalNode(bool show);
     void toggleZoomAnchor(bool underMouse);
-    void togglePanning(bool panning);
 
     void setRubberBandMode(bool On);
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
@@ -354,7 +355,7 @@ private:
     GraphMLItem* getGraphMLItemFromHash(QString ID);
 
 
-
+    GraphMLItem* getGraphMLItemFromScreenPos(QPoint pos);
     void nodeConstructed_signalUpdates(NodeItem* nodeItem);
 
     void nodeSelected_signalUpdates();
@@ -407,8 +408,7 @@ private:
     qreal totalScaleFactor;
 
     bool MINIMAP_EVENT;
-    bool RUBBERBAND_MODE;
-    bool drawingRubberBand;
+
     QPoint rubberBandOrigin;
     bool once;
 
@@ -434,7 +434,6 @@ private:
     bool AUTO_CENTER_ASPECTS;
     bool GRID_LINES_ON;
     bool SELECT_ON_CONSTRUCTION;
-    bool PANNING_ON;
 
     bool toolbarDockConstruction;
     bool constructedFromImport;
@@ -443,7 +442,7 @@ private:
     bool editingNodeItemLabel;
 
     bool pasting;
-    bool panning;
+
 
     //Selection Lists
     QStringList selectedIDs;
@@ -454,6 +453,7 @@ private:
 
     int initialRect;
     bool viewMovedBackForward;
+
 
     int notificationNumber;
     int numberOfNotifications;
@@ -472,11 +472,19 @@ private:
 
     bool IS_DESTRUCTING;
     bool updateDeployment;
+
+    bool IS_PANNING;
+    bool HAS_PANNED;
+
+    QPointF panningSceneOrigin;
+
     QString currentTableID;
 
     bool hardwareDockOpen;
     bool clearingModel;
     bool eventFromEdgeItem;
+
+    VIEW_STATE viewState;
 };
 
 #endif // NODEVIEW_H
