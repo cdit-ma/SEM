@@ -1530,6 +1530,7 @@ void NodeView::enableClipboardActions()
         emit view_updateMenuActionEnabled("delete", controller->canDelete(selectedIDs));
         emit view_updateMenuActionEnabled("undo", controller->canUndo());
         emit view_updateMenuActionEnabled("redo", controller->canRedo());
+        emit view_updateMenuActionEnabled("localdeployment", controller->canLocalDeploy());
     }
 
     emit view_updateMenuActionEnabled("noSelection", getSelectedNodeID() != "");
@@ -2853,15 +2854,10 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
  */
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
-    if(MINIMAP_EVENT){
-        QGraphicsView::mousePressEvent(event);
-        return;
-    }
     if(toolbarJustClosed){
         toolbarJustClosed = false;
         return;
     }
-
 
     // TODO: Need to catch the case where the menu is closed
     // when MEDEA window steals the focus
@@ -2878,6 +2874,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             clearSelection();
         }
         if(event->button() == Qt::RightButton){
+              qCritical() << "RIGHT BUTON";
             viewState = VS_PANNING;
             panningSceneOrigin = mapToScene(event->pos());
             setCursor(Qt::ClosedHandCursor);

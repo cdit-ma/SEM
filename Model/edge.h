@@ -36,14 +36,10 @@ public:
     bool isAssemblyLink();
     bool isComponentLink();
 
+
     bool isDelegateLink();
     bool contains(Node *item);
     QString toString();
-
-signals:
-    //Used to construct and tear down GUI elements.
-    void constructGUI(Edge*);
-    void destructGUI(Edge*, QString , QString, QString);
 
 
 private:

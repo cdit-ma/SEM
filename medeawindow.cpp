@@ -2241,6 +2241,8 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
         actionContextMenu->setEnabled(enable);
     }else if(action == "nodesSelected"){
         actionSort->setEnabled(enable);
+    }else if(action == "localdeployment"){
+        cuts_runGeneration->setEnabled(enable);
     }
 }
 

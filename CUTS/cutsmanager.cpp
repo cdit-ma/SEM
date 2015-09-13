@@ -143,7 +143,7 @@ void CUTSManager::executeCPPCompilation(QString makePath)
 
         if(MAX_EXECUTING_PROCESSES > 1){
             //Multithread
-            args << "-j" << MAX_EXECUTING_PROCESSES;
+            args << "-j" << QString::number(MAX_EXECUTING_PROCESSES);
         }
 
         QString slnPath;

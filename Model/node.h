@@ -145,6 +145,7 @@ private:
 
     int sortOrder;
 
+
     Node* parentNode;
     Node* definition;
 

@@ -84,6 +84,7 @@ public:
     bool canImportSnippet(QStringList selection);
     bool canUndo();
     bool canRedo();
+    bool canLocalDeploy();
 
     QString getDefinition(QString ID);
     QString getImplementation(QString ID);
@@ -367,7 +368,7 @@ private:
     Node* interfaceDefinitions;
     Node* hardwareDefinitions;
     Node* assemblyDefinitions;
-
+    Node* localhostNode;
 
     //List of undeleteable nodes
     QList<Node*> protectedNodes;

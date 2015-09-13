@@ -3146,8 +3146,8 @@ void NewController::setupLocalNode()
         }
     }
 
-
-       protectedNodes << constructChildNode(hardwareDefinitions, localNodeData);
+    localhostNode = constructChildNode(hardwareDefinitions, localNodeData);
+    protectedNodes << localhostNode;
 }
 
 GraphML *NewController::getGraphMLFromID(QString ID)
@@ -3984,6 +3984,29 @@ bool NewController::canRedo()
 {
 
     return !redoActionStack.isEmpty();
+}
+
+/**
+ * @brief NewController::canLocalDeploy Checks to see if Model only contains deployment edges to the local node.
+ * @return
+ */
+bool NewController::canLocalDeploy()
+{
+    bool isDeployable = false;
+    //Check to see if all nodes in the assembly definitions are deployed to the localhost node.
+    foreach(Node* node, assemblyDefinitions->getChildren()){
+        foreach(Edge* edge, node->getEdges(0)){
+            if(edge->isDeploymentLink()){
+                if(!edge->contains(localhostNode)){
+                    return false;
+                }else{
+                    isDeployable = true;
+                }
+                break;
+            }
+        }
+    }
+    return isDeployable;
 }
 
 QString NewController::getDefinition(QString ID)
