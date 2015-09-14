@@ -23,7 +23,7 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 
 public:
-    enum VIEW_STATE{VS_NONE, VS_RUBBERBAND, VS_RUBBERBANDED, VS_MOVING, VS_MOVED, VS_RESIZING, VS_RESIZED, VS_PANNING, VS_PANNED};
+    enum VIEW_STATE{VS_NONE, VS_RUBBERBAND, VS_RUBBERBANDING, VS_SELECTED, VS_MOVING, VS_RESIZING, VS_PAN, VS_PANNING};
 
     enum ALIGN{NONE, HORIZONTAL, VERTICAL};
     NodeView(bool subView = false, QWidget *parent = 0);
@@ -176,6 +176,11 @@ signals:
     void view_QuestionAnswered(bool answer);
 
 public slots:
+
+    void setStateResizing();
+    void setStateMove();
+    void setStateMoving();
+    void setStateSelected();
     void request_ImportSnippet();
     void hardwareDockOpened(bool opened);
     void showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID);
@@ -227,9 +232,9 @@ public slots:
     void appendToSelection(GraphMLItem* item, bool updateActions=true);
     void removeFromSelection(GraphMLItem* item);
     void moveSelection(QPointF delta);
-    void resizeSelection(QSizeF delta);
+    void resizeSelection(QString ID, QSizeF delta);
     void moveFinished();
-    void resizeFinished();
+    void resizeFinished(QString ID);
     void clearSelection(bool updateTable = true, bool updateDocks = true);
 
     void toggleGridLines(bool gridOn);
@@ -305,6 +310,7 @@ public slots:
     void hardwareClusterChildrenViewMenuClosed(NodeItem* nodeItem);
 
 private:
+    void setState(VIEW_STATE newState);
     void selectJenkinsImportedNodes();
 
     void ensureAspect(QString ID);
@@ -427,8 +433,7 @@ private:
     QStack<QPointF> viewModelPositions;
     QStack<QRectF> viewCenteredRectangles;
 
-    bool IS_RESIZING;
-    bool IS_MOVING;
+
     bool managementComponentVisible;
     bool localNodeVisible;
     bool AUTO_CENTER_ASPECTS;
@@ -473,9 +478,6 @@ private:
     bool IS_DESTRUCTING;
     bool updateDeployment;
 
-    bool IS_PANNING;
-    bool HAS_PANNED;
-
     QPointF panningSceneOrigin;
 
     QString currentTableID;
@@ -483,6 +485,7 @@ private:
     bool hardwareDockOpen;
     bool clearingModel;
     bool eventFromEdgeItem;
+    bool wasPanning;
 
     VIEW_STATE viewState;
 };

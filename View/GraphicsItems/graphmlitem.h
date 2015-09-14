@@ -46,7 +46,7 @@ signals:
 
     void GraphMLItem_AppendSelected(GraphMLItem*);
     void GraphMLItem_RemoveSelected(GraphMLItem*);
-    void GraphMLItem_ClearSelection(bool updateTable);
+    void GraphMLItem_ClearSelection(bool updateTable = false);
     void GraphMLItem_PositionSizeChanged(GraphMLItem*, bool = false);
 private:
     bool IS_DELETING;

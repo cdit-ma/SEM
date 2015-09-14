@@ -43,6 +43,7 @@
  */
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
+    wasPanning = false;
     centralizedNodeItem = 0;
     constructedFromImport = true;
     toolbarJustClosed = false;
@@ -51,9 +52,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     toolbarDockConstruction = false;
     importFromJenkins = false;
     hardwareDockOpen = false;
-
-    IS_PANNING = false;
-    HAS_PANNED = false;
 
     IS_SUB_VIEW = subView;
 
@@ -72,8 +70,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     CENTRALIZED_ON_ITEM = false;
     MINIMAP_EVENT = false;
 
-    IS_RESIZING = false;
-    IS_MOVING = false;
+
     AUTO_CENTER_ASPECTS = false;
     GRID_LINES_ON = false;
     SELECT_ON_CONSTRUCTION = false;
@@ -156,10 +153,6 @@ NodeView::VIEW_STATE NodeView::getViewState()
     return viewState;
 }
 
-bool NodeView::hasPanned()
-{
-    return HAS_PANNED;
-}
 
 void NodeView::ensureAspect(QString ID)
 {
@@ -831,6 +824,27 @@ void NodeView::actionFinished()
     viewMutex.unlock();
 }
 
+
+void NodeView::setStateResizing()
+{
+    setState(VS_RESIZING);
+}
+
+void NodeView::setStateMove()
+{
+    setState(VS_SELECTED);
+}
+
+void NodeView::setStateMoving()
+{
+    setState(VS_MOVING);
+}
+
+void NodeView::setStateSelected()
+{
+    setState(VS_SELECTED);
+}
+
 void NodeView::request_ImportSnippet()
 {
     NodeItem* nodeItem = this->getSelectedNodeItem();
@@ -995,10 +1009,8 @@ void NodeView::setRubberBandMode(bool On)
         }
         if(On){
             setDragMode(RubberBandDrag);
-            setCursor(Qt::CrossCursor);
         }else{
             setDragMode(NoDrag);
-            unsetCursor();
             rubberBand->setVisible(false);
         }
     }
@@ -1501,6 +1513,80 @@ void NodeView::hardwareClusterChildrenViewMenuClosed(NodeItem *nodeItem)
     }
 }
 
+void NodeView::setState(NodeView::VIEW_STATE newState)
+{
+
+    if(viewState == VS_NONE){
+        if(newState == VS_PAN){
+            viewState = VS_PAN;
+            setCursor(Qt::ClosedHandCursor);
+        }else if(newState == VS_RUBBERBAND){
+            viewState = VS_RUBBERBAND;
+            setRubberBandMode(true);
+            setCursor(Qt::CrossCursor);
+        }else if(newState == VS_SELECTED){
+            viewState = VS_SELECTED;
+        }
+    }else if(viewState == VS_RESIZING){
+        if(newState == VS_NONE || newState == VS_SELECTED){
+            viewState = newState;
+            unsetCursor();
+        }
+    }else if(viewState == VS_SELECTED){
+        if(newState == VS_NONE){
+            viewState = VS_NONE;
+        }else if(newState == VS_MOVING){
+            viewState = VS_MOVING;
+            triggerAction("Moving Selection");
+            setCursor(Qt::SizeAllCursor);
+        }else if(newState == VS_RESIZING){
+            viewState = VS_RESIZING;
+            triggerAction("Resizing Selection");
+            setCursor(Qt::SizeAllCursor);
+        }else if(newState == VS_PAN){
+            viewState = VS_PAN;
+        }else if(newState == VS_RUBBERBAND){
+            viewState = VS_RUBBERBAND;
+        }
+    }else if(viewState == VS_MOVING){
+        if(newState == VS_NONE || newState == VS_SELECTED){
+            viewState = newState;
+            unsetCursor();
+        }
+    }else if(viewState == VS_RUBBERBAND || viewState == VS_RUBBERBANDING){
+        if(newState == VS_NONE || newState == VS_SELECTED){
+            viewState = newState;
+            setRubberBandMode(false);
+            unsetCursor();
+        }else{
+            if(newState == VS_RUBBERBANDING || newState == VS_RUBBERBAND){
+                viewState = newState;
+            }
+        }
+    }else if(viewState == VS_PAN || viewState == VS_PANNING){
+        if(newState == VS_NONE){
+            viewState = VS_NONE;
+        }else if(viewState != VS_PANNING && newState == VS_PANNING){
+            setCursor(Qt::ClosedHandCursor);
+            viewState = VS_PANNING;
+            wasPanning = true;
+        }else if(newState == VS_SELECTED){
+            viewState = VS_SELECTED;
+        }
+        if(viewState == VS_NONE || viewState == VS_SELECTED){
+            unsetCursor();
+        }
+    }
+
+    //viewState = newState;
+
+    if(viewState == VS_NONE){
+        unsetCursor();
+    }
+
+
+}
+
 
 void NodeView::_deleteFromIDs(QStringList IDs)
 {
@@ -1546,11 +1632,11 @@ void NodeView::enableClipboardActions()
  */
 void NodeView::showToolbar(QPoint position)
 {
-    if(hasPanned()){
-        //If we have panned, we shouldn't show the tooblar.
-        HAS_PANNED = false;
+    if(wasPanning){
+        wasPanning = false;
         return;
     }
+
     // only show the toolbar if there is at least one node item selected
     if (selectedIDs.count() > 0) {
 
@@ -2362,10 +2448,10 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
                 }
 
                 connect(nodeItem, SIGNAL(NodeItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
-                connect(nodeItem, SIGNAL(NodeItem_ResizeSelection(QSizeF)), this, SLOT(resizeSelection(QSizeF)));
+                connect(nodeItem, SIGNAL(NodeItem_ResizeSelection(QString, QSizeF)), this, SLOT(resizeSelection(QString, QSizeF)));
                 connect(nodeItem, SIGNAL(NodeItem_SortModel()), this, SLOT(sortModel()));
                 connect(nodeItem, SIGNAL(NodeItem_MoveFinished()), this, SLOT(moveFinished()));
-                connect(nodeItem, SIGNAL(NodeItem_ResizeFinished()), this, SLOT(resizeFinished()));
+                connect(nodeItem, SIGNAL(NodeItem_ResizeFinished(QString)), this, SLOT(resizeFinished(QString)));
                 connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
                 connect(nodeItem, SIGNAL(Nodeitem_HasFocus(bool)), this, SLOT(editableItemHasFocus(bool)));
 
@@ -2785,20 +2871,18 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         return;
     }
 
-    if(viewState == VS_RUBBERBANDED){
+    if(viewState == VS_RUBBERBANDING){
         if(event->button() == Qt::LeftButton){
-            if(viewState == VS_RUBBERBANDED){
-                QPoint screenOrigin = rubberBand->pos();
-                QPoint screenFinish = screenOrigin + QPoint(rubberBand->width(), rubberBand->height());
-                QPointF sceneOrigin = mapToScene(screenOrigin);
-                QPointF sceneFinish = mapToScene(screenFinish);
-                selectedInRubberBand(sceneOrigin, sceneFinish);
-                rubberBand->setVisible(false);
-                viewState = VS_RUBBERBAND;
-            }
+            QPoint screenOrigin = rubberBand->pos();
+            QPoint screenFinish = screenOrigin + QPoint(rubberBand->width(), rubberBand->height());
+            QPointF sceneOrigin = mapToScene(screenOrigin);
+            QPointF sceneFinish = mapToScene(screenFinish);
+            selectedInRubberBand(sceneOrigin, sceneFinish);
+            rubberBand->setVisible(false);
+            setState(VS_RUBBERBAND);
         }
-    }
-    if(viewState == VS_NONE){
+        return;
+    }else if(viewState == VS_NONE){
         if(event->button() == Qt::MiddleButton){
             GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
 
@@ -2807,10 +2891,14 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
                 fitToScreen();
             }
         }
-    }else if(viewState == VS_PANNING || viewState == VS_PANNED){
-        //Clear state.
-        viewState = VS_NONE;
-        unsetCursor();
+        return;
+    }else if(viewState == VS_PAN || viewState == VS_PANNING){
+        if(selectedIDs.length() > 0){
+            setState(VS_SELECTED);
+        }else{
+            setState(VS_NONE);
+        }
+        return;
     }
 
     QGraphicsView::mouseReleaseEvent(event);
@@ -2823,17 +2911,18 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
  */
 void NodeView::mouseMoveEvent(QMouseEvent *event)
 {
+    qCritical() << getViewState();
     if(MINIMAP_EVENT){
         QGraphicsView::mouseMoveEvent(event);
         return;
     }
 
-    if(viewState == VS_RUBBERBANDED){
+    if(viewState == VS_RUBBERBANDING){
         rubberBand->setGeometry(QRect(rubberBandOrigin, event->pos()).normalized());
         return;
-    }else if(viewState == VS_PANNING || viewState == VS_PANNED){
-        if(viewState == VS_PANNING){
-            viewState = VS_PANNED;
+    }else if(viewState == VS_PAN || viewState == VS_PANNING){
+        if(viewState == VS_PAN){
+            setState(VS_PANNING);
         }
 
         QPointF currentScenePos = mapToScene(event->pos());
@@ -2841,8 +2930,10 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
         panningSceneOrigin = currentScenePos;
 
         adjustModelPosition(delta);
+        return;
+    }else{
+        QGraphicsView::mouseMoveEvent(event);
     }
-    QGraphicsView::mouseMoveEvent(event);
 }
 
 
@@ -2867,26 +2958,26 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     }
 
 
-    if(viewState == VS_NONE){
+    if(viewState == VS_NONE || viewState == VS_SELECTED){
         GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
         if(!item && (event->button() == Qt::LeftButton)){
             // clear the selection and disable dock buttons
             clearSelection();
         }
         if(event->button() == Qt::RightButton){
-              qCritical() << "RIGHT BUTON";
-            viewState = VS_PANNING;
+            setState(VS_PAN);
             panningSceneOrigin = mapToScene(event->pos());
-            setCursor(Qt::ClosedHandCursor);
+            return;
         }
     }else if(viewState == VS_RUBBERBAND){
         if(event->button() == Qt::LeftButton){
+            setState(VS_RUBBERBANDING);
             rubberBandOrigin = event->pos();
             //Move rubberband to the position on the screen.
             rubberBand->setGeometry(QRect(rubberBandOrigin, QSize()));
             rubberBand->setVisible(true);
-            viewState = VS_RUBBERBANDED;
         }
+        return;
     }
 
 
@@ -2934,44 +3025,29 @@ void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
  */
 void NodeView::keyPressEvent(QKeyEvent *event)
 {
-
-    if(IS_MOVING){
-        //FINALIZE MOVE
-        moveFinished();
-    }
-    if(IS_RESIZING){
-        resizeFinished();
-    }
-
-
-
     bool CONTROL = event->modifiers() & Qt::ControlModifier;
     bool SHIFT = event->modifiers() & Qt::ShiftModifier;
 
-    bool rubberbandMode = CONTROL && SHIFT;
     //Only allow transition from none state.
-    if(rubberbandMode && viewState == VS_NONE){
-        viewState = VS_RUBBERBAND;
-        setRubberBandMode(true);
+    if((viewState == VS_NONE || viewState == VS_SELECTED) && (CONTROL && SHIFT)){
+        setState(VS_RUBBERBAND);
     }
 
-    if(this->hasFocus()){
-
-        if(CONTROL && event->key() == Qt::Key_A){
-            if (!editingNodeItemLabel) {
-                selectAll();
-            }
+    if(hasFocus()){
+        if(CONTROL){
+           if(event->key() == Qt::Key_A){
+               if (!editingNodeItemLabel) {
+                   selectAll();
+               }
+           }else if(event->key() == Qt::Key_D){
+               replicate();
+           }
         }
 
-        if(CONTROL && event->key() == Qt::Key_D){
-            replicate();
+        if (event->key() == Qt::Key_Escape){
+            setState(VS_NONE);
+            clearSelection();
         }
-
-    }
-
-    // Added this to clear selection
-    if (event->key() == Qt::Key_Escape){
-        clearSelection();
     }
 
     QGraphicsView::keyPressEvent(event);
@@ -2993,9 +3069,13 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
     bool rubberbandMode = CONTROL && SHIFT;
 
     //Only allow transition from none state.
-    if(!rubberbandMode && (viewState == VS_RUBBERBAND || viewState == VS_RUBBERBANDED)){
-        viewState = VS_NONE;
-        setRubberBandMode(false);
+    if(!rubberbandMode && (viewState == VS_RUBBERBAND || viewState == VS_RUBBERBANDING)){
+        //Only allow transition from none state.
+        if(selectedIDs.length() > 0){
+            setState(VS_SELECTED);
+        }else{
+            setState(VS_NONE);
+        }
     }
 
 
@@ -3351,140 +3431,133 @@ void NodeView::removeFromSelection(GraphMLItem *item)
 
 void NodeView::moveSelection(QPointF delta)
 {
-    bool canReduceX = true;
-    bool canReduceY = true;
+    if(viewState == VS_MOVING){
+        bool canReduceX = true;
+        bool canReduceY = true;
 
-    foreach(QString ID, selectedIDs){
+        foreach(QString ID, selectedIDs){
+            GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+            GraphML* graphml = graphMLItem->getGraphML();
 
-        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+            if(graphml && graphml->isNode()){
+                NodeItem* nodeItem = (NodeItem*) graphMLItem;
+                QPointF resultingPosition = nodeItem->pos() + delta;
 
-        GraphML* graphml = graphMLItem->getGraphML();
-        if(graphml && graphml->isNode()){
+                // added this so that the Definitions containers can be moved outside of the Model
+                //if (nodeItem->getNodeKind().endsWith("Definitions")) {
+                //    canReduceX = true;
+                //    canReduceY = true;
+                //    continue;
+                //}
 
-            NodeItem* nodeItem = (NodeItem*) graphMLItem;
-            QPointF resultingPosition = nodeItem->pos() + delta;
+                qreal minX = 0;
+                qreal minY = 0;
+                if(nodeItem->getParentNodeItem()){
+                    QRectF gridRect = nodeItem->getParentNodeItem()->gridRect();
+                    minX = gridRect.left();
+                    minY = gridRect.top();
+                }
 
-            // added this so that the Definitions containers can be moved outside of the Model
-            if (nodeItem->getNodeKind().endsWith("Definitions")) {
-                canReduceX = true;
-                canReduceY = true;
-                continue;
-            }
-
-            qreal minX = 0;
-            qreal minY = 0;
-            if(nodeItem->getParentNodeItem()){
-                QRectF gridRect = nodeItem->getParentNodeItem()->gridRect();
-                minX = gridRect.left();
-                minY = gridRect.top();
-            }
-
-            if(resultingPosition.x() < minX){
-                canReduceX = false;
-            }
-            if(resultingPosition.y() < minY){
-                canReduceY = false;
-            }
-        }
-    }
-
-    if(!canReduceX){
-        delta.setX(qMax(0.0, delta.x()));
-    }
-
-    if(!canReduceY){
-        delta.setY(qMax(0.0, delta.y()));
-    }
-
-    // find out if there is an aspect selected
-    bool containsAspectEntity = false;
-    bool allAspectEntities = true;
-
-    foreach(QString ID, selectedIDs){
-        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
-        if (graphMLItem && graphMLItem->isNodeItem()) {
-            NodeItem* item = (NodeItem*) graphMLItem;
-            if (item->getNodeKind().endsWith("Definitions")) {
-                containsAspectEntity = true;
-            } else {
-                allAspectEntities = false;
+                if(resultingPosition.x() < minX){
+                    canReduceX = false;
+                }
+                if(resultingPosition.y() < minY){
+                    canReduceY = false;
+                }
             }
         }
-    }
 
-    // if all selected entities are aspects, move the model item accordingly
-    if (allAspectEntities) {
-        adjustModelPosition(delta);
-        return;
-    }
+        if(!canReduceX){
+            delta.setX(qMax(0.0, delta.x()));
+        }
 
-    // if there is at least one aspect selected, don't move any of the selected items
-    if (containsAspectEntity) {
-        return;
-    }
+        if(!canReduceY){
+            delta.setY(qMax(0.0, delta.y()));
+        }
 
-    foreach(QString ID, selectedIDs){
-        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+        /*
+        // find out if there is an aspect selected
+        bool containsAspectEntity = false;
+        bool allAspectEntities = true;
 
+        foreach(QString ID, selectedIDs){
+            GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+            if (graphMLItem && graphMLItem->isNodeItem()) {
+                NodeItem* item = (NodeItem*) graphMLItem;
+                if (item->getNodeKind().endsWith("Definitions")) {
+                    containsAspectEntity = true;
+                } else {
+                    allAspectEntities = false;
+                }
+            }
+        }
 
-        GraphML* graphml = graphMLItem->getGraphML();
-        if(graphml && graphml->isNode()){
-            NodeItem* nodeItem = (NodeItem*) graphMLItem;
-            nodeItem->setNodeMoving(true);
-            nodeItem->adjustPos(delta);
-            IS_MOVING = true;
+        // if all selected entities are aspects, move the model item accordingly
+        if (allAspectEntities) {
+            adjustModelPosition(delta);
+            return;
+        }
+
+        // if there is at least one aspect selected, don't move any of the selected items
+        if (containsAspectEntity) {
+            return;
+        }*/
+
+        foreach(QString ID, selectedIDs){
+            GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+            GraphML* graphml = graphMLItem->getGraphML();
+
+            if(graphml && graphml->isNode()){
+                NodeItem* nodeItem = (NodeItem*) graphMLItem;
+                if(nodeItem->getParentNodeItem()){
+                    nodeItem->getParentNodeItem()->setGridVisible(true);
+                }
+
+                nodeItem->adjustPos(delta);
+            }
         }
     }
 }
 
-void NodeView::resizeSelection(QSizeF delta)
-{
-    if(!getSelectedNode()){
-        return;
-    }
-
-    foreach(QString ID, selectedIDs){
-        IS_RESIZING = true;
+void NodeView::resizeSelection(QString ID, QSizeF delta)
+{   
+    //Cannot resize from any state except None and Resizing.
+    if(viewState == VS_RESIZING){
         GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
         GraphML* graphml = graphMLItem->getGraphML();
         if(graphml && graphml->isNode()){
             NodeItem* nodeItem = (NodeItem*) graphMLItem;
-            nodeItem->setNodeResizing(true);
             nodeItem->adjustSize(delta);
         }
     }
-
 }
 
 void NodeView::moveFinished()
 {
-    IS_MOVING = false;
-
 
     foreach(QString ID, selectedIDs){
         GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
         if(currentItem && currentItem->isNodeItem()){
             NodeItem* nodeItem = (NodeItem*) currentItem;
-            nodeItem->setNodeMoving(false);
-            //nodeItem->updateModel();
+            if(nodeItem->getParentNodeItem()){
+                nodeItem->getParentNodeItem()->setGridVisible(false);
+            }
             nodeItem->updateModelPosition();
         }
     }
+
+    setState(VS_SELECTED);
 }
 
-void NodeView::resizeFinished()
+void NodeView::resizeFinished(QString ID)
 {
 
-    foreach(QString ID, selectedIDs){
-        GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
-        if(currentItem && currentItem->isNodeItem()){
-            NodeItem* nodeItem = (NodeItem*) currentItem;
-            nodeItem->setNodeResizing(false);
-            //nodeItem->updateModel();
-            nodeItem->updateModelSize();
-        }
-        IS_RESIZING = false;
+    GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
+    if(currentItem && currentItem->isNodeItem()){
+        NodeItem* nodeItem = (NodeItem*) currentItem;
+        nodeItem->updateModelSize();
     }
+    setState(VS_SELECTED);
 }
 
 
@@ -3519,6 +3592,8 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
     if (updateTable) {
         setAttributeModel(0,false);
     }
+
+    //setState(VS_NONE);
 
     // update menu and toolbar actions
     updateActionsEnabled();

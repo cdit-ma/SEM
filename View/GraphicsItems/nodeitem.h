@@ -95,6 +95,9 @@ public:
 
     bool modelCirclePressed(QPointF mousePosition);
     bool labelPressed(QPointF mousePosition);
+    bool deploymentIconPressed(QPointF mousePosition);
+    bool lockIconPressed(QPointF mousePosition);
+    bool labelEditable();
     bool iconPressed(QPointF mousePosition);
 
     bool menuArrowPressed(QPointF mousePosition);
@@ -103,8 +106,7 @@ public:
     NodeItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
 
 
-    void setNodeMoving(bool moving);
-    void setNodeResizing(bool resizing);
+
     bool isExpanded();
     bool isContracted();
     bool isHidden();
@@ -165,9 +167,9 @@ signals:
     void model_PositionChanged();
     void NodeItem_SortModel();
     void NodeItem_MoveSelection(QPointF delta);
-    void NodeItem_ResizeSelection(QSizeF delta);
+    void NodeItem_ResizeSelection(QString ID, QSizeF delta);
     void NodeItem_MoveFinished();
-    void NodeItem_ResizeFinished();
+    void NodeItem_ResizeFinished(QString ID);
 
  	void Nodeitem_HasFocus(bool hasFocus);
 
@@ -250,12 +252,16 @@ private:
     QPolygonF resizePolygon();
 
 
-
+    void sendSelectSignal(bool setSelected, bool controlDown);
     //USED PARAMETERS;
     bool hasIcon;
     bool showDeploymentWarningIcon;
 
     bool compareTo2Decimals(qreal num1, qreal num2);
+
+    bool isInResizeMode();
+    bool isMoveable();
+    bool isResizeable();
     void updateModelData();
 
 
@@ -325,7 +331,7 @@ private:
     QString fileID;
 
     bool isNodeExpanded;
-    bool isNodePressed;
+
     bool isNodeSelected;
     bool isGridVisible;
     bool isInSubView;
@@ -335,13 +341,10 @@ private:
     bool isNodeOnGrid;
     bool nodeWasOnGrid;
 
-    bool isSelectionMoving;
-    bool hasSelectionMoved;
 
 
 
-    bool isSelectionResizing;
-    bool hasSelectionResized;
+
 
     bool GRIDLINES_ON;
 

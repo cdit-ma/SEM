@@ -59,8 +59,6 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     parentNodeItem = parent;
     showDeploymentWarningIcon = false;
     isNodeSelected = false;
-    setNodeResizing(false);
-    setNodeMoving(false);
     nodeWasOnGrid = false;
 
     
@@ -76,11 +74,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     isGridVisible = false;
     isNodeOnGrid = false;
 
-    isNodePressed = false;
     isNodeExpanded = true;
     hidden = false;
-    hasSelectionMoved = false;
-    hasSelectionResized = false;
+
     
     hasDefinition = false;
     isImplOrInstance = false;
@@ -523,7 +519,9 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         
         
         //If the Node is over a Gridline, set the background Brush to transluscent.
-        if(isNodeOnGrid && (isSelectionMoving || isSelectionResizing)){
+
+        NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+        if(isSelected() && isNodeOnGrid && (viewState == NodeView::VS_MOVING || viewState == NodeView::VS_RESIZING)){
             QColor brushColor = Brush.color();
             if(brushColor.alpha() > 120){
                 brushColor.setAlpha(120);
@@ -828,6 +826,24 @@ bool NodeItem::labelPressed(QPointF mousePosition)
     return false;
 }
 
+bool NodeItem::deploymentIconPressed(QPointF mousePosition)
+{
+    return deploymentIconRect().contains(mousePosition);
+}
+
+bool NodeItem::lockIconPressed(QPointF mousePosition)
+{
+    return lockIconRect().contains(mousePosition);
+}
+
+bool NodeItem::labelEditable()
+{
+    if(getGraphML()){
+        return getGraphML()->getData("label") && (!getGraphML()->getData("label")->isProtected());
+    }
+    return false;
+}
+
 
 bool NodeItem::iconPressed(QPointF mousePosition)
 {
@@ -891,21 +907,6 @@ NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
     
     return NO_RESIZE;
 }
-
-void NodeItem::setNodeMoving(bool moving)
-{
-    isSelectionMoving = moving;
-    hasSelectionMoved = true;
-}
-
-void NodeItem::setNodeResizing(bool resizing)
-{
-    isSelectionResizing = resizing;
-    if(!isSelectionResizing){
-        currentResizeMode = NO_RESIZE;
-    }
-}
-
 
 /**
  * @brief NodeItem::isHidden
@@ -1410,78 +1411,39 @@ void NodeItem::modelSort()
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    if(!contains(event->pos())){
-        QGraphicsItem::mousePressEvent(event);
+    //Ignore mouse Presses outside of this item
+    if(!contains(event->pos()) || !PAINT_OBJECT){
+        qCritical() << "NOT PAINTINT";
+        if(nodeKind == "Model" && !modelCirclePressed(event->pos())){
+            emit GraphMLItem_ClearSelection(true);
+            return;
+        }
         return;
     }
 
-    if(!PAINT_OBJECT){
-        if(nodeKind == "Model" && !modelCirclePressed(event->pos())){\
-            GraphMLItem_ClearSelection(true); // need to update table!
-            QGraphicsItem::mousePressEvent(event);
-            return;
-        }
-    }
+    bool control = event->modifiers().testFlag(Qt::ControlModifier);
 
-    switch (event->button()) {
-    
-    case Qt::MiddleButton:{
-        break;
-    }
-    case Qt::LeftButton:{
-        
-        // check if the lock icon was clicked
-        if (menuArrowPressed(event->scenePos())) {
+    if(event->button() == Qt::LeftButton){
+
+        // Check if the lock icon was clicked
+        if (menuArrowPressed(event->scenePos())){
             emit NodeItem_showLockMenu(this);
             return;
         }
 
 
+
+
+
+        //Enter Selected Mode.
+        getNodeView()->setStateSelected();
+
+        sendSelectSignal(true, control);
+
+
+
+
         previousScenePosition = event->scenePos();
-        hasSelectionMoved = false;
-        hasSelectionResized = false;
-        isNodePressed = true;
-
-        // left-clicking on an item should select only the
-        // clicked item whether CTRL is held down or not
-        /*
-        if (event->modifiers().testFlag(Qt::ControlModifier)) {
-            if (isSelected()) {
-                GraphMLItem_RemoveSelected(this);
-            } else {
-                GraphMLItem_AppendSelected(this);
-            }
-        } else {
-            GraphMLItem_ClearSelection(true);
-            GraphMLItem_AppendSelected(this);
-        }
-        */
-
-        if(getNodeView()->getViewState() != NodeView::VS_NONE){
-            break;
-        }
-        ///*
-        if(!isSelected()){
-            if (event->modifiers().testFlag(Qt::ControlModifier)){
-                //CONTROL PRESSED
-                GraphMLItem_AppendSelected(this);
-            }else{
-                GraphMLItem_ClearSelection(true);
-                GraphMLItem_AppendSelected(this);
-            }
-        }else{
-            if (event->modifiers().testFlag(Qt::ControlModifier)){
-                //Check for parent selection.
-                GraphMLItem_RemoveSelected(this);
-            }
-        }
-
-        break;
-    }
-
-        
-    default:
-        break;
     }
 }
 
@@ -1491,37 +1453,17 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     if(isInSubView){
         return;
     }
-    switch (event->button()) {
-    case Qt::LeftButton:{
-        
-        // added this to center aspects when double-clicking on !PAINTED items
-        //if(!PAINT_OBJECT && nodeKind != "Model"){
-        
-        // needed to change it to this other wise you can't center
-        // the aspects by double clicking on the model
-        if(!PAINT_OBJECT  && !modelCirclePressed(event->pos())){
-            GraphMLItem_CenterAspects();
+
+    if(event->button() == Qt::LeftButton){
+        //Handle Double-Clicking the label.
+        if(labelPressed(event->pos()) && labelEditable()){
+            textItem->setEditMode(true);
             return;
         }
-        
-        if(labelPressed(event->pos())){
-            if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
-                //Make sure we set the real current value.
-                //textItem->setPlainText(getGraphML()->getDataValue("label"));
-                textItem->setEditMode(true);
-            }
-            break;
-        }
-        
+
+        //Handle Double-Clicking on the Icon.
         if(iconPressed(event->pos())){
-            bool anyVisibleChildren = false;
-            foreach(NodeItem* childNode, childNodeItems){
-                if(!childNode->isHidden()){
-                    anyVisibleChildren = true;
-                    break;
-                }
-            }
-            if(anyVisibleChildren){
+            if(hasVisibleChildren()){
                 if(isExpanded()){
                     GraphMLItem_TriggerAction("Contracted Node Item");
                 }else{
@@ -1531,173 +1473,99 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
                 setNodeExpanded(!isExpanded());
                 updateModelSize();
             }
-            
-            break;
+            return;
         }
-        if(hasVisibleChildren() && resizeEntered(event->pos()) == RESIZE){
-            GraphMLItem_TriggerAction("Optimizes Size of NodeItem");
-            resizeToOptimumSize();
-            updateModelSize();
-            break;
+
+        //Handle Double-Clicking on the Resize Icon
+        if(resizeEntered(event->pos()) == RESIZE){
+            if(hasVisibleChildren()){
+                GraphMLItem_TriggerAction("Optimizes Size of NodeItem");
+                resizeToOptimumSize();
+                updateModelSize();
+            }
+            return;
         }
-        
-        if (nodeKind == "Model") {
+
+        //Handle Double-Clicking anywhere on the model.
+        if(nodeKind == "Model"){
             GraphMLItem_CenterAspects();
-        } else {
-            GraphMLItem_SetCentered(this);
         }
-    }
-    default:
-        break;
     }
 }
 
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    switch (event->button()) {
-    case Qt::LeftButton:{
-        if(!PAINT_OBJECT && nodeKind != "Model"){
-            GraphMLItem_ClearSelection(true);
-            return;
-        }
-        unsetCursor();
-        
-        if (hasSelectionMoved){
-            
+    bool control = event->modifiers().testFlag(Qt::ControlModifier);
+    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    if(event->button() == Qt::LeftButton){
+        if(viewState == NodeView::VS_MOVING){
             if(parentNodeItem){
                 parentNodeItem->setGridVisible(false);
             }
-            
-            if (!currentSceneRect.contains(scenePos()) ||
-                    !currentSceneRect.contains(scenePos().x()+width, scenePos().y()+height)) {
-                //GraphMLItem_MovedOutOfScene(this);
+            emit NodeItem_MoveFinished();
+        }
+        if(viewState == NodeView::VS_RESIZING){
+            emit NodeItem_ResizeFinished(getID());
+            currentResizeMode = NO_RESIZE;
+        }
+    }else if(event->button() == Qt::MiddleButton){
+        if(!getNodeView()->isSubView()){
+            if(control){
+                GraphMLItem_TriggerAction("Sorting Node");
+                newSort();
+            }else{
+                emit GraphMLItem_SetCentered(this);
             }
-            
-            isSelectionMoving = false;
-            NodeItem_MoveFinished();
-        }else{
         }
-        
-        if(hasSelectionResized){
-            isSelectionResizing = false;
-            NodeItem_ResizeFinished();
-            
+    }else if(event->button() == Qt::RightButton){
+        if(!(viewState == NodeView::VS_PAN || viewState == NodeView::VS_PANNING)){
+            //Select before opening menu.
+            sendSelectSignal(true, control);
         }
-        currentResizeMode = NO_RESIZE;
-        
-        
-        // have to reset cursor here otherwise it's stuck on Qt::SizeAllCursor after being moved
-
-        
-        /*if (nodeKind.endsWith("Definitions")) {
-            QGraphicsItem::mouseReleaseEvent(event);
-        }*/
-        
-        isNodePressed = false;
-        break;
-    }
-    case Qt::MiddleButton:{
-        if(!PAINT_OBJECT) { // && nodeKind != "Model"){
-            //emit centerViewAspects();
-            GraphMLItem_CenterAspects();
-            return;
-        }
-        
-        if (this->getNodeView() && !getNodeView()->isSubView() && event->modifiers().testFlag(Qt::ControlModifier)) {
-            GraphMLItem_TriggerAction("Sorting Node");
-            newSort();
-        } else {
-            GraphMLItem_SetCentered(this);
-        }
-        
-        break;
-    }
-    case Qt::RightButton:{
-       if(!getNodeView()->hasPanned()){
-           if(!isSelected()){
-               if (!event->modifiers().testFlag(Qt::ControlModifier)){
-                   //Check for parent selection.
-                   GraphMLItem_ClearSelection(false);
-               }
-               GraphMLItem_AppendSelected(this);
-           }
-       }
-    }
-        
-    default:
-        break;
     }
 }
 
 
 void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-
-
-    
-    if(!PAINT_OBJECT){//|| nodeKind.endsWith("Definitions")){
-        //QGraphicsItem::mouseMoveEvent(event);
-        //event->setAccepted(false);
+    if(!PAINT_OBJECT){
         return;
     }
 
-    if(event->button() == Qt::RightButton){
-        QPoint start = event->buttonDownScreenPos(Qt::RightButton);
-        QPoint end = event->screenPos();
+    currentResizeMode = resizeEntered(event->buttonDownPos(Qt::LeftButton));
 
-        QLineF line(start, end);
-
-        if(line.length() > 5){
-            hasPanned = true;
-        }
-    }
-
-    
-    if(isNodePressed && isNodeSelected){
-        if(currentResizeMode != NO_RESIZE){
-            if(!hasSelectionResized){
-                GraphMLItem_TriggerAction("Resizing Selection");
-                hasSelectionResized = true;
-                isSelectionResizing = true;
+    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    if(isSelected() && event->buttons() == Qt::LeftButton){
+        if(currentResizeMode != NO_RESIZE || viewState == NodeView::VS_RESIZING){
+            if(viewState == NodeView::VS_SELECTED){
+                getNodeView()->setStateResizing();
             }
-            if(isSelectionResizing){
-                QPointF delta = (event->scenePos() - previousScenePosition);
-                QSizeF dSize(delta.x(), delta.y());
-                
-                if(currentResizeMode == HORIZONTAL_RESIZE){
-                    dSize.setHeight(0);
-                }else if(currentResizeMode == VERTICAL_RESIZE){
-                    dSize.setWidth(0);
+
+            QPointF deltaPos = (event->scenePos() - previousScenePosition);
+            previousScenePosition = event->scenePos();
+            QSizeF deltaSize(deltaPos.x(), deltaPos.y());
+
+            if(currentResizeMode == HORIZONTAL_RESIZE){
+                deltaSize.setHeight(0);
+            }else if(currentResizeMode == VERTICAL_RESIZE){
+                deltaSize.setWidth(0);
+            }
+
+            emit NodeItem_ResizeSelection(getID(), deltaSize);
+        }else if(viewState == NodeView::VS_SELECTED || viewState == NodeView::VS_MOVING){
+
+            if(isMoveable()){
+                if(viewState == NodeView::VS_SELECTED){
+                    getNodeView()->setStateMoving();
                 }
-                
-                NodeItem_ResizeSelection(dSize);
-            }
-            
-        }else{
-            if(hasSelectionMoved == false){ // && !nodeKind.endsWith("Definitions")){
-                if(nodeKind.endsWith("Definitions") || nodeKind == "Model"){
-                    //Don't add action.
-                }else{
-                    GraphMLItem_TriggerAction("Moving Selection");
 
+                QPointF deltaPos = (event->scenePos() - previousScenePosition);
+                previousScenePosition = event->scenePos();
 
-                    setCursor(Qt::SizeAllCursor);
-                    if(parentNodeItem){
-                        parentNodeItem->setGridVisible(true);
-                    }
-                    hasSelectionMoved = true;
-                    isSelectionMoving = true;
-                }
-            }
-            if(isSelectionMoving){
-                QPointF delta = (event->scenePos() - previousScenePosition);
-                
-                NodeItem_MoveSelection(delta);
+                emit NodeItem_MoveSelection(deltaPos);
             }
         }
-        previousScenePosition = event->scenePos();
-        
     }
 }
 
@@ -1712,40 +1580,36 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     
     if(hasVisibleChildren() && iconPressed(event->pos())){
         setCursor(Qt::PointingHandCursor);
-        tooltip = "Double click to expand/contract entity";
-    }
-    
-    QPointF eventPos = event->pos();
-    if (labelPressed(eventPos)) {
-        //tooltip = ;
-    }else if (lockIconRect().contains(eventPos)) {
-        if (hasDefinition) {
-            tooltip = "This entity has a definition";
-        } else {
-            tooltip = "Click to change the displayed hardware nodes";
-        }
-    }else if (deploymentIconRect().contains(eventPos)) {
-        tooltip = "Not all children entities are deployed to the same hardware node";
-    }
-    
-    // update/show tool tip depending on where the mouse is
-    setToolTip(tooltip);
-    
-    if(!isExpanded() || !hasVisibleChildren()){
+        setToolTip("Double click to expand/contract entity");
         return;
     }
+
+    if(labelPressed(event->pos())){
+        return;
+    }else if(lockIconPressed(event->pos())){
+        QString tooltip = "Click to change the displayed hardware nodes";
+        if(hasDefinition){
+            tooltip = "This entity has a definition";
+        }
+        setToolTip(tooltip);
+        return;
+    }else if(deploymentIconPressed(event->pos())){
+        setToolTip("Not all children entities are deployed to the same hardware node");
+        return;
+    }
+
     
-    if(isNodeSelected){
+    if(isNodeSelected && isResizeable()){
         currentResizeMode = resizeEntered(event->pos());
-        
+
         if(currentResizeMode == RESIZE){
             setCursor(Qt::SizeFDiagCursor);
         }else if(currentResizeMode == HORIZONTAL_RESIZE){
             setCursor(Qt::SizeHorCursor);
         }else if(currentResizeMode == VERTICAL_RESIZE){
             setCursor(Qt::SizeVerCursor);
-        }else{
-            unsetCursor();
+        }else if(currentResizeMode == NO_RESIZE){
+           unsetCursor();
         }
     }
 }
@@ -1755,7 +1619,10 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 
     Q_UNUSED(event);
     currentResizeMode = NO_RESIZE;
-    unsetCursor();
+    if(hasCursor()){
+        qCritical() << "GOT CURSOR";
+        unsetCursor();
+    }
 }
 
 
@@ -1861,6 +1728,21 @@ bool NodeItem::compareTo2Decimals(qreal num1, qreal num2)
     int number2To3 = qRound(num2 * 100.0);
     
     return number1To3 == number2To3;
+}
+
+bool NodeItem::isInResizeMode()
+{
+    return currentResizeMode != NO_RESIZE;
+}
+
+bool NodeItem::isMoveable()
+{
+    return !(nodeKind.endsWith("Definitions") || nodeKind == "Model");
+}
+
+bool NodeItem::isResizeable()
+{
+    return isSelected() && isExpanded() && this->hasVisibleChildren();
 }
 
 
@@ -2629,9 +2511,10 @@ QPointF NodeItem::isOverGrid(const QPointF centerPosition)
     //Calculate the distance between the centerPosition and the closestGrid
     qreal distance = QLineF(centerPosition, gridPoint).length();
 
+    bool isMoving = getNodeView()->getViewState() == NodeView::VS_MOVING || getNodeView()->getViewState() == NodeView::VS_RESIZING;
     //If the distance is less than the SNAP_PERCENTAGE
     if((distance / minimumWidth) <= SNAP_PERCENTAGE){
-        if(isNodeOnGrid || isSelectionMoving || isSelectionResizing){
+        if(isNodeOnGrid || isMoving){
             isNodeOnGrid = true;
             parentNodeItem->addChildOutline(this, gridPoint);
         }
@@ -2639,7 +2522,7 @@ QPointF NodeItem::isOverGrid(const QPointF centerPosition)
     }else{
         isNodeOnGrid = false;
 
-        if(isSelectionMoving || isSelectionResizing){
+        if(isMoving){
             parentNodeItem->removeChildOutline(getID());
         }
         return QPointF();
@@ -3035,6 +2918,27 @@ QPolygonF NodeItem::resizePolygon()
     return QPolygonF(points);
 }
 
+void NodeItem::sendSelectSignal(bool setSelected, bool controlDown)
+{
+    if(isSelected() && controlDown){
+        //DeSelect on control click.
+        setSelected = false;
+    }
+
+    if(isSelected() != setSelected){
+        if(setSelected && !controlDown){
+            emit GraphMLItem_ClearSelection();
+        }
+        if(setSelected){
+            emit GraphMLItem_AppendSelected(this);
+        }else{
+            emit GraphMLItem_RemoveSelected(this);
+        }
+    }
+}
+
+
+
 
 void NodeItem::parentNodeItemMoved()
 {
@@ -3275,13 +3179,15 @@ void NodeItem::updateModelPosition()
         return;
     }
 
+    bool isMoving = getNodeView()->getViewState() == NodeView::VS_MOVING || getNodeView()->getViewState() == NodeView::VS_RESIZING;
+
     //if we are over a grid line (or within a snap ratio)
     QPointF gridPoint = isOverGrid(centerPos());
     if(!gridPoint.isNull()){
         //Setting new Center Point
         setCenterPos(gridPoint);
         //If the node moved via the mouse, lock it.
-        if(hasSelectionResized || hasSelectionMoved){
+        if(isSelected() && isMoving){
             setLocked(isNodeOnGrid);
         }
     }
@@ -3313,6 +3219,8 @@ void NodeItem::updateModelSize()
     GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
     GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
     
+    bool isMoving = getNodeView()->getViewState() == NodeView::VS_MOVING || getNodeView()->getViewState() == NodeView::VS_RESIZING;
+
     //If we are over a gridline already.
     if(isNodeOnGrid){
         //Update the gridPoint.
@@ -3320,7 +3228,7 @@ void NodeItem::updateModelSize()
     }
     
     
-    if(hasSelectionResized || hasSelectionMoved){
+    if(isMoving){
         setLocked(isNodeOnGrid);
     }
     
