@@ -210,7 +210,7 @@ void DockToggleButton::on_buttonPressed()
         setColor(SELECTED, true);
     }
     emit dockButton_pressed(this->text());
-    emit dockOpen(selected);
+    emit dockButton_dockOpen(selected);
 }
 
 
@@ -264,8 +264,10 @@ void DockToggleButton::setEnabled(bool enable)
         setSelected(false);
         setColor(DISABLED);
     }
-    QPushButton::setEnabled(enable);
-    enabled = enable;
+	
+	enabled = enable;
+    QPushButton::setEnabled(enabled);
+    emit dockButton_enabled(enabled);
 }
 
 

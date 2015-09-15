@@ -36,7 +36,8 @@ protected:
 
 signals:
     void dockButton_pressed(QString buttonName);
-    void dockOpen(bool open);
+    void dockButton_enabled(bool enabled);
+    void dockButton_dockOpen(bool open);
 
 public slots:
     void on_buttonPressed();

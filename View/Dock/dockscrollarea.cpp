@@ -436,12 +436,13 @@ void DockScrollArea::clear()
     dockNodeItems.clear();
 }
 
+/**
+ * @brief DockScrollArea::clearSelected
+ */
 void DockScrollArea::clearSelected()
 {
     currentNodeItem = 0;
     currentNodeItemID = "";
-   // dockNodeIDs.clear();
-    //dockNodeItems.clear();
 }
 
 

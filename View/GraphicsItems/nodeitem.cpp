@@ -768,19 +768,29 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 imageURL = nodeHardwareOS.remove(" ") + "_" + nodeHardwareArch;
             }
         }
-        painter->drawImage(iconRect(), getNodeView()->getImage(imageURL));
+
+        QRectF re = iconRect();
+        painter->drawPixmap(re.x(), re.y(), re.width(), re.height(), getNodeView()->getImage("Items", imageURL));
     }
 
     //If a Node has a Definition, paint a Lock Icon
     if (hasDefinition){
-        painter->drawImage(lockIconRect(), getNodeView()->getImage("definition"));
+        QRectF re = lockIconRect();
+
+         painter->drawPixmap(re.x(), re.y(), re.width(), re.height(), getNodeView()->getImage("Actions", "Definition"));
     } else if (nodeKind == "HardwareCluster") {
-        painter->drawImage(lockIconRect(), getNodeView()->getImage("menu"));
+
+        QRectF re = lockIconRect();
+
+        painter->drawPixmap(re.x(), re.y(), re.width(), re.height(), getNodeView()->getImage("Actions", "MenuCluster"));
+
     }
 
     //If this Node has a Deployment Warning, paint a warning Icon
     if(showDeploymentWarningIcon){
-        painter->drawImage(deploymentIconRect(), getNodeView()->getImage("warning"));
+         QRectF re = deploymentIconRect();
+        painter->drawPixmap(re.x(), re.y(), re.width(), re.height(),
+ getNodeView()->getImage("Actions", "Warning"));
     }
 }
 
@@ -1691,7 +1701,7 @@ QRectF NodeItem::iconRect()
 QRectF NodeItem::lockIconRect()
 {
     //Calculate the size of the lock icon
-    qreal iconSize = ((1 - ICON_RATIO) * minimumWidth) / 2;
+    qreal iconSize = ((1 - ICON_RATIO) * minimumWidth) / 1;
     
     //Construct a Rectangle to represent the icon size at the origin.
     QRectF lockIcon = QRectF(0,0, iconSize, iconSize);
@@ -1709,7 +1719,7 @@ QRectF NodeItem::lockIconRect()
 QRectF NodeItem::deploymentIconRect()
 {
     //Calculate the size of the lock icon
-    qreal iconSize = ((1 - ICON_RATIO) * minimumWidth) / 2;
+    qreal iconSize = ((1 - ICON_RATIO) * minimumWidth) / 1;
     
     //Construct a Rectangle to represent the icon size at the origin.
     QRectF deploymentIcon = QRectF(0,0, iconSize, iconSize);

@@ -158,5 +158,6 @@
         <file alias="GridLayout.png">Resources/Images/Actions/GridLayout.png</file>
         <file alias="Computer.png">Resources/Images/Actions/Computer.png</file>
         <file alias="ConnectTo.png">Resources/Images/Actions/ConnectTo.png</file>
+        <file alias="MenuCluster.png">Resources/Images/Actions/MenuCluster.png</file>
     </qresource>
 </RCC>

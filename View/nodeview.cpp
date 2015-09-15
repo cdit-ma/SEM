@@ -26,6 +26,7 @@
 #include <QTime>
 #include <QTableView>
 #include <cmath>
+#include <QBitmap>
 
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
@@ -121,9 +122,12 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     nonDrawnItemKinds << "DeploymentDefinitions";
 
-    //create toolbar widget
+    // construct toolbar widget
     toolbar = new ToolbarWidget(this);
-    connect(this, SIGNAL(view_updateMenuActionEnabled(QString,bool)), toolbar, SLOT(updateActionEnabled(QString, bool)));
+ 	if (isMainView()) {
+        connect(this, SIGNAL(view_updateMenuActionEnabled(QString,bool)), toolbar, SLOT(updateActionEnabledState(QString,bool)));
+        connect(this, SIGNAL(view_HardwareDockEnabled(bool)), toolbar, SLOT(hardwareDockEnabled(bool)));
+    }
 
     // initialise the view's center point
     centerPoint = getVisibleRect().center();
@@ -708,74 +712,121 @@ QList<NodeItem *> NodeView::getNodeInstances(QString ID)
     return nodeItems;
 }
 
-
-void NodeView::constructNewView(QString nodeID)
+/**
+ * @brief NodeView::getHardwareList
+ * @return
+ */
+QList<NodeItem*> NodeView::getHardwareList()
 {
-    if(nodeID == ""){
-        nodeID = getSelectedNodeID();
+    QList<NodeItem*> hardwares;
+    if (controller) {
+        Model* model = controller->getModel();
+        if (model) {
+            QList<Node*> clusters = model->getChildrenOfKind("HardwareCluster");
+            foreach (Node* c, clusters) {
+                hardwares.append(getNodeItemFromNode(c));
+            }
+            QList<Node*> nodes = model->getChildrenOfKind("HardwareNode");
+            foreach (Node* n, nodes) {
+                hardwares.append(getNodeItemFromNode(n));
+            }
+        }
+    }
+    return hardwares;
+}
+
+
+/**
+ * @brief NodeView::constructNewView
+ * This slot is called from the window/context toolbar when the popup new view action is triggered.
+ * @param nodeKindToCenter - 0 = selected node
+ *                           1 = selected node's definition
+ *                           2 = selected node's implementation
+ */
+void NodeView::constructNewView(int nodeKindToCenter)
+{
+    // if there is no selected node item, do nothing
+    if (getSelectedNodeID().isEmpty()) {
+        emit view_displayNotification("Select an entity first.");
+        return;
     }
 
-    if (nodeID == "") {
-        emit view_displayNotification("Select an entity first");
+    // default nodeID is the selected node item's ID
+    QString nodeID = getSelectedNodeID();
+
+    switch (nodeKindToCenter) {
+    case 1:
+        nodeID = getDefinitionID(nodeID);
+        break;
+    case 2:
+        nodeID = getImplementationID(nodeID);
+        break;
+    }
+
+    // construct subview
+    constructNewView(nodeID);
+}
+
+
+/**
+ * @brief NodeView::constructNewView
+ * This slot constructs a subview centered on the node item with the provided nodeID.
+ * @param nodeID
+ */
+void NodeView::constructNewView(QString nodeID)
+{
+    if (nodeID.isEmpty()) {
+        qWarning() << "NodeView::constructNewView - nodeID is null.";
         return;
     }
 
     NodeItem* nodeItem = getNodeItemFromID(nodeID);
-
-    if(IS_SUB_VIEW || nodeID == "" || !nodeItem){
+    if (IS_SUB_VIEW || !nodeItem){
         return;
     }
 
-
     MedeaSubWindow* subWindow = new MedeaSubWindow();
-
     connect(this, SIGNAL(destroyed()), subWindow, SLOT(reject()));
 
     NodeView* newView = new NodeView(true, subWindow);
-
     subViews.append(newView);
-
     newView->setAspects(allAspects);
     newView->setParentNodeView(this);
-
     subWindow->setNodeView(newView);
 
-
-
-
     Node* currentNode = nodeItem->getNode();
-    if(controller && currentNode ){
-        controller->connectView(newView);
 
+    if (controller && currentNode) {
+
+        controller->connectView(newView);
 
         QList<Edge*> edgeList;
         QList<Node*> constructList;
-        //Get the Children
+
+        // get the children
         constructList << currentNode->getChildren();
         edgeList << currentNode->getEdges();
 
-        while(currentNode){
-            //Add the Parent of the currentNode
+        while (currentNode) {
+            // add the parent of the currentNode
             constructList.insert(0,currentNode);
             currentNode = currentNode->getParentNode();
         }
-
-        while(!constructList.isEmpty()){
+        while (!constructList.isEmpty()) {
             newView->constructGUIItem(constructList.takeFirst());
         }
-        while(!edgeList.isEmpty()){
+        while (!edgeList.isEmpty()) {
             newView->constructGUIItem(edgeList.takeFirst());
         }
 
-        newView->view_LockCenteredGraphML(nodeID);
         connect(this, SIGNAL(view_ClearSubViewAttributeTable()), newView, SIGNAL(view_ClearSubViewAttributeTable()));
         subWindow->show();
         newView->view_LockCenteredGraphML(nodeID);
-    }else{
+
+    } else {
         delete subWindow;
     }
 }
-
 QList<NodeItem *> NodeView::getNodeItemsOfKind(QString kind, QString ID, int depth)
 {
     QList<NodeItem*> nodes;
@@ -811,11 +862,11 @@ void NodeView::actionFinished()
     pasting = false;
     toolbarDockConstruction = false;
 
+	// added this here to re-centralise on the model after import
     if (constructedFromImport) {
-        // added this here to re-centralise on the model after import
         fitToScreen();
+        constructedFromImport = false;
     }
-    constructedFromImport = false;
 
     if (importFromJenkins) {
         emit view_OpenHardwareDock();
@@ -832,8 +883,8 @@ void NodeView::actionFinished()
         updateDeployment = false;
     }
 
-    updateActionsEnabled();
-    enableClipboardActions();
+   	// update menu and toolbar actions
+    updateActionsEnabledStates();
 
     viewMutex.unlock();
 }
@@ -867,16 +918,20 @@ void NodeView::request_ImportSnippet()
     }
 }
 
+
+/**
+ * @brief NodeView::hardwareDockOpened
+ * @param opened
+ */
 void NodeView::hardwareDockOpened(bool opened)
 {
-    this->hardwareDockOpen = opened;
-    if(opened){
+    hardwareDockOpen = opened;
+    if (opened) {
         highlightDeployment();
-    }else{
+    } else {
         highlightDeployment(true);
     }
 }
-
 
 
 void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID)
@@ -1625,12 +1680,22 @@ void NodeView::_deleteFromIDs(QStringList IDs)
 
 
 /**
- * @brief NodeView::enableClipboardActions
- * @param IDs
+ * @brief NodeView::updateActionsEnabledStates
  */
-void NodeView::enableClipboardActions()
+void NodeView::updateActionsEnabledStates()
 {
+    QString selectedID = getSelectedNodeID();
+    QString defnID;
+    QString implID;
+    bool canExport = false;
+    bool canImport = false;
+
     if (controller) {
+        defnID = controller->getDefinition(selectedID);
+        implID = controller->getImplementation(selectedID);
+        canExport = controller->canExportSnippet(selectedIDs);
+        canImport = controller->canImportSnippet(selectedIDs);
+
         emit view_updateMenuActionEnabled("cut", controller->canCut(selectedIDs));
         emit view_updateMenuActionEnabled("copy", controller->canCopy(selectedIDs));
         emit view_updateMenuActionEnabled("replicate", controller->canReplicate(selectedIDs));
@@ -1638,67 +1703,81 @@ void NodeView::enableClipboardActions()
         emit view_updateMenuActionEnabled("delete", controller->canDelete(selectedIDs));
         emit view_updateMenuActionEnabled("undo", controller->canUndo());
         emit view_updateMenuActionEnabled("redo", controller->canRedo());
-        emit view_updateMenuActionEnabled("localdeployment", controller->canLocalDeploy());
+        emit view_updateMenuActionEnabled("localDeployment", controller->canLocalDeploy());
     }
 
-    emit view_updateMenuActionEnabled("noSelection", getSelectedNodeID() != "");
-    emit view_updateMenuActionEnabled("nodesSelected", !getSelectedNodeIDs().isEmpty());
+    emit view_updateMenuActionEnabled("singleSelection", !selectedID.isEmpty());
+    emit view_updateMenuActionEnabled("multipleSelection", !getSelectedNodeIDs().isEmpty());
+
+    // update other menu actions and toolbar buttons
+    emit view_updateMenuActionEnabled("definition", !defnID.isEmpty());
+    emit view_updateMenuActionEnabled("implementation", !implID.isEmpty());
+    emit view_updateMenuActionEnabled("exportSnippet", canExport);
+    emit view_updateMenuActionEnabled("importSnippet", canImport);
 }
 
 
 /**
  * @brief NodeView::showToolbar
  * This is called when there is a mouse right-click event.
- * It show/hides the context or window toolbar depending on where the right click happened.
+ * It shows/hides the context toolbar depending on where the right click happened.
  * @param position
  */
 void NodeView::showToolbar(QPoint position)
 {
 
     if(wasPanning){
+	//If we have panned, we shouldn't show the toolbar.
         wasPanning = false;
         return;
     }
 
     // only show the toolbar if there is at least one node item selected
     if (selectedIDs.count() > 0) {
-        //Update Actions
-        enableClipboardActions();
 
-        NodeItem* selectedItem = getSelectedNodeItem();
-        if (selectedItem && selectedItem->getNodeKind() == "Model") {
-            return;
-        }
-
-        // this will update the toolbar buttons and menus
-        updateToolbarSelectedItems(true);
+        QList<NodeItem*> selectedNodeItems;
+        QList<EdgeItem*> selectedEdgeItems;
 
         // use mouse click position when constructing node items from toolbar
         QPointF globalPos = mapToGlobal(position);
         toolbarPosition = mapToScene(position);
-
         bool toolbarPositionContained = false;
 
+        // filter selected items into their corresponding lists
         foreach (QString ID, selectedIDs) {
             GraphMLItem* item = getGraphMLItemFromHash(ID);
             if (item->isNodeItem()) {
-                if (item->sceneBoundingRect().contains(toolbarPosition)) {
+                NodeItem* nodeItem = (NodeItem*) item;
+                if (!nodeItem->isPainted()) {
+                    // if there is a non-painted item that is selected, don't show the toolbar
+                    return;
+                } else if (item->sceneBoundingRect().contains(toolbarPosition)) {
                     toolbarPositionContained = true;
-                    break;
                 }
+                selectedNodeItems.append(nodeItem);
             } else if (item->isEdgeItem()) {
-                if (eventFromEdgeItem) {
-                    toolbarPositionContained = true;
-                    eventFromEdgeItem = false;
-                    break;
+                EdgeItem* edgeItem = (EdgeItem*) item;
+                if (item->isVisible()) {
+                    selectedEdgeItems.append(edgeItem);
                 }
             }
         }
 
+        // this case should never be true
+        if (selectedNodeItems.isEmpty() && selectedEdgeItems.isEmpty()) {
+            qWarning() << "NodeView::showToolbar - There are no selected items.";
+            return;
+        }
+
+        // eventFromEdgeItem is true when the right-click happened inside an edge item
+        if (!selectedEdgeItems.isEmpty() && eventFromEdgeItem) {
+            toolbarPositionContained = true;
+            eventFromEdgeItem = false;
+        }
+
         // this case happens when this is called from the window toolbar
         // show the toolbar positioned at the first selected item's center
-        QList<NodeItem*> selectedNodeItems = getSelectedNodeItems();
-        if (position.isNull() && selectedNodeItems.count() > 0) {
+        if (!selectedNodeItems.isEmpty() && position.isNull()) {
             QPointF itemScenePos = selectedNodeItems.at(0)->sceneBoundingRect().center();
             globalPos = mapFromScene(itemScenePos);
             globalPos = mapToGlobal(globalPos.toPoint());
@@ -1709,6 +1788,7 @@ void NodeView::showToolbar(QPoint position)
         // only show the toolbar if the right-click happened inside one of the selected items
         if (toolbarPositionContained) {
             toolbar->move(globalPos.toPoint());
+            toolbar->updateToolbar(selectedNodeItems, selectedEdgeItems);
             toolbar->setVisible(true);
         }
     }
@@ -1808,6 +1888,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     // the node's label is automatically selected and editable
     if(toolbarDockConstruction && SELECT_ON_CONSTRUCTION){
         clearSelection(true, false);
+		// why not update menu/toolbar actions here?
         appendToSelection(nodeItem, false);
         nodeItem->setNewLabel();
         centerOnItem();
@@ -1901,41 +1982,6 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     }
 }
 
-
-/**
- * @brief NodeView::updateToolbarSelectedItems
- * @param showToolbar
- */
-void NodeView::updateToolbarSelectedItems(bool showToolbar)
-{
-    if (!CONTROL_DOWN && !showToolbar) {
-        return;
-    }
-
-    // only show the toolbar if there is at least one node item selected
-    if (selectedIDs.count() > 0) {
-
-        // get all the selected node items
-        QList<NodeItem*> selectedNodeItems;
-        foreach (NodeItem* item, getSelectedNodeItems()) {
-            if (item->isPainted()) {
-                selectedNodeItems.append(item);
-            }
-        }
-
-        // get all the selected edge items
-        QList<EdgeItem*> selectedEdgeItems;
-        if (selectedNodeItems.count() != selectedIDs.count()) {
-            foreach (EdgeItem* item, getEdgeItemsList()) {
-                if (item->isVisible() && selectedIDs.contains(item->getID())) {
-                    selectedEdgeItems.append(item);
-                }
-            }
-        }
-
-        toolbar->updateSelectedItems(selectedNodeItems, selectedEdgeItems);
-    }
-}
 
 void NodeView::view_CenterGraphML(GraphML *graphML)
 {
@@ -2057,6 +2103,11 @@ void NodeView::destructEdge(QString srcID, QString dstID, bool triggerAction)
 void NodeView::constructDestructEdges(QStringList srcIDs, QString dstID)
 {
     if (viewMutex.tryLock()) {
+
+		// added this for connecting multiple selection using the toolbar
+        if (srcIDs.isEmpty()) {
+            srcIDs = getSelectedNodeIDs();
+        }
 
         if (!srcIDs.isEmpty()) {
 
@@ -2360,16 +2411,34 @@ void NodeView::viewDeploymentAspect()
     addAspect("Hardware");
 }
 
-QImage NodeView::getImage(QString imageName)
+QPixmap NodeView::getImage(QString alias, QString imageName)
 {
-    if(imageLookup.contains(imageName)){
-        return imageLookup[imageName];
+    QString longName = alias + "/" + imageName;
+    if(imageLookup.contains(longName)){
+        return imageLookup[longName];
     }else{
-        QImage image(":/Items/" + imageName + ".png");
-        imageLookup[imageName] = image;
-        return image;
-    }
+        QImage image(":/" + longName + ".png");
 
+        QPixmap imageData = QPixmap::fromImage(image);
+
+        if(alias == "Actions"){
+            // morph it into a grayscale image
+            image = image.alphaChannel();
+            // the new color we want the logo to have
+            QColor foreground = QColor(60, 60, 60, 255);
+            // now replace the colors in the image
+            for(int i = 0; i < image.colorCount(); ++i) {
+              foreground.setAlpha(qGray(image.color(i)));
+              image.setColor(i, foreground.rgba());
+            }
+            imageData = QPixmap::fromImage(image);
+        }
+
+
+        imageLookup[longName] = imageData;
+
+        return imageData;
+    }
 }
 
 NodeItem *NodeView::getImplementation(QString ID)
@@ -2414,6 +2483,19 @@ QString NodeView::getDefinitionID(QString ID)
     return "";
 }
 
+
+/**
+ * @brief NodeView::getImplementationID
+ * @param ID
+ * @return
+ */
+QString NodeView::getImplementationID(QString ID)
+{
+    if (controller) {
+        return controller->getImplementation(ID);
+    }
+    return "";
+}
 NodeItem *NodeView::getAggregate(QString ID)
 {
     NodeItem* aggr = 0;
@@ -2588,8 +2670,7 @@ bool NodeView::removeGraphMLItemFromHash(QString ID)
  */
 void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
 {
-    // update the docks and the toolbar/menu goTo functions
-    //updateActionsEnabled();
+    // update the docks
     emit view_nodeConstructed(nodeItem);
 
     // send specific current view states to the newly constaructed node item
@@ -2651,12 +2732,11 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
  */
 void NodeView::nodeSelected_signalUpdates()
 {
-    updateActionsEnabled();
-
     // update the highlighted deployment nodes.
     if (hardwareDockOpen) {
         highlightDeployment();
     }
+    // update the docks
     emit view_nodeSelected();
 }
 
@@ -2670,7 +2750,7 @@ void NodeView::nodeSelected_signalUpdates()
 void NodeView::edgeConstructed_signalUpdates()
 {
     // update the highlighted deployment nodes.
-    if(hardwareDockOpen){
+    if (hardwareDockOpen) {
         highlightDeployment();
     }
     // update the docks
@@ -2708,83 +2788,6 @@ void NodeView::edgeDestructed_signalUpdates(Edge* edge, QString ID)
         }
     }
 }
-
-
-/**
- * @brief NodeView::updateActionsEnabled
- * This method updates the enabled state of the MEDEA window's menu actions
- * and the toolbar's tool buttons for the goToDefinition/goToImplementation
- * functions based on the currently selected node.
- * @param selectedNode
- */
-void NodeView::updateActionsEnabled()
-{
-    QString ID = getSelectedNodeID();
-
-    QString defnID;
-    QString implID;
-    bool canExport = false;
-    bool canImport = false;
-
-    if (controller) {
-        defnID = controller->getDefinition(ID);
-        implID = controller->getImplementation(ID);
-        canExport = controller->canExportSnippet(selectedIDs);
-        canImport = controller->canImportSnippet(selectedIDs);
-
-        emit view_updateMenuActionEnabled("undo", controller->canUndo());
-        emit view_updateMenuActionEnabled("redo", controller->canRedo());
-    }
-
-
-    // update menu actions
-    emit view_updateMenuActionEnabled("definition", defnID != "");
-    emit view_updateMenuActionEnabled("implementation", implID != "");
-    emit view_updateMenuActionEnabled("exportSnippet", canExport);
-    emit view_updateMenuActionEnabled("importSnippet", canImport);
-
-    // update toolbar buttons
-    toolbar->showDefinitionButton(defnID);
-    toolbar->showImplementationButton(implID);
-    toolbar->showSnippetButton("export", canExport);
-    toolbar->showSnippetButton("import", canImport);
-
-    // update the toolbar's separators in case any of them need to be hidden
-    toolbar->updateSeparators();
-}
-
-/*
-
-Node* NodeView::hasDefinition(Node* node)
-{
-    Node* original = node;
-    while (node->getDefinition()) {
-        node = node->getDefinition();
-    }
-    if (node != original) {
-        return node;
-    }
-    return 0;
-}
-
-
-
-Node* NodeView::hasImplementation(Node* node)
-{
-    Node* original = node;
-    node = hasDefinition(node);
-    if (!node) {
-        node = original;
-    }
-    if (node->getImplementations().size() > 0) {
-        Node* impl =node->getImplementations().at(0);
-        if (impl != original) {
-            return impl;
-        }
-    }
-    return 0;
-}
-*/
 
 
 bool NodeView::isItemsAncestorSelected(GraphMLItem *selectedItem)
@@ -3385,7 +3388,8 @@ void NodeView::selectAll()
                 appendToSelection(child, false);
             }
         }
-        enableClipboardActions();
+        // update menu and toolbar actions
+        updateActionsEnabledStates();
     }
 }
 
@@ -3426,9 +3430,14 @@ void NodeView::redo()
 }
 
 
+/**
+ * @brief NodeView::appendToSelection
+ * @param item
+ * @param updateActions
+ */
 void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 {
-    if(isItemsAncestorSelected(item)){
+    if (isItemsAncestorSelected(item)){
         return;
     }
 
@@ -3438,37 +3447,24 @@ void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
     //Set this item as Selected.
     setGraphMLItemSelected(item, true);
 
-    // when an item is selected, do we want to fit it in the view?
-    //if (!item->getGraphML()->getDataValue("kind").endsWith("Definitions") ) {
-    //    keepSelectionFullyVisible(item);
-    //}
-
-    if(updateActions){
-        // update enabled states of cut, copy & paste everytime something is selected
-        enableClipboardActions();
+    // update enabled states of menu and toolbar actions
+    if (updateActions) {
+        updateActionsEnabledStates();
     }
-
-    // update toolbar selected items
-    updateToolbarSelectedItems();
 }
 
+/**
+ * @brief NodeView::removeFromSelection
+ * @param item
+ */
 void NodeView::removeFromSelection(GraphMLItem *item)
 {
-    // Dan, I commented this out so that edge items can be deselected.
-    // This has allowed the export snippet toolbutton to display in the context toolbar.
-    // I'm not sure if that's going to be a problem. Let me know if it breaks something!
-    /*if(!isItemsAncestorSelected(item)){
-        return;
-    }*/
     //Set this item as Selected.
     setGraphMLItemSelected(item, false);
 
     // added this here because actions weren't being enabled/disabled
     // correctly when selecting/deselting items using the CTRL key
-    enableClipboardActions();
-
-    // update toolbar selected items
-    updateToolbarSelectedItems();
+    updateActionsEnabledStates();
 }
 
 void NodeView::moveSelection(QPointF delta)
@@ -3635,12 +3631,9 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
         setAttributeModel(0,false);
     }
 
-    //setState(VS_NONE);
 
-    // update menu and toolbar actions
-    updateActionsEnabled();
-
-    enableClipboardActions();
+   // update menu and toolbar actions
+    updateActionsEnabledStates();
 
     // this stops unnecessary disabling of docks/dock buttons
     // if the call came from a painted node item, just clear the selection
@@ -3739,9 +3732,8 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
             nodeItems << currentNode->getChildNodeItems();
         }
     }
-    //Update Actions
-    enableClipboardActions();
-
+    // Update Actions
+    updateActionsEnabledStates();
 }
 
 

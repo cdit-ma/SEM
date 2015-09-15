@@ -12,9 +12,10 @@
  * @param textLabel
  * @param parent
  */
-ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QWidget *parent) :
+ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, ToolbarWidgetMenu* parent) :
     QWidgetAction(parent)
-{           
+{
+    parentMenu = parent;
     nodeItem = 0;
     actionButton = 0;
     kind = nodeKind;
@@ -24,11 +25,11 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
     willHaveMenu = false;
     deletable = true;
 
-    if (nodeKind == "ComponentInstance" || nodeKind == "ComponentImpl" || nodeKind == "BlackBoxInstance" ||
-            nodeKind == "InEventPortDelegate" || nodeKind == "OutEventPortDelegate") {
+    if (kind == "ComponentInstance" || kind == "ComponentImpl" || kind == "BlackBoxInstance" ||
+            kind == "InEventPortDelegate" || kind == "OutEventPortDelegate") {
         willHaveMenu = true;
         deletable = false;
-    } else if (nodeKind == "info") {
+    } else if (kind == "info") {
         label = textLabel;
         deletable = false;
         setEnabled(false);
@@ -42,11 +43,10 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, QW
  * @param parent
  * @param willHaveMenu
  */
-ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, QWidget *parent, bool willHaveMenu) :
+ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, ToolbarWidgetMenu *parent, bool willHaveMenu) :
     QWidgetAction(parent)
 {
-    this->nodeItem = nodeItem;
-    if(nodeItem){
+    if (nodeItem) {
         kind = nodeItem->getNodeKind();
         label =  nodeItem->getNodeLabel();
         if (label == "") {
@@ -54,9 +54,11 @@ ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, QWidget *parent, bo
         }
     }
 
+    this->nodeItem = nodeItem;
+    this->willHaveMenu = willHaveMenu;
+    parentMenu = parent;
     widgetMenu = 0;
     deletable = true;
-    this->willHaveMenu = willHaveMenu;
 }
 
 
@@ -64,15 +66,18 @@ ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, QWidget *parent, bo
  * @brief ToolbarWidgetAction::setMenu
  * @param menu
  */
-void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu *menu)
+void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu* menu)
 {
+    // disconnect the old menu
     prevWidgetMenu = widgetMenu;
     if (prevWidgetMenu) {
         disconnect(this, SIGNAL(triggered()), prevWidgetMenu, SLOT(execMenu()));
     }
-
+    // connect the new menu
     widgetMenu = menu;
-    connect(this, SIGNAL(triggered()), widgetMenu, SLOT(execMenu()));
+    if (widgetMenu) {
+        connect(this, SIGNAL(triggered()), widgetMenu, SLOT(execMenu()));
+    }
 }
 
 
@@ -83,36 +88,6 @@ void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu *menu)
 ToolbarWidgetMenu* ToolbarWidgetAction::getMenu()
 {
     return widgetMenu;
-}
-
-
-/**
- * @brief ToolbarWidgetAction::getNodeItem
- * @return
- */
-NodeItem *ToolbarWidgetAction::getNodeItem()
-{
-    return nodeItem;
-}
-
-
-/**
- * @brief ToolbarWidgetAction::getKind
- * @return
- */
-QString ToolbarWidgetAction::getKind()
-{
-    return kind;
-}
-
-
-/**
- * @brief ToolbarWidgetAction::isDeletable
- * @return
- */
-bool ToolbarWidgetAction::isDeletable()
-{
-    return deletable;
 }
 
 
@@ -138,6 +113,90 @@ QPoint ToolbarWidgetAction::getButtonPos()
 
 
 /**
+ * @brief ToolbarWidgetAction::getNodeItem
+ * @return
+ */
+NodeItem* ToolbarWidgetAction::getNodeItem()
+{
+    return nodeItem;
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::getNodeItemID
+ * @return
+ */
+QString ToolbarWidgetAction::getNodeItemID()
+{
+   if (nodeItem) {
+       return nodeItem->getID();
+   }
+   return "";
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::getActionKind
+ * This action's kind is its nodeitem's kind if it has one, or "info" if it doesn't.
+ * If kind is "info" it means that it is a default action, and all it is used for is
+ * to display information about why its parent menu is empty.
+ * @return
+ */
+QString ToolbarWidgetAction::getActionKind()
+{
+    return kind;
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::isDeletable
+ * @return
+ */
+bool ToolbarWidgetAction::isDeletable()
+{
+    return deletable;
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::getParentMenu
+ * @return
+ */
+ToolbarWidgetMenu* ToolbarWidgetAction::getParentMenu()
+{
+   return parentMenu;
+}
+
+
+/**
+ * @brief ToolbarWidgetAction::getTopMostParentAction
+ * This returns this ToolbarWidgetAction's top most parent ToolbarWidgetAction.
+ * @return
+ */
+ToolbarWidgetAction* ToolbarWidgetAction::getTopMostParentAction()
+{
+    if (parentMenu) {
+
+        ToolbarWidgetMenu* topMenu = parentMenu;
+        ToolbarWidgetAction* topAction = 0;
+        ToolbarWidgetAction* prevTopAction = 0;
+
+        while (topAction = topMenu->getParentAction()) {
+            topMenu = topAction->getParentMenu();
+            if (!topMenu) {
+                break;
+            }
+            prevTopAction = topAction;
+        }
+
+        return prevTopAction;
+    }
+
+    return 0;
+}
+
+
+/**
  * @brief ToolbarWidgetAction::createWidget
  * @param parent
  * @return
@@ -158,7 +217,7 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setMargin(0);
 
-    QString actionKind = getKind();
+    QString actionKind = getActionKind();
     if (actionKind == "HardwareNode"){
         Node* node = nodeItem->getNode();
         if(node){
@@ -297,5 +356,4 @@ void ToolbarWidgetAction::menuOpened()
 void ToolbarWidgetAction::menuClosed()
 {
     actionButton->setCheck(false);
-
 }

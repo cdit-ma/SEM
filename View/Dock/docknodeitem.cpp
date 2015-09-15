@@ -241,11 +241,13 @@ void DockNodeItem::setupLayout()
     }
 
     if (!fileLabel) {
-        QImage image;
+
+        QPixmap pixMap;
         NodeView* nodeView = parentDock->getNodeView();
         if(parentDock && nodeView){
             if(kind != "HardwareNode"){
-                image = nodeView->getImage(kind);
+
+                pixMap = nodeView->getImage("Items", kind);
             }
             if(nodeItem && kind.startsWith("Hardware")){
                 if (kind == "HardwareNode"){
@@ -258,21 +260,25 @@ void DockNodeItem::setupLayout()
                         imagePath = hardwareOS + "_" + hardwareArch;
                     }
                     if (parentDock && parentDock->getNodeView()) {
-                        image = nodeView->getImage(imagePath);
+                        pixMap = nodeView->getImage("Items", imagePath);
                     }
                 }
                 highlightColor = "rgba(90,150,200,210)";
             }
         }
 
-        if (image.isNull()) {
+        if (pixMap.isNull()) {
             qWarning() << "DockNodeItem::setupLayout - Image is null";
         }
+        QPixmap scaledPixmap =  pixMap.scaled(width(), height()-textLabel->height(), Qt::KeepAspectRatio,Qt::SmoothTransformation);
 
+       //QPixmap scaledPixmap =  pixMap.scaled(image.scaled(width(), height()-textLabel->height(), Qt::KeepAspectRatio,Qt::SmoothTransformation);
+
+               /*
         QPixmap scaledPixmap = QPixmap::fromImage(image.scaled(width(),
                                              height()-textLabel->height(),
                                              Qt::KeepAspectRatio,
-                                             Qt::SmoothTransformation));
+                                             Qt::SmoothTransformation));*/
 
         imageLabel = new QLabel(this);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);

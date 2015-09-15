@@ -130,7 +130,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
 
     newProject();
-    //this->setCursor(Qt::IBeamCursor);
 }
 
 
@@ -218,7 +217,7 @@ void MedeaWindow::modelReady()
         nodeView->setEnabled(true);
         //nodeView->fitToScreen();
     }
-     cuts_runGeneration->trigger();
+    //cuts_runGeneration->trigger();
 }
 
 void MedeaWindow::projectCleared()
@@ -667,7 +666,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     actionSort = new QAction(QIcon(":/Actions/Sort.png"), "Sort", this);
     actionSort->setToolTip("Sort model/selection");
 
-    actionCenter = new QAction(QIcon(":/Actions/Center.png"), "Center Entity", this);
+    actionCenter = new QAction(QIcon(":/Actions/Crosshair.png"), "Center Entity", this);
     actionCenter->setToolTip("Center entity without zooming");
 
     actionZoomToFit = new QAction(QIcon(":/Actions/ZoomToFit.png"), "Zoom to Fit Selection", this);
@@ -1137,6 +1136,8 @@ void MedeaWindow::makeConnections()
     validateResults.connectToWindow(this);
 
     connect(partsDock, SIGNAL(dock_openDefinitionsDock()), this, SLOT(forceOpenDefinitionsDock()));
+	connect(hardwareNodesButton, SIGNAL(dockButton_enabled(bool)), nodeView, SIGNAL(view_HardwareDockEnabled(bool)));
+    connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
 
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
     connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));
@@ -1154,7 +1155,6 @@ void MedeaWindow::makeConnections()
     connect(file_exportSnippet, SIGNAL(triggered()), nodeView, SLOT(exportSnippet()));
 
 
-    connect(hardwareNodesButton, SIGNAL(dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
     //connect(this, SIGNAL(window_highlightDeployment(bool)), nodeView, SLOT(highlightDeployment(bool)));
 
@@ -1245,29 +1245,6 @@ void MedeaWindow::makeConnections()
     connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
     connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
 
-
-
-    //connect(cutButton, SIGNAL(clicked()), nodeView, SLOT(cut()));
-    /*
-    connect(zoomToFitButton, SIGNAL(clicked()), this, SLOT(on_actionFitCenterNode_triggered()));
-
-    connect(sortButton, SIGNAL(clicked()), this, SLOT(on_actionSortNode_triggered()));
-    connect(undoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Undo()));
-    connect(redoButton, SIGNAL(clicked()), nodeView, SIGNAL(view_Redo()));
-    connect(alignVerticalButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
-    connect(alignHorizontalButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
-    connect(popupButton, SIGNAL(clicked()), nodeView, SLOT(constructNewView()));
-
-    connect(backButton, SIGNAL(clicked()), nodeView, SLOT(moveViewBack()));
-    connect(forwardButton, SIGNAL(clicked()), nodeView, SLOT(moveViewForward()));
-    connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
-    connect(contextToolbarButton, SIGNAL(clicked()), nodeView, SLOT(showToolbar()));
-
-    connect(settings_useGridLines, SIGNAL(triggered(bool)), nodeView, SLOT(toggleGridLines(bool)));
-    connect(toggleGridButton, SIGNAL(clicked(bool)), settings_useGridLines, SLOT(setChecked(bool)));
-    connect(toggleGridButton, SIGNAL(clicked(bool)), settings_useGridLines, SIGNAL(triggered(bool)));
-    */
-
     connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
     connect(nodeView, SIGNAL(view_ExportedSnippet(QString,QString)), this, SLOT(writeExportedSnippet(QString,QString)));
 
@@ -1301,11 +1278,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), definitionsDock, SLOT(edgeDeleted(QString, QString)));
 
-
-    
-    //connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), nodeView, SLOT(highlightDeployment()));
-
-    connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
+	connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
@@ -1555,11 +1528,13 @@ void MedeaWindow::toggleAndTriggerAction(QAction *action, bool value)
  */
 void MedeaWindow::updateWidgetsOnWindowChanged()
 {
-    // update dock's widget sizes, containers and and mask
+    // update widget sizes, containers and and masks
     boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height() - SPACER_HEIGHT;
     docksArea->setFixedHeight(boxHeight*2);
     dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_HEIGHT/2);
 
+	updateWidgetMask(docksArea, dockButtonsBox, true);
+    updateDataTable();
     /*
     double newHeight = docksArea->height();
     if (dockStandAloneDialog->isVisible()) {
@@ -1570,16 +1545,11 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
     hardwareDock->parentHeightChanged(newHeight);
     */
 
-    updateWidgetMask(docksArea, dockButtonsBox, true);
-
     // update the stored view center point and re-center the view
     if (nodeView && controller) {
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
     }
-
-    // update dataTable mask and size
-    updateDataTable();
 }
 
 
@@ -1596,8 +1566,6 @@ void MedeaWindow::setupInitialSettings()
     settingsLoading = true;
     appSettings->loadSettings();
     settingsLoading = false;
-
-    //toggleAndTriggerAction(view_showManagementComponents, false);
 
     QStringList allKinds = nodeView->getAllNodeKinds();
     QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
@@ -1630,9 +1598,6 @@ void MedeaWindow::setupInitialSettings()
 
     // initially disable all the docks
     nodeView->view_nodeSelected();
-
-    //nodeView->fitToScreen();
-    //toggleAndTriggerAction(actionFitToScreen, true);
 }
 
 
@@ -1892,39 +1857,6 @@ void MedeaWindow::validationComplete(int code)
 
 }
 
-
-/**
- * @brief MedeaWindow::on_actionFitCenterNode_triggered
- * This is called whne the centerNode tool button is triggered.
- * It zooms into and centers on the selected node.
- */
-void MedeaWindow::on_actionFitCenterNode_triggered()
-{
-    progressAction = "Centering Node";
-
-    if (nodeView->getSelectedNodeItem()) {
-        nodeView->centerItem(nodeView->getSelectedNodeItem());
-    } else {
-        displayNotification("Select entity to zoom and center on.");
-    }
-}
-
-
-/**
- * @brief MedeaWindow::on_actionPopupNewWindow
- * This is called whne the popupNode tool button is triggered.
- * It pops up the selected node to a new window.
- */
-void MedeaWindow::on_actionPopupNewWindow()
-{
-    progressAction = "Opening New Window";
-
-    if (nodeView->getSelectedNode()) {
-        nodeView->constructNewView(nodeView->getSelectedNodeID());
-    }
-}
-
-
 /**
  * @brief MedeaWindow::on_actionPaste_triggered
  */
@@ -1934,7 +1866,6 @@ void MedeaWindow::on_actionPaste_triggered()
 
     QClipboard *clipboard = QApplication::clipboard();
     window_PasteData(clipboard->text());
-
 }
 
 
@@ -1961,10 +1892,8 @@ void MedeaWindow::on_actionSearch_triggered()
         checkedKinds.removeDuplicates();
     }
 
-    //progressAction = "Searching Model";
-
     QString searchText = searchBar->text();
-    if (nodeView && searchText != "" && searchText != searchBarDefaultText) {
+    if (nodeView && !searchText.isEmpty() && (searchText != searchBarDefaultText)) {
 
         QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::NODE_ITEM);
         QList<GraphMLItem*> itemsToDisplay;
@@ -1992,7 +1921,7 @@ void MedeaWindow::on_actionSearch_triggered()
         }
 
         // if no items match the search checked kinds, display message box
-        if (itemsToDisplay.count() == 0) {
+        if (itemsToDisplay.isEmpty()) {
             if (searchResults->isVisible()) {
                 searchResults->setVisible(false);
             }
@@ -2018,7 +1947,7 @@ void MedeaWindow::on_actionSearch_triggered()
 
         // move the search results dialog to the bottom left of the window
         // so that it doesn't get in the way of centered search items
-        searchResults->move(pos() + QPoint(5, height() - searchResults->height() - 25));
+        searchResults->move(pos() + QPoint(5, height() - searchResults->height()));
 
         // show search results
         searchResults->show();
@@ -2245,23 +2174,23 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
         edit_copy->setEnabled(enable);
     } else if (action == "paste") {
         edit_paste->setEnabled(enable);
-    }else if (action == "replicate") {
+    } else if (action == "replicate") {
         edit_replicate->setEnabled(enable);
-    }else if (action == "delete") {
+    } else if (action == "delete") {
         edit_delete->setEnabled(enable);
-    }else if (action == "undo") {
+    } else if (action == "undo") {
         edit_undo->setEnabled(enable);
-    }else if (action == "redo") {
+    } else if (action == "redo") {
         edit_redo->setEnabled(enable);
-    }else if (action == "noSelection") {
+    } else if (action == "singleSelection") {
         actionCenter->setEnabled(enable);
         actionZoomToFit->setEnabled(enable);
         actionPopupSubview->setEnabled(enable);
         // added this after the tag was made
         actionContextMenu->setEnabled(enable);
-    }else if(action == "nodesSelected"){
+    } else if(action == "multipleSelection"){
         actionSort->setEnabled(enable);
-    }else if(action == "localdeployment"){
+    } else if(action == "localdeployment"){
         cuts_runGeneration->setEnabled(enable);
     }
 }
@@ -2596,8 +2525,9 @@ void MedeaWindow::setAttributeModel(AttributeTableModel *model)
 
 /**
  * @brief MedeaWindow::dockButtonPressed
- * This method makes sure that the groupbox attached to the dock button
- * that was pressed is the only groupbox being currently displayed.
+ * This slot is called whenever a dock toggle button is pressed.
+ * It makes sure that the groupbox attached to the dock button
+ * that was pressed is the only groupbox that is being displayed.
  * @param buttonName
  */
 void MedeaWindow::dockButtonPressed(QString buttonName)
@@ -2635,12 +2565,13 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
 
 /**
  * @brief MedeaWindow::forceOpenDefinitionsDock
- * This slot is called when a DockNodeItem of kind ComponentInstance or ComponentImpl is clicked from the parts dock.
+ * This slot is called when a DockNodeItem of kind ComponentInstance or ComponentImpl
+ * is clicked from the parts dock. It stops the user from being able to construct a
+ * ComponentInstance or ComponentImpl that isn't connected to a Component definition.
  */
 void MedeaWindow::forceOpenDefinitionsDock()
 {
     if (partsButton->isSelected()) {
-        partsButton->pressed();
         definitionsButton->pressed();
     }
 }
@@ -2652,10 +2583,10 @@ void MedeaWindow::forceOpenDefinitionsDock()
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
-    if(value < 0){
+    if (value < 0) {
         progressBar->setMaximum(0);
         value = 0;
-    }else{
+    } else {
         progressBar->setMaximum(100);
     }
     if (notificationTimer->isActive()) {
@@ -2671,7 +2602,7 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
     }
 
     // update displayed text
-    if(status != ""){
+    if (status != "") {
         progressLabel->setText(status + "...");
     }
 
@@ -2774,27 +2705,17 @@ void MedeaWindow::searchMenuClosed()
  */
 void MedeaWindow::updateSearchLineEdits()
 {
-    // if the call came from the search bar, check if it either needs to be cleared or reset
-    QLineEdit* searchEdit = qobject_cast<QLineEdit*>(QObject::sender());
-    if (searchEdit && searchEdit == searchBar) {
-        /*if (searchBar->hasFocus()) {
-            if (searchBar->text() == searchBarDefaultText){
-                searchBar->clear();
-            }
-        } else {
-            if (searchBar->text().length() == 0) {
-                searchBar->setText(searchBarDefaultText);
-            }
-        }*/
+    // check if the displayed text of the corresponding line edit
+    // needs to be updated or reset back to the default text
+    QCheckBox* checkBox = qobject_cast<QCheckBox*>(QObject::sender());
+    if (!checkBox) {
         return;
     }
 
-    // if it came from a checkbox, check if the displayed text of the corresponding
-    // line edit needs to be updated or reset back to the default text
-    QCheckBox* checkBox = qobject_cast<QCheckBox*>(QObject::sender());
     QMenu* menu = qobject_cast<QMenu*>(checkBox->parentWidget());
 
     if (menu) {
+
         QLineEdit* lineEdit = 0;
         QString textLabel;
         QString defaultText;
@@ -2807,8 +2728,7 @@ void MedeaWindow::updateSearchLineEdits()
             checkedItemsList = getCheckedItems(0);
         } else if (menu == nodeKindsMenu) {
             lineEdit = nodeKindsBar;
-            textLabel = "Search Kinds: ";
-            defaultText = nodeKindsDefaultText;
+            textLabel = "Search Kinds: "; defaultText = nodeKindsDefaultText;
             checkedItemsList = getCheckedItems(1);
         } else {
             qWarning() << "MedeaWindow::updateSearchLineEdits - Not checking for this menu.";
@@ -2841,7 +2761,6 @@ void MedeaWindow::updateSearchLineEdits()
  */
 void MedeaWindow::displayNotification(QString notification, int seqNum, int totalNum)
 {
-
     if (totalNum > 1) {
         multipleNotification[seqNum] = notification;
         if (multipleNotification.count() == totalNum) {

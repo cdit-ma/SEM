@@ -67,12 +67,14 @@ public:
     QStringList getAllAspects();
     void viewDeploymentAspect();
 
-    QImage getImage(QString imageName);
 
+    QPixmap getImage(QString alias, QString imageName);
     NodeItem* getImplementation(QString ID);
     QList<NodeItem*> getInstances(QString ID);
     NodeItem* getDefinition(QString ID);
     QString getDefinitionID(QString ID);
+	QString getImplementationID(QString ID);
+
     NodeItem* getAggregate(QString ID);
     NodeItem* getDeployedNode(QString ID);
 
@@ -109,7 +111,7 @@ signals:
     void view_ModelReady();
     void view_EnableDebugLogging(bool enable, QString applicationPath="");
 
-
+	void view_HardwareDockEnabled(bool enabled);
     void view_OpenHardwareDock();
     void view_ModelSizeChanged();
     void view_Clear();
@@ -290,7 +292,8 @@ public slots:
     void deleteFromIDs(QStringList IDs);
     void constructConnectedNode(QString parentID, QString dstID, QString kind, int sender=0);
 
-    void constructNewView(QString nodeID="");
+    void constructNewView(QString nodeID);
+    void constructNewView(int nodeKindToCenter=0);
 
     QList<NodeItem*> getNodeItemsOfKind(QString kind, QString ID="", int depth=-1);
     void showConnectedNodes();
@@ -321,12 +324,11 @@ private:
 
     void _deleteFromIDs(QStringList IDs);
 
-    void enableClipboardActions();
+    void updateActionsEnabledStates();
     void alignSelectionOnGrid(ALIGN alignment = NONE);
     void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
 
-    void updateToolbarSelectedItems(bool showToolbar = false);
 
     void setGraphMLItemSelected(GraphMLItem* item, bool setSelected);
 
@@ -345,6 +347,7 @@ private:
     QList<NodeItem*> getConnectableNodeItems(QString ID);
     QList<NodeItem*> getConnectableNodeItems(QStringList IDs = QStringList());
     QList<NodeItem*> getNodeInstances(QString ID);
+	QList<NodeItem*> getHardwareList();
 
     QList<Node*> getFiles();
     QList<Node*> getComponents();
@@ -471,7 +474,7 @@ private:
     QMap<int, QPointF> modelPositions;
     QMap<int, QRectF> centeredRects;
 
-    QHash<QString, QImage> imageLookup;
+    QHash<QString, QPixmap> imageLookup;
 
     QMenu* prevLockMenuOpened;
 

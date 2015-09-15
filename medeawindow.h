@@ -132,12 +132,10 @@ private slots:
     void on_actionExport_GraphML_triggered();
 
 
-    void on_actionFitCenterNode_triggered();
+
 
     void on_actionValidate_triggered();
     void validationComplete(int code);
-
-    void on_actionPopupNewWindow();
 
     void on_actionPaste_triggered();
     void on_actionExit_triggered();

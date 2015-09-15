@@ -15,13 +15,15 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
 {
     nodeView = parent;
     nodeItem = 0;
-    prevNodeItem = 0;
 
     eventFromToolbar = false;
-    showToolbar = false;
-    showAlterViewFrame = false;
-    showSnippetFrame = false;
-    showGoToFrame = false;
+    hardwareDockIsEnabled = false;
+
+    showDeleteToolButton = false;
+    showImportSnippetToolButton = false;
+    showExportSnippetToolButton = false;
+    showDefinitionToolButton = false;
+    showImplementationToolButton = false;
 
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
@@ -44,118 +46,40 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     setupToolBar();
     setupMenus();
     makeConnections();
+    resetButtonGroupFlags();
 }
 
 
 /**
- * @brief ToolbarWidget::updateSelectedItems
+ * @brief ToolbarWidget::updateToolbar
  * This only gets called when the toolbar is about to show.
  * Set nodeItem to the currectly selected item and update applicable tool buttons and menus.
  * If there are multiple items selected, only update the buttons that are for multiple selection.
  * @param nodeItems
  * @param edgeItems
  */
-void ToolbarWidget::updateSelectedItems(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems)
+void ToolbarWidget::updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems)
 {
+    resetButtonGroupFlags();
+    hideButtons();
+    hideSeparators();
+
+    // these buttons are enabled/disabled by NodeView whenever an item is selected/deselected
+    deleteButton->setVisible(showDeleteToolButton);
+    exportSnippetButton->setVisible(showExportSnippetToolButton);
+    importSnippetButton->setVisible(showImportSnippetToolButton);
+
+    //showToolbar = showDeleteToolButton || showExportSnippetToolButton || showImportSnippetToolButton;
+    alterModelButtonsVisible = showDeleteToolButton;
+    snippetButtonsVisible = showExportSnippetToolButton || showImportSnippetToolButton;
+
+    // update the rest of the tool buttons and menus if only node items are selected
     if (edgeItems.isEmpty()) {
-        if (nodeItems.count() == 1) {
-            nodeItem = nodeItems.at(0);
-            updateToolButtons();
-            updateMenuLists();
-        } else if (nodeItems.count() > 1) {
-            multipleSelection(nodeItems);
-        } else {
-            // it shouldn't get to this statement if there aren't any selected items
-            qWarning() << "ToolbarWidget::updateSelectedNodeItem - There are no selected items.";
-            return;
-        }
-    } else {
-        multipleSelection(nodeItems, edgeItems);
+        updateButtonsAndMenus(nodeItems);
     }
 
-    // update the toolbar & frame sizes after the tool buttons have been updated
-    mainFrame->setFixedSize(layout()->sizeHint());
-    shadowFrame->setFixedSize(layout()->sizeHint() + QSize(3,3));
-    setFixedSize(shadowFrame->size());
-}
-
-
-/**
- * @brief ToolbarWidget::showDefinitionButton
- * This method shows/hides the definitionButton and sets the definitionNode if there is one.
- * This gets called everytime a node item is selected.
- * @param definitionID
- */
-void ToolbarWidget::showDefinitionButton(QString definitionID)
-{
-    if (definitionID != "") {
-        definitionNodeID = definitionID;
-        definitionButton->show();
-        showGoToFrame = true;
-        showToolbar = true;
-    } else {
-        definitionButton->hide();
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::showImplementationButton
- * This method shows/hides the implementationButton and sets the implementationNode if there is one.
- * This gets called everytime a node item is selected.
- * @param implementationID
- */
-void ToolbarWidget::showImplementationButton(QString implementationID)
-{
-    if (implementationID != "") {
-        implementationNodeID = implementationID;
-        implementationButton->show();
-        showGoToFrame = true;
-        showToolbar = true;
-    } else {
-        implementationButton->hide();
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::showExportSnippetButton
- * This shows/hides the export GraphML snippet button and its separator frame.
- * @param button
- * @param show
- */
-void ToolbarWidget::showSnippetButton(QString button, bool show)
-{
-    if (button == "export") {
-        exportSnippetButton->setVisible(show);
-    } else if (button == "import") {
-        importSnippetButton->setVisible(show);
-    }
-    if (show) {
-        showSnippetFrame = true;
-        showToolbar = true;
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::updateSeparators
- * @param snippet
- * @param goTo
- */
-void ToolbarWidget::updateSeparators(bool snippet, bool goTo)
-{
-    // show frame if any of the snippet buttons are visible
-    if (snippet) {
-        snippetFrame->setVisible(showSnippetFrame);
-        showSnippetFrame = false;
-    }
-
-    // show frame if any of the goto buttons are visible
-    if (goTo) {
-        goToFrame->setVisible(showGoToFrame);
-        showGoToFrame = false;
-    }
+    // update button group separators after the buttons and menus have been updated
+    updateSeparators();
 }
 
 
@@ -188,47 +112,36 @@ void ToolbarWidget::leaveEvent(QEvent* event)
  * @param actionName
  * @param enabled
  */
-void ToolbarWidget::updateActionEnabled(QString actionName, bool enabled)
+void ToolbarWidget::updateActionEnabledState(QString actionName, bool enabled)
 {
-    if (actionName == "delete" && deleteButton) {
-        deleteButton->setVisible(enabled);
-        deleteButtonVisible = enabled;
-        alterViewFrame->show();
+    if (actionName == "delete") {
+        showDeleteToolButton = enabled;
+    } else if (actionName == "definition") {
+        showDefinitionToolButton = enabled;
+    } else if (actionName == "implementation") {
+        showImplementationToolButton = enabled;
+    } else if (actionName == "exportSnippet") {
+        showExportSnippetToolButton = enabled;
+    } else if (actionName == "importSnippet") {
+        showImportSnippetToolButton = enabled;
     }
-    if (enabled) {
-        showAlterViewFrame = true;
-        showToolbar = true;
+}
+
+
+/**
+ * @brief ToolbarWidget::updateDisplayedChildren
+ * This sends a signal to the view to display all/connected/unconnected children nodes of the selected hardware cluster(s).
+ */
+void ToolbarWidget::updateDisplayedChildren()
+{
+    QRadioButton* rb = qobject_cast<QRadioButton*>(QObject::sender());
+    if (rb == allNodes) {
+        nodeView->updateDisplayedChildrenNodes(0);
+    } else if (rb == connectedNodes) {
+        nodeView->updateDisplayedChildrenNodes(1);
+    } else if (rb == unconnectedNodes) {
+        nodeView->updateDisplayedChildrenNodes(2);
     }
-}
-
-
-/**
- * @brief ToolbarWidget::displayAllChildren
- * This sends a signal to the view to display all of the selected hardware cluster(s)'s children nodes.
- */
-void ToolbarWidget::displayAllChildren()
-{
-    nodeView->updateDisplayedChildrenNodes(0);
-}
-
-
-/**
- * @brief ToolbarWidget::displayConnectedChildren
- * This sends a signal to the view to display only the connected children nodes of the selected hardware cluster(s).
- */
-void ToolbarWidget::displayConnectedChildren()
-{
-    nodeView->updateDisplayedChildrenNodes(1);
-}
-
-
-/**
- * @brief ToolbarWidget::displayUnconnectedChildren
- * This sends a signal to the view to display only the unconnected children nodes of the selected hardware cluster(s).
- */
-void ToolbarWidget::displayUnconnectedChildren()
-{
-    nodeView->updateDisplayedChildrenNodes(2);
 }
 
 
@@ -267,32 +180,13 @@ void ToolbarWidget::hardwareClusterMenuClicked(int viewMode)
 
 
 /**
- * @brief ToolbarWidget::goToDefinition
- * This sends a signal to the view to center on the selected nodeitem's definition.
+ * @brief ToolbarWidget::hardwareDockEnabled
+ * This slot gets called whenever the hardware dock is enabled/disabled.
+ * @param enabled
  */
-void ToolbarWidget::goToDefinition()
+void ToolbarWidget::hardwareDockEnabled(bool enabled)
 {
-    nodeView->centerDefinition(nodeItem->getID());
-}
-
-
-/**
- * @brief ToolbarWidget::goToImplementation
- * This sends a signal to the view to center on the selected nodeitem's implementation.
- */
-void ToolbarWidget::goToImplementation()
-{
-    nodeView->centerImplementation(nodeItem->getID());
-}
-
-
-/**
- * @brief ToolbarWidget::goToInstance
- * This sends a signal to the view to center on the selected nodeitem's chosen instance.
- */
-void ToolbarWidget::goToInstance()
-{
-    nodeView->centerInstance(instanceOptionMenu->getParentAction()->getNodeItem()->getID());
+    hardwareDockIsEnabled = enabled;
 }
 
 
@@ -303,53 +197,13 @@ void ToolbarWidget::goToInstance()
 void ToolbarWidget::addChildNode()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    nodeView->constructNode(action->getKind(), 1);
-
+    nodeView->constructNode(action->getActionKind(), 1);
+    /*
+    // make sure that the menu where the action came from is closed
     if (addChildButton->menu()) {
         addChildButton->menu()->hide();
     }
-}
-
-
-/**
- * @brief ToolbarWidget::connectNodes
- * Send a signal to the view to construct an edge between the selected node and chosen node.
- */
-void ToolbarWidget::connectNodes()
-{
-    ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    nodeView->constructEdge(nodeItem->getID(), action->getNodeItem()->getID());
-
-    if (connectButton->menu()) {
-        connectButton->menu()->hide();
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::makeNewView
- * This pops up a new window. The node centered in the new window depends on the signal sender.
- */
-void ToolbarWidget::makeNewView()
-{
-    // pop up the selected node into a new window
-    QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
-    if (button) {
-        nodeView->constructNewView(nodeView->getSelectedNodeID());
-        return;
-    }
-
-    // pop up the selected node's definition/implementation into a new window
-    QAction* action = qobject_cast<QAction*>(QObject::sender());
-    if (action) {
-        if (action->parentWidget() == definitionMenu) {
-            nodeView->constructNewView(definitionNodeID);
-        } else if (action->parentWidget() == implementationMenu) {
-            nodeView->constructNewView(implementationNodeID);
-        } else if (action->parentWidget() == instanceOptionMenu) {
-            nodeView->constructNewView(instanceOptionMenu->getParentAction()->getNodeItem()->getID());
-        }
-    }
+    */
 }
 
 
@@ -361,28 +215,92 @@ void ToolbarWidget::makeNewView()
 void ToolbarWidget::addConnectedNode()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
-    ToolbarWidgetMenu* parentMenu = qobject_cast<ToolbarWidgetMenu*>(action->parentWidget());
-    ToolbarWidgetAction* menuParentAction = parentMenu->getParentAction();
+    ToolbarWidgetAction* topMostParentAction = action->getTopMostParentAction();
 
-    // check which action was triggered & where it originates from to determine the nodeKind to construct
-    if (menuParentAction) {
+    // check which action was triggered & where it originated from to determine the nodeKind to construct
+    if (topMostParentAction) {
 
         QString kindToConstruct;
 
-        if (menuParentAction == componentImplAction) {
+        if (topMostParentAction == componentImplAction) {
             kindToConstruct = "ComponentImpl";
-        } else if (menuParentAction == componentInstanceAction) {
+        } else if (topMostParentAction == componentInstanceAction) {
             kindToConstruct = "ComponentInstance";
-        } else if (menuParentAction == inEventPortDelegateAction) {
+        } else if (topMostParentAction == inEventPortDelegateAction) {
             kindToConstruct = "InEventPortDelegate";
-        } else if (menuParentAction == outEventPortDelegateAction) {
+        } else if (topMostParentAction == outEventPortDelegateAction) {
             kindToConstruct = "OutEventPortDelegate";
-        } else if (menuParentAction == blackBoxInstanceAction) {
+        } else if (topMostParentAction == blackBoxInstanceAction) {
             kindToConstruct = "BlackBoxInstance";
+        } else {
+            qWarning() << "ToolbarWidget::addConnectedNode - action not recognized.";
         }
 
-        nodeView->constructConnectedNode(nodeItem->getID(), action->getNodeItem()->getID(), kindToConstruct, 1);
+        nodeView->constructConnectedNode(nodeItem->getID(), action->getNodeItemID(), kindToConstruct, 1);
 
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::connectNodes
+ * Send a signal to the view to construct an edge between the selected node and chosen node.
+ */
+void ToolbarWidget::connectNodes()
+{
+    ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
+    nodeView->constructDestructEdges(QStringList(), action->getNodeItemID());
+    /*
+    // make sure that the menu where the action came from is closed
+    if (connectButton->menu()) {
+        connectButton->menu()->hide();
+    }
+    */
+}
+
+
+/**
+ * @brief ToolbarWidget::goToConnectedNode
+ * This sends a signal to the view to center on the selected node item's definition, implementation or chosen instance.
+ */
+void ToolbarWidget::goToConnectedNode()
+{
+    QAction* action = qobject_cast<QAction*>(QObject::sender());
+    if (action) {
+        if (action->parentWidget() == definitionMenu) {
+            nodeView->centerDefinition(nodeItem->getID());
+        } else if (action->parentWidget() == implementationMenu) {
+            nodeView->centerImplementation(nodeItem->getID());
+        } else if (action->parentWidget() == instanceOptionMenu) {
+            nodeView->centerInstance(instanceOptionMenu->getParentAction()->getNodeItemID());
+        }
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::constructNewView
+ * This pops up a new window. The node centered in the new window depends on the signal sender.
+ */
+void ToolbarWidget::constructNewView()
+{
+    // pop up the selected node in a new window
+    QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
+    if (button) {
+        nodeView->constructNewView();
+        return;
+    }
+
+    // pop up the selected node's definition/implementation/instance in a new window
+    QAction* action = qobject_cast<QAction*>(QObject::sender());
+    if (action) {
+        if (action->parentWidget() == definitionMenu) {
+            nodeView->constructNewView(1);
+        } else if (action->parentWidget() == implementationMenu) {
+            nodeView->constructNewView(2);
+        } else if (action->parentWidget() == instanceOptionMenu) {
+            nodeView->constructNewView(instanceOptionMenu->getParentAction()->getNodeItemID());
+        }
     }
 }
 
@@ -390,6 +308,7 @@ void ToolbarWidget::addConnectedNode()
 /**
  * @brief ToolbarWidget::attachOptionMenu
  * This attaches the view options menu to the chosen instance from the instance menu list.
+ * This is called when an instance action is pressed. When that action is clicked, the menu is executed.
  */
 void ToolbarWidget::attachOptionMenu()
 {
@@ -404,32 +323,19 @@ void ToolbarWidget::attachOptionMenu()
  */
 void ToolbarWidget::setVisible(bool visible)
 {
-    bool toolbarVisible = visible && showToolbar;
+    bool toolbarVisible = visible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible
+                                      || goToButtonsVisible || alterViewButtonsVisible);
+
+    if (toolbarVisible) {
+        // update the toolbar & frame sizes
+        mainFrame->setFixedSize(toolbarLayout->sizeHint());
+        shadowFrame->setFixedSize(toolbarLayout->sizeHint() + QSize(3,3));
+        setFixedSize(shadowFrame->size());
+    }
+
     mainFrame->setVisible(toolbarVisible);
     shadowFrame->setVisible(toolbarVisible);
     QWidget::setVisible(toolbarVisible);
-
-    // once the toolbar is hidden, reset showToolbar
-    if (!visible) {
-        showToolbar = false;
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::hideToolbar
- * This method checks if hiding the menu was triggered by the toolbar.
- * If the event came from outside the toolbar, hide the toolbar and all visible menus.
- * @param actionTriggered
- */
-void ToolbarWidget::hideToolbar(bool actionTriggered)
-{
-    //if (!eventFromToolbar) {
-        hide();
-        if (!actionTriggered) {
-            nodeView->toolbarClosed();
-        }
-    //}
 }
 
 
@@ -443,162 +349,81 @@ void ToolbarWidget::hide()
 
 
 /**
- * @brief ToolbarWidget::setupToolBar
- * Initialise and setup the layout and tool buttons.
+ * @brief ToolbarWidget::hideToolbar
+ * This method checks if hiding the menu was triggered by the toolbar.
+ * If the event came from outside the toolbar, hide the toolbar and all visible menus.
+ * @param actionTriggered
  */
-void ToolbarWidget::setupToolBar()
+void ToolbarWidget::hideToolbar(bool actionTriggered)
 {
-    QHBoxLayout* layout = new QHBoxLayout();
-    QSize buttonSize = QSize(39,39);
-
-    addChildButton = new QToolButton(this);
-    connectButton = new QToolButton(this);
-    deleteButton = new QToolButton(this);
-    showNewViewButton = new QToolButton(this);
-    showConnectionsButton = new QToolButton(this);
-    definitionButton = new QToolButton(this);
-    implementationButton = new QToolButton(this);
-    instancesButton = new QToolButton(this);
-    alignVerticallyButton = new QToolButton(this);
-    alignHorizontallyButton = new QToolButton(this);
-    exportSnippetButton = new QToolButton(this);
-    importSnippetButton = new QToolButton(this);
-    displayedChildrenOptionButton = new QToolButton(this);
-
-    addChildButton->setIcon(QIcon(":/Actions/Plus.png"));
-    connectButton->setIcon(QIcon(":/Actions/ConnectTo.png"));
-    deleteButton->setIcon(QIcon(":/Actions/Delete.png"));
-    showNewViewButton->setIcon(QIcon(":/Actions/Popup.png"));
-    showConnectionsButton->setIcon(QIcon(":/Actions/Connections.png"));
-    definitionButton->setIcon(QIcon(":/Actions/Definition.png"));
-    implementationButton->setIcon(QIcon(":/Actions/Implementation.png"));
-    instancesButton->setIcon(QIcon(":/Actions/Instance.png"));
-    alignVerticallyButton->setIcon(QIcon(":/Actions/Align_Vertical.png"));
-    alignHorizontallyButton->setIcon(QIcon(":/Actions/Align_Horizontal.png"));
-    exportSnippetButton->setIcon(QIcon(":/Actions/ExportSnippet.png"));
-    importSnippetButton->setIcon(QIcon(":/Actions/ImportSnippet.png"));
-    displayedChildrenOptionButton->setIcon(QIcon(":/Actions/Settings.png"));
-
-    deleteButton->setStyleSheet("padding-right: 3px;");
-
-    addChildButton->setFixedSize(buttonSize);
-    connectButton->setFixedSize(buttonSize);
-    deleteButton->setFixedSize(buttonSize);
-    showNewViewButton->setFixedSize(buttonSize);
-    showConnectionsButton->setFixedSize(buttonSize);
-    definitionButton->setFixedSize(buttonSize);
-    implementationButton->setFixedSize(buttonSize);
-    instancesButton->setFixedSize(buttonSize);
-    alignVerticallyButton->setFixedSize(buttonSize);
-    alignHorizontallyButton->setFixedSize(buttonSize);
-    exportSnippetButton->setFixedSize(buttonSize);
-    importSnippetButton->setFixedSize(buttonSize);
-    displayedChildrenOptionButton->setFixedSize(buttonSize);
-
-    addChildButton->setIconSize(buttonSize*0.6);
-    connectButton->setIconSize(buttonSize*0.6);
-    deleteButton->setIconSize(buttonSize*0.75);
-    showNewViewButton->setIconSize(buttonSize*0.55);
-    showConnectionsButton->setIconSize(buttonSize*0.6);
-    definitionButton->setIconSize(buttonSize*0.55);
-    implementationButton->setIconSize(buttonSize*0.6);
-    instancesButton->setIconSize(buttonSize*0.6);
-    alignVerticallyButton->setIconSize(buttonSize*0.8);
-    alignHorizontallyButton->setIconSize(buttonSize*0.8);
-    exportSnippetButton->setIconSize(buttonSize*0.65);
-    importSnippetButton->setIconSize(buttonSize*0.65);
-    displayedChildrenOptionButton->setIconSize(buttonSize*0.65);
-
-    addChildButton->setToolTip("Add Child Entity");
-    connectButton->setToolTip("Connect Entity");
-    deleteButton->setToolTip("Delete Selection");
-    showNewViewButton->setToolTip("View In New Window");
-    showConnectionsButton->setToolTip("View Connections");
-    definitionButton->setToolTip("View Definition");
-    implementationButton->setToolTip("View Implementation");
-    instancesButton->setToolTip("View Instances");
-    alignVerticallyButton->setToolTip("Align Selection Vertically");
-    alignHorizontallyButton->setToolTip("Align Selection Horizontally");
-    exportSnippetButton->setToolTip("Export GraphML Snippet");
-    importSnippetButton->setToolTip("Import GraphML Snippet");
-    displayedChildrenOptionButton->setToolTip("Change Displayed Nodes");
-
-    snippetFrame = new QFrame();
-    snippetFrame->setFrameShape(QFrame::VLine);
-    snippetFrame->setPalette(QPalette(Qt::darkGray));
-
-    goToFrame = new QFrame();
-    goToFrame->setFrameShape(QFrame::VLine);
-    goToFrame->setPalette(QPalette(Qt::darkGray));
-
-    alterViewFrame = new QFrame();
-    alterViewFrame->setFrameShape(QFrame::VLine);
-    alterViewFrame->setPalette(QPalette(Qt::darkGray));
-
-    layout->addWidget(addChildButton);
-    layout->addWidget(connectButton);
-    layout->addWidget(deleteButton);
-    layout->addWidget(alignVerticallyButton);
-    layout->addWidget(alignHorizontallyButton);
-    layout->addWidget(snippetFrame);
-    layout->addWidget(exportSnippetButton);
-    layout->addWidget(importSnippetButton);
-    layout->addWidget(goToFrame);
-    layout->addWidget(definitionButton);
-    layout->addWidget(implementationButton);
-    layout->addWidget(instancesButton);
-    layout->addWidget(alterViewFrame);
-    layout->addWidget(showConnectionsButton);
-    layout->addWidget(showNewViewButton);
-    layout->addWidget(displayedChildrenOptionButton);
-
-    layout->setMargin(5);
-    layout->setAlignment(Qt::AlignTop);
-    setLayout(layout);
-
-    // add tool buttons for single selection to list
-    singleSelectionToolButtons.append(addChildButton);
-    singleSelectionToolButtons.append(connectButton);
-    singleSelectionToolButtons.append(showNewViewButton);
-    singleSelectionToolButtons.append(showConnectionsButton);
-    singleSelectionToolButtons.append(definitionButton);
-    singleSelectionToolButtons.append(implementationButton);
-    singleSelectionToolButtons.append(instancesButton);
-
-    // add tool buttons for multiple selection to list
-    multipleSelectionToolButtons.append(alignVerticallyButton);
-    multipleSelectionToolButtons.append(alignHorizontallyButton);
+   // if (!eventFrom Toolbar) {
+        hide();
+        if (!actionTriggered) {
+            nodeView->toolbarClosed();
+        }
+    //}
 }
 
 
 /**
+ * @brief ToolbarWidget::setupToolBar
+ * Initialise and setup the layout and tool buttons and separators.
+ */
+void ToolbarWidget::setupToolBar()
+{
+    toolbarLayout = new QHBoxLayout();
+    toolbarLayout->setMargin(5);
+    toolbarLayout->setAlignment(Qt::AlignTop);
+    setLayout(toolbarLayout);
+
+    QSize buttonSize = QSize(39,39);
+
+    // construct tool buttons and separators and add them to the toolbar's layout
+    addChildButton = constructToolButton(buttonSize, "Plus", 0.6, "Add Child Entity");
+    connectButton = constructToolButton(buttonSize, "ConnectTo", 0.6, "Connect Selection");
+    deleteButton = constructToolButton(buttonSize, "Delete", 0.75, "Delete Selection");
+    alignFrame = constructFrameSeparator();
+    alignVerticallyButton = constructToolButton(buttonSize, "Align_Vertical", 0.8, "Align Selection Vertically");
+    alignHorizontallyButton = constructToolButton(buttonSize, "Align_Horizontal", 0.8, "Align Selection Horizontally");
+    snippetFrame = constructFrameSeparator();
+    importSnippetButton = constructToolButton(buttonSize, "ImportSnippet", 0.65, "Import GraphML Snippet");
+    exportSnippetButton = constructToolButton(buttonSize, "ExportSnippet", 0.65, "Export GraphML Snippet");
+    goToFrame = constructFrameSeparator();
+    definitionButton = constructToolButton(buttonSize, "Definition", 0.55, "View Definition");
+    implementationButton = constructToolButton(buttonSize, "Implementation", 0.6, "View Implementation");
+    instancesButton = constructToolButton(buttonSize, "Instance", 0.6, "View Instances");
+    alterViewFrame = constructFrameSeparator();
+    connectionsButton = constructToolButton(buttonSize, "Connections", 0.6, "View Connections");
+    popupNewWindow = constructToolButton(buttonSize, "Popup", 0.55, "View In New Window");
+    displayedChildrenOptionButton = constructToolButton(buttonSize, "MenuCluster", 0.8, "Change Displayed Nodes");
+
+    deleteButton->setStyleSheet("padding-right: 3px;");
+}
+
+
+
+/**
  * @brief ToolbarWidget::setupMenus
- * Setup menus, sub-menus and their parent ToolbarWidgetActions.
+ * Setup menus, sub-menus and their parent and default ToolbarWidgetActions.
  */
 void ToolbarWidget::setupMenus()
 {
-    addMenu = new ToolbarWidgetMenu(0, 0, addChildButton);
-    addChildButton->setPopupMode(QToolButton::InstantPopup);
-    addChildButton->setMenu(addMenu);
+    // construct main menus
+    addMenu = constructToolMenu(addChildButton);
+    connectMenu = constructToolMenu(connectButton);
+    definitionMenu = constructToolMenu(definitionButton);
+    implementationMenu = constructToolMenu(implementationButton);
+    instancesMenu = constructToolMenu(instancesButton);
+    instanceOptionMenu = new ToolbarWidgetMenu(0, 0, instancesMenu);
+    displayedChildrenOptionMenu = constructToolMenu(displayedChildrenOptionButton);
 
-    connectMenu = new ToolbarWidgetMenu(0, 0, connectButton);
-    connectButton->setPopupMode(QToolButton::InstantPopup);
-    connectButton->setMenu(connectMenu);
-
-    definitionMenu = new ToolbarWidgetMenu(0, 0, definitionButton);
-    definitionButton->setPopupMode(QToolButton::InstantPopup);
-    definitionButton->setMenu(definitionMenu);
-
-    displayedChildrenOptionMenu = new ToolbarWidgetMenu(0, 0, displayedChildrenOptionButton);
-    displayedChildrenOptionButton->setPopupMode(QToolButton::InstantPopup);
-    displayedChildrenOptionButton->setMenu(displayedChildrenOptionMenu);
-
-    QWidgetAction* a1 = new QWidgetAction(this);
-    QWidgetAction* a2 = new QWidgetAction(this);
-    QWidgetAction* a3 = new QWidgetAction(this);
+    // setup widgets for the displayed children option menu for HardwareClusters
     allNodes = new QRadioButton("All", this);
     connectedNodes = new QRadioButton("Connected", this);
     unconnectedNodes = new QRadioButton("Unconnected", this);
+    QWidgetAction* a1 = new QWidgetAction(this);
+    QWidgetAction* a2 = new QWidgetAction(this);
+    QWidgetAction* a3 = new QWidgetAction(this);
     a1->setDefaultWidget(allNodes);
     a2->setDefaultWidget(connectedNodes);
     a3->setDefaultWidget(unconnectedNodes);
@@ -606,28 +431,21 @@ void ToolbarWidget::setupMenus()
     displayedChildrenOptionMenu->addAction(a2);
     displayedChildrenOptionMenu->addAction(a3);
 
-    QAction* defn_goTo = definitionMenu->addAction(QIcon(":/Actions/Goto.png"), "Go to Definition");
-    QAction* defn_popup = definitionMenu->addAction(QIcon(":/Actions/Popup.png"), "Popup Definition");
-    connect(defn_goTo, SIGNAL(triggered()), this, SLOT(goToDefinition()));
-    connect(defn_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
+    // setup menu actions for the definition, implementation and instances menus
+    QAction* goToDefn = definitionMenu->addAction(QIcon(":/Actions/Goto.png"), "Go to Definition");
+    QAction* popupDefn = definitionMenu->addAction(QIcon(":/Actions/Popup.png"), "Popup Definition");
+    connect(goToDefn, SIGNAL(triggered()), this, SLOT(goToConnectedNode()));
+    connect(popupDefn, SIGNAL(triggered()), this, SLOT(constructNewView()));
 
-    implementationMenu = new ToolbarWidgetMenu(0, 0, implementationButton);
-    implementationButton->setPopupMode(QToolButton::InstantPopup);
-    implementationButton->setMenu(implementationMenu);
+    QAction* goToImpl = implementationMenu->addAction(QIcon(":/Actions/Goto.png"), "Go to Implementation");
+    QAction* popupImpl = implementationMenu->addAction(QIcon(":/Actions/Popup.png"), "Popup Implementation");
+    connect(goToImpl, SIGNAL(triggered()), this, SLOT(goToConnectedNode()));
+    connect(popupImpl, SIGNAL(triggered()), this, SLOT(constructNewView()));
 
-    QAction* impl_goTo = implementationMenu->addAction(QIcon(":/Actions/Goto.png"), "Go to Implementation");
-    QAction* impl_popup = implementationMenu->addAction(QIcon(":/Actions/Popup.png"), "Popup Implementation");
-    connect(impl_goTo, SIGNAL(triggered()), this, SLOT(goToImplementation()));
-    connect(impl_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
-
-    instancesMenu = new ToolbarWidgetMenu(0, 0, instancesButton);
-    instanceOptionMenu = new ToolbarWidgetMenu(0, 0, instancesMenu);
-    instancesButton->setPopupMode(QToolButton::InstantPopup);
-    instancesButton->setMenu(instancesMenu);
-    QAction* inst_goTo = instanceOptionMenu->addAction(QIcon(":/Actions/Goto.png"), "Go to Instance");
-    QAction* inst_popup = instanceOptionMenu->addAction(QIcon(":/Actions/Popup.png"), "Popup Instance");
-    connect(inst_goTo, SIGNAL(triggered()), this, SLOT(goToInstance()));
-    connect(inst_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
+    QAction* goToInst = instanceOptionMenu->addAction(QIcon(":/Actions/Goto.png"), "Go to Instance");
+    QAction* popupInst = instanceOptionMenu->addAction(QIcon(":/Actions/Popup.png"), "Popup Instance");
+    connect(goToInst, SIGNAL(triggered()), this, SLOT(goToConnectedNode()));
+    connect(popupInst, SIGNAL(triggered()), this, SLOT(constructNewView()));
 
     // these widget actions are not deletable - when their parent menu is cleared, they're only hidden
     componentImplAction = new ToolbarWidgetAction("ComponentImpl", "", addMenu);
@@ -636,17 +454,17 @@ void ToolbarWidget::setupMenus()
     outEventPortDelegateAction = new ToolbarWidgetAction("OutEventPortDelegate", "", addMenu);
     blackBoxInstanceAction = new ToolbarWidgetAction("BlackBoxInstance", "", addMenu);
 
-    // default actions for when visible menus are empty
-    fileDefaultAction = new ToolbarWidgetAction("info", "There are no IDL files containing Components that are valid for this action.", this);
-    inEventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", this);
-    outEventPort_componentInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", this);
-    blackBoxInstanceDefaultAction = new ToolbarWidgetAction("info", "There is no existing BlackBox that does not already have an instance.", this);
+    // default actions to display information for when visible menus are empty
+    componentInstanceDefaultAction = new ToolbarWidgetAction("info", "There are no IDL files containing Components that are valid for this action.", addMenu);
+    blackBoxInstanceDefaultAction = new ToolbarWidgetAction("info", "There are no IDL files containing BlackBoxes.", addMenu);
+    iep_definitionInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", addMenu);
+    oep_definitionInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", addMenu);
 
-    // hidden menus for parent nodes, ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
-    fileMenu = new ToolbarWidgetMenu(0, fileDefaultAction, addMenu);
-    inEventPort_componentInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, inEventPort_componentInstanceDefaultAction, addMenu);
-    outEventPort_componentInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, outEventPort_componentInstanceDefaultAction, addMenu);
-    blackBoxInstanceMenu = new ToolbarWidgetMenu(blackBoxInstanceAction, blackBoxInstanceDefaultAction, addMenu);
+    // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
+    componentDefinitionsMenu = new ToolbarWidgetMenu(0, componentInstanceDefaultAction, addMenu);
+    blackBoxDefinitionsMenu = new ToolbarWidgetMenu(blackBoxInstanceAction, blackBoxInstanceDefaultAction, addMenu);
+    iep_definitionInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, iep_definitionInstanceDefaultAction, addMenu);
+    oep_definitionInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, oep_definitionInstanceDefaultAction, addMenu);
 }
 
 
@@ -666,211 +484,305 @@ void ToolbarWidget::makeConnections()
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignVerticallyButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(showConnectionsButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(popupNewWindow, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(connectionsButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(exportSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(importSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
 
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
-    connect(showConnectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
-    connect(showNewViewButton, SIGNAL(clicked()), this, SLOT(makeNewView()));
+    connect(connectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
+    connect(popupNewWindow, SIGNAL(clicked()), this, SLOT(constructNewView()));
 
-    connect(importSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ImportSnippet()));
-    connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(exportSnippet()));
+    connect(allNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
+    connect(connectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
+    connect(unconnectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
 
-    connect(allNodes, SIGNAL(clicked()), this, SLOT(displayAllChildren()));
-    connect(connectedNodes, SIGNAL(clicked()), this, SLOT(displayConnectedChildren()));
-    connect(unconnectedNodes, SIGNAL(clicked()), this, SLOT(displayUnconnectedChildren()));
     connect(allNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
     connect(connectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
     connect(unconnectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
     connect(displayedChildrenOptionMenu, SIGNAL(toolbarMenu_hideToolbar(bool)), this, SLOT(hideToolbar(bool)));
+
+    connect(importSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ImportSnippet()));
+    connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(exportSnippet()));
 }
 
 
 /**
- * @brief ToolbarWidget::updateToolButtons
- * Show/hide basic tool buttons for the currently selected nodeItem.
+ * @brief ToolbarWidget::updateButtonsAndMenus
+ * Show/hide tool buttons for the currently selected nodeItem(s) and update the menu lists.
+ * @param nodeItems
  */
-void ToolbarWidget::updateToolButtons()
+void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 {
-    // first, hide the buttons that are only for multilple selection
-    foreach (QToolButton* button, multipleSelectionToolButtons) {
-        button->hide();
+    if (nodeItems.isEmpty()) {
+        return;
     }
 
-    // check if the selected node item has other node items connected to it (edges)
-    if (nodeItem->getNode()->getEdges(0).count() > 0) {
-        // DEMO CHANGE - Don't need this when the popup new window button is back
-        //alterViewFrame->show();
-        showConnectionsButton->show();
-        //showToolbar = true;
-    } else {
-        // DEMO CHANGE - Don't need this when the popup new window button is back
-        //alterViewFrame->hide();
-        showConnectionsButton->hide();
-    }
-
-    if (nodeItem->getNodeKind() == "HardwareCluster") {
-        displayedChildrenOptionButton->show();
-        nodeItem->updateChildrenViewMode();
-    } else {
-        displayedChildrenOptionButton->hide();
-    }
-
-    // always show showNewView button
-    showNewViewButton->show();
-    showToolbar = true;
-}
-
-
-/**
- * @brief ToolbarWidget::updateMenuLists
- * This updates the lists for all the applicable menus for the selected node item.
- */
-void ToolbarWidget::updateMenuLists()
-{
-    // TODO: Do check here for differences between current list and
-    // new list for menus instead of just clearing them
+    // need to clear menus before updating them
     clearMenus();
-    showAlterViewFrame = false;
 
-    if(nodeItem){
-        setupAdoptableNodesList(nodeView->getAdoptableNodeList(nodeItem->getID()));
-        setupLegalNodesList(nodeView->getConnectableNodeItems(nodeItem->getID()));
-        setupInstancesList(nodeView->getNodeInstances(nodeItem->getID()));
+    QList<NodeItem*> legalNodes;
 
-        // if selected node is a ComponentAssembly, get the Files and ComponentInstance lists
-        // for the add ComponentInstance and In/OutEventPortDelegate menus respectively
-        if (nodeItem->getNodeKind() == "ComponentAssembly") {
-            setupFilesList(nodeView->getNodeItemsOfKind("IDL"), "inst");
-            //Only look 1 layer deep for component Instances.
-            setupBlackBoxList(nodeView->getNodeItemsOfKind("BlackBox"));
+    if (nodeItems.count() == 1) {
 
+        nodeItem = nodeItems.at(0);
 
-            setupBlackBoxInstanceList(nodeView->getNodeItemsOfKind("BlackBoxInstance", nodeItem->getID(), 0));
-            setupChildrenComponentInstanceList(nodeView->getNodeItemsOfKind("ComponentInstance", nodeItem->getID(), 0));
+        if (nodeItem) {
 
+            // these buttons are only available for a single selection
+            popupNewWindow->show();
+            definitionButton->setVisible(showDefinitionToolButton);
+            implementationButton->setVisible(showImplementationToolButton);
+            goToButtonsVisible = showDefinitionToolButton || showImplementationToolButton;
 
-            //If we have InEventPorts
-            if(inEventPort_componentInstanceMenu && inEventPort_componentInstanceMenu->hasWidgetActions()){
-                // setup menu lists for InEventPort/OutEventPort Delegates
-                setupInEventPortInstanceList();
+            // check if the selected node item has other node items connected to it (edges)
+            if (nodeItem->getNode()->getEdges(0).count() > 0) {
+                connectionsButton->show();
             }
 
-            //If we have OutEventPorts
-            if(outEventPort_componentInstanceMenu && outEventPort_componentInstanceMenu->hasWidgetActions()){
-                // setup menu lists for InEventPort/OutEventPort Delegates
-                setupOutEventPortInstanceList();
+            // only show the displayed children option button if the selected item is a HardwareCluster
+            if (nodeItem->getNodeKind() == "HardwareCluster") {
+                displayedChildrenOptionButton->show();
             }
 
-        } else if (nodeItem->getNodeKind() == "BehaviourDefinitions") {
-            setupFilesList(nodeView->getNodeItemsOfKind("IDL"), "impl");
+            // setup selected item's adoptable nodes menu and sub-menus, and its instances menu
+            setupAdoptableNodesList(nodeView->getAdoptableNodeList(nodeItem->getID()));
+            setupInstancesList(nodeView->getNodeInstances(nodeItem->getID()));
+
+            legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
+            alterViewButtonsVisible = true;
+        }
+
+    } else {
+
+        NodeItem* prevParentItem = 0;
+        bool shareParent = true;
+        bool allClusters = true;
+
+        foreach (NodeItem* item, nodeItems) {
+            NodeItem* parentItem = item->getParentNodeItem();
+            if (prevParentItem && (prevParentItem != parentItem)) {
+                shareParent = false;
+            }
+            if (item->getNodeKind() != "HardwareCluster") {
+                allClusters = false;
+            }
+            prevParentItem = parentItem;
+        }
+
+        // only show the group alignment buttons if all the selected items have the same parent
+        if (shareParent) {
+            alignVerticallyButton->show();
+            alignHorizontallyButton->show();
+            alignButtonsVisible = true;
+        }
+
+        // if all selected node items are Hardware clusters, show diplay option button
+        if (allClusters) {
+            displayedChildrenOptionButton->show();
+            alterViewButtonsVisible = true;
         }
     }
 
-    alterViewFrame->setVisible(showAlterViewFrame || showSnippetFrame || showGoToFrame || deleteButtonVisible);
-    //alterViewFrame->setVisible(showSnippetFrame || showGoToFrame);
-    //alterViewFrame->setVisible(showAlterViewFrame && alterModelToolButtons.count() > 0);
+    // NOTE: When a deployable entity is already connected to a HardwareNode/Cluster,
+    // the connectable nodes list no longer shows any of the Hardware entities.
+    // This means that you can't change the deployment link unless you use the dock.
+    // Added this so that you can change the hardware link using the context toolbar.
+
+    if (hardwareDockIsEnabled) {
+        bool deployable = true;
+        foreach (NodeItem* item, nodeItems) {
+            if (!nodeView->isNodeKindDeployable(item->getNodeKind())) {
+                deployable = false;
+                break;
+            }
+        }
+        if (deployable) {
+            QList<NodeItem*> hardware = nodeView->getHardwareList();
+            foreach (NodeItem* item, hardware) {
+                if (!legalNodes.contains(item)) {
+                    legalNodes.append(item);
+                }
+            }
+        }
+    }
+
+    // setup connectable nodes menu for the selected item(s)
+    setupLegalNodesList(legalNodes);
 }
 
 
 /**
- * @brief ToolbarWidget::multipleSelection
- * This is called when the user right-clicks on the view and there are
- * multiple items selected. It hides the majority of the tool buttons
- * and only displays the ones that can be used for multiple items.
- * @param items
+ * @brief ToolbarWidget::updateSeparators
  */
-void ToolbarWidget::multipleSelection(QList<NodeItem*> items, QList<EdgeItem *> edgeItems)
+void ToolbarWidget::updateSeparators()
 {
-    // hide the buttons that are only for a single selection
-    foreach (QToolButton* button, singleSelectionToolButtons) {
-        button->hide();
-    }
+    // TODO: The separators still need fixing.
+    alignFrame->setVisible(alignButtonsVisible && alterModelButtonsVisible);
+    snippetFrame->setVisible(snippetButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
+    goToFrame->setVisible(goToButtonsVisible && (alterModelButtonsVisible || snippetButtonsVisible));
+    alterViewFrame->setVisible(alterViewButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible || goToButtonsVisible));
+}
 
-    // hide the frames used as separators
+
+/**
+ * @brief ToolbarWidget::hideAllButtons
+ */
+void ToolbarWidget::hideButtons()
+{
+    addChildButton->hide();
+    connectButton->hide();
+    deleteButton->hide();
+    alignVerticallyButton->hide();
+    alignHorizontallyButton->hide();
+    exportSnippetButton->hide();
+    importSnippetButton->hide();
+    definitionButton->hide();
+    implementationButton->hide();
+    instancesButton->hide();
+    connectionsButton->hide();
+    popupNewWindow->hide();
+    displayedChildrenOptionButton->hide();
+}
+
+
+/**
+ * @brief ToolbarWidget::hideSeparators
+ */
+void ToolbarWidget::hideSeparators()
+{
     snippetFrame->hide();
     goToFrame->hide();
     alterViewFrame->hide();
-
-    // show the delete button - multiple selection can be deleted at the same time
-    if (!edgeItems.isEmpty()) {
-        foreach (QToolButton* button, multipleSelectionToolButtons) {
-            button->setVisible(false);
-        }
-        //deleteButton->show();
-        //showToolbar = true;
-        showToolbar = deleteButtonVisible;
-        return;
-    }
-
-    NodeItem* prevParentItem = 0;
-    bool hardwareClusters = true;
-    bool showButtons = true;
-
-    // only show the group alignment buttons if all the selected items have the same parent
-    foreach (NodeItem* item, items) {
-        NodeItem* parentItem = item->getParentNodeItem();
-        if (prevParentItem && (prevParentItem != parentItem)) {
-            showButtons = false;
-            break;
-        }
-        prevParentItem = parentItem;
-        if (hardwareClusters && item->getNodeKind() != "HardwareCluster") {
-            hardwareClusters = false;
-        }
-    }
-
-    foreach (QToolButton* button, multipleSelectionToolButtons) {
-        button->setVisible(showButtons);
-    }
-
-    if (hardwareClusters) {
-        displayedChildrenOptionButton->show();
-        updateRadioButtons(items);
-    } else {
-        displayedChildrenOptionButton->hide();
-    }
-
-    // show the connect button if there is at least one entity that all the
-    // selected items can connect to; clear and update the connect menu
-    /*
-    QList<NodeItem*> connectableNodeItems = nodeView->getConnectableNodeItems();
-    connectMenu->clearMenu();
-    setupLegalNodesList(connectableNodeItems);
-    */
-
-    showToolbar = showButtons || deleteButtonVisible || hardwareClusters;
 }
 
 
 /**
- * @brief ToolbarWidget::setupInstancesList
- * This sets up the menu list of instances of the selected node item.
+ * @brief ToolbarWidget::clearMenus
+ * Clear all of the stored menus.
  */
-void ToolbarWidget::setupInstancesList(QList<NodeItem *> instances)
+void ToolbarWidget::clearMenus()
 {
-    // if there are no instances, hide the instance button
-    if (instances.count() == 0) {
-        instancesButton->hide();
-        return;
-    } else {
-        instancesButton->show();
-        showGoToFrame = true;
-        showToolbar = true;
+    addMenu->clearMenu();
+    connectMenu->clearMenu();
+    componentDefinitionsMenu->clearMenu();
+    iep_definitionInstanceMenu->clearMenu();
+    oep_definitionInstanceMenu->clearMenu();
+    blackBoxDefinitionsMenu->clearMenu();
+    instancesMenu->clearMenu();
+}
+
+
+/**
+ * @brief ToolbarWidget::resetButtonGroupFlags
+ */
+void ToolbarWidget::resetButtonGroupFlags()
+{
+    alterModelButtonsVisible = false;
+    alignButtonsVisible = false;
+    snippetButtonsVisible = false;
+    goToButtonsVisible = false;
+    alterViewButtonsVisible = false;
+}
+
+
+/**
+ * @brief ToolbarWidget::constructToolButton
+ * This constructs a QToolButton with the provided size, icon and tooltip.
+ * It adds it to the toolbar's layout and then returns it.
+ * @param size - button size
+ * @param iconPng - button icon's png filename without the extension
+ * @param iconSizeRatio - button icon's size ratio
+ * @param tooltip - button tooltip
+ * @return
+ */
+QToolButton* ToolbarWidget::constructToolButton(QSize size, QString iconPng, double iconSizeRatio, QString tooltip)
+{
+    QToolButton* button = new QToolButton(this);
+    button->setFixedSize(size);
+    button->setIcon(QIcon(":/Actions/" + iconPng + ".png"));
+    button->setIconSize(size * iconSizeRatio);
+    button->setToolTip(tooltip);
+    toolbarLayout->addWidget(button);
+    return button;
+}
+
+
+/**
+ * @brief ToolbarWidget::constructFrameSeparator
+ * This constructs a QFrame used as a separator, adds it to the toolbar's layout and then returns it.
+ * @return
+ */
+QFrame* ToolbarWidget::constructFrameSeparator()
+{
+    QFrame* frame = new QFrame(this);
+    frame->setFrameShape(QFrame::VLine);
+    frame->setPalette(QPalette(Qt::darkGray));
+    toolbarLayout->addWidget(frame);
+    return frame;
+}
+
+
+/**
+ * @brief ToolbarWidget::constructToolMenu
+ * This constructs and returns a ToolbarWidgetMenu that's directly attached to one of the QToolButtons.
+ * @param parent - QToolButton the returned menu is attached to
+ * @return
+ */
+ToolbarWidgetMenu* ToolbarWidget::constructToolMenu(QToolButton* parentButton)
+{
+    if (parentButton) {
+        ToolbarWidgetMenu* menu = new ToolbarWidgetMenu(0, 0, parentButton);
+        parentButton->setPopupMode(QToolButton::InstantPopup);
+        parentButton->setMenu(menu);
+        return menu;
+    }
+    return 0;
+}
+
+
+/**
+ * @brief ToolbarWidget::constructSubMenuAction
+ * This constructs an action for nodeItem and adds it to its parent action's menu if there is one.
+ * If there isn't, it constructs the parent action and its menu and attaches it to parentMenu.
+ * @param nodeItem - nodeItem attached to the action that's being constructed
+ * @param parentMenu - top most parent menu that the newly constructed action should be attached to
+ * @return
+ */
+ToolbarWidgetAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, ToolbarWidgetMenu* parentMenu)
+{
+    if (!nodeItem || !parentMenu) {
+        return 0;
     }
 
-    updateSeparators(false);
+    NodeItem* parentNode = nodeItem->getParentNodeItem();
 
-    // create a ToolbarWidgetAction for each instance and connect it
-    for (int i = 0; i < instances.count(); i++) {
-        ToolbarWidgetAction* action  = new ToolbarWidgetAction(instances.at(i), this);
-        connect(action, SIGNAL(toolbarAction_pressed()), this, SLOT(attachOptionMenu()));
-        instancesMenu->addWidgetAction(action);
+    // if nodeItem has a parent, check if there is already an action for it in parentMenu
+    // if not, create one and attach a menu to it
+    if (parentNode && parentNode->getNodeKind() != "Model") {
+
+        ToolbarWidgetAction* parentAction = parentMenu->getWidgetAction(parentNode);
+        ToolbarWidgetMenu* parentActionMenu = 0;
+
+        if (parentAction) {
+            parentActionMenu = parentAction->getMenu();
+        } else {
+            parentAction = new ToolbarWidgetAction(parentNode, parentMenu, true);
+            parentActionMenu = new ToolbarWidgetMenu(parentAction, 0, parentMenu);
+            parentMenu->addWidgetAction(parentAction);
+        }
+
+        // construct and add nodeItem's action to the parent action's menu
+        if (parentActionMenu) {
+            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeItem, parentActionMenu);
+            parentActionMenu->addWidgetAction(action);
+            return action;
+        }
     }
+
+    return 0;
 }
 
 
@@ -882,14 +794,12 @@ void ToolbarWidget::setupInstancesList(QList<NodeItem *> instances)
 void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
 {
     // if there are no adoptable node kinds, hide the addChild button
-    if (nodeKinds.count() == 0) {
+    if (nodeKinds.isEmpty()) {
         addChildButton->hide();
         return;
     } else {
         addChildButton->show();
-        //alterModelToolButtons.append(addChildButton);
-        showAlterViewFrame = true;
-        showToolbar = true;
+        alterModelButtonsVisible = true;
     }
 
     // populate addMenu
@@ -915,6 +825,24 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
 
         addMenu->addWidgetAction(action);
     }
+
+    QString selectedKind = nodeItem->getNodeKind();
+
+    if (selectedKind == "ComponentAssembly") {
+
+        // setup definitions lists for Component and BlackBox instance menus
+        setupComponentList(nodeView->getNodeItemsOfKind("Component"), "inst");
+        setupBlackBoxList(nodeView->getNodeItemsOfKind("BlackBox"));
+
+        // setup combined list of both Component and BlackBox instances for the In/Out EventPortDelegate menus
+        QList<NodeItem*> definitionInstances = nodeView->getNodeItemsOfKind("ComponentInstance", nodeItem->getID(), 0);
+        definitionInstances.append(nodeView->getNodeItemsOfKind("BlackBoxInstance", nodeItem->getID(), 0));
+        setupDefinitionInstanceList(definitionInstances);
+
+    } else if (selectedKind == "BehaviourDefinitions") {
+        // setup list for the ComponentImpl menu
+        setupComponentList(nodeView->getNodeItemsOfKind("Component"), "impl");
+    }
 }
 
 
@@ -926,88 +854,47 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
 void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
 {
     // if the selected node can't connect to anything, hide the connect button
-    if (nodeList.count() == 0) {
+    if (nodeList.isEmpty()) {
         connectButton->hide();
         return;
     } else {
         connectButton->show();
-        //alterModelToolButtons.append(connectButton);
-        showAlterViewFrame = true;
-        showToolbar = true;
+        alterModelButtonsVisible = true;
     }
 
     // populate connectMenu
     for (int i = 0; i < nodeList.count(); i++) {
-        NodeItem* parentNode = nodeList.at(i)->getParentNodeItem();
-
-        // if the current node has a parent, check if there is already an action for it
-        // if not, create one and attach a menu to it
-        // if there is, add the node's action to the parent action's menu
-        if (parentNode && parentNode->getNodeKind() != "Model") {
-
-            ToolbarWidgetAction* parentAction = connectMenu->getWidgetAction(parentNode);
-            ToolbarWidgetMenu* parentActionMenu = 0;
-
-            if (parentAction) {
-                parentActionMenu = parentAction->getMenu();
-            } else {
-                parentAction = new ToolbarWidgetAction(parentNode, connectMenu, true);
-                parentActionMenu = new ToolbarWidgetMenu(parentAction, 0, connectMenu);
-                connectMenu->addWidgetAction(parentAction);
-            }
-
-            ToolbarWidgetAction* action = new ToolbarWidgetAction(nodeList.at(i), parentActionMenu);
-            parentActionMenu->addWidgetAction(action);
+        ToolbarWidgetAction* action = constructSubMenuAction(nodeList.at(i), connectMenu);
+        if (action) {
             connect(action, SIGNAL(triggered()), this, SLOT(connectNodes()));
-
         } else {
-            qWarning() << "ToolbarWidget::setupLegalNodesList - Current entity's parent entity is NULL.";
+            qWarning() << "ToolbarWidget::setupLegalNodesList - action not constructed.";
         }
     }
 }
 
 
 /**
- * @brief ToolbarWidget::setupFilesList
- * This sets up the Files menu list. It gets the updated list from the view.
- * @param files
+ * @brief ToolbarWidget::setupInstancesList
+ * This sets up the menu list of instances of the selected node item.
  */
-void ToolbarWidget::setupFilesList(QList<NodeItem *> files, QString kind)
+void ToolbarWidget::setupInstancesList(QList<NodeItem *> instances)
 {
-    // filter Files list - check which Files contain Components
-    QList<NodeItem*> fileWithComponents;
-    foreach (NodeItem* file, files){
-        if(!nodeView->getNodeItemsOfKind("Component", file->getID()).isEmpty()){
-            fileWithComponents.append(file);
-        }
-    }
-
-    ToolbarWidgetAction* action = 0;
-    if (kind == "impl") {
-        action = componentImplAction;
-        fileMenu->setParentAction(componentImplAction);
-    } else if (kind == "inst") {
-        action = componentInstanceAction;
-        fileMenu->setParentAction(componentInstanceAction);
-    }
-
-    // if the list has no contents, change componentInstanceAction checkable state
-    if (fileWithComponents.count() == 0) {
-        action->getButton()->setCheckable(false);
+    // if there are no instances, hide the instance button
+    if (instances.isEmpty()) {
+        instancesButton->hide();
         return;
     } else {
-        action->getButton()->setCheckable(true);
+        instancesButton->show();
+        goToButtonsVisible = true;
     }
 
-    // populate fileMenu
-    for (int i = 0; i < fileWithComponents.count(); i++) {
-        ToolbarWidgetAction* fileAction = new ToolbarWidgetAction(fileWithComponents.at(i), fileMenu, true);
-        new ToolbarWidgetMenu(fileAction, 0, fileMenu);
-
-        fileMenu->addWidgetAction(fileAction);
+    // create a ToolbarWidgetAction for each instance and connect it
+    for (int i = 0; i < instances.count(); i++) {
+        ToolbarWidgetAction* action  = new ToolbarWidgetAction(instances.at(i), instancesMenu);
+        connect(action, SIGNAL(toolbarAction_pressed()), this, SLOT(attachOptionMenu()));
+        instancesMenu->addWidgetAction(action);
     }
-
-    setupComponentList(nodeView->getNodeItemsOfKind("Component"), kind);
 }
 
 
@@ -1016,39 +903,31 @@ void ToolbarWidget::setupFilesList(QList<NodeItem *> files, QString kind)
  * This sets up the Components menu list. It gets the updated list from the view.
  * @param components
  */
-void ToolbarWidget::setupComponentList(QList<NodeItem *> components, QString kind)
+void ToolbarWidget::setupComponentList(QList<NodeItem*> components, QString kind)
 {
+    if (kind == "impl") {
+        componentDefinitionsMenu->setParentAction(componentImplAction);
+    } else if (kind == "inst") {
+        componentDefinitionsMenu->setParentAction(componentInstanceAction);
+    } else {
+        qWarning() << "ToolbarWidget::setupFilesList - kind not recognized.";
+        return;
+    }
+
     for (int i = 0; i < components.count(); i++) {
 
         // if selected node is the BehaviourDefinitions or an undefined ComponentImpl,
         // don't include already implemented Components in the menu
-        if (kind == "impl") {
-            if(nodeView->getImplementation(components.at(i)->getID())){
-                continue;
-            }
+        if (kind == "impl" && nodeView->getImplementation(components.at(i)->getID())) {
+            continue;
         }
 
-        // add the Component to its parent File's menu
-        foreach (QAction* action, fileMenu->actions()) {
-
-            ToolbarWidgetAction* fileAction = qobject_cast<ToolbarWidgetAction*>(action);
-            QString fileID = components.at(i)->getParentNodeItem()->getID();
-
-            // search for the Component's parent File action then add the Component's action to its menu
-            if (fileID == fileAction->getNodeItem()->getID()) {
-                ToolbarWidgetAction* action = new ToolbarWidgetAction(components.at(i), fileMenu);
-                connect(action, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
-                fileAction->getMenu()->addWidgetAction(action);
-                break;
-            }
-        }
-    }
-
-    // if the fileAction's menu doesn't have any actions, remove it from the file menu
-    foreach (QAction* action, fileMenu->actions()) {
-        ToolbarWidgetAction* fileAction = qobject_cast<ToolbarWidgetAction*>(action);
-        if (fileAction->getMenu() && fileAction->getMenu()->getWidgetActions().count() == 0) {
-            fileMenu->removeWidgetAction(fileAction);
+        // set up an action for each Component definition
+        ToolbarWidgetAction* action = constructSubMenuAction(components.at(i), componentDefinitionsMenu);
+        if (action) {
+            connect(action, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
+        } else {
+            qWarning() << "ToolbarWidget::setupComponentList - action not constructed.";
         }
     }
 }
@@ -1059,196 +938,98 @@ void ToolbarWidget::setupComponentList(QList<NodeItem *> components, QString kin
  * This sets up the BlackBox menu list. It gets the updated list from the view.
  * @param blackBoxes
  */
-void ToolbarWidget::setupBlackBoxList(QList<NodeItem *> blackBoxes)
+void ToolbarWidget::setupBlackBoxList(QList<NodeItem*> blackBoxes)
 {
+    // set up an action for each BlackBox definition
     for (int i = 0; i < blackBoxes.count(); i++) {
-        NodeItem* parentNodeItem = blackBoxes.at(i)->getParentNodeItem();
-
-        // if the current node has a parent, check if there is already an action for it
-        // if not, create one and attach a menu to it
-        // if there is, add the node's action to the parent action's menu
-        if (parentNodeItem && parentNodeItem->getNodeKind() != "Model") {
-
-            ToolbarWidgetAction* parentAction = blackBoxInstanceMenu->getWidgetAction(parentNodeItem);
-            ToolbarWidgetMenu* parentActionMenu = 0;
-
-            if (parentAction) {
-                parentActionMenu = parentAction->getMenu();
-            } else {
-                parentAction = new ToolbarWidgetAction(parentNodeItem, blackBoxInstanceMenu, true);
-                parentActionMenu = new ToolbarWidgetMenu(parentAction, 0, blackBoxInstanceMenu);
-                blackBoxInstanceMenu->addWidgetAction(parentAction);
-            }
-
-            ToolbarWidgetAction* action = new ToolbarWidgetAction(blackBoxes.at(i), blackBoxInstanceMenu);
-            parentActionMenu->addWidgetAction(action);
+        ToolbarWidgetAction* action = constructSubMenuAction(blackBoxes.at(i), blackBoxDefinitionsMenu);
+        if (action) {
             connect(action, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
+        } else {
+            qWarning() << "ToolbarWidget::setupBlackBoxList - action not constructed.";
         }
-    }
-}
-
-void ToolbarWidget::setupBlackBoxInstanceList(QList<NodeItem *> blackBoxInstances)
-{
-    if (blackBoxInstances.count() > 0) {
-
-        foreach (NodeItem* instance, blackBoxInstances) {
-            if(!nodeView->getNodeItemsOfKind("InEventPortInstance", instance->getID()).isEmpty()){
-                ToolbarWidgetAction* inEvent_instanceAction = new ToolbarWidgetAction(instance, inEventPort_componentInstanceMenu, true);
-                new ToolbarWidgetMenu(inEvent_instanceAction, 0, inEventPort_componentInstanceMenu);
-                inEventPort_componentInstanceMenu->addWidgetAction(inEvent_instanceAction);
-            }
-            if(!nodeView->getNodeItemsOfKind("OutEventPortInstance", instance->getID()).isEmpty()){
-                ToolbarWidgetAction* outEvent_instanceAction = new ToolbarWidgetAction(instance, outEventPort_componentInstanceMenu, true);
-                new ToolbarWidgetMenu(outEvent_instanceAction, 0, outEventPort_componentInstanceMenu);
-                outEventPort_componentInstanceMenu->addWidgetAction(outEvent_instanceAction);
-            }
-        }
-    }
-
-}
-
-
-/**
- * @brief ToolbarWidget::setupChildrenComponentInstanceList
- * This sets up the menu list of children ComponentInstances inside the selected node item.
- * It gets the updated list from the view.
- * @param componentInstances
- */
-void ToolbarWidget::setupChildrenComponentInstanceList(QList<NodeItem*> componentInstances)
-{
-    // if there are children ComponentInstances, create an action and a menu for each one
-    if (componentInstances.count() > 0) {
-
-        foreach (NodeItem* instance, componentInstances) {
-            if(!nodeView->getNodeItemsOfKind("InEventPortInstance", instance->getID()).isEmpty()){
-                ToolbarWidgetAction* inEvent_instanceAction = new ToolbarWidgetAction(instance, inEventPort_componentInstanceMenu, true);
-                new ToolbarWidgetMenu(inEvent_instanceAction, 0, inEventPort_componentInstanceMenu);
-                inEventPort_componentInstanceMenu->addWidgetAction(inEvent_instanceAction);
-            }
-            if(!nodeView->getNodeItemsOfKind("OutEventPortInstance", instance->getID()).isEmpty()){
-                ToolbarWidgetAction* outEvent_instanceAction = new ToolbarWidgetAction(instance, outEventPort_componentInstanceMenu, true);
-                new ToolbarWidgetMenu(outEvent_instanceAction, 0, outEventPort_componentInstanceMenu);
-                outEventPort_componentInstanceMenu->addWidgetAction(outEvent_instanceAction);
-            }
-        }
-
-
     }
 }
 
 
 /**
- * @brief ToolbarWidget::setupInEventPortInstanceList
- * This only gets called if there are children ComponentInstances inside the selected node item.
- * It sets up the list of InEventPortInstance from each all of the ComponentInstance children.
+ * @brief ToolbarWidget::setupDefinitionInstanceList
+ * @param definitionInstances
  */
-void ToolbarWidget::setupInEventPortInstanceList()
+void ToolbarWidget::setupDefinitionInstanceList(QList<NodeItem*> definitionInstances)
 {
-    bool hasValidInEventPortInstance = false;
+    // create an action and a menu for each Component/BlackBox Instance
+    foreach (NodeItem* instance, definitionInstances) {
+        if (!nodeView->getNodeItemsOfKind("InEventPortInstance", instance->getID()).isEmpty()) {
+            ToolbarWidgetAction* inEvent_instanceAction = new ToolbarWidgetAction(instance, iep_definitionInstanceMenu, true);
+            new ToolbarWidgetMenu(inEvent_instanceAction, 0, iep_definitionInstanceMenu);
+            iep_definitionInstanceMenu->addWidgetAction(inEvent_instanceAction);
+        }
+        if (!nodeView->getNodeItemsOfKind("OutEventPortInstance", instance->getID()).isEmpty()) {
+            ToolbarWidgetAction* outEvent_instanceAction = new ToolbarWidgetAction(instance, oep_definitionInstanceMenu, true);
+            new ToolbarWidgetMenu(outEvent_instanceAction, 0, oep_definitionInstanceMenu);
+            oep_definitionInstanceMenu->addWidgetAction(outEvent_instanceAction);
+        }
+    }
 
-    foreach (ToolbarWidgetAction* instanceAction, inEventPort_componentInstanceMenu->getWidgetActions()) {
+    // setup menu lists for InEventPort/OutEventPort Delegates
+    if (iep_definitionInstanceMenu && iep_definitionInstanceMenu->hasWidgetActions()) {
+        setupEventPortInstanceList("InEventPortInstance");
+    }
 
-        QList<NodeItem*> iep_instances = nodeView->getNodeItemsOfKind("InEventPortInstance", instanceAction->getNodeItem()->getID());
+    // setup menu lists for InEventPort/OutEventPort Delegates
+    if (oep_definitionInstanceMenu && oep_definitionInstanceMenu->hasWidgetActions()) {
+        setupEventPortInstanceList("OutEventPortInstance");
+    }
+}
 
-        // for each InEventPortInstance, create an action and add it to parent ComponentInstance's menu
-        foreach (NodeItem* iep_inst, iep_instances) {
+
+/**
+ * @brief ToolbarWidget::setupEventPortInstanceList
+ * @param eventPortKind
+ */
+void ToolbarWidget::setupEventPortInstanceList(QString eventPortKind)
+{
+    ToolbarWidgetMenu* instanceMenu = 0;
+    bool hasValidInstance = false;
+
+    if (eventPortKind == "InEventPortInstance") {
+        instanceMenu = iep_definitionInstanceMenu;
+    } else if (eventPortKind == "OutEventPortInstance") {
+        instanceMenu = oep_definitionInstanceMenu;
+    }
+
+    if (!instanceMenu) {
+        qWarning() << "ToolbarWidget::setupEventPortInstanceList - instanceMenu is null. Event port kind might not be recognized.";
+        return;
+    }
+
+    foreach (ToolbarWidgetAction* instAction, instanceMenu->getWidgetActions()) {
+
+        QList<NodeItem*> instances = nodeView->getNodeItemsOfKind(eventPortKind, instAction->getNodeItemID());
+
+        foreach (NodeItem* inst, instances) {
+
             // can only connect an EventPort Delegate to an EventPort connected to an Aggregate
-
-            NodeItem* iep_def = nodeView->getDefinition(iep_inst->getID());
-            if(iep_def){
-                if(!nodeView->getAggregate(iep_def->getID())){
-                    continue;
-                }
+            NodeItem* iep_def = nodeView->getDefinition(inst->getID());
+            if (iep_def && !nodeView->getAggregate(iep_def->getID())) {
+                continue;
             }
 
-            ToolbarWidgetAction* eventPortAction = new ToolbarWidgetAction(iep_inst, inEventPort_componentInstanceMenu);
-            if (instanceAction->getMenu()) {
-                instanceAction->getMenu()->addWidgetAction(eventPortAction);
+            // create an action for each EventPortInstance and add it to its parent Component/BlackBox instance's menu
+            ToolbarWidgetAction* eventPortAction = new ToolbarWidgetAction(inst, instanceMenu);
+            if (instAction->getMenu()) {
+                instAction->getMenu()->addWidgetAction(eventPortAction);
                 connect(eventPortAction, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
             }
-            hasValidInEventPortInstance = true;
+
+            hasValidInstance = true;
         }
     }
 
-    // if none of the ComponentInstances contain valid EventPortInstances
-    // hide the ComponentInstanceMenu and show default action
-    if (!hasValidInEventPortInstance) {
-        inEventPort_componentInstanceMenu->clearMenu();
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::setupOutEventPortInstanceList
- * This only gets called if there are children ComponentInstances inside the selected node item.
- * It sets up the list of OutEventPortInstance from each all of the ComponentInstance children.
- */
-void ToolbarWidget::setupOutEventPortInstanceList()
-{
-    bool hasValidOutEventPortInstance = false;
-
-    foreach (ToolbarWidgetAction* instanceAction, outEventPort_componentInstanceMenu->getWidgetActions()) {
-
-        QList<NodeItem*> oep_instances = nodeView->getNodeItemsOfKind("OutEventPortInstance", instanceAction->getNodeItem()->getID());
-
-        // for each OutnEventPortInstance, create an action and add it to parent ComponentInstance's menu
-        foreach (NodeItem* oep_inst, oep_instances) {
-            // can only connect an EventPort Delegate to an EventPort connected to an Aggregate
-            NodeItem* oep_def = nodeView->getDefinition(oep_inst->getID());
-            if(oep_def){
-                if(!nodeView->getAggregate(oep_def->getID())){
-                    continue;
-                }
-            }
-            ToolbarWidgetAction* eventPortAction = new ToolbarWidgetAction(oep_inst, outEventPort_componentInstanceMenu);
-            if (instanceAction->getMenu()) {
-                instanceAction->getMenu()->addWidgetAction(eventPortAction);
-                connect(eventPortAction, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
-            }
-            hasValidOutEventPortInstance = true;
-        }
-    }
-
-    // if none of the ComponentInstances contain valid EventPortInstances
-    // hide the ComponentInstanceMenu and show default action
-    if (!hasValidOutEventPortInstance) {
-        outEventPort_componentInstanceMenu->clearMenu();
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::clearMenus
- * Clear all of the stored menus
- */
-void ToolbarWidget::clearMenus()
-{
-    addMenu->clearMenu();
-    connectMenu->clearMenu();
-    fileMenu->clearMenu();
-    inEventPort_componentInstanceMenu->clearMenu();
-    outEventPort_componentInstanceMenu->clearMenu();
-    blackBoxInstanceMenu->clearMenu();
-    instancesMenu->clearMenu();
-}
-
-
-/**
- * @brief ToolbarWidget::resetRadioButtons
- * @param selectedItems
- */
-void ToolbarWidget::updateRadioButtons(QList<NodeItem*> hardwareClusters)
-{
-    int viewMode = -1;
-    if (!hardwareClusters.isEmpty()) {
-        viewMode = hardwareClusters.at(0)->getChildrenViewMode();
-        for (int i = 1; i < hardwareClusters.count(); i++) {
-            NodeItem* hc = hardwareClusters.at(i);
-            if (hc->getChildrenViewMode() != viewMode) {
-                viewMode = -1;
-                break;
-            }
-        }
-        hardwareClusterMenuClicked(viewMode);
+    // if none of the Component/BlackBox instances contain at least one valid
+    // In/Out EventPortInstance, show the corresponding menu's default action
+    if (!hasValidInstance) {
+        instanceMenu->clearMenu();
     }
 }

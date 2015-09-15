@@ -22,81 +22,77 @@ class ToolbarWidget : public QWidget
 public:
     explicit ToolbarWidget(NodeView *parent = 0);
 
-    void updateSelectedItems(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
-    void updateSeparators(bool snippet = true, bool goTo = true);
-
-    void showDefinitionButton(QString definitionID);
-    void showImplementationButton(QString implementationID);
-    void showSnippetButton(QString button, bool show);
+    void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
 
 protected:
     void enterEvent(QEvent* event);
     void leaveEvent(QEvent* event);
 
 public slots:
-    void updateActionEnabled(QString actionName, bool enabled);
+    void updateActionEnabledState(QString actionName, bool enabled);
 
-    void displayAllChildren();
-    void displayConnectedChildren();
-    void displayUnconnectedChildren();
+    void updateDisplayedChildren();
     void hardwareClusterMenuClicked(int viewMode);
 
-    void goToDefinition();
-    void goToImplementation();
-    void goToInstance();
+    void hardwareDockEnabled(bool enabled);
 
     void addChildNode();
-    void connectNodes();
     void addConnectedNode();
-    void makeNewView();
+    void connectNodes();
+    void goToConnectedNode();
+    void constructNewView();
 
     void attachOptionMenu();
 
     void setVisible(bool visible);
-    void hideToolbar(bool actionTriggered);
     void hide();
+    void hideToolbar(bool actionTriggered);
 
 private:
     void setupToolBar();
     void setupMenus();
     void makeConnections();
 
-    void updateToolButtons();
-    void updateMenuLists();
-    void updateRadioButtons(QList<NodeItem*> hardwareClusters);
+    void updateButtonsAndMenus(QList<NodeItem*> nodeItems);
+    void updateSeparators();
 
-    void multipleSelection(QList<NodeItem*> items, QList<EdgeItem*> edgeItems = QList<EdgeItem*>());
+    void hideButtons();
+    void hideSeparators();
+
+    void clearMenus();
+    void resetButtonGroupFlags();
+
+    QToolButton* constructToolButton(QSize size, QString iconPng, double iconSizeRatio, QString tooltip);
+    QFrame* constructFrameSeparator();
+
+    ToolbarWidgetMenu* constructToolMenu(QToolButton *parentButton);
+    ToolbarWidgetAction* constructSubMenuAction(NodeItem* nodeItem, ToolbarWidgetMenu* parentMenu);
 
     void setupAdoptableNodesList(QStringList nodeKinds);
     void setupLegalNodesList(QList<NodeItem*> nodeList);
     void setupInstancesList(QList<NodeItem*> instances);
 
-    void setupFilesList(QList<NodeItem*> files, QString kind);
     void setupComponentList(QList<NodeItem*> components, QString kind);
     void setupBlackBoxList(QList<NodeItem*> blackBoxes);
-    void setupBlackBoxInstanceList(QList<NodeItem*> blackBoxInstances);
 
-    void setupChildrenComponentInstanceList(QList<NodeItem *> componentInstances);
-    void setupInEventPortInstanceList();
-    void setupOutEventPortInstanceList();
-
-    void clearMenus();
+    void setupDefinitionInstanceList(QList<NodeItem*> definitionInstances);
+    void setupEventPortInstanceList(QString eventPortKind);
 
     NodeView* nodeView;
-    NodeItem* currentSelectedItem;
-
     NodeItem* nodeItem;
-    NodeItem* prevNodeItem;
 
-    QString definitionNodeID;
-    QString implementationNodeID;
+    QHBoxLayout* toolbarLayout;
+
+    QFrame* mainFrame;
+    QFrame* shadowFrame;
+    QFrame* alignFrame;
+    QFrame* snippetFrame;
+    QFrame* goToFrame;
+    QFrame* alterViewFrame;
 
     QToolButton* addChildButton;
     QToolButton* deleteButton;
     QToolButton* connectButton;
-
-    QToolButton* showNewViewButton;
-    QToolButton* showConnectionsButton;
 
     QToolButton* definitionButton;
     QToolButton* implementationButton;
@@ -108,13 +104,9 @@ private:
     QToolButton* exportSnippetButton;
     QToolButton* importSnippetButton;
 
+    QToolButton* connectionsButton;
+    QToolButton* popupNewWindow;
     QToolButton* displayedChildrenOptionButton;
-
-    ToolbarWidgetAction* componentImplAction;
-    ToolbarWidgetAction* componentInstanceAction;
-    ToolbarWidgetAction* inEventPortDelegateAction;
-    ToolbarWidgetAction* outEventPortDelegateAction;
-    ToolbarWidgetAction* blackBoxInstanceAction;
 
     ToolbarWidgetMenu* addMenu;
     ToolbarWidgetMenu* connectMenu;
@@ -125,37 +117,41 @@ private:
     ToolbarWidgetMenu* instanceOptionMenu;
     ToolbarWidgetMenu* displayedChildrenOptionMenu;
 
-    ToolbarWidgetMenu* fileMenu;
-    ToolbarWidgetMenu* inEventPort_componentInstanceMenu;
-    ToolbarWidgetMenu* outEventPort_componentInstanceMenu;
-    ToolbarWidgetMenu* blackBoxInstanceMenu;
+    ToolbarWidgetMenu* componentDefinitionsMenu;
+    ToolbarWidgetMenu* blackBoxDefinitionsMenu;
+    ToolbarWidgetMenu* iep_definitionInstanceMenu;
+    ToolbarWidgetMenu* oep_definitionInstanceMenu;
 
-    ToolbarWidgetAction* fileDefaultAction;
-    ToolbarWidgetAction* inEventPort_componentInstanceDefaultAction;
-    ToolbarWidgetAction* outEventPort_componentInstanceDefaultAction;
+    ToolbarWidgetAction* componentImplAction;
+    ToolbarWidgetAction* componentInstanceAction;
+    ToolbarWidgetAction* blackBoxInstanceAction;
+    ToolbarWidgetAction* inEventPortDelegateAction;
+    ToolbarWidgetAction* outEventPortDelegateAction;
+
+    ToolbarWidgetAction* componentInstanceDefaultAction;
     ToolbarWidgetAction* blackBoxInstanceDefaultAction;
+    ToolbarWidgetAction* iep_definitionInstanceDefaultAction;
+    ToolbarWidgetAction* oep_definitionInstanceDefaultAction;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
     QRadioButton* unconnectedNodes;
 
-    QList<QToolButton*> singleSelectionToolButtons;
-    QList<QToolButton*> multipleSelectionToolButtons;
-    QList<QToolButton*> alterModelToolButtons;
+    bool showDeleteToolButton;
+    bool showImportSnippetToolButton;
+    bool showExportSnippetToolButton;
+    bool showDefinitionToolButton;
+    bool showImplementationToolButton;
 
-    QFrame* mainFrame;
-    QFrame* shadowFrame;
-    QFrame* snippetFrame;
-    QFrame* alterViewFrame;
-    QFrame* goToFrame;
-
-    bool showToolbar;
-    bool showAlterViewFrame;
-    bool showSnippetFrame;
-    bool showGoToFrame;
+    bool alterModelButtonsVisible;
+    bool alignButtonsVisible;
+    bool snippetButtonsVisible;
+    bool goToButtonsVisible;
+    bool alterViewButtonsVisible;
 
     bool eventFromToolbar;
-    bool deleteButtonVisible;
+    bool hardwareDockIsEnabled;
+
 };
 
 #endif // TOOLBARWIDGET_H
