@@ -180,6 +180,10 @@ void EdgeItem::setHidden(bool hidden)
     setVisible(!hidden);
 }
 
+bool EdgeItem::isSelected()
+{
+    return IS_SELECTED;
+}
 
 void EdgeItem::setSelected(bool selected)
 {

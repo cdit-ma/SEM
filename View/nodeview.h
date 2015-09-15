@@ -29,6 +29,9 @@ public:
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
 
+    void setCursor(QCursor cursor);
+    void unsetCursor();
+
     void destroySubViews();
     //Set Controller
     void setController(NewController* controller);
@@ -311,6 +314,7 @@ public slots:
 
 private:
     void setState(VIEW_STATE newState);
+    void transition();
     void selectJenkinsImportedNodes();
 
     void ensureAspect(QString ID);

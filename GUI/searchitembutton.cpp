@@ -107,7 +107,7 @@ void SearchItemButton::setupLayout()
 
     // setup icon label
     QString graphMLKind = graphMLItem->getGraphML()->getDataValue("kind");
-    QImage* image = new QImage(":/Resources/Icons/" + graphMLKind + ".png");
+    QImage* image = new QImage(":/Items/" + graphMLKind + ".png");
     QImage scaledImage = image->scaled((minimumWidth() / 4) - marginOffset,
                                        minimumHeight() - marginOffset,
                                        Qt::KeepAspectRatio,

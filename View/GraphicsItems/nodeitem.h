@@ -198,7 +198,7 @@ public slots:
     void graphMLDataChanged(GraphMLData *data);
 
     void setSelected(bool selected);
-    void setVisibilty(bool visible);
+    void setVisibility(bool visible);
 
 
     void parentNodeItemMoved();
@@ -224,7 +224,6 @@ public slots:
 
     //Turn off visible gridlines;
     void toggleGridLines(bool on);
-
 
     void snapToGrid();
     void snapChildrenToGrid();
@@ -340,8 +339,6 @@ private:
 
     bool isNodeOnGrid;
     bool nodeWasOnGrid;
-
-
 
 
 

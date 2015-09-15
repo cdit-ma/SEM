@@ -465,19 +465,19 @@ void ToolbarWidget::setupToolBar()
     importSnippetButton = new QToolButton(this);
     displayedChildrenOptionButton = new QToolButton(this);
 
-    addChildButton->setIcon(QIcon(":/Resources/Icons/addChildNode.png"));
-    connectButton->setIcon(QIcon(":/Resources/Icons/connectNode.png"));
-    deleteButton->setIcon(QIcon(":/Resources/Icons/deleteNode.png"));
-    showNewViewButton->setIcon(QIcon(":/Resources/Icons/popup.png"));
-    showConnectionsButton->setIcon(QIcon(":/Resources/Icons/connections.png"));
-    definitionButton->setIcon(QIcon(":/Resources/Icons/definition.png"));
-    implementationButton->setIcon(QIcon(":/Resources/Icons/implementation.png"));
-    instancesButton->setIcon(QIcon(":/Resources/Icons/instance.png"));
-    alignVerticallyButton->setIcon(QIcon(":/Resources/Icons/alignVertically.png"));
-    alignHorizontallyButton->setIcon(QIcon(":/Resources/Icons/alignHorizontally.png"));
-    exportSnippetButton->setIcon(QIcon(":/Resources/Icons/exportSnippet.png"));
-    importSnippetButton->setIcon(QIcon(":/Resources/Icons/importSnippet.png"));
-    displayedChildrenOptionButton->setIcon(QIcon(":/Resources/Icons/settings.png"));
+    addChildButton->setIcon(QIcon(":/Actions/Plus.png"));
+    connectButton->setIcon(QIcon(":/Actions/ConnectTo.png"));
+    deleteButton->setIcon(QIcon(":/Actions/Delete.png"));
+    showNewViewButton->setIcon(QIcon(":/Actions/Popup.png"));
+    showConnectionsButton->setIcon(QIcon(":/Actions/Connections.png"));
+    definitionButton->setIcon(QIcon(":/Actions/Definition.png"));
+    implementationButton->setIcon(QIcon(":/Actions/Implementation.png"));
+    instancesButton->setIcon(QIcon(":/Actions/Instance.png"));
+    alignVerticallyButton->setIcon(QIcon(":/Actions/Align_Vertical.png"));
+    alignHorizontallyButton->setIcon(QIcon(":/Actions/Align_Horizontal.png"));
+    exportSnippetButton->setIcon(QIcon(":/Actions/ExportSnippet.png"));
+    importSnippetButton->setIcon(QIcon(":/Actions/ImportSnippet.png"));
+    displayedChildrenOptionButton->setIcon(QIcon(":/Actions/Settings.png"));
 
     deleteButton->setStyleSheet("padding-right: 3px;");
 
@@ -606,8 +606,8 @@ void ToolbarWidget::setupMenus()
     displayedChildrenOptionMenu->addAction(a2);
     displayedChildrenOptionMenu->addAction(a3);
 
-    QAction* defn_goTo = definitionMenu->addAction(QIcon(":/Resources/Icons/goto.png"), "Go to Definition");
-    QAction* defn_popup = definitionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Definition");
+    QAction* defn_goTo = definitionMenu->addAction(QIcon(":/Actions/Goto.png"), "Go to Definition");
+    QAction* defn_popup = definitionMenu->addAction(QIcon(":/Actions/Popup.png"), "Popup Definition");
     connect(defn_goTo, SIGNAL(triggered()), this, SLOT(goToDefinition()));
     connect(defn_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
 
@@ -615,8 +615,8 @@ void ToolbarWidget::setupMenus()
     implementationButton->setPopupMode(QToolButton::InstantPopup);
     implementationButton->setMenu(implementationMenu);
 
-    QAction* impl_goTo = implementationMenu->addAction(QIcon(":/Resources/Icons/goto.png"), "Go to Implementation");
-    QAction* impl_popup = implementationMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Implementation");
+    QAction* impl_goTo = implementationMenu->addAction(QIcon(":/Actions/Goto.png"), "Go to Implementation");
+    QAction* impl_popup = implementationMenu->addAction(QIcon(":/Actions/Popup.png"), "Popup Implementation");
     connect(impl_goTo, SIGNAL(triggered()), this, SLOT(goToImplementation()));
     connect(impl_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
 
@@ -624,8 +624,8 @@ void ToolbarWidget::setupMenus()
     instanceOptionMenu = new ToolbarWidgetMenu(0, 0, instancesMenu);
     instancesButton->setPopupMode(QToolButton::InstantPopup);
     instancesButton->setMenu(instancesMenu);
-    QAction* inst_goTo = instanceOptionMenu->addAction(QIcon(":/Resources/Icons/goto.png"), "Go to Instance");
-    QAction* inst_popup = instanceOptionMenu->addAction(QIcon(":/Resources/Icons/popup.png"), "Popup Instance");
+    QAction* inst_goTo = instanceOptionMenu->addAction(QIcon(":/Actions/Goto.png"), "Go to Instance");
+    QAction* inst_popup = instanceOptionMenu->addAction(QIcon(":/Actions/Popup.png"), "Popup Instance");
     connect(inst_goTo, SIGNAL(triggered()), this, SLOT(goToInstance()));
     connect(inst_popup, SIGNAL(triggered()), this, SLOT(makeNewView()));
 

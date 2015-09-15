@@ -115,7 +115,9 @@ public slots:
 
     void validate_Exported(QString tempModelPath);
 
+
 private slots:
+    void toggleGridLines();
     void aboutMedea();
     void invalidJenkinsSettings(QString message);
     void jenkinsNodesLoaded();

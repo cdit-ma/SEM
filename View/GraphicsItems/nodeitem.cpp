@@ -108,7 +108,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     
     QString parentNodeKind = "";
     if (parent) {
-        setVisibilty(parent->isExpanded());
+        setVisibility(parent->isExpanded());
         
         setWidth(parent->getChildWidth());
         setHeight(parent->getChildHeight());
@@ -165,7 +165,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     
 
     if(IN_SUBVIEW){
-        setVisibilty(true);
+        setVisibility(true);
     }else{
         updateModelData();
     }
@@ -1149,7 +1149,7 @@ void NodeItem::setSelected(bool selected)
  * @brief NodeItem::setVisibilty Changes the Visibility of the NodeItem also notifies all connected edges.
  * @param visible
  */
-void NodeItem::setVisibilty(bool visible)
+void NodeItem::setVisibility(bool visible)
 {
     QGraphicsItem::setVisible(visible);
 
@@ -1159,7 +1159,7 @@ void NodeItem::setVisibilty(bool visible)
             this->parentNodeItem->addChildOutline(this, this->centerPos());
         }else{
             //Remove the outline.
-            this->parentNodeItem->removeChildNodeItem(this->getID());
+            this->parentNodeItem->removeChildOutline(this->getID());
         }
     }
 
@@ -1424,6 +1424,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     bool control = event->modifiers().testFlag(Qt::ControlModifier);
 
     if(event->button() == Qt::LeftButton){
+        //qCritical() << "HANDLE";
 
         // Check if the lock icon was clicked
         if (menuArrowPressed(event->scenePos())){
@@ -1432,8 +1433,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         }
 
 
-
-
+        currentResizeMode = resizeEntered(event->pos());
 
         //Enter Selected Mode.
         getNodeView()->setStateSelected();
@@ -1507,6 +1507,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         }
         if(viewState == NodeView::VS_RESIZING){
             emit NodeItem_ResizeFinished(getID());
+            //unsetCursor();
             currentResizeMode = NO_RESIZE;
         }
     }else if(event->button() == Qt::MiddleButton){
@@ -1533,7 +1534,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         return;
     }
 
-    currentResizeMode = resizeEntered(event->buttonDownPos(Qt::LeftButton));
+
 
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
     if(isSelected() && event->buttons() == Qt::LeftButton){
@@ -1579,6 +1580,7 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     QString tooltip;
     
     if(hasVisibleChildren() && iconPressed(event->pos())){
+
         setCursor(Qt::PointingHandCursor);
         setToolTip("Double click to expand/contract entity");
         return;
@@ -1609,20 +1611,17 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         }else if(currentResizeMode == VERTICAL_RESIZE){
             setCursor(Qt::SizeVerCursor);
         }else if(currentResizeMode == NO_RESIZE){
-           unsetCursor();
+            unsetCursor();
         }
     }
 }
 
-void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
-
-    Q_UNUSED(event);
+    //Unset the resize mode.
     currentResizeMode = NO_RESIZE;
-    if(hasCursor()){
-        qCritical() << "GOT CURSOR";
-        unsetCursor();
-    }
+    //Unset the cursor
+    unsetCursor();
 }
 
 
@@ -2293,7 +2292,7 @@ void NodeItem::aspectsChanged(QStringList visibleAspects)
     
     //bool prevVisible = isVisible();
     
-    setVisibilty(visible);
+    setVisibility(visible);
     
     
     // if not visible, unselect node item
@@ -2320,13 +2319,13 @@ void NodeItem::setupIcon()
     }
     
     // get the icon images
-    QImage image (":/Resources/Icons/" + nodeKind + ".png");
+    QImage image (":/Actions/" + nodeKind + ".png");
     if (!image.isNull() && !nodeKind.endsWith("Definitions")) {
         icon = new QGraphicsPixmapItem(QPixmap::fromImage(image), this);
         icon->setTransformationMode(Qt::SmoothTransformation);
         icon->setToolTip("Double Click to Expand/Contract Node");
     }
-    QImage lockImage (":/Resources/Icons/lock.png");
+    QImage lockImage (":/Actions/lock.png");
     if (!lockImage.isNull()){
         lockIcon = new QGraphicsPixmapItem(QPixmap::fromImage(lockImage), this);
         lockIcon->setTransformationMode(Qt::SmoothTransformation);
@@ -2374,7 +2373,7 @@ void NodeItem::setupIcon()
     }
     
     
-    QImage hardwareImage (":/Resources/Icons/redHardwareNode.png");
+    QImage hardwareImage (":/Actions/redHardwareNode.png");
     if (!hardwareImage.isNull()) {
         hardwareIcon = new QGraphicsPixmapItem(QPixmap::fromImage(hardwareImage), this);
         hardwareIcon->setTransformationMode(Qt::SmoothTransformation);
@@ -3150,8 +3149,9 @@ void NodeItem::setNodeExpanded(bool expanded)
     
     //Show/Hide the non-hidden children.
     foreach(NodeItem* nodeItem, childNodeItems){
+        qCritical() << nodeItem->getNode();
         if (!nodeItem->isHidden()){
-            nodeItem->setVisibilty(expanded);
+            nodeItem->setVisibility(expanded);
         }
     }
     
@@ -3326,7 +3326,7 @@ void NodeItem::setHidden(bool h)
     if (getParentNodeItem()) {
         parentExpanded = getParentNodeItem()->isExpanded();
     }
-    setVisibilty(!h && isInAspect() && parentExpanded);
+    setVisibility(!h && isInAspect() && parentExpanded);
 }
 
 

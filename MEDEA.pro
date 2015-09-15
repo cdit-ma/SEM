@@ -20,7 +20,7 @@ win32{
     RC_FILE = medea.rc
 }
 
-macx:ICON = $${PWD}/medea.icns
+macx:ICON =
 
 
 
@@ -316,3 +316,5 @@ mac{
     QMAKE_BUNDLE_DATA += BINARIES_FILES
     QMAKE_BUNDLE_DATA += TRANSFORMS_FILES
 }
+
+DISTFILES +=

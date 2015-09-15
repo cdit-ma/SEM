@@ -23,8 +23,8 @@ JenkinsLoadingWidget::JenkinsLoadingWidget(QWidget *parent):QWidget(parent)
     titleLayout->setMargin(1);
 
     //Get the Jenkins Logo and scale.
-    QImage jenkinsLogo(":/Resources/Icons/jenkins.png");
-    QImage jenkinsText(":/Resources/Icons/jenkins_label.png");
+    QImage jenkinsLogo(":/Actions/Jenkins_Icon.png");
+    QImage jenkinsText(":/ActionsJjenkins_Text.png");
 
 
     //Set the size to match the Jenkins Webpage Sizes.

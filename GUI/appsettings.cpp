@@ -29,7 +29,7 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(paren
     setWindowTitle("Application Settings");
 
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
-    this->setWindowIcon(QIcon(":/Resources/Icons/settings.png"));
+    this->setWindowIcon(QIcon(":/Actions/Settings.png"));
     setModal(true);
 
     setupLayout();

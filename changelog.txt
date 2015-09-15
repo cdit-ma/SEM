@@ -18,6 +18,8 @@ Version 17:
         * BlackBox's can now have multiple connection BlackBoxInstance's within deployment.
         * HardwareDock now shows HardwareClusters at the top.
         * Updated some icons.
+        * View State bugs
+        * Restructed SVN Resource Structure.
 
 Version 16:
     * Implemented showing/hiding of connected HardwareNodes using the context toolbar. It can be used when one or more HardwareClusters are selected.

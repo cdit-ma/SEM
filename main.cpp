@@ -19,7 +19,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    a.setWindowIcon(QIcon(":/Resources/Icons/medea.png"));
+    a.setWindowIcon(QIcon(":/Actions/medea.png"));
     a.setApplicationName("MEDEA");
 
     QFont font = QFont("Verdana");

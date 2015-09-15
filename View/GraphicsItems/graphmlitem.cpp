@@ -74,6 +74,7 @@ NodeView *GraphMLItem::getNodeView()
     return nodeView;
 }
 
+
 bool GraphMLItem::isNodeItem()
 {
     return kind == NODE_ITEM;

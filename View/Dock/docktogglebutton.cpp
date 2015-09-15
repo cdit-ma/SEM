@@ -47,11 +47,11 @@ DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *
 
     QPixmap pixmap;
     if (label == "P") {
-        pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/parts.png"));
+        pixmap = QPixmap::fromImage(QImage(":/Actions/Parts.png"));
     } else if (label == "H") {
-        pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/HardwareNode.png"));
+        pixmap = QPixmap::fromImage(QImage(":/Items/HardwareNode.png"));
     } else if (label == "D") {
-        pixmap = QPixmap::fromImage(QImage(":/Resources/Icons/Component.png"));
+        pixmap = QPixmap::fromImage(QImage(":/Items/Component.png"));
     }
 
     QVBoxLayout* vLayout = new QVBoxLayout();

@@ -21,6 +21,8 @@ public:
     NodeItem* getDestination();
     void setHidden(bool hidden);
 
+    bool isSelected();
+
     bool isPointInCircle(QPointF itemPosition);
 
 signals:

@@ -204,7 +204,7 @@ if (role == Qt::DecorationRole) {
         case 2:
             if(popupMultiLine(index)) {
                 /*
-                QImage* image = new QImage(":/Resources/Icons/popup.png");
+                QImage* image = new QImage(":/Actions/popup.png");
                 QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
                 QPixmap pixmap(QPixmap::fromImage(scaledImage));
                 return pixmap;*/
@@ -315,14 +315,14 @@ QVariant AttributeTableModel::headerData(int section, Qt::Orientation orientatio
     }
     if (role == Qt::DecorationRole && orientation == Qt::Horizontal) {
         if(section == 0){
-            QImage image(":/Resources/Icons/lock.png");
-            QImage scaledImage = image.scaled(15, 15, Qt::KeepAspectRatio);
+            QImage image(":/Actions/Lock_Closed.png");
+            QImage scaledImage = image.scaled(24, 24, Qt::KeepAspectRatio);
             QPixmap pixmap(QPixmap::fromImage(scaledImage));
             return pixmap;
 
             //QImage image(":/")
             /*
-            QImage* image = new QImage(":/Resources/Icons/lock.png");
+            QImage* image = new QImage(":/Actions/lock.png");
             QImage scaledImage = image->scaled(15, 15, Qt::KeepAspectRatio);
             QPixmap pixmap(QPixmap::fromImage(scaledImage));
             return pixmap;

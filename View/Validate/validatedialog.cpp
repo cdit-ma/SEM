@@ -24,7 +24,7 @@ ValidateDialog::ValidateDialog(QWidget *parent)
 
 
     QPushButton* closeButton = new QPushButton("Close");
-    revalidateButton = new QPushButton(QIcon(":/Resources/Icons/validate.png"),"Re-Validate");
+    revalidateButton = new QPushButton(QIcon(":/Actions/Validate.png"),"Re-Validate");
 
 
 
@@ -94,11 +94,11 @@ void ValidateDialog::setupItemsTable(QStringList items)
 
     if(items.count() == 0){
         label->setText("Validation Succeeded!");
-        QImage successImage(":/Resources/Icons/jenkins_built.png");
+        QImage successImage(":/Actions/Job_Built.png");
         statusIcon->setPixmap(QPixmap::fromImage(successImage));
     }else{
         label->setText("Validation Failed! " + QString::number(items.count()) + " Issues!");
-        QImage failImage(":/Resources/Icons/jenkins_failed.png");
+        QImage failImage(":/Actions/Job_Failed.png");
         statusIcon->setPixmap(QPixmap::fromImage(failImage));
     }
     revalidateButton->setEnabled(true);
@@ -118,7 +118,7 @@ void ValidateDialog::revalidate()
 {
     if(!spinning){
         spinning = new QMovie(this);
-        spinning->setFileName(":/Resources/Icons/jenkins_waiting.gif");
+        spinning->setFileName(":/Actions/jenkins_waiting.gif");
         spinning->start();
     }
     revalidateButton->setEnabled(false);

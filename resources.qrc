@@ -1,146 +1,162 @@
 <RCC>
+    <qresource prefix="/Items">
+        <file alias="Activate.png">Resources/Images/Items/Activate.png</file>
+        <file alias="Aggregate.png">Resources/Images/Items/Aggregate.png</file>
+        <file alias="AggregateInstance.png">Resources/Images/Items/AggregateInstance.png</file>
+        <file alias="AssemblyDefinitions.png">Resources/Images/Items/AssemblyDefinitions.png</file>
+        <file alias="Attribute.png">Resources/Images/Items/Attribute.png</file>
+        <file alias="AttributeImpl.png">Resources/Images/Items/AttributeImpl.png</file>
+        <file alias="AttributeInstance.png">Resources/Images/Items/AttributeInstance.png</file>
+        <file alias="BehaviourDefinitions.png">Resources/Images/Items/BehaviourDefinitions.png</file>
+        <file alias="BlackBox.png">Resources/Images/Items/BlackBox.png</file>
+        <file alias="BlackBoxInstance.png">Resources/Images/Items/BlackBoxInstance.png</file>
+        <file alias="BranchState.png">Resources/Images/Items/BranchState.png</file>
+        <file alias="Complexity.png">Resources/Images/Items/Complexity.png</file>
+        <file alias="Component.png">Resources/Images/Items/Component.png</file>
+        <file alias="ComponentAssembly.png">Resources/Images/Items/ComponentAssembly.png</file>
+        <file alias="ComponentImpl.png">Resources/Images/Items/ComponentImpl.png</file>
+        <file alias="ComponentInstance.png">Resources/Images/Items/ComponentInstance.png</file>
+        <file alias="Condition.png">Resources/Images/Items/Condition.png</file>
+        <file alias="Event.png">Resources/Images/Items/Event.png</file>
+        <file alias="HardwareCluster.png">Resources/Images/Items/HardwareCluster.png</file>
+        <file alias="HardwareDefinitions.png">Resources/Images/Items/HardwareDefinitions.png</file>
+        <file alias="HardwareNode.png">Resources/Images/Items/HardwareNode.png</file>
+        <file alias="IDL.png">Resources/Images/Items/IDL.png</file>
+        <file alias="InEventPort.png">Resources/Images/Items/InEventPort.png</file>
+        <file alias="InEventPortDelegate.png">Resources/Images/Items/InEventPortDelegate.png</file>
+        <file alias="InEventPortImpl.png">Resources/Images/Items/InEventPortImpl.png</file>
+        <file alias="InEventPortInstance.png">Resources/Images/Items/InEventPortInstance.png</file>
+        <file alias="InMember.png">Resources/Images/Items/InMember.png</file>
+        <file alias="InterfaceDefinitions.png">Resources/Images/Items/InterfaceDefinitions.png</file>
+        <file alias="Linux_amd64.png">Resources/Images/Items/Linux_amd64.png</file>
+        <file alias="Linux_arm.png">Resources/Images/Items/Linux_arm.png</file>
+        <file alias="Linux_x86.png">Resources/Images/Items/Linux_x86.png</file>
+        <file alias="localhost.png">Resources/Images/Items/localhost.png</file>
+        <file alias="ManagementComponent.png">Resources/Images/Items/ManagementComponent.png</file>
+        <file alias="Member.png">Resources/Images/Items/Member.png</file>
+        <file alias="MemberInstance.png">Resources/Images/Items/MemberInstance.png</file>
+        <file alias="OutEventPort.png">Resources/Images/Items/OutEventPort.png</file>
+        <file alias="OutEventPortDelegate.png">Resources/Images/Items/OutEventPortDelegate.png</file>
+        <file alias="OutEventPortImpl.png">Resources/Images/Items/OutEventPortImpl.png</file>
+        <file alias="OutEventPortInstance.png">Resources/Images/Items/OutEventPortInstance.png</file>
+        <file alias="OutMember.png">Resources/Images/Items/OutMember.png</file>
+        <file alias="Parameter.png">Resources/Images/Items/Parameter.png</file>
+        <file alias="passivate.png">Resources/Images/Items/passivate.png</file>
+        <file alias="PeriodicEvent.png">Resources/Images/Items/PeriodicEvent.png</file>
+        <file alias="Postprocess.png">Resources/Images/Items/Postprocess.png</file>
+        <file alias="Preprocess.png">Resources/Images/Items/Preprocess.png</file>
+        <file alias="Process.png">Resources/Images/Items/Process.png</file>
+        <file alias="ProvidedRequestPort.png">Resources/Images/Items/ProvidedRequestPort.png</file>
+        <file alias="RequiredRequestPort.png">Resources/Images/Items/RequiredRequestPort.png</file>
+        <file alias="Termination.png">Resources/Images/Items/Termination.png</file>
+        <file alias="Variable.png">Resources/Images/Items/Variable.png</file>
+        <file alias="Windows7_amd64.png">Resources/Images/Items/Windows7_amd64.png</file>
+        <file alias="Windows7_arm.png">Resources/Images/Items/Windows7_arm.png</file>
+        <file alias="Windows7_x86.png">Resources/Images/Items/Windows7_x86.png</file>
+        <file alias="Workload.png">Resources/Images/Items/Workload.png</file>
+    </qresource>
     <qresource prefix="/">
-        <file>Resources/Icons/activate.png</file>
-        <file>Resources/Icons/addChildNode.png</file>
-        <file>Resources/Icons/addChildNode2.png</file>
-        <file>Resources/Icons/Aggregate.png</file>
-        <file>Resources/Icons/AggregateInstance.png</file>
-        <file>Resources/Icons/alignHorizontally.png</file>
-        <file>Resources/Icons/alignVertically.png</file>
-        <file>Resources/Icons/AssemblyDefinitions.png</file>
-        <file>Resources/Icons/Attribute.png</file>
-        <file>Resources/Icons/AttributeImpl.png</file>
-        <file>Resources/Icons/AttributeInstance.png</file>
-        <file>Resources/Icons/autoCenter.png</file>
-        <file>Resources/Icons/back.png</file>
-        <file>Resources/Icons/BehaviourDefinitions.png</file>
-        <file>Resources/Icons/BlackBox.png</file>
-        <file>Resources/Icons/BlackBoxInstance.png</file>
-        <file>Resources/Icons/BranchState.png</file>
-        <file>Resources/Icons/cancel.png</file>
-        <file>Resources/Icons/center.png</file>
-        <file>Resources/Icons/clear.png</file>
-        <file>Resources/Icons/Complexity.png</file>
-        <file>Resources/Icons/Component.png</file>
-        <file>Resources/Icons/ComponentAssembly.png</file>
-        <file>Resources/Icons/ComponentImpl.png</file>
-        <file>Resources/Icons/ComponentInstance.png</file>
-        <file>Resources/Icons/Condition.png</file>
-        <file>Resources/Icons/connections.png</file>
-        <file>Resources/Icons/connectNode.png</file>
-        <file>Resources/Icons/copy.png</file>
-        <file>Resources/Icons/cpu.png</file>
-        <file>Resources/Icons/cut.png</file>
-        <file>Resources/Icons/db.png</file>
-        <file>Resources/Icons/definition.png</file>
-        <file>Resources/Icons/delete.png</file>
-        <file>Resources/Icons/deleteNode.png</file>
-        <file>Resources/Icons/deleteNode2.png</file>
-        <file>Resources/Icons/down_arrow.png</file>
-        <file>Resources/Icons/duplicate.png</file>
-        <file>Resources/Icons/edit_menu.png</file>
-        <file>Resources/Icons/Event.png</file>
-        <file>Resources/Icons/exit.png</file>
-        <file>Resources/Icons/export.png</file>
-        <file>Resources/Icons/exportSnippet.png</file>
-        <file>Resources/Icons/file_menu.png</file>
-        <file>Resources/Icons/fitToScreen.png</file>
-        <file>Resources/Icons/forward.png</file>
-        <file>Resources/Icons/goto.png</file>
-        <file>Resources/Icons/grid.png</file>
-        <file>Resources/Icons/HardwareCluster.png</file>
-        <file>Resources/Icons/hardwareConnections.png</file>
-        <file>Resources/Icons/HardwareDefinitions.png</file>
-        <file>Resources/Icons/HardwareNode.png</file>
-        <file>Resources/Icons/hdd.png</file>
-        <file>Resources/Icons/IDL.png</file>
-        <file>Resources/Icons/implementation.png</file>
-        <file>Resources/Icons/import.png</file>
-        <file>Resources/Icons/importSnippet.png</file>
-        <file>Resources/Icons/InEventPort.png</file>
-        <file>Resources/Icons/InEventPortDelegate.png</file>
-        <file>Resources/Icons/InEventPortImpl.png</file>
-        <file>Resources/Icons/InEventPortInstance.png</file>
-        <file>Resources/Icons/info.png</file>
-        <file>Resources/Icons/InMember.png</file>
-        <file>Resources/Icons/instance.png</file>
-        <file>Resources/Icons/InterfaceDefinitions.png</file>
-        <file>Resources/Icons/jenkins.png</file>
-        <file>Resources/Icons/jenkins_aborted.png</file>
-        <file>Resources/Icons/jenkins_build.png</file>
-        <file>Resources/Icons/jenkins_building.gif</file>
-        <file>Resources/Icons/jenkins_built.png</file>
-        <file>Resources/Icons/jenkins_failed.png</file>
-        <file>Resources/Icons/jenkins_label.png</file>
-        <file>Resources/Icons/jenkins_nodes.png</file>
-        <file>Resources/Icons/jenkins_waiting.gif</file>
-        <file>Resources/Icons/Linux_amd64.png</file>
-        <file>Resources/Icons/Linux_arm.png</file>
-        <file>Resources/Icons/Linux_x86.png</file>
-        <file>Resources/Icons/lock.png</file>
-        <file>Resources/Icons/log.png</file>
-        <file>Resources/Icons/ManagementComponent.png</file>
-        <file>Resources/Icons/medea.png</file>
-        <file>Resources/Icons/Member.png</file>
-        <file>Resources/Icons/MemberInstance.png</file>
-        <file>Resources/Icons/menuIcon.png</file>
-        <file>Resources/Icons/menuIcon2.png</file>
-        <file>Resources/Icons/model.png</file>
-        <file>Resources/Icons/new_project.png</file>
-        <file>Resources/Icons/OutEventPort.png</file>
-        <file>Resources/Icons/OutEventPortDelegate.png</file>
-        <file>Resources/Icons/OutEventPortImpl.png</file>
-        <file>Resources/Icons/OutEventPortInstance.png</file>
-        <file>Resources/Icons/OutMember.png</file>
-        <file>Resources/Icons/Parameter.png</file>
-        <file>Resources/Icons/parts.png</file>
-        <file>Resources/Icons/passivate.png</file>
-        <file>Resources/Icons/paste.png</file>
-        <file>Resources/Icons/PeriodicEvent.png</file>
-        <file>Resources/Icons/popup.png</file>
-        <file>Resources/Icons/Postprocess.png</file>
-        <file>Resources/Icons/Preprocess.png</file>
-        <file>Resources/Icons/Process.png</file>
-        <file>Resources/Icons/ProvidedRequestPort.png</file>
-        <file>Resources/Icons/ram.png</file>
-        <file>Resources/Icons/redHardwareNode.png</file>
-        <file>Resources/Icons/redo.png</file>
-        <file>Resources/Icons/RequiredRequestPort.png</file>
-        <file>Resources/Icons/right_arrow.png</file>
-        <file>Resources/Icons/search_icon.png</file>
-        <file>Resources/Icons/searchIcon.png</file>
-        <file>Resources/Icons/settings.png</file>
-        <file>Resources/Icons/snapChildrenToGrid.png</file>
-        <file>Resources/Icons/snapToGrid.png</file>
-        <file>Resources/Icons/sort.png</file>
-        <file>Resources/Icons/stop.png</file>
-        <file>Resources/Icons/Termination.png</file>
-        <file>Resources/Icons/toolbar.png</file>
-        <file>Resources/Icons/undo.png</file>
-        <file>Resources/Icons/unlock.png</file>
-        <file>Resources/Icons/up_arrow.png</file>
-        <file>Resources/Icons/validate.png</file>
-        <file>Resources/Icons/Variable.png</file>
-        <file>Resources/Icons/view.png</file>
-        <file>Resources/Icons/warning.png</file>
-        <file>Resources/Icons/Windows7_amd64.png</file>
-        <file>Resources/Icons/Windows7_arm.png</file>
-        <file>Resources/Icons/Windows7_x86.png</file>
-        <file>Resources/Icons/Workload.png</file>
-        <file>Resources/Icons/zoomToFit.png</file>
-        <file>Resources/Icons/pan.png</file>
-        <file>Resources/Icons/application.ico</file>
-        <file>Resources/Icons/menu.png</file>
-        <file>Resources/Icons/cross.png</file>
-        <file>Resources/Icons/tick.png</file>
-        <file>Resources/Icons/cuts.png</file>
-        <file>Resources/Icons/refresh.png</file>
-        <file>Resources/Icons/build.png</file>
-        <file>Resources/Icons/generate.png</file>
-        <file>Resources/Icons/search.png</file>
-        <file>Resources/Icons/foldersearch.png</file>
-        <file>Resources/Icons/play.png</file>
-        <file>Resources/Icons/power.png</file>
-        <file>Resources/Icons/localhost.png</file>
+        <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>
+        <file alias="MedeaIcon.ico">Resources/Images/MedeaIcon.ico</file>
+    </qresource>
+    <qresource prefix="/Actions">
+        <file alias="Add.png">Resources/Images/Actions/Add.png</file>
+        <file alias="Align_Horizontal.png">Resources/Images/Actions/Align_Horizontal.png</file>
+        <file alias="Align_Vertical.png">Resources/Images/Actions/Align_Vertical.png</file>
+        <file alias="AlignToGrid.png">Resources/Images/Actions/AlignToGrid.png</file>
+        <file alias="Arrow_Back.png">Resources/Images/Actions/Arrow_Back.png</file>
+        <file alias="Arrow_Down.png">Resources/Images/Actions/Arrow_Down.png</file>
+        <file alias="Arrow_Forward.png">Resources/Images/Actions/Arrow_Forward.png</file>
+        <file alias="Arrow_Left.png">Resources/Images/Actions/Arrow_Left.png</file>
+        <file alias="Arrow_Right.png">Resources/Images/Actions/Arrow_Right.png</file>
+        <file alias="Arrow_Up.png">Resources/Images/Actions/Arrow_Up.png</file>
+        <file alias="Backward.png">Resources/Images/Actions/Backward.png</file>
+        <file alias="Build.png">Resources/Images/Actions/Build.png</file>
+        <file alias="Cancel.png">Resources/Images/Actions/Cancel.png</file>
+        <file alias="Center.png">Resources/Images/Actions/Center.png</file>
+        <file alias="Clear.png">Resources/Images/Actions/Clear.png</file>
+        <file alias="Code.png">Resources/Images/Actions/Code.png</file>
+        <file alias="Comment.png">Resources/Images/Actions/Comment.png</file>
+        <file alias="Connect.png">Resources/Images/Actions/Connect.png</file>
+        <file alias="ConnectHardware.png">Resources/Images/Actions/ConnectHardware.png</file>
+        <file alias="Connections.png">Resources/Images/Actions/Connections.png</file>
+        <file alias="Copy.png">Resources/Images/Actions/Copy.png</file>
+        <file alias="CPU.png">Resources/Images/Actions/CPU.png</file>
+        <file alias="Crosshair.png">Resources/Images/Actions/Crosshair.png</file>
+        <file alias="Cut.png">Resources/Images/Actions/Cut.png</file>
+        <file alias="CutIcon.png">Resources/Images/Actions/CutIcon.png</file>
+        <file alias="Database.png">Resources/Images/Actions/Database.png</file>
+        <file alias="Definition.png">Resources/Images/Actions/Definition.png</file>
+        <file alias="Delete.png">Resources/Images/Actions/Delete.png</file>
+        <file alias="Download.png">Resources/Images/Actions/Download.png</file>
+        <file alias="Edit.png">Resources/Images/Actions/Edit.png</file>
+        <file alias="Export.png">Resources/Images/Actions/Export.png</file>
+        <file alias="ExportSnippet.png">Resources/Images/Actions/ExportSnippet.png</file>
+        <file alias="Failure.png">Resources/Images/Actions/Failure.png</file>
+        <file alias="FitToScreen.png">Resources/Images/Actions/FitToScreen.png</file>
+        <file alias="Forward.png">Resources/Images/Actions/Forward.png</file>
+        <file alias="Generate.png">Resources/Images/Actions/Generate.png</file>
+        <file alias="Goto.png">Resources/Images/Actions/Goto.png</file>
+        <file alias="Grid_Off.png">Resources/Images/Actions/Grid_Off.png</file>
+        <file alias="Grid_On.png">Resources/Images/Actions/Grid_On.png</file>
+        <file alias="GridSort.png">Resources/Images/Actions/GridSort.png</file>
+        <file alias="Help.png">Resources/Images/Actions/Help.png</file>
+        <file alias="Implementation.png">Resources/Images/Actions/Implementation.png</file>
+        <file alias="Import.png">Resources/Images/Actions/Import.png</file>
+        <file alias="ImportSnippet.png">Resources/Images/Actions/ImportSnippet.png</file>
+        <file alias="Info.png">Resources/Images/Actions/Info.png</file>
+        <file alias="Instance.png">Resources/Images/Actions/Instance.png</file>
+        <file alias="Jenkins_Icon.png">Resources/Images/Actions/Jenkins_Icon.png</file>
+        <file alias="Jenkins_Text.png">Resources/Images/Actions/Jenkins_Text.png</file>
+        <file alias="Job_Aborted.png">Resources/Images/Actions/Job_Aborted.png</file>
+        <file alias="Job_Build.png">Resources/Images/Actions/Job_Build.png</file>
+        <file alias="Job_Building.gif">Resources/Images/Actions/Job_Building.gif</file>
+        <file alias="Job_Built.png">Resources/Images/Actions/Job_Built.png</file>
+        <file alias="Job_Failed.png">Resources/Images/Actions/Job_Failed.png</file>
+        <file alias="Job_Stop.png">Resources/Images/Actions/Job_Stop.png</file>
+        <file alias="Lock_Closed.png">Resources/Images/Actions/Lock_Closed.png</file>
+        <file alias="Lock_Open.png">Resources/Images/Actions/Lock_Open.png</file>
+        <file alias="Log.png">Resources/Images/Actions/Log.png</file>
+        <file alias="MEDEA.png">Resources/Images/Actions/MEDEA.png</file>
+        <file alias="MEDEA_Menu.png">Resources/Images/Actions/MEDEA_Menu.png</file>
+        <file alias="Menu.png">Resources/Images/Actions/Menu.png</file>
+        <file alias="Menu_Horizontal.png">Resources/Images/Actions/Menu_Horizontal.png</file>
+        <file alias="Menu_Vertical.png">Resources/Images/Actions/Menu_Vertical.png</file>
+        <file alias="MenuModel.png">Resources/Images/Actions/MenuModel.png</file>
+        <file alias="MenuView.png">Resources/Images/Actions/MenuView.png</file>
+        <file alias="Move.png">Resources/Images/Actions/Move.png</file>
+        <file alias="New.png">Resources/Images/Actions/New.png</file>
+        <file alias="Notes.png">Resources/Images/Actions/Notes.png</file>
+        <file alias="Parts.png">Resources/Images/Actions/Parts.png</file>
+        <file alias="Paste.png">Resources/Images/Actions/Paste.png</file>
+        <file alias="Plus.png">Resources/Images/Actions/Plus.png</file>
+        <file alias="Popup.png">Resources/Images/Actions/Popup.png</file>
+        <file alias="Power.png">Resources/Images/Actions/Power.png</file>
+        <file alias="Redo.png">Resources/Images/Actions/Redo.png</file>
+        <file alias="Refresh.png">Resources/Images/Actions/Refresh.png</file>
+        <file alias="Reload.png">Resources/Images/Actions/Reload.png</file>
+        <file alias="Remove.png">Resources/Images/Actions/Remove.png</file>
+        <file alias="Replicate.png">Resources/Images/Actions/Replicate.png</file>
+        <file alias="Save.png">Resources/Images/Actions/Save.png</file>
+        <file alias="Search.png">Resources/Images/Actions/Search.png</file>
+        <file alias="Search_Folder.png">Resources/Images/Actions/Search_Folder.png</file>
+        <file alias="Security.png">Resources/Images/Actions/Security.png</file>
+        <file alias="SelectAll.png">Resources/Images/Actions/SelectAll.png</file>
+        <file alias="Settings.png">Resources/Images/Actions/Settings.png</file>
+        <file alias="Sort.png">Resources/Images/Actions/Sort.png</file>
+        <file alias="Success.png">Resources/Images/Actions/Success.png</file>
+        <file alias="Tick.png">Resources/Images/Actions/Tick.png</file>
+        <file alias="Toolbar.png">Resources/Images/Actions/Toolbar.png</file>
+        <file alias="Undo.png">Resources/Images/Actions/Undo.png</file>
+        <file alias="Upload.png">Resources/Images/Actions/Upload.png</file>
+        <file alias="Validate.png">Resources/Images/Actions/Validate.png</file>
+        <file alias="Waiting.gif">Resources/Images/Actions/Waiting.gif</file>
+        <file alias="Warning.png">Resources/Images/Actions/Warning.png</file>
+        <file alias="ZoomIn.png">Resources/Images/Actions/ZoomIn.png</file>
+        <file alias="ZoomOut.png">Resources/Images/Actions/ZoomOut.png</file>
+        <file alias="ZoomToFit.png">Resources/Images/Actions/ZoomToFit.png</file>
+        <file alias="GridLayout.png">Resources/Images/Actions/GridLayout.png</file>
+        <file alias="Computer.png">Resources/Images/Actions/Computer.png</file>
+        <file alias="ConnectTo.png">Resources/Images/Actions/ConnectTo.png</file>
     </qresource>
 </RCC>

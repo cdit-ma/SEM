@@ -27,6 +27,7 @@ public:
     void setNodeView(NodeView* view);
     NodeView* getNodeView();
 
+    virtual bool isSelected() = 0;
     bool isNodeItem();
     bool isEdgeItem();
     QString getID();

@@ -27,7 +27,7 @@ JenkinsJobMonitorWidget::JenkinsJobMonitorWidget(QWidget *parent, JenkinsManager
     requestedConsoleOutput = false;
 
     setWindowTitle("Jenkins Job Monitor");
-    setWindowIcon(QIcon(":/Resources/Icons/jenkins_build.png"));
+    setWindowIcon(QIcon(":/Actions/Job_Build.png"));
 
 
     setStyleSheet("font-family: Helvetica, Arial, sans-serif; background-color:white;  font-size: 13px; color: #333;");
@@ -100,10 +100,10 @@ void JenkinsJobMonitorWidget::setupLayout()
     titleWidget->setLayout(titleLayout);
 
     //Set up a QLabel for the Building Icon
-    jobIcon = new QLabel(":/Resources/Icons/jenkins_build.png");
+    jobIcon = new QLabel(":/Actions/Job_Build.png");
 
     //Setup a QPushButton to stop the job.
-    stopButton = new QPushButton(QIcon(":/Resources/Icons/stop.png"),"");
+    stopButton = new QPushButton(QIcon(":/Actions/Job_Stop.png"),"");
     stopButton->setStyleSheet("border: 0px solid black;");
     stopButton->setFixedSize(QSize(24,24));
     stopButton->setToolTip("Stop the Job.");
@@ -145,7 +145,7 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
     if(state == BUILDING){
         if(activeConfiguration == ""){
             QMovie* movie = new QMovie(this);
-            movie->setFileName(":/Resources/Icons/jenkins_building.gif");
+            movie->setFileName(":/Actions/jenkins_building.gif");
             movie->start();
 
             jobIcon->setMovie(movie);
@@ -153,20 +153,20 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
 
             if(!spinning){
                 spinning = new QMovie(this);
-                spinning->setFileName(":/Resources/Icons/jenkins_waiting.gif");
+                spinning->setFileName(":/Actions/jenkins_waiting.gif");
                 spinning->start();
                 connect(spinning, SIGNAL(frameChanged(int)), this, SLOT(frameChanged(int)));
             }
         }
         buildingTabs[index] = true;
     }else if(state == BUILT){
-        resourceName = ":/Resources/Icons/jenkins_built.png";
+        resourceName = ":/Actions/Job_Built.png";
         buildingTabs[index] = false;
     }else if(state == FAILED){
-        resourceName = ":/Resources/Icons/jenkins_failed.png";
+        resourceName = ":/Actions/Job_Failed.png";
         buildingTabs[index] = false;
     }else if(state == ABORTED){
-        resourceName = ":/Resources/Icons/jenkins_aborted.png";
+        resourceName = ":/Actions/Job_Aborted.png";
         buildingTabs[index] = false;
     }
 

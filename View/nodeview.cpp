@@ -232,6 +232,20 @@ NodeView::~NodeView()
     }
 }
 
+void NodeView::setCursor(QCursor cursor)
+{
+    if(viewport() && viewport()->cursor().shape() != cursor.shape()){
+        viewport()->setCursor(cursor);
+    }
+}
+
+void NodeView::unsetCursor()
+{
+    if(viewport() && viewport()->cursor().shape() != Qt::ArrowCursor){
+        viewport()->unsetCursor();
+    }
+}
+
 void NodeView::destroySubViews()
 {
     while(!subViews.isEmpty()){
@@ -1009,6 +1023,8 @@ void NodeView::setRubberBandMode(bool On)
         }
         if(On){
             setDragMode(RubberBandDrag);
+            rubberBand->resize(0,0);
+            rubberBand->setVisible(true);
         }else{
             setDragMode(NoDrag);
             rubberBand->setVisible(false);
@@ -1513,78 +1529,84 @@ void NodeView::hardwareClusterChildrenViewMenuClosed(NodeItem *nodeItem)
     }
 }
 
-void NodeView::setState(NodeView::VIEW_STATE newState)
+void NodeView::setState(NodeView::VIEW_STATE state)
 {
+    VIEW_STATE oldState = viewState;
 
-    if(viewState == VS_NONE){
-        if(newState == VS_PAN){
-            viewState = VS_PAN;
-            setCursor(Qt::ClosedHandCursor);
-        }else if(newState == VS_RUBBERBAND){
-            viewState = VS_RUBBERBAND;
-            setRubberBandMode(true);
-            setCursor(Qt::CrossCursor);
-        }else if(newState == VS_SELECTED){
-            viewState = VS_SELECTED;
+    switch(viewState){
+    case VS_NONE:
+        //Go onto VS_SELECTED
+    case VS_SELECTED:
+        if(state == VS_NONE || state == VS_SELECTED || state == VS_MOVING || state == VS_RESIZING || state == VS_PAN || state == VS_RUBBERBAND){
+            viewState = state;
         }
-    }else if(viewState == VS_RESIZING){
-        if(newState == VS_NONE || newState == VS_SELECTED){
-            viewState = newState;
-            unsetCursor();
+        break;
+    case VS_MOVING:
+        //Go onto VS_RESIZING state
+    case VS_RESIZING:
+        if(state == VS_NONE || state == VS_SELECTED){
+            viewState = state;
         }
-    }else if(viewState == VS_SELECTED){
-        if(newState == VS_NONE){
-            viewState = VS_NONE;
-        }else if(newState == VS_MOVING){
-            viewState = VS_MOVING;
-            triggerAction("Moving Selection");
-            setCursor(Qt::SizeAllCursor);
-        }else if(newState == VS_RESIZING){
-            viewState = VS_RESIZING;
-            triggerAction("Resizing Selection");
-            setCursor(Qt::SizeAllCursor);
-        }else if(newState == VS_PAN){
-            viewState = VS_PAN;
-        }else if(newState == VS_RUBBERBAND){
-            viewState = VS_RUBBERBAND;
+        break;
+    case VS_RUBBERBAND:
+        //Go onto VS_RUBBERBANDING state
+    case VS_RUBBERBANDING:
+        if(state == VS_NONE || state == VS_SELECTED || state == VS_RUBBERBAND || state == VS_RUBBERBANDING){
+            viewState = state;
         }
-    }else if(viewState == VS_MOVING){
-        if(newState == VS_NONE || newState == VS_SELECTED){
-            viewState = newState;
-            unsetCursor();
+        break;
+    case VS_PAN:
+        //Go Onto VS_PANNING state
+    case VS_PANNING:
+        if(state == VS_NONE || state == VS_SELECTED || state == VS_PANNING){
+            viewState = state;
         }
-    }else if(viewState == VS_RUBBERBAND || viewState == VS_RUBBERBANDING){
-        if(newState == VS_NONE || newState == VS_SELECTED){
-            viewState = newState;
-            setRubberBandMode(false);
-            unsetCursor();
-        }else{
-            if(newState == VS_RUBBERBANDING || newState == VS_RUBBERBAND){
-                viewState = newState;
-            }
-        }
-    }else if(viewState == VS_PAN || viewState == VS_PANNING){
-        if(newState == VS_NONE){
-            viewState = VS_NONE;
-        }else if(viewState != VS_PANNING && newState == VS_PANNING){
-            setCursor(Qt::ClosedHandCursor);
-            viewState = VS_PANNING;
-            wasPanning = true;
-        }else if(newState == VS_SELECTED){
-            viewState = VS_SELECTED;
-        }
-        if(viewState == VS_NONE || viewState == VS_SELECTED){
-            unsetCursor();
-        }
+        break;
+    default:
+        break;
     }
 
-    //viewState = newState;
+    //Transition
+    if(viewState != oldState){
+        transition();
+    }
+}
 
-    if(viewState == VS_NONE){
+/**
+ * @brief NodeView::transition - Called when viewstate changes.
+ */
+void NodeView::transition()
+{
+    switch(viewState){
+    case VS_NONE:
+        //Do the VS_SELECTED case.
+    case VS_SELECTED:
+        setRubberBandMode(false);
         unsetCursor();
+        break;
+    case VS_MOVING:
+        triggerAction("Moving Selection");
+        setCursor(Qt::SizeAllCursor);
+        break;
+    case VS_RESIZING:
+        triggerAction("Resizing Selection");
+        //Cursor is set by NodeItem
+        break;
+    case VS_PAN:
+        setCursor(Qt::ClosedHandCursor);
+        break;
+    case VS_PANNING:
+         wasPanning = true;
+         break;
+    case VS_RUBBERBAND:
+        setRubberBandMode(true);
+        setCursor(Qt::CrossCursor);
+        break;
+    case VS_RUBBERBANDING:
+        break;
+    default:
+        break;
     }
-
-
 }
 
 
@@ -1632,6 +1654,7 @@ void NodeView::enableClipboardActions()
  */
 void NodeView::showToolbar(QPoint position)
 {
+
     if(wasPanning){
         wasPanning = false;
         return;
@@ -1639,6 +1662,8 @@ void NodeView::showToolbar(QPoint position)
 
     // only show the toolbar if there is at least one node item selected
     if (selectedIDs.count() > 0) {
+        //Update Actions
+        enableClipboardActions();
 
         NodeItem* selectedItem = getSelectedNodeItem();
         if (selectedItem && selectedItem->getNodeKind() == "Model") {
@@ -2180,6 +2205,11 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
             return;
         }
     }
+    if(selectedIDs.isEmpty()){
+        if(viewState == VS_SELECTED){
+            setState(VS_NONE);
+        }
+    }
     setAttributeModel();
 }
 
@@ -2335,7 +2365,7 @@ QImage NodeView::getImage(QString imageName)
     if(imageLookup.contains(imageName)){
         return imageLookup[imageName];
     }else{
-        QImage image(":/Resources/Icons/" + imageName + ".png");
+        QImage image(":/Items/" + imageName + ".png");
         imageLookup[imageName] = image;
         return image;
     }
@@ -2893,6 +2923,18 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         }
         return;
     }else if(viewState == VS_PAN || viewState == VS_PANNING){
+
+        if(viewState == VS_PAN){
+            //Check to see if the item under the mouse is selected. if it isn't select it.
+            GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
+
+            if(item && item->isNodeItem() && !item->isSelected()){
+                if(!(event->modifiers() & Qt::ControlModifier)){
+                    clearSelection();
+                }
+                appendToSelection(item, false);
+            }
+        }
         if(selectedIDs.length() > 0){
             setState(VS_SELECTED);
         }else{
@@ -2911,7 +2953,7 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
  */
 void NodeView::mouseMoveEvent(QMouseEvent *event)
 {
-    qCritical() << getViewState();
+
     if(MINIMAP_EVENT){
         QGraphicsView::mouseMoveEvent(event);
         return;
@@ -2945,10 +2987,10 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
  */
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
-    if(toolbarJustClosed){
-        toolbarJustClosed = false;
-        return;
-    }
+    //if(toolbarJustClosed){
+     //   toolbarJustClosed = false;
+     //   return;
+    //}//
 
     // TODO: Need to catch the case where the menu is closed
     // when MEDEA window steals the focus
@@ -2971,6 +3013,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }
     }else if(viewState == VS_RUBBERBAND){
         if(event->button() == Qt::LeftButton){
+            qCritical() << "RUBBER";
             setState(VS_RUBBERBANDING);
             rubberBandOrigin = event->pos();
             //Move rubberband to the position on the screen.
@@ -2979,7 +3022,6 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }
         return;
     }
-
 
     QGraphicsView::mousePressEvent(event);
 }
@@ -3581,7 +3623,7 @@ void NodeView::view_ClearHistory()
  */
 void NodeView::clearSelection(bool updateTable, bool updateDocks)
 {
-    while (!selectedIDs.isEmpty()) {
+    while (!selectedIDs.isEmpty()){
         QString currentID = selectedIDs.takeFirst();
         GraphMLItem* currentItem = getGraphMLItemFromHash(currentID);
         if (currentItem) {
@@ -3697,6 +3739,9 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
             nodeItems << currentNode->getChildNodeItems();
         }
     }
+    //Update Actions
+    enableClipboardActions();
+
 }
 
 

@@ -29,7 +29,7 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
     outputPathOk = false;
 
     setWindowTitle("Launch CUTS Execution");
-    setWindowIcon(QIcon(":/Resources/Icons/cuts.png"));
+    setWindowIcon(QIcon(":/Actions/Cut.png"));
     setupLayout();
 
     connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
@@ -55,7 +55,7 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
 
 
     loadingMovie = new QMovie(this);
-    loadingMovie->setFileName(":/Resources/Icons/jenkins_waiting.gif");
+    loadingMovie->setFileName(":/Actions/jenkins_waiting.gif");
     loadingMovie->start();
 
     //Set State
@@ -407,7 +407,7 @@ void CUTSExecutionWidget::setupLayout()
     jobLabel = new QLabel("Local Deployment");
     QLabel* iconLabel = new QLabel();
 
-    iconLabel->setPixmap(QPixmap::fromImage(QImage(":/Resources/Icons/jenkins_build.png")));
+    iconLabel->setPixmap(QPixmap::fromImage(QImage(":/Actions/Job_Build.png")));
 
     jobLabel->setStyleSheet("font-family: Helvetica, Arial, sans-serif; font-size: 18px;  font-weight: bold;");
 
@@ -427,7 +427,7 @@ void CUTSExecutionWidget::setupLayout()
 
     graphmlPathButton = new QPushButton();
     graphmlPathButton->setIconSize(QSize(20,20));
-    graphmlPathButton->setIcon(QIcon(":/Resources/Icons/foldersearch.png"));
+    graphmlPathButton->setIcon(QIcon(":/Actions/Search_Folder.png"));
     connect(graphmlPathButton, SIGNAL(clicked()), this, SLOT(selectGraphMLPath()));
     modelLayout->addWidget(graphmlPathIcon);
     modelLayout->addWidget(modelLabel);
@@ -450,7 +450,7 @@ void CUTSExecutionWidget::setupLayout()
 
     outputPathButton = new QPushButton();
     outputPathButton->setIconSize(QSize(20,20));
-    outputPathButton->setIcon(QIcon(":/Resources/Icons/foldersearch.png"));
+    outputPathButton->setIcon(QIcon(":/Actions/Search_Folder.png"));
 
     connect(outputPathButton, SIGNAL(clicked()), this, SLOT(selectOutputPath()));
     outputLayout->addWidget(outputPathIcon);
@@ -463,9 +463,9 @@ void CUTSExecutionWidget::setupLayout()
 
     tabWidget = new QTabWidget();
     verticalLayout->addWidget(tabWidget, 1);
-    tabWidget->addTab(setupGenerateWidget(), QIcon(":/Resources/Icons/generate.png"), "Generate");
-    tabWidget->addTab(setupBuildWidget(), QIcon(":/Resources/Icons/build.png"), "Build");
-    tabWidget->addTab(setupExecuteWidget(),QIcon(":/Resources/Icons/forward.png"),  "Execute");
+    tabWidget->addTab(setupGenerateWidget(), QIcon(":/Actions/Generate.png"), "Generate");
+    tabWidget->addTab(setupBuildWidget(), QIcon(":/Actions/Build.png"), "Build");
+    tabWidget->addTab(setupExecuteWidget(),QIcon(":/Actions/Forward.png"),  "Execute");
 
 
 
@@ -502,7 +502,7 @@ void CUTSExecutionWidget::setIconSuccess(QLabel *label, bool success)
         fileName = "tick";
     }
     if(label){
-        label->setPixmap(QPixmap::fromImage(QImage(":/Resources/Icons/" + fileName + ".png")));
+        label->setPixmap(QPixmap::fromImage(QImage(":/Actions/" + fileName + ".png")));
     }
 }
 

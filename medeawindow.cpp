@@ -130,6 +130,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
 
     newProject();
+    //this->setCursor(Qt::IBeamCursor);
 }
 
 
@@ -382,7 +383,7 @@ void MedeaWindow::initialiseGUI()
     double rightPanelWidth = RIGHT_PANEL_WIDTH;
 
     // setup widgets
-    QPushButton* menuButton = new QPushButton(QIcon(":/Resources/Icons/menuIcon.png"), "");
+    QPushButton* menuButton = new QPushButton(QIcon(":/Actions/MEDEA_Menu.png"), "");
     menuButton->setFixedSize(55, 45);
     menuButton->setIconSize(menuButton->size() * 0.75);
     menuButton->setStyleSheet("QPushButton{ background-color: rgb(210,210,210); }"
@@ -565,17 +566,17 @@ void MedeaWindow::setupMenu(QPushButton *button)
 {   
     // menu buttons/actions
     menu = new QMenu();
-    file_menu = menu->addMenu(QIcon(":/Resources/Icons/file_menu.png"), "File");
-    edit_menu = menu->addMenu(QIcon(":/Resources/Icons/edit_menu.png"), "Edit");
+    file_menu = menu->addMenu(QIcon(":/Actions/Menu.png"), "File");
+    edit_menu = menu->addMenu(QIcon(":/Actions/Edit.png"), "Edit");
     menu->addSeparator();
-    view_menu = menu->addMenu(QIcon(":/Resources/Icons/view.png"), "View");
-    model_menu = menu->addMenu(QIcon(":/Resources/Icons/model.png"), "Model");
-    jenkins_menu = menu->addMenu(QIcon(":/Resources/Icons/jenkins.png"), "Jenkins");
+    view_menu = menu->addMenu(QIcon(":/Actions/MenuView.png"), "View");
+    model_menu = menu->addMenu(QIcon(":/Actions/MenuModel.png"), "Model");
+    jenkins_menu = menu->addMenu(QIcon(":/Actions/Jenkins_Icon.png"), "Jenkins");
     menu->addSeparator();
 
-    settings_changeAppSettings = menu->addAction(QIcon(":/Resources/Icons/settings.png"), "Settings");
-    file_AboutMedea = menu->addAction(QIcon(":/Resources/Icons/info.png"),"About MEDEA");
-    exit = menu->addAction(QIcon(":/Resources/Icons/power.png"), "Exit");
+    settings_changeAppSettings = menu->addAction(QIcon(":/Actions/Settings.png"), "Settings");
+    file_AboutMedea = menu->addAction(QIcon(":/Actions/Info.png"),"About MEDEA");
+    exit = menu->addAction(QIcon(":/Actions/Power.png"), "Exit");
 
     menu->setFont(guiFont);
     file_menu->setFont(guiFont);
@@ -583,15 +584,15 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_menu->setFont(guiFont);
     model_menu->setFont(guiFont);
 
-    file_newProject = file_menu->addAction(QIcon(":/Resources/Icons/new_project.png"), "New Project");
+    file_newProject = file_menu->addAction(QIcon(":/Actions/New.png"), "New Project");
     file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
     file_menu->addSeparator();
-    file_importGraphML = file_menu->addAction(QIcon(":/Resources/Icons/import.png"), "Import");
-    file_importSnippet = file_menu->addAction(QIcon(":/Resources/Icons/importSnippet.png"), "Import Snippet");
+    file_importGraphML = file_menu->addAction(QIcon(":/Actions/Import.png"), "Import");
+    file_importSnippet = file_menu->addAction(QIcon(":/Actions/ImportSnippet.png"), "Import Snippet");
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_menu->addSeparator();
-    file_exportGraphML = file_menu->addAction(QIcon(":/Resources/Icons/export.png"), "Export");
-    file_exportSnippet = file_menu->addAction(QIcon(":/Resources/Icons/exportSnippet.png"), "Export Snippet");
+    file_exportGraphML = file_menu->addAction(QIcon(":/Actions/Export.png"), "Export");
+    file_exportSnippet = file_menu->addAction(QIcon(":/Actions/ExportSnippet.png"), "Export Snippet");
     file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     file_menu->addSeparator();
 
@@ -599,38 +600,38 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
 
 
-    edit_undo = edit_menu->addAction(QIcon(":/Resources/Icons/undo.png"), "Undo");
+    edit_undo = edit_menu->addAction(QIcon(":/Actions/Undo.png"), "Undo");
     edit_undo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
-    edit_redo = edit_menu->addAction(QIcon(":/Resources/Icons/redo.png"), "Redo");
+    edit_redo = edit_menu->addAction(QIcon(":/Actions/Redo.png"), "Redo");
     edit_redo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Y));
     edit_menu->addSeparator();
-    edit_cut = edit_menu->addAction(QIcon(":/Resources/Icons/cut.png"), "Cut");
+    edit_cut = edit_menu->addAction(QIcon(":/Actions/Cut.png"), "Cut");
     edit_cut->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_X));
-    edit_copy = edit_menu->addAction(QIcon(":/Resources/Icons/copy.png"), "Copy");
+    edit_copy = edit_menu->addAction(QIcon(":/Actions/Copy.png"), "Copy");
     edit_copy->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_C));
-    edit_paste = edit_menu->addAction(QIcon(":/Resources/Icons/paste.png"), "Paste");
+    edit_paste = edit_menu->addAction(QIcon(":/Actions/Paste.png"), "Paste");
     edit_paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
-    edit_replicate = edit_menu->addAction(QIcon(":/Resources/Icons/duplicate.png"), "Replicate");
+    edit_replicate = edit_menu->addAction(QIcon(":/Actions/Replicate.png"), "Replicate");
     edit_menu->addSeparator();
-    edit_delete = edit_menu->addAction(QIcon(":/Resources/Icons/delete.png"), "Delete Selection");
+    edit_delete = edit_menu->addAction(QIcon(":/Actions/Delete.png"), "Delete Selection");
 
-    view_fitToScreen = view_menu->addAction(QIcon(":/Resources/Icons/fitToScreen.png"), "Fit To Screen");
+    view_fitToScreen = view_menu->addAction(QIcon(":/Actions/FitToScreen.png"), "Fit To Screen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
     view_menu->addSeparator();
-    view_snapToGrid = view_menu->addAction(QIcon(":/Resources/Icons/snapToGrid.png"), "Snap Selection To Grid");
-    view_snapChildrenToGrid = view_menu->addAction(QIcon(":/Resources/Icons/snapChildrenToGrid.png"), "Snap Selection's Children To Grid");
+    view_snapToGrid = view_menu->addAction(QIcon(":/Actions/AlignToGrid.png"), "Snap Selection To Grid");
+    view_snapChildrenToGrid = view_menu->addAction(QIcon(":/Actions/GridLayout.png"), "Snap Selection's Children To Grid");
     view_menu->addSeparator();
-    view_goToDefinition = view_menu->addAction(QIcon(":/Resources/Icons/definition.png"), "Go To Definition");
+    view_goToDefinition = view_menu->addAction(QIcon(":/Actions/Definition.png"), "Go To Definition");
     view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
-    view_goToImplementation = view_menu->addAction(QIcon(":/Resources/Icons/implementation.png"), "Go To Implementation");
+    view_goToImplementation = view_menu->addAction(QIcon(":/Actions/Implementation.png"), "Go To Implementation");
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
-    view_showConnectedNodes = view_menu->addAction(QIcon(":/Resources/Icons/connections.png"), "View Connections");
+    view_showConnectedNodes = view_menu->addAction(QIcon(":/Actions/Connections.png"), "View Connections");
 
 
-    model_clearModel = model_menu->addAction(QIcon(":/Resources/Icons/clear.png"), "Clear Model");
+    model_clearModel = model_menu->addAction(QIcon(":/Actions/Clear.png"), "Clear Model");
     model_menu->addSeparator();
-    model_validateModel = model_menu->addAction(QIcon(":/Resources/Icons/validate.png"), "Validate Model");
+    model_validateModel = model_menu->addAction(QIcon(":/Actions/Validate.png"), "Validate Model");
 
 
 
@@ -642,12 +643,12 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB);
     //Generic Jenkins Functionality.
-    jenkins_ImportNodes = jenkins_menu->addAction(QIcon(":/Resources/Icons/jenkins_nodes.png"), "Import Nodes");
+    jenkins_ImportNodes = jenkins_menu->addAction(QIcon(":/Actions/Computer.png"), "Import Nodes");
     jenkins_ImportNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
 
-    cuts_runGeneration = jenkins_menu->addAction(QIcon(":/Resources/Icons/cuts.png"), "Launch: Local Deployment");
+    cuts_runGeneration = jenkins_menu->addAction(QIcon(":/Actions/Job_Build.png"), "Launch: Local Deployment");
 
-    jenkins_ExecuteJob = jenkins_menu->addAction(QIcon(":/Resources/Icons/jenkins_build.png"), "Launch: " + jenkinsJobName);
+    jenkins_ExecuteJob = jenkins_menu->addAction(QIcon(":/Actions/Job_Build.png"), "Launch: " + jenkinsJobName);
 
     if(!jenkinsManager){
         jenkins_menu->setEnabled(false);
@@ -663,39 +664,40 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
 
 
-    actionSort = new QAction(QIcon(":/Resources/Icons/sort.png"), "Sort", this);
+    actionSort = new QAction(QIcon(":/Actions/Sort.png"), "Sort", this);
     actionSort->setToolTip("Sort model/selection");
 
-    actionCenter = new QAction(QIcon(":/Resources/Icons/center.png"), "Center Entity", this);
+    actionCenter = new QAction(QIcon(":/Actions/Center.png"), "Center Entity", this);
     actionCenter->setToolTip("Center entity without zooming");
 
-    actionZoomToFit = new QAction(QIcon(":/Resources/Icons/zoomToFit.png"), "Zoom to Fit Selection", this);
+    actionZoomToFit = new QAction(QIcon(":/Actions/ZoomToFit.png"), "Zoom to Fit Selection", this);
     actionZoomToFit->setToolTip("Center selection and zoom in to fit");
 
-    actionFitToScreen = new QAction(QIcon(":/Resources/Icons/fitToScreen.png"), "Fit Model to Screen", this);
+    actionFitToScreen = new QAction(QIcon(":/Actions/FitToScreen.png"), "Fit Model to Screen", this);
     actionFitToScreen->setToolTip("Show entire Model");
 
-    actionAlignVertically = new QAction(QIcon(":/Resources/Icons/alignVertically.png"), "Align Selection Vertically", this);
+    actionAlignVertically = new QAction(QIcon(":/Actions/Align_Vertical.png"), "Align Selection Vertically", this);
     actionAlignVertically->setToolTip("Align selection vertically");
 
-    actionAlignHorizontally = new QAction(QIcon(":/Resources/Icons/alignHorizontally.png"), "Align Selection Horizontally", this);
+    actionAlignHorizontally = new QAction(QIcon(":/Actions/Align_Horizontal.png"), "Align Selection Horizontally", this);
     actionAlignHorizontally->setToolTip("Align selection horizontally");
 
-    actionPopupSubview = new QAction(QIcon(":/Resources/Icons/popup.png"), "Show Selection in New Window", this);
+    actionPopupSubview = new QAction(QIcon(":/Actions/Popup.png"), "Show Selection in New Window", this);
     actionPopupSubview->setToolTip("Show selection in new window");
 
-    actionBack = new QAction(QIcon(":/Resources/Icons/back.png"), "Navigate Back", this);
+    actionBack = new QAction(QIcon(":/Actions/Backward.png"), "Navigate Back", this);
     actionBack->setToolTip("Navigate back");
 
-    actionForward = new QAction(QIcon(":/Resources/Icons/forward.png"), "Navigate Forward", this);
+    actionForward = new QAction(QIcon(":/Actions/Forward.png"), "Navigate Forward", this);
     actionForward->setToolTip("Navigate forward");
 
-    actionContextMenu = new QAction(QIcon(":/Resources/Icons/toolbar.png"), "Show Context Toolbar", this);
+    actionContextMenu = new QAction(QIcon(":/Actions/Toolbar.png"), "Show Context Toolbar", this);
     actionContextMenu->setToolTip("Show context toolbar");
 
-    actionToggleGrid = new QAction(QIcon(":/Resources/Icons/grid.png"), "Toggle Grid Lines", this);
-    actionToggleGrid->setToolTip("Turn grid on/off");
+    actionToggleGrid = new QAction(QIcon(":/Actions/Grid_On.png"), "Toggle Grid Lines", this);
+    actionToggleGrid->setToolTip("Turn Grid Off");
     actionToggleGrid->setCheckable(true);
+    connect(actionToggleGrid, SIGNAL(triggered()), this, SLOT(toggleGridLines()));
 }
 
 
@@ -793,8 +795,8 @@ void MedeaWindow::setupSearchTools()
 {
     searchBarDefaultText = "Search Here...";
     searchBar = new QLineEdit(searchBarDefaultText, this);
-    searchButton = new QPushButton(QIcon(":/Resources/Icons/search_icon.png"), "");
-    searchOptionButton = new QPushButton(QIcon(":/Resources/Icons/settings.png"), "");
+    searchButton = new QPushButton(QIcon(":/Actions/Search.png"), "");
+    searchOptionButton = new QPushButton(QIcon(":/Actions/Settings.png"), "");
     searchOptionMenu = new QMenu(searchOptionButton);
     //searchSuggestions = new QListView(searchButton);
     searchResults = new QDialog(this);
@@ -869,7 +871,7 @@ void MedeaWindow::setupSearchTools()
 
     viewAspectsBarDefaultText = "Entire Model";
     viewAspectsBar = new QLineEdit(viewAspectsBarDefaultText, this);
-    viewAspectsButton = new QPushButton(QIcon(":/Resources/Icons/down_arrow.png"), "");
+    viewAspectsButton = new QPushButton(QIcon(":/Actions/Arrow_Down.png"), "");
     viewAspectsMenu = new QMenu(viewAspectsButton);
 
     aspectsLabel->setMinimumWidth(50);
@@ -911,7 +913,7 @@ void MedeaWindow::setupSearchTools()
     QHBoxLayout* kindsLayout = new QHBoxLayout();
     nodeKindsDefaultText = "All Kinds";
     nodeKindsBar = new QLineEdit(nodeKindsDefaultText, this);
-    nodeKindsButton = new QPushButton(QIcon(":/Resources/Icons/down_arrow.png"), "");
+    nodeKindsButton = new QPushButton(QIcon(":/Actions/Arrow_Down.png"), "");
     nodeKindsMenu = new QMenu(nodeKindsButton);
 
     kindsLabel->setMinimumWidth(50);
@@ -963,16 +965,16 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
                   "border: 1px solid;"
                   "border-color: rgba(160,160,160,225);"
                   "border-radius: 10px;"
-                  "background-color: rgba(210,210,210,225);"
+                  "background-color: rgba(200,200,200,225);"
                   "margin: 0px 1px;"
                   "}"
                   "QToolButton:hover{"
                   "border: 2px solid;"
                   "border-color: rgba(140,140,140,225);"
-                  "background-color: rgba(230,230,230,230);"
+                  "background-color: rgba(250,250,250,230);"
                   "}"
+                   "QToolButton:disabled{ background-color: rgba(150,150,150,225);}"
                   "QToolButton:pressed{ background-color: rgba(240,240,240,240);}"
-                  "QToolButton:checked{ background-color: rgba(180,180,180,225);}"
                   "QToolBar::separator { background-color: rgba(0,0,0,0); }"
                   "QMessageBox{background-color:" + palette().color(QWidget::backgroundRole()).name() + ";}"
                   );
@@ -981,11 +983,13 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
     toolbarButton->setCheckable(true);
     toolbarButton->setStyleSheet("QToolButton{ background-color: rgba(200,200,200,225); border-radius: 5px; }"
-                                 "QToolButton:checked{ background-color: rgba(180,180,180,225); }"
-                                 "QToolButton:hover{ background-color: rgba(210,210,210,235); }");
+                                 "QToolButton:hover{ background-color: rgba(250,250,250,235); }");
 
-    QImage expandImage(":/Resources/Icons/down_arrow.png");
-    QImage contractImage(":/Resources/Icons/up_arrow.png");
+
+
+
+    QImage expandImage(":/Actions/Arrow_Down.png");
+    QImage contractImage(":/Actions/Arrow_Up.png");
     expandImage = expandImage.scaled(toolbarButton->width(), toolbarButton->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     contractImage = contractImage.scaled(toolbarButton->width(), toolbarButton->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
@@ -1477,6 +1481,22 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(validationComplete(int)));
     connect(myProcess, SIGNAL(finished(int)), myProcess, SLOT(deleteLater()));
     myProcess->start(program, arguments);
+}
+
+void MedeaWindow::toggleGridLines()
+{
+    qCritical() << "TOGGLE";
+    if(actionToggleGrid){
+        if(actionToggleGrid->isChecked()){
+            actionToggleGrid->setIcon(QIcon(":/Actions/Grid_On.png"));
+            actionToggleGrid->setToolTip("Press to Turn Grid Off");
+        }else{
+            actionToggleGrid->setIcon(QIcon(":/Actions/Grid_Off.png"));
+            actionToggleGrid->setToolTip("Press to Turn Grid On");
+
+        }
+    }
+
 }
 
 
