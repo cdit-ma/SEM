@@ -126,7 +126,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     toolbar = new ToolbarWidget(this);
  	if (isMainView()) {
         connect(this, SIGNAL(view_updateMenuActionEnabled(QString,bool)), toolbar, SLOT(updateActionEnabledState(QString,bool)));
-        connect(this, SIGNAL(view_HardwareDockEnabled(bool)), toolbar, SLOT(hardwareDockEnabled(bool)));
     }
 
     // initialise the view's center point

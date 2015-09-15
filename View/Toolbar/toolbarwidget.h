@@ -34,8 +34,6 @@ public slots:
     void updateDisplayedChildren();
     void hardwareClusterMenuClicked(int viewMode);
 
-    void hardwareDockEnabled(bool enabled);
-
     void addChildNode();
     void addConnectedNode();
     void connectNodes();
@@ -150,7 +148,6 @@ private:
     bool alterViewButtonsVisible;
 
     bool eventFromToolbar;
-    bool hardwareDockIsEnabled;
 
 };
 

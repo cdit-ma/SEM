@@ -47,19 +47,8 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
     hardware_notAllowedKinds.append("InEventPortDelegate");
     hardware_notAllowedKinds.append("OutEventPortDelegate");
     hardware_notAllowedKinds.append("BlackBox");
-    //hardware_notAllowedKinds.append("BlackBoxInstance");
 
     setNotAllowedKinds(hardware_notAllowedKinds);
-}
-
-
-/**
- * @brief HardwareDockScrollArea::onNodeDeleted
- * @param ID
- */
-void HardwareDockScrollArea::onNodeDeleted(QString ID)
-{
-    DockScrollArea::onNodeDeleted(ID);
 }
 
 
@@ -85,27 +74,18 @@ void HardwareDockScrollArea::dockNodeItemClicked()
     }
 
     QList<NodeItem*> selectedNodeItems = getNodeView()->getSelectedNodeItems();
-    QStringList selectedNodeIDS = getNodeView()->getSelectedNodeIDs();
-
-    QString dockNodeID = dockNodeItem->getID();
-
-    foreach (NodeItem* selectedNodeItem, selectedNodeItems) {
-        if (selectedNodeItem) {
-            QString selectedNodeKind = selectedNodeItem->getNodeKind();
-            if (!getNodeView()->isNodeKindDeployable(selectedNodeKind)) {
-                return;
-            }
-        } else {
-            //This shouldn't happen
-            qCritical() << "Null NodeItem in HardwareDock";
+    foreach (NodeItem* nodeItem, selectedNodeItems) {
+        if (nodeItem && !getNodeView()->isNodeKindDeployable(nodeItem->getNodeKind())) {
             return;
         }
     }
 
-    //At this point everything in selectedNodeIDs is deployable.
-    //If all nodes in selection are already connected to dockNodeID, disconnect them.
-    //If some nodes in selection aren't connected to dockNodeID, disconnect their deployment edge, and connect to docknodeID.
-    getNodeView()->constructDestructEdges(selectedNodeIDS, dockNodeID);
+    /*
+     * At this point everything in selectedNodeIDs is deployable.
+     * If all nodes in selection are already connected to dockNodeID, disconnect them.
+     * If some nodes in selection aren't connected to dockNodeID, disconnect their deployment edge, and connect to docknodeID.
+     */
+    getNodeView()->constructDestructEdges(getNodeView()->getSelectedNodeIDs(), dockNodeItem->getID());
 }
 
 
@@ -122,7 +102,9 @@ void HardwareDockScrollArea::updateDock()
         return;
     }
 
-    // if the dock is disabled, there is no need to update
+    bool multipleSelection = (selectedItems.count() > 1);
+
+    // check if the dock should be disabled
     foreach (NodeItem* item, selectedItems) {
         QString itemKind = item->getNodeKind();
         if (getNotAllowedKinds().contains(itemKind)) {
@@ -131,6 +113,12 @@ void HardwareDockScrollArea::updateDock()
         }
         if (itemKind == "ComponentInstance") {
             if (!item->getNode()->getDefinition()) {
+                setDockEnabled(false);
+                return;
+            }
+        }
+        if (multipleSelection) {
+            if (!getNodeView()->isNodeKindDeployable(itemKind)) {
                 setDockEnabled(false);
                 return;
             }
@@ -174,7 +162,6 @@ void HardwareDockScrollArea::refreshDock()
     if (!getNodeView()->getSelectedNodeItem()) {
         DockScrollArea::updateCurrentNodeItem();
     }
-    //emit dock_higlightDockItem();
     updateDock();
 }
 
@@ -193,19 +180,15 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
         // if the dock item has already been added to this dock,
         // remove it from the this dock's list and layout
         if (getDockNodeItems().contains(dockItem)) {
-            //removeDockNodeItemFromList(dockItem);
             getLayout()->removeWidget(dockItem);
         }
 
         QString dockItemLongName = dockItem->getKind() + dockItem->getLabel();
 
         // iterate through all the dock items and insert the provided dock item
-        //for (int i = 0; i < getDockNodeItems().count(); i++) {
         for (int i = 0; i < getLayout()->count(); i++) {
             DockNodeItem* currentItem = dynamic_cast<DockNodeItem*>(getLayout()->itemAt(i)->widget());
             if (currentItem){
-
-
                 QString longName = currentItem->getKind() + currentItem->getLabel();
                 int compare = dockItemLongName.compare(longName, Qt::CaseInsensitive);
                 if (compare <= 0) {

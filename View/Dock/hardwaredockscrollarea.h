@@ -10,7 +10,6 @@ class HardwareDockScrollArea : public DockScrollArea
 public:
     explicit HardwareDockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
 
-    void onNodeDeleted(QString ID);
     void onEdgeDeleted();
     
 signals:
@@ -20,8 +19,8 @@ public slots:
     void dockNodeItemClicked();
     void updateDock();
 
-    void insertDockNodeItem(DockNodeItem* dockItem);
     void refreshDock();
+    void insertDockNodeItem(DockNodeItem* dockItem);
 
     void nodeConstructed(NodeItem* nodeItem);
 

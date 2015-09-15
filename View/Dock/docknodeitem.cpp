@@ -24,9 +24,9 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
 
     if (nodeItem) {
 
-        this->ID = nodeItem->getID();
         this->kind = nodeItem->getNodeKind();
-        this->label = nodeItem->getNodeLabel();
+        label = nodeItem->getNodeLabel();
+        ID = nodeItem->getID();
 
         if (nodeItem->getNode()) {
             GraphMLData* label = nodeItem->getNode()->getData("label");
@@ -45,7 +45,7 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
         //Must be a parts Dock!
         this->kind = kind;
         label = kind;
-        this->ID = kind;
+        ID = kind;
     }
 
     setupLayout();
@@ -129,7 +129,6 @@ DockNodeItem *DockNodeItem::getParentDockNodeItem()
  */
 void DockNodeItem::addChildDockItem(DockNodeItem *dockItem)
 {
-    //qCritical() << "DockNodeItem: " + this->getID() + " Added: " + dockItem->getID();
     childrenDockItems.append(dockItem);
 }
 
@@ -141,7 +140,6 @@ void DockNodeItem::addChildDockItem(DockNodeItem *dockItem)
 void DockNodeItem::removeChildDockItem(DockNodeItem *dockItem)
 {
     childrenDockItems.removeAll(dockItem);
-    //qCritical() << "DockNodeItem: " << this->getID() << " Deleted: " << dockItem->getID() << count;
 }
 
 
@@ -154,9 +152,14 @@ QList<DockNodeItem *> DockNodeItem::getChildrenDockItems()
     return childrenDockItems;
 }
 
+
+/**
+ * @brief DockNodeItem::getID
+ * @return
+ */
 QString DockNodeItem::getID()
 {
-    return this->ID;
+    return ID;
 }
 
 
@@ -389,26 +392,12 @@ void DockNodeItem::parentDockItemClicked(bool show)
 
 
 /**
- * @brief DockNodeItem::deleteLater
- * This is called when the nodeitem attached to this dock item is deleted.
- * This dock item is removed from its dock's list and then it's deleted.
- */
-void DockNodeItem::deleteLater()
-{
-    emit dockItem_removeFromDock(this);
-    QObject::deleteLater();
-}
-
-
-/**
  * @brief DockNodeItem::updateData
  * This gets called when the dataTable value for the node item has been changed.
  */
 void DockNodeItem::updateData()
 {
     setLabel(nodeItem->getNode()->getDataValue("label"));
-
-    //repaint();
 }
 
 

@@ -1,13 +1,12 @@
 #include "partsdockscrollarea.h"
 #include "docktogglebutton.h"
 #include "docknodeitem.h"
-
 #include <QDebug>
-
 
 /**
  * @brief PartsDockScrollArea::PartsDockScrollArea
  * @param label
+ * @param view
  * @param parent
  */
 PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent) :
@@ -32,28 +31,35 @@ void PartsDockScrollArea::updateDock()
 
     QStringList kindsToShow = getAdoptableNodeListFromView();
 
-    foreach(QString kind, displayedItems){
-        if(kindsToShow.contains(kind)){
+    // if there are no adoptable node kinds, disable the dock
+    if (kindsToShow.isEmpty()) {
+        setDockEnabled(false);
+        return;
+    }
+
+    // for each kind to show, check if it is already displayed
+    // if it is, remove it from the list of kinds to show
+    // if it's not, kind shouldn't be displayed anymore; hide it
+    foreach (QString kind, displayedItems) {
+        if (kindsToShow.contains(kind)) {
             kindsToShow.removeAll(kind);
-        }else{
+        } else {
             DockNodeItem* dockNodeItem = getDockNodeItem(kind);
-            if(dockNodeItem){
+            if (dockNodeItem) {
                 dockNodeItem->hide();
                 displayedItems.removeAll(kind);
             }
         }
     }
 
-    //Got nothing to show. So Hide the Dock!
+    // show remaining kinds that aren't already displayed
+    // and add it to the displayed kinds list
     foreach (QString kind, kindsToShow) {
         DockNodeItem* dockNodeItem = getDockNodeItem(kind);
         if (dockNodeItem) {
             dockNodeItem->show();
             displayedItems.append(kind);
         }
-    }
-    if(displayedItems.isEmpty()){
-        setDockEnabled(false);
     }
 }
 
@@ -71,7 +77,6 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
     nodeKinds.sort();
 
     foreach (QString kind, nodeKinds) {
-        //If we have already made one of these, we shouldn't remake it.
         if (!getDockNodeItem(kind)) {
             DockNodeItem* dockNodeItem = new DockNodeItem(kind, 0, this);
             addDockNodeItem(dockNodeItem);
@@ -80,19 +85,6 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
 
     // initialise list of displayed items
     displayedItems = nodeKinds;
-}
-
-
-/**
- * @brief PartsDockScrollArea::getDockNodeItem
- * Go through this dock's item list and find the item with the specified kind.
- * @param kind
- * @return
- */
-DockNodeItem* PartsDockScrollArea::getDockNodeItem(QString kind)
-{
-    //DockNodeItems are indexed by their kind for the parts list.
-    return DockScrollArea::getDockNodeItem(kind);
 }
 
 

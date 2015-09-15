@@ -28,7 +28,7 @@ public:
 
     void addDockNodeItem(DockNodeItem* item, int insertIndex = -1, bool addToLayout = true);
     DockNodeItem* getDockNodeItem(QString nodeID);
-    virtual QList<DockNodeItem *> getDockNodeItems();
+    virtual QList<DockNodeItem*> getDockNodeItems();
 
     bool isDockEnabled();
     void setDockEnabled(bool enabled);
@@ -50,6 +50,7 @@ public slots:
     virtual void dockNodeItemClicked() = 0;
     virtual void updateDock();
     virtual void clear();
+
     void clearSelected();
 
     virtual void nodeDeleted(QString nodeID, QString parentID);
@@ -57,7 +58,7 @@ public slots:
 
     void updateCurrentNodeItem();
 
-    void removeDockNodeItemFromList(DockNodeItem* item);
+    void removeDockNodeItem(DockNodeItem* item);
 
     void parentHeightChanged(double height);
 

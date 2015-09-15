@@ -38,18 +38,14 @@ signals:
     void dockItem_clicked();
     void dockItem_fileClicked(bool show);
     void dockItem_relabelled(DockNodeItem* dockItem);
-    void dockItem_removeFromDock(DockNodeItem* dockItem);
-
     void dockItem_hidden();
 
 public slots:
-    void labelChanged(QString label);
     void clicked();
     void parentDockItemClicked(bool show);
 
-
+    void labelChanged(QString label);
     void updateData();
-    void deleteLater();
 
     void childDockItemHidden();
     void highlightDockItem(NodeItem* node);

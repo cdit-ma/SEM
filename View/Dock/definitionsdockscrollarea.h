@@ -20,10 +20,10 @@ public slots:
     void updateDock();
     void clear();
 
-    void nodeConstructed(NodeItem* nodeItem);
-
     void refreshDock();
     void resortDockItems(DockNodeItem* dockItem);
+
+    void nodeConstructed(NodeItem* nodeItem);
 
 private:
     void hideImplementedComponents();

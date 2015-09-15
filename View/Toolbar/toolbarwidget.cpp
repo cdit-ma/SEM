@@ -17,7 +17,6 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     nodeItem = 0;
 
     eventFromToolbar = false;
-    hardwareDockIsEnabled = false;
 
     showDeleteToolButton = false;
     showImportSnippetToolButton = false;
@@ -180,17 +179,6 @@ void ToolbarWidget::hardwareClusterMenuClicked(int viewMode)
 
 
 /**
- * @brief ToolbarWidget::hardwareDockEnabled
- * This slot gets called whenever the hardware dock is enabled/disabled.
- * @param enabled
- */
-void ToolbarWidget::hardwareDockEnabled(bool enabled)
-{
-    hardwareDockIsEnabled = enabled;
-}
-
-
-/**
  * @brief ToolbarWidget::addChildNode
  * Send a signal to the view to construct a new node with the specified kind.
  */
@@ -198,12 +186,6 @@ void ToolbarWidget::addChildNode()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
     nodeView->constructNode(action->getActionKind(), 1);
-    /*
-    // make sure that the menu where the action came from is closed
-    if (addChildButton->menu()) {
-        addChildButton->menu()->hide();
-    }
-    */
 }
 
 
@@ -250,12 +232,6 @@ void ToolbarWidget::connectNodes()
 {
     ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
     nodeView->constructDestructEdges(QStringList(), action->getNodeItemID());
-    /*
-    // make sure that the menu where the action came from is closed
-    if (connectButton->menu()) {
-        connectButton->menu()->hide();
-    }
-    */
 }
 
 
@@ -356,12 +332,10 @@ void ToolbarWidget::hide()
  */
 void ToolbarWidget::hideToolbar(bool actionTriggered)
 {
-   // if (!eventFrom Toolbar) {
-        hide();
-        if (!actionTriggered) {
-            nodeView->toolbarClosed();
-        }
-    //}
+    hide();
+    if (!actionTriggered) {
+        nodeView->toolbarClosed();
+    }
 }
 
 
@@ -395,11 +369,10 @@ void ToolbarWidget::setupToolBar()
     alterViewFrame = constructFrameSeparator();
     connectionsButton = constructToolButton(buttonSize, "Connections", 0.6, "View Connections");
     popupNewWindow = constructToolButton(buttonSize, "Popup", 0.55, "View In New Window");
-    displayedChildrenOptionButton = constructToolButton(buttonSize, "MenuCluster", 0.8, "Change Displayed Nodes");
+    displayedChildrenOptionButton = constructToolButton(buttonSize, "MenuCluster", 0.7, "Change Displayed Nodes");
 
     deleteButton->setStyleSheet("padding-right: 3px;");
 }
-
 
 
 /**
@@ -586,25 +559,19 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         }
     }
 
-    // NOTE: When a deployable entity is already connected to a HardwareNode/Cluster,
-    // the connectable nodes list no longer shows any of the Hardware entities.
-    // This means that you can't change the deployment link unless you use the dock.
     // Added this so that you can change the hardware link using the context toolbar.
-
-    if (hardwareDockIsEnabled) {
-        bool deployable = true;
-        foreach (NodeItem* item, nodeItems) {
-            if (!nodeView->isNodeKindDeployable(item->getNodeKind())) {
-                deployable = false;
-                break;
-            }
+    bool deployable = true;
+    foreach (NodeItem* item, nodeItems) {
+        if (!nodeView->isNodeKindDeployable(item->getNodeKind())) {
+            deployable = false;
+            break;
         }
-        if (deployable) {
-            QList<NodeItem*> hardware = nodeView->getHardwareList();
-            foreach (NodeItem* item, hardware) {
-                if (!legalNodes.contains(item)) {
-                    legalNodes.append(item);
-                }
+    }
+    if (deployable) {
+        QList<NodeItem*> hardware = nodeView->getHardwareList();
+        foreach (NodeItem* item, hardware) {
+            if (!legalNodes.contains(item)) {
+                legalNodes.append(item);
             }
         }
     }

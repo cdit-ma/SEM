@@ -267,7 +267,6 @@ void DockToggleButton::setEnabled(bool enable)
 	
 	enabled = enable;
     QPushButton::setEnabled(enabled);
-    emit dockButton_enabled(enabled);
 }
 
 

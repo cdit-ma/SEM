@@ -1136,8 +1136,6 @@ void MedeaWindow::makeConnections()
     validateResults.connectToWindow(this);
 
     connect(partsDock, SIGNAL(dock_openDefinitionsDock()), this, SLOT(forceOpenDefinitionsDock()));
-	connect(hardwareNodesButton, SIGNAL(dockButton_enabled(bool)), nodeView, SIGNAL(view_HardwareDockEnabled(bool)));
-    connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
 
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
     connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));

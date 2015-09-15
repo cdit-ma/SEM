@@ -1423,7 +1423,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     //Ignore mouse Presses outside of this item
     if(!contains(event->pos()) || !PAINT_OBJECT){
-        qCritical() << "NOT PAINTINT";
+        //qCritical() << "NOT PAINTINT";
         if(nodeKind == "Model" && !modelCirclePressed(event->pos())){
             emit GraphMLItem_ClearSelection(true);
             return;

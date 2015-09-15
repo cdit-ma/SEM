@@ -11,6 +11,9 @@ Version 17:
             ** Thread_Limit - Sets the max number of concurrent QProcess' used by CUTSManager
             ** CUTS_Configure_Script_Path - The absolute path to the cuts configure script.
             ** Show_Local_Node - Turns on/off the localhost node.
+		* Refactored a big chunk of the ToolbarWidget class
+			** Allowed connection of multiple selected deployable entities to a Hardware Node/Cluster
+			** Allowed change of deployment connection for deployable entities
 
     Fixes:
         * Added a ComplexityParameters <data> to all Process Nodes.
@@ -20,6 +23,11 @@ Version 17:
         * Updated some icons.
         * View State bugs
         * Restructed SVN Resource Structure.
+		* Hardware dock is now disbaled when one of the mutiple selected entities is a HardwareCluster
+		* Refactored parts of ToolbarWidgetAction/Menu
+		* Fixed toolbar updateActionsEnabled() and updateSeparators()
+		* Cleaned up functions in NodeView that are linked to the toolbar
+		* Cleaned up the docks
 
 Version 16:
     * Implemented showing/hiding of connected HardwareNodes using the context toolbar. It can be used when one or more HardwareClusters are selected.

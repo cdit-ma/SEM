@@ -11,7 +11,6 @@ public:
     explicit PartsDockScrollArea(QString label, NodeView* view, DockToggleButton *parent);
 
     void addDockNodeItems(QStringList nodeKinds);
-    DockNodeItem* getDockNodeItem(QString kind);
 
 signals:
     void dock_openDefinitionsDock();
