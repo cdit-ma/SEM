@@ -43,7 +43,7 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, To
  * @param parent
  * @param willHaveMenu
  */
-ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, ToolbarWidgetMenu *parent, bool willHaveMenu) :
+ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, ToolbarWidgetMenu* parent, bool willHaveMenu) :
     QWidgetAction(parent)
 {
     if (nodeItem) {
@@ -295,6 +295,12 @@ void ToolbarWidgetAction::hover()
     actionButton->setPalette(pal);
     actionButton->update();
 
+    /*
+    if (widgetMenu && !widgetMenu->isVisible()) {
+        widgetMenu->execMenu();
+    }
+    */
+
     actionButton->grabMouse();
     actionButton->releaseMouse();
 }
@@ -312,6 +318,12 @@ void ToolbarWidgetAction::endHover()
         actionButton->setPalette(pal);
         actionButton->update();
     }
+
+    /*
+    if (actionButton->getCheck() && (widgetMenu && widgetMenu->isVisible())) {
+        widgetMenu->close();
+    }
+    */
 }
 
 

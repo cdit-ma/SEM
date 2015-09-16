@@ -17,6 +17,7 @@ Version 17:
         * Refactored a big chunk of the ToolbarWidget class
             ** Allowed connection of multiple selected deployable entities to a Hardware Node/Cluster
             ** Allowed change of deployment connection for deployable entities
+		* Added subtle hover highlight for context toolbar
 
     Fixes:
         * Added a ComplexityParameters <data> to all Process Nodes.
@@ -31,6 +32,7 @@ Version 17:
         * Fixed toolbar updateActionsEnabled() and updateSeparators()
         * Cleaned up functions in NodeView that are linked to the toolbar
         * Cleaned up the docks
+		* Reimplemented how/when the toolbar menus are populated - on menu item click instead of when toolbar is shown
 
 Version 16:
     * Implemented showing/hiding of connected HardwareNodes using the context toolbar. It can be used when one or more HardwareClusters are selected.

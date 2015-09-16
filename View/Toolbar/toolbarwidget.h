@@ -46,6 +46,10 @@ public slots:
     void hide();
     void hideToolbar(bool actionTriggered);
 
+    void setupComponentList();
+    void setupBlackBoxList();
+    void setupEventPortInstanceList();
+
 private:
     void setupToolBar();
     void setupMenus();
@@ -70,10 +74,7 @@ private:
     void setupLegalNodesList(QList<NodeItem*> nodeList);
     void setupInstancesList(QList<NodeItem*> instances);
 
-    void setupComponentList(QList<NodeItem*> components, QString kind);
-    void setupBlackBoxList(QList<NodeItem*> blackBoxes);
-
-    void setupDefinitionInstanceList(QList<NodeItem*> definitionInstances);
+    void setupComponentList(QString actionKind);
     void setupEventPortInstanceList(QString eventPortKind);
 
     NodeView* nodeView;
@@ -135,6 +136,8 @@ private:
     QRadioButton* connectedNodes;
     QRadioButton* unconnectedNodes;
 
+    bool eventFromToolbar;
+
     bool showDeleteToolButton;
     bool showImportSnippetToolButton;
     bool showExportSnippetToolButton;
@@ -147,7 +150,11 @@ private:
     bool goToButtonsVisible;
     bool alterViewButtonsVisible;
 
-    bool eventFromToolbar;
+    bool blackBoxMenuDone;
+    bool componentImplMenuDone;
+    bool componentInstMenuDone;
+    bool inEventPortInstanceMenuDone;
+    bool outEventPortInstanceMenuDone;
 
 };
 

@@ -973,8 +973,8 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
                   "border-color: rgba(140,140,140,225);"
                   "background-color: rgba(250,250,250,230);"
                   "}"
-                   "QToolButton:disabled{ background-color: rgba(150,150,150,225);}"
-                  "QToolButton:pressed{ background-color: rgba(240,240,240,240);}"
+                  "QToolButton:disabled{ background-color: rgba(150,150,150,225);}"
+                  "QToolButton:pressed{ background-color: rgba(230,230,230,230);}"
                   "QToolBar::separator { background-color: rgba(0,0,0,0); }"
                   "QMessageBox{background-color:" + palette().color(QWidget::backgroundRole()).name() + ";}"
                   );

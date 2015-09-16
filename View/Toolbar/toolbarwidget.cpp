@@ -215,7 +215,7 @@ void ToolbarWidget::addConnectedNode()
         } else if (topMostParentAction == blackBoxInstanceAction) {
             kindToConstruct = "BlackBoxInstance";
         } else {
-            qWarning() << "ToolbarWidget::addConnectedNode - action not recognized.";
+            qWarning() << "ToolbarWidget::addConnectedNode - Action not handled.";
         }
 
         nodeView->constructConnectedNode(nodeItem->getID(), action->getNodeItemID(), kindToConstruct, 1);
@@ -302,8 +302,8 @@ void ToolbarWidget::setVisible(bool visible)
     bool toolbarVisible = visible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible
                                       || goToButtonsVisible || alterViewButtonsVisible);
 
+    // update the toolbar & frame sizes
     if (toolbarVisible) {
-        // update the toolbar & frame sizes
         mainFrame->setFixedSize(toolbarLayout->sizeHint());
         shadowFrame->setFixedSize(toolbarLayout->sizeHint() + QSize(3,3));
         setFixedSize(shadowFrame->size());
@@ -340,6 +340,62 @@ void ToolbarWidget::hideToolbar(bool actionTriggered)
 
 
 /**
+ * @brief ToolbarWidget::setupComponentList
+ */
+void ToolbarWidget::setupComponentList()
+{
+    ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
+    if (action == componentImplAction) {
+        setupComponentList("impl");
+    } else if (action == componentInstanceAction) {
+        setupComponentList("inst");
+    } else {
+        qWarning() << "ToolbarWidget::setupComponentList - Sender action not handled.";
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::setupBlackBoxList
+ */
+void ToolbarWidget::setupBlackBoxList()
+{
+    if (blackBoxMenuDone) {
+        return;
+    } else {
+        blackBoxMenuDone = true;
+    }
+
+    // set up an action for each BlackBox definition
+    QList<NodeItem*> blackBoxes = nodeView->getNodeItemsOfKind("BlackBox");
+    for (int i = 0; i < blackBoxes.count(); i++) {
+        ToolbarWidgetAction* action = constructSubMenuAction(blackBoxes.at(i), blackBoxDefinitionsMenu);
+        if (action) {
+            connect(action, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
+        } else {
+            qWarning() << "ToolbarWidget::setupBlackBoxList - action not constructed.";
+        }
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::setupEventPortInstanceList
+ */
+void ToolbarWidget::setupEventPortInstanceList()
+{
+    ToolbarWidgetAction* action = qobject_cast<ToolbarWidgetAction*>(QObject::sender());
+    if (action == inEventPortDelegateAction) {
+        setupEventPortInstanceList("InEventPortInstance");
+    } else if (action == outEventPortDelegateAction) {
+        setupEventPortInstanceList("OutEventPortInstance");
+    } else {
+        qWarning() << "ToolbarWidget::setupEventPortInstanceList - Sender action not handled.";
+    }
+}
+
+
+/**
  * @brief ToolbarWidget::setupToolBar
  * Initialise and setup the layout and tool buttons and separators.
  */
@@ -353,15 +409,15 @@ void ToolbarWidget::setupToolBar()
     QSize buttonSize = QSize(39,39);
 
     // construct tool buttons and separators and add them to the toolbar's layout
-    addChildButton = constructToolButton(buttonSize, "Plus", 0.6, "Add Child Entity");
-    connectButton = constructToolButton(buttonSize, "ConnectTo", 0.6, "Connect Selection");
-    deleteButton = constructToolButton(buttonSize, "Delete", 0.75, "Delete Selection");
+    addChildButton = constructToolButton(buttonSize, "Plus", 0.8, "Add Child Entity");
+    connectButton = constructToolButton(buttonSize, "ConnectTo", 0.7, "Connect Selection");
+    deleteButton = constructToolButton(buttonSize, "Delete", 0.65, "Delete Selection");
     alignFrame = constructFrameSeparator();
-    alignVerticallyButton = constructToolButton(buttonSize, "Align_Vertical", 0.8, "Align Selection Vertically");
-    alignHorizontallyButton = constructToolButton(buttonSize, "Align_Horizontal", 0.8, "Align Selection Horizontally");
+    alignVerticallyButton = constructToolButton(buttonSize, "Align_Vertical", 0.6, "Align Selection Vertically");
+    alignHorizontallyButton = constructToolButton(buttonSize, "Align_Horizontal", 0.6, "Align Selection Horizontally");
     snippetFrame = constructFrameSeparator();
-    importSnippetButton = constructToolButton(buttonSize, "ImportSnippet", 0.65, "Import GraphML Snippet");
-    exportSnippetButton = constructToolButton(buttonSize, "ExportSnippet", 0.65, "Export GraphML Snippet");
+    importSnippetButton = constructToolButton(buttonSize, "ImportSnippet", 0.6, "Import GraphML Snippet");
+    exportSnippetButton = constructToolButton(buttonSize, "ExportSnippet", 0.6, "Export GraphML Snippet");
     goToFrame = constructFrameSeparator();
     definitionButton = constructToolButton(buttonSize, "Definition", 0.55, "View Definition");
     implementationButton = constructToolButton(buttonSize, "Implementation", 0.6, "View Implementation");
@@ -372,6 +428,20 @@ void ToolbarWidget::setupToolBar()
     displayedChildrenOptionButton = constructToolButton(buttonSize, "MenuCluster", 0.7, "Change Displayed Nodes");
 
     deleteButton->setStyleSheet("padding-right: 3px;");
+    setStyleSheet("QToolButton{"
+                  "border: 1px solid;"
+                  "border-color: rgba(160,160,160,250);"
+                  "background-color: rgba(250,250,250,240);"
+                  "}"
+                  "QToolButton:hover{"
+                  "border: 2px solid;"
+                  "border-color: rgba(140,140,140,250);"
+                  "background-color: rgba(255,255,255,255);"
+                  "}"
+                  //"QToolButton:pressed{"
+                  //"background-color: rgba(240,240,240,240);"
+                  //"}"
+                  );
 }
 
 
@@ -479,6 +549,12 @@ void ToolbarWidget::makeConnections()
 
     connect(importSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ImportSnippet()));
     connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(exportSnippet()));
+
+    connect(blackBoxInstanceAction, SIGNAL(toolbarAction_pressed()), SLOT(setupBlackBoxList()));
+    connect(componentImplAction, SIGNAL(toolbarAction_pressed()), SLOT(setupComponentList()));
+    connect(componentInstanceAction, SIGNAL(toolbarAction_pressed()), SLOT(setupComponentList()));
+    connect(inEventPortDelegateAction, SIGNAL(toolbarAction_pressed()), SLOT(setupEventPortInstanceList()));
+    connect(outEventPortDelegateAction, SIGNAL(toolbarAction_pressed()), SLOT(setupEventPortInstanceList()));
 }
 
 
@@ -652,6 +728,12 @@ void ToolbarWidget::resetButtonGroupFlags()
     snippetButtonsVisible = false;
     goToButtonsVisible = false;
     alterViewButtonsVisible = false;
+
+    blackBoxMenuDone = false;
+    componentImplMenuDone = false;
+    componentInstMenuDone = false;
+    inEventPortInstanceMenuDone = false;
+    outEventPortInstanceMenuDone = false;
 }
 
 
@@ -792,24 +874,6 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
 
         addMenu->addWidgetAction(action);
     }
-
-    QString selectedKind = nodeItem->getNodeKind();
-
-    if (selectedKind == "ComponentAssembly") {
-
-        // setup definitions lists for Component and BlackBox instance menus
-        setupComponentList(nodeView->getNodeItemsOfKind("Component"), "inst");
-        setupBlackBoxList(nodeView->getNodeItemsOfKind("BlackBox"));
-
-        // setup combined list of both Component and BlackBox instances for the In/Out EventPortDelegate menus
-        QList<NodeItem*> definitionInstances = nodeView->getNodeItemsOfKind("ComponentInstance", nodeItem->getID(), 0);
-        definitionInstances.append(nodeView->getNodeItemsOfKind("BlackBoxInstance", nodeItem->getID(), 0));
-        setupDefinitionInstanceList(definitionInstances);
-
-    } else if (selectedKind == "BehaviourDefinitions") {
-        // setup list for the ComponentImpl menu
-        setupComponentList(nodeView->getNodeItemsOfKind("Component"), "impl");
-    }
 }
 
 
@@ -870,22 +934,34 @@ void ToolbarWidget::setupInstancesList(QList<NodeItem *> instances)
  * This sets up the Components menu list. It gets the updated list from the view.
  * @param components
  */
-void ToolbarWidget::setupComponentList(QList<NodeItem*> components, QString kind)
+void ToolbarWidget::setupComponentList(QString actionKind)
 {
-    if (kind == "impl") {
-        componentDefinitionsMenu->setParentAction(componentImplAction);
-    } else if (kind == "inst") {
-        componentDefinitionsMenu->setParentAction(componentInstanceAction);
+    if (actionKind == "impl") {
+        if (componentImplMenuDone) {
+            return;
+        } else {
+            componentImplMenuDone = true;
+            componentDefinitionsMenu->setParentAction(componentImplAction);
+        }
+    } else if (actionKind == "inst") {
+        if (componentInstMenuDone) {
+            return;
+        } else {
+            componentInstMenuDone = true;
+            componentDefinitionsMenu->setParentAction(componentInstanceAction);
+        }
     } else {
-        qWarning() << "ToolbarWidget::setupFilesList - kind not recognized.";
+        qWarning() << "ToolbarWidget::setupFilesList - Action kind not handled.";
         return;
     }
+
+    QList<NodeItem*> components = nodeView->getNodeItemsOfKind("Component");
 
     for (int i = 0; i < components.count(); i++) {
 
         // if selected node is the BehaviourDefinitions or an undefined ComponentImpl,
         // don't include already implemented Components in the menu
-        if (kind == "impl" && nodeView->getImplementation(components.at(i)->getID())) {
+        if (actionKind == "impl" && nodeView->getImplementation(components.at(i)->getID())) {
             continue;
         }
 
@@ -894,59 +970,8 @@ void ToolbarWidget::setupComponentList(QList<NodeItem*> components, QString kind
         if (action) {
             connect(action, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
         } else {
-            qWarning() << "ToolbarWidget::setupComponentList - action not constructed.";
+            qWarning() << "ToolbarWidget::setupComponentList - Action not constructed.";
         }
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::setupBlackBoxList
- * This sets up the BlackBox menu list. It gets the updated list from the view.
- * @param blackBoxes
- */
-void ToolbarWidget::setupBlackBoxList(QList<NodeItem*> blackBoxes)
-{
-    // set up an action for each BlackBox definition
-    for (int i = 0; i < blackBoxes.count(); i++) {
-        ToolbarWidgetAction* action = constructSubMenuAction(blackBoxes.at(i), blackBoxDefinitionsMenu);
-        if (action) {
-            connect(action, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
-        } else {
-            qWarning() << "ToolbarWidget::setupBlackBoxList - action not constructed.";
-        }
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::setupDefinitionInstanceList
- * @param definitionInstances
- */
-void ToolbarWidget::setupDefinitionInstanceList(QList<NodeItem*> definitionInstances)
-{
-    // create an action and a menu for each Component/BlackBox Instance
-    foreach (NodeItem* instance, definitionInstances) {
-        if (!nodeView->getNodeItemsOfKind("InEventPortInstance", instance->getID()).isEmpty()) {
-            ToolbarWidgetAction* inEvent_instanceAction = new ToolbarWidgetAction(instance, iep_definitionInstanceMenu, true);
-            new ToolbarWidgetMenu(inEvent_instanceAction, 0, iep_definitionInstanceMenu);
-            iep_definitionInstanceMenu->addWidgetAction(inEvent_instanceAction);
-        }
-        if (!nodeView->getNodeItemsOfKind("OutEventPortInstance", instance->getID()).isEmpty()) {
-            ToolbarWidgetAction* outEvent_instanceAction = new ToolbarWidgetAction(instance, oep_definitionInstanceMenu, true);
-            new ToolbarWidgetMenu(outEvent_instanceAction, 0, oep_definitionInstanceMenu);
-            oep_definitionInstanceMenu->addWidgetAction(outEvent_instanceAction);
-        }
-    }
-
-    // setup menu lists for InEventPort/OutEventPort Delegates
-    if (iep_definitionInstanceMenu && iep_definitionInstanceMenu->hasWidgetActions()) {
-        setupEventPortInstanceList("InEventPortInstance");
-    }
-
-    // setup menu lists for InEventPort/OutEventPort Delegates
-    if (oep_definitionInstanceMenu && oep_definitionInstanceMenu->hasWidgetActions()) {
-        setupEventPortInstanceList("OutEventPortInstance");
     }
 }
 
@@ -958,45 +983,49 @@ void ToolbarWidget::setupDefinitionInstanceList(QList<NodeItem*> definitionInsta
 void ToolbarWidget::setupEventPortInstanceList(QString eventPortKind)
 {
     ToolbarWidgetMenu* instanceMenu = 0;
-    bool hasValidInstance = false;
 
     if (eventPortKind == "InEventPortInstance") {
-        instanceMenu = iep_definitionInstanceMenu;
+        if (inEventPortInstanceMenuDone) {
+            return;
+        } else {
+            inEventPortInstanceMenuDone = true;
+            instanceMenu = iep_definitionInstanceMenu;
+        }
     } else if (eventPortKind == "OutEventPortInstance") {
-        instanceMenu = oep_definitionInstanceMenu;
-    }
-
-    if (!instanceMenu) {
-        qWarning() << "ToolbarWidget::setupEventPortInstanceList - instanceMenu is null. Event port kind might not be recognized.";
+        if (outEventPortInstanceMenuDone) {
+            return;
+        } else {
+            outEventPortInstanceMenuDone = true;
+            instanceMenu = oep_definitionInstanceMenu;
+        }
+    } else {
+        qWarning() << "ToolbarWidget::setupEventPortInstanceList - Event port kind not handled.";
         return;
     }
 
-    foreach (ToolbarWidgetAction* instAction, instanceMenu->getWidgetActions()) {
+    // setup combined list of both Component and BlackBox instances for the In/Out EventPortDelegate menus
+    QList<NodeItem*> definitionInstances = nodeView->getNodeItemsOfKind("ComponentInstance", nodeItem->getID(), 0);
+    definitionInstances.append(nodeView->getNodeItemsOfKind("BlackBoxInstance", nodeItem->getID(), 0));
 
-        QList<NodeItem*> instances = nodeView->getNodeItemsOfKind(eventPortKind, instAction->getNodeItemID());
+    foreach (NodeItem* defnInst, definitionInstances) {
 
-        foreach (NodeItem* inst, instances) {
+        QList<NodeItem*> epInstances = nodeView->getNodeItemsOfKind(eventPortKind, defnInst->getID());
+
+        foreach (NodeItem* epInst, epInstances) {
 
             // can only connect an EventPort Delegate to an EventPort connected to an Aggregate
-            NodeItem* iep_def = nodeView->getDefinition(inst->getID());
-            if (iep_def && !nodeView->getAggregate(iep_def->getID())) {
+            NodeItem* epDefn = nodeView->getDefinition(epInst->getID());
+            if (epDefn && !nodeView->getAggregate(epDefn->getID())) {
                 continue;
             }
 
-            // create an action for each EventPortInstance and add it to its parent Component/BlackBox instance's menu
-            ToolbarWidgetAction* eventPortAction = new ToolbarWidgetAction(inst, instanceMenu);
-            if (instAction->getMenu()) {
-                instAction->getMenu()->addWidgetAction(eventPortAction);
-                connect(eventPortAction, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
+            ToolbarWidgetAction* epInstAction = constructSubMenuAction(epInst, instanceMenu);
+            if (epInstAction) {
+                connect(epInstAction, SIGNAL(triggered()), this, SLOT(addConnectedNode()));
+            } else {
+                qWarning() << "ToolbarWidget::setupEventPortInstanceList - Action not constructed.";
             }
-
-            hasValidInstance = true;
         }
     }
-
-    // if none of the Component/BlackBox instances contain at least one valid
-    // In/Out EventPortInstance, show the corresponding menu's default action
-    if (!hasValidInstance) {
-        instanceMenu->clearMenu();
-    }
 }
+
