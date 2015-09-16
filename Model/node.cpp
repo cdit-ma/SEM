@@ -43,6 +43,85 @@ Node::~Node()
     }
 }
 
+QList<Node *> Node::getItemsConnectedLeft()
+{
+    QList<Node*> returnable;
+
+    QList<Node*> leftNodes;
+
+    while(!leftNodes.isEmpty()){
+        Node* currentNode = leftNodes.takeFirst();
+
+        if(!returnable.contains(currentNode)){
+            returnable << currentNode;
+            leftNodes.append(currentNode->getNodesLeft());
+        }
+    }
+
+    return returnable;
+}
+
+QList<Node *> Node::getItemsConnectedRight()
+{
+    QList<Node*> returnable;
+
+    QList<Node*> rightNodes;
+
+    while(!rightNodes.isEmpty()){
+        Node* currentNode = rightNodes.takeFirst();
+
+        if(!returnable.contains(currentNode)){
+            returnable << currentNode;
+            rightNodes.append(currentNode->getNodesRight());
+        }
+    }
+    return returnable;
+
+}
+
+int Node::getIndirectConnectCount(QString nodeKind)
+{
+    QList<Node*> connectedNodes;
+    QList<Edge*> edgesParsed;
+    QList<Edge*> edgesToLookAt;
+    edgesToLookAt.append(getEdges());
+
+    while(!edgesToLookAt.isEmpty()){
+        Edge* currentEdge = edgesToLookAt.takeFirst();
+        if(currentEdge->isNormalLink()){
+            Node* src = currentEdge->getSource();
+            Node* dst = currentEdge->getDestination();
+            if(!edgesParsed.contains(currentEdge)){
+
+                if(!connectedNodes.contains(src)){
+                    connectedNodes.append(src);
+                    if(src->getParentNode() && !connectedNodes.contains(src->getParentNode())){
+                        connectedNodes.append(src->getParentNode());
+                        edgesToLookAt.append(src->getParentNode()->getEdges(0));
+                    }
+                }
+                if(!connectedNodes.contains(dst)){
+                    connectedNodes.append(dst);
+                    if(dst->getParentNode() && !connectedNodes.contains(dst->getParentNode())){
+                        connectedNodes.append(dst->getParentNode());
+                        edgesToLookAt.append(dst->getParentNode()->getEdges(0));
+                    }
+                }
+
+                edgesParsed.append(currentEdge);
+            }
+        }
+    }
+
+    int count;
+    foreach(Node* node, connectedNodes){
+        if(node->getNodeKind() == nodeKind){
+            count ++;
+        }
+    }
+    return count;
+}
+
 void Node::setTop()
 {
     this->treeIndex.append(0);
@@ -482,6 +561,34 @@ void Node::setParentNode(Node *parent, int index)
     parentNode = parent;
 }
 
+QList<Node *> Node::getNodesLeft()
+{
+    QList<Node*> nodesLeft;
+
+    foreach(Edge* edge, this->getEdges(0)){
+        if(edge->getDestination() == this){
+            if(!nodesLeft.contains(edge->getSource())){
+                nodesLeft.append(edge->getSource());
+            }
+        }
+    }
+    return nodesLeft;
+}
+
+QList<Node *> Node::getNodesRight()
+{
+    QList<Node*> nodesRight;
+
+    foreach(Edge* edge, this->getEdges(0)){
+        if(edge->getSource() == this){
+            if(!nodesRight.contains(edge->getDestination())){
+                nodesRight.append(edge->getDestination());
+            }
+        }
+    }
+    return nodesRight;
+}
+
 QList<Node *> Node::getOrderedChildNodes()
 {
     QMap<QString, Node*> orderedList;
@@ -508,8 +615,10 @@ QList<Edge *> Node::getOrderedEdges()
             orderedList.insertMulti(0,edge);
         }else if(edge->isDelegateLink()){
             orderedList.insertMulti(3,edge);
+        }else if(edge->isTerminationLink()){
+            orderedList.insertMulti(4,edge);
         }else{
-            orderedList.insertMulti(4, edge);
+            orderedList.insertMulti(5, edge);
         }
     }
 

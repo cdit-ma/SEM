@@ -154,7 +154,7 @@ private slots:
     void setAttributeModel(AttributeTableModel* model);
     void setViewAspects(QStringList aspects);
     void setMenuActionEnabled(QString action, bool enable);
-
+    QIcon getIcon(QString alias, QString image);
     void menuActionTriggered();
 
     void graphicsItemSelected();
@@ -431,6 +431,7 @@ private:
     QAction* cuts_runGeneration;
 
 
+    QString MEDEA_VERSION;
     QAction* action_ContextMenu;
 
     ActionButton* toolbar_ContextMenu;

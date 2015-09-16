@@ -104,6 +104,13 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     //Set GraphicsView background-color
+
+
+    //Sublime
+    //setStyleSheet("QGraphicsView{ background-color: rgba(64,64,64,255); border: 0px;}");
+    //Google Background
+    //setStyleSheet("QGraphicsView{ background-color: rgba(245,245,245,255); border: 0px;}");
+
     setStyleSheet("QGraphicsView{ background-color: rgba(170,170,170,255); border: 0px;}");
 
 
@@ -1482,6 +1489,7 @@ void NodeView::moveViewForward()
  */
 void NodeView::highlightDeployment(bool clear)
 {
+
     // clear highlighted node items
     if (guiItems.contains(prevSelectedNodeID)) {
         GraphMLItem* item = guiItems[prevSelectedNodeID];
@@ -1580,6 +1588,25 @@ void NodeView::hardwareClusterChildrenViewMenuClosed(NodeItem *nodeItem)
     if (!rect.contains(QCursor::pos())) {
         prevLockMenuOpened = 0;
         //emit view_nodeItemLockMenuClosed(nodeItem);
+    }
+}
+
+void NodeView::nodeEntered(QString ID, bool enter)
+{
+    NodeItem* current = getNodeItemFromID(ID);
+    if(current){
+        current->setHighlighted(enter);
+
+        if(enter){
+            NodeItem* prev = getNodeItemFromID(highlightedID);
+            if(prev){
+                prev->setHighlighted(false);
+            }
+
+            highlightedID = ID;
+        }else{
+            highlightedID = "";
+        }
     }
 }
 
@@ -1732,7 +1759,7 @@ void NodeView::showToolbar(QPoint position)
     }
 
     // only show the toolbar if there is at least one node item selected
-    if (selectedIDs.count() > 0) {
+    if (viewState == VS_SELECTED && selectedIDs.count() > 0) {
 
         QList<NodeItem*> selectedNodeItems;
         QList<EdgeItem*> selectedEdgeItems;
@@ -1877,8 +1904,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     //Connect the Generic Functionality.
     connectGraphMLItemToController(nodeItem);
-
-
 
     // send/do necessary signals/updates when a node has been constructed
     nodeConstructed_signalUpdates(nodeItem);
@@ -2421,16 +2446,27 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
         QPixmap imageData = QPixmap::fromImage(image);
 
         if(alias == "Actions"){
-            // morph it into a grayscale image
-            image = image.alphaChannel();
-            // the new color we want the logo to have
-            QColor foreground = QColor(60, 60, 60, 255);
-            // now replace the colors in the image
-            for(int i = 0; i < image.colorCount(); ++i) {
-              foreground.setAlpha(qGray(image.color(i)));
-              image.setColor(i, foreground.rgba());
+            QColor tint;
+
+            if(!tint.isValid()){
+                tint = QColor(60, 60, 60, 255);
+                if(imageName == "Warning"){
+                    tint = QColor(255, 0, 0, 255);
+                }
             }
-            imageData = QPixmap::fromImage(image);
+
+            if(image.size() == QSize(96,96)){
+                // morph it into a grayscale image
+                image = image.alphaChannel();
+
+
+                // now replace the colors in the image
+                for(int i = 0; i < image.colorCount(); ++i) {
+                    tint.setAlpha(qGray(image.color(i)));
+                    image.setColor(i, tint.rgba());
+                }
+                imageData = QPixmap::fromImage(image);
+            }
         }
 
 
@@ -2536,11 +2572,13 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
             connect(GUIItem, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_RemoveSelected(GraphMLItem*)), this, SLOT(removeFromSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_PositionSizeChanged(GraphMLItem*,bool)), this, SLOT(keepSelectionFullyVisible(GraphMLItem*,bool)));
-
-            //connect(GUIItem, SIGNAL(GraphMLItem_MovedOutOfScene(GraphMLItem*)), this, SLOT(fitInSceneRect(GraphMLItem*)));
         }
         if(nodeItem){
             connect(this, SIGNAL(view_AspectsChanged(QStringList)), nodeItem, SLOT(aspectsChanged(QStringList)));
+
+            if(nodeItem->canHighlight()){
+                connect(nodeItem, SIGNAL(NodeItem_Hovered(QString,bool)), this, SLOT(nodeEntered(QString,bool)));
+            }
         }
 
         if(!IS_SUB_VIEW){
@@ -3015,7 +3053,6 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }
     }else if(viewState == VS_RUBBERBAND){
         if(event->button() == Qt::LeftButton){
-            qCritical() << "RUBBER";
             setState(VS_RUBBERBANDING);
             rubberBandOrigin = event->pos();
             //Move rubberband to the position on the screen.

@@ -1,19 +1,14 @@
 #ifndef WORKLOAD_H
 #define WORKLOAD_H
 
-#include "../node.h"
+#include "behaviournode.h"
 
-class Workload: public Node
+class Workload: public BehaviourNode
 {
     Q_OBJECT
 public:
     Workload();
     ~Workload();
-
-    // GraphML interface
-    
-
-    // Node interface
 public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);

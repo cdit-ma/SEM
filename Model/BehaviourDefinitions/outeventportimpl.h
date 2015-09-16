@@ -1,21 +1,16 @@
 #ifndef OUTEVENTPORTIMPL_H
 #define OUTEVENTPORTIMPL_H
-#include "../node.h"
-class OutEventPort;
+#include "behaviournode.h"
 
-class OutEventPortImpl : public Node
+class OutEventPortImpl : public BehaviourNode
 {
     Q_OBJECT
 public:
     OutEventPortImpl();
     ~OutEventPortImpl();
-
 public:
     bool canAdoptChild(Node* child);
     bool canConnect(Node* attachableObject);
-    //QString toGraphML(qint32 indentationLevel=0);
-    
-
 };
 
 #endif

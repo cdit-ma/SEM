@@ -175,11 +175,14 @@ void HardwareDockScrollArea::refreshDock()
  */
 void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
 {
+
     if (getDockNodeItems().count() > 0) {
+
 
         // if the dock item has already been added to this dock,
         // remove it from the this dock's list and layout
         if (getDockNodeItems().contains(dockItem)) {
+            removeDockNodeItemFromList(dockItem);
             getLayout()->removeWidget(dockItem);
         }
 

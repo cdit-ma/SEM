@@ -35,6 +35,8 @@ public:
     bool isDeploymentLink();
     bool isAssemblyLink();
     bool isComponentLink();
+    bool isTerminationLink();
+    bool isNormalLink();
 
 
     bool isDelegateLink();

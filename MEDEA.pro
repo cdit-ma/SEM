@@ -112,7 +112,9 @@ HEADERS += \
     medeasubwindow.h \
     GUI/actionbutton.h \
     CUTS/GUI/cutsexecutionwidget.h \
-    CUTS/cutsmanager.h
+    CUTS/cutsmanager.h \
+    Model/BehaviourDefinitions/behaviournode.h \
+    Model/BehaviourDefinitions/branch.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -197,7 +199,9 @@ SOURCES += \
     medeasubwindow.cpp \
     GUI/actionbutton.cpp \
     CUTS/GUI/cutsexecutionwidget.cpp \
-    CUTS/cutsmanager.cpp
+    CUTS/cutsmanager.cpp \
+    Model/BehaviourDefinitions/behaviournode.cpp \
+    Model/BehaviourDefinitions/branch.cpp
 
 FORMS +=
 

@@ -1,21 +1,19 @@
 #ifndef TERMINATION_H
 #define TERMINATION_H
-#include "../node.h"
+#include "behaviournode.h"
+class Branch;
 
-class Termination: public Node
+class Termination: public BehaviourNode
 {
     Q_OBJECT
 public:
     Termination();
     ~Termination();
 
-    // GraphML interface
-    
-
-    // Node interface
+    Branch* getBranch();
 public:
     bool canConnect(Node* attachableObject);
-    bool canAdoptChild(Node* child);
+    bool canAdoptChild(Node*);
 };
 
 

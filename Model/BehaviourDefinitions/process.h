@@ -1,18 +1,14 @@
 #ifndef PROCESS_H
 #define PROCESS_H
-#include "../node.h"
+#include "behaviournode.h"
 
-class Process: public Node
+class Process: public BehaviourNode
 {
     Q_OBJECT
 public:
     Process();
     ~Process();
 
-    // GraphML interface
-    
-
-    // Node interface
 public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);

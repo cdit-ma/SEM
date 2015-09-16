@@ -99,11 +99,14 @@ protected:
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
 
+
+
     bool viewportEvent(QEvent *);
 
 private:
     void sortSelection();
 private slots:
+
     void actionFinished();
 
 signals:
@@ -162,6 +165,7 @@ signals:
     void view_ClearHistoryStates();
 
     // signals for the docks
+
     void view_nodeSelected();
     void view_nodeConstructed(NodeItem* nodeItem);    
     void view_nodeDeleted(QString ID, QString parentID = "");
@@ -181,6 +185,7 @@ signals:
     void view_QuestionAnswered(bool answer);
 
 public slots:
+
 
     void setStateResizing();
     void setStateMove();
@@ -314,6 +319,8 @@ public slots:
 
     void showHardwareClusterChildrenViewMenu(NodeItem* nodeItem);
     void hardwareClusterChildrenViewMenuClosed(NodeItem* nodeItem);
+
+    void nodeEntered(QString ID, bool enter);
 
 private:
     void setState(VIEW_STATE newState);
@@ -479,6 +486,7 @@ private:
     QMenu* prevLockMenuOpened;
 
     QString prevSelectedNodeID;
+    QString highlightedID;
 
     QMutex viewMutex;
 

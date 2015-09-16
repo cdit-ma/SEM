@@ -32,6 +32,10 @@ signals:
 
 
 public:
+    QList<Node*> getItemsConnectedLeft();
+    QList<Node*> getItemsConnectedRight();
+
+    int getIndirectConnectCount(QString nodeKind);
     //Child Node Methods
     void setTop();
     virtual QString toString();
@@ -52,6 +56,9 @@ public:
     QList<Node *> getChildren(int depth =-1);
 
     QList<Node *> getSiblings();
+
+    QList<Node*> getNodesLeft();
+    QList<Node*> getNodesRight();
 
     QList<Node *> getChildrenOfKind(QString kindStr, int depth =-1);
 
@@ -131,10 +138,12 @@ public:
 
 
 private:
+
     //Remove an edge which is connected to this graphml object.
     void addEdge(Edge *edge);
     void removeEdge(Edge *edge);
     void setParentNode(Node* parent, int index);
+
 
 
     QList<Node*> getOrderedChildNodes();

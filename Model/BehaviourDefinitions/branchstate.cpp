@@ -3,37 +3,22 @@
 #include "termination.h"
 #include <QDebug>
 
-BranchState::BranchState():Node()
-{
+BranchState::BranchState():Branch(){}
 
-}
+BranchState::~BranchState(){}
 
-BranchState::~BranchState()
-{
-    //Destructor
-}
+
 
 bool BranchState::canConnect(Node* attachableObject)
 {
     Termination* terminate = dynamic_cast<Termination*>(attachableObject);
 
-    //Limit connections to the parent (ie ComponentImpl) children
-    Node* parentNode = getParentNode();
-    if(parentNode){
-        if(!parentNode->isAncestorOf(attachableObject)){
-            return false;
-        }
-    }
-
+    //Can Only connect to a Terminate.
     if(!terminate){
-        //TODO: Implement a check for singular terminate only.
-#ifdef DEBUG_MODE
-        qWarning() << "Branch state can only connect to 1 Terminate Item";
-#endif
         return false;
     }
-    //Only Termination.
-    return Node::canConnect(attachableObject);
+
+    return Branch::canConnect(attachableObject);
 }
 
 bool BranchState::canAdoptChild(Node *child)
@@ -45,5 +30,5 @@ bool BranchState::canAdoptChild(Node *child)
         #endif
         return false;
     }
-    return Node::canAdoptChild(child);
+    return Branch::canAdoptChild(child);
 }

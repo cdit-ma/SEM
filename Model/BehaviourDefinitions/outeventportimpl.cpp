@@ -8,15 +8,9 @@
 #include "../InterfaceDefinitions/member.h"
 #include "../InterfaceDefinitions/aggregateinstance.h"
 
-OutEventPortImpl::OutEventPortImpl(): Node(Node::NT_IMPL)
-{
-    //qDebug() << "Constructed InEventPort: "<< this->getName();
-}
+OutEventPortImpl::OutEventPortImpl():BehaviourNode(false, false, true, Node::NT_IMPL){}
 
-OutEventPortImpl::~OutEventPortImpl()
-{
-
-}
+OutEventPortImpl::~OutEventPortImpl(){}
 
 
 bool OutEventPortImpl::canAdoptChild(Node *child)
@@ -30,7 +24,7 @@ bool OutEventPortImpl::canAdoptChild(Node *child)
         return false;
     }
 
-    return Node::canAdoptChild(child);
+    return BehaviourNode::canAdoptChild(child);
 }
 
 bool OutEventPortImpl::canConnect(Node* attachableObject)
@@ -57,29 +51,7 @@ bool OutEventPortImpl::canConnect(Node* attachableObject)
                 }
             }
         }
-    }else{ // not definition connection, must be behaviour connection
-
-        //Cannot connect to an undefined thing.
-        if(!this->getDefinition()){
-            return false;
-        }
-        //Limit connections to the parent (ie ComponentImpl) children
-        if(aParent){
-            if(!aParent->isAncestorOf(attachableObject)){
-                return false;
-            }
-        }
-
-        // Limit connections in behavior to Workload BranchState OutEventPortImpl and Termination.
-        Workload* workload = dynamic_cast<Workload*>(attachableObject);
-        BranchState* branchstate = dynamic_cast<BranchState*>(attachableObject);
-        OutEventPortImpl* outeventportimpl = dynamic_cast<OutEventPortImpl*>(attachableObject);
-        Termination* terminate = dynamic_cast<Termination*>(attachableObject);
-
-        if (!workload && !branchstate && !outeventportimpl && !terminate){
-            return false;
-        }
     }
 
-    return Node::canConnect(attachableObject);
+    return BehaviourNode::canConnect(attachableObject);
 }

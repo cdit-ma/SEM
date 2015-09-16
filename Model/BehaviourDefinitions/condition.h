@@ -1,21 +1,21 @@
 #ifndef CONDITION_H
 #define CONDITION_H
-#include "../node.h"
+#include "behaviournode.h"
 
-class Condition: public Node
+class Termination;
+class Branch;
+class Condition: public BehaviourNode
 {
     Q_OBJECT
 public:
     Condition();
     ~Condition();
 
-    // GraphML interface
-    
-
-    // Node interface
+    Branch* getBranch();
+    Termination* getTermination();
 public:
     bool canConnect(Node* attachableObject);
-    bool canAdoptChild(Node* child);
+    bool canAdoptChild(Node*);
 };
 
 #endif // CONDITION_H

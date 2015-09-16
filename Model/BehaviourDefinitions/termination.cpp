@@ -2,41 +2,29 @@
 #include "workload.h"
 #include "branchstate.h"
 #include "outeventportimpl.h"
+#include "branch.h"
 #include <QDebug>
-Termination::Termination():Node()
-{
-    //qWarning() << "Constructed Termination: "<< this->getName();
-}
+Termination::Termination():BehaviourNode(){}
+Termination::~Termination(){}
 
-Termination::~Termination()
+Branch *Termination::getBranch()
 {
-    //Destructor
+    foreach(Edge* edge, getEdges(0)){
+        Node* node = edge->getSource();
+        Branch* branch = dynamic_cast<Branch*>(node);
+        if(branch && edge->getDestination() == this){
+            return branch;
+        }
+    }
+    return 0;
 }
 
 bool Termination::canConnect(Node* attachableObject)
 {
-    //Limit connections to the parent (ie ComponentImpl) children
-    Node* parentNode = getParentNode();
-    if(parentNode){
-        if(!parentNode->isAncestorOf(attachableObject)){
-            return false;
-        }
-    }
-
-    // Limit connections in behavior to Workload BranchState OutEventPortImpl and Termination.
-    Workload* workload = dynamic_cast<Workload*>(attachableObject);
-    BranchState* branchstate = dynamic_cast<BranchState*>(attachableObject);
-    OutEventPortImpl* outeventportimpl = dynamic_cast<OutEventPortImpl*>(attachableObject);
-    Termination* terminate = dynamic_cast<Termination*>(attachableObject);
-
-    if (!workload && !branchstate && !outeventportimpl && !terminate){
-        return false;
-    }
-    return Node::canConnect(attachableObject);
+    return BehaviourNode::canConnect(attachableObject);
 }
 
-bool Termination::canAdoptChild(Node *child)
+bool Termination::canAdoptChild(Node*)
 {
-    Q_UNUSED(child);
-    return false; //Node::canAdoptChild(child);
+    return false;
 }

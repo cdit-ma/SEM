@@ -1,25 +1,15 @@
 #include "process.h"
 
-Process::Process():Node()
-{
-    //qWarning() << "Constructed PeriodicEvent: "<< this->getName();
+Process::Process():BehaviourNode(true, false, false){}
 
-}
+Process::~Process(){}
 
-Process::~Process()
+bool Process::canConnect(Node*)
 {
-    //Destructor
-}
-
-bool Process::canConnect(Node* attachableObject)
-{
-    Q_UNUSED(attachableObject);
     return false;
-    //return Node::canConnect(attachableObject);
 }
 
-bool Process::canAdoptChild(Node *child)
+bool Process::canAdoptChild(Node*)
 {
-    Q_UNUSED(child);
-    return false; //Node::canAdoptChild(child);
+    return false;
 }

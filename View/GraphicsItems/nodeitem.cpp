@@ -60,6 +60,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     showDeploymentWarningIcon = false;
     isNodeSelected = false;
     nodeWasOnGrid = false;
+    isHighlighted = false;
 
     
     isNodeSorted = false;
@@ -221,6 +222,11 @@ void NodeItem::restoreZValue()
     qreal zValue = oldZValue;
     setZValue(zValue);
     oldZValue = zValue;
+}
+
+QColor NodeItem::getBackgroundColor()
+{
+    return brush.color();
 }
 
 
@@ -528,10 +534,17 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
             Brush.setColor(brushColor);
         }
-        
-        if(!hasVisibleChildren() && !nodeKind.endsWith("Definitions")){
-            Brush.setColor(Qt::transparent);
+
+        if(isHighlighted && !isSelected()){
+            //Lighten the pen on hover.
+            Pen.setColor(Pen.color().light());
         }
+
+
+        
+        //if(!hasVisibleChildren() && !nodeKind.endsWith("Definitions")){
+        //    Brush.setColor(Qt::transparent);
+        //}
         
 
         if(getNodeView() && isImplOrInstance){
@@ -769,28 +782,19 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             }
         }
 
-        QRectF re = iconRect();
-        painter->drawPixmap(re.x(), re.y(), re.width(), re.height(), getNodeView()->getImage("Items", imageURL));
+        paintPixmap(painter, iconRect(), "Items", imageURL);
     }
 
     //If a Node has a Definition, paint a Lock Icon
     if (hasDefinition){
-        QRectF re = lockIconRect();
-
-         painter->drawPixmap(re.x(), re.y(), re.width(), re.height(), getNodeView()->getImage("Actions", "Definition"));
+        paintPixmap(painter, lockIconRect(), "Actions", "Definition");
     } else if (nodeKind == "HardwareCluster") {
-
-        QRectF re = lockIconRect();
-
-        painter->drawPixmap(re.x(), re.y(), re.width(), re.height(), getNodeView()->getImage("Actions", "MenuCluster"));
-
+        paintPixmap(painter, lockIconRect(), "Actions", "MenuCluster");
     }
 
     //If this Node has a Deployment Warning, paint a warning Icon
     if(showDeploymentWarningIcon){
-         QRectF re = deploymentIconRect();
-        painter->drawPixmap(re.x(), re.y(), re.width(), re.height(),
- getNodeView()->getImage("Actions", "Warning"));
+         paintPixmap(painter, deploymentIconRect(), "Actions", "Warning");
     }
 }
 
@@ -808,7 +812,7 @@ bool NodeItem::hasVisibleChildren()
     return false;
 }
 
-bool NodeItem::modelCirclePressed(QPointF mousePosition)
+bool NodeItem::mouseOverModelCircle(QPointF mousePosition)
 {
     
     if(modelCenterPoint.isNull()){
@@ -824,7 +828,7 @@ bool NodeItem::modelCirclePressed(QPointF mousePosition)
 }
 
 
-bool NodeItem::labelPressed(QPointF mousePosition)
+bool NodeItem::mouseOverLabel(QPointF mousePosition)
 {
     if(textItem){
         QRectF labelRect = textItem->boundingRect();
@@ -836,14 +840,20 @@ bool NodeItem::labelPressed(QPointF mousePosition)
     return false;
 }
 
-bool NodeItem::deploymentIconPressed(QPointF mousePosition)
+bool NodeItem::mouseOverDeploymentIcon(QPointF mousePosition)
 {
-    return deploymentIconRect().contains(mousePosition);
+    if(showDeploymentWarningIcon){
+        return deploymentIconRect().contains(mousePosition);
+    }
+    return false;
 }
 
-bool NodeItem::lockIconPressed(QPointF mousePosition)
+bool NodeItem::mouseOverLock(QPointF mousePosition)
 {
-    return lockIconRect().contains(mousePosition);
+    if (hasDefinition || nodeKind == "HardwareCluster"){
+        return lockIconRect().contains(mousePosition);
+    }
+    return false;
 }
 
 bool NodeItem::labelEditable()
@@ -855,7 +865,7 @@ bool NodeItem::labelEditable()
 }
 
 
-bool NodeItem::iconPressed(QPointF mousePosition)
+bool NodeItem::mouseOverIcon(QPointF mousePosition)
 {
     if(hasIcon){
         if(iconRect().contains(mousePosition)){
@@ -871,7 +881,7 @@ bool NodeItem::iconPressed(QPointF mousePosition)
  * @param mousePosition
  * @return
  */
-bool NodeItem::menuArrowPressed(QPointF mousePosition)
+bool NodeItem::mouseOverMenu(QPointF mousePosition)
 {
     if (HARDWARE_CLUSTER) {
         QRectF menuButtonRect = mapRectToScene(lockIconRect());
@@ -950,6 +960,14 @@ void NodeItem::addEdgeItem(EdgeItem *line)
 void NodeItem::removeEdgeItem(EdgeItem *line)
 {
     connections.removeAll(line);
+}
+
+void NodeItem::setHighlighted(bool high)
+{
+    if(high != isHighlighted){
+        isHighlighted = high;
+        update();
+    }
 }
 
 
@@ -1424,7 +1442,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     //Ignore mouse Presses outside of this item
     if(!contains(event->pos()) || !PAINT_OBJECT){
         //qCritical() << "NOT PAINTINT";
-        if(nodeKind == "Model" && !modelCirclePressed(event->pos())){
+        if(nodeKind == "Model" && !mouseOverModelCircle(event->pos())){
             emit GraphMLItem_ClearSelection(true);
             return;
         }
@@ -1434,26 +1452,25 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     bool control = event->modifiers().testFlag(Qt::ControlModifier);
 
     if(event->button() == Qt::LeftButton){
-        //qCritical() << "HANDLE";
+        NodeView::VIEW_STATE state = getNodeView()->getViewState();
+        if(state == NodeView::VS_NONE || state == NodeView::VS_SELECTED){
 
-        // Check if the lock icon was clicked
-        if (menuArrowPressed(event->scenePos())){
-            emit NodeItem_showLockMenu(this);
-            return;
+            if(isSelected()){
+                // Check if the lock icon was clicked
+                if (mouseOverMenu(event->scenePos())){
+                    emit NodeItem_showLockMenu(this);
+                    return;
+                }
+            }
+
+            currentResizeMode = resizeEntered(event->pos());
+
+            //Enter Selected Mode.
+            getNodeView()->setStateSelected();
+            sendSelectSignal(true, control);
+
+            previousScenePosition = event->scenePos();
         }
-
-
-        currentResizeMode = resizeEntered(event->pos());
-
-        //Enter Selected Mode.
-        getNodeView()->setStateSelected();
-
-        sendSelectSignal(true, control);
-
-
-
-
-        previousScenePosition = event->scenePos();
     }
 }
 
@@ -1466,13 +1483,13 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
     if(event->button() == Qt::LeftButton){
         //Handle Double-Clicking the label.
-        if(labelPressed(event->pos()) && labelEditable()){
+        if(mouseOverLabel(event->pos()) && labelEditable()){
             textItem->setEditMode(true);
             return;
         }
 
         //Handle Double-Clicking on the Icon.
-        if(iconPressed(event->pos())){
+        if(mouseOverIcon(event->pos())){
             if(hasVisibleChildren()){
                 if(isExpanded()){
                     GraphMLItem_TriggerAction("Contracted Node Item");
@@ -1547,7 +1564,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
-    if(isSelected() && event->buttons() == Qt::LeftButton){
+    if(isSelected() && event->buttons() & Qt::LeftButton){
         if(currentResizeMode != NO_RESIZE || viewState == NodeView::VS_RESIZING){
             if(viewState == NodeView::VS_SELECTED){
                 getNodeView()->setStateResizing();
@@ -1580,6 +1597,17 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
 }
 
+void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+{
+    if(!contains(event->pos())){
+        QGraphicsItem::hoverMoveEvent(event);
+        return;
+    }
+    if(!isHighlighted){
+        emit NodeItem_Hovered(getID(), true);
+    }
+}
+
 void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     if(!contains(event->pos())){
@@ -1588,41 +1616,54 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     }
     
     QString tooltip;
-    
-    if(hasVisibleChildren() && iconPressed(event->pos())){
+    QCursor cursor;
 
-        setCursor(Qt::PointingHandCursor);
-        setToolTip("Double click to expand/contract entity");
-        return;
-    }
+    //If the mouse is over the icon.
+    if(mouseOverIcon(event->pos())){
+        if(hasVisibleChildren()){
+            cursor = Qt::PointingHandCursor;
 
-    if(labelPressed(event->pos())){
-        return;
-    }else if(lockIconPressed(event->pos())){
-        QString tooltip = "Click to change the displayed hardware nodes";
+            if(isExpanded()){
+                tooltip = "Double click to contract entity";
+            }else{
+                tooltip = "Double click to expand entity";
+            }
+        }else if(isSelected()){
+            tooltip = "Entity contains no visible children";
+        }
+    }else if(mouseOverLock(event->pos())){
         if(hasDefinition){
             tooltip = "This entity has a definition";
+        }else{
+            tooltip = "Click to change the displayed hardware nodes";
         }
-        setToolTip(tooltip);
-        return;
-    }else if(deploymentIconPressed(event->pos())){
-        setToolTip("Not all children entities are deployed to the same hardware node");
-        return;
-    }
-
-    
-    if(isNodeSelected && isResizeable()){
+    }else if(mouseOverDeploymentIcon(event->pos())){
+        tooltip = "Not all children entities are deployed to the same hardware node";
+    }else if(isNodeSelected && isResizeable()){
         currentResizeMode = resizeEntered(event->pos());
 
         if(currentResizeMode == RESIZE){
-            setCursor(Qt::SizeFDiagCursor);
+            tooltip = "Click and drag to change the size of the entity";
+            cursor = Qt::SizeFDiagCursor;
         }else if(currentResizeMode == HORIZONTAL_RESIZE){
-            setCursor(Qt::SizeHorCursor);
+            tooltip = "Click and drag to change the width of the entity";
+            cursor = Qt::SizeHorCursor;
         }else if(currentResizeMode == VERTICAL_RESIZE){
-            setCursor(Qt::SizeVerCursor);
-        }else if(currentResizeMode == NO_RESIZE){
-            unsetCursor();
+            tooltip = "Click and drag to change the height of the entity";
+            cursor = Qt::SizeVerCursor;
         }
+    }
+
+    setToolTip(tooltip);
+
+    if(cursor.shape() != Qt::ArrowCursor){
+        setCursor(cursor);
+    }else{
+        unsetCursor();
+    }
+
+    if(!isHighlighted){
+        emit NodeItem_Hovered(getID(), true);
     }
 }
 
@@ -1630,8 +1671,15 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
     //Unset the resize mode.
     currentResizeMode = NO_RESIZE;
+
+
+    if(isHighlighted){
+        emit NodeItem_Hovered(getID(), false);
+    }
+
     //Unset the cursor
     unsetCursor();
+
 }
 
 
@@ -2033,95 +2081,15 @@ void NodeItem::setupBrushes()
     else if(nodeKind == "AssemblyDefinitions"){
         color = QColor(255,160,160);
     }else{
-        color = QColor(200,200,200);
+        if(!parentNodeItem || (parentNodeItem && parentNodeItem->getNodeKind().endsWith("Definitions"))){
+            color = QColor(220,220,220);
+        }else{
+            if(parentNodeItem){
+                color = parentNodeItem->getBackgroundColor().darker(110);
+            }
+        }
+
     }
-    /*
-      
-    if(nodeKind== "OutEventPort"){
-        color = QColor(0,250,0);
-    }
-    else if(nodeKind== "OutEventPortInstance"){
-        color = QColor(0,200,0);
-    }
-    else if(nodeKind== "OutEventPortImpl"){
-        color = QColor(0,150,0);
-    }
-    else if(nodeKind== "OutEventPortDelegate"){
-        color = QColor(0,100,0);
-    }
-    else if(nodeKind== "InEventPort"){
-        color = QColor(250,0,0);
-    }
-    else if(nodeKind== "InEventPortInstance"){
-        color = QColor(200,0,0);
-    }
-    else if(nodeKind== "InEventPortImpl"){
-        color = QColor(150,0,0);
-    }
-    else if(nodeKind== "InEventPortDelegate"){
-        color = QColor(100,0,0);
-    }
-    else if(nodeKind== "Component"){
-        color = QColor(200,200,200);
-    }
-    else if(nodeKind== "ComponentInstance"){
-        color = QColor(150,150,150);
-    }
-    else if(nodeKind== "ComponentImpl"){
-        color = QColor(100,100,100);
-    }
-    else if(nodeKind== "Attribute"){
-        color = QColor(0,0,250);
-    }
-    else if(nodeKind== "AttributeInstance"){
-        color = QColor(0,0,200);
-    }
-    else if(nodeKind== "AttributeImpl"){
-        color = QColor(0,0,150);
-    }
-    else if(nodeKind== "HardwareNode"){
-        color = QColor(0,250,250);
-    }
-    else if(nodeKind== "HardwareCluster"){
-        color = QColor(200,200,200);
-    }
-    
-    
-    else if(nodeKind == "BehaviourDefinitions"){
-        //color = QColor(240,240,240);
-        color = QColor(254,184,126);
-    }
-    else if(nodeKind == "InterfaceDefinitions"){
-        //color = QColor(240,240,240);
-        color = QColor(110,210,210);
-    }
-    else if(nodeKind == "HardwareDefinitions"){
-        //color = QColor(240,240,240);
-        color = QColor(110,170,220);
-    }
-    else if(nodeKind == "AssemblyDefinitions"){
-        //color = QColor(240,240,240);
-        color = QColor(255,160,160);
-    }
-    
-    else if(nodeKind== "File"){
-        color = QColor(150,150,150);
-    }
-    else if(nodeKind== "ComponentAssembly"){
-        color = QColor(200,200,200);
-    }
-    
-    else if(nodeKind== "Aggregate"){
-        color = QColor(200,200,200);
-    }
-    else if(nodeKind== "AggregateMember"){
-        color = QColor(150,150,150);
-    }
-    else if(nodeKind== "Member"){
-        color = QColor(100,100,100);
-    }else{
-        color = QColor(0,100,0);
-    }*/
     
     
     selectedColor = color;
@@ -2133,7 +2101,6 @@ void NodeItem::setupBrushes()
     pen.setWidth(1);
     selectedPen.setColor(Qt::blue);
     selectedPen.setWidth(24);
-    
 }
 
 
@@ -2927,6 +2894,11 @@ QPolygonF NodeItem::resizePolygon()
     return QPolygonF(points);
 }
 
+void NodeItem::paintPixmap(QPainter *painter, QRectF place, QString alias, QString imageName)
+{
+    painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), getNodeView()->getImage(alias, imageName));
+}
+
 void NodeItem::sendSelectSignal(bool setSelected, bool controlDown)
 {
     if(isSelected() && controlDown){
@@ -3090,6 +3062,14 @@ QSizeF NodeItem::getModelSize()
     
     
     return QSizeF(graphmlWidth, graphmlHeight);
+}
+
+bool NodeItem::canHighlight()
+{
+    if(getNodeKind().endsWith("Definitions") || getNodeKind() == "Model"){
+        return false;
+    }
+    return true;
 }
 
 

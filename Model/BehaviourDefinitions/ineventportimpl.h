@@ -1,8 +1,8 @@
 #ifndef INEVENTPORTIMPL_H
 #define INEVENTPORTIMPL_H
-#include "../node.h"
+#include "behaviournode.h"
 
-class InEventPortImpl : public Node
+class InEventPortImpl : public BehaviourNode
 {
     Q_OBJECT
 public:
@@ -12,9 +12,6 @@ public:
 public:
     bool canAdoptChild(Node* child);
     bool canConnect(Node* attachableObject);
-    //QString toGraphML(qint32 indentationLevel=0);
-
-
 };
 
 

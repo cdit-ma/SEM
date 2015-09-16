@@ -43,7 +43,7 @@ public:
     void setZValue(qreal z);
     void restoreZValue();
 
-
+    QColor getBackgroundColor();
 
 
     void setVisibleParentForEdgeItem(QString ID, bool RIGHT = false);
@@ -92,15 +92,16 @@ public:
 
     bool hasVisibleChildren();\
 
-
-    bool modelCirclePressed(QPointF mousePosition);
-    bool labelPressed(QPointF mousePosition);
-    bool deploymentIconPressed(QPointF mousePosition);
-    bool lockIconPressed(QPointF mousePosition);
     bool labelEditable();
-    bool iconPressed(QPointF mousePosition);
 
-    bool menuArrowPressed(QPointF mousePosition);
+
+    bool mouseOverModelCircle(QPointF mousePosition);
+    bool mouseOverLabel(QPointF mousePosition);
+    bool mouseOverDeploymentIcon(QPointF mousePosition);
+    bool mouseOverLock(QPointF mousePosition);
+    bool mouseOverIcon(QPointF mousePosition);
+    bool mouseOverMenu(QPointF mousePosition);
+
 
 
     NodeItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
@@ -116,6 +117,7 @@ public:
     void addEdgeItem(EdgeItem* line);
     void removeEdgeItem(EdgeItem* line);
 
+    void setHighlighted(bool high);
     void setCenterPos(QPointF pos);
     QPointF centerPos();
     void adjustPos(QPointF delta);
@@ -165,6 +167,7 @@ signals:
 
 
     void model_PositionChanged();
+    void NodeItem_Hovered(QString ID, bool entered);
     void NodeItem_SortModel();
     void NodeItem_MoveSelection(QPointF delta);
     void NodeItem_ResizeSelection(QString ID, QSizeF delta);
@@ -225,6 +228,8 @@ public slots:
     //Turn off visible gridlines;
     void toggleGridLines(bool on);
 
+    bool canHighlight();
+
     void snapToGrid();
     void snapChildrenToGrid();
 
@@ -236,6 +241,7 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 
@@ -249,6 +255,9 @@ private:
     QRectF lockIconRect();
     QRectF deploymentIconRect();
     QPolygonF resizePolygon();
+
+
+    void paintPixmap(QPainter *painter, QRectF place, QString alias, QString imageName);
 
 
     void sendSelectSignal(bool setSelected, bool controlDown);
@@ -353,6 +362,7 @@ private:
     bool LOCKED_POSITION;
     bool PAINT_OBJECT;
 
+    bool isHighlighted;
     bool isNodeMoving;
     qreal oldZValue;
     NodeItem::RESIZE_TYPE currentResizeMode;

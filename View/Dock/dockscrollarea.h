@@ -30,6 +30,8 @@ public:
     DockNodeItem* getDockNodeItem(QString nodeID);
     virtual QList<DockNodeItem*> getDockNodeItems();
 
+    void removeDockNodeItemFromList(DockNodeItem* dockNodeItem);
+
     bool isDockEnabled();
     void setDockEnabled(bool enabled);
 

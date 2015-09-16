@@ -1,18 +1,13 @@
 #ifndef PERIODICEVENT_H
 #define PERIODICEVENT_H
-#include "../node.h"
+#include "behaviournode.h"
 
-class PeriodicEvent: public Node
+class PeriodicEvent: public BehaviourNode
 {
     Q_OBJECT
 public:
     PeriodicEvent();
     ~PeriodicEvent();
-
-    // GraphML interface
-    
-
-    // Node interface
 public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);

@@ -9,11 +9,6 @@ class Variable: public Node
 public:
     Variable();
     ~Variable();
-
-    // GraphML interface
-    
-
-    // Node interface
 public:
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);

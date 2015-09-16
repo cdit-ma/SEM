@@ -3,43 +3,54 @@
 #include "branchstate.h"
 #include "outeventportimpl.h"
 #include "termination.h"
+#include "branch.h"
+#include "../node.h"
 #include <QDebug>
-Condition::Condition():Node()
+Condition::Condition():BehaviourNode(true, false, false){}
+
+Condition::~Condition(){}
+
+Branch *Condition::getBranch()
 {
-    //qWarning() << "Constructed Condition: "<< this->getName();
+    Branch* parent = dynamic_cast<Branch*>(getParentNode());
+    return parent;
 }
 
-Condition::~Condition()
+Termination *Condition::getTermination()
 {
-    //Destructor
+
+    if(getBranch()){
+        Termination* t = getBranch()->getTermination();
+        if(t->isConnected(this)){
+            return t;
+        }
+    }
+    return 0;
 }
+
 
 bool Condition::canConnect(Node* attachableObject)
 {
-//    return Node::canConnect(attachableObject);
-
-    //Limit connections to the grandparent (ie BranchState->ComponentImpl) children
-    Node* parentNode = getParentNode()->getParentNode();
-    if(parentNode){
-        if(!parentNode->isAncestorOf(attachableObject)){
+    //Get Parent
+    if(attachableObject->getNodeKind() == "Termination"){
+        Branch* parentBranch = getBranch();
+        //If a Conditions Parent Branch Doesn't have a Termination attached, don't allow it.
+        if(parentBranch){
+            if(!parentBranch->getTermination()){
+                return false;
+            }
+        }
+    }else{
+         Branch* parentBranch = getBranch();
+        if(parentBranch->isIndirectlyConnected(attachableObject)){
             return false;
         }
     }
 
-    // Limit connections in behavior to Workload BranchState OutEventPortImpl and Termination.
-    Workload* workload = dynamic_cast<Workload*>(attachableObject);
-    BranchState* branchstate = dynamic_cast<BranchState*>(attachableObject);
-    OutEventPortImpl* outeventportimpl = dynamic_cast<OutEventPortImpl*>(attachableObject);
-    Termination* terminate = dynamic_cast<Termination*>(attachableObject);
-
-    if (!workload && !branchstate && !outeventportimpl && !terminate){
-        return false;
-    }
-    return Node::canConnect(attachableObject);
+    return BehaviourNode::canConnect(attachableObject);
 }
 
-bool Condition::canAdoptChild(Node *child)
+bool Condition::canAdoptChild(Node*)
 {
-    Q_UNUSED(child);
     return false;
 }

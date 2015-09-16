@@ -9,14 +9,12 @@ Variable::~Variable()
 {
 }
 
-bool Variable::canConnect(Node* attachableObject)
+bool Variable::canConnect(Node*)
 {
-    Q_UNUSED(attachableObject);
     return false;
 }
 
-bool Variable::canAdoptChild(Node *child)
+bool Variable::canAdoptChild(Node*)
 {
-    Q_UNUSED(child);
     return false;
 }

@@ -5,6 +5,7 @@
 #include "outeventportimpl.h"
 #include "../InterfaceDefinitions/memberinstance.h"
 #include "../InterfaceDefinitions/idl.h"
+#include "behaviournode.h"
 
 #include "branchstate.h"
 #include "periodicevent.h"
@@ -17,13 +18,10 @@
 
 #include <QDebug>
 
-ComponentImpl::ComponentImpl():Node(Node::NT_IMPL)
-{
-}
+ComponentImpl::ComponentImpl():Node(Node::NT_IMPL){}
 
-ComponentImpl::~ComponentImpl()
-{
-}
+ComponentImpl::~ComponentImpl(){}
+
 
 bool ComponentImpl::canConnect(Node* attachableObject)
 {
@@ -51,6 +49,7 @@ bool ComponentImpl::canConnect(Node* attachableObject)
 
 bool ComponentImpl::canAdoptChild(Node *child)
 {
+
     BranchState* branchState = dynamic_cast<BranchState*>(child);
     PeriodicEvent* periodicEvent = dynamic_cast<PeriodicEvent*>(child);
     Termination* termination = dynamic_cast<Termination*>(child);

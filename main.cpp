@@ -19,7 +19,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    a.setWindowIcon(QIcon(":/Actions/medea.png"));
+    a.setWindowIcon(QIcon(":/Actions/MEDEA.png"));
     a.setApplicationName("MEDEA");
 
     QFont font = QFont("Verdana");
@@ -28,6 +28,7 @@ int main(int argc, char *argv[])
 
     QCoreApplication::setOrganizationName("Defence Information Group");
     QCoreApplication::setApplicationName("MEDEA");
+    QCoreApplication::setApplicationVersion("17");
 
     QString GraphMLFile = "";
     if (argc == 2) {

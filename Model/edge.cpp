@@ -155,6 +155,19 @@ bool Edge::isComponentLink()
     return false;
 }
 
+bool Edge::isTerminationLink()
+{
+    if(source->getNodeKind() == "BranchState" && destination->getNodeKind() == "Termination"){
+        return true;
+    }
+    return false;
+}
+
+bool Edge::isNormalLink()
+{
+    return !(isInstanceLink() || isImplLink() || isDelegateLink() ||  isAggregateLink());
+}
+
 bool Edge::isDelegateLink()
 {
     if(source->getDataValue("kind").endsWith("EventPortInstance") && destination->getDataValue("kind").endsWith("EventPortDelegate")){

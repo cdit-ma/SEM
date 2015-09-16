@@ -166,6 +166,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* item, int insertIndex, bool a
 
         // if the dock already contains the item, do nothing
         if (getDockNodeItem(itemID)) {
+            qCritical() << "AM I HAPPENING";
             return;
         }
 
@@ -211,6 +212,12 @@ DockNodeItem* DockScrollArea::getDockNodeItem(QString nodeID)
 QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
 {
     return dockNodeItems.values();
+}
+
+void DockScrollArea::removeDockNodeItemFromList(DockNodeItem *dockNodeItem)
+{
+    dockNodeItems.remove(dockNodeItem->getID());
+    dockNodeIDs.removeAll(dockNodeItem->getID());
 }
 
 
