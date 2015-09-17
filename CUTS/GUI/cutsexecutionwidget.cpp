@@ -63,8 +63,8 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
     state = INITIAL;
     setState(INITIAL);
 
-    setGraphMLPath("/Users/dan/Desktop/model.graphml");
-    setOutputPath("c:/Test2/");
+    setGraphMLPath("");
+    setOutputPath("");
 
     currentTime.start();
     currentTimer = new QTimer(this);

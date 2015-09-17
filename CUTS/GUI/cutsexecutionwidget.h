@@ -28,6 +28,10 @@ struct FileExtension{
 };
 enum CUTS_EXECUTION_STATES {INITIAL, PARAMETERS_OKAY, RUN_XSL, RAN_XSL, RUN_MWC, RAN_MWC, RUN_MAKE, RAN_MAKE, RUN_EXECUTION, RAN_EXECUTION, RERUN_EXECUTION};
 
+//Todo
+//Deal with failure of states better.
+//Start logging servers
+
 class CUTSExecutionWidget: public QDialog
 {
     Q_OBJECT

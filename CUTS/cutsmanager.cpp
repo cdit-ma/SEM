@@ -182,8 +182,8 @@ void CUTSManager::executeCUTS(QString path, int executionTime)
     QProcess* process = new QProcess(this);
     process->setProcessEnvironment(CUTS_ENVIRONMENT);
 
+    path = path + "/descriptors/";
 
-    path += "descriptors/";
     QString program = "perl";
     QStringList args;
     args << scriptsPath + "runCuts.pl";

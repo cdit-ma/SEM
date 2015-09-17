@@ -34,6 +34,9 @@ Version 17:
         * Cleaned up the docks
 		* Reimplemented how/when the toolbar menus are populated - on menu item click instead of when toolbar is shown
 
+    Todo:
+        * Make sure threads are killed for Local deployment.
+
 Version 16:
     * Implemented showing/hiding of connected HardwareNodes using the context toolbar. It can be used when one or more HardwareClusters are selected.
     * Fixed MEDEA to work on Ubuntu
