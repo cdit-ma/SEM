@@ -118,7 +118,7 @@ void ValidateDialog::revalidate()
 {
     if(!spinning){
         spinning = new QMovie(this);
-        spinning->setFileName(":/Actions/jenkins_waiting.gif");
+        spinning->setFileName(":/Actions/Waiting.gif");
         spinning->start();
     }
     revalidateButton->setEnabled(false);

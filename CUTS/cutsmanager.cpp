@@ -97,7 +97,7 @@ void CUTSManager::executeMWCGeneration(QString mwcPath)
     QString program = "perl";
     QStringList args;
     QString type;
-    QString mwcFilePath = mwcPath + "HelloWorld.mwc";
+    QString mwcFilePath = mwcPath + modelName + ".mwc";
 
     //Check if windows or *nix
     #ifdef _WIN32
@@ -112,6 +112,8 @@ void CUTSManager::executeMWCGeneration(QString mwcPath)
     QProcess* process = new QProcess(this);
     process->setProcessEnvironment(CUTS_ENVIRONMENT);
 
+
+    //emit gotLiveMWCOutput("Starting: " + program + args.join(" "));
 
     connect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveMWCOutput(QString)));
 
@@ -142,7 +144,7 @@ void CUTSManager::executeCPPCompilation(QString makePath)
             args << "/m";
             args << "/verbosity:minimal";
         }
-        args << makePath + "HelloWorld.sln";
+        args << makePath + modelName + ".sln";
     #else
         program = "make";
 
@@ -170,27 +172,26 @@ void CUTSManager::executeCPPCompilation(QString makePath)
 
     disconnect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveCPPOutput(QString)));
 
+    qCritical() << code;
     emit executedCPPCompilation(code == 0);
 }
 
-void CUTSManager::executeCUTS(QString graphmlPath, int executionTime)
+void CUTSManager::executeCUTS(QString path, int executionTime)
 {
 
     QProcess* process = new QProcess(this);
     process->setProcessEnvironment(CUTS_ENVIRONMENT);
 
-    QString path = getGraphmlPath(graphmlPath);
-    QString modelName = getGraphmlName(graphmlPath);
 
-
+    path += "descriptors/";
     QString program = "perl";
     QStringList args;
     args << scriptsPath + "runCuts.pl";
-    args << "-n " << modelName;
-    args << "-t " << QString::number(executionTime);
-    args << "-m " << "tao";
+    args << "-n" << modelName;
+    args << "-t" << QString::number(executionTime);
+    args << "-m" << "tao";
 
-    //emit gotLiveCUTSOutput("Starting: " + program + " " + args.join(" "));
+    //emit gotLiveCUTSOutput("Starting: " + program + " " + args.join(" ") + " in Path: " + path);
     process->setWorkingDirectory(path);
     process->start(program, args);
 
@@ -208,6 +209,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
     //Run preprocess generation on the graphml, this will be used as the input to all transforms.
     QString processedGraphmlPath = preProcessIDL(graphmlPath, outputPath);
 
+
     if(!isFileReadable(processedGraphmlPath)){
         emit executedXSLGeneration(false, "Preprocessing graphml document failed!");
         return;
@@ -218,6 +220,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
         emit executedXSLGeneration(false, "Cannot read Preprocessed graphml document!");
         return;
     }
+    modelName = getGraphmlName(processedGraphmlPath);
 
     //Construct a QXmlQuery object to inspect the graphml.
     QXmlQuery* query = new QXmlQuery();
@@ -498,7 +501,7 @@ bool CUTSManager::checkForCPPCompiler()
     foreach(QString key, systemEnvironment.keys()){
         QRegularExpressionMatch match = regex.match(key);
         if(match.hasMatch()){
-            vsVersion = match.captured(2);
+            vsVersion = match.captured(1);
             vsToolsPath = systemEnvironment.value(key);
             break;
         }
@@ -514,7 +517,12 @@ bool CUTSManager::checkForCPPCompiler()
     QString dotNetFrameworkVersion = vsEnv.value("FRAMEWORKVERSION32");
     msbuildPath = dotNetFrameworkPath + dotNetFrameworkVersion + "/msbuild.exe";
     msbuildVersion = vsVersion;
-    return true;
+
+    if(msbuildPath != "" && msbuildVersion != ""){
+        return true;
+    }else{
+        return false;
+    }
 #else
     //Don't enable UNIX
     return false;
@@ -834,7 +842,7 @@ void CUTSManager::processQueue()
                 if(xslFailCount > 0){
                     errorString = QString::number(xslFailCount) + " XSL generations failed!";
                 }
-                emit executedXSLGeneration((xslFailCount > 0), errorString);
+                emit executedXSLGeneration(xslFailCount == 0, errorString);
             }
             //AT END
             //Queue is empty, so don't continue;

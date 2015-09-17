@@ -56,7 +56,7 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
 
 
     loadingMovie = new QMovie(this);
-    loadingMovie->setFileName(":/Actions/jenkins_waiting.gif");
+    loadingMovie->setFileName(":/Actions/Waiting.gif");
     loadingMovie->start();
 
     //Set State
@@ -293,7 +293,6 @@ QWidget *CUTSExecutionWidget::setupBuildWidget()
 
 
     makeTextBrowser = new QTextBrowser();
-    makeTextBrowser->setStyleSheet("background-color:black; color:white; font-family:Lucida Console;font-weight: bold; ");
     makeTextBrowser->setPlaceholderText("C++ Compilation Output");
     vLayout->addLayout(makeLayout);
     vLayout->addWidget(makeTextBrowser);
@@ -499,9 +498,9 @@ QString CUTSExecutionWidget::getDirectory(QString filePath)
 
 void CUTSExecutionWidget::setIconSuccess(QLabel *label, bool success)
 {
-    QString fileName = "cross";
+    QString fileName = "Failure";
     if(success){
-        fileName = "tick";
+        fileName = "Success";
     }
     if(label){
         label->setPixmap(QPixmap::fromImage(QImage(":/Actions/" + fileName + ".png")));

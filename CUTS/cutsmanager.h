@@ -63,7 +63,7 @@ public slots:
     void executeCPPCompilation(QString makePath);
 
     //Runs CUTS execution
-    void executeCUTS(QString graphmlPath, int executionTime=60);
+    void executeCUTS(QString path, int executionTime=60);
 
     //Called once a QProcess finishes executing
      void processFinished(int code, QProcess::ExitStatus status);
@@ -117,6 +117,7 @@ private:
 
     QString msbuildPath;
     QString msbuildVersion;
+    QString modelName;
     bool gotCPPCompiler;
 
     //A Queue used to store the Process' which need to be executed

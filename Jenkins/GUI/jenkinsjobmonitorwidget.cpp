@@ -145,7 +145,7 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
     if(state == BUILDING){
         if(activeConfiguration == ""){
             QMovie* movie = new QMovie(this);
-            movie->setFileName(":/Actions/jenkins_building.gif");
+            movie->setFileName(":/Actions/Job_Building.gif");
             movie->start();
 
             jobIcon->setMovie(movie);
@@ -153,7 +153,7 @@ void JenkinsJobMonitorWidget::setJobState(QString activeConfiguration, JOB_STATE
 
             if(!spinning){
                 spinning = new QMovie(this);
-                spinning->setFileName(":/Actions/jenkins_waiting.gif");
+                spinning->setFileName(":/Actions/Waiting.gif");
                 spinning->start();
                 connect(spinning, SIGNAL(frameChanged(int)), this, SLOT(frameChanged(int)));
             }
