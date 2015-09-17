@@ -18,6 +18,7 @@
 #include <QFileDialog>
 #include <QTimer>
 #include <QTime>
+#include <QMessageBox>
 
 
 CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManager)
@@ -188,7 +189,8 @@ void CUTSExecutionWidget::generationFinished(bool success, QString errorString)
     if(success){
         stepState();
     }else{
-        qCritical() << errorString;
+        QMessageBox::critical(this, "CRITICAL", errorString, QMessageBox::Ok);
+        setState(INITIAL);
     }
 }
 
@@ -578,7 +580,9 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
             nextButton->setIcon(tabWidget->tabIcon(1));
             nextButton->setText(tabWidget->tabText(1));
             nextButton->setEnabled(true);
-       }
+       }else if(newState == INITIAL){
+            state = newState;
+        }
     }else if(state == RAN_XSL){
         if(newState == RUN_MWC){
             state = newState;
@@ -628,13 +632,10 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
 
             //Move to the Build Tab.
             tabWidget->setCurrentIndex(2);
-
-            executeText->append("RUNNING EXECUTION\n");
             cutsManager->executeCUTS(outputPathEdit->text());
         }
     }else if(state == RUN_EXECUTION){
         if(newState == RAN_EXECUTION){
-            executeText->append("RAN EXECUTION\n");
             state = newState;
 
             nextButton->setIcon(tabWidget->tabIcon(2));

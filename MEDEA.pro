@@ -298,13 +298,13 @@ SETTINGS_FILE.files += settings.ini
 SETTINGS_FILE.path = $$OUTPUT_DIR/
 
 SCRIPTS_FILES.files += Resources/Scripts/
-SCRIPTS_FILES.path = $$OUTPUT_DIR/Resources/Scripts/
+SCRIPTS_FILES.path = $$OUTPUT_DIR/Resources/
 
 BINARIES_FILES.files += Resources/Binaries/
-BINARIES_FILES.path = $$OUTPUT_DIR/Resources/Binaries/
+BINARIES_FILES.path = $$OUTPUT_DIR/Resources/
 
 TRANSFORMS_FILES.files += Resources/Transforms/
-TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/Transforms/
+TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/
 
 
 #Copy files for Windows and Linux

@@ -5,6 +5,14 @@ eval '(exit $?0)' && eval 'exec perl -S $0 ${1+"$@"}'
 # $Id$
 # -*- perl -*-
 
+use Getopt::Long;
+my $modelname   = "";
+my $executionTime = 60;
+my $middleware = "tao";
+$nodename = "localhost";
+GetOptions ("name=s" => \$modelname, "time=i" => \$executionTime, "middleware=s" => \$middleware)
+or die("Error in command line arguments\n");
+
 use lib "$ENV{'ACE_ROOT'}/bin";
 use PerlACE::Run_Test;
 
@@ -12,19 +20,20 @@ $CIAO_ROOT = "$ENV{'CIAO_ROOT'}";
 $TAO_ROOT = "$ENV{'TAO_ROOT'}";
 $DANCE_ROOT = "$ENV{'DANCE_ROOT'}";
 $CUTS_ROOT = "$ENV{'CUTS_ROOT'}";
+$MEDEA_ROOT = "$ENV{'MEDEA_ROOT'}";
 
 $daemons_running = 0;
 $em_running = 0;
 $ns_running = 0;
 
-$daemons = 2;
-@ports = ( 60001, 60002 );
-@iorfiles = ( "MainNode.ior", "SecondNode.ior" );
-@nodenames = ( "MainNode", "SecondNode" );
+$daemons = 1;
+@ports = ( 60001);
+@iorfiles = ( "$nodename.ior");
+@nodenames = ( "$nodename");
 
 $status = 0;
-$dat_file = "HelloWorld.cdd";
-$cdp_file = "HelloWorld.cdp";
+$dat_file = "$modelname.cdd";
+$cdp_file = "$modelname.cdp";
 
 $nsior = PerlACE::LocalFile ("ns.ior");
 
@@ -79,7 +88,7 @@ sub run_node_daemons {
       $node_app = "$DANCE_ROOT/bin/dance_locality_manager";
 
       $d_cmd = "$DANCE_ROOT/bin/dance_node_manager";
-      $d_param = "-ORBEndpoint $iiop -s $node_app -n $nodename=$iorfile -t 30 --locality-config $CUTS_ROOT/bin/handlers/rtidds.locality.config";
+      $d_param = "-ORBEndpoint $iiop -s $node_app -n $nodename=$iorfile -t 30 --locality-config $CUTS_ROOT/bin/handlers/$middleware.locality.config";
 
       $Daemons[$i] = new PerlACE::Process ($d_cmd, $d_param);
       $result = $Daemons[$i]->Spawn ();
@@ -131,7 +140,7 @@ $E = new PerlACE::Process ("$DANCE_ROOT/bin/dance_plan_launcher", "-x $cdp_file 
 $E->SpawnWaitKill (10000);
 
 # wait for 10 seconds.
-sleep (10);
+sleep ($executionTime);
 
 # Invoke executor - stop the application -.
 print "Invoking executor - stop the application -\n";

@@ -17,6 +17,8 @@ CUTSManager::CUTSManager()
     executingProcessCount = 0;
     xslFailCount = 0;
     MAX_EXECUTING_PROCESSES = 1;
+
+    gotCPPCompiler = checkForCPPCompiler();
 }
 
 CUTSManager::~CUTSManager()
@@ -45,7 +47,17 @@ void CUTSManager::setXSLTransformPath(QString transformPath)
 
 void CUTSManager::setCUTSConfigScriptPath(QString configureScriptPath)
 {
-    this->configureScriptPath = configureScriptPath;
+    if(this->configureScriptPath != configureScriptPath){
+        this->configureScriptPath = configureScriptPath;
+
+        if(isFileReadable(configureScriptPath)){
+            //get the environment for the mwc generation
+            CUTS_ENVIRONMENT = getEnvFromScript(configureScriptPath);
+            if(!CUTS_ENVIRONMENT.isEmpty() && gotCPPCompiler){
+                emit localDeploymentOkay();
+            }
+        }
+    }
 }
 
 void CUTSManager::setScriptsPath(QString path)
@@ -60,7 +72,6 @@ void CUTSManager::setScriptsPath(QString path)
 ///
 void CUTSManager::executeXSLGeneration(QString graphmlPath, QString outputPath)
 {
-    checkForVisualStudio();
     //Ensure output directory exists.
     if(!ensureDirectory(outputPath)){
         emit executedXSLGeneration(false, "Cannot construct Output directory.");
@@ -79,11 +90,8 @@ void CUTSManager::executeXSLGeneration(QString graphmlPath, QString outputPath)
 void CUTSManager::executeMWCGeneration(QString mwcPath)
 {
 
-    //get the environment for the mwc generation
-    QProcessEnvironment configuredEnv = getEnvFromScript(configureScriptPath);
-
-    QString ACE_ROOT = configuredEnv.value("ACE_ROOT");
-    QString CUTS_ROOT = configuredEnv.value("CUTS_ROOT");
+    QString ACE_ROOT = CUTS_ENVIRONMENT.value("ACE_ROOT");
+    QString CUTS_ROOT = CUTS_ENVIRONMENT.value("CUTS_ROOT");
 
 
     QString program = "perl";
@@ -102,28 +110,25 @@ void CUTSManager::executeMWCGeneration(QString mwcPath)
     args << "-type" << type << "-feature_file" << CUTS_ROOT + "/default.features" << mwcFilePath;
 
     QProcess* process = new QProcess(this);
-    process->setProcessEnvironment(configuredEnv);
+    process->setProcessEnvironment(CUTS_ENVIRONMENT);
 
-    //Run MWC Generation
-    qCritical() << program << args;
+
     connect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveMWCOutput(QString)));
 
     process->start(program, args);
 
+
     QString output = monitorProcess(process);
-    emit gotLiveMWCOutput(" FINAL: \n" + output);
+    int code = process->exitCode();
+
     disconnect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveMWCOutput(QString)));
 
-    emit executedMWCGeneration(true);
+    emit executedMWCGeneration(code == 0);
 }
 
 void CUTSManager::executeCPPCompilation(QString makePath)
 {
-    //get the environment for the mwc generation
-    QProcessEnvironment configuredEnv = getEnvFromScript(configureScriptPath);
-
-
-    QString CUTS_ROOT = configuredEnv.value("CUTS_ROOT");
+    QString CUTS_ROOT = CUTS_ENVIRONMENT.value("CUTS_ROOT");
 
     QString program;
     QStringList args;
@@ -152,7 +157,7 @@ void CUTSManager::executeCPPCompilation(QString makePath)
 
 
     QProcess* process = new QProcess(this);
-    process->setProcessEnvironment(configuredEnv);
+    process->setProcessEnvironment(CUTS_ENVIRONMENT);
 
 
     //emit gotLiveCPPOutput("Starting: " + program);
@@ -161,54 +166,41 @@ void CUTSManager::executeCPPCompilation(QString makePath)
     connect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveCPPOutput(QString)));
 
     QString output = monitorProcess(process);
+    int code = process->exitCode();
 
-    emit gotLiveCPPOutput(" FINAL: \n" + output);
     disconnect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveCPPOutput(QString)));
 
-
-
-
-    emit executedCPPCompilation(true);
-
+    emit executedCPPCompilation(code == 0);
 }
 
 void CUTSManager::executeCUTS(QString graphmlPath, int executionTime)
 {
-    //get the environment for the mwc generation
-    QProcessEnvironment configuredEnv = getEnvFromScript(configureScriptPath);
 
     QProcess* process = new QProcess(this);
-    process->setProcessEnvironment(configuredEnv);
+    process->setProcessEnvironment(CUTS_ENVIRONMENT);
 
     QString path = getGraphmlPath(graphmlPath);
     QString modelName = getGraphmlName(graphmlPath);
 
 
-
-
     QString program = "perl";
     QStringList args;
     args << scriptsPath + "runCuts.pl";
+    args << "-n " << modelName;
+    args << "-t " << QString::number(executionTime);
+    args << "-m " << "tao";
 
-    emit gotLiveCUTSOutput("Starting: " + program + " " + args.join(" "));
+    //emit gotLiveCUTSOutput("Starting: " + program + " " + args.join(" "));
     process->setWorkingDirectory(path);
     process->start(program, args);
 
     connect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveCUTSOutput(QString)));
 
     QString output = monitorProcess(process);
-
-    emit gotLiveCUTSOutput(" FINAL: \n" + output);
+    int code = process->exitCode();
     disconnect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveCUTSOutput(QString)));
 
-
-
-
-    emit executedCUTS(true);
-
-
-
-
+    emit executedCUTS(code == 0);
 }
 
 void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
@@ -243,7 +235,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
     QStringList IDLs;
 
     //Generates code for all components regardless of whether they are deployed.
-    bool generateAllComponents = true;
+    bool generateAllComponents = false;
 
 
     //Get the id and attr.name attributes of each <key> entities from the graphml
@@ -256,6 +248,23 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
         keys[name] = ID;
         keyXML = keysXML->next();
     }
+
+    //Check for TAO
+    //Get the label of each <node> entity of kind "Model"
+    QXmlResultItems* modelsXML = evaluateQuery2List(query, "doc($doc)//gml:node[gml:data[@key='" + keys["label"] + "' and string()='Model']]");
+    QXmlItem modelXML = modelsXML->next();
+
+    while(!modelXML.isNull()){
+        QString middleware = evaluateQuery2String(query, "gml:data[@key='" + keys["middleware"] + "']/string()", &modelXML);
+        if(middleware != "tao"){
+            //TODO IMPLEMENT ALL MIDDLEWARE!
+            emit executedXSLGeneration(false, "Middleware is: " + middleware + " Must Use tao middleware!");
+            return;
+        }
+        modelXML = modelsXML->next();
+    }
+
+
 
     //Get the ID's of the source/target of each <edge> entities from the graphml
     QXmlResultItems* edgesXML = evaluateQuery2List(query, "doc($doc)//gml:edge");
@@ -285,7 +294,12 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
 
     while(!hardwareXML.isNull()){
         QString ID = evaluateQuery2String(query, "@id/string()", &hardwareXML);
-        hardwareIDs << ID;
+        QString label = evaluateQuery2String(query, "gml:data[@key='" + keys["label"] + "']/string()", &hardwareXML);
+        if(label == "localhost"){
+            //Ignore all non localhost nodes.
+            QString ID = evaluateQuery2String(query, "@id/string()", &hardwareXML);
+            hardwareIDs << ID;
+        }
         hardwareXML = hardwaresXML->next();
     }
 
@@ -376,6 +390,11 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
 
     QStringList mpcFiles;
 
+    if(deployedComponents.size() == 0){
+        emit executedXSLGeneration(false, "Model must have at least 1 component deployed to the localhost HardwareNode!");
+        return;
+    }
+
     //Foreach Component, we expect one Impl.mpc file.
     foreach(QString component, deployedComponents){
         mpcFiles << component + "Impl.mpc";
@@ -399,7 +418,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
     queueComponentInstanceGeneration(processedGraphmlPath,deployedComponentInstances, outputPath);
     queueIDLGeneration(processedGraphmlPath,IDLs, outputPath);
     queueDeploymentGeneration(processedGraphmlPath, mpcFiles, outputPath);
-    queueHardwareGeneration(processedGraphmlPath, hardwareNodes, outputPath);
+    //queueHardwareGeneration(processedGraphmlPath, hardwareNodes, outputPath);
 
     //Start Queue
     processQueue();
@@ -466,8 +485,10 @@ QString CUTSManager::monitorProcess(QProcess *process)
     return returnable;
 }
 
-void CUTSManager::checkForVisualStudio()
+bool CUTSManager::checkForCPPCompiler()
 {
+#ifdef _WIN32
+
     QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
     QString vsToolsPath;
     QString vsVersion;
@@ -477,28 +498,27 @@ void CUTSManager::checkForVisualStudio()
     foreach(QString key, systemEnvironment.keys()){
         QRegularExpressionMatch match = regex.match(key);
         if(match.hasMatch()){
-            qCritical() << match.captured(1);
             vsVersion = match.captured(2);
-            QString value = systemEnvironment.value(key);
-            vsToolsPath = value;
+            vsToolsPath = systemEnvironment.value(key);
+            break;
         }
     }
-    qCritical() << vsVersion;
+
     if(vsToolsPath == ""){
-        QMessageBox::critical(0, "Cannot find Visual Studio", "Visual Studio cannot be found!", QMessageBox::Ok);
-        return;
+        return false;
     }
 
-    QProcessEnvironment vsEnv = getEnvFromScript("\"" + vsToolsPath+"VCVarsQueryRegistry.bat\" 32bit No64bit");
-
+    QProcessEnvironment vsEnv = getEnvFromScript("\"" + vsToolsPath + "VCVarsQueryRegistry.bat\" 32bit No64bit");
 
     QString dotNetFrameworkPath = vsEnv.value("FRAMEWORKDIR32");
     QString dotNetFrameworkVersion = vsEnv.value("FRAMEWORKVERSION32");
-
-
     msbuildPath = dotNetFrameworkPath + dotNetFrameworkVersion + "/msbuild.exe";
     msbuildVersion = vsVersion;
-
+    return true;
+#else
+    //Don't enable UNIX
+    return false;
+#endif
 }
 
 void CUTSManager::setMaxThreadCount(int limit){
@@ -514,6 +534,7 @@ void CUTSManager::processFinished(int code, QProcess::ExitStatus)
         QString outputFilePath = processHash[process];
 
         if(code != 0){
+            qCritical() << code;
             xslFailCount ++;
         }
         //Emit a Signal saying that the file has been produced.
@@ -574,10 +595,7 @@ QProcessEnvironment CUTSManager::getEnvFromScript(QString scriptPath)
             QString key = match.captured(1).trimmed();
             QString value = match.captured(2).trimmed();
             if(key.length() > 0){
-                //Ignore the system environment keys?
-                //if(!systemEnvironment.contains(key)){
-                    newEnvironment.insert(key, value);
-                //}
+                newEnvironment.insert(key, value);
             }
        }
     }
@@ -816,7 +834,7 @@ void CUTSManager::processQueue()
                 if(xslFailCount > 0){
                     errorString = QString::number(xslFailCount) + " XSL generations failed!";
                 }
-                emit executedMWCGeneration(xslFailCount > 0, errorString);
+                emit executedXSLGeneration((xslFailCount > 0), errorString);
             }
             //AT END
             //Queue is empty, so don't continue;

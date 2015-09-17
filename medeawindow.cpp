@@ -647,6 +647,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     jenkins_ImportNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
 
     cuts_runGeneration = jenkins_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: Local Deployment");
+    cuts_runGeneration->setEnabled(false);
+    cuts_runGeneration->setToolTip("Requires Valid CUTS and Windows");
 
     jenkins_ExecuteJob = jenkins_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: " + jenkinsJobName);
 
@@ -1401,6 +1403,7 @@ void MedeaWindow::initialiseCUTSManager()
     cutsManager->setXSLTransformPath(transformPath);
     cutsManager->setMaxThreadCount(threadLimit);
     cutsManager->setScriptsPath(scriptsPath);
+    connect(cutsManager, SIGNAL(localDeploymentOkay()), this, SLOT(localDeploymentOkay()));
 }
 
 
@@ -1455,6 +1458,14 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(validationComplete(int)));
     connect(myProcess, SIGNAL(finished(int)), myProcess, SLOT(deleteLater()));
     myProcess->start(program, arguments);
+}
+
+void MedeaWindow::localDeploymentOkay()
+{
+    if(cuts_runGeneration){
+        cuts_runGeneration->setEnabled(true);
+        cuts_runGeneration->setToolTip("");
+    }
 }
 
 void MedeaWindow::toggleGridLines()

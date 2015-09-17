@@ -117,6 +117,7 @@ public slots:
 
 
 private slots:
+    void localDeploymentOkay();
     void toggleGridLines();
     void aboutMedea();
     void invalidJenkinsSettings(QString message);

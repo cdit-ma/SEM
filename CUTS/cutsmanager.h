@@ -29,7 +29,10 @@ public:
     void setCUTSConfigScriptPath(QString configureScriptPath);
     void setScriptsPath(QString path);
 
+
+
 signals:
+    void localDeploymentOkay();
     //Emitted by the slot queueXSLTransform
     void fileToGenerate(QString filePath);
     //Emitted by the slot executeProcess
@@ -72,7 +75,7 @@ private:
 private:
     bool ensureDirectory(QString dirPath);
     QString monitorProcess(QProcess* process);
-    void checkForVisualStudio();
+    bool checkForCPPCompiler();
     bool isFileReadable(QString file);
 
     QString wrapGraphmlQuery(QString query);
@@ -114,6 +117,7 @@ private:
 
     QString msbuildPath;
     QString msbuildVersion;
+    bool gotCPPCompiler;
 
     //A Queue used to store the Process' which need to be executed
     QQueue<ProcessStruct> queue;
@@ -122,10 +126,11 @@ private:
     int xslFailCount;
     int MAX_EXECUTING_PROCESSES;
 
+
     //A Hash to keep track of the QProcess' and their output files.
     QHash<QProcess*, QString> processHash;
 
-
+    QProcessEnvironment CUTS_ENVIRONMENT;
 };
 
 #endif //CUTSMANAGER_H

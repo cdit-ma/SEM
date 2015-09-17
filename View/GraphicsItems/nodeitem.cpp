@@ -1441,12 +1441,14 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     //Ignore mouse Presses outside of this item
     if(!contains(event->pos()) || !PAINT_OBJECT){
-        //qCritical() << "NOT PAINTINT";
-        if(nodeKind == "Model" && !mouseOverModelCircle(event->pos())){
-            emit GraphMLItem_ClearSelection(true);
+        if(nodeKind == "Model"){
+            if(!mouseOverModelCircle(event->pos())){
+                emit GraphMLItem_ClearSelection(true);
+                return;
+            }
+        }else{
             return;
         }
-        return;
     }
 
     bool control = event->modifiers().testFlag(Qt::ControlModifier);
