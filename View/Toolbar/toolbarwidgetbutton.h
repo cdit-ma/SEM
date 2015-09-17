@@ -23,6 +23,7 @@ public slots:
 protected:
     void enterEvent(QEvent *e);
     void leaveEvent(QEvent *e);
+    void mouseDoubleClickEvent(QMouseEvent* e);
 
 private:
     bool checked;

@@ -256,7 +256,7 @@ void DockNodeItem::setupLayout()
                 if (kind == "HardwareNode"){
                     QString imagePath;
                     if(nodeItem->getNode() && nodeItem->getNode()->getDataValue("localhost") == "true"){
-                        imagePath = "localhost";
+                        imagePath = "Localhost";
                     }else{
                         QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
                         QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
@@ -274,14 +274,6 @@ void DockNodeItem::setupLayout()
             qWarning() << "DockNodeItem::setupLayout - Image is null";
         }
         QPixmap scaledPixmap =  pixMap.scaled(width(), height()-textLabel->height(), Qt::KeepAspectRatio,Qt::SmoothTransformation);
-
-       //QPixmap scaledPixmap =  pixMap.scaled(image.scaled(width(), height()-textLabel->height(), Qt::KeepAspectRatio,Qt::SmoothTransformation);
-
-               /*
-        QPixmap scaledPixmap = QPixmap::fromImage(image.scaled(width(),
-                                             height()-textLabel->height(),
-                                             Qt::KeepAspectRatio,
-                                             Qt::SmoothTransformation));*/
 
         imageLabel = new QLabel(this);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);

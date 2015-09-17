@@ -776,7 +776,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         QString imageURL = nodeKind;
         if(nodeKind == "HardwareNode"){
             if(nodeHardwareLocalHost){
-                imageURL = "localhost";
+                imageURL = "Localhost";
             }else{
                 imageURL = nodeHardwareOS.remove(" ") + "_" + nodeHardwareArch;
             }

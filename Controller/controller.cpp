@@ -63,8 +63,8 @@ NewController::NewController()
 
 
 
-    behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload";
-    behaviourNodeKinds << "OutEventPortImpl";
+    behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
+    //behaviourNodeKinds << "WhileLoop";
 
     //Append Kinds which can't be constructed by the GUI.
     constructableNodeKinds << "MemberInstance" << "AttributeImpl";
@@ -84,7 +84,6 @@ NewController::NewController()
 
     guiConstructableNodeKinds.append(definitionNodeKinds);
     guiConstructableNodeKinds.append(behaviourNodeKinds);
-    //guiConstructableNodeKinds.removeAll("AggregateInstance");
     guiConstructableNodeKinds.removeDuplicates();
     guiConstructableNodeKinds.sort();
 }
@@ -2532,6 +2531,8 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
         return new Workload();
     }else if(nodeKind == "Process"){
         return new Process();
+    }else if(nodeKind == "WhileLoop"){
+        return new WhileLoop();
     }else if(nodeKind == "Termination"){
         return new Termination();
     }else if(nodeKind == "Variable"){

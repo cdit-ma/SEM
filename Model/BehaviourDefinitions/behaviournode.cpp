@@ -46,8 +46,6 @@ bool BehaviourNode::canConnect(Node *attachableObject)
 
         Termination* termination = dynamic_cast<Termination*>(attachableObject);
         if(termination){
-            Branch* terminationBranch = termination->getBranch();
-
 
             bool gotMatch = false;
             Node* leftNode = this;

@@ -498,10 +498,10 @@ void ToolbarWidget::setupMenus()
     blackBoxInstanceAction = new ToolbarWidgetAction("BlackBoxInstance", "", addMenu);
 
     // default actions to display information for when visible menus are empty
-    componentInstanceDefaultAction = new ToolbarWidgetAction("info", "There are no IDL files containing Components that are valid for this action.", addMenu);
-    blackBoxInstanceDefaultAction = new ToolbarWidgetAction("info", "There are no IDL files containing BlackBoxes.", addMenu);
-    iep_definitionInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", addMenu);
-    oep_definitionInstanceDefaultAction = new ToolbarWidgetAction("info", "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", addMenu);
+    componentInstanceDefaultAction = new ToolbarWidgetAction("Info", "There are no IDL files containing Components that are valid for this action.", addMenu);
+    blackBoxInstanceDefaultAction = new ToolbarWidgetAction("Info", "There are no IDL files containing BlackBoxes.", addMenu);
+    iep_definitionInstanceDefaultAction = new ToolbarWidgetAction("Info", "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", addMenu);
+    oep_definitionInstanceDefaultAction = new ToolbarWidgetAction("Info", "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", addMenu);
 
     // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
     componentDefinitionsMenu = new ToolbarWidgetMenu(0, componentInstanceDefaultAction, addMenu);
@@ -751,7 +751,7 @@ QToolButton* ToolbarWidget::constructToolButton(QSize size, QString iconPng, dou
 {
     QToolButton* button = new QToolButton(this);
     button->setFixedSize(size);
-    button->setIcon(QIcon(":/Actions/" + iconPng + ".png"));
+    button->setIcon(nodeView->getImage("Actions", iconPng));
     button->setIconSize(size * iconSizeRatio);
     button->setToolTip(tooltip);
     toolbarLayout->addWidget(button);

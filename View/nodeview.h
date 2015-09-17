@@ -23,7 +23,7 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 
 public:
-    enum VIEW_STATE{VS_NONE, VS_RUBBERBAND, VS_RUBBERBANDING, VS_SELECTED, VS_MOVING, VS_RESIZING, VS_PAN, VS_PANNING};
+    enum VIEW_STATE{VS_NONE,VS_SELECTED, VS_RUBBERBAND, VS_RUBBERBANDING, VS_MOVING, VS_RESIZING, VS_PAN, VS_PANNING};
 
     enum ALIGN{NONE, HORIZONTAL, VERTICAL};
     NodeView(bool subView = false, QWidget *parent = 0);
@@ -39,7 +39,7 @@ public:
 
     VIEW_STATE getViewState();
 
-    bool hasPanned();
+
     //Get the Selected Node.
     Node* getSelectedNode();
     QString getSelectedNodeID();
@@ -494,6 +494,7 @@ private:
     bool updateDeployment;
 
     QPointF panningSceneOrigin;
+    QPoint panningOrigin;
 
     QString currentTableID;
 

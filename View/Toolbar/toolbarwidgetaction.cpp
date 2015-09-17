@@ -29,7 +29,7 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, To
             kind == "InEventPortDelegate" || kind == "OutEventPortDelegate") {
         willHaveMenu = true;
         deletable = false;
-    } else if (kind == "info") {
+    } else if (kind == "Info") {
         label = textLabel;
         deletable = false;
         setEnabled(false);
@@ -220,20 +220,29 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     QString actionKind = getActionKind();
     if (actionKind == "HardwareNode"){
         Node* node = nodeItem->getNode();
+
         if(node){
             if(node->getDataValue("localhost") == "true"){
-                actionKind = "localhost";
+                actionKind = "Localhost";
             }else{
                 actionKind = node->getDataValue("os") + "_" + node->getDataValue("architecture");
             }
         }
+
+    }
+    QString alias = "Items";
+    if(actionKind == "Info"){
+        alias = "Actions";
     }
 
-    QImage* image = new QImage(":/Items/" + actionKind + ".png");
+
+    QImage* image = new QImage(":/" + alias + "/" + actionKind + ".png");
+
     QImage scaledImage = image->scaled(actionButton->height(),
                                        actionButton->height(),
                                        Qt::KeepAspectRatio,
                                        Qt::SmoothTransformation);
+
 
     QLabel* imageLabel = new QLabel(actionButton);
     imageLabel->setPixmap(QPixmap::fromImage(scaledImage));

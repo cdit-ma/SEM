@@ -113,7 +113,7 @@ int Node::getIndirectConnectCount(QString nodeKind)
         }
     }
 
-    int count;
+    int count = 0;
     foreach(Node* node, connectedNodes){
         if(node->getNodeKind() == nodeKind){
             count ++;

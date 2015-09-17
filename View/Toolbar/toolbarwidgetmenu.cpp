@@ -80,26 +80,16 @@ void ToolbarWidgetMenu::addWidgetAction(ToolbarWidgetAction* action)
  * @brief ToolbarWidgetMenu::removeWidgetAction
  * This removes the provided ToolbarWidgetAction from this menu.
  * @param action
- */
+  */
 void ToolbarWidgetMenu::removeWidgetAction(ToolbarWidgetAction* action, bool clearing)
 {
     if (!action) {
         return;
     }
-
-    // remove action from the widgetActions list
-    if (!clearing) {
-        widgetActions.removeAll(action);
-    }
+    widgetActions.removeAll(action);
 
     // remove action from this menu
-    QMenu::removeAction(action);
-
-    // actions that are stored in the toolbar widget can't be deleted
-    // defaultAction should not be deletable
-    if (action->isDeletable()) {
-        delete action;
-    }
+    removeAction(action);
 }
 
 
@@ -151,12 +141,13 @@ bool ToolbarWidgetMenu::hasWidgetActions()
  */
 void ToolbarWidgetMenu::clearMenu()
 {
-    QMutableListIterator<ToolbarWidgetAction*> it(widgetActions);
-    while (it.hasNext()) {
-        ToolbarWidgetAction* action = it.next();
-        removeWidgetAction(action, true);
+    while(!widgetActions.isEmpty()){
+        ToolbarWidgetAction* action = widgetActions.takeFirst();
+        removeWidgetAction(action);
+        if(action->isDeletable()){
+            delete action;
+        }
     }
-    widgetActions.clear();
 
     // once the menu is empty, display its default action (if it has one)
     setupDefaultAction();

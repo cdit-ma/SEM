@@ -12,7 +12,7 @@
 #include "termination.h"
 #include "variable.h"
 #include "workload.h"
-
+#include "whileloop.h"
 #include "condition.h"
 #include "process.h"
 
@@ -55,13 +55,13 @@ bool ComponentImpl::canAdoptChild(Node *child)
     Termination* termination = dynamic_cast<Termination*>(child);
     Variable* variable = dynamic_cast<Variable*>(child);
     Workload* workload = dynamic_cast<Workload*>(child);
-
+    WhileLoop* whileLoop = dynamic_cast<WhileLoop*>(child);
 
     OutEventPortImpl* outEventPortImpl = dynamic_cast<OutEventPortImpl*>(child);
     InEventPortImpl* inEventPortImpl = dynamic_cast<InEventPortImpl*>(child);
     AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(child);
 
-    if(!(branchState || periodicEvent || termination || variable || workload || outEventPortImpl || inEventPortImpl || attributeImpl)){
+    if(!(branchState || periodicEvent || termination || variable || workload || outEventPortImpl || inEventPortImpl || attributeImpl || whileLoop)){
 #ifdef DEBUG_MODE
         qWarning() << "ComponentImpl cannot adopt anything outside of Condition, MemberInstance or Process";
 #endif

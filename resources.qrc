@@ -31,7 +31,6 @@
         <file alias="Linux_amd64.png">Resources/Images/Items/Linux_amd64.png</file>
         <file alias="Linux_arm.png">Resources/Images/Items/Linux_arm.png</file>
         <file alias="Linux_x86.png">Resources/Images/Items/Linux_x86.png</file>
-        <file alias="localhost.png">Resources/Images/Items/localhost.png</file>
         <file alias="ManagementComponent.png">Resources/Images/Items/ManagementComponent.png</file>
         <file alias="Member.png">Resources/Images/Items/Member.png</file>
         <file alias="MemberInstance.png">Resources/Images/Items/MemberInstance.png</file>
@@ -54,6 +53,9 @@
         <file alias="Windows7_arm.png">Resources/Images/Items/Windows7_arm.png</file>
         <file alias="Windows7_x86.png">Resources/Images/Items/Windows7_x86.png</file>
         <file alias="Workload.png">Resources/Images/Items/Workload.png</file>
+        <file alias="WhileLoop.png">Resources/Images/Items/WhileLoop.png</file>
+        <file alias="Vector.png">Resources/Images/Items/Vector.png</file>
+        <file alias="Localhost.png">Resources/Images/Items/Localhost.png</file>
     </qresource>
     <qresource prefix="/">
         <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>

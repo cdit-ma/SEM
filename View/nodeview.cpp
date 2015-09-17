@@ -1612,6 +1612,10 @@ void NodeView::nodeEntered(QString ID, bool enter)
 
 void NodeView::setState(NodeView::VIEW_STATE state)
 {
+    if(!isMainView() && state > VS_SELECTED){
+        state = VS_NONE;
+    }
+
     VIEW_STATE oldState = viewState;
 
     switch(viewState){
@@ -2980,6 +2984,12 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         }else{
             setState(VS_NONE);
         }
+
+        //Check panning state.
+        QLineF distance(panningOrigin, event->pos());
+        if(distance.length() < 5){
+            wasPanning = false;
+        }
         return;
     }
 
@@ -3048,7 +3058,8 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         }
         if(event->button() == Qt::RightButton){
             setState(VS_PAN);
-            panningSceneOrigin = mapToScene(event->pos());
+            panningOrigin = event->pos();
+            panningSceneOrigin = mapToScene(panningOrigin);
             return;
         }
     }else if(viewState == VS_RUBBERBAND){

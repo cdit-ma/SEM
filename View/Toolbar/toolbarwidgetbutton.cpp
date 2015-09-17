@@ -57,3 +57,8 @@ void ToolbarWidgetButton::leaveEvent(QEvent *e)
     emit mouseExited();
     QWidget::leaveEvent(e);
 }
+
+void ToolbarWidgetButton::mouseDoubleClickEvent(QMouseEvent*)
+{
+    //Ignore.
+}

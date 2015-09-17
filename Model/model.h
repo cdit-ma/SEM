@@ -22,6 +22,7 @@
 #include "BehaviourDefinitions/termination.h"
 #include "BehaviourDefinitions/variable.h"
 #include "BehaviourDefinitions/workload.h"
+#include "BehaviourDefinitions/whileloop.h"
 
 
 

@@ -2200,6 +2200,7 @@ QIcon MedeaWindow::getIcon(QString alias, QString image)
     if(nodeView){
         return QIcon(nodeView->getImage(alias, image));
     }
+    return QIcon();
 }
 
 
