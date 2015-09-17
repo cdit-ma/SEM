@@ -182,16 +182,16 @@ void CUTSManager::executeCUTS(QString path, int executionTime)
     QProcess* process = new QProcess(this);
     process->setProcessEnvironment(CUTS_ENVIRONMENT);
 
-    path = path + "/descriptors/";
+    path = path + "descriptors/";
 
     QString program = "perl";
     QStringList args;
     args << scriptsPath + "runCuts.pl";
-    args << "-n" << modelName;
-    args << "-t" << QString::number(executionTime);
-    args << "-m" << "tao";
+    args << " -n " << modelName;
+    args << " -t " << QString::number(executionTime);
+    args << " -m " << "tao";
 
-    //emit gotLiveCUTSOutput("Starting: " + program + " " + args.join(" ") + " in Path: " + path);
+    emit gotLiveCUTSOutput("Starting: " + program + " " + args.join(" ") + " in Path: " + path);
     process->setWorkingDirectory(path);
     process->start(program, args);
 
