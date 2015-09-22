@@ -24,7 +24,7 @@
 
 
 #define RIGHT_PANEL_WIDTH 230.0
-#define SPACER_HEIGHT 30
+#define SPACER_HEIGHT 10
 
 #define MIN_WIDTH 1000
 #define MIN_HEIGHT (480 + SPACER_HEIGHT*3)
@@ -458,18 +458,17 @@ void MedeaWindow::initialiseGUI()
                                 "}");
 
     // setup mini map
+    QVBoxLayout* minimapLayout = new QVBoxLayout();
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
 
     minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
     minimap->setInteractive(false);
+    minimapLayout->addWidget(minimap);
 
     minimap->setFixedSize(rightPanelWidth + 10, rightPanelWidth/1.6);
-    minimap->setStyleSheet("background-color: rgba(180,180,180,230);"
-                           "border: 2px solid;"
-                           "border-color: rgb(80,80,80);"
-                           "border-radius: 8px;");
+    minimap->setStyleSheet("QGraphicsView{border: 1px solid; border-color: black;}");
     minimap->centerView();
 
     // layouts
@@ -517,6 +516,7 @@ void MedeaWindow::initialiseGUI()
     leftVlayout->addStretch();
 
     viewButtonsGrid->setSpacing(5);
+    viewButtonsGrid->setMargin(0);
     viewButtonsGrid->setContentsMargins(5,0,5,0);
     viewButtonsGrid->addWidget(definitionsToggle, 1, 1);
     viewButtonsGrid->addWidget(workloadToggle, 1, 2);
@@ -524,22 +524,20 @@ void MedeaWindow::initialiseGUI()
     viewButtonsGrid->addWidget(hardwareToggle, 2, 2);
 
     rightVlayout->setMargin(0);
-    rightVlayout->setSpacing(0);
     rightVlayout->setContentsMargins(0, 10, 0, 0);
-    rightVlayout->addLayout(searchLayout, 1);
-    rightVlayout->addSpacerItem(new QSpacerItem(20, SPACER_HEIGHT));
+    rightVlayout->addLayout(searchLayout);
+    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_HEIGHT));
     rightVlayout->addLayout(viewButtonsGrid);
-    rightVlayout->addSpacerItem(new QSpacerItem(20, SPACER_HEIGHT));
-    rightVlayout->addWidget(dataTableBox, 4);
-    rightVlayout->addSpacerItem(new QSpacerItem(20, SPACER_HEIGHT));
+    rightVlayout->addSpacerItem(new QSpacerItem(0, SPACER_HEIGHT));
+    rightVlayout->addWidget(dataTableBox);
     rightVlayout->addStretch();
-    rightVlayout->addWidget(minimap);
+    rightVlayout->addLayout(minimapLayout);
 
     mainHLayout->setMargin(0);
     mainHLayout->setSpacing(0);
     mainHLayout->addLayout(leftVlayout, 4);
     mainHLayout->addLayout(rightVlayout, 1);
-    mainHLayout->setContentsMargins(15, 0, 20, 25);
+    mainHLayout->setContentsMargins(15, 0, 5, 5);
     nodeView->setLayout(mainHLayout);
 
     // setup the menu, dock, search tools and toolbar
@@ -1164,10 +1162,13 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
 
-    connect(minimap, SIGNAL(minimap_Pressed(QMouseEvent*)), nodeView, SLOT(minimapPressed(QMouseEvent*)));
-    connect(minimap, SIGNAL(minimap_Moved(QMouseEvent*)), nodeView, SLOT(minimapMoved(QMouseEvent*)));
-    connect(minimap, SIGNAL(minimap_Released(QMouseEvent*)), nodeView, SLOT(minimapReleased(QMouseEvent*)));
-    connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(scrollEvent(int)));
+
+    //Minimap Funcs
+    connect(minimap, SIGNAL(minimap_Pan()), nodeView, SLOT(minimapPan()));
+    connect(minimap, SIGNAL(minimap_Panning(QPointF)), nodeView, SLOT(minimapPanning(QPointF)));
+    connect(minimap, SIGNAL(minimap_Panned()), nodeView, SLOT(minimapPanned()));
+    connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(minimapScrolled(int)));
+
     connect(nodeView, SIGNAL(view_ModelSizeChanged()), minimap, SLOT(centerView()));
 
     connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
@@ -1398,11 +1399,20 @@ void MedeaWindow::initialiseCUTSManager()
     if(!isInt){
         threadLimit = 4;
     }
+
+    //Construct and start a new QThread
+    QThread* thread = new QThread();
+    thread->start();
+
+    connect(this, SIGNAL(destroyed()), thread, SLOT(quit()));
+
     cutsManager = new CUTSManager();
+
     cutsManager->setXalanJPath(xalanJPath);
     cutsManager->setXSLTransformPath(transformPath);
     cutsManager->setMaxThreadCount(threadLimit);
     cutsManager->setScriptsPath(scriptsPath);
+    cutsManager->moveToThread(thread);
     connect(cutsManager, SIGNAL(localDeploymentOkay()), this, SLOT(localDeploymentOkay()));
 }
 

@@ -11,6 +11,7 @@
 #include <QRegularExpressionMatchIterator>
 #include <QMessageBox>
 #include <QTime>
+#include <QThread>
 CUTSManager::CUTSManager()
 {
     //Initialize starting variables;
@@ -65,6 +66,8 @@ void CUTSManager::setScriptsPath(QString path)
     scriptsPath = path;
 }
 
+
+
 ///
 /// \brief CUTSManager::executeXSLGeneration Generates all required code artifacts for the execution of the graphml document.
 /// \param graphmlPath The path to the graphml document to generate code for.
@@ -109,8 +112,9 @@ void CUTSManager::executeMWCGeneration(QString mwcPath)
     args << ACE_ROOT + "/bin/mwc.pl";
     args << "-type" << type << "-feature_file" << CUTS_ROOT + "/default.features" << mwcFilePath;
 
-    QProcess* process = new QProcess(this);
+    QProcess* process = new QProcess();
     process->setProcessEnvironment(CUTS_ENVIRONMENT);
+    connect(this, SIGNAL(killProcesses()), process, SLOT(kill()));
 
 
     //emit gotLiveMWCOutput("Starting: " + program + args.join(" "));
@@ -158,8 +162,9 @@ void CUTSManager::executeCPPCompilation(QString makePath)
     #endif
 
 
-    QProcess* process = new QProcess(this);
+    QProcess* process = new QProcess();
     process->setProcessEnvironment(CUTS_ENVIRONMENT);
+    connect(this, SIGNAL(killProcesses()), process, SLOT(kill()));
 
 
     //emit gotLiveCPPOutput("Starting: " + program);
@@ -179,19 +184,21 @@ void CUTSManager::executeCPPCompilation(QString makePath)
 void CUTSManager::executeCUTS(QString path, int executionTime)
 {
 
-    QProcess* process = new QProcess(this);
+    QProcess* process = new QProcess();
     process->setProcessEnvironment(CUTS_ENVIRONMENT);
+    connect(this, SIGNAL(killProcesses()), process, SLOT(kill()));
 
     path = path + "descriptors/";
 
     QString program = "perl";
     QStringList args;
     args << scriptsPath + "runCuts.pl";
-    args << " -n " << modelName;
-    args << " -t " << QString::number(executionTime);
-    args << " -m " << "tao";
+    args << "-n" << modelName;
+    args << "-t" << QString::number(executionTime);
+    args << "-m" << "tao";
 
-    emit gotLiveCUTSOutput("Starting: " + program + " " + args.join(" ") + " in Path: " + path);
+    emit gotLiveCUTSOutput("Starting: " + program + " " + args.join(" ") + " in Path: " + path + "\n");
+    process->setProcessChannelMode(QProcess::MergedChannels);
     process->setWorkingDirectory(path);
     process->start(program, args);
 
@@ -563,7 +570,7 @@ void CUTSManager::processFinished(int code, QProcess::ExitStatus)
  */
 QProcessEnvironment CUTSManager::getEnvFromScript(QString scriptPath)
 {
-    QProcess* process = new QProcess(this);
+    QProcess* process = new QProcess();
 
 
     QString program;
@@ -779,7 +786,7 @@ void CUTSManager::queueHardwareGeneration(QString graphmlPath, QStringList hardw
 QString CUTSManager::preProcessIDL(QString inputFilePath, QString outputPath)
 {
     //Start a QProcess for this program
-    QProcess* process = new QProcess(this);
+    QProcess* process = new QProcess();
     process->setWorkingDirectory(XSLTransformPath);
 
     QString outFileName = outputPath + getGraphmlName(inputFilePath) + ".graphml";
@@ -863,12 +870,12 @@ void CUTSManager::processQueue()
 void CUTSManager::executeProcess(QString program, QStringList arguments, QString outputFilePath)
 {
     //Start a QProcess for this program
-    QProcess* process = new QProcess(this);
+    QProcess* process = new QProcess();
     process->setWorkingDirectory(XSLTransformPath);
 
     //Connect the Process' finished Signal
     connect(process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int,QProcess::ExitStatus)));
-
+    connect(this, SIGNAL(killProcesses()), process, SLOT(kill()));
     //Execute the QProcess
     process->start(program, arguments);
 

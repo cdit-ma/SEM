@@ -201,6 +201,37 @@ NodeItem::~NodeItem()
     delete textItem;
 }
 
+NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
+{
+    QPointF itemPos = mapFromScene(scenePos);
+
+    qCritical() << itemPos;
+    if(!contains(itemPos)){
+        return MO_NONE;
+    }else if(mouseOverIcon(itemPos)){
+        return MO_ICON;
+    }else if(mouseOverLabel(itemPos)){
+        return MO_LABEL;
+    }else if(mouseOverDefinition(itemPos)){
+        return MO_DEFINITION;
+    }else if(mouseOverHardwareMenu(itemPos)){
+        return MO_HARDWAREMENU;
+    }else if(mouseOverDeploymentIcon(itemPos)){
+        return MO_DEPLOYMENTWARNING;
+    }else{
+        NodeItem::RESIZE_TYPE resize = resizeEntered(itemPos);
+        if(resize == NO_RESIZE){
+            return MO_ITEM;
+        }else if(resize == RESIZE){
+            return MO_RESIZE;
+        }else if(resize == HORIZONTAL_RESIZE){
+            return MO_RESIZE_HOR;
+        }else if(resize == VERTICAL_RESIZE){
+            return MO_RESIZE_VER;
+        }
+    }
+}
+
 /**
  * @brief NodeItem::setZValue Overides the QGraphicsItem::setZValue function to recurse up it's parentNodeItem and set the Z-Value on its parents.
  * @param z The ZValue to set.
@@ -848,9 +879,9 @@ bool NodeItem::mouseOverDeploymentIcon(QPointF mousePosition)
     return false;
 }
 
-bool NodeItem::mouseOverLock(QPointF mousePosition)
+bool NodeItem::mouseOverDefinition(QPointF mousePosition)
 {
-    if (hasDefinition || nodeKind == "HardwareCluster"){
+    if (hasDefinition){
         return lockIconRect().contains(mousePosition);
     }
     return false;
@@ -881,11 +912,10 @@ bool NodeItem::mouseOverIcon(QPointF mousePosition)
  * @param mousePosition
  * @return
  */
-bool NodeItem::mouseOverMenu(QPointF mousePosition)
+bool NodeItem::mouseOverHardwareMenu(QPointF mousePosition)
 {
     if (HARDWARE_CLUSTER) {
-        QRectF menuButtonRect = mapRectToScene(lockIconRect());
-        if (menuButtonRect.contains(mousePosition)) {
+        if(lockIconRect().contains(mousePosition)){
             return true;
         }
     }
@@ -1459,7 +1489,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
             if(isSelected()){
                 // Check if the lock icon was clicked
-                if (mouseOverMenu(event->scenePos())){
+                if (mouseOverHardwareMenu(event->scenePos())){
                     emit NodeItem_showLockMenu(this);
                     return;
                 }
@@ -1486,6 +1516,7 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     if(event->button() == Qt::LeftButton){
         //Handle Double-Clicking the label.
         if(mouseOverLabel(event->pos()) && labelEditable()){
+            qCritical() << "EFIT";
             textItem->setEditMode(true);
             return;
         }
@@ -1525,6 +1556,7 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+     qCritical() << "MOUSE RELEASE" << event->button();
     bool control = event->modifiers().testFlag(Qt::ControlModifier);
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
     if(event->button() == Qt::LeftButton){
@@ -1549,6 +1581,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             }
         }
     }else if(event->button() == Qt::RightButton){
+
         if(!(viewState == NodeView::VS_PAN || viewState == NodeView::VS_PANNING)){
             //Select before opening menu.
             sendSelectSignal(true, control);
@@ -1633,7 +1666,7 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         }else if(isSelected()){
             tooltip = "Entity contains no visible children";
         }
-    }else if(mouseOverLock(event->pos())){
+    }else if(mouseOverDefinition(event->pos())){
         if(hasDefinition){
             tooltip = "This entity has a definition";
         }else{
@@ -2068,9 +2101,6 @@ void NodeItem::setupAspect()
 
 void NodeItem::setupBrushes()
 {
-    //QString nodeKind= getGraphML()->getDataValue("kind");
-    
-    
     if(nodeKind == "BehaviourDefinitions"){
         color = QColor(254,184,126);
     }
@@ -2087,7 +2117,8 @@ void NodeItem::setupBrushes()
             color = QColor(220,220,220);
         }else{
             if(parentNodeItem){
-                color = parentNodeItem->getBackgroundColor().darker(110);
+                color = parentNodeItem->getBackgroundColor().darker(210);
+
             }
         }
 
@@ -2910,11 +2941,14 @@ void NodeItem::sendSelectSignal(bool setSelected, bool controlDown)
 
     if(isSelected() != setSelected){
         if(setSelected && !controlDown){
+             qCritical() << "CLEAR";
             emit GraphMLItem_ClearSelection();
         }
         if(setSelected){
+            qCritical() << "APPEND";
             emit GraphMLItem_AppendSelected(this);
         }else{
+            qCritical() << "REMOVE";
             emit GraphMLItem_RemoveSelected(this);
         }
     }

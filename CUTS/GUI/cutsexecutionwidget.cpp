@@ -42,6 +42,12 @@ CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManag
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
 
     connect(this, SIGNAL(finished(int)), this, SLOT(deleteLater()));
+    connect(this, SIGNAL(executeCPPCompilation(QString)), cutsManager, SLOT(executeCPPCompilation(QString)));
+    connect(this, SIGNAL(executeCUTS(QString,int)), cutsManager, SLOT(executeCUTS(QString,int)));
+    connect(this, SIGNAL(executeMWCGeneration(QString)), cutsManager, SLOT(executeMWCGeneration(QString)));
+    connect(this, SIGNAL(executeXSLGeneration(QString,QString)), cutsManager, SLOT(executeXSLGeneration(QString,QString)));
+    connect(this, SIGNAL(stopProcesses()), cutsManager, SIGNAL(killProcesses()));
+
     connect(cutsManager, SIGNAL(fileToGenerate(QString)), this, SLOT(fileToBeGenerated(QString)));
     connect(cutsManager, SIGNAL(fileIsGenerated(QString,bool)), this, SLOT(fileGenerated(QString, bool)));
     connect(cutsManager, SIGNAL(executedXSLGeneration(bool,QString)), this, SLOT(generationFinished(bool,QString)));
@@ -138,11 +144,6 @@ void CUTSExecutionWidget::setOutputPath(QString outputPath)
     updateButtons();
 }
 
-void CUTSExecutionWidget::runGeneration()
-{
-
-}
-
 void CUTSExecutionWidget::nextButtonPressed()
 {
     stepState();
@@ -176,12 +177,7 @@ void CUTSExecutionWidget::fileGenerated(QString filePath, bool success)
     fileExtensionLayouts[getExtension(filePath)] = fE;
 
     //Check
-    filesGenerated.append(filePath);
-
-    //CHECK STATE.
-    if(filesGenerated.size() == files.size()){
-       setState(RAN_XSL);
-    }
+    filesGenerated.append(filePath);   
 }
 
 void CUTSExecutionWidget::generationFinished(bool success, QString errorString)
@@ -189,8 +185,8 @@ void CUTSExecutionWidget::generationFinished(bool success, QString errorString)
     if(success){
         stepState();
     }else{
-        QMessageBox::critical(this, "CRITICAL", errorString, QMessageBox::Ok);
-        setState(INITIAL);
+        QMessageBox::critical(this, "Process Failed", "Output Error: " + errorString, QMessageBox::Ok);
+        setState(FAILURE);
     }
 }
 
@@ -210,8 +206,8 @@ void CUTSExecutionWidget::gotLiveMakeOutput(QString data)
 
 void CUTSExecutionWidget::gotLiveCUTSOutput(QString data)
 {
-    if(executeText){
-        executeText->append(data);
+    if(runTextBrowser){
+        runTextBrowser->append(data);
     }
 }
 
@@ -227,7 +223,7 @@ void CUTSExecutionWidget::graphmlPathEdited()
 
 void CUTSExecutionWidget::tick()
 {
-    if(state == RUN_MWC || state == RUN_XSL || state == RUN_MWC || state == RUN_EXECUTION){
+    if(state == RUN_MWC || state == RUN_XSL || state == RUN_MWC || state == RUN_MAKE || state == RUN_EXECUTION){
         updateTimeText(currentTime);
     }
 }
@@ -311,9 +307,24 @@ QWidget *CUTSExecutionWidget::setupExecuteWidget()
 
 
     QVBoxLayout* vLayout = new QVBoxLayout(executeWidget);
-    executeText = new QTextBrowser();
-    executeText->setPlaceholderText("Execute");
-    vLayout->addWidget(executeText);
+
+    QHBoxLayout* runLayout = new QHBoxLayout();
+    runIcon = new QLabel();
+    runIcon->setFixedSize(16,16);
+    runIcon->setScaledContents(true);
+    //makeIcon->setIcon
+
+    runLabel = new QLabel("Executing CUTS Model");
+    runLayout->addWidget(runIcon);
+    runLayout->addWidget(runLabel);
+
+
+
+    runTextBrowser = new QTextBrowser();
+    runTextBrowser->setPlaceholderText("CUTS Execution Output");
+    vLayout->addLayout(runLayout);
+    vLayout->addWidget(runTextBrowser);
+
     return executeScrollArea;
 }
 
@@ -414,6 +425,8 @@ void CUTSExecutionWidget::setupLayout()
 
     titleLayout->addWidget(iconLabel);
     titleLayout->addWidget(jobLabel);
+
+
     titleLayout->addStretch();
 
 
@@ -462,6 +475,24 @@ void CUTSExecutionWidget::setupLayout()
 
     verticalLayout->addLayout(outputLayout);
 
+    QHBoxLayout* durationLayout = new QHBoxLayout();
+    QLabel* durationLabel = new QLabel("Duration:");
+    durationLabel->setToolTip("The time, in Seconds that execution will run for.");
+    QLabel* durationIcon = new QLabel();
+    durationIcon->setFixedSize(25,25);
+    durationIcon->setScaledContents(true);
+    durationIcon->setPixmap(QPixmap::fromImage(QImage(":/Actions/Clock.png")));
+    durationWidget = new QSpinBox();
+    durationWidget->setRange(10,6000);
+    durationWidget->setValue(60);
+
+    durationLayout->addWidget(durationIcon);
+    durationLayout->addWidget(durationLabel);
+    durationLayout->addWidget(durationWidget, 1);
+
+    verticalLayout->addLayout(durationLayout);
+
+
     tabWidget = new QTabWidget();
     verticalLayout->addWidget(tabWidget, 1);
     tabWidget->addTab(setupGenerateWidget(), QIcon(":/Actions/Generate.png"), "Generate");
@@ -478,12 +509,25 @@ void CUTSExecutionWidget::setupLayout()
     currentTaskTime = new QLabel("00:00");
     currentTaskTime->setVisible(false);
     nextButton = new QPushButton("Next");
+
+    //Setup a QPushButton to stop the job.
+    stopProcessButton = new QPushButton(QIcon(":/Actions/Job_Stop.png"),"");
+    stopProcessButton->setStyleSheet("border: 0px solid black;");
+    stopProcessButton->setFixedSize(QSize(24,24));
+    stopProcessButton->setToolTip("Stop the Process.");
+
+
+
+    connect(stopProcessButton, SIGNAL(pressed()), this, SIGNAL(stopProcesses()));
+
+
     cancelButton = new QPushButton("Cancel");
 
     connect(nextButton, SIGNAL(clicked()), SLOT(nextButtonPressed()));
     connect(cancelButton, SIGNAL(clicked()), this, SLOT(close()));
     buttonGroups->addStretch(1);
     buttonGroups->addWidget(currentTaskTime);
+    buttonGroups->addWidget(stopProcessButton);
     buttonGroups->addWidget(nextButton);
     buttonGroups->addWidget(cancelButton);
 
@@ -559,14 +603,15 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
             updateTimeText(currentTime);
 
             //Disable the Path/GraphML Button.
-             nextButton->setEnabled(false);
+            nextButton->setEnabled(false);
             graphmlPathEdit->setEnabled(false);
             outputPathEdit->setEnabled(false);
             graphmlPathButton->setEnabled(false);
             outputPathButton->setEnabled(false);
+            durationWidget->setEnabled(false);
 
             //If our Parameters are okay, we can proceed to RUN_XSL
-            cutsManager->executeXSLGeneration(graphmlPathEdit->text(), outputPathEdit->text());
+            emit executeXSLGeneration(graphmlPathEdit->text(), outputPathEdit->text());
         }
     }else if(state == RUN_XSL){
         if(newState == RAN_XSL){
@@ -592,12 +637,18 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
             //Move to the Build Tab.
             tabWidget->setCurrentIndex(1);
             setIconLoading(mwcIcon);
-            cutsManager->executeMWCGeneration(outputPathEdit->text());
+            emit executeMWCGeneration(outputPathEdit->text());
         }
     }else if(state == RUN_MWC){
         if(newState == RAN_MWC){
             state = newState;
             setIconSuccess(mwcIcon, true);
+            //Step onto COmpile.
+            stepState();
+            return;
+        }else if(newState == FAILURE){
+            setIconSuccess(mwcIcon, false);
+            state = newState;
         }
     }else if(state == RAN_MWC){
         if(newState == RUN_MAKE){
@@ -606,7 +657,7 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
             updateTimeText(currentTime);
 
             setIconLoading(makeIcon);
-            cutsManager->executeCPPCompilation(outputPathEdit->text());
+            emit executeCPPCompilation(outputPathEdit->text());
             //DO SHIFT
         }
     }else if(state == RUN_MAKE){
@@ -620,7 +671,10 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
             nextButton->setIcon(tabWidget->tabIcon(2));
             nextButton->setText(tabWidget->tabText(2));
             nextButton->setEnabled(true);
-            currentTime.restart();
+        }else if(newState == FAILURE){
+            setIconSuccess(makeIcon, false);
+
+            state = newState;
         }
     }else if(state == RAN_MAKE){
         if(newState == RUN_EXECUTION){
@@ -628,23 +682,33 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
 
             currentTime.restart();
             updateTimeText(currentTime);
+            setIconLoading(runIcon);
 
             //Move to the Build Tab.
             tabWidget->setCurrentIndex(2);
-            cutsManager->executeCUTS(outputPathEdit->text());
+            emit executeCUTS(outputPathEdit->text(), durationWidget->value());
         }
     }else if(state == RUN_EXECUTION){
         if(newState == RAN_EXECUTION){
+            setIconSuccess(runIcon, true);
             state = newState;
 
             nextButton->setIcon(tabWidget->tabIcon(2));
             nextButton->setText("Re-Execute");
+        }else if(newState == FAILURE){
+            setIconSuccess(runIcon, false);
+            state = RAN_MAKE;
+            setState(RUN_EXECUTION);
+            return;
         }
     }else if(state == RAN_EXECUTION){
         if(newState == RERUN_EXECUTION){
             state = RAN_MAKE;
             setState(RUN_EXECUTION);
+            return;
         }
+    }else if(state == FAILURE){
+        //DO NOTHING.
     }
 
     //IF WE HAVE BEEN RESET
@@ -659,6 +723,7 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
         outputPathEdit->setEnabled(true);
         graphmlPathButton->setEnabled(true);
         outputPathButton->setEnabled(true);
+        durationWidget->setEnabled(true);
 
 
         //Update Next Button
@@ -666,6 +731,17 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
         nextButton->setText(tabWidget->tabText(0));
         nextButton->setEnabled(false);
         nextButton->setVisible(true);
+    }else if(state == FAILURE){
+        //Update Next Button
+        nextButton->setVisible(false);
+    }
+
+    if(state == RUN_EXECUTION || state == RUN_MAKE || state == RUN_MWC || state == RUN_XSL){
+        nextButton->setEnabled(false);
+        stopProcessButton->setVisible(true);
+    }else{
+        nextButton->setEnabled(true);
+        stopProcessButton->setVisible(false);
     }
 }
 

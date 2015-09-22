@@ -186,7 +186,6 @@ signals:
 
 public slots:
 
-
     void setStateResizing();
     void setStateMove();
     void setStateMoving();
@@ -201,14 +200,13 @@ public slots:
     void exportSnippet();
     void exportProject();
     void importSnippet(QString fileName, QString fileData);
-    void minimapPressed(QMouseEvent* event);
-
-    void minimapReleased(QMouseEvent* event);
-    void minimapMoved(QMouseEvent* event);
 
     void scrollEvent(int delta);
     void triggerAction(QString action);
-    void minimapPan(QPointF delta);
+    void minimapPan();
+    void minimapPanning(QPointF delta);
+    void minimapPanned();
+    void minimapScrolled(int delta);
     void alignSelectionHorizontally();
     void alignSelectionVertically();
 
@@ -323,6 +321,7 @@ public slots:
     void nodeEntered(QString ID, bool enter);
 
 private:
+    void handleSelection(GraphMLItem* item, bool setSelected, bool controlDown);
     void setState(VIEW_STATE newState);
     void transition();
     void selectJenkinsImportedNodes();

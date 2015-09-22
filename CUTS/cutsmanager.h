@@ -32,6 +32,7 @@ public:
 
 
 signals:
+    void killProcesses();
     void localDeploymentOkay();
     //Emitted by the slot queueXSLTransform
     void fileToGenerate(QString filePath);
@@ -54,7 +55,8 @@ signals:
     void gotLiveCPPOutput(QString output);
     void gotLiveCUTSOutput(QString output);
     void _gotLiveOutput(QString output);
-public slots:
+private slots:
+
     //Generates all required artifacts for the provided graphml document.
     void executeXSLGeneration(QString graphmlPath, QString outputPath);
     //Generates the MWC workspace based on the provided mwc file.
@@ -66,7 +68,7 @@ public slots:
     void executeCUTS(QString path, int executionTime=60);
 
     //Called once a QProcess finishes executing
-     void processFinished(int code, QProcess::ExitStatus status);
+    void processFinished(int code, QProcess::ExitStatus status);
 
 private:
     void processGraphml(QString graphmlPath, QString outputPath);
@@ -120,6 +122,7 @@ private:
     QString modelName;
     bool gotCPPCompiler;
 
+    QList<QProcess*> processes;
     //A Queue used to store the Process' which need to be executed
     QQueue<ProcessStruct> queue;
     //Used to store the current number of executing Process'

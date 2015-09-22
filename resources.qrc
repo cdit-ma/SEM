@@ -161,5 +161,6 @@
         <file alias="Computer.png">Resources/Images/Actions/Computer.png</file>
         <file alias="ConnectTo.png">Resources/Images/Actions/ConnectTo.png</file>
         <file alias="MenuCluster.png">Resources/Images/Actions/MenuCluster.png</file>
+        <file alias="Clock.png">Resources/Images/Actions/Clock.png</file>
     </qresource>
 </RCC>

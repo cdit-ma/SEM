@@ -10,8 +10,7 @@ my $modelname   = "";
 my $executionTime = 60;
 my $middleware = "tao";
 $nodename = "localhost";
-GetOptions ("name=s" => \$modelname, "time=i" => \$executionTime, "middleware=s" => \$middleware)
-or die("Error in command line arguments\n");
+GetOptions ("name=s" => \$modelname, "time=i" => \$executionTime, "middleware=s" => \$middleware) or die("Error in command line arguments\n");
 
 use lib "$ENV{'ACE_ROOT'}/bin";
 use PerlACE::Run_Test;
@@ -35,6 +34,8 @@ $status = 0;
 $dat_file = "$modelname.cdd";
 $cdp_file = "$modelname.cdp";
 
+# CLEAN OLD FILES
+delete_ior_files();
 $nsior = PerlACE::LocalFile ("ns.ior");
 
 PerlACE::add_lib_path ('../lib');

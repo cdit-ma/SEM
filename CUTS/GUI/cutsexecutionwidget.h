@@ -13,6 +13,7 @@
 #include <QScrollArea>
 #include <QTextBrowser>
 #include <QTime>
+#include <QSpinBox>
 struct FileExtension{
     QString extension;
     QStringList files;
@@ -26,7 +27,7 @@ struct FileExtension{
     QLabel* label;
     bool allSuccess;
 };
-enum CUTS_EXECUTION_STATES {INITIAL, PARAMETERS_OKAY, RUN_XSL, RAN_XSL, RUN_MWC, RAN_MWC, RUN_MAKE, RAN_MAKE, RUN_EXECUTION, RAN_EXECUTION, RERUN_EXECUTION};
+enum CUTS_EXECUTION_STATES {INITIAL, PARAMETERS_OKAY, RUN_XSL, RAN_XSL, RUN_MWC, RAN_MWC, RUN_MAKE, RAN_MAKE, RUN_EXECUTION, RAN_EXECUTION, RERUN_EXECUTION, FAILURE};
 
 //Todo
 //Deal with failure of states better.
@@ -41,6 +42,13 @@ public:
 
 
 
+signals:
+
+    void executeXSLGeneration(QString graphmlPath, QString outputPath);
+    void executeMWCGeneration(QString mwcPath);
+    void executeCPPCompilation(QString makePath);
+    void executeCUTS(QString path, int executionTime);
+    void stopProcesses();
 
 public slots:
     void stateFinished(int code);
@@ -48,7 +56,6 @@ public slots:
     void selectOutputPath();
     void setGraphMLPath(QString path);
     void setOutputPath(QString outputPath);
-    void runGeneration();
 
     void nextButtonPressed();
     void fileToBeGenerated(QString filePath);
@@ -93,6 +100,7 @@ private:
     //Top Section is contained in a titleWidget.
     QWidget* titleWidget;
     QWidget* buttonWidget;
+    QSpinBox* durationWidget;
 
     bool graphmlPathOk;
     bool outputPathOk;
@@ -105,9 +113,11 @@ private:
     QLineEdit* graphmlPathEdit;
     QPushButton* graphmlPathButton;
     QPushButton* outputPathButton;
+    QPushButton* stopProcessButton;
     QLineEdit* outputPathEdit;
     QLabel* graphmlPathIcon;
     QLabel* outputPathIcon;
+
 
 
 
@@ -129,7 +139,6 @@ private:
 
     QMovie* loadingMovie;
     QVBoxLayout* generateLayout;
-    QTextBrowser* executeText;
     CUTSManager* cutsManager;
 
     QLabel* jobLabel;
@@ -143,6 +152,9 @@ private:
     QLabel* makeLabel;
     QTextBrowser* makeTextBrowser;
 
+    QLabel* runIcon;
+    QLabel* runLabel;
+    QTextBrowser* runTextBrowser;
 
     QLabel* currentTaskTime;
 

@@ -33,12 +33,15 @@ class NodeItem : public GraphMLItem
     Q_INTERFACES(QGraphicsItem)
 
 public:
+    enum MOUSEOVER_TYPE{MO_NONE, MO_ITEM, MO_ICON, MO_LABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_EXPAND, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
+
     enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
     NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW=false);
     ~NodeItem();
 
 
 
+    MOUSEOVER_TYPE getMouseOverType(QPointF scenePos);
     //Used Methods
     void setZValue(qreal z);
     void restoreZValue();
@@ -95,12 +98,13 @@ public:
     bool labelEditable();
 
 
+
     bool mouseOverModelCircle(QPointF mousePosition);
     bool mouseOverLabel(QPointF mousePosition);
     bool mouseOverDeploymentIcon(QPointF mousePosition);
-    bool mouseOverLock(QPointF mousePosition);
+    bool mouseOverDefinition(QPointF mousePosition);
     bool mouseOverIcon(QPointF mousePosition);
-    bool mouseOverMenu(QPointF mousePosition);
+    bool mouseOverHardwareMenu(QPointF mousePosition);
 
 
 
@@ -241,6 +245,7 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+
     void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);

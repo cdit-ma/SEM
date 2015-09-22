@@ -145,6 +145,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     numberOfNotifications = 1;
     notificationNumber = 0;
 
+
 }
 
 
@@ -1008,31 +1009,6 @@ void NodeView::importSnippet(QString fileName, QString fileData)
     }
 }
 
-void NodeView::minimapPressed(QMouseEvent *event)
-{
-    MINIMAP_EVENT = true;
-    mousePressEvent(event);
-    //MINIMAP_EVENT = false;
-}
-
-void NodeView::minimapReleased(QMouseEvent *event)
-{
-    //MINIMAP_EVENT = true;
-    mouseReleaseEvent(event);
-    MINIMAP_EVENT = false;
-
-    // MINIMAP_EVENT = false;
-
-}
-
-void NodeView::minimapMoved(QMouseEvent *event)
-{
-    //MINIMAP_EVENT = true;
-    mouseMoveEvent(event);
-    //MINIMAP_EVENT = false;
-}
-
-
 void NodeView::scrollEvent(int delta)
 {
     QRectF viewRect = viewport()->rect();
@@ -1054,25 +1030,36 @@ void NodeView::scrollEvent(int delta)
 
 
 
-void NodeView::minimapPan(QPointF delta)
+void NodeView::minimapPanning(QPointF delta)
 {
-    //QRectF rectangle = getVisibleRect();
-    //rectangle.translate(delta);
 
-    //getModelItem()->adjustPos(delta);
-    //updateViewCenterPoint();
+    if(viewState == VS_PAN){
+        setState(VS_PANNING);
+    }
+    if(viewState == VS_PANNING){
+        //translate to scenepos.
 
-    //centerViewOn(getVisibleRect().center() + delta);
-    //qCritical() << "Before: " << getVisibleRect().center();
+        adjustModelPosition(delta);
+    }
+}
 
+void NodeView::minimapPanned()
+{
+    if(viewState == VS_PANNING){
+        if(selectedIDs.isEmpty()){
+            setState(VS_NONE);
+        }else{
+            setState(VS_SELECTED);
+        }
+    }
+}
+
+void NodeView::minimapScrolled(int delta)
+{
     ViewportAnchor currentAnchor = transformationAnchor();
-    setTransformationAnchor(NoAnchor);
-    translate(-delta.x(), -delta.y());
+    setTransformationAnchor(AnchorViewCenter);
+    scrollEvent(delta);
     setTransformationAnchor(currentAnchor);
-
-    //qCritical() << "After: "  << getVisibleRect().center();
-
-    //*/
 }
 
 
@@ -1120,6 +1107,13 @@ void NodeView::triggerAction(QString action)
     }
 
     view_TriggerAction(action);
+}
+
+void NodeView::minimapPan()
+{
+    if(viewState == VS_NONE || viewState == VS_SELECTED){
+        setState(VS_PAN);
+    }
 }
 
 
@@ -1610,6 +1604,39 @@ void NodeView::nodeEntered(QString ID, bool enter)
     }
 }
 
+/**
+ * @brief NodeView::handleSelection - Called my MouseHandlers to change the selection state.
+ * @param item - The item to change selection of.
+ * @param setSelected - Should the item be selected.
+ * @param controlDown - Is Control Pressed.
+ */
+void NodeView::handleSelection(GraphMLItem *item, bool setSelected, bool controlDown)
+{
+    if(!item){
+        return;
+    }
+
+    if(item->isSelected() && controlDown){
+        //DeSelect on control click.
+        setSelected = false;
+    }
+
+    if(item->isSelected() != setSelected){
+        if(setSelected && !controlDown){
+            //If we are to select, but control isn't down, we should clear.
+            clearSelection();
+        }
+
+        if(setSelected){
+            //Append to selection
+            appendToSelection(item);
+        }else{
+            //Remove from Selection.
+            removeFromSelection(item);
+        }
+    }
+}
+
 void NodeView::setState(NodeView::VIEW_STATE state)
 {
     if(!isMainView() && state > VS_SELECTED){
@@ -1714,6 +1741,7 @@ void NodeView::_deleteFromIDs(QStringList IDs)
  */
 void NodeView::updateActionsEnabledStates()
 {
+    qCritical() << "updateActionsEnabledStates";
     QString selectedID = getSelectedNodeID();
     QString defnID;
     QString implID;
@@ -2920,6 +2948,7 @@ GraphMLItem *NodeView::getGraphMLItemFromScreenPos(QPoint pos)
 {
     QPointF scenePos = mapToScene(pos);
     QGraphicsItem* item = scene()->itemAt(scenePos, QTransform());
+
     return dynamic_cast<GraphMLItem*>(item);
 }
 
@@ -2976,7 +3005,7 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
                 if(!(event->modifiers() & Qt::ControlModifier)){
                     clearSelection();
                 }
-                appendToSelection(item, false);
+                appendToSelection(item);
             }
         }
         if(selectedIDs.length() > 0){
@@ -2993,6 +3022,7 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         return;
     }
 
+    return;
     QGraphicsView::mouseReleaseEvent(event);
 }
 
@@ -3037,11 +3067,6 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
  */
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
-    //if(toolbarJustClosed){
-     //   toolbarJustClosed = false;
-     //   return;
-    //}//
-
     // TODO: Need to catch the case where the menu is closed
     // when MEDEA window steals the focus
     // need this in case there is an opened lock menu
@@ -3049,31 +3074,66 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         prevLockMenuOpened->close();
     }
 
+    Qt::MouseButton buttonPressed = event->button();
+    bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
 
-    if(viewState == VS_NONE || viewState == VS_SELECTED){
-        GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
-        if(!item && (event->button() == Qt::LeftButton)){
-            // clear the selection and disable dock buttons
-            clearSelection();
-        }
-        if(event->button() == Qt::RightButton){
-            setState(VS_PAN);
-            panningOrigin = event->pos();
-            panningSceneOrigin = mapToScene(panningOrigin);
+    switch(buttonPressed){
+    case Qt::LeftButton:{
+        QPointF scenePos = mapToScene(event->pos());
+        GraphMLItem* itemUnderMouse = getGraphMLItemFromScreenPos(event->pos());
+
+        switch(viewState){
+        case VS_NONE:
+            //Handle as Selected.
+        case VS_SELECTED:
+            //If we are currently in the None/Selected states.
+            if(itemUnderMouse){
+                //Set state as selected5
+                setState(VS_SELECTED);
+                handleSelection(itemUnderMouse, true, controlPressed);
+
+                if(itemUnderMouse->isNodeItem()){
+                    NodeItem* node = (NodeItem*)itemUnderMouse;
+                    NodeItem::MOUSEOVER_TYPE moType = node->getMouseOverType(scenePos);
+
+                    switch(moType){
+                    case NodeItem::MO_HARDWAREMENU:
+                        showHardwareClusterChildrenViewMenu(node);
+                        break;
+                    }
+                }
+            }else{
+                //If Left Click on no item
+                clearSelection();
+            }
             return;
-        }
-    }else if(viewState == VS_RUBBERBAND){
-        if(event->button() == Qt::LeftButton){
+        case VS_RUBBERBAND:
             setState(VS_RUBBERBANDING);
             rubberBandOrigin = event->pos();
             //Move rubberband to the position on the screen.
             rubberBand->setGeometry(QRect(rubberBandOrigin, QSize()));
             rubberBand->setVisible(true);
-        }
-        return;
-    }
+            break;
 
-    QGraphicsView::mousePressEvent(event);
+        }
+        break;
+    }
+    case Qt::RightButton:{
+        switch(viewState){
+        case VS_NONE:
+            //Handle as Selected.
+        case VS_SELECTED:
+            setState(VS_PAN);
+            panningOrigin = event->pos();
+            panningSceneOrigin = mapToScene(panningOrigin);
+            break;
+        }
+        break;
+    }
+    }
+    return;
+
+    //QGraphicsView::mousePressEvent(event);
 }
 
 
@@ -3496,7 +3556,10 @@ void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 
     // update enabled states of menu and toolbar actions
     if (updateActions) {
+        qCritical() << "appendToSelection";
         updateActionsEnabledStates();
+    }else{
+        qCritical() << "appendToSelection: NOT UPDATE";
     }
 }
 
@@ -3511,6 +3574,7 @@ void NodeView::removeFromSelection(GraphMLItem *item)
 
     // added this here because actions weren't being enabled/disabled
     // correctly when selecting/deselting items using the CTRL key
+    qCritical() << "REMOVED";
     updateActionsEnabledStates();
 }
 

@@ -5,19 +5,21 @@
 #include <QPen>
 #define GRID_COUNT 50
 //#define LINEWIDTH 400
-#define LINEWIDTH 10
+#define LINEWIDTH 20
 #define GRACE 1000
 
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 #define MAX_ZOOM_RATIO 50
 #define MIN_ZOOM_RATIO 2
+#include <QVBoxLayout>
+#include <QLabel>
 
-NodeViewMinimap::NodeViewMinimap(QObject *parent)
+NodeViewMinimap::NodeViewMinimap(QObject*)
 {
-    Q_UNUSED(parent);
     isPanning = false;
     setMouseTracking(true);
+    setupLayout();
 }
 
 void NodeViewMinimap::centerView()
@@ -25,6 +27,29 @@ void NodeViewMinimap::centerView()
     if (scene()) {
         fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
     }
+}
+
+void NodeViewMinimap::setupLayout()
+{
+    QVBoxLayout* layout = new QVBoxLayout();
+
+
+    layout->setSpacing(0);
+    layout->setMargin(0);
+
+
+
+
+    QLabel* label = new QLabel("Minimap:");
+
+    label->setStyleSheet("color:#3C3C3C; font-size:10px; font-weight: bold; background-color: rgb(210,210,210);border-bottom: 1px solid;border-color: black;padding-bottom: 1px;");
+    label->setAlignment(Qt::AlignCenter);
+
+
+    layout->addWidget(label);
+    layout->addStretch();
+
+    setLayout(layout);
 }
 
 void NodeViewMinimap::viewportRectChanged(QRectF viewport)
@@ -55,11 +80,21 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
         path -= viewPath;
 
         painter->setPen(Qt::NoPen);
-        painter->setBrush(QBrush(QColor(0,0,0,50)));
+        QBrush brush(QColor(0,0,0,100));
+
+
+        painter->setBrush(brush);
         painter->drawPath(path);
-        painter->setBrush(Qt::NoBrush);
+
+
+        brush.setColor(QColor(0,0,0,0));
+        painter->setBrush(brush);
+
 
         QPen pen(QColor(250,250,250));
+        if(isPanning){
+            pen.setColor(QColor(0,0,250));
+        }
         pen.setWidth(LINEWIDTH);
         painter->setPen(pen);
         painter->drawRect(viewport);
@@ -71,62 +106,30 @@ void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
 {
     if(viewportContainsPoint(event->pos()) && event->button() == Qt::LeftButton){
         isPanning = true;
-
-        lastEventPos = sceneRect().topLeft() - QPointF(10000,10000);
-
-
-        QPointF newPoint = mapToScene(lastEventPos.toPoint());
-
-        QMouseEvent* fakePress = new QMouseEvent( (QEvent::MouseButtonPress), newPoint.toPoint(),
-                Qt::LeftButton,
-                Qt::LeftButton,
-                Qt::NoModifier);
-
-        minimap_Pressed(fakePress);
-        previousScenePosition = event->pos();
+        previousScenePos = mapToScene(event->pos());
+        emit minimap_Pan();
+        update();
     }
-    event->setAccepted(true);
-
 }
 
 void NodeViewMinimap::mouseReleaseEvent(QMouseEvent *event)
 {
-     isPanning = false;
-
-
-     QMouseEvent* fakePress = new QMouseEvent( (QEvent::MouseButtonRelease), lastEventPos,
-             Qt::LeftButton,
-             Qt::NoButton,
-             Qt::NoModifier);
-
-     minimap_Released(fakePress);
-     event->setAccepted(true);
+    isPanning = false;
+    emit minimap_Panned();
+    update();
 }
 
 void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
 {
+    if(isPanning){
+        QPoint currentMousePos = event->pos();
+        QPointF currentPos = mapToScene(currentMousePos);
+        QPointF delta = previousScenePos - currentPos;
+        emit minimap_Panning(delta);
+        //Update the previous Scene position after the view has panned, such that we get smooth movement.
+        previousScenePos = mapToScene(currentMousePos);
 
-   // if(viewportContainsPoint(event->pos())){
-        if(isPanning){
-
-            //event->sc
-            QPointF currentPos = event->pos();
-            QPointF delta = currentPos - previousScenePosition;
-            lastEventPos -= delta;
-
-
-            QPointF newPoint = mapToScene(lastEventPos.toPoint());
-
-            QMouseEvent *fakePress = new QMouseEvent(QEvent::MouseMove, newPoint.toPoint(),
-                    Qt::LeftButton,
-                    Qt::LeftButton,
-                    Qt::NoModifier);
-
-            minimap_Moved(fakePress);
-            //lastEventPos -= delta;
-            previousScenePosition = currentPos;
-       }
-   // }
+    }
 }
 
 void NodeViewMinimap::wheelEvent(QWheelEvent *event)

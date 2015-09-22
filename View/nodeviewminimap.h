@@ -8,15 +8,11 @@ class NodeViewMinimap : public QGraphicsView
     Q_OBJECT
 public:
     explicit NodeViewMinimap(QObject *parent = 0);
-    ;
 signals:
-    void minimap_Panned(QPointF delta);
+    void minimap_Panning(QPointF delta);
+    void minimap_Panned();
+    void minimap_Pan();
     void minimap_Scrolled(int delta);
-
-    void minimap_Pressed(QMouseEvent* event);
-    void minimap_Moved(QMouseEvent* event);
-    void minimap_Released(QMouseEvent* event);
-
 
 
 public slots:
@@ -24,12 +20,11 @@ public slots:
     void centerView();
 
 private:
+    void setupLayout();
+    QPointF previousScenePos;
     QRectF viewport;
-    QPointF lastEventPos;
     bool viewportContainsPoint(QPointF localPos);
     bool isPanning;
-    QPointF previousScenePosition;
-    // QGraphicsView interface
 protected:
     void drawForeground(QPainter *painter, const QRectF &rect);
 
