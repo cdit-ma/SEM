@@ -33,7 +33,7 @@ class NodeItem : public GraphMLItem
     Q_INTERFACES(QGraphicsItem)
 
 public:
-    enum MOUSEOVER_TYPE{MO_NONE, MO_ITEM, MO_ICON, MO_LABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_EXPAND, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
+    enum MOUSEOVER_TYPE{MO_NONE, MO_ITEM, MO_ICON, MO_LABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_MODELCIRCLE, MO_DEPLOYMENTWARNING, MO_EXPAND, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
 
     enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
     NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW=false);
@@ -83,8 +83,9 @@ public:
 
     bool isSelected();
     bool isLocked();
+    bool isModel();
     void setLocked(bool locked);
-    bool isPainted();
+
     bool isAncestorSelected();
 
 
@@ -180,7 +181,7 @@ signals:
 
  	void Nodeitem_HasFocus(bool hasFocus);
 
-    void NodeItem_showLockMenu(NodeItem* nodeItem);
+    void NodeItem_ShowHardwareMenu(NodeItem* nodeItem);
     void NodeItem_lockMenuClosed(NodeItem* nodeItem);
 
 
@@ -197,7 +198,7 @@ signals:
 
     void nodeItemMoved();
 
-    void nodeItem_menuClicked(int viewMode);
+    void nodeItem_HardwareMenuClicked(int viewMode);
 
 
 public slots:
@@ -239,12 +240,14 @@ public slots:
 
  	void menuClosed();
     void updateChildrenViewMode(int viewMode = -1);
+    void hardwareClusterMenuItemPressed();
+    int getHardwareClusterChildrenViewMode();
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
 
     void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
@@ -278,7 +281,7 @@ private:
     void updateModelData();
 
 
-    void resizeToOptimumSize(bool updateParent=true);
+    void resizeToOptimumSize(bool updateParent=true, MOUSEOVER_TYPE type = MO_RESIZE);
     void setWidth(qreal width, bool updateParent=true);
     void setHeight(qreal height, bool updateParent=true);
     void setSize(qreal w, qreal h);
@@ -293,7 +296,6 @@ private:
     void setupGraphMLConnections();
     void setupChildrenViewOptionMenu();
 
-    void setPaintObject(bool paint);
     void updateGraphMLPosition();
     void updateChildrenOnChange();
     void retrieveGraphMLData();
@@ -329,7 +331,9 @@ private:
     QRadioButton* connectedChildren;
     QRadioButton* unConnectedChildren;
 
-    bool HARDWARE_CLUSTER;
+    bool IS_HARDWARE_CLUSTER;
+    bool IS_MODEL;
+
     int CHILDREN_VIEW_MODE;
     bool sortTriggerAction;
     bool eventFromMenu;
@@ -365,7 +369,6 @@ private:
     bool isImplOrInstance;
 
     bool LOCKED_POSITION;
-    bool PAINT_OBJECT;
 
     bool isHighlighted;
     bool isNodeMoving;
@@ -419,6 +422,8 @@ private:
 
 
 
+
+    MOUSEOVER_TYPE mouseDownType;
 
     QRectF currentSceneRect;
 

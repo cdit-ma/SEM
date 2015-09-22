@@ -514,21 +514,6 @@ bool NodeView::allowedFocus(QWidget *widget)
 
 
 /**
- * @brief NodeView::updateDisplayedChildrenNodes
- * @param viewMode
- */
-void NodeView::updateDisplayedChildrenNodes(int viewMode)
-{
-    foreach (QString ID, selectedIDs) {
-        NodeItem* item = getNodeItemFromID(ID);
-        if (item) {
-            item->updateChildrenViewMode(viewMode);
-        }
-    }
-}
-
-
-/**
  * @brief NodeView::getSelectedNode
  * This returns the currently selected node.
  * If there are multiple nodes selected, it returns null.
@@ -1143,8 +1128,6 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
             break;
         }
     }
-
-
 }
 
 
@@ -1174,6 +1157,16 @@ void NodeView::sortSelection()
     }
 
 
+}
+
+void NodeView::hardwareClusterMenuClicked(int viewMode)
+{
+    foreach(QString ID, selectedIDs){
+        NodeItem* node = getNodeItemFromID(ID);
+        if(node){
+            node->updateChildrenViewMode(viewMode);
+        }
+    }
 }
 
 
@@ -1552,18 +1545,20 @@ void NodeView::setEventFromEdgeItem()
  */
 void NodeView::showHardwareClusterChildrenViewMenu(NodeItem *nodeItem)
 {
-    QMenu* menu = nodeItem->getChildrenViewOptionMenu();
-    if (menu) {
-        if (menu == prevLockMenuOpened) {
-            menu->close();
-            prevLockMenuOpened = 0;
-        } else {
-            QRectF lockRect = nodeItem->geChildrenViewOptionMenuSceneRect();
-            QPoint offset(lockRect.width()/5, -lockRect.width()/15);
-            QPointF menuPos = mapFromScene(lockRect.bottomLeft() + offset);
-            menuPos = mapToGlobal(menuPos.toPoint());
-            menu->popup(menuPos.toPoint());
-            prevLockMenuOpened = menu;
+    if(onlyHardwareClustersSelected()){
+        QMenu* menu = nodeItem->getChildrenViewOptionMenu();
+        if (menu) {
+            if (menu == prevLockMenuOpened) {
+                menu->close();
+                prevLockMenuOpened = 0;
+            } else {
+                QRectF lockRect = nodeItem->geChildrenViewOptionMenuSceneRect();
+                QPoint offset(lockRect.width()/5, -lockRect.width()/15);
+                QPointF menuPos = mapFromScene(lockRect.bottomLeft() + offset);
+                menuPos = mapToGlobal(menuPos.toPoint());
+                menu->popup(menuPos.toPoint());
+                prevLockMenuOpened = menu;
+            }
         }
     }
 }
@@ -1602,6 +1597,18 @@ void NodeView::nodeEntered(QString ID, bool enter)
             highlightedID = "";
         }
     }
+}
+
+bool NodeView::onlyHardwareClustersSelected()
+{
+    //Only allow menu to show when we only have Hardware Clusters selected.
+    foreach(QString ID, selectedIDs){
+        NodeItem* nodeItem = getNodeItemFromID(ID);
+        if(!(nodeItem && nodeItem->getNodeKind() == "HardwareCluster")){
+            return false;
+        }
+    }
+    return !selectedIDs.isEmpty();
 }
 
 /**
@@ -1806,10 +1813,11 @@ void NodeView::showToolbar(QPoint position)
             GraphMLItem* item = getGraphMLItemFromHash(ID);
             if (item->isNodeItem()) {
                 NodeItem* nodeItem = (NodeItem*) item;
-                if (!nodeItem->isPainted()) {
+                if (nodeItem->isModel()){
                     // if there is a non-painted item that is selected, don't show the toolbar
                     return;
                 } else if (item->sceneBoundingRect().contains(toolbarPosition)) {
+
                     toolbarPositionContained = true;
                 }
                 selectedNodeItems.append(nodeItem);
@@ -2624,7 +2632,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
             connect(GUIItem, SIGNAL(GraphMLItem_CenterAspects()), this, SLOT(fitToScreen()));
 
             if(nodeItem){
-                if(nodeItem->getNodeKind() == "Model"){
+                if(nodeItem->isModel()){
                     connect(nodeItem, SIGNAL(model_PositionChanged()), this, SIGNAL(view_ModelSizeChanged()));
                 }
 
@@ -2633,13 +2641,15 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
                 connect(nodeItem, SIGNAL(NodeItem_SortModel()), this, SLOT(sortModel()));
                 connect(nodeItem, SIGNAL(NodeItem_MoveFinished()), this, SLOT(moveFinished()));
                 connect(nodeItem, SIGNAL(NodeItem_ResizeFinished(QString)), this, SLOT(resizeFinished(QString)));
+
+                connect(nodeItem, SIGNAL(nodeItem_HardwareMenuClicked(int)), this, SLOT(hardwareClusterMenuClicked(int)));
+
                 connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridLines(bool)));
                 connect(nodeItem, SIGNAL(Nodeitem_HasFocus(bool)), this, SLOT(editableItemHasFocus(bool)));
 
-                connect(nodeItem, SIGNAL(NodeItem_showLockMenu(NodeItem*)), this, SLOT(showHardwareClusterChildrenViewMenu(NodeItem*)));
+                connect(nodeItem, SIGNAL(NodeItem_ShowHardwareMenu(NodeItem*)), this, SLOT(showHardwareClusterChildrenViewMenu(NodeItem*)));
                 connect(nodeItem, SIGNAL(NodeItem_lockMenuClosed(NodeItem*)), this, SLOT(hardwareClusterChildrenViewMenuClosed(NodeItem*)));
                 connect(this, SIGNAL(view_edgeConstructed()), nodeItem, SLOT(updateChildrenViewMode()));
-                connect(nodeItem, SIGNAL(nodeItem_menuClicked(int)), toolbar, SLOT(hardwareClusterMenuClicked(int)));
 
             }
         }
@@ -2766,13 +2776,16 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
 
     } else if (nodeItem->getNodeKind() == "AggregateInstance") {
 
+
         // hide all AggregateInstances except for in OutEventPortImpls
         NodeItem* parentItem = nodeItem->getParentNodeItem();
-        if (parentItem && (parentItem->getNodeKind() != "AggregateInstance"
-                           && parentItem->getNodeKind() != "Aggregate"
-                           && parentItem->getNodeKind() != "OutEventPortImpl"))
-        {
-            nodeItem->setHidden(true);
+
+        if(parentItem){
+            QStringList shownKinds;
+            shownKinds << "AggregateInstance" << "Aggregate" << "OutEventPortImpl" << "InEventPortImpl";
+            if(!shownKinds.contains(parentItem->getNodeKind())){
+                nodeItem->setHidden(true);
+            }
         }
 
     }
@@ -2947,9 +2960,26 @@ GraphMLItem *NodeView::getGraphMLItemFromHash(QString ID)
 GraphMLItem *NodeView::getGraphMLItemFromScreenPos(QPoint pos)
 {
     QPointF scenePos = mapToScene(pos);
-    QGraphicsItem* item = scene()->itemAt(scenePos, QTransform());
 
-    return dynamic_cast<GraphMLItem*>(item);
+    QGraphicsItem* item = scene()->itemAt(scenePos, QTransform());
+    if(!item){
+        return 0;
+    }
+
+    GraphMLItem* graphmlItem =  dynamic_cast<GraphMLItem*>(item);
+    if(graphmlItem){
+        return graphmlItem;
+    }
+
+    while(item){
+        item = item->parentItem();
+
+        graphmlItem =  dynamic_cast<GraphMLItem*>(item);
+        if(graphmlItem){
+            return graphmlItem;
+        }
+    }
+    return 0;
 }
 
 
@@ -3022,7 +3052,7 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         return;
     }
 
-    return;
+
     QGraphicsView::mouseReleaseEvent(event);
 }
 
@@ -3075,7 +3105,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
     }
 
     Qt::MouseButton buttonPressed = event->button();
-    bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
+
 
     switch(buttonPressed){
     case Qt::LeftButton:{
@@ -3086,34 +3116,20 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         case VS_NONE:
             //Handle as Selected.
         case VS_SELECTED:
-            //If we are currently in the None/Selected states.
-            if(itemUnderMouse){
-                //Set state as selected5
-                setState(VS_SELECTED);
-                handleSelection(itemUnderMouse, true, controlPressed);
-
-                if(itemUnderMouse->isNodeItem()){
-                    NodeItem* node = (NodeItem*)itemUnderMouse;
-                    NodeItem::MOUSEOVER_TYPE moType = node->getMouseOverType(scenePos);
-
-                    switch(moType){
-                    case NodeItem::MO_HARDWAREMENU:
-                        showHardwareClusterChildrenViewMenu(node);
-                        break;
-                    }
-                }
-            }else{
-                //If Left Click on no item
+            //If we are currently in the None/Selected states and there is no item under the mouse/.
+            if(!itemUnderMouse){
+                //If Left Click on no item, clear selection.
                 clearSelection();
+                return;
             }
-            return;
+            break;
         case VS_RUBBERBAND:
             setState(VS_RUBBERBANDING);
             rubberBandOrigin = event->pos();
             //Move rubberband to the position on the screen.
             rubberBand->setGeometry(QRect(rubberBandOrigin, QSize()));
             rubberBand->setVisible(true);
-            break;
+            return;
 
         }
         break;
@@ -3126,14 +3142,13 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             setState(VS_PAN);
             panningOrigin = event->pos();
             panningSceneOrigin = mapToScene(panningOrigin);
-            break;
+            return;
         }
         break;
     }
     }
-    return;
 
-    //QGraphicsView::mousePressEvent(event);
+    QGraphicsView::mousePressEvent(event);
 }
 
 
@@ -3749,7 +3764,7 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
     // this stops unnecessary disabling of docks/dock buttons
     // if the call came from a painted node item, just clear the selection
     NodeItem* senderItem = dynamic_cast<NodeItem*>(QObject::sender());
-    if (senderItem && senderItem->isPainted()) {
+    if (senderItem) {
         return;
     }
 
@@ -3837,7 +3852,7 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
 
     while(nodeItems.size() > 0){
         NodeItem* currentNode = nodeItems.takeFirst();
-        if(currentNode->intersectsRectangle(selectionRectangle) && currentNode->isVisible() && currentNode->isPainted()){
+        if(currentNode->intersectsRectangle(selectionRectangle) && currentNode->isVisible()){
             appendToSelection(currentNode);
         }else{
             nodeItems << currentNode->getChildNodeItems();
@@ -4011,7 +4026,7 @@ void NodeView::fitToScreen(QList<NodeItem*> itemsToCenter, double padding, bool 
     // go through each item and store the left/right/top/bottom most coordinates
     // of the visible items to create the visible itemsBoundingRect to center on
     foreach (NodeItem* nodeItem, itemsToCenter) {
-        if (nodeItem && nodeItem->isPainted() && !nodeItem->isHidden() && nodeItem->isInAspect()) {
+        if (nodeItem && !nodeItem->isModel() && !nodeItem->isHidden() && nodeItem->isInAspect()) {
             QPointF pf = nodeItem->scenePos();
             if (pf.x() < leftMostX) {
                 leftMostX = pf.x();

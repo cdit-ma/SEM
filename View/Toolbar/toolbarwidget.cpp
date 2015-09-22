@@ -135,11 +135,13 @@ void ToolbarWidget::updateDisplayedChildren()
 {
     QRadioButton* rb = qobject_cast<QRadioButton*>(QObject::sender());
     if (rb == allNodes) {
-        nodeView->updateDisplayedChildrenNodes(0);
+        nodeView->hardwareClusterMenuClicked(0);
     } else if (rb == connectedNodes) {
-        nodeView->updateDisplayedChildrenNodes(1);
+        nodeView->hardwareClusterMenuClicked(1);
     } else if (rb == unconnectedNodes) {
-        nodeView->updateDisplayedChildrenNodes(2);
+        nodeView->hardwareClusterMenuClicked(2);
+    }else{
+        qCritical() << "HELLO";
     }
 }
 
@@ -593,6 +595,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 
             // only show the displayed children option button if the selected item is a HardwareCluster
             if (nodeItem->getNodeKind() == "HardwareCluster") {
+                hardwareClusterMenuClicked(nodeItem->getHardwareClusterChildrenViewMode());
                 displayedChildrenOptionButton->show();
             }
 

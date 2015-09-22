@@ -106,6 +106,7 @@ protected:
 private:
     void sortSelection();
 private slots:
+    void hardwareClusterMenuClicked(int viewMode);
 
     void actionFinished();
 
@@ -321,6 +322,7 @@ public slots:
     void nodeEntered(QString ID, bool enter);
 
 private:
+    bool onlyHardwareClustersSelected();
     void handleSelection(GraphMLItem* item, bool setSelected, bool controlDown);
     void setState(VIEW_STATE newState);
     void transition();
@@ -403,7 +405,7 @@ private:
 
     bool allowedFocus(QWidget* widget);
 
-    void updateDisplayedChildrenNodes(int viewMode);
+
 
     NewController* controller;
 
