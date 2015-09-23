@@ -1968,7 +1968,7 @@ void MedeaWindow::on_actionSearch_triggered()
 
         // move the search results dialog to the bottom left of the window
         // so that it doesn't get in the way of centered search items
-        searchResults->move(pos() + QPoint(5, height() - searchResults->height()));
+        //searchResults->move(pos() + QPoint(5, height() - searchResults->height()));
 
         // show search results
         searchResults->show();

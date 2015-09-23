@@ -1566,7 +1566,7 @@ void NodeView::showHardwareClusterChildrenViewMenu(NodeItem *nodeItem)
                 QPoint offset(lockRect.width()/5, -lockRect.width()/15);
                 QPointF menuPos = mapFromScene(lockRect.bottomLeft() + offset);
                 menuPos = mapToGlobal(menuPos.toPoint());
-                menu->popup(menuPos.toPoint());
+                menu->exec(menuPos.toPoint());
                 prevLockMenuOpened = menu;
             }
         }
@@ -3008,7 +3008,6 @@ GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
  */
 void NodeView::mouseReleaseEvent(QMouseEvent *event)
 {
-    qCritical()  << "MOUSE RELEASE: " << event->button();
     if(MINIMAP_EVENT){
         QGraphicsView::mouseReleaseEvent(event);
         return;
@@ -3109,7 +3108,6 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
  */
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
-    qCritical() << event->button();
     // TODO: Need to catch the case where the menu is closed
     // when MEDEA window steals the focus
     // need this in case there is an opened lock menu

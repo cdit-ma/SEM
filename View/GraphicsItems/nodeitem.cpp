@@ -20,7 +20,7 @@
 
 
 //#define MARGIN_RATIO 0.15 //LARGE
-#define MARGIN_RATIO 0.1 //NORMAL
+#define MARGIN_RATIO 0.10 //NORMAL
 //#define MARGIN_RATIO 0.05 //COMPACT
 
 //#define ICON_RATIO 0.7 //LARGE
@@ -1809,7 +1809,7 @@ QRectF NodeItem::lockIconRect()
     QRectF lockIcon = QRectF(0,0, iconSize, iconSize);
 
     //Translate to move the icon to its position
-    lockIcon.translate(getItemMargin(), getItemMargin());
+    lockIcon.translate(getItemMargin()/1.5, getItemMargin()/1.5);
 
     return lockIcon;
 }

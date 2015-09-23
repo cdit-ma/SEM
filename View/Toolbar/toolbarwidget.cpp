@@ -424,8 +424,8 @@ void ToolbarWidget::setupToolBar()
                   "background-color: rgba(250,250,250,240);"
                   "}"
                   "QToolButton:hover{"
-                  "border: 1.5px solid;"
-                  "border-color: rgba(160,160,160,250);"
+                  //"border: 1.5px solid;"
+                  //"border-color: rgba(160,160,160,250);"
                   "background-color: rgba(255,255,255,255);"
                   "}"
                   );

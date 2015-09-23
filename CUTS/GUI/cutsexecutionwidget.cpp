@@ -345,6 +345,7 @@ void CUTSExecutionWidget::updateButtons()
 
 void CUTSExecutionWidget::stepState()
 {
+
     CUTS_EXECUTION_STATES newState = (CUTS_EXECUTION_STATES) (int(state) + 1);
     setState(newState);
 }
@@ -697,8 +698,8 @@ void CUTSExecutionWidget::setState(CUTS_EXECUTION_STATES newState)
             nextButton->setText("Re-Execute");
         }else if(newState == FAILURE){
             setIconSuccess(runIcon, false);
-            state = RAN_MAKE;
-            setState(RUN_EXECUTION);
+            state = RUN_MAKE;
+            setState(RAN_MAKE);
             return;
         }
     }else if(state == RAN_EXECUTION){
