@@ -229,6 +229,10 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
                 }else if(resize == VERTICAL_RESIZE){
                     return MO_RESIZE_VER;
                 }
+            } else {
+                if (!isModel()) {
+                    return MO_ITEM;
+                }
             }
         }
     }
@@ -1429,11 +1433,13 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             //Goto VS_Selected
         case NodeView::VS_SELECTED:
             //Enter Selected Mode.
-            getNodeView()->setStateSelected();
-            sendSelectSignal(true, controlPressed);
-            //Store the previous position.
-            previousScenePosition = event->scenePos();
-            return;
+            if (mouseDownType != MO_NONE) {
+                getNodeView()->setStateSelected();
+                sendSelectSignal(true, controlPressed);
+                //Store the previous position.
+                previousScenePosition = event->scenePos();
+            }
+            break;
         }
         break;
     }

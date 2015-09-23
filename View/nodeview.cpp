@@ -3040,7 +3040,7 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
             //Check to see if the item under the mouse is selected. if it isn't select it.
             GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
 
-            if(item && item->isNodeItem() && !item->isSelected()){
+            if(item && item->isNodeItem() && !item->isSelected() && !((NodeItem*)item)->isModel()){
                 if(!(event->modifiers() & Qt::ControlModifier)){
                     clearSelection();
                 }
@@ -3183,15 +3183,17 @@ void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
         prevLockMenuOpened->close();
     }
 
-    QPointF scenePos = mapToScene(event->pos());
-    QGraphicsItem* itemUnderMouse = scene()->itemAt(scenePos, QTransform());
+    GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
 
-    // added this to center aspects when double-clicking on the view
-    if(!itemUnderMouse && event->button() == Qt::LeftButton){
-        fitToScreen();
+    if(!item){
+        if(event->button() == Qt::LeftButton){
+            fitToScreen();
+        }
+    }else{
+        if(item->isNodeItem() && !((NodeItem*)item)->isModel()){
+            QGraphicsView::mouseDoubleClickEvent(event);
+        }
     }
-
-    QGraphicsView::mouseDoubleClickEvent(event);
 }
 
 
