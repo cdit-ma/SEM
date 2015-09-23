@@ -37,7 +37,7 @@ signals:
     void toolbarMenu_hasFocus(ToolbarWidgetMenu* menu);
     void toolbarMenu_setFocus(bool hasFocus);
     void toolbarMenu_hideToolbar(bool triggered);
-    void toolbarMenu_resetParentAction();
+    void toolbarMenu_resetActions();
 
 public slots:
     void close();

@@ -31,6 +31,7 @@ ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidget* toolbar, ToolbarWidgetAction
 
     connect(this, SIGNAL(toolbarMenu_hasFocus(ToolbarWidgetMenu*)), toolbar, SLOT(menuOnFocus(ToolbarWidgetMenu*)));
     connect(toolbar, SIGNAL(toolbar_menuOnFocus(ToolbarWidgetMenu*)), this, SLOT(setFocus(ToolbarWidgetMenu*)));
+    connect(toolbar, SIGNAL(toolbar_toolbarClosed()), this, SIGNAL(toolbarMenu_resetActions()));
 
     // this should always have a parent; print warning if it doesn't
     if (!parent) {

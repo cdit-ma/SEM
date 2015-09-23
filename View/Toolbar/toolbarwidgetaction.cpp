@@ -78,13 +78,13 @@ void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu* menu)
     prevWidgetMenu = widgetMenu;
     if (prevWidgetMenu) {
         disconnect(this, SIGNAL(triggered()), prevWidgetMenu, SLOT(execMenu()));
-        disconnect(prevWidgetMenu, SIGNAL(aboutToHide()), this, SLOT(unCheckActionButton()));
+        disconnect(prevWidgetMenu, SIGNAL(aboutToHide()), this, SLOT(resetActionButton()));
     }
     // connect the new menu
     widgetMenu = menu;
     if (widgetMenu) {
         connect(this, SIGNAL(triggered()), widgetMenu, SLOT(execMenu()));
-        connect(widgetMenu, SIGNAL(aboutToHide()), this, SLOT(unCheckActionButton()));
+        connect(widgetMenu, SIGNAL(aboutToHide()), this, SLOT(resetActionButton()));
     }
 }
 
@@ -283,10 +283,12 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget* parent)
     if (isEnabled()) {
         connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
         connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
+        //connect(actionButton, SIGNAL(toolButton_checked()), this, SLOT(actionButtonClicked()));
     }
 
     if (parentMenu) {
         connect(parentMenu, SIGNAL(toolbarMenu_setFocus(bool)), this, SLOT(setParentMenuFocus(bool)));
+        connect(parentMenu, SIGNAL(toolbarMenu_resetActions()), this, SLOT(resetActionButton()));
     } else {
         qDebug() << "No Parent Menu!";
     }
@@ -345,11 +347,11 @@ void ToolbarWidgetAction::actionButtonClicked()
 
 
 /**
- * @brief ToolbarWidgetAction::unCheckActionButton
+ * @brief ToolbarWidgetAction::resetActionButton
  * This slot is called whenever this action's child menu is about to hide.
  * It makes sure that this action's button's checked state is reset.
  */
-void ToolbarWidgetAction::unCheckActionButton()
+void ToolbarWidgetAction::resetActionButton()
 {
     if (actionButton && actionButton->isButtonChecked()) {
         actionButton->setButtonChecked();

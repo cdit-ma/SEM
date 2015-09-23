@@ -3,7 +3,6 @@
 
 #include "../../Model/node.h"
 #include "toolbarwidget.h"
-#include "toolbarwidgetbutton.h"
 #include "toolbarabstractbutton.h"
 
 #include <QWidget>
@@ -48,7 +47,7 @@ public slots:
 
     void actionButtonPressed();
     void actionButtonClicked();
-    void unCheckActionButton();
+    void resetActionButton();
 
 private:
     NodeItem* nodeItem;

@@ -27,6 +27,7 @@ public:
 
 signals:
     void toolbar_menuOnFocus(ToolbarWidgetMenu* menu);
+    void toolbar_toolbarClosed();
 
 public slots:
     void updateActionEnabledState(QString actionName, bool enabled);

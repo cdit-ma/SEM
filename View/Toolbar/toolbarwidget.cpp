@@ -296,6 +296,7 @@ void ToolbarWidget::setVisible(bool visible)
 
     if (!toolbarVisible) {
         clearFocus();
+        emit toolbar_toolbarClosed();
     }
 }
 
