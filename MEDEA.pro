@@ -97,7 +97,6 @@ HEADERS += \
     GUI/keyeditwidget.h \
     GUI/searchitembutton.h \
     View/Validate/validatedialog.h \
-    View/Toolbar/toolbarwidgetbutton.h \
 	Model/InterfaceDefinitions/idl.h \
     GUI/aspecttogglewidget.h \
     Jenkins/GUI/jenkinsjobmonitorwidget.h \
@@ -186,7 +185,6 @@ SOURCES += \
     GUI/keyeditwidget.cpp \
     GUI/searchitembutton.cpp \
     View/Validate/validatedialog.cpp \
-    View/Toolbar/toolbarwidgetbutton.cpp \
     Model/InterfaceDefinitions/idl.cpp \
     GUI/aspecttogglewidget.cpp \
     Jenkins/GUI/jenkinsjobmonitorwidget.cpp \

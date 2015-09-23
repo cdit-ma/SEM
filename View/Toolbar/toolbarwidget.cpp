@@ -397,9 +397,6 @@ void ToolbarWidget::setupToolBar()
 
     QSize buttonSize = QSize(39,39);
 
-    //ToolbarAbstractButton* b = new ToolbarAbstractButton(this, buttonSize);
-    //toolbarLayout->addWidget(b);
-
     // construct tool buttons and separators and add them to the toolbar's layout
     addChildButton = constructToolButton(buttonSize, "Plus", 0.8, "Add Child Entity");
     connectButton = constructToolButton(buttonSize, "ConnectTo", 0.7, "Connect Selection");
