@@ -1777,6 +1777,7 @@ void NodeItem::updateDisplayedChildren(int viewMode)
     sortTriggerAction = true;
 }
 
+
 /**
  * @brief NodeItem::iconRect
  * @return - The QRectF which represents the position for the Icon
@@ -2310,6 +2311,7 @@ void NodeItem::aspectsChanged(QStringList visibleAspects)
 
     if (isNodeInAspect) {
         if (IS_HARDWARE_CLUSTER) {
+            // when displaying hardware clusters, make sure that the correct children view mode is set
             updateDisplayedChildren(CHILDREN_VIEW_MODE);
         } else if (nodeKind == "HardwareNode"){
             if (parentNodeItem && parentNodeItem->getNodeKind() == "HardwareCluster") {
@@ -2657,6 +2659,11 @@ void NodeItem::hardwareClusterMenuItemPressed()
     }
 }
 
+
+/**
+ * @brief NodeItem::getHardwareClusterChildrenViewMode
+ * @return
+ */
 int NodeItem::getHardwareClusterChildrenViewMode()
 {
     return CHILDREN_VIEW_MODE;

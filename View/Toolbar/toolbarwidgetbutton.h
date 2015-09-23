@@ -18,7 +18,9 @@ public:
 signals:
     void mouseEntered();
     void mouseExited();
+
 public slots:
+    void stealMouse();
 
 protected:
     void enterEvent(QEvent *e);

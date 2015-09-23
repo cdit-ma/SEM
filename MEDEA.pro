@@ -115,7 +115,8 @@ HEADERS += \
     CUTS/cutsmanager.h \
     Model/BehaviourDefinitions/behaviournode.h \
     Model/BehaviourDefinitions/branch.h \
-    Model/BehaviourDefinitions/whileloop.h
+    Model/BehaviourDefinitions/whileloop.h \
+    View/Toolbar/toolbarabstractbutton.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -203,7 +204,8 @@ SOURCES += \
     CUTS/cutsmanager.cpp \
     Model/BehaviourDefinitions/behaviournode.cpp \
     Model/BehaviourDefinitions/branch.cpp \
-    Model/BehaviourDefinitions/whileloop.cpp
+    Model/BehaviourDefinitions/whileloop.cpp \
+    View/Toolbar/toolbarabstractbutton.cpp
 
 FORMS +=
 

@@ -1159,14 +1159,24 @@ void NodeView::sortSelection()
 
 }
 
+
+/**
+ * @brief NodeView::hardwareClusterMenuClicked
+ * @param viewMode
+ */
 void NodeView::hardwareClusterMenuClicked(int viewMode)
 {
-    foreach(QString ID, selectedIDs){
+    foreach (NodeItem* item, getSelectedNodeItems()) {
+        item->updateChildrenViewMode(viewMode);
+    }
+    /*
+    foreach (QString ID, selectedIDs) {
         NodeItem* node = getNodeItemFromID(ID);
         if(node){
             node->updateChildrenViewMode(viewMode);
         }
     }
+    */
 }
 
 

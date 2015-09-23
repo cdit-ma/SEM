@@ -36,6 +36,7 @@ Version 17:
         * Cleaned up functions in NodeView that are linked to the toolbar
         * Cleaned up the docks
 		* Reimplemented how/when the toolbar menus are populated - on menu item click instead of when toolbar is shown
+		* Fixed toolbar menu and menu actions bugs related to mouse events
 
     Todo:
         * Make sure threads are killed for Local deployment.

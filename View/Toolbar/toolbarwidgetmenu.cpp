@@ -4,28 +4,33 @@
 
 /**
  * @brief ToolbarWidgetMenu::ToolbarWidgetMenu
+ * @param toolbar
  * @param parent_action
  * @param default_action
  * @param parent
  */
-ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction* parent_action, ToolbarWidgetAction* default_action, QWidget* parent):
+ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidget* toolbar, ToolbarWidgetAction* parent_action, QWidget* parent):
     QMenu(parent)
 {
-    defaultAction = default_action;
     widgetActions = QList<ToolbarWidgetAction*>();
-
     parentButton = dynamic_cast<QToolButton*>(parent);
     parentMenu = dynamic_cast<ToolbarWidgetMenu*>(parent);
 
+    open = false;
+    hasFocus = false;
     eventFromMenu = false;
     actionTriggered = false;
 
-    // set parent action and default action
+    // initialise parent and default actions
     setParentAction(parent_action);
-    setupDefaultAction();
+    defaultAction = 0;
 
     connect(this, SIGNAL(triggered(QAction*)), this, SLOT(hideMenu(QAction*)));
     connect(this, SIGNAL(aboutToHide()), this, SLOT(close()));
+    connect(this, SIGNAL(aboutToShow()), this, SLOT(menuOpened()));
+
+    connect(this, SIGNAL(toolbarMenu_hasFocus(ToolbarWidgetMenu*)), toolbar, SLOT(menuOnFocus(ToolbarWidgetMenu*)));
+    connect(toolbar, SIGNAL(toolbar_menuOnFocus(ToolbarWidgetMenu*)), this, SLOT(setFocus(ToolbarWidgetMenu*)));
 
     // this should always have a parent; print warning if it doesn't
     if (!parent) {
@@ -35,12 +40,22 @@ ToolbarWidgetMenu::ToolbarWidgetMenu(ToolbarWidgetAction* parent_action, Toolbar
 
 
 /**
+ * @brief ToolbarWidgetMenu::setDefaultAction
+ * @param action
+ */
+void ToolbarWidgetMenu::setDefaultAction(ToolbarWidgetAction* action)
+{
+    defaultAction = action;
+}
+
+
+/**
  * @brief ToolbarWidgetMenu::setParentAction
  * @param widgetAction
  */
-void ToolbarWidgetMenu::setParentAction(ToolbarWidgetAction* widgetAction)
+void ToolbarWidgetMenu::setParentAction(ToolbarWidgetAction* action)
 {
-    parentAction = widgetAction;
+    parentAction = action;
 
     // attach this menu to its parentAction
     if (parentAction) {
@@ -86,10 +101,20 @@ void ToolbarWidgetMenu::removeWidgetAction(ToolbarWidgetAction* action, bool cle
     if (!action) {
         return;
     }
-    widgetActions.removeAll(action);
+
+    // only remove the action from the widgetActions list if this menu isn't clearing
+    if (!clearing) {
+        widgetActions.removeAll(action);
+    }
 
     // remove action from this menu
-    removeAction(action);
+    QMenu::removeAction(action);
+
+    // actions that are stored in the toolbar widget can't be deleted
+    // defaultAction should not be deletable
+    if (action->isDeletable()) {
+        delete action;
+    }
 }
 
 
@@ -135,18 +160,26 @@ bool ToolbarWidgetMenu::hasWidgetActions()
 
 
 /**
+ * @brief ToolbarWidgetMenu::isOpen
+ * @return
+ */
+bool ToolbarWidgetMenu::isOpen()
+{
+    return open;
+}
+
+
+/**
  * @brief ToolbarWidgetMenu::clearMenu
  * This clears this menu's actions. If the action is stored in the toolbar
  * it removes it from the menu, otherwise it deletes the action.
  */
 void ToolbarWidgetMenu::clearMenu()
 {
-    while(!widgetActions.isEmpty()){
+    // remove/delete all actions from this menu - this should clear the widgetActions list
+    while (!widgetActions.isEmpty()) {
         ToolbarWidgetAction* action = widgetActions.takeFirst();
-        removeWidgetAction(action);
-        if(action->isDeletable()){
-            delete action;
-        }
+        removeWidgetAction(action, true);
     }
 
     // once the menu is empty, display its default action (if it has one)
@@ -202,23 +235,31 @@ void ToolbarWidgetMenu::mouseDoubleClickEvent(QMouseEvent *event)
 
 /**
  * @brief ToolbarWidgetMenu::close
+ * This slot is called when this menu is about to hide.
  * This menu is closed by either having one of its actions triggered or the user clicking
  * outside of it. Send a signal to its parent to check if the parent also needs to be hidden.
  */
 void ToolbarWidgetMenu::close()
 {
     if (parentButton) {
+        // the parent is a tool button - tell the toolbar to hide
         emit toolbarMenu_hideToolbar(actionTriggered);
     } else if (parentMenu) {
         if (!eventFromMenu && !actionTriggered) {
+            // the parent is a ToolbarWidgetMenu - if the action wasn't from this menu, hide its parent menu
             parentMenu->closeMenu();
         }
+        // if the parent menu is still open when this menu is closed,
+        // send a signal to the toolbar to update the menu on focus
+        if (parentMenu->isOpen()) {
+            emit toolbarMenu_hasFocus(parentMenu);
+        }
+    } else {
+        // send a signal to the toolbar to clear/reset the menu on focus
+        emit toolbarMenu_hasFocus(0);
     }
 
-    if (parentAction) {
-        parentAction->menuClosed();
-    }
-
+    open = false;
     actionTriggered = false;
 }
 
@@ -257,18 +298,45 @@ void ToolbarWidgetMenu::hideMenu(QAction* action)
 
 /**
  * @brief ToolbarWidgetMenu::execMenu
- * This executes this menu next to its parent ToolbarWidgetAction.
+ * This slot first checks if this menu contains any actions and if there is,
+ * it executes it next to its parent ToolbarWidgetAction.
  */
 void ToolbarWidgetMenu::execMenu()
 {
     // can't just check the widgetActions list here
-    // some acttions in the menu might not be a ToolbarWidgetAction
+    // some actions in the menu might not be a ToolbarWidgetAction
+    // this list shouldn't be empty if this menu has a default action
     if (QMenu::actions().isEmpty()) {
         return;
     }
     if (parentAction) {
         QMenu::exec(parentAction->getButtonPos());
     }
+}
+
+
+/**
+ * @brief ToolbarWidgetMenu::menuOpened
+ */
+void ToolbarWidgetMenu::menuOpened()
+{
+    open = true;
+    emit toolbarMenu_hasFocus(this);
+}
+
+
+/**
+ * @brief ToolbarWidgetMenu::setFocus
+ * @param menu
+ */
+void ToolbarWidgetMenu::setFocus(ToolbarWidgetMenu* menu)
+{
+    if (menu && (menu == this)) {
+        hasFocus = true;
+    } else {
+        hasFocus = false;
+    }
+    emit toolbarMenu_setFocus(hasFocus);
 }
 
 

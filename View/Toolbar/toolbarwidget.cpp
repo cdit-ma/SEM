@@ -16,8 +16,6 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     nodeView = parent;
     nodeItem = 0;
 
-    eventFromToolbar = false;
-
     showDeleteToolButton = false;
     showImportSnippetToolButton = false;
     showExportSnippetToolButton = false;
@@ -26,11 +24,6 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
 
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
-    setStyleSheet("QToolButton{"
-                  "background-color: white;"
-                  "border: 1px solid grey;"
-                  "border-radius: 10px;"
-                  "}");
 
     // these frames, combined with the set attribute and flags, allow
     // the toolbar to have a translucent background and a mock shadow
@@ -83,30 +76,6 @@ void ToolbarWidget::updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> e
 
 
 /**
- * @brief ToolbarWidget::enterEvent
- * This is called when the mouse is hovering over the toolbar.
- * @param event
- */
-void ToolbarWidget::enterEvent(QEvent* event)
-{
-    eventFromToolbar = true;
-    QWidget::enterEvent(event);
-}
-
-
-/**
- * @brief ToolbarWidget::leaveEvent
- * This is called when the mouse is no longer hovering over the toolbar.
- * @param event
- */
-void ToolbarWidget::leaveEvent(QEvent* event)
-{
-    eventFromToolbar = false;
-    QWidget::leaveEvent(event);
-}
-
-
-/**
  * @brief ToolbarWidget::updateActionEnabled
  * @param actionName
  * @param enabled
@@ -140,8 +109,6 @@ void ToolbarWidget::updateDisplayedChildren()
         nodeView->hardwareClusterMenuClicked(1);
     } else if (rb == unconnectedNodes) {
         nodeView->hardwareClusterMenuClicked(2);
-    }else{
-        qCritical() << "HELLO";
     }
 }
 
@@ -296,6 +263,16 @@ void ToolbarWidget::attachOptionMenu()
 
 
 /**
+ * @brief ToolbarWidget::setMenuOnFocus
+ * @param menu
+ */
+void ToolbarWidget::menuOnFocus(ToolbarWidgetMenu* menu)
+{
+    emit toolbar_menuOnFocus(menu);
+}
+
+
+/**
  * @brief ToolbarWidget::setVisible
  * @param visible
  */
@@ -311,9 +288,15 @@ void ToolbarWidget::setVisible(bool visible)
         setFixedSize(shadowFrame->size());
     }
 
+    addChildButton->clearFocus();
+
     mainFrame->setVisible(toolbarVisible);
     shadowFrame->setVisible(toolbarVisible);
     QWidget::setVisible(toolbarVisible);
+
+    if (!toolbarVisible) {
+        clearFocus();
+    }
 }
 
 
@@ -334,10 +317,14 @@ void ToolbarWidget::hide()
  */
 void ToolbarWidget::hideToolbar(bool actionTriggered)
 {
-    hide();
+    QPoint p = mapFromGlobal(QCursor::pos());
+    if (rect().contains(p)) {
+        return;
+    }
     if (!actionTriggered) {
         nodeView->toolbarClosed();
     }
+    hide();
 }
 
 
@@ -410,6 +397,9 @@ void ToolbarWidget::setupToolBar()
 
     QSize buttonSize = QSize(39,39);
 
+    //ToolbarAbstractButton* b = new ToolbarAbstractButton(this, buttonSize);
+    //toolbarLayout->addWidget(b);
+
     // construct tool buttons and separators and add them to the toolbar's layout
     addChildButton = constructToolButton(buttonSize, "Plus", 0.8, "Add Child Entity");
     connectButton = constructToolButton(buttonSize, "ConnectTo", 0.7, "Connect Selection");
@@ -436,13 +426,10 @@ void ToolbarWidget::setupToolBar()
                   "background-color: rgba(250,250,250,240);"
                   "}"
                   "QToolButton:hover{"
-                  "border: 2px solid;"
-                  "border-color: rgba(140,140,140,250);"
+                  "border: 1.5px solid;"
+                  "border-color: rgba(160,160,160,250);"
                   "background-color: rgba(255,255,255,255);"
                   "}"
-                  //"QToolButton:pressed{"
-                  //"background-color: rgba(240,240,240,240);"
-                  //"}"
                   );
 }
 
@@ -459,7 +446,7 @@ void ToolbarWidget::setupMenus()
     definitionMenu = constructToolMenu(definitionButton);
     implementationMenu = constructToolMenu(implementationButton);
     instancesMenu = constructToolMenu(instancesButton);
-    instanceOptionMenu = new ToolbarWidgetMenu(0, 0, instancesMenu);
+    instanceOptionMenu = new ToolbarWidgetMenu(this, 0, instancesMenu);
     displayedChildrenOptionMenu = constructToolMenu(displayedChildrenOptionButton);
 
     // setup widgets for the displayed children option menu for HardwareClusters
@@ -499,17 +486,22 @@ void ToolbarWidget::setupMenus()
     outEventPortDelegateAction = new ToolbarWidgetAction("OutEventPortDelegate", "", addMenu);
     blackBoxInstanceAction = new ToolbarWidgetAction("BlackBoxInstance", "", addMenu);
 
-    // default actions to display information for when visible menus are empty
-    componentInstanceDefaultAction = new ToolbarWidgetAction("Info", "There are no IDL files containing Components that are valid for this action.", addMenu);
-    blackBoxInstanceDefaultAction = new ToolbarWidgetAction("Info", "There are no IDL files containing BlackBoxes.", addMenu);
-    iep_definitionInstanceDefaultAction = new ToolbarWidgetAction("Info", "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", addMenu);
-    oep_definitionInstanceDefaultAction = new ToolbarWidgetAction("Info", "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", addMenu);
-
     // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
-    componentDefinitionsMenu = new ToolbarWidgetMenu(0, componentInstanceDefaultAction, addMenu);
-    blackBoxDefinitionsMenu = new ToolbarWidgetMenu(blackBoxInstanceAction, blackBoxInstanceDefaultAction, addMenu);
-    iep_definitionInstanceMenu = new ToolbarWidgetMenu(inEventPortDelegateAction, iep_definitionInstanceDefaultAction, addMenu);
-    oep_definitionInstanceMenu = new ToolbarWidgetMenu(outEventPortDelegateAction, oep_definitionInstanceDefaultAction, addMenu);
+    componentDefinitionsMenu = new ToolbarWidgetMenu(this, 0, addMenu);
+    blackBoxDefinitionsMenu = new ToolbarWidgetMenu(this, blackBoxInstanceAction, addMenu);
+    iep_definitionInstanceMenu = new ToolbarWidgetMenu(this, inEventPortDelegateAction, addMenu);
+    oep_definitionInstanceMenu = new ToolbarWidgetMenu(this, outEventPortDelegateAction, addMenu);
+
+    // default actions to display information for when visible menus are empty
+    componenMenuDefaultAction = new ToolbarWidgetAction("Info", "There are no IDL files containing Components that are valid for this action.", componentDefinitionsMenu);
+    blackBoxMenuDefaultAction = new ToolbarWidgetAction("Info", "There are no IDL files containing BlackBoxes.", blackBoxDefinitionsMenu);
+    iep_menuDefaultAction = new ToolbarWidgetAction("Info", "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", iep_definitionInstanceMenu);
+    oep_menuDefaultAction = new ToolbarWidgetAction("Info", "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", oep_definitionInstanceMenu);
+
+    componentDefinitionsMenu->setDefaultAction(componenMenuDefaultAction);
+    blackBoxDefinitionsMenu->setDefaultAction(blackBoxMenuDefaultAction);
+    iep_definitionInstanceMenu->setDefaultAction(iep_menuDefaultAction);
+    oep_definitionInstanceMenu->setDefaultAction(oep_menuDefaultAction);
 }
 
 
@@ -718,6 +710,13 @@ void ToolbarWidget::clearMenus()
     oep_definitionInstanceMenu->clearMenu();
     blackBoxDefinitionsMenu->clearMenu();
     instancesMenu->clearMenu();
+
+    /*
+    QWidgetAction* action = new QWidgetAction(this);
+    ToolbarAbstractButton* b = new ToolbarAbstractButton(this, QSize(39,39));
+    action->setDefaultWidget(b);
+    addMenu->addAction(action);
+    */
 }
 
 
@@ -786,7 +785,7 @@ QFrame* ToolbarWidget::constructFrameSeparator()
 ToolbarWidgetMenu* ToolbarWidget::constructToolMenu(QToolButton* parentButton)
 {
     if (parentButton) {
-        ToolbarWidgetMenu* menu = new ToolbarWidgetMenu(0, 0, parentButton);
+        ToolbarWidgetMenu* menu = new ToolbarWidgetMenu(this, 0, parentButton);
         parentButton->setPopupMode(QToolButton::InstantPopup);
         parentButton->setMenu(menu);
         return menu;
@@ -822,7 +821,7 @@ ToolbarWidgetAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, T
             parentActionMenu = parentAction->getMenu();
         } else {
             parentAction = new ToolbarWidgetAction(parentNode, parentMenu, true);
-            parentActionMenu = new ToolbarWidgetMenu(parentAction, 0, parentMenu);
+            parentActionMenu = new ToolbarWidgetMenu(this, parentAction, parentMenu);
             parentMenu->addWidgetAction(parentAction);
         }
 

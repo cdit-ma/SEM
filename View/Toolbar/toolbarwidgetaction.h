@@ -4,6 +4,7 @@
 #include "../../Model/node.h"
 #include "toolbarwidget.h"
 #include "toolbarwidgetbutton.h"
+#include "toolbarabstractbutton.h"
 
 #include <QWidget>
 #include <QWidgetAction>
@@ -23,7 +24,7 @@ public:
     void setMenu(ToolbarWidgetMenu* widgetMenu);
     ToolbarWidgetMenu* getMenu();
 
-    QPushButton* getButton();
+    ToolbarAbstractButton* getButton();
     QPoint getButtonPos();
 
     NodeItem* getNodeItem();
@@ -43,12 +44,11 @@ signals:
 
 public slots:
     void hover();
-    void endHover();
+    void setParentMenuFocus(bool hasFocus);
+
     void actionButtonPressed();
     void actionButtonClicked();
-
-    void menuOpened();
-    void menuClosed();
+    void unCheckActionButton();
 
 private:
     NodeItem* nodeItem;
@@ -57,12 +57,13 @@ private:
     QString kind;
     QString label;
 
-    ToolbarWidgetButton* actionButton;
+    ToolbarAbstractButton* actionButton;
     ToolbarWidgetMenu* widgetMenu;
     ToolbarWidgetMenu* prevWidgetMenu;
 
     bool willHaveMenu;
     bool deletable;
+    bool parentMenuHasFocus;
 
 };
 

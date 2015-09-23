@@ -38,6 +38,12 @@ bool ToolbarWidgetButton::getCheck()
     return checked;
 }
 
+void ToolbarWidgetButton::stealMouse()
+{
+    this->grabMouse();
+    this->releaseMouse();
+}
+
 /**
  * @brief ToolbarWidgetButton::enterEvent
  */

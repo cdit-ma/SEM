@@ -15,6 +15,8 @@
 ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, ToolbarWidgetMenu* parent) :
     QWidgetAction(parent)
 {
+    actionButton = 0;
+
     parentMenu = parent;
     nodeItem = 0;
     actionButton = 0;
@@ -24,6 +26,7 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, To
     widgetMenu = 0;
     willHaveMenu = false;
     deletable = true;
+    parentMenuHasFocus = false;
 
     if (kind == "ComponentInstance" || kind == "ComponentImpl" || kind == "BlackBoxInstance" ||
             kind == "InEventPortDelegate" || kind == "OutEventPortDelegate") {
@@ -46,6 +49,8 @@ ToolbarWidgetAction::ToolbarWidgetAction(QString nodeKind, QString textLabel, To
 ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, ToolbarWidgetMenu* parent, bool willHaveMenu) :
     QWidgetAction(parent)
 {
+    actionButton = 0;
+
     if (nodeItem) {
         kind = nodeItem->getNodeKind();
         label =  nodeItem->getNodeLabel();
@@ -59,6 +64,7 @@ ToolbarWidgetAction::ToolbarWidgetAction(NodeItem* nodeItem, ToolbarWidgetMenu* 
     parentMenu = parent;
     widgetMenu = 0;
     deletable = true;
+    parentMenuHasFocus = false;
 }
 
 
@@ -72,11 +78,13 @@ void ToolbarWidgetAction::setMenu(ToolbarWidgetMenu* menu)
     prevWidgetMenu = widgetMenu;
     if (prevWidgetMenu) {
         disconnect(this, SIGNAL(triggered()), prevWidgetMenu, SLOT(execMenu()));
+        disconnect(prevWidgetMenu, SIGNAL(aboutToHide()), this, SLOT(unCheckActionButton()));
     }
     // connect the new menu
     widgetMenu = menu;
     if (widgetMenu) {
         connect(this, SIGNAL(triggered()), widgetMenu, SLOT(execMenu()));
+        connect(widgetMenu, SIGNAL(aboutToHide()), this, SLOT(unCheckActionButton()));
     }
 }
 
@@ -95,7 +103,7 @@ ToolbarWidgetMenu* ToolbarWidgetAction::getMenu()
  * @brief ToolbarWidgetAction::getButton
  * @return
  */
-QPushButton *ToolbarWidgetAction::getButton()
+ToolbarAbstractButton* ToolbarWidgetAction::getButton()
 {
     return actionButton;
 }
@@ -128,10 +136,10 @@ NodeItem* ToolbarWidgetAction::getNodeItem()
  */
 QString ToolbarWidgetAction::getNodeItemID()
 {
-   if (nodeItem) {
-       return nodeItem->getID();
-   }
-   return "";
+    if (nodeItem) {
+        return nodeItem->getID();
+    }
+    return "";
 }
 
 
@@ -164,7 +172,7 @@ bool ToolbarWidgetAction::isDeletable()
  */
 ToolbarWidgetMenu* ToolbarWidgetAction::getParentMenu()
 {
-   return parentMenu;
+    return parentMenu;
 }
 
 
@@ -201,18 +209,10 @@ ToolbarWidgetAction* ToolbarWidgetAction::getTopMostParentAction()
  * @param parent
  * @return
  */
-QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
+QWidget* ToolbarWidgetAction::createWidget(QWidget* parent)
 {
-    actionButton = new ToolbarWidgetButton(parent);
-    actionButton->setMouseTracking(true);
-
+    actionButton = new ToolbarAbstractButton(parent);
     actionButton->setMinimumHeight(33);
-    actionButton->setStyleSheet("QPushButton{"
-                                "border: 0px;"
-                                "margin: 0px;"
-                                "padding: 0px;"
-                                "background-color: rgba(0,0,0,0);"
-                                "}");
 
     QHBoxLayout* layout = new QHBoxLayout();
     layout->setMargin(0);
@@ -220,29 +220,25 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
     QString actionKind = getActionKind();
     if (actionKind == "HardwareNode"){
         Node* node = nodeItem->getNode();
-
-        if(node){
+        if (node) {
             if(node->getDataValue("localhost") == "true"){
                 actionKind = "Localhost";
             }else{
                 actionKind = node->getDataValue("os") + "_" + node->getDataValue("architecture");
             }
         }
-
     }
+
     QString alias = "Items";
-    if(actionKind == "Info"){
+    if (actionKind == "Info") {
         alias = "Actions";
     }
 
-
     QImage* image = new QImage(":/" + alias + "/" + actionKind + ".png");
-
     QImage scaledImage = image->scaled(actionButton->height(),
                                        actionButton->height(),
                                        Qt::KeepAspectRatio,
                                        Qt::SmoothTransformation);
-
 
     QLabel* imageLabel = new QLabel(actionButton);
     imageLabel->setPixmap(QPixmap::fromImage(scaledImage));
@@ -280,12 +276,19 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 
     actionButton->setMinimumWidth(minWidth + 30);
 
+    // make connections
+    connect(this, SIGNAL(hovered()), this, SLOT(hover()));
+
+    // only connect these signals and slots if this action is enabled
     if (isEnabled()) {
-        connect(this, SIGNAL(hovered()), this, SLOT(hover()));
         connect(actionButton, SIGNAL(pressed()), this, SLOT(actionButtonPressed()));
         connect(actionButton, SIGNAL(clicked()), this, SLOT(actionButtonClicked()));
-        connect(actionButton, SIGNAL(mouseEntered()), this, SLOT(hover()));
-        connect(actionButton, SIGNAL(mouseExited()), this, SLOT(endHover()));
+    }
+
+    if (parentMenu) {
+        connect(parentMenu, SIGNAL(toolbarMenu_setFocus(bool)), this, SLOT(setParentMenuFocus(bool)));
+    } else {
+        qDebug() << "No Parent Menu!";
     }
 
     return actionButton;
@@ -294,50 +297,32 @@ QWidget* ToolbarWidgetAction::createWidget(QWidget *parent)
 
 /**
  * @brief ToolbarWidgetAction::hover
- * This method passes the hover on this item to the actionButton.
+ * This slot is called when the mouse is hovering over this action.
+ * It passes the mouse control to this action's button.
  */
 void ToolbarWidgetAction::hover()
 {
-    QPalette pal = actionButton->palette();
-    pal.setColor(QPalette::Button, QColor(10,10,10,50));
-    actionButton->setAutoFillBackground(true);
-    actionButton->setPalette(pal);
-    actionButton->update();
-
-    /*
-    if (widgetMenu && !widgetMenu->isVisible()) {
-        widgetMenu->execMenu();
-    }
-    */
-
-    actionButton->grabMouse();
-    actionButton->releaseMouse();
+    actionButton->stealMouse();
 }
 
-/**
- * @brief ToolbarWidgetAction::endHover
- * This slot is called when the mouse leaves a hover
- */
-void ToolbarWidgetAction::endHover()
-{
-    if(!actionButton->getCheck()) {
-        QPalette pal = actionButton->palette();
-        pal.setColor(QPalette::Button, QColor(0,0,0,0));
-        actionButton->setAutoFillBackground(true);
-        actionButton->setPalette(pal);
-        actionButton->update();
-    }
 
-    /*
-    if (actionButton->getCheck() && (widgetMenu && widgetMenu->isVisible())) {
-        widgetMenu->close();
-    }
-    */
+/**
+ * @brief ToolbarWidgetAction::setParentMenuFocus
+ * This slot is called when this action's parent menu gains/loses focus.
+ * It determines whether this action and its button should track the mouse or not.
+ * @param hasFocus
+ */
+void ToolbarWidgetAction::setParentMenuFocus(bool hasFocus)
+{
+    parentMenuHasFocus = hasFocus;
+    actionButton->setAcceptMouseEvents(parentMenuHasFocus);
 }
 
 
 /**
  * @brief ToolbarWidgetAction::actionButtonPressed
+ * This slot is called when this action's button is pressed.
+ * It lets the toolbar know that this action was pressed.
  */
 void ToolbarWidgetAction::actionButtonPressed()
 {
@@ -347,34 +332,26 @@ void ToolbarWidgetAction::actionButtonPressed()
 
 /**
  * @brief ToolbarWidgetAction::actionButtonClicked
- * When the actionButton is clicked, this action is triggered.
+ * This slot is called when this action's button is clicked.
+ * It sets its the button's checked state and triggers this action.
  */
 void ToolbarWidgetAction::actionButtonClicked()
 {
-    QPalette pal = actionButton->palette();
-    pal.setColor(QPalette::Button, QColor(10,10,10,50));
-    actionButton->setAutoFillBackground(true);
-    actionButton->setPalette(pal);
-    actionButton->update();
+    actionButton->setButtonChecked();
 
-    actionButton->setCheck(true);
+    // this is the signal that is sent when this action is triggered
     emit trigger();
 }
 
 
 /**
- * @brief ToolbarWidgetAction::menuOpened
+ * @brief ToolbarWidgetAction::unCheckActionButton
+ * This slot is called whenever this action's child menu is about to hide.
+ * It makes sure that this action's button's checked state is reset.
  */
-void ToolbarWidgetAction::menuOpened()
+void ToolbarWidgetAction::unCheckActionButton()
 {
-   actionButton->setCheck(true);
-}
-
-
-/**
- * @brief ToolbarWidgetAction::menuClosed
- */
-void ToolbarWidgetAction::menuClosed()
-{
-    actionButton->setCheck(false);
+    if (actionButton && actionButton->isButtonChecked()) {
+        actionButton->setButtonChecked();
+    }
 }

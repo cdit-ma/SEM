@@ -5,6 +5,7 @@
 #include "../GraphicsItems/nodeitem.h"
 #include "../GraphicsItems/edgeitem.h"
 #include "toolbarwidgetaction.h"
+#include "toolbarabstractbutton.h"
 
 #include <QWidget>
 #include <QToolButton>
@@ -24,9 +25,8 @@ public:
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
 
-protected:
-    void enterEvent(QEvent* event);
-    void leaveEvent(QEvent* event);
+signals:
+    void toolbar_menuOnFocus(ToolbarWidgetMenu* menu);
 
 public slots:
     void updateActionEnabledState(QString actionName, bool enabled);
@@ -41,6 +41,7 @@ public slots:
     void constructNewView();
 
     void attachOptionMenu();
+    void menuOnFocus(ToolbarWidgetMenu* menu);
 
     void setVisible(bool visible);
     void hide();
@@ -127,16 +128,14 @@ private:
     ToolbarWidgetAction* inEventPortDelegateAction;
     ToolbarWidgetAction* outEventPortDelegateAction;
 
-    ToolbarWidgetAction* componentInstanceDefaultAction;
-    ToolbarWidgetAction* blackBoxInstanceDefaultAction;
-    ToolbarWidgetAction* iep_definitionInstanceDefaultAction;
-    ToolbarWidgetAction* oep_definitionInstanceDefaultAction;
+    ToolbarWidgetAction* componenMenuDefaultAction;
+    ToolbarWidgetAction* blackBoxMenuDefaultAction;
+    ToolbarWidgetAction* iep_menuDefaultAction;
+    ToolbarWidgetAction* oep_menuDefaultAction;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
     QRadioButton* unconnectedNodes;
-
-    bool eventFromToolbar;
 
     bool showDeleteToolButton;
     bool showImportSnippetToolButton;
