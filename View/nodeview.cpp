@@ -94,7 +94,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //Set QT Options for this QGraphicsView
     setDragMode(NoDrag);
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
-    setContextMenuPolicy(Qt::CustomContextMenu);
+    // setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 
@@ -3008,6 +3008,7 @@ GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
  */
 void NodeView::mouseReleaseEvent(QMouseEvent *event)
 {
+    qCritical()  << "MOUSE RELEASE: " << event->button();
     if(MINIMAP_EVENT){
         QGraphicsView::mouseReleaseEvent(event);
         return;
@@ -3057,10 +3058,12 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         QLineF distance(panningOrigin, event->pos());
         if(distance.length() < 5){
             wasPanning = false;
+            showToolbar(event->pos());
         }
         return;
     }
 
+    qCritical() << viewState;
 
     QGraphicsView::mouseReleaseEvent(event);
 }
@@ -3106,6 +3109,7 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
  */
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
+    qCritical() << event->button();
     // TODO: Need to catch the case where the menu is closed
     // when MEDEA window steals the focus
     // need this in case there is an opened lock menu
