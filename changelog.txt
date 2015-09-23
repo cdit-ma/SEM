@@ -10,6 +10,9 @@ Version 17:
         * Changed logic behind Behaviour Edges
         * Added a visual hover highlight for NodeItem
         * Added a visual darkening of NodeItem's as they get deeper.
+        * Implemented Cursors/Tooltips for NodeItem's specific sections.
+        * Implemented Minimap panning and zooming options.
+        * Implemented F2 to rename entities.
         * Implemented new settings
             ** Thread_Limit - Sets the max number of concurrent QProcess' used by CUTSManager
             ** CUTS_Configure_Script_Path - The absolute path to the cuts configure script.

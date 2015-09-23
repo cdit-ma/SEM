@@ -177,8 +177,8 @@ void CUTSManager::executeCPPCompilation(QString makePath)
 
     disconnect(this, SIGNAL(_gotLiveOutput(QString)), this, SIGNAL(gotLiveCPPOutput(QString)));
 
-    qCritical() << code;
-    emit executedCPPCompilation(code == 0);
+    QString errorString = process->errorString();
+    emit executedCPPCompilation(code == 0, errorString);
 }
 
 void CUTSManager::executeCUTS(QString path, int executionTime)

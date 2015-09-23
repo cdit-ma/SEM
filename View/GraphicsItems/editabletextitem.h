@@ -13,7 +13,8 @@ public:
     void setTextWidth(qreal width);
     void setCenterJustified();
     QString getStringValue();
-
+    QString getFullValue();
+    void setEditable(bool edit);
 
 signals:
     void textUpdated(QString data);
@@ -24,7 +25,6 @@ signals:
 protected:
     void focusInEvent(QFocusEvent*);
     void focusOutEvent(QFocusEvent* event);
-    void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
     void keyPressEvent(QKeyEvent *event);
 
 
@@ -32,6 +32,7 @@ protected:
 private:
     QString getTruncatedText(const QString text );
 
+    bool editable;
     bool centerJustified;
     QString currentFullValue;
     QString currentTruncValue;

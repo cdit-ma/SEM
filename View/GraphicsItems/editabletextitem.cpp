@@ -11,6 +11,7 @@
 EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     QGraphicsTextItem(parent)
 {
+
     currentFullValue = "";
     currentTruncValue = "";
     maxLength = maximumLength;
@@ -21,7 +22,7 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     setFlag(ItemIsFocusable, false);
     setFlag(ItemIsSelectable, false);
     setTextInteractionFlags(Qt::NoTextInteraction);
-    setAcceptHoverEvents(true);
+    setAcceptHoverEvents(false);
     doc = this->document();
     doc->setDocumentMargin(0);
     doc->setTextWidth(this->textWidth);
@@ -29,6 +30,7 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     option.setWrapMode(QTextOption::WrapAnywhere);
     doc->setDefaultTextOption(option);
     setDocument(doc);
+    editable = true;
 }
 
 void EditableTextItem::setEditMode(bool editMode)
@@ -160,11 +162,6 @@ void EditableTextItem::focusOutEvent(QFocusEvent *event)
     }
 }
 
-void EditableTextItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
-{
-    Q_UNUSED(event);
-    setCursor(Qt::IBeamCursor);
-}
 
 QString EditableTextItem::getTruncatedText(const QString text)
 {
@@ -200,6 +197,16 @@ QString EditableTextItem::getStringValue()
     value.replace(QString('\r'), QString(""));
     value.replace(QString(' '), QString(""));
     return value;
+}
+
+QString EditableTextItem::getFullValue()
+{
+    return currentFullValue;
+}
+
+void EditableTextItem::setEditable(bool edit)
+{
+    editable = edit;
 }
 
 

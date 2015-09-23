@@ -195,37 +195,44 @@ NodeItem::~NodeItem()
     delete textItem;
 }
 
+/**
+ * @brief NodeItem::getMouseOverType Returns the type of the node the position
+ * @param scenePos - The scene coordinate to check.
+ * @return - The type the
+ */
 NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
 {
     QPointF itemPos = mapFromScene(scenePos);
 
-    qCritical() << itemPos;
-    if(!contains(itemPos)){
-        return MO_NONE;
-    }else if(mouseOverIcon(itemPos)){
-        return MO_ICON;
-    }else if(mouseOverModelCircle(itemPos)){
-        return MO_MODELCIRCLE;
-    }else if(mouseOverLabel(itemPos)){
-        return MO_LABEL;
-    }else if(mouseOverDefinition(itemPos)){
-        return MO_DEFINITION;
-    }else if(mouseOverHardwareMenu(itemPos)){
-        return MO_HARDWAREMENU;
-    }else if(mouseOverDeploymentIcon(itemPos)){
-        return MO_DEPLOYMENTWARNING;
-    }else{
-        NodeItem::RESIZE_TYPE resize = resizeEntered(itemPos);
-        if(resize == NO_RESIZE){
-            return MO_ITEM;
-        }else if(resize == RESIZE){
-            return MO_RESIZE;
-        }else if(resize == HORIZONTAL_RESIZE){
-            return MO_RESIZE_HOR;
-        }else if(resize == VERTICAL_RESIZE){
-            return MO_RESIZE_VER;
+    if(contains(itemPos)){
+        if(mouseOverLabel(itemPos)){
+            return MO_LABEL;
+        }else if(mouseOverModelCircle(itemPos)){
+            return MO_MODELCIRCLE;
+        }else if(mouseOverDefinition(itemPos)){
+            return MO_DEFINITION;
+        }else if(mouseOverHardwareMenu(itemPos)){
+            return MO_HARDWAREMENU;
+        }else if(mouseOverDeploymentIcon(itemPos)){
+            return MO_DEPLOYMENTWARNING;
+        }else if(mouseOverIcon(itemPos)){
+            return MO_ICON;
+        }else{
+            if(isSelected()){
+                NodeItem::RESIZE_TYPE resize = resizeEntered(itemPos);
+                if(resize == NO_RESIZE){
+                    return MO_ITEM;
+                }else if(resize == RESIZE){
+                    return MO_RESIZE;
+                }else if(resize == HORIZONTAL_RESIZE){
+                    return MO_RESIZE_HOR;
+                }else if(resize == VERTICAL_RESIZE){
+                    return MO_RESIZE_VER;
+                }
+            }
         }
     }
+    return MO_NONE;
 }
 
 /**
@@ -837,7 +844,7 @@ bool NodeItem::labelEditable()
 }
 
 
-bool NodeItem::mouseOverIcon(QPointF mousePosition)
+bool NodeItem:: mouseOverIcon(QPointF mousePosition)
 {
     if(hasIcon){
         if(iconRect().contains(mousePosition)){
@@ -1562,7 +1569,7 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             break;
         case MO_LABEL:
             if(labelEditable()){
-                 textItem->setEditMode(true);
+                textItem->setEditMode(true);
             }
             break;
 
@@ -1603,10 +1610,6 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(!contains(event->pos())){
-        QGraphicsItem::hoverMoveEvent(event);
-        return;
-    }
     if(!isHighlighted){
         emit NodeItem_Hovered(getID(), true);
     }
@@ -1614,49 +1617,73 @@ void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(!contains(event->pos())){
-        QGraphicsItem::hoverMoveEvent(event);
-        return;
-    }
-
     QString tooltip;
     QCursor cursor;
 
-    //If the mouse is over the icon.
-    if(mouseOverIcon(event->pos())){
+    switch(getMouseOverType(event->scenePos())){
+
+    case MO_ICON:
         if(hasVisibleChildren()){
             cursor = Qt::PointingHandCursor;
-
             if(isExpanded()){
-                tooltip = "Double click to contract entity";
+                tooltip = "Double click to contract entity.";
             }else{
-                tooltip = "Double click to expand entity";
+                tooltip = "Double click to expand entity.";
             }
         }else if(isSelected()){
-            tooltip = "Entity contains no visible children";
+            tooltip = "Entity contains no visible children.";
         }
-    }else if(mouseOverDefinition(event->pos())){
-        if(hasDefinition){
-            tooltip = "This entity has a definition";
+        break;
+    case MO_LABEL:
+        if(labelEditable()){
+            cursor = Qt::IBeamCursor;
+            tooltip = tooltip  = textItem->getFullValue() + "\nDouble click to edit text.";
         }else{
-            tooltip = "Click to change the displayed hardware nodes";
+            tooltip  = textItem->getFullValue();
         }
-    }else if(mouseOverDeploymentIcon(event->pos())){
-        tooltip = "Not all children entities are deployed to the same hardware node";
-    }else if(isNodeSelected && isResizeable()){
-        currentResizeMode = resizeEntered(event->pos());
-
-        if(currentResizeMode == RESIZE){
-            tooltip = "Click and drag to change the size of the entity";
+        break;
+    case  MO_DEFINITION:
+        if(hasDefinition){
+            cursor = Qt::WhatsThisCursor;
+            tooltip = "This entity has a definition.";
+        }
+        break;
+    case MO_HARDWAREMENU:
+        cursor = Qt::PointingHandCursor;
+        tooltip = "Showing: ";
+        if(CHILDREN_VIEW_MODE == ALL){
+            tooltip += "All";
+        }else if(CHILDREN_VIEW_MODE == CONNECTED){
+            tooltip += "Connected";
+        }else if(CHILDREN_VIEW_MODE == UNCONNECTED){
+            tooltip += "Unconnected";
+        }
+        tooltip +=" Nodes.\nClick to change the displayed Hardware Nodes.";
+        break;
+    case MO_DEPLOYMENTWARNING:
+        cursor = Qt::WhatsThisCursor;
+        tooltip = "Not all children entities are deployed to the same Hardware entity.";
+        break;
+    case MO_RESIZE:
+        if(isSelected()){
+            tooltip = "Click and drag to change size.\nDouble click to auto set size.";
             cursor = Qt::SizeFDiagCursor;
-        }else if(currentResizeMode == HORIZONTAL_RESIZE){
-            tooltip = "Click and drag to change the width of the entity";
+        }
+        break;
+    case MO_RESIZE_HOR:
+        if(isSelected()){
+            tooltip = "Click and drag to change width.\nDouble click to auto set width.";
             cursor = Qt::SizeHorCursor;
-        }else if(currentResizeMode == VERTICAL_RESIZE){
-            tooltip = "Click and drag to change the height of the entity";
+        }
+        break;
+    case MO_RESIZE_VER:
+        if(isSelected()){
+            tooltip = "Click and drag to change height.\nDouble click to auto set height.";
             cursor = Qt::SizeVerCursor;
         }
+        break;
     }
+
 
     setToolTip(tooltip);
 
@@ -1673,17 +1700,12 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 
 void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
-    //Unset the resize mode.
-    currentResizeMode = NO_RESIZE;
-
-
     if(isHighlighted){
         emit NodeItem_Hovered(getID(), false);
     }
 
     //Unset the cursor
     unsetCursor();
-
 }
 
 
@@ -1693,57 +1715,66 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
  */
 void NodeItem::updateDisplayedChildren(int viewMode)
 {
-    if(!IS_HARDWARE_CLUSTER){
+    // if this item is not a HardwareCLuster, do nothing
+    if (!IS_HARDWARE_CLUSTER) {
         return;
     }
-    QList<NodeItem*> childrenItems = getChildNodeItems();
 
-    if(allChildren && connectedChildren && unConnectedChildren ){
-        allChildren->setChecked(false);
-        connectedChildren->setChecked(false);
-        unConnectedChildren->setChecked(false);
+    // if any of the menu items are not constructed, do nothing
+    if (!allChildren || !connectedChildren || !unConnectedChildren) {
+        return;
     }
 
+    // if the new view mode is the same as the current one, do nothing
+    if (viewMode == CHILDREN_VIEW_MODE) {
+        return;
+    }
+
+    // if viewMode = -1, it means that an edgeConstructed signal was sent
+    // need to update children HardwareNodes' visibily
+    if (viewMode == -1) {
+        viewMode = CHILDREN_VIEW_MODE;
+    }
+
+    QList<NodeItem*> childrenItems = getChildNodeItems();
+    allChildren->setChecked(false);
+    connectedChildren->setChecked(false);
+    unConnectedChildren->setChecked(false);
+
     if (viewMode == ALL) {
-        if(allChildren){
-            allChildren->setChecked(true);
-        }
         // show all HarwareNodes
+        allChildren->setChecked(true);
         foreach (NodeItem* item, childrenItems) {
-            item->setVisible(true && isNodeExpanded);
+            item->setHidden(!isNodeExpanded);
         }
     } else if (viewMode == CONNECTED) {
-        if(connectedChildren){
-            connectedChildren->setChecked(true);
-        }
         // show connected HarwareNodes
+        connectedChildren->setChecked(true);
         foreach (NodeItem* item, childrenItems) {
             if (item->getEdgeItemCount() > 0) {
-                item->setVisible(true && isNodeExpanded);
+                item->setHidden(!isNodeExpanded);
             } else {
-                item->setVisible(false);
+                item->setHidden(true);
             }
         }
     } else if (viewMode == UNCONNECTED) {
-        if(unConnectedChildren){
-            unConnectedChildren->setChecked(true);
-        }
         // show unconnected HarwareNodes
+        unConnectedChildren->setChecked(true);
         foreach (NodeItem* item, childrenItems) {
             if (item->getEdgeItemCount() == 0) {
-                item->setVisible(true && isNodeExpanded);
+                item->setHidden(!isNodeExpanded);
             } else {
-                item->setVisible(false);
+                item->setHidden(true);
             }
         }
+    } else {
+        return;
     }
 
-    if (viewMode != -1 && viewMode != CHILDREN_VIEW_MODE) {
-        CHILDREN_VIEW_MODE = viewMode;
-        sortTriggerAction = false;
-        newSort();
-        sortTriggerAction = true;
-    }
+    CHILDREN_VIEW_MODE = viewMode;
+    sortTriggerAction = false;
+    newSort();
+    sortTriggerAction = true;
 }
 
 /**
@@ -2411,16 +2442,22 @@ void NodeItem::setupLabel()
     QFont font("Arial", fontSize);
 
     textItem = new EditableTextItem(this);
+
+
     connect(textItem, SIGNAL(textUpdated(QString)),this, SLOT(labelUpdated(QString)));
     connect(textItem, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
+
+    if(getGraphML()->getData("label") && (!getGraphML()->getData("label")->isProtected())){
+        textItem->setEditable(true);
+    }else{
+        textItem->setEditable(false);
+    }
 
     textItem->setTextWidth(minimumWidth);
 
     if(isModel()){
         textItem->setCenterJustified();
         textItem->setTextWidth(getItemMargin());
-    } else {
-        textItem->setToolTip("Double click to edit label.");
     }
 
     qreal labelX = (minimumVisibleRect().width() - textItem->boundingRect().width()) /2;
@@ -2591,32 +2628,32 @@ void NodeItem::menuClosed()
  */
 void NodeItem::updateChildrenViewMode(int viewMode)
 {
-    int oldViewMode = CHILDREN_VIEW_MODE;
-
-    if(oldViewMode != viewMode){
-         updateDisplayedChildren(viewMode);
-    }
+    updateDisplayedChildren(viewMode);
 }
 
+/**
+ * @brief NodeItem::hardwareClusterMenuItemPressed
+ */
 void NodeItem::hardwareClusterMenuItemPressed()
 {
-    int value = -1;
-
     // if the sender was an action, it means that this was triggered from the menu
     QRadioButton* action = qobject_cast<QRadioButton*>(QObject::sender());
 
     if (action) {
+
+        int value = -1;
+
         if (action == allChildren) {
             value = ALL;
         } else if (action == connectedChildren) {
             value = CONNECTED;
         } else if (action == unConnectedChildren) {
             value = UNCONNECTED;
+        } else {
+            return;
         }
 
-        if(value != -1){
-            emit nodeItem_HardwareMenuClicked(value);
-        }
+        emit nodeItem_HardwareMenuClicked(value);
     }
 }
 
@@ -2912,14 +2949,11 @@ void NodeItem::sendSelectSignal(bool setSelected, bool controlDown)
 
     if(isSelected() != setSelected){
         if(setSelected && !controlDown){
-            qCritical() << "CLEAR";
             emit GraphMLItem_ClearSelection();
         }
         if(setSelected){
-            qCritical() << "APPEND";
             emit GraphMLItem_AppendSelected(this);
         }else{
-            qCritical() << "REMOVE";
             emit GraphMLItem_RemoveSelected(this);
         }
     }
@@ -3146,7 +3180,6 @@ void NodeItem::setNodeExpanded(bool expanded)
 
     //Show/Hide the non-hidden children.
     foreach(NodeItem* nodeItem, childNodeItems){
-        qCritical() << nodeItem->getNode();
         if (!nodeItem->isHidden()){
             nodeItem->setVisibility(expanded);
         }

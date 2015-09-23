@@ -1748,7 +1748,6 @@ void NodeView::_deleteFromIDs(QStringList IDs)
  */
 void NodeView::updateActionsEnabledStates()
 {
-    qCritical() << "updateActionsEnabledStates";
     QString selectedID = getSelectedNodeID();
     QString defnID;
     QString implID;
@@ -3215,6 +3214,14 @@ void NodeView::keyPressEvent(QKeyEvent *event)
             setState(VS_NONE);
             clearSelection();
         }
+        if(event->key() == Qt::Key_F2){
+            if(viewState == VS_NONE || viewState == VS_SELECTED){
+                NodeItem* nodeItem = getSelectedNodeItem();
+                if(nodeItem){
+                    nodeItem->setNewLabel();
+                }
+            }
+        }
     }
 
     QGraphicsView::keyPressEvent(event);
@@ -3571,10 +3578,7 @@ void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 
     // update enabled states of menu and toolbar actions
     if (updateActions) {
-        qCritical() << "appendToSelection";
         updateActionsEnabledStates();
-    }else{
-        qCritical() << "appendToSelection: NOT UPDATE";
     }
 }
 
@@ -3589,7 +3593,6 @@ void NodeView::removeFromSelection(GraphMLItem *item)
 
     // added this here because actions weren't being enabled/disabled
     // correctly when selecting/deselting items using the CTRL key
-    qCritical() << "REMOVED";
     updateActionsEnabledStates();
 }
 

@@ -3883,7 +3883,6 @@ bool NewController::canReplicate(QStringList selection)
 
 bool NewController::canCut(QStringList selection)
 {
-    qCritical() << selection;
     return canCopy(selection) && canDelete(selection);
 }
 
