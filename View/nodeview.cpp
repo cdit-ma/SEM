@@ -1566,7 +1566,7 @@ void NodeView::showHardwareClusterChildrenViewMenu(NodeItem *nodeItem)
                 QPoint offset(lockRect.width()/5, -lockRect.width()/15);
                 QPointF menuPos = mapFromScene(lockRect.bottomLeft() + offset);
                 menuPos = mapToGlobal(menuPos.toPoint());
-                menu->exec(menuPos.toPoint());
+                menu->popup(menuPos.toPoint());
                 prevLockMenuOpened = menu;
             }
         }
@@ -3031,9 +3031,9 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
             if(!item){
                 //If we don't have an item under the mouse. Fit screen to view.
                 fitToScreen();
+                return;
             }
         }
-        return;
     }else if(viewState == VS_PAN || viewState == VS_PANNING){
 
         if(viewState == VS_PAN){
@@ -3061,8 +3061,6 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         }
         return;
     }
-
-    qCritical() << viewState;
 
     QGraphicsView::mouseReleaseEvent(event);
 }

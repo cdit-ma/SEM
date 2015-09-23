@@ -218,7 +218,7 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
         }else if(mouseOverIcon(itemPos)){
             return MO_ICON;
         }else{
-            if(isSelected()){
+            if(isResizeable()){
                 NodeItem::RESIZE_TYPE resize = resizeEntered(itemPos);
                 if(resize == NO_RESIZE){
                     return MO_ITEM;
@@ -1450,12 +1450,14 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
         switch (viewState){
         case NodeView::VS_SELECTED:
-            if(mouseDownType == MO_RESIZE || mouseDownType == MO_RESIZE_HOR || mouseDownType == MO_RESIZE_VER){
-                //Is resizing
-                getNodeView()->setStateResizing();
-            }else{
-                //Moving not resizing.
-                getNodeView()->setStateMoving();
+            if(isMoveable()){
+                if(mouseDownType == MO_RESIZE || mouseDownType == MO_RESIZE_HOR || mouseDownType == MO_RESIZE_VER){
+                    //Is resizing
+                    getNodeView()->setStateResizing();
+                }else{
+                    //Moving not resizing.
+                    getNodeView()->setStateMoving();
+                }
             }
             break;
         case NodeView::VS_RESIZING:
@@ -1519,6 +1521,7 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::MiddleButton:{
         switch (viewState){
+        case NodeView::VS_NONE:
         case NodeView::VS_SELECTED:
             if(controlPressed){
                 if(!isInSubView){
@@ -2201,7 +2204,7 @@ void NodeItem::setupChildrenViewOptionMenu()
     font.setPointSize(9);
 
     childrenViewOptionMenu->setFont(font);
-    childrenViewOptionMenu->setFixedSize(115, 68);
+    //childrenViewOptionMenu->setFixedSize(115, 68);
     childrenViewOptionMenu->setAttribute(Qt::WA_TranslucentBackground);
     childrenViewOptionMenu->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     childrenViewOptionMenu->setStyleSheet("QRadioButton::checked{ color: darkRed; font-weight: bold; }"
