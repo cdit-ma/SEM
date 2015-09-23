@@ -40,7 +40,6 @@
         <file alias="OutEventPortInstance.png">Resources/Images/Items/OutEventPortInstance.png</file>
         <file alias="OutMember.png">Resources/Images/Items/OutMember.png</file>
         <file alias="Parameter.png">Resources/Images/Items/Parameter.png</file>
-        <file alias="passivate.png">Resources/Images/Items/passivate.png</file>
         <file alias="PeriodicEvent.png">Resources/Images/Items/PeriodicEvent.png</file>
         <file alias="Postprocess.png">Resources/Images/Items/Postprocess.png</file>
         <file alias="Preprocess.png">Resources/Images/Items/Preprocess.png</file>
@@ -56,6 +55,7 @@
         <file alias="WhileLoop.png">Resources/Images/Items/WhileLoop.png</file>
         <file alias="Vector.png">Resources/Images/Items/Vector.png</file>
         <file alias="Localhost.png">Resources/Images/Items/Localhost.png</file>
+        <file alias="Passivate.png">Resources/Images/Items/Passivate.png</file>
     </qresource>
     <qresource prefix="/">
         <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>
