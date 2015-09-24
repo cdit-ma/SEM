@@ -120,9 +120,12 @@ private slots:
     void localDeploymentOkay();
     void toggleGridLines();
     void aboutMedea();
+    void aboutQt();
+    void showShortcutList();
     void invalidJenkinsSettings(QString message);
     void jenkinsNodesLoaded();
     void saveSettings();
+    void search();
 
     void gotJenkinsNodeGraphML(QString graphML);
     void setImportJenkinsNodeEnabled(bool enabled = true);
@@ -245,6 +248,7 @@ private:
     QMenu* view_menu;
     QMenu* model_menu;
     QMenu* jenkins_menu;
+    QMenu* help_menu;
 
     QAction* exit;
     QAction* file_newProject;
@@ -260,6 +264,7 @@ private:
     QAction* edit_paste;
     QAction* edit_replicate;
     QAction* edit_delete;
+    QAction* edit_search;
 
     QAction* view_fitToScreen;
     QAction* view_snapToGrid;
@@ -269,9 +274,14 @@ private:
     QAction* view_showConnectedNodes;
     QAction* model_validateModel;
     QAction* model_clearModel;
+    QAction* model_ExecuteLocalJob;
 
     QAction* settings_editToolbarButtons;
     QAction* settings_changeAppSettings;
+
+    QAction* help_AboutMedea;
+    QAction* help_AboutQt;
+    QAction* help_Shortcuts;
 
     QAction* jenkins_ImportNodes;
     QAction* jenkins_ExecuteJob;
@@ -287,7 +297,7 @@ private:
     QAction* actionForward;
     QAction* actionToggleGrid;
     QAction* actionContextMenu;
-    QAction* file_AboutMedea;
+
 
 
 
@@ -428,8 +438,7 @@ private:
     JenkinsManager* jenkinsManager;
     CUTSManager* cutsManager;
 
-    QAction* jenkins_getJobParameters;
-    QAction* cuts_runGeneration;
+
 
 
     QString MEDEA_VERSION;

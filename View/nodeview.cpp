@@ -1248,7 +1248,12 @@ void NodeView::centerItem(QString ID)
 
 void NodeView::centerDefinition(QString ID)
 {
-    if(controller){
+    if(ID == ""){
+        ID = getSelectedNodeID();
+    }
+
+    if(controller && ID != ""){
+
         QString definitionID =  controller->getDefinition(ID);
 
         GraphMLItem *definition = getNodeItemFromID(definitionID);
@@ -1265,7 +1270,10 @@ void NodeView::centerDefinition(QString ID)
 
 void NodeView::centerImplementation(QString ID)
 {
-    if(controller){
+    if(ID == ""){
+        ID = getSelectedNodeID();
+    }
+    if(controller && ID != ""){
         QString implementationID =  controller->getImplementation(ID);
         GraphMLItem *impl = getNodeItemFromID(implementationID);
 
@@ -3217,8 +3225,6 @@ void NodeView::keyPressEvent(QKeyEvent *event)
                if (!editingNodeItemLabel) {
                    selectAll();
                }
-           }else if(event->key() == Qt::Key_D){
-               replicate();
            }
         }
 
@@ -4063,85 +4069,7 @@ void NodeView::fitToScreen(QList<NodeItem*> itemsToCenter, double padding, bool 
 }
 
 
-/**
- * @brief NodeView::goToDefinition
- * If the node is a definition, select and center it.
- * If it's not but it has a definition, center on its definition.
- * @param node
- */
-void NodeView::goToDefinition(Node *node)
-{
-    if (!node) {
-        node = getSelectedNode();
-    }
-    if (!node) {
-        return;
-    }
 
-    /*
-    //Node* defn = hasDefinition(node);
-
-    if (defn) {
-        // make sure the Definitions view aspect is on
-        addAspect("Definitions");
-
-        GraphMLItem* guiItem = getGraphMLItemFromGraphML(defn);
-        clearSelection(false);
-        appendToSelection(guiItem);
-        centerOnItem();
-    }*/
-}
-
-
-/**
- * @brief NodeView::goToImplementation
- * If the node is not a definition, check to see if it has a definition.
- * If it does and it has at least 1 implementation, select & center on the first one.
- * @param node
- */
-void NodeView::goToImplementation(Node *node)
-{
-    if (!node) {
-        node = getSelectedNode();
-    }
-    if (!node) {
-        return;
-    }
-
-    /*
-    Node* impl = hasImplementation(node);
-
-    if (impl) {
-        // make sure the Workload view aspect is on
-        addAspect("Workload");
-
-        GraphMLItem* guiItem = getGraphMLItemFromGraphML(impl);
-        clearSelection(false);
-        appendToSelection(guiItem);
-        centerOnItem();
-    }*/
-}
-
-
-/**
- * @brief NodeView::goToInstance
- * Select and center on the provided instance.
- * @param instance
- */
-void NodeView::goToInstance(Node *instance)
-{
-    if (!instance) {
-        return;
-    }
-
-    // make sure the Assembly view aspect is on
-    addAspect("Assembly");
-
-    GraphMLItem* guiItem = getGraphMLItemFromGraphML(instance);
-    clearSelection(false);
-    appendToSelection(guiItem);
-    centerOnItem();
-}
 
 
 /**

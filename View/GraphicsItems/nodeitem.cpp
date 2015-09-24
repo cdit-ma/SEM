@@ -100,7 +100,12 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     IS_HARDWARE_CLUSTER = (nodeKind == "HardwareCluster");
     IS_MODEL = (nodeKind == "Model");
 
-    CHILDREN_VIEW_MODE = CONNECTED;
+    if(isInSubView){
+        CHILDREN_VIEW_MODE = ALL;
+    }else{
+        CHILDREN_VIEW_MODE = CONNECTED;
+    }
+
     sortTriggerAction = true;
     eventFromMenu = true;
 

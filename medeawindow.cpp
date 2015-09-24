@@ -17,6 +17,7 @@
 #include <QTemporaryFile>
 #include <QPicture>
 #include "GUI/actionbutton.h"
+#include "GUI/shortcutdialog.h"
 #include <QToolButton>
 #include <QToolBar>
 
@@ -570,10 +571,14 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_menu = menu->addMenu(getIcon("Actions", "MenuView"), "View");
     model_menu = menu->addMenu(getIcon("Actions", "MenuModel"), "Model");
     jenkins_menu = menu->addMenu(getIcon("Actions", "Jenkins_Icon"), "Jenkins");
+
+
     menu->addSeparator();
 
     settings_changeAppSettings = menu->addAction(getIcon("Actions", "Settings"), "Settings");
-    file_AboutMedea = menu->addAction(getIcon("Actions", "Info"),"About MEDEA");
+    settings_changeAppSettings->setShortcut(QKeySequence(Qt::Key_F10));
+    help_menu = menu->addMenu(getIcon("Actions", "Help"), "Help");
+
     exit = menu->addAction(getIcon("Actions", "Power"), "Exit");
 
     menu->setFont(guiFont);
@@ -610,7 +615,11 @@ void MedeaWindow::setupMenu(QPushButton *button)
     edit_paste = edit_menu->addAction(getIcon("Actions", "Paste"), "Paste");
     edit_paste->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_V));
     edit_replicate = edit_menu->addAction(getIcon("Actions", "Replicate"), "Replicate");
+    edit_replicate->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_D));
     edit_menu->addSeparator();
+    edit_search = edit_menu->addAction(getIcon("Actions", "Search"), "Search");
+    edit_search->setShortcut(QKeySequence(Qt::Key_F3));
+
     edit_delete = edit_menu->addAction(getIcon("Actions", "Delete"), "Delete Selection");
 
     view_fitToScreen = view_menu->addAction(getIcon("Actions", "FitToScreen"), "Fit To Screen");
@@ -631,6 +640,9 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(getIcon("Actions", "Validate"), "Validate Model");
 
+    model_ExecuteLocalJob = model_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: Local Deployment");
+    model_ExecuteLocalJob->setEnabled(false);
+    model_ExecuteLocalJob->setToolTip("Requires Valid CUTS and Windows");
 
 
 
@@ -641,14 +653,18 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB);
     //Generic Jenkins Functionality.
-    jenkins_ImportNodes = jenkins_menu->addAction(getIcon("Actions", "Computer"), "Import Nodes");
+    jenkins_ImportNodes = jenkins_menu->addAction(getIcon("Actions", "Computer"), "Import Jenkins Nodes");
     jenkins_ImportNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
 
-    cuts_runGeneration = jenkins_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: Local Deployment");
-    cuts_runGeneration->setEnabled(false);
-    cuts_runGeneration->setToolTip("Requires Valid CUTS and Windows");
+
 
     jenkins_ExecuteJob = jenkins_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: " + jenkinsJobName);
+
+    help_Shortcuts = help_menu->addAction(getIcon("Actions", "Keyboard"), "App Shortcuts");
+    help_Shortcuts->setShortcut(QKeySequence(Qt::Key_F1));
+    help_AboutMedea = help_menu->addAction(getIcon("Actions", "Info"), "About MEDEA");
+    help_menu->addSeparator();
+    help_AboutQt = help_menu->addAction(QIcon(":/Qt.ico"), "About Qt");
 
     if(!jenkinsManager){
         jenkins_menu->setEnabled(false);
@@ -840,7 +856,8 @@ void MedeaWindow::setupSearchTools()
     searchOptionButton->setCheckable(true);
 
     searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight-3);
-    searchBar->setStyleSheet("background-color: rgb(230,230,230);");
+    searchBar->setStyleSheet("QLineEdit{background-color: rgb(230,230,230);} QLineEdit:focus{border: 2px solid; border-color:blue;background-color: rgb(250,250,250)}");
+
     searchBar->setPlaceholderText(searchBarDefaultText);
 
     //searchSuggestions->setViewMode(QListView::ListMode);
@@ -1180,7 +1197,9 @@ void MedeaWindow::makeConnections()
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
-    connect(file_AboutMedea, SIGNAL(triggered()), this, SLOT(aboutMedea()));
+    connect(help_AboutMedea, SIGNAL(triggered()), this, SLOT(aboutMedea()));
+    connect(help_AboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
+    connect(help_Shortcuts, SIGNAL(triggered()), this, SLOT(showShortcutList()));
 
     connect(this, SIGNAL(window_ExportProject()), nodeView, SLOT(exportProject()));
     connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SLOT(importProjects(QStringList)));
@@ -1196,12 +1215,13 @@ void MedeaWindow::makeConnections()
     connect(edit_replicate, SIGNAL(triggered()), nodeView, SLOT(replicate()));
     connect(edit_paste, SIGNAL(triggered()), this, SLOT(on_actionPaste_triggered()));
     connect(this, SIGNAL(window_PasteData(QString)), nodeView, SLOT(paste(QString)));
+    connect(edit_search, SIGNAL(triggered()), this, SLOT(search()));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(view_snapToGrid, SIGNAL(triggered()), nodeView, SLOT(snapSelectionToGrid()));
     connect(view_snapChildrenToGrid, SIGNAL(triggered()), nodeView, SLOT(snapChildrenToGrid()));
-    connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(goToImplementation()));
-    connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(goToDefinition()));
+    connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(centerImplementation()));
+    connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(centerDefinition()));
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
@@ -1210,7 +1230,7 @@ void MedeaWindow::makeConnections()
 
     //Jenkins Settings
     connect(jenkins_ExecuteJob, SIGNAL(triggered()), this, SLOT(jenkinsExport()));
-    connect(cuts_runGeneration, SIGNAL(triggered()), this, SLOT(cutsExport()));
+    connect(model_ExecuteLocalJob, SIGNAL(triggered()), this, SLOT(cutsExport()));
 
     connect(jenkins_ImportNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
 
@@ -1327,7 +1347,8 @@ void MedeaWindow::makeConnections()
 
     addAction(actionToggleGrid);
     addAction(settings_changeAppSettings);
-    addAction(file_AboutMedea);
+    addAction(help_AboutMedea);
+    addAction(help_Shortcuts);
 }
 
 
@@ -1472,9 +1493,9 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
 
 void MedeaWindow::localDeploymentOkay()
 {
-    if(cuts_runGeneration){
-        cuts_runGeneration->setEnabled(true);
-        cuts_runGeneration->setToolTip("");
+    if(model_ExecuteLocalJob){
+        model_ExecuteLocalJob->setEnabled(true);
+        model_ExecuteLocalJob->setToolTip("");
     }
 }
 
@@ -1514,6 +1535,24 @@ void MedeaWindow::aboutMedea()
 
 
     QMessageBox::about(this, "About MEDEA", aboutString);
+}
+
+void MedeaWindow::aboutQt()
+{
+    QMessageBox::aboutQt(this);
+}
+
+void MedeaWindow::showShortcutList()
+{
+    QString shortcutList;
+
+    shortcutList = "<table border=\"0\">";
+    shortcutList += "<tr><td>Global Shortcuts:</td></tr>";
+    shortcutList += "<tr><td>Type</td><td>Shortcut</td></tr>";
+    shortcutList += "</table>";
+
+    ShortcutDialog* shortcutDialog = new ShortcutDialog(this);
+    shortcutDialog->exec();
 }
 
 void MedeaWindow::invalidJenkinsSettings(QString message)
@@ -1717,6 +1756,14 @@ void MedeaWindow::saveSettings()
             appSettings->setSetting(WINDOW_X, pos().x());
             appSettings->setSetting(WINDOW_Y, pos().y());
         }
+    }
+}
+
+void MedeaWindow::search()
+{
+    if(searchBar){
+        searchBar->setFocus();
+        searchBar->selectAll();
     }
 }
 
@@ -1946,7 +1993,7 @@ void MedeaWindow::on_actionSearch_triggered()
             if (searchResults->isVisible()) {
                 searchResults->setVisible(false);
             }
-            QMessageBox::information(this, "Search Results", "Search Not Found   ", QMessageBox::Ok);
+            QMessageBox::information(this, "Search Error", "Search string: \"" + searchText + "\" not found!", QMessageBox::Ok);
             return;
         }
 
@@ -2212,7 +2259,7 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
     } else if(action == "multipleSelection"){
         actionSort->setEnabled(enable);
     } else if(action == "localdeployment"){
-        cuts_runGeneration->setEnabled(enable);
+        model_ExecuteLocalJob->setEnabled(enable);
     }
 }
 

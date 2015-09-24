@@ -60,6 +60,7 @@
     <qresource prefix="/">
         <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>
         <file alias="MedeaIcon.ico">Resources/Images/MedeaIcon.ico</file>
+        <file alias="Qt.ico">Resources/Images/Qt.ico</file>
     </qresource>
     <qresource prefix="/Actions">
         <file alias="Add.png">Resources/Images/Actions/Add.png</file>
@@ -162,5 +163,8 @@
         <file alias="ConnectTo.png">Resources/Images/Actions/ConnectTo.png</file>
         <file alias="MenuCluster.png">Resources/Images/Actions/MenuCluster.png</file>
         <file alias="Clock.png">Resources/Images/Actions/Clock.png</file>
+        <file alias="Keyboard.png">Resources/Images/Actions/Keyboard.png</file>
+        <file alias="Global.png">Resources/Images/Actions/Global.png</file>
+        <file alias="Mouse.png">Resources/Images/Actions/Mouse.png</file>
     </qresource>
 </RCC>

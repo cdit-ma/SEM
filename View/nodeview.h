@@ -280,11 +280,8 @@ public slots:
     void centerItem(QString ID);
     void centerDefinition(QString ID = "");
     void centerImplementation(QString ID = "");
-    void centerInstance(QString instanceID = "");
+    void centerInstance(QString instanceID);
 
-    void goToDefinition(Node* node = 0);
-    void goToImplementation(Node* node = 0);
-    void goToInstance(Node *instance = 0);
 
     void deleteSelection();
     void constructNode(QString nodeKind, int sender);

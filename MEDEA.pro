@@ -115,7 +115,8 @@ HEADERS += \
     Model/BehaviourDefinitions/behaviournode.h \
     Model/BehaviourDefinitions/branch.h \
     Model/BehaviourDefinitions/whileloop.h \
-    View/Toolbar/toolbarabstractbutton.h
+    View/Toolbar/toolbarabstractbutton.h \
+    GUI/shortcutdialog.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -203,7 +204,8 @@ SOURCES += \
     Model/BehaviourDefinitions/behaviournode.cpp \
     Model/BehaviourDefinitions/branch.cpp \
     Model/BehaviourDefinitions/whileloop.cpp \
-    View/Toolbar/toolbarabstractbutton.cpp
+    View/Toolbar/toolbarabstractbutton.cpp \
+    GUI/shortcutdialog.cpp
 
 FORMS +=
 
@@ -323,4 +325,5 @@ mac{
     QMAKE_BUNDLE_DATA += TRANSFORMS_FILES
 }
 
-DISTFILES +=
+DISTFILES += \
+    Resources/Images/qt.ico
