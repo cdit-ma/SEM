@@ -299,6 +299,9 @@ mac{
 SETTINGS_FILE.files += settings.ini
 SETTINGS_FILE.path = $$OUTPUT_DIR/
 
+CHANGELOG_FILE.files += changelog.txt
+CHANGELOG_FILE.path = $$OUTPUT_DIR/
+
 SCRIPTS_FILES.files += Resources/Scripts/
 SCRIPTS_FILES.path = $$OUTPUT_DIR/Resources/
 
@@ -312,6 +315,7 @@ TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/
 #Copy files for Windows and Linux
 linux-g++ | win32{
     INSTALLS += SETTINGS_FILE
+    INSTALLS += CHANGELOG_FILE
     INSTALLS += SCRIPTS_FILES
     INSTALLS += BINARIES_FILES
     INSTALLS += TRANSFORMS_FILES
@@ -320,6 +324,7 @@ linux-g++ | win32{
 #Copy files for MacOS
 mac{
     QMAKE_BUNDLE_DATA += SETTINGS_FILE
+    QMAKE_BUNDLE_DATA += CHANGELOG_FILE
     QMAKE_BUNDLE_DATA += SCRIPTS_FILES
     QMAKE_BUNDLE_DATA += BINARIES_FILES
     QMAKE_BUNDLE_DATA += TRANSFORMS_FILES
