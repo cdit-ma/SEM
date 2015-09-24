@@ -13,6 +13,7 @@ Version 17:
         * Implemented Cursors/Tooltips for NodeItem's specific sections.
         * Implemented Minimap panning and zooming options.
         * F2 to rename entities.
+        * F3 to search
         * F10 to show Settings
         * Implemented a Shortcut Widget
         * Implemented new settings
