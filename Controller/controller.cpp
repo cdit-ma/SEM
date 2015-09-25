@@ -1508,7 +1508,10 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
 
     if(nodeKind.contains("EventPort")){
         data.append(new GraphMLData(typeKey, "", true));
-
+    }
+    if(nodeKind == "InEventPort"){
+        GraphMLKey* asyncKey = constructGraphMLKey("async", "boolean", "node");
+        data.append(new GraphMLData(asyncKey, "true"));
     }
     return data;
 }

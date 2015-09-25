@@ -95,12 +95,14 @@ bool OutEventPortInstance::canConnect(Node* attachableObject)
     }
 
     if(inEventPortInstance){
-        if(inEventPortInstance->getParentNode() == this->getParentNode()){
+        //CHANGED FOR JAVIER
+/*        if(inEventPortInstance->getParentNode() == this->getParentNode()){
 #ifdef DEBUG_MODE
             qWarning() << "OutEventPortInstance cannot be connected to an InEventPortInstance Contained by the same ComponentInstance Node!";
 #endif
             return false;
         }
+        */
         if(inEventPortInstance->getParentNode()->getParentNode() != this->getParentNode()->getParentNode()){
 #ifdef DEBUG_MODE
             qWarning() << "OutEventPortInstance must only be connected to an InEventPortInstance contained in this assembly!";
