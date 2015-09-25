@@ -592,6 +592,9 @@ void MedeaWindow::setupMenu(QPushButton *button)
     file_menu->addSeparator();
     file_importGraphML = file_menu->addAction(getIcon("Actions", "Import"), "Import");
     file_importSnippet = file_menu->addAction(getIcon("Actions", "ImportSnippet"), "Import Snippet");
+    file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
+
+
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_menu->addSeparator();
     file_exportGraphML = file_menu->addAction(getIcon("Actions", "Export"), "Export");
@@ -1170,6 +1173,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
     connect(nodeView, SIGNAL(view_ProjectCleared()), this, SLOT(projectCleared()));
     connect(file_importSnippet, SIGNAL(triggered()), nodeView, SLOT(request_ImportSnippet()));
+    connect(file_importXME, SIGNAL(triggered(bool)), this, SLOT(on_actionImport_XME_triggered()));
     connect(file_exportSnippet, SIGNAL(triggered()), nodeView, SLOT(exportSnippet()));
 
 
@@ -1435,6 +1439,25 @@ void MedeaWindow::initialiseCUTSManager()
     cutsManager->setScriptsPath(scriptsPath);
     cutsManager->moveToThread(thread);
     connect(cutsManager, SIGNAL(localDeploymentOkay()), this, SLOT(localDeploymentOkay()));
+
+    connect(cutsManager, SIGNAL(gotXMETransformation(bool,QString, QString)), this, SLOT(gotXMETransformation(bool, QString, QString)));
+}
+
+
+void MedeaWindow::importXMEProject(QString filePath)
+{
+    if(cutsManager){
+        QFile file(filePath);
+        QFileInfo fileInfo = QFileInfo(file);
+        QString fileName =  fileInfo.baseName();
+        QString outputPath = QDir::tempPath() + "/" + fileName + ".graphml";
+
+        connect(this, SIGNAL(executeXMETransformation(QString,QString)), cutsManager, SLOT(executeXMETransformation(QString,QString)));
+        emit executeXMETransformation(filePath, outputPath);
+        disconnect(this, SIGNAL(executeXMETransformation(QString,QString)), cutsManager, SLOT(executeXMETransformation(QString,QString)));
+        setEnabled(false);
+        updateProgressStatus(-1, "Transforming XME to GraphML");
+    }
 }
 
 
@@ -1477,18 +1500,26 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
               << "-xsl" << transformsPath + "MEDEA.xsl"
               << "-out" << validation_report_path;
 
-    // alternative if using xalan-c
-    //  QString program =  "Xalan";
-    //  arguments << "-o" << outputFile
-    //            << inputFile
-    //            << "MEDEA.xsl";
 
     QProcess *myProcess = new QProcess(this);
-    //myProcess->setWorkingDirectory(scriptPath);
 
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(validationComplete(int)));
     connect(myProcess, SIGNAL(finished(int)), myProcess, SLOT(deleteLater()));
     myProcess->start(program, arguments);
+}
+
+void MedeaWindow::gotXMETransformation(bool success, QString errorString, QString path)
+{
+    setEnabled(true);
+    updateProgressStatus(0,"");
+    if(!success){
+        QMessageBox::critical(this, "XME Import Error", errorString, QMessageBox::Ok);
+
+    }else{
+        QStringList projects;
+        projects << path;
+        emit importProjects(projects);
+    }
 }
 
 void MedeaWindow::localDeploymentOkay()
@@ -1864,6 +1895,20 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
                 "GraphML Documents (*.graphml *.xml)");
 
     importProjects(files);
+}
+
+void MedeaWindow::on_actionImport_XME_triggered()
+{
+    progressAction = "Importing XME";
+
+    QString file = QFileDialog::getOpenFileName(
+                this,
+                "Select an XME file to import.",
+                "",
+                "XME File (*.xme)");
+
+    importXMEProject(file);
+
 }
 
 

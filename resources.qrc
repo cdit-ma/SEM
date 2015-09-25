@@ -61,6 +61,7 @@
         <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>
         <file alias="MedeaIcon.ico">Resources/Images/MedeaIcon.ico</file>
         <file alias="Qt.ico">Resources/Images/Qt.ico</file>
+        <file alias="GME.ico">Resources/Images/GME.ico</file>
     </qresource>
     <qresource prefix="/Actions">
         <file alias="Add.png">Resources/Images/Actions/Add.png</file>

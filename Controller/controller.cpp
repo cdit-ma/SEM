@@ -934,7 +934,7 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
         controller_SetViewEnabled(false);
         if(addAction){
             triggerAction("Importing GraphML Projects.");
-            emit controller_ActionProgressChanged(0,"Importing Projects");
+            emit controller_ActionProgressChanged(0, "Importing GraphML files");
         }
 
         foreach(QString xmlData, xmlDataList){

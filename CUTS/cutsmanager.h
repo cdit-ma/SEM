@@ -30,7 +30,6 @@ public:
     void setScriptsPath(QString path);
 
 
-
 signals:
     void killProcesses();
     void localDeploymentOkay();
@@ -49,11 +48,17 @@ signals:
     //Emitted bt the slot executeCUTS
     void executedCUTS(bool success, QString errorString="");
 
+    //Emmited by the slot executeXMETransformation
+    void gotXMETransformation(bool success, QString errorString, QString path);
+
     //Used to send live console output from the executeMWCGeneration
     void gotLiveMWCOutput(QString output);
     //Used to send live console output from the executeCPPGeneration
     void gotLiveCPPOutput(QString output);
     void gotLiveCUTSOutput(QString output);
+
+
+
     void _gotLiveOutput(QString output);
 private slots:
 
@@ -64,11 +69,16 @@ private slots:
     //Compiles all CPP artifacts, based on the provided make file.
     void executeCPPCompilation(QString makePath);
 
+
+    void executeXMETransformation(QString xmePath, QString outputFilePath);
+
     //Runs CUTS execution
     void executeCUTS(QString path, int executionTime=60);
 
     //Called once a QProcess finishes executing
     void processFinished(int code, QProcess::ExitStatus status);
+
+
 
 private:
     void processGraphml(QString graphmlPath, QString outputPath);

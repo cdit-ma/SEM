@@ -10,6 +10,7 @@
         version="1.0" 
         indent="yes" />
 		<!-- doctype-system="graphml.dtd"  can use this if validation method uses dtd, for graphml xml better to use schemaLocation-->
+		<!-- doctype-system="mga.dtd"  can use this if validation method uses dtd, for graphml xml better to use schemaLocation-->
 	<xsl:strip-space elements="*" />
  
     <!--
@@ -24,7 +25,7 @@
 		with links to the InterfaceDefinition nodes.
     -->
 	
-	
+
 	<!-- Assign data keys as used by yEd 3.12.2 -->
 	<xsl:include href="graphmlKeyVariables.xsl" />
 	

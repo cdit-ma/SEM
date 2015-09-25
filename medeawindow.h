@@ -24,7 +24,7 @@
 #include <QCheckBox>
 #include <QItemSelectionModel>
 #include <QDebug>
-
+#include <QProgressDialog>
 #include <QTemporaryFile>
 
 #include <QXmlQuery>
@@ -77,6 +77,8 @@ signals:
     void window_ExportProject();
     void window_ImportProjects(QStringList file);
     void window_ImportSnippet(QString fileName, QString fileData);
+
+
     void window_LoadJenkinsNodes(QString fileData);
 
     void window_AspectsChanged(QStringList aspects);
@@ -92,6 +94,8 @@ signals:
 
     void window_DisplayMessage(MESSAGE_TYPE type, QString title, QString message);
 
+
+    void executeXMETransformation(QString, QString);
 private:
    void toolbarSettingChanged(QString keyName, QString value);
    void enableTempExport(bool enable);
@@ -117,6 +121,8 @@ public slots:
 
 
 private slots:
+
+    void gotXMETransformation(bool success, QString errorString, QString path);
     void localDeploymentOkay();
     void toggleGridLines();
     void aboutMedea();
@@ -131,8 +137,11 @@ private slots:
     void setImportJenkinsNodeEnabled(bool enabled = true);
     void on_actionImportJenkinsNode();
 
+
+
     void on_actionNew_Project_triggered();
     void on_actionImport_GraphML_triggered();
+    void on_actionImport_XME_triggered();
     void on_actionExport_GraphML_triggered();
 
 
@@ -203,6 +212,8 @@ protected:
 private:
     void initialiseJenkinsManager();
     void initialiseCUTSManager();
+    void importXMEProject(QString fileName);
+
 
 
     void resetGUI();
@@ -253,6 +264,7 @@ private:
     QAction* exit;
     QAction* file_newProject;
     QAction* file_importGraphML;
+    QAction* file_importXME;
     QAction* file_importSnippet;
     QAction* file_exportGraphML;
     QAction* file_exportSnippet;
