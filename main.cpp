@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     a.setWindowIcon(QIcon(":/Actions/MEDEA.png"));
 
     QCoreApplication::setApplicationName("MEDEA");
-    QCoreApplication::setApplicationVersion("17");
+    QCoreApplication::setApplicationVersion("18");
     QCoreApplication::setOrganizationName("Defence Information Group");
     QCoreApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
 
@@ -55,8 +55,6 @@ int main(int argc, char *argv[])
     if (argc == 2) {
         GraphMLFile = QString(argv[1]);
     }
-
-
 
     MedeaWindow *w = new MedeaWindow(GraphMLFile);
     w->show();

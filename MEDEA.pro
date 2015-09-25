@@ -11,7 +11,7 @@ QT       += widgets
 QT       += xmlpatterns
 
 
-VERSION = 17.0
+VERSION = 18.0
 QMAKE_TARGET_COMPANY = Defence Information Group
 QMAKE_TARGET_PRODUCT = MEDEA
 QMAKE_TARGET_DESCRIPTION = Modelling, Experiment DEsign and Analysis
