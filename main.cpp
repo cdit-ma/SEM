@@ -41,15 +41,15 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     a.setWindowIcon(QIcon(":/Actions/MEDEA.png"));
-    a.setApplicationName("MEDEA");
+
+    QCoreApplication::setApplicationName("MEDEA");
+    QCoreApplication::setApplicationVersion("17");
+    QCoreApplication::setOrganizationName("Defence Information Group");
+    QCoreApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
 
     QFont font = QFont("Verdana");
     font.setPointSizeF(8.5);
     a.setFont(font);
-
-    QCoreApplication::setOrganizationName("Defence Information Group");
-    QCoreApplication::setApplicationName("MEDEA");
-    QCoreApplication::setApplicationVersion("17");
 
     QString GraphMLFile = "";
     if (argc == 2) {

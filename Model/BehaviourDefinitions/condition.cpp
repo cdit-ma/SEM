@@ -21,7 +21,7 @@ Termination *Condition::getTermination()
 
     if(getBranch()){
         Termination* t = getBranch()->getTermination();
-        if(t->isConnected(this)){
+        if(t && t->isConnected(this)){
             return t;
         }
     }

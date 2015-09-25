@@ -1,3 +1,14 @@
+Version 18:
+    New Features:
+        * Enabled While Loop
+
+    Fixes:
+        *
+
+    Todo:
+        * Test Ubuntu for local deployment.
+        * Make sure threads are killed for local deployment.
+
 Version 17:
     New Features:
         * Migrated to QTv5.5.0
@@ -40,9 +51,6 @@ Version 17:
         * Cleaned up the docks
 		* Reimplemented how/when the toolbar menus are populated - on menu item click instead of when toolbar is shown
 		* Fixed toolbar menu and menu actions bugs related to mouse events
-
-    Todo:
-        * Make sure threads are killed for Local deployment.
 
 Version 16:
     * Implemented showing/hiding of connected HardwareNodes using the context toolbar. It can be used when one or more HardwareClusters are selected.

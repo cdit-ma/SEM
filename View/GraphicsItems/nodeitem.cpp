@@ -1576,7 +1576,6 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
                 }else{
                     GraphMLItem_TriggerAction("Expanded Node Item");
                 }
-
                 setNodeExpanded(!isExpanded());
                 updateModelSize();
             }

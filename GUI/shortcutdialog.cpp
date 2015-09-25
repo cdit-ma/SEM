@@ -3,6 +3,7 @@
 #include <QAction>
 #include <QPalette>
 #include <QBrush>
+#include <QDebug>
 #define WIDTH 550
 #define HEIGHT 650
 
@@ -69,7 +70,7 @@ void ShortcutDialog::addShortcut(QString shortcut, QString description)
     italicFont.setPointSize(italicFont.pointSize() - 1);
 
 
-    #if __APPLE_
+    #ifdef Q_OS_DARWIN
         //Replace shortcut with Command.
         shortcut.replace("CTRL", "COMMAND");
     #endif

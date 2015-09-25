@@ -3198,7 +3198,7 @@ void NodeView::mouseDoubleClickEvent(QMouseEvent *event)
             fitToScreen();
         }
     }else{
-        if(item->isNodeItem() && !((NodeItem*)item)->isModel()){
+        if(item->isEdgeItem() || (item->isNodeItem() && !((NodeItem*)item)->isModel())){
             QGraphicsView::mouseDoubleClickEvent(event);
         }
     }

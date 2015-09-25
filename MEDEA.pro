@@ -11,23 +11,28 @@ QT       += widgets
 QT       += xmlpatterns
 
 
+VERSION = 17.0
+QMAKE_TARGET_COMPANY = Defence Information Group
+QMAKE_TARGET_PRODUCT = MEDEA
+QMAKE_TARGET_DESCRIPTION = Modelling, Experiment DEsign and Analysis
+
 TARGET = MEDEA
 
 TEMPLATE = app
 
 win32{
     #Used for Icon in windows
-    RC_FILE = medea.rc
-}
-
-macx:ICON =
-
-
-
-win32{
+    RC_ICONS = Resources/Images/MedeaIcon.ico
     LIBS += -lpsapi
 }
+mac{
+    macx:ICON = $${PWD}/Resources/Images/MedeaIcon.icns
+}
 
+
+
+
+#DEBUG MODE FLAG
 #DEFINES += DEBUG_MODE
 
 HEADERS += \
@@ -225,9 +230,7 @@ OTHER_FILES += \
     Resources/Scripts/xalan.jar \
     Resources/Scripts/xercesImpl.jar \
     Resources/Scripts/xml-apis.jar \
-    medea.rc \
     changelog.txt \
-    application.ico \
     Resources/Transforms/Absolute2Relative.xsl \
     Resources/Transforms/Deploy.xsl \
     Resources/Transforms/ExtractSchFromRNG.xsl \
@@ -303,12 +306,11 @@ CHANGELOG_FILE.files += changelog.txt
 CHANGELOG_FILE.path = $$OUTPUT_DIR/
 
 SCRIPTS_FILES.files += Resources/Scripts/
-SCRIPTS_FILES.path = $$OUTPUT_DIR/Resources/
-
 BINARIES_FILES.files += Resources/Binaries/
-BINARIES_FILES.path = $$OUTPUT_DIR/Resources/
-
 TRANSFORMS_FILES.files += Resources/Transforms/
+
+SCRIPTS_FILES.path = $$OUTPUT_DIR/Resources/
+BINARIES_FILES.path = $$OUTPUT_DIR/Resources/
 TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/
 
 
@@ -323,6 +325,11 @@ linux-g++ | win32{
 
 #Copy files for MacOS
 mac{
+    #MAC requires different directories.
+    SCRIPTS_FILES.path = $$OUTPUT_DIR/Resources/Scripts/
+    BINARIES_FILES.path = $$OUTPUT_DIR/Resources/Binaries/
+    TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/Transforms/
+
     QMAKE_BUNDLE_DATA += SETTINGS_FILE
     QMAKE_BUNDLE_DATA += CHANGELOG_FILE
     QMAKE_BUNDLE_DATA += SCRIPTS_FILES
@@ -331,4 +338,5 @@ mac{
 }
 
 DISTFILES += \
-    Resources/Images/qt.ico
+    Resources/Images/qt.ico \
+    defaultSettings.ini

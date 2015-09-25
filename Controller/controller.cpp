@@ -64,7 +64,7 @@ NewController::NewController()
 
 
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
-    //behaviourNodeKinds << "WhileLoop";
+    behaviourNodeKinds << "WhileLoop";
 
     //Append Kinds which can't be constructed by the GUI.
     constructableNodeKinds << "MemberInstance" << "AttributeImpl";
