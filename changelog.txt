@@ -2,6 +2,7 @@ Version 18:
     New Features:
         * Enabled While Loop
         * Added a async <data> to all InEventPort Nodes (Only works for TAO Asynchronous behvaiour)
+        * Added an Import from XME file.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.
