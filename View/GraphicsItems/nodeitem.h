@@ -33,7 +33,7 @@ class NodeItem : public GraphMLItem
     Q_INTERFACES(QGraphicsItem)
 
 public:
-    enum MOUSEOVER_TYPE{MO_NONE, MO_ITEM, MO_ICON, MO_LABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_MODELCIRCLE, MO_DEPLOYMENTWARNING, MO_EXPAND, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
+    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_LABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_MODELCIRCLE, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
 
     enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
     NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW=false);
@@ -72,6 +72,7 @@ public:
     QPointF getClosestGridPoint(QPointF childCenterPoint);
 
     QRectF gridRect();
+    QRectF topBarRect();
 
     QRectF getChildBoundingRect();
     QRectF getMinimumChildRect();
@@ -105,6 +106,7 @@ public:
     bool mouseOverDeploymentIcon(QPointF mousePosition);
     bool mouseOverDefinition(QPointF mousePosition);
     bool mouseOverIcon(QPointF mousePosition);
+    bool mouseOverTopBar(QPointF mousePosition);
     bool mouseOverHardwareMenu(QPointF mousePosition);
 
 

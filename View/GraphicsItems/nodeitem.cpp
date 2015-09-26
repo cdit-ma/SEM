@@ -222,6 +222,8 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
             return MO_DEPLOYMENTWARNING;
         }else if(mouseOverIcon(itemPos)){
             return MO_ICON;
+        }else if(mouseOverTopBar(itemPos)){
+            return MO_TOPBAR;
         }else{
             if(isResizeable()){
                 NodeItem::RESIZE_TYPE resize = resizeEntered(itemPos);
@@ -425,6 +427,13 @@ QRectF NodeItem::gridRect()
     return QRectF(topLeft, bottomRight);
 }
 
+QRectF NodeItem::topBarRect()
+{
+
+    qreal totalMargin = getItemMargin() * 2;
+    return QRectF(QPointF(0, 0), QPointF(width + totalMargin, minimumHeight + totalMargin));
+}
+
 QRectF NodeItem::getChildBoundingRect()
 {
     return QRectF(QPointF(0, 0), QPointF(getChildWidth() + (2* getChildItemMargin()), getChildHeight() + (2 * getChildItemMargin())));
@@ -613,6 +622,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             //Check current View zoom
             Brush = selectedBrush;
             Pen = selectedPen;
+
             if(getNodeView()){
                 qreal scaleX = getNodeView()->transform().m11();
                 qreal penWidth = 5.0/scaleX;
@@ -627,8 +637,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         QRectF rectangle = boundingRect();
-        rectangle.setWidth(rectangle.width() - Pen.width()*2);
-        rectangle.setHeight(rectangle.height() - Pen.width()*2);
+        rectangle.setWidth(rectangle.width() - Pen.width() * 2);
+        rectangle.setHeight(rectangle.height() - Pen.width() * 2);
         rectangle.translate(Pen.width(), Pen.width());
 
 
@@ -648,12 +658,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             //Lighten the pen on hover.
             Pen.setColor(Pen.color().light());
         }
-
-
-
-        //if(!hasVisibleChildren() && !nodeKind.endsWith("Definitions")){
-        //    Brush.setColor(Qt::transparent);
-        //}
 
 
         if(getNodeView() && isImplOrInstance){
@@ -676,7 +680,22 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setPen(Pen);
         painter->setBrush(Brush);
 
-        painter->drawRoundedRect(rectangle, getCornerRadius(), getCornerRadius());
+        painter->drawRect(rectangle);
+
+        /* PAINT The Top Bar.
+        QBrush newBrush = Brush;
+        newBrush.setColor(newBrush.color().darker());
+         painter->setBrush(newBrush);
+         painter->setPen(QPen());
+
+
+         painter->drawRect(topBarRect());
+
+         painter->setPen(Pen);
+         painter->setBrush(Brush);
+         */
+
+        //painter->drawRoundedRect(rectangle, getCornerRadius(), getCornerRadius());
 
 
         if(hasVisibleChildren() && textItem){
@@ -757,7 +776,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
                 painter->setPen(linePen);
                 double radius = getChildCornerRadius();
-                painter->drawRoundedRect(newRectangle, radius, radius);
+                painter->drawRect(newRectangle);
+                //painter->drawRoundedRect(newRectangle, radius, radius);
             }
         }
     }
@@ -861,6 +881,11 @@ bool NodeItem:: mouseOverIcon(QPointF mousePosition)
         }
     }
     return false;
+}
+
+bool NodeItem::mouseOverTopBar(QPointF mousePosition)
+{
+    return topBarRect().contains(mousePosition);
 }
 
 
@@ -1465,7 +1490,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
                 if(mouseDownType == MO_RESIZE || mouseDownType == MO_RESIZE_HOR || mouseDownType == MO_RESIZE_VER){
                     //Is resizing
                     getNodeView()->setStateResizing();
-                }else{
+                }else if(mouseDownType <= MO_TOPBAR && mouseDownType >= MO_ICON){
                     //Moving not resizing.
                     getNodeView()->setStateMoving();
                 }
