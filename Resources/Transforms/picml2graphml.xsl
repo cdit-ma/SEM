@@ -318,11 +318,35 @@
 	<xsl:template name="AggregateEdge" >
 		<xsl:variable name="InterfaceDefinitionsId" select="concat('IDL', generate-id(folder[@kind='InterfaceDefinitions'][0]) )" />
 		<xsl:variable name="AggregateId" select="concat('n',generate-id(.))" />
-		<xsl:for-each select="./reference[@kind='Member']">
+		<xsl:variable name="event" select="." />
+		
+		<!-- Process Member nodes in sorted order -->
+		<xsl:variable name="sortedMembers" >
+			<xsl:for-each select="$event/reference[@kind='Member']">
+				<!-- sort order is from top to bottom -->
+				<xsl:sort select="substring-after(./regnode[@name='PartRegs']/regnode[@name='InterfaceDefinition']/regnode[@name='Position']/value, ',')" data-type="number" order="ascending" /> 
+				<xsl:value-of select="concat(',', ./@id)" />
+			</xsl:for-each>
+		</xsl:variable>
+		<xsl:variable name="countDelim" select="string-length($sortedMembers) - string-length(translate($sortedMembers, ',', ''))" />
+				
+		
+		<xsl:for-each select="$event/reference[@kind='Member']">
+			<!-- using for-each and position() iteration info, but retrieving Member Node from sorted list -->
+			<xsl:variable name="memberNodeId">
+				<xsl:call-template name="splitList">
+					<xsl:with-param name="pText" select="$sortedMembers" />
+					<xsl:with-param name="count" select="$countDelim" />
+					<xsl:with-param name="idx" select="position()" />
+					<xsl:with-param name="delim" select="','" />
+				</xsl:call-template>
+			</xsl:variable> 
+			<xsl:variable name="memberNode" select="$event/reference[@id=$memberNodeId]/." />
+
 			<xsl:variable name="memberId" select="position() - 1" />
 			<xsl:variable name="memberIdLong" select="concat(concat($AggregateId, '::n'), $memberId)"/>
 			<!-- find type may be predefined type or refer to an aggregate structure -->
-			<xsl:variable name="referred" select="./@referred" />
+			<xsl:variable name="referred" select="$memberNode/@referred" />
 			<xsl:variable name="referredAggregate" select="/project/folder[@kind='RootFolder']/folder[@kind='InterfaceDefinitions']/descendant::*/model[@id=$referred]" />
 			<xsl:variable name="referredAggregateId" select="concat('n',generate-id($referredAggregate))" />
 			<xsl:if test="$referredAggregate">
@@ -618,7 +642,6 @@
 				<data key="{$nodeKindKey}">
 				<xsl:value-of select="./@kind" />
 				</data>
-				<xsl:variable name="InEreferred" select="./@referred" />
 				</node>
 			</xsl:if>
 			
@@ -822,9 +845,9 @@
 				<node id="{$nextNodeId}">
 				<data key="{$nodeLabelKey}"> <xsl:value-of select="$next[1]/name" /> </data>
 				<xsl:variable name="ExValue" select="substring-before($next[1]/regnode[@name='PartRegs']/regnode[@name='Behavior']/regnode[@name='Position']/value, ',')" />
-				<data key="{$nodeXKey}"> <xsl:value-of select="$ExValue - $x" /> </data>
+				<data key="{$nodeXKey}"> <xsl:value-of select="number($ExValue) - number($x)" /> </data>
 				<xsl:variable name="EyValue" select="substring-after($next[1]/regnode[@name='PartRegs']/regnode[@name='Behavior']/regnode[@name='Position']/value, ',')" />
-				<data key="{$nodeYKey}"> <xsl:value-of select="$EyValue - $y" /> </data>
+				<data key="{$nodeYKey}"> <xsl:value-of select="number($EyValue) - number($y)" /> </data>
 
 				<xsl:variable name="referred" select="$next[1]/reference[@kind='ActionType']/@referred" />
 				<xsl:variable name="itemIsWorkerModel" select="/descendant::*/model[@kind='Worker']/model[@id=$referred]/.." />
