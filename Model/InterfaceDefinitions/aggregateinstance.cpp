@@ -61,13 +61,7 @@ bool AggregateInstance::canConnect(Node* attachableObject)
         }
     }
 
-    if(aggregate && (srcParent != dstParent)){
-        return false;
-    }
-
-
-/*
-    if(!(topMostParent->isImpl() || topMostParent->isInstance()) && !topMostParent->isDefinition()){
+    if(!(srcParent->isImpl() || srcParent->isInstance()) && !srcParent->isDefinition()){
         //Check for ownership in the same file, for circular checks
         if(!this->getParentNode()->isImpl()){
             if(aggregate){
@@ -94,7 +88,7 @@ bool AggregateInstance::canConnect(Node* attachableObject)
             return false;
         }
 
-    }*/
+    }
 
 
 
