@@ -43,6 +43,11 @@ Node::~Node()
     }
 }
 
+QStringList Node::getConnectableKinds()
+{
+    return QStringList();
+}
+
 QList<Node *> Node::getItemsConnectedLeft()
 {
     QList<Node*> returnable;

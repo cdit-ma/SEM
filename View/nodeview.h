@@ -23,7 +23,7 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 
 public:
-    enum VIEW_STATE{VS_NONE,VS_SELECTED, VS_RUBBERBAND, VS_RUBBERBANDING, VS_MOVING, VS_RESIZING, VS_PAN, VS_PANNING};
+    enum VIEW_STATE{VS_NONE, VS_SELECTED, VS_RUBBERBAND, VS_RUBBERBANDING, VS_CONNECT, VS_MOVING, VS_RESIZING, VS_CONNECTING, VS_PAN, VS_PANNING};
 
     enum ALIGN{NONE, HORIZONTAL, VERTICAL};
     NodeView(bool subView = false, QWidget *parent = 0);
@@ -149,6 +149,7 @@ signals:
     void view_SetAttributeModel(AttributeTableModel* model);
 
     void view_ViewportRectChanged(QRectF);
+    void view_ZoomChanged(qreal);
     void view_SceneRectChanged(QRectF);
 
     void view_AspectsChanged(QStringList aspects);
@@ -190,6 +191,7 @@ public slots:
     void setStateResizing();
     void setStateMove();
     void setStateMoving();
+    void setStateConnect();
     void setStateSelected();
     void request_ImportSnippet();
     void hardwareDockOpened(bool opened);
@@ -253,6 +255,7 @@ public slots:
     void showLocalNode(bool show);
     void toggleZoomAnchor(bool underMouse);
 
+    void setConnectMode(bool on);
     void setRubberBandMode(bool On);
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
 
@@ -501,6 +504,7 @@ private:
     bool eventFromEdgeItem;
     bool wasPanning;
 
+    QGraphicsLineItem* connectLine;
     VIEW_STATE viewState;
 };
 

@@ -5,45 +5,68 @@
 
 AggregateInstance::AggregateInstance():Node(Node::NT_DEFINSTANCE)
 {
+    connectKinds << "AggregateInstance" << "Aggregate";
 }
 
 AggregateInstance::~AggregateInstance()
 {
 }
 
+QStringList AggregateInstance::getConnectableKinds()
+{
+    return connectKinds;
+}
+
 bool AggregateInstance::canConnect(Node* attachableObject)
 {
+    if(!connectKinds.contains(attachableObject->getNodeKind())){
+        return false;
+    }
+
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(attachableObject);
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
 
-    if (!aggregate && !aggregateInstance){
-#ifdef DEBUG_MODE
-        qWarning() << "AggregateInstance can only connect to an Aggregate.";
-#endif
-        return false;
-    }
     if(getDefinition() && aggregate){
 #ifdef DEBUG_MODE
         qWarning() << "AggregateInstance can only connect to one Aggregate.";
 #endif
         return false;
     }
-    if(aggregateInstance && getDefinition()){
+
+    if(getDefinition() && aggregateInstance){
 #ifdef DEBUG_MODE
         qWarning() << "AggregateInstance can only connect to an AggregateInstance which has a definition.";
 #endif
         return false;
     }
 
-    Node* topMostParent= getParentNode();
-    while(topMostParent){
-        QString parentKind = topMostParent->getDataValue("kind");
+
+    Node* srcParent = getParentNode();
+    while(srcParent){
+        QString parentKind = srcParent->getNodeKind();
         if(parentKind.contains("Aggregate")){
-            topMostParent = topMostParent->getParentNode();
+            srcParent = srcParent->getParentNode();
         }else{
             break;
         }
     }
+
+    Node* dstParent = attachableObject->getParentNode();
+    while(dstParent){
+        QString parentKind = dstParent->getNodeKind();
+        if(parentKind.contains("Aggregate")){
+            dstParent = dstParent->getParentNode();
+        }else{
+            break;
+        }
+    }
+
+    if(aggregate && (srcParent != dstParent)){
+        return false;
+    }
+
+
+/*
     if(!(topMostParent->isImpl() || topMostParent->isInstance()) && !topMostParent->isDefinition()){
         //Check for ownership in the same file, for circular checks
         if(!this->getParentNode()->isImpl()){
@@ -71,7 +94,7 @@ bool AggregateInstance::canConnect(Node* attachableObject)
             return false;
         }
 
-    }
+    }*/
 
 
 

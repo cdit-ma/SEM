@@ -32,6 +32,7 @@ signals:
 
 
 public:
+    virtual QStringList getConnectableKinds();
     QList<Node*> getItemsConnectedLeft();
     QList<Node*> getItemsConnectedRight();
 

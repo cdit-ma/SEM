@@ -55,6 +55,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     Q_INIT_RESOURCE(resources);
     setParentItem(parent);
 
+    //renderState = RT_FULL;
+    renderState = RT_MINIMAL;
+    //renderState = RT_FULL;
+
 
     parentNodeItem = parent;
     showDeploymentWarningIcon = false;
@@ -212,6 +216,8 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
     if(contains(itemPos)){
         if(mouseOverLabel(itemPos)){
             return MO_LABEL;
+        }else if(mouseOverConnect(itemPos)){
+            return MO_CONNECT;
         }else if(mouseOverModelCircle(itemPos)){
             return MO_MODELCIRCLE;
         }else if(mouseOverDefinition(itemPos)){
@@ -546,78 +552,278 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
     painter->setClipRect(option->exposedRect);
 
+    switch(renderState){
+    case RT_FULL:{
 
-    if(isModel()){
-        int offSet = 0;
-        double radius = getItemMargin() + offSet;
-        QRect clippingCircle(QPoint(modelCenterPoint.toPoint() - QPoint(radius,radius)), QPoint(modelCenterPoint.toPoint() + QPoint(radius,radius)));
+        if(isModel()){
+            int offSet = 0;
+            double radius = getItemMargin() + offSet;
+            QRect clippingCircle(QPoint(modelCenterPoint.toPoint() - QPoint(radius,radius)), QPoint(modelCenterPoint.toPoint() + QPoint(radius,radius)));
 
-        QBrush circleBrush;
-        painter->setClipping(true);
-        QRegion clipCircle(clippingCircle, QRegion::Ellipse);
-        painter->setClipRegion(clipCircle);
+            QBrush circleBrush;
+            painter->setClipping(true);
+            QRegion clipCircle(clippingCircle, QRegion::Ellipse);
+            painter->setClipRegion(clipCircle);
 
-        circleBrush.setColor(Qt::white);
-        circleBrush.setStyle(Qt::SolidPattern);
-        painter->setBrush(circleBrush);
-
-
-        double middleButton = radius / 2;
-
-
-        QRectF tLR(modelCenterPoint - QPointF(radius,radius), modelCenterPoint);
-        QRectF tRR(modelCenterPoint - QPointF(0,radius), modelCenterPoint + QPointF(radius,0));
-        QRectF bLR(modelCenterPoint - QPointF(radius,0), modelCenterPoint + QPointF(0,radius));
-        QRectF bRR(modelCenterPoint,  modelCenterPoint + QPointF(radius,radius));
-
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(QColor(110,210,210));
-        painter->drawRect(tLR);
-        painter->setBrush(QColor(254,184,126));
-        painter->drawRect(tRR);
-        painter->setBrush(QColor(255,160,160));
-        painter->drawRect(bLR);
-        painter->setBrush(QColor(110,170,220));
-        painter->drawRect(bRR);
-
-        painter->setBrush(Qt::NoBrush);
-        painter->setPen(QPen(QColor(170,170,170), 5));
-        painter->drawEllipse(modelCenterPoint, radius, radius);
-        painter->setPen(Qt::NoPen);
-
-        circleBrush.setColor(QColor(150,150,150));
-
-        painter->setBrush(circleBrush);
+            circleBrush.setColor(Qt::white);
+            circleBrush.setStyle(Qt::SolidPattern);
+            painter->setBrush(circleBrush);
 
 
-        if(isNodeSelected){
-            QPen pen = selectedPen;
-            if(getNodeView()){
-                qreal scaleX = getNodeView()->transform().m11();
-                qreal penWidth = 5.0/scaleX;
-                penWidth = qMax(penWidth, 1.0);
-                pen.setWidth(penWidth);
+            double middleButton = radius / 2;
+
+
+            QRectF tLR(modelCenterPoint - QPointF(radius,radius), modelCenterPoint);
+            QRectF tRR(modelCenterPoint - QPointF(0,radius), modelCenterPoint + QPointF(radius,0));
+            QRectF bLR(modelCenterPoint - QPointF(radius,0), modelCenterPoint + QPointF(0,radius));
+            QRectF bRR(modelCenterPoint,  modelCenterPoint + QPointF(radius,radius));
+
+            painter->setPen(Qt::NoPen);
+            painter->setBrush(QColor(110,210,210));
+            painter->drawRect(tLR);
+            painter->setBrush(QColor(254,184,126));
+            painter->drawRect(tRR);
+            painter->setBrush(QColor(255,160,160));
+            painter->drawRect(bLR);
+            painter->setBrush(QColor(110,170,220));
+            painter->drawRect(bRR);
+
+            painter->setBrush(Qt::NoBrush);
+            painter->setPen(QPen(QColor(170,170,170), 5));
+            painter->drawEllipse(modelCenterPoint, radius, radius);
+            painter->setPen(Qt::NoPen);
+
+            circleBrush.setColor(QColor(150,150,150));
+
+            painter->setBrush(circleBrush);
+
+
+            if(isNodeSelected){
+                QPen pen = selectedPen;
+                if(getNodeView()){
+                    qreal scaleX = getNodeView()->transform().m11();
+                    qreal penWidth = 5.0/scaleX;
+                    penWidth = qMax(penWidth, 1.0);
+                    pen.setWidth(penWidth);
+                    painter->setPen(pen);
+                }
+            }
+
+
+            painter->drawEllipse(modelCenterPoint, middleButton, middleButton);
+
+            if(textItem){
+                painter->setPen(Qt::NoPen);
+
+                // this evens out the colours around the model button
+                QRectF textRect = textItem->boundingRect();
+                textRect.translate(textItem->pos() + QPoint(textRect.width()/4 + selectedPen.width()/2, 0));
+                textRect.setWidth(textRect.width()/2 - selectedPen.width());
+                painter->drawRect(textRect);
+            }
+
+        }else{
+            QPen Pen;
+            QBrush Brush;
+
+            if(isNodeSelected){
+                //Check current View zoom
+                Brush = selectedBrush;
+                Pen = selectedPen;
+
+                if(getNodeView()){
+                    qreal scaleX = getNodeView()->transform().m11();
+                    qreal penWidth = 5.0/scaleX;
+                    penWidth = qMax(penWidth, 1.0);
+                    Pen.setWidth(penWidth);
+                }
+
+            }else{
+                Brush = brush;
+                Pen = pen;
+            }
+
+
+            QRectF rectangle = boundingRect();
+            rectangle.setWidth(rectangle.width() - Pen.width() * 2);
+            rectangle.setHeight(rectangle.height() - Pen.width() * 2);
+            rectangle.translate(Pen.width(), Pen.width());
+
+
+
+            //If the Node is over a Gridline, set the background Brush to transluscent.
+
+            NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+            if(isSelected() && isNodeOnGrid && (viewState == NodeView::VS_MOVING || viewState == NodeView::VS_RESIZING)){
+                QColor brushColor = Brush.color();
+                if(brushColor.alpha() > 120){
+                    brushColor.setAlpha(120);
+                }
+                Brush.setColor(brushColor);
+            }
+
+            if(isHighlighted && !isSelected()){
+                //Lighten the pen on hover.
+                Pen.setColor(Pen.color().light());
+            }
+
+
+            if(getNodeView() && isImplOrInstance){
+                hasDefinition = getNodeView()->getDefinitionID(getID()) != "";
+                if(!hasDefinition){
+                    Brush.setStyle(Qt::BDiagPattern);
+                }
+            }
+
+
+            // highlighted border
+            if (highlighted && getNodeView()){
+                qreal penWidth = qMax(5.0/ getNodeView()->transform().m11(), 1.0);
+                Pen.setWidth(penWidth);
+                Pen.setStyle(Qt::DashLine);
+                Pen.setColor(Qt::red);
+            }
+
+
+            painter->setPen(Pen);
+            painter->setBrush(Brush);
+
+            painter->drawRect(rectangle);
+
+            /* PAINT The Top Bar.
+            QBrush newBrush = Brush;
+            newBrush.setColor(newBrush.color().darker());
+             painter->setBrush(newBrush);
+             painter->setPen(QPen());
+
+
+             painter->drawRect(topBarRect());
+
+             painter->setPen(Pen);
+             painter->setBrush(Brush);
+             */
+
+            //painter->drawRoundedRect(rectangle, getCornerRadius(), getCornerRadius());
+
+
+            if(hasVisibleChildren() && textItem){
+                QBrush brush;
+                brush.setColor(QColor(100,100,100));
+                brush.setStyle(Qt::SolidPattern);
+                painter->setBrush(brush);
+
                 painter->setPen(pen);
+
+                QPen altPen = pen;
+                altPen.setColor(brush.color());
+
+                if(isExpanded()){
+                    //FROM THE BOTTM
+                    qreal yBot = gridRect().bottom();
+                    //FROM THE TOP
+                    //qreal yBot = gridRect().top();
+                    qreal yTop = yBot - getItemMargin();
+                    qreal xRight = boundingRect().right() - getItemMargin();
+                    qreal xLeft = xRight - getItemMargin();
+
+                    QLineF line = QLineF(gridRect().left(), gridRect().top(), xRight, gridRect().top());
+                    QPolygonF triangle;
+                    triangle.append(QPointF(xLeft,yTop));
+                    triangle.append(QPointF(xRight,yTop));
+                    triangle.append(QPointF(xLeft,yBot));
+                    painter->drawLine(line);
+                    //painter->setPen(pen);
+                    painter->setPen(altPen);
+                    painter->drawPolygon(triangle,Qt::WindingFill);
+                }else{
+                    qreal yBot = gridRect().top();
+                    qreal yTop = yBot - getItemMargin();
+                    qreal xRight = getMinimumChildRect().right();
+                    qreal xLeft = xRight - getItemMargin();
+
+
+                    QPolygonF triangle;
+                    triangle.append(QPointF(xRight,yTop));
+                    triangle.append(QPointF(xRight,yBot));
+                    triangle.append(QPointF(xLeft,yBot));
+                    painter->setPen(pen);
+                    //painter->drawLine(line);
+                    painter->setPen(altPen);
+                    painter->drawPolygon(triangle,Qt::WindingFill);
+                }
+            }
+
+            //New Code
+            if(drawGridlines()){
+                painter->setClipping(false);
+                painter->setPen(pen);
+                QPen linePen = painter->pen();
+
+                linePen.setStyle(Qt::DashLine);
+                linePen.setWidth(minimumWidth / 1000);
+                painter->setPen(linePen);
+
+                painter->drawLines(xGridLines);
+                painter->drawLines(yGridLines);
+
+
+            }
+
+
+
+            //Draw the Outlines
+            if(this->isExpanded() && GRIDLINES_ON){
+                foreach(QRectF rect, outlineMap){
+                    QRectF newRectangle = rect;
+                    painter->setBrush(Qt::NoBrush);
+
+                    QPen linePen = pen;
+                    linePen.setColor(Qt::white);
+                    linePen.setStyle(Qt::DotLine);
+                    linePen.setWidth(linePen.width() *2);
+
+                    painter->setPen(linePen);
+                    double radius = getChildCornerRadius();
+                    painter->drawRect(newRectangle);
+                    //painter->drawRoundedRect(newRectangle, radius, radius);
+                }
             }
         }
 
 
-        painter->drawEllipse(modelCenterPoint, middleButton, middleButton);
+        //Paint the Icon
+        if(hasIcon){
+            QString imageURL = nodeKind;
+            if(nodeKind == "HardwareNode"){
+                if(nodeHardwareLocalHost){
+                    imageURL = "Localhost";
+                }else{
+                    imageURL = nodeHardwareOS.remove(" ") + "_" + nodeHardwareArch;
+                }
+            }
 
-        if(textItem){
-            painter->setPen(Qt::NoPen);
-
-            // this evens out the colours around the model button
-            QRectF textRect = textItem->boundingRect();
-            textRect.translate(textItem->pos() + QPoint(textRect.width()/4 + selectedPen.width()/2, 0));
-            textRect.setWidth(textRect.width()/2 - selectedPen.width());
-            painter->drawRect(textRect);
+            paintPixmap(painter, iconRect(), "Items", imageURL);
         }
 
-    }else{
-        QPen Pen;
-        QBrush Brush;
+        //If a Node has a Definition, paint a Lock Icon
+        if (hasDefinition){
+            paintPixmap(painter, lockIconRect(), "Actions", "Definition");
+        } else if (nodeKind == "HardwareCluster") {
+            paintPixmap(painter, lockIconRect(), "Actions", "MenuCluster");
+        }
 
+        //If this Node has a Deployment Warning, paint a warning Icon
+        if(showDeploymentWarningIcon){
+            paintPixmap(painter, deploymentIconRect(), "Actions", "Warning");
+        }
+
+    }
+        break;
+    case RT_REDUCED:
+
+    case RT_MINIMAL:{
+        QBrush Brush = selectedBrush;
+        QPen Pen = selectedPen;
         if(isNodeSelected){
             //Check current View zoom
             Brush = selectedBrush;
@@ -682,131 +888,24 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         painter->drawRect(rectangle);
 
-        /* PAINT The Top Bar.
-        QBrush newBrush = Brush;
-        newBrush.setColor(newBrush.color().darker());
-         painter->setBrush(newBrush);
-         painter->setPen(QPen());
+        if(renderState == RT_REDUCED){
+            //Paint the Icon
+            if(hasIcon){
+                QString imageURL = nodeKind;
+                if(nodeKind == "HardwareNode"){
+                    if(nodeHardwareLocalHost){
+                        imageURL = "Localhost";
+                    }else{
+                        imageURL = nodeHardwareOS.remove(" ") + "_" + nodeHardwareArch;
+                    }
+                }
 
-
-         painter->drawRect(topBarRect());
-
-         painter->setPen(Pen);
-         painter->setBrush(Brush);
-         */
-
-        //painter->drawRoundedRect(rectangle, getCornerRadius(), getCornerRadius());
-
-
-        if(hasVisibleChildren() && textItem){
-            QBrush brush;
-            brush.setColor(QColor(100,100,100));
-            brush.setStyle(Qt::SolidPattern);
-            painter->setBrush(brush);
-
-            painter->setPen(pen);
-
-            QPen altPen = pen;
-            altPen.setColor(brush.color());
-
-            if(isExpanded()){
-                //FROM THE BOTTM
-                qreal yBot = gridRect().bottom();
-                //FROM THE TOP
-                //qreal yBot = gridRect().top();
-                qreal yTop = yBot - getItemMargin();
-                qreal xRight = boundingRect().right() - getItemMargin();
-                qreal xLeft = xRight - getItemMargin();
-
-                QLineF line = QLineF(gridRect().left(), gridRect().top(), xRight, gridRect().top());
-                QPolygonF triangle;
-                triangle.append(QPointF(xLeft,yTop));
-                triangle.append(QPointF(xRight,yTop));
-                triangle.append(QPointF(xLeft,yBot));
-                painter->drawLine(line);
-                //painter->setPen(pen);
-                painter->setPen(altPen);
-                painter->drawPolygon(triangle,Qt::WindingFill);
-            }else{
-                qreal yBot = gridRect().top();
-                qreal yTop = yBot - getItemMargin();
-                qreal xRight = getMinimumChildRect().right();
-                qreal xLeft = xRight - getItemMargin();
-
-
-                QPolygonF triangle;
-                triangle.append(QPointF(xRight,yTop));
-                triangle.append(QPointF(xRight,yBot));
-                triangle.append(QPointF(xLeft,yBot));
-                painter->setPen(pen);
-                //painter->drawLine(line);
-                painter->setPen(altPen);
-                painter->drawPolygon(triangle,Qt::WindingFill);
+                paintPixmap(painter, iconRect(), "Items", imageURL);
             }
-        }
-
-        //New Code
-        if(drawGridlines()){
-            painter->setClipping(false);
-            painter->setPen(pen);
-            QPen linePen = painter->pen();
-
-            linePen.setStyle(Qt::DashLine);
-            linePen.setWidth(minimumWidth / 1000);
-            painter->setPen(linePen);
-
-            painter->drawLines(xGridLines);
-            painter->drawLines(yGridLines);
-
 
         }
-
-
-
-        //Draw the Outlines
-        if(this->isExpanded() && GRIDLINES_ON){
-            foreach(QRectF rect, outlineMap){
-                QRectF newRectangle = rect;
-                painter->setBrush(Qt::NoBrush);
-
-                QPen linePen = pen;
-                linePen.setColor(Qt::white);
-                linePen.setStyle(Qt::DotLine);
-                linePen.setWidth(linePen.width() *2);
-
-                painter->setPen(linePen);
-                double radius = getChildCornerRadius();
-                painter->drawRect(newRectangle);
-                //painter->drawRoundedRect(newRectangle, radius, radius);
-            }
-        }
+        break;
     }
-
-
-    //Paint the Icon
-    if(hasIcon){
-        QString imageURL = nodeKind;
-        if(nodeKind == "HardwareNode"){
-            if(nodeHardwareLocalHost){
-                imageURL = "Localhost";
-            }else{
-                imageURL = nodeHardwareOS.remove(" ") + "_" + nodeHardwareArch;
-            }
-        }
-
-        paintPixmap(painter, iconRect(), "Items", imageURL);
-    }
-
-    //If a Node has a Definition, paint a Lock Icon
-    if (hasDefinition){
-        paintPixmap(painter, lockIconRect(), "Actions", "Definition");
-    } else if (nodeKind == "HardwareCluster") {
-        paintPixmap(painter, lockIconRect(), "Actions", "MenuCluster");
-    }
-
-    //If this Node has a Deployment Warning, paint a warning Icon
-    if(showDeploymentWarningIcon){
-        paintPixmap(painter, deploymentIconRect(), "Actions", "Warning");
     }
 }
 
@@ -902,6 +1001,11 @@ bool NodeItem::mouseOverHardwareMenu(QPointF mousePosition)
         }
     }
     return false;
+}
+
+bool NodeItem::mouseOverConnect(QPointF mousePosition)
+{
+    return lockIconRect().contains(mousePosition);
 }
 
 
@@ -1468,6 +1572,10 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 sendSelectSignal(true, controlPressed);
                 //Store the previous position.
                 previousScenePosition = event->scenePos();
+
+                if(mouseDownType == MO_CONNECT){
+                    getNodeView()->setStateConnect();
+                }
             }
             break;
         }
@@ -2916,6 +3024,28 @@ QList<NodeItem*> NodeItem::deploymentView(bool on, NodeItem *selectedItem)
 int NodeItem::getChildrenViewMode()
 {
     return CHILDREN_VIEW_MODE;
+}
+
+void NodeItem::zoomChanged(qreal zoom)
+{
+    zoom = zoom * minimumWidth;
+    if(zoom >= minimumWidth){
+        this->renderState = RT_FULL;
+    }else if(zoom >= (minimumWidth / 2)){
+        this->renderState = RT_REDUCED;
+    }else{
+        this->renderState = RT_MINIMAL;
+    }
+
+
+    if(textItem){
+        textItem->setVisible(renderState == RT_FULL);
+    }
+
+    if(this->isModel()){
+        this->renderState = RT_FULL;
+    }
+
 }
 
 

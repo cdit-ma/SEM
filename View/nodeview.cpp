@@ -45,6 +45,7 @@
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
     wasPanning = false;
+    connectLine = 0;
     centralizedNodeItem = 0;
     constructedFromImport = true;
     toolbarJustClosed = false;
@@ -131,7 +132,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     // construct toolbar widget
     toolbar = new ToolbarWidget(this);
- 	if (isMainView()) {
+    if (isMainView()) {
         connect(this, SIGNAL(view_updateMenuActionEnabled(QString,bool)), toolbar, SLOT(updateActionEnabledState(QString,bool)));
     }
 
@@ -838,6 +839,9 @@ QList<NodeItem *> NodeView::getNodeItemsOfKind(QString kind, QString ID, int dep
 bool NodeView::viewportEvent(QEvent * e)
 {
     emit view_ViewportRectChanged(getVisibleRect());
+    emit view_ZoomChanged(transform().m11());
+
+
     return QGraphicsView::viewportEvent(e);
 }
 
@@ -854,7 +858,7 @@ void NodeView::actionFinished()
     pasting = false;
     toolbarDockConstruction = false;
 
-	// added this here to re-centralise on the model after import
+    // added this here to re-centralise on the model after import
     if (constructedFromImport) {
         fitToScreen();
         constructedFromImport = false;
@@ -875,7 +879,7 @@ void NodeView::actionFinished()
         updateDeployment = false;
     }
 
-   	// update menu and toolbar actions
+    // update menu and toolbar actions
     updateActionsEnabledStates();
 
     viewMutex.unlock();
@@ -896,6 +900,12 @@ void NodeView::setStateMoving()
 {
     setState(VS_MOVING);
 }
+
+void NodeView::setStateConnect()
+{
+    setState(VS_CONNECT);
+}
+
 
 void NodeView::setStateSelected()
 {
@@ -997,6 +1007,8 @@ void NodeView::importSnippet(QString fileName, QString fileData)
 void NodeView::scrollEvent(int delta)
 {
     QRectF viewRect = viewport()->rect();
+
+    //Turn
     QRectF scaledSceneRect(QPointF(0,0), sceneRect().size()*transform().m11());
 
     if (delta > 0) {
@@ -1674,7 +1686,7 @@ void NodeView::setState(NodeView::VIEW_STATE state)
     case VS_NONE:
         //Go onto VS_SELECTED
     case VS_SELECTED:
-        if(state == VS_NONE || state == VS_SELECTED || state == VS_MOVING || state == VS_RESIZING || state == VS_PAN || state == VS_RUBBERBAND){
+        if(state == VS_NONE || state == VS_SELECTED || state == VS_MOVING || state == VS_RESIZING || state == VS_PAN || state == VS_RUBBERBAND || state == VS_CONNECT){
             viewState = state;
         }
         break;
@@ -1699,6 +1711,12 @@ void NodeView::setState(NodeView::VIEW_STATE state)
             viewState = state;
         }
         break;
+    case VS_CONNECT:
+    case VS_CONNECTING:
+        if(state == VS_NONE || state == VS_SELECTED || state == VS_CONNECTING){
+            viewState = state;
+        }
+        break;
     default:
         break;
     }
@@ -1716,8 +1734,10 @@ void NodeView::transition()
 {
     switch(viewState){
     case VS_NONE:
+
         //Do the VS_SELECTED case.
     case VS_SELECTED:
+        setConnectMode(false);
         setRubberBandMode(false);
         unsetCursor();
         break;
@@ -1733,10 +1753,17 @@ void NodeView::transition()
         setCursor(Qt::ClosedHandCursor);
         break;
     case VS_PANNING:
-         wasPanning = true;
-         break;
+        wasPanning = true;
+        break;
     case VS_RUBBERBAND:
         setRubberBandMode(true);
+        setCursor(Qt::CrossCursor);
+        break;
+    case VS_CONNECT:
+        setConnectMode(true);
+        setCursor(Qt::CrossCursor);
+        break;
+    case VS_CONNECTING:
         setCursor(Qt::CrossCursor);
         break;
     case VS_RUBBERBANDING:
@@ -1809,7 +1836,7 @@ void NodeView::showToolbar(QPoint position)
 {
 
     if(wasPanning){
-	//If we have panned, we shouldn't show the toolbar.
+        //If we have panned, we shouldn't show the toolbar.
         wasPanning = false;
         return;
     }
@@ -1969,7 +1996,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     // the node's label is automatically selected and editable
     if(toolbarDockConstruction && SELECT_ON_CONSTRUCTION){
         clearSelection(true, false);
-		// why not update menu/toolbar actions here?
+        // why not update menu/toolbar actions here?
         appendToSelection(nodeItem, false);
         nodeItem->setNewLabel();
         centerOnItem();
@@ -2185,7 +2212,7 @@ void NodeView::constructDestructEdges(QStringList srcIDs, QString dstID)
 {
     if (viewMutex.tryLock()) {
 
-		// added this for connecting multiple selection using the toolbar
+        // added this for connecting multiple selection using the toolbar
         if (srcIDs.isEmpty()) {
             srcIDs = getSelectedNodeIDs();
         }
@@ -2652,6 +2679,8 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
                 if(nodeItem->isModel()){
                     connect(nodeItem, SIGNAL(model_PositionChanged()), this, SIGNAL(view_ModelSizeChanged()));
                 }
+                connect(this, SIGNAL(view_ZoomChanged(qreal)), nodeItem, SLOT(zoomChanged(qreal)));
+
 
                 connect(nodeItem, SIGNAL(NodeItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
                 connect(nodeItem, SIGNAL(NodeItem_ResizeSelection(QString, QSizeF)), this, SLOT(resizeSelection(QString, QSizeF)));
@@ -3068,6 +3097,19 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
             showToolbar(event->pos());
         }
         return;
+    }else if(viewState == VS_CONNECT || viewState == VS_CONNECTING){
+        qCritical() << "HOLA";
+        //Check for item.
+
+        GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
+
+        if(item){
+            qCritical() << "CREATING EDGE";
+            constructEdge(getSelectedNodeID(), item->getID());
+        }
+        if(event->button() == Qt::LeftButton){
+            setState(VS_NONE);
+        }
     }
 
     QGraphicsView::mouseReleaseEvent(event);
@@ -3089,6 +3131,25 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
     if(viewState == VS_RUBBERBANDING){
         rubberBand->setGeometry(QRect(rubberBandOrigin, event->pos()).normalized());
         return;
+    }else if(viewState == VS_CONNECT || viewState == VS_CONNECTING){
+
+        if(viewState == VS_CONNECT){
+            setState(VS_CONNECTING);
+        }
+        NodeItem* item = getSelectedNodeItem();
+        if(item){
+
+            QPointF lineStart = item->mapToScene(item->centerPos());
+            QPointF lineEnd = mapToScene(event->pos());
+            QLineF line(lineStart, lineEnd);
+
+            if(!connectLine){
+                connectLine = scene()->addLine(line);
+            }
+            connectLine->setLine(line);
+            connectLine->setZValue(100);
+        }
+
     }else if(viewState == VS_PAN || viewState == VS_PANNING){
         if(viewState == VS_PAN){
             setState(VS_PANNING);
@@ -3221,11 +3282,11 @@ void NodeView::keyPressEvent(QKeyEvent *event)
 
     if(hasFocus()){
         if(CONTROL){
-           if(event->key() == Qt::Key_A){
-               if (!editingNodeItemLabel) {
-                   selectAll();
-               }
-           }
+            if(event->key() == Qt::Key_A){
+                if (!editingNodeItemLabel) {
+                    selectAll();
+                }
+            }
         }
 
         if (event->key() == Qt::Key_Escape){
@@ -3779,7 +3840,7 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
     }
 
 
-   // update menu and toolbar actions
+    // update menu and toolbar actions
     updateActionsEnabledStates();
 
     // this stops unnecessary disabling of docks/dock buttons
@@ -4010,6 +4071,32 @@ void NodeView::toggleZoomAnchor(bool underMouse)
         setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     } else {
         setTransformationAnchor(QGraphicsView::AnchorViewCenter);
+    }
+}
+
+void NodeView::setConnectMode(bool on)
+{
+    if(on){
+
+        NodeItem* srcNode = getSelectedNodeItem();
+        if(srcNode){
+            foreach(NodeItem* nodeItem, getConnectableNodeItems(srcNode->getID())){
+                nodeItem->setHighlighted(true);
+            }
+        }
+    }else{
+        NodeItem* srcNode = getSelectedNodeItem();
+        if(srcNode){
+            foreach(NodeItem* nodeItem, getConnectableNodeItems(srcNode->getID())){
+                nodeItem->setHighlighted(false);
+            }
+        }
+
+        if(connectLine){
+            delete connectLine;
+            connectLine = 0;
+            update();
+        }
     }
 }
 

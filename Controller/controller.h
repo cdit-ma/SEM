@@ -337,6 +337,8 @@ private:
     //Provides a lookup for IDs.
     QHash<QString, QString> IDLookupHash;
     QHash<QString, GraphML*> IDLookupGraphMLHash;
+    QHash<QString, QString> reverseKindLookup;
+    QHash<QString, QStringList> kindLookup;
 
     //A list of Node's which are considered Containers, and aren't part of constructable Nodes.
     QStringList containerNodeKinds;

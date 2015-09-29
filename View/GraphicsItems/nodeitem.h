@@ -33,7 +33,8 @@ class NodeItem : public GraphMLItem
     Q_INTERFACES(QGraphicsItem)
 
 public:
-    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_LABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_MODELCIRCLE, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
+    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_LABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODELCIRCLE, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
+    enum RENDER_TYPE{RT_NONE, RT_MINIMAL, RT_REDUCED, RT_FULL};
 
     enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
     NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW=false);
@@ -72,6 +73,7 @@ public:
     QPointF getClosestGridPoint(QPointF childCenterPoint);
 
     QRectF gridRect();
+
     QRectF topBarRect();
 
     QRectF getChildBoundingRect();
@@ -108,6 +110,7 @@ public:
     bool mouseOverIcon(QPointF mousePosition);
     bool mouseOverTopBar(QPointF mousePosition);
     bool mouseOverHardwareMenu(QPointF mousePosition);
+    bool mouseOverConnect(QPointF mousePosition);
 
 
 
@@ -204,6 +207,7 @@ signals:
 
 
 public slots:
+    void zoomChanged(qreal zoom);
     //USED METHODS
     void graphMLDataChanged(GraphMLData *data);
 
@@ -426,6 +430,7 @@ private:
 
 
     MOUSEOVER_TYPE mouseDownType;
+    RENDER_TYPE renderState;
 
     QRectF currentSceneRect;
 

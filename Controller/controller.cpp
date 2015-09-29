@@ -1077,11 +1077,19 @@ QStringList NewController::getConnectableNodes(QString srcID)
     QStringList legalNodes;
     Node* src = getNodeFromID(srcID);
     if(src){
-        foreach (QString ID, nodeIDs) {
-            Node* dst = getNodeFromID(ID);
-            if(dst && ID != srcID){
-                if (src->canConnect(dst)){
-                    legalNodes.append(ID);
+
+        if(src->getNodeKind() == "AggregateInstance"){
+            foreach(QString kind, src->getConnectableKinds()){
+
+            }
+
+        }else{
+            foreach (QString ID, nodeIDs) {
+                Node* dst = getNodeFromID(ID);
+                if(dst && ID != srcID){
+                    if (src->canConnect(dst)){
+                        legalNodes.append(ID);
+                    }
                 }
             }
         }
@@ -1271,6 +1279,10 @@ void NewController::storeGraphMLInHash(GraphML *item)
     }else{
         IDLookupGraphMLHash[ID] = item;
         if(item->getKind() == GraphML::NODE){
+            QString nodeKind = ((Node*)item)->getNodeKind();
+            kindLookup[nodeKind].append(ID);
+            reverseKindLookup[ID] = nodeKind;
+            qCritical() << "KINDS: " << nodeKind << " = " << kindLookup[nodeKind].length();
             nodeIDs.append(ID);
         }else if(item->getKind() == GraphML::EDGE){
             edgeIDs.append(ID);
@@ -1300,6 +1312,15 @@ void NewController::removeGraphMLFromHash(QString ID)
         {
             qCritical() << "GOT ITEM NOT IN CONTROLLER HASH";
         }
+
+        if(reverseKindLookup.contains(ID)){
+            QString kind = reverseKindLookup[ID];
+            if(kind != ""){
+                kindLookup[kind].removeAll(ID);
+                reverseKindLookup.remove(ID);
+            }
+        }
+
 
         IDLookupGraphMLHash.remove(ID);
 
