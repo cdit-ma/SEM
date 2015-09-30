@@ -141,6 +141,12 @@ void DockScrollArea::onEdgeDeleted() {}
 
 
 /**
+ * @brief DockScrollArea::dockClosed
+ */
+void DockScrollArea::dockClosed(){}
+
+
+/**
  * @brief DockScrollArea::getLayout
  * @return
  */
@@ -243,6 +249,11 @@ void DockScrollArea::setDockEnabled(bool enabled)
     if (getParentButton()) {
         getParentButton()->setEnabled(enabled);
     }
+}
+
+bool DockScrollArea::isDockOpen()
+{
+    return dockOpen;
 }
 
 
@@ -397,11 +408,12 @@ void DockScrollArea::setParentButton(DockToggleButton *parent)
 void DockScrollArea::on_parentButtonPressed()
 {
     if (dockOpen) {
-        setVisible(false);
         dockOpen = false;
+        setVisible(false);
+        dockClosed();
     } else {
-        setVisible(true);
         dockOpen = true;
+        setVisible(true);
     }
 }
 

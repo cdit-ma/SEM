@@ -30,9 +30,6 @@ class MyStyle: public QProxyStyle
         return s;
     }
 };
-
-    MyStyle* style = new MyStyle();
-    a.setStyle( style);
 */
 
 

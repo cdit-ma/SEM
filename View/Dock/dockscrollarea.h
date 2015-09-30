@@ -35,6 +35,8 @@ public:
     bool isDockEnabled();
     void setDockEnabled(bool enabled);
 
+    bool isDockOpen();
+
     DockToggleButton* getParentButton();
     NodeItem* getCurrentNodeItem();
     QString getCurrentNodeID();
@@ -50,6 +52,7 @@ public:
 
 public slots:
     virtual void dockNodeItemClicked() = 0;
+    virtual void dockClosed();
     virtual void updateDock();
     virtual void clear();
 

@@ -1282,7 +1282,7 @@ void NewController::storeGraphMLInHash(GraphML *item)
             QString nodeKind = ((Node*)item)->getNodeKind();
             kindLookup[nodeKind].append(ID);
             reverseKindLookup[ID] = nodeKind;
-            qCritical() << "KINDS: " << nodeKind << " = " << kindLookup[nodeKind].length();
+            //qCritical() << "KINDS: " << nodeKind << " = " << kindLookup[nodeKind].length();
             nodeIDs.append(ID);
         }else if(item->getKind() == GraphML::EDGE){
             edgeIDs.append(ID);

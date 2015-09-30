@@ -92,8 +92,6 @@ HEADERS += \
     View/Table/attributetablemodel.h \
     View/Table/comboboxtabledelegate.h \
     View/Toolbar/toolbarwidget.h \
-    View/Toolbar/toolbarwidgetaction.h \
-    View/Toolbar/toolbarwidgetmenu.h \
     View/nodeview.h \
     View/nodeviewminimap.h \
     medeawindow.h \
@@ -120,8 +118,9 @@ HEADERS += \
     Model/BehaviourDefinitions/behaviournode.h \
     Model/BehaviourDefinitions/branch.h \
     Model/BehaviourDefinitions/whileloop.h \
-    View/Toolbar/toolbarabstractbutton.h \
-    GUI/shortcutdialog.h
+    GUI/shortcutdialog.h \
+    View/Toolbar/toolbarmenu.h \
+    View/Toolbar/toolbarmenuaction.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -180,8 +179,6 @@ SOURCES += \
     View/Table/attributetablemodel.cpp \
     View/Table/comboboxtabledelegate.cpp \
     View/Toolbar/toolbarwidget.cpp \
-    View/Toolbar/toolbarwidgetaction.cpp \
-    View/Toolbar/toolbarwidgetmenu.cpp \
     View/nodeview.cpp \
     View/nodeviewminimap.cpp \
     main.cpp \
@@ -209,8 +206,9 @@ SOURCES += \
     Model/BehaviourDefinitions/behaviournode.cpp \
     Model/BehaviourDefinitions/branch.cpp \
     Model/BehaviourDefinitions/whileloop.cpp \
-    View/Toolbar/toolbarabstractbutton.cpp \
-    GUI/shortcutdialog.cpp
+    GUI/shortcutdialog.cpp \
+    View/Toolbar/toolbarmenu.cpp \
+    View/Toolbar/toolbarmenuaction.cpp
 
 FORMS +=
 

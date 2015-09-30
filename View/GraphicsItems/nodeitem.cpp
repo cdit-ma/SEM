@@ -82,6 +82,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     isNodeExpanded = true;
     hidden = false;
 
+    highlightFromDock = false;
 
     hasDefinition = false;
     isImplOrInstance = false;
@@ -667,7 +668,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 Pen.setColor(Pen.color().light());
             }
 
-
             if(getNodeView() && isImplOrInstance){
                 hasDefinition = getNodeView()->getDefinitionID(getID()) != "";
                 if(!hasDefinition){
@@ -682,6 +682,14 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 Pen.setWidth(penWidth);
                 Pen.setStyle(Qt::DashLine);
                 Pen.setColor(Qt::red);
+            }
+
+            // overwrite any border color when highlighted from the dock
+            if (highlightFromDock) {
+                qreal penWidth = qMax(5.0/ getNodeView()->transform().m11(), 1.0);
+                Pen.setWidth(penWidth);
+                Pen.setStyle(Qt::DashLine);
+                Pen.setColor(Qt::yellow);
             }
 
 
@@ -3025,6 +3033,18 @@ int NodeItem::getChildrenViewMode()
 {
     return CHILDREN_VIEW_MODE;
 }
+
+
+/**
+ * @brief NodeItem::dockHighlight
+ * @param highlight
+ */
+void NodeItem::dockHighlight(bool highlight)
+{
+    highlightFromDock = highlight;
+    update();
+}
+
 
 void NodeItem::zoomChanged(qreal zoom)
 {

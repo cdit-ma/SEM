@@ -47,8 +47,6 @@
 #include "View/Dock/definitionsdockscrollarea.h"
 #include "View/Dock/hardwaredockscrollarea.h"
 
-#include "View/Toolbar/toolbarwidgetaction.h"
-
 #include "View/Validate/validatedialog.h"
 
 #include "CUTS/cutsmanager.h"
@@ -94,18 +92,12 @@ signals:
 
     void window_DisplayMessage(MESSAGE_TYPE type, QString title, QString message);
 
-
-    void executeXMETransformation(QString, QString);
-private:
-   void toolbarSettingChanged(QString keyName, QString value);
-   void enableTempExport(bool enable);
+    void executeXMETransformation(QString, QString);  
 
 public slots:
     void modelReady();
     void projectCleared();
     void settingChanged(QString groupName, QString keyName, QString value);
-
-
 
     void setupInitialSettings();
     void aspectToggleClicked(bool checked, int state);
@@ -119,9 +111,7 @@ public slots:
 
     void validate_Exported(QString tempModelPath);
 
-
 private slots:
-
     void gotXMETransformation(bool success, QString errorString, QString path);
     void localDeploymentOkay();
     void toggleGridLines();
@@ -137,15 +127,10 @@ private slots:
     void setImportJenkinsNodeEnabled(bool enabled = true);
     void on_actionImportJenkinsNode();
 
-
-
     void on_actionNew_Project_triggered();
     void on_actionImport_GraphML_triggered();
     void on_actionImport_XME_triggered();
     void on_actionExport_GraphML_triggered();
-
-
-
 
     void on_actionValidate_triggered();
     void validationComplete(int code);
@@ -160,8 +145,6 @@ private slots:
     void writeExportedProject(QString data);
     void writeExportedSnippet(QString parentName, QString snippetXMLData);
     void importSnippet(QString parentName);
-
-
 
     void setClipboard(QString value);
     void setAttributeModel(AttributeTableModel* model);
@@ -214,7 +197,8 @@ private:
     void initialiseCUTSManager();
     void importXMEProject(QString fileName);
 
-
+    void toolbarSettingChanged(QString keyName, QString value);
+    void enableTempExport(bool enable);
 
     void resetGUI();
     void resetView();
@@ -230,7 +214,6 @@ private:
     void setupToolbar(QVBoxLayout* layout);
     bool constructToolbarButton(QToolBar* toolbar, QAction* action, QString actionName);
 
-
     void setupMultiLineBox();
 
     void updateWidgetsOnWindowChanged();
@@ -241,11 +224,9 @@ private:
 
     void jenkins_JobName_Changed(QString jobName);
 
-
     void toggleAndTriggerAction(QAction* action, bool value);
 
     QStringList getCheckedItems(int menu);
-
     QTemporaryFile* writeTemporaryFile(QString data);
 
     QString applicationDirectory;
@@ -310,11 +291,6 @@ private:
     QAction* actionToggleGrid;
     QAction* actionContextMenu;
 
-
-
-
-
-
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
     DockToggleButton* definitionsButton;
@@ -342,15 +318,10 @@ private:
     QAction* leftSpacerAction;
     QAction* rightSpacerAction;
 
-
-
     QToolButton* toolbarButton;
 
     QHash<QString, QAction*> toolbarActionLookup;
     QHash<QString, ActionButton*> toolbarButtonLookup;
-
-
-
 
     QAction* toolbar_Sort;
 
@@ -412,7 +383,6 @@ private:
 
     QThread* controllerThread;
 
-
     QHash<QPushButton*, GraphMLItem*> searchItems;
     QMap<QAction*, QCheckBox*> toolbarActions;
     QList<QAction*> checkedToolbarActions;
@@ -425,7 +395,6 @@ private:
     QHash<QAction*, int> midRightActions;
     QHash<QAction*, int> rightMidActions;
     QHash<QAction*, int> rightMostActions;
-
 
     bool modelCleared;
     QFont guiFont;
@@ -450,9 +419,6 @@ private:
     JenkinsManager* jenkinsManager;
     CUTSManager* cutsManager;
 
-
-
-
     QString MEDEA_VERSION;
     QAction* action_ContextMenu;
 
@@ -462,7 +428,6 @@ private:
     bool cuts_TempExport;
     bool validate_TempExport;
     QString validation_report_path;
-
 
 };
 

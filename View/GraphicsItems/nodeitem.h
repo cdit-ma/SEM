@@ -169,6 +169,7 @@ public:
 
     int getChildrenViewMode();
 
+    void dockHighlight(bool highlight);
 
 signals:
     //Node Edge Signals
@@ -440,6 +441,8 @@ private:
     QString nodeHardwareOS;
     QString nodeHardwareArch;
     bool nodeHardwareLocalHost;
+
+    bool highlightFromDock;
 };
 
 #endif // NODEITEM_H

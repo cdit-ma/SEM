@@ -86,8 +86,6 @@
 #define TOOLBAR_FORWARD "05-18-Forward"
 
 
-
-
 /**
  * @brief MedeaWindow::MedeaWindow
  * @param graphMLFile
@@ -99,11 +97,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     launchFilePathArg = graphMLFile;
     loadLaunchedFile = launchFilePathArg != "";
 
-
     modelCleared = false;
 
     // this needs to happen before the menu is set up and connected
-
     applicationDirectory = QApplication::applicationDirPath() + "/";
     MEDEA_VERSION = QApplication::applicationVersion();
 
@@ -122,15 +118,11 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     settingsLoading = false;
     maximizedSettingInitiallyChanged = false;
 
-
-
     initialiseJenkinsManager();
     initialiseCUTSManager();
 
     initialiseGUI();
     makeConnections();
-
-
     newProject();
 }
 
@@ -164,6 +156,12 @@ MedeaWindow::~MedeaWindow()
 
 }
 
+
+/**
+ * @brief MedeaWindow::toolbarSettingChanged
+ * @param keyName
+ * @param value
+ */
 void MedeaWindow::toolbarSettingChanged(QString keyName, QString value)
 {
     bool isBool = false;
@@ -186,6 +184,11 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QString value)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::enableTempExport
+ * @param enable
+ */
 void MedeaWindow::enableTempExport(bool enable)
 {
     //Disable the actions which use Temporary exporting!
@@ -222,6 +225,10 @@ void MedeaWindow::modelReady()
     //cuts_runGeneration->trigger();
 }
 
+
+/**
+ * @brief MedeaWindow::projectCleared
+ */
 void MedeaWindow::projectCleared()
 {
     clearDocks();
@@ -336,8 +343,6 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
             nodeView->showLocalNode(boolValue);
         }
     }
-
-
 }
 
 
@@ -347,7 +352,42 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
  * and setup the view, scene and menu.
  */
 void MedeaWindow::initialiseGUI()
-{    
+{
+    // stylesheets
+    setStyleSheet("QToolBar::separator { background-color: rgba(0,0,0,0); }"
+                  "QToolButton {"
+                  "border: 1px solid;"
+                  "border-color: rgba(160,160,160,225);"
+                  "border-radius: 10px;"
+                  "background-color: rgba(200,200,200,225);"
+                  "margin: 0px 1px;"
+                  "}"
+                  "QToolButton:hover {"
+                  "border: 2px solid;"
+                  "border-color: rgba(140,140,140,225);"
+                  "background-color: rgba(250,250,250,230);"
+                  "}"
+                  "QToolButton:disabled { background-color: rgba(150,150,150,225);}"
+                  "QToolButton:pressed { background-color: rgba(230,230,230,230);}"
+
+                  "QCheckBox { padding: 0px 10px 0px 0px; }"
+                  "QCheckBox::indicator { width: 25px; height: 25px; }"
+                  "QCheckBox:checked { color: green; font-weight: bold; }"
+
+                  "QProgressBar {"
+                  "border: 2px solid gray;"
+                  "border-radius: 10px;"
+                  "background: rgb(240,240,240);"
+                  "text-align: center;"
+                  "color: black;"
+                  "}"
+                  "QProgressBar::chunk {"
+                  "border-radius: 7px;"
+                  "background: rgb(0,204,0);"
+                  "}"
+
+                  "QMessageBox{background-color:" + palette().color(QWidget::backgroundRole()).name() + ";}"
+                  );
 
     // set all gui widget fonts to this
     guiFont = QFont("Verdana");
@@ -402,18 +442,6 @@ void MedeaWindow::initialiseGUI()
     // setup progress bar
     progressBar->setVisible(false);
     progressBar->setFixedSize(rightPanelWidth*2, 20);
-    progressBar->setStyleSheet("QProgressBar {"
-                               "border: 2px solid gray;"
-                               "border-radius: 10px;"
-                               "background: rgb(240,240,240);"
-                               "text-align: center;"
-                               "color: black;"
-                               "}"
-
-                               "QProgressBar::chunk {"
-                               "border-radius: 7px;"
-                               "background: rgb(0,204,0);"
-                               "}");
 
     progressLabel->setVisible(false);
     progressLabel->setFixedSize(rightPanelWidth*2, 40);
@@ -551,7 +579,6 @@ void MedeaWindow::initialiseGUI()
     // add progress bar layout to the body layout after the dock has been set up
     bodyLayout->addStretch(4);
     bodyLayout->addLayout(progressLayout);
-    //bodyLayout->setAlignment(progressLayout, Qt::AlignBottom);
     bodyLayout->addStretch(3);
 }
 
@@ -571,7 +598,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_menu = menu->addMenu(getIcon("Actions", "MenuView"), "View");
     model_menu = menu->addMenu(getIcon("Actions", "MenuModel"), "Model");
     jenkins_menu = menu->addMenu(getIcon("Actions", "Jenkins_Icon"), "Jenkins");
-
 
     menu->addSeparator();
 
@@ -594,17 +620,12 @@ void MedeaWindow::setupMenu(QPushButton *button)
     file_importSnippet = file_menu->addAction(getIcon("Actions", "ImportSnippet"), "Import Snippet");
     file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
 
-
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_menu->addSeparator();
     file_exportGraphML = file_menu->addAction(getIcon("Actions", "Export"), "Export");
     file_exportSnippet = file_menu->addAction(getIcon("Actions", "ExportSnippet"), "Export Snippet");
     file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     file_menu->addSeparator();
-
-
-
-
 
     edit_undo = edit_menu->addAction(getIcon("Actions", "Undo"), "Undo");
     edit_undo->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Z));
@@ -638,7 +659,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_menu->addSeparator();
     view_showConnectedNodes = view_menu->addAction(getIcon("Actions", "Connections"), "View Connections");
 
-
     model_clearModel = model_menu->addAction(getIcon("Actions", "Clear"), "Clear Model");
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(getIcon("Actions", "Validate"), "Validate Model");
@@ -647,19 +667,14 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_ExecuteLocalJob->setEnabled(false);
     model_ExecuteLocalJob->setToolTip("Requires Valid CUTS and Windows");
 
-
-
     button->setMenu(menu);
 
-
     //Setup Jenkins Menu
-
     QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB);
+
     //Generic Jenkins Functionality.
     jenkins_ImportNodes = jenkins_menu->addAction(getIcon("Actions", "Computer"), "Import Jenkins Nodes");
     jenkins_ImportNodes->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_J));
-
-
 
     jenkins_ExecuteJob = jenkins_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: " + jenkinsJobName);
 
@@ -680,8 +695,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_goToDefinition->setEnabled(false);
     view_goToImplementation->setEnabled(false);
     view_showConnectedNodes->setEnabled(false);
-
-
 
     actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
     actionSort->setToolTip("Sort model/selection");
@@ -716,7 +729,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     actionToggleGrid = new QAction(getIcon("Actions", "Grid_On"), "Toggle Grid Lines", this);
     actionToggleGrid->setToolTip("Turn Grid Off");
     actionToggleGrid->setCheckable(true);
-    connect(actionToggleGrid, SIGNAL(triggered()), this, SLOT(toggleGridLines()));
 }
 
 
@@ -919,8 +931,6 @@ void MedeaWindow::setupSearchTools()
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(aspect, this);
         checkBox->setFont(guiFont);
-        checkBox->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }"
-                                "QCheckBox::checked{ color: green; font-weight: bold; }");
         connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
         action->setDefaultWidget(checkBox);
         viewAspectsMenu->addAction(action);
@@ -979,25 +989,6 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
 {
     toolbar = new QToolBar();
     toolbarLayout = new QVBoxLayout();
-
-    // stylesheet for QToolButtons and the toolbar's separators
-    setStyleSheet("QToolButton{"
-                  "border: 1px solid;"
-                  "border-color: rgba(160,160,160,225);"
-                  "border-radius: 10px;"
-                  "background-color: rgba(200,200,200,225);"
-                  "margin: 0px 1px;"
-                  "}"
-                  "QToolButton:hover{"
-                  "border: 2px solid;"
-                  "border-color: rgba(140,140,140,225);"
-                  "background-color: rgba(250,250,250,230);"
-                  "}"
-                  "QToolButton:disabled{ background-color: rgba(150,150,150,225);}"
-                  "QToolButton:pressed{ background-color: rgba(230,230,230,230);}"
-                  "QToolBar::separator { background-color: rgba(0,0,0,0); }"
-                  "QMessageBox{background-color:" + palette().color(QWidget::backgroundRole()).name() + ";}"
-                  );
 
     toolbarButton = new QToolButton(this);
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
@@ -1159,7 +1150,6 @@ void MedeaWindow::makeConnections()
     connect(partsDock, SIGNAL(dock_openDefinitionsDock()), this, SLOT(forceOpenDefinitionsDock()));
     connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
 
-
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
     connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));
     connect(nodeView, SIGNAL(view_ImportSnippet(QString)), this, SLOT(importSnippet(QString)));
@@ -1176,13 +1166,10 @@ void MedeaWindow::makeConnections()
     connect(file_importXME, SIGNAL(triggered(bool)), this, SLOT(on_actionImport_XME_triggered()));
     connect(file_exportSnippet, SIGNAL(triggered()), nodeView, SLOT(exportSnippet()));
 
-
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
-    //connect(this, SIGNAL(window_highlightDeployment(bool)), nodeView, SLOT(highlightDeployment(bool)));
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
     connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
-
 
     //Minimap Funcs
     connect(minimap, SIGNAL(minimap_Pan()), nodeView, SLOT(minimapPan()));
@@ -1262,11 +1249,9 @@ void MedeaWindow::makeConnections()
     connect(actionFitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(actionCenter, SIGNAL(triggered()), nodeView, SLOT(centerOnItem()));
     connect(actionSort, SIGNAL(triggered()), nodeView, SLOT(sort()));
-
+    connect(actionToggleGrid, SIGNAL(triggered()), this, SLOT(toggleGridLines()));
     connect(actionPopupSubview, SIGNAL(triggered()), nodeView, SLOT(constructNewView()));
-
     connect(actionZoomToFit, SIGNAL(triggered()), nodeView, SLOT(centerItem()));
-
     connect(actionAlignHorizontally, SIGNAL(triggered()), nodeView, SLOT(alignSelectionHorizontally()));
     connect(actionAlignVertically, SIGNAL(triggered()), nodeView, SLOT(alignSelectionVertically()));
     connect(actionContextMenu, SIGNAL(triggered()), nodeView, SLOT(showToolbar()));
@@ -1275,7 +1260,6 @@ void MedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
     connect(nodeView, SIGNAL(view_ExportedSnippet(QString,QString)), this, SLOT(writeExportedSnippet(QString,QString)));
-
 
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
     connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(updateWindowTitle(QString)));
@@ -1287,7 +1271,6 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
 
-    
     connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
@@ -1302,11 +1285,10 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
 
-    
     connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
     connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), definitionsDock, SLOT(edgeDeleted(QString, QString)));
 
-	connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
@@ -1344,7 +1326,6 @@ void MedeaWindow::makeConnections()
     addAction(actionForward);
     addAction(actionToggleGrid);
     addAction(actionContextMenu);
-
 
     addAction(jenkins_ExecuteJob);
     addAction(jenkins_ImportNodes);
@@ -1385,13 +1366,16 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
  */
 void MedeaWindow::changeEvent(QEvent *event)
 {
-
     QWidget::changeEvent(event);
     if (event->type() == QEvent::WindowStateChange){
         updateWidgetsOnWindowChanged();
     }
 }
 
+
+/**
+ * @brief MedeaWindow::initialiseJenkinsManager
+ */
 void MedeaWindow::initialiseJenkinsManager()
 {
     jenkinsManager = 0;
@@ -1410,6 +1394,10 @@ void MedeaWindow::initialiseJenkinsManager()
     }
 }
 
+
+/**
+ * @brief MedeaWindow::initialiseCUTSManager
+ */
 void MedeaWindow::initialiseCUTSManager()
 {
     cutsManager = 0;
@@ -1444,6 +1432,10 @@ void MedeaWindow::initialiseCUTSManager()
 }
 
 
+/**
+ * @brief MedeaWindow::importXMEProject
+ * @param filePath
+ */
 void MedeaWindow::importXMEProject(QString filePath)
 {
     if(cutsManager){
@@ -1461,7 +1453,10 @@ void MedeaWindow::importXMEProject(QString filePath)
 }
 
 
-
+/**
+ * @brief MedeaWindow::jenkins_InvokeJob
+ * @param filePath
+ */
 void MedeaWindow::jenkins_InvokeJob(QString filePath)
 {
     QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB);
@@ -1472,6 +1467,11 @@ void MedeaWindow::jenkins_InvokeJob(QString filePath)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::cuts_runDeployment
+ * @param filePath
+ */
 void MedeaWindow::cuts_runDeployment(QString filePath)
 {
     if(cutsManager){
@@ -1482,6 +1482,11 @@ void MedeaWindow::cuts_runDeployment(QString filePath)
 
 }
 
+
+/**
+ * @brief MedeaWindow::validate_Exported
+ * @param tempModelPath
+ */
 void MedeaWindow::validate_Exported(QString tempModelPath)
 {
     QString xalanJPath = applicationDirectory + "/Resources/Binaries/";
@@ -1508,6 +1513,13 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
     myProcess->start(program, arguments);
 }
 
+
+/**
+ * @brief MedeaWindow::gotXMETransformation
+ * @param success
+ * @param errorString
+ * @param path
+ */
 void MedeaWindow::gotXMETransformation(bool success, QString errorString, QString path)
 {
     setEnabled(true);
@@ -1522,6 +1534,10 @@ void MedeaWindow::gotXMETransformation(bool success, QString errorString, QStrin
     }
 }
 
+
+/**
+ * @brief MedeaWindow::localDeploymentOkay
+ */
 void MedeaWindow::localDeploymentOkay()
 {
     if(model_ExecuteLocalJob){
@@ -1530,6 +1546,10 @@ void MedeaWindow::localDeploymentOkay()
     }
 }
 
+
+/**
+ * @brief MedeaWindow::toggleGridLines
+ */
 void MedeaWindow::toggleGridLines()
 {
     if(actionToggleGrid){
@@ -1563,16 +1583,22 @@ void MedeaWindow::aboutMedea()
     aboutString += "<li>Matthew Hart</li>";
     aboutString += "</ul>";
 
-
-
     QMessageBox::about(this, "About MEDEA", aboutString);
 }
 
+
+/**
+ * @brief MedeaWindow::aboutQt
+ */
 void MedeaWindow::aboutQt()
 {
     QMessageBox::aboutQt(this);
 }
 
+
+/**
+ * @brief MedeaWindow::showShortcutList
+ */
 void MedeaWindow::showShortcutList()
 {
     QString shortcutList;
@@ -1586,11 +1612,20 @@ void MedeaWindow::showShortcutList()
     shortcutDialog->exec();
 }
 
+
+/**
+ * @brief MedeaWindow::invalidJenkinsSettings
+ * @param message
+ */
 void MedeaWindow::invalidJenkinsSettings(QString message)
 {
     emit window_DisplayMessage(CRITICAL, "Invalid Jenkins Settings", message);
 }
 
+
+/**
+ * @brief MedeaWindow::jenkinsNodesLoaded
+ */
 void MedeaWindow::jenkinsNodesLoaded()
 {
     // if the hardware dock isn't already open, open it
@@ -1624,8 +1659,9 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
     docksArea->setFixedHeight(boxHeight*2);
     dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_HEIGHT/2);
 
-	updateWidgetMask(docksArea, dockButtonsBox, true);
+    updateWidgetMask(docksArea, dockButtonsBox, true);
     updateDataTable();
+
     /*
     double newHeight = docksArea->height();
     if (dockStandAloneDialog->isVisible()) {
@@ -1642,8 +1678,6 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
         nodeView->recenterView();
     }
 }
-
-
 
 
 /**
@@ -1670,8 +1704,6 @@ void MedeaWindow::setupInitialSettings()
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(kind, this);
         checkBox->setFont(guiFont);
-        checkBox->setStyleSheet("QCheckBox::indicator{ width: 25px; height: 25px; }"
-                                "QCheckBox::checked{ color: green; font-weight: bold; }");
         connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
         action->setDefaultWidget(checkBox);
         nodeKindsMenu->addAction(action);
@@ -1745,24 +1777,40 @@ void MedeaWindow::aspectToggleClicked(bool checked, int state)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::jenkinsExport
+ */
 void MedeaWindow::jenkinsExport()
 {
     jenkins_TempExport = true;
     exportTempFile();
 }
 
+
+/**
+ * @brief MedeaWindow::cutsExport
+ */
 void MedeaWindow::cutsExport()
 {
     cuts_TempExport = true;
     exportTempFile();
 }
 
+
+/**
+ * @brief MedeaWindow::validateExport
+ */
 void MedeaWindow::validateExport()
 {
     validate_TempExport = true;
     exportTempFile();
 }
 
+
+/**
+ * @brief MedeaWindow::exportTempFile
+ */
 void MedeaWindow::exportTempFile()
 {
     tempExport = true;
@@ -1773,6 +1821,9 @@ void MedeaWindow::exportTempFile()
 }
 
 
+/**
+ * @brief MedeaWindow::saveSettings
+ */
 void MedeaWindow::saveSettings()
 {
     //Write Settings on Quit.
@@ -1790,6 +1841,10 @@ void MedeaWindow::saveSettings()
     }
 }
 
+
+/**
+ * @brief MedeaWindow::search
+ */
 void MedeaWindow::search()
 {
     if(searchBar){
@@ -1813,6 +1868,11 @@ void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::setImportJenkinsNodeEnabled
+ * @param enabled
+ */
 void MedeaWindow::setImportJenkinsNodeEnabled(bool enabled)
 {
     if(jenkins_ImportNodes){
@@ -1935,6 +1995,11 @@ void MedeaWindow::on_actionValidate_triggered()
     validateExport();
 }
 
+
+/**
+ * @brief MedeaWindow::validationComplete
+ * @param code
+ */
 void MedeaWindow::validationComplete(int code)
 {
     if(code == 0){
@@ -1969,6 +2034,7 @@ void MedeaWindow::validationComplete(int code)
     }
 
 }
+
 
 /**
  * @brief MedeaWindow::on_actionPaste_triggered
@@ -2075,7 +2141,6 @@ void MedeaWindow::on_actionSearch_triggered()
  */
 void MedeaWindow::on_actionExit_triggered()
 {
-
     close();
 }
 
@@ -2087,7 +2152,6 @@ void MedeaWindow::on_actionExit_triggered()
  */
 void MedeaWindow::on_searchResultItem_clicked(QString ID)
 {
-
     nodeView->selectAndCenter(0, ID);
 }
 
@@ -2156,6 +2220,12 @@ void MedeaWindow::writeExportedProject(QString data)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::writeExportedSnippet
+ * @param parentName
+ * @param snippetXMLData
+ */
 void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLData)
 {
     try {
@@ -2195,6 +2265,11 @@ void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLDat
     }
 }
 
+
+/**
+ * @brief MedeaWindow::importSnippet
+ * @param parentName
+ */
 void MedeaWindow::importSnippet(QString parentName)
 {
 
@@ -2308,6 +2383,13 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::getIcon
+ * @param alias
+ * @param image
+ * @return
+ */
 QIcon MedeaWindow::getIcon(QString alias, QString image)
 {
     if(nodeView){
@@ -2344,6 +2426,11 @@ void MedeaWindow::showWindowToolbar(bool checked)
     return;
 }
 
+
+/**
+ * @brief MedeaWindow::setToolbarVisibility
+ * @param visible
+ */
 void MedeaWindow::setToolbarVisibility(bool visible)
 {
     if(toolbarButton){
@@ -2352,7 +2439,6 @@ void MedeaWindow::setToolbarVisibility(bool visible)
     if(toolbar){
         toolbar->setVisible(visible);
     }
-
 }
 
 
@@ -2909,6 +2995,7 @@ void MedeaWindow::displayNotification(QString notification, int seqNum, int tota
     }
 }
 
+
 /**
  * @brief MedeaWindow::checkNotificationsQueue
  */
@@ -3053,48 +3140,41 @@ void MedeaWindow::detachedDockClosed()
 void MedeaWindow::updateDataTable()
 {
     QAbstractItemModel* tableModel = dataTable->model();
-
-    //Check for Data.
     bool hasData = tableModel && tableModel->rowCount() > 0;
 
-    if(hasData){
+    if (hasData) {
         dataTableBox->setVisible(true);
-    }else{
+    } else {
         dataTableBox->setVisible(false);
+        updateWidgetMask(dataTableBox, dataTable);
+        return;
     }
 
     // calculate the required height
-
     int newHeight = 0;
     int maxHeight = dataTableBox->height();
-    if(hasData){
-        for (int i = 0; i < tableModel->rowCount(); i++) {
-            newHeight += dataTable->rowHeight(i);
-        }
 
-        if(hasData){
-            newHeight += dataTable->horizontalHeader()->size().height();
-            newHeight += dataTable->contentsMargins().top() + dataTable->contentsMargins().bottom();
-        }
+    for (int i = 0; i < tableModel->rowCount(); i++) {
+        newHeight += dataTable->rowHeight(i);
     }
 
-    if(newHeight > maxHeight){
+    newHeight += dataTable->horizontalHeader()->size().height();
+    newHeight += dataTable->contentsMargins().top() + dataTable->contentsMargins().bottom();
+
+    if (newHeight > maxHeight) {
         dataTable->resize(dataTable->width(), maxHeight);
-    }else{
+    } else {
         dataTable->resize(dataTable->width(), newHeight);
     }
 
     // update the visible region of the groupbox to fit the dataTable
-
     updateWidgetMask(dataTableBox, dataTable);
 
-    if(hasData){
-        // align the contents of the datatable
-        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-        dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Interactive);
-        dataTable->horizontalHeader()->resizeSection(1, dataTable->width()/4);
-        dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
-    }
+    // align the contents of the datatable
+    dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Interactive);
+    dataTable->horizontalHeader()->resizeSection(1, dataTable->width()/4);
+    dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
 }
 
 
@@ -3131,6 +3211,11 @@ void MedeaWindow::importProjects(QStringList files)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::jenkins_JobName_Changed
+ * @param jobName
+ */
 void MedeaWindow::jenkins_JobName_Changed(QString jobName)
 {
     if(jenkins_ExecuteJob){
@@ -3151,14 +3236,11 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
                                                                 QMessageBox::Yes);
     if (resBtn != QMessageBox::Yes) {
         e->ignore();
-
     } else {
         e->accept();
         deleteLater();
     }
 }
-
-
 
 
 /**
@@ -3191,6 +3273,12 @@ QStringList MedeaWindow::getCheckedItems(int menu)
     return checkedKinds;
 }
 
+
+/**
+ * @brief MedeaWindow::writeTemporaryFile
+ * @param data
+ * @return
+ */
 QTemporaryFile* MedeaWindow::writeTemporaryFile(QString data)
 {
     QTemporaryFile* tempFile = new QTemporaryFile();
@@ -3270,6 +3358,7 @@ void MedeaWindow::dataTableDoubleClicked(QModelIndex index)
     }
 }
 
+
 /**
  * @brief MedeaWindow::dialogAccepted
  * Update the data in the text fields
@@ -3280,6 +3369,7 @@ void MedeaWindow::dialogAccepted()
     dataTable->model()->setData(clickedModelIndex, QVariant(txtMultiLine->toPlainText()), Qt::EditRole);
     popupMultiLine->close();
 }
+
 
 /**
  * @brief MedeaWindow::dialogRejected

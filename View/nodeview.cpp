@@ -87,6 +87,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     eventFromEdgeItem = false;
 
+    prevItemHighlighted = 0;
 
 
     MINIMAP_EVENT = false;
@@ -883,6 +884,25 @@ void NodeView::actionFinished()
     updateActionsEnabledStates();
 
     viewMutex.unlock();
+}
+
+
+/**
+ * @brief NodeView::highlightNode
+ * @param nodeID
+ */
+void NodeView::highlightNode(QString nodeID)
+{
+    /*
+    if (prevItemHighlighted) {
+        prevItemHighlighted->dockHighlight(false);
+    }
+    NodeItem* nodeItem = getNodeItemFromID(nodeID);
+    if (nodeItem) {
+        nodeItem->dockHighlight(true);
+        prevItemHighlighted = nodeItem;
+    }
+    */
 }
 
 

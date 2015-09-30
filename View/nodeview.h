@@ -110,6 +110,7 @@ private slots:
 
     void actionFinished();
 
+
 signals:
     void view_ClearSubViewAttributeTable();
     void view_ModelReady();
@@ -321,6 +322,8 @@ public slots:
 
     void nodeEntered(QString ID, bool enter);
 
+    void highlightNode(QString nodeID = "");
+
 private:
     bool onlyHardwareClustersSelected();
     void handleSelection(GraphMLItem* item, bool setSelected, bool controlDown);
@@ -506,6 +509,8 @@ private:
 
     QGraphicsLineItem* connectLine;
     VIEW_STATE viewState;
+
+    NodeItem* prevItemHighlighted;
 };
 
 #endif // NODEVIEW_H

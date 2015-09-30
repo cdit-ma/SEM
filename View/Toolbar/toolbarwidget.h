@@ -4,17 +4,15 @@
 #include "../nodeview.h"
 #include "../GraphicsItems/nodeitem.h"
 #include "../GraphicsItems/edgeitem.h"
-#include "toolbarwidgetaction.h"
-#include "toolbarabstractbutton.h"
+#include "toolbarmenuaction.h"
 
 #include <QWidget>
 #include <QToolButton>
 #include <QMenu>
 #include <QFrame>
 
-
-class ToolbarWidgetAction;
-class ToolbarWidgetMenu;
+class ToolbarMenu;
+class ToolbarMenuAction;
 
 class ToolbarWidget : public QWidget
 {
@@ -25,32 +23,29 @@ public:
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
 
-signals:
-    void toolbar_menuOnFocus(ToolbarWidgetMenu* menu);
-    void toolbar_toolbarClosed();
-
 public slots:
     void updateActionEnabledState(QString actionName, bool enabled);
+
+    void addChildNode(ToolbarMenuAction *action);
+    void addConnectedNode(ToolbarMenuAction* action);
+    void connectNodes(ToolbarMenuAction* action);
+    void displayConnectedNode(ToolbarMenuAction* action);
+    void constructNewView();
+
+    void setupLegalNodesList();
+    void setupComponentList();
+    void setupBlackBoxList();
+    void setupEventPortInstanceList();
 
     void updateDisplayedChildren();
     void hardwareClusterMenuClicked(int viewMode);
 
-    void addChildNode();
-    void addConnectedNode();
-    void connectNodes();
-    void goToConnectedNode();
-    void constructNewView();
-
-    void attachOptionMenu();
-    void menuOnFocus(ToolbarWidgetMenu* menu);
+    void connectMenuOpened();
+    void setInstanceID();
 
     void setVisible(bool visible);
     void hide();
-    void hideToolbar(bool actionTriggered);
-
-    void setupComponentList();
-    void setupBlackBoxList();
-    void setupEventPortInstanceList();
+    void hideToolbar(bool actionTriggered = false);
 
 private:
     void setupToolBar();
@@ -66,18 +61,18 @@ private:
     void clearMenus();
     void resetButtonGroupFlags();
 
-    QToolButton* constructToolButton(QSize size, QString iconPng, double iconSizeRatio, QString tooltip);
-    QFrame* constructFrameSeparator();
-
-    ToolbarWidgetMenu* constructToolMenu(QToolButton *parentButton);
-    ToolbarWidgetAction* constructSubMenuAction(NodeItem* nodeItem, ToolbarWidgetMenu* parentMenu);
-
     void setupAdoptableNodesList(QStringList nodeKinds);
     void setupLegalNodesList(QList<NodeItem*> nodeList);
     void setupInstancesList(QList<NodeItem*> instances);
 
     void setupComponentList(QString actionKind);
     void setupEventPortInstanceList(QString eventPortKind);
+
+    QToolButton* constructToolButton(QSize size, QString iconPng, double iconSizeRatio, QString tooltip = "");
+    QFrame* constructFrameSeparator();
+
+    ToolbarMenu* constructToolButtonMenu(QToolButton* parentButton);
+    ToolbarMenuAction* constructSubMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu);
 
     NodeView* nodeView;
     NodeItem* nodeItem;
@@ -109,30 +104,32 @@ private:
     QToolButton* popupNewWindow;
     QToolButton* displayedChildrenOptionButton;
 
-    ToolbarWidgetMenu* addMenu;
-    ToolbarWidgetMenu* connectMenu;
-    ToolbarWidgetMenu* definitionMenu;
-    ToolbarWidgetMenu* implementationMenu;
+    ToolbarMenu* addMenu;
+    ToolbarMenu* connectMenu;
+    ToolbarMenu* definitionMenu;
+    ToolbarMenu* implementationMenu;
 
-    ToolbarWidgetMenu* instancesMenu;
-    ToolbarWidgetMenu* instanceOptionMenu;
-    ToolbarWidgetMenu* displayedChildrenOptionMenu;
+    ToolbarMenu* instancesMenu;
+    ToolbarMenu* instanceOptionMenu;
+    ToolbarMenu* displayedChildrenOptionMenu;
 
-    ToolbarWidgetMenu* componentDefinitionsMenu;
-    ToolbarWidgetMenu* blackBoxDefinitionsMenu;
-    ToolbarWidgetMenu* iep_definitionInstanceMenu;
-    ToolbarWidgetMenu* oep_definitionInstanceMenu;
+    ToolbarMenu* componentImplDefinitionsMenu;
+    ToolbarMenu* componentInstDefinitionsMenu;
+    ToolbarMenu* blackBoxDefinitionsMenu;
+    ToolbarMenu* iep_definitionInstanceMenu;
+    ToolbarMenu* oep_definitionInstanceMenu;
 
-    ToolbarWidgetAction* componentImplAction;
-    ToolbarWidgetAction* componentInstanceAction;
-    ToolbarWidgetAction* blackBoxInstanceAction;
-    ToolbarWidgetAction* inEventPortDelegateAction;
-    ToolbarWidgetAction* outEventPortDelegateAction;
+    ToolbarMenuAction* componentImplAction;
+    ToolbarMenuAction* componentInstAction;
+    ToolbarMenuAction* blackBoxInstanceAction;
+    ToolbarMenuAction* inEventPortDelegateAction;
+    ToolbarMenuAction* outEventPortDelegateAction;
 
-    ToolbarWidgetAction* componenMenuDefaultAction;
-    ToolbarWidgetAction* blackBoxMenuDefaultAction;
-    ToolbarWidgetAction* iep_menuDefaultAction;
-    ToolbarWidgetAction* oep_menuDefaultAction;
+    ToolbarMenuAction* componentImplMenuInfoAction;
+    ToolbarMenuAction* componentInstMenuInfoAction;
+    ToolbarMenuAction* blackBoxMenuInfoAction;
+    ToolbarMenuAction* iep_menuInfoAction;
+    ToolbarMenuAction* oep_menuInfoAction;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
@@ -155,6 +152,10 @@ private:
     bool componentInstMenuDone;
     bool inEventPortInstanceMenuDone;
     bool outEventPortInstanceMenuDone;
+    bool connectMenuDone;
+
+    QList<NodeItem*> legalNodeItems;
+    QString chosenInstanceID;
 
 };
 

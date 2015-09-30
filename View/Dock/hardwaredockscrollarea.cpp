@@ -73,12 +73,26 @@ void HardwareDockScrollArea::dockNodeItemClicked()
         return;
     }
 
+    /*
+     * This shouldn't be needed anymore. The updateDock() function should catch the case
+     * where there are multiple selected items and not all of them are deployable, even
+     * if this dock is normally enabled for each one of them on their own.
+     *
     QList<NodeItem*> selectedNodeItems = getNodeView()->getSelectedNodeItems();
     foreach (NodeItem* nodeItem, selectedNodeItems) {
         if (nodeItem && !getNodeView()->isNodeKindDeployable(nodeItem->getNodeKind())) {
             return;
         }
     }
+    */
+
+    /*
+    if (getCurrentNodeItem() && getCurrentNodeItem()->getNodeKind() == "HardwareCluster"
+            || getCurrentNodeItem()->getNodeKind() == "HardwareDefinitions") {
+        getNodeView()->highlightNode(dockNodeItem->getID());
+        return;
+    }
+    */
 
     /*
      * At this point everything in selectedNodeIDs is deployable.
@@ -90,12 +104,25 @@ void HardwareDockScrollArea::dockNodeItemClicked()
 
 
 /**
+ * @brief HardwareDockScrollArea::dockClosed
+ */
+void HardwareDockScrollArea::dockClosed()
+{
+    // clear anything that needs clearing here
+    getNodeView()->highlightNode();
+}
+
+
+/**
  * @brief DefinitionsDockScrollArea::updateDock
  * This is called whenever a node item is selected.
  * It checks to see if this dock should be enabled for the currently selected item.
  */
 void HardwareDockScrollArea::updateDock()
 {    
+    // clear previous dock highlighted item
+    getNodeView()->highlightNode();
+
     QList<NodeItem*> selectedItems = getNodeView()->getSelectedNodeItems();
     if (selectedItems.isEmpty()) {
         setDockEnabled(false);
