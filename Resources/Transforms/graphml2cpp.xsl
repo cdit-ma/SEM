@@ -1054,7 +1054,7 @@
 				<!-- if complexity is given assume that the evaluateComplexity() is is the first parameter -->
 				<xsl:variable name="complexity" select="$processNode/gml:data[@key=$transformNodeComplexityKey]/text()" />  
 				<xsl:if test="$complexity and not($complexity = '')">
-					<xsl:value-of select="concat('evaluateComplexity(', $complexity, ',')" />
+					<xsl:value-of select="concat('this->utility_.evaluateComplexity(', $complexity, ',')" />
 					<!-- Write the value of the other parameters in a comma delimited string value -->
 					<xsl:variable name="complexityParameters" select="$processNode/gml:data[@key=$transformNodeComplexityParametersKey]/text()" />  
 					<!-- cast all parameters double -->
@@ -1065,8 +1065,10 @@
 					<xsl:value-of select="')'" />
 				</xsl:if>
 				<xsl:variable name="parameters" select="$processNode/gml:data[@key=$transformNodeParametersKey]/text()" />  
-				<xsl:if test="$parameters and not($parameters = '')">
+				<xsl:if test="$complexity and not($complexity = '') and $parameters and not($parameters = '')">
 					<xsl:value-of select="', '" />
+				</xsl:if>
+				<xsl:if test="$parameters and not($parameters = '')">
 					<!-- Write the value of the other parameters in a comma delimited string value -->
 					<xsl:value-of select="$parameters" />
 				</xsl:if>

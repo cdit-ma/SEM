@@ -543,6 +543,12 @@
 					<xsl:sort select="./gml:data[@key=$transformNodeFileKey]/text()" data-type="text" />
 					<xsl:value-of select="concat(./gml:data[@key=$transformNodeFileKey]/text(), $delim)"/>
 				</xsl:for-each>
+				<!-- Add Utility worker for any components that use a WE_ worker -->
+				<xsl:for-each select="$workerIncludes"> 
+					<xsl:if test="'WE' = substring-before( concat(./gml:data[@key=$transformNodeFileKey]/text(), '_'), '_') "> 
+						<xsl:value-of select="concat('WE_UTE', $delim)"/>
+					</xsl:if> 
+				</xsl:for-each>
 			</xsl:variable>
 
 			<!-- only output unique values from the sorted list -->
@@ -599,6 +605,12 @@
 					<xsl:sort select="./gml:data[@key=$transformNodeWorkerKey]/text()" data-type="text" />
 					<xsl:sort select="./gml:data[@key=$transformNodeLabelKey]/text()" data-type="text" />
 					<xsl:value-of select="concat(./gml:data[@key=$transformNodeWorkerKey]/text(), $subDelim, ./gml:data[@key=$transformNodeLabelKey]/text(), $delim)"/>
+				</xsl:for-each>
+				<!-- Add Utility worker for any components that use a WE_ worker -->
+				<xsl:for-each select="$workerVariables"> 
+					<xsl:if test="'WE' = substring-before( concat(./gml:data[@key=$transformNodeWorkerKey]/text(), '_'), '_') "> 
+						<xsl:value-of select="concat('WE_UTE', $subDelim, 'utility', $delim)"/>
+					</xsl:if> 
 				</xsl:for-each>
 			</xsl:variable>
 

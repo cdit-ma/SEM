@@ -318,6 +318,15 @@
 					<xsl:sort select="./gml:data[@key=$transformNodeValueKey]/text()" data-type="text" />
 					<xsl:value-of select="concat(./gml:data[@key=$transformNodeValueKey]/text(), $delim)"/>
 				</xsl:for-each>
+				<!-- Add Utility worker for any components that use a WE_ worker -->
+				<xsl:for-each select="$nodeList"> 
+					<xsl:if test="'WE' = substring-before( concat(./gml:data[@key=$transformNodeValueKey]/text(), '_'), '_') "> 
+						<xsl:value-of select="concat('WE_UTE', $delim)"/>
+					</xsl:if> 
+					<xsl:if test="'we' = substring-before( concat( substring-after(./gml:data[@key=$transformNodeValueKey]/text() ,'workers/'), '_'), '_') "> 
+						<xsl:value-of select="concat('$(CUTS_ROOT)/cuts/workers/we_ute', $delim)"/>
+					</xsl:if> 
+				</xsl:for-each>
 			</xsl:variable>
 
 			<!-- only output unique values from the sorted list -->
