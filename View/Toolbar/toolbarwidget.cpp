@@ -212,20 +212,19 @@ void ToolbarWidget::connectNodes(ToolbarMenuAction* action)
  */
 void ToolbarWidget::displayConnectedNode(ToolbarMenuAction* action)
 {
-    QString actionKind = "Goto";
-    QWidget* parentWidget = 0;
-
+    // if there is no action, the sender is a QToolButton
     if (!action) {
         QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
         if (button == definitionButton) {
-            parentWidget = definitionMenu;
+            nodeView->centerDefinition(nodeItem->getID());
         } else if (button == implementationButton) {
-            parentWidget = implementationMenu;
+            nodeView->centerImplementation(nodeItem->getID());
         }
-    } else {
-        actionKind = action->getActionKind();
-        parentWidget = action->parentWidget();
+        return;
     }
+
+    QString actionKind = action->getActionKind();
+    QWidget* parentWidget = action->parentWidget();
 
     if (actionKind == "Goto") {
         if (parentWidget == definitionMenu) {
