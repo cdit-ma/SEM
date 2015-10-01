@@ -1,6 +1,7 @@
 #ifndef AGGREGATEINSTANCE_H
 #define AGGREGATEINSTANCE_H
 #include "../node.h"
+#include <QStringList>
 
 class AggregateInstance : public Node
 {

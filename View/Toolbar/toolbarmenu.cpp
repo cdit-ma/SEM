@@ -25,11 +25,11 @@ public:
 
 /**
  * @brief ToolbarMenu::ToolbarMenu
- * @param parent
+ * @param toolbar
  * @param info_action
  */
-ToolbarMenu::ToolbarMenu(QWidget* parent, ToolbarMenuAction* info_action) :
-    QMenu(parent)
+ToolbarMenu::ToolbarMenu(ToolbarWidget* toolbar, ToolbarMenuAction* info_action) :
+    QMenu(toolbar)
 {
     infoAction = info_action;
 
@@ -54,6 +54,8 @@ ToolbarMenu::ToolbarMenu(QWidget* parent, ToolbarMenuAction* info_action) :
                   );
 
     connect(this, SIGNAL(triggered(QAction*)), this, SLOT(menuTriggered(QAction*)));
+    connect(this, SIGNAL(aboutToShow()), toolbar, SLOT(appendToOpenMenusList()));
+    connect(this, SIGNAL(aboutToHide()), toolbar, SLOT(removeFromOpenMenusList()));
 }
 
 
@@ -77,6 +79,7 @@ void ToolbarMenu::addAction(ToolbarMenuAction* action)
 /**
  * @brief ToolbarMenu::removeAction
  * @param action
+ * @param clearing
  */
 void ToolbarMenu::removeAction(ToolbarMenuAction* action, bool clearing)
 {
@@ -152,6 +155,19 @@ void ToolbarMenu::menuTriggered(QAction* action)
 
     // this shouldn't be needed, but just to make sure that this menu hides after it's triggered
     QMenu::close();
+}
+
+
+/**
+ * @brief ToolbarMenu::mousePressEvent
+ * Ignore all mouse buttons except for the left button.
+ * @param event
+ */
+void ToolbarMenu::mousePressEvent(QMouseEvent* event)
+{
+    if (event->button() == Qt::LeftButton) {
+        QMenu::mousePressEvent(event);
+    }
 }
 
 

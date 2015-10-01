@@ -23,13 +23,17 @@ public:
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
 
+signals:
+    void toolbar_hasFocus();
+    void toolbar_closed();
+
 public slots:
     void updateActionEnabledState(QString actionName, bool enabled);
 
     void addChildNode(ToolbarMenuAction *action);
     void addConnectedNode(ToolbarMenuAction* action);
     void connectNodes(ToolbarMenuAction* action);
-    void displayConnectedNode(ToolbarMenuAction* action);
+    void displayConnectedNode(ToolbarMenuAction* action = 0);
     void constructNewView();
 
     void setupLegalNodesList();
@@ -37,15 +41,18 @@ public slots:
     void setupBlackBoxList();
     void setupEventPortInstanceList();
 
+    void setInstanceID();
+
     void updateDisplayedChildren();
     void hardwareClusterMenuClicked(int viewMode);
 
-    void connectMenuOpened();
-    void setInstanceID();
-
-    void setVisible(bool visible);
+    void hideToolbar(QAction* action = 0);
     void hide();
-    void hideToolbar(bool actionTriggered = false);
+    void setVisible(bool visible);
+
+    // these slots and their corresponding list are only needed for Mac
+    void appendToOpenMenusList();
+    void removeFromOpenMenusList();
 
 private:
     void setupToolBar();
@@ -71,8 +78,11 @@ private:
     QToolButton* constructToolButton(QSize size, QString iconPng, double iconSizeRatio, QString tooltip = "");
     QFrame* constructFrameSeparator();
 
-    ToolbarMenu* constructToolButtonMenu(QToolButton* parentButton);
+    ToolbarMenu* constructToolButtonMenu(QToolButton* parentButton, bool instantPopup = true);
     ToolbarMenuAction* constructSubMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu);
+
+    void closeOpenMenus();  // Mac
+    QList<ToolbarMenu*> openMenus;  // Mac
 
     NodeView* nodeView;
     NodeItem* nodeItem;
@@ -154,9 +164,8 @@ private:
     bool outEventPortInstanceMenuDone;
     bool connectMenuDone;
 
-    QList<NodeItem*> legalNodeItems;
     QString chosenInstanceID;
-
+    QList<NodeItem*> legalNodeItems;
 };
 
 #endif // TOOLBARWIDGET_H

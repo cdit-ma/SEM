@@ -29,6 +29,8 @@
 
 #define MIN_WIDTH 1000
 #define MIN_HEIGHT (480 + SPACER_HEIGHT*3)
+//#define MIN_WIDTH 1280
+//#define MIN_HEIGHT (720 + SPACER_HEIGHT*3)
 
 #define TOOLBAR_BUTTON_WIDTH 46
 #define TOOLBAR_BUTTON_HEIGHT 40
@@ -497,7 +499,7 @@ void MedeaWindow::initialiseGUI()
     minimapLayout->addWidget(minimap);
 
     minimap->setFixedSize(rightPanelWidth + 10, rightPanelWidth/1.6);
-    minimap->setStyleSheet("QGraphicsView{border: 1px solid; border-color: black;}");
+    minimap->setStyleSheet("QGraphicsView{border: 1px solid; border-color: rgb(50,50,50);}");
     minimap->centerView();
 
     // layouts
@@ -3152,7 +3154,7 @@ void MedeaWindow::updateDataTable()
 
     // calculate the required height
     int newHeight = 0;
-    int maxHeight = dataTableBox->height();
+    int maxHeight = dataTableBox->height() - SPACER_HEIGHT;
 
     for (int i = 0; i < tableModel->rowCount(); i++) {
         newHeight += dataTable->rowHeight(i);

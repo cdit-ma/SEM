@@ -5,14 +5,16 @@ Version 18:
         * Added an Import from XME file.
             ** Tested to work on MacOSX and Windows.
         * Moving Entities must be done by dragging the top section of the NodeItem.
-		* All toolbar sub-menus are now filled and shown on mouse hover.
+        * All toolbar sub-menus are now filled and shown on mouse hover.
+        * Added goTo definition/implementation shortcut buttons in the context toolbar.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.
         * Implemented Square NodeItems
-		* Connect menu in the context toolbar now only gets populated when the connect button is pressed.
-		* Reimplemented the toolbar menu and menu action class
-			** Fixed mouse related bugs
+        * Connect menu in the context toolbar now only gets populated when the connect button is pressed.
+        * Reimplemented the toolbar menu and menu action class
+            ** Fixed mouse related bugs
+        * Fixed a number of toolbar and menu bugs present in MACOSX
 
     Todo:
         * Test Ubuntu for local deployment.
@@ -59,8 +61,8 @@ Version 17:
         * Fixed toolbar updateActionsEnabled() and updateSeparators()
         * Cleaned up functions in NodeView that are linked to the toolbar
         * Cleaned up the docks
-		* Reimplemented how/when the toolbar menus are populated - on menu item click instead of when toolbar is shown
-		* Fixed toolbar menu and menu actions bugs related to mouse events
+        * Reimplemented how/when the toolbar menus are populated - on menu item click instead of when toolbar is shown
+        * Fixed toolbar menu and menu actions bugs related to mouse events
 
 Version 16:
     * Implemented showing/hiding of connected HardwareNodes using the context toolbar. It can be used when one or more HardwareClusters are selected.

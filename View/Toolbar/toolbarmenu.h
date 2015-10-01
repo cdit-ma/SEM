@@ -9,7 +9,7 @@ class ToolbarMenu : public QMenu
     Q_OBJECT
 
 public:
-    explicit ToolbarMenu(QWidget* parent = 0, ToolbarMenuAction* info_action = 0);
+    explicit ToolbarMenu(ToolbarWidget* toolbar, ToolbarMenuAction* info_action = 0);
 
     void addAction(ToolbarMenuAction* action);
     void removeAction(ToolbarMenuAction* action, bool clearing = false);
@@ -23,6 +23,9 @@ signals:
 
 private slots:
     void menuTriggered(QAction* action);
+
+protected:
+    void mousePressEvent(QMouseEvent* event);
 
 private:
     void setupInfoAction();

@@ -1,7 +1,7 @@
 #include "aspecttogglewidget.h"
 #include "../medeawindow.h"
 
-#define HEIGHT_OFFSET 1.3
+#define HEIGHT_OFFSET 1.4
 #define SHADOW_OFFSET 3
 
 #define DEFAULT -1

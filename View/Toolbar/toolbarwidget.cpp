@@ -25,6 +25,13 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
 
+    /*
+     * On a Mac, when there are submenus open and you click away, the toolbar hides
+     * but the menus require a second a click before they hide - this fixes it.
+     * However, this also brings the canvas to the top after hiding the toolbar.
+     */
+    //setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Tool);
+
     // these frames, combined with the set attribute and flags, allow
     // the toolbar to have a translucent background and a mock shadow
     shadowFrame = new QFrame(this);
@@ -166,23 +173,24 @@ void ToolbarWidget::addChildNode(ToolbarMenuAction* action)
 void ToolbarWidget::addConnectedNode(ToolbarMenuAction* action)
 {
     ToolbarMenu* menu = qobject_cast<ToolbarMenu*>(QObject::sender());
-    if (menu) {
-        QString kindToConstruct;
-        if (menu == componentImplDefinitionsMenu) {
-            kindToConstruct = "ComponentImpl";
-        } else if (menu == componentInstDefinitionsMenu) {
-            kindToConstruct = "ComponentInstance";
-        } else if (menu == iep_definitionInstanceMenu) {
-            kindToConstruct = "InEventPortDelegate";
-        } else if (menu == oep_definitionInstanceMenu) {
-            kindToConstruct = "OutEventPortDelegate";
-        } else if (menu == blackBoxDefinitionsMenu) {
-            kindToConstruct = "BlackBoxInstance";
-        } else {
-            qWarning() << "ToolbarWidget::addConnectedNode - Action not handled.";
-        }
-        nodeView->constructConnectedNode(nodeItem->getID(), action->getNodeItemID(), kindToConstruct, 1);
+    QString kindToConstruct;
+
+    if (menu == componentImplDefinitionsMenu) {
+        kindToConstruct = "ComponentImpl";
+    } else if (menu == componentInstDefinitionsMenu) {
+        kindToConstruct = "ComponentInstance";
+    } else if (menu == iep_definitionInstanceMenu) {
+        kindToConstruct = "InEventPortDelegate";
+    } else if (menu == oep_definitionInstanceMenu) {
+        kindToConstruct = "OutEventPortDelegate";
+    } else if (menu == blackBoxDefinitionsMenu) {
+        kindToConstruct = "BlackBoxInstance";
+    } else {
+        qWarning() << "ToolbarWidget::addConnectedNode - Action not handled.";
+        return;
     }
+
+    nodeView->constructConnectedNode(nodeItem->getID(), action->getNodeItemID(), kindToConstruct, 1);
 }
 
 
@@ -204,8 +212,20 @@ void ToolbarWidget::connectNodes(ToolbarMenuAction* action)
  */
 void ToolbarWidget::displayConnectedNode(ToolbarMenuAction* action)
 {
-    QString actionKind = action->getActionKind();
-    QWidget* parentWidget = action->parentWidget();
+    QString actionKind = "Goto";
+    QWidget* parentWidget = 0;
+
+    if (!action) {
+        QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
+        if (button == definitionButton) {
+            parentWidget = definitionMenu;
+        } else if (button == implementationButton) {
+            parentWidget = implementationMenu;
+        }
+    } else {
+        actionKind = action->getActionKind();
+        parentWidget = action->parentWidget();
+    }
 
     if (actionKind == "Goto") {
         if (parentWidget == definitionMenu) {
@@ -240,24 +260,20 @@ void ToolbarWidget::constructNewView()
 
 
 /**
- * @brief ToolbarWidget::setVisible
- * @param visible
+ * @brief ToolbarWidget::hideToolbar
+ * This slot is called when either one of the opened menus are triggered or the mouse was pressed outside of them.
+ * If the menu was not triggered and the mouse press happened inside the toolbar, don't hide the toolbar.
+ * @param action
  */
-void ToolbarWidget::setVisible(bool visible)
+void ToolbarWidget::hideToolbar(QAction* action)
 {
-    bool toolbarVisible = visible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible
-                                      || goToButtonsVisible || alterViewButtonsVisible);
-
-    // update the toolbar & frame sizes
-    if (toolbarVisible) {
-        mainFrame->setFixedSize(toolbarLayout->sizeHint());
-        shadowFrame->setFixedSize(toolbarLayout->sizeHint() + QSize(3,3));
-        setFixedSize(shadowFrame->size());
+    if (!action) {
+        QPoint cursorPos = mapFromGlobal(QCursor::pos());
+        if (rect().contains(cursorPos)) {
+            return;
+        }
     }
-
-    mainFrame->setVisible(toolbarVisible);
-    shadowFrame->setVisible(toolbarVisible);
-    QWidget::setVisible(toolbarVisible);
+    hide();
 }
 
 
@@ -271,33 +287,50 @@ void ToolbarWidget::hide()
 
 
 /**
- * @brief ToolbarWidget::hideToolbar
- * This method checks if hiding the menu was triggered by the toolbar.
- * If the event came from outside the toolbar, hide the toolbar and all visible menus.
- * @param actionTriggered
+ * @brief ToolbarWidget::setVisible
+ * @param visible
  */
-void ToolbarWidget::hideToolbar(bool actionTriggered)
+void ToolbarWidget::setVisible(bool visible)
 {
-    QPoint p = mapFromGlobal(QCursor::pos());
-    if (rect().contains(p)) {
-        return;
+    bool toolbarVisible = visible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible
+                                      || goToButtonsVisible || alterViewButtonsVisible);
+
+    // update the toolbar & frame sizes
+    if (toolbarVisible) {
+        mainFrame->setFixedSize(toolbarLayout->sizeHint());
+        shadowFrame->setFixedSize(toolbarLayout->sizeHint() + QSize(3,3));
+        setFixedSize(shadowFrame->size());
+    } else {
+        closeOpenMenus();
     }
-    if (!actionTriggered) {
-        nodeView->toolbarClosed();
-    }
-    hide();
+
+    mainFrame->setVisible(toolbarVisible);
+    shadowFrame->setVisible(toolbarVisible);
+    QWidget::setVisible(toolbarVisible);
 }
 
 
 /**
- * @brief ToolbarWidget::connectMenuOpened
- * This slot is called when the connect button is pressed and the connect menu is opened.
- * This makes sure that the menu is populated.
+ * @brief ToolbarWidget::appendToOpenedMenusList
  */
-void ToolbarWidget::connectMenuOpened()
+void ToolbarWidget::appendToOpenMenusList()
 {
-    if (!connectMenuDone) {
-        setupLegalNodesList();
+    ToolbarMenu* menu = qobject_cast<ToolbarMenu*>(QObject::sender());
+    openMenus.append(menu);
+}
+
+
+/**
+ * @brief ToolbarWidget::removeFromOpenedMenusList
+ */
+void ToolbarWidget::removeFromOpenMenusList()
+{
+    ToolbarMenu* menu = qobject_cast<ToolbarMenu*>(QObject::sender());
+    openMenus.removeAll(menu);
+
+    QPoint cursorPos = mapFromGlobal(QCursor::pos());
+    if (rect().contains(cursorPos)) {
+        closeOpenMenus();
     }
 }
 
@@ -430,6 +463,16 @@ void ToolbarWidget::setupToolBar()
                   "border-color: rgba(170,170,170,250);"
                   "background-color: rgba(255,255,255,255);"
                   "}"
+                  "QToolButton[popupMode=\"1\"] {"
+                  "padding-right: 12px;"
+                  "}"
+                  "QToolButton::menu-button {"
+                  "border-left: 1px solid gray;"
+                  "border-top-right-radius: 10px;"
+                  "border-bottom-right-radius: 10px;"
+                  "padding-right: 4px;"
+                  "width: 10px;"
+                  "}"
                   "QRadioButton {"
                   "padding: 8px 10px 8px 8px;"
                   "}"
@@ -449,8 +492,8 @@ void ToolbarWidget::setupMenus()
     // construct main menus
     addMenu = constructToolButtonMenu(addChildButton);
     connectMenu = constructToolButtonMenu(connectButton);
-    definitionMenu = constructToolButtonMenu(definitionButton);
-    implementationMenu = constructToolButtonMenu(implementationButton);
+    definitionMenu = constructToolButtonMenu(definitionButton, false);
+    implementationMenu = constructToolButtonMenu(implementationButton, false);
     instancesMenu = constructToolButtonMenu(instancesButton);
     displayedChildrenOptionMenu = constructToolButtonMenu(displayedChildrenOptionButton);
 
@@ -516,6 +559,8 @@ void ToolbarWidget::makeConnections()
     connect(connectionsButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(exportSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(importSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(definitionButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(implementationButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(allNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
     connect(connectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
     connect(unconnectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
@@ -527,13 +572,15 @@ void ToolbarWidget::makeConnections()
     connect(connectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
     connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(exportSnippet()));
     connect(importSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ImportSnippet()));
+    connect(definitionButton, SIGNAL(clicked()), this, SLOT(displayConnectedNode()));
+    connect(implementationButton, SIGNAL(clicked()), this, SLOT(displayConnectedNode()));
     connect(allNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(connectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(unconnectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
 
     connect(addMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addChildNode(ToolbarMenuAction*)));
 
-    connect(connectMenu, SIGNAL(aboutToShow()), this, SLOT(connectMenuOpened()));
+    connect(connectMenu, SIGNAL(aboutToShow()), this, SLOT(setupLegalNodesList()));
     connect(connectMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(connectNodes(ToolbarMenuAction*)));
 
     connect(definitionMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(displayConnectedNode(ToolbarMenuAction*)));
@@ -565,41 +612,42 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         return;
     }
 
+    QList<NodeItem*> legalNodes;
+
     // need to clear menus before updating them
     clearMenus();
-
-    QList<NodeItem*> legalNodes;
 
     if (nodeItems.count() == 1) {
 
         nodeItem = nodeItems.at(0);
 
-        if (nodeItem) {
-
-            // these buttons are only available for a single selection
-            popupNewWindow->show();
-            definitionButton->setVisible(showDefinitionToolButton);
-            implementationButton->setVisible(showImplementationToolButton);
-            goToButtonsVisible = showDefinitionToolButton || showImplementationToolButton;
-
-            // check if the selected node item has other node items connected to it (edges)
-            if (nodeItem->getNode()->getEdges(0).count() > 0) {
-                connectionsButton->show();
-            }
-
-            // only show the displayed children option button if the selected item is a HardwareCluster
-            if (nodeItem->getNodeKind() == "HardwareCluster") {
-                hardwareClusterMenuClicked(nodeItem->getHardwareClusterChildrenViewMode());
-                displayedChildrenOptionButton->show();
-            }
-
-            // setup selected item's adoptable nodes menu and sub-menus, and its instances menu
-            setupAdoptableNodesList(nodeView->getAdoptableNodeList(nodeItem->getID()));
-            setupInstancesList(nodeView->getNodeInstances(nodeItem->getID()));
-
-            legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
-            alterViewButtonsVisible = true;
+        if (!nodeItem) {
+            return;
         }
+
+        // these buttons are only available for a single selection
+        popupNewWindow->show();
+        definitionButton->setVisible(showDefinitionToolButton);
+        implementationButton->setVisible(showImplementationToolButton);
+        goToButtonsVisible = showDefinitionToolButton || showImplementationToolButton;
+
+        // check if the selected node item has other node items connected to it (edges)
+        if (nodeItem->getNode()->getEdges(0).count() > 0) {
+            connectionsButton->show();
+        }
+
+        // only show the displayed children option button if the selected item is a HardwareCluster
+        if (nodeItem->getNodeKind() == "HardwareCluster") {
+            hardwareClusterMenuClicked(nodeItem->getHardwareClusterChildrenViewMode());
+            displayedChildrenOptionButton->show();
+        }
+
+        // setup selected item's adoptable nodes menu and sub-menus, and its instances menu
+        setupAdoptableNodesList(nodeView->getAdoptableNodeList(nodeItem->getID()));
+        setupInstancesList(nodeView->getNodeInstances(nodeItem->getID()));
+
+        legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
+        alterViewButtonsVisible = true;
 
     } else {
 
@@ -713,7 +761,7 @@ void ToolbarWidget::clearMenus()
     oep_definitionInstanceMenu->clearMenu();
     blackBoxDefinitionsMenu->clearMenu();
 
-    // this list needs to be cleared too - used to populate the connect menu
+    // this list needs to be cleared as well - used to populate the connect menu
     legalNodeItems.clear();
 }
 
@@ -737,103 +785,6 @@ void ToolbarWidget::resetButtonGroupFlags()
 
     connectMenuDone = false;
     chosenInstanceID = "";
-}
-
-
-/**
- * @brief ToolbarWidget::constructToolButton
- * This constructs a QToolButton with the provided size, icon and tooltip.
- * It adds it to the toolbar's layout and then returns it.
- * @param size - button size
- * @param iconPng - button icon's png filename without the extension
- * @param iconSizeRatio - button icon's size ratio
- * @param tooltip - button tooltip
- * @return
- */
-QToolButton* ToolbarWidget::constructToolButton(QSize size, QString iconPng, double iconSizeRatio, QString tooltip)
-{
-    QToolButton* button = new QToolButton(this);
-    button->setFixedSize(size);
-    button->setIcon(nodeView->getImage("Actions", iconPng));
-    button->setIconSize(size * iconSizeRatio);
-    button->setToolTip(tooltip);
-    toolbarLayout->addWidget(button);
-    return button;
-}
-
-
-/**
- * @brief ToolbarWidget::constructFrameSeparator
- * This constructs a QFrame used as a separator, adds it to the toolbar's layout and then returns it.
- * @return
- */
-QFrame* ToolbarWidget::constructFrameSeparator()
-{
-    QFrame* frame = new QFrame(this);
-    frame->setFrameShape(QFrame::VLine);
-    frame->setPalette(QPalette(Qt::darkGray));
-    toolbarLayout->addWidget(frame);
-    return frame;
-}
-
-
-/**
- * @brief ToolbarWidget::constructToolButtonMenu
- * @param parentButton
- * @return
- */
-ToolbarMenu* ToolbarWidget::constructToolButtonMenu(QToolButton* parentButton)
-{
-    if (parentButton) {
-        ToolbarMenu* menu = new ToolbarMenu(this);
-        connect(menu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
-        parentButton->setPopupMode(QToolButton::InstantPopup);
-        parentButton->setMenu(menu);
-        return menu;
-    }
-    return 0;
-}
-
-
-/**
- * @brief ToolbarWidget::constructSubMenuAction
- * @param nodeItem
- * @param parentMenu
- * @return
- */
-ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu)
-{
-    if (!nodeItem || !parentMenu) {
-        return 0;
-    }
-
-    NodeItem* parentNode = nodeItem->getParentNodeItem();
-
-    // if nodeItem has a parent, check if there is already an action for it in parentMenu
-    // if not, create one and attach a menu to it
-    if (parentNode && parentNode->getNodeKind() != "Model") {
-
-        ToolbarMenuAction* parentAction = parentMenu->getAction(parentNode);
-        ToolbarMenu* parentActionMenu = 0;
-
-        if (parentAction) {
-            parentActionMenu = qobject_cast<ToolbarMenu*>(parentAction->menu());
-        } else {
-            parentAction = new ToolbarMenuAction(parentNode, this);
-            parentActionMenu = new ToolbarMenu(this);
-            parentAction->setMenu(parentActionMenu);
-            parentMenu->addAction(parentAction);
-        }
-
-        // construct and add nodeItem's action to the parent action's menu
-        if (parentActionMenu) {
-            ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, this);
-            parentActionMenu->addAction(action);
-            return action;
-        }
-    }
-
-    return 0;
 }
 
 
@@ -1022,3 +973,120 @@ void ToolbarWidget::setupEventPortInstanceList(QString eventPortKind)
         }
     }
 }
+
+
+/**
+ * @brief ToolbarWidget::constructToolButton
+ * This constructs a QToolButton with the provided size, icon and tooltip.
+ * It adds it to the toolbar's layout and then returns it.
+ * @param size - button size
+ * @param iconPng - button icon's png filename without the extension
+ * @param iconSizeRatio - button icon's size ratio
+ * @param tooltip - button tooltip
+ * @return
+ */
+QToolButton* ToolbarWidget::constructToolButton(QSize size, QString iconPng, double iconSizeRatio, QString tooltip)
+{
+    QToolButton* button = new QToolButton(this);
+    button->setFixedSize(size);
+    button->setIcon(nodeView->getImage("Actions", iconPng));
+    button->setIconSize(size * iconSizeRatio);
+    button->setToolTip(tooltip);
+    toolbarLayout->addWidget(button);
+    return button;
+}
+
+
+/**
+ * @brief ToolbarWidget::constructFrameSeparator
+ * This constructs a QFrame used as a separator, adds it to the toolbar's layout and then returns it.
+ * @return
+ */
+QFrame* ToolbarWidget::constructFrameSeparator()
+{
+    QFrame* frame = new QFrame(this);
+    frame->setFrameShape(QFrame::VLine);
+    frame->setPalette(QPalette(Qt::darkGray));
+    toolbarLayout->addWidget(frame);
+    return frame;
+}
+
+
+/**
+ * @brief ToolbarWidget::constructToolButtonMenu
+ * The connections in here don't need to be applied to all the toolbar menus.
+ * Only the top level menus - the ones directly attached to a QToolButton.
+ * @param parentButton
+ * @return
+ */
+ToolbarMenu* ToolbarWidget::constructToolButtonMenu(QToolButton* parentButton, bool instantPopup)
+{
+    if (parentButton) {
+        ToolbarMenu* menu = new ToolbarMenu(this);
+        connect(menu, SIGNAL(triggered(QAction*)), this, SLOT(hideToolbar(QAction*)));
+        connect(menu, SIGNAL(aboutToHide()), this, SLOT(hideToolbar()));
+        if (instantPopup) {
+            parentButton->setPopupMode(QToolButton::InstantPopup);
+        } else {
+            parentButton->setPopupMode(QToolButton::MenuButtonPopup);
+            parentButton->setFixedWidth(50);
+        }
+        parentButton->setMenu(menu);
+        return menu;
+    }
+    return 0;
+}
+
+
+/**
+ * @brief ToolbarWidget::constructSubMenuAction
+ * @param nodeItem
+ * @param parentMenu
+ * @return
+ */
+ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu)
+{
+    if (!nodeItem || !parentMenu) {
+        return 0;
+    }
+
+    NodeItem* parentNode = nodeItem->getParentNodeItem();
+
+    // if nodeItem has a parent, check if there is already an action for it in parentMenu
+    // if not, create one and attach a menu to it
+    if (parentNode && parentNode->getNodeKind() != "Model") {
+
+        ToolbarMenuAction* parentAction = parentMenu->getAction(parentNode);
+        ToolbarMenu* parentActionMenu = 0;
+
+        if (parentAction) {
+            parentActionMenu = qobject_cast<ToolbarMenu*>(parentAction->menu());
+        } else {
+            parentAction = new ToolbarMenuAction(parentNode, this);
+            parentActionMenu = new ToolbarMenu(this);
+            parentAction->setMenu(parentActionMenu);
+            parentMenu->addAction(parentAction);
+        }
+
+        // construct and add nodeItem's action to the parent action's menu
+        if (parentActionMenu) {
+            ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, this);
+            parentActionMenu->addAction(action);
+            return action;
+        }
+    }
+
+    return 0;
+}
+
+
+/**
+ * @brief ToolbarWidget::closeOpenMenus
+ */
+void ToolbarWidget::closeOpenMenus()
+{
+    foreach (ToolbarMenu* menu, openMenus) {
+        menu->close();
+    }
+}
+
