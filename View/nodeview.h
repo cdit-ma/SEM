@@ -83,7 +83,7 @@ public:
     bool isNodeKindDeployable(QString nodeKind);
 
 
-
+    void aspectGraphicsChanged();
 
 
 protected:
@@ -167,8 +167,9 @@ signals:
 
     void view_ClearHistoryStates();
 
-    // signals for the docks
+    void view_highlightAspectButton(QString aspect = "");
 
+    // signals for the docks
     void view_nodeSelected();
     void view_nodeConstructed(NodeItem* nodeItem);    
     void view_nodeDeleted(QString ID, QString parentID = "");
@@ -255,6 +256,8 @@ public slots:
     void showManagementComponents(bool show);
     void showLocalNode(bool show);
     void toggleZoomAnchor(bool underMouse);
+
+    void setConnectModeFromToolbar(bool on, QList<NodeItem*> legalNodeItems = QList<NodeItem*>());
 
     void setConnectMode(bool on);
     void setRubberBandMode(bool On);
@@ -511,6 +514,11 @@ private:
     VIEW_STATE viewState;
 
     NodeItem* prevItemHighlighted;
+
+    bool connectModeFromToolbarOn;
+    QStringList connectFromIDs;
+    QString connectToID;
+    QList<NodeItem*> connectNodeItems;
 };
 
 #endif // NODEVIEW_H

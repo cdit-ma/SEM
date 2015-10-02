@@ -83,6 +83,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     hidden = false;
 
     highlightFromDock = false;
+    connectHighlightOn = false;
 
     hasDefinition = false;
     isImplOrInstance = false;
@@ -692,6 +693,9 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
                 Pen.setColor(Qt::yellow);
             }
 
+            if (connectHighlightOn) {
+                Brush.setColor(Qt::white);
+            }
 
             painter->setPen(Pen);
             painter->setBrush(Brush);
@@ -1084,6 +1088,17 @@ void NodeItem::addEdgeItem(EdgeItem *line)
 void NodeItem::removeEdgeItem(EdgeItem *line)
 {
     connections.removeAll(line);
+}
+
+
+/**
+ * @brief NodeItem::connectHighlight
+ * @param on
+ */
+void NodeItem::connectHighlight(bool on)
+{
+    connectHighlightOn = on;
+    update();
 }
 
 void NodeItem::setHighlighted(bool high)

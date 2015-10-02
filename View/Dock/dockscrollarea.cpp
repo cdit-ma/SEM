@@ -220,7 +220,12 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
     return dockNodeItems.values();
 }
 
-void DockScrollArea::removeDockNodeItemFromList(DockNodeItem *dockNodeItem)
+
+/**
+ * @brief DockScrollArea::removeDockNodeItemFromList
+ * @param dockNodeItem
+ */
+void DockScrollArea::removeDockNodeItemFromList(DockNodeItem* dockNodeItem)
 {
     dockNodeItems.remove(dockNodeItem->getID());
     dockNodeIDs.removeAll(dockNodeItem->getID());

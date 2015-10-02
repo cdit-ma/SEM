@@ -7,6 +7,10 @@ Version 18:
         * Moving Entities must be done by dragging the top section of the NodeItem.
         * All toolbar sub-menus are now filled and shown on mouse hover.
         * Added goTo definition/implementation shortcut buttons in the context toolbar.
+		* Implemented "click-on" to connect nodes using the connect button in the toolbar.
+			** The connectable node items in the view are highlighted.
+			** This should also work for connecting multiple selection.
+		* Implemented highlight of aspect button when the viewport is completely contained within the corresponding aspect.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.
@@ -15,11 +19,15 @@ Version 18:
         * Reimplemented the toolbar menu and menu action class
             ** Fixed mouse related bugs
         * Fixed a number of toolbar and menu bugs present in MACOSX
+		* Update toolbar connect mode to allow connection of multiple node items.
+		* Implemented FSM for updates on dock items stylesheets.
 
     Todo:
         * Test Ubuntu for local deployment.
         * Test Import from XME on Ubuntu.
         * Make sure threads are killed for local deployment.
+		* Need to switch to using the connect mode view state for the toolbar.
+		* Implement a state-based switching of highlighted states in NodeItem.
 
 Version 17:
     New Features:

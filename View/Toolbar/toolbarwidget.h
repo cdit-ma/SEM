@@ -23,10 +23,6 @@ public:
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
 
-signals:
-    void toolbar_hasFocus();
-    void toolbar_closed();
-
 public slots:
     void updateActionEnabledState(QString actionName, bool enabled);
 
@@ -42,6 +38,7 @@ public slots:
     void setupEventPortInstanceList();
 
     void setInstanceID();
+    void setConnectModeOn();
 
     void updateDisplayedChildren();
     void hardwareClusterMenuClicked(int viewMode);

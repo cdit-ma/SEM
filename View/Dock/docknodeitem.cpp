@@ -6,6 +6,10 @@
 
 #define MAX_LABEL_LENGTH 13
 
+#define DEFAULT 0
+#define HIGHLIGHTED 1
+#define READONLY 2
+
 /**
  * @brief DockNodeItem::DockNodeItem
  * @param _kind
@@ -20,7 +24,8 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
     fileLabel = false;
     expanded = true;
     hidden = false;
-    highlighted = false;
+
+    state = DEFAULT;
 
     if (nodeItem) {
 
@@ -208,12 +213,37 @@ bool DockNodeItem::isExpanded()
     return expanded;
 }
 
+
+/**
+ * @brief DockNodeItem::setReadOnlyState
+ * @param on
+ */
+void DockNodeItem::setReadOnlyState(bool on)
+{
+    if (on) {
+        state = READONLY;
+    } else {
+        switch (state) {
+        case READONLY:
+            state = DEFAULT;
+            break;
+        default:
+            break;
+        }
+    }
+    updateStyleSheet();
+}
+
+
+/**
+ * @brief DockNodeItem::labelChanged
+ * @param label
+ */
 void DockNodeItem::labelChanged(QString label)
 {
     setLabel(label);
     emit dockItem_relabelled(this);
 }
-
 
 
 /**
@@ -345,6 +375,30 @@ void DockNodeItem::updateStyleSheet()
                                  "padding: 2px 0px 2px;"
                                  "border-radius: 5px;"
                                  + textLabelBackground);
+    } else {
+
+        QString backgroundColor = "rgba(0,0,0,0);";
+        QString hoverBorder = "1px solid black;";
+
+        switch (state) {
+        case HIGHLIGHTED:
+            backgroundColor = highlightColor;
+            hoverBorder = "none";
+            break;
+        case READONLY:
+            //backgroundColor = "rgba(200,200,200,0.8)";
+            break;
+        default:
+            break;
+        }
+
+        setStyleSheet("QPushButton{"
+                      "border-radius: 5px;"
+                      "background-color:" + backgroundColor +
+                      "}"
+                      "QPushButton:hover{"
+                      "border:" + hoverBorder +
+                      "}");
     }
 }
 
@@ -422,23 +476,23 @@ void DockNodeItem::childDockItemHidden()
  */
 void DockNodeItem::highlightDockItem(NodeItem *node)
 {
-    QString backgroundColor = "rgba(0,0,0,0);";
-    QString hoverBorder = "1px solid black;";
-
     if (node == getNodeItem()) {
-        if (highlighted) {
-            return;
+        switch (state) {
+        case DEFAULT:
+            state = HIGHLIGHTED;
+            break;
+        default:
+            break;
         }
-        backgroundColor = highlightColor;
-        hoverBorder = "none;";
+    } else {
+        switch (state) {
+        case HIGHLIGHTED:
+            state = DEFAULT;
+            break;
+        default:
+            break;
+        }
     }
-
-    setStyleSheet("QPushButton{"
-                  "border-radius: 5px;"
-                  "background-color:" + backgroundColor +
-                  "}"
-                  "QPushButton:hover{"
-                  "border:" + hoverBorder +
-                  "}");
+    updateStyleSheet();
 }
 

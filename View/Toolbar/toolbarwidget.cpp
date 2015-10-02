@@ -25,13 +25,6 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
 
-    /*
-     * On a Mac, when there are submenus open and you click away, the toolbar hides
-     * but the menus require a second a click before they hide - this fixes it.
-     * However, this also brings the canvas to the top after hiding the toolbar.
-     */
-    //setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Tool);
-
     // these frames, combined with the set attribute and flags, allow
     // the toolbar to have a translucent background and a mock shadow
     shadowFrame = new QFrame(this);
@@ -298,6 +291,8 @@ void ToolbarWidget::setVisible(bool visible)
     if (toolbarVisible) {
         mainFrame->setFixedSize(toolbarLayout->sizeHint());
         shadowFrame->setFixedSize(toolbarLayout->sizeHint() + QSize(3,3));
+        //shadowFrame->setFixedSize(toolbarLayout->sizeHint() + QSize(6,6));
+        //mainFrame->move(3,3);
         setFixedSize(shadowFrame->size());
     } else {
         closeOpenMenus();
@@ -343,6 +338,15 @@ void ToolbarWidget::setInstanceID()
 {
     ToolbarMenuAction* action = qobject_cast<ToolbarMenuAction*>(QObject::sender());
     chosenInstanceID = action->getNodeItemID();
+}
+
+
+/**
+ * @brief ToolbarWidget::setConnectModeOn
+ */
+void ToolbarWidget::setConnectModeOn()
+{
+    nodeView->setConnectModeFromToolbar(true, legalNodeItems);
 }
 
 
@@ -463,14 +467,13 @@ void ToolbarWidget::setupToolBar()
                   "background-color: rgba(255,255,255,255);"
                   "}"
                   "QToolButton[popupMode=\"1\"] {"
-                  "padding-right: 12px;"
+                  "padding-right: 15px;"
                   "}"
                   "QToolButton::menu-button {"
                   "border-left: 1px solid gray;"
                   "border-top-right-radius: 10px;"
                   "border-bottom-right-radius: 10px;"
-                  "padding-right: 4px;"
-                  "width: 10px;"
+                  "width: 15px;"
                   "}"
                   "QRadioButton {"
                   "padding: 8px 10px 8px 8px;"
@@ -479,6 +482,21 @@ void ToolbarWidget::setupToolBar()
                   "color: green;"
                   "}"
                   );
+
+    /*
+     * This is what makes the tool buttons with a split menu button look good on a Mac
+     *
+    "QToolButton[popupMode=\"1\"] {"
+    "padding-right: 12px;"
+    "}"
+    "QToolButton::menu-button {"
+    "border-left: 1px solid gray;"
+    "border-top-right-radius: 10px;"
+    "border-bottom-right-radius: 10px;"
+    "padding-right: 4px;"
+    "width: 10px;"
+    "}"
+    */
 }
 
 
@@ -490,7 +508,7 @@ void ToolbarWidget::setupMenus()
 {
     // construct main menus
     addMenu = constructToolButtonMenu(addChildButton);
-    connectMenu = constructToolButtonMenu(connectButton);
+    connectMenu = constructToolButtonMenu(connectButton, false);
     definitionMenu = constructToolButtonMenu(definitionButton, false);
     implementationMenu = constructToolButtonMenu(implementationButton, false);
     instancesMenu = constructToolButtonMenu(instancesButton);
@@ -551,6 +569,7 @@ void ToolbarWidget::setupMenus()
  */
 void ToolbarWidget::makeConnections()
 {
+    connect(connectButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignVerticallyButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), this, SLOT(hide()));
@@ -564,6 +583,7 @@ void ToolbarWidget::makeConnections()
     connect(connectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
     connect(unconnectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
 
+    connect(connectButton, SIGNAL(clicked()), this, SLOT(setConnectModeOn()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
@@ -1028,7 +1048,7 @@ ToolbarMenu* ToolbarWidget::constructToolButtonMenu(QToolButton* parentButton, b
             parentButton->setPopupMode(QToolButton::InstantPopup);
         } else {
             parentButton->setPopupMode(QToolButton::MenuButtonPopup);
-            parentButton->setFixedWidth(50);
+            parentButton->setFixedWidth(55);
         }
         parentButton->setMenu(menu);
         return menu;

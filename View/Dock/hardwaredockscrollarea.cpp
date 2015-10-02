@@ -74,23 +74,14 @@ void HardwareDockScrollArea::dockNodeItemClicked()
     }
 
     /*
-     * This shouldn't be needed anymore. The updateDock() function should catch the case
-     * where there are multiple selected items and not all of them are deployable, even
-     * if this dock is normally enabled for each one of them on their own.
+     * TODO
      *
-    QList<NodeItem*> selectedNodeItems = getNodeView()->getSelectedNodeItems();
-    foreach (NodeItem* nodeItem, selectedNodeItems) {
-        if (nodeItem && !getNodeView()->isNodeKindDeployable(nodeItem->getNodeKind())) {
+    if (getCurrentNodeItem()) {
+        QString itemKind = getCurrentNodeItem()->getNodeKind();
+        if (!getNodeView()->isNodeKindDeployable(itemKind)) {
+            getNodeView()->highlightNode(dockNodeItem->getID());
             return;
         }
-    }
-    */
-
-    /*
-    if (getCurrentNodeItem() && getCurrentNodeItem()->getNodeKind() == "HardwareCluster"
-            || getCurrentNodeItem()->getNodeKind() == "HardwareDefinitions") {
-        getNodeView()->highlightNode(dockNodeItem->getID());
-        return;
     }
     */
 
@@ -130,6 +121,7 @@ void HardwareDockScrollArea::updateDock()
     }
 
     bool multipleSelection = (selectedItems.count() > 1);
+    //bool readOnlyState = false;
 
     // check if the dock should be disabled
     foreach (NodeItem* item, selectedItems) {
@@ -150,7 +142,19 @@ void HardwareDockScrollArea::updateDock()
                 return;
             }
         }
+        /*
+        if (!getNodeView()->isNodeKindDeployable(itemKind)) {
+            readOnlyState = true;
+        }
+        */
     }
+
+    /*
+    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        //dockItem->setEnabled(!readOnlyState);
+        dockItem->setReadOnlyState(readOnlyState);
+    }
+    */
 
     setDockEnabled(true);
     highlightHardwareConnection(selectedItems);

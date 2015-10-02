@@ -119,6 +119,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     isWindowMaximized = false;
     settingsLoading = false;
     maximizedSettingInitiallyChanged = false;
+    nodeView = 0;
 
     initialiseJenkinsManager();
     initialiseCUTSManager();
@@ -1149,6 +1150,11 @@ void MedeaWindow::makeConnections()
 {
     validateResults.connectToWindow(this);
 
+    connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), definitionsToggle, SLOT(highlightToggleButton(QString)));
+    connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), workloadToggle, SLOT(highlightToggleButton(QString)));
+    connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), assemblyToggle, SLOT(highlightToggleButton(QString)));
+    connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), hardwareToggle, SLOT(highlightToggleButton(QString)));
+
     connect(partsDock, SIGNAL(dock_openDefinitionsDock()), this, SLOT(forceOpenDefinitionsDock()));
     connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
 
@@ -1349,14 +1355,18 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    if(isWindowMaximized != this->isMaximized() && maximizedSettingInitiallyChanged){
+    if(isWindowMaximized != isMaximized() && maximizedSettingInitiallyChanged){
         if(nodeView){
             nodeView->fitToScreen();
         }
         maximizedSettingInitiallyChanged = false;
     }
-    isWindowMaximized = this->isMaximized();    updateWidgetsOnWindowChanged();
 
+    isWindowMaximized = isMaximized();
+    updateWidgetsOnWindowChanged();
+    if (nodeView) {
+        nodeView->aspectGraphicsChanged();
+    }
 }
 
 
@@ -1371,6 +1381,9 @@ void MedeaWindow::changeEvent(QEvent *event)
     QWidget::changeEvent(event);
     if (event->type() == QEvent::WindowStateChange){
         updateWidgetsOnWindowChanged();
+    }
+    if (nodeView) {
+        nodeView->aspectGraphicsChanged();
     }
 }
 

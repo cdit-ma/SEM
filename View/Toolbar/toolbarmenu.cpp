@@ -165,7 +165,8 @@ void ToolbarMenu::menuTriggered(QAction* action)
  */
 void ToolbarMenu::mousePressEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::LeftButton) {
+    Qt::MouseButton mb = event->button();
+    if (mb == Qt::LeftButton || mb == Qt::RightButton) {
         QMenu::mousePressEvent(event);
     }
 }

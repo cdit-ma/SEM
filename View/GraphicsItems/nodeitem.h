@@ -127,6 +127,8 @@ public:
     void addEdgeItem(EdgeItem* line);
     void removeEdgeItem(EdgeItem* line);
 
+    void connectHighlight(bool on);
+
     void setHighlighted(bool high);
     void setCenterPos(QPointF pos);
     QPointF centerPos();
@@ -443,6 +445,7 @@ private:
     bool nodeHardwareLocalHost;
 
     bool highlightFromDock;
+    bool connectHighlightOn;
 };
 
 #endif // NODEITEM_H

@@ -16,6 +16,7 @@ public:
 
     NodeItem* getNodeItem();
     QString getKind();
+    QString getID();
 
     void setLabel(QString newLabel);
     QString getLabel();
@@ -27,12 +28,13 @@ public:
     void removeChildDockItem(DockNodeItem* dockItem);
     QList<DockNodeItem*> getChildrenDockItems();
 
-    QString getID();
     void setHidden(bool hideItem);
     bool isHidden();
 
     bool isFileLabel();
     bool isExpanded();
+
+    void setReadOnlyState(bool on);
 
 signals:
     void dockItem_clicked();
@@ -72,7 +74,8 @@ private:
     bool fileLabel;
     bool expanded;
     bool hidden;
-    bool highlighted;
+
+    int state;
 };
 
 #endif // DOCKNODEITEM_H

@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QMouseEvent>
 #include <QFrame>
+#include <QLabel>
 
 class MedeaWindow;
 
@@ -27,6 +28,7 @@ signals:
 
 public slots:
     void aspectDoubleClicked(AspectToggleWidget* aspect);
+    void highlightToggleButton(QString aspect);
 
 private:
     void setupColor();
@@ -36,6 +38,8 @@ private:
     void click(bool checked, int state);
 
     QString aspectText;
+    QLabel* aspectLabel;
+
     QFrame* shadowFrame;
     QFrame* mainFrame;
 

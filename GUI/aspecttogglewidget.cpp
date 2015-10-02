@@ -156,34 +156,62 @@ void AspectToggleWidget::aspectDoubleClicked(AspectToggleWidget *aspect)
 
 
 /**
+ * @brief AspectToggleWidget::highlightToggleButton
+ * This slot is called by the view when there is more than one aspects displayed and
+ * the displayed aspects has been changed or the view has been scaled/panned.
+ * @param aspect
+ */
+void AspectToggleWidget::highlightToggleButton(QString aspect)
+{
+    if (aspectText == aspect) {
+        aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0);"
+                                   "color: white;"
+                                   "font-weight: bold;");
+                                   //"font-size: 12px;");
+    } else {
+        aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0);"
+                                   "color: black;");
+    }
+}
+
+
+/**
  * @brief AspectToggleWidget::setupColorMap
  * This sets up the colors used for the default and the gradient.
  */
 void AspectToggleWidget::setupColor()
 {
     QString defaultAlpha = "255";
-    QString checkedAlpha = "245";
+    QString checkedAlpha = "250";
 
     if (aspectText == "Definitions") {
-        defaultColor = "rgba(30,130,130," + defaultAlpha + ")";
+        //defaultColor = "rgba(80,180,180," + defaultAlpha + ")";
+        defaultColor = "rgba(55,155,165," + defaultAlpha + ")";
+        //defaultColor = "rgba(30,130,130," + defaultAlpha + ")";
         p1_Color = "rgba(190,240,240," + checkedAlpha + ")";
         p2_Color = "rgba(170,240,240," + checkedAlpha + ")";
         p3_Color = "rgba(120,210,210," + checkedAlpha + ")";
         p4_Color = "rgba(90,190,190," + checkedAlpha + ")";
     } else if (aspectText == "Workload") {
-        defaultColor = "rgba(174,104,46," + defaultAlpha + ")";
+        //defaultColor = "rgba(224,154,96," + defaultAlpha + ")";
+        defaultColor = "rgba(199,129,71," + defaultAlpha + ")";
+        //defaultColor = "rgba(174,104,46," + defaultAlpha + ")";
         p1_Color = "rgba(255,230,206," + checkedAlpha + ")";
         p2_Color = "rgba(255,230,206," + checkedAlpha + ")";
         p3_Color = "rgba(250,185,136," + checkedAlpha + ")";
         p4_Color = "rgba(234,164,106," + checkedAlpha + ")";
     } else if (aspectText == "Assembly") {
-        defaultColor = "rgba(180,80,80," + defaultAlpha + ")";
+        //defaultColor = "rgba(230,130,130," + defaultAlpha + ")";
+        defaultColor = "rgba(205,105,105," + defaultAlpha + ")";
+        //defaultColor = "rgba(180,80,80," + defaultAlpha + ")";
         p1_Color = "rgba(255,210,210," + checkedAlpha + ")";
         p2_Color = "rgba(255,210,210," + checkedAlpha + ")";
         p3_Color = "rgba(250,160,160," + checkedAlpha + ")";
         p4_Color = "rgba(240,140,140," + checkedAlpha + ")";
     } else if (aspectText == "Hardware") {
-        defaultColor = "rgba(40,100,150," + defaultAlpha + ")";
+        //defaultColor = "rgba(90,150,200," + defaultAlpha + ")";
+        defaultColor = "rgba(65,125,175," + defaultAlpha + ")";
+        //defaultColor = "rgba(40,100,150," + defaultAlpha + ")";
         p1_Color = "rgba(200,220,225," + checkedAlpha + ")";
         p2_Color = "rgba(180,200,225," + checkedAlpha + ")";
         p3_Color = "rgba(140,180,220," + checkedAlpha + ")";
@@ -211,7 +239,7 @@ void AspectToggleWidget::setupLayout(double widgetSize)
     QFont font = this->font();
     font.setPointSizeF(9);
 
-    QLabel* aspectLabel = new QLabel(aspectText, this);
+    aspectLabel = new QLabel(aspectText, this);
     aspectLabel->setFont(font);
     aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0);");
 

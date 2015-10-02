@@ -35,6 +35,7 @@
 #define MIN_ZOOM_RATIO 2
 
 #define VIEW_PADDING 1.25
+#define CENTER_ON_RATIO 0.5
 
 
 /**
@@ -136,6 +137,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     if (isMainView()) {
         connect(this, SIGNAL(view_updateMenuActionEnabled(QString,bool)), toolbar, SLOT(updateActionEnabledState(QString,bool)));
     }
+
+    connectModeFromToolbarOn = false;
 
     // initialise the view's center point
     centerPoint = getVisibleRect().center();
@@ -906,6 +909,54 @@ void NodeView::highlightNode(QString nodeID)
 }
 
 
+/**
+ * @brief NodeView::aspectGraphicsChanged
+ * This checks if the current viewport is completely contained within one of the dispalyed aspects.
+ * If it is, highlight the corresponding aspect's toggle button's label.
+ */
+void NodeView::aspectGraphicsChanged()
+{
+    // opening a subview will crash without this check
+    if (isSubView()) {
+        return;
+    }
+
+    // clear any highlight
+    emit view_highlightAspectButton();
+
+    // only check if there is more than one aspects dispalyed
+    if (currentAspects.count() <= 1) {
+        return;
+    }
+
+    QRect viewRect = viewport()->rect();
+    QPointF tl = mapToScene(viewRect.topLeft());
+    QPointF br = mapToScene(viewRect.bottomRight());
+    QRectF viewSceneRect(tl, br);
+
+    QString aspectKind;
+    foreach (QString aspect, currentAspects) {
+        if (aspect == "Definitions") {
+            aspectKind = "Interface";
+        } else if (aspect == "Workload") {
+            aspectKind = "Behaviour";
+        } else {
+            aspectKind = aspect;
+        }
+        aspectKind += "Definitions";
+
+        QList<NodeItem*> aspectItems = getNodeItemsOfKind(aspectKind);
+        if (aspectItems.isEmpty()) {
+            return;
+        }
+        if (aspectItems.at(0)->sceneBoundingRect().contains(viewSceneRect)) {
+            emit view_highlightAspectButton(aspect);
+            return;
+        }
+    }
+}
+
+
 void NodeView::setStateResizing()
 {
     setState(VS_RESIZING);
@@ -1027,8 +1078,6 @@ void NodeView::importSnippet(QString fileName, QString fileData)
 void NodeView::scrollEvent(int delta)
 {
     QRectF viewRect = viewport()->rect();
-
-    //Turn
     QRectF scaledSceneRect(QPointF(0,0), sceneRect().size()*transform().m11());
 
     if (delta > 0) {
@@ -1042,6 +1091,8 @@ void NodeView::scrollEvent(int delta)
             scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
         }
     }
+
+    aspectGraphicsChanged();
 }
 
 
@@ -1160,6 +1211,8 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
             break;
         }
     }
+
+    aspectGraphicsChanged();
 }
 
 
@@ -1363,8 +1416,8 @@ void NodeView::centerOnItem(GraphMLItem* item)
             return;
         }
 
-        // set the centralised height to be 1/4 of the window height
-        centerRect(nodeItem->sceneBoundingRect(), 0, true, 0.25);
+        // set the centralised height to be CENTER_ON_RATIO of the window height
+        centerRect(nodeItem->sceneBoundingRect(), 0, true, CENTER_ON_RATIO);
 
     } else {
         view_displayNotification("Select entity to center on.");
@@ -3116,7 +3169,10 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
             wasPanning = false;
             showToolbar(event->pos());
         }
+
+        aspectGraphicsChanged();
         return;
+
     }else if(viewState == VS_CONNECT || viewState == VS_CONNECTING){
         qCritical() << "HOLA";
         //Check for item.
@@ -3129,6 +3185,15 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         }
         if(event->button() == Qt::LeftButton){
             setState(VS_NONE);
+        }
+
+    } else if (viewState == VS_SELECTED) {
+        if (connectModeFromToolbarOn) {
+            GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
+            if (item && item->isNodeItem()) {
+                connectToID = ((NodeItem*)item)->getID();
+                setConnectModeFromToolbar(false);
+            }
         }
     }
 
@@ -4094,10 +4159,42 @@ void NodeView::toggleZoomAnchor(bool underMouse)
     }
 }
 
+
+/**
+ * @brief NodeView::setConnectModeFromToolbar
+ * @param on
+ * @param legalNodeItems
+ */
+void NodeView::setConnectModeFromToolbar(bool on, QList<NodeItem*> legalNodeItems)
+{
+    if (selectedIDs.isEmpty()) {
+        return;
+    }
+
+    connectModeFromToolbarOn = on;
+
+    if (on) {
+        connectFromIDs = getSelectedNodeIDs();
+        connectNodeItems = legalNodeItems;
+        foreach (NodeItem* nodeItem, connectNodeItems) {
+            nodeItem->connectHighlight(true);
+        }
+    } else {
+        foreach (NodeItem* nodeItem, connectNodeItems) {
+            nodeItem->connectHighlight(false);
+        }
+        constructDestructEdges(connectFromIDs, connectToID);
+        connectNodeItems.clear();
+        connectFromIDs.clear();
+        connectToID = "";
+    }
+}
+
+
 void NodeView::setConnectMode(bool on)
 {
-    if(on){
 
+    if(on){
         NodeItem* srcNode = getSelectedNodeItem();
         if(srcNode){
             foreach(NodeItem* nodeItem, getConnectableNodeItems(srcNode->getID())){
