@@ -21,6 +21,7 @@ Version 18:
         * Fixed a number of toolbar and menu bugs present in MACOSX
 		* Update toolbar connect mode to allow connection of multiple node items.
 		* Implemented FSM for updates on dock items stylesheets.
+		* Finally fixed lack of initial repaint for the data table.
 
     Todo:
         * Test Ubuntu for local deployment.

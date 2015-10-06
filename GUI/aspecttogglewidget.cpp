@@ -258,6 +258,7 @@ void AspectToggleWidget::updateStyleSheet()
     if (CHECKED) {
         mainFrame->move(SHADOW_OFFSET, SHADOW_OFFSET);
         mainFrame->setStyleSheet("border-radius: 8px;"
+                                 //"font-weight: bold;"
                                  "background-color:"
                                  "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 0.5, x3: 0 y3: 1.0,"
                                  "stop: 0 " + p1_Color + ", stop: 0.5 " + p2_Color + ","

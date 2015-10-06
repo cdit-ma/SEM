@@ -334,6 +334,9 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap, double siz
 
     // center the view on rect's original center
     centerViewOn(rectCenter);
+
+    // check if any of the aspect toggle buttons need highlighting
+    aspectGraphicsChanged();
 }
 
 
@@ -925,9 +928,11 @@ void NodeView::aspectGraphicsChanged()
     emit view_highlightAspectButton();
 
     // only check if there is more than one aspects dispalyed
+    /*
     if (currentAspects.count() <= 1) {
         return;
     }
+    */
 
     QRect viewRect = viewport()->rect();
     QPointF tl = mapToScene(viewRect.topLeft());

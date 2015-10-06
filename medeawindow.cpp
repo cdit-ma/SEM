@@ -210,6 +210,7 @@ void MedeaWindow::modelReady()
 {
     //Reset the View.
     resetView();
+
     //Reset the initial settings
     setupInitialSettings();
 
@@ -220,11 +221,13 @@ void MedeaWindow::modelReady()
         importProjects(files);
         loadLaunchedFile = false;
     }
+
     //Make the nodeView visable agian!
     if(nodeView){
         nodeView->setEnabled(true);
         //nodeView->fitToScreen();
     }
+
     //cuts_runGeneration->trigger();
 }
 
@@ -389,6 +392,13 @@ void MedeaWindow::initialiseGUI()
                   "background: rgb(0,204,0);"
                   "}"
 
+                  "QGroupBox {"
+                  "background-color: rgba(0,0,0,0);"
+                  "border: 0px;"
+                  "margin: 0px;"
+                  "padding: 0px;"
+                  "}"
+
                   "QMessageBox{background-color:" + palette().color(QWidget::backgroundRole()).name() + ";}"
                   );
 
@@ -473,6 +483,7 @@ void MedeaWindow::initialiseGUI()
     dataTable->setFixedWidth(rightPanelWidth + 5);
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setFont(guiFont);
+    dataTable->resize(dataTable->width(), 0);
 
     QVBoxLayout *tableLayout = new QVBoxLayout();
     tableLayout->setMargin(0);
@@ -482,12 +493,12 @@ void MedeaWindow::initialiseGUI()
     dataTableBox->setFixedWidth(rightPanelWidth + 10);
     dataTableBox->setContentsMargins(0,0,0,0);
     dataTableBox->setLayout(tableLayout);
-    dataTableBox->setStyleSheet("QGroupBox {"
+    /*dataTableBox->setStyleSheet("QGroupBox {"
                                 "background-color: rgba(0,0,0,0);"
                                 "border: 0px;"
                                 "margin: 0px;"
                                 "padding: 0px;"
-                                "}");
+                                "}");*/
 
     // setup mini map
     QVBoxLayout* minimapLayout = new QVBoxLayout();
@@ -528,7 +539,7 @@ void MedeaWindow::initialiseGUI()
 
     menuTitleBox->setLayout(titleLayout);
     menuTitleBox->setFixedHeight(menuButton->height() + 30);
-    menuTitleBox->setStyleSheet("QGroupBox{ border: none; background-color: rgba(0,0,0,0); }");
+    //menuTitleBox->setStyleSheet("QGroupBox{ border: none; background-color: rgba(0,0,0,0); }");
     menuTitleBox->setMask(QRegion(0, (menuTitleBox->height() - menuButton->height()) / 2,
                                   menuButton->width() + projectName->width(), menuButton->height(),
                                   QRegion::Rectangle));
@@ -1361,12 +1372,12 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
         }
         maximizedSettingInitiallyChanged = false;
     }
-
-    isWindowMaximized = isMaximized();
-    updateWidgetsOnWindowChanged();
     if (nodeView) {
         nodeView->aspectGraphicsChanged();
     }
+
+    isWindowMaximized = isMaximized();
+    updateWidgetsOnWindowChanged();
 }
 
 
@@ -3159,8 +3170,10 @@ void MedeaWindow::updateDataTable()
 
     if (hasData) {
         dataTableBox->setVisible(true);
+        dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents, false);
     } else {
-        dataTableBox->setVisible(false);
+        dataTable->resize(dataTable->width(), 0);
+        dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
         updateWidgetMask(dataTableBox, dataTable);
         return;
     }
