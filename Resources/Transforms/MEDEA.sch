@@ -270,7 +270,15 @@
 	<active pattern="graphml.checks"/>
 	<active pattern="AttributeInstance.checks"/>
   </phase>   
-
+  <phase id="InEventPortDelegate">
+	<active pattern="graphml.checks"/>
+	<active pattern="InEventPortDelegate.checks"/>
+  </phase> 
+  <phase id="OutEventPortDelegate">
+	<active pattern="graphml.checks"/>
+	<active pattern="OutEventPortDelegate.checks"/>
+  </phase>  
+  
   <!-- Global graphml checks -->            
   <pattern id="graphml.checks">
 	<title>Checking Model graphml</title>
@@ -618,16 +626,24 @@
 			role="information">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortInstance Validation Rules</report>
 		<assert test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)" 
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortInstance label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
+			
 		<assert test="count($node/parent::gml:graph/gml:node[gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortInstance label must be unique within parent ComponentInstance</assert>
 		<let name="sourceEventPortID" value="//gml:edge[@target=$node/@id]/@source" />
+		
 	    <assert test="not($sourceEventPortID) or count(//gml:node[@id=$sourceEventPortID]/gml:data[@key=$nodeKindKey][text() = 'InEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) = 0" 
-			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortInstance cannot be a target connection from InEventPortInstance or EventPortDelegate entities</assert> 
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortInstance cannot have a target connection from InEventPortInstance or EventPortDelegate entities</assert> 
+			
 		<let name="targetEventPortID" value="//gml:edge[@source=$node/@id]/@target" />
+		<let name="targetEventPort" value="//gml:node[@id=$targetEventPortID]/gml:data[@key=$nodeKindKey][text() = 'InEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']/.." />
+		
 	    <assert test="$targetEventPortID and count(//gml:node[@id=$targetEventPortID]/gml:data[@key=$nodeKindKey][text() = 'InEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) &gt; 0" 
 			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortInstance should have a source connection to a InEventPortInstance or an EventPortDelegate entity</assert> 
-	</rule>
-  </pattern>
+			
+	    <assert test="$targetEventPort and (count($targetEventPort/gml:data[@key=$nodeTypeKey][text() != $node/gml:data[@key=$nodeTypeKey]/text()]) = 0 )" 
+			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortInstance should have the same type as the connected target entity</assert> 
+	</rule> 
+  </pattern> 
 
   <pattern id="InEventPortInstance.checks">
 	<title>Checking InEventPortInstance entities</title>
@@ -640,16 +656,88 @@
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortInstance label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
 		<assert test="count($node/parent::gml:graph/gml:node[gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"
 			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortInstance label must be unique within parent ComponentInstance</assert>
+			
 		<let name="sourceEventPortID" value="//gml:edge[@target=$node/@id]/@source" />
-	    <assert test="$sourceEventPortID and count(//gml:node[@id=$sourceEventPortID]/gml:data[@key=$nodeKindKey][text() = 'OutEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) &gt; 0" 
+	    <let name="sourceEventPort" value="//gml:node[@id=$sourceEventPortID]/gml:data[@key=$nodeKindKey][text() = 'OutEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']/.." />
+		
+		<assert test="$sourceEventPortID and count(//gml:node[@id=$sourceEventPortID]/gml:data[@key=$nodeKindKey][text() = 'OutEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) &gt; 0" 
 			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortInstance should have a target connection from an OutEventPortInstance or EventPortDelegate entity</assert> 
+		
+		<assert test="$sourceEventPort and (count($sourceEventPort/gml:data[@key=$nodeTypeKey][text() != $node/gml:data[@key=$nodeTypeKey]/text()]) = 0 )" 
+			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortInstance should have the same type as the connected source entity</assert> 	
+		
 		<let name="targetEventPortID" value="//gml:edge[@source=$node/@id]/@target" />
+		
 	    <assert test="not($targetEventPortID) or count(//gml:node[@id=$targetEventPortID]/gml:data[@key=$nodeKindKey][text() = 'OutEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) = 0" 
-			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortInstance cannot be a source connection to a OutEventPortInstance or an EventPortDelegate entity</assert> 
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortInstance cannot have a source connection to a OutEventPortInstance or an EventPortDelegate entity</assert> 
 	</rule>
   </pattern>  
 
-    <pattern id="AttributeInstance.checks">
+  <pattern id="InEventPortDelegate.checks">
+	<title>Checking InEventPortDelegate entities</title>
+	<rule context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='InEventPortDelegate']">
+		<let name="node" value="parent::gml:node" />
+		<let name="label" value="$node/gml:data[@key=$nodeLabelKey]/text()" />
+		<report test="$node"
+			role="information">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortDelegate Validation Rules</report>
+		<assert test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)" 
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortDelegate label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
+		<assert test="count($node/parent::gml:graph/gml:node[gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortDelegate label must be unique within parent ComponentInstance</assert>
+			
+		<let name="sourceEventPortID" value="//gml:edge[@target=$node/@id]/@source" />
+	    <let name="sourceEventPort" value="//gml:node[@id=$sourceEventPortID]/gml:data[@key=$nodeKindKey][text() = 'OutEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']/.." />
+		
+		<assert test="$sourceEventPortID and count(//gml:node[@id=$sourceEventPortID]/gml:data[@key=$nodeKindKey][text() = 'OutEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) &gt; 0" 
+			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortDelegate should have a target connection from an OutEventPortInstance or EventPortDelegate entity</assert> 
+		
+		<assert test="$sourceEventPort and (count($sourceEventPort/gml:data[@key=$nodeTypeKey][text() != $node/gml:data[@key=$nodeTypeKey]/text()]) = 0 )" 
+			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortDelegate should have the same type as the connected source entity</assert> 	
+		
+		<let name="targetEventPortID" value="//gml:edge[@source=$node/@id]/@target" />
+		<let name="targetEventPort" value="//gml:node[@id=$targetEventPortID]/gml:data[@key=$nodeKindKey][text() = 'InEventPortInstance' or text() = 'InEventPortDelegate']/.." />
+		
+	    <assert test="not($targetEventPortID) or count(//gml:node[@id=$targetEventPortID]/gml:data[@key=$nodeKindKey][text() = 'OutEventPortInstance' or text() = 'OutEventPortDelegate']) = 0" 
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortDelegate cannot have a source connection to a OutEventPortInstance or an OutEventPortDelegate entity</assert> 
+			
+		<assert test="$targetEventPort and (count($targetEventPort/gml:data[@key=$nodeTypeKey][text() != $node/gml:data[@key=$nodeTypeKey]/text()]) = 0 )" 
+			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> InEventPortDelegate should have the same type as the connected target entity</assert> 
+	</rule>
+  </pattern>  
+
+  <pattern id="OutEventPortDelegate.checks">
+	<title>Checking OutEventPortDelegate entities</title>
+	<rule context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='OutEventPortDelegate']">
+		<let name="node" value="parent::gml:node" />
+		<let name="label" value="$node/gml:data[@key=$nodeLabelKey]/text()" />
+		<report test="$node"
+			role="information">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortDelegate Validation Rules</report>
+		<assert test="string-length(normalize-space(translate($label,'\/:*?&quot;&gt;&lt;|',''))) = string-length($label)" 
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortDelegate label must not contain \/:*?&quot;&gt;&lt;| or space characters</assert>
+			
+		<assert test="count($node/parent::gml:graph/gml:node[gml:data[@key=$nodeLabelKey]/text() = $label]) = 1"
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortDelegate label must be unique within parent ComponentInstance</assert>
+		<let name="sourceEventPortID" value="//gml:edge[@target=$node/@id]/@source" />
+		<let name="sourceEventPort" value="//gml:node[@id=$sourceEventPortID]/gml:data[@key=$nodeKindKey][text() = 'OutEventPortInstance' or text() = 'OutEventPortDelegate']/.." />
+		
+	    <assert test="not($sourceEventPortID) or count(//gml:node[@id=$sourceEventPortID]/gml:data[@key=$nodeKindKey][text() = 'InEventPortInstance' or text() = 'InEventPortDelegate']) = 0" 
+			role="critical">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortDelegate cannot have a target connection from InEventPortInstance or InEventPortDelegate entities</assert> 
+
+		<assert test="$sourceEventPort and (count($sourceEventPort/gml:data[@key=$nodeTypeKey][text() != $node/gml:data[@key=$nodeTypeKey]/text()]) = 0 )" 
+			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortDelegate should have the same type as the connected source entity</assert> 	
+			
+		<let name="targetEventPortID" value="//gml:edge[@source=$node/@id]/@target" />
+		<let name="targetEventPort" value="//gml:node[@id=$targetEventPortID]/gml:data[@key=$nodeKindKey][text() = 'InEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']/.." />
+		
+	    <assert test="$targetEventPortID and count(//gml:node[@id=$targetEventPortID]/gml:data[@key=$nodeKindKey][text() = 'InEventPortInstance' or text() = 'InEventPortDelegate' or text() = 'OutEventPortDelegate']) &gt; 0" 
+			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortDelegate should have a source connection to a InEventPortInstance or an EventPortDelegate entity</assert> 
+			
+	    <assert test="$targetEventPort and (count($targetEventPort/gml:data[@key=$nodeTypeKey][text() != $node/gml:data[@key=$nodeTypeKey]/text()]) = 0 )" 
+			role="warning">[<value-of select="$node/@id"/>] <value-of select="$label"/> OutEventPortDelegate should have the same type as the connected target entity</assert> 
+	</rule> 
+  </pattern> 
+
+  <pattern id="AttributeInstance.checks">
 	<title>Checking AttributeInstance entities</title>
 	<rule context="gml:node[$selectID='#ALL' or @id=$selectID]/gml:data[@key=$nodeKindKey][text()='AttributeInstance']">
 		<let name="node" value="parent::gml:node" />

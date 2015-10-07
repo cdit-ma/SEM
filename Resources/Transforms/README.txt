@@ -77,11 +77,13 @@ http://saxon.sourceforge.net/
 
 
 Schematron transforms using Xalan-C
-
 >  Xalan -p phase "'#ALL'" -p generate-paths "'false'" -o MEDEA.xsl MEDEA.sch iso_svrl_for_xslt1.xsl
-
 >  Xalan -p phase "'IDL'" -p generate-paths "'false'" -o MEDEA_IDLnode.xsl MEDEA.sch iso_svrl_for_xslt1.xsl
 
 >  Xalan -o report.xml HelloWorld.graphml MEDEA.xsl
-
 >  Xalan -p selectID "'n0::n0::n0'" -o report.xml HelloWorld.graphml MEDEA.xsl
+
+Schematron transforms using Xalan-J
+> java org.apache.xalan.xslt.Process -IN %MEDEA_ROOT%\Resources\Transforms\MEDEA.sch -XSL %MEDEA_ROOT%\Resources\Transforms\iso_svrl_for_xslt1.xsl -PARAM phase "#ALL" -PARAM generate-paths "false" -OUT %MEDEA_ROOT%\Resources\Transforms\MEDEA.xsl
+
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\MEDEA.xsl -OUT report.xml
