@@ -3,6 +3,8 @@
 #include "docknodeitem.h"
 #include <QDebug>
 
+#define HIDE_DISABLED true
+
 /**
  * @brief DockScrollArea::DockScrollArea
  * @param label
@@ -172,7 +174,6 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* item, int insertIndex, bool a
 
         // if the dock already contains the item, do nothing
         if (getDockNodeItem(itemID)) {
-            qCritical() << "AM I HAPPENING";
             return;
         }
 
@@ -238,10 +239,14 @@ void DockScrollArea::removeDockNodeItemFromList(DockNodeItem* dockNodeItem)
  */
 bool DockScrollArea::isDockEnabled()
 {
-    if (getParentButton()) {
-        return getParentButton()->isEnabled();
+    if (HIDE_DISABLED) {
+        if (getParentButton()) {
+            return getParentButton()->isEnabled();
+        }
+        return false;
+    } else {
+        return dockEnabled;
     }
-    return false;
 }
 
 
@@ -251,9 +256,26 @@ bool DockScrollArea::isDockEnabled()
  */
 void DockScrollArea::setDockEnabled(bool enabled)
 {
-    if (getParentButton()) {
-        getParentButton()->setEnabled(enabled);
+    if (HIDE_DISABLED) {
+        if (getParentButton()) {
+            getParentButton()->setEnabled(enabled);
+        }
+    } else {
+        foreach (DockNodeItem* item, getDockNodeItems()) {
+            item->setEnabled(enabled);
+        }
+        dockEnabled = enabled;
     }
+}
+
+
+/**
+ * @brief DockScrollArea::hideDisabledDock
+ * @return
+ */
+bool DockScrollArea::hideDisabledDock()
+{
+   return HIDE_DISABLED;
 }
 
 bool DockScrollArea::isDockOpen()

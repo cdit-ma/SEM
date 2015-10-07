@@ -24,9 +24,11 @@ void PartsDockScrollArea::updateDock()
     // this will enable/disable the dock depending on whether there's a selected item
     DockScrollArea::updateDock();
 
+    bool hideItems = false;
+
     // if the dock is disabled, there is no need to update
     if (!isDockEnabled()) {
-        return;
+        hideItems = true;
     }
 
     QStringList kindsToShow = getAdoptableNodeListFromView();
@@ -34,6 +36,18 @@ void PartsDockScrollArea::updateDock()
     // if there are no adoptable node kinds, disable the dock
     if (kindsToShow.isEmpty()) {
         setDockEnabled(false);
+        hideItems = true;
+    }
+
+    // when disabling this dock, if HIDE_DISABLED is turned off,
+    // instead of completely hiding this dock and disabling its
+    // parent button, keep it visible but hide all of its dock items
+    if (hideItems && !hideDisabledDock()) {
+        foreach (QString kind, displayedItems) {
+            DockNodeItem* dockNodeItem = getDockNodeItem(kind);
+            dockNodeItem->hide();
+        }
+        displayedItems.clear();
         return;
     }
 

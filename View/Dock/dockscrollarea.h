@@ -32,10 +32,11 @@ public:
 
     void removeDockNodeItemFromList(DockNodeItem* dockNodeItem);
 
+    bool isDockOpen();
     bool isDockEnabled();
     void setDockEnabled(bool enabled);
 
-    bool isDockOpen();
+    bool hideDisabledDock();
 
     DockToggleButton* getParentButton();
     NodeItem* getCurrentNodeItem();
@@ -87,6 +88,8 @@ private:
     QHash<QString, DockNodeItem*> dockNodeItems;
     QStringList dockNodeIDs;
     QStringList notAllowedKinds;
+
+    bool dockEnabled;
 
 };
 

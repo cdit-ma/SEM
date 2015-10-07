@@ -884,10 +884,12 @@ void MedeaWindow::setupSearchTools()
     searchOptionButton->setIconSize(searchButton->size()*0.7);
     searchOptionButton->setCheckable(true);
 
-    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight-3);
-    searchBar->setStyleSheet("QLineEdit{background-color: rgb(230,230,230);} QLineEdit:focus{border: 2px solid; border-color:blue;background-color: rgb(250,250,250)}");
-
     searchBar->setPlaceholderText(searchBarDefaultText);
+    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight - 3);
+    //searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight); // Mac
+    searchBar->setStyleSheet("QLineEdit{ background-color: rgb(230,230,230); }"
+                             //"QLineEdit:focus{ border: 2px solid rgb(0,100,200); background-color: rgb(250,250,250) }");
+                             "QLineEdit:focus{border: 1px solid; border-color:blue;background-color: rgb(250,250,250)}");
 
     //searchSuggestions->setViewMode(QListView::ListMode);
     //searchSuggestions->setVisible(false);
