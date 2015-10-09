@@ -493,25 +493,31 @@ void MedeaWindow::initialiseGUI()
     dataTableBox->setFixedWidth(rightPanelWidth + 10);
     dataTableBox->setContentsMargins(0,0,0,0);
     dataTableBox->setLayout(tableLayout);
-    /*dataTableBox->setStyleSheet("QGroupBox {"
-                                "background-color: rgba(0,0,0,0);"
-                                "border: 0px;"
-                                "margin: 0px;"
-                                "padding: 0px;"
-                                "}");*/
 
-    // setup mini map
-    QVBoxLayout* minimapLayout = new QVBoxLayout();
+    // setup minimap
+    QLabel* minimapLabel = new QLabel("Minimap", this);
+    minimapLabel->setFont(guiFont);
+    minimapLabel->setAlignment(Qt::AlignCenter);
+    minimapLabel->setFixedSize(rightPanelWidth + 10, 20);
+    minimapLabel->setStyleSheet("background-color: rgb(210,210,210);"
+                                "border: 1px solid rgb(50,50,50);"
+                                "border-bottom: none;"
+                                //"font-weight: bold;"
+                                "font-size: 12px;");
+
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
 
     minimap->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     minimap->setVerticalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
     minimap->setInteractive(false);
+
+    QVBoxLayout* minimapLayout = new QVBoxLayout();
+    minimapLayout->addWidget(minimapLabel);
     minimapLayout->addWidget(minimap);
 
     minimap->setFixedSize(rightPanelWidth + 10, rightPanelWidth/1.6);
-    minimap->setStyleSheet("QGraphicsView{border: 1px solid; border-color: rgb(50,50,50);}");
+    minimap->setStyleSheet("QGraphicsView{border: 1px solid rgb(50,50,50);}");
     minimap->centerView();
 
     // layouts

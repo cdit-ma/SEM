@@ -19,7 +19,7 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
 {
     isPanning = false;
     setMouseTracking(true);
-    setupLayout();
+    //setupLayout();
 }
 
 void NodeViewMinimap::centerView()
@@ -39,16 +39,12 @@ void NodeViewMinimap::setupLayout()
 
 
 
-    QLabel* label = new QLabel("Minimap");
+    QLabel* label = new QLabel("Minimap:");
 
-    //label->setStyleSheet("color:#3C3C3C; font-size:10px; font-weight: bold; background-color: rgb(210,210,210);border-bottom: 1px solid;border-color: black;padding-bottom: 1px;");
-    label->setStyleSheet("color:#3C3C3C; background-color: rgb(210,210,210);border-bottom: 1px solid;border-color: rgb(50,50,50); padding: 3px;");
+    label->setStyleSheet("color:#3C3C3C; font-size:10px; font-weight: bold; background-color: rgb(210,210,210);border-bottom: 1px solid;border-color: black;padding-bottom: 1px;");
     label->setAlignment(Qt::AlignCenter);
 
-    // set all gui widget fonts to this
-    QFont font("Verdana");
-    font.setPointSizeF(10);
-    label->setFont(font);
+
 
     layout->addWidget(label);
     layout->addStretch();
