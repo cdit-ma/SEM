@@ -26,8 +26,10 @@ public slots:
     void nodeConstructed(NodeItem* nodeItem);
 
 private:
-    void hideImplementedComponents();
+    void showDockItemsOfKind(QString kind = "");
     void showAllComponents();
+    void hideImplementedComponents();
+    void hideBlackBoxes();
 
     QStringList definitions_notAllowedKinds;
     QHash<QString, QVBoxLayout*> fileLayoutItems;

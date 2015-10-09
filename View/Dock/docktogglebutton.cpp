@@ -7,7 +7,6 @@
 #include <QPainterPath>
 #include <QBrush>
 
-
 #define DEFAULT 0
 #define DISABLED 1
 #define SELECTED 2
@@ -45,26 +44,33 @@ DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *
     setText(label);
     setFixedSize(width + 10, height + 10);
 
+    QVBoxLayout* vLayout = new QVBoxLayout();
+    QLabel* imageLabel = new QLabel(this);
+
+    QSize pixmapSize = size() * 0.6;
+    QSize labelSize = size();
+
     QPixmap pixmap;
     if (label == "P") {
         pixmap = QPixmap::fromImage(QImage(":/Actions/Parts.png"));
     } else if (label == "H") {
         pixmap = QPixmap::fromImage(QImage(":/Items/HardwareNode.png"));
     } else if (label == "D") {
-        pixmap = QPixmap::fromImage(QImage(":/Items/Component.png"));
+        pixmap = QPixmap::fromImage(QImage(":/Actions/Definition.png"));
+        pixmapSize /= 1.5;
     }
 
-    QVBoxLayout* vLayout = new QVBoxLayout();
-    QLabel* imageLabel = new QLabel(this);
-    QPixmap scaledPixmap = pixmap.scaled(this->size()*0.6, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    pixmap = pixmap.scaled(pixmapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-    imageLabel->setStyleSheet("padding: 3px 0px 8.5px 6.5px;");
-    imageLabel->setFixedSize(this->size());
-    imageLabel->setPixmap(scaledPixmap);
+    imageLabel->setFixedSize(labelSize);
+    imageLabel->setPixmap(pixmap);
+    imageLabel->setAlignment(Qt::AlignCenter);
 
     vLayout->setMargin(0);
     vLayout->addWidget(imageLabel);
+
     setLayout(vLayout);
+    setStyleSheet("padding: 0px 5px 5px 0px;");
 
     // make connections
     connect(this, SIGNAL(pressed()), this, SLOT(on_buttonPressed()));

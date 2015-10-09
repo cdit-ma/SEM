@@ -20,6 +20,7 @@ public slots:
     void updateDock();
 
 private:    
+    QStringList kindsRequiringDefinition;
     QStringList displayedItems;
 
 };
