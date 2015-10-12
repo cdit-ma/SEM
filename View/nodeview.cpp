@@ -1919,8 +1919,13 @@ void NodeView::showToolbar(QPoint position)
         return;
     }
 
-    // only show the toolbar if there is at least one node item selected
-    if (viewState == VS_SELECTED && selectedIDs.count() > 0) {
+    // if the connect mode is on, turn it off first before showing the toolbar
+    if (connectModeFromToolbarOn) {
+        setConnectModeFromToolbar(false);
+    }
+
+    // only show the toolbar if there is at least one grapml item selected
+    if (viewState == VS_SELECTED) {
 
         QList<NodeItem*> selectedNodeItems;
         QList<EdgeItem*> selectedEdgeItems;
@@ -3196,9 +3201,12 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         if (connectModeFromToolbarOn) {
             GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
             if (item && item->isNodeItem()) {
-                connectToID = ((NodeItem*)item)->getID();
-                setConnectModeFromToolbar(false);
+                NodeItem* nodeItem = (NodeItem*) item;
+                if (nodeItem->isConnectHighlighted()) {
+                    connectToID = ((NodeItem*)item)->getID();
+                }
             }
+            setConnectModeFromToolbar(false);
         }
     }
 

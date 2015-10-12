@@ -186,36 +186,40 @@ void AspectToggleWidget::setupColor()
 
     if (aspectText == "Definitions") {
         //defaultColor = "rgba(80,180,180," + defaultAlpha + ")";
-        defaultColor = "rgba(55,155,165," + defaultAlpha + ")";
-        //defaultColor = "rgba(30,130,130," + defaultAlpha + ")";
+        //defaultColor = "rgba(55,155,165," + defaultAlpha + ")";
+        defaultColor = "rgba(30,130,130," + defaultAlpha + ")";
         p1_Color = "rgba(190,240,240," + checkedAlpha + ")";
         p2_Color = "rgba(170,240,240," + checkedAlpha + ")";
         p3_Color = "rgba(120,210,210," + checkedAlpha + ")";
-        p4_Color = "rgba(90,190,190," + checkedAlpha + ")";
+        //p4_Color = "rgba(90,190,190," + checkedAlpha + ")";
+        p4_Color = "rgba(70,170,170," + checkedAlpha + ")";
     } else if (aspectText == "Workload") {
         //defaultColor = "rgba(224,154,96," + defaultAlpha + ")";
-        defaultColor = "rgba(199,129,71," + defaultAlpha + ")";
-        //defaultColor = "rgba(174,104,46," + defaultAlpha + ")";
+        //defaultColor = "rgba(199,129,71," + defaultAlpha + ")";
+        defaultColor = "rgba(174,104,46," + defaultAlpha + ")";
         p1_Color = "rgba(255,230,206," + checkedAlpha + ")";
         p2_Color = "rgba(255,230,206," + checkedAlpha + ")";
         p3_Color = "rgba(250,185,136," + checkedAlpha + ")";
-        p4_Color = "rgba(234,164,106," + checkedAlpha + ")";
+        //p4_Color = "rgba(234,164,106," + checkedAlpha + ")";
+        p4_Color = "rgba(214,144,86," + checkedAlpha + ")";
     } else if (aspectText == "Assembly") {
         //defaultColor = "rgba(230,130,130," + defaultAlpha + ")";
-        defaultColor = "rgba(205,105,105," + defaultAlpha + ")";
-        //defaultColor = "rgba(180,80,80," + defaultAlpha + ")";
+        //defaultColor = "rgba(205,105,105," + defaultAlpha + ")";
+        defaultColor = "rgba(180,80,80," + defaultAlpha + ")";
         p1_Color = "rgba(255,210,210," + checkedAlpha + ")";
         p2_Color = "rgba(255,210,210," + checkedAlpha + ")";
         p3_Color = "rgba(250,160,160," + checkedAlpha + ")";
-        p4_Color = "rgba(240,140,140," + checkedAlpha + ")";
+        //p4_Color = "rgba(240,140,140," + checkedAlpha + ")";
+        p4_Color = "rgba(220,120,120," + checkedAlpha + ")";
     } else if (aspectText == "Hardware") {
         //defaultColor = "rgba(90,150,200," + defaultAlpha + ")";
-        defaultColor = "rgba(65,125,175," + defaultAlpha + ")";
-        //defaultColor = "rgba(40,100,150," + defaultAlpha + ")";
+        //defaultColor = "rgba(65,125,175," + defaultAlpha + ")";
+        defaultColor = "rgba(40,100,150," + defaultAlpha + ")";
         p1_Color = "rgba(200,220,225," + checkedAlpha + ")";
         p2_Color = "rgba(180,200,225," + checkedAlpha + ")";
         p3_Color = "rgba(140,180,220," + checkedAlpha + ")";
-        p4_Color = "rgba(100,160,210," + checkedAlpha + ")";
+        //p4_Color = "rgba(100,160,210," + checkedAlpha + ")";
+        p4_Color = "rgba(80,140,190," + checkedAlpha + ")";
     }
 }
 

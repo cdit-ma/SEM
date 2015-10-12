@@ -1101,6 +1101,16 @@ void NodeItem::connectHighlight(bool on)
     update();
 }
 
+
+/**
+ * @brief NodeItem::isConnectHighlighted
+ * @return
+ */
+bool NodeItem::isConnectHighlighted()
+{
+   return connectHighlightOn;
+}
+
 void NodeItem::setHighlighted(bool high)
 {
     if(high != isHighlighted){

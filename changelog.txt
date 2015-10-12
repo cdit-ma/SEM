@@ -25,6 +25,7 @@ Version 18:
 		* Implemented FSM for updates on dock items stylesheets.
 		* Finally fixed lack of initial repaint for the data table.
 		* Moved the minimap label outside of the minimap.
+		* Added check for the connectMode from the toolbar to see if the selected destination item is actually highlighted.
 
     Todo:
         * Test Ubuntu for local deployment.

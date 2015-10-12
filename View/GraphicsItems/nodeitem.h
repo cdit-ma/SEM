@@ -128,6 +128,7 @@ public:
     void removeEdgeItem(EdgeItem* line);
 
     void connectHighlight(bool on);
+    bool isConnectHighlighted();
 
     void setHighlighted(bool high);
     void setCenterPos(QPointF pos);

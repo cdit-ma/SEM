@@ -5,6 +5,7 @@
 #include <QDebug>
 
 #define MAX_LABEL_LENGTH 13
+#define ICON_RATIO 0.9
 
 #define DEFAULT 0
 #define HIGHLIGHTED 1
@@ -277,17 +278,16 @@ void DockNodeItem::setupLayout()
 
         QPixmap pixMap;
         NodeView* nodeView = parentDock->getNodeView();
-        if(parentDock && nodeView){
-            if(kind != "HardwareNode"){
-
+        if (parentDock && nodeView) {
+            if (kind != "HardwareNode") {
                 pixMap = nodeView->getImage("Items", kind);
             }
-            if(nodeItem && kind.startsWith("Hardware")){
-                if (kind == "HardwareNode"){
+            if (nodeItem && kind.startsWith("Hardware")) {
+                if (kind == "HardwareNode") {
                     QString imagePath;
-                    if(nodeItem->getNode() && nodeItem->getNode()->getDataValue("localhost") == "true"){
+                    if (nodeItem->getNode() && nodeItem->getNode()->getDataValue("localhost") == "true") {
                         imagePath = "Localhost";
-                    }else{
+                    } else {
                         QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
                         QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
                         imagePath = hardwareOS + "_" + hardwareArch;
@@ -303,7 +303,10 @@ void DockNodeItem::setupLayout()
         if (pixMap.isNull()) {
             qWarning() << "DockNodeItem::setupLayout - Image is null";
         }
-        QPixmap scaledPixmap =  pixMap.scaled(width(), height()-textLabel->height(), Qt::KeepAspectRatio,Qt::SmoothTransformation);
+        QPixmap scaledPixmap =  pixMap.scaled(width()*ICON_RATIO,
+                                              (height()-textLabel->height())*ICON_RATIO,
+                                              Qt::KeepAspectRatio,
+                                              Qt::SmoothTransformation);
 
         imageLabel = new QLabel(this);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);

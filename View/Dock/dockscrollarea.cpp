@@ -398,7 +398,7 @@ void DockScrollArea::setupLayout()
                             "}");
 
     layout = new QVBoxLayout(this);
-    layout->setSpacing(5);
+    layout->setSpacing(10);
     layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     layout->setSizeConstraint(QLayout::SetMinimumSize);
     groupBox->setLayout(layout);
