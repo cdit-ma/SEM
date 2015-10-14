@@ -829,7 +829,54 @@
 				<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
 			</xsl:call-template>
 		</xsl:when>
-
+		
+		<xsl:when test="$W/gml:data[@key=$transformNodeKindKey]/text() = 'WhileLoop'">
+			<!-- should only have one condition, only process first found -->
+			<xsl:variable name="loopConditionNode" select="$W/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Condition']/.." />
+			<xsl:variable name="loopCondition" select="$loopConditionNode[1]/gml:data[@key=$transformNodeValueKey]/text()" />
+			<!-- While_Condition_Begin -->
+			<xsl:value-of select="'while ('" />
+			<!-- Precondition -->
+			<xsl:choose>
+			<xsl:when test="$loopCondition and not($loopCondition = '')">
+				<xsl:value-of select="$loopCondition" />
+			</xsl:when>
+			<xsl:otherwise> <!-- assume this defaults to true -->
+				<xsl:value-of select="' true '" />
+			</xsl:otherwise>
+			</xsl:choose>
+			<!-- While_Condition_End -->
+			<xsl:value-of select="')'" />
+			<!-- While_Begin -->
+			<xsl:value-of select="'&#xA;{&#xA;'" />
+			<!-- follow connection from Condition to next node -->
+			<xsl:variable name="nextInBranch" select="$N/descendant::*/gml:node[@id=$E[@source=$loopConditionNode/@id]/@target]" />
+			<xsl:if test="$nextInBranch"> 
+				<!-- recurse -->
+				<xsl:call-template name="Execution_Visitor">
+					<xsl:with-param name="S" select="$S"/>
+					<xsl:with-param name="T" select="$T"/>
+					<xsl:with-param name="E" select="$E"/>
+					<xsl:with-param name="N" select="$N"/>
+					<xsl:with-param name="W" select="$nextInBranch"/>
+					<xsl:with-param name="O" select="1"/>
+					<xsl:with-param name="B" select="concat($B,',',$O)"/> <!-- push order of branch on stack -->
+					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
+					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
+					<xsl:with-param name="transformNodeOperationKey"  select="$transformNodeOperationKey" />
+					<xsl:with-param name="transformNodeComplexityKey" select="$transformNodeComplexityKey"/>
+					<xsl:with-param name="transformNodeComplexityParametersKey" select="$transformNodeComplexityParametersKey"/>
+					<xsl:with-param name="transformNodeParametersKey" select="$transformNodeParametersKey"/>
+					<xsl:with-param name="transformNodeActionOnKey"  select="$transformNodeActionOnKey" />
+					<xsl:with-param name="transformNodeSortOrderKey"  select="$transformNodeSortOrderKey" />
+					<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
+					<xsl:with-param name="transformNodeCodeKey"  select="$transformNodeCodeKey" />
+					<xsl:with-param name="transformNodeTypeKey"  select="$transformNodeTypeKey" />
+				</xsl:call-template>
+			</xsl:if>
+			<!-- While_End handled in Termination } -->
+ 		</xsl:when>
+		
 		<xsl:when test="$W/gml:data[@key=$transformNodeKindKey]/text() = 'BranchState'">
 			<xsl:variable name="conditions" select="$W/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Condition']/.." />
 			<!-- Process Condition nodes in sorted order -->
@@ -963,7 +1010,8 @@
 		<!-- keep track of branch order for each behaviour case -->
 		<xsl:variable name="nextO">
 			<xsl:choose>
-			<xsl:when test="$W/gml:data[@key=$transformNodeKindKey]/text() = 'BranchState'">
+			<xsl:when test="$W/gml:data[@key=$transformNodeKindKey]/text() = 'BranchState' or 
+							$W/gml:data[@key=$transformNodeKindKey]/text() = 'WhileLoop'">
 				<xsl:variable name="conditions" select="$W/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Condition']/.." />
 				<xsl:value-of select="count($conditions) + 1"/>
 			</xsl:when>
@@ -984,7 +1032,8 @@
 
 		<xsl:variable name="nextB">
 			<xsl:choose>
-			<xsl:when test="$W/gml:data[@key=$transformNodeKindKey]/text() = 'BranchState'">
+			<xsl:when test="$W/gml:data[@key=$transformNodeKindKey]/text() = 'BranchState' or 
+							$W/gml:data[@key=$transformNodeKindKey]/text() = 'WhileLoop'">
 				<xsl:value-of select="concat($B,',',$O)"/>
 			</xsl:when>
 			<xsl:when test="($W/gml:data[@key=$transformNodeKindKey]/text() = 'Termination') and ($toOrder = $O)">

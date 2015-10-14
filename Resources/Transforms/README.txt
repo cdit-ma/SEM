@@ -44,7 +44,7 @@ CLASSPATH=%CLASSPATH%;C:\MEDEA\Resources\Binaries\xalan.jar;C:\MEDEA\Resources\B
 
 If the Windows environment is set, use the org.apache.xalan.xslt.Process with java as follows;
 > java org.apache.xalan.xslt.Process -in HelloWorld.xme -xsl %MEDEA_ROOT%\Resources\Transforms\picml2graphml.xsl -out HelloWorld.graphml
-> java org.apache.xalan.xslt.Process -in HelloWorld.graphml -xsl yEdAdd.xsl -out HelloWorldyEd.graphml
+> java org.apache.xalan.xslt.Process -in HelloWorld.graphml -xsl %MEDEA_ROOT%\Resources\Transforms\yEdAdd.xsl -out HelloWorldyEd.graphml
 
 For localhost deployment with no Hardware node defined in the model;
 Use the following command line transforms for HelloWorld SEM 
