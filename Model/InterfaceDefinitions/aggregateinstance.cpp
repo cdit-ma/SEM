@@ -5,63 +5,69 @@
 
 AggregateInstance::AggregateInstance():Node(Node::NT_DEFINSTANCE)
 {
-    connectKinds << "AggregateInstance" << "Aggregate";
 }
 
 AggregateInstance::~AggregateInstance()
 {
 }
 
-QStringList AggregateInstance::getConnectableKinds()
-{
-    return connectKinds;
-}
-
 bool AggregateInstance::canConnect(Node* attachableObject)
 {
-    if(!connectKinds.contains(attachableObject->getNodeKind())){
-        return false;
-    }
-
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(attachableObject);
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
 
+    if (!aggregate && !aggregateInstance){
+#ifdef DEBUG_MODE
+        qWarning() << "AggregateInstance can only connect to an Aggregate.";
+#endif
+        return false;
+    }
     if(getDefinition() && aggregate){
 #ifdef DEBUG_MODE
         qWarning() << "AggregateInstance can only connect to one Aggregate.";
 #endif
         return false;
     }
-
-    if(getDefinition() && aggregateInstance){
+    if(aggregateInstance && getDefinition()){
 #ifdef DEBUG_MODE
         qWarning() << "AggregateInstance can only connect to an AggregateInstance which has a definition.";
 #endif
         return false;
     }
 
-
-    Node* srcParent = getParentNode();
+    Node* srcParent = this;
     while(srcParent){
-        QString parentKind = srcParent->getNodeKind();
-        if(parentKind.contains("Aggregate")){
+        if(srcParent->getNodeKind() == "AggregateInstance"){
             srcParent = srcParent->getParentNode();
         }else{
             break;
         }
     }
 
-    Node* dstParent = attachableObject->getParentNode();
+    Node* dstParent = attachableObject;
     while(dstParent){
-        QString parentKind = dstParent->getNodeKind();
-        if(parentKind.contains("Aggregate")){
+        if(dstParent->getNodeKind() == "AggregateInstance"){
             dstParent = dstParent->getParentNode();
         }else{
             break;
         }
     }
 
-    if(!(srcParent->isImpl() || srcParent->isInstance()) && !srcParent->isDefinition()){
+    //If both Aggregate and AggregateInstance are in the same parent container (IDL)
+    if(srcParent->getParentNode() == dstParent->getParentNode()){
+        //Check if they are indirectly connected already (Aka check for cycles of AggregateINstances.
+        if(attachableObject->isIndirectlyConnected(srcParent)){
+            qCritical() << "AggregateInstance is already connected in directly to Node";
+            return false;
+        }
+    }else{
+        //
+
+    }
+/*
+
+
+    if(!(topMostParent->isImpl() || topMostParent->isInstance()) && !topMostParent->isDefinition()){
         //Check for ownership in the same file, for circular checks
         if(!this->getParentNode()->isImpl()){
             if(aggregate){
@@ -80,19 +86,17 @@ bool AggregateInstance::canConnect(Node* attachableObject)
             }
 
         }
-        //Check for connection.
-        if(isIndirectlyConnected(attachableObject)){
-#ifdef DEBUG_MODE
-            qWarning() << "AggregateInstance is already connected in directly to Node";
-#endif
-            return false;
-        }
 
     }
 
 
+    //Check for connection.
 
 
+
+
+
+*/
 
     return Node::canConnect(attachableObject);
 }

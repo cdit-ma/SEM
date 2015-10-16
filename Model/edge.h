@@ -10,8 +10,11 @@ class Node;
 class Edge: public GraphML{
     Q_OBJECT
 public:
+    //Enum for Node Types
+    enum EDGE_TYPE {ET_NORMAL, ET_MATCHINGKINDS, ET_AGGREGATE, ET_DEPLOYMENT, ET_ASSEMBLY, ET_COMPONENT, ET_DELEGATE, ET_TERMINATION};
+
     //Constructor
-    Edge(Node* source, Node* destination, QString name="");
+    Edge(Node* source, Node* destination);
     ~Edge();
 
     //Get the source graphml object of this Edge
@@ -20,13 +23,8 @@ public:
     //Get the destination graphml object of this Edge
     Node* getDestination();
 
-    Node* getContainingGraph();
-
     //Return the graphml representation of this
     QString toGraphML(qint32 indentationLevel=0);
-
-
-    QVector<GraphMLKey *> getKeys();
 
     bool isInstanceToInstanceLink();
     bool isInstanceLink();
@@ -38,6 +36,8 @@ public:
     bool isTerminationLink();
     bool isNormalLink();
 
+    bool isAssemblyLevelLink();
+
 
     bool isDelegateLink();
     bool contains(Node *item);
@@ -45,10 +45,11 @@ public:
 
 
 private:
+    EDGE_TYPE getType();
+    EDGE_TYPE type;
     Node* source;
     Node* destination;
 
-    static int _Eid;
 };
 
 #endif // EDGE_H

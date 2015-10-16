@@ -1,6 +1,8 @@
 #include "process.h"
 
-Process::Process():BehaviourNode(true, false, false){}
+Process::Process():BehaviourNode(false, false, false){
+    setUnconnectable(false);
+}
 
 Process::~Process(){}
 

@@ -1,11 +1,14 @@
 Version 18:
     New Features:
-        * Enabled While Loop
-        * Added a async <data> to all InEventPort Nodes (Only works for TAO Asynchronous behvaiour)
-        * Added an Import from XME file.
+        * Enabled WhileLoop entity
+        * Added an async <data> to all InEventPort Nodes (Only works for TAO ASynchronous behaviour)
+        * Added an "Import from XME" menu option
             ** Tested to work on MacOSX and Windows.
-        * Moving Entities must be done by dragging the top section of the NodeItem.
-        * All toolbar sub-menus are now filled and shown on mouse hover.
+        * Moving Entities now must be done by dragging the top section of the NodeItem.
+        * Implemented a check for settings.ini read-only flag.
+        * Rubberband selection now handles Edges.
+        * Implemented visual connection mechanism.
+		* All toolbar sub-menus are now filled and shown on mouse hover.
         * Added goTo definition/implementation shortcut buttons in the context toolbar.
 		* Implemented "click-on" to connect nodes using the connect button in the toolbar.
 			** The connectable node items in the view are highlighted.
@@ -17,7 +20,12 @@ Version 18:
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.
         * Implemented Square NodeItems
-        * Connect menu in the context toolbar now only gets populated when the connect button is pressed.
+        * Improved performance on import
+        * Improved update mechanism for Edges.
+        * Improved rendering performance for large scale deployments.
+        * Migrated to integers for ID's instead of strings.
+        * Refactored NodeItem sizes
+		* Connect menu in the context toolbar now only gets populated when the connect button is pressed.
         * Reimplemented the toolbar menu and menu action class
             ** Fixed mouse related bugs
         * Fixed a number of toolbar and menu bugs present in MACOSX

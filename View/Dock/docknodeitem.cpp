@@ -32,7 +32,7 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
 
         this->kind = nodeItem->getNodeKind();
         label = nodeItem->getNodeLabel();
-        ID = nodeItem->getID();
+        strID = QString::number(nodeItem->getID());
 
         if (nodeItem->getNode()) {
             GraphMLData* label = nodeItem->getNode()->getData("label");
@@ -51,7 +51,7 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
         //Must be a parts Dock!
         this->kind = kind;
         label = kind;
-        ID = kind;
+        strID = kind;
     }
 
     setupLayout();
@@ -165,7 +165,7 @@ QList<DockNodeItem *> DockNodeItem::getChildrenDockItems()
  */
 QString DockNodeItem::getID()
 {
-    return ID;
+    return strID;
 }
 
 

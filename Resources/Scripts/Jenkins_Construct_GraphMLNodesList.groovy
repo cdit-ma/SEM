@@ -19,8 +19,15 @@ println('\t\t<data key="3">HardwareDefinitions</data>');
 println('\t\t<graph edgedefault="directed" id="' + ID_COUNTER + 'G">');
 println('\t\t\t<node id="' + (ID_COUNTER++) + '">');
 println('\t\t\t\t<data key="1">HardwareCluster</data>');
-SERVER_NAME = InetAddress.getLocalHost().getHostName();
-IP = InetAddress.getByName(SERVER_NAME)
+
+try{
+    SERVER_NAME = InetAddress.getLocalHost().getHostName();
+    IP = InetAddress.getByName(SERVER_NAME)
+}catch(Exception e){
+  SERVER_NAME = "UNKNOWN";
+  IP = "UNKNOWN";
+}
+
 println('\t\t\t\t<data key="3">' + SERVER_NAME + ' Jenkins Nodes</data>');
 println('\t\t\t\t<data key="4">Hardware Nodes owned by ' + SERVER_NAME + ' @ ' + IP + '</data>');
 println('\t\t\t\t<graph edgedefault="directed" id="' + ID_COUNTER + 'G">');

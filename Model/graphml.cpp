@@ -71,11 +71,22 @@ QString GraphML::getName() const
     return this->name;
 }
 
-QString GraphML::getID()
+int GraphML::getID() const
 {
-    return QString::number(Uid);
+    return Uid;
 }
 
+QList<GraphMLKey *> GraphML::getKeys(int depth)
+{
+    QList<GraphMLKey *> keys;
+    foreach(GraphMLData* data, attachedData){
+        GraphMLKey* key = data->getKey();
+        if(!keys.contains(key)){
+            keys.append(key);
+        }
+    }
+    return keys;
+}
 
 void GraphML::updateDataValue(QString keyName, QString value)
 {

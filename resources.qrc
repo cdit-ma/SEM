@@ -62,6 +62,7 @@
         <file alias="MedeaIcon.ico">Resources/Images/MedeaIcon.ico</file>
         <file alias="Qt.ico">Resources/Images/Qt.ico</file>
         <file alias="GME.ico">Resources/Images/GME.ico</file>
+        <file>Resources/Fonts/OpenSans-Regular.ttf</file>
     </qresource>
     <qresource prefix="/Actions">
         <file alias="Add.png">Resources/Images/Actions/Add.png</file>
@@ -167,5 +168,7 @@
         <file alias="Keyboard.png">Resources/Images/Actions/Keyboard.png</file>
         <file alias="Global.png">Resources/Images/Actions/Global.png</file>
         <file alias="Mouse.png">Resources/Images/Actions/Mouse.png</file>
+        <file alias="Contract.png">Resources/Images/Actions/Contract.png</file>
+        <file alias="Expand.png">Resources/Images/Actions/Expand.png</file>
     </qresource>
 </RCC>

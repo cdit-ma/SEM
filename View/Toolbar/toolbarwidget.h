@@ -38,7 +38,6 @@ public slots:
     void setupEventPortInstanceList();
 
     void setInstanceID();
-    void setConnectModeOn();
 
     void updateDisplayedChildren();
     void hardwareClusterMenuClicked(int viewMode);
@@ -161,7 +160,7 @@ private:
     bool outEventPortInstanceMenuDone;
     bool connectMenuDone;
 
-    QString chosenInstanceID;
+    int chosenInstanceID;
     QList<NodeItem*> legalNodeItems;
 };
 

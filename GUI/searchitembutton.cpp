@@ -38,7 +38,7 @@ void SearchItemButton::connectToWindow(QMainWindow* window)
     MedeaWindow* medea = dynamic_cast<MedeaWindow*>(window);
     if (medea) {
         connect(this, SIGNAL(clicked()), medea, SLOT(searchItemClicked()));
-        connect(this, SIGNAL(searchItem_centerOnItem(QString)), medea, SLOT(on_searchResultItem_clicked(QString)));
+        connect(this, SIGNAL(searchItem_centerOnItem(int)), medea, SLOT(on_searchResultItem_clicked(int)));
         connect(medea, SIGNAL(window_searchItemClicked(SearchItemButton*)), this, SLOT(itemClicked(SearchItemButton*)));
     }
 }

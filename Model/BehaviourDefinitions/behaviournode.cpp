@@ -9,6 +9,8 @@ BehaviourNode::BehaviourNode(bool isStart, bool isEnd, bool restrictDepth, Node:
     this->_isStart = isStart;
     this->_isEnd = isEnd;
     this->_restrictDepth = restrictDepth;
+    _isUnconnectable = false;
+
 }
 
 bool BehaviourNode::isStart()
@@ -19,6 +21,16 @@ bool BehaviourNode::isStart()
 bool BehaviourNode::isEnd()
 {
     return _isEnd;
+}
+
+bool BehaviourNode::isUnconnectable()
+{
+    return _isUnconnectable;
+}
+
+void BehaviourNode::setUnconnectable(bool unconnectable)
+{
+    this->_isUnconnectable = unconnectable;
 }
 
 bool BehaviourNode::canConnect(Node *attachableObject)

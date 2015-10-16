@@ -23,10 +23,19 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(paren
 {
     //Setup Settings.
     settings = new QSettings(applicationPath + "/settings.ini", QSettings::IniFormat);
+    settingFileWriteable = settings->isWritable();
     settingsLoaded = false;
     setMinimumWidth(SETTINGS_WIDTH);
     setMinimumHeight(SETTINGS_HEIGHT);
-    setWindowTitle("Application Settings");
+
+    QString title = "Application Settings";
+    if(!settingFileWriteable){
+        title += " [READ-ONLY]";
+    }
+
+    setWindowTitle(title);
+
+
 
     setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
     this->setWindowIcon(QIcon(":/Actions/Settings.png"));
@@ -244,6 +253,14 @@ void AppSettings::setupLayout()
     QVBoxLayout *vLayout = new QVBoxLayout();
 
     int longestFont = 0;
+
+    if(!settingFileWriteable){
+        QLabel* label = new QLabel("settings.ini file is read-only! Settings changed won't persist!");
+        label->setStyleSheet("font-style:italic; color:red; font-weight:bold;");
+        label->setAlignment(Qt::AlignCenter);
+        vLayout->addWidget(label);
+    }
+
     //For each group in Settings.ini
     foreach(QString group, settings->childGroups()){
         //Open Group
@@ -332,6 +349,11 @@ void AppSettings::setupLayout()
 
 
     applyButton = new QPushButton("Apply");
+    if(settingFileWriteable){
+        applyButton->setToolTip("Updates settings.ini file.");
+    }else{
+        applyButton->setToolTip("Updates local setting for this apps lifecycle.");
+    }
 
     QPushButton* cancelButton = new QPushButton("Cancel");
 

@@ -4,13 +4,8 @@
 #include "node.h"
 #include <QDebug>
 
-int Edge::_Eid = 0;
-
-
-Edge::Edge(Node *s, Node *d, QString name):GraphML(GraphML::EDGE, name)
+Edge::Edge(Node *s, Node *d):GraphML(GraphML::EDGE)
 {
-    //setID(QString("e%1").arg(this->_Eid++));
-
     //Set the instance Variables
     source = s;
     destination = d;
@@ -18,15 +13,17 @@ Edge::Edge(Node *s, Node *d, QString name):GraphML(GraphML::EDGE, name)
     //Attach the Edge to its source/Destination
     source->addEdge(this);
     destination->addEdge(this);
+
+
+    type = getType();
 }
 
 Edge::~Edge()
 {
-    //emit destructGUI(this, this->getID(), source->getID(), destination->getID());
-
     if(destination){
         destination->removeEdge(this);
     }
+
     if(source){
         source->removeEdge(this);
     }
@@ -34,37 +31,20 @@ Edge::~Edge()
 
 Node *Edge::getSource()
 {
-    return this->source;
+    return source;
 }
 
 Node *Edge::getDestination()
 {
-    return this->destination;
-
+    return destination;
 }
-
-Node *Edge::getContainingGraph()
-{
-    Node* source = this->getSource();
-    Node* currentLookup = this->getDestination();
-
-    while(currentLookup != 0){
-        if(currentLookup->isAncestorOf(source)){
-            return currentLookup;
-        }else{
-            currentLookup = currentLookup->getParentNode();
-        }
-    }
-    return 0;
-
-};
 
 QString Edge::toGraphML(qint32 indentationLevel)
 {
     QString tabSpace;
     tabSpace.fill('\t', indentationLevel);
 
-    QString returnable = tabSpace + QString("<edge id=\"%1\" source=\"%2\" target =\"%3\"").arg(this->getID(),this->getSource()->getID(),this->getDestination()->getID());
+    QString returnable = tabSpace + QString("<edge id=\"%1\" source=\"%2\" target =\"%3\"").arg(QString::number(getID()), QString::number(getSource()->getID()), QString::number(getDestination()->getID()));
 
     if(attachedData.size() > 0){
         returnable += ">\n";
@@ -79,28 +59,17 @@ QString Edge::toGraphML(qint32 indentationLevel)
     return returnable;
 }
 
-QVector<GraphMLKey *> Edge::getKeys()
-{
-    QVector<GraphMLKey *> keys;
-    foreach(GraphMLData* data, attachedData){
-        GraphMLKey* key = data->getKey();
-        if(!keys.contains(key)){
-            keys.append(key);
-        }
-    }
-    return keys;
-}
+
 
 bool Edge::isInstanceToInstanceLink()
 {
-    return (source->isInstance() && source->getDefinition() == destination && source->getDataValue("kind") == destination->getDataValue("kind"));
+    return (source->isInstance() && source->getDefinition() == destination && type == ET_MATCHINGKINDS);
 
 }
 
 bool Edge::isInstanceLink()
 {
     return (source->isInstance() && source->getDefinition() == destination);
-    //return (destination->isInstance() && destination->getDefinition() == source);
 }
 
 bool Edge::isImplLink()
@@ -110,57 +79,27 @@ bool Edge::isImplLink()
 
 bool Edge::isAggregateLink()
 {
-    if(source->isDefinition()){
-        if(source->getDataValue("kind").endsWith("EventPort") && destination->getDataValue("kind") == "Aggregate"){
-            return true;
-        }
-    }
-    return false;
+    return type == ET_AGGREGATE;
 }
 
 bool Edge::isDeploymentLink()
 {
-    if(source->getDataValue("kind").endsWith("ComponentInstance") && destination->getDataValue("kind").startsWith("Hardware")){
-        return true;
-    }
-
-    if(source->getDataValue("kind").endsWith("ComponentAssembly") && destination->getDataValue("kind").startsWith("Hardware")){
-        return true;
-    }
-
-    if(source->getDataValue("kind").endsWith("ManagementComponent") && destination->getDataValue("kind").startsWith("Hardware")){
-        return true;
-    }
-
-    if(source->getDataValue("kind").endsWith("BlackBoxInstance") && destination->getDataValue("kind").startsWith("Hardware")){
-        return true;
-    }
-
-    return false;
+    return type == ET_DEPLOYMENT;
 }
 
 bool Edge::isAssemblyLink()
 {
-    if(source->getDataValue("kind") == "OutEventPortDelegate" && destination->getDataValue("kind") == "InEventPortDelegate"){
-        return true;
-    }
-    return false;
+    return type == ET_ASSEMBLY;
 }
 
 bool Edge::isComponentLink()
 {
-    if(source->getDataValue("kind") == "OutEventPortInstance" && destination->getDataValue("kind") == "InEventPortInstance"){
-        return true;
-    }
-    return false;
+    return type == ET_COMPONENT;
 }
 
 bool Edge::isTerminationLink()
 {
-    if(source->getNodeKind() == "BranchState" && destination->getNodeKind() == "Termination"){
-        return true;
-    }
-    return false;
+    return type == ET_TERMINATION;
 }
 
 bool Edge::isNormalLink()
@@ -168,19 +107,16 @@ bool Edge::isNormalLink()
     return !(isInstanceLink() || isImplLink() || isDelegateLink() ||  isAggregateLink());
 }
 
+bool Edge::isAssemblyLevelLink()
+{
+    return isDeploymentLink() || isAssemblyLink() || isComponentLink() || isDelegateLink();
+}
+
 bool Edge::isDelegateLink()
 {
-    if(source->getDataValue("kind").endsWith("EventPortInstance") && destination->getDataValue("kind").endsWith("EventPortDelegate")){
-        return true;
-    }
-
-    if(destination->getDataValue("kind").endsWith("EventPortInstance") && source->getDataValue("kind").endsWith("EventPortDelegate")){
-        return true;
-    }
-
-    return false;
-
+    return type == ET_DELEGATE;
 }
+
 
 
 
@@ -192,4 +128,50 @@ bool Edge::contains(Node *item)
 QString Edge::toString()
 {
     return QString("Edge[%1]: [" + this->getSource()->toString() +"] <-> [" + this->getDestination()->toString() + "]").arg(this->getID());
+}
+
+Edge::EDGE_TYPE Edge::getType()
+{
+    QString srcKind = source->getNodeKind();
+    QString dstKind = destination->getNodeKind();
+
+    if(dstKind.startsWith("Hardware")){
+        if(srcKind == "ComponentInstance" || srcKind == "ComponentAssembly" || srcKind == "ManagementComponent" || srcKind == "BlackBoxInstance"){
+            return ET_DEPLOYMENT;
+        }
+    }
+    if(dstKind == "Aggregate"){
+        if(srcKind.endsWith("EventPort")){
+            return ET_AGGREGATE;
+        }
+    }
+    if(dstKind.endsWith("Delegate")){
+        if(srcKind.endsWith("Delegate")){
+            return ET_ASSEMBLY;
+        }
+    }
+    if(dstKind == "InEventPortInstance"){
+        if(srcKind == "OutEventPortInstance"){
+            return ET_COMPONENT;
+        }
+    }
+    if(dstKind == "Termination"){
+        if(srcKind == "BranchState"){
+            return ET_TERMINATION;
+        }
+    }
+    if(dstKind.endsWith("EventPortInstance")){
+        if(srcKind.endsWith("EventPortDelegate")){
+            return ET_DELEGATE;
+        }
+    }
+    if(dstKind.endsWith("EventPortDelegate")){
+        if(srcKind.endsWith("EventPortInstance")){
+            return ET_DELEGATE;
+        }
+    }
+    if(srcKind == dstKind){
+        return ET_MATCHINGKINDS;
+    }
+    return ET_NORMAL;
 }

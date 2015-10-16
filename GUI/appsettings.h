@@ -45,6 +45,7 @@ private:
     QHash<QString, QString> keyToGroupMap;
     //QList<KeyEditWidget*> settingsWidgets;
     bool settingsLoaded;
+    bool settingFileWriteable;
 
     QPushButton* applyButton;
     QHash<QString, KeyEditWidget*> settingsWidgetsHash;

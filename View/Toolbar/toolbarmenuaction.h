@@ -16,7 +16,7 @@ public:
                                QString displayedText = "", QString iconPath = ":/Items/");
 
     NodeItem* getNodeItem();
-    QString getNodeItemID();
+    int getNodeItemID();
     QString getActionKind();
     bool isDeletable();
 

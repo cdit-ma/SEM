@@ -21,7 +21,7 @@ public:
     void setupItemsTable(QStringList items);
 
 signals:
-    void searchItem_centerOnItem(QString id);
+    void searchItem_centerOnItem(int ID);
     void revalidate_Model();
 
 private slots:

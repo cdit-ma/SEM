@@ -36,6 +36,11 @@ QList<int> Node::getTreeIndex()
     return treeIndex;
 }
 
+QString Node::getTreeIndexString()
+{
+    return treeIndexStr;
+}
+
 Node::~Node()
 {
     if(parentNode){
@@ -130,6 +135,7 @@ int Node::getIndirectConnectCount(QString nodeKind)
 void Node::setTop()
 {
     this->treeIndex.append(0);
+    this->treeIndexStr = "0,";
 }
 
 QString Node::toString()
@@ -144,7 +150,7 @@ QString Node::toString()
     if(labelData){
         label = labelData->getValue();
     }
-    return QString("[%1]%2 - %3").arg(getID(), kind, label);
+    return QString("[%1]%2 - %3").arg(QString::number(getID()), kind, label);
 }
 
 Node *Node::getParentNode()
@@ -364,6 +370,8 @@ bool Node::canConnect(Node *node)
     return true;
 }
 
+
+
 Edge* Node::getConnectingEdge(Node *node)
 {
     foreach(Edge* edge, edges){
@@ -376,22 +384,36 @@ Edge* Node::getConnectingEdge(Node *node)
 
 QList<Node *> Node::getAllConnectedNodes(QList<Node *> connectedNodes)
 {
+
+    QList<Node*> currentNodes = getChildren();
+
+
     foreach(Edge* edge, getEdges()){
-        Node* nodeEnd = edge->getSource();
-        if(nodeEnd == this){
-            nodeEnd = edge->getDestination();
+
+        Node* src = edge->getSource();
+        Node* dst = edge->getDestination();
+
+        if(!currentNodes.contains(src)){
+            currentNodes << src;
+        }
+        if(!currentNodes.contains(dst)){
+            currentNodes << dst;
         }
 
-        if(!connectedNodes.contains(nodeEnd)){
-            connectedNodes.append(nodeEnd);
-            foreach(Node* cNode, nodeEnd->getAllConnectedNodes(connectedNodes)){
-                if(!connectedNodes.contains(cNode)){
-                    connectedNodes.append(cNode);
+
+        if(edge->isInstanceLink()){
+            Node* definition = dst->getDefinition();
+            while(definition){
+                if(!currentNodes.contains(definition)){
+                    currentNodes << definition;
                 }
+
+                definition = definition->getDefinition();
             }
         }
     }
-    return connectedNodes;
+
+    return currentNodes;
 }
 
 bool Node::isConnected(Node *node)
@@ -452,7 +474,7 @@ QString Node::toGraphML(qint32 indentationLevel)
     }
 
     if(childrenCount() > 0){
-        returnable += QString(tabSpace + "\t<graph id =\"g%1\">\n").arg(this->getID());
+        returnable += QString(tabSpace + "\t<graph id =\"g%1\">\n").arg(getID());
     }
 
     foreach(Node* child, getChildren(0)){
@@ -562,6 +584,8 @@ void Node::removeEdge(Edge *edge)
 void Node::setParentNode(Node *parent, int index)
 {
     this->treeIndex = parent->getTreeIndex();
+    this->treeIndexStr = parent->getTreeIndexString();
+    this->treeIndexStr += QString::number(index) + ",";
     this->treeIndex.append(index);
     parentNode = parent;
 }

@@ -90,7 +90,12 @@ void HardwareDockScrollArea::dockNodeItemClicked()
      * If all nodes in selection are already connected to dockNodeID, disconnect them.
      * If some nodes in selection aren't connected to dockNodeID, disconnect their deployment edge, and connect to docknodeID.
      */
-    getNodeView()->constructDestructEdges(getNodeView()->getSelectedNodeIDs(), dockNodeItem->getID());
+
+    int dockId = dockNodeItem->getID().toInt();
+
+
+
+    getNodeView()->constructDestructEdges(getNodeView()->getSelectedNodeIDs(), dockId);
 }
 
 
@@ -100,7 +105,6 @@ void HardwareDockScrollArea::dockNodeItemClicked()
 void HardwareDockScrollArea::dockClosed()
 {
     // clear anything that needs clearing here
-    getNodeView()->highlightNode();
 }
 
 
@@ -111,8 +115,6 @@ void HardwareDockScrollArea::dockClosed()
  */
 void HardwareDockScrollArea::updateDock()
 {    
-    // clear previous dock highlighted item
-    getNodeView()->highlightNode();
 
     QList<NodeItem*> selectedItems = getNodeView()->getSelectedNodeItems();
     if (selectedItems.isEmpty()) {

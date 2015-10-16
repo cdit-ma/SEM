@@ -40,7 +40,7 @@ public:
 
     DockToggleButton* getParentButton();
     NodeItem* getCurrentNodeItem();
-    QString getCurrentNodeID();
+    int getCurrentNodeID();
 
     QString getLabel();
     QVBoxLayout* getLayout();
@@ -59,8 +59,8 @@ public slots:
 
     void clearSelected();
 
-    virtual void nodeDeleted(QString nodeID, QString parentID);
-    void edgeDeleted(QString srcID, QString dstID);
+    virtual void nodeDeleted(int nodeID, int parentID);
+    void edgeDeleted(int srcID, int dstID);
 
     void updateCurrentNodeItem();
 
@@ -78,7 +78,7 @@ private:
     DockToggleButton *parentButton;
 
     NodeItem* currentNodeItem;
-    QString currentNodeItemID;
+    int currentNodeItemID;
 
     QVBoxLayout* mainLayout;
     QVBoxLayout* layout;

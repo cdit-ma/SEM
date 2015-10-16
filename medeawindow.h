@@ -139,8 +139,8 @@ private slots:
     void on_actionExit_triggered();
     void on_actionSearch_triggered();
 
-    void on_searchResultItem_clicked(QString ID);
-    void on_validationItem_clicked(QString ID);
+    void on_searchResultItem_clicked(int ID);
+    void on_validationItem_clicked(int ID);
 
     void writeExportedProject(QString data);
     void writeExportedSnippet(QString parentName, QString snippetXMLData);

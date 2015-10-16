@@ -3,6 +3,7 @@
 
 #include "../Controller/controller.h"
 #include "GraphicsItems/nodeitem.h"
+
 #include "Dock/dockscrollarea.h"
 
 #include <QGraphicsView>
@@ -42,11 +43,11 @@ public:
 
     //Get the Selected Node.
     Node* getSelectedNode();
-    QString getSelectedNodeID();
+    int getSelectedNodeID();
     NodeItem* getSelectedNodeItem();
 
     QList<NodeItem*> getSelectedNodeItems();
-    QStringList getSelectedNodeIDs();
+    QList<int> getSelectedNodeIDs();
 
     void setParentNodeView(NodeView *n);
     void removeSubView(NodeView* subView);
@@ -69,14 +70,14 @@ public:
 
 
     QPixmap getImage(QString alias, QString imageName);
-    NodeItem* getImplementation(QString ID);
-    QList<NodeItem*> getInstances(QString ID);
-    NodeItem* getDefinition(QString ID);
-    QString getDefinitionID(QString ID);
-	QString getImplementationID(QString ID);
+    NodeItem* getImplementation(int ID);
+    QList<NodeItem*> getInstances(int ID);
+    NodeItem* getDefinition(int ID);
+    int getDefinitionID(int ID);
+    int getImplementationID(int ID);
 
-    NodeItem* getAggregate(QString ID);
-    NodeItem* getDeployedNode(QString ID);
+    NodeItem* getAggregate(int ID);
+    NodeItem* getDeployedNode(int ID);
 
     bool isSubView();
     bool isTerminating();
@@ -106,6 +107,7 @@ protected:
 private:
     void sortSelection();
 private slots:
+    void view_AspectToggled(int ID);
     void hardwareClusterMenuClicked(int viewMode);
 
     void actionFinished();
@@ -130,20 +132,20 @@ signals:
     void view_ImportProjects(QStringList data);
 
     void view_ExportedSnippet(QString parentName, QString snippetXMLData);
-    void view_ExportSnippet(QStringList selection);
-    void view_ImportedSnippet(QStringList selection, QString fileName, QString fileData);
+    void view_ExportSnippet(QList<int> selection);
+    void view_ImportedSnippet(QList<int> selection, QString fileName, QString fileData);
     void view_ImportSnippet(QString nodeKind);
 
 
-    void view_Copy(QStringList IDs);
-    void view_Cut(QStringList IDs);
-    void view_Paste(QString ID, QString xmlData);
-    void view_Delete(QStringList IDs);
-    void view_Replicate(QStringList IDs);
+    void view_Copy(QList<int> IDs);
+    void view_Cut(QList<int> IDs);
+    void view_Paste(int ID, QString xmlData);
+    void view_Delete(QList<int> IDs);
+    void view_Replicate(QList<int> IDs);
     void view_Undo();
     void view_Redo();
 
-    void view_SetGraphMLData(QString, QString, QString);
+    void view_SetGraphMLData(int, QString, QString);
     void view_ConstructGraphMLData(GraphML*, QString);
     void view_DestructGraphMLData(GraphML*, QString);
 
@@ -158,12 +160,12 @@ signals:
 
     //SIGNALS for the Controller
     void view_TriggerAction(QString action);
-    void view_ConstructNode(QString parentID, QString nodeKind, QPointF position);
-    void view_ConstructEdge(QString srcID, QString dstID);
-    void view_DestructEdge(QString srcID, QString dstID);
-    void view_ConstructConnectedNode(QString parentID, QString relativeID, QString nodeKind, QPointF position);
+    void view_ConstructNode(int parentID, QString nodeKind, QPointF position);
+    void view_ConstructEdge(int srcID, int dstID, bool reverseOkay = false);
+    void view_DestructEdge(int srcID, int dstID);
+    void view_ConstructConnectedNode(int parentID, int relativeID, QString nodeKind, QPointF position);
 
-    void view_constructDestructEdges(QStringList srcIDs, QString dstID);
+    void view_constructDestructEdges(QList<int> srcIDs, int dstID);
 
     void view_ClearHistoryStates();
 
@@ -172,9 +174,9 @@ signals:
     // signals for the docks
     void view_nodeSelected();
     void view_nodeConstructed(NodeItem* nodeItem);    
-    void view_nodeDeleted(QString ID, QString parentID = "");
+    void view_nodeDeleted(int ID, int parentID = -1);
     void view_edgeConstructed();
-    void view_edgeDeleted(QString srcID, QString dstID);
+    void view_edgeDeleted(int srcID, int dstID);
 
     // signals for MEDEA menu
     void view_updateMenuActionEnabled(QString action, bool enable);
@@ -189,7 +191,6 @@ signals:
     void view_QuestionAnswered(bool answer);
 
 public slots:
-
     void setStateResizing();
     void setStateMove();
     void setStateMoving();
@@ -197,7 +198,7 @@ public slots:
     void setStateSelected();
     void request_ImportSnippet();
     void hardwareDockOpened(bool opened);
-    void showQuestion(MESSAGE_TYPE type, QString title, QString message, QString ID);
+    void showQuestion(MESSAGE_TYPE type, QString title, QString message, int ID);
     void setAttributeModel(GraphMLItem* item=0, bool tellSubView=false);
     void importProjects(QStringList xmlDataList);
 
@@ -221,7 +222,7 @@ public slots:
     void setDefaultAspects();
     void setEnabled(bool);
 
-    void showMessage(MESSAGE_TYPE type, QString title, QString message, QString ID="", bool centralizeItem = false);
+    void showMessage(MESSAGE_TYPE type, QString title, QString message, int ID=-1, bool centralizeItem = false);
 
     void view_ClearHistory();
     void clearView();
@@ -230,7 +231,6 @@ public slots:
     void resetModel(bool addAction = true);
     void clearModel();
     void selectModel();
-    void sortModel();
 
 
     void replicate();
@@ -245,9 +245,9 @@ public slots:
     void appendToSelection(GraphMLItem* item, bool updateActions=true);
     void removeFromSelection(GraphMLItem* item);
     void moveSelection(QPointF delta);
-    void resizeSelection(QString ID, QSizeF delta);
+    void resizeSelection(int ID, QSizeF delta);
     void moveFinished();
-    void resizeFinished(QString ID);
+    void resizeFinished(int ID);
     void clearSelection(bool updateTable = true, bool updateDocks = true);
 
     void toggleGridLines(bool gridOn);
@@ -257,20 +257,19 @@ public slots:
     void showLocalNode(bool show);
     void toggleZoomAnchor(bool underMouse);
 
-    void setConnectModeFromToolbar(bool on, QList<NodeItem*> legalNodeItems = QList<NodeItem*>());
 
-    void setConnectMode(bool on);
-    void setRubberBandMode(bool On);
+
+
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
 
     void constructGUIItem(GraphML* item);
-    void destructGUIItem(QString ID, GraphML::KIND kind);
+    void destructGUIItem(int ID, GraphML::KIND kind);
 
     void showToolbar(QPoint position = QPoint());
     void toolbarClosed();
 
     void view_CenterGraphML(GraphML* graphML);
-    void view_LockCenteredGraphML(QString ID);
+    void view_LockCenteredGraphML(int ID);
 
     void sort();
     void sortEntireModel();
@@ -284,32 +283,31 @@ public slots:
     void centerItem(GraphMLItem* item=0);
     void centralizedItemMoved();
 
-    void centerItem(QString ID);
-    void centerDefinition(QString ID = "");
-    void centerImplementation(QString ID = "");
-    void centerInstance(QString instanceID);
+    void centerItem(int ID);
+    void centerDefinition(int ID = -1);
+    void centerImplementation(int ID = -1);
+    void centerInstance(int instanceID);
 
 
     void deleteSelection();
     void constructNode(QString nodeKind, int sender);
-    void constructEdge(QString srcID, QString dstID);
-    void destructEdge(QString srcID, QString dstID, bool triggerAction=true);
+    void constructEdge(int srcID, int dstID);
+    void destructEdge(int srcID, int dstID, bool triggerAction=true);
 
-    void constructDestructEdges(QStringList srcIDs, QString dstID);
+    void constructDestructEdges(QList<int> srcIDs, int dstID);
 
-    void deleteFromIDs(QStringList IDs);
-    void constructConnectedNode(QString parentID, QString dstID, QString kind, int sender=0);
+    void deleteFromIDs(QList<int> IDs);
+    void constructConnectedNode(int parentID, int dstID, QString kind, int sender=0);
 
-    void constructNewView(QString nodeID);
-    void constructNewView(int nodeKindToCenter=0);
+    void constructNewView(int nodeID=0);
 
-    QList<NodeItem*> getNodeItemsOfKind(QString kind, QString ID="", int depth=-1);
+    QList<NodeItem*> getNodeItemsOfKind(QString kind, int ID=-1, int depth=-1);
     void showConnectedNodes();
 
 
     void editableItemHasFocus(bool hasFocus);
 
-    void selectAndCenter(GraphMLItem* item = 0, QString ID = "");
+    void selectAndCenter(GraphMLItem* item = 0, int ID = -1);
 
 
     void keepSelectionFullyVisible(GraphMLItem* item, bool sizeChanged = false);
@@ -323,20 +321,23 @@ public slots:
     void showHardwareClusterChildrenViewMenu(NodeItem* nodeItem);
     void hardwareClusterChildrenViewMenuClosed(NodeItem* nodeItem);
 
-    void nodeEntered(QString ID, bool enter);
+    void itemEntered(int ID, bool enter);
 
-    void highlightNode(QString nodeID = "");
 
 private:
+    void setConnectMode(bool on);
+    void setRubberBandMode(bool On);
+
+    bool isNodeVisuallyConnectable(Node* node);
     bool onlyHardwareClustersSelected();
     void handleSelection(GraphMLItem* item, bool setSelected, bool controlDown);
     void setState(VIEW_STATE newState);
     void transition();
     void selectJenkinsImportedNodes();
 
-    void ensureAspect(QString ID);
+    void ensureAspect(int ID);
 
-    void _deleteFromIDs(QStringList IDs);
+    void _deleteFromIDs(QList<int> IDs);
 
     void updateActionsEnabledStates();
     void alignSelectionOnGrid(ALIGN alignment = NONE);
@@ -356,11 +357,11 @@ private:
 
     void removeAspect(QString aspect);
 
-    QStringList getAdoptableNodeList(QString ID);
-    QStringList getConnectableNodes(QString ID);
-    QList<NodeItem*> getConnectableNodeItems(QString ID);
-    QList<NodeItem*> getConnectableNodeItems(QStringList IDs = QStringList());
-    QList<NodeItem*> getNodeInstances(QString ID);
+    QStringList getAdoptableNodeList(int ID);
+    QList<int> getConnectableNodes(int ID);
+    QList<NodeItem*> getConnectableNodeItems(int ID);
+    QList<NodeItem*> getConnectableNodeItems(QList<int> IDs = QList<int>());
+    QList<NodeItem*> getNodeInstances(int ID);
 	QList<NodeItem*> getHardwareList();
 
     QList<Node*> getFiles();
@@ -368,18 +369,19 @@ private:
     QList<Node*> getBlackBoxes();
 
     void storeGraphMLItemInHash(GraphMLItem* item);
-    bool removeGraphMLItemFromHash(QString ID);
+    bool removeGraphMLItemFromHash(int ID);
 
     bool isItemsAncestorSelected(GraphMLItem* selectedItem);
     void unsetItemsDescendants(GraphMLItem* selectedItem);
 
+    NodeItem* getSharedNodeItemParent(NodeItem* src, NodeItem* dst);
     NodeItem* getNodeItemFromNode(Node* node);
-    NodeItem* getNodeItemFromID(QString ID);
+    NodeItem* getNodeItemFromID(int ID);
     NodeItem* getNodeItemFromGraphMLItem(GraphMLItem* item);
     EdgeItem* getEdgeItemFromGraphMLItem(GraphMLItem* item);
     GraphMLItem *getGraphMLItemFromGraphML(GraphML* item);
 
-    GraphMLItem* getGraphMLItemFromHash(QString ID);
+    GraphMLItem* getGraphMLItemFromHash(int ID);
 
 
     GraphMLItem* getGraphMLItemFromScreenPos(QPoint pos);
@@ -387,7 +389,7 @@ private:
 
     void nodeSelected_signalUpdates();
     void edgeConstructed_signalUpdates();
-    void edgeDestructed_signalUpdates(Edge* edge, QString ID = "");
+    void edgeDestructed_signalUpdates(Edge* edge, int ID = -1);
 
     void updateActionsEnabled();
 
@@ -415,17 +417,18 @@ private:
 
     NewController* controller;
 
-    QString centralizedItemID;
+    int centralizedItemID;
     NodeItem* centralizedNodeItem;
     bool CENTRALIZED_ON_ITEM;
 
-    QHash<QString, GraphMLItem*> guiItems;
-    //Contains QString ID and either Node/Edge for kind
-    QHash<QString, QString> noGuiIDHash;
+    QHash<int, GraphMLItem*> guiItems;
+    //Contains int ID and either Node/Edge for kind
+    QHash<int, QString> noGuiIDHash;
 
     NodeView* parentNodeView;
 
     QStringList allAspects;
+
 
     QPointF toolbarPosition;
 
@@ -471,7 +474,7 @@ private:
 
 
     //Selection Lists
-    QStringList selectedIDs;
+    QList<int> selectedIDs;
     QStringList defaultAspects;
 
     QPointF centerPoint;
@@ -487,13 +490,15 @@ private:
     int currentMapKey;
     QMap<int, QPointF> modelPositions;
     QMap<int, QRectF> centeredRects;
+    QMap<int, int> definitionIDs;
 
     QHash<QString, QPixmap> imageLookup;
 
+
     QMenu* prevLockMenuOpened;
 
-    QString prevSelectedNodeID;
-    QString highlightedID;
+    int prevSelectedNodeID;
+    int highlightedID;
 
     QMutex viewMutex;
 
@@ -503,7 +508,7 @@ private:
     QPointF panningSceneOrigin;
     QPoint panningOrigin;
 
-    QString currentTableID;
+    int currentTableID;
 
     bool hardwareDockOpen;
     bool clearingModel;
@@ -512,13 +517,6 @@ private:
 
     QGraphicsLineItem* connectLine;
     VIEW_STATE viewState;
-
-    NodeItem* prevItemHighlighted;
-
-    bool connectModeFromToolbarOn;
-    QStringList connectFromIDs;
-    QString connectToID;
-    QList<NodeItem*> connectNodeItems;
 };
 
 #endif // NODEVIEW_H

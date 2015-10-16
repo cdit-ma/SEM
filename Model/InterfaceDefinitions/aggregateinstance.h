@@ -9,13 +9,8 @@ public:
     AggregateInstance();
     ~AggregateInstance();
 
-    // GraphML interface
-    QStringList getConnectableKinds();
-    
     bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
-private:
-    QStringList connectKinds;
 };
 
 #endif // AGGREGATEINSTANCE_H

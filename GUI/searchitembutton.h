@@ -20,7 +20,7 @@ public:
     void connectToWindow(QMainWindow* window);
 
 signals:
-    void searchItem_centerOnItem(QString ID);
+    void searchItem_centerOnItem(int ID);
 
 public slots:
     void itemClicked();
@@ -36,7 +36,7 @@ private:
     QLabel* objectLabel;
     QLabel* parentLabel;
 
-    QString ID;
+    int ID;
     bool selected;
     bool triggeredWithin;
 };

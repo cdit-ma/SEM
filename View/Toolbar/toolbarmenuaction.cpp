@@ -74,12 +74,12 @@ NodeItem* ToolbarMenuAction::getNodeItem()
  * @brief ToolbarMenuAction::getNodeItemID
  * @return
  */
-QString ToolbarMenuAction::getNodeItemID()
+int ToolbarMenuAction::getNodeItemID()
 {
    if (nodeItem) {
        return nodeItem->getID();
    }
-   return "";
+   return -1;
 }
 
 

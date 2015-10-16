@@ -168,7 +168,7 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
         ok = true;
 
         if(getName() == "label" || getName() == "file" || getName() == "folder"){
-            QString ID;
+            int ID;
             if(data->getParent()){
                 ID = data->getParent()->getID();
             }
@@ -221,7 +221,7 @@ QString GraphMLKey::toGraphML(qint32 indentationLevel)
         tabSpace += "\t";
     }
 
-    QString returnable = tabSpace + QString("<key attr.name=\"%1\" attr.type=\"%2\" for=\"%3\" id=\"%4\"").arg(this->getName(),this->typeStr,this->forKindStr,this->getID());
+    QString returnable = tabSpace + QString("<key attr.name=\"%1\" attr.type=\"%2\" for=\"%3\" id=\"%4\"").arg(this->getName(),this->typeStr,this->forKindStr, QString::number(this->getID()));
     if(this->getDefaultValue() != ""){
         returnable += ">\n";
         returnable += tabSpace + QString("\t<default>%1</default>\n").arg(this->getDefaultValue());

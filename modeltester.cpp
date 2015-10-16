@@ -1,6 +1,7 @@
 #include "modeltester.h"
 #include "Controller/controller.h"
 #include <QDebug>
+#include <QTime>
 #ifdef _WIN32
 #define _WINSOCKAPI_    // stops windows.h including winsock.h
 #include <windows.h>
@@ -17,11 +18,12 @@ ModelTester::ModelTester()
 
     NewController* controller = new NewController();
     controller->initializeModel();
+    connect(this, SIGNAL(importProjects(QStringList)), controller, SLOT(importProjects(QStringList)));
 
     float postInitializeMemory = getMemoryUsage();
     qCritical() << "Memory Usage after Initialize: " << postInitializeMemory << "KB.";
 
-    QFile file("C:/Users/QT5/Desktop/Models/vUAVmedea.graphML");
+    QFile file("E:/MCMS.graphML");
 
     if(!file.open(QFile::ReadOnly | QFile::Text)){
         qDebug() << "could not open file for read";
@@ -30,14 +32,17 @@ ModelTester::ModelTester()
     QTextStream in(&file);
     QString xmlText = in.readAll();
     file.close();
+    qCritical() << xmlText.length();
 
     int repeatCount = 1;
     int loadCount = 1;
-
+    QTime  time;
+    time.start();
 
     sleep(5);
     float priorMemory = getMemoryUsage();
     sleep(5);
+
     for(int j = 0 ; j < repeatCount; j++){
         float beforeLoad = getMemoryUsage();
         if(beforeLoad > priorMemory){
@@ -45,12 +50,14 @@ ModelTester::ModelTester()
         }
 
         //controller->view_TriggerAction("Loading GraphML");
+
         for(int i = 0 ; i < loadCount; i++){
+            QStringList list;
+            list << xmlText;
+            emit importProjects(list);
 
-            //controller->importProjects(QStringList(xmlText));
-            //controller->view_Paste(xmlText);
         }
-
+        qCritical() << time.elapsed();
         float afterLoad = getMemoryUsage();
         qCritical() << "Memory Usage After Load: " << afterLoad << "KB.";
 
@@ -65,6 +72,8 @@ ModelTester::ModelTester()
 
 
     xmlText = "";
+
+    //qCritical() << controller->getModel()->getChildren();
 
     //delete controller;
     //sleep(10);

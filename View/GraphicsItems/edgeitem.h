@@ -3,7 +3,10 @@
 
 #include "nodeitem.h"
 #include "../../Model/edge.h"
+#include "editabletextitem.h"
 
+
+class EdgeItemArrow;
 class EdgeItem: public GraphMLItem
 {
     Q_OBJECT
@@ -11,40 +14,54 @@ public:
     enum LINE_SIDE{LEFT,RIGHT};
     enum LINE_DIRECTION{UP, DOWN};
 
-    EdgeItem(Edge *edge, NodeItem* source, NodeItem* destination);
+    EdgeItem(Edge *edge, NodeItem *parent, NodeItem* source, NodeItem* destination);
     ~EdgeItem();
 
     QRectF boundingRect() const;
+    QRectF circleRect() const;
+    void setCenterPos(QPointF pos);
+    QPointF getCenterPos();
+
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     NodeItem* getSource();
     NodeItem* getDestination();
-    void setHidden(bool hidden);
 
-    bool isSelected();
 
-    bool isPointInCircle(QPointF itemPosition);
+    void setHighlighted(bool highlighted);
+    void setSelected(bool selected);
 
 signals:
+    //Unsure
     void edgeItem_eventFromItem();
 
-public slots:
-    void setSelected(bool selected);
+private slots:
+    void labelUpdated(QString newLabel);
     void setVisible(bool visible);
-    void updateEdge();
+    void updateVisibleParents();
+    void updateLine();
     void graphMLDataChanged(GraphMLData * data);
+    void zoomChanged(qreal zoom);
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event );
+    void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
+    void hoverMoveEvent(QGraphicsSceneHoverEvent* event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent* event);
+
 private:
-    //bool isPointInCircle(QPointF itemPosition);
-    void resetEdgeCenter(NodeItem* visibleSource, NodeItem* visibleDestination);
-    void updateLabel();
+    void updateBrushes();
+    bool isPointInCircle(QPointF itemPosition);
+
+
+
+
+    void updateLabel(QString label);
     void updateLines();
     void setupBrushes();
-    void setLineVisibility(bool visible);
+
+
+    NodeItem* parent;
 
     //Represents the End points of the LineItem
     NodeItem* source;
@@ -55,46 +72,35 @@ private:
     NodeItem* visibleDestination;
 
     //The Text Item which is the label.
-    QGraphicsTextItem* label;
+    EditableTextItem* textItem;
 
     //The Lines which make up the line
     QVector<QGraphicsLineItem*> lineSegments;
 
-    //The Arrow Tail and Head shapes
-    QPolygonF arrowTail;
-    QPolygonF arrowHead;
+    EdgeItemArrow* arrowHeadItem;
+    EdgeItemArrow* arrowTailItem;
 
 
-    //State flags
-    bool IS_VISIBLE;
-    bool LINES_VISIBLE;
-    bool IS_DELETING;
-    bool IS_HIDDEN;
-    bool IS_SELECTED;
-    bool IS_MOVING;
-    bool HAS_MOVED;
-    bool CENTER_MOVED;
-
-
-
-    //Used to keep track of the position of the EdgeItem
-    QPointF previousScenePosition;
-    QPointF centerDelta;
+    //Represents the Line in coordinates relative to the parent.
+    QLineF currentParentLine;
 
     //Brush's used by paint to change the visible style of the EdgeItem
     QBrush brush;
+    QBrush selectedBrush;
+
+    QBrush currentBrush;
+    QPen currentPen;
+
     QBrush tailBrush;
     QBrush selectedTailBrush;
+
     QBrush headBrush;
     QBrush selectedHeadBrush;
-    QBrush selectedBrush;
 
     //Pens used by paint to change the visible style of the EdgeItem
     QPen pen;
     QPen selectedPen;
 
-    //Stores the radius of the EdgeItem Circle
-    qreal circleRadius;
 };
 
 #endif // EDGEITEM_H

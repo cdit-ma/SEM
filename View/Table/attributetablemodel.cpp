@@ -36,7 +36,7 @@ AttributeTableModel::~AttributeTableModel()
 void AttributeTableModel::updatedData(GraphMLData *data)
 {
     if(data){
-        QString ID = data->getID();
+        int ID = data->getID();
         int position = getIndex(ID);
         QModelIndex indexA = this->index(position, 0, QModelIndex());
         QModelIndex indexB = this->index(position, rowCount(indexA), QModelIndex());
@@ -44,7 +44,7 @@ void AttributeTableModel::updatedData(GraphMLData *data)
     }
 }
 
-void AttributeTableModel::removedData(QString dataID)
+void AttributeTableModel::removedData(int dataID)
 {
     //Get the Index of the data to be removed.
     int index = getIndex(dataID);
@@ -74,7 +74,7 @@ void AttributeTableModel::removedData(QString dataID)
 
 void AttributeTableModel::addData(GraphMLData *data)
 {
-    QString ID = data->getID();
+    int ID = data->getID();
 
     //If we haven't seen this Data Before.
     if(!attachedData.contains(ID)){
@@ -127,7 +127,7 @@ void AttributeTableModel::clearData()
     endRemoveRows();
 }
 
-int AttributeTableModel::getIndex(QString ID) const
+int AttributeTableModel::getIndex(int ID) const
 {
 
 
@@ -140,8 +140,8 @@ GraphMLData* AttributeTableModel::getData(int row) const
     //GET DATA
     QString name = dataOrder[row];
 
-    QString ID = nameLookup[name];
-    if(ID != ""){
+    int ID = nameLookup[name];
+    if(ID != -1){
         return attachedData[ID];
     }
     return 0;
@@ -174,7 +174,7 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
     int row = index.row();
     QString dataName =  dataOrder[row];
 
-    QString keyName = nameLookup[dataName];
+    int keyName = nameLookup[dataName];
     if(!attachedData.contains(keyName)){
         return QVariant();
     }
@@ -481,7 +481,7 @@ Qt::ItemFlags AttributeTableModel::flags(const QModelIndex &index) const
 void AttributeTableModel::setupDataBinding()
 {
     if(attachedGraphML){
-        connect(attachedGraphML, SIGNAL(dataRemoved(QString)), this, SLOT(removedData(QString)));
+        connect(attachedGraphML, SIGNAL(dataRemoved(int)), this, SLOT(removedData(int)));
         connect(attachedGraphML, SIGNAL(dataAdded(GraphMLData*)), this, SLOT(addData(GraphMLData*)));
         connect(attachedGraphML, SIGNAL(destroyed()), this, SLOT(clearData()));
 
@@ -505,7 +505,7 @@ bool AttributeTableModel::popupMultiLine(const QModelIndex &index) const
     int row = index.row();
    QString dataName =  dataOrder[row];
 
-   QString keyName = nameLookup[dataName];
+   int keyName = nameLookup[dataName];
    if(!attachedData.contains(keyName)){
        return false;
    }

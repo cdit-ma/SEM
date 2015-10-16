@@ -98,6 +98,13 @@ void EditableTextItem::setEditMode(bool editMode)
     }
 }
 
+void EditableTextItem::setFontSize(qreal fontSize)
+{
+    QFont textFont = this->font();
+    textFont.setPointSizeF(fontSize);
+    setFont(textFont);
+}
+
 void EditableTextItem::setPlainText(const QString &text)
 {
     if(currentFullValue != text){

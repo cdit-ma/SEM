@@ -64,7 +64,7 @@ private:
 
     QString kind;
     QString label;
-    QString ID;
+    QString strID;
 
     QLabel* textLabel;
     QLabel* imageLabel;

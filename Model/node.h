@@ -23,6 +23,7 @@ public:
     void setSortPosition(int i);
     int getSortPosition();
     QList<int> getTreeIndex();
+    QString getTreeIndexString();
     ~Node();
 
 signals:
@@ -106,6 +107,7 @@ public:
 
     //Gets list of edges which are connected to this Node.
     QList<Edge *> getEdges(int depth=-1 );
+
     QList<GraphMLKey *> getKeys(int depth=-1 );
 
     //Removes all edges.
@@ -151,6 +153,7 @@ private:
     QList<Edge*> getOrderedEdges();
 
     QList<int> treeIndex;
+    QString treeIndexStr;
     int childCount;
 
     int sortOrder;

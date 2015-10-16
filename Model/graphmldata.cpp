@@ -83,7 +83,7 @@ QString GraphMLData::toGraphML(qint32 indentationLevel)
     dataTo.replace( "\"", "&quot;" );
     dataTo.replace( "\'", "&apos;" );
 
-    QString returnable = tabSpace + QString("<data key=\"%1\">%2</data>\n").arg(this->getKey()->getID(), dataTo);
+    QString returnable = tabSpace + QString("<data key=\"%1\">%2</data>\n").arg(QString::number(getKey()->getID()), dataTo);
     return returnable;
 }
 
@@ -109,9 +109,9 @@ QStringList GraphMLData::toStringList()
 
 }
 
-QStringList GraphMLData::getBoundIDS()
+QList<int> GraphMLData::getBoundIDS()
 {
-    QStringList dataDump;
+    QList<int> dataDump;
     foreach(GraphMLData* childdata, childData){
         dataDump << childdata->getID();
     }

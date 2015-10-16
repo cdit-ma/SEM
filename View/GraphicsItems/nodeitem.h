@@ -33,8 +33,8 @@ class NodeItem : public GraphMLItem
     Q_INTERFACES(QGraphicsItem)
 
 public:
-    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_LABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODELCIRCLE, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
-    enum RENDER_TYPE{RT_NONE, RT_MINIMAL, RT_REDUCED, RT_FULL};
+    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_LABEL, MO_EXPANDLABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODEL_CIRCLE, MO_MODEL_TR, MO_MODEL_BR, MO_MODEL_BL, MO_MODEL_TL, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
+    enum ASPECT_POS{AP_NONE, AP_TOPLEFT, AP_TOPRIGHT,  AP_BOTRIGHT, AP_BOTLEFT};
 
     enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
     NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW=false);
@@ -47,13 +47,17 @@ public:
     void setZValue(qreal z);
     void restoreZValue();
 
+    void setNodeConnectable(bool connectable);
+
+    void childHidden();
+
     QColor getBackgroundColor();
 
 
-    void setVisibleParentForEdgeItem(QString ID, bool RIGHT = false);
-    int getIndexOfEdgeItem(QString ID, bool RIGHT = false);
+    void setVisibleParentForEdgeItem(int ID, bool RIGHT = false);
+    int getIndexOfEdgeItem(int ID, bool RIGHT = false);
     int getNumberOfEdgeItems(bool RIGHT = false);
-    void removeVisibleParentForEdgeItem(QString ID);
+    void removeVisibleParentForEdgeItem(int ID);
 
     void setGridVisible(bool visible);
 
@@ -63,9 +67,10 @@ public:
     QList<EdgeItem*> getEdgeItems();
     void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
-    QRectF minimumVisibleRect();
-    QRectF expandedVisibleRect();
-    QRectF currentItemRect();
+    QRectF childrenBoundingRect() const;
+    QRectF minimumBoundingRect() const;
+    QRectF expandedBoundingRect() const;
+    QRectF expandedLabelRect() const;
 
     int getEdgeItemIndex(EdgeItem* item = 0);
     int getEdgeItemCount();
@@ -73,51 +78,67 @@ public:
     QPointF getClosestGridPoint(QPointF childCenterPoint);
 
     QRectF gridRect();
+    QPointF getCenterOffset();
 
-    QRectF topBarRect();
+    QRectF headerRect();
+    QRectF bodyRect();
+
 
     QRectF getChildBoundingRect();
-    QRectF getMinimumChildRect();
 
-    void childPosUpdated();
+
 
     QPointF getGridPosition(int x, int y);
 
 
-    bool isSelected();
+    bool isHardwareHighlighted();
+    void setHardwareHighlighting(bool highlighted);
+
     bool isLocked();
     bool isModel();
+    bool isAspect();
     void setLocked(bool locked);
 
     bool isAncestorSelected();
 
 
     void addChildNodeItem(NodeItem* child);
-    void removeChildNodeItem(QString ID);
-    bool intersectsRectangle(QRectF rect);
+    void removeChildNodeItem(int ID);
+
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-    bool hasVisibleChildren();\
+    void paintModel(QPainter* painter);
 
-    bool labelEditable();
+    bool hasVisibleChildren();
+
 
 
 
     bool mouseOverModelCircle(QPointF mousePosition);
+    bool mouseOverModelQuadrant(QPointF mousePosition);
+    bool mouseOverModelTR(QPointF mousePosition);
+    bool mouseOverModelBR(QPointF mousePosition);
+    bool mouseOverModelBL(QPointF mousePosition);
+    bool mouseOverModelTL(QPointF mousePosition);
+
     bool mouseOverLabel(QPointF mousePosition);
+    bool mouseOverExpandedLabel(QPointF mousePosition);
     bool mouseOverDeploymentIcon(QPointF mousePosition);
     bool mouseOverDefinition(QPointF mousePosition);
     bool mouseOverIcon(QPointF mousePosition);
     bool mouseOverTopBar(QPointF mousePosition);
     bool mouseOverHardwareMenu(QPointF mousePosition);
     bool mouseOverConnect(QPointF mousePosition);
+    bool mouseOverExpand(QPointF mousePosition);
 
 
 
     NodeItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
 
 
-
+    void addChildEdgeItem(EdgeItem* edge);
+    QList<EdgeItem*> getChildEdges();
+    void removeChildEdgeItem(EdgeItem* edge);
     bool isExpanded();
     bool isContracted();
     bool isHidden();
@@ -125,19 +146,17 @@ public:
 
 
     void addEdgeItem(EdgeItem* line);
+    void updateDefinition();
     void removeEdgeItem(EdgeItem* line);
 
-    void connectHighlight(bool on);
-    bool isConnectHighlighted();
 
-    void setHighlighted(bool high);
     void setCenterPos(QPointF pos);
     QPointF centerPos();
     void adjustPos(QPointF delta);
     void adjustSize(QSizeF delta);
 
     void addChildOutline(NodeItem* nodeItem, QPointF gridPoint);
-    void removeChildOutline(QString ID);
+    void removeChildOutline(int ID);
 
 
     double getWidth();
@@ -153,7 +172,9 @@ public:
     QString getNodeLabel();
     QList<NodeItem*> getChildNodeItems();
 
+
     qreal getGridSize();
+    qreal getGridGapSize();
 
     QStringList getAspects();
 
@@ -165,8 +186,6 @@ public:
 
     QMenu* getChildrenViewOptionMenu();
     QRectF geChildrenViewOptionMenuSceneRect();
-
-    void highlightNodeItem(bool highlight);
     void showHardwareIcon(bool show);
     QList<NodeItem *> deploymentView(bool on, NodeItem* selectedItem = 0);
 
@@ -175,18 +194,18 @@ public:
     void dockHighlight(bool highlight);
 
 signals:
+    void NodeItem_Model_AspectToggled(int ID);
     //Node Edge Signals
     void setEdgeVisibility(bool visible);
     void setEdgeSelected(bool selected);
 
 
     void model_PositionChanged();
-    void NodeItem_Hovered(QString ID, bool entered);
-    void NodeItem_SortModel();
+
     void NodeItem_MoveSelection(QPointF delta);
-    void NodeItem_ResizeSelection(QString ID, QSizeF delta);
+    void NodeItem_ResizeSelection(int ID, QSizeF delta);
     void NodeItem_MoveFinished();
-    void NodeItem_ResizeFinished(QString ID);
+    void NodeItem_ResizeFinished(int ID);
 
  	void Nodeitem_HasFocus(bool hasFocus);
 
@@ -205,12 +224,15 @@ signals:
 
 
 
-    void nodeItemMoved();
+    void NodeItem_Moved();
 
+    void visibilityChanged(bool visible);
     void nodeItem_HardwareMenuClicked(int viewMode);
 
 
 public slots:
+    void childMoved();
+
     void zoomChanged(qreal zoom);
     //USED METHODS
     void graphMLDataChanged(GraphMLData *data);
@@ -219,16 +241,11 @@ public slots:
     void setVisibility(bool visible);
 
 
-    void parentNodeItemMoved();
-    //Model Signals
-
-
-
-
     void aspectsChanged(QStringList aspects);
 
-    void newSort();
-    void modelSort();
+    void sort();
+
+    QPointF getAspectsLockedPoint(ASPECT_POS asPos);
 
     //void expandNode(bool expand);
     void setNodeExpanded(bool expanded);
@@ -243,7 +260,7 @@ public slots:
     //Turn off visible gridlines;
     void toggleGridLines(bool on);
 
-    bool canHighlight();
+
 
     void snapToGrid();
     void snapChildrenToGrid();
@@ -266,19 +283,24 @@ protected:
 
 
 private:
+    void updateTextVisibility();
+    QRectF adjustRectForBorder(QRectF rect, qreal width);
     void updateDisplayedChildren(int viewMode);
 
 //USED METHODS
-    QRectF iconRect();
+    QRectF smallIconRect() const;
+    QRectF iconRect() const;
     QRectF lockIconRect();
+    QRectF connectIconRect();
+    QRectF expandedIconRect();
     QRectF deploymentIconRect();
-    QPolygonF resizePolygon();
+
+    QString getIconURL();
 
 
     void paintPixmap(QPainter *painter, QRectF place, QString alias, QString imageName);
 
 
-    void sendSelectSignal(bool setSelected, bool controlDown);
     //USED PARAMETERS;
     bool hasIcon;
     bool showDeploymentWarningIcon;
@@ -291,9 +313,9 @@ private:
     void updateModelData();
 
 
-    void resizeToOptimumSize(bool updateParent=true, MOUSEOVER_TYPE type = MO_RESIZE);
-    void setWidth(qreal width, bool updateParent=true);
-    void setHeight(qreal height, bool updateParent=true);
+    void resizeToOptimumSize(MOUSEOVER_TYPE type = MO_RESIZE);
+    void setWidth(qreal width);
+    void setHeight(qreal height);
     void setSize(qreal w, qreal h);
     void setPos(qreal x, qreal y);
     void setPos(const QPointF &pos);
@@ -301,13 +323,11 @@ private:
 
     void setupAspect();
     void setupBrushes();
-    void setupIcon();
     void setupLabel();
     void setupGraphMLConnections();
     void setupChildrenViewOptionMenu();
 
     void updateGraphMLPosition();
-    void updateChildrenOnChange();
     void retrieveGraphMLData();
     void updateTextLabel(QString text="");
     void childUpdated();
@@ -318,13 +338,6 @@ private:
     NodeItem* getChildNodeItemFromNode(Node* child);
     QPointF isOverGrid(const QPointF centerPosition);
 
-    //QPixmap iconPixmap;
-    //QImage iconImage;
-
-
-    double getCornerRadius();
-    double getChildCornerRadius();
-    double getMaxLabelWidth();
     double getItemMargin() const;
     double getChildItemMargin();// const;
 
@@ -343,6 +356,7 @@ private:
 
     bool IS_HARDWARE_CLUSTER;
     bool IS_MODEL;
+    bool IS_DEFINITION;
 
     int CHILDREN_VIEW_MODE;
     bool sortTriggerAction;
@@ -354,38 +368,34 @@ private:
 
     QString nodeKind;
     QString nodeLabel;
-    QString minimumHeightStr;
     QString fileID;
 
     bool isNodeExpanded;
-
-    bool isNodeSelected;
     bool isGridVisible;
     bool isInSubView;
     bool isNodeSorted;
     bool isNodeInAspect;
-
     bool isNodeOnGrid;
-    bool nodeWasOnGrid;
+    bool canNodeBeConnected;
+    bool canNodeBeExpanded;
+    bool hasHardwareWarning;
 
 
 
+    bool hidden;
+    bool hasChildren;
 
     bool GRIDLINES_ON;
-
-    bool highlighted;
-    bool hidden;
-    bool hasDefinition;
-    bool isImplOrInstance;
+    bool HAS_DEFINITION;
+    bool IS_IMPL_OR_INST;
 
     bool LOCKED_POSITION;
 
-    bool isHighlighted;
     bool isNodeMoving;
     qreal oldZValue;
     NodeItem::RESIZE_TYPE currentResizeMode;
 
-    QHash<QString, QRectF> outlineMap;
+    QHash<int, QRectF> outlineMap;
 
     //Current Width/Height
     double width;
@@ -397,22 +407,31 @@ private:
     double expandedHeight;
     double expandedWidth;
 
+    double modelHeight;
+    double modelWidth;
+
+    qreal expandedFontSize;
+    qreal contractedFontSize;
+
+
     QPointF previousScenePosition;
 
     //USED TO DETERMINE THE NUMBER OF EDGES.
     QList<EdgeItem*> connections;
 
-    QStringList currentLeftEdgeIDs;
-    QStringList currentRightEdgeIDs;
+    QList<int> currentLeftEdgeIDs;
+    QList<int> currentRightEdgeIDs;
 
 
     QVector<QLineF> xGridLines;
     QVector<QLineF> yGridLines;
 
 
-    QHash<QString, NodeItem*> childNodeItems;
+    QHash<int, NodeItem*> childNodeItems;
 
-    QStringList childrenIDs;
+    QList<int> childrenIDs;
+
+    QList<EdgeItem*> childEdges;
     //QList<NodeItem*> childNodeItems;
 
     //Used to store the Color/Brush/Pen for the selected Style.
@@ -420,7 +439,8 @@ private:
     QColor color;
 
     QBrush selectedBrush;
-    QBrush brush;
+    QBrush bodyBrush;
+    QBrush headerBrush;
     QPen pen;
     QPen selectedPen;
     bool updatedAlready;
@@ -431,22 +451,27 @@ private:
     bool hasPanned;
 
 
-
+    qreal selectedPenWidth;
 
     MOUSEOVER_TYPE mouseDownType;
-    RENDER_TYPE renderState;
+
 
     QRectF currentSceneRect;
 
 
-    EditableTextItem* textItem;
+    ASPECT_POS aspectPos;
+    QPointF aspectLockPos;
+    EditableTextItem* bottomTextLabel;
+    EditableTextItem* expandedTextLabel;
 
     QString nodeHardwareOS;
     QString nodeHardwareArch;
     bool nodeHardwareLocalHost;
 
-    bool highlightFromDock;
-    bool connectHighlightOn;
+    bool gotVisibleChildren;
+    // GraphMLItem interface
+public slots:
+    bool canHighlight();
 };
 
 #endif // NODEITEM_H

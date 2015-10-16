@@ -119,6 +119,7 @@ HEADERS += \
     Model/BehaviourDefinitions/branch.h \
     Model/BehaviourDefinitions/whileloop.h \
     GUI/shortcutdialog.h \
+    View/GraphicsItems/edgeitemarrow.h \
     View/Toolbar/toolbarmenu.h \
     View/Toolbar/toolbarmenuaction.h
 
@@ -207,6 +208,7 @@ SOURCES += \
     Model/BehaviourDefinitions/branch.cpp \
     Model/BehaviourDefinitions/whileloop.cpp \
     GUI/shortcutdialog.cpp \
+    View/GraphicsItems/edgeitemarrow.cpp \
     View/Toolbar/toolbarmenu.cpp \
     View/Toolbar/toolbarmenuaction.cpp
 
@@ -337,4 +339,5 @@ mac{
 
 DISTFILES += \
     Resources/Images/qt.ico \
-    defaultSettings.ini
+    defaultSettings.ini \
+    Resources/Fonts/OpenSans-Regular.ttf

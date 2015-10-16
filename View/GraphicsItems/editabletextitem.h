@@ -9,6 +9,8 @@ class EditableTextItem : public QGraphicsTextItem
 public:
     explicit EditableTextItem(QGraphicsItem *parent = 0, int maximumLength = 64);
     void setEditMode(bool editMode = true);
+
+    void setFontSize(qreal fontSize);
     void setPlainText(const QString &text);
     void setTextWidth(qreal width);
     void setCenterJustified();

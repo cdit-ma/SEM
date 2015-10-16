@@ -64,7 +64,7 @@ void ValidateDialog::connectToWindow(QMainWindow* window)
 {
     MedeaWindow* medea = dynamic_cast<MedeaWindow*>(window);
     if (medea) {
-        connect(this, SIGNAL(searchItem_centerOnItem(QString)), medea, SLOT(on_validationItem_clicked(QString)));
+        connect(this, SIGNAL(searchItem_centerOnItem(int)), medea, SLOT(on_validationItem_clicked(int)));
         connect(this, SIGNAL(revalidate_Model()), medea, SLOT(on_actionValidate_triggered()));
     }
 }
@@ -109,9 +109,14 @@ void ValidateDialog::setupItemsTable(QStringList items)
 
 void ValidateDialog::cellSelected(int nRow, int nCol)
 {
-    //qDebug() << "Cell at row "+QString::number(nRow)+"was clicked.";
-    searchItem_centerOnItem(itemsID[nRow]);
     Q_UNUSED(nCol);
+    //qDebug() << "Cell at row "+QString::number(nRow)+"was clicked.";
+    QString ID = itemsID[nRow];
+    bool okay;
+    int numberID = ID.toInt(&okay);
+    if(okay){
+        searchItem_centerOnItem(numberID);
+    }
 }
 
 void ValidateDialog::revalidate()

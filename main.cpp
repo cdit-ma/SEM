@@ -44,7 +44,12 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Defence Information Group");
     QCoreApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
 
-    QFont font = QFont("Verdana");
+    int fontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
+
+    QString fontName = QFontDatabase::applicationFontFamilies(fontID).at(0);
+
+    QFont font = QFont(fontName);
+    //QFont font = QFont("Verdana");
     font.setPointSizeF(8.5);
     a.setFont(font);
 
@@ -55,5 +60,9 @@ int main(int argc, char *argv[])
 
     MedeaWindow *w = new MedeaWindow(GraphMLFile);
     w->show();
+
+    //ModelTester* t = new ModelTester();
+
+   //return 0;
     return a.exec();
 }

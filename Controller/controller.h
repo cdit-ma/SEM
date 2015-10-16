@@ -20,12 +20,12 @@ struct EdgeTemp
 struct ActionItem{
     ACTION_TYPE actionType;
     GraphML::KIND actionKind;
-    QString parentID;
+    int parentID;
     QString itemLabel;
     QString itemKind;
-    QString srcID;
-    QString dstID;
-    QString ID;
+    int srcID;
+    int dstID;
+    int ID;
     QString keyName;
     QString dataValue;
     QString removedXML;
@@ -36,8 +36,8 @@ struct ActionItem{
     //In the form KeyName, KeyType, KeyFor, Data Value, isProtected.
     QList<QStringList> dataValues;
     //In the form ID
-    QList<QStringList> boundDataIDs;
-    QList<QString> parentDataID;
+    QList<QList<int> > boundDataIDs;
+    QList<int> parentDataID;
 
     QString actionName;
     int actionID;
@@ -69,28 +69,30 @@ public:
     QStringList getAllNodeKinds();
     QStringList getGUIConstructableNodeKinds();
     //Returns a list of Kinds which can be adopted by a Node.
-    QStringList getAdoptableNodeKinds(QString ID);
+    QStringList getAdoptableNodeKinds(int ID);
     //QStringList getAdoptableNodeKinds(Node* parent);
 
-    QStringList getConnectableNodes(QString srcID);
-    QStringList getNodesOfKind(QString kind, QString ID="", int depth=-1);
+    QList<int> getConnectableNodes(int srcID);
+    QList<int> getNodesOfKind(QString kind, int ID=-1, int depth=-1);
 
-    bool canCopy(QStringList selection);
-    bool canReplicate(QStringList selection);
-    bool canCut(QStringList selection);
-    bool canDelete(QStringList selection);
-    bool canPaste(QStringList selection);
-    bool canExportSnippet(QStringList selection);
-    bool canImportSnippet(QStringList selection);
+    bool canCopy(QList<int> selection);
+    bool canReplicate(QList<int> selection);
+    bool canCut(QList<int> selection);
+    bool canDelete(QList<int> selection);
+    bool canPaste(QList<int> selection);
+    bool canExportSnippet(QList<int> selection);
+    bool canImportSnippet(QList<int> selection);
     bool canUndo();
     bool canRedo();
     bool canLocalDeploy();
 
-    QString getDefinition(QString ID);
-    QString getImplementation(QString ID);
-    QStringList getInstances(QString ID);
-    QString getAggregate(QString ID);
-    QString getDeployedHardwareID(QString ID);
+    int getDefinition(int ID);
+    int getImplementation(int ID);
+    QList<int> getInstances(int ID);
+    int getAggregate(int ID);
+    int getDeployedHardwareID(int ID);
+
+    int getSharedParent(int ID1, int ID2);
 
 
 signals:
@@ -98,15 +100,15 @@ signals:
     void controller_ActionProgressChanged(int percent, QString action="");
     void controller_ActionFinished();
 
-    void controller_AskQuestion(MESSAGE_TYPE, QString title, QString message, QString ID="");
+    void controller_AskQuestion(MESSAGE_TYPE, QString title, QString message, int ID=-1);
     void controller_GotQuestionAnswer();
-    void controller_DisplayMessage(MESSAGE_TYPE, QString title, QString message, QString ID="");
+    void controller_DisplayMessage(MESSAGE_TYPE, QString title, QString message, int ID=-1);
 
     void controller_ExportedProject(QString);
     void controller_ExportedSnippet(QString parentName, QString snippetXMLData);
 
     void controller_GraphMLConstructed(GraphML*);
-    void controller_GraphMLDestructed(QString ID, GraphML::KIND kind);
+    void controller_GraphMLDestructed(int ID, GraphML::KIND kind);
 
     void controller_ProjectNameChanged(QString);
 
@@ -121,29 +123,29 @@ private slots:
 
     void connectViewAndSetupModel(NodeView* view);
     //Clipboard functionality
-    void cut(QStringList IDs);
-    void copy(QStringList IDs);
-    void paste(QString ID, QString xmlData);
-    void replicate(QStringList IDs);
+    void cut(QList<int> IDs);
+    void copy(QList<int> IDs);
+    void paste(int ID, QString xmlData);
+    void replicate(QList<int> IDs);
+    void remove(QList<int> IDs);
 
-    void importSnippet(QStringList IDs, QString fileName, QString fileData);
-    void exportSnippet(QStringList IDs);
+    void importSnippet(QList<int> IDs, QString fileName, QString fileData);
+    void exportSnippet(QList<int> IDs);
 
     //Toolbar/Dock Functionality
-    void remove(QStringList IDs);
     void clear();
 
     void undo();
     void redo();
 
-    void constructNode(QString parentID, QString nodeKind, QPointF centerPoint);
-    void constructEdge(QString srcID, QString dstID);
-    void destructEdge(QString srcID, QString dstID);
-    void constructConnectedNode(QString parentID, QString connectedID, QString kind, QPointF relativePos);
-    void setGraphMLData(QString parentID, QString keyName, QString dataValue);
+    void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
+    void constructEdge(int srcID, int dstID, bool reverseOkay = false);
+    void destructEdge(int srcID, int dstID);
+    void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);
+    void setGraphMLData(int parentID, QString keyName, QString dataValue);
 
-    void constructDestructMultipleEdges(QStringList srcIDs, QString dstID);
-    void constructDestructEdges(QStringList destruct_srcIDs, QStringList destruct_dstIDs, QStringList construct_srcIDs, QString dstID);
+    void constructDestructMultipleEdges(QList<int> srcIDs, int dstID);
+    void constructDestructEdges(QList<int> destruct_srcIDs, QList<int> destruct_dstIDs, QList<int> construct_srcIDs, int dstID);
 
     void triggerAction(QString actionName);
 
@@ -156,21 +158,21 @@ private slots:
 
 
     //MODEL Functionality
-    void displayMessage(QString title, QString message, QString ID);
+    void displayMessage(QString title, QString message, int ID);
 
         void clearHistory();
 
 private:
     //Helper functions.
-    bool _paste(QString ID, QString xmlData, bool addAction = true);
-    bool _cut(QStringList IDs, bool addAction = true);
+    bool _paste(int ID, QString xmlData, bool addAction = true);
+    bool _cut(QList<int> IDs, bool addAction = true);
     bool _clear();
-    bool _copy(QStringList IDs);
-    bool _remove(QStringList IDs, bool addAction = true);
-    bool _replicate(QStringList IDs, bool addAction = true);
+    bool _copy(QList<int> IDs);
+    bool _remove(QList<int> IDs, bool addAction = true);
+    bool _replicate(QList<int> IDs, bool addAction = true);
     bool _importProjects(QStringList xmlDataList, bool addAction = true);
-    bool _importSnippet(QStringList IDs, QString fileName, QString fileData, bool addAction = true);
-    bool _exportSnippet(QStringList IDs);
+    bool _importSnippet(QList<int> IDs, QString fileName, QString fileData, bool addAction = true);
+    bool _exportSnippet(QList<int> IDs);
     bool _exportProject();
 
 
@@ -187,18 +189,18 @@ private:
     void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
     void clearUndoHistory();
 
-    bool askQuestion(MESSAGE_TYPE, QString questionTitle, QString question, QString ID="");
-    Node* getSingleNode(QStringList IDs);
+    bool askQuestion(MESSAGE_TYPE, QString questionTitle, QString question, int ID=-1);
+    Node* getSingleNode(QList<int> IDs);
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
 
 
-    Node* getSharedParent(QStringList IDs);
+    Node* getSharedParent(QList<int> IDs);
 
 
 
     //Exports a Selection of Containers to export into GraphML
-    QString _exportGraphMLDocument(QStringList nodeIDs, bool allEdges = false, bool GUI_USED=false);
+    QString _exportGraphMLDocument(QList<int> nodeIDs, bool allEdges = false, bool GUI_USED=false);
     QString _exportGraphMLDocument(Node* node, bool allEdges = false, bool GUI_USED=false);
 
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
@@ -213,13 +215,13 @@ private:
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
     Edge* _constructEdge(Node* source, Node* destination);
-    Edge* constructEdgeWithGraphMLData(Node* source, Node* destination, QList<GraphMLData*> data = QList<GraphMLData*>(), QString previousID ="");
-    Edge* constructEdgeWithData(Node* source, Node* destination, QList<QStringList> data = QList<QStringList>(), QString previousID ="");
+    Edge* constructEdgeWithGraphMLData(Node* source, Node* destination, QList<GraphMLData*> data = QList<GraphMLData*>(), int previousID=-1);
+    Edge* constructEdgeWithData(Node* source, Node* destination, QList<QStringList> data = QList<QStringList>(), int previousID=-1);
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash
     void storeGraphMLInHash(GraphML* item);
-    GraphML* getGraphMLFromHash(QString ID);
-    void removeGraphMLFromHash(QString ID);
+    GraphML* getGraphMLFromHash(int ID);
+    void removeGraphMLFromHash(int ID);
 
     //Constructs a Node using the attached GraphMLData elements. Attachs the node to the parentNode provided.
     Node* constructChildNode(Node* parentNode, QList<GraphMLData*> dataToAttach);
@@ -298,16 +300,17 @@ private:
     bool _attachGraphMLData(GraphML* item, QList<GraphMLData*> dataList, bool addAction = true);
     
     //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
-    GraphML* getGraphMLFromID(QString ID);
-    Node* getNodeFromID(QString ID);
-    Node* getFirstNodeFromList(QStringList ID);
-    Edge* getEdgeFromID(QString ID);
+    GraphML* getGraphMLFromID(int ID);
+    Node* getNodeFromID(int ID);
+    Node* getFirstNodeFromList(QList<int> ID);
+    Edge* getEdgeFromID(int ID);
 
     //Used to find old ID's which may have been deleted from the Model. Will find the replacement ID if they exist.
-    QString getIDFromOldID(QString ID);
+    int getIDFromOldID(int ID);
 
+    int getIntFromQString(QString ID);
     //Links an ID of an already deleted GraphML Item to the ID of the new GraphML Item.
-    void linkOldIDToID(QString oldID, QString newID);
+    void linkOldIDToID(int oldID, int newID);
 
     //Casts the GraphML as a Node/Edge, will be NULL if not a Node/Edge
     Node* getNodeFromGraphML(GraphML* item);
@@ -324,8 +327,8 @@ private:
     QList<GraphMLKey*> keys;
 
     //Stores the list of nodeID's and EdgeID's inside the Hash.
-    QStringList nodeIDs;
-    QStringList edgeIDs;
+    QList<int> nodeIDs;
+    QList<int> edgeIDs;
 
     //Stack of ActionItems in the Undo/Redo Stack.
     QStack<ActionItem> undoActionStack;
@@ -335,10 +338,15 @@ private:
     QString getDataValueFromKeyName(QList<GraphMLData*> dataList, QString keyName);
 
     //Provides a lookup for IDs.
-    QHash<QString, QString> IDLookupHash;
-    QHash<QString, GraphML*> IDLookupGraphMLHash;
-    QHash<QString, QString> reverseKindLookup;
-    QHash<QString, QStringList> kindLookup;
+    QHash<int, int> IDLookupHash;
+    QHash<int, GraphML*> IDLookupGraphMLHash;
+    QHash<int, QString> reverseKindLookup;
+
+    QHash<QString, QList<int> > kindLookup;
+
+    QHash<QString, int> treeLookup;
+    QHash<int, QString> reverseTreeLookup;
+
 
     //A list of Node's which are considered Containers, and aren't part of constructable Nodes.
     QStringList containerNodeKinds;
@@ -382,7 +390,7 @@ private:
 
     int previousUndos;
 
-    QStringList connectedLinkedIDs;
+    QList<int> connectedLinkedIDs;
 
     bool CUT_USED;
     int actionCount;

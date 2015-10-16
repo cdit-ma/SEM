@@ -183,6 +183,7 @@ void ToolbarWidget::addConnectedNode(ToolbarMenuAction* action)
         return;
     }
 
+
     nodeView->constructConnectedNode(nodeItem->getID(), action->getNodeItemID(), kindToConstruct, 1);
 }
 
@@ -193,7 +194,7 @@ void ToolbarWidget::addConnectedNode(ToolbarMenuAction* action)
  */
 void ToolbarWidget::connectNodes(ToolbarMenuAction* action)
 {
-    nodeView->constructDestructEdges(QStringList(), action->getNodeItemID());
+    nodeView->constructDestructEdges(QList<int>(), action->getNodeItemID());
 }
 
 
@@ -341,13 +342,6 @@ void ToolbarWidget::setInstanceID()
 }
 
 
-/**
- * @brief ToolbarWidget::setConnectModeOn
- */
-void ToolbarWidget::setConnectModeOn()
-{
-    nodeView->setConnectModeFromToolbar(true, legalNodeItems);
-}
 
 
 /**
@@ -583,7 +577,8 @@ void ToolbarWidget::makeConnections()
     connect(connectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
     connect(unconnectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
 
-    connect(connectButton, SIGNAL(clicked()), this, SLOT(setConnectModeOn()));
+
+    connect(connectButton, SIGNAL(clicked()), nodeView, SLOT(setStateConnect()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
@@ -803,7 +798,7 @@ void ToolbarWidget::resetButtonGroupFlags()
     outEventPortInstanceMenuDone = false;
 
     connectMenuDone = false;
-    chosenInstanceID = "";
+    chosenInstanceID = -1;
 }
 
 

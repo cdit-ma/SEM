@@ -24,7 +24,7 @@ JenkinsLoadingWidget::JenkinsLoadingWidget(QWidget *parent):QWidget(parent)
 
     //Get the Jenkins Logo and scale.
     QImage jenkinsLogo(":/Actions/Jenkins_Icon.png");
-    QImage jenkinsText(":/ActionsJjenkins_Text.png");
+    QImage jenkinsText(":/Actions/Jenkins_Text.png");
 
 
     //Set the size to match the Jenkins Webpage Sizes.

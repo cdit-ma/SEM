@@ -48,7 +48,6 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("InEventPortDelegate");
     definitions_notAllowedKinds.append("OutEventPortDelegate");
     definitions_notAllowedKinds.append("BlackBox");
-    //definitions_notAllowedKinds.append("BlackBoxInstance");
 
     setNotAllowedKinds(definitions_notAllowedKinds);
 
@@ -161,16 +160,19 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
 
     if (selectedNodeItem && dockNodeItem) {
 
-        QString selectedNodeID = selectedNodeItem->getID();
+        int selectedNodeID = selectedNodeItem->getID();
         QString selectedNodeKind = selectedNodeItem->getNodeKind();
         QString dockNodeID = dockNodeItem->getID();
 
+
+        int dockNodeIDint = dockNodeID.toInt();
+
         if (selectedNodeKind == "ComponentAssembly") {
-            getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, dockNodeItem->getKind() + "Instance", 0);
+            getNodeView()->constructConnectedNode(selectedNodeID, dockNodeIDint, dockNodeItem->getKind() + "Instance", 0);
         } else if (selectedNodeKind == "BlackBoxInstance" || selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ComponentImpl") {
-            getNodeView()->constructEdge(selectedNodeID, dockNodeID);
+            getNodeView()->constructEdge(selectedNodeID, dockNodeIDint);
         } else if (selectedNodeKind == "BehaviourDefinitions") {
-            getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, "ComponentImpl", 0);
+            getNodeView()->constructConnectedNode(selectedNodeID, dockNodeIDint, "ComponentImpl", 0);
         }
     }
 }
@@ -193,7 +195,7 @@ void DefinitionsDockScrollArea::updateDock()
     NodeItem* selectedItem = getCurrentNodeItem();
 
     // the first check should catch this case
-    if (!getCurrentNodeItem() || getCurrentNodeID() == "") {
+    if (!getCurrentNodeItem() || getCurrentNodeID() == -1) {
         return;
     }
 
@@ -232,6 +234,65 @@ void DefinitionsDockScrollArea::updateDock()
 }
 
 
+/**
+/**
+ * @brief DefinitionsDockScrollArea::nodeConstructed
+ * This gets called whenever a node has been constructed.
+ * It checks to see if a dock item needs to be constucted for the new node.
+ * @param node
+ */
+void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
+{
+    if (!nodeItem) {
+        return;
+    }
+
+    QString nodeKind = nodeItem->getNodeKind();
+
+    if (nodeKind == "Component" || nodeKind == "BlackBox") {
+
+        DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
+        NodeItem* fileItem = nodeItem->getParentNodeItem();
+
+        if (!fileItem) {
+            qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Component/BlackBox's parent item is null.";
+            return;
+        }
+
+        QString fileID = QString::number(fileItem->getID());
+
+        // check if there is already a layout and label for the parent File
+        if (!fileLayoutItems.contains(fileID)){
+            // create a new File label and add it to the File's layout
+            DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
+            QVBoxLayout* fileLayout = new QVBoxLayout();
+
+            fileLayoutItems[fileID] = fileLayout;
+            fileLayout->addWidget(fileDockItem);
+            addDockNodeItem(fileDockItem, -1, false);
+
+            resortDockItems(fileDockItem);
+            connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
+        }
+
+        // connect the new dock item to its parent file item
+        DockNodeItem* parentItem = getDockNodeItem(fileID);
+        if (parentItem) {
+            dockItem->setParentDockNodeItem(parentItem);
+            parentItem->addChildDockItem(dockItem);
+        }
+
+        if (fileLayoutItems.contains(fileID)) {
+            QVBoxLayout* fileLayout = fileLayoutItems[fileID];
+            fileLayout->addWidget(dockItem);
+            addDockNodeItem(dockItem, -1, false);
+            resortDockItems(dockItem);
+            connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
+        }
+    }
+
+    refreshDock();
+}
 /**
  * @brief DefinitionsDockScrollArea::refreshDock
  */
@@ -340,65 +401,26 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem* dockItem)
 
 
 /**
- * @brief DefinitionsDockScrollArea::nodeConstructed
- * This gets called whenever a node has been constructed.
- * It checks to see if a dock item needs to be constucted for the new node.
- * @param node
+ * @brief DefinitionsDockScrollArea::hideImplementedComponents
+ * This method is called when the BehaviourDefinitions or a
+ * ComponentImpl that is not connected to a definition is selected.
+ * It hides all the Components that already have an implementation.
  */
-void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
+void DefinitionsDockScrollArea::hideImplementedComponents()
 {
-    if (!nodeItem) {
-        return;
-    }
-
-    QString nodeKind = nodeItem->getNodeKind();
-
-    if (nodeKind == "Component" || nodeKind == "BlackBox") {
-
-        DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
-        NodeItem* fileItem = nodeItem->getParentNodeItem();
-
-        if (!fileItem) {
-            qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Component/BlackBox's parent item is null.";
-            return;
-        }
-
-        QString fileID = fileItem->getID();
-
-        // check if there is already a layout and label for the parent File
-        if (!fileLayoutItems.contains(fileID)){
-            // create a new File label and add it to the File's layout
-            DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
-            QVBoxLayout* fileLayout = new QVBoxLayout();
-
-            fileLayoutItems[fileID] = fileLayout;
-            fileLayout->addWidget(fileDockItem);
-            addDockNodeItem(fileDockItem, -1, false);
-
-            resortDockItems(fileDockItem);
-            connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
-        }
-
-        // connect the new dock item to its parent file item
-        DockNodeItem* parentItem = getDockNodeItem(fileID);
-        if (parentItem) {
-            dockItem->setParentDockNodeItem(parentItem);
-            parentItem->addChildDockItem(dockItem);
-        }
-
-        if (fileLayoutItems.contains(fileID)) {
-            QVBoxLayout* fileLayout = fileLayoutItems[fileID];
-            fileLayout->addWidget(dockItem);
-            addDockNodeItem(dockItem, -1, false);
-            resortDockItems(dockItem);
-            connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
+    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        if (dockItem) {
+            QString stringID = dockItem->getID();
+            bool convert;
+            int ID = stringID.toInt(&convert);
+            if(convert){
+                if (getNodeView() && getNodeView()->getImplementation(ID)) {
+                    dockItem->setHidden(true);
+                }
+            }
         }
     }
-
-    refreshDock();
 }
-
-
 /**
  * @brief DefinitionsDockScrollArea::showDockItemsOfKind
  * @param kind - kind of dock node items to show
@@ -436,25 +458,6 @@ void DefinitionsDockScrollArea::showAllComponents()
         dockItem->setHidden(false);
     }
 }
-
-
-/**
- * @brief DefinitionsDockScrollArea::hideImplementedComponents
- * This method is called when the BehaviourDefinitions or a
- * ComponentImpl that is not connected to a definition is selected.
- * It hides all the Components that already have an implementation.
- */
-void DefinitionsDockScrollArea::hideImplementedComponents()
-{
-    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-        QString ID = dockItem->getID();
-        if (getNodeView() && getNodeView()->getImplementation(ID)) {
-            dockItem->setHidden(true);
-        }
-    }
-}
-
-
 /**
  * @brief DefinitionsDockScrollArea::hideBlackBoxes
  */
@@ -467,6 +470,7 @@ void DefinitionsDockScrollArea::hideBlackBoxes()
         }
     }
 }
+
 
 
 /**

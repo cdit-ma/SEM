@@ -24,7 +24,7 @@ signals:
     void editMultilineData(GraphMLData* data);
 public slots:
     void updatedData(GraphMLData* data);
-    void removedData(QString dataID);
+    void removedData(int dataID);
     void addData(GraphMLData* data);
     void clearData();
 
@@ -41,7 +41,7 @@ public:
     bool removeRows(int row, int count, const QModelIndex &parent);
     Qt::ItemFlags flags(const QModelIndex &index) const;
 private:
-    int getIndex(QString ID) const;
+    int getIndex(int ID) const;
     GraphMLData* getData(int row) const;
     bool hasData() const;
 
@@ -53,8 +53,8 @@ private:
     GraphML* attachedGraphML;
 
     QStringList dataOrder;
-    QHash<QString, QString> nameLookup;
-    QHash<QString, GraphMLData*> attachedData;
+    QHash<QString, int> nameLookup;
+    QHash<int, GraphMLData*> attachedData;
     QStringList permanentlyLockedKeyNames;
     QStringList hiddenKeyNames;
     QStringList multiLineKeyNames;

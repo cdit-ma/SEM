@@ -34,7 +34,7 @@ public:
     QString toString();
 
     QStringList toStringList();
-    QStringList getBoundIDS();
+    QList<int> getBoundIDS();
 signals:
     void dataChanged(GraphMLData* data);
     void valueChanged(QString value, QString key="");

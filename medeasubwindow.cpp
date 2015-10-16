@@ -34,6 +34,7 @@ void MedeaSubWindow::setupLayout()
 void MedeaSubWindow::updateDataTable()
 {
     if(dataTable){
+        //as.
         QAbstractItemModel* tableModel = dataTable->model();
         if(tableModel){
             dataTableBox->setVisible(true);

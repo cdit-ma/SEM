@@ -505,6 +505,7 @@ void MedeaWindow::initialiseGUI()
                                 //"font-weight: bold;"
                                 "font-size: 12px;");
 
+    //minimap = 0;
     minimap = new NodeViewMinimap();
     minimap->setScene(nodeView->scene());
 
@@ -1298,9 +1299,10 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
 
-    connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), partsDock, SLOT(nodeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), hardwareDock, SLOT(nodeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_nodeDeleted(QString,QString)), definitionsDock, SLOT(nodeDeleted(QString, QString)));
+    //TODO FIX
+    connect(nodeView, SIGNAL(view_nodeDeleted(int, int)), partsDock, SLOT(nodeDeleted(int, int)));
+    connect(nodeView, SIGNAL(view_nodeDeleted(int,int)), hardwareDock, SLOT(nodeDeleted(int, int)));
+    connect(nodeView, SIGNAL(view_nodeDeleted(int,int)), definitionsDock, SLOT(nodeDeleted(int, int)));
 
     connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
@@ -1312,8 +1314,8 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
 
-    connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), hardwareDock, SLOT(edgeDeleted(QString, QString)));
-    connect(nodeView, SIGNAL(view_edgeDeleted(QString,QString)), definitionsDock, SLOT(edgeDeleted(QString, QString)));
+    connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), hardwareDock, SLOT(edgeDeleted(int, int)));
+    connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), definitionsDock, SLOT(edgeDeleted(int, int)));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
@@ -2184,7 +2186,7 @@ void MedeaWindow::on_actionExit_triggered()
  * This is called when an item (button) from the search result list is clicked.
  * It tells the view to center on the clicked item.
  */
-void MedeaWindow::on_searchResultItem_clicked(QString ID)
+void MedeaWindow::on_searchResultItem_clicked(int ID)
 {
     nodeView->selectAndCenter(0, ID);
 }
@@ -2194,7 +2196,7 @@ void MedeaWindow::on_searchResultItem_clicked(QString ID)
  * @brief MedeaWindow::on_validationItem_clicked
  * @param ID
  */
-void MedeaWindow::on_validationItem_clicked(QString ID)
+void MedeaWindow::on_validationItem_clicked(int ID)
 {
     nodeView->selectAndCenter(0, ID);
 }
@@ -2843,7 +2845,7 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
     }
 
     // update displayed text
-    if (status != "") {
+    if (!status.isEmpty()) {
         progressLabel->setText(status + "...");
     }
 
