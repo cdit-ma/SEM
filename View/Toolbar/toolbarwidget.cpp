@@ -29,10 +29,12 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     // the toolbar to have a translucent background and a mock shadow
     shadowFrame = new QFrame(this);
     shadowFrame->setStyleSheet("background-color: rgba(50,50,50,150);"
+                               //"background-color: rgba(50,50,50,200);"
                                "border-radius: 10px;");
 
     mainFrame = new QFrame(this);
     mainFrame->setStyleSheet("background-color: rgba(250,250,250,200);"
+                             //"background-color: rgba(150,150,150,200);"
                              "border-radius: 8px;");
 
     setupToolBar();
@@ -451,11 +453,13 @@ void ToolbarWidget::setupToolBar()
 
     deleteButton->setStyleSheet("padding-right: 3px;");
     setStyleSheet("QToolButton {"
+                  //"border: 1px solid rgba(100,100,100,250);"
                   "border: 1px solid;"
                   "border-color: rgba(160,160,160,250);"
-                  "background-color: rgba(250,250,250,240);"
+                  "background-color: rgba(240,240,240,240);"
                   "}"
                   "QToolButton:hover {"
+                  //"border: 1.5px solid rgba(100,100,100,250);"
                   "border: 1.5px solid;"
                   "border-color: rgba(170,170,170,250);"
                   "background-color: rgba(255,255,255,255);"

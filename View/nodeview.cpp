@@ -113,9 +113,13 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //Google Background
     //setStyleSheet("QGraphicsView{ background-color: rgba(245,245,245,255); border: 0px;}");
 
-    setStyleSheet("QGraphicsView{ background-color: rgba(170,170,170,255); border: 0px;}");
+    //setStyleSheet("QGraphicsView{ background-color: rgba(190,190,190,255); border: 0px;}");
     //setStyleSheet("QGraphicsView{ background-color: rgba(233,234,237,255); border: 0px;}");
+    //setStyleSheet("QGraphicsView{ background-color: rgb(220,220,220); border: 0px;}");
+    //setStyleSheet("QGraphicsView{ background-color: rgb(100,100,100); border: 0px;}");
 
+    // this is the original colour
+    setStyleSheet("QGraphicsView{ background-color: rgba(170,170,170,255); border: 0px;}");
 
     //Set The rubberband Mode.
     setRubberBandMode(false);

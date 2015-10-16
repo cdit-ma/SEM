@@ -137,7 +137,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
             nodeLabel = "INTERFACES";
         }else if(nodeKind.startsWith("Behaviour")){
             aspectPos = AP_TOPRIGHT;
-            nodeLabel = "WORKLOADS";
+            nodeLabel = "BEHAVIOUR";
         }else if(nodeKind.startsWith("Hardware")){
             aspectPos = AP_BOTRIGHT;
             nodeLabel = "HARDWARE";

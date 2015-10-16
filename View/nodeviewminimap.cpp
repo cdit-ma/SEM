@@ -109,6 +109,7 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     viewPath.addRect(viewport);
     path -= viewPath;
 
+    //QBrush brush(QColor(0,0,0,150));
     QBrush brush(QColor(0,0,0,100));
     painter->setBrush(brush);
     painter->setPen(Qt::NoPen);

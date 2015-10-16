@@ -447,9 +447,9 @@ void MedeaWindow::initialiseGUI()
     projectName->setStyleSheet("font-size: 16px; text-align: left; padding: 8px;");
     projectName->setFixedWidth(200);
 
-    definitionsToggle = new AspectToggleWidget("Definitions", rightPanelWidth/2, this);
-    workloadToggle = new AspectToggleWidget("Workload", rightPanelWidth/2, this);
-    assemblyToggle = new AspectToggleWidget("Assembly", rightPanelWidth/2, this);
+    definitionsToggle = new AspectToggleWidget("Interfaces", rightPanelWidth/2, this);
+    workloadToggle = new AspectToggleWidget("Behaviour", rightPanelWidth/2, this);
+    assemblyToggle = new AspectToggleWidget("Assemblies", rightPanelWidth/2, this);
     hardwareToggle = new AspectToggleWidget("Hardware", rightPanelWidth/2, this);
 
     // setup progress bar
@@ -1774,8 +1774,12 @@ void MedeaWindow::aspectToggleClicked(bool checked, int state)
         QStringList newAspects = checkedViewAspects;
         QString aspect = senderAspect->getText();
 
-        if (aspect == "Interface") {
+        if (aspect == "Interfaces") {
             aspect = "Definitions";
+        } else if (aspect == "Behaviour") {
+            aspect = "Workload";
+        } else if (aspect == "Assemblies") {
+            aspect = "Assembly";
         }
 
         if (!checked) {
