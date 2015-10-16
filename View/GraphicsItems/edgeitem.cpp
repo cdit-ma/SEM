@@ -215,9 +215,9 @@ NodeItem *EdgeItem::getDestination()
     return destination;
 }
 
-void EdgeItem::setHighlighted(bool highlighted)
+void EdgeItem::setHovered(bool highlighted)
 {
-    GraphMLItem::setHighlighted(highlighted);
+    GraphMLItem::setHovered(highlighted);
     updateBrushes();
 }
 
@@ -415,7 +415,7 @@ void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 void EdgeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(!isHighlighted()){
+    if(!isHovered()){
         emit GraphMLItem_Hovered(getID(), true);
     }
 
@@ -423,14 +423,14 @@ void EdgeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 void EdgeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(!isHighlighted()){
+    if(!isHovered()){
         emit GraphMLItem_Hovered(getID(), true);
     }
 }
 
 void EdgeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
-    if(isHighlighted()){
+    if(isHovered()){
         emit GraphMLItem_Hovered(getID(), false);
     }
 }
@@ -449,7 +449,7 @@ void EdgeItem::updateBrushes()
         TailBrush = selectedTailBrush;
         HeadBrush = selectedHeadBrush;
     }else{
-        if(isHighlighted()){
+        if(isHovered()){
             Pen.setColor(Pen.color().lighter(200));
         }
     }

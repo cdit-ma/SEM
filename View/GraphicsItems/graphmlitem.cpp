@@ -16,6 +16,7 @@ GraphMLItem::GraphMLItem(GraphML *attachedGraph, GraphMLItem::GUI_KIND kind)
     this->kind = kind;
     IS_DELETING = false;
     IS_SELECTED = false;
+    IS_HOVERED = false;
     IS_HIGHLIGHTED = false;
 
     if(attachedGraph){
@@ -135,6 +136,12 @@ void GraphMLItem::setSelected(bool selected)
     update();
 }
 
+void GraphMLItem::setHovered(bool isHovered)
+{
+    IS_HOVERED = isHovered;
+    update();
+}
+
 void GraphMLItem::setHighlighted(bool isHighlighted)
 {
     IS_HIGHLIGHTED = isHighlighted;
@@ -144,6 +151,11 @@ void GraphMLItem::setHighlighted(bool isHighlighted)
 bool GraphMLItem::isSelected()
 {
     return IS_SELECTED;
+}
+
+bool GraphMLItem::isHovered()
+{
+    return IS_HOVERED;
 }
 
 bool GraphMLItem::isHighlighted()
@@ -173,13 +185,13 @@ void GraphMLItem::handleSelection(bool setSelected, bool controlDown)
 
 void GraphMLItem::handleHighlight(bool entered)
 {
-    if(isHighlighted() != entered){
+    if(isHovered() != entered){
         emit GraphMLItem_Hovered(getID(), entered);
         //setHighlighted(entered);
     }
 }
 
-bool GraphMLItem::canHighlight()
+bool GraphMLItem::canHover()
 {
     return true;
 }

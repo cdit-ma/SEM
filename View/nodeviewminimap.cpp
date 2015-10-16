@@ -129,11 +129,16 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 
 void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
 {
-    if(viewportContainsPoint(event->pos()) && event->button() == Qt::LeftButton){
-        isPanning = true;
-        previousScenePos = mapToScene(event->pos());
-        emit minimap_Pan();
-        update();
+    if(event->button() == Qt::LeftButton){
+        if(viewportContainsPoint(event->pos())){
+            isPanning = true;
+            previousScenePos = mapToScene(event->pos());
+            emit minimap_Pan();
+            update();
+        }else{
+            qCritical() << "YO";
+            QGraphicsView::mousePressEvent(event);
+        }
     }
 }
 
@@ -155,6 +160,18 @@ void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
         previousScenePos = mapToScene(currentMousePos);
 
     }
+}
+
+void NodeViewMinimap::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    qCritical() << "mouseDoubleClickEvent";
+    QPointF previousCenter = viewport.center();
+
+    QPointF currentPos = mapToScene(event->pos());
+    QPointF delta = previousCenter - currentPos;
+    emit minimap_Pan();
+    emit minimap_Panning(delta);
+    emit minimap_Panned();
 }
 
 void NodeViewMinimap::wheelEvent(QWheelEvent *event)

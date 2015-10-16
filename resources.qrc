@@ -170,5 +170,6 @@
         <file alias="Mouse.png">Resources/Images/Actions/Mouse.png</file>
         <file alias="Contract.png">Resources/Images/Actions/Contract.png</file>
         <file alias="Expand.png">Resources/Images/Actions/Expand.png</file>
+        <file alias="ConnectNode.png">Resources/Images/Actions/ConnectNode.png</file>
     </qresource>
 </RCC>

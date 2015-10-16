@@ -1058,7 +1058,7 @@ void NodeView::importSnippet(QString fileName, QString fileData)
 
 void NodeView::scrollEvent(int delta)
 {
-     if(viewState == VS_NONE || viewState ==  VS_SELECTED){
+     if(viewState == VS_NONE || viewState ==  VS_SELECTED || viewState == VS_CONNECT || viewState == VS_CONNECTING){
         QRectF viewRect = viewport()->rect();
 
         //Turn
@@ -1076,9 +1076,6 @@ void NodeView::scrollEvent(int delta)
             }
         }
      }
-    // call this after zooming
-    aspectGraphicsChanged();
-
     // call this after zooming
     aspectGraphicsChanged();
 }
@@ -1688,13 +1685,13 @@ void NodeView::hardwareClusterChildrenViewMenuClosed(NodeItem *nodeItem)
 void NodeView::itemEntered(int ID, bool enter)
 {
     GraphMLItem* current = getGraphMLItemFromHash(ID);
-    if(current && current->canHighlight()){
-        current->setHighlighted(enter);
+    if(current && current->canHover()){
+        current->setHovered(enter);
 
         if(enter){
             GraphMLItem* prev = getGraphMLItemFromHash(highlightedID);
             if(prev){
-                prev->setHighlighted(false);
+                prev->setHovered(false);
             }
 
             highlightedID = ID;
@@ -2760,7 +2757,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
             connect(GUIItem, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_RemoveSelected(GraphMLItem*)), this, SLOT(removeFromSelection(GraphMLItem*)));
             connect(GUIItem, SIGNAL(GraphMLItem_PositionSizeChanged(GraphMLItem*,bool)), this, SLOT(keepSelectionFullyVisible(GraphMLItem*,bool)));
-            if(GUIItem->canHighlight()){
+            if(GUIItem->canHover()){
                 connect(GUIItem, SIGNAL(GraphMLItem_Hovered(int,bool)), this, SLOT(itemEntered(int,bool)));
             }
         }
@@ -3215,16 +3212,16 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
         return;
 
     }else if(viewState == VS_CONNECT || viewState == VS_CONNECTING){
-        //Check for item.
-        GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
-        if(item){
-            //Attempt to connect.
-            constructEdge(getSelectedNodeID(), item->getID());
-        }
         if(event->button() == Qt::LeftButton){
+            //Check for item.
+            GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
+            if(item){
+                //Attempt to connect.
+                constructEdge(getSelectedNodeID(), item->getID());
+            }
             setState(VS_NONE);
         }
-
+        return;
     }
 
     QGraphicsView::mouseReleaseEvent(event);
@@ -4211,13 +4208,15 @@ void NodeView::setConnectMode(bool on)
         NodeItem* srcNode = getSelectedNodeItem();
         if(srcNode){
             foreach(NodeItem* nodeItem, getConnectableNodeItems(srcNode->getID())){
+                highlightedIDs.append(nodeItem->getID());
                 nodeItem->setHighlighted(true);
             }
         }
     }else{
-        NodeItem* srcNode = getSelectedNodeItem();
-        if(srcNode){
-            foreach(NodeItem* nodeItem, getConnectableNodeItems(srcNode->getID())){
+        while(!highlightedIDs.isEmpty()){
+            int ID = highlightedIDs.takeFirst();
+            NodeItem* nodeItem = getNodeItemFromID(ID);
+            if(nodeItem){
                 nodeItem->setHighlighted(false);
             }
         }

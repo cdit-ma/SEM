@@ -492,6 +492,7 @@ private:
     QMap<int, QRectF> centeredRects;
     QMap<int, int> definitionIDs;
 
+    QList<int> highlightedIDs;
     QHash<QString, QPixmap> imageLookup;
 
 

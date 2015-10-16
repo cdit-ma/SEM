@@ -30,7 +30,7 @@ class NodeView;
 class NodeItem : public GraphMLItem
 {
     Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
+    //Q_INTERFACES(QGraphicsItem)
 
 public:
     enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_LABEL, MO_EXPANDLABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODEL_CIRCLE, MO_MODEL_TR, MO_MODEL_BR, MO_MODEL_BL, MO_MODEL_TL, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
@@ -461,8 +461,10 @@ private:
 
     ASPECT_POS aspectPos;
     QPointF aspectLockPos;
-    EditableTextItem* bottomTextLabel;
-    EditableTextItem* expandedTextLabel;
+
+    EditableTextItem* topLabel;
+    EditableTextItem* expandedLabel;
+    EditableTextItem* bottomLabel;
 
     QString nodeHardwareOS;
     QString nodeHardwareArch;
@@ -471,7 +473,7 @@ private:
     bool gotVisibleChildren;
     // GraphMLItem interface
 public slots:
-    bool canHighlight();
+    bool canHover();
 };
 
 #endif // NODEITEM_H

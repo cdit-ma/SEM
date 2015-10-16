@@ -28,7 +28,7 @@ public:
     NodeItem* getDestination();
 
 
-    void setHighlighted(bool highlighted);
+    void setHovered(bool highlighted);
     void setSelected(bool selected);
 
 signals:

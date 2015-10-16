@@ -16,6 +16,7 @@ Version 18:
 		* Implemented highlight of aspect button when the viewport is completely contained within the corresponding aspect.
 		* Added dock items for BlackBox definitions in the dock.
 			** Selecting BlackBoxInstance from the parts dock will now redirect the user to the definitions dock.
+        * Implemented double click to center view inside minimap.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.

@@ -1,7 +1,6 @@
 #ifndef GRAPHMLITEM_H
 #define GRAPHMLITEM_H
-#include <QObject>
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 #include "../../Model/graphml.h"
 #include "../../Model/graphmldata.h"
 
@@ -9,10 +8,10 @@
 class NodeView;
 class AttributeTableModel;
 
-class GraphMLItem: public QObject, public QGraphicsItem
+class GraphMLItem: public QGraphicsObject//public QObject, public QGraphicsItem
 {
     Q_OBJECT
-    Q_INTERFACES(QGraphicsItem)
+    //Q_INTERFACES(QGraphicsItem)
 
 public:
     enum GUI_KIND{NODE_ITEM, NODE_EDGE};
@@ -42,6 +41,7 @@ public:
 
 
     bool isSelected();
+    bool isHovered();
     bool isHighlighted();
     bool isNodeItem();
     bool isEdgeItem();
@@ -53,9 +53,9 @@ public:
     void handleSelection(bool setSelected, bool controlDown);
     void handleHighlight(bool entered);
 public slots:
-    virtual bool canHighlight();
-    virtual void setHighlighted(bool isHighlighted);
-
+    virtual bool canHover();
+    virtual void setHovered(bool isHovered);
+    virtual void setHighlighted(bool isHighlight);
     virtual void setSelected(bool selected);
 
     virtual void graphMLDataChanged(GraphMLData*) = 0;
@@ -79,6 +79,7 @@ signals:
 private:
     bool IS_DELETING;
     bool IS_SELECTED;
+    bool IS_HOVERED;
     bool IS_HIGHLIGHTED;
     GraphML* attachedGraph;
     AttributeTableModel* table;
