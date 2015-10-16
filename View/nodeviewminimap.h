@@ -25,6 +25,7 @@ private:
     QRectF viewport;
     bool viewportContainsPoint(QPointF localPos);
     bool isPanning;
+
 protected:
     void drawForeground(QPainter *painter, const QRectF &rect);
 

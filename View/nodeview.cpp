@@ -408,13 +408,15 @@ QPointF NodeView::getModelScenePos()
 }
 
 /**
- * @brief NodeView::adjustModelPosition When the model position is changed, we need to translate all of the edges.
+ * @brief NodeView::adjustModelPosition
  * @param delta
  */
 void NodeView::adjustModelPosition(QPointF delta)
 {
-    if(getModelItem()){
+    if (getModelItem()) {
         getModelItem()->adjustPos(delta);
+        // call this after the scene/model has been moved
+        aspectGraphicsChanged();
     }
 }
 
@@ -823,10 +825,14 @@ void NodeView::constructNewView(QString nodeID)
         subWindow->show();
         newView->view_LockCenteredGraphML(nodeID);
 
+        qDebug() << "Constructed new view";
+
     } else {
         delete subWindow;
     }
 }
+
+
 QList<NodeItem *> NodeView::getNodeItemsOfKind(QString kind, QString ID, int depth)
 {
     QList<NodeItem*> nodes;
@@ -1097,6 +1103,7 @@ void NodeView::scrollEvent(int delta)
         }
     }
 
+    // call this after zooming
     aspectGraphicsChanged();
 }
 
@@ -1217,6 +1224,7 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
         }
     }
 
+    // call this after turning aspect(s) on/off
     aspectGraphicsChanged();
 }
 
@@ -2077,7 +2085,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
     // the node's label is automatically selected and editable
-    if(toolbarDockConstruction && SELECT_ON_CONSTRUCTION){
+    if (toolbarDockConstruction && SELECT_ON_CONSTRUCTION) {
         clearSelection(true, false);
         // why not update menu/toolbar actions here?
         appendToSelection(nodeItem, false);
@@ -3180,7 +3188,6 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
             showToolbar(event->pos());
         }
 
-        aspectGraphicsChanged();
         return;
 
     }else if(viewState == VS_CONNECT || viewState == VS_CONNECTING){

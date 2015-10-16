@@ -5,7 +5,7 @@
 #include <QPen>
 #define GRID_COUNT 50
 //#define LINEWIDTH 400
-#define LINEWIDTH 20
+#define LINEWIDTH 10
 #define GRACE 1000
 
 #define ZOOM_SCALE_INCREMENTOR 1.05
@@ -66,18 +66,20 @@ bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 
 void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
-    Q_UNUSED(rect);
+    //Q_UNUSED(rect);
+
     // this darkens the area in the scene that's not currently visualised by the view
     // it also still draws a rectangle representing what is currently shown in the view
-    if (scene()) {
+    /*if (scene()) {
         QRectF scenePath = sceneRect();
-        double padding = sceneRect().width()/8;
+        double padding = sceneRect().width()/4;
         scenePath.adjust(-padding, -padding, padding, padding);
 
         QPainterPath path, viewPath;
         path.addRect(scenePath);
         viewPath.addRect(viewport);
         path -= viewPath;
+
 
         painter->setPen(Qt::NoPen);
         QBrush brush(QColor(0,0,0,100));
@@ -91,6 +93,7 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
         painter->setBrush(brush);
 
 
+
         QPen pen(QColor(250,250,250));
         if(isPanning){
             pen.setColor(QColor(0,0,250));
@@ -98,7 +101,29 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
         pen.setWidth(LINEWIDTH);
         painter->setPen(pen);
         painter->drawRect(viewport);
+    }*/
+
+
+    QPainterPath path, viewPath;
+    path.addRect(rect);
+    viewPath.addRect(viewport);
+    path -= viewPath;
+
+    QBrush brush(QColor(0,0,0,100));
+    painter->setBrush(brush);
+    painter->setPen(Qt::NoPen);
+    painter->drawPath(path);
+
+    QPen pen(Qt::white);
+    if (isPanning) {
+        pen.setColor(Qt::blue);
     }
+
+    //pen.setWidth(LINEWIDTH);
+    pen.setWidth(rect.height()/100);
+    painter->setPen(pen);
+    painter->setBrush(Qt::NoBrush);
+    painter->drawRect(viewport);
 }
 
 

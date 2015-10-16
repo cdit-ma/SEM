@@ -3157,7 +3157,7 @@ QPolygonF NodeItem::resizePolygon()
 
 void NodeItem::paintPixmap(QPainter *painter, QRectF place, QString alias, QString imageName)
 {
-    painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), getNodeView()->getImage(alias, imageName));
+     painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), getNodeView()->getImage(alias, imageName));
 }
 
 void NodeItem::sendSelectSignal(bool setSelected, bool controlDown)
