@@ -1156,15 +1156,17 @@
 				<xsl:variable name="memberName" select="$instNode/gml:data[@key=$transformNodeLabelKey]/text()" />
 				<xsl:variable name="memberValue" select="$instNode/gml:data[@key=$transformNodeValueKey]/text()" />
 				<!-- if (value == "$TIMEOFDAY") memberValue = "ACE_OS::gettimeofday ().msec ()"; ??? -->
-				<xsl:choose>
-				<xsl:when test="$topLevel = 'true'">
-					<!-- top level aggregate members need different format -->
-					<xsl:value-of select="concat($varName, '-&gt;', $memberName, ' (', $memberValue, ');&#xA;')" />
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:value-of select="concat($recursed, '.', $memberName, ' = ', $memberValue, ';&#xA;')" />
-				</xsl:otherwise>
-				</xsl:choose>
+				<xsl:if test="$memberValue != ''">
+					<xsl:choose>
+					<xsl:when test="$topLevel = 'true'">
+						<!-- top level aggregate members need different format -->
+						<xsl:value-of select="concat($varName, '-&gt;', $memberName, ' (', $memberValue, ');&#xA;')" />
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="concat($recursed, '.', $memberName, ' = ', $memberValue, ';&#xA;')" />
+					</xsl:otherwise>
+					</xsl:choose>
+				</xsl:if>
 			</xsl:when>
 			<xsl:when test="$instType = 'AggregateInstance'">
 				<xsl:variable name="aggregateName" select="$instNode/gml:data[@key=$transformNodeLabelKey]/text()" />
