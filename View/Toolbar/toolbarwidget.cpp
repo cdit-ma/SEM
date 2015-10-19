@@ -325,6 +325,8 @@ void ToolbarWidget::setupTheme(int theme)
     QString hoverBorder = "1.5px solid rgba(170,170,170,250);";
     QString mainBackground = "rgba(250,250,250,200);";
     QString shadowBackground = "rgba(50,50,50,150);";
+    QString rbColor = "black;";
+    QString rbSelectedColor = "green";
 
     switch (theme) {
     case THEME_DARK:
@@ -332,6 +334,8 @@ void ToolbarWidget::setupTheme(int theme)
         hoverBorder = "1.5px solid rgba(100,100,100,250);";
         mainBackground = "rgba(150,150,150,200);";
         shadowBackground = "rgba(50,50,50,200);";
+        rbColor = "white;";
+        rbSelectedColor = "yellow;";
         break;
     default:
         break;
@@ -355,10 +359,11 @@ void ToolbarWidget::setupTheme(int theme)
                   "width: 15px;"
                   "}"
                   "QRadioButton {"
+                  "color:" + rbColor +
                   "padding: 8px 10px 8px 8px;"
                   "}"
                   "QRadioButton::checked {"
-                  "color: green;"
+                  "color:" + rbSelectedColor +
                   "}"
                   );
 
