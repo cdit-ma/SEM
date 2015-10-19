@@ -1,6 +1,7 @@
 #include "aggregateinstance.h"
 #include "memberinstance.h"
 #include "aggregate.h"
+#include "vectorinstance.h"
 #include <QDebug>
 
 AggregateInstance::AggregateInstance():Node(Node::NT_DEFINSTANCE)
@@ -60,43 +61,7 @@ bool AggregateInstance::canConnect(Node* attachableObject)
             qCritical() << "AggregateInstance is already connected in directly to Node";
             return false;
         }
-    }else{
-        //
-
     }
-/*
-
-
-    if(!(topMostParent->isImpl() || topMostParent->isInstance()) && !topMostParent->isDefinition()){
-        //Check for ownership in the same file, for circular checks
-        if(!this->getParentNode()->isImpl()){
-            if(aggregate){
-                if(!aggregate->getParentNode()->isAncestorOf(this)){
-                    return false;
-                }
-            }
-            if(aggregateInstance){
-                if(aggregateInstance->getParentNode()->isAncestorOf(this)){
-                    return false;
-                }
-                Node* aDefinition = aggregateInstance->getDefinition();
-                if(aDefinition && aDefinition->getParentNode() && !aDefinition->getParentNode()->isAncestorOf(this)){
-                    return false;
-                }
-            }
-
-        }
-
-    }
-
-
-    //Check for connection.
-
-
-
-
-
-*/
 
     return Node::canConnect(attachableObject);
 }
@@ -105,10 +70,11 @@ bool AggregateInstance::canAdoptChild(Node *child)
 {
     MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(child);
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
+    VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(child);
 
-    if(!memberInstance && !aggregateInstance){
+    if(!memberInstance && !aggregateInstance  && !vectorInstance){
 #ifdef DEBUG_MODE
-        qWarning() << "AggregateInstance can only adopt MemberInstance or AggregateInstance";
+        qWarning() << "AggregateInstance can only adopt MemberInstance or AggregateInstance or VectorInstance";
 #endif
         return false;
     }

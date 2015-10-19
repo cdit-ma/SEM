@@ -257,6 +257,9 @@ private:
     bool setupAggregateRelationship(EventPort* eventPort, Aggregate* aggregate);
     bool teardownAggregateRelationship(EventPort* EventPort, Aggregate* aggregate);
 
+    bool setupVectorRelationship(Vector* vector, Aggregate* aggregate);
+    bool teardownVectorRelationship(Vector* vector, Aggregate* aggregate);
+
 
     //Checks to see if the provided GraphML document is Valid XML.
     bool isGraphMLValid(QString inputGraphML);
@@ -400,6 +403,7 @@ private:
     int currentActionItemID;
 
     bool questionAnswer;
+
     bool DELETING;
 
 

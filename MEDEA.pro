@@ -121,7 +121,9 @@ HEADERS += \
     GUI/shortcutdialog.h \
     View/GraphicsItems/edgeitemarrow.h \
     View/Toolbar/toolbarmenu.h \
-    View/Toolbar/toolbarmenuaction.h
+    View/Toolbar/toolbarmenuaction.h \
+    Model/InterfaceDefinitions/vector.h \
+    Model/InterfaceDefinitions/vectorinstance.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -210,7 +212,9 @@ SOURCES += \
     GUI/shortcutdialog.cpp \
     View/GraphicsItems/edgeitemarrow.cpp \
     View/Toolbar/toolbarmenu.cpp \
-    View/Toolbar/toolbarmenuaction.cpp
+    View/Toolbar/toolbarmenuaction.cpp \
+    Model/InterfaceDefinitions/vector.cpp \
+    Model/InterfaceDefinitions/vectorinstance.cpp
 
 FORMS +=
 

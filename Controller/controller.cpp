@@ -58,7 +58,8 @@ NewController::NewController()
     definitionNodeKinds << "InEventPort"  << "OutEventPort";
     definitionNodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
     definitionNodeKinds << "AggregateInstance";
-    definitionNodeKinds << "ComponentImpl";
+    definitionNodeKinds << "ComponentImpl" << "Vector" << "VectorInstance";
+
 
 
 
@@ -651,7 +652,6 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<QStringLi
         }
 
         constructEdgeGUI(edge);
-
     }
 
 
@@ -1547,6 +1547,12 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     if(nodeKind == "Attribute"){
         data.append(new GraphMLData(typeKey, "String"));
     }
+    if(nodeKind == "Vector"){
+        GraphMLKey* sizeKey = constructGraphMLKey("max_size", "int", "node");
+        data.append(new GraphMLData(sizeKey, "0"));
+        data.append(new GraphMLData(typeKey, ""));
+    }
+
     if(nodeKind == "AttributeInstance"){
         GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
         data.append(new GraphMLData(valueKey));
@@ -1612,7 +1618,7 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
     bool requiresLabelAndType = false;
     QString definitionKind = definition->getDataValue("kind");
 
-    if(definitionKind == "Attribute" || definitionKind.startsWith("Member")){
+    if(definitionKind == "Attribute" || definitionKind == "Vector" || definitionKind.startsWith("Member")){
         requiresLabelAndType = true;
     }
 
@@ -2004,10 +2010,16 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
         //If Edge represents an Implementation relationship; Tear it down.
         teardownDefinitionRelationship(destination, source, SETUP_AS_IMPL);
     }else if(edge->isAggregateLink()){
-        //If Edge represents an Implementation relationship; Tear it down.
         EventPort* eventPort = dynamic_cast<EventPort*>(source);
+        Vector* vector = dynamic_cast<Vector*>(source);
         Aggregate* aggregate = dynamic_cast<Aggregate*>(destination);
-        teardownAggregateRelationship(eventPort, aggregate);
+        if(eventPort && aggregate){
+            teardownAggregateRelationship(eventPort, aggregate);
+        }else if(vector && aggregate){
+            teardownVectorRelationship(vector, aggregate);
+        }else{
+            qCritical() << "Unknown AggregateLink!";
+        }
     }else if(edge->isComponentLink()){
         // UnBind Topics Together.
         GraphMLData* sourceTopicName = source->getData("topicName");
@@ -2603,6 +2615,10 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
         return new BlackBox();
     }else if(nodeKind == "BlackBoxInstance"){
         return new BlackBoxInstance();
+    }else if(nodeKind == "Vector"){
+        return new Vector();
+    }else if(nodeKind == "VectorInstance"){
+        return new VectorInstance();
     }else{
         qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
         return new BlankNode();
@@ -2693,6 +2709,7 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
     GraphMLData* def_Sort = definition->getData("sortOrder");
     GraphMLData* child_Sort = child->getData("sortOrder");
 
+    QString childKind = child->getNodeKind();
     bool bindTypes = true;
     bool bindLabels = false;
     bool bindSort = false;
@@ -2704,7 +2721,7 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
         if(child->getDataValue("kind") == "ComponentInstance" || child->getDataValue("kind") == "BlackBoxInstance"){
             //Allow ComponentInstance and BlackBoxInstance to have unique labels
             bindLabels = false;
-        }else if(child->getDataValue("kind") == "AggregateInstance"){
+        }else if(childKind == "AggregateInstance" || childKind == "VectorInstance"){
             //Allow Aggregates to contain Aggregate Instances with unique labels
             if(child->getParentNode()->getDataValue("kind") == "Aggregate"){
                 bindLabels = false;
@@ -2784,6 +2801,7 @@ bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
                 int instancesConnected = constructDefinitionRelative(node, child, instance);
 
                 if(instancesConnected == 0){
+                    qCritical() << child;
                     qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << node->toString();
                     return false;
                 }
@@ -2881,6 +2899,7 @@ bool NewController::setupAggregateRelationship(EventPort *eventPort, Aggregate *
 		if(edge){
 			edge->setGenerated(true);
 		}
+        qCritical() << "GG";
     }
 
     if(!edge){
@@ -2950,6 +2969,65 @@ bool NewController::teardownAggregateRelationship(EventPort *eventPort, Aggregat
         }
     }else{
         return false;
+    }
+
+    return true;
+}
+
+bool NewController::setupVectorRelationship(Vector *vector, Aggregate *aggregate)
+{
+    if(!(vector && aggregate)){
+        qCritical() << "setupVectorRelationship(): EventPort or Aggregate is NULL.";
+        return false;
+    }
+
+    //Check for a connecting Edge between the eventPort and aggregate.
+    Edge* edge = vector->getConnectingEdge(aggregate);
+
+
+    GraphMLKey* labelKey = constructGraphMLKey("label", "string", "edge");
+
+    //Check for the existance of the Edge constructed.
+    if(!edge){
+        qCritical() << "setupVectorRelationship(): Edge between Vector and Aggregate doesn't exist!";
+        return false;
+    }
+
+    //Set Label of Edge.
+    if(!edge->getData(labelKey)){
+        GraphMLData* label = new GraphMLData(labelKey, "Uses Aggregate");
+        attachGraphMLData(edge, label, false);
+    }
+    //Set AutoGenerated.
+
+
+    //Set Type
+    GraphMLData* vectorType = vector->getData("type");
+    GraphMLData* aggregateLabel = aggregate->getData("label");
+
+    if(vectorType && aggregateLabel){
+        aggregateLabel->bindData(vectorType);
+        vectorType->setValue(aggregateLabel->getValue());
+    }else{
+        return false;
+    }
+
+    return true;
+
+}
+
+bool NewController::teardownVectorRelationship(Vector *vector, Aggregate *aggregate)
+{
+    if(!(vector && aggregate)){
+        qCritical() << "teardownVectorRelationship(): EventPort or Aggregate is NULL.";
+        return false;
+    }
+
+    //Unset Type information;
+    GraphMLData* vectorType = vector->getData("type");
+    if(vectorType){
+        vectorType->unsetParentData();
+        vectorType->clearValue();
     }
 
     return true;
@@ -3064,8 +3142,15 @@ void NewController::constructEdgeGUI(Edge *edge)
             setupDefinitionRelationship(dst, src, SETUP_AS_IMPL);
         }else if(edge->isAggregateLink()){
             EventPort* eventPort = dynamic_cast<EventPort*>(src);
+            Vector* vector = dynamic_cast<Vector*>(src);
             Aggregate* aggregate = dynamic_cast<Aggregate*>(dst);
-            setupAggregateRelationship(eventPort, aggregate);
+            if(eventPort && aggregate){
+                setupAggregateRelationship(eventPort, aggregate);
+            }else if(vector && aggregate){
+                setupVectorRelationship(vector, aggregate);
+            }else{
+                qCritical() << "Unknown AggregateLink!";
+            }
         }
     }
     if(src->getNodeKind().contains("PortDelegate") || dst->getNodeKind().contains("PortDelegate")){

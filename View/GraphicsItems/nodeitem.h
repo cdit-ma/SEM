@@ -232,6 +232,8 @@ signals:
 
 
 public slots:
+    void labelEditModeRequest();
+
     void childMoved();
 
     void zoomChanged(qreal zoom);
@@ -290,11 +292,15 @@ private:
 
 //USED METHODS
     QRectF smallIconRect() const;
+
     QRectF iconRect() const;
-    QRectF lockIconRect();
-    QRectF connectIconRect();
-    QRectF expandedIconRect();
-    QRectF deploymentIconRect();
+
+    QRectF iconRect_TopLeft() const;
+    QRectF iconRect_TopRight() const;
+    QRectF iconRect_BottomLeft() const;
+    QRectF iconRect_BottomRight() const;
+
+
 
     QString getIconURL();
 
@@ -306,7 +312,6 @@ private:
     bool hasIcon;
     bool showDeploymentWarningIcon;
 
-    bool compareTo2Decimals(qreal num1, qreal num2);
 
     bool isInResizeMode();
     bool isMoveable();
@@ -369,6 +374,7 @@ private:
 
     QString nodeKind;
     QString nodeLabel;
+    QString nodeType;
     QString fileID;
 
     bool isNodeExpanded;
@@ -470,6 +476,10 @@ private:
     QString nodeHardwareOS;
     QString nodeHardwareArch;
     bool nodeHardwareLocalHost;
+
+    bool usesType;
+
+    QString editableDataKey;
 
     bool gotVisibleChildren;
     // GraphMLItem interface

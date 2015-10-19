@@ -90,8 +90,14 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     HAS_DEFINITION = false;
     IS_IMPL_OR_INST = false;
 
+    usesType = false;
+    editableDataKey = "type";
+
     if(node){
         IS_IMPL_OR_INST = node->isInstance() || node->isImpl();
+    }
+    if(node->getNodeKind().endsWith("EventPort") || node->getNodeKind() == "Vector"){
+        usesType = true;
     }
 
     currentResizeMode = NodeItem::NO_RESIZE;
@@ -99,6 +105,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     //Setup labels.
     nodeLabel = "";
+    nodeType = "";
     topLabel = 0;
     expandedLabel = 0;
     bottomLabel = 0;
@@ -654,8 +661,6 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         return;
     }
 
-
-
     //Background
     if(renderState > RS_NONE){
         QBrush bodyBrush = this->bodyBrush;
@@ -771,36 +776,41 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(renderState == RS_FULL){
         //If a Node has a Definition, paint a definition icon
         if(HAS_DEFINITION){
-            paintPixmap(painter, lockIconRect(), "Actions", "Definition");
+            paintPixmap(painter, iconRect_TopLeft(), "Actions", "Definition");
         }else if (nodeKind == "HardwareCluster") {
-            paintPixmap(painter, lockIconRect(), "Actions", "MenuCluster");
+            paintPixmap(painter, iconRect_TopLeft(), "Actions", "MenuCluster");
         }
         if(canNodeBeConnected){
             //Paint connect Icon
-            paintPixmap(painter, connectIconRect(), "Actions", "ConnectTo");
+            paintPixmap(painter, iconRect_TopRight(), "Actions", "ConnectTo");
 
             QPen newPen(Qt::gray);
             newPen.setWidthF(0.5);
             painter->setPen(newPen);
-            painter->drawEllipse(connectIconRect());
+            painter->drawEllipse(iconRect_TopRight());
         }
 
         if(canNodeBeExpanded){
             if(gotVisibleChildren){
                 if(isExpanded()){
-                    paintPixmap(painter, expandedIconRect(), "Actions", "Contract");
+                    paintPixmap(painter, iconRect_BottomRight(), "Actions", "Contract");
                 }else{
-                    paintPixmap(painter, expandedIconRect(), "Actions", "Expand");
+                    paintPixmap(painter, iconRect_BottomRight(), "Actions", "Expand");
                 }
             }
         }
 
+        if(usesType && !nodeType.isEmpty()){
+            paintPixmap(painter, iconRect_BottomLeft(), "Items", "Aggregate");
+        }
     }
+
     if(renderState >= RS_REDUCED){
         //If this Node has a Deployment Warning, paint a warning Icon
         if(showDeploymentWarningIcon){
-            paintPixmap(painter, deploymentIconRect(), "Actions", "Warning");
+            paintPixmap(painter, iconRect_TopRight(), "Actions", "Warning");
         }
+
     }
     //Draw Rect
     //painter->drawRect(iconRect());
@@ -991,7 +1001,7 @@ bool NodeItem::mouseOverExpandedLabel(QPointF mousePosition)
 bool NodeItem::mouseOverDeploymentIcon(QPointF mousePosition)
 {
     if(showDeploymentWarningIcon){
-        return deploymentIconRect().contains(mousePosition);
+        return iconRect_TopRight().contains(mousePosition);
     }
     return false;
 }
@@ -999,7 +1009,7 @@ bool NodeItem::mouseOverDeploymentIcon(QPointF mousePosition)
 bool NodeItem::mouseOverDefinition(QPointF mousePosition)
 {
     if (HAS_DEFINITION){
-        return lockIconRect().contains(mousePosition);
+        return iconRect_TopLeft().contains(mousePosition);
     }
     return false;
 }
@@ -1032,7 +1042,7 @@ bool NodeItem::mouseOverTopBar(QPointF mousePosition)
 bool NodeItem::mouseOverHardwareMenu(QPointF mousePosition)
 {
     if (IS_HARDWARE_CLUSTER) {
-        if(lockIconRect().contains(mousePosition)){
+        if(iconRect_TopLeft().contains(mousePosition)){
             return true;
         }
     }
@@ -1042,7 +1052,7 @@ bool NodeItem::mouseOverHardwareMenu(QPointF mousePosition)
 bool NodeItem::mouseOverConnect(QPointF mousePosition)
 {
     if(canNodeBeConnected){
-        return connectIconRect().contains(mousePosition);
+        return iconRect_TopRight().contains(mousePosition);
     }
     return false;
 }
@@ -1050,7 +1060,7 @@ bool NodeItem::mouseOverConnect(QPointF mousePosition)
 bool NodeItem::mouseOverExpand(QPointF mousePosition)
 {
     if(canNodeBeExpanded){
-        return expandedIconRect().contains(mousePosition);
+        return iconRect_BottomRight().contains(mousePosition);
     }
     return false;
 }
@@ -1059,7 +1069,7 @@ bool NodeItem::mouseOverExpand(QPointF mousePosition)
 NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
 {
     //Check if the Mouse is in the Bottom Right Corner.
-    if(expandedIconRect().contains(mousePosition)){
+    if(iconRect_BottomRight().contains(mousePosition)){
         return RESIZE;
     }
 
@@ -1459,6 +1469,11 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
         }else if(keyName == "os"){
             nodeHardwareOS = value;
             update();
+        }else if(keyName == "type"){
+
+            this->nodeType = value;
+            qCritical() << this->getNodeKind() << " TYPE UPDATED: " << nodeType;
+            update();
         }
     }
 }
@@ -1732,22 +1747,6 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
                 updateModelSize();
             }
             break;
-        case MO_TOP_LABEL:
-            if(isDataEditable("label")){
-                topLabel->setEditMode(true);
-            }
-            break;
-        case MO_BOT_LABEL:
-            if(isDataEditable("label")){
-                bottomLabel->setEditMode(true);
-            }
-            break;
-        case MO_EXPANDLABEL:
-            if(isDataEditable("label")){
-                expandedLabel->setEditMode(true);
-            }
-            break;
-
         case MO_RESIZE_HOR:
             //Continue
         case MO_RESIZE_VER:
@@ -2036,96 +2035,53 @@ QRectF NodeItem::iconRect() const
  * @brief NodeItem::lockIconRect
  * @return The QRectF which represents the position for the Lock Icon
  */
-QRectF NodeItem::lockIconRect()
-{
-    //Calculate the size of the lock icon
-
-    qreal iconSize = SMALL_ICON_RATIO * minimumWidth;
-    //qreal iconSize = ((1 - ICON_RATIO) * minimumWidth) / 1;
-
-    //Construct a Rectangle to represent the icon size at the origin.
-    QRectF iconRect = smallIconRect();
-
-    //Translate to move the icon to its position
-    qreal itemMargin = (getItemMargin());// * .75);
-    int x = itemMargin;//itemMargin;
-    int y = itemMargin;//itemMargin;
-    iconRect.moveTopLeft(QPointF(x, y));
-
-    return iconRect;
-}
-
-QRectF NodeItem::connectIconRect()
+QRectF NodeItem::iconRect_TopLeft() const
 {
     //Construct a Rectangle to represent the icon size at the origin.
     QRectF iconRect = smallIconRect();
 
     //Translate to move the icon to its position
-    qreal itemMargin = (getItemMargin());// * .75);
-    int x = itemMargin + width;//itemMargin;
-    int y = itemMargin;//itemMargin;
-    iconRect.moveTopRight(QPointF(x, y));
-    //iconRect.moveTopRight(QPointF(itemMargin + width, itemMargin + iconRect.height()));
-
-
-    /*
-    //Calculate the size of the lock icon
-    int iconSize = ((1 - ICON_RATIO) * minimumWidth) / 1;
-
-    //Construct a Rectangle to represent the icon size at the origin.
-    QRectF iconRect = QRectF(0, 0, iconSize, iconSize);
-
-    //Translate to move the icon to its position
-    qreal itemMargin = getItemMargin() * .75;
-    int x = width + itemMargin + itemMargin;
-    int y = itemMargin;
-
-    iconRect.moveTopRight(QPointF(x,y));*/
+    qreal itemMargin = getItemMargin();
+    iconRect.moveTopLeft(QPointF(itemMargin, itemMargin));
 
     return iconRect;
 }
 
-QRectF NodeItem::expandedIconRect()
+QRectF NodeItem::iconRect_TopRight() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF iconRect = smallIconRect();
+
+    //Translate to move the icon to its position
+    qreal itemMargin = (getItemMargin());
+    iconRect.moveTopRight(QPointF(itemMargin + width, itemMargin));
+    return iconRect;
+}
+
+QRectF NodeItem::iconRect_BottomLeft() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF iconRect = smallIconRect();
+
+    //Translate to move the icon to its position
+    qreal itemMargin = (getItemMargin());
+    iconRect.moveBottomLeft(QPointF(itemMargin, itemMargin + minimumHeight));
+    return iconRect;
+}
+
+QRectF NodeItem::iconRect_BottomRight() const
 {
     //Construct a Rectangle to represent the icon size at the origin.
     qreal iconSize = MARGIN_RATIO * minimumWidth;
     QRectF iconRect =  QRectF(0, 0, iconSize, iconSize);
 
     //Translate to move the icon to its position
-    qreal itemMargin = (getItemMargin());// * .75);
-    int x = itemMargin;
-    int y = itemMargin;
+    qreal itemMargin = (getItemMargin());
     iconRect.moveBottomRight(QPointF(itemMargin + width, itemMargin + height));
-
     return iconRect;
 }
 
-/**
- * @brief NodeItem::deploymentIconRect
- * @return The QRectF which represents the position for the Deployment Icon
- */
-QRectF NodeItem::deploymentIconRect()
-{
-    //Calculate the size of the lock icon
-    qreal iconSize = ((1 - ICON_RATIO) * minimumWidth) / 1;
 
-    //Construct a Rectangle to represent the icon size at the origin.
-    QRectF deploymentIcon = QRectF(0,0, iconSize, iconSize);
-
-    //Translate to move the icon to its position
-    deploymentIcon.translate(getItemMargin() + width - iconSize, getItemMargin());
-
-    return deploymentIcon;
-
-}
-
-bool NodeItem::compareTo2Decimals(qreal num1, qreal num2)
-{
-    int number1To3 = qRound(num1 * 100.0);
-    int number2To3 = qRound(num2 * 100.0);
-
-    return number1To3 == number2To3;
-}
 
 bool NodeItem::isInResizeMode()
 {
@@ -2693,6 +2649,10 @@ void NodeItem::setupLabel()
     connect(topLabel, SIGNAL(textUpdated(QString)),this, SLOT(labelUpdated(QString)));
     connect(topLabel, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
 
+    connect(topLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
+    connect(expandedLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
+    connect(bottomLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
+
     connect(expandedLabel, SIGNAL(textUpdated(QString)),this, SLOT(labelUpdated(QString)));
     connect(expandedLabel, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
 
@@ -2730,7 +2690,7 @@ void NodeItem::setupLabel()
     topLabel->setPos(labelX, labelY);
 
     QPointF topLabelPos = QPointF(getItemMargin(), getItemMargin()/2);
-    QPointF bottomLabelPos = boundingRect().bottomLeft() + QPointF(getItemMargin(), -bottomLabel->boundingRect().height() - getItemMargin()/2);
+    QPointF bottomLabelPos = iconRect_BottomLeft().topRight();
 
     topLabel->setPos(topLabelPos);
     bottomLabel->setPos(bottomLabelPos);
@@ -2758,6 +2718,7 @@ void NodeItem::setupGraphMLConnections()
         GraphMLData* hData = modelEntity->getData("height");
         GraphMLData* wData = modelEntity->getData("width");
 
+        GraphMLData* typeData = modelEntity->getData("type");
         GraphMLData* kindData = modelEntity->getData("kind");
         GraphMLData* labelData = modelEntity->getData("label");
 
@@ -2804,6 +2765,10 @@ void NodeItem::setupGraphMLConnections()
 
         if(kindData){
             connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
+        }
+
+        if(usesType){
+            connect(typeData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
         }
     }
 }
@@ -2976,6 +2941,7 @@ void NodeItem::retrieveGraphMLData()
         graphMLDataChanged(getGraphML()->getData("x"));
         graphMLDataChanged(getGraphML()->getData("y"));
         graphMLDataChanged(getGraphML()->getData("label"));
+        graphMLDataChanged(getGraphML()->getData("type"));
     }
 }
 
@@ -3154,6 +3120,21 @@ int NodeItem::getChildrenViewMode()
     return CHILDREN_VIEW_MODE;
 }
 
+void NodeItem::labelEditModeRequest()
+{
+    EditableTextItem* textItem = qobject_cast<EditableTextItem*>(QObject::sender());
+    if(textItem){
+        QString dataKey = "label";
+        if(textItem == bottomLabel){
+            dataKey = editableDataKey;
+        }
+
+        if(isDataEditable(dataKey)){
+            textItem->setEditMode(true);
+        }
+    }
+}
+
 
 void NodeItem::childMoved()
 {
@@ -3223,7 +3204,7 @@ QMenu *NodeItem::getChildrenViewOptionMenu()
 QRectF NodeItem::geChildrenViewOptionMenuSceneRect()
 {
     if (IS_HARDWARE_CLUSTER) {
-        QRectF menuButtonRect = mapRectToScene(lockIconRect());
+        QRectF menuButtonRect = mapRectToScene(iconRect_TopLeft());
         return menuButtonRect;
     }
     return QRectF();

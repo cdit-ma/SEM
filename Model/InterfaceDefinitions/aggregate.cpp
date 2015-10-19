@@ -1,6 +1,7 @@
 #include "aggregate.h"
 #include "member.h"
 #include "aggregateinstance.h"
+#include "vectorinstance.h"
 #include "eventport.h"
 #include <QDebug>
 Aggregate::Aggregate(): Node(Node::NT_DEFINITION)
@@ -44,9 +45,10 @@ bool Aggregate::canConnect(Node* attachableObject)
 bool Aggregate::canAdoptChild(Node *child)
 {
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
+    VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(child);
     Member* member = dynamic_cast<Member*>(child);
 
-    if(!member && !aggregateInstance){
+    if(!member && !aggregateInstance && !vectorInstance){
 #ifdef DEBUG_MODE
         qWarning() << "Aggregate can only adopt Member/Instances";
 #endif

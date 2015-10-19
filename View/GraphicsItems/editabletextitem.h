@@ -8,6 +8,7 @@ class EditableTextItem : public QGraphicsTextItem
     Q_OBJECT
 public:
     explicit EditableTextItem(QGraphicsItem *parent = 0, int maximumLength = 64);
+    QRectF boundingRect() const;
     void setEditMode(bool editMode = true);
 
     void setFontSize(qreal fontSize);
@@ -18,8 +19,11 @@ public:
     QString getFullValue();
     void setEditable(bool edit);
 
+
+
 signals:
     void textUpdated(QString data);
+    void editableItem_EditModeRequested();
 
     void editableItem_hasFocus(bool hasFocus);
 
@@ -28,11 +32,10 @@ protected:
     void focusInEvent(QFocusEvent*);
     void focusOutEvent(QFocusEvent* event);
     void keyPressEvent(QKeyEvent *event);
-
-
-
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 private:
     QString getTruncatedText(const QString text );
+
 
     bool editable;
     bool centerJustified;
@@ -42,8 +45,6 @@ private:
     qreal textWidth;
     int maxLength;
     QTextDocument* doc;
-
-
 };
 
 #endif // EDITABLETEXTITEM_H

@@ -947,17 +947,18 @@ void NodeView::aspectGraphicsChanged()
     }
     */
 
+    // clear any highlight
+
     QRectF viewSceneRect = getVisibleRect();
+
     foreach(NodeItem* aspect, getModelItem()->getChildNodeItems()){
-        if(aspect->sceneBoundingRect().contains(viewSceneRect)){
+        if(aspect->isVisible() && aspect->sceneBoundingRect().contains(viewSceneRect)){
             //Aspect fully contains view
             emit view_highlightAspectButton(aspectIDs[aspect->getID()]);
             return;
         }
     }
-    // clear any highlight
     emit view_highlightAspectButton();
-    return;
 }
 
 
@@ -2094,9 +2095,9 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     if(nodeKind.endsWith("Definitions")){
         QString aspectName = nodeKind.replace("Definitions","");
         if (aspectName == "Interface") {
-            aspectName = "Definitions";
-        } else if (aspectName == "Behaviour") {
-            aspectName = "Workload";
+            aspectName = "Interfaces";
+        } else if (aspectName == "Assembly") {
+            aspectName = "Assemblies";
         }
         aspectIDs[node->getID()] = aspectName;
     }

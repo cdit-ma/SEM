@@ -58,6 +58,8 @@
 #include "InterfaceDefinitions/idl.h"
 #include "InterfaceDefinitions/aggregate.h"
 #include "InterfaceDefinitions/member.h"
+#include "InterfaceDefinitions/vector.h"
+#include "InterfaceDefinitions/vectorinstance.h"
 
 #include "InterfaceDefinitions/blackbox.h"
 #include "DeploymentDefinitions/blackboxinstance.h"

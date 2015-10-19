@@ -1,6 +1,7 @@
 #ifndef AGGREGATE_H
 #define AGGREGATE_H
 #include "../node.h"
+
 #include "eventport.h"
 
 class AggregateMember;

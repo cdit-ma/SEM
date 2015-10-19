@@ -19,11 +19,18 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
 
 
     inEditingMode = false;
+
     setFlag(ItemIsFocusable, false);
     setFlag(ItemIsSelectable, false);
-    setTextInteractionFlags(Qt::NoTextInteraction);
+
+    setTextInteractionFlags(Qt::TextSelectableByMouse);
+
+
     setAcceptHoverEvents(false);
+
+
     doc = this->document();
+
     doc->setDocumentMargin(0);
     doc->setTextWidth(this->textWidth);
     QTextOption option = doc->defaultTextOption();
@@ -31,10 +38,13 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     doc->setDefaultTextOption(option);
     setDocument(doc);
     editable = true;
+
 }
 
 void EditableTextItem::setEditMode(bool editMode)
 {
+    prepareGeometryChange();
+
     if(!inEditingMode && editMode){
         //Set the Editing Mode
         inEditingMode = true;
@@ -71,7 +81,7 @@ void EditableTextItem::setEditMode(bool editMode)
         //Set the Editing Mode
         inEditingMode = false;
         //Set the Flag
-        setTextInteractionFlags(Qt::NoTextInteraction);
+        setTextInteractionFlags(Qt::TextSelectableByMouse);
 
 
         //Get the current Value of the TextItem (Should be Non-Truncated value)
@@ -93,8 +103,6 @@ void EditableTextItem::setEditMode(bool editMode)
         c.clearSelection();
         setTextCursor(c);
         clearFocus();
-
-
     }
 }
 
@@ -194,6 +202,11 @@ QString EditableTextItem::getTruncatedText(const QString text)
     return newText;
 }
 
+QRectF EditableTextItem::boundingRect() const
+{
+    return QGraphicsTextItem::boundingRect();
+}
+
 
 
 
@@ -236,4 +249,13 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
     }
     QGraphicsTextItem::keyPressEvent(event);
 
+}
+
+
+
+void EditableTextItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+    if(!inEditingMode){
+        emit editableItem_EditModeRequested();
+    }
 }

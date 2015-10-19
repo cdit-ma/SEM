@@ -56,6 +56,7 @@
         <file alias="Vector.png">Resources/Images/Items/Vector.png</file>
         <file alias="Localhost.png">Resources/Images/Items/Localhost.png</file>
         <file alias="Passivate.png">Resources/Images/Items/Passivate.png</file>
+        <file alias="VectorInstance.png">Resources/Images/Items/VectorInstance.png</file>
     </qresource>
     <qresource prefix="/">
         <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>
