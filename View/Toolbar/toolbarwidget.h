@@ -19,9 +19,13 @@ class ToolbarWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit ToolbarWidget(NodeView *parent = 0);
+    explicit ToolbarWidget(NodeView* parent = 0);
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
+    int getTheme();
+
+signals:
+    void toolbar_themeChanged(int theme);
 
 public slots:
     void updateActionEnabledState(QString actionName, bool enabled);
@@ -45,6 +49,8 @@ public slots:
     void hideToolbar(QAction* action = 0);
     void hide();
     void setVisible(bool visible);
+
+    void setupTheme(int theme);
 
     // these slots and their corresponding list are only needed for Mac
     void appendToOpenMenusList();
@@ -162,6 +168,8 @@ private:
 
     int chosenInstanceID;
     QList<NodeItem*> legalNodeItems;
+
+    int currentTheme;
 };
 
 #endif // TOOLBARWIDGET_H

@@ -48,12 +48,15 @@
 #define WINDOW_W "01-03-Width"
 #define WINDOW_H "01-04-Height"
 #define WINDOW_MAX_STATE "01-05-Maximized"
+
 #define AUTO_CENTER_VIEW "02-01-Auto_Center_View"
 #define SELECT_ON_CREATION "02-02-Select_Entity_On_Creation"
 #define ZOOM_ANCHOR_ON_MOUSE "02-03-Zoom_View_Under_Mouse"
 #define TOGGLE_GRID "02-04-Toggle_Grid_Lines"
 #define SHOW_MANAGEMENT_COMPONENTS "02-05-Show_Management_Components"
 #define SHOW_LOCAL_NODE "02-06-Show_Local_Node"
+#define DARK_THEME "02-07-Dark_Theme_On"
+
 #define ASPECT_D "03-01-Definitions"
 #define ASPECT_W "03-02-Workload"
 #define ASPECT_A "03-03-Assembly"
@@ -61,6 +64,7 @@
 #define DOCK_VISIBLE "04-01-Hide_Dock"
 #define TOOLBAR_VISIBLE "05-00-00-Hide_Toolbar"
 #define TOOLBAR_EXPANDED "05-00-01-Expand_Toolbar"
+
 #define JENKINS_URL "06-01-URL"
 #define JENKINS_USER "06-02-Username"
 #define JENKINS_PASS "06-03-Password"
@@ -229,6 +233,7 @@ void MedeaWindow::modelReady()
     }
 
     //cuts_runGeneration->trigger();
+
 }
 
 
@@ -348,6 +353,8 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
         if(nodeView){
             nodeView->showLocalNode(boolValue);
         }
+    } else if (keyName == DARK_THEME && isBool) {
+        nodeView->setupTheme(boolValue);
     }
 }
 
@@ -517,7 +524,7 @@ void MedeaWindow::initialiseGUI()
     minimapLayout->addWidget(minimapLabel);
     minimapLayout->addWidget(minimap);
 
-    minimap->setFixedSize(rightPanelWidth + 10, rightPanelWidth/1.6);
+    minimap->setFixedSize(rightPanelWidth + 10, rightPanelWidth * 0.6);
     minimap->setStyleSheet("QGraphicsView{border: 1px solid rgb(50,50,50);}");
     minimap->centerView();
 
@@ -1757,6 +1764,9 @@ void MedeaWindow::setupInitialSettings()
 
     // initially disable all the docks
     nodeView->view_nodeSelected();
+
+    // initially hide the container for the data table
+    dataTableBox->hide();
 }
 
 

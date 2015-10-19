@@ -23,6 +23,7 @@ signals:
 
 private slots:
     void menuTriggered(QAction* action);
+    void setupTheme(int theme);
 
 protected:
     void mousePressEvent(QMouseEvent* event);

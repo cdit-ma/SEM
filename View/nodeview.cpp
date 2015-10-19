@@ -37,6 +37,9 @@
 #define VIEW_PADDING 1.25
 #define CENTER_ON_RATIO 0.5
 
+#define THEME_LIGHT 0
+#define THEME_DARK 1
+
 
 /**
  * @brief NodeView::NodeView
@@ -119,7 +122,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //setStyleSheet("QGraphicsView{ background-color: rgb(100,100,100); border: 0px;}");
 
     // this is the original colour
-    setStyleSheet("QGraphicsView{ background-color: rgba(170,170,170,255); border: 0px;}");
+    //setStyleSheet("QGraphicsView{ background-color: rgba(170,170,170,255); border: 0px;}");
 
     //Set The rubberband Mode.
     setRubberBandMode(false);
@@ -134,11 +137,17 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     nonDrawnItemKinds << "DeploymentDefinitions";
 
+
     // construct toolbar widget
     toolbar = new ToolbarWidget(this);
     if (isMainView()) {
         connect(this, SIGNAL(view_updateMenuActionEnabled(QString,bool)), toolbar, SLOT(updateActionEnabledState(QString,bool)));
+        connect(this, SIGNAL(view_themeChanged(int)), toolbar, SLOT(setupTheme(int)));
     }
+
+    // call this after the toolbar has been constructed to pass on the theme
+    setupTheme();
+    //setupTheme(THEME_DARK);
 
     // initialise the view's center point
     centerPoint = getVisibleRect().center();
@@ -890,6 +899,28 @@ void NodeView::actionFinished()
 }
 
 
+/**
+ * @brief NodeView::setupTheme
+ * @param theme
+ */
+void NodeView::setupTheme(int theme)
+{
+    QString background = "rgba(170,170,170,255);";
+
+    switch (theme) {
+    case THEME_DARK:
+        background = "rgb(100,100,100);";
+        break;
+    default:
+        break;
+    }
+
+    setStyleSheet("QGraphicsView {"
+                  "background-color:" + background +
+                  "border: 0px;}");
+
+    emit view_themeChanged(theme);
+}
 
 
 /**

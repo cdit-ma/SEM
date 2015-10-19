@@ -66,50 +66,14 @@ bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 
 void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
-    //Q_UNUSED(rect);
-
     // this darkens the area in the scene that's not currently visualised by the view
     // it also still draws a rectangle representing what is currently shown in the view
-    /*if (scene()) {
-        QRectF scenePath = sceneRect();
-        double padding = sceneRect().width()/4;
-        scenePath.adjust(-padding, -padding, padding, padding);
-
-        QPainterPath path, viewPath;
-        path.addRect(scenePath);
-        viewPath.addRect(viewport);
-        path -= viewPath;
-
-
-        painter->setPen(Qt::NoPen);
-        QBrush brush(QColor(0,0,0,100));
-
-
-        painter->setBrush(brush);
-        painter->drawPath(path);
-
-
-        brush.setColor(QColor(0,0,0,0));
-        painter->setBrush(brush);
-
-
-
-        QPen pen(QColor(250,250,250));
-        if(isPanning){
-            pen.setColor(QColor(0,0,250));
-        }
-        pen.setWidth(LINEWIDTH);
-        painter->setPen(pen);
-        painter->drawRect(viewport);
-    }*/
-
 
     QPainterPath path, viewPath;
     path.addRect(rect);
     viewPath.addRect(viewport);
     path -= viewPath;
 
-    //QBrush brush(QColor(0,0,0,150));
     QBrush brush(QColor(0,0,0,100));
     painter->setBrush(brush);
     painter->setPen(Qt::NoPen);
@@ -137,7 +101,6 @@ void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
             emit minimap_Pan();
             update();
         }else{
-            qCritical() << "YO";
             QGraphicsView::mousePressEvent(event);
         }
     }
@@ -165,7 +128,6 @@ void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
 
 void NodeViewMinimap::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    qCritical() << "mouseDoubleClickEvent";
     QPointF previousCenter = viewport.center();
 
     QPointF currentPos = mapToScene(event->pos());

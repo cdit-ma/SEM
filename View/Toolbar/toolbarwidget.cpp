@@ -6,11 +6,15 @@
 #include <QHBoxLayout>
 #include <QDebug>
 
+#define THEME_LIGHT 0
+#define THEME_DARK 1
+
+
 /**
  * @brief ToolbarWidget::ToolbarWidget
  * @param parent
  */
-ToolbarWidget::ToolbarWidget(NodeView *parent) :
+ToolbarWidget::ToolbarWidget(NodeView* parent) :
     QWidget(parent)
 {
     nodeView = parent;
@@ -28,17 +32,11 @@ ToolbarWidget::ToolbarWidget(NodeView *parent) :
     // these frames, combined with the set attribute and flags, allow
     // the toolbar to have a translucent background and a mock shadow
     shadowFrame = new QFrame(this);
-    shadowFrame->setStyleSheet("background-color: rgba(50,50,50,150);"
-                               //"background-color: rgba(50,50,50,200);"
-                               "border-radius: 10px;");
-
     mainFrame = new QFrame(this);
-    mainFrame->setStyleSheet("background-color: rgba(250,250,250,200);"
-                             //"background-color: rgba(150,150,150,200);"
-                             "border-radius: 8px;");
 
     setupToolBar();
-    setupMenus();
+    setupTheme(THEME_LIGHT);
+
     makeConnections();
     resetButtonGroupFlags();
 }
@@ -73,6 +71,16 @@ void ToolbarWidget::updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> e
 
     // update button group separators after the buttons and menus have been updated
     updateSeparators();
+}
+
+
+/**
+ * @brief ToolbarWidget::getTheme
+ * @return
+ */
+int ToolbarWidget::getTheme()
+{
+   return currentTheme;
 }
 
 
@@ -308,6 +316,63 @@ void ToolbarWidget::setVisible(bool visible)
 
 
 /**
+ * @brief ToolbarWidget::setupTheme
+ * @param theme
+ */
+void ToolbarWidget::setupTheme(int theme)
+{
+    QString buttonBorder = "1px solid rgba(160,160,160,250);";
+    QString hoverBorder = "1.5px solid rgba(170,170,170,250);";
+    QString mainBackground = "rgba(250,250,250,200);";
+    QString shadowBackground = "rgba(50,50,50,150);";
+
+    switch (theme) {
+    case THEME_DARK:
+        buttonBorder = "1px solid rgba(100,100,100,250);";
+        hoverBorder = "1.5px solid rgba(100,100,100,250);";
+        mainBackground = "rgba(150,150,150,200);";
+        shadowBackground = "rgba(50,50,50,200);";
+        break;
+    default:
+        break;
+    }
+
+    setStyleSheet("QToolButton {"
+                  "border:" + buttonBorder +
+                  "background-color: rgba(240,240,240,240);"
+                  "}"
+                  "QToolButton:hover {"
+                  "border:" + hoverBorder +
+                  "background-color: rgba(255,255,255,255);"
+                  "}"
+                  "QToolButton[popupMode=\"1\"] {"
+                  "padding-right: 15px;"
+                  "}"
+                  "QToolButton::menu-button {"
+                  "border-left: 1px solid gray;"
+                  "border-top-right-radius: 10px;"
+                  "border-bottom-right-radius: 10px;"
+                  "width: 15px;"
+                  "}"
+                  "QRadioButton {"
+                  "padding: 8px 10px 8px 8px;"
+                  "}"
+                  "QRadioButton::checked {"
+                  "color: green;"
+                  "}"
+                  );
+
+    mainFrame->setStyleSheet("background-color:" + mainBackground +
+                             "border-radius: 8px;");
+    shadowFrame->setStyleSheet("background-color:" + shadowBackground +
+                               "border-radius: 10px;");
+
+    currentTheme = theme;
+    emit toolbar_themeChanged(theme);
+}
+
+
+/**
  * @brief ToolbarWidget::appendToOpenedMenusList
  */
 void ToolbarWidget::appendToOpenMenusList()
@@ -452,34 +517,6 @@ void ToolbarWidget::setupToolBar()
     displayedChildrenOptionButton = constructToolButton(buttonSize, "MenuCluster", 0.7, "Change Displayed Nodes");
 
     deleteButton->setStyleSheet("padding-right: 3px;");
-    setStyleSheet("QToolButton {"
-                  //"border: 1px solid rgba(100,100,100,250);"
-                  "border: 1px solid;"
-                  "border-color: rgba(160,160,160,250);"
-                  "background-color: rgba(240,240,240,240);"
-                  "}"
-                  "QToolButton:hover {"
-                  //"border: 1.5px solid rgba(100,100,100,250);"
-                  "border: 1.5px solid;"
-                  "border-color: rgba(170,170,170,250);"
-                  "background-color: rgba(255,255,255,255);"
-                  "}"
-                  "QToolButton[popupMode=\"1\"] {"
-                  "padding-right: 15px;"
-                  "}"
-                  "QToolButton::menu-button {"
-                  "border-left: 1px solid gray;"
-                  "border-top-right-radius: 10px;"
-                  "border-bottom-right-radius: 10px;"
-                  "width: 15px;"
-                  "}"
-                  "QRadioButton {"
-                  "padding: 8px 10px 8px 8px;"
-                  "}"
-                  "QRadioButton::checked {"
-                  "color: green;"
-                  "}"
-                  );
 
     /*
      * This is what makes the tool buttons with a split menu button look good on a Mac
@@ -495,6 +532,8 @@ void ToolbarWidget::setupToolBar()
     "width: 10px;"
     "}"
     */
+
+    setupMenus();
 }
 
 
@@ -580,7 +619,6 @@ void ToolbarWidget::makeConnections()
     connect(allNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
     connect(connectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
     connect(unconnectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
-
 
     connect(connectButton, SIGNAL(clicked()), nodeView, SLOT(setStateConnect()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));

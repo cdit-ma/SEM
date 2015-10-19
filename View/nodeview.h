@@ -85,7 +85,7 @@ public:
 
 
     void aspectGraphicsChanged();
-
+    void setupTheme(int theme = 0);
 
 protected:
     //Mouse Handling Methods
@@ -106,14 +106,17 @@ protected:
 
 private:
     void sortSelection();
+
 private slots:
     void view_AspectToggled(int ID);
+
     void hardwareClusterMenuClicked(int viewMode);
 
     void actionFinished();
 
-
 signals:
+    void view_themeChanged(int theme);
+
     void view_ClearSubViewAttributeTable();
     void view_ModelReady();
     void view_EnableDebugLogging(bool enable, QString applicationPath="");
@@ -518,6 +521,7 @@ private:
 
     QGraphicsLineItem* connectLine;
     VIEW_STATE viewState;
+
 };
 
 #endif // NODEVIEW_H

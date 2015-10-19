@@ -17,6 +17,8 @@ Version 18:
 		* Added dock items for BlackBox definitions in the dock.
 			** Selecting BlackBoxInstance from the parts dock will now redirect the user to the definitions dock.
         * Implemented double click to center view inside minimap.
+		* Added settings option to change the view theme from light(normal) to dark.
+			** The theme gets passed down to the toolbar and menus on the canvas.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.
@@ -42,6 +44,7 @@ Version 18:
         * Make sure threads are killed for local deployment.
 		* Need to switch to using the connect mode view state for the toolbar.
 		* Implement a state-based switching of highlighted states in NodeItem.
+		* Need to update the dock buttons and window toolbar when the theme is changed.
 
 Version 17:
     New Features:
