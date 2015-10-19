@@ -64,6 +64,13 @@
 				<xsl:with-param name="defaultId" select="$nodeTypeKey" />
 			</xsl:call-template>	
 		</xsl:variable>	
+
+		<xsl:variable name="transformNodeValueKey">
+			<xsl:call-template name="findNodeKey">
+				<xsl:with-param name="attrName" select="'value'" />
+				<xsl:with-param name="defaultId" select="$nodeValueKey" />
+			</xsl:call-template>	
+		</xsl:variable>	
 		
 		<xsl:variable name="transformNodeKeyMemberKey">
 			<xsl:call-template name="findNodeKey">
@@ -119,13 +126,12 @@
 
 		<xsl:variable name="interfaceDefs" select="/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'InterfaceDefinitions']/.." />
 		
-		<!-- Generate the include files for aggregates used in this file. -->
-		<xsl:variable name="componentChildrenIds" select="$fileNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Component']/../gml:graph/gml:node/@id
-														| $fileNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'BlackBox']/../gml:graph/gml:node/@id" />
-		<xsl:variable name="refNodeIds" select="/descendant::*/gml:edge[@source=$componentChildrenIds]/@target" />
-		<xsl:variable name="refFiles" select="$interfaceDefs/descendant::*/gml:node[@id=$refNodeIds]/gml:data[@key=$transformNodeKindKey][text() = 'Aggregate']/ancestor::*/gml:data[@key=$transformNodeKindKey][text() = 'IDL']/.." />
+		<!-- Generate the include files for aggregates and vectors used in this file. -->
+		<xsl:variable name="childrenIds" select="$fileNode/descendant::*/gml:node/@id" />
+		<xsl:variable name="refNodeIds" select="/descendant::*/gml:edge[@source=$childrenIds]/@target" />
+		<xsl:variable name="refFiles" select="$interfaceDefs/descendant::*/gml:node[@id=$refNodeIds]/gml:data[@key=$transformNodeKindKey][text() = 'Aggregate' or text() =  'Vector']/ancestor::*/gml:data[@key=$transformNodeKindKey][text() = 'IDL']/.." />
 		<xsl:for-each select="$refFiles">
-			<xsl:variable name="includeFileName" select="$refFiles/gml:data[@key=$transformNodeLabelKey]/text()" />
+			<xsl:variable name="includeFileName" select="./gml:data[@key=$transformNodeLabelKey]/text()" />
 			<xsl:if test="$includeFileName != $nodeName">
 				<!-- Generate the includename for this include file. -->
 				<xsl:variable name="includeFolderName" select="$refFiles/gml:data[@key=$transformNodeFolderKey]/text()" />
@@ -164,10 +170,12 @@
 			<xsl:value-of select="concat('&#xA;', '{', '&#xA;')" />
 		</xsl:if>
 
-		<!-- Output Events if this file contains Components 
-		<xsl:variable name="componentChildrenIds" select="$fileNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Component']/../gml:graph/gml:node/@id" />
-		<xsl:variable name="refNodeIds" select="/descendant::*/gml:edge[@source=$componentChildrenIds]/@target" /> -->
-		<xsl:variable name="refNodes" select="$interfaceDefs/descendant::*/gml:node[@id=$refNodeIds]/gml:data[@key=$transformNodeKindKey][text() = 'Aggregate']/.." />
+		<!-- Output Events if this file contains Components or BlackBox -->
+		<xsl:variable name="componentChildrenIds" 
+		select="$fileNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Component']/../gml:graph/gml:node/@id
+		    	| $fileNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'BlackBox']/../gml:graph/gml:node/@id" />
+		<xsl:variable name="componentRefNodeIds" select="/descendant::*/gml:edge[@source=$componentChildrenIds]/@target" />
+		<xsl:variable name="refNodes" select="$interfaceDefs/descendant::*/gml:node[@id=$componentRefNodeIds]/gml:data[@key=$transformNodeKindKey][text() = 'Aggregate']/.." />
 		<xsl:for-each select="$refNodes">
 			<xsl:call-template name="Event">
 				<xsl:with-param name="eventNode" select="."/> <!-- aggregate used to create event -->
@@ -192,6 +200,15 @@
 					<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey"/>
 					<xsl:with-param name="transformNodeTypeKey" select="$transformNodeTypeKey"/>
 					<xsl:with-param name="transformNodeKeyMemberKey" select="$transformNodeKeyMemberKey"/>
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:when test="./gml:data[@key=$transformNodeKindKey]/text() = 'Vector'" >
+				<xsl:call-template name="Vector">
+					<xsl:with-param name="vectorNode" select="."/>
+					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
+					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+					<xsl:with-param name="transformNodeTypeKey" select="$transformNodeTypeKey"/>
+					<xsl:with-param name="transformNodeValueKey" select="$transformNodeValueKey"/>
 				</xsl:call-template>
 			</xsl:when>
 			<xsl:when test="./gml:data[@key=$transformNodeKindKey]/text() = 'Component'" >
@@ -351,7 +368,7 @@
 		<xsl:param name="transformNodeKeyMemberKey" />
 		
 		<xsl:value-of select="concat('eventtype ', $eventNode/gml:data[@key=$transformNodeLabelKey]/text(), 'Event')" />
-		<xsl:value-of select="concat('&#xA;', '{', '&#xA;')" />
+		<xsl:value-of select="concat('&#xA;', '{')" />
 		
 		<xsl:for-each select="$eventNode/gml:graph/gml:node">
 			<xsl:sort select="./gml:data[@key=$transformNodeSortOrderKey]" data-type="number" order="ascending" /> 
@@ -365,6 +382,43 @@
 			</xsl:call-template>
 		</xsl:for-each>
 		<xsl:value-of select="concat('};', '&#xA;')" />
+	</xsl:template>
+
+	<!-- Vector -->
+	<xsl:template name="Vector">
+		<xsl:param name="vectorNode" />
+		<xsl:param name="transformNodeKindKey" />
+		<xsl:param name="transformNodeLabelKey" />
+		<xsl:param name="transformNodeTypeKey" />
+		<xsl:param name="transformNodeValueKey" />
+		
+		<xsl:variable name="vectorName" select="$vectorNode/gml:data[@key=$transformNodeLabelKey]/text()" />
+		<xsl:variable name="vectorBound" select="$vectorNode/gml:data[@key=$transformNodeValueKey]/text()" />
+		
+		<xsl:value-of select="'typedef sequence &lt; '"/>
+
+		<xsl:variable name="memberNode" select="$vectorNode/gml:graph/gml:node" />
+		<!-- should be only one memberNode -->
+		<xsl:choose>
+		<xsl:when test="$memberNode[1]/gml:data[@key=$transformNodeKindKey][text() = 'Member']">
+			<xsl:call-template name="MemberType">
+				<xsl:with-param name="type" select="$memberNode[1]/gml:data[@key=$transformNodeTypeKey]/text()"/>
+			</xsl:call-template>
+		</xsl:when>
+		<xsl:otherwise>
+			<xsl:value-of select="'::'" />
+			<xsl:if test="$Package != ''">
+				<xsl:value-of select="concat($Package, '::')" />
+			</xsl:if>
+			<xsl:value-of select="$memberNode[1]/gml:data[@key=$transformNodeTypeKey]/text()" />
+		</xsl:otherwise>
+		</xsl:choose>
+		
+		<xsl:if test="$vectorBound != ''">
+			<xsl:value-of select="concat(', ', $vectorBound)" />
+		</xsl:if>
+		<xsl:value-of select="concat(' &gt; ', $vectorName, ';', '&#xA;&#xA;')" />
+
 	</xsl:template>
 
 	<!-- Component -->
@@ -494,14 +548,6 @@
 		
 	</xsl:template>
 
-	<!-- Collection -->
-	<xsl:template name="Collection">			
-		<xsl:param name="collectionRef" />
-		<xsl:param name="collectionName" />
-	
-		<xsl:value-of select="concat('sequence &lt;', $collectionRef, '&gt; ', $collectionName)" />
-	</xsl:template>
-
 	<!-- Member or Event Type -->	
 	<xsl:template name="MemberType">	
 		<xsl:param name="type" />
@@ -561,8 +607,9 @@
 			<xsl:when test="$type = 'GenericValueObject'" >
 				<xsl:value-of select="'ValueBase'" />
 			</xsl:when>
-			<xsl:otherwise>
-				<xsl:value-of select="concat('/* unknown type (', $type, ') */')" />
+			<!-- return type given as is, model validation should identify if type is incorrect -->
+			<xsl:otherwise> 
+				<xsl:value-of select="$type" />
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>

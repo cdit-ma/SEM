@@ -53,6 +53,7 @@
     <xsl:variable name="imageAssembly" select="document('./IconPalette/WEDMLpalette.graphml')/gml:graphml/descendant::*/y:NodeLabel[text()='Assembly']/../y:Image/@refid"/>
     <xsl:variable name="imageBranchState" select="document('./IconPalette/WEDMLpalette.graphml')/gml:graphml/descendant::*/y:NodeLabel[text()='BranchState']/../y:Image/@refid"/>
     <xsl:variable name="imageWhileLoop" select="document('./IconPalette/WEDMLpalette.graphml')/gml:graphml/descendant::*/y:NodeLabel[text()='WhileLoop']/../y:Image/@refid"/>
+    <xsl:variable name="imageVector" select="document('./IconPalette/WEDMLpalette.graphml')/gml:graphml/descendant::*/y:NodeLabel[text()='Vector']/../y:Image/@refid"/>
     <xsl:variable name="imageHardwareNode" select="document('./IconPalette/WEDMLpalette.graphml')/gml:graphml/descendant::*/y:NodeLabel[text()='HardwareNode']/../y:Image/@refid"/>
     <xsl:variable name="imageHardwareCluster" select="document('./IconPalette/WEDMLpalette.graphml')/gml:graphml/descendant::*/y:NodeLabel[text()='HardwareCluster']/../y:Image/@refid"/>
     <xsl:variable name="imageProvidedRequestPort" select="document('./IconPalette/WEDMLpalette.graphml')/gml:graphml/descendant::*/y:NodeLabel[text()='ProvidedRequestPort']/../y:Image/@refid"/>
@@ -504,6 +505,9 @@
 			<xsl:when test="$kind = 'WhileLoop'">
 				<y:Image alphaImage="true" refid="{$imageWhileLoop}"/>
 			</xsl:when>
+			<xsl:when test="contains($kind,'Vector')">
+				<y:Image alphaImage="true" refid="{$imageVector}"/>
+			</xsl:when>
 			<xsl:when test="$kind = 'ProvidedRequestPort'">
 				<y:Image alphaImage="true" refid="{$imageProvidedRequestPort}"/>
 			</xsl:when>
@@ -696,6 +700,12 @@
 				</xsl:when>
 				<xsl:when test="$graphKind = 'WhileLoop'">
 					<xsl:variable name="icon" select="100 + $imageWhileLoop"/>
+					<y:NodeLabel alignment="right" autoSizePolicy="node_width" modelName="internal" modelPosition="t" fontSize="16" horizontalTextPosition="right" iconData="{$icon}" iconTextGap="4" verticalTextPosition="center" >
+					<xsl:value-of select="$graphLabel" />
+					</y:NodeLabel>
+				</xsl:when>
+				<xsl:when test="$graphKind = 'Vector'">
+					<xsl:variable name="icon" select="100 + $imageVector"/>
 					<y:NodeLabel alignment="right" autoSizePolicy="node_width" modelName="internal" modelPosition="t" fontSize="16" horizontalTextPosition="right" iconData="{$icon}" iconTextGap="4" verticalTextPosition="center" >
 					<xsl:value-of select="$graphLabel" />
 					</y:NodeLabel>
