@@ -237,4 +237,3 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
     QGraphicsTextItem::keyPressEvent(event);
 
 }
-

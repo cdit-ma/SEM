@@ -33,7 +33,7 @@ class NodeItem : public GraphMLItem
     //Q_INTERFACES(QGraphicsItem)
 
 public:
-    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_LABEL, MO_EXPANDLABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODEL_CIRCLE, MO_MODEL_TR, MO_MODEL_BR, MO_MODEL_BL, MO_MODEL_TL, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
+    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_TOP_LABEL, MO_BOT_LABEL, MO_EXPANDLABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODEL_CIRCLE, MO_MODEL_TR, MO_MODEL_BR, MO_MODEL_BL, MO_MODEL_TL, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
     enum ASPECT_POS{AP_NONE, AP_TOPLEFT, AP_TOPRIGHT,  AP_BOTRIGHT, AP_BOTLEFT};
 
     enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
@@ -121,7 +121,8 @@ public:
     bool mouseOverModelBL(QPointF mousePosition);
     bool mouseOverModelTL(QPointF mousePosition);
 
-    bool mouseOverLabel(QPointF mousePosition);
+    bool mouseOverTopLabel(QPointF mousePosition);
+    bool mouseOverBotLabel(QPointF mousePosition);
     bool mouseOverExpandedLabel(QPointF mousePosition);
     bool mouseOverDeploymentIcon(QPointF mousePosition);
     bool mouseOverDefinition(QPointF mousePosition);

@@ -23,8 +23,9 @@
 //#define ICON_RATIO 0.80 //LARGE
 
 
-#define ICON_RATIO (4.0 / 6.0) //LARGE
-#define SMALL_ICON_RATIO (1.0 / 6.0)
+#define ICON_RATIO (5.0 / 6.0) //LARGE
+//#define ICON_RATIO (3.0 / 4.0) //LARGE
+#define SMALL_ICON_RATIO ((1.0 / 6.0))
 #define TOP_LABEL_RATIO (1.0 / 6.0)
 #define BOTTOM_LABEL_RATIO (1.0 / 6.0)
 #define LABEL_RATIO (1 - ICON_RATIO)
@@ -239,8 +240,10 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
 
 
     if(contains(itemPos)){
-        if(mouseOverLabel(itemPos) && state > RS_REDUCED){
-            return MO_LABEL;
+        if(mouseOverTopLabel(itemPos) && state > RS_REDUCED){
+            return MO_TOP_LABEL;
+        }if(mouseOverBotLabel(itemPos) && state > RS_REDUCED){
+            return MO_BOT_LABEL;
         }if(mouseOverExpandedLabel(itemPos) && state >= RS_REDUCED){
             return MO_EXPANDLABEL;
         }if(mouseOverConnect(itemPos) && state > RS_REDUCED){
@@ -799,6 +802,8 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             paintPixmap(painter, deploymentIconRect(), "Actions", "Warning");
         }
     }
+    //Draw Rect
+    //painter->drawRect(iconRect());
 }
 
 void NodeItem::paintModel(QPainter *painter)
@@ -946,11 +951,23 @@ bool NodeItem::mouseOverModelTL(QPointF mousePosition)
 }
 
 
-bool NodeItem::mouseOverLabel(QPointF mousePosition)
+bool NodeItem::mouseOverTopLabel(QPointF mousePosition)
 {
     if(topLabel && topLabel->isVisible()){
         QRectF labelRect = topLabel->boundingRect();
         labelRect.translate(topLabel->pos());
+        if(labelRect.contains(mousePosition)){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool NodeItem::mouseOverBotLabel(QPointF mousePosition)
+{
+    if(bottomLabel && bottomLabel->isVisible()){
+        QRectF labelRect = bottomLabel->boundingRect();
+        labelRect.translate(bottomLabel->pos());
         if(labelRect.contains(mousePosition)){
             return true;
         }
@@ -1550,6 +1567,7 @@ QPointF NodeItem::getAspectsLockedPoint(ASPECT_POS asPos)
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    qCritical() << this->getNodeKind();
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
     //Set the mouse down type to the type which matches the position.
     mouseDownType = getMouseOverType(event->scenePos());
@@ -1714,9 +1732,14 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
                 updateModelSize();
             }
             break;
-        case MO_LABEL:
+        case MO_TOP_LABEL:
             if(isDataEditable("label")){
                 topLabel->setEditMode(true);
+            }
+            break;
+        case MO_BOT_LABEL:
+            if(isDataEditable("label")){
+                bottomLabel->setEditMode(true);
             }
             break;
         case MO_EXPANDLABEL:
@@ -1802,8 +1825,8 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         }
         break;
     case MO_EXPANDLABEL:
-
-    case MO_LABEL:
+    case MO_BOT_LABEL:
+    case MO_TOP_LABEL:
         if(isDataEditable("label")){
             cursor = Qt::IBeamCursor;
             tooltip = tooltip  = topLabel->getFullValue() + "\nDouble click to edit text.";
@@ -1991,10 +2014,13 @@ QRectF NodeItem::iconRect() const
         iconSize = minimumWidth;
     }
 
+    //qreal iconLeft = getItemMargin();
+    //qreal iconTop = getItemMargin();
     //Construct a Rectangle to represent the icon size at the origin
     QRectF icon = QRectF(0, 0, iconSize, iconSize);
 
     //Translate to centralize the icon in the horizontal space
+    //QPointF centerPoint = QPointF(minimumBoundingRect().center().x(), getItemMargin() + (iconSize / 2));
     QPointF centerPoint = minimumBoundingRect().center();
 
     icon.moveCenter(centerPoint);
@@ -2022,9 +2048,9 @@ QRectF NodeItem::lockIconRect()
 
     //Translate to move the icon to its position
     qreal itemMargin = (getItemMargin());// * .75);
-    int x = itemMargin;
-    int y = itemMargin;
-    iconRect.moveTopLeft(QPointF(itemMargin, itemMargin + iconRect.height()));
+    int x = itemMargin;//itemMargin;
+    int y = itemMargin;//itemMargin;
+    iconRect.moveTopLeft(QPointF(x, y));
 
     return iconRect;
 }
@@ -2036,9 +2062,10 @@ QRectF NodeItem::connectIconRect()
 
     //Translate to move the icon to its position
     qreal itemMargin = (getItemMargin());// * .75);
-    int x = itemMargin;
-    int y = itemMargin;
-    iconRect.moveTopRight(QPointF(itemMargin + width, itemMargin + iconRect.height()));
+    int x = itemMargin + width;//itemMargin;
+    int y = itemMargin;//itemMargin;
+    iconRect.moveTopRight(QPointF(x, y));
+    //iconRect.moveTopRight(QPointF(itemMargin + width, itemMargin + iconRect.height()));
 
 
     /*
@@ -2323,7 +2350,7 @@ void NodeItem::updateTextLabel(QString newLabel)
         //}else{
         //    bottomTextLabel->setFontSize(contractedFontSize);
         //}
-        topLabel->setTextWidth(minimumWidth);
+        topLabel->setTextWidth(minimumWidth + getItemMargin() + getItemMargin());
         //bottomTextLabel->setTextWidth(width);
         expandedLabel->setTextWidth(expandedLabelRect().width());
     }
@@ -2344,7 +2371,11 @@ void NodeItem::updateTextLabel(QString newLabel)
 
     //Update position
 
-    QPointF contractedLabel = QPointF(getItemMargin(), getItemMargin()/2);//minimumBoundingRect().topLeft();// - QPointF(0, bottomTextLabel->boundingRect().height());
+    //Contained
+    //QPointF contractedLabel = QPointF(getItemMargin(), getItemMargin() /2 );
+    QPointF contractedLabel = QPointF(0, -topLabel->boundingRect().height());
+
+    //minimumBoundingRect().topLeft();// - QPointF(0, bottomTextLabel->boundingRect().height());
     //QPointF contractedLabel = QPointF(getItemMargin(), getItemMargin());//minimumBoundingRect().topLeft();// - QPointF(0, bottomTextLabel->boundingRect().height());
 
     topLabel->setPos(contractedLabel);
@@ -2678,6 +2709,7 @@ void NodeItem::setupLabel()
 
     topLabel->setTextWidth(minimumBoundingRect().width());
     bottomLabel->setTextWidth(minimumBoundingRect().width());
+
     expandedLabel->setTextWidth(width - iconRect().width());
 
     //Calculate position for label

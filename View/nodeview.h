@@ -225,7 +225,6 @@ public slots:
     void showMessage(MESSAGE_TYPE type, QString title, QString message, int ID=-1, bool centralizeItem = false);
 
     void view_ClearHistory();
-    void clearView();
 
 
     void resetModel(bool addAction = true);
@@ -491,6 +490,7 @@ private:
     QMap<int, QPointF> modelPositions;
     QMap<int, QRectF> centeredRects;
     QMap<int, int> definitionIDs;
+    QMap<int, QString> aspectIDs;
 
     QList<int> highlightedIDs;
     QHash<QString, QPixmap> imageLookup;

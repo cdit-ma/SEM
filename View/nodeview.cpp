@@ -903,9 +903,11 @@ void NodeView::aspectGraphicsChanged()
     if (isSubView()) {
         return;
     }
+    if(!getModelItem()){
+        return;
+    }
 
-    // clear any highlight
-    emit view_highlightAspectButton();
+
 
     // only check if there is more than one aspects dispalyed
     /*
@@ -914,31 +916,17 @@ void NodeView::aspectGraphicsChanged()
     }
     */
 
-    QRect viewRect = viewport()->rect();
-    QPointF tl = mapToScene(viewRect.topLeft());
-    QPointF br = mapToScene(viewRect.bottomRight());
-    QRectF viewSceneRect(tl, br);
-
-    QString aspectKind;
-    foreach (QString aspect, currentAspects) {
-        if (aspect == "Definitions") {
-            aspectKind = "Interface";
-        } else if (aspect == "Workload") {
-            aspectKind = "Behaviour";
-        } else {
-            aspectKind = aspect;
-        }
-        aspectKind += "Definitions";
-
-        QList<NodeItem*> aspectItems = getNodeItemsOfKind(aspectKind);
-        if (aspectItems.isEmpty()) {
-            return;
-        }
-        if (aspectItems.at(0)->sceneBoundingRect().contains(viewSceneRect)) {
-            emit view_highlightAspectButton(aspect);
+    QRectF viewSceneRect = getVisibleRect();
+    foreach(NodeItem* aspect, getModelItem()->getChildNodeItems()){
+        if(aspect->sceneBoundingRect().contains(viewSceneRect)){
+            //Aspect fully contains view
+            emit view_highlightAspectButton(aspectIDs[aspect->getID()]);
             return;
         }
     }
+    // clear any highlight
+    emit view_highlightAspectButton();
+    return;
 }
 
 
@@ -1095,7 +1083,6 @@ void NodeView::minimapPanning(QPointF delta)
     }
     if(viewState == VS_PANNING){
         //translate to scenepos.
-
         adjustModelPosition(delta);
     }
 }
@@ -1135,17 +1122,6 @@ void NodeView::setRubberBandMode(bool On)
             rubberBand->setVisible(false);
         }
     }
-}
-
-
-/**
- * @brief NodeView::clearView
- * This is called when the a new project is created. It clears the scene.
- */
-void NodeView::clearView()
-{
-    //scene()->clear();
-    //viewport()->update();
 }
 
 
@@ -2081,6 +2057,17 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     if(nodeItem && node){
         //Set the node as Visibablly connectable
         nodeItem->setNodeConnectable(isNodeVisuallyConnectable(node));
+    }
+
+    //Store the aspects in a lookup map.
+    if(nodeKind.endsWith("Definitions")){
+        QString aspectName = nodeKind.replace("Definitions","");
+        if (aspectName == "Interface") {
+            aspectName = "Definitions";
+        } else if (aspectName == "Behaviour") {
+            aspectName = "Workload";
+        }
+        aspectIDs[node->getID()] = aspectName;
     }
 
     nodeItem->setNodeView(this);

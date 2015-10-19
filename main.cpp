@@ -13,6 +13,7 @@
 
 #include <QList>
 #include <QPair>
+#include <string>
 
 /*
  * Use this to override and set your own custom icon sizes in a QMenu
@@ -31,7 +32,6 @@ class MyStyle: public QProxyStyle
     }
 };
 */
-
 
 
 int main(int argc, char *argv[])
