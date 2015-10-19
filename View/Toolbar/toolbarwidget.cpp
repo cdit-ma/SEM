@@ -674,11 +674,16 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
     }
 
     QList<NodeItem*> legalNodes;
+    bool deployable = true;
 
     // need to clear menus before updating them
     clearMenus();
 
     if (nodeItems.count() == 1) {
+
+        /*
+         * Single NodeItem selected
+         */
 
         nodeItem = nodeItems.at(0);
 
@@ -708,9 +713,14 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         setupInstancesList(nodeView->getNodeInstances(nodeItem->getID()));
 
         legalNodes = nodeView->getConnectableNodeItems(nodeItem->getID());
+        deployable = nodeView->isNodeKindDeployable(nodeItem->getNodeKind());
         alterViewButtonsVisible = true;
 
     } else {
+
+        /*
+         * Multiple NodeItems selected
+         */
 
         NodeItem* prevParentItem = 0;
         bool shareParent = true;
@@ -739,21 +749,35 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             displayedChildrenOptionButton->show();
             alterViewButtonsVisible = true;
         }
-    }
 
-    // added this so that you can change the hardware link using the context toolbar.
-    bool deployable = true;
-    foreach (NodeItem* item, nodeItems) {
-        if (!nodeView->isNodeKindDeployable(item->getNodeKind())) {
-            deployable = false;
-            break;
+        // this allows multiple selection to connect to a shared legal node
+        for (int i = 0; i < nodeItems.count(); i++) {
+            NodeItem* item = nodeItems.at(i);
+            foreach (NodeItem* legalNode, nodeView->getConnectableNodeItems(item->getID())) {
+                bool appendToList = true;
+                for (int j = 0; (j < nodeItems.count() && j != i); j++) {
+                    Node* itemNode = nodeItems.at(j)->getNode();
+                    if (!itemNode->canConnect(legalNode->getNode())) {
+                        appendToList = false;
+                        break;
+                    }
+                }
+                if (appendToList && !legalNodes.contains(legalNode)) {
+                    legalNodes.append(legalNode);
+                }
+            }
+            if (deployable && !nodeView->isNodeKindDeployable(item->getNodeKind())) {
+                deployable = false;
+            }
         }
     }
+
+    // this allows the hardware link to be changed using the context toolbar
     if (deployable) {
         QList<NodeItem*> hardware = nodeView->getHardwareList();
-        foreach (NodeItem* item, hardware) {
-            if (!legalNodes.contains(item)) {
-                legalNodes.append(item);
+        foreach (NodeItem* h, hardware) {
+            if (!legalNodes.contains(h)) {
+                legalNodes.append(hardware);
             }
         }
     }

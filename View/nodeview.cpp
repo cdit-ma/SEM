@@ -934,31 +934,22 @@ void NodeView::aspectGraphicsChanged()
     if (isSubView()) {
         return;
     }
-    if(!getModelItem()){
+
+    if (!getModelItem()) {
         return;
     }
-
-
-
-    // only check if there is more than one aspects dispalyed
-    /*
-    if (currentAspects.count() <= 1) {
-        return;
-    }
-    */
-
-    // clear any highlight
 
     QRectF viewSceneRect = getVisibleRect();
+    QString aspectToHighlight;
 
-    foreach(NodeItem* aspect, getModelItem()->getChildNodeItems()){
-        if(aspect->isVisible() && aspect->sceneBoundingRect().contains(viewSceneRect)){
-            //Aspect fully contains view
-            emit view_highlightAspectButton(aspectIDs[aspect->getID()]);
-            return;
+    foreach (NodeItem* aspect, getModelItem()->getChildNodeItems()) {
+        if (aspect->isVisible() && aspect->sceneBoundingRect().contains(viewSceneRect)){
+            aspectToHighlight = aspectIDs[aspect->getID()];
+            break;
         }
     }
-    emit view_highlightAspectButton();
+
+    emit view_highlightAspectButton(aspectToHighlight);
 }
 
 
@@ -1082,7 +1073,7 @@ void NodeView::importSnippet(QString fileName, QString fileData)
 
 void NodeView::scrollEvent(int delta)
 {
-     if(viewState == VS_NONE || viewState ==  VS_SELECTED || viewState == VS_CONNECT || viewState == VS_CONNECTING){
+    if(viewState == VS_NONE || viewState ==  VS_SELECTED || viewState == VS_CONNECT || viewState == VS_CONNECTING){
         QRectF viewRect = viewport()->rect();
 
         //Turn
@@ -1099,7 +1090,7 @@ void NodeView::scrollEvent(int delta)
                 scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
             }
         }
-     }
+    }
     // call this after zooming
     aspectGraphicsChanged();
 }
@@ -2189,7 +2180,7 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         EdgeItem* nodeEdge = new EdgeItem(edge,parent, srcGUI, dstGUI);
         //EdgeItem2* nodeEdge2 = new EdgeItem2(edge,parent, srcGUI, dstGUI);
 
-//        qCritical() << parent->getNode()->toString();
+        //        qCritical() << parent->getNode()->toString();
 
         nodeEdge->setNodeView(this);
         //Add it to the list of EdgeItems in the Model.
