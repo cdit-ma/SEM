@@ -113,6 +113,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     topLabel = 0;
     expandedLabel = 0;
     bottomLabel = 0;
+    bottomInputItem = 0;
 
     //Setup initial sizes
     width = 0;
@@ -253,7 +254,7 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
     if(contains(itemPos)){
         if(mouseOverTopLabel(itemPos) && state > RS_REDUCED){
             return MO_TOP_LABEL;
-        }if(mouseOverBotLabel(itemPos) && state > RS_REDUCED){
+        }if(mouseOverBotInput(itemPos) && state > RS_REDUCED){
             return MO_BOT_LABEL;
         }if(mouseOverExpandedLabel(itemPos) && state >= RS_REDUCED){
             return MO_EXPANDLABEL;
@@ -816,8 +817,9 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
     }
+
     //Draw Rect
-    //painter->drawRect(iconRect());
+    painter->drawRect(iconRect_BottomLeft());
 }
 
 void NodeItem::paintModel(QPainter *painter)
@@ -987,6 +989,19 @@ bool NodeItem::mouseOverBotLabel(QPointF mousePosition)
         }
     }
     return false;
+}
+
+bool NodeItem::mouseOverBotInput(QPointF mousePosition)
+{
+    if(bottomInputItem && bottomInputItem->isVisible()){
+        QRectF labelRect = bottomInputItem->boundingRect();
+        labelRect.translate(bottomInputItem->pos());
+        if(labelRect.contains(mousePosition)){
+            return true;
+        }
+    }
+    return false;
+
 }
 
 bool NodeItem::mouseOverExpandedLabel(QPointF mousePosition)
@@ -1586,7 +1601,7 @@ QPointF NodeItem::getAspectsLockedPoint(ASPECT_POS asPos)
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qCritical() << this->getNodeKind();
+    wasDoubleClick = false;
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
     //Set the mouse down type to the type which matches the position.
     mouseDownType = getMouseOverType(event->scenePos());
@@ -1661,8 +1676,17 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    qCritical() << "mouseReleaseEvent";
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
+
+
+
+    MOUSEOVER_TYPE mouseDblClickType = getMouseOverType(event->scenePos());
+
+    if(wasDoubleClick && mouseDblClickType == MO_BOT_LABEL && event->button() == Qt::LeftButton){
+        //bottomInputItem->setEditMode(true);
+    }
 
     //Only if left button is down.
     switch(event->button()){
@@ -1728,9 +1752,11 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
+    qCritical() << "mouseDoubleClickEvent";
     if(isInSubView){
         return;
     }
+    wasDoubleClick = true;
 
 
     MOUSEOVER_TYPE mouseDblClickType = getMouseOverType(event->scenePos());
@@ -1750,6 +1776,8 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
                 setNodeExpanded(!isExpanded());
                 updateModelSize();
             }
+            break;
+        case MO_BOT_LABEL:
             break;
         case MO_RESIZE_HOR:
             //Continue
@@ -2299,6 +2327,8 @@ void NodeItem::updateTextLabel(QString newLabel)
     if (newLabel != "") {
         topLabel->setPlainText(newLabel);
         expandedLabel->setPlainText(newLabel);
+        topInputItem->setValue(newLabel);
+        bottomInputItem->setValue(newLabel);
         topLabel->setParent(this);
         expandedLabel->setParent(this);
     }
@@ -2311,15 +2341,26 @@ void NodeItem::updateTextLabel(QString newLabel)
         //    bottomTextLabel->setFontSize(contractedFontSize);
         //}
         topLabel->setTextWidth(minimumWidth + getItemMargin() + getItemMargin());
+
+        qreal inputWidth  = iconRect_BottomRight().left() - iconRect_BottomLeft().right();
+
+        bottomInputItem->setWidth(inputWidth);
+        topInputItem->setWidth(inputWidth);
+        bottomInputItem->setHeight(iconRect_BottomLeft().height());
+        topInputItem->setHeight(iconRect_BottomLeft().height());
+
         //bottomTextLabel->setTextWidth(width);
         expandedLabel->setTextWidth(expandedLabelRect().width());
+
+        //topInputItem->setTextWidth(minimumWidth + getItemMargin() + getItemMargin());
+
     }
 
     //Calculate position for label
     qreal labelX = (boundingRect().width() - topLabel->boundingRect().width()) /2;
     qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);
 
-    topLabel->setCenterJustified();
+    topLabel->setCenterAligned(true);
 
     if(isModel()){
         //The Model is centralized, so center label.
@@ -2339,6 +2380,8 @@ void NodeItem::updateTextLabel(QString newLabel)
     //QPointF contractedLabel = QPointF(getItemMargin(), getItemMargin());//minimumBoundingRect().topLeft();// - QPointF(0, bottomTextLabel->boundingRect().height());
 
     topLabel->setPos(contractedLabel);
+
+    topInputItem->setPos(contractedLabel - QPointF(0,topLabel->boundingRect().height()));
 
     //bottomTextLabel->setPos(labelX, labelY);
     topLabel->update();
@@ -2645,10 +2688,24 @@ void NodeItem::setupLabel()
     //font.setPointSizeF(contractedFontSize);
 
     topLabel = new EditableTextItem(this);
+    topLabel->setHandleMouse(true);
+
     bottomLabel = new EditableTextItem(this);
+
+
+    QStringList values;
+    values << "VALUES #1" << "VALUES #2"<< "VALUES #3"<< "VALUES #4" << "bouncing" << "padding" << "Really long string" << "Background";
+    bottomInputItem = new InputItem(this, values, "VALUES #2");
+    topInputItem = new InputItem(this, true, "Really long string");
+    topInputItem->setCenterAligned(true);
+    topInputItem->setHandleMouse(true);
+    bottomInputItem->setHandleMouse(true);
+
     bottomLabel->setPlainText("value = test");
     expandedLabel =  new EditableTextItem(this);
     topLabel->setFont(font);
+    bottomInputItem->setFont(font);
+    topInputItem->setFont(font);
 
 
     font.setPointSizeF(expandedFontSize);
@@ -2657,14 +2714,21 @@ void NodeItem::setupLabel()
     font.setItalic(true);
     bottomLabel->setFont(font);
 
+    connect(topInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
+    connect(bottomInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
     connect(topLabel, SIGNAL(textUpdated(QString)),this, SLOT(labelUpdated(QString)));
     connect(topLabel, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
 
     connect(topLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
     connect(expandedLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
     connect(bottomLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
+    //connect(bottomLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
+
 
     connect(expandedLabel, SIGNAL(textUpdated(QString)),this, SLOT(labelUpdated(QString)));
+    connect(topInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(labelUpdated(QString)));
+    connect(bottomInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(labelUpdated(QString)));
+
     connect(expandedLabel, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
 
     bottomLabel->setEditable(true);
@@ -2687,8 +2751,8 @@ void NodeItem::setupLabel()
     qreal labelX = (minimumBoundingRect().width() - topLabel->boundingRect().width()) /2;
     qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);
 
-    topLabel->setCenterJustified();
-    bottomLabel->setCenterJustified();
+    topLabel->setCenterAligned(true);
+    bottomLabel->setCenterAligned(true);
 
     if(isModel()){
         //The Model is centralized, so center label.
@@ -2706,10 +2770,15 @@ void NodeItem::setupLabel()
     topLabel->setPos(topLabelPos);
     bottomLabel->setPos(bottomLabelPos);
 
+
+
     QPointF expandedLabelPos = expandedLabelRect().topLeft() - QPointF(0, expandedLabel->boundingRect().height() /2);
     expandedLabel->setPos(expandedLabelPos);
+    bottomLabel->setVisible(false);
     //expandedTextLabel->setPos(iconRect().right(), iconRect().center().y() - expandedTextLabel->boundingRect().height()/2);
+    bottomInputItem->setPos(bottomLabelPos);
 
+    topInputItem->setPos(bottomLabelPos - QPointF(0 , bottomInputItem->boundingRect().height()));
 
     updateTextLabel(getGraphMLDataValue("label"));
 }
@@ -3161,6 +3230,18 @@ void NodeItem::labelEditModeRequest()
 
         if(isDataEditable(dataKey)){
             textItem->setEditMode(true);
+        }
+    }
+    InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
+    if(inputItem){
+        qCritical() << inputItem;
+        QString dataKey = "label";
+        //if(inputItem == topInputItem){
+        //    dataKey = editableDataKey;
+        //}
+
+        if(isDataEditable(dataKey)){
+            inputItem->setEditMode(true);
         }
     }
 }

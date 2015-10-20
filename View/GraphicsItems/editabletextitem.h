@@ -11,10 +11,11 @@ public:
     QRectF boundingRect() const;
     void setEditMode(bool editMode = true);
 
+    void setHandleMouse(bool handleMouse);
     void setFontSize(qreal fontSize);
     void setPlainText(const QString &text);
     void setTextWidth(qreal width);
-    void setCenterJustified();
+    void setCenterAligned(bool center);
     QString getStringValue();
     QString getFullValue();
     void setEditable(bool edit);
@@ -32,12 +33,13 @@ protected:
     void focusInEvent(QFocusEvent*);
     void focusOutEvent(QFocusEvent* event);
     void keyPressEvent(QKeyEvent *event);
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event);
 private:
     QString getTruncatedText(const QString text );
 
 
     bool editable;
+
+    bool handleMouse;
     bool centerJustified;
     QString currentFullValue;
     QString currentTruncValue;

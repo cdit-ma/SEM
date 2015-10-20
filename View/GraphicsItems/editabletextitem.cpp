@@ -23,10 +23,9 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     setFlag(ItemIsFocusable, false);
     setFlag(ItemIsSelectable, false);
 
-    setTextInteractionFlags(Qt::TextSelectableByMouse);
+    setTextInteractionFlags(Qt::NoTextInteraction);
 
-
-    setAcceptHoverEvents(false);
+   // this->setAcceptHoverEvents(false);
 
 
     doc = this->document();
@@ -81,7 +80,7 @@ void EditableTextItem::setEditMode(bool editMode)
         //Set the Editing Mode
         inEditingMode = false;
         //Set the Flag
-        setTextInteractionFlags(Qt::TextSelectableByMouse);
+        setTextInteractionFlags(Qt::NoTextInteraction);
 
 
         //Get the current Value of the TextItem (Should be Non-Truncated value)
@@ -106,6 +105,11 @@ void EditableTextItem::setEditMode(bool editMode)
     }
 }
 
+void EditableTextItem::setHandleMouse(bool handleMouse)
+{
+    this->handleMouse = handleMouse;
+}
+
 void EditableTextItem::setFontSize(qreal fontSize)
 {
     QFont textFont = this->font();
@@ -115,6 +119,7 @@ void EditableTextItem::setFontSize(qreal fontSize)
 
 void EditableTextItem::setPlainText(const QString &text)
 {
+    //qDebug() << "setPlainText";
     if(currentFullValue != text){
         currentFullValue = text;
         currentTruncValue = getTruncatedText(text);
@@ -135,6 +140,7 @@ void EditableTextItem::setTextWidth(qreal width)
     if(width > 15){
         setVisible(true);
         QString newTruncValue = getTruncatedText(currentFullValue);
+
         if(newTruncValue != currentTruncValue){
             currentTruncValue = newTruncValue;
             QGraphicsTextItem::setPlainText(newTruncValue);
@@ -144,10 +150,12 @@ void EditableTextItem::setTextWidth(qreal width)
     }
 }
 
-void EditableTextItem::setCenterJustified()
+void EditableTextItem::setCenterAligned(bool center)
 {
-    centerJustified = true;
-
+    if(centerJustified != center){
+        QGraphicsTextItem::setHtml("<center>" + currentTruncValue + "</center>");
+        centerJustified = center;
+    }
 }
 
 
@@ -184,9 +192,44 @@ QString EditableTextItem::getTruncatedText(const QString text)
 
     QString newText = text;
 
-
+    qreal spaceForDots = fm.width("...");
     //Allow for Margins at high zoom levels
-    qreal availableWidth = (textWidth) - 5;
+    qreal availableWidth = textWidth - spaceForDots;
+
+    QString truncValue;
+
+    QString lastTruncValue;
+    int counter = 0;
+
+    while(truncValue != newText){
+        if((counter + 1) * 2 > newText.size()){
+            //Add middle character.
+            truncValue = truncValue.insert(counter,newText.at(counter));
+            break;
+        }else{
+            truncValue = truncValue.insert(counter, newText.at(counter));
+            truncValue = truncValue.insert(truncValue.size() - counter, newText.at((newText.size() -1) - counter));
+        }
+        if(fm.width(truncValue) >= availableWidth){
+            truncValue = lastTruncValue;
+            break;
+        }
+        lastTruncValue = truncValue;
+        counter ++;
+        if(counter * 2 == newText.size()){
+            break;
+        }
+    }
+
+    qCritical() << truncValue;
+
+    if(truncValue != newText){
+        truncValue.insert(counter, "...");
+    }
+
+    return truncValue;
+    /*
+    qCritical() << truncValue;
 
     while(newText.size() >= 3){
         qreal truncWidth = fm.width(newText);
@@ -199,7 +242,9 @@ QString EditableTextItem::getTruncatedText(const QString text)
 
     //setVisible(newText.size() > 2);
 
-    return newText;
+    qCritical() << availableWidth << " OLD TEXT" << text << "New Text " << newText;
+
+    return newText;*/
 }
 
 QRectF EditableTextItem::boundingRect() const
@@ -249,13 +294,4 @@ void EditableTextItem::keyPressEvent(QKeyEvent *event)
     }
     QGraphicsTextItem::keyPressEvent(event);
 
-}
-
-
-
-void EditableTextItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
-{
-    if(!inEditingMode){
-        emit editableItem_EditModeRequested();
-    }
 }

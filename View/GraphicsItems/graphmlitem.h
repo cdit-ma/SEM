@@ -8,10 +8,9 @@
 class NodeView;
 class AttributeTableModel;
 
-class GraphMLItem: public QGraphicsObject//public QObject, public QGraphicsItem
+class GraphMLItem: public QGraphicsObject
 {
     Q_OBJECT
-    //Q_INTERFACES(QGraphicsItem)
 
 public:
     enum GUI_KIND{NODE_ITEM, NODE_EDGE};

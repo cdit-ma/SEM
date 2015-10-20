@@ -123,7 +123,9 @@ HEADERS += \
     View/Toolbar/toolbarmenu.h \
     View/Toolbar/toolbarmenuaction.h \
     Model/InterfaceDefinitions/vector.h \
-    Model/InterfaceDefinitions/vectorinstance.h
+    Model/InterfaceDefinitions/vectorinstance.h \
+    View/GraphicsItems/inputitem.h \
+    View/GraphicsItems/graphicscombobox.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -214,7 +216,9 @@ SOURCES += \
     View/Toolbar/toolbarmenu.cpp \
     View/Toolbar/toolbarmenuaction.cpp \
     Model/InterfaceDefinitions/vector.cpp \
-    Model/InterfaceDefinitions/vectorinstance.cpp
+    Model/InterfaceDefinitions/vectorinstance.cpp \
+    View/GraphicsItems/inputitem.cpp \
+    View/GraphicsItems/graphicscombobox.cpp
 
 FORMS +=
 

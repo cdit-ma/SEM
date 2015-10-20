@@ -18,6 +18,8 @@
 #include <QCheckBox>
 #include <QRadioButton>
 
+#include "inputitem.h"
+
 #include "../../Model/node.h"
 #include "../../Model/graphmldata.h"
 #include "../Table/attributetablemodel.h"
@@ -123,6 +125,7 @@ public:
 
     bool mouseOverTopLabel(QPointF mousePosition);
     bool mouseOverBotLabel(QPointF mousePosition);
+    bool mouseOverBotInput(QPointF mousePosition);
     bool mouseOverExpandedLabel(QPointF mousePosition);
     bool mouseOverDeploymentIcon(QPointF mousePosition);
     bool mouseOverDefinition(QPointF mousePosition);
@@ -461,6 +464,7 @@ private:
 
     bool hasPanned;
 
+    bool wasDoubleClick;
 
     qreal selectedPenWidth;
 
@@ -476,6 +480,8 @@ private:
     EditableTextItem* topLabel;
     EditableTextItem* expandedLabel;
     EditableTextItem* bottomLabel;
+    InputItem* bottomInputItem;
+    InputItem* topInputItem;
 
     QString nodeHardwareOS;
     QString nodeHardwareArch;
