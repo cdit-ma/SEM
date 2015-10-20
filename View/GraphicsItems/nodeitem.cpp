@@ -839,7 +839,7 @@ void NodeItem::paintModel(QPainter *painter)
 
     //Paint Top Right
     quadrant.moveBottomLeft(origin);
-    painter->setBrush(QColor(255,160,160));
+    painter->setBrush(QColor(254,184,126));
     painter->drawRect(quadrant);
 
     //Paint Top Left
@@ -847,7 +847,7 @@ void NodeItem::paintModel(QPainter *painter)
     painter->setBrush(QColor(110,210,210));
     painter->drawRect(quadrant);
 
-    //Paint Top Left
+    //Paint Bottom Left
     quadrant.moveTopRight(origin);
     painter->setBrush(QColor(255,160,160));
     painter->drawRect(quadrant);
@@ -2404,10 +2404,16 @@ void NodeItem::setupBrushes()
     selectedColor = color;
 
     headerBrush = QBrush(color);
-    bodyBrush = QBrush(color.lighter(105));
+
+    if (nodeKind.endsWith("Definitions")) {
+        bodyBrush = color;
+    } else {
+        bodyBrush = QBrush(color.lighter(105));
+    }
 
     pen.setWidth(1);
     pen.setColor(Qt::black);
+    //pen.setColor(Qt::darkGray);
     selectedPen.setColor(Qt::blue);
     selectedPen.setWidth(1);
 }
