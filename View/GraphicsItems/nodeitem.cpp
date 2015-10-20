@@ -51,6 +51,10 @@
 #define CONNECTED 1
 #define UNCONNECTED 2
 
+#define THEME_LIGHT 0
+#define THEME_DARK 1
+
+
 /**
  * @brief NodeItem::NodeItem
  * @param node
@@ -875,7 +879,7 @@ void NodeItem::paintModel(QPainter *painter)
     }
 
     painter->setPen(pen);
-    painter->setBrush(Qt::gray);
+    painter->setBrush(modelCircleColor);
     //Draw the center circle
     painter->drawEllipse(quadrant);
 
@@ -2402,6 +2406,7 @@ void NodeItem::setupBrushes()
     }
 
     selectedColor = color;
+    modelCircleColor = Qt::gray;
 
     headerBrush = QBrush(color);
 
@@ -2914,6 +2919,25 @@ void NodeItem::hardwareClusterMenuItemPressed()
 int NodeItem::getHardwareClusterChildrenViewMode()
 {
     return CHILDREN_VIEW_MODE;
+}
+
+
+/**
+ * @brief NodeItem::themeChanged
+ * @param theme
+ */
+void NodeItem::themeChanged(int theme)
+{
+    switch (theme) {
+    case THEME_LIGHT:
+        modelCircleColor = Qt::gray;
+        break;
+    case THEME_DARK:
+        modelCircleColor = QColor(100,100,100);
+        break;
+    default:
+        break;
+    }
 }
 
 

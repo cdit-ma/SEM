@@ -273,6 +273,8 @@ public slots:
     void hardwareClusterMenuItemPressed();
     int getHardwareClusterChildrenViewMode();
 
+    void themeChanged(int theme);
+
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
     void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
@@ -445,6 +447,8 @@ private:
     QColor selectedColor;
     QColor color;
 
+    QColor modelCircleColor;
+
     QBrush selectedBrush;
     QBrush bodyBrush;
     QBrush headerBrush;
@@ -482,6 +486,7 @@ private:
     QString editableDataKey;
 
     bool gotVisibleChildren;
+
     // GraphMLItem interface
 public slots:
     bool canHover();

@@ -38,6 +38,7 @@ Version 18:
 		* Finally fixed lack of initial repaint for the data table.
 		* Moved the minimap label outside of the minimap.
 		* Added check for the connectMode from the toolbar to see if the selected destination item is actually highlighted.
+		* Fixed model circle colors and aspect brush colors to match the model circle.
 
     Todo:
         * Test Ubuntu for local deployment.

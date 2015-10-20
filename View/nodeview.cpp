@@ -905,9 +905,12 @@ void NodeView::actionFinished()
  */
 void NodeView::setupTheme(int theme)
 {
-    QString background = "rgba(170,170,170,255);";
+    QString background = ";";
 
     switch (theme) {
+    case THEME_LIGHT:
+        background = "rgba(170,170,170,255);";
+        break;
     case THEME_DARK:
         background = "rgb(100,100,100);";
         break;
@@ -2779,6 +2782,9 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
             connect(this, SIGNAL(view_AspectsChanged(QStringList)), nodeItem, SLOT(aspectsChanged(QStringList)));
             if(nodeItem->isModel()){
                 connect(nodeItem, SIGNAL(NodeItem_Model_AspectToggled(int)), this, SLOT(view_AspectToggled(int)));
+            }
+            if (nodeItem->isModel()) {
+                connect(this, SIGNAL(view_themeChanged(int)), nodeItem, SLOT(themeChanged(int)));
             }
         }
 
