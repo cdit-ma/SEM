@@ -992,11 +992,13 @@
 			<xsl:call-template name="Execution_Aggregate">
 				<xsl:with-param name="processNodes" select="$aggregateInstance"/>
 				<xsl:with-param name="varName" select="$varName" />
-				<xsl:with-param name="topLevel" select="'true'" />
+				<xsl:with-param name="level" select="'top'" />
 				<xsl:with-param name="recursed" select="''" />
 				<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
 				<xsl:with-param name="transformNodeValueKey" select="$transformNodeValueKey"/>
 				<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+				<xsl:with-param name="transformNodeTypeKey"  select="$transformNodeTypeKey" />
+				<xsl:with-param name="transformNodeSortOrderKey"  select="$transformNodeSortOrderKey" />
 			</xsl:call-template>
 			
 			<xsl:value-of select="concat('this->ctx_-&gt;push_', $outEventPortName, ' (', $varName, '.in ());&#xA;')" />
@@ -1136,14 +1138,16 @@
 	<xsl:template name="Execution_Aggregate">
 		<xsl:param name="processNodes"/> 
 		<xsl:param name="varName" />
-		<xsl:param name="topLevel" />
+		<xsl:param name="level" />
 		<xsl:param name="recursed" />
 		<xsl:param name="transformNodeKindKey" />
 		<xsl:param name="transformNodeValueKey" />
 		<xsl:param name="transformNodeLabelKey" />
+		<xsl:param name="transformNodeTypeKey" />
+		<xsl:param name="transformNodeSortOrderKey" />
 		
 		<xsl:variable name="instances" select="$processNodes/gml:graph/gml:node" />
-		<!-- process each memberInstance and aggregateInstance -->
+		<!-- process each memberInstance, aggregateInstance and vectorInstance -->
 		<xsl:for-each select="$instances" >
 			<!-- order not important for assigning values to MemberInstance of OutEventPorts -->
 			<!-- <xsl:sort select="./gml:data[@key=$transformNodeYKey]" data-type="number" order="ascending" /> -->
@@ -1158,7 +1162,7 @@
 				<!-- if (value == "$TIMEOFDAY") memberValue = "ACE_OS::gettimeofday ().msec ()"; ??? -->
 				<xsl:if test="$memberValue != ''">
 					<xsl:choose>
-					<xsl:when test="$topLevel = 'true'">
+					<xsl:when test="$level = 'top'">
 						<!-- top level aggregate members need different format -->
 						<xsl:value-of select="concat($varName, '-&gt;', $memberName, ' (', $memberValue, ');&#xA;')" />
 					</xsl:when>
@@ -1172,7 +1176,7 @@
 				<xsl:variable name="aggregateName" select="$instNode/gml:data[@key=$transformNodeLabelKey]/text()" />
 				<xsl:variable name="structure" >
 					<xsl:choose>
-					<xsl:when test="$topLevel = 'true'">
+					<xsl:when test="$level = 'top'">
 						<!-- top level aggregate members start recursing -->
 						<xsl:value-of select="concat($varName, '-&gt;', $aggregateName, ' ()')" />
 					</xsl:when>
@@ -1186,11 +1190,128 @@
 				<xsl:call-template name="Execution_Aggregate">
 					<xsl:with-param name="processNodes" select="$instNode"/>
 					<xsl:with-param name="varName" select="$varName" />
-					<xsl:with-param name="topLevel" select="'false'" />
+					<xsl:with-param name="level" select="'aggregate'" />
 					<xsl:with-param name="recursed" select="$structure" />
 					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
 					<xsl:with-param name="transformNodeValueKey" select="$transformNodeValueKey"/>
 					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+					<xsl:with-param name="transformNodeTypeKey"  select="$transformNodeTypeKey" />
+					<xsl:with-param name="transformNodeSortOrderKey"  select="$transformNodeSortOrderKey" />
+				</xsl:call-template>
+			</xsl:when>
+			<xsl:when test="$instType = 'VectorInstance'">
+				<xsl:variable name="vectorName" select="$instNode/gml:data[@key=$transformNodeLabelKey]/text()" />
+				<xsl:variable name="vectorType" select="$instNode/gml:data[@key=$transformNodeTypeKey]/text()" />
+				<xsl:variable name="vectorValue" select="$instNode/gml:data[@key=$transformNodeValueKey]/text()" />
+				<!-- Create vector to load values -->
+				<xsl:value-of select="concat($vectorType, '* buf_', generate-id($instNode) ,' = new ::', $vectorType, '();&#xA;' )" />
+				<xsl:value-of select="concat('buf_', generate-id($instNode), '-&gt;length(', $vectorValue ,');&#xA;')" />
+				<!-- load values -->
+				<xsl:variable name="vecName" select="concat('(* buf_', generate-id($instNode) , ')')" />
+
+				<!-- recursive function -->
+				<xsl:call-template name="Execution_Vector">
+					<xsl:with-param name="processNodes" select="$instNode"/>
+					<xsl:with-param name="varName" select="$vecName" />
+					<xsl:with-param name="level" select="'top'" />
+					<xsl:with-param name="recursed" select="$vecName" />
+					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
+					<xsl:with-param name="transformNodeValueKey" select="$transformNodeValueKey"/>
+					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+					<xsl:with-param name="transformNodeTypeKey"  select="$transformNodeTypeKey" />
+					<xsl:with-param name="transformNodeSortOrderKey"  select="$transformNodeSortOrderKey" />
+				</xsl:call-template>
+				<!-- assign vector to event -->
+				<!-- <xsl:choose>
+					<xsl:when test="$level = 'top'"> -->
+						<!-- top level vector members start recursing -->
+						<xsl:value-of select="concat($varName, '-&gt;', $vectorName, ' (*buf_', generate-id($instNode), ');&#xA;')" />
+				<!--	</xsl:when>
+					<xsl:otherwise> -->
+						<!-- continue recursing -->
+				<!--		<xsl:value-of select="concat($recursed, '.', $vectorName, ' = *buf_', generate-id($instNode), ';&#xA;')" />
+					</xsl:otherwise>
+				</xsl:choose> -->
+			</xsl:when>
+			</xsl:choose>
+		</xsl:for-each>
+	</xsl:template>
+	
+	<!-- Execution_Vector -->
+	<xsl:template name="Execution_Vector">
+		<xsl:param name="processNodes"/> 
+		<xsl:param name="varName" />
+		<xsl:param name="level" />
+		<xsl:param name="recursed" />
+		<xsl:param name="transformNodeKindKey" />
+		<xsl:param name="transformNodeValueKey" />
+		<xsl:param name="transformNodeLabelKey" />
+		<xsl:param name="transformNodeTypeKey" />
+		<xsl:param name="transformNodeSortOrderKey" />
+		
+		<xsl:variable name="instances" select="$processNodes/gml:graph/gml:node" />
+		<!-- process each memberInstance and aggregateInstance within a vectorInstance, assumes only one vectorInstance can exist in hierarchy -->
+		<xsl:for-each select="$instances" >
+			<!-- order not important for assigning values to MemberInstance of OutEventPorts -->
+			<!-- <xsl:sort select="./gml:data[@key=$transformNodeYKey]" data-type="number" order="ascending" /> -->
+			<xsl:variable name="instNode" select="." />
+			<xsl:variable name="instType" select="$instNode/gml:data[@key=$transformNodeKindKey]/text()" />
+			
+			<xsl:choose>
+			<xsl:when test="$instType = 'MemberInstance'">
+				<!-- Write the contents for a simple property. -->
+				<xsl:variable name="memberName" select="$instNode/gml:data[@key=$transformNodeLabelKey]/text()" />
+				<xsl:variable name="memberValue" select="$instNode/gml:data[@key=$transformNodeValueKey]/text()" />
+				<xsl:variable name="memberType" select="$instNode/gml:data[@key=$transformNodeTypeKey]/text()" />
+				<xsl:variable name="aggregateSortOrder" select="floor( number( $instNode/gml:data[@key=$transformNodeSortOrderKey]/text() ) )" />
+				<xsl:variable name="stringDup">
+					<xsl:choose>
+					<xsl:when test="$memberType = 'String'">
+						<xsl:value-of select="' CORBA::string_dup '" />
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="''" />
+					</xsl:otherwise>
+					</xsl:choose>
+				</xsl:variable>
+				<xsl:if test="$memberValue != ''">
+					<xsl:choose>
+					<xsl:when test="$level = 'top'">
+						<!-- top level aggregate members need different format -->
+						<xsl:value-of select="concat($varName, '[', $aggregateSortOrder, '] = ', $stringDup, ' (', $memberValue, ');&#xA;' )" />
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="concat($recursed, '.', $memberName, ' = ', $stringDup, ' (', $memberValue, ');&#xA;')" />
+					</xsl:otherwise>
+					</xsl:choose>
+				</xsl:if>
+			</xsl:when>
+			<xsl:when test="$instType = 'AggregateInstance'">
+				<xsl:variable name="aggregateName" select="$instNode/gml:data[@key=$transformNodeLabelKey]/text()" />
+				<xsl:variable name="aggregateSortOrder" select="floor( number( $instNode/gml:data[@key=$transformNodeSortOrderKey]/text() ) )" />
+				<xsl:variable name="structure" >
+					<xsl:choose>
+					<xsl:when test="$level = 'top'">
+						<!-- top level vector members start recursing -->
+						<xsl:value-of select="concat($varName, '[', $aggregateSortOrder, ']')" />
+					</xsl:when>
+					<xsl:otherwise>
+						<!-- continue recursing -->
+						<xsl:value-of select="concat($recursed, '.', $aggregateName)" />
+					</xsl:otherwise>
+					</xsl:choose>
+				</xsl:variable>
+				<!-- recursive function -->
+				<xsl:call-template name="Execution_Vector">
+					<xsl:with-param name="processNodes" select="$instNode"/>
+					<xsl:with-param name="varName" select="$varName" />
+					<xsl:with-param name="level" select="'aggregate'" />
+					<xsl:with-param name="recursed" select="$structure" />
+					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
+					<xsl:with-param name="transformNodeValueKey" select="$transformNodeValueKey"/>
+					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+					<xsl:with-param name="transformNodeTypeKey"  select="$transformNodeTypeKey" />
+					<xsl:with-param name="transformNodeSortOrderKey"  select="$transformNodeSortOrderKey" />
 				</xsl:call-template>
 			</xsl:when>
 			</xsl:choose>
