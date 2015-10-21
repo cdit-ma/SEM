@@ -19,7 +19,9 @@
         This template will convert a .graphml project to a IDL.graphml 
 		that includes a SortOrder for Attributes. This is required for 
 		the graphml2IDL since the dependency order of the IDL information
-		is important for correct processing of the IDL.
+		is important for correct processing of the IDL. This algorithm
+		assumes that the maximum number of reuse depth of an aggregate instance
+		within an aggregate is 9.
     -->
 	
 	<!-- Assign data keys standard values, defaults back to original document ids for required transforms -->
@@ -154,7 +156,8 @@
 
 			<xsl:choose>
 				<!-- if sortOrder is not present in graphml add -->
-				<xsl:when test="(./gml:data[@key=$transformNodeKindKey]/text() = 'Aggregate') ">
+				<xsl:when test="(./gml:data[@key=$transformNodeKindKey]/text() = 'Aggregate')
+								or (./gml:data[@key=$transformNodeKindKey]/text() = 'Vector')">
 					<xsl:variable name="interfaceDefs" select="/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'InterfaceDefinitions']/.." />
 
 					<xsl:variable name="DepthOrder" >
@@ -219,7 +222,7 @@
 		<xsl:copy/>
 	</xsl:template>
 
-	<!-- Follow dependency edges and return depth of this Aggregate -->
+	<!-- Follow dependency edges and return depth of reuse of this Aggregate or Vector -->
 	 <xsl:template name="dependencyDepth">
 		<xsl:param name="interfaceDefs" />
 		<xsl:param name="node" />
@@ -227,7 +230,7 @@
 		<xsl:param name="transformNodeKindKey" />
 		
 		<xsl:variable name="refNodeIds" select="/descendant::*/gml:edge[@target=$node/@id]/@source" />
-		<xsl:variable name="refParentNodes" select="$interfaceDefs/descendant::*/gml:node[@id=$refNodeIds]/gml:data[@key=$transformNodeKindKey][text() = 'AggregateInstance']/../../.." />
+		<xsl:variable name="refParentNodes" select="$interfaceDefs/descendant::*/gml:node[@id=$refNodeIds]/gml:data[@key=$transformNodeKindKey][text() = 'AggregateInstance' or text() = 'VectorInstance']/../../.." />
 		<xsl:choose>
 			<xsl:when test="$depth > 9" >
 				<xsl:value-of select="'9'"/>
