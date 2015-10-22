@@ -816,10 +816,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
             paintPixmap(painter, iconRect_TopRight(), "Actions", "Warning");
         }
 
-    }
-
-    //Draw Rect
-    painter->drawRect(iconRect_BottomLeft());
+    }  
 }
 
 void NodeItem::paintModel(QPainter *painter)
@@ -1492,6 +1489,8 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
 
             this->nodeType = value;
             qCritical() << this->getNodeKind() << " TYPE UPDATED: " << nodeType;
+
+            bottomInputItem->setValue(value);
             update();
         }
     }
@@ -1601,6 +1600,7 @@ QPointF NodeItem::getAspectsLockedPoint(ASPECT_POS asPos)
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    qCritical() << "MOUSE PRESS ON ITEM";
     wasDoubleClick = false;
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
     //Set the mouse down type to the type which matches the position.
@@ -2328,7 +2328,7 @@ void NodeItem::updateTextLabel(QString newLabel)
         topLabel->setPlainText(newLabel);
         expandedLabel->setPlainText(newLabel);
         topInputItem->setValue(newLabel);
-        bottomInputItem->setValue(newLabel);
+        //bottomInputItem->setValue(newLabel);
         topLabel->setParent(this);
         expandedLabel->setParent(this);
     }
@@ -2695,8 +2695,9 @@ void NodeItem::setupLabel()
 
     QStringList values;
     values << "VALUES #1" << "VALUES #2"<< "VALUES #3"<< "VALUES #4" << "bouncing" << "padding" << "Really long string" << "Background";
-    bottomInputItem = new InputItem(this, values, "VALUES #2");
-    topInputItem = new InputItem(this, true, "Really long string");
+
+    bottomInputItem = new InputItem(this, "TYPE", true);
+    topInputItem = new InputItem(this, "TEST", false);
     topInputItem->setCenterAligned(true);
     topInputItem->setHandleMouse(true);
     bottomInputItem->setHandleMouse(true);
@@ -2712,7 +2713,7 @@ void NodeItem::setupLabel()
     expandedLabel->setFont(font);
     font.setPixelSize(contractedFontSize - 2);
     font.setItalic(true);
-    bottomLabel->setFont(font);
+    bottomInputItem->setFont(font);
 
     connect(topInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
     connect(bottomInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
@@ -2847,7 +2848,7 @@ void NodeItem::setupGraphMLConnections()
             connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
         }
 
-        if(usesType){
+        if(typeData){
             connect(typeData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
         }
     }
@@ -3219,6 +3220,7 @@ int NodeItem::getChildrenViewMode()
     return CHILDREN_VIEW_MODE;
 }
 
+
 void NodeItem::labelEditModeRequest()
 {
     EditableTextItem* textItem = qobject_cast<EditableTextItem*>(QObject::sender());
@@ -3236,12 +3238,21 @@ void NodeItem::labelEditModeRequest()
     if(inputItem){
         qCritical() << inputItem;
         QString dataKey = "label";
-        //if(inputItem == topInputItem){
-        //    dataKey = editableDataKey;
-        //}
 
-        if(isDataEditable(dataKey)){
-            inputItem->setEditMode(true);
+        if(inputItem == topInputItem){
+            if(isDataEditable("label")){
+                inputItem->setEditMode(true);
+            }
+        }else{
+            if(isDataEditable(editableDataKey)){
+                QString currentValue = bottomInputItem->getValue();
+
+                QPointF botLeft = inputItem->sceneBoundingRect().bottomLeft();
+                QPointF botRight = inputItem->sceneBoundingRect().bottomRight();
+                QLineF botLine = QLineF(botLeft,botRight);
+
+                getNodeView()->showDropDown(this, botLine, dataKey, currentValue);
+            }
         }
     }
 }
@@ -3574,7 +3585,6 @@ void NodeItem::setNewLabel(QString newLabel)
         }else{
             if(topLabel){
                 if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
-
                     topLabel->setEditMode(true);
                 }
             }

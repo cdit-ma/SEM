@@ -73,6 +73,8 @@ public:
     //QStringList getAdoptableNodeKinds(Node* parent);
 
     QList<int> getConnectableNodes(int srcID);
+
+    QStringList getValidKeyValues(QString keyName, int ID =-1);
     QList<int> getNodesOfKind(QString kind, int ID=-1, int depth=-1);
 
     bool canCopy(QList<int> selection);

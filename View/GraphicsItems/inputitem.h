@@ -7,15 +7,13 @@
 #include "graphicscombobox.h"
 #include <QComboBox>
 #include <QTime>
+#include <QListWidget>
 
 class InputItem : public QGraphicsObject
 {
     Q_OBJECT
 public:
-    enum INPUT_ENUM {IE_TEXTBOX, IE_COMBOBOX, IE_NUMBERBOX};
-    InputItem(GraphMLItem* parent, QStringList defaultOptions, QString initialValue);
-    InputItem(GraphMLItem* parent, bool test, QString initialValue);
-
+    InputItem(GraphMLItem* parent, QString initialValue, bool isCombo);
     void setCenterAligned(bool center);
 
     void setHandleMouse(bool on);
@@ -36,14 +34,16 @@ public:
 
 private slots:
     void textValueChanged(QString newValue);
+    void comboBoxClosed();
 public slots:
 
     void setValue(QString value="");
-    void setEditMode(bool editable =false);
+    void setEditMode(bool editable);
 
 signals:
     void InputItem_ValueChanged(QString newValue);
     void InputItem_EditModeRequested();
+
     void InputItem_HasFocus(bool focus);
 
 protected:
@@ -52,27 +52,23 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
 
 private:
-    void setupLayout();
+    void setupLayout(QString initialValue);
     void updateTextSize();
     QString currentValue;
+
     bool inEditMode;
     bool handleMouse;
+    bool isComboBox;
+
     qreal width;
     qreal height;
-    qreal inputWidth;
-    qreal inputHeight;
+
     bool wasDoubleClicked;
 
-    QGraphicsProxyWidget* comboBoxProxy;
-
-
-    GraphicsComboBox* comboBox;
-    EditableTextItem* edititem;
+    EditableTextItem* textItem;
 
     QTime lastPressed;
 
-
-    INPUT_ENUM type;
 
     // QGraphicsItem interface
 public:

@@ -1104,6 +1104,26 @@ QList<int> NewController::getConnectableNodes(int srcID)
     return legalNodes;
 }
 
+QStringList NewController::getValidKeyValues(QString keyName, int nodeID)
+{
+    GraphMLKey* key = getGraphMLKeyFromName(keyName);
+    if(key){
+        QString nodeKind;
+        if(nodeID != -1){
+            Node* node = getNodeFromID(nodeID);
+            nodeKind = node->getNodeKind();
+        }
+        qCritical() << key;
+        qCritical() << keyName;
+        qCritical() << nodeKind;
+        if(nodeKind != ""){
+            return key->getSelectableValues(nodeKind);
+        }else{
+            return key->getSelectableValues();
+        }
+    }
+}
+
 QList<int> NewController::getInstances(int ID)
 {
     QList<int> instances;

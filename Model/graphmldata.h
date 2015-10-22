@@ -32,7 +32,7 @@ public:
     QString getKeyName();
     QString toGraphML(qint32 indentationLevel=0);
     QString toString();
-
+    QStringList getValidValues(QString kind);
     QStringList toStringList();
     QList<int> getBoundIDS();
 signals:

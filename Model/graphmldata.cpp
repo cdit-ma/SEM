@@ -92,6 +92,11 @@ QString GraphMLData::toString()
     return QString("[%1]GraphMLData: " + this->getKeyName() + ": " + this->getValue()).arg(getID());
 }
 
+QStringList GraphMLData::getValidValues(QString kind)
+{
+    return getKey()->getSelectableValues(kind);
+}
+
 QStringList GraphMLData::toStringList()
 {
      QStringList dataDump;

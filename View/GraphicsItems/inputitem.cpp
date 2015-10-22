@@ -8,64 +8,21 @@
 #include "graphicscombobox.h"
 #include <QDebug>
 #define TEXT_PADDING 2
-InputItem::InputItem(GraphMLItem* parent, QStringList defaultOptions, QString initialValue):QGraphicsObject(parent)
+
+InputItem::InputItem(GraphMLItem *parent, QString initialValue, bool isCombo):QGraphicsObject(parent)
 {
-    type = IE_COMBOBOX;
+    setupLayout(initialValue);
+    isComboBox = isCombo;
+    textItem->setPlainText(initialValue);
 
-    setupLayout();
-
-
-    comboBox = new GraphicsComboBox();
-    comboBox->addItems(defaultOptions);
-    comboBox->setStyleSheet(
-                                "QComboBox{border:none;color:#00000000;background-color:#00000000;padding:0px;}"
-                                "QComboBox::drop-down{"
-                                    "width: 0px;"
-                                    "height: 0px;"
-                                "}"
-
-
-                                "QComboBox QAbstractItemView {"
-                                "color:black;"
-                                "selection-background-color: gray;"
-                                "selection-color: white;"
-                                "border:1px solid gray;"
-                                "}"
-
-
-                             );
-
-    setWidth(100);
-    setHeight(20);
-
-
-    comboBoxProxy = new QGraphicsProxyWidget(this);
-    comboBoxProxy->setWidget(comboBox);
-    comboBoxProxy->setPos(TEXT_PADDING, 0);
-    comboBoxProxy->setVisible(false);
-    edititem->setPlainText(initialValue);
-
-
-
-
-    //connect(comboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(textValueChanged(QString)));
-    connect(comboBox, SIGNAL(combobox_Closed()), this, SLOT(setEditMode()));
-    connect(comboBox, SIGNAL(activated(QString)), this, SLOT(textValueChanged(QString)));
-
-}
-
-InputItem::InputItem(GraphMLItem *parent,bool, QString initialValue):QGraphicsObject(parent)
-{
-    type = IE_TEXTBOX;
-    setupLayout();
-
-    edititem->setPlainText(initialValue);
-    connect(edititem, SIGNAL(textUpdated(QString)), this, SLOT(textValueChanged(QString)));
+    if(!isComboBox){
+        connect(textItem, SIGNAL(textUpdated(QString)), this, SLOT(textValueChanged(QString)));
+    }
 }
 
 void InputItem::setCenterAligned(bool center)
 {
-    edititem->setCenterAligned(center);
+    textItem->setCenterAligned(center);
 }
 
 void InputItem::setHandleMouse(bool on)
@@ -75,10 +32,7 @@ void InputItem::setHandleMouse(bool on)
 
 void InputItem::setFont(QFont font)
 {
-    if(type == IE_COMBOBOX){
-        comboBox->setFont(font);
-    }
-    edititem->setFont(font);
+    textItem->setFont(font);
 }
 
 QString InputItem::getValue()
@@ -89,12 +43,12 @@ QString InputItem::getValue()
 
 QRectF InputItem::boundingRect() const
 {
-    return QRectF(0,0,width,height);
+    return QRectF(0 ,0,width, height);
 }
 
 QRectF InputItem::arrowRect() const
 {
-    QRectF iconRect = QRectF(0,0, height,height);
+    QRectF iconRect = QRectF(0, 0, height, height);
     iconRect.moveTopRight(QPointF(width, 0));
     return iconRect;
 }
@@ -109,7 +63,6 @@ void InputItem::setWidth(qreal w)
     if(width != w){
         prepareGeometryChange();
         width = w;
-        inputWidth = width - (2 * TEXT_PADDING);
         updateTextSize();
     }
 }
@@ -119,7 +72,9 @@ void InputItem::setHeight(qreal h)
     if(height != h){
         prepareGeometryChange();
         height = h;
-        inputHeight = height;
+
+        //Update position of the textBox.
+        textItem->setPos(TEXT_PADDING, (height - textItem->boundingRect().height())/2);
         updateTextSize();
     }
 }
@@ -134,40 +89,40 @@ qreal InputItem::getHeight()
     return height;
 }
 
-
-
 void InputItem::textValueChanged(QString newValue)
 {
     if(newValue != currentValue){
         emit InputItem_ValueChanged(newValue);
         currentValue = newValue;
     }
-
     if(isInEditMode()){
         setEditMode(false);
     }
-
 }
 
-void InputItem::setValue(QString value)
+void InputItem::comboBoxClosed()
 {
+    //Set edit mode to false.
+    setEditMode(false);
+}
 
-    edititem->setPlainText(value);
+void InputItem::setValue(QString newValue)
+{
+    if(newValue != currentValue){
+        textItem->setPlainText(newValue);
+        currentValue = newValue;
+    }
 }
 
 void InputItem::setEditMode(bool editable)
 {
-    inEditMode = editable;
+    if(editable != inEditMode){
+        inEditMode = editable;
 
-    if(type == IE_COMBOBOX){
-        comboBoxProxy->setVisible(editable);
-
-        if(editable){
-            comboBox->showPopup();
+        if(!isComboBox){
+            //Set the textItem as editable.
+            textItem->setEditMode(editable);
         }
-
-    }else if(type == IE_TEXTBOX){
-        edititem->setEditMode(editable);
     }
 }
 
@@ -175,6 +130,7 @@ void InputItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if(handleMouse && lastPressed.elapsed()  < 250){
         wasDoubleClicked = true;
+
     }else{
         wasDoubleClicked = false;
         QGraphicsObject::mousePressEvent(event);
@@ -186,53 +142,52 @@ void InputItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if(wasDoubleClicked){
         emit InputItem_EditModeRequested();
+        wasDoubleClicked = false;
+        lastPressed.restart();
     }else{
         QGraphicsObject::mouseReleaseEvent(event);
     }
 }
 
-void InputItem::setupLayout()
+void InputItem::setupLayout(QString initialValue)
 {
     width = 0;
     height = 0;
-    comboBox = 0;
-    comboBoxProxy = 0;
+    inEditMode = false;
+
     handleMouse = false;
     lastPressed.start();
 
-    edititem = new EditableTextItem(this);
-    edititem->setParent(this);
-    edititem->setPos(TEXT_PADDING, 0);
-
-    setAcceptHoverEvents(false);
+    textItem = new EditableTextItem(this);
+    textItem->setParent(this);
+    textItem->setPos(TEXT_PADDING, 0);
+    textItem->setPlainText(initialValue);
 }
 
 
 
 void InputItem::updateTextSize()
 {
-    if(type == IE_COMBOBOX){
-        comboBox->setFixedWidth(inputWidth);
-        comboBox->setFixedHeight(inputHeight);
+    //Update Text width so it doesn't colide with the maximize button.
+    qreal textWidth = width;
+    if(isComboBox){
+        //Offset by the width of the icon.
+        textWidth -= height;
     }
-    edititem->setTextWidth(inputWidth);
+
+    textItem->setTextWidth(textWidth);
 }
 
 void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-    //painter->setBrush(Qt::red);
-    painter->drawRect(this->boundingRect());
+    if(isComboBox){
+        QImage image(":/Actions/Arrow_Down.png");
+        QPixmap imageData = QPixmap::fromImage(image);
 
-    if(comboBox){
-        painter->drawRect(comboBox->rect());
+        //painter->setBrush(QColor(120,120,120,120));
+        painter->setPen(Qt::NoPen);
+        painter->setPen(Qt::gray);
+        painter->drawRect(arrowRect());
+        painter->drawPixmap(arrowRect().toAlignedRect(), imageData);
     }
-     //painter->drawRect(this->boundingRect());
-    //QRectF imageRect = arrowRect();
-
-
-    //QImage image(":/Actions/Arrow_Down.png");
-    //QPixmap imageData = QPixmap::fromImage(image);
-
-    //painter->drawPixmap(imageRect.left(), imageRect.top(), imageRect.width(), imageRect.height(), imageData);
-    //painter->drawRect(imageRect);
 }

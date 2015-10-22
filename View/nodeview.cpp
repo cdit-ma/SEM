@@ -145,6 +145,15 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
         connect(this, SIGNAL(view_themeChanged(int)), toolbar, SLOT(setupTheme(int)));
     }
 
+    comboBox = new QComboBox(this);
+    comboBox->setVisible(false);
+    comboBox->setFixedHeight(0);
+    if(isMainView()){
+        connect(comboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(dropDownChangedValue(QString)));
+    }
+
+
+
     // call this after the toolbar has been constructed to pass on the theme
     setupTheme();
     //setupTheme(THEME_DARK);
@@ -898,6 +907,37 @@ void NodeView::actionFinished()
     viewMutex.unlock();
 }
 
+void NodeView::dropDownChangedValue(QString value)
+{
+    if(comboBox){
+        comboBox->setVisible(false);
+
+        int ID = getSelectedNodeID();
+        if(ID > 0){
+            emit view_SetGraphMLData(ID, "type", value);
+        }
+    }
+}
+
+void NodeView::showDropDown(NodeItem *item, QLineF dropDownPosition, QString keyName, QString currentValue)
+{
+    if(comboBox){
+        QPoint topLeft = mapFromScene(dropDownPosition.p1());
+        QPoint topRight = mapFromScene(dropDownPosition.p2());
+
+        int width = topRight.x() - topLeft.x();
+
+        QStringList validValues = controller->getValidKeyValues(keyName, item->getID());
+        comboBox->clear();
+        comboBox->addItems(validValues);
+        comboBox->setCurrentText(currentValue);
+        comboBox->setFixedWidth(width);
+        comboBox->move(topLeft);
+        comboBox->showPopup();
+        comboBox->setVisible(true);
+    }
+}
+
 
 /**
  * @brief NodeView::setupTheme
@@ -981,6 +1021,12 @@ void NodeView::setStateSelected()
 {
     setState(VS_SELECTED);
 }
+
+void NodeView::clearState()
+{
+    setState(VS_NONE);
+}
+
 
 void NodeView::request_ImportSnippet()
 {
@@ -1093,9 +1139,9 @@ void NodeView::scrollEvent(int delta)
                 scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
             }
         }
+        // call this after zooming
+        aspectGraphicsChanged();
     }
-    // call this after zooming
-    aspectGraphicsChanged();
 }
 
 
@@ -1782,7 +1828,7 @@ void NodeView::setState(NodeView::VIEW_STATE state)
 
     switch(viewState){
     case VS_NONE:
-        //Go onto VS_SELECTED
+        //Go onto VS_SELECTED      
     case VS_SELECTED:
         if(state == VS_NONE || state == VS_SELECTED || state == VS_MOVING || state == VS_RESIZING || state == VS_PAN || state == VS_RUBBERBAND || state == VS_CONNECT){
             viewState = state;
@@ -3309,6 +3355,7 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
  */
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
+    qCritical() << "MOUSE PRESS ON VIEW";
     // TODO: Need to catch the case where the menu is closed
     // when MEDEA window steals the focus
     // need this in case there is an opened lock menu

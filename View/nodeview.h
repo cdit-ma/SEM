@@ -24,7 +24,7 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 
 public:
-    enum VIEW_STATE{VS_NONE, VS_SELECTED, VS_RUBBERBAND, VS_RUBBERBANDING, VS_CONNECT, VS_MOVING, VS_RESIZING, VS_CONNECTING, VS_PAN, VS_PANNING};
+    enum VIEW_STATE{VS_NONE,VS_SELECTED, VS_RUBBERBAND, VS_RUBBERBANDING, VS_CONNECT, VS_MOVING, VS_RESIZING, VS_CONNECTING, VS_PAN, VS_PANNING};
 
     enum ALIGN{NONE, HORIZONTAL, VERTICAL};
     NodeView(bool subView = false, QWidget *parent = 0);
@@ -194,11 +194,14 @@ signals:
     void view_QuestionAnswered(bool answer);
 
 public slots:
+    void dropDownChangedValue(QString value);
+    void showDropDown(NodeItem* item, QLineF dropDownPosition, QString keyName, QString currentValue);
     void setStateResizing();
     void setStateMove();
     void setStateMoving();
     void setStateConnect();
     void setStateSelected();
+    void clearState();
     void request_ImportSnippet();
     void hardwareDockOpened(bool opened);
     void showQuestion(MESSAGE_TYPE type, QString title, QString message, int ID);
@@ -451,6 +454,8 @@ private:
 
     ToolbarWidget* toolbar;
 
+
+
     bool IS_SUB_VIEW;
 
     QList<NodeView*> subViews;
@@ -519,9 +524,10 @@ private:
     bool eventFromEdgeItem;
     bool wasPanning;
 
+    QComboBox* comboBox;
+
     QGraphicsLineItem* connectLine;
     VIEW_STATE viewState;
-
 };
 
 #endif // NODEVIEW_H
