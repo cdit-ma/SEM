@@ -922,13 +922,17 @@ void NodeView::dropDownChangedValue(QString value)
 void NodeView::showDropDown(NodeItem *item, QLineF dropDownPosition, QString keyName, QString currentValue)
 {
     if(comboBox){
+        qCritical() << "COMBO BOX";
         QPoint topLeft = mapFromScene(dropDownPosition.p1());
         QPoint topRight = mapFromScene(dropDownPosition.p2());
 
         int width = topRight.x() - topLeft.x();
 
+
+        qCritical() << keyName;
         QStringList validValues = controller->getValidKeyValues(keyName, item->getID());
         comboBox->clear();
+        qCritical() << validValues;
         comboBox->addItems(validValues);
         comboBox->setCurrentText(currentValue);
         comboBox->setFixedWidth(width);

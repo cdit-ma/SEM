@@ -4,7 +4,6 @@
 #include <QGraphicsProxyWidget>
 #include "editabletextitem.h"
 #include "graphmlitem.h"
-#include "graphicscombobox.h"
 #include <QComboBox>
 #include <QTime>
 #include <QListWidget>

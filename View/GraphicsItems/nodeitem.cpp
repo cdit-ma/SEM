@@ -3244,14 +3244,16 @@ void NodeItem::labelEditModeRequest()
                 inputItem->setEditMode(true);
             }
         }else{
+            qCritical() << "NOT TOP INPUT";
             if(isDataEditable(editableDataKey)){
+                qCritical() << "DATA EDITABLE";
                 QString currentValue = bottomInputItem->getValue();
 
                 QPointF botLeft = inputItem->sceneBoundingRect().bottomLeft();
                 QPointF botRight = inputItem->sceneBoundingRect().bottomRight();
                 QLineF botLine = QLineF(botLeft,botRight);
 
-                getNodeView()->showDropDown(this, botLine, dataKey, currentValue);
+                getNodeView()->showDropDown(this, botLine, editableDataKey, currentValue);
             }
         }
     }

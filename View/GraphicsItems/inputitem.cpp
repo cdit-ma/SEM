@@ -5,7 +5,6 @@
 #include <QLineEdit>
 #include "editabletextitem.h"
 #include <QGraphicsSceneMouseEvent>
-#include "graphicscombobox.h"
 #include <QDebug>
 #define TEXT_PADDING 2
 
