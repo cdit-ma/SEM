@@ -2993,7 +2993,8 @@ void NodeItem::themeChanged(int theme)
         bgColor = "rgba(130,130,130,250);";
         textColor = "white;";
         checkedColor = "yellow;";
-        modelCircleColor = QColor(100,100,100);
+        //modelCircleColor = QColor(100,100,100);
+        modelCircleColor = QColor(70,70,70);
         if (darkThemeType == THEME_DARK_NEUTRAL) {
             topLeftColor = QColor(134,161,170);
             topRightColor = QColor(164,176,172);

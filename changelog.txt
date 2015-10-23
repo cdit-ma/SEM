@@ -20,7 +20,9 @@ Version 18:
 		* Added settings option to change the view theme from light(normal) to dark.
 			** The theme gets passed down to the toolbar and menus on the canvas.
 		* Implemented connection of multiple entites to a shared legal node using the toolbar.
-		* Extended search options to include a number of data keys.
+		* Extended search options to include the following data keys: label, kind, topicName, type, description and worker.
+			** The user can now search using regex (eg. blah, *blah, blah*, *blah*)
+
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.
@@ -40,6 +42,7 @@ Version 18:
 		* Moved the minimap label outside of the minimap.
 		* Added check for the connectMode from the toolbar to see if the selected destination item is actually highlighted.
 		* Fixed model circle colors and aspect brush colors to match the model circle.
+		* Reimplemented search to use QRegExp.
 
     Todo:
         * Test Ubuntu for local deployment.
@@ -48,6 +51,7 @@ Version 18:
 		* Need to switch to using the connect mode view state for the toolbar.
 		* Implement a state-based switching of highlighted states in NodeItem.
 		* Need to update the dock buttons and window toolbar when the theme is changed.
+		* Need to show invisble HardwareNodes when their search items are clicked.
 
 Version 17:
     New Features:

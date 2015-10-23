@@ -628,31 +628,48 @@ void NodeView::removeSubView(NodeView *subView)
 }
 
 
+/**
+ * @brief NodeView::search
+ * @param searchString
+ * @param kind
+ * @param dataKeys
+ * @return
+ */
 QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIND kind, QStringList dataKeys)
 {
-    QList<GraphMLItem*> returnable;
+    QList<GraphMLItem*> matchedItems;
+    QList<GraphMLItem*> itemsToSearch;
 
-    searchString = searchString.trimmed();
-
-    foreach(GraphMLItem* guiItem, guiItems){
-
-        GraphML* gml = guiItem->getGraphML();
-
-        if ((kind == GraphMLItem::NODE_ITEM && guiItem->isNodeItem()) || (kind == GraphMLItem::NODE_EDGE && guiItem->isEdgeItem())) {
-
-            // if searchString matches at least one of the values of the
-            // provided data keys for guiItem, append guiItem to the list
-            foreach (QString key, dataKeys) {
-                if (gml->getDataValue(key).contains(searchString, Qt::CaseInsensitive)) {
-                    returnable.append(guiItem);
-                    break;
-                }
-            }
-        }
-
+    if (kind == GraphMLItem::NODE_ITEM) {
+        itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getNodeItemsList());
+    } else if (kind == GraphMLItem::NODE_EDGE) {
+        itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getEdgeItemsList());
     }
 
-    return returnable;
+    // if the searchString doesn't start and end with '*', add '*' to both ends of the string
+    // this forces the regex to check containment instead of just catching the exact case
+    if (!searchString.startsWith('*') && !searchString.endsWith('*')) {
+        searchString = '*' + searchString.trimmed() + '*';
+    }
+
+    QRegExp regex(searchString.trimmed(), Qt::CaseInsensitive, QRegExp::Wildcard);
+
+    foreach (GraphMLItem* item, itemsToSearch) {
+        GraphML* gml = item->getGraphML();
+        if (!gml) {
+            continue;
+        }
+        foreach (QString key, dataKeys) {
+            // if searchString matches at least one of the values of the provided
+            // data keys for the current graphml item, append the item to the list
+            if (regex.exactMatch(gml->getDataValue(key))) {
+                matchedItems.append(item);
+                break;
+            }
+        }
+    }
+
+    return matchedItems;
 }
 
 
@@ -963,16 +980,15 @@ void NodeView::setupTheme(int theme)
     switch (theme) {
     case THEME_LIGHT:
         background = "rgba(170,170,170,255);";
-
+        //background = "white;";
+        break;
+    case THEME_DARK:
         //background = "rgb(30,30,30);";
+        background = "rgb(70,70,70);";
+        //background = "rgb(100,100,100);";
         //background = "rgba(70,130,180);";
         //background = "rgba(203,210,212);";
         //background = "black;";
-        //background = "white;";
-
-        break;
-    case THEME_DARK:
-        background = "rgb(100,100,100);";
         break;
     default:
         break;
@@ -1884,7 +1900,7 @@ void NodeView::setState(NodeView::VIEW_STATE state)
 
     switch(viewState){
     case VS_NONE:
-        //Go onto VS_SELECTED      
+        //Go onto VS_SELECTED
     case VS_SELECTED:
         if(state == VS_NONE || state == VS_SELECTED || state == VS_MOVING || state == VS_RESIZING || state == VS_PAN || state == VS_RUBBERBAND || state == VS_CONNECT){
             viewState = state;
