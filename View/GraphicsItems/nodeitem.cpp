@@ -114,9 +114,9 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     //Setup labels.
     nodeLabel = "";
     nodeType = "";
-    topLabel = 0;
-    expandedLabel = 0;
-    bottomLabel = 0;
+
+    topLabelInputItem = 0;
+    rightLabelInputItem = 0;
     bottomInputItem = 0;
 
     //Setup initial sizes
@@ -193,11 +193,14 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     setupLabel();
 
+
+
+
+    setupGraphMLDataConnections();
+    updateGraphMLData();
+
     //Update Width and Height with values from the GraphML Model If they have them.
-    retrieveGraphMLData();
-
-
-    setupGraphMLConnections();
+    //retrieveGraphMLData();
 
     setupAspect();
     setupBrushes();
@@ -241,9 +244,9 @@ NodeItem::~NodeItem()
         }
     }
 
-    delete topLabel;
-    delete bottomLabel;
-    delete expandedLabel;
+    delete rightLabelInputItem;
+    delete topLabelInputItem;
+    delete bottomInputItem;
 }
 
 /**
@@ -260,13 +263,15 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
 
 
     if(contains(itemPos)){
-        if(mouseOverTopLabel(itemPos) && state > RS_REDUCED){
-            return MO_TOP_LABEL;
-        }if(mouseOverBotInput(itemPos) && state > RS_REDUCED){
+        if(mouseOverBotInput(itemPos) && state > RS_REDUCED){
+            qCritical() << "mouseOverBotInput";
             return MO_BOT_LABEL;
-        }if(mouseOverExpandedLabel(itemPos) && state >= RS_REDUCED){
+        }
+        if(mouseOverRightLabel(itemPos) && state >= RS_REDUCED){
+            qCritical() << "mouseOverRightLabel";
             return MO_EXPANDLABEL;
-        }if(mouseOverConnect(itemPos) && state > RS_REDUCED){
+        }
+        if(mouseOverConnect(itemPos) && state > RS_REDUCED){
             return MO_CONNECT;
         }
         if(isModel()){
@@ -313,6 +318,31 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
         }
     }
     return MO_NONE;
+}
+
+void NodeItem::setEditableField(QString keyName, bool dropDown)
+{
+    qCritical() << "SETTING EDIT FIELD TO: " << keyName;
+    editableDataKey = keyName;
+    editableDataDropDown = dropDown;
+
+    connectToGraphMLData(keyName);
+
+    if(bottomInputItem){
+        bottomInputItem->setDropDown(dropDown);
+
+        if(keyName != ""){
+            bottomInputItem->setVisible(true);
+        }else{
+            bottomInputItem->setVisible(false);
+        }
+    }
+
+    if(getGraphML()){
+        graphMLDataChanged(getGraphML()->getData(keyName));
+    }
+
+
 }
 
 /**
@@ -836,6 +866,11 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         }
 
     }  
+    if(rightLabelInputItem){
+        QRectF rightRect = rightLabelInputItem->boundingRect();
+        rightRect.translate(rightLabelInputItem->pos());
+        painter->drawRect(rightRect);
+    }
 }
 
 void NodeItem::paintModel(QPainter *painter)
@@ -987,11 +1022,11 @@ bool NodeItem::mouseOverModelTL(QPointF mousePosition)
 }
 
 
-bool NodeItem::mouseOverTopLabel(QPointF mousePosition)
+bool NodeItem::mouseOverRightLabel(QPointF mousePosition)
 {
-    if(topLabel && topLabel->isVisible()){
-        QRectF labelRect = topLabel->boundingRect();
-        labelRect.translate(topLabel->pos());
+    if(rightLabelInputItem){// && rightLabelInputItem->isVisible()){
+        QRectF labelRect = rightLabelInputItem->boundingRect();
+        labelRect.translate(rightLabelInputItem->pos());
         if(labelRect.contains(mousePosition)){
             return true;
         }
@@ -999,36 +1034,12 @@ bool NodeItem::mouseOverTopLabel(QPointF mousePosition)
     return false;
 }
 
-bool NodeItem::mouseOverBotLabel(QPointF mousePosition)
-{
-    if(bottomLabel && bottomLabel->isVisible()){
-        QRectF labelRect = bottomLabel->boundingRect();
-        labelRect.translate(bottomLabel->pos());
-        if(labelRect.contains(mousePosition)){
-            return true;
-        }
-    }
-    return false;
-}
 
 bool NodeItem::mouseOverBotInput(QPointF mousePosition)
 {
     if(bottomInputItem && bottomInputItem->isVisible()){
         QRectF labelRect = bottomInputItem->boundingRect();
         labelRect.translate(bottomInputItem->pos());
-        if(labelRect.contains(mousePosition)){
-            return true;
-        }
-    }
-    return false;
-
-}
-
-bool NodeItem::mouseOverExpandedLabel(QPointF mousePosition)
-{
-    if(expandedLabel && expandedLabel->isVisible()){
-        QRectF labelRect = expandedLabel->boundingRect();
-        labelRect.translate(expandedLabel->pos());
         if(labelRect.contains(mousePosition)){
             return true;
         }
@@ -1509,12 +1520,13 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
             nodeHardwareOS = value;
             update();
         }else if(keyName == "type"){
-
             this->nodeType = value;
-            qCritical() << this->getNodeKind() << " TYPE UPDATED: " << nodeType;
+        }
 
-            bottomInputItem->setValue(value);
-            update();
+        if(keyName == editableDataKey){
+            if(bottomInputItem){
+                bottomInputItem->setValue(value);
+            }
         }
     }
 }
@@ -1623,8 +1635,6 @@ QPointF NodeItem::getAspectsLockedPoint(ASPECT_POS asPos)
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qCritical() << "MOUSE PRESS ON ITEM";
-    wasDoubleClick = false;
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
     //Set the mouse down type to the type which matches the position.
     mouseDownType = getMouseOverType(event->scenePos());
@@ -1699,17 +1709,10 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    qCritical() << "mouseReleaseEvent";
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
 
 
-
-    MOUSEOVER_TYPE mouseDblClickType = getMouseOverType(event->scenePos());
-
-    if(wasDoubleClick && mouseDblClickType == MO_BOT_LABEL && event->button() == Qt::LeftButton){
-        //bottomInputItem->setEditMode(true);
-    }
 
     //Only if left button is down.
     switch(event->button()){
@@ -1775,12 +1778,9 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
-    qCritical() << "mouseDoubleClickEvent";
     if(isInSubView){
         return;
     }
-    wasDoubleClick = true;
-
 
     MOUSEOVER_TYPE mouseDblClickType = getMouseOverType(event->scenePos());
 
@@ -1879,13 +1879,21 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         }
         break;
     case MO_EXPANDLABEL:
-    case MO_BOT_LABEL:
+        qCritical() << "LABEL";
     case MO_TOP_LABEL:
         if(isDataEditable("label")){
             cursor = Qt::IBeamCursor;
-            tooltip = tooltip  = topLabel->getFullValue() + "\nDouble click to edit text.";
+            tooltip = tooltip  = topLabelInputItem->getValue() + "\nDouble click to edit text.";
         }else{
-            tooltip  = topLabel->getFullValue();
+            tooltip  = topLabelInputItem->getValue();
+        }
+        break;
+    case MO_BOT_LABEL:
+        if(isDataEditable(editableDataKey)){
+            cursor = Qt::IBeamCursor;
+            tooltip = tooltip  = bottomInputItem->getValue() + "\nDouble click to edit "+ editableDataKey +".";
+        }else{
+            tooltip  = bottomInputItem->getValue();
         }
         break;
     case  MO_DEFINITION:
@@ -1952,10 +1960,6 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 
 void NodeItem::updateTextVisibility()
 {
-    if(!topLabel){
-        return;
-    }
-
     bool bVis = false;
     bool eVis = false;
     if(isExpanded()){
@@ -1967,8 +1971,11 @@ void NodeItem::updateTextVisibility()
     }else{
         bVis = true;
     }
-    topLabel->setVisible(bVis && getRenderState() >= RS_FULL);
-    expandedLabel->setVisible(eVis && getRenderState() >= RS_REDUCED);
+
+    if (topLabelInputItem && rightLabelInputItem) {
+        topLabelInputItem->setVisible(bVis && getRenderState() >= RS_FULL);
+        rightLabelInputItem->setVisible(eVis && getRenderState() >= RS_REDUCED);
+    }
 }
 
 QRectF NodeItem::adjustRectForBorder(QRectF rect, qreal borderWidth)
@@ -2061,29 +2068,34 @@ QRectF NodeItem::smallIconRect() const
  */
 QRectF NodeItem::iconRect() const
 {
-    //if()
-
     qreal iconSize = ICON_RATIO * minimumWidth;
     if(getRenderState() <= RS_REDUCED){
         iconSize = minimumWidth;
     }
 
-    //qreal iconLeft = getItemMargin();
-    //qreal iconTop = getItemMargin();
     //Construct a Rectangle to represent the icon size at the origin
     QRectF icon = QRectF(0, 0, iconSize, iconSize);
 
-    //Translate to centralize the icon in the horizontal space
-    //QPointF centerPoint = QPointF(minimumBoundingRect().center().x(), getItemMargin() + (iconSize / 2));
+
     QPointF centerPoint = minimumBoundingRect().center();
 
     icon.moveCenter(centerPoint);
-    //icon.translate(((1 - ICON_RATIO)/2) * minimumWidth, 0);
-
-    //Translate to move the icon to its position
-    //icon.translate(getItemMargin(), getItemMargin());
-
     return icon;
+}
+
+QRectF NodeItem::textRect_Top() const
+{
+    float itemMargin = getItemMargin() * 2;
+    return QRectF(QPointF(0, 0), QPointF(width + itemMargin, height + itemMargin));
+}
+
+QRectF NodeItem::textRect_Right() const
+{
+    QRectF icon = iconRect();
+
+    qreal textHeight = icon.height() / 3;
+    qreal textWidth = boundingRect().right() - icon.right() - getItemMargin();
+    return QRectF(icon.right(), icon.center().y() - textHeight/2, textWidth, textHeight);
 }
 
 /**
@@ -2229,6 +2241,7 @@ void NodeItem::setWidth(qreal w)
 
     width = w;
 
+
     updateTextLabel();
     calculateGridlines();
     isOverGrid(centerPos());
@@ -2338,76 +2351,57 @@ void NodeItem::setGridVisible(bool visible)
 
 void NodeItem::updateTextLabel(QString newLabel)
 {
-    if(!topLabel){
+    // apparently we do need this >_<
+    if (!(topLabelInputItem || rightLabelInputItem || bottomInputItem)) {
         return;
     }
 
-    if(newLabel != ""){
-        nodeLabel = newLabel;
-    }
-
-
     if (newLabel != "") {
-        topLabel->setPlainText(newLabel);
-        expandedLabel->setPlainText(newLabel);
-        topInputItem->setValue(newLabel);
-        //bottomInputItem->setValue(newLabel);
-        topLabel->setParent(this);
-        expandedLabel->setParent(this);
+        nodeLabel = newLabel;
+        topLabelInputItem->setValue(newLabel);
+        rightLabelInputItem->setValue(newLabel);
     }
 
     //Update font size
     if(!isModel()){
-        //if(isExpanded() && !childNodeItems.isEmpty()){
-        //    bottomTextLabel->setFontSize(expandedFontSize);
-        //}else{
-        //    bottomTextLabel->setFontSize(contractedFontSize);
-        //}
-        topLabel->setTextWidth(minimumWidth + getItemMargin() + getItemMargin());
+        //
+        qreal topWidth = boundingRect().width();
+        qreal bottomWidth = iconRect_BottomRight().left() - iconRect_BottomLeft().right();
+        qreal rightWidth = iconRect_BottomRight().left() - iconRect().right();
 
-        qreal inputWidth  = iconRect_BottomRight().left() - iconRect_BottomLeft().right();
 
-        bottomInputItem->setWidth(inputWidth);
-        topInputItem->setWidth(inputWidth);
+        topLabelInputItem->setWidth(topWidth);
+        bottomInputItem->setWidth(bottomWidth);
+        //rightLabelInputItem->setWidth(rightWidth);
+
+        rightLabelInputItem->updatePosSize(textRect_Right());
+
+        topLabelInputItem->setHeight(iconRect_BottomLeft().height());
         bottomInputItem->setHeight(iconRect_BottomLeft().height());
-        topInputItem->setHeight(iconRect_BottomLeft().height());
-
-        //bottomTextLabel->setTextWidth(width);
-        expandedLabel->setTextWidth(expandedLabelRect().width());
-
-        //topInputItem->setTextWidth(minimumWidth + getItemMargin() + getItemMargin());
-
+        //rightLabelInputItem->setHeight(iconRect().height() / 3);
     }
 
     //Calculate position for label
-    qreal labelX = (boundingRect().width() - topLabel->boundingRect().width()) /2;
+    qreal labelX = (boundingRect().width() - topLabelInputItem->boundingRect().width()) /2;
     qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);
 
-    topLabel->setCenterAligned(true);
+
 
     if(isModel()){
         //The Model is centralized, so center label.
-        topLabel->setTextWidth(width / 2);
+        //topLabelInputItem->setTextWidth(width / 2);
 
-        labelX = - topLabel->boundingRect().width() / 2;
-        labelY = - topLabel->boundingRect().height() / 2;
+        labelX = - topLabelInputItem->boundingRect().width() / 2;
+        labelY = - topLabelInputItem->boundingRect().height() / 2;
     }
 
     //Update position
 
     //Contained
-    //QPointF contractedLabel = QPointF(getItemMargin(), getItemMargin() /2 );
-    QPointF contractedLabel = QPointF(0, -topLabel->boundingRect().height());
+    QPointF contractedLabel = QPointF(0, -topLabelInputItem->boundingRect().height());
+    topLabelInputItem->setPos(contractedLabel);
 
-    //minimumBoundingRect().topLeft();// - QPointF(0, bottomTextLabel->boundingRect().height());
-    //QPointF contractedLabel = QPointF(getItemMargin(), getItemMargin());//minimumBoundingRect().topLeft();// - QPointF(0, bottomTextLabel->boundingRect().height());
-
-    topLabel->setPos(contractedLabel);
-
-    topInputItem->setPos(contractedLabel - QPointF(0,topLabel->boundingRect().height()));
-
-    //bottomTextLabel->setPos(labelX, labelY);
-    topLabel->update();
+    topLabelInputItem->update();
     updateTextVisibility();
 }
 
@@ -2628,6 +2622,24 @@ void NodeItem::childUpdated()
 
 }
 
+void NodeItem::connectToGraphMLData(GraphMLData *data)
+{
+    if(data){
+        int ID = data->getID();
+        if(!connectedDataIDs.contains(ID)){
+            connect(data, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
+            connectedDataIDs.append(ID);
+        }
+    }
+}
+
+void NodeItem::connectToGraphMLData(QString keyName)
+{
+    if(getGraphML()){
+        connectToGraphMLData(getGraphML()->getData(keyName));
+    }
+}
+
 
 void NodeItem::aspectsChanged(QStringList visibleAspects)
 {
@@ -2694,7 +2706,7 @@ void NodeItem::setupLabel()
     //expandedFontSize = 16;
 
     contractedFontSize = qMax(0.8 * (TOP_LABEL_RATIO) * minimumHeight, 1.0);
-    expandedFontSize = qMax((LABEL_RATIO / 2) * minimumHeight, 1.0);
+    expandedFontSize = qMax(0.33 * (ICON_RATIO) * minimumHeight, 1.0);
 
 
     //Use Application font
@@ -2704,74 +2716,61 @@ void NodeItem::setupLabel()
     font.setPixelSize(contractedFontSize);
     //font.setPointSizeF(contractedFontSize);
 
-    topLabel = new EditableTextItem(this);
-    topLabel->setHandleMouse(true);
-
-    bottomLabel = new EditableTextItem(this);
-
 
     QStringList values;
     values << "VALUES #1" << "VALUES #2"<< "VALUES #3"<< "VALUES #4" << "bouncing" << "padding" << "Really long string" << "Background";
 
-    bottomInputItem = new InputItem(this, "TYPE", true);
-    topInputItem = new InputItem(this, "TEST", false);
-    topInputItem->setCenterAligned(true);
-    topInputItem->setHandleMouse(true);
+    bottomInputItem = new InputItem(this, " asd", true);
+    topLabelInputItem = new InputItem(this, "asd ", false);
+    rightLabelInputItem = new InputItem(this, "asd ", false);
+
+    topLabelInputItem->setCenterAligned(true);
+    topLabelInputItem->setHandleMouse(true);
+    rightLabelInputItem->setHandleMouse(true);
     bottomInputItem->setHandleMouse(true);
 
-    bottomLabel->setPlainText("value = test");
-    expandedLabel =  new EditableTextItem(this);
-    topLabel->setFont(font);
-    bottomInputItem->setFont(font);
-    topInputItem->setFont(font);
-
+    topLabelInputItem->setFont(font);
 
     font.setPointSizeF(expandedFontSize);
-    expandedLabel->setFont(font);
+    rightLabelInputItem->setFont(font);
     font.setPixelSize(contractedFontSize - 2);
     font.setItalic(true);
     bottomInputItem->setFont(font);
 
-    connect(topInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
+    connect(rightLabelInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
+    connect(topLabelInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
     connect(bottomInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
-    connect(topLabel, SIGNAL(textUpdated(QString)),this, SLOT(labelUpdated(QString)));
-    connect(topLabel, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
 
-    connect(topLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
-    connect(expandedLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
-    connect(bottomLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
-    //connect(bottomLabel, SIGNAL(editableItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
+    connect(topLabelInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(labelUpdated(QString)));
+    connect(rightLabelInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(labelUpdated(QString)));
 
+    connect(rightLabelInputItem, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
+    connect(bottomInputItem, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
 
-    connect(expandedLabel, SIGNAL(textUpdated(QString)),this, SLOT(labelUpdated(QString)));
-    connect(topInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(labelUpdated(QString)));
-    connect(bottomInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(labelUpdated(QString)));
-
-    connect(expandedLabel, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
-
-    bottomLabel->setEditable(true);
-
+    /*
     if(getGraphML()->getData("label") && (!getGraphML()->getData("label")->isProtected())){
-        topLabel->setEditable(true);
-
-        expandedLabel->setEditable(true);
+        topLabelInputItem->setEditable(true);
+        rightLabelInputItem->setEditable(true);
     }else{
-        topLabel->setEditable(false);
-        expandedLabel->setEditable(false);
+        topLabelInputItem->setEditable(false);
+        rightLabelInputItem->setEditable(false);
     }
 
-    topLabel->setTextWidth(minimumBoundingRect().width());
-    bottomLabel->setTextWidth(minimumBoundingRect().width());
-
-    expandedLabel->setTextWidth(width - iconRect().width());
+    if(getGraphML()->getData(editableDataKey) && (!getGraphML()->getData(editableDataKey)->isProtected())){
+        bottomInputItem->setEditable(true);
+    } else {
+        bottomInputItem->setEditable(false);
+    }
+    */
 
     //Calculate position for label
-    qreal labelX = (minimumBoundingRect().width() - topLabel->boundingRect().width()) /2;
-    qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);
+    //qreal labelX = (minimumBoundingRect().width() - topLabel->boundingRect().width()) /2;
+    //qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);
 
-    topLabel->setCenterAligned(true);
-    bottomLabel->setCenterAligned(true);
+    topLabelInputItem->setCenterAligned(true);
+    bottomInputItem->setCenterAligned(true);
 
+    /*
     if(isModel()){
         //The Model is centralized, so center label.
         topLabel->setTextWidth(width / 2);
@@ -2779,24 +2778,26 @@ void NodeItem::setupLabel()
         labelX = - topLabel->boundingRect().width() / 2;
         labelY = - topLabel->boundingRect().height() / 2;
     }
+    *
 
-    topLabel->setPos(labelX, labelY);
+    //topLabel->setPos(labelX, labelY);
+
 
     QPointF topLabelPos = QPointF(getItemMargin(), getItemMargin()/2);
     QPointF bottomLabelPos = iconRect_BottomLeft().topRight();
 
-    topLabel->setPos(topLabelPos);
-    bottomLabel->setPos(bottomLabelPos);
-
-
-
-    QPointF expandedLabelPos = expandedLabelRect().topLeft() - QPointF(0, expandedLabel->boundingRect().height() /2);
-    expandedLabel->setPos(expandedLabelPos);
-    bottomLabel->setVisible(false);
-    //expandedTextLabel->setPos(iconRect().right(), iconRect().center().y() - expandedTextLabel->boundingRect().height()/2);
+    topLabelInputItem->setPos(topLabelPos);
     bottomInputItem->setPos(bottomLabelPos);
+    */
 
-    topInputItem->setPos(bottomLabelPos - QPointF(0 , bottomInputItem->boundingRect().height()));
+    QPointF bottomLabelPos = iconRect_BottomLeft().topRight();
+
+
+    QPointF expandedLabelPos = expandedLabelRect().topLeft() - QPointF(0, rightLabelInputItem->boundingRect().height() /2);
+    rightLabelInputItem->setPos(expandedLabelPos);
+    bottomInputItem->setVisible(false);
+    bottomInputItem->setPos(bottomLabelPos);
+    topLabelInputItem->setPos(bottomLabelPos - QPointF(0 , bottomInputItem->boundingRect().height()));
 
     updateTextLabel(getGraphMLDataValue("label"));
 }
@@ -2807,66 +2808,29 @@ void NodeItem::setupLabel()
 /**
  * @brief NodeItem::setupGraphMLConnections
  */
-void NodeItem::setupGraphMLConnections()
+void NodeItem::setupGraphMLDataConnections()
 {
-    GraphML* modelEntity = getGraphML();
-    if(modelEntity){
-        GraphMLData* xData = modelEntity->getData("x");
-        GraphMLData* yData = modelEntity->getData("y");
-        GraphMLData* hData = modelEntity->getData("height");
-        GraphMLData* wData = modelEntity->getData("width");
+    connectToGraphMLData("x");
+    connectToGraphMLData("y");
+    connectToGraphMLData("height");
+    connectToGraphMLData("width");
+    connectToGraphMLData("label");
+    connectToGraphMLData("type");
 
-        GraphMLData* typeData = modelEntity->getData("type");
-        GraphMLData* kindData = modelEntity->getData("kind");
-        GraphMLData* labelData = modelEntity->getData("label");
+    if(nodeKind == "HardwareNode"){
+        connectToGraphMLData("os");
+        connectToGraphMLData("architecture");
+        connectToGraphMLData("localhost");
+    }
+}
 
-        GraphMLData* osData = modelEntity->getData("os");
-        GraphMLData* archData = modelEntity->getData("architecture");
-        GraphMLData* localNode = modelEntity->getData("localhost");
-
-        if(nodeKind == "HardwareNode"){
-            if(osData){
-                connect(osData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
-                nodeHardwareOS = osData->getValue();
-            }
-            if(archData){
-                connect(archData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
-                nodeHardwareArch = archData->getValue();
-            }
-            if(localNode){
-                QString value = localNode->getValue();
-                nodeHardwareLocalHost = value == "true";
-            }else{
-                nodeHardwareLocalHost = false;
-            }
-        }
-
-        if(xData){
-            connect(xData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
-        }
-
-        if(yData){
-            connect(yData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
-        }
-
-        if(hData){
-            connect(hData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
-        }
-
-        if(wData){
-            connect(wData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
-        }
-
-        if(labelData){
-            connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
-        }
-
-        if(kindData){
-            connect(kindData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
-        }
-
-        if(typeData){
-            connect(typeData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
+void NodeItem::updateGraphMLData()
+{
+    for(int i = 0; i < connectedDataIDs.size(); i++){
+        int ID = connectedDataIDs.at(i);
+        GraphMLData* data = getGraphML()->getData(ID);
+        if(data){
+            graphMLDataChanged(data);
         }
     }
 }
@@ -3283,37 +3247,47 @@ int NodeItem::getChildrenViewMode()
 
 void NodeItem::labelEditModeRequest()
 {
-    EditableTextItem* textItem = qobject_cast<EditableTextItem*>(QObject::sender());
-    if(textItem){
-        QString dataKey = "label";
-        if(textItem == bottomLabel){
-            dataKey = editableDataKey;
-        }
-
-        if(isDataEditable(dataKey)){
-            textItem->setEditMode(true);
-        }
-    }
     InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
-    if(inputItem){
-        qCritical() << inputItem;
+    if (inputItem) {
         QString dataKey = "label";
-
-        if(inputItem == topInputItem){
-            if(isDataEditable("label")){
-                inputItem->setEditMode(true);
-            }
-        }else{
-            qCritical() << "NOT TOP INPUT";
-            if(isDataEditable(editableDataKey)){
-                qCritical() << "DATA EDITABLE";
+        bool comboBox = false;
+        if (inputItem == bottomInputItem) {
+            dataKey = editableDataKey;
+            comboBox = true;
+        }
+        qCritical() << "dataKey" << dataKey;
+        if (isDataEditable(dataKey)) {
+            if (comboBox) {
                 QString currentValue = bottomInputItem->getValue();
-
                 QPointF botLeft = inputItem->sceneBoundingRect().bottomLeft();
                 QPointF botRight = inputItem->sceneBoundingRect().bottomRight();
                 QLineF botLine = QLineF(botLeft,botRight);
-
                 getNodeView()->showDropDown(this, botLine, editableDataKey, currentValue);
+            } else {
+                qCritical() << "HELLO";
+                inputItem->setEditMode(true);
+            }
+        }
+    }
+}
+
+void NodeItem::dataChanged(QString dataValue)
+{
+    //Determine the sender
+    InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
+
+    if(inputItem && getGraphML()){
+
+        QString keyValue = "label";
+        if(inputItem == bottomInputItem){
+            keyValue = editableDataKey;
+        }
+
+        QString currentDataVal = getGraphMLDataValue(keyValue);
+        if(currentDataVal != dataValue){
+            if(!getGraphML()->getData(keyValue)->isProtected()){
+                GraphMLItem_TriggerAction("Set New Data Value");
+                GraphMLItem_SetGraphMLData(getID(), keyValue, dataValue);
             }
         }
     }
@@ -3645,10 +3619,8 @@ void NodeItem::setNewLabel(QString newLabel)
                 GraphMLItem_SetGraphMLData(getID(), "label", newLabel);
             }
         }else{
-            if(topLabel){
-                if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
-                    topLabel->setEditMode(true);
-                }
+            if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
+                topLabelInputItem->setEditMode(true);
             }
         }
     }

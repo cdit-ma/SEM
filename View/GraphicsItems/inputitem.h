@@ -14,9 +14,11 @@ class InputItem : public QGraphicsObject
 public:
     InputItem(GraphMLItem* parent, QString initialValue, bool isCombo);
     void setCenterAligned(bool center);
-
+    void setDropDown(bool isCombo);
     void setHandleMouse(bool on);
     void setFont(QFont font);
+
+    void updatePosSize(QRectF size);
     //void setTextAlignment(Qt::AlignmentFlag alignment);
 
     QString getValue();
@@ -31,11 +33,7 @@ public:
     qreal getWidth();
     qreal getHeight();
 
-private slots:
-    void textValueChanged(QString newValue);
-    void comboBoxClosed();
 public slots:
-
     void setValue(QString value="");
     void setEditMode(bool editable);
 
@@ -53,9 +51,7 @@ protected:
 private:
     void setupLayout(QString initialValue);
     void updateTextSize();
-    QString currentValue;
 
-    bool inEditMode;
     bool handleMouse;
     bool isComboBox;
 

@@ -12,16 +12,26 @@ InputItem::InputItem(GraphMLItem *parent, QString initialValue, bool isCombo):QG
 {
     setupLayout(initialValue);
     isComboBox = isCombo;
+    handleMouse = false;
     textItem->setPlainText(initialValue);
 
     if(!isComboBox){
-        connect(textItem, SIGNAL(textUpdated(QString)), this, SLOT(textValueChanged(QString)));
+        connect(textItem, SIGNAL(textUpdated(QString)), this, SIGNAL(InputItem_ValueChanged(QString)));
     }
 }
 
 void InputItem::setCenterAligned(bool center)
 {
     textItem->setCenterAligned(center);
+}
+
+void InputItem::setDropDown(bool isCombo)
+{
+    if(isComboBox != isCombo){
+        isComboBox = isCombo;
+        updateTextSize();
+        update();
+    }
 }
 
 void InputItem::setHandleMouse(bool on)
@@ -32,11 +42,19 @@ void InputItem::setHandleMouse(bool on)
 void InputItem::setFont(QFont font)
 {
     textItem->setFont(font);
+    updateTextSize();
+}
+
+void InputItem::updatePosSize(QRectF size)
+{
+    this->setPos(size.topLeft());
+    this->setWidth(size.width());
+    this->setHeight(size.height());
 }
 
 QString InputItem::getValue()
 {
-    return currentValue;
+    return textItem->getFullValue();
 }
 
 
@@ -54,7 +72,7 @@ QRectF InputItem::arrowRect() const
 
 bool InputItem::isInEditMode()
 {
-    return inEditMode;
+    return textItem->isInEditMode();
 }
 
 void InputItem::setWidth(qreal w)
@@ -73,7 +91,7 @@ void InputItem::setHeight(qreal h)
         height = h;
 
         //Update position of the textBox.
-        textItem->setPos(TEXT_PADDING, (height - textItem->boundingRect().height())/2);
+        textItem->setPos(0, (height - textItem->boundingRect().height())/2);
         updateTextSize();
     }
 }
@@ -88,45 +106,22 @@ qreal InputItem::getHeight()
     return height;
 }
 
-void InputItem::textValueChanged(QString newValue)
-{
-    if(newValue != currentValue){
-        emit InputItem_ValueChanged(newValue);
-        currentValue = newValue;
-    }
-    if(isInEditMode()){
-        setEditMode(false);
-    }
-}
-
-void InputItem::comboBoxClosed()
-{
-    //Set edit mode to false.
-    setEditMode(false);
-}
-
 void InputItem::setValue(QString newValue)
 {
-    if(newValue != currentValue){
-        textItem->setPlainText(newValue);
-        currentValue = newValue;
-    }
+    textItem->setPlainText(newValue);
 }
 
 void InputItem::setEditMode(bool editable)
 {
-    if(editable != inEditMode){
-        inEditMode = editable;
-
-        if(!isComboBox){
-            //Set the textItem as editable.
-            textItem->setEditMode(editable);
-        }
+    if(!isComboBox){
+        //Set the textItem as editable.
+        textItem->setEditMode(editable);
     }
 }
 
 void InputItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    qCritical() << "GOT CLICK";
     if(handleMouse && lastPressed.elapsed()  < 250){
         wasDoubleClicked = true;
 
@@ -152,7 +147,6 @@ void InputItem::setupLayout(QString initialValue)
 {
     width = 0;
     height = 0;
-    inEditMode = false;
 
     handleMouse = false;
     lastPressed.start();

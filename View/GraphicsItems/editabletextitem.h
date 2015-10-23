@@ -10,8 +10,8 @@ public:
     explicit EditableTextItem(QGraphicsItem *parent = 0, int maximumLength = 64);
     QRectF boundingRect() const;
     void setEditMode(bool editMode = true);
+    bool isInEditMode();
 
-    void setHandleMouse(bool handleMouse);
     void setFontSize(qreal fontSize);
     void setPlainText(const QString &text);
     void setTextWidth(qreal width);
@@ -38,8 +38,6 @@ private:
 
 
     bool editable;
-
-    bool handleMouse;
     bool centerJustified;
     QString currentFullValue;
     QString currentTruncValue;

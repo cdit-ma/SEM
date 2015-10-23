@@ -331,6 +331,8 @@ public slots:
 
 
 private:
+    QPair<QString, bool> getEditableDataKeyName(NodeItem* node);
+    bool isEditableDataDropDown(NodeItem* node);
     void setConnectMode(bool on);
     void setRubberBandMode(bool On);
 

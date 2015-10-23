@@ -951,8 +951,7 @@ bool NewController::_importProjects(QStringList xmlDataList, bool addAction)
             emit controller_ActionProgressChanged(0, "Importing GraphML files");
         }
 
-        foreach(QString xmlData, xmlDataList){
-            qCritical() << xmlData;
+        foreach(QString xmlData, xmlDataList){            
             bool result = _importGraphMLXML(xmlData, getModel());
             if(!result){
                 controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
@@ -1113,9 +1112,7 @@ QStringList NewController::getValidKeyValues(QString keyName, int nodeID)
             Node* node = getNodeFromID(nodeID);
             nodeKind = node->getNodeKind();
         }
-        qCritical() << key;
-        qCritical() << keyName;
-        qCritical() << nodeKind;
+
         if(nodeKind != ""){
             return key->getSelectableValues(nodeKind);
         }else{

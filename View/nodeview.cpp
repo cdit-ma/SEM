@@ -933,17 +933,15 @@ void NodeView::dropDownChangedValue(QString value)
 void NodeView::showDropDown(NodeItem *item, QLineF dropDownPosition, QString keyName, QString currentValue)
 {
     if(comboBox){
-        qCritical() << "COMBO BOX";
         QPoint topLeft = mapFromScene(dropDownPosition.p1());
         QPoint topRight = mapFromScene(dropDownPosition.p2());
 
         int width = topRight.x() - topLeft.x();
 
 
-        qCritical() << keyName;
         QStringList validValues = controller->getValidKeyValues(keyName, item->getID());
         comboBox->clear();
-        qCritical() << validValues;
+
         comboBox->addItems(validValues);
         comboBox->setCurrentText(currentValue);
         comboBox->setFixedWidth(width);
@@ -1785,6 +1783,32 @@ void NodeView::itemEntered(int ID, bool enter)
     }
 }
 
+QPair<QString, bool> NodeView::getEditableDataKeyName(NodeItem *node)
+{
+    QPair<QString, bool> returnType;
+    returnType.first = "";
+    returnType.second = false;
+
+    QString nodeKind = node->getNodeKind();
+
+    QStringList noDropDownKinds;
+    noDropDownKinds << "OutEventPort" << "InEventPort" << "AggregateInstance" << "VectorInstance" << "MemberInstance";
+    QStringList typeKinds;
+    typeKinds << "Attribute" << "Member" << "OutEventPort" << "InEventPort" << "Vector" << "AggregateInstance" << "VectorInstance" << "MemberInstance";
+
+    if(typeKinds.contains(nodeKind)){
+        returnType.first = "type";
+        if(!noDropDownKinds.contains(nodeKind)){
+            returnType.second = true;
+        }
+    }
+    if(nodeKind == "Aggregate"){
+        returnType.first = "sortOrder";
+    }
+
+    return returnType;
+}
+
 bool NodeView::isNodeVisuallyConnectable(Node *node)
 {
     if(node){
@@ -2173,6 +2197,10 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         }
         aspectIDs[node->getID()] = aspectName;
     }
+
+
+    QPair<QString, bool> editField = getEditableDataKeyName(nodeItem);
+    nodeItem->setEditableField(editField.first, editField.second);
 
     nodeItem->setNodeView(this);
     storeGraphMLItemInHash(nodeItem);
@@ -3379,7 +3407,6 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
  */
 void NodeView::mousePressEvent(QMouseEvent *event)
 {
-    qCritical() << "MOUSE PRESS ON VIEW";
     // TODO: Need to catch the case where the menu is closed
     // when MEDEA window steals the focus
     // need this in case there is an opened lock menu

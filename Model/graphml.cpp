@@ -119,14 +119,27 @@ GraphMLData *GraphML::getData(QString keyName)
 {
     if(!_deleting){
         for(int i=0; i < attachedData.size(); i++){
+            if(attachedData[i]->getKeyName() == keyName){
+                return this->attachedData[i];
+            }
+        }
+    }
+    return 0;
+}
+
+GraphMLData *GraphML::getData(int ID)
+{
+    if(!_deleting){
+        for(int i=0; i < attachedData.size(); i++){
             if(attachedData[i]->getKey() != 0){
-                if(attachedData[i]->getKey()->getName() == keyName){
-                    return this->attachedData[i];
+                if(attachedData[i]->getID() == ID){
+                    return attachedData[i];
                 }
             }
         }
     }
     return 0;
+
 }
 
 GraphMLData *GraphML::getData(GraphMLKey *key)

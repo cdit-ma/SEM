@@ -24,7 +24,6 @@
 #include "../../Model/graphmldata.h"
 #include "../Table/attributetablemodel.h"
 #include "graphmlitem.h"
-#include "editabletextitem.h"
 
 class EdgeItem;
 class NodeView;
@@ -45,6 +44,8 @@ public:
 
 
     MOUSEOVER_TYPE getMouseOverType(QPointF scenePos);
+
+    void setEditableField(QString keyName, bool dropDown);
     //Used Methods
     void setZValue(qreal z);
     void restoreZValue();
@@ -125,10 +126,8 @@ public:
     bool mouseOverModelBL(QPointF mousePosition);
     bool mouseOverModelTL(QPointF mousePosition);
 
-    bool mouseOverTopLabel(QPointF mousePosition);
-    bool mouseOverBotLabel(QPointF mousePosition);
+    bool mouseOverRightLabel(QPointF mousePosition);
     bool mouseOverBotInput(QPointF mousePosition);
-    bool mouseOverExpandedLabel(QPointF mousePosition);
     bool mouseOverDeploymentIcon(QPointF mousePosition);
     bool mouseOverDefinition(QPointF mousePosition);
     bool mouseOverIcon(QPointF mousePosition);
@@ -238,6 +237,8 @@ signals:
 
 public slots:
     void labelEditModeRequest();
+    void dataChanged(QString dataValue);
+    void labelUpdated(QString newLabel);
 
     void childMoved();
 
@@ -262,7 +263,7 @@ public slots:
     void updateModelSize();
 
     void sceneRectChanged(QRectF sceneRect);
-    void labelUpdated(QString newLabel);
+
     void setNewLabel(QString label = "");
 
     //Turn off visible gridlines;
@@ -301,6 +302,8 @@ private:
     QRectF smallIconRect() const;
 
     QRectF iconRect() const;
+    QRectF textRect_Top() const;
+    QRectF textRect_Right() const;
 
     QRectF iconRect_TopLeft() const;
     QRectF iconRect_TopRight() const;
@@ -337,13 +340,17 @@ private:
     void setupAspect();
     void setupBrushes();
     void setupLabel();
-    void setupGraphMLConnections();
+    void setupGraphMLDataConnections();
+    void updateGraphMLData();
     void setupChildrenViewOptionMenu();
 
     void updateGraphMLPosition();
     void retrieveGraphMLData();
     void updateTextLabel(QString text="");
     void childUpdated();
+
+    void connectToGraphMLData(GraphMLData* data);
+    void connectToGraphMLData(QString keyName);
 
 
 
@@ -471,7 +478,6 @@ private:
 
     bool hasPanned;
 
-    bool wasDoubleClick;
 
     qreal selectedPenWidth;
 
@@ -484,11 +490,11 @@ private:
     ASPECT_POS aspectPos;
     QPointF aspectLockPos;
 
-    EditableTextItem* topLabel;
-    EditableTextItem* expandedLabel;
-    EditableTextItem* bottomLabel;
+    //InputPut
     InputItem* bottomInputItem;
-    InputItem* topInputItem;
+    InputItem* topLabelInputItem;
+    InputItem* rightLabelInputItem;
+
 
     QString nodeHardwareOS;
     QString nodeHardwareArch;
@@ -496,7 +502,9 @@ private:
 
     bool usesType;
 
+    QList<int> connectedDataIDs;
     QString editableDataKey;
+    bool editableDataDropDown;
 
     bool gotVisibleChildren;
 

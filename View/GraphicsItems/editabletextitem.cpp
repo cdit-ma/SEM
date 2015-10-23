@@ -105,9 +105,9 @@ void EditableTextItem::setEditMode(bool editMode)
     }
 }
 
-void EditableTextItem::setHandleMouse(bool handleMouse)
+bool EditableTextItem::isInEditMode()
 {
-    this->handleMouse = handleMouse;
+    return inEditingMode;
 }
 
 void EditableTextItem::setFontSize(qreal fontSize)
@@ -119,11 +119,11 @@ void EditableTextItem::setFontSize(qreal fontSize)
 
 void EditableTextItem::setPlainText(const QString &text)
 {
-    //qDebug() << "setPlainText";
     if(currentFullValue != text){
         currentFullValue = text;
         currentTruncValue = getTruncatedText(text);
     }
+
     if(centerJustified){
         QGraphicsTextItem::setHtml("<center>" + currentTruncValue + "</center>");
     }else{
@@ -221,30 +221,11 @@ QString EditableTextItem::getTruncatedText(const QString text)
         }
     }
 
-    //qCritical() << truncValue;
-
     if(truncValue != newText){
         truncValue.insert(counter, "...");
     }
 
     return truncValue;
-    /*
-    qCritical() << truncValue;
-
-    while(newText.size() >= 3){
-        qreal truncWidth = fm.width(newText);
-        if(truncWidth < availableWidth){
-            break;
-        }
-        newText.truncate(newText.size() - 3);
-        newText.append("..");
-    }
-
-    //setVisible(newText.size() > 2);
-
-    qCritical() << availableWidth << " OLD TEXT" << text << "New Text " << newText;
-
-    return newText;*/
 }
 
 QRectF EditableTextItem::boundingRect() const

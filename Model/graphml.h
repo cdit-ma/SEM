@@ -41,6 +41,7 @@ public:
     QString getDataValue(QString keyName);
 
     GraphMLData* getData(QString keyName);
+    GraphMLData* getData(int ID);
 
     GraphMLData* getData(GraphMLKey* key);
 
