@@ -97,9 +97,11 @@ public:
     void setHardwareHighlighting(bool highlighted);
 
     bool isLocked();
+    void setLocked(bool locked);
+
     bool isModel();
     bool isAspect();
-    void setLocked(bool locked);
+    bool isHardwareCluster();
 
     bool isAncestorSelected();
 
@@ -451,6 +453,11 @@ private:
     QColor color;
 
     QColor modelCircleColor;
+    QColor topLeftColor;
+    QColor topRightColor;
+    QColor bottomLeftColor;
+    QColor bottomRightColor;
+    int darkThemeType;
 
     QBrush selectedBrush;
     QBrush bodyBrush;

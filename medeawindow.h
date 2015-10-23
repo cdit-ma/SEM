@@ -367,10 +367,16 @@ private:
     QPushButton* nodeKindsButton;
     QLineEdit* nodeKindsBar;
     QMenu* nodeKindsMenu;
+    QPushButton* dataKeysButton;
+    QLineEdit* dataKeysBar;
+    QMenu* dataKeysMenu;
+
+    QStringList dataKeys;
 
     QString searchBarDefaultText;
     QString viewAspectsBarDefaultText;
     QString nodeKindsDefaultText;
+    QString dataKeysDefaultText;
 
     AppSettings* appSettings;
 

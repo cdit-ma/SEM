@@ -20,6 +20,7 @@ Version 18:
 		* Added settings option to change the view theme from light(normal) to dark.
 			** The theme gets passed down to the toolbar and menus on the canvas.
 		* Implemented connection of multiple entites to a shared legal node using the toolbar.
+		* Extended search options to include a number of data keys.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.

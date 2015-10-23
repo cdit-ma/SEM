@@ -51,6 +51,7 @@ private:
 
     bool CHECKED;
     int STATE;
+    int THEME;
 
 };
 

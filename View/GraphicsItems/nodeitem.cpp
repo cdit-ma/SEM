@@ -54,6 +54,9 @@
 #define THEME_LIGHT 0
 #define THEME_DARK 1
 
+#define THEME_DARK_NEUTRAL 10
+#define THEME_DARK_COLOURED 11
+
 
 /**
  * @brief NodeItem::NodeItem
@@ -106,6 +109,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
 
     currentResizeMode = NodeItem::NO_RESIZE;
 
+    childrenViewOptionMenu = 0;
 
     //Setup labels.
     nodeLabel = "";
@@ -214,6 +218,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     }
 
     aspectsChanged(aspects);
+
+    //darkThemeType = THEME_DARK_NEUTRAL;
+    //darkThemeType = THEME_DARK_COLOURED;
+    darkThemeType = 0;
 }
 
 
@@ -288,16 +296,16 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
         }if(mouseOverTopBar(itemPos)){
             return MO_TOPBAR;
         }if(isResizeable()){
-                NodeItem::RESIZE_TYPE resize = resizeEntered(itemPos);
-                if(resize == NO_RESIZE){
-                    return MO_ITEM;
-                }else if(resize == RESIZE){
-                    return MO_RESIZE;
-                }else if(resize == HORIZONTAL_RESIZE){
-                    return MO_RESIZE_HOR;
-                }else if(resize == VERTICAL_RESIZE){
-                    return MO_RESIZE_VER;
-                }
+            NodeItem::RESIZE_TYPE resize = resizeEntered(itemPos);
+            if(resize == NO_RESIZE){
+                return MO_ITEM;
+            }else if(resize == RESIZE){
+                return MO_RESIZE;
+            }else if(resize == HORIZONTAL_RESIZE){
+                return MO_RESIZE_HOR;
+            }else if(resize == VERTICAL_RESIZE){
+                return MO_RESIZE_VER;
+            }
         }else {
             if (!isModel()) {
                 return MO_ITEM;
@@ -611,6 +619,17 @@ bool NodeItem::isAspect()
     return IS_DEFINITION;
 }
 
+
+/**
+ * @brief NodeItem::isHardwareCluster
+ * Return if this nodeitem is a HarwareCluster or not.
+ * @return
+ */
+bool NodeItem::isHardwareCluster()
+{
+    return IS_HARDWARE_CLUSTER;
+}
+
 void NodeItem::setLocked(bool locked)
 {
     LOCKED_POSITION = locked;
@@ -673,11 +692,11 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         //Make the background transparent
         if(viewState == NodeView::VS_MOVING || viewState == NodeView::VS_RESIZING){
-             if(isSelected() && isNodeOnGrid){
+            if(isSelected() && isNodeOnGrid){
                 QColor color = bodyBrush.color();
                 color.setAlpha(90);
                 bodyBrush.setColor(color);
-             }
+            }
         }
 
 
@@ -756,19 +775,19 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
 
         //New Code
-       if(drawGridlines()){
-           painter->setClipping(false);
+        if(drawGridlines()){
+            painter->setClipping(false);
 
-           painter->setPen(Qt::gray);
-           QPen linePen = painter->pen();
+            painter->setPen(Qt::gray);
+            QPen linePen = painter->pen();
 
-           linePen.setStyle(Qt::DotLine);
-           //linePen.setWidth(1);
-           painter->setPen(linePen);
+            linePen.setStyle(Qt::DotLine);
+            //linePen.setWidth(1);
+            painter->setPen(linePen);
 
-           painter->drawLines(xGridLines);
-           painter->drawLines(yGridLines);
-       }
+            painter->drawLines(xGridLines);
+            painter->drawLines(yGridLines);
+        }
 
         //Paint the Icon
         if(hasIcon){
@@ -837,22 +856,26 @@ void NodeItem::paintModel(QPainter *painter)
     QRectF quadrant(0, 0, width / 2, height / 2);
 
     //Paint Bottom Right
-    painter->setBrush(QColor(110,170,220));
+    //painter->setBrush(QColor(110,170,220));
+    painter->setBrush(bottomRightColor);
     painter->drawRect(quadrant);
 
     //Paint Top Right
     quadrant.moveBottomLeft(origin);
-    painter->setBrush(QColor(254,184,126));
+    //painter->setBrush(QColor(254,184,126));
+    painter->setBrush(topRightColor);
     painter->drawRect(quadrant);
 
     //Paint Top Left
     quadrant.moveBottomRight(origin);
-    painter->setBrush(QColor(110,210,210));
+    //painter->setBrush(QColor(110,210,210));
+    painter->setBrush(topLeftColor);
     painter->drawRect(quadrant);
 
     //Paint Bottom Left
     quadrant.moveTopRight(origin);
-    painter->setBrush(QColor(255,160,160));
+    //painter->setBrush(QColor(255,160,160));
+    painter->setBrush(bottomLeftColor);
     painter->drawRect(quadrant);
 
     quadrant.moveCenter(origin);
@@ -1582,16 +1605,16 @@ QPointF NodeItem::getAspectsLockedPoint(ASPECT_POS asPos)
     qreal itemMargin = (width / 4);
 
     switch(asPos){
-        case AP_TOPLEFT:
-            return QPointF(-itemMargin, -itemMargin);
-        case AP_TOPRIGHT:
-            return QPointF(itemMargin, -itemMargin);
-        case AP_BOTRIGHT:
-            return QPointF(itemMargin, itemMargin);
-        case AP_BOTLEFT:
-            return QPointF(-itemMargin, itemMargin);
-        default:
-            return QPointF(0,0);
+    case AP_TOPLEFT:
+        return QPointF(-itemMargin, -itemMargin);
+    case AP_TOPRIGHT:
+        return QPointF(itemMargin, -itemMargin);
+    case AP_BOTRIGHT:
+        return QPointF(itemMargin, itemMargin);
+    case AP_BOTLEFT:
+        return QPointF(-itemMargin, itemMargin);
+    default:
+        return QPointF(0,0);
     }
 
 }
@@ -1648,10 +1671,10 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
                     getNodeView()->setStateResizing();
                 }
             }else if(mouseDownType <= MO_TOPBAR && mouseDownType >= MO_ICON){
-                 if(isMoveable()){
+                if(isMoveable()){
                     //Moving not resizing.
                     getNodeView()->setStateMoving();
-                 }
+                }
             }
             break;
         case NodeView::VS_RESIZING:
@@ -2027,8 +2050,8 @@ void NodeItem::updateDisplayedChildren(int viewMode)
 
 QRectF NodeItem::smallIconRect() const
 {
-     qreal iconSize = SMALL_ICON_RATIO * minimumWidth;
-     return QRectF(0, 0, iconSize, iconSize);
+    qreal iconSize = SMALL_ICON_RATIO * minimumWidth;
+    return QRectF(0, 0, iconSize, iconSize);
 }
 
 
@@ -2454,7 +2477,7 @@ void NodeItem::setupBrushes()
     headerBrush = QBrush(color);
 
     if (nodeKind.endsWith("Definitions")) {
-        bodyBrush = color;
+        bodyBrush = QBrush(color);
     } else {
         bodyBrush = QBrush(color.lighter(105));
     }
@@ -2482,20 +2505,20 @@ void NodeItem::setPos(const QPointF &pos)
         //Calculate position of the aspect. It should be fixed.
         QRectF rectangle = boundingRect();
         switch(aspectPos){
-            case AP_TOPLEFT:
-                rectangle.moveBottomRight(aspectLockPos);
-                break;
-            case AP_TOPRIGHT:
-                rectangle.moveBottomLeft(aspectLockPos);
-                break;
-            case AP_BOTRIGHT:
-                rectangle.moveTopLeft(aspectLockPos);
-                break;
-            case AP_BOTLEFT:
-                rectangle.moveTopRight(aspectLockPos);
-                break;
-            default:
-                break;
+        case AP_TOPLEFT:
+            rectangle.moveBottomRight(aspectLockPos);
+            break;
+        case AP_TOPRIGHT:
+            rectangle.moveBottomLeft(aspectLockPos);
+            break;
+        case AP_BOTRIGHT:
+            rectangle.moveTopLeft(aspectLockPos);
+            break;
+        case AP_BOTLEFT:
+            rectangle.moveTopRight(aspectLockPos);
+            break;
+        default:
+            break;
         }
         //The top left of the rectangle represents the aspects position.
         newPos = rectangle.topLeft();
@@ -2535,14 +2558,8 @@ void NodeItem::setupChildrenViewOptionMenu()
     font.setPointSize(9);
 
     childrenViewOptionMenu->setFont(font);
-    //childrenViewOptionMenu->setFixedSize(115, 68);
-    childrenViewOptionMenu->setAttribute(Qt::WA_TranslucentBackground);
-    childrenViewOptionMenu->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
-    childrenViewOptionMenu->setStyleSheet("QRadioButton::checked{ color: darkRed; font-weight: bold; }"
-                                          "QRadioButton{ padding: 3px; }"
-                                          "QMenu{ padding: 5px;"
-                                          "border-radius: 8px;"
-                                          "background-color: rgba(240,240,240,245); }");
+    //childrenViewOptionMenu->setAttribute(Qt::WA_TranslucentBackground);
+    //childrenViewOptionMenu->setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
 
     allChildren = new QRadioButton("All");
     connectedChildren = new QRadioButton("Connected");
@@ -2998,15 +3015,58 @@ int NodeItem::getHardwareClusterChildrenViewMode()
  */
 void NodeItem::themeChanged(int theme)
 {
+    QString bgColor = "rgba(240,240,240,250);";
+    QString textColor = "black;";
+    QString checkedColor = "green;";
+    modelCircleColor = Qt::gray;
+    topRightColor = QColor(254,184,126);
+    topLeftColor = QColor(110,210,210);
+    bottomRightColor = QColor(110,170,220);
+    bottomLeftColor = QColor(255,160,160);
+
     switch (theme) {
-    case THEME_LIGHT:
-        modelCircleColor = Qt::gray;
-        break;
     case THEME_DARK:
+        bgColor = "rgba(130,130,130,250);";
+        textColor = "white;";
+        checkedColor = "yellow;";
         modelCircleColor = QColor(100,100,100);
+        if (darkThemeType == THEME_DARK_NEUTRAL) {
+            topLeftColor = QColor(134,161,170);
+            topRightColor = QColor(164,176,172);
+            bottomLeftColor = QColor(192,191,197);
+            bottomRightColor = QColor(239,238,233);
+        } else if (darkThemeType == THEME_DARK_COLOURED) {
+            topLeftColor = QColor(24,148,184);
+            topRightColor = QColor(155,155,155);
+            bottomLeftColor = QColor(90,90,90);
+            bottomRightColor = QColor(207,107,100);
+        }
         break;
     default:
         break;
+    }
+
+    if (isAspect()) {
+        if (nodeKind == "BehaviourDefinitions") {
+            bodyBrush.setColor(topRightColor);
+        } else if (nodeKind == "InterfaceDefinitions") {
+            bodyBrush.setColor(topLeftColor);
+        } else if (nodeKind == "HardwareDefinitions") {
+            bodyBrush.setColor(bottomRightColor);
+        } else if (nodeKind == "AssemblyDefinitions") {
+            bodyBrush.setColor(bottomLeftColor);
+        }
+    }
+
+    if (IS_HARDWARE_CLUSTER && childrenViewOptionMenu) {
+        childrenViewOptionMenu->setStyleSheet("QRadioButton {"
+                                              "padding: 8px 10px 8px 8px;"
+                                              "color:" + textColor +
+                                              "}"
+                                              "QRadioButton::checked {"
+                                              "color:" + checkedColor +
+                                              "font-weight: bold; "
+                                              "}");
     }
 }
 
@@ -3677,7 +3737,7 @@ QPointF NodeItem::getClosestGridPoint(QPointF centerPoint)
     qreal gridSize = getGridSize();
 
     //Offset the centerPoint by the starting position of the gridRect so we can do easy division.
-    QPointF gridOffset = gridRect().topLeft();  
+    QPointF gridOffset = gridRect().topLeft();
     centerPoint -= gridOffset;
 
     //Find the closest gridline to the centerPoint, then add the offset again.

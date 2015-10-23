@@ -407,7 +407,7 @@ void DockScrollArea::setupLayout()
                             "}");
 
     layout = new QVBoxLayout(this);
-    layout->setSpacing(10);
+    layout->setSpacing(2);
     layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     layout->setSizeConstraint(QLayout::SetMinimumSize);
     groupBox->setLayout(layout);
@@ -445,12 +445,11 @@ void DockScrollArea::on_parentButtonPressed()
 {
     if (dockOpen) {
         dockOpen = false;
-        setVisible(false);
         dockClosed();
     } else {
         dockOpen = true;
-        setVisible(true);
     }
+    setVisible(dockOpen);
 }
 
 

@@ -359,10 +359,11 @@ void ToolbarWidget::setupTheme(int theme)
                   "width: 15px;"
                   "}"
                   "QRadioButton {"
-                  "color:" + rbColor +
                   "padding: 8px 10px 8px 8px;"
+                  "color:" + rbColor +
                   "}"
                   "QRadioButton::checked {"
+                  "font-weight: bold; "
                   "color:" + rbSelectedColor +
                   "}"
                   );

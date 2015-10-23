@@ -451,7 +451,8 @@ void MedeaWindow::initialiseGUI()
                               "QPushButton::menu-indicator{ image: none; }");
 
     projectName->setFlat(true);
-    projectName->setStyleSheet("font-size: 16px; text-align: left; padding: 8px;");
+    //projectName->setStyleSheet("color: white; font-size: 16px; text-align: left; padding: 8px;");
+    projectName->setStyleSheet("color: black; font-size: 16px; text-align: left; padding: 8px;");
     projectName->setFixedWidth(200);
 
     definitionsToggle = new AspectToggleWidget("Interfaces", rightPanelWidth/2, this);
@@ -690,6 +691,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_clearModel = model_menu->addAction(getIcon("Actions", "Clear"), "Clear Model");
     model_menu->addSeparator();
     model_validateModel = model_menu->addAction(getIcon("Actions", "Validate"), "Validate Model");
+    model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
 
     model_ExecuteLocalJob = model_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: Local Deployment");
     model_ExecuteLocalJob->setEnabled(false);
@@ -931,13 +933,13 @@ void MedeaWindow::setupSearchTools()
     QGroupBox* aspectsGroup = new QGroupBox(this);
     QHBoxLayout* aspectsLayout = new QHBoxLayout();
 
+    aspectsLabel->setMinimumWidth(50);
+    aspectsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
     viewAspectsBarDefaultText = "Entire Model";
     viewAspectsBar = new QLineEdit(viewAspectsBarDefaultText, this);
     viewAspectsButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
     viewAspectsMenu = new QMenu(viewAspectsButton);
-
-    aspectsLabel->setMinimumWidth(50);
-    aspectsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
     viewAspectsButton->setFixedSize(20, 20);
     viewAspectsButton->setIconSize(viewAspectsButton->size()*0.6);
@@ -957,7 +959,9 @@ void MedeaWindow::setupSearchTools()
     aspectsAction->setDefaultWidget(aspectsGroup);
 
     // populate view aspects menu
-    foreach (QString aspect, nodeView->getAllAspects()) {
+    QStringList aspects = nodeView->getAllAspects();
+    aspects.sort();
+    foreach (QString aspect, aspects) {
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(aspect, this);
         checkBox->setFont(guiFont);
@@ -996,17 +1000,68 @@ void MedeaWindow::setupSearchTools()
     kindsGroup->setLayout(kindsLayout);
     kindsAction->setDefaultWidget(kindsGroup);
 
+    // setup search option widgets and menu for data keys
+    QWidgetAction* keysAction = new QWidgetAction(this);
+    QLabel* keysLabel = new QLabel("Data Key(s):", this);
+    QGroupBox* keysGroup = new QGroupBox(this);
+    QHBoxLayout* keysLayout = new QHBoxLayout();
+
+    keysLabel->setMinimumWidth(50);
+    keysLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+
+    dataKeys = QStringList() << "label" << "type" << "worker" << "description" << "topicName" << "kind";
+    dataKeys.sort();
+
+    foreach (QString key, dataKeys) {
+        dataKeysDefaultText += key + ", ";
+    }
+    dataKeysDefaultText.truncate(dataKeysDefaultText.length() - 2);
+
+    dataKeysBar = new QLineEdit(dataKeysDefaultText, this);
+    dataKeysButton = new QPushButton(getIcon("Actions", "Arrow_Down"), "");
+    dataKeysMenu = new QMenu(dataKeysButton);
+
+    dataKeysButton->setFixedSize(20, 20);
+    dataKeysButton->setIconSize(dataKeysButton->size()*0.6);
+    dataKeysButton->setCheckable(true);
+    dataKeysBar->setFixedWidth(rightPanelWidth - dataKeysButton->width() - keysLabel->width() - 30);
+    dataKeysBar->setToolTip("Search Data Keys: " + dataKeysDefaultText);
+    dataKeysBar->setCursorPosition(0);
+    dataKeysBar->setEnabled(false);
+    dataKeysMenu->setMinimumWidth(dataKeysBar->width() + dataKeysButton->width());
+
+    keysLayout->setMargin(5);
+    keysLayout->setSpacing(3);
+    keysLayout->addWidget(keysLabel);
+    keysLayout->addWidget(dataKeysBar);
+    keysLayout->addWidget(dataKeysButton);
+
+    keysGroup->setLayout(keysLayout);
+    keysAction->setDefaultWidget(keysGroup);
+
+    foreach (QString key, dataKeys) {
+        QWidgetAction* action = new QWidgetAction(this);
+        QCheckBox* checkBox = new QCheckBox(key, this);
+        checkBox->setFont(guiFont);
+        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
+        action->setDefaultWidget(checkBox);
+        dataKeysMenu->addAction(action);
+    }
+
     searchBar->setFont(guiFont);
     viewAspectsBar->setFont(guiFont);
     nodeKindsBar->setFont(guiFont);
+    dataKeysBar->setFont(guiFont);
     objectLabel->setFont(guiFont);
     parentLabel->setFont(guiFont);
     aspectsLabel->setFont(guiFont);
     kindsLabel->setFont(guiFont);
+    keysLabel->setFont(guiFont);
 
     // add widget actions and their menus to the main search option menu
     searchOptionMenu->addAction(aspectsAction);
     searchOptionMenu->addAction(kindsAction);
+    searchOptionMenu->addAction(keysAction);
     searchOptionMenu->setVisible(false);
 }
 
@@ -1273,10 +1328,12 @@ void MedeaWindow::makeConnections()
     connect(searchOptionButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(viewAspectsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
     connect(nodeKindsButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
+    connect(dataKeysButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
 
     connect(searchOptionMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
     connect(viewAspectsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
     connect(nodeKindsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
+    connect(dataKeysMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
 
     connect(toolbarButton, SIGNAL(clicked(bool)), this, SLOT(showWindowToolbar(bool)));
 
@@ -1743,6 +1800,7 @@ void MedeaWindow::setupInitialSettings()
 
     // populate view aspects menu  once the nodeView and controller have been
     // constructed and connected - should only need to do this once
+    allKinds.sort();
     foreach (QString kind, allKinds) {
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(kind, this);
@@ -2106,44 +2164,50 @@ void MedeaWindow::on_actionPaste_triggered()
  */
 void MedeaWindow::on_actionSearch_triggered()
 {    
-    QStringList checkedViews = getCheckedItems(0);
+    QStringList checkedAspects = getCheckedItems(0);
     QStringList checkedKinds = getCheckedItems(1);
+    QStringList checkedKeys = getCheckedItems(2);
+    bool allKinds = false;
 
     // if there are no checked view aspects, search entire model
-    if (checkedViews.count() == 0) {
-        checkedViews = nodeView->getAllAspects();
-        checkedViews.removeDuplicates();
+    if (checkedAspects.count() == 0) {
+        checkedAspects = nodeView->getAllAspects();
+        checkedAspects.removeDuplicates();
     }
 
-    // if there are no checked kinds, search for all kinds
+    // if there are no checked entity kinds, search for all kinds
     if (checkedKinds.count() == 0) {
-        checkedKinds = nodeView->getAllNodeKinds();
-        checkedKinds.removeDuplicates();
+        allKinds = true;
+    }
+
+    // if there are no checked entity kinds, search for all stored data keys
+    if (checkedKeys.count() == 0) {
+        checkedKeys = dataKeys;
     }
 
     QString searchText = searchBar->text();
     if (nodeView && !searchText.isEmpty() && (searchText != searchBarDefaultText)) {
 
-        QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::NODE_ITEM);
+        QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::NODE_ITEM, checkedKeys);
         QList<GraphMLItem*> itemsToDisplay;
 
         // filter the list
         foreach (GraphMLItem* guiItem, returnedItems) {
             NodeItem* nodeItem = dynamic_cast<NodeItem*>(guiItem);
             bool isInAspect = true;
-            // if the item is hidden, don't show it in the search results
-            if (nodeItem->isHidden()) {
+            // if the item is hidden or is an aspect, don't show it in the search results
+            if (nodeItem->isHidden() || nodeItem->isAspect()) {
                 continue;
             }
             // check if the guiItem is in one of the checked view aspects
             foreach (QString aspect, nodeItem->getAspects()) {
-                if (!checkedViews.contains(aspect)) {
+                if (!checkedAspects.contains(aspect)) {
                     isInAspect = false;
                 }
             }
             if (isInAspect) {
                 // if it is, check if the guiItem's kind is one of the checked node kinds
-                if (checkedKinds.contains(guiItem->getGraphML()->getDataValue("kind"))) {
+                if (allKinds || checkedKinds.contains(guiItem->getGraphML()->getDataValue("kind"))) {
                     itemsToDisplay.append(guiItem);
                 }
             }
@@ -2911,6 +2975,9 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
     } else  if (senderButton == nodeKindsButton) {
         widget = nodeKindsBar;
         menu = nodeKindsMenu;
+    } else  if (senderButton == dataKeysButton) {
+        widget = dataKeysBar;
+        menu = dataKeysMenu;
     }
 
     if (widget && menu) {
@@ -2918,6 +2985,7 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
             menu->popup(widget->mapToGlobal(widget->rect().bottomLeft()));
         } else {
             menu->close();
+            //senderButton->setChecked(false);
         }
     }
 }
@@ -2970,7 +3038,6 @@ void MedeaWindow::updateSearchLineEdits()
     }
 
     QMenu* menu = qobject_cast<QMenu*>(checkBox->parentWidget());
-
     if (menu) {
 
         QLineEdit* lineEdit = 0;
@@ -2985,8 +3052,17 @@ void MedeaWindow::updateSearchLineEdits()
             checkedItemsList = getCheckedItems(0);
         } else if (menu == nodeKindsMenu) {
             lineEdit = nodeKindsBar;
-            textLabel = "Search Kinds: "; defaultText = nodeKindsDefaultText;
+            textLabel = "Search Kinds: ";
+            defaultText = nodeKindsDefaultText;
             checkedItemsList = getCheckedItems(1);
+        } else if (menu == dataKeysMenu) {
+            lineEdit = dataKeysBar;
+            textLabel = "Search Data Keys: ";
+            defaultText = dataKeysDefaultText;
+            checkedItemsList = getCheckedItems(2);
+            if (checkedItemsList.isEmpty()) {
+                checkedItemsList = dataKeys;
+            }
         } else {
             qWarning() << "MedeaWindow::updateSearchLineEdits - Not checking for this menu.";
             return;
@@ -3298,7 +3374,7 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
 /**
  * @brief MedeaWindow::getCheckedItems
  * This returns a list of the checked items from the search sub-menus.
- * @param menu - 0 = viewAspects, 1 = nodeKinds
+ * @param menu - 0 = viewAspects, 1 = nodeKinds, 2 = dataKeys
  * @return
  */
 QStringList MedeaWindow::getCheckedItems(int menu)
@@ -3310,6 +3386,8 @@ QStringList MedeaWindow::getCheckedItems(int menu)
         searchMenu = viewAspectsMenu;
     } else if (menu == 1) {
         searchMenu = nodeKindsMenu;
+    } else if (menu == 2) {
+        searchMenu = dataKeysMenu;
     }
 
     if (searchMenu) {

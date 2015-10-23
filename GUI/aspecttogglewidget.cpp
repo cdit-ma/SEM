@@ -9,6 +9,10 @@
 #define DOUBLECLICKED 1
 #define MIDDLECLICKED 2
 
+#define THEME_LIGHT 0
+#define THEME_DARK_NEUTRAL 1
+#define THEME_DARK_COLOURED 2
+
 
 /**
  * @brief AspectToggleWidget::AspectToggleWidget
@@ -25,6 +29,9 @@ AspectToggleWidget::AspectToggleWidget(QString text, double size, MedeaWindow* p
 
     CHECKED = false;
     STATE = DEFAULT;
+    THEME = THEME_LIGHT;
+    //THEME = THEME_DARK_COLOURED;
+    //THEME = THEME_DARK_NEUTRAL;
 
     setupColor();
     setupLayout(size);
@@ -165,11 +172,12 @@ void AspectToggleWidget::highlightToggleButton(QString aspect)
 {
     if (aspectText == aspect) {
         aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0);"
-                                   "color: white;"
-                                   "font-weight: bold;");
-                                   //"font-size: 12px;");
+                                   //"font-size: 11.5px;"
+                                   "font-weight: bold;"
+                                   "color: white;");
     } else {
         aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0);"
+                                   //"font-size: 12px;"
                                    "color: black;");
     }
 }
@@ -183,43 +191,73 @@ void AspectToggleWidget::setupColor()
 {
     QString defaultAlpha = "255";
     QString checkedAlpha = "250";
+    //p1_Color = "rgba(215,215,215," + checkedAlpha + ")";
 
-    if (aspectText == "Interfaces") {
-        //defaultColor = "rgba(80,180,180," + defaultAlpha + ")";
-        defaultColor = "rgba(55,155,165," + defaultAlpha + ")";
-        //defaultColor = "rgba(30,130,130," + defaultAlpha + ")";
-        p1_Color = "rgba(190,240,240," + checkedAlpha + ")";
-        p2_Color = "rgba(170,240,240," + checkedAlpha + ")";
-        p3_Color = "rgba(120,210,210," + checkedAlpha + ")";
-        p4_Color = "rgba(90,190,190," + checkedAlpha + ")";
-        //p4_Color = "rgba(70,170,170," + checkedAlpha + ")";
-    } else if (aspectText == "Behaviour") {
-        //defaultColor = "rgba(224,154,96," + defaultAlpha + ")";
-        defaultColor = "rgba(199,129,71," + defaultAlpha + ")";
-        //defaultColor = "rgba(174,104,46," + defaultAlpha + ")";
-        p1_Color = "rgba(255,230,206," + checkedAlpha + ")";
-        p2_Color = "rgba(255,230,206," + checkedAlpha + ")";
-        p3_Color = "rgba(250,185,136," + checkedAlpha + ")";
-        p4_Color = "rgba(234,164,106," + checkedAlpha + ")";
-        //p4_Color = "rgba(214,144,86," + checkedAlpha + ")";
-    } else if (aspectText == "Assemblies") {
-        //defaultColor = "rgba(230,130,130," + defaultAlpha + ")";
-        defaultColor = "rgba(205,105,105," + defaultAlpha + ")";
-        //defaultColor = "rgba(180,80,80," + defaultAlpha + ")";
-        p1_Color = "rgba(255,210,210," + checkedAlpha + ")";
-        p2_Color = "rgba(255,210,210," + checkedAlpha + ")";
-        p3_Color = "rgba(250,160,160," + checkedAlpha + ")";
-        p4_Color = "rgba(240,140,140," + checkedAlpha + ")";
-        //p4_Color = "rgba(220,120,120," + checkedAlpha + ")";
-    } else if (aspectText == "Hardware") {
-        //defaultColor = "rgba(90,150,200," + defaultAlpha + ")";
-        defaultColor = "rgba(65,125,175," + defaultAlpha + ")";
-        //defaultColor = "rgba(40,100,150," + defaultAlpha + ")";
-        p1_Color = "rgba(200,220,225," + checkedAlpha + ")";
-        p2_Color = "rgba(180,200,225," + checkedAlpha + ")";
-        p3_Color = "rgba(140,180,220," + checkedAlpha + ")";
-        p4_Color = "rgba(100,160,210," + checkedAlpha + ")";
-        //p4_Color = "rgba(80,140,190," + checkedAlpha + ")";
+    switch (THEME) {
+    case THEME_LIGHT:
+        if (aspectText == "Interfaces") {
+            defaultColor = "rgba(55,155,165," + defaultAlpha + ")";
+            p1_Color = "rgba(190,240,240," + checkedAlpha + ")";
+            //p2_Color = "rgba(90,190,190," + checkedAlpha + ")";
+            p2_Color = "rgba(70,170,170," + checkedAlpha + ")";
+        } else if (aspectText == "Behaviour") {
+            defaultColor = "rgba(199,129,71," + defaultAlpha + ")";
+            p1_Color = "rgba(255,230,206," + checkedAlpha + ")";
+            //p2_Color = "rgba(234,164,106," + checkedAlpha + ")";
+            p2_Color = "rgba(214,144,86," + checkedAlpha + ")";
+        } else if (aspectText == "Assemblies") {
+            defaultColor = "rgba(205,105,105," + defaultAlpha + ")";
+            p1_Color = "rgba(255,210,210," + checkedAlpha + ")";
+            //p2_Color = "rgba(240,140,140," + checkedAlpha + ")";
+            p2_Color = "rgba(220,120,120," + checkedAlpha + ")";
+        } else if (aspectText == "Hardware") {
+            defaultColor = "rgba(65,125,175," + defaultAlpha + ")";
+            p1_Color = "rgba(200,220,225," + checkedAlpha + ")";
+            //p2_Color = "rgba(100,160,210," + checkedAlpha + ")";
+            p2_Color = "rgba(80,140,190," + checkedAlpha + ")";
+        }
+        //p2_Color = defaultColor;
+        break;
+    case THEME_DARK_COLOURED:
+        if (aspectText == "Interfaces") {
+            defaultColor = "rgba(24,148,184," + defaultAlpha + ")";
+            p1_Color = "rgba(194,255,255," + checkedAlpha + ")";
+            p2_Color = "rgba(0,128,164," + checkedAlpha + ")";
+        } else if (aspectText == "Behaviour") {
+            defaultColor = "rgba(155,155,155," + defaultAlpha + ")";
+            p1_Color = "rgba(255,255,255," + checkedAlpha + ")";
+            p2_Color = "rgba(135,135,135," + checkedAlpha + ")";
+        } else if (aspectText == "Assemblies") {
+            defaultColor = "rgba(90,90,90," + defaultAlpha + ")";
+            p1_Color = "rgba(210,210,210," + checkedAlpha + ")";
+            p2_Color = "rgba(70,70,70," + checkedAlpha + ")";
+        } else if (aspectText == "Hardware") {
+            defaultColor = "rgba(207,107,100," + defaultAlpha + ")";
+            p1_Color = "rgba(255,207,200," + checkedAlpha + ")";
+            p2_Color = "rgba(187,87,80," + checkedAlpha + ")";
+        }
+        break;
+    case THEME_DARK_NEUTRAL:
+        if (aspectText == "Interfaces") {
+            defaultColor = "rgba(134,161,170," + defaultAlpha + ")";
+            p1_Color = "rgba(184,191,200," + checkedAlpha + ")";
+            p2_Color = "rgba(114,141,150," + checkedAlpha + ")";
+        } else if (aspectText == "Behaviour") {
+            defaultColor = "rgba(164,176,172," + defaultAlpha + ")";
+            p1_Color = "rgba(214,206,202," + checkedAlpha + ")";
+            p2_Color = "rgba(144,156,152," + checkedAlpha + ")";
+        } else if (aspectText == "Assemblies") {
+            defaultColor = "rgba(192,191,197," + defaultAlpha + ")";
+            p1_Color = "rgba(232,231,237," + checkedAlpha + ")";
+            p2_Color = "rgba(172,171,177," + checkedAlpha + ")";
+        } else if (aspectText == "Hardware") {
+            defaultColor = "rgba(239,238,233," + defaultAlpha + ")";
+            p1_Color = "rgba(255,255,255," + checkedAlpha + ")";
+            p2_Color = "rgba(219,218,213," + checkedAlpha + ")";
+        }
+        break;
+    default:
+        break;
     }
 }
 
@@ -262,11 +300,11 @@ void AspectToggleWidget::updateStyleSheet()
     if (CHECKED) {
         mainFrame->move(SHADOW_OFFSET, SHADOW_OFFSET);
         mainFrame->setStyleSheet("border-radius: 8px;"
-                                 //"font-weight: bold;"
                                  "background-color:"
-                                 "qlineargradient(x1: 0, y1: 0, x2: 0, y2: 0.5, x3: 0 y3: 1.0,"
-                                 "stop: 0 " + p1_Color + ", stop: 0.5 " + p2_Color + ","
-                                 "stop: 0.5 " + p3_Color + ", stop: 1.0 " + p4_Color + ");");
+                                 "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
+                                 "stop:0 " + p1_Color + ", stop:1.0 " + p2_Color + ");");
+                                 //"stop:0 " + p1_Color + ", stop:0.5 " + p3_Color + "," +
+                                 //"stop:0.5 " + p4_Color + ", stop:1.0 " + p2_Color + ");");
     } else {
         mainFrame->move(0, 0);
         mainFrame->setStyleSheet("border-radius: 8px; background-color:" + defaultColor + ";");

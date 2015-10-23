@@ -628,17 +628,28 @@ void NodeView::removeSubView(NodeView *subView)
 }
 
 
-QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIND kind)
+QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIND kind, QStringList dataKeys)
 {
     QList<GraphMLItem*> returnable;
 
+    searchString = searchString.trimmed();
+
     foreach(GraphMLItem* guiItem, guiItems){
+
         GraphML* gml = guiItem->getGraphML();
-        if((kind == GraphMLItem::NODE_ITEM && guiItem->isNodeItem()) || (kind == GraphMLItem::NODE_EDGE && guiItem->isEdgeItem())){
-            if(gml->getDataValue("label").toLower().contains(searchString.toLower())){
-                returnable.append(guiItem);
+
+        if ((kind == GraphMLItem::NODE_ITEM && guiItem->isNodeItem()) || (kind == GraphMLItem::NODE_EDGE && guiItem->isEdgeItem())) {
+
+            // if searchString matches at least one of the values of the
+            // provided data keys for guiItem, append guiItem to the list
+            foreach (QString key, dataKeys) {
+                if (gml->getDataValue(key).contains(searchString, Qt::CaseInsensitive)) {
+                    returnable.append(guiItem);
+                    break;
+                }
             }
         }
+
     }
 
     return returnable;
@@ -954,6 +965,13 @@ void NodeView::setupTheme(int theme)
     switch (theme) {
     case THEME_LIGHT:
         background = "rgba(170,170,170,255);";
+
+        //background = "rgb(30,30,30);";
+        //background = "rgba(70,130,180);";
+        //background = "rgba(203,210,212);";
+        //background = "black;";
+        //background = "white;";
+
         break;
     case THEME_DARK:
         background = "rgb(100,100,100);";
@@ -966,7 +984,17 @@ void NodeView::setupTheme(int theme)
                   "background-color:" + background +
                   "border: 0px;}");
 
+    currentTheme = theme;
     emit view_themeChanged(theme);
+}
+
+/**
+ * @brief NodeView::getTheme
+ * @return
+ */
+int NodeView::getTheme()
+{
+    return currentTheme;
 }
 
 
@@ -2832,8 +2860,9 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
             connect(this, SIGNAL(view_AspectsChanged(QStringList)), nodeItem, SLOT(aspectsChanged(QStringList)));
             if(nodeItem->isModel()){
                 connect(nodeItem, SIGNAL(NodeItem_Model_AspectToggled(int)), this, SLOT(view_AspectToggled(int)));
+                connect(this, SIGNAL(view_themeChanged(int)), nodeItem, SLOT(themeChanged(int)));
             }
-            if (nodeItem->isModel()) {
+            if (nodeItem->isHardwareCluster() || nodeItem->isAspect()) {
                 connect(this, SIGNAL(view_themeChanged(int)), nodeItem, SLOT(themeChanged(int)));
             }
         }
@@ -2978,13 +3007,12 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
     // update the docks
     emit view_nodeConstructed(nodeItem);
 
+    // this will set the correct theme for the necessary parts of particular nodeitems
+    emit view_themeChanged(currentTheme);
+
     // send specific current view states to the newly constaructed node item
-    //view_AspectsChanged(currentAspects);
     nodeItem->aspectsChanged(currentAspects);
     nodeItem->toggleGridLines(GRID_LINES_ON);
-
-    // snap node item to its parent's grid
-    //nodeItem->snapToGrid();
 
     if (nodeItem->getNodeKind().startsWith("Hardware")) {
 
@@ -3002,26 +3030,18 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
 
     } else if (nodeItem->getNodeKind() == "AggregateInstance") {
 
-
         // hide all AggregateInstances except for in OutEventPortImpls
         NodeItem* parentItem = nodeItem->getParentNodeItem();
 
-        if(parentItem){
+        if (parentItem) {
             QStringList shownKinds;
             shownKinds << "AggregateInstance" << "Aggregate" << "OutEventPortImpl" << "InEventPortImpl";
-            if(!shownKinds.contains(parentItem->getNodeKind())){
+            if (!shownKinds.contains(parentItem->getNodeKind()) ){
                 nodeItem->setHidden(true);
             }
         }
 
     }
-
-    /*
-    //Hide HardwareNodes.
-    if (nodeItem->getNodeKind() == "HardwareNode") {
-        nodeItem->setHidden(false);
-    }
-    */
 
     // if currently pasting, select pasted item
     if (pasting || importFromJenkins) {

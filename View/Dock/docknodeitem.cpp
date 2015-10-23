@@ -256,7 +256,6 @@ void DockNodeItem::setupLayout()
 {
     QVBoxLayout *layout = new QVBoxLayout();
     layout->setMargin(0);
-    layout->setSpacing(2);
 
     textLabel = new QLabel(label, this);
 

@@ -52,7 +52,7 @@ public:
     void setParentNodeView(NodeView *n);
     void removeSubView(NodeView* subView);
 
-    QList<GraphMLItem *> search(QString searchString, GraphMLItem::GUI_KIND kind);
+    QList<GraphMLItem *> search(QString searchString, GraphMLItem::GUI_KIND kind, QStringList dataKeys);
 
     // this is used by the parts dock
     QStringList getGUIConstructableNodeKinds();
@@ -86,6 +86,7 @@ public:
 
     void aspectGraphicsChanged();
     void setupTheme(int theme = 0);
+    int getTheme();
 
 protected:
     //Mouse Handling Methods
@@ -503,6 +504,7 @@ private:
     QList<int> highlightedIDs;
     QHash<QString, QPixmap> imageLookup;
 
+    int currentTheme;
 
     QMenu* prevLockMenuOpened;
 

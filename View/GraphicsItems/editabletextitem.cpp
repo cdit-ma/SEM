@@ -221,7 +221,7 @@ QString EditableTextItem::getTruncatedText(const QString text)
         }
     }
 
-    qCritical() << truncValue;
+    //qCritical() << truncValue;
 
     if(truncValue != newText){
         truncValue.insert(counter, "...");
