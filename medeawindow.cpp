@@ -2168,45 +2168,50 @@ void MedeaWindow::on_actionSearch_triggered()
     QStringList checkedKinds = getCheckedItems(1);
     QStringList checkedKeys = getCheckedItems(2);
     bool allKinds = false;
+    bool allAspects = false;
 
     // if there are no checked view aspects, search entire model
-    if (checkedAspects.count() == 0) {
-        checkedAspects = nodeView->getAllAspects();
-        checkedAspects.removeDuplicates();
+    if (checkedAspects.isEmpty()) {
+        allAspects = true;
     }
 
     // if there are no checked entity kinds, search for all kinds
-    if (checkedKinds.count() == 0) {
+    if (checkedKinds.isEmpty()) {
         allKinds = true;
     }
 
     // if there are no checked entity kinds, search for all stored data keys
-    if (checkedKeys.count() == 0) {
+    if (checkedKeys.isEmpty()) {
         checkedKeys = dataKeys;
     }
 
     QString searchText = searchBar->text();
-    if (nodeView && !searchText.isEmpty() && (searchText != searchBarDefaultText)) {
+
+    if (nodeView && !searchText.isEmpty()) {
 
         QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::NODE_ITEM, checkedKeys);
         QList<GraphMLItem*> itemsToDisplay;
 
         // filter the list
         foreach (GraphMLItem* guiItem, returnedItems) {
+
             NodeItem* nodeItem = dynamic_cast<NodeItem*>(guiItem);
             bool isInAspect = true;
-            // if the item is hidden or is an aspect, don't show it in the search results
-            if (nodeItem->isHidden() || nodeItem->isAspect()) {
+
+            // if the item is hidden or is an aspect or is the model, don't show it in the search results
+            if (nodeItem->isHidden() || nodeItem->isAspect() || nodeItem->isModel()) {
                 continue;
             }
             // check if the guiItem is in one of the checked view aspects
-            foreach (QString aspect, nodeItem->getAspects()) {
-                if (!checkedAspects.contains(aspect)) {
-                    isInAspect = false;
+            if (!allAspects) {
+                foreach (QString aspect, nodeItem->getAspects()) {
+                    if (!checkedAspects.contains(aspect)) {
+                        isInAspect = false;
+                    }
                 }
             }
+            // if it is, check if the guiItem's kind is one of the checked node kinds
             if (isInAspect) {
-                // if it is, check if the guiItem's kind is one of the checked node kinds
                 if (allKinds || checkedKinds.contains(guiItem->getGraphML()->getDataValue("kind"))) {
                     itemsToDisplay.append(guiItem);
                 }
