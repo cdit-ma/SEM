@@ -9,18 +9,17 @@ class EditableTextItem : public QGraphicsTextItem
 public:
     explicit EditableTextItem(QGraphicsItem *parent = 0, int maximumLength = 64);
     QRectF boundingRect() const;
+
+    void setAlignment(Qt::Alignment align);
     void setEditMode(bool editMode = true);
     bool isInEditMode();
 
     void setFontSize(qreal fontSize);
     void setPlainText(const QString &text);
     void setTextWidth(qreal width);
-    void setCenterAligned(bool center);
     QString getStringValue();
-    QString getFullValue();
+    QString getFullValue() const;
     void setEditable(bool edit);
-
-
 
 signals:
     void textUpdated(QString data);
@@ -36,9 +35,9 @@ protected:
 private:
     QString getTruncatedText(const QString text );
 
+    Qt::Alignment alignment;
 
     bool editable;
-    bool centerJustified;
     QString currentFullValue;
     QString currentTruncValue;
     bool inEditingMode;

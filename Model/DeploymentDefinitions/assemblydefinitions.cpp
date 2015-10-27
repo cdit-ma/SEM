@@ -2,7 +2,7 @@
 #include "componentassembly.h"
 #include "managementcomponent.h"
 #include <QDebug>
-AssemblyDefinitions::AssemblyDefinitions():Node()
+AssemblyDefinitions::AssemblyDefinitions():Node(Node::NT_ASPECT)
 {
 }
 

@@ -96,6 +96,8 @@ public:
 
     int getSharedParent(int ID1, int ID2);
 
+    int getContainedAspect(int ID);
+
 
 signals:
     void controller_ModelReady();
@@ -114,8 +116,6 @@ signals:
 
     void controller_ProjectNameChanged(QString);
 
-    void controller_RedoListChanged(QStringList);
-    void controller_UndoListChanged(QStringList);
 
     void controller_SetClipboardBuffer(QString);
 
@@ -266,8 +266,6 @@ private:
     //Checks to see if the provided GraphML document is Valid XML.
     bool isGraphMLValid(QString inputGraphML);
 
-    //Updates the attached views list of Undo/Redo States.
-    void updateViewUndoRedoLists();
 
     void setupManagementComponents();
     void setupLocalNode();

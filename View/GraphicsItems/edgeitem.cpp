@@ -508,7 +508,6 @@ void EdgeItem::updateLabel(QString labelText)
         QFont font("Arial");
         font.setPixelSize(CIRCLE_RADIUS + 2);
         textItem->setFont(font);
-        textItem->setCenterAligned(true);
 
 
         qreal labelX = - textItem->boundingRect().width()/2;

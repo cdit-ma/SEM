@@ -3,7 +3,7 @@
 #include "hardwarenode.h"
 #include <QDebug>
 
-HardwareDefinitions::HardwareDefinitions():Node()
+HardwareDefinitions::HardwareDefinitions():Node(Node::NT_ASPECT)
 {
 }
 

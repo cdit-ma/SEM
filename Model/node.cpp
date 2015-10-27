@@ -499,6 +499,11 @@ bool Node::isInstance()
     return nodeType == Node::NT_INSTANCE || nodeType == Node::NT_DEFINSTANCE;
 }
 
+bool Node::isAspect()
+{
+    return nodeType == Node::NT_ASPECT;
+}
+
 bool Node::isImpl()
 {
     return nodeType == Node::NT_IMPL;

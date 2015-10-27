@@ -13,7 +13,14 @@ class InputItem : public QGraphicsObject
     Q_OBJECT
 public:
     InputItem(GraphMLItem* parent, QString initialValue, bool isCombo);
-    void setCenterAligned(bool center);
+    void setRightAligned(bool right);
+
+    void setAlignment(Qt::Alignment align);
+    void setBrush(QBrush brush);
+
+    void setToolTipString(QString tooltip);
+
+
     void setDropDown(bool isCombo);
     void setHandleMouse(bool on);
     void setFont(QFont font);
@@ -59,10 +66,12 @@ private:
     qreal height;
 
     bool wasDoubleClicked;
+    QString _tooltip;
 
     EditableTextItem* textItem;
 
     QTime lastPressed;
+    QBrush backgroundBrush;
 
 
     // QGraphicsItem interface

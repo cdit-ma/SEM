@@ -15,19 +15,24 @@
 #include <QTextCursor>
 #include <cmath>
 
-#define MODEL_WIDTH 66
-#define MODEL_HEIGHT 66
+//#define MODEL_WIDTH 66
+//#define MODEL_HEIGHT 66
+
+#define MODEL_WIDTH 72
+#define MODEL_HEIGHT 72
 
 //#define MARGIN_RATIO 0.10 //NORMAL
 #define MARGIN_RATIO (1.0 / 18.0) //NORMAL
 //#define ICON_RATIO 0.80 //LARGE
 
 
-#define ICON_RATIO (5.0 / 6.0) //LARGE
+#define ICON_RATIO (4.5 / 6.0) //LARGE
+//#define ICON_RATIO (5.0 / 6.0) //LARGE
 //#define ICON_RATIO (3.0 / 4.0) //LARGE
 #define SMALL_ICON_RATIO ((1.0 / 6.0))
 #define TOP_LABEL_RATIO (1.0 / 6.0)
-#define BOTTOM_LABEL_RATIO (1.0 / 6.0)
+#define RIGHT_LABEL_RATIO (1.5 / 6.0)
+#define BOTTOM_LABEL_RATIO (1.0 / 9.0)
 #define LABEL_RATIO (1 - ICON_RATIO)
 
 
@@ -71,7 +76,14 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     setParentItem(parent);
 
     parentNodeItem = parent;
+    hasEditData = false;
 
+
+    //Cache on Graphics card! May Artifact.
+    setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+
+    nodeHardwareLocalHost = false;
+    nodeMemberIsKey = false;
 
     //Setup initial states
     isNodeExpanded = true;
@@ -80,6 +92,7 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     isNodeOnGrid = false;
     isNodeSorted = false;
     isGridVisible = false;
+
     isInSubView = IN_SUBVIEW;
 
     aspectPos = AP_NONE;
@@ -97,14 +110,10 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
     HAS_DEFINITION = false;
     IS_IMPL_OR_INST = false;
 
-    usesType = false;
     editableDataKey = "type";
 
     if(node){
         IS_IMPL_OR_INST = node->isInstance() || node->isImpl();
-    }
-    if(node->getNodeKind().endsWith("EventPort") || node->getNodeKind() == "Vector"){
-        usesType = true;
     }
 
     currentResizeMode = NodeItem::NO_RESIZE;
@@ -139,10 +148,12 @@ NodeItem::NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SU
         CHILDREN_VIEW_MODE = CONNECTED;
     }
 
-    if(nodeKind.endsWith("Definitions") || isModel()){
-        IS_DEFINITION = !IS_MODEL;
+    IS_DEFINITION =  node->isAspect();
+
+    if(IS_DEFINITION || IS_MODEL){
         hasIcon = false;
     }
+
 
 
 
@@ -264,11 +275,9 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
 
     if(contains(itemPos)){
         if(mouseOverBotInput(itemPos) && state > RS_REDUCED){
-            qCritical() << "mouseOverBotInput";
             return MO_BOT_LABEL;
         }
         if(mouseOverRightLabel(itemPos) && state >= RS_REDUCED){
-            qCritical() << "mouseOverRightLabel";
             return MO_EXPANDLABEL;
         }
         if(mouseOverConnect(itemPos) && state > RS_REDUCED){
@@ -322,19 +331,20 @@ NodeItem::MOUSEOVER_TYPE NodeItem::getMouseOverType(QPointF scenePos)
 
 void NodeItem::setEditableField(QString keyName, bool dropDown)
 {
-    qCritical() << "SETTING EDIT FIELD TO: " << keyName;
     editableDataKey = keyName;
     editableDataDropDown = dropDown;
+
 
     connectToGraphMLData(keyName);
 
     if(bottomInputItem){
         bottomInputItem->setDropDown(dropDown);
 
-        if(keyName != ""){
-            bottomInputItem->setVisible(true);
-        }else{
+        if(keyName.isEmpty()){
             bottomInputItem->setVisible(false);
+        }else{
+            hasEditData = true;
+            bottomInputItem->setVisible(true);
         }
     }
 
@@ -703,7 +713,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 {
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
-    painter->setRenderHint(QPainter::SmoothPixmapTransform, true);
+    painter->setRenderHint(QPainter::HighQualityAntialiasing, true);
 
     //Get Render State.
     RENDER_STATE renderState = getRenderState();
@@ -711,7 +721,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
 
     if(isModel()){
-        paintModel(painter);
+        paintModel2(painter);
         return;
     }
 
@@ -821,7 +831,7 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 
         //Paint the Icon
         if(hasIcon){
-            paintPixmap(painter, iconRect(), "Items", getIconURL());
+            paintPixmap(painter, IP_CENTER, "Items", getIconURL());
         }
     }
 
@@ -830,13 +840,18 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     if(renderState == RS_FULL){
         //If a Node has a Definition, paint a definition icon
         if(HAS_DEFINITION){
-            paintPixmap(painter, iconRect_TopLeft(), "Actions", "Definition");
+            paintPixmap(painter, IP_TOPLEFT, "Actions", "Definition");
         }else if (nodeKind == "HardwareCluster") {
-            paintPixmap(painter, iconRect_TopLeft(), "Actions", "MenuCluster");
+            paintPixmap(painter, IP_TOPLEFT, "Actions", "MenuCluster");
         }
+
+        if(nodeMemberIsKey){
+            paintPixmap(painter, IP_TOPLEFT, "Actions", "Key");
+        }
+
         if(canNodeBeConnected){
             //Paint connect Icon
-            paintPixmap(painter, iconRect_TopRight(), "Actions", "ConnectTo");
+            paintPixmap(painter, IP_TOPRIGHT, "Actions", "ConnectTo");
 
             QPen newPen(Qt::gray);
             newPen.setWidthF(0.5);
@@ -847,29 +862,25 @@ void NodeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         if(canNodeBeExpanded){
             if(gotVisibleChildren){
                 if(isExpanded()){
-                    paintPixmap(painter, iconRect_BottomRight(), "Actions", "Contract");
+                    paintPixmap(painter, IP_BOT_RIGHT, "Actions", "Contract");
                 }else{
-                    paintPixmap(painter, iconRect_BottomRight(), "Actions", "Expand");
+                    paintPixmap(painter, IP_BOT_RIGHT, "Actions", "Expand");
                 }
             }
         }
 
-        if(usesType && !nodeType.isEmpty()){
-            paintPixmap(painter, iconRect_BottomLeft(), "Items", "Aggregate");
+
+
+        if(hasEditData){
+            paintPixmap(painter, IP_BOTLEFT, "Data", editableDataKey);
         }
     }
 
     if(renderState >= RS_REDUCED){
         //If this Node has a Deployment Warning, paint a warning Icon
         if(showDeploymentWarningIcon){
-            paintPixmap(painter, iconRect_TopRight(), "Actions", "Warning");
+            paintPixmap(painter, IP_TOPRIGHT, "Actions", "Warning");
         }
-
-    }  
-    if(rightLabelInputItem){
-        QRectF rightRect = rightLabelInputItem->boundingRect();
-        rightRect.translate(rightLabelInputItem->pos());
-        painter->drawRect(rightRect);
     }
 }
 
@@ -940,6 +951,84 @@ void NodeItem::paintModel(QPainter *painter)
     //Draw the center circle
     painter->drawEllipse(quadrant);
 
+
+}
+
+void NodeItem::paintModel2(QPainter *painter)
+{
+    painter->setPen(Qt::NoPen);
+
+
+    QRectF totalRect = QRectF(-width/2, -height/2, width, height);
+    if(true){
+        //CLIP ON CIRCLE
+        //QPainterPath clipPath;
+        //clipPath.addEllipse(boundingRect());
+        //painter->setClipping(true);
+        //painter->setClipPath(clipPath);
+
+         painter->setPen(Qt::black);
+         painter->drawRect(totalRect);
+         painter->setPen(Qt::NoPen);
+    }
+
+
+    QPointF origin(0,0);
+
+    QRectF quadrant(0, 0, width / 2, height / 2);
+
+    //Paint Bottom Right
+    //painter->setBrush(QColor(110,170,220));
+    quadrant.moveBottomRight(totalRect.bottomRight());
+    painter->setBrush(bottomRightColor);
+    painter->drawRect(quadrant);
+
+    //Paint Top Right
+    quadrant.moveTopRight(totalRect.topRight());
+    //painter->setBrush(QColor(254,184,126));
+    painter->setBrush(topRightColor);
+    painter->drawRect(quadrant);
+
+    //Paint Top Left
+    quadrant.moveTopLeft(totalRect.topLeft());
+    //painter->setBrush(QColor(110,210,210));
+    painter->setBrush(topLeftColor);
+    painter->drawRect(quadrant);
+
+    //Paint Bottom Left
+    quadrant.moveBottomLeft(totalRect.bottomLeft());
+    //painter->setBrush(QColor(255,160,160));
+    painter->setBrush(bottomLeftColor);
+    painter->drawRect(quadrant);
+
+    quadrant.setWidth(width/1.5);
+    quadrant.setHeight(width/1.5);
+    quadrant.moveCenter(origin);
+
+
+
+    if(getRenderState() >= RS_REDUCED){
+        //Draw the intersection lines.
+        painter->setPen(Qt::gray);
+        painter->drawLine(QPointF(0, -height / 2), QPointF(0, height / 2));
+        painter->drawLine(QPointF(-width / 2, 0), QPointF(width / 2, 0));
+    }
+
+
+    //Setup the Pen
+    QPen pen = this->pen;
+
+    painter->setPen(pen);
+
+    if(isSelected()){
+        pen = this->selectedPen;
+        pen.setWidthF(selectedPenWidth);
+    }
+
+    painter->setPen(pen);
+    painter->setBrush(modelCircleColor);
+    //Draw the center circle
+    painter->drawRect(quadrant);
 
 }
 
@@ -1024,7 +1113,7 @@ bool NodeItem::mouseOverModelTL(QPointF mousePosition)
 
 bool NodeItem::mouseOverRightLabel(QPointF mousePosition)
 {
-    if(rightLabelInputItem){// && rightLabelInputItem->isVisible()){
+    if(rightLabelInputItem && rightLabelInputItem->isVisible()){
         QRectF labelRect = rightLabelInputItem->boundingRect();
         labelRect.translate(rightLabelInputItem->pos());
         if(labelRect.contains(mousePosition)){
@@ -1058,7 +1147,7 @@ bool NodeItem::mouseOverDeploymentIcon(QPointF mousePosition)
 
 bool NodeItem::mouseOverDefinition(QPointF mousePosition)
 {
-    if (HAS_DEFINITION){
+    if (HAS_DEFINITION || nodeMemberIsKey){
         return iconRect_TopLeft().contains(mousePosition);
     }
     return false;
@@ -1441,7 +1530,7 @@ void NodeItem::setVisibility(bool visible)
  */
 void NodeItem::graphMLDataChanged(GraphMLData* data)
 {
-    //If we have a GraphML() object and the parent of the data provided is this.
+
     if(getGraphML() && data && data->getParent() == getGraphML() && !getGraphML()->isDeleting()){
         QString keyName = data->getKeyName();
         QString value = data->getValue();
@@ -1521,11 +1610,23 @@ void NodeItem::graphMLDataChanged(GraphMLData* data)
             update();
         }else if(keyName == "type"){
             this->nodeType = value;
+        }else if(keyName == "localhost"){
+            this->nodeHardwareLocalHost = value == "true";
+            update();
+        }else if(keyName == "key"){
+            nodeMemberIsKey = value == "true";
+            update();
         }
 
         if(keyName == editableDataKey){
             if(bottomInputItem){
                 bottomInputItem->setValue(value);
+
+                if(data->isProtected()){
+                    bottomInputItem->setBrush(Qt::NoBrush);
+                }else{
+                    bottomInputItem->setBrush(Qt::white);
+                }
             }
         }
     }
@@ -1801,6 +1902,7 @@ void NodeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             }
             break;
         case MO_BOT_LABEL:
+
             break;
         case MO_RESIZE_HOR:
             //Continue
@@ -1859,8 +1961,10 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     QString tooltip;
     QCursor cursor;
+    MOUSEOVER_TYPE hoverType = getMouseOverType(event->scenePos());
 
-    switch(getMouseOverType(event->scenePos())){
+
+    switch(hoverType){
 
     case MO_CONNECT:
         cursor = Qt::CrossCursor;
@@ -1879,11 +1983,10 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         }
         break;
     case MO_EXPANDLABEL:
-        qCritical() << "LABEL";
     case MO_TOP_LABEL:
         if(isDataEditable("label")){
             cursor = Qt::IBeamCursor;
-            tooltip = tooltip  = topLabelInputItem->getValue() + "\nDouble click to edit text.";
+            tooltip = tooltip  = topLabelInputItem->getValue() + "\nDouble click to edit label.";
         }else{
             tooltip  = topLabelInputItem->getValue();
         }
@@ -1897,9 +2000,11 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         }
         break;
     case  MO_DEFINITION:
+        cursor = Qt::WhatsThisCursor;
         if(HAS_DEFINITION){
-            cursor = Qt::WhatsThisCursor;
             tooltip = "This entity has a definition.";
+        }else if(nodeMemberIsKey){
+            tooltip = "This Member is the key.";
         }
         break;
     case MO_HARDWAREMENU:
@@ -1960,21 +2065,25 @@ void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 
 void NodeItem::updateTextVisibility()
 {
-    bool bVis = false;
-    bool eVis = false;
+    bool showRightLabel = false;
+    bool showTopLabel = true;
+    bool showBottomLabel = !editableDataKey.isEmpty();
+
     if(isExpanded()){
         if(!childItems().isEmpty()){
-            eVis = true;
-        }else{
-            bVis = true;
+            showRightLabel = true;
         }
-    }else{
-        bVis = true;
+    }
+
+    if(width > ACTUAL_ITEM_SIZE + GRID_PADDING_SIZE){
+        showTopLabel = false;
     }
 
     if (topLabelInputItem && rightLabelInputItem) {
-        topLabelInputItem->setVisible(bVis && getRenderState() >= RS_FULL);
-        rightLabelInputItem->setVisible(eVis && getRenderState() >= RS_REDUCED);
+        topLabelInputItem->setVisible(showTopLabel && getRenderState() >= RS_REDUCED);
+        rightLabelInputItem->setVisible(showRightLabel && getRenderState() >= RS_MINIMAL);
+
+        bottomInputItem->setVisible(showBottomLabel && getRenderState() >= RS_FULL);
     }
 }
 
@@ -2146,6 +2255,29 @@ QRectF NodeItem::iconRect_BottomRight() const
     qreal itemMargin = (getItemMargin());
     iconRect.moveBottomRight(QPointF(itemMargin + width, itemMargin + height));
     return iconRect;
+}
+
+QRectF NodeItem::getImageRect(NodeItem::IMAGE_POS pos) const
+{
+    switch(pos){
+        case IP_BOTLEFT:
+            return iconRect_BottomLeft();
+        case IP_TOPRIGHT:
+            return iconRect_TopRight();
+        case IP_TOPLEFT:
+            return iconRect_TopLeft();
+        case IP_BOT_RIGHT:
+            return iconRect_BottomRight();
+        case IP_CENTER:
+            return iconRect();
+        default:
+            return QRectF();
+    }
+}
+
+void NodeItem::setImage(NodeItem::IMAGE_POS pos, QPixmap image)
+{
+    imageMap[pos] = image;
 }
 
 
@@ -2389,8 +2521,6 @@ void NodeItem::updateTextLabel(QString newLabel)
 
     if(isModel()){
         //The Model is centralized, so center label.
-        //topLabelInputItem->setTextWidth(width / 2);
-
         labelX = - topLabelInputItem->boundingRect().width() / 2;
         labelY = - topLabelInputItem->boundingRect().height() / 2;
     }
@@ -2702,104 +2832,58 @@ void NodeItem::setupLabel()
         return;
     }
 
-    //contractedFontSize = 9;
-    //expandedFontSize = 16;
+    qreal topFontSize = TOP_LABEL_RATIO * minimumHeight;
+    qreal rightFontSize = RIGHT_LABEL_RATIO * minimumHeight;
+    qreal botFontSize = BOTTOM_LABEL_RATIO * minimumHeight;
 
-    contractedFontSize = qMax(0.8 * (TOP_LABEL_RATIO) * minimumHeight, 1.0);
-    expandedFontSize = qMax(0.33 * (ICON_RATIO) * minimumHeight, 1.0);
+    bottomInputItem = new InputItem(this, "", false);
+    topLabelInputItem = new InputItem(this,"", false);
+    rightLabelInputItem = new InputItem(this, "", false);
+
+    //Setup external Label
+    topLabelInputItem->setAcceptHoverEvents(true);
+    topLabelInputItem->setToolTipString("Double click to edit label.");
+    topLabelInputItem->setCursor(Qt::IBeamCursor);
 
 
-    //Use Application font
-    QFont font;
-    //QFont font("Arial", fontSize);
-    //font.setFamily("Arial");
-    font.setPixelSize(contractedFontSize);
-    //font.setPointSizeF(contractedFontSize);
+    topLabelInputItem->setAlignment(Qt::AlignCenter);
+    rightLabelInputItem->setAlignment(Qt::AlignLeft  | Qt::AlignVCenter);
+    bottomInputItem->setAlignment(Qt::AlignLeft  | Qt::AlignVCenter);
 
+    //Hide it.
+    bottomInputItem->setVisible(false);
 
-    QStringList values;
-    values << "VALUES #1" << "VALUES #2"<< "VALUES #3"<< "VALUES #4" << "bouncing" << "padding" << "Really long string" << "Background";
+    QFont textFont;
+    textFont.setPixelSize(rightFontSize);
+    rightLabelInputItem->setFont(textFont);
+    textFont.setPixelSize(topFontSize);
+    topLabelInputItem->setFont(textFont);
+    textFont.setPixelSize(botFontSize);
+    //textFont.setItalic(true);
+    bottomInputItem->setFont(textFont);
 
-    bottomInputItem = new InputItem(this, " asd", true);
-    topLabelInputItem = new InputItem(this, "asd ", false);
-    rightLabelInputItem = new InputItem(this, "asd ", false);
-
-    topLabelInputItem->setCenterAligned(true);
-    topLabelInputItem->setHandleMouse(true);
-    rightLabelInputItem->setHandleMouse(true);
-    bottomInputItem->setHandleMouse(true);
-
-    topLabelInputItem->setFont(font);
-
-    font.setPointSizeF(expandedFontSize);
-    rightLabelInputItem->setFont(font);
-    font.setPixelSize(contractedFontSize - 2);
-    font.setItalic(true);
-    bottomInputItem->setFont(font);
 
     connect(rightLabelInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
     connect(topLabelInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
     connect(bottomInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
 
-    connect(topLabelInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(labelUpdated(QString)));
-    connect(rightLabelInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(labelUpdated(QString)));
-
-    connect(rightLabelInputItem, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
-    connect(bottomInputItem, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
-
-    /*
-    if(getGraphML()->getData("label") && (!getGraphML()->getData("label")->isProtected())){
-        topLabelInputItem->setEditable(true);
-        rightLabelInputItem->setEditable(true);
-    }else{
-        topLabelInputItem->setEditable(false);
-        rightLabelInputItem->setEditable(false);
-    }
-
-    if(getGraphML()->getData(editableDataKey) && (!getGraphML()->getData(editableDataKey)->isProtected())){
-        bottomInputItem->setEditable(true);
-    } else {
-        bottomInputItem->setEditable(false);
-    }
-    */
-
-    //Calculate position for label
-    //qreal labelX = (minimumBoundingRect().width() - topLabel->boundingRect().width()) /2;
-    //qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);
-
-    topLabelInputItem->setCenterAligned(true);
-    bottomInputItem->setCenterAligned(true);
-
-    /*
-    if(isModel()){
-        //The Model is centralized, so center label.
-        topLabel->setTextWidth(width / 2);
-
-        labelX = - topLabel->boundingRect().width() / 2;
-        labelY = - topLabel->boundingRect().height() / 2;
-    }
-    *
-
-    //topLabel->setPos(labelX, labelY);
+    connect(topLabelInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(dataChanged(QString)));
+    connect(rightLabelInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(dataChanged(QString)));
+    connect(bottomInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(dataChanged(QString)));
 
 
-    QPointF topLabelPos = QPointF(getItemMargin(), getItemMargin()/2);
-    QPointF bottomLabelPos = iconRect_BottomLeft().topRight();
-
-    topLabelInputItem->setPos(topLabelPos);
-    bottomInputItem->setPos(bottomLabelPos);
-    */
+    connect(topLabelInputItem, SIGNAL(InputItem_HasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
+    connect(rightLabelInputItem, SIGNAL(InputItem_HasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
+    connect(bottomInputItem, SIGNAL(InputItem_HasFocus(bool)), this, SIGNAL(Nodeitem_HasFocus(bool)));
 
     QPointF bottomLabelPos = iconRect_BottomLeft().topRight();
-
-
     QPointF expandedLabelPos = expandedLabelRect().topLeft() - QPointF(0, rightLabelInputItem->boundingRect().height() /2);
+
     rightLabelInputItem->setPos(expandedLabelPos);
-    bottomInputItem->setVisible(false);
     bottomInputItem->setPos(bottomLabelPos);
     topLabelInputItem->setPos(bottomLabelPos - QPointF(0 , bottomInputItem->boundingRect().height()));
 
-    updateTextLabel(getGraphMLDataValue("label"));
+
 }
 
 
@@ -2821,6 +2905,8 @@ void NodeItem::setupGraphMLDataConnections()
         connectToGraphMLData("os");
         connectToGraphMLData("architecture");
         connectToGraphMLData("localhost");
+    }else if(nodeKind == "Member"){
+        connectToGraphMLData("key");
     }
 }
 
@@ -3254,9 +3340,8 @@ void NodeItem::labelEditModeRequest()
         bool comboBox = false;
         if (inputItem == bottomInputItem) {
             dataKey = editableDataKey;
-            comboBox = true;
+            comboBox = editableDataDropDown;
         }
-        qCritical() << "dataKey" << dataKey;
         if (isDataEditable(dataKey)) {
             if (comboBox) {
                 QString currentValue = bottomInputItem->getValue();
@@ -3265,7 +3350,6 @@ void NodeItem::labelEditModeRequest()
                 QLineF botLine = QLineF(botLeft,botRight);
                 getNodeView()->showDropDown(this, botLine, editableDataKey, currentValue);
             } else {
-                qCritical() << "HELLO";
                 inputItem->setEditMode(true);
             }
         }
@@ -3280,16 +3364,14 @@ void NodeItem::dataChanged(QString dataValue)
     if(inputItem && getGraphML()){
 
         QString keyValue = "label";
+
         if(inputItem == bottomInputItem){
             keyValue = editableDataKey;
         }
 
-        QString currentDataVal = getGraphMLDataValue(keyValue);
-        if(currentDataVal != dataValue){
-            if(!getGraphML()->getData(keyValue)->isProtected()){
-                GraphMLItem_TriggerAction("Set New Data Value");
-                GraphMLItem_SetGraphMLData(getID(), keyValue, dataValue);
-            }
+        if(!getGraphML()->getData(keyValue)->isProtected()){
+            GraphMLItem_TriggerAction("Set New Data Value");
+            GraphMLItem_SetGraphMLData(getID(), keyValue, dataValue);
         }
     }
 }
@@ -3386,9 +3468,17 @@ QString NodeItem::getIconURL()
     return imageURL;
 }
 
-void NodeItem::paintPixmap(QPainter *painter, QRectF place, QString alias, QString imageName)
+void NodeItem::paintPixmap(QPainter *painter, NodeItem::IMAGE_POS pos, QString alias, QString imageName)
 {
-    painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), getNodeView()->getImage(alias, imageName));
+    QRectF place = getImageRect(pos);
+    QPixmap image = imageMap[pos];
+
+    if(image.isNull()){
+        image = getNodeView()->getImage(alias, imageName);
+        imageMap[pos] = image;
+    }
+
+    painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
 }
 
 

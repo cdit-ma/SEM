@@ -173,5 +173,13 @@
         <file alias="Expand.png">Resources/Images/Actions/Expand.png</file>
         <file alias="ConnectNode.png">Resources/Images/Actions/ConnectNode.png</file>
         <file alias="ComboArrow.png">Resources/Images/Actions/ComboArrow.png</file>
+        <file alias="Key.png">Resources/Images/Actions/Key.png</file>
+    </qresource>
+    <qresource prefix="/Data">
+        <file alias="ip_address.png">Resources/Images/Data/ip_address.png</file>
+        <file alias="type.png">Resources/Images/Data/type.png</file>
+        <file alias="sortOrder.png">Resources/Images/Data/sortOrder.png</file>
+        <file alias="value.png">Resources/Images/Data/value.png</file>
+        <file alias="frequency.png">Resources/Images/Data/frequency.png</file>
     </qresource>
 </RCC>

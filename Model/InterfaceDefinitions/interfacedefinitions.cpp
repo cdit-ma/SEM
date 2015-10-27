@@ -2,7 +2,7 @@
 #include "idl.h"
 
 #include <QDebug>
-InterfaceDefinitions::InterfaceDefinitions(): Node()
+InterfaceDefinitions::InterfaceDefinitions(): Node(Node::NT_ASPECT)
 {
 }
 

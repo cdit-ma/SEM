@@ -4,7 +4,7 @@
 #include <QDebug>
 
 
-BehaviourDefinitions::BehaviourDefinitions():Node()
+BehaviourDefinitions::BehaviourDefinitions():Node(Node::NT_ASPECT)
 {
 }
 

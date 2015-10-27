@@ -11,12 +11,11 @@
 EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     QGraphicsTextItem(parent)
 {
+    alignment = Qt::AlignLeft;
 
     currentFullValue = "";
     currentTruncValue = "";
     maxLength = maximumLength;
-    centerJustified = false;
-
 
     inEditingMode = false;
 
@@ -25,19 +24,21 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
 
     setTextInteractionFlags(Qt::NoTextInteraction);
 
-   // this->setAcceptHoverEvents(false);
+    this->setAcceptHoverEvents(false);
 
 
     doc = this->document();
 
     doc->setDocumentMargin(0);
     doc->setTextWidth(this->textWidth);
+
+
+
     QTextOption option = doc->defaultTextOption();
     option.setWrapMode(QTextOption::WrapAnywhere);
     doc->setDefaultTextOption(option);
     setDocument(doc);
     editable = true;
-
 }
 
 void EditableTextItem::setEditMode(bool editMode)
@@ -64,13 +65,10 @@ void EditableTextItem::setEditMode(bool editMode)
         mouseDoubleClickEvent(fakePress);
 
         //Update the textItem to have the full value instead of the truncated value.
-        if(centerJustified){
-            QGraphicsTextItem::setHtml("<center>" + currentFullValue + "</center>");
-        }else{
-            QGraphicsTextItem::setPlainText(currentFullValue);
-        }
+        QGraphicsTextItem::setPlainText(currentFullValue);
 
         //Select the entire TextItem field
+        setAlignment(alignment);
         QTextCursor c = textCursor();
         c.select(QTextCursor::Document);
         setTextCursor(c);
@@ -87,14 +85,10 @@ void EditableTextItem::setEditMode(bool editMode)
         QString currentValue = toPlainText();
 
         if(currentFullValue != currentValue){
-            textUpdated(currentValue);
+            emit textUpdated(currentValue);
         }else{
-            if(centerJustified){
-                QGraphicsTextItem::setHtml("<center>" + currentTruncValue + "</center>");
-            }else{
-                 //Set the text as the current Truncated text.
-                QGraphicsTextItem::setPlainText(currentTruncValue);
-            }
+             //Set the text as the current Truncated text.
+            QGraphicsTextItem::setPlainText(currentTruncValue);
         }
 
         //Clear Selection.
@@ -102,6 +96,7 @@ void EditableTextItem::setEditMode(bool editMode)
         c.clearSelection();
         setTextCursor(c);
         clearFocus();
+        setAlignment(alignment);
     }
 }
 
@@ -124,11 +119,8 @@ void EditableTextItem::setPlainText(const QString &text)
         currentTruncValue = getTruncatedText(text);
     }
 
-    if(centerJustified){
-        QGraphicsTextItem::setHtml("<center>" + currentTruncValue + "</center>");
-    }else{
-        QGraphicsTextItem::setPlainText(currentTruncValue);
-    }
+    QGraphicsTextItem::setPlainText(currentTruncValue);
+    setAlignment(alignment);
 }
 
 void EditableTextItem::setTextWidth(qreal width)
@@ -144,17 +136,10 @@ void EditableTextItem::setTextWidth(qreal width)
         if(newTruncValue != currentTruncValue){
             currentTruncValue = newTruncValue;
             QGraphicsTextItem::setPlainText(newTruncValue);
+            setAlignment(alignment);
         }
     }else{
         setVisible(false);
-    }
-}
-
-void EditableTextItem::setCenterAligned(bool center)
-{
-    if(centerJustified != center){
-        QGraphicsTextItem::setHtml("<center>" + currentTruncValue + "</center>");
-        centerJustified = center;
     }
 }
 
@@ -190,47 +175,63 @@ QString EditableTextItem::getTruncatedText(const QString text)
 {
     QFontMetrics fm(font());
 
-    QString newText = text;
+    QString fullText = text;
 
-    qreal spaceForDots = fm.width("...");
-    //Allow for Margins at high zoom levels
-    qreal availableWidth = textWidth - spaceForDots;
 
-    QString truncValue;
+    //Have to truncate.
+    //
+    bool firstInsert = true;
+    bool isEven = text.size() % 2;
+    if(fm.width(fullText) > textWidth){
+        int centerIndex = fullText.size() / 2;
+        QString truncChars = "...";
 
-    QString lastTruncValue;
-    int counter = 0;
-
-    while(truncValue != newText){
-        if((counter + 1) * 2 > newText.size()){
-            //Add middle character.
-            truncValue = truncValue.insert(counter,newText.at(counter));
-            break;
-        }else{
-            truncValue = truncValue.insert(counter, newText.at(counter));
-            truncValue = truncValue.insert(truncValue.size() - counter, newText.at((newText.size() -1) - counter));
+        if(isEven){
+            truncChars += ".";
         }
-        if(fm.width(truncValue) >= availableWidth){
-            truncValue = lastTruncValue;
-            break;
+
+        fullText = fullText.insert(centerIndex, truncChars);
+
+        while(fm.width(fullText) >= textWidth){
+            if(fullText.size() <= 3){
+                //Only got ... left
+                break;
+            }
+            centerIndex = fullText.size() / 2;
+
+            int lowerIndex = centerIndex - 2;
+            int upperIndex = centerIndex + 2;
+
+            //Remove upperIndex first, to not move lower index.
+            fullText = fullText.remove(upperIndex, 1);
+            fullText = fullText.remove(lowerIndex, 1);
         }
-        lastTruncValue = truncValue;
-        counter ++;
-        if(counter * 2 == newText.size()){
-            break;
-        }
+        return fullText;
+    }else{
+        return fullText;
     }
 
-    if(truncValue != newText){
-        truncValue.insert(counter, "...");
-    }
-
-    return truncValue;
+    return fullText;
 }
 
 QRectF EditableTextItem::boundingRect() const
 {
     return QGraphicsTextItem::boundingRect();
+}
+
+
+
+void EditableTextItem::setAlignment(Qt::Alignment align)
+{
+    alignment = align;
+
+    QTextBlockFormat format;
+    format.setAlignment(align);
+    QTextCursor cursor = textCursor();
+    cursor.select(QTextCursor::Document);
+    cursor.mergeBlockFormat(format);
+    cursor.clearSelection();
+    setTextCursor(cursor);
 }
 
 
@@ -245,7 +246,7 @@ QString EditableTextItem::getStringValue()
     return value;
 }
 
-QString EditableTextItem::getFullValue()
+QString EditableTextItem::getFullValue() const
 {
     return currentFullValue;
 }

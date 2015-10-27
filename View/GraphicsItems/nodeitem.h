@@ -38,6 +38,9 @@ public:
     enum ASPECT_POS{AP_NONE, AP_TOPLEFT, AP_TOPRIGHT,  AP_BOTRIGHT, AP_BOTLEFT};
 
     enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
+
+    enum IMAGE_POS{IP_TOPLEFT, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER};
+
     NodeItem(Node *node, NodeItem *parent, QStringList aspects, bool IN_SUBVIEW=false);
     ~NodeItem();
 
@@ -113,6 +116,7 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
     void paintModel(QPainter* painter);
+    void paintModel2(QPainter* painter);
 
     bool hasVisibleChildren();
 
@@ -310,12 +314,13 @@ private:
     QRectF iconRect_BottomLeft() const;
     QRectF iconRect_BottomRight() const;
 
-
+    QRectF getImageRect(IMAGE_POS pos) const;
+    void setImage(IMAGE_POS pos, QPixmap image);
 
     QString getIconURL();
 
 
-    void paintPixmap(QPainter *painter, QRectF place, QString alias, QString imageName);
+    void paintPixmap(QPainter *painter, NodeItem::IMAGE_POS pos, QString alias, QString imageName);
 
 
     //USED PARAMETERS;
@@ -418,6 +423,8 @@ private:
 
     QHash<int, QRectF> outlineMap;
 
+    QHash<IMAGE_POS, QPixmap> imageMap;
+
     //Current Width/Height
     double width;
     double height;
@@ -430,9 +437,6 @@ private:
 
     double modelHeight;
     double modelWidth;
-
-    qreal expandedFontSize;
-    qreal contractedFontSize;
 
 
     QPointF previousScenePosition;
@@ -499,11 +503,12 @@ private:
     QString nodeHardwareOS;
     QString nodeHardwareArch;
     bool nodeHardwareLocalHost;
+    bool nodeMemberIsKey;
 
-    bool usesType;
 
     QList<int> connectedDataIDs;
     QString editableDataKey;
+    bool hasEditData;
     bool editableDataDropDown;
 
     bool gotVisibleChildren;

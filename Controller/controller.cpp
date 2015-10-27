@@ -1192,6 +1192,28 @@ int NewController::getSharedParent(int ID1, int ID2)
 }
 
 /**
+ * @brief NewController::getContainedAspect - Gets the ID of the aspect
+ * @param ID The ID of the aspect
+ * @return
+ */
+int NewController::getContainedAspect(int ID)
+{
+    Node* node = getNodeFromID(ID);
+    if(node){
+        if(behaviourDefinitions->isAncestorOf(node)){
+            return behaviourDefinitions->getID();
+        }else if(interfaceDefinitions->isAncestorOf(node)){
+            return interfaceDefinitions->getID();
+        }else if(assemblyDefinitions->isAncestorOf(node)){
+            return assemblyDefinitions->getID();
+        }else if(hardwareDefinitions->isAncestorOf(node)){
+            return hardwareDefinitions->getID();
+        }
+    }
+    return -1;
+}
+
+/**
  * @brief NewController::connectViewAndSetupModel Called
  * @param view
  */
@@ -2314,7 +2336,6 @@ void NewController::addActionToStack(ActionItem action, bool useAction)
         }else{
             undoActionStack.push(action);
         }
-        updateViewUndoRedoLists();
     }
 
     if(USE_LOGGING){
@@ -2420,8 +2441,6 @@ void NewController::undoRedo(bool undo)
     }
 
 
-    updateViewUndoRedoLists();
-
 
     controller_SetViewEnabled(true);
 
@@ -2512,7 +2531,6 @@ void NewController::clearHistory()
     currentAction = "";
     undoActionStack.clear();
     redoActionStack.clear();
-    updateViewUndoRedoLists();
 }
 
 Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QString nodeLabel)
@@ -3210,35 +3228,6 @@ void NewController::constructEdgeGUI(Edge *edge)
     storeGraphMLInHash(edge);
 }
 
-
-void NewController::updateViewUndoRedoLists()
-{
-    QList<int> actions;
-    QStringList undoList;
-    QStringList redoList;
-
-    //Undo first
-    foreach(ActionItem a, undoActionStack){
-        int ID = a.actionID;
-        if(actions.contains(ID) == false){
-            actions.append(ID);
-            undoList.insert(0, a.actionName);
-        }
-    }
-    actions.clear();
-
-    //Redo
-    foreach(ActionItem a, redoActionStack){
-        int ID = a.actionID;
-        if(actions.contains(ID) == false){
-            actions.append(ID);
-            redoList.insert(0, a.actionName);
-        }
-    }
-
-    controller_UndoListChanged(undoList);
-    controller_RedoListChanged(redoList);
-}
 
 void NewController::setupManagementComponents()
 {

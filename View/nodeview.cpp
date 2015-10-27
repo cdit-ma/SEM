@@ -40,6 +40,10 @@
 #define THEME_LIGHT 0
 #define THEME_DARK 1
 
+#define ASPECT_INTERFACES "Interfaces"
+#define ASPECT_BEHAVIOUR "Behaviour"
+#define ASPECT_ASSEMBLIES "Assemblies"
+#define ASPECT_HARDWARE "Hardware"
 
 /**
  * @brief NodeView::NodeView
@@ -103,6 +107,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
     setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 
+
+    this->scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
 
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -1806,20 +1812,82 @@ QPair<QString, bool> NodeView::getEditableDataKeyName(NodeItem *node)
     returnType.second = false;
 
     QString nodeKind = node->getNodeKind();
+    bool isInImpl = false;
 
-    QStringList noDropDownKinds;
-    noDropDownKinds << "OutEventPort" << "InEventPort" << "AggregateInstance" << "VectorInstance" << "MemberInstance";
-    QStringList typeKinds;
-    typeKinds << "Attribute" << "Member" << "OutEventPort" << "InEventPort" << "Vector" << "AggregateInstance" << "VectorInstance" << "MemberInstance";
 
-    if(typeKinds.contains(nodeKind)){
-        returnType.first = "type";
-        if(!noDropDownKinds.contains(nodeKind)){
-            returnType.second = true;
+
+    bool inInterface = false;
+    bool inBehaviour = false;
+    bool inHardware = false;
+    bool inAssembly = false;
+
+    if(node){
+        int aspectID = controller->getContainedAspect(node->getID());
+
+        QString aspectName = aspectIDs[aspectID];
+        if(aspectName == ASPECT_INTERFACES){
+            inInterface = true;
+        }else if(aspectName == ASPECT_ASSEMBLIES){
+            inAssembly = true;
+        }else if(aspectName == ASPECT_HARDWARE){
+            inHardware = true;
+        }else if(aspectName == ASPECT_BEHAVIOUR){
+            inBehaviour = true;
         }
     }
+
+
+    QStringList dropdownKinds;
+    dropdownKinds << "Attribute" << "Member";
+
+    //QStringList noDropDownKinds;
+    //noDropDownKinds << "OutEventPort" << "InEventPort" << "AggregateInstance" << "VectorInstance" << "MemberInstance" << "HardwareNode" << "AttributeInstance"  << "OutEventPortInstance" << "InEventPortInstance";;
+
+    QStringList typeKinds;
+    typeKinds << "Attribute" << "Member" << "OutEventPort" << "InEventPort" << "Vector" << "AggregateInstance" << "VectorInstance" << "OutEventPortInstance" << "InEventPortInstance" << "OutEventPortDelegate" << "InEventPortDelegate" << "AttributeImpl" <<"OutEventPortImpl" << "InEventPortImpl" << "ComponentInstance";
+
+    QStringList valueKinds;
+    valueKinds << "Variable" << "Condition";
+
+    if(!inBehaviour){
+        typeKinds << "MemberInstance";
+    }else{
+        valueKinds << "MemberInstance";
+    }
+
+    if(inAssembly){
+        valueKinds << "AttributeInstance";
+    }else{
+        typeKinds << "AttributeInstance";
+    }
+
+
+
+    bool useType = typeKinds.contains(nodeKind);
+    bool useValue = valueKinds.contains(nodeKind);
+
+    if(useType){
+        returnType.first = "type";
+    }
+    if(useValue){
+        returnType.first = "value";
+    }
+
+
     if(nodeKind == "Aggregate"){
         returnType.first = "sortOrder";
+    }
+    if(nodeKind == "HardwareNode"){
+        returnType.first = "ip_address";
+    }
+
+    if(nodeKind == "PeriodicEvent"){
+        returnType.first = "frequency";
+    }
+
+
+    if(dropdownKinds.contains(nodeKind)){
+        returnType.second = true;
     }
 
     return returnType;
@@ -2125,7 +2193,7 @@ void NodeView::showToolbar(QPoint position)
 void NodeView::view_ConstructNodeGUI(Node *node)
 {
     if(!node){
-        qCritical() << "Node is Null.";
+        return;
     }
 
     if(IS_SUB_VIEW){
@@ -2150,6 +2218,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     NodeItem* parentNodeItem = 0;
     Node* modelParent = parentNode;
+
     while(modelParent){
         GraphMLItem* parentGUI = getGraphMLItemFromHash(modelParent->getID());
         parentNodeItem = getNodeItemFromGraphMLItem(parentGUI);
@@ -2203,8 +2272,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         nodeItem->setNodeConnectable(isNodeVisuallyConnectable(node));
     }
 
-    //Store the aspects in a lookup map.
-    if(nodeKind.endsWith("Definitions")){
+    if(node->isAspect()){
         QString aspectName = nodeKind.replace("Definitions","");
         if (aspectName == "Interface") {
             aspectName = "Interfaces";
@@ -2769,7 +2837,7 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
 
         QPixmap imageData = QPixmap::fromImage(image);
 
-        if(alias == "Actions"){
+        if(alias == "Actions" || alias == "Data"){
             QColor tint;
 
             if(!tint.isValid()){
@@ -2879,8 +2947,6 @@ NodeItem *NodeView::getDeployedNode(int ID)
 void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
 {
     if(GUIItem){
-
-
         NodeItem* nodeItem = 0;
         if(GUIItem->isNodeItem()){
             nodeItem = (NodeItem*) GUIItem;
@@ -3051,12 +3117,13 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
     // update the docks
     emit view_nodeConstructed(nodeItem);
 
-    // this will set the correct theme for the necessary parts of particular nodeitems
-    emit view_themeChanged(currentTheme);
+    // this will set the correct theme for the necessary parts of particular nodeitems   
+    nodeItem->themeChanged(currentTheme);
 
     // send specific current view states to the newly constaructed node item
     nodeItem->aspectsChanged(currentAspects);
     nodeItem->toggleGridLines(GRID_LINES_ON);
+
 
     if (nodeItem->getNodeKind().startsWith("Hardware")) {
 

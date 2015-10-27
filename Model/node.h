@@ -15,7 +15,7 @@ class Node : public GraphML
     friend class Edge;
 public:
     //Enum for Node Types
-    enum NODE_TYPE {NT_NODE, NT_DEFINITION, NT_INSTANCE, NT_IMPL, NT_DEFINSTANCE};
+    enum NODE_TYPE {NT_NODE, NT_ASPECT, NT_DEFINITION, NT_INSTANCE, NT_IMPL, NT_DEFINSTANCE};
 
     //Constuctor
     Node(NODE_TYPE type = NT_NODE);
@@ -123,6 +123,7 @@ public:
     //Specific DIG Methods.
     bool isDefinition();
     bool isInstance();
+    bool isAspect();
     bool isImpl();
 
     void setDefinition(Node *def);

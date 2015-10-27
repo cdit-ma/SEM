@@ -17,11 +17,16 @@ Version 18:
 		* Added dock items for BlackBox definitions in the dock.
 			** Selecting BlackBoxInstance from the parts dock will now redirect the user to the definitions dock.
         * Implemented double click to center view inside minimap.
-		* Added settings option to change the view theme from light(normal) to dark.
-			** The theme gets passed down to the toolbar and menus on the canvas.
-		* Implemented connection of multiple entites to a shared legal node using the toolbar.
-		* Extended search options to include the following data keys: label, kind, topicName, type, description and worker.
-		* The user can now search using regex (eg. blah, *blah, blah*, *blah*)
+
+        * Added settings option to change the view theme from light(normal) to dark.
+            ** The theme gets passed down to the toolbar and menus on the canvas.
+        * Implemented connection of multiple entites to a shared legal node using the toolbar.
+        * Extended search options to include the following data keys: label, kind, topicName, type, description and worker.
+        * The user can now search using regex (eg. blah, *blah, blah*, *blah*)
+        * Text truncation now uses Outer-In truncation. Ie Comp...ance instead of Component...
+        * Implemented "secondary" edit field in canvas.
+            * Some fields are drop downs.
+
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.

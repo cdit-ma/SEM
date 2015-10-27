@@ -12,18 +12,45 @@ InputItem::InputItem(GraphMLItem *parent, QString initialValue, bool isCombo):QG
 {
     setupLayout(initialValue);
     isComboBox = isCombo;
-    handleMouse = false;
+    handleMouse = true;
     textItem->setPlainText(initialValue);
 
+    setAcceptHoverEvents(false);
+    backgroundBrush = Qt::NoBrush;
+
     if(!isComboBox){
+        connect(textItem, SIGNAL(editableItem_hasFocus(bool)), this, SIGNAL(InputItem_HasFocus(bool)));
         connect(textItem, SIGNAL(textUpdated(QString)), this, SIGNAL(InputItem_ValueChanged(QString)));
     }
 }
 
-void InputItem::setCenterAligned(bool center)
+void InputItem::setAlignment(Qt::Alignment align)
 {
-    textItem->setCenterAligned(center);
+    if(textItem){
+        textItem->setAlignment(align);
+    }
+
 }
+
+void InputItem::setBrush(QBrush brush)
+{
+    if(backgroundBrush != brush){
+        backgroundBrush = brush;
+        update();
+    }
+}
+
+void InputItem::setToolTipString(QString tooltip)
+{
+    if(_tooltip == "" && tooltip == ""){
+        setToolTip("");
+    }else{
+        _tooltip = tooltip;
+        setToolTip(textItem->getFullValue() + "\n" + _tooltip);
+    }
+}
+
+
 
 void InputItem::setDropDown(bool isCombo)
 {
@@ -47,9 +74,9 @@ void InputItem::setFont(QFont font)
 
 void InputItem::updatePosSize(QRectF size)
 {
-    this->setPos(size.topLeft());
-    this->setWidth(size.width());
-    this->setHeight(size.height());
+    setPos(size.topLeft());
+    setWidth(size.width());
+    setHeight(size.height());
 }
 
 QString InputItem::getValue()
@@ -60,7 +87,7 @@ QString InputItem::getValue()
 
 QRectF InputItem::boundingRect() const
 {
-    return QRectF(0 ,0,width, height);
+    return QRectF(0, 0, width, height);
 }
 
 QRectF InputItem::arrowRect() const
@@ -89,9 +116,6 @@ void InputItem::setHeight(qreal h)
     if(height != h){
         prepareGeometryChange();
         height = h;
-
-        //Update position of the textBox.
-        textItem->setPos(0, (height - textItem->boundingRect().height())/2);
         updateTextSize();
     }
 }
@@ -109,6 +133,8 @@ qreal InputItem::getHeight()
 void InputItem::setValue(QString newValue)
 {
     textItem->setPlainText(newValue);
+    //Update Tooltip.
+    setToolTipString(_tooltip);
 }
 
 void InputItem::setEditMode(bool editable)
@@ -121,7 +147,6 @@ void InputItem::setEditMode(bool editable)
 
 void InputItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    qCritical() << "GOT CLICK";
     if(handleMouse && lastPressed.elapsed()  < 250){
         wasDoubleClicked = true;
 
@@ -153,7 +178,6 @@ void InputItem::setupLayout(QString initialValue)
 
     textItem = new EditableTextItem(this);
     textItem->setParent(this);
-    textItem->setPos(TEXT_PADDING, 0);
     textItem->setPlainText(initialValue);
 }
 
@@ -162,25 +186,43 @@ void InputItem::setupLayout(QString initialValue)
 void InputItem::updateTextSize()
 {
     //Update Text width so it doesn't colide with the maximize button.
-    qreal textWidth = width;
+    qreal textWidth = width - (2 * TEXT_PADDING);
     if(isComboBox){
         //Offset by the width of the icon.
         textWidth -= height;
     }
 
     textItem->setTextWidth(textWidth);
+    qreal moveHeight = (height - textItem->boundingRect().height())/2;
+    textItem->setPos(TEXT_PADDING, moveHeight);
 }
 
 void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+
+    painter->setClipping(true);
+    painter->setClipRect(boundingRect());
+
+
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(backgroundBrush);
+    painter->drawRect(boundingRect());
+
     if(isComboBox){
         QImage image(":/Actions/Arrow_Down.png");
         QPixmap imageData = QPixmap::fromImage(image);
 
-        //painter->setBrush(QColor(120,120,120,120));
-        painter->setPen(Qt::NoPen);
-        painter->setPen(Qt::gray);
-        painter->drawRect(arrowRect());
         painter->drawPixmap(arrowRect().toAlignedRect(), imageData);
+
+        QPen linePen;
+        linePen.setColor(Qt::black);
+        linePen.setWidthF(.5);
+        painter->setPen(linePen);
+
+        QLineF line;
+        line.setP1(arrowRect().topLeft());
+        line.setP2(arrowRect().bottomLeft());
+        painter->drawLine(line);
     }
 }
+
