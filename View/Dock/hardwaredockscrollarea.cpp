@@ -20,10 +20,12 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
     hardware_notAllowedKinds.append("BehaviourDefinitions");
     hardware_notAllowedKinds.append("DeploymentDefinitions");
     hardware_notAllowedKinds.append("AssemblyDefinitions");
+    hardware_notAllowedKinds.append("HardwareDefinitions");
     hardware_notAllowedKinds.append("IDL");
     hardware_notAllowedKinds.append("Component");
     hardware_notAllowedKinds.append("ComponentImpl");
     hardware_notAllowedKinds.append("HardwareNode");
+    hardware_notAllowedKinds.append("HardwareCluster");
     hardware_notAllowedKinds.append("Aggregate");
     hardware_notAllowedKinds.append("Member");
     hardware_notAllowedKinds.append("AggregateInstance");
@@ -74,27 +76,12 @@ void HardwareDockScrollArea::dockNodeItemClicked()
     }
 
     /*
-     * TODO
-     *
-    if (getCurrentNodeItem()) {
-        QString itemKind = getCurrentNodeItem()->getNodeKind();
-        if (!getNodeView()->isNodeKindDeployable(itemKind)) {
-            getNodeView()->highlightNode(dockNodeItem->getID());
-            return;
-        }
-    }
-    */
-
-    /*
      * At this point everything in selectedNodeIDs is deployable.
      * If all nodes in selection are already connected to dockNodeID, disconnect them.
      * If some nodes in selection aren't connected to dockNodeID, disconnect their deployment edge, and connect to docknodeID.
      */
 
     int dockId = dockNodeItem->getID().toInt();
-
-
-
     getNodeView()->constructDestructEdges(getNodeView()->getSelectedNodeIDs(), dockId);
 }
 
@@ -172,7 +159,8 @@ void HardwareDockScrollArea::updateDock()
  */
 void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 {
-    if (nodeItem->getNodeKind() == "HardwareNode" || nodeItem->getNodeKind() == "HardwareCluster") {
+    if (!nodeItem->isAspect() && nodeItem->getNodeKind().startsWith("Hardware")) {
+
         DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
         insertDockNodeItem(dockItem);
         connect(this, SIGNAL(dock_higlightDockItem(NodeItem*)), dockItem, SLOT(highlightDockItem(NodeItem*)));
@@ -208,9 +196,7 @@ void HardwareDockScrollArea::refreshDock()
  */
 void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
 {
-
     if (getDockNodeItems().count() > 0) {
-
 
         // if the dock item has already been added to this dock,
         // remove it from the this dock's list and layout

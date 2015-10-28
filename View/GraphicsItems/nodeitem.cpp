@@ -2118,7 +2118,8 @@ void NodeItem::updateDisplayedChildren(int viewMode)
     }
 
     // if viewMode = -1, it means that an edgeConstructed signal was sent
-    // need to update children HardwareNodes' visibily
+    // or a HardwareCluster is expanded and therefore need to check viewMode
+    // update children HardwareNodes' visibily based on the current view mode
     if (viewMode == -1) {
         viewMode = CHILDREN_VIEW_MODE;
     }
@@ -3578,7 +3579,7 @@ void NodeItem::setNodeExpanded(bool expanded)
     if (IS_HARDWARE_CLUSTER && expanded) {
 
         // this will show/hide HardwareNodes depending on the current view mode
-        updateDisplayedChildren(CHILDREN_VIEW_MODE);
+        updateDisplayedChildren(-1);
 
         // this sets the width and height to their expanded values
         setWidth(expandedWidth);

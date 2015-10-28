@@ -26,6 +26,7 @@ Version 18:
         * Text truncation now uses Outer-In truncation. Ie Comp...ance instead of Component...
         * Implemented "secondary" edit field in canvas.
             * Some fields are drop downs.
+		* The hardware dock is now disabled for HardwareClusters and HardwareDefinitions.
 
 
     Fixes:
@@ -56,6 +57,7 @@ Version 18:
 		* Implement a state-based switching of highlighted states in NodeItem.
 		* Need to update the dock buttons and window toolbar when the theme is changed.
 		* Need to show invisble HardwareNodes when their search items are clicked.
+		* Need to show something to the user when the Hardware nodes have been loaded. Dock doesn't open anymore.
 
 Version 17:
     New Features:

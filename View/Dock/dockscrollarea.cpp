@@ -186,9 +186,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* item, int insertIndex, bool a
             }
         }
 
-
         dockNodeIDs.append(itemID);
-
         dockNodeItems[itemID] = item;
         connect(item, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
 
