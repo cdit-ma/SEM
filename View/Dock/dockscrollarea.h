@@ -36,8 +36,6 @@ public:
     bool isDockEnabled();
     void setDockEnabled(bool enabled);
 
-    bool hideDisabledDock();
-
     DockToggleButton* getParentButton();
     NodeItem* getCurrentNodeItem();
     int getCurrentNodeID();
@@ -48,7 +46,7 @@ public:
     NodeView* getNodeView();
     QStringList getAdoptableNodeListFromView();
 
-    virtual void onNodeDeleted(QString ID);
+    virtual void onNodeDeleted(QString nodeID);
     virtual void onEdgeDeleted();
 
 public slots:
@@ -86,10 +84,8 @@ private:
     bool dockOpen;
 
     QHash<QString, DockNodeItem*> dockNodeItems;
-    QStringList dockNodeIDs;
+    QList<int> dockNodeIDs;
     QStringList notAllowedKinds;
-
-    bool dockEnabled;
 
 };
 

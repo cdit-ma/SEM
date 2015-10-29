@@ -12,7 +12,7 @@ public:
 
     QList<DockNodeItem*> getDockNodeItems();
 
-    void onNodeDeleted(QString ID);
+    void onNodeDeleted(QString nodeID);
     void onEdgeDeleted();
 
 public slots:

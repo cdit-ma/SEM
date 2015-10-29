@@ -20,12 +20,12 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
     hardware_notAllowedKinds.append("BehaviourDefinitions");
     hardware_notAllowedKinds.append("DeploymentDefinitions");
     hardware_notAllowedKinds.append("AssemblyDefinitions");
-    hardware_notAllowedKinds.append("HardwareDefinitions");
+    //hardware_notAllowedKinds.append("HardwareDefinitions");
     hardware_notAllowedKinds.append("IDL");
     hardware_notAllowedKinds.append("Component");
     hardware_notAllowedKinds.append("ComponentImpl");
     hardware_notAllowedKinds.append("HardwareNode");
-    hardware_notAllowedKinds.append("HardwareCluster");
+    //hardware_notAllowedKinds.append("HardwareCluster");
     hardware_notAllowedKinds.append("Aggregate");
     hardware_notAllowedKinds.append("Member");
     hardware_notAllowedKinds.append("AggregateInstance");
@@ -102,7 +102,6 @@ void HardwareDockScrollArea::dockClosed()
  */
 void HardwareDockScrollArea::updateDock()
 {    
-
     QList<NodeItem*> selectedItems = getNodeView()->getSelectedNodeItems();
     if (selectedItems.isEmpty()) {
         setDockEnabled(false);
@@ -110,43 +109,40 @@ void HardwareDockScrollArea::updateDock()
     }
 
     bool multipleSelection = (selectedItems.count() > 1);
-    //bool readOnlyState = false;
+    bool readOnlyState = false;
+    bool enableDock = true;
 
     // check if the dock should be disabled
     foreach (NodeItem* item, selectedItems) {
         QString itemKind = item->getNodeKind();
         if (getNotAllowedKinds().contains(itemKind)) {
-            setDockEnabled(false);
-            return;
+            enableDock = false;
+            break;
         }
         if (itemKind == "ComponentInstance") {
             if (!item->getNode()->getDefinition()) {
-                setDockEnabled(false);
-                return;
+                enableDock = false;
+                break;
             }
         }
         if (multipleSelection) {
             if (!getNodeView()->isNodeKindDeployable(itemKind)) {
-                setDockEnabled(false);
-                return;
+                enableDock = false;
+                break;
             }
         }
-        /*
         if (!getNodeView()->isNodeKindDeployable(itemKind)) {
             readOnlyState = true;
         }
-        */
     }
 
-    /*
-    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-        //dockItem->setEnabled(!readOnlyState);
-        dockItem->setReadOnlyState(readOnlyState);
+    setDockEnabled(enableDock);
+    if (enableDock) {
+        foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+            dockItem->setReadOnlyState(readOnlyState);
+        }
+        highlightHardwareConnection(selectedItems);
     }
-    */
-
-    setDockEnabled(true);
-    highlightHardwareConnection(selectedItems);
 }
 
 

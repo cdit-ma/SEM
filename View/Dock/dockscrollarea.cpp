@@ -3,7 +3,6 @@
 #include "docknodeitem.h"
 #include <QDebug>
 
-#define HIDE_DISABLED true
 
 /**
  * @brief DockScrollArea::DockScrollArea
@@ -52,7 +51,6 @@ QStringList DockScrollArea::getNotAllowedKinds()
 void DockScrollArea::updateCurrentNodeItem()
 {
     currentNodeItem = nodeView->getSelectedNodeItem();
-
 
     if (currentNodeItem) {
         currentNodeItemID = currentNodeItem->getID();
@@ -130,9 +128,9 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
  * @brief DockScrollArea::onNodeDeleted
  * @param ID
  */
-void DockScrollArea::onNodeDeleted(QString ID)
+void DockScrollArea::onNodeDeleted(QString nodeID)
 {
-    removeDockNodeItem(getDockNodeItem(ID));
+    removeDockNodeItem(getDockNodeItem(nodeID));
     updateDock();
 }
 
@@ -186,7 +184,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* item, int insertIndex, bool a
             }
         }
 
-        dockNodeIDs.append(itemID);
+        dockNodeIDs.append(itemID.toInt());
         dockNodeItems[itemID] = item;
         connect(item, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
 
@@ -229,8 +227,9 @@ QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
  */
 void DockScrollArea::removeDockNodeItemFromList(DockNodeItem* dockNodeItem)
 {
-    dockNodeItems.remove(dockNodeItem->getID());
-    dockNodeIDs.removeAll(dockNodeItem->getID());
+    QString dockItemID = dockNodeItem->getID();
+    dockNodeItems.remove(dockItemID);
+    dockNodeIDs.removeAll(dockItemID.toInt());
 }
 
 
@@ -240,14 +239,10 @@ void DockScrollArea::removeDockNodeItemFromList(DockNodeItem* dockNodeItem)
  */
 bool DockScrollArea::isDockEnabled()
 {
-    if (HIDE_DISABLED) {
-        if (getParentButton()) {
-            return getParentButton()->isEnabled();
-        }
-        return false;
-    } else {
-        return dockEnabled;
+    if (getParentButton()) {
+        return getParentButton()->isEnabled();
     }
+    return false;
 }
 
 
@@ -257,28 +252,16 @@ bool DockScrollArea::isDockEnabled()
  */
 void DockScrollArea::setDockEnabled(bool enabled)
 {
-    if (HIDE_DISABLED) {
-        if (getParentButton()) {
-            getParentButton()->setEnabled(enabled);
-        }
-    } else {
-        foreach (DockNodeItem* item, getDockNodeItems()) {
-            item->setEnabled(enabled);
-        }
-        dockEnabled = enabled;
+    if (getParentButton()) {
+        getParentButton()->setEnabled(enabled);
     }
 }
 
 
 /**
- * @brief DockScrollArea::hideDisabledDock
+ * @brief DockScrollArea::isDockOpen
  * @return
  */
-bool DockScrollArea::hideDisabledDock()
-{
-   return HIDE_DISABLED;
-}
-
 bool DockScrollArea::isDockOpen()
 {
     return dockOpen;
@@ -320,12 +303,9 @@ void DockScrollArea::updateDock()
  */
 void DockScrollArea::nodeDeleted(int nodeID, int parentID)
 {
-    QString nodeIDStr = QString::number(nodeID);
-
-    if (dockNodeIDs.contains(nodeIDStr)) {
-        onNodeDeleted(nodeIDStr);
+    if (dockNodeIDs.contains(nodeID)) {
+        onNodeDeleted(QString::number(nodeID));
     }
-
 
     // need to update on both cases to enable/disable the dock correctly
     if (nodeID == getCurrentNodeID() || parentID == getCurrentNodeID()) {
@@ -341,10 +321,7 @@ void DockScrollArea::nodeDeleted(int nodeID, int parentID)
  */
 void DockScrollArea::edgeDeleted(int srcID, int dstID)
 {
-    QString srcIDStr = QString::number(srcID);
-    QString dstIDStr = QString::number(dstID);
-
-    if (dockNodeIDs.contains(srcIDStr) || dockNodeIDs.contains(dstIDStr)){
+    if (dockNodeIDs.contains(srcID) || dockNodeIDs.contains(dstID)) {
         onEdgeDeleted();
     }
 }
@@ -359,8 +336,9 @@ void DockScrollArea::edgeDeleted(int srcID, int dstID)
 void DockScrollArea::removeDockNodeItem(DockNodeItem* item)
 {
     if (item) {
-        dockNodeItems.remove(item->getID());
-        dockNodeIDs.removeAll(item->getID());
+        QString dockItemID = item->getID();
+        dockNodeItems.remove(dockItemID);
+        dockNodeIDs.removeAll(dockItemID.toInt());
         if (layout) {
             layout->removeWidget(item);
         }
@@ -460,8 +438,8 @@ void DockScrollArea::clear()
     clearSelected();
 
     while (!dockNodeItems.keys().isEmpty()) {
-        QString ID = dockNodeItems.keys().first();
-        DockNodeItem* item =  dockNodeItems.take(ID);
+        QString dockItemID = dockNodeItems.keys().first();
+        DockNodeItem* item =  dockNodeItems.take(dockItemID);
         if (item) {
             item->deleteLater();;
         }

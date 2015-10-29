@@ -16,7 +16,7 @@
  * @param _kind
  * @param parent
  */
-DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
+DockNodeItem::DockNodeItem(QString kind, NodeItem* item, QWidget* parent) :
     QPushButton(parent)
 {
     parentDock = dynamic_cast<DockScrollArea*>(parent);
@@ -48,7 +48,8 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem *item, QWidget *parent) :
         }
 
     } else {
-        //Must be a parts Dock!
+        // if there is no node item, it means that this item belongs
+        // to the parts dock and it uses its kind as its label and ID
         this->kind = kind;
         label = kind;
         strID = kind;
@@ -367,6 +368,7 @@ void DockNodeItem::updateTextLabel()
 void DockNodeItem::updateStyleSheet()
 {
     if (fileLabel) {
+
         QString textLabelBackground;
         if (expanded) {
             textLabelBackground = "background-color: rgba(208,197,134,0.85);";
@@ -389,6 +391,7 @@ void DockNodeItem::updateStyleSheet()
             break;
         case READONLY:
             //backgroundColor = "rgba(200,200,200,0.8)";
+            hoverBorder = "none";
             break;
         default:
             break;
@@ -413,6 +416,9 @@ void DockNodeItem::updateStyleSheet()
  */
 void DockNodeItem::clicked()
 {
+    if (state == READONLY) {
+        return;
+    }
     if (!fileLabel) {
         emit dockItem_clicked();
     } else {

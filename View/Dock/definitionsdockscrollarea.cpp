@@ -84,9 +84,9 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
  * @brief DefinitionsDockScrollArea::onNodeDeleted
  * @param ID
  */
-void DefinitionsDockScrollArea::onNodeDeleted(QString ID)
+void DefinitionsDockScrollArea::onNodeDeleted(QString nodeID)
 {
-    DockNodeItem* dockItem = getDockNodeItem(ID);
+    DockNodeItem* dockItem = getDockNodeItem(nodeID);
     if (!dockItem) {
         return;
     }
@@ -94,11 +94,11 @@ void DefinitionsDockScrollArea::onNodeDeleted(QString ID)
     if (dockItem->isFileLabel()) {
 
         // IDL file deleted - remove corresponding file layout and then delete it
-        if (fileLayoutItems.contains(ID)) {
-            QVBoxLayout* fileLayout = fileLayoutItems[ID];
+        if (fileLayoutItems.contains(nodeID)) {
+            QVBoxLayout* fileLayout = fileLayoutItems[nodeID];
             if (fileLayout) {
                 itemsLayout->removeItem(fileLayout);
-                fileLayoutItems.remove(ID);
+                fileLayoutItems.remove(nodeID);
                 fileLayout->deleteLater();
             }
         }
@@ -125,7 +125,7 @@ void DefinitionsDockScrollArea::onNodeDeleted(QString ID)
             fileDockItem->removeChildDockItem(dockItem);
 
             // destruct the Component/BlackBox's DockNodeItem
-            DockScrollArea::onNodeDeleted(ID);
+            DockScrollArea::onNodeDeleted(nodeID);
         }
 
         if (deleteFileLayout) {

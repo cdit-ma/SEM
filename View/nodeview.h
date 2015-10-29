@@ -493,7 +493,6 @@ private:
     int initialRect;
     bool viewMovedBackForward;
 
-
     int notificationNumber;
     int numberOfNotifications;
 
@@ -532,6 +531,7 @@ private:
 
     QGraphicsLineItem* connectLine;
     VIEW_STATE viewState;
+    bool showConnectLine;
 };
 
 #endif // NODEVIEW_H

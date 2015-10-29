@@ -25,9 +25,9 @@ Version 18:
         * The user can now search using regex (eg. blah, *blah, blah*, *blah*)
         * Text truncation now uses Outer-In truncation. Ie Comp...ance instead of Component...
         * Implemented "secondary" edit field in canvas.
-            * Some fields are drop downs.
-		* The hardware dock is now disabled for HardwareClusters and HardwareDefinitions.
-
+			** Some fields are drop downs.
+		* The hardware dock items are now disabled for HardwareClusters and HardwareDefinitions.
+			** The dock can still be opened but the dock items can't be clicked on.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.
@@ -48,6 +48,7 @@ Version 18:
 		* Added check for the connectMode from the toolbar to see if the selected destination item is actually highlighted.
 		* Fixed model circle colors and aspect brush colors to match the model circle.
 		* Reimplemented search to use QRegExp.
+		* Stopped connect line from drawing when connect mode is triggered from the toolbar.
 
     Todo:
         * Test Ubuntu for local deployment.

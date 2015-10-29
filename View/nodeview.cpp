@@ -62,6 +62,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     toolbarDockConstruction = false;
     importFromJenkins = false;
     hardwareDockOpen = false;
+    showConnectLine = true;
 
     IS_SUB_VIEW = subView;
 
@@ -652,13 +653,16 @@ QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIN
         itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getEdgeItemsList());
     }
 
+    // remove white spaces from the start and end of the search string
+    searchString = searchString.trimmed();
+
     // if the searchString doesn't start and end with '*', add '*' to both ends of the string
     // this forces the regex to check containment instead of just catching the exact case
     if (!searchString.startsWith('*') && !searchString.endsWith('*')) {
-        searchString = '*' + searchString.trimmed() + '*';
+        searchString = '*' + searchString + '*';
     }
 
-    QRegExp regex(searchString.trimmed(), Qt::CaseInsensitive, QRegExp::Wildcard);
+    QRegExp regex(searchString, Qt::CaseInsensitive, QRegExp::Wildcard);
 
     foreach (GraphMLItem* item, itemsToSearch) {
         GraphML* gml = item->getGraphML();
@@ -1065,6 +1069,10 @@ void NodeView::setStateMoving()
 
 void NodeView::setStateConnect()
 {
+    QToolButton* sender = qobject_cast<QToolButton*>(QObject::sender());
+    if (sender) {
+        showConnectLine = false;
+    }
     setState(VS_CONNECT);
 }
 
@@ -3117,7 +3125,7 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* nodeItem)
     // update the docks
     emit view_nodeConstructed(nodeItem);
 
-    // this will set the correct theme for the necessary parts of particular nodeitems   
+    // this will set the correct theme for the necessary parts of particular nodeitems
     nodeItem->themeChanged(currentTheme);
 
     // send specific current view states to the newly constaructed node item
@@ -3458,11 +3466,13 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
             QPointF lineEnd = mapToScene(event->pos());
             QLineF line(lineStart, lineEnd);
 
-            if(!connectLine){
-                connectLine = scene()->addLine(line);
+            if (showConnectLine) {
+                if(!connectLine){
+                    connectLine = scene()->addLine(line);
+                }
+                connectLine->setLine(line);
+                connectLine->setZValue(100);
             }
-            connectLine->setLine(line);
-            connectLine->setZValue(100);
         }
 
     }else if(viewState == VS_PAN || viewState == VS_PANNING){
@@ -4404,7 +4414,6 @@ void NodeView::toggleZoomAnchor(bool underMouse)
 
 void NodeView::setConnectMode(bool on)
 {
-
     if(on){
         NodeItem* srcNode = getSelectedNodeItem();
         if(srcNode){
@@ -4427,6 +4436,8 @@ void NodeView::setConnectMode(bool on)
             connectLine = 0;
             update();
         }
+
+        showConnectLine = true;
     }
 }
 
