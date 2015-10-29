@@ -3023,6 +3023,7 @@ void NodeItem::updateChildrenViewMode(int viewMode)
     updateDisplayedChildren(viewMode);
 }
 
+
 /**
  * @brief NodeItem::hardwareClusterMenuItemPressed
  */

@@ -49,6 +49,8 @@ Version 18:
 		* Fixed model circle colors and aspect brush colors to match the model circle.
 		* Reimplemented search to use QRegExp.
 		* Stopped connect line from drawing when connect mode is triggered from the toolbar.
+		* Search result now displays hidden items.
+			** Clicking on a hidden HardwareNode changes the display mode of its parent cluster to ALL.
 
     Todo:
         * Test Ubuntu for local deployment.

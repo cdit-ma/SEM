@@ -2199,7 +2199,7 @@ void MedeaWindow::on_actionSearch_triggered()
             bool isInAspect = true;
 
             // if the item is hidden or is an aspect or is the model, don't show it in the search results
-            if (nodeItem->isHidden() || nodeItem->isAspect() || nodeItem->isModel()) {
+            if (/*nodeItem->isHidden() ||*/ nodeItem->isAspect() || nodeItem->isModel()) {
                 continue;
             }
             // check if the guiItem is in one of the checked view aspects

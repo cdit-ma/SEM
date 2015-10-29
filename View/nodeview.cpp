@@ -1365,14 +1365,6 @@ void NodeView::hardwareClusterMenuClicked(int viewMode)
     foreach (NodeItem* item, getSelectedNodeItems()) {
         item->updateChildrenViewMode(viewMode);
     }
-    /*
-    foreach (QString ID, selectedIDs) {
-        NodeItem* node = getNodeItemFromID(ID);
-        if(node){
-            node->updateChildrenViewMode(viewMode);
-        }
-    }
-    */
 }
 
 
@@ -1564,7 +1556,7 @@ void NodeView::selectAndCenter(GraphMLItem* item, int ID)
 
         NodeItem* nodeItem = (NodeItem*) item;
 
-        // make sure the view aspect the the item belongs to is turned on
+        // make sure the view aspect(s) that the item belongs to is turned on
         QStringList neededAspects = currentAspects;
         foreach (QString aspect, nodeItem->getAspects()) {
             if (!currentAspects.contains(aspect)) {
@@ -1575,10 +1567,16 @@ void NodeView::selectAndCenter(GraphMLItem* item, int ID)
         // update view aspects
         setAspects(neededAspects, false);
 
-        // make sure that the parent of nodeItem (if there is one) is expanded
         NodeItem* parentItem = nodeItem->getParentNodeItem();
-        if (parentItem && !parentItem->isExpanded()) {
-            parentItem->setNodeExpanded(true);
+        if (parentItem) {
+            // make sure that the parent of nodeItem is expanded
+            if (!parentItem->isExpanded()) {
+                parentItem->setNodeExpanded(true);
+            }
+            // if it's a HardwareNode, make sure that its parent cluster's view mode is set to ALL
+            if (nodeItem->getNodeKind() == "HardwareNode") {
+                parentItem->updateChildrenViewMode(0);
+            }
         }
 
         // clear the selection, select the item and then center on it
