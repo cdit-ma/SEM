@@ -163,10 +163,11 @@ private slots:
     void updateProgressStatus(int value, QString status);
     void updateWidgetMask(QWidget* widget, QWidget* maskWidget, bool check = false, QSize border = QSize());
 
+    void updateSearchLineEdits();
+    void updateSearchSuggestions();
     void searchItemClicked();
     void searchMenuButtonClicked(bool checked);
     void searchMenuClosed();
-    void updateSearchLineEdits();
 
     void displayNotification(QString notification = "",  int seqNum = 0, int totalNum = 1);
     void checkNotificationsQueue();
@@ -352,23 +353,24 @@ private:
     ComboBoxTableDelegate* delegate;
 
     QHBoxLayout* searchLayout;
-    QPushButton* searchButton;
-    QListView* searchSuggestions;
-    QDialog* searchResults;
-    QScrollArea* scrollableSearchResults;
     QVBoxLayout* resultsLayout;
+    QDialog* searchResults;
 
-    QPushButton* searchOptionButton;
+    QWidget* searchSuggestions;
+    QString prevSearchStr;
+
     QLineEdit* searchBar;
+    QPushButton* searchButton;
+    QPushButton* searchOptionButton;
     QMenu* searchOptionMenu;
-    QPushButton* viewAspectsButton;
     QLineEdit* viewAspectsBar;
+    QPushButton* viewAspectsButton;
     QMenu* viewAspectsMenu;
-    QPushButton* nodeKindsButton;
     QLineEdit* nodeKindsBar;
+    QPushButton* nodeKindsButton;
     QMenu* nodeKindsMenu;
-    QPushButton* dataKeysButton;
     QLineEdit* dataKeysBar;
+    QPushButton* dataKeysButton;
     QMenu* dataKeysMenu;
 
     QStringList dataKeys;
@@ -427,7 +429,6 @@ private:
 
     QString MEDEA_VERSION;
     QAction* action_ContextMenu;
-
     ActionButton* toolbar_ContextMenu;
 
     bool jenkins_TempExport;

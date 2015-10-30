@@ -859,13 +859,12 @@ void MedeaWindow::setupSearchTools()
     searchButton = new QPushButton(getIcon("Actions", "Search"), "");
     searchOptionButton = new QPushButton(getIcon("Actions", "Settings"), "");
     searchOptionMenu = new QMenu(searchOptionButton);
-    //searchSuggestions = new QListView(searchButton);
+    searchSuggestions = new QWidget(this);
     searchResults = new QDialog(this);
 
     QVBoxLayout* layout = new QVBoxLayout();
     QWidget* scrollableWidget = new QWidget(this);
-    scrollableSearchResults = new QScrollArea(this);
-    scrollableSearchResults->setWidget(scrollableWidget);
+    QScrollArea* scrollableSearchResults = new QScrollArea(this);
 
     QVBoxLayout* resultsMainLayout = new QVBoxLayout();
     resultsLayout = new QVBoxLayout();
@@ -904,11 +903,7 @@ void MedeaWindow::setupSearchTools()
     searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight - 3);
     //searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight); // Mac
     searchBar->setStyleSheet("QLineEdit{ background-color: rgb(230,230,230); }"
-                             //"QLineEdit:focus{ border: 2px solid rgb(0,100,200); background-color: rgb(250,250,250) }");
                              "QLineEdit:focus{border: 1px solid; border-color:blue;background-color: rgb(250,250,250)}");
-
-    //searchSuggestions->setViewMode(QListView::ListMode);
-    //searchSuggestions->setVisible(false);
 
     scrollableWidget->setMinimumWidth(rightPanelWidth + 110);
     scrollableWidget->setLayout(resultsMainLayout);
@@ -926,6 +921,10 @@ void MedeaWindow::setupSearchTools()
     searchLayout->addWidget(searchBar, 3);
     searchLayout->addWidget(searchButton, 1);
     searchLayout->addWidget(searchOptionButton, 1);
+
+    searchSuggestions->setWindowFlags(Qt::Popup);
+    searchSuggestions->move(searchBar->mapToGlobal(searchBar->rect().bottomLeft()));
+    searchSuggestions->hide();
 
     // setup search option widgets and menu for view aspects
     QWidgetAction* aspectsAction = new QWidgetAction(this);
@@ -1320,8 +1319,9 @@ void MedeaWindow::makeConnections()
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
+    //connect(searchBar, SIGNAL(editingFinished()), this, SLOT(updateSearchLineEdits())); // Not needed?
+    connect(searchBar, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(updateSearchSuggestions()));
     connect(searchBar, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(updateSearchLineEdits()));
-    connect(searchBar, SIGNAL(editingFinished()), this, SLOT(updateSearchLineEdits()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
 
     connect(searchButton, SIGNAL(clicked()), this, SLOT(on_actionSearch_triggered()));
@@ -2180,10 +2180,12 @@ void MedeaWindow::on_actionSearch_triggered()
         allKinds = true;
     }
 
+    /*
     // if there are no checked entity kinds, search for all stored data keys
     if (checkedKeys.isEmpty()) {
         checkedKeys = dataKeys;
     }
+    */
 
     QString searchText = searchBar->text();
 
@@ -2962,7 +2964,7 @@ void MedeaWindow::searchItemClicked()
 
 /**
  * @brief MedeaWindow::searchMenuButtonClicked
- * This menu is called when one of the menu buttons in the search options is clicked.
+ * This is called when one of the menu buttons in the search options is clicked.
  * This determines which menu was clicked and where to display it.
  */
 void MedeaWindow::searchMenuButtonClicked(bool checked)
@@ -2990,7 +2992,6 @@ void MedeaWindow::searchMenuButtonClicked(bool checked)
             menu->popup(widget->mapToGlobal(widget->rect().bottomLeft()));
         } else {
             menu->close();
-            //senderButton->setChecked(false);
         }
     }
 }
@@ -3065,9 +3066,11 @@ void MedeaWindow::updateSearchLineEdits()
             textLabel = "Search Data Keys: ";
             defaultText = dataKeysDefaultText;
             checkedItemsList = getCheckedItems(2);
+            /*
             if (checkedItemsList.isEmpty()) {
                 checkedItemsList = dataKeys;
             }
+            */
         } else {
             qWarning() << "MedeaWindow::updateSearchLineEdits - Not checking for this menu.";
             return;
@@ -3088,6 +3091,47 @@ void MedeaWindow::updateSearchLineEdits()
         lineEdit->setCursorPosition(0);
         lineEdit->setToolTip(textLabel + lineEdit->text());
     }
+}
+
+
+/**
+ * @brief MedeaWindow::updateSearchSuggestions
+ */
+void MedeaWindow::updateSearchSuggestions()
+{
+    if (!nodeView || !searchBar || !searchSuggestions) {
+        return;
+    }
+
+    QString currentSearchStr = searchBar->text().trimmed();
+    QStringList keys = getCheckedItems(2);
+    /*
+    if (keys.isEmpty()) {
+        keys = dataKeys;
+    }
+    */
+
+    QList<GraphMLItem*> result = nodeView->search(currentSearchStr, GraphMLItem::NODE_ITEM, keys);
+    if (!result.isEmpty()) {
+        //searchSuggestions->show();
+        qDebug() << "Showing search suggestions!";
+    }
+
+    /*
+    foreach (GraphMLItem* item, result) {
+        GraphML* gml = item->getGraphML();
+        if (gml) {
+            searchSuggestions->addAction(gml->getDataValue("label"));
+        }
+    }
+
+    qDebug() << "results.count: " << result.count();
+
+    if (!searchSuggestions->isEmpty() && searchSuggestions->isHidden()) {
+        qDebug() << "Show Menu!";
+        searchSuggestions->popup(searchBar->mapToGlobal(searchBar->rect().bottomLeft()));
+    }
+    */
 }
 
 
@@ -3384,7 +3428,8 @@ void MedeaWindow::closeEvent(QCloseEvent * e)
  */
 QStringList MedeaWindow::getCheckedItems(int menu)
 {
-    QStringList checkedKinds;
+    QStringList checkedItems;
+    bool checkedDataKeys = false;
 
     QMenu* searchMenu = 0;
     if (menu == 0) {
@@ -3393,6 +3438,7 @@ QStringList MedeaWindow::getCheckedItems(int menu)
         searchMenu = nodeKindsMenu;
     } else if (menu == 2) {
         searchMenu = dataKeysMenu;
+        checkedDataKeys = true;
     }
 
     if (searchMenu) {
@@ -3400,12 +3446,15 @@ QStringList MedeaWindow::getCheckedItems(int menu)
             QWidgetAction* widgetAction = qobject_cast<QWidgetAction*>(action);
             QCheckBox* checkBox = qobject_cast<QCheckBox*>(widgetAction->defaultWidget());
             if (checkBox->isChecked()) {
-                checkedKinds.append(checkBox->text());
+                checkedItems.append(checkBox->text());
             }
+        }
+        if (checkedDataKeys && checkedItems.isEmpty()) {
+            checkedItems = dataKeys;
         }
     }
 
-    return checkedKinds;
+    return checkedItems;
 }
 
 
