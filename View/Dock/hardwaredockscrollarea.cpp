@@ -102,7 +102,7 @@ void HardwareDockScrollArea::dockClosed()
  */
 void HardwareDockScrollArea::updateDock()
 {    
-    QList<NodeItem*> selectedItems = getNodeView()->getSelectedNodeItems();
+    QList<EntityItem*> selectedItems = getNodeView()->getSelectedEntityItems();
     if (selectedItems.isEmpty()) {
         setDockEnabled(false);
         return;
@@ -113,7 +113,12 @@ void HardwareDockScrollArea::updateDock()
     bool enableDock = true;
 
     // check if the dock should be disabled
-    foreach (NodeItem* item, selectedItems) {
+    foreach (GraphMLItem* selectedItem, selectedItems) {
+        if(!selectedItem->isEntityItem()){
+            continue;
+        }
+        EntityItem* item = (EntityItem*)selectedItem;
+
         QString itemKind = item->getNodeKind();
         if (getNotAllowedKinds().contains(itemKind)) {
             enableDock = false;
@@ -153,13 +158,12 @@ void HardwareDockScrollArea::updateDock()
  * It checks to see if a dock item needs to be constucted for the new node.
  * @param nodeItem
  */
-void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
+void HardwareDockScrollArea::nodeConstructed(EntityItem* nodeItem)
 {
-    if (!nodeItem->isAspect() && nodeItem->getNodeKind().startsWith("Hardware")) {
-
+    if (!nodeItem->isAspectItem() && (nodeItem->isHardwareNode() || nodeItem->isHardwareCluster())) {
         DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
         insertDockNodeItem(dockItem);
-        connect(this, SIGNAL(dock_higlightDockItem(NodeItem*)), dockItem, SLOT(highlightDockItem(NodeItem*)));
+        connect(this, SIGNAL(dock_higlightDockItem(EntityItem*)), dockItem, SLOT(highlightDockItem(EntityItem*)));
         connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
 
         // if the dock is open, refresh it
@@ -176,7 +180,7 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 void HardwareDockScrollArea::refreshDock()
 {
     // if a node was destructed and it was previously selected, clear this dock's selection
-    if (!getNodeView()->getSelectedNodeItem()) {
+    if (!getNodeView()->getSelectedEntityItem()) {
         DockScrollArea::updateCurrentNodeItem();
     }
     updateDock();
@@ -230,7 +234,7 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
  * If it's not, make sure none of the dock items is highlighted
  * @param selectedItems
  */
-void HardwareDockScrollArea::highlightHardwareConnection(QList<NodeItem*> selectedItems)
+void HardwareDockScrollArea::highlightHardwareConnection(QList<EntityItem*> selectedItems)
 {
     // if there are no deployable node items selected, clear highlighted items
     if (selectedItems.isEmpty()) {
@@ -238,8 +242,8 @@ void HardwareDockScrollArea::highlightHardwareConnection(QList<NodeItem*> select
         return;
     }
 
-    NodeItem* item = selectedItems[0];
-    NodeItem* hardwareItem = getNodeView()->getDeployedNode(item->getID());
+    GraphMLItem* item = selectedItems[0];
+    GraphMLItem* hardwareItem = getNodeView()->getDeployedNode(item->getID());
 
     if (selectedItems.count() == 1) {
         emit dock_higlightDockItem(hardwareItem);
@@ -248,7 +252,7 @@ void HardwareDockScrollArea::highlightHardwareConnection(QList<NodeItem*> select
 
     for (int i = 1; i < selectedItems.count(); i++) {
 
-        NodeItem* prevHardwareItem = hardwareItem;
+        GraphMLItem* prevHardwareItem = hardwareItem;
         item = selectedItems[i];
         hardwareItem = getNodeView()->getDeployedNode(item->getID());
 

@@ -23,7 +23,7 @@ public slots:
     void refreshDock();
     void resortDockItems(DockNodeItem* dockItem);
 
-    void nodeConstructed(NodeItem* nodeItem);
+    void nodeConstructed(EntityItem* nodeItem);
 
 private:
     void showDockItemsOfKind(QString kind = "");

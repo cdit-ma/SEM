@@ -19,6 +19,17 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
 {
     isPanning = false;
     setMouseTracking(true);
+
+    //Set QT Options for this QGraphicsView
+    //setDragMode(NoDrag);
+    //setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
+    // setContextMenuPolicy(Qt::CustomContextMenu);
+    //setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+
+
+    //setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    //setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
     //setupLayout();
 }
 
@@ -28,6 +39,7 @@ void NodeViewMinimap::centerView()
         fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
     }
 }
+
 
 void NodeViewMinimap::setupLayout()
 {

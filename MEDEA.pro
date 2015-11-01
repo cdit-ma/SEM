@@ -124,7 +124,13 @@ HEADERS += \
     View/Toolbar/toolbarmenuaction.h \
     Model/InterfaceDefinitions/vector.h \
     Model/InterfaceDefinitions/vectorinstance.h \
-    View/GraphicsItems/inputitem.h
+    View/GraphicsItems/inputitem.h \
+    View/GraphicsItems/modelitem.h \
+    View/GraphicsItems/aspectitem.h \
+    View/GraphicsItems/entityitem.h \
+    Model/BehaviourDefinitions/inputparameter.h \
+    Model/BehaviourDefinitions/parameter.h \
+    Model/BehaviourDefinitions/returnparameter.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -216,7 +222,13 @@ SOURCES += \
     View/Toolbar/toolbarmenuaction.cpp \
     Model/InterfaceDefinitions/vector.cpp \
     Model/InterfaceDefinitions/vectorinstance.cpp \
-    View/GraphicsItems/inputitem.cpp
+    View/GraphicsItems/inputitem.cpp \
+    View/GraphicsItems/modelitem.cpp \
+    View/GraphicsItems/aspectitem.cpp \
+    View/GraphicsItems/entityitem.cpp \
+    Model/BehaviourDefinitions/inputparameter.cpp \
+    Model/BehaviourDefinitions/parameter.cpp \
+    Model/BehaviourDefinitions/returnparameter.cpp
 
 FORMS +=
 

@@ -20,7 +20,8 @@ ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, QWidget* parent) :
         if (actionKind.endsWith("Definitions")) {
             setText(actionKind);
         } else {
-            setText(nodeItem->getNodeLabel());
+            QString nodeKind = nodeItem->getGraphMLDataValue("label");
+            setText(nodeKind);
         }
     } else {
         qWarning() << "ToolbarMenuAction::ToolbarMenuAction - NodeItem is null.";

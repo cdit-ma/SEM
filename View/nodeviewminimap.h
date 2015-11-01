@@ -8,6 +8,7 @@ class NodeViewMinimap : public QGraphicsView
     Q_OBJECT
 public:
     explicit NodeViewMinimap(QObject *parent = 0);
+
 signals:
     void minimap_Panning(QPointF delta);
     void minimap_Panned();

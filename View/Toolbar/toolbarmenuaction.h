@@ -15,7 +15,7 @@ public:
     explicit ToolbarMenuAction(QString kind, QWidget* parent = 0,
                                QString displayedText = "", QString iconPath = ":/Items/");
 
-    NodeItem* getNodeItem();
+    NodeItem *getNodeItem();
     int getNodeItemID();
     QString getActionKind();
     bool isDeletable();

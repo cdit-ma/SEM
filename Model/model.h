@@ -26,6 +26,9 @@
 
 
 
+#include "BehaviourDefinitions/inputparameter.h"
+#include "BehaviourDefinitions/returnparameter.h"
+
 #include "BehaviourDefinitions/periodicevent.h"
 
 #include "DeploymentDefinitions/deploymentdefinitions.h"
@@ -63,6 +66,7 @@
 
 #include "InterfaceDefinitions/blackbox.h"
 #include "DeploymentDefinitions/blackboxinstance.h"
+
 
 
 

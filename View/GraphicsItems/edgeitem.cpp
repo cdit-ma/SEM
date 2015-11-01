@@ -21,7 +21,7 @@
 
 #define LABEL_RATIO .50
 
-EdgeItem::EdgeItem(Edge* edge, NodeItem *parent, NodeItem* s, NodeItem* d): GraphMLItem(edge, GraphMLItem::NODE_EDGE)
+EdgeItem::EdgeItem(Edge* edge, EntityItem *parent, EntityItem* s, EntityItem* d): GraphMLItem(edge, GraphMLItem::NODE_EDGE)
 {
     QGraphicsItem::setParentItem(parent);
 
@@ -50,8 +50,11 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem *parent, NodeItem* s, NodeItem* d): Grap
 
 
 
-    connect(source, SIGNAL(NodeItem_Moved()), this, SLOT(updateLine()));
-    connect(destination, SIGNAL(NodeItem_Moved()), this, SLOT(updateLine()));
+    connect(source, SIGNAL(GraphMLItem_PositionChanged()), this, SLOT(updateLine()));
+
+    connect(destination, SIGNAL(GraphMLItem_PositionChanged()), this, SLOT(updateLine()));
+    connect(source, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(updateLine()));
+    connect(destination, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(updateLine()));
 
     //Add the Edge Item to the source/destination.
     source->addEdgeItem(this);
@@ -72,13 +75,13 @@ EdgeItem::EdgeItem(Edge* edge, NodeItem *parent, NodeItem* s, NodeItem* d): Grap
     //Stepup.
     NodeItem* sParent = source;
     while(sParent != parent){
-        connect(sParent, SIGNAL(visibilityChanged(bool)), this, SLOT(updateVisibleParents()));
+        connect(sParent, SIGNAL(visibleChanged()), this, SLOT(updateVisibleParents()));
         sParent = sParent->getParentNodeItem();
     }
 
     NodeItem* dParent = destination;
     while(dParent != parent){
-        connect(dParent, SIGNAL(visibilityChanged(bool)), this, SLOT(updateVisibleParents()));
+        connect(dParent, SIGNAL(visibleChanged()), this, SLOT(updateVisibleParents()));
         dParent = dParent->getParentNodeItem();
     }
 
@@ -205,12 +208,12 @@ void EdgeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     }
 }
 
-NodeItem *EdgeItem::getSource()
+EntityItem *EdgeItem::getSource()
 {
     return source;
 }
 
-NodeItem *EdgeItem::getDestination()
+EntityItem *EdgeItem::getDestination()
 {
     return destination;
 }
@@ -269,12 +272,12 @@ void EdgeItem::setVisible(bool visible)
 void EdgeItem::updateVisibleParents()
 {
     if(parent->isVisible()){
-        NodeItem* src = source;
-        NodeItem* dst = destination;
+        EntityItem* src = source;
+        EntityItem* dst = destination;
 
         //Get the topmost visible Source
         while(src && !src->isVisibleTo(0)){
-            src = src->getParentNodeItem();
+            src = src->getParentEntityItem();
             if(src == parent){
                 src = 0;
             }
@@ -282,7 +285,7 @@ void EdgeItem::updateVisibleParents()
 
         //Get the topmost visible Destination
         while(dst && !dst->isVisibleTo(0)){
-            dst = dst->getParentNodeItem();
+            dst = dst->getParentEntityItem();
             if(dst == parent){
                 dst = 0;
             }
@@ -572,8 +575,8 @@ void EdgeItem::updateLines()
         return;
     }
 
-    QRectF sRect = visibleSource->minimumBoundingRect();
-    QRectF dRect = visibleDestination->minimumBoundingRect();
+    QRectF sRect = visibleSource->minimumRect();
+    QRectF dRect = visibleDestination->minimumRect();
 
     sRect.setWidth(visibleSource->boundingRect().width());
     dRect.setWidth(visibleDestination->boundingRect().width());

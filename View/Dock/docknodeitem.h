@@ -12,9 +12,9 @@ class DockNodeItem : public QPushButton
 {
     Q_OBJECT
 public:
-    explicit DockNodeItem(QString kind = "", NodeItem* item = 0, QWidget* parent = 0);
+    explicit DockNodeItem(QString kind = "", EntityItem* item = 0, QWidget* parent = 0);
 
-    NodeItem* getNodeItem();
+    EntityItem* getNodeItem();
     QString getKind();
     QString getID();
 
@@ -50,7 +50,7 @@ public slots:
     void updateData();
 
     void childDockItemHidden();
-    void highlightDockItem(NodeItem* node);
+    void highlightDockItem(EntityItem* node);
 
 private:
     void setupLayout();
@@ -58,7 +58,7 @@ private:
     void updateStyleSheet();
 
     DockScrollArea* parentDock;
-    NodeItem* nodeItem;
+    EntityItem* nodeItem;
     DockNodeItem* parentDockItem;
     QList<DockNodeItem*> childrenDockItems;
 

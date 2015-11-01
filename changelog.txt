@@ -17,7 +17,6 @@ Version 18:
 		* Added dock items for BlackBox definitions in the dock.
 			** Selecting BlackBoxInstance from the parts dock will now redirect the user to the definitions dock.
         * Implemented double click to center view inside minimap.
-
         * Added settings option to change the view theme from light(normal) to dark.
             ** The theme gets passed down to the toolbar and menus on the canvas.
         * Implemented connection of multiple entites to a shared legal node using the toolbar.
@@ -45,7 +44,7 @@ Version 18:
 		* Implemented FSM for updates on dock items stylesheets.
 		* Finally fixed lack of initial repaint for the data table.
 		* Moved the minimap label outside of the minimap.
-		* Added check for the connectMode from the toolbar to see if the selected destination item is actually highlighted.
+		* Added check for the connectMode from the toolbar to see if the selected destination item is actually highlighted. ???
 		* Fixed model circle colors and aspect brush colors to match the model circle.
 		* Reimplemented search to use QRegExp.
 		* Stopped connect line from drawing when connect mode is triggered from the toolbar.

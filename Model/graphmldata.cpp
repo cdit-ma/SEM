@@ -154,13 +154,15 @@ bool GraphMLData::isProtected()
     return protectedData;
 }
 
-void GraphMLData::setParentData(GraphMLData *data)
+void GraphMLData::setParentData(GraphMLData *data, bool protect)
 {
     if(data){
         unsetParentData();
         if(data){
             setValue(data->getValue());
-            setProtected(true);
+            if(protect){
+                setProtected(true);
+            }
         }
     }
     parentData = data;
@@ -180,11 +182,11 @@ GraphMLData *GraphMLData::getParentData()
     return parentData;
 }
 
-void GraphMLData::bindData(GraphMLData *data)
+void GraphMLData::bindData(GraphMLData *data, bool protect)
 {
     if(data && !childData.contains(data)){
         childData.append(data);
-        data->setParentData(this);
+        data->setParentData(this, protect);
     }
 }
 

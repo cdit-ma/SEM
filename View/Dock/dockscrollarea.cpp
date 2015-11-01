@@ -50,7 +50,12 @@ QStringList DockScrollArea::getNotAllowedKinds()
  */
 void DockScrollArea::updateCurrentNodeItem()
 {
-    currentNodeItem = nodeView->getSelectedNodeItem();
+    GraphMLItem* item = nodeView->getSelectedGraphMLItem();
+    if(item && item->isNodeItem()){
+        currentNodeItem = (NodeItem*)item;
+    }else{
+        currentNodeItem = 0;
+    }
 
     if (currentNodeItem) {
         currentNodeItemID = currentNodeItem->getID();
@@ -67,7 +72,7 @@ void DockScrollArea::updateCurrentNodeItem()
  * Returns the current node item.
  * @return
  */
-NodeItem* DockScrollArea::getCurrentNodeItem()
+NodeItem *DockScrollArea::getCurrentNodeItem()
 {
     if (currentNodeItemID != -1) {
         return currentNodeItem;

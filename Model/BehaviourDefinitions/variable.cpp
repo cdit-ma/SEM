@@ -1,6 +1,6 @@
 #include "variable.h"
 #include <QDebug>
-Variable::Variable():Node()
+Variable::Variable():BehaviourNode()
 {
 
 }

@@ -3,6 +3,7 @@
 #include <QStack>
 #include "../Model/model.h"
 #include "../View/GraphicsItems/edgeitem.h"
+#include <QFile>
 
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
@@ -188,6 +189,7 @@ private:
 
 
 private:
+    void setupParameters();
     void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
     void clearUndoHistory();
 

@@ -107,6 +107,11 @@ bool Edge::isNormalLink()
     return !(isInstanceLink() || isImplLink() || isDelegateLink() ||  isAggregateLink());
 }
 
+bool Edge::isDataLink()
+{
+    return type == ET_DATALINK;
+}
+
 bool Edge::isAssemblyLevelLink()
 {
     return isDeploymentLink() || isAssemblyLink() || isComponentLink() || isDelegateLink();
@@ -169,6 +174,9 @@ Edge::EDGE_TYPE Edge::getType()
         if(srcKind.endsWith("EventPortInstance")){
             return ET_DELEGATE;
         }
+    }
+    if(srcKind.endsWith("Parameter")){
+        return ET_DATALINK;
     }
     if(srcKind == dstKind){
         return ET_MATCHINGKINDS;

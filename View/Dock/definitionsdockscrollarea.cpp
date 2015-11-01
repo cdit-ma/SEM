@@ -155,7 +155,14 @@ void DefinitionsDockScrollArea::onEdgeDeleted()
  */
 void DefinitionsDockScrollArea::dockNodeItemClicked()
 {
-    NodeItem* selectedNodeItem = getNodeView()->getSelectedNodeItem();
+    GraphMLItem* selectedItem = getNodeView()->getSelectedEntityItem();
+    EntityItem* selectedNodeItem = 0;
+    if(selectedItem && selectedItem->isEntityItem()){
+        selectedNodeItem = (EntityItem*)selectedItem;
+    }
+    if(selectedNodeItem){
+        return;
+    }
     DockNodeItem* dockNodeItem = dynamic_cast<DockNodeItem*>(sender());
 
     if (selectedNodeItem && dockNodeItem) {
@@ -241,7 +248,7 @@ void DefinitionsDockScrollArea::updateDock()
  * It checks to see if a dock item needs to be constucted for the new node.
  * @param node
  */
-void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
+void DefinitionsDockScrollArea::nodeConstructed(EntityItem* nodeItem)
 {
     if (!nodeItem) {
         return;
@@ -252,7 +259,10 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
     if (nodeKind == "Component" || nodeKind == "BlackBox") {
 
         DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
-        NodeItem* fileItem = nodeItem->getParentNodeItem();
+
+
+
+        EntityItem* fileItem = (EntityItem*)nodeItem->getParent();
 
         if (!fileItem) {
             qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Component/BlackBox's parent item is null.";

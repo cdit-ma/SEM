@@ -2,10 +2,12 @@
 #define EDGEITEM_H
 
 #include "nodeitem.h"
+#include "entityitem.h"
 #include "../../Model/edge.h"
 #include "editabletextitem.h"
-
-
+#include "entityitem.h"
+#include <QBrush>
+#include <QPen>
 class EdgeItemArrow;
 class EdgeItem: public GraphMLItem
 {
@@ -14,7 +16,7 @@ public:
     enum LINE_SIDE{LEFT,RIGHT};
     enum LINE_DIRECTION{UP, DOWN};
 
-    EdgeItem(Edge *edge, NodeItem *parent, NodeItem* source, NodeItem* destination);
+    EdgeItem(Edge *edge, EntityItem *parent, EntityItem* source, EntityItem* destination);
     ~EdgeItem();
 
     QRectF boundingRect() const;
@@ -24,8 +26,8 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-    NodeItem* getSource();
-    NodeItem* getDestination();
+    EntityItem* getSource();
+    EntityItem* getDestination();
 
 
     void setHovered(bool highlighted);
@@ -61,15 +63,15 @@ private:
     void setupBrushes();
 
 
-    NodeItem* parent;
+    EntityItem* parent;
 
     //Represents the End points of the LineItem
-    NodeItem* source;
-    NodeItem* destination;
+    EntityItem* source;
+    EntityItem* destination;
 
     //Represents the current visible end poitns of the LineItem
-    NodeItem* visibleSource;
-    NodeItem* visibleDestination;
+    EntityItem* visibleSource;
+    EntityItem* visibleDestination;
 
     //The Text Item which is the label.
     EditableTextItem* textItem;

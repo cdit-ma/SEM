@@ -1,8 +1,8 @@
 #ifndef ATTRIBUTEIMPL_H
 #define ATTRIBUTEIMPL_H
-#include "../node.h"
+#include "behaviournode.h"
 
-class AttributeImpl : public Node
+class AttributeImpl : public BehaviourNode
 {
 public:
     AttributeImpl();

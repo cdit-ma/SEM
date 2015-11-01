@@ -125,10 +125,10 @@ void SearchItemButton::setupLayout()
     objectLabel->setText(graphMLLabel);
 
     // setup parent label
-    NodeItem* nodeItem = qobject_cast<NodeItem*>(graphMLItem);
+    EntityItem* nodeItem = qobject_cast<EntityItem*>(graphMLItem);
     QString parentGraphMLLabel;
-    if (nodeItem && nodeItem->getParentNodeItem()) {
-        parentGraphMLLabel = nodeItem->getParentNodeItem()->getNode()->getDataValue("label");
+    if (nodeItem && nodeItem->getParentEntityItem()) {
+        parentGraphMLLabel = nodeItem->getParentEntityItem()->getNode()->getDataValue("label");
     }
     parentLabel->setMinimumWidth((minimumWidth() / 2) - marginOffset);
     parentLabel->setFixedHeight(minimumHeight() - marginOffset);

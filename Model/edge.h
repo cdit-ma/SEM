@@ -11,7 +11,7 @@ class Edge: public GraphML{
     Q_OBJECT
 public:
     //Enum for Node Types
-    enum EDGE_TYPE {ET_NORMAL, ET_MATCHINGKINDS, ET_AGGREGATE, ET_DEPLOYMENT, ET_ASSEMBLY, ET_COMPONENT, ET_DELEGATE, ET_TERMINATION};
+    enum EDGE_TYPE {ET_NORMAL, ET_MATCHINGKINDS, ET_AGGREGATE, ET_DEPLOYMENT, ET_ASSEMBLY, ET_COMPONENT, ET_DELEGATE, ET_TERMINATION, ET_DATALINK};
 
     //Constructor
     Edge(Node* source, Node* destination);
@@ -35,6 +35,7 @@ public:
     bool isComponentLink();
     bool isTerminationLink();
     bool isNormalLink();
+    bool isDataLink();
 
     bool isAssemblyLevelLink();
 

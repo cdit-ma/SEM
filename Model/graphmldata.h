@@ -19,11 +19,12 @@ public:
     void setProtected(bool setProtected);
     bool isProtected();
 
-    void setParentData(GraphMLData* data);
+    void setParentData(GraphMLData* data, bool protect = true);
     void unsetParentData();
     GraphMLData* getParentData();
 
-    void bindData(GraphMLData* data);
+
+    void bindData(GraphMLData* data, bool protect = true);
     void unbindData(GraphMLData* data);
     QList<GraphMLData*> getBoundData();
 

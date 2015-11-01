@@ -16,7 +16,7 @@
  * @param _kind
  * @param parent
  */
-DockNodeItem::DockNodeItem(QString kind, NodeItem* item, QWidget* parent) :
+DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent) :
     QPushButton(parent)
 {
     parentDock = dynamic_cast<DockScrollArea*>(parent);
@@ -31,7 +31,7 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem* item, QWidget* parent) :
     if (nodeItem) {
 
         this->kind = nodeItem->getNodeKind();
-        label = nodeItem->getNodeLabel();
+        label = nodeItem->getGraphMLDataValue("label");
         strID = QString::number(nodeItem->getID());
 
         if (nodeItem->getNode()) {
@@ -68,7 +68,7 @@ DockNodeItem::DockNodeItem(QString kind, NodeItem* item, QWidget* parent) :
  * Returns the NodeItem this dock item is conneted to.
  * @return nodeItem
  */
-NodeItem *DockNodeItem::getNodeItem()
+EntityItem* DockNodeItem::getNodeItem()
 {
     return nodeItem;
 }
@@ -482,7 +482,7 @@ void DockNodeItem::childDockItemHidden()
  * This adds/removes highlight to this dock item.
  * @param node
  */
-void DockNodeItem::highlightDockItem(NodeItem *node)
+void DockNodeItem::highlightDockItem(EntityItem *node)
 {
     if (node == getNodeItem()) {
         switch (state) {

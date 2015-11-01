@@ -5,6 +5,7 @@
 #include <QClipboard>
 #include <QHBoxLayout>
 #include <QDebug>
+#include <QWidgetAction>
 
 #define THEME_LIGHT 0
 #define THEME_DARK 1
@@ -50,7 +51,7 @@ ToolbarWidget::ToolbarWidget(NodeView* parent) :
  * @param nodeItems
  * @param edgeItems
  */
-void ToolbarWidget::updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems)
+void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> edgeItems)
 {
     resetButtonGroupFlags();
     hideButtons();
@@ -464,7 +465,7 @@ void ToolbarWidget::setupBlackBoxList()
         blackBoxMenuDone = true;
     }
 
-    QList<NodeItem*> blackBoxes = nodeView->getNodeItemsOfKind("BlackBox");
+    QList<NodeItem*> blackBoxes = nodeView->getEntityItemsOfKind("BlackBox");
     foreach (NodeItem* blackBox, blackBoxes) {
         ToolbarMenuAction* action = constructSubMenuAction(blackBox, blackBoxDefinitionsMenu);
         if (!action) {
@@ -705,7 +706,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 
         // only show the displayed children option button if the selected item is a HardwareCluster
         if (nodeItem->getNodeKind() == "HardwareCluster") {
-            hardwareClusterMenuClicked(nodeItem->getHardwareClusterChildrenViewMode());
+            //hardwareClusterMenuClicked(nodeItem->getHardwareClusterChildrenViewMode());
             displayedChildrenOptionButton->show();
         }
 
@@ -918,7 +919,7 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
  * This sets up the menu list of nodes the selected node item can connect to.
  * @param nodeList
  */
-void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
+void ToolbarWidget::setupLegalNodesList(QList<NodeItem *> nodeList)
 {
     // if the selected node can't connect to anything, hide the connect button
     if (nodeList.isEmpty()) {
@@ -989,7 +990,7 @@ void ToolbarWidget::setupComponentList(QString actionKind)
         return;
     }
 
-    QList<NodeItem*> components = nodeView->getNodeItemsOfKind("Component");
+    QList<NodeItem*> components = nodeView->getEntityItemsOfKind("Component");
 
     foreach (NodeItem* component, components) {
 
@@ -1036,12 +1037,12 @@ void ToolbarWidget::setupEventPortInstanceList(QString eventPortKind)
     }
 
     // setup combined list of both Component and BlackBox instances for the In/Out EventPortDelegate menus
-    QList<NodeItem*> definitionInstances = nodeView->getNodeItemsOfKind("ComponentInstance", nodeItem->getID(), 0);
-    definitionInstances.append(nodeView->getNodeItemsOfKind("BlackBoxInstance", nodeItem->getID(), 0));
+    QList<NodeItem*> definitionInstances = nodeView->getEntityItemsOfKind("ComponentInstance", nodeItem->getID(), 0);
+    definitionInstances.append(nodeView->getEntityItemsOfKind("BlackBoxInstance", nodeItem->getID(), 0));
 
     foreach (NodeItem* defnInst, definitionInstances) {
 
-        QList<NodeItem*> epInstances = nodeView->getNodeItemsOfKind(eventPortKind, defnInst->getID());
+        QList<NodeItem*> epInstances = nodeView->getEntityItemsOfKind(eventPortKind, defnInst->getID());
 
         foreach (NodeItem* epInst, epInstances) {
 

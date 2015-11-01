@@ -1,5 +1,5 @@
 #include "edgeitemarrow.h"
-
+#include <QGraphicsSceneMouseEvent>
 EdgeItemArrow::EdgeItemArrow(EdgeItem *parentEdge):QGraphicsPolygonItem(parentEdge)
 {
     this->parentEdge = parentEdge;

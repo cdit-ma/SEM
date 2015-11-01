@@ -1374,9 +1374,9 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
 
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(EntityItem*)), partsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_nodeConstructed(EntityItem*)), hardwareDock, SLOT(nodeConstructed(EntityItem*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(EntityItem*)), definitionsDock, SLOT(nodeConstructed(EntityItem*)));
 
     connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), hardwareDock, SLOT(edgeDeleted(int, int)));
     connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), definitionsDock, SLOT(edgeDeleted(int, int)));
@@ -2191,26 +2191,26 @@ void MedeaWindow::on_actionSearch_triggered()
 
     if (nodeView && !searchText.isEmpty()) {
 
-        QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::NODE_ITEM, checkedKeys);
+        QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::ENTITY_ITEM, checkedKeys);
         QList<GraphMLItem*> itemsToDisplay;
 
         // filter the list
         foreach (GraphMLItem* guiItem, returnedItems) {
 
-            NodeItem* nodeItem = dynamic_cast<NodeItem*>(guiItem);
+            EntityItem* nodeItem = dynamic_cast<EntityItem*>(guiItem);
             bool isInAspect = true;
 
             // if the item is hidden or is an aspect or is the model, don't show it in the search results
-            if (/*nodeItem->isHidden() ||*/ nodeItem->isAspect() || nodeItem->isModel()) {
+            if (nodeItem->isHidden()) {
                 continue;
             }
             // check if the guiItem is in one of the checked view aspects
             if (!allAspects) {
-                foreach (QString aspect, nodeItem->getAspects()) {
-                    if (!checkedAspects.contains(aspect)) {
-                        isInAspect = false;
-                    }
-                }
+//                foreach (QString aspect, nodeItem->getAspects()) {
+//                    if (!checkedAspects.contains(aspect)) {
+//                        isInAspect = false;
+//                    }
+//                }
             }
             // if it is, check if the guiItem's kind is one of the checked node kinds
             if (isInAspect) {

@@ -22,6 +22,7 @@ NewController::NewController()
     qRegisterMetaType<QList<int>>("QList<int>");
 
 
+
     logFile = 0;
 
     USE_LOGGING = false;
@@ -69,6 +70,7 @@ NewController::NewController()
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
     behaviourNodeKinds << "WhileLoop";
 
+
     //Append Kinds which can't be constructed by the GUI.
     constructableNodeKinds << "MemberInstance" << "AttributeImpl";
     constructableNodeKinds << "OutEventPortInstance" << "MemberInstance" << "AggregateInstance";
@@ -83,12 +85,17 @@ NewController::NewController()
     constructableNodeKinds.append(behaviourNodeKinds);
     constructableNodeKinds << "ManagementComponent";
 
+    constructableNodeKinds << "InputParameter" << "ReturnParameter";
+
     constructableNodeKinds.removeDuplicates();
 
     guiConstructableNodeKinds.append(definitionNodeKinds);
     guiConstructableNodeKinds.append(behaviourNodeKinds);
     guiConstructableNodeKinds.removeDuplicates();
     guiConstructableNodeKinds.sort();
+
+    //Setup the required Parameters.
+    setupParameters();
 }
 
 void NewController::connectView(NodeView *view)
@@ -527,6 +534,11 @@ void NewController::destructGraphMLData(GraphML *parent, QString keyName, bool a
 
     //Add an action to the stack.
     addActionToStack(action, addAction);
+}
+
+void NewController::setupParameters()
+{
+    BehaviourNode::addParameter("PeriodicEvent", "frequency", "number", true, "1");
 }
 
 
@@ -1486,6 +1498,25 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
             constructDefinitionRelative(child, node, false);
         }
     }
+    Parameter* param = dynamic_cast<Parameter*>(node);
+    if(param){
+        if(param->isInputParameter()){
+            GraphMLData* paramLabel = param->getData("label");
+            GraphMLData* paramValue = param->getData("value");
+            if(paramLabel){
+                QString paramName = paramLabel->getValue();
+                GraphMLData* parentData = parentNode->getData(paramName);
+                if(parentData){
+                    qCritical() << "SETTING PARENT DATA!";
+                    qCritical() << paramValue << parentData;
+                    qCritical() << paramValue->getValue()  << parentData->getValue();
+                    parentData->bindData(paramValue, false);
+                    paramValue->bindData(parentData, false);
+
+                }
+            }
+        }
+    }
     return node;
 }
 
@@ -1513,9 +1544,8 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     data.append(new GraphMLData(widthKey, "0"));
     data.append(new GraphMLData(heightKey, "0"));
 
-    if(!nodeKind.endsWith("Definitions")){
-        data.append(new GraphMLData(labelKey, labelString));
-    }
+    bool protectLabel = nodeKind.endsWith("Parameter");
+    data.append(new GraphMLData(labelKey, labelString, protectLabel));
     data.append(new GraphMLData(sortKey, "-1"));
 
 
@@ -1533,7 +1563,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
         data.append(new GraphMLData(middlewareKey, "tao"));
     }
     if(nodeKind == "PeriodicEvent"){
-        GraphMLKey* frequencyKey = constructGraphMLKey("frequency", "double", "node");
+        GraphMLKey* frequencyKey = constructGraphMLKey("frequency", "string", "node");
         data.append(new GraphMLData(typeKey, "Constant"));
         data.append(new GraphMLData(frequencyKey, "1.0"));
     }
@@ -1616,6 +1646,13 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     if(nodeKind == "InEventPort"){
         GraphMLKey* asyncKey = constructGraphMLKey("async", "boolean", "node");
         data.append(new GraphMLData(asyncKey, "true"));
+    }
+    if(nodeKind.endsWith("Parameter")){
+        if(nodeKind == "InputParameter"){
+            GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
+            data.append(new GraphMLData(valueKey));
+        }
+        data.append(new GraphMLData(typeKey, "",true));
     }
     return data;
 }
@@ -2654,6 +2691,10 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
         return new Vector();
     }else if(nodeKind == "VectorInstance"){
         return new VectorInstance();
+    }else if(nodeKind == "InputParameter"){
+        return new InputParameter();
+    }else if(nodeKind == "ReturnParameter"){
+        return new ReturnParameter();
     }else{
         qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
         return new BlankNode();
@@ -3222,6 +3263,15 @@ void NewController::constructEdgeGUI(Edge *edge)
         if(!edge->getData(descriptionKey)){
             GraphMLData* label = new GraphMLData(descriptionKey, "Connected To");
             attachGraphMLData(edge, label, false);
+        }
+    }
+
+    if(edge->isDataLink()){
+        GraphMLData* parameterValue = src->getData("value");
+        GraphMLData* dataValue = dst->getData("label");
+
+        if(parameterValue && dataValue ){
+            dataValue->bindData(parameterValue);
         }
     }
 

@@ -2,8 +2,13 @@
 #include "branch.h"
 #include "termination.h"
 #include "condition.h"
+#include "parameter.h"
 
 #include <QDebug>
+//Static definition
+QHash<QString, QList<ParameterRequirement*> > BehaviourNode::_parameters;
+
+
 BehaviourNode::BehaviourNode(bool isStart, bool isEnd, bool restrictDepth, Node::NODE_TYPE type):Node(type)
 {
     this->_isStart = isStart;
@@ -26,6 +31,23 @@ bool BehaviourNode::isEnd()
 bool BehaviourNode::isUnconnectable()
 {
     return _isUnconnectable;
+}
+
+void BehaviourNode::addParameter(QString kind, QString name, QString type, bool inputParameter, QString defaultValue)
+{
+    ParameterRequirement* param = new ParameterRequirement(name, type, inputParameter, defaultValue);
+    qCritical() << "Added Parameter: " << name << " To Kind: " << kind;
+    _parameters[kind].append(param);
+}
+
+QList<ParameterRequirement *> BehaviourNode::getParameters()
+{
+    return _parameters[getNodeKind()];
+}
+
+bool BehaviourNode::hasParameters()
+{
+    return _parameters.contains(getNodeKind());
 }
 
 void BehaviourNode::setUnconnectable(bool unconnectable)
@@ -147,6 +169,95 @@ bool BehaviourNode::canConnect(Node *attachableObject)
 
 bool BehaviourNode::canAdoptChild(Node *child)
 {
+    //Allow Parameters.
+    Parameter* parameter = dynamic_cast<Parameter*>(child);
+    if(parameter){
+        if(!needsParameter(parameter)){
+            return false;
+        }
+    }
+
     return Node::canAdoptChild(child);
 }
 
+bool BehaviourNode::needsParameter(Parameter *p)
+{
+    QList<ParameterRequirement*> neededParameters = _parameters[getNodeKind()];
+
+    foreach(Node* child, getChildren(0)){
+        Parameter* childParam = dynamic_cast<Parameter*>(child);
+        if(childParam){
+
+            ParameterRequirement* matchingParam = 0;
+            foreach(ParameterRequirement* param, neededParameters){
+                if(param->matches(childParam)){
+                    matchingParam = param;
+                    break;
+                }
+            }
+            if(matchingParam){
+                neededParameters.removeAll(matchingParam);
+            }
+        }
+    }
+    if(neededParameters.isEmpty()){
+        return false;
+    }
+
+    foreach(ParameterRequirement* param, neededParameters){
+         if(param->matches(p)){
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
+
+ParameterRequirement::ParameterRequirement(QString name, QString type, bool inputParameter, QString defaultValue)
+{
+    this->name = name;
+    this->type = type;
+    this->inputParam = inputParameter;
+    this->value = defaultValue;
+}
+
+QString ParameterRequirement::getName()
+{
+    return name;
+}
+
+QString ParameterRequirement::getType()
+{
+    return type;
+}
+
+QString ParameterRequirement::getValue()
+{
+    return value;
+}
+
+bool ParameterRequirement::isInputParameter()
+{
+    return inputParam;
+}
+
+bool ParameterRequirement::isReturnParameter()
+{
+    return !inputParam;
+}
+
+bool ParameterRequirement::matches(Parameter *p)
+{
+    if(p){
+        if(p->getDataValue("label") != getName()){
+            return false;
+        }
+        if(p->getDataValue("type") != getType()){
+            return false;
+        }
+        return true;
+    }
+    return false;
+}

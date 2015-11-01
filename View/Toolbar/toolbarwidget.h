@@ -5,7 +5,7 @@
 #include "../GraphicsItems/nodeitem.h"
 #include "../GraphicsItems/edgeitem.h"
 #include "toolbarmenuaction.h"
-
+#include <QRadioButton>
 #include <QWidget>
 #include <QToolButton>
 #include <QMenu>
@@ -61,7 +61,7 @@ private:
     void setupMenus();
     void makeConnections();
 
-    void updateButtonsAndMenus(QList<NodeItem*> nodeItems);
+    void updateButtonsAndMenus(QList<NodeItem *> nodeItems);
     void updateSeparators();
 
     void hideButtons();
@@ -72,7 +72,7 @@ private:
 
     void setupAdoptableNodesList(QStringList nodeKinds);
     void setupLegalNodesList(QList<NodeItem*> nodeList);
-    void setupInstancesList(QList<NodeItem*> instances);
+    void setupInstancesList(QList<NodeItem *> instances);
 
     void setupComponentList(QString actionKind);
     void setupEventPortInstanceList(QString eventPortKind);

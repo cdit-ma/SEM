@@ -1,9 +1,9 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
 
-#include "../node.h"
+#include "behaviournode.h"
 
-class Variable: public Node
+class Variable: public BehaviourNode
 {
     Q_OBJECT
 public:
