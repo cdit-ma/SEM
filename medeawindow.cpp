@@ -2162,69 +2162,21 @@ void MedeaWindow::on_actionPaste_triggered()
  * or an information message if there are none.
  */
 void MedeaWindow::on_actionSearch_triggered()
-{    
-    QStringList checkedAspects = getCheckedItems(0);
-    QStringList checkedKinds = getCheckedItems(1);
-    QStringList checkedKeys = getCheckedItems(2);
-    bool allKinds = false;
-    bool allAspects = false;
+{
+    if (nodeView) {
 
-    // if there are no checked view aspects, search entire model
-    if (checkedAspects.isEmpty()) {
-        allAspects = true;
-    }
-
-    // if there are no checked entity kinds, search for all kinds
-    if (checkedKinds.isEmpty()) {
-        allKinds = true;
-    }
-
-    /*
-    // if there are no checked entity kinds, search for all stored data keys
-    if (checkedKeys.isEmpty()) {
-        checkedKeys = dataKeys;
-    }
-    */
-
-    QString searchText = searchBar->text();
-
-    if (nodeView && !searchText.isEmpty()) {
-
-        QList<GraphMLItem*> returnedItems = nodeView->search(searchText, checkedKeys);
-        QList<GraphMLItem*> itemsToDisplay;
-
-        // filter the list
-        foreach (GraphMLItem* guiItem, returnedItems) {
-
-            EntityItem* nodeItem = dynamic_cast<EntityItem*>(guiItem);
-            bool isInAspect = true;
-
-            // if the item is hidden or is an aspect or is the model, don't show it in the search results
-            if (nodeItem->isHidden()) {
-                continue;
-            }
-            // check if the guiItem is in one of the checked view aspects
-            if (!allAspects) {
-//                foreach (QString aspect, nodeItem->getAspects()) {
-//                    if (!checkedAspects.contains(aspect)) {
-//                        isInAspect = false;
-//                    }
-//                }
-            }
-            // if it is, check if the guiItem's kind is one of the checked node kinds
-            if (isInAspect) {
-                if (allKinds || checkedKinds.contains(guiItem->getGraphML()->getDataValue("kind"))) {
-                    itemsToDisplay.append(guiItem);
-                }
-            }
-        }
+        QString searchText = searchBar->text();
+        QList<GraphMLItem*> searchResultItems = nodeView->search(searchText, getCheckedItems(0), getCheckedItems(1), getCheckedItems(2));
 
         // if no items match the search checked kinds, display message box
-        if (itemsToDisplay.isEmpty()) {
+        if (searchResultItems.isEmpty()) {
             if (searchResults->isVisible()) {
                 searchResults->setVisible(false);
             }
-            QMessageBox::information(this, "Search Error", "Search string: \"" + searchText + "\" not found!", QMessageBox::Ok);
+            QMessageBox::information(this,
+                                     "Search Error",
+                                     "<font size=\"4\"><b>\"" + searchText + "\"</b> not found!</font><br/>Check the search settings by selecting the gear next to the search button.",
+                                     QMessageBox::Ok);
             return;
         }
 
@@ -2238,7 +2190,7 @@ void MedeaWindow::on_actionSearch_triggered()
         }
 
         // for each item to display, create a button for it and add it to the results layout
-        foreach (GraphMLItem* guiItem, itemsToDisplay) {
+        foreach (GraphMLItem* guiItem, searchResultItems) {
             SearchItemButton* searchItem = new SearchItemButton(guiItem, this);
             searchItem->connectToWindow(this);
             resultsLayout->addWidget(searchItem);
@@ -3099,8 +3051,7 @@ void MedeaWindow::updateSearchLineEdits()
 void MedeaWindow::updateSearchSuggestions()
 {
     if (nodeView && searchBar) {
-        //nodeView->search(searchBar->text(), getCheckedItems(2));
-        nodeView->searchSuggestionsRequested(searchBar->text(), getCheckedItems(2));
+        nodeView->searchSuggestionsRequested(searchBar->text(), getCheckedItems(0), getCheckedItems(1), getCheckedItems(2));
     }
 }
 

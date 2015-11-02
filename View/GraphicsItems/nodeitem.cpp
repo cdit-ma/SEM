@@ -196,28 +196,23 @@ void NodeItem::adjustPos(QPointF delta)
 
 QPointF NodeItem::getNextChildPos(QRectF itemRect)
 {
-
     bool useItemRect = !itemRect.isNull();
 
     QPainterPath childrenPath = QPainterPath();
     //bool hasChildren = false;
 
-
     // add the children's bounding rectangles to the children path
-    foreach(GraphMLItem* child, getChildren()){
-        if(child && child->isVisible()){
+    foreach (GraphMLItem* child, getChildren()) {
+        if (child && child->isVisible()) {
             QRectF childRect =  child->boundingRect();
             childRect.translate(child->pos());
             childrenPath.addRect(childRect);
         }
     }
 
-    // CATHLYNS CODE FOR THE SAME THING. TEST
     // work out how many grid cells are needed per child item
     // divide it by 2 - only need half the number of cells to fit the center of the item
     double startingGridPoint = ceil(getChildBoundingRect().width()/getGridSize()) / 2;
-
-    qCritical() << startingGridPoint;
     double currentX = startingGridPoint;
     double currentY = startingGridPoint;
 
@@ -230,10 +225,11 @@ QPointF NodeItem::getNextChildPos(QRectF itemRect)
         // get the next position; construct a child rect at that position
         QPointF nextPosition = getGridPosition(currentX, currentY);
         QRectF childRect = getChildBoundingRect();
-        if(useItemRect){
+
+        if (useItemRect) {
             childRect = itemRect;
             childRect.translate(nextPosition - getChildBoundingRect().center());
-        }else{
+        } else {
             //Translate to the center of the normal childBR
             childRect.translate(nextPosition - childRect.center());
         }
@@ -282,6 +278,7 @@ QPointF NodeItem::getNextChildPos(QRectF itemRect)
         }
     }
 }
+
 
 void NodeItem::toggleGridMode(bool visible)
 {

@@ -53,6 +53,7 @@ Version 18:
 		* Search result now displays hidden items.
 			** Clicking on a hidden HardwareNode changes the display mode of its parent cluster to ALL.
 		* Fixed fitToScreen function in NodeView - it now checks for NodeItems instead of just EntityItems.
+		* Moved all of search to the NodeView and added default values for the parameters.
 
     Todo:
         * Test Ubuntu for local deployment.

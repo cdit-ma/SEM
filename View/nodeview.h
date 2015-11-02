@@ -63,8 +63,8 @@ public:
     void setParentNodeView(NodeView *n);
     void removeSubView(NodeView* subView);
 
-    QList<GraphMLItem*> search(QString searchString, QStringList dataKeys, GraphMLItem::GUI_KIND kind = GraphMLItem::ENTITY_ITEM);
-    void searchSuggestionsRequested(QString searchString, QStringList dataKeys);
+    QList<GraphMLItem*> search(QString searchString, QStringList viewAspects = QStringList(), QStringList entityKinds = QStringList(), QStringList dataKeys = QStringList("label"), GraphMLItem::GUI_KIND kind = GraphMLItem::ENTITY_ITEM);
+    void searchSuggestionsRequested(QString searchString, QStringList viewAspects, QStringList entityKinds, QStringList dataKeys);
 
     // this is used by the parts dock
     QStringList getGUIConstructableNodeKinds();

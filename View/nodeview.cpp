@@ -722,7 +722,7 @@ void NodeView::removeSubView(NodeView *subView)
  * @param kind
  * @return
  */
-QList<GraphMLItem*> NodeView::search(QString searchString, QStringList dataKeys, GraphMLItem::GUI_KIND kind)
+QList<GraphMLItem*> NodeView::search(QString searchString, QStringList viewAspects, QStringList entityKinds, QStringList dataKeys, GraphMLItem::GUI_KIND kind)
 {
     QList<GraphMLItem*> matchedItems;
     QStringList matchedDataValues;
@@ -744,23 +744,36 @@ QList<GraphMLItem*> NodeView::search(QString searchString, QStringList dataKeys,
     }
 
     QList<GraphMLItem*> itemsToSearch;
-
     if (kind == GraphMLItem::ENTITY_ITEM) {
-        itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getNodeItemsList());
+        itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getEntityItemsList());
     } else if (kind == GraphMLItem::NODE_EDGE) {
         itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getEdgeItemsList());
     }
 
     QRegExp regex(searchString, Qt::CaseInsensitive, QRegExp::Wildcard);
+    bool allAspects = viewAspects.isEmpty();
+    bool allKinds = entityKinds.isEmpty();
 
     foreach (GraphMLItem* item, itemsToSearch) {
+
+        // check if item's aspect is in the view aspects list
+        /*if (!allAspects && ) {
+
+        }*/
+
+        // check if item's kind is in the entity kinds list
+        if (!allKinds && !entityKinds.contains(item->getNodeKind())) {
+            continue;
+        }
+
         GraphML* gml = item->getGraphML();
         if (!gml) {
             continue;
         }
+
+        // if searchString matches at least one of the values of the provided
+        // data keys for the current graphml item, append the item to the list
         foreach (QString key, dataKeys) {
-            // if searchString matches at least one of the values of the provided
-            // data keys for the current graphml item, append the item to the list
             QString dataVal = gml->getDataValue(key);
             if (dataVal.isEmpty()) {
                 continue;
@@ -778,6 +791,7 @@ QList<GraphMLItem*> NodeView::search(QString searchString, QStringList dataKeys,
     if (showSearchSuggestions) {
         emit view_searchFinished(matchedDataValues);
     }
+
     return matchedItems;
 }
 
@@ -787,10 +801,10 @@ QList<GraphMLItem*> NodeView::search(QString searchString, QStringList dataKeys,
  * @param searchString
  * @param dataKeys
  */
-void NodeView::searchSuggestionsRequested(QString searchString, QStringList dataKeys)
+void NodeView::searchSuggestionsRequested(QString searchString, QStringList viewAspects, QStringList entityKinds, QStringList dataKeys)
 {
     showSearchSuggestions = true;
-    search(searchString, dataKeys);
+    search(searchString, viewAspects, entityKinds, dataKeys);
     showSearchSuggestions = false;
 }
 
