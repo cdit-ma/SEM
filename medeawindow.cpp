@@ -856,10 +856,10 @@ void MedeaWindow::setupSearchTools()
 {
     searchBarDefaultText = "Search Here...";
     searchBar = new QLineEdit(searchBarDefaultText, this);
+    searchSuggestions = new SearchSuggestCompletion(searchBar);
     searchButton = new QPushButton(getIcon("Actions", "Search"), "");
     searchOptionButton = new QPushButton(getIcon("Actions", "Settings"), "");
     searchOptionMenu = new QMenu(searchOptionButton);
-    searchSuggestions = new QWidget(this);
     searchResults = new QDialog(this);
 
     QVBoxLayout* layout = new QVBoxLayout();
@@ -901,9 +901,11 @@ void MedeaWindow::setupSearchTools()
 
     searchBar->setPlaceholderText(searchBarDefaultText);
     searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight - 3);
-    //searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight); // Mac
     searchBar->setStyleSheet("QLineEdit{ background-color: rgb(230,230,230); }"
                              "QLineEdit:focus{border: 1px solid; border-color:blue;background-color: rgb(250,250,250)}");
+
+    searchSuggestions->setSize(searchBar->width(), 0, 1);
+    searchSuggestions->setSize(searchBar->width() + (searchButton->width()*2), 0, 2);
 
     scrollableWidget->setMinimumWidth(rightPanelWidth + 110);
     scrollableWidget->setLayout(resultsMainLayout);
@@ -921,10 +923,6 @@ void MedeaWindow::setupSearchTools()
     searchLayout->addWidget(searchBar, 3);
     searchLayout->addWidget(searchButton, 1);
     searchLayout->addWidget(searchOptionButton, 1);
-
-    searchSuggestions->setWindowFlags(Qt::Popup);
-    searchSuggestions->move(searchBar->mapToGlobal(searchBar->rect().bottomLeft()));
-    searchSuggestions->hide();
 
     // setup search option widgets and menu for view aspects
     QWidgetAction* aspectsAction = new QWidgetAction(this);
@@ -1320,9 +1318,10 @@ void MedeaWindow::makeConnections()
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
     //connect(searchBar, SIGNAL(editingFinished()), this, SLOT(updateSearchLineEdits())); // Not needed?
-    connect(searchBar, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(updateSearchSuggestions()));
-    connect(searchBar, SIGNAL(cursorPositionChanged(int,int)), this, SLOT(updateSearchLineEdits()));
+    connect(searchBar, SIGNAL(textEdited(QString)), this, SLOT(updateSearchSuggestions()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
+
+    connect(nodeView, SIGNAL(view_searchFinished(QStringList)), searchSuggestions, SLOT(showCompletion(QStringList)));
 
     connect(searchButton, SIGNAL(clicked()), this, SLOT(on_actionSearch_triggered()));
     connect(searchOptionButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
@@ -2191,7 +2190,7 @@ void MedeaWindow::on_actionSearch_triggered()
 
     if (nodeView && !searchText.isEmpty()) {
 
-        QList<GraphMLItem*> returnedItems = nodeView->search(searchText, GraphMLItem::ENTITY_ITEM, checkedKeys);
+        QList<GraphMLItem*> returnedItems = nodeView->search(searchText, checkedKeys);
         QList<GraphMLItem*> itemsToDisplay;
 
         // filter the list
@@ -3099,39 +3098,10 @@ void MedeaWindow::updateSearchLineEdits()
  */
 void MedeaWindow::updateSearchSuggestions()
 {
-    if (!nodeView || !searchBar || !searchSuggestions) {
-        return;
+    if (nodeView && searchBar) {
+        //nodeView->search(searchBar->text(), getCheckedItems(2));
+        nodeView->searchSuggestionsRequested(searchBar->text(), getCheckedItems(2));
     }
-
-    QString currentSearchStr = searchBar->text().trimmed();
-    QStringList keys = getCheckedItems(2);
-    /*
-    if (keys.isEmpty()) {
-        keys = dataKeys;
-    }
-    */
-
-    QList<GraphMLItem*> result = nodeView->search(currentSearchStr, GraphMLItem::NODE_ITEM, keys);
-    if (!result.isEmpty()) {
-        //searchSuggestions->show();
-        qDebug() << "Showing search suggestions!";
-    }
-
-    /*
-    foreach (GraphMLItem* item, result) {
-        GraphML* gml = item->getGraphML();
-        if (gml) {
-            searchSuggestions->addAction(gml->getDataValue("label"));
-        }
-    }
-
-    qDebug() << "results.count: " << result.count();
-
-    if (!searchSuggestions->isEmpty() && searchSuggestions->isHidden()) {
-        qDebug() << "Show Menu!";
-        searchSuggestions->popup(searchBar->mapToGlobal(searchBar->rect().bottomLeft()));
-    }
-    */
 }
 
 

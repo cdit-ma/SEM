@@ -63,7 +63,8 @@ public:
     void setParentNodeView(NodeView *n);
     void removeSubView(NodeView* subView);
 
-    QList<GraphMLItem *> search(QString searchString, GraphMLItem::GUI_KIND kind, QStringList dataKeys);
+    QList<GraphMLItem*> search(QString searchString, QStringList dataKeys, GraphMLItem::GUI_KIND kind = GraphMLItem::ENTITY_ITEM);
+    void searchSuggestionsRequested(QString searchString, QStringList dataKeys);
 
     // this is used by the parts dock
     QStringList getGUIConstructableNodeKinds();
@@ -127,6 +128,7 @@ private slots:
     void actionFinished();
 
 signals:
+    void view_searchFinished(QStringList searchResult);
     void view_themeChanged(int theme);
 
     void view_ClearSubViewAttributeTable();
@@ -292,7 +294,7 @@ public slots:
 
     void centerAspect(QString aspect);
     void setAspects(QStringList aspects, bool centerViewAspects = true);
-    void fitToScreen(QList<EntityItem*> itemsToCenter = QList<EntityItem*>(), double padding = 0, bool addToMap = true);
+    void fitToScreen(QList<NodeItem*> itemsToCenter = QList<NodeItem*>(), double padding = 0, bool addToMap = true);
 
     void centerOnItem(GraphMLItem* item = 0);
     void centerItem(GraphMLItem* item=0);
@@ -416,6 +418,7 @@ private:
 
 
     QList<EntityItem*> getEntityItemsList();
+    QList<NodeItem*> getNodeItemsList();
     QList<EdgeItem*> getEdgeItemsList();
 
 
@@ -507,7 +510,9 @@ private:
     QHash<QString, QPixmap> imageLookup;
     QHash<int, GraphMLItem*> guiItems;
     QHash<int, QString> noGuiIDHash;
+
     bool showConnectLine;
+    bool showSearchSuggestions;
 };
 
 #endif // NODEVIEW_H

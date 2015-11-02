@@ -65,6 +65,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     importFromJenkins = false;
     hardwareDockOpen = false;
     showConnectLine = true;
+    showSearchSuggestions = false;
 
     IS_SUB_VIEW = subView;
 
@@ -508,14 +509,31 @@ void NodeView::clearMaps(int fromKey)
  */
 QList<EntityItem*> NodeView::getEntityItemsList()
 {
-    QList<EntityItem*> EntityItems;
+    QList<EntityItem*> entityItems;
     foreach (GraphMLItem* item, guiItems) {
         if (item->isEntityItem()) {
-            EntityItems.append((EntityItem*)item);
+            entityItems.append((EntityItem*)item);
         }
     }
-    return EntityItems;
+    return entityItems;
 }
+
+
+/**
+ * @brief NodeView::getNodeItemsList
+ * @return
+ */
+QList<NodeItem*> NodeView::getNodeItemsList()
+{
+    QList<NodeItem*> nodeItems;
+    foreach (GraphMLItem* item, guiItems) {
+        if (item->isNodeItem()) {
+            nodeItems.append((NodeItem*)item);
+        }
+    }
+    return nodeItems;
+}
+
 
 QList<EdgeItem *> NodeView::getEdgeItemsList()
 {
@@ -700,28 +718,37 @@ void NodeView::removeSubView(NodeView *subView)
 /**
  * @brief NodeView::search
  * @param searchString
- * @param kind
  * @param dataKeys
+ * @param kind
  * @return
  */
-QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIND kind, QStringList dataKeys)
+QList<GraphMLItem*> NodeView::search(QString searchString, QStringList dataKeys, GraphMLItem::GUI_KIND kind)
 {
     QList<GraphMLItem*> matchedItems;
-    QList<GraphMLItem*> itemsToSearch;
-
-    if (kind == GraphMLItem::ENTITY_ITEM) {
-        itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getEntityItemsList());
-    } else if (kind == GraphMLItem::NODE_EDGE) {
-        itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getEdgeItemsList());
-    }
+    QStringList matchedDataValues;
 
     // remove white spaces from the start and end of the search string
     searchString = searchString.trimmed();
+
+    if (searchString.isEmpty()) {
+        if (showSearchSuggestions) {
+            emit view_searchFinished(matchedDataValues);
+        }
+        return matchedItems;
+    }
 
     // if the searchString doesn't start and end with '*', add '*' to both ends of the string
     // this forces the regex to check containment instead of just catching the exact case
     if (!searchString.startsWith('*') && !searchString.endsWith('*')) {
         searchString = '*' + searchString + '*';
+    }
+
+    QList<GraphMLItem*> itemsToSearch;
+
+    if (kind == GraphMLItem::ENTITY_ITEM) {
+        itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getNodeItemsList());
+    } else if (kind == GraphMLItem::NODE_EDGE) {
+        itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getEdgeItemsList());
     }
 
     QRegExp regex(searchString, Qt::CaseInsensitive, QRegExp::Wildcard);
@@ -734,14 +761,37 @@ QList<GraphMLItem *> NodeView::search(QString searchString, GraphMLItem::GUI_KIN
         foreach (QString key, dataKeys) {
             // if searchString matches at least one of the values of the provided
             // data keys for the current graphml item, append the item to the list
-            if (regex.exactMatch(gml->getDataValue(key))) {
+            QString dataVal = gml->getDataValue(key);
+            if (dataVal.isEmpty()) {
+                continue;
+            }
+            if (regex.exactMatch(dataVal)) {
                 matchedItems.append(item);
+                if (!matchedDataValues.contains(dataVal)) {
+                    matchedDataValues.append(dataVal);
+                }
                 break;
             }
         }
     }
 
+    if (showSearchSuggestions) {
+        emit view_searchFinished(matchedDataValues);
+    }
     return matchedItems;
+}
+
+
+/**
+ * @brief NodeView::searchSuggestionsRequested
+ * @param searchString
+ * @param dataKeys
+ */
+void NodeView::searchSuggestionsRequested(QString searchString, QStringList dataKeys)
+{
+    showSearchSuggestions = true;
+    search(searchString, dataKeys);
+    showSearchSuggestions = false;
 }
 
 
@@ -1643,7 +1693,7 @@ void NodeView::selectAndCenter(GraphMLItem* item, int ID)
                 parentItem->setNodeExpanded(true);
             }
             // if it's a HardwareNode, make sure that its parent cluster's view mode is set to ALL
-            if (nodeItem->getNodeKind() == "HardwareNode") {
+            if (entityItem->getNodeKind() == "HardwareNode") {
                 parentItem->updateChildrenViewMode(0);
             }
         }
@@ -2720,20 +2770,23 @@ void NodeView::showConnectedNodes()
 
     if (node) {
 
-        QList<EntityItem*> connectedEntityItems;
+        //QList<EntityItem*> connectedEntityItems;
+        QList<NodeItem*> connectedNodeItems;
 
         // store the outer edges of the selected node
         foreach (Edge* edge, node->getEdges(0)) {
             if (!node->isAncestorOf(edge->getSource())) {
-                connectedEntityItems.append(getEntityItemFromNode(edge->getSource()));
+                //connectedNodeItems.append(getEntityItemFromNode(edge->getSource()));
+                connectedNodeItems.append((NodeItem*)getGraphMLItemFromGraphML(node));
             }
             if (!node->isAncestorOf(edge->getDestination())) {
-                connectedEntityItems.append(getEntityItemFromNode(edge->getDestination()));
+                //connectedNodeItems.append(getEntityItemFromNode(edge->getDestination()));
+                connectedNodeItems.append((NodeItem*)getGraphMLItemFromGraphML(edge->getDestination()));
             }
         }
 
-        if (connectedEntityItems.count() > 0) {
-            foreach (EntityItem* item, connectedEntityItems) {
+        if (connectedNodeItems.count() > 0) {
+            foreach (NodeItem* item, connectedNodeItems) {
                 // make sure the aspect(s) that the EntityItem belongs to is turned on
 //                foreach (QString aspect, item->getAspects()) {
 //                    addAspect(aspect);
@@ -2741,10 +2794,13 @@ void NodeView::showConnectedNodes()
                 // add connected nodes to selection
                 appendToSelection(item);
             }
+
             // add the selected node to the list of items to center
-            connectedEntityItems.append(getEntityItemFromNode(node));
+            //connectedNodeItems.append(getEntityItemFromNode(node));
+            connectedNodeItems.append((NodeItem*)getGraphMLItemFromGraphML(node));
+
             // fit the connected nodes' rectangle to the screen
-            fitToScreen(connectedEntityItems, 1.35);
+            fitToScreen(connectedNodeItems, 1.35);
         }
     }
 }
@@ -4548,7 +4604,7 @@ void NodeView::setConnectMode(bool on)
  * @param padding - padding around the items rect
  * @param addToMap - detemines whether a rect/pos should be added to the maps
  */
-void NodeView::fitToScreen(QList<EntityItem*> itemsToCenter, double padding, bool addToMap)
+void NodeView::fitToScreen(QList<NodeItem*> itemsToCenter, double padding, bool addToMap)
 {
     // if there are no aspects turned on, center on the model item
     if (getModelItem() && currentAspects.count() == 0) {
@@ -4558,7 +4614,7 @@ void NodeView::fitToScreen(QList<EntityItem*> itemsToCenter, double padding, boo
 
     // if there is no list provided, use the full node items list
     if (itemsToCenter.isEmpty()) {
-        itemsToCenter = getEntityItemsList();
+        itemsToCenter = getNodeItemsList();
     }
 
     QRectF itemsRec = scene()->itemsBoundingRect();
@@ -4569,20 +4625,20 @@ void NodeView::fitToScreen(QList<EntityItem*> itemsToCenter, double padding, boo
 
     // go through each item and store the left/right/top/bottom most coordinates
     // of the visible items to create the visible itemsBoundingRect to center on
-    foreach (EntityItem* EntityItem, itemsToCenter) {
-        if (EntityItem && !EntityItem->isHidden()) {
-            QPointF pf = EntityItem->scenePos();
+    foreach (NodeItem* nodeItem, itemsToCenter) {
+        if (nodeItem && nodeItem->isVisible() /*!nodeItem->isHidden()*/) {
+            QPointF pf = nodeItem->scenePos();
             if (pf.x() < leftMostX) {
                 leftMostX = pf.x();
             }
-            if ((pf.x() + EntityItem->boundingRect().width()) > rightMostX) {
-                rightMostX = pf.x() + EntityItem->boundingRect().width();
+            if ((pf.x() + nodeItem->boundingRect().width()) > rightMostX) {
+                rightMostX = pf.x() + nodeItem->boundingRect().width();
             }
             if (pf.y() < topMostY) {
                 topMostY = pf.y();
             }
-            if ((pf.y() + EntityItem->boundingRect().height()) > bottomMostY) {
-                bottomMostY = pf.y() + EntityItem->boundingRect().height();
+            if ((pf.y() + nodeItem->boundingRect().height()) > bottomMostY) {
+                bottomMostY = pf.y() + nodeItem->boundingRect().height();
             }
         }
     }

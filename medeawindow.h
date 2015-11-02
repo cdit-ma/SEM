@@ -51,6 +51,7 @@
 
 #include "CUTS/cutsmanager.h"
 
+#include "GUI/searchsuggestcompletion.h"
 #include "GUI/searchitembutton.h"
 #include "GUI/aspecttogglewidget.h"
 #include "GUI/appsettings.h"
@@ -352,14 +353,12 @@ private:
     QGroupBox* dataTableBox;
     ComboBoxTableDelegate* delegate;
 
+    QLineEdit* searchBar;
+    QDialog* searchResults;
+    SearchSuggestCompletion* searchSuggestions;
     QHBoxLayout* searchLayout;
     QVBoxLayout* resultsLayout;
-    QDialog* searchResults;
 
-    QWidget* searchSuggestions;
-    QString prevSearchStr;
-
-    QLineEdit* searchBar;
     QPushButton* searchButton;
     QPushButton* searchOptionButton;
     QMenu* searchOptionMenu;

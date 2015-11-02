@@ -130,7 +130,8 @@ HEADERS += \
     View/GraphicsItems/entityitem.h \
     Model/BehaviourDefinitions/inputparameter.h \
     Model/BehaviourDefinitions/parameter.h \
-    Model/BehaviourDefinitions/returnparameter.h
+    Model/BehaviourDefinitions/returnparameter.h \
+    GUI/searchsuggestcompletion.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -228,7 +229,8 @@ SOURCES += \
     View/GraphicsItems/entityitem.cpp \
     Model/BehaviourDefinitions/inputparameter.cpp \
     Model/BehaviourDefinitions/parameter.cpp \
-    Model/BehaviourDefinitions/returnparameter.cpp
+    Model/BehaviourDefinitions/returnparameter.cpp \
+    GUI/searchsuggestcompletion.cpp
 
 FORMS +=
 

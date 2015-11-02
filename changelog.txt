@@ -27,6 +27,8 @@ Version 18:
 			** Some fields are drop downs.
 		* The hardware dock items are now disabled for HardwareClusters and HardwareDefinitions.
 			** The dock can still be opened but the dock items can't be clicked on.
+		* Implemented search suggestions.
+			** Selecting an item from the suggestions list will auto-complete your search and trigger a search action.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.
@@ -50,6 +52,7 @@ Version 18:
 		* Stopped connect line from drawing when connect mode is triggered from the toolbar.
 		* Search result now displays hidden items.
 			** Clicking on a hidden HardwareNode changes the display mode of its parent cluster to ALL.
+		* Fixed fitToScreen function in NodeView - it now checks for NodeItems instead of just EntityItems.
 
     Todo:
         * Test Ubuntu for local deployment.
@@ -58,8 +61,6 @@ Version 18:
 		* Need to switch to using the connect mode view state for the toolbar.
 		* Implement a state-based switching of highlighted states in NodeItem.
 		* Need to update the dock buttons and window toolbar when the theme is changed.
-		* Need to show invisble HardwareNodes when their search items are clicked.
-		* Need to show something to the user when the Hardware nodes have been loaded. Dock doesn't open anymore.
 
 Version 17:
     New Features:
