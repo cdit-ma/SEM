@@ -14,9 +14,10 @@ class AspectToggleWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AspectToggleWidget(VIEW_ASPECT aspect, double size,  MedeaWindow* parent);
+    explicit AspectToggleWidget(VIEW_ASPECT viewAspect, double size,  MedeaWindow* parent);
 
     QString getText();
+    QPoint getToggleGridPos();
     VIEW_ASPECT getAspect();
 
     bool isClicked();
@@ -27,27 +28,26 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent* event);
 
 signals:
-    void aspectToggle_clicked(bool checked, int state);
-    void aspectToggle_doubleClicked(VIEW_ASPECT aspect);
-    void aspectToggle_middleClicked(VIEW_ASPECT aspect);
-
-    void aspectToggled(VIEW_ASPECT aspect, bool on);
+    void aspectToggled(VIEW_ASPECT viewAspect, bool on);
+    void aspectToggle_doubleClicked(VIEW_ASPECT viewAspect);
+    void aspectToggle_middleClicked(VIEW_ASPECT viewAspect);
 
 public slots:
-    void aspectDoubleClicked(VIEW_ASPECT aspect);
-    void highlightToggleButton(QString aspect);
+    void aspectDoubleClicked(VIEW_ASPECT viewAspect);
+    void highlightToggleButton(QString viewAspect);
 
 private:
-    QString toColorStr(QColor color, int alpha);
+    QString colorToString(QColor color, int alpha = 255);
+    QColor adjustColorRGB(QColor color, int delta);
+
     void setupColor();
     void setupLayout(double widgetSize);
+
+    void click(bool checked, int state);
     void stateChanged();
     void updateStyleSheet();
 
-    void click(bool checked, int state);
-
-
-    VIEW_ASPECT aspect;
+    VIEW_ASPECT viewAspect;
 
     QString aspectText;
     QLabel* aspectLabel;

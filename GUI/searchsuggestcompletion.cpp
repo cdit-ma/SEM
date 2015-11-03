@@ -161,6 +161,7 @@ void SearchSuggestCompletion::showCompletion(const QStringList &choices)
         maxWidth = qMax(maxWidth, fm.width(choices[i] + 'W'));
     }
 
+    maxWidth = qMin(popup->maximumSize().width(), maxWidth);
     popup->setFixedSize(maxWidth, totalHeight + ITEM_PADDING);
     //popup->setCurrentItem(popup->topLevelItem(0));
     popup->setUpdatesEnabled(true);

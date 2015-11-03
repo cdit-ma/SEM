@@ -462,13 +462,10 @@ void MedeaWindow::initialiseGUI()
     projectName->setStyleSheet("color: black; font-size: 16px; text-align: left; padding: 8px;");
     projectName->setFixedWidth(200);
 
-
     definitionsToggle = new AspectToggleWidget(VA_INTERFACES, rightPanelWidth/2, this);
     workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, rightPanelWidth/2, this);
     assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, rightPanelWidth/2, this);
-    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, rightPanelWidth/2, this);
-
-
+    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, rightPanelWidth/2, this);    
 
     aspectToggles << definitionsToggle;
     aspectToggles << workloadToggle;
@@ -591,10 +588,11 @@ void MedeaWindow::initialiseGUI()
     viewButtonsGrid->setSpacing(5);
     viewButtonsGrid->setMargin(0);
     viewButtonsGrid->setContentsMargins(5,0,5,0);
-    viewButtonsGrid->addWidget(definitionsToggle, 1, 1);
-    viewButtonsGrid->addWidget(workloadToggle, 1, 2);
-    viewButtonsGrid->addWidget(assemblyToggle, 2, 1);
-    viewButtonsGrid->addWidget(hardwareToggle, 2, 2);
+
+    viewButtonsGrid->addWidget(definitionsToggle, definitionsToggle->getToggleGridPos().x(), definitionsToggle->getToggleGridPos().y());
+    viewButtonsGrid->addWidget(workloadToggle, workloadToggle->getToggleGridPos().x(), workloadToggle->getToggleGridPos().y());
+    viewButtonsGrid->addWidget(assemblyToggle, assemblyToggle->getToggleGridPos().x(), assemblyToggle->getToggleGridPos().y());
+    viewButtonsGrid->addWidget(hardwareToggle, hardwareToggle->getToggleGridPos().x(), hardwareToggle->getToggleGridPos().y());
 
     rightVlayout->setMargin(0);
     rightVlayout->setContentsMargins(0, 10, 0, 0);
@@ -619,6 +617,20 @@ void MedeaWindow::initialiseGUI()
     setupSearchTools();
     setupToolbar(toolbarContainerLayout);
     setupMultiLineBox();
+
+    /*
+    QRect canvasRect;
+    canvasRect.setHeight(height()-1);
+    canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
+    canvasRect.moveTopLeft(QPoint(docksArea->width() + 15, 0));
+
+    topHLayout->setMargin(0);
+    topHLayout->setSpacing(0);
+    topHLayout->addWidget(menuTitleBox, 1);
+    topHLayout->addStretch(docksArea->width() + TOOLBAR_BUTTON_WIDTH + 15);
+    topHLayout->addLayout(toolbarContainerLayout);
+    topHLayout->addStretch(RIGHT_PANEL_WIDTH + 20);
+    */
 
     // add progress bar layout to the body layout after the dock has been set up
     bodyLayout->addStretch(4);
@@ -1093,9 +1105,6 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     toolbarButton->setStyleSheet("QToolButton{ background-color: rgba(200,200,200,225); border-radius: 5px; }"
                                  "QToolButton:hover{ background-color: rgba(250,250,250,235); }");
 
-
-
-
     QImage expandImage(":/Actions/Arrow_Down");
     QImage contractImage(":/Actions/Arrow_Up");
     expandImage = expandImage.scaled(toolbarButton->width(), toolbarButton->height(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -1126,7 +1135,6 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     constructToolbarButton(toolbar, edit_replicate, TOOLBAR_REPLICATE);
     toolbar->addSeparator();
 
-
     constructToolbarButton(toolbar, actionCenter, TOOLBAR_CENTER_ON_ENTITY);
     constructToolbarButton(toolbar, actionZoomToFit, TOOLBAR_ZOOM_TO_FIT);
     constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
@@ -1141,24 +1149,28 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     constructToolbarButton(toolbar, actionBack, TOOLBAR_BACK);
     constructToolbarButton(toolbar, actionForward, TOOLBAR_FORWARD);
 
-
     QHBoxLayout* toolbarHLayout = new QHBoxLayout();
     toolbarHLayout->addStretch();
     toolbarHLayout->addWidget(toolbarButton);
     toolbarHLayout->addStretch();
-
 
     layout->addLayout(toolbarHLayout);
     layout->addLayout(toolbarLayout);
     layout->addStretch();
     toolbarLayout->addWidget(toolbar);
 
-
-
     toolbar->setStyle(QStyleFactory::create("windows"));
+    /*
+    if (nodeView) {
+        int leftOffSet = (nodeView->getVisibleViewRect().width() - toolbar->sizeHint().width()) / 2;
+        toolbar->move(toolbar->pos().x() + leftOffSet, toolbar->pos().y());
+    }
+    */
 
-    //Implement Button.
-
+    if (nodeView) {
+        int leftOffSet = (nodeView->getVisibleViewRect().width() - TOOLBAR_BUTTON_WIDTH) / 2;
+        toolbarButton->move(toolbarButton->pos().x() + leftOffSet, toolbarButton->pos().y());
+    }
 }
 
 bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QString actionName)
@@ -1265,7 +1277,6 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
     connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
     connect(this, SIGNAL(window_DisplayMessage(MESSAGE_TYPE,QString,QString)), nodeView, SLOT(showMessage(MESSAGE_TYPE,QString,QString)));
-    connect(nodeView, SIGNAL(view_GUIAspectChanged(QStringList)), this, SLOT(setViewAspects(QStringList)));
     connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setMenuActionEnabled(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
@@ -1785,7 +1796,6 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
 
     QRect canvasRect;
     canvasRect.setHeight(height()-1);
-
     canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
     canvasRect.moveTopLeft(QPoint(docksArea->width() + 15, 0));
 
@@ -2367,21 +2377,6 @@ void MedeaWindow::updateWindowTitle(QString newProjectName)
     setWindowTitle("MEDEA - " + newProjectName);
     projectName->setText(newProjectName);
     //projectName->setFixedSize(200, projectName->height());
-}
-
-
-/**
- * @brief MedeaWindow::setViewAspects
- * @param aspects
- */
-void MedeaWindow::setViewAspects(QStringList aspects)
-{
-    definitionsToggle->setClicked(aspects.contains("Definitions"));
-    workloadToggle->setClicked(aspects.contains("Workload"));
-    assemblyToggle->setClicked(aspects.contains("Assembly"));
-    hardwareToggle->setClicked(aspects.contains("Hardware"));
-
-    checkedViewAspects = aspects;
 }
 
 

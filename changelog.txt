@@ -11,6 +11,7 @@ Fixed List:
 * Edge selection fixed.
 * Fixed Aspect Settings to match labels in enumeration
 * Aspects using enumeration
+* Fixed aspect toggle buttons position and color to match the ones in enumeration
 
 ToDo List:
 * Subview borked
@@ -24,6 +25,7 @@ ToDo List:
 * QObject::connect: No such slot NodeView::snapSelectionToGrid()
 * QObject::connect: No such slot NodeView::snapChildrenToGrid()
 * Trigger action after action is done, not just on selection change.
+* performance testing
 
 Version 18:
     New Features:

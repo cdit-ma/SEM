@@ -155,7 +155,6 @@ private slots:
     void setAttributeModel(AttributeTableModel* model);
 
     void forceToggleAspect(VIEW_ASPECT aspect, bool on);
-    void setViewAspects(QStringList aspects);
     void setMenuActionEnabled(QString action, bool enable);
     QIcon getIcon(QString alias, QString image);
     void menuActionTriggered();

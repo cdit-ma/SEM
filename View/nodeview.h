@@ -84,6 +84,7 @@ public:
     void recenterView();
 
     void visibleViewRectChanged(QRect rect);
+    QRect getVisibleViewRect();
 
     QStringList getAllAspects();
     void viewDeploymentAspect();

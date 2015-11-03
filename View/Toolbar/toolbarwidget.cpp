@@ -130,7 +130,6 @@ void ToolbarWidget::updateDisplayedChildren()
  * This slot is also used to update the radio button set when there are multiple items selected.
  * @param viewMode
  */
-
 void ToolbarWidget::hardwareClusterMenuClicked(int viewMode)
 {
     switch (viewMode) {
@@ -156,7 +155,6 @@ void ToolbarWidget::hardwareClusterMenuClicked(int viewMode)
         break;
     }
 }
-
 
 
 /**
@@ -195,7 +193,6 @@ void ToolbarWidget::addConnectedNode(ToolbarMenuAction* action)
         qWarning() << "ToolbarWidget::addConnectedNode - Action not handled.";
         return;
     }
-
 
     nodeView->constructConnectedNode(nodeItem->getID(), action->getNodeItemID(), kindToConstruct, 1);
 }
@@ -305,8 +302,6 @@ void ToolbarWidget::setVisible(bool visible)
     if (toolbarVisible) {
         mainFrame->setFixedSize(toolbarLayout->sizeHint());
         shadowFrame->setFixedSize(toolbarLayout->sizeHint() + QSize(3,3));
-        //shadowFrame->setFixedSize(toolbarLayout->sizeHint() + QSize(6,6));
-        //mainFrame->move(3,3);
         setFixedSize(shadowFrame->size());
     } else {
         closeOpenMenus();
@@ -436,7 +431,6 @@ void ToolbarWidget::setupLegalNodesList()
     }
 
     QList<NodeItem*> topActions, subActions;
-
     foreach (NodeItem* item, legalNodeItems) {
         NodeItem* parentItem = item->getParentNodeItem();
         if (selectedParentItem == parentItem) {
@@ -447,21 +441,13 @@ void ToolbarWidget::setupLegalNodesList()
     }
 
     foreach (NodeItem* topItem, topActions) {
-        ToolbarMenuAction* action = constructMenuAction(topItem, connectMenu);
-        if (!action) {
-            qWarning() << "ToolbarWidget::setupLegalNodesList - Top action not constructed.";
-        }
+        constructMenuAction(topItem, connectMenu);
     }
-
     if (!topActions.isEmpty() && !subActions.isEmpty()) {
         connectMenu->addSeparator();
     }
-
     foreach (NodeItem* subItem, subActions) {
-        ToolbarMenuAction* action = constructSubMenuAction(subItem, connectMenu);
-        if (!action) {
-            qWarning() << "ToolbarWidget::setupLegalNodesList - Sub action not constructed.";
-        }
+        constructSubMenuAction(subItem, connectMenu);
     }
 }
 
@@ -495,10 +481,7 @@ void ToolbarWidget::setupBlackBoxList()
 
     QList<NodeItem*> blackBoxes = nodeView->getEntityItemsOfKind("BlackBox");
     foreach (NodeItem* blackBox, blackBoxes) {
-        ToolbarMenuAction* action = constructSubMenuAction(blackBox, blackBoxDefinitionsMenu);
-        if (!action) {
-            qWarning() << "ToolbarWidget::setupBlackBoxList - Action not constructed.";
-        }
+        constructSubMenuAction(blackBox, blackBoxDefinitionsMenu);
     }
 }
 
@@ -721,7 +704,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         }
 
         EntityItem* entityItem = 0;
-        if(nodeItem->isEntityItem()) {
+        if (nodeItem->isEntityItem()) {
             entityItem = (EntityItem*)nodeItem;
         }
 
@@ -759,30 +742,33 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         NodeItem* prevParentItem = 0;
         bool shareParent = true;
         bool allClusters = true;
-
         int viewMode = -1;
 
         foreach (NodeItem* item, nodeItems) {
+
             NodeItem* parentItem = item->getParentNodeItem();
-            EntityItem* entityItem = (EntityItem*)item;
             if (prevParentItem && (prevParentItem != parentItem)) {
                 shareParent = false;
             }
-            if(item->isEntityItem()){
-                if(entityItem->isHardwareCluster()){
-                    int currentViewMode = entityItem->getHardwareClusterChildrenViewMode();
-                    if(viewMode == -1){
-                        //If we haven't got a viewMode yet, set it.
-                        viewMode = currentViewMode;
-                    }else if(currentViewMode != viewMode){
-                        //If we have got a viewMode, but it is different to the current, we don't have a shared view mode.
-                        viewMode = -2;
-                    }
-                }else{
-                    allClusters = false;
-                }
-            }
             prevParentItem = parentItem;
+
+            if (item->isEntityItem()){
+                continue;
+            }
+
+            EntityItem* entityItem = (EntityItem*)item;
+            if (entityItem->isHardwareCluster()) {
+                int currentViewMode = entityItem->getHardwareClusterChildrenViewMode();
+                if (viewMode == -1) {
+                    // viewMode hasn't been set yet; set it
+                    viewMode = currentViewMode;
+                } else if (currentViewMode != viewMode) {
+                    // if currentMode != viewMode, we don't have a shared viewMode
+                    viewMode = -2;
+                }
+            } else {
+                allClusters = false;
+            }
         }
 
         // only show the group alignment buttons if all the selected items have the same parent
@@ -1167,8 +1153,10 @@ ToolbarMenu* ToolbarWidget::constructToolButtonMenu(QToolButton* parentButton, b
         }
         parentButton->setMenu(menu);
         return menu;
+    } else {
+        qWarning() << "ToolbarWidget::constructToolButtonMenu - Parent tool button is null.";
+        return 0;
     }
-    return 0;
 }
 
 
@@ -1181,6 +1169,7 @@ ToolbarMenu* ToolbarWidget::constructToolButtonMenu(QToolButton* parentButton, b
 ToolbarMenuAction* ToolbarWidget::constructMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu)
 {
     if (!nodeItem || !parentMenu) {
+        qWarning() << "ToolbarWidget::constructMenuAction - Action not constructed.";
         return 0;
     }
 
@@ -1200,6 +1189,7 @@ ToolbarMenuAction* ToolbarWidget::constructMenuAction(NodeItem* nodeItem, Toolba
 ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu)
 {
     if (!nodeItem || !parentMenu) {
+        qWarning() << "ToolbarWidget::constructSubMenuAction - Action not constructed.";
         return 0;
     }
 

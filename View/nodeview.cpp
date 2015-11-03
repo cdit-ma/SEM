@@ -1416,7 +1416,6 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
 
     // set change in view aspects to the node items and the gui
     view_AspectsChanged(aspects);
-    view_GUIAspectChanged(aspects);
 
     if (!IS_SUB_VIEW && AUTO_CENTER_ASPECTS && centerViewAspects) {
         //fitToScreen();
@@ -1652,7 +1651,7 @@ void NodeView::editableItemHasFocus(bool hasFocus)
 
 
 /**
- * @brief NodeView::selectAndCenter
+ * @brief NodeView::selectAndCenterItem
  * This selects and center on the provided item.
  * If an ID is provided instead of an item, get the corresponding item from the hash.
  * @param item - graphics item to select and center on
@@ -2950,6 +2949,16 @@ void NodeView::recenterView()
 void NodeView::visibleViewRectChanged(QRect rect)
 {
     visibleViewRect = rect;
+}
+
+
+/**
+ * @brief NodeView::getVisibleViewRect
+ * @return
+ */
+QRect NodeView::getVisibleViewRect()
+{
+    return visibleViewRect;
 }
 
 

@@ -6,6 +6,9 @@
 #define HEIGHT_OFFSET 1.4
 #define SHADOW_OFFSET 3
 
+#define MIN_RGBA_VALUE 0
+#define MAX_RGBA_VALUE 255
+
 #define DEFAULT -1
 #define CLICKED 0
 #define DOUBLECLICKED 1
@@ -27,8 +30,10 @@ AspectToggleWidget::AspectToggleWidget(VIEW_ASPECT aspect, double size, MedeaWin
 {
     shadowFrame = new QFrame(this);
     mainFrame = new QFrame(this);
-    this->aspect = aspect;
+
+    viewAspect = aspect;
     aspectText = getAspectName(aspect);
+
     CHECKED = false;
     STATE = DEFAULT;
     THEME = THEME_LIGHT;
@@ -39,9 +44,9 @@ AspectToggleWidget::AspectToggleWidget(VIEW_ASPECT aspect, double size, MedeaWin
     setupLayout(size);
 
     connect(this, SIGNAL(aspectToggled(VIEW_ASPECT,bool)), parent, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)));
-    connect(parent, SIGNAL(window_aspectDoubleClicked(VIEW_ASPECT)), this, SLOT(aspectDoubleClicked(VIEW_ASPECT)));
     connect(this, SIGNAL(aspectToggle_doubleClicked(VIEW_ASPECT)), parent, SIGNAL(window_aspectDoubleClicked(VIEW_ASPECT)));
     connect(this, SIGNAL(aspectToggle_middleClicked(VIEW_ASPECT)), parent, SIGNAL(window_centerAspect(VIEW_ASPECT)));
+    connect(parent, SIGNAL(window_aspectDoubleClicked(VIEW_ASPECT)), this, SLOT(aspectDoubleClicked(VIEW_ASPECT)));
 }
 
 
@@ -55,15 +60,42 @@ QString AspectToggleWidget::getText()
     return aspectText;
 }
 
+
+/**
+ * @brief AspectToggleWidget::getToggleGridPos
+ * This returns the grid position of this aspect toggle in MEDEA window.
+ * @return
+ */
+QPoint AspectToggleWidget::getToggleGridPos()
+{
+    switch (getAspectPosition(viewAspect)) {
+    case VAP_TOPLEFT:
+        return QPoint(1,1);
+    case VAP_TOPRIGHT:
+        return QPoint(1,2);
+    case VAP_BOTTOMLEFT:
+        return QPoint(2,1);
+    case VAP_BOTTOMRIGHT:
+        return QPoint(2,2);
+    default:
+        return QPoint(-1,-1);
+    }
+}
+
+
+/**
+ * @brief AspectToggleWidget::getAspect
+ * @return
+ */
 VIEW_ASPECT AspectToggleWidget::getAspect()
 {
-    return aspect;
+    return viewAspect;
 }
 
 
 /**
  * @brief AspectToggleWidget::click
- * This is triggered when this toggle is clicked.
+ * This is triggered when this aspect toggle is clicked.
  * It checks what kind of click the event was and sets the CHECKED state
  * depeding on that. It sends a signal to the window that this was clicked.
  * @param checked - set CHECKED to this if state allows it
@@ -71,27 +103,23 @@ VIEW_ASPECT AspectToggleWidget::getAspect()
  */
 void AspectToggleWidget::click(bool checked, int state)
 {
-    if(state == CLICKED){
-        CHECKED = checked;
-    }else{
-        CHECKED = true;
-    }
-
-    stateChanged();
-
     switch (state) {
-    case DEFAULT:
-        break;
     case CLICKED:
-        emit aspectToggle_clicked(CHECKED, state);
+        CHECKED = checked;
         break;
     case DOUBLECLICKED:
+        CHECKED = true;
         emit aspectToggle_doubleClicked(getAspect());
         break;
     case MIDDLECLICKED:
+        CHECKED = true;
+        stateChanged();
         emit aspectToggle_middleClicked(getAspect());
+        return;
+    default:
         break;
-    }    
+    }
+    stateChanged();
 }
 
 
@@ -140,7 +168,6 @@ void AspectToggleWidget::mouseReleaseEvent(QMouseEvent* event)
             break;
         }
         click(!CHECKED, STATE);
-
     }
 
     // reset the state
@@ -169,7 +196,7 @@ void AspectToggleWidget::mouseDoubleClickEvent(QMouseEvent* event)
  */
 void AspectToggleWidget::aspectDoubleClicked(VIEW_ASPECT aspect)
 {
-    if(this->aspect != aspect){
+    if (viewAspect != aspect) {
         setClicked(false);
     }
 }
@@ -195,10 +222,17 @@ void AspectToggleWidget::highlightToggleButton(QString aspect)
     }
 }
 
-QString AspectToggleWidget::toColorStr(QColor color, int alpha)
+
+/**
+ * @brief AspectToggleWidget::toColorStr
+ * @param color
+ * @param alpha
+ * @return
+ */
+QString AspectToggleWidget::colorToString(QColor color, int alpha)
 {
-    if(alpha > 255 || alpha < 0){
-        alpha = 255;
+    if (alpha > MAX_RGBA_VALUE || alpha < MIN_RGBA_VALUE) {
+        alpha = MAX_RGBA_VALUE;
     }
 
     QString colorStr = "rgba(";
@@ -211,45 +245,44 @@ QString AspectToggleWidget::toColorStr(QColor color, int alpha)
 
 
 /**
+ * @brief AspectToggleWidget::adjustColorRGB
+ * @param color
+ * @param delta
+ * @return
+ */
+QColor AspectToggleWidget::adjustColorRGB(QColor color, int delta)
+{
+    if (delta < 0) {
+        color.setRed(qMax(color.red() + delta, MIN_RGBA_VALUE));
+        color.setGreen(qMax(color.green() + delta, MIN_RGBA_VALUE));
+        color.setBlue(qMax(color.blue() + delta, MIN_RGBA_VALUE));
+    } else {
+        color.setRed(qMin(color.red() + delta, MAX_RGBA_VALUE));
+        color.setGreen(qMin(color.green() + delta, MAX_RGBA_VALUE));
+        color.setBlue(qMin(color.blue() + delta, MAX_RGBA_VALUE));
+    }
+    return color;
+}
+
+
+/**
  * @brief AspectToggleWidget::setupColorMap
  * This sets up the colors used for the default and the gradient.
  */
 void AspectToggleWidget::setupColor()
 {
-    QColor aspectColor = getAspectColor(aspect);
+    QColor aspectColor = getAspectColor(viewAspect);
+    QColor darkerAspectColor = adjustColorRGB(aspectColor, -55);
+    int checkedAlpha = 250;
 
-    //QString defaultColor =
+    defaultColor = colorToString(darkerAspectColor);
+    p1_Color = colorToString(adjustColorRGB(darkerAspectColor, 175), checkedAlpha);
+    p2_Color = colorToString(adjustColorRGB(darkerAspectColor, 15), checkedAlpha);
 
-
+    /*
     QString defaultAlpha = "255";
     QString checkedAlpha = "250";
-    //p1_Color = "rgba(215,215,215," + checkedAlpha + ")";
-
     switch (THEME) {
-    case THEME_LIGHT:
-        if (aspectText == "Interfaces") {
-            defaultColor = "rgba(55,155,165," + defaultAlpha + ")";
-            p1_Color = "rgba(190,240,240," + checkedAlpha + ")";
-            //p2_Color = "rgba(90,190,190," + checkedAlpha + ")";
-            p2_Color = "rgba(70,170,170," + checkedAlpha + ")";
-        } else if (aspectText == "Behaviour") {
-            defaultColor = "rgba(199,129,71," + defaultAlpha + ")";
-            p1_Color = "rgba(255,230,206," + checkedAlpha + ")";
-            //p2_Color = "rgba(234,164,106," + checkedAlpha + ")";
-            p2_Color = "rgba(214,144,86," + checkedAlpha + ")";
-        } else if (aspectText == "Assemblies") {
-            defaultColor = "rgba(205,105,105," + defaultAlpha + ")";
-            p1_Color = "rgba(255,210,210," + checkedAlpha + ")";
-            //p2_Color = "rgba(240,140,140," + checkedAlpha + ")";
-            p2_Color = "rgba(220,120,120," + checkedAlpha + ")";
-        } else if (aspectText == "Hardware") {
-            defaultColor = "rgba(65,125,175," + defaultAlpha + ")";
-            p1_Color = "rgba(200,220,225," + checkedAlpha + ")";
-            //p2_Color = "rgba(100,160,210," + checkedAlpha + ")";
-            p2_Color = "rgba(80,140,190," + checkedAlpha + ")";
-        }
-        //p2_Color = defaultColor;
-        break;
     case THEME_DARK_COLOURED:
         if (aspectText == "Interfaces") {
             defaultColor = "rgba(24,148,184," + defaultAlpha + ")";
@@ -291,6 +324,7 @@ void AspectToggleWidget::setupColor()
     default:
         break;
     }
+    */
 }
 
 
@@ -323,11 +357,16 @@ void AspectToggleWidget::setupLayout(double widgetSize)
     mainFrame->setLayout(layout);
 }
 
+
+/**
+ * @brief AspectToggleWidget::stateChanged
+ * This method updates the styleheet of this widget and sends a
+ * signal to NodeView telling it that its checked state has changed.
+ */
 void AspectToggleWidget::stateChanged()
 {
     updateStyleSheet();
-    //Telling the NodeView that this aspect has changed state.
-    emit aspectToggled(aspect, CHECKED);
+    emit aspectToggled(viewAspect, CHECKED);
 }
 
 
@@ -342,11 +381,10 @@ void AspectToggleWidget::updateStyleSheet()
                                  "background-color:"
                                  "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
                                  "stop:0 " + p1_Color + ", stop:1.0 " + p2_Color + ");");
-                                 //"stop:0 " + p1_Color + ", stop:0.5 " + p3_Color + "," +
-                                 //"stop:0.5 " + p4_Color + ", stop:1.0 " + p2_Color + ");");
+        //"stop:0 " + p1_Color + ", stop:0.5 " + p3_Color + "," +
+        //"stop:0.5 " + p4_Color + ", stop:1.0 " + p2_Color + ");");
     } else {
         mainFrame->move(0, 0);
         mainFrame->setStyleSheet("border-radius: 8px; background-color:" + defaultColor + ";");
-    }
-
+    }\
 }
