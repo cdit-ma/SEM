@@ -34,6 +34,7 @@
 
 #define TOOLBAR_BUTTON_WIDTH 46
 #define TOOLBAR_BUTTON_HEIGHT 40
+#define TOOLBAR_GAP 5
 
 #define NOTIFICATION_TIME 2000
 
@@ -191,6 +192,7 @@ void MedeaWindow::toolbarSettingChanged(QString keyName, QString value)
         if(action){
             action->setVisible(boolValue);
         }
+        updateToolbar();
     }
 }
 
@@ -237,7 +239,7 @@ void MedeaWindow::modelReady()
 
     //cuts_runGeneration->trigger();
 
-     //showFullScreen();
+    //showFullScreen();
 
 }
 
@@ -374,21 +376,20 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
 void MedeaWindow::initialiseGUI()
 {
     // stylesheets
-    setStyleSheet("QToolBar::separator { background-color: rgba(0,0,0,0); }"
+    setStyleSheet("QToolbar { border: 5px solid black; background: rgba(255,0,0,255); }"
+                  "QToolBar::separator { background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
-                  "border: 1px solid;"
-                  "border-color: rgba(160,160,160,225);"
-                  "border-radius: 10px;"
-                  "background-color: rgba(200,200,200,225);"
                   "margin: 0px 1px;"
+                  "border-radius: 10px;"
+                  "border: 1px solid rgba(160,160,160,225);"
+                  "background-color: rgba(200,200,200,230);"
                   "}"
                   "QToolButton:hover {"
-                  "border: 2px solid;"
-                  "border-color: rgba(140,140,140,225);"
-                  "background-color: rgba(250,250,250,230);"
+                  "border: 2px solid rgba(140,140,140,225);"
+                  "background-color: rgba(240,240,240,250);"
                   "}"
-                  "QToolButton:disabled { background-color: rgba(150,150,150,225);}"
-                  "QToolButton:pressed { background-color: rgba(230,230,230,230);}"
+                  "QToolButton:disabled { background-color: rgba(150,150,150,150);}"
+                  "QToolButton:pressed { background-color: white; }"
 
                   "QCheckBox { padding: 0px 10px 0px 0px; }"
                   "QCheckBox::indicator { width: 25px; height: 25px; }"
@@ -465,7 +466,7 @@ void MedeaWindow::initialiseGUI()
     definitionsToggle = new AspectToggleWidget(VA_INTERFACES, rightPanelWidth/2, this);
     workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, rightPanelWidth/2, this);
     assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, rightPanelWidth/2, this);
-    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, rightPanelWidth/2, this);    
+    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, rightPanelWidth/2, this);
 
     aspectToggles << definitionsToggle;
     aspectToggles << workloadToggle;
@@ -617,20 +618,6 @@ void MedeaWindow::initialiseGUI()
     setupSearchTools();
     setupToolbar(toolbarContainerLayout);
     setupMultiLineBox();
-
-    /*
-    QRect canvasRect;
-    canvasRect.setHeight(height()-1);
-    canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
-    canvasRect.moveTopLeft(QPoint(docksArea->width() + 15, 0));
-
-    topHLayout->setMargin(0);
-    topHLayout->setSpacing(0);
-    topHLayout->addWidget(menuTitleBox, 1);
-    topHLayout->addStretch(docksArea->width() + TOOLBAR_BUTTON_WIDTH + 15);
-    topHLayout->addLayout(toolbarContainerLayout);
-    topHLayout->addStretch(RIGHT_PANEL_WIDTH + 20);
-    */
 
     // add progress bar layout to the body layout after the dock has been set up
     bodyLayout->addStretch(4);
@@ -1096,14 +1083,14 @@ void MedeaWindow::setupSearchTools()
  */
 void MedeaWindow::setupToolbar(QVBoxLayout *layout)
 {
-    toolbar = new QToolBar();
+    toolbar = new QToolBar(this);
     toolbarLayout = new QVBoxLayout();
 
     toolbarButton = new QToolButton(this);
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
     toolbarButton->setCheckable(true);
     toolbarButton->setStyleSheet("QToolButton{ background-color: rgba(200,200,200,225); border-radius: 5px; }"
-                                 "QToolButton:hover{ background-color: rgba(250,250,250,235); }");
+                                 "QToolButton:hover{ background-color: rgba(240,240,240,250); }");
 
     QImage expandImage(":/Actions/Arrow_Down");
     QImage contractImage(":/Actions/Arrow_Up");
@@ -1123,6 +1110,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
 
     constructToolbarButton(toolbar, edit_undo, TOOLBAR_UNDO);
     constructToolbarButton(toolbar, edit_redo, TOOLBAR_REDO);
+
     toolbar->addSeparator();
     constructToolbarButton(toolbar, actionContextMenu, TOOLBAR_CONTEXT);
     constructToolbarButton(toolbar, edit_delete, TOOLBAR_DELETE_ENTITIES);
@@ -1133,12 +1121,13 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     constructToolbarButton(toolbar, edit_copy, TOOLBAR_COPY);
     constructToolbarButton(toolbar, edit_paste, TOOLBAR_PASTE);
     constructToolbarButton(toolbar, edit_replicate, TOOLBAR_REPLICATE);
-    toolbar->addSeparator();
 
+    toolbar->addSeparator();
     constructToolbarButton(toolbar, actionCenter, TOOLBAR_CENTER_ON_ENTITY);
     constructToolbarButton(toolbar, actionZoomToFit, TOOLBAR_ZOOM_TO_FIT);
     constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
     constructToolbarButton(toolbar, actionFitToScreen, TOOLBAR_FIT_TO_SCREEN);
+
     toolbar->addSeparator();
     constructToolbarButton(toolbar, actionToggleGrid, TOOLBAR_GRID_LINES);
 
@@ -1149,6 +1138,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     constructToolbarButton(toolbar, actionBack, TOOLBAR_BACK);
     constructToolbarButton(toolbar, actionForward, TOOLBAR_FORWARD);
 
+    /*
     QHBoxLayout* toolbarHLayout = new QHBoxLayout();
     toolbarHLayout->addStretch();
     toolbarHLayout->addWidget(toolbarButton);
@@ -1158,20 +1148,13 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     layout->addLayout(toolbarLayout);
     layout->addStretch();
     toolbarLayout->addWidget(toolbar);
-
-    toolbar->setStyle(QStyleFactory::create("windows"));
-    /*
-    if (nodeView) {
-        int leftOffSet = (nodeView->getVisibleViewRect().width() - toolbar->sizeHint().width()) / 2;
-        toolbar->move(toolbar->pos().x() + leftOffSet, toolbar->pos().y());
-    }
     */
 
-    if (nodeView) {
-        int leftOffSet = (nodeView->getVisibleViewRect().width() - TOOLBAR_BUTTON_WIDTH) / 2;
-        toolbarButton->move(toolbarButton->pos().x() + leftOffSet, toolbarButton->pos().y());
-    }
+    toolbar->setStyle(QStyleFactory::create("windows"));
+    toolbar->setFloatable(false);
+    toolbar->setMovable(false);
 }
+
 
 bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QString actionName)
 {
@@ -1258,9 +1241,7 @@ void MedeaWindow::makeConnections()
 
     connect(this, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)), nodeView, SLOT(toggleAspect(VIEW_ASPECT,bool)));
     connect(this, SIGNAL(window_centerAspect(VIEW_ASPECT)), nodeView, SLOT(centerAspect(VIEW_ASPECT)));
-
     connect(nodeView, SIGNAL(view_toggleAspect(VIEW_ASPECT, bool)), this, SLOT(forceToggleAspect(VIEW_ASPECT,bool)));
-
 
     connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), definitionsToggle, SLOT(highlightToggleButton(QString)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), workloadToggle, SLOT(highlightToggleButton(QString)));
@@ -1791,14 +1772,13 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
     dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_HEIGHT/2);
 
     updateWidgetMask(docksArea, dockButtonsBox, true);
+    updateToolbar();
     updateDataTable();
-
 
     QRect canvasRect;
     canvasRect.setHeight(height()-1);
     canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
     canvasRect.moveTopLeft(QPoint(docksArea->width() + 15, 0));
-
 
     /*
     double newHeight = docksArea->height();
@@ -1815,6 +1795,31 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
         nodeView->visibleViewRectChanged(canvasRect);
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::updateToolbar
+ * This re-centralises the toolbar and the toolbar button.
+ * It also recalculates the toolbar's size based on the NodeView's visibleViewRect.
+ */
+void MedeaWindow::updateToolbar()
+{
+    int visibleActionCount = 0;
+    foreach (QAction* action, toolbar->actions()) {
+        if (!action->isSeparator() && action->isVisible()) {
+            visibleActionCount++;
+        }
+    }
+
+    QSize toolbarSize = QSize(TOOLBAR_BUTTON_WIDTH * visibleActionCount, TOOLBAR_BUTTON_HEIGHT);
+    toolbar->setFixedSize(toolbarSize + QSize(30, TOOLBAR_GAP));
+
+    if (nodeView) {
+        int centerX = nodeView->getVisibleViewRect().center().x();
+        toolbarButton->move(centerX  - (TOOLBAR_BUTTON_WIDTH / 2) + 3, TOOLBAR_GAP);
+        toolbar->move(centerX - (toolbar->width() / 2), 2 * TOOLBAR_GAP + (TOOLBAR_BUTTON_HEIGHT / 2));
     }
 }
 
@@ -2459,7 +2464,7 @@ void MedeaWindow::showWindowToolbar(bool checked)
         toolbar->setMask(QRegion(0,0,1,1, QRegion::Ellipse));
     }
 
-    if(appSettings){
+    if (appSettings) {
         appSettings->setSetting(TOOLBAR_EXPANDED, checked);
     }
 
@@ -2474,10 +2479,10 @@ void MedeaWindow::showWindowToolbar(bool checked)
  */
 void MedeaWindow::setToolbarVisibility(bool visible)
 {
-    if(toolbarButton){
+    if (toolbarButton) {
         toolbarButton->setVisible(visible);
     }
-    if(toolbar){
+    if (toolbar) {
         toolbar->setVisible(visible);
     }
 }

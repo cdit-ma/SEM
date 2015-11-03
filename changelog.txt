@@ -12,6 +12,7 @@ Fixed List:
 * Fixed Aspect Settings to match labels in enumeration
 * Aspects using enumeration
 * Fixed aspect toggle buttons position and color to match the ones in enumeration
+* Window toolbar is now kept centralised on the new viewRect.
 
 ToDo List:
 * Subview borked
@@ -94,6 +95,7 @@ Version 18:
 		* Need to switch to using the connect mode view state for the toolbar.
 		* Implement a state-based switching of highlighted states in NodeItem.
 		* Need to update the dock buttons and window toolbar when the theme is changed.
+		* Clean up leftover toolbar layout stuff in medeawindow.
 
 Version 17:
     New Features:

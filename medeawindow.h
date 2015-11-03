@@ -224,6 +224,7 @@ private:
     void setupMultiLineBox();
 
     void updateWidgetsOnWindowChanged();
+    void updateToolbar();
     void updateDataTable();
 
     bool exportProject();
