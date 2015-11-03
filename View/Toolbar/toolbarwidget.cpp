@@ -81,7 +81,7 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
  */
 int ToolbarWidget::getTheme()
 {
-   return currentTheme;
+    return currentTheme;
 }
 
 
@@ -416,8 +416,6 @@ void ToolbarWidget::setInstanceID()
 }
 
 
-
-
 /**
  * @brief ToolbarWidget::setupLegalNodesList
  */
@@ -429,10 +427,38 @@ void ToolbarWidget::setupLegalNodesList()
         connectMenuDone = true;
     }
 
+    NodeItem* selectedItem = nodeView->getSelectedNodeItem();
+    NodeItem* selectedParentItem = 0;
+    if (selectedItem) {
+        selectedParentItem = selectedItem->getParentNodeItem();
+    }
+
+    QList<NodeItem*> topActions, subActions;
+
     foreach (NodeItem* item, legalNodeItems) {
-        ToolbarMenuAction* action = constructSubMenuAction(item, connectMenu);
+        NodeItem* parentItem = item->getParentNodeItem();
+        if (selectedParentItem == parentItem) {
+            topActions.append(item);
+        } else {
+            subActions.append(item);
+        }
+    }
+
+    foreach (NodeItem* topItem, topActions) {
+        ToolbarMenuAction* action = constructMenuAction(topItem, connectMenu);
         if (!action) {
-            qWarning() << "ToolbarWidget::setupLegalNodesList - Action not constructed.";
+            qWarning() << "ToolbarWidget::setupLegalNodesList - Top action not constructed.";
+        }
+    }
+
+    if (!topActions.isEmpty() && !subActions.isEmpty()) {
+        connectMenu->addSeparator();
+    }
+
+    foreach (NodeItem* subItem, subActions) {
+        ToolbarMenuAction* action = constructSubMenuAction(subItem, connectMenu);
+        if (!action) {
+            qWarning() << "ToolbarWidget::setupLegalNodesList - Sub action not constructed.";
         }
     }
 }
@@ -1122,6 +1148,25 @@ ToolbarMenu* ToolbarWidget::constructToolButtonMenu(QToolButton* parentButton, b
         return menu;
     }
     return 0;
+}
+
+
+/**
+ * @brief ToolbarWidget::constructMenuAction
+ * @param nodeItem
+ * @param parentMenu
+ * @return
+ */
+ToolbarMenuAction* ToolbarWidget::constructMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu)
+{
+    if (!nodeItem || !parentMenu) {
+        return 0;
+    }
+
+    // construct and add nodeItem's action to the parent action's menu
+    ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, this);
+    parentMenu->addAction(action);
+    return action;
 }
 
 

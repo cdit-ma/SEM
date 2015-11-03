@@ -29,6 +29,7 @@ Version 18:
 			** The dock can still be opened but the dock items can't be clicked on.
 		* Implemented search suggestions.
 			** Selecting an item from the suggestions list will auto-complete your search and trigger a search action.
+		* Context toolbar's connect menu now doesn't display the parent entity for entities that have the same parent as the selected entity.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.

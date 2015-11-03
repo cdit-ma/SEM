@@ -81,6 +81,7 @@ private:
     QFrame* constructFrameSeparator();
 
     ToolbarMenu* constructToolButtonMenu(QToolButton* parentButton, bool instantPopup = true);
+    ToolbarMenuAction* constructMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu);
     ToolbarMenuAction* constructSubMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu);
 
     void closeOpenMenus();  // Mac
