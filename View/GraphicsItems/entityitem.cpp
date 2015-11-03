@@ -192,14 +192,15 @@ EntityItem::EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW):  NodeItem
     if(IN_SUBVIEW){
         setVisibility(true);
     }else{
-        updateModelData();
+        //Set Values Direc
+        updatePositionInModel(true);
+        updateSizeInModel(true);
     }
 
-    if(getParentEntityItem()){
-        //getParentEntityItem()->childPosUpdated();
-        getParentEntityItem()->updateModelSize();
-    }
 
+    if(parent->isNodeItem()){
+        parent->updateSizeInModel();
+    }
 
 }
 
@@ -441,6 +442,13 @@ QRectF EntityItem::minimumRect() const
     return QRectF(QPointF(0, 0), QPointF(minimumWidth + itemMargin, minimumHeight + itemMargin));
 }
 
+QRectF EntityItem::sceneBoundingRect() const
+{
+    QRectF newRect = GraphMLItem::sceneBoundingRect();
+    newRect = newRect.united(topLabelInputItem->sceneBoundingRect());
+    return newRect;
+}
+
 QRectF EntityItem::expandedBoundingRect() const
 {
     qreal itemMargin = getItemMargin() * 2;
@@ -642,7 +650,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             painter->setPen(pen);
             painter->setBrush(Qt::NoBrush);
 
-            painter->drawRect(adjustRectForBorder(boundingRect(), pen.widthF()));
+            painter->drawRect(adjustRectForPen(boundingRect(), pen));
         }
 
 
@@ -665,8 +673,9 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
             painter->setPen(linePen);
 
-
-                painter->drawRects(getChildrenGridOutlines());
+            foreach(QRectF rect, getChildrenGridOutlines()){
+                painter->drawRect(adjustRectForPen(rect, linePen));
+            }
         }
 
         //Paint the Icon
@@ -819,36 +828,7 @@ bool EntityItem::mouseOverExpand(QPointF mousePosition)
 }
 
 
-EntityItem::RESIZE_TYPE EntityItem::resizeEntered(QPointF mousePosition)
-{
-    //Check if the Mouse is in the Bottom Right Corner.
-    if(iconRect_BottomRight().contains(mousePosition)){
-        return RESIZE;
-    }
 
-    int cornerRadius = 10;
-    //Calculate the Corners for the Horizontal resize
-    QPointF topLeft = boundingRect().topRight() + QPointF(-cornerRadius, cornerRadius);
-    QPointF bottomRight = boundingRect().bottomRight() - QPointF(0, cornerRadius);
-
-    //Check if the mouse is contained in the rectangle on the right of the EntityItem.
-    QRectF horizontalResizeRectangle = QRectF(topLeft, bottomRight);
-    if(horizontalResizeRectangle.contains(mousePosition)){
-        return HORIZONTAL_RESIZE;
-    }
-
-    //Calculate the Corners for the Vertical resize
-    QPointF bottomLeft = boundingRect().bottomLeft() + QPointF(cornerRadius, -cornerRadius);
-    bottomRight = boundingRect().bottomRight() + QPointF(-cornerRadius, 0);
-
-    //Check if the mouse is contained in the rectangle on the bottom of the EntityItem.
-    QRectF verticalRect = QRectF(bottomLeft, bottomRight);
-    if(verticalRect.contains(mousePosition)){
-        return VERTICAL_RESIZE;
-    }
-
-    return NO_RESIZE;
-}
 
 void EntityItem::addChildEdgeItem(EdgeItem *edge)
 {
@@ -1258,7 +1238,7 @@ void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
                 deltaPos.setX(0);
             }
 
-            emit EntityItem_ResizeSelection(getID(), QSizeF(deltaPos.x(), deltaPos.y()));
+            emit NodeItem_ResizeSelection(getID(), QSizeF(deltaPos.x(), deltaPos.y()));
             previousScenePosition = event->scenePos();
             break;
         case NodeView::VS_MOVING:
@@ -1284,7 +1264,7 @@ void EntityItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
             emit EntityItem_MoveFinished();
             break;
         case NodeView::VS_RESIZING:
-            emit EntityItem_ResizeFinished(getID());
+            emit NodeItem_ResizeFinished(getID());
             break;
         case NodeView::VS_SELECTED:
             if(mouseDownType == MO_HARDWAREMENU){
@@ -1347,7 +1327,7 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
     MOUSEOVER_TYPE mouseDblClickType = getMouseOverType(event->scenePos());
 
     int aspectID = -1;
-
+    RESIZE_TYPE rt = RESIZE;
     switch(event->button()){
     case Qt::LeftButton:{
         switch(mouseDblClickType){
@@ -1359,21 +1339,25 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
                     GraphMLItem_TriggerAction("Expanded Node Item");
                 }
                 setNodeExpanded(!isExpanded());
-                updateModelSize();
+                updateSizeInModel();
             }
             break;
         case MO_BOT_LABEL:
 
             break;
         case MO_RESIZE_HOR:
+            if(mouseDblClickType == MO_RESIZE_HOR)
+                rt = HORIZONTAL_RESIZE;
             //Continue
         case MO_RESIZE_VER:
+            if(mouseDblClickType == MO_RESIZE_VER)
+                rt = VERTICAL_RESIZE;
             //Continue
         case MO_RESIZE:
             if(hasChildren()){
                 GraphMLItem_TriggerAction("Optimizes Size of EntityItem");
-                resizeToOptimumSize(mouseDblClickType);
-                updateModelSize();
+                resizeToOptimumSize(rt);
+                updateSizeInModel();
             }
             break;
 
@@ -1409,11 +1393,6 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 
 
-
-void EntityItem::hoverEnterEvent(QGraphicsSceneHoverEvent *)
-{
-    handleHighlight(true);
-}
 
 void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
@@ -1510,16 +1489,17 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         unsetCursor();
     }
 
-    handleHighlight(true);
+    GraphMLItem::hoverMoveEvent(event);
 }
 
-void EntityItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
+
+/*void EntityItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
-    handleHighlight(false);
+   // handleHover(false);
 
     //Unset the cursor
     unsetCursor();
-}
+}*/
 
 void EntityItem::updateTextVisibility()
 {
@@ -1545,13 +1525,6 @@ void EntityItem::updateTextVisibility()
     }
 }
 
-QRectF EntityItem::adjustRectForBorder(QRectF rect, qreal borderWidth)
-{
-    rect.setWidth(rect.width() - borderWidth);
-    rect.setHeight(rect.height() - borderWidth);
-    rect.translate(borderWidth / 2, borderWidth / 2);
-    return rect;
-}
 
 
 /**
@@ -1765,25 +1738,6 @@ void EntityItem::updateModelData()
     setGraphMLData("y", QString::number(center.y()));
 }
 
-void EntityItem::resizeToOptimumSize(EntityItem::MOUSEOVER_TYPE type)
-{
-    QRectF rect = childrenBoundingRect();
-    switch(type){
-    case MO_RESIZE:
-        setWidth(rect.width());
-        setHeight(rect.height());
-        break;
-    case MO_RESIZE_HOR:
-        setWidth(rect.width());
-        break;
-    case MO_RESIZE_VER:
-        setHeight(rect.height());
-        break;
-    default:
-        break;
-    }
-}
-
 
 
 
@@ -1821,7 +1775,6 @@ void EntityItem::setHeight(qreal h)
     if(isExpanded()){
         //If is expanded, we can't set height smaller than the bottom of the child rect.
         qreal minHeight = childrenBoundingRect().bottom();
-
         h = qMax(h, minHeight);
         expandedHeight = h;
     }else{
@@ -2018,10 +1971,6 @@ void EntityItem::setPos(const QPointF pos)
 
 
         emit GraphMLItem_PositionChanged();
-
-        //if(getParentEntityItem()){
-        //    getParentEntityItem()->childMoved();
-        //}
     }
 }
 
@@ -2080,27 +2029,14 @@ void EntityItem::childUpdated()
 
     QRectF childRect = childrenBoundingRect();
 
-    bool okay = false;
-    double modelWidth = getGraphMLDataValue("width").toDouble(&okay);
-    if(!okay){
-        return;
-    }
-    double modelHeight = getGraphMLDataValue("height").toDouble(&okay);
-    if(!okay){
-        return;
-    }
-
-
     //Maximize on the current size in the Model and the minimum child rectangle
-    if(childRect.right() > modelWidth){
+    if(childRect.right() > getWidth()){
         setWidth(childRect.right());
     }
 
-    if(childRect.bottom() > modelHeight){
+    if(childRect.bottom() > getHeight()){
         setHeight(childRect.bottom());
     }
-
-
 }
 
 /**
@@ -2400,17 +2336,11 @@ QList<EntityItem *> EntityItem::getChildEntityItems()
 qreal EntityItem::getGridSize() const
 {
     return GRID_SIZE;
-    //return getChildBoundingRect().width() / GRID_RATIO;
 }
 
 qreal EntityItem::getGridGapSize() const
 {
     return GRID_PADDING_SIZE;
-    /*
-    int roundUp = ceil(GRID_RATIO);
-    qCritical() << roundUp;
-    qreal gap = roundUp - GRID_RATIO;
-    return getChildBoundingRect().width() / gap;*/
 }
 
 
@@ -2725,6 +2655,12 @@ void EntityItem::childSizeChanged()
     childUpdated();
 }
 
+void EntityItem::lastChildRemoved()
+{
+    //COntract the node!
+    resetSize();
+}
+
 
 
 
@@ -2784,9 +2720,10 @@ void EntityItem::setNodeExpanded(bool expanded)
     }
 
     if(isExpanded()){
-        //Set the width/height to their expanded values.
-        setWidth(expandedWidth);
-        setHeight(expandedHeight);
+        qreal oldExpWidth = expandedWidth;
+        qreal oldExpHeight = expandedHeight;
+        setWidth(oldExpWidth);
+        setHeight(oldExpHeight);
     } else {
         //Set the width/height to their minimum values.
         setWidth(minimumWidth);
@@ -2934,6 +2871,8 @@ void EntityItem::setHidden(bool h)
  */
 void EntityItem::resetSize()
 {
+    expandedHeight = minimumHeight;
+    expandedWidth = minimumWidth;
     GraphMLItem_SetGraphMLData(getID(), "height", QString::number(minimumHeight));
     GraphMLItem_SetGraphMLData(getID(), "width", QString::number(minimumWidth));
 }
@@ -2949,7 +2888,7 @@ bool EntityItem::isExpanded()
 
 bool EntityItem::isContracted()
 {
-    if(this->childItems().count() ==0){
+    if(childItems().count() == 0){
         return true;
     }
     return !isExpanded();

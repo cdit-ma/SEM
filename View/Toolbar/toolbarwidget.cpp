@@ -130,6 +130,7 @@ void ToolbarWidget::updateDisplayedChildren()
  * This slot is also used to update the radio button set when there are multiple items selected.
  * @param viewMode
  */
+
 void ToolbarWidget::hardwareClusterMenuClicked(int viewMode)
 {
     switch (viewMode) {
@@ -155,6 +156,7 @@ void ToolbarWidget::hardwareClusterMenuClicked(int viewMode)
         break;
     }
 }
+
 
 
 /**
@@ -714,9 +716,13 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
          */
 
         nodeItem = nodeItems.at(0);
-
         if (!nodeItem) {
             return;
+        }
+
+        EntityItem* entityItem = 0;
+        if(nodeItem->isEntityItem()) {
+            entityItem = (EntityItem*)nodeItem;
         }
 
         // these buttons are only available for a single selection
@@ -731,8 +737,8 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         }
 
         // only show the displayed children option button if the selected item is a HardwareCluster
-        if (nodeItem->getNodeKind() == "HardwareCluster") {
-            //hardwareClusterMenuClicked(nodeItem->getHardwareClusterChildrenViewMode());
+        if (entityItem && entityItem->isHardwareCluster()) {
+            hardwareClusterMenuClicked(entityItem->getHardwareClusterChildrenViewMode());
             displayedChildrenOptionButton->show();
         }
 
@@ -754,13 +760,27 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         bool shareParent = true;
         bool allClusters = true;
 
+        int viewMode = -1;
+
         foreach (NodeItem* item, nodeItems) {
             NodeItem* parentItem = item->getParentNodeItem();
+            EntityItem* entityItem = (EntityItem*)item;
             if (prevParentItem && (prevParentItem != parentItem)) {
                 shareParent = false;
             }
-            if (item->getNodeKind() != "HardwareCluster") {
-                allClusters = false;
+            if(item->isEntityItem()){
+                if(entityItem->isHardwareCluster()){
+                    int currentViewMode = entityItem->getHardwareClusterChildrenViewMode();
+                    if(viewMode == -1){
+                        //If we haven't got a viewMode yet, set it.
+                        viewMode = currentViewMode;
+                    }else if(currentViewMode != viewMode){
+                        //If we have got a viewMode, but it is different to the current, we don't have a shared view mode.
+                        viewMode = -2;
+                    }
+                }else{
+                    allClusters = false;
+                }
             }
             prevParentItem = parentItem;
         }
@@ -774,6 +794,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 
         // if all selected node items are Hardware clusters, show diplay option button
         if (allClusters) {
+            hardwareClusterMenuClicked(viewMode);
             displayedChildrenOptionButton->show();
             alterViewButtonsVisible = true;
         }

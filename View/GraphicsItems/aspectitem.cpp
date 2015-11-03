@@ -48,29 +48,17 @@
 #define THEME_DARK_NEUTRAL 10
 #define THEME_DARK_COLOURED 11
 
-AspectItem::AspectItem(Node *node, GraphMLItem *parent, ASPECT_POS pos) : NodeItem(node,parent, GraphMLItem::ASPECT_ITEM)
+AspectItem::AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect) : NodeItem(node,parent, GraphMLItem::ASPECT_ITEM)
 {
-    QString nodeKind = node->getNodeKind();
+    //Set View Aspect.
+    setViewAspect(aspect);
 
-    if(nodeKind.startsWith("Interface")){
-        backgroundColor = QColor(110,210,210);
-        aspectLabel = "INTERFACES";
-        aspectKind = "Definitions";
-    }else if(nodeKind.startsWith("Behaviour")){
-        backgroundColor = QColor(254,184,126);
-        aspectLabel = "BEHAVIOUR";
-        aspectKind = "Workload";
-    }else if(nodeKind.startsWith("Hardware")){
-        backgroundColor = QColor(110,170,220);
-        aspectLabel = "HARDWARE";
-        aspectKind = "Hardware";
-    }else if(nodeKind.startsWith("Assembly")){
-        backgroundColor = QColor(255,160,160);
-        aspectLabel = "ASSEMBLIES";
-        aspectKind = "Assembly";
-    }
-
+    backgroundColor = getAspectColor(aspect);
     textColor = backgroundColor.darker(110);
+
+    aspectPos = getAspectPosition(aspect);
+    aspectLabel = getAspectName(aspect).toUpper();
+
 
     width = GRID_SIZE * GRID_COUNT * ASPECT_COL_COUNT;
     height = GRID_SIZE * GRID_COUNT * ASPECT_ROW_COUNT;
@@ -80,10 +68,19 @@ AspectItem::AspectItem(Node *node, GraphMLItem *parent, ASPECT_POS pos) : NodeIt
     textFont.setBold(true);
     textFont.setPointSize(minimumHeight * (LABEL_RATIO /2));
 
-    aspectPos = pos;
+    mouseOverResize = NO_RESIZE;
+
     setPos(getAspectPos());
 
     connect(this, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(sizeChanged()));
+
+
+    connectToGraphMLData("width");
+    connectToGraphMLData("height");
+
+    //Set Values Direc
+    updatePositionInModel(true);
+    updateSizeInModel(true);
 }
 
 
@@ -103,42 +100,20 @@ void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setClipRect(option->exposedRect);
     painter->setRenderHint(QPainter::HighQualityAntialiasing, true);
 
-
-
-
-    if(isSelected()){
-        //Setup the Pen
-        QPen pen = painter->pen();
-
-        //pen = this->selectedPen;
-        //pen.setWidthF(selectedPenWidth);
-
-
-        if(isHovered()){
-            if(pen.color() == Qt::black){
-                pen.setColor(QColor(120,120,120));
-            }else{
-                pen.setColor(pen.color().lighter());
-            }
-        }
-
-        //Trace the boundary
-        painter->setPen(pen);
-    }else{
-        painter->setPen(Qt::NoPen);
+    QPen borderPen = getCurrentPen();
+    if (!isSelected()) {
+        borderPen = Qt::NoPen;
     }
 
+    painter->setPen(borderPen);
     painter->setBrush(backgroundColor);
-    painter->drawRect(boundingRect());
+    painter->drawRect(adjustRectForPen(boundingRect(), borderPen));
 
     painter->setPen(textColor);
     painter->setFont(textFont);
     painter->drawText(boundingRect(), Qt::AlignHCenter | Qt::AlignBottom, aspectLabel);
 
-
-
-    //New Code
-    if(drawGridLines()){
+    if (drawGridLines()) {
         painter->setPen(Qt::gray);
         QPen linePen = painter->pen();
 
@@ -151,7 +126,11 @@ void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         painter->setBrush(Qt::NoBrush);
         painter->setPen(linePen);
-        painter->drawRects(getChildrenGridOutlines());
+        //painter->drawRects(getChildrenGridOutlines());
+
+        foreach (QRectF rect, getChildrenGridOutlines()) {
+            painter->drawRect(adjustRectForPen(rect, linePen));
+        }
     }
 }
 
@@ -173,25 +152,21 @@ void AspectItem::setPos(const QPointF pos)
 
 void AspectItem::setWidth(qreal w)
 {
-    if(w < minimumWidth){
-        w = minimumWidth;
-    }
+    w = qMax(w, minimumWidth);
 
     if(w == width){
         return;
     }
 
     prepareGeometryChange();
-
     width = w;
+
     emit GraphMLItem_SizeChanged();
 }
 
 void AspectItem::setHeight(qreal h)
 {
-    if(h < minimumHeight){
-        h = minimumHeight;
-    }
+    h = qMax(h, minimumHeight);
 
     if(h == height){
         return;
@@ -202,6 +177,7 @@ void AspectItem::setHeight(qreal h)
     height = h;
     emit GraphMLItem_SizeChanged();
 }
+
 
 QPointF AspectItem::getAspectPos()
 {
@@ -214,13 +190,13 @@ QPointF AspectItem::getAspectPos()
     qreal totalH = boundingRect().height();
 
     switch(aspectPos){
-    case AP_TOPLEFT:
+    case VAP_TOPLEFT:
         return QPointF(-itemMargin - totalW, -itemMargin - totalH);
-    case AP_TOPRIGHT:
+    case VAP_TOPRIGHT:
         return QPointF(itemMargin, -itemMargin - totalH);
-    case AP_BOTRIGHT:
+    case VAP_BOTTOMRIGHT:
         return QPointF(itemMargin, itemMargin);
-    case AP_BOTLEFT:
+    case VAP_BOTTOMLEFT:
         return QPointF(-itemMargin - totalW, itemMargin);
     default:
         return QPointF(0,0);
@@ -229,17 +205,32 @@ QPointF AspectItem::getAspectPos()
 
 void AspectItem::graphMLDataChanged(GraphMLData *data)
 {
+    if(data && data->getParent() == getGraphML() && !getGraphML()->isDeleting()){
+        QString keyName = data->getKeyName();
+        QString value = data->getValue();
+        bool isDouble = false;
+        double valueD = value.toDouble(&isDouble);
 
-}
 
-void AspectItem::aspectsChanged(QStringList aspects)
-{
-    if (aspects.contains(aspectKind)) {
-        setVisible(true);
-    } else {
-        setVisible(false);
+        if((keyName == "width" || keyName == "height") && isDouble){
+            //If data is related to the size of the EntityItem
+            if(keyName == "width"){
+                setWidth(valueD);
+            }else if(keyName == "height"){
+                setHeight(valueD);
+            }
+
+            //Check if the Width or Height has changed.
+            if(keyName == "width" && width != valueD){
+                emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
+            }
+            if(keyName == "height" && height != valueD){
+                emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
+            }
+        }
     }
 }
+
 
 void AspectItem::sizeChanged()
 {
@@ -257,6 +248,7 @@ void AspectItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
     //Set the mouse down type to the type which matches the position.
+    mouseOverResize = resizeEntered(event->pos());
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
 
     switch(event->button()){
@@ -268,10 +260,177 @@ void AspectItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             //Enter Selected Mode.
             getNodeView()->setStateSelected();
             handleSelection(true, controlPressed);
+            //Store the previous position.
+            previousScenePosition = event->scenePos();
+            break;
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+}
+
+void AspectItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+{
+    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+
+
+    //Only if left button is down.
+    if(event->buttons() & Qt::LeftButton){
+        QPointF deltaPos = (event->scenePos() - previousScenePosition);
+
+        switch (viewState){
+        case NodeView::VS_SELECTED:
+            if(mouseOverResize != NO_RESIZE){
+                getNodeView()->setStateResizing();
+            }
+            break;
+        case NodeView::VS_RESIZING:
+
+            //If we are resizing horizontally, remove the vertical change.
+            if(mouseOverResize == HORIZONTAL_RESIZE){
+                deltaPos.setY(0);
+                //If we are resizing vertically, remove the horizontal change.
+            }else if(mouseOverResize == VERTICAL_RESIZE){
+                deltaPos.setX(0);
+            }
+            emit NodeItem_ResizeSelection(getID(), QSizeF(deltaPos.x(), deltaPos.y()));
+            previousScenePosition = event->scenePos();
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void AspectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
+
+    //Only if left button is down.
+    switch(event->button()){
+    case Qt::LeftButton:{
+        switch (viewState){
+        case NodeView::VS_RESIZING:
+            emit NodeItem_ResizeFinished(getID());
+            break;
+        default:
             break;
         }
         break;
     }
+    case Qt::RightButton:{
+        switch (viewState){
+        case NodeView::VS_PAN:
+            //IGNORE
+        case NodeView::VS_PANNING:
+            //IGNORE
+            break;
+        default:
+            //If we haven't Panned, we need to make sure this EntityItem is selected before the toolbar opens.1
+            handleSelection(true, controlPressed);
+            break;
+        }
+        break;
+    }
+    case Qt::MiddleButton:{
+        switch (viewState){
+        case NodeView::VS_NONE:
+        case NodeView::VS_SELECTED:
+            if(controlPressed){
+                if(inMainView()){
+                    //emit GraphMLItem_TriggerAction("Sorting Node");
+                    //sort();
+                }
+            }else{
+                emit GraphMLItem_SetCentered(this);
+            }
+
+            //IGNORE
+            break;
+        default:
+            break;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+    mouseOverResize = NO_RESIZE;
+}
+
+void AspectItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+{
+    if(inSubView()){
+        return;
+    }
+
+    RESIZE_TYPE type = resizeEntered(event->pos());
+
+    switch(event->button()){
+    case Qt::LeftButton:{
+        switch(type){
+        case HORIZONTAL_RESIZE:
+            //Continue
+        case VERTICAL_RESIZE:
+            //Continue
+        case RESIZE:
+            GraphMLItem_TriggerAction("Optimizes Size of AspectItem");
+            resizeToOptimumSize(type);
+            updateSizeInModel();
+            break;
+        default:
+            break;
+        }
+    }
+    default:
+        break;
+    }
+}
+
+void AspectItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+{
+    QString tooltip;
+    QCursor cursor;
+    RESIZE_TYPE resizeType =  resizeEntered(event->pos());
+
+
+    switch(resizeType){
+    case RESIZE:
+        if(isSelected()){
+            tooltip = "Click and drag to change size.\nDouble click to auto set size.";
+            cursor = Qt::SizeFDiagCursor;
+        }
+        break;
+    case HORIZONTAL_RESIZE:
+        if(isSelected()){
+            tooltip = "Click and drag to change width.\nDouble click to auto set width.";
+            cursor = Qt::SizeHorCursor;
+        }
+        break;
+    case VERTICAL_RESIZE:
+        if(isSelected()){
+            tooltip = "Click and drag to change height.\nDouble click to auto set height.";
+            cursor = Qt::SizeVerCursor;
+        }
+        break;
+    default:
+        break;
+    }
+
+
+    setToolTip(tooltip);
+
+    if(cursor.shape() != Qt::ArrowCursor){
+        setCursor(cursor);
+    }else{
+        unsetCursor();
+    }
+
+    GraphMLItem::hoverMoveEvent(event);
 }
 
 void AspectItem::childPositionChanged()

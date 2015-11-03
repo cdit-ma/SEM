@@ -1,3 +1,30 @@
+New Features:
+* Added full screen mode.
+
+Fixed List:
+* Fit to Screen
+* Hardware Cluster Menu logic
+* Selection for Docks/Toolbar fixed
+* Full screen mode
+* Centering of Items and viewRect
+* Select All
+* Edge selection fixed.
+* Fixed Aspect Settings to match labels in enumeration
+* Aspects using enumeration
+
+ToDo List:
+* Subview borked
+* settings into tab
+* QAction for fullscreen mode
+* fix theme stuff
+* Expanding multiple selection. (Maybe even recurse)
+* sort multiple selection. (Maybe even recurse)
+* align multiple selection.
+* Highlight Source (Maybe use Number on screen) for connect mode
+* QObject::connect: No such slot NodeView::snapSelectionToGrid()
+* QObject::connect: No such slot NodeView::snapChildrenToGrid()
+* Trigger action after action is done, not just on selection change.
+
 Version 18:
     New Features:
         * Enabled WhileLoop entity
@@ -8,14 +35,14 @@ Version 18:
         * Implemented a check for settings.ini read-only flag.
         * Rubberband selection now handles Edges.
         * Implemented visual connection mechanism.
-		* All toolbar sub-menus are now filled and shown on mouse hover.
+        * All toolbar sub-menus are now filled and shown on mouse hover.
         * Added goTo definition/implementation shortcut buttons in the context toolbar.
-		* Implemented "click-on" to connect nodes using the connect button in the toolbar.
-			** The connectable node items in the view are highlighted.
-			** This should also work for connecting multiple selection.
-		* Implemented highlight of aspect button when the viewport is completely contained within the corresponding aspect.
-		* Added dock items for BlackBox definitions in the dock.
-			** Selecting BlackBoxInstance from the parts dock will now redirect the user to the definitions dock.
+        * Implemented "click-on" to connect nodes using the connect button in the toolbar.
+            ** The connectable node items in the view are highlighted.
+            ** This should also work for connecting multiple selection.
+        * Implemented highlight of aspect button when the viewport is completely contained within the corresponding aspect.
+        * Added dock items for BlackBox definitions in the dock.
+                ** Selecting BlackBoxInstance from the parts dock will now redirect the user to the definitions dock.
         * Implemented double click to center view inside minimap.
         * Added settings option to change the view theme from light(normal) to dark.
             ** The theme gets passed down to the toolbar and menus on the canvas.
@@ -24,12 +51,14 @@ Version 18:
         * The user can now search using regex (eg. blah, *blah, blah*, *blah*)
         * Text truncation now uses Outer-In truncation. Ie Comp...ance instead of Component...
         * Implemented "secondary" edit field in canvas.
-			** Some fields are drop downs.
-		* The hardware dock items are now disabled for HardwareClusters and HardwareDefinitions.
-			** The dock can still be opened but the dock items can't be clicked on.
+            ** Some fields are drop downs.
+        * The hardware dock items are now disabled for HardwareClusters and HardwareDefinitions.
+            ** The dock can still be opened but the dock items can't be clicked on.
+        * Enabled all middleware's for local node deployment.
 		* Implemented search suggestions.
 			** Selecting an item from the suggestions list will auto-complete your search and trigger a search action.
 		* Context toolbar's connect menu now doesn't display the parent entity for entities that have the same parent as the selected entity.
+
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.

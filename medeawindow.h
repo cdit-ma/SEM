@@ -69,6 +69,8 @@ public:
     ~MedeaWindow();
 
 signals:
+
+
     void window_ConnectViewAndSetupModel(NodeView* view);
     void jenkins_RunGroovyScript(QString groovyScriptPath);
 
@@ -84,7 +86,9 @@ signals:
     void window_SortModel();
 
     void window_searchItemClicked(SearchItemButton* item);
-    void window_aspectToggleDoubleClicked(AspectToggleWidget* aspect);
+    void window_aspectDoubleClicked(VIEW_ASPECT aspect);
+    void window_toggleAspect(VIEW_ASPECT aspect, bool on);
+    void window_centerAspect(VIEW_ASPECT aspect);
 
     void window_updateActionsEnabled();
 
@@ -101,7 +105,7 @@ public slots:
     void settingChanged(QString groupName, QString keyName, QString value);
 
     void setupInitialSettings();
-    void aspectToggleClicked(bool checked, int state);
+
 
     void jenkinsExport();
     void cutsExport();
@@ -149,6 +153,8 @@ private slots:
 
     void setClipboard(QString value);
     void setAttributeModel(AttributeTableModel* model);
+
+    void forceToggleAspect(VIEW_ASPECT aspect, bool on);
     void setViewAspects(QStringList aspects);
     void setMenuActionEnabled(QString action, bool enable);
     QIcon getIcon(QString alias, QString image);
@@ -338,6 +344,7 @@ private:
     AspectToggleWidget* workloadToggle;
     AspectToggleWidget* assemblyToggle;
     AspectToggleWidget* hardwareToggle;
+    QList<AspectToggleWidget*> aspectToggles;
 
     QProgressBar* progressBar;
     QLabel* progressLabel;

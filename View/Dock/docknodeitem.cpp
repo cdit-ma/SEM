@@ -482,7 +482,7 @@ void DockNodeItem::childDockItemHidden()
  * This adds/removes highlight to this dock item.
  * @param node
  */
-void DockNodeItem::highlightDockItem(EntityItem *node)
+void DockNodeItem::highlightDockItem(NodeItem *node)
 {
     if (node == getNodeItem()) {
         switch (state) {

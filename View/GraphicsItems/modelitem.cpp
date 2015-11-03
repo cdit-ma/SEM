@@ -5,10 +5,7 @@
 
 ModelItem::ModelItem(Node *node, bool IN_SUBVIEW):  GraphMLItem(node, GraphMLItem::MODEL_ITEM)
 {
-    qCritical() << "MODEL ITEM";
     setInSubView(IN_SUBVIEW);
-    //Cache on Graphics card! May Artifact.
-    setCacheMode(QGraphicsItem::DeviceCoordinateCache);
 
     modelCircleColor = Qt::gray;
     topRightColor = QColor(254,184,126);
@@ -126,20 +123,10 @@ void ModelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     }
 
     //Setup the Pen
-    QPen pen = this->pen;
-
-    painter->setPen(pen);
-
-    if(isSelected()){
-        pen = this->selectedPen;
-    }
-
-    painter->setPen(pen);
+    painter->setPen(getCurrentPen());
     painter->setBrush(modelCircleColor);
     //Draw the center circle
     painter->drawEllipse(quadrant);
-
-    painter->drawRect(bottomInputRect());
 }
 
 void ModelItem::graphMLDataChanged(GraphMLData *data)
@@ -147,8 +134,6 @@ void ModelItem::graphMLDataChanged(GraphMLData *data)
     if(getGraphML() && data){
         QString keyName = data->getKeyName();
         QString value = data->getValue();
-
-        qCritical() << "SETTING: " << keyName << " : " << value;
         if(keyName == "label"){
 
             if(topInputItem){

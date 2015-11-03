@@ -48,6 +48,7 @@
 #define WINDOW_W "01-03-Width"
 #define WINDOW_H "01-04-Height"
 #define WINDOW_MAX_STATE "01-05-Maximized"
+#define WINDOW_FULL_SCREEN "01-06-Full_Screen_Mode"
 
 #define AUTO_CENTER_VIEW "02-01-Auto_Center_View"
 #define SELECT_ON_CREATION "02-02-Select_Entity_On_Creation"
@@ -57,9 +58,9 @@
 #define SHOW_LOCAL_NODE "02-06-Show_Local_Node"
 #define DARK_THEME "02-07-Dark_Theme_On"
 
-#define ASPECT_D "03-01-Definitions"
-#define ASPECT_W "03-02-Workload"
-#define ASPECT_A "03-03-Assembly"
+#define ASPECT_I "03-01-Interfaces"
+#define ASPECT_B "03-02-Behaviour"
+#define ASPECT_A "03-03-Assemblies"
 #define ASPECT_H "03-04-Hardware"
 #define DOCK_VISIBLE "04-01-Hide_Dock"
 #define TOOLBAR_VISIBLE "05-00-00-Hide_Toolbar"
@@ -131,6 +132,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseGUI();
     makeConnections();
     newProject();
+
+
 }
 
 
@@ -234,6 +237,8 @@ void MedeaWindow::modelReady()
 
     //cuts_runGeneration->trigger();
 
+     //showFullScreen();
+
 }
 
 
@@ -285,6 +290,12 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
         }else{
             setWindowState(Qt::WindowNoState);
         }
+    }else if(keyName == WINDOW_FULL_SCREEN && isBool){
+        if(boolValue){
+            showFullScreen();
+        }else{
+            showNormal();
+        }
     }else if(keyName == LOG_DEBUGGING && isBool){
         if(nodeView){
             emit nodeView->view_EnableDebugLogging(boolValue, applicationDirectory);
@@ -315,18 +326,14 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
             toolbarButton->setChecked(boolValue);
             toolbarButton->clicked(boolValue);
         }
-    }else if(keyName == ASPECT_D && isBool){
+    }else if(keyName == ASPECT_I && isBool){
         definitionsToggle->setClicked(boolValue);
-        definitionsToggle->aspectToggle_clicked(boolValue, 0);
-    }else if(keyName == ASPECT_W && isBool){
+    }else if(keyName == ASPECT_B && isBool){
         workloadToggle->setClicked(boolValue);
-        workloadToggle->aspectToggle_clicked(boolValue, 0);
     }else if(keyName == ASPECT_A && isBool){
         assemblyToggle->setClicked(boolValue);
-        assemblyToggle->aspectToggle_clicked(boolValue, 0);
     }else if(keyName == ASPECT_H && isBool){
         hardwareToggle->setClicked(boolValue);
-        hardwareToggle->aspectToggle_clicked(boolValue, 0);
     }else if(keyName == JENKINS_URL){
         if(jenkinsManager){
             jenkinsManager->setURL(value);
@@ -455,10 +462,18 @@ void MedeaWindow::initialiseGUI()
     projectName->setStyleSheet("color: black; font-size: 16px; text-align: left; padding: 8px;");
     projectName->setFixedWidth(200);
 
-    definitionsToggle = new AspectToggleWidget("Interfaces", rightPanelWidth/2, this);
-    workloadToggle = new AspectToggleWidget("Behaviour", rightPanelWidth/2, this);
-    assemblyToggle = new AspectToggleWidget("Assemblies", rightPanelWidth/2, this);
-    hardwareToggle = new AspectToggleWidget("Hardware", rightPanelWidth/2, this);
+
+    definitionsToggle = new AspectToggleWidget(VA_INTERFACES, rightPanelWidth/2, this);
+    workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, rightPanelWidth/2, this);
+    assemblyToggle = new AspectToggleWidget(VA_ASSEMBLIES, rightPanelWidth/2, this);
+    hardwareToggle = new AspectToggleWidget(VA_HARDWARE, rightPanelWidth/2, this);
+
+
+
+    aspectToggles << definitionsToggle;
+    aspectToggles << workloadToggle;
+    aspectToggles << assemblyToggle;
+    aspectToggles << hardwareToggle;
 
     // setup progress bar
     progressBar->setVisible(false);
@@ -694,7 +709,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     model_validateModel->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_V));
 
     model_ExecuteLocalJob = model_menu->addAction(getIcon("Actions", "Job_Build"), "Launch: Local Deployment");
-    model_ExecuteLocalJob->setEnabled(false);
+    model_ExecuteLocalJob->setEnabled(true);
     model_ExecuteLocalJob->setToolTip("Requires Valid CUTS and Windows");
 
     button->setMenu(menu);
@@ -1229,6 +1244,12 @@ void MedeaWindow::makeConnections()
 {
     validateResults.connectToWindow(this);
 
+    connect(this, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)), nodeView, SLOT(toggleAspect(VIEW_ASPECT,bool)));
+    connect(this, SIGNAL(window_centerAspect(VIEW_ASPECT)), nodeView, SLOT(centerAspect(VIEW_ASPECT)));
+
+    connect(nodeView, SIGNAL(view_toggleAspect(VIEW_ASPECT, bool)), this, SLOT(forceToggleAspect(VIEW_ASPECT,bool)));
+
+
     connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), definitionsToggle, SLOT(highlightToggleButton(QString)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), workloadToggle, SLOT(highlightToggleButton(QString)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), assemblyToggle, SLOT(highlightToggleButton(QString)));
@@ -1373,9 +1394,9 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
 
-    connect(nodeView, SIGNAL(view_nodeConstructed(EntityItem*)), partsDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_nodeConstructed(EntityItem*)), hardwareDock, SLOT(nodeConstructed(EntityItem*)));
-    connect(nodeView, SIGNAL(view_nodeConstructed(EntityItem*)), definitionsDock, SLOT(nodeConstructed(EntityItem*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
+    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
 
     connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), hardwareDock, SLOT(edgeDeleted(int, int)));
     connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), definitionsDock, SLOT(edgeDeleted(int, int)));
@@ -1761,6 +1782,14 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
     updateWidgetMask(docksArea, dockButtonsBox, true);
     updateDataTable();
 
+
+    QRect canvasRect;
+    canvasRect.setHeight(height()-1);
+
+    canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
+    canvasRect.moveTopLeft(QPoint(docksArea->width() + 15, 0));
+
+
     /*
     double newHeight = docksArea->height();
     if (dockStandAloneDialog->isVisible()) {
@@ -1773,6 +1802,7 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
 
     // update the stored view center point and re-center the view
     if (nodeView && controller) {
+        nodeView->visibleViewRectChanged(canvasRect);
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
     }
@@ -1827,62 +1857,6 @@ void MedeaWindow::setupInitialSettings()
 }
 
 
-/**
- * @brief MedeaWindow::aspectToggleClicked
- * @param checked
- * @param state
- */
-void MedeaWindow::aspectToggleClicked(bool checked, int state)
-{
-    AspectToggleWidget* senderAspect = qobject_cast<AspectToggleWidget*>(QObject::sender());
-
-    if (senderAspect) {
-
-        QStringList newAspects = checkedViewAspects;
-        QString aspect = senderAspect->getText();
-
-        if (aspect == "Interfaces") {
-            aspect = "Definitions";
-        } else if (aspect == "Behaviour") {
-            aspect = "Workload";
-        } else if (aspect == "Assemblies") {
-            aspect = "Assembly";
-        }
-
-        if (!checked) {
-            newAspects.removeAll(aspect);
-        } else {
-
-            switch (state) {
-            case -1:
-                break;
-            case 0:
-                if (!newAspects.contains(aspect)) {
-                    newAspects.append(aspect);
-                }
-                break;
-            case 1:
-                newAspects.clear();
-                newAspects.append(aspect);
-                emit window_aspectToggleDoubleClicked(senderAspect);
-                break;
-            case 2:
-                if (!newAspects.contains(aspect)) {
-                    newAspects.append(aspect);
-                }
-                break;
-            }
-        }
-
-        window_AspectsChanged(newAspects);
-
-        // if state == MIDDLECLICKED, center on the toggled
-        // aspect after the list of aspects has been updated
-        if (checked && state == 2) {
-            nodeView->centerAspect(aspect);
-        }
-    }
-}
 
 
 /**
@@ -1899,7 +1873,7 @@ void MedeaWindow::jenkinsExport()
  * @brief MedeaWindow::cutsExport
  */
 void MedeaWindow::cutsExport()
-{
+{   
     cuts_TempExport = true;
     exportTempFile();
 }
@@ -2224,7 +2198,7 @@ void MedeaWindow::on_actionExit_triggered()
  */
 void MedeaWindow::on_searchResultItem_clicked(int ID)
 {
-    nodeView->selectAndCenter(0, ID);
+    nodeView->selectAndCenterItem(ID);
 }
 
 
@@ -2234,7 +2208,7 @@ void MedeaWindow::on_searchResultItem_clicked(int ID)
  */
 void MedeaWindow::on_validationItem_clicked(int ID)
 {
-    nodeView->selectAndCenter(0, ID);
+    nodeView->selectAndCenterItem(ID);
 }
 
 
@@ -2799,6 +2773,16 @@ void MedeaWindow::setAttributeModel(AttributeTableModel *model)
     dataTable->clearSelection();
     dataTable->setModel(model);
     updateDataTable();
+}
+
+void MedeaWindow::forceToggleAspect(VIEW_ASPECT aspect, bool on)
+{
+    foreach(AspectToggleWidget* aspectToggle, aspectToggles){
+        if(aspectToggle->getAspect() == aspect){
+            aspectToggle->setClicked(on);
+            return;
+        }
+    }
 }
 
 
@@ -3399,6 +3383,7 @@ QTemporaryFile* MedeaWindow::writeTemporaryFile(QString data)
 
     return tempFile;
 }
+
 
 
 /**

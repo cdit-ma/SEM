@@ -160,7 +160,7 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     if(selectedItem && selectedItem->isEntityItem()){
         selectedNodeItem = (EntityItem*)selectedItem;
     }
-    if(selectedNodeItem){
+    if(!selectedNodeItem){
         return;
     }
     DockNodeItem* dockNodeItem = dynamic_cast<DockNodeItem*>(sender());
@@ -248,60 +248,65 @@ void DefinitionsDockScrollArea::updateDock()
  * It checks to see if a dock item needs to be constucted for the new node.
  * @param node
  */
-void DefinitionsDockScrollArea::nodeConstructed(EntityItem* nodeItem)
+void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
 {
     if (!nodeItem) {
         return;
     }
 
-    QString nodeKind = nodeItem->getNodeKind();
-
-    if (nodeKind == "Component" || nodeKind == "BlackBox") {
-
-        DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
+    if(nodeItem->isEntityItem()){
+        EntityItem* entityItem = (EntityItem*) nodeItem;
 
 
+        QString nodeKind = entityItem->getNodeKind();
 
-        EntityItem* fileItem = (EntityItem*)nodeItem->getParent();
+        if (nodeKind == "Component" || nodeKind == "BlackBox") {
 
-        if (!fileItem) {
-            qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Component/BlackBox's parent item is null.";
-            return;
+            DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
+
+
+
+            EntityItem* fileItem = entityItem->getParentEntityItem();
+
+            if (!fileItem) {
+                qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Component/BlackBox's parent item is null.";
+                return;
+            }
+
+            QString fileID = QString::number(fileItem->getID());
+
+            // check if there is already a layout and label for the parent File
+            if (!fileLayoutItems.contains(fileID)){
+                // create a new File label and add it to the File's layout
+                DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
+                QVBoxLayout* fileLayout = new QVBoxLayout();
+
+                fileLayoutItems[fileID] = fileLayout;
+                fileLayout->addWidget(fileDockItem);
+                addDockNodeItem(fileDockItem, -1, false);
+
+                resortDockItems(fileDockItem);
+                connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
+            }
+
+            // connect the new dock item to its parent file item
+            DockNodeItem* parentItem = getDockNodeItem(fileID);
+            if (parentItem) {
+                dockItem->setParentDockNodeItem(parentItem);
+                parentItem->addChildDockItem(dockItem);
+            }
+
+            if (fileLayoutItems.contains(fileID)) {
+                QVBoxLayout* fileLayout = fileLayoutItems[fileID];
+                fileLayout->addWidget(dockItem);
+                addDockNodeItem(dockItem, -1, false);
+                resortDockItems(dockItem);
+                connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
+            }
         }
 
-        QString fileID = QString::number(fileItem->getID());
-
-        // check if there is already a layout and label for the parent File
-        if (!fileLayoutItems.contains(fileID)){
-            // create a new File label and add it to the File's layout
-            DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
-            QVBoxLayout* fileLayout = new QVBoxLayout();
-
-            fileLayoutItems[fileID] = fileLayout;
-            fileLayout->addWidget(fileDockItem);
-            addDockNodeItem(fileDockItem, -1, false);
-
-            resortDockItems(fileDockItem);
-            connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
-        }
-
-        // connect the new dock item to its parent file item
-        DockNodeItem* parentItem = getDockNodeItem(fileID);
-        if (parentItem) {
-            dockItem->setParentDockNodeItem(parentItem);
-            parentItem->addChildDockItem(dockItem);
-        }
-
-        if (fileLayoutItems.contains(fileID)) {
-            QVBoxLayout* fileLayout = fileLayoutItems[fileID];
-            fileLayout->addWidget(dockItem);
-            addDockNodeItem(dockItem, -1, false);
-            resortDockItems(dockItem);
-            connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
-        }
+        refreshDock();
     }
-
-    refreshDock();
 }
 /**
  * @brief DefinitionsDockScrollArea::refreshDock

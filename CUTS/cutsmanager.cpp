@@ -236,12 +236,16 @@ void CUTSManager::executeCUTS(QString path, int executionTime)
 
     path = path + "descriptors/";
 
+    if(modelMiddleware == ""){
+        modelMiddleware = "tao";
+    }
+
     QString program = "perl";
     QStringList args;
     args << scriptsPath + "runCuts.pl";
     args << "-n" << modelName;
     args << "-t" << QString::number(executionTime);
-    args << "-m" << "tao";
+    args << "-m" << modelMiddleware;
 
     emit gotLiveCUTSOutput("Starting: " + program + " " + args.join(" ") + " in Path: " + path + "\n");
     process->setProcessChannelMode(QProcess::MergedChannels);
@@ -312,11 +316,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
 
     while(!modelXML.isNull()){
         QString middleware = evaluateQuery2String(query, "gml:data[@key='" + keys["middleware"] + "']/string()", &modelXML);
-        if(middleware != "tao"){
-            //TODO IMPLEMENT ALL MIDDLEWARE!
-            emit executedXSLGeneration(false, "Middleware is: " + middleware + " Must Use tao middleware!");
-            return;
-        }
+        modelMiddleware = middleware;
         modelXML = modelsXML->next();
     }
 
@@ -417,7 +417,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
             if(longLabel.isEmpty()){
                 longLabel += label;
             }else{
-                longLabel = label + "%%" + longLabel;
+                longLabel = label + "%" + longLabel;
             }
 
             //Select parent
@@ -471,14 +471,15 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
     }
 
     queueComponentGeneration(processedGraphmlPath, deployedComponents, outputPath);
-    queueComponentInstanceGeneration(processedGraphmlPath,deployedComponentInstances, outputPath);
-    queueIDLGeneration(processedGraphmlPath,IDLs, outputPath);
+    queueComponentInstanceGeneration(processedGraphmlPath, deployedComponentInstances, outputPath);
+    queueIDLGeneration(processedGraphmlPath, IDLs, outputPath);
     queueDeploymentGeneration(processedGraphmlPath, mpcFiles, outputPath);
-    //queueHardwareGeneration(processedGraphmlPath, hardwareNodes, outputPath);
+    queueHardwareGeneration(processedGraphmlPath, hardwareNodes, outputPath);
 
     //Start Queue
     processQueue();
 }
+
 
 bool CUTSManager::ensureDirectory(QString dirPath)
 {
@@ -756,11 +757,17 @@ void CUTSManager::queueComponentGeneration(QString graphmlPath, QStringList comp
  */
 void CUTSManager::queueComponentInstanceGeneration(QString graphmlPath, QStringList componentInstances, QString outputPath)
 {
+    QString libPath = outputPath + "lib/";
+
+    if(!ensureDirectory(libPath)){
+        qCritical() << "Can't make directory!";
+    }
+
     foreach(QString componentInstance, componentInstances){
         //Construct the parameters
         QStringList parameters;
         parameters << "ComponentInstance" << componentInstance;
-        QString outputFile = outputPath + componentInstance + "%%QoS.dpd";
+        QString outputFile = libPath + componentInstance + "%QoS.dpd";
         QString xslFile = XSLTransformPath + "graphml2dpd.xsl";
 
         //Queue the XSL Transform
@@ -804,7 +811,7 @@ void CUTSManager::queueDeploymentGeneration(QString graphmlPath, QStringList mpc
     mwcParams << mpcFiles.join(",");
 
     QStringList transformsExts;
-    transformsExts << "cdd" << "cdp" << "ddd";
+    transformsExts << "cdd" << "cdp";
 
     QString descriptorPath = outputPath + "descriptors/";
 
@@ -826,7 +833,23 @@ void CUTSManager::queueDeploymentGeneration(QString graphmlPath, QStringList mpc
  */
 void CUTSManager::queueHardwareGeneration(QString graphmlPath, QStringList hardwareNodes, QString outputPath)
 {
-    //TODO
+    QString libPath = outputPath + "lib/";
+
+    if(!ensureDirectory(libPath)){
+        qCritical() << "Can't make directory!";
+    }
+
+
+
+    foreach(QString hardwareNode, hardwareNodes){
+        //Construct the parameters
+        QStringList parameters;
+        parameters << "HardwareNode" << hardwareNode;
+        QString outputFile = libPath + hardwareNode + "%QoS.ddd";
+        QString xslFile = XSLTransformPath + "graphml2ddd.xsl";
+        //Queue the XSL Transform
+        queueXSLTransform(graphmlPath, outputFile, xslFile, parameters);
+    }
 }
 
 QString CUTSManager::preProcessIDL(QString inputFilePath, QString outputPath)

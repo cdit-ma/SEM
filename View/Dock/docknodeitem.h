@@ -50,7 +50,7 @@ public slots:
     void updateData();
 
     void childDockItemHidden();
-    void highlightDockItem(EntityItem* node);
+    void highlightDockItem(NodeItem *node);
 
 private:
     void setupLayout();

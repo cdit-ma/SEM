@@ -1,4 +1,5 @@
 #include "inputitem.h"
+#include "graphmlitem.h"
 #include <QComboBox>
 #include <QGraphicsScene>
 #include <QPainter>

@@ -3,10 +3,12 @@
 #include <QGraphicsObject>
 #include <QGraphicsProxyWidget>
 #include "editabletextitem.h"
-#include "graphmlitem.h"
+
 #include <QComboBox>
 #include <QTime>
 #include <QListWidget>
+
+class GraphMLItem;
 
 class InputItem : public QGraphicsObject
 {

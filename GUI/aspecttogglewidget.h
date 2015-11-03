@@ -1,6 +1,8 @@
 #ifndef ASPECTTOGGLEWIDGET_H
 #define ASPECTTOGGLEWIDGET_H
 
+#include "../enumerations.h"
+
 #include <QWidget>
 #include <QMouseEvent>
 #include <QFrame>
@@ -12,9 +14,10 @@ class AspectToggleWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AspectToggleWidget(QString text, double size,  MedeaWindow* parent);
+    explicit AspectToggleWidget(VIEW_ASPECT aspect, double size,  MedeaWindow* parent);
 
     QString getText();
+    VIEW_ASPECT getAspect();
 
     bool isClicked();
     void setClicked(bool checked);
@@ -25,17 +28,26 @@ protected:
 
 signals:
     void aspectToggle_clicked(bool checked, int state);
+    void aspectToggle_doubleClicked(VIEW_ASPECT aspect);
+    void aspectToggle_middleClicked(VIEW_ASPECT aspect);
+
+    void aspectToggled(VIEW_ASPECT aspect, bool on);
 
 public slots:
-    void aspectDoubleClicked(AspectToggleWidget* aspect);
+    void aspectDoubleClicked(VIEW_ASPECT aspect);
     void highlightToggleButton(QString aspect);
 
 private:
+    QString toColorStr(QColor color, int alpha);
     void setupColor();
     void setupLayout(double widgetSize);
+    void stateChanged();
     void updateStyleSheet();
 
     void click(bool checked, int state);
+
+
+    VIEW_ASPECT aspect;
 
     QString aspectText;
     QLabel* aspectLabel;

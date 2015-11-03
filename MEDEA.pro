@@ -131,7 +131,8 @@ HEADERS += \
     Model/BehaviourDefinitions/inputparameter.h \
     Model/BehaviourDefinitions/parameter.h \
     Model/BehaviourDefinitions/returnparameter.h \
-    GUI/searchsuggestcompletion.h
+    GUI/searchsuggestcompletion.h \
+    enumerations.h
 
 SOURCES += \
     Controller/controller.cpp \

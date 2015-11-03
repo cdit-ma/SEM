@@ -8,6 +8,7 @@
 #include <QDebug>
 #include "nodeitem.h"
 #include "entityitem.h"
+#include <QPen>
 
 #define MODEL_WIDTH 72
 #define MODEL_HEIGHT 72
@@ -72,16 +73,18 @@ GraphMLItem::GraphMLItem(GraphML *attachedGraph, GraphMLItem::GUI_KIND kind)
 
     ID = -1;
 
-    if(attachedGraph && attachedGraph->isNode()){
+    if(attachedGraph){
         ID = attachedGraph->getID();
-        nodeKind = attachedGraph->getDataValue("kind");
+        if(attachedGraph->isNode()){
+            nodeKind = attachedGraph->getDataValue("kind");
+        }
     }
 
     setFlag(QGraphicsItem::ItemIsSelectable, false);
 
     setAcceptHoverEvents(true);
 
-
+    setupPens();
 }
 
 GraphMLItem::RENDER_STATE GraphMLItem::getRenderState() const
@@ -101,6 +104,11 @@ void GraphMLItem::setRenderState(GraphMLItem::RENDER_STATE renderState)
     }
 }
 
+void GraphMLItem::lastChildRemoved()
+{
+    //Do nothing
+}
+
 void GraphMLItem::addChild(GraphMLItem *item)
 {
     int ID = item->getID();
@@ -110,6 +118,9 @@ void GraphMLItem::addChild(GraphMLItem *item)
 void GraphMLItem::removeChild(int ID)
 {
     children.remove(ID);
+    if(children.isEmpty()){
+        lastChildRemoved();
+    }
 }
 
 bool GraphMLItem::hasChildren()
@@ -206,6 +217,11 @@ GraphMLItem::~GraphMLItem()
     }
 }
 
+QRectF GraphMLItem::sceneBoundingRect() const
+{
+    return QGraphicsObject::sceneBoundingRect();
+}
+
 QString GraphMLItem::getNodeKind()
 {
     return nodeKind;
@@ -289,6 +305,10 @@ bool GraphMLItem::isDataEditable(QString keyName)
     return false;
 }
 
+QPen GraphMLItem::getCurrentPen()
+{
+    return currentPen;
+}
 
 int GraphMLItem::getID()
 {
@@ -302,20 +322,31 @@ qreal GraphMLItem::getZoomFactor()
 
 void GraphMLItem::setSelected(bool selected)
 {
-    IS_SELECTED = selected;
-    update();
+    if(IS_SELECTED != selected){
+        IS_SELECTED = selected;
+        updateCurrentPen();
+        update();
+    }
 }
 
 void GraphMLItem::setHovered(bool isHovered)
 {
-    IS_HOVERED = isHovered;
-    update();
+    if(IS_HOVERED != isHovered){
+        IS_HOVERED = isHovered;
+        if(!IS_HOVERED){
+            unsetCursor();
+        }
+        updateCurrentPen();
+        update();
+    }
 }
 
 void GraphMLItem::setHighlighted(bool isHighlighted)
 {
-    IS_HIGHLIGHTED = isHighlighted;
-    update();
+    if(IS_HIGHLIGHTED != isHighlighted){
+        IS_HIGHLIGHTED = isHighlighted;
+        update();
+    }
 }
 
 bool GraphMLItem::isSelected()
@@ -353,12 +384,18 @@ void GraphMLItem::handleSelection(bool setSelected, bool controlDown)
     }
 }
 
-void GraphMLItem::handleHighlight(bool entered)
+void GraphMLItem::handleHover(bool entered)
 {
-    if(isHovered() != entered){
+    if(canHover() && (IS_HOVERED != entered)){
         emit GraphMLItem_Hovered(getID(), entered);
-        //setHighlighted(entered);
     }
+}
+
+QRectF GraphMLItem::adjustRectForPen(QRectF rect, QPen pen)
+{
+    qreal penWidth = pen.widthF() / 2;
+    rect.adjust(penWidth, penWidth, -penWidth, -penWidth);
+    return rect;
 }
 
 
@@ -370,4 +407,55 @@ bool GraphMLItem::canHover()
 void GraphMLItem::zoomChanged(qreal zoom)
 {
     currentZoomFactor = zoom;
+    updateCurrentPen(true);
+}
+
+void GraphMLItem::setupPens()
+{
+    defaultPen.setWidth(1);
+    defaultPen.setColor(Qt::black);
+    selectedPen.setColor(Qt::blue);
+    selectedPen.setWidth(1);
+    currentPen = defaultPen;
+}
+
+void GraphMLItem::updateCurrentPen(bool zoomChanged)
+{
+    if(zoomChanged){
+        //Update Pen Width!
+        qreal selectedPenWidth = qMax(SELECTED_LINE_WIDTH / currentZoomFactor, 1.0);
+        selectedPen.setWidthF(selectedPenWidth);
+    }
+
+    bool useDefault = !isSelected();
+
+    if(useDefault){
+        currentPen = defaultPen;
+    }else{
+        currentPen = selectedPen;
+    }
+
+    if(isHovered()){
+        if(useDefault){
+            currentPen.setColor(QColor(120,120,120));
+        }else{
+            currentPen.setColor(currentPen.color().lighter());
+        }
+    }
+}
+
+void GraphMLItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+{
+    handleHover(true);
+}
+
+void GraphMLItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+{
+    handleHover(false);
+    unsetCursor();
+}
+
+void GraphMLItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+{
+    handleHover(true);
 }

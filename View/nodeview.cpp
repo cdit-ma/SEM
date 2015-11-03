@@ -33,11 +33,13 @@
 #define ZOOM_SCALE_INCREMENTOR 1.05
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 
+#define VIEW_PADDING 1.1
+#define CENTER_ON_PADDING 1 / 0.25
+
 #define MAX_ZOOM_RATIO 50
 #define MIN_ZOOM_RATIO 2
 
-#define VIEW_PADDING 1.25
-#define CENTER_ON_RATIO 0.5
+
 
 #define THEME_LIGHT 0
 #define THEME_DARK 1
@@ -204,27 +206,14 @@ void NodeView::scrollContentsBy(int dx, int dy)
 }
 
 
-void NodeView::ensureAspect(int ID)
+void NodeView::enforceItemAspectOn(int ID)
 {
-    EntityItem* EntityItem = getEntityItemFromID(ID);
-    if(EntityItem){
-        Node* node = EntityItem->getNode();
-        if(node){
-            QStringList newAspects = currentAspects;
-
-            if(node->isDefinition()){
-                newAspects.append("Definitions");
-            }
-            if(node->isImpl()){
-                newAspects.append("Behaviour");
-            }
-            if(node->isInstance()){
-                newAspects.append("Assembly");
-            }
-
-            newAspects.removeDuplicates();
-            setAspects(newAspects);
-
+    GraphMLItem* item = getGraphMLItemFromID(ID);
+    if(item && item->isNodeItem()){
+        VIEW_ASPECT neededAspect = ((NodeItem*)item)->getViewAspect();
+        AspectItem* aspect = getAspectItem(neededAspect);
+        if(!aspect->isVisible()){
+            emit view_toggleAspect(neededAspect, true);
         }
     }
 }
@@ -324,9 +313,8 @@ QRectF NodeView::getVisibleRect()
  * @param rect - rectangle to center the view on
  * @param padding - padding around the rectangle
  * @param addToMap - determines whether to add the rect/pos to the maps
- * @param sizeRatio - determines how much the rect should be scaled
  */
-void NodeView::centerRect(QRectF rect, double padding, bool addToMap, double sizeRatio)
+void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
 {
     // store rect's original center
     QPointF rectCenter = rect.center();
@@ -353,21 +341,24 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap, double siz
     }
 
     // add the padding to the rect to be centered
-    rect.setWidth(rect.width()*padding);
-    rect.setHeight(rect.height()*padding);
+    rect.setWidth(rect.width() * padding);
+    rect.setHeight(rect.height() * padding);
 
-    // calculate the ratio - viewport : rect
+    // calculate the ratio (viewport : rect)
     // scale depending on which side requires less scaling
-    double widthScale = viewport()->width() / rect.width() * sizeRatio;
-    double heightScale = viewport()->height() / rect.height() * sizeRatio;
+    double widthScale = visibleViewRect.width() / rect.width();
+    double heightScale = visibleViewRect.height() / rect.height();
     double newScale = qMin(widthScale, heightScale);
+
+    QPoint centerOffset = viewport()->rect().center() - visibleViewRect.center();
+    QPointF sceneOffset = QPointF(centerOffset.x() / newScale, centerOffset.y() / newScale);
 
     // reset current transform before scaling
     setTransform(QTransform());
     scale(newScale, newScale);
 
     // center the view on rect's original center
-    centerViewOn(rectCenter);
+    centerViewOn(rectCenter + sceneOffset);
 
     // check if any of the aspect toggle buttons need highlighting
     aspectGraphicsChanged();
@@ -422,7 +413,7 @@ ModelItem *NodeView::getModelItem()
     ModelItem* model = 0;
     if(controller){
         int ID = controller->getModel()->getID();
-        GraphMLItem* item = getGraphMLItemFromHash(ID);
+        GraphMLItem* item = getGraphMLItemFromID(ID);
         model = (ModelItem*)item;
     }
     return model;
@@ -546,6 +537,26 @@ QList<EdgeItem *> NodeView::getEdgeItemsList()
     return edgeItems;
 }
 
+void NodeView::paintEvent(QPaintEvent * e)
+{
+    QGraphicsView::paintEvent(e);
+/*
+    QPainter painter(this->viewport());
+
+    painter.setPen(Qt::black);
+    painter.drawRect(visibleViewRect);
+
+    painter.setPen(Qt::red);
+    painter.drawLine(QLine(visibleViewRect.topLeft(),visibleViewRect.bottomRight()));
+    painter.drawLine(QLine(visibleViewRect.topRight(),visibleViewRect.bottomLeft()));
+
+    painter.setPen(Qt::blue);
+    painter.drawLine(QLine(viewport()->rect().topLeft(),viewport()->rect().bottomRight()));
+    painter.drawLine(QLine(viewport()->rect().topRight(),viewport()->rect().bottomLeft()));
+*/
+
+}
+
 
 /**
  * @brief NodeView::allowedFocus
@@ -577,30 +588,11 @@ bool NodeView::allowedFocus(QWidget *widget)
 }
 
 
-/**
- * @brief NodeView::getSelectedNode
- * This returns the currently selected node.
- * If there are multiple nodes selected, it returns null.
- * @return
- */
-Node* NodeView::getSelectedNode()
-{
-    GraphMLItem* item = getSelectedEntityItem();
-    if(item){
-        GraphML* graphml = item->getGraphML();
-        if(graphml->isNode()){
-            return (Node*)graphml;
-        }
-    }
-    return 0;
-}
-
-
 int NodeView::getSelectedNodeID()
 {
     if (selectedIDs.size() == 1) {
         int ID = selectedIDs[0];
-        GraphMLItem* item = getGraphMLItemFromHash(ID);
+        GraphMLItem* item = getGraphMLItemFromID(ID);
         if (item && item->isNodeItem()) {
             return item->getID();
         }
@@ -626,7 +618,7 @@ EntityItem *NodeView::getSelectedEntityItem()
 {
     int ID = getSelectedNodeID();
     if(ID != -1){
-        GraphMLItem* item =getGraphMLItemFromHash(ID);
+        GraphMLItem* item =getGraphMLItemFromID(ID);
         if(item->isEntityItem()){
             return (EntityItem*)item;
         }
@@ -638,7 +630,7 @@ NodeItem *NodeView::getSelectedNodeItem()
 {
     int ID = getSelectedNodeID();
     if(ID != -1){
-        GraphMLItem* item =getGraphMLItemFromHash(ID);
+        GraphMLItem* item =getGraphMLItemFromID(ID);
         if(item && item->isNodeItem()){
             return (EntityItem*)item;
         }
@@ -651,7 +643,7 @@ GraphMLItem *NodeView::getSelectedGraphMLItem()
 {
     int ID = getSelectedID();
     if(ID != -1){
-        GraphMLItem* item =getGraphMLItemFromHash(ID);
+        GraphMLItem* item =getGraphMLItemFromID(ID);
         return item;
     }
     return 0;
@@ -662,11 +654,11 @@ GraphMLItem *NodeView::getSelectedGraphMLItem()
  * @brief NodeView::getSelectedEntityItems
  * @return
  */
-QList<GraphMLItem *> NodeView::getSelectedGraphMLItems()
+QList<GraphMLItem *> NodeView::getSelectedItems()
 {
     QList<GraphMLItem*> selectedItems;
     foreach (int ID, selectedIDs) {
-        GraphMLItem* selectedItem = getGraphMLItemFromHash(ID);
+        GraphMLItem* selectedItem = getGraphMLItemFromID(ID);
         if (selectedItem) {
             selectedItems.append(selectedItem);
         }
@@ -674,9 +666,9 @@ QList<GraphMLItem *> NodeView::getSelectedGraphMLItems()
     return selectedItems;
 }
 
+/*
 QList<EntityItem *> NodeView::getSelectedEntityItems()
 {
-
     QList<EntityItem*> selectedItems;
     foreach (int ID, selectedIDs) {
         GraphMLItem* selectedItem = getGraphMLItemFromHash(ID);
@@ -685,8 +677,7 @@ QList<EntityItem *> NodeView::getSelectedEntityItems()
         }
     }
     return selectedItems;
-
-}
+}*/
 
 QList<int> NodeView::getSelectedNodeIDs()
 {
@@ -1078,7 +1069,6 @@ void NodeView::dropDownChangedValue(QString value)
         GraphMLItem* item = getSelectedGraphMLItem();
 
         if(item){
-            qCritical() << item;
             int ID = item->getID();
             QString dataType = getEditableDataKeyName(item).first;
             if(ID > 0){
@@ -1445,6 +1435,18 @@ void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
     aspectGraphicsChanged();
 }
 
+void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
+{
+    AspectItem* aspectItem = getAspectItem(aspect);
+    if(aspectItem){
+        aspectItem->setVisible(on);
+    }
+
+    if(AUTO_CENTER_ASPECTS) {
+        fitToScreen();
+    }
+}
+
 
 /**
  * @brief NodeView::sortNode
@@ -1494,8 +1496,10 @@ void NodeView::view_AspectToggled(int ID)
  */
 void NodeView::hardwareClusterMenuClicked(int viewMode)
 {
-    foreach (EntityItem* item, getSelectedEntityItems()) {
-        item->updateChildrenViewMode();
+    foreach(GraphMLItem* item, getSelectedItems()){
+        if(item->isEntityItem()){
+            ((EntityItem*)item)->updateChildrenViewMode(viewMode);
+        }
     }
 }
 
@@ -1504,26 +1508,11 @@ void NodeView::hardwareClusterMenuClicked(int viewMode)
  * @brief NodeView::centerAspect
  * @param aspect
  */
-void NodeView::centerAspect(QString aspect)
+void NodeView::centerAspect(VIEW_ASPECT aspect)
 {
-    if (controller) {
-
-        Node* model = controller->getModel();
-        Node* aspectNode = 0;
-
-        if (model) {
-            if (aspect == "Definitions") {
-                aspect = "Interface";
-            } else if (aspect == "Workload") {
-                aspect = "Behaviour";
-            }
-            aspect += "Definitions";
-            aspectNode = model->getChildrenOfKind(aspect).at(0);
-        }
-
-        if (aspectNode) {
-            centerOnItem(getEntityItemFromNode(aspectNode));
-        }
+    AspectItem* aspectItem = getAspectItem(aspect);
+    if(aspectItem){
+        centerOnItem(aspectItem);
     }
 }
 
@@ -1545,8 +1534,8 @@ void NodeView::sortEntireModel()
  */
 void NodeView::centerItem(GraphMLItem *item)
 {
-    if(!item){
-        item = getSelectedEntityItem();
+    if (!item) {
+        item = getSelectedGraphMLItem();
     }
     if (item) {
         centerRect(item->sceneBoundingRect());
@@ -1562,7 +1551,7 @@ void NodeView::centralizedItemMoved()
 
 void NodeView::centerItem(int ID)
 {
-    GraphMLItem* item = getGraphMLItemFromHash(ID);
+    GraphMLItem* item = getGraphMLItemFromID(ID);
     centerItem(item);
 }
 
@@ -1633,27 +1622,18 @@ void NodeView::centerInstance(int instanceID)
  */
 void NodeView::centerOnItem(GraphMLItem* item)
 {
-    EntityItem* entityItem = 0;
-
-    if (item) {
-        entityItem = qobject_cast<EntityItem*>(item);
-    } else {
-        entityItem = getSelectedEntityItem();
+    if (!item) {
+        item = getSelectedGraphMLItem();
     }
 
-    if (entityItem) {
-
+    if (item) {
         // if the selected node is a main container, just use centerItem()
         // we would only ever want to center and zoom into it
-        QString nodeKind = entityItem->getNodeKind();
-        if (nodeKind == "Model" || nodeKind.endsWith("Definitions")) {
-            centerItem(entityItem);
-            return;
+        if (item->isAspectItem()) {
+            centerItem(item);
+        } else {
+            centerRect(item->sceneBoundingRect(), CENTER_ON_PADDING, true);
         }
-
-        // set the centralised height to be CENTER_ON_RATIO of the window height
-        centerRect(entityItem->sceneBoundingRect(), 0, true, CENTER_ON_RATIO);
-
     } else {
         view_displayNotification("Select entity to center on.");
     }
@@ -1678,45 +1658,32 @@ void NodeView::editableItemHasFocus(bool hasFocus)
  * @param item - graphics item to select and center on
  * @param ID - ID of the graphics item to select and center on
  */
-void NodeView::selectAndCenter(GraphMLItem* item, int ID)
+void NodeView::selectAndCenterItem(int ID)
 {
-    if (!item) {
-        item = getGraphMLItemFromHash(ID);
-    }
+    GraphMLItem* item = getGraphMLItemFromID(ID);
 
-    if (item && item->isEntityItem()) {
-
-        EntityItem* entityItem = (EntityItem*) item;
-
-        // make sure the view aspect(s) that the item belongs to is turned on
-        QStringList neededAspects = currentAspects;
-//        foreach (QString aspect, entityItem->getAspects()) {
-//            if (!currentAspects.contains(aspect)) {
-//                neededAspects.append(aspect);
-//            }
-//        }
-
-        // update view aspects
-        setAspects(neededAspects, false);
-
+    if (item) {
+        enforceItemAspectOn(ID);
         // make sure that the parent of EntityItem (if there is one) is expanded
-        EntityItem* parentItem = entityItem->getParentEntityItem();
-        if (parentItem) {
+        GraphMLItem* parentItem = item->getParent();
+        if (parentItem && parentItem->isEntityItem()) {
+            EntityItem* parentEntity = (EntityItem*) parentItem;
+
             // make sure that the parent of nodeItem is expanded
-            if (!parentItem->isExpanded()) {
-                parentItem->setNodeExpanded(true);
+            if (!parentEntity->isExpanded()) {
+                parentEntity->setNodeExpanded(true);
             }
+
             // if it's a HardwareNode, make sure that its parent cluster's view mode is set to ALL
-            if (entityItem->getNodeKind() == "HardwareNode") {
-                parentItem->updateChildrenViewMode(0);
+            if (parentEntity->isHardwareCluster()) {
+                parentEntity->updateChildrenViewMode(0);
             }
         }
 
         // clear the selection, select the item and then center on it
         clearSelection();
-        appendToSelection(entityItem->getNode());
+        appendToSelection(item);
         centerOnItem(item);
-
     } else {
         view_displayNotification("Entity no longer exists!");
     }
@@ -1927,12 +1894,12 @@ void NodeView::hardwareClusterChildrenViewMenuClosed(EntityItem *EntityItem)
 
 void NodeView::itemEntered(int ID, bool enter)
 {
-    GraphMLItem* current = getGraphMLItemFromHash(ID);
+    GraphMLItem* current = getGraphMLItemFromID(ID);
     if(current && current->canHover()){
         current->setHovered(enter);
 
         if(enter){
-            GraphMLItem* prev = getGraphMLItemFromHash(highlightedID);
+            GraphMLItem* prev = getGraphMLItemFromID(highlightedID);
             if(prev){
                 prev->setHovered(false);
             }
@@ -1942,6 +1909,20 @@ void NodeView::itemEntered(int ID, bool enter)
             highlightedID = -1;
         }
     }
+}
+
+AspectItem *NodeView::getAspectItem(VIEW_ASPECT aspect)
+{
+    if(getModelItem()){
+        foreach(GraphMLItem* item, getModelItem()->getChildren()){
+            if(item->isAspectItem()){
+                if(((AspectItem*)item)->getViewAspect() == aspect){
+                    return (AspectItem*)item;
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 QPair<QString, bool> NodeView::getEditableDataKeyName(GraphMLItem *node)
@@ -2281,7 +2262,7 @@ void NodeView::showToolbar(QPoint position)
 
         // filter selected items into their corresponding lists
         foreach (int ID, selectedIDs) {
-            GraphMLItem* item = getGraphMLItemFromHash(ID);
+            GraphMLItem* item = getGraphMLItemFromID(ID);
 
             if (item->isNodeItem()){
                 NodeItem* nodeItem = (NodeItem*)item;
@@ -2361,7 +2342,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     Node* modelParent = parentNode;
 
     while(modelParent){
-        parentEntityItem = getGraphMLItemFromHash(modelParent->getID());
+        parentEntityItem = getGraphMLItemFromID(modelParent->getID());
         if(parentEntityItem){
             break;
         }
@@ -2425,24 +2406,10 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         }
 
     }else if(node->isAspect()){
-        AspectItem::ASPECT_POS aspectPos;
-        if(nodeKind.startsWith("Interface")){
-            aspectPos = AspectItem::AP_TOPLEFT;
-        }else if(nodeKind.startsWith("Behaviour")){
-            aspectPos = AspectItem::AP_TOPRIGHT;
-        }else if(nodeKind.startsWith("Hardware")){
-            aspectPos = AspectItem::AP_BOTRIGHT;
-        }else if(nodeKind.startsWith("Assembly")){
-            aspectPos = AspectItem::AP_BOTLEFT;
-        }
+        VIEW_ASPECT aspect = getViewAspectFromAspectNodeKind(nodeKind);
 
-        NodeItem* modelItem = (NodeItem*) getModelItem();
-        AspectItem* aspectItem = new AspectItem(node, modelItem, aspectPos);
-        connect(this, SIGNAL(view_AspectsChanged(QStringList)), aspectItem, SLOT(aspectsChanged(QStringList)));
+        AspectItem* aspectItem = new AspectItem(node, getModelItem(), aspect);
         item = aspectItem;
-
-
-        qCritical() << aspectItem;
 
     }else{
         item =  new EntityItem(node, parentNodeItem, IS_SUB_VIEW);
@@ -2451,12 +2418,9 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     if(item && node){
         NodeItem* entityItem = item;
 
-
-
-        //if(entityItem && node){
-            //Set the node as Visibablly connectable
-        //    entityItem->setNodeConnectable(isNodeVisuallyConnectable(node));
-        //}
+        if(entityItem->isEntityItem()){
+            ((EntityItem*)entityItem)->setNodeConnectable(isNodeVisuallyConnectable(node));
+        }
 
         if(node->isAspect()){
             QString aspectName = nodeKind.replace("Definitions","");
@@ -2521,8 +2485,8 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     }
 
 
-    EntityItem* srcGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromHash(src->getID()));
-    EntityItem* dstGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromHash(dst->getID()));
+    EntityItem* srcGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromID(src->getID()));
+    EntityItem* dstGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromID(dst->getID()));
 
     if (edge->isDeploymentLink()) {
         updateDeployment = true;
@@ -2565,7 +2529,6 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         EdgeItem* nodeEdge = new EdgeItem(edge,parent, srcGUI, dstGUI);
         //EdgeItem2* nodeEdge2 = new EdgeItem2(edge,parent, srcGUI, dstGUI);
 
-        //        qCritical() << parent->getNode()->toString();
 
         nodeEdge->setNodeView(this);
         //Add it to the list of EdgeItems in the Model.
@@ -2607,7 +2570,6 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
 
 void NodeView::view_CenterGraphML(GraphML *graphML)
 {
-    //qCritical() << "Centering on: " << graphML->toString();
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
     if(guiItem){
         centerItem(guiItem);
@@ -2626,9 +2588,9 @@ void NodeView::view_LockCenteredGraphML(int ID)
         centralizedItem = EntityItem;
         CENTRALIZED_ON_ITEM = true;
         connect(EntityItem, SIGNAL(EntityItemMoved()), this, SLOT(centralizedItemMoved()));
-        appendToSelection(getGraphMLItemFromHash(ID));
+        appendToSelection(getGraphMLItemFromID(ID));
         centerItem(ID);
-        ensureAspect(ID);
+        enforceItemAspectOn(ID);
 
     }
 }
@@ -2648,14 +2610,11 @@ void NodeView::sort()
  */
 void NodeView::constructNode(QString nodeKind, int sender)
 {
-    qCritical() << "NODE KIND " << nodeKind;
     if(viewMutex.tryLock()){
         NodeItem* selectedItem = getSelectedNodeItem();
-        qCritical() << selectedItem;
         if (selectedItem) {
             toolbarDockConstruction = true;
             if (sender == 0) {
-                qCritical() << "CONSTRCUT ITEM";
                 // if from dock, place at next available position on grid
                 emit view_ConstructNode(selectedItem->getID(), nodeKind, selectedItem->getNextChildPos());
             } else if (sender == 1) {
@@ -2780,41 +2739,20 @@ void NodeView::constructConnectedNode(int parentID, int dstID, QString kind, int
  */
 void NodeView::showConnectedNodes()
 {
-    Node* node = getSelectedNode();
 
-    if (node) {
+    if(controller){
+        int ID = getSelectedID();
+        QList<GraphMLItem*> connectedItems;
 
-        //QList<EntityItem*> connectedEntityItems;
-        QList<NodeItem*> connectedNodeItems;
-
-        // store the outer edges of the selected node
-        foreach (Edge* edge, node->getEdges(0)) {
-            if (!node->isAncestorOf(edge->getSource())) {
-                //connectedNodeItems.append(getEntityItemFromNode(edge->getSource()));
-                connectedNodeItems.append((NodeItem*)getGraphMLItemFromGraphML(node));
-            }
-            if (!node->isAncestorOf(edge->getDestination())) {
-                //connectedNodeItems.append(getEntityItemFromNode(edge->getDestination()));
-                connectedNodeItems.append((NodeItem*)getGraphMLItemFromGraphML(edge->getDestination()));
-            }
-        }
-
-        if (connectedNodeItems.count() > 0) {
-            foreach (NodeItem* item, connectedNodeItems) {
-                // make sure the aspect(s) that the EntityItem belongs to is turned on
-//                foreach (QString aspect, item->getAspects()) {
-//                    addAspect(aspect);
-//                }
-                // add connected nodes to selection
+        foreach(int cID, controller->getConnectedNodes(ID)){
+            GraphMLItem* item = getGraphMLItemFromID(cID);
+            if(item){
+                connectedItems << item;
                 appendToSelection(item);
             }
-
-            // add the selected node to the list of items to center
-            //connectedNodeItems.append(getEntityItemFromNode(node));
-            connectedNodeItems.append((NodeItem*)getGraphMLItemFromGraphML(node));
-
-            // fit the connected nodes' rectangle to the screen
-            fitToScreen(connectedNodeItems, 1.35);
+        }
+        if(!connectedItems.isEmpty()) {
+            fitToScreen(connectedItems, 0);//CONNECTIONS_PADDING);
         }
     }
 }
@@ -2823,9 +2761,9 @@ void NodeView::showConnectedNodes()
 
 
 
-
 void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
 {
+
     int itemID = item->getID();
 
     if(setSelected){
@@ -2840,7 +2778,7 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
             //Find spot for selectedID;
             int position = selectedIDs.count();
             for(int i = 0;i < selectedIDs.count();i++){
-                GraphMLItem* selectedItem = getGraphMLItemFromHash(selectedIDs[i]);
+                GraphMLItem* selectedItem = getGraphMLItemFromID(selectedIDs[i]);
                 GraphML* graphml = selectedItem->getGraphML();
 
                 if(graphml && graphml->isNode()){
@@ -2875,7 +2813,7 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
     }
 
     if(selectedIDs.count() == 1){
-        GraphMLItem* item = getGraphMLItemFromHash(selectedIDs.last());
+        GraphMLItem* item = getGraphMLItemFromID(selectedIDs.last());
         if(item){
             setAttributeModel(item);
             return;
@@ -3007,6 +2945,11 @@ bool NodeView::managementComponentsShown()
 void NodeView::recenterView()
 {
     centerViewOn(prevCenterPoint);
+}
+
+void NodeView::visibleViewRectChanged(QRect rect)
+{
+    visibleViewRect = rect;
 }
 
 
@@ -3176,9 +3119,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
 
         if(GUIItem->isModelItem()){
             connect(GUIItem, SIGNAL(GraphMLItem_PositionChanged()), this, SIGNAL(view_ModelSizeChanged()));
-
-            connect(entityItem, SIGNAL(EntityItem_Model_AspectToggled(int)), this, SLOT(view_AspectToggled(int)));
-            connect(this, SIGNAL(view_themeChanged(int)), entityItem, SLOT(themeChanged(int)));
+            //connect(this, SIGNAL(view_themeChanged(int)), entityItem, SLOT(themeChanged(int)));
         }
 
         if(entityItem){
@@ -3191,6 +3132,8 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
         if(GUIItem->isNodeItem()){
             NodeItem* nodeItem = (NodeItem*)GUIItem;
             connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridMode(bool)));
+            connect(nodeItem, SIGNAL(NodeItem_ResizeSelection(int, QSizeF)), this, SLOT(resizeSelection(int, QSizeF)));
+            connect(nodeItem, SIGNAL(NodeItem_ResizeFinished(int)), this, SLOT(resizeFinished(int)));
         }
 
         if(!IS_SUB_VIEW){
@@ -3212,9 +3155,8 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
 
 
                 connect(entityItem, SIGNAL(EntityItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
-                connect(entityItem, SIGNAL(EntityItem_ResizeSelection(int, QSizeF)), this, SLOT(resizeSelection(int, QSizeF)));
+
                 connect(entityItem, SIGNAL(EntityItem_MoveFinished()), this, SLOT(moveFinished()));
-                connect(entityItem, SIGNAL(EntityItem_ResizeFinished(int)), this, SLOT(resizeFinished(int)));
 
                 connect(entityItem, SIGNAL(EntityItem_HardwareMenuClicked(int)), this, SLOT(hardwareClusterMenuClicked(int)));
 
@@ -3453,7 +3395,7 @@ bool NodeView::isItemsAncestorSelected(GraphMLItem *selectedItem)
     Node* selectedModelNode = (Node*) selectedModelItem;
 
     foreach(int ID, selectedIDs){
-        GraphMLItem* item = getGraphMLItemFromHash(ID);
+        GraphMLItem* item = getGraphMLItemFromID(ID);
         GraphML* modelItem = item->getGraphML();
 
         if(modelItem && modelItem->isNode()){
@@ -3481,7 +3423,7 @@ void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
 
     while(!currentlySelectedIDs.isEmpty()){
         int ID = currentlySelectedIDs.takeFirst();
-        GraphMLItem* item = getGraphMLItemFromHash(ID);
+        GraphMLItem* item = getGraphMLItemFromID(ID);
         GraphML* modelItem = item->getGraphML();
 
         bool remove = false;
@@ -3524,14 +3466,14 @@ EntityItem *NodeView::getEntityItemFromNode(Node *node)
 EntityItem *NodeView::getEntityItemFromID(int ID)
 {
     EntityItem* node = 0;
-    GraphMLItem* g = getGraphMLItemFromHash(ID);
+    GraphMLItem* g = getGraphMLItemFromID(ID);
     if(g && g->isEntityItem()){
         node = (EntityItem*) g;
     }
     return node;
 }
 
-GraphMLItem *NodeView::getGraphMLItemFromHash(int ID)
+GraphMLItem *NodeView::getGraphMLItemFromID(int ID)
 {
     if(guiItems.contains(ID)){
         return guiItems[ID];
@@ -3561,7 +3503,7 @@ GraphMLItem *NodeView::getGraphMLItemFromScreenPos(QPoint pos)
 GraphMLItem *NodeView::getGraphMLItemFromGraphML(GraphML *item)
 {
     if(item){
-        return getGraphMLItemFromHash(item->getID());
+        return getGraphMLItemFromID(item->getID());
     }
     return 0;
 }
@@ -3605,7 +3547,7 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
             //Check to see if the item under the mouse is selected. if it isn't select it.
             GraphMLItem* item = getGraphMLItemFromScreenPos(event->pos());
 
-            if(item && item->isEntityItem() && !item->isSelected()){
+            if(item && item->isNodeItem() && !item->isSelected()){
                 if(!(event->modifiers() & Qt::ControlModifier)){
                     clearSelection();
                 }
@@ -3918,7 +3860,7 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
 
 
     foreach(int ID, selectedIDs){
-        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+        GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
         if(graphMLItem && graphMLItem->isEntityItem()){
             EntityItem* entityItem = (EntityItem*) graphMLItem;
             if(!sharedParent){
@@ -3945,7 +3887,7 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
     }
 
     foreach(int ID, selectedIDs){
-        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+        GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
         if(graphMLItem && graphMLItem->isEntityItem()){
             EntityItem* entityItem = (EntityItem*) graphMLItem;
             QPointF pos = entityItem->centerPos();
@@ -3987,7 +3929,7 @@ void NodeView::setEnabled(bool enabled)
 
 void NodeView::showMessage(MESSAGE_TYPE type, QString title, QString message, int ID, bool centralizeItem)
 {
-    GraphMLItem* item = getGraphMLItemFromHash(ID);
+    GraphMLItem* item = getGraphMLItemFromID(ID);
     if(item && centralizeItem){
         centerItem(item);
     }
@@ -4088,10 +4030,11 @@ void NodeView::paste(QString xmlData)
 
 void NodeView::selectAll()
 {
-    EntityItem* entityItem = getSelectedEntityItem();
-    if(entityItem){
+    GraphMLItem* graphMLItem = getSelectedGraphMLItem();
+    if(graphMLItem){
         clearSelection();
-        foreach(EntityItem* child, entityItem->getChildEntityItems()){
+
+        foreach(GraphMLItem* child, graphMLItem->getChildren()){
             if(child->isVisible()){
                 appendToSelection(child, false);
             }
@@ -4152,6 +4095,7 @@ void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
     //Unset Items Descendant Items.
     unsetItemsDescendants(item);
 
+
     //Set this item as Selected.
     setGraphMLItemSelected(item, true);
 
@@ -4182,7 +4126,7 @@ void NodeView::moveSelection(QPointF delta)
         bool canReduceY = true;
 
         foreach(int ID, selectedIDs){
-            GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+            GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
             GraphML* graphml = graphMLItem->getGraphML();
 
             if(graphml && graphml->isNode()){
@@ -4245,7 +4189,7 @@ void NodeView::moveSelection(QPointF delta)
         }*/
 
         foreach(int ID, selectedIDs){
-            GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+            GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
             if(graphMLItem && graphMLItem->isNodeItem()){
                 NodeItem* nodeItem = (NodeItem*) graphMLItem;
                 if(nodeItem->getParentNodeItem()){
@@ -4262,25 +4206,25 @@ void NodeView::resizeSelection(int ID, QSizeF delta)
 {   
     //Cannot resize from any state except None and Resizing.
     if(viewState == VS_RESIZING){
-        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
-        GraphML* graphml = graphMLItem->getGraphML();
-        if(graphml && graphml->isNode()){
-            EntityItem* entityItem = (EntityItem*) graphMLItem;
-            entityItem->adjustSize(delta);
+        GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
+        if(graphMLItem && graphMLItem->isNodeItem()){
+            ((NodeItem*)graphMLItem)->adjustSize(delta);
         }
     }
 }
 
 void NodeView::moveFinished()
 {
-
     foreach(int ID, selectedIDs){
-        GraphMLItem* graphMLItem = getGraphMLItemFromHash(ID);
+        GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
         if(graphMLItem && graphMLItem->isNodeItem()){
             NodeItem* nodeItem = (NodeItem*) graphMLItem;
+
             if(nodeItem->getParentNodeItem()){
                 nodeItem->getParentNodeItem()->setDrawGrid(false);
+                nodeItem->getParentNodeItem()->updateSizeInModel();
             }
+
             nodeItem->snapToGrid();
         }
     }
@@ -4290,7 +4234,7 @@ void NodeView::moveFinished()
 void NodeView::resizeFinished(int ID)
 {
 
-    GraphMLItem* currentItem = getGraphMLItemFromHash(ID);
+    GraphMLItem* currentItem = getGraphMLItemFromID(ID);
     if(currentItem && currentItem->isNodeItem()){
         NodeItem* nodeItem = (NodeItem*) currentItem;
         nodeItem->updateSizeInModel();
@@ -4321,7 +4265,7 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
 {
     while (!selectedIDs.isEmpty()){
         int currentID = selectedIDs.takeFirst();
-        GraphMLItem* currentItem = getGraphMLItemFromHash(currentID);
+        GraphMLItem* currentItem = getGraphMLItemFromID(currentID);
         if (currentItem) {
             currentItem->setSelected(false);
         }
@@ -4337,7 +4281,7 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
 
     // this stops unnecessary disabling of docks/dock buttons
     // if the call came from a painted node item, just clear the selection
-    EntityItem* senderItem = dynamic_cast<EntityItem*>(QObject::sender());
+    GraphMLItem* senderItem = dynamic_cast<GraphMLItem*>(QObject::sender());
     if (senderItem) {
         return;
     }
@@ -4618,51 +4562,23 @@ void NodeView::setConnectMode(bool on)
  * @param padding - padding around the items rect
  * @param addToMap - detemines whether a rect/pos should be added to the maps
  */
-void NodeView::fitToScreen(QList<NodeItem*> itemsToCenter, double padding, bool addToMap)
+void NodeView::fitToScreen(QList<GraphMLItem *> itemsToCenter, double padding, bool addToMap)
 {
-    // if there are no aspects turned on, center on the model item
-    if (getModelItem() && currentAspects.count() == 0) {
-        centerRect(getModelItem()->sceneBoundingRect(), padding, addToMap);
-        return;
+    if (itemsToCenter.isEmpty() && getModelItem()) {
+        itemsToCenter.append(getModelItem());
+        itemsToCenter.append(getModelItem()->getChildren());
     }
 
-    // if there is no list provided, use the full node items list
-    if (itemsToCenter.isEmpty()) {
-        itemsToCenter = getNodeItemsList();
-    }
+    QRectF visibleItemsRect;
 
-    QRectF itemsRec = scene()->itemsBoundingRect();
-    float leftMostX = itemsRec.bottomRight().x();
-    float rightMostX = itemsRec.topLeft().x();
-    float topMostY = itemsRec.bottomRight().y();
-    float bottomMostY = itemsRec.topLeft().y();
-
-    // go through each item and store the left/right/top/bottom most coordinates
-    // of the visible items to create the visible itemsBoundingRect to center on
-    foreach (NodeItem* nodeItem, itemsToCenter) {
-        if (nodeItem && nodeItem->isVisible() /*!nodeItem->isHidden()*/) {
-            QPointF pf = nodeItem->scenePos();
-            if (pf.x() < leftMostX) {
-                leftMostX = pf.x();
-            }
-            if ((pf.x() + nodeItem->boundingRect().width()) > rightMostX) {
-                rightMostX = pf.x() + nodeItem->boundingRect().width();
-            }
-            if (pf.y() < topMostY) {
-                topMostY = pf.y();
-            }
-            if ((pf.y() + nodeItem->boundingRect().height()) > bottomMostY) {
-                bottomMostY = pf.y() + nodeItem->boundingRect().height();
-            }
+    foreach (GraphMLItem* nodeItem, itemsToCenter) {
+        if (nodeItem->isVisible()) {
+            visibleItemsRect = visibleItemsRect.united(nodeItem->sceneBoundingRect());
         }
     }
 
-    QRectF visibleItemsRec = QRectF(leftMostX, topMostY, fabs((rightMostX-leftMostX)), fabs((bottomMostY-topMostY)));
-    centerRect(visibleItemsRec, padding, addToMap);
+    centerRect(visibleItemsRect, padding, addToMap);
 }
-
-
-
 
 
 /**

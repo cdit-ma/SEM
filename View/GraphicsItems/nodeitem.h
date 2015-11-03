@@ -1,11 +1,14 @@
 #ifndef NODEITEM_H
 #define NODEITEM_H
 
+
 #include "graphmlitem.h"
 #include "../../Model/node.h"
 
+#include "../../enumerations.h"
 class EdgeItem;
 class NodeView;
+
 
 class NodeItem : public GraphMLItem
 {
@@ -19,6 +22,9 @@ public:
     QRectF childrenBoundingRect();
     QRectF getChildBoundingRect();
 
+    VIEW_ASPECT getViewAspect();
+    void setViewAspect(VIEW_ASPECT aspect);
+
     virtual QRectF gridRect() const = 0;
     virtual QRectF minimumRect() const;
     QPointF getMinimumRectCenter() const;
@@ -28,14 +34,15 @@ public:
     virtual void setPos(const QPointF pos) =0;
     virtual qreal getItemMargin() const = 0;
 
+    void updatePositionInModel(bool directUpdate = false);
+    void updateSizeInModel(bool directUpdate = false);
 
-    void updatePositionInModel();
-    void updateSizeInModel();
+    RESIZE_TYPE resizeEntered(QPointF mousePosition);
 
     void snapToGrid();
 
 
-
+    void resizeToOptimumSize(RESIZE_TYPE rt);
     void adjustSize(QSizeF delta);
     virtual void setWidth(qreal w)=0;
     virtual void setHeight(qreal h)=0;
@@ -44,9 +51,10 @@ public:
 
     void showChildGridOutline(NodeItem* item, QPointF gridPoint);
     void hideChildGridOutline(int ID);
-    QVector<QRectF> getChildrenGridOutlines();
+    QList<QRectF> getChildrenGridOutlines();
     void clearChildrenGridOutlines();
     void adjustPos(QPointF delta);
+
 
 
 
@@ -71,10 +79,14 @@ public:
     void setResizeMode(RESIZE_TYPE mode);
 
 signals:
+
     void move(QPointF delta);
     void resize(QSizeF delta);
     void moveFinished();
     void resizeFinished();
+
+    void NodeItem_ResizeSelection(int ID, QSizeF delta);
+    void NodeItem_ResizeFinished(int ID);
 
 public slots:
     void toggleGridMode(bool enabled);
@@ -84,18 +96,19 @@ public slots:
 
     void updateGrid();
 
+
 private:
     bool IS_GRID_MODE_ON;
     bool DRAW_GRID;
+
+    VIEW_ASPECT viewAspect;
 
     QVector<QLineF> verticalGridLines;
     QVector<QLineF> horizontalGridLines;
 
     QHash<int, QRectF> childrenGridOutlines;
 
-    RESIZE_TYPE resizeMode;
-    qreal width;
-    qreal height;
+    RESIZE_TYPE resizeMode;    
 };
 
 #endif // NODEITEM_H

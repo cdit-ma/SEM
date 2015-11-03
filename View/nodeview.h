@@ -2,10 +2,13 @@
 #define NODEVIEW_H
 
 #include "../Controller/controller.h"
-#include "GraphicsItems/EntityItem.h"
+#include "GraphicsItems/graphmlitem.h"
+#include "GraphicsItems/nodeitem.h"
 #include "GraphicsItems/edgeitem.h"
+#include "GraphicsItems/EntityItem.h"
+#include "GraphicsItems/aspectitem.h"
 #include "GraphicsItems/modelitem.h"
-#include "GraphicsItems/entityitem.h"
+
 
 #include "Dock/dockscrollarea.h"
 
@@ -15,9 +18,11 @@
 #include <QPointF>
 #include <QRubberBand>
 #include <QMutex>
+#include "../enumerations.h"
 
 
 class ToolbarWidget;
+
 
 class NodeView : public QGraphicsView
 {
@@ -27,8 +32,8 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 
 public:
-    enum VIEW_STATE{VS_NONE,VS_SELECTED, VS_RUBBERBAND, VS_RUBBERBANDING, VS_CONNECT, VS_MOVING, VS_RESIZING, VS_CONNECTING, VS_PAN, VS_PANNING};
-    enum ASPECTS{A_INTERFACES, A_BEHAVIOUR, A_ASSEMBLIES, A_HARDWARE};
+    enum VIEW_STATE{VS_NONE, VS_SELECTED, VS_RUBBERBAND, VS_RUBBERBANDING, VS_CONNECT, VS_MOVING, VS_RESIZING, VS_CONNECTING, VS_PAN, VS_PANNING};
+
     enum ALIGN{NONE, HORIZONTAL, VERTICAL};
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
@@ -45,20 +50,22 @@ public:
 
 
     void scrollContentsBy(int dx, int dy);
+
     //Get the Selected Node.
-    Node* getSelectedNode();
+    //Node* getSelectedNode();
     int getSelectedNodeID();
     int getSelectedID();
-
 
     EntityItem* getSelectedEntityItem();
     NodeItem* getSelectedNodeItem();
     GraphMLItem* getSelectedGraphMLItem();
 
-    QList<GraphMLItem*> getSelectedGraphMLItems();
-    QList<EntityItem*> getSelectedEntityItems();
+    QList<GraphMLItem*> getSelectedItems();
+    //QList<EntityItem*> getSelectedEntityItems();
 
     QList<int> getSelectedNodeIDs();
+
+    void appendToSelection(Node* node);
 
     void setParentNodeView(NodeView *n);
     void removeSubView(NodeView* subView);
@@ -70,12 +77,13 @@ public:
     QStringList getGUIConstructableNodeKinds();
     QStringList getAllNodeKinds();
 
-    void appendToSelection(Node* node);
 
     QPointF getPreviousViewCenterPoint();
     bool managementComponentsShown();
     void updateViewCenterPoint();
     void recenterView();
+
+    void visibleViewRectChanged(QRect rect);
 
     QStringList getAllAspects();
     void viewDeploymentAspect();
@@ -201,6 +209,8 @@ signals:
 
     void view_toggleGridLines(bool on);
 
+    void view_toggleAspect(VIEW_ASPECT, bool);
+
     void view_updateProgressStatus(int percent, QString action="");
     void view_displayNotification(QString notification, int seqNum = 0, int totalNum = 1);
 
@@ -292,9 +302,11 @@ public slots:
     void sortEntireModel();
 
 
-    void centerAspect(QString aspect);
+
+    void centerAspect(VIEW_ASPECT aspect);
     void setAspects(QStringList aspects, bool centerViewAspects = true);
-    void fitToScreen(QList<NodeItem*> itemsToCenter = QList<NodeItem*>(), double padding = 0, bool addToMap = true);
+    void toggleAspect(VIEW_ASPECT aspect, bool on);
+    void fitToScreen(QList<GraphMLItem*> itemsToCenter = QList<GraphMLItem*>(), double padding = 0, bool addToMap = true);
 
     void centerOnItem(GraphMLItem* item = 0);
     void centerItem(GraphMLItem* item=0);
@@ -324,7 +336,7 @@ public slots:
 
     void editableItemHasFocus(bool hasFocus);
 
-    void selectAndCenter(GraphMLItem* item = 0, int ID = -1);
+    void selectAndCenterItem(int ID = -1);
 
 
     void keepSelectionFullyVisible(GraphMLItem* item, bool sizeChanged = false);
@@ -342,6 +354,7 @@ public slots:
 
 
 private:
+    AspectItem* getAspectItem(VIEW_ASPECT aspect);
     void setConnectMode(bool on);
     void setRubberBandMode(bool On);
     void setState(VIEW_STATE newState);
@@ -349,7 +362,7 @@ private:
     void handleSelection(GraphMLItem* item, bool setSelected, bool controlDown);
     void transition();
     void selectJenkinsImportedNodes();
-    void ensureAspect(int ID);
+    void enforceItemAspectOn(int ID);
     void _deleteFromIDs(QList<int> IDs);
     void updateActionsEnabledStates();
     void alignSelectionOnGrid(ALIGN alignment = NONE);
@@ -366,7 +379,7 @@ private:
     void edgeConstructed_signalUpdates();
     void edgeDestructed_signalUpdates(Edge* edge, int ID = -1);
     void updateActionsEnabled();
-    void centerRect(QRectF rect, double padding = 0, bool addToMap = true, double sizeRatio = 1);
+    void centerRect(QRectF rect, double padding = 0, bool addToMap = true);
     void centerViewOn(QPointF center);
     void recenterView(QPointF modelPos, QRectF centeredRect, bool addToMap = false);
     void adjustModelPosition(QPointF delta);
@@ -412,9 +425,10 @@ private:
 
     EdgeItem* getEdgeItemFromGraphMLItem(GraphMLItem* item);
     GraphMLItem *getGraphMLItemFromGraphML(GraphML* item);
-    GraphMLItem* getGraphMLItemFromHash(int ID);
+
     GraphMLItem* getGraphMLItemFromScreenPos(QPoint pos);
 
+    GraphMLItem* getGraphMLItemFromID(int ID);
 
 
     QList<EntityItem*> getEntityItemsList();
@@ -511,8 +525,14 @@ private:
     QHash<int, GraphMLItem*> guiItems;
     QHash<int, QString> noGuiIDHash;
 
+    QRect visibleViewRect;
+
     bool showConnectLine;
     bool showSearchSuggestions;
+
+    // QWidget interface
+protected:
+    void paintEvent(QPaintEvent *);
 };
 
 #endif // NODEVIEW_H

@@ -13,7 +13,7 @@ public:
     void onEdgeDeleted();
     
 signals:
-    void dock_higlightDockItem(GraphMLItem* = 0);
+    void dock_highlightDockItem(NodeItem* = 0);
 
 public slots:
     void dockNodeItemClicked();
@@ -23,10 +23,10 @@ public slots:
     void refreshDock();
     void insertDockNodeItem(DockNodeItem* dockItem);
 
-    void nodeConstructed(EntityItem* nodeItem);
+    void nodeConstructed(NodeItem* nodeItem);
 
 private:
-    void highlightHardwareConnection(QList<EntityItem *> selectedItems);
+    void highlightHardwareConnection(QList<GraphMLItem *> selectedItems);
 
     QStringList hardware_notAllowedKinds;
 

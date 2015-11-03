@@ -18,15 +18,15 @@ void EdgeItemArrow::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void EdgeItemArrow::hoverEnterEvent(QGraphicsSceneHoverEvent*)
 {
-    parentEdge->handleHighlight(true);
+    parentEdge->handleHover(true);
 }
 
 void EdgeItemArrow::hoverMoveEvent(QGraphicsSceneHoverEvent*)
 {
-    parentEdge->handleHighlight(true);
+    parentEdge->handleHover(true);
 }
 
 void EdgeItemArrow::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
-    parentEdge->handleHighlight(false);
+    parentEdge->handleHover(false);
 }

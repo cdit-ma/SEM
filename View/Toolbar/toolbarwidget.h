@@ -44,7 +44,8 @@ public slots:
     void setInstanceID();
 
     void updateDisplayedChildren();
-    void hardwareClusterMenuClicked(int viewMode);
+
+    void hardwareClusterMenuClicked(int viewMode=-1);
 
     void hideToolbar(QAction* action = 0);
     void hide();

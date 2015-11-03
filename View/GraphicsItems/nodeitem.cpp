@@ -1,6 +1,7 @@
 #include "nodeitem.h"
 #include "entityitem.h"
 #include "graphmlitem.h"
+#include "../nodeview.h"
 #include <QDebug>
 
 #define MARGIN_RATIO (1.0 / 18.0) //NORMAL
@@ -33,8 +34,11 @@
 NodeItem::NodeItem(Node *node, GraphMLItem *parent, GraphMLItem::GUI_KIND kind) : GraphMLItem(node, kind)
 {
     setParent(parent);
-    DRAW_GRID = false;
+    if(parent->isNodeItem()){
+        setViewAspect(((NodeItem*)parent)->getViewAspect());
+    }
 
+    DRAW_GRID = false;
     if(parent->isNodeItem()){
         //Connect Signals.
         connect(this, SIGNAL(GraphMLItem_PositionChanged()), ((NodeItem*)parent), SLOT(childPositionChanged()));
@@ -42,6 +46,8 @@ NodeItem::NodeItem(Node *node, GraphMLItem *parent, GraphMLItem::GUI_KIND kind) 
     }
 
     connect(this, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(updateGrid()));
+
+
 }
 
 NodeItem::~NodeItem()
@@ -70,6 +76,16 @@ QRectF NodeItem::getChildBoundingRect()
     return rect;
 }
 
+VIEW_ASPECT NodeItem::getViewAspect()
+{
+    return viewAspect;
+}
+
+void NodeItem::setViewAspect(VIEW_ASPECT aspect)
+{
+    viewAspect = aspect;
+}
+
 QRectF NodeItem::minimumRect() const
 {
     return boundingRect();
@@ -91,7 +107,7 @@ void NodeItem::setMinimumRectCenterPos(QPointF pos)
     setPos(pos);
 }
 
-void NodeItem::updatePositionInModel()
+void NodeItem::updatePositionInModel(bool directUpdate)
 {
     if(isAspectItem()){
         //Don't set Position for Aspects
@@ -100,19 +116,33 @@ void NodeItem::updatePositionInModel()
 
     //Update the Size in the model.
     QPointF center = getMinimumRectCenterPos();
-    setGraphMLData("x", QString::number(center.x()));
-    setGraphMLData("y", QString::number(center.y()));
+
+    if(directUpdate){
+        setGraphMLData("x", QString::number(center.x()));
+        setGraphMLData("y", QString::number(center.y()));
+    }else{
+        emit GraphMLItem_SetGraphMLData(getID(), "x", QString::number(center.x()));
+        emit GraphMLItem_SetGraphMLData(getID(), "y", QString::number(center.y()));
+    }
+
 
     if(getParentNodeItem()){
         getParentNodeItem()->hideChildGridOutline(getID());
     }
 }
 
-void NodeItem::updateSizeInModel()
+void NodeItem::updateSizeInModel(bool directUpdate)
 {
-    setGraphMLData("width", QString::number(width));
-    setGraphMLData("height", QString::number(height));
+    if(directUpdate){
+        setGraphMLData("width", QString::number(getWidth()));
+        setGraphMLData("height", QString::number(getHeight()));
+    }else{
+        emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(getWidth()));
+        emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(getHeight()));
+    }
 }
+
+
 
 void NodeItem::snapToGrid()
 {
@@ -126,6 +156,26 @@ void NodeItem::snapToGrid()
         setMinimumRectCenterPos(gridPoint);
     }
     updatePositionInModel();
+}
+
+void NodeItem::resizeToOptimumSize(NodeItem::RESIZE_TYPE rt)
+{
+    QRectF rect = childrenBoundingRect();
+    qCritical() << rect;
+    switch(rt){
+    case RESIZE:
+        setWidth(rect.right());
+        setHeight(rect.bottom());
+        break;
+    case HORIZONTAL_RESIZE:
+        setWidth(rect.right());
+        break;
+    case VERTICAL_RESIZE:
+        setHeight(rect.bottom());
+        break;
+    default:
+        break;
+    }
 }
 
 
@@ -176,9 +226,9 @@ void NodeItem::hideChildGridOutline(int ID)
     }
 }
 
-QVector<QRectF> NodeItem::getChildrenGridOutlines()
+QList<QRectF> NodeItem::getChildrenGridOutlines()
 {
-    return childrenGridOutlines.values().toVector();
+    return childrenGridOutlines.values();
 }
 
 void NodeItem::clearChildrenGridOutlines()
@@ -213,6 +263,7 @@ QPointF NodeItem::getNextChildPos(QRectF itemRect)
     // work out how many grid cells are needed per child item
     // divide it by 2 - only need half the number of cells to fit the center of the item
     double startingGridPoint = ceil(getChildBoundingRect().width()/getGridSize()) / 2;
+
     double currentX = startingGridPoint;
     double currentY = startingGridPoint;
 
@@ -404,4 +455,40 @@ NodeItem::RESIZE_TYPE NodeItem::getResizeMode()
 void NodeItem::setResizeMode(NodeItem::RESIZE_TYPE mode)
 {
     resizeMode = mode;
+}
+
+
+NodeItem::RESIZE_TYPE NodeItem::resizeEntered(QPointF mousePosition)
+{
+    int cornerRadius = getItemMargin() * 2;
+
+    QRectF cornerRect(0,0, cornerRadius, cornerRadius);
+    cornerRect.moveBottomRight(boundingRect().bottomRight());
+
+    //Check if the Mouse is in the Bottom Right Corner.
+    if(cornerRect.contains(mousePosition)){
+        return RESIZE;
+    }
+
+    //Calculate the Corners for the Horizontal resize
+    QPointF topLeft = boundingRect().topRight() + QPointF(-cornerRadius, cornerRadius);
+    QPointF bottomRight = boundingRect().bottomRight() - QPointF(0, cornerRadius);
+
+    //Check if the mouse is contained in the rectangle on the right of the EntityItem.
+    QRectF horizontalResizeRectangle = QRectF(topLeft, bottomRight);
+    if(horizontalResizeRectangle.contains(mousePosition)){
+        return HORIZONTAL_RESIZE;
+    }
+
+    //Calculate the Corners for the Vertical resize
+    QPointF bottomLeft = boundingRect().bottomLeft() + QPointF(cornerRadius, -cornerRadius);
+    bottomRight = boundingRect().bottomRight() + QPointF(-cornerRadius, 0);
+
+    //Check if the mouse is contained in the rectangle on the bottom of the EntityItem.
+    QRectF verticalRect = QRectF(bottomLeft, bottomRight);
+    if(verticalRect.contains(mousePosition)){
+        return VERTICAL_RESIZE;
+    }
+
+    return NO_RESIZE;
 }

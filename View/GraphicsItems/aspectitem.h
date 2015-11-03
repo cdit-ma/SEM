@@ -9,9 +9,7 @@ class AspectItem : public NodeItem
     Q_OBJECT
 
 public:
-    enum ASPECT_POS{AP_TOPLEFT, AP_TOPRIGHT, AP_BOTRIGHT, AP_BOTLEFT};
-
-    AspectItem(Node *node, GraphMLItem *parent, AspectItem::ASPECT_POS position);
+    AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect);
     QRectF boundingRect() const;
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -23,11 +21,12 @@ public:
     void setHeight(qreal height);
 
 private:
-
+    RESIZE_TYPE mouseOverResize;
+    QPointF previousScenePosition;
     QPointF getAspectPos();
-    ASPECT_POS aspectPos;
+
+    VIEW_ASPECT_POS aspectPos;
     QString aspectLabel;
-    QString aspectKind;
 
     qreal minimumHeight;
     qreal minimumWidth;
@@ -39,7 +38,6 @@ private:
 
 public slots:
     void graphMLDataChanged(GraphMLData *);
-    void aspectsChanged(QStringList aspects);
 
     void sizeChanged();
 
@@ -49,6 +47,11 @@ public:
     // QGraphicsItem interface
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
+    void hoverMoveEvent(QGraphicsSceneHoverEvent* event);
+
 
     // NodeItem interface
 public slots:
@@ -56,9 +59,9 @@ public slots:
     void childSizeChanged();
     void childUpdated();
 
-    // NodeItem interface
 public:
     qreal getItemMargin() const;
+
 };
 
 #endif // ASPECTITEM_H

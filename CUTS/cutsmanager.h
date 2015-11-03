@@ -130,6 +130,7 @@ private:
     QString msbuildPath;
     QString msbuildVersion;
     QString modelName;
+    QString modelMiddleware;
     bool gotCPPCompiler;
 
     QList<QProcess*> processes;

@@ -1,6 +1,8 @@
 #include "aspecttogglewidget.h"
 #include "../medeawindow.h"
 
+#include "../enumerations.h"
+
 #define HEIGHT_OFFSET 1.4
 #define SHADOW_OFFSET 3
 
@@ -20,13 +22,13 @@
  * @param size
  * @param parent
  */
-AspectToggleWidget::AspectToggleWidget(QString text, double size, MedeaWindow* parent) :
+AspectToggleWidget::AspectToggleWidget(VIEW_ASPECT aspect, double size, MedeaWindow* parent) :
     QWidget(parent)
 {
     shadowFrame = new QFrame(this);
     mainFrame = new QFrame(this);
-    aspectText = text;
-
+    this->aspect = aspect;
+    aspectText = getAspectName(aspect);
     CHECKED = false;
     STATE = DEFAULT;
     THEME = THEME_LIGHT;
@@ -36,8 +38,10 @@ AspectToggleWidget::AspectToggleWidget(QString text, double size, MedeaWindow* p
     setupColor();
     setupLayout(size);
 
-    connect(this, SIGNAL(aspectToggle_clicked(bool,int)), parent, SLOT(aspectToggleClicked(bool,int)));
-    connect(parent, SIGNAL(window_aspectToggleDoubleClicked(AspectToggleWidget*)), this, SLOT(aspectDoubleClicked(AspectToggleWidget*)));
+    connect(this, SIGNAL(aspectToggled(VIEW_ASPECT,bool)), parent, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)));
+    connect(parent, SIGNAL(window_aspectDoubleClicked(VIEW_ASPECT)), this, SLOT(aspectDoubleClicked(VIEW_ASPECT)));
+    connect(this, SIGNAL(aspectToggle_doubleClicked(VIEW_ASPECT)), parent, SIGNAL(window_aspectDoubleClicked(VIEW_ASPECT)));
+    connect(this, SIGNAL(aspectToggle_middleClicked(VIEW_ASPECT)), parent, SIGNAL(window_centerAspect(VIEW_ASPECT)));
 }
 
 
@@ -51,6 +55,11 @@ QString AspectToggleWidget::getText()
     return aspectText;
 }
 
+VIEW_ASPECT AspectToggleWidget::getAspect()
+{
+    return aspect;
+}
+
 
 /**
  * @brief AspectToggleWidget::click
@@ -62,23 +71,27 @@ QString AspectToggleWidget::getText()
  */
 void AspectToggleWidget::click(bool checked, int state)
 {
+    if(state == CLICKED){
+        CHECKED = checked;
+    }else{
+        CHECKED = true;
+    }
+
+    stateChanged();
+
     switch (state) {
     case DEFAULT:
         break;
     case CLICKED:
-        CHECKED = checked;
+        emit aspectToggle_clicked(CHECKED, state);
         break;
     case DOUBLECLICKED:
-        CHECKED = true;
+        emit aspectToggle_doubleClicked(getAspect());
         break;
     case MIDDLECLICKED:
-        CHECKED = true;
+        emit aspectToggle_middleClicked(getAspect());
         break;
-    }
-
-    // this tells the window to turn this aspect toggle on/off
-    emit aspectToggle_clicked(CHECKED, state);
-    updateStyleSheet();
+    }    
 }
 
 
@@ -101,7 +114,7 @@ bool AspectToggleWidget::isClicked()
 void AspectToggleWidget::setClicked(bool checked)
 {
     CHECKED = checked;
-    updateStyleSheet();
+    stateChanged();
 }
 
 
@@ -154,9 +167,9 @@ void AspectToggleWidget::mouseDoubleClickEvent(QMouseEvent* event)
  * If that toggle is not this, then un-click this toggle.
  * @param aspect - aspect that was doucble-clicked
  */
-void AspectToggleWidget::aspectDoubleClicked(AspectToggleWidget *aspect)
+void AspectToggleWidget::aspectDoubleClicked(VIEW_ASPECT aspect)
 {
-    if (aspect != this) {
+    if(this->aspect != aspect){
         setClicked(false);
     }
 }
@@ -182,6 +195,20 @@ void AspectToggleWidget::highlightToggleButton(QString aspect)
     }
 }
 
+QString AspectToggleWidget::toColorStr(QColor color, int alpha)
+{
+    if(alpha > 255 || alpha < 0){
+        alpha = 255;
+    }
+
+    QString colorStr = "rgba(";
+    colorStr += QString::number(color.red()) + ",";
+    colorStr += QString::number(color.green()) + ",";
+    colorStr += QString::number(color.blue()) + ",";
+    colorStr += QString::number(alpha) + ")";
+    return colorStr;
+}
+
 
 /**
  * @brief AspectToggleWidget::setupColorMap
@@ -189,6 +216,11 @@ void AspectToggleWidget::highlightToggleButton(QString aspect)
  */
 void AspectToggleWidget::setupColor()
 {
+    QColor aspectColor = getAspectColor(aspect);
+
+    //QString defaultColor =
+
+
     QString defaultAlpha = "255";
     QString checkedAlpha = "250";
     //p1_Color = "rgba(215,215,215," + checkedAlpha + ")";
@@ -291,6 +323,13 @@ void AspectToggleWidget::setupLayout(double widgetSize)
     mainFrame->setLayout(layout);
 }
 
+void AspectToggleWidget::stateChanged()
+{
+    updateStyleSheet();
+    //Telling the NodeView that this aspect has changed state.
+    emit aspectToggled(aspect, CHECKED);
+}
+
 
 /**
  * @brief AspectToggleWidget::updateStyleSheet
@@ -309,4 +348,5 @@ void AspectToggleWidget::updateStyleSheet()
         mainFrame->move(0, 0);
         mainFrame->setStyleSheet("border-radius: 8px; background-color:" + defaultColor + ";");
     }
+
 }

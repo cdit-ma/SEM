@@ -1,6 +1,7 @@
 #ifndef GRAPHMLITEM_H
 #define GRAPHMLITEM_H
 #include <QGraphicsObject>
+#include <QPen>
 #include "../../Model/graphml.h"
 #include "../../Model/graphmldata.h"
 
@@ -19,11 +20,12 @@ public:
 
     GraphMLItem(GraphML* attachedGraph, GUI_KIND kind);
     ~GraphMLItem();
-
+    virtual QRectF sceneBoundingRect() const;
     QString getNodeKind();
     RENDER_STATE getRenderState() const;
     void setRenderState(RENDER_STATE renderState);
 
+    virtual void lastChildRemoved();
     void addChild(GraphMLItem* item);
     void removeChild(int ID);
     bool hasChildren();
@@ -64,11 +66,14 @@ public:
     bool isModelItem();
     bool isDataEditable(QString keyName);
 
-
+    QPen getCurrentPen();
     qreal getZoomFactor();
 
     void handleSelection(bool setSelected, bool controlDown);
-    void handleHighlight(bool entered);
+
+    void handleHover(bool entered);
+
+    QRectF adjustRectForPen(QRectF rect, QPen pen);
 
 public slots:
     virtual bool canHover();
@@ -77,7 +82,10 @@ public slots:
     virtual void setSelected(bool selected);
 
     virtual void graphMLDataChanged(GraphMLData*) = 0;
+
     virtual void zoomChanged(qreal zoom);
+
+
 
 signals:
     void GraphMLItem_TriggerAction(QString actionName);
@@ -96,6 +104,8 @@ signals:
     void GraphMLItem_SizeChanged();
     void GraphMLItem_Hovered(int ID, bool entered);
 private:
+    void setupPens();
+    void updateCurrentPen(bool zoomChanged = false);
     bool IS_DELETING;
     bool IS_SELECTED;
     bool IS_HOVERED;
@@ -114,8 +124,14 @@ private:
     QString nodeKind;
     qreal currentZoomFactor;
 
+    QPen defaultPen;
+    QPen selectedPen;
+    QPen currentPen;
 
-    // QGraphicsItem interface
+protected:
+    void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
+    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+    void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
 };
 
 #endif // GRAPHMLITEM_H

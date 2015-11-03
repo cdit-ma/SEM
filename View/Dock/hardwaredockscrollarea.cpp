@@ -102,7 +102,7 @@ void HardwareDockScrollArea::dockClosed()
  */
 void HardwareDockScrollArea::updateDock()
 {    
-    QList<EntityItem*> selectedItems = getNodeView()->getSelectedEntityItems();
+    QList<GraphMLItem*> selectedItems = getNodeView()->getSelectedItems();
     if (selectedItems.isEmpty()) {
         setDockEnabled(false);
         return;
@@ -114,28 +114,26 @@ void HardwareDockScrollArea::updateDock()
 
     // check if the dock should be disabled
     foreach (GraphMLItem* selectedItem, selectedItems) {
-        if(!selectedItem->isEntityItem()){
+
+        if (!selectedItem->isNodeItem()) {
             continue;
         }
-        EntityItem* item = (EntityItem*)selectedItem;
 
+        NodeItem* item = (NodeItem*)selectedItem;
         QString itemKind = item->getNodeKind();
+
         if (getNotAllowedKinds().contains(itemKind)) {
             enableDock = false;
             break;
         }
-        if (itemKind == "ComponentInstance") {
-            if (!item->getNode()->getDefinition()) {
-                enableDock = false;
-                break;
-            }
-        }
+
         if (multipleSelection) {
             if (!getNodeView()->isNodeKindDeployable(itemKind)) {
                 enableDock = false;
                 break;
             }
         }
+
         if (!getNodeView()->isNodeKindDeployable(itemKind)) {
             readOnlyState = true;
         }
@@ -158,17 +156,20 @@ void HardwareDockScrollArea::updateDock()
  * It checks to see if a dock item needs to be constucted for the new node.
  * @param nodeItem
  */
-void HardwareDockScrollArea::nodeConstructed(EntityItem* nodeItem)
+void HardwareDockScrollArea::nodeConstructed(NodeItem* nodeItem)
 {
-    if (!nodeItem->isAspectItem() && (nodeItem->isHardwareNode() || nodeItem->isHardwareCluster())) {
-        DockNodeItem* dockItem = new DockNodeItem("", nodeItem, this);
-        insertDockNodeItem(dockItem);
-        connect(this, SIGNAL(dock_higlightDockItem(EntityItem*)), dockItem, SLOT(highlightDockItem(EntityItem*)));
-        connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+    if(nodeItem->isEntityItem()){
+        EntityItem *entityItem = (EntityItem*)nodeItem;
+        if(entityItem->isHardwareCluster() || entityItem->isHardwareNode()){
+            DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
+            insertDockNodeItem(dockItem);
+            connect(this, SIGNAL(dock_highlightDockItem(NodeItem*)), dockItem, SLOT(highlightDockItem(NodeItem*)));
+            connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
 
-        // if the dock is open, refresh it
-        if (isDockEnabled()) {
-            refreshDock();
+            // if the dock is open, refresh it
+            if (isDockEnabled()) {
+                refreshDock();
+            }
         }
     }
 }
@@ -234,19 +235,19 @@ void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
  * If it's not, make sure none of the dock items is highlighted
  * @param selectedItems
  */
-void HardwareDockScrollArea::highlightHardwareConnection(QList<EntityItem*> selectedItems)
+void HardwareDockScrollArea::highlightHardwareConnection(QList<GraphMLItem*> selectedItems)
 {
     // if there are no deployable node items selected, clear highlighted items
     if (selectedItems.isEmpty()) {
-        emit dock_higlightDockItem();
+        emit dock_highlightDockItem();
         return;
     }
 
     GraphMLItem* item = selectedItems[0];
-    GraphMLItem* hardwareItem = getNodeView()->getDeployedNode(item->getID());
+    NodeItem* hardwareItem = getNodeView()->getDeployedNode(item->getID());
 
     if (selectedItems.count() == 1) {
-        emit dock_higlightDockItem(hardwareItem);
+        emit dock_highlightDockItem(hardwareItem);
         return;
     }
 
@@ -257,10 +258,10 @@ void HardwareDockScrollArea::highlightHardwareConnection(QList<EntityItem*> sele
         hardwareItem = getNodeView()->getDeployedNode(item->getID());
 
         if (hardwareItem != prevHardwareItem) {
-            emit dock_higlightDockItem();
+            emit dock_highlightDockItem();
             return;
         }
     }
 
-    emit dock_higlightDockItem(hardwareItem);
+    emit dock_highlightDockItem(hardwareItem);
 }

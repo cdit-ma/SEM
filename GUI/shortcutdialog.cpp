@@ -26,6 +26,7 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("CTRL + N", "Constructs a New Project.");
     addShortcut("CTRL + I", "Imports a Graphml document into current project.");
     addShortcut("CTRL + E", "Exports the current project as a Graphml document.");
+    addShortcut("CTRL + SHIFT + V", "Validates the current project.");
     addShortcut("CTRL + Z", "Undo's the last change in the model.");
     addShortcut("CTRL + Y", "Redo's the last Undo.");
     addShortcut("CTRL + Space", "Fits the entire model into the view.");
