@@ -36,7 +36,7 @@ public:
     enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_TOP_LABEL, MO_BOT_LABEL, MO_EXPANDLABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODEL_CIRCLE, MO_MODEL_TR, MO_MODEL_BR, MO_MODEL_BL, MO_MODEL_TL, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
 
 
-    enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
+
 
     enum IMAGE_POS{IP_TOPLEFT, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER};
 
@@ -74,6 +74,7 @@ public:
     QRectF boundingRect() const;
     QRectF childrenBoundingRect();
     QRectF minimumRect() const;
+    QRectF sceneBoundingRect() const;
     QRectF expandedBoundingRect() const;
     QRectF expandedLabelRect() const;
 
@@ -121,7 +122,7 @@ public:
 
 
 
-    EntityItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
+    //EntityItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
 
 
     void addChildEdgeItem(EdgeItem* edge);
@@ -184,9 +185,8 @@ signals:
     void model_PositionChanged();
 
     void EntityItem_MoveSelection(QPointF delta);
-    void EntityItem_ResizeSelection(int ID, QSizeF delta);
+
     void EntityItem_MoveFinished();
-    void EntityItem_ResizeFinished(int ID);
 
     void EntityItem_HasFocus(bool hasFocus);
 
@@ -260,15 +260,14 @@ protected:
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
 
-    void hoverEnterEvent(QGraphicsSceneHoverEvent* event);
     void hoverMoveEvent(QGraphicsSceneHoverEvent *event);
-    void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
+    //void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);
 
 
 
 private:
     void updateTextVisibility();
-    QRectF adjustRectForBorder(QRectF rect, qreal width);
+
     void updateDisplayedChildren(int viewMode);
 
 //USED METHODS
@@ -303,7 +302,7 @@ private:
     void updateModelData();
 
 
-    void resizeToOptimumSize(MOUSEOVER_TYPE type = MO_RESIZE);
+
     void setWidth(qreal width);
     void setHeight(qreal height);
     void setSize(qreal w, qreal h);
@@ -379,9 +378,10 @@ private:
     bool IS_IMPL_OR_INST;
 
 
+
     bool isNodeMoving;
     qreal oldZValue;
-    EntityItem::RESIZE_TYPE currentResizeMode;
+    RESIZE_TYPE currentResizeMode;
 
     QHash<int, QRectF> outlineMap;
 
@@ -484,6 +484,11 @@ public:
 public slots:
     void childPositionChanged();
     void childSizeChanged();
+
+    // GraphMLItem interface
+public:
+    void lastChildRemoved();
+
 };
 
 #endif // ENTITYITEM_H
