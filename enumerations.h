@@ -8,11 +8,12 @@
 enum VIEW_ASPECT{VA_NONE, VA_INTERFACES, VA_BEHAVIOUR, VA_ASSEMBLIES, VA_HARDWARE};
 enum VIEW_ASPECT_POS{VAP_NONE, VAP_TOPLEFT, VAP_TOPRIGHT, VAP_BOTTOMRIGHT, VAP_BOTTOMLEFT};
 
+const static QList<VIEW_ASPECT> VIEW_ASPECTS = QList<VIEW_ASPECT>() << VA_INTERFACES << VA_BEHAVIOUR << VA_ASSEMBLIES << VA_HARDWARE;
 const static QStringList VIEW_ASPECT_LIST = QStringList() << "InterfaceDefinitions" << "BehaviourDefinitions" << "AssemblyDefinitions" << "HardwareDefinitions";
 
 
-
-static VIEW_ASPECT_POS getAspectPosition(VIEW_ASPECT aspect){
+static VIEW_ASPECT_POS getAspectPosition(VIEW_ASPECT aspect)
+{
     switch(aspect){
     case VA_INTERFACES:
         return VAP_TOPLEFT;
@@ -28,7 +29,9 @@ static VIEW_ASPECT_POS getAspectPosition(VIEW_ASPECT aspect){
     return VAP_NONE;
 }
 
-static QString getAspectName(VIEW_ASPECT aspect){
+
+static QString getAspectName(VIEW_ASPECT aspect)
+{
     switch(aspect){
     case VA_INTERFACES:
         return "Interfaces";
@@ -44,7 +47,9 @@ static QString getAspectName(VIEW_ASPECT aspect){
     return "";
 }
 
-static VIEW_ASPECT getViewAspectFromAspectNodeKind(QString nodeKind){
+
+static VIEW_ASPECT getViewAspectFromAspectNodeKind(QString nodeKind)
+{
     if(nodeKind == "InterfaceDefinitions"){
         return VA_INTERFACES;
     }else if(nodeKind == "BehaviourDefinitions"){
@@ -57,7 +62,9 @@ static VIEW_ASPECT getViewAspectFromAspectNodeKind(QString nodeKind){
     return VA_NONE;
 }
 
-static QColor getAspectColor(VIEW_ASPECT aspect){
+
+static QColor getAspectColor(VIEW_ASPECT aspect)
+{
     switch(aspect){
     case VA_INTERFACES:
         return QColor(110,210,210);
@@ -74,4 +81,3 @@ static QColor getAspectColor(VIEW_ASPECT aspect){
 }
 
 #endif // ENUMERATIONS_H
-

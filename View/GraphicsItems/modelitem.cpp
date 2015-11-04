@@ -8,10 +8,30 @@ ModelItem::ModelItem(Node *node, bool IN_SUBVIEW):  GraphMLItem(node, GraphMLIte
     setInSubView(IN_SUBVIEW);
 
     modelCircleColor = Qt::gray;
-    topRightColor = QColor(254,184,126);
-    topLeftColor = QColor(110,210,210);
-    bottomRightColor = QColor(110,170,220);
-    bottomLeftColor = QColor(255,160,160);
+
+    // setup quadrant colours based on the aspects' positions
+    foreach (VIEW_ASPECT aspect, VIEW_ASPECTS) {
+        VIEW_ASPECT_POS aspectPos = getAspectPosition(aspect);
+        QColor aspectColor = getAspectColor(aspect);
+        switch (aspectPos) {
+        case VAP_TOPLEFT:
+            topLeftColor = aspectColor;
+            break;
+        case VAP_TOPRIGHT:
+            topRightColor = aspectColor;
+            break;
+        case VAP_BOTTOMLEFT:
+            bottomLeftColor = aspectColor;
+            break;
+        case VAP_BOTTOMRIGHT:
+            bottomRightColor = aspectColor;
+            break;
+        default:
+            break;
+        }
+    }
+
+
 
     width = MODEL_WIDTH;
     height = MODEL_HEIGHT;

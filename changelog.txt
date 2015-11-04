@@ -13,6 +13,7 @@ Fixed List:
 * Aspects using enumeration
 * Fixed aspect toggle buttons position and color to match the ones in enumeration
 * Window toolbar is now kept centralised on the new viewRect.
+* Fixed model item quadrant colours to match the aspect colour based on position
 
 ToDo List:
 * Subview borked
