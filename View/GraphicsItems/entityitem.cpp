@@ -713,10 +713,10 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
 
 
-        if(isExpanded()){
-            paintPixmap(painter, IP_BOT_RIGHT, "Actions", "Contract", true);
-        }else{
-            if(hasChildren()){
+        if(hasChildren()){
+            if(isExpanded()){
+                paintPixmap(painter, IP_BOT_RIGHT, "Actions", "Contract", true);
+            }else{
                 paintPixmap(painter, IP_BOT_RIGHT, "Actions", "Expand", true);
             }
         }
@@ -1626,18 +1626,18 @@ QRectF EntityItem::iconRect_BottomRight() const
 QRectF EntityItem::getImageRect(EntityItem::IMAGE_POS pos) const
 {
     switch(pos){
-        case IP_BOTLEFT:
-            return iconRect_BottomLeft();
-        case IP_TOPRIGHT:
-            return iconRect_TopRight();
-        case IP_TOPLEFT:
-            return iconRect_TopLeft();
-        case IP_BOT_RIGHT:
-            return iconRect_BottomRight();
-        case IP_CENTER:
-            return iconRect();
-        default:
-            return QRectF();
+    case IP_BOTLEFT:
+        return iconRect_BottomLeft();
+    case IP_TOPRIGHT:
+        return iconRect_TopRight();
+    case IP_TOPLEFT:
+        return iconRect_TopLeft();
+    case IP_BOT_RIGHT:
+        return iconRect_BottomRight();
+    case IP_CENTER:
+        return iconRect();
+    default:
+        return QRectF();
     }
 }
 

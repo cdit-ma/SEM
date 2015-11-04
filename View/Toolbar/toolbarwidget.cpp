@@ -771,7 +771,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         NodeItem* prevParentItem = 0;
         bool shareParent = true;
         bool allClusters = true;
-        bool allEntities = true;
+        bool canBeExpanded = false;
         int viewMode = -1;
 
         foreach (NodeItem* item, nodeItems) {
@@ -785,7 +785,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             if (!item->isEntityItem()){
                 deployable = false;
                 allClusters = false;
-                allEntities = false;
                 continue;
             }
 
@@ -803,17 +802,19 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                 allClusters = false;
             }
 
+            if (!canBeExpanded && entityItem->hasChildren()) {
+                canBeExpanded = true;
+            }
+
             if (deployable && !nodeView->isNodeKindDeployable(item->getNodeKind())) {
                 deployable = false;
             }
         }
 
         // these buttons are only available for multiple selected entities
-        if (allEntities) {
-            expandButton->show();
-            contractButton->show();
-            expandContractButtonsVisible = true;
-        }
+        expandButton->setVisible(canBeExpanded);
+        contractButton->setVisible(canBeExpanded);
+        expandContractButtonsVisible = canBeExpanded;
 
         // only show the group alignment buttons if all the selected items have the same parent
         if (shareParent) {
