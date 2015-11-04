@@ -23,6 +23,7 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
     addShortcut("F1", "Opens the Shortcut window.");
     addShortcut("F3", "Sets the focus into the search box.");
     addShortcut("F10", "Opens the settings window.");
+    addShortcut("F11", "Toggles fullscreen mode.");
     addShortcut("CTRL + N", "Constructs a New Project.");
     addShortcut("CTRL + I", "Imports a Graphml document into current project.");
     addShortcut("CTRL + E", "Exports the current project as a Graphml document.");

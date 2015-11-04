@@ -158,6 +158,41 @@ void NodeItem::snapToGrid()
     updatePositionInModel();
 }
 
+void NodeItem::addEdge(EdgeItem *edge)
+{
+    int ID = edge->getID();
+    connectedEdges[ID] = edge;
+}
+
+void NodeItem::removeEdge(int ID)
+{
+    connectedEdges.remove(ID);
+    if(connectedEdges.isEmpty()){
+        emit lastEdgeRemoved();
+    }
+}
+
+bool NodeItem::hasEdges()
+{
+    return !connectedEdges.isEmpty();
+}
+
+void NodeItem::addEdgeAsChild(EdgeItem *edge)
+{
+    int ID = edge->getID();
+    childEdges[ID] = edge;
+}
+
+void NodeItem::removeChildEdge(int ID)
+{
+    childEdges.remove(ID);
+}
+
+QList<EdgeItem *> NodeItem::getEdges()
+{
+    return connectedEdges.values();
+}
+
 void NodeItem::resizeToOptimumSize(NodeItem::RESIZE_TYPE rt)
 {
     QRectF rect = childrenBoundingRect();

@@ -21,6 +21,7 @@ public:
     void setHeight(qreal height);
 
 private:
+    void forcePos(const QPointF pos);
     RESIZE_TYPE mouseOverResize;
     QPointF previousScenePosition;
     QPointF getAspectPos();

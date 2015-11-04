@@ -8,21 +8,21 @@ Fixed List:
 * Full screen mode
 * Centering of Items and viewRect
 * Select All
+* Rubberband selection.
 * Edge selection fixed.
 * Fixed Aspect Settings to match labels in enumeration
 * Aspects using enumeration
 * Fixed aspect toggle buttons position and color to match the ones in enumeration
 * Window toolbar is now kept centralised on the new viewRect.
-* Fixed model item quadrant colours to match the aspect colour based on position
+* align multiple selection.
+* QAction for fullscreen mode
 
 ToDo List:
 * Subview borked
 * settings into tab
-* QAction for fullscreen mode
 * fix theme stuff
 * Expanding multiple selection. (Maybe even recurse)
 * sort multiple selection. (Maybe even recurse)
-* align multiple selection.
 * Highlight Source (Maybe use Number on screen) for connect mode
 * QObject::connect: No such slot NodeView::snapSelectionToGrid()
 * QObject::connect: No such slot NodeView::snapChildrenToGrid()

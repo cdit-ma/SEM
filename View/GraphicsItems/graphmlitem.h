@@ -29,6 +29,9 @@ public:
     void addChild(GraphMLItem* item);
     void removeChild(int ID);
     bool hasChildren();
+
+
+
     GraphMLItem* getParent();
     void setParent(GraphMLItem* item);
     QList<GraphMLItem*> getChildren();
@@ -117,6 +120,7 @@ private:
     QList<int> connectedDataIDs;
 
     QHash<int, GraphMLItem*> children;
+
     RENDER_STATE renderState;
     NodeView* nodeView;
     GUI_KIND kind;

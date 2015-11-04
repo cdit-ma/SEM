@@ -117,6 +117,7 @@ public slots:
     void validate_Exported(QString tempModelPath);
 
 private slots:
+    void setFullscreenMode(bool fullscreen);
     void gotXMETransformation(bool success, QString errorString, QString path);
     void localDeploymentOkay();
     void toggleGridLines();
@@ -273,6 +274,7 @@ private:
     QAction* view_goToDefinition;
     QAction* view_goToImplementation;
     QAction* view_showConnectedNodes;
+    QAction* view_fullScreenMode;
     QAction* model_validateModel;
     QAction* model_clearModel;
     QAction* model_ExecuteLocalJob;

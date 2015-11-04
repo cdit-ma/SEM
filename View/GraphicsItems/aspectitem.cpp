@@ -70,7 +70,7 @@ AspectItem::AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect) : No
 
     mouseOverResize = NO_RESIZE;
 
-    setPos(getAspectPos());
+    forcePos(getAspectPos());
 
     connect(this, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(sizeChanged()));
 
@@ -147,7 +147,7 @@ qreal AspectItem::getHeight()
 
 void AspectItem::setPos(const QPointF pos)
 {
-    QGraphicsObject::setPos(pos);
+    forcePos(getAspectPos());
 }
 
 void AspectItem::setWidth(qreal w)
@@ -176,6 +176,11 @@ void AspectItem::setHeight(qreal h)
 
     height = h;
     emit GraphMLItem_SizeChanged();
+}
+
+void AspectItem::forcePos(const QPointF pos)
+{
+    QGraphicsObject::setPos(pos);
 }
 
 

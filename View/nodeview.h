@@ -430,6 +430,7 @@ private:
     GraphMLItem* getGraphMLItemFromScreenPos(QPoint pos);
 
     GraphMLItem* getGraphMLItemFromID(int ID);
+    NodeItem* getNodeItemFromID(int ID);
 
 
     QList<EntityItem*> getEntityItemsList();

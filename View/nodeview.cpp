@@ -3486,12 +3486,16 @@ GraphMLItem *NodeView::getGraphMLItemFromID(int ID)
 {
     if(guiItems.contains(ID)){
         return guiItems[ID];
-    }else{
-        //if(!IS_SUB_VIEW){
-        //qCritical() << "Cannot find GraphMLItem from Lookup Hash. ID: " << ID;
-        //}
     }
     return 0;
+}
+
+NodeItem *NodeView::getNodeItemFromID(int ID)
+{
+    GraphMLItem* item = getGraphMLItemFromID(ID);
+    if(item && item->isNodeItem()){
+        return (NodeItem*)item;
+    }
 }
 
 GraphMLItem *NodeView::getGraphMLItemFromScreenPos(QPoint pos)
@@ -3857,49 +3861,50 @@ void NodeView::alignSelectionVertically()
 
 void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
 {
-    int itemCount=0;
-    qreal averageY=0;
-    qreal averageX=0;
 
-    QGraphicsItem* sharedParent = 0;
     if(!(alignment == VERTICAL || alignment == HORIZONTAL)){
         return;
     }
 
 
+    int itemCount=0;
+    qreal averageY=0;
+    qreal averageX=0;
+    GraphMLItem* sharedParent = 0;
 
     foreach(int ID, selectedIDs){
-        GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
-        if(graphMLItem && graphMLItem->isEntityItem()){
-            EntityItem* entityItem = (EntityItem*) graphMLItem;
+        NodeItem* nodeItem = getNodeItemFromID(ID);
+        if(nodeItem){
             if(!sharedParent){
-                sharedParent = graphMLItem->getParent();
-            }else if(sharedParent != graphMLItem->getParent()){
-                //showDialogMessage(WARNING, "Selection Issue", "Cannot Align Selection which aren't contained by the same Parent.", graphMLItem->getGraphML(), true);
+                sharedParent = nodeItem->getParent();
+            }else if(sharedParent != nodeItem->getParent()){
                 view_displayNotification("Cannot align entities which aren't contained by the same parent.");
                 return;
             }
-            averageX += entityItem->centerPos().x();
-            averageY += entityItem->centerPos().y();
+            averageX += nodeItem->getMinimumRectCenterPos().x();
+            averageY += nodeItem->getMinimumRectCenterPos().y();
             itemCount++;
         }
     }
+
     triggerAction("Aligning Selection");
     averageX /= itemCount;
     averageY /= itemCount;
 
     QPointF center;
-    if(sharedParent){
+
+
+    //NodeItems have Grids.
+    if(sharedParent && sharedParent->isNodeItem()){
         //Find closest Grid Line
-        EntityItem* parent = (EntityItem*)sharedParent;
+        NodeItem* parent = (NodeItem*)sharedParent;
         center = parent->getClosestGridPoint(QPointF(averageX, averageY));
     }
 
     foreach(int ID, selectedIDs){
-        GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
-        if(graphMLItem && graphMLItem->isEntityItem()){
-            EntityItem* entityItem = (EntityItem*) graphMLItem;
-            QPointF pos = entityItem->centerPos();
+        NodeItem* nodeItem = getNodeItemFromID(ID);
+        if(nodeItem){
+            QPointF pos = nodeItem->getMinimumRectCenterPos();
 
             if(alignment == VERTICAL){
                 pos.setX(center.x());
@@ -3907,10 +3912,9 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
             if(alignment == HORIZONTAL){
                 pos.setY(center.y());
             }
-            pos = entityItem->getParentEntityItem()->getClosestGridPoint(pos);
 
-            entityItem->setCenterPos(pos);
-            entityItem->updateModelPosition();
+            nodeItem->setMinimumRectCenterPos(pos);
+            nodeItem->updatePositionInModel();
         }
     }
 }
@@ -4355,18 +4359,9 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
         return;
     }
 
-    Model* model = this->controller->getModel();
-    EntityItem* modelItem = 0;
-
-    if(!model){
-        qCritical() << "NodeView::selectedInRubberBand() controller has no Model!";
-        return;
-    }
-
-    modelItem = getEntityItemFromGraphMLItem(getGraphMLItemFromGraphML(model));
+    ModelItem* modelItem = getModelItem();
 
     if(!modelItem){
-        qCritical() << "NodeView::selectedInRubberBand() NodeView has no GUIItem for Model!";
         return;
     }
 
@@ -4374,8 +4369,6 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
 
     QList<GraphMLItem*> items;
     items << modelItem;
-
-    //clearSelection();
 
     while(items.size() > 0){
         GraphMLItem* currentItem = items.takeFirst();
@@ -4386,16 +4379,13 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
         if(intersects){
             appendToSelection(currentItem);
         }else{
-            if(currentItem->isEntityItem()){
-                EntityItem* entityItem = (EntityItem*)currentItem;
-
-                foreach(GraphMLItem* child, entityItem->getChildEdges()){
-                    items << child;
+            if(currentItem->isNodeItem()){
+                foreach(EdgeItem* edge, ((NodeItem*)currentItem)->getEdges()){
+                    items << edge;
                 }
-
-                foreach(GraphMLItem* child, entityItem->getChildEntityItems()){
-                    items << child;
-                }
+            }
+            foreach(GraphMLItem* child, currentItem->getChildren()){
+                items << child;
             }
         }
     }

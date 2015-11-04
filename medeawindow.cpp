@@ -293,11 +293,7 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
             setWindowState(Qt::WindowNoState);
         }
     }else if(keyName == WINDOW_FULL_SCREEN && isBool){
-        if(boolValue){
-            showFullScreen();
-        }else{
-            showNormal();
-        }
+        setFullscreenMode(boolValue);
     }else if(keyName == LOG_DEBUGGING && isBool){
         if(nodeView){
             emit nodeView->view_EnableDebugLogging(boolValue, applicationDirectory);
@@ -701,6 +697,12 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_goToImplementation->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_I));
     view_menu->addSeparator();
     view_showConnectedNodes = view_menu->addAction(getIcon("Actions", "Connections"), "View Connections");
+    view_menu->addSeparator();
+    view_fullScreenMode = view_menu->addAction(getIcon("Actions", "Fullscreen"), "Start Fullscreen Mode");
+    view_fullScreenMode->setShortcut(QKeySequence(Qt::Key_F11));
+    view_fullScreenMode->setCheckable(true);
+
+
 
     model_clearModel = model_menu->addAction(getIcon("Actions", "Clear"), "Clear Model");
     model_menu->addSeparator();
@@ -1314,6 +1316,7 @@ void MedeaWindow::makeConnections()
     connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(centerImplementation()));
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(centerDefinition()));
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
+    connect(view_fullScreenMode, SIGNAL(triggered(bool)), this, SLOT(setFullscreenMode(bool)));
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
 
@@ -1623,6 +1626,23 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
     connect(myProcess, SIGNAL(finished(int)), this, SLOT(validationComplete(int)));
     connect(myProcess, SIGNAL(finished(int)), myProcess, SLOT(deleteLater()));
     myProcess->start(program, arguments);
+}
+
+void MedeaWindow::setFullscreenMode(bool fullscreen)
+{
+    if(fullscreen){
+        showFullScreen();
+        view_fullScreenMode->setText("Exit Fullscreen Mode");
+        view_fullScreenMode->setChecked(true);
+        view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Failure"));
+    }else{
+        showNormal();
+        view_fullScreenMode->setText("Set Fullscreen Mode");
+        view_fullScreenMode->setChecked(false);
+        view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Fullscreen"));
+    }
+
+
 }
 
 

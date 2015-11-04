@@ -174,6 +174,7 @@
         <file alias="ConnectNode.png">Resources/Images/Actions/ConnectNode.png</file>
         <file alias="ComboArrow.png">Resources/Images/Actions/ComboArrow.png</file>
         <file alias="Key.png">Resources/Images/Actions/Key.png</file>
+        <file alias="Fullscreen.png">Resources/Images/Actions/Fullscreen.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address.png">Resources/Images/Data/ip_address.png</file>

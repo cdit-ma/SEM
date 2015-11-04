@@ -147,6 +147,7 @@ QList<GraphMLItem *> GraphMLItem::getChildren()
     return children.values();
 }
 
+
 void GraphMLItem::connectToGraphMLData(QString keyName)
 {
     if(getGraphML()){

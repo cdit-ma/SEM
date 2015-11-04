@@ -31,7 +31,8 @@ public:
     QPointF getMinimumRectCenterPos() const;
     void setMinimumRectCenterPos(QPointF pos);
 
-    virtual void setPos(const QPointF pos) =0;
+
+    virtual void setPos(const QPointF pos) = 0;
     virtual qreal getItemMargin() const = 0;
 
     void updatePositionInModel(bool directUpdate = false);
@@ -40,6 +41,14 @@ public:
     RESIZE_TYPE resizeEntered(QPointF mousePosition);
 
     void snapToGrid();
+
+    void addEdge(EdgeItem* edge);
+    void removeEdge(int ID);
+    bool hasEdges();
+    void addEdgeAsChild(EdgeItem* edge);
+    void removeChildEdge(int ID);
+    QList<EdgeItem*> getEdges();
+
 
 
     void resizeToOptimumSize(RESIZE_TYPE rt);
@@ -79,7 +88,7 @@ public:
     void setResizeMode(RESIZE_TYPE mode);
 
 signals:
-
+    void lastEdgeRemoved();
     void move(QPointF delta);
     void resize(QSizeF delta);
     void moveFinished();
@@ -103,10 +112,13 @@ private:
 
     VIEW_ASPECT viewAspect;
 
+
     QVector<QLineF> verticalGridLines;
     QVector<QLineF> horizontalGridLines;
 
     QHash<int, QRectF> childrenGridOutlines;
+    QHash<int, EdgeItem*> connectedEdges;
+    QHash<int, EdgeItem*> childEdges;
 
     RESIZE_TYPE resizeMode;    
 };
