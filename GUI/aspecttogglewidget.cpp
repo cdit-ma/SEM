@@ -32,7 +32,7 @@ AspectToggleWidget::AspectToggleWidget(VIEW_ASPECT aspect, double size, MedeaWin
     mainFrame = new QFrame(this);
 
     viewAspect = aspect;
-    aspectText = getAspectName(aspect);
+    aspectText = GET_ASPECT_NAME(aspect);
 
     CHECKED = false;
     STATE = DEFAULT;
@@ -68,7 +68,7 @@ QString AspectToggleWidget::getText()
  */
 QPoint AspectToggleWidget::getToggleGridPos()
 {
-    switch (getAspectPosition(viewAspect)) {
+    switch (GET_ASPECT_POS(viewAspect)) {
     case VAP_TOPLEFT:
         return QPoint(1,1);
     case VAP_TOPRIGHT:
@@ -208,9 +208,9 @@ void AspectToggleWidget::aspectDoubleClicked(VIEW_ASPECT aspect)
  * the displayed aspects has been changed or the view has been scaled/panned.
  * @param aspect
  */
-void AspectToggleWidget::highlightToggleButton(QString aspect)
+void AspectToggleWidget::highlightToggleButton(VIEW_ASPECT aspect)
 {
-    if (aspectText == aspect) {
+    if (viewAspect == aspect) {
         aspectLabel->setStyleSheet("background-color: rgba(0,0,0,0);"
                                    //"font-size: 11.5px;"
                                    "font-weight: bold;"
@@ -271,7 +271,7 @@ QColor AspectToggleWidget::adjustColorRGB(QColor color, int delta)
  */
 void AspectToggleWidget::setupColor()
 {
-    QColor aspectColor = getAspectColor(viewAspect);
+    QColor aspectColor = GET_ASPECT_COLOR(viewAspect);
     QColor darkerAspectColor = adjustColorRGB(aspectColor, -55);
     int checkedAlpha = 250;
 

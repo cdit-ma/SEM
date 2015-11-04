@@ -1108,6 +1108,8 @@ QList<int> NewController::getConnectableNodes(int srcID)
             if(dst && ID != srcID){
                 if (src->canConnect(dst)){
                     legalNodes << ID;
+                }else if (dst->canConnect(src)){
+                    legalNodes << ID;
                 }
             }
         }
@@ -3621,8 +3623,13 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
         //Construct new edges.
         foreach (int srcID, srcIDs) {
             Node* src = getNodeFromID(srcID);
-            Edge* edge =  constructEdgeWithData(src, dst);
-            if(!edge && !src->isConnected(dst)){
+
+            Edge* edge = constructEdgeWithData(src, dst);
+            if(!edge){
+                //Try swap
+                constructEdgeWithData(dst, src);
+            }
+            if(!src || !src->isConnected(dst)){
                 emit controller_DisplayMessage(WARNING, "Deployment Failed", "Cannot Connect Entity: " + src->toString() + " to Hardware Entity: " + dst->toString(), srcID);
             }
         }
@@ -4274,6 +4281,54 @@ bool NewController::canLocalDeploy()
         }
     }
     return isDeployable;
+}
+
+bool NewController::areIDsInSameBranch(int mainID, int newID)
+{
+    GraphML* main = getGraphMLFromID(mainID);
+    GraphML* other = getGraphMLFromID(newID);
+
+    QList<int> mainTree;
+    QList<int> secondTree;
+    QList<int> thirdTree;
+    bool useThirdTree = false;
+
+    if(main->isNode()){
+        mainTree = ((Node*)main)->getTreeIndex();
+    }
+
+    if(other->isEdge()){
+        Edge* edge = (Edge*)other;
+        Node* src = edge->getSource();
+        Node* dst = edge->getDestination();
+        if(src && dst){
+            secondTree = src->getTreeIndex();
+            thirdTree = dst->getTreeIndex();
+        }
+    }
+    if(other->isNode()){
+        secondTree = ((Node*)other)->getTreeIndex();
+    }
+
+    for(int i = 0; i < mainTree.size(); i++){
+        int one = mainTree.at(i);
+        int two = -1;
+        int three = -1;
+        if(i < secondTree.size()){
+            two = secondTree.at(i);
+        }
+        if(i < thirdTree.size()){
+            three = thirdTree.at(i);
+        }
+
+        if(two == -1 || (three == -1 && useThirdTree)){
+            return true;
+        }
+        if(one != two || (one != three && useThirdTree)){
+            return false;
+        }
+    }
+    return true;
 }
 
 int NewController::getDefinition(int ID)

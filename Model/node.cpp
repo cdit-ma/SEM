@@ -12,24 +12,9 @@ Node::Node(Node::NODE_TYPE type) : GraphML(GraphML::NODE)
     //Initialize Instance Variables.
     definition = 0;
     parentNode = 0;
-    sortOrder = -1;
     childCount = 0;
 }
 
-void Node::setSortPosition(int i)
-{
-    //Check
-    sortOrder = i;
-    GraphMLData* sortData = getData("sortOrder");
-    if(sortData){
-        sortData->setValue(QString::number(sortOrder));
-    }
-}
-
-int Node::getSortPosition()
-{
-    return sortOrder;
-}
 
 QList<int> Node::getTreeIndex()
 {
@@ -573,6 +558,7 @@ void Node::removeImplementation(Node *impl)
     }
 
 }
+
 
 void Node::addEdge(Edge *edge)
 {

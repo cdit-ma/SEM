@@ -27,11 +27,12 @@ public:
 
     virtual QRectF gridRect() const = 0;
     virtual QRectF minimumRect() const;
+
     QPointF getMinimumRectCenter() const;
     QPointF getMinimumRectCenterPos() const;
     void setMinimumRectCenterPos(QPointF pos);
 
-
+    void sortChildren();
     virtual void setPos(const QPointF pos) = 0;
     virtual qreal getItemMargin() const = 0;
 
@@ -51,7 +52,7 @@ public:
 
 
 
-    void resizeToOptimumSize(RESIZE_TYPE rt);
+    void resizeToOptimumSize(RESIZE_TYPE rt = RESIZE);
     void adjustSize(QSizeF delta);
     virtual void setWidth(qreal w)=0;
     virtual void setHeight(qreal h)=0;
@@ -67,7 +68,7 @@ public:
 
 
 
-    QPointF getNextChildPos(QRectF childRect = QRectF());
+    QPointF getNextChildPos(QRectF childRect = QRectF(), QPainterPath childrenPath=QPainterPath(), bool useChildrenPath = false);
     QPointF getClosestGridPoint(QPointF childCenterPos);
     QPointF getGridPosition(int x, int y);
 

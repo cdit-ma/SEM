@@ -28,6 +28,8 @@ public:
     void unbindData(GraphMLData* data);
     QList<GraphMLData*> getBoundData();
 
+    bool gotDoubleValue() const;
+    qreal getDoubleValue() const;
     QString getValue() const;
     GraphMLKey* getKey();
     QString getKeyName();
@@ -40,6 +42,7 @@ signals:
     void dataChanged(GraphMLData* data);
     void valueChanged(QString value, QString key="");
 private:
+    void updateDouble();
     GraphML* Parent;
 
     GraphMLData* parentData;
@@ -47,6 +50,8 @@ private:
     QString value;
     QString keyName;
     QString type;
+    qreal valueDbl;
+    bool hasDbl;
     bool protectedData;
 
     GraphMLKey* key;

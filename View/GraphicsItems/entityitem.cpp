@@ -189,9 +189,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW):  NodeItem
         setupChildrenViewOptionMenu();
     }
 
-    if(IN_SUBVIEW){
-        setVisibility(true);
-    }else{
+    if(!IN_SUBVIEW){
         //Set Values Direc
         updatePositionInModel(true);
         updateSizeInModel(true);
@@ -994,11 +992,7 @@ void EntityItem::setVisibility(bool visible)
 
     QGraphicsItem::setVisible(visible);
 
-
-
-
     emit setEdgeVisibility(visible);
-
 
     if(emitChange){
         emit visibilityChanged(visible);
@@ -1113,66 +1107,6 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
 }
 
 
-/**
- * @brief EntityItem::newSort
- */
-void EntityItem::sort()
-{
-
-    if (sortTriggerAction) {
-        // added this so sort can be un-done
-        GraphMLItem_TriggerAction("EntityItem: Sorting Node");
-    }
-
-    //Get the number of un-locked items
-    QMap<int, EntityItem*> toSortMap;
-    QList<EntityItem*> lockedItems;
-
-    foreach(EntityItem* child, getChildEntityItems()){
-        Node* childNode = child->getNode();
-        if(child->getChildEntityItems().size() == 0){
-            //RESET SIZE.
-            child->setWidth(getChildWidth());
-            child->setHeight(getChildHeight());
-        }
-        if(!child->isVisible()){
-            continue;
-        }
-
-        Node* childParent = childNode->getParentNode();
-
-        int currentSortOffset = 0;
-        while(childParent){
-            if(childParent == getNode()){
-                break;
-            }else{
-                bool isInt;
-                int childParentSortOrder = childParent->getDataValue("sortOrder").toInt(&isInt);
-                if(isInt){
-                    currentSortOffset += childParentSortOrder;
-                }
-            }
-            childParent = childParent->getParentNode();
-        }
-
-        bool isInt;
-        int sortPosition = childNode->getDataValue("sortOrder").toInt(&isInt);
-        if(isInt){
-            toSortMap.insertMulti(currentSortOffset + sortPosition, child);
-        }
-    }
-
-    QList<EntityItem*> toSortItems = toSortMap.values();
-
-    //Sort Items
-    while(toSortItems.size() > 0){
-        EntityItem* item = toSortItems.takeFirst();
-
-        item->setCenterPos(getNextChildPos(item->boundingRect()));
-        item->updateModelPosition();
-    }
-
-}
 
 
 void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -1296,8 +1230,8 @@ void EntityItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         case NodeView::VS_SELECTED:
             if(controlPressed){
                 if(inMainView()){
-                    emit GraphMLItem_TriggerAction("Sorting Node");
-                    sort();
+                    //emit GraphMLItem_TriggerAction("Sorting Node");
+                    //sort();
                 }
             }else{
                 emit GraphMLItem_SetCentered(this);
@@ -1591,7 +1525,8 @@ void EntityItem::updateDisplayedChildren(int viewMode)
 
     CHILDREN_VIEW_MODE = viewMode;
     sortTriggerAction = false;
-    sort();
+    sortChildren();
+    //sort();
     sortTriggerAction = true;
 }
 

@@ -82,7 +82,6 @@ signals:
 
     void window_LoadJenkinsNodes(QString fileData);
 
-    void window_AspectsChanged(QStringList aspects);
     void window_SortModel();
 
     void window_searchItemClicked(SearchItemButton* item);
@@ -269,8 +268,6 @@ private:
     QAction* edit_search;
 
     QAction* view_fitToScreen;
-    QAction* view_snapToGrid;
-    QAction* view_snapChildrenToGrid;
     QAction* view_goToDefinition;
     QAction* view_goToImplementation;
     QAction* view_showConnectedNodes;
@@ -403,7 +400,6 @@ private:
     QMap<QAction*, QCheckBox*> toolbarActions;
     QList<QAction*> checkedToolbarActions;
     QList<QAction*> checkedToolbarSpacers;
-    QStringList checkedViewAspects;
 
     QHash<QAction*, int> leftMostActions;
     QHash<QAction*, int> leftMidActions;

@@ -16,18 +16,32 @@ Fixed List:
 * Window toolbar is now kept centralised on the new viewRect.
 * align multiple selection.
 * QAction for fullscreen mode
-
-ToDo List:
-* Subview borked
-* settings into tab
-* fix theme stuff
-* Expanding multiple selection. (Maybe even recurse)
-* sort multiple selection. (Maybe even recurse)
-* Highlight Source (Maybe use Number on screen) for connect mode
 * QObject::connect: No such slot NodeView::snapSelectionToGrid()
 * QObject::connect: No such slot NodeView::snapChildrenToGrid()
-* Trigger action after action is done, not just on selection change.
+* sort multiple selection. (Maybe even recurse)
+* Expanding multiple selection. (Maybe even recurse)
+* Fixed Definitions Dock checks for GraphMLItem Kind
+* Subviews Fixed
+* Crash on dock when closing or new.
+
+ToDo List:
+Together:
+* Highlight Source (Maybe use Number on screen) for connect mode
+* Fix NodeItems's right and bottom margins
+* Add action for pan mode for the toolbar
+
+Dan To Fix:
 * performance testing
+* settings into tab
+* Fix Duplicate in Controller.
+
+Cathlyn To Fix:
+* Fix getNextChildPos() in NodeItem. (doesnt' work consistantly for sorting Aspect)
+* fix theme stuff
+* Trigger action after action is done, not just on selection change.
+* Call NodeView::expandSelection(bool expand) from toolbar or menu or something.
+* Work out useful short cuts for recursive sort and normal sort.
+* Add Aspect check for search
 
 Version 18:
     New Features:
@@ -59,9 +73,10 @@ Version 18:
         * The hardware dock items are now disabled for HardwareClusters and HardwareDefinitions.
             ** The dock can still be opened but the dock items can't be clicked on.
         * Enabled all middleware's for local node deployment.
-		* Implemented search suggestions.
-			** Selecting an item from the suggestions list will auto-complete your search and trigger a search action.
-		* Context toolbar's connect menu now doesn't display the parent entity for entities that have the same parent as the selected entity.
+        * Implemented search suggestions.
+            ** Selecting an item from the suggestions list will auto-complete your search and trigger a search action.
+        * Context toolbar's connect menu now doesn't display the parent entity for entities that have the same parent as the selected entity.
+        * Added Fullscreen mode (F11)
 
 
     Fixes:

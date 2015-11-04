@@ -34,7 +34,7 @@ signals:
 
 public slots:
     void aspectDoubleClicked(VIEW_ASPECT viewAspect);
-    void highlightToggleButton(QString viewAspect);
+    void highlightToggleButton(VIEW_ASPECT viewAspect);
 
 private:
     QString colorToString(QColor color, int alpha = 255);

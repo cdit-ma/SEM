@@ -7,12 +7,9 @@
 
 enum VIEW_ASPECT{VA_NONE, VA_INTERFACES, VA_BEHAVIOUR, VA_ASSEMBLIES, VA_HARDWARE};
 enum VIEW_ASPECT_POS{VAP_NONE, VAP_TOPLEFT, VAP_TOPRIGHT, VAP_BOTTOMRIGHT, VAP_BOTTOMLEFT};
-
 const static QList<VIEW_ASPECT> VIEW_ASPECTS = QList<VIEW_ASPECT>() << VA_INTERFACES << VA_BEHAVIOUR << VA_ASSEMBLIES << VA_HARDWARE;
-const static QStringList VIEW_ASPECT_LIST = QStringList() << "InterfaceDefinitions" << "BehaviourDefinitions" << "AssemblyDefinitions" << "HardwareDefinitions";
 
-
-static VIEW_ASPECT_POS getAspectPosition(VIEW_ASPECT aspect)
+static VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
 {
     switch(aspect){
     case VA_INTERFACES:
@@ -29,8 +26,7 @@ static VIEW_ASPECT_POS getAspectPosition(VIEW_ASPECT aspect)
     return VAP_NONE;
 }
 
-
-static QString getAspectName(VIEW_ASPECT aspect)
+static QString GET_ASPECT_NAME(VIEW_ASPECT aspect)
 {
     switch(aspect){
     case VA_INTERFACES:
@@ -47,23 +43,21 @@ static QString getAspectName(VIEW_ASPECT aspect)
     return "";
 }
 
-
-static VIEW_ASPECT getViewAspectFromAspectNodeKind(QString nodeKind)
+static VIEW_ASPECT GET_ASPECT_FROM_KIND(QString aspectKind)
 {
-    if(nodeKind == "InterfaceDefinitions"){
+    if(aspectKind == "InterfaceDefinitions"){
         return VA_INTERFACES;
-    }else if(nodeKind == "BehaviourDefinitions"){
+    }else if(aspectKind == "BehaviourDefinitions"){
         return VA_BEHAVIOUR;
-    }else if(nodeKind == "HardwareDefinitions"){
+    }else if(aspectKind == "HardwareDefinitions"){
         return VA_HARDWARE;
-    }else if(nodeKind == "AssemblyDefinitions"){
+    }else if(aspectKind == "AssemblyDefinitions"){
         return VA_ASSEMBLIES;
     }
     return VA_NONE;
 }
 
-
-static QColor getAspectColor(VIEW_ASPECT aspect)
+static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
 {
     switch(aspect){
     case VA_INTERFACES:
@@ -79,5 +73,14 @@ static QColor getAspectColor(VIEW_ASPECT aspect)
     }
     return Qt::white;
 }
+
+static QStringList GET_ASPECT_NAMES(){
+    QStringList list;
+    foreach(VIEW_ASPECT aspect, VIEW_ASPECTS){
+        list << GET_ASPECT_NAME(aspect);
+    }
+    return list;
+}
+
 
 #endif // ENUMERATIONS_H

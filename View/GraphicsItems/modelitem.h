@@ -3,6 +3,7 @@
 #include "graphmlitem.h"
 #include "inputitem.h"
 #include "../../Model/node.h"
+#include "../../enumerations.h"
 #include "../../Model/graphmldata.h"
 #include <QPen>
 
@@ -15,7 +16,7 @@ class ModelItem : public GraphMLItem
 {
     Q_OBJECT
 public:
-    ModelItem(Node* node, bool IN_SUBVIEW=false);
+    ModelItem(Node* node);
 
     void adjustPos(QPointF delta);
 
@@ -26,8 +27,9 @@ public:
     QRectF topInputRect() const;
     QRectF bottomInputRect() const;
 
+    QList<VIEW_ASPECT> getVisibleAspects();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
-
+    void setInSubView(bool inSubview);
 public slots:
     void graphMLDataChanged(GraphMLData *data);
     void dataEditModeRequested();

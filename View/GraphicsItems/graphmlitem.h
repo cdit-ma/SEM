@@ -21,6 +21,7 @@ public:
     GraphMLItem(GraphML* attachedGraph, GUI_KIND kind);
     ~GraphMLItem();
     virtual QRectF sceneBoundingRect() const;
+    QRectF translatedBoundingRect();
     QString getNodeKind();
     RENDER_STATE getRenderState() const;
     void setRenderState(RENDER_STATE renderState);
@@ -41,7 +42,7 @@ public:
     void updateFromGraphMLData();
     void setGraphMLData(QString keyName, QString value);
     void detach();
-    void setInSubView(bool inSubview);
+    virtual void setInSubView(bool inSubview);
     bool isDeleting();
 
     bool intersectsRectangle(QRectF rect);
@@ -93,7 +94,6 @@ public slots:
 signals:
     void GraphMLItem_TriggerAction(QString actionName);
     void GraphMLItem_SetCentered(GraphMLItem*);
-    void GraphMLItem_CenterAspects();
 
     void GraphMLItem_SetGraphMLData(int, QString, QString);
     void GraphMLItem_ConstructGraphMLData(GraphML*, QString);

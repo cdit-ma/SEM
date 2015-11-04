@@ -86,7 +86,6 @@ public:
     void visibleViewRectChanged(QRect rect);
     QRect getVisibleViewRect();
 
-    QStringList getAllAspects();
     void viewDeploymentAspect();
 
 
@@ -101,6 +100,7 @@ public:
     EntityItem* getDeployedNode(int ID);
 
     bool isSubView();
+    bool isMainView();
     bool isTerminating();
     bool isNodeKindDeployable(QString nodeKind);
 
@@ -127,10 +127,10 @@ protected:
     bool viewportEvent(QEvent *);
 
 private:
-    void sortSelection();
+    void sortSelection(bool recurse=false);
+    void expandSelection(bool expand);
 
 private slots:
-    void view_AspectToggled(int ID);
 
     void hardwareClusterMenuClicked(int viewMode);
 
@@ -181,8 +181,6 @@ signals:
     void view_ZoomChanged(qreal);
     void view_SceneRectChanged(QRectF);
 
-    void view_AspectsChanged(QStringList aspects);
-    void view_GUIAspectChanged(QStringList aspects);
 
     //SIGNALS for the Controller
     void view_TriggerAction(QString action);
@@ -195,7 +193,7 @@ signals:
 
     void view_ClearHistoryStates();
 
-    void view_highlightAspectButton(QString aspect = "");
+    void view_highlightAspectButton(VIEW_ASPECT aspect);
 
     // signals for the docks
     void view_nodeSelected();
@@ -248,7 +246,6 @@ public slots:
     void alignSelectionVertically();
 
 
-    void setDefaultAspects();
     void setEnabled(bool);
 
     void showMessage(MESSAGE_TYPE type, QString title, QString message, int ID=-1, bool centralizeItem = false);
@@ -300,12 +297,13 @@ public slots:
     void view_LockCenteredGraphML(int ID);
 
     void sort();
+    void expand(bool expand);
+
     void sortEntireModel();
 
 
 
     void centerAspect(VIEW_ASPECT aspect);
-    void setAspects(QStringList aspects, bool centerViewAspects = true);
     void toggleAspect(VIEW_ASPECT aspect, bool on);
     void fitToScreen(QList<GraphMLItem*> itemsToCenter = QList<GraphMLItem*>(), double padding = 0, bool addToMap = true);
 
@@ -371,8 +369,6 @@ private:
     void view_ConstructEdgeGUI(Edge* edge);
     void setGraphMLItemSelected(GraphMLItem* item, bool setSelected);
     void connectGraphMLItemToController(GraphMLItem* GUIItem);
-    void addAspect(QString aspect);
-    void removeAspect(QString aspect);
     void storeGraphMLItemInHash(GraphMLItem* item);
     void unsetItemsDescendants(GraphMLItem* selectedItem);
     void nodeConstructed_signalUpdates(NodeItem *EntityItem);
@@ -392,7 +388,6 @@ private:
     bool isEditableDataDropDown(EntityItem* node);
     bool isNodeVisuallyConnectable(Node* node);
     bool onlyHardwareClustersSelected();
-    bool isMainView();
     bool removeGraphMLItemFromHash(int ID);
     bool isItemsAncestorSelected(GraphMLItem* selectedItem);
 
@@ -444,7 +439,6 @@ private:
     ToolbarWidget* toolbar;
     NewController* controller;
     QRubberBand* rubberBand;
-    NodeItem* centralizedItem;
     QMenu* prevLockMenuOpened;
     QComboBox* comboBox;
     QGraphicsLineItem* connectLine;
@@ -453,10 +447,7 @@ private:
 
     QMutex viewMutex;
 
-    QStringList allAspects;
-    QStringList currentAspects;
     QStringList nonDrawnItemKinds;
-    QStringList defaultAspects;
 
 
     QPoint panningOrigin;
@@ -521,7 +512,6 @@ private:
     QHash<int, QRectF> centeredRects;
 
     QHash<int, int> definitionIDs;
-    QHash<int, QString> aspectIDs;
 
     QHash<QString, QPixmap> imageLookup;
     QHash<int, GraphMLItem*> guiItems;

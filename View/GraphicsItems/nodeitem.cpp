@@ -91,6 +91,7 @@ QRectF NodeItem::minimumRect() const
     return boundingRect();
 }
 
+
 QPointF NodeItem::getMinimumRectCenter() const
 {
     return minimumRect().center();
@@ -105,6 +106,39 @@ void NodeItem::setMinimumRectCenterPos(QPointF pos)
 {
     pos -= getMinimumRectCenter();
     setPos(pos);
+}
+
+void NodeItem::sortChildren()
+{
+    //Get the number of un-locked items
+    QMap<int, NodeItem*> toSortMap;
+
+    foreach(GraphMLItem* child, getChildren()){
+        if(!child->isVisible() || !child->isNodeItem()){
+            continue;
+        }
+        NodeItem* nodeItem = (NodeItem*)child;
+        //Find the sortOrder.
+        int childSortOrder = toSortMap.size();
+        QString sortOrder = nodeItem->getGraphMLDataValue("sortOrder");
+
+        if(sortOrder != ""){
+            childSortOrder = sortOrder.toInt();
+        }
+        toSortMap.insertMulti(childSortOrder, nodeItem);
+    }
+
+    QList<NodeItem*> toSortItems = toSortMap.values();
+
+    QPainterPath sortedPath;
+    //Sort Items
+    while(toSortItems.size() > 0){
+        NodeItem* item = toSortItems.takeFirst();
+        QPointF nextPos = getNextChildPos(item->boundingRect(), sortedPath, true);
+        item->setMinimumRectCenterPos(nextPos);
+        item->updatePositionInModel();
+        sortedPath.addRect(item->translatedBoundingRect());
+    }
 }
 
 void NodeItem::updatePositionInModel(bool directUpdate)
@@ -196,7 +230,6 @@ QList<EdgeItem *> NodeItem::getEdges()
 void NodeItem::resizeToOptimumSize(NodeItem::RESIZE_TYPE rt)
 {
     QRectF rect = childrenBoundingRect();
-    qCritical() << rect;
     switch(rt){
     case RESIZE:
         setWidth(rect.right());
@@ -279,19 +312,20 @@ void NodeItem::adjustPos(QPointF delta)
     setPos(pos() + delta);
 }
 
-QPointF NodeItem::getNextChildPos(QRectF itemRect)
+QPointF NodeItem::getNextChildPos(QRectF itemRect, QPainterPath childrenPath, bool usePainterPath)
 {
+
     bool useItemRect = !itemRect.isNull();
 
-    QPainterPath childrenPath = QPainterPath();
-    //bool hasChildren = false;
+    //Don't use the provided path, construct a new path.
+    if(!usePainterPath){
+        childrenPath = QPainterPath();
 
-    // add the children's bounding rectangles to the children path
-    foreach (GraphMLItem* child, getChildren()) {
-        if (child && child->isVisible()) {
-            QRectF childRect =  child->boundingRect();
-            childRect.translate(child->pos());
-            childrenPath.addRect(childRect);
+        // add the children's bounding rectangles to the children path
+        foreach (GraphMLItem* child, getChildren()) {
+            if (child && child->isVisible()) {
+                childrenPath.addRect(child->translatedBoundingRect());
+            }
         }
     }
 

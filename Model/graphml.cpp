@@ -115,6 +115,7 @@ QString GraphML::getDataValue(QString keyName)
     }
 }
 
+
 GraphMLData *GraphML::getData(QString keyName)
 {
     if(!_deleting){

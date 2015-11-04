@@ -90,6 +90,8 @@ public:
     bool canRedo();
     bool canLocalDeploy();
 
+    bool areIDsInSameBranch(int mainID, int newID);
+
     int getDefinition(int ID);
     int getImplementation(int ID);
     QList<int> getInstances(int ID);

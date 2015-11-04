@@ -223,6 +223,13 @@ QRectF GraphMLItem::sceneBoundingRect() const
     return QGraphicsObject::sceneBoundingRect();
 }
 
+QRectF GraphMLItem::translatedBoundingRect()
+{
+    QRectF rect = boundingRect();
+    rect.translate(pos());
+    return rect;
+}
+
 QString GraphMLItem::getNodeKind()
 {
     return nodeKind;
@@ -254,6 +261,9 @@ AttributeTableModel *GraphMLItem::getAttributeTable()
 void GraphMLItem::setNodeView(NodeView *view)
 {
     nodeView = view;
+    if(nodeView){
+        setInSubView(nodeView->isSubView());
+    }
 }
 
 NodeView *GraphMLItem::getNodeView()

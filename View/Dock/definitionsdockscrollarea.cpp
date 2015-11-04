@@ -155,11 +155,7 @@ void DefinitionsDockScrollArea::onEdgeDeleted()
  */
 void DefinitionsDockScrollArea::dockNodeItemClicked()
 {
-    GraphMLItem* selectedItem = getNodeView()->getSelectedEntityItem();
-    EntityItem* selectedNodeItem = 0;
-    if(selectedItem && selectedItem->isEntityItem()){
-        selectedNodeItem = (EntityItem*)selectedItem;
-    }
+    NodeItem* selectedNodeItem = getNodeView()->getSelectedNodeItem();
     if(!selectedNodeItem){
         return;
     }

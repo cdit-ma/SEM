@@ -3,6 +3,7 @@
 #include "Toolbar/toolbarwidget.h"
 #include "Dock/docktogglebutton.h"
 #include "../medeasubwindow.h"
+#include "../medeawindow.h"
 #include "GraphicsItems/aspectitem.h"
 #include <limits>
 
@@ -58,7 +59,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
     wasPanning = false;
     connectLine = 0;
-    centralizedItem = 0;
     constructedFromImport = true;
     toolbarJustClosed = false;
     editingEntityItemLabel = false;
@@ -139,14 +139,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //Set The rubberband Mode.
     setRubberBandMode(false);
 
-    //Setup Aspects
-    allAspects << "Definitions";    //0
-    allAspects << "Workload";       //1
-    allAspects << "Hardware";       //2
-    allAspects << "Assembly";       //3
-
-    defaultAspects << "Definitions";
-
     nonDrawnItemKinds << "DeploymentDefinitions";
 
 
@@ -201,7 +193,6 @@ NodeView::VIEW_STATE NodeView::getViewState()
 
 void NodeView::scrollContentsBy(int dx, int dy)
 {
-    //qCritical() << " SCROOLLAGE";
     //QGraphicsView::scrollContentsBy(dx,dy);
 }
 
@@ -239,24 +230,6 @@ bool NodeView::isNodeKindDeployable(QString nodeKind)
 bool NodeView::isMainView()
 {
     return !IS_SUB_VIEW;
-}
-
-void NodeView::addAspect(QString aspect)
-{
-    if(!currentAspects.contains(aspect)){
-        QStringList newAspects = currentAspects;
-        newAspects.append(aspect);
-        setAspects(newAspects);
-    }
-}
-
-void NodeView::removeAspect(QString aspect)
-{
-    if(currentAspects.contains(aspect)){
-        QStringList newAspects = currentAspects;
-        newAspects.removeAll(aspect);
-        setAspects(newAspects);
-    }
 }
 
 NodeView::~NodeView()
@@ -343,6 +316,10 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
     // add the padding to the rect to be centered
     rect.setWidth(rect.width() * padding);
     rect.setHeight(rect.height() * padding);
+
+    if(isSubView()){
+        visibleViewRect = viewport()->rect();
+    }
 
     // calculate the ratio (viewport : rect)
     // scale depending on which side requires less scaling
@@ -441,7 +418,6 @@ QPointF NodeView::getModelScenePos()
 void NodeView::adjustModelPosition(QPointF delta)
 {
     if (getModelItem()) {
-
         ((ModelItem*)getModelItem())->adjustPos(delta);
         // call this after the scene/model has been moved
         aspectGraphicsChanged();
@@ -541,20 +517,21 @@ void NodeView::paintEvent(QPaintEvent * e)
 {
     QGraphicsView::paintEvent(e);
 /*
-    QPainter painter(this->viewport());
+    if(this->isSubView()){
+        QPainter painter(this->viewport());
 
-    painter.setPen(Qt::black);
-    painter.drawRect(visibleViewRect);
+        painter.setPen(Qt::black);
+        painter.drawRect(visibleViewRect);
 
-    painter.setPen(Qt::red);
-    painter.drawLine(QLine(visibleViewRect.topLeft(),visibleViewRect.bottomRight()));
-    painter.drawLine(QLine(visibleViewRect.topRight(),visibleViewRect.bottomLeft()));
+        painter.setPen(Qt::red);
+        painter.drawLine(QLine(visibleViewRect.topLeft(),visibleViewRect.bottomRight()));
+        painter.drawLine(QLine(visibleViewRect.topRight(),visibleViewRect.bottomLeft()));
 
-    painter.setPen(Qt::blue);
-    painter.drawLine(QLine(viewport()->rect().topLeft(),viewport()->rect().bottomRight()));
-    painter.drawLine(QLine(viewport()->rect().topRight(),viewport()->rect().bottomLeft()));
-*/
-
+        painter.setPen(Qt::blue);
+        painter.drawLine(QLine(viewport()->rect().topLeft(),viewport()->rect().bottomRight()));
+        painter.drawLine(QLine(viewport()->rect().topRight(),viewport()->rect().bottomLeft()));
+        qCritical() << this->viewState;
+    }*/
 }
 
 
@@ -683,9 +660,9 @@ QList<int> NodeView::getSelectedNodeIDs()
 {
 
     QList<int> selectedItems;
-    foreach (int ID, selectedIDs) {
-        EntityItem* selectedItem = getEntityItemFromID(ID);
-        if (selectedItem) {
+    foreach (int ID, selectedIDs) {\
+        NodeItem* nodeItem = getNodeItemFromID(ID);
+        if (nodeItem) {
             selectedItems << ID;
         }
     }
@@ -920,9 +897,7 @@ QList<NodeItem *> NodeView::getHardwareList()
  */
 void NodeView::constructNewView(int nodeKindToCenter)
 {
-    // if there is no selected node item, do nothing
     if (getSelectedNodeID() == -1) {
-        emit view_displayNotification("Select an entity first.");
         return;
     }
 
@@ -948,21 +923,23 @@ void NodeView::constructNewView(int nodeKindToCenter)
         return;
     }
 
-    EntityItem* EntityItem = getEntityItemFromID(nodeID);
-    if (IS_SUB_VIEW || !EntityItem){
+    NodeItem* nodeItem = getNodeItemFromID(nodeID);
+
+    if (IS_SUB_VIEW || !nodeItem){
         return;
     }
 
     MedeaSubWindow* subWindow = new MedeaSubWindow();
     connect(this, SIGNAL(destroyed()), subWindow, SLOT(reject()));
 
-    NodeView* newView = new NodeView(true, subWindow);
+    NodeView* newView = new NodeView(true , subWindow);
     subViews.append(newView);
-    newView->setAspects(allAspects);
     newView->setParentNodeView(this);
-    subWindow->setNodeView(newView);
 
-    Node* currentNode = EntityItem->getNode();
+    subWindow->setNodeView(newView);
+    newView->view_LockCenteredGraphML(nodeID);
+
+    Node* currentNode = nodeItem->getNode();
 
     if (controller && currentNode) {
 
@@ -981,7 +958,8 @@ void NodeView::constructNewView(int nodeKindToCenter)
             currentNode = currentNode->getParentNode();
         }
         while (!constructList.isEmpty()) {
-            newView->constructGUIItem(constructList.takeFirst());
+            Node* newNode = constructList.takeFirst();
+            newView->constructGUIItem(newNode);
         }
         while (!edgeList.isEmpty()) {
             newView->constructGUIItem(edgeList.takeFirst());
@@ -989,10 +967,8 @@ void NodeView::constructNewView(int nodeKindToCenter)
 
         connect(this, SIGNAL(view_ClearSubViewAttributeTable()), newView, SIGNAL(view_ClearSubViewAttributeTable()));
         subWindow->show();
-        newView->view_LockCenteredGraphML(nodeID);
-
-        qDebug() << "Constructed new view";
-
+        //Centralize item.
+        newView->centralizedItemMoved();
     } else {
         delete subWindow;
     }
@@ -1160,11 +1136,11 @@ void NodeView::aspectGraphicsChanged()
     }
 
     QRectF viewSceneRect = getVisibleRect();
-    QString aspectToHighlight;
+    VIEW_ASPECT aspectToHighlight = VA_NONE;
 
     foreach (GraphMLItem* aspect, getModelItem()->getChildren()) {
         if (aspect->isVisible() && aspect->sceneBoundingRect().contains(viewSceneRect)){
-            aspectToHighlight = aspectIDs[aspect->getID()];
+            aspectToHighlight = ((NodeItem*)aspect)->getViewAspect();
             break;
         }
     }
@@ -1356,6 +1332,7 @@ void NodeView::minimapScrolled(int delta)
 {
     ViewportAnchor currentAnchor = transformationAnchor();
     setTransformationAnchor(AnchorViewCenter);
+
     scrollEvent(delta);
     setTransformationAnchor(currentAnchor);
 }
@@ -1404,36 +1381,6 @@ void NodeView::minimapPan()
 }
 
 
-/**
- * @brief NodeView::setAspects
- * This is called whenever the view aspect buttons are clicked.
- * @param aspects
- * @param centerViewAspects
- */
-void NodeView::setAspects(QStringList aspects, bool centerViewAspects)
-{
-    currentAspects = aspects;
-
-    // set change in view aspects to the node items and the gui
-    view_AspectsChanged(aspects);
-
-    if (!IS_SUB_VIEW && AUTO_CENTER_ASPECTS && centerViewAspects) {
-        //fitToScreen();
-    }
-
-    // only need to clear the selection if any of the selected items is now not in aspect
-    foreach (int id, selectedIDs) {
-        EntityItem* item = (EntityItem*)guiItems[id];
-        //if (!item->isInAspect()) {
-         //   clearSelection();
-         //   break;
-        //}
-    }
-
-    // call this after turning aspect(s) on/off
-    aspectGraphicsChanged();
-}
-
 void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
 {
     AspectItem* aspectItem = getAspectItem(aspect);
@@ -1444,6 +1391,8 @@ void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
     if(AUTO_CENTER_ASPECTS) {
         fitToScreen();
     }
+
+    aspectGraphicsChanged();
 }
 
 
@@ -1454,38 +1403,81 @@ void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
  * @param node
  * @param topMostNode
  */
-void NodeView::sortSelection()
+void NodeView::sortSelection(bool recurse)
 {
-
-    if(viewMutex.tryLock()){
+    if(viewMutex.tryLock()){      
         triggerAction("View: Sorting Node");
         emit view_updateProgressStatus(-1, "Sorting Selected Entities");
 
+        QList<GraphMLItem*> nodesToSort;
+
+        QList<GraphMLItem*> sortList;
+
         foreach(int ID, selectedIDs){
-            EntityItem* EntityItem = getEntityItemFromID(ID);
-            if(EntityItem){
-                EntityItem->sort();
+            NodeItem* nodeItem = getNodeItemFromID(ID);
+            if(nodeItem){
+                nodesToSort << nodeItem;
             }
         }
-        emit view_updateProgressStatus(100);
 
+        //Construct a list of all children.
+        while(!nodesToSort.isEmpty()){
+            GraphMLItem* child = nodesToSort.takeFirst();
+            if(!sortList.contains(child)){
+                sortList << child;
+            }
+            if(recurse){
+                nodesToSort.append(child->getChildren());
+            }
+        }
+
+
+        while(!sortList.isEmpty()){
+            GraphMLItem* child = sortList.takeLast();
+            NodeItem* nodeItem = (NodeItem*) child;
+            if(child && child->isNodeItem() && child->isVisible()){
+                nodeItem->sortChildren();
+            }
+        }
+        update();
+        emit view_updateProgressStatus(100);
         actionFinished();
     }
 
 
 }
 
-void NodeView::view_AspectToggled(int ID)
+void NodeView::expandSelection(bool expand)
 {
-    if(ID >= 0 && ID < allAspects.size()){
-        QString aspectName = allAspects.at(ID);
+    if(viewMutex.tryLock()){
+        triggerAction("View: Sorting Node");
+        emit view_updateProgressStatus(-1, "Expand Selected Entities");
 
-        if(currentAspects.contains(aspectName)){
-            removeAspect(aspectName);
-        }else{
-            addAspect(aspectName);
+        QList<GraphMLItem*> nodesToSort;
+
+        foreach(int ID, selectedIDs){
+            NodeItem* nodeItem = getNodeItemFromID(ID);
+            if(nodeItem){
+                nodesToSort << nodeItem;
+            }
         }
+
+        //Construct a list of all children.
+        while(!nodesToSort.isEmpty()){
+            GraphMLItem* child = nodesToSort.takeFirst();
+            if(child->isEntityItem()){
+                EntityItem* entity = (EntityItem*) child;
+                if(entity->isExpanded() != expand){
+                    entity->setNodeExpanded(expand);
+                }
+                entity->updateSizeInModel();
+            }
+        }
+        update();
+        emit view_updateProgressStatus(100);
+        actionFinished();
     }
+
 }
 
 
@@ -1544,6 +1536,7 @@ void NodeView::centerItem(GraphMLItem *item)
 void NodeView::centralizedItemMoved()
 {
     if(CENTRALIZED_ON_ITEM){
+
         centerItem(centralizedItemID);
     }
 }
@@ -1568,7 +1561,6 @@ void NodeView::centerDefinition(int ID)
 
         if(definition){
             // make sure the Assembly view aspect is on
-            addAspect("Definitions");
             clearSelection(false);
             appendToSelection(definition);
             centerOnItem();
@@ -1587,7 +1579,6 @@ void NodeView::centerImplementation(int ID)
 
         if(impl){
             // make sure the Assembly view aspect is on
-            addAspect("Workload");
             clearSelection(false);
             appendToSelection(impl);
             centerOnItem();
@@ -1603,7 +1594,6 @@ void NodeView::centerInstance(int instanceID)
 
         if(instance){
             // make sure the Assembly view aspect is on
-            addAspect("Assembly");
             clearSelection(false);
             appendToSelection(instance);
             centerOnItem();
@@ -1626,6 +1616,7 @@ void NodeView::centerOnItem(GraphMLItem* item)
     }
 
     if (item) {
+        enforceItemAspectOn(item->getID());
         // if the selected node is a main container, just use centerItem()
         // we would only ever want to center and zoom into it
         if (item->isAspectItem()) {
@@ -1931,28 +1922,11 @@ QPair<QString, bool> NodeView::getEditableDataKeyName(GraphMLItem *node)
     returnType.second = false;
 
     QString nodeKind = node->getNodeKind();
-    bool isInImpl = false;
 
 
-
-    bool inInterface = false;
-    bool inBehaviour = false;
-    bool inHardware = false;
-    bool inAssembly = false;
-
-    if(node){
-        int aspectID = controller->getContainedAspect(node->getID());
-
-        QString aspectName = aspectIDs[aspectID];
-        if(aspectName == ASPECT_INTERFACES){
-            inInterface = true;
-        }else if(aspectName == ASPECT_ASSEMBLIES){
-            inAssembly = true;
-        }else if(aspectName == ASPECT_HARDWARE){
-            inHardware = true;
-        }else if(aspectName == ASPECT_BEHAVIOUR){
-            inBehaviour = true;
-        }
+    VIEW_ASPECT aspect = VA_NONE;
+    if(node && node->isNodeItem()){
+        aspect = ((NodeItem*)node)->getViewAspect();
     }
 
 
@@ -1968,13 +1942,13 @@ QPair<QString, bool> NodeView::getEditableDataKeyName(GraphMLItem *node)
     QStringList valueKinds;
     valueKinds << "Variable" << "Condition" << "InputParameter";
 
-    if(!inBehaviour){
+    if(aspect != VA_BEHAVIOUR){
         typeKinds << "MemberInstance";
     }else{
         valueKinds << "MemberInstance";
     }
 
-    if(inAssembly){
+    if(aspect == VA_ASSEMBLIES){
         valueKinds << "AttributeInstance";
     }else{
         typeKinds << "AttributeInstance";
@@ -2082,7 +2056,8 @@ void NodeView::handleSelection(GraphMLItem *item, bool setSelected, bool control
 
 void NodeView::setState(NodeView::VIEW_STATE state)
 {
-    if(!isMainView() && state > VS_SELECTED){
+    //Only let through VS_NONE, VS_SELECTED and VS_PANNING, otherwise, use VS_NONE.
+    if(isSubView() && !(state ==  VS_SELECTED || state == VS_PANNING || state == VS_PAN || state == VS_NONE)){
         state = VS_NONE;
     }
 
@@ -2219,7 +2194,9 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("undo", controller->canUndo());
         emit view_updateMenuActionEnabled("redo", controller->canRedo());
         emit view_updateMenuActionEnabled("localDeployment", controller->canLocalDeploy());
+
     }
+    emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
 
     emit view_updateMenuActionEnabled("singleSelection", selectedID != -1);
     emit view_updateMenuActionEnabled("multipleSelection", !getSelectedNodeIDs().isEmpty());
@@ -2316,80 +2293,95 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         return;
     }
 
-    if(IS_SUB_VIEW){
-        if(centralizedItem && centralizedItem->getNode()){
-            Node* subView = centralizedItem->getNode();
-            if(!subView->isAncestorOf(node)){
-                return;
-            }
-        }
-    }
-
-
-
     Node* parentNode = node->getParentNode();
 
     QString nodeKind = node->getDataValue("kind");
 
+    //Check if we should construct this Node.
     if(nonDrawnItemKinds.contains(nodeKind)){
         noGuiIDHash[node->getID()] = nodeKind;
         return;
     }
 
-    GraphMLItem* parentEntityItem = 0;
-    NodeItem* parentNodeItem = 0;
-    Node* modelParent = parentNode;
 
-    while(modelParent){
-        parentEntityItem = getGraphMLItemFromID(modelParent->getID());
-        if(parentEntityItem){
+    GraphMLItem* parentItem = 0;
+
+
+    Node* parent = parentNode;
+
+    //Get the topmost visible parent
+    while(parent){
+        parentItem = getGraphMLItemFromID(parent->getID());
+        if(parentItem){
             break;
         }
-        modelParent = modelParent->getParentNode();
+        parent = parent->getParentNode();
     }
 
-    if(!parentEntityItem && node->getDataValue("kind") != "Model"){
+    if(!parentItem && nodeKind != "Model"){
         qCritical() << "NodeView::view_ConstructNodeGUI() SUB_VIEW probably not meant to build this item as we don't have it's parent.";
         return;
     }
 
-    parentNodeItem = dynamic_cast<NodeItem*>(parentEntityItem);
+    NodeItem* parentNodeItem = 0;
+    EntityItem* parentEntityItem = 0;
+    if(parentItem && parentItem->isEntityItem()){
+        parentEntityItem = (EntityItem*)parentItem;
+    }
+    if(parentItem && parentItem->isNodeItem()){
+        parentNodeItem = (NodeItem*)parentItem;
+    }
 
-    //Expanded parent
+    //Expanded Parent.
     if(toolbarDockConstruction || importFromJenkins){
-        if(parentNodeItem && parentNodeItem->isEntityItem()){
-            EntityItem* parentEI = (EntityItem*)parentNodeItem;
-            if(!parentEI->isExpanded()){
-                parentEI->setNodeExpanded(true);
-            }
+        if(parentEntityItem && !parentEntityItem->isExpanded()){
+            parentEntityItem->setNodeExpanded(true);
         }
     }
 
 
     //Check for Pasted data, which will have x,y set to -1
-    //SHRINK SIZE.
-    QString xPos = node->getDataValue("x");
-    QString yPos = node->getDataValue("y");
-    QString widthStr = node->getDataValue("width");
-    QString heightStr = node->getDataValue("height");
-    bool resetSize = xPos == yPos && xPos == "-1";
+    qreal xVal = -1;
+    qreal yVal = -1;
 
-    //qreal multiplier = 1;
-    if(resetSize){
+    GraphMLData* xData = node->getData("x");
+    GraphMLData* yData = node->getData("y");
+
+    if(xData && xData->gotDoubleValue()){
+        xVal = xData->getDoubleValue();
+    }
+
+    if(yData && yData->gotDoubleValue()){
+        yVal = yData->getDoubleValue();
+    }
+
+
+    if(xVal == -1 && yVal == -1){
+        GraphMLData* wData = node->getData("width");
+        GraphMLData* hData = node->getData("height");
+        qreal wVal = -1;
+        qreal hVal = -1;
+        if(wData && wData->gotDoubleValue()){
+            wVal = wData->getDoubleValue();
+        }
+        if(hData && hData->gotDoubleValue()){
+            hVal = hData->getDoubleValue();
+        }
+
         QPointF newPosition;
         if(parentNodeItem){
             QRectF itemRect;
-            itemRect.setWidth(widthStr.toDouble());
-            itemRect.setHeight(heightStr.toDouble());
+            itemRect.setWidth(wVal);
+            itemRect.setHeight(hVal);
             newPosition = parentNodeItem->getNextChildPos(itemRect);
         }
-        node->getData("x")->setValue(QString::number(newPosition.x()));
-        node->getData("y")->setValue(QString::number(newPosition.y()));
+        xData->setValue(QString::number(newPosition.x()));
+        yData->setValue(QString::number(newPosition.y()));
     }
 
     NodeItem* item =0 ;
     if(nodeKind == "Model"){
-        ModelItem* modelItem = new ModelItem(node,false);
+        ModelItem* modelItem = new ModelItem(node);
         storeGraphMLItemInHash(modelItem);
         modelItem->setNodeView(this);
 
@@ -2405,7 +2397,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         }
 
     }else if(node->isAspect()){
-        VIEW_ASPECT aspect = getViewAspectFromAspectNodeKind(nodeKind);
+        VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
 
         AspectItem* aspectItem = new AspectItem(node, getModelItem(), aspect);
         item = aspectItem;
@@ -2421,15 +2413,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
             ((EntityItem*)entityItem)->setNodeConnectable(isNodeVisuallyConnectable(node));
         }
 
-        if(node->isAspect()){
-            QString aspectName = nodeKind.replace("Definitions","");
-            if (aspectName == "Interface") {
-                aspectName = "Interfaces";
-            } else if (aspectName == "Assembly") {
-                aspectName = "Assemblies";
-            }
-            aspectIDs[node->getID()] = aspectName;
-        }
 
 
         QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
@@ -2464,6 +2447,10 @@ void NodeView::view_ConstructNodeGUI(Node *node)
             scene()->addItem(entityItem);
         }
 
+
+        if(isSubView() && item->getID() == centralizedItemID){
+            appendToSelection(item);
+        }
     }
 }
 
@@ -2474,10 +2461,11 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
-    if(IS_SUB_VIEW){
-        if(centralizedItem && centralizedItem->getNode()){
-            Node* subView = centralizedItem->getNode();
-            if(!(subView->isAncestorOf(src) && subView->isAncestorOf(dst))){
+    if(isSubView()){
+        NodeItem* nodeItem = getNodeItemFromID(centralizedItemID);
+        if(nodeItem){
+            Node* subViewNode = nodeItem->getNode();
+            if(!(subViewNode->isAncestorOf(src) && subViewNode->isAncestorOf(dst))){
                 return;
             }
         }
@@ -2577,27 +2565,20 @@ void NodeView::view_CenterGraphML(GraphML *graphML)
 
 void NodeView::view_LockCenteredGraphML(int ID)
 {
-    if(ID == -1){
-        return;
-    }
-
-    EntityItem* EntityItem = getEntityItemFromID(ID);
-    if(EntityItem){
-        centralizedItemID = ID;
-        centralizedItem = EntityItem;
-        CENTRALIZED_ON_ITEM = true;
-        connect(EntityItem, SIGNAL(EntityItemMoved()), this, SLOT(centralizedItemMoved()));
-        appendToSelection(getGraphMLItemFromID(ID));
-        centerItem(ID);
-        enforceItemAspectOn(ID);
-
-    }
+    centralizedItemID = ID;
+    CENTRALIZED_ON_ITEM = true;
 }
 
 void NodeView::sort()
 {
-    sortSelection();
+    sortSelection(false);
 }
+
+void NodeView::expand(bool expand)
+{
+    expandSelection(expand);
+}
+
 
 
 /**
@@ -2680,16 +2661,7 @@ void NodeView::constructDestructEdges(QList<int> srcIDs, int dstID)
         }
 
         if (!srcIDs.isEmpty()) {
-
             EntityItem* dstNode = getEntityItemFromID(dstID);
-            if (dstNode) {
-                /*
-                view_displayNotification("Connected selection to " +
-                                         dstNode->getNodeLabel() + ".",
-                                         notificationNumber, numberOfNotifications);
-                                         */
-            }
-
             triggerAction("Dock: Destructing/Constructing Multiple Edges");
             emit view_constructDestructEdges(srcIDs, dstID);
         }
@@ -2713,19 +2685,22 @@ void NodeView::deleteFromIDs(QList<int> IDs)
 void NodeView::constructConnectedNode(int parentID, int dstID, QString kind, int sender)
 {
     if(viewMutex.tryLock()){
-        EntityItem *EntityItem = getEntityItemFromID(parentID);
-        if(EntityItem){
+        NodeItem *nodeItem = getNodeItemFromID(parentID);
+        if(nodeItem){
             toolbarDockConstruction = true;
             QPointF position;
 
             if (sender == 0){
-                position = EntityItem->getNextChildPos();
+                position = nodeItem->getNextChildPos();
             } else if (sender == 1) {
                 // if from toolbar, place at closest grid point to the toolbar's position
-                QPointF closestGridPos = EntityItem->getClosestGridPoint(EntityItem->mapFromScene(toolbarPosition));
+                QPointF closestGridPos = nodeItem->getClosestGridPoint(nodeItem->mapFromScene(toolbarPosition));
                 position = closestGridPos;
             }
             emit view_ConstructConnectedNode(parentID, dstID, kind, position);
+        }else{
+            //If we don't have a node Item, forwhatever reason release the mutex.
+            viewMutex.unlock();
         }
     }
 }
@@ -2962,15 +2937,6 @@ QRect NodeView::getVisibleViewRect()
 }
 
 
-/**
- * @brief NodeView::getAllAspects
- * @return - a list of all the view aspects
- */
-QStringList NodeView::getAllAspects()
-{
-    return allAspects;
-}
-
 
 /**
  * @brief NodeView::viewDeploymentAspect
@@ -2978,14 +2944,11 @@ QStringList NodeView::getAllAspects()
  */
 void NodeView::viewDeploymentAspect()
 {
+    // Turn on Aspects
+    emit view_toggleAspect(VA_ASSEMBLIES, true);
+    emit view_toggleAspect(VA_HARDWARE, true);
     // only show a notification if there has been a change in view aspects
-    if (!currentAspects.contains("Assembly") || !currentAspects.contains("Hardware")) {
-        view_displayNotification("Turned on Deployment view aspects.",  notificationNumber, numberOfNotifications);
-    } else if (numberOfNotifications > 1) {
-        view_displayNotification("",  notificationNumber, numberOfNotifications);
-    }
-    addAspect("Assembly");
-    addAspect("Hardware");
+    emit view_displayNotification("Turned on Deployment view aspects.",  notificationNumber, numberOfNotifications);
 }
 
 QPixmap NodeView::getImage(QString alias, QString imageName)
@@ -3105,78 +3068,65 @@ EntityItem *NodeView::getDeployedNode(int ID)
 }
 
 
-void NodeView::connectGraphMLItemToController(GraphMLItem *GUIItem)
+void NodeView::connectGraphMLItemToController(GraphMLItem *item)
 {
-    if(GUIItem){
-        EntityItem* entityItem = 0;
-        if(GUIItem->isEntityItem()){
-            entityItem = (EntityItem*) GUIItem;
+    if(!item){
+        return;
+    }
+
+    ModelItem* modelItem = (ModelItem*)item;
+    NodeItem* nodeItem = (NodeItem*)item;
+    EdgeItem* edgeItem = (EdgeItem*)item;
+    EdgeItem* entityItem = (EdgeItem*)item;
+
+    //All Cases.
+    connect(item, SIGNAL(GraphMLItem_ClearSelection(bool)), this, SLOT(clearSelection(bool)));
+    connect(item, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
+    connect(item, SIGNAL(GraphMLItem_RemoveSelected(GraphMLItem*)), this, SLOT(removeFromSelection(GraphMLItem*)));
+    connect(item, SIGNAL(GraphMLItem_Hovered(int,bool)), this, SLOT(itemEntered(int,bool)));
+
+    connect(this, SIGNAL(view_ZoomChanged(qreal)), item, SLOT(zoomChanged(qreal)));
+
+    if(item->isEdgeItem()){
+        connect(edgeItem, SIGNAL(edgeItem_eventFromItem()), this, SLOT(setEventFromEdgeItem()));
+    }
+
+    if(item->isModelItem()){
+        connect(modelItem, SIGNAL(GraphMLItem_PositionChanged()), this, SIGNAL(view_ModelSizeChanged()));
+        //connect(this, SIGNAL(view_themeChanged(int)), entityItem, SLOT(themeChanged(int)));
+    }
+
+    if(item->isNodeItem()){
+        connect(nodeItem, SIGNAL(NodeItem_ResizeSelection(int, QSizeF)), this, SLOT(resizeSelection(int, QSizeF)));
+        connect(nodeItem, SIGNAL(NodeItem_ResizeFinished(int)), this, SLOT(resizeFinished(int)));
+
+        connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridMode(bool)));
+    }
+
+    if(isMainView()){
+        connect(item, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
+        connect(item, SIGNAL(GraphMLItem_TriggerAction(QString)),  this, SLOT(triggerAction(QString)));
+        connect(item, SIGNAL(GraphMLItem_SetGraphMLData(int,QString,QString)), this, SIGNAL(view_SetGraphMLData(int,QString,QString)));
+        connect(item, SIGNAL(GraphMLItem_DestructGraphMLData(GraphML*,QString)), this, SIGNAL(view_DestructGraphMLData(GraphML*,QString)));
+        connect(item, SIGNAL(GraphMLItem_ConstructGraphMLData(GraphML*,QString)), this, SIGNAL(view_ConstructGraphMLData(GraphML*,QString)));
+
+
+        if(item->isEntityItem()){
+            connect(entityItem, SIGNAL(EntityItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
+            connect(entityItem, SIGNAL(EntityItem_MoveFinished()), this, SLOT(moveFinished()));
+            connect(entityItem, SIGNAL(EntityItem_HardwareMenuClicked(int)), this, SLOT(hardwareClusterMenuClicked(int)));
+            connect(entityItem, SIGNAL(EntityItem_HasFocus(bool)), this, SLOT(editableItemHasFocus(bool)));
+            connect(entityItem, SIGNAL(EntityItem_ShowHardwareMenu(EntityItem*)), this, SLOT(showHardwareClusterChildrenViewMenu(EntityItem*)));
+            connect(entityItem, SIGNAL(EntityItem_lockMenuClosed(EntityItem*)), this, SLOT(hardwareClusterChildrenViewMenuClosed(EntityItem*)));
+
+            connect(this, SIGNAL(view_edgeConstructed()), entityItem, SLOT(updateChildrenViewMode()));
         }
+    }
 
-        if (GUIItem->isEdgeItem()) {
-            EdgeItem* edgeItem = (EdgeItem*) GUIItem;
-            connect(edgeItem, SIGNAL(edgeItem_eventFromItem()), this, SLOT(setEventFromEdgeItem()));
-        }
-
-        connect(GUIItem, SIGNAL(GraphMLItem_ClearSelection(bool)), this, SLOT(clearSelection(bool)));
-        connect(GUIItem, SIGNAL(GraphMLItem_AppendSelected(GraphMLItem*)), this, SLOT(appendToSelection(GraphMLItem*)));
-        connect(GUIItem, SIGNAL(GraphMLItem_RemoveSelected(GraphMLItem*)), this, SLOT(removeFromSelection(GraphMLItem*)));
-        //connect(GUIItem, SIGNAL(GraphMLItem_PositionSizeChanged(GraphMLItem*,bool)), this, SLOT(keepSelectionFullyVisible(GraphMLItem*,bool)));
-        if(GUIItem->canHover()){
-            connect(GUIItem, SIGNAL(GraphMLItem_Hovered(int,bool)), this, SLOT(itemEntered(int,bool)));
-        }
-
-        if(GUIItem->isModelItem()){
-            connect(GUIItem, SIGNAL(GraphMLItem_PositionChanged()), this, SIGNAL(view_ModelSizeChanged()));
-            //connect(this, SIGNAL(view_themeChanged(int)), entityItem, SLOT(themeChanged(int)));
-        }
-
-        if(entityItem){
-            //connect(this, SIGNAL(view_AspectsChanged(QStringList)), entityItem, SLOT(aspectsChanged(QStringList)));
-
-            if (entityItem->isHardwareCluster()) {
-                connect(this, SIGNAL(view_themeChanged(int)), entityItem, SLOT(themeChanged(int)));
-            }
-        }
-        if(GUIItem->isNodeItem()){
-            NodeItem* nodeItem = (NodeItem*)GUIItem;
-            connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridMode(bool)));
-            connect(nodeItem, SIGNAL(NodeItem_ResizeSelection(int, QSizeF)), this, SLOT(resizeSelection(int, QSizeF)));
-            connect(nodeItem, SIGNAL(NodeItem_ResizeFinished(int)), this, SLOT(resizeFinished(int)));
-        }
-
-        if(!IS_SUB_VIEW){
-            connect(GUIItem, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
-            connect(GUIItem, SIGNAL(GraphMLItem_TriggerAction(QString)),  this, SLOT(triggerAction(QString)));
-
-            connect(GUIItem, SIGNAL(GraphMLItem_SetGraphMLData(int,QString,QString)), this, SIGNAL(view_SetGraphMLData(int,QString,QString)));
-            connect(GUIItem, SIGNAL(GraphMLItem_ConstructGraphMLData(GraphML*,QString)), this, SIGNAL(view_ConstructGraphMLData(GraphML*,QString)));
-            connect(GUIItem, SIGNAL(GraphMLItem_DestructGraphMLData(GraphML*,QString)), this, SIGNAL(view_DestructGraphMLData(GraphML*,QString)));
-
-            connect(GUIItem, SIGNAL(GraphMLItem_CenterAspects()), this, SLOT(fitToScreen()));
-            connect(this, SIGNAL(view_ZoomChanged(qreal)), GUIItem, SLOT(zoomChanged(qreal)));
-
-            if(entityItem){
-                //if(entityItem->isModel()){
-                    connect(entityItem, SIGNAL(EntityItem_Moved()), this, SIGNAL(view_ModelSizeChanged()));
-                //}
-
-
-
-                connect(entityItem, SIGNAL(EntityItem_MoveSelection(QPointF)), this, SLOT(moveSelection(QPointF)));
-
-                connect(entityItem, SIGNAL(EntityItem_MoveFinished()), this, SLOT(moveFinished()));
-
-                connect(entityItem, SIGNAL(EntityItem_HardwareMenuClicked(int)), this, SLOT(hardwareClusterMenuClicked(int)));
-
-
-                connect(entityItem, SIGNAL(EntityItem_HasFocus(bool)), this, SLOT(editableItemHasFocus(bool)));
-
-                connect(entityItem, SIGNAL(EntityItem_ShowHardwareMenu(EntityItem*)), this, SLOT(showHardwareClusterChildrenViewMenu(EntityItem*)));
-                connect(entityItem, SIGNAL(EntityItem_lockMenuClosed(EntityItem*)), this, SLOT(hardwareClusterChildrenViewMenuClosed(EntityItem*)));
-                connect(this, SIGNAL(view_edgeConstructed()), entityItem, SLOT(updateChildrenViewMode()));
-
-            }
+    if(isSubView()){
+        if(CENTRALIZED_ON_ITEM && (item->getID() == centralizedItemID)){
+            connect(item, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(centralizedItemMoved()));
+            connect(item, SIGNAL(GraphMLItem_PositionChanged()), this, SLOT(centralizedItemMoved()));
         }
     }
 }
@@ -3232,19 +3182,17 @@ bool NodeView::removeGraphMLItemFromHash(int ID)
 
 
         if(item){
-            if(item->isEntityItem()){
-                EntityItem* entityItem = (EntityItem*)item;
-                if(entityItem->getParentEntityItem()){
-                    emit view_nodeDeleted(entityItem->getID(), entityItem->getParentEntityItem()->getID());
-                }
-            }else if (item->isEdgeItem()){
-                EdgeItem* edgeItem = (EdgeItem*)item;
-                updateDeployment = true;
-                if(edgeItem->getSource() && edgeItem->getDestination()){
-                    emit view_edgeDeleted(edgeItem->getSource()->getID(), edgeItem->getDestination()->getID());
+            if(item->isEdgeItem()){
+                    EdgeItem* edgeItem = (EdgeItem*)item;
+                    updateDeployment = true;
+                    if(edgeItem->getSource() && edgeItem->getDestination()){
+                        emit view_edgeDeleted(edgeItem->getSource()->getID(), edgeItem->getDestination()->getID());
+                    }
+            }else{
+                if(item->getParent()){
+                    emit view_nodeDeleted(item->getID(), item->getParent()->getID());
                 }
             }
-
 
             item->detach();
             delete item;
@@ -3922,21 +3870,11 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
 
 
 
-void NodeView::setDefaultAspects()
-{
-    currentAspects.clear();
-    setAspects(defaultAspects);
-}
 
 void NodeView::setEnabled(bool enabled)
 {
     //HIDE STUFF
     QGraphicsView::setEnabled(enabled);
-
-
-    //if(enabled){
-    //    viewMutex.unlock();
-    //}
 }
 
 
@@ -4395,19 +4333,21 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
 
 
 void NodeView::constructGUIItem(GraphML *item){
+    //Check if we should construct this item.
+    if(isSubView() && controller){
+        int ID = item->getID();
+        if(!controller->areIDsInSameBranch(centralizedItemID, ID)){
+            return;
+        }
+    }
 
-    Node* node = dynamic_cast<Node*>(item);
-    Edge* edge = dynamic_cast<Edge*>(item);
-
-
-    if(node){
-        view_ConstructNodeGUI(node);
-    }else if(edge){
-        view_ConstructEdgeGUI(edge);
+    if(item->isNode()){
+        view_ConstructNodeGUI((Node*)item);
+    }else if(item->isEdge()){
+        view_ConstructEdgeGUI((Edge*)item);
     }else{
         qCritical() << "Unknown Type";
     }
-
 }
 
 
@@ -4462,7 +4402,7 @@ void NodeView::showManagementComponents(bool show)
 
     EntityItem* assemblyNI = getEntityItemFromNode(assemblyDefinition);
     if(assemblyNI){
-        assemblyNI->sort();
+        assemblyNI->sortChildren();
     }
 
     managementComponentVisible = show;
@@ -4495,7 +4435,7 @@ void NodeView::showLocalNode(bool show)
 
     EntityItem* hardwareNI = getEntityItemFromNode(hardwareDefinition);
     if(hardwareNI){
-        hardwareNI->sort();
+        hardwareNI->sortChildren();
     }
 
     localNodeVisible = show;
@@ -4563,9 +4503,14 @@ void NodeView::setConnectMode(bool on)
  */
 void NodeView::fitToScreen(QList<GraphMLItem *> itemsToCenter, double padding, bool addToMap)
 {
+
     if (itemsToCenter.isEmpty() && getModelItem()) {
-        itemsToCenter.append(getModelItem());
-        itemsToCenter.append(getModelItem()->getChildren());
+        ModelItem* modelItem = getModelItem();
+        if(modelItem->getVisibleAspects().isEmpty()){
+            itemsToCenter.append(getModelItem());
+        }else{
+            itemsToCenter.append(getModelItem()->getChildren());
+        }
     }
 
     QRectF visibleItemsRect;

@@ -688,9 +688,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_fitToScreen = view_menu->addAction(getIcon("Actions", "FitToScreen"), "Fit To Screen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
     view_menu->addSeparator();
-    view_snapToGrid = view_menu->addAction(getIcon("Actions", "AlignToGrid"), "Snap Selection To Grid");
-    view_snapChildrenToGrid = view_menu->addAction(getIcon("Actions", "GridLayout"), "Snap Selection's Children To Grid");
-    view_menu->addSeparator();
     view_goToDefinition = view_menu->addAction(getIcon("Actions", "Definition"), "Go To Definition");
     view_goToDefinition->setShortcut(QKeySequence(Qt::SHIFT + Qt::Key_D));
     view_goToImplementation = view_menu->addAction(getIcon("Actions", "Implementation"), "Go To Implementation");
@@ -972,7 +969,9 @@ void MedeaWindow::setupSearchTools()
     aspectsAction->setDefaultWidget(aspectsGroup);
 
     // populate view aspects menu
-    QStringList aspects = nodeView->getAllAspects();
+    QStringList aspects = GET_ASPECT_NAMES();
+
+
     aspects.sort();
     foreach (QString aspect, aspects) {
         QWidgetAction* action = new QWidgetAction(this);
@@ -1245,10 +1244,10 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_centerAspect(VIEW_ASPECT)), nodeView, SLOT(centerAspect(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_toggleAspect(VIEW_ASPECT, bool)), this, SLOT(forceToggleAspect(VIEW_ASPECT,bool)));
 
-    connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), definitionsToggle, SLOT(highlightToggleButton(QString)));
-    connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), workloadToggle, SLOT(highlightToggleButton(QString)));
-    connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), assemblyToggle, SLOT(highlightToggleButton(QString)));
-    connect(nodeView, SIGNAL(view_highlightAspectButton(QString)), hardwareToggle, SLOT(highlightToggleButton(QString)));
+    connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), definitionsToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
+    connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), workloadToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
+    connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), assemblyToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
+    connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), hardwareToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
 
     connect(partsDock, SIGNAL(dock_openDefinitionsDock()), this, SLOT(forceOpenDefinitionsDock()));
     connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
@@ -1258,7 +1257,6 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_ImportSnippet(QString)), this, SLOT(importSnippet(QString)));
 
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
-    connect(this, SIGNAL(window_AspectsChanged(QStringList)), nodeView, SLOT(setAspects(QStringList)));
     connect(this, SIGNAL(window_DisplayMessage(MESSAGE_TYPE,QString,QString)), nodeView, SLOT(showMessage(MESSAGE_TYPE,QString,QString)));
     connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setMenuActionEnabled(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
@@ -1311,8 +1309,6 @@ void MedeaWindow::makeConnections()
     connect(edit_search, SIGNAL(triggered()), this, SLOT(search()));
 
     connect(view_fitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
-    connect(view_snapToGrid, SIGNAL(triggered()), nodeView, SLOT(snapSelectionToGrid()));
-    connect(view_snapChildrenToGrid, SIGNAL(triggered()), nodeView, SLOT(snapChildrenToGrid()));
     connect(view_goToImplementation, SIGNAL(triggered()), nodeView, SLOT(centerImplementation()));
     connect(view_goToDefinition, SIGNAL(triggered()), nodeView, SLOT(centerDefinition()));
     connect(view_showConnectedNodes, SIGNAL(triggered()), nodeView, SLOT(showConnectedNodes()));
@@ -1414,8 +1410,6 @@ void MedeaWindow::makeConnections()
     addAction(edit_paste);
     addAction(edit_replicate);
     addAction(view_fitToScreen);
-    addAction(view_snapToGrid);
-    addAction(view_snapChildrenToGrid);
     addAction(view_goToDefinition);
     addAction(view_goToImplementation);
     addAction(view_showConnectedNodes);
@@ -2436,14 +2430,16 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
         edit_undo->setEnabled(enable);
     } else if (action == "redo") {
         edit_redo->setEnabled(enable);
-    } else if (action == "singleSelection") {
+    } else if (action == "sort"){
+         actionSort->setEnabled(enable);
+    }else if (action == "singleSelection") {
         actionCenter->setEnabled(enable);
         actionZoomToFit->setEnabled(enable);
         actionPopupSubview->setEnabled(enable);
         // added this after the tag was made
         actionContextMenu->setEnabled(enable);
     } else if(action == "multipleSelection"){
-        actionSort->setEnabled(enable);
+
     } else if(action == "localdeployment"){
         model_ExecuteLocalJob->setEnabled(enable);
     }
@@ -2705,7 +2701,6 @@ void MedeaWindow::resetView()
     if (nodeView){
         nodeView->showManagementComponents(true);
         nodeView->view_ClearHistory();
-        nodeView->setDefaultAspects();
         nodeView->clearSelection();
     }
 }

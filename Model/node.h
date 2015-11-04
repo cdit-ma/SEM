@@ -20,8 +20,6 @@ public:
     //Constuctor
     Node(NODE_TYPE type = NT_NODE);
 
-    void setSortPosition(int i);
-    int getSortPosition();
     QList<int> getTreeIndex();
     QString getTreeIndexString();
     ~Node();
@@ -142,7 +140,6 @@ public:
 
 
 private:
-
     //Remove an edge which is connected to this graphml object.
     void addEdge(Edge *edge);
     void removeEdge(Edge *edge);
@@ -156,9 +153,6 @@ private:
     QList<int> treeIndex;
     QString treeIndexStr;
     int childCount;
-
-    int sortOrder;
-
 
     Node* parentNode;
     Node* definition;

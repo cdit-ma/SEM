@@ -123,6 +123,11 @@ QList<int> GraphMLData::getBoundIDS()
     return dataDump;
 }
 
+void GraphMLData::updateDouble()
+{
+    valueDbl = value.toDouble(&hasDbl);
+}
+
 void GraphMLData::setValue(QString newValue)
 {
     if(key){
@@ -132,6 +137,10 @@ void GraphMLData::setValue(QString newValue)
 
             if(updatedValue != value){
                 value = updatedValue;
+                updateDouble();
+                //Recalculate val.
+
+
                 foreach(GraphMLData* data, childData){
                     data->setValue(value);
                 }
@@ -205,4 +214,14 @@ void GraphMLData::unbindData(GraphMLData *data)
 QList<GraphMLData *> GraphMLData::getBoundData()
 {
     return childData;
+}
+
+bool GraphMLData::gotDoubleValue() const
+{
+    return hasDbl;
+}
+
+qreal GraphMLData::getDoubleValue() const
+{
+    return this->valueDbl;
 }

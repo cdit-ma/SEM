@@ -3,16 +3,14 @@
 #include <QPainter>
 #include <QDebug>
 
-ModelItem::ModelItem(Node *node, bool IN_SUBVIEW):  GraphMLItem(node, GraphMLItem::MODEL_ITEM)
+ModelItem::ModelItem(Node *node):  GraphMLItem(node, GraphMLItem::MODEL_ITEM)
 {
-    setInSubView(IN_SUBVIEW);
-
     modelCircleColor = Qt::gray;
 
     // setup quadrant colours based on the aspects' positions
     foreach (VIEW_ASPECT aspect, VIEW_ASPECTS) {
-        VIEW_ASPECT_POS aspectPos = getAspectPosition(aspect);
-        QColor aspectColor = getAspectColor(aspect);
+        VIEW_ASPECT_POS aspectPos = GET_ASPECT_POS(aspect);
+        QColor aspectColor = GET_ASPECT_COLOR(aspect);
         switch (aspectPos) {
         case VAP_TOPLEFT:
             topLeftColor = aspectColor;
@@ -30,10 +28,6 @@ ModelItem::ModelItem(Node *node, bool IN_SUBVIEW):  GraphMLItem(node, GraphMLIte
             break;
         }
     }
-
-
-
-    // hello
 
     width = MODEL_WIDTH;
     height = MODEL_HEIGHT;
@@ -95,8 +89,23 @@ QRectF ModelItem::bottomInputRect() const
     return rect;
 }
 
+QList<VIEW_ASPECT> ModelItem::getVisibleAspects()
+{
+    QList<VIEW_ASPECT> list;
+    foreach(GraphMLItem* child, getChildren()){
+        if(child->isVisible() && child->isAspectItem()){
+            list << ((AspectItem*)child)->getViewAspect();
+        }
+    }
+    return list;
+}
+
 void ModelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    if(inSubView()){
+        //Don't paint in subview
+        return;
+    }
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
     painter->setRenderHint(QPainter::HighQualityAntialiasing, true);
@@ -149,6 +158,15 @@ void ModelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     painter->setBrush(modelCircleColor);
     //Draw the center circle
     painter->drawEllipse(quadrant);
+}
+
+void ModelItem::setInSubView(bool inSubview)
+{
+    if(topInputItem && bottomInputItem){
+        topInputItem->setVisible(!inSubview);
+        bottomInputItem->setVisible(!inSubview);
+    }
+    GraphMLItem::setInSubView(inSubview);
 }
 
 void ModelItem::graphMLDataChanged(GraphMLData *data)

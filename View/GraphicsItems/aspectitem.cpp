@@ -53,11 +53,11 @@ AspectItem::AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect) : No
     //Set View Aspect.
     setViewAspect(aspect);
 
-    backgroundColor = getAspectColor(aspect);
+    backgroundColor = GET_ASPECT_COLOR(aspect);
     textColor = backgroundColor.darker(110);
 
-    aspectPos = getAspectPosition(aspect);
-    aspectLabel = getAspectName(aspect).toUpper();
+    aspectPos = GET_ASPECT_POS(aspect);
+    aspectLabel = GET_ASPECT_NAME(aspect).toUpper();
 
 
     width = GRID_SIZE * GRID_COUNT * ASPECT_COL_COUNT;
@@ -77,10 +77,13 @@ AspectItem::AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect) : No
 
     connectToGraphMLData("width");
     connectToGraphMLData("height");
+    updateFromGraphMLData();
 
     //Set Values Direc
-    updatePositionInModel(true);
-    updateSizeInModel(true);
+    //if(!inSubView()){
+    //    updatePositionInModel(true);
+    //    updateSizeInModel(true);
+    //}
 }
 
 
