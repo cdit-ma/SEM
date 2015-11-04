@@ -37,11 +37,17 @@ Dan To Fix:
 
 Cathlyn To Fix:
 * Fix getNextChildPos() in NodeItem. (doesnt' work consistantly for sorting Aspect)
-* fix theme stuff
-* Trigger action after action is done, not just on selection change.
-* Call NodeView::expandSelection(bool expand) from toolbar or menu or something.
+* Fix theme stuff
 * Work out useful short cuts for recursive sort and normal sort.
-* Add Aspect check for search
+* Trigger action after action is done, not just on selection change.
+  ** It's not just on selection change. Broken for the first move because updating the button states happen before the action is added to the undo stack.
+  ** How is the underlying GraphML size and position values updated? What signal is sent?
+Fixed:
+* Add aspect check for search
+* Hardware dock not updating/clearing highlighted item until selection is changed.
+* Hardware cluster view option button showing for non-clusters.
+* Call NodeView::expandSelection(bool expand) from toolbar
+* Connect tool button/menu showing for AspectItems.
 
 Version 18:
     New Features:
@@ -77,6 +83,7 @@ Version 18:
             ** Selecting an item from the suggestions list will auto-complete your search and trigger a search action.
         * Context toolbar's connect menu now doesn't display the parent entity for entities that have the same parent as the selected entity.
         * Added Fullscreen mode (F11)
+		* Added context toolbar button for multiple selection to expand/contract.
 
 
     Fixes:
@@ -108,10 +115,10 @@ Version 18:
         * Test Ubuntu for local deployment.
         * Test Import from XME on Ubuntu.
         * Make sure threads are killed for local deployment.
-		* Need to switch to using the connect mode view state for the toolbar.
-		* Implement a state-based switching of highlighted states in NodeItem.
 		* Need to update the dock buttons and window toolbar when the theme is changed.
 		* Clean up leftover toolbar layout stuff in medeawindow.
+		* Minimap visibleViewRect.
+		* Search result dialog/popup.
 
 Version 17:
     New Features:

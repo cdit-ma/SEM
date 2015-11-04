@@ -200,7 +200,7 @@ signals:
     void view_nodeConstructed(NodeItem* EntityItem);
     void view_nodeDeleted(int ID, int parentID = -1);
     void view_edgeConstructed();
-    void view_edgeDeleted(int srcID, int dstID);
+    void view_edgeDeleted(int srcID = -1, int dstID = -1);
 
     // signals for MEDEA menu
     void view_updateMenuActionEnabled(QString action, bool enable);
@@ -375,7 +375,6 @@ private:
     void nodeSelected_signalUpdates();
     void edgeConstructed_signalUpdates();
     void edgeDestructed_signalUpdates(Edge* edge, int ID = -1);
-    void updateActionsEnabled();
     void centerRect(QRectF rect, double padding = 0, bool addToMap = true);
     void centerViewOn(QPointF center);
     void recenterView(QPointF modelPos, QRectF centeredRect, bool addToMap = false);

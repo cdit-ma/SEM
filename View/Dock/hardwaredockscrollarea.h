@@ -10,23 +10,20 @@ class HardwareDockScrollArea : public DockScrollArea
 public:
     explicit HardwareDockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
 
-    void onEdgeDeleted();
+    void edgeDeleted();
     
 signals:
-    void dock_highlightDockItem(NodeItem* = 0);
+    void dock_highlightDockItem(NodeItem* nodeItem = 0);
 
 public slots:
     void dockNodeItemClicked();
-    void dockClosed();
     void updateDock();
 
-    void refreshDock();
+    void nodeConstructed(NodeItem* nodeItem);
     void insertDockNodeItem(DockNodeItem* dockItem);
 
-    void nodeConstructed(NodeItem* nodeItem);
-
 private:
-    void highlightHardwareConnection(QList<GraphMLItem *> selectedItems);
+    void highlightHardwareConnection(QList<GraphMLItem*> selectedItems);
 
     QStringList hardware_notAllowedKinds;
 

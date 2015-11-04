@@ -112,7 +112,7 @@ QString DockNodeItem::getLabel()
  * @brief DockNodeItem::setParentDockNodeItem
  * @param parentItem
  */
-void DockNodeItem::setParentDockNodeItem(DockNodeItem *parentItem)
+void DockNodeItem::setParentDockNodeItem(DockNodeItem* parentItem)
 {
     parentDockItem = parentItem;
     connect(parentDockItem, SIGNAL(dockItem_fileClicked(bool)), this, SLOT(parentDockItemClicked(bool)));
@@ -124,7 +124,7 @@ void DockNodeItem::setParentDockNodeItem(DockNodeItem *parentItem)
  * @brief DockNodeItem::getParentDockNodeItem
  * @return
  */
-DockNodeItem *DockNodeItem::getParentDockNodeItem()
+DockNodeItem* DockNodeItem::getParentDockNodeItem()
 {
     return parentDockItem;
 }
@@ -134,7 +134,7 @@ DockNodeItem *DockNodeItem::getParentDockNodeItem()
  * @brief DockNodeItem::appendChildDockItem
  * @param dockItem
  */
-void DockNodeItem::addChildDockItem(DockNodeItem *dockItem)
+void DockNodeItem::addChildDockItem(DockNodeItem* dockItem)
 {
     childrenDockItems.append(dockItem);
 }
@@ -144,7 +144,7 @@ void DockNodeItem::addChildDockItem(DockNodeItem *dockItem)
  * @brief DockNodeItem::removeChildDockItem
  * @param dockItem
  */
-void DockNodeItem::removeChildDockItem(DockNodeItem *dockItem)
+void DockNodeItem::removeChildDockItem(DockNodeItem* dockItem)
 {
     childrenDockItems.removeAll(dockItem);
 }
@@ -154,7 +154,7 @@ void DockNodeItem::removeChildDockItem(DockNodeItem *dockItem)
  * @brief DockNodeItem::getChildrenDockItems
  * @return
  */
-QList<DockNodeItem *> DockNodeItem::getChildrenDockItems()
+QList<DockNodeItem*> DockNodeItem::getChildrenDockItems()
 {
     return childrenDockItems;
 }
@@ -482,9 +482,9 @@ void DockNodeItem::childDockItemHidden()
  * This adds/removes highlight to this dock item.
  * @param node
  */
-void DockNodeItem::highlightDockItem(NodeItem *node)
+void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
 {
-    if (node == getNodeItem()) {
+    if (nodeItem == getNodeItem()) {
         switch (state) {
         case DEFAULT:
             state = HIGHLIGHTED;

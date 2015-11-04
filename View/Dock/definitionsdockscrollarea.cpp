@@ -81,10 +81,10 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
 
 
 /**
- * @brief DefinitionsDockScrollArea::onNodeDeleted
- * @param ID
+ * @brief DefinitionsDockScrollArea::nodeDeleted
+ * @param nodeID
  */
-void DefinitionsDockScrollArea::onNodeDeleted(QString nodeID)
+void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
 {
     DockNodeItem* dockItem = getDockNodeItem(nodeID);
     if (!dockItem) {
@@ -125,21 +125,21 @@ void DefinitionsDockScrollArea::onNodeDeleted(QString nodeID)
             fileDockItem->removeChildDockItem(dockItem);
 
             // destruct the Component/BlackBox's DockNodeItem
-            DockScrollArea::onNodeDeleted(nodeID);
+            DockScrollArea::nodeDeleted(nodeID);
         }
 
         if (deleteFileLayout) {
             // destruct the File's DockNodeItem
-            DockScrollArea::onNodeDeleted(fileID);
+            DockScrollArea::nodeDeleted(fileID);
         }
     }
 }
 
 
 /**
- * @brief DefinitionsDockScrollArea::onEdgeDeleted
+ * @brief DefinitionsDockScrollArea::edgeDeleted
  */
-void DefinitionsDockScrollArea::onEdgeDeleted()
+void DefinitionsDockScrollArea::edgeDeleted()
 {
     refreshDock();
 }
@@ -156,27 +156,22 @@ void DefinitionsDockScrollArea::onEdgeDeleted()
 void DefinitionsDockScrollArea::dockNodeItemClicked()
 {
     NodeItem* selectedNodeItem = getNodeView()->getSelectedNodeItem();
-    if(!selectedNodeItem){
+    DockNodeItem* dockNodeItem = qobject_cast<DockNodeItem*>(sender());
+
+    if (!selectedNodeItem || !dockNodeItem) {
         return;
     }
-    DockNodeItem* dockNodeItem = dynamic_cast<DockNodeItem*>(sender());
 
-    if (selectedNodeItem && dockNodeItem) {
+    QString selectedNodeKind = selectedNodeItem->getNodeKind();
+    int selectedNodeID = selectedNodeItem->getID();
+    int dockNodeID = dockNodeItem->getID().toInt();
 
-        int selectedNodeID = selectedNodeItem->getID();
-        QString selectedNodeKind = selectedNodeItem->getNodeKind();
-        QString dockNodeID = dockNodeItem->getID();
-
-
-        int dockNodeIDint = dockNodeID.toInt();
-
-        if (selectedNodeKind == "ComponentAssembly") {
-            getNodeView()->constructConnectedNode(selectedNodeID, dockNodeIDint, dockNodeItem->getKind() + "Instance", 0);
-        } else if (selectedNodeKind == "BlackBoxInstance" || selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ComponentImpl") {
-            getNodeView()->constructEdge(selectedNodeID, dockNodeIDint);
-        } else if (selectedNodeKind == "BehaviourDefinitions") {
-            getNodeView()->constructConnectedNode(selectedNodeID, dockNodeIDint, "ComponentImpl", 0);
-        }
+    if (selectedNodeKind == "ComponentAssembly") {
+        getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, dockNodeItem->getKind() + "Instance", 0);
+    } else if (selectedNodeKind == "BlackBoxInstance" || selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ComponentImpl") {
+        getNodeView()->constructEdge(selectedNodeID, dockNodeID);
+    } else if (selectedNodeKind == "BehaviourDefinitions") {
+        getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, "ComponentImpl", 0);
     }
 }
 
@@ -221,7 +216,6 @@ void DefinitionsDockScrollArea::updateDock()
         } else if (nodeKind == "ComponentInstance") {
             // show only Components
             showDockItemsOfKind("Component");
-            //showAllComponents();
         } else if (nodeKind == "ComponentImpl") {
             showDockItemsOfKind("Component");
             hideImplementedComponents();
@@ -231,85 +225,77 @@ void DefinitionsDockScrollArea::updateDock()
         hideImplementedComponents();
     } else {
         // make sure all the Components/BlackBoxes are shown for all the other allowed kinds
-        //showAllComponents();
         showDockItemsOfKind();
     }
 }
 
 
 /**
-/**
  * @brief DefinitionsDockScrollArea::nodeConstructed
  * This gets called whenever a node has been constructed.
  * It checks to see if a dock item needs to be constucted for the new node.
- * @param node
+ * @param nodeItem
  */
-void DefinitionsDockScrollArea::nodeConstructed(NodeItem *nodeItem)
+void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
 {
-    if (!nodeItem) {
+    if (!nodeItem || !nodeItem->isEntityItem()) {
         return;
     }
 
-    if(nodeItem->isEntityItem()){
-        EntityItem* entityItem = (EntityItem*) nodeItem;
+    EntityItem* entityItem = (EntityItem*) nodeItem;
+    QString nodeKind = entityItem->getNodeKind();
 
+    if (nodeKind == "Component" || nodeKind == "BlackBox") {
 
-        QString nodeKind = entityItem->getNodeKind();
+        DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
+        EntityItem* fileItem = entityItem->getParentEntityItem();
 
-        if (nodeKind == "Component" || nodeKind == "BlackBox") {
-
-            DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
-
-
-
-            EntityItem* fileItem = entityItem->getParentEntityItem();
-
-            if (!fileItem) {
-                qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Component/BlackBox's parent item is null.";
-                return;
-            }
-
-            QString fileID = QString::number(fileItem->getID());
-
-            // check if there is already a layout and label for the parent File
-            if (!fileLayoutItems.contains(fileID)){
-                // create a new File label and add it to the File's layout
-                DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
-                QVBoxLayout* fileLayout = new QVBoxLayout();
-
-                fileLayoutItems[fileID] = fileLayout;
-                fileLayout->addWidget(fileDockItem);
-                addDockNodeItem(fileDockItem, -1, false);
-
-                resortDockItems(fileDockItem);
-                connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
-            }
-
-            // connect the new dock item to its parent file item
-            DockNodeItem* parentItem = getDockNodeItem(fileID);
-            if (parentItem) {
-                dockItem->setParentDockNodeItem(parentItem);
-                parentItem->addChildDockItem(dockItem);
-            }
-
-            if (fileLayoutItems.contains(fileID)) {
-                QVBoxLayout* fileLayout = fileLayoutItems[fileID];
-                fileLayout->addWidget(dockItem);
-                addDockNodeItem(dockItem, -1, false);
-                resortDockItems(dockItem);
-                connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
-            }
+        if (!fileItem) {
+            qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Component/BlackBox's parent item is null.";
+            return;
         }
 
-        refreshDock();
+        QString fileID = QString::number(fileItem->getID());
+
+        // check if there is already a layout and label for the parent File
+        if (!fileLayoutItems.contains(fileID)){
+            // create a new File label and add it to the File's layout
+            DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
+            QVBoxLayout* fileLayout = new QVBoxLayout();
+
+            fileLayoutItems[fileID] = fileLayout;
+            fileLayout->addWidget(fileDockItem);
+            addDockNodeItem(fileDockItem, -1, false);
+
+            resortDockItems(fileDockItem);
+            connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
+        }
+
+        // connect the new dock item to its parent file item
+        DockNodeItem* parentItem = getDockNodeItem(fileID);
+        if (parentItem) {
+            dockItem->setParentDockNodeItem(parentItem);
+            parentItem->addChildDockItem(dockItem);
+        }
+
+        if (fileLayoutItems.contains(fileID)) {
+            QVBoxLayout* fileLayout = fileLayoutItems[fileID];
+            fileLayout->addWidget(dockItem);
+            addDockNodeItem(dockItem, -1, false);
+            resortDockItems(dockItem);
+            connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
+        }
     }
+
+    refreshDock();
 }
+
+
 /**
  * @brief DefinitionsDockScrollArea::refreshDock
  */
 void DefinitionsDockScrollArea::refreshDock()
 {
-    //showAllComponents();
     showDockItemsOfKind();
     updateDock();
 }
@@ -420,18 +406,17 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem* dockItem)
 void DefinitionsDockScrollArea::hideImplementedComponents()
 {
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-        if (dockItem) {
-            QString stringID = dockItem->getID();
-            bool convert;
-            int ID = stringID.toInt(&convert);
-            if(convert){
-                if (getNodeView() && getNodeView()->getImplementation(ID)) {
-                    dockItem->setHidden(true);
-                }
+        bool convert;
+        int ID = dockItem->getID().toInt(&convert);
+        if (convert) {
+            if (getNodeView() && getNodeView()->getImplementation(ID)) {
+                dockItem->setHidden(true);
             }
         }
     }
 }
+
+
 /**
  * @brief DefinitionsDockScrollArea::showDockItemsOfKind
  * @param kind - kind of dock node items to show
@@ -459,17 +444,6 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString kind)
 
 
 /**
- * @brief DefinitionsDockScrollArea::showAllComponents
- * This is called everytime a node item is selected.
- * It shows all the Components in this dock.
- */
-void DefinitionsDockScrollArea::showAllComponents()
-{
-    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-        dockItem->setHidden(false);
-    }
-}
-/**
  * @brief DefinitionsDockScrollArea::hideBlackBoxes
  */
 void DefinitionsDockScrollArea::hideBlackBoxes()
@@ -481,7 +455,6 @@ void DefinitionsDockScrollArea::hideBlackBoxes()
         }
     }
 }
-
 
 
 /**

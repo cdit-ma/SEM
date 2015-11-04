@@ -50,12 +50,7 @@ QStringList DockScrollArea::getNotAllowedKinds()
  */
 void DockScrollArea::updateCurrentNodeItem()
 {
-    GraphMLItem* item = nodeView->getSelectedGraphMLItem();
-    if(item && item->isNodeItem()){
-        currentNodeItem = (NodeItem*)item;
-    }else{
-        currentNodeItem = 0;
-    }
+    currentNodeItem = nodeView->getSelectedNodeItem();
 
     if (currentNodeItem) {
         currentNodeItemID = currentNodeItem->getID();
@@ -72,7 +67,7 @@ void DockScrollArea::updateCurrentNodeItem()
  * Returns the current node item.
  * @return
  */
-NodeItem *DockScrollArea::getCurrentNodeItem()
+NodeItem* DockScrollArea::getCurrentNodeItem()
 {
     if (currentNodeItemID != -1) {
         return currentNodeItem;
@@ -130,26 +125,20 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
 
 
 /**
- * @brief DockScrollArea::onNodeDeleted
- * @param ID
+ * @brief DockScrollArea::nodeDeleted
+ * @param nodeID
  */
-void DockScrollArea::onNodeDeleted(QString nodeID)
+void DockScrollArea::nodeDeleted(QString nodeID)
 {
-    removeDockNodeItem(getDockNodeItem(nodeID));
+    removeDockNodeItem(getDockNodeItem(nodeID), true);
     updateDock();
 }
 
 
 /**
- * @brief DockScrollArea::onEdgeDeleted
+ * @brief DockScrollArea::edgeDeleted
  */
-void DockScrollArea::onEdgeDeleted() {}
-
-
-/**
- * @brief DockScrollArea::dockClosed
- */
-void DockScrollArea::dockClosed(){}
+void DockScrollArea::edgeDeleted() {}
 
 
 /**
@@ -166,35 +155,61 @@ QVBoxLayout* DockScrollArea::getLayout()
  * @brief DockScrollArea::addDockNodeItem
  * This adds a new dock item to this dock's list and layout.
  * It also connects the dock item's basic signals to this dock.
- * @param item
+ * @param dockItem
  * @param insertIndex
  * @param addToLayout
  */
-void DockScrollArea::addDockNodeItem(DockNodeItem* item, int insertIndex, bool addToLayout)
+void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bool addToLayout)
 {
-    if (item) {
+    if (dockItem) {
 
-        QString itemID = item->getID();
+        QString dockItemID = dockItem->getID();
 
         // if the dock already contains the item, do nothing
-        if (getDockNodeItem(itemID)) {
+        if (getDockNodeItem(dockItemID)) {
             return;
         }
 
         if (addToLayout) {
             if (insertIndex == -1) {
-                layout->addWidget(item);
+                layout->addWidget(dockItem);
             } else {
-                layout->insertWidget(insertIndex, item);
+                layout->insertWidget(insertIndex, dockItem);
             }
         }
 
-        dockNodeIDs.append(itemID.toInt());
-        dockNodeItems[itemID] = item;
-        connect(item, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
+        dockNodeIDs.append(dockItemID.toInt());
+        dockNodeItems[dockItemID] = dockItem;
+        connect(dockItem, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
 
     } else {
         qWarning() << "DockScrollArea::addDockNodeItem - Item is null.";
+    }
+}
+
+
+/**
+ * @brief DockScrollArea::removeDockNodeItemFromList
+ * This method removes the provided dock item from this dock's list and layout.
+ * @param dockItem
+ */
+void DockScrollArea::removeDockNodeItem(DockNodeItem* dockItem, bool deleteItem)
+{
+    if (!dockItem || !getDockNodeItem(dockItem->getID())) {
+        qWarning() << "DockScrollArea::removeDockNodeItem - Trying to remove a null item or item doesn't exist in this dock.";
+        return;
+    }
+
+    QString dockItemID = dockItem->getID();
+    dockNodeItems.remove(dockItemID);
+    dockNodeIDs.removeAll(dockItemID.toInt());
+
+    if (layout) {
+        layout->removeWidget(dockItem);
+    }
+
+    if (deleteItem) {
+        dockItem->deleteLater();
     }
 }
 
@@ -223,18 +238,6 @@ DockNodeItem* DockScrollArea::getDockNodeItem(QString nodeID)
 QList<DockNodeItem*> DockScrollArea::getDockNodeItems()
 {
     return dockNodeItems.values();
-}
-
-
-/**
- * @brief DockScrollArea::removeDockNodeItemFromList
- * @param dockNodeItem
- */
-void DockScrollArea::removeDockNodeItemFromList(DockNodeItem* dockNodeItem)
-{
-    QString dockItemID = dockNodeItem->getID();
-    dockNodeItems.remove(dockItemID);
-    dockNodeIDs.removeAll(dockItemID.toInt());
 }
 
 
@@ -300,54 +303,35 @@ void DockScrollArea::updateDock()
 
 
 /**
- * @brief DockScrollArea::nodeDeleted
+ * @brief DockScrollArea::onNodeDeleted
  * This tells the dock if a node has been deleted.
  * It either updates dock for the selected node or it disables this dock.
  * @param nodeID
  * @param parentID
  */
-void DockScrollArea::nodeDeleted(int nodeID, int parentID)
+void DockScrollArea::onNodeDeleted(int nodeID, int parentID)
 {
     if (dockNodeIDs.contains(nodeID)) {
-        onNodeDeleted(QString::number(nodeID));
+        nodeDeleted(QString::number(nodeID));
     }
 
-    // need to update on both cases to enable/disable the dock correctly
-    if (nodeID == getCurrentNodeID() || parentID == getCurrentNodeID()) {
+    // need to update on all these cases to enable/disable the dock correctly
+    if (!nodeView->getSelectedNodeItem() || nodeID == getCurrentNodeID() || parentID == getCurrentNodeID()) {
         updateCurrentNodeItem();
     }
 }
 
 
 /**
- * @brief DockScrollArea::edgeDeleted
+ * @brief DockScrollArea::onEdgeDeleted
  * @param srcID
  * @param dstID
  */
-void DockScrollArea::edgeDeleted(int srcID, int dstID)
+void DockScrollArea::onEdgeDeleted(int srcID, int dstID)
 {
-    if (dockNodeIDs.contains(srcID) || dockNodeIDs.contains(dstID)) {
-        onEdgeDeleted();
-    }
-}
-
-
-/**
- * @brief DockScrollArea::removeDockNodeItem
- * This is called whenever a DockNodeItem is deleted.
- * It removes the deleted item from this dock.
- * @param item
- */
-void DockScrollArea::removeDockNodeItem(DockNodeItem* item)
-{
-    if (item) {
-        QString dockItemID = item->getID();
-        dockNodeItems.remove(dockItemID);
-        dockNodeIDs.removeAll(dockItemID.toInt());
-        if (layout) {
-            layout->removeWidget(item);
-        }
-        item->deleteLater();
+    bool forceRefreshDock = (srcID == -1) && (dstID == -1);
+    if (forceRefreshDock || dockNodeIDs.contains(srcID) || dockNodeIDs.contains(dstID)) {
+        edgeDeleted();
     }
 }
 
@@ -355,19 +339,12 @@ void DockScrollArea::removeDockNodeItem(DockNodeItem* item)
 /**
  * @brief DockScrollArea::getCurrentNodeID
  * This method returns the current node item's ID.
- * @return "" - current node item was deleted/no selected node item
+ * @return "-1" - current node item was deleted/no selected node item
  */
 int DockScrollArea::getCurrentNodeID()
 {
     return currentNodeItemID;
 }
-
-
-/**
- * @brief DockScrollArea::dock_itemClicked
- * This is called whenever an item in this dock is clicked.
- */
-void DockScrollArea::dockNodeItemClicked() {}
 
 
 /**
@@ -426,7 +403,6 @@ void DockScrollArea::on_parentButtonPressed()
 {
     if (dockOpen) {
         dockOpen = false;
-        dockClosed();
     } else {
         dockOpen = true;
     }
@@ -453,6 +429,7 @@ void DockScrollArea::clear()
     dockNodeIDs.clear();
     dockNodeItems.clear();
 }
+
 
 /**
  * @brief DockScrollArea::clearSelected

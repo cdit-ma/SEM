@@ -20,12 +20,10 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
     hardware_notAllowedKinds.append("BehaviourDefinitions");
     hardware_notAllowedKinds.append("DeploymentDefinitions");
     hardware_notAllowedKinds.append("AssemblyDefinitions");
-    //hardware_notAllowedKinds.append("HardwareDefinitions");
     hardware_notAllowedKinds.append("IDL");
     hardware_notAllowedKinds.append("Component");
     hardware_notAllowedKinds.append("ComponentImpl");
     hardware_notAllowedKinds.append("HardwareNode");
-    //hardware_notAllowedKinds.append("HardwareCluster");
     hardware_notAllowedKinds.append("Aggregate");
     hardware_notAllowedKinds.append("Member");
     hardware_notAllowedKinds.append("AggregateInstance");
@@ -55,11 +53,11 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
 
 
 /**
- * @brief HardwareDockScrollArea::onEdgeDeleted
+ * @brief HardwareDockScrollArea::edgeDeleted
  */
-void HardwareDockScrollArea::onEdgeDeleted()
+void HardwareDockScrollArea::edgeDeleted()
 {
-    refreshDock();
+    updateDock();
 }
 
 
@@ -70,7 +68,7 @@ void HardwareDockScrollArea::onEdgeDeleted()
  */
 void HardwareDockScrollArea::dockNodeItemClicked()
 {
-    DockNodeItem* dockNodeItem = dynamic_cast<DockNodeItem*>(sender());
+    DockNodeItem* dockNodeItem = qobject_cast<DockNodeItem*>(sender());
     if (!dockNodeItem) {
         return;
     }
@@ -83,15 +81,6 @@ void HardwareDockScrollArea::dockNodeItemClicked()
 
     int dockId = dockNodeItem->getID().toInt();
     getNodeView()->constructDestructEdges(getNodeView()->getSelectedNodeIDs(), dockId);
-}
-
-
-/**
- * @brief HardwareDockScrollArea::dockClosed
- */
-void HardwareDockScrollArea::dockClosed()
-{
-    // clear anything that needs clearing here
 }
 
 
@@ -140,6 +129,7 @@ void HardwareDockScrollArea::updateDock()
     }
 
     setDockEnabled(enableDock);
+
     if (enableDock) {
         foreach (DockNodeItem* dockItem, getDockNodeItems()) {
             dockItem->setReadOnlyState(readOnlyState);
@@ -158,33 +148,25 @@ void HardwareDockScrollArea::updateDock()
  */
 void HardwareDockScrollArea::nodeConstructed(NodeItem* nodeItem)
 {
-    if(nodeItem->isEntityItem()){
-        EntityItem *entityItem = (EntityItem*)nodeItem;
-        if(entityItem->isHardwareCluster() || entityItem->isHardwareNode()){
-            DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
-            insertDockNodeItem(dockItem);
-            connect(this, SIGNAL(dock_highlightDockItem(NodeItem*)), dockItem, SLOT(highlightDockItem(NodeItem*)));
-            connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+    if (!nodeItem->isEntityItem()) {
+        return;
+    }
 
-            // if the dock is open, refresh it
-            if (isDockEnabled()) {
-                refreshDock();
-            }
+    EntityItem* entityItem = (EntityItem*)nodeItem;
+
+    if (entityItem->isHardwareCluster() || entityItem->isHardwareNode()) {
+
+        DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
+        insertDockNodeItem(dockItem);
+
+        connect(this, SIGNAL(dock_highlightDockItem(NodeItem*)), dockItem, SLOT(highlightDockItem(NodeItem*)));
+        connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+
+        // if the dock is open, update it
+        if (isDockOpen()) {
+            updateDock();
         }
     }
-}
-
-
-/**
- * @brief HardwareDockScrollArea::refreshDock
- */
-void HardwareDockScrollArea::refreshDock()
-{
-    // if a node was destructed and it was previously selected, clear this dock's selection
-    if (!getNodeView()->getSelectedEntityItem()) {
-        DockScrollArea::updateCurrentNodeItem();
-    }
-    updateDock();
 }
 
 
@@ -195,15 +177,14 @@ void HardwareDockScrollArea::refreshDock()
  * It keeps the dock items in this dock in alphabetical order.
  * @param dockItem
  */
-void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
+void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
 {
     if (getDockNodeItems().count() > 0) {
 
         // if the dock item has already been added to this dock,
         // remove it from the this dock's list and layout
         if (getDockNodeItems().contains(dockItem)) {
-            removeDockNodeItemFromList(dockItem);
-            getLayout()->removeWidget(dockItem);
+            removeDockNodeItem(dockItem);
         }
 
         QString dockItemLongName = dockItem->getKind() + dockItem->getLabel();

@@ -12,8 +12,8 @@ public:
 
     QList<DockNodeItem*> getDockNodeItems();
 
-    void onNodeDeleted(QString nodeID);
-    void onEdgeDeleted();
+    void nodeDeleted(QString nodeID);
+    void edgeDeleted();
 
 public slots:
     void dockNodeItemClicked();
@@ -27,7 +27,6 @@ public slots:
 
 private:
     void showDockItemsOfKind(QString kind = "");
-    void showAllComponents();
     void hideImplementedComponents();
     void hideBlackBoxes();
 

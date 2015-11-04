@@ -516,7 +516,7 @@ QList<EdgeItem *> NodeView::getEdgeItemsList()
 void NodeView::paintEvent(QPaintEvent * e)
 {
     QGraphicsView::paintEvent(e);
-/*
+    /*
     if(this->isSubView()){
         QPainter painter(this->viewport());
 
@@ -724,14 +724,20 @@ QList<GraphMLItem*> NodeView::search(QString searchString, QStringList viewAspec
 
     foreach (GraphMLItem* item, itemsToSearch) {
 
-        // check if item's aspect is in the view aspects list
-        /*if (!allAspects && ) {
+        if (kind == GraphMLItem::ENTITY_ITEM) {
 
-        }*/
+            EntityItem* entityItem = (EntityItem*)item;
+            QString itemAspect = GET_ASPECT_NAME(entityItem->getViewAspect());
 
-        // check if item's kind is in the entity kinds list
-        if (!allKinds && !entityKinds.contains(item->getNodeKind())) {
-            continue;
+            // check if item's aspect is in the view aspects list
+            if (!allAspects && !viewAspects.contains(itemAspect)) {
+                continue;
+            }
+
+            // check if item's kind is in the entity kinds list
+            if (!allKinds && !entityKinds.contains(item->getNodeKind())) {
+                continue;
+            }
         }
 
         GraphML* gml = item->getGraphML();
@@ -1371,6 +1377,7 @@ void NodeView::triggerAction(QString action)
     }
 
     view_TriggerAction(action);
+    updateActionsEnabledStates();
 }
 
 void NodeView::minimapPan()
@@ -1405,8 +1412,8 @@ void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
  */
 void NodeView::sortSelection(bool recurse)
 {
-    if(viewMutex.tryLock()){      
-        triggerAction("View: Sorting Node");
+    if(viewMutex.tryLock()){
+        triggerAction("View: Sorting Selection");
         emit view_updateProgressStatus(-1, "Sorting Selected Entities");
 
         QList<GraphMLItem*> nodesToSort;
@@ -1450,8 +1457,8 @@ void NodeView::sortSelection(bool recurse)
 void NodeView::expandSelection(bool expand)
 {
     if(viewMutex.tryLock()){
-        triggerAction("View: Sorting Node");
-        emit view_updateProgressStatus(-1, "Expand Selected Entities");
+        triggerAction("View: Expanding/Contracting Selection");
+        emit view_updateProgressStatus(-1, "Expanding/Contracting Selected Entities");
 
         QList<GraphMLItem*> nodesToSort;
 
@@ -2123,11 +2130,11 @@ void NodeView::transition()
         unsetCursor();
         break;
     case VS_MOVING:
-        triggerAction("Moving Selection");
+        triggerAction("View: Moving Selection");
         setCursor(Qt::SizeAllCursor);
         break;
     case VS_RESIZING:
-        triggerAction("Resizing Selection");
+        triggerAction("View: Resizing Selection");
         //Cursor is set by EntityItem
         break;
     case VS_PAN:
@@ -2195,7 +2202,9 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("redo", controller->canRedo());
         emit view_updateMenuActionEnabled("localDeployment", controller->canLocalDeploy());
 
+        //qDebug() << "canUndo: " << controller->canUndo();
     }
+
     emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
 
     emit view_updateMenuActionEnabled("singleSelection", selectedID != -1);
@@ -2217,13 +2226,11 @@ void NodeView::updateActionsEnabledStates()
  */
 void NodeView::showToolbar(QPoint position)
 {
-
     if(wasPanning){
         //If we have panned, we shouldn't show the toolbar.
         wasPanning = false;
         return;
     }
-
 
     // only show the toolbar if there is at least one grapml item selected
     if (viewState == VS_SELECTED) {
@@ -2239,10 +2246,8 @@ void NodeView::showToolbar(QPoint position)
         // filter selected items into their corresponding lists
         foreach (int ID, selectedIDs) {
             GraphMLItem* item = getGraphMLItemFromID(ID);
-
             if (item->isNodeItem()){
                 NodeItem* nodeItem = (NodeItem*)item;
-
                 if (item->sceneBoundingRect().contains(toolbarPosition)) {
                     toolbarPositionContained = true;
                 }
@@ -2499,6 +2504,8 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         }
 
         if(!constructEdge){
+            // added this here otherwise constructed edge with no gui is not stored
+            noGuiIDHash[edge->getID()] = "Edge";
             return;
         }
 
@@ -2510,6 +2517,9 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
             qCritical() << "using Model.";
             return;
             //parent = getModelItem();
+
+            // added this here otherwise constructed edge with no gui is not stored
+            noGuiIDHash[edge->getID()] = "Edge";
         }
 
         //Construct a new GUI Element for this edge.
@@ -2654,18 +2664,14 @@ void NodeView::destructEdge(int srcID, int dstID, bool triggerAction)
 void NodeView::constructDestructEdges(QList<int> srcIDs, int dstID)
 {
     if (viewMutex.tryLock()) {
-
         // added this for connecting multiple selection using the toolbar
         if (srcIDs.isEmpty()) {
             srcIDs = getSelectedNodeIDs();
         }
-
         if (!srcIDs.isEmpty()) {
-            EntityItem* dstNode = getEntityItemFromID(dstID);
-            triggerAction("Dock: Destructing/Constructing Multiple Edges");
+            triggerAction("Dock/Toolbar: Destructing/Constructing Multiple Edges");
             emit view_constructDestructEdges(srcIDs, dstID);
         }
-
     }
 }
 
@@ -3175,19 +3181,17 @@ bool NodeView::removeGraphMLItemFromHash(int ID)
             selectedIDs.removeAll(ID);
         }
 
-
         if(ID == currentTableID){
             setAttributeModel(0);
         }
 
-
         if(item){
             if(item->isEdgeItem()){
-                    EdgeItem* edgeItem = (EdgeItem*)item;
-                    updateDeployment = true;
-                    if(edgeItem->getSource() && edgeItem->getDestination()){
-                        emit view_edgeDeleted(edgeItem->getSource()->getID(), edgeItem->getDestination()->getID());
-                    }
+                EdgeItem* edgeItem = (EdgeItem*)item;
+                updateDeployment = true;
+                if (edgeItem->getSource() && edgeItem->getDestination()) {
+                    emit view_edgeDeleted(edgeItem->getSource()->getID(), edgeItem->getDestination()->getID());
+                }
             }else{
                 if(item->getParent()){
                     emit view_nodeDeleted(item->getID(), item->getParent()->getID());
@@ -3197,6 +3201,7 @@ bool NodeView::removeGraphMLItemFromHash(int ID)
             item->detach();
             delete item;
         }
+
         if(IS_SUB_VIEW){
             if(CENTRALIZED_ON_ITEM && centralizedItemID == ID){
                 //Delete the nodeView
@@ -3205,6 +3210,12 @@ bool NodeView::removeGraphMLItemFromHash(int ID)
         }
         removed = true;
     }else{
+
+        // need to send view_edgeDeleted signal even if the edge doesn't have a gui item
+        if (noGuiIDHash.contains(ID) && noGuiIDHash[ID] == "Edge") {
+            emit view_edgeDeleted();
+        }
+
         removed = false;
     }
 
@@ -3262,7 +3273,7 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* entityItem)
             QStringList shownKinds;
             shownKinds << "AggregateInstance" << "Aggregate" << "OutEventPortImpl" << "InEventPortImpl";
             if (!shownKinds.contains(parentItem->getNodeKind()) ){
-             //   entityItem->setHidden(true);
+                //   entityItem->setHidden(true);
             }
         }
 
@@ -4073,6 +4084,7 @@ void NodeView::removeFromSelection(GraphMLItem *item)
 void NodeView::moveSelection(QPointF delta)
 {
     if(viewState == VS_MOVING){
+
         bool canReduceX = true;
         bool canReduceY = true;
 
@@ -4150,6 +4162,7 @@ void NodeView::moveSelection(QPointF delta)
                 nodeItem->adjustPos(delta);
             }
         }
+
     }
 }
 
@@ -4327,8 +4340,9 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
             }
         }
     }
+
     // Update Actions
-    updateActionsEnabledStates();
+    //updateActionsEnabledStates(); - don't need this here; already done in appendToSelection
 }
 
 

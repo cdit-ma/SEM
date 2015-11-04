@@ -225,10 +225,6 @@ public slots:
     void setVisibility(bool visible);
 
 
-
-    void sort();
-
-
     //void expandNode(bool expand);
     void setNodeExpanded(bool expanded);
 

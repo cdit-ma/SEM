@@ -34,6 +34,7 @@ public slots:
     void addConnectedNode(ToolbarMenuAction* action);
     void connectNodes(ToolbarMenuAction* action);
     void displayConnectedNode(ToolbarMenuAction* action = 0);
+    void expandContractNodes();
     void constructNewView();
 
     void setupLegalNodesList();
@@ -44,7 +45,6 @@ public slots:
     void setInstanceID();
 
     void updateDisplayedChildren();
-
     void hardwareClusterMenuClicked(int viewMode=-1);
 
     void hideToolbar(QAction* action = 0);
@@ -96,6 +96,7 @@ private:
     QFrame* mainFrame;
     QFrame* shadowFrame;
     QFrame* alignFrame;
+    QFrame* expandContractFrame;
     QFrame* snippetFrame;
     QFrame* goToFrame;
     QFrame* alterViewFrame;
@@ -117,6 +118,9 @@ private:
     QToolButton* connectionsButton;
     QToolButton* popupNewWindow;
     QToolButton* displayedChildrenOptionButton;
+
+    QToolButton* expandButton;
+    QToolButton* contractButton;
 
     ToolbarMenu* addMenu;
     ToolbarMenu* connectMenu;
@@ -157,6 +161,7 @@ private:
 
     bool alterModelButtonsVisible;
     bool alignButtonsVisible;
+    bool expandContractButtonsVisible;
     bool snippetButtonsVisible;
     bool goToButtonsVisible;
     bool alterViewButtonsVisible;

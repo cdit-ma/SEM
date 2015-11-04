@@ -74,7 +74,8 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     return Qt::white;
 }
 
-static QStringList GET_ASPECT_NAMES(){
+static QStringList GET_ASPECT_NAMES()
+{
     QStringList list;
     foreach(VIEW_ASPECT aspect, VIEW_ASPECTS){
         list << GET_ASPECT_NAME(aspect);

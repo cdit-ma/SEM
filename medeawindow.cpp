@@ -1374,10 +1374,6 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
 
-    //TODO FIX
-    connect(nodeView, SIGNAL(view_nodeDeleted(int, int)), partsDock, SLOT(nodeDeleted(int, int)));
-    connect(nodeView, SIGNAL(view_nodeDeleted(int,int)), hardwareDock, SLOT(nodeDeleted(int, int)));
-    connect(nodeView, SIGNAL(view_nodeDeleted(int,int)), definitionsDock, SLOT(nodeDeleted(int, int)));
 
     connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
@@ -1389,11 +1385,15 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
 
-    connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), hardwareDock, SLOT(edgeDeleted(int, int)));
-    connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), definitionsDock, SLOT(edgeDeleted(int, int)));
+    connect(nodeView, SIGNAL(view_nodeDeleted(int, int)), partsDock, SLOT(onNodeDeleted(int, int)));
+    connect(nodeView, SIGNAL(view_nodeDeleted(int,int)), hardwareDock, SLOT(onNodeDeleted(int, int)));
+    connect(nodeView, SIGNAL(view_nodeDeleted(int,int)), definitionsDock, SLOT(onNodeDeleted(int, int)));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
+
+    connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), hardwareDock, SLOT(onEdgeDeleted(int, int)));
+    connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), definitionsDock, SLOT(onEdgeDeleted(int, int)));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
 

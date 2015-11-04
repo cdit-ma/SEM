@@ -77,7 +77,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW):  NodeItem
         setVisibility(parentEntityItem->isExpanded());
 
         connect(parent, SIGNAL(GraphMLItem_PositionChanged()), this, SIGNAL(GraphMLItem_PositionChanged()));
-        connect(parent, SIGNAL(GraphMLItem_SizeChanged()), this, SIGNAL(GraphMLItem_PositionChanged()));
+        connect(parent, SIGNAL(GraphMLItem_SizeChanged()), this, SIGNAL(GraphMLItem_PositionChanged())); // ???
 
     }else{
         parentEntityItem = 0;

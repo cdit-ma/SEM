@@ -26,11 +26,11 @@ public:
     void setNotAllowedKinds(QStringList kinds);
     QStringList getNotAllowedKinds();
 
-    void addDockNodeItem(DockNodeItem* item, int insertIndex = -1, bool addToLayout = true);
+    void addDockNodeItem(DockNodeItem* dockItem, int insertIndex = -1, bool addToLayout = true);
+    void removeDockNodeItem(DockNodeItem* dockItem, bool deleteItem = false);
+
     DockNodeItem* getDockNodeItem(QString nodeID);
     virtual QList<DockNodeItem*> getDockNodeItems();
-
-    void removeDockNodeItemFromList(DockNodeItem* dockNodeItem);
 
     bool isDockOpen();
     bool isDockEnabled();
@@ -46,27 +46,23 @@ public:
     NodeView* getNodeView();
     QStringList getAdoptableNodeListFromView();
 
-    virtual void onNodeDeleted(QString nodeID);
-    virtual void onEdgeDeleted();
+    virtual void nodeDeleted(QString nodeID);
+    virtual void edgeDeleted();
 
 public slots:
     virtual void dockNodeItemClicked() = 0;
-    virtual void dockClosed();
     virtual void updateDock();
     virtual void clear();
 
+    void on_parentButtonPressed();
+
+    void onNodeDeleted(int nodeID, int parentID);
+    void onEdgeDeleted(int srcID = -1, int dstID = -1);
+
     void clearSelected();
-
-    virtual void nodeDeleted(int nodeID, int parentID);
-    void edgeDeleted(int srcID, int dstID);
-
     void updateCurrentNodeItem();
 
-    void removeDockNodeItem(DockNodeItem* item);
-
     void parentHeightChanged(double height);
-
-    void on_parentButtonPressed();
 
 private:
     void setupLayout();

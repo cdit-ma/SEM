@@ -159,7 +159,7 @@ void ToolbarWidget::hardwareClusterMenuClicked(int viewMode)
 
 /**
  * @brief ToolbarWidget::addChildNode
- * Send a signal to the view to construct a new node with the specified kind.
+ * This sends a signal to the view to construct a new node with the specified kind.
  * @param action
  */
 void ToolbarWidget::addChildNode(ToolbarMenuAction* action)
@@ -170,7 +170,7 @@ void ToolbarWidget::addChildNode(ToolbarMenuAction* action)
 
 /**
  * @brief ToolbarWidget::addConnectedNode
- * Send a signal to the view to construct a connected node.
+ * This sends a signal to the view to construct a connected node.
  * It can either be a ComponentImpl, ComponentInstance, BlackBoxInstance or In/Out EventPortDelegates.
  * @param action
  */
@@ -200,7 +200,7 @@ void ToolbarWidget::addConnectedNode(ToolbarMenuAction* action)
 
 /**
  * @brief ToolbarWidget::connectNodes
- * Send a signal to the view to construct an edge between the selected node and chosen node.
+ * This sends a signal to the view to construct an edge between the selected node and chosen node.
  */
 void ToolbarWidget::connectNodes(ToolbarMenuAction* action)
 {
@@ -248,6 +248,23 @@ void ToolbarWidget::displayConnectedNode(ToolbarMenuAction* action)
         }
     } else {
         qWarning() << "ToolbarWidget::displayConnectedNode -  Action kind not handled.";
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::expandContractNodes
+ * This sends a signal to the view to either expand or contract the selected node items.
+ */
+void ToolbarWidget::expandContractNodes()
+{
+    QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
+    if (button == expandButton) {
+        nodeView->expandSelection(true);
+    } else if (button == contractButton) {
+        nodeView->expandSelection(false);
+    } else {
+        qWarning() << "ToolbarWidget::expandContractNodes - Sender object not handled.";
     }
 }
 
@@ -522,6 +539,9 @@ void ToolbarWidget::setupToolBar()
     alignFrame = constructFrameSeparator();
     alignVerticallyButton = constructToolButton(buttonSize, "Align_Vertical", 0.6, "Align Selection Vertically");
     alignHorizontallyButton = constructToolButton(buttonSize, "Align_Horizontal", 0.6, "Align Selection Horizontally");
+    expandContractFrame = constructFrameSeparator();
+    expandButton = constructToolButton(buttonSize, "Expand", 0.6, "Expand Selection");
+    contractButton = constructToolButton(buttonSize, "Contract", 0.6, "Contract Selection");
     snippetFrame = constructFrameSeparator();
     importSnippetButton = constructToolButton(buttonSize, "ImportSnippet", 0.6, "Import GraphML Snippet");
     exportSnippetButton = constructToolButton(buttonSize, "ExportSnippet", 0.6, "Export GraphML Snippet");
@@ -628,6 +648,8 @@ void ToolbarWidget::makeConnections()
     connect(deleteButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignVerticallyButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(expandButton, SIGNAL(clicked()), this, SLOT(hide()));
+    connect(contractButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(popupNewWindow, SIGNAL(clicked()), this, SLOT(hide()));
     connect(connectionsButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(exportSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
@@ -642,10 +664,12 @@ void ToolbarWidget::makeConnections()
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
-    connect(popupNewWindow, SIGNAL(clicked()), this, SLOT(constructNewView()));
     connect(connectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
     connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(exportSnippet()));
     connect(importSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ImportSnippet()));
+    connect(expandButton, SIGNAL(clicked()), this, SLOT(expandContractNodes()));
+    connect(contractButton, SIGNAL(clicked()), this, SLOT(expandContractNodes()));
+    connect(popupNewWindow, SIGNAL(clicked()), this, SLOT(constructNewView()));
     connect(definitionButton, SIGNAL(clicked()), this, SLOT(displayConnectedNode()));
     connect(implementationButton, SIGNAL(clicked()), this, SLOT(displayConnectedNode()));
     connect(allNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
@@ -714,6 +738,11 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         implementationButton->setVisible(showImplementationToolButton);
         goToButtonsVisible = showDefinitionToolButton || showImplementationToolButton;
 
+        // these buttons are only available for multiple selection
+        expandButton->hide();
+        contractButton->hide();
+        expandContractButtonsVisible = false;
+
         // check if the selected node item has other node items connected to it (edges)
         if (nodeItem->getNode()->getEdges(0).count() > 0) {
             connectionsButton->show();
@@ -742,6 +771,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         NodeItem* prevParentItem = 0;
         bool shareParent = true;
         bool allClusters = true;
+        bool allEntities = true;
         int viewMode = -1;
 
         foreach (NodeItem* item, nodeItems) {
@@ -752,7 +782,10 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             }
             prevParentItem = parentItem;
 
-            if (item->isEntityItem()){
+            if (!item->isEntityItem()){
+                deployable = false;
+                allClusters = false;
+                allEntities = false;
                 continue;
             }
 
@@ -769,6 +802,17 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             } else {
                 allClusters = false;
             }
+
+            if (deployable && !nodeView->isNodeKindDeployable(item->getNodeKind())) {
+                deployable = false;
+            }
+        }
+
+        // these buttons are only available for multiple selected entities
+        if (allEntities) {
+            expandButton->show();
+            contractButton->show();
+            expandContractButtonsVisible = true;
         }
 
         // only show the group alignment buttons if all the selected items have the same parent
@@ -788,6 +832,10 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         // this allows multiple selection to connect to a shared legal node
         for (int i = 0; i < nodeItems.count(); i++) {
             NodeItem* item = nodeItems.at(i);
+            if (!item->isEntityItem()) {
+                legalNodes.clear();
+                break;
+            }
             foreach (NodeItem* legalNode, nodeView->getConnectableNodeItems(item->getID())) {
                 bool appendToList = true;
                 for (int j = 0; (j < nodeItems.count() && j != i); j++) {
@@ -800,9 +848,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                 if (appendToList && !legalNodes.contains(legalNode)) {
                     legalNodes.append(legalNode);
                 }
-            }
-            if (deployable && !nodeView->isNodeKindDeployable(item->getNodeKind())) {
-                deployable = false;
             }
         }
     }
@@ -831,6 +876,7 @@ void ToolbarWidget::updateSeparators()
     snippetFrame->setVisible(snippetButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
     goToFrame->setVisible(goToButtonsVisible && (alterModelButtonsVisible || snippetButtonsVisible));
     alterViewFrame->setVisible(alterViewButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible || goToButtonsVisible));
+    expandContractFrame->setVisible(expandContractButtonsVisible && (alterModelButtonsVisible || alignButtonsVisible));
 }
 
 
@@ -844,6 +890,8 @@ void ToolbarWidget::hideButtons()
     deleteButton->hide();
     alignVerticallyButton->hide();
     alignHorizontallyButton->hide();
+    expandButton->hide();
+    contractButton->hide();
     exportSnippetButton->hide();
     importSnippetButton->hide();
     definitionButton->hide();
@@ -863,6 +911,8 @@ void ToolbarWidget::hideSeparators()
     snippetFrame->hide();
     goToFrame->hide();
     alterViewFrame->hide();
+    alignFrame->hide();
+    expandContractFrame->hide();
 }
 
 
@@ -893,6 +943,7 @@ void ToolbarWidget::resetButtonGroupFlags()
 {
     alterModelButtonsVisible = false;
     alignButtonsVisible = false;
+    expandContractButtonsVisible = false;
     snippetButtonsVisible = false;
     goToButtonsVisible = false;
     alterViewButtonsVisible = false;
@@ -902,8 +953,8 @@ void ToolbarWidget::resetButtonGroupFlags()
     componentInstMenuDone = false;
     inEventPortInstanceMenuDone = false;
     outEventPortInstanceMenuDone = false;
-
     connectMenuDone = false;
+
     chosenInstanceID = -1;
 }
 
