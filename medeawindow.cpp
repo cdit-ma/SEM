@@ -1834,7 +1834,7 @@ void MedeaWindow::updateToolbar()
     }
 
     QSize toolbarSize = QSize(TOOLBAR_BUTTON_WIDTH * visibleActionCount, TOOLBAR_BUTTON_HEIGHT);
-    toolbar->setFixedSize(toolbarSize + QSize(30, TOOLBAR_GAP));
+    toolbar->setFixedSize(toolbarSize + QSize(28, TOOLBAR_GAP));
 
     if (nodeView) {
         int centerX = nodeView->getVisibleViewRect().center().x();
