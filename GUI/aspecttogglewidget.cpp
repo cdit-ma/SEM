@@ -278,53 +278,6 @@ void AspectToggleWidget::setupColor()
     defaultColor = colorToString(darkerAspectColor);
     p1_Color = colorToString(adjustColorRGB(darkerAspectColor, 175), checkedAlpha);
     p2_Color = colorToString(adjustColorRGB(darkerAspectColor, 15), checkedAlpha);
-
-    /*
-    QString defaultAlpha = "255";
-    QString checkedAlpha = "250";
-    switch (THEME) {
-    case THEME_DARK_COLOURED:
-        if (aspectText == "Interfaces") {
-            defaultColor = "rgba(24,148,184," + defaultAlpha + ")";
-            p1_Color = "rgba(194,255,255," + checkedAlpha + ")";
-            p2_Color = "rgba(0,128,164," + checkedAlpha + ")";
-        } else if (aspectText == "Behaviour") {
-            defaultColor = "rgba(155,155,155," + defaultAlpha + ")";
-            p1_Color = "rgba(255,255,255," + checkedAlpha + ")";
-            p2_Color = "rgba(135,135,135," + checkedAlpha + ")";
-        } else if (aspectText == "Assemblies") {
-            defaultColor = "rgba(90,90,90," + defaultAlpha + ")";
-            p1_Color = "rgba(210,210,210," + checkedAlpha + ")";
-            p2_Color = "rgba(70,70,70," + checkedAlpha + ")";
-        } else if (aspectText == "Hardware") {
-            defaultColor = "rgba(207,107,100," + defaultAlpha + ")";
-            p1_Color = "rgba(255,207,200," + checkedAlpha + ")";
-            p2_Color = "rgba(187,87,80," + checkedAlpha + ")";
-        }
-        break;
-    case THEME_DARK_NEUTRAL:
-        if (aspectText == "Interfaces") {
-            defaultColor = "rgba(134,161,170," + defaultAlpha + ")";
-            p1_Color = "rgba(184,191,200," + checkedAlpha + ")";
-            p2_Color = "rgba(114,141,150," + checkedAlpha + ")";
-        } else if (aspectText == "Behaviour") {
-            defaultColor = "rgba(164,176,172," + defaultAlpha + ")";
-            p1_Color = "rgba(214,206,202," + checkedAlpha + ")";
-            p2_Color = "rgba(144,156,152," + checkedAlpha + ")";
-        } else if (aspectText == "Assemblies") {
-            defaultColor = "rgba(192,191,197," + defaultAlpha + ")";
-            p1_Color = "rgba(232,231,237," + checkedAlpha + ")";
-            p2_Color = "rgba(172,171,177," + checkedAlpha + ")";
-        } else if (aspectText == "Hardware") {
-            defaultColor = "rgba(239,238,233," + defaultAlpha + ")";
-            p1_Color = "rgba(255,255,255," + checkedAlpha + ")";
-            p2_Color = "rgba(219,218,213," + checkedAlpha + ")";
-        }
-        break;
-    default:
-        break;
-    }
-    */
 }
 
 

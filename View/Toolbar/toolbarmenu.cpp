@@ -4,9 +4,6 @@
 #include <QProxyStyle>
 #include <QStyleOptionButton>
 
-#define THEME_LIGHT 0
-#define THEME_DARK 1
-
 
 /**
  * @brief The MenuStyle class
@@ -38,12 +35,10 @@ ToolbarMenu::ToolbarMenu(ToolbarWidget* toolbar, ToolbarMenuAction* info_action)
 
     setupInfoAction();
     setStyle(new MenuStyle);
-    setupTheme(toolbar->getTheme());
 
     connect(this, SIGNAL(triggered(QAction*)), this, SLOT(menuTriggered(QAction*)));
     connect(this, SIGNAL(aboutToShow()), toolbar, SLOT(appendToOpenMenusList()));
     connect(this, SIGNAL(aboutToHide()), toolbar, SLOT(removeFromOpenMenusList()));
-    connect(toolbar, SIGNAL(toolbar_themeChanged(int)), this, SLOT(setupTheme(int)));
 }
 
 
@@ -143,51 +138,6 @@ void ToolbarMenu::menuTriggered(QAction* action)
 
     // this shouldn't be needed, but just to make sure that this menu hides after it's triggered
     QMenu::close();
-}
-
-
-/**
- * @brief ToolbarMenu::setupTheme
- * @param theme
- */
-void ToolbarMenu::setupTheme(int theme)
-{
-    QString background = "rgba(240,240,240,250);";
-    QString textColor = "black;";
-    QString hoverTextColor = "black;";
-    QString hoverBackground = "rgba(230,230,230,250);";
-
-    switch (theme) {
-    case THEME_DARK:
-        background = "rgba(130,130,130,250);";
-        textColor = "white;";
-        break;
-    default:
-        break;
-    }
-
-    setStyleSheet("QMenu { "
-                  "background-color:" + background +
-                  "}"
-                  "QMenu::item {"
-                  "padding: 1px 20px 1px 45px;"
-                  "background-color:" + background +
-                  "color:" + textColor +
-                  "border: none;"
-                  "}"
-                  "QMenu::item:selected {"
-                  "background-color:" + hoverBackground +
-                  "color:" + hoverTextColor +
-                  "border: 1px solid gray;"
-                  "}"
-                  "QMenu::icon {"
-                  "position: absolute;"
-                  "top: 1px;"
-                  "right: 3px;"
-                  "bottom: 1px;"
-                  "left: 4px;"
-                  "}"
-                  );
 }
 
 

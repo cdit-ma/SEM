@@ -248,7 +248,7 @@ public slots:
     void hardwareClusterMenuItemPressed();
     int getHardwareClusterChildrenViewMode();
 
-    void themeChanged(int theme);
+    void themeChanged(VIEW_THEME theme);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);
@@ -421,7 +421,6 @@ private:
     QColor topRightColor;
     QColor bottomLeftColor;
     QColor bottomRightColor;
-    int darkThemeType;
 
     QBrush selectedBrush;
     QBrush bodyBrush;

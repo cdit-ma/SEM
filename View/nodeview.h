@@ -106,8 +106,8 @@ public:
 
 
     void aspectGraphicsChanged();
-    void setupTheme(int theme = 0);
-    int getTheme();
+    void setupTheme(VIEW_THEME theme = VT_NORMAL_THEME);
+    VIEW_THEME getTheme();
 
 protected:
     //Mouse Handling Methods
@@ -138,7 +138,7 @@ private slots:
 
 signals:
     void view_searchFinished(QStringList searchResult);
-    void view_themeChanged(int theme);
+    void view_themeChanged(VIEW_THEME theme);
 
     void view_ClearSubViewAttributeTable();
     void view_ModelReady();
@@ -458,7 +458,6 @@ private:
     QPointF panningSceneOrigin;
 
     int centralizedItemID;
-    int currentTheme;
     int prevSelectedNodeID;
     int highlightedID;
     int currentTableID;
@@ -468,10 +467,8 @@ private:
     int numberOfNotifications;
     int currentMapKey;
 
-
     VIEW_STATE viewState;
-
-
+    VIEW_THEME currentTheme;
 
     bool CENTRALIZED_ON_ITEM;
     bool MINIMAP_EVENT;

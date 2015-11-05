@@ -40,11 +40,6 @@
 #define MAX_ZOOM_RATIO 50
 #define MIN_ZOOM_RATIO 2
 
-
-
-#define THEME_LIGHT 0
-#define THEME_DARK 1
-
 #define ASPECT_INTERFACES "Interfaces"
 #define ASPECT_BEHAVIOUR "Behaviour"
 #define ASPECT_ASSEMBLIES "Assemblies"
@@ -146,7 +141,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     toolbar = new ToolbarWidget(this);
     if (isMainView()) {
         connect(this, SIGNAL(view_updateMenuActionEnabled(QString,bool)), toolbar, SLOT(updateActionEnabledState(QString,bool)));
-        connect(this, SIGNAL(view_themeChanged(int)), toolbar, SLOT(setupTheme(int)));
+        connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), toolbar, SLOT(setupTheme(VIEW_THEME)));
     }
 
     comboBox = new QComboBox(this);
@@ -156,11 +151,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
         connect(comboBox, SIGNAL(currentTextChanged(QString)), this, SLOT(dropDownChangedValue(QString)));
     }
 
-
-
     // call this after the toolbar has been constructed to pass on the theme
     setupTheme();
-    //setupTheme(THEME_DARK);
 
     // initialise the view's center point
     centerPoint = getVisibleRect().center();
@@ -1086,22 +1078,16 @@ void NodeView::showDropDown(GraphMLItem *item, QLineF dropDownPosition, QString 
  * @brief NodeView::setupTheme
  * @param theme
  */
-void NodeView::setupTheme(int theme)
+void NodeView::setupTheme(VIEW_THEME theme)
 {
     QString background = ";";
 
     switch (theme) {
-    case THEME_LIGHT:
+    case VT_NORMAL_THEME:
         background = "rgba(170,170,170,255);";
-        //background = "white;";
         break;
-    case THEME_DARK:
-        //background = "rgb(30,30,30);";
+    case VT_DARK_THEME:
         background = "rgb(70,70,70);";
-        //background = "rgb(100,100,100);";
-        //background = "rgba(70,130,180);";
-        //background = "rgba(203,210,212);";
-        //background = "black;";
         break;
     default:
         break;
@@ -1115,11 +1101,12 @@ void NodeView::setupTheme(int theme)
     emit view_themeChanged(theme);
 }
 
+
 /**
  * @brief NodeView::getTheme
  * @return
  */
-int NodeView::getTheme()
+VIEW_THEME NodeView::getTheme()
 {
     return currentTheme;
 }
@@ -3083,7 +3070,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     ModelItem* modelItem = (ModelItem*)item;
     NodeItem* nodeItem = (NodeItem*)item;
     EdgeItem* edgeItem = (EdgeItem*)item;
-    EdgeItem* entityItem = (EdgeItem*)item;
+    EntityItem* entityItem = (EntityItem*)item;
 
     //All Cases.
     connect(item, SIGNAL(GraphMLItem_ClearSelection(bool)), this, SLOT(clearSelection(bool)));
@@ -3099,7 +3086,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
 
     if(item->isModelItem()){
         connect(modelItem, SIGNAL(GraphMLItem_PositionChanged()), this, SIGNAL(view_ModelSizeChanged()));
-        //connect(this, SIGNAL(view_themeChanged(int)), entityItem, SLOT(themeChanged(int)));
+        connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), modelItem, SLOT(themeChanged(VIEW_THEME)));
     }
 
     if(item->isNodeItem()){
@@ -3107,6 +3094,10 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
         connect(nodeItem, SIGNAL(NodeItem_ResizeFinished(int)), this, SLOT(resizeFinished(int)));
 
         connect(this, SIGNAL(view_toggleGridLines(bool)), nodeItem, SLOT(toggleGridMode(bool)));
+    }
+
+    if (item->isEntityItem() && entityItem->isHardwareCluster()) {
+        connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), entityItem, SLOT(themeChanged(VIEW_THEME)));
     }
 
     if(isMainView()){

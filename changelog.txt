@@ -37,17 +37,18 @@ Dan To Fix:
 
 Cathlyn To Fix:
 * Fix getNextChildPos() in NodeItem. (doesnt' work consistantly for sorting Aspect)
-* Fix theme stuff
 * Work out useful short cuts for recursive sort and normal sort.
 * Trigger action after action is done, not just on selection change.
   ** It's not just on selection change. Broken for the first move because updating the button states happen before the action is added to the undo stack.
   ** How is the underlying GraphML size and position values updated? What signal is sent?
 Fixed:
+* Fix theme updates and connection for modelitem, clusters, toolbar and the view.
 * Add aspect check for search
 * Hardware dock not updating/clearing highlighted item until selection is changed.
-* Hardware cluster view option button showing for non-clusters.
+* Updated toolbar for multiple selection to deal with Entity and Aspect items.
 * Call NodeView::expandSelection(bool expand) from toolbar
 * Connect tool button/menu showing for AspectItems.
+
 
 Version 18:
     New Features:

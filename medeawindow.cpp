@@ -57,7 +57,7 @@
 #define TOGGLE_GRID "02-04-Toggle_Grid_Lines"
 #define SHOW_MANAGEMENT_COMPONENTS "02-05-Show_Management_Components"
 #define SHOW_LOCAL_NODE "02-06-Show_Local_Node"
-#define DARK_THEME "02-07-Dark_Theme_On"
+#define DARK_THEME_ON "02-07-Dark_Theme_On"
 
 #define ASPECT_I "03-01-Interfaces"
 #define ASPECT_B "03-02-Behaviour"
@@ -358,8 +358,12 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
         if(nodeView){
             nodeView->showLocalNode(boolValue);
         }
-    } else if (keyName == DARK_THEME && isBool) {
-        nodeView->setupTheme(boolValue);
+    } else if (keyName == DARK_THEME_ON && isBool) {
+        if (boolValue) {
+            nodeView->setupTheme(VT_DARK_THEME);
+        } else {
+            nodeView->setupTheme(VT_NORMAL_THEME);
+        }
     }
 }
 

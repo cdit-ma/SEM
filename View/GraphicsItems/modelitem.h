@@ -34,6 +34,7 @@ public slots:
     void graphMLDataChanged(GraphMLData *data);
     void dataEditModeRequested();
     void dataChanged(QString data);
+    void themeChanged(VIEW_THEME theme);
 
 private:
     void setupGraphMLDataConnections();

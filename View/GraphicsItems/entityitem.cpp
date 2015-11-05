@@ -56,11 +56,6 @@
 #define CONNECTED 1
 #define UNCONNECTED 2
 
-#define THEME_LIGHT 0
-#define THEME_DARK 1
-
-#define THEME_DARK_NEUTRAL 10
-#define THEME_DARK_COLOURED 11
 
 
 /**
@@ -98,8 +93,6 @@ EntityItem::EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW):  NodeItem
     isNodeOnGrid = false;
     isNodeSorted = false;
     isGridVisible = false;
-
-    darkThemeType = 0;
 
     setInSubView(IN_SUBVIEW);
 
@@ -167,16 +160,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW):  NodeItem
     }
 
 
-
-
-
-
-
-
     setupLabel();
-
-
-
 
     setupGraphMLDataConnections();
     updateFromGraphMLData();
@@ -187,6 +171,11 @@ EntityItem::EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW):  NodeItem
 
     if (IS_HARDWARE_CLUSTER) {
         setupChildrenViewOptionMenu();
+        if (getNodeView()) {
+            themeChanged(getNodeView()->getTheme());
+        } else {
+            themeChanged(VT_NORMAL_THEME);
+        }
     }
 
     if(!IN_SUBVIEW){
@@ -2168,50 +2157,31 @@ int EntityItem::getHardwareClusterChildrenViewMode()
  * @brief EntityItem::themeChanged
  * @param theme
  */
-void EntityItem::themeChanged(int theme)
+void EntityItem::themeChanged(VIEW_THEME theme)
 {
-    QString bgColor = "rgba(240,240,240,250);";
-    QString textColor = "black;";
-    QString checkedColor = "green;";
-    modelCircleColor = Qt::gray;
-    topRightColor = QColor(254,184,126);
-    topLeftColor = QColor(110,210,210);
-    bottomRightColor = QColor(110,170,220);
-    bottomLeftColor = QColor(255,160,160);
-
-    switch (theme) {
-    case THEME_DARK:
-        bgColor = "rgba(130,130,130,250);";
-        textColor = "white;";
-        checkedColor = "yellow;";
-        //modelCircleColor = QColor(100,100,100);
-        modelCircleColor = QColor(70,70,70);
-        if (darkThemeType == THEME_DARK_NEUTRAL) {
-            topLeftColor = QColor(134,161,170);
-            topRightColor = QColor(164,176,172);
-            bottomLeftColor = QColor(192,191,197);
-            bottomRightColor = QColor(239,238,233);
-        } else if (darkThemeType == THEME_DARK_COLOURED) {
-            topLeftColor = QColor(24,148,184);
-            topRightColor = QColor(155,155,155);
-            bottomLeftColor = QColor(90,90,90);
-            bottomRightColor = QColor(207,107,100);
-        }
-        break;
-    default:
-        break;
-    }
-
-
-
     if (IS_HARDWARE_CLUSTER && childrenViewOptionMenu) {
-        childrenViewOptionMenu->setStyleSheet("QRadioButton {"
+
+        QString bgColor = "rgba(240,240,240,250);";
+        QString textColor = "black;";
+        QString checkedColor = "green;";
+
+        switch (theme) {
+        case VT_DARK_THEME:
+            bgColor = "rgba(130,130,130,250);";
+            textColor = "white;";
+            checkedColor = "yellow;";
+        default:
+            break;
+        }
+
+        childrenViewOptionMenu->setStyleSheet("QMenu{ background-color:" + bgColor + "}" +
+                                              "QRadioButton {"
                                               "padding: 8px 10px 8px 8px;"
                                               "color:" + textColor +
                                               "}"
                                               "QRadioButton::checked {"
-                                              "color:" + checkedColor +
                                               "font-weight: bold; "
+                                              "color:" + checkedColor +
                                               "}");
     }
 }

@@ -156,6 +156,7 @@ void ModelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     //Setup the Pen
     painter->setPen(getCurrentPen());
     painter->setBrush(modelCircleColor);
+
     //Draw the center circle
     painter->drawEllipse(quadrant);
 }
@@ -228,6 +229,26 @@ void ModelItem::dataChanged(QString dataValue)
         }
     }
 }
+
+
+/**
+ * @brief ModelItem::themeChanged
+ * @param theme
+ */
+void ModelItem::themeChanged(VIEW_THEME theme)
+{
+    switch (theme) {
+    case VT_NORMAL_THEME:
+        modelCircleColor = QColor(170,170,170,255);
+        break;
+    case VT_DARK_THEME:
+        modelCircleColor = QColor(70,70,70);
+        break;
+    default:
+        break;
+    }
+}
+
 
 void ModelItem::setupGraphMLDataConnections()
 {

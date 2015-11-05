@@ -330,8 +330,6 @@ private:
     QHash<QString, QAction*> toolbarActionLookup;
     QHash<QString, ActionButton*> toolbarButtonLookup;
 
-    QAction* toolbar_Sort;
-
     QAction* leftMostSpacer;
     QAction* leftMidSpacer;
     QAction* midLeftSpacer;

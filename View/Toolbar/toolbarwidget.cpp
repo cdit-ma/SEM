@@ -7,10 +7,6 @@
 #include <QDebug>
 #include <QWidgetAction>
 
-#define THEME_LIGHT 0
-#define THEME_DARK 1
-
-
 /**
  * @brief ToolbarWidget::ToolbarWidget
  * @param parent
@@ -36,7 +32,7 @@ ToolbarWidget::ToolbarWidget(NodeView* parent) :
     mainFrame = new QFrame(this);
 
     setupToolBar();
-    setupTheme(THEME_LIGHT);
+    setupTheme();
 
     makeConnections();
     resetButtonGroupFlags();
@@ -79,7 +75,7 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
  * @brief ToolbarWidget::getTheme
  * @return
  */
-int ToolbarWidget::getTheme()
+VIEW_THEME ToolbarWidget::getTheme()
 {
     return currentTheme;
 }
@@ -334,23 +330,29 @@ void ToolbarWidget::setVisible(bool visible)
  * @brief ToolbarWidget::setupTheme
  * @param theme
  */
-void ToolbarWidget::setupTheme(int theme)
+void ToolbarWidget::setupTheme(VIEW_THEME theme)
 {
     QString buttonBorder = "1px solid rgba(160,160,160,250);";
     QString hoverBorder = "1.5px solid rgba(170,170,170,250);";
+
     QString mainBackground = "rgba(250,250,250,200);";
     QString shadowBackground = "rgba(50,50,50,150);";
-    QString rbColor = "black;";
-    QString rbSelectedColor = "green";
+
+    QString background = "rgba(240,240,240,250);";
+    QString textColor = "black;";
+    QString selectedColor = "green";
+    QString hoverTextColor = "black;";
+    QString hoverBackground = "rgba(230,230,230,250);";
 
     switch (theme) {
-    case THEME_DARK:
+    case VT_DARK_THEME:
         buttonBorder = "1px solid rgba(100,100,100,250);";
         hoverBorder = "1.5px solid rgba(100,100,100,250);";
         mainBackground = "rgba(150,150,150,200);";
         shadowBackground = "rgba(50,50,50,200);";
-        rbColor = "white;";
-        rbSelectedColor = "yellow;";
+        background = "rgba(130,130,130,250);";
+        selectedColor = "yellow;";
+        textColor = "white;";
         break;
     default:
         break;
@@ -375,11 +377,32 @@ void ToolbarWidget::setupTheme(int theme)
                   "}"
                   "QRadioButton {"
                   "padding: 8px 10px 8px 8px;"
-                  "color:" + rbColor +
+                  "color:" + textColor +
                   "}"
                   "QRadioButton::checked {"
                   "font-weight: bold; "
-                  "color:" + rbSelectedColor +
+                  "color:" + selectedColor +
+                  "}"
+                  "QMenu { "
+                  "background-color:" + background +
+                  "}"
+                  "QMenu::item {"
+                  "padding: 1px 20px 1px 45px;"
+                  "background-color:" + background +
+                  "color:" + textColor +
+                  "border: none;"
+                  "}"
+                  "QMenu::item:selected {"
+                  "background-color:" + hoverBackground +
+                  "color:" + hoverTextColor +
+                  "border: 1px solid gray;"
+                  "}"
+                  "QMenu::icon {"
+                  "position: absolute;"
+                  "top: 1px;"
+                  "right: 3px;"
+                  "bottom: 1px;"
+                  "left: 4px;"
                   "}"
                   );
 
@@ -387,9 +410,7 @@ void ToolbarWidget::setupTheme(int theme)
                              "border-radius: 8px;");
     shadowFrame->setStyleSheet("background-color:" + shadowBackground +
                                "border-radius: 10px;");
-
     currentTheme = theme;
-    emit toolbar_themeChanged(theme);
 }
 
 
@@ -774,21 +795,28 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         bool canBeExpanded = false;
         int viewMode = -1;
 
-        foreach (NodeItem* item, nodeItems) {
+        for (int i = 0; i < nodeItems.count(); i++) {
 
-            NodeItem* parentItem = item->getParentNodeItem();
+            NodeItem* item_i = nodeItems.at(i);
+            NodeItem* parentItem = item_i->getParentNodeItem();
+
+            // check if all the selected items have a shared parent item
             if (prevParentItem && (prevParentItem != parentItem)) {
                 shareParent = false;
             }
+
             prevParentItem = parentItem;
 
-            if (!item->isEntityItem()){
+            // if it's not an EntityItem, skip the following checks
+            if (!item_i->isEntityItem()){
                 deployable = false;
                 allClusters = false;
                 continue;
             }
 
-            EntityItem* entityItem = (EntityItem*)item;
+            EntityItem* entityItem = (EntityItem*)item_i;
+
+            // check if all the selected items are HardwareClusters
             if (entityItem->isHardwareCluster()) {
                 int currentViewMode = entityItem->getHardwareClusterChildrenViewMode();
                 if (viewMode == -1) {
@@ -802,12 +830,31 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                 allClusters = false;
             }
 
+            // check if at least one of the selected items can be expanded
             if (!canBeExpanded && entityItem->hasChildren()) {
                 canBeExpanded = true;
             }
 
-            if (deployable && !nodeView->isNodeKindDeployable(item->getNodeKind())) {
+            // check if all  theselected items are deployable
+            if (deployable && !nodeView->isNodeKindDeployable(item_i->getNodeKind())) {
                 deployable = false;
+            }
+
+            // this allows multiple selection to connect to a shared legal node
+            // check if there is any item in item_i's legal nodes list that can connect to all the other items
+            foreach (NodeItem* legalNode, nodeView->getConnectableNodeItems(item_i->getID())) {
+                bool appendToList = true;
+                for (int j = 0; j < nodeItems.count(); j++) {
+                    NodeItem* item_j = nodeItems.at(j);
+                    Node* itemNode = item_j->getNode();
+                    if (!item_j->isEntityItem() || !itemNode->canConnect(legalNode->getNode())) {
+                        appendToList = false;
+                        break;
+                    }
+                }
+                if (appendToList && !legalNodes.contains(legalNode)) {
+                    legalNodes.append(legalNode);
+                }
             }
         }
 
@@ -828,28 +875,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             hardwareClusterMenuClicked(viewMode);
             displayedChildrenOptionButton->show();
             alterViewButtonsVisible = true;
-        }
-
-        // this allows multiple selection to connect to a shared legal node
-        for (int i = 0; i < nodeItems.count(); i++) {
-            NodeItem* item = nodeItems.at(i);
-            if (!item->isEntityItem()) {
-                legalNodes.clear();
-                break;
-            }
-            foreach (NodeItem* legalNode, nodeView->getConnectableNodeItems(item->getID())) {
-                bool appendToList = true;
-                for (int j = 0; (j < nodeItems.count() && j != i); j++) {
-                    Node* itemNode = nodeItems.at(j)->getNode();
-                    if (!itemNode->canConnect(legalNode->getNode())) {
-                        appendToList = false;
-                        break;
-                    }
-                }
-                if (appendToList && !legalNodes.contains(legalNode)) {
-                    legalNodes.append(legalNode);
-                }
-            }
         }
     }
 
