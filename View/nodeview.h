@@ -172,6 +172,7 @@ signals:
     void view_Redo();
 
     void view_SetGraphMLData(int, QString, QString);
+    void view_SetGraphMLData(int, QString, qreal);
     void view_ConstructGraphMLData(GraphML*, QString);
     void view_DestructGraphMLData(GraphML*, QString);
 

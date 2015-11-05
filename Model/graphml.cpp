@@ -101,6 +101,21 @@ void GraphML::updateDataValue(QString keyName, QString value)
     }
 }
 
+void GraphML::updateDataValue(QString key, qreal value)
+{
+
+    GraphMLData* data = getData(key);
+
+    if(data != 0){
+        data->setValue(value);
+    }else{
+#ifdef DEBUG_MODE
+        qWarning() << "GraphML Object does not contain Data: " << keyName << "!";
+#endif
+    }
+
+}
+
 QString GraphML::getDataValue(QString keyName)
 {
     GraphMLData* data = getData(keyName);
@@ -113,6 +128,21 @@ QString GraphML::getDataValue(QString keyName)
 #endif
         return "";
     }
+}
+
+qreal GraphML::getDataNumberValue(QString keyName)
+{
+    GraphMLData* data = getData(keyName);
+
+    if(data != 0){
+        return data->getDoubleValue();
+    }else{
+#ifdef DEBUG_MODE
+        qWarning() <<"GraphML::getDataValue() << GraphML Object does not contain Data: " << keyName;
+#endif
+        return -1;
+    }
+
 }
 
 

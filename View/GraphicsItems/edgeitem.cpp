@@ -21,8 +21,11 @@
 
 #define LABEL_RATIO .50
 
-EdgeItem::EdgeItem(Edge* edge, EntityItem *parent, EntityItem* s, EntityItem* d): GraphMLItem(edge, GraphMLItem::NODE_EDGE)
+EdgeItem::EdgeItem(Edge* edge, EntityItem *parent, EntityItem* s, EntityItem* d): GraphMLItem(edge, 0, GraphMLItem::NODE_EDGE)
 {
+    if(parent){
+        setNodeView(parent->getNodeView());
+    }
     QGraphicsItem::setParentItem(parent);
 
 

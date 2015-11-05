@@ -31,9 +31,8 @@
 #define THEME_DARK_NEUTRAL 10
 #define THEME_DARK_COLOURED 11
 
-NodeItem::NodeItem(Node *node, GraphMLItem *parent, GraphMLItem::GUI_KIND kind) : GraphMLItem(node, kind)
+NodeItem::NodeItem(Node *node, GraphMLItem *parent, GraphMLItem::GUI_KIND kind) : GraphMLItem(node, parent, kind)
 {
-    setParent(parent);
     if(parent->isNodeItem()){
         setViewAspect(((NodeItem*)parent)->getViewAspect());
     }
@@ -148,32 +147,42 @@ void NodeItem::updatePositionInModel(bool directUpdate)
         return;
     }
 
+    if(getParent() && getParent()->isNodeItem()){
+        getParentNodeItem()->hideChildGridOutline(getID());
+        getParentNodeItem()->updateSizeInModel(directUpdate);
+    }
+
     //Update the Size in the model.
     QPointF center = getMinimumRectCenterPos();
 
     if(directUpdate){
-        setGraphMLData("x", QString::number(center.x()));
-        setGraphMLData("y", QString::number(center.y()));
+        setGraphMLData("x", center.x());
+        setGraphMLData("y", center.y());
     }else{
-        emit GraphMLItem_SetGraphMLData(getID(), "x", QString::number(center.x()));
-        emit GraphMLItem_SetGraphMLData(getID(), "y", QString::number(center.y()));
+        emit GraphMLItem_SetGraphMLData(getID(), "x", center.x());
+        emit GraphMLItem_SetGraphMLData(getID(), "y", center.y());
     }
 
 
-    if(getParentNodeItem()){
-        getParentNodeItem()->hideChildGridOutline(getID());
-    }
+
 }
 
 void NodeItem::updateSizeInModel(bool directUpdate)
 {
-    if(directUpdate){
-        setGraphMLData("width", QString::number(getWidth()));
-        setGraphMLData("height", QString::number(getHeight()));
-    }else{
-        emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(getWidth()));
-        emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(getHeight()));
+    //If we have a NodeItem
+    if(getParentNodeItem()){
+        getParentNodeItem()->updateSizeInModel(directUpdate);
     }
+
+    if(directUpdate){
+        setGraphMLData("width", getWidth());
+        setGraphMLData("height", getHeight());
+    }else{
+        emit GraphMLItem_SetGraphMLData(getID(), "width", getWidth());
+        emit GraphMLItem_SetGraphMLData(getID(), "height", getHeight());
+    }
+
+
 }
 
 
@@ -508,7 +517,10 @@ bool NodeItem::isGridModeOn()
 
 NodeItem *NodeItem::getParentNodeItem()
 {
-    return (NodeItem*)getParent();
+    if(getParent() && getParent()->isNodeItem()){
+        return (NodeItem*)getParent();
+    }
+    return 0;
 }
 
 Node *NodeItem::getNode()

@@ -168,6 +168,7 @@ void NewController::connectView(NodeView *view)
         //Undo SLOTS
         connect(view, SIGNAL(view_TriggerAction(QString)), this, SLOT(triggerAction(QString)));
         connect(view, SIGNAL(view_SetGraphMLData(int, QString, QString)), this, SLOT(setGraphMLData(int, QString, QString)));
+        connect(view, SIGNAL(view_SetGraphMLData(int, QString, qreal)), this, SLOT(setGraphMLData(int, QString, qreal)));
 
 
     }
@@ -400,6 +401,7 @@ bool NewController::_clear()
 
 void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dataValue, bool addAction)
 {
+
     if(DELETING){
         //Ignore any calls to set whilst deleting.
         return;
@@ -409,6 +411,8 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
         qCritical() << "view_UpdateGraphMLData() Cannot Update GraphMLData for NULL GraphML object.";
         return;
     }
+
+
 
     //Construct an Action to reverse the update
     ActionItem action;
@@ -421,6 +425,14 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
 
 
     GraphMLData* data = parent->getData(keyName);
+    if(data->getKey()->isNumber() && !data->getKey()->isBoolean()){
+        bool okay = false;
+        qreal dataValueNumber = dataValue.toDouble(&okay);
+        if(okay){
+            setGraphMLData(parent, keyName, dataValueNumber, addAction);
+            return;
+        }
+    }
 
     if(data){
         action.dataValue = data->getValue();
@@ -434,22 +446,8 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
             Node* node = (Node*)parent;
             if(keyName == "label"){
                 enforceUniqueLabel(node, dataValue);
-            }else if(keyName == "sortOrder"){
-                enforceUniqueSortOrder(node, dataValue.toInt());
-                QString newSortOrder = node->getDataValue("sortOrder");
-
-                if(action.dataValue == newSortOrder){
-                    //Don't add an action for the initial setting!
-                    addAction = false;
-                }
-            }else if(keyName == "x" || keyName == "y"){
-                if(action.dataValue != "-1" && dataValue == "-1"){
-                    return;
-                }
-                data->setValue(dataValue);
             }else{
                 data->setValue(dataValue);
-
             }
         }else if(parent->isEdge()){
             data->setValue(dataValue);
@@ -541,6 +539,64 @@ void NewController::setupParameters()
     BehaviourNode::addParameter("PeriodicEvent", "frequency", "number", true, "1");
 }
 
+void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataValue, bool addAction)
+{
+    if(DELETING){
+        //Ignore any calls to set whilst deleting.
+        return;
+    }
+
+    if(!parent){
+        qCritical() << "view_UpdateGraphMLData() Cannot Update GraphMLData for NULL GraphML object.";
+        return;
+    }
+
+    //Construct an Action to reverse the update
+    ActionItem action;
+    action.ID = parent->getID();
+    action.actionType = MODIFIED;
+    action.actionKind = GraphML::DATA;
+    action.keyName = keyName;
+    action.isNum = true;
+
+
+    GraphMLData* data = parent->getData(keyName);
+
+    if(data){
+        if(data->gotDoubleValue()){
+            action.dataValueNum = data->getDoubleValue();
+        }
+
+        if(parent->isNode() && keyName == "sortOrder"){
+            enforceUniqueSortOrder((Node*)parent, dataValue);
+            qreal newSortOrder = parent->getDataNumberValue("sortOrder");
+
+            if(action.dataValueNum == newSortOrder){
+                //Don't add an action for the initial setting!
+                addAction = false;
+            }
+        }else if(parent->isNode()){
+            if(keyName == "x" || keyName == "y"){
+                if(action.dataValueNum != -1 && dataValue == -1){
+                    return;
+                }
+                data->setValue(dataValue);
+            }else{
+                data->setValue(dataValue);
+            }
+        }else if(parent->isEdge()){
+            data->setValue(dataValue);
+        }
+    }else{
+        qCritical() << "view_UpdateGraphMLData() Doesn't Contain GraphMLData for Key: " << keyName;
+        return;
+    }
+    if(addAction){
+        addActionToStack(action, addAction);
+    }
+
+}
+
 
 
 
@@ -593,8 +649,8 @@ void NewController::constructConnectedNode(int parentID, int connectedID, QStrin
         //bool gotEdge = false;
         if(newNode){
             //Update the position
-            setGraphMLData(newNode, "x", QString::number(relativePos.x()));
-            setGraphMLData(newNode, "y", QString::number(relativePos.y()));
+            setGraphMLData(newNode, "x", relativePos.x());
+            setGraphMLData(newNode, "y", relativePos.y());
 
             constructEdgeWithData(newNode, connectedNode);
 
@@ -1552,6 +1608,7 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     GraphMLKey* widthKey = constructGraphMLKey("width", "double", "node");
     GraphMLKey* heightKey = constructGraphMLKey("height", "double", "node");
     GraphMLKey* sortKey = constructGraphMLKey("sortOrder", "int", "node");
+    GraphMLKey* expandedKey = constructGraphMLKey("isExpanded", "boolean", "node");
 
 
 
@@ -1563,15 +1620,20 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     data.append(new GraphMLData(kindKey, nodeKind));
     data.append(new GraphMLData(xKey, QString::number(relativePosition.x())));
     data.append(new GraphMLData(yKey, QString::number(relativePosition.y())));
-    data.append(new GraphMLData(widthKey, "0"));
-    data.append(new GraphMLData(heightKey, "0"));
+    data.append(new GraphMLData(widthKey));
+    data.append(new GraphMLData(heightKey));
+
 
     bool protectLabel = nodeKind.endsWith("Parameter");
     data.append(new GraphMLData(labelKey, labelString, protectLabel));
-    data.append(new GraphMLData(sortKey, "-1"));
+    data.append(new GraphMLData(sortKey,"-1"));
 
 
     //Attach Node Specific Data.
+
+    if(nodeKind != "Model" && !nodeKind.endsWith("Definitions")){
+        data.append(new GraphMLData(expandedKey, "false"));
+    }
 
     if(nodeKind == "ManagementComponent"){
         data.append(new GraphMLData(typeKey));
@@ -1898,10 +1960,10 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
     Node* parentNode = node->getParentNode();
 
     if(parentNode){
-        bool toInt;
         int maxSortOrder = parentNode->childrenCount() -1;
 
-        int originalPosition = node->getDataValue("sortOrder").toInt(&toInt);
+        int originalPosition = node->getDataNumberValue("sortOrder");
+
 
         //Got original Position.
         if(originalPosition == -1){
@@ -1938,15 +2000,18 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
             modifier = -1;
         }
 
-        bool isInt;
+
         foreach(Node* sibling, node->getSiblings()){
-            int currentPos = sibling->getDataValue("sortOrder").toInt(&isInt);
-            if(isInt && currentPos >= lowerPos && currentPos <= upperPos){
-                sibling->updateDataValue("sortOrder", QString::number(currentPos + modifier));
+            int currentPos = sibling->getDataNumberValue("sortOrder");
+
+            if(currentPos >= lowerPos && currentPos <= upperPos){
+                sibling->updateDataValue("sortOrder", currentPos + modifier);
             }
         }
     }
-    node->updateDataValue("sortOrder", QString::number(newPosition));
+    GraphMLData* sortData = node->getData("sortOrder");
+    sortData->setValue(newPosition);
+    emit sortData->dataChanged(sortData);
 }
 
 bool NewController::destructNode(Node *node, bool addAction)
@@ -2293,8 +2358,14 @@ bool NewController::reverseAction(ActionItem action)
             GraphML* attachedItem = getGraphMLFromID(action.ID);
 
             if(attachedItem){
-                //Restore the Data Value;
-                setGraphMLData(attachedItem, action.keyName, action.dataValue);
+                if(action.isNum){
+                    //Restore the Data Value;
+                    setGraphMLData(attachedItem, action.keyName, action.dataValueNum);
+                }else{
+                    //Restore the Data Value;
+                    setGraphMLData(attachedItem, action.keyName, action.dataValue);
+
+                }
                 return true;
             }else{
                 //if(!IS_SUB_VIEW){
@@ -3348,7 +3419,7 @@ void NewController::setupLocalNode()
     QList<GraphMLData*> localNodeData = constructGraphMLDataVector("HardwareNode") ;
 
     GraphMLKey* localhostKey = constructGraphMLKey("localhost", "boolean", "node");
-    localNodeData.append(new GraphMLData(localhostKey, "true", true));
+    localNodeData.append(new GraphMLData(localhostKey ,"true", true));
 
 
 
@@ -3567,6 +3638,14 @@ void NewController::displayMessage(QString title, QString message, int ID)
  * @param dataValue - The new value of the Data.
  */
 void NewController::setGraphMLData(int parentID, QString keyName, QString dataValue)
+{
+    GraphML* graphML = getGraphMLFromID(parentID);
+    if(graphML){
+        setGraphMLData(graphML, keyName, dataValue, true);
+    }
+}
+
+void NewController::setGraphMLData(int parentID, QString keyName, qreal dataValue)
 {
     GraphML* graphML = getGraphMLFromID(parentID);
     if(graphML){

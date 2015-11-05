@@ -23,6 +23,7 @@ Fixed List:
 * Fixed Definitions Dock checks for GraphMLItem Kind
 * Subviews Fixed
 * Crash on dock when closing or new.
+* Added default Path option to MEDEA (Saves on exit)
 
 ToDo List:
 Together:
@@ -34,6 +35,7 @@ Dan To Fix:
 * performance testing
 * settings into tab
 * Fix Duplicate in Controller.
+* Fix constructor for NodeItem.
 
 Cathlyn To Fix:
 * Fix getNextChildPos() in NodeItem. (doesnt' work consistantly for sorting Aspect)
@@ -41,6 +43,7 @@ Cathlyn To Fix:
 * Trigger action after action is done, not just on selection change.
   ** It's not just on selection change. Broken for the first move because updating the button states happen before the action is added to the undo stack.
   ** How is the underlying GraphML size and position values updated? What signal is sent?
+
 Fixed:
 * Fix theme updates and connection for modelitem, clusters, toolbar and the view.
 * Add aspect check for search

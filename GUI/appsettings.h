@@ -16,6 +16,7 @@ public:
     ~AppSettings();
 
 
+
     QSettings* getSettings();
 
     void loadSettings();

@@ -3,7 +3,7 @@
 #include "GUI/codeeditor.h"
 #include "CUTS/GUI/cutsexecutionwidget.h"
 
-
+#include <QFileDialog>
 #include <QDebug>
 #include <QObject>
 #include <QImage>
@@ -38,6 +38,9 @@
 
 #define NOTIFICATION_TIME 2000
 
+#define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
+#define GME_FILE_EXT "GME Documents (*.xme)"
+
 
 // USER SETTINGS
 #define LOG_DEBUGGING "00-01-Log_Debug_Information"
@@ -50,6 +53,7 @@
 #define WINDOW_H "01-04-Height"
 #define WINDOW_MAX_STATE "01-05-Maximized"
 #define WINDOW_FULL_SCREEN "01-06-Full_Screen_Mode"
+#define DEFAULT_DIR_PATH "00-04-Default_Open_Path"
 
 #define AUTO_CENTER_VIEW "02-01-Auto_Center_View"
 #define SELECT_ON_CREATION "02-02-Select_Entity_On_Creation"
@@ -102,6 +106,8 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+    WINDOW_MAXIMIZED = false;
+    WINDOW_FULLSCREEN = false;
     launchFilePathArg = graphMLFile;
     loadLaunchedFile = launchFilePathArg != "";
 
@@ -134,7 +140,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     makeConnections();
     newProject();
 
-
+    fileDialog = 0;
 }
 
 
@@ -363,6 +369,14 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
             nodeView->setupTheme(VT_DARK_THEME);
         } else {
             nodeView->setupTheme(VT_NORMAL_THEME);
+        }
+    }else if(keyName == DEFAULT_DIR_PATH){
+        //Set up default path.
+
+        DEFAULT_PATH = value;
+        if(DEFAULT_PATH == ""){
+            //Use application directory
+            DEFAULT_PATH = applicationDirectory;
         }
     }
 }
@@ -1475,7 +1489,11 @@ void MedeaWindow::changeEvent(QEvent *event)
 {
     QWidget::changeEvent(event);
     if (event->type() == QEvent::WindowStateChange){
+
         updateWidgetsOnWindowChanged();
+        if(!isFullScreen()){
+            WINDOW_MAXIMIZED = isMaximized();
+        }
     }
     if (nodeView) {
         nodeView->aspectGraphicsChanged();
@@ -1631,7 +1649,11 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
         view_fullScreenMode->setChecked(true);
         view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Failure"));
     }else{
-        showNormal();
+        if(WINDOW_MAXIMIZED){
+            showMaximized();
+        }else{
+            showNormal();
+        }
         view_fullScreenMode->setText("Set Fullscreen Mode");
         view_fullScreenMode->setChecked(false);
         view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Fullscreen"));
@@ -1811,6 +1833,7 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
     }
+
 }
 
 
@@ -1941,14 +1964,16 @@ void MedeaWindow::saveSettings()
     if(appSettings){
         appSettings->setSetting(TOOLBAR_EXPANDED, toolbarButton->isChecked());
 
-        if(isMaximized()){
-            appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
-        }else{
+        appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
+        appSettings->setSetting(WINDOW_FULL_SCREEN, isFullScreen());
+
+        if(!isMaximized() && !isFullScreen()){
             appSettings->setSetting(WINDOW_W, size().width());
             appSettings->setSetting(WINDOW_H, size().height());
             appSettings->setSetting(WINDOW_X, pos().x());
             appSettings->setSetting(WINDOW_Y, pos().y());
         }
+        appSettings->setSetting(DEFAULT_DIR_PATH, DEFAULT_PATH);
     }
 }
 
@@ -2059,27 +2084,17 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
 {
     progressAction = "Importing GraphML";
 
-    QStringList files = QFileDialog::getOpenFileNames(
-                this,
-                "Select one or more files to open",
-                "",
-                "GraphML Documents (*.graphml *.xml)");
-
-    importProjects(files);
+    importProjects(fileSelector("Select one or more files to import.", GRAPHML_FILE_EXT, true));
 }
 
 void MedeaWindow::on_actionImport_XME_triggered()
 {
     progressAction = "Importing XME";
 
-    QString file = QFileDialog::getOpenFileName(
-                this,
-                "Select an XME file to import.",
-                "",
-                "XME File (*.xme)");
-
-    importXMEProject(file);
-
+    QStringList files = fileSelector("Select an XME file to import.", GME_FILE_EXT, true, false);
+    if(files.size() == 1){
+        importXMEProject(files.first());
+    }
 }
 
 
@@ -2308,10 +2323,12 @@ void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLDat
     try {
         //Try and Open File.
 
-        QString exportName = QFileDialog::getSaveFileName(this,
-                                                          "Export " + parentName+ ".snippet",
-                                                          "",
-                                                          "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)");
+        QStringList files = fileSelector("Export " + parentName+ ".snippet", "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)", false);
+
+        if(files.size() != 1){
+            return;
+        }
+        QString exportName = files.first();
 
         if (exportName == "") {
             return;
@@ -2349,12 +2366,12 @@ void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLDat
  */
 void MedeaWindow::importSnippet(QString parentName)
 {
+    QStringList files = fileSelector("Import " + parentName+ ".snippet", "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)", true, false);
 
-    QString snippetFileName = QFileDialog::getOpenFileName(
-                this,
-                "Import " + parentName+ ".snippet",
-                "",
-                "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)");
+    if(files.size() != 1){
+        return;
+    }
+    QString snippetFileName = files.first();
 
     if(snippetFileName.isNull()){
         return;
@@ -2761,10 +2778,13 @@ void MedeaWindow::newProject()
  */
 bool MedeaWindow::exportProject()
 {
-    QString filename = QFileDialog::getSaveFileName(this,
-                                                    "Export .graphml",
-                                                    "",
-                                                    "GraphML Documents (*.graphml *.xml)");
+
+    QStringList files = fileSelector("Select a *.graphml file to export as.", GRAPHML_FILE_EXT, false);
+
+    if(files.size() != 1){
+        return false;
+    }
+    QString filename = files.first();
 
     if (filename != "") {
         if(filename.toLower().endsWith(".graphml") || filename.toLower().endsWith(".xml")){
@@ -3485,4 +3505,54 @@ void MedeaWindow::dialogAccepted()
 void MedeaWindow::dialogRejected()
 {
     popupMultiLine->close();
+}
+
+QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool open, bool allowMultiple)
+{
+    if(!fileDialog){
+        fileDialog = new QFileDialog(this);
+        fileDialog->setWindowModality(Qt::WindowModal);
+    }
+    QStringList files;
+    if(fileDialog){
+        fileDialog->setWindowTitle(title);
+        fileDialog->setDirectory(DEFAULT_PATH);
+        if(open){
+            fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
+            //Clear the file name on open
+            fileDialog->setLabelText(QFileDialog::FileName, "");
+            if(allowMultiple){
+                fileDialog->setFileMode(QFileDialog::ExistingFiles);
+            }else{
+                fileDialog->setFileMode(QFileDialog::ExistingFile);
+            }
+            fileDialog->setConfirmOverwrite(false);
+            fileDialog->setNameFilter(fileString);
+
+            if (fileDialog->exec()){
+                files = fileDialog->selectedFiles();
+            }
+        }else{
+            fileDialog->setAcceptMode(QFileDialog::AcceptSave);
+
+            fileDialog->setFileMode(QFileDialog::ExistingFile);
+            fileDialog->setFileMode(QFileDialog::AnyFile);
+            fileDialog->setConfirmOverwrite(true);
+            fileDialog->setNameFilter(fileString);
+
+            if (fileDialog->exec()){
+                files = fileDialog->selectedFiles();
+            }
+        }
+
+
+        //Update DEFAULT_PATH!
+        if(files.size() > 0){
+            DEFAULT_PATH = fileDialog->directory().absolutePath();
+            if(!DEFAULT_PATH.endsWith("/")){
+                DEFAULT_PATH += "/";
+            }
+        }
+    }
+    return files;
 }

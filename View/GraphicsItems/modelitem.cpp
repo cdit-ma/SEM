@@ -3,8 +3,9 @@
 #include <QPainter>
 #include <QDebug>
 
-ModelItem::ModelItem(Node *node):  GraphMLItem(node, GraphMLItem::MODEL_ITEM)
+ModelItem::ModelItem(Node *node, NodeView *view):  GraphMLItem(node, 0, GraphMLItem::MODEL_ITEM)
 {
+
     modelCircleColor = Qt::gray;
 
     // setup quadrant colours based on the aspects' positions
@@ -35,6 +36,8 @@ ModelItem::ModelItem(Node *node):  GraphMLItem(node, GraphMLItem::MODEL_ITEM)
 
     setupGraphMLDataConnections();
     updateFromGraphMLData();
+
+    setNodeView(view);
 }
 
 void ModelItem::adjustPos(QPointF delta)

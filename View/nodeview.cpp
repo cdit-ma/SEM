@@ -1466,7 +1466,7 @@ void NodeView::expandSelection(bool expand)
             if(child->isEntityItem()){
                 EntityItem* entity = (EntityItem*) child;
                 if(entity->isExpanded() != expand){
-                    entity->setNodeExpanded(expand);
+                    //entity->setNodeExpanded(expand);
                 }
                 entity->updateSizeInModel();
             }
@@ -1659,7 +1659,7 @@ void NodeView::selectAndCenterItem(int ID)
 
             // make sure that the parent of nodeItem is expanded
             if (!parentEntity->isExpanded()) {
-                parentEntity->setNodeExpanded(true);
+                //parentEntity->setNodeExpanded(true);
             }
 
             // if it's a HardwareNode, make sure that its parent cluster's view mode is set to ALL
@@ -2328,12 +2328,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         parentNodeItem = (NodeItem*)parentItem;
     }
 
-    //Expanded Parent.
-    if(toolbarDockConstruction || importFromJenkins){
-        if(parentEntityItem && !parentEntityItem->isExpanded()){
-            parentEntityItem->setNodeExpanded(true);
-        }
-    }
+
 
 
     //Check for Pasted data, which will have x,y set to -1
@@ -2343,11 +2338,11 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     GraphMLData* xData = node->getData("x");
     GraphMLData* yData = node->getData("y");
 
-    if(xData && xData->gotDoubleValue()){
+    if(xData){
         xVal = xData->getDoubleValue();
     }
 
-    if(yData && yData->gotDoubleValue()){
+    if(yData){
         yVal = yData->getDoubleValue();
     }
 
@@ -2357,12 +2352,14 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         GraphMLData* hData = node->getData("height");
         qreal wVal = -1;
         qreal hVal = -1;
-        if(wData && wData->gotDoubleValue()){
+        if(wData){
             wVal = wData->getDoubleValue();
         }
-        if(hData && hData->gotDoubleValue()){
+        if(hData){
             hVal = hData->getDoubleValue();
         }
+
+
 
         QPointF newPosition;
         if(parentNodeItem){
@@ -2371,82 +2368,79 @@ void NodeView::view_ConstructNodeGUI(Node *node)
             itemRect.setHeight(hVal);
             newPosition = parentNodeItem->getNextChildPos(itemRect);
         }
-        xData->setValue(QString::number(newPosition.x()));
-        yData->setValue(QString::number(newPosition.y()));
+        xData->setValue(newPosition.x());
+        yData->setValue(newPosition.y());
     }
 
-    NodeItem* item =0 ;
-    if(nodeKind == "Model"){
-        ModelItem* modelItem = new ModelItem(node);
-        storeGraphMLItemInHash(modelItem);
-        modelItem->setNodeView(this);
-
-
-        //Connect the Generic Functionality.
-        connectGraphMLItemToController(modelItem);
-
-        // send/do necessary signals/updates when a node has been constructed
-        //nodeConstructed_signalUpdates(modelItem);
-        // add the newly constructed node item to the scene
-        if(!scene()->items().contains(modelItem)){
-            scene()->addItem(modelItem);
+     if(toolbarDockConstruction || importFromJenkins){
+        if(parentItem && parentItem->isEntityItem()){
+            emit this->view_SetGraphMLData(parentItem->getID(), "isExpanded", "true");
         }
+     }
 
+    GraphMLItem* item = 0;
+
+    if(nodeKind == "Model"){
+        item = new ModelItem(node, this);
     }else if(node->isAspect()){
         VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
-
-        AspectItem* aspectItem = new AspectItem(node, getModelItem(), aspect);
-        item = aspectItem;
-
+        item = new AspectItem(node, parentItem, aspect);
     }else{
-        item =  new EntityItem(node, parentNodeItem, IS_SUB_VIEW);
+        item =  new EntityItem(node, parentNodeItem);
     }
 
-    if(item && node){
-        NodeItem* entityItem = item;
+    //Do Generic connect stuffs.
+    if(item){
 
-        if(entityItem->isEntityItem()){
-            ((EntityItem*)entityItem)->setNodeConnectable(isNodeVisuallyConnectable(node));
+
+        //item->setNodeView(this);
+        storeGraphMLItemInHash(item);
+
+        if(!scene()->items().contains(item)){
+            scene()->addItem(item);
         }
 
+        connectGraphMLItemToController(item);
 
-
-        QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
+        EntityItem* entityItem = (EntityItem*) item;
+        NodeItem* nodeItem = (NodeItem*) item;
 
         if(item->isEntityItem()){
-            ((EntityItem*)entityItem)->setEditableField(editField.first, editField.second);
+            QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
+
+            entityItem->setNodeConnectable(isNodeVisuallyConnectable(node));
+            entityItem->setEditableField(editField.first, editField.second);
         }
 
-        entityItem->setNodeView(this);
-        storeGraphMLItemInHash(entityItem);
-
-
-        //Connect the Generic Functionality.
-        connectGraphMLItemToController(entityItem);
-
+        if(item->isNodeItem()){
         // send/do necessary signals/updates when a node has been constructed
-        nodeConstructed_signalUpdates(entityItem);
+            nodeConstructed_signalUpdates(nodeItem);
+        }
 
         // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
         // the node's label is automatically selected and editable
         if (toolbarDockConstruction && SELECT_ON_CONSTRUCTION) {
             clearSelection(true, false);
             // why not update menu/toolbar actions here?
-            appendToSelection(entityItem, false);
-            //entityItem->setNewLabel();
+            appendToSelection(item, false);
+
+            if(item->isEntityItem()){
+                //Set new Label for EntityItem.
+                entityItem->setNewLabel();
+            }
             centerOnItem();
             toolbarDockConstruction = false;
         }
 
-        // add the newly constructed node item to the scene
-        if(!scene()->items().contains(entityItem)){
-            scene()->addItem(entityItem);
-        }
-
-
         if(isSubView() && item->getID() == centralizedItemID){
             appendToSelection(item);
         }
+
+        if(parentItem && parentItem->isNodeItem()){
+            parentNodeItem->updateSizeInModel();
+        }
+
+
     }
 }
 
@@ -2514,11 +2508,10 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         }
 
         //Construct a new GUI Element for this edge.
-        EdgeItem* nodeEdge = new EdgeItem(edge,parent, srcGUI, dstGUI);
+        EdgeItem* nodeEdge = new EdgeItem(edge, parent, srcGUI, dstGUI);
         //EdgeItem2* nodeEdge2 = new EdgeItem2(edge,parent, srcGUI, dstGUI);
 
 
-        nodeEdge->setNodeView(this);
         //Add it to the list of EdgeItems in the Model.
         storeGraphMLItemInHash(nodeEdge);
         //storeGraphMLItemInHash(nodeEdge2);
@@ -3108,6 +3101,7 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
         connect(item, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
         connect(item, SIGNAL(GraphMLItem_TriggerAction(QString)),  this, SLOT(triggerAction(QString)));
         connect(item, SIGNAL(GraphMLItem_SetGraphMLData(int,QString,QString)), this, SIGNAL(view_SetGraphMLData(int,QString,QString)));
+        connect(item, SIGNAL(GraphMLItem_SetGraphMLData(int,QString,qreal)), this, SIGNAL(view_SetGraphMLData(int,QString,qreal)));
         connect(item, SIGNAL(GraphMLItem_DestructGraphMLData(GraphML*,QString)), this, SIGNAL(view_DestructGraphMLData(GraphML*,QString)));
         connect(item, SIGNAL(GraphMLItem_ConstructGraphMLData(GraphML*,QString)), this, SIGNAL(view_ConstructGraphMLData(GraphML*,QString)));
 
@@ -4174,12 +4168,14 @@ void NodeView::resizeSelection(int ID, QSizeF delta)
 
 void NodeView::moveFinished()
 {
+    //triggerAction("RESIZE YO");
     foreach(int ID, selectedIDs){
         GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
         if(graphMLItem && graphMLItem->isNodeItem()){
             NodeItem* nodeItem = (NodeItem*) graphMLItem;
 
             if(nodeItem->getParentNodeItem()){
+
                 nodeItem->getParentNodeItem()->setDrawGrid(false);
                 nodeItem->getParentNodeItem()->updateSizeInModel();
             }
@@ -4195,6 +4191,7 @@ void NodeView::resizeFinished(int ID)
 
     GraphMLItem* currentItem = getGraphMLItemFromID(ID);
     if(currentItem && currentItem->isNodeItem()){
+        //triggerAction("RESIZE YO");
         NodeItem* nodeItem = (NodeItem*) currentItem;
         nodeItem->updateSizeInModel();
     }
@@ -4403,9 +4400,9 @@ void NodeView::showManagementComponents(bool show)
 
     // this goes through all the ManagementComponents and shows/hides them
     foreach (Node* node, assemblyDefinition->getChildren(0)){
-        EntityItem* EntityItem = getEntityItemFromNode(node);
-        if(EntityItem->getNodeKind() == "ManagementComponent"){
-            EntityItem->setHidden(!show);
+        EntityItem* entityItem = getEntityItemFromNode(node);
+        if(entityItem && entityItem->getNodeKind() == "ManagementComponent"){
+            entityItem->setHidden(!show);
         }
     }
 
@@ -4436,9 +4433,9 @@ void NodeView::showLocalNode(bool show)
 
     // this goes through all the ManagementComponents and shows/hides them
     foreach (Node* node, hardwareDefinition->getChildren(0)){
-        EntityItem* EntityItem = getEntityItemFromNode(node);
-        if(EntityItem->getNodeKind() == "HardwareNode"){
-            EntityItem->setHidden(!show);
+        EntityItem* entityItem = getEntityItemFromNode(node);
+        if(entityItem && entityItem->getNodeKind() == "HardwareNode"){
+            entityItem->setHidden(!show);
         }
     }
 
@@ -4554,9 +4551,9 @@ void NodeView::resetModel(bool addAction)
     if(addAction){
         triggerAction("Resetting Model");
     }
-    foreach (EntityItem* EntityItem, getEntityItemsList()) {
-        if (EntityItem) {
-            EntityItem->resetSize();
+    foreach (EntityItem* entityItem, getEntityItemsList()) {
+        if (entityItem) {
+            entityItem->resetSize();
         }
     }
 

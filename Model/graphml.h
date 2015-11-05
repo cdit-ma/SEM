@@ -39,6 +39,7 @@ public:
     virtual QList<GraphMLKey*> getKeys(int depth = 0);
 
     QString getDataValue(QString keyName);
+    qreal getDataNumberValue(QString keyName);
 
 
 
@@ -86,6 +87,7 @@ signals:
     void model_DisplayMessage(QString title, QString message, int ID);
 public slots:
     void updateDataValue(QString key, QString value);
+    void updateDataValue(QString key, qreal value);
 
 protected:
     QList<GraphMLData *> attachedData;

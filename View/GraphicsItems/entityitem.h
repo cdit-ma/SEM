@@ -40,7 +40,7 @@ public:
 
     enum IMAGE_POS{IP_TOPLEFT, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER};
 
-    EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW=false);
+    EntityItem(Node *node, NodeItem *parent);
     ~EntityItem();
 
 
@@ -55,6 +55,7 @@ public:
     void setNodeConnectable(bool connectable);
 
 
+    void handleExpandState(bool newState);
 
     QColor getBackgroundColor();
 
@@ -122,9 +123,6 @@ public:
 
 
 
-    //EntityItem::RESIZE_TYPE resizeEntered(QPointF mousePosition);
-
-
     void addChildEdgeItem(EdgeItem* edge);
     QList<EdgeItem*> getChildEdges();
     void removeChildEdgeItem(EdgeItem* edge);
@@ -147,9 +145,14 @@ public:
     void addChildOutline(EntityItem* EntityItem, QPointF gridPoint);
     void removeChildOutline(int ID);
 
-
+    void setStateExpanded(bool expanded);
     double getWidth();
     double getHeight();
+
+    double getExpandedWidth() const;
+    double getExpandedHeight() const;
+
+
     void resetSize();
     double getChildWidth();
     double getChildHeight();
@@ -215,7 +218,6 @@ public slots:
     void dataChanged(QString dataValue);
     void labelUpdated(QString newLabel);
 
-    void childMoved();
 
     void zoomChanged(qreal zoom);
     //USED METHODS
@@ -225,11 +227,11 @@ public slots:
     void setVisibility(bool visible);
 
 
-    //void expandNode(bool expand);
-    void setNodeExpanded(bool expanded);
 
-    void updateModelPosition();
-    void updateModelSize();
+
+
+    //void expandNode(bool expand);
+
 
     void sceneRectChanged(QRectF sceneRect);
 
@@ -298,6 +300,10 @@ private:
     void updateModelData();
 
 
+    void setExpandedWidth(qreal width);
+    void setExpandedHeight(qreal height);
+
+    bool isExpandedState();
 
     void setWidth(qreal width);
     void setHeight(qreal height);
@@ -357,7 +363,6 @@ private:
     QString nodeType;
     QString fileID;
 
-    bool isNodeExpanded;
     bool isGridVisible;
     bool isNodeSorted;
     bool isNodeOnGrid;
@@ -369,11 +374,13 @@ private:
 
     bool hidden;
 
+    bool previouslyExpanded;
     bool GRIDLINES_ON;
     bool HAS_DEFINITION;
     bool IS_IMPL_OR_INST;
 
 
+    bool IS_EXPANDED_STATE;
 
     bool isNodeMoving;
     qreal oldZValue;

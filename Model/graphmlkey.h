@@ -21,6 +21,9 @@ public:
     bool isProtected();
 
     bool isNumber();
+    bool isBoolean();
+    bool isInteger();
+    bool isDouble();
     void appendValidValues(QStringList nodeKinds, QStringList values);
     void appendValidValues(QStringList values, QString nodeKind="ALL");
 

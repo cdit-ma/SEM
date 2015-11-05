@@ -6,11 +6,31 @@ GraphMLData::GraphMLData(GraphMLKey *key, QString value, bool isProtected):Graph
     //Set to default.
     parentData = 0;
     Parent = 0;
+    hasNumber = false;
+    numberValue = 0;
     this->key = key;
     if(value == ""){
-        this->setValue(key->getDefaultValue());
+        if(key->isNumber() && !key->isBoolean()){
+            bool isDouble = false;
+            qreal newValue = key->getDefaultValue().toDouble(&isDouble);
+            if(isDouble){
+                numberValue = newValue;
+            }
+            hasNumber = true;
+        }else{
+            setValue(key->getDefaultValue());
+        }
     }else{
-        this->setValue(value);
+        if(key->isNumber() && !key->isBoolean()){
+            bool isDouble = false;
+            qreal newValue = value.toDouble(&isDouble);
+            if(isDouble){
+                numberValue = newValue;
+            }
+            hasNumber = true;
+        }else{
+            setValue(value);
+        }
     }
     if(key){
         this->keyName = key->getName();
@@ -56,7 +76,11 @@ void GraphMLData::clearValue()
 
 QString GraphMLData::getValue() const
 {
-    return this->value;
+    if(gotDoubleValue() && !gotBoolValue()){
+        return QString::number(numberValue);
+    }else{
+        return this->value;
+    }
 }
 
 GraphMLKey *GraphMLData::getKey()
@@ -76,12 +100,26 @@ QString GraphMLData::toGraphML(qint32 indentationLevel)
         tabSpace += "\t";
     }
 
+    QString data;
+
     QString dataTo = getValue();
     dataTo.replace( "&", "&amp;" );
     dataTo.replace( ">", "&gt;" );
     dataTo.replace( "<", "&lt;" );
     dataTo.replace( "\"", "&quot;" );
     dataTo.replace( "\'", "&apos;" );
+
+
+    if(hasNumber && !gotBoolValue()){
+        dataTo = QString::number(getDoubleValue());
+    }
+    if(gotBoolValue()){
+        if(getBoolValue()){
+            dataTo = "true";
+        }else{
+            dataTo = "false";
+        }
+    }
 
     QString returnable = tabSpace + QString("<data key=\"%1\">%2</data>\n").arg(QString::number(getKey()->getID()), dataTo);
     return returnable;
@@ -125,7 +163,7 @@ QList<int> GraphMLData::getBoundIDS()
 
 void GraphMLData::updateDouble()
 {
-    valueDbl = value.toDouble(&hasDbl);
+    numberValue = value.toDouble(&hasNumber);
 }
 
 void GraphMLData::setValue(QString newValue)
@@ -137,18 +175,40 @@ void GraphMLData::setValue(QString newValue)
 
             if(updatedValue != value){
                 value = updatedValue;
-                updateDouble();
                 //Recalculate val.
 
+                if(gotBoolValue()){
+                    numberValue = value == "true";
+                    hasNumber = true;
+                }
 
                 foreach(GraphMLData* data, childData){
                     data->setValue(value);
                 }
             }
             emit dataChanged(this);
+
+            if(!gotBoolValue()){
+                emit valueChanged(value, keyName);
+            }
+        }
+    }
+}
+
+void GraphMLData::setValue(qreal value)
+{
+    if(key){
+       if(value != numberValue){
+            hasNumber = true;
+            numberValue = value;
+            foreach(GraphMLData* data, childData){
+                data->setValue(value);
+            }
+            emit dataChanged(this);
             emit valueChanged(value, keyName);
         }
     }
+
 }
 
 void GraphMLData::setProtected(bool setProtected)
@@ -218,10 +278,34 @@ QList<GraphMLData *> GraphMLData::getBoundData()
 
 bool GraphMLData::gotDoubleValue() const
 {
-    return hasDbl;
+    return hasNumber;
 }
 
 qreal GraphMLData::getDoubleValue() const
 {
-    return this->valueDbl;
+    return this->numberValue;
+}
+
+int GraphMLData::getIntValue() const
+{
+    return this->numberValue;
+}
+
+bool GraphMLData::gotIntValue() const
+{
+    if(key){
+        return key->isInteger();
+    }
+}
+
+bool GraphMLData::getBoolValue() const
+{
+    return this->numberValue;
+}
+
+bool GraphMLData::gotBoolValue() const
+{
+    if(key){
+        return key->isBoolean();
+    }
 }

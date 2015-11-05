@@ -9,6 +9,7 @@ int GraphMLKey::_Did =0;
 
 GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(GraphML::KEY, name)
 {
+    this->defaultValue = "";
     //Parse Type
     if(typeStr == QString("boolean")){
         this->type = BOOLEAN;
@@ -40,7 +41,7 @@ GraphMLKey::GraphMLKey(QString name, QString typeStr, QString forStr):GraphML(Gr
 
     this->typeStr = typeStr;
     this->forKindStr = forStr;
-    this->defaultValue = "";
+
 
     setDefaultProtected(false);
     invalidCharacters["folder"] << "|" << "," << "*" << "?" << "<" << ">";
@@ -67,8 +68,23 @@ bool GraphMLKey::isProtected()
 
 bool GraphMLKey::isNumber()
 {
-    return type == INT || type == DOUBLE || type == FLOAT || type == LONG;
+    return type == INT || type == DOUBLE || type == FLOAT || type == LONG || type == BOOLEAN;
 
+}
+
+bool GraphMLKey::isBoolean()
+{
+    return type == BOOLEAN;
+}
+
+bool GraphMLKey::isInteger()
+{
+    return type == INT || type == LONG;
+}
+
+bool GraphMLKey::isDouble()
+{
+    return type == DOUBLE || type == FLOAT;
 }
 
 void GraphMLKey::appendValidValues(QStringList values, QStringList nodeKinds)

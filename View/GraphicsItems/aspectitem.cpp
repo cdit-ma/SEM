@@ -48,7 +48,7 @@
 #define THEME_DARK_NEUTRAL 10
 #define THEME_DARK_COLOURED 11
 
-AspectItem::AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect) : NodeItem(node,parent, GraphMLItem::ASPECT_ITEM)
+AspectItem::AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect) : NodeItem(node, parent, GraphMLItem::ASPECT_ITEM)
 {
     //Set View Aspect.
     setViewAspect(aspect);

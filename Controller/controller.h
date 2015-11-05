@@ -29,6 +29,8 @@ struct ActionItem{
     int ID;
     QString keyName;
     QString dataValue;
+    qreal dataValueNum;
+    bool isNum;
     QString removedXML;
 
     int actionItemID;
@@ -149,6 +151,7 @@ private slots:
     void destructEdge(int srcID, int dstID);
     void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);
     void setGraphMLData(int parentID, QString keyName, QString dataValue);
+    void setGraphMLData(int parentID, QString keyName, qreal dataValue);
 
     void constructDestructMultipleEdges(QList<int> srcIDs, int dstID);
     void constructDestructEdges(QList<int> destruct_srcIDs, QList<int> destruct_dstIDs, QList<int> construct_srcIDs, int dstID);
@@ -193,6 +196,7 @@ private:
 
 private:
     void setupParameters();
+    void setGraphMLData(GraphML* parent, QString keyName, qreal dataValue, bool addAction = true);
     void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
     void clearUndoHistory();
 

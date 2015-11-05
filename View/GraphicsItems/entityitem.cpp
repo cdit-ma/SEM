@@ -65,11 +65,12 @@
  * @param aspects
  * @param IN_SUBVIEW
  */
-EntityItem::EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW):  NodeItem(node, parent, GraphMLItem::ENTITY_ITEM)
+EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, GraphMLItem::ENTITY_ITEM)
 {
+    IS_EXPANDED_STATE = false;
     if(parent->isEntityItem()){
         parentEntityItem = (EntityItem*)parent;
-        setVisibility(parentEntityItem->isExpanded());
+        setVisibility(parentEntityItem->isExpandedState());
 
         connect(parent, SIGNAL(GraphMLItem_PositionChanged()), this, SIGNAL(GraphMLItem_PositionChanged()));
         connect(parent, SIGNAL(GraphMLItem_SizeChanged()), this, SIGNAL(GraphMLItem_PositionChanged())); // ???
@@ -79,6 +80,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW):  NodeItem
     }
 
 
+    previouslyExpanded = false;
     isInputParameter = false;
     isReturnParameter = false;
     hasEditData = false;
@@ -88,13 +90,12 @@ EntityItem::EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW):  NodeItem
     IS_HARDWARE_NODE = false;
 
     //Setup initial states
-    isNodeExpanded = false;
     canNodeBeConnected = false;
     isNodeOnGrid = false;
     isNodeSorted = false;
     isGridVisible = false;
 
-    setInSubView(IN_SUBVIEW);
+
 
 
     sortTriggerAction = true;
@@ -178,16 +179,16 @@ EntityItem::EntityItem(Node *node, NodeItem *parent, bool IN_SUBVIEW):  NodeItem
         }
     }
 
-    if(!IN_SUBVIEW){
+    if(inMainView()){
         //Set Values Direc
-        updatePositionInModel(true);
-        updateSizeInModel(true);
+        //updatePositionInModel();
+        //updateSizeInModel();
     }
 
 
-    if(parent->isNodeItem()){
-        parent->updateSizeInModel();
-    }
+    //if(parent->isNodeItem()){
+    //    parent->updateSizeInModel();
+    //}
 
 }
 
@@ -317,6 +318,38 @@ void EntityItem::setNodeConnectable(bool connectable)
     }
 }
 
+void EntityItem::handleExpandState(bool newState)
+{
+    prepareGeometryChange();
+    IS_EXPANDED_STATE = newState;
+
+    //Show/Hide the non-hidden children.
+    foreach(GraphMLItem* child, getChildren()){
+        if(child){
+            child->setVisible(IS_EXPANDED_STATE);
+        }
+    }
+
+
+//TODO FIX HARDWARE TOOLBAR
+//    // if expanded, only show the HardwareNodes that match the current chidldren view mode
+//        if (IS_HARDWARE_CLUSTER && expanded) {
+
+//            // this will show/hide HardwareNodes depending on the current view mode
+//            updateDisplayedChildren(CHILDREN_VIEW_MODE);
+
+//            // this sets the width and height to their expanded values
+//            setWidth(expandedWidth);
+//            setHeight(expandedHeight);
+
+//            return;
+//        }
+
+    update();
+    emit GraphMLItem_SizeChanged();
+
+}
+
 
 QColor EntityItem::getBackgroundColor()
 {
@@ -404,8 +437,16 @@ QRectF EntityItem::boundingRect() const
 
     //Top left Justified.
     float itemMargin = getItemMargin() * 2;
-    right = width + itemMargin;
-    bot = height + itemMargin;
+    if(IS_EXPANDED_STATE){
+        right += expandedWidth;
+        bot += expandedHeight;
+    }else{
+        right += minimumWidth;
+        bot += minimumHeight;
+    }
+
+    right += itemMargin;
+    bot += itemMargin;
     return QRectF(QPointF(left, top), QPointF(right, bot));
 }
 
@@ -415,9 +456,7 @@ QRectF EntityItem::childrenBoundingRect()
 
 
     foreach(GraphMLItem* child, getChildren()){
-        QRectF childRect = child->boundingRect();
-        childRect.translate(child->pos());
-        rect = rect.united(childRect);
+        rect = rect.united(child->translatedBoundingRect());
     }
     return rect;
 }
@@ -477,7 +516,7 @@ QRectF EntityItem::gridRect() const
     qreal itemMargin = getItemMargin();
 
     QPointF topLeft(itemMargin, itemMargin);
-    QPointF bottomRight = topLeft + QPointF(expandedWidth, expandedHeight);
+    QPointF bottomRight = topLeft + QPointF(getExpandedWidth(), getExpandedHeight());
 
 
     int roundedGridCount = ceil(minimumHeight / getGridSize());
@@ -501,13 +540,13 @@ QPointF EntityItem::getCenterOffset()
 QRectF EntityItem::headerRect()
 {
     qreal itemMargin = 2 * getItemMargin();
-    return QRectF(QPointF(0, 0), QPointF(width + itemMargin, minimumHeight + itemMargin));
+    return QRectF(QPointF(0, 0), QPointF(getWidth() + itemMargin, minimumHeight + itemMargin));
 }
 
 QRectF EntityItem::bodyRect()
 {
     qreal itemMargin = 2 * getItemMargin();
-    return QRectF(QPointF(0, minimumHeight + itemMargin), QPointF(width + itemMargin, height + itemMargin));
+    return QRectF(QPointF(0, minimumHeight + itemMargin), QPointF(getWidth() + itemMargin, getHeight() + itemMargin));
 }
 
 QRectF EntityItem::getChildBoundingRect()
@@ -562,7 +601,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 {
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
-    painter->setRenderHint(QPainter::HighQualityAntialiasing, true);
+    painter->setRenderHint(QPainter::Antialiasing, true);
 
     //Get Render State.
     RENDER_STATE renderState = getRenderState();
@@ -817,6 +856,7 @@ bool EntityItem::mouseOverExpand(QPointF mousePosition)
 
 
 
+
 void EntityItem::addChildEdgeItem(EdgeItem *edge)
 {
     if(!childEdges.contains(edge)){
@@ -846,14 +886,31 @@ bool EntityItem::isHidden()
 
 double EntityItem::getWidth()
 {
-    return width;
-
+    if(IS_EXPANDED_STATE){
+        return expandedWidth;
+    }else{
+        return minimumWidth;
+    }
 }
 
 
 double EntityItem::getHeight()
 {
-    return height;
+    if(IS_EXPANDED_STATE){
+        return expandedHeight;
+    }else{
+        return minimumHeight;
+    }
+}
+
+double EntityItem::getExpandedWidth() const
+{
+    return expandedWidth;
+}
+
+double EntityItem::getExpandedHeight() const
+{
+    return expandedHeight;
 }
 
 void EntityItem::updateDefinition(){
@@ -907,11 +964,11 @@ void EntityItem::adjustPos(QPointF delta)
 
 void EntityItem::adjustSize(QSizeF delta)
 {
-    qreal newWidth = getWidth() + delta.width();
-    qreal newHeight = getHeight() + delta.height();
+    qreal newWidth = getExpandedWidth() + delta.width();
+    qreal newHeight = getExpandedWidth() + delta.height();
 
-    setWidth(newWidth);
-    setHeight(newHeight);
+    setExpandedWidth(newWidth);
+    setExpandedHeight(newHeight);
 }
 
 
@@ -930,6 +987,16 @@ void EntityItem::removeChildOutline(int ID)
         prepareGeometryChange();
         outlineMap.remove(ID);
     }
+}
+
+void EntityItem::setStateExpanded(bool expanded)
+{
+    IS_EXPANDED_STATE = expanded;
+    emit GraphMLItem_SizeChanged();
+
+    //UPdate parent
+    updateSizeInModel();
+    emit GraphMLItem_SetGraphMLData(this->getID(), "isExpanded", expanded);
 }
 
 
@@ -998,10 +1065,14 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
 {
 
     if(getGraphML() && data && data->getParent() == getGraphML() && !getGraphML()->isDeleting()){
+
         QString keyName = data->getKeyName();
         QString value = data->getValue();
-        bool isDouble = false;
-        double valueD = value.toDouble(&isDouble);
+
+        qreal numValue = data->getDoubleValue();
+        bool boolValue = numValue;
+        bool isDouble = data->gotDoubleValue();
+        bool isBool = data->gotBoolValue();
 
         if((keyName == "x" || keyName == "y") && isDouble){
             //If data is related to the position of the EntityItem
@@ -1011,56 +1082,29 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
             QPointF newCenter = centerPos();
 
             if(keyName == "x"){
-                newCenter.setX(valueD);
+                newCenter.setX(numValue);
             }else if(keyName == "y"){
-                newCenter.setY(valueD);
+                newCenter.setY(numValue);
             }
 
             //Update the center position.
             setCenterPos(newCenter);
 
             //Check if the X or Y has changed.
-            newCenter = centerPos();
+            //newCenter = centerPos();
 
-            if(keyName == "x" && (newCenter.x() != oldCenter.x())){
-                emit GraphMLItem_SetGraphMLData(getID(), "x", QString::number(newCenter.x()));
-            }
-            if(keyName == "y" && (newCenter.y() != oldCenter.y())){
-                emit GraphMLItem_SetGraphMLData(getID(), "y", QString::number(newCenter.y()));
-            }
+            //if(keyName == "x" && (newCenter.x() != oldCenter.x())){
+            //    emit GraphMLItem_SetGraphMLData(getID(), "x", newCenter.x());
+            //}
+            //if(keyName == "y" && (newCenter.y() != oldCenter.y())){
+            //    emit GraphMLItem_SetGraphMLData(getID(), "y", newCenter.y());
+            //}
 
         }else if((keyName == "width" || keyName == "height") && isDouble){
-            //If data is related to the size of the EntityItem
             if(keyName == "width"){
-                modelWidth = valueD;
-                setWidth(valueD);
+                setExpandedWidth(numValue);
             }else if(keyName == "height"){
-                //If EntityItem is contracted and the new value is bigger than the minimum height.
-                bool setExpanded = isContracted() && valueD > minimumHeight;
-
-                //If EntityItem is expanded and the new value is equal to the minimum height (String comparison to ignore sigfigs)
-                bool setContracted = isExpanded() && valueD <= minimumHeight;
-
-                if(setExpanded){
-                    setNodeExpanded(true);
-                }
-                if(setContracted){
-                    setNodeExpanded(false);
-                }
-                modelHeight = valueD;
-
-                setHeight(valueD);
-            }
-
-            double newWidth = ignoreInsignificantFigures(valueD, width);
-            double newHeight = ignoreInsignificantFigures(valueD, height);
-
-            //Check if the Width or Height has changed.
-            if(keyName == "width" && newWidth != valueD){
-                emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(newWidth));
-            }
-            if(keyName == "height" && newHeight != valueD){
-                emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(newHeight));
+                setExpandedHeight(numValue);
             }
         }else if(keyName == "label"){
             //Update the Label
@@ -1073,12 +1117,14 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
             update();
         }else if(keyName == "type"){
             this->nodeType = value;
-        }else if(keyName == "localhost"){
-            this->nodeHardwareLocalHost = value == "true";
+        }else if(keyName == "localhost" && isBool){
+            this->nodeHardwareLocalHost = boolValue;
             update();
-        }else if(keyName == "key"){
-            nodeMemberIsKey = value == "true";
+        }else if(keyName == "key" && isBool){
+            nodeMemberIsKey = boolValue;
             update();
+        }else if(keyName == "isExpanded" && isBool){
+            handleExpandState(boolValue);
         }
 
         if(keyName == editableDataKey){
@@ -1261,8 +1307,9 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
                 }else{
                     GraphMLItem_TriggerAction("Expanded Node Item");
                 }
-                setNodeExpanded(!isExpanded());
-                updateSizeInModel();
+
+                setStateExpanded(!isExpandedState());
+                //updateSizeInModel();
             }
             break;
         case MO_BOT_LABEL:
@@ -1486,14 +1533,14 @@ void EntityItem::updateDisplayedChildren(int viewMode)
         // show all HarwareNodes
         allChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            item->setHidden(!isNodeExpanded);
+            item->setHidden(!isExpanded());
         }
     } else if (viewMode == CONNECTED) {
         // show connected HarwareNodes
         connectedChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
             if (item->getEdgeItemCount() > 0) {
-                item->setHidden(!isNodeExpanded);
+                item->setHidden(!isExpanded());
             } else {
                 item->setHidden(true);
             }
@@ -1503,7 +1550,7 @@ void EntityItem::updateDisplayedChildren(int viewMode)
         unConnectedChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
             if (item->getEdgeItemCount() == 0) {
-                item->setHidden(!isNodeExpanded);
+                item->setHidden(!isExpanded());
             } else {
                 item->setHidden(true);
             }
@@ -1662,14 +1709,56 @@ void EntityItem::updateModelData()
     setGraphMLData("y", QString::number(center.y()));
 }
 
+void EntityItem::setExpandedWidth(qreal w)
+{
+    qreal minWidth = childrenBoundingRect().right();
+    w = qMax(w, minWidth);
+
+    if(w != expandedWidth){
+        expandedWidth = w;
+
+        if(IS_EXPANDED_STATE){
+            prepareGeometryChange();
+            updateTextLabel();
+
+            emit GraphMLItem_SizeChanged();
+        }
+    }
+}
+
+void EntityItem::setExpandedHeight(qreal h)
+{
+    qreal minHeight = childrenBoundingRect().bottom();
+    h = qMax(h, minHeight);
+
+    if(h != expandedHeight){
+        expandedHeight = h;
+
+        if(IS_EXPANDED_STATE){
+            prepareGeometryChange();
+
+            emit GraphMLItem_SizeChanged();
+        }
+    }
+
+}
+
+bool EntityItem::isExpandedState()
+{
+    return IS_EXPANDED_STATE;
+}
+
 
 
 
 
 void EntityItem::setWidth(qreal w)
 {
+    if(inSubView()){
+        qCritical() << "Trying to set WidthL " << w;
+    }
     if(isExpanded()){
-        //If is expanded, we can't set height smaller than the right of the child rect.
+    //If is expanded, we can't set height smaller than the right of the child rect.
         qreal minWidth = childrenBoundingRect().right();
         w = qMax(w, minWidth);
         expandedWidth = w;
@@ -1718,8 +1807,8 @@ void EntityItem::setHeight(qreal h)
 
 void EntityItem::setSize(qreal w, qreal h)
 {
-    setWidth(w);
-    setHeight(h);
+    setExpandedWidth(w);
+    setExpandedHeight(h);
 }
 
 
@@ -1954,12 +2043,12 @@ void EntityItem::childUpdated()
     QRectF childRect = childrenBoundingRect();
 
     //Maximize on the current size in the Model and the minimum child rectangle
-    if(childRect.right() > getWidth()){
-        setWidth(childRect.right());
+    if(childRect.right() > getExpandedWidth()){
+        setExpandedWidth(childRect.right());
     }
 
-    if(childRect.bottom() > getHeight()){
-        setHeight(childRect.bottom());
+    if(childRect.bottom() > getExpandedHeight()){
+        setExpandedHeight(childRect.bottom());
     }
 }
 
@@ -2038,6 +2127,7 @@ void EntityItem::setupGraphMLDataConnections()
     connectToGraphMLData("width");
     connectToGraphMLData("label");
     connectToGraphMLData("type");
+    connectToGraphMLData("isExpanded");
 
     if(nodeKind == "HardwareNode"){
         connectToGraphMLData("os");
@@ -2345,6 +2435,7 @@ int EntityItem::getChildrenViewMode()
 }
 
 
+
 void EntityItem::labelEditModeRequest()
 {
     InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
@@ -2390,23 +2481,6 @@ void EntityItem::dataChanged(QString dataValue)
 }
 
 
-void EntityItem::childMoved()
-{
-    if(!getGraphML()){
-        return;
-    }
-
-    QRectF childRect = childrenBoundingRect();
-
-    //Maximize on the current size in the Model and the childBounding rectangle.
-    if(childRect.right() > width){
-        setWidth(childRect.right());
-    }
-
-    if(childRect.bottom() > height){
-        setHeight(childRect.bottom());
-    }
-}
 
 void EntityItem::zoomChanged(qreal currentZoom)
 {
@@ -2562,8 +2636,7 @@ void EntityItem::childSizeChanged()
 
 void EntityItem::lastChildRemoved()
 {
-    //COntract the node!
-    resetSize();
+    setStateExpanded(false);
 }
 
 
@@ -2589,108 +2662,7 @@ double EntityItem::ignoreInsignificantFigures(double model, double current)
 }
 
 
-/**
- * @brief EntityItem::expandItem
- * @param show
- */
-void EntityItem::setNodeExpanded(bool expanded)
-{
-    //Can't Contract a Definition or Model
 
-    //If our state is already set, don't do anything!
-    if(isNodeExpanded == expanded){
-        return;
-    }
-
-    isNodeExpanded = expanded;
-
-    // if expanded, only show the HardwareNodes that match the current chidldren view mode
-    if (IS_HARDWARE_CLUSTER && expanded) {
-
-        // this will show/hide HardwareNodes depending on the current view mode
-        updateDisplayedChildren(CHILDREN_VIEW_MODE);
-
-        // this sets the width and height to their expanded values
-        setWidth(expandedWidth);
-        setHeight(expandedHeight);
-
-        return;
-    }
-
-    //Show/Hide the non-hidden children.
-    foreach(GraphMLItem* child, getChildren()){
-        if(child){
-            child->setVisible(isNodeExpanded);
-        }
-    }
-
-    if(isExpanded()){
-        qreal oldExpWidth = expandedWidth;
-        qreal oldExpHeight = expandedHeight;
-        setWidth(oldExpWidth);
-        setHeight(oldExpHeight);
-    } else {
-        //Set the width/height to their minimum values.
-        setWidth(minimumWidth);
-        setHeight(minimumHeight);
-    }
-}
-
-
-
-
-
-
-void EntityItem::updateModelPosition()
-{
-    //Update the Parent Model's size first to make sure that the undo states are correct.
-
-    bool isMoving = getNodeView()->getViewState() == NodeView::VS_MOVING || getNodeView()->getViewState() == NodeView::VS_RESIZING;
-
-    //if we are over a grid line (or within a snap ratio)
-    QPointF gridPoint = isOverGrid(centerPos());
-    if(!gridPoint.isNull()){
-        //Setting new Center Point
-        setCenterPos(gridPoint);
-        //If the node moved via the mouse, lock it.
-    }
-    //if(parentNodeItem){
-    //    parentNodeItem->updateModelSize();
-    //}
-
-    GraphMLItem_SetGraphMLData(getID(), "x", QString::number(centerPos().x()));
-    GraphMLItem_SetGraphMLData(getID(), "y", QString::number(centerPos().y()));
-
-
-    if(getParentNodeItem()){
-        getParentNodeItem()->hideChildGridOutline(getID());
-    }
-
-
-
-}
-
-void EntityItem::updateModelSize()
-{
-    if(this->parentEntityItem){
-        parentEntityItem->updateModelSize();
-    }
-    //Update the Size in the model.
-    GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
-    GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
-
-    bool isMoving = getNodeView()->getViewState() == NodeView::VS_MOVING || getNodeView()->getViewState() == NodeView::VS_RESIZING;
-
-    //If we are over a gridline already.
-    if(isNodeOnGrid){
-        //Update the gridPoint.
-        isOverGrid(centerPos());
-    }
-
-    //if (width > prevWidth || height > prevHeight) {
-    //GraphMLItem_PositionSizeChanged(this, true);
-    //}
-}
 
 
 /**
@@ -2778,8 +2750,8 @@ void EntityItem::resetSize()
 {
     expandedHeight = minimumHeight;
     expandedWidth = minimumWidth;
-    GraphMLItem_SetGraphMLData(getID(), "height", QString::number(minimumHeight));
-    GraphMLItem_SetGraphMLData(getID(), "width", QString::number(minimumWidth));
+    emit GraphMLItem_SetGraphMLData(getID(), "height", minimumHeight);
+    emit GraphMLItem_SetGraphMLData(getID(), "width", minimumWidth);
 }
 
 
@@ -2788,7 +2760,7 @@ void EntityItem::resetSize()
  */
 bool EntityItem::isExpanded()
 {
-    return isNodeExpanded;
+    return IS_EXPANDED_STATE;
 }
 
 bool EntityItem::isContracted()

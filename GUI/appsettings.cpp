@@ -46,7 +46,10 @@ AppSettings::AppSettings(QWidget *parent, QString applicationPath):QDialog(paren
 
 AppSettings::~AppSettings()
 {
+    settings->sync();
+    delete settings;
 }
+
 
 /**
  * @brief AppSettings::getSettings Gets the QSettings object for this Application.
@@ -114,6 +117,7 @@ void AppSettings::setSetting(QString keyName, QVariant value)
         settings->beginGroup(groupName);
         settings->setValue(keyName, value);
         settings->endGroup();
+
 
         KeyEditWidget* settingWidget = settingsWidgetsHash[keyName];
         if(settingWidget){

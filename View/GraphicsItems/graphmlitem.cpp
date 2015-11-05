@@ -54,16 +54,21 @@
 #define THEME_DARK_NEUTRAL 10
 #define THEME_DARK_COLOURED 11
 
-GraphMLItem::GraphMLItem(GraphML *attachedGraph, GraphMLItem::GUI_KIND kind)
+GraphMLItem::GraphMLItem(GraphML *graph, GraphMLItem* parent, GraphMLItem::GUI_KIND kind)
 {
+    parentItem = 0;
+    attachedGraph = graph;
+
+    nodeView = 0;
+
     //Cache on Graphics card! May Artifact.
     //setCacheMode(QGraphicsItem::DeviceCoordinateCache);
 
-    parentItem = 0;
-    this->attachedGraph = attachedGraph;
+
+
+
     table = new AttributeTableModel(this);
     renderState = RS_NONE;
-    nodeView = 0;
     this->kind = kind;
     IS_DELETING = false;
     IS_SELECTED = false;
@@ -85,6 +90,10 @@ GraphMLItem::GraphMLItem(GraphML *attachedGraph, GraphMLItem::GUI_KIND kind)
     setAcceptHoverEvents(true);
 
     setupPens();
+
+    if(parent){
+        setParent(parent);
+    }
 }
 
 GraphMLItem::RENDER_STATE GraphMLItem::getRenderState() const
@@ -138,7 +147,8 @@ void GraphMLItem::setParent(GraphMLItem *item)
     parentItem = item;
     if(item){
         item->addChild(this);
-        this->setParentItem(item);
+        setParentItem(item);
+        setNodeView(item->getNodeView());
     }
 }
 
@@ -174,6 +184,15 @@ void GraphMLItem::updateFromGraphMLData()
         if(data){
             graphMLDataChanged(data);
         }
+    }
+}
+
+void GraphMLItem::setGraphMLData(QString keyName, qreal value)
+{
+    GraphMLData* data = getGraphML()->getData(keyName);
+    if(data){
+        qCritical() << value;
+        data->setValue(value);
     }
 }
 
@@ -223,6 +242,11 @@ QRectF GraphMLItem::sceneBoundingRect() const
     return QGraphicsObject::sceneBoundingRect();
 }
 
+QRectF GraphMLItem::boundingRect() const
+{
+    return QRect();
+}
+
 QRectF GraphMLItem::translatedBoundingRect()
 {
     QRectF rect = boundingRect();
@@ -248,9 +272,7 @@ QString GraphMLItem::getGraphMLDataValue(QString key)
 
 GraphML *GraphMLItem::getGraphML()
 {
-
     return attachedGraph;
-
 }
 
 AttributeTableModel *GraphMLItem::getAttributeTable()

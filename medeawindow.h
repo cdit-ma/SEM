@@ -194,6 +194,7 @@ private slots:
 
     void dialogRejected();
 
+    QStringList fileSelector(QString title, QString fileString, bool open, bool allowMultiple=true);
 protected:
     void closeEvent(QCloseEvent*);
     void resizeEvent(QResizeEvent* event);
@@ -391,6 +392,7 @@ private:
     NewController* controller;
     NodeView* nodeView;
     NodeViewMinimap* minimap;
+    QFileDialog* fileDialog;
 
     QThread* controllerThread;
 
@@ -421,6 +423,9 @@ private:
     bool settingsLoading;
     bool maximizedSettingInitiallyChanged;
 
+    bool WINDOW_MAXIMIZED;
+    bool WINDOW_FULLSCREEN;
+
     //multi-line popup for QTableView (VARIABLES)
     QDialog *popupMultiLine;
     CodeEditor *txtMultiLine;
@@ -430,6 +435,7 @@ private:
     CUTSManager* cutsManager;
 
     QString MEDEA_VERSION;
+    QString DEFAULT_PATH;
     QAction* action_ContextMenu;
     ActionButton* toolbar_ContextMenu;
 

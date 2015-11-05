@@ -16,7 +16,7 @@ class ModelItem : public GraphMLItem
 {
     Q_OBJECT
 public:
-    ModelItem(Node* node);
+    ModelItem(Node* node, NodeView* view);
 
     void adjustPos(QPointF delta);
 

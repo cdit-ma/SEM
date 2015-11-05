@@ -16,6 +16,7 @@ public:
 
     void clearValue();
     void setValue(QString value);
+    void setValue(qreal value);
     void setProtected(bool setProtected);
     bool isProtected();
 
@@ -30,6 +31,10 @@ public:
 
     bool gotDoubleValue() const;
     qreal getDoubleValue() const;
+    int getIntValue() const;
+    bool gotIntValue() const;
+    bool getBoolValue() const;
+    bool gotBoolValue() const;
     QString getValue() const;
     GraphMLKey* getKey();
     QString getKeyName();
@@ -41,6 +46,7 @@ public:
 signals:
     void dataChanged(GraphMLData* data);
     void valueChanged(QString value, QString key="");
+    void valueChanged(qreal value, QString key="");
 private:
     void updateDouble();
     GraphML* Parent;
@@ -50,8 +56,8 @@ private:
     QString value;
     QString keyName;
     QString type;
-    qreal valueDbl;
-    bool hasDbl;
+    qreal numberValue;
+    bool hasNumber;
     bool protectedData;
 
     GraphMLKey* key;
