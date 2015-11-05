@@ -921,8 +921,7 @@ void MedeaWindow::setupSearchTools()
     searchBar->setStyleSheet("QLineEdit{ background-color: rgb(230,230,230); }"
                              "QLineEdit:focus{border: 1px solid; border-color:blue;background-color: rgb(250,250,250)}");
 
-    searchSuggestions->setSize(searchBar->width(), 0, 1);
-    searchSuggestions->setSize(searchBar->width() + (searchButton->width()*2), 0, 2);
+    searchSuggestions->setSize(searchBar->width(), height(), 2);
 
     scrollableWidget->setMinimumWidth(rightPanelWidth + 110);
     scrollableWidget->setLayout(resultsMainLayout);
@@ -931,7 +930,7 @@ void MedeaWindow::setupSearchTools()
     layout->addWidget(scrollableSearchResults);
 
     searchResults->setLayout(layout);
-    searchResults->setMinimumWidth(rightPanelWidth + 110);
+    searchResults->setMinimumWidth(rightPanelWidth + 400);
     searchResults->setMinimumHeight(height() / 2);
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
@@ -974,8 +973,6 @@ void MedeaWindow::setupSearchTools()
 
     // populate view aspects menu
     QStringList aspects = GET_ASPECT_NAMES();
-
-
     aspects.sort();
     foreach (QString aspect, aspects) {
         QWidgetAction* action = new QWidgetAction(this);
@@ -2208,6 +2205,7 @@ void MedeaWindow::on_actionSearch_triggered()
         //searchResults->move(pos() + QPoint(5, height() - searchResults->height()));
 
         // show search results
+        searchResults->setWindowTitle("Search Results - " + searchText.trimmed());
         searchResults->show();
     }
 }

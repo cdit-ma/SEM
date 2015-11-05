@@ -45,18 +45,13 @@ void NodeViewMinimap::setupLayout()
 {
     QVBoxLayout* layout = new QVBoxLayout();
 
-
     layout->setSpacing(0);
     layout->setMargin(0);
-
-
 
     QLabel* label = new QLabel("Minimap:");
 
     label->setStyleSheet("color:#3C3C3C; font-size:10px; font-weight: bold; background-color: rgb(210,210,210);border-bottom: 1px solid;border-color: black;padding-bottom: 1px;");
     label->setAlignment(Qt::AlignCenter);
-
-
 
     layout->addWidget(label);
     layout->addStretch();
@@ -64,10 +59,12 @@ void NodeViewMinimap::setupLayout()
     setLayout(layout);
 }
 
+
 void NodeViewMinimap::viewportRectChanged(QRectF viewport)
 {
     this->viewport = viewport;
 }
+
 
 bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 {
@@ -80,7 +77,6 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
     // this darkens the area in the scene that's not currently visualised by the view
     // it also still draws a rectangle representing what is currently shown in the view
-
     QPainterPath path, viewPath;
     path.addRect(rect);
     viewPath.addRect(viewport);

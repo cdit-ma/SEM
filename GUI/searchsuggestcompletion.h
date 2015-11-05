@@ -24,6 +24,9 @@ private:
     QLineEdit* editor;
     QTreeWidget* popup;
 
+    QSize maxSize;
+    QSize minSize;
+
 };
 
 #endif // SEARCHSUGGESTCOMPLETION_H

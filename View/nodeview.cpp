@@ -745,11 +745,15 @@ QList<GraphMLItem*> NodeView::search(QString searchString, QStringList viewAspec
                 continue;
             }
             if (regex.exactMatch(dataVal)) {
-                matchedItems.append(item);
+                if (!matchedItems.contains(item)) {
+                    matchedItems.append(item);
+                }
                 if (!matchedDataValues.contains(dataVal)) {
                     matchedDataValues.append(dataVal);
                 }
-                break;
+                if (!showSearchSuggestions) {
+                    break;
+                }
             }
         }
     }

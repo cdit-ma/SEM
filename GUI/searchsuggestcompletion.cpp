@@ -27,12 +27,18 @@ SearchSuggestCompletion::SearchSuggestCompletion(QLineEdit* parent) : QObject(pa
     popup->setFrameStyle(QFrame::Box | QFrame::Plain);
     popup->header()->hide();
 
+    popup->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    //popup->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    //popup->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     popup->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     popup->installEventFilter(this);
 
     QFont guiFont = QFont("Verdana");
     guiFont.setPointSizeF(8.5);
     popup->setFont(guiFont);
+
+    minSize = QSize(0,0);
+    maxSize = QSize(editor->size());
 
     connect(popup, SIGNAL(itemClicked(QTreeWidgetItem*,int)), SLOT(doneCompletion()));
 }
@@ -120,9 +126,11 @@ void SearchSuggestCompletion::setSize(qreal width, qreal height, int sizeKind)
    switch (sizeKind) {
    case 1:
        popup->setMinimumSize(width, height);
+       minSize = QSize(width, height);
        break;
    case 2:
        popup->setMaximumSize(width, height);
+       maxSize = QSize(width, height);
        break;
    default:
        popup->setFixedSize(width, height);
@@ -161,7 +169,9 @@ void SearchSuggestCompletion::showCompletion(const QStringList &choices)
         maxWidth = qMax(maxWidth, fm.width(choices[i] + 'W'));
     }
 
-    maxWidth = qMin(popup->maximumSize().width(), maxWidth);
+    maxWidth = qMin(maxSize.width(), maxWidth);
+    totalHeight = qMin(maxSize.height(), totalHeight);
+
     popup->setFixedSize(maxWidth, totalHeight + ITEM_PADDING);
     //popup->setCurrentItem(popup->topLevelItem(0));
     popup->setUpdatesEnabled(true);

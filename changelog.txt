@@ -48,7 +48,7 @@ Fixed:
 * Updated toolbar for multiple selection to deal with Entity and Aspect items.
 * Call NodeView::expandSelection(bool expand) from toolbar
 * Connect tool button/menu showing for AspectItems.
-
+* Fixed search suggestions size problem; ignoring text truncation at the moment
 
 Version 18:
     New Features:
