@@ -48,13 +48,13 @@ If the Windows environment is set, use the org.apache.xalan.xslt.Process with ja
 
 For localhost deployment with no Hardware node defined in the model;
 Use the following command line transforms for HelloWorld SEM 
-> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2cdd.xsl -PARAM MainNode "'1'" -OUT HelloWorld.cdd
-> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2cdp.xsl -PARAM MainNode "'1'" -OUT HelloWorld.cdp
-> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2testconfig.xsl -PARAM MainNode "'1'" -OUT test.config
-> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2deployconfig.xsl -PARAM MainNode "'1'" -OUT deploy_localhost.config
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2cdd.xsl -PARAM MainNode "1" -OUT HelloWorld.cdd
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2cdp.xsl -PARAM MainNode "1" -OUT HelloWorld.cdp
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2testconfig.xsl -PARAM MainNode "1" -OUT test.config
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2deployconfig.xsl -PARAM MainNode "1" -OUT deploy_localhost.config
 > java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2ddd.xsl -OUT MainNode%QoS.ddd
-> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2dpd.xsl -PARAM ComponentInstance "'HelloWorld_asm%Sender'" -OUT HelloWorld_asm%Sender%QoS.ddd
-> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2dpd.xsl -PARAM ComponentInstance "'HelloWorld_asm%Receiver'" -OUT HelloWorld_asm%Receiver%QoS.ddd
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2dpd.xsl -PARAM ComponentInstance "HelloWorld_asm%Sender" -OUT HelloWorld_asm%Sender%QoS.dpd
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2dpd.xsl -PARAM ComponentInstance "HelloWorld_asm%Receiver" -OUT HelloWorld_asm%Receiver%QoS.dpd
 > java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\PreprocessIDL.xsl -OUT HelloWorldIDL.graphml
 > java org.apache.xalan.xslt.Process -IN HelloWorldIDL.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2idl.xsl -PARAM File "HelloWorld" -OUT HelloWorld.idl
 > java org.apache.xalan.xslt.Process -IN HelloWorldIDL.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2idl.xsl -PARAM File "HelloWorld_Components" -OUT HelloWorld_Components.idl
