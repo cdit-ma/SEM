@@ -218,6 +218,8 @@ signals:
     void view_QuestionAnswered(bool answer);
 
 public slots:
+    void canUndo(bool okay);
+    void canRedo(bool okay);
     void dropDownChangedValue(QString value);
     void showDropDown(GraphMLItem *item, QLineF dropDownPosition, QString keyName, QString currentValue);
     void setStateResizing();

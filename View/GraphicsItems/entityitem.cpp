@@ -80,7 +80,6 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
     }
 
 
-    previouslyExpanded = false;
     isInputParameter = false;
     isReturnParameter = false;
     hasEditData = false;
@@ -133,21 +132,20 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
     bottomInputItem = 0;
 
     //Setup initial sizes
-    width = ITEM_SIZE;
-    height = ITEM_SIZE;
+    //Set Minimum Size.
+    contractedWidth = ITEM_SIZE;
+    contractedHeight = ITEM_SIZE;
 
     if(isInputParameter || isReturnParameter){
-        width /=2;
-        height /=2;
+        contractedWidth /=2;
+        contractedHeight /=2;
     }
 
-    //Set Minimum Size.
-    minimumWidth = width;
-    minimumHeight = height;
+
 
     //Set Maximum Size
-    expandedWidth = width;
-    expandedHeight = height;
+    expandedWidth = ITEM_SIZE;
+    expandedHeight = ITEM_SIZE;
 
 
     IS_HARDWARE_CLUSTER = (nodeKind == "HardwareCluster");
@@ -185,11 +183,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
         //updateSizeInModel();
     }
 
-
-    //if(parent->isNodeItem()){
-    //    parent->updateSizeInModel();
-    //}
-
+    updateTextLabel();
 }
 
 
@@ -332,22 +326,16 @@ void EntityItem::handleExpandState(bool newState)
 
 
 //TODO FIX HARDWARE TOOLBAR
-//    // if expanded, only show the HardwareNodes that match the current chidldren view mode
-//        if (IS_HARDWARE_CLUSTER && expanded) {
-
-//            // this will show/hide HardwareNodes depending on the current view mode
-//            updateDisplayedChildren(CHILDREN_VIEW_MODE);
-
-//            // this sets the width and height to their expanded values
-//            setWidth(expandedWidth);
-//            setHeight(expandedHeight);
-
-//            return;
-//        }
+    // if expanded, only show the HardwareNodes that match the current chidldren view mode
+    if (IS_HARDWARE_CLUSTER && IS_EXPANDED_STATE) {
+        // this will show/hide HardwareNodes depending on the current view mode
+        updateDisplayedChildren(CHILDREN_VIEW_MODE);
+    }
 
     update();
     emit GraphMLItem_SizeChanged();
 
+    updateTextLabel();
 }
 
 
@@ -441,8 +429,8 @@ QRectF EntityItem::boundingRect() const
         right += expandedWidth;
         bot += expandedHeight;
     }else{
-        right += minimumWidth;
-        bot += minimumHeight;
+        right += contractedWidth;
+        bot += contractedHeight;
     }
 
     right += itemMargin;
@@ -465,7 +453,7 @@ QRectF EntityItem::childrenBoundingRect()
 QRectF EntityItem::minimumRect() const
 {
     qreal itemMargin = getItemMargin() * 2;
-    return QRectF(QPointF(0, 0), QPointF(minimumWidth + itemMargin, minimumHeight + itemMargin));
+    return QRectF(QPointF(0, 0), QPointF(contractedWidth + itemMargin, contractedHeight + itemMargin));
 }
 
 QRectF EntityItem::sceneBoundingRect() const
@@ -486,8 +474,8 @@ QRectF EntityItem::expandedLabelRect() const
     qreal itemMargin = getItemMargin();
 
     qreal right = expandedWidth + itemMargin;
-    qreal left = itemMargin + minimumWidth;
-    qreal top = (itemMargin * 2 + minimumHeight) /2;
+    qreal left = itemMargin + contractedWidth;
+    qreal top = (itemMargin * 2 + contractedHeight) /2;
 
     return QRectF(QPointF(left, top), QPointF(right, top));
 }
@@ -519,7 +507,7 @@ QRectF EntityItem::gridRect() const
     QPointF bottomRight = topLeft + QPointF(getExpandedWidth(), getExpandedHeight());
 
 
-    int roundedGridCount = ceil(minimumHeight / getGridSize());
+    int roundedGridCount = ceil(contractedHeight / getGridSize());
     topLeft.setY(roundedGridCount * getGridSize() - getGridGapSize()/2);
 
     //Enforce at least one grid in height. Size!
@@ -532,21 +520,17 @@ QRectF EntityItem::gridRect() const
     return QRectF(topLeft, bottomRight);
 }
 
-QPointF EntityItem::getCenterOffset()
-{
-    return QPointF((width / 2) + getItemMargin(), (height / 2) + getItemMargin());
-}
 
 QRectF EntityItem::headerRect()
 {
     qreal itemMargin = 2 * getItemMargin();
-    return QRectF(QPointF(0, 0), QPointF(getWidth() + itemMargin, minimumHeight + itemMargin));
+    return QRectF(QPointF(0, 0), QPointF(getWidth() + itemMargin, contractedHeight + itemMargin));
 }
 
 QRectF EntityItem::bodyRect()
 {
     qreal itemMargin = 2 * getItemMargin();
-    return QRectF(QPointF(0, minimumHeight + itemMargin), QPointF(getWidth() + itemMargin, getHeight() + itemMargin));
+    return QRectF(QPointF(0, contractedHeight + itemMargin), QPointF(getWidth() + itemMargin, getHeight() + itemMargin));
 }
 
 QRectF EntityItem::getChildBoundingRect()
@@ -884,22 +868,22 @@ bool EntityItem::isHidden()
 }
 
 
-double EntityItem::getWidth()
+qreal EntityItem::getWidth() const
 {
     if(IS_EXPANDED_STATE){
         return expandedWidth;
     }else{
-        return minimumWidth;
+        return contractedWidth;
     }
 }
 
 
-double EntityItem::getHeight()
+qreal EntityItem::getHeight() const
 {
     if(IS_EXPANDED_STATE){
         return expandedHeight;
     }else{
-        return minimumHeight;
+        return contractedHeight;
     }
 }
 
@@ -1478,12 +1462,12 @@ void EntityItem::updateTextVisibility()
     bool showBottomLabel = !editableDataKey.isEmpty();
 
     if(isExpanded()){
-        if(!childItems().isEmpty()){
+        if(!getChildren().isEmpty()){
             showRightLabel = true;
         }
     }
 
-    if(width > ACTUAL_ITEM_SIZE + GRID_PADDING_SIZE){
+    if(getWidth() > ACTUAL_ITEM_SIZE + GRID_PADDING_SIZE){
         showTopLabel = false;
     }
 
@@ -1510,11 +1494,6 @@ void EntityItem::updateDisplayedChildren(int viewMode)
 
     // if any of the menu items are not constructed, do nothing
     if (!allChildren || !connectedChildren || !unConnectedChildren) {
-        return;
-    }
-
-    // if the new view mode is the same as the current one, do nothing
-    if (viewMode == CHILDREN_VIEW_MODE) {
         return;
     }
 
@@ -1568,7 +1547,7 @@ void EntityItem::updateDisplayedChildren(int viewMode)
 
 QRectF EntityItem::smallIconRect() const
 {
-    qreal iconSize = SMALL_ICON_RATIO * minimumWidth;
+    qreal iconSize = SMALL_ICON_RATIO * contractedWidth;
     return QRectF(0, 0, iconSize, iconSize);
 }
 
@@ -1579,9 +1558,9 @@ QRectF EntityItem::smallIconRect() const
  */
 QRectF EntityItem::iconRect() const
 {
-    qreal iconSize = ICON_RATIO * minimumWidth;
+    qreal iconSize = ICON_RATIO * contractedWidth;
     if(getRenderState() <= RS_REDUCED){
-        iconSize = minimumWidth;
+        iconSize = contractedWidth;
     }
 
     //Construct a Rectangle to represent the icon size at the origin
@@ -1596,8 +1575,14 @@ QRectF EntityItem::iconRect() const
 
 QRectF EntityItem::textRect_Top() const
 {
-    float itemMargin = getItemMargin() * 2;
-    return QRectF(QPointF(0, 0), QPointF(width + itemMargin, height + itemMargin));
+    qreal textHeight = TOP_LABEL_RATIO * contractedHeight;
+    qreal textWidth = boundingRect().width();
+    QRectF rect;
+    rect.setHeight(textHeight);
+    rect.setWidth(textWidth);
+    rect.moveLeft(boundingRect().left());
+    rect.moveBottom(-getItemMargin()/2);
+    return rect;
 }
 
 QRectF EntityItem::textRect_Right() const
@@ -1605,8 +1590,20 @@ QRectF EntityItem::textRect_Right() const
     QRectF icon = iconRect();
 
     qreal textHeight = icon.height() / 3;
-    qreal textWidth = boundingRect().right() - icon.right() - getItemMargin();
+    qreal textWidth = expandedBoundingRect().right() - icon.right() - getItemMargin();
     return QRectF(icon.right(), icon.center().y() - textHeight/2, textWidth, textHeight);
+}
+
+QRectF EntityItem::textRect_Bot() const
+{
+    qreal textHeight = iconRect_BottomLeft().height();
+    qreal textWidth = iconRect_BottomRight().left() - iconRect_BottomLeft().right();
+    QRectF rect;
+    rect.setHeight(textHeight);
+    rect.setWidth(textWidth);
+
+    rect.moveBottomLeft(iconRect_BottomLeft().bottomRight());
+    return rect;
 }
 
 /**
@@ -1632,7 +1629,7 @@ QRectF EntityItem::iconRect_TopRight() const
 
     //Translate to move the icon to its position
     qreal itemMargin = (getItemMargin());
-    iconRect.moveTopRight(QPointF(itemMargin + width, itemMargin));
+    iconRect.moveTopRight(QPointF(itemMargin + getWidth(), itemMargin));
     return iconRect;
 }
 
@@ -1643,19 +1640,19 @@ QRectF EntityItem::iconRect_BottomLeft() const
 
     //Translate to move the icon to its position
     qreal itemMargin = (getItemMargin());
-    iconRect.moveBottomLeft(QPointF(itemMargin, itemMargin + minimumHeight));
+    iconRect.moveBottomLeft(QPointF(itemMargin, itemMargin + contractedHeight));
     return iconRect;
 }
 
 QRectF EntityItem::iconRect_BottomRight() const
 {
     //Construct a Rectangle to represent the icon size at the origin.
-    qreal iconSize = MARGIN_RATIO * minimumWidth;
+    qreal iconSize = MARGIN_RATIO * contractedWidth;
     QRectF iconRect =  QRectF(0, 0, iconSize, iconSize);
 
     //Translate to move the icon to its position
     qreal itemMargin = (getItemMargin());
-    iconRect.moveBottomRight(QPointF(itemMargin + width, itemMargin + height));
+    iconRect.moveBottomRight(QPointF(itemMargin + getWidth(), itemMargin + getHeight()));
     return iconRect;
 }
 
@@ -1700,14 +1697,6 @@ bool EntityItem::isResizeable()
 }
 
 
-void EntityItem::updateModelData()
-{
-    setGraphMLData("width", QString::number(width));
-    setGraphMLData("height", QString::number(height));
-    QPointF center = centerPos();
-    setGraphMLData("x", QString::number(center.x()));
-    setGraphMLData("y", QString::number(center.y()));
-}
 
 void EntityItem::setExpandedWidth(qreal w)
 {
@@ -1719,10 +1708,9 @@ void EntityItem::setExpandedWidth(qreal w)
 
         if(IS_EXPANDED_STATE){
             prepareGeometryChange();
-            updateTextLabel();
-
             emit GraphMLItem_SizeChanged();
         }
+        updateTextLabel();
     }
 }
 
@@ -1754,55 +1742,13 @@ bool EntityItem::isExpandedState()
 
 void EntityItem::setWidth(qreal w)
 {
-    if(inSubView()){
-        qCritical() << "Trying to set WidthL " << w;
-    }
-    if(isExpanded()){
-    //If is expanded, we can't set height smaller than the right of the child rect.
-        qreal minWidth = childrenBoundingRect().right();
-        w = qMax(w, minWidth);
-        expandedWidth = w;
-    }else{
-        //We can't shrink or grow the the minimum height.
-        w = minimumWidth;
-    }
-
-    if(w == width){
-        return;
-    }
-
-    prepareGeometryChange();
-
-    width = w;
-
-
-    updateTextLabel();
-
-    emit GraphMLItem_SizeChanged();
+    setExpandedWidth(w);
 }
 
 
 void EntityItem::setHeight(qreal h)
 {
-
-    if(isExpanded()){
-        //If is expanded, we can't set height smaller than the bottom of the child rect.
-        qreal minHeight = childrenBoundingRect().bottom();
-        h = qMax(h, minHeight);
-        expandedHeight = h;
-    }else{
-        //We can't shrink or grow the the minimum height.
-        h = minimumHeight;
-    }
-
-    if(h == height){
-        return;
-    }
-
-    prepareGeometryChange();
-    height = h;
-
-    emit GraphMLItem_SizeChanged();
+    setExpandedHeight(h);
 }
 
 void EntityItem::setSize(qreal w, qreal h)
@@ -1875,39 +1821,10 @@ void EntityItem::updateTextLabel(QString newLabel)
         rightLabelInputItem->setValue(newLabel);
     }
 
-    //Update font size
-    {
-        //
-        qreal topWidth = boundingRect().width();
-        qreal bottomWidth = iconRect_BottomRight().left() - iconRect_BottomLeft().right();
-        qreal rightWidth = iconRect_BottomRight().left() - iconRect().right();
+    topLabelInputItem->updatePosSize(textRect_Top());
+    rightLabelInputItem->updatePosSize(textRect_Right());
+    bottomInputItem->updatePosSize(textRect_Bot());
 
-
-        topLabelInputItem->setWidth(topWidth);
-        bottomInputItem->setWidth(bottomWidth);
-        //rightLabelInputItem->setWidth(rightWidth);
-
-        rightLabelInputItem->updatePosSize(textRect_Right());
-
-        topLabelInputItem->setHeight(iconRect_BottomLeft().height());
-        bottomInputItem->setHeight(iconRect_BottomLeft().height());
-        //rightLabelInputItem->setHeight(iconRect().height() / 3);
-    }
-
-    //Calculate position for label
-    qreal labelX = (boundingRect().width() - topLabelInputItem->boundingRect().width()) /2;
-    qreal labelY = getItemMargin() + (ICON_RATIO * minimumHeight);
-
-
-
-
-    //Update position
-
-    //Contained
-    QPointF contractedLabel = QPointF(0, -topLabelInputItem->boundingRect().height());
-    topLabelInputItem->setPos(contractedLabel);
-
-    topLabelInputItem->update();
     updateTextVisibility();
 }
 
@@ -2059,9 +1976,9 @@ void EntityItem::childUpdated()
 void EntityItem::setupLabel()
 {
 
-    qreal topFontSize = TOP_LABEL_RATIO * minimumHeight;
-    qreal rightFontSize = RIGHT_LABEL_RATIO * minimumHeight;
-    qreal botFontSize = BOTTOM_LABEL_RATIO * minimumHeight;
+    qreal topFontSize = TOP_LABEL_RATIO * contractedHeight;
+    qreal rightFontSize = RIGHT_LABEL_RATIO * contractedHeight;
+    qreal botFontSize = BOTTOM_LABEL_RATIO * contractedHeight;
 
     bottomInputItem = new InputItem(this, "", false);
     topLabelInputItem = new InputItem(this,"", false);
@@ -2151,7 +2068,7 @@ QPointF EntityItem::isOverGrid(const QPointF centerPosition)
     qreal distance = QLineF(centerPosition, gridPoint).length();
 
     //If the distance is less than the SNAP_PERCENTAGE
-    if((distance / minimumWidth) <= SNAP_PERCENTAGE){
+    if((distance / contractedWidth) <= SNAP_PERCENTAGE){
         getParentNodeItem()->showChildGridOutline(this, gridPoint);
     }else{
         getParentNodeItem()->hideChildGridOutline(getID());
@@ -2321,7 +2238,9 @@ QList<EntityItem *> EntityItem::getChildEntityItems()
     QList<EntityItem*> insertOrderList;
 
     foreach(GraphMLItem* item, getChildren()){
-        insertOrderList.append((EntityItem*)item);
+        if(item->isEntityItem()){
+            insertOrderList.append((EntityItem*)item);
+        }
     }
     return insertOrderList;
 
@@ -2484,10 +2403,10 @@ void EntityItem::dataChanged(QString dataValue)
 
 void EntityItem::zoomChanged(qreal currentZoom)
 {
-    qreal visibleWidth = currentZoom * minimumWidth;
-    if(visibleWidth >= minimumWidth){
+    qreal visibleWidth = currentZoom * contractedWidth;
+    if(visibleWidth >= contractedWidth){
         setRenderState(RS_FULL);
-    }else if(visibleWidth >= (minimumWidth / 2)){
+    }else if(visibleWidth >= (contractedWidth / 2)){
         setRenderState(RS_REDUCED);
     }else{
         setRenderState(RS_MINIMAL);
@@ -2748,10 +2667,10 @@ void EntityItem::setHidden(bool h)
  */
 void EntityItem::resetSize()
 {
-    expandedHeight = minimumHeight;
-    expandedWidth = minimumWidth;
-    emit GraphMLItem_SetGraphMLData(getID(), "height", minimumHeight);
-    emit GraphMLItem_SetGraphMLData(getID(), "width", minimumWidth);
+    expandedHeight = contractedHeight;
+    expandedWidth = contractedWidth;
+    emit GraphMLItem_SetGraphMLData(getID(), "height", contractedHeight);
+    emit GraphMLItem_SetGraphMLData(getID(), "width", contractedWidth);
 }
 
 

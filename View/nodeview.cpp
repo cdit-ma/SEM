@@ -1040,6 +1040,16 @@ void NodeView::actionFinished()
     viewMutex.unlock();
 }
 
+void NodeView::canUndo(bool okay)
+{
+    emit view_updateMenuActionEnabled("undo", okay);
+}
+
+void NodeView::canRedo(bool okay)
+{
+    emit view_updateMenuActionEnabled("redo", okay);
+}
+
 void NodeView::dropDownChangedValue(QString value)
 {
     if(comboBox){
@@ -1466,7 +1476,7 @@ void NodeView::expandSelection(bool expand)
             if(child->isEntityItem()){
                 EntityItem* entity = (EntityItem*) child;
                 if(entity->isExpanded() != expand){
-                    //entity->setNodeExpanded(expand);
+                    entity->setStateExpanded(expand);
                 }
                 entity->updateSizeInModel();
             }
@@ -4538,6 +4548,12 @@ void NodeView::fitToScreen(QList<GraphMLItem *> itemsToCenter, double padding, b
 void NodeView::deleteSelection()
 {
     deleteFromIDs(selectedIDs);
+}
+
+
+void NodeView::constructFunctionNode(QString nodeKind, QString className, QString functionName, int sender)
+{
+    //Do stuff!
 }
 
 

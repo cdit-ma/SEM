@@ -83,7 +83,6 @@ public:
     int getEdgeItemCount();
 
     QRectF gridRect() const;
-    QPointF getCenterOffset();
 
     QRectF headerRect();
     QRectF bodyRect();
@@ -146,8 +145,8 @@ public:
     void removeChildOutline(int ID);
 
     void setStateExpanded(bool expanded);
-    double getWidth();
-    double getHeight();
+    qreal getWidth() const;
+    qreal getHeight() const;
 
     double getExpandedWidth() const;
     double getExpandedHeight() const;
@@ -274,6 +273,7 @@ private:
     QRectF iconRect() const;
     QRectF textRect_Top() const;
     QRectF textRect_Right() const;
+    QRectF textRect_Bot() const;
 
     QRectF iconRect_TopLeft() const;
     QRectF iconRect_TopRight() const;
@@ -297,16 +297,14 @@ private:
     bool isInResizeMode();
     bool isMoveable();
     bool isResizeable();
-    void updateModelData();
 
 
     void setExpandedWidth(qreal width);
     void setExpandedHeight(qreal height);
 
+
     bool isExpandedState();
 
-    void setWidth(qreal width);
-    void setHeight(qreal height);
     void setSize(qreal w, qreal h);
     void setPos(qreal x, qreal y);
     void setPos(const QPointF pos);
@@ -374,7 +372,6 @@ private:
 
     bool hidden;
 
-    bool previouslyExpanded;
     bool GRIDLINES_ON;
     bool HAS_DEFINITION;
     bool IS_IMPL_OR_INST;
@@ -390,18 +387,12 @@ private:
 
     QHash<IMAGE_POS, QPixmap> imageMap;
 
-    //Current Width/Height
-    double width;
-    double height;
-
-    double minimumHeight;
-    double minimumWidth;
+    double contractedHeight;
+    double contractedWidth;
 
     double expandedHeight;
     double expandedWidth;
 
-    double modelHeight;
-    double modelWidth;
 
 
     QPointF previousScenePosition;
@@ -491,6 +482,11 @@ public slots:
 public:
     void lastChildRemoved();
 
+
+    // NodeItem interface
+public:
+    void setWidth(qreal w);
+    void setHeight(qreal h);
 };
 
 #endif // ENTITYITEM_H

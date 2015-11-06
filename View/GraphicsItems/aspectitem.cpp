@@ -138,12 +138,12 @@ void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 }
 
 
-qreal AspectItem::getWidth()
+qreal AspectItem::getWidth() const
 {
     return width;
 }
 
-qreal AspectItem::getHeight()
+qreal AspectItem::getHeight() const
 {
     return height;
 }

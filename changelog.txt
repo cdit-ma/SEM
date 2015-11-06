@@ -24,18 +24,21 @@ Fixed List:
 * Subviews Fixed
 * Crash on dock when closing or new.
 * Added default Path option to MEDEA (Saves on exit)
+* Fix constructor for NodeItem.
 
 ToDo List:
 Together:
 * Highlight Source (Maybe use Number on screen) for connect mode
 * Fix NodeItems's right and bottom margins
 * Add action for pan mode for the toolbar
+* Initial Window State + Centralizing of Model
+
+
 
 Dan To Fix:
 * performance testing
 * settings into tab
 * Fix Duplicate in Controller.
-* Fix constructor for NodeItem.
 
 Cathlyn To Fix:
 * Fix getNextChildPos() in NodeItem. (doesnt' work consistantly for sorting Aspect)

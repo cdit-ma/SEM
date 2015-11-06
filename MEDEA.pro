@@ -132,7 +132,8 @@ HEADERS += \
     Model/BehaviourDefinitions/parameter.h \
     Model/BehaviourDefinitions/returnparameter.h \
     GUI/searchsuggestcompletion.h \
-    enumerations.h
+    enumerations.h \
+    Model/BehaviourDefinitions/vectoroperation.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -231,7 +232,8 @@ SOURCES += \
     Model/BehaviourDefinitions/inputparameter.cpp \
     Model/BehaviourDefinitions/parameter.cpp \
     Model/BehaviourDefinitions/returnparameter.cpp \
-    GUI/searchsuggestcompletion.cpp
+    GUI/searchsuggestcompletion.cpp \
+    Model/BehaviourDefinitions/vectoroperation.cpp
 
 FORMS +=
 

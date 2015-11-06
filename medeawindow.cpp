@@ -1465,9 +1465,6 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
     QWidget::resizeEvent(event);
 
     if(isWindowMaximized != isMaximized() && maximizedSettingInitiallyChanged){
-        if(nodeView){
-            nodeView->fitToScreen();
-        }
         maximizedSettingInitiallyChanged = false;
     }
     if (nodeView) {
@@ -1650,6 +1647,7 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
         view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Failure"));
     }else{
         if(WINDOW_MAXIMIZED){
+
             showMaximized();
         }else{
             showNormal();
@@ -1876,6 +1874,10 @@ void MedeaWindow::setupInitialSettings()
 
     QStringList allKinds = nodeView->getAllNodeKinds();
     QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
+    QList<QPair<QString, QString>> functionKinds;
+    functionKinds << QPair<QString, QString>("VectorOperation", "Get");
+    functionKinds << QPair<QString, QString>("VectorOperation", "Set");
+    functionKinds << QPair<QString, QString>("VectorOperation", "Remove");
 
     // this only needs to happen once, the whole time the application is open
     partsDock->addDockNodeItems(guiKinds);
@@ -1907,6 +1909,8 @@ void MedeaWindow::setupInitialSettings()
 
     // initially hide the container for the data table
     dataTableBox->hide();
+
+    nodeView->fitToScreen();
 }
 
 

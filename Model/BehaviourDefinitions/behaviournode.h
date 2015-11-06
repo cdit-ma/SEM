@@ -30,7 +30,8 @@ public:
     bool isUnconnectable();
 
 
-    QList<ParameterRequirement*> getParameters();
+    QList<ParameterRequirement*> getAllParameters();
+    QList<ParameterRequirement*> getNeededParameters();
     bool hasParameters();
 public:
     void setUnconnectable(bool unconnectable);
@@ -43,6 +44,7 @@ private:
     bool _isEnd;
     bool _restrictDepth;
     bool _isUnconnectable;
+    QList<ParameterRequirement*> neededParameters;
 
 public:
     static void addParameter(QString kind, QString name, QString type, bool inputParameter = true, QString defaultValue="");

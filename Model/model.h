@@ -23,6 +23,7 @@
 #include "BehaviourDefinitions/variable.h"
 #include "BehaviourDefinitions/workload.h"
 #include "BehaviourDefinitions/whileloop.h"
+#include "BehaviourDefinitions/vectoroperation.h"
 
 
 

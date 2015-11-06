@@ -14,8 +14,8 @@ public:
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
-    qreal getWidth();
-    qreal getHeight();
+    qreal getWidth() const;
+    qreal getHeight() const;
     void setPos(const QPointF pos);
     void setWidth(qreal width);
     void setHeight(qreal height);

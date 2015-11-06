@@ -106,6 +106,8 @@ public:
 
 
 signals:
+    void controller_CanUndo(bool ok);
+    void controller_CanRedo(bool ok);
     void controller_ModelReady();
     void controller_ActionProgressChanged(int percent, QString action="");
     void controller_ActionFinished();
@@ -195,6 +197,7 @@ private:
 
 
 private:
+    void updateUndoRedoState();
     void setupParameters();
     void setGraphMLData(GraphML* parent, QString keyName, qreal dataValue, bool addAction = true);
     void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);

@@ -28,6 +28,8 @@ public:
     virtual QRectF gridRect() const = 0;
     virtual QRectF minimumRect() const;
 
+    QPointF getCenterOffset() const;
+
     QPointF getMinimumRectCenter() const;
     QPointF getMinimumRectCenterPos() const;
     void setMinimumRectCenterPos(QPointF pos);
@@ -54,10 +56,10 @@ public:
 
     void resizeToOptimumSize(RESIZE_TYPE rt = RESIZE);
     void adjustSize(QSizeF delta);
-    virtual void setWidth(qreal w)=0;
-    virtual void setHeight(qreal h)=0;
-    virtual qreal getWidth()=0;
-    virtual qreal getHeight()=0;
+    virtual void setWidth(qreal w) = 0;
+    virtual void setHeight(qreal h) = 0;
+    virtual qreal getWidth() const = 0;
+    virtual qreal getHeight() const = 0;
 
     void showChildGridOutline(NodeItem* item, QPointF gridPoint);
     void hideChildGridOutline(int ID);

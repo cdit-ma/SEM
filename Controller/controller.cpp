@@ -68,7 +68,7 @@ NewController::NewController()
 
 
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
-    behaviourNodeKinds << "WhileLoop";
+    behaviourNodeKinds << "WhileLoop" << "VectorOperation" << "InputParameter" << "ReturnParameter";;
 
 
     //Append Kinds which can't be constructed by the GUI.
@@ -85,7 +85,7 @@ NewController::NewController()
     constructableNodeKinds.append(behaviourNodeKinds);
     constructableNodeKinds << "ManagementComponent";
 
-    constructableNodeKinds << "InputParameter" << "ReturnParameter";
+    //constructableNodeKinds << "InputParameter" << "ReturnParameter";
 
     constructableNodeKinds.removeDuplicates();
 
@@ -112,6 +112,8 @@ void NewController::connectView(NodeView *view)
 
 
     if(view->isMainView()){
+        connect(this, SIGNAL(controller_CanRedo(bool)), view, SLOT(canRedo(bool)));
+        connect(this, SIGNAL(controller_CanUndo(bool)), view, SLOT(canUndo(bool)));
         connect(view, SIGNAL(view_constructDestructEdges(QList<int>, int)), this, SLOT(constructDestructMultipleEdges(QList<int>, int)));
         connect(view, SIGNAL(view_EnableDebugLogging(bool, QString)), this, SLOT(enableDebugLogging(bool, QString)));
 
@@ -420,6 +422,7 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
     action.actionType = MODIFIED;
     action.actionKind = GraphML::DATA;
     action.keyName = keyName;
+    action.isNum = false;
 
 
 
@@ -534,9 +537,25 @@ void NewController::destructGraphMLData(GraphML *parent, QString keyName, bool a
     addActionToStack(action, addAction);
 }
 
+void NewController::updateUndoRedoState()
+{
+    if(undoActionStack.isEmpty()){
+        emit controller_CanUndo(false);
+    }else if(undoActionStack.size() == 1){
+        emit controller_CanUndo(true);
+    }
+
+    if(redoActionStack.isEmpty()){
+        emit controller_CanRedo(false);
+    }else if(redoActionStack.size() == 1){
+        emit controller_CanRedo(true);
+    }
+}
+
 void NewController::setupParameters()
 {
     BehaviourNode::addParameter("PeriodicEvent", "frequency", "number", true, "1");
+    BehaviourNode::addParameter("VectorOperation", "index", "number", true, "");
 }
 
 void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataValue, bool addAction)
@@ -605,6 +624,14 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
 {
     if(kind != ""){
         Node* parentNode = getNodeFromID(parentID);
+
+        if(kind.endsWith("Parameter")){
+            BehaviourNode* behaviourNode = dynamic_cast<BehaviourNode*>(parentNode);
+            if(behaviourNode){
+                QList<ParameterRequirement*> paramaters = behaviourNode->getNeededParameters();
+            }
+        }
+
         triggerAction("Constructing Child Node");
         constructChildNode(parentNode, constructGraphMLDataVector(kind, centerPoint));
     }
@@ -735,6 +762,7 @@ void NewController::triggerAction(QString actionName)
     actionCount++;
     currentAction = actionName;
     currentActionID = actionCount;
+    updateUndoRedoState();
 }
 
 void NewController::undo()
@@ -1369,6 +1397,8 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         QStringList keysValues;
         keysValues << "Attribute" << "Member" << "Variable";
         validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger" << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber" << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
+
+
         attribute->appendValidValues(validValues, keysValues);
     }
     if(name == "middleware"){
@@ -1390,6 +1420,14 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         QStringList keysValues;
         keysValues << "Process";
         validValues << "Activate" << "Preprocess" << "Mainprocess" << "Postprocess" << "Passivate";
+        attribute->appendValidValues(validValues, keysValues);
+    }
+
+    if(name == "operation"){
+        QStringList validValues;
+        QStringList keysValues;
+        keysValues << "VectorOperation";
+        validValues << "Set" << "Get" << "Remove";
         attribute->appendValidValues(validValues, keysValues);
     }
 
@@ -1553,6 +1591,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
 
 
     if(!isInModel){
+        qCritical() << node->toString();
         if(parentNode->canAdoptChild(node)){
             parentNode->addChild(node);
 
@@ -1578,6 +1617,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
     }
     Parameter* param = dynamic_cast<Parameter*>(node);
     if(param){
+        qCritical() << "PARAMETER";
         if(param->isInputParameter()){
             GraphMLData* paramLabel = param->getData("label");
             GraphMLData* paramValue = param->getData("value");
@@ -1615,6 +1655,9 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     QList<GraphMLData*> data;
 
     QString labelString = nodeKind;
+    if(nodeKind.endsWith("Parameter")){
+        labelString = "";
+    }
 
 
     data.append(new GraphMLData(kindKey, nodeKind));
@@ -1736,7 +1779,17 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
             GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
             data.append(new GraphMLData(valueKey));
         }
-        data.append(new GraphMLData(typeKey, "",true));
+        data.append(new GraphMLData(typeKey, "", true));
+    }
+    if(nodeKind == "VectorOperation"){
+        GraphMLKey* indexKey = constructGraphMLKey("index", "string", "node");
+        GraphMLKey* vectorKey = constructGraphMLKey("vector", "string", "node");
+        GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
+        GraphMLKey* operationKey = constructGraphMLKey("operation", "string", "node");
+        data.append(new GraphMLData(indexKey));
+        data.append(new GraphMLData(vectorKey));
+        data.append(new GraphMLData(valueKey));
+        data.append(new GraphMLData(operationKey));
     }
     return data;
 }
@@ -2466,6 +2519,8 @@ void NewController::addActionToStack(ActionItem action, bool useAction)
         }else{
             undoActionStack.push(action);
         }
+
+        updateUndoRedoState();
     }
 
     if(USE_LOGGING){
@@ -2573,10 +2628,12 @@ void NewController::undoRedo(bool undo)
 
 
 
+
     controller_SetViewEnabled(true);
 
     UNDOING = false;
     REDOING = false;
+    updateUndoRedoState();
 }
 
 void NewController::logAction(ActionItem item)
@@ -2662,6 +2719,7 @@ void NewController::clearHistory()
     currentAction = "";
     undoActionStack.clear();
     redoActionStack.clear();
+    updateUndoRedoState();
 }
 
 Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QString nodeLabel)
@@ -2789,6 +2847,8 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
         return new InputParameter();
     }else if(nodeKind == "ReturnParameter"){
         return new ReturnParameter();
+    }else if(nodeKind == "VectorOperation"){
+        return new VectorOperation();
     }else{
         qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
         return new BlankNode();

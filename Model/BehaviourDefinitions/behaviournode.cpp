@@ -36,13 +36,35 @@ bool BehaviourNode::isUnconnectable()
 void BehaviourNode::addParameter(QString kind, QString name, QString type, bool inputParameter, QString defaultValue)
 {
     ParameterRequirement* param = new ParameterRequirement(name, type, inputParameter, defaultValue);
-    qCritical() << "Added Parameter: " << name << " To Kind: " << kind;
+    qCritical() << "Added " << inputParameter << " Parameter: " << name << " To Kind: " << kind;
     _parameters[kind].append(param);
 }
 
-QList<ParameterRequirement *> BehaviourNode::getParameters()
+QList<ParameterRequirement *> BehaviourNode::getAllParameters()
 {
     return _parameters[getNodeKind()];
+}
+
+QList<ParameterRequirement *> BehaviourNode::getNeededParameters()
+{
+    QList<ParameterRequirement*> neededParameters = _parameters[getNodeKind()];
+
+    foreach(Node* child, getChildren(0)){
+        Parameter* childParam = dynamic_cast<Parameter*>(child);
+        if(childParam){
+            ParameterRequirement* matchingParam = 0;
+            foreach(ParameterRequirement* param, neededParameters){
+                if(param->matches(childParam)){
+                    matchingParam = param;
+                    break;
+                }
+            }
+            if(matchingParam){
+                neededParameters.removeAll(matchingParam);
+            }
+        }
+    }
+    return neededParameters;
 }
 
 bool BehaviourNode::hasParameters()
@@ -173,6 +195,7 @@ bool BehaviourNode::canAdoptChild(Node *child)
     Parameter* parameter = dynamic_cast<Parameter*>(child);
     if(parameter){
         if(!needsParameter(parameter)){
+            qCritical() << "DON'T Need PARAMETER!";
             return false;
         }
     }
@@ -182,30 +205,8 @@ bool BehaviourNode::canAdoptChild(Node *child)
 
 bool BehaviourNode::needsParameter(Parameter *p)
 {
-    QList<ParameterRequirement*> neededParameters = _parameters[getNodeKind()];
-
-    foreach(Node* child, getChildren(0)){
-        Parameter* childParam = dynamic_cast<Parameter*>(child);
-        if(childParam){
-
-            ParameterRequirement* matchingParam = 0;
-            foreach(ParameterRequirement* param, neededParameters){
-                if(param->matches(childParam)){
-                    matchingParam = param;
-                    break;
-                }
-            }
-            if(matchingParam){
-                neededParameters.removeAll(matchingParam);
-            }
-        }
-    }
-    if(neededParameters.isEmpty()){
-        return false;
-    }
-
-    foreach(ParameterRequirement* param, neededParameters){
-         if(param->matches(p)){
+    foreach(ParameterRequirement* param, getNeededParameters()){
+        if(param->matches(p)){
             return true;
         }
     }
@@ -251,10 +252,15 @@ bool ParameterRequirement::isReturnParameter()
 bool ParameterRequirement::matches(Parameter *p)
 {
     if(p){
-        if(p->getDataValue("label") != getName()){
+        QString label = p->getDataValue("label");
+        QString type = p->getDataValue("type");
+        if(label != "" && label != getName()){
             return false;
         }
-        if(p->getDataValue("type") != getType()){
+        if(type != "" && type != getType()){
+            return false;
+        }
+        if(p->isInputParameter() != isInputParameter()){
             return false;
         }
         return true;

@@ -90,6 +90,11 @@ QRectF NodeItem::minimumRect() const
     return boundingRect();
 }
 
+QPointF NodeItem::getCenterOffset() const
+{
+    return boundingRect().center();
+}
+
 
 QPointF NodeItem::getMinimumRectCenter() const
 {

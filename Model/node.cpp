@@ -455,7 +455,7 @@ QString Node::toGraphML(qint32 indentationLevel)
     QString returnable = QString(tabSpace + "<node id =\"%1\">\n").arg(getID());
 
     foreach(GraphMLData* data, attachedData){
-        if(data->getKeyName() == "isExpanded" && data->getValue() == "false"){
+        if(data->getKeyName() == "isExpanded" && !data->getBoolValue()){
             //Ignore false expansion.
             continue;
         }
