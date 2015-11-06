@@ -149,6 +149,7 @@ private slots:
     void redo();
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
+    void constructFunctionNode(int parentID, QString nodeKind, QString className, QString functionName, QPointF position);
     void constructEdge(int srcID, int dstID, bool reverseOkay = false);
     void destructEdge(int srcID, int dstID);
     void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);

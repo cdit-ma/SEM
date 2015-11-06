@@ -141,6 +141,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     newProject();
 
     fileDialog = 0;
+
+    //Load Icon into resource.
 }
 
 

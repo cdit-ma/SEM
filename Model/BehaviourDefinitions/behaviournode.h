@@ -7,7 +7,7 @@ class Parameter;
 
 class ParameterRequirement{
 public:
-    ParameterRequirement(QString name, QString type, bool inputParameter = true, QString defaultValue="");
+    ParameterRequirement(QString nodeKind, QString className, QString functionName, QString parameterName, QString type, bool inputParameter = true, QString defaultValue="");
     QString getName();
     QString getType();
     QString getValue();
@@ -15,10 +15,14 @@ public:
     bool isReturnParameter();
     bool matches(Parameter* p);
 private:
-    QString name;
-    QString type;
+    QString nodeKind;
+    QString className;
+    QString functionName;
+    QString parameterName;
+    QString parameterType;
     QString value;
-    bool inputParam;
+
+    bool inputParameter;
 };
 
 class BehaviourNode : public Node
@@ -47,7 +51,8 @@ private:
     QList<ParameterRequirement*> neededParameters;
 
 public:
-    static void addParameter(QString kind, QString name, QString type, bool inputParameter = true, QString defaultValue="");
+    static void addParameter(QString nodeKind, QString className, QString functionName, QString parameterName, QString parameterType, bool inputParameter = true, QString defaultValue="");
+    static QList<ParameterRequirement*> getParameters(QString nodeKind);
     static QHash<QString, QList<ParameterRequirement*> > _parameters;
 };
 

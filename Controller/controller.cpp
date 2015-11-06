@@ -112,6 +112,7 @@ void NewController::connectView(NodeView *view)
 
 
     if(view->isMainView()){
+        connect(view, SIGNAL(view_ConstructFunctionNode(int, QString, QString, QString, QPointF)), this, SLOT(constructFunctionNode(int,QString,QString,QString,QPointF)));
         connect(this, SIGNAL(controller_CanRedo(bool)), view, SLOT(canRedo(bool)));
         connect(this, SIGNAL(controller_CanUndo(bool)), view, SLOT(canUndo(bool)));
         connect(view, SIGNAL(view_constructDestructEdges(QList<int>, int)), this, SLOT(constructDestructMultipleEdges(QList<int>, int)));
@@ -554,8 +555,8 @@ void NewController::updateUndoRedoState()
 
 void NewController::setupParameters()
 {
-    BehaviourNode::addParameter("PeriodicEvent", "frequency", "number", true, "1");
-    BehaviourNode::addParameter("VectorOperation", "index", "number", true, "");
+    //BehaviourNode::addParameter("PeriodicEvent", "frequency", "number", true, "1");
+    BehaviourNode::addParameter("Process", "VectorOperation", "get", "index", "number",true);
 }
 
 void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataValue, bool addAction)
@@ -636,6 +637,36 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
         constructChildNode(parentNode, constructGraphMLDataVector(kind, centerPoint));
     }
     emit controller_ActionFinished();
+}
+
+void NewController::constructFunctionNode(int parentID, QString nodeKind, QString className, QString functionName, QPointF position)
+{
+    Node* parentNode = getNodeFromID(parentID);
+    QList<GraphMLData*> dataList = constructGraphMLDataVector(nodeKind, position);
+
+    foreach(GraphMLData* data, dataList){
+        if(data->getKeyName() == "worker"){
+            data->setValue(className);
+        }else if(data->getKeyName() == "operation"){
+            data->setValue(functionName);
+        }
+    }
+
+    //Get Parameters!
+
+    QList<ParameterRequirement*> parameters = BehaviourNode::getParameters(nodeKind);
+
+    foreach(ParameterRequirement* parameter, parameters){
+        qCritical() << parameter->getName();
+    }
+
+
+
+
+    triggerAction("Constructing Child FunctionNode");
+    constructChildNode(parentNode, dataList);
+    emit controller_ActionFinished();
+
 }
 
 void NewController::constructEdge(int srcID, int dstID, bool reverseOkay)

@@ -2594,6 +2594,10 @@ void NodeView::expand(bool expand)
  */
 void NodeView::constructNode(QString nodeKind, int sender)
 {
+    if(nodeKind == "VectorOperation"){
+        constructFunctionNode("Process", "VectorOperation", "Get", 0);
+        return;
+    }
     if(viewMutex.tryLock()){
         NodeItem* selectedItem = getSelectedNodeItem();
         if (selectedItem) {
@@ -4554,6 +4558,22 @@ void NodeView::deleteSelection()
 void NodeView::constructFunctionNode(QString nodeKind, QString className, QString functionName, int sender)
 {
     //Do stuff!
+    if(viewMutex.tryLock()){
+        NodeItem* item = getSelectedNodeItem();
+        if (item) {
+            toolbarDockConstruction = true;
+
+            QPointF position = item->getNextChildPos();
+
+            if(sender == 1){
+                // if from toolbar, place at closest grid point to the toolbar's position
+                position = item->mapFromScene(toolbarPosition);
+                position = item->getClosestGridPoint(position);
+            }
+
+            emit view_ConstructFunctionNode(item->getID(), nodeKind, className, functionName, position);
+        }
+    }
 }
 
 

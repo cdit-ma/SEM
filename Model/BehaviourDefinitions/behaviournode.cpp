@@ -33,11 +33,16 @@ bool BehaviourNode::isUnconnectable()
     return _isUnconnectable;
 }
 
-void BehaviourNode::addParameter(QString kind, QString name, QString type, bool inputParameter, QString defaultValue)
+void BehaviourNode::addParameter(QString nodeKind, QString className, QString functionName, QString parameterName, QString parameterType, bool inputParameter, QString defaultValue)
 {
-    ParameterRequirement* param = new ParameterRequirement(name, type, inputParameter, defaultValue);
-    qCritical() << "Added " << inputParameter << " Parameter: " << name << " To Kind: " << kind;
-    _parameters[kind].append(param);
+    ParameterRequirement* param = new ParameterRequirement(nodeKind, className, functionName, parameterName, parameterType, inputParameter, defaultValue);
+    qCritical() << "Added " << inputParameter << " Parameter: " << className << " To Kind: " << nodeKind;
+    _parameters[nodeKind].append(param);
+}
+
+QList<ParameterRequirement *> BehaviourNode::getParameters(QString nodeKind)
+{
+    return _parameters[nodeKind];
 }
 
 QList<ParameterRequirement *> BehaviourNode::getAllParameters()
@@ -215,23 +220,26 @@ bool BehaviourNode::needsParameter(Parameter *p)
 
 
 
-
-ParameterRequirement::ParameterRequirement(QString name, QString type, bool inputParameter, QString defaultValue)
+ParameterRequirement::ParameterRequirement(QString nodeKind, QString className, QString functionName, QString parameterName, QString type, bool inputParameter, QString defaultValue)
 {
-    this->name = name;
-    this->type = type;
-    this->inputParam = inputParameter;
+    this->nodeKind = nodeKind;
+    this->className = className;
+    this->functionName = functionName;
+    this->parameterName = parameterName;
+    this->parameterType = parameterType;
+    this->inputParameter = inputParameter;
     this->value = defaultValue;
+
 }
 
 QString ParameterRequirement::getName()
 {
-    return name;
+    return parameterName;
 }
 
 QString ParameterRequirement::getType()
 {
-    return type;
+    return parameterType;
 }
 
 QString ParameterRequirement::getValue()
@@ -241,12 +249,12 @@ QString ParameterRequirement::getValue()
 
 bool ParameterRequirement::isInputParameter()
 {
-    return inputParam;
+    return inputParameter;
 }
 
 bool ParameterRequirement::isReturnParameter()
 {
-    return !inputParam;
+    return !inputParameter;
 }
 
 bool ParameterRequirement::matches(Parameter *p)
