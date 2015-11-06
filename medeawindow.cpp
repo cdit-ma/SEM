@@ -132,6 +132,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     settingsLoading = false;
     maximizedSettingInitiallyChanged = false;
     nodeView = 0;
+    fileDialog = 0;
 
     initialiseJenkinsManager();
     initialiseCUTSManager();
@@ -139,8 +140,6 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseGUI();
     makeConnections();
     newProject();
-
-    fileDialog = 0;
 
     //Load Icon into resource.
 }
@@ -242,7 +241,6 @@ void MedeaWindow::modelReady()
     //Make the nodeView visable agian!
     if(nodeView){
         nodeView->setEnabled(true);
-        //nodeView->fitToScreen();
     }
 
     //cuts_runGeneration->trigger();
@@ -296,9 +294,11 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
             maximizedSettingInitiallyChanged = true;
         }
         if(boolValue){
-            setWindowState(Qt::WindowMaximized);
+            //setWindowState(Qt::WindowMaximized);
+            showMaximized();
         }else{
-            setWindowState(Qt::WindowNoState);
+            //setWindowState(Qt::WindowNoState);
+            showNormal();
         }
     }else if(keyName == WINDOW_FULL_SCREEN && isBool){
         setFullscreenMode(boolValue);
@@ -630,7 +630,7 @@ void MedeaWindow::initialiseGUI()
 
     // setup the menu, dock, search tools and toolbar
     setupMenu(menuButton);
-    setupDock(bodyLayout);
+    setupDocks(bodyLayout);
     setupSearchTools();
     setupToolbar(toolbarContainerLayout);
     setupMultiLineBox();
@@ -796,11 +796,11 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
 
 /**
- * @brief MedeaWindow::setupDock
+ * @brief MedeaWindow::setupDocks
  * Initialise and setup dock widgets.
  * @param layout
  */
-void MedeaWindow::setupDock(QHBoxLayout *layout)
+void MedeaWindow::setupDocks(QHBoxLayout *layout)
 {
     dockStandAloneDialog = new QDialog(this);
     docksArea = new QGroupBox(this);
@@ -812,17 +812,18 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     QVBoxLayout* dockAreaLayout = new QVBoxLayout();
     QHBoxLayout* dockButtonsHlayout = new QHBoxLayout();
 
-    partsButton = new DockToggleButton("P", this);
-    hardwareNodesButton = new DockToggleButton("H", this);
-
-    definitionsButton = new DockToggleButton("D", this);
+    partsButton = new DockToggleButton(PARTS_DOCK, this);
+    hardwareNodesButton = new DockToggleButton(HARDWARE_DOCK, this);
+    definitionsButton = new DockToggleButton(DEFINITIONS_DOCK, this);
+    functionsButton = new DockToggleButton(FUNCTIONS_DOCK, this);
 
     partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
     definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, definitionsButton);
     hardwareDock = new HardwareDockScrollArea("Nodes", nodeView, hardwareNodesButton);
+    functionsDock = new FunctionsDockScrollArea("Functions", nodeView, functionsButton);
 
     // width of the containers are fixed
-    boxWidth = (partsButton->getWidth()*3) + 30;
+    boxWidth = (partsButton->getWidth()*4) + 30;
 
     // set buttonBox's size and get rid of its border
     dockButtonsBox->setStyleSheet("border: 0px; padding: 0px 7px;");
@@ -832,16 +833,19 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     partsDock->setFixedWidth(boxWidth);
     definitionsDock->setFixedWidth(boxWidth);
     hardwareDock->setFixedWidth(boxWidth);
+    functionsDock->setFixedWidth(boxWidth);
 
     // set dock's font
     partsDock->widget()->setFont(guiFont);
     definitionsDock->widget()->setFont(guiFont);
     hardwareDock->widget()->setFont(guiFont);
+    functionsDock->widget()->setFont(guiFont);
 
     // set size policy for buttons
     partsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     hardwareNodesButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     definitionsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    functionsButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     // remove extra space in layouts
     dockButtonsHlayout->setMargin(0);
@@ -854,6 +858,7 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     // add widgets to/and layouts
     dockButtonsHlayout->addWidget(partsButton);
     dockButtonsHlayout->addWidget(definitionsButton);
+    dockButtonsHlayout->addWidget(functionsButton);
     dockButtonsHlayout->addWidget(hardwareNodesButton);
     dockButtonsHlayout->setAlignment(Qt::AlignHCenter);
     dockButtonsBox->setLayout(dockButtonsHlayout);
@@ -861,6 +866,7 @@ void MedeaWindow::setupDock(QHBoxLayout *layout)
     dockLayout->addWidget(dockButtonsBox);
     dockLayout->addWidget(partsDock);
     dockLayout->addWidget(definitionsDock);
+    dockLayout->addWidget(functionsDock);
     dockLayout->addWidget(hardwareDock);
     dockLayout->addStretch();
 
@@ -1232,8 +1238,8 @@ void MedeaWindow::setupController()
         controller->moveToThread(controllerThread);
 
     }
-    connect(this, SIGNAL(window_ConnectViewAndSetupModel(NodeView*)), controller, SLOT(connectViewAndSetupModel(NodeView*)));
 
+    connect(this, SIGNAL(window_ConnectViewAndSetupModel(NodeView*)), controller, SLOT(connectViewAndSetupModel(NodeView*)));
     emit window_ConnectViewAndSetupModel(nodeView);
 }
 
@@ -1265,9 +1271,6 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), workloadToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), assemblyToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), hardwareToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
-
-    connect(partsDock, SIGNAL(dock_openDefinitionsDock()), this, SLOT(forceOpenDefinitionsDock()));
-    connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
 
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
     connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));
@@ -1388,15 +1391,18 @@ void MedeaWindow::makeConnections()
     // DEMO CHANGE
     //connect(toolbarStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedToolbarClosed()));
 
+    connect(partsDock, SIGNAL(dock_forceOpenDock(DOCK_TYPE)), this, SLOT(forceOpenDock(DOCK_TYPE)));
+    connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
+
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
-
 
     connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 
     connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
     connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
+    connect(nodeView, SIGNAL(view_nodeSelected()), functionsDock, SLOT(updateCurrentNodeItem()));
 
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
     connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
@@ -1473,6 +1479,7 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
         nodeView->aspectGraphicsChanged();
     }
 
+    // isWindowMaximised == WINDOW_MAXIMIZED ???
     isWindowMaximized = isMaximized();
     updateWidgetsOnWindowChanged();
 }
@@ -1488,14 +1495,19 @@ void MedeaWindow::changeEvent(QEvent *event)
 {
     QWidget::changeEvent(event);
     if (event->type() == QEvent::WindowStateChange){
-
-        updateWidgetsOnWindowChanged();
+        if (isMaximized()) {
+            WINDOW_MAXIMIZED = isMaximized();
+        }
+        /*
         if(!isFullScreen()){
             WINDOW_MAXIMIZED = isMaximized();
         }
+        */
+        updateWidgetsOnWindowChanged();
     }
     if (nodeView) {
         nodeView->aspectGraphicsChanged();
+        nodeView->recenterView();
     }
 }
 
@@ -1612,7 +1624,7 @@ void MedeaWindow::cuts_runDeployment(QString filePath)
 
 /**
  * @brief MedeaWindow::validate_Exported
- * @param tempModelPath
+ * @param tempPath
  */
 void MedeaWindow::validate_Exported(QString tempModelPath)
 {
@@ -1808,10 +1820,6 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
     docksArea->setFixedHeight(boxHeight*2);
     dockStandAloneDialog->setFixedHeight(boxHeight + dockButtonsBox->height() + SPACER_HEIGHT/2);
 
-    updateWidgetMask(docksArea, dockButtonsBox, true);
-    updateToolbar();
-    updateDataTable();
-
     QRect canvasRect;
     canvasRect.setHeight(height()-1);
     canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
@@ -1834,6 +1842,9 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
         nodeView->recenterView();
     }
 
+    updateWidgetMask(docksArea, dockButtonsBox, true);
+    updateToolbar();
+    updateDataTable();
 }
 
 
@@ -1883,6 +1894,7 @@ void MedeaWindow::setupInitialSettings()
 
     // this only needs to happen once, the whole time the application is open
     partsDock->addDockNodeItems(guiKinds);
+    functionsDock->addDockNodeItems(functionKinds);
 
     // populate view aspects menu  once the nodeView and controller have been
     // constructed and connected - should only need to do this once
@@ -1912,7 +1924,8 @@ void MedeaWindow::setupInitialSettings()
     // initially hide the container for the data table
     dataTableBox->hide();
 
-    nodeView->fitToScreen();
+    //nodeView->fitToScreen();
+    //updateToolbar();
 }
 
 
@@ -2193,6 +2206,7 @@ void MedeaWindow::on_actionSearch_triggered()
         QString searchText = searchBar->text();
         QList<GraphMLItem*> searchResultItems = nodeView->search(searchText, getCheckedItems(0), getCheckedItems(1), getCheckedItems(2));
 
+        /*
         // if no items match the search checked kinds, display message box
         if (searchResultItems.isEmpty()) {
             if (searchResults->isVisible()) {
@@ -2204,6 +2218,7 @@ void MedeaWindow::on_actionSearch_triggered()
                                      QMessageBox::Ok);
             return;
         }
+        */
 
         // clear the list view and the old search items
         searchItems.clear();
@@ -2456,7 +2471,7 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
     } else if (action == "redo") {
         edit_redo->setEnabled(enable);
     } else if (action == "sort"){
-         actionSort->setEnabled(enable);
+        actionSort->setEnabled(enable);
     }else if (action == "singleSelection") {
         actionCenter->setEnabled(enable);
         actionZoomToFit->setEnabled(enable);
@@ -2761,20 +2776,11 @@ void MedeaWindow::newProject()
     QLayoutItem* child;
     while (resultsLayout->count() != 0) {
         child = resultsLayout->takeAt(0);
-        /*
-        if(child->layout()) {
-            remove(child->layout());
-        } else if (child->widget()) {
-            delete child->widget();
-        }
-        */
         delete child;
     }
 
     searchResults->close();
-
     resetGUI();
-
 }
 
 
@@ -2836,32 +2842,43 @@ void MedeaWindow::forceToggleAspect(VIEW_ASPECT aspect, bool on)
  * that was pressed is the only groupbox that is being displayed.
  * @param buttonName
  */
-void MedeaWindow::dockButtonPressed(QString buttonName)
+void MedeaWindow::dockButtonPressed(DOCK_TYPE dockType)
 {
-    DockToggleButton *b, *prevB;
+    DockToggleButton *button, *prevButton;
 
-    if (buttonName == "P") {
-        b = partsButton;
-    } else if (buttonName == "H") {
-        b = hardwareNodesButton;
-    } else if (buttonName == "D") {
-        b = definitionsButton;
+    switch (dockType) {
+    case PARTS_DOCK:
+        button = partsButton;
+        break;
+    case DEFINITIONS_DOCK:
+        button = definitionsButton;
+        break;
+    case FUNCTIONS_DOCK:
+        button = functionsButton;
+        break;
+    case HARDWARE_DOCK:
+        button = hardwareNodesButton;
+        break;
+    default:
+        qWarning() << "MedeaWindow::dockButtonPressed - Dock type not handled";
+        return;
     }
 
     // if the previously activated groupbox is still on display, hide it
-    if (prevPressedButton != 0 && prevPressedButton != b) {
-        prevB = b;
+    if (prevPressedButton != 0 && prevPressedButton != button) {
+        prevButton = button;
         prevPressedButton->hideContainer();
-        b = prevB;
+        button = prevButton;
     }
 
-    prevPressedButton = b;
+    prevPressedButton = button;
 
     // this allows mouse events to pass through the dock's hidden
     // groupbox when none of the docks are currently opened
     if (!partsButton->isSelected() &&
             !definitionsButton->isSelected() &&
-            !hardwareNodesButton->isSelected()) {
+            !hardwareNodesButton->isSelected() &&
+            !functionsButton->isSelected()) {
         updateWidgetMask(docksArea, dockButtonsBox);
     } else {
         docksArea->clearMask();
@@ -2870,15 +2887,27 @@ void MedeaWindow::dockButtonPressed(QString buttonName)
 
 
 /**
- * @brief MedeaWindow::forceOpenDefinitionsDock
+ * @brief MedeaWindow::forceOpenDock
  * This slot is called when a DockNodeItem of kind ComponentInstance or ComponentImpl
  * is clicked from the parts dock. It stops the user from being able to construct a
  * ComponentInstance or ComponentImpl that isn't connected to a Component definition.
  */
-void MedeaWindow::forceOpenDefinitionsDock()
+void MedeaWindow::forceOpenDock(DOCK_TYPE type)
 {
     if (partsButton->isSelected()) {
-        definitionsButton->pressed();
+        switch (type) {
+        case DEFINITIONS_DOCK:
+            definitionsButton->pressed();
+            break;
+        case FUNCTIONS_DOCK:
+            if (!functionsButton->isEnabled()) {
+                functionsButton->setEnabled(true);
+            }
+            functionsButton->pressed();
+            break;
+        default:
+            break;
+        }
     }
 }
 

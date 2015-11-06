@@ -20,10 +20,9 @@ public slots:
     void updateDock();
     void clear();
 
-    void refreshDock();
-    void resortDockItems(DockNodeItem* dockItem);
-
     void nodeConstructed(NodeItem* nodeItem);
+    void insertDockNodeItem(DockNodeItem* dockItem);
+    void refreshDock();
 
 private:
     void showDockItemsOfKind(QString kind = "");

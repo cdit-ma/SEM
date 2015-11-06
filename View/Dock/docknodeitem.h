@@ -12,7 +12,7 @@ class DockNodeItem : public QPushButton
 {
     Q_OBJECT
 public:
-    explicit DockNodeItem(QString kind = "", EntityItem* item = 0, QWidget* parent = 0);
+    explicit DockNodeItem(QString kind = "", EntityItem* item = 0, QWidget* parent = 0, bool isLabel = false);
 
     EntityItem* getNodeItem();
     QString getKind();

@@ -46,6 +46,7 @@
 #include "View/Dock/partsdockscrollarea.h"
 #include "View/Dock/definitionsdockscrollarea.h"
 #include "View/Dock/hardwaredockscrollarea.h"
+#include "View/Dock/functionsdockscrollarea.h"
 
 #include "View/Validate/validatedialog.h"
 
@@ -162,8 +163,8 @@ private slots:
     void graphicsItemSelected();
     void graphicsItemDeleted();
 
-    void dockButtonPressed(QString buttonName);
-    void forceOpenDefinitionsDock();
+    void dockButtonPressed(DOCK_TYPE dockType);
+    void forceOpenDock(DOCK_TYPE type);
 
     void updateWindowTitle(QString newProjectName);
     void updateProgressStatus(int value, QString status);
@@ -216,7 +217,7 @@ private:
 
     void setupController();
     void setupMenu(QPushButton* button);
-    void setupDock(QHBoxLayout* layout);
+    void setupDocks(QHBoxLayout* layout);
     void setupSearchTools();
 
     void setupToolbar(QVBoxLayout* layout);
@@ -302,10 +303,13 @@ private:
     DockToggleButton* partsButton;
     DockToggleButton* hardwareNodesButton;
     DockToggleButton* definitionsButton;
+    DockToggleButton* functionsButton;
     DockToggleButton* prevPressedButton;
+
     PartsDockScrollArea* partsDock;
-    DefinitionsDockScrollArea* definitionsDock;
     HardwareDockScrollArea* hardwareDock;
+    DefinitionsDockScrollArea* definitionsDock;
+    FunctionsDockScrollArea* functionsDock;
 
     QDialog* dockStandAloneDialog;
     QGroupBox* docksArea;

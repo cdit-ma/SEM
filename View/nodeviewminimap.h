@@ -22,9 +22,11 @@ public slots:
 
 private:
     void setupLayout();
+    void fitToScreen();
+    bool viewportContainsPoint(QPointF localPos);
+
     QPointF previousScenePos;
     QRectF viewport;
-    bool viewportContainsPoint(QPointF localPos);
     bool isPanning;
 
 protected:

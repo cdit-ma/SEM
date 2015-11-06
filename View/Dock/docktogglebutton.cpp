@@ -14,10 +14,11 @@
 
 /**
  * @brief DockToggleButton::DockToggleButton
- * @param label
+ * @param type
+ * @param window
  * @param parent
  */
-DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *parent) :
+DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget *parent) :
     QPushButton(parent)
 {
     selected = false;
@@ -37,11 +38,10 @@ DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *
     selectedBrushColor = Qt::white;
     brushColor = defaultBrushColor;
 
-    kind = label;
+    dockType = type;
     width = 40;
     height = 40;
 
-    setText(label);
     setFixedSize(width + 10, height + 10);
 
     QVBoxLayout* vLayout = new QVBoxLayout();
@@ -51,13 +51,23 @@ DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *
     QSize labelSize = size();
 
     QPixmap pixmap;
-    if (label == "P") {
+    switch (type) {
+    case PARTS_DOCK:
         pixmap = QPixmap::fromImage(QImage(":/Actions/Parts.png"));
-    } else if (label == "H") {
-        pixmap = QPixmap::fromImage(QImage(":/Items/HardwareNode.png"));
-    } else if (label == "D") {
+        break;
+    case DEFINITIONS_DOCK:
         pixmap = QPixmap::fromImage(QImage(":/Actions/Definition.png"));
         pixmapSize /= 1.5;
+        break;
+    case FUNCTIONS_DOCK:
+        pixmap = QPixmap::fromImage(QImage(":/Actions/Function.png"));
+        pixmapSize /= 1.25;
+        break;
+    case HARDWARE_DOCK:
+        pixmap = QPixmap::fromImage(QImage(":/Items/HardwareNode.png"));
+        break;
+    default:
+        break;
     }
 
     pixmap = pixmap.scaled(pixmapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -74,7 +84,7 @@ DockToggleButton::DockToggleButton(QString label, MedeaWindow *window, QWidget *
 
     // make connections
     connect(this, SIGNAL(pressed()), this, SLOT(on_buttonPressed()));
-    connect(this, SIGNAL(dockButton_pressed(QString)), window, SLOT(dockButtonPressed(QString)));
+    connect(this, SIGNAL(dockButton_pressed(DOCK_TYPE)), window, SLOT(dockButtonPressed(DOCK_TYPE)));
 }
 
 
@@ -191,13 +201,12 @@ int DockToggleButton::getWidth()
 
 
 /**
- * @brief DockToggleButton::getKind
- * Returns the kind of this button.
- * @return - P, D, H
+ * @brief DockToggleButton::getDockType
+ * @return
  */
-QString DockToggleButton::getKind()
+DOCK_TYPE DockToggleButton::getDockType()
 {
-    return kind;
+    return dockType;
 }
 
 
@@ -215,7 +224,7 @@ void DockToggleButton::on_buttonPressed()
         selected = true;
         setColor(SELECTED, true);
     }
-    emit dockButton_pressed(this->text());
+    emit dockButton_pressed(dockType);
     emit dockButton_dockOpen(selected);
 }
 
@@ -245,6 +254,7 @@ void DockToggleButton::setColor(int state, bool needRepaint)
         brushColor = selectedBrushColor;
         break;
     }
+
     if (needRepaint) {
         repaint();
     }
@@ -256,19 +266,20 @@ void DockToggleButton::setColor(int state, bool needRepaint)
  * This enables/disables this dock toggle button, updating its selected and enabled state and its colour.
  * If this button was previously selected, it makes sure that the dock attched to it is closed.
  * @param enable
+ * @param repaint
  */
-void DockToggleButton::setEnabled(bool enable)
+void DockToggleButton::setEnabled(bool enable, bool repaint)
 {
     if (enable) {
         if (selected) {
-            setColor(SELECTED);
+            setColor(SELECTED, repaint);
         } else {
-            setColor(DEFAULT);
+            setColor(DEFAULT, repaint);
         }
     } else {
         hideContainer();
         setSelected(false);
-        setColor(DISABLED);
+        setColor(DISABLED, repaint);
     }
 	
 	enabled = enable;

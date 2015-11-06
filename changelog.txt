@@ -34,7 +34,6 @@ Together:
 * Initial Window State + Centralizing of Model
 
 
-
 Dan To Fix:
 * performance testing
 * settings into tab
@@ -91,7 +90,7 @@ Version 18:
         * Context toolbar's connect menu now doesn't display the parent entity for entities that have the same parent as the selected entity.
         * Added Fullscreen mode (F11)
 		* Added context toolbar button for multiple selection to expand/contract.
-
+		* Implemented Functions dock.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.

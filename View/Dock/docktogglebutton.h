@@ -5,6 +5,7 @@
 #include <QGroupBox>
 
 #include "../../Model/node.h"
+#include "enumerations.h"
 
 
 class MedeaWindow;
@@ -15,27 +16,27 @@ class DockToggleButton : public QPushButton
     Q_OBJECT
 
 public:
-    explicit DockToggleButton(QString label, MedeaWindow *window, QWidget* parent = 0);
+    explicit DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget* parent = 0);
     ~DockToggleButton();
 
     void setSelected(bool b);
     bool isSelected();
+
+    void setEnabled(bool enable, bool repaint = false);
+    bool isEnabled();
 
     DockScrollArea* getContainer();
     void setContainer(DockScrollArea* area);
     void hideContainer();
 
     int getWidth();
-    QString getKind();
-
-    void setEnabled(bool enable);
-    bool isEnabled();
+    DOCK_TYPE getDockType();
 
 protected:
     void paintEvent(QPaintEvent* e);
 
 signals:
-    void dockButton_pressed(QString buttonName);
+    void dockButton_pressed(DOCK_TYPE type);
     void dockButton_dockOpen(bool open);
 
 public slots:
@@ -60,6 +61,7 @@ private:
     int defaultPenWidth;
     int selectedPenWidth;
 
+    DOCK_TYPE dockType;
     QString kind;
     int width;
     int height;

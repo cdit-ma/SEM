@@ -16,7 +16,7 @@
  * @param _kind
  * @param parent
  */
-DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent) :
+DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool isLabel) :
     QPushButton(parent)
 {
     parentDock = dynamic_cast<DockScrollArea*>(parent);
@@ -43,7 +43,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent) :
 
         // if kind == FileLabel, don't create an icon
         if (kind == "FileLabel") {
-            fileLabel = true;
+            //fileLabel = true;
             this->kind = kind;
         }
 
@@ -54,6 +54,8 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent) :
         label = kind;
         strID = kind;
     }
+
+    fileLabel = isLabel;
 
     setupLayout();
     updateStyleSheet();
@@ -267,10 +269,10 @@ void DockNodeItem::setupLayout()
     textLabel->setFixedSize(width()-2, 21);
 
     if (fileLabel) {
-        setFixedSize(100, 28);
+        setFixedSize(141, 28);
         textLabel->setAlignment(Qt::AlignHCenter);
     } else {
-        setFixedSize(100, 100);
+        setFixedSize(141, 100);
         textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     }
 

@@ -3,6 +3,10 @@
 #include <QDebug>
 #include <QMouseEvent>
 #include <QPen>
+#include <QGraphicsItem>
+#include <QVBoxLayout>
+#include <QLabel>
+
 #define GRID_COUNT 50
 //#define LINEWIDTH 400
 #define LINEWIDTH 10
@@ -12,8 +16,6 @@
 #define ZOOM_SCALE_DECREMENTOR 1.0 / ZOOM_SCALE_INCREMENTOR
 #define MAX_ZOOM_RATIO 50
 #define MIN_ZOOM_RATIO 2
-#include <QVBoxLayout>
-#include <QLabel>
 
 NodeViewMinimap::NodeViewMinimap(QObject*)
 {
@@ -37,6 +39,7 @@ void NodeViewMinimap::centerView()
 {
     if (scene()) {
         fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
+        //fitToScreen();
     }
 }
 
@@ -57,6 +60,28 @@ void NodeViewMinimap::setupLayout()
     layout->addStretch();
 
     setLayout(layout);
+}
+
+
+/**
+ * @brief NodeViewMinimap::fitToScreen
+ */
+void NodeViewMinimap::fitToScreen()
+{
+    if (!scene()) {
+        return;
+    }
+
+    QList<QGraphicsItem*> itemsToCenter = scene()->items();
+    QRectF visibleItemsRect;
+
+    foreach (QGraphicsItem* item, itemsToCenter) {
+        if (item->isVisible()) {
+            visibleItemsRect = visibleItemsRect.united(item->sceneBoundingRect());
+        }
+    }
+
+    fitInView(visibleItemsRect, Qt::KeepAspectRatio);
 }
 
 

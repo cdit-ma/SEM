@@ -165,7 +165,6 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     QString selectedNodeKind = selectedNodeItem->getNodeKind();
     int selectedNodeID = selectedNodeItem->getID();
     int dockNodeID = dockNodeItem->getID().toInt();
-
     if (selectedNodeKind == "ComponentAssembly") {
         getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, dockNodeItem->getKind() + "Instance", 0);
     } else if (selectedNodeKind == "BlackBoxInstance" || selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ComponentImpl") {
@@ -260,15 +259,16 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
         // check if there is already a layout and label for the parent File
         if (!fileLayoutItems.contains(fileID)){
             // create a new File label and add it to the File's layout
-            DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
+            //DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this);
+            DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this, true);
             QVBoxLayout* fileLayout = new QVBoxLayout();
 
             fileLayoutItems[fileID] = fileLayout;
             fileLayout->addWidget(fileDockItem);
             addDockNodeItem(fileDockItem, -1, false);
 
-            resortDockItems(fileDockItem);
-            connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
+            insertDockNodeItem(fileDockItem);
+            connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
         }
 
         // connect the new dock item to its parent file item
@@ -282,8 +282,8 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
             QVBoxLayout* fileLayout = fileLayoutItems[fileID];
             fileLayout->addWidget(dockItem);
             addDockNodeItem(dockItem, -1, false);
-            resortDockItems(dockItem);
-            connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(resortDockItems(DockNodeItem*)));
+            insertDockNodeItem(dockItem);
+            connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
         }
     }
 
@@ -302,10 +302,10 @@ void DefinitionsDockScrollArea::refreshDock()
 
 
 /**
- * @brief DefinitionsDockScrollArea::resortDockItems
+ * @brief DefinitionsDockScrollArea::insertDockNodeItem
  * @param dockItem
  */
-void DefinitionsDockScrollArea::resortDockItems(DockNodeItem* dockItem)
+void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
 {
     if (!dockItem) {
         return;
@@ -337,7 +337,7 @@ void DefinitionsDockScrollArea::resortDockItems(DockNodeItem* dockItem)
     }
 
     if (!layoutToSort) {
-        qWarning() << "DefinitionsDockScrollArea::resortDockItems - Layout to sort is null.";
+        qWarning() << "DefinitionsDockScrollArea::insertDockNodeItem - Layout to sort is null.";
         return;
     }
 

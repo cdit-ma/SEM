@@ -309,7 +309,7 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
     rect.setWidth(rect.width() * padding);
     rect.setHeight(rect.height() * padding);
 
-    if(isSubView()){
+    if (isSubView()) {
         visibleViewRect = viewport()->rect();
     }
 
@@ -995,10 +995,9 @@ bool NodeView::viewportEvent(QEvent * e)
 {
     emit view_ViewportRectChanged(getVisibleRect());
     emit view_ZoomChanged(transform().m11());
-
-
     return QGraphicsView::viewportEvent(e);
 }
+
 
 /**
  * @brief NodeView::actionFinished Called when the Controller has finished running an Action
@@ -4523,12 +4522,11 @@ void NodeView::setConnectMode(bool on)
  */
 void NodeView::fitToScreen(QList<GraphMLItem *> itemsToCenter, double padding, bool addToMap)
 {
-
     if (itemsToCenter.isEmpty() && getModelItem()) {
         ModelItem* modelItem = getModelItem();
-        if(modelItem->getVisibleAspects().isEmpty()){
+        if (modelItem->getVisibleAspects().isEmpty()) {
             itemsToCenter.append(getModelItem());
-        }else{
+        } else {
             itemsToCenter.append(getModelItem()->getChildren());
         }
     }

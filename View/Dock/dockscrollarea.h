@@ -34,7 +34,7 @@ public:
 
     bool isDockOpen();
     bool isDockEnabled();
-    void setDockEnabled(bool enabled);
+    void setDockEnabled(bool enabled, bool repaint = false);
 
     DockToggleButton* getParentButton();
     NodeItem* getCurrentNodeItem();
@@ -48,6 +48,10 @@ public:
 
     virtual void nodeDeleted(QString nodeID);
     virtual void edgeDeleted();
+
+signals:
+    void dock_opened();
+    void dock_closed();
 
 public slots:
     virtual void dockNodeItemClicked() = 0;

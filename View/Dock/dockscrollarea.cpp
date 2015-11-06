@@ -258,10 +258,10 @@ bool DockScrollArea::isDockEnabled()
  * @brief DockScrollArea::setDockEnabled
  * @param enabled
  */
-void DockScrollArea::setDockEnabled(bool enabled)
+void DockScrollArea::setDockEnabled(bool enabled, bool repaint)
 {
     if (getParentButton()) {
-        getParentButton()->setEnabled(enabled);
+        getParentButton()->setEnabled(enabled, repaint);
     }
 }
 
@@ -403,8 +403,10 @@ void DockScrollArea::on_parentButtonPressed()
 {
     if (dockOpen) {
         dockOpen = false;
+        emit dock_closed();
     } else {
         dockOpen = true;
+        emit dock_opened();
     }
     setVisible(dockOpen);
 }
