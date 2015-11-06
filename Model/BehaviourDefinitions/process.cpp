@@ -8,10 +8,11 @@ Process::~Process(){}
 
 bool Process::canConnect(Node*)
 {
+
     return false;
 }
 
 bool Process::canAdoptChild(Node*)
 {
-    return false;
+    return true;
 }

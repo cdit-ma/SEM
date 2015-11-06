@@ -220,7 +220,7 @@ bool BehaviourNode::needsParameter(Parameter *p)
 
 
 
-ParameterRequirement::ParameterRequirement(QString nodeKind, QString className, QString functionName, QString parameterName, QString type, bool inputParameter, QString defaultValue)
+ParameterRequirement::ParameterRequirement(QString nodeKind, QString className, QString functionName, QString parameterName, QString parameterType, bool inputParameter, QString defaultValue)
 {
     this->nodeKind = nodeKind;
     this->className = className;

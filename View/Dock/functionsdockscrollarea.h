@@ -16,6 +16,7 @@ public:
 public slots:
     void dockNodeItemClicked();
     void updateDock();
+    void clear();
 
     void insertDockNodeItem(DockNodeItem* dockItem);
 

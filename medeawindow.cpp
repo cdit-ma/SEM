@@ -1396,6 +1396,7 @@ void MedeaWindow::makeConnections()
 
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
+    connect(this, SIGNAL(clearDocks()), functionsDock, SLOT(clear()));
 
     connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
 

@@ -68,7 +68,7 @@ NewController::NewController()
 
 
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
-    behaviourNodeKinds << "WhileLoop" << "VectorOperation" << "InputParameter" << "ReturnParameter";;
+    behaviourNodeKinds << "WhileLoop" << "VectorOperation" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "VectorInstance";
 
 
     //Append Kinds which can't be constructed by the GUI.
@@ -555,8 +555,10 @@ void NewController::updateUndoRedoState()
 
 void NewController::setupParameters()
 {
-    //BehaviourNode::addParameter("PeriodicEvent", "frequency", "number", true, "1");
-    BehaviourNode::addParameter("Process", "VectorOperation", "get", "index", "number",true);
+    //Vector Get
+    BehaviourNode::addParameter("Process", "VectorOperation", "get", "vector", "vector", true);
+    BehaviourNode::addParameter("Process", "VectorOperation", "get", "index", "number", true);
+    BehaviourNode::addParameter("Process", "VectorOperation", "get", "value", "", false);
 }
 
 void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataValue, bool addAction)
@@ -660,7 +662,7 @@ void NewController::constructFunctionNode(int parentID, QString nodeKind, QStrin
     QList<ParameterRequirement*> parameters = BehaviourNode::getParameters(nodeKind);
 
     foreach(ParameterRequirement* parameter, parameters){
-        //constructChildParameter(parameter);
+        constructChildParameter(processFunction, parameter);
     }
 
 
@@ -1190,7 +1192,8 @@ QStringList NewController::getAdoptableNodeKinds(int ID)
 
             //Ignore AggregateInstance for all kinds except Aggregate's
             if(nodeKind == "AggregateInstance"){
-                if(parent->getDataValue("kind") != "Aggregate"){
+                QString parentNodeKind = parent->getDataValue("kind");
+                if(parentNodeKind != "Aggregate" && parentNodeKind != "Variable" && parentNodeKind != "Vector"){
                     continue;
                 }
             }
@@ -1209,6 +1212,7 @@ QStringList NewController::getAdoptableNodeKinds(int ID)
         }
     }
 
+    qCritical() << adoptableNodeTypes;
     return adoptableNodeTypes;
 }
 
@@ -1670,12 +1674,24 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
 
 Parameter *NewController::constructChildParameter(Node *parentNode, ParameterRequirement *requirement)
 {
-    //QList<GraphMLData*> dataList = constructGraphMLDataVector(nodeKind, position);
+    QString nodeKind = "InputParameter";
+    if(requirement->isReturnParameter()){
+        nodeKind = "ReturnParameter";
+    }
 
-    //QString nodeKind = "InputParameter";
-    //if(Parameter)
-    //constructChildNode(parentNode, constructGraphMLDataVector("InputParameter"));
-    return 0;
+    QList<GraphMLData*> dataList = constructGraphMLDataVector(nodeKind);
+
+    foreach(GraphMLData* data, dataList){
+        if(data->getKeyName() == "label"){
+            data->setValue(requirement->getName());
+        }else if(data->getKeyName() == "type"){
+            data->setValue(requirement->getType());
+        }else if(data->getKeyName() == "value"){
+            data->setValue(requirement->getValue());
+        }
+    }
+
+    return (Parameter*) constructChildNode(parentNode, dataList);
 }
 
 QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind, QPointF relativePosition)
@@ -1786,7 +1802,6 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     if(nodeKind == "Vector"){
         GraphMLKey* sizeKey = constructGraphMLKey("max_size", "int", "node");
         data.append(new GraphMLData(sizeKey, "0"));
-        data.append(new GraphMLData(typeKey, ""));
     }
 
     if(nodeKind == "AttributeInstance"){
@@ -2915,7 +2930,17 @@ void NewController::constructNodeGUI(Node *node)
     if(node->getParentNode()){
         //Set the ParentNode ID if we have a Parent.
         action.parentID = node->getParentNode()->getID();
+
+        //Variable.
+        Node* parentNode = node->getParentNode();
+        if(parentNode->getNodeKind() == "Variable"){
+            GraphMLData* typeData = parentNode->getData("type");
+            GraphMLData* childType = node->getData("type");
+            childType->bindData(typeData, true);
+        }
     }
+
+
 
 
 

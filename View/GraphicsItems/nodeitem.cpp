@@ -337,7 +337,7 @@ QPointF NodeItem::getNextChildPos(QRectF itemRect, QPainterPath childrenPath, bo
 
         // add the children's bounding rectangles to the children path
         foreach (GraphMLItem* child, getChildren()) {
-            if (child && child->isVisible()) {
+            if (child) {
                 childrenPath.addRect(child->translatedBoundingRect());
             }
         }

@@ -15,23 +15,9 @@
 #include <QPair>
 #include <string>
 
-/*
- * Use this to override and set your own custom icon sizes in a QMenu
-#include <QStyle>
-#include <QProxyStyle>
-class MyStyle: public QProxyStyle
-{
-    public:
+//ICON_LINK
+//https://www.google.com/design/icons/index.html
 
-    int pixelMetric(PixelMetric metric, const QStyleOption * option = 0, const QWidget * widget = 0 ) const {
-        int s = QProxyStyle::pixelMetric(metric, option, widget);
-        if (metric == QStyle::PM_SmallIconSize) {
-            s = 20;
-        }
-        return s;
-    }
-};
-*/
 
 
 int main(int argc, char *argv[])

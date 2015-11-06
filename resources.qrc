@@ -186,6 +186,8 @@
         <file alias="sortOrder.png">Resources/Images/Data/sortOrder.png</file>
         <file alias="value.png">Resources/Images/Data/value.png</file>
         <file alias="frequency.png">Resources/Images/Data/frequency.png</file>
+        <file alias="function.png">Resources/Images/Data/function.png</file>
+        <file alias="index.png">Resources/Images/Data/index.png</file>
     </qresource>
     <qresource prefix="/Functions"/>
 </RCC>

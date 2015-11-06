@@ -97,6 +97,12 @@ void FunctionsDockScrollArea::updateDock()
     }
 }
 
+void FunctionsDockScrollArea::clear()
+{
+    DockScrollArea::clear();
+    classLayoutItems.clear();
+}
+
 
 /**
  * @brief FunctionsDockScrollArea::insertDockNodeItem

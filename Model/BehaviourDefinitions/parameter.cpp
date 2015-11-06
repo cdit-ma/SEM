@@ -45,8 +45,14 @@ bool Parameter::canConnect(Node *node)
             QStringList okayTypes;
             if(type == "number"){
                 okayTypes << "int" << "float" << "double" << "longinteger";
-            }else{
-                okayTypes << "string";
+            }else if(type == "vector"){
+                //ANY VECTOR
+                if(node->childrenCount() == 1){
+                    Node* nodeChild = node->getChildren(0)[0];
+                    if(nodeChild->getNodeKind() == "VectorInstance"){
+                        connectOkay = true;
+                    }
+                }
             }
             QString connectType = node->getDataValue("type");
             if(okayTypes.contains(connectType.toLower())){
