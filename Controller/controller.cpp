@@ -654,17 +654,16 @@ void NewController::constructFunctionNode(int parentID, QString nodeKind, QStrin
 
     //Get Parameters!
 
+    triggerAction("Constructing Child FunctionNode");
+    Node* processFunction = constructChildNode(parentNode, dataList);
+
     QList<ParameterRequirement*> parameters = BehaviourNode::getParameters(nodeKind);
 
     foreach(ParameterRequirement* parameter, parameters){
-        qCritical() << parameter->getName();
+        //constructChildParameter(parameter);
     }
 
 
-
-
-    triggerAction("Constructing Child FunctionNode");
-    constructChildNode(parentNode, dataList);
     emit controller_ActionFinished();
 
 }
@@ -1667,6 +1666,16 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
         }
     }
     return node;
+}
+
+Parameter *NewController::constructChildParameter(Node *parentNode, ParameterRequirement *requirement)
+{
+    //QList<GraphMLData*> dataList = constructGraphMLDataVector(nodeKind, position);
+
+    //QString nodeKind = "InputParameter";
+    //if(Parameter)
+    //constructChildNode(parentNode, constructGraphMLDataVector("InputParameter"));
+    return 0;
 }
 
 QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind, QPointF relativePosition)

@@ -242,6 +242,7 @@ private:
     Node* constructChildNode(Node* parentNode, QList<GraphMLData*> dataToAttach);
 
 
+    Parameter* constructChildParameter(Node* parentNode, ParameterRequirement* requirement);
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
     void constructNodeGUI(Node* node);
     void constructEdgeGUI(Edge* edge);
