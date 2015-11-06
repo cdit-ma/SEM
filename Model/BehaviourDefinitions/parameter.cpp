@@ -34,7 +34,7 @@ bool Parameter::canConnect(Node *node)
     Parameter* parameter = dynamic_cast<Parameter*>(node);
     bool connectOkay = false;
     if(memberInstance || variable || attributeImpl || parameter){
-        bool canConnect=BehaviourNode::canConnect(node);
+        bool canConnect = BehaviourNode::canConnect(node);
         //Ch
         if(canConnect){
             if(parameter && parameter->isInputParameter() == this->isInputParameter()){
@@ -43,22 +43,28 @@ bool Parameter::canConnect(Node *node)
 
             QString type = getDataValue("type");
             QStringList okayTypes;
-            if(type == "number"){
-                okayTypes << "int" << "float" << "double" << "longinteger";
-            }else if(type == "vector"){
+
+            if(type == "vector"){
                 //ANY VECTOR
                 if(node->childrenCount() == 1){
                     Node* nodeChild = node->getChildren(0)[0];
                     if(nodeChild->getNodeKind() == "VectorInstance"){
                         connectOkay = true;
                     }
+                }else{
+                    connectOkay = false;
+                }
+            }else{
+                if(type == "number"){
+                    okayTypes << "int" << "float" << "double" << "longinteger";
+                }
+                QString connectType = node->getDataValue("type");
+                if(okayTypes.contains(connectType.toLower())){
+                    connectOkay = true;
                 }
             }
-            QString connectType = node->getDataValue("type");
-            if(okayTypes.contains(connectType.toLower())){
-                connectOkay = true;
-            }
         }
+
     }
     return connectOkay;
 }

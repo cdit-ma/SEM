@@ -148,6 +148,9 @@ public:
     qreal getWidth() const;
     qreal getHeight() const;
 
+    qreal getCurrentWidth() const;
+    qreal getCurrentHeight() const;
+
     double getExpandedWidth() const;
     double getExpandedHeight() const;
 

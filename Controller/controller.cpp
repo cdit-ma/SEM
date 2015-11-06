@@ -68,7 +68,7 @@ NewController::NewController()
 
 
     behaviourNodeKinds << "BranchState" << "Condition" << "PeriodicEvent" << "Process" << "Termination" << "Variable" << "Workload" << "OutEventPortImpl";
-    behaviourNodeKinds << "WhileLoop" << "VectorOperation" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "VectorInstance";
+    behaviourNodeKinds << "WhileLoop" << "InputParameter" << "ReturnParameter" << "AggregateInstance" << "VectorInstance";
 
 
     //Append Kinds which can't be constructed by the GUI.
@@ -587,6 +587,8 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataV
     if(data){
         if(data->gotDoubleValue()){
             action.dataValueNum = data->getDoubleValue();
+            qCritical() << action.keyName <<": WAS" << action.dataValueNum;
+            qCritical() << action.keyName <<": NOW" << dataValue;
         }
 
         if(parent->isNode() && keyName == "sortOrder"){
@@ -1211,8 +1213,6 @@ QStringList NewController::getAdoptableNodeKinds(int ID)
             }
         }
     }
-
-    qCritical() << adoptableNodeTypes;
     return adoptableNodeTypes;
 }
 
@@ -1625,7 +1625,6 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
 
 
     if(!isInModel){
-        qCritical() << node->toString();
         if(parentNode->canAdoptChild(node)){
             parentNode->addChild(node);
 
@@ -1651,20 +1650,15 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
     }
     Parameter* param = dynamic_cast<Parameter*>(node);
     if(param){
-        qCritical() << "PARAMETER";
         if(param->isInputParameter()){
             GraphMLData* paramLabel = param->getData("label");
             GraphMLData* paramValue = param->getData("value");
             if(paramLabel){
                 QString paramName = paramLabel->getValue();
                 GraphMLData* parentData = parentNode->getData(paramName);
-                if(parentData){/*
-                    qCritical() << "SETTING PARENT DATA!";
-                    qCritical() << paramValue << parentData;
-                    qCritical() << paramValue->getValue()  << parentData->getValue();*/
+                if(parentData){
                     parentData->bindData(paramValue, false);
                     paramValue->bindData(parentData, false);
-
                 }
             }
         }
@@ -1835,16 +1829,6 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
             data.append(new GraphMLData(valueKey));
         }
         data.append(new GraphMLData(typeKey, "", true));
-    }
-    if(nodeKind == "VectorOperation"){
-        GraphMLKey* indexKey = constructGraphMLKey("index", "string", "node");
-        GraphMLKey* vectorKey = constructGraphMLKey("vector", "string", "node");
-        GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
-        GraphMLKey* operationKey = constructGraphMLKey("operation", "string", "node");
-        data.append(new GraphMLData(indexKey));
-        data.append(new GraphMLData(vectorKey));
-        data.append(new GraphMLData(valueKey));
-        data.append(new GraphMLData(operationKey));
     }
     return data;
 }
@@ -2902,8 +2886,6 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
         return new InputParameter();
     }else if(nodeKind == "ReturnParameter"){
         return new ReturnParameter();
-    }else if(nodeKind == "VectorOperation"){
-        return new VectorOperation();
     }else{
         qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
         return new BlankNode();
@@ -4377,6 +4359,15 @@ bool NewController::canDelete(QList<int> selection)
             return false;
         }
         if(node->getParentNode()){
+            Parameter* pNode = dynamic_cast<Parameter*>(node);
+            Variable* vNode = dynamic_cast<Variable*>(node->getParentNode());
+            if(pNode){
+                return false;
+            }
+            if(vNode && node->isInstance()){
+                //Can't Instance things inside Variables!
+                return false;
+            }
             if(node->isImpl() && node->getDefinition()){
                 if(node->getDataValue("kind") != "OutEventPortImpl"){
                     return false;

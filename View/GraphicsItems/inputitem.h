@@ -21,6 +21,7 @@ public:
     void setBrush(QBrush brush);
 
     void setToolTipString(QString tooltip);
+    bool isTruncated();
 
 
     void setDropDown(bool isCombo);

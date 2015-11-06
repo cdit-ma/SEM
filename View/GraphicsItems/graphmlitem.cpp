@@ -191,7 +191,6 @@ void GraphMLItem::setGraphMLData(QString keyName, qreal value)
 {
     GraphMLData* data = getGraphML()->getData(keyName);
     if(data){
-        qCritical() << value;
         data->setValue(value);
     }
 }

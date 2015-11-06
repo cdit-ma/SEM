@@ -59,9 +59,7 @@ QRectF NodeItem::childrenBoundingRect()
     QRectF rect;
     foreach(GraphMLItem* child, getChildren()){
         if(!child->isEdgeItem()){
-            QRectF childRect = child->boundingRect();
-            childRect.translate(child->pos());
-            rect = rect.united(childRect);
+            rect = rect.united(child->translatedBoundingRect());
         }
     }
     return rect;

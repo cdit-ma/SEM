@@ -178,9 +178,9 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
     }
 
     if(inMainView()){
-        //Set Values Direc
-        //updatePositionInModel();
-        //updateSizeInModel();
+        //Set Values Directly
+        updatePositionInModel(true);
+        updateSizeInModel(true);
     }
 
     updateTextLabel();
@@ -441,7 +441,6 @@ QRectF EntityItem::boundingRect() const
 QRectF EntityItem::childrenBoundingRect()
 {
     QRectF rect;
-
 
     foreach(GraphMLItem* child, getChildren()){
         rect = rect.united(child->translatedBoundingRect());
@@ -870,6 +869,17 @@ bool EntityItem::isHidden()
 
 qreal EntityItem::getWidth() const
 {
+    return getExpandedWidth();
+}
+
+
+qreal EntityItem::getHeight() const
+{
+    return getExpandedHeight();
+}
+
+qreal EntityItem::getCurrentWidth() const
+{
     if(IS_EXPANDED_STATE){
         return expandedWidth;
     }else{
@@ -877,8 +887,7 @@ qreal EntityItem::getWidth() const
     }
 }
 
-
-qreal EntityItem::getHeight() const
+qreal EntityItem::getCurrentHeight() const
 {
     if(IS_EXPANDED_STATE){
         return expandedHeight;
@@ -980,6 +989,7 @@ void EntityItem::setStateExpanded(bool expanded)
 
     //UPdate parent
     updateSizeInModel();
+    qCritical() << "SET STATE EXPANDED: " << expanded;
     emit GraphMLItem_SetGraphMLData(this->getID(), "isExpanded", expanded);
 }
 
@@ -1061,7 +1071,6 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
         if((keyName == "x" || keyName == "y") && isDouble){
             //If data is related to the position of the EntityItem
             //Get the current center position.
-            QPointF oldCenter = centerPos();
 
             QPointF newCenter = centerPos();
 
@@ -1073,16 +1082,6 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
 
             //Update the center position.
             setCenterPos(newCenter);
-
-            //Check if the X or Y has changed.
-            //newCenter = centerPos();
-
-            //if(keyName == "x" && (newCenter.x() != oldCenter.x())){
-            //    emit GraphMLItem_SetGraphMLData(getID(), "x", newCenter.x());
-            //}
-            //if(keyName == "y" && (newCenter.y() != oldCenter.y())){
-            //    emit GraphMLItem_SetGraphMLData(getID(), "y", newCenter.y());
-            //}
 
         }else if((keyName == "width" || keyName == "height") && isDouble){
             if(keyName == "width"){
@@ -1108,6 +1107,7 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
             nodeMemberIsKey = boolValue;
             update();
         }else if(keyName == "isExpanded" && isBool){
+            qCritical() << "EXPAND STATE: " << boolValue;
             handleExpandState(boolValue);
         }
 
@@ -1467,8 +1467,10 @@ void EntityItem::updateTextVisibility()
         }
     }
 
-    if(getWidth() > ACTUAL_ITEM_SIZE + GRID_PADDING_SIZE){
-        showTopLabel = false;
+    if(getCurrentWidth() > ACTUAL_ITEM_SIZE + GRID_PADDING_SIZE){
+        if(!rightLabelInputItem->isTruncated()){
+            showTopLabel = false;
+        }
     }
 
     if (topLabelInputItem && rightLabelInputItem) {
@@ -1629,7 +1631,7 @@ QRectF EntityItem::iconRect_TopRight() const
 
     //Translate to move the icon to its position
     qreal itemMargin = (getItemMargin());
-    iconRect.moveTopRight(QPointF(itemMargin + getWidth(), itemMargin));
+    iconRect.moveTopRight(QPointF(itemMargin + getCurrentWidth(), itemMargin));
     return iconRect;
 }
 
@@ -1652,7 +1654,7 @@ QRectF EntityItem::iconRect_BottomRight() const
 
     //Translate to move the icon to its position
     qreal itemMargin = (getItemMargin());
-    iconRect.moveBottomRight(QPointF(itemMargin + getWidth(), itemMargin + getHeight()));
+    iconRect.moveBottomRight(QPointF(itemMargin + getCurrentWidth(), itemMargin + getCurrentHeight()));
     return iconRect;
 }
 
@@ -1700,7 +1702,9 @@ bool EntityItem::isResizeable()
 
 void EntityItem::setExpandedWidth(qreal w)
 {
+
     qreal minWidth = childrenBoundingRect().right();
+    minWidth = qMax(minWidth, contractedWidth);
     w = qMax(w, minWidth);
 
     if(w != expandedWidth){
@@ -1717,6 +1721,7 @@ void EntityItem::setExpandedWidth(qreal w)
 void EntityItem::setExpandedHeight(qreal h)
 {
     qreal minHeight = childrenBoundingRect().bottom();
+    minHeight = qMax(minHeight, contractedHeight);
     h = qMax(h, minHeight);
 
     if(h != expandedHeight){
@@ -1724,7 +1729,6 @@ void EntityItem::setExpandedHeight(qreal h)
 
         if(IS_EXPANDED_STATE){
             prepareGeometryChange();
-
             emit GraphMLItem_SizeChanged();
         }
     }

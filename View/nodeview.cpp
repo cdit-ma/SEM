@@ -2375,9 +2375,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
             QRectF itemRect;
             itemRect.setWidth(wVal);
             itemRect.setHeight(hVal);
-            qCritical() << "Get next Position";
             newPosition = parentNodeItem->getNextChildPos(itemRect);
-            qCritical() << newPosition;
         }
         xData->setValue(newPosition.x());
         yData->setValue(newPosition.y());

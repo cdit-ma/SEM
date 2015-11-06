@@ -14,6 +14,7 @@ public:
     void setEditMode(bool editMode = true);
     bool isInEditMode();
 
+    bool isTruncated();
     void setFontSize(qreal fontSize);
     void setPlainText(const QString &text);
     void setTextWidth(qreal width);

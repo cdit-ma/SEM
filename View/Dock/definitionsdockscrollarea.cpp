@@ -51,6 +51,10 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("BlackBoxInstance");
     definitions_notAllowedKinds.append("ComponentInstance");
     definitions_notAllowedKinds.append("ComponentImpl");
+    definitions_notAllowedKinds.append("InputParameter");
+    definitions_notAllowedKinds.append("ReturnParameter");
+
+
 
     setNotAllowedKinds(definitions_notAllowedKinds);
 

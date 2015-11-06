@@ -51,6 +51,11 @@ void InputItem::setToolTipString(QString tooltip)
     }
 }
 
+bool InputItem::isTruncated()
+{
+    return textItem->isTruncated();
+}
+
 
 
 void InputItem::setDropDown(bool isCombo)

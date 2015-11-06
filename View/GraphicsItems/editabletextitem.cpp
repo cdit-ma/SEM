@@ -105,6 +105,11 @@ bool EditableTextItem::isInEditMode()
     return inEditingMode;
 }
 
+bool EditableTextItem::isTruncated()
+{
+    return toPlainText() != currentFullValue;
+}
+
 void EditableTextItem::setFontSize(qreal fontSize)
 {
     QFont textFont = this->font();
