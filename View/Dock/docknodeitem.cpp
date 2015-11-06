@@ -4,7 +4,8 @@
 #include <QLabel>
 #include <QDebug>
 
-#define MAX_LABEL_LENGTH 13
+#define MAX_LABEL_LENGTH 15
+#define BUTTON_WIDTH 141
 #define ICON_RATIO 0.9
 
 #define DEFAULT 0
@@ -262,19 +263,18 @@ void DockNodeItem::setupLayout()
 
     textLabel = new QLabel(label, this);
 
-    QFont font = textLabel->font();
-    font.setPointSizeF(8);
-
-    textLabel->setFont(QFont(textLabel->font().family(), 8));
-    textLabel->setFixedSize(width()-2, 21);
-
     if (fileLabel) {
-        setFixedSize(141, 28);
+        setFixedSize(BUTTON_WIDTH, 28);
         textLabel->setAlignment(Qt::AlignHCenter);
     } else {
-        setFixedSize(141, 100);
+        setFixedSize(BUTTON_WIDTH, 100);
         textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     }
+
+    QFont font = textLabel->font();
+    font.setPointSizeF(8);
+    textLabel->setFont(QFont(textLabel->font().family(), 8));
+    textLabel->setFixedSize(width()-2, 21);
 
     if (!fileLabel) {
 

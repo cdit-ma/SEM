@@ -91,6 +91,7 @@ Version 18:
         * Added Fullscreen mode (F11)
 		* Added context toolbar button for multiple selection to expand/contract.
 		* Implemented Functions dock.
+		* Implemeted Definitions dock to filter for Aggregate and Vector instances.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.
@@ -116,6 +117,7 @@ Version 18:
 			** Clicking on a hidden HardwareNode changes the display mode of its parent cluster to ALL.
 		* Fixed fitToScreen function in NodeView - it now checks for NodeItems instead of just EntityItems.
 		* Moved all of search to the NodeView and added default values for the parameters.
+		* Reimplemented filtering and signals and slots from the parts dock to the definitions and functions docks.
 
     Todo:
         * Test Ubuntu for local deployment.

@@ -21,6 +21,7 @@ public slots:
     void insertDockNodeItem(DockNodeItem* dockItem);
 
     void dockClosed();
+    void forceOpenDock();
 
 private:
     QHash<QString, QVBoxLayout*> classLayoutItems;

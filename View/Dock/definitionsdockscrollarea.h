@@ -7,7 +7,7 @@ class DefinitionsDockScrollArea : public DockScrollArea
 {
     Q_OBJECT
 
-public:
+public:    
     explicit DefinitionsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent = 0);
 
     QList<DockNodeItem*> getDockNodeItems();
@@ -24,14 +24,18 @@ public slots:
     void insertDockNodeItem(DockNodeItem* dockItem);
     void refreshDock();
 
+    void forceOpenDock(QString srcKind);
+    void dockClosed();
+
 private:
+    void filterDock(QString nodeKind = "");
     void showDockItemsOfKind(QString kind = "");
     void hideImplementedComponents();
-    void hideBlackBoxes();
 
     QStringList definitions_notAllowedKinds;
-    QHash<QString, QVBoxLayout*> fileLayoutItems;
+    QStringList definitionKinds;
 
+    QHash<QString, QVBoxLayout*> fileLayoutItems;
     QVBoxLayout* mainLayout;
     QVBoxLayout* itemsLayout;
 

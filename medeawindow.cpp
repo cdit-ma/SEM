@@ -1391,7 +1391,7 @@ void MedeaWindow::makeConnections()
     // DEMO CHANGE
     //connect(toolbarStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedToolbarClosed()));
 
-    connect(partsDock, SIGNAL(dock_forceOpenDock(DOCK_TYPE)), this, SLOT(forceOpenDock(DOCK_TYPE)));
+    connect(partsDock, SIGNAL(dock_forceOpenDock(DOCK_TYPE,QString)), this, SLOT(forceOpenDock(DOCK_TYPE,QString)));
     connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
 
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
@@ -1924,9 +1924,6 @@ void MedeaWindow::setupInitialSettings()
 
     // initially hide the container for the data table
     dataTableBox->hide();
-
-    //nodeView->fitToScreen();
-    //updateToolbar();
 }
 
 
@@ -2889,22 +2886,18 @@ void MedeaWindow::dockButtonPressed(DOCK_TYPE dockType)
 
 /**
  * @brief MedeaWindow::forceOpenDock
- * This slot is called when a DockNodeItem of kind ComponentInstance or ComponentImpl
- * is clicked from the parts dock. It stops the user from being able to construct a
- * ComponentInstance or ComponentImpl that isn't connected to a Component definition.
+ * @param type
+ * @param srcKind
  */
-void MedeaWindow::forceOpenDock(DOCK_TYPE type)
+void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
 {
     if (partsButton->isSelected()) {
         switch (type) {
         case DEFINITIONS_DOCK:
-            definitionsButton->pressed();
+            definitionsDock->forceOpenDock(srcKind);
             break;
         case FUNCTIONS_DOCK:
-            if (!functionsButton->isEnabled()) {
-                functionsButton->setEnabled(true);
-            }
-            functionsButton->pressed();
+            functionsDock->forceOpenDock();
             break;
         default:
             break;

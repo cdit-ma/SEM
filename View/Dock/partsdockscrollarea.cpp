@@ -15,6 +15,8 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
     kindsRequiringDefinition.append("BlackBoxInstance");
     kindsRequiringDefinition.append("ComponentInstance");
     kindsRequiringDefinition.append("ComponentImpl");
+    kindsRequiringDefinition.append("AggregateInstance");
+    kindsRequiringDefinition.append("VectorInstance");
     kindsRequiringFunction.append("Process");
 }
 
@@ -105,7 +107,8 @@ void PartsDockScrollArea::dockNodeItemClicked()
     DockNodeItem* sender = qobject_cast<DockNodeItem*>(QObject::sender());
     QString nodeKind = sender->getKind();
     if (kindsRequiringDefinition.contains(nodeKind)) {
-        emit dock_forceOpenDock(DEFINITIONS_DOCK);
+        emit dock_forceOpenDock(DEFINITIONS_DOCK, nodeKind);
+        qDebug() << "HERE";
     } else if (kindsRequiringFunction.contains(nodeKind)) {
         emit dock_forceOpenDock(FUNCTIONS_DOCK);
     } else {

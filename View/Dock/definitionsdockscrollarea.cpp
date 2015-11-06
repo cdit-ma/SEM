@@ -48,8 +48,16 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("InEventPortDelegate");
     definitions_notAllowedKinds.append("OutEventPortDelegate");
     definitions_notAllowedKinds.append("BlackBox");
+    definitions_notAllowedKinds.append("BlackBoxInstance");
+    definitions_notAllowedKinds.append("ComponentInstance");
+    definitions_notAllowedKinds.append("ComponentImpl");
 
     setNotAllowedKinds(definitions_notAllowedKinds);
+
+    definitionKinds.append("Component");
+    definitionKinds.append("BlackBox");
+    definitionKinds.append("Aggregate");
+    definitionKinds.append("Vector");
 
     // setup definitions-dock specific layout
     mainLayout = new QVBoxLayout();
@@ -57,6 +65,8 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     mainLayout->addLayout(itemsLayout);
     mainLayout->addStretch();
     getLayout()->addLayout(mainLayout);
+
+    connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
 }
 
 
@@ -183,48 +193,9 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
 void DefinitionsDockScrollArea::updateDock()
 {
     DockScrollArea::updateDock();
-
-    // if the dock is disabled, there is no need to update
-    if (!isDockEnabled()) {
-        return;
-    }
-
-    NodeItem* selectedItem = getCurrentNodeItem();
-
-    // the first check should catch this case
-    if (!getCurrentNodeItem() || getCurrentNodeID() == -1) {
-        return;
-    }
-
-    /*
-     * Check for special cases - ComponentInstance & ComponentImpl
-     * They're only allowed kinds if they don't have a definition
-     * If the selected item is the BehaviourDefinitions or a ComponentImpl without
-     * a definition, hide Components that already have an implementation
-     */
-
-    QString nodeKind =  selectedItem->getNodeKind();
-
-    if (nodeKind == "BlackBoxInstance" || nodeKind == "ComponentInstance" || nodeKind == "ComponentImpl") {
-        Node* node = selectedItem->getNode();
-        if (node->getDefinition()) {
-            setDockEnabled(false);
-        } else if (nodeKind == "BlackBoxInstance") {
-            // show only BlackBoxes
-            showDockItemsOfKind("BlackBox");
-        } else if (nodeKind == "ComponentInstance") {
-            // show only Components
-            showDockItemsOfKind("Component");
-        } else if (nodeKind == "ComponentImpl") {
-            showDockItemsOfKind("Component");
-            hideImplementedComponents();
-        }
-    } else if (nodeKind == "BehaviourDefinitions") {
-        showDockItemsOfKind("Component");
-        hideImplementedComponents();
-    } else {
-        // make sure all the Components/BlackBoxes are shown for all the other allowed kinds
-        showDockItemsOfKind();
+    if (isDockEnabled()) {
+        qDebug() << "update DOck";
+        filterDock();
     }
 }
 
@@ -244,7 +215,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
     EntityItem* entityItem = (EntityItem*) nodeItem;
     QString nodeKind = entityItem->getNodeKind();
 
-    if (nodeKind == "Component" || nodeKind == "BlackBox") {
+    if (definitionKinds.contains(nodeKind)) {
 
         DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
         EntityItem* fileItem = entityItem->getParentEntityItem();
@@ -298,6 +269,76 @@ void DefinitionsDockScrollArea::refreshDock()
 {
     showDockItemsOfKind();
     updateDock();
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::forceOpenDock
+ * @param srcKind
+ */
+void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
+{
+    if (isDockOpen()) {
+        return;
+    }
+    if (!isDockEnabled()) {
+        setDockEnabled(true);
+    }
+    if (getParentButton()) {
+        getParentButton()->pressed();
+        filterDock(srcKind);
+    }
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::dockClosed
+ */
+void DefinitionsDockScrollArea::dockClosed()
+{
+    refreshDock();
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::openDockForKind
+ * @param kind
+ */
+void DefinitionsDockScrollArea::filterDock(QString nodeKind)
+{
+    /*
+     * Check for special cases - ComponentInstance & ComponentImpl
+     * They're only allowed kinds if they don't have a definition
+     * If the selected item is the BehaviourDefinitions or a ComponentImpl without
+     * a definition, hide Components that already have an implementation
+     */
+    NodeItem* selectedItem = getCurrentNodeItem();
+    if (!selectedItem) {
+        return;
+    }
+
+    if (nodeKind.isEmpty()) {
+        nodeKind = selectedItem->getNodeKind();
+    }
+
+    if (nodeKind == "BlackBoxInstance") {
+        showDockItemsOfKind("BlackBox");
+    } else if (nodeKind == "ComponentInstance") {
+        showDockItemsOfKind("Component");
+    } else if (nodeKind == "ComponentImp") {
+        showDockItemsOfKind("Component");
+        hideImplementedComponents();
+    } else if (nodeKind == "BehaviourDefinitions") {
+        showDockItemsOfKind("Component");
+        hideImplementedComponents();
+    } else if (nodeKind == "AggregateInstance") {
+        showDockItemsOfKind("Aggregate");
+    } else if (nodeKind == "VectorInstance") {
+        showDockItemsOfKind("Vector");
+    } else {
+        // make sure all the Components/BlackBoxes are shown for all the other allowed kinds
+        showDockItemsOfKind();
+    }
 }
 
 
@@ -438,20 +479,6 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString kind)
             } else {
                 dockItem->setHidden(true);
             }
-        }
-    }
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::hideBlackBoxes
- */
-void DefinitionsDockScrollArea::hideBlackBoxes()
-{
-    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-        QString kind = dockItem->getKind();
-        if (kind == "BlackBox") {
-            dockItem->setHidden(true);
         }
     }
 }

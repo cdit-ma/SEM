@@ -13,7 +13,7 @@ public:
     void addDockNodeItems(QStringList nodeKinds);
 
 signals:
-    void dock_forceOpenDock(DOCK_TYPE);
+    void dock_forceOpenDock(DOCK_TYPE type, QString srcDockItemKind = "");
 
 public slots:
     void dockNodeItemClicked();

@@ -208,3 +208,20 @@ void FunctionsDockScrollArea::dockClosed()
     // for now, the moment this dock is closed, it is also disabled
     setDockEnabled(false, true);
 }
+
+
+/**
+ * @brief FunctionsDockScrollArea::forceOpenDock
+ */
+void FunctionsDockScrollArea::forceOpenDock()
+{
+    if (isDockOpen()) {
+        return;
+    }
+    if (!isDockEnabled()) {
+        setDockEnabled(true);
+    }
+    if (getParentButton()) {
+        getParentButton()->pressed();
+    }
+}
