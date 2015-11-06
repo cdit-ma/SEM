@@ -308,8 +308,9 @@ void ToolbarWidget::hide()
  */
 void ToolbarWidget::setVisible(bool visible)
 {
-    bool toolbarVisible = visible && (alterModelButtonsVisible || alignButtonsVisible || snippetButtonsVisible
-                                      || goToButtonsVisible || alterViewButtonsVisible);
+    bool toolbarVisible = visible && (alterModelButtonsVisible || alignButtonsVisible
+                                      || snippetButtonsVisible || goToButtonsVisible
+                                      || alterViewButtonsVisible || expandContractButtonsVisible);
 
     // update the toolbar & frame sizes
     if (toolbarVisible) {

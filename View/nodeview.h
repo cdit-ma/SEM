@@ -381,7 +381,6 @@ private:
     void nodeConstructed_signalUpdates(NodeItem *EntityItem);
     void nodeSelected_signalUpdates();
     void edgeConstructed_signalUpdates();
-    void edgeDestructed_signalUpdates(Edge* edge, int ID = -1);
     void centerRect(QRectF rect, double padding = 0, bool addToMap = true);
     void centerViewOn(QPointF center);
     void recenterView(QPointF modelPos, QRectF centeredRect, bool addToMap = false);

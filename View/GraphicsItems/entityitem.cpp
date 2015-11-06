@@ -989,7 +989,7 @@ void EntityItem::setStateExpanded(bool expanded)
 
     //UPdate parent
     updateSizeInModel();
-    qCritical() << "SET STATE EXPANDED: " << expanded;
+    //qCritical() << "SET STATE EXPANDED: " << expanded;
     emit GraphMLItem_SetGraphMLData(this->getID(), "isExpanded", expanded);
 }
 

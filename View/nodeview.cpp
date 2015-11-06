@@ -2226,8 +2226,13 @@ void NodeView::updateActionsEnabledStates()
  */
 void NodeView::showToolbar(QPoint position)
 {
-    if(wasPanning){
-        //If we have panned, we shouldn't show the toolbar.
+    // for now, don't show the toolbar for subviews
+    if (isSubView()) {
+        return;
+    }
+
+    //If we have panned, we shouldn't show the toolbar.
+    if (wasPanning) {
         wasPanning = false;
         return;
     }
@@ -2422,7 +2427,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         }
 
         if(item->isNodeItem()){
-        // send/do necessary signals/updates when a node has been constructed
+            // send/do necessary signals/updates when a node has been constructed
             nodeConstructed_signalUpdates(nodeItem);
         }
 
@@ -2477,7 +2482,9 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
     if (edge->isDeploymentLink()) {
         updateDeployment = true;
     }
-    //edgeConstructed_signalUpdates();
+
+    // need to put this back here
+    edgeConstructed_signalUpdates();
 
     if(srcGUI != 0 && dstGUI != 0){
         // send necessary signals when an edge has been constucted
@@ -2693,8 +2700,6 @@ void NodeView::constructConnectedNode(int parentID, int dstID, QString kind, int
 
         if (nodeItem) {
 
-            qDebug() << "Kind: " << kind;
-
             toolbarDockConstruction = true;
             QPointF position;
 
@@ -2705,6 +2710,7 @@ void NodeView::constructConnectedNode(int parentID, int dstID, QString kind, int
                 QPointF closestGridPos = nodeItem->getClosestGridPoint(nodeItem->mapFromScene(toolbarPosition));
                 position = closestGridPos;
             }
+
             emit view_ConstructConnectedNode(parentID, dstID, kind, position);
 
         } else {
@@ -3327,38 +3333,6 @@ void NodeView::edgeConstructed_signalUpdates()
     }
     // update the docks
     emit view_edgeConstructed();
-}
-
-
-/**
- * @brief NodeView::edgeDestructed_signalUpdates
- * This gets called whenever an edge is destructed.
- * It sends signals to update whatever needs updating.
- * @param edge
- * @param ID
- */
-void NodeView::edgeDestructed_signalUpdates(Edge* edge, int ID)
-{
-    // update the toolbar/menu goTo functions
-    //emit view_edgeDestructed();
-
-    // check if destructed edge's destination is a HardwareNode
-    EntityItem* destination = getEntityItemFromNode(edge->getDestination());
-    if (destination && destination->getNodeKind() == "HardwareNode") {
-        Node* node = destination->getNode();
-        bool hasEdges = false;
-        // check if it is connected to anything else
-        foreach (Edge* edge, node->getEdges()) {
-            if (edge->isDeploymentLink() && edge->getID() != ID) {
-                hasEdges = true;
-                break;
-            }
-        }
-        if (!hasEdges) {
-            // if it's not, hide the HarwareNode node item
-            destination->setHidden(true);
-        }
-    }
 }
 
 

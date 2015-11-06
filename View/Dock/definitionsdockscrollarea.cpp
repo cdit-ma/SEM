@@ -312,6 +312,9 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
     }  else if (nodeKind == "ComponentImpl" || nodeKind == "BehaviourDefinitions") {
         kinds.append("Component");
         hideCompsWithImpl = true;
+    } else if (nodeKind == "ComponentAssembly") {
+        kinds.append("BlackBox");
+        kinds.append("Component");
     } else if (nodeKind == "Aggregate") {
         kinds.append("Vector");
         kinds.append("Aggregate");
