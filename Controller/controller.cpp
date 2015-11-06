@@ -587,8 +587,8 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataV
     if(data){
         if(data->gotDoubleValue()){
             action.dataValueNum = data->getDoubleValue();
-            qCritical() << action.keyName <<": WAS" << action.dataValueNum;
-            qCritical() << action.keyName <<": NOW" << dataValue;
+            //qCritical() << action.keyName <<": WAS" << action.dataValueNum;
+            //qCritical() << action.keyName <<": NOW" << dataValue;
         }
 
         if(parent->isNode() && keyName == "sortOrder"){

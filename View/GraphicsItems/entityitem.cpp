@@ -1107,7 +1107,7 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
             nodeMemberIsKey = boolValue;
             update();
         }else if(keyName == "isExpanded" && isBool){
-            qCritical() << "EXPAND STATE: " << boolValue;
+            //qCritical() << "EXPAND STATE: " << boolValue;
             handleExpandState(boolValue);
         }
 

@@ -108,7 +108,6 @@ void PartsDockScrollArea::dockNodeItemClicked()
     QString nodeKind = sender->getKind();
     if (kindsRequiringDefinition.contains(nodeKind)) {
         emit dock_forceOpenDock(DEFINITIONS_DOCK, nodeKind);
-        qDebug() << "HERE";
     } else if (kindsRequiringFunction.contains(nodeKind)) {
         emit dock_forceOpenDock(FUNCTIONS_DOCK);
     } else {

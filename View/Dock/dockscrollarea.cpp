@@ -131,7 +131,6 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
 void DockScrollArea::nodeDeleted(QString nodeID)
 {
     removeDockNodeItem(getDockNodeItem(nodeID), true);
-    updateDock();
 }
 
 

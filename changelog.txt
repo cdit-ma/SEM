@@ -45,15 +45,15 @@ Cathlyn To Fix:
 * Trigger action after action is done, not just on selection change.
   ** It's not just on selection change. Broken for the first move because updating the button states happen before the action is added to the undo stack.
   ** How is the underlying GraphML size and position values updated? What signal is sent?
-
 Fixed:
-* Fix theme updates and connection for modelitem, clusters, toolbar and the view.
+* Fix theme updates  for modelitem, clusters, toolbar and the view.
 * Add aspect check for search
 * Hardware dock not updating/clearing highlighted item until selection is changed.
 * Updated toolbar for multiple selection to deal with Entity and Aspect items.
 * Call NodeView::expandSelection(bool expand) from toolbar
 * Connect tool button/menu showing for AspectItems.
 * Fixed search suggestions size problem; ignoring text truncation at the moment
+* Fixed filtering of definitions dock for different allowed kinds and construction of connected node for Aggregate and Vector instances.
 
 Version 18:
     New Features:
@@ -91,7 +91,7 @@ Version 18:
         * Added Fullscreen mode (F11)
 		* Added context toolbar button for multiple selection to expand/contract.
 		* Implemented Functions dock.
-		* Implemeted Definitions dock to filter for Aggregate and Vector instances.
+		* Implemeted Definitions dock to filter for Aggregate and Vector definitions and instances.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.

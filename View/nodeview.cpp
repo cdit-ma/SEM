@@ -2687,9 +2687,14 @@ void NodeView::deleteFromIDs(QList<int> IDs)
  */
 void NodeView::constructConnectedNode(int parentID, int dstID, QString kind, int sender)
 {
-    if(viewMutex.tryLock()){
-        NodeItem *nodeItem = getNodeItemFromID(parentID);
-        if(nodeItem){
+    if (viewMutex.tryLock()) {
+
+        NodeItem* nodeItem = getNodeItemFromID(parentID);
+
+        if (nodeItem) {
+
+            qDebug() << "Kind: " << kind;
+
             toolbarDockConstruction = true;
             QPointF position;
 
@@ -2701,7 +2706,8 @@ void NodeView::constructConnectedNode(int parentID, int dstID, QString kind, int
                 position = closestGridPos;
             }
             emit view_ConstructConnectedNode(parentID, dstID, kind, position);
-        }else{
+
+        } else {
             //If we don't have a node Item, forwhatever reason release the mutex.
             viewMutex.unlock();
         }

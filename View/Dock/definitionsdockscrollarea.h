@@ -22,14 +22,13 @@ public slots:
 
     void nodeConstructed(NodeItem* nodeItem);
     void insertDockNodeItem(DockNodeItem* dockItem);
-    void refreshDock();
 
     void forceOpenDock(QString srcKind);
     void dockClosed();
 
 private:
     void filterDock(QString nodeKind = "");
-    void showDockItemsOfKind(QString kind = "");
+    void showDockItemsOfKinds(QStringList kinds = QStringList());
     void hideImplementedComponents();
 
     QStringList definitions_notAllowedKinds;

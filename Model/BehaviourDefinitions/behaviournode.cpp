@@ -36,7 +36,7 @@ bool BehaviourNode::isUnconnectable()
 void BehaviourNode::addParameter(QString nodeKind, QString className, QString functionName, QString parameterName, QString parameterType, bool inputParameter, QString defaultValue)
 {
     ParameterRequirement* param = new ParameterRequirement(nodeKind, className, functionName, parameterName, parameterType, inputParameter, defaultValue);
-    qCritical() << "Added " << inputParameter << " Parameter: " << className << " To Kind: " << nodeKind;
+    //qCritical() << "Added " << inputParameter << " Parameter: " << className << " To Kind: " << nodeKind;
     _parameters[nodeKind].append(param);
 }
 
@@ -200,7 +200,7 @@ bool BehaviourNode::canAdoptChild(Node *child)
     Parameter* parameter = dynamic_cast<Parameter*>(child);
     if(parameter){
         if(!needsParameter(parameter)){
-            qCritical() << "DON'T Need PARAMETER!";
+            //qCritical() << "DON'T Need PARAMETER!";
             return false;
         }
     }

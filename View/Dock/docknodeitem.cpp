@@ -304,7 +304,9 @@ void DockNodeItem::setupLayout()
 
         if (pixMap.isNull()) {
             qWarning() << "DockNodeItem::setupLayout - Image is null";
+            return;
         }
+
         QPixmap scaledPixmap =  pixMap.scaled(width()*ICON_RATIO,
                                               (height()-textLabel->height())*ICON_RATIO,
                                               Qt::KeepAspectRatio,

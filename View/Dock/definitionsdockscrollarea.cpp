@@ -25,7 +25,6 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("HardwareNode");
     definitions_notAllowedKinds.append("IDL");
     definitions_notAllowedKinds.append("Component");
-    definitions_notAllowedKinds.append("Aggregate");
     definitions_notAllowedKinds.append("Member");
     definitions_notAllowedKinds.append("AggregateInstance");
     definitions_notAllowedKinds.append("MemberInstance");
@@ -53,8 +52,6 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("ComponentImpl");
     definitions_notAllowedKinds.append("InputParameter");
     definitions_notAllowedKinds.append("ReturnParameter");
-
-
 
     setNotAllowedKinds(definitions_notAllowedKinds);
 
@@ -155,7 +152,7 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
  */
 void DefinitionsDockScrollArea::edgeDeleted()
 {
-    refreshDock();
+    updateDock();
 }
 
 
@@ -170,7 +167,7 @@ void DefinitionsDockScrollArea::edgeDeleted()
 void DefinitionsDockScrollArea::dockNodeItemClicked()
 {
     NodeItem* selectedNodeItem = getNodeView()->getSelectedNodeItem();
-    DockNodeItem* dockNodeItem = qobject_cast<DockNodeItem*>(sender());
+    DockNodeItem* dockNodeItem = qobject_cast<DockNodeItem*>(QObject::sender());
 
     if (!selectedNodeItem || !dockNodeItem) {
         return;
@@ -179,7 +176,8 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     QString selectedNodeKind = selectedNodeItem->getNodeKind();
     int selectedNodeID = selectedNodeItem->getID();
     int dockNodeID = dockNodeItem->getID().toInt();
-    if (selectedNodeKind == "ComponentAssembly") {
+
+    if (selectedNodeKind == "ComponentAssembly" || selectedNodeKind == "Aggregate" || selectedNodeKind == "Vector") {
         getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, dockNodeItem->getKind() + "Instance", 0);
     } else if (selectedNodeKind == "BlackBoxInstance" || selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ComponentImpl") {
         getNodeView()->constructEdge(selectedNodeID, dockNodeID);
@@ -198,7 +196,6 @@ void DefinitionsDockScrollArea::updateDock()
 {
     DockScrollArea::updateDock();
     if (isDockEnabled()) {
-        qDebug() << "update DOck";
         filterDock();
     }
 }
@@ -261,18 +258,6 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
             connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
         }
     }
-
-    refreshDock();
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::refreshDock
- */
-void DefinitionsDockScrollArea::refreshDock()
-{
-    showDockItemsOfKind();
-    updateDock();
 }
 
 
@@ -300,7 +285,7 @@ void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
  */
 void DefinitionsDockScrollArea::dockClosed()
 {
-    refreshDock();
+    updateDock();
 }
 
 
@@ -310,38 +295,56 @@ void DefinitionsDockScrollArea::dockClosed()
  */
 void DefinitionsDockScrollArea::filterDock(QString nodeKind)
 {
-    /*
-     * Check for special cases - ComponentInstance & ComponentImpl
-     * They're only allowed kinds if they don't have a definition
-     * If the selected item is the BehaviourDefinitions or a ComponentImpl without
-     * a definition, hide Components that already have an implementation
-     */
-    NodeItem* selectedItem = getCurrentNodeItem();
-    if (!selectedItem) {
-        return;
-    }
-
     if (nodeKind.isEmpty()) {
-        nodeKind = selectedItem->getNodeKind();
+        if (getCurrentNodeItem()) {
+            nodeKind = getCurrentNodeItem()->getNodeKind();
+        } else {
+            setDockEnabled(false);
+            return;
+        }
     }
 
+    QStringList kinds;
+    bool hideCompsWithImpl = false;
+
+    if (nodeKind.endsWith("Instance")) {
+        kinds.append(nodeKind.remove("Instance"));
+    }  else if (nodeKind == "ComponentImpl" || nodeKind == "BehaviourDefinitions") {
+        kinds.append("Component");
+        hideCompsWithImpl = true;
+    } else if (nodeKind == "Aggregate") {
+        kinds.append("Vector");
+        kinds.append("Aggregate");
+    } else if (nodeKind == "Vector") {
+        kinds.append("Aggregate");
+    }
+
+    /*
     if (nodeKind == "BlackBoxInstance") {
-        showDockItemsOfKind("BlackBox");
+        kinds.append("BlackBox");
     } else if (nodeKind == "ComponentInstance") {
-        showDockItemsOfKind("Component");
-    } else if (nodeKind == "ComponentImp") {
-        showDockItemsOfKind("Component");
-        hideImplementedComponents();
-    } else if (nodeKind == "BehaviourDefinitions") {
-        showDockItemsOfKind("Component");
-        hideImplementedComponents();
+        kinds.append("Component");
+    } else if (nodeKind == "ComponentImp" || nodeKind == "BehaviourDefinitions") {
+        kinds.append("Component");
+        hideCompsWithImpl = true;
+    } else if (nodeKind == "Aggregate") {
+        kinds.append("Vector");
+        kinds.append("Aggregate");
     } else if (nodeKind == "AggregateInstance") {
-        showDockItemsOfKind("Aggregate");
+        kinds.append("Aggregate");
+    } else if (nodeKind == "Vector") {
+        kinds.append("Aggregate");
     } else if (nodeKind == "VectorInstance") {
-        showDockItemsOfKind("Vector");
-    } else {
-        // make sure all the Components/BlackBoxes are shown for all the other allowed kinds
-        showDockItemsOfKind();
+        kinds.append("Vector");
+    }
+    */
+
+    // all dock items are shown for all the other allowed kinds
+    showDockItemsOfKinds(kinds);
+
+    // if required, hide already implemented Components
+    if (hideCompsWithImpl) {
+        hideImplementedComponents();
     }
 }
 
@@ -464,12 +467,12 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
 
 /**
  * @brief DefinitionsDockScrollArea::showDockItemsOfKind
- * @param kind - kind of dock node items to show
- *             - show all kinds if this is empty
+ * @param kinds - list of kinds of dock node items to show
+ *              - show all kinds if this is empty
  */
-void DefinitionsDockScrollArea::showDockItemsOfKind(QString kind)
+void DefinitionsDockScrollArea::showDockItemsOfKinds(QStringList kinds)
 {
-    if (kind.isEmpty()) {
+    if (kinds.isEmpty()) {
         // show all dock node items
         foreach (DockNodeItem* dockItem, getDockNodeItems()) {
             dockItem->setHidden(false);
@@ -478,7 +481,7 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString kind)
         // only show the dock node items with the specified kind
         foreach (DockNodeItem* dockItem, getDockNodeItems()) {
             QString dockItemKind = dockItem->getKind();
-            if (dockItemKind == kind) {
+            if (kinds.contains(dockItemKind)) {
                 dockItem->setHidden(false);
             } else {
                 dockItem->setHidden(true);
