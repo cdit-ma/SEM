@@ -88,6 +88,19 @@ DockToggleButton* DockScrollArea::getParentButton()
 
 
 /**
+ * @brief DockScrollArea::getDockType
+ * @return
+ */
+DOCK_TYPE DockScrollArea::getDockType()
+{
+   if (parentButton) {
+       return parentButton->getDockType();
+   }
+   return UNKNOWN_DOCK;
+}
+
+
+/**
  * @brief DockScrollArea::getLabel
  * Returns this dock's label.
  * @return

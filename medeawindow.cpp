@@ -224,10 +224,10 @@ void MedeaWindow::enableTempExport(bool enable)
  */
 void MedeaWindow::modelReady()
 {
-    //Reset the View.
+    // reset the view
     resetView();
 
-    //Reset the initial settings
+    // reload the initial settings
     setupInitialSettings();
 
     //Load loadLaunchedFile
@@ -237,16 +237,6 @@ void MedeaWindow::modelReady()
         importProjects(files);
         loadLaunchedFile = false;
     }
-
-    //Make the nodeView visable agian!
-    if(nodeView){
-        nodeView->setEnabled(true);
-    }
-
-    //cuts_runGeneration->trigger();
-
-    //showFullScreen();
-
 }
 
 
@@ -648,7 +638,7 @@ void MedeaWindow::initialiseGUI()
  * @param button
  */
 void MedeaWindow::setupMenu(QPushButton *button)
-{   
+{
     // menu buttons/actions
     menu = new QMenu();
     file_menu = menu->addMenu(getIcon("Actions", "Menu"), "File");
@@ -1210,21 +1200,17 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
 }
 
 
-
 /**
  * @brief MedeaWindow::setupController
  */
 void MedeaWindow::setupController()
 {
-
     if (controller) {
-        //controller->deleteLater();
         delete controller;
         controller = 0;
     }
     if (controllerThread) {
         controllerThread->terminate();
-        //controllerThread->deleteLater();
         delete controllerThread;
         controllerThread = 0;
     }
@@ -1232,11 +1218,9 @@ void MedeaWindow::setupController()
     controller = new NewController();
 
     if (THREADING) {
-        //IMPLEMENT THREADING!
         controllerThread = new QThread();
         controllerThread->start();
         controller->moveToThread(controllerThread);
-
     }
 
     connect(this, SIGNAL(window_ConnectViewAndSetupModel(NodeView*)), controller, SLOT(connectViewAndSetupModel(NodeView*)));
@@ -1251,6 +1235,77 @@ void MedeaWindow::setupController()
 void MedeaWindow::resetGUI()
 {
     prevPressedButton = 0;
+
+    // reset timer
+    notificationTimer->stop();
+    leftOverTime = 0;
+
+    // initially hide these
+    notificationsBar->hide();
+    dataTableBox->hide();
+
+    // clear and reset search bar and search results
+    searchBar->clear();
+    searchResults->close();
+    /*
+    QLayoutItem* child;
+    while (resultsLayout->count() != 0) {
+        child = resultsLayout->takeAt(0);
+        delete child;
+    }
+    */
+    // reset checked states for all search options menus
+    foreach (QAction* action, viewAspectsMenu->actions()) {
+        QWidgetAction* widgetAction = qobject_cast<QWidgetAction*>(action);
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(widgetAction->defaultWidget());
+        checkBox->setChecked(false);
+    }
+    // clear this menu for now because it is getting re-populated every time new project is triggered
+    nodeKindsMenu->clear();
+    /*
+    foreach (QAction* action, nodeKindsMenu->actions()) {
+        QWidgetAction* widgetAction = qobject_cast<QWidgetAction*>(action);
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(widgetAction->defaultWidget());
+        checkBox->setChecked(false);
+    }
+    */
+    foreach (QAction* action, dataKeysMenu->actions()) {
+        QWidgetAction* widgetAction = qobject_cast<QWidgetAction*>(action);
+        QCheckBox* checkBox = qobject_cast<QCheckBox*>(widgetAction->defaultWidget());
+        checkBox->setChecked(false);
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::resetView
+ * This is called everytime a new project is created.
+ * It resets the view's turned on aspects to the default
+ * and clears all history of the view.
+ */
+void MedeaWindow::resetView()
+{
+    // enable the view, reset controller undo/redo states and clear selecttion
+    if (nodeView){
+        nodeView->setEnabled(true);
+        nodeView->view_ClearHistory();
+        nodeView->clearSelection();
+    }
+}
+
+
+/**
+ * @brief MedeaWindow::newProject
+ * This is called everytime a new project is created.
+ * It clears the model and resets the GUI and view.
+ */
+void MedeaWindow::newProject()
+{
+    //Disable NodeView.
+    nodeView->setEnabled(false);
+    progressAction = "Setting up New Project";
+
+    resetGUI();
     setupController();
 }
 
@@ -1886,6 +1941,8 @@ void MedeaWindow::setupInitialSettings()
     appSettings->loadSettings();
     settingsLoading = false;
 
+    // TODO - The following setup only needs to happen once
+    // It doesn't need to be redone every time new project is called
     QStringList allKinds = nodeView->getAllNodeKinds();
     QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
     QList<QPair<QString, QString>> functionKinds;
@@ -1897,7 +1954,7 @@ void MedeaWindow::setupInitialSettings()
     partsDock->addDockNodeItems(guiKinds);
     functionsDock->addDockNodeItems(functionKinds);
 
-    // populate view aspects menu  once the nodeView and controller have been
+    // populate view aspects menu once the nodeView and controller have been
     // constructed and connected - should only need to do this once
     allKinds.sort();
     foreach (QString kind, allKinds) {
@@ -1908,22 +1965,6 @@ void MedeaWindow::setupInitialSettings()
         action->setDefaultWidget(checkBox);
         nodeKindsMenu->addAction(action);
     }
-
-    // hide initial notifications and reset timer
-    notificationsBar->hide();
-    notificationTimer->stop();
-
-    //Reset time.
-    leftOverTime = 0;
-
-    //We have finished loading settings. reset state of Controller undo states.
-    nodeView->view_ClearHistory();
-
-    // initially disable all the docks
-    nodeView->view_nodeSelected();
-
-    // initially hide the container for the data table
-    dataTableBox->hide();
 }
 
 
@@ -1943,7 +1984,7 @@ void MedeaWindow::jenkinsExport()
  * @brief MedeaWindow::cutsExport
  */
 void MedeaWindow::cutsExport()
-{   
+{
     cuts_TempExport = true;
     exportTempFile();
 }
@@ -2725,60 +2766,6 @@ void MedeaWindow::menuActionTriggered()
         // is a selected item before it turns the snap to grid functions on
         graphicsItemSelected();
     }
-}
-
-
-/**
- * @brief MedeaWindow::resetView
- * This is called everytime a new project is created.
- * It resets the view's turned on aspects to the default
- * and clears all history of the view.
- */
-void MedeaWindow::resetView()
-{
-    if (nodeView){
-        nodeView->showManagementComponents(true);
-        nodeView->view_ClearHistory();
-        nodeView->clearSelection();
-    }
-}
-
-
-/**
- * @brief MedeaWindow::newProject
- * This is called everytime a new project is created.
- * It clears the model and resets the GUI and view.
- */
-void MedeaWindow::newProject()
-{
-    //Disable NodeView.
-    nodeView->setEnabled(false);
-    progressAction = "Setting up New Project";
-
-    // clear and reset the search bar
-    searchBar->clear();
-
-    foreach (QAction* action, viewAspectsMenu->actions()) {
-        QWidgetAction* widgetAction = qobject_cast<QWidgetAction*>(action);
-        QCheckBox* checkBox = qobject_cast<QCheckBox*>(widgetAction->defaultWidget());
-        checkBox->setChecked(false);
-    }
-
-    foreach (QAction* action, nodeKindsMenu->actions()) {
-        QWidgetAction* widgetAction = qobject_cast<QWidgetAction*>(action);
-        QCheckBox* checkBox = qobject_cast<QCheckBox*>(widgetAction->defaultWidget());
-        checkBox->setChecked(false);
-    }
-
-    // need to clear search results here
-    QLayoutItem* child;
-    while (resultsLayout->count() != 0) {
-        child = resultsLayout->takeAt(0);
-        delete child;
-    }
-
-    searchResults->close();
-    resetGUI();
 }
 
 

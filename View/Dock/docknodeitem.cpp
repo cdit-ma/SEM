@@ -278,13 +278,15 @@ void DockNodeItem::setupLayout()
 
     if (!fileLabel) {
 
-        QPixmap pixMap;
+        if (!parentDock) {
+            return;
+        }
+
         NodeView* nodeView = parentDock->getNodeView();
-        if (parentDock && nodeView) {
-            if (kind != "HardwareNode") {
-                pixMap = nodeView->getImage("Items", kind);
-            }
-            if (nodeItem && kind.startsWith("Hardware")) {
+        QPixmap pixMap;
+
+        if (nodeView) {
+            if (nodeItem) {
                 if (kind == "HardwareNode") {
                     QString imagePath;
                     if (nodeItem->getNode() && nodeItem->getNode()->getDataValue("localhost") == "true") {
@@ -294,17 +296,22 @@ void DockNodeItem::setupLayout()
                         QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
                         imagePath = hardwareOS + "_" + hardwareArch;
                     }
-                    if (parentDock && parentDock->getNodeView()) {
-                        pixMap = nodeView->getImage("Items", imagePath);
-                    }
+                    pixMap = nodeView->getImage("Items", imagePath);
+                    highlightColor = "rgba(90,150,200,210)";
+                } else {
+                    pixMap = nodeView->getImage("Items", kind);
                 }
-                highlightColor = "rgba(90,150,200,210)";
+            } else {
+                if (parentDock->getDockType() ==  PARTS_DOCK) {
+                    pixMap = nodeView->getImage("Items", kind);
+                } else if (parentDock->getDockType() == FUNCTIONS_DOCK) {
+                    pixMap = nodeView->getImage("Functions", kind);
+                }
             }
         }
 
         if (pixMap.isNull()) {
-            qWarning() << "DockNodeItem::setupLayout - Image is null";
-            return;
+            qWarning() << "DockNodeItem::setupLayout - Image is null for " << kind;
         }
 
         QPixmap scaledPixmap =  pixMap.scaled(width()*ICON_RATIO,
@@ -317,7 +324,6 @@ void DockNodeItem::setupLayout()
         imageLabel->setPixmap(scaledPixmap);
         layout->addWidget(imageLabel);
         layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
-
     }
 
     layout->addWidget(textLabel);

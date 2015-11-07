@@ -35,6 +35,7 @@ Together:
 * Model's not being centered correctly after import.
 * Continuously pressing import then cancel after the first import moves the model.
 * Undo/redo stack/triggerAction.
+* Medea freezes if you keep triggering new project.
 
 Dan To Fix:
 * performance testing
@@ -44,6 +45,7 @@ Dan To Fix:
 Cathlyn To Fix:
 * Fix getNextChildPos() in NodeItem. (doesnt' work consistantly for sorting Aspect)
 * Work out useful short cuts for recursive sort and normal sort.
+* Add scrollbar for nodekinds menu in search options.
 Fixed:
 * Fixed theme updates  for modelitem, clusters, toolbar and the view.
 * Added aspect check for search

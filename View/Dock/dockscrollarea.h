@@ -37,6 +37,8 @@ public:
     void setDockEnabled(bool enabled, bool repaint = false);
 
     DockToggleButton* getParentButton();
+    DOCK_TYPE getDockType();
+
     NodeItem* getCurrentNodeItem();
     int getCurrentNodeID();
 
