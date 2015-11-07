@@ -58,6 +58,7 @@ Fixed:
 * Fixed missing expand/contract buttons.
 * Edge constructed signal is not getting sent from the view - docks not updating correctly.
 * Stopped toolbar from showing in subviews.
+* Fixed empty parts dock after new project is called.
 
 Version 18:
     New Features:
