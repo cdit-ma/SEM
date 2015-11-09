@@ -49,7 +49,8 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
     hardware_notAllowedKinds.append("BlackBox");
     hardware_notAllowedKinds.append("InputParameter");
     hardware_notAllowedKinds.append("ReturnParameter");
-
+    hardware_notAllowedKinds.append("Vector");
+    hardware_notAllowedKinds.append("VectorInstance");
 
     setNotAllowedKinds(hardware_notAllowedKinds);
 }

@@ -227,13 +227,14 @@ GraphMLItem::~GraphMLItem()
         delete table;
         table = 0;
     }
+    /*
     if(getNodeView()){
         if(!getNodeView()->isTerminating()){
             if(parentItem){
                 parentItem->removeChild(getID());
             }
         }
-    }
+    }*/
 }
 
 QRectF GraphMLItem::sceneBoundingRect() const

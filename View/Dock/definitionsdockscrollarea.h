@@ -20,6 +20,8 @@ public slots:
     void updateDock();
     void clear();
 
+    void onNodeDeleted(int nodeID, int parentID);
+
     void nodeConstructed(NodeItem* nodeItem);
     void insertDockNodeItem(DockNodeItem* dockItem);
 
@@ -30,6 +32,7 @@ private:
     void filterDock(QString nodeKind = "");
     void showDockItemsOfKinds(QStringList kinds = QStringList());
     void hideImplementedComponents();
+    void updateForVector();
 
     QStringList definitions_notAllowedKinds;
     QStringList definitionKinds;

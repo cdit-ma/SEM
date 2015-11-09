@@ -110,6 +110,7 @@ signals:
     void GraphMLItem_PositionChanged();
     void GraphMLItem_SizeChanged();
     void GraphMLItem_Hovered(int ID, bool entered);
+
 private:
 
     void setupPens();

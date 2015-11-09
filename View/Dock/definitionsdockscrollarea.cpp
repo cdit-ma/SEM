@@ -52,6 +52,8 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitions_notAllowedKinds.append("ComponentImpl");
     definitions_notAllowedKinds.append("InputParameter");
     definitions_notAllowedKinds.append("ReturnParameter");
+    //definitions_notAllowedKinds.append("Vector");
+    definitions_notAllowedKinds.append("VectorInstance");
 
     setNotAllowedKinds(definitions_notAllowedKinds);
 
@@ -144,6 +146,9 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
             DockScrollArea::nodeDeleted(fileID);
         }
     }
+
+    //qDebug() << "nodeDeleted";
+    updateDock();
 }
 
 
@@ -152,6 +157,7 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
  */
 void DefinitionsDockScrollArea::edgeDeleted()
 {
+    //qDebug() << "edgeDeleted";
     updateDock();
 }
 
@@ -195,9 +201,22 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
 void DefinitionsDockScrollArea::updateDock()
 {
     DockScrollArea::updateDock();
-    if (isDockEnabled()) {
-        filterDock();
+    if (!isDockEnabled()) {
+        return;
     }
+
+    //qDebug() << "Updating Definitions dock!";
+
+    // special case - Vector entities can only have one child (AggregateInstance/Member)
+    NodeItem* selectedItem = getCurrentNodeItem();
+    if (selectedItem && selectedItem->getNodeKind() == "Vector") {
+        if (selectedItem->hasChildren()) {
+            setDockEnabled(false);
+            return;
+        }
+    }
+
+    filterDock();
 }
 
 
@@ -257,6 +276,10 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
             insertDockNodeItem(dockItem);
             connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
         }
+
+    } else if (/*nodeKind == "ComponentImpl" ||*/ nodeKind == "Member" /*|| nodeKind == "AggregateInstance"*/) {
+        //qDebug() << "nodeConstructed!";
+        updateDock();
     }
 }
 
@@ -285,13 +308,14 @@ void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
  */
 void DefinitionsDockScrollArea::dockClosed()
 {
-    updateDock();
+    //qDebug() << "dockClosed";
+    //updateDock();
 }
 
 
 /**
- * @brief DefinitionsDockScrollArea::openDockForKind
- * @param kind
+ * @brief DefinitionsDockScrollArea::filterDock
+ * @param nodeKind
  */
 void DefinitionsDockScrollArea::filterDock(QString nodeKind)
 {
@@ -321,26 +345,6 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
     } else if (nodeKind == "Vector") {
         kinds.append("Aggregate");
     }
-
-    /*
-    if (nodeKind == "BlackBoxInstance") {
-        kinds.append("BlackBox");
-    } else if (nodeKind == "ComponentInstance") {
-        kinds.append("Component");
-    } else if (nodeKind == "ComponentImp" || nodeKind == "BehaviourDefinitions") {
-        kinds.append("Component");
-        hideCompsWithImpl = true;
-    } else if (nodeKind == "Aggregate") {
-        kinds.append("Vector");
-        kinds.append("Aggregate");
-    } else if (nodeKind == "AggregateInstance") {
-        kinds.append("Aggregate");
-    } else if (nodeKind == "Vector") {
-        kinds.append("Aggregate");
-    } else if (nodeKind == "VectorInstance") {
-        kinds.append("Vector");
-    }
-    */
 
     // all dock items are shown for all the other allowed kinds
     showDockItemsOfKinds(kinds);
@@ -468,6 +472,32 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
 }
 
 
+void DefinitionsDockScrollArea::updateForVector()
+{
+    // special case - Vector entities can only have one child (AggregateInstance/Member)
+    NodeItem* selectedItem = getCurrentNodeItem();
+    if (selectedItem && selectedItem->getNodeKind() == "Vector") {
+         qCritical() << "updateForVector" << selectedItem;
+        if (selectedItem->hasChildren()) {
+            foreach(GraphMLItem* child, selectedItem->getChildren()){
+                if(child->getGraphML()){
+
+                    //qCritical() << child->getGraphML()->toString();
+                }else{
+                    qCritical() << " NO CHILD!";
+                }
+            }
+
+            //qDebug() << "Enable definitions dock: " << childDeleted;
+            //qDebug() << selectedItem->getChildren().at(0)->getGraphML()->toString();
+            setDockEnabled(false);
+        } else {
+            setDockEnabled(true);
+        }
+    }
+}
+
+
 /**
  * @brief DefinitionsDockScrollArea::showDockItemsOfKind
  * @param kinds - list of kinds of dock node items to show
@@ -501,4 +531,15 @@ void DefinitionsDockScrollArea::clear()
 {
     DockScrollArea::clear();
     fileLayoutItems.clear();
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::onNodeDeleted
+ * @param nodeID
+ * @param parentID
+ */
+void DefinitionsDockScrollArea::onNodeDeleted(int nodeID, int parentID)
+{
+    DockScrollArea::onNodeDeleted(nodeID, parentID);
 }

@@ -3208,12 +3208,18 @@ bool NodeView::removeGraphMLItemFromHash(int ID)
                 }
             }else{
                 if(item->getParent()){
+
+                    // remove child from parent item
+                    item->getParent()->removeChild(ID);
+
                     emit view_nodeDeleted(item->getID(), item->getParent()->getID());
                 }
             }
 
+
             item->detach();
             delete item;
+            //qCritical() << "DELETED!";
         }
 
         if(IS_SUB_VIEW){
