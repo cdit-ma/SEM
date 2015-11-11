@@ -73,6 +73,16 @@ void PartsDockScrollArea::updateDock()
 
 
 /**
+ * @brief PartsDockScrollArea::clear
+ */
+void PartsDockScrollArea::clear()
+{
+    DockScrollArea::clear();
+    displayedItems.clear();
+}
+
+
+/**
  * @brief PartsDockScrollArea::forceOpenDock
  */
 void PartsDockScrollArea::forceOpenDock()

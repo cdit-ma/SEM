@@ -61,6 +61,7 @@ Fixed:
 * Fixed empty parts dock after new project is called.
 * Added extra check for Vectors for the definitions dock. - Multiple updates are coming from edge/node construction/destruction
 * The definitions dock can now only be accessed through the parts dock and it returns to the parts dock after an item in it has been clicked.
+* Fixed switching between fullscreen and maximised state.
 
 Version 18:
     New Features:

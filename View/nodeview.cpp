@@ -319,6 +319,8 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
     double heightScale = visibleViewRect.height() / rect.height();
     double newScale = qMin(widthScale, heightScale);
 
+    qDebug() << "visibleViewRect: " << visibleViewRect;
+
     QPoint centerOffset = viewport()->rect().center() - visibleViewRect.center();
     QPointF sceneOffset = QPointF(centerOffset.x() / newScale, centerOffset.y() / newScale);
 
@@ -4516,6 +4518,7 @@ void NodeView::fitToScreen(QList<GraphMLItem *> itemsToCenter, double padding, b
             itemsToCenter.append(getModelItem()->getChildren());
         }
     }
+
 
     QRectF visibleItemsRect;
 

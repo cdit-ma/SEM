@@ -23,7 +23,6 @@
 
 #define THREADING true
 
-
 #define RIGHT_PANEL_WIDTH 230.0
 #define SPACER_HEIGHT 10
 
@@ -237,6 +236,10 @@ void MedeaWindow::modelReady()
         importProjects(files);
         loadLaunchedFile = false;
     }
+
+    if (nodeView) {
+        nodeView->fitToScreen();
+    }
 }
 
 
@@ -282,13 +285,12 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
     }else if(keyName == WINDOW_MAX_STATE && isBool){
         if(boolValue != isWindowMaximized && settingsLoading){
             maximizedSettingInitiallyChanged = true;
+            WINDOW_MAXIMIZED = boolValue;
         }
         if(boolValue){
-            //setWindowState(Qt::WindowMaximized);
-            showMaximized();
+            setWindowState(Qt::WindowMaximized);
         }else{
-            //setWindowState(Qt::WindowNoState);
-            showNormal();
+            setWindowState(Qt::WindowNoState);
         }
     }else if(keyName == WINDOW_FULL_SCREEN && isBool){
         setFullscreenMode(boolValue);
@@ -1247,21 +1249,19 @@ void MedeaWindow::resetGUI()
     // clear and reset search bar and search results
     searchBar->clear();
     searchResults->close();
-    /*
+
     QLayoutItem* child;
     while (resultsLayout->count() != 0) {
         child = resultsLayout->takeAt(0);
         delete child;
     }
-    */
+
     // reset checked states for all search options menus
     foreach (QAction* action, viewAspectsMenu->actions()) {
         QWidgetAction* widgetAction = qobject_cast<QWidgetAction*>(action);
         QCheckBox* checkBox = qobject_cast<QCheckBox*>(widgetAction->defaultWidget());
         checkBox->setChecked(false);
     }
-    // clear this menu for now because it is getting re-populated every time new project is triggered
-    nodeKindsMenu->clear();
     /*
     foreach (QAction* action, nodeKindsMenu->actions()) {
         QWidgetAction* widgetAction = qobject_cast<QWidgetAction*>(action);
@@ -1274,6 +1274,9 @@ void MedeaWindow::resetGUI()
         QCheckBox* checkBox = qobject_cast<QCheckBox*>(widgetAction->defaultWidget());
         checkBox->setChecked(false);
     }
+
+    // clear this menu for now because it is getting re-populated every time new project is triggered
+    nodeKindsMenu->clear();
 }
 
 
@@ -1452,6 +1455,7 @@ void MedeaWindow::makeConnections()
 
     connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
 
+    connect(this, SIGNAL(clearDocks()), partsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
     connect(this, SIGNAL(clearDocks()), functionsDock, SLOT(clear()));
@@ -1531,11 +1535,10 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
+    qDebug() << "resizeEvent";
+
     if(isWindowMaximized != isMaximized() && maximizedSettingInitiallyChanged){
         maximizedSettingInitiallyChanged = false;
-    }
-    if (nodeView) {
-        nodeView->aspectGraphicsChanged();
     }
 
     // isWindowMaximised == WINDOW_MAXIMIZED ???
@@ -1554,19 +1557,8 @@ void MedeaWindow::changeEvent(QEvent *event)
 {
     QWidget::changeEvent(event);
     if (event->type() == QEvent::WindowStateChange){
-        if (isMaximized()) {
-            WINDOW_MAXIMIZED = isMaximized();
-        }
-        /*
-        if(!isFullScreen()){
-            WINDOW_MAXIMIZED = isMaximized();
-        }
-        */
+        qDebug() << "changeEvent";
         updateWidgetsOnWindowChanged();
-    }
-    if (nodeView) {
-        nodeView->aspectGraphicsChanged();
-        nodeView->recenterView();
     }
 }
 
@@ -1713,24 +1705,25 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
 
 void MedeaWindow::setFullscreenMode(bool fullscreen)
 {
-    if(fullscreen){
+    if (fullscreen) {
+        // need to update this here
+        WINDOW_MAXIMIZED = isMaximized();
         showFullScreen();
         view_fullScreenMode->setText("Exit Fullscreen Mode");
         view_fullScreenMode->setChecked(true);
         view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Failure"));
-    }else{
-        if(WINDOW_MAXIMIZED){
-
-            showMaximized();
-        }else{
-            showNormal();
+    } else {
+        if (!settingsLoading) {
+            if (WINDOW_MAXIMIZED) {
+                showMaximized();
+            } else {
+                showNormal();
+            }
         }
         view_fullScreenMode->setText("Set Fullscreen Mode");
         view_fullScreenMode->setChecked(false);
         view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Fullscreen"));
     }
-
-
 }
 
 
@@ -1899,7 +1892,10 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
         nodeView->visibleViewRectChanged(canvasRect);
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
+        nodeView->aspectGraphicsChanged();
+        qDebug() << "canvasRect: " << canvasRect;
     }
+
 
     updateWidgetMask(docksArea, dockButtonsBox, true);
     updateToolbar();
@@ -1944,7 +1940,7 @@ void MedeaWindow::setupInitialSettings()
     appSettings->loadSettings();
     settingsLoading = false;
 
-    // TODO - The following setup only needs to happen once
+    // TODO - The following setup only needs to happen once the whole time the application is open
     // It doesn't need to be redone every time new project is called
     QStringList allKinds = nodeView->getAllNodeKinds();
     QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
@@ -1953,7 +1949,6 @@ void MedeaWindow::setupInitialSettings()
     functionKinds << QPair<QString, QString>("VectorOperation", "Set");
     functionKinds << QPair<QString, QString>("VectorOperation", "Remove");
 
-    // this only needs to happen once, the whole time the application is open
     partsDock->addDockNodeItems(guiKinds);
     functionsDock->addDockNodeItems(functionKinds);
 
@@ -2881,7 +2876,6 @@ void MedeaWindow::dockButtonPressed(DOCK_TYPE dockType)
  */
 void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
 {
-    // TODO - Connect the signal to this directly to the docks
     switch (type) {
     case PARTS_DOCK:
         partsDock->forceOpenDock();

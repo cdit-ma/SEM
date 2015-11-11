@@ -18,6 +18,7 @@ signals:
 public slots:
     void dockNodeItemClicked();
     void updateDock();
+    void clear();
 
     void forceOpenDock();
 
