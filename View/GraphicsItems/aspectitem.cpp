@@ -99,6 +99,16 @@ QRectF AspectItem::boundingRect() const
 
 void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    /*
+    if (getViewAspect() == VA_BEHAVIOUR) {
+        QPixmap pixmap = getNodeView()->getImage("Items", "BehaviourDefinitions");
+        pixmap =  pixmap.scaled(boundingRect().width(), boundingRect().height(),
+                                Qt::KeepAspectRatio,
+                                Qt::SmoothTransformation);
+        painter->drawPixmap(boundingRect().topLeft(), pixmap);
+    }
+    */
+
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
     painter->setRenderHint(QPainter::HighQualityAntialiasing, true);
@@ -247,9 +257,9 @@ void AspectItem::sizeChanged()
 
 QRectF AspectItem::gridRect() const
 {
-   QRectF rect = boundingRect();
-   rect.adjust(getItemMargin(), getItemMargin(), -getItemMargin() * 2, -getItemMargin()* 2);
-   return rect;
+    QRectF rect = boundingRect();
+    rect.adjust(getItemMargin(), getItemMargin(), -getItemMargin() * 2, -getItemMargin()* 2);
+    return rect;
 }
 
 void AspectItem::mousePressEvent(QGraphicsSceneMouseEvent *event)

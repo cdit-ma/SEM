@@ -20,9 +20,11 @@ static VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
     case VA_BEHAVIOUR:
         return VAP_TOPRIGHT;
     case VA_ASSEMBLIES:
-        return VAP_BOTTOMLEFT;
-    case VA_HARDWARE:
+        //return VAP_BOTTOMLEFT;
         return VAP_BOTTOMRIGHT;
+    case VA_HARDWARE:
+        return VAP_BOTTOMLEFT;
+        //return VAP_BOTTOMRIGHT;
     default:
         break;
     }
@@ -62,6 +64,9 @@ static VIEW_ASPECT GET_ASPECT_FROM_KIND(QString aspectKind)
 
 static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
 {
+    /*
+     * THESE ARE THE ORIGINAL COLOURS
+     */
     switch(aspect){
     case VA_INTERFACES:
         return QColor(110,210,210);
@@ -74,6 +79,62 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     default:
         break;
     }
+    /*
+    switch(aspect){
+    case VA_INTERFACES:
+        return QColor(87,139,139);
+    case VA_BEHAVIOUR:
+        return QColor(231,203,146);
+    case VA_ASSEMBLIES:
+        return QColor(231,184,146);
+    case VA_HARDWARE:
+        return QColor(104,119,155);
+    default:
+        break;
+    }
+    */
+    /*
+    switch(aspect){
+    case VA_INTERFACES:
+        return QColor(102,153,153);
+    case VA_BEHAVIOUR:
+        return QColor(255,209,170);
+    case VA_ASSEMBLIES:
+        return QColor(255,170,170);
+    case VA_HARDWARE:
+        return QColor(136,204,136);
+    default:
+        break;
+    }
+    */
+    /*
+    switch(aspect){
+    case VA_INTERFACES:
+        return QColor(111,182,150);
+    case VA_BEHAVIOUR:
+        return QColor(255,209,156);
+    case VA_ASSEMBLIES:
+        return QColor(255,183,156);
+    case VA_HARDWARE:
+        return QColor(106,148,168);
+    default:
+        break;
+    }
+    */
+    /*
+    switch(aspect){
+    case VA_INTERFACES:
+        return QColor(71,154,116);
+    case VA_BEHAVIOUR:
+        return QColor(223,167,103);
+    case VA_ASSEMBLIES:
+        return QColor(223,135,103);
+    case VA_HARDWARE:
+        return QColor(69,117,141);
+    default:
+        break;
+    }
+    */
     return Qt::white;
 }
 

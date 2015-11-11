@@ -1535,7 +1535,7 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
 {
     QWidget::resizeEvent(event);
 
-    qDebug() << "resizeEvent";
+    //qDebug() << "resizeEvent";
 
     if(isWindowMaximized != isMaximized() && maximizedSettingInitiallyChanged){
         maximizedSettingInitiallyChanged = false;
@@ -1557,7 +1557,7 @@ void MedeaWindow::changeEvent(QEvent *event)
 {
     QWidget::changeEvent(event);
     if (event->type() == QEvent::WindowStateChange){
-        qDebug() << "changeEvent";
+        //qDebug() << "changeEvent";
         updateWidgetsOnWindowChanged();
     }
 }
@@ -1893,7 +1893,7 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
         nodeView->aspectGraphicsChanged();
-        qDebug() << "canvasRect: " << canvasRect;
+        //qDebug() << "canvasRect: " << canvasRect;
     }
 
 
