@@ -73,6 +73,24 @@ void PartsDockScrollArea::updateDock()
 
 
 /**
+ * @brief PartsDockScrollArea::forceOpenDock
+ */
+void PartsDockScrollArea::forceOpenDock()
+{
+    if (isDockOpen()) {
+        return;
+    }
+    if (!isDockEnabled()) {
+        setDockEnabled(true);
+    }
+    if (getParentButton()) {
+        getParentButton()->pressed();
+        updateDock();
+    }
+}
+
+
+/**
  * @brief PartsDockScrollArea::addDockNodeItems
  * Add adoptable dock node items to dock.
  * This creates a groupbox for each adoptable node kind

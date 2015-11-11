@@ -15,26 +15,27 @@ public:
     void nodeDeleted(QString nodeID);
     void edgeDeleted();
 
+signals:
+    void dock_forceOpenDock(DOCK_TYPE type);
+
 public slots:
     void dockNodeItemClicked();
     void updateDock();
     void clear();
 
-    void onNodeDeleted(int nodeID, int parentID);
-
     void nodeConstructed(NodeItem* nodeItem);
     void insertDockNodeItem(DockNodeItem* dockItem);
 
-    void forceOpenDock(QString srcKind);
     void dockClosed();
+    void forceOpenDock(QString srcKind);
 
 private:
     void filterDock(QString nodeKind = "");
     void showDockItemsOfKinds(QStringList kinds = QStringList());
     void hideImplementedComponents();
-    void updateForVector();
 
     QStringList definitions_notAllowedKinds;
+    QStringList definitions_allowedKinds;
     QStringList definitionKinds;
 
     QHash<QString, QVBoxLayout*> fileLayoutItems;

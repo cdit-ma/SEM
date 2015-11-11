@@ -13,6 +13,9 @@ public:
 
     void addDockNodeItems(QList<QPair<QString, QString> > functionKinds);
 
+signals:
+    void dock_forceOpenDock(DOCK_TYPE type);
+
 public slots:
     void dockNodeItemClicked();
     void updateDock();
@@ -28,7 +31,7 @@ private:
     QVBoxLayout* mainLayout;
     QVBoxLayout* itemsLayout;
 
-    QStringList allowedKinds;
+    QStringList functions_allowedKinds;
 };
 
 #endif // FUNCTIONSDOCKSCROLLAREA_H

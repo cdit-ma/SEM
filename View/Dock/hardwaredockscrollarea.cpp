@@ -68,7 +68,7 @@ void HardwareDockScrollArea::edgeDeleted()
 /**
  * @brief HardwareDockScrollArea::dock_itemClicked
  * When an item in this dock is clicked, if it's allowed, it connects the
- * selected node to the selected hardware node from the dock.
+ * selected node item(s) to the selected hardware node from the dock.
  */
 void HardwareDockScrollArea::dockNodeItemClicked()
 {
@@ -77,12 +77,9 @@ void HardwareDockScrollArea::dockNodeItemClicked()
         return;
     }
 
-    /*
-     * At this point everything in selectedNodeIDs is deployable.
-     * If all nodes in selection are already connected to dockNodeID, disconnect them.
-     * If some nodes in selection aren't connected to dockNodeID, disconnect their deployment edge, and connect to docknodeID.
-     */
-
+    // if all selected items are connected to the clicked hardware node, disconnect them
+    // otherwise, connect all selected items to the clicked hardware node
+    // disconnect any previous deployment links if they exist
     int dockId = dockNodeItem->getID().toInt();
     getNodeView()->constructDestructEdges(getNodeView()->getSelectedNodeIDs(), dockId);
 }
@@ -91,7 +88,8 @@ void HardwareDockScrollArea::dockNodeItemClicked()
 /**
  * @brief DefinitionsDockScrollArea::updateDock
  * This is called whenever a node item is selected.
- * It checks to see if this dock should be enabled for the currently selected item.
+ * It checks to see if this dock should be enabled for the currently selected item(s)
+ * and if any of its items should be highlighted to denote current deployment link.
  */
 void HardwareDockScrollArea::updateDock()
 {    
@@ -108,6 +106,7 @@ void HardwareDockScrollArea::updateDock()
     // check if the dock should be disabled
     foreach (GraphMLItem* selectedItem, selectedItems) {
 
+        // ignore graphML items that aren't node items
         if (!selectedItem->isNodeItem()) {
             continue;
         }
@@ -115,11 +114,13 @@ void HardwareDockScrollArea::updateDock()
         NodeItem* item = (NodeItem*)selectedItem;
         QString itemKind = item->getNodeKind();
 
+        // check if this dock should be enabled for the current item
         if (getNotAllowedKinds().contains(itemKind)) {
             enableDock = false;
             break;
         }
 
+        // if there are multiple selected items, if any of them aren't deployable, disable this dock
         if (multipleSelection) {
             if (!getNodeView()->isNodeKindDeployable(itemKind)) {
                 enableDock = false;

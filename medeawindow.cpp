@@ -1447,6 +1447,9 @@ void MedeaWindow::makeConnections()
     //connect(toolbarStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedToolbarClosed()));
 
     connect(partsDock, SIGNAL(dock_forceOpenDock(DOCK_TYPE,QString)), this, SLOT(forceOpenDock(DOCK_TYPE,QString)));
+    connect(definitionsDock, SIGNAL(dock_forceOpenDock(DOCK_TYPE)), this, SLOT(forceOpenDock(DOCK_TYPE)));
+    connect(functionsDock, SIGNAL(dock_forceOpenDock(DOCK_TYPE)), this, SLOT(forceOpenDock(DOCK_TYPE)));
+
     connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
 
     connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
@@ -2878,17 +2881,22 @@ void MedeaWindow::dockButtonPressed(DOCK_TYPE dockType)
  */
 void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
 {
-    if (partsButton->isSelected()) {
-        switch (type) {
-        case DEFINITIONS_DOCK:
-            definitionsDock->forceOpenDock(srcKind);
-            break;
-        case FUNCTIONS_DOCK:
-            functionsDock->forceOpenDock();
-            break;
-        default:
-            break;
-        }
+    // TODO - Connect the signal to this directly to the docks
+    switch (type) {
+    case PARTS_DOCK:
+        partsDock->forceOpenDock();
+        break;
+    case DEFINITIONS_DOCK:
+        definitionsDock->forceOpenDock(srcKind);
+        break;
+    case FUNCTIONS_DOCK:
+        functionsDock->forceOpenDock();
+        break;
+    case HARDWARE_DOCK:
+        //hardwareDock->forceOpenDock();
+        break;
+    default:
+        break;
     }
 }
 

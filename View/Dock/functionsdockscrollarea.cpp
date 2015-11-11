@@ -81,6 +81,12 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
     if (dockItem && parentItem) {
         getNodeView()->constructFunctionNode("Process", dockItem->getKind(), parentItem->getKind(), 0);
     }
+
+    // close this dock after an item has been clicked
+    setDockEnabled(false);
+
+    // then re-open the parts dock
+    emit dock_forceOpenDock(PARTS_DOCK);
 }
 
 
@@ -90,13 +96,15 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
 void FunctionsDockScrollArea::updateDock()
 {
     NodeItem* selectedItem = getCurrentNodeItem();
-    if (selectedItem && allowedKinds.contains(selectedItem->getNodeKind())) {
-        // do stuff
-    } else {
+    if (!selectedItem || !functions_allowedKinds.contains(selectedItem->getNodeKind())) {
         setDockEnabled(false);
     }
 }
 
+
+/**
+ * @brief FunctionsDockScrollArea::clear
+ */
 void FunctionsDockScrollArea::clear()
 {
     DockScrollArea::clear();

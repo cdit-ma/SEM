@@ -60,8 +60,8 @@ public slots:
     virtual void updateDock();
     virtual void clear();
 
-    virtual void onNodeDeleted(int nodeID, int parentID);
-    virtual void onEdgeDeleted(int srcID = -1, int dstID = -1);
+    void onNodeDeleted(int nodeID, int parentID);
+    void onEdgeDeleted(int srcID = -1, int dstID = -1);
 
     void on_parentButtonPressed();
 

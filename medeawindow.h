@@ -164,7 +164,7 @@ private slots:
     void graphicsItemDeleted();
 
     void dockButtonPressed(DOCK_TYPE dockType);
-    void forceOpenDock(DOCK_TYPE type, QString srcKind);
+    void forceOpenDock(DOCK_TYPE type, QString srcKind = "");
 
     void updateWindowTitle(QString newProjectName);
     void updateProgressStatus(int value, QString status);

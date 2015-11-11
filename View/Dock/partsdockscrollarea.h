@@ -19,6 +19,8 @@ public slots:
     void dockNodeItemClicked();
     void updateDock();
 
+    void forceOpenDock();
+
 private:    
     QStringList kindsRequiringDefinition;
     QStringList kindsRequiringFunction;
