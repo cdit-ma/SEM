@@ -1095,6 +1095,14 @@ void NodeView::showDropDown(GraphMLItem *item, QLineF dropDownPosition, QString 
  */
 void NodeView::setupTheme(VIEW_THEME theme)
 {
+    QColor bgColor = GET_VIEW_COLOR(theme);
+    QString red = QString::number(bgColor.red());
+    QString green = QString::number(bgColor.green());
+    QString blue = QString::number(bgColor.blue());
+
+    QString background = "rgb(" + red + "," + green + "," + blue + ");";
+
+    /*
     QString background = ";";
 
     switch (theme) {
@@ -1107,6 +1115,7 @@ void NodeView::setupTheme(VIEW_THEME theme)
     default:
         break;
     }
+    */
 
     setStyleSheet("QGraphicsView {"
                   "background-color:" + background +
@@ -1510,6 +1519,34 @@ void NodeView::hardwareClusterMenuClicked(int viewMode)
 
 
 /**
+ * @brief NodeView::highlightOnHover
+ * This highlights the corresponding node item on the canvas that the cursor
+ * is currently hovering over in one of the context toolbar menus.
+ * @param nodeID
+ */
+void NodeView::highlightOnHover(int nodeID)
+{
+    // turn highlight off for previously highlighted item
+    if (prevHighlightedFromToolbarID != nodeID) {
+        EntityItem* item = getEntityItemFromID(prevHighlightedFromToolbarID);
+        if (item) {
+            item->setHighlighted(false);
+        }
+        prevHighlightedFromToolbarID = -1;
+    }
+
+    // highlight item with the provided ID
+    if (nodeID != -1) {
+        EntityItem* entityItem = getEntityItemFromID(nodeID);
+        if (entityItem) {
+            entityItem->setHighlighted(true);
+            prevHighlightedFromToolbarID = nodeID;
+        }
+    }
+}
+
+
+/**
  * @brief NodeView::centerAspect
  * @param aspect
  */
@@ -1676,6 +1713,7 @@ void NodeView::selectAndCenterItem(int ID)
             // make sure that the parent of nodeItem is expanded
             if (!parentEntity->isExpanded()) {
                 //parentEntity->setNodeExpanded(true);
+                parentEntity->setStateExpanded(true) ;
             }
 
             // if it's a HardwareNode, make sure that its parent cluster's view mode is set to ALL
@@ -1903,14 +1941,14 @@ void NodeView::itemEntered(int ID, bool enter)
         current->setHovered(enter);
 
         if(enter){
-            GraphMLItem* prev = getGraphMLItemFromID(highlightedID);
+            GraphMLItem* prev = getGraphMLItemFromID(prevHighlightedID);
             if(prev){
                 prev->setHovered(false);
             }
 
-            highlightedID = ID;
+            prevHighlightedID = ID;
         }else{
-            highlightedID = -1;
+            prevHighlightedID = -1;
         }
     }
 }
@@ -2393,11 +2431,11 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         yData->setValue(newPosition.y());
     }
 
-     if(toolbarDockConstruction || importFromJenkins){
+    if(toolbarDockConstruction || importFromJenkins){
         if(parentItem && parentItem->isEntityItem()){
             emit this->view_SetGraphMLData(parentItem->getID(), "isExpanded", "true");
         }
-     }
+    }
 
     GraphMLItem* item = 0;
 

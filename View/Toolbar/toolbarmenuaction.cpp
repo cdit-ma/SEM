@@ -41,13 +41,22 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, QWidget* parent, QString disp
     deletable = true;
     actionKind = kind;
 
-    if (actionKind == "ComponentInstance" || actionKind == "ComponentImpl" || actionKind == "BlackBoxInstance" ||
-            actionKind == "InEventPortDelegate" || actionKind == "OutEventPortDelegate") {
+    // this is the list of actios from the addMenu in the toolbar that has a menu
+    QStringList nonDeletableKinds;
+    nonDeletableKinds.append("ComponentInstance");
+    nonDeletableKinds.append("ComponentImpl");
+    nonDeletableKinds.append("BlackBoxInstance");
+    nonDeletableKinds.append("InEventPortDelegate");
+    nonDeletableKinds.append("OutEventPortDelegate");
+    nonDeletableKinds.append("AggregateInstance");
+    nonDeletableKinds.append("VectorInstance");
+    nonDeletableKinds.append("Info");
+
+    if (nonDeletableKinds.contains(actionKind)) {
         deletable = false;
     }
 
     if (actionKind == "Info") {
-        deletable = false;
         setEnabled(false);
     }
 

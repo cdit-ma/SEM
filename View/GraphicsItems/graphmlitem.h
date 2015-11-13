@@ -138,6 +138,8 @@ private:
     QPen selectedPen;
     QPen currentPen;
 
+    qreal selectedPenWidth;
+
 protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent *event);
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event);

@@ -20,11 +20,11 @@ static VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
     case VA_BEHAVIOUR:
         return VAP_TOPRIGHT;
     case VA_ASSEMBLIES:
-        //return VAP_BOTTOMLEFT;
-        return VAP_BOTTOMRIGHT;
-    case VA_HARDWARE:
         return VAP_BOTTOMLEFT;
         //return VAP_BOTTOMRIGHT;
+    case VA_HARDWARE:
+        return VAP_BOTTOMRIGHT;
+        //return VAP_BOTTOMLEFT;
     default:
         break;
     }
@@ -62,6 +62,15 @@ static VIEW_ASPECT GET_ASPECT_FROM_KIND(QString aspectKind)
     return VA_NONE;
 }
 
+static QStringList GET_ASPECT_NAMES()
+{
+    QStringList list;
+    foreach(VIEW_ASPECT aspect, VIEW_ASPECTS){
+        list << GET_ASPECT_NAME(aspect);
+    }
+    return list;
+}
+
 static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
 {
     /*
@@ -77,7 +86,7 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     case VA_HARDWARE:
         return QColor(110,170,220);
     default:
-        break;
+        return Qt::white;
     }
     /*
     switch(aspect){
@@ -90,7 +99,7 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     case VA_HARDWARE:
         return QColor(104,119,155);
     default:
-        break;
+        return Qt::white;
     }
     */
     /*
@@ -104,7 +113,7 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     case VA_HARDWARE:
         return QColor(136,204,136);
     default:
-        break;
+        return Qt::white;
     }
     */
     /*
@@ -118,7 +127,7 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     case VA_HARDWARE:
         return QColor(106,148,168);
     default:
-        break;
+        return Qt::white;
     }
     */
     /*
@@ -132,19 +141,56 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     case VA_HARDWARE:
         return QColor(69,117,141);
     default:
-        break;
+        return Qt::white;
     }
     */
-    return Qt::white;
+    /*
+    switch(aspect){
+    case VA_INTERFACES:
+        return QColor(58,161,117);
+    case VA_BEHAVIOUR:
+        return QColor(235,165,85);
+    case VA_ASSEMBLIES:
+        return QColor(235,127,85);
+    case VA_HARDWARE:
+        return QColor(58,119,149);
+    default:
+        return Qt::white;
+    }
+    */
+    /*
+     * This is preferred.
+     */
+    /*
+    switch(aspect){
+    case VA_INTERFACES:
+        return QColor(24,148,184);
+    case VA_BEHAVIOUR:
+        return QColor(110,110,110);
+    case VA_ASSEMBLIES:
+        return QColor(175,175,175);
+    case VA_HARDWARE:
+        return QColor(207,107,100);
+    default:
+        return Qt::white;
+    }
+    */
 }
 
-static QStringList GET_ASPECT_NAMES()
+static QColor GET_VIEW_COLOR(VIEW_THEME theme)
 {
-    QStringList list;
-    foreach(VIEW_ASPECT aspect, VIEW_ASPECTS){
-        list << GET_ASPECT_NAME(aspect);
+    // TODO - Use this function to alter the widget colours when the theme's changed.
+    switch (theme) {
+    case VT_LIGHT_THEME:
+        // not using this theme at the moment
+    case VT_NORMAL_THEME:
+        return QColor(170,170,170);
+    case VT_DARK_THEME:
+        return QColor(70,70,70);
+        //return QColor(50,50,50);
+    default:
+        return Qt::white;
     }
-    return list;
 }
 
 

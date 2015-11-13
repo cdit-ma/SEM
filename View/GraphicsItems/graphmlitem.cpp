@@ -456,7 +456,7 @@ void GraphMLItem::updateCurrentPen(bool zoomChanged)
 {
     if(zoomChanged){
         //Update Pen Width!
-        qreal selectedPenWidth = qMax(SELECTED_LINE_WIDTH / currentZoomFactor, 1.0);
+        selectedPenWidth = qMax(SELECTED_LINE_WIDTH / currentZoomFactor, 1.0);
         selectedPen.setWidthF(selectedPenWidth);
     }
 
@@ -470,9 +470,13 @@ void GraphMLItem::updateCurrentPen(bool zoomChanged)
 
     if(isHovered()){
         if(useDefault){
-            currentPen.setColor(QColor(120,120,120));
+            currentPen.setWidthF(selectedPenWidth);
+            currentPen.setColor(QColor(130,130,130));
         }else{
-            currentPen.setColor(currentPen.color().lighter());
+            // remove hover highlight for aspect items altogether
+            if (!isAspectItem()) {
+                currentPen.setColor(currentPen.color().lighter(130));
+            }
         }
     }
 }

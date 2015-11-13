@@ -165,12 +165,17 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
     setupGraphMLDataConnections();
     updateFromGraphMLData();
 
-
-
     setupBrushes();
 
+
+
+    childrenViewOptionMenu = 0;
+    allChildren = 0;
+    connectedChildren = 0;
+    unConnectedChildren = 0;
+
+    setupChildrenViewOptionMenu();
     if (IS_HARDWARE_CLUSTER) {
-        setupChildrenViewOptionMenu();
         if (getNodeView()) {
             themeChanged(getNodeView()->getTheme());
         } else {
@@ -660,9 +665,10 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
             if(isHovered()){
                 if(pen.color() == Qt::black){
-                    pen.setColor(QColor(120,120,120));
+                    pen.setWidthF(selectedPenWidth);
+                    pen.setColor(QColor(130,130,130));
                 }else{
-                    pen.setColor(pen.color().lighter());
+                    pen.setColor(pen.color().lighter(130));
                 }
             }
 
@@ -1331,7 +1337,8 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             break;
 
         case MO_ITEM:
-
+            // added this to re-center aspect when double-clicked
+            GraphMLItem_SetCentered(this);
             break;
 
         case MO_MODEL_TL:
@@ -1347,6 +1354,7 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             emit EntityItem_Model_AspectToggled(3);
             break;
         default:
+
             break;
 
         }
@@ -2165,11 +2173,17 @@ void EntityItem::updateChildrenViewMode(int viewMode)
     updateDisplayedChildren(viewMode);
 }
 
+
 /**
  * @brief EntityItem::hardwareClusterMenuItemPressed
  */
 void EntityItem::hardwareClusterMenuItemPressed()
 {
+    // if this item is not a HardwareCluster, do nothing
+    if (!IS_HARDWARE_CLUSTER) {
+        return;
+    }
+
     // if the sender was an action, it means that this was triggered from the menu
     QRadioButton* action = qobject_cast<QRadioButton*>(QObject::sender());
 
@@ -2500,7 +2514,11 @@ QString EntityItem::getIconURL()
         }
     }else if(nodeKind.endsWith("Parameter")){
         return nodeLabel;
-    }
+    } /*else if (nodeKind.startsWith("Vector")) {
+        if (!getChildren().isEmpty()) {
+            imageURL = nodeKind + "_" + getChildren().at(0)->getNodeKind();
+        }
+    }*/
 
     return imageURL;
 }

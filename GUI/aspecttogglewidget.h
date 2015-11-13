@@ -33,7 +33,7 @@ signals:
     void aspectToggle_middleClicked(VIEW_ASPECT viewAspect);
 
 public slots:
-    void aspectDoubleClicked(VIEW_ASPECT viewAspect);
+    void aspectMiddleClicked(VIEW_ASPECT viewAspect);
     void highlightToggleButton(VIEW_ASPECT viewAspect);
 
 private:
@@ -63,7 +63,6 @@ private:
 
     bool CHECKED;
     int STATE;
-    int THEME;
 
 };
 

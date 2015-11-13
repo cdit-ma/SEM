@@ -240,9 +240,11 @@ void ModelItem::dataChanged(QString dataValue)
  */
 void ModelItem::themeChanged(VIEW_THEME theme)
 {
+    modelCircleColor = GET_VIEW_COLOR(theme);
+    /*
     switch (theme) {
     case VT_NORMAL_THEME:
-        modelCircleColor = QColor(170,170,170,255);
+        modelCircleColor = QColor(170,170,170);
         break;
     case VT_DARK_THEME:
         modelCircleColor = QColor(70,70,70);
@@ -250,6 +252,7 @@ void ModelItem::themeChanged(VIEW_THEME theme)
     default:
         break;
     }
+    */
 }
 
 

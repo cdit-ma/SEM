@@ -336,6 +336,8 @@ public slots:
 
     void constructNewView(int nodeID=0);
 
+    void highlightOnHover(int nodeID = -1);
+
     QList<NodeItem *> getEntityItemsOfKind(QString kind, int ID=-1, int depth=-1);
     void showConnectedNodes();
 
@@ -465,7 +467,7 @@ private:
 
     int centralizedItemID;
     int prevSelectedNodeID;
-    int highlightedID;
+    int prevHighlightedID;
     int currentTableID;
 
     int initialRect;
@@ -521,8 +523,9 @@ private:
 
     QRect visibleViewRect;
 
-    bool showConnectLine;
     bool showSearchSuggestions;
+    bool showConnectLine;
+    int prevHighlightedFromToolbarID;
 
     // QWidget interface
 protected:

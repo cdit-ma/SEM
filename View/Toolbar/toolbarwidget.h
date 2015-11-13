@@ -22,7 +22,6 @@ public:
     explicit ToolbarWidget(NodeView* parent = 0);
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
-    VIEW_THEME getTheme();
 
 public slots:
     void updateActionEnabledState(QString actionName, bool enabled);
@@ -38,11 +37,15 @@ public slots:
     void setupComponentList();
     void setupBlackBoxList();
     void setupEventPortInstanceList();
+    void setupAggregateList();
+    void setupVectorList();
 
     void setInstanceID();
 
+    void menuActionHovered(QAction* action = 0);
+
     void updateDisplayedChildren();
-    void hardwareClusterMenuClicked(int viewMode=-1);
+    void hardwareClusterMenuClicked(int viewMode = -1);
 
     void hideToolbar(QAction* action = 0);
     void hide();
@@ -128,23 +131,29 @@ private:
     ToolbarMenu* instanceOptionMenu;
     ToolbarMenu* displayedChildrenOptionMenu;
 
-    ToolbarMenu* componentImplDefinitionsMenu;
-    ToolbarMenu* componentInstDefinitionsMenu;
-    ToolbarMenu* blackBoxDefinitionsMenu;
-    ToolbarMenu* iep_definitionInstanceMenu;
-    ToolbarMenu* oep_definitionInstanceMenu;
+    ToolbarMenu* componentImplMenu;
+    ToolbarMenu* componentInstMenu;
+    ToolbarMenu* blackBoxInstMenu;
+    ToolbarMenu* inEventPortDelegateMenu;
+    ToolbarMenu* outEventPortDelegateMenu;
+    ToolbarMenu* aggregateInstMenu;
+    ToolbarMenu* vectorInstMenu;
 
     ToolbarMenuAction* componentImplAction;
     ToolbarMenuAction* componentInstAction;
-    ToolbarMenuAction* blackBoxInstanceAction;
+    ToolbarMenuAction* blackBoxInstAction;
     ToolbarMenuAction* inEventPortDelegateAction;
     ToolbarMenuAction* outEventPortDelegateAction;
+    ToolbarMenuAction* aggregateInstAction;
+    ToolbarMenuAction* vectorInstAction;
 
     ToolbarMenuAction* componentImplMenuInfoAction;
     ToolbarMenuAction* componentInstMenuInfoAction;
     ToolbarMenuAction* blackBoxMenuInfoAction;
-    ToolbarMenuAction* iep_menuInfoAction;
-    ToolbarMenuAction* oep_menuInfoAction;
+    ToolbarMenuAction* inEventPortDelegateMenuInfoAction;
+    ToolbarMenuAction* outEventPortDelegateMenuInfoAction;
+    ToolbarMenuAction* aggregateInstMenuInfoAction;
+    ToolbarMenuAction* vectorInstMenuInfoAction;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
@@ -169,6 +178,8 @@ private:
     bool inEventPortInstanceMenuDone;
     bool outEventPortInstanceMenuDone;
     bool connectMenuDone;
+    bool aggregateMenuDone;
+    bool vectorMenuDone;
 
     int chosenInstanceID;
     QList<NodeItem*> legalNodeItems;

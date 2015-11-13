@@ -14,10 +14,6 @@
 #define DOUBLECLICKED 1
 #define MIDDLECLICKED 2
 
-#define THEME_LIGHT 0
-#define THEME_DARK_NEUTRAL 1
-#define THEME_DARK_COLOURED 2
-
 
 /**
  * @brief AspectToggleWidget::AspectToggleWidget
@@ -36,17 +32,14 @@ AspectToggleWidget::AspectToggleWidget(VIEW_ASPECT aspect, double size, MedeaWin
 
     CHECKED = false;
     STATE = DEFAULT;
-    THEME = THEME_LIGHT;
-    //THEME = THEME_DARK_COLOURED;
-    //THEME = THEME_DARK_NEUTRAL;
 
     setupColor();
     setupLayout(size);
 
     connect(this, SIGNAL(aspectToggled(VIEW_ASPECT,bool)), parent, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)));
-    connect(this, SIGNAL(aspectToggle_doubleClicked(VIEW_ASPECT)), parent, SIGNAL(window_aspectDoubleClicked(VIEW_ASPECT)));
-    connect(this, SIGNAL(aspectToggle_middleClicked(VIEW_ASPECT)), parent, SIGNAL(window_centerAspect(VIEW_ASPECT)));
-    connect(parent, SIGNAL(window_aspectDoubleClicked(VIEW_ASPECT)), this, SLOT(aspectDoubleClicked(VIEW_ASPECT)));
+    connect(this, SIGNAL(aspectToggle_doubleClicked(VIEW_ASPECT)), parent, SIGNAL(window_centerAspect(VIEW_ASPECT)));
+    connect(this, SIGNAL(aspectToggle_middleClicked(VIEW_ASPECT)), parent, SIGNAL(window_aspectMiddleClicked(VIEW_ASPECT)));
+    connect(parent, SIGNAL(window_aspectMiddleClicked(VIEW_ASPECT)), this, SLOT(aspectMiddleClicked(VIEW_ASPECT)));
 }
 
 
@@ -109,13 +102,13 @@ void AspectToggleWidget::click(bool checked, int state)
         break;
     case DOUBLECLICKED:
         CHECKED = true;
+        stateChanged();
         emit aspectToggle_doubleClicked(getAspect());
-        break;
+        return;
     case MIDDLECLICKED:
         CHECKED = true;
-        stateChanged();
         emit aspectToggle_middleClicked(getAspect());
-        return;
+        break;
     default:
         break;
     }
@@ -154,21 +147,20 @@ void AspectToggleWidget::setClicked(bool checked)
  */
 void AspectToggleWidget::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (rect().contains(event->pos())) {
-        switch (event->button()) {
-        case Qt::LeftButton:
-            if (STATE !=  DOUBLECLICKED) {
-                STATE = CLICKED;
-            }
-            break;
-        case Qt::MiddleButton:
-            STATE = MIDDLECLICKED;
-            break;
-        default:
-            break;
+    switch (event->button()) {
+    case Qt::LeftButton:
+        if (STATE !=  DOUBLECLICKED) {
+            STATE = CLICKED;
         }
-        click(!CHECKED, STATE);
+        break;
+    case Qt::MiddleButton:
+        STATE = MIDDLECLICKED;
+        break;
+    default:
+        return;
     }
+
+    click(!CHECKED, STATE);
 
     // reset the state
     STATE = DEFAULT;
@@ -189,12 +181,12 @@ void AspectToggleWidget::mouseDoubleClickEvent(QMouseEvent* event)
 
 
 /**
- * @brief AspectToggleWidget::aspectDoubleClicked
+ * @brief AspectToggleWidget::aspectMiddleClicked
  * This is called when an aspect toggle has been double-clicked.
  * If that toggle is not this, then un-click this toggle.
  * @param aspect - aspect that was doucble-clicked
  */
-void AspectToggleWidget::aspectDoubleClicked(VIEW_ASPECT aspect)
+void AspectToggleWidget::aspectMiddleClicked(VIEW_ASPECT aspect)
 {
     if (viewAspect != aspect) {
         setClicked(false);
@@ -272,7 +264,7 @@ QColor AspectToggleWidget::adjustColorRGB(QColor color, int delta)
 void AspectToggleWidget::setupColor()
 {
     QColor aspectColor = GET_ASPECT_COLOR(viewAspect);
-    QColor darkerAspectColor = adjustColorRGB(aspectColor, -55);
+    QColor darkerAspectColor = adjustColorRGB(aspectColor, -55); //-15);
     int checkedAlpha = 250;
 
     defaultColor = colorToString(darkerAspectColor);

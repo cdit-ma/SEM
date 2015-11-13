@@ -553,6 +553,7 @@ void MedeaWindow::initialiseGUI()
     QVBoxLayout* minimapLayout = new QVBoxLayout();
     minimapLayout->addWidget(minimapLabel);
     minimapLayout->addWidget(minimap);
+    minimapLayout->setContentsMargins(10,0,8,5);
 
     minimap->setFixedSize(rightPanelWidth + 10, rightPanelWidth * 0.6);
     minimap->setStyleSheet("QGraphicsView{border: 1px solid rgb(50,50,50);}");
@@ -939,7 +940,7 @@ void MedeaWindow::setupSearchTools()
     searchOptionButton->setCheckable(true);
 
     searchBar->setPlaceholderText(searchBarDefaultText);
-    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2), searchBarHeight - 3);
+    searchBar->setFixedSize(rightPanelWidth - (searchButton->width()*2) + 10, searchBarHeight - 3);
     searchBar->setStyleSheet("QLineEdit{ background-color: rgb(230,230,230); }"
                              "QLineEdit:focus{border: 1px solid; border-color:blue;background-color: rgb(250,250,250)}");
 
@@ -957,7 +958,7 @@ void MedeaWindow::setupSearchTools()
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
 
-    searchLayout->setContentsMargins(5,0,5,0);
+    searchLayout->setContentsMargins(10,0,8,0);
     searchLayout->addWidget(searchBar, 3);
     searchLayout->addWidget(searchButton, 1);
     searchLayout->addWidget(searchOptionButton, 1);
@@ -2837,10 +2838,16 @@ void MedeaWindow::setAttributeModel(AttributeTableModel *model)
     updateDataTable();
 }
 
+
+/**
+ * @brief MedeaWindow::forceToggleAspect
+ * @param aspect
+ * @param on
+ */
 void MedeaWindow::forceToggleAspect(VIEW_ASPECT aspect, bool on)
 {
-    foreach(AspectToggleWidget* aspectToggle, aspectToggles){
-        if(aspectToggle->getAspect() == aspect){
+    foreach (AspectToggleWidget* aspectToggle, aspectToggles) {
+        if (aspectToggle->getAspect() == aspect) {
             aspectToggle->setClicked(on);
             return;
         }

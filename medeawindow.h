@@ -86,7 +86,7 @@ signals:
     void window_SortModel();
 
     void window_searchItemClicked(SearchItemButton* item);
-    void window_aspectDoubleClicked(VIEW_ASPECT aspect);
+    void window_aspectMiddleClicked(VIEW_ASPECT aspect);
     void window_toggleAspect(VIEW_ASPECT aspect, bool on);
     void window_centerAspect(VIEW_ASPECT aspect);
 

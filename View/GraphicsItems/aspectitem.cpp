@@ -114,9 +114,20 @@ void AspectItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     painter->setRenderHint(QPainter::HighQualityAntialiasing, true);
 
     QPen borderPen = getCurrentPen();
-    if (!isSelected()) {
+    if(!isSelected()){
         borderPen = Qt::NoPen;
     }
+
+    /*
+    if (!isSelected()) {        
+        if (isHovered()) {
+            //borderPen.setColor(QColor(220,220,220));
+            borderPen.setColor(QColor(130,130,130));
+        } else {
+            borderPen = Qt::NoPen;
+        }
+    }
+    */
 
     painter->setPen(borderPen);
     painter->setBrush(backgroundColor);
@@ -401,6 +412,8 @@ void AspectItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
             updateSizeInModel();
             break;
         default:
+            // added this to re-center aspect when double-clicked
+            GraphMLItem_SetCentered(this);
             break;
         }
     }

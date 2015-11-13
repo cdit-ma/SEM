@@ -41,6 +41,7 @@ Dan To Fix:
 * performance testing
 * settings into tab
 * Fix Duplicate in Controller.
+* Add catch for when an AggregateInstance is constructed inside of its definition.
 
 Cathlyn To Fix:
 * Need to make sure that the definition dock only shows kinds which are returned from the list of getAdoptableNodeKinds()
@@ -63,6 +64,9 @@ Fixed:
 * Added extra check for Vectors for the definitions dock. - Multiple updates are coming from edge/node construction/destruction
 * The definitions dock can now only be accessed through the parts dock and it returns to the parts dock after an item in it has been clicked.
 * Fixed switching between fullscreen and maximised state.
+* Updated selectAndCenterItem in NodeView to use setStateExpanded.
+* Re-added centering of node items when double-clicked (hitbox for EntityItem is the bodyRect).
+  ** Switched double-click and middle click of aspect buttons. (Double-click now turns on and center).
 
 Version 18:
     New Features:
@@ -101,6 +105,8 @@ Version 18:
 		* Added context toolbar button for multiple selection to expand/contract.
 		* Implemented Functions dock.
 		* Implemeted Definitions dock to filter for Aggregate and Vector definitions and instances.
+		* Implemented context toolbar to show a menu for adding AggregateInstance and VectorInstance.
+		* Implemented highlight on hover in NodeView for the context toolbar menus.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.

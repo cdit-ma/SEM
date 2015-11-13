@@ -3,6 +3,7 @@
 #include <QStyle>
 #include <QProxyStyle>
 #include <QStyleOptionButton>
+#include <QDebug>
 
 
 /**
@@ -36,9 +37,11 @@ ToolbarMenu::ToolbarMenu(ToolbarWidget* toolbar, ToolbarMenuAction* info_action)
     setupInfoAction();
     setStyle(new MenuStyle);
 
-    connect(this, SIGNAL(triggered(QAction*)), this, SLOT(menuTriggered(QAction*)));
     connect(this, SIGNAL(aboutToShow()), toolbar, SLOT(appendToOpenMenusList()));
     connect(this, SIGNAL(aboutToHide()), toolbar, SLOT(removeFromOpenMenusList()));
+    connect(this, SIGNAL(aboutToHide()), toolbar, SLOT(menuActionHovered()));
+    connect(this, SIGNAL(hovered(QAction*)), toolbar, SLOT(menuActionHovered(QAction*)));
+    connect(this, SIGNAL(triggered(QAction*)), this, SLOT(menuTriggered(QAction*)));
 }
 
 
