@@ -79,6 +79,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
         parentEntityItem = 0;
     }
 
+    IS_READ_ONLY = false;
 
     isInputParameter = false;
     isReturnParameter = false;
@@ -551,6 +552,11 @@ bool EntityItem::isHardwareHighlighted()
     return hasHardwareWarning;
 }
 
+bool EntityItem::isNodeReadOnly()
+{
+    return IS_READ_ONLY;
+}
+
 void EntityItem::setHardwareHighlighting(bool highlighted)
 {
     hasHardwareWarning = highlighted;
@@ -597,6 +603,11 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     if(renderState > RS_NONE){
         QBrush bodyBrush = this->bodyBrush;
         QBrush headBrush = this->headerBrush;
+
+        if(IS_READ_ONLY){
+            bodyBrush = this->readOnlyBodyBrush;
+            headBrush = this->readOnlyHeaderBrush;
+        }
 
         //Make the background transparent
         if(viewState == NodeView::VS_MOVING || viewState == NodeView::VS_RESIZING){
@@ -700,6 +711,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, IP_TOPLEFT, "Actions", "Definition");
         }else if (nodeKind == "HardwareCluster") {
             paintPixmap(painter, IP_TOPLEFT, "Actions", "MenuCluster");
+        }else if(IS_READ_ONLY){
+            paintPixmap(painter, IP_TOPLEFT, "Actions", "Lock_Closed");
         }
 
         if(isInputParameter){
@@ -1107,8 +1120,10 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
             nodeMemberIsKey = boolValue;
             update();
         }else if(keyName == "isExpanded" && isBool){
-            //qCritical() << "EXPAND STATE: " << boolValue;
             handleExpandState(boolValue);
+        }else if(keyName == "readOnly" && isBool){
+            IS_READ_ONLY = boolValue;
+            update();
         }
 
         if(keyName == editableDataKey){
@@ -1877,6 +1892,27 @@ void EntityItem::setupBrushes()
     //pen.setColor(Qt::darkGray);
     selectedPen.setColor(Qt::blue);
     selectedPen.setWidth(1);
+
+    //Set up ReadOnly Bruhs
+
+    QColor blendColor = Qt::blue;
+    qreal blendFactor = .2;
+    QColor bColor = bodyBrush.color();
+
+    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+    bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
+    bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
+
+
+    readOnlyBodyBrush = QBrush(bColor);
+
+    bColor = headerBrush.color();
+    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+    bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
+    bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
+
+    readOnlyHeaderBrush = QBrush(bColor);
+
 }
 
 
@@ -2049,6 +2085,8 @@ void EntityItem::setupGraphMLDataConnections()
     connectToGraphMLData("label");
     connectToGraphMLData("type");
     connectToGraphMLData("isExpanded");
+
+    connectToGraphMLData("readOnly");
 
     if(nodeKind == "HardwareNode"){
         connectToGraphMLData("os");

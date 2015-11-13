@@ -237,7 +237,9 @@ void MedeaWindow::modelReady()
         loadLaunchedFile = false;
     }
 
-    if (nodeView) {
+    if(nodeView){
+        //Update viewport rect
+        updateWidgetsOnWindowChanged();
         nodeView->fitToScreen();
     }
 }
@@ -288,11 +290,17 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
             WINDOW_MAXIMIZED = boolValue;
         }
         if(boolValue){
-            setWindowState(Qt::WindowMaximized);
+            showMaximized();
+            qCritical() << "setWindowState(Qt::WindowMaximized);";
+            //setWindowState(Qt::WindowMaximized);
         }else{
-            setWindowState(Qt::WindowNoState);
+            qCritical() << "setWindowState(Qt::WindowNoState);";
+            showNormal();
+            //setWindowState(Qt::WindowNoState);
         }
     }else if(keyName == WINDOW_FULL_SCREEN && isBool){
+
+        qCritical() << "setFullscreenMode(boolValue);";
         setFullscreenMode(boolValue);
     }else if(keyName == LOG_DEBUGGING && isBool){
         if(nodeView){
@@ -1533,9 +1541,9 @@ void MedeaWindow::makeConnections()
  */
 void MedeaWindow::resizeEvent(QResizeEvent *event)
 {
-    QWidget::resizeEvent(event);
 
-    //qDebug() << "resizeEvent";
+
+    qDebug() << "resizeEvent";
 
     if(isWindowMaximized != isMaximized() && maximizedSettingInitiallyChanged){
         maximizedSettingInitiallyChanged = false;
@@ -1544,7 +1552,10 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
     // isWindowMaximised == WINDOW_MAXIMIZED ???
     isWindowMaximized = isMaximized();
     updateWidgetsOnWindowChanged();
+
+    QWidget::resizeEvent(event);
 }
+
 
 
 /**
@@ -1553,14 +1564,30 @@ void MedeaWindow::resizeEvent(QResizeEvent *event)
  * Mainly only using it to catch maximise/un-maximise events.
  * @param event
  */
-void MedeaWindow::changeEvent(QEvent *event)
+void MedeaWindow::changeEvent(QEvent *e)
 {
+    if( e->type() == QEvent::WindowStateChange )
+       {
+           QWindowStateChangeEvent* event = static_cast< QWindowStateChangeEvent* >( e );
+
+           if( event->oldState() & Qt::WindowMinimized )
+           {
+               qDebug() << "Window restored (to normal or maximized state)!";
+           }
+           else if( event->oldState() == Qt::WindowNoState && this->windowState() == Qt::WindowMaximized )
+           {
+               qDebug() << "Window Maximized!";
+           }
+           updateWidgetsOnWindowChanged();
+       }
+
+}/*
     QWidget::changeEvent(event);
+    qCritical() << event;
     if (event->type() == QEvent::WindowStateChange){
         //qDebug() << "changeEvent";
-        updateWidgetsOnWindowChanged();
     }
-}
+}*/
 
 
 /**
@@ -1705,6 +1732,7 @@ void MedeaWindow::validate_Exported(QString tempModelPath)
 
 void MedeaWindow::setFullscreenMode(bool fullscreen)
 {
+    qCritical() << "SET FULLSCREEN MODE << " << fullscreen;
     if (fullscreen) {
         // need to update this here
         WINDOW_MAXIMIZED = isMaximized();
@@ -1714,6 +1742,7 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
         view_fullScreenMode->setIcon(nodeView->getImage("Actions", "Failure"));
     } else {
         if (!settingsLoading) {
+            qCritical() << "APPLYING";
             if (WINDOW_MAXIMIZED) {
                 showMaximized();
             } else {
@@ -1867,6 +1896,7 @@ void MedeaWindow::toggleAndTriggerAction(QAction *action, bool value)
  */
 void MedeaWindow::updateWidgetsOnWindowChanged()
 {
+    qCritical() << "UPDATING THE WINDOW SIZE!";
     // update widget sizes, containers and and masks
     boxHeight = height() - menuTitleBox->height() - dockButtonsBox->height() - SPACER_HEIGHT;
     docksArea->setFixedHeight(boxHeight*2);

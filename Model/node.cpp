@@ -2,6 +2,8 @@
 #include <QDebug>
 #include "graphmldata.h"
 #include "edge.h"
+#include <QCryptographicHash>
+#include <QByteArray>
 
 
 Node::Node(Node::NODE_TYPE type) : GraphML(GraphML::NODE)
@@ -254,6 +256,17 @@ QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
     return returnableList;
 }
 
+bool Node::isReadOnly()
+{
+    GraphMLData* readOnlyData = getData("readOnly");
+    if(readOnlyData){
+        if(readOnlyData->gotBoolValue()){
+            return readOnlyData->getBoolValue();
+        }
+    }
+    return false;
+}
+
 /*
 Node *Node::getChild(int position)
 {
@@ -476,6 +489,20 @@ QString Node::toGraphML(qint32 indentationLevel)
 
     returnable += tabSpace + "</node>\n";
     return returnable;
+}
+
+QString Node::toMD5Hash()
+{
+    QStringList includedKeys;
+    includedKeys << "label" << "key" << "kind" << "type";
+    QString returnable;
+    foreach(GraphMLData* data, attachedData){
+        if(includedKeys.contains(data->getKeyName())){
+            returnable += data->getKeyName() + "=" + data->getValue() + ";";
+        }
+    }
+    QString hash = QCryptographicHash::hash(returnable.toUtf8(), QCryptographicHash::Md5).toHex();
+    return hash;
 }
 
 bool Node::isDefinition()

@@ -63,7 +63,7 @@ public:
     QList<Node *> getChildrenOfKind(QString kindStr, int depth =-1);
 
     //Node* getChild(int position);
-
+    bool isReadOnly();
 
     int childrenCount();
     int edgeCount();
@@ -116,6 +116,8 @@ public:
     //Visual Methods
 
     QString toGraphML(qint32 indentationLevel=0);
+
+    QString toMD5Hash();
 
 
     //Specific DIG Methods.

@@ -56,15 +56,15 @@ public:
     //Get a list of Data objects contained by this GraphML
     QList<GraphMLData *> getData();
 
-    //Remove all Data
-    void removeData();
+
 
     //Attach a data object contained by this GraphML
-    void attachData(GraphMLData* data);
+    void attachData(GraphMLData* data, bool privateData=false);
     void attachData(QList<GraphMLData* > data);
 
     //Remove a data object contained by this GraphML;
     void removeData(GraphMLData* data);
+    void removeData(QString keyName);
 
 
     //Returns a string graphml representation of this graphml object
@@ -93,6 +93,9 @@ protected:
     QList<GraphMLData *> attachedData;
 
 private:
+    //Remove all Data
+    void removeData();
+
     //The name of this graphml object.
     QString name;
 

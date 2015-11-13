@@ -1,7 +1,6 @@
 #include "workload.h"
 #include "branchstate.h"
 #include "outeventportimpl.h"
-//#include "vectoroperation.h"
 #include "termination.h"
 #include <QDebug>
 #include "process.h"
@@ -17,12 +16,11 @@ bool Workload::canConnect(Node* attachableObject)
 bool Workload::canAdoptChild(Node *child)
 {
     Process* process = dynamic_cast<Process*>(child);
-    /*VectorOperation* vectorOperation = dynamic_cast<VectorOperation*>(child);
-    if(!process && !vectorOperation){
+    if(!process){
 #ifdef DEBUG_MODE
          qWarning() << "Workload can only adopt Process!";
 #endif
         return false;
-    }*/
+    }
     return BehaviourNode::canAdoptChild(child);
 }

@@ -352,6 +352,7 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
         kinds.append("Aggregate");
     }
 
+
     // all dock items are shown for all the other allowed kinds
     showDockItemsOfKinds(kinds);
 
@@ -500,7 +501,7 @@ void DefinitionsDockScrollArea::showDockItemsOfKinds(QStringList kinds)
     if (kinds.isEmpty()) {
         // show all dock node items
         foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-            dockItem->setHidden(false);
+            dockItem->setHidden(true);
         }
     } else {
         // only show the dock node items with the specified kind

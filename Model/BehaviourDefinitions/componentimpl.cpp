@@ -5,7 +5,6 @@
 #include "outeventportimpl.h"
 #include "../InterfaceDefinitions/memberinstance.h"
 #include "../InterfaceDefinitions/idl.h"
-//#include "vectoroperation.h"
 #include "behaviournode.h"
 
 #include "branchstate.h"
@@ -58,12 +57,11 @@ bool ComponentImpl::canAdoptChild(Node *child)
     Workload* workload = dynamic_cast<Workload*>(child);
     WhileLoop* whileLoop = dynamic_cast<WhileLoop*>(child);
 
-    //VectorOperation* vectorOperation = dynamic_cast<VectorOperation*>(child);
     OutEventPortImpl* outEventPortImpl = dynamic_cast<OutEventPortImpl*>(child);
     InEventPortImpl* inEventPortImpl = dynamic_cast<InEventPortImpl*>(child);
     AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(child);
 
-    if(!(branchState || periodicEvent || termination || variable || workload || outEventPortImpl || inEventPortImpl || attributeImpl || whileLoop /*|| vectorOperation*/)){
+    if(!(branchState || periodicEvent || termination || variable || workload || outEventPortImpl || inEventPortImpl || attributeImpl || whileLoop)){
 #ifdef DEBUG_MODE
         qWarning() << "ComponentImpl cannot adopt anything outside of Condition, MemberInstance or Process";
 #endif

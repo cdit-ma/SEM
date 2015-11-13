@@ -96,6 +96,7 @@ public:
 
 
     bool isHardwareHighlighted();
+    bool isNodeReadOnly();
     void setHardwareHighlighting(bool highlighted);
 
 
@@ -426,6 +427,10 @@ private:
     QBrush selectedBrush;
     QBrush bodyBrush;
     QBrush headerBrush;
+
+    QBrush readOnlyBodyBrush;
+    QBrush readOnlyHeaderBrush;
+
     QPen pen;
     QPen selectedPen;
     bool updatedAlready;
@@ -456,6 +461,8 @@ private:
     QString nodeHardwareArch;
     bool nodeHardwareLocalHost;
     bool nodeMemberIsKey;
+
+    bool IS_READ_ONLY;
 
     bool isInputParameter;
     bool isReturnParameter;

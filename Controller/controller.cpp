@@ -211,6 +211,7 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
     QList<GraphMLKey*> containedKeys;
     QList<Edge*> containedEdges;
 
+
     //Get all Children and Edges.
     foreach(int ID, nodeIDs){
         Node* node = getNodeFromID(ID);
@@ -218,6 +219,7 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
             if(containedNodes.contains(node) == false){
                 containedNodes.append(node);
             }
+
 
             //Get all keys used by this node.
             foreach(GraphMLKey* key, node->getKeys())
@@ -587,8 +589,6 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataV
     if(data){
         if(data->gotDoubleValue()){
             action.dataValueNum = data->getDoubleValue();
-            //qCritical() << action.keyName <<": WAS" << action.dataValueNum;
-            //qCritical() << action.keyName <<": NOW" << dataValue;
         }
 
         if(parent->isNode() && keyName == "sortOrder"){
@@ -629,6 +629,7 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
 {
     if(kind != ""){
         Node* parentNode = getNodeFromID(parentID);
+
 
         if(kind.endsWith("Parameter")){
             BehaviourNode* behaviourNode = dynamic_cast<BehaviourNode*>(parentNode);
@@ -832,11 +833,12 @@ void NewController::copy(QList<int> IDs)
  */
 void NewController::remove(QList<int> IDs)
 {
-    if(!_remove(IDs)){
-        controller_DisplayMessage(WARNING, "Delete Error", "Cannot delete all selected entities.");
-        emit controller_ActionProgressChanged(100);
+    if(canDelete(IDs)){
+        if(!_remove(IDs)){
+            controller_DisplayMessage(WARNING, "Delete Error", "Cannot delete all selected entities.");
+            emit controller_ActionProgressChanged(100);
+        }
     }
-
     emit controller_ActionFinished();
 }
 
@@ -982,9 +984,7 @@ bool NewController::_copy(QList<int> IDs)
  */
 bool NewController::_remove(QList<int> IDs, bool addAction)
 {
-    if(!canDelete(IDs)){
-        return false;
-    }
+
     bool allSuccess = true;
 
     if(IDs.length() > 0){
@@ -1148,23 +1148,94 @@ bool NewController::_importSnippet(QList<int> IDs, QString fileName, QString fil
  * @param IDs - The IDs of the entities to try and export.
  * @return Action successful.
  */
-bool NewController::_exportSnippet(QList<int> IDs)
+bool NewController:: _exportSnippet(QList<int> IDs)
 {
-    bool success = false;
     if(canExportSnippet(IDs)){
         CUT_USED = false;
+
+        QString exportTimeStamp = getTimeStamp();
+        QString parentNodeKind = "";
+
+        //Construct the Keys to attach to the nodes to export.
+        GraphMLKey* readOnlyKey = constructGraphMLKey("readOnly", "boolean", "node");
+        GraphMLKey* IDKey = constructGraphMLKey("originalID", "int", "node");
+        GraphMLKey* dateKey = constructGraphMLKey("exportDateTime", "string", "node");
+        GraphMLKey* annotationKey = constructGraphMLKey("annotation", "string", "node");
+
+        QList<Node*> nodeList;
+
+        //Construct a list of Nodes to be snippeted
+        foreach(int ID, IDs){
+            Node* node = getNodeFromID(ID);
+            if(node){
+                if(!nodeList.contains(node)){
+                    nodeList += node;
+                    parentNodeKind = node->getParentNode()->getNodeKind();
+
+                    //Add exported Data.
+                    GraphMLData* dateData = new GraphMLData(dateKey);
+                    GraphMLData* annotationData = new GraphMLData(annotationKey);
+                    dateData->setValue(exportTimeStamp);
+                    annotationData->setValue("Exported from MEDEA!");
+                    node->attachData(dateData, true);
+                    node->attachData(annotationData, true);
+                }
+
+                foreach(Node* child, node->getChildren()){
+                    if(!nodeList.contains(child)){
+                        nodeList += child;
+                    }
+                }
+            }
+        }
+
+        //Attach read Only Data to the top.
+
+        //Attach read only Data.
+        foreach(Node* node, nodeList){
+            GraphMLData* readOnlyData = new GraphMLData(readOnlyKey);
+            GraphMLData* idData = new GraphMLData(IDKey);
+
+            readOnlyData->setValue(true);
+            idData->setValue(node->getID());
+
+            //Attach data as private data
+            node->attachData(readOnlyData, true);
+            node->attachData(idData, true);
+        }
 
         //Export the GraphML for those Nodes.
         QString graphmlRepresentation = _exportGraphMLDocument(IDs, false, false);
 
-        Node* parent = getSharedParent(IDs);
-        QString parentKind = parent->getDataValue("kind");
-        if(parent && parentKind != "" && graphmlRepresentation != ""){
-            controller_ExportedSnippet(parentKind, graphmlRepresentation);
-            success = true;
+        //Remove attached Data.
+        foreach(Node* node, nodeList){
+            GraphMLData* readOnlyData = node->getData(readOnlyKey);
+            GraphMLData* idData = node->getData(IDKey);
+            GraphMLData* dateData = node->getData(dateKey);
+            GraphMLData* annotationData = node->getData(annotationKey);
+
+            if(readOnlyData){
+                node->removeData(readOnlyData);
+                delete readOnlyData;
+            }
+            if(idData){
+                node->removeData(idData);
+                delete idData;
+            }
+            if(dateData){
+                node->removeData(dateData);
+                delete dateData;
+            }
+            if(annotationData){
+                node->removeData(annotationData);
+                delete annotationData;
+            }
         }
+
+        emit controller_ExportedSnippet(parentNodeKind, graphmlRepresentation);
+        return true;
     }
-    return success;
+    return false;
 }
 
 /**
@@ -1189,6 +1260,10 @@ QStringList NewController::getAdoptableNodeKinds(int ID)
     Node* parent = getNodeFromID(ID);
 
     if(parent){
+        //Ignore all children!
+        if(parent->isReadOnly()){
+            return adoptableNodeTypes;
+        }
         foreach(QString nodeKind, getNodeKinds(parent)){
             //Construct a Node of the Kind nodeKind.
 
@@ -1567,6 +1642,12 @@ void NewController::removeGraphMLFromHash(int ID)
             treeLookup.remove(treeStr);
         }
 
+        if(reverseReadOnlyLookup.contains(ID)){
+            int originalID = reverseReadOnlyLookup[ID];
+            reverseReadOnlyLookup.remove(ID);
+            readOnlyLookup.remove(originalID);
+        }
+
         IDLookupGraphMLHash.remove(ID);
 
         if(item->getKind() == GraphML::NODE){
@@ -1582,40 +1663,17 @@ void NewController::removeGraphMLFromHash(int ID)
 
 Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> nodeData)
 {
-    //Get the Kind from the data.
-    QString childNodeKind = getDataValueFromKeyName(nodeData, "kind");
-    QString childNodeType = getDataValueFromKeyName(nodeData, "type");
-    QString childNodeLabel = getDataValueFromKeyName(nodeData, "label");
 
-
-    Node* node = constructTypedNode(childNodeKind, childNodeType, childNodeLabel);
-
-    //Enforce Default Data!
-    QList<GraphMLData*> requiredData = constructGraphMLDataVector(childNodeKind);
-
-
-    bool isInModel = isGraphMLInModel(node);
-
-    if(node){
-        //Attach Default Data.
-        _attachGraphMLData(node, requiredData, isInModel);
-
-        //Update Data with custom Data!
-        _attachGraphMLData(node, nodeData, isInModel);
-    }
-
-    //Delete the GraphMLData objects which didn't get adopted to the Node (or if our Node is null)
-    while(!nodeData.isEmpty()){
-        GraphMLData* data = nodeData.takeFirst();
-        if(!node || !node->containsData(data)){
-            delete data;
-        }
-    }
-
+    Node* node = constructNode(nodeData);
     if(!node){
         qCritical() << "Node was not successfully constructed!";
         return 0;
     }
+    bool isInModel = isGraphMLInModel(node);
+
+
+
+
 
 
     //If we have no parentNode, attempt to attach it to the Model.
@@ -1665,6 +1723,66 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
     }
     return node;
 }
+
+Node *NewController::constructNode(QList<GraphMLData *> nodeData)
+{
+    //Get the Kind from the data.
+    QString childNodeKind = getDataValueFromKeyName(nodeData, "kind");
+    QString childNodeType = getDataValueFromKeyName(nodeData, "type");
+    QString childNodeLabel = getDataValueFromKeyName(nodeData, "label");
+
+
+    Node* node = constructTypedNode(childNodeKind, childNodeType, childNodeLabel);
+
+    //Enforce Default Data!
+    QList<GraphMLData*> requiredData = constructGraphMLDataVector(childNodeKind);
+
+
+    bool isInModel = isGraphMLInModel(node);
+    if(node){
+        //Attach Default Data.
+        _attachGraphMLData(node, requiredData, isInModel);
+
+        //Update Data with custom Data!
+        _attachGraphMLData(node, nodeData, isInModel);
+    }
+
+    //Delete the GraphMLData objects which didn't get adopted to the Node (or if our Node is null)
+    while(!requiredData.isEmpty()){
+        GraphMLData* data = requiredData.takeFirst();
+
+        if(!node || data->getParent() != node){
+            delete data;
+        }
+    }
+
+    //Delete the GraphMLData objects which didn't get adopted to the Node (or if our Node is null)
+    while(!nodeData.isEmpty()){
+        GraphMLData* data = nodeData.takeFirst();
+
+        if(!node || data->getParent() != node){
+            delete data;
+        }
+    }
+    return node;
+}
+
+QString NewController::getMD5OfData(const QList<GraphMLData *> dataToAttach)
+{
+    QList<GraphMLData*> clonedList;
+
+    foreach(GraphMLData* data, dataToAttach){
+        GraphMLData* cloneData = new GraphMLData(data->getKey(), data->getValue());
+        clonedList << cloneData;
+    }
+
+    Node* node = constructNode(clonedList);
+    QString MD5 = node->toMD5Hash();
+
+    delete node;
+    return MD5;
+}
+
 
 Parameter *NewController::constructChildParameter(Node *parentNode, ParameterRequirement *requirement)
 {
@@ -3693,7 +3811,7 @@ QString NewController::getSysOSVersion()
 QString NewController::getTimeStamp()
 {
     QDateTime currentTime = QDateTime::currentDateTime();
-    return currentTime.toString("yyyy-MM-dd | hh:mm:ss");
+    return currentTime.toString("yyyy-MM-dd hh:mm:ss");
 }
 
 Model *NewController::getModel()
@@ -3940,6 +4058,10 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     //Used to store the ID of the new node we will construct later.
     QString newNodeID;
 
+    QList<int> readOnlyIDs;
+    QHash<int, QStringList> readOnlyIDHashNeeded;
+
+
     //If we have been passed no parent, set it as the graph of this Model.
     if(!parent){
         parent = getModel();
@@ -3963,6 +4085,11 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
 
     Node* originalParent = parent;
+
+
+    bool readOnlyTag = false;
+    int originalID = -1;
+    int currentROID = -1;
 
 
     //Now we know we have no errors, so read Stream again.
@@ -4035,6 +4162,22 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 if(!linkID && data->getKeyName() == "sortOrder"){
                     delete data;
                     continue;
+                }
+
+                if(dataKey->getName() == "readOnly"){
+                    readOnlyTag = true;
+                }
+
+                if(dataKey->getName() == "originalID"){
+                    //Cast as int
+                    bool okay = false;
+
+
+
+                    int value = dataValue.toInt(&okay);
+                    if(okay){
+                        originalID = value;
+                    }
                 }
 
 
@@ -4118,21 +4261,81 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         if(nowParsing == GraphML::NODE){
             //If we have a nodeID to build
             if(nodeID != ""){
-                //Construct the specialised Node
-                Node* newNode = constructChildNode(parent, currentNodeData);
 
-                if(!newNode){
-                    //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
-                    qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
-                    emit controller_DisplayMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent->getID());
-                    return false;
+                Node* node = 0;
+
+
+
+                bool storeMD5 = false;
+                //If we have a read only tag, we should look for the originalID provided.
+                //To see if we can find the original Node.
+                if(readOnlyTag){
+                    if(readOnlyLookup.contains(originalID)){
+                        //Get the ID of the version we have of the originalID
+                        int nodeID = readOnlyLookup[originalID];
+                        node = getNodeFromID(nodeID);
+
+                        //Compare timestamp
+                        QString newTimeStamp  = getDataValueFromKeyName(currentNodeData, "exportDateTime");
+                        QString currentTimeStamp = node->getDataValue("exportDateTime");
+
+
+                        bool ignore = false;
+                        //If the date is older.
+                        if(newTimeStamp < currentTimeStamp){
+                            ignore = !askQuestion(CRITICAL, "Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", node->getID());
+                        }
+
+
+                        //Get the MD5 of the version we have.
+                        QString nodeMD5 = node->toMD5Hash();
+
+                        //Get the MD5 of the version we are importing.
+                        QString importMD5 = getMD5OfData(currentNodeData);
+
+
+                        if(ignore || nodeMD5 == importMD5){
+                            storeMD5 = !ignore;
+
+                            //Should update Data in node
+
+                            //Got match, so we don't need to construct item.
+                            while(!currentNodeData.isEmpty()){
+                                GraphMLData* data = currentNodeData.takeFirst();
+                                if(!ignore){
+                                    _attachGraphMLData(node, data);
+                                }
+                                if(!data->getParent())
+                                {
+                                    delete data;
+                                }
+                            }
+                        }else{
+                            //If we don't have a match, we should construct the item again.
+                            node = 0;
+                        }
+                    }
                 }
 
-                //Clear the Node Data List.
-                currentNodeData.clear();
+                if(!node){
+
+                    //Construct the specialised Node
+                    Node* newNode = constructChildNode(parent, currentNodeData);
+
+                    if(!newNode){
+                        //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
+                        qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
+                        emit controller_DisplayMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent->getID());
+                        return false;
+                    }
+
+                    node = newNode;
+                    storeMD5 = true;
+					currentNodeData.clear();
+                }
 
                 //Set the currentParent to the Node Construced
-                parent = newNode;
+                parent = node;
 
                 //Navigate back to the correct parent.
                 while(parent && parentDepth > 0){
@@ -4141,19 +4344,41 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 }
 
                 //Add the new Node to the lookup table.
-                nodeLookup[nodeID] = newNode;
+                nodeLookup[nodeID] = node;
+
+                if(readOnlyTag){
+                    readOnlyLookup[originalID] = node->getID();
+                    reverseReadOnlyLookup[node->getID()] = originalID;
+                    originalID = -1;
+
+                    if(storeMD5){
+                        //If the parent of this item isn't read only, we need to add this item to the list of readOnlyIDs
+                        if(!node->getParentNode()->isReadOnly()){
+                            currentROID = node->getID();
+                            readOnlyIDs.append(currentROID);
+                        }
+
+                        readOnlyIDHashNeeded[currentROID].append(node->toMD5Hash());
+                    }
+
+                    //Locking Data
+                    foreach(GraphMLData* data, node->getData()){
+                        data->setProtected(true);
+                    }
+                    readOnlyTag = false;
+                }
 
                 if(linkID){
                     bool okay;
                     int oldID = nodeID.toInt(&okay);
                     if(okay){
-                        linkOldIDToID(oldID, newNode->getID());
+                        linkOldIDToID(oldID, node->getID());
                     }
                 }
 
                 //If we have encountered a Graph object, we should point it to it's parent Node to allow links to Graph's
                 if(graphID != ""){
-                    nodeLookup.insert(graphID, newNode);
+                    nodeLookup.insert(graphID, node);
                     graphID = "";
                 }
             }
@@ -4161,6 +4386,32 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
             nodeID = newNodeID;
         }
     }
+
+
+    //Foreach read only items we have imported.
+    foreach(int ID, readOnlyIDs){
+        Node* node = getNodeFromID(ID);
+        QList<Node*> allChildren = node->getChildren();
+
+        QStringList neededHashs = readOnlyIDHashNeeded[ID];
+
+
+        QList<int> toDeleteIDs;
+        //Foreach child in node, check if we are meant to have this item!
+        while(!allChildren.isEmpty()){
+            Node* child = allChildren.takeLast();
+            QString childMD5 = child->toMD5Hash();
+            if(neededHashs.contains(childMD5)){
+                neededHashs.removeOne(childMD5);
+            }else{
+                toDeleteIDs.append(child->getID());
+            }
+        }
+
+        //Remove the items we don't need anymore
+        _remove(toDeleteIDs, false);
+    }
+
 
     if(!(UNDOING || REDOING)){
        controller_ActionProgressChanged(0, "Constructing Edges.");
@@ -4272,6 +4523,9 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     }
 
 
+
+
+
     if(!(UNDOING || REDOING)){
         controller_ActionProgressChanged(100);
     }
@@ -4377,7 +4631,14 @@ bool NewController::canDelete(QList<int> selection)
             if(node->isInstance() && node->getParentNode()->isInstance()){
                 return false;
             }
+
+            if(node->isReadOnly()){
+                if(node->getParentNode()->isReadOnly()){
+                    return false;
+                }
+            }
         }
+
     }
     return true;
 }
@@ -4410,6 +4671,12 @@ bool NewController::canExportSnippet(QList<int> IDs)
             continue;
         }
         if(nonSnippetableKinds.contains(node->getDataValue("kind"))){
+            return false;
+        }
+        if(node->getData("readOnly")){
+            return false;
+        }
+        if(node->getData("originalID")){
             return false;
         }
         if(!parent){

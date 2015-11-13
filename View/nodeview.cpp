@@ -1221,7 +1221,12 @@ void NodeView::hardwareDockOpened(bool opened)
 void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, int ID)
 {
     Q_UNUSED(type);
-    Q_UNUSED(ID);
+    if(ID !=-1){
+        GraphMLItem* item = getGraphMLItemFromID(ID);
+        if(item){
+            centerItem(item);
+        }
+    }
     int reply = QMessageBox::question(this, title, message, QMessageBox::Yes | QMessageBox::No);
     bool yes = reply == QMessageBox::Yes;
     emit view_QuestionAnswered(yes);

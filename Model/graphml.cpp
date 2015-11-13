@@ -199,7 +199,7 @@ QList<GraphMLData *> GraphML::getData()
 
 
 
-void GraphML::attachData(GraphMLData *data)
+void GraphML::attachData(GraphMLData *data, bool privateData)
 {
     if(data != 0){
         GraphML::KIND keyKind = data->getKey()->getForKind();
@@ -218,7 +218,9 @@ void GraphML::attachData(GraphMLData *data)
             if(data){
                 data->setParent(this);
                 attachedData.append(data);
-                emit dataAdded(data);
+                if(!privateData){
+                    emit dataAdded(data);
+                }
             }
         }else{
 
@@ -237,6 +239,19 @@ void GraphML::removeData(GraphMLData *data)
         attachedData.removeAt(index);
         data->setParent(0);
         emit dataRemoved(data->getID());
+    }
+}
+
+void GraphML::removeData(QString keyName)
+{
+    GraphMLData* data = getData(keyName);
+    if(data){
+        int index = attachedData.indexOf(data);
+        if(index >= 0){
+            attachedData.removeAt(index);
+            data->setParent(0);
+            emit dataRemoved(data->getID());
+        }
     }
 }
 

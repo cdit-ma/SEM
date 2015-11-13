@@ -241,6 +241,13 @@ private:
     //Constructs a Node using the attached GraphMLData elements. Attachs the node to the parentNode provided.
     Node* constructChildNode(Node* parentNode, QList<GraphMLData*> dataToAttach);
 
+    Node* constructNode(QList<GraphMLData*> data);
+
+    QString getMD5OfData(const QList<GraphMLData*> dataToAttach);
+
+
+
+
 
     Parameter* constructChildParameter(Node* parentNode, ParameterRequirement* requirement);
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
@@ -360,6 +367,9 @@ private:
     QHash<int, QString> reverseKindLookup;
 
     QHash<QString, QList<int> > kindLookup;
+
+    QHash<int, int> readOnlyLookup;
+    QHash<int, int> reverseReadOnlyLookup;
 
     QHash<QString, int> treeLookup;
     QHash<int, QString> reverseTreeLookup;
