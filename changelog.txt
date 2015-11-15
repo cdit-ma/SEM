@@ -67,6 +67,14 @@ Fixed:
 * Updated selectAndCenterItem in NodeView to use setStateExpanded.
 * Re-added centering of node items when double-clicked (hitbox for EntityItem is the bodyRect).
   ** Switched double-click and middle click of aspect buttons. (Double-click now turns on and center).
+* CDCIN BUGS
+    ** 457 - Fixed
+    ** 452 - Fixed with Read-Only Snippets
+    ** 451 - Fixed With Read-only snippets
+    ** 442 - Fixed
+    ** 446 - Fixed
+    ** 441 - Fixed
+    ** 439 - Fixed
 
 Version 18:
     New Features:

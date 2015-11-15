@@ -176,7 +176,9 @@ void AspectItem::setPos(const QPointF pos)
 
 void AspectItem::setWidth(qreal w)
 {
-    w = qMax(w, minimumWidth);
+    qreal minWidth = childrenBoundingRect().right();
+    minWidth = qMax(minWidth, minimumWidth);
+    w = qMax(w, minWidth);
 
     if(w == width){
         return;
@@ -190,7 +192,9 @@ void AspectItem::setWidth(qreal w)
 
 void AspectItem::setHeight(qreal h)
 {
-    h = qMax(h, minimumHeight);
+    qreal minHeight = childrenBoundingRect().bottom();
+    minHeight = qMax(minHeight, minimumHeight);
+    h = qMax(h, minHeight);
 
     if(h == height){
         return;
