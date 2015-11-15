@@ -1,81 +1,3 @@
-New Features:
-* Added full screen mode.
-
-Fixed List:
-* Fit to Screen
-* Hardware Cluster Menu logic
-* Selection for Docks/Toolbar fixed
-* Full screen mode
-* Centering of Items and viewRect
-* Select All
-* Rubberband selection.
-* Edge selection fixed.
-* Fixed Aspect Settings to match labels in enumeration
-* Aspects using enumeration
-* Fixed aspect toggle buttons position and color to match the ones in enumeration
-* Window toolbar is now kept centralised on the new viewRect.
-* align multiple selection.
-* QAction for fullscreen mode
-* QObject::connect: No such slot NodeView::snapSelectionToGrid()
-* QObject::connect: No such slot NodeView::snapChildrenToGrid()
-* sort multiple selection. (Maybe even recurse)
-* Expanding multiple selection. (Maybe even recurse)
-* Fixed Definitions Dock checks for GraphMLItem Kind
-* Subviews Fixed
-* Crash on dock when closing or new.
-* Added default Path option to MEDEA (Saves on exit)
-* Fix constructor for NodeItem.
-* Continuously pressing import then cancel after the first import moves the model.
-* Model's not being centered correctly after import.
-
-ToDo List:
-Together:
-* Highlight Source (Maybe use Number on screen) for connect mode
-* Fix NodeItems's right and bottom margins
-* Add action for pan mode for the toolbar
-* Initial Window State + Centralizing of Model
-* Undo/redo stack/triggerAction.
-* Medea freezes if you keep triggering new project. (on Mac)
-
-Dan To Fix:
-* performance testing
-* settings into tab
-* Fix Duplicate in Controller.
-* Add catch for when an AggregateInstance is constructed inside of its definition.
-
-Cathlyn To Fix:
-* Need to make sure that the definition dock only shows kinds which are returned from the list of getAdoptableNodeKinds()
-* Fix getNextChildPos() in NodeItem. (doesnt' work consistantly for sorting Aspect)
-* Work out useful short cuts for recursive sort and normal sort.
-* Add scrollbar for nodekinds menu in search options.
-Fixed:
-* Fixed theme updates  for modelitem, clusters, toolbar and the view.
-* Added aspect check for search
-* Hardware dock not updating/clearing highlighted item until selection is changed.
-* Updated toolbar for multiple selection to deal with Entity and Aspect items.
-* Call NodeView::expandSelection(bool expand) from toolbar.
-* Connect tool button/menu showing for AspectItems.
-* Fixed search suggestions size problem; ignoring text truncation at the moment.
-* Fixed filtering of definitions dock for different allowed kinds and construction of connected node for Aggregate and Vector instances.
-* Fixed missing expand/contract buttons.
-* Edge constructed signal is not getting sent from the view - docks not updating correctly.
-* Stopped toolbar from showing in subviews.
-* Fixed empty parts dock after new project is called.
-* Added extra check for Vectors for the definitions dock. - Multiple updates are coming from edge/node construction/destruction
-* The definitions dock can now only be accessed through the parts dock and it returns to the parts dock after an item in it has been clicked.
-* Fixed switching between fullscreen and maximised state.
-* Updated selectAndCenterItem in NodeView to use setStateExpanded.
-* Re-added centering of node items when double-clicked (hitbox for EntityItem is the bodyRect).
-  ** Switched double-click and middle click of aspect buttons. (Double-click now turns on and center).
-* CDCIN BUGS
-    ** 457 - Fixed
-    ** 452 - Fixed with Read-Only Snippets
-    ** 451 - Fixed With Read-only snippets
-    ** 442 - Fixed
-    ** 446 - Fixed
-    ** 441 - Fixed
-    ** 439 - Fixed
-
 Version 18:
     New Features:
         * Enabled WhileLoop entity
@@ -110,11 +32,12 @@ Version 18:
             ** Selecting an item from the suggestions list will auto-complete your search and trigger a search action.
         * Context toolbar's connect menu now doesn't display the parent entity for entities that have the same parent as the selected entity.
         * Added Fullscreen mode (F11)
-		* Added context toolbar button for multiple selection to expand/contract.
-		* Implemented Functions dock.
-		* Implemeted Definitions dock to filter for Aggregate and Vector definitions and instances.
-		* Implemented context toolbar to show a menu for adding AggregateInstance and VectorInstance.
-		* Implemented highlight on hover in NodeView for the context toolbar menus.
+        * Added context toolbar button for multiple selection to expand/contract.
+        * Implemented Functions dock.
+        * Implemeted Definitions dock to filter for Aggregate and Vector definitions and instances.
+        * Implemented context toolbar to show a menu for adding AggregateInstance and VectorInstance.
+        * Implemented highlight on hover in NodeView for the context toolbar menus.
+        * Added default Path option to MEDEA (Saves on Exit)
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.
@@ -124,32 +47,25 @@ Version 18:
         * Improved rendering performance for large scale deployments.
         * Migrated to integers for ID's instead of strings.
         * Refactored NodeItem sizes
-		* Connect menu in the context toolbar now only gets populated when the connect button is pressed.
+        * Connect menu in the context toolbar now only gets populated when the connect button is pressed.
         * Reimplemented the toolbar menu and menu action class
             ** Fixed mouse related bugs
         * Fixed a number of toolbar and menu bugs present in MACOSX
-		* Update toolbar connect mode to allow connection of multiple node items.
-		* Implemented FSM for updates on dock items stylesheets.
-		* Finally fixed lack of initial repaint for the data table.
-		* Moved the minimap label outside of the minimap.
-		* Added check for the connectMode from the toolbar to see if the selected destination item is actually highlighted. ???
-		* Fixed model circle colors and aspect brush colors to match the model circle.
-		* Reimplemented search to use QRegExp.
-		* Stopped connect line from drawing when connect mode is triggered from the toolbar.
-		* Search result now displays hidden items.
-			** Clicking on a hidden HardwareNode changes the display mode of its parent cluster to ALL.
-		* Fixed fitToScreen function in NodeView - it now checks for NodeItems instead of just EntityItems.
-		* Moved all of search to the NodeView and added default values for the parameters.
-		* Reimplemented filtering and signals and slots from the parts dock to the definitions and functions docks.
-
-    Todo:
-        * Test Ubuntu for local deployment.
-        * Test Import from XME on Ubuntu.
-        * Make sure threads are killed for local deployment.
-		* Need to update the dock buttons and window toolbar when the theme is changed.
-		* Clean up leftover toolbar layout stuff in medeawindow.
-		* Minimap visibleViewRect.
-		* Search result dialog/popup.
+        * Update toolbar connect mode to allow connection of multiple node items.
+        * Implemented FSM for updates on dock items stylesheets.
+        * Finally fixed lack of initial repaint for the data table.
+        * Moved the minimap label outside of the minimap.
+        * Added check for the connectMode from the toolbar to see if the selected destination item is actually highlighted. ???
+        * Fixed model circle colors and aspect brush colors to match the model circle.
+        * Reimplemented search to use QRegExp.
+        * Stopped connect line from drawing when connect mode is triggered from the toolbar.
+        * Search result now displays hidden items.
+                ** Clicking on a hidden HardwareNode changes the display mode of its parent cluster to ALL.
+        * Fixed fitToScreen function in NodeView - it now checks for NodeItems instead of just EntityItems.
+        * Moved all of search to the NodeView and added default values for the parameters.
+        * Reimplemented filtering and signals and slots from the parts dock to the definitions and functions docks.
+        * Changed the centralized Rectangle for medea.
+        * CDCIN Bugs (439, 441, 446, 442, 451, 452 & 457)
 
 Version 17:
     New Features:

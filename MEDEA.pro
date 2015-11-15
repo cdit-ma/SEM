@@ -363,4 +363,5 @@ mac{
 DISTFILES += \
     Resources/Images/qt.ico \
     defaultSettings.ini \
-    Resources/Fonts/OpenSans-Regular.ttf
+    Resources/Fonts/OpenSans-Regular.ttf \
+    todo.txt
