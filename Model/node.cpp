@@ -494,7 +494,7 @@ QString Node::toGraphML(qint32 indentationLevel)
 QString Node::toMD5Hash()
 {
     QStringList includedKeys;
-    includedKeys << "label" << "key" << "kind" << "type";
+    includedKeys << "label" << "kind" << "type" << "key";
     QString returnable;
     foreach(GraphMLData* data, attachedData){
         if(includedKeys.contains(data->getKeyName())){

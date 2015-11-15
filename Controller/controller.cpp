@@ -59,7 +59,10 @@ NewController::NewController()
     definitionNodeKinds << "InEventPort"  << "OutEventPort";
     definitionNodeKinds << "InEventPortDelegate"  << "OutEventPortDelegate";
     definitionNodeKinds << "AggregateInstance";
-    definitionNodeKinds << "ComponentImpl" << "Vector" << "VectorInstance";
+    definitionNodeKinds << "ComponentImpl";
+
+    //definitionNodeKinds << "Vector" << "VectorInstance";
+
 
 
 
@@ -558,9 +561,9 @@ void NewController::updateUndoRedoState()
 void NewController::setupParameters()
 {
     //Vector Get
-    BehaviourNode::addParameter("Process", "VectorOperation", "get", "vector", "vector", true);
-    BehaviourNode::addParameter("Process", "VectorOperation", "get", "index", "number", true);
-    BehaviourNode::addParameter("Process", "VectorOperation", "get", "value", "", false);
+    //BehaviourNode::addParameter("Process", "VectorOperation", "get", "vector", "vector", true);
+    //BehaviourNode::addParameter("Process", "VectorOperation", "get", "index", "number", true);
+    //BehaviourNode::addParameter("Process", "VectorOperation", "get", "value", "", false);
 }
 
 void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataValue, bool addAction)
@@ -1153,84 +1156,104 @@ bool NewController:: _exportSnippet(QList<int> IDs)
     if(canExportSnippet(IDs)){
         CUT_USED = false;
 
-        QString exportTimeStamp = getTimeStamp();
         QString parentNodeKind = "";
 
-        //Construct the Keys to attach to the nodes to export.
-        GraphMLKey* readOnlyKey = constructGraphMLKey("readOnly", "boolean", "node");
-        GraphMLKey* IDKey = constructGraphMLKey("originalID", "int", "node");
-        GraphMLKey* dateKey = constructGraphMLKey("exportDateTime", "string", "node");
-        GraphMLKey* annotationKey = constructGraphMLKey("annotation", "string", "node");
-
-        QList<Node*> nodeList;
-
-        //Construct a list of Nodes to be snippeted
         foreach(int ID, IDs){
             Node* node = getNodeFromID(ID);
             if(node){
-                if(!nodeList.contains(node)){
-                    nodeList += node;
-                    parentNodeKind = node->getParentNode()->getNodeKind();
+                parentNodeKind = node->getParentNode()->getNodeKind();
+                break;
+            }
+        }
 
-                    //Add exported Data.
-                    GraphMLData* dateData = new GraphMLData(dateKey);
-                    GraphMLData* annotationData = new GraphMLData(annotationKey);
-                    dateData->setValue(exportTimeStamp);
-                    annotationData->setValue("Exported from MEDEA!");
-                    node->attachData(dateData, true);
-                    node->attachData(annotationData, true);
-                }
 
-                foreach(Node* child, node->getChildren()){
-                    if(!nodeList.contains(child)){
-                        nodeList += child;
+        bool readOnly = false;
+
+        //Check if read only.
+        if(parentNodeKind == "InterfaceDefinitions"){
+            readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
+        }
+
+        QString graphmlRepresentation;
+
+
+        if(readOnly){
+            QString exportTimeStamp = getTimeStamp();
+
+            //Construct the Keys to attach to the nodes to export.
+            GraphMLKey* readOnlyKey = constructGraphMLKey("readOnly", "boolean", "node");
+            GraphMLKey* IDKey = constructGraphMLKey("originalID", "int", "node");
+            GraphMLKey* dateKey = constructGraphMLKey("exportDateTime", "string", "node");
+            GraphMLKey* annotationKey = constructGraphMLKey("annotation", "string", "node");
+
+            QList<Node*> nodeList;
+
+            //Construct a list of Nodes to be snippeted
+            foreach(int ID, IDs){
+                Node* node = getNodeFromID(ID);
+                if(node){
+                    if(!nodeList.contains(node)){
+                        nodeList += node;
+
+                        //Add exported Data.
+                        GraphMLData* dateData = new GraphMLData(dateKey);
+                        GraphMLData* annotationData = new GraphMLData(annotationKey);
+                        dateData->setValue(exportTimeStamp);
+                        annotationData->setValue("Exported from MEDEA!");
+                        node->attachData(dateData, true);
+                        node->attachData(annotationData, true);
+                    }
+
+                    foreach(Node* child, node->getChildren()){
+                        if(!nodeList.contains(child)){
+                            nodeList += child;
+                        }
                     }
                 }
             }
+
+            //Attach read Only Data to the top.
+
+            //Attach read only Data.
+            foreach(Node* node, nodeList){
+                GraphMLData* readOnlyData = new GraphMLData(readOnlyKey);
+                readOnlyData->setValue(true);
+                //Attach data as private data
+                node->attachData(readOnlyData, true);
+
+                if(!node->getData(IDKey)){
+                    GraphMLData* idData = new GraphMLData(IDKey);
+                    idData->setValue(node->getID());
+                    node->attachData(idData);
+
+                }
+            }
+            //Export the GraphML for those Nodes.
+            graphmlRepresentation = _exportGraphMLDocument(IDs, false, false);
+
+            //Remove attached Data.
+            foreach(Node* node, nodeList){
+                GraphMLData* readOnlyData = node->getData(readOnlyKey);
+                GraphMLData* dateData = node->getData(dateKey);
+                GraphMLData* annotationData = node->getData(annotationKey);
+
+                if(readOnlyData){
+                    node->removeData(readOnlyData);
+                    delete readOnlyData;
+                }
+                if(dateData){
+                    node->removeData(dateData);
+                    delete dateData;
+                }
+                if(annotationData){
+                    node->removeData(annotationData);
+                    delete annotationData;
+                }
+            }
+        }else{
+            graphmlRepresentation = _exportGraphMLDocument(IDs, false, false);
         }
 
-        //Attach read Only Data to the top.
-
-        //Attach read only Data.
-        foreach(Node* node, nodeList){
-            GraphMLData* readOnlyData = new GraphMLData(readOnlyKey);
-            GraphMLData* idData = new GraphMLData(IDKey);
-
-            readOnlyData->setValue(true);
-            idData->setValue(node->getID());
-
-            //Attach data as private data
-            node->attachData(readOnlyData, true);
-            node->attachData(idData, true);
-        }
-
-        //Export the GraphML for those Nodes.
-        QString graphmlRepresentation = _exportGraphMLDocument(IDs, false, false);
-
-        //Remove attached Data.
-        foreach(Node* node, nodeList){
-            GraphMLData* readOnlyData = node->getData(readOnlyKey);
-            GraphMLData* idData = node->getData(IDKey);
-            GraphMLData* dateData = node->getData(dateKey);
-            GraphMLData* annotationData = node->getData(annotationKey);
-
-            if(readOnlyData){
-                node->removeData(readOnlyData);
-                delete readOnlyData;
-            }
-            if(idData){
-                node->removeData(idData);
-                delete idData;
-            }
-            if(dateData){
-                node->removeData(dateData);
-                delete dateData;
-            }
-            if(annotationData){
-                node->removeData(annotationData);
-                delete annotationData;
-            }
-        }
 
         emit controller_ExportedSnippet(parentNodeKind, graphmlRepresentation);
         return true;
@@ -4101,6 +4124,9 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     //Counts the number of </node> elements we encounter to correctly traverse to the correct insertion point.
     int parentDepth = 0;
 
+    bool ignoreReadOnly = false;
+    int resetIgnoreParentID = 0;
+
 
     //While the document has more lines.
     while(!xml.atEnd()){
@@ -4261,12 +4287,10 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         if(nowParsing == GraphML::NODE){
             //If we have a nodeID to build
             if(nodeID != ""){
-
                 Node* node = 0;
 
-
-
                 bool storeMD5 = false;
+
                 //If we have a read only tag, we should look for the originalID provided.
                 //To see if we can find the original Node.
                 if(readOnlyTag){
@@ -4275,44 +4299,31 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                         int nodeID = readOnlyLookup[originalID];
                         node = getNodeFromID(nodeID);
 
+
                         //Compare timestamp
                         QString newTimeStamp  = getDataValueFromKeyName(currentNodeData, "exportDateTime");
                         QString currentTimeStamp = node->getDataValue("exportDateTime");
 
 
-                        bool ignore = false;
                         //If the date is older.
                         if(newTimeStamp < currentTimeStamp){
-                            ignore = !askQuestion(CRITICAL, "Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", node->getID());
+                            resetIgnoreParentID = node->getParentNode()->getID();
+                            ignoreReadOnly = !askQuestion(CRITICAL, "Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", node->getID());
                         }
 
 
-                        //Get the MD5 of the version we have.
-                        QString nodeMD5 = node->toMD5Hash();
+                        storeMD5 = !ignoreReadOnly;
 
-                        //Get the MD5 of the version we are importing.
-                        QString importMD5 = getMD5OfData(currentNodeData);
-
-
-                        if(ignore || nodeMD5 == importMD5){
-                            storeMD5 = !ignore;
-
-                            //Should update Data in node
-
-                            //Got match, so we don't need to construct item.
-                            while(!currentNodeData.isEmpty()){
-                                GraphMLData* data = currentNodeData.takeFirst();
-                                if(!ignore){
-                                    _attachGraphMLData(node, data);
-                                }
-                                if(!data->getParent())
-                                {
-                                    delete data;
-                                }
+                        //Got match, so we don't need to construct item.
+                        while(!currentNodeData.isEmpty()){
+                            GraphMLData* data = currentNodeData.takeFirst();
+                            if(!ignoreReadOnly){
+                                _attachGraphMLData(node, data);
                             }
-                        }else{
-                            //If we don't have a match, we should construct the item again.
-                            node = 0;
+                            if(!data->getParent())
+                            {
+                                delete data;
+                            }
                         }
                     }
                 }
@@ -4342,6 +4353,14 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     parent = parent->getParentNode();
                     parentDepth --;
                 }
+
+                if(ignoreReadOnly){
+                    if(parent->getID() == resetIgnoreParentID){
+                        ignoreReadOnly = false;
+                        resetIgnoreParentID = -1;
+                    }
+                }
+
 
                 //Add the new Node to the lookup table.
                 nodeLookup[nodeID] = node;
@@ -4674,9 +4693,6 @@ bool NewController::canExportSnippet(QList<int> IDs)
             return false;
         }
         if(node->getData("readOnly")){
-            return false;
-        }
-        if(node->getData("originalID")){
             return false;
         }
         if(!parent){
