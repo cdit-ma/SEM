@@ -1859,11 +1859,15 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
 
 
     bool protectLabel = nodeKind.endsWith("Parameter");
-    data.append(new GraphMLData(labelKey, labelString, protectLabel));
+
+    if(!nodeKind.endsWith("Definitions")){
+        data.append(new GraphMLData(labelKey, labelString, protectLabel));
+    }
     data.append(new GraphMLData(sortKey,"-1"));
 
 
     //Attach Node Specific Data.
+
 
     if(nodeKind != "Model" && !nodeKind.endsWith("Definitions")){
         data.append(new GraphMLData(expandedKey, "false"));
