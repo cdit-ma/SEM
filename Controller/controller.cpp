@@ -19,7 +19,7 @@ NewController::NewController()
 {
     qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
     qRegisterMetaType<GraphML::KIND>("GraphML::KIND");
-    qRegisterMetaType<QList<int>>("QList<int>");
+    qRegisterMetaType<QList<int> >("QList<int>");
 
 
 

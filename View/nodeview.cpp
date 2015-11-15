@@ -707,9 +707,13 @@ QList<GraphMLItem*> NodeView::search(QString searchString, QStringList viewAspec
 
     QList<GraphMLItem*> itemsToSearch;
     if (kind == GraphMLItem::ENTITY_ITEM) {
-        itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getEntityItemsList());
+        foreach(GraphMLItem* item, getEntityItemsList()){
+            itemsToSearch += item;
+        }
     } else if (kind == GraphMLItem::NODE_EDGE) {
-        itemsToSearch = *reinterpret_cast<QList<GraphMLItem*>*>(&getEdgeItemsList());
+        foreach(GraphMLItem* item, getEdgeItemsList()){
+            itemsToSearch += item;
+        }
     }
 
     QRegExp regex(searchString, Qt::CaseInsensitive, QRegExp::Wildcard);

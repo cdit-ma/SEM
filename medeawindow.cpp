@@ -698,7 +698,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     edit_search = edit_menu->addAction(getIcon("Actions", "Search"), "Search");
     edit_search->setShortcut(QKeySequence(Qt::Key_F3));
 
-    edit_delete = edit_menu->addAction(getIcon("Actions", "Delete"), "Delete Selection");
+    edit_delete= edit_menu->addAction(getIcon("Actions", "Delete"), "Delete Selection");
 
     view_fitToScreen = view_menu->addAction(getIcon("Actions", "FitToScreen"), "Fit To Screen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
@@ -1216,7 +1216,8 @@ void MedeaWindow::setupController()
     }
     if (controllerThread) {
         controllerThread->terminate();
-        delete controllerThread;
+        controllerThread->deleteLater();
+        //delete controllerThread;
         controllerThread = 0;
     }
 
@@ -1941,7 +1942,7 @@ void MedeaWindow::setupInitialSettings()
     // It doesn't need to be redone every time new project is called
     QStringList allKinds = nodeView->getAllNodeKinds();
     QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
-    QList<QPair<QString, QString>> functionKinds;
+    QList<QPair<QString, QString> > functionKinds;
     functionKinds << QPair<QString, QString>("VectorOperation", "Get");
     functionKinds << QPair<QString, QString>("VectorOperation", "Set");
     functionKinds << QPair<QString, QString>("VectorOperation", "Remove");

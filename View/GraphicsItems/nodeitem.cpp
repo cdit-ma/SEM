@@ -3,6 +3,7 @@
 #include "graphmlitem.h"
 #include "../nodeview.h"
 #include <QDebug>
+#include <math.h>
 
 #define MARGIN_RATIO (1.0 / 18.0) //NORMAL
 
