@@ -60,6 +60,10 @@
         <file alias="VectorOperation.png">Resources/Images/Items/VectorOperation.png</file>
         <file alias="InputParameter.png">Resources/Images/Items/InputParameter.png</file>
         <file alias="ReturnParameter.png">Resources/Images/Items/ReturnParameter.png</file>
+        <file alias="Vector_AggregateInstance.png">Resources/Images/Items/Vector_AggregateInstance.png</file>
+        <file alias="Vector_Member.png">Resources/Images/Items/Vector_Member.png</file>
+        <file alias="VectorInstance_AggregateInstance.png">Resources/Images/Items/VectorInstance_AggregateInstance.png</file>
+        <file alias="VectorInstance_Member.png">Resources/Images/Items/VectorInstance_Member.png</file>
     </qresource>
     <qresource prefix="/">
         <file alias="MedeaIcon.icns">Resources/Images/MedeaIcon.icns</file>

@@ -467,6 +467,8 @@ private:
     bool isInputParameter;
     bool isReturnParameter;
 
+    QString prevURL;
+    bool changeIcon;
 
     QList<int> connectedDataIDs;
     QString editableDataKey;

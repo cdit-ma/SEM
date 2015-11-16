@@ -95,7 +95,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
     isNodeSorted = false;
     isGridVisible = false;
 
-
+    changeIcon = false;
 
 
     sortTriggerAction = true;
@@ -159,6 +159,10 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
         CHILDREN_VIEW_MODE = ALL;
     }
 
+	childrenViewOptionMenu = 0;
+    allChildren = 0;
+    connectedChildren = 0;
+    unConnectedChildren = 0;
 
     setupLabel();
 
@@ -169,10 +173,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
 
 
 
-    childrenViewOptionMenu = 0;
-    allChildren = 0;
-    connectedChildren = 0;
-    unConnectedChildren = 0;
+ 
 
     setupChildrenViewOptionMenu();
     if (IS_HARDWARE_CLUSTER) {
@@ -331,7 +332,7 @@ void EntityItem::handleExpandState(bool newState)
     }
 
 
-//TODO FIX HARDWARE TOOLBAR
+    //TODO FIX HARDWARE TOOLBAR
     // if expanded, only show the HardwareNodes that match the current chidldren view mode
     if (IS_HARDWARE_CLUSTER && IS_EXPANDED_STATE) {
         // this will show/hide HardwareNodes depending on the current view mode
@@ -706,7 +707,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         //Paint the Icon
 
-        paintPixmap(painter, IP_CENTER, getIconPrefix(), getIconURL());
+        //paintPixmap(painter, IP_CENTER, getIconPrefix(), getIconURL());
+        paintPixmap(painter, IP_CENTER, getIconPrefix(), getIconURL(), changeIcon);
     }
 
 
@@ -2514,11 +2516,22 @@ QString EntityItem::getIconURL()
         }
     }else if(nodeKind.endsWith("Parameter")){
         return nodeLabel;
-    } /*else if (nodeKind.startsWith("Vector")) {
+    } else if (nodeKind.startsWith("Vector")) {
         if (!getChildren().isEmpty()) {
-            imageURL = nodeKind + "_" + getChildren().at(0)->getNodeKind();
+            QString childKind = getChildren().at(0)->getNodeKind();
+            if (childKind.startsWith("Member")) {
+                childKind = "Member";
+            }
+            imageURL = nodeKind + "_" + childKind;
         }
-    }*/
+        if (imageURL != prevURL) {
+            changeIcon = true;
+            prevURL = imageURL;
+            update(minimumRect());
+        } else {
+            changeIcon = false;
+        }
+    }
 
     return imageURL;
 }
