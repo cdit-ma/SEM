@@ -2437,7 +2437,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     if(toolbarDockConstruction || importFromJenkins){
         if(parentItem && parentItem->isEntityItem()){
-            emit this->view_SetGraphMLData(parentItem->getID(), "isExpanded", "true");
+            emit view_SetGraphMLData(parentItem->getID(), "isExpanded", "true");
         }
     }
 

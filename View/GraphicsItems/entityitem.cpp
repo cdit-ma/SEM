@@ -623,6 +623,11 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             }
         }
 
+        if(isHighlighted()){
+            headBrush.setColor(Qt::white);
+            bodyBrush.setColor(Qt::white);
+        }
+
 
         //Paint Background
         painter->setPen(Qt::NoPen);
@@ -633,11 +638,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             //Change Brush style.
             headBrush.setStyle(Qt::BDiagPattern);
         }
-
-        if(isHighlighted()){
-            headBrush.setColor(Qt::white);
-        }
-
 
 
         //Paint Header

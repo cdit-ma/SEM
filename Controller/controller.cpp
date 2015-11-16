@@ -1930,10 +1930,12 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
         GraphMLKey* osVKey = constructGraphMLKey("os_version", "string", "node");
         GraphMLKey* ipKey = constructGraphMLKey("ip_address", "string", "node");
         GraphMLKey* archKey = constructGraphMLKey("architecture", "string", "node");
+        GraphMLKey* descriptionKey = constructGraphMLKey("description", "string", "node");
         data.append(new GraphMLData(osKey));
         data.append(new GraphMLData(osVKey));
         data.append(new GraphMLData(ipKey));
         data.append(new GraphMLData(archKey));
+        data.append(new GraphMLData(descriptionKey));
     }
     if(nodeKind == "Attribute"){
         data.append(new GraphMLData(typeKey, "String"));
@@ -1974,6 +1976,15 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
             data.append(new GraphMLData(valueKey));
         }
         data.append(new GraphMLData(typeKey, "", true));
+    }
+
+    if(nodeKind == "HardwareNode"){
+        foreach(GraphMLData* d, data){
+            if(d){
+                d->setProtected(true);
+            }
+        }
+
     }
     return data;
 }

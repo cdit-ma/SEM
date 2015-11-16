@@ -148,6 +148,7 @@ void InputItem::setEditMode(bool editable)
     if(!isComboBox){
         //Set the textItem as editable.
         textItem->setEditMode(editable);
+        textItem->setFocus(Qt::MouseFocusReason);
     }
 }
 
