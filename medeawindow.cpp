@@ -1216,7 +1216,7 @@ void MedeaWindow::setupController()
     }
     if (controllerThread) {
         controllerThread->terminate();
-        controllerThread->deleteLater();
+        //controllerThread->deleteLater();
         //delete controllerThread;
         controllerThread = 0;
     }

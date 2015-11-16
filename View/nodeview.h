@@ -5,7 +5,7 @@
 #include "GraphicsItems/graphmlitem.h"
 #include "GraphicsItems/nodeitem.h"
 #include "GraphicsItems/edgeitem.h"
-#include "GraphicsItems/EntityItem.h"
+#include "GraphicsItems/entityitem.h"
 #include "GraphicsItems/aspectitem.h"
 #include "GraphicsItems/modelitem.h"
 

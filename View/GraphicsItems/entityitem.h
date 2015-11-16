@@ -19,7 +19,7 @@
 #include <QCheckBox>
 #include <QRadioButton>
 
-#include "NodeItem.h"
+#include "nodeitem.h"
 #include "inputitem.h"
 
 #include "../../Model/node.h"

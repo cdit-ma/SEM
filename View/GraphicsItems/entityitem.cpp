@@ -1,4 +1,4 @@
-#include "EntityItem.h"
+#include "entityitem.h"
 #include "edgeitem.h"
 #include "../nodeview.h"
 
