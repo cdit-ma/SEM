@@ -14,6 +14,17 @@ Dan To Fix:
 * Fix Duplicate in Controller.
 * Add catch for when an AggregateInstance is constructed inside of its definition.
 
+    Todo:
+        * Test Ubuntu for local deployment.
+        * Test Import from XME on Ubuntu.
+        * Make sure threads are killed for local deployment.
+                * Need to update the dock buttons and window toolbar when the theme is changed.
+                * Clean up leftover toolbar layout stuff in medeawindow.
+                * Minimap visibleViewRect.
+                * Search result dialog/popup.
+
+
+
 Cathlyn To Fix:
 * Need to make sure that the definition dock only shows kinds which are returned from the list of getAdoptableNodeKinds()
 * Fix getNextChildPos() in NodeItem. (doesnt' work consistantly for sorting Aspect)

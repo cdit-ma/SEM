@@ -1664,8 +1664,13 @@ void MedeaWindow::jenkins_InvokeJob(QString filePath)
 void MedeaWindow::cuts_runDeployment(QString filePath)
 {
     if(cutsManager){
+        QString path = "";
+        if(appSettings){
+            path = appSettings->getSetting(DEFAULT_DIR_PATH);
+        }
         CUTSExecutionWidget* cWidget = new CUTSExecutionWidget(this, cutsManager);
         cWidget->setGraphMLPath(filePath);
+        cWidget->setOutputPath(path);
         cWidget->show();
     }
 

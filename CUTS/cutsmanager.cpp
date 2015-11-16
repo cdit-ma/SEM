@@ -236,6 +236,7 @@ void CUTSManager::executeCUTS(QString path, int executionTime)
 
     path = path + "descriptors/";
 
+
     if(modelMiddleware == ""){
         modelMiddleware = "tao";
     }
@@ -263,9 +264,11 @@ void CUTSManager::executeCUTS(QString path, int executionTime)
 
 void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
 {
+    qCritical() << "processGraphml " << graphmlPath << " " << outputPath;
     //Run preprocess generation on the graphml, this will be used as the input to all transforms.
     QString processedGraphmlPath = preProcessIDL(graphmlPath, outputPath);
 
+    qCritical() << "1";
 
     if(!isFileReadable(processedGraphmlPath)){
         emit executedXSLGeneration(false, "Preprocessing graphml document failed!");
@@ -277,6 +280,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
         emit executedXSLGeneration(false, "Cannot read Preprocessed graphml document!");
         return;
     }
+
     modelName = getGraphmlName(processedGraphmlPath);
 
     //Construct a QXmlQuery object to inspect the graphml.
@@ -309,14 +313,18 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
         keyXML = keysXML->next();
     }
 
+
     //Check for TAO
     //Get the label of each <node> entity of kind "Model"
-    QXmlResultItems* modelsXML = evaluateQuery2List(query, "doc($doc)//gml:node[gml:data[@key='" + keys["label"] + "' and string()='Model']]");
+    QXmlResultItems* modelsXML = evaluateQuery2List(query, "doc($doc)//gml:node[gml:data[@key='" + keys["kind"] + "' and string()='Model']]");
     QXmlItem modelXML = modelsXML->next();
+
+
 
     while(!modelXML.isNull()){
         QString middleware = evaluateQuery2String(query, "gml:data[@key='" + keys["middleware"] + "']/string()", &modelXML);
         modelMiddleware = middleware;
+        qCritical() << modelMiddleware;
         modelXML = modelsXML->next();
     }
 

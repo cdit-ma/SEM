@@ -101,6 +101,8 @@ private:
     QString getGraphmlName(QString file);
     QString getGraphmlPath(QString filePath);
 
+
+
     void queueComponentGeneration(QString graphmlPath, QStringList components, QString outputPath);
     void queueComponentInstanceGeneration(QString graphmlPath, QStringList componentInstances, QString outputPath);
     void queueIDLGeneration(QString graphmlPath, QStringList idls, QString outputPath);
