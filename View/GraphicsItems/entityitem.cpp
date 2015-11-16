@@ -2517,6 +2517,8 @@ QString EntityItem::getIconURL()
     }else if(nodeKind.endsWith("Parameter")){
         return nodeLabel;
     } else if (nodeKind.startsWith("Vector")) {
+        // TODO - Instead of checking this everytime, get a signal when the
+        // first child is added and when the last child is removed for Vectors
         if (!getChildren().isEmpty()) {
             QString childKind = getChildren().at(0)->getNodeKind();
             if (childKind.startsWith("Member")) {
