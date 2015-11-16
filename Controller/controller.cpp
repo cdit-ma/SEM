@@ -4048,9 +4048,6 @@ bool NewController::askQuestion(MESSAGE_TYPE messageType, QString questionTitle,
     QEventLoop waitLoop;
     questionAnswer = false;
 
-    if(ID == -1){
-        ID = getModel()->getID();
-    }
     connect(this, SIGNAL(controller_GotQuestionAnswer()), &waitLoop, SLOT(quit()));
 
     emit controller_AskQuestion(messageType, questionTitle, question, ID);

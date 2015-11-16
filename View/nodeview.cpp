@@ -1234,7 +1234,8 @@ void NodeView::hardwareDockOpened(bool opened)
 void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, int ID)
 {
     Q_UNUSED(type);
-    if(ID !=-1){
+    if(ID != -1){
+        qCritical() << ID;
         GraphMLItem* item = getGraphMLItemFromID(ID);
         if(item){
             centerItem(item);
