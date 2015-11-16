@@ -281,6 +281,7 @@ void JenkinsJobMonitorWidget::gotJobActiveConfigurations(QString jobName, QStrin
             int seperator = tabName.indexOf("=") + 1;
             tabName = tabName.mid(seperator);
         }
+        qCritical() << tabName;
         //Add it to the Tabbed Widget.
         tabWidget->addTab(newBrowser, tabName);
     }
