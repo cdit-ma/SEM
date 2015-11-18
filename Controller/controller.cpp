@@ -61,7 +61,7 @@ NewController::NewController()
     definitionNodeKinds << "AggregateInstance";
     definitionNodeKinds << "ComponentImpl";
 
-    //definitionNodeKinds << "Vector" << "VectorInstance";
+    definitionNodeKinds << "Vector" << "VectorInstance";
 
 
 
@@ -88,7 +88,7 @@ NewController::NewController()
     constructableNodeKinds.append(behaviourNodeKinds);
     constructableNodeKinds << "ManagementComponent";
 
-    //constructableNodeKinds << "InputParameter" << "ReturnParameter";
+    constructableNodeKinds << "InputParameter" << "ReturnParameter";
 
     constructableNodeKinds.removeDuplicates();
 
@@ -561,9 +561,9 @@ void NewController::updateUndoRedoState()
 void NewController::setupParameters()
 {
     //Vector Get
-    //BehaviourNode::addParameter("Process", "VectorOperation", "get", "vector", "vector", true);
-    //BehaviourNode::addParameter("Process", "VectorOperation", "get", "index", "number", true);
-    //BehaviourNode::addParameter("Process", "VectorOperation", "get", "value", "", false);
+    BehaviourNode::addParameter("Process", "VectorOperation", "get", "vector", "vector", true);
+    BehaviourNode::addParameter("Process", "VectorOperation", "get", "index", "number", true);
+    BehaviourNode::addParameter("Process", "VectorOperation", "get", "value", "", false);
 }
 
 void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataValue, bool addAction)

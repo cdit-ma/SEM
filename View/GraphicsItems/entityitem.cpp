@@ -131,6 +131,10 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
     topLabelInputItem = 0;
     rightLabelInputItem = 0;
     bottomInputItem = 0;
+    childrenViewOptionMenu = 0;
+    allChildren = 0;
+    connectedChildren = 0;
+    unConnectedChildren = 0;
 
     //Setup initial sizes
     //Set Minimum Size.
@@ -174,6 +178,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
 
 
  
+
 
     setupChildrenViewOptionMenu();
     if (IS_HARDWARE_CLUSTER) {
@@ -1531,6 +1536,7 @@ void EntityItem::updateDisplayedChildren(int viewMode)
     }
 
     QList<EntityItem*> childrenItems = getChildEntityItems();
+
     allChildren->setChecked(false);
     connectedChildren->setChecked(false);
     unConnectedChildren->setChecked(false);

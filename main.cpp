@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     a.setWindowIcon(QIcon(":/Actions/MEDEA.png"));
 
     QCoreApplication::setApplicationName("MEDEA");
-    QCoreApplication::setApplicationVersion("18");
+    QCoreApplication::setApplicationVersion("19");
     QCoreApplication::setOrganizationName("Defence Information Group");
     QCoreApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
 

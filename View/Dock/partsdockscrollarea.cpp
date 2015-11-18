@@ -17,7 +17,7 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
     kindsRequiringDefinition.append("ComponentImpl");
     kindsRequiringDefinition.append("AggregateInstance");
     kindsRequiringDefinition.append("VectorInstance");
-    //kindsRequiringFunction.append("Process");
+    kindsRequiringFunction.append("Process");
 }
 
 
