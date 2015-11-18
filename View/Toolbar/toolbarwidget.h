@@ -126,8 +126,8 @@ private:
     ToolbarMenu* connectMenu;
     ToolbarMenu* definitionMenu;
     ToolbarMenu* implementationMenu;
-
     ToolbarMenu* instancesMenu;
+
     ToolbarMenu* instanceOptionMenu;
     ToolbarMenu* displayedChildrenOptionMenu;
 
@@ -138,6 +138,7 @@ private:
     ToolbarMenu* outEventPortDelegateMenu;
     ToolbarMenu* aggregateInstMenu;
     ToolbarMenu* vectorInstMenu;
+    ToolbarMenu* functionsMenu;
 
     ToolbarMenuAction* componentImplAction;
     ToolbarMenuAction* componentInstAction;
@@ -146,6 +147,7 @@ private:
     ToolbarMenuAction* outEventPortDelegateAction;
     ToolbarMenuAction* aggregateInstAction;
     ToolbarMenuAction* vectorInstAction;
+    ToolbarMenuAction* processAction;
 
     ToolbarMenuAction* componentImplMenuInfoAction;
     ToolbarMenuAction* componentInstMenuInfoAction;
@@ -154,6 +156,7 @@ private:
     ToolbarMenuAction* outEventPortDelegateMenuInfoAction;
     ToolbarMenuAction* aggregateInstMenuInfoAction;
     ToolbarMenuAction* vectorInstMenuInfoAction;
+    ToolbarMenuAction* functionsMenuInfoAction;
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;

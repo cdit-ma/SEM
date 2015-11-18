@@ -161,7 +161,7 @@ void ToolbarWidget::addChildNode(ToolbarMenuAction* action)
  * @param action
  */
 void ToolbarWidget::addConnectedNode(ToolbarMenuAction* action)
-{
+{    
     ToolbarMenu* menu = qobject_cast<ToolbarMenu*>(QObject::sender());
     QString kindToConstruct;
 
@@ -713,6 +713,22 @@ void ToolbarWidget::setupMenus()
     blackBoxInstAction->setMenu(blackBoxInstMenu);
     aggregateInstAction->setMenu(aggregateInstMenu);
     vectorInstAction->setMenu(vectorInstMenu);
+
+    processAction = new ToolbarMenuAction("Process", this);
+    functionsMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no available functions.", ":/Actions/");
+    functionsMenu = new ToolbarMenu(this, functionsMenuInfoAction);
+    processAction->setMenu(functionsMenu);
+
+    ToolbarMenuAction* classAction = new ToolbarMenuAction("Function", functionsMenu, "VectorOperation", ":/Actions/");
+    ToolbarMenu* classMenu = new ToolbarMenu(this);
+    //classMenu->addAction(new ToolbarMenuAction("Get", this, "Get", ":/Functions/"));
+    //classMenu->addAction(new ToolbarMenuAction("Set", this, "Set", ":/Functions/"));
+    //classMenu->addAction(new ToolbarMenuAction("Remove", this, "Remove", ":/Functions/"));
+    classMenu->addAction(new ToolbarMenuAction("Process", this, "Get", ":/Items/"));
+    classMenu->addAction(new ToolbarMenuAction("Process", this, "Set", ":/Items/"));
+    classMenu->addAction(new ToolbarMenuAction("Process", this, "Remove", ":/Items/"));
+    classAction->setMenu(classMenu);
+    functionsMenu->addAction(classAction);
 }
 
 
@@ -1084,6 +1100,8 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
             action = aggregateInstAction;
         } else if (kind == "VectorInstance") {
             action = vectorInstAction;
+        } else if (kind == "Process") {
+            action = processAction;
         } else {
             action  = new ToolbarMenuAction(kind, this);
         }

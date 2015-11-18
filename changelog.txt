@@ -38,6 +38,7 @@ Version 18:
         * Implemented context toolbar to show a menu for adding AggregateInstance and VectorInstance.
         * Implemented highlight on hover in NodeView for the context toolbar menus.
         * Added default Path option to MEDEA (Saves on Exit)
+		* Implemented adding Process with functions in the context toolbar.
 
     Fixes:
         * Allowed connection of OutEventPortInstances into InEventPortInstances contained by the same parent.

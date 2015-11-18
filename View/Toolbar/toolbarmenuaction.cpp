@@ -50,6 +50,7 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, QWidget* parent, QString disp
     nonDeletableKinds.append("OutEventPortDelegate");
     nonDeletableKinds.append("AggregateInstance");
     nonDeletableKinds.append("VectorInstance");
+    nonDeletableKinds.append("Process");
     nonDeletableKinds.append("Info");
 
     if (nonDeletableKinds.contains(actionKind)) {
@@ -66,7 +67,12 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, QWidget* parent, QString disp
         setText(actionKind);
     }
 
-    setIcon(QIcon(QPixmap::fromImage(QImage(iconPath + actionKind))));
+    QPixmap pixmap = QPixmap::fromImage(QImage(iconPath + actionKind));
+    if (kind == "Function") {
+        pixmap = pixmap.scaled(QSize(25,25), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+
+    setIcon(QIcon(pixmap));
 }
 
 
@@ -86,10 +92,10 @@ NodeItem* ToolbarMenuAction::getNodeItem()
  */
 int ToolbarMenuAction::getNodeItemID()
 {
-   if (nodeItem) {
-       return nodeItem->getID();
-   }
-   return -1;
+    if (nodeItem) {
+        return nodeItem->getID();
+    }
+    return -1;
 }
 
 
