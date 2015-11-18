@@ -233,7 +233,7 @@ void DockNodeItem::setReadOnlyState(bool on)
             state = DEFAULT;
             break;
         default:
-            break;
+            return;
         }
     }
     updateStyleSheet();
@@ -297,10 +297,10 @@ void DockNodeItem::setupLayout()
                         imagePath = hardwareOS + "_" + hardwareArch;
                     }
                     pixMap = nodeView->getImage("Items", imagePath);
-                    highlightColor = "rgba(90,150,200,210)";
                 } else {
                     pixMap = nodeView->getImage("Items", kind);
                 }
+                highlightColor = "rgba(90,150,200,210)";
             } else {
                 if (parentDock->getDockType() ==  PARTS_DOCK) {
                     pixMap = nodeView->getImage("Items", kind);
@@ -490,7 +490,7 @@ void DockNodeItem::childDockItemHidden()
 /**
  * @brief DockNodeItem::highlightDockItem
  * This adds/removes highlight to this dock item.
- * @param node
+ * @param nodeItem
  */
 void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
 {
@@ -500,7 +500,7 @@ void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
             state = HIGHLIGHTED;
             break;
         default:
-            break;
+            return;
         }
     } else {
         switch (state) {
@@ -508,7 +508,7 @@ void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
             state = DEFAULT;
             break;
         default:
-            break;
+            return;
         }
     }
     updateStyleSheet();

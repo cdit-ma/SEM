@@ -876,9 +876,9 @@ QList<NodeItem *> NodeView::getNodeInstances(int ID)
  * @brief NodeView::getHardwareList
  * @return
  */
-QList<NodeItem *> NodeView::getHardwareList()
+QList<EntityItem*> NodeView::getHardwareList()
 {
-    QList<NodeItem*> hardwares;
+    QList<EntityItem*> hardwares;
     if (controller) {
         Model* model = controller->getModel();
         if (model) {

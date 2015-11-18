@@ -484,6 +484,10 @@ void ToolbarWidget::setupLegalNodesList()
     QList<NodeItem*> topActions, subActions;
     foreach (NodeItem* item, legalNodeItems) {
         NodeItem* parentItem = item->getParentNodeItem();
+        // skip HardwareClusters and HardwareNodes - they are already listed in the hardwareMenus
+        if (item->getNodeKind().startsWith("Hardware")) {
+            continue;
+        }
         if (selectedParentItem == parentItem) {
             topActions.append(item);
         } else {
@@ -590,6 +594,48 @@ void ToolbarWidget::setupVectorList()
 
 
 /**
+ * @brief ToolbarWidget::setupHardwareList
+ */
+void ToolbarWidget::setupHardwareList()
+{
+    if (hardwareMenuDone) {
+        return;
+    } else {
+        hardwareMenuDone = true;
+    }
+
+    QList<EntityItem*> hardware = nodeView->getHardwareList();
+
+    if (hardware.isEmpty()) {
+        return;
+    } else {
+        hardwareButton->show();
+        alterModelButtonsVisible = true;
+    }
+
+    QList<NodeItem*> topActions, subActions;
+
+    foreach (EntityItem* item, hardware) {
+        if (!item->getParentEntityItem()) {
+            topActions.append(item);
+        } else {
+            subActions.append(item);
+        }
+    }
+
+    foreach (NodeItem* topItem, topActions) {
+        constructMenuAction(topItem, hardwareMenu);
+    }
+    if (!topActions.isEmpty() && !subActions.isEmpty()) {
+        hardwareMenu->addSeparator();
+    }
+    foreach (NodeItem* subItem, subActions) {
+        constructSubMenuAction(subItem, hardwareMenu);
+    }
+}
+
+
+/**
  * @brief ToolbarWidget::setupToolBar
  * Initialise and setup the layout and tool buttons and separators.
  */
@@ -603,26 +649,27 @@ void ToolbarWidget::setupToolBar()
     QSize buttonSize = QSize(39,39);
 
     // construct tool buttons and separators and add them to the toolbar's layout
-    addChildButton = constructToolButton(buttonSize, "Plus", 0.8, "Add Child Entity");
-    connectButton = constructToolButton(buttonSize, "ConnectTo", 0.7, "Connect Selection");
-    deleteButton = constructToolButton(buttonSize, "Delete", 0.65, "Delete Selection");
+    addChildButton = constructToolButton(buttonSize, 0.8, "Plus", "Add Child Entity");
+    connectButton = constructToolButton(buttonSize, 0.7, "ConnectTo", "Connect Selection");
+    hardwareButton = constructToolButton(buttonSize, 0.7,  "HardwareNode", "Deploy Selection", "Items");
+    deleteButton = constructToolButton(buttonSize, 0.65, "Delete", "Delete Selection");
     alignFrame = constructFrameSeparator();
-    alignVerticallyButton = constructToolButton(buttonSize, "Align_Vertical", 0.6, "Align Selection Vertically");
-    alignHorizontallyButton = constructToolButton(buttonSize, "Align_Horizontal", 0.6, "Align Selection Horizontally");
+    alignVerticallyButton = constructToolButton(buttonSize, 0.6, "Align_Vertical", "Align Selection Vertically");
+    alignHorizontallyButton = constructToolButton(buttonSize, 0.6, "Align_Horizontal", "Align Selection Horizontally");
     expandContractFrame = constructFrameSeparator();
-    expandButton = constructToolButton(buttonSize, "Expand", 0.6, "Expand Selection");
-    contractButton = constructToolButton(buttonSize, "Contract", 0.6, "Contract Selection");
+    expandButton = constructToolButton(buttonSize, 0.6, "Expand", "Expand Selection");
+    contractButton = constructToolButton(buttonSize, 0.6, "Contract", "Contract Selection");
     snippetFrame = constructFrameSeparator();
-    importSnippetButton = constructToolButton(buttonSize, "ImportSnippet", 0.6, "Import GraphML Snippet");
-    exportSnippetButton = constructToolButton(buttonSize, "ExportSnippet", 0.6, "Export GraphML Snippet");
+    importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
+    exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
     goToFrame = constructFrameSeparator();
-    definitionButton = constructToolButton(buttonSize, "Definition", 0.55, "View Definition");
-    implementationButton = constructToolButton(buttonSize, "Implementation", 0.6, "View Implementation");
-    instancesButton = constructToolButton(buttonSize, "Instance", 0.6, "View Instances");
+    definitionButton = constructToolButton(buttonSize, 0.55, "Definition", "View Definition");
+    implementationButton = constructToolButton(buttonSize, 0.6, "Implementation", "View Implementation");
+    instancesButton = constructToolButton(buttonSize, 0.6, "Instance", "View Instances");
     alterViewFrame = constructFrameSeparator();
-    connectionsButton = constructToolButton(buttonSize, "Connections", 0.6, "View Connections");
-    popupNewWindow = constructToolButton(buttonSize, "Popup", 0.55, "View In New Window");
-    displayedChildrenOptionButton = constructToolButton(buttonSize, "MenuCluster", 0.7, "Change Displayed Nodes");
+    connectionsButton = constructToolButton(buttonSize, 0.6, "Connections", "View Connections");
+    popupNewWindow = constructToolButton(buttonSize, 0.55, "Popup", "View In New Window");
+    displayedChildrenOptionButton = constructToolButton(buttonSize, 0.7, "MenuCluster", "Change Displayed Nodes");
 
     deleteButton->setStyleSheet("padding-right: 3px;");
 
@@ -654,10 +701,11 @@ void ToolbarWidget::setupMenus()
     // construct main menus
     addMenu = constructToolButtonMenu(addChildButton);
     connectMenu = constructToolButtonMenu(connectButton, false);
+    hardwareMenu = constructToolButtonMenu(hardwareButton);
     definitionMenu = constructToolButtonMenu(definitionButton, false);
     implementationMenu = constructToolButtonMenu(implementationButton, false);
     instancesMenu = constructToolButtonMenu(instancesButton);
-    displayedChildrenOptionMenu = constructToolButtonMenu(displayedChildrenOptionButton);
+    hardwareClusterViewMenu = constructToolButtonMenu(displayedChildrenOptionButton);
 
     // setup menu actions for the definition and implementation menus
     definitionMenu->addAction(new ToolbarMenuAction("Goto", definitionMenu, "Go to Definition", ":/Actions/"));
@@ -675,9 +723,9 @@ void ToolbarWidget::setupMenus()
     a1->setDefaultWidget(allNodes);
     a2->setDefaultWidget(connectedNodes);
     a3->setDefaultWidget(unconnectedNodes);
-    displayedChildrenOptionMenu->QMenu::addAction(a1);
-    displayedChildrenOptionMenu->QMenu::addAction(a2);
-    displayedChildrenOptionMenu->QMenu::addAction(a3);
+    hardwareClusterViewMenu->QMenu::addAction(a1);
+    hardwareClusterViewMenu->QMenu::addAction(a2);
+    hardwareClusterViewMenu->QMenu::addAction(a3);
 
     // these actions are not deletable - when their parent menu is cleared, they're only hidden
     componentImplAction = new ToolbarMenuAction("ComponentImpl", this);
@@ -750,9 +798,9 @@ void ToolbarWidget::makeConnections()
     connect(importSnippetButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(definitionButton, SIGNAL(clicked()), this, SLOT(hide()));
     connect(implementationButton, SIGNAL(clicked()), this, SLOT(hide()));
-    connect(allNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
-    connect(connectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
-    connect(unconnectedNodes, SIGNAL(clicked()), displayedChildrenOptionMenu, SLOT(hide()));
+    connect(allNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
+    connect(connectedNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
+    connect(unconnectedNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
 
     connect(connectButton, SIGNAL(clicked()), nodeView, SLOT(setStateConnect()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
@@ -774,6 +822,8 @@ void ToolbarWidget::makeConnections()
 
     connect(connectMenu, SIGNAL(aboutToShow()), this, SLOT(setupLegalNodesList()));
     connect(connectMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(connectNodes(ToolbarMenuAction*)));
+
+    connect(hardwareMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(connectNodes(ToolbarMenuAction*)));
 
     connect(definitionMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(displayConnectedNode(ToolbarMenuAction*)));
     connect(implementationMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(displayConnectedNode(ToolbarMenuAction*)));
@@ -836,9 +886,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         implementationButton->setVisible(showImplementationToolButton);
         goToButtonsVisible = showDefinitionToolButton || showImplementationToolButton;
 
-        // these buttons are only available for multiple selection
-        expandButton->hide();
-        contractButton->hide();
+        // the expand and contract buttons are only available for multiple selection
         expandContractButtonsVisible = false;
 
         // check if the selected node item has other node items connected to it (edges)
@@ -955,14 +1003,9 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         }
     }
 
-    // this allows the hardware link to be changed using the context toolbar
+    // setup the hardware menu for deployable node items
     if (deployable) {
-        QList<NodeItem*> hardware = nodeView->getHardwareList();
-        foreach (NodeItem* h, hardware) {
-            if (!legalNodes.contains(h)) {
-                legalNodes.append(hardware);
-            }
-        }
+        setupHardwareList();
     }
 
     // setup connectable nodes menu for the selected item(s)
@@ -990,6 +1033,7 @@ void ToolbarWidget::hideButtons()
 {
     addChildButton->hide();
     connectButton->hide();
+    hardwareButton->hide();
     deleteButton->hide();
     alignVerticallyButton->hide();
     alignHorizontallyButton->hide();
@@ -1027,6 +1071,7 @@ void ToolbarWidget::clearMenus()
 {
     addMenu->clearMenu();
     connectMenu->clearMenu();
+    hardwareMenu->clearMenu();
     instancesMenu->clearMenu();
     componentImplMenu->clearMenu();
     componentInstMenu->clearMenu();
@@ -1061,6 +1106,7 @@ void ToolbarWidget::resetButtonGroupFlags()
     connectMenuDone = false;
     aggregateMenuDone = false;
     vectorMenuDone = false;
+    hardwareMenuDone = false;
 
     chosenInstanceID = -1;
 }
@@ -1075,7 +1121,6 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
 {
     // if there are no adoptable node kinds, hide the addChild button
     if (nodeKinds.isEmpty()) {
-        addChildButton->hide();
         return;
     } else {
         addChildButton->show();
@@ -1116,11 +1161,10 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
  * This sets up the menu list of nodes the selected node item can connect to.
  * @param nodeList
  */
-void ToolbarWidget::setupLegalNodesList(QList<NodeItem *> nodeList)
+void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
 {
     // if the selected node can't connect to anything, hide the connect button
     if (nodeList.isEmpty()) {
-        connectButton->hide();
         return;
     } else {
         connectButton->show();
@@ -1138,7 +1182,6 @@ void ToolbarWidget::setupInstancesList(QList<NodeItem*> instances)
 {
     // if there are no instances, hide the instance button
     if (instances.isEmpty()) {
-        instancesButton->hide();
         return;
     } else {
         instancesButton->show();
@@ -1264,16 +1307,17 @@ void ToolbarWidget::setupEventPortInstanceList(QString eventPortKind)
  * This constructs a QToolButton with the provided size, icon and tooltip.
  * It adds it to the toolbar's layout and then returns it.
  * @param size - button size
- * @param iconPng - button icon's png filename without the extension
  * @param iconSizeRatio - button icon's size ratio
+ * @param iconPng - button icon's png filename without the extension
  * @param tooltip - button tooltip
+ * @param iconPath - button icon's png folder
  * @return
  */
-QToolButton* ToolbarWidget::constructToolButton(QSize size, QString iconPng, double iconSizeRatio, QString tooltip)
+QToolButton* ToolbarWidget::constructToolButton(QSize size, double iconSizeRatio, QString iconPng, QString tooltip, QString iconPath)
 {
     QToolButton* button = new QToolButton(this);
     button->setFixedSize(size);
-    button->setIcon(nodeView->getImage("Actions", iconPng));
+    button->setIcon(nodeView->getImage(iconPath, iconPng));
     button->setIconSize(size * iconSizeRatio);
     button->setToolTip(tooltip);
     toolbarLayout->addWidget(button);
@@ -1361,9 +1405,9 @@ ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, Too
 
     // if nodeItem has a parent, check if there is already an action for it in parentMenu
     // if not, create one and attach a menu to it
-    if (parentNode && parentNode->getNodeKind() != "Model") {
+    if (parentNode && parentNode->isEntityItem()) {
 
-        ToolbarMenuAction* parentAction = parentMenu->getAction(parentNode);
+        ToolbarMenuAction* parentAction = parentMenu->getAction(parentNode, true);
         ToolbarMenu* parentActionMenu = 0;
 
         if (parentAction) {
@@ -1380,6 +1424,8 @@ ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, Too
             ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, this);
             parentActionMenu->addAction(action);
             return action;
+        } else {
+            qWarning() << "ToolbarWidget::constructSubMenuAction - Parent action doesn't have a menu.";
         }
     }
 

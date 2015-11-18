@@ -13,7 +13,7 @@ public:
 
     void addAction(ToolbarMenuAction* action);
     void removeAction(ToolbarMenuAction* action, bool clearing = false);
-    ToolbarMenuAction* getAction(NodeItem* item);
+    ToolbarMenuAction* getAction(NodeItem* item, bool withMenu = false);
 
     bool isEmpty();
     void clearMenu();

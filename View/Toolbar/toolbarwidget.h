@@ -39,6 +39,7 @@ public slots:
     void setupEventPortInstanceList();
     void setupAggregateList();
     void setupVectorList();
+    void setupHardwareList();
 
     void setInstanceID();
 
@@ -78,7 +79,7 @@ private:
     void setupComponentList(QString actionKind);
     void setupEventPortInstanceList(QString eventPortKind);
 
-    QToolButton* constructToolButton(QSize size, QString iconPng, double iconSizeRatio, QString tooltip = "");
+    QToolButton* constructToolButton(QSize size, double iconSizeRatio, QString iconPng, QString tooltip = "", QString iconPath = "Actions");
     QFrame* constructFrameSeparator();
 
     ToolbarMenu* constructToolButtonMenu(QToolButton* parentButton, bool instantPopup = true);
@@ -104,6 +105,7 @@ private:
     QToolButton* addChildButton;
     QToolButton* deleteButton;
     QToolButton* connectButton;
+    QToolButton* hardwareButton;
 
     QToolButton* definitionButton;
     QToolButton* implementationButton;
@@ -128,8 +130,8 @@ private:
     ToolbarMenu* implementationMenu;
     ToolbarMenu* instancesMenu;
 
-    ToolbarMenu* instanceOptionMenu;
-    ToolbarMenu* displayedChildrenOptionMenu;
+    ToolbarMenu* hardwareMenu;
+    ToolbarMenu* hardwareClusterViewMenu;
 
     ToolbarMenu* componentImplMenu;
     ToolbarMenu* componentInstMenu;
@@ -180,9 +182,10 @@ private:
     bool componentInstMenuDone;
     bool inEventPortInstanceMenuDone;
     bool outEventPortInstanceMenuDone;
-    bool connectMenuDone;
     bool aggregateMenuDone;
     bool vectorMenuDone;
+    bool connectMenuDone;
+    bool hardwareMenuDone;
 
     int chosenInstanceID;
     QList<NodeItem*> legalNodeItems;

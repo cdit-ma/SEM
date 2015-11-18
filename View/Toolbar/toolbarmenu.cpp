@@ -91,14 +91,18 @@ void ToolbarMenu::removeAction(ToolbarMenuAction* action, bool clearing)
 /**
  * @brief ToolbarMenu::getAction
  * @param item
+ * @param withMenu
  * @return
  */
-ToolbarMenuAction* ToolbarMenu::getAction(NodeItem* item)
+ToolbarMenuAction* ToolbarMenu::getAction(NodeItem* item, bool withMenu)
 {
     if (item) {
         foreach (ToolbarMenuAction* action, menuActions) {
             NodeItem* actionItem = action->getNodeItem();
             if (actionItem && (actionItem == item)) {
+                if (withMenu && !action->menu()) {
+                    continue;
+                }
                 return action;
             }
         }
