@@ -16,7 +16,6 @@
 #include <string>
 
 
-//Change
 //ICON_LINK
 //https://www.google.com/design/icons/index.html
 // Why hasn't this changes
