@@ -5,7 +5,7 @@
 #include <QDateTime>
 #include <QMessageBox>
 #include <QEventLoop>
-
+#include <QObject>
 #include <QSysInfo>
 
 #define LABEL_TRUNCATE_LENGTH 64
@@ -237,8 +237,7 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
             }
 
             //Get all Children in this node.
-            foreach(Node* child, node->getChildren()){
-                Node* childNode = dynamic_cast<Node*>(child);
+            foreach(Node* childNode, node->getChildren()){
                 if(childNode && (containedNodes.contains(childNode) == false)){
                     containedNodes.append(childNode);
                 }
@@ -323,19 +322,6 @@ QString NewController::_exportGraphMLDocument(Node *node, bool allEdges, bool GU
     QList<int> nodeIDs;
     nodeIDs << node->getID();
     return _exportGraphMLDocument(nodeIDs, allEdges, GUI_USED);
-}
-
-QStringList NewController::getNodeKinds(Node *parent)
-{
-    QStringList empty;
-    if(parent){
-        if(parent->isImpl() || (parent->getParentNode() && parent->getParentNode()->isImpl())){
-            return behaviourNodeKinds;
-        }else if(!parent->isInstance()){
-            return definitionNodeKinds;
-        }
-    }
-    return empty;
 }
 
 QStringList NewController::getViewAspects()
@@ -1278,42 +1264,53 @@ bool NewController::_exportProject()
     return false;
 }
 
+/**
+ * @brief NewController::getAdoptableNodeKinds Gets the list of NodeKinds that the node (From ID) can adopt.
+ * @param ID The ID of the parent Node
+ * @return A list of all adoptable node kinds.
+ */
 QStringList NewController::getAdoptableNodeKinds(int ID)
 {
-    QStringList adoptableNodeTypes;
+    QStringList adoptableNodeKinds;
 
     Node* parent = getNodeFromID(ID);
 
     if(parent){
-        //Ignore all children!
+        //Ignore all children for read only kind.
         if(parent->isReadOnly()){
-            return adoptableNodeTypes;
+            return adoptableNodeKinds;
         }
-        foreach(QString nodeKind, getNodeKinds(parent)){
+
+        QString parentNodeKind = parent->getDataValue("kind");
+
+        foreach(QString nodeKind, getGUIConstructableNodeKinds()){
             //Construct a Node of the Kind nodeKind.
-
-            //Ignore AggregateInstance for all kinds except Aggregate's
-            if(nodeKind == "AggregateInstance"){
-                QString parentNodeKind = parent->getDataValue("kind");
-                if(parentNodeKind != "Aggregate" && parentNodeKind != "Variable" && parentNodeKind != "Vector"){
-                    continue;
+            bool ignoreKind = false;
+            Node* node = constructTypedNode(nodeKind, true);
+            if(node){
+                //Ignore AggregateInstance for all kinds except Aggregate's
+                if(nodeKind == "AggregateInstance"){
+                    if(parentNodeKind != "Aggregate" && parentNodeKind != "Variable" && parentNodeKind != "Vector"){
+                        ignoreKind = true;
+                    }
                 }
-            }
 
-            Node* node = constructTypedNode(nodeKind);
+                if(!ignoreKind && parent->canAdoptChild(node)){
+                    if(!adoptableNodeKinds.contains(nodeKind)){
+                        adoptableNodeKinds.append(nodeKind);
+                    }
+                }
 
-            if(!node){
-                continue;
-            }
-
-            if(parent->canAdoptChild(node)){
-                if(!adoptableNodeTypes.contains(nodeKind)){
-                    adoptableNodeTypes.append(nodeKind);
+                //If we have made a new Node we should delete it.
+                if(!protectedNodes.contains(node)){
+                    //Clear Memory
+                    delete node;
                 }
             }
         }
     }
-    return adoptableNodeTypes;
+
+    return adoptableNodeKinds;
 }
 
 QList<int> NewController::getConnectableNodes(int srcID)
@@ -1757,7 +1754,7 @@ Node *NewController::constructNode(QList<GraphMLData *> nodeData)
     QString childNodeLabel = getDataValueFromKeyName(nodeData, "label");
 
 
-    Node* node = constructTypedNode(childNodeKind, childNodeType, childNodeLabel);
+    Node* node = constructTypedNode(childNodeKind, false, childNodeType, childNodeLabel);
 
     //Enforce Default Data!
     QList<GraphMLData*> requiredData = constructGraphMLDataVector(childNodeKind);
@@ -2909,6 +2906,7 @@ bool NewController::canDeleteNode(Node *node)
     return true;
 }
 
+
 void NewController::clearHistory()
 {
     currentActionID = 0;
@@ -2919,8 +2917,10 @@ void NewController::clearHistory()
     updateUndoRedoState();
 }
 
-Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QString nodeLabel)
+Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QString nodeType, QString nodeLabel)
 {
+
+    bool storeNode = !isTemporary;
     if(nodeKind == "Model"){
         if(model){
             return model;
@@ -2961,7 +2961,9 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
             return hardwareNodes[nodeLabel];
         }else{
             HardwareNode* hN = new HardwareNode();
-            hardwareNodes[nodeLabel] = hN;
+            if(storeNode && nodeLabel != ""){
+                hardwareNodes[nodeLabel] = hN;
+            }
             return hN;
         }
     }else if(nodeKind == "HardwareCluster"){
@@ -2969,7 +2971,9 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
             return hardwareClusters[nodeLabel];
         }else{
             HardwareCluster* hC = new HardwareCluster();
-            hardwareClusters[nodeLabel] = hC;
+            if(storeNode && nodeLabel != ""){
+                hardwareClusters[nodeLabel] = hC;
+            }
             return hC;
         }
     }else if(nodeKind == "ManagementComponent"){
@@ -2977,7 +2981,9 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
             return managementComponents[nodeType];
         }else{
             ManagementComponent* mC = new ManagementComponent();
-            managementComponents[nodeLabel] = mC;
+            if(storeNode && nodeLabel != ""){
+                managementComponents[nodeLabel] = mC;
+            }
             return mC;
         }
         return new ManagementComponent();
@@ -3102,9 +3108,6 @@ void NewController::setupModel()
     _attachGraphMLData(model, constructGraphMLDataVector("Model"));
     constructNodeGUI(model);
 
-    workerDefinitions = constructTypedNode("WorkerDefinitions");
-    _attachGraphMLData(workerDefinitions, constructGraphMLDataVector("WorkerDefinitions"));
-    constructNodeGUI(workerDefinitions);
 
     GraphMLData* labelData = model->getData("label");
     connect(labelData, SIGNAL(valueChanged(QString)), this, SIGNAL(controller_ProjectNameChanged(QString)));
@@ -3113,6 +3116,7 @@ void NewController::setupModel()
     interfaceDefinitions = constructChildNode(model, constructGraphMLDataVector("InterfaceDefinitions"));
     behaviourDefinitions = constructChildNode(model, constructGraphMLDataVector("BehaviourDefinitions"));
     deploymentDefinitions =  constructChildNode(model, constructGraphMLDataVector("DeploymentDefinitions"));
+    workerDefinitions =  constructChildNode(model, constructGraphMLDataVector("WorkerDefinitions"));
 
     //Construct the second level containers.
     assemblyDefinitions =  constructChildNode(deploymentDefinitions, constructGraphMLDataVector("AssemblyDefinitions"));

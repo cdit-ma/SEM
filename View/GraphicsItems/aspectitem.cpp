@@ -232,7 +232,9 @@ QPointF AspectItem::getAspectPos()
     case VAP_BOTTOMLEFT:
         return QPointF(-itemMargin - totalW, itemMargin);
     default:
-        return QPointF(0,0);
+        //Temporary for WorkerDefinitions
+        return QPointF(-itemMargin - totalW, itemMargin);
+        //return QPointF(0,0);
     }
 }
 

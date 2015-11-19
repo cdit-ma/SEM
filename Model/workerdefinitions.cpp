@@ -12,6 +12,7 @@ bool WorkerDefinitions::canAdoptChild(Node *node)
     if(!workload){
         return false;
     }
+    return Node::canAdoptChild(node);
 }
 
 bool WorkerDefinitions::canConnect(Node *node)

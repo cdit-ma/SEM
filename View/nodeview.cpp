@@ -2449,9 +2449,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     }else if(node->isAspect()){
         VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
         item = new AspectItem(node, parentItem, aspect);
-        if(!parentItem){
-            item->setNodeView(this);
-        }
     }else{
         item =  new EntityItem(node, parentNodeItem);
     }

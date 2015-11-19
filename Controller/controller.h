@@ -3,9 +3,6 @@
 #include <QStack>
 #include <QFile>
 #include "../Model/model.h"
-#include "../Model/workerdefinitions.h"
-
-
 
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
@@ -66,8 +63,7 @@ public:
 
 
 
-    //Get a list of all Node Kinds
-    QStringList getNodeKinds(Node* parent);
+
     //Get a list of all View Aspects
     QStringList getViewAspects();
 
@@ -195,10 +191,6 @@ private:
     void destructGraphMLData(GraphML* parent, QString keyName, bool addAction = true);
 
 
-
-
-
-
 private:
     void updateUndoRedoState();
     void setupParameters();
@@ -317,7 +309,7 @@ private:
     bool canDeleteNode(Node* node);
 
 
-    Node* constructTypedNode(QString nodeKind, QString nodeType="", QString nodeLabel="");
+    Node* constructTypedNode(QString nodeKind, bool isTemporary = false, QString nodeType="", QString nodeLabel="");
 
 
     //Attach GraphMLData('s) to the GraphML item.
