@@ -521,26 +521,6 @@ QList<EdgeItem *> NodeView::getEdgeItemsList()
     return edgeItems;
 }
 
-void NodeView::paintEvent(QPaintEvent * e)
-{
-    QGraphicsView::paintEvent(e);
-    /*
-    if(this->isSubView()){
-        QPainter painter(this->viewport());
-
-        painter.setPen(Qt::black);
-        painter.drawRect(visibleViewRect);
-
-        painter.setPen(Qt::red);
-        painter.drawLine(QLine(visibleViewRect.topLeft(),visibleViewRect.bottomRight()));
-        painter.drawLine(QLine(visibleViewRect.topRight(),visibleViewRect.bottomLeft()));
-
-        painter.setPen(Qt::blue);
-        painter.drawLine(QLine(viewport()->rect().topLeft(),viewport()->rect().bottomRight()));
-        painter.drawLine(QLine(viewport()->rect().topRight(),viewport()->rect().bottomLeft()));
-        qCritical() << this->viewState;
-    }*/
-}
 
 
 /**
@@ -1022,8 +1002,13 @@ QList<NodeItem *> NodeView::getEntityItemsOfKind(QString kind, int ID, int depth
 
 bool NodeView::viewportEvent(QEvent * e)
 {
-    emit view_ViewportRectChanged(getVisibleRect());
-    emit view_ZoomChanged(transform().m11());
+    //emit view_ViewportRectChanged(getVisibleRect());
+    qreal current = transform().m11();
+    if(current != zoomCurrent){
+        zoomCurrent = current;
+        emit view_ZoomChanged(current);
+    }
+
     return QGraphicsView::viewportEvent(e);
 }
 

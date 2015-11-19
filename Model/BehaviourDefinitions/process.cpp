@@ -1,4 +1,5 @@
 #include "process.h"
+#include "parameter.h"
 
 Process::Process():BehaviourNode(false, false, false){
     setUnconnectable(false);
@@ -12,7 +13,11 @@ bool Process::canConnect(Node*)
     return false;
 }
 
-bool Process::canAdoptChild(Node*)
+bool Process::canAdoptChild(Node* node)
 {
+    Parameter* parameter = dynamic_cast<Parameter*>(node);
+    if(!parameter){
+        return false;
+    }
     return true;
 }

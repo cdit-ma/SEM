@@ -193,18 +193,11 @@ void NewController::initializeModel()
 
 NewController::~NewController()
 {
-    //Disable Logging
     enableDebugLogging(false);
 
     DELETING = true;
     destructNode(model, false);
-
-
-    // while(keys.size() > 0){
-    //     GraphMLKey* key = keys.takeFirst();
-    //     delete key;
-    //}
-
+    destructNode(workerDefinitions, false);
 }
 
 QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges, bool GUI_USED)
@@ -4247,6 +4240,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
                 if(dataKey->getName() == "readOnly"){
                     readOnlyTag = true;
+                    originalID = -1;
                 }
 
                 if(dataKey->getName() == "originalID"){
@@ -4420,7 +4414,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 //Add the new Node to the lookup table.
                 nodeLookup[nodeID] = node;
 
-                if(readOnlyTag){
+                if(readOnlyTag && originalID != -1){
                     readOnlyLookup[originalID] = node->getID();
                     reverseReadOnlyLookup[node->getID()] = originalID;
                     originalID = -1;

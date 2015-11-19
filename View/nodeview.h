@@ -505,6 +505,7 @@ private:
     bool eventFromEdgeItem;
     bool wasPanning;
 
+    qreal zoomCurrent;
     //Selection Lists
     QList<int> selectedIDs;
     QList<int> highlightedIDs;
@@ -530,8 +531,6 @@ private:
     int prevHighlightedFromToolbarID;
 
     // QWidget interface
-protected:
-    void paintEvent(QPaintEvent *);
 };
 
 #endif // NODEVIEW_H
