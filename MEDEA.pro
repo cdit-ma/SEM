@@ -133,7 +133,8 @@ HEADERS += \
     Model/BehaviourDefinitions/returnparameter.h \
     GUI/searchsuggestcompletion.h \
     enumerations.h \
-    View/Dock/functionsdockscrollarea.h
+    View/Dock/functionsdockscrollarea.h \
+    Model/workerdefinitions.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -233,7 +234,8 @@ SOURCES += \
     Model/BehaviourDefinitions/parameter.cpp \
     Model/BehaviourDefinitions/returnparameter.cpp \
     GUI/searchsuggestcompletion.cpp \
-    View/Dock/functionsdockscrollarea.cpp
+    View/Dock/functionsdockscrollarea.cpp \
+    Model/workerdefinitions.cpp
 
 FORMS +=
 

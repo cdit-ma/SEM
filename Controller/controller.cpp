@@ -38,6 +38,7 @@ NewController::NewController()
     deploymentDefinitions = 0;
     hardwareDefinitions = 0;
     assemblyDefinitions = 0;
+    workerDefinitions = 0;
 
     currentActionID = 0;
     currentActionItemID = 0;
@@ -53,6 +54,7 @@ NewController::NewController()
     containerNodeKinds << "BehaviourDefinitions" << "DeploymentDefinitions" << "InterfaceDefinitions";
     containerNodeKinds << "HardwareDefinitions" << "AssemblyDefinitions" << "ManagementComponent";
     containerNodeKinds << "HardwareCluster";
+    containerNodeKinds << "WorkerDefinitions";
 
     definitionNodeKinds << "IDL" << "Component" << "Attribute" << "ComponentAssembly" << "ComponentInstance" << "BlackBox" << "BlackBoxInstance";
     definitionNodeKinds << "Member" << "Aggregate";
@@ -2949,6 +2951,11 @@ Node *NewController::constructTypedNode(QString nodeKind, QString nodeType, QStr
             return deploymentDefinitions;
         }
         return  new DeploymentDefinitions();
+    }else if(nodeKind == "WorkerDefinitions"){
+        if(workerDefinitions){
+            return workerDefinitions;
+        }
+        return  new WorkerDefinitions();
     }else if(nodeKind == "HardwareNode"){
         if(hardwareNodes.contains(nodeLabel)){
             return hardwareNodes[nodeLabel];
@@ -3095,6 +3102,10 @@ void NewController::setupModel()
     _attachGraphMLData(model, constructGraphMLDataVector("Model"));
     constructNodeGUI(model);
 
+    workerDefinitions = constructTypedNode("WorkerDefinitions");
+    _attachGraphMLData(workerDefinitions, constructGraphMLDataVector("WorkerDefinitions"));
+    constructNodeGUI(workerDefinitions);
+
     GraphMLData* labelData = model->getData("label");
     connect(labelData, SIGNAL(valueChanged(QString)), this, SIGNAL(controller_ProjectNameChanged(QString)));
 
@@ -3113,6 +3124,7 @@ void NewController::setupModel()
     protectedNodes << deploymentDefinitions;
     protectedNodes << assemblyDefinitions;
     protectedNodes << hardwareDefinitions;
+    protectedNodes << workerDefinitions;
 
 
     setupManagementComponents();

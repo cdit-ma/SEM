@@ -34,12 +34,12 @@
 
 NodeItem::NodeItem(Node *node, GraphMLItem *parent, GraphMLItem::GUI_KIND kind) : GraphMLItem(node, parent, kind)
 {
-    if(parent->isNodeItem()){
+    if(parent && parent->isNodeItem()){
         setViewAspect(((NodeItem*)parent)->getViewAspect());
     }
 
     DRAW_GRID = false;
-    if(parent->isNodeItem()){
+    if(parent && parent->isNodeItem()){
         //Connect Signals.
         connect(this, SIGNAL(GraphMLItem_PositionChanged()), ((NodeItem*)parent), SLOT(childPositionChanged()));
         connect(this, SIGNAL(GraphMLItem_SizeChanged()), ((NodeItem*)parent), SLOT(childSizeChanged()));

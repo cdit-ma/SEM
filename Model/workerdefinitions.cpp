@@ -1,7 +1,21 @@
 #include "workerdefinitions.h"
+#include "BehaviourDefinitions/workload.h"
 
-WorkerDefinitions::WorkerDefinitions()
+WorkerDefinitions::WorkerDefinitions(): Node(Node::NT_ASPECT)
 {
-
 }
 
+bool WorkerDefinitions::canAdoptChild(Node *node)
+{
+    //Workloads!
+    Workload* workload = dynamic_cast<Workload*>(node);
+    if(!workload){
+        return false;
+    }
+}
+
+bool WorkerDefinitions::canConnect(Node *node)
+{
+    Q_UNUSED(node);
+    return false;
+}

@@ -1,9 +1,11 @@
 #ifndef NEWCONTROLLER_H
 #define NEWCONTROLLER_H
 #include <QStack>
-#include "../Model/model.h"
-#include "../View/GraphicsItems/edgeitem.h"
 #include <QFile>
+#include "../Model/model.h"
+#include "../Model/workerdefinitions.h"
+
+
 
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
@@ -399,6 +401,7 @@ private:
     bool IMPORTING_SNIPPET;
 
     Model* model;
+    Node* workerDefinitions;
 
     Node* behaviourDefinitions;
     Node* deploymentDefinitions;

@@ -2378,7 +2378,7 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         parent = parent->getParentNode();
     }
 
-    if(!parentItem && nodeKind != "Model"){
+    if(!parentItem && isSubView() && nodeKind != "Model"){
         qCritical() << "NodeView::view_ConstructNodeGUI() SUB_VIEW probably not meant to build this item as we don't have it's parent.";
         return;
     }
@@ -2449,6 +2449,9 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     }else if(node->isAspect()){
         VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
         item = new AspectItem(node, parentItem, aspect);
+        if(!parentItem){
+            item->setNodeView(this);
+        }
     }else{
         item =  new EntityItem(node, parentNodeItem);
     }
