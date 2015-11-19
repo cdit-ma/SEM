@@ -37,7 +37,7 @@ public:
 
     int getIndirectConnectCount(QString nodeKind);
     //Child Node Methods
-    void setTop();
+    void setTop(int index = 0);
     virtual QString toString();
     Node* getParentNode();
 

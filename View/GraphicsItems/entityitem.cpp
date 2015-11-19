@@ -68,7 +68,7 @@
 EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, GraphMLItem::ENTITY_ITEM)
 {
     IS_EXPANDED_STATE = false;
-    if(parent->isEntityItem()){
+    if(parent && parent->isEntityItem()){
         parentEntityItem = (EntityItem*)parent;
         setVisibility(parentEntityItem->isExpandedState());
 

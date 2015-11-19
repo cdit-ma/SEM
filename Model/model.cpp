@@ -4,7 +4,7 @@
 
 Model::Model(): Node()
 {
-    setTop();
+    setTop(0);
 }
 
 Model::~Model()
@@ -18,9 +18,8 @@ bool Model::canAdoptChild(Node *child)
     InterfaceDefinitions* interfaceDefinitions = dynamic_cast<InterfaceDefinitions*>(child);
     DeploymentDefinitions* deploymentDefinitions = dynamic_cast<DeploymentDefinitions*>(child);
     BehaviourDefinitions* behaviourDefinitions = dynamic_cast<BehaviourDefinitions*>(child);
-    WorkerDefinitions* workerDefinitions = dynamic_cast<WorkerDefinitions*>(child);
 
-    if(!interfaceDefinitions && !deploymentDefinitions && !behaviourDefinitions && !workerDefinitions){
+    if(!interfaceDefinitions && !deploymentDefinitions && !behaviourDefinitions){
         #ifdef DEBUG_MODE
         qWarning() << "Model can only adopt interfaceDefinitions, deploymentDefinitions, interfaceDefinitions";
 #endif

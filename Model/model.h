@@ -68,7 +68,6 @@
 
 #include "InterfaceDefinitions/blackbox.h"
 #include "DeploymentDefinitions/blackboxinstance.h"
-#include "workerdefinitions.h"
 
 
 

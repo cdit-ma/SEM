@@ -419,10 +419,8 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
     action.isNum = false;
 
 
-
-
     GraphMLData* data = parent->getData(keyName);
-    if(data->getKey()->isNumber() && !data->getKey()->isBoolean()){
+    if(data && data->getKey()->isNumber() && !data->getKey()->isBoolean()){
         bool okay = false;
         qreal dataValueNumber = dataValue.toDouble(&okay);
         if(okay){
@@ -653,11 +651,17 @@ void NewController::constructFunctionNode(int parentID, QString nodeKind, QStrin
     triggerAction("Constructing Child FunctionNode");
     Node* processFunction = constructChildNode(parentNode, dataList);
 
-    QList<ParameterRequirement*> parameters = BehaviourNode::getParameters(nodeKind);
 
-    foreach(ParameterRequirement* parameter, parameters){
-        constructChildParameter(processFunction, parameter);
+    if(className != "" && functionName != ""){
+        QList<ParameterRequirement*> parameters = BehaviourNode::getParameters(nodeKind);
+
+        foreach(ParameterRequirement* parameter, parameters){
+            if(parameter->getClassName() == className && parameter->getFunctionName() == functionName){
+                constructChildParameter(processFunction, parameter);
+            }
+        }
     }
+
 
 
     emit controller_ActionFinished();
@@ -1308,9 +1312,22 @@ QStringList NewController::getAdoptableNodeKinds(int ID)
                 }
             }
         }
+
     }
+    qCritical() << adoptableNodeKinds;
+
 
     return adoptableNodeKinds;
+}
+
+QList<QPair<QString, QString> > NewController::getFunctionList()
+{
+    QList<QPair<QString, QString> >  list;
+    list << QPair<QString, QString>("VectorOperation", "Get");
+    list << QPair<QString, QString>("VectorOperation", "Set");
+    list << QPair<QString, QString>("VectorOperation", "Remove");
+    list << QPair<QString, QString>("New Class", "New Function");
+    return list;
 }
 
 QList<int> NewController::getConnectableNodes(int srcID)
@@ -3108,6 +3125,11 @@ void NewController::setupModel()
     _attachGraphMLData(model, constructGraphMLDataVector("Model"));
     constructNodeGUI(model);
 
+    workerDefinitions = constructTypedNode("WorkerDefinitions");
+    _attachGraphMLData(workerDefinitions, constructGraphMLDataVector("WorkerDefinitions"));
+    qCritical() << workerDefinitions;
+    constructNodeGUI(workerDefinitions);
+
 
     GraphMLData* labelData = model->getData("label");
     connect(labelData, SIGNAL(valueChanged(QString)), this, SIGNAL(controller_ProjectNameChanged(QString)));
@@ -3116,7 +3138,7 @@ void NewController::setupModel()
     interfaceDefinitions = constructChildNode(model, constructGraphMLDataVector("InterfaceDefinitions"));
     behaviourDefinitions = constructChildNode(model, constructGraphMLDataVector("BehaviourDefinitions"));
     deploymentDefinitions =  constructChildNode(model, constructGraphMLDataVector("DeploymentDefinitions"));
-    workerDefinitions =  constructChildNode(model, constructGraphMLDataVector("WorkerDefinitions"));
+
 
     //Construct the second level containers.
     assemblyDefinitions =  constructChildNode(deploymentDefinitions, constructGraphMLDataVector("AssemblyDefinitions"));
@@ -3871,6 +3893,11 @@ QString NewController::getTimeStamp()
 Model *NewController::getModel()
 {
     return model;
+}
+
+WorkerDefinitions *NewController::getWorkerDefinitions()
+{
+    return (WorkerDefinitions*)workerDefinitions;
 }
 
 void NewController::enableDebugLogging(bool logMode, QString applicationPath)

@@ -11,6 +11,9 @@ public:
     QString getName();
     QString getType();
     QString getValue();
+    QString getFunctionName();
+    QString getClassName();
+
     bool isInputParameter();
     bool isReturnParameter();
     bool matches(Parameter* p);

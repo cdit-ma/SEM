@@ -119,10 +119,10 @@ int Node::getIndirectConnectCount(QString nodeKind)
     return count;
 }
 
-void Node::setTop()
+void Node::setTop(int index)
 {
-    this->treeIndex.append(0);
-    this->treeIndexStr = "0,";
+    this->treeIndex.append(index);
+    this->treeIndexStr = QString::number(index);
 }
 
 QString Node::toString()

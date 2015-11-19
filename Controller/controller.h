@@ -3,6 +3,7 @@
 #include <QStack>
 #include <QFile>
 #include "../Model/model.h"
+#include "../Model/workerdefinitions.h"
 
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
@@ -60,6 +61,7 @@ public:
 
     //Gets the Model Node.
     Model* getModel();
+    WorkerDefinitions* getWorkerDefinitions();
 
 
 
@@ -71,6 +73,7 @@ public:
     QStringList getGUIConstructableNodeKinds();
     //Returns a list of Kinds which can be adopted by a Node.
     QStringList getAdoptableNodeKinds(int ID);
+    QList<QPair<QString, QString> > getFunctionList();
     //QStringList getAdoptableNodeKinds(Node* parent);
 
     QList<int> getConnectableNodes(int srcID);

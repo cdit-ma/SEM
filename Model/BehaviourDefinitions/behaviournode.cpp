@@ -229,7 +229,6 @@ ParameterRequirement::ParameterRequirement(QString nodeKind, QString className, 
     this->parameterType = parameterType;
     this->inputParameter = inputParameter;
     this->value = defaultValue;
-
 }
 
 QString ParameterRequirement::getName()
@@ -246,6 +245,17 @@ QString ParameterRequirement::getValue()
 {
     return value;
 }
+
+QString ParameterRequirement::getFunctionName()
+{
+    return functionName;
+}
+
+QString ParameterRequirement::getClassName()
+{
+    return className;
+}
+
 
 bool ParameterRequirement::isInputParameter()
 {

@@ -1951,9 +1951,9 @@ void MedeaWindow::setupInitialSettings()
     QStringList allKinds = nodeView->getAllNodeKinds();
     QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
     QList<QPair<QString, QString> > functionKinds;
-    functionKinds << QPair<QString, QString>("VectorOperation", "Get");
-    functionKinds << QPair<QString, QString>("VectorOperation", "Set");
-    functionKinds << QPair<QString, QString>("VectorOperation", "Remove");
+    functionKinds = nodeView->getFunctionList();
+
+
 
     partsDock->addDockNodeItems(guiKinds);
     functionsDock->addDockNodeItems(functionKinds);

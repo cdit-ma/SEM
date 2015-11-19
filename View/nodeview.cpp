@@ -390,6 +390,17 @@ ModelItem *NodeView::getModelItem()
     return model;
 }
 
+NodeItem *NodeView::getWorkerDefinitionItem()
+{
+    NodeItem* workerD = 0;
+    if(controller){
+        int ID = controller->getWorkerDefinitions()->getID();
+        GraphMLItem* item = getGraphMLItemFromID(ID);
+        workerD = (NodeItem*)item;
+    }
+    return workerD;
+}
+
 
 /**
  * @brief NodeView::getModelScenePos
@@ -411,8 +422,11 @@ QPointF NodeView::getModelScenePos()
  */
 void NodeView::adjustModelPosition(QPointF delta)
 {
-    if (getModelItem()) {
-        ((ModelItem*)getModelItem())->adjustPos(delta);
+    ModelItem* modelItem = getModelItem();
+    NodeItem* workerAspect = getWorkerDefinitionItem();
+    if (modelItem && workerAspect) {
+        modelItem->adjustPos(delta);
+        workerAspect->adjustPos(delta);
         // call this after the scene/model has been moved
         aspectGraphicsChanged();
     }
@@ -635,6 +649,15 @@ QList<GraphMLItem *> NodeView::getSelectedItems()
         }
     }
     return selectedItems;
+}
+
+QList<QPair<QString, QString> > NodeView::getFunctionList()
+{
+    QList<QPair<QString, QString> >  list;
+    if(controller){
+        list = controller->getFunctionList();
+    }
+    return list;
 }
 
 /*
@@ -2448,7 +2471,15 @@ void NodeView::view_ConstructNodeGUI(Node *node)
         item = new ModelItem(node, this);
     }else if(node->isAspect()){
         VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
-        item = new AspectItem(node, parentItem, aspect);
+        if(aspect == VAP_NONE){
+            EntityItem* eItem = new EntityItem(node, parentNodeItem);
+            eItem->handleExpandState(true);
+            item = eItem;
+
+            item->setNodeView(this);
+        }else{
+            item = new AspectItem(node, parentItem, aspect);
+        }
     }else{
         item =  new EntityItem(node, parentNodeItem);
     }

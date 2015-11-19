@@ -61,6 +61,7 @@ public:
     GraphMLItem* getSelectedGraphMLItem();
 
     QList<GraphMLItem*> getSelectedItems();
+    QList< QPair<QString, QString> > getFunctionList();
     //QList<EntityItem*> getSelectedEntityItems();
 
     QList<int> getSelectedNodeIDs();
@@ -401,6 +402,7 @@ private:
     NewController* getController();
     QRectF getVisibleRect();
     ModelItem* getModelItem();
+    NodeItem* getWorkerDefinitionItem();
     QPointF getModelScenePos();
 
 
