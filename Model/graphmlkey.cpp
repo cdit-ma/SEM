@@ -238,13 +238,13 @@ QString GraphMLKey::toGraphML(qint32 indentationLevel)
     }
 
     QString returnable = tabSpace + QString("<key attr.name=\"%1\" attr.type=\"%2\" for=\"%3\" id=\"%4\"").arg(this->getName(),this->typeStr,this->forKindStr, QString::number(this->getID()));
-    if(this->getDefaultValue() != ""){
-        returnable += ">\n";
-        returnable += tabSpace + QString("\t<default>%1</default>\n").arg(this->getDefaultValue());
-        returnable += tabSpace + "</key>\n";
-    }else{
-        returnable += "/>\n";
-    }
+    //if(this->getDefaultValue() != ""){
+        //returnable += ">\n";
+        //returnable += tabSpace + QString("\t<default>%1</default>\n").arg(this->getDefaultValue());
+        //returnable += tabSpace + "</key>\n";
+    //}else{
+    returnable += "/>\n";
+    //}
     return returnable;
 }
 

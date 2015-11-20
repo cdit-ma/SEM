@@ -193,4 +193,8 @@
         <file alias="function.png">Resources/Images/Data/function.png</file>
         <file alias="index.png">Resources/Images/Data/index.png</file>
     </qresource>
+    <qresource prefix="/Functions">
+        <file alias="WE_GPU.png">Resources/Images/Functions/WE_GPU.png</file>
+        <file alias="VectorOperation.png">Resources/Images/Functions/VectorOperation.png</file>
+    </qresource>
 </RCC>

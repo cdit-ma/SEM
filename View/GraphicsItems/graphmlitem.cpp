@@ -293,6 +293,7 @@ void GraphMLItem::setNodeView(NodeView *view)
     nodeView = view;
     if(nodeView){
         setInSubView(nodeView->isSubView());
+        zoomChanged(nodeView->getCurrentZoom());
     }
 }
 
@@ -416,7 +417,7 @@ void GraphMLItem::handleSelection(bool setSelected, bool controlDown)
         if(setSelected && !controlDown){
             emit GraphMLItem_ClearSelection();
         }
-        if(setSelected){
+        if(getNodeView() && setSelected){
             getNodeView()->setStateSelected();
             emit GraphMLItem_AppendSelected(this);
         }else{

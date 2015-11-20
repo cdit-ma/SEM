@@ -292,7 +292,7 @@ void ModelItem::setupInputItems()
 
 void ModelItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getViewState();
     //Set the mouse down type to the type which matches the position.
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
 

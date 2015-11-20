@@ -162,6 +162,27 @@ QList<DockNodeItem*> DockNodeItem::getChildrenDockItems()
     return childrenDockItems;
 }
 
+/**
+ * @brief DockNodeItem::setImage Replaces the image used by the DockNodeItem.
+ * @param prefix The Image Prefix
+ * @param image The Image
+ */
+void DockNodeItem::setImage(QString prefix, QString image)
+{
+    if(parentDock){
+        NodeView* nodeView = parentDock->getNodeView();
+        if(imageLabel && textLabel  && nodeView){
+            qCritical() << prefix << " " << image;
+            QPixmap pixMap = nodeView->getImage(prefix, image);
+            QPixmap scaledPixmap =  pixMap.scaled(width()*ICON_RATIO,
+                                                  (height()-textLabel->height())*ICON_RATIO,
+                                                  Qt::KeepAspectRatio,
+                                                  Qt::SmoothTransformation);
+            imageLabel->setPixmap(scaledPixmap);
+        }
+    }
+}
+
 
 /**
  * @brief DockNodeItem::getID
@@ -321,6 +342,7 @@ void DockNodeItem::setupLayout()
 
         imageLabel = new QLabel(this);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+
         imageLabel->setPixmap(scaledPixmap);
         layout->addWidget(imageLabel);
         layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);

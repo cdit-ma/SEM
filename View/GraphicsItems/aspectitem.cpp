@@ -78,12 +78,6 @@ AspectItem::AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect) : No
     connectToGraphMLData("width");
     connectToGraphMLData("height");
     updateFromGraphMLData();
-
-    //Set Values Direc
-    //if(!inSubView()){
-    //    updatePositionInModel(true);
-    //    updateSizeInModel(true);
-    //}
 }
 
 
@@ -281,7 +275,7 @@ QRectF AspectItem::gridRect() const
 
 void AspectItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getViewState();
     //Set the mouse down type to the type which matches the position.
     mouseOverResize = resizeEntered(event->pos());
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
@@ -309,7 +303,7 @@ void AspectItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void AspectItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getViewState();
 
 
     //Only if left button is down.
@@ -342,7 +336,7 @@ void AspectItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void AspectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getViewState();
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
 
     //Only if left button is down.

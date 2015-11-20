@@ -46,8 +46,6 @@ NodeItem::NodeItem(Node *node, GraphMLItem *parent, GraphMLItem::GUI_KIND kind) 
     }
 
     connect(this, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(updateGrid()));
-
-
 }
 
 NodeItem::~NodeItem()

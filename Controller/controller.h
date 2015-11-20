@@ -76,7 +76,7 @@ public:
     QStringList getGUIConstructableNodeKinds();
     //Returns a list of Kinds which can be adopted by a Node.
     QStringList getAdoptableNodeKinds(int ID);
-    QList<QPair<QString, QString> > getFunctionList();
+    QList<int> getFunctionIDList();
     //QStringList getAdoptableNodeKinds(Node* parent);
 
     QList<int> getConnectableNodes(int srcID);
@@ -84,6 +84,8 @@ public:
 
     QStringList getValidKeyValues(QString keyName, int ID =-1);
     QList<int> getNodesOfKind(QString kind, int ID=-1, int depth=-1);
+
+    QString getGraphMLData(int ID, QString key);
 
     bool canCopy(QList<int> selection);
     bool canReplicate(QList<int> selection);

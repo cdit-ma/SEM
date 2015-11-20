@@ -24,6 +24,7 @@ public:
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
 
 public slots:
+    void updateFunctionList();
     void updateActionEnabledState(QString actionName, bool enabled);
 
     void addChildNode(ToolbarMenuAction *action);
@@ -186,6 +187,8 @@ private:
 
     int chosenInstanceID;
     QList<NodeItem*> legalNodeItems;
+    QHash<QString, ToolbarMenu*> classToolbarMenuLookup;
+    QHash<QString, ToolbarMenuAction*> functionActionLookup;
 
     VIEW_THEME currentTheme;
 };

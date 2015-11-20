@@ -196,6 +196,9 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
     }
 
     updateTextLabel();
+
+    //Force a zoom change.
+    zoomChanged(getZoomFactor());
 }
 
 
@@ -600,6 +603,7 @@ bool EntityItem::isHardwareNode()
 void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget* widget)
 {
 
+
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -609,7 +613,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 
     VIEW_STATE viewState = getViewState();
-
 
 
     //Background
@@ -1173,13 +1176,15 @@ void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         case VS_SELECTED:
             //Enter Selected Mode.
             if (mouseDownType != MO_NONE) {
-                getNodeView()->setStateSelected();
-                handleSelection(true, controlPressed);
-                //Store the previous position.
-                previousScenePosition = event->scenePos();
+                if(getNodeView()){
+                    getNodeView()->setStateSelected();
+                    handleSelection(true, controlPressed);
+                    //Store the previous position.
+                    previousScenePosition = event->scenePos();
 
-                if(mouseDownType == MO_CONNECT){
-                    getNodeView()->setStateConnect();
+                    if(mouseDownType == MO_CONNECT){
+                        getNodeView()->setStateConnect();
+                    }
                 }
             }
             break;
@@ -1201,12 +1206,12 @@ void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         switch (viewState){
         case VS_SELECTED:
             if(mouseDownType == MO_RESIZE || mouseDownType == MO_RESIZE_HOR || mouseDownType == MO_RESIZE_VER){
-                if(isResizeable()){
+                if(getNodeView() && isResizeable()){
                     //Is resizing
                     getNodeView()->setStateResizing();
                 }
             }else if(mouseDownType <= MO_TOPBAR && mouseDownType >= MO_ICON){
-                if(isMoveable()){
+                if(getNodeView() && isMoveable()){
                     //Moving not resizing.
                     getNodeView()->setStateMoving();
                 }

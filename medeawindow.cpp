@@ -1952,7 +1952,7 @@ void MedeaWindow::setupInitialSettings()
     QStringList allKinds = nodeView->getAllNodeKinds();
     QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
     QList<QPair<QString, QString> > functionKinds;
-    functionKinds = nodeView->getFunctionList();
+    functionKinds = nodeView->getFunctionsList();
 
 
 

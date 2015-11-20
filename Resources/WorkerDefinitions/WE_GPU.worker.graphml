@@ -1,25 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
 	<key attr.name="kind" attr.type="string" for="node" id="2"/>
-	<key attr.name="x" attr.type="double" for="node" id="4">
-		<default>0.0</default>
-	</key>
-	<key attr.name="y" attr.type="double" for="node" id="5">
-		<default>0.0</default>
-	</key>
-	<key attr.name="width" attr.type="double" for="node" id="7">
-		<default>0.0</default>
-	</key>
-	<key attr.name="height" attr.type="double" for="node" id="8">
-		<default>0.0</default>
-	</key>
+        <key attr.name="x" attr.type="double" for="node" id="4" />
+        <key attr.name="y" attr.type="double" for="node" id="5" />
+        <key attr.name="width" attr.type="double" for="node" id="7" />
+        <key attr.name="height" attr.type="double" for="node" id="8" />
 	<key attr.name="label" attr.type="string" for="node" id="3"/>
-	<key attr.name="sortOrder" attr.type="int" for="node" id="9">
-		<default>0</default>
-	</key>
-	<key attr.name="isExpanded" attr.type="boolean" for="node" id="10">
-		<default>false</default>
-	</key>
+        <key attr.name="sortOrder" attr.type="int" for="node" id="9" />
+        <key attr.name="isExpanded" attr.type="boolean" for="node" id="10" />
 	<key attr.name="description" attr.type="string" for="node" id="362"/>
 	<key attr.name="code" attr.type="string" for="node" id="463"/>
 	<key attr.name="actionOn" attr.type="string" for="node" id="464"/>
@@ -321,7 +309,7 @@
 					<data key="466"></data>
 					<data key="467"></data>
 					<data key="468"></data>
-					<data key="469">setKernelComplexity</data>
+                                        <data key="469">FFT</data>
 					<data key="470"></data>
 					<data key="471"></data>
 					<data key="362">Run an FFT usign the given data, with the result overwriting the input array. The input should be an array of real floats, which is replaced by the an array of interleaved real and imaginary numbers stored as floats, with the complex conjugates discarded (Hermetian). Note: as each FFT in O(n*log(n)) wrt sampleLength execution times should increase as sampleLength is increased. A decrease is potentially a sign that initialisation and memory transfer bottlenecks are overwhelming compute bottlenecks.
@@ -371,7 +359,7 @@
 					<data key="466"></data>
 					<data key="467"></data>
 					<data key="468"></data>
-					<data key="469">setKernelComplexity</data>
+                                        <data key="469">matrixMult</data>
 					<data key="470"></data>
 					<data key="471"></data>
 					<data key="362">Run an FFT usign the given data, with the result overwriting the input array. The input should be an array of real floats, which is replaced by the an array of interleaved real and imaginary numbers stored as floats, with the complex conjugates discarded (Hermetian). Note: as each FFT in O(n*log(n)) wrt sampleLength execution times should increase as sampleLength is increased. A decrease is potentially a sign that initialisation and memory transfer bottlenecks are overwhelming compute bottlenecks.

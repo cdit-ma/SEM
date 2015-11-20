@@ -48,6 +48,8 @@ public:
 
     VIEW_STATE getViewState();
 
+    qreal getCurrentZoom();
+
 
     void scrollContentsBy(int dx, int dy);
 
@@ -61,7 +63,7 @@ public:
     GraphMLItem* getSelectedGraphMLItem();
 
     QList<GraphMLItem*> getSelectedItems();
-    QList< QPair<QString, QString> > getFunctionList();
+    QList<QPair<QString, QString> > getFunctionsList();
     //QList<EntityItem*> getSelectedEntityItems();
 
     QList<int> getSelectedNodeIDs();
@@ -106,6 +108,7 @@ public:
     bool isNodeKindDeployable(QString nodeKind);
 
 
+
     void aspectGraphicsChanged();
     void setupTheme(VIEW_THEME theme = VT_NORMAL_THEME);
     VIEW_THEME getTheme();
@@ -132,6 +135,8 @@ private:
     void expandSelection(bool expand);
 
 private slots:
+    void modelReady();
+
 
     void hardwareClusterMenuClicked(int viewMode);
 
@@ -402,8 +407,8 @@ private:
     NewController* getController();
     QRectF getVisibleRect();
     ModelItem* getModelItem();
-    NodeItem* getWorkerDefinitionItem();
     QPointF getModelScenePos();
+
 
 
     int getMapSize();
@@ -436,7 +441,7 @@ private:
     GraphMLItem* getGraphMLItemFromID(int ID);
     NodeItem* getNodeItemFromID(int ID);
 
-
+    QString getGraphMLData(int ID, QString key);
     QList<EntityItem*> getEntityItemsList();
     QList<NodeItem*> getNodeItemsList();
     QList<EdgeItem*> getEdgeItemsList();

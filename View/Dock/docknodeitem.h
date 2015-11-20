@@ -28,6 +28,7 @@ public:
     void removeChildDockItem(DockNodeItem* dockItem);
     QList<DockNodeItem*> getChildrenDockItems();
 
+    void setImage(QString prefix, QString image);
     void setHidden(bool hideItem);
     bool isHidden();
 

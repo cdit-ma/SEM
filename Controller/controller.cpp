@@ -145,7 +145,7 @@ void NewController::connectView(NodeView *view)
 
         connect(this, SIGNAL(controller_AskQuestion(MESSAGE_TYPE, QString, QString, int)), view, SLOT(showQuestion(MESSAGE_TYPE,QString,QString,int)));
         connect(view, SIGNAL(view_QuestionAnswered(bool)), this, SLOT(gotQuestionAnswer(bool)));
-        connect(this, SIGNAL(controller_ModelReady()), view, SIGNAL(view_ModelReady()));
+        connect(this, SIGNAL(controller_ModelReady()), view, SLOT(modelReady()));
     }
 
     if(view->isMainView()){
@@ -1352,15 +1352,17 @@ QStringList NewController::getAdoptableNodeKinds(int ID)
     return adoptableNodeKinds;
 }
 
-QList<QPair<QString, QString> > NewController::getFunctionList()
+QList<int> NewController::getFunctionIDList()
 {
-    QList<QPair<QString, QString> >  list;
-    list << QPair<QString, QString>("VectorOperation", "Get");
-    list << QPair<QString, QString>("VectorOperation", "Set");
-    list << QPair<QString, QString>("VectorOperation", "Remove");
-    list << QPair<QString, QString>("New Class", "New Function");
-    return list;
+    QList<int> IDs;
+    if(workerDefinitions){
+        foreach(Node* node, workerDefinitions->getChildrenOfKind("Process")){
+            IDs.append(node->getID());
+        }
+    }
+    return IDs;
 }
+
 
 QList<int> NewController::getConnectableNodes(int srcID)
 {
@@ -1536,6 +1538,18 @@ QList<int> NewController::getNodesOfKind(QString kind, int ID, int depth)
     return children;
 }
 
+QString NewController::getGraphMLData(int ID, QString key)
+{
+    GraphML* item = getGraphMLFromID(ID);
+    if(item){
+        GraphMLData* data = item->getData(key);
+        if(data){
+            return data->getValue();
+        }
+    }
+    return "";
+}
+
 
 
 
@@ -1659,6 +1673,7 @@ void NewController::storeGraphMLInHash(GraphML *item)
     if(IDLookupGraphMLHash.contains(ID)){
         qCritical() << "Hash already contains item with ID: " << ID;
     }else{
+        bool sendSignal = true;
         IDLookupGraphMLHash[ID] = item;
         if(item->getKind() == GraphML::NODE){
             QString nodeKind = ((Node*)item)->getNodeKind();
@@ -1670,10 +1685,16 @@ void NewController::storeGraphMLInHash(GraphML *item)
             reverseTreeLookup[ID] = treeIndexStr;
 
             nodeIDs.append(ID);
+
+            //Check if we should tell the views
+            sendSignal = isGraphMLInModel(item);
         }else if(item->getKind() == GraphML::EDGE){
             edgeIDs.append(ID);
         }
-        controller_GraphMLConstructed(item);
+
+        if(sendSignal){
+            emit controller_GraphMLConstructed(item);
+        }
     }
 }
 
@@ -1741,10 +1762,6 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
         return 0;
     }
     bool isInModel = isGraphMLInModel(node);
-
-
-
-
 
 
     //If we have no parentNode, attempt to attach it to the Model.

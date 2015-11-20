@@ -6,6 +6,7 @@
 #include <QHBoxLayout>
 #include <QDebug>
 #include <QWidgetAction>
+#include <QPair>
 
 /**
  * @brief ToolbarWidget::ToolbarWidget
@@ -68,6 +69,39 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
 
     // update button group separators after the buttons and menus have been updated
     updateSeparators();
+}
+
+void ToolbarWidget::updateFunctionList()
+{
+
+    if(nodeView){
+    QPair<QString, QString> function;
+        foreach (function, nodeView->getFunctionsList()){
+            QString className = function.first;
+            QString functionName = function.second;
+
+            //Check if we have this item.
+            QString actionName = className + "_" + functionName;
+            if(!functionActionLookup.contains(actionName)){
+                ToolbarMenu* classMenu = 0;
+                //Get the Menu
+                if(classToolbarMenuLookup.contains(className)){
+                    classMenu = classToolbarMenuLookup[className];
+                }
+
+                if(!classMenu){
+                    classMenu = new ToolbarMenu(this);
+                    ToolbarMenuAction* classAction = new ToolbarMenuAction(className, functionsMenu, className, ":/Functions/");
+                    functionsMenu->addAction(classAction);
+                    classAction->setMenu(classMenu);
+                    classToolbarMenuLookup[className] = classMenu;
+                }
+                ToolbarMenuAction* functionAction = new ToolbarMenuAction("Process", this, functionName, ":/Items/");
+                classMenu->addAction(functionAction);
+                functionActionLookup[actionName] = functionAction;
+            }
+        }
+    }
 }
 
 
@@ -719,16 +753,21 @@ void ToolbarWidget::setupMenus()
     functionsMenu = new ToolbarMenu(this, functionsMenuInfoAction);
     processAction->setMenu(functionsMenu);
 
-    ToolbarMenuAction* classAction = new ToolbarMenuAction("Function", functionsMenu, "VectorOperation", ":/Actions/");
-    ToolbarMenu* classMenu = new ToolbarMenu(this);
+    QHash<QString, ToolbarMenu*> classToolbarMenuLookup;
+
+    //ToolbarMenuAction* classAction = new ToolbarMenuAction("Function", functionsMenu, "VectorOperation", ":/Actions/");
+    //ToolbarMenu* classMenu = new ToolbarMenu(this);
+
+
+
     //classMenu->addAction(new ToolbarMenuAction("Get", this, "Get", ":/Functions/"));
     //classMenu->addAction(new ToolbarMenuAction("Set", this, "Set", ":/Functions/"));
     //classMenu->addAction(new ToolbarMenuAction("Remove", this, "Remove", ":/Functions/"));
-    classMenu->addAction(new ToolbarMenuAction("Process", this, "Get", ":/Items/"));
-    classMenu->addAction(new ToolbarMenuAction("Process", this, "Set", ":/Items/"));
-    classMenu->addAction(new ToolbarMenuAction("Process", this, "Remove", ":/Items/"));
-    classAction->setMenu(classMenu);
-    functionsMenu->addAction(classAction);
+    //classMenu->addAction(new ToolbarMenuAction("Process", this, "Get", ":/Items/"));
+    //classMenu->addAction(new ToolbarMenuAction("Process", this, "Set", ":/Items/"));
+    //classMenu->addAction(new ToolbarMenuAction("Process", this, "Remove", ":/Items/"));
+    //classAction->setMenu(classMenu);
+    //functionsMenu->addAction(classAction);
 }
 
 

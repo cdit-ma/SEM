@@ -383,7 +383,7 @@ void EdgeItem::zoomChanged(qreal zoom)
 
 void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getViewState();
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
     if(!isPointInCircle(event->pos())){
         return;

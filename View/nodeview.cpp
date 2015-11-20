@@ -52,6 +52,7 @@
  */
 NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 {
+    controller = 0;
     wasPanning = false;
     connectLine = 0;
     constructedFromImport = true;
@@ -136,8 +137,6 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     nonDrawnItemKinds << "DeploymentDefinitions";
 
-    nonDrawnItemKinds << "WorkerDefinitions";
-
     // construct toolbar widget
     toolbar = new ToolbarWidget(this);
     if (isMainView()) {
@@ -166,6 +165,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     notificationNumber = 0;
 
 
+    //Set Initial zoom.
+    zoomCurrent = transform().m11();
 }
 
 
@@ -182,6 +183,11 @@ void NodeView::disconnectController()
 VIEW_STATE NodeView::getViewState()
 {
     return viewState;
+}
+
+qreal NodeView::getCurrentZoom()
+{
+    return transform().m11();
 }
 
 void NodeView::scrollContentsBy(int dx, int dy)
@@ -391,17 +397,6 @@ ModelItem *NodeView::getModelItem()
     return model;
 }
 
-NodeItem *NodeView::getWorkerDefinitionItem()
-{
-    NodeItem* workerD = 0;
-    if(controller){
-        int ID = controller->getWorkerDefinitions()->getID();
-        GraphMLItem* item = getGraphMLItemFromID(ID);
-        workerD = (NodeItem*)item;
-    }
-    return workerD;
-}
-
 
 /**
  * @brief NodeView::getModelScenePos
@@ -424,10 +419,8 @@ QPointF NodeView::getModelScenePos()
 void NodeView::adjustModelPosition(QPointF delta)
 {
     ModelItem* modelItem = getModelItem();
-    NodeItem* workerAspect = getWorkerDefinitionItem();
-    if (modelItem && workerAspect) {
+    if (modelItem) {
         modelItem->adjustPos(delta);
-        workerAspect->adjustPos(delta);
         // call this after the scene/model has been moved
         aspectGraphicsChanged();
     }
@@ -632,14 +625,23 @@ QList<GraphMLItem *> NodeView::getSelectedItems()
     return selectedItems;
 }
 
-QList<QPair<QString, QString> > NodeView::getFunctionList()
+QList<QPair<QString, QString> >  NodeView::getFunctionsList()
 {
-    QList<QPair<QString, QString> >  list;
+    QList<QPair<QString, QString> > functionList;
     if(controller){
-        list = controller->getFunctionList();
+        foreach(int ID, controller->getFunctionIDList()){
+            QPair<QString, QString> functionPair;
+            functionPair.first = getGraphMLData(ID, "worker");
+            functionPair.second = getGraphMLData(ID, "operation");
+            if(functionPair.first.isEmpty() || functionPair.second.isEmpty()){
+                continue;
+            }
+            functionList.append(functionPair);
+        }
     }
-    return list;
+    return functionList;
 }
+
 
 /*
 QList<EntityItem *> NodeView::getSelectedEntityItems()
@@ -1515,6 +1517,16 @@ void NodeView::expandSelection(bool expand)
         actionFinished();
     }
 
+}
+
+void NodeView::modelReady()
+{
+    //Do initializing here!
+    if(toolbar){
+        toolbar->updateFunctionList();
+    }
+
+    emit view_ModelReady();
 }
 
 
@@ -2472,9 +2484,6 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
     //Do Generic connect stuffs.
     if(item){
-
-
-        //item->setNodeView(this);
         storeGraphMLItemInHash(item);
 
         if(!scene()->items().contains(item)){
@@ -3510,6 +3519,15 @@ NodeItem *NodeView::getNodeItemFromID(int ID)
     if(item && item->isNodeItem()){
         return (NodeItem*)item;
     }
+}
+
+QString NodeView::getGraphMLData(int ID, QString key)
+{
+    QString value;
+    if(controller){
+        value = controller->getGraphMLData(ID, key);
+    }
+    return value;
 }
 
 GraphMLItem *NodeView::getGraphMLItemFromScreenPos(QPoint pos)
