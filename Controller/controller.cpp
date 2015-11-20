@@ -7,6 +7,7 @@
 #include <QEventLoop>
 #include <QObject>
 #include <QSysInfo>
+#include <QDir>
 
 #define LABEL_TRUNCATE_LENGTH 64
 
@@ -188,6 +189,11 @@ void NewController::initializeModel()
 {
     setupModel();
     clearHistory();
+
+
+    loadWorkerDefinitions();
+
+
     emit controller_ModelReady();
 }
 
@@ -198,6 +204,39 @@ NewController::~NewController()
     DELETING = true;
     destructNode(model, false);
     destructNode(workerDefinitions, false);
+}
+
+void NewController::setWorkerDefinitionPath(QString path)
+{
+    this->workerDefPath = path;
+}
+
+void NewController::loadWorkerDefinitions()
+{
+    //We will be importing into the workerDefinitions aspect.
+    Node* workerDefinition = getWorkerDefinitions();
+    if(workerDefinition && workerDefPath !=  ""){
+        QDir directory(workerDefPath);
+
+        QStringList fileExtension("*.worker.graphml");
+        //Foreach *.worker.graphml file in the workerDefPath, load the graphml.
+        foreach(QString fileName, directory.entryList(fileExtension)){
+            QString importFileName = workerDefPath + "/" + fileName;
+
+            QPair<bool, QString> data = readFile(importFileName);
+            //If the file was read.
+            if(data.first){
+                bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
+                if(!success){
+                    emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + importFileName +"'!");
+                }else{
+                    qCritical() << "Loaded Worker Definition: " << importFileName;
+                }
+            }else{
+                 emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + importFileName +"'!");
+            }
+        }
+    }
 }
 
 QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges, bool GUI_USED)
@@ -2914,6 +2953,27 @@ bool NewController::canDeleteNode(Node *node)
 
 
     return true;
+}
+
+/**
+ * @brief NewController::readFile Reads a file and returns the contents.
+ * @param filePath The path to the file to read.
+ * @return first = result, second = file contents.
+ */
+QPair<bool, QString> NewController::readFile(QString filePath)
+{
+    QPair<bool, QString> result;
+
+    QFile file(filePath);
+
+    result.first = file.open(QFile::ReadOnly | QFile::Text);
+    if (result.first) {
+        QTextStream fileStream(&file);
+        result.second = fileStream.readAll();
+        file.close();
+    }
+
+    return result;
 }
 
 

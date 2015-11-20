@@ -56,6 +56,9 @@ public:
     NewController();
     ~NewController();
 
+    void setWorkerDefinitionPath(QString path);
+    void loadWorkerDefinitions();
+
     void initializeModel();
     void connectView(NodeView* view);
 
@@ -173,7 +176,7 @@ private slots:
     //MODEL Functionality
     void displayMessage(QString title, QString message, int ID);
 
-        void clearHistory();
+    void clearHistory();
 
 private:
     //Helper functions.
@@ -203,6 +206,7 @@ private:
 
     bool askQuestion(MESSAGE_TYPE, QString questionTitle, QString question, int ID=-1);
     Node* getSingleNode(QList<int> IDs);
+
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
 
@@ -312,6 +316,7 @@ private:
     bool canDeleteNode(Node* node);
 
 
+    QPair<bool, QString> readFile(QString filePath);
     Node* constructTypedNode(QString nodeKind, bool isTemporary = false, QString nodeType="", QString nodeLabel="");
 
 
@@ -414,6 +419,8 @@ private:
     QHash<QString, HardwareCluster*> hardwareClusters;
 
     int previousUndos;
+
+    QString workerDefPath;
 
     QList<int> connectedLinkedIDs;
 

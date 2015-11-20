@@ -136,6 +136,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     nonDrawnItemKinds << "DeploymentDefinitions";
 
+    nonDrawnItemKinds << "WorkerDefinitions";
 
     // construct toolbar widget
     toolbar = new ToolbarWidget(this);
@@ -1002,7 +1003,7 @@ QList<NodeItem *> NodeView::getEntityItemsOfKind(QString kind, int ID, int depth
 
 bool NodeView::viewportEvent(QEvent * e)
 {
-    //emit view_ViewportRectChanged(getVisibleRect());
+    emit view_ViewportRectChanged(getVisibleRect());
     qreal current = transform().m11();
     if(current != zoomCurrent){
         zoomCurrent = current;

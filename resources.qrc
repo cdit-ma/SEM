@@ -193,5 +193,4 @@
         <file alias="function.png">Resources/Images/Data/function.png</file>
         <file alias="index.png">Resources/Images/Data/index.png</file>
     </qresource>
-    <qresource prefix="/Functions"/>
 </RCC>
