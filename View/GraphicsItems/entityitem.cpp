@@ -599,6 +599,7 @@ bool EntityItem::isHardwareNode()
 
 void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget* widget)
 {
+
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -606,7 +607,8 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
     //Get Render State.
     RENDER_STATE renderState = getRenderState();
 
-    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+
+    VIEW_STATE viewState = getViewState();
 
 
 
@@ -621,7 +623,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
 
         //Make the background transparent
-        if(viewState == NodeView::VS_MOVING || viewState == NodeView::VS_RESIZING){
+        if(viewState == VS_MOVING || viewState == VS_RESIZING){
             if(isSelected() && isNodeOnGrid){
                 QColor color = bodyBrush.color();
                 color.setAlpha(90);
@@ -1158,7 +1160,7 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
 
 void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getViewState();
     //Set the mouse down type to the type which matches the position.
     mouseDownType = getMouseOverType(event->scenePos());
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
@@ -1166,9 +1168,9 @@ void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     switch(event->button()){
     case Qt::LeftButton:
         switch(viewState){
-        case NodeView::VS_NONE:
+        case VS_NONE:
             //Goto VS_Selected
-        case NodeView::VS_SELECTED:
+        case VS_SELECTED:
             //Enter Selected Mode.
             if (mouseDownType != MO_NONE) {
                 getNodeView()->setStateSelected();
@@ -1189,7 +1191,7 @@ void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getViewState();
 
 
     //Only if left button is down.
@@ -1197,7 +1199,7 @@ void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QPointF deltaPos = (event->scenePos() - previousScenePosition);
 
         switch (viewState){
-        case NodeView::VS_SELECTED:
+        case VS_SELECTED:
             if(mouseDownType == MO_RESIZE || mouseDownType == MO_RESIZE_HOR || mouseDownType == MO_RESIZE_VER){
                 if(isResizeable()){
                     //Is resizing
@@ -1210,7 +1212,7 @@ void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
                 }
             }
             break;
-        case NodeView::VS_RESIZING:
+        case VS_RESIZING:
             //If we are resizing horizontally, remove the vertical change.
             if(mouseDownType == MO_RESIZE_HOR){
                 deltaPos.setY(0);
@@ -1222,7 +1224,7 @@ void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             emit NodeItem_ResizeSelection(getID(), QSizeF(deltaPos.x(), deltaPos.y()));
             previousScenePosition = event->scenePos();
             break;
-        case NodeView::VS_MOVING:
+        case VS_MOVING:
             emit EntityItem_MoveSelection(deltaPos);
             previousScenePosition = event->scenePos();
             break;
@@ -1232,7 +1234,7 @@ void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void EntityItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getViewState();
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
 
 
@@ -1241,13 +1243,13 @@ void EntityItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     switch(event->button()){
     case Qt::LeftButton:{
         switch (viewState){
-        case NodeView::VS_MOVING:
+        case VS_MOVING:
             emit EntityItem_MoveFinished();
             break;
-        case NodeView::VS_RESIZING:
+        case VS_RESIZING:
             emit NodeItem_ResizeFinished(getID());
             break;
-        case NodeView::VS_SELECTED:
+        case VS_SELECTED:
             if(mouseDownType == MO_HARDWAREMENU){
                 emit EntityItem_ShowHardwareMenu(this);
             }
@@ -1259,9 +1261,9 @@ void EntityItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::RightButton:{
         switch (viewState){
-        case NodeView::VS_PAN:
+        case VS_PAN:
             //IGNORE
-        case NodeView::VS_PANNING:
+        case VS_PANNING:
             //IGNORE
             break;
         default:
@@ -1273,8 +1275,8 @@ void EntityItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::MiddleButton:{
         switch (viewState){
-        case NodeView::VS_NONE:
-        case NodeView::VS_SELECTED:
+        case VS_NONE:
+        case VS_SELECTED:
             if(controlPressed){
                 if(inMainView()){
                     //emit GraphMLItem_TriggerAction("Sorting Node");
@@ -2559,7 +2561,7 @@ void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QStri
     QRectF place = getImageRect(pos);
     QPixmap image = imageMap[pos];
 
-    if(image.isNull() || update){
+    if(getNodeView() && (image.isNull() || update)){
         image = getNodeView()->getImage(alias, imageName);
         imageMap[pos] = image;
     }

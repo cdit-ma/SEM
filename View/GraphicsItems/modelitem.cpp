@@ -292,16 +292,16 @@ void ModelItem::setupInputItems()
 
 void ModelItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getNodeView()->getViewState();
     //Set the mouse down type to the type which matches the position.
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
 
     switch(event->button()){
     case Qt::LeftButton:
         switch(viewState){
-        case NodeView::VS_NONE:
+        case VS_NONE:
             //Goto VS_Selected
-        case NodeView::VS_SELECTED:
+        case VS_SELECTED:
             //Enter Selected Mode.
             getNodeView()->setStateSelected();
             handleSelection(true, controlPressed);

@@ -281,7 +281,7 @@ QRectF AspectItem::gridRect() const
 
 void AspectItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getNodeView()->getViewState();
     //Set the mouse down type to the type which matches the position.
     mouseOverResize = resizeEntered(event->pos());
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
@@ -289,9 +289,9 @@ void AspectItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     switch(event->button()){
     case Qt::LeftButton:
         switch(viewState){
-        case NodeView::VS_NONE:
+        case VS_NONE:
             //Goto VS_Selected
-        case NodeView::VS_SELECTED:
+        case VS_SELECTED:
             //Enter Selected Mode.
             getNodeView()->setStateSelected();
             handleSelection(true, controlPressed);
@@ -309,7 +309,7 @@ void AspectItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
 void AspectItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getNodeView()->getViewState();
 
 
     //Only if left button is down.
@@ -317,12 +317,12 @@ void AspectItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QPointF deltaPos = (event->scenePos() - previousScenePosition);
 
         switch (viewState){
-        case NodeView::VS_SELECTED:
+        case VS_SELECTED:
             if(mouseOverResize != NO_RESIZE){
                 getNodeView()->setStateResizing();
             }
             break;
-        case NodeView::VS_RESIZING:
+        case VS_RESIZING:
 
             //If we are resizing horizontally, remove the vertical change.
             if(mouseOverResize == HORIZONTAL_RESIZE){
@@ -342,14 +342,14 @@ void AspectItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
 void AspectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
-    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getNodeView()->getViewState();
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
 
     //Only if left button is down.
     switch(event->button()){
     case Qt::LeftButton:{
         switch (viewState){
-        case NodeView::VS_RESIZING:
+        case VS_RESIZING:
             emit NodeItem_ResizeFinished(getID());
             break;
         default:
@@ -359,9 +359,9 @@ void AspectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::RightButton:{
         switch (viewState){
-        case NodeView::VS_PAN:
+        case VS_PAN:
             //IGNORE
-        case NodeView::VS_PANNING:
+        case VS_PANNING:
             //IGNORE
             break;
         default:
@@ -373,8 +373,8 @@ void AspectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
     case Qt::MiddleButton:{
         switch (viewState){
-        case NodeView::VS_NONE:
-        case NodeView::VS_SELECTED:
+        case VS_NONE:
+        case VS_SELECTED:
             if(controlPressed){
                 if(inMainView()){
                     //emit GraphMLItem_TriggerAction("Sorting Node");

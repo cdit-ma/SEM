@@ -179,7 +179,7 @@ void NodeView::disconnectController()
     controller = 0;
 }
 
-NodeView::VIEW_STATE NodeView::getViewState()
+VIEW_STATE NodeView::getViewState()
 {
     return viewState;
 }
@@ -2120,7 +2120,7 @@ void NodeView::handleSelection(GraphMLItem *item, bool setSelected, bool control
     }
 }
 
-void NodeView::setState(NodeView::VIEW_STATE state)
+void NodeView::setState(VIEW_STATE state)
 {
     //Only let through VS_NONE, VS_SELECTED and VS_PANNING, otherwise, use VS_NONE.
     if(isSubView() && !(state ==  VS_SELECTED || state == VS_PANNING || state == VS_PAN || state == VS_NONE)){

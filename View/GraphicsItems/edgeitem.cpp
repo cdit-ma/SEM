@@ -383,7 +383,7 @@ void EdgeItem::zoomChanged(qreal zoom)
 
 void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    NodeView::VIEW_STATE viewState = getNodeView()->getViewState();
+    VIEW_STATE viewState = getNodeView()->getViewState();
     bool controlPressed = event->modifiers().testFlag(Qt::ControlModifier);
     if(!isPointInCircle(event->pos())){
         return;
@@ -391,9 +391,9 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     switch (event->button()) {
     case Qt::LeftButton:{
         switch(viewState){
-        case NodeView::VS_NONE:
+        case VS_NONE:
             //Goto VS_Selected
-        case NodeView::VS_SELECTED:
+        case VS_SELECTED:
             //Enter Selected Mode.
             handleSelection(true, controlPressed);
             break;

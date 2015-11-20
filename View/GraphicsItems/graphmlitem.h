@@ -4,7 +4,8 @@
 #include <QPen>
 #include "../../Model/graphml.h"
 #include "../../Model/graphmldata.h"
-
+#include "../../enumerations.h"
+//#include "../nodeview.h"
 
 class NodeView;
 class AttributeTableModel;
@@ -25,6 +26,7 @@ public:
     QRectF translatedBoundingRect();
     QString getNodeKind();
     RENDER_STATE getRenderState() const;
+    VIEW_STATE getViewState() const;
     void setRenderState(RENDER_STATE renderState);
 
     virtual void lastChildRemoved();

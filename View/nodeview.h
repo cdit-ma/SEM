@@ -32,9 +32,9 @@ class NodeView : public QGraphicsView
     Q_OBJECT
 
 public:
-    enum VIEW_STATE{VS_NONE, VS_SELECTED, VS_RUBBERBAND, VS_RUBBERBANDING, VS_CONNECT, VS_MOVING, VS_RESIZING, VS_CONNECTING, VS_PAN, VS_PANNING};
 
     enum ALIGN{NONE, HORIZONTAL, VERTICAL};
+
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
 

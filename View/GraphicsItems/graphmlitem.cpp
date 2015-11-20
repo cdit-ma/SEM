@@ -101,6 +101,14 @@ GraphMLItem::RENDER_STATE GraphMLItem::getRenderState() const
     return renderState;
 }
 
+VIEW_STATE GraphMLItem::getViewState() const
+{
+    if(nodeView){
+        return nodeView->getViewState();
+    }
+    return VS_NONE;
+}
+
 bool GraphMLItem::intersectsRectangle(QRectF sceneRect)
 {
     return sceneRect.contains(sceneBoundingRect());
