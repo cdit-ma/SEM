@@ -89,25 +89,25 @@ void ToolbarMenu::removeAction(ToolbarMenuAction* action, bool clearing)
 
 
 /**
- * @brief ToolbarMenu::getAction
+ * @brief ToolbarMenu::getActions
  * @param item
- * @param withMenu
  * @return
  */
-ToolbarMenuAction* ToolbarMenu::getAction(NodeItem* item, bool withMenu)
+QList<ToolbarMenuAction*> ToolbarMenu::getActions(NodeItem* item)
 {
-    if (item) {
-        foreach (ToolbarMenuAction* action, menuActions) {
-            NodeItem* actionItem = action->getNodeItem();
-            if (actionItem && (actionItem == item)) {
-                if (withMenu && !action->menu()) {
-                    continue;
-                }
-                return action;
-            }
+    QList<ToolbarMenuAction*> itemActions;
+    if (!item) {
+        return itemActions;
+    }
+
+    foreach (ToolbarMenuAction* action, menuActions) {
+        NodeItem* actionItem = action->getNodeItem();
+        if (actionItem && (actionItem == item)) {
+            itemActions.append(action);
         }
     }
-    return 0;
+
+    return itemActions;
 }
 
 
@@ -150,7 +150,7 @@ void ToolbarMenu::menuTriggered(QAction* action)
 
 /**
  * @brief ToolbarMenu::mousePressEvent
- * Ignore all mouse buttons except for the left button.
+ * Ignore all mouse buttons except for the left and right buttons.
  * @param event
  */
 void ToolbarMenu::mousePressEvent(QMouseEvent* event)

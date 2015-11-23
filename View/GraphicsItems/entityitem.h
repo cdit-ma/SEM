@@ -102,10 +102,12 @@ public:
 
     bool isHardwareCluster();
     bool isHardwareNode();
+    bool isVector();
 
     bool isAncestorSelected();
 
-
+    QString getIconURL();
+    QString getIconPrefix();
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 
@@ -181,6 +183,7 @@ public:
 
     void dockHighlight(bool highlight);
 
+
 signals:
     void EntityItem_Model_AspectToggled(int ID);
     //Node Edge Signals
@@ -214,6 +217,9 @@ signals:
 
     void visibilityChanged(bool visible);
     void EntityItem_HardwareMenuClicked(int viewMode);
+
+
+    void entityItem_iconChanged();
 
 
 public slots:
@@ -287,9 +293,6 @@ private:
     QRectF getImageRect(IMAGE_POS pos) const;
     void setImage(IMAGE_POS pos, QPixmap image);
 
-    QString getIconURL();
-    QString getIconPrefix();
-
 
     void paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QString alias, QString imageName, bool update=false);
 
@@ -350,6 +353,7 @@ private:
 
     bool IS_HARDWARE_CLUSTER;
     bool IS_HARDWARE_NODE;
+    bool IS_VECTOR;
 
     int CHILDREN_VIEW_MODE;
     bool sortTriggerAction;
@@ -467,7 +471,7 @@ private:
     bool isInputParameter;
     bool isReturnParameter;
 
-    QString prevURL;
+    QString vectorIconURL;
     bool changeIcon;
 
     QList<int> connectedDataIDs;
@@ -492,8 +496,8 @@ public slots:
 
     // GraphMLItem interface
 public:
+    void firstChildAdded(GraphMLItem* child);
     void lastChildRemoved();
-
 
     // NodeItem interface
 public:

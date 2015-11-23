@@ -13,7 +13,9 @@ public:
 
     void addAction(ToolbarMenuAction* action);
     void removeAction(ToolbarMenuAction* action, bool clearing = false);
-    ToolbarMenuAction* getAction(NodeItem* item, bool withMenu = false);
+
+    ToolbarMenuAction* getAction(NodeItem* item);
+    QList<ToolbarMenuAction*> getActions(NodeItem* item);
 
     bool isEmpty();
     void clearMenu();

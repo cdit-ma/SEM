@@ -27,8 +27,10 @@ public:
     RENDER_STATE getRenderState() const;
     void setRenderState(RENDER_STATE renderState);
 
+    virtual void firstChildAdded(GraphMLItem* child);
     virtual void lastChildRemoved();
-    virtual void addChild(GraphMLItem* item);
+
+    void addChild(GraphMLItem* item);
     void removeChild(int ID);
     bool hasChildren();
 

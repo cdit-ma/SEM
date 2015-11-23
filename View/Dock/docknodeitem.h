@@ -47,7 +47,7 @@ public slots:
     void parentDockItemClicked(bool show);
 
     void labelChanged(QString label);
-    void updateData();
+    void iconChanged();
 
     void childDockItemHidden();
     void highlightDockItem(NodeItem* nodeItem);

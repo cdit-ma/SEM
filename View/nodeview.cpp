@@ -106,7 +106,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
     // setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-    setTransformationAnchor(QGraphicsView::AnchorViewCenter);
+    //setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 
 
     this->scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -4505,11 +4505,13 @@ void NodeView::showLocalNode(bool show)
  */
 void NodeView::toggleZoomAnchor(bool underMouse)
 {
+    qDebug() << "Zoom under mouse: " << underMouse;
     if (underMouse) {
         setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     } else {
         setTransformationAnchor(QGraphicsView::AnchorViewCenter);
     }
+    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 }
 
 

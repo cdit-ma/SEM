@@ -484,10 +484,6 @@ void ToolbarWidget::setupLegalNodesList()
     QList<NodeItem*> topActions, subActions;
     foreach (NodeItem* item, legalNodeItems) {
         NodeItem* parentItem = item->getParentNodeItem();
-        // skip HardwareClusters and HardwareNodes - they are already listed in the hardwareMenus
-        if (item->getNodeKind().startsWith("Hardware")) {
-            continue;
-        }
         if (selectedParentItem == parentItem) {
             topActions.append(item);
         } else {
@@ -1163,14 +1159,21 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
  */
 void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
 {
+    // skip HardwareClusters and HardwareNodes - they will be listed in the hardwareMenu
+    foreach (NodeItem* item, nodeList) {
+        if (item->getNodeKind().startsWith("Hardware")) {
+            nodeList.removeAll(item);
+        }
+    }
+
     // if the selected node can't connect to anything, hide the connect button
     if (nodeList.isEmpty()) {
         return;
-    } else {
-        connectButton->show();
-        alterModelButtonsVisible = true;
-        legalNodeItems = nodeList;
     }
+
+    connectButton->show();
+    alterModelButtonsVisible = true;
+    legalNodeItems = nodeList;
 }
 
 
@@ -1233,18 +1236,13 @@ void ToolbarWidget::setupComponentList(QString actionKind)
     QList<NodeItem*> components = nodeView->getEntityItemsOfKind("Component");
 
     foreach (NodeItem* component, components) {
-
         // if selected node is the BehaviourDefinitions or an undefined ComponentImpl,
         // don't include already implemented Components in the menu
         if (actionKind == "impl" && nodeView->getImplementation(component->getID())) {
             continue;
         }
-
         // set up an action for each Component definition
-        ToolbarMenuAction* action = constructSubMenuAction(component, actionMenu);
-        if (!action) {
-            qWarning() << "ToolbarWidget::setupCompList - Action not constructed.";
-        }
+        constructSubMenuAction(component, actionMenu);
     }
 }
 
@@ -1285,18 +1283,13 @@ void ToolbarWidget::setupEventPortInstanceList(QString eventPortKind)
         QList<NodeItem*> epInstances = nodeView->getEntityItemsOfKind(eventPortKind, defnInst->getID());
 
         foreach (NodeItem* epInst, epInstances) {
-
             // can only connect an EventPort Delegate to an EventPort connected to an Aggregate
             NodeItem* epDefn = nodeView->getDefinition(epInst->getID());
             if (epDefn && !nodeView->getAggregate(epDefn->getID())) {
                 continue;
             }
-
             // set up an action for each In/Out EventPortInstance
-            ToolbarMenuAction* epInstAction = constructSubMenuAction(epInst, actionMenu);
-            if (!epInstAction) {
-                qWarning() << "ToolbarWidget::setupEventPortInstanceList - Action not constructed.";
-            }
+            constructSubMenuAction(epInst, actionMenu);
         }
     }
 }
@@ -1370,9 +1363,10 @@ ToolbarMenu* ToolbarWidget::constructToolButtonMenu(QToolButton* parentButton, b
 
 /**
  * @brief ToolbarWidget::constructMenuAction
+ * This method constructs an action for nodeItem and directly adds it to parentMenu.
  * @param nodeItem
  * @param parentMenu
- * @return
+ * @return - the newly constructed action that's been added to parentMenu
  */
 ToolbarMenuAction* ToolbarWidget::constructMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu)
 {
@@ -1388,11 +1382,15 @@ ToolbarMenuAction* ToolbarWidget::constructMenuAction(NodeItem* nodeItem, Toolba
 }
 
 
+
 /**
  * @brief ToolbarWidget::constructSubMenuAction
+ * This method constructs an action for nodeItem, finds its parent action in
+ * parentMenu and adds it to its parent action's menu. It constructs the parent
+ * action if there isn't already one. The parent action is then added to parentMenu.
  * @param nodeItem
  * @param parentMenu
- * @return
+ * @return - the newly constructed action that's been added to parentMenu
  */
 ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu)
 {
@@ -1401,19 +1399,26 @@ ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, Too
         return 0;
     }
 
-    NodeItem* parentNode = nodeItem->getParentNodeItem();
+    NodeItem* parentNodeItem = nodeItem->getParentNodeItem();
 
     // if nodeItem has a parent, check if there is already an action for it in parentMenu
     // if not, create one and attach a menu to it
-    if (parentNode && parentNode->isEntityItem()) {
+    if (parentNodeItem && !parentNodeItem->isModelItem()) {
 
-        ToolbarMenuAction* parentAction = parentMenu->getAction(parentNode, true);
+        ToolbarMenuAction* parentAction = 0;
         ToolbarMenu* parentActionMenu = 0;
+
+        foreach (ToolbarMenuAction* parentNodeAction, parentMenu->getActions(parentNodeItem)) {
+            if (parentNodeAction->menu()) {
+                parentAction = parentNodeAction;
+                break;
+            }
+        }
 
         if (parentAction) {
             parentActionMenu = qobject_cast<ToolbarMenu*>(parentAction->menu());
         } else {
-            parentAction = new ToolbarMenuAction(parentNode, this);
+            parentAction = new ToolbarMenuAction(parentNodeItem, this);
             parentActionMenu = new ToolbarMenu(this);
             parentAction->setMenu(parentActionMenu);
             parentMenu->addAction(parentAction);
@@ -1424,9 +1429,28 @@ ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, Too
             ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, this);
             parentActionMenu->addAction(action);
             return action;
-        } else {
-            qWarning() << "ToolbarWidget::constructSubMenuAction - Parent action doesn't have a menu.";
         }
+
+        /*
+        ToolbarMenuAction* parentAction = parentMenu->getAction(parentNodeItem);
+        ToolbarMenu* parentActionMenu = 0;
+
+        if (parentAction) {
+            parentActionMenu = qobject_cast<ToolbarMenu*>(parentAction->menu());
+        } else {
+            parentAction = new ToolbarMenuAction(parentNodeItem, this);
+            parentActionMenu = new ToolbarMenu(this);
+            parentAction->setMenu(parentActionMenu);
+            parentMenu->addAction(parentAction);
+        }
+
+        // construct and add nodeItem's action to the parent action's menu
+        if (parentActionMenu) {
+            ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, this);
+            parentActionMenu->addAction(action);
+            return action;
+        }
+        */
     }
 
     return 0;
