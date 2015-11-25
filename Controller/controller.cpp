@@ -1346,9 +1346,6 @@ QStringList NewController::getAdoptableNodeKinds(int ID)
         }
 
     }
-    qCritical() << adoptableNodeKinds;
-
-
     return adoptableNodeKinds;
 }
 
