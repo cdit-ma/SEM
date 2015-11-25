@@ -236,7 +236,22 @@ void NewController::loadWorkerDefinitions()
                  emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + importFileName +"'!");
             }
         }
+
+
+        foreach(Node* child, workerDefinition->getChildren()){
+            Process* process = dynamic_cast<Process*>(child);
+            QString longName = getProcessName(process);
+            if(longName != ""){
+                if(!workerProcesses.contains(longName)){
+                    workerProcesses[longName] = process;
+                }else{
+                    emit controller_DisplayMessage(WARNING, "Duplicate Worker Definitions", "MEDEA has found 2 worker operations with the same name! Using the first found.");
+                }
+            }
+        }
     }
+
+    //Once we have loaded in workers, we should keep a dictionary lookup for them.
 }
 
 QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges, bool GUI_USED)
@@ -668,15 +683,16 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
 void NewController::constructFunctionNode(int parentID, QString nodeKind, QString className, QString functionName, QPointF position)
 {
     Node* parentNode = getNodeFromID(parentID);
+
+
+
+
     QList<GraphMLData*> dataList = constructGraphMLDataVector(nodeKind, position);
 
-    foreach(GraphMLData* data, dataList){
-        if(data->getKeyName() == "worker"){
-            data->setValue(className);
-        }else if(data->getKeyName() == "operation"){
-            data->setValue(functionName);
-        }
-    }
+
+    //Set the Process
+    setDataValueFromKeyName(dataList, "worker", className);
+    setDataValueFromKeyName(dataList, "operation", functionName);
 
     //Get Parameters!
 
@@ -1684,7 +1700,7 @@ void NewController::storeGraphMLInHash(GraphML *item)
             nodeIDs.append(ID);
 
             //Check if we should tell the views
-            sendSignal = isGraphMLInModel(item);
+            sendSignal = isInModel(item);
         }else if(item->getKind() == GraphML::EDGE){
             edgeIDs.append(ID);
         }
@@ -1758,7 +1774,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
         qCritical() << "Node was not successfully constructed!";
         return 0;
     }
-    bool isInModel = isGraphMLInModel(node);
+    bool inModel = isInModel(node);
 
 
     //If we have no parentNode, attempt to attach it to the Model.
@@ -1767,13 +1783,18 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
     }
 
 
-    if(!isInModel){
-        if(parentNode->canAdoptChild(node)){
+    if(!inModel){
+        if(parentNode->canAdoptChild(node)){           
             parentNode->addChild(node);
 
-            //Force Unique labels and Sort Order. Can only happen after adoption.
-            enforceUniqueLabel(node);
+            //Only enforce unique-ness for non-read-only nodes.
+            if(!node->isReadOnly()){
+                //Force Unique labels
+                enforceUniqueLabel(node);
+            }
+            //Force Unique sort order
             enforceUniqueSortOrder(node);
+
 
             constructNodeGUI(node);
         }else{
@@ -1823,13 +1844,13 @@ Node *NewController::constructNode(QList<GraphMLData *> nodeData)
     QList<GraphMLData*> requiredData = constructGraphMLDataVector(childNodeKind);
 
 
-    bool isInModel = isGraphMLInModel(node);
+    bool inModel = isInModel(node);
     if(node){
         //Attach Default Data.
-        _attachGraphMLData(node, requiredData, isInModel);
+        _attachGraphMLData(node, requiredData, inModel);
 
         //Update Data with custom Data!
-        _attachGraphMLData(node, nodeData, isInModel);
+        _attachGraphMLData(node, nodeData, inModel);
     }
 
     //Delete the GraphMLData objects which didn't get adopted to the Node (or if our Node is null)
@@ -2413,24 +2434,23 @@ bool NewController::destructNode(Node *node, bool addAction)
         QString nodeName = hCNode->getDataValue("label");
         hardwareClusters.remove(nodeName);
     }
+
     if(mCNode){
         QString nodeName = mCNode->getDataValue("label");
         managementComponents.remove(nodeName);
     }
+    if(isInWorkerDefinitions(node)){
+        //If we are removing a Process contained in the WorkerDefinitions section.
+        Process* process = dynamic_cast<Process*>(node);
+        QString processName = getProcessName(process);
+        if(processName != ""){
+            workerProcesses.remove(processName);
+        }
+    }
 
-
-    //node->deleteLater();
     delete node;
-    //delete node;
     return true;
 }
-
-
-
-
-
-
-
 
 
 
@@ -2753,6 +2773,13 @@ bool NewController::_attachGraphMLData(GraphML *item, QList<GraphMLData *> dataL
         }
     }
     return true;
+}
+
+Process *NewController::getWorkerProcess(QString workerName, QString operationName)
+{
+    Process* process = 0;
+    process = workerProcesses[workerName+"_"+operationName];
+    return process;
 }
 
 bool NewController::_attachGraphMLData(GraphML *item, GraphMLData *data, bool addAction)
@@ -3909,10 +3936,19 @@ Edge *NewController::getEdgeFromGraphML(GraphML *item)
     return edge;
 }
 
-bool NewController::isGraphMLInModel(GraphML *item)
+bool NewController::isInModel(GraphML *item)
 {
     if(model){
         return model->isAncestorOf(item);
+    }else{
+        return false;
+    }
+}
+
+bool NewController::isInWorkerDefinitions(GraphML *item)
+{
+    if(workerDefinitions){
+        return workerDefinitions->isAncestorOf(item);
     }else{
         return false;
     }
@@ -4207,6 +4243,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     QHash<int, QStringList> readOnlyIDHashNeeded;
 
 
+
     //If we have been passed no parent, set it as the graph of this Model.
     if(!parent){
         parent = getModel();
@@ -4306,22 +4343,21 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 //Construct a GraphMLData object out of the xml, using the key found in keyLookup
                 GraphMLData *data = new GraphMLData(dataKey, dataValue);
 
-                //If we aren't linking the ID's we don't need to maintain sortOrder!
-                if(!linkID && data->getKeyName() == "sortOrder"){
-                    delete data;
-                    continue;
-                }
+
 
                 if(dataKey->getName() == "readOnly"){
                     readOnlyTag = true;
                     originalID = -1;
                 }
 
+                if(!linkID && dataKey->getName() == "sortOrder"){
+                    delete data;
+                    continue;
+                }
+
                 if(dataKey->getName() == "originalID"){
                     //Cast as int
                     bool okay = false;
-
-
 
                     int value = dataValue.toInt(&okay);
                     if(okay){
@@ -4417,6 +4453,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 //If we have a read only tag, we should look for the originalID provided.
                 //To see if we can find the original Node.
                 if(readOnlyTag){
+
+
                     if(readOnlyLookup.contains(originalID)){
                         //Get the ID of the version we have of the originalID
                         int nodeID = readOnlyLookup[originalID];
@@ -4452,6 +4490,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 }
 
                 if(!node){
+
+
 
                     //Construct the specialised Node
                     Node* newNode = constructChildNode(parent, currentNodeData);
@@ -4992,6 +5032,34 @@ QString NewController::getDataValueFromKeyName(QList<GraphMLData *> dataList, QS
         if(data->getKeyName() == keyName){
             return data->getValue();
         }
+    }
+    return "";
+}
+
+void NewController::setDataValueFromKeyName(QList<GraphMLData *> dataList, QString keyName, QString value)
+{
+    foreach(GraphMLData* data, dataList){
+        if(data->getKeyName() == keyName){
+            data->setValue(value);
+            return;
+        }
+    }
+}
+
+/**
+ * @brief NewController::getProcessName Gets the long name used to store Process definitions in the workerProcesses map.
+ * @param process The Process
+ * @return worker_operation
+ */
+QString NewController::getProcessName(Process *process)
+{
+    if(process){
+        QString workerName = process->getDataValue("worker");
+        QString operationName = process->getDataValue("operation");
+        if(workerName != "" && operationName != ""){
+            return workerName + "_" + operationName;
+        }
+
     }
     return "";
 }

@@ -327,6 +327,10 @@ private:
     bool _attachGraphMLData(GraphML* item, QList<QStringList> dataList, bool addAction = true);
     bool _attachGraphMLData(GraphML* item, QList<GraphMLData*> dataList, bool addAction = true);
     
+
+
+    Process* getWorkerProcess(QString workerName, QString operationName);
+
     //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
     GraphML* getGraphMLFromID(int ID);
     Node* getNodeFromID(int ID);
@@ -344,7 +348,8 @@ private:
     Node* getNodeFromGraphML(GraphML* item);
     Edge* getEdgeFromGraphML(GraphML* item);
 
-    bool isGraphMLInModel(GraphML* item);
+    bool isInModel(GraphML* item);
+    bool isInWorkerDefinitions(GraphML* item);
 
 
     QString getSysOS();
@@ -364,6 +369,7 @@ private:
 
     QString getTimeStamp();
     QString getDataValueFromKeyName(QList<GraphMLData*> dataList, QString keyName);
+    void setDataValueFromKeyName(QList<GraphMLData*> dataList, QString keyName, QString value);
 
     //Provides a lookup for IDs.
     QHash<int, int> IDLookupHash;
@@ -378,6 +384,8 @@ private:
     QHash<QString, int> treeLookup;
     QHash<int, QString> reverseTreeLookup;
 
+
+    QString getProcessName(Process* process);
 
     //A list of Node's which are considered Containers, and aren't part of constructable Nodes.
     QStringList containerNodeKinds;
@@ -419,6 +427,7 @@ private:
     QHash<QString, ManagementComponent*> managementComponents;
     QHash<QString, HardwareNode*> hardwareNodes;
     QHash<QString, HardwareCluster*> hardwareClusters;
+    QHash<QString, Process*> workerProcesses;
 
     int previousUndos;
 
