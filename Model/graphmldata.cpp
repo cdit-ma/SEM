@@ -1,6 +1,17 @@
 #include "graphmldata.h"
 #include <QDebug>
 
+GraphMLData *GraphMLData::clone(GraphMLData *data)
+{
+    GraphMLData* cloneData = 0;
+    if(data){
+        GraphMLKey* key = data->getKey();
+        QString value = data->getValue();
+        cloneData = new GraphMLData(key, value);
+    }
+    return cloneData;
+}
+
 GraphMLData::GraphMLData(GraphMLKey *key, QString value, bool isProtected):GraphML(GraphML::DATA)
 {
     //Set to default.

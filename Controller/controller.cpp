@@ -118,7 +118,7 @@ void NewController::connectView(NodeView *view)
 
 
     if(view->isMainView()){
-        connect(view, SIGNAL(view_ConstructFunctionNode(int, QString, QString, QString, QPointF)), this, SLOT(constructFunctionNode(int,QString,QString,QString,QPointF)));
+        connect(view, SIGNAL(view_ConstructWorkerProcessNode(int,QString,QString,QPointF)), this, SLOT(constructWorkerProcessNode(int, QString, QString, QPointF)));
         connect(this, SIGNAL(controller_CanRedo(bool)), view, SLOT(canRedo(bool)));
         connect(this, SIGNAL(controller_CanUndo(bool)), view, SLOT(canUndo(bool)));
         connect(view, SIGNAL(view_constructDestructEdges(QList<int>, int)), this, SLOT(constructDestructMultipleEdges(QList<int>, int)));
@@ -206,34 +206,45 @@ NewController::~NewController()
     destructNode(workerDefinitions, false);
 }
 
-void NewController::setWorkerDefinitionPath(QString path)
+void NewController::setExternalWorkerDefinitionPath(QString path)
 {
-    this->workerDefPath = path;
+    this->externalWorkerDefPath = path;
 }
 
+/**
+ * @brief NewController::loadWorkerDefinitions Loads in both the compiled in WorkerDefinitions and Externally defined worker defintions.
+ */
 void NewController::loadWorkerDefinitions()
 {
     //We will be importing into the workerDefinitions aspect.
     Node* workerDefinition = getWorkerDefinitions();
-    if(workerDefinition && workerDefPath !=  ""){
-        QDir directory(workerDefPath);
+    if(workerDefinition){
+
+
+        QList<QDir> workerDirectories;
+        workerDirectories << QDir(":/WorkerDefinitions");
+        if(externalWorkerDefPath != ""){
+            workerDirectories << QDir(externalWorkerDefPath);
+        }
 
         QStringList fileExtension("*.worker.graphml");
-        //Foreach *.worker.graphml file in the workerDefPath, load the graphml.
-        foreach(QString fileName, directory.entryList(fileExtension)){
-            QString importFileName = workerDefPath + "/" + fileName;
+        foreach(QDir directory, workerDirectories){
+            //Foreach *.worker.graphml file in the workerDefPath, load the graphml.
+            foreach(QString fileName, directory.entryList(fileExtension)){
+                QString importFileName = directory.absolutePath() + "/" + fileName;
 
-            QPair<bool, QString> data = readFile(importFileName);
-            //If the file was read.
-            if(data.first){
-                bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
-                if(!success){
-                    emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + importFileName +"'!");
+                QPair<bool, QString> data = readFile(importFileName);
+                //If the file was read.
+                if(data.first){
+                    bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
+                    if(!success){
+                        emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + importFileName +"'!");
+                    }else{
+                        qCritical() << "Loaded Worker Definition: " << importFileName;
+                    }
                 }else{
-                    qCritical() << "Loaded Worker Definition: " << importFileName;
+                     emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + importFileName +"'!");
                 }
-            }else{
-                 emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + importFileName +"'!");
             }
         }
 
@@ -680,18 +691,25 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
     emit controller_ActionFinished();
 }
 
-void NewController::constructFunctionNode(int parentID, QString nodeKind, QString className, QString functionName, QPointF position)
+void NewController::constructWorkerProcessNode(int parentID, QString workerName, QString operationName, QPointF position)
 {
     Node* parentNode = getNodeFromID(parentID);
 
+    Process* processDefinition = getWorkerProcess(workerName, operationName);
 
 
+    triggerAction("Constructing worker Process");
+    Node* processFunction = cloneNode(processDefinition, parentNode);
 
-    QList<GraphMLData*> dataList = constructGraphMLDataVector(nodeKind, position);
+    emit controller_ActionFinished();
+    return;
+    /*
+
+    QList<GraphMLData*> dataList = constructGraphMLDataVector(workerName, position);
 
 
     //Set the Process
-    setDataValueFromKeyName(dataList, "worker", className);
+    setDataValueFromKeyName(dataList, "worker", operationName);
     setDataValueFromKeyName(dataList, "operation", functionName);
 
     //Get Parameters!
@@ -700,17 +718,17 @@ void NewController::constructFunctionNode(int parentID, QString nodeKind, QStrin
     Node* processFunction = constructChildNode(parentNode, dataList);
 
 
-    if(className != "" && functionName != ""){
-        QList<ParameterRequirement*> parameters = BehaviourNode::getParameters(nodeKind);
+    if(operationName != "" && functionName != ""){
+        QList<ParameterRequirement*> parameters = BehaviourNode::getParameters(workerName);
 
         foreach(ParameterRequirement* parameter, parameters){
-            if(parameter->getClassName() == className && parameter->getFunctionName() == functionName){
+            if(parameter->getClassName() == operationName && parameter->getFunctionName() == functionName){
                 constructChildParameter(processFunction, parameter);
             }
         }
     }
 
-
+*/
 
     emit controller_ActionFinished();
 
@@ -1887,6 +1905,33 @@ QString NewController::getMD5OfData(const QList<GraphMLData *> dataToAttach)
 
     delete node;
     return MD5;
+}
+
+Node *NewController::cloneNode(Node *original, Node *parent, bool ignoreVisuals)
+{
+    QStringList ignoredKeys;
+    if(ignoreVisuals){
+        ignoredKeys << "x" << "y" << "isExpanded" << "readOnly" << "width" << "height";
+    }
+
+    QList<GraphMLData*> clonedData;
+
+    //Clone the data from the Definition.
+    foreach(GraphMLData* data, original->getData()){
+        if(!ignoredKeys.contains(data->getKeyName())){
+            //Clone the data.
+            clonedData << GraphMLData::clone(data);
+        }
+    }
+
+    Node* newNode = constructChildNode(parent, clonedData);
+
+    if(newNode){
+        foreach(Node* child, original->getChildren(0)){
+            cloneNode(child, newNode);
+        }
+    }
+    return newNode;
 }
 
 
@@ -3221,7 +3266,6 @@ void NewController::setupModel()
 
     workerDefinitions = constructTypedNode("WorkerDefinitions");
     _attachGraphMLData(workerDefinitions, constructGraphMLDataVector("WorkerDefinitions"));
-    qCritical() << workerDefinitions;
     constructNodeGUI(workerDefinitions);
 
 
@@ -4618,8 +4662,6 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
         if(!(s && d)){
             if(!poppedup){
-                qCritical() << edge.source;
-                qCritical() << edge.target;
                 emit controller_DisplayMessage(CRITICAL, "Import Error", "Cannot find all end points of imported edge!");
                 poppedup = true;
             }

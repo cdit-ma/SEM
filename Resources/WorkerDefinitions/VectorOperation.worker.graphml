@@ -22,7 +22,7 @@
 	
 	<key attr.name="readOnly" attr.type="boolean" for="node" id="9999"/>
 	<key attr.name="description" attr.type="string" for="node" id="10000"/>
-	
+        <key attr.name="workerID" attr.type="string" for="node" id="10001"/>
     
 	
 
@@ -58,8 +58,9 @@
 					<data key="414"></data>
 					<data key="415"></data>
 					<data key="9999">true</data>
-                    <data key="10000">Returns an element from a vector at an index.</data>
-					<graph id ="g2231">
+                                        <data key="10000">Returns an elemen from a vector at an index.</data>
+                                        <data key="10001">vectoroperation</data>
+                                        <graph id ="g2231">
 						<node id ="3468">
 							<data key="2">InputParameter</data>
 							<data key="4">54</data>
@@ -113,7 +114,8 @@
 					<data key="414"></data>
 					<data key="415"></data>
 					<data key="9999">true</data>
-                    <data key="10000">Removes and returns an element from a vector at an index.</data>
+                                        <data key="10000">Removes and returns an element from a vector at an index.</data>
+                                        <data key="10001">vectoroperation</data>
 					<graph id ="g6884">
 						<node id ="6929">
 							<data key="2">InputParameter</data>
@@ -167,8 +169,9 @@
 					<data key="413">length</data>
 					<data key="414"></data>
 					<data key="415"></data>
-                    <data key="9999">true</data>
-                    <data key="10000">Returns the length of a vector.</data>
+                                        <data key="9999">true</data>
+                                        <data key="10000">Returns the length of a vector.</data>
+                                        <data key="10001">vectoroperation</data>
 					<graph id ="g7714">
 						<node id ="8118">
 							<data key="2">InputParameter</data>
@@ -212,7 +215,8 @@
 					<data key="414"></data>
 					<data key="415"></data>
 					<data key="9999">true</data>
-                    <data key="10000">Clears all elements in the vector.</data>
+                                        <data key="10000">Clears all elements in the vector.</data>
+                                        <data key="10001">vectoroperation</data>
 					<graph id ="g8603">
 						<node id ="9274">
 							<data key="2">InputParameter</data>
@@ -246,8 +250,9 @@
 					<data key="414"></data>
 					<data key="415"></data>
 					<data key="9999">true</data>
-                    <data key="10000">Sets/Inserts an element from a vector at an index.</data>
-					<graph id ="g6057">
+                                        <data key="10000">Sets/Inserts an element from a vector at an index.</data>
+                                        <data key="10001">vectoroperation</data>
+                                        <graph id ="g6057">
 						<node id ="6336">
 							<data key="2">InputParameter</data>
 							<data key="4">54</data>

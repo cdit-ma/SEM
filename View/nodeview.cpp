@@ -1246,7 +1246,6 @@ void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, i
 {
     Q_UNUSED(type);
     if(ID != -1){
-        qCritical() << ID;
         GraphMLItem* item = getGraphMLItemFromID(ID);
         if(item){
             centerItem(item);
@@ -2058,6 +2057,9 @@ QPair<QString, bool> NodeView::getEditableDataKeyName(GraphMLItem *node)
     if(nodeKind == "Model"){
         returnType.first = "middleware";
     }
+    if(nodeKind == "Process"){
+        returnType.first = "worker";
+    }
 
 
     if(dropdownKinds.contains(nodeKind)){
@@ -2677,7 +2679,7 @@ void NodeView::expand(bool expand)
 void NodeView::constructNode(QString nodeKind, int sender)
 {
     if(nodeKind == "VectorOperation"){
-        constructFunctionNode("Process", "VectorOperation", "Get", 0);
+        //constructWorkerProcessNode("Process", "VectorOperation", "Get", 0);
         return;
     }
     if(viewMutex.tryLock()){
@@ -3052,7 +3054,7 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
 
         QPixmap imageData = QPixmap::fromImage(image);
 
-        if(alias == "Actions" || alias == "Data"){
+        if(alias == "Actions" || alias == "Data" || alias == "Functions"){
             QColor tint;
 
             if(!tint.isValid()){
@@ -4627,7 +4629,7 @@ void NodeView::deleteSelection()
 }
 
 
-void NodeView::constructFunctionNode(QString nodeKind, QString className, QString functionName, int sender)
+void NodeView::constructWorkerProcessNode(QString workerName, QString operationName, int sender)
 {
     //Do stuff!
     if(viewMutex.tryLock()){
@@ -4643,7 +4645,7 @@ void NodeView::constructFunctionNode(QString nodeKind, QString className, QStrin
                 position = item->getClosestGridPoint(position);
             }
 
-            emit view_ConstructFunctionNode(item->getID(), nodeKind, className, functionName, position);
+            emit view_ConstructWorkerProcessNode(item->getID(), workerName, operationName, position);
         }
     }
 }

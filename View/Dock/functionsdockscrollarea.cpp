@@ -35,7 +35,6 @@ void FunctionsDockScrollArea::addDockNodeItems(QList<QPair<QString, QString> > f
 
         QString className = function.first;
         QString functionName = function.second;
-
         DockNodeItem* dockItem = new DockNodeItem(functionName, 0, this);
         dockItem->setImage("Functions", className);
 
@@ -80,7 +79,7 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
     DockNodeItem* parentItem = dockItem->getParentDockNodeItem();
 
     if (dockItem && parentItem) {
-        getNodeView()->constructFunctionNode("Process", dockItem->getKind(), parentItem->getKind(), 0);
+        getNodeView()->constructWorkerProcessNode(parentItem->getKind(), dockItem->getKind(), 0);
     }
 
     // close this dock after an item has been clicked
@@ -127,6 +126,8 @@ void FunctionsDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
     QVBoxLayout* layoutToSort = 0;
 
     QString ID = dockItem->getID();
+
+
     QString labelToSort = dockItem->getLabel();
     bool isClassLabel = dockItem->isFileLabel();
 

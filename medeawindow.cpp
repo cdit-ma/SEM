@@ -1225,7 +1225,8 @@ void MedeaWindow::setupController()
     }
 
     controller = new NewController();
-    controller->setWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
+    //Set External Worker Definitions Path.
+    controller->setExternalWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
 
     if (THREADING) {
         controllerThread = new QThread();

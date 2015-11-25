@@ -192,9 +192,28 @@
         <file alias="frequency.png">Resources/Images/Data/frequency.png</file>
         <file alias="function.png">Resources/Images/Data/function.png</file>
         <file alias="index.png">Resources/Images/Data/index.png</file>
+        <file alias="worker.png">Resources/Images/Data/worker.png</file>
     </qresource>
     <qresource prefix="/Functions">
         <file alias="WE_GPU.png">Resources/Images/Functions/WE_GPU.png</file>
         <file alias="VectorOperation.png">Resources/Images/Functions/VectorOperation.png</file>
+        <file alias="connect.png">Resources/Images/Functions/connect.png</file>
+        <file alias="CUTS_Client_Logger.png">Resources/Images/Functions/CUTS_Client_Logger.png</file>
+        <file alias="DIG_LogMessage_Worker.png">Resources/Images/Functions/DIG_LogMessage_Worker.png</file>
+        <file alias="disconnect.png">Resources/Images/Functions/disconnect.png</file>
+        <file alias="log.png">Resources/Images/Functions/log.png</file>
+        <file alias="switch_topic.png">Resources/Images/Functions/switch_topic.png</file>
+        <file alias="WE_CPU.png">Resources/Images/Functions/WE_CPU.png</file>
+        <file alias="WE_RAM.png">Resources/Images/Functions/WE_RAM.png</file>
+        <file alias="WE_UTE.png">Resources/Images/Functions/WE_UTE.png</file>
+    </qresource>
+    <qresource prefix="/WorkerDefinitions">
+        <file alias="CUTS_Client_Logger.worker.graphml">Resources/WorkerDefinitions/CUTS_Client_Logger.worker.graphml</file>
+        <file alias="DIG_LogMessage_Worker.worker.graphml">Resources/WorkerDefinitions/DIG_LogMessage_Worker.worker.graphml</file>
+        <file alias="VectorOperation.worker.graphml">Resources/WorkerDefinitions/VectorOperation.worker.graphml</file>
+        <file alias="WE_CPU.worker.graphml">Resources/WorkerDefinitions/WE_CPU.worker.graphml</file>
+        <file alias="WE_GPU.worker.graphml">Resources/WorkerDefinitions/WE_GPU.worker.graphml</file>
+        <file alias="WE_RAM.worker.graphml">Resources/WorkerDefinitions/WE_RAM.worker.graphml</file>
+        <file alias="WE_UTE.worker.graphml">Resources/WorkerDefinitions/WE_UTE.worker.graphml</file>
     </qresource>
 </RCC>

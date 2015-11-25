@@ -9,7 +9,9 @@
 class GraphMLData: public GraphML{
     Q_OBJECT
 public:
+    static GraphMLData* clone(GraphMLData* data);
     GraphMLData(GraphMLKey* key, QString value="", bool isProtected=false);
+
     ~GraphMLData();
     void setParent(GraphML* parent);
     GraphML* getParent();

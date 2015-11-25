@@ -333,12 +333,10 @@ CHANGELOG_FILE.path = $$OUTPUT_DIR/
 SCRIPTS_FILES.files += Resources/Scripts/
 BINARIES_FILES.files += Resources/Binaries/
 TRANSFORMS_FILES.files += Resources/Transforms/
-WORKER_FILES.files += Resources/WorkerDefinitions/
 
 SCRIPTS_FILES.path = $$OUTPUT_DIR/Resources/
 BINARIES_FILES.path = $$OUTPUT_DIR/Resources/
 TRANSFORMS_FILES.path = $$OUTPUT_DIR/Resources/
-WORKER_FILES.path = $$OUTPUT_DIR/Resources/
 
 
 #Copy files for Windows and Linux
@@ -348,7 +346,6 @@ linux-g++ | win32{
     INSTALLS += SCRIPTS_FILES
     INSTALLS += BINARIES_FILES
     INSTALLS += TRANSFORMS_FILES
-    INSTALLS += WORKER_FILES
 }
 
 #Copy files for MacOS
@@ -364,12 +361,9 @@ mac{
     QMAKE_BUNDLE_DATA += SCRIPTS_FILES
     QMAKE_BUNDLE_DATA += BINARIES_FILES
     QMAKE_BUNDLE_DATA += TRANSFORMS_FILES
-    QMAKE_BUNDLE_DATA += WORKER_FILES
 }
 
 DISTFILES += \
     Resources/Images/qt.ico \
-    defaultSettings.ini \
     Resources/Fonts/OpenSans-Regular.ttf \
-    todo.txt \
-    Resources/WorkerDefinitions/WE_GPU.worker.graphml
+    settings.ini \

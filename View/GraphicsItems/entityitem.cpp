@@ -233,12 +233,16 @@ EntityItem::MOUSEOVER_TYPE EntityItem::getMouseOverType(QPointF scenePos)
         if(mouseOverBotInput(itemPos) && state > RS_REDUCED){
             return MO_BOT_LABEL;
         }
+        if(mouseOverBotInputIcon(itemPos) && state > RS_REDUCED){
+            return MO_BOT_LABEL_ICON;
+        }
         if(mouseOverRightLabel(itemPos) && state >= RS_REDUCED){
             return MO_EXPANDLABEL;
         }
         if(mouseOverConnect(itemPos) && state > RS_REDUCED){
             return MO_CONNECT;
         }
+
         if(mouseOverDefinition(itemPos) && state > RS_REDUCED){
             return MO_DEFINITION;
         }if(mouseOverHardwareMenu(itemPos) && state > RS_REDUCED){
@@ -809,6 +813,16 @@ bool EntityItem::mouseOverRightLabel(QPointF mousePosition)
     return false;
 }
 
+bool EntityItem::mouseOverBotInputIcon(QPointF mousePosition)
+{
+    if(bottomInputItem && bottomInputItem->isVisible()){
+        if(iconRect_BottomLeft().contains(mousePosition)){
+            return true;
+        }
+    }
+    return false;
+}
+
 
 bool EntityItem::mouseOverBotInput(QPointF mousePosition)
 {
@@ -1158,6 +1172,12 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
         }else if(keyName == "readOnly" && isBool){
             IS_READ_ONLY = boolValue;
             update();
+        }else if(keyName == "description"){
+            //Use as tooltip.
+            descriptionValue = value;
+        }else if(keyName == "operation"){
+            //Use as tooltip.
+            operationKind = value;
         }
 
         if(keyName == editableDataKey){
@@ -1403,7 +1423,7 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
 void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
-    QString tooltip;
+    QString tooltip = "";
     QCursor cursor;
     MOUSEOVER_TYPE hoverType = getMouseOverType(event->scenePos());
 
@@ -1484,6 +1504,12 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
             tooltip = "Click and drag to change height.\nDouble click to auto set height.";
             cursor = Qt::SizeVerCursor;
         }
+        break;
+    case MO_BOT_LABEL_ICON:
+        cursor = Qt::WhatsThisCursor;
+        tooltip = descriptionValue;
+        break;
+    default:
         break;
     }
 
@@ -2126,6 +2152,7 @@ void EntityItem::setupGraphMLDataConnections()
     connectToGraphMLData("isExpanded");
 
     connectToGraphMLData("readOnly");
+    connectToGraphMLData("description");
 
     if(nodeKind == "HardwareNode"){
         connectToGraphMLData("os");
@@ -2133,6 +2160,8 @@ void EntityItem::setupGraphMLDataConnections()
         connectToGraphMLData("localhost");
     }else if(nodeKind == "Member"){
         connectToGraphMLData("key");
+    }else if(nodeKind == "Process"){
+        connectToGraphMLData("operation");
     }
 }
 
@@ -2548,6 +2577,8 @@ QString EntityItem::getIconURL()
         imageURL = vectorIconURL;
     } else if (nodeKind.endsWith("Parameter")) {
         return nodeLabel;
+    } else if(nodeKind == "Process"){
+        return operationKind;
     }
 
     return imageURL;
@@ -2558,6 +2589,8 @@ QString EntityItem::getIconPrefix()
     QString imageURL = nodeKind;
     if(nodeKind.endsWith("Parameter")){
         return "Data";
+    }else if(nodeKind == "Process"){
+        return "Functions";
     }
     return "Items";
 
@@ -2570,6 +2603,12 @@ void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QStri
 
     if(getNodeView() && (image.isNull() || update)){
         image = getNodeView()->getImage(alias, imageName);
+        if(image.isNull() && operationKind != ""){
+            image = getNodeView()->getImage("Items", "Process");
+        }
+        if(image.isNull()){
+            image = getNodeView()->getImage("Actions", "Help");
+        }
         imageMap[pos] = image;
     }
 

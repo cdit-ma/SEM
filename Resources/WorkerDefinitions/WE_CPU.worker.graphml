@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?><graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns">
+    <key attr.name="kind" attr.type="string" for="node" id="d4"/>
+    <key attr.name="x" attr.type="double" for="node" id="d5"/>
+    <key attr.name="y" attr.type="double" for="node" id="d6"/>
+    <key attr.name="width" attr.type="double" for="node" id="d7"/>
+    <key attr.name="height" attr.type="double" for="node" id="d8"/>
+    <key attr.name="label" attr.type="string" for="node" id="d9"/>
+    <key attr.name="sortOrder" attr.type="int" for="node" id="d10"/>
+    <key attr.name="isExpanded" attr.type="boolean" for="node" id="d11"/>
+    <key attr.name="code" attr.type="string" for="node" id="d12"/>
+    <key attr.name="actionOn" attr.type="string" for="node" id="d13"/>
+    <key attr.name="worker" attr.type="string" for="node" id="d14"/>
+    <key attr.name="complexityParameters" attr.type="string" for="node" id="d15"/>
+    <key attr.name="folder" attr.type="string" for="node" id="d16"/>
+    <key attr.name="file" attr.type="string" for="node" id="d17"/>
+    <key attr.name="operation" attr.type="string" for="node" id="d18"/>
+    <key attr.name="complexity" attr.type="string" for="node" id="d19"/>
+    <key attr.name="parameters" attr.type="string" for="node" id="d20"/>
+    <key attr.name="value" attr.type="string" for="node" id="d21"/>
+    <key attr.name="type" attr.type="string" for="node" id="d22"/>
+    <key attr.name="readOnly" attr.type="boolean" for="node" id="d23"/>
+    <key attr.name="url" attr.type="string" for="node" id="d24"/>
+    <key attr.name="description" attr.type="string" for="node" id="d25"/>
+    <key attr.name="Description" attr.type="string" for="graph" id="d27"/>
+    <key attr.name="url" attr.type="string" for="edge" id="d28"/>
+    <key attr.name="description" attr.type="string" for="edge" id="d29"/>
+    <key attr.name="workerID" attr.type="string" for="node" id="d26"/>
+    <graph id="G" edgedefault="directed">
+        <node id="n0">
+            <data key="d4">Workload</data>
+            <data key="d5">113.635</data>
+            <data key="d6">300</data>
+            <data key="d7">2122.539</data>
+            <data key="d8">328.237</data>
+            <data key="d9">WE_CPU</data>
+            <data key="d10">0</data>
+            <data key="d11">true</data>
+            <data key="d23">true</data>
+            <data key="d25">A CUTS worker that provides CPU workload functionality.</data>
+            <graph id="n0:" edgedefault="directed">
+                <node id="n0::n0">
+                    <data key="d4">Process</data>
+                    <data key="d5">15</data>
+                    <data key="d6">60</data>
+                    <data key="d7">342.539</data>
+                    <data key="d8">173.056</data>
+                    <data key="d9">IntOp</data>
+                    <data key="d10">0</data>
+                    <data key="d11">true</data>
+                    <data key="d13">Mainprocess</data>
+                    <data key="d14">WE_CPU</data>
+                    <data key="d16">$(CUTS_ROOT)/cuts/workers/we_cpu</data>
+                    <data key="d17">WE_CPU</data>
+                    <data key="d18">IntOp</data>
+                    <data key="d23">true</data>
+                    <data key="d25">Execute requested number of Integer Operations. Will use a set of Basic Operations for arithmetic [+ - * / %] and assignment [=] using a code snipt taken from Whetstone Benchmark in C/C++</data>
+                    <data key="d26">we_cpu</data>
+                    <graph id="n0::n0:" edgedefault="directed">
+                        <node id="n0::n0::n0">
+                            <data key="d4">InputParameter</data>
+                            <data key="d5">33.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">operations</data>
+                            <data key="d10">0</data>
+                            <data key="d22">Double</data>
+                            <data key="d23">true</data>
+                            <data key="d25">The number of Integer Operations required</data>
+                        </node>
+                        <node id="n0::n0::n1">
+                            <data key="d4">ReturnParameter</data>
+                            <data key="d5">283.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">success</data>
+                            <data key="d10">1</data>
+                            <data key="d22">ShortInteger</data>
+                            <data key="d23">true</data>
+                            <data key="d25">Returns 0 if successfull</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n1">
+                    <data key="d4">Process</data>
+                    <data key="d5">365</data>
+                    <data key="d6">60</data>
+                    <data key="d7">342.539</data>
+                    <data key="d8">173.056</data>
+                    <data key="d9">FloatOp</data>
+                    <data key="d10">1</data>
+                    <data key="d11">true</data>
+                    <data key="d13">Mainprocess</data>
+                    <data key="d14">WE_CPU</data>
+                    <data key="d16">$(CUTS_ROOT)/cuts/workers/we_cpu</data>
+                    <data key="d17">WE_CPU</data>
+                    <data key="d18">FloatOp</data>
+                    <data key="d23">true</data>
+                    <data key="d25">Execute requested number of Floating Point Operations. Will use a set of Basic Operations for arithmetic [+ - * / %] and assignment [=] using a code snipt taken from Whetstone Benchmark in C/C++</data>
+                    <data key="d26">we_cpu</data>
+                    <graph id="n0::n1:" edgedefault="directed">
+                        <node id="n0::n1::n0">
+                            <data key="d4">InputParameter</data>
+                            <data key="d5">33.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">operations</data>
+                            <data key="d10">0</data>
+                            <data key="d22">Double</data>
+                            <data key="d23">true</data>
+                            <data key="d25">The number of Float Operations required</data>
+                        </node>
+                        <node id="n0::n1::n1">
+                            <data key="d4">ReturnParameter</data>
+                            <data key="d5">283.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">success</data>
+                            <data key="d10">1</data>
+                            <data key="d22">ShortInteger</data>
+                            <data key="d23">true</data>
+                            <data key="d25">Returns 0 if successfull</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n2">
+                    <data key="d4">Process</data>
+                    <data key="d5">715</data>
+                    <data key="d6">60</data>
+                    <data key="d7">342.539</data>
+                    <data key="d8">173.056</data>
+                    <data key="d9">Whetstone</data>
+                    <data key="d10">2</data>
+                    <data key="d11">true</data>
+                    <data key="d13">Mainprocess</data>
+                    <data key="d14">WE_CPU</data>
+                    <data key="d16">$(CUTS_ROOT)/cuts/workers/we_cpu</data>
+                    <data key="d17">WE_CPU</data>
+                    <data key="d18">Whetstone</data>
+                    <data key="d23">true</data>
+                    <data key="d25">Execute requested number of loops through the Whetstone benchmark. It is estimated that ten loops is equivalent to one Million Whetstone Instructions Performed (MWIP). This uses modified code taken from Whetstone Benchmark in C/C++</data>
+                    <data key="d26">we_cpu</data>
+                    <graph id="n0::n2:" edgedefault="directed">
+                        <node id="n0::n2::n0">
+                            <data key="d4">InputParameter</data>
+                            <data key="d5">33.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">operations</data>
+                            <data key="d10">0</data>
+                            <data key="d22">Double</data>
+                            <data key="d23">true</data>
+                            <data key="d25">The number of Whetstone loops required</data>
+                        </node>
+                        <node id="n0::n2::n1">
+                            <data key="d4">ReturnParameter</data>
+                            <data key="d5">283.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">success</data>
+                            <data key="d10">1</data>
+                            <data key="d22">ShortInteger</data>
+                            <data key="d23">true</data>
+                            <data key="d25">Returns 0 if successfull</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n3">
+                    <data key="d4">Process</data>
+                    <data key="d5">1065</data>
+                    <data key="d6">60</data>
+                    <data key="d7">342.539</data>
+                    <data key="d8">173.056</data>
+                    <data key="d9">MWIP</data>
+                    <data key="d10">3</data>
+                    <data key="d11">true</data>
+                    <data key="d13">Mainprocess</data>
+                    <data key="d14">WE_CPU</data>
+                    <data key="d16">$(CUTS_ROOT)/cuts/workers/we_cpu</data>
+                    <data key="d17">WE_CPU</data>
+                    <data key="d18">MWIP</data>
+                    <data key="d23">true</data>
+                    <data key="d25">Execute requested number of Million Whetstone Instructions Performed ( MWIP). This uses modified code taken from Whetstone Benchmark in C/C++</data>
+                    <data key="d26">we_cpu</data>
+                    <graph id="n0::n3:" edgedefault="directed">
+                        <node id="n0::n3::n0">
+                            <data key="d4">InputParameter</data>
+                            <data key="d5">33.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">operations</data>
+                            <data key="d10">0</data>
+                            <data key="d22">Double</data>
+                            <data key="d23">true</data>
+                            <data key="d25">The number of MWIP Operations required</data>
+                        </node>
+                        <node id="n0::n3::n1">
+                            <data key="d4">ReturnParameter</data>
+                            <data key="d5">283.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">success</data>
+                            <data key="d10">1</data>
+                            <data key="d22">ShortInteger</data>
+                            <data key="d23">true</data>
+                            <data key="d25">Returns 0 if successfull</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n4">
+                    <data key="d4">Process</data>
+                    <data key="d5">1415</data>
+                    <data key="d6">60</data>
+                    <data key="d7">342.539</data>
+                    <data key="d8">173.056</data>
+                    <data key="d9">Dhrystone</data>
+                    <data key="d10">4</data>
+                    <data key="d11">true</data>
+                    <data key="d13">Mainprocess</data>
+                    <data key="d14">WE_CPU</data>
+                    <data key="d16">$(CUTS_ROOT)/cuts/workers/we_cpu</data>
+                    <data key="d17">WE_CPU</data>
+                    <data key="d18">Dhrystone</data>
+                    <data key="d23">true</data>
+                    <data key="d25">Execute requested number of loops through the Dhrystone benchmark. For one Dhrystone Millions of Instructions Performed (DMIP) it takes 1757 loops through this benchmark.This uses modified code taken from Dhrystone Benchmark in C/C++</data>
+                    <data key="d26">we_cpu</data>
+                    <graph id="n0::n4:" edgedefault="directed">
+                        <node id="n0::n4::n0">
+                            <data key="d4">InputParameter</data>
+                            <data key="d5">33.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">operations</data>
+                            <data key="d10">0</data>
+                            <data key="d22">Double</data>
+                            <data key="d23">true</data>
+                            <data key="d25">The number of Dhrystone loops required</data>
+                        </node>
+                        <node id="n0::n4::n1">
+                            <data key="d4">ReturnParameter</data>
+                            <data key="d5">283.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">success</data>
+                            <data key="d10">1</data>
+                            <data key="d22">ShortInteger</data>
+                            <data key="d23">true</data>
+                            <data key="d25">Returns 0 if successfull</data>
+                        </node>
+                    </graph>
+                </node>
+                <node id="n0::n5">
+                    <data key="d4">Process</data>
+                    <data key="d5">1765</data>
+                    <data key="d6">60</data>
+                    <data key="d7">342.539</data>
+                    <data key="d8">173.056</data>
+                    <data key="d9">DMIP</data>
+                    <data key="d10">5</data>
+                    <data key="d11">true</data>
+                    <data key="d13">Mainprocess</data>
+                    <data key="d14">WE_CPU</data>
+                    <data key="d16">$(CUTS_ROOT)/cuts/workers/we_cpu</data>
+                    <data key="d17">WE_CPU</data>
+                    <data key="d18">DMIP</data>
+                    <data key="d23">true</data>
+                    <data key="d25">Execute requested number of Dhrystone Millions of Instructions Performed (DMIP). This uses modified code taken from Dhrystone Benchmark in C/C++</data>
+                    <data key="d26">we_cpu</data>
+                    <graph id="n0::n5:" edgedefault="directed">
+                        <node id="n0::n5::n0">
+                            <data key="d4">InputParameter</data>
+                            <data key="d5">33.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">operations</data>
+                            <data key="d10">0</data>
+                            <data key="d22">Double</data>
+                            <data key="d23">true</data>
+                            <data key="d25">The number of DMIP Operations required</data>
+                        </node>
+                        <node id="n0::n5::n1">
+                            <data key="d4">ReturnParameter</data>
+                            <data key="d5">283.365</data>
+                            <data key="d6">60</data>
+                            <data key="d7">41</data>
+                            <data key="d8">41</data>
+                            <data key="d9">success</data>
+                            <data key="d10">1</data>
+                            <data key="d22">ShortInteger</data>
+                            <data key="d23">true</data>
+                            <data key="d25">Returns 0 if successfull</data>
+                        </node>
+                    </graph>
+                </node>
+            </graph>
+        </node>
+    </graph>
+</graphml>

@@ -56,7 +56,7 @@ public:
     NewController();
     ~NewController();
 
-    void setWorkerDefinitionPath(QString path);
+    void setExternalWorkerDefinitionPath(QString path);
     void loadWorkerDefinitions();
 
     void initializeModel();
@@ -155,7 +155,7 @@ private slots:
     void redo();
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
-    void constructFunctionNode(int parentID, QString nodeKind, QString className, QString functionName, QPointF position);
+    void constructWorkerProcessNode(int parentID,QString workerName, QString operationName, QPointF position);
     void constructEdge(int srcID, int dstID, bool reverseOkay = false);
     void destructEdge(int srcID, int dstID);
     void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);
@@ -251,7 +251,7 @@ private:
 
 
 
-
+    Node* cloneNode(Node* original, Node* parent, bool ignoreVisuals=true);
     Parameter* constructChildParameter(Node* parentNode, ParameterRequirement* requirement);
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
     void constructNodeGUI(Node* node);
@@ -431,7 +431,7 @@ private:
 
     int previousUndos;
 
-    QString workerDefPath;
+    QString externalWorkerDefPath;
 
     QList<int> connectedLinkedIDs;
 

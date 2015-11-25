@@ -191,7 +191,7 @@ signals:
 
     //SIGNALS for the Controller
     void view_TriggerAction(QString action);
-    void view_ConstructFunctionNode(int parentID, QString nodeKind, QString className, QString functionName, QPointF position);
+    void view_ConstructWorkerProcessNode(int parentID, QString className, QString functionName, QPointF position);
     void view_ConstructNode(int parentID, QString nodeKind, QPointF position);
     void view_ConstructEdge(int srcID, int dstID, bool reverseOkay = false);
     void view_DestructEdge(int srcID, int dstID);
@@ -330,7 +330,7 @@ public slots:
 
     void deleteSelection();
 
-    void constructFunctionNode(QString nodeKind, QString className, QString functionName, int sender);
+    void constructWorkerProcessNode(QString workerName, QString operationName, int sender);
     void constructNode(QString nodeKind, int sender);
     void constructEdge(int srcID, int dstID);
     void destructEdge(int srcID, int dstID, bool triggerAction=true);

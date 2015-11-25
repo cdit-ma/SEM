@@ -176,7 +176,6 @@ void DockNodeItem::setImage(QString prefix, QString image)
     if(parentDock){
         NodeView* nodeView = parentDock->getNodeView();
         if(imageLabel && textLabel  && nodeView){
-            qCritical() << prefix << " " << image;
             QPixmap pixMap = nodeView->getImage(prefix, image);
             QPixmap scaledPixmap =  pixMap.scaled(width()*ICON_RATIO,
                                                   (height()-textLabel->height())*ICON_RATIO,
