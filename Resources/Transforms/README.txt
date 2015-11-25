@@ -69,6 +69,11 @@ Use the following command line transforms for HelloWorld SEM
 > java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2cpp.xsl -PARAM File "HelloReceiverImpl.cpp" -OUT HelloReceiverImpl.cpp
 
 
+For files generated with MEDEA for localhost deployment, config files can be used with cutsnode_d and cutstest using the following transforms
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2testconfig.xsl -OUT test.config
+> java org.apache.xalan.xslt.Process -IN HelloWorld.graphml -XSL %MEDEA_ROOT%\Resources\Transforms\graphml2deployconfig.xsl -PARAM HardwareNode "localhost" -OUT deploy_localhost.config
+
+
 Using saxon9he java version on windows
 http://saxon.sourceforge.net/
 
