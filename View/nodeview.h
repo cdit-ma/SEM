@@ -420,7 +420,7 @@ private:
     QList<NodeItem*> getConnectableNodeItems(int ID);
     QList<NodeItem*> getConnectableNodeItems(QList<int> IDs = QList<int>());
     QList<NodeItem*> getNodeInstances(int ID);
-    QList<NodeItem*> getHardwareList();
+    QList<EntityItem *> getHardwareList();
     QPair<QString, bool> getEditableDataKeyName(GraphMLItem* node);
 
     QList<Node*> getFiles();

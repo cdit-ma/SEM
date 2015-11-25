@@ -42,6 +42,10 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
             }
         }
 
+        if (nodeItem->isEntityItem()) {
+            connect((EntityItem*)nodeItem, SIGNAL(entityItem_iconChanged()), this, SLOT(iconChanged()));
+        }
+
         // if kind == FileLabel, don't create an icon
         if (kind == "FileLabel") {
             //fileLabel = true;
@@ -254,7 +258,7 @@ void DockNodeItem::setReadOnlyState(bool on)
             state = DEFAULT;
             break;
         default:
-            break;
+            return;
         }
     }
     updateStyleSheet();
@@ -263,12 +267,48 @@ void DockNodeItem::setReadOnlyState(bool on)
 
 /**
  * @brief DockNodeItem::labelChanged
+ * This gets called when this dock item's attached nodeItem label has been changed.
  * @param label
  */
 void DockNodeItem::labelChanged(QString label)
 {
     setLabel(label);
     emit dockItem_relabelled(this);
+}
+
+
+/**
+ * @brief DockNodeItem::iconChanged
+ * This gets called when this dock item's attached nodeItem icon has been changed.
+ * This is currently only being used for Vectors and VectorInstances.
+ */
+void DockNodeItem::iconChanged()
+{
+    if (fileLabel || !parentDock) {
+        return;
+    }
+
+    NodeView* nodeView = parentDock->getNodeView();
+    QPixmap pixMap;
+
+    if (nodeView && nodeItem) {
+        if (nodeItem->isEntityItem()) {
+            EntityItem* entityItem = (EntityItem*)nodeItem;
+            pixMap = nodeView->getImage(entityItem->getIconPrefix(), entityItem->getIconURL());
+        }
+    }
+
+    if (pixMap.isNull()) {
+        qWarning() << "DockNodeItem::setupLayout - Image is null for " << kind;
+        return;
+    }
+
+    pixMap = pixMap.scaled(width()*ICON_RATIO,
+                            (height()-textLabel->height())*ICON_RATIO,
+                            Qt::KeepAspectRatio,
+                            Qt::SmoothTransformation);
+
+    imageLabel->setPixmap(pixMap);
 }
 
 
@@ -308,20 +348,13 @@ void DockNodeItem::setupLayout()
 
         if (nodeView) {
             if (nodeItem) {
-                if (kind == "HardwareNode") {
-                    QString imagePath;
-                    if (nodeItem->getNode() && nodeItem->getNode()->getDataValue("localhost") == "true") {
-                        imagePath = "Localhost";
-                    } else {
-                        QString hardwareOS = (nodeItem->getNode()->getDataValue("os")).remove(QChar::Space);
-                        QString hardwareArch = nodeItem->getNode()->getDataValue("architecture");
-                        imagePath = hardwareOS + "_" + hardwareArch;
-                    }
-                    pixMap = nodeView->getImage("Items", imagePath);
-                    highlightColor = "rgba(90,150,200,210)";
+                if (nodeItem->isEntityItem()) {
+                    EntityItem* entityItem = (EntityItem*)nodeItem;
+                    pixMap = nodeView->getImage(entityItem->getIconPrefix(), entityItem->getIconURL());
                 } else {
                     pixMap = nodeView->getImage("Items", kind);
                 }
+                highlightColor = "rgba(90,150,200,210)";
             } else {
                 if (parentDock->getDockType() ==  PARTS_DOCK) {
                     pixMap = nodeView->getImage("Items", kind);
@@ -478,16 +511,6 @@ void DockNodeItem::parentDockItemClicked(bool show)
 
 
 /**
- * @brief DockNodeItem::updateData
- * This gets called when the dataTable value for the node item has been changed.
- */
-void DockNodeItem::updateData()
-{
-    setLabel(nodeItem->getNode()->getDataValue("label"));
-}
-
-
-/**
  * @brief DockNodeItem::childHidden
  * This is called whenever a File's child dock item is hidden.
  * If all of the File's children dock items are hidden, hide the File label.
@@ -512,7 +535,7 @@ void DockNodeItem::childDockItemHidden()
 /**
  * @brief DockNodeItem::highlightDockItem
  * This adds/removes highlight to this dock item.
- * @param node
+ * @param nodeItem
  */
 void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
 {
@@ -522,7 +545,7 @@ void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
             state = HIGHLIGHTED;
             break;
         default:
-            break;
+            return;
         }
     } else {
         switch (state) {
@@ -530,7 +553,7 @@ void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
             state = DEFAULT;
             break;
         default:
-            break;
+            return;
         }
     }
     updateStyleSheet();

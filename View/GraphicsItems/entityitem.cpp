@@ -95,9 +95,6 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
     isNodeSorted = false;
     isGridVisible = false;
 
-    changeIcon = false;
-
-
     sortTriggerAction = true;
     eventFromMenu = true;
 
@@ -123,6 +120,10 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
     nodeKind = getGraphML()->getDataValue("kind");
     isInputParameter = (nodeKind == "InputParameter");
     isReturnParameter = (nodeKind == "ReturnParameter");
+
+    vectorIconURL = nodeKind;
+    changeIcon = false;
+
 
     //Setup labels.
     nodeLabel = "";
@@ -155,6 +156,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
 
     IS_HARDWARE_CLUSTER = (nodeKind == "HardwareCluster");
     IS_HARDWARE_NODE = (nodeKind == "HardwareNode");
+    IS_VECTOR = nodeKind.startsWith("Vector");
 
 
     if(inMainView()){
@@ -163,7 +165,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
         CHILDREN_VIEW_MODE = ALL;
     }
 
-	childrenViewOptionMenu = 0;
+    childrenViewOptionMenu = 0;
     allChildren = 0;
     connectedChildren = 0;
     unConnectedChildren = 0;
@@ -177,7 +179,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
 
 
 
- 
+
 
 
     setupChildrenViewOptionMenu();
@@ -596,6 +598,16 @@ bool EntityItem::isHardwareNode()
 }
 
 
+/**
+ * @brief EntityItem::isVector
+ * @return
+ */
+bool EntityItem::isVector()
+{
+    return IS_VECTOR;
+}
+
+
 
 
 
@@ -634,11 +646,10 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             }
         }
 
-        if(isHighlighted()){
+        if (isHighlighted()) {
             headBrush.setColor(Qt::white);
             bodyBrush.setColor(Qt::white);
         }
-
 
         //Paint Background
         painter->setPen(Qt::NoPen);
@@ -657,7 +668,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         painter->drawRect(headerRect());
 
 
-
         //Draw the boundary.
         if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
             //Setup the Pen
@@ -668,10 +678,16 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
                 pen.setWidthF(selectedPenWidth);
             }
 
-            if(hasHardwareWarning){
-                //Trace the boundary
+            if (hasHardwareWarning) {
+                pen.setWidthF(selectedPenWidth);
                 pen.setStyle(Qt::DotLine);
                 pen.setColor(Qt::red);
+            }
+
+            if (isHighlighted()) {
+                pen.setStyle(Qt::DashLine);
+                pen.setColor(Qt::darkBlue);
+                pen.setWidthF(selectedPenWidth);
             }
 
             if(isHovered()){
@@ -2521,31 +2537,17 @@ QRectF EntityItem::geChildrenViewOptionMenuSceneRect()
 QString EntityItem::getIconURL()
 {
     QString imageURL = nodeKind;
-    if(nodeKind == "HardwareNode"){
-        if(nodeHardwareLocalHost){
+
+    if (IS_HARDWARE_NODE) {
+        if (nodeHardwareLocalHost) {
             imageURL = "Localhost";
-        }else{
+        } else {
             imageURL = nodeHardwareOS.remove(" ") + "_" + nodeHardwareArch;
         }
-    }else if(nodeKind.endsWith("Parameter")){
+    } else if (IS_VECTOR) {
+        imageURL = vectorIconURL;
+    } else if (nodeKind.endsWith("Parameter")) {
         return nodeLabel;
-    } else if (nodeKind.startsWith("Vector")) {
-        // TODO - Instead of checking this everytime, get a signal when the
-        // first child is added and when the last child is removed for Vectors
-        if (!getChildren().isEmpty()) {
-            QString childKind = getChildren().at(0)->getNodeKind();
-            if (childKind.startsWith("Member")) {
-                childKind = "Member";
-            }
-            imageURL = nodeKind + "_" + childKind;
-        }
-        if (imageURL != prevURL) {
-            changeIcon = true;
-            prevURL = imageURL;
-            update(minimumRect());
-        } else {
-            changeIcon = false;
-        }
     }
 
     return imageURL;
@@ -2572,6 +2574,11 @@ void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QStri
     }
 
     painter->drawPixmap(place.x(), place.y(), place.width(), place.height(), image);
+
+    if (changeIcon) {
+        emit entityItem_iconChanged();
+        changeIcon = false;
+    }
 }
 
 
@@ -2641,12 +2648,41 @@ void EntityItem::childSizeChanged()
     childUpdated();
 }
 
-void EntityItem::lastChildRemoved()
+
+/**
+ * @brief EntityItem::firstChildAdded
+ */
+void EntityItem::firstChildAdded(GraphMLItem* child)
 {
-    setStateExpanded(false);
+    // added this to fix inconsistent expand state
+    setStateExpanded(true);
+
+    // forcing this item to be expanded above sometimes sets the wrong expanded size
+    resizeToOptimumSize();
+
+    if (IS_VECTOR) {
+        QString childKind = child->getNodeKind();
+        if (childKind.startsWith("Member")) {
+            childKind = "Member";
+        }
+        vectorIconURL = nodeKind + "_" + childKind;
+        changeIcon = true;
+    }
 }
 
 
+/**
+ * @brief EntityItem::lastChildRemoved
+ */
+void EntityItem::lastChildRemoved()
+{
+    setStateExpanded(false);
+
+    if (IS_VECTOR) {
+        vectorIconURL = nodeKind;
+        changeIcon = true;
+    }
+}
 
 
 qreal EntityItem::getItemMargin() const

@@ -1970,6 +1970,8 @@ void MedeaWindow::setupInitialSettings()
         action->setDefaultWidget(checkBox);
         nodeKindsMenu->addAction(action);
     }
+
+    updateDataTable();
 }
 
 
@@ -2749,6 +2751,7 @@ void MedeaWindow::updateWidgetMask(QWidget *widget, QWidget *maskWidget, bool ch
                             maskWidget->width() + border.width(),
                             maskWidget->height() + border.height(),
                             QRegion::Rectangle));
+
 }
 
 
@@ -3297,6 +3300,7 @@ void MedeaWindow::updateDataTable()
         dataTable->resize(dataTable->width(), 0);
         dataTableBox->setAttribute(Qt::WA_TransparentForMouseEvents);
         updateWidgetMask(dataTableBox, dataTable);
+        dataTableBox->setVisible(false);
         return;
     }
 
@@ -3319,6 +3323,7 @@ void MedeaWindow::updateDataTable()
 
     // update the visible region of the groupbox to fit the dataTable
     updateWidgetMask(dataTableBox, dataTable);
+    dataTableBox->repaint();
 
     // align the contents of the datatable
     dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);

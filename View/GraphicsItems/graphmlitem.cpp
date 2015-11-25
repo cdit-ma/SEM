@@ -121,6 +121,16 @@ void GraphMLItem::setRenderState(GraphMLItem::RENDER_STATE renderState)
     }
 }
 
+
+/**
+ * @brief GraphMLItem::firstChildAdded
+ * @param item
+ */
+void GraphMLItem::firstChildAdded(GraphMLItem* child)
+{
+    // Do nothing
+}
+
 void GraphMLItem::lastChildRemoved()
 {
     //Do nothing
@@ -130,6 +140,9 @@ void GraphMLItem::addChild(GraphMLItem *item)
 {
     int ID = item->getID();
     children[ID] = item;
+    if (children.count() == 1) {
+        firstChildAdded(item);
+    }
 }
 
 void GraphMLItem::removeChild(int ID)

@@ -107,7 +107,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
     // setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-    setTransformationAnchor(QGraphicsView::AnchorViewCenter);
+    //setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 
 
     this->scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
@@ -882,9 +882,9 @@ QList<NodeItem *> NodeView::getNodeInstances(int ID)
  * @brief NodeView::getHardwareList
  * @return
  */
-QList<NodeItem *> NodeView::getHardwareList()
+QList<EntityItem*> NodeView::getHardwareList()
 {
-    QList<NodeItem*> hardwares;
+    QList<EntityItem*> hardwares;
     if (controller) {
         Model* model = controller->getModel();
         if (model) {
@@ -4540,11 +4540,13 @@ void NodeView::showLocalNode(bool show)
  */
 void NodeView::toggleZoomAnchor(bool underMouse)
 {
+    qDebug() << "Zoom under mouse: " << underMouse;
     if (underMouse) {
         setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     } else {
         setTransformationAnchor(QGraphicsView::AnchorViewCenter);
     }
+    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 }
 
 

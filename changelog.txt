@@ -1,3 +1,12 @@
+Version 19:
+	New Features:
+		* Vector and VectorInstances icons now show what kind their children are.
+
+	Fixes:
+		* Fixed inconsistent expand state and incorrect expand size when adding first child.
+			** Implemented firstChildAdded and updated lastChildRemoved for EntityItem.
+
+
 Version 18:
     New Features:
         * Enabled WhileLoop entity
@@ -11,7 +20,7 @@ Version 18:
         * All toolbar sub-menus are now filled and shown on mouse hover.
         * Added goTo definition/implementation shortcut buttons in the context toolbar.
         * Implemented "click-on" to connect nodes using the connect button in the toolbar.
-            ** The connectable node items in the view are highlighted.
+			** The connectable node items in the view are highlighted.
             ** This should also work for connecting multiple selection.
         * Implemented highlight of aspect button when the viewport is completely contained within the corresponding aspect.
         * Added dock items for BlackBox definitions in the dock.
@@ -67,6 +76,24 @@ Version 18:
         * Reimplemented filtering and signals and slots from the parts dock to the definitions and functions docks.
         * Changed the centralized Rectangle for medea.
         * CDCIN Bugs (439, 441, 446, 442, 451, 452 & 457)
+		* Fixed theme updates  for modelitem, clusters, toolbar and the view.
+		* Added aspect check for search
+		* Hardware dock not updating/clearing highlighted item until selection is changed.
+		* Updated toolbar for multiple selection to deal with Entity and Aspect items.
+		* Call NodeView::expandSelection(bool expand) from toolbar.
+		* Connect tool button/menu showing for AspectItems.
+		* Fixed search suggestions size problem; ignoring text truncation at the moment.
+		* Fixed filtering of definitions dock for different allowed kinds and construction of connected node for Aggregate and Vector instances.
+		* Fixed missing expand/contract buttons and always visible hardware cluster display mode button.
+		* Edge constructed signal is not getting sent from the view - docks not updating correctly.
+		* Stopped toolbar from showing in subviews.
+		* Fixed empty parts dock after new project is called.
+		* Added extra check for Vectors for the definitions dock. - Multiple updates are coming from edge/node construction/destruction
+		* The definitions dock can now only be accessed through the parts dock and it returns to the parts dock after an item in it has been clicked.
+		* Fixed switching between fullscreen and maximised state.
+		* Updated selectAndCenterItem in NodeView to use setStateExpanded.
+		* Re-added centering of node items when double-clicked (hitbox for EntityItem is the bodyRect).
+		  ** Switched double-click and middle click of aspect buttons. (Double-click now turns on and center).
 
 Version 17:
     New Features:

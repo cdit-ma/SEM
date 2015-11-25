@@ -16,12 +16,13 @@ ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, QWidget* parent) :
 
     if (nodeItem) {
         actionKind = nodeItem->getNodeKind();
-        setIcon(QIcon(QPixmap::fromImage(QImage(":/Items/" + actionKind))));
-        if (actionKind.endsWith("Definitions")) {
-            setText(actionKind);
+        if (nodeItem->isEntityItem()) {
+            EntityItem* entityItem = (EntityItem*)nodeItem;
+            setIcon(QIcon(QPixmap::fromImage(QImage(":/" + entityItem->getIconPrefix() + "/" + entityItem->getIconURL()))));
+            setText(nodeItem->getGraphMLDataValue("label"));
         } else {
-            QString nodeKind = nodeItem->getGraphMLDataValue("label");
-            setText(nodeKind);
+            setIcon(QIcon(QPixmap::fromImage(QImage(":/Items/" + actionKind))));
+            setText(actionKind);
         }
     } else {
         qWarning() << "ToolbarMenuAction::ToolbarMenuAction - NodeItem is null.";

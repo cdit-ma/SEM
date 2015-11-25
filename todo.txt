@@ -1,4 +1,3 @@
-
 ToDo List:
 Together:
 * Highlight Source (Maybe use Number on screen) for connect mode
@@ -14,38 +13,17 @@ Dan To Fix:
 * Fix Duplicate in Controller.
 * Add catch for when an AggregateInstance is constructed inside of its definition.
 
-    Todo:
-        * Test Ubuntu for local deployment.
-        * Test Import from XME on Ubuntu.
-        * Make sure threads are killed for local deployment.
-                * Need to update the dock buttons and window toolbar when the theme is changed.
-                * Clean up leftover toolbar layout stuff in medeawindow.
-                * Minimap visibleViewRect.
-                * Search result dialog/popup.
-
-
-
 Cathlyn To Fix:
-* Need to make sure that the definition dock only shows kinds which are returned from the list of getAdoptableNodeKinds()
 * Fix getNextChildPos() in NodeItem. (doesnt' work consistantly for sorting Aspect)
 * Work out useful short cuts for recursive sort and normal sort.
 * Add scrollbar for nodekinds menu in search options.
-Fixed:
-* Fixed theme updates  for modelitem, clusters, toolbar and the view.
-* Added aspect check for search
-* Hardware dock not updating/clearing highlighted item until selection is changed.
-* Updated toolbar for multiple selection to deal with Entity and Aspect items.
-* Call NodeView::expandSelection(bool expand) from toolbar.
-* Connect tool button/menu showing for AspectItems.
-* Fixed search suggestions size problem; ignoring text truncation at the moment.
-* Fixed filtering of definitions dock for different allowed kinds and construction of connected node for Aggregate and Vector instances.
-* Fixed missing expand/contract buttons.
-* Edge constructed signal is not getting sent from the view - docks not updating correctly.
-* Stopped toolbar from showing in subviews.
-* Fixed empty parts dock after new project is called.
-* Added extra check for Vectors for the definitions dock. - Multiple updates are coming from edge/node construction/destruction
-* The definitions dock can now only be accessed through the parts dock and it returns to the parts dock after an item in it has been clicked.
-* Fixed switching between fullscreen and maximised state.
-* Updated selectAndCenterItem in NodeView to use setStateExpanded.
-* Re-added centering of node items when double-clicked (hitbox for EntityItem is the bodyRect).
-  ** Switched double-click and middle click of aspect buttons. (Double-click now turns on and center).
+
+
+	Todo:
+		* Test Ubuntu for local deployment.
+		* Test Import from XME on Ubuntu.
+		* Make sure threads are killed for local deployment.
+		* Need to update the dock buttons and window toolbar when the theme is changed.
+		* Clean up leftover toolbar layout stuff in medeawindow.
+		* Minimap visibleViewRect.
+		* Search result dialog/popup.
