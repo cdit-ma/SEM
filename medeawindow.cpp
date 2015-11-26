@@ -129,6 +129,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     appSettings->setModal(true);
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QString)), this, SLOT(settingChanged(QString, QString, QString)));
 
+    this->setVisible(false);
     controllerThread = 0;
     controller = 0;
     tempExport = false;
@@ -247,6 +248,8 @@ void MedeaWindow::modelReady()
     }
 
     if(nodeView){
+        setVisible(true);
+        nodeView->setVisible(true);
         //Update viewport rect
         updateWidgetsOnWindowChanged();
         nodeView->fitToScreen();
@@ -1321,6 +1324,7 @@ void MedeaWindow::newProject()
 {
     //Disable NodeView.
     nodeView->setEnabled(false);
+    nodeView->setVisible(false);
     progressAction = "Setting up New Project";
 
     resetGUI();
