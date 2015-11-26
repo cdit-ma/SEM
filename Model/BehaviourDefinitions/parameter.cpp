@@ -20,6 +20,11 @@ bool Parameter::isReturnParameter()
     return !inputParameter;
 }
 
+bool Parameter::hasConnection()
+{
+    return hasEdges();
+}
+
 bool Parameter::canAdoptChild(Node *node)
 {
     return BehaviourNode::canAdoptChild(node);

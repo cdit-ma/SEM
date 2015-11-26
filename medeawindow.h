@@ -70,7 +70,7 @@ public:
     ~MedeaWindow();
 
 signals:
-
+    void window_SetViewVisible(bool visible);
 
     void window_ConnectViewAndSetupModel(NodeView* view);
     void jenkins_RunGroovyScript(QString groovyScriptPath);
@@ -202,6 +202,8 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+    bool canFilesBeDragImported(const QList<QUrl> files);
+    void setupApplication();
     void initialiseJenkinsManager();
     void initialiseCUTSManager();
     void importXMEProject(QString fileName);
@@ -450,6 +452,14 @@ private:
     bool validate_TempExport;
     QString validation_report_path;
 
+
+    // QWidget interface
+protected:
+    void dropEvent(QDropEvent *);
+
+    // QWidget interface
+protected:
+    void dragEnterEvent(QDragEnterEvent *);
 };
 
 

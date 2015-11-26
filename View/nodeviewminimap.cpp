@@ -21,26 +21,26 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
 {
     isPanning = false;
     setMouseTracking(true);
+    setDragMode(NoDrag);
 
-    //Set QT Options for this QGraphicsView
-    //setDragMode(NoDrag);
-    //setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
-    // setContextMenuPolicy(Qt::CustomContextMenu);
-    //setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-
-    //setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    //setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-    //setupLayout();
 }
 
 void NodeViewMinimap::centerView()
 {
     if (scene()) {
-        fitInView(scene()->itemsBoundingRect(), Qt::KeepAspectRatio);
-        //fitToScreen();
+        QRectF rect = scene()->itemsBoundingRect();
+        qCritical() << rect;
+        fitInView(rect, Qt::KeepAspectRatio);
     }
+}
+
+void NodeViewMinimap::setVisible(bool visible)
+{
+    QGraphicsView::setVisible(true);
+    viewport()->setVisible(visible);
 }
 
 
@@ -87,14 +87,14 @@ void NodeViewMinimap::fitToScreen()
 
 void NodeViewMinimap::viewportRectChanged(QRectF viewport)
 {
-    this->viewport = viewport;
+    this->viewportRect = viewport;
 }
 
 
 bool NodeViewMinimap::viewportContainsPoint(QPointF localPos)
 {
     QPointF scenePos = mapToScene(localPos.toPoint());
-    return viewport.contains(scenePos);
+    return viewportRect.contains(scenePos);
 }
 
 
@@ -104,7 +104,7 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     // it also still draws a rectangle representing what is currently shown in the view
     QPainterPath path, viewPath;
     path.addRect(rect);
-    viewPath.addRect(viewport);
+    viewPath.addRect(viewportRect);
     path -= viewPath;
 
     QBrush brush(QColor(0,0,0,100));
@@ -121,7 +121,7 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
     pen.setWidth(rect.height()/100);
     painter->setPen(pen);
     painter->setBrush(Qt::NoBrush);
-    painter->drawRect(viewport);
+    painter->drawRect(viewportRect);
 }
 
 
@@ -161,7 +161,7 @@ void NodeViewMinimap::mouseMoveEvent(QMouseEvent *event)
 
 void NodeViewMinimap::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    QPointF previousCenter = viewport.center();
+    QPointF previousCenter = viewportRect.center();
 
     QPointF currentPos = mapToScene(event->pos());
     QPointF delta = previousCenter - currentPos;
@@ -173,4 +173,24 @@ void NodeViewMinimap::mouseDoubleClickEvent(QMouseEvent *event)
 void NodeViewMinimap::wheelEvent(QWheelEvent *event)
 {
     minimap_Scrolled(event->delta());
+}
+
+void NodeViewMinimap::paintEvent(QPaintEvent * e)
+{
+    QGraphicsView::paintEvent(e);
+        QPainter painter(this->viewport());
+
+        painter.setBrush(Qt::NoBrush);
+        painter.setPen(Qt::black);
+        painter.drawRect(sceneRect());
+
+        painter.setPen(Qt::red);
+        painter.drawLine(QLine(sceneRect().topLeft().toPoint(),sceneRect().bottomRight().toPoint()));
+        painter.drawLine(QLine(sceneRect().topRight().toPoint(),sceneRect().bottomLeft().toPoint()));
+
+        painter.setPen(Qt::blue);
+        painter.drawLine(QLine(viewport()->rect().topLeft(),viewport()->rect().bottomRight()));
+        painter.drawLine(QLine(viewport()->rect().topRight(),viewport()->rect().bottomLeft()));
+
+
 }

@@ -10,6 +10,7 @@ public:
 
     bool isInputParameter();
     bool isReturnParameter();
+    bool hasConnection();
     // Node interface
 public:
     bool canAdoptChild(Node *node);

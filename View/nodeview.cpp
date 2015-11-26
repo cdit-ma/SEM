@@ -65,6 +65,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     showConnectLine = true;
     showSearchSuggestions = false;
 
+
     IS_SUB_VIEW = subView;
 
 
@@ -101,18 +102,16 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     MINIMAP_EVENT = false;
 
-    viewScene = new QGraphicsScene(this);
-    setScene(viewScene);
+    setScene(new QGraphicsScene(this));
 
     //Set QT Options for this QGraphicsView
     setDragMode(NoDrag);
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
-    // setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-    //setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 
+    setAcceptDrops(true);
 
-    this->viewScene->setItemIndexMethod(QGraphicsScene::NoIndex);
+   scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
 
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -228,13 +227,12 @@ bool NodeView::isNodeKindDeployable(QString nodeKind)
     return false;
 }
 
-void NodeView::setSceneVisible(bool visible)
+
+void NodeView::setVisible(bool visible)
 {
-    if (visible) {
-        setScene(viewScene);
-    } else {
-        setScene(new QGraphicsScene(this));
-    }
+    QGraphicsView::setVisible(true);
+    //Hide only the viewport.
+    viewport()->setVisible(visible);
 }
 
 bool NodeView::isMainView()
@@ -250,7 +248,6 @@ NodeView::~NodeView()
 
     if(parentNodeView && !parentNodeView->isTerminating()){
         parentNodeView->removeSubView(this);
-
     }
 }
 
@@ -427,14 +424,17 @@ QPointF NodeView::getModelScenePos()
  * @brief NodeView::adjustModelPosition
  * @param delta
  */
+void NodeView::adjustModelPosition(QPoint delta)
+{
+    QPointF floatDelta(delta.x(), delta.y());
+    adjustModelPosition(floatDelta);
+}
+
 void NodeView::adjustModelPosition(QPointF delta)
 {
-    ModelItem* modelItem = getModelItem();
-    if (modelItem) {
-        modelItem->adjustPos(delta);
-        // call this after the scene/model has been moved
-        aspectGraphicsChanged();
-    }
+    translate(delta.x(),delta.y());
+    //emit view_ModelSizeChanged();
+    aspectGraphicsChanged();
 }
 
 
@@ -526,6 +526,18 @@ QList<EdgeItem *> NodeView::getEdgeItemsList()
     return edgeItems;
 }
 
+
+void NodeView::dragEnterEvent(QDragEnterEvent *event)
+{
+    //Ignore the event so that MEDEA window will handle it.
+    event->ignore();
+}
+
+void NodeView::dropEvent(QDropEvent *event)
+{
+    //Ignore the event so that MEDEA window will handle it.
+    event->ignore();
+}
 
 
 /**
@@ -1517,9 +1529,8 @@ void NodeView::expandSelection(bool expand)
             if(child->isEntityItem()){
                 EntityItem* entity = (EntityItem*) child;
                 if(entity->isExpanded() != expand){
-                    entity->setStateExpanded(expand);
+                    emit view_SetGraphMLData(entity->getID(), "isExpanded", expand);
                 }
-                entity->updateSizeInModel();
             }
         }
         update();
@@ -1536,6 +1547,8 @@ void NodeView::modelReady()
         toolbar->updateFunctionList();
     }
 
+    setSceneRect(QRectF(0,0,10000,10000));
+    emit view_ModelSizeChanged();
     emit view_ModelReady();
 }
 
@@ -1747,9 +1760,8 @@ void NodeView::selectAndCenterItem(int ID)
             EntityItem* parentEntity = (EntityItem*) parentItem;
 
             // make sure that the parent of nodeItem is expanded
-            if (!parentEntity->isExpanded()) {
-                //parentEntity->setNodeExpanded(true);
-                parentEntity->setStateExpanded(true) ;
+            if (!parentEntity->isExpanded()){
+                emit view_SetGraphMLData(parentEntity->getID(), "isExpanded", true);
             }
 
             // if it's a HardwareNode, make sure that its parent cluster's view mode is set to ALL
@@ -2499,8 +2511,8 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     if(item){
         storeGraphMLItemInHash(item);
 
-        if(!viewScene->items().contains(item)){
-            viewScene->addItem(item);
+        if(!scene()->items().contains(item)){
+            scene()->addItem(item);
         }
 
         connectGraphMLItemToController(item);
@@ -2599,7 +2611,6 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
             return;
         }
 
-
         EntityItem* parent = getSharedEntityItemParent(srcGUI, dstGUI);
 
         if(!parent){
@@ -2636,9 +2647,9 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         */
 
 
-        if(!viewScene->items().contains(nodeEdge)){
+        if(!scene()->items().contains(nodeEdge)){
             //   //Add to model.
-            viewScene->addItem(nodeEdge);
+            scene()->addItem(nodeEdge);
         }
 
 
@@ -3194,9 +3205,11 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     if(item->isEdgeItem()){
         connect(edgeItem, SIGNAL(edgeItem_eventFromItem()), this, SLOT(setEventFromEdgeItem()));
     }
+    if(item->isAspectItem()){
+        connect(item, SIGNAL(GraphMLItem_SizeChanged()), this, SIGNAL(view_ModelSizeChanged()));
+    }
 
     if(item->isModelItem()){
-        connect(modelItem, SIGNAL(GraphMLItem_PositionChanged()), this, SIGNAL(view_ModelSizeChanged()));
         connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), modelItem, SLOT(themeChanged(VIEW_THEME)));
     }
 
@@ -3499,7 +3512,6 @@ EntityItem *NodeView::getSharedEntityItemParent(EntityItem *src, EntityItem *dst
         }
     }
 
-    qCritical() << "NO NODE";
     return 0;
 }
 
@@ -3547,7 +3559,7 @@ GraphMLItem *NodeView::getGraphMLItemFromScreenPos(QPoint pos)
 {
     QPointF scenePos = mapToScene(pos);
 
-    foreach(QGraphicsItem* item, viewScene->items(scenePos)){
+    foreach(QGraphicsItem* item, scene()->items(scenePos)){
         GraphMLItem* graphmlItem =  dynamic_cast<GraphMLItem*>(item);
         if(graphmlItem){
             return graphmlItem;
@@ -3675,7 +3687,7 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
             if (showConnectLine) {
                 if(!connectLine){
-                    connectLine = viewScene->addLine(line);
+                    connectLine = scene()->addLine(line);
                 }
                 connectLine->setLine(line);
                 connectLine->setZValue(100);
@@ -3687,9 +3699,8 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
             setState(VS_PANNING);
         }
 
-        QPointF currentScenePos = mapToScene(event->pos());
-        QPointF delta = currentScenePos - panningSceneOrigin;
-        panningSceneOrigin = currentScenePos;
+        QPoint delta = event->pos() - panningOrigin;
+        panningOrigin = event->pos();
 
         adjustModelPosition(delta);
         return;
@@ -3751,7 +3762,6 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         case VS_SELECTED:
             setState(VS_PAN);
             panningOrigin = event->pos();
-            panningSceneOrigin = mapToScene(panningOrigin);
             return;
         }
         break;
@@ -4553,13 +4563,11 @@ void NodeView::showLocalNode(bool show)
  */
 void NodeView::toggleZoomAnchor(bool underMouse)
 {
-    qDebug() << "Zoom under mouse: " << underMouse;
     if (underMouse) {
         setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     } else {
         setTransformationAnchor(QGraphicsView::AnchorViewCenter);
     }
-    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 }
 
 

@@ -108,8 +108,10 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
-    this->setVisible(false);
-    setForegroundRole(QPalette::NoRole);
+    setupApplication();
+
+    setAcceptDrops(true);
+
 
     WINDOW_MAXIMIZED = false;
     WINDOW_FULLSCREEN = false;
@@ -232,10 +234,7 @@ void MedeaWindow::enableTempExport(bool enable)
  */
 void MedeaWindow::setApplicationEnabled(bool enable)
 {
-    if (nodeView) {
-        //nodeView->blockSignals(enable);
-        nodeView->setSceneVisible(enable);
-    }
+    emit window_SetViewVisible(enable);
     setEnabled(enable);
 }
 
@@ -1359,6 +1358,8 @@ void MedeaWindow::newProject()
 void MedeaWindow::makeConnections()
 {
     validateResults.connectToWindow(this);
+    connect(this, SIGNAL(window_SetViewVisible(bool)), nodeView, SLOT(setVisible(bool)));
+    connect(this, SIGNAL(window_SetViewVisible(bool)), minimap, SLOT(setVisible(bool)));
 
     connect(this, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)), nodeView, SLOT(toggleAspect(VIEW_ASPECT,bool)));
     connect(this, SIGNAL(window_centerAspect(VIEW_ASPECT)), nodeView, SLOT(centerAspect(VIEW_ASPECT)));
@@ -1595,6 +1596,39 @@ void MedeaWindow::changeEvent(QEvent *event)
     if (event->type() == QEvent::WindowStateChange){
         updateWidgetsOnWindowChanged();
     }
+}
+
+bool MedeaWindow::canFilesBeDragImported(QList<QUrl> files)
+{
+    foreach (const QUrl &url, files){
+        QFileInfo fileInfo(url.toLocalFile());
+        if(fileInfo.isFile()){
+            if(fileInfo.fileName().endsWith(".graphml", Qt::CaseInsensitive)){
+                //Only Accept *.graphml files
+                continue;
+            }
+        }
+        return false;
+    }
+    return true;
+}
+
+
+void MedeaWindow::setupApplication()
+{
+    //Set QApplication information.
+    QApplication::setApplicationName("MEDEA");
+    QApplication::setApplicationVersion("19");
+    QApplication::setOrganizationName("Defence Information Group");
+    QApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
+    QApplication::setWindowIcon(QIcon(":/Actions/MEDEA.png"));
+
+    //Set Font.
+    int fontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
+    QString fontName = QFontDatabase::applicationFontFamilies(fontID).at(0);
+    QFont font = QFont(fontName);
+    font.setPointSizeF(8.5);
+    QApplication::setFont(font);
 }
 
 /**
@@ -3488,6 +3522,26 @@ QTemporaryFile* MedeaWindow::writeTemporaryFile(QString data)
     return tempFile;
 }
 
+void MedeaWindow::dropEvent(QDropEvent *event)
+{
+    QStringList fileList;
+    foreach (const QUrl &url, event->mimeData()->urls()) {
+        fileList << url.toLocalFile();
+    }
+    if(!fileList.isEmpty()){
+        progressAction = "Importing GraphML via Drag";
+        importProjects(fileList);
+    }
+}
+
+void MedeaWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    if (event->mimeData()->hasUrls()) {
+        if(canFilesBeDragImported(event->mimeData()->urls())){
+            event->acceptProposedAction();
+        }
+    }
+}
 
 
 /**
