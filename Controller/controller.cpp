@@ -28,6 +28,7 @@ NewController::NewController()
 
     USE_LOGGING = false;
     UNDOING = false;
+    INITIALIZING = true;
     REDOING = false;
     DELETING = false;
     CUT_USED = false;
@@ -188,13 +189,9 @@ void NewController::connectView(NodeView *view)
 void NewController::initializeModel()
 {
     setupModel();
-    clearHistory();
-
-
     loadWorkerDefinitions();
-
-    qCritical() << treeLookup;
-
+    clearHistory();
+    INITIALIZING = false;
     emit controller_ModelReady();
 }
 
@@ -220,8 +217,6 @@ void NewController::loadWorkerDefinitions()
     //We will be importing into the workerDefinitions aspect.
     Node* workerDefinition = getWorkerDefinitions();
     if(workerDefinition){
-
-
         QList<QDir> workerDirectories;
         workerDirectories << QDir(":/WorkerDefinitions");
         if(externalWorkerDefPath != ""){
@@ -4301,15 +4296,13 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
 
     if(parent->isInstance() || parent->isImpl()){
-        if(!(UNDOING || REDOING || IMPORTING_SNIPPET)){
-            //emit controller_DialogMessage(CRITICAL, "Error", "Cannot import or paste into an Instance/Implementation.", parent);
+        if(!(UNDOING || REDOING)){
             emit controller_DisplayMessage(WARNING, "Error", "Cannot import or paste into an Instance/Implementation.", parent->getID());
             return false;
         }
     }
 
     if(!isGraphMLValid(document)){
-        qCritical() << "INVALID DOCUMENT";
         emit controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import; invalid GraphML document.", parent->getID());
         return false;
     }
@@ -4337,6 +4330,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     int resetIgnoreParentID = 0;
 
 
+    int previousPercentage = -1;
     //While the document has more lines.
     while(!xml.atEnd()){
         QTime newTimer;
@@ -4347,9 +4341,12 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
         //Calculate the current percentage
         float lineNumber = xml.lineNumber();
-        double percentage = (lineNumber * 100 / lineCount);
-        if(!(UNDOING || REDOING)){
-            controller_ActionProgressChanged((int)percentage);
+        int currentPercentage = (lineNumber * 100.0 / lineCount);
+        if(currentPercentage > previousPercentage){
+            previousPercentage = currentPercentage;
+            if(!(UNDOING || REDOING || INITIALIZING)){
+                controller_ActionProgressChanged(currentPercentage);
+            }
         }
 
         //Get the tagName
@@ -4419,7 +4416,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 if(resetPos && originalParent == parent){
                     QString keyName = dataKey->getName();
                     if(keyName == "x" || keyName == "y"){
-                        data->setValue("-1");
+                        data->setValue(-1);
                     }
                 }
 
@@ -4645,7 +4642,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     }
 
 
-    if(!(UNDOING || REDOING)){
+    if(!(UNDOING || REDOING || INITIALIZING)){
        controller_ActionProgressChanged(0, "Constructing Edges.");
     }
 
@@ -4747,7 +4744,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
             }
         }
 
-        if(!(UNDOING || REDOING)){
+        if(!(UNDOING || REDOING || INITIALIZING)){
               emit controller_ActionProgressChanged((100 * totalEdges)/edgesMade);
           }
     }
@@ -4756,7 +4753,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
 
 
-    if(!(UNDOING || REDOING)){
+    if(!(UNDOING || REDOING || INITIALIZING)){
         controller_ActionProgressChanged(100);
     }
 

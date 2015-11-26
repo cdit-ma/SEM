@@ -407,6 +407,7 @@ private:
     //Used to tell if we are currently Undo-ing/Redo-ing in the system.
     bool UNDOING;
     bool REDOING;
+    bool INITIALIZING;
     bool USE_LOGGING;
     bool IMPORTING_SNIPPET;
 

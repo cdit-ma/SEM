@@ -148,7 +148,6 @@ public:
     void addChildOutline(EntityItem* EntityItem, QPointF gridPoint);
     void removeChildOutline(int ID);
 
-    void setStateExpanded(bool expanded);
     qreal getWidth() const;
     qreal getHeight() const;
 

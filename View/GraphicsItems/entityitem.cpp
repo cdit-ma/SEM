@@ -335,7 +335,9 @@ void EntityItem::setNodeConnectable(bool connectable)
 
 void EntityItem::handleExpandState(bool newState)
 {
-    prepareGeometryChange();
+    if(newState != IS_EXPANDED_STATE){
+        prepareGeometryChange();
+    }
     IS_EXPANDED_STATE = newState;
 
     //Show/Hide the non-hidden children.
@@ -1043,16 +1045,6 @@ void EntityItem::removeChildOutline(int ID)
     }
 }
 
-void EntityItem::setStateExpanded(bool expanded)
-{
-    IS_EXPANDED_STATE = expanded;
-    emit GraphMLItem_SizeChanged();
-
-    //UPdate parent
-    updateSizeInModel();
-    //qCritical() << "SET STATE EXPANDED: " << expanded;
-    emit GraphMLItem_SetGraphMLData(this->getID(), "isExpanded", expanded);
-}
 
 
 
@@ -1363,8 +1355,7 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
                     GraphMLItem_TriggerAction("Expanded Node Item");
                 }
 
-                setStateExpanded(!isExpandedState());
-                //updateSizeInModel();
+                emit GraphMLItem_SetGraphMLData(getID(), "isExpanded", !isExpandedState());
             }
             break;
         case MO_BOT_LABEL:
@@ -2693,12 +2684,6 @@ void EntityItem::childSizeChanged()
  */
 void EntityItem::firstChildAdded(GraphMLItem* child)
 {
-    // added this to fix inconsistent expand state
-    setStateExpanded(true);
-
-    // forcing this item to be expanded above sometimes sets the wrong expanded size
-    resizeToOptimumSize();
-
     if (IS_VECTOR) {
         QString childKind = child->getNodeKind();
         if (childKind.startsWith("Member")) {
@@ -2715,7 +2700,8 @@ void EntityItem::firstChildAdded(GraphMLItem* child)
  */
 void EntityItem::lastChildRemoved()
 {
-    setStateExpanded(false);
+    //Update
+    emit GraphMLItem_SetGraphMLData(getID(), "isExpanded", !isExpandedState());
 
     if (IS_VECTOR) {
         vectorIconURL = nodeKind;

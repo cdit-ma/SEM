@@ -21,7 +21,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
         }
     }
 
-    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "isExpanded" << "originalID"; // << "kind";
+    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID"; // << "kind";
     permanentlyLockedKeyNames << "kind";
  	multiLineKeyNames << "code";
     setupDataBinding();

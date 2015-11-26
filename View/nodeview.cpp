@@ -1519,9 +1519,8 @@ void NodeView::expandSelection(bool expand)
             if(child->isEntityItem()){
                 EntityItem* entity = (EntityItem*) child;
                 if(entity->isExpanded() != expand){
-                    entity->setStateExpanded(expand);
+                    emit view_SetGraphMLData(entity->getID(), "isExpanded", expand);
                 }
-                entity->updateSizeInModel();
             }
         }
         update();
@@ -1749,9 +1748,8 @@ void NodeView::selectAndCenterItem(int ID)
             EntityItem* parentEntity = (EntityItem*) parentItem;
 
             // make sure that the parent of nodeItem is expanded
-            if (!parentEntity->isExpanded()) {
-                //parentEntity->setNodeExpanded(true);
-                parentEntity->setStateExpanded(true) ;
+            if (!parentEntity->isExpanded()){
+                emit view_SetGraphMLData(parentEntity->getID(), "isExpanded", true);
             }
 
             // if it's a HardwareNode, make sure that its parent cluster's view mode is set to ALL
@@ -2601,9 +2599,6 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
             return;
         }
 
-
-        qCritical() << srcGUI->getGraphML()->toString();
-        qCritical() << dstGUI->getGraphML()->toString();
         EntityItem* parent = getSharedEntityItemParent(srcGUI, dstGUI);
 
         if(!parent){
@@ -3497,14 +3492,12 @@ EntityItem *NodeView::getSharedEntityItemParent(EntityItem *src, EntityItem *dst
     if(controller){
         int ID = controller->getSharedParent(src->getID(), dst->getID());
 
-        qCritical() << ID;
         EntityItem* node = getEntityItemFromID(ID);
         if(node){
             return node;
         }
     }
 
-    qCritical() << "NO NODE";
     return 0;
 }
 
