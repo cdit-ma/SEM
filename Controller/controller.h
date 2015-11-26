@@ -2,6 +2,7 @@
 #define NEWCONTROLLER_H
 #include <QStack>
 #include <QFile>
+#include <QPointF>
 #include "../Model/model.h"
 #include "../Model/workerdefinitions.h"
 
@@ -263,7 +264,7 @@ private:
 
 
     //Constructs a Vector of basic GraphMLData entities required for creating a Node.
-    QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1));
+    QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1.0,-1.0));
 
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
