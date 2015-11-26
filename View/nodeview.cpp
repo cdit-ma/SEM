@@ -101,6 +101,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
 
     MINIMAP_EVENT = false;
+
     setScene(new QGraphicsScene(this));
 
     //Set QT Options for this QGraphicsView
@@ -110,7 +111,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     setAcceptDrops(true);
 
-    scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
+   scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
 
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -226,6 +227,14 @@ bool NodeView::isNodeKindDeployable(QString nodeKind)
     return false;
 }
 
+
+void NodeView::setVisible(bool visible)
+{
+    QGraphicsView::setVisible(true);
+    //Hide only the viewport.
+    viewport()->setVisible(visible);
+}
+
 bool NodeView::isMainView()
 {
     return !IS_SUB_VIEW;
@@ -239,7 +248,6 @@ NodeView::~NodeView()
 
     if(parentNodeView && !parentNodeView->isTerminating()){
         parentNodeView->removeSubView(this);
-
     }
 }
 
@@ -416,14 +424,17 @@ QPointF NodeView::getModelScenePos()
  * @brief NodeView::adjustModelPosition
  * @param delta
  */
+void NodeView::adjustModelPosition(QPoint delta)
+{
+    QPointF floatDelta(delta.x(), delta.y());
+    adjustModelPosition(floatDelta);
+}
+
 void NodeView::adjustModelPosition(QPointF delta)
 {
-    ModelItem* modelItem = getModelItem();
-    if (modelItem) {
-        modelItem->adjustPos(delta);
-        // call this after the scene/model has been moved
-        aspectGraphicsChanged();
-    }
+    translate(delta.x(),delta.y());
+    //emit view_ModelSizeChanged();
+    aspectGraphicsChanged();
 }
 
 
@@ -527,7 +538,6 @@ void NodeView::dropEvent(QDropEvent *event)
     //Ignore the event so that MEDEA window will handle it.
     event->ignore();
 }
-
 
 
 /**
@@ -1537,6 +1547,8 @@ void NodeView::modelReady()
         toolbar->updateFunctionList();
     }
 
+    setSceneRect(QRectF(0,0,10000,10000));
+    emit view_ModelSizeChanged();
     emit view_ModelReady();
 }
 
@@ -3193,9 +3205,11 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     if(item->isEdgeItem()){
         connect(edgeItem, SIGNAL(edgeItem_eventFromItem()), this, SLOT(setEventFromEdgeItem()));
     }
+    if(item->isAspectItem()){
+        connect(item, SIGNAL(GraphMLItem_SizeChanged()), this, SIGNAL(view_ModelSizeChanged()));
+    }
 
     if(item->isModelItem()){
-        connect(modelItem, SIGNAL(GraphMLItem_PositionChanged()), this, SIGNAL(view_ModelSizeChanged()));
         connect(this, SIGNAL(view_themeChanged(VIEW_THEME)), modelItem, SLOT(themeChanged(VIEW_THEME)));
     }
 
@@ -3685,9 +3699,8 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
             setState(VS_PANNING);
         }
 
-        QPointF currentScenePos = mapToScene(event->pos());
-        QPointF delta = currentScenePos - panningSceneOrigin;
-        panningSceneOrigin = currentScenePos;
+        QPoint delta = event->pos() - panningOrigin;
+        panningOrigin = event->pos();
 
         adjustModelPosition(delta);
         return;
@@ -3749,7 +3762,6 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         case VS_SELECTED:
             setState(VS_PAN);
             panningOrigin = event->pos();
-            panningSceneOrigin = mapToScene(panningOrigin);
             return;
         }
         break;
@@ -4551,13 +4563,11 @@ void NodeView::showLocalNode(bool show)
  */
 void NodeView::toggleZoomAnchor(bool underMouse)
 {
-    qDebug() << "Zoom under mouse: " << underMouse;
     if (underMouse) {
         setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
     } else {
         setTransformationAnchor(QGraphicsView::AnchorViewCenter);
     }
-    setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 }
 
 

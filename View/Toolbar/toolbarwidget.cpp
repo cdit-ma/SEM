@@ -75,7 +75,7 @@ void ToolbarWidget::updateFunctionList()
 {
 
     if(nodeView){
-    QPair<QString, QString> function;
+        QPair<QString, QString> function;
         foreach (function, nodeView->getFunctionsList()){
             QString className = function.first;
             QString functionName = function.second;
@@ -894,6 +894,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
     }
 
     QList<NodeItem*> legalNodes;
+    bool setupLegalNodes = false;
     bool deployable = true;
 
     // need to clear menus before updating them
@@ -930,9 +931,13 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         }
 
         // only show the displayed children option button if the selected item is a HardwareCluster
-        if (entityItem && entityItem->isHardwareCluster()) {
-            hardwareClusterMenuClicked(entityItem->getHardwareClusterChildrenViewMode());
-            displayedChildrenOptionButton->show();
+        if (entityItem) {
+            if (entityItem->isHardwareCluster()) {
+                hardwareClusterMenuClicked(entityItem->getHardwareClusterChildrenViewMode());
+                displayedChildrenOptionButton->show();
+            } else if (!entityItem->isHardwareNode()) {
+                setupLegalNodes = true;
+            }
         }
 
         // setup selected item's adoptable nodes menu and sub-menus, and its instances menu
@@ -975,6 +980,11 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             }
 
             EntityItem* entityItem = (EntityItem*)item_i;
+
+            // only clear the legal nodes list if all selected items are hardware
+            if (!setupLegalNodes && (!entityItem->isHardwareNode() || !entityItem->isHardwareCluster())) {
+                setupLegalNodes = true;
+            }
 
             // check if all the selected items are HardwareClusters
             if (entityItem->isHardwareCluster()) {
@@ -1044,7 +1054,9 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
     }
 
     // setup connectable nodes menu for the selected item(s)
-    setupLegalNodesList(legalNodes);
+    if (setupLegalNodes) {
+        setupLegalNodesList(legalNodes);
+    }
 }
 
 

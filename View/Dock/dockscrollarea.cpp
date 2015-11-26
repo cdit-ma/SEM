@@ -15,6 +15,7 @@ DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton* 
 {
     nodeView = view;
     currentNodeItem = 0;
+    currentNodeItemID = -1;
 
     this->label = label;
     dockOpen = false;

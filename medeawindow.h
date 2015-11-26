@@ -211,6 +211,8 @@ private:
     void toolbarSettingChanged(QString keyName, QString value);
     void enableTempExport(bool enable);
 
+    void setApplicationEnabled(bool enable);
+
     void resetGUI();
     void resetView();
     void newProject();
