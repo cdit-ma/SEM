@@ -100,14 +100,13 @@ void AspectToggleWidget::click(bool checked, int state)
 {
     switch (state) {
     case CLICKED:
-        qDebug() << "CLICKED";
+        //qDebug() << "CLICKED";
         CHECKED = checked;
         break;
     case DOUBLECLICKED:
-        qDebug() << "DOUBLECLICKED";
+        //qDebug() << "DOUBLECLICKED";
         CHECKED = true;
-        //stateChanged();
-        emit aspectToggled(viewAspect, CHECKED);
+        stateChanged();
         emit aspectToggle_doubleClicked(getAspect());
         return;
     case MIDDLECLICKED:
