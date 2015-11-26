@@ -108,6 +108,8 @@ public:
     bool isNodeKindDeployable(QString nodeKind);
 
 
+    void setSceneVisible(bool visible);
+
 
     void aspectGraphicsChanged();
     void setupTheme(VIEW_THEME theme = VT_NORMAL_THEME);
@@ -534,6 +536,8 @@ private:
     bool showSearchSuggestions;
     bool showConnectLine;
     int prevHighlightedFromToolbarID;
+
+    QGraphicsScene* viewScene;
 
     // QWidget interface
 };
