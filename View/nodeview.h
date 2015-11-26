@@ -108,7 +108,7 @@ public:
     bool isNodeKindDeployable(QString nodeKind);
 
 
-    void setSceneVisible(bool visible);
+    void setVisible(bool visible);
 
 
     void aspectGraphicsChanged();
@@ -395,6 +395,7 @@ private:
     void centerViewOn(QPointF center);
     void recenterView(QPointF modelPos, QRectF centeredRect, bool addToMap = false);
     void adjustModelPosition(QPointF delta);
+    void adjustModelPosition(QPoint delta);
     void addToMaps(QPointF modelPos, QRectF centeredRect);
     void clearMaps(int fromKey = 0);
 
@@ -472,7 +473,8 @@ private:
     QPointF toolbarPosition;
     QPointF centerPoint;
     QPointF prevCenterPoint;
-    QPointF panningSceneOrigin;
+    //QPointF panningSceneOrigin;
+    QPoint testSceneOrigin;
 
     int centralizedItemID;
     int prevSelectedNodeID;
@@ -537,7 +539,6 @@ private:
     bool showConnectLine;
     int prevHighlightedFromToolbarID;
 
-    QGraphicsScene* viewScene;
 
     // QWidget interface
 

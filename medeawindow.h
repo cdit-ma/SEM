@@ -70,7 +70,7 @@ public:
     ~MedeaWindow();
 
 signals:
-
+    void window_SetViewVisible(bool visible);
 
     void window_ConnectViewAndSetupModel(NodeView* view);
     void jenkins_RunGroovyScript(QString groovyScriptPath);

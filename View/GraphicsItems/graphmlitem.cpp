@@ -268,6 +268,16 @@ QRectF GraphMLItem::boundingRect() const
     return QRect();
 }
 
+QRectF GraphMLItem::childrenBoundingRect()
+{
+    QRectF rect;
+
+    foreach(GraphMLItem* child, getChildren()){
+        rect = rect.united(child->translatedBoundingRect());
+    }
+    return rect;
+}
+
 QRectF GraphMLItem::translatedBoundingRect()
 {
     QRectF rect = boundingRect();

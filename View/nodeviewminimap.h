@@ -17,8 +17,9 @@ signals:
 
 
 public slots:
-    void viewportRectChanged(QRectF viewport);
+    void viewportRectChanged(QRectF viewportRect);
     void centerView();
+    void setVisible(bool visible);
 
 private:
     void setupLayout();
@@ -26,11 +27,12 @@ private:
     bool viewportContainsPoint(QPointF localPos);
 
     QPointF previousScenePos;
-    QRectF viewport;
+    QRectF viewportRect;
     bool isPanning;
 
 protected:
     void drawForeground(QPainter *painter, const QRectF &rect);
+    void paintEvent(QPaintEvent * e);
 
     // QWidget interface
 protected:

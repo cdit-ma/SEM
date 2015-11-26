@@ -73,7 +73,7 @@ public:
     QList<EdgeItem*> getEdgeItems();
     //void setParentItem(QGraphicsItem* parent);
     QRectF boundingRect() const;
-    QRectF childrenBoundingRect();
+
     QRectF minimumRect() const;
     QRectF sceneBoundingRect() const;
     QRectF expandedBoundingRect() const;

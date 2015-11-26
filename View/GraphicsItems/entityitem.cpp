@@ -461,16 +461,6 @@ QRectF EntityItem::boundingRect() const
     return QRectF(QPointF(left, top), QPointF(right, bot));
 }
 
-QRectF EntityItem::childrenBoundingRect()
-{
-    QRectF rect;
-
-    foreach(GraphMLItem* child, getChildren()){
-        rect = rect.united(child->translatedBoundingRect());
-    }
-    return rect;
-}
-
 
 QRectF EntityItem::minimumRect() const
 {

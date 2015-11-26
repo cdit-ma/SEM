@@ -23,6 +23,7 @@ public:
     ~GraphMLItem();
     virtual QRectF sceneBoundingRect() const;
     virtual QRectF boundingRect() const;
+    QRectF childrenBoundingRect();
     QRectF translatedBoundingRect();
     QString getNodeKind();
     RENDER_STATE getRenderState() const;
