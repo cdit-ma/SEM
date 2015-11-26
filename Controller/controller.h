@@ -264,7 +264,7 @@ private:
 
 
     //Constructs a Vector of basic GraphMLData entities required for creating a Node.
-    QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1.0,-1.0));
+    QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1));
 
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
