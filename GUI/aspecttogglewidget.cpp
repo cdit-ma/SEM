@@ -21,8 +21,8 @@
  * @param size
  * @param parent
  */
-AspectToggleWidget::AspectToggleWidget(VIEW_ASPECT aspect, double size, MedeaWindow* parent) :
-    QWidget(parent)
+AspectToggleWidget::AspectToggleWidget(VIEW_ASPECT aspect, double size, MedeaWindow* parentWindow) :
+    QWidget(parentWindow)
 {
     shadowFrame = new QFrame(this);
     mainFrame = new QFrame(this);
@@ -31,15 +31,17 @@ AspectToggleWidget::AspectToggleWidget(VIEW_ASPECT aspect, double size, MedeaWin
     aspectText = GET_ASPECT_NAME(aspect);
 
     CHECKED = false;
+    ENABLED = true;
     STATE = DEFAULT;
 
     setupColor();
     setupLayout(size);
 
-    connect(this, SIGNAL(aspectToggled(VIEW_ASPECT,bool)), parent, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)));
-    connect(this, SIGNAL(aspectToggle_doubleClicked(VIEW_ASPECT)), parent, SIGNAL(window_centerAspect(VIEW_ASPECT)));
-    connect(this, SIGNAL(aspectToggle_middleClicked(VIEW_ASPECT)), parent, SIGNAL(window_aspectMiddleClicked(VIEW_ASPECT)));
-    connect(parent, SIGNAL(window_aspectMiddleClicked(VIEW_ASPECT)), this, SLOT(aspectMiddleClicked(VIEW_ASPECT)));
+    connect(this, SIGNAL(aspectToggled(VIEW_ASPECT,bool)), parentWindow, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)));
+    connect(this, SIGNAL(aspectToggle_doubleClicked(VIEW_ASPECT)), parentWindow, SIGNAL(window_centerAspect(VIEW_ASPECT)));
+    connect(this, SIGNAL(aspectToggle_middleClicked(VIEW_ASPECT)), parentWindow, SIGNAL(window_aspectMiddleClicked(VIEW_ASPECT)));
+    connect(parentWindow, SIGNAL(window_aspectMiddleClicked(VIEW_ASPECT)), this, SLOT(aspectMiddleClicked(VIEW_ASPECT)));
+    connect(parentWindow, SIGNAL(window_SetViewVisible(bool)), this, SLOT(enableToggleButton(bool)));
 }
 
 
@@ -98,11 +100,14 @@ void AspectToggleWidget::click(bool checked, int state)
 {
     switch (state) {
     case CLICKED:
+        qDebug() << "CLICKED";
         CHECKED = checked;
         break;
     case DOUBLECLICKED:
+        qDebug() << "DOUBLECLICKED";
         CHECKED = true;
-        stateChanged();
+        //stateChanged();
+        emit aspectToggled(viewAspect, CHECKED);
         emit aspectToggle_doubleClicked(getAspect());
         return;
     case MIDDLECLICKED:
@@ -134,8 +139,10 @@ bool AspectToggleWidget::isClicked()
  */
 void AspectToggleWidget::setClicked(bool checked)
 {
-    CHECKED = checked;
-    stateChanged();
+    if (CHECKED != checked) {
+        CHECKED = checked;
+        stateChanged();
+    }
 }
 
 
@@ -216,6 +223,19 @@ void AspectToggleWidget::highlightToggleButton(VIEW_ASPECT aspect)
 
 
 /**
+ * @brief AspectToggleWidget::enableToggleButton
+ * @param enable
+ */
+void AspectToggleWidget::enableToggleButton(bool enable)
+{
+    if (ENABLED != enable) {
+        ENABLED = enable;
+        updateStyleSheet();
+    }
+}
+
+
+/**
  * @brief AspectToggleWidget::toColorStr
  * @param color
  * @param alpha
@@ -267,6 +287,7 @@ void AspectToggleWidget::setupColor()
     QColor darkerAspectColor = adjustColorRGB(aspectColor, -55); //-15);
     int checkedAlpha = 250;
 
+    disabledColor = colorToString(Qt::darkGray);
     defaultColor = colorToString(darkerAspectColor);
     p1_Color = colorToString(adjustColorRGB(darkerAspectColor, 175), checkedAlpha);
     p2_Color = colorToString(adjustColorRGB(darkerAspectColor, 15), checkedAlpha);
@@ -320,16 +341,18 @@ void AspectToggleWidget::stateChanged()
  */
 void AspectToggleWidget::updateStyleSheet()
 {
-    if (CHECKED) {
-        mainFrame->move(SHADOW_OFFSET, SHADOW_OFFSET);
-        mainFrame->setStyleSheet("border-radius: 8px;"
-                                 "background-color:"
-                                 "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
-                                 "stop:0 " + p1_Color + ", stop:1.0 " + p2_Color + ");");
-        //"stop:0 " + p1_Color + ", stop:0.5 " + p3_Color + "," +
-        //"stop:0.5 " + p4_Color + ", stop:1.0 " + p2_Color + ");");
+    if (ENABLED) {
+        if (CHECKED) {
+            mainFrame->move(SHADOW_OFFSET, SHADOW_OFFSET);
+            mainFrame->setStyleSheet("border-radius: 8px;"
+                                     "background-color:"
+                                     "qlineargradient(x1:0, y1:0, x2:0, y2:1.0,"
+                                     "stop:0 " + p1_Color + ", stop:1.0 " + p2_Color + ");");
+        } else {
+            mainFrame->move(0, 0);
+            mainFrame->setStyleSheet("border-radius: 8px; background-color:" + defaultColor + ";");
+        }
     } else {
-        mainFrame->move(0, 0);
-        mainFrame->setStyleSheet("border-radius: 8px; background-color:" + defaultColor + ";");
-    }\
+        mainFrame->setStyleSheet("border-radius: 8px; background-color:" + disabledColor + ";");
+    }
 }

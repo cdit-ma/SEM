@@ -14,7 +14,7 @@ class AspectToggleWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit AspectToggleWidget(VIEW_ASPECT viewAspect, double size,  MedeaWindow* parent);
+    explicit AspectToggleWidget(VIEW_ASPECT viewAspect, double size,  MedeaWindow* parentWindow);
 
     QString getText();
     QPoint getToggleGridPos();
@@ -35,6 +35,7 @@ signals:
 public slots:
     void aspectMiddleClicked(VIEW_ASPECT viewAspect);
     void highlightToggleButton(VIEW_ASPECT viewAspect);
+    void enableToggleButton(bool enable);
 
 private:
     QString colorToString(QColor color, int alpha = 255);
@@ -56,12 +57,14 @@ private:
     QFrame* mainFrame;
 
     QString defaultColor;
+    QString disabledColor;
     QString p1_Color;
     QString p2_Color;
     QString p3_Color;
     QString p4_Color;
 
     bool CHECKED;
+    bool ENABLED;
     int STATE;
 
 };

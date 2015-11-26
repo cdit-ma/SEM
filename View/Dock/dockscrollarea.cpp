@@ -297,6 +297,7 @@ bool DockScrollArea::isDockOpen()
  */
 void DockScrollArea::updateDock()
 {
+    // TODO - Get and use list of allowed kinds instead!
     if (currentNodeItemID != -1) {
         if (currentNodeItem) {
             if (notAllowedKinds.contains(currentNodeItem->getNodeKind())) {

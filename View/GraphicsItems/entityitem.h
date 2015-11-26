@@ -221,6 +221,8 @@ signals:
 
     void entityItem_iconChanged();
 
+    void entityItem_lastChildRemoved(int parentID);
+
 
 public slots:
     void labelEditModeRequest();

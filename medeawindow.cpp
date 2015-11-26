@@ -244,11 +244,14 @@ void MedeaWindow::setApplicationEnabled(bool enable)
  */
 void MedeaWindow::modelReady()
 {
-    // reset the view
+    // reset the view - clear history and selection
     resetView();
 
-    // reload the initial settings
+    // load the initial settings
     setupInitialSettings();
+
+    // re-enable the window and view
+    setApplicationEnabled(true);
 
     //Load loadLaunchedFile
     if(loadLaunchedFile){
@@ -256,18 +259,6 @@ void MedeaWindow::modelReady()
         files << launchFilePathArg;
         importProjects(files);
         loadLaunchedFile = false;
-    }
-
-    if(nodeView){
-        //nodeView->setVisible(true);
-        //setVisible(true);
-        //setEnabled(true);
-        //nodeView->setSceneVisible(true);
-        //nodeView->setVisible(true);
-        setApplicationEnabled(true);
-        //Update viewport rect
-        updateWidgetsOnWindowChanged();
-        nodeView->fitToScreen();
     }
 }
 
@@ -431,7 +422,7 @@ void MedeaWindow::initialiseGUI()
                   "QCheckBox { padding: 0px 10px 0px 0px; }"
                   "QCheckBox::indicator { width: 25px; height: 25px; }"
                   "QCheckBox:checked { color: green; font-weight: bold; }"
-
+/*
                   "QProgressBar {"
                   "border: 2px solid gray;"
                   "border-radius: 10px;"
@@ -443,7 +434,7 @@ void MedeaWindow::initialiseGUI()
                   "border-radius: 7px;"
                   "background: rgb(0,204,0);"
                   "}"
-
+*/
                   "QGroupBox {"
                   "background-color: rgba(0,0,0,0);"
                   "border: 0px;"
@@ -513,6 +504,7 @@ void MedeaWindow::initialiseGUI()
     // setup progress bar
     progressBar->setVisible(false);
     progressBar->setFixedSize(rightPanelWidth*2, 20);
+    //progressBar->setRange(0, 0);
 
     progressLabel->setVisible(false);
     progressLabel->setFixedSize(rightPanelWidth*2, 40);
@@ -528,7 +520,7 @@ void MedeaWindow::initialiseGUI()
                                     "padding: 0px 15px;"
                                     "font: 14px;");
 
-    QVBoxLayout *progressLayout = new QVBoxLayout();
+    QVBoxLayout* progressLayout = new QVBoxLayout();
     progressLayout->addStretch(3);
     progressLayout->addWidget(progressLabel);
     progressLayout->addWidget(progressBar);
@@ -543,7 +535,7 @@ void MedeaWindow::initialiseGUI()
     dataTable->setFont(guiFont);
     dataTable->resize(dataTable->width(), 0);
 
-    QVBoxLayout *tableLayout = new QVBoxLayout();
+    QVBoxLayout* tableLayout = new QVBoxLayout();
     tableLayout->setMargin(0);
     tableLayout->setContentsMargins(5,0,0,0);
     tableLayout->addWidget(dataTable);
@@ -581,14 +573,14 @@ void MedeaWindow::initialiseGUI()
     minimap->centerView();
 
     // layouts
-    QHBoxLayout *mainHLayout = new QHBoxLayout();
-    QHBoxLayout *topHLayout = new QHBoxLayout();
-    QVBoxLayout *leftVlayout = new QVBoxLayout();
-    QVBoxLayout *rightVlayout =  new QVBoxLayout();
-    QHBoxLayout *titleLayout = new QHBoxLayout();
-    QHBoxLayout *bodyLayout = new QHBoxLayout();
+    QHBoxLayout* mainHLayout = new QHBoxLayout();
+    QHBoxLayout* topHLayout = new QHBoxLayout();
+    QVBoxLayout* leftVlayout = new QVBoxLayout();
+    QVBoxLayout* rightVlayout =  new QVBoxLayout();
+    QHBoxLayout* titleLayout = new QHBoxLayout();
+    QHBoxLayout* bodyLayout = new QHBoxLayout();
     QVBoxLayout* toolbarContainerLayout = new QVBoxLayout();
-    QGridLayout *viewButtonsGrid = new QGridLayout();
+    QGridLayout* viewButtonsGrid = new QGridLayout();
     searchLayout = new QHBoxLayout();
 
     // setup layouts for widgets
@@ -1277,8 +1269,8 @@ void MedeaWindow::resetGUI()
 
     // initially hide these
     notificationsBar->hide();
+    //progressBar->hide();
     dataTableBox->hide();
-    progressBar->hide();
 
     // clear and reset search bar and search results
     searchBar->clear();
@@ -1324,7 +1316,6 @@ void MedeaWindow::resetView()
 {
     // enable the view, reset controller undo/redo states and clear selecttion
     if (nodeView){
-        nodeView->setEnabled(true);
         nodeView->view_ClearHistory();
         nodeView->clearSelection();
     }
@@ -1396,6 +1387,8 @@ void MedeaWindow::makeConnections()
     connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(minimapScrolled(int)));
 
     connect(nodeView, SIGNAL(view_ModelSizeChanged()), minimap, SLOT(centerView()));
+
+    //connect(progressTimer, SIGNAL(timeout()), progressBar, SLOT(hide()));
 
     connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
@@ -1516,7 +1509,8 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeDeleted(int,int)), definitionsDock, SLOT(onNodeDeleted(int, int)));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
+    //connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
+    connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(edgeConstructed()));
 
     connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), hardwareDock, SLOT(onEdgeDeleted(int, int)));
     connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), definitionsDock, SLOT(onEdgeDeleted(int, int)));
@@ -2019,8 +2013,6 @@ void MedeaWindow::setupInitialSettings()
     QList<QPair<QString, QString> > functionKinds;
     functionKinds = nodeView->getFunctionsList();
 
-
-
     partsDock->addDockNodeItems(guiKinds);
     functionsDock->addDockNodeItems(functionKinds);
 
@@ -2036,7 +2028,8 @@ void MedeaWindow::setupInitialSettings()
         nodeKindsMenu->addAction(action);
     }
 
-    updateDataTable();
+    // calculate the centered view rect and widget masks after the settings has been loaded
+    updateWidgetsOnWindowChanged();
 }
 
 
@@ -2982,22 +2975,16 @@ void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
-    if (value < 0) {
-        progressBar->setMaximum(0);
-        value = 0;
-    } else {
-        progressBar->setMaximum(100);
-    }
+    // hide the notification bar and pause the timer before showing the progress bar
     if (notificationTimer->isActive()) {
         leftOverTime = notificationTimer->remainingTime();
         notificationsBar->hide();
         notificationTimer->stop();
     }
 
-    // if something's in progress, show progress bar
     if (!progressBar->isVisible()) {
-        progressLabel->setVisible(true);
-        progressBar->setVisible(true);
+        progressLabel->show();
+        progressBar->show();
     }
 
     // update displayed text
@@ -3006,12 +2993,13 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
     }
 
     // update value
+    value = qMax(value, 0);
     progressBar->setValue(value);
 
-    // once we reach 100%, reset the progress bar then hide it
+    // reset the progress bar and re-display the notification bar if it was previously displayed
     if (value == 100) {
-        progressLabel->setVisible(false);
-        progressBar->setVisible(false);
+        progressLabel->hide();
+        progressBar->hide();
         progressBar->reset();
         if (leftOverTime > 0) {
             notificationsBar->show();

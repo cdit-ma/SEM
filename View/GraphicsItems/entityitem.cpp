@@ -2696,6 +2696,7 @@ void EntityItem::lastChildRemoved()
     if (IS_VECTOR) {
         vectorIconURL = nodeKind;
         changeIcon = true;
+        emit entityItem_lastChildRemoved(getID());
     }
 }
 

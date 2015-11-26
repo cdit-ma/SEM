@@ -30,5 +30,6 @@ int main(int argc, char *argv[])
 
     MedeaWindow *w = new MedeaWindow(graphmlFilePath);
     a.setActiveWindow(w);
+
     return a.exec();
 }

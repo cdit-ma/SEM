@@ -148,7 +148,8 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
         }
     }
 
-    updateDock();
+    //updateDock();
+    filterDock();
 }
 
 
@@ -159,7 +160,8 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
  */
 void DefinitionsDockScrollArea::edgeDeleted()
 {
-    updateDock();
+    //updateDock();
+    filterDock();
 }
 
 
@@ -206,10 +208,12 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
  */
 void DefinitionsDockScrollArea::updateDock()
 {
+    /*
     if (isDockOpen()) {
         filterDock();
         return;
     }
+    */
 
     NodeItem* selectedItem = getCurrentNodeItem();
     if (!selectedItem || !definitions_allowedKinds.contains(selectedItem->getNodeKind())) {
@@ -255,19 +259,19 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
     if (definitionKinds.contains(nodeKind)) {
 
         DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
-        EntityItem* fileItem = entityItem->getParentEntityItem();
+        EntityItem* parentEntityItem = entityItem->getParentEntityItem();
 
-        if (!fileItem) {
+        if (!parentEntityItem) {
             qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Component/BlackBox's parent item is null.";
             return;
         }
 
-        QString fileID = QString::number(fileItem->getID());
+        QString fileID = QString::number(parentEntityItem->getID());
 
         // check if there is already a layout and label for the parent File
         if (!fileLayoutItems.contains(fileID)){
             // create a new File label and add it to the File's layout
-            DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", fileItem, this, true);
+            DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", parentEntityItem, this, true);
             QVBoxLayout* fileLayout = new QVBoxLayout();
 
             fileLayoutItems[fileID] = fileLayout;
@@ -279,10 +283,10 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
         }
 
         // connect the new dock item to its parent file item
-        DockNodeItem* parentItem = getDockNodeItem(fileID);
-        if (parentItem) {
-            dockItem->setParentDockNodeItem(parentItem);
-            parentItem->addChildDockItem(dockItem);
+        DockNodeItem* parentDockItem = getDockNodeItem(fileID);
+        if (parentDockItem) {
+            dockItem->setParentDockNodeItem(parentDockItem);
+            parentDockItem->addChildDockItem(dockItem);
         }
 
         if (fileLayoutItems.contains(fileID)) {
@@ -291,12 +295,23 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
             addDockNodeItem(dockItem, -1, false);
             insertDockNodeItem(dockItem);
             connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+            if (nodeKind == "Vector") {
+                connect(entityItem, SIGNAL(entityItem_lastChildRemoved(int)), this, SLOT(hideDockItem(int)));
+                if (!entityItem->hasChildren()) {
+                    dockItem->setHidden(true);
+                }
+            } else if (parentDockItem && parentDockItem->getKind() == "Vector") {
+                if (parentDockItem->isHidden()) {
+                    parentDockItem->setHidden(false);
+                }
+            }
         }
 
     } else if (nodeKind == "Member") {
         // don't need to check for ComponentImpl or AggregateInstance here
         // the dock is already updated for these kinds through the edgeConstructed signal from the view
-        updateDock();
+        //updateDock();
+        filterDock();
     }
 }
 
@@ -324,6 +339,19 @@ void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
 
 
 /**
+ * @brief DefinitionsDockScrollArea::hideDockItem
+ * @param nodeID
+ */
+void DefinitionsDockScrollArea::hideDockItem(int nodeID)
+{
+    DockNodeItem* dockItem = getDockNodeItem(QString::number(nodeID));
+    if (dockItem) {
+        dockItem->setHidden(true);
+    }
+}
+
+
+/**
  * @brief DefinitionsDockScrollArea::filterDock
  * This function filters what is displayed in the dock based on nodeKind.
  * @param nodeKind - if this is empty, use the current selected item's kind.
@@ -331,17 +359,30 @@ void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
 void DefinitionsDockScrollArea::filterDock(QString nodeKind)
 {
     if (nodeKind.isEmpty()) {
+        /*
         if (getCurrentNodeItem()) {
             nodeKind = getCurrentNodeItem()->getNodeKind();
         } else {
             setDockEnabled(false);
             return;
         }
+        */
+        nodeKind = prevClickedKind;
+    } else {
+        prevClickedKind = nodeKind;
     }
 
     QStringList kinds;
     bool hideCompsWithImpl = false;
 
+    if (nodeKind.endsWith("Instance")) {
+        kinds.append(nodeKind.remove("Instance"));
+    } else if (nodeKind == "ComponentImpl") {
+        kinds.append("Component");
+        hideCompsWithImpl = true;
+    }
+
+    /*
     if (nodeKind.endsWith("Instance")) {
         kinds.append(nodeKind.remove("Instance"));
     }  else if (nodeKind == "ComponentImpl" || nodeKind == "BehaviourDefinitions") {
@@ -356,7 +397,7 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
     } else if (nodeKind == "Vector") {
         kinds.append("Aggregate");
     }
-
+    */
 
     // all dock items are shown for all the other allowed kinds
     showDockItemsOfKinds(kinds);
@@ -484,6 +525,10 @@ void DefinitionsDockScrollArea::dockClosed()
 void DefinitionsDockScrollArea::hideImplementedComponents()
 {
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        QString dockItemKind = dockItem->getKind();
+        if (dockItemKind != "Component") {
+            continue;
+        }
         bool convert;
         int ID = dockItem->getID().toInt(&convert);
         if (convert) {
@@ -506,15 +551,22 @@ void DefinitionsDockScrollArea::showDockItemsOfKinds(QStringList kinds)
     if (kinds.isEmpty()) {
         // show all dock node items
         foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-            dockItem->setHidden(true);
+            dockItem->setHidden(false);
         }
     } else {
         // only show the dock node items with the specified kind
         foreach (DockNodeItem* dockItem, getDockNodeItems()) {
             QString dockItemKind = dockItem->getKind();
             if (kinds.contains(dockItemKind)) {
+                if (dockItemKind == "Vector") {
+                    continue;
+                }
                 dockItem->setHidden(false);
             } else {
+                if (dockItemKind == "Vector") {
+                    dockItem->hide();
+                    continue;
+                }
                 dockItem->setHidden(true);
             }
         }
@@ -529,4 +581,14 @@ void DefinitionsDockScrollArea::clear()
 {
     DockScrollArea::clear();
     fileLayoutItems.clear();
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::edgeConstructed
+ */
+void DefinitionsDockScrollArea::edgeConstructed()
+{
+    // TODO - Shouldn't need this once list of allowed kinds are used to update the docks instead
+    filterDock();
 }

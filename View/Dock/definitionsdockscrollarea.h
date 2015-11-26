@@ -23,11 +23,14 @@ public slots:
     void updateDock();
     void clear();
 
+    void edgeConstructed();
     void nodeConstructed(NodeItem* nodeItem);
     void insertDockNodeItem(DockNodeItem* dockItem);
 
     void dockClosed();
     void forceOpenDock(QString srcKind);
+
+    void hideDockItem(int nodeID);
 
 private:
     void filterDock(QString nodeKind = "");
@@ -41,6 +44,8 @@ private:
     QHash<QString, QVBoxLayout*> fileLayoutItems;
     QVBoxLayout* mainLayout;
     QVBoxLayout* itemsLayout;
+
+    QString prevClickedKind;
 
 };
 

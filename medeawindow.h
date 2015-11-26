@@ -452,7 +452,6 @@ private:
     bool validate_TempExport;
     QString validation_report_path;
 
-
     // QWidget interface
 protected:
     void dropEvent(QDropEvent *);
