@@ -206,6 +206,11 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
  */
 void DefinitionsDockScrollArea::updateDock()
 {
+    if (isDockOpen()) {
+        filterDock();
+        return;
+    }
+
     NodeItem* selectedItem = getCurrentNodeItem();
     if (!selectedItem || !definitions_allowedKinds.contains(selectedItem->getNodeKind())) {
         setDockEnabled(false);

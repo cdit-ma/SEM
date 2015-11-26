@@ -5,7 +5,8 @@ Version 19:
 	Fixes:
 		* Fixed inconsistent expand state and incorrect expand size when adding first child.
 			** Implemented firstChildAdded and updated lastChildRemoved for EntityItem.
-
+		* Removed connectButton for HardwareClusters and HardwareNodes in the toolbar.
+		* Fixed closing of definitions dock on undo/redo.
 
 Version 18:
     New Features:
