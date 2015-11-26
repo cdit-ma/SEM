@@ -100,7 +100,9 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
 
     MINIMAP_EVENT = false;
-    setScene(new QGraphicsScene(this));
+
+    viewScene = new QGraphicsScene(this);
+    setScene(viewScene);
 
     //Set QT Options for this QGraphicsView
     setDragMode(NoDrag);
@@ -110,7 +112,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 
 
-    this->scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
+    this->viewScene->setItemIndexMethod(QGraphicsScene::NoIndex);
 
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -224,6 +226,15 @@ bool NodeView::isNodeKindDeployable(QString nodeKind)
         return true;
     }
     return false;
+}
+
+void NodeView::setSceneVisible(bool visible)
+{
+    if (visible) {
+        setScene(viewScene);
+    } else {
+        setScene(new QGraphicsScene(this));
+    }
 }
 
 bool NodeView::isMainView()
@@ -2488,8 +2499,8 @@ void NodeView::view_ConstructNodeGUI(Node *node)
     if(item){
         storeGraphMLItemInHash(item);
 
-        if(!scene()->items().contains(item)){
-            scene()->addItem(item);
+        if(!viewScene->items().contains(item)){
+            viewScene->addItem(item);
         }
 
         connectGraphMLItemToController(item);
@@ -2625,9 +2636,9 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         */
 
 
-        if(!scene()->items().contains(nodeEdge)){
+        if(!viewScene->items().contains(nodeEdge)){
             //   //Add to model.
-            scene()->addItem(nodeEdge);
+            viewScene->addItem(nodeEdge);
         }
 
 
@@ -3536,7 +3547,7 @@ GraphMLItem *NodeView::getGraphMLItemFromScreenPos(QPoint pos)
 {
     QPointF scenePos = mapToScene(pos);
 
-    foreach(QGraphicsItem* item, scene()->items(scenePos)){
+    foreach(QGraphicsItem* item, viewScene->items(scenePos)){
         GraphMLItem* graphmlItem =  dynamic_cast<GraphMLItem*>(item);
         if(graphmlItem){
             return graphmlItem;
@@ -3664,7 +3675,7 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
 
             if (showConnectLine) {
                 if(!connectLine){
-                    connectLine = scene()->addLine(line);
+                    connectLine = viewScene->addLine(line);
                 }
                 connectLine->setLine(line);
                 connectLine->setZValue(100);

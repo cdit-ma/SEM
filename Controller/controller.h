@@ -2,6 +2,7 @@
 #define NEWCONTROLLER_H
 #include <QStack>
 #include <QFile>
+#include <QPointF>
 #include "../Model/model.h"
 #include "../Model/workerdefinitions.h"
 

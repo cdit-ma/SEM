@@ -108,6 +108,9 @@
 MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
+    this->setVisible(false);
+    setForegroundRole(QPalette::NoRole);
+
     WINDOW_MAXIMIZED = false;
     WINDOW_FULLSCREEN = false;
     launchFilePathArg = graphMLFile;
@@ -221,6 +224,22 @@ void MedeaWindow::enableTempExport(bool enable)
     }
 }
 
+
+/**
+ * @brief MedeaWindow::setApplicationEnabled
+ * This enables/disables the window, the view and all top level widgets.
+ * @param enable
+ */
+void MedeaWindow::setApplicationEnabled(bool enable)
+{
+    if (nodeView) {
+        //nodeView->blockSignals(enable);
+        nodeView->setSceneVisible(enable);
+    }
+    setEnabled(enable);
+}
+
+
 /**
  * @brief MedeaWindow::modelReady - Called whenever a new project is run, after the controller has finished setting up the NodeView/Controller/Model
  */
@@ -242,6 +261,11 @@ void MedeaWindow::modelReady()
 
     if(nodeView){
         //nodeView->setVisible(true);
+        //setVisible(true);
+        //setEnabled(true);
+        //nodeView->setSceneVisible(true);
+        //nodeView->setVisible(true);
+        setApplicationEnabled(true);
         //Update viewport rect
         updateWidgetsOnWindowChanged();
         nodeView->fitToScreen();
@@ -1255,6 +1279,7 @@ void MedeaWindow::resetGUI()
     // initially hide these
     notificationsBar->hide();
     dataTableBox->hide();
+    progressBar->hide();
 
     // clear and reset search bar and search results
     searchBar->clear();
@@ -1315,8 +1340,11 @@ void MedeaWindow::resetView()
 void MedeaWindow::newProject()
 {
     //Disable NodeView.
-    nodeView->setEnabled(false);
+    //setEnabled(false);
+    //nodeView->setEnabled(false);
+    //nodeView->setSceneVisible(false);
     //nodeView->setVisible(false);
+    setApplicationEnabled(false);
     progressAction = "Setting up New Project";
 
     resetGUI();
