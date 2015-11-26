@@ -5,13 +5,13 @@ InputParameter::InputParameter(): Parameter(true)
 {
 }
 
-bool InputParameter::canAdoptChild(Node *node)
+bool InputParameter::canAdoptChild(Node*)
 {
     return false;
 }
 
-bool InputParameter::canConnect(Node *node)
+bool InputParameter::canConnect(Node*)
 {
-    return Parameter::canConnect(node);
+    return false;
 }
 

@@ -65,6 +65,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     showConnectLine = true;
     showSearchSuggestions = false;
 
+
     IS_SUB_VIEW = subView;
 
 
@@ -105,12 +106,11 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     //Set QT Options for this QGraphicsView
     setDragMode(NoDrag);
     setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::TextAntialiasing);
-    // setContextMenuPolicy(Qt::CustomContextMenu);
     setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-    //setTransformationAnchor(QGraphicsView::AnchorViewCenter);
 
+    setAcceptDrops(true);
 
-    this->scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
+    scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
 
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -513,6 +513,19 @@ QList<EdgeItem *> NodeView::getEdgeItemsList()
         }
     }
     return edgeItems;
+}
+
+
+void NodeView::dragEnterEvent(QDragEnterEvent *event)
+{
+    //Ignore the event so that MEDEA window will handle it.
+    event->ignore();
+}
+
+void NodeView::dropEvent(QDropEvent *event)
+{
+    //Ignore the event so that MEDEA window will handle it.
+    event->ignore();
 }
 
 
@@ -2589,6 +2602,8 @@ void NodeView::view_ConstructEdgeGUI(Edge *edge)
         }
 
 
+        qCritical() << srcGUI->getGraphML()->toString();
+        qCritical() << dstGUI->getGraphML()->toString();
         EntityItem* parent = getSharedEntityItemParent(srcGUI, dstGUI);
 
         if(!parent){
@@ -3482,6 +3497,7 @@ EntityItem *NodeView::getSharedEntityItemParent(EntityItem *src, EntityItem *dst
     if(controller){
         int ID = controller->getSharedParent(src->getID(), dst->getID());
 
+        qCritical() << ID;
         EntityItem* node = getEntityItemFromID(ID);
         if(node){
             return node;

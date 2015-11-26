@@ -5,6 +5,7 @@
 WorkerDefinitions::WorkerDefinitions(): Node(Node::NT_ASPECT)
 {
     setTop(1);
+    qCritical() << getTreeIndex();
 }
 
 bool WorkerDefinitions::canAdoptChild(Node *node)

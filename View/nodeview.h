@@ -536,6 +536,11 @@ private:
     int prevHighlightedFromToolbarID;
 
     // QWidget interface
+
+    // QWidget interface
+protected:
+    void dragEnterEvent(QDragEnterEvent *);
+    void dropEvent(QDropEvent* );
 };
 
 #endif // NODEVIEW_H

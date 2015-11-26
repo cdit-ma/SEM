@@ -282,6 +282,16 @@ int Node::childrenCount()
     return children.size();
 }
 
+bool Node::hasChildren()
+{
+    return !children.isEmpty();
+}
+
+bool Node::hasEdges()
+{
+    return !edges.isEmpty();
+}
+
 int Node::edgeCount()
 {
     return edges.size();
@@ -606,8 +616,8 @@ void Node::removeEdge(Edge *edge)
 void Node::setParentNode(Node *parent, int index)
 {
     this->treeIndex = parent->getTreeIndex();
-    this->treeIndexStr = parent->getTreeIndexString();
-    this->treeIndexStr += QString::number(index) + ",";
+    this->treeIndexStr = parent->getTreeIndexString() + ",";
+    this->treeIndexStr += QString::number(index);
     this->treeIndex.append(index);
     parentNode = parent;
 }

@@ -202,6 +202,8 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+    bool canFilesBeDragImported(const QList<QUrl> files);
+    void setupApplication();
     void initialiseJenkinsManager();
     void initialiseCUTSManager();
     void importXMEProject(QString fileName);
@@ -448,6 +450,14 @@ private:
     bool validate_TempExport;
     QString validation_report_path;
 
+
+    // QWidget interface
+protected:
+    void dropEvent(QDropEvent *);
+
+    // QWidget interface
+protected:
+    void dragEnterEvent(QDragEnterEvent *);
 };
 
 

@@ -193,6 +193,7 @@ void NewController::initializeModel()
 
     loadWorkerDefinitions();
 
+    qCritical() << treeLookup;
 
     emit controller_ModelReady();
 }
@@ -764,6 +765,7 @@ void NewController::destructEdge(int srcID, int dstID)
 
 void NewController::constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos)
 {
+    qCritical() << "constructConnectedNode" << kind;
     Node* parentNode = getNodeFromID(parentID);
     Node* connectedNode = getNodeFromID(connectedID);
     if(parentNode && connectedNode){
@@ -1507,6 +1509,7 @@ int NewController::getSharedParent(int ID1, int ID2)
         QList<int> node1Tree = node1->getTreeIndex();
         QList<int> node2Tree = node2->getTreeIndex();
 
+
         while(!node1Tree.isEmpty() || !node2Tree.isEmpty()){
             int index1 = node1Tree.takeFirst();
             int index2 = node2Tree.takeFirst();
@@ -1515,6 +1518,9 @@ int NewController::getSharedParent(int ID1, int ID2)
             }else{
                 break;
             }
+        }
+        if(treeString.endsWith(",")){
+            treeString.chop(1);
         }
 
         return treeLookup[treeString];

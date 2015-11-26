@@ -66,6 +66,8 @@ public:
     bool isReadOnly();
 
     int childrenCount();
+    bool hasChildren();
+    bool hasEdges();
     int edgeCount();
 
     //Remove a child Node from this Node

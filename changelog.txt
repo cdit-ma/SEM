@@ -1,10 +1,16 @@
 Version 19:
 	New Features:
-		* Vector and VectorInstances icons now show what kind their children are.
+            * Enabled Vector/Vector Instances
+            * Vector and VectorInstances icons now show what kind their children are.
+            * Implemented dragdrop of *.graphml files from OS into MEDEA.
+            * Implemented loading of WorkerDefinitions into MEDEA on launch.
 
 	Fixes:
-		* Fixed inconsistent expand state and incorrect expand size when adding first child.
-			** Implemented firstChildAdded and updated lastChildRemoved for EntityItem.
+            * Fixed inconsistent expand state and incorrect expand size when adding first child.
+                ** Implemented firstChildAdded and updated lastChildRemoved for EntityItem.
+
+        GitHub Issues Fixed:
+            * #2 - Label from read-only interface snippet isn't correct on import bug
 
 
 Version 18:
