@@ -241,6 +241,7 @@ void MedeaWindow::modelReady()
     }
 
     if(nodeView){
+        //nodeView->setVisible(true);
         //Update viewport rect
         updateWidgetsOnWindowChanged();
         nodeView->fitToScreen();
@@ -1315,6 +1316,7 @@ void MedeaWindow::newProject()
 {
     //Disable NodeView.
     nodeView->setEnabled(false);
+    //nodeView->setVisible(false);
     progressAction = "Setting up New Project";
 
     resetGUI();
