@@ -221,6 +221,7 @@ signals:
 
     void entityItem_iconChanged();
 
+    void entityItem_firstChildAdded(int parentID);
     void entityItem_lastChildRemoved(int parentID);
 
 

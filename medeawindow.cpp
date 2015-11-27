@@ -43,7 +43,6 @@
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GME_FILE_EXT "GME Documents (*.xme)"
 
-
 // USER SETTINGS
 #define LOG_DEBUGGING "00-01-Log_Debug_Information"
 #define THREAD_LIMIT "00-02-Thread_Limit"
@@ -1509,8 +1508,7 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_nodeDeleted(int,int)), definitionsDock, SLOT(onNodeDeleted(int, int)));
 
     connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
-    //connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(edgeConstructed()));
+    connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
 
     connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), hardwareDock, SLOT(onEdgeDeleted(int, int)));
     connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), definitionsDock, SLOT(onEdgeDeleted(int, int)));

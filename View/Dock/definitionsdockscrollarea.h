@@ -13,7 +13,6 @@ public:
     QList<DockNodeItem*> getDockNodeItems();
 
     void nodeDeleted(QString nodeID);
-    void edgeDeleted();
 
 signals:
     void dock_forceOpenDock(DOCK_TYPE type);
@@ -23,18 +22,19 @@ public slots:
     void updateDock();
     void clear();
 
-    void edgeConstructed();
     void nodeConstructed(NodeItem* nodeItem);
     void insertDockNodeItem(DockNodeItem* dockItem);
 
     void dockClosed();
     void forceOpenDock(QString srcKind);
 
+    // these are currently only being used for Vector items
+    void showDockItem(int nodeID);
     void hideDockItem(int nodeID);
 
 private:
     void filterDock(QString nodeKind = "");
-    void showDockItemsOfKinds(QStringList kinds = QStringList());
+    void showDockItemsOfKind(QString nodeKind);
     void hideImplementedComponents();
 
     QStringList definitions_notAllowedKinds;
@@ -45,7 +45,8 @@ private:
     QVBoxLayout* mainLayout;
     QVBoxLayout* itemsLayout;
 
-    QString prevClickedKind;
+    int sourceSelectedItemID;
+    QString sourceDockItemKind;
 
 };
 

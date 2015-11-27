@@ -2689,6 +2689,7 @@ void EntityItem::firstChildAdded(GraphMLItem* child)
         }
         vectorIconURL = nodeKind + "_" + childKind;
         changeIcon = true;
+        emit entityItem_firstChildAdded(getID());
     }
 }
 

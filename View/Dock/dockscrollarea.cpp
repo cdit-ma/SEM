@@ -113,6 +113,16 @@ QString DockScrollArea::getLabel()
 
 
 /**
+ * @brief DockScrollArea::getLayout
+ * @return
+ */
+QVBoxLayout* DockScrollArea::getLayout()
+{
+    return layout;
+}
+
+
+/**
  * @brief DockScrollArea::getNodeView
  * Returns the NodeView this dock is attached to.
  * @return
@@ -145,22 +155,6 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
 void DockScrollArea::nodeDeleted(QString nodeID)
 {
     removeDockNodeItem(getDockNodeItem(nodeID), true);
-}
-
-
-/**
- * @brief DockScrollArea::edgeDeleted
- */
-void DockScrollArea::edgeDeleted() {}
-
-
-/**
- * @brief DockScrollArea::getLayout
- * @return
- */
-QVBoxLayout* DockScrollArea::getLayout()
-{
-    return layout;
 }
 
 
@@ -338,6 +332,8 @@ void DockScrollArea::onNodeDeleted(int nodeID, int parentID)
 
 /**
  * @brief DockScrollArea::onEdgeDeleted
+ * This is called when an edge has been deleted. This is needed to update the displayed items
+ * in case the edge that has been deleted is linked to what is currently being displayed.
  * @param srcID
  * @param dstID
  */
@@ -345,7 +341,7 @@ void DockScrollArea::onEdgeDeleted(int srcID, int dstID)
 {
     bool forceRefreshDock = (srcID == -1) && (dstID == -1);
     if (forceRefreshDock || dockNodeIDs.contains(srcID) || dockNodeIDs.contains(dstID)) {
-        edgeDeleted();
+        updateDock();
     }
 }
 
