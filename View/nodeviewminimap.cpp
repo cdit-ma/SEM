@@ -25,14 +25,12 @@ NodeViewMinimap::NodeViewMinimap(QObject*)
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
 }
 
 void NodeViewMinimap::centerView()
 {
     if (scene()) {
         QRectF rect = scene()->itemsBoundingRect();
-        qCritical() << rect;
         fitInView(rect, Qt::KeepAspectRatio);
     }
 }

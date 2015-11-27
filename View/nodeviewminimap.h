@@ -41,6 +41,8 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mouseDoubleClickEvent(QMouseEvent* event);
     void wheelEvent(QWheelEvent* event);
+
+    // QGraphicsView interface
 };
 
 #endif // NODEVIEWMINIMAP_H

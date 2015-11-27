@@ -231,6 +231,9 @@ public slots:
 
 
     void zoomChanged(qreal zoom);
+    RENDER_STATE getRenderStateFromZoom(qreal zoom);
+
+
     //USED METHODS
     void graphMLDataChanged(GraphMLData *data);
 
