@@ -225,9 +225,6 @@ QString DockNodeItem::getID()
  */
 void DockNodeItem::setHidden(bool hide)
 {
-    // TODO - change signal name to visibilityChanged
-    emit dockItem_hidden();
-
     if (hide) {
         setDockItemVisible(false);
     } else {
@@ -235,6 +232,9 @@ void DockNodeItem::setHidden(bool hide)
     }
 
     hidden = hide;
+
+    // TODO - change signal name to visibilityChanged
+    emit dockItem_hidden();
 }
 
 
