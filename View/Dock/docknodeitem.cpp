@@ -24,7 +24,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     nodeItem = item;
     parentDockItem = 0;
     fileLabel = false;
-    expanded = true;
+    expanded = false;
     hidden = false;
 
     state = DEFAULT;

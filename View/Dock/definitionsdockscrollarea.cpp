@@ -304,6 +304,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
                 if (parentDockItem->isHidden()) {
                     parentDockItem->setHidden(false);
                 }
+                dockItem->setHidden(!parentDockItem->isExpanded());
             }
         }
 

@@ -111,7 +111,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     setAcceptDrops(true);
 
-   scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
+    scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
 
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -2828,25 +2828,29 @@ void NodeView::constructConnectedNode(int parentID, int dstID, QString kind, int
  */
 void NodeView::showConnectedNodes()
 {
+    if (!controller) {
+        return;
+    }
 
-    if(controller){
-        int ID = getSelectedID();
-        QList<GraphMLItem*> connectedItems;
+    int selectedID = getSelectedID();
+    QList<GraphMLItem*> connectedItems;
 
-        foreach(int cID, controller->getConnectedNodes(ID)){
-            GraphMLItem* item = getGraphMLItemFromID(cID);
-            if(item){
-                connectedItems << item;
-                appendToSelection(item);
-            }
-        }
-        if(!connectedItems.isEmpty()) {
-            fitToScreen(connectedItems, 0);//CONNECTIONS_PADDING);
+    foreach (int cnID, controller->getConnectedNodes(selectedID)) {
+        GraphMLItem* item = getGraphMLItemFromID(cnID);
+        if (item) {
+            // need to make sure that the aspect for the item is turned on before selecting it
+            enforceItemAspectOn(cnID);
+            appendToSelection(item);
+            connectedItems.append(item);
         }
     }
+
+    if (!connectedItems.isEmpty()) {
+        // add the selected node to the list of items to center
+        connectedItems.append(getGraphMLItemFromID(selectedID));
+        fitToScreen(connectedItems);
+    }
 }
-
-
 
 
 
