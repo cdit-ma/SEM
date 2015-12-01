@@ -216,7 +216,6 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
 
             insertDockNodeItem(fileDockItem);
             connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
-            connect(this, SIGNAL(dock_updateDockItemLabels()), fileDockItem, SLOT(updateDockItemLabel()));
         }
 
         // connect the new dock item to its parent file item

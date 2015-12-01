@@ -12,7 +12,7 @@ class DockNodeItem : public QPushButton
 {
     Q_OBJECT
 public:
-    explicit DockNodeItem(QString kind = "", EntityItem* item = 0, QWidget* parent = 0, bool isLabel = false);
+    explicit DockNodeItem(QString kind = "", EntityItem* item = 0, QWidget* parent = 0, bool isLabel = false, QString imageName = "");
 
     EntityItem* getNodeItem();
     QString getKind();
@@ -63,6 +63,8 @@ public slots:
 
 private:
     void setupLayout();
+    void setupImageLabel();
+
     void updateTextLabel();
     void updateStyleSheet();
 
@@ -76,6 +78,7 @@ private:
     QString kind;
     QString label;
     QString strID;
+    QString imageName;
 
     QLabel* textLabel;
     QLabel* imageLabel;

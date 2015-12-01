@@ -36,8 +36,8 @@ void FunctionsDockScrollArea::addDockNodeItems(QList<QPair<QString, QString> > f
 
         QString className = function.first;
         QString functionName = function.second;
-        DockNodeItem* dockItem = new DockNodeItem(functionName, 0, this);
-        dockItem->setImage("Functions", className);
+        DockNodeItem* dockItem = new DockNodeItem(functionName, 0, this, false, className);
+        //dockItem->setImage("Functions", className);
 
         // check if there is already a layout and label for the parent File
         if (!classLayoutItems.contains(className)){
