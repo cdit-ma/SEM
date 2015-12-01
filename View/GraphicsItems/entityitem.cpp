@@ -1551,13 +1551,16 @@ void EntityItem::updateTextVisibility()
  */
 void EntityItem::updateDisplayedChildren(int viewMode)
 {
+
     // if this item is not a HardwareCLuster, do nothing
     if (!IS_HARDWARE_CLUSTER) {
+        qDebug() << "NOT a HardwareCluster";
         return;
     }
 
     // if any of the menu items are not constructed, do nothing
     if (!allChildren || !connectedChildren || !unConnectedChildren) {
+        qDebug() << "Some RadioButtons are NULL";
         return;
     }
 
@@ -1573,40 +1576,38 @@ void EntityItem::updateDisplayedChildren(int viewMode)
     connectedChildren->setChecked(false);
     unConnectedChildren->setChecked(false);
 
-    if (viewMode == ALL) {
+    // TODO - item->getEdgeItemCount() is returning the wrong value
+    // use another function to get the number of edges!
+
+    switch (viewMode) {
+    case ALL:
         // show all HarwareNodes
         allChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            item->setHidden(!isExpanded());
+            item->setHidden(false);
         }
-    } else if (viewMode == CONNECTED) {
+        break;
+    case CONNECTED:
         // show connected HarwareNodes
         connectedChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            if (item->getEdgeItemCount() > 0) {
-                item->setHidden(!isExpanded());
-            } else {
-                item->setHidden(true);
-            }
+            item->setHidden(item->getEdgeItemCount() == 0);
         }
-    } else if (viewMode == UNCONNECTED) {
+        break;
+    case UNCONNECTED:
         // show unconnected HarwareNodes
         unConnectedChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            if (item->getEdgeItemCount() == 0) {
-                item->setHidden(!isExpanded());
-            } else {
-                item->setHidden(true);
-            }
+            item->setHidden(item->getEdgeItemCount() > 0);
         }
-    } else {
+        break;
+    default:
         return;
     }
 
     CHILDREN_VIEW_MODE = viewMode;
     sortTriggerAction = false;
     sortChildren();
-    //sort();
     sortTriggerAction = true;
 }
 

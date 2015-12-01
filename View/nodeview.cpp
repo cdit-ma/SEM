@@ -1576,6 +1576,7 @@ void NodeView::modelReady()
  */
 void NodeView::hardwareClusterMenuClicked(int viewMode)
 {
+    qDebug() << "hardwareClusterMenuClicked";
     foreach(GraphMLItem* item, getSelectedItems()){
         if(item->isEntityItem()){
             ((EntityItem*)item)->updateChildrenViewMode(viewMode);
@@ -3258,7 +3259,9 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
             connect(entityItem, SIGNAL(EntityItem_ShowHardwareMenu(EntityItem*)), this, SLOT(showHardwareClusterChildrenViewMenu(EntityItem*)));
             connect(entityItem, SIGNAL(EntityItem_lockMenuClosed(EntityItem*)), this, SLOT(hardwareClusterChildrenViewMenuClosed(EntityItem*)));
 
-            connect(this, SIGNAL(view_edgeConstructed()), entityItem, SLOT(updateChildrenViewMode()));
+            if (entityItem->isHardwareCluster()) {
+                connect(this, SIGNAL(view_edgeConstructed()), entityItem, SLOT(updateChildrenViewMode()));
+            }
         }
     }
 
@@ -3452,7 +3455,7 @@ void NodeView::nodeSelected_signalUpdates()
  */
 void NodeView::edgeConstructed_signalUpdates()
 {
-    // update the highlighted deployment nodes.
+    // update the highlighted deployment nodes
     if (hardwareDockOpen) {
         highlightDeployment();
     }
