@@ -23,10 +23,11 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     parentDock = dynamic_cast<DockScrollArea*>(parent);
     nodeItem = item;
     parentDockItem = 0;
-    fileLabel = false;
+    dockItemLabel = false;
     expanded = true;
     hidden = false;
     forceHidden = false;
+    dockItemVisible = true;
 
     state = DEFAULT;
 
@@ -47,9 +48,8 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
             connect((EntityItem*)nodeItem, SIGNAL(entityItem_iconChanged()), this, SLOT(iconChanged()));
         }
 
-        // if kind == FileLabel, don't create an icon
-        if (kind == "FileLabel") {
-            //fileLabel = true;
+        // if kind == DockItemLabel, don't create an icon
+        if (kind == "DockItemLabel") {
             this->kind = kind;
         }
 
@@ -61,13 +61,18 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         strID = kind;
     }
 
-    fileLabel = isLabel;
+    dockItemLabel = isLabel;
 
     setupLayout();
     updateStyleSheet();
     updateTextLabel();
 
     connect(this, SIGNAL(clicked()), this , SLOT(clicked()));
+
+    // initially contract labels
+    if (isDockItemLabel()) {
+        setDockItemExpanded();
+    }
 }
 
 
@@ -123,8 +128,11 @@ QString DockNodeItem::getLabel()
 void DockNodeItem::setParentDockNodeItem(DockNodeItem* parentItem)
 {
     parentDockItem = parentItem;
-    connect(parentDockItem, SIGNAL(dockItem_fileClicked(bool)), this, SLOT(parentDockItemClicked(bool)));
-    connect(this, SIGNAL(dockItem_hidden()), parentDockItem, SLOT(childDockItemHidden()));
+    if (parentDockItem) {
+        setDockItemVisible(parentDockItem->isDockItemVisible());
+        connect(parentDockItem, SIGNAL(dockItem_fileClicked(bool)), this, SLOT(parentDockItemClicked(bool)));
+        connect(this, SIGNAL(dockItem_visibilityChanged()), parentDockItem, SLOT(childVisibilityChanged()));
+    }
 }
 
 
@@ -195,7 +203,7 @@ void DockNodeItem::setImage(QString prefix, QString image)
 void DockNodeItem::setForceHidden(bool hide)
 {
     forceHidden = hide;
-    setDockItemVisible(!hide, true);
+    setDockItemVisible(!hide);
 }
 
 
@@ -225,16 +233,9 @@ QString DockNodeItem::getID()
  */
 void DockNodeItem::setHidden(bool hide)
 {
-    if (hide) {
-        setDockItemVisible(false);
-    } else {
-        setDockItemVisible(true);
-    }
-
     hidden = hide;
-
-    // TODO - change signal name to visibilityChanged
-    emit dockItem_hidden();
+    setDockItemVisible(!hide);
+    emit dockItem_visibilityChanged();
 }
 
 
@@ -249,12 +250,12 @@ bool DockNodeItem::isHidden()
 
 
 /**
- * @brief DockNodeItem::isFileLabel
+ * @brief DockNodeItem::isDockItemLabel
  * @return
  */
-bool DockNodeItem::isFileLabel()
+bool DockNodeItem::isDockItemLabel()
 {
-    return fileLabel;
+    return dockItemLabel;
 }
 
 
@@ -290,6 +291,42 @@ void DockNodeItem::setReadOnlyState(bool on)
 
 
 /**
+ * @brief DockNodeItem::setDockItemVisible
+ * @param visible
+ */
+void DockNodeItem::setDockItemVisible(bool visible)
+{
+    if (!isDockItemLabel()) {
+        if (hidden || forceHidden) {
+            visible = false;
+        } else if (parentDockItem) {
+            if (visible) {
+                parentDockItem->setDockItemVisible(true);
+            }
+            visible = visible && parentDockItem->isExpanded();
+        }
+    }
+
+    if (visible == dockItemVisible) {
+        return;
+    }
+
+    setVisible(visible);
+    dockItemVisible = visible;
+}
+
+
+/**
+ * @brief DockNodeItem::isDockItemVisible
+ * @return
+ */
+bool DockNodeItem::isDockItemVisible()
+{
+    return dockItemVisible;
+}
+
+
+/**
  * @brief DockNodeItem::labelChanged
  * This gets called when this dock item's attached nodeItem label has been changed.
  * @param label
@@ -308,7 +345,7 @@ void DockNodeItem::labelChanged(QString label)
  */
 void DockNodeItem::iconChanged()
 {
-    if (fileLabel || !parentDock) {
+    if (dockItemLabel || !parentDock) {
         return;
     }
 
@@ -348,7 +385,7 @@ void DockNodeItem::setupLayout()
 
     textLabel = new QLabel(label, this);
 
-    if (fileLabel) {
+    if (dockItemLabel) {
         setFixedSize(BUTTON_WIDTH, 28);
         textLabel->setAlignment(Qt::AlignHCenter);
     } else {
@@ -361,7 +398,7 @@ void DockNodeItem::setupLayout()
     textLabel->setFont(QFont(textLabel->font().family(), 8));
     textLabel->setFixedSize(width()-2, 21);
 
-    if (!fileLabel) {
+    if (!dockItemLabel) {
 
         if (!parentDock) {
             return;
@@ -388,14 +425,17 @@ void DockNodeItem::setupLayout()
             }
         }
 
-        if (pixMap.isNull()) {
-            qWarning() << "DockNodeItem::setupLayout - Image is null for " << kind;
-        }
+        QPixmap scaledPixmap;
 
-        QPixmap scaledPixmap =  pixMap.scaled(width()*ICON_RATIO,
-                                              (height()-textLabel->height())*ICON_RATIO,
-                                              Qt::KeepAspectRatio,
-                                              Qt::SmoothTransformation);
+        if (pixMap.isNull()) {
+            scaledPixmap =  QPixmap(width()*ICON_RATIO, (height()-textLabel->height())*ICON_RATIO);
+            qWarning() << "DockNodeItem::setupLayout - Image is null for " << kind;
+        } else {
+            scaledPixmap =  pixMap.scaled(width()*ICON_RATIO,
+                                          (height()-textLabel->height())*ICON_RATIO,
+                                          Qt::KeepAspectRatio,
+                                          Qt::SmoothTransformation);
+        }
 
         imageLabel = new QLabel(this);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -431,7 +471,7 @@ void DockNodeItem::updateTextLabel()
     int maxLength = MAX_LABEL_LENGTH;
 
     // file labels have a bigger font and can therefore fit less chars
-    if (fileLabel) {
+    if (dockItemLabel) {
         maxLength -= 2;
     }
 
@@ -456,7 +496,7 @@ void DockNodeItem::updateTextLabel()
  */
 void DockNodeItem::updateStyleSheet()
 {
-    if (fileLabel) {
+    if (dockItemLabel) {
 
         QString textLabelBackground;
         if (expanded) {
@@ -508,16 +548,10 @@ void DockNodeItem::clicked()
     if (state == READONLY) {
         return;
     }
-    if (!fileLabel) {
-        emit dockItem_clicked();
+    if (isDockItemLabel()) {
+        setDockItemExpanded();
     } else {
-        if (expanded) {
-            expanded = false;
-        } else {
-            expanded = true;
-        }
-        updateStyleSheet();
-        emit dockItem_fileClicked(expanded);
+        emit dockItem_clicked();
     }
 }
 
@@ -529,23 +563,6 @@ void DockNodeItem::clicked()
 void DockNodeItem::parentDockItemClicked(bool show)
 {
     setDockItemVisible(show);
-}
-
-
-/**
- * @brief DockNodeItem::childHidden
- * This is called whenever a File's child dock item is hidden.
- * If all of the File's children dock items are hidden, hide the File label.
- */
-void DockNodeItem::childDockItemHidden()
-{
-    foreach (DockNodeItem* dockItem, childrenDockItems) {
-        if (dockItem->isDockItemVisible()) {
-            setDockItemVisible(true);
-            return;
-        }
-    }
-    setDockItemVisible(false);
 }
 
 
@@ -578,36 +595,54 @@ void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
 
 
 /**
- * @brief DockNodeItem::setDockItemVisible
- * This is used for Vector dock node items.
- * This stops them from being displayed when they have no children.
- * @param visible
- * @param forceChange
+ * @brief DockNodeItem::childVisibilityChanged
+ * This is called whenever the Definitions dock has been filtered.
+ * It checks if all of the IDL's (label's node item) children dock items are hidden.
+ * If they are, hide the IDL's label as well.
  */
-void DockNodeItem::setDockItemVisible(bool visible, bool forceChange)
+void DockNodeItem::childVisibilityChanged()
 {
-    if (!forceChange && isForceHidden()) {
-        return;
+    if (isDockItemLabel()) {
+        foreach (DockNodeItem* dockItem, childrenDockItems) {
+            if (!dockItem->isHidden() && !dockItem->isForceHidden()) {
+                setDockItemVisible(true);
+                return;
+            }
+        }
+        setDockItemVisible(false);
     }
-
-    if (parentDockItem) {
-        visible = visible && parentDockItem->isExpanded();
-    }
-
-    setVisible(visible);
 }
 
 
 /**
- * @brief DockNodeItem::isDockItemVisible
- * @return
+ * @brief DockNodeItem::changeVectorHiddenState
  */
-bool DockNodeItem::isDockItemVisible()
+void DockNodeItem::changeVectorHiddenState()
 {
-    bool visible = !isHidden() && !isForceHidden();
-    if (parentDockItem) {
-        visible = visible && parentDockItem->isExpanded();
+    NodeItem* item = getNodeItem();
+    if (item) {
+        if (item->hasChildren()) {
+            setForceHidden(false);
+        } else {
+            setForceHidden(true);
+        }
     }
-    return visible;
+}
+
+
+/**
+ * @brief DockNodeItem::setDockItemExpanded
+ */
+void DockNodeItem::setDockItemExpanded()
+{
+    if (isDockItemLabel()) {
+        if (expanded) {
+            expanded = false;
+        } else {
+            expanded = true;
+        }
+        updateStyleSheet();
+        emit dockItem_fileClicked(expanded);
+    }
 }
 

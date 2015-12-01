@@ -16,6 +16,7 @@ public:
 
 signals:
     void dock_forceOpenDock(DOCK_TYPE type);
+    void dock_updateDockItemLabels();
 
 public slots:
     void dockNodeItemClicked();
@@ -27,10 +28,6 @@ public slots:
 
     void dockClosed();
     void forceOpenDock(QString srcKind);
-
-    // these are currently only being used for Vector items
-    void showDockItem(int nodeID);
-    void hideDockItem(int nodeID);
 
 private:
     void filterDock(QString nodeKind = "");

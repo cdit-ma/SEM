@@ -50,7 +50,7 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
     QList<DockNodeItem*> dockNodeItems;
 
     foreach (DockNodeItem* item, dockItems) {
-        if (!item->isFileLabel()) {
+        if (!item->isDockItemLabel()) {
             dockNodeItems.append(item);
         }
     }
@@ -72,7 +72,7 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
         return;
     }
 
-    if (dockItem->isFileLabel()) {
+    if (dockItem->isDockItemLabel()) {
 
         // IDL file deleted - remove corresponding file layout and then delete it
         if (fileLayoutItems.contains(nodeID)) {
@@ -114,8 +114,6 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
             DockScrollArea::nodeDeleted(fileID);
         }
     }
-
-    //updateDock();
 }
 
 
@@ -130,7 +128,7 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
     NodeItem* selectedNodeItem = getNodeView()->getSelectedNodeItem();
     DockNodeItem* dockNodeItem = qobject_cast<DockNodeItem*>(QObject::sender());
 
-    if (!selectedNodeItem || !dockNodeItem) {
+    if (!selectedNodeItem || !dockNodeItem || dockNodeItem->isDockItemLabel()) {
         setDockEnabled(false);
         return;
     }
@@ -209,7 +207,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
         // check if there is already a layout and label for the parent File
         if (!fileLayoutItems.contains(fileID)){
             // create a new File label and add it to the File's layout
-            DockNodeItem* fileDockItem = new DockNodeItem("FileLabel", parentEntityItem, this, true);
+            DockNodeItem* fileDockItem = new DockNodeItem("DockItemLabel", parentEntityItem, this, true);
             QVBoxLayout* fileLayout = new QVBoxLayout();
 
             fileLayoutItems[fileID] = fileLayout;
@@ -218,6 +216,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
 
             insertDockNodeItem(fileDockItem);
             connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+            connect(this, SIGNAL(dock_updateDockItemLabels()), fileDockItem, SLOT(updateDockItemLabel()));
         }
 
         // connect the new dock item to its parent file item
@@ -239,8 +238,8 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
                 if (!entityItem->hasChildren()) {
                     dockItem->setForceHidden(true);
                 }
-                connect(entityItem, SIGNAL(entityItem_firstChildAdded(int)), this, SLOT(showDockItem(int)));
-                connect(entityItem, SIGNAL(entityItem_lastChildRemoved(int)), this, SLOT(hideDockItem(int)));
+                connect(entityItem, SIGNAL(entityItem_firstChildAdded(int)), dockItem, SLOT(changeVectorHiddenState()));
+                connect(entityItem, SIGNAL(entityItem_lastChildRemoved(int)), dockItem, SLOT(changeVectorHiddenState()));
             }
         }
 
@@ -271,32 +270,6 @@ void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
 
     sourceDockItemKind = srcKind;
     sourceSelectedItemID = getCurrentNodeID();
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::showDockItem
- * @param nodeID
- */
-void DefinitionsDockScrollArea::showDockItem(int nodeID)
-{
-    DockNodeItem* dockItem = getDockNodeItem(QString::number(nodeID));
-    if (dockItem) {
-        dockItem->setForceHidden(false);
-    }
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::hideDockItem
- * @param nodeID
- */
-void DefinitionsDockScrollArea::hideDockItem(int nodeID)
-{
-    DockNodeItem* dockItem = getDockNodeItem(QString::number(nodeID));
-    if (dockItem) {
-        dockItem->setForceHidden(true);
-    }
 }
 
 
@@ -352,9 +325,9 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
 
     QString ID = dockItem->getID();
     QString labelToSort = dockItem->getLabel();
-    bool isFileLabel = dockItem->isFileLabel();
+    bool isDockItemLabel = dockItem->isDockItemLabel();
 
-    if (isFileLabel) {
+    if (isDockItemLabel) {
         // IDL file - remove  fileLayout from itemsLayout
         layoutToSort = itemsLayout;
         QVBoxLayout* fileLayout = fileLayoutItems[ID];
@@ -383,7 +356,7 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
         QLayoutItem* layoutItem = layoutToSort->itemAt(i);
         QString dockItemLabel;
 
-        if (isFileLabel) {
+        if (isDockItemLabel) {
             // get the IDL file's label
             QVBoxLayout* fileLayout = dynamic_cast<QVBoxLayout*>(layoutItem);
             if (fileLayout) {
@@ -396,7 +369,7 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
         } else {
             // get the Component/BlackBox's label
             DockNodeItem* dockItem = dynamic_cast<DockNodeItem*>(layoutItem->widget());
-            if (dockItem && !dockItem->isFileLabel()) {
+            if (dockItem && !dockItem->isDockItemLabel()) {
                 dockItemLabel = dockItem->getLabel();
             }
         }
@@ -409,7 +382,7 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
         // compare existing file names to the new file name
         // insert the new File into the correct alphabetical spot in the layout
         if (labelToSort.compare(dockItemLabel, Qt::CaseInsensitive) <= 0) {
-            if (isFileLabel) {
+            if (isDockItemLabel) {
                 QVBoxLayout* fileLayout = fileLayoutItems[ID];
                 if (fileLayout) {
                     layoutToSort->insertLayout(i, fileLayout);
@@ -422,7 +395,7 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
     }
 
     // if there was no spot to insert the new File layout, add it to the end of the layout
-    if (isFileLabel) {
+    if (isDockItemLabel) {
         QVBoxLayout* fileLayout = fileLayoutItems[ID];
         if (fileLayout) {
             layoutToSort->addLayout(fileLayout);
@@ -476,21 +449,22 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
 /**
  * @brief DefinitionsDockScrollArea::showDockItemsOfKind
  * This function displays all the dock items with the provided kind and hides the rest.
- * @param kinds - list of kinds of dock node items to show
- *              - show all kinds if this is empty
+ * @param nodeKind - kind of dock node item to show
+ *                 - disable dock if kind is empty
  */
 void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
 {
+    // disable the dock
     if (nodeKind.isEmpty()) {
-        // disable the dock
         setDockEnabled(false);
-    } else {
-        // only show the dock node items with the specified kind
-        foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-            QString dockItemKind = dockItem->getKind();
-            bool showItem = dockItemKind == nodeKind;
-            dockItem->setHidden(!showItem);
-        }
+        return;
+    }
+
+    // only show the dock node items with the specified kind
+    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        QString dockItemKind = dockItem->getKind();
+        bool showItem = dockItemKind == nodeKind;
+        dockItem->setHidden(!showItem);
     }
 }
 

@@ -130,7 +130,7 @@ void FunctionsDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
 
 
     QString labelToSort = dockItem->getLabel();
-    bool isClassLabel = dockItem->isFileLabel();
+    bool isClassLabel = dockItem->isDockItemLabel();
 
     if (isClassLabel) {
         // remove  classLayout from itemsLayout
@@ -174,7 +174,7 @@ void FunctionsDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
         } else {
             // get the function name
             DockNodeItem* dockNodeItem = dynamic_cast<DockNodeItem*>(layoutItem->widget());
-            if (dockNodeItem && !dockNodeItem->isFileLabel()) {
+            if (dockNodeItem && !dockNodeItem->isDockItemLabel()) {
                 dockItemLabel = dockNodeItem->getLabel();
             }
         }
