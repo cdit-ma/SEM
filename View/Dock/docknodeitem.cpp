@@ -108,6 +108,16 @@ QString DockNodeItem::getKind()
 
 
 /**
+ * @brief DockNodeItem::setID
+ * @param strID
+ */
+void DockNodeItem::setID(QString strID)
+{
+    this->strID = strID;
+}
+
+
+/**
  * @brief DockNodeItem::setLabel
  * This updates the label and textLabel of this dock item.
  * @param newLabel

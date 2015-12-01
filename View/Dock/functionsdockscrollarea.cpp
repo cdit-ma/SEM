@@ -37,7 +37,7 @@ void FunctionsDockScrollArea::addDockNodeItems(QList<QPair<QString, QString> > f
         QString className = function.first;
         QString functionName = function.second;
         DockNodeItem* dockItem = new DockNodeItem(functionName, 0, this, false, className);
-        //dockItem->setImage("Functions", className);
+        dockItem->setID(className + "_" + functionName);
 
         // check if there is already a layout and label for the parent File
         if (!classLayoutItems.contains(className)){
@@ -73,13 +73,22 @@ void FunctionsDockScrollArea::addDockNodeItems(QList<QPair<QString, QString> > f
  */
 void FunctionsDockScrollArea::dockNodeItemClicked()
 {
-    // this dock can only be opened from the Parts dock at the moment
-    // the check for selected item(s) is already done there
-
     DockNodeItem* dockItem = qobject_cast<DockNodeItem*>(QObject::sender());
     DockNodeItem* parentItem = dockItem->getParentDockNodeItem();
 
+    qDebug() << "Dock Item CLICKED";
+
+    if (!dockItem) {
+        qDebug() << "Dock item is NULL";
+    }
+
+    if (!parentItem) {
+        qDebug() << "Parent dock item is NULL";
+    }
+
     if (dockItem && parentItem) {
+        qDebug() << "Process Kind: " << dockItem->getKind();
+        qDebug() << "Parent Kind: " << parentItem->getKind();
         getNodeView()->constructWorkerProcessNode(parentItem->getKind(), dockItem->getKind(), 0);
     }
 

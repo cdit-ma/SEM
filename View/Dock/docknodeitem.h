@@ -16,6 +16,8 @@ public:
 
     EntityItem* getNodeItem();
     QString getKind();
+
+    void setID(QString strID);
     QString getID();
 
     void setLabel(QString newLabel);
