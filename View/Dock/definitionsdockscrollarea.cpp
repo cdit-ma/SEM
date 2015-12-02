@@ -15,44 +15,9 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     DockScrollArea(label, view, parent)
 {
     // populate list of not allowed kinds
-    definitions_notAllowedKinds.append("Model");
-    definitions_notAllowedKinds.append("InterfaceDefinitions");
-    definitions_notAllowedKinds.append("DeploymentDefinitions");
-    definitions_notAllowedKinds.append("AssemblyDefinitions");
-    definitions_notAllowedKinds.append("HardwareDefinitions");
-    definitions_notAllowedKinds.append("ManagementComponent");
-    definitions_notAllowedKinds.append("HardwareCluster");
-    definitions_notAllowedKinds.append("HardwareNode");
-    definitions_notAllowedKinds.append("IDL");
-    definitions_notAllowedKinds.append("Component");
-    definitions_notAllowedKinds.append("Member");
-    definitions_notAllowedKinds.append("AggregateInstance");
-    definitions_notAllowedKinds.append("MemberInstance");
-    definitions_notAllowedKinds.append("InEventPort");
-    definitions_notAllowedKinds.append("OutEventPort");
-    definitions_notAllowedKinds.append("Attribute");
-    definitions_notAllowedKinds.append("InEventPortImpl");
-    definitions_notAllowedKinds.append("OutEventPortImpl");
-    definitions_notAllowedKinds.append("AttributeImpl");
-    definitions_notAllowedKinds.append("Workload");
-    definitions_notAllowedKinds.append("Process");
-    definitions_notAllowedKinds.append("BranchState");
-    definitions_notAllowedKinds.append("Condition");
-    definitions_notAllowedKinds.append("Termination");
-    definitions_notAllowedKinds.append("Variable");
-    definitions_notAllowedKinds.append("PeriodicEvent");
-    definitions_notAllowedKinds.append("InEventPortInstance");
-    definitions_notAllowedKinds.append("OutEventPortInstance");
-    definitions_notAllowedKinds.append("AttributeInstance");
-    definitions_notAllowedKinds.append("InEventPortDelegate");
-    definitions_notAllowedKinds.append("OutEventPortDelegate");
-    definitions_notAllowedKinds.append("BlackBox");
-    definitions_notAllowedKinds.append("BlackBoxInstance");
-    definitions_notAllowedKinds.append("ComponentInstance");
-    definitions_notAllowedKinds.append("ComponentImpl");
-    definitions_notAllowedKinds.append("InputParameter");
-    definitions_notAllowedKinds.append("ReturnParameter");
-    definitions_notAllowedKinds.append("VectorInstance");
+    if (view) {
+        definitions_notAllowedKinds = view->getAllNodeKinds();
+    }
 
     // this is the list of entity kinds that this dock constructs items for
     definitionKinds.append("Component");
@@ -68,6 +33,8 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     getLayout()->addLayout(mainLayout);
 
     setNotAllowedKinds(definitions_notAllowedKinds);
+    setDockEnabled(false);
+
     connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
 }
 
@@ -119,49 +86,36 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
 
     } else {
 
-        // Component/BlackBox deleted - remove from parent file's layout and then delete it
+        // Component/BlackBox/Aggregate/Vector deleted - remove from parent file's layout and then delete it
         DockNodeItem* fileDockItem = dockItem->getParentDockNodeItem();
 
         if (!fileDockItem) {
-            qWarning() << "DefinitionsDockScrollArea::onNodeDeleted - Component/BlackBox has no parent IDL file.";
+            qWarning() << "DefinitionsDockScrollArea::onNodeDeleted - Deleted node has no parent IDL file.";
             return;
         }
 
         QString fileID = fileDockItem->getID();
         QVBoxLayout* fileLayout = fileLayoutItems[fileID];
 
-        // if there is only 1 Component/BlackBox stored in the File, delete the File too
+        // if there is only 1 child item stored in the File, delete the File too
         bool deleteFileLayout = fileDockItem->getChildrenDockItems().count() == 1;
 
         if (fileLayout) {
-            // remove this Component/BlackBox from the File's layout and the File item's children items list
+            // remove the child item from the File's layout and the File item's children items list
             fileLayout->removeWidget(dockItem);
             fileDockItem->removeChildDockItem(dockItem);
 
-            // destruct the Component/BlackBox's DockNodeItem
+            // destruct the child dockNodeItem
             DockScrollArea::nodeDeleted(nodeID);
         }
 
         if (deleteFileLayout) {
-            // destruct the File's DockNodeItem
+            // destruct the File's dockNodeItem
             DockScrollArea::nodeDeleted(fileID);
         }
     }
 
     //updateDock();
-    filterDock();
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::edgeDeleted
- * This is called when an edge has been deleted. This is needed to update the displayed items
- * in case the edge that has been deleted is linked to what is currently being displayed.
- */
-void DefinitionsDockScrollArea::edgeDeleted()
-{
-    //updateDock();
-    filterDock();
 }
 
 
@@ -181,20 +135,17 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
         return;
     }
 
-    QString selectedNodeKind = selectedNodeItem->getNodeKind();
     int selectedNodeID = selectedNodeItem->getID();
     int dockNodeID = dockNodeItem->getID().toInt();
 
-    if (selectedNodeKind == "ComponentAssembly" || selectedNodeKind == "Aggregate" || selectedNodeKind == "Vector") {
-        getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, dockNodeItem->getKind() + "Instance", 0);
-    } else if (selectedNodeKind == "BlackBoxInstance" || selectedNodeKind == "ComponentInstance" || selectedNodeKind == "ComponentImpl") {
-        getNodeView()->constructEdge(selectedNodeID, dockNodeID);
-    } else if (selectedNodeKind == "BehaviourDefinitions") {
+    if (selectedNodeItem->getNodeKind() == "BehaviourDefinitions") {
         getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, "ComponentImpl", 0);
+    } else {
+        getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, dockNodeItem->getKind() + "Instance", 0);
     }
 
-    // close this dock after an item has been clicked
-    setDockEnabled(false);
+    // disable this dock after an item has been clicked
+    dockClosed();
 
     // then re-open the parts dock
     emit dock_forceOpenDock(PARTS_DOCK);
@@ -208,36 +159,23 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
  */
 void DefinitionsDockScrollArea::updateDock()
 {
-    /*
-    if (isDockOpen()) {
-        filterDock();
+    // if the dock is not open, do nothing
+    if (!isDockOpen()) {
         return;
     }
-    */
 
-    NodeItem* selectedItem = getCurrentNodeItem();
-    if (!selectedItem || !definitions_allowedKinds.contains(selectedItem->getNodeKind())) {
+    // if there is no selected item, disable the dock
+    if (!getCurrentNodeItem() || getCurrentNodeID() == -1) {
+        setDockEnabled(false);
+        return;
+    }
+
+    // only update the dock if the previously selected item hasn't changed
+    if (getCurrentNodeID() == sourceSelectedItemID) {
+        filterDock();
+    } else {
         setDockEnabled(false);
     }
-
-    /*
-    DockScrollArea::updateDock();
-    if (!isDockEnabled()) {
-        return;
-    }
-
-    // special case - Vector entities can only have one child (AggregateInstance/Member)
-    NodeItem* selectedItem = getCurrentNodeItem();
-    if (selectedItem && selectedItem->getNodeKind() == "Vector") {
-        if (selectedItem->hasChildren()) {
-            setDockEnabled(false);
-            return;
-        }
-    }
-
-    // filter the dock based on the selected item's kind
-    filterDock();
-    */
 }
 
 
@@ -295,24 +233,18 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
             addDockNodeItem(dockItem, -1, false);
             insertDockNodeItem(dockItem);
             connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+
+            // initially hide dock item for Vector if it doesn't have any children
             if (nodeKind == "Vector") {
-                connect(entityItem, SIGNAL(entityItem_lastChildRemoved(int)), this, SLOT(hideDockItem(int)));
                 if (!entityItem->hasChildren()) {
-                    dockItem->setHidden(true);
+                    dockItem->setForceHidden(true);
                 }
-            } else if (parentDockItem && parentDockItem->getKind() == "Vector") {
-                if (parentDockItem->isHidden()) {
-                    parentDockItem->setHidden(false);
-                }
-                dockItem->setHidden(!parentDockItem->isExpanded());
+                connect(entityItem, SIGNAL(entityItem_firstChildAdded(int)), this, SLOT(showDockItem(int)));
+                connect(entityItem, SIGNAL(entityItem_lastChildRemoved(int)), this, SLOT(hideDockItem(int)));
             }
         }
 
-    } else if (nodeKind == "Member") {
-        // don't need to check for ComponentImpl or AggregateInstance here
-        // the dock is already updated for these kinds through the edgeConstructed signal from the view
-        //updateDock();
-        filterDock();
+        updateDock();
     }
 }
 
@@ -326,15 +258,31 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
  */
 void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
 {
-    if (isDockOpen()) {
+    if (isDockOpen() || !getParentButton() || !getCurrentNodeItem() || (getCurrentNodeID() == -1)) {
         return;
     }
+
     if (!isDockEnabled()) {
         setDockEnabled(true);
     }
-    if (getParentButton()) {
-        getParentButton()->pressed();
-        filterDock(srcKind);
+
+    getParentButton()->pressed();
+    filterDock(srcKind);
+
+    sourceDockItemKind = srcKind;
+    sourceSelectedItemID = getCurrentNodeID();
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::showDockItem
+ * @param nodeID
+ */
+void DefinitionsDockScrollArea::showDockItem(int nodeID)
+{
+    DockNodeItem* dockItem = getDockNodeItem(QString::number(nodeID));
+    if (dockItem) {
+        dockItem->setForceHidden(false);
     }
 }
 
@@ -347,7 +295,7 @@ void DefinitionsDockScrollArea::hideDockItem(int nodeID)
 {
     DockNodeItem* dockItem = getDockNodeItem(QString::number(nodeID));
     if (dockItem) {
-        dockItem->setHidden(true);
+        dockItem->setForceHidden(true);
     }
 }
 
@@ -360,48 +308,25 @@ void DefinitionsDockScrollArea::hideDockItem(int nodeID)
 void DefinitionsDockScrollArea::filterDock(QString nodeKind)
 {
     if (nodeKind.isEmpty()) {
-        /*
-        if (getCurrentNodeItem()) {
-            nodeKind = getCurrentNodeItem()->getNodeKind();
-        } else {
-            setDockEnabled(false);
-            return;
-        }
-        */
-        nodeKind = prevClickedKind;
-    } else {
-        prevClickedKind = nodeKind;
+        nodeKind = sourceDockItemKind;
     }
 
-    QStringList kinds;
+    QString kind;
     bool hideCompsWithImpl = false;
 
     if (nodeKind.endsWith("Instance")) {
-        kinds.append(nodeKind.remove("Instance"));
+        kind.append(nodeKind.remove("Instance"));
     } else if (nodeKind == "ComponentImpl") {
-        kinds.append("Component");
+        kind.append("Component");
         hideCompsWithImpl = true;
+    } else {
+        qWarning() << "DefinitionsDockScrollArea::filterDock - Node kind is not handled.";
+        setDockEnabled(false);
+        return;
     }
 
-    /*
-    if (nodeKind.endsWith("Instance")) {
-        kinds.append(nodeKind.remove("Instance"));
-    }  else if (nodeKind == "ComponentImpl" || nodeKind == "BehaviourDefinitions") {
-        kinds.append("Component");
-        hideCompsWithImpl = true;
-    } else if (nodeKind == "ComponentAssembly") {
-        kinds.append("BlackBox");
-        kinds.append("Component");
-    } else if (nodeKind == "Aggregate") {
-        kinds.append("Vector");
-        kinds.append("Aggregate");
-    } else if (nodeKind == "Vector") {
-        kinds.append("Aggregate");
-    }
-    */
-
-    // all dock items are shown for all the other allowed kinds
-    showDockItemsOfKinds(kinds);
+    // only show dock items with the corresponding kind
+    showDockItemsOfKind(kind);
 
     // if required, hide already implemented Components
     if (hideCompsWithImpl) {
@@ -510,11 +435,18 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
 
 /**
  * @brief DefinitionsDockScrollArea::dockClosed
+ * This is called everytime the dock is closed.
+ * It is either when the parent toggle button or an item in this dock has been clicked.
  */
 void DefinitionsDockScrollArea::dockClosed()
 {
     // the moment this dock is closed, it is also disabled
-    setDockEnabled(false, true);
+    if (isDockEnabled()) {
+        setDockEnabled(false, true);
+    }
+
+    sourceDockItemKind = "";
+    sourceSelectedItemID = -1;
 }
 
 
@@ -547,29 +479,17 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
  * @param kinds - list of kinds of dock node items to show
  *              - show all kinds if this is empty
  */
-void DefinitionsDockScrollArea::showDockItemsOfKinds(QStringList kinds)
+void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
 {
-    if (kinds.isEmpty()) {
-        // show all dock node items
-        foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-            dockItem->setHidden(false);
-        }
+    if (nodeKind.isEmpty()) {
+        // disable the dock
+        setDockEnabled(false);
     } else {
         // only show the dock node items with the specified kind
         foreach (DockNodeItem* dockItem, getDockNodeItems()) {
             QString dockItemKind = dockItem->getKind();
-            if (kinds.contains(dockItemKind)) {
-                if (dockItemKind == "Vector") {
-                    continue;
-                }
-                dockItem->setHidden(false);
-            } else {
-                if (dockItemKind == "Vector") {
-                    dockItem->hide();
-                    continue;
-                }
-                dockItem->setHidden(true);
-            }
+            bool showItem = dockItemKind == nodeKind;
+            dockItem->setHidden(!showItem);
         }
     }
 }
@@ -582,14 +502,4 @@ void DefinitionsDockScrollArea::clear()
 {
     DockScrollArea::clear();
     fileLayoutItems.clear();
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::edgeConstructed
- */
-void DefinitionsDockScrollArea::edgeConstructed()
-{
-    // TODO - Shouldn't need this once list of allowed kinds are used to update the docks instead
-    filterDock();
 }

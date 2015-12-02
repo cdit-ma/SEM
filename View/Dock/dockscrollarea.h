@@ -49,7 +49,6 @@ public:
     QStringList getAdoptableNodeListFromView();
 
     virtual void nodeDeleted(QString nodeID);
-    virtual void edgeDeleted();
 
 signals:
     void dock_opened();

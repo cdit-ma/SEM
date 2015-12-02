@@ -26,6 +26,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     fileLabel = false;
     expanded = false;
     hidden = false;
+    forceHidden = false;
 
     state = DEFAULT;
 
@@ -188,6 +189,27 @@ void DockNodeItem::setImage(QString prefix, QString image)
 
 
 /**
+ * @brief DockNodeItem::setForceHidden
+ * @param hide
+ */
+void DockNodeItem::setForceHidden(bool hide)
+{
+    forceHidden = hide;
+    setDockItemVisible(!hide, true);
+}
+
+
+/**
+ * @brief DockNodeItem::isForceHidden
+ * @return
+ */
+bool DockNodeItem::isForceHidden()
+{
+    return forceHidden;
+}
+
+
+/**
  * @brief DockNodeItem::getID
  * @return
  */
@@ -201,15 +223,18 @@ QString DockNodeItem::getID()
  * @brief DockNodeItem::setHidden
  * @param hide
  */
-void DockNodeItem::setHidden(bool hideItem)
+void DockNodeItem::setHidden(bool hide)
 {
-    hidden = hideItem;
+    // TODO - change signal name to visibilityChanged
     emit dockItem_hidden();
-    if (hideItem) {
-        hide();
-    } else if (parentDockItem && parentDockItem->isExpanded()) {
-        show();
+
+    if (hide) {
+        setDockItemVisible(false);
+    } else {
+        setDockItemVisible(true);
     }
+
+    hidden = hide;
 }
 
 
@@ -303,9 +328,9 @@ void DockNodeItem::iconChanged()
     }
 
     pixMap = pixMap.scaled(width()*ICON_RATIO,
-                            (height()-textLabel->height())*ICON_RATIO,
-                            Qt::KeepAspectRatio,
-                            Qt::SmoothTransformation);
+                           (height()-textLabel->height())*ICON_RATIO,
+                           Qt::KeepAspectRatio,
+                           Qt::SmoothTransformation);
 
     imageLabel->setPixmap(pixMap);
 }
@@ -503,9 +528,7 @@ void DockNodeItem::clicked()
  */
 void DockNodeItem::parentDockItemClicked(bool show)
 {
-    if (!isHidden()) {
-        setVisible(show);
-    }
+    setDockItemVisible(show);
 }
 
 
@@ -516,18 +539,13 @@ void DockNodeItem::parentDockItemClicked(bool show)
  */
 void DockNodeItem::childDockItemHidden()
 {
-    bool hideFileLabel = true;
     foreach (DockNodeItem* dockItem, childrenDockItems) {
-        if (!dockItem->isHidden()) {
-            hideFileLabel = false;
-            break;
+        if (dockItem->isDockItemVisible()) {
+            setDockItemVisible(true);
+            return;
         }
     }
-    if (hideFileLabel) {
-        hide();
-    } else {
-        show();
-    }
+    setDockItemVisible(false);
 }
 
 
@@ -556,5 +574,40 @@ void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
         }
     }
     updateStyleSheet();
+}
+
+
+/**
+ * @brief DockNodeItem::setDockItemVisible
+ * This is used for Vector dock node items.
+ * This stops them from being displayed when they have no children.
+ * @param visible
+ * @param forceChange
+ */
+void DockNodeItem::setDockItemVisible(bool visible, bool forceChange)
+{
+    if (!forceChange && isForceHidden()) {
+        return;
+    }
+
+    if (parentDockItem) {
+        visible = visible && parentDockItem->isExpanded();
+    }
+
+    setVisible(visible);
+}
+
+
+/**
+ * @brief DockNodeItem::isDockItemVisible
+ * @return
+ */
+bool DockNodeItem::isDockItemVisible()
+{
+    bool visible = !isHidden() && !isForceHidden();
+    if (parentDockItem) {
+        visible = visible && parentDockItem->isExpanded();
+    }
+    return visible;
 }
 

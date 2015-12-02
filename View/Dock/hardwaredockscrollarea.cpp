@@ -53,15 +53,7 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
     hardware_notAllowedKinds.append("VectorInstance");
 
     setNotAllowedKinds(hardware_notAllowedKinds);
-}
-
-
-/**
- * @brief HardwareDockScrollArea::edgeDeleted
- */
-void HardwareDockScrollArea::edgeDeleted()
-{
-    updateDock();
+    setDockEnabled(false);
 }
 
 

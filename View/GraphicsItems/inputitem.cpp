@@ -206,30 +206,33 @@ void InputItem::updateTextSize()
 
 void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
+    qreal actualSize = lod * height;
+    if(actualSize > MINIMUM_TEXT_SIZE){
+        painter->setClipping(true);
+        painter->setClipRect(boundingRect());
 
-    painter->setClipping(true);
-    painter->setClipRect(boundingRect());
 
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(backgroundBrush);
+        painter->drawRect(boundingRect());
 
-    painter->setPen(Qt::NoPen);
-    painter->setBrush(backgroundBrush);
-    painter->drawRect(boundingRect());
+        if(isComboBox){
+            QImage image(":/Actions/Arrow_Down.png");
+            QPixmap imageData = QPixmap::fromImage(image);
 
-    if(isComboBox){
-        QImage image(":/Actions/Arrow_Down.png");
-        QPixmap imageData = QPixmap::fromImage(image);
+            painter->drawPixmap(arrowRect().toAlignedRect(), imageData);
 
-        painter->drawPixmap(arrowRect().toAlignedRect(), imageData);
+            QPen linePen;
+            linePen.setColor(Qt::black);
+            linePen.setWidthF(.5);
+            painter->setPen(linePen);
 
-        QPen linePen;
-        linePen.setColor(Qt::black);
-        linePen.setWidthF(.5);
-        painter->setPen(linePen);
-
-        QLineF line;
-        line.setP1(arrowRect().topLeft());
-        line.setP2(arrowRect().bottomLeft());
-        painter->drawLine(line);
+            QLineF line;
+            line.setP1(arrowRect().topLeft());
+            line.setP2(arrowRect().bottomLeft());
+            painter->drawLine(line);
+        }
     }
 }
 

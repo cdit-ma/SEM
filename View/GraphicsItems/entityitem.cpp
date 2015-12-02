@@ -610,23 +610,24 @@ bool EntityItem::isVector()
 
 void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget* widget)
 {
+    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
 
+    //Get Render State.
+    RENDER_STATE renderState = getRenderStateFromZoom(lod);
 
     //Set Clip Rectangle
     painter->setClipRect(option->exposedRect);
     painter->setRenderHint(QPainter::Antialiasing, true);
 
-    //Get Render State.
-    RENDER_STATE renderState = getRenderState();
+
 
 
     VIEW_STATE viewState = getViewState();
 
-
     //Background
-    if(renderState > RS_NONE){
-        QBrush bodyBrush = this->bodyBrush;
+    if(renderState >= RS_BLOCK){
         QBrush headBrush = this->headerBrush;
+        QBrush bodyBrush = this->bodyBrush;
 
         if(IS_READ_ONLY){
             bodyBrush = this->readOnlyBodyBrush;
@@ -634,7 +635,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
 
         //Make the background transparent
-        if(viewState == VS_MOVING || viewState == VS_RESIZING){
+        if((renderState > RS_BLOCK) && viewState == VS_MOVING || viewState == VS_RESIZING){
             if(isSelected() && isNodeOnGrid){
                 QColor color = bodyBrush.color();
                 color.setAlpha(90);
@@ -643,20 +644,18 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
 
         if (isHighlighted()) {
-            headBrush.setColor(Qt::white);
             bodyBrush.setColor(Qt::white);
+            headBrush.setColor(Qt::white);
         }
-
         //Paint Background
         painter->setPen(Qt::NoPen);
         painter->setBrush(bodyBrush);
         painter->drawRect(boundingRect());
 
-        if(IS_IMPL_OR_INST && !HAS_DEFINITION){
-            //Change Brush style.
-            headBrush.setStyle(Qt::BDiagPattern);
-        }
 
+        if(isSelected() && renderState == RS_BLOCK){
+            headBrush.setColor(selectedPen.color());
+        }
 
         //Paint Header
         painter->setPen(Qt::NoPen);
@@ -666,40 +665,42 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         //Draw the boundary.
         if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
-            //Setup the Pen
-            QPen pen = this->pen;
+            if(renderState != RS_BLOCK){
+                //Setup the Pen
+                QPen pen = this->pen;
 
-            if(isSelected()){
-                pen = this->selectedPen;
-                pen.setWidthF(selectedPenWidth);
-            }
-
-            if (hasHardwareWarning) {
-                pen.setWidthF(selectedPenWidth);
-                pen.setStyle(Qt::DotLine);
-                pen.setColor(Qt::red);
-            }
-
-            if (isHighlighted()) {
-                pen.setStyle(Qt::DashLine);
-                pen.setColor(Qt::darkBlue);
-                pen.setWidthF(selectedPenWidth);
-            }
-
-            if(isHovered()){
-                if(pen.color() == Qt::black){
+                if(isSelected()){
+                    pen = this->selectedPen;
                     pen.setWidthF(selectedPenWidth);
-                    pen.setColor(QColor(130,130,130));
-                }else{
-                    pen.setColor(pen.color().lighter(130));
                 }
+
+                if (hasHardwareWarning) {
+                    pen.setWidthF(selectedPenWidth);
+                    pen.setStyle(Qt::DotLine);
+                    pen.setColor(Qt::red);
+                }
+
+                if (isHighlighted()) {
+                    pen.setStyle(Qt::DashLine);
+                    pen.setColor(Qt::darkBlue);
+                    pen.setWidthF(selectedPenWidth);
+                }
+
+                if(isHovered()){
+                    if(pen.color() == Qt::black){
+                        pen.setWidthF(selectedPenWidth);
+                        pen.setColor(QColor(130,130,130));
+                    }else{
+                        pen.setColor(pen.color().lighter(130));
+                    }
+                }
+
+                //Trace the boundary
+                painter->setPen(pen);
+                painter->setBrush(Qt::NoBrush);
+
+                painter->drawRect(adjustRectForPen(boundingRect(), pen));
             }
-
-            //Trace the boundary
-            painter->setPen(pen);
-            painter->setBrush(Qt::NoBrush);
-
-            painter->drawRect(adjustRectForPen(boundingRect(), pen));
         }
 
 
@@ -707,7 +708,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 
         //New Code
-        if(drawGridLines()){
+        if(renderState > RS_BLOCK && drawGridLines()){
             painter->setPen(Qt::gray);
             QPen linePen = painter->pen();
 
@@ -729,8 +730,9 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         //Paint the Icon
 
-        //paintPixmap(painter, IP_CENTER, getIconPrefix(), getIconURL());
-        paintPixmap(painter, IP_CENTER, getIconPrefix(), getIconURL(), changeIcon);
+        if(renderState > RS_BLOCK){
+            paintPixmap(painter, IP_CENTER, getIconPrefix(), getIconURL(), changeIcon);
+        }
     }
 
 
@@ -1534,10 +1536,10 @@ void EntityItem::updateTextVisibility()
     }
 
     if (topLabelInputItem && rightLabelInputItem) {
-        topLabelInputItem->setVisible(showTopLabel && getRenderState() >= RS_REDUCED);
-        rightLabelInputItem->setVisible(showRightLabel && getRenderState() >= RS_MINIMAL);
+        topLabelInputItem->setVisible(showTopLabel);
+        rightLabelInputItem->setVisible(showRightLabel);
 
-        bottomInputItem->setVisible(showBottomLabel && getRenderState() >= RS_FULL);
+        bottomInputItem->setVisible(showBottomLabel);
     }
 }
 
@@ -2500,14 +2502,7 @@ void EntityItem::dataChanged(QString dataValue)
 
 void EntityItem::zoomChanged(qreal currentZoom)
 {
-    qreal visibleWidth = currentZoom * contractedWidth;
-    if(visibleWidth >= contractedWidth){
-        setRenderState(RS_FULL);
-    }else if(visibleWidth >= (contractedWidth / 2)){
-        setRenderState(RS_REDUCED);
-    }else{
-        setRenderState(RS_MINIMAL);
-    }
+    setRenderState(getRenderStateFromZoom(currentZoom));
 
     updateTextVisibility();
 
@@ -2516,6 +2511,19 @@ void EntityItem::zoomChanged(qreal currentZoom)
 
     //Call base class
     GraphMLItem::zoomChanged(currentZoom);
+}
+
+GraphMLItem::RENDER_STATE EntityItem::getRenderStateFromZoom(qreal zoom)
+{
+    if(zoom >= 1.0){
+        return RS_FULL;
+    }else if(zoom >= (2.0/3.0)){
+        return RS_REDUCED;
+    }else if(zoom >= (1.0/3.0)){
+        return RS_MINIMAL;
+    }else{
+        return RS_BLOCK;
+    }
 }
 
 /**
@@ -2681,6 +2689,7 @@ void EntityItem::firstChildAdded(GraphMLItem* child)
         }
         vectorIconURL = nodeKind + "_" + childKind;
         changeIcon = true;
+        emit entityItem_firstChildAdded(getID());
     }
 }
 

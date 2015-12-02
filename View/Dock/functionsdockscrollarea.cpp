@@ -20,6 +20,7 @@ FunctionsDockScrollArea::FunctionsDockScrollArea(QString label, NodeView *view, 
     mainLayout->addStretch();
     getLayout()->addLayout(mainLayout);
 
+    setDockEnabled(false);
     connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
 }
 

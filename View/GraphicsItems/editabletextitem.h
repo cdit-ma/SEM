@@ -45,6 +45,12 @@ private:
     qreal textWidth;
     int maxLength;
     QTextDocument* doc;
+
+    // QGraphicsItem interface
+
+    // QGraphicsItem interface
+public:
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
 };
 
 #endif // EDITABLETEXTITEM_H

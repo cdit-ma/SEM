@@ -18,6 +18,8 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
     kindsRequiringDefinition.append("AggregateInstance");
     kindsRequiringDefinition.append("VectorInstance");
     kindsRequiringFunction.append("Process");
+
+    setDockEnabled(false);
 }
 
 

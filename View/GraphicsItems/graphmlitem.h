@@ -17,7 +17,7 @@ class GraphMLItem: public QGraphicsObject
 public:
     enum GUI_KIND{MODEL_ITEM, ASPECT_ITEM, ENTITY_ITEM, NODE_EDGE};
     enum ASPECT_POS{AP_NONE, AP_TOPLEFT, AP_TOPRIGHT,  AP_BOTRIGHT, AP_BOTLEFT};
-    enum RENDER_STATE{RS_NONE, RS_MINIMAL, RS_REDUCED, RS_FULL};
+    enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
 
     GraphMLItem(GraphML* graph, GraphMLItem *parent, GUI_KIND kind);
     ~GraphMLItem();

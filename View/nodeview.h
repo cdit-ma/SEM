@@ -227,7 +227,7 @@ signals:
     void view_QuestionAnswered(bool answer);
 
 public slots:
-
+    QPointF getCenterOfScreenScenePos(QPoint mousePosition = QPoint());
     void canUndo(bool okay);
     void canRedo(bool okay);
     void dropDownChangedValue(QString value);
@@ -249,7 +249,7 @@ public slots:
     void exportProject();
     void importSnippet(QString fileName, QString fileData);
 
-    void scrollEvent(int delta);
+    void scrollEvent(int delta, QPoint mouseCenter = QPoint());//, QPointF mouseCenter);
     void triggerAction(QString action);
     void minimapPan();
     void minimapPanning(QPointF delta);
@@ -468,6 +468,7 @@ private:
 
 
     QPoint panningOrigin;
+    QPoint previousPanPos;
     QPoint rubberBandOrigin;
 
     QPointF toolbarPosition;
@@ -540,6 +541,7 @@ private:
     int prevHighlightedFromToolbarID;
 
 
+    bool ZOOM_UNDER_MOUSE;
     // QWidget interface
 
     // QWidget interface

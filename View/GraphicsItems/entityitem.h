@@ -221,6 +221,7 @@ signals:
 
     void entityItem_iconChanged();
 
+    void entityItem_firstChildAdded(int parentID);
     void entityItem_lastChildRemoved(int parentID);
 
 
@@ -231,6 +232,9 @@ public slots:
 
 
     void zoomChanged(qreal zoom);
+    RENDER_STATE getRenderStateFromZoom(qreal zoom);
+
+
     //USED METHODS
     void graphMLDataChanged(GraphMLData *data);
 

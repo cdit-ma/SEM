@@ -29,7 +29,11 @@ public:
     QList<DockNodeItem*> getChildrenDockItems();
 
     void setImage(QString prefix, QString image);
-    void setHidden(bool hideItem);
+
+    void setForceHidden(bool hide);
+    bool isForceHidden();
+
+    void setHidden(bool hide);
     bool isHidden();
 
     bool isFileLabel();
@@ -58,6 +62,9 @@ private:
     void updateTextLabel();
     void updateStyleSheet();
 
+    void setDockItemVisible(bool visible, bool forceChange = false);
+    bool isDockItemVisible();
+
     DockScrollArea* parentDock;
     EntityItem* nodeItem;
     DockNodeItem* parentDockItem;
@@ -75,6 +82,7 @@ private:
     bool fileLabel;
     bool expanded;
     bool hidden;
+    bool forceHidden;
 
     int state;
 };

@@ -193,8 +193,8 @@ qreal NodeView::getCurrentZoom()
 
 void NodeView::scrollContentsBy(int dx, int dy)
 {
-    //QGraphicsView::scrollContentsBy(dx,dy);
 }
+
 
 
 void NodeView::enforceItemAspectOn(int ID)
@@ -426,7 +426,9 @@ QPointF NodeView::getModelScenePos()
  */
 void NodeView::adjustModelPosition(QPoint delta)
 {
+    //Scale by zoom!
     QPointF floatDelta(delta.x(), delta.y());
+    floatDelta /= this->zoomCurrent;
     adjustModelPosition(floatDelta);
 }
 
@@ -1079,6 +1081,16 @@ void NodeView::actionFinished()
     viewMutex.unlock();
 }
 
+QPointF NodeView::getCenterOfScreenScenePos(QPoint mousePosition)
+{
+    QPoint centerPos = viewport()->rect().center();
+    if(!mousePosition.isNull()){
+        centerPos = mousePosition;
+    }
+    QPointF centerScenePos = mapToScene(centerPos);
+    return centerScenePos;
+}
+
 void NodeView::canUndo(bool okay)
 {
     emit view_updateMenuActionEnabled("undo", okay);
@@ -1338,27 +1350,36 @@ void NodeView::importSnippet(QString fileName, QString fileData)
     }
 }
 
-void NodeView::scrollEvent(int delta)
+void NodeView::scrollEvent(int delta, QPoint mouseCenter)
 {
     if(viewState == VS_NONE || viewState ==  VS_SELECTED || viewState == VS_CONNECT || viewState == VS_CONNECTING){
-        QRectF viewRect = viewport()->rect();
+        qreal viewWidth = viewport()->rect().width();
+        qreal modelVisibleWidth = getModelItem()->childrenBoundingRect().width() * zoomCurrent;
 
-        //Turn
-        QRectF scaledSceneRect(QPointF(0,0), sceneRect().size()*transform().m11());
+        QPointF previousSceneCenter = getCenterOfScreenScenePos(mouseCenter);
 
+        bool zoomChanged = false;
         if (delta > 0) {
             // zoom in - maximum scale is when the scene is 50 times the size of the view
-            if (viewRect.width()*MAX_ZOOM_RATIO > scaledSceneRect.width()) {
+            if (viewWidth * MAX_ZOOM_RATIO > modelVisibleWidth) {
                 scale(ZOOM_SCALE_INCREMENTOR, ZOOM_SCALE_INCREMENTOR);
+                zoomChanged = true;
             }
         } else if (delta < 0) {
             // zoom out - minimum scale is when the view is twice the size of the scene
-            if (viewRect.width() < scaledSceneRect.width()*MIN_ZOOM_RATIO) {
+            if (viewWidth < modelVisibleWidth * MIN_ZOOM_RATIO) {
                 scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
+                zoomChanged = true;
             }
         }
-        // call this after zooming
-        aspectGraphicsChanged();
+
+        if(zoomChanged){
+            QPointF newSceneCenter = getCenterOfScreenScenePos(mouseCenter);
+            QPointF delta = newSceneCenter - previousSceneCenter;
+
+            translate(delta.x(), delta.y());
+            aspectGraphicsChanged();
+        }
     }
 }
 
@@ -1390,11 +1411,7 @@ void NodeView::minimapPanned()
 
 void NodeView::minimapScrolled(int delta)
 {
-    ViewportAnchor currentAnchor = transformationAnchor();
-    setTransformationAnchor(AnchorViewCenter);
-
     scrollEvent(delta);
-    setTransformationAnchor(currentAnchor);
 }
 
 
@@ -3636,7 +3653,8 @@ void NodeView::mouseReleaseEvent(QMouseEvent *event)
 
         //Check panning state.
         QLineF distance(panningOrigin, event->pos());
-        if(distance.length() < 5){
+
+        if((distance.length() * zoomCurrent) < 5){
             wasPanning = false;
             showToolbar(event->pos());
         }
@@ -3703,8 +3721,8 @@ void NodeView::mouseMoveEvent(QMouseEvent *event)
             setState(VS_PANNING);
         }
 
-        QPoint delta = event->pos() - panningOrigin;
-        panningOrigin = event->pos();
+        QPoint delta = event->pos() - previousPanPos;
+        previousPanPos = event->pos();
 
         adjustModelPosition(delta);
         return;
@@ -3766,6 +3784,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
         case VS_SELECTED:
             setState(VS_PAN);
             panningOrigin = event->pos();
+            previousPanPos = event->pos();
             return;
         }
         break;
@@ -3783,7 +3802,13 @@ void NodeView::mousePressEvent(QMouseEvent *event)
  */
 void NodeView::wheelEvent(QWheelEvent *event)
 {
-    scrollEvent(event->delta());
+    QPoint point;
+
+    if(ZOOM_UNDER_MOUSE){
+        point = event->pos();
+    }
+
+    scrollEvent(event->delta(), point);
 }
 
 
@@ -4567,11 +4592,7 @@ void NodeView::showLocalNode(bool show)
  */
 void NodeView::toggleZoomAnchor(bool underMouse)
 {
-    if (underMouse) {
-        setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
-    } else {
-        setTransformationAnchor(QGraphicsView::AnchorViewCenter);
-    }
+    ZOOM_UNDER_MOUSE = underMouse;
 }
 
 

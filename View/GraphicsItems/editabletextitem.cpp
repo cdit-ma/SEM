@@ -6,7 +6,9 @@
 #include <QFontMetrics>
 #include <QTextDocument>
 #include <QCursor>
-
+#include <QPainter>
+#include <QStyleOptionGraphicsItem>
+#include "../../enumerations.h"
 
 EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     QGraphicsTextItem(parent)
@@ -218,6 +220,16 @@ QString EditableTextItem::getTruncatedText(const QString text)
 
     return fullText;
 }
+
+void EditableTextItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+    qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
+    qreal actualSize = lod * font().pixelSize();
+    if(actualSize > MINIMUM_TEXT_SIZE){
+        QGraphicsTextItem::paint(painter, option, widget);
+    }
+}
+
 
 QRectF EditableTextItem::boundingRect() const
 {

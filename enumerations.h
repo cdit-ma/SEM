@@ -14,6 +14,8 @@ enum VIEW_THEME{VT_NO_THEME, VT_LIGHT_THEME, VT_NORMAL_THEME, VT_DARK_THEME};
 enum DOCK_TYPE{UNKNOWN_DOCK, PARTS_DOCK, DEFINITIONS_DOCK, FUNCTIONS_DOCK, HARDWARE_DOCK};
 
 
+#define MINIMUM_TEXT_SIZE 6
+
 static VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
 {
     switch(aspect){
@@ -23,10 +25,8 @@ static VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)
         return VAP_TOPRIGHT;
     case VA_ASSEMBLIES:
         return VAP_BOTTOMLEFT;
-        //return VAP_BOTTOMRIGHT;
     case VA_HARDWARE:
         return VAP_BOTTOMRIGHT;
-        //return VAP_BOTTOMLEFT;
     default:
         break;
     }
