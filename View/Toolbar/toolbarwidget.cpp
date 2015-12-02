@@ -94,11 +94,11 @@ void ToolbarWidget::setupFunctionsList()
 
     foreach (QStringList functions, classFunctionHash.values()) {
         QString className = classFunctionHash.key(functions);
+        ToolbarMenuAction* classAction = new ToolbarMenuAction(className, 0, functionsMenu, "", ":/Functions/" + className);
         ToolbarMenu* classMenu = new ToolbarMenu(this);
         foreach (QString function, functions) {
-            classMenu->addAction(new ToolbarMenuAction("Process", this, function, ":/Functions/" + className));
+            classMenu->addAction(new ToolbarMenuAction(function, classAction, this, "", ":/Functions/" + className));
         }
-        ToolbarMenuAction* classAction = new ToolbarMenuAction(className, functionsMenu, "", ":/Functions/" + className);
         classAction->setMenu(classMenu);
         functionsMenu->addAction(classAction);
     }
@@ -184,7 +184,15 @@ void ToolbarWidget::hardwareClusterMenuClicked(int viewMode)
  */
 void ToolbarWidget::addChildNode(ToolbarMenuAction* action)
 {
-    nodeView->constructNode(action->getActionKind(), 1);
+    ToolbarMenu* menu = qobject_cast<ToolbarMenu*>(QObject::sender());
+    if (menu == functionsMenu) {
+        qDebug() << "Parent kind: " << action->getParentActionKind() << ", Action kind: " << action->getActionKind();
+        nodeView->constructWorkerProcessNode(action->getParentActionKind(), action->getActionKind(), 1);
+    } else if (menu == addMenu) {
+        nodeView->constructNode(action->getActionKind(), 1);
+    } else {
+        qWarning() << "ToolbarWidget::addChildNode - Sender menu not handled.";
+    }
 }
 
 
@@ -738,10 +746,10 @@ void ToolbarWidget::setupMenus()
     hardwareClusterViewMenu = constructToolButtonMenu(displayedChildrenOptionButton);
 
     // setup menu actions for the definition and implementation menus
-    definitionMenu->addAction(new ToolbarMenuAction("Goto", definitionMenu, "Go to Definition", ":/Actions/Goto"));
-    definitionMenu->addAction(new ToolbarMenuAction("Popup", definitionMenu, "Popup Definition", ":/Actions/Popup"));
-    implementationMenu->addAction(new ToolbarMenuAction("Goto", implementationMenu, "Go to Implementation", ":/Actions/Goto"));
-    implementationMenu->addAction(new ToolbarMenuAction("Popup", implementationMenu, "Popup Implementation", ":/Actions/Popup"));
+    definitionMenu->addAction(new ToolbarMenuAction("Goto", 0, definitionMenu, "Go to Definition", ":/Actions/Goto"));
+    definitionMenu->addAction(new ToolbarMenuAction("Popup", 0, definitionMenu, "Popup Definition", ":/Actions/Popup"));
+    implementationMenu->addAction(new ToolbarMenuAction("Goto", 0, implementationMenu, "Go to Implementation", ":/Actions/Goto"));
+    implementationMenu->addAction(new ToolbarMenuAction("Popup", 0, implementationMenu, "Popup Implementation", ":/Actions/Popup"));
 
     // setup widgets for the displayed children option menu for HardwareClusters
     allNodes = new QRadioButton("All", this);
@@ -758,22 +766,22 @@ void ToolbarWidget::setupMenus()
     hardwareClusterViewMenu->QMenu::addAction(a3);
 
     // these actions are not deletable - when their parent menu is cleared, they're only hidden
-    componentImplAction = new ToolbarMenuAction("ComponentImpl", this);
-    componentInstAction = new ToolbarMenuAction("ComponentInstance", this);
-    inEventPortDelegateAction = new ToolbarMenuAction("InEventPortDelegate", this);
-    outEventPortDelegateAction = new ToolbarMenuAction("OutEventPortDelegate", this);
-    blackBoxInstAction = new ToolbarMenuAction("BlackBoxInstance", this);
-    aggregateInstAction = new ToolbarMenuAction("AggregateInstance", this);
-    vectorInstAction = new ToolbarMenuAction("VectorInstance", this);
+    componentImplAction = new ToolbarMenuAction("ComponentImpl", 0, this);
+    componentInstAction = new ToolbarMenuAction("ComponentInstance", 0, this);
+    inEventPortDelegateAction = new ToolbarMenuAction("InEventPortDelegate", 0, this);
+    outEventPortDelegateAction = new ToolbarMenuAction("OutEventPortDelegate", 0, this);
+    blackBoxInstAction = new ToolbarMenuAction("BlackBoxInstance", 0, this);
+    aggregateInstAction = new ToolbarMenuAction("AggregateInstance", 0, this);
+    vectorInstAction = new ToolbarMenuAction("VectorInstance", 0, this);
 
     // default actions to display information for when their parent menus are empty
-    componentImplMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing unimplemented Components.", ":/Actions/Info");
-    componentInstMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing Components.", ":/Actions/Info");
-    blackBoxMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing BlackBoxes.", ":/Actions/Info");
-    inEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", this, "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/Info");
-    outEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", this, "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/Info");
-    aggregateInstMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
-    vectorInstMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing Vectors.", ":/Actions/Info");
+    componentImplMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing unimplemented Components.", ":/Actions/Info");
+    componentInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Components.", ":/Actions/Info");
+    blackBoxMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing BlackBoxes.", ":/Actions/Info");
+    inEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/Info");
+    outEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/Info");
+    aggregateInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
+    vectorInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Vectors.", ":/Actions/Info");
 
     // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
     componentImplMenu = new ToolbarMenu(this, componentImplMenuInfoAction);
@@ -792,8 +800,8 @@ void ToolbarWidget::setupMenus()
     aggregateInstAction->setMenu(aggregateInstMenu);
     vectorInstAction->setMenu(vectorInstMenu);
 
-    processAction = new ToolbarMenuAction("Process", this);
-    functionsMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no available functions.", ":/Actions/Info");
+    processAction = new ToolbarMenuAction("Process", 0, this);
+    functionsMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no available functions.", ":/Actions/Info");
     functionsMenu = new ToolbarMenu(this, functionsMenuInfoAction);
     processAction->setMenu(functionsMenu);
 }
@@ -838,6 +846,7 @@ void ToolbarWidget::makeConnections()
     connect(unconnectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
 
     connect(addMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addChildNode(ToolbarMenuAction*)));
+    connect(functionsMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addChildNode(ToolbarMenuAction*)));
 
     connect(connectMenu, SIGNAL(aboutToShow()), this, SLOT(setupLegalNodesList()));
     connect(connectMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(connectNodes(ToolbarMenuAction*)));
@@ -1179,7 +1188,7 @@ void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
         } else if (kind == "Process") {
             action = processAction;
         } else {
-            action  = new ToolbarMenuAction(kind, this);
+            action  = new ToolbarMenuAction(kind, 0, this);
         }
 
         addMenu->addAction(action);
@@ -1227,16 +1236,16 @@ void ToolbarWidget::setupInstancesList(QList<NodeItem*> instances)
     }
 
     foreach (NodeItem* instance, instances) {
+        // setup an action for each of the selected entity's instances and attach the display option menu
+        ToolbarMenuAction* action = new ToolbarMenuAction(instance, 0, this);
+        connect(action, SIGNAL(hovered()), this, SLOT(setInstanceID()));
+        instancesMenu->addAction(action);
+
         // construct a display option menu
         ToolbarMenu* menu = new ToolbarMenu(this);
-        menu->addAction(new ToolbarMenuAction("Goto", instancesMenu, "Go to Instance", ":/Actions/Goto"));
-        menu->addAction(new ToolbarMenuAction("Popup", instancesMenu, "Popup Instance", ":/Actions/Popup"));
-
-        // setup an action for each of the selected entity's instances and attach the display option menu
-        ToolbarMenuAction* action = new ToolbarMenuAction(instance, this);
-        connect(action, SIGNAL(hovered()), this, SLOT(setInstanceID()));
+        menu->addAction(new ToolbarMenuAction("Goto", action, instancesMenu, "Go to Instance", ":/Actions/Goto"));
+        menu->addAction(new ToolbarMenuAction("Popup", action, instancesMenu, "Popup Instance", ":/Actions/Popup"));
         action->setMenu(menu);
-        instancesMenu->addAction(action);
     }
 }
 
@@ -1411,7 +1420,7 @@ ToolbarMenuAction* ToolbarWidget::constructMenuAction(NodeItem* nodeItem, Toolba
     }
 
     // construct and add nodeItem's action to the parent action's menu
-    ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, this);
+    ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, 0, this);
     parentMenu->addAction(action);
     return action;
 }
@@ -1453,7 +1462,7 @@ ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, Too
         if (parentAction) {
             parentActionMenu = qobject_cast<ToolbarMenu*>(parentAction->menu());
         } else {
-            parentAction = new ToolbarMenuAction(parentNodeItem, this);
+            parentAction = new ToolbarMenuAction(parentNodeItem, 0, this);
             parentActionMenu = new ToolbarMenu(this);
             parentAction->setMenu(parentActionMenu);
             parentMenu->addAction(parentAction);
@@ -1461,31 +1470,10 @@ ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, Too
 
         // construct and add nodeItem's action to the parent action's menu
         if (parentActionMenu) {
-            ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, this);
+            ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, parentAction, this);
             parentActionMenu->addAction(action);
             return action;
         }
-
-        /*
-        ToolbarMenuAction* parentAction = parentMenu->getAction(parentNodeItem);
-        ToolbarMenu* parentActionMenu = 0;
-
-        if (parentAction) {
-            parentActionMenu = qobject_cast<ToolbarMenu*>(parentAction->menu());
-        } else {
-            parentAction = new ToolbarMenuAction(parentNodeItem, this);
-            parentActionMenu = new ToolbarMenu(this);
-            parentAction->setMenu(parentActionMenu);
-            parentMenu->addAction(parentAction);
-        }
-
-        // construct and add nodeItem's action to the parent action's menu
-        if (parentActionMenu) {
-            ToolbarMenuAction* action = new ToolbarMenuAction(nodeItem, this);
-            parentActionMenu->addAction(action);
-            return action;
-        }
-        */
     }
 
     return 0;

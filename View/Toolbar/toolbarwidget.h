@@ -190,8 +190,6 @@ private:
 
     int chosenInstanceID;
     QList<NodeItem*> legalNodeItems;
-    QHash<QString, ToolbarMenu*> classToolbarMenuLookup;
-    QHash<QString, ToolbarMenuAction*> functionActionLookup;
 
     VIEW_THEME currentTheme;
 };

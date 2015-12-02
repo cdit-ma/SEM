@@ -2717,24 +2717,28 @@ void NodeView::expand(bool expand)
  */
 void NodeView::constructNode(QString nodeKind, int sender)
 {
+    /*
     if(nodeKind == "VectorOperation"){
         //constructWorkerProcessNode("Process", "VectorOperation", "Get", 0);
         return;
     }
-    if(viewMutex.tryLock()){
-        NodeItem* selectedItem = getSelectedNodeItem();
-        if (selectedItem) {
-            toolbarDockConstruction = true;
-            if (sender == 0) {
-                // if from dock, place at next available position on grid
-                emit view_ConstructNode(selectedItem->getID(), nodeKind, selectedItem->getNextChildPos());
-            } else if (sender == 1) {
-                // if from toolbar, place at closest grid point to the toolbar's position
-                QPointF position = selectedItem->mapFromScene(toolbarPosition);
-                QPointF newPosition = selectedItem->getClosestGridPoint(position);
+    */
 
-                emit view_ConstructNode(selectedItem->getID(), nodeKind, newPosition);
-            }
+    if (viewMutex.tryLock()) {
+        NodeItem* selectedItem = getSelectedNodeItem();
+        if (!selectedItem) {
+            return;
+        }
+        toolbarDockConstruction = true;
+        if (sender == 0) {
+            // if from dock, place at next available position on grid
+            emit view_ConstructNode(selectedItem->getID(), nodeKind, selectedItem->getNextChildPos());
+        } else if (sender == 1) {
+            // if from toolbar, place at closest grid point to the toolbar's position
+            QPointF position = selectedItem->mapFromScene(toolbarPosition);
+            QPointF newPosition = selectedItem->getClosestGridPoint(position);
+            qDebug() << "Construct kind: " << nodeKind;
+            emit view_ConstructNode(selectedItem->getID(), nodeKind, newPosition);
         }
     }
 }
@@ -4689,7 +4693,9 @@ void NodeView::constructWorkerProcessNode(QString workerName, QString operationN
                 position = item->getClosestGridPoint(position);
             }
 
+            qDebug() << "Am I here?";
             emit view_ConstructWorkerProcessNode(item->getID(), workerName, operationName, position);
+            qDebug() << "End of function";
         }
     }
 }
