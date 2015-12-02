@@ -1544,7 +1544,6 @@ void EntityItem::updateTextVisibility()
 }
 
 
-
 /**
  * @brief EntityItem::updateDisplayedChildren
  * @param viewMode
@@ -1610,6 +1609,7 @@ void EntityItem::updateDisplayedChildren(int viewMode)
     sortChildren();
     sortTriggerAction = true;
 }
+
 
 QRectF EntityItem::smallIconRect() const
 {

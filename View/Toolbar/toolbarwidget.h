@@ -19,7 +19,7 @@ class ToolbarWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit ToolbarWidget(NodeView* parent = 0);
+    explicit ToolbarWidget(NodeView* parentView = 0);
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
 

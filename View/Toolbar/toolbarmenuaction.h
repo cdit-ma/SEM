@@ -13,7 +13,7 @@ class ToolbarMenuAction : public QAction
 public:
     explicit ToolbarMenuAction(NodeItem* item, QWidget* parent = 0);
     explicit ToolbarMenuAction(QString kind, QWidget* parent = 0,
-                               QString displayedText = "", QString iconPath = ":/Items/");
+                               QString displayedText = "", QString iconPath = "");
 
     NodeItem *getNodeItem();
     int getNodeItemID();

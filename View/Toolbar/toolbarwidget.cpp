@@ -8,14 +8,20 @@
 #include <QWidgetAction>
 #include <QPair>
 
+
 /**
  * @brief ToolbarWidget::ToolbarWidget
  * @param parent
  */
-ToolbarWidget::ToolbarWidget(NodeView* parent) :
-    QWidget(parent)
+ToolbarWidget::ToolbarWidget(NodeView* parentView) :
+    QWidget(parentView)
 {
-    nodeView = parent;
+    if (!parentView) {
+        qWarning() << "ToolbarWidget::ToolbarWidget - Parent view is null.";
+        return;
+    }
+
+    nodeView = parentView;
     nodeItem = 0;
 
     showDeleteToolButton = false;
@@ -71,36 +77,30 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
     updateSeparators();
 }
 
-void ToolbarWidget::updateFunctionList()
+
+/**
+ * @brief ToolbarWidget::setupFunctionsList
+ */
+void ToolbarWidget::setupFunctionsList()
 {
+    QHash<QString, QStringList> classFunctionHash;
+    QPair<QString, QString> functionPair;
 
-    if(nodeView){
-        QPair<QString, QString> function;
-        foreach (function, nodeView->getFunctionsList()){
-            QString className = function.first;
-            QString functionName = function.second;
+    foreach (functionPair, nodeView->getFunctionsList()) {
+        QString className = functionPair.first;
+        QString functionName = functionPair.second;
+        classFunctionHash[className].append(functionName);
+    }
 
-            //Check if we have this item.
-            QString actionName = className + "_" + functionName;
-            if(!functionActionLookup.contains(actionName)){
-                ToolbarMenu* classMenu = 0;
-                //Get the Menu
-                if(classToolbarMenuLookup.contains(className)){
-                    classMenu = classToolbarMenuLookup[className];
-                }
-
-                if(!classMenu){
-                    classMenu = new ToolbarMenu(this);
-                    ToolbarMenuAction* classAction = new ToolbarMenuAction(className, functionsMenu, className, ":/Functions/");
-                    functionsMenu->addAction(classAction);
-                    classAction->setMenu(classMenu);
-                    classToolbarMenuLookup[className] = classMenu;
-                }
-                ToolbarMenuAction* functionAction = new ToolbarMenuAction("Process", this, functionName, ":/Items/");
-                classMenu->addAction(functionAction);
-                functionActionLookup[actionName] = functionAction;
-            }
+    foreach (QStringList functions, classFunctionHash.values()) {
+        QString className = classFunctionHash.key(functions);
+        ToolbarMenu* classMenu = new ToolbarMenu(this);
+        foreach (QString function, functions) {
+            classMenu->addAction(new ToolbarMenuAction("Process", this, function, ":/Functions/" + className));
         }
+        ToolbarMenuAction* classAction = new ToolbarMenuAction(className, functionsMenu, "", ":/Functions/" + className);
+        classAction->setMenu(classMenu);
+        functionsMenu->addAction(classAction);
     }
 }
 
@@ -796,22 +796,6 @@ void ToolbarWidget::setupMenus()
     functionsMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no available functions.", ":/Actions/");
     functionsMenu = new ToolbarMenu(this, functionsMenuInfoAction);
     processAction->setMenu(functionsMenu);
-
-    QHash<QString, ToolbarMenu*> classToolbarMenuLookup;
-
-    //ToolbarMenuAction* classAction = new ToolbarMenuAction("Function", functionsMenu, "VectorOperation", ":/Actions/");
-    //ToolbarMenu* classMenu = new ToolbarMenu(this);
-
-
-
-    //classMenu->addAction(new ToolbarMenuAction("Get", this, "Get", ":/Functions/"));
-    //classMenu->addAction(new ToolbarMenuAction("Set", this, "Set", ":/Functions/"));
-    //classMenu->addAction(new ToolbarMenuAction("Remove", this, "Remove", ":/Functions/"));
-    //classMenu->addAction(new ToolbarMenuAction("Process", this, "Get", ":/Items/"));
-    //classMenu->addAction(new ToolbarMenuAction("Process", this, "Set", ":/Items/"));
-    //classMenu->addAction(new ToolbarMenuAction("Process", this, "Remove", ":/Items/"));
-    //classAction->setMenu(classMenu);
-    //functionsMenu->addAction(classAction);
 }
 
 

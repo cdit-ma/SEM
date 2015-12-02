@@ -929,11 +929,13 @@ void MedeaWindow::setupSearchTools()
     QLabel* objectLabel = new QLabel("Entity Label:", this);
     QLabel* parentLabel = new QLabel("Parent Entity Label:", this);
     QLabel* iconHolder = new QLabel(this);
+    /*
     QLabel* objectKind = new QLabel("Kind", this);
     QLabel* objectType = new QLabel("Type", this);
     QLabel* topicName = new QLabel("Topic Name", this);
     QLabel* worker = new QLabel("Worker", this);
     QLabel* description = new QLabel("Description", this);
+    */
 
     int searchItemMinWidth = 300;
     int marginOffset = 8;

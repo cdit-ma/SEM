@@ -68,11 +68,16 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, QWidget* parent, QString disp
         setText(actionKind);
     }
 
-    QPixmap pixmap = QPixmap::fromImage(QImage(iconPath + actionKind));
-    if (kind == "Function") {
-        pixmap = pixmap.scaled(QSize(25,25), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    if (iconPath.isEmpty()) {
+        iconPath = ":/Items/" + actionKind;
     }
 
+    QPixmap pixmap = QPixmap::fromImage(QImage(iconPath));
+    /*
+    if (iconPath.contains("Function")) {
+        pixmap = pixmap.scaled(QSize(30,30), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+    */
     setIcon(QIcon(pixmap));
 }
 
