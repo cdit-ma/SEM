@@ -738,10 +738,10 @@ void ToolbarWidget::setupMenus()
     hardwareClusterViewMenu = constructToolButtonMenu(displayedChildrenOptionButton);
 
     // setup menu actions for the definition and implementation menus
-    definitionMenu->addAction(new ToolbarMenuAction("Goto", definitionMenu, "Go to Definition", ":/Actions/"));
-    definitionMenu->addAction(new ToolbarMenuAction("Popup", definitionMenu, "Popup Definition", ":/Actions/"));
-    implementationMenu->addAction(new ToolbarMenuAction("Goto", implementationMenu, "Go to Implementation", ":/Actions/"));
-    implementationMenu->addAction(new ToolbarMenuAction("Popup", implementationMenu, "Popup Implementation", ":/Actions/"));
+    definitionMenu->addAction(new ToolbarMenuAction("Goto", definitionMenu, "Go to Definition", ":/Actions/Goto"));
+    definitionMenu->addAction(new ToolbarMenuAction("Popup", definitionMenu, "Popup Definition", ":/Actions/Popup"));
+    implementationMenu->addAction(new ToolbarMenuAction("Goto", implementationMenu, "Go to Implementation", ":/Actions/Goto"));
+    implementationMenu->addAction(new ToolbarMenuAction("Popup", implementationMenu, "Popup Implementation", ":/Actions/Popup"));
 
     // setup widgets for the displayed children option menu for HardwareClusters
     allNodes = new QRadioButton("All", this);
@@ -767,13 +767,13 @@ void ToolbarWidget::setupMenus()
     vectorInstAction = new ToolbarMenuAction("VectorInstance", this);
 
     // default actions to display information for when their parent menus are empty
-    componentImplMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing unimplemented Components.", ":/Actions/");
-    componentInstMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing Components.", ":/Actions/");
-    blackBoxMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing BlackBoxes.", ":/Actions/");
-    inEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", this, "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/");
-    outEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", this, "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/");
-    aggregateInstMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing Aggregates.", ":/Actions/");
-    vectorInstMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing Vectors.", ":/Actions/");
+    componentImplMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing unimplemented Components.", ":/Actions/Info");
+    componentInstMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing Components.", ":/Actions/Info");
+    blackBoxMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing BlackBoxes.", ":/Actions/Info");
+    inEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", this, "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/Info");
+    outEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", this, "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/Info");
+    aggregateInstMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
+    vectorInstMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no IDL files containing Vectors.", ":/Actions/Info");
 
     // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
     componentImplMenu = new ToolbarMenu(this, componentImplMenuInfoAction);
@@ -793,7 +793,7 @@ void ToolbarWidget::setupMenus()
     vectorInstAction->setMenu(vectorInstMenu);
 
     processAction = new ToolbarMenuAction("Process", this);
-    functionsMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no available functions.", ":/Actions/");
+    functionsMenuInfoAction = new ToolbarMenuAction("Info", this, "There are no available functions.", ":/Actions/Info");
     functionsMenu = new ToolbarMenu(this, functionsMenuInfoAction);
     processAction->setMenu(functionsMenu);
 }
@@ -1229,8 +1229,8 @@ void ToolbarWidget::setupInstancesList(QList<NodeItem*> instances)
     foreach (NodeItem* instance, instances) {
         // construct a display option menu
         ToolbarMenu* menu = new ToolbarMenu(this);
-        menu->addAction(new ToolbarMenuAction("Goto", instancesMenu, "Go to Instance", ":/Actions/"));
-        menu->addAction(new ToolbarMenuAction("Popup", instancesMenu, "Popup Instance", ":/Actions/"));
+        menu->addAction(new ToolbarMenuAction("Goto", instancesMenu, "Go to Instance", ":/Actions/Goto"));
+        menu->addAction(new ToolbarMenuAction("Popup", instancesMenu, "Popup Instance", ":/Actions/Popup"));
 
         // setup an action for each of the selected entity's instances and attach the display option menu
         ToolbarMenuAction* action = new ToolbarMenuAction(instance, this);

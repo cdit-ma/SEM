@@ -1,4 +1,5 @@
 #include "docknodeitem.h"
+#include "partsdockscrollarea.h"
 
 #include <QVBoxLayout>
 #include <QLabel>
@@ -370,6 +371,9 @@ void DockNodeItem::setupLayout()
         NodeView* nodeView = parentDock->getNodeView();
         QPixmap pixMap;
 
+        bool requireDockSwitch = false;
+        int imagePadding = 5;
+
         if (nodeView) {
             if (nodeItem) {
                 if (nodeItem->isEntityItem()) {
@@ -382,6 +386,7 @@ void DockNodeItem::setupLayout()
             } else {
                 if (parentDock->getDockType() ==  PARTS_DOCK) {
                     pixMap = nodeView->getImage("Items", kind);
+                    requireDockSwitch = ((PartsDockScrollArea*) parentDock)->requiresDockSwitching(kind);
                 } else if (parentDock->getDockType() == FUNCTIONS_DOCK) {
                     pixMap = nodeView->getImage("Functions", kind);
                 }
@@ -393,16 +398,37 @@ void DockNodeItem::setupLayout()
         }
 
         QPixmap scaledPixmap =  pixMap.scaled(width()*ICON_RATIO,
-                                              (height()-textLabel->height())*ICON_RATIO,
+                                              (height()-textLabel->height())*ICON_RATIO-imagePadding,
                                               Qt::KeepAspectRatio,
                                               Qt::SmoothTransformation);
 
         imageLabel = new QLabel(this);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-
         imageLabel->setPixmap(scaledPixmap);
-        layout->addWidget(imageLabel);
-        layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+        imageLabel->setStyleSheet("padding-top:" + QString::number(imagePadding) + "px;");
+
+        if (requireDockSwitch) {
+
+            QHBoxLayout* imageLayout = new QHBoxLayout();
+            QLabel* dockArrowLabel = new QLabel(this);
+            QPixmap arrowPixmap = QPixmap::fromImage(QImage(":/Actions/Arrow_Right"));
+
+            arrowPixmap = arrowPixmap.scaled(width()*ICON_RATIO/5,
+                                             height()*ICON_RATIO,
+                                             Qt::KeepAspectRatio,
+                                             Qt::SmoothTransformation);
+            dockArrowLabel->setPixmap(arrowPixmap);
+            dockArrowLabel->setStyleSheet("padding-top:" + QString::number(arrowPixmap.height()/2 - imagePadding) + "px;");
+
+            imageLayout->addWidget(imageLabel, 9);
+            imageLayout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignBottom);
+            imageLayout->addWidget(dockArrowLabel, 2);
+            layout->addLayout(imageLayout);
+
+        } else {
+            layout->addWidget(imageLabel);
+            layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+        }
     }
 
     layout->addWidget(textLabel);

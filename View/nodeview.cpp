@@ -1561,7 +1561,7 @@ void NodeView::modelReady()
 {
     //Do initializing here!
     if(toolbar){
-        toolbar->updateFunctionList();
+        toolbar->setupFunctionsList();
     }
 
     setSceneRect(QRectF(0,0,10000,10000));

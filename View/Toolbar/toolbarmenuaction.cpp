@@ -73,11 +73,18 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, QWidget* parent, QString disp
     }
 
     QPixmap pixmap = QPixmap::fromImage(QImage(iconPath));
+    if (pixmap.isNull()) {
+        qWarning() << "ToolbarMenuAction::ToolbarMenuAction - Pixmap is null for " + actionKind + ". Check icon path.";
+        return;
+    }
+
     /*
+    // resize icons for functions and their classes
     if (iconPath.contains("Function")) {
         pixmap = pixmap.scaled(QSize(30,30), Qt::KeepAspectRatio, Qt::SmoothTransformation);
     }
     */
+
     setIcon(QIcon(pixmap));
 }
 

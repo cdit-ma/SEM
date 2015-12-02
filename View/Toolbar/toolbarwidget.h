@@ -22,9 +22,9 @@ public:
     explicit ToolbarWidget(NodeView* parentView = 0);
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
+    void setupFunctionsList();
 
 public slots:
-    void updateFunctionList();
     void updateActionEnabledState(QString actionName, bool enabled);
 
     void addChildNode(ToolbarMenuAction *action);
