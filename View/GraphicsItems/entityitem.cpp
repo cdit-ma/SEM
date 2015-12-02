@@ -1573,40 +1573,41 @@ void EntityItem::updateDisplayedChildren(int viewMode)
     connectedChildren->setChecked(false);
     unConnectedChildren->setChecked(false);
 
-    if (viewMode == ALL) {
+    switch (viewMode) {
+    case ALL:
         // show all HarwareNodes
         allChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            item->setHidden(!isExpanded());
+            item->setHidden(false);
         }
-    } else if (viewMode == CONNECTED) {
+        break;
+    case CONNECTED:
         // show connected HarwareNodes
         connectedChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            if (item->getEdgeItemCount() > 0) {
-                item->setHidden(!isExpanded());
-            } else {
-                item->setHidden(true);
+            if (item->getNode()) {
+                QList<Edge*> edges = item->getNode()->getEdges();
+                item->setHidden(edges.isEmpty());
             }
         }
-    } else if (viewMode == UNCONNECTED) {
+        break;
+    case UNCONNECTED:
         // show unconnected HarwareNodes
         unConnectedChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            if (item->getEdgeItemCount() == 0) {
-                item->setHidden(!isExpanded());
-            } else {
-                item->setHidden(true);
+            if (item->getNode()) {
+                QList<Edge*> edges = item->getNode()->getEdges();
+                item->setHidden(!edges.isEmpty());
             }
         }
-    } else {
+        break;
+    default:
         return;
     }
 
     CHILDREN_VIEW_MODE = viewMode;
     sortTriggerAction = false;
     sortChildren();
-    //sort();
     sortTriggerAction = true;
 }
 
