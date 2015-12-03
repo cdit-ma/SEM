@@ -4,7 +4,7 @@ Version 19:
             * Vector and VectorInstances icons now show what kind their children are.
             * Implemented dragdrop of *.graphml files from OS into MEDEA.
             * Implemented loading of WorkerDefinitions into MEDEA on launch.
-			* Labels in the Definitions and Functions dock are now contracted to begin with.
+            * Labels in the Definitions and Functions dock are now contracted to begin with.
 
 	Fixes:
             * Fixed inconsistent expand state and incorrect expand size when adding first child.

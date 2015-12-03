@@ -51,10 +51,7 @@ bool VectorInstance::canConnect(Node* attachableObject)
     }
 
     if(inputParameter){
-        if(inputParameter->getDataValue("type") != "WE_UTE_Vector"){
-            #ifdef DEBUG_MODE
-                qWarning() << "VectorInstance can only be connected to an InputParameter which requries a WE_UTE_VECTOR.";
-            #endif
+        if(!inputParameter->canConnect(this)){
             return false;
         }
     }

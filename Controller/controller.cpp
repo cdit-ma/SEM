@@ -1684,6 +1684,13 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
         QString sourceKind = source->getDataValue("kind");
         QString destinationKind = destination->getDataValue("kind");
 
+        if(sourceKind == "InputParameter" || destinationKind == "ReturnParameter"){
+            //Rotate
+            Node* temp = source;
+            source = destination;
+            destination = temp;
+        }
+
         Edge* edge = new Edge(source, destination);
 
         return edge;
@@ -3685,13 +3692,16 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
                     }
                 }
 
-                QStringList bindReturnParameterNames;
-                bindReturnParameterNames << "get" << "set" << "remove";
-                if(bindReturnParameterNames.contains(operationName)){
+                QStringList bindValueParameterType;
+                bindValueParameterType << "get" << "set" << "remove";
+                if(bindValueParameterType.contains(operationName)){
                     //Find return Parameter;
-                    foreach(Node* returnParameter, process->getChildrenOfKind("ReturnParameter",0)){
-                        GraphMLData* returnType = returnParameter->getData("type");
-                        bindData->bindData(returnType);
+                    foreach(Node* child, process->getChildren(0)){
+                        Parameter* parameter = dynamic_cast<Parameter*>(child);
+                        if(parameter && parameter->getDataValue("label") == "value"){
+                            GraphMLData* returnType = parameter->getData("type");
+                            bindData->bindData(returnType);
+                        }
                     }
                 }
             }
