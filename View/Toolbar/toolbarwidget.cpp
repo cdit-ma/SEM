@@ -511,7 +511,6 @@ void ToolbarWidget::menuActionHovered(QAction* action)
  */
 void ToolbarWidget::setupAdoptableNodesList()
 {
-    qDebug() << "setupAdoptableNodesList";
     if (addMenuDone) {
         return;
     } else {
@@ -676,7 +675,6 @@ void ToolbarWidget::setupVectorList()
  */
 void ToolbarWidget::setupHardwareList()
 {
-    qDebug() << "setupHardwareList";
     if (hardwareMenuDone) {
         return;
     } else {

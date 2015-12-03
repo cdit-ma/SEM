@@ -53,7 +53,7 @@
 #include "CUTS/cutsmanager.h"
 
 #include "GUI/searchsuggestcompletion.h"
-#include "GUI/searchitembutton.h"
+#include "GUI/searchitem.h"
 #include "GUI/aspecttogglewidget.h"
 #include "GUI/appsettings.h"
 #include "GUI/codeeditor.h"
@@ -85,7 +85,7 @@ signals:
 
     void window_SortModel();
 
-    void window_searchItemClicked(SearchItemButton* item);
+    void window_searchItemClicked(SearchItem* item);
     void window_aspectMiddleClicked(VIEW_ASPECT aspect);
     void window_toggleAspect(VIEW_ASPECT aspect, bool on);
     void window_centerAspect(VIEW_ASPECT aspect);
@@ -224,7 +224,7 @@ private:
     void setupDocks(QHBoxLayout* layout);
     void setupSearchTools();
 
-    void setupToolbar(QVBoxLayout* layout);
+    void setupToolbar();
     bool constructToolbarButton(QToolBar* toolbar, QAction* action, QString actionName);
 
     void setupMultiLineBox();
