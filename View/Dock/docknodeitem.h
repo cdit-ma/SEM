@@ -65,7 +65,7 @@ public slots:
 
 private:
     void setupLayout();
-    void setupImageLabel();
+    void setImageLabelPixmap();
 
     void updateTextLabel();
     void updateStyleSheet();

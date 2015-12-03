@@ -760,7 +760,7 @@ void NewController::destructEdge(int srcID, int dstID)
 
 void NewController::constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos)
 {
-    qCritical() << "constructConnectedNode" << kind;
+    //qCritical() << "constructConnectedNode" << kind;
     Node* parentNode = getNodeFromID(parentID);
     Node* connectedNode = getNodeFromID(connectedID);
     if(parentNode && connectedNode){
