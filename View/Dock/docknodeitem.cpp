@@ -6,8 +6,16 @@
 #include <QDebug>
 
 #define MAX_LABEL_LENGTH 15
+#define ICON_RATIO 0.85
+#define IMAGE_PADDING 5
+
 #define BUTTON_WIDTH 141
-#define ICON_RATIO 0.9
+#define BUTTON_HEIGHT 100
+#define LABEL_BUTTON_HEIGHT 28
+
+#define ARROW_WIDTH BUTTON_WIDTH / 5
+#define TEXT_HEIGHT BUTTON_HEIGHT / 5
+#define IMAGE_SIZE (BUTTON_HEIGHT - TEXT_HEIGHT) * ICON_RATIO - IMAGE_PADDING
 
 #define DEFAULT 0
 #define HIGHLIGHTED 1
@@ -386,26 +394,25 @@ void DockNodeItem::setupLayout()
 
     // setup dock item size and text alignment
     if (isDockItemLabel()) {
-        setFixedSize(BUTTON_WIDTH, 28);
+        setFixedSize(BUTTON_WIDTH, LABEL_BUTTON_HEIGHT);
         textLabel->setAlignment(Qt::AlignHCenter);
     } else {
-        setFixedSize(BUTTON_WIDTH, 100);
+        setFixedSize(BUTTON_WIDTH, BUTTON_HEIGHT);
         textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     }
 
     QFont font = textLabel->font();
     font.setPointSizeF(8);
     textLabel->setFont(QFont(textLabel->font().family(), 8));
-    textLabel->setFixedSize(width() - 2, 21);
+    textLabel->setFixedSize(BUTTON_WIDTH - 2, TEXT_HEIGHT);
 
     // setup icon label
     if (!isDockItemLabel()) {
 
-        int imagePadding = 5;
-
         imageLabel = new QLabel(this);
+        imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        imageLabel->setStyleSheet("padding-top:" + QString::number(imagePadding) + "px;");
+        imageLabel->setStyleSheet("padding-top:" + QString::number(IMAGE_PADDING) + "px;");
         setImageLabelPixmap();
 
         // determine whether this dock item will open another dock when clicked
@@ -416,18 +423,21 @@ void DockNodeItem::setupLayout()
 
         // if it does, display a right arrow image
         if (requireDockSwitch) {
+
             QPixmap arrowPixmap = QPixmap::fromImage(QImage(":/Actions/Arrow_Right"));
-            arrowPixmap = arrowPixmap.scaled(width()*ICON_RATIO/5, height()*ICON_RATIO,
+            arrowPixmap = arrowPixmap.scaled(BUTTON_WIDTH * ICON_RATIO / 5, BUTTON_HEIGHT * ICON_RATIO,
                                              Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
             QLabel* dockArrowLabel = new QLabel(this);
+            dockArrowLabel->setFixedWidth(ARROW_WIDTH);
             dockArrowLabel->setPixmap(arrowPixmap);
-            dockArrowLabel->setStyleSheet("padding-top:" + QString::number(arrowPixmap.height()/2 - imagePadding) + "px;");
+            dockArrowLabel->setStyleSheet("padding-top:" + QString::number(arrowPixmap.height()/2 - IMAGE_PADDING) + "px;");
 
             QHBoxLayout* imageLayout = new QHBoxLayout();
-            imageLayout->addWidget(imageLabel, 9);
-            imageLayout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignBottom);
-            imageLayout->addWidget(dockArrowLabel, 2);
+            imageLayout->addStretch(1);
+            imageLayout->addWidget(imageLabel, 2);
+            imageLayout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+            imageLayout->addWidget(dockArrowLabel, 1);
             layout->addLayout(imageLayout);
 
         } else {
@@ -461,7 +471,7 @@ void DockNodeItem::setImageLabelPixmap()
     }
 
     NodeView* nodeView = parentDock->getNodeView();
-    QSize pixMapSize = QSize(width() * ICON_RATIO, (height() - textLabel->height()) * ICON_RATIO);
+    QSize pixMapSize = QSize(imageLabel->width(), height());
     QPixmap pixMap = QPixmap(pixMapSize);
 
     if (nodeView) {
