@@ -186,7 +186,6 @@ void ToolbarWidget::addChildNode(ToolbarMenuAction* action)
 {
     ToolbarMenu* menu = qobject_cast<ToolbarMenu*>(QObject::sender());
     if (menu == functionsMenu) {
-        qDebug() << "Parent kind: " << action->getParentActionKind() << ", Action kind: " << action->getActionKind();
         nodeView->constructWorkerProcessNode(action->getParentActionKind(), action->getActionKind(), 1);
     } else if (menu == addMenu) {
         nodeView->constructNode(action->getActionKind(), 1);

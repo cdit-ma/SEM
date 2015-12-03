@@ -4693,9 +4693,7 @@ void NodeView::constructWorkerProcessNode(QString workerName, QString operationN
                 position = item->getClosestGridPoint(position);
             }
 
-            qDebug() << "Am I here?";
             emit view_ConstructWorkerProcessNode(item->getID(), workerName, operationName, position);
-            qDebug() << "End of function";
         }
     }
 }
