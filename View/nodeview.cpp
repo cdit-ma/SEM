@@ -64,6 +64,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     hardwareDockOpen = false;
     showConnectLine = true;
     showSearchSuggestions = false;
+    clickSound = 0;
 
 
     IS_SUB_VIEW = subView;
@@ -154,6 +155,9 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     // call this after the toolbar has been constructed to pass on the theme
     setupTheme();
+
+    //Started sound effects
+    //setupSoundEffects();
 
     // initialise the view's center point
     centerPoint = getVisibleRect().center();
@@ -269,7 +273,6 @@ void NodeView::destroySubViews()
 {
     while(!subViews.isEmpty()){
         subViews.takeFirst()->deleteLater();
-        //delete subViews.first();
     }
 }
 
@@ -1555,6 +1558,18 @@ void NodeView::expandSelection(bool expand)
         actionFinished();
     }
 
+}
+
+void NodeView::setupSoundEffects()
+{
+    if(!clickSound){
+        clickSound = new QSoundEffect(this);
+        clickSound->setSource(QUrl("qrc:/Sounds/click.wav"));
+        clickSound->setLoopCount(1);
+        clickSound->setVolume(1);
+
+        connect(this, SIGNAL(view_ModelReady()), clickSound, SLOT(play()));
+    }
 }
 
 void NodeView::modelReady()
@@ -4485,8 +4500,6 @@ void NodeView::constructGUIItem(GraphML *item){
         view_ConstructNodeGUI((Node*)item);
     }else if(item->isEdge()){
         view_ConstructEdgeGUI((Edge*)item);
-    }else{
-        qCritical() << "Unknown Type";
     }
 }
 

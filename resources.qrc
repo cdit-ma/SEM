@@ -216,4 +216,7 @@
         <file alias="WE_RAM.worker.graphml">Resources/WorkerDefinitions/WE_RAM.worker.graphml</file>
         <file alias="WE_UTE.worker.graphml">Resources/WorkerDefinitions/WE_UTE.worker.graphml</file>
     </qresource>
+    <qresource prefix="/Sounds">
+        <file alias="click.wav">Resources/Sounds/click.wav</file>
+    </qresource>
 </RCC>

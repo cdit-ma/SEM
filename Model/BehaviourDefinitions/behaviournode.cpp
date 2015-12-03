@@ -86,6 +86,7 @@ bool BehaviourNode::canConnect(Node *attachableObject)
 {
 
     if((isInstance() || isImpl()) && !getDefinition() && attachableObject->isDefinition()){
+        qCritical() << "Trying to connect using Node:: Rules";
         return Node::canConnect(attachableObject);
     }
     //Limit connections to the parent (ie ComponentImpl) children
@@ -102,6 +103,7 @@ bool BehaviourNode::canConnect(Node *attachableObject)
     }
 
     BehaviourNode* behaviourNode = dynamic_cast<BehaviourNode*>(attachableObject);
+
     if(behaviourNode){
         bool checkIndirectMatches = true;
 
@@ -158,7 +160,7 @@ bool BehaviourNode::canConnect(Node *attachableObject)
             }
         }
 
-        if(behaviourNode->isStart()){
+        if(behaviourNode && behaviourNode->isStart()){
             return false;
         }
 
@@ -188,9 +190,10 @@ bool BehaviourNode::canConnect(Node *attachableObject)
             }
         }
     }else{
-        //qCritical() << "Reason # 7";
-        return false;
+        //IGNORE/
+        //return false;
     }
+
     return Node::canConnect(attachableObject);
 }
 

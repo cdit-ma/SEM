@@ -76,7 +76,6 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
     DockNodeItem* dockItem = qobject_cast<DockNodeItem*>(QObject::sender());
     DockNodeItem* parentItem = dockItem->getParentDockNodeItem();
 
-    qDebug() << "Dock Item CLICKED";
 
     if (!dockItem) {
         qDebug() << "Dock item is NULL";
@@ -87,8 +86,6 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
     }
 
     if (dockItem && parentItem) {
-        qDebug() << "Process Kind: " << dockItem->getKind();
-        qDebug() << "Parent Kind: " << parentItem->getKind();
         getNodeView()->constructWorkerProcessNode(parentItem->getKind(), dockItem->getKind(), 0);
     }
 

@@ -18,6 +18,8 @@
 #include <QPointF>
 #include <QRubberBand>
 #include <QMutex>
+#include <QSoundEffect>
+
 #include "../enumerations.h"
 
 
@@ -135,6 +137,7 @@ protected:
 private:
     void sortSelection(bool recurse=false);
     void expandSelection(bool expand);
+    void setupSoundEffects();
 
 private slots:
     void modelReady();
@@ -542,6 +545,8 @@ private:
 
 
     bool ZOOM_UNDER_MOUSE;
+
+    QSoundEffect* clickSound;
     // QWidget interface
 
     // QWidget interface

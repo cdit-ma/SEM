@@ -10,8 +10,8 @@ bool InputParameter::canAdoptChild(Node*)
     return false;
 }
 
-bool InputParameter::canConnect(Node*)
+bool InputParameter::canConnect(Node* node)
 {
-    return false;
+    return Parameter::canConnect(node);
 }
 

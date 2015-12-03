@@ -172,23 +172,3 @@ void NodeViewMinimap::wheelEvent(QWheelEvent *event)
 {
     minimap_Scrolled(event->delta());
 }
-
-void NodeViewMinimap::paintEvent(QPaintEvent * e)
-{
-    QGraphicsView::paintEvent(e);
-    /*
-    QPainter painter(this->viewport());
-
-    painter.setBrush(Qt::NoBrush);
-    painter.setPen(Qt::black);
-    painter.drawRect(sceneRect());
-
-    painter.setPen(Qt::red);
-    painter.drawLine(QLine(sceneRect().topLeft().toPoint(),sceneRect().bottomRight().toPoint()));
-    painter.drawLine(QLine(sceneRect().topRight().toPoint(),sceneRect().bottomLeft().toPoint()));
-
-    painter.setPen(Qt::blue);
-    painter.drawLine(QLine(viewport()->rect().topLeft(),viewport()->rect().bottomRight()));
-    painter.drawLine(QLine(viewport()->rect().topRight(),viewport()->rect().bottomLeft()));
-    */
-}
