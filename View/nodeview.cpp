@@ -111,7 +111,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     setAcceptDrops(true);
 
-   scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
+    scene()->setItemIndexMethod(QGraphicsScene::NoIndex);
 
 
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -1561,7 +1561,7 @@ void NodeView::modelReady()
 {
     //Do initializing here!
     if(toolbar){
-        toolbar->updateFunctionList();
+        toolbar->setupFunctionsList();
     }
 
     setSceneRect(QRectF(0,0,10000,10000));
@@ -2718,24 +2718,28 @@ void NodeView::expand(bool expand)
  */
 void NodeView::constructNode(QString nodeKind, int sender)
 {
+    /*
     if(nodeKind == "VectorOperation"){
         //constructWorkerProcessNode("Process", "VectorOperation", "Get", 0);
         return;
     }
-    if(viewMutex.tryLock()){
-        NodeItem* selectedItem = getSelectedNodeItem();
-        if (selectedItem) {
-            toolbarDockConstruction = true;
-            if (sender == 0) {
-                // if from dock, place at next available position on grid
-                emit view_ConstructNode(selectedItem->getID(), nodeKind, selectedItem->getNextChildPos());
-            } else if (sender == 1) {
-                // if from toolbar, place at closest grid point to the toolbar's position
-                QPointF position = selectedItem->mapFromScene(toolbarPosition);
-                QPointF newPosition = selectedItem->getClosestGridPoint(position);
+    */
 
-                emit view_ConstructNode(selectedItem->getID(), nodeKind, newPosition);
-            }
+    if (viewMutex.tryLock()) {
+        NodeItem* selectedItem = getSelectedNodeItem();
+        if (!selectedItem) {
+            return;
+        }
+        toolbarDockConstruction = true;
+        if (sender == 0) {
+            // if from dock, place at next available position on grid
+            emit view_ConstructNode(selectedItem->getID(), nodeKind, selectedItem->getNextChildPos());
+        } else if (sender == 1) {
+            // if from toolbar, place at closest grid point to the toolbar's position
+            QPointF position = selectedItem->mapFromScene(toolbarPosition);
+            QPointF newPosition = selectedItem->getClosestGridPoint(position);
+            qDebug() << "Construct kind: " << nodeKind;
+            emit view_ConstructNode(selectedItem->getID(), nodeKind, newPosition);
         }
     }
 }
@@ -2846,25 +2850,29 @@ void NodeView::constructConnectedNode(int parentID, int dstID, QString kind, int
  */
 void NodeView::showConnectedNodes()
 {
+    if (!controller) {
+        return;
+    }
 
-    if(controller){
-        int ID = getSelectedID();
-        QList<GraphMLItem*> connectedItems;
+    int selectedID = getSelectedID();
+    QList<GraphMLItem*> connectedItems;
 
-        foreach(int cID, controller->getConnectedNodes(ID)){
-            GraphMLItem* item = getGraphMLItemFromID(cID);
-            if(item){
-                connectedItems << item;
-                appendToSelection(item);
-            }
-        }
-        if(!connectedItems.isEmpty()) {
-            fitToScreen(connectedItems, 0);//CONNECTIONS_PADDING);
+    foreach (int cnID, controller->getConnectedNodes(selectedID)) {
+        GraphMLItem* item = getGraphMLItemFromID(cnID);
+        if (item) {
+            // need to make sure that the aspect for the item is turned on before selecting it
+            enforceItemAspectOn(cnID);
+            appendToSelection(item);
+            connectedItems.append(item);
         }
     }
+
+    if (!connectedItems.isEmpty()) {
+        // add the selected node to the list of items to center
+        connectedItems.append(getGraphMLItemFromID(selectedID));
+        fitToScreen(connectedItems);
+    }
 }
-
-
 
 
 
@@ -4687,8 +4695,6 @@ void NodeView::constructWorkerProcessNode(QString workerName, QString operationN
                 position = item->mapFromScene(toolbarPosition);
                 position = item->getClosestGridPoint(position);
             }
-
-            qDebug() << "Construct Process: workerName - " << workerName << ", operationName - " << operationName;
             emit view_ConstructWorkerProcessNode(item->getID(), workerName, operationName, position);
         }
     }

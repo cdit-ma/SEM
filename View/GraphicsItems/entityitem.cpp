@@ -1544,23 +1544,19 @@ void EntityItem::updateTextVisibility()
 }
 
 
-
 /**
  * @brief EntityItem::updateDisplayedChildren
  * @param viewMode
  */
 void EntityItem::updateDisplayedChildren(int viewMode)
 {
-
     // if this item is not a HardwareCLuster, do nothing
     if (!IS_HARDWARE_CLUSTER) {
-        qDebug() << "NOT a HardwareCluster";
         return;
     }
 
     // if any of the menu items are not constructed, do nothing
     if (!allChildren || !connectedChildren || !unConnectedChildren) {
-        qDebug() << "Some RadioButtons are NULL";
         return;
     }
 
@@ -1576,9 +1572,6 @@ void EntityItem::updateDisplayedChildren(int viewMode)
     connectedChildren->setChecked(false);
     unConnectedChildren->setChecked(false);
 
-    // TODO - item->getEdgeItemCount() is returning the wrong value
-    // use another function to get the number of edges!
-
     switch (viewMode) {
     case ALL:
         // show all HarwareNodes
@@ -1591,14 +1584,20 @@ void EntityItem::updateDisplayedChildren(int viewMode)
         // show connected HarwareNodes
         connectedChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            item->setHidden(item->getEdgeItemCount() == 0);
+            if (item->getNode()) {
+                QList<Edge*> edges = item->getNode()->getEdges();
+                item->setHidden(edges.isEmpty());
+            }
         }
         break;
     case UNCONNECTED:
         // show unconnected HarwareNodes
         unConnectedChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            item->setHidden(item->getEdgeItemCount() > 0);
+            if (item->getNode()) {
+                QList<Edge*> edges = item->getNode()->getEdges();
+                item->setHidden(!edges.isEmpty());
+            }
         }
         break;
     default:
@@ -1610,6 +1609,7 @@ void EntityItem::updateDisplayedChildren(int viewMode)
     sortChildren();
     sortTriggerAction = true;
 }
+
 
 QRectF EntityItem::smallIconRect() const
 {

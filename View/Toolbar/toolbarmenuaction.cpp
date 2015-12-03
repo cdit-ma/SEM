@@ -8,9 +8,10 @@
  * @param item
  * @param parent
  */
-ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, QWidget* parent) :
+ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, ToolbarMenuAction* parent_action, QWidget* parent) :
     QAction(parent)
 {
+    parentAction = parent_action;
     nodeItem = item;
     deletable = true;
 
@@ -35,9 +36,10 @@ ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, QWidget* parent) :
  * @param actionKind
  * @param parent
  */
-ToolbarMenuAction::ToolbarMenuAction(QString kind, QWidget* parent, QString displayedText, QString iconPath) :
+ToolbarMenuAction::ToolbarMenuAction(QString kind, ToolbarMenuAction* parent_action, QWidget* parent, QString displayedText, QString iconPath) :
     QAction(parent)
 {
+    parentAction = parent_action;
     nodeItem = 0;
     deletable = true;
     actionKind = kind;
@@ -68,12 +70,47 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, QWidget* parent, QString disp
         setText(actionKind);
     }
 
-    QPixmap pixmap = QPixmap::fromImage(QImage(iconPath + actionKind));
-    if (kind == "Function") {
-        pixmap = pixmap.scaled(QSize(25,25), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    if (iconPath.isEmpty()) {
+        iconPath = ":/Items/" + actionKind;
     }
 
+    QPixmap pixmap = QPixmap::fromImage(QImage(iconPath));
+    if (pixmap.isNull()) {
+        qWarning() << "ToolbarMenuAction::ToolbarMenuAction - Pixmap is null for " + actionKind + ". Check icon path.";
+        return;
+    }
+
+    /*
+    // resize icons for functions and their classes
+    if (iconPath.contains("Function")) {
+        pixmap = pixmap.scaled(QSize(30,30), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    }
+    */
+
     setIcon(QIcon(pixmap));
+}
+
+
+/**
+ * @brief ToolbarMenuAction::getParentAction
+ * @return
+ */
+ToolbarMenuAction *ToolbarMenuAction::getParentAction()
+{
+    return parentAction;
+}
+
+
+/**
+ * @brief ToolbarMenuAction::getParentActionKind
+ * @return
+ */
+QString ToolbarMenuAction::getParentActionKind()
+{
+    if (parentAction) {
+        return parentAction->getActionKind();
+    }
+    return "";
 }
 
 

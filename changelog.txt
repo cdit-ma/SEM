@@ -9,10 +9,10 @@ Version 19:
 	Fixes:
             * Fixed inconsistent expand state and incorrect expand size when adding first child.
                 ** Implemented firstChildAdded and updated lastChildRemoved for EntityItem.
-            * Fixed closing of definitions dock on undo/redo.
 
         GitHub Issues Fixed:
             * #2 - Label from read-only interface snippet isn't correct on import bug
+            * #8 - View - Show connections doesn't include the source in the centered rectangle
 
 Version 18:
     New Features:

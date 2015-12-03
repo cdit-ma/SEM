@@ -1,4 +1,5 @@
 #include "docknodeitem.h"
+#include "partsdockscrollarea.h"
 
 #include <QVBoxLayout>
 #include <QLabel>
@@ -364,7 +365,10 @@ void DockNodeItem::labelChanged(QString label)
  */
 void DockNodeItem::iconChanged()
 {
-    setupImageLabel();
+    bool itemVisible = isDockItemVisible();
+    setDockItemVisible(false);
+    setImageLabelPixmap();
+    setDockItemVisible(itemVisible);
 }
 
 
@@ -394,13 +398,42 @@ void DockNodeItem::setupLayout()
     textLabel->setFont(QFont(textLabel->font().family(), 8));
     textLabel->setFixedSize(width() - 2, 21);
 
-    // setup icon
+    // setup icon label
     if (!isDockItemLabel()) {
+
+        int imagePadding = 5;
+
         imageLabel = new QLabel(this);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
-        layout->addWidget(imageLabel);
-        layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
-        setupImageLabel();
+        imageLabel->setStyleSheet("padding-top:" + QString::number(imagePadding) + "px;");
+        setImageLabelPixmap();
+
+        // determine whether this dock item will open another dock when clicked
+        bool requireDockSwitch = false;
+        if (parentDock && parentDock->getDockType() == PARTS_DOCK) {
+            requireDockSwitch = ((PartsDockScrollArea*) parentDock)->kindRequiresDockSwitching(kind);
+        }
+
+        // if it does, display a right arrow image
+        if (requireDockSwitch) {
+            QPixmap arrowPixmap = QPixmap::fromImage(QImage(":/Actions/Arrow_Right"));
+            arrowPixmap = arrowPixmap.scaled(width()*ICON_RATIO/5, height()*ICON_RATIO,
+                                             Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+            QLabel* dockArrowLabel = new QLabel(this);
+            dockArrowLabel->setPixmap(arrowPixmap);
+            dockArrowLabel->setStyleSheet("padding-top:" + QString::number(arrowPixmap.height()/2 - imagePadding) + "px;");
+
+            QHBoxLayout* imageLayout = new QHBoxLayout();
+            imageLayout->addWidget(imageLabel, 9);
+            imageLayout->setAlignment(imageLabel, Qt::AlignRight | Qt::AlignBottom);
+            imageLayout->addWidget(dockArrowLabel, 2);
+            layout->addLayout(imageLayout);
+
+        } else {
+            layout->addWidget(imageLabel);
+            layout->setAlignment(imageLabel, Qt::AlignHCenter | Qt::AlignBottom);
+        }
     }
 
     layout->addWidget(textLabel);
@@ -419,9 +452,9 @@ void DockNodeItem::setupLayout()
 
 
 /**
- * @brief DockNodeItem::setupImageLabel
+ * @brief DockNodeItem::setImageLabelPixmap
  */
-void DockNodeItem::setupImageLabel()
+void DockNodeItem::setImageLabelPixmap()
 {
     if (isDockItemLabel() || !parentDock || !textLabel || !imageLabel) {
         return;
@@ -453,10 +486,7 @@ void DockNodeItem::setupImageLabel()
         return;
     }
 
-    pixMap = pixMap.scaled(pixMapSize,
-                           Qt::KeepAspectRatio,
-                           Qt::SmoothTransformation);
-
+    pixMap = pixMap.scaled(pixMapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     imageLabel->setPixmap(pixMap);
 }
 

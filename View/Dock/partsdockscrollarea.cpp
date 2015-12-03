@@ -127,6 +127,17 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
 
 
 /**
+ * @brief PartsDockScrollArea::requiresDockSwitching
+ * @param dockItemKind
+ * @return
+ */
+bool PartsDockScrollArea::requiresDockSwitching(QString dockItemKind)
+{
+    return kindsRequiringDefinition.contains(dockItemKind) || kindsRequiringFunction.contains(dockItemKind);
+}
+
+
+/**
  * @brief PartsDockScrollArea::dockNodeItemPressed
  * This gets called when a dock adoptable node item is clicked.
  * It tells the view to create a NodeItem with the specified
