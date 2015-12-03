@@ -15,10 +15,12 @@ public:
     void removeAction(ToolbarMenuAction* action, bool clearing = false);
 
     ToolbarMenuAction* getAction(NodeItem* item);
-    QList<ToolbarMenuAction*> getActions(NodeItem* item);
+    QList<ToolbarMenuAction*> getActions(NodeItem* item = 0);
 
     bool isEmpty();
     void clearMenu();
+
+    void splitActionsWithMenu();
 
 signals:
     void toolbarMenu_triggered(ToolbarMenuAction* action);
@@ -31,6 +33,7 @@ protected:
 
 private:
     void setupInfoAction();
+    void insertMenuAction(ToolbarMenuAction* action);
 
     ToolbarMenuAction* infoAction;
     QList<ToolbarMenuAction*> menuActions;

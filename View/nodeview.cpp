@@ -2708,7 +2708,6 @@ void NodeView::expand(bool expand)
 }
 
 
-
 /**
  * @brief NodeView::constructNode
  * This is called when the user has either clicked on a dock item from
@@ -2718,13 +2717,6 @@ void NodeView::expand(bool expand)
  */
 void NodeView::constructNode(QString nodeKind, int sender)
 {
-    /*
-    if(nodeKind == "VectorOperation"){
-        //constructWorkerProcessNode("Process", "VectorOperation", "Get", 0);
-        return;
-    }
-    */
-
     if (viewMutex.tryLock()) {
         NodeItem* selectedItem = getSelectedNodeItem();
         if (!selectedItem) {
@@ -2738,7 +2730,6 @@ void NodeView::constructNode(QString nodeKind, int sender)
             // if from toolbar, place at closest grid point to the toolbar's position
             QPointF position = selectedItem->mapFromScene(toolbarPosition);
             QPointF newPosition = selectedItem->getClosestGridPoint(position);
-            qDebug() << "Construct kind: " << nodeKind;
             emit view_ConstructNode(selectedItem->getID(), nodeKind, newPosition);
         }
     }

@@ -88,9 +88,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     connect(this, SIGNAL(clicked()), this , SLOT(clicked()));
 
     // initially contract labels
-    if (isDockItemLabel()) {
-        setDockItemExpanded();
-    }
+    setDockItemExpanded();
 }
 
 
@@ -410,6 +408,7 @@ void DockNodeItem::setupLayout()
     if (!isDockItemLabel()) {
 
         imageLabel = new QLabel(this);
+        imageLabel->setAlignment(Qt::AlignCenter);
         imageLabel->setFixedSize(IMAGE_SIZE, IMAGE_SIZE);
         imageLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
         imageLabel->setStyleSheet("padding-top:" + QString::number(IMAGE_PADDING) + "px;");
@@ -423,7 +422,6 @@ void DockNodeItem::setupLayout()
 
         // if it does, display a right arrow image
         if (requireDockSwitch) {
-
             QPixmap arrowPixmap = QPixmap::fromImage(QImage(":/Actions/Arrow_Right"));
             arrowPixmap = arrowPixmap.scaled(BUTTON_WIDTH * ICON_RATIO / 5, BUTTON_HEIGHT * ICON_RATIO,
                                              Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -471,7 +469,7 @@ void DockNodeItem::setImageLabelPixmap()
     }
 
     NodeView* nodeView = parentDock->getNodeView();
-    QSize pixMapSize = QSize(imageLabel->width(), height());
+    QSize pixMapSize = imageLabel->size();
     QPixmap pixMap = QPixmap(pixMapSize);
 
     if (nodeView) {
