@@ -11,16 +11,21 @@ class ToolbarMenuAction : public QAction
     Q_OBJECT
 
 public:
-    explicit ToolbarMenuAction(NodeItem* item, QWidget* parent = 0);
-    explicit ToolbarMenuAction(QString kind, QWidget* parent = 0,
-                               QString displayedText = "", QString iconPath = ":/Items/");
+    explicit ToolbarMenuAction(NodeItem* item, ToolbarMenuAction *parent_action = 0, QWidget* parent = 0);
+    explicit ToolbarMenuAction(QString kind, ToolbarMenuAction *parent_action = 0, QWidget* parent = 0,
+                               QString displayedText = "", QString iconPath = "");
 
-    NodeItem *getNodeItem();
+    ToolbarMenuAction* getParentAction();
+    QString getParentActionKind();
+
+    NodeItem* getNodeItem();
     int getNodeItemID();
+
     QString getActionKind();
     bool isDeletable();
 
 private:
+    ToolbarMenuAction* parentAction;
     NodeItem* nodeItem;
     QString actionKind;
     bool deletable;

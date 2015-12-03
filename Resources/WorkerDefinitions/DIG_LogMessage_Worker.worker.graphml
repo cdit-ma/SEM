@@ -51,7 +51,7 @@
                     <data key="d14">DIG_LogMessage_Worker</data>
                     <data key="d16">$(CUTS_ROOT)/cuts/workers/logmessage</data>
                     <data key="d17">LogMessage_Worker</data>
-                    <data key="d18">connect2</data>
+					<data key="d18">connect</data>
                     <data key="d23">true</data>
                     <data key="d25">Typically called when the component is activated (ie actionOn Activate) and is used to open the connection to the DDS logging server.</data>
                     <data key="d26">dig_logmessage_worker</data>

@@ -11,6 +11,7 @@ public:
     explicit PartsDockScrollArea(QString label, NodeView* view, DockToggleButton *parent);
 
     void addDockNodeItems(QStringList nodeKinds);
+    bool kindRequiresDockSwitching(QString dockItemKind);
 
 signals:
     void dock_forceOpenDock(DOCK_TYPE type, QString srcDockItemKind = "");

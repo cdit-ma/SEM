@@ -421,7 +421,7 @@ void MedeaWindow::initialiseGUI()
                   "QCheckBox { padding: 0px 10px 0px 0px; }"
                   "QCheckBox::indicator { width: 25px; height: 25px; }"
                   "QCheckBox:checked { color: green; font-weight: bold; }"
-/*
+
                   "QProgressBar {"
                   "border: 2px solid gray;"
                   "border-radius: 10px;"
@@ -433,7 +433,7 @@ void MedeaWindow::initialiseGUI()
                   "border-radius: 7px;"
                   "background: rgb(0,204,0);"
                   "}"
-*/
+
                   "QGroupBox {"
                   "background-color: rgba(0,0,0,0);"
                   "border: 0px;"
@@ -923,10 +923,20 @@ void MedeaWindow::setupSearchTools()
     int rightPanelWidth = RIGHT_PANEL_WIDTH;
     int searchBarHeight = 28;
 
+    /* dataKeys = QStringList() << "label" << "type" << "worker" << "description" << "topicName" << "kind"; */
+
     QHBoxLayout* headerLayout = new QHBoxLayout();
     QLabel* objectLabel = new QLabel("Entity Label:", this);
     QLabel* parentLabel = new QLabel("Parent Entity Label:", this);
     QLabel* iconHolder = new QLabel(this);
+    /*
+    QLabel* objectKind = new QLabel("Kind", this);
+    QLabel* objectType = new QLabel("Type", this);
+    QLabel* topicName = new QLabel("Topic Name", this);
+    QLabel* worker = new QLabel("Worker", this);
+    QLabel* description = new QLabel("Description", this);
+    */
+
     int searchItemMinWidth = 300;
     int marginOffset = 8;
 
@@ -1087,6 +1097,7 @@ void MedeaWindow::setupSearchTools()
     keysGroup->setLayout(keysLayout);
     keysAction->setDefaultWidget(keysGroup);
 
+    // populate data attribute keys menu
     foreach (QString key, dataKeys) {
         QWidgetAction* action = new QWidgetAction(this);
         QCheckBox* checkBox = new QCheckBox(key, this);
