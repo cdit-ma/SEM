@@ -29,6 +29,8 @@ public:
     EntityItem* getSource();
     EntityItem* getDestination();
 
+    Edge* getEdge();
+
 
     void setHovered(bool highlighted);
     void setSelected(bool selected);

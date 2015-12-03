@@ -22,13 +22,15 @@ public:
     void setProtected(bool setProtected);
     bool isProtected();
 
+    bool compare(GraphMLData* data);
+
     void setParentData(GraphMLData* data, bool protect = true);
     void unsetParentData();
     GraphMLData* getParentData();
 
 
     void bindData(GraphMLData* data, bool protect = true);
-    void unbindData(GraphMLData* data);
+    void unbindData(GraphMLData* data, bool protect = false);
     QList<GraphMLData*> getBoundData();
 
     bool gotDoubleValue() const;

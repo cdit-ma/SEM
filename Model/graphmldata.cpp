@@ -234,18 +234,26 @@ bool GraphMLData::isProtected()
     return protectedData;
 }
 
+bool GraphMLData::compare(GraphMLData *data)
+{
+    if(data){
+        return getValue() == data->getValue();
+    }
+    return false;
+}
+
 void GraphMLData::setParentData(GraphMLData *data, bool protect)
 {
     if(data){
         unsetParentData();
         if(data){
             setValue(data->getValue());
-            if(protect){
-                setProtected(true);
-            }
         }
-    }
+    }   
     parentData = data;
+
+
+    setProtected(protect);
 }
 
 void GraphMLData::unsetParentData()
@@ -270,13 +278,13 @@ void GraphMLData::bindData(GraphMLData *data, bool protect)
     }
 }
 
-void GraphMLData::unbindData(GraphMLData *data)
+void GraphMLData::unbindData(GraphMLData *data, bool protect)
 {
     int index = childData.indexOf(data);
     if(index != -1){
         if(data){
             childData.removeAt(index);
-            data->setParentData(0);
+            data->setParentData(0, protect);
         }
     }
 

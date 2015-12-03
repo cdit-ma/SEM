@@ -9,6 +9,7 @@ Version 19:
             * Fixed inconsistent expand state and incorrect expand size when adding first child.
                 ** Implemented firstChildAdded and updated lastChildRemoved for EntityItem.
             * Fixed closing of definitions dock on undo/redo.
+            * Modified code base so Panning is a translate not a model move.
 
         GitHub Issues Fixed:
             * #2 - Label from read-only interface snippet isn't correct on import bug

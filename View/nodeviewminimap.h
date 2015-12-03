@@ -32,7 +32,6 @@ private:
 
 protected:
     void drawForeground(QPainter *painter, const QRectF &rect);
-    void paintEvent(QPaintEvent * e);
 
     // QWidget interface
 protected:

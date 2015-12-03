@@ -175,7 +175,7 @@ Edge::EDGE_TYPE Edge::getType()
             return ET_DELEGATE;
         }
     }
-    if(srcKind.endsWith("Parameter")){
+    if(srcKind.endsWith("Parameter") || dstKind.endsWith("Parameter")){
         return ET_DATALINK;
     }
     if(srcKind == dstKind){

@@ -2578,6 +2578,14 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
                 typeData->clearValue();
             }
         }
+    }else if(edge->isDataLink()){
+        Parameter* srcParameter = dynamic_cast<Parameter*>(source);
+        Parameter* dstParameter = dynamic_cast<Parameter*>(destination);
+        if(srcParameter){
+            teardownParameterRelationship(srcParameter, destination);
+        }else if(dstParameter){
+            teardownParameterRelationship(dstParameter, source);
+        }
     }
 
 
@@ -3642,6 +3650,77 @@ bool NewController::teardownVectorRelationship(Vector *vector, Aggregate *aggreg
     return true;
 }
 
+bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
+{
+    //Get Process
+    Node* parameterParent = parameter->getParentNode();
+    Process* process = dynamic_cast<Process*>(parameterParent);
+
+    if(parameter->isInputParameter()){
+        GraphMLData* value = parameter->getData("value");
+
+        QString dataKind = data->getNodeKind();
+        Node* dataParent = data->getParentNode();
+        if(dataKind == "VectorInstance"){
+            if(dataParent->getNodeKind() == "Variable"){
+                //Bind the label of the variable to the parameter.
+                GraphMLData* label = dataParent->getData("label");
+                label->bindData(value, true);
+            }
+        }
+        if(dataKind == "Variable"){
+            //Bind the label of the variable to the parameter.
+            GraphMLData* label = data->getData("label");
+            label->bindData(value, true);
+        }
+
+        if(process){
+            QString workerName = process->getDataValue("worker");
+            QString operationName = process->getDataValue("operation");
+            if(workerName == "VectorOperation"){
+                GraphMLData* bindData = dataParent->getData("type");
+                if(dataKind == "VectorInstance"){
+                    if(data->childrenCount() == 1){
+                        bindData = data->getChildren(0)[0]->getData("type");
+                    }
+                }
+
+                QStringList bindReturnParameterNames;
+                bindReturnParameterNames << "get" << "set" << "remove";
+                if(bindReturnParameterNames.contains(operationName)){
+                    //Find return Parameter;
+                    foreach(Node* returnParameter, process->getChildrenOfKind("ReturnParameter",0)){
+                        GraphMLData* returnType = returnParameter->getData("type");
+                        bindData->bindData(returnType);
+                    }
+                }
+            }
+
+        }
+    }
+    return true;
+}
+
+bool NewController::teardownParameterRelationship(Parameter *parameter, Node *data)
+{
+    if(parameter->isInputParameter()){
+        GraphMLData* value = parameter->getData("value");
+
+        QString dataKind = data->getNodeKind();
+        Node* dataParent = data->getParentNode();
+        if(dataKind == "VectorInstance"){
+            if(dataParent->getNodeKind() == "Variable"){
+                //Bind the label of the variable to the parameter.
+                GraphMLData* label = dataParent->getData("label");
+                label->unbindData(value);
+            }
+        }
+    }
+
+    return false;
+
+}
+
 /**
  * @brief NewController::teardownDefinitionRelationship
  * Attempts to destruct the relationship between the Instance and definition provided.
@@ -3800,11 +3879,12 @@ void NewController::constructEdgeGUI(Edge *edge)
     }
 
     if(edge->isDataLink()){
-        GraphMLData* parameterValue = src->getData("value");
-        GraphMLData* dataValue = dst->getData("label");
-
-        if(parameterValue && dataValue ){
-            dataValue->bindData(parameterValue);
+        Parameter* srcParameter = dynamic_cast<Parameter*>(src);
+        Parameter* dstParameter = dynamic_cast<Parameter*>(dst);
+        if(srcParameter){
+             setupParameterRelationship(srcParameter, dst);
+        }else if(dstParameter){
+            setupParameterRelationship(dstParameter, src);
         }
     }
 

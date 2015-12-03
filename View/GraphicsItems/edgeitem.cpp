@@ -221,6 +221,13 @@ EntityItem *EdgeItem::getDestination()
     return destination;
 }
 
+Edge *EdgeItem::getEdge()
+{
+    if(getGraphML() && getGraphML()->isEdge()){
+        return (Edge*)getGraphML();
+    }
+}
+
 void EdgeItem::setHovered(bool highlighted)
 {
     GraphMLItem::setHovered(highlighted);
@@ -535,6 +542,13 @@ void EdgeItem::setupBrushes()
     pen.setStyle(Qt::SolidLine);
     pen.setColor(Qt::gray);
     pen.setColor(pen.color().darker());
+
+    if(getEdge()){
+        if(getEdge()->isDataLink()){
+            pen.setColor(Qt::red);
+        }
+    }
+
 
     color = QColor(100,100,100);
 
