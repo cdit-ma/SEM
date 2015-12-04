@@ -202,7 +202,6 @@ private:
 
 private:
     void updateUndoRedoState();
-    void setupParameters();
     void setGraphMLData(GraphML* parent, QString keyName, qreal dataValue, bool addAction = true);
     void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
     void clearUndoHistory();
@@ -253,7 +252,6 @@ private:
 
 
     Node* cloneNode(Node* original, Node* parent, bool ignoreVisuals=true);
-    Parameter* constructChildParameter(Node* parentNode, ParameterRequirement* requirement);
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
     void constructNodeGUI(Node* node);
     void constructEdgeGUI(Edge* edge);

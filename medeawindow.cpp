@@ -765,7 +765,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_showConnectedNodes->setEnabled(false);
 
     //actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
-    actionSort = new QAction(getIcon("Actions", "AlignToGrid"), "Sort", this);
+    actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
     actionSort->setToolTip("Sort Selection");
 
     actionCenter = new QAction(getIcon("Actions", "Crosshair"), "Center Entity", this);

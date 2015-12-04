@@ -2596,6 +2596,9 @@ void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QStri
         if(image.isNull() && operationKind != ""){
             image = getNodeView()->getImage("Items", "Process");
         }
+        if(image.isNull() && nodeType != ""){
+            image = getNodeView()->getImage("Data", nodeType);
+        }
         if(image.isNull()){
             image = getNodeView()->getImage("Actions", "Help");
         }
