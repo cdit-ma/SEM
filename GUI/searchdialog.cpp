@@ -1,5 +1,7 @@
 #include "searchdialog.h"
 
+#include <QDebug>
+
 #define LABEL_RATIO (2.0 / 5.0)
 #define ICON_RATIO 0.8
 
@@ -93,9 +95,9 @@ void SearchDialog::insertSearchItem(SearchItem* searchItem)
             }
             QString itemLabel = item->getKeyValue("label");
             int compare = searchItemLabel.compare(itemLabel, Qt::CaseInsensitive);
-            if (compare < 0) {
+            if (compare <= 0) {
                 resultsLayout->insertWidget(i, searchItem);
-                searchItems.append(searchItem);
+                searchItems.insert(i, searchItem);
                 return;
             }
         }
@@ -129,26 +131,38 @@ void SearchDialog::clear()
 void SearchDialog::sortItems()
 {
     QRadioButton* rb = qobject_cast<QRadioButton*>(QObject::sender());
+    if (!rb->isChecked()) {
+        return;
+    }
+
+    QList<SearchItem*> searchItemsCopy;
+    searchItemsCopy.append(searchItems);
+
     QString key = rb->text();
 
-    foreach (SearchItem* searchItem, searchItems) {
+    for (int x = 0; x < searchItemsCopy.count(); x++) {
+
+        SearchItem* searchItem = searchItemsCopy.at(x);
         QString searchItemLabel = searchItem->getKeyValue(key);
-        for (int i = 0; i < searchItems.count(); i++) {
-            SearchItem* item = searchItems.at(i);
-            if (!item) {
+
+        for (int i = 0; i < searchItemsCopy.count(); i++) {
+            SearchItem* item = searchItemsCopy.at(i);
+            if (!item || item == searchItem) {
                 continue;
             }
             QString itemLabel = item->getKeyValue(key);
             int compare = searchItemLabel.compare(itemLabel, Qt::CaseInsensitive);
-            if (compare < 0) {
+            if (compare <= 0) {
+                // remove item
+                resultsLayout->removeWidget(searchItem);
+                searchItems.removeAll(searchItem);
+                // re-insert item
                 resultsLayout->insertWidget(i, searchItem);
-                searchItems.append(searchItem);
+                searchItems.insert(i, searchItem);
                 return;
             }
         }
     }
-
-    sortMenu->hide();
 }
 
 
