@@ -53,7 +53,9 @@
 #include "CUTS/cutsmanager.h"
 
 #include "GUI/searchsuggestcompletion.h"
+#include "GUI/searchdialog.h"
 #include "GUI/searchitem.h"
+
 #include "GUI/aspecttogglewidget.h"
 #include "GUI/appsettings.h"
 #include "GUI/codeeditor.h"
@@ -371,6 +373,8 @@ private:
     SearchSuggestCompletion* searchSuggestions;
     QHBoxLayout* searchLayout;
     QVBoxLayout* resultsLayout;
+
+    SearchDialog* searchDialog;
 
     QPushButton* searchButton;
     QPushButton* searchOptionButton;

@@ -3,10 +3,11 @@
 
 #include <QDebug>
 
-#define MIN_WIDTH 500.0
+#define DIALOG_PADDING 200
 #define MIN_HEIGHT 50.0
 
 #define BUTTON_SIZE 28
+#define BUTTON_RADIUS (BUTTON_SIZE / 4)
 #define KEY_LABEL_WIDTH 100
 
 #define LAYOUT_MARGIN 2
@@ -17,8 +18,8 @@
 #define ICON_RATIO 0.8
 #define ICON_SIZE (MIN_HEIGHT * ICON_RATIO - MARGIN_OFFSET)
 
-#define CLICK_TO_CENTER true
-#define DOUBLE_CLICK_TO_EXPAND false
+//#define CLICK_TO_CENTER true
+//#define DOUBLE_CLICK_TO_EXPAND false
 
 
 /**
@@ -27,6 +28,12 @@
  */
 SearchItem::SearchItem(GraphMLItem *item, QWidget *parent) : QLabel(parent)
 {
+    if (parent) {
+        MIN_WIDTH = parent->width() - DIALOG_PADDING;
+    } else {
+        MIN_WIDTH = 100;
+    }
+
     if (item) {
         graphMLItem = item;
         graphMLItemID = graphMLItem->getID();
@@ -43,9 +50,9 @@ SearchItem::SearchItem(GraphMLItem *item, QWidget *parent) : QLabel(parent)
     updateColor();
     expandItem();
 
-    if (DOUBLE_CLICK_TO_EXPAND) {
-        connect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
-    }
+    setClickToCenter(true);
+    setDoubleClickToExpand(false);
+
     connect(centerOnButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
     connect(expandButton, SIGNAL(clicked()), this, SLOT(expandItem()));
     connect(centerOnButton, SIGNAL(clicked()), this, SLOT(centerOnItem()));
@@ -64,6 +71,31 @@ void SearchItem::connectToWindow(QMainWindow* window)
         connect(medea, SIGNAL(window_searchItemClicked(SearchItem*)), this, SLOT(itemClicked(SearchItem*)));
         connect(this, SIGNAL(searchItem_centerOnItem(int)), medea, SLOT(on_searchResultItem_clicked(int)));
     }
+}
+
+
+/**
+ * @brief SearchItem::getKeyValue
+ * @param key
+ * @return
+ */
+QString SearchItem::getKeyValue(QString key)
+{
+    if (key.isEmpty() ) {
+        return "";
+    }
+    if (!dataKeys.contains(key)) {
+        if (key == "label" && entityLabel) {
+            return entityLabel->text();
+        } else {
+            qWarning() << "There is no value stored for data key: " << key;
+            return "";
+        }
+    }
+    if (graphMLItem && graphMLItem->getGraphML()) {
+        return graphMLItem->getGraphML()->getDataValue("kind");
+    }
+    return "";
 }
 
 
@@ -115,6 +147,32 @@ void SearchItem::centerOnItem()
 
 
 /**
+ * @brief SearchItem::setClickToCenter
+ * @param b
+ */
+void SearchItem::setClickToCenter(bool b)
+{
+    CLICK_TO_CENTER = b;
+    centerOnButton->setVisible(!CLICK_TO_CENTER);
+}
+
+
+/**
+ * @brief SearchItem::setDoubleClickToExpand
+ * @param b
+ */
+void SearchItem::setDoubleClickToExpand(bool b)
+{
+    DOUBLE_CLICK_TO_EXPAND = b;
+    if (DOUBLE_CLICK_TO_EXPAND) {
+        connect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
+    } else {
+        disconnect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
+    }
+}
+
+
+/**
  * @brief SearchItem::mouseReleaseEvent
  * @param event
  */
@@ -152,15 +210,17 @@ void SearchItem::mouseDoubleClickEvent(QMouseEvent *event)
  */
 void SearchItem::setupLayout()
 {
+    QString borderRadius = "border-radius:" + QString::number(BUTTON_RADIUS) + "px;";
     fixedStyleSheet = "QPushButton{"
                       "background-color: rgba(250,250,250,250);"
-                      "border-radius: 5px;"
                       "border: 1px solid darkGray;"
-                      "}"
-                      "QPushButton:hover{"
-                      "background-color: rgba(255,255,255,255);"
-                      "border: 2px solid rgb(150,150,150);"
-                      "}";
+            + borderRadius +
+            "}"
+            "QPushButton:hover{"
+            "background-color: rgba(255,255,255,255);"
+
+            "border: 2px solid rgb(150,150,150);"
+            "}";
 
     QVBoxLayout* mainLayout = new QVBoxLayout();
     QHBoxLayout* layout = new QHBoxLayout();
@@ -199,10 +259,6 @@ void SearchItem::setupLayout()
     centerOnButton->setFixedSize(buttonSize);
     expandButton->setIconSize(buttonSize*0.75);
     centerOnButton->setIconSize(buttonSize*0.75);
-
-    if (CLICK_TO_CENTER) {
-        centerOnButton->hide();
-    }
 
     dataBox = new QGroupBox(this);
     QVBoxLayout* boxLayout = new QVBoxLayout();
@@ -258,6 +314,7 @@ QLabel* SearchItem::setupDataValueBox(QString key, QLayout *layout, bool storeIn
         layout->addWidget(dataValBox);
     }
     if (storeInHash) {
+        dataKeys.append(key);
         dataValueLabels[key] = valueLabel;
         dataValueBoxes[key] = dataValBox;
     }
@@ -272,8 +329,8 @@ QLabel* SearchItem::setupDataValueBox(QString key, QLayout *layout, bool storeIn
 void SearchItem::updateColor()
 {
     if (selected) {
-        setStyleSheet("QLabel{ background: rgb(220,220,220); }"
-                      "SearchItem{ border: 2px solid rgb(150,150,150); }"
+        setStyleSheet("QLabel{ background: rgb(204,229,250); }"
+                      "SearchItem{ border: 2px solid rgb(100,130,180); }"
                       + fixedStyleSheet);
     } else {
         setStyleSheet("QLabel{ background: rgb(240,240,240); }"
