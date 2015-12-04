@@ -12,10 +12,12 @@ class DockNodeItem : public QPushButton
 {
     Q_OBJECT
 public:
-    explicit DockNodeItem(QString kind = "", EntityItem* item = 0, QWidget* parent = 0, bool isLabel = false);
+    explicit DockNodeItem(QString kind = "", EntityItem* item = 0, QWidget* parent = 0, bool isLabel = false, QString imageName = "");
 
     EntityItem* getNodeItem();
     QString getKind();
+
+    void setID(QString strID);
     QString getID();
 
     void setLabel(QString newLabel);
@@ -30,22 +32,25 @@ public:
 
     void setImage(QString prefix, QString image);
 
-    void setForceHidden(bool hide);
-    bool isForceHidden();
+    void setDockItemVisible(bool visible);
+    bool isDockItemVisible();
 
     void setHidden(bool hide);
     bool isHidden();
 
-    bool isFileLabel();
-    bool isExpanded();
+    void setForceHidden(bool hide);
+    bool isForceHidden();
 
     void setReadOnlyState(bool on);
+
+    bool isDockItemLabel();
+    bool isExpanded();
 
 signals:
     void dockItem_clicked();
     void dockItem_fileClicked(bool show);
     void dockItem_relabelled(DockNodeItem* dockItem);
-    void dockItem_hidden();
+    void dockItem_visibilityChanged();
 
 public slots:
     void clicked();
@@ -53,17 +58,19 @@ public slots:
 
     void labelChanged(QString label);
     void iconChanged();
+    void childVisibilityChanged();
 
-    void childDockItemHidden();
+    void changeVectorHiddenState();
     void highlightDockItem(NodeItem* nodeItem);
 
 private:
     void setupLayout();
+    void setImageLabelPixmap();
+
     void updateTextLabel();
     void updateStyleSheet();
 
-    void setDockItemVisible(bool visible, bool forceChange = false);
-    bool isDockItemVisible();
+    void setDockItemExpanded();
 
     DockScrollArea* parentDock;
     EntityItem* nodeItem;
@@ -73,13 +80,16 @@ private:
     QString kind;
     QString label;
     QString strID;
+    QString imageName;
 
     QLabel* textLabel;
     QLabel* imageLabel;
 
     QString highlightColor;
 
-    bool fileLabel;
+    bool dockItemLabel;
+    bool dockItemVisible;
+
     bool expanded;
     bool hidden;
     bool forceHidden;

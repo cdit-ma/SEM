@@ -57,8 +57,7 @@ void ToolbarMenu::addAction(ToolbarMenuAction* action)
     if (infoAction && QMenu::actions().contains(infoAction)) {
         removeAction(infoAction);
     }
-    menuActions.append(action);
-    QMenu::addAction(action);
+    insertMenuAction(action);
 }
 
 
@@ -90,16 +89,17 @@ void ToolbarMenu::removeAction(ToolbarMenuAction* action, bool clearing)
 
 /**
  * @brief ToolbarMenu::getActions
- * @param item
+ * This returns all menu actions that has matching nodeitems to item.
+ * @param item - if this is null, return all menu actions
  * @return
  */
 QList<ToolbarMenuAction*> ToolbarMenu::getActions(NodeItem* item)
 {
-    QList<ToolbarMenuAction*> itemActions;
     if (!item) {
-        return itemActions;
+        return menuActions;
     }
 
+    QList<ToolbarMenuAction*> itemActions;
     foreach (ToolbarMenuAction* action, menuActions) {
         NodeItem* actionItem = action->getNodeItem();
         if (actionItem && (actionItem == item)) {
@@ -131,6 +131,35 @@ void ToolbarMenu::clearMenu()
         removeAction(action, true);
     }
     setupInfoAction();
+}
+
+
+/**
+ * @brief ToolbarMenu::splitActionsWithMenu
+ */
+void ToolbarMenu::splitActionsWithMenu()
+{
+    if (getActions().isEmpty()) {
+        return;
+    }
+
+    QList<ToolbarMenuAction*> actionsWithMenu;
+    foreach (ToolbarMenuAction* action, getActions()) {
+        if (action->menu()) {
+            actionsWithMenu.append(action);
+        }
+    }
+
+    // add a separator at the end of the menu to separate all actions with & without a menu
+    if (!actionsWithMenu.isEmpty()) {
+        addSeparator();
+    }
+
+    // remove all actions with a menu then re-add them at the bottom
+    foreach (ToolbarMenuAction* action, actionsWithMenu) {
+        QMenu::removeAction(action);
+        QMenu::addAction(action);
+    }
 }
 
 
@@ -171,4 +200,37 @@ void ToolbarMenu::setupInfoAction()
         menuActions.append(infoAction);
         QMenu::addAction(infoAction);
     }
+}
+
+
+/**
+ * @brief ToolbarMenu::insertMenuAction
+ * @param action
+ */
+void ToolbarMenu::insertMenuAction(ToolbarMenuAction *action)
+{
+    if (!action) {
+        return;
+    }
+
+    if (!getActions().isEmpty()) {
+        QString actionName = action->text();
+        for (int i = 0; i < getActions().count(); i++) {
+            ToolbarMenuAction* a = getActions().at(i);
+            if (a) {
+                QString aName = a->text();
+                int compare = actionName.compare(aName, Qt::CaseInsensitive);
+                if (compare <= 0) {
+                    QMenu::insertAction(getActions().at(i), action);
+                    menuActions.insert(i, action);
+                    return;
+                }
+            }
+        }
+    }
+
+    // if there's currently no action in this menu or the
+    // action wasn't inserted, just add it to the menu
+    QMenu::addAction(action);
+    menuActions.append(action);
 }

@@ -34,6 +34,7 @@ public slots:
     void expandContractNodes();
     void constructNewView();
 
+    void setupAdoptableNodesList();
     void setupLegalNodesList();
     void setupComponentList();
     void setupBlackBoxList();
@@ -75,7 +76,8 @@ private:
 
     void setupAdoptableNodesList(QStringList nodeKinds);
     void setupLegalNodesList(QList<NodeItem*> nodeList);
-    void setupInstancesList(QList<NodeItem *> instances);
+    void setupInstancesList(QList<NodeItem*> instances);
+    void setupHardwareList(QList<EntityItem*> hardware);
 
     void setupComponentList(QString actionKind);
     void setupEventPortInstanceList(QString eventPortKind);
@@ -185,11 +187,14 @@ private:
     bool outEventPortInstanceMenuDone;
     bool aggregateMenuDone;
     bool vectorMenuDone;
+    bool addMenuDone;
     bool connectMenuDone;
     bool hardwareMenuDone;
 
     int chosenInstanceID;
+    QStringList adoptableNodeKinds;
     QList<NodeItem*> legalNodeItems;
+    QList<EntityItem*> hardwareNodeItems;
 
     VIEW_THEME currentTheme;
 };

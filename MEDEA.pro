@@ -9,6 +9,7 @@ QT       += xml
 QT       += gui
 QT       += widgets
 QT       += xmlpatterns
+QT       += multimedia
 
 
 VERSION = 18.0
@@ -98,7 +99,6 @@ HEADERS += \
     modeltester.h \
     GUI/appsettings.h \
     GUI/keyeditwidget.h \
-    GUI/searchitembutton.h \
     View/Validate/validatedialog.h \
 	Model/InterfaceDefinitions/idl.h \
     GUI/aspecttogglewidget.h \
@@ -134,7 +134,8 @@ HEADERS += \
     GUI/searchsuggestcompletion.h \
     enumerations.h \
     View/Dock/functionsdockscrollarea.h \
-    Model/workerdefinitions.h
+    Model/workerdefinitions.h \
+    GUI/searchitem.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -200,7 +201,6 @@ SOURCES += \
     modeltester.cpp \
     GUI/appsettings.cpp \
     GUI/keyeditwidget.cpp \
-    GUI/searchitembutton.cpp \
     View/Validate/validatedialog.cpp \
     Model/InterfaceDefinitions/idl.cpp \
     GUI/aspecttogglewidget.cpp \
@@ -235,7 +235,8 @@ SOURCES += \
     Model/BehaviourDefinitions/returnparameter.cpp \
     GUI/searchsuggestcompletion.cpp \
     View/Dock/functionsdockscrollarea.cpp \
-    Model/workerdefinitions.cpp
+    Model/workerdefinitions.cpp \
+    GUI/searchitem.cpp
 
 FORMS +=
 

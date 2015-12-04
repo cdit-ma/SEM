@@ -760,7 +760,7 @@ void NewController::destructEdge(int srcID, int dstID)
 
 void NewController::constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos)
 {
-    qCritical() << "constructConnectedNode" << kind;
+    //qCritical() << "constructConnectedNode" << kind;
     Node* parentNode = getNodeFromID(parentID);
     Node* connectedNode = getNodeFromID(connectedID);
     if(parentNode && connectedNode){
@@ -1684,6 +1684,13 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
         QString sourceKind = source->getDataValue("kind");
         QString destinationKind = destination->getDataValue("kind");
 
+        if(sourceKind == "InputParameter" || destinationKind == "ReturnParameter"){
+            //Rotate
+            Node* temp = source;
+            source = destination;
+            destination = temp;
+        }
+
         Edge* edge = new Edge(source, destination);
 
         return edge;
@@ -2577,6 +2584,14 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
                 typeData->unsetParentData();
                 typeData->clearValue();
             }
+        }
+    }else if(edge->isDataLink()){
+        Parameter* srcParameter = dynamic_cast<Parameter*>(source);
+        Parameter* dstParameter = dynamic_cast<Parameter*>(destination);
+        if(srcParameter){
+            teardownParameterRelationship(srcParameter, destination);
+        }else if(dstParameter){
+            teardownParameterRelationship(dstParameter, source);
         }
     }
 
@@ -3642,6 +3657,80 @@ bool NewController::teardownVectorRelationship(Vector *vector, Aggregate *aggreg
     return true;
 }
 
+bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
+{
+    //Get Process
+    Node* parameterParent = parameter->getParentNode();
+    Process* process = dynamic_cast<Process*>(parameterParent);
+
+    if(parameter->isInputParameter()){
+        GraphMLData* value = parameter->getData("value");
+
+        QString dataKind = data->getNodeKind();
+        Node* dataParent = data->getParentNode();
+        if(dataKind == "VectorInstance"){
+            if(dataParent->getNodeKind() == "Variable"){
+                //Bind the label of the variable to the parameter.
+                GraphMLData* label = dataParent->getData("label");
+                label->bindData(value, true);
+            }
+        }
+        if(dataKind == "Variable"){
+            //Bind the label of the variable to the parameter.
+            GraphMLData* label = data->getData("label");
+            label->bindData(value, true);
+        }
+
+        if(process){
+            QString workerName = process->getDataValue("worker");
+            QString operationName = process->getDataValue("operation");
+            if(workerName == "VectorOperation"){
+                GraphMLData* bindData = dataParent->getData("type");
+                if(dataKind == "VectorInstance"){
+                    if(data->childrenCount() == 1){
+                        bindData = data->getChildren(0)[0]->getData("type");
+                    }
+                }
+
+                QStringList bindValueParameterType;
+                bindValueParameterType << "get" << "set" << "remove";
+                if(bindValueParameterType.contains(operationName)){
+                    //Find return Parameter;
+                    foreach(Node* child, process->getChildren(0)){
+                        Parameter* parameter = dynamic_cast<Parameter*>(child);
+                        if(parameter && parameter->getDataValue("label") == "value"){
+                            GraphMLData* returnType = parameter->getData("type");
+                            bindData->bindData(returnType);
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+    return true;
+}
+
+bool NewController::teardownParameterRelationship(Parameter *parameter, Node *data)
+{
+    if(parameter->isInputParameter()){
+        GraphMLData* value = parameter->getData("value");
+
+        QString dataKind = data->getNodeKind();
+        Node* dataParent = data->getParentNode();
+        if(dataKind == "VectorInstance"){
+            if(dataParent->getNodeKind() == "Variable"){
+                //Bind the label of the variable to the parameter.
+                GraphMLData* label = dataParent->getData("label");
+                label->unbindData(value);
+            }
+        }
+    }
+
+    return false;
+
+}
+
 /**
  * @brief NewController::teardownDefinitionRelationship
  * Attempts to destruct the relationship between the Instance and definition provided.
@@ -3800,11 +3889,12 @@ void NewController::constructEdgeGUI(Edge *edge)
     }
 
     if(edge->isDataLink()){
-        GraphMLData* parameterValue = src->getData("value");
-        GraphMLData* dataValue = dst->getData("label");
-
-        if(parameterValue && dataValue ){
-            dataValue->bindData(parameterValue);
+        Parameter* srcParameter = dynamic_cast<Parameter*>(src);
+        Parameter* dstParameter = dynamic_cast<Parameter*>(dst);
+        if(srcParameter){
+             setupParameterRelationship(srcParameter, dst);
+        }else if(dstParameter){
+            setupParameterRelationship(dstParameter, src);
         }
     }
 

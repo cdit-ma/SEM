@@ -127,11 +127,11 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
 
 
 /**
- * @brief PartsDockScrollArea::requiresDockSwitching
+ * @brief PartsDockScrollArea::kindRequiresDockSwitching
  * @param dockItemKind
  * @return
  */
-bool PartsDockScrollArea::requiresDockSwitching(QString dockItemKind)
+bool PartsDockScrollArea::kindRequiresDockSwitching(QString dockItemKind)
 {
     return kindsRequiringDefinition.contains(dockItemKind) || kindsRequiringFunction.contains(dockItemKind);
 }

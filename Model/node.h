@@ -44,6 +44,10 @@ public:
     //Returns whether or not this Node can Adopt the child Node.
     virtual bool canAdoptChild(Node *node);
 
+    bool compareData(Node* node, QString keyName);
+    bool compareData(Node* node, QStringList keys);
+
+
     //Adds the Node provided to the list of children.
     void addChild(Node *child);
 

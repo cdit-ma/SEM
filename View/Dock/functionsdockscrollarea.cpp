@@ -36,8 +36,8 @@ void FunctionsDockScrollArea::addDockNodeItems(QList<QPair<QString, QString> > f
 
         QString className = function.first;
         QString functionName = function.second;
-        DockNodeItem* dockItem = new DockNodeItem(functionName, 0, this);
-        dockItem->setImage("Functions", className);
+        DockNodeItem* dockItem = new DockNodeItem(functionName, 0, this, false, className);
+        dockItem->setID(className + "_" + functionName);
 
         // check if there is already a layout and label for the parent File
         if (!classLayoutItems.contains(className)){
@@ -73,11 +73,17 @@ void FunctionsDockScrollArea::addDockNodeItems(QList<QPair<QString, QString> > f
  */
 void FunctionsDockScrollArea::dockNodeItemClicked()
 {
-    // this dock can only be opened from the Parts dock at the moment
-    // the check for selected item(s) is already done there
-
     DockNodeItem* dockItem = qobject_cast<DockNodeItem*>(QObject::sender());
     DockNodeItem* parentItem = dockItem->getParentDockNodeItem();
+
+
+    if (!dockItem) {
+        qDebug() << "Dock item is NULL";
+    }
+
+    if (!parentItem) {
+        qDebug() << "Parent dock item is NULL";
+    }
 
     if (dockItem && parentItem) {
         getNodeView()->constructWorkerProcessNode(parentItem->getKind(), dockItem->getKind(), 0);
@@ -130,7 +136,7 @@ void FunctionsDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
 
 
     QString labelToSort = dockItem->getLabel();
-    bool isClassLabel = dockItem->isFileLabel();
+    bool isClassLabel = dockItem->isDockItemLabel();
 
     if (isClassLabel) {
         // remove  classLayout from itemsLayout
@@ -174,7 +180,7 @@ void FunctionsDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
         } else {
             // get the function name
             DockNodeItem* dockNodeItem = dynamic_cast<DockNodeItem*>(layoutItem->widget());
-            if (dockNodeItem && !dockNodeItem->isFileLabel()) {
+            if (dockNodeItem && !dockNodeItem->isDockItemLabel()) {
                 dockItemLabel = dockNodeItem->getLabel();
             }
         }

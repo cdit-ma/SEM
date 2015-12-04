@@ -27,7 +27,7 @@
 #define THREADING true
 
 #define MIN_WIDTH 1000
-#define MIN_HEIGHT (480 + SPACER_HEIGHT*3)
+#define MIN_HEIGHT (480 + SPACER_HEIGHT * 3)
 //#define MIN_WIDTH 1280
 //#define MIN_HEIGHT (720 + SPACER_HEIGHT*3)
 
@@ -578,7 +578,6 @@ void MedeaWindow::initialiseGUI()
     QVBoxLayout* rightVlayout =  new QVBoxLayout();
     QHBoxLayout* titleLayout = new QHBoxLayout();
     QHBoxLayout* bodyLayout = new QHBoxLayout();
-    QVBoxLayout* toolbarContainerLayout = new QVBoxLayout();
     QGridLayout* viewButtonsGrid = new QGridLayout();
     searchLayout = new QHBoxLayout();
 
@@ -590,23 +589,16 @@ void MedeaWindow::initialiseGUI()
     titleLayout->addWidget(projectName, 1);
     titleLayout->addStretch();
 
-    toolbarContainerLayout->setMargin(0);
-    toolbarContainerLayout->setSpacing(0);
-    toolbarContainerLayout->setContentsMargins(0, 3, 0, 0);
-
     menuTitleBox->setLayout(titleLayout);
     menuTitleBox->setFixedHeight(menuButton->height() + 30);
-    //menuTitleBox->setStyleSheet("QGroupBox{ border: none; background-color: rgba(0,0,0,0); }");
     menuTitleBox->setMask(QRegion(0, (menuTitleBox->height() - menuButton->height()) / 2,
                                   menuButton->width() + projectName->width(), menuButton->height(),
                                   QRegion::Rectangle));
 
     topHLayout->setMargin(0);
     topHLayout->setSpacing(0);
-    topHLayout->addWidget(menuTitleBox, 1);
-    topHLayout->addStretch(5);
-    topHLayout->addLayout(toolbarContainerLayout);
-    topHLayout->addStretch(5);
+    topHLayout->addWidget(menuTitleBox);
+    topHLayout->addStretch();
 
     leftVlayout->setMargin(0);
     leftVlayout->setSpacing(0);
@@ -645,7 +637,7 @@ void MedeaWindow::initialiseGUI()
     setupMenu(menuButton);
     setupDocks(bodyLayout);
     setupSearchTools();
-    setupToolbar(toolbarContainerLayout);
+    setupToolbar();
     setupMultiLineBox();
 
     // add progress bar layout to the body layout after the dock has been set up
@@ -772,38 +764,39 @@ void MedeaWindow::setupMenu(QPushButton *button)
     view_goToImplementation->setEnabled(false);
     view_showConnectedNodes->setEnabled(false);
 
-    actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
-    actionSort->setToolTip("Sort model/selection");
+    //actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
+    actionSort = new QAction(getIcon("Actions", "AlignToGrid"), "Sort", this);
+    actionSort->setToolTip("Sort Selection");
 
     actionCenter = new QAction(getIcon("Actions", "Crosshair"), "Center Entity", this);
-    actionCenter->setToolTip("Center entity without zooming");
+    actionCenter->setToolTip("Center On Entity");
 
     actionZoomToFit = new QAction(getIcon("Actions", "ZoomToFit"), "Zoom to Fit Selection", this);
     actionZoomToFit->setToolTip("Center selection and zoom in to fit");
 
     actionFitToScreen = new QAction(getIcon("Actions", "FitToScreen"), "Fit Model to Screen", this);
-    actionFitToScreen->setToolTip("Show entire Model");
+    actionFitToScreen->setToolTip("Show Entire Model");
 
     actionAlignVertically = new QAction(getIcon("Actions", "Align_Vertical"), "Align Selection Vertically", this);
-    actionAlignVertically->setToolTip("Align selection vertically");
+    actionAlignVertically->setToolTip("Align Selection Vertically");
 
     actionAlignHorizontally = new QAction(getIcon("Actions", "Align_Horizontal"), "Align Selection Horizontally", this);
-    actionAlignHorizontally->setToolTip("Align selection horizontally");
+    actionAlignHorizontally->setToolTip("Align Selection Horizontally");
 
     actionPopupSubview = new QAction(getIcon("Actions", "Popup"), "Show Selection in New Window", this);
-    actionPopupSubview->setToolTip("Show selection in new window");
+    actionPopupSubview->setToolTip("Show Selection In New Window");
 
     actionBack = new QAction(getIcon("Actions", "Backward"), "Navigate Back", this);
-    actionBack->setToolTip("Navigate back");
+    actionBack->setToolTip("Navigate Back");
 
     actionForward = new QAction(getIcon("Actions", "Forward"), "Navigate Forward", this);
-    actionForward->setToolTip("Navigate forward");
+    actionForward->setToolTip("Navigate Forward");
 
     actionContextMenu = new QAction(getIcon("Actions", "Toolbar"), "Show Context Toolbar", this);
-    actionContextMenu->setToolTip("Show context toolbar");
+    actionContextMenu->setToolTip("Show Context Toolbar");
 
     actionToggleGrid = new QAction(getIcon("Actions", "Grid_On"), "Toggle Grid Lines", this);
-    actionToggleGrid->setToolTip("Turn Grid Off");
+    actionToggleGrid->setToolTip("Turn Off Grid");
     actionToggleGrid->setCheckable(true);
 }
 
@@ -923,26 +916,21 @@ void MedeaWindow::setupSearchTools()
     int rightPanelWidth = RIGHT_PANEL_WIDTH;
     int searchBarHeight = 28;
 
-    /* dataKeys = QStringList() << "label" << "type" << "worker" << "description" << "topicName" << "kind"; */
+    // TODO - Clean up search header widgets. Don't need them anymore!
 
     QHBoxLayout* headerLayout = new QHBoxLayout();
     QLabel* objectLabel = new QLabel("Entity Label:", this);
-    QLabel* parentLabel = new QLabel("Parent Entity Label:", this);
+    QLabel* parentLabel = new QLabel("Location:", this);
     QLabel* iconHolder = new QLabel(this);
-    /*
-    QLabel* objectKind = new QLabel("Kind", this);
-    QLabel* objectType = new QLabel("Type", this);
-    QLabel* topicName = new QLabel("Topic Name", this);
-    QLabel* worker = new QLabel("Worker", this);
-    QLabel* description = new QLabel("Description", this);
-    */
 
-    int searchItemMinWidth = 300;
-    int marginOffset = 8;
+    float searchItemMinWidth = 500.0;
+    iconHolder->setFixedWidth(43);
+    objectLabel->setFixedWidth(searchItemMinWidth*2.0/5.0);
+    parentLabel->setMinimumWidth(searchItemMinWidth - objectLabel->width());
 
-    iconHolder->setFixedWidth(42);
-    objectLabel->setMinimumWidth(searchItemMinWidth/2 - marginOffset);
-    parentLabel->setMinimumWidth(searchItemMinWidth/2 - marginOffset);
+    iconHolder->hide();
+    objectLabel->hide();
+    parentLabel->hide();
 
     headerLayout->setMargin(2);
     headerLayout->setSpacing(5);
@@ -968,14 +956,13 @@ void MedeaWindow::setupSearchTools()
 
     searchSuggestions->setSize(searchBar->width(), height(), 2);
 
-    scrollableWidget->setMinimumWidth(rightPanelWidth + 110);
     scrollableWidget->setLayout(resultsMainLayout);
     scrollableSearchResults->setWidget(scrollableWidget);
     scrollableSearchResults->setWidgetResizable(true);
     layout->addWidget(scrollableSearchResults);
 
     searchResults->setLayout(layout);
-    searchResults->setMinimumWidth(rightPanelWidth + 400);
+    searchResults->setMinimumWidth(searchItemMinWidth + 200);
     searchResults->setMinimumHeight(height() / 2);
     searchResults->setWindowTitle("Search Results");
     searchResults->setVisible(false);
@@ -1129,7 +1116,7 @@ void MedeaWindow::setupSearchTools()
  * @brief MedeaWindow::setupToolbar
  * Initialise and setup toolbar widgets.
  */
-void MedeaWindow::setupToolbar(QVBoxLayout *layout)
+void MedeaWindow::setupToolbar()
 {
     toolbar = new QToolBar(this);
     toolbarLayout = new QVBoxLayout();
@@ -1160,23 +1147,23 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
     constructToolbarButton(toolbar, edit_redo, TOOLBAR_REDO);
 
     toolbar->addSeparator();
-    constructToolbarButton(toolbar, actionContextMenu, TOOLBAR_CONTEXT);
-    constructToolbarButton(toolbar, edit_delete, TOOLBAR_DELETE_ENTITIES);
-    constructToolbarButton(toolbar, actionPopupSubview, TOOLBAR_POPUP_SUBVIEW);
-
-    toolbar->addSeparator();
     constructToolbarButton(toolbar, edit_cut, TOOLBAR_CUT);
     constructToolbarButton(toolbar, edit_copy, TOOLBAR_COPY);
     constructToolbarButton(toolbar, edit_paste, TOOLBAR_PASTE);
     constructToolbarButton(toolbar, edit_replicate, TOOLBAR_REPLICATE);
 
     toolbar->addSeparator();
+    constructToolbarButton(toolbar, actionFitToScreen, TOOLBAR_FIT_TO_SCREEN);
     constructToolbarButton(toolbar, actionCenter, TOOLBAR_CENTER_ON_ENTITY);
     constructToolbarButton(toolbar, actionZoomToFit, TOOLBAR_ZOOM_TO_FIT);
-    constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
-    constructToolbarButton(toolbar, actionFitToScreen, TOOLBAR_FIT_TO_SCREEN);
+    constructToolbarButton(toolbar, actionPopupSubview, TOOLBAR_POPUP_SUBVIEW);
 
     toolbar->addSeparator();
+    constructToolbarButton(toolbar, actionSort, TOOLBAR_SORT);
+    constructToolbarButton(toolbar, edit_delete, TOOLBAR_DELETE_ENTITIES);
+
+    toolbar->addSeparator();
+    constructToolbarButton(toolbar, actionContextMenu, TOOLBAR_CONTEXT);
     constructToolbarButton(toolbar, actionToggleGrid, TOOLBAR_GRID_LINES);
 
     //toolbar->addSeparator();
@@ -1207,7 +1194,7 @@ void MedeaWindow::setupToolbar(QVBoxLayout *layout)
 bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QString actionName)
 {
     if(toolbar && action && actionName != ""){
-        if(actionName == TOOLBAR_BACK || actionName == TOOLBAR_FORWARD){
+        if(actionName == TOOLBAR_BACK || actionName == TOOLBAR_FORWARD || actionName == TOOLBAR_ZOOM_TO_FIT){
             return false;
         }
 
@@ -1471,11 +1458,12 @@ void MedeaWindow::makeConnections()
 
     connect(edit_delete, SIGNAL(triggered()), nodeView, SLOT(deleteSelection()));
     connect(actionFitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
-    connect(actionCenter, SIGNAL(triggered()), nodeView, SLOT(centerOnItem()));
+    connect(actionCenter, SIGNAL(triggered()), nodeView, SLOT(centerItem()));
+    //connect(actionCenter, SIGNAL(triggered()), nodeView, SLOT(centerOnItem()));
+    //connect(actionZoomToFit, SIGNAL(triggered()), nodeView, SLOT(centerItem()));
     connect(actionSort, SIGNAL(triggered()), nodeView, SLOT(sort()));
     connect(actionToggleGrid, SIGNAL(triggered()), this, SLOT(toggleGridLines()));
     connect(actionPopupSubview, SIGNAL(triggered()), nodeView, SLOT(constructNewView()));
-    connect(actionZoomToFit, SIGNAL(triggered()), nodeView, SLOT(centerItem()));
     connect(actionAlignHorizontally, SIGNAL(triggered()), nodeView, SLOT(alignSelectionHorizontally()));
     connect(actionAlignVertically, SIGNAL(triggered()), nodeView, SLOT(alignSelectionVertically()));
     connect(actionContextMenu, SIGNAL(triggered()), nodeView, SLOT(showToolbar()));
@@ -1845,11 +1833,11 @@ void MedeaWindow::toggleGridLines()
         if(actionToggleGrid->isChecked()){
             actionToggleGrid->setIcon(nodeView->getImage("Actions", "Grid_On"));
             //actionToggleGrid->setIcon(getIcon("Actions", "Grid_On"));
-            actionToggleGrid->setToolTip("Press to Turn Grid Off");
+            actionToggleGrid->setToolTip("Turn Off Grid");
         }else{
             actionToggleGrid->setIcon(nodeView->getImage("Actions", "Grid_Off"));
             //actionToggleGrid->setIcon(getIcon("Actions", "Grid_Off"));
-            actionToggleGrid->setToolTip("Press to Turn Grid On");
+            actionToggleGrid->setToolTip("Turn On Grid");
         }
     }
 }
@@ -2344,7 +2332,9 @@ void MedeaWindow::on_actionSearch_triggered()
 
         // for each item to display, create a button for it and add it to the results layout
         foreach (GraphMLItem* guiItem, searchResultItems) {
-            SearchItemButton* searchItem = new SearchItemButton(guiItem, this);
+            //SearchItemButton* searchItem = new SearchItemButton(guiItem, this);
+            //SearchItemWidget* searchItem = new SearchItemWidget(guiItem, this);
+            SearchItem* searchItem = new SearchItem(guiItem, this);
             searchItem->connectToWindow(this);
             resultsLayout->addWidget(searchItem);
         }
@@ -2354,7 +2344,7 @@ void MedeaWindow::on_actionSearch_triggered()
         //searchResults->move(pos() + QPoint(5, height() - searchResults->height()));
 
         // show search results
-        searchResults->setWindowTitle("Search Results - " + searchText.trimmed());
+        searchResults->setWindowTitle("Search Results - \"" + searchText.trimmed() + "\"");
         searchResults->show();
     }
 }
@@ -3025,7 +3015,7 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
  */
 void MedeaWindow::searchItemClicked()
 {
-    SearchItemButton* itemClicked = qobject_cast<SearchItemButton*>(QObject::sender());
+    SearchItem* itemClicked = qobject_cast<SearchItem*>(QObject::sender());
     window_searchItemClicked(itemClicked);
 }
 

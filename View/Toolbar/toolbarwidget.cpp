@@ -506,6 +506,46 @@ void ToolbarWidget::menuActionHovered(QAction* action)
 
 
 /**
+ * @brief ToolbarWidget::setupAdoptableNodesList
+ */
+void ToolbarWidget::setupAdoptableNodesList()
+{
+    if (addMenuDone) {
+        return;
+    } else {
+        addMenuDone = true;
+    }
+
+    foreach (QString kind, adoptableNodeKinds) {
+
+        ToolbarMenuAction* action = 0;
+
+        if (kind == "ComponentImpl") {
+            action = componentImplAction;
+        } else if (kind == "ComponentInstance") {
+            action = componentInstAction;
+        } else if (kind == "InEventPortDelegate") {
+            action = inEventPortDelegateAction;
+        } else if (kind == "OutEventPortDelegate") {
+            action = outEventPortDelegateAction;
+        } else if (kind == "BlackBoxInstance") {
+            action = blackBoxInstAction;
+        } else if (kind == "AggregateInstance") {
+            action = aggregateInstAction;
+        } else if (kind == "VectorInstance") {
+            action = vectorInstAction;
+        } else if (kind == "Process") {
+            action = processAction;
+        } else {
+            action  = new ToolbarMenuAction(kind, 0, this);
+        }
+
+        addMenu->addAction(action);
+    }
+}
+
+
+/**
  * @brief ToolbarWidget::setupLegalNodesList
  */
 void ToolbarWidget::setupLegalNodesList()
@@ -535,12 +575,11 @@ void ToolbarWidget::setupLegalNodesList()
     foreach (NodeItem* topItem, topActions) {
         constructMenuAction(topItem, connectMenu);
     }
-    if (!topActions.isEmpty() && !subActions.isEmpty()) {
-        connectMenu->addSeparator();
-    }
     foreach (NodeItem* subItem, subActions) {
         constructSubMenuAction(subItem, connectMenu);
     }
+
+    connectMenu->splitActionsWithMenu();
 }
 
 
@@ -641,18 +680,8 @@ void ToolbarWidget::setupHardwareList()
         hardwareMenuDone = true;
     }
 
-    QList<EntityItem*> hardware = nodeView->getHardwareList();
-
-    if (hardware.isEmpty()) {
-        return;
-    } else {
-        hardwareButton->show();
-        alterModelButtonsVisible = true;
-    }
-
     QList<NodeItem*> topActions, subActions;
-
-    foreach (EntityItem* item, hardware) {
+    foreach (EntityItem* item, hardwareNodeItems) {
         if (!item->getParentEntityItem()) {
             topActions.append(item);
         } else {
@@ -663,12 +692,11 @@ void ToolbarWidget::setupHardwareList()
     foreach (NodeItem* topItem, topActions) {
         constructMenuAction(topItem, hardwareMenu);
     }
-    if (!topActions.isEmpty() && !subActions.isEmpty()) {
-        hardwareMenu->addSeparator();
-    }
     foreach (NodeItem* subItem, subActions) {
         constructSubMenuAction(subItem, hardwareMenu);
     }
+
+    hardwareMenu->splitActionsWithMenu();
 }
 
 
@@ -844,17 +872,20 @@ void ToolbarWidget::makeConnections()
     connect(connectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(unconnectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
 
+    connect(addMenu, SIGNAL(aboutToShow()), this, SLOT(setupAdoptableNodesList()));
     connect(addMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addChildNode(ToolbarMenuAction*)));
-    connect(functionsMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addChildNode(ToolbarMenuAction*)));
 
     connect(connectMenu, SIGNAL(aboutToShow()), this, SLOT(setupLegalNodesList()));
     connect(connectMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(connectNodes(ToolbarMenuAction*)));
 
+    connect(hardwareMenu, SIGNAL(aboutToShow()), this, SLOT(setupHardwareList()));
     connect(hardwareMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(connectNodes(ToolbarMenuAction*)));
 
     connect(definitionMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(displayConnectedNode(ToolbarMenuAction*)));
     connect(implementationMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(displayConnectedNode(ToolbarMenuAction*)));
     connect(instancesMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(displayConnectedNode(ToolbarMenuAction*)));
+
+    connect(functionsMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addChildNode(ToolbarMenuAction*)));
 
     connect(componentImplAction, SIGNAL(hovered()), this, SLOT(setupComponentList()));
     connect(componentInstAction, SIGNAL(hovered()), this, SLOT(setupComponentList()));
@@ -881,7 +912,7 @@ void ToolbarWidget::makeConnections()
  */
 void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 {
-    if (nodeItems.isEmpty()) {
+    if (nodeItems.isEmpty() || !nodeView) {
         return;
     }
 
@@ -1042,7 +1073,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
 
     // setup the hardware menu for deployable node items
     if (deployable) {
-        setupHardwareList();
+        setupHardwareList(nodeView->getHardwareList());
     }
 
     // setup connectable nodes menu for the selected item(s)
@@ -1120,8 +1151,10 @@ void ToolbarWidget::clearMenus()
     aggregateInstMenu->clearMenu();
     vectorInstMenu->clearMenu();
 
-    // this list needs to be cleared as well - used to populate the connect menu
+    // these lists needs to be cleared as well - used to populate menus
+    adoptableNodeKinds.clear();
     legalNodeItems.clear();
+    hardwareNodeItems.clear();
 }
 
 
@@ -1142,6 +1175,7 @@ void ToolbarWidget::resetButtonGroupFlags()
     componentInstMenuDone = false;
     inEventPortInstanceMenuDone = false;
     outEventPortInstanceMenuDone = false;
+    addMenuDone = false;
     connectMenuDone = false;
     aggregateMenuDone = false;
     vectorMenuDone = false;
@@ -1158,39 +1192,10 @@ void ToolbarWidget::resetButtonGroupFlags()
  */
 void ToolbarWidget::setupAdoptableNodesList(QStringList nodeKinds)
 {
-    // if there are no adoptable node kinds, hide the addChild button
-    if (nodeKinds.isEmpty()) {
-        return;
-    } else {
+    if (!nodeKinds.isEmpty()) {
         addChildButton->show();
         alterModelButtonsVisible = true;
-    }
-
-    foreach (QString kind, nodeKinds) {
-
-        ToolbarMenuAction* action = 0;
-
-        if (kind == "ComponentImpl") {
-            action = componentImplAction;
-        } else if (kind == "ComponentInstance") {
-            action = componentInstAction;
-        } else if (kind == "InEventPortDelegate") {
-            action = inEventPortDelegateAction;
-        } else if (kind == "OutEventPortDelegate") {
-            action = outEventPortDelegateAction;
-        } else if (kind == "BlackBoxInstance") {
-            action = blackBoxInstAction;
-        } else if (kind == "AggregateInstance") {
-            action = aggregateInstAction;
-        } else if (kind == "VectorInstance") {
-            action = vectorInstAction;
-        } else if (kind == "Process") {
-            action = processAction;
-        } else {
-            action  = new ToolbarMenuAction(kind, 0, this);
-        }
-
-        addMenu->addAction(action);
+        adoptableNodeKinds = nodeKinds;
     }
 }
 
@@ -1208,15 +1213,11 @@ void ToolbarWidget::setupLegalNodesList(QList<NodeItem*> nodeList)
             nodeList.removeAll(item);
         }
     }
-
-    // if the selected node can't connect to anything, hide the connect button
-    if (nodeList.isEmpty()) {
-        return;
+    if (!nodeList.isEmpty()) {
+        connectButton->show();
+        alterModelButtonsVisible = true;
+        legalNodeItems = nodeList;
     }
-
-    connectButton->show();
-    alterModelButtonsVisible = true;
-    legalNodeItems = nodeList;
 }
 
 
@@ -1245,6 +1246,20 @@ void ToolbarWidget::setupInstancesList(QList<NodeItem*> instances)
         menu->addAction(new ToolbarMenuAction("Goto", action, instancesMenu, "Go to Instance", ":/Actions/Goto"));
         menu->addAction(new ToolbarMenuAction("Popup", action, instancesMenu, "Popup Instance", ":/Actions/Popup"));
         action->setMenu(menu);
+    }
+}
+
+
+/**
+ * @brief ToolbarWidget::setupHardwareList
+ * @param hardware
+ */
+void ToolbarWidget::setupHardwareList(QList<EntityItem*> hardware)
+{
+    if (!hardware.isEmpty()) {
+        hardwareButton->show();
+        alterModelButtonsVisible = true;
+        hardwareNodeItems = hardware;
     }
 }
 
@@ -1409,6 +1424,7 @@ ToolbarMenu* ToolbarWidget::constructToolButtonMenu(QToolButton* parentButton, b
  * This method constructs an action for nodeItem and directly adds it to parentMenu.
  * @param nodeItem
  * @param parentMenu
+ * @param insert
  * @return - the newly constructed action that's been added to parentMenu
  */
 ToolbarMenuAction* ToolbarWidget::constructMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu)
@@ -1433,6 +1449,7 @@ ToolbarMenuAction* ToolbarWidget::constructMenuAction(NodeItem* nodeItem, Toolba
  * action if there isn't already one. The parent action is then added to parentMenu.
  * @param nodeItem
  * @param parentMenu
+ * @param insert
  * @return - the newly constructed action that's been added to parentMenu
  */
 ToolbarMenuAction* ToolbarWidget::constructSubMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu)

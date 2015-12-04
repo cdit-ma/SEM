@@ -64,6 +64,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     hardwareDockOpen = false;
     showConnectLine = true;
     showSearchSuggestions = false;
+    clickSound = 0;
 
 
     IS_SUB_VIEW = subView;
@@ -155,6 +156,9 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     // call this after the toolbar has been constructed to pass on the theme
     setupTheme();
 
+    //Started sound effects
+    //setupSoundEffects();
+
     // initialise the view's center point
     centerPoint = getVisibleRect().center();
 
@@ -208,6 +212,25 @@ void NodeView::enforceItemAspectOn(int ID)
         }
     }
 }
+
+
+/**
+ * @brief NodeView::enforceEntityItemVisible
+ * Ensure that the item with the provided ID's aspect is turned on and that its parent is expanded.
+ * @param ID
+ */
+void NodeView::enforceEntityItemVisible(int ID)
+{
+    // TODO - This turns on the aspect and expands the parent item correctly
+    // However, when used in selectAndCenter for when a SearchItem is clicked,
+    // the item isn't always centered correctly
+    EntityItem* entityItem = getEntityItemFromID(ID);
+    if (entityItem) {
+        enforceItemAspectOn(ID);
+        entityItem->forceExpandParentItem();
+    }
+}
+
 
 bool NodeView::isSubView()
 {
@@ -269,7 +292,6 @@ void NodeView::destroySubViews()
 {
     while(!subViews.isEmpty()){
         subViews.takeFirst()->deleteLater();
-        //delete subViews.first();
     }
 }
 
@@ -1459,15 +1481,31 @@ void NodeView::minimapPan()
 }
 
 
+/**
+ * @brief NodeView::toggleAspect
+ * @param aspect
+ * @param on
+ */
 void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
 {
     AspectItem* aspectItem = getAspectItem(aspect);
-    if(aspectItem){
+    if (aspectItem) {
         aspectItem->setVisible(on);
     }
 
-    if(AUTO_CENTER_ASPECTS) {
+    if (AUTO_CENTER_ASPECTS) {
         fitToScreen();
+    }
+
+    // if the selected item's aspect is turned off, remove it from selection
+    if (!on) {
+        EntityItem* selectedItem = getSelectedEntityItem();
+        if (selectedItem) {
+            AspectItem* entityAspect = getAspectItem(selectedItem->getViewAspect());
+            if (entityAspect && entityAspect == aspectItem) {
+                removeFromSelection(selectedItem);
+            }
+        }
     }
 
     aspectGraphicsChanged();
@@ -1557,6 +1595,18 @@ void NodeView::expandSelection(bool expand)
 
 }
 
+void NodeView::setupSoundEffects()
+{
+    if(!clickSound){
+        clickSound = new QSoundEffect(this);
+        clickSound->setSource(QUrl("qrc:/Sounds/click.wav"));
+        clickSound->setLoopCount(1);
+        clickSound->setVolume(1);
+
+        connect(this, SIGNAL(view_ModelReady()), clickSound, SLOT(play()));
+    }
+}
+
 void NodeView::modelReady()
 {
     //Do initializing here!
@@ -1576,6 +1626,7 @@ void NodeView::modelReady()
  */
 void NodeView::hardwareClusterMenuClicked(int viewMode)
 {
+    qDebug() << "hardwareClusterMenuClicked";
     foreach(GraphMLItem* item, getSelectedItems()){
         if(item->isEntityItem()){
             ((EntityItem*)item)->updateChildrenViewMode(viewMode);
@@ -1646,6 +1697,7 @@ void NodeView::centerItem(GraphMLItem *item)
         item = getSelectedGraphMLItem();
     }
     if (item) {
+        enforceEntityItemVisible(item->getID());
         centerRect(item->sceneBoundingRect());
     }
 }
@@ -1733,14 +1785,16 @@ void NodeView::centerOnItem(GraphMLItem* item)
     }
 
     if (item) {
-        enforceItemAspectOn(item->getID());
+
         // if the selected node is a main container, just use centerItem()
         // we would only ever want to center and zoom into it
         if (item->isAspectItem()) {
             centerItem(item);
         } else {
+            enforceEntityItemVisible(item->getID());
             centerRect(item->sceneBoundingRect(), CENTER_ON_PADDING, true);
         }
+
     } else {
         view_displayNotification("Select entity to center on.");
     }
@@ -1770,18 +1824,11 @@ void NodeView::selectAndCenterItem(int ID)
     GraphMLItem* item = getGraphMLItemFromID(ID);
 
     if (item) {
-        enforceItemAspectOn(ID);
-        // make sure that the parent of EntityItem (if there is one) is expanded
+
+        // if parent entityItem is a HardwareCluster, set its viewMode to ALL
         GraphMLItem* parentItem = item->getParent();
         if (parentItem && parentItem->isEntityItem()) {
             EntityItem* parentEntity = (EntityItem*) parentItem;
-
-            // make sure that the parent of nodeItem is expanded
-            if (!parentEntity->isExpanded()){
-                emit view_SetGraphMLData(parentEntity->getID(), "isExpanded", true);
-            }
-
-            // if it's a HardwareNode, make sure that its parent cluster's view mode is set to ALL
             if (parentEntity->isHardwareCluster()) {
                 parentEntity->updateChildrenViewMode(0);
             }
@@ -1791,6 +1838,7 @@ void NodeView::selectAndCenterItem(int ID)
         clearSelection();
         appendToSelection(item);
         centerOnItem(item);
+
     } else {
         view_displayNotification("Entity no longer exists!");
     }
@@ -2707,7 +2755,6 @@ void NodeView::expand(bool expand)
 }
 
 
-
 /**
  * @brief NodeView::constructNode
  * This is called when the user has either clicked on a dock item from
@@ -2717,13 +2764,6 @@ void NodeView::expand(bool expand)
  */
 void NodeView::constructNode(QString nodeKind, int sender)
 {
-    /*
-    if(nodeKind == "VectorOperation"){
-        //constructWorkerProcessNode("Process", "VectorOperation", "Get", 0);
-        return;
-    }
-    */
-
     if (viewMutex.tryLock()) {
         NodeItem* selectedItem = getSelectedNodeItem();
         if (!selectedItem) {
@@ -2737,7 +2777,6 @@ void NodeView::constructNode(QString nodeKind, int sender)
             // if from toolbar, place at closest grid point to the toolbar's position
             QPointF position = selectedItem->mapFromScene(toolbarPosition);
             QPointF newPosition = selectedItem->getClosestGridPoint(position);
-            qDebug() << "Construct kind: " << nodeKind;
             emit view_ConstructNode(selectedItem->getID(), nodeKind, newPosition);
         }
     }
@@ -2860,7 +2899,7 @@ void NodeView::showConnectedNodes()
         GraphMLItem* item = getGraphMLItemFromID(cnID);
         if (item) {
             // need to make sure that the aspect for the item is turned on before selecting it
-            enforceItemAspectOn(cnID);
+            enforceEntityItemVisible(cnID);
             appendToSelection(item);
             connectedItems.append(item);
         }
@@ -3266,7 +3305,9 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
             connect(entityItem, SIGNAL(EntityItem_ShowHardwareMenu(EntityItem*)), this, SLOT(showHardwareClusterChildrenViewMenu(EntityItem*)));
             connect(entityItem, SIGNAL(EntityItem_lockMenuClosed(EntityItem*)), this, SLOT(hardwareClusterChildrenViewMenuClosed(EntityItem*)));
 
-            connect(this, SIGNAL(view_edgeConstructed()), entityItem, SLOT(updateChildrenViewMode()));
+            if (entityItem->isHardwareCluster()) {
+                connect(this, SIGNAL(view_edgeConstructed()), entityItem, SLOT(updateChildrenViewMode()));
+            }
         }
     }
 
@@ -3460,7 +3501,7 @@ void NodeView::nodeSelected_signalUpdates()
  */
 void NodeView::edgeConstructed_signalUpdates()
 {
-    // update the highlighted deployment nodes.
+    // update the highlighted deployment nodes
     if (hardwareDockOpen) {
         highlightDeployment();
     }
@@ -4179,13 +4220,16 @@ void NodeView::redo()
  */
 void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 {
-    if (isItemsAncestorSelected(item)){
+    if (!item) {
+        return;
+    }
+
+    if (isItemsAncestorSelected(item)) {
         return;
     }
 
     //Unset Items Descendant Items.
     unsetItemsDescendants(item);
-
 
     //Set this item as Selected.
     setGraphMLItemSelected(item, true);
@@ -4491,8 +4535,6 @@ void NodeView::constructGUIItem(GraphML *item){
         view_ConstructNodeGUI((Node*)item);
     }else if(item->isEdge()){
         view_ConstructEdgeGUI((Edge*)item);
-    }else{
-        qCritical() << "Unknown Type";
     }
 }
 
@@ -4692,7 +4734,6 @@ void NodeView::constructWorkerProcessNode(QString workerName, QString operationN
                 position = item->mapFromScene(toolbarPosition);
                 position = item->getClosestGridPoint(position);
             }
-
             emit view_ConstructWorkerProcessNode(item->getID(), workerName, operationName, position);
         }
     }

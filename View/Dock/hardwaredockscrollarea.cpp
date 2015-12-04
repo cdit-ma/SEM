@@ -176,7 +176,11 @@ void HardwareDockScrollArea::nodeConstructed(NodeItem* nodeItem)
  */
 void HardwareDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
 {
-    if (getDockNodeItems().count() > 0) {
+    if (!dockItem) {
+        return;
+    }
+
+    if (!getDockNodeItems().isEmpty()) {
 
         // if the dock item has already been added to this dock,
         // remove it from the this dock's list and layout

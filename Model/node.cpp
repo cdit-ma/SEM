@@ -174,6 +174,29 @@ bool Node::canAdoptChild(Node *node)
     return true;
 }
 
+bool Node::compareData(Node *node, QString keyName)
+{
+    if(node){
+        GraphMLData* d1 = getData(keyName);
+        GraphMLData* d2 = node->getData(keyName);
+        if(d1 && d2){
+            return d1->compare(d2);
+        }
+    }
+    return false;
+
+}
+
+bool Node::compareData(Node *node, QStringList keys)
+{
+    foreach(QString key, keys){
+        if(!compareData(node, key)){
+            return false;
+        }
+    }
+    return true;
+}
+
 void Node::addChild(Node *child)
 {
     if(child && !containsChild(child)){
