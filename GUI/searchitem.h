@@ -30,13 +30,15 @@ public slots:
 
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
 
 private:
     void setupLayout();
-    QLabel* setupDataValueBox(QString key, QVBoxLayout* layout, bool storeInHash = true);
+    QLabel* setupDataValueBox(QString key, QLayout* layout = 0, bool storeInHash = true);
 
     void updateColor();
-    void updateDataValues();
+    void getDataValues();
+    QString getItemLocation();
 
     GraphMLItem* graphMLItem;
 

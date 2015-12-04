@@ -2454,6 +2454,28 @@ int EntityItem::getChildrenViewMode()
 }
 
 
+/**
+ * @brief EntityItem::forceExpandParentItem
+ */
+void EntityItem::forceExpandParentItem()
+{
+    QList<EntityItem*> parentItems;
+    EntityItem* parentItem = getParentEntityItem();
+    while (parentItem) {
+        if (!parentItem->isExpanded()) {
+            //emit GraphMLItem_SetGraphMLData(parentItem->getID(), "isExpanded", true);
+            parentItems.append(parentItem);
+        }
+        parentItem = parentItem->getParentEntityItem();
+    }
+
+    for (int i = parentItems.count() - 1; i >= 0; i--) {
+        EntityItem* pi = parentItems.at(i);
+        emit GraphMLItem_SetGraphMLData(pi->getID(), "isExpanded", true);
+    }
+}
+
+
 
 void EntityItem::labelEditModeRequest()
 {

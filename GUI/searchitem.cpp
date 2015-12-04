@@ -13,9 +13,12 @@
 #define LAYOUT_SPACING 5
 #define MARGIN_OFFSET (LAYOUT_MARGIN + LAYOUT_SPACING)
 
-#define LABEL_RATIO 1 //(2.0 / 5.0)
+#define LABEL_RATIO (2.0 / 5.0)
 #define ICON_RATIO 0.8
 #define ICON_SIZE (MIN_HEIGHT * ICON_RATIO - MARGIN_OFFSET)
+
+#define CLICK_TO_CENTER true
+#define DOUBLE_CLICK_TO_EXPAND false
 
 
 /**
@@ -40,10 +43,12 @@ SearchItem::SearchItem(GraphMLItem *item, QWidget *parent) : QLabel(parent)
     updateColor();
     expandItem();
 
+    if (DOUBLE_CLICK_TO_EXPAND) {
+        connect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
+    }
+    connect(centerOnButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
     connect(expandButton, SIGNAL(clicked()), this, SLOT(expandItem()));
     connect(centerOnButton, SIGNAL(clicked()), this, SLOT(centerOnItem()));
-    connect(expandButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
-    connect(centerOnButton, SIGNAL(clicked()), this, SIGNAL(searchItem_clicked()));
 }
 
 
@@ -73,6 +78,9 @@ void SearchItem::itemClicked(SearchItem *item)
         selected = itemSelected;
         updateColor();
     }
+    if (selected) {
+        centerOnItem();
+    }
 }
 
 
@@ -83,7 +91,7 @@ void SearchItem::expandItem()
 {
     expanded = !expanded;
     if (expanded && !valuesSet) {
-        updateDataValues();
+        getDataValues();
         valuesSet = true;
     }
     dataBox->setVisible(expanded);
@@ -112,8 +120,28 @@ void SearchItem::centerOnItem()
  */
 void SearchItem::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::LeftButton) {
-        emit searchItem_clicked();
+    if (CLICK_TO_CENTER) {
+        if (event->button() == Qt::LeftButton) {
+            emit searchItem_clicked();
+        }
+    } else {
+        QLabel::mouseReleaseEvent(event);
+    }
+}
+
+
+/**
+ * @brief SearchItem::mouseDoubleClickEvent
+ * @param event
+ */
+void SearchItem::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    if (DOUBLE_CLICK_TO_EXPAND) {
+        if (event->button() == Qt::LeftButton) {
+            expandItem();
+        }
+    } else {
+        QLabel::mouseDoubleClickEvent(event);
     }
 }
 
@@ -154,6 +182,13 @@ void SearchItem::setupLayout()
     entityLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     entityLabel->setText(graphMLLabel);
 
+    // setup location label
+    locationLabel = new QLabel(this);
+    locationLabel->setMinimumWidth(MIN_WIDTH - entityLabel->width());
+    locationLabel->setFixedHeight(iconLabel->height());
+    locationLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    locationLabel->setText(getItemLocation());
+
     expandPixmap = QPixmap(":/Actions/Arrow_Down");
     contractPixmap = QPixmap(":/Actions/Arrow_Up");
     expandButton = new QPushButton(QIcon(expandPixmap), "", this);
@@ -165,10 +200,14 @@ void SearchItem::setupLayout()
     expandButton->setIconSize(buttonSize*0.75);
     centerOnButton->setIconSize(buttonSize*0.75);
 
+    if (CLICK_TO_CENTER) {
+        centerOnButton->hide();
+    }
+
     dataBox = new QGroupBox(this);
     QVBoxLayout* boxLayout = new QVBoxLayout();
 
-    locationLabel = setupDataValueBox("Location", boxLayout, false);
+    //locationLabel = setupDataValueBox("Location", boxLayout, false);
     kindLabel = setupDataValueBox("kind", boxLayout);
     typeLabel = setupDataValueBox("type", boxLayout);
     topicLabel = setupDataValueBox("topicName", boxLayout);
@@ -183,6 +222,7 @@ void SearchItem::setupLayout()
     layout->setSpacing(LAYOUT_SPACING);
     layout->addWidget(iconLabel);
     layout->addWidget(entityLabel);
+    layout->addWidget(locationLabel);
     layout->addStretch();
     layout->addWidget(expandButton);
     layout->addWidget(centerOnButton);
@@ -204,7 +244,7 @@ void SearchItem::setupLayout()
  * @param layout
  * @return
  */
-QLabel* SearchItem::setupDataValueBox(QString key, QVBoxLayout *layout, bool storeInHash)
+QLabel* SearchItem::setupDataValueBox(QString key, QLayout *layout, bool storeInHash)
 {
     QGroupBox* dataValBox = new QGroupBox(this);
     QLabel* keyLabel = new QLabel(key + ":", this);
@@ -214,7 +254,9 @@ QLabel* SearchItem::setupDataValueBox(QString key, QVBoxLayout *layout, bool sto
     subLayout->addWidget(keyLabel);
     subLayout->addWidget(valueLabel);
     dataValBox->setLayout(subLayout);
-    layout->addWidget(dataValBox);
+    if (layout) {
+        layout->addWidget(dataValBox);
+    }
     if (storeInHash) {
         dataValueLabels[key] = valueLabel;
         dataValueBoxes[key] = dataValBox;
@@ -242,30 +284,13 @@ void SearchItem::updateColor()
 
 
 /**
- * @brief SearchItem::updateDataValues
+ * @brief SearchItem::getDataValues
  */
-void SearchItem::updateDataValues()
+void SearchItem::getDataValues()
 {
     if (!graphMLItem) {
         return;
     }
-
-    // get EntityItem's location in the model
-    NodeItem* nodeItem = qobject_cast<EntityItem*>(graphMLItem);
-    QString objectLocation = entityLabel->text();
-    if (nodeItem) {
-        NodeItem* parentItem = nodeItem->getParentNodeItem();
-        while (parentItem && parentItem->getGraphML()) {
-            QString parentLabel = parentItem->getGraphML()->getDataValue("label");
-            if (parentLabel.isEmpty()) {
-                parentLabel = parentItem->getNodeKind();
-            }
-            objectLocation = parentLabel + "/" + objectLocation;
-            parentItem = parentItem->getParentNodeItem();
-        }
-        locationLabel->setText(objectLocation);
-    }
-
     // retrieve the values for the stored data keys
     GraphML* gml = graphMLItem->getGraphML();
     if (gml) {
@@ -275,4 +300,31 @@ void SearchItem::updateDataValues()
             dataValueBoxes[key]->setVisible(!value.isEmpty());
         }
     }
+}
+
+
+/**
+ * @brief SearchItem::getItemLocation
+ */
+QString SearchItem::getItemLocation()
+{
+    if (!graphMLItem || !graphMLItem->isNodeItem() || !entityLabel) {
+        return "";
+    }
+
+    // get NodeItem's location in the model
+    NodeItem* nodeItem = (NodeItem*) graphMLItem;
+    NodeItem* parentItem = nodeItem->getParentNodeItem();
+    QString objectLocation = entityLabel->text();
+
+    while (parentItem && parentItem->getGraphML()) {
+        QString parentLabel = parentItem->getGraphML()->getDataValue("label");
+        if (parentLabel.isEmpty()) {
+            parentLabel = parentItem->getNodeKind();
+        }
+        objectLocation = parentLabel + " / " + objectLocation;
+        parentItem = parentItem->getParentNodeItem();
+    }
+
+    return objectLocation;
 }
