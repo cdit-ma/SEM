@@ -65,10 +65,10 @@
 			</xsl:call-template>	
 		</xsl:variable>	
 
-		<xsl:variable name="transformNodeValueKey">
+		<xsl:variable name="transformNodeMaxSizeKey">
 			<xsl:call-template name="findNodeKey">
-				<xsl:with-param name="attrName" select="'value'" />
-				<xsl:with-param name="defaultId" select="$nodeValueKey" />
+				<xsl:with-param name="attrName" select="'max_size'" />
+				<xsl:with-param name="defaultId" select="$nodeMaxSizeKey" />
 			</xsl:call-template>	
 		</xsl:variable>	
 		
@@ -208,7 +208,7 @@
 					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
 					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
 					<xsl:with-param name="transformNodeTypeKey" select="$transformNodeTypeKey"/>
-					<xsl:with-param name="transformNodeValueKey" select="$transformNodeValueKey"/>
+					<xsl:with-param name="transformNodeMaxSizeKey" select="$transformNodeMaxSizeKey"/>
 				</xsl:call-template>
 			</xsl:when>
 			<xsl:when test="./gml:data[@key=$transformNodeKindKey]/text() = 'Component'" >
@@ -390,10 +390,10 @@
 		<xsl:param name="transformNodeKindKey" />
 		<xsl:param name="transformNodeLabelKey" />
 		<xsl:param name="transformNodeTypeKey" />
-		<xsl:param name="transformNodeValueKey" />
+		<xsl:param name="transformNodeMaxSizeKey" />
 		
 		<xsl:variable name="vectorName" select="$vectorNode/gml:data[@key=$transformNodeLabelKey]/text()" />
-		<xsl:variable name="vectorBound" select="$vectorNode/gml:data[@key=$transformNodeValueKey]/text()" />
+		<xsl:variable name="vectorBound" select="$vectorNode/gml:data[@key=$transformNodeMaxSizeKey]/text()" />
 		
 		<xsl:value-of select="'typedef sequence &lt; '"/>
 

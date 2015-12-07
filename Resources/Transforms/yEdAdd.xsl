@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="2.0" 
+<xsl:stylesheet version="1.0" 
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:gml="http://graphml.graphdrawing.org/xmlns"
     xmlns:y="http://www.yworks.com/xml/graphml"
@@ -677,6 +677,12 @@
 					</y:NodeLabel>
 				</xsl:when>
 				<xsl:when test="$graphKind = 'Passivate'">
+					<xsl:variable name="icon" select="100 + $imageProcess"/>
+					<y:NodeLabel alignment="right" autoSizePolicy="node_width" modelName="internal" modelPosition="t" fontSize="16" horizontalTextPosition="right" iconData="{$icon}" iconTextGap="4" verticalTextPosition="center" >
+					<xsl:value-of select="$graphLabel" />
+					</y:NodeLabel>
+				</xsl:when>
+				<xsl:when test="$graphKind = 'Process'">
 					<xsl:variable name="icon" select="100 + $imageProcess"/>
 					<y:NodeLabel alignment="right" autoSizePolicy="node_width" modelName="internal" modelPosition="t" fontSize="16" horizontalTextPosition="right" iconData="{$icon}" iconTextGap="4" verticalTextPosition="center" >
 					<xsl:value-of select="$graphLabel" />
