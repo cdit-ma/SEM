@@ -12,6 +12,8 @@ public:
     bool isReturnParameter();
     bool hasConnection();
 
+    bool compareableTypes(Node* node);
+
     // Node interface
 public:
     bool canAdoptChild(Node *node);

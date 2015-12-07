@@ -193,16 +193,33 @@
         <file alias="function.png">Resources/Images/Data/function.png</file>
         <file alias="index.png">Resources/Images/Data/index.png</file>
         <file alias="worker.png">Resources/Images/Data/worker.png</file>
+        <file alias="WE_UTE_Vector.png">Resources/Images/Data/WE_UTE_Vector.png</file>
+        <file>Resources/Images/Data/domain2.png</file>
+        <file alias="failure.png">Resources/Images/Data/failure.png</file>
+        <file alias="message.png">Resources/Images/Data/message.png</file>
+        <file alias="domain.png">Resources/Images/Data/domain.png</file>
+        <file alias="length.png">Resources/Images/Data/length.png</file>
+        <file alias="format.png">Resources/Images/Data/format.png</file>
+        <file alias="result.png">Resources/Images/Data/result.png</file>
+        <file alias="severity.png">Resources/Images/Data/severity.png</file>
+        <file alias="success.png">Resources/Images/Data/success.png</file>
+        <file alias="topic.png">Resources/Images/Data/topic.png</file>
+        <file alias="blocking.png">Resources/Images/Data/blocking.png</file>
+        <file alias="bytes.png">Resources/Images/Data/bytes.png</file>
+        <file alias="parameters.png">Resources/Images/Data/parameters.png</file>
+        <file alias="operations.png">Resources/Images/Data/operations.png</file>
+        <file alias="client.png">Resources/Images/Data/client.png</file>
+        <file alias="gpuNum.png">Resources/Images/Data/gpunum.png</file>
+        <file alias="size.png">Resources/Images/Data/size.png</file>
+        <file alias="forceCopy.png">Resources/Images/Data/forceCopy.png</file>
+        <file alias="component.png">Resources/Images/Data/component.png</file>
+        <file alias="complexityFunction.png">Resources/Images/Data/complexityFunction.png</file>
     </qresource>
     <qresource prefix="/Functions">
         <file alias="WE_GPU.png">Resources/Images/Functions/WE_GPU.png</file>
         <file alias="VectorOperation.png">Resources/Images/Functions/VectorOperation.png</file>
-        <file alias="connect.png">Resources/Images/Functions/connect.png</file>
         <file alias="CUTS_Client_Logger.png">Resources/Images/Functions/CUTS_Client_Logger.png</file>
         <file alias="DIG_LogMessage_Worker.png">Resources/Images/Functions/DIG_LogMessage_Worker.png</file>
-        <file alias="disconnect.png">Resources/Images/Functions/disconnect.png</file>
-        <file alias="log.png">Resources/Images/Functions/log.png</file>
-        <file alias="switch_topic.png">Resources/Images/Functions/switch_topic.png</file>
         <file alias="WE_CPU.png">Resources/Images/Functions/WE_CPU.png</file>
         <file alias="WE_RAM.png">Resources/Images/Functions/WE_RAM.png</file>
         <file alias="WE_UTE.png">Resources/Images/Functions/WE_UTE.png</file>

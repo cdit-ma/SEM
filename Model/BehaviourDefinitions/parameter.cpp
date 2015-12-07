@@ -26,6 +26,32 @@ bool Parameter::hasConnection()
     return hasEdges();
 }
 
+bool Parameter::compareableTypes(Node *node)
+{
+    QStringList numberTypes;
+    numberTypes << "ShortInteger" << "LongInteger" << "LongLongInteger";
+    numberTypes << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger";
+    numberTypes << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber";
+    numberTypes << "Boolean" << "Byte";
+
+    QStringList stringTypes;
+    stringTypes << "String" << "WideString";
+
+    if(node){
+        //Types
+        QString type1 = getDataValue("type");
+        QString type2 = node->getDataValue("type");
+
+        if(numberTypes.contains(type1) && numberTypes.contains(type2)){
+            return true;
+        }
+        if(stringTypes.contains(type1) && stringTypes.contains(type2)){
+            return true;
+        }
+    }
+    return false;
+}
+
 bool Parameter::canAdoptChild(Node *node)
 {
     return BehaviourNode::canAdoptChild(node);
@@ -65,6 +91,8 @@ bool Parameter::canConnect(Node *node)
             }else{
                 if(compareData(node, "type")){
                     matchedTypes = true;
+                }else if(compareableTypes(node)){
+                    matchedTypes = true;
                 }
             }
 
@@ -73,7 +101,7 @@ bool Parameter::canConnect(Node *node)
                     QStringList validParentTypes;
                     validParentTypes << "Variable";
 
-                    if(!validParentTypes.contains(parentNodeKind)){
+                    if(!(validParentTypes.contains(parentNodeKind) || validParentTypes.contains(node->getNodeKind()))){
                         return false;
                     }
                 }
