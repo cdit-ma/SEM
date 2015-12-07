@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet version="2.0" 
+<xsl:stylesheet version="1.0" 
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:gml="http://graphml.graphdrawing.org/xmlns"
     xmlns:y="http://www.yworks.com/xml/graphml"
@@ -292,12 +292,14 @@
 							<xsl:value-of select="$widthValue" />
 							</data>
 						</xsl:if>
+<!-- causing two height tags in output file ?
 						<xsl:if test="not(../gml:data[@key=transformNodeHeightKey]) or (../gml:data[@key=$transformNodeHeightKey] = '' ) " >
 							<data key="{$transformNodeHeightKey}">
 							<xsl:value-of select="$heightValue" />
 							</data>
 						</xsl:if>
-					</xsl:when>
+-->
+						</xsl:when>
 					<xsl:otherwise>
 						<xsl:apply-templates select="." mode="copy" >
 							<xsl:with-param name="transformNodeGraphicsKey" select="$transformNodeGraphicsKey" />

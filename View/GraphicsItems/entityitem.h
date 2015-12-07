@@ -183,6 +183,8 @@ public:
 
     void dockHighlight(bool highlight);
 
+    void forceExpandParentItem();
+
 
 signals:
     void EntityItem_Model_AspectToggled(int ID);

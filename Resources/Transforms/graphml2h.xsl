@@ -86,6 +86,13 @@
 				<xsl:with-param name="defaultId" select="$nodeWorkerKey" />
 			</xsl:call-template>	
 		</xsl:variable>	
+
+		<xsl:variable name="transformNodeWorkerIDKey">
+			<xsl:call-template name="findNodeKey">
+				<xsl:with-param name="attrName" select="'workerID'" />
+				<xsl:with-param name="defaultId" select="$nodeWorkerKey" />
+			</xsl:call-template>	
+		</xsl:variable>	
 		
 		<xsl:variable name="transformNodeMiddlewareKey">
 			<xsl:call-template name="findNodeKey">
@@ -195,6 +202,7 @@
 				<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
 				<xsl:with-param name="transformNodeFolderKey" select="$transformNodeFolderKey"/>
 				<xsl:with-param name="transformNodeWorkerKey" select="$transformNodeWorkerKey"/>
+				<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
 				<xsl:with-param name="transformNodeMiddlewareKey" select="$transformNodeMiddlewareKey"/>
 				<xsl:with-param name="transformNodeAsyncKey" select="$transformNodeAsyncKey"/>
 				<xsl:with-param name="transformNodeTypeKey" select="$transformNodeTypeKey"/>
@@ -230,6 +238,7 @@
 		<xsl:param name="transformNodeLabelKey" />
 		<xsl:param name="transformNodeFolderKey" />
 		<xsl:param name="transformNodeWorkerKey" />
+		<xsl:param name="transformNodeWorkerIDKey" />
 		<xsl:param name="transformNodeMiddlewareKey" />
 		<xsl:param name="transformNodeAsyncKey" />
 		<xsl:param name="transformNodeTypeKey" />
@@ -253,6 +262,7 @@
 			<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
 			<xsl:with-param name="transformNodeFolderKey" select="$transformNodeFolderKey"/>
 			<xsl:with-param name="transformNodeWorkerKey" select="$transformNodeWorkerKey"/>
+			<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
 			<xsl:with-param name="transformNodeMiddlewareKey" select="$transformNodeMiddlewareKey"/>
 			<xsl:with-param name="transformNodeAsyncKey" select="$transformNodeAsyncKey"/>
 			<xsl:with-param name="transformNodeTypeKey" select="$transformNodeTypeKey"/>
@@ -333,6 +343,7 @@
 		<xsl:param name="transformNodeLabelKey" />
 		<xsl:param name="transformNodeFolderKey" />
 		<xsl:param name="transformNodeWorkerKey" />
+		<xsl:param name="transformNodeWorkerIDKey" />
 		<xsl:param name="transformNodeMiddlewareKey" />
 		<xsl:param name="transformNodeAsyncKey" />
 		<xsl:param name="transformNodeTypeKey" />
@@ -461,7 +472,8 @@
 	
 		<!-- Write all the basic variables. -->
 		<xsl:variable name="vars" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Variable']/.." />
-		<xsl:for-each select="$vars">
+		<xsl:variable name="basicVars" select="$vars[not(./gml:graph)]" />
+		<xsl:for-each select="$basicVars">
 			<xsl:variable name="var" select="." />
 			<xsl:variable name="varName" select="$var/gml:data[@key=$transformNodeLabelKey]/text()" />
 			<xsl:variable name="varType" select="$var/gml:data[@key=$transformNodeTypeKey]/text()" />
@@ -473,6 +485,22 @@
 				<xsl:value-of select="concat(' ', $varName, '_;&#xA;')" />
 			</xsl:if>
 		</xsl:for-each>
+		
+		<!-- Write all the complex variables. -->
+		<xsl:variable name="aggregateVars" select="$vars/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'AggregateInstance' or text() = 'VectorInstance']/../../.." />
+		<xsl:for-each select="$aggregateVars">
+			<xsl:variable name="agVar" select="." />
+			<xsl:variable name="agVarName" select="$agVar/gml:data[@key=$transformNodeLabelKey]/text()" />
+			<xsl:variable name="agVarType" select="$agVar/gml:graph/gml:node/gml:data[@key=$transformNodeTypeKey]/text()" />
+			<xsl:if test="not($agVarType = '')">
+				<xsl:value-of select="concat('&#xA;// variable: ', $agVarName, '&#xA;')" />
+				<xsl:value-of select="concat('::', $agVarType, '_var ')" />
+				<xsl:if test="$agVar/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'VectorInstance']" >
+					<xsl:value-of select="'*'" />
+				</xsl:if>
+				<xsl:value-of select="concat(' ', $agVarName, '_;&#xA;')" />
+			</xsl:if>
+		</xsl:for-each>
 							  
 		<!-- Write all the worker related variables. -->
 		<!-- Specialised Workers to be implemented later, ie callback workers ??? -->
@@ -481,6 +509,7 @@
 			<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
 			<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
 			<xsl:with-param name="transformNodeWorkerKey" select="$transformNodeWorkerKey"/>
+			<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
 		</xsl:call-template>
 
 		<!-- Write the attribute variables. -->
@@ -591,25 +620,36 @@
 		<xsl:param name="transformNodeKindKey" />
 		<xsl:param name="transformNodeLabelKey" />
 		<xsl:param name="transformNodeWorkerKey" />
+		<xsl:param name="transformNodeWorkerIDKey" />
 	
 		<xsl:variable name="workerVariables" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Process']/../gml:data[@key=$transformNodeWorkerKey][text() != '']/.." />
 		
 		<!-- find all workers and add include paths -->
 		<xsl:if test="count($workerVariables) &gt; 0" >
-
+			<xsl:variable name="utilityVar" select="$workerVariables/gml:data[@key=$transformNodeWorkerIDKey][text() = 'we_ute']/.
+													| $workerVariables/gml:data[@key=$transformNodeLabelKey][text() = 'we_ute']/." />
+			
 			<!-- sort the list of items to output -->
 			<xsl:variable name="delim" select="','" />
 			<xsl:variable name="subDelim" select="';'" />
 			<xsl:variable name="sortedVarTypeList">
 				<xsl:for-each select="$workerVariables"> 
 					<xsl:sort select="./gml:data[@key=$transformNodeWorkerKey]/text()" data-type="text" />
-					<xsl:sort select="./gml:data[@key=$transformNodeLabelKey]/text()" data-type="text" />
-					<xsl:value-of select="concat(./gml:data[@key=$transformNodeWorkerKey]/text(), $subDelim, ./gml:data[@key=$transformNodeLabelKey]/text(), $delim)"/>
+					<xsl:sort select="./gml:data[@key=$transformNodeWorkerIDKey]/text()" data-type="text" />
+					<xsl:choose>
+					<xsl:when test="./gml:data[@key=$transformNodeWorkerIDKey]/text() and not(./gml:data[@key=$transformNodeWorkerIDKey]/text() ='')">
+						<xsl:value-of select="concat(./gml:data[@key=$transformNodeWorkerKey]/text(), $subDelim, ./gml:data[@key=$transformNodeWorkerIDKey]/text(), $delim)"/>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="concat(./gml:data[@key=$transformNodeWorkerKey]/text(), $subDelim, ./gml:data[@key=$transformNodeLabelKey]/text(), $delim)"/>
+					</xsl:otherwise>
+					</xsl:choose>
 				</xsl:for-each>
-				<!-- Add Utility worker for any components that use a WE_ worker -->
+				<!-- Add Utility worker for any components that use a WE_ worker, if not already included -->
 				<xsl:for-each select="$workerVariables"> 
-					<xsl:if test="'WE' = substring-before( concat(./gml:data[@key=$transformNodeWorkerKey]/text(), '_'), '_') "> 
-						<xsl:value-of select="concat('WE_UTE', $subDelim, 'utility', $delim)"/>
+					<xsl:if test="( 'WE' = substring-before( concat(./gml:data[@key=$transformNodeWorkerKey]/text(), '_'), '_') 
+								and count($utilityVar) = 0 )" > 
+						<xsl:value-of select="concat('WE_UTE', $subDelim, 'we_ute', $delim)"/>
 					</xsl:if> 
 				</xsl:for-each>
 			</xsl:variable>
@@ -625,7 +665,7 @@
 	</xsl:template>	
 	
 	<!-- Output unique items from delimited list -->
-	 <xsl:template name="unique_worker_variables">
+	<xsl:template name="unique_worker_variables">
 		<xsl:param name="compare" />
 		<xsl:param name="pText" />
 		<xsl:param name="delim" />
@@ -637,14 +677,20 @@
 			<xsl:variable name="thisNode" select="substring-before(concat($pText, $delim), $delim)"/>
 			<xsl:variable name="processWorker" select="substring-before($thisNode, $subDelim)" />
 			<xsl:variable name="processName" select="substring-after($thisNode, $subDelim)" />
-			<!-- Special processing for callback type of workers, see Sensor_Worker ??? -->
-		    <xsl:if test="not( $processName = $compare )">
-				<xsl:value-of select="concat('&#xA;// worker variable: ', $processName, '&#xA;')" />
-				<xsl:value-of select="concat($processWorker, ' ', $processName, '_;&#xA;')" />
+		    <xsl:if test="not( concat($processWorker,$processName) = $compare )">
+				<!-- Special processing for specific workers, eg Sensor_Worker requires callback ??? -->
+				<xsl:choose>
+				<!-- VectorOperations are not defined as variables, will be inline code generated process in cpp -->
+				<xsl:when test="$processWorker = 'VectorOperation'" />
+				<xsl:otherwise>
+					<xsl:value-of select="concat('&#xA;// worker variable: ', $processName, '&#xA;')" />
+					<xsl:value-of select="concat($processWorker, ' ', $processName, '_;&#xA;')" />
+				</xsl:otherwise>
+				</xsl:choose>
             </xsl:if>
 			
 			<xsl:call-template name="unique_worker_variables">
-				<xsl:with-param name="compare" select="$processName"/>
+				<xsl:with-param name="compare" select="concat($processWorker,$processName)"/>
 				<xsl:with-param name="pText" select="substring-after($pText, $delim)"/>
 				<xsl:with-param name="delim" select="$delim" />
 				<xsl:with-param name="subDelim" select="$subDelim" />
@@ -889,7 +935,7 @@
 		<xsl:value-of select="concat('virtual ', $destructor, ' (void);&#xA;')"/>
 	</xsl:template>	
 
-	<!-- Visit_Component -->
+	<!-- Visit_Wrap_Component -->
 	<xsl:template name="Visit_Wrap_Component">
 		<xsl:param name="node" />
 		<xsl:param name="transformNodeKindKey" />

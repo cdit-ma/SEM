@@ -135,7 +135,8 @@ HEADERS += \
     enumerations.h \
     View/Dock/functionsdockscrollarea.h \
     Model/workerdefinitions.h \
-    GUI/searchitem.h
+    GUI/searchitem.h \
+    GUI/searchdialog.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -236,7 +237,8 @@ SOURCES += \
     GUI/searchsuggestcompletion.cpp \
     View/Dock/functionsdockscrollarea.cpp \
     Model/workerdefinitions.cpp \
-    GUI/searchitem.cpp
+    GUI/searchitem.cpp \
+    GUI/searchdialog.cpp
 
 FORMS +=
 

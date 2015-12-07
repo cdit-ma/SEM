@@ -381,7 +381,6 @@ private:
     void handleSelection(GraphMLItem* item, bool setSelected, bool controlDown);
     void transition();
     void selectJenkinsImportedNodes();
-    void enforceItemAspectOn(int ID);
     void _deleteFromIDs(QList<int> IDs);
     void updateActionsEnabledStates();
     void alignSelectionOnGrid(ALIGN alignment = NONE);
@@ -402,6 +401,8 @@ private:
     void addToMaps(QPointF modelPos, QRectF centeredRect);
     void clearMaps(int fromKey = 0);
 
+    void enforceItemAspectOn(int ID);
+    void enforceEntityItemVisible(int ID);
 
     bool allowedFocus(QWidget* widget);
     bool isEditableDataDropDown(EntityItem* node);

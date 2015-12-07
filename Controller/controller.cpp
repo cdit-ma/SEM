@@ -101,8 +101,6 @@ NewController::NewController()
     guiConstructableNodeKinds.removeDuplicates();
     guiConstructableNodeKinds.sort();
 
-    //Setup the required Parameters.
-    setupParameters();
 }
 
 void NewController::connectView(NodeView *view)
@@ -598,14 +596,6 @@ void NewController::updateUndoRedoState()
     }
 }
 
-void NewController::setupParameters()
-{
-    //Vector Get
-    BehaviourNode::addParameter("Process", "VectorOperation", "get", "vector", "vector", true);
-    BehaviourNode::addParameter("Process", "VectorOperation", "get", "index", "number", true);
-    BehaviourNode::addParameter("Process", "VectorOperation", "get", "value", "", false);
-}
-
 void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataValue, bool addAction)
 {
     if(DELETING){
@@ -673,14 +663,6 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
     if(kind != ""){
         Node* parentNode = getNodeFromID(parentID);
 
-
-        if(kind.endsWith("Parameter")){
-            BehaviourNode* behaviourNode = dynamic_cast<BehaviourNode*>(parentNode);
-            if(behaviourNode){
-                QList<ParameterRequirement*> paramaters = behaviourNode->getNeededParameters();
-            }
-        }
-
         triggerAction("Constructing Child Node");
         constructChildNode(parentNode, constructGraphMLDataVector(kind, centerPoint));
     }
@@ -699,35 +681,6 @@ void NewController::constructWorkerProcessNode(int parentID, QString workerName,
 
     emit controller_ActionFinished();
     return;
-    /*
-
-    QList<GraphMLData*> dataList = constructGraphMLDataVector(workerName, position);
-
-
-    //Set the Process
-    setDataValueFromKeyName(dataList, "worker", operationName);
-    setDataValueFromKeyName(dataList, "operation", functionName);
-
-    //Get Parameters!
-
-    triggerAction("Constructing Child FunctionNode");
-    Node* processFunction = constructChildNode(parentNode, dataList);
-
-
-    if(operationName != "" && functionName != ""){
-        QList<ParameterRequirement*> parameters = BehaviourNode::getParameters(workerName);
-
-        foreach(ParameterRequirement* parameter, parameters){
-            if(parameter->getClassName() == operationName && parameter->getFunctionName() == functionName){
-                constructChildParameter(processFunction, parameter);
-            }
-        }
-    }
-
-*/
-
-    emit controller_ActionFinished();
-
 }
 
 void NewController::constructEdge(int srcID, int dstID, bool reverseOkay)
@@ -1649,13 +1602,6 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         attribute->appendValidValues(validValues, keysValues);
     }
 
-    if(name == "operation"){
-        QStringList validValues;
-        QStringList keysValues;
-        keysValues << "VectorOperation";
-        validValues << "Set" << "Get" << "Remove";
-        attribute->appendValidValues(validValues, keysValues);
-    }
 
     connect(attribute, SIGNAL(model_DisplayMessage(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
     //Add it to the list of GraphMLKeys.
@@ -1942,28 +1888,6 @@ Node *NewController::cloneNode(Node *original, Node *parent, bool ignoreVisuals)
     return newNode;
 }
 
-
-Parameter *NewController::constructChildParameter(Node *parentNode, ParameterRequirement *requirement)
-{
-    QString nodeKind = "InputParameter";
-    if(requirement->isReturnParameter()){
-        nodeKind = "ReturnParameter";
-    }
-
-    QList<GraphMLData*> dataList = constructGraphMLDataVector(nodeKind);
-
-    foreach(GraphMLData* data, dataList){
-        if(data->getKeyName() == "label"){
-            data->setValue(requirement->getName());
-        }else if(data->getKeyName() == "type"){
-            data->setValue(requirement->getType());
-        }else if(data->getKeyName() == "value"){
-            data->setValue(requirement->getValue());
-        }
-    }
-
-    return (Parameter*) constructChildNode(parentNode, dataList);
-}
 
 QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind, QPointF relativePosition)
 {
@@ -3675,17 +3599,22 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
                 label->bindData(value, true);
             }
         }
+
         if(dataKind == "Variable"){
             //Bind the label of the variable to the parameter.
             GraphMLData* label = data->getData("label");
+            GraphMLData* type = data->getData("type");
             label->bindData(value, true);
+
+            //Protect the type so that people can't change it once it's connected.
+            type->setProtected(true);
         }
 
         if(process){
             QString workerName = process->getDataValue("worker");
             QString operationName = process->getDataValue("operation");
-            if(workerName == "VectorOperation"){
-                GraphMLData* bindData = dataParent->getData("type");
+            if(workerName == "VectorOperation" && parameter->getDataValue("label") == "vector"){
+                GraphMLData* bindData = data->getData("type");
                 if(dataKind == "VectorInstance"){
                     if(data->childrenCount() == 1){
                         bindData = data->getChildren(0)[0]->getData("type");
@@ -3723,6 +3652,7 @@ bool NewController::teardownParameterRelationship(Parameter *parameter, Node *da
                 //Bind the label of the variable to the parameter.
                 GraphMLData* label = dataParent->getData("label");
                 label->unbindData(value);
+                label->setValue("");
             }
         }
     }

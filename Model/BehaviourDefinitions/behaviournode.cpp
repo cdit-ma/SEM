@@ -5,9 +5,6 @@
 #include "parameter.h"
 
 #include <QDebug>
-//Static definition
-QHash<QString, QList<ParameterRequirement*> > BehaviourNode::_parameters;
-
 
 BehaviourNode::BehaviourNode(bool isStart, bool isEnd, bool restrictDepth, Node::NODE_TYPE type):Node(type)
 {
@@ -33,49 +30,6 @@ bool BehaviourNode::isUnconnectable()
     return _isUnconnectable;
 }
 
-void BehaviourNode::addParameter(QString nodeKind, QString className, QString functionName, QString parameterName, QString parameterType, bool inputParameter, QString defaultValue)
-{
-    ParameterRequirement* param = new ParameterRequirement(nodeKind, className, functionName, parameterName, parameterType, inputParameter, defaultValue);
-    //qCritical() << "Added " << inputParameter << " Parameter: " << className << " To Kind: " << nodeKind;
-    _parameters[nodeKind].append(param);
-}
-
-QList<ParameterRequirement *> BehaviourNode::getParameters(QString nodeKind)
-{
-    return _parameters[nodeKind];
-}
-
-QList<ParameterRequirement *> BehaviourNode::getAllParameters()
-{
-    return _parameters[getNodeKind()];
-}
-
-QList<ParameterRequirement *> BehaviourNode::getNeededParameters()
-{
-    QList<ParameterRequirement*> neededParameters = _parameters[getNodeKind()];
-
-    foreach(Node* child, getChildren(0)){
-        Parameter* childParam = dynamic_cast<Parameter*>(child);
-        if(childParam){
-            ParameterRequirement* matchingParam = 0;
-            foreach(ParameterRequirement* param, neededParameters){
-                if(param->matches(childParam)){
-                    matchingParam = param;
-                    break;
-                }
-            }
-            if(matchingParam){
-                neededParameters.removeAll(matchingParam);
-            }
-        }
-    }
-    return neededParameters;
-}
-
-bool BehaviourNode::hasParameters()
-{
-    return _parameters.contains(getNodeKind());
-}
 
 void BehaviourNode::setUnconnectable(bool unconnectable)
 {
@@ -199,92 +153,6 @@ bool BehaviourNode::canConnect(Node *attachableObject)
 
 bool BehaviourNode::canAdoptChild(Node *child)
 {
-    //Allow Parameters.
-    Parameter* parameter = dynamic_cast<Parameter*>(child);
-    if(parameter){
-        if(!needsParameter(parameter)){
-            //qCritical() << "DON'T Need PARAMETER!";
-            return false;
-        }
-    }
-
     return Node::canAdoptChild(child);
 }
 
-bool BehaviourNode::needsParameter(Parameter *p)
-{
-    foreach(ParameterRequirement* param, getNeededParameters()){
-        if(param->matches(p)){
-            return true;
-        }
-    }
-    return false;
-}
-
-
-
-ParameterRequirement::ParameterRequirement(QString nodeKind, QString className, QString functionName, QString parameterName, QString parameterType, bool inputParameter, QString defaultValue)
-{
-    this->nodeKind = nodeKind;
-    this->className = className;
-    this->functionName = functionName;
-    this->parameterName = parameterName;
-    this->parameterType = parameterType;
-    this->inputParameter = inputParameter;
-    this->value = defaultValue;
-}
-
-QString ParameterRequirement::getName()
-{
-    return parameterName;
-}
-
-QString ParameterRequirement::getType()
-{
-    return parameterType;
-}
-
-QString ParameterRequirement::getValue()
-{
-    return value;
-}
-
-QString ParameterRequirement::getFunctionName()
-{
-    return functionName;
-}
-
-QString ParameterRequirement::getClassName()
-{
-    return className;
-}
-
-
-bool ParameterRequirement::isInputParameter()
-{
-    return inputParameter;
-}
-
-bool ParameterRequirement::isReturnParameter()
-{
-    return !inputParameter;
-}
-
-bool ParameterRequirement::matches(Parameter *p)
-{
-    if(p){
-        QString label = p->getDataValue("label");
-        QString type = p->getDataValue("type");
-        if(label != "" && label != getName()){
-            return false;
-        }
-        if(type != "" && type != getType()){
-            return false;
-        }
-        if(p->isInputParameter() != isInputParameter()){
-            return false;
-        }
-        return true;
-    }
-    return false;
-}

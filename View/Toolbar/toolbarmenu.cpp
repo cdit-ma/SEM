@@ -216,15 +216,16 @@ void ToolbarMenu::insertMenuAction(ToolbarMenuAction *action)
     if (!getActions().isEmpty()) {
         QString actionName = action->text();
         for (int i = 0; i < getActions().count(); i++) {
-            ToolbarMenuAction* a = getActions().at(i);
-            if (a) {
-                QString aName = a->text();
-                int compare = actionName.compare(aName, Qt::CaseInsensitive);
-                if (compare <= 0) {
-                    QMenu::insertAction(getActions().at(i), action);
-                    menuActions.insert(i, action);
-                    return;
-                }
+            ToolbarMenuAction* currentAction = getActions().at(i);
+            if (!currentAction) {
+                continue;
+            }
+            QString caName = currentAction->text();
+            int compare = actionName.compare(caName, Qt::CaseInsensitive);
+            if (compare <= 0) {
+                QMenu::insertAction(currentAction, action);
+                menuActions.insert(i, action);
+                return;
             }
         }
     }

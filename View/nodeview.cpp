@@ -213,6 +213,25 @@ void NodeView::enforceItemAspectOn(int ID)
     }
 }
 
+
+/**
+ * @brief NodeView::enforceEntityItemVisible
+ * Ensure that the item with the provided ID's aspect is turned on and that its parent is expanded.
+ * @param ID
+ */
+void NodeView::enforceEntityItemVisible(int ID)
+{
+    // TODO - This turns on the aspect and expands the parent item correctly
+    // However, when used in selectAndCenter for when a SearchItem is clicked,
+    // the item isn't always centered correctly
+    EntityItem* entityItem = getEntityItemFromID(ID);
+    if (entityItem) {
+        enforceItemAspectOn(ID);
+        entityItem->forceExpandParentItem();
+    }
+}
+
+
 bool NodeView::isSubView()
 {
     return IS_SUB_VIEW;
@@ -336,8 +355,6 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
     double widthScale = visibleViewRect.width() / rect.width();
     double heightScale = visibleViewRect.height() / rect.height();
     double newScale = qMin(widthScale, heightScale);
-
-    //qDebug() << "visibleViewRect: " << visibleViewRect;
 
     QPoint centerOffset = viewport()->rect().center() - visibleViewRect.center();
     QPointF sceneOffset = QPointF(centerOffset.x() / newScale, centerOffset.y() / newScale);
@@ -1462,15 +1479,31 @@ void NodeView::minimapPan()
 }
 
 
+/**
+ * @brief NodeView::toggleAspect
+ * @param aspect
+ * @param on
+ */
 void NodeView::toggleAspect(VIEW_ASPECT aspect, bool on)
 {
     AspectItem* aspectItem = getAspectItem(aspect);
-    if(aspectItem){
+    if (aspectItem) {
         aspectItem->setVisible(on);
     }
 
-    if(AUTO_CENTER_ASPECTS) {
+    if (AUTO_CENTER_ASPECTS) {
         fitToScreen();
+    }
+
+    // if the selected item's aspect is turned off, remove it from selection
+    if (!on) {
+        EntityItem* selectedItem = getSelectedEntityItem();
+        if (selectedItem) {
+            AspectItem* entityAspect = getAspectItem(selectedItem->getViewAspect());
+            if (entityAspect && entityAspect == aspectItem) {
+                removeFromSelection(selectedItem);
+            }
+        }
     }
 
     aspectGraphicsChanged();
@@ -1593,7 +1626,6 @@ void NodeView::modelReady()
  */
 void NodeView::hardwareClusterMenuClicked(int viewMode)
 {
-    qDebug() << "hardwareClusterMenuClicked";
     foreach(GraphMLItem* item, getSelectedItems()){
         if(item->isEntityItem()){
             ((EntityItem*)item)->updateChildrenViewMode(viewMode);
@@ -1664,6 +1696,7 @@ void NodeView::centerItem(GraphMLItem *item)
         item = getSelectedGraphMLItem();
     }
     if (item) {
+        enforceEntityItemVisible(item->getID());
         centerRect(item->sceneBoundingRect());
     }
 }
@@ -1751,14 +1784,16 @@ void NodeView::centerOnItem(GraphMLItem* item)
     }
 
     if (item) {
-        enforceItemAspectOn(item->getID());
+
         // if the selected node is a main container, just use centerItem()
         // we would only ever want to center and zoom into it
         if (item->isAspectItem()) {
             centerItem(item);
         } else {
+            enforceEntityItemVisible(item->getID());
             centerRect(item->sceneBoundingRect(), CENTER_ON_PADDING, true);
         }
+
     } else {
         view_displayNotification("Select entity to center on.");
     }
@@ -1788,18 +1823,11 @@ void NodeView::selectAndCenterItem(int ID)
     GraphMLItem* item = getGraphMLItemFromID(ID);
 
     if (item) {
-        enforceItemAspectOn(ID);
-        // make sure that the parent of EntityItem (if there is one) is expanded
+
+        // if parent entityItem is a HardwareCluster, set its viewMode to ALL
         GraphMLItem* parentItem = item->getParent();
         if (parentItem && parentItem->isEntityItem()) {
             EntityItem* parentEntity = (EntityItem*) parentItem;
-
-            // make sure that the parent of nodeItem is expanded
-            if (!parentEntity->isExpanded()){
-                emit view_SetGraphMLData(parentEntity->getID(), "isExpanded", true);
-            }
-
-            // if it's a HardwareNode, make sure that its parent cluster's view mode is set to ALL
             if (parentEntity->isHardwareCluster()) {
                 parentEntity->updateChildrenViewMode(0);
             }
@@ -1809,6 +1837,7 @@ void NodeView::selectAndCenterItem(int ID)
         clearSelection();
         appendToSelection(item);
         centerOnItem(item);
+
     } else {
         view_displayNotification("Entity no longer exists!");
     }
@@ -2332,8 +2361,6 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("undo", controller->canUndo());
         emit view_updateMenuActionEnabled("redo", controller->canRedo());
         emit view_updateMenuActionEnabled("localDeployment", controller->canLocalDeploy());
-
-        //qDebug() << "canUndo: " << controller->canUndo();
     }
 
     emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
@@ -2869,7 +2896,7 @@ void NodeView::showConnectedNodes()
         GraphMLItem* item = getGraphMLItemFromID(cnID);
         if (item) {
             // need to make sure that the aspect for the item is turned on before selecting it
-            enforceItemAspectOn(cnID);
+            enforceEntityItemVisible(cnID);
             appendToSelection(item);
             connectedItems.append(item);
         }
@@ -4190,13 +4217,16 @@ void NodeView::redo()
  */
 void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 {
-    if (isItemsAncestorSelected(item)){
+    if (!item) {
+        return;
+    }
+
+    if (isItemsAncestorSelected(item)) {
         return;
     }
 
     //Unset Items Descendant Items.
     unsetItemsDescendants(item);
-
 
     //Set this item as Selected.
     setGraphMLItemSelected(item, true);

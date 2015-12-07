@@ -18,6 +18,7 @@ class SearchItem : public QLabel
 public:
     explicit SearchItem(GraphMLItem *item, QWidget *parent = 0);
     void connectToWindow(QMainWindow* window);
+    QString getKeyValue(QString key);
 
 signals:
     void searchItem_clicked();
@@ -28,15 +29,20 @@ public slots:
     void expandItem();
     void centerOnItem();
 
+    void setClickToCenter(bool b);
+    void setDoubleClickToExpand(bool b);
+
 protected:
     void mouseReleaseEvent(QMouseEvent* event);
+    void mouseDoubleClickEvent(QMouseEvent* event);
 
 private:
     void setupLayout();
-    QLabel* setupDataValueBox(QString key, QVBoxLayout* layout, bool storeInHash = true);
+    QLabel* setupDataValueBox(QString key, QLayout* layout = 0, bool storeInHash = true);
 
     void updateColor();
-    void updateDataValues();
+    void getDataValues();
+    QString getItemLocation();
 
     GraphMLItem* graphMLItem;
 
@@ -51,6 +57,7 @@ private:
     QLabel* workerLabel;
     QLabel* descriptionLabel;
 
+    QStringList dataKeys;
     QHash<QString, QGroupBox*> dataValueBoxes;
     QHash<QString, QLabel*> dataValueLabels;
 
@@ -65,6 +72,9 @@ private:
     bool expanded;
     bool valuesSet;
 
+    float MIN_WIDTH;
+    bool CLICK_TO_CENTER;
+    bool DOUBLE_CLICK_TO_EXPAND;
 };
 
 #endif // SEARCHITEM_H

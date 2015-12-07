@@ -73,5 +73,9 @@
 	<xsl:variable name="nodeFrequencyKey">d44</xsl:variable>
 	<xsl:variable name="nodeCodeKey">d45</xsl:variable>
 	<xsl:variable name="nodeComplexityParametersKey">d46</xsl:variable>
-
+	<xsl:variable name="nodeWorkerIDKey">d47</xsl:variable>
+	
+	<xsl:variable name="nodeReadOnlyKey">d48</xsl:variable>
+	<xsl:variable name="nodeMaxSizeKey">d49</xsl:variable>
+	
 </xsl:stylesheet>

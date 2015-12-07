@@ -16,6 +16,12 @@ Version 19:
             * #2 - Label from read-only interface snippet isn't correct on import bug
             * #8 - View - Show connections doesn't include the source in the centered rectangle
 
+TODO:
+* Clicking on search item not always centering correctly
+* Re-clicking on search item not re-centering
+* Remove double-click to expand for search item
+* Search resultls not clearing items on new project
+
 Version 18:
     New Features:
         * Enabled WhileLoop entity
