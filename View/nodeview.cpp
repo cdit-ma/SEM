@@ -356,8 +356,6 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
     double heightScale = visibleViewRect.height() / rect.height();
     double newScale = qMin(widthScale, heightScale);
 
-    //qDebug() << "visibleViewRect: " << visibleViewRect;
-
     QPoint centerOffset = viewport()->rect().center() - visibleViewRect.center();
     QPointF sceneOffset = QPointF(centerOffset.x() / newScale, centerOffset.y() / newScale);
 
@@ -1626,7 +1624,6 @@ void NodeView::modelReady()
  */
 void NodeView::hardwareClusterMenuClicked(int viewMode)
 {
-    qDebug() << "hardwareClusterMenuClicked";
     foreach(GraphMLItem* item, getSelectedItems()){
         if(item->isEntityItem()){
             ((EntityItem*)item)->updateChildrenViewMode(viewMode);
@@ -2362,8 +2359,6 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("undo", controller->canUndo());
         emit view_updateMenuActionEnabled("redo", controller->canRedo());
         emit view_updateMenuActionEnabled("localDeployment", controller->canLocalDeploy());
-
-        //qDebug() << "canUndo: " << controller->canUndo();
     }
 
     emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());

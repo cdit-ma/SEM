@@ -38,6 +38,9 @@
 #define TOOLBAR_BUTTON_HEIGHT 40
 #define TOOLBAR_GAP 5
 
+#define SEARCH_DIALOG_MIN_WIDTH (MIN_WIDTH * 2.0 / 3.0)
+#define SEARCH_DIALOG_MIN_HEIGHT (MIN_HEIGHT / 2.0)
+
 #define NOTIFICATION_TIME 2000
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
@@ -907,6 +910,8 @@ void MedeaWindow::setupSearchTools()
     searchOptionMenu = new QMenu(searchOptionButton);
     searchResults = new QDialog(this);
 
+    searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
+
     QVBoxLayout* layout = new QVBoxLayout();
     QWidget* scrollableWidget = new QWidget(this);
     QScrollArea* scrollableSearchResults = new QScrollArea(this);
@@ -1272,6 +1277,9 @@ void MedeaWindow::resetGUI()
     // clear and reset search bar and search results
     searchBar->clear();
     searchResults->close();
+
+    searchDialog->clear();
+    searchDialog->close();
 
     QLayoutItem* child;
     while (resultsLayout->count() != 0) {
@@ -2321,6 +2329,7 @@ void MedeaWindow::on_actionSearch_triggered()
         }
         */
 
+        /*
         // clear the list view and the old search items
         searchItems.clear();
         for (int i = resultsLayout->count()-1; i >= 0; i--) {
@@ -2346,6 +2355,21 @@ void MedeaWindow::on_actionSearch_triggered()
         // show search results
         searchResults->setWindowTitle("Search Results - \"" + searchText.trimmed() + "\"");
         searchResults->show();
+    }
+    */
+
+        // clear the list view and the old search items
+        searchDialog->clear();
+
+        // for each item to display, create a button for it and add it to the results layout
+        foreach (GraphMLItem* guiItem, searchResultItems) {
+            SearchItem* searchItem = new SearchItem(guiItem, searchDialog);
+            searchItem->connectToWindow(this);
+            searchDialog->insertSearchItem(searchItem);
+        }
+
+        searchDialog->setWindowTitle("Search Results - \"" + searchText.trimmed() + "\"");
+        searchDialog->show();
     }
 }
 
