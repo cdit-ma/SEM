@@ -664,7 +664,9 @@ void ToolbarWidget::setupVectorList()
 
     QList<NodeItem*> vectors = nodeView->getEntityItemsOfKind("Vector");
     foreach (NodeItem* vector, vectors) {
-        constructSubMenuAction(vector, vectorInstMenu);
+        if (vector->hasChildren()) {
+            constructSubMenuAction(vector, vectorInstMenu);
+        }
     }
 }
 

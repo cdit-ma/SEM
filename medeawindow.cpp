@@ -1448,12 +1448,12 @@ void MedeaWindow::makeConnections()
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
+    connect(nodeView, SIGNAL(view_searchFinished(QStringList)), searchSuggestions, SLOT(showCompletion(QStringList)));
+
     connect(searchBar, SIGNAL(textEdited(QString)), this, SLOT(updateSearchSuggestions()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
 
     connect(searchDialog, SIGNAL(searchDialog_refresh()), this, SLOT(on_actionSearch_triggered()));
-
-    connect(nodeView, SIGNAL(view_searchFinished(QStringList)), searchSuggestions, SLOT(showCompletion(QStringList)));
 
     connect(searchButton, SIGNAL(clicked()), this, SLOT(on_actionSearch_triggered()));
     connect(searchOptionButton, SIGNAL(clicked(bool)), this, SLOT(searchMenuButtonClicked(bool)));
