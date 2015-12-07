@@ -39,9 +39,13 @@
 #define TOOLBAR_GAP 5
 
 #define SEARCH_DIALOG_MIN_WIDTH (MIN_WIDTH * 2.0 / 3.0)
-#define SEARCH_DIALOG_MIN_HEIGHT (MIN_HEIGHT / 2.0)
+#define SEARCH_DIALOG_MIN_HEIGHT (MIN_HEIGHT * 2.0 / 3.0)
 
 #define NOTIFICATION_TIME 2000
+
+#define SEARCH_VIEW_ASPECTS 0
+#define SEARCH_NODE_KINDS 1
+#define SEARCH_DATA_KEYS 2
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
 #define GME_FILE_EXT "GME Documents (*.xme)"
@@ -448,8 +452,7 @@ void MedeaWindow::initialiseGUI()
                   );
 
     // set all gui widget fonts to this
-    guiFont = QFont("Verdana");
-    guiFont.setPointSizeF(8.5);
+    guiFont = QFont("Verdana", 8.5);
 
     // initialise variables
     controller = 0;
@@ -1445,9 +1448,10 @@ void MedeaWindow::makeConnections()
 
     connect(exit, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered()));
 
-    //connect(searchBar, SIGNAL(editingFinished()), this, SLOT(updateSearchLineEdits())); // Not needed?
     connect(searchBar, SIGNAL(textEdited(QString)), this, SLOT(updateSearchSuggestions()));
     connect(searchBar, SIGNAL(returnPressed()), this, SLOT(on_actionSearch_triggered()));
+
+    connect(searchDialog, SIGNAL(searchDialog_refresh()), this, SLOT(on_actionSearch_triggered()));
 
     connect(nodeView, SIGNAL(view_searchFinished(QStringList)), searchSuggestions, SLOT(showCompletion(QStringList)));
 
@@ -2310,53 +2314,18 @@ void MedeaWindow::on_actionPaste_triggered()
  */
 void MedeaWindow::on_actionSearch_triggered()
 {
+    QString searchText = searchBar->text();
+
+    if (searchText.isEmpty()) {
+        return;
+    }
+
     if (nodeView) {
 
-        QString searchText = searchBar->text();
-        QList<GraphMLItem*> searchResultItems = nodeView->search(searchText, getCheckedItems(0), getCheckedItems(1), getCheckedItems(2));
-
-        /*
-        // if no items match the search checked kinds, display message box
-        if (searchResultItems.isEmpty()) {
-            if (searchResults->isVisible()) {
-                searchResults->setVisible(false);
-            }
-            QMessageBox::information(this,
-                                     "Search Error",
-                                     "<font size=\"4\"><b>\"" + searchText + "\"</b> not found!</font><br/>Check the search settings by selecting the gear next to the search button.",
-                                     QMessageBox::Ok);
-            return;
-        }
-        */
-
-        /*
-        // clear the list view and the old search items
-        searchItems.clear();
-        for (int i = resultsLayout->count()-1; i >= 0; i--) {
-            // remove the layout item's widget, then remove the layout item
-            if (resultsLayout->itemAt(i)->widget()) {
-                delete resultsLayout->itemAt(i)->widget();
-            }
-        }
-
-        // for each item to display, create a button for it and add it to the results layout
-        foreach (GraphMLItem* guiItem, searchResultItems) {
-            //SearchItemButton* searchItem = new SearchItemButton(guiItem, this);
-            //SearchItemWidget* searchItem = new SearchItemWidget(guiItem, this);
-            SearchItem* searchItem = new SearchItem(guiItem, this);
-            searchItem->connectToWindow(this);
-            resultsLayout->addWidget(searchItem);
-        }
-
-        // move the search results dialog to the bottom left of the window
-        // so that it doesn't get in the way of centered search items
-        //searchResults->move(pos() + QPoint(5, height() - searchResults->height()));
-
-        // show search results
-        searchResults->setWindowTitle("Search Results - \"" + searchText.trimmed() + "\"");
-        searchResults->show();
-    }
-    */
+        QStringList checkedAspects = getCheckedItems(SEARCH_VIEW_ASPECTS);
+        QStringList checkedKinds = getCheckedItems(SEARCH_NODE_KINDS);
+        QStringList checkedKeys = getCheckedItems(SEARCH_DATA_KEYS);
+        QList<GraphMLItem*> searchResultItems = nodeView->search(searchText, checkedAspects, checkedKinds, checkedKeys);
 
         // clear the list view and the old search items
         searchDialog->clear();
@@ -2368,7 +2337,7 @@ void MedeaWindow::on_actionSearch_triggered()
             searchDialog->insertSearchItem(searchItem);
         }
 
-        searchDialog->setWindowTitle("Search Results - \"" + searchText.trimmed() + "\"");
+        searchDialog->updateHedearLabels(searchText.trimmed(), checkedAspects, checkedKinds);
         searchDialog->show();
     }
 }
@@ -3486,13 +3455,19 @@ QStringList MedeaWindow::getCheckedItems(int menu)
     bool checkedDataKeys = false;
 
     QMenu* searchMenu = 0;
-    if (menu == 0) {
+    switch (menu) {
+    case SEARCH_VIEW_ASPECTS:
         searchMenu = viewAspectsMenu;
-    } else if (menu == 1) {
+        break;
+    case SEARCH_NODE_KINDS:
         searchMenu = nodeKindsMenu;
-    } else if (menu == 2) {
+        break;
+    case SEARCH_DATA_KEYS:
         searchMenu = dataKeysMenu;
         checkedDataKeys = true;
+        break;
+    default:
+        return checkedItems;
     }
 
     if (searchMenu) {

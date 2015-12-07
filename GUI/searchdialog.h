@@ -24,21 +24,35 @@ public:
     void insertSearchItem(SearchItem* searchItem);
     void clear();
 
+    void updateHedearLabels(QString search, QStringList aspects, QStringList kinds);
+
 signals:
+    void searchDialog_refresh();
     void searchDialog_clickToCenter(bool b);
     void searchDialog_doubleClickToExpand(bool b);
+
+public slots:
+    void show();
 
 private slots:
     void sortItems();
 
 private:
+    QLabel* constructHeadearLabel(QString labelText, QVBoxLayout *vLayout, int fixedWidth);
     void setupMenus(QLayout *layout);
 
     QVBoxLayout* resultsLayout;
     QList<SearchItem*> searchItems;
 
+    QLabel* searchLabel;
+    QLabel* aspectsLabel;
+    QLabel* kindsLabel;
+    QLabel* notFoundLabel;
+
     QMenu* sortMenu;
     QMenu* settingsMenu;
+
+    int MAX_ITEM_WIDTH;
 };
 
 #endif // SEARCHDIALOG_H
