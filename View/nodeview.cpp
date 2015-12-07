@@ -64,7 +64,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     hardwareDockOpen = false;
     showConnectLine = true;
     showSearchSuggestions = false;
-    clickSound = 0;
+    //clickSound = 0;
 
 
     IS_SUB_VIEW = subView;
@@ -1562,6 +1562,7 @@ void NodeView::expandSelection(bool expand)
 
 void NodeView::setupSoundEffects()
 {
+    /*
     if(!clickSound){
         clickSound = new QSoundEffect(this);
         clickSound->setSource(QUrl("qrc:/Sounds/click.wav"));
@@ -1570,6 +1571,7 @@ void NodeView::setupSoundEffects()
 
         connect(this, SIGNAL(view_ModelReady()), clickSound, SLOT(play()));
     }
+    */
 }
 
 void NodeView::modelReady()

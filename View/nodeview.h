@@ -18,7 +18,7 @@
 #include <QPointF>
 #include <QRubberBand>
 #include <QMutex>
-#include <QSoundEffect>
+//#include <QSoundEffect>
 
 #include "../enumerations.h"
 
@@ -546,7 +546,7 @@ private:
 
     bool ZOOM_UNDER_MOUSE;
 
-    QSoundEffect* clickSound;
+	//QSoundEffect* clickSound;
     // QWidget interface
 
     // QWidget interface
