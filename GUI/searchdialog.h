@@ -21,6 +21,7 @@ class SearchDialog : public QDialog
 public:
     SearchDialog(QSize minimumSize, QWidget *parent);
 
+    void addSearchItem(SearchItem* searchItem);
     void insertSearchItem(SearchItem* searchItem);
     void clear();
 
@@ -35,11 +36,13 @@ public slots:
     void show();
 
 private slots:
-    void sortItems();
+    void sortItems(bool checked);
 
 private:
     QLabel* constructHeadearLabel(QString labelText, QVBoxLayout *vLayout, int fixedWidth);
-    void setupMenus(QLayout *layout);
+
+    void setupLayout();
+    void setupMenus(QHBoxLayout *layout);
 
     QVBoxLayout* resultsLayout;
     QList<SearchItem*> searchItems;
@@ -54,6 +57,9 @@ private:
 
     QFont defaultFont;
     QFont searchFont;
+
+    bool sortedByLabel;
+    bool sortedByKind;
 
     int MAX_ITEM_WIDTH;
 };
