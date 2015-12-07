@@ -52,6 +52,9 @@ private:
     QMenu* sortMenu;
     QMenu* settingsMenu;
 
+    QFont defaultFont;
+    QFont searchFont;
+
     int MAX_ITEM_WIDTH;
 };
 

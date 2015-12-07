@@ -27,7 +27,7 @@ SearchDialog::SearchDialog(QSize minimumSize, QWidget* parent) : QDialog(parent)
     QHBoxLayout* headerLayout = new QHBoxLayout();
     QVBoxLayout* headerLabelsLayout = new QVBoxLayout();
 
-    QFont guiFont = QFont("Verdana", 8.5);
+    defaultFont = QFont("Verdana", 8.5);
     int keyLabelWidth = fontMetrics().width("WWWWWWWW");
 
     QGroupBox* headerBox = new QGroupBox(this);
@@ -35,14 +35,21 @@ SearchDialog::SearchDialog(QSize minimumSize, QWidget* parent) : QDialog(parent)
     aspectsLabel = constructHeadearLabel("Aspects", headerLabelsLayout, keyLabelWidth);
     kindsLabel = constructHeadearLabel("Kinds", headerLabelsLayout, keyLabelWidth);
 
-    guiFont.setPointSize(10);
-    searchLabel->setFont(guiFont);
+    setStyleSheet("QLabel{ color: rgb(30,30,30); }");
+    searchLabel->setStyleSheet("color: darkBlue;");
+    //searchLabel->setStyleSheet("color: rgb(30,60,110);");
+
+    searchFont = defaultFont;
+    searchFont.setPointSize(10);
+    searchFont.setItalic(true);
 
     notFoundLabel = new QLabel("Search Not Found", this);
-    guiFont.setItalic(true);
-    notFoundLabel->setStyleSheet("padding: 10px 8px;");
-    notFoundLabel->setFont(guiFont);
+    notFoundLabel->setStyleSheet("color: darkRed; padding: 10px 8px;");
+    notFoundLabel->setFont(searchFont);
     resultsLayout->addWidget(notFoundLabel);
+
+    searchFont.setItalic(false);
+    searchLabel->setFont(searchFont);
 
     headerBox->setMinimumWidth(minimumSize.width() * LABEL_RATIO / 2);
     headerBox->setLayout(headerLabelsLayout);
@@ -131,7 +138,16 @@ void SearchDialog::clear()
  */
 void SearchDialog::updateHedearLabels(QString search, QStringList aspects, QStringList kinds)
 {
-    searchLabel->setText("\"<i>" + search + "</i>\"");
+    // set the label values font to Italic
+    /*
+    searchFont.setItalic(true);
+    defaultFont.setItalic(true);
+    aspectsLabel->setFont(searchFont);
+    aspectsLabel->setFont(defaultFont);
+    kindsLabel->setFont(defaultFont);
+    */
+
+    searchLabel->setText("\"" + search + "\"");
 
     QString aspectsText;
     if (aspects.isEmpty()) {
@@ -142,7 +158,7 @@ void SearchDialog::updateHedearLabels(QString search, QStringList aspects, QStri
         }
         aspectsText.truncate(aspectsText.length() - 2);
     }
-    aspectsLabel->setText("<i>" + aspectsText + "</i>");
+    aspectsLabel->setText(aspectsText);
 
     QString kindsText;
     if (kinds.isEmpty()) {
@@ -153,7 +169,7 @@ void SearchDialog::updateHedearLabels(QString search, QStringList aspects, QStri
         }
         kindsText.truncate(kindsText.length() - 2);
     }
-    kindsLabel->setText("<i>" + kindsText + "</i>");
+    kindsLabel->setText(kindsText);
 }
 
 
@@ -229,6 +245,7 @@ QLabel* SearchDialog::constructHeadearLabel(QString labelText, QVBoxLayout* vLay
     QLabel* valueLabel = new QLabel(this);
     valueLabel->setTextFormat(Qt::RichText);
     keyLabel->setFixedWidth(fixedWidth);
+    keyLabel->setStyleSheet("color: rgb(80,80,80);");
     hLayout->addWidget(keyLabel);
     hLayout->addWidget(valueLabel);
     vLayout->addLayout(hLayout);
