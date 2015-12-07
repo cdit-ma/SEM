@@ -283,7 +283,7 @@
 		</xsl:call-template>	
 		
 		<!-- if any workers, add the CUTS lib path -->
-		<xsl:variable name="workerLibs" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Process']/../gml:data[@key=$transformNodeWorkerKey][text() != '']/../gml:data[@key=$transformNodeOperationKey][text() != '']/.." />
+		<xsl:variable name="workerLibs" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Process']/../gml:data[@key=$transformNodeWorkerKey][text() != '']/../gml:data[@key=$transformNodeOperationKey][text() != '']/../gml:data[@key=$transformNodeWorkerKey][text() != 'VectorOperation']/.." />
 
 		<xsl:if test="count($workerLibs) &gt; 0" >
 			<xsl:value-of select="'  libpaths +='" />
