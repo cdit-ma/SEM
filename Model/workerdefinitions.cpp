@@ -18,7 +18,7 @@ bool WorkerDefinitions::canAdoptChild(Node *node)
     return Node::canAdoptChild(node);
 }
 
-bool WorkerDefinitions::canConnect(Node *node)
+Edge::EDGE_CLASS WorkerDefinitionscanConnect(Node *node)
 {
     Q_UNUSED(node);
     return false;

@@ -5,6 +5,7 @@
 #include "attributeimpl.h"
 #include "../InterfaceDefinitions/vectorinstance.h"
 #include "../InterfaceDefinitions/aggregateinstance.h"
+#include <QDebug>
 
 Parameter::Parameter(bool isInput):BehaviourNode()
 {
@@ -68,8 +69,21 @@ bool Parameter::canConnect(Node *node)
     VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(node);
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(node);
     bool connectOkay = false;
+
     if(memberInstance || variable || attributeImpl || parameter || vectorInstance || aggregateInstance){
-        bool canConnect = BehaviourNode::canConnect(node);
+        int thisImplDepth = getDepthToAspect() - 1;
+        int otherImplDepth = node->getDepthToAspect() - 1;
+
+        if(thisImplDepth >=0 && otherImplDepth >= 0){
+            if(getParentNode(thisImplDepth) != node->getParentNode(otherImplDepth)){
+                return false
+            }
+        }else{
+            return false;
+        }
+
+
+        bool canConnect = Node::canConnect(node);
         //Ch
         if(canConnect){
             if(hasEdges()){
@@ -80,8 +94,22 @@ bool Parameter::canConnect(Node *node)
             }
 
             QString parameterType = getDataValue("type");
-
             QString parentNodeKind = node->getParentNode()->getNodeKind();
+
+            if(node->isInstance()){
+                //Step up until a non-instance.
+                Node* parentNode = node->getParentNode();
+                while(parentNode){
+                    if(!parentNode->isInstance()){
+                        break;
+                    }else{
+                        parentNode = parentNode->getParentNode();
+                    }
+                }
+                if(parentNode){
+                    parentNodeKind = parentNode->getNodeKind();
+                }
+            }
 
             bool matchedTypes = false;
             if(parameterType == "WE_UTE_Vector"){
@@ -99,7 +127,7 @@ bool Parameter::canConnect(Node *node)
             if(matchedTypes){
                 if(isReturnParameter()){
                     QStringList validParentTypes;
-                    validParentTypes << "Variable";
+                    validParentTypes << "Variable" << "OutEventPortImpl";
 
                     if(!(validParentTypes.contains(parentNodeKind) || validParentTypes.contains(node->getNodeKind()))){
                         return false;
@@ -108,6 +136,8 @@ bool Parameter::canConnect(Node *node)
                 connectOkay = true;
             }
         }
+    }else{
+        return false;
     }
     return connectOkay;
 }

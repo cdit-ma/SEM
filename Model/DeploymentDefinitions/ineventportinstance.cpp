@@ -23,7 +23,7 @@ bool InEventPortInstance::canAdoptChild(Node *child)
 //An InEventPortInstance can be connected to:
 //Connected to a Definition:
 // + InEventPort
-bool InEventPortInstance::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS InEventPortInstance::canConnect(Node* attachableObject)
 {
     InEventPort* inEventPort = dynamic_cast<InEventPort*> (attachableObject);
 

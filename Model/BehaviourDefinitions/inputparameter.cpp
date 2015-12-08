@@ -10,7 +10,7 @@ bool InputParameter::canAdoptChild(Node*)
     return false;
 }
 
-bool InputParameter::canConnect(Node* node)
+Edge::EDGE_CLASS InputParameter::canConnect(Node* node)
 {
     return Parameter::canConnect(node);
 }

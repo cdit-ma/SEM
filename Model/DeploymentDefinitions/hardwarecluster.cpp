@@ -14,7 +14,7 @@ HardwareCluster::~HardwareCluster()
 
 }
 
-bool HardwareCluster::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS HardwareCluster::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;

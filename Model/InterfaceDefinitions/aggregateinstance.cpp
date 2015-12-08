@@ -12,7 +12,7 @@ AggregateInstance::~AggregateInstance()
 {
 }
 
-bool AggregateInstance::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS AggregateInstance::canConnect(Node* attachableObject)
 {
     AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(attachableObject);
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);

@@ -11,7 +11,7 @@ public:
     // Node interface
 public:
     bool canAdoptChild(Node *node);
-    bool canConnect(Node *node);
+    Edge::EDGE_CLASS canConnect(Node *node);
 };
 
 #endif // RETURNPARAMETER_H

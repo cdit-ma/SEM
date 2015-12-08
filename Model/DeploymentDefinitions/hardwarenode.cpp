@@ -15,7 +15,7 @@ HardwareNode::~HardwareNode()
 }
 
 //Hardware Node cannot connect to anything.
-bool HardwareNode::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS HardwareNode::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;

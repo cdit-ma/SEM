@@ -7,7 +7,7 @@ Process::Process():BehaviourNode(false, false, false){
 
 Process::~Process(){}
 
-bool Process::canConnect(Node*)
+Edge::EDGE_CLASS Process::canConnect(Node*)
 {
 
     return false;

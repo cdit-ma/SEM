@@ -13,7 +13,7 @@ BehaviourDefinitions::~BehaviourDefinitions()
 
 }
 
-bool BehaviourDefinitions::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS BehaviourDefinitions::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;

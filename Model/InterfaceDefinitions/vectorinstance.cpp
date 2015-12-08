@@ -15,10 +15,11 @@ VectorInstance::~VectorInstance()
 
 }
 
-bool VectorInstance::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS VectorInstance::canConnect(Node* attachableObject)
 {
     VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(attachableObject);
     Vector* vector = dynamic_cast<Vector*>(attachableObject);
+
     InputParameter* inputParameter = dynamic_cast<InputParameter*>(attachableObject);
 
 

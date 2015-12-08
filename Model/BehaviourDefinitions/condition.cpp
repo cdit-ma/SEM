@@ -29,7 +29,7 @@ Termination *Condition::getTermination()
 }
 
 
-bool Condition::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS Condition::canConnect(Node* attachableObject)
 {
     //Get Parent
     if(attachableObject->getNodeKind() == "Termination"){

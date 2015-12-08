@@ -15,7 +15,7 @@ public:
     bool isUnconnectable();
 public:
     void setUnconnectable(bool unconnectable);
-    bool canConnect(Node* attachableObject);
+    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     virtual bool canAdoptChild(Node* child);
 
 private:

@@ -11,7 +11,7 @@ BlackBox::~BlackBox()
 
 }
 
-bool BlackBox::canConnect(Node *attachableObject)
+Edge::EDGE_CLASS BlackBoxcanConnect(Node *attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;

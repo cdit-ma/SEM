@@ -10,7 +10,7 @@ PeriodicEvent::PeriodicEvent():BehaviourNode(true){}
 
 PeriodicEvent::~PeriodicEvent(){}
 
-bool PeriodicEvent::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS PeriodicEvent::canConnect(Node* attachableObject)
 {
     return BehaviourNode::canConnect(attachableObject);
 }

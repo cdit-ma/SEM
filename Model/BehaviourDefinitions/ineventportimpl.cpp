@@ -27,7 +27,7 @@ bool InEventPortImpl::canAdoptChild(Node *child)
     return BehaviourNode::canAdoptChild(child);
 }
 
-bool InEventPortImpl::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS InEventPortImpl::canConnect(Node* attachableObject)
 {
 
     InEventPort* oep = dynamic_cast<InEventPort*>(attachableObject);

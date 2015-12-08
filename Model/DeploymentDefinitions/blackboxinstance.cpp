@@ -35,7 +35,7 @@ bool BlackBoxInstance::canAdoptChild(Node *child)
 //A ComponentInstance can be connected to:
 //Connected to a Definition:
 // + Component (If it has no definition already)
-bool BlackBoxInstance::canConnect(Node *attachableObject)
+Edge::EDGE_CLASS BlackBoxInstancecanConnect(Node *attachableObject)
 {
      BlackBox* blackBox = dynamic_cast<BlackBox*> (attachableObject);
      HardwareCluster* hardwareCluster = dynamic_cast<HardwareCluster*> (attachableObject);

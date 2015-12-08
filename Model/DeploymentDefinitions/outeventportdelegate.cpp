@@ -51,7 +51,7 @@ bool OutEventPortDelegate::canAdoptChild(Node *child)
     return false;
 }
 
-bool OutEventPortDelegate::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS OutEventPortDelegate::canConnect(Node* attachableObject)
 {
     OutEventPortDelegate* outEventPortDelegate = dynamic_cast<OutEventPortDelegate*>(attachableObject);
     InEventPortDelegate* inEventPortDelegate = dynamic_cast<InEventPortDelegate*>(attachableObject);

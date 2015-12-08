@@ -15,7 +15,7 @@ Vector::~Vector()
 
 }
 
-bool Vector::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS Vector::canConnect(Node* attachableObject)
 {
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
 

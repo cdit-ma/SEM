@@ -23,7 +23,7 @@ ComponentImpl::ComponentImpl():Node(Node::NT_IMPL){}
 ComponentImpl::~ComponentImpl(){}
 
 
-bool ComponentImpl::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS ComponentImpl::canConnect(Node* attachableObject)
 {
     Component* component = dynamic_cast<Component*>(attachableObject);
 

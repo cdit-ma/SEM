@@ -25,7 +25,7 @@ bool AttributeInstance::canAdoptChild(Node *child)
 //An AttributeInstance can be connected to:
 //Connected to a Definition:
 // + Attribute
-bool AttributeInstance::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS AttributeInstance::canConnect(Node* attachableObject)
 {
     Attribute* attribute = dynamic_cast<Attribute*> (attachableObject);
 

@@ -19,7 +19,7 @@ AttributeImpl::~AttributeImpl()
 
 
 
-bool AttributeImpl::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS AttributeImpl::canConnect(Node* attachableObject)
 {
     Attribute* attribute = dynamic_cast<Attribute*>(attachableObject);
 
@@ -27,7 +27,7 @@ bool AttributeImpl::canConnect(Node* attachableObject)
         #ifdef DEBUG_MODE
         qWarning() << "AttributeImpl already has a definition already";
         #endif
-        return false;
+        return Edge::EDGE;
     }
 
     if(!attribute){

@@ -34,7 +34,7 @@ void EventPort::unsetAggregate()
     }
 }
 
-bool EventPort::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS EventPort::canConnect(Node* attachableObject)
 {
     Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
 

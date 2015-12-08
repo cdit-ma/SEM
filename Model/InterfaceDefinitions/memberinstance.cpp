@@ -11,7 +11,7 @@ MemberInstance::~MemberInstance()
 
 }
 
-bool MemberInstance::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS MemberInstance::canConnect(Node* attachableObject)
 {
     MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(attachableObject);
     Member* member = dynamic_cast<Member*>(attachableObject);
@@ -22,12 +22,14 @@ bool MemberInstance::canConnect(Node* attachableObject)
 #endif
         return false;
     }
+
     if(getDefinition()){
 #ifdef DEBUG_MODE
         qWarning() << "MemberInstance can only connect to one MemberInstance/Member.";
 #endif
         return false;
     }
+
 
 
     return Node::canConnect(attachableObject);

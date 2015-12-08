@@ -136,7 +136,8 @@ HEADERS += \
     View/Dock/functionsdockscrollarea.h \
     Model/workerdefinitions.h \
     GUI/searchitem.h \
-    GUI/searchdialog.h
+    GUI/searchdialog.h \
+    Model/Edges/definitionedge.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -238,7 +239,8 @@ SOURCES += \
     View/Dock/functionsdockscrollarea.cpp \
     Model/workerdefinitions.cpp \
     GUI/searchitem.cpp \
-    GUI/searchdialog.cpp
+    GUI/searchdialog.cpp \
+    Model/Edges/definitionedge.cpp
 
 FORMS +=
 

@@ -43,7 +43,7 @@ bool ComponentInstance::canAdoptChild(Node *child)
 // + HardwareNode
 //Connected to a Definition:
 // + Component (If it has no definition already)
-bool ComponentInstance::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS ComponentInstance::canConnect(Node* attachableObject)
 {
     HardwareCluster* hardwareCluster = dynamic_cast<HardwareCluster*> (attachableObject);
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);

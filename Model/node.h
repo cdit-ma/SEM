@@ -35,11 +35,16 @@ public:
     QList<Node*> getItemsConnectedLeft();
     QList<Node*> getItemsConnectedRight();
 
+
+    Node* getContainedAspect();
+    int getDepthToAspect();
+
+
     int getIndirectConnectCount(QString nodeKind);
     //Child Node Methods
     void setTop(int index = 0);
     virtual QString toString();
-    Node* getParentNode();
+    Node* getParentNode(int depth = 0);
 
     //Returns whether or not this Node can Adopt the child Node.
     virtual bool canAdoptChild(Node *node);
@@ -92,7 +97,10 @@ public:
     //Edge Methods
 
     //Returns whether or not this Node can connect with the provided Node
-    virtual bool canConnect(Node* node);
+    virtual Edge::EDGE_CLASS canConnect(Node* node);
+
+    virtual bool canConnect_DefinitionEdge(Node* definition);
+
 
     //Gets the edge that is joining the node to this.
     Edge* getConnectingEdge(Node *node);

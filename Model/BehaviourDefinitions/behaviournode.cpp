@@ -36,7 +36,7 @@ void BehaviourNode::setUnconnectable(bool unconnectable)
     this->_isUnconnectable = unconnectable;
 }
 
-bool BehaviourNode::canConnect(Node *attachableObject)
+Edge::EDGE_CLASS BehaviourNodecanConnect(Node *attachableObject)
 {
 
     if((isInstance() || isImpl()) && !getDefinition() && attachableObject->isDefinition()){

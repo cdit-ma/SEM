@@ -12,7 +12,7 @@ DeploymentDefinitions::~DeploymentDefinitions()
 
 }
 
-bool DeploymentDefinitions::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS DeploymentDefinitions::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;

@@ -36,7 +36,7 @@ QVector<EventPort *> Aggregate::getEventPorts()
     return attachedEventPorts;
 }
 
-bool Aggregate::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS Aggregate::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;
@@ -53,6 +53,22 @@ bool Aggregate::canAdoptChild(Node *child)
         qWarning() << "Aggregate can only adopt Member/Instances";
 #endif
         return false;
+    }
+    if(vectorInstance){
+        Node* vector = vectorInstance->getDefinition();
+        if(vector && vector->hasChildren()){
+            qCritical() << "has Defintino with children";
+            Node* vectorChild = vector->getChildren(0)[0];
+            if(vectorChild && vectorChild->getDefinition()){
+
+               Node* aggregate = vectorChild->getDefinition();
+               qCritical() << "Got Aggregate";
+               qCritical() << aggregate;
+               if(this == aggregate || isAncestorOf(aggregate)){
+                   return false;
+               }
+            }
+        }
     }
 
     //Check for loops

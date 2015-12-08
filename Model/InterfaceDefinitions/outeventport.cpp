@@ -13,7 +13,7 @@ OutEventPort::~OutEventPort()
 
 }
 
-bool OutEventPort::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS OutEventPort::canConnect(Node* attachableObject)
 {
     return EventPort::canConnect(attachableObject);
 }

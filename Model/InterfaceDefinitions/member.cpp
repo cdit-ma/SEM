@@ -10,7 +10,7 @@ Member::~Member()
 
 }
 
-bool Member::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS Member::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;

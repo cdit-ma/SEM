@@ -15,7 +15,7 @@ Component::~Component()
 
 }
 
-bool Component::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS Component::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;

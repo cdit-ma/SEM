@@ -13,7 +13,7 @@ ManagementComponent::~ManagementComponent()
 
 }
 
-bool ManagementComponent::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS ManagementComponent::canConnect(Node* attachableObject)
 {
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode *>(attachableObject);
     HardwareCluster* hardwareCluster = dynamic_cast<HardwareCluster*>(attachableObject);

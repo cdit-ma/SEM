@@ -14,7 +14,7 @@ Attribute::~Attribute()
 
 }
 
-bool Attribute::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS Attribute::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;

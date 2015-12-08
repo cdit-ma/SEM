@@ -55,7 +55,7 @@ bool InEventPortDelegate::canAdoptChild(Node *child)
 //Connected to:
 // + InEventPortInstance (If this has no connected Instances already, or it matches the instances deifintino)
 // + inEventPortDelegate (If it has no definition already, or it matches the definition)
-bool InEventPortDelegate::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS InEventPortDelegate::canConnect(Node* attachableObject)
 {
     InEventPortInstance* inEventPortInstance = dynamic_cast<InEventPortInstance*>(attachableObject);
     InEventPortDelegate* inEventPortDelegate = dynamic_cast<InEventPortDelegate*>(attachableObject);

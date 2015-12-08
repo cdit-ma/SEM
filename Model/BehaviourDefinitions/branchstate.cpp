@@ -9,7 +9,7 @@ BranchState::~BranchState(){}
 
 
 
-bool BranchState::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS BranchState::canConnect(Node* attachableObject)
 {
     Termination* terminate = dynamic_cast<Termination*>(attachableObject);
 

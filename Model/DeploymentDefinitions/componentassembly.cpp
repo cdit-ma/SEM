@@ -39,7 +39,7 @@ bool ComponentAssembly::canAdoptChild(Node *child)
 //Deployed to:
 // + HardwareCluster
 // + HardwareNode
-bool ComponentAssembly::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS ComponentAssembly::canConnect(Node* attachableObject)
 {
     HardwareCluster* hardwareCluster = dynamic_cast<HardwareCluster*> (attachableObject);
     HardwareNode* hardwareNode = dynamic_cast<HardwareNode*> (attachableObject);

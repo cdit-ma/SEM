@@ -10,7 +10,7 @@ public:
     Workload();
     ~Workload();
 public:
-    bool canConnect(Node* attachableObject);
+    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 

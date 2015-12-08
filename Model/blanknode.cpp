@@ -10,7 +10,7 @@ BlankNode::~BlankNode()
 
 }
 
-bool BlankNode::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS BlankNode::canConnect(Node* attachableObject)
 {
     return Node::canConnect(attachableObject);
 }

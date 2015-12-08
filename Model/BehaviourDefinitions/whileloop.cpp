@@ -10,7 +10,7 @@ WhileLoop::~WhileLoop(){}
 
 
 
-bool WhileLoop::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS WhileLoop::canConnect(Node* attachableObject)
 {
     Termination* terminate = dynamic_cast<Termination*>(attachableObject);
 

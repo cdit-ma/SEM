@@ -11,7 +11,7 @@ public:
     // GraphML interface
 public:
     bool canAdoptChild(Node* child);
-    bool canConnect(Node* attachableObject);
+    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     //QString toGraphML(qint32 indentationLevel);
     
 };

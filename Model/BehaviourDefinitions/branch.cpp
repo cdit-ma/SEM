@@ -17,7 +17,7 @@ bool Branch::canAdoptChild(Node *node)
     return BehaviourNode::canAdoptChild(node);
 }
 
-bool Branch::canConnect(Node *node)
+Edge::EDGE_CLASS BranchcanConnect(Node *node)
 {
     Termination* terminate = dynamic_cast<Termination*>(node);
 

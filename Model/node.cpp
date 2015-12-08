@@ -76,6 +76,27 @@ QList<Node *> Node::getItemsConnectedRight()
 
 }
 
+Node *Node::getContainedAspect()
+{
+    int depth = getDepthToAspect();
+    return getParentNode(depth);
+}
+
+int Node::getDepthToAspect()
+{
+    int depth = 0;
+
+    Node* parent = this;
+    while(parent){
+        if(parent->isAspect()){
+            return depth;
+        }
+        parent = parent->getParentNode();
+        depth ++;
+    }
+    return -1;
+}
+
 int Node::getIndirectConnectCount(QString nodeKind)
 {
     QList<Node*> connectedNodes;
@@ -140,9 +161,25 @@ QString Node::toString()
     return QString("[%1]%2 - %3").arg(QString::number(getID()), kind, label);
 }
 
-Node *Node::getParentNode()
+Node *Node::getParentNode(int depth)
 {
-    return parentNode;
+    if(depth >= 0){
+        if(depth == 0){
+            return parentNode;
+        }else{
+            Node* parentNode = this;
+            while(depth >= 0){
+                if(parentNode){
+                    parentNode = parentNode->getParentNode();
+                    depth --;
+                }else{
+                    break;
+                }
+            }
+            return parentNode;
+        }
+    }
+    return 0;
 }
 
 bool Node::canAdoptChild(Node *node)
@@ -390,14 +427,55 @@ bool Node::isDescendantOf(Node *node)
     return true;
 }
 
-bool Node::canConnect(Node *node)
+Edge::EDGE_CLASS Node::canConnect(Node *node)
 {
+    //Don't allow multiple connections.
     if(isConnected(node)){
+        return Edge::EC_NONE;
+    }
+
+    //Don't allow connections to parents.
+    if(node->getParentNode() == this || getParentNode() == node){
+        return Edge::EC_NONE;
+    }
+
+    //Don't allow connections to self.
+    if(node == this){
+        return Edge::EC_NONE;
+    }
+
+    //Check in order of importance.
+
+    //Check if node can connect as a definition.
+    if(canConnect_DefinitionEdge(node)){
+        return Edge::EC_DEFINITION;
+    }
+
+    return Edge::EC_NORMAL;
+}
+
+/**
+ * @brief Node::canConnect_DefinitionEdge Returns whether or not this Node can be made an Instance/Impl of the definition node provided
+ * @param definition - The node which will be a definition.
+ * @return true/false
+ */
+bool Node::canConnect_DefinitionEdge(Node *definition)
+{
+    //This must be an Instance/Impl Node Type
+    if(!(isInstance() || isImpl())){
         return false;
     }
-    if(node->getParentNode() == this || this->getParentNode() == node){
+
+    //Node must be a Definition Node Type.
+    if(definition->isDefinition()){
         return false;
     }
+
+    //Node cannot already have a Definition.
+    if(getDefinition()){
+        return false;
+    }
+
     return true;
 }
 

@@ -11,7 +11,7 @@ bool ReturnParameter::canAdoptChild(Node *node)
     return false;
 }
 
-bool ReturnParameter::canConnect(Node *node)
+Edge::EDGE_CLASS ReturnParametercanConnect(Node *node)
 {
     return Parameter::canConnect(node);
 }

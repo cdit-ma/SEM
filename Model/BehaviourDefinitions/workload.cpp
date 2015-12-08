@@ -10,8 +10,10 @@
 Workload::Workload():BehaviourNode(){}
 Workload::~Workload(){}
 
-bool Workload::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS Workload::canConnect(Node* attachableObject)
 {
+
+
     return BehaviourNode::canConnect(attachableObject);
 }
 

@@ -15,7 +15,7 @@ Variable::~Variable()
 {
 }
 
-bool Variable::canConnect(Node* node)
+Edge::EDGE_CLASS Variable::canConnect(Node* node)
 {
     InputParameter* inputParameter = dynamic_cast<InputParameter*>(node);
 

@@ -14,7 +14,7 @@ InEventPort::~InEventPort()
 
 }
 
-bool InEventPort::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS InEventPort::canConnect(Node* attachableObject)
 {
     return EventPort::canConnect(attachableObject);
 }

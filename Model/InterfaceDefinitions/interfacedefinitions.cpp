@@ -11,7 +11,7 @@ InterfaceDefinitions::~InterfaceDefinitions()
 
 }
 
-bool InterfaceDefinitions::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS InterfaceDefinitions::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;

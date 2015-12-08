@@ -13,7 +13,7 @@ public:
 
     // Node interface
     bool canAdoptChild(Node *node);
-    bool canConnect(Node *node);
+    Edge::EDGE_CLASS canConnect(Node *node);
 };
 
 #endif // OUTEVENTPORT_H

@@ -34,7 +34,7 @@ QString Model::toGraphML(qint32 indentationLevel)
     return Node::toGraphML(indentationLevel);
 }
 
-bool Model::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS Model::canConnect(Node* attachableObject)
 {
     Q_UNUSED(attachableObject);
     return false;

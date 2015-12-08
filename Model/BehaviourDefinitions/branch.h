@@ -13,7 +13,7 @@ public:
     // Node interface
 public:
     virtual bool canAdoptChild(Node *node);
-    virtual bool canConnect(Node *node);
+    virtual Edge::EDGE_CLASS canConnect(Node *node);
 };
 
 #endif // BRANCH_H

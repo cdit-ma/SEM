@@ -19,7 +19,7 @@ Branch *Termination::getBranch()
     return 0;
 }
 
-bool Termination::canConnect(Node* attachableObject)
+Edge::EDGE_CLASS Termination::canConnect(Node* attachableObject)
 {
     return BehaviourNode::canConnect(attachableObject);
 }
