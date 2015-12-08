@@ -40,6 +40,11 @@ bool EventPortInstance::canAdoptChild(Node *child)
     return Node::canAdoptChild(child);
 }
 
+bool EventPortInstance::canConnect_AssemblyEdge(Node *node)
+{
+    return Node::canConnect_AssemblyEdge(node);
+}
+
 bool EventPortInstance::canConnect_DefinitionEdge(Node *definition)
 {
     return Node::canConnect_DefinitionEdge(definition);

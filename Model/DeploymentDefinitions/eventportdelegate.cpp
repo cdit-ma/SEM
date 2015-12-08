@@ -52,6 +52,6 @@ bool EventPortDelegate::canAdoptChild(Node*)
 
 bool EventPortDelegate::canConnect_AssemblyEdge(Node *node)
 {
-
+    return Node::canConnect_AssemblyEdge(node);
 }
 
