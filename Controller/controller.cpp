@@ -1353,9 +1353,9 @@ QList<int> NewController::getConnectableNodes(int srcID)
         foreach (int ID, nodeIDs) {
             Node* dst = getNodeFromID(ID);
             if(dst && ID != srcID){
-                if (src->canConnect(dst)){
+                if (!Edge::EC_NONE == src->canConnect(dst)){
                     legalNodes << ID;
-                }else if (dst->canConnect(src)){
+                }else if (!Edge::EC_NONE == dst->canConnect(src)){
                     legalNodes << ID;
                 }
             }
@@ -1626,7 +1626,7 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
         qCritical() << "Source or Destination Node is Null!";
         return 0;
     }
-    if(source->canConnect(destination)){
+    if(source->canConnect(destination) != Edge::EC_NONE){
         QString sourceKind = source->getDataValue("kind");
         QString destinationKind = destination->getDataValue("kind");
 
@@ -2538,7 +2538,7 @@ bool NewController::isEdgeLegal(Node *src, Node *dst)
 {
     if(src && dst){
         //Check for dual way connections.
-        return src->canConnect(dst);
+        return src->canConnect(dst) != Edge::EC_NONE;
     }
     return false;
 }
@@ -3216,7 +3216,6 @@ void NewController::setupModel()
     interfaceDefinitions = constructChildNode(model, constructGraphMLDataVector("InterfaceDefinitions"));
     behaviourDefinitions = constructChildNode(model, constructGraphMLDataVector("BehaviourDefinitions"));
     deploymentDefinitions =  constructChildNode(model, constructGraphMLDataVector("DeploymentDefinitions"));
-
 
     //Construct the second level containers.
     assemblyDefinitions =  constructChildNode(deploymentDefinitions, constructGraphMLDataVector("AssemblyDefinitions"));

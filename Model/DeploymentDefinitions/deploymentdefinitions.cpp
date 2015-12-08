@@ -11,10 +11,10 @@ DeploymentDefinitions::~DeploymentDefinitions()
 
 }
 
-bool DeploymentDefinitions::canAdoptChild(Node *child)
+bool DeploymentDefinitions::canAdoptChild(Node *node)
 {
-    AssemblyDefinitions* assemblyDefinitions = dynamic_cast<AssemblyDefinitions *>(child);
-    HardwareDefinitions* hardwareDefinitions = dynamic_cast<HardwareDefinitions *>(child);
+    AssemblyDefinitions* assemblyDefinitions = dynamic_cast<AssemblyDefinitions *>(node);
+    HardwareDefinitions* hardwareDefinitions = dynamic_cast<HardwareDefinitions *>(node);
 
     if(!(assemblyDefinitions || hardwareDefinitions)){
         //DeploymentDefinitions can only adopt 1 HardwareDefinition/AssemblyDefinition
@@ -22,11 +22,11 @@ bool DeploymentDefinitions::canAdoptChild(Node *child)
     }
 
     foreach(Node* child, getChildren(0)){
-        if(child->compareData(child, "kind")){
+        if(node->compareData(child, "kind")){
             //Deployment Definitions can only adopt 1 of each HardwareDefinition/AssemblyDefinition
             return false;
         }
     }
 
-    return Node::canAdoptChild(child);
+    return Node::canAdoptChild(node);
 }
