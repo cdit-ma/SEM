@@ -8,9 +8,5 @@ class WhileLoop: public Branch
 public:
     WhileLoop();
     ~WhileLoop();
-
-public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
-    bool canAdoptChild(Node* child);
 };
 #endif // WHILELOOP_H

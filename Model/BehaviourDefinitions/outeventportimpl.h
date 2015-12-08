@@ -1,16 +1,16 @@
 #ifndef OUTEVENTPORTIMPL_H
 #define OUTEVENTPORTIMPL_H
-#include "behaviournode.h"
+#include "eventportimpl.h"
 
-class OutEventPortImpl : public BehaviourNode
+class OutEventPortImpl : public EventPortImpl
 {
     Q_OBJECT
 public:
     OutEventPortImpl();
     ~OutEventPortImpl();
+
 public:
-    bool canAdoptChild(Node* child);
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
+    bool canConnect_DefinitionEdge(Node *definition);
 };
 
-#endif
+#endif // OUTEVENTPORTIMPL_H

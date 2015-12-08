@@ -1,31 +1,20 @@
 #include "blackbox.h"
-#include "outeventport.h"
-#include "ineventport.h"
-#include <QDebug>
+#include "eventport.h"
+
 BlackBox::BlackBox():Node(Node::NT_DEFINITION)
 {
 }
 
 BlackBox::~BlackBox()
 {
-
 }
 
-Edge::EDGE_CLASS BlackBoxcanConnect(Node *attachableObject)
-{
-    Q_UNUSED(attachableObject);
-    return false;
-}
 
 bool BlackBox::canAdoptChild(Node *child)
 {
-    OutEventPort* outEventPort  = dynamic_cast<OutEventPort*>(child);
-    InEventPort* inEventPort  = dynamic_cast<InEventPort*>(child);
+    EventPort* eventPort  = dynamic_cast<EventPort*>(child);
 
-    if(!outEventPort && !inEventPort){
-#ifdef DEBUG_MODE
-        qWarning() << "Can only adopt an OutEventPort, an InEventPort or an Attribute in a Component.";
-#endif
+    if(!eventPort){
         return false;
     }
 

@@ -137,7 +137,11 @@ HEADERS += \
     Model/workerdefinitions.h \
     GUI/searchitem.h \
     GUI/searchdialog.h \
-    Model/Edges/definitionedge.h
+    Model/Edges/definitionedge.h \
+    Model/BehaviourDefinitions/eventportimpl.h \
+    Model/DeploymentDefinitions/eventportdelegate.h \
+    Model/DeploymentDefinitions/eventportinstance.h \
+    Model/DeploymentDefinitions/hardware.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -240,7 +244,11 @@ SOURCES += \
     Model/workerdefinitions.cpp \
     GUI/searchitem.cpp \
     GUI/searchdialog.cpp \
-    Model/Edges/definitionedge.cpp
+    Model/Edges/definitionedge.cpp \
+    Model/BehaviourDefinitions/eventportimpl.cpp \
+    Model/DeploymentDefinitions/eventportdelegate.cpp \
+    Model/DeploymentDefinitions/eventportinstance.cpp \
+    Model/DeploymentDefinitions/hardware.cpp
 
 FORMS +=
 

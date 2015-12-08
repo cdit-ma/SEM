@@ -1,17 +1,15 @@
 #ifndef HARDWARENODE_H
 #define HARDWARENODE_H
-#include "../node.h"
+#include "hardware.h"
 
-class HardwareNode : public Node
+class HardwareNode : public Hardware
 {
     Q_OBJECT
 public:
     HardwareNode();
     ~HardwareNode();
-public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
-    bool canAdoptChild(Node* child);
-    
+
+    bool canAdoptChild(Node*);
 };
 
 #endif // HARDWARENODE_H

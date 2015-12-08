@@ -4,13 +4,18 @@
 
 class AttributeImpl : public BehaviourNode
 {
+    Q_OBJECT
 public:
     AttributeImpl();
     ~AttributeImpl();
 
 public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
+
+    // Node interface
+public:
+    bool canConnect_DataEdge(Node *node);
+    bool canConnect_DefinitionEdge(Node *definition);
 };
 
 #endif // ATTRIBUTEIMPL_H

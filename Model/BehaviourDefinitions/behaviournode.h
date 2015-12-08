@@ -8,6 +8,7 @@ class Parameter;
 
 class BehaviourNode : public Node
 {
+    Q_OBJECT
 public:
     BehaviourNode(bool isStart = false, bool isEnd = false, bool restrictDepth = true, Node::NODE_TYPE type = NT_NODE);
     bool isStart();
@@ -15,7 +16,8 @@ public:
     bool isUnconnectable();
 public:
     void setUnconnectable(bool unconnectable);
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
+
+    bool canConnect_WorkflowEdge(Node *node);
     virtual bool canAdoptChild(Node* child);
 
 private:

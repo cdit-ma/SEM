@@ -10,9 +10,6 @@ public:
     ~ComponentAssembly();
 public:
     bool canAdoptChild(Node* child);
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
-    //QString toGraphML(qint32 indentationLevel=0);
-
 };
 
 #endif // COMPONENTASSEMBLY_H

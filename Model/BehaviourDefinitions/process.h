@@ -8,9 +8,6 @@ class Process: public BehaviourNode
 public:
     Process();
     ~Process();
-
-public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 

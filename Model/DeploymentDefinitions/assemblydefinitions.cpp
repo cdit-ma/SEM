@@ -1,7 +1,7 @@
 #include "assemblydefinitions.h"
 #include "componentassembly.h"
 #include "managementcomponent.h"
-#include <QDebug>
+
 AssemblyDefinitions::AssemblyDefinitions():Node(Node::NT_ASPECT)
 {
 }
@@ -11,39 +11,23 @@ AssemblyDefinitions::~AssemblyDefinitions()
 
 }
 
-Edge::EDGE_CLASS AssemblyDefinitions::canConnect(Node* attachableObject)
+bool AssemblyDefinitions::canAdoptChild(Node *node)
 {
-    Q_UNUSED(attachableObject);
-    return false;
-}
+    ComponentAssembly* componentAssembly = dynamic_cast<ComponentAssembly *>(node);
+    ManagementComponent* managementComponent = dynamic_cast<ManagementComponent *>(node);
 
-bool AssemblyDefinitions::canAdoptChild(Node *child)
-{
-
-    ComponentAssembly* component = dynamic_cast<ComponentAssembly *>(child);
-    ManagementComponent* managementComponent = dynamic_cast<ManagementComponent *>(child);
-
-    if(!component && !managementComponent){
-#ifdef DEBUG_MODE
-        qWarning() << "AssemblyDefinitions can only adopt a ComponentAssembly and ManagementComponent Node";
-#endif
+    if(!(componentAssembly || managementComponent)){
+        //AssemblyDefinition can only adopt ComponentAssemblies or ManagementComponents
         return false;
     }
 
     if(managementComponent){
-        QString type = managementComponent->getDataValue("type");
-
-        foreach(Node* cChild, getChildren(0)){
-            ManagementComponent* mChild = dynamic_cast<ManagementComponent *>(cChild);
-
-            if(mChild && mChild->getDataValue("type") == type){
-#ifdef DEBUG_MODE
-                qWarning() << "AssemblyDefinitions can only adopt 1 of a particularly typed ManagementComponent!";
-#endif
+        foreach(Node* child, getChildrenOfKind("ManagementComponent", 0)){
+            if(node->compareData(child, "type")){
+                //AssemblyDefinition can only adopt ManagementComponents with different types.
                 return false;
             }
         }
     }
-
-    return Node::canAdoptChild(child);
+    return Node::canAdoptChild(node);
 }

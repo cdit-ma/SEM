@@ -1,17 +1,16 @@
 #include "aggregate.h"
-#include "member.h"
+
 #include "aggregateinstance.h"
+#include "member.h"
 #include "vectorinstance.h"
 #include "eventport.h"
-#include <QDebug>
+
 Aggregate::Aggregate(): Node(Node::NT_DEFINITION)
 {
-
 }
 
 Aggregate::~Aggregate()
 {
-
 }
 
 void Aggregate::addEventPort(EventPort *node)
@@ -24,7 +23,6 @@ void Aggregate::addEventPort(EventPort *node)
 
 void Aggregate::removeEventPort(EventPort *node)
 {
-    //qWarning() << "Removing Aggregate";
     int index = attachedEventPorts.indexOf(node);
     if(index != -1){
         attachedEventPorts.remove(index);
@@ -36,11 +34,6 @@ QVector<EventPort *> Aggregate::getEventPorts()
     return attachedEventPorts;
 }
 
-Edge::EDGE_CLASS Aggregate::canConnect(Node* attachableObject)
-{
-    Q_UNUSED(attachableObject);
-    return false;
-}
 
 bool Aggregate::canAdoptChild(Node *child)
 {
@@ -48,30 +41,26 @@ bool Aggregate::canAdoptChild(Node *child)
     VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(child);
     Member* member = dynamic_cast<Member*>(child);
 
-    if(!member && !aggregateInstance && !vectorInstance){
-#ifdef DEBUG_MODE
-        qWarning() << "Aggregate can only adopt Member/Instances";
-#endif
+    if(!(aggregateInstance || member || vectorInstance)){
         return false;
     }
+
+    //TODO may not need.
     if(vectorInstance){
         Node* vector = vectorInstance->getDefinition();
         if(vector && vector->hasChildren()){
-            qCritical() << "has Defintino with children";
+            //Check first child of vector.
             Node* vectorChild = vector->getChildren(0)[0];
-            if(vectorChild && vectorChild->getDefinition()){
 
+            //If first child has a definition.
+            if(vectorChild && vectorChild->getDefinition()){
                Node* aggregate = vectorChild->getDefinition();
-               qCritical() << "Got Aggregate";
-               qCritical() << aggregate;
                if(this == aggregate || isAncestorOf(aggregate)){
                    return false;
                }
             }
         }
     }
-
-    //Check for loops
 
     return Node::canAdoptChild(child);
 }

@@ -1,26 +1,15 @@
 #ifndef OUTEVENTPORTDELEGATE_H
 #define OUTEVENTPORTDELEGATE_H
-#include "../node.h"
+#include "eventportdelegate.h"
 
-class OutEventPortInstance;
-
-class OutEventPortDelegate: public Node
+class OutEventPortDelegate: public EventPortDelegate
 {
     Q_OBJECT
 public:
     OutEventPortDelegate();
     ~OutEventPortDelegate();
 
-    bool connectedToOutEventPortInstance();
-    OutEventPortInstance* getOutEventPortInstance();
-
-    // GraphML interface
-public:
     bool canAdoptChild(Node* child);
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
-    //QString toGraphML(qint32 indentationLevel);
-    
-
 };
 
 

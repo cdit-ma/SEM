@@ -10,7 +10,7 @@ public:
     ~BranchState();
 
 public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
+
 };
 #endif // BRANCHSTATE_H

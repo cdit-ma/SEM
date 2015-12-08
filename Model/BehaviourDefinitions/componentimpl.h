@@ -2,21 +2,16 @@
 #define COMPONENTBEHAVIOUR_H
 #include "../node.h"
 
-#include <QString>
-
-class Component;
 class ComponentImpl: public Node
 {
      Q_OBJECT
 public:
     ComponentImpl();
-    ~ComponentImpl();    // GraphML interface
+    ~ComponentImpl();
     
-
 public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
-
+    bool canConnect_DefinitionEdge(Node *definition);
 };
 
 #endif // COMPONENTBEHAVIOUR_H

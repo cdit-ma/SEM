@@ -1,6 +1,5 @@
 #ifndef DEPLOYMENTDEFINITIONS_H
 #define DEPLOYMENTDEFINITIONS_H
-
 #include "../node.h"
 
 class DeploymentDefinitions: public Node
@@ -10,14 +9,6 @@ public:
     DeploymentDefinitions();
     ~DeploymentDefinitions();
 
-
-    // GraphML interface
-public:
-
-
-    // Node interface
-public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 #endif // DEPLOYMENTDEFINITIONS_H

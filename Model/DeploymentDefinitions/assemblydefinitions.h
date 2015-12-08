@@ -1,6 +1,5 @@
 #ifndef ASSEMBLYDEFINITIONS_H
 #define ASSEMBLYDEFINITIONS_H
-
 #include "../node.h"
 
 class AssemblyDefinitions: public Node
@@ -10,14 +9,6 @@ public:
     AssemblyDefinitions();
     ~AssemblyDefinitions();
 
-
-    // GraphML interface
-public:
-    
-
-    // Node interface
-public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
-    bool canAdoptChild(Node* child);
+    bool canAdoptChild(Node* node);
 };
 #endif // AssemblyDefinitions_H

@@ -10,14 +10,6 @@ public:
     HardwareDefinitions();
     ~HardwareDefinitions();
 
-
-    // GraphML interface
-public:
-    
-
-    // Node interface
-public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 #endif // HARDWAREDEFINITIONS_H

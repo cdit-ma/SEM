@@ -1,27 +1,21 @@
 #include "periodicevent.h"
-#include "workload.h"
-#include "branchstate.h"
-#include "outeventportimpl.h"
-#include "termination.h"
 #include "inputparameter.h"
-#include "parameter.h"
-#include <QDebug>
-PeriodicEvent::PeriodicEvent():BehaviourNode(true){}
 
-PeriodicEvent::~PeriodicEvent(){}
+PeriodicEvent::PeriodicEvent():BehaviourNode(true){
 
-Edge::EDGE_CLASS PeriodicEvent::canConnect(Node* attachableObject)
-{
-    return BehaviourNode::canConnect(attachableObject);
+}
+
+PeriodicEvent::~PeriodicEvent(){
+
 }
 
 bool PeriodicEvent::canAdoptChild(Node * node)
 {
-    //ONLY ALLOW
-    Parameter* p = dynamic_cast<Parameter*>(node);
-    if(!p){
+    InputParameter* inputParameter = dynamic_cast<InputParameter*>(node);
+
+    if(!inputParameter){
         return false;
     }
 
-    return BehaviourNode::canAdoptChild(p);
+    return BehaviourNode::canAdoptChild(node);
 }

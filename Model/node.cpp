@@ -1,7 +1,7 @@
 #include "node.h"
-#include <QDebug>
 #include "graphmldata.h"
 #include "edge.h"
+#include <QDebug>
 #include <QCryptographicHash>
 #include <QByteArray>
 
@@ -32,6 +32,17 @@ Node::~Node()
 {
     if(parentNode){
         parentNode->removeChild(this);
+    }
+}
+
+/**
+ * @brief Node::addValidEdgeType Add's an Edge class as a type of edge this node should check in canConnect()
+ * @param validEdge
+ */
+void Node::addValidEdgeType(Edge::EDGE_CLASS validEdge)
+{
+    if(!validEdges.contains(validEdge)){
+        validEdges.append(validEdge);
     }
 }
 
@@ -366,7 +377,7 @@ void Node::removeChild(Node *child)
 
 void Node::removeChildren()
 {
-    children.clear();\
+    children.clear();
 }
 
 bool Node::ancestorOf(Node *node)
@@ -444,14 +455,48 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
         return Edge::EC_NONE;
     }
 
-    //Check in order of importance.
 
     //Check if node can connect as a definition.
-    if(canConnect_DefinitionEdge(node)){
+    if(validEdges.contains(Edge::EC_DEFINITION) && canConnect_DefinitionEdge(node)){
         return Edge::EC_DEFINITION;
     }
 
-    return Edge::EC_NORMAL;
+    if(validEdges.contains(Edge::EC_AGGREGATE) && canConnect_AggregateEdge(node)){
+        return Edge::EC_AGGREGATE;
+    }
+
+    if(validEdges.contains(Edge::EC_ASSEMBLY) && canConnect_AssemblyEdge(node)){
+        return Edge::EC_ASSEMBLY;
+    }
+
+    if(validEdges.contains(Edge::EC_DATA) && canConnect_DataEdge(node)){
+        return Edge::EC_DATA;
+    }
+
+    if(validEdges.contains(Edge::EC_DEPLOYMENT) && canConnect_DeploymentEdge(node)){
+        return Edge::EC_DEPLOYMENT;
+    }
+
+    if(validEdges.contains(Edge::EC_WORKFLOW) && canConnect_WorkflowEdge(node)){
+        return Edge::EC_WORKFLOW;
+    }
+
+    return Edge::EC_NONE;
+}
+
+bool Node::canConnect_AggregateEdge(Node *aggregate)
+{
+    return true;
+}
+
+bool Node::canConnect_AssemblyEdge(Node *node)
+{
+    return true;
+}
+
+bool Node::canConnect_DataEdge(Node *node)
+{
+    return true;
 }
 
 /**
@@ -467,7 +512,7 @@ bool Node::canConnect_DefinitionEdge(Node *definition)
     }
 
     //Node must be a Definition Node Type.
-    if(definition->isDefinition()){
+    if(!definition->isDefinition()){
         return false;
     }
 
@@ -476,6 +521,45 @@ bool Node::canConnect_DefinitionEdge(Node *definition)
         return false;
     }
 
+    //Check parentNode
+    Node* parentNode = getParentNode();
+
+    if(parentNode && (parentNode->isInstance() || parentNode->isImpl())){
+        Node* parentDefinition = parentNode->getDefinition();
+        if(parentDefinition){
+            if(!parentDefinition->isAncestorOf(definition)){
+                //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
+                return false;
+            }
+        }else{
+            //If this' parent is an Instance or Impl, and it doesn't yet have a Definition. Don't allow edge.
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Node::canConnect_DeploymentEdge(Node *hardware)
+{
+
+    if(!hardware->isHardware()){
+        //If the node we are trying to connect to isn't a HardwareType, then return false.
+        return false;
+    }
+
+    foreach(Edge* edge, getEdges(0)){
+        if(edge->getEdgeClass() == Edge::EC_DEPLOYMENT){
+            //There can only be one Deployment edge.
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Node::canConnect_WorkflowEdge(Node *node)
+{
     return true;
 }
 
@@ -634,6 +718,11 @@ bool Node::isAspect()
 bool Node::isImpl()
 {
     return nodeType == Node::NT_IMPL;
+}
+
+bool Node::isHardware()
+{
+    return nodeType == Node::NT_HARDWARE;
 }
 
 void Node::setDefinition(Node *def)

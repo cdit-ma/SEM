@@ -1,7 +1,6 @@
 #ifndef MODEL_H
 #define MODEL_H
 
-
 #include "edge.h"
 #include "node.h"
 #include "blanknode.h"
@@ -71,14 +70,6 @@
 
 
 
-#include <QStringList>
-
-#include <QString>
-#include <QVector>
-#include <QThread>
-#include <QObject>
-#include <QXmlStreamReader>
-
 class Model: public Node
 {
     Q_OBJECT
@@ -86,19 +77,6 @@ public:
     Model();
     ~Model();
 
-    // GraphML interface
-public:
-
-
-    // Node interface
-public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
-
-private:
-
-    // GraphML interface
-public:
-    QString toGraphML(qint32 indentationLevel);
 };
 #endif // MODEL_H

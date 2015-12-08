@@ -11,6 +11,7 @@ public:
 
     Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
+    bool canConnect_DefinitionEdge(Node *definition);
 };
 
 #endif // AGGREGATEINSTANCE_H

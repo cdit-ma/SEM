@@ -9,7 +9,6 @@ public:
     PeriodicEvent();
     ~PeriodicEvent();
 public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 

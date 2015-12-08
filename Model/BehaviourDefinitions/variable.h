@@ -1,6 +1,5 @@
 #ifndef VARIABLE_H
 #define VARIABLE_H
-
 #include "behaviournode.h"
 
 class Variable: public BehaviourNode
@@ -9,8 +8,7 @@ class Variable: public BehaviourNode
 public:
     Variable();
     ~Variable();
-public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
+
     bool canAdoptChild(Node* child);
 };
 

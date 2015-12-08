@@ -4,16 +4,13 @@
 
 class MemberInstance : public Node
 {
+    Q_OBJECT
 public:
     MemberInstance();
     ~MemberInstance();
 
-    // GraphML interface
-    
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
-
+    bool canConnect_DefinitionEdge(Node *definition);
 };
-
 
 #endif // MEMBERINSTANCE_H

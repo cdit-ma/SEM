@@ -10,9 +10,9 @@ public:
     VectorInstance();
     ~VectorInstance();
 
-    // GraphML interface
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
+    bool canConnect_DefinitionEdge(Node *definition);
+    bool canConnect_DataEdge(Node *node);
 };
 
 

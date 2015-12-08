@@ -1,10 +1,12 @@
 #ifndef NEWCONTROLLER_H
 #define NEWCONTROLLER_H
+#include "../Model/model.h"
+#include "../Model/workerdefinitions.h"
+
 #include <QStack>
 #include <QFile>
 #include <QPointF>
-#include "../Model/model.h"
-#include "../Model/workerdefinitions.h"
+#include <QXmlStreamReader>
 
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};

@@ -1,20 +1,14 @@
 #ifndef HARDWARECLUSTER_H
 #define HARDWARECLUSTER_H
-#include "../node.h"
+#include "hardware.h"
 
-class HardwareCluster : public Node
+class HardwareCluster : public Hardware
 {
+    Q_OBJECT
 public:
     HardwareCluster();
     ~HardwareCluster();
 
-    // GraphML interface
-public:
-    
-
-    // Node interface
-public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 

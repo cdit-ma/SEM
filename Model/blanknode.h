@@ -3,15 +3,11 @@
 #include "node.h"
 class BlankNode: public Node
 {
-        Q_OBJECT
+    Q_OBJECT
 public:
     BlankNode();
     ~BlankNode();
 
-    // GraphML interface
-    
-
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 

@@ -1,10 +1,7 @@
 #ifndef AGGREGATE_H
 #define AGGREGATE_H
 #include "../node.h"
-
 #include "eventport.h"
-
-class AggregateMember;
 
 class Aggregate : public Node
 {
@@ -18,10 +15,6 @@ public:
     void removeEventPort(EventPort* node);
     QVector<EventPort*> getEventPorts();
 
-
-    // GraphML interface
-    
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 
 private:

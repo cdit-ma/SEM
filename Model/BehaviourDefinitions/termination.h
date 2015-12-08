@@ -12,7 +12,6 @@ public:
 
     Branch* getBranch();
 public:
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node*);
 };
 

@@ -4,15 +4,13 @@
 
 class BlackBoxInstance: public Node
 {
+    Q_OBJECT
 public:
     BlackBoxInstance();
     ~BlackBoxInstance();
 
-public:
     bool canAdoptChild(Node* child);
-    Edge::EDGE_CLASS canConnect(Node* attachableObject);
-
-
+    bool canConnect_DefinitionEdge(Node *definition);
 };
 
 #endif // BLACKBOXINSTANCE_H
