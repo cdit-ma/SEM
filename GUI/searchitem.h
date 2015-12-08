@@ -18,7 +18,10 @@ class SearchItem : public QLabel
 public:
     explicit SearchItem(GraphMLItem *item, QWidget *parent = 0);
     void connectToWindow(QMainWindow* window);
+
     QString getKeyValue(QString key);
+    int getItemID();
+    int getItemWidth();
 
 signals:
     void searchItem_clicked();
@@ -73,6 +76,7 @@ private:
     bool valuesSet;
 
     float MIN_WIDTH;
+    int ITEM_WIDTH;
     bool CLICK_TO_CENTER;
     bool DOUBLE_CLICK_TO_EXPAND;
 };

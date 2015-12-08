@@ -494,7 +494,7 @@
 			<xsl:variable name="agVarType" select="$agVar/gml:graph/gml:node/gml:data[@key=$transformNodeTypeKey]/text()" />
 			<xsl:if test="not($agVarType = '')">
 				<xsl:value-of select="concat('&#xA;// variable: ', $agVarName, '&#xA;')" />
-				<xsl:value-of select="concat('::', $agVarType, '_var ')" />
+				<xsl:value-of select="concat('::', $agVarType )" />
 				<xsl:if test="$agVar/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'VectorInstance']" >
 					<xsl:value-of select="'*'" />
 				</xsl:if>

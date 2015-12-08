@@ -14,16 +14,15 @@
 #define LAYOUT_SPACING 5
 #define MARGIN_OFFSET (LAYOUT_MARGIN + LAYOUT_SPACING)
 
-#define LABEL_RATIO (2.0 / 5.0)
+#define LABEL_RATIO 0.5
+//#define LABEL_RATIO (2.0 / 5.0)
 #define ICON_RATIO 0.8
 #define ICON_SIZE (MIN_HEIGHT * ICON_RATIO - MARGIN_OFFSET)
-
-//#define CLICK_TO_CENTER true
-//#define DOUBLE_CLICK_TO_EXPAND false
 
 
 /**
  * @brief SearchItem::SearchItem
+ * @param item
  * @param parent
  */
 SearchItem::SearchItem(GraphMLItem *item, QWidget *parent) : QLabel(parent)
@@ -96,6 +95,26 @@ QString SearchItem::getKeyValue(QString key)
         return graphMLItem->getGraphML()->getDataValue("kind");
     }
     return "";
+}
+
+
+/**
+ * @brief SearchItem::getItemID
+ * @return
+ */
+int SearchItem::getItemID()
+{
+    return graphMLItemID;
+}
+
+
+/**
+ * @brief SearchItem::getItemWidth
+ * @return
+ */
+int SearchItem::getItemWidth()
+{
+    return ITEM_WIDTH;
 }
 
 
@@ -211,16 +230,13 @@ void SearchItem::mouseDoubleClickEvent(QMouseEvent *event)
 void SearchItem::setupLayout()
 {
     QString borderRadius = "border-radius:" + QString::number(BUTTON_RADIUS) + "px;";
-    fixedStyleSheet = "QPushButton{"
+    fixedStyleSheet = "QPushButton:hover{"
+                      "background-color: white;"
+                      "border: 2px solid rgb(150,150,150);"
+                      "}"
+                      "QPushButton{"
                       "background-color: rgba(250,250,250,250);"
-                      "border: 1px solid darkGray;"
-            + borderRadius +
-            "}"
-            "QPushButton:hover{"
-            "background-color: rgba(255,255,255,255);"
-
-            "border: 2px solid rgb(150,150,150);"
-            "}";
+                      "border: 1px solid darkGray;" + borderRadius + "}";
 
     QVBoxLayout* mainLayout = new QVBoxLayout();
     QHBoxLayout* layout = new QHBoxLayout();
@@ -238,6 +254,8 @@ void SearchItem::setupLayout()
     // setup entity label
     QString graphMLLabel = graphMLItem->getGraphML()->getDataValue("label");
     entityLabel = new QLabel(this);
+    //entityLabel->setMinimumWidth(MIN_WIDTH * LABEL_RATIO);
+    //entityLabel->setFixedHeight(iconLabel->height());
     entityLabel->setFixedSize(MIN_WIDTH * LABEL_RATIO, iconLabel->height());
     entityLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     entityLabel->setText(graphMLLabel);
@@ -278,6 +296,7 @@ void SearchItem::setupLayout()
     layout->setSpacing(LAYOUT_SPACING);
     layout->addWidget(iconLabel);
     layout->addWidget(entityLabel);
+    layout->addSpacing(LAYOUT_SPACING * 2);
     layout->addWidget(locationLabel);
     layout->addStretch();
     layout->addWidget(expandButton);
@@ -291,6 +310,8 @@ void SearchItem::setupLayout()
 
     setMinimumSize(MIN_WIDTH, MIN_HEIGHT);
     setLayout(mainLayout);
+
+    ITEM_WIDTH = mainLayout->sizeHint().width();
 }
 
 

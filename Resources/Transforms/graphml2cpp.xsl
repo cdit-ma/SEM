@@ -1266,8 +1266,9 @@
 					<xsl:value-of select="concat($param1, '[', $param2, ']')" />
 				</xsl:when>
 				<xsl:when test="$opName = 'set'">
+					<xsl:value-of select="concat( $param1, '-&gt;length (', $param2, ' + 1);&#xA;' ) " />
 					<xsl:value-of select="concat( '(*', $param1, ')', '[', $param2, '] = ' ) " />
-					<xsl:if test="$elementType = 'String'">
+					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'CORBA::string_dup'" />
 					</xsl:if>
 					<xsl:value-of select="concat('(', $param3, ')')" />

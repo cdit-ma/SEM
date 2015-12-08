@@ -21,24 +21,47 @@ class SearchDialog : public QDialog
 public:
     SearchDialog(QSize minimumSize, QWidget *parent);
 
+    void addSearchItem(SearchItem* searchItem);
     void insertSearchItem(SearchItem* searchItem);
     void clear();
 
+    void updateHedearLabels(QString search, QStringList aspects, QStringList kinds);
+
 signals:
+    void searchDialog_refresh();
     void searchDialog_clickToCenter(bool b);
     void searchDialog_doubleClickToExpand(bool b);
 
+public slots:
+    void show();
+
 private slots:
-    void sortItems();
+    void sortItems(bool checked);
 
 private:
-    void setupMenus(QLayout *layout);
+    QLabel* constructHeadearLabel(QString labelText, QVBoxLayout *vLayout, int fixedWidth);
+
+    void setupLayout();
+    void setupMenus(QHBoxLayout *layout);
 
     QVBoxLayout* resultsLayout;
     QList<SearchItem*> searchItems;
 
+    QLabel* searchLabel;
+    QLabel* aspectsLabel;
+    QLabel* kindsLabel;
+    QLabel* notFoundLabel;
+
     QMenu* sortMenu;
     QMenu* settingsMenu;
+
+    QFont defaultFont;
+    QFont searchFont;
+
+    bool sortedByLabel;
+    bool sortedByKind;
+
+    int MAX_ITEM_WIDTH;
 };
 
 #endif // SEARCHDIALOG_H
