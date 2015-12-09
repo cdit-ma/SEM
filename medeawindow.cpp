@@ -2846,15 +2846,14 @@ void MedeaWindow::forceToggleAspect(VIEW_ASPECT aspect, bool on)
 /**
  * @brief MedeaWindow::dockButtonPressed
  * This slot is called whenever a dock toggle button is pressed.
- * It makes sure that the groupbox attached to the dock button
- * that was pressed is the only groupbox that is being displayed.
+ * It toggles the dock button and shows/hides the attached dock accordingly.
+ * It also updates the dock area's mask depending on whether a dock is opened
  */
 void MedeaWindow::dockButtonPressed()
 {
     DockToggleButton* button = qobject_cast<DockToggleButton*>(QObject::sender());
     if (button) {
         emit window_dockButtonPressed(button->getDockType());
-        // update the dock area's mask depending on whether a dock is opened
         if (button->isSelected()) {
             docksArea->clearMask();
         } else {

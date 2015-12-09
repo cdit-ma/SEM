@@ -37,7 +37,7 @@
 #define VIEW_PADDING 1.1
 #define CENTER_ON_PADDING 1 / 0.25
 
-#define MAX_ZOOM_RATIO 50
+#define MAX_ZOOM_RATIO 200
 #define MIN_ZOOM_RATIO 2
 
 #define ASPECT_INTERFACES "Interfaces"
@@ -1373,30 +1373,42 @@ void NodeView::importSnippet(QString fileName, QString fileData)
 void NodeView::scrollEvent(int delta, QPoint mouseCenter)
 {
     if(viewState == VS_NONE || viewState ==  VS_SELECTED || viewState == VS_CONNECT || viewState == VS_CONNECTING){
-        qreal viewWidth = viewport()->rect().width();
-        qreal modelVisibleWidth = getModelItem()->childrenBoundingRect().width() * zoomCurrent;
+
+        //qreal viewWidth = viewport()->rect().width();
+        //qreal modelVisibleWidth = getModelItem()->childrenBoundingRect().width() * zoomCurrent;
+
+        QRectF modelRect = getModelItem()->childrenBoundingRect();
+        qreal modelSize, viewSize;
+
+        // use the bigger side of the model to check model:viewport ratio
+        if (modelRect.width() > modelRect.height()) {
+            modelSize = modelRect.width() * zoomCurrent;
+            viewSize = viewport()->rect().width();
+        } else {
+            modelSize = modelRect.height() * zoomCurrent;
+            viewSize = viewport()->rect().height();
+        }
 
         QPointF previousSceneCenter = getCenterOfScreenScenePos(mouseCenter);
-
         bool zoomChanged = false;
+
         if (delta > 0) {
-            // zoom in - maximum scale is when the scene is 50 times the size of the view
-            if (viewWidth * MAX_ZOOM_RATIO > modelVisibleWidth) {
+            // zoom in - maximum scale is when the scene is 100 times the size of the view
+            if (viewSize * MAX_ZOOM_RATIO > modelSize) {
                 scale(ZOOM_SCALE_INCREMENTOR, ZOOM_SCALE_INCREMENTOR);
                 zoomChanged = true;
             }
         } else if (delta < 0) {
             // zoom out - minimum scale is when the view is twice the size of the scene
-            if (viewWidth < modelVisibleWidth * MIN_ZOOM_RATIO) {
+            if (viewSize < modelSize * MIN_ZOOM_RATIO) {
                 scale(ZOOM_SCALE_DECREMENTOR, ZOOM_SCALE_DECREMENTOR);
                 zoomChanged = true;
             }
         }
 
-        if(zoomChanged){
+        if (zoomChanged) {
             QPointF newSceneCenter = getCenterOfScreenScenePos(mouseCenter);
             QPointF delta = newSceneCenter - previousSceneCenter;
-
             translate(delta.x(), delta.y());
             aspectGraphicsChanged();
         }
