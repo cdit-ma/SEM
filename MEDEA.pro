@@ -246,9 +246,9 @@ SOURCES += \
     GUI/searchdialog.cpp \
     Model/Edges/definitionedge.cpp \
     Model/BehaviourDefinitions/eventportimpl.cpp \
-    Model/DeploymentDefinitions/eventportdelegate.cpp \
     Model/DeploymentDefinitions/eventportinstance.cpp \
-    Model/DeploymentDefinitions/hardware.cpp
+    Model/DeploymentDefinitions/hardware.cpp \
+    Model/DeploymentDefinitions/eventportdelegate.cpp
 
 FORMS +=
 

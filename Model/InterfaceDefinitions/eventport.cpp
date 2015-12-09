@@ -56,9 +56,6 @@ bool EventPort::canConnect_AggregateEdge(Node *node)
         return false;
     }
 
-    if(hasChildren()){
-        return false;
-    }
     return Node::canConnect_AggregateEdge(aggregate);
 }
 

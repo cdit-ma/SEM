@@ -2,8 +2,9 @@
 #define EVENTPORTDELEGATE_H
 #include "../node.h"
 #include "eventportinstance.h"
+#include "../InterfaceDefinitions/aggregate.h"
 
-class EventPortDelegate : public Node
+class EventPortDelegate: public Node
 {
     Q_OBJECT
 public:
@@ -13,12 +14,16 @@ public:
     bool isInEventPortDelegate();
     bool isOutEventPortDelegate();
 
-    EventPortInstance* getConnectedEventPortInstance();
 
     bool canAdoptChild(Node*);
     bool canConnect_AssemblyEdge(Node *node);
+    bool canConnect_AggregateEdge(Node *aggregate);
 
+    void setAggregate(Aggregate *aggregate);
+    void unsetAggregate();
+    Aggregate *getAggregate();
 private:
+    Aggregate* aggregate;
     bool inEventPortDelegate;
 };
 

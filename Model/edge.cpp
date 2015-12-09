@@ -158,7 +158,7 @@ Edge::EDGE_TYPE Edge::getType()
         }
     }
     if(dstKind == "Aggregate"){
-        if(srcKind.endsWith("EventPort") || srcKind == "Vector"){
+        if(srcKind.endsWith("EventPort") || srcKind == "Vector" || srcKind.endsWith("EventPortDelegate")){
             return ET_AGGREGATE;
         }
     }

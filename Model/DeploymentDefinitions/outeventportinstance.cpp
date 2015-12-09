@@ -1,5 +1,6 @@
 #include "outeventportinstance.h"
 #include "../InterfaceDefinitions/outeventport.h"
+#include "eventportdelegate.h"
 
 OutEventPortInstance::OutEventPortInstance():EventPortInstance(false)
 {
@@ -23,4 +24,9 @@ bool OutEventPortInstance::canConnect_DefinitionEdge(Node *definition)
     }
 
     return EventPortInstance::canConnect_DefinitionEdge(definition);
+}
+
+bool OutEventPortInstance::canConnect_AssemblyEdge(Node *node)
+{
+    return EventPortInstance::canConnect_AssemblyEdge(node);
 }

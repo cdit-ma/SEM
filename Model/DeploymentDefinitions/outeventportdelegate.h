@@ -10,6 +10,7 @@ public:
     ~OutEventPortDelegate();
 
     bool canAdoptChild(Node* child);
+    bool canConnect_AssemblyEdge(Node *node);
 };
 
 

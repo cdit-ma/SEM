@@ -23,6 +23,21 @@ bool MemberInstance::canConnect_DefinitionEdge(Node *definition)
     return Node::canConnect_DefinitionEdge(definition);
 }
 
+bool MemberInstance::canConnect_DataEdge(Node *node)
+{
+    int depthToAspectChild = getDepthToAspect() - 1;
+
+    Node* aspectChild = getParentNode(depthToAspectChild);
+    if(aspectChild){
+        if(!aspectChild->isImpl()){
+            //Cannot have data edges for anything outside of an impl.
+            return false;
+        }
+    }
+
+    return false;
+}
+
 bool MemberInstance::canAdoptChild(Node*)
 {
     return false;

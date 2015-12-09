@@ -457,28 +457,51 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
 
 
     //Check if node can connect as a definition.
-    if(validEdges.contains(Edge::EC_DEFINITION) && canConnect_DefinitionEdge(node)){
-        return Edge::EC_DEFINITION;
+    if(validEdges.contains(Edge::EC_DEFINITION)){
+        //qCritical() << "Trying canConnect_DefinitionEdge";
+        if(canConnect_DefinitionEdge(node)){
+            return Edge::EC_DEFINITION;
+        }
     }
 
-    if(validEdges.contains(Edge::EC_AGGREGATE) && canConnect_AggregateEdge(node)){
-        return Edge::EC_AGGREGATE;
+    //Check if node can connect as an Aggregate.
+    if(validEdges.contains(Edge::EC_AGGREGATE)){
+        //qCritical() << "Trying canConnect_AggregateEdge";
+        if(canConnect_AggregateEdge(node)){
+            return Edge::EC_AGGREGATE;
+        }
     }
 
-    if(validEdges.contains(Edge::EC_ASSEMBLY) && canConnect_AssemblyEdge(node)){
-        return Edge::EC_ASSEMBLY;
+    //Check if node can connect as an Assembly.
+    if(validEdges.contains(Edge::EC_ASSEMBLY)){
+        //qCritical() << "Trying canConnect_AssemblyEdge";
+        if(canConnect_AssemblyEdge(node)){
+            return Edge::EC_ASSEMBLY;
+        }
     }
 
-    if(validEdges.contains(Edge::EC_DATA) && canConnect_DataEdge(node)){
-        return Edge::EC_DATA;
+    //Check if node can connect as a Data.
+    if(validEdges.contains(Edge::EC_DATA)){
+        //qCritical() << "Trying canConnect_DataEdge";
+        if(canConnect_DataEdge(node)){
+            return Edge::EC_DATA;
+        }
     }
 
-    if(validEdges.contains(Edge::EC_DEPLOYMENT) && canConnect_DeploymentEdge(node)){
-        return Edge::EC_DEPLOYMENT;
+    //Check if node can connect as a Data.
+    if(validEdges.contains(Edge::EC_DEPLOYMENT)){
+        //qCritical() << "Trying canConnect_DeploymentEdge";
+        if(canConnect_DeploymentEdge(node)){
+            return Edge::EC_DEPLOYMENT;
+        }
     }
 
-    if(validEdges.contains(Edge::EC_WORKFLOW) && canConnect_WorkflowEdge(node)){
-        return Edge::EC_WORKFLOW;
+    //Check if node can connect as a Data.
+    if(validEdges.contains(Edge::EC_WORKFLOW)){
+        //qCritical() << "Trying canConnect_WorkflowEdge";
+        if(canConnect_WorkflowEdge(node)){
+            return Edge::EC_WORKFLOW;
+        }
     }
 
     return Edge::EC_NONE;
@@ -531,9 +554,6 @@ bool Node::canConnect_DefinitionEdge(Node *definition)
                 //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
                 return false;
             }
-        }else{
-            //If this' parent is an Instance or Impl, and it doesn't yet have a Definition. Don't allow edge.
-            return false;
         }
     }
 

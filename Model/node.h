@@ -4,7 +4,7 @@
 #include "graphml.h"
 #include "edge.h"
 #include <QMap>
-
+#include <QDebug>
 #include <QString>
 
 class Node : public GraphML

@@ -11,6 +11,7 @@ public:
 
     bool canAdoptChild(Node* child);
     bool canConnect_DefinitionEdge(Node *definition);
+    bool canConnect_AssemblyEdge(Node *node);
 };
 
 #endif // OUTEVENTPORTINSTANCE_H

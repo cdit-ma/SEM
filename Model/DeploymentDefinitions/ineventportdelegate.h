@@ -1,6 +1,6 @@
 #ifndef INEVENTPORTDELEGATE_H
 #define INEVENTPORTDELEGATE_H
-#include "eventportdelegate.h"
+#include "EventPortDelegate.h"
 
 class InEventPortDelegate: public EventPortDelegate
 {
@@ -10,6 +10,7 @@ public:
     ~InEventPortDelegate();
 
     bool canAdoptChild(Node* child);
+    bool canConnect_AssemblyEdge(Node *node);
 };
 
 #endif // INEVENTPORTDELEGATE_H

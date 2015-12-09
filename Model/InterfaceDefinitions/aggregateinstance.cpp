@@ -35,23 +35,5 @@ bool AggregateInstance::canConnect_DefinitionEdge(Node *definition)
         return false;
     }
 
-    //Get the depth to the child of the idl.
-    int thisAspectDepth = getDepthToAspect();
-    int definitionAspectDepth = definition->getDepthToAspect();
-
-    Node* thisIDL = getParentNode(thisAspectDepth - 1);
-    Node* definitionIDL = definition->getParentNode(definitionAspectDepth - 1);
-
-    //If both Aggregate and AggregateInstance are contained in the same parent.
-    if(thisIDL == definitionIDL){
-        Node* thisIDLChild = getParentNode(thisAspectDepth - 2);
-        //Check for cycles in AggregateInstances
-        if(thisIDLChild){
-            if(definition->isIndirectlyConnected(thisIDLChild)){
-                return false;
-            }
-        }
-    }
-
     return Node::canConnect_DefinitionEdge(definition);
 }

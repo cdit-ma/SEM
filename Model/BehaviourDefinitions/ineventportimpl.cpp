@@ -1,5 +1,6 @@
 #include "ineventportimpl.h"
 #include "../InterfaceDefinitions/ineventport.h"
+#include <QDebug>
 
 InEventPortImpl::InEventPortImpl():EventPortImpl(true){
 }

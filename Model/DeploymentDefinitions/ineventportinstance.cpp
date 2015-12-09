@@ -24,3 +24,8 @@ bool InEventPortInstance::canConnect_DefinitionEdge(Node *definition)
 
     return EventPortInstance::canConnect_DefinitionEdge(definition);
 }
+
+bool InEventPortInstance::canConnect_AssemblyEdge(Node*)
+{
+    return false;
+}
