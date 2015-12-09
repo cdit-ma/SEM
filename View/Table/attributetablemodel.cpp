@@ -16,7 +16,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
         QString kind = attachedGraphML->getDataValue("kind");
         if(!(kind == "Aggregate" || kind == "AggregateInstance"
              || kind == "Member" || kind == "MemberInstance"
-             || kind == "Condition" || kind == "Process")){
+             || kind == "Condition" || kind == "Process" || kind =="Vector" || kind == "VectorInstance")){
             hiddenKeyNames << "sortOrder";
         }
     }

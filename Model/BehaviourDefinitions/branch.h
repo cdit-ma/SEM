@@ -5,15 +5,13 @@
 
 class Branch: public BehaviourNode
 {
+    Q_OBJECT
 public:
     Branch();
-
     Termination* getTermination();
 
-    // Node interface
-public:
     virtual bool canAdoptChild(Node *node);
-    virtual bool canConnect(Node *node);
+    bool canConnect_WorkflowEdge(Node *node);
 };
 
 #endif // BRANCH_H

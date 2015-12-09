@@ -5,6 +5,7 @@ class BehaviourNode;
 
 class Parameter: public BehaviourNode
 {
+    Q_OBJECT
 public:
     Parameter(bool isInput=false);
 
@@ -17,7 +18,7 @@ public:
     // Node interface
 public:
     bool canAdoptChild(Node *node);
-    bool canConnect(Node *node);
+    bool canConnect_DataEdge(Node *node);
 private:
     bool inputParameter;
 };

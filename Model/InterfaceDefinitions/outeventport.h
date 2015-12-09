@@ -5,15 +5,12 @@
 
 class OutEventPort : public EventPort
 {
+    Q_OBJECT
 public:
     OutEventPort();
     ~OutEventPort();
 
-    
-
-    // Node interface
     bool canAdoptChild(Node *node);
-    bool canConnect(Node *node);
 };
 
 #endif // OUTEVENTPORT_H

@@ -1,11 +1,11 @@
 #include "termination.h"
-#include "workload.h"
-#include "branchstate.h"
-#include "outeventportimpl.h"
 #include "branch.h"
-#include <QDebug>
-Termination::Termination():BehaviourNode(){}
-Termination::~Termination(){}
+Termination::Termination():BehaviourNode(){
+
+}
+Termination::~Termination(){
+
+}
 
 Branch *Termination::getBranch()
 {
@@ -17,11 +17,6 @@ Branch *Termination::getBranch()
         }
     }
     return 0;
-}
-
-bool Termination::canConnect(Node* attachableObject)
-{
-    return BehaviourNode::canConnect(attachableObject);
 }
 
 bool Termination::canAdoptChild(Node*)

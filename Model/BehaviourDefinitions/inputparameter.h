@@ -2,16 +2,12 @@
 #define INPUTPARAMETER_H
 #include "parameter.h"
 
-
 class InputParameter : public Parameter
 {
+    Q_OBJECT
 public:
     InputParameter();
-
-    // Node interface
-public:
-    bool canAdoptChild(Node *node);
-    bool canConnect(Node *node);
+    ~InputParameter();
 };
 
 #endif // INPUTPARAMETER_H

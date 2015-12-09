@@ -9,7 +9,7 @@
 class GraphMLData;
 class GraphMLKey: public GraphML
 {
-        Q_OBJECT
+    Q_OBJECT
 public:
     //TODO: match all types for GRAPHML.
     enum TYPE {BOOLEAN, INT, LONG, FLOAT, DOUBLE, STRING};

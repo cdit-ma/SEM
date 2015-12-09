@@ -15,7 +15,7 @@ class Node : public GraphML
     friend class Edge;
 public:
     //Enum for Node Types
-    enum NODE_TYPE {NT_NODE, NT_ASPECT, NT_DEFINITION, NT_INSTANCE, NT_IMPL, NT_DEFINSTANCE};
+    enum NODE_TYPE {NT_NODE, NT_ASPECT, NT_DEFINITION, NT_INSTANCE, NT_IMPL, NT_DEFINSTANCE, NT_HARDWARE};
 
     //Constuctor
     Node(NODE_TYPE type = NT_NODE);
@@ -30,16 +30,23 @@ signals:
     void destructGUI(Node*, QString ID);
 
 
+protected:
+    void addValidEdgeType(Edge::EDGE_CLASS validEdge);
 public:
     virtual QStringList getConnectableKinds();
     QList<Node*> getItemsConnectedLeft();
     QList<Node*> getItemsConnectedRight();
 
+
+    Node* getContainedAspect();
+    int getDepthToAspect();
+
+
     int getIndirectConnectCount(QString nodeKind);
     //Child Node Methods
     void setTop(int index = 0);
     virtual QString toString();
-    Node* getParentNode();
+    Node* getParentNode(int depth = 0);
 
     //Returns whether or not this Node can Adopt the child Node.
     virtual bool canAdoptChild(Node *node);
@@ -92,7 +99,16 @@ public:
     //Edge Methods
 
     //Returns whether or not this Node can connect with the provided Node
-    virtual bool canConnect(Node* node);
+    Edge::EDGE_CLASS canConnect(Node* node);
+
+
+    virtual bool canConnect_AggregateEdge(Node* aggregate);
+    virtual bool canConnect_AssemblyEdge(Node* node);
+    virtual bool canConnect_DataEdge(Node* node);
+    virtual bool canConnect_DefinitionEdge(Node* definition);
+    virtual bool canConnect_DeploymentEdge(Node* hardware);
+    virtual bool canConnect_WorkflowEdge(Node* node);
+
 
     //Gets the edge that is joining the node to this.
     Edge* getConnectingEdge(Node *node);
@@ -131,6 +147,7 @@ public:
     bool isInstance();
     bool isAspect();
     bool isImpl();
+    bool isHardware();
 
     void setDefinition(Node *def);
     Node* getDefinition();
@@ -170,6 +187,7 @@ private:
     QList<Node*> instances;
     QList<Node*> implementations;
 
+    QList<Edge::EDGE_CLASS> validEdges;
     //The list of contained children GraphML elements. (Top level only)
     //QMap<int,Node*> orderedChildren;
     QList<Node*> children;

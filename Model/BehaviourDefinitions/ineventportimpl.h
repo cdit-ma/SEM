@@ -1,8 +1,8 @@
 #ifndef INEVENTPORTIMPL_H
 #define INEVENTPORTIMPL_H
-#include "behaviournode.h"
+#include "eventportimpl.h"
 
-class InEventPortImpl : public BehaviourNode
+class InEventPortImpl : public EventPortImpl
 {
     Q_OBJECT
 public:
@@ -10,8 +10,7 @@ public:
     ~InEventPortImpl();
 
 public:
-    bool canAdoptChild(Node* child);
-    bool canConnect(Node* attachableObject);
+    bool canConnect_DefinitionEdge(Node *definition);
 };
 
 

@@ -2,11 +2,6 @@
 #define ATTRIBUTEINSTANCE_H
 #include "../node.h"
 
-#include <QString>
-
-class Attribute;
-class AttributeImpl;
-
 class AttributeInstance : public Node
 {
     Q_OBJECT
@@ -14,16 +9,8 @@ public:
     AttributeInstance();
     ~AttributeInstance();
 
-    // GraphML interface
-public:
-    
-    // Node interface
-public:
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
-
-private:
-    Attribute* def;
+    bool canConnect_DefinitionEdge(Node *definition);
 };
 
 #endif // ATTRIBUTEINSTANCE_H

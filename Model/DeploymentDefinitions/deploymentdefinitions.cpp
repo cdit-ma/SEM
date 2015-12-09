@@ -1,5 +1,4 @@
 #include "deploymentdefinitions.h"
-#include <QDebug>
 #include "assemblydefinitions.h"
 #include "hardwaredefinitions.h"
 
@@ -12,24 +11,21 @@ DeploymentDefinitions::~DeploymentDefinitions()
 
 }
 
-bool DeploymentDefinitions::canConnect(Node* attachableObject)
-{
-    Q_UNUSED(attachableObject);
-    return false;
-}
-
 bool DeploymentDefinitions::canAdoptChild(Node *child)
 {
-
     AssemblyDefinitions* assemblyDefinitions = dynamic_cast<AssemblyDefinitions *>(child);
     HardwareDefinitions* hardwareDefinitions = dynamic_cast<HardwareDefinitions *>(child);
 
-
-    if(!hardwareDefinitions && !assemblyDefinitions){
-#ifdef DEBUG_MODE
-        qWarning() << "Cannot Adopt anything outside of Assembly Definitions and Hardware Definitions";
-#endif
+    if(!(assemblyDefinitions || hardwareDefinitions)){
+        //DeploymentDefinitions can only adopt 1 HardwareDefinition/AssemblyDefinition
         return false;
+    }
+
+    foreach(Node* child, getChildren(0)){
+        if(child->compareData(child, "kind")){
+            //Deployment Definitions can only adopt 1 of each HardwareDefinition/AssemblyDefinition
+            return false;
+        }
     }
 
     return Node::canAdoptChild(child);

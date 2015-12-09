@@ -1,48 +1,27 @@
 #include "attributeinstance.h"
 #include "../InterfaceDefinitions/attribute.h"
-#include "../DeploymentDefinitions/attributeinstance.h"
-#include <QDebug>
 
-AttributeInstance::AttributeInstance(): Node(Node::NT_INSTANCE)
+AttributeInstance::AttributeInstance():Node(Node::NT_INSTANCE)
 {
-    //qDebug() << "Constructed Attribute: "<< this->getName();
+    addValidEdgeType(Edge::EC_DEFINITION);
 }
 
 AttributeInstance::~AttributeInstance()
 {
-    //Destructor
 }
 
 
-//An attribute cannot adopt anything.
-bool AttributeInstance::canAdoptChild(Node *child)
+bool AttributeInstance::canAdoptChild(Node*)
 {
-    Q_UNUSED(child);
     return false;
 }
 
-
-//An AttributeInstance can be connected to:
-//Connected to a Definition:
-// + Attribute
-bool AttributeInstance::canConnect(Node* attachableObject)
+bool AttributeInstance::canConnect_DefinitionEdge(Node *definition)
 {
-    Attribute* attribute = dynamic_cast<Attribute*> (attachableObject);
-
+    Attribute* attribute = dynamic_cast<Attribute*>(definition);
     if(!attribute){
-#ifdef DEBUG_MODE
-        qWarning() << "AttributeInstance Node can only be connected to 1 Attribute Definition.";
-#endif
         return false;
     }
 
-    if(attribute && getDefinition()){
-#ifdef DEBUG_MODE
-        qWarning() << "AttributeInstance Node can only be connected to 1 Attribute Definition.";
-#endif
-        return false;
-    }
-
-    return Node::canConnect(attachableObject);
+    return Node::canConnect_DefinitionEdge(definition);
 }
-

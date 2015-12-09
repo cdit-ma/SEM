@@ -2,21 +2,14 @@
 #define COMPONENT_H
 #include "../node.h"
 
-class ComponentInstance;
-class ComponentImpl;
-
 class Component : public Node
 {
+    Q_OBJECT
 public:
     Component();
     ~Component();
 
-    
-
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
-
-
 };
 
 #endif // COMPONENT_H

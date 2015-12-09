@@ -18,55 +18,32 @@
  */
 SearchDialog::SearchDialog(QSize minimumSize, QWidget* parent) : QDialog(parent)
 {
-    QScrollArea* scrollableSearchResults = new QScrollArea(this);
-    QWidget* scrollableWidget = new QWidget(this);
+    sortedByKind = false;
+    sortedByLabel = false;
 
-    resultsLayout = new QVBoxLayout();
-    QVBoxLayout* layout = new QVBoxLayout();
-    QVBoxLayout* resultsMainLayout = new QVBoxLayout();
-    QHBoxLayout* headerLayout = new QHBoxLayout();
-    QVBoxLayout* headerLabelsLayout = new QVBoxLayout();
-
-    QFont guiFont = QFont("Verdana", 8.5);
-    int keyLabelWidth = fontMetrics().width("WWWWWWWW");
-
-    QGroupBox* headerBox = new QGroupBox(this);
-    searchLabel = constructHeadearLabel("Search", headerLabelsLayout, keyLabelWidth);
-    aspectsLabel = constructHeadearLabel("Aspects", headerLabelsLayout, keyLabelWidth);
-    kindsLabel = constructHeadearLabel("Kinds", headerLabelsLayout, keyLabelWidth);
-
-    guiFont.setPointSize(10);
-    searchLabel->setFont(guiFont);
-
-    notFoundLabel = new QLabel("Search Not Found", this);
-    guiFont.setItalic(true);
-    notFoundLabel->setStyleSheet("padding: 10px 8px;");
-    notFoundLabel->setFont(guiFont);
-    resultsLayout->addWidget(notFoundLabel);
-
-    headerBox->setMinimumWidth(minimumSize.width() * LABEL_RATIO / 2);
-    headerBox->setLayout(headerLabelsLayout);
-
-    headerLayout->addWidget(headerBox);
-    headerLayout->addStretch();
-
-    resultsMainLayout->addLayout(headerLayout);
-    resultsMainLayout->addLayout(resultsLayout);
-    resultsMainLayout->addStretch();
-
-    scrollableWidget->setLayout(resultsMainLayout);
-    scrollableSearchResults->setWidget(scrollableWidget);
-    scrollableSearchResults->setWidgetResizable(true);
-
-    layout->addWidget(scrollableSearchResults);
-    layout->setMargin(0);
-
-    setLayout(layout);
     setMinimumSize(minimumSize);
     setWindowTitle("Search Results");
     setVisible(false);
+    setupLayout();
+}
 
-    setupMenus(headerLayout);
+
+/**
+ * @brief SearchDialog::addSearchItem
+ * @param searchItem
+ */
+void SearchDialog::addSearchItem(SearchItem* searchItem)
+{
+    if (!searchItem) {
+        return;
+    }
+
+    MAX_ITEM_WIDTH = qMax(MAX_ITEM_WIDTH, searchItem->getItemWidth());
+    connect(this, SIGNAL(searchDialog_clickToCenter(bool)), searchItem, SLOT(setClickToCenter(bool)));
+    connect(this, SIGNAL(searchDialog_doubleClickToExpand(bool)), searchItem, SLOT(setDoubleClickToExpand(bool)));
+
+    resultsLayout->addWidget(searchItem);
+    searchItems.append(searchItem);
 }
 
 
@@ -118,8 +95,12 @@ void SearchDialog::clear()
             delete resultsLayout->itemAt(i)->widget();
         }
     }
+
     // clear the stored list
     searchItems.clear();
+
+    sortedByKind = false;
+    sortedByLabel = false;
 }
 
 
@@ -131,7 +112,7 @@ void SearchDialog::clear()
  */
 void SearchDialog::updateHedearLabels(QString search, QStringList aspects, QStringList kinds)
 {
-    searchLabel->setText("\"<i>" + search + "</i>\"");
+    searchLabel->setText("\"" + search + "\"");
 
     QString aspectsText;
     if (aspects.isEmpty()) {
@@ -142,7 +123,7 @@ void SearchDialog::updateHedearLabels(QString search, QStringList aspects, QStri
         }
         aspectsText.truncate(aspectsText.length() - 2);
     }
-    aspectsLabel->setText("<i>" + aspectsText + "</i>");
+    aspectsLabel->setText(aspectsText);
 
     QString kindsText;
     if (kinds.isEmpty()) {
@@ -153,7 +134,7 @@ void SearchDialog::updateHedearLabels(QString search, QStringList aspects, QStri
         }
         kindsText.truncate(kindsText.length() - 2);
     }
-    kindsLabel->setText("<i>" + kindsText + "</i>");
+    kindsLabel->setText(kindsText);
 }
 
 
@@ -177,41 +158,35 @@ void SearchDialog::show()
  * @brief SearchDialog::sortItems
  * @param rb
  */
-void SearchDialog::sortItems()
+void SearchDialog::sortItems(bool checked)
 {
-    QRadioButton* rb = qobject_cast<QRadioButton*>(QObject::sender());
-    if (!rb->isChecked()) {
+    if (!checked || searchItems.isEmpty()) {
         return;
     }
 
-    QList<SearchItem*> searchItemsCopy;
-    searchItemsCopy.append(searchItems);
-
+    QRadioButton* rb = qobject_cast<QRadioButton*>(QObject::sender());
     QString key = rb->text();
 
-    for (int x = 0; x < searchItemsCopy.count(); x++) {
+    QHash<SearchItem*, QString> itemValueHash;
+    QStringList keyValues;
 
-        SearchItem* searchItem = searchItemsCopy.at(x);
-        QString searchItemLabel = searchItem->getKeyValue(key);
-
-        for (int i = 0; i < searchItemsCopy.count(); i++) {
-            SearchItem* item = searchItemsCopy.at(i);
-            if (!item || item == searchItem) {
-                continue;
-            }
-            QString itemLabel = item->getKeyValue(key);
-            int compare = searchItemLabel.compare(itemLabel, Qt::CaseInsensitive);
-            if (compare <= 0) {
-                // remove item
-                resultsLayout->removeWidget(searchItem);
-                searchItems.removeAll(searchItem);
-                // re-insert item
-                resultsLayout->insertWidget(i, searchItem);
-                searchItems.insert(i, searchItem);
-                return;
-            }
-        }
+    foreach (SearchItem* item, searchItems) {
+        QString val = item->getKeyValue(key);
+        keyValues.append(val);
+        itemValueHash[item] = val;
+        resultsLayout->removeWidget(item);
     }
+
+    keyValues.sort(Qt::CaseInsensitive);
+
+    foreach (QString value, keyValues) {
+        SearchItem* item = itemValueHash.key(value);
+        itemValueHash.remove(item);
+        resultsLayout->addWidget(item);
+    }
+
+    sortedByKind = key == "kind";
+    sortedByLabel = key == "label";
 }
 
 
@@ -229,6 +204,7 @@ QLabel* SearchDialog::constructHeadearLabel(QString labelText, QVBoxLayout* vLay
     QLabel* valueLabel = new QLabel(this);
     valueLabel->setTextFormat(Qt::RichText);
     keyLabel->setFixedWidth(fixedWidth);
+    keyLabel->setStyleSheet("color: rgb(80,80,80);");
     hLayout->addWidget(keyLabel);
     hLayout->addWidget(valueLabel);
     vLayout->addLayout(hLayout);
@@ -237,9 +213,69 @@ QLabel* SearchDialog::constructHeadearLabel(QString labelText, QVBoxLayout* vLay
 
 
 /**
+ * @brief SearchDialog::setupLayout
+ */
+void SearchDialog::setupLayout()
+{
+    QScrollArea* scrollableSearchResults = new QScrollArea(this);
+    QWidget* scrollableWidget = new QWidget(this);
+
+    resultsLayout = new QVBoxLayout();
+    QVBoxLayout* layout = new QVBoxLayout();
+    QVBoxLayout* resultsMainLayout = new QVBoxLayout();
+    QHBoxLayout* headerLayout = new QHBoxLayout();
+    QVBoxLayout* headerLabelsLayout = new QVBoxLayout();
+
+    defaultFont = QFont("Verdana", 8.5);
+    int keyLabelWidth = fontMetrics().width("WWWWWWWW");
+
+    QGroupBox* headerBox = new QGroupBox(this);
+    searchLabel = constructHeadearLabel("Search", headerLabelsLayout, keyLabelWidth);
+    aspectsLabel = constructHeadearLabel("Aspects", headerLabelsLayout, keyLabelWidth);
+    kindsLabel = constructHeadearLabel("Kinds", headerLabelsLayout, keyLabelWidth);
+
+    setStyleSheet("QLabel{ color: rgb(30,30,30); }");
+    searchLabel->setStyleSheet("color: darkBlue;");
+    //searchLabel->setStyleSheet("color: rgb(30,60,110);");
+
+    searchFont = defaultFont;
+    searchFont.setPointSize(10);
+    searchFont.setItalic(true);
+
+    notFoundLabel = new QLabel("Search Not Found", this);
+    notFoundLabel->setStyleSheet("color: darkRed; padding: 10px 8px;");
+    notFoundLabel->setFont(searchFont);
+    resultsLayout->addWidget(notFoundLabel);
+
+    searchFont.setItalic(false);
+    searchLabel->setFont(searchFont);
+
+    headerBox->setMinimumWidth(minimumWidth() * LABEL_RATIO / 2);
+    headerBox->setLayout(headerLabelsLayout);
+
+    headerLayout->addWidget(headerBox);
+    headerLayout->addStretch();
+
+    resultsMainLayout->addLayout(headerLayout);
+    resultsMainLayout->addLayout(resultsLayout);
+    resultsMainLayout->addStretch();
+
+    scrollableWidget->setLayout(resultsMainLayout);
+    scrollableSearchResults->setWidget(scrollableWidget);
+    scrollableSearchResults->setWidgetResizable(true);
+
+    layout->addWidget(scrollableSearchResults);
+    layout->setMargin(0);
+
+    setLayout(layout);
+    setupMenus(headerLayout);
+}
+
+
+/**
  * @brief SearchDialog::setupMenus
  */
-void SearchDialog::setupMenus(QLayout* layout)
+void SearchDialog::setupMenus(QHBoxLayout* layout)
 {
     int buttonSize = 30;
 
@@ -250,7 +286,6 @@ void SearchDialog::setupMenus(QLayout* layout)
 
     QWidgetAction* labelAction = new QWidgetAction(this);
     QRadioButton* rbl = new QRadioButton("label", this);
-    rbl->setChecked(true);
     labelAction->setDefaultWidget(rbl);
 
     sortMenu = new QMenu(this);
@@ -286,19 +321,19 @@ void SearchDialog::setupMenus(QLayout* layout)
     settingsButton->setFixedSize(buttonSize, buttonSize);
     refreshButton->setFixedSize(buttonSize, buttonSize);
 
-    sortButton->hide();
-
-    layout->addWidget(refreshButton);
-    layout->addWidget(settingsButton);
     layout->addWidget(sortButton);
+    layout->addSpacing(2);
+    layout->addWidget(settingsButton);
+    layout->addSpacing(2);
+    layout->addWidget(refreshButton);
 
     setStyleSheet("QPushButton{ border: 1px solid darkGray; border-radius: 5px; }"
                   "QPushButton:hover{ border: 2px solid rgb(150,150,150); background: white; }"
                   "QPushButton::menu-indicator{ width: 0px; image: none; }"
                   "QMenu{ padding: 3px; }");
 
-    connect(rbk, SIGNAL(toggled(bool)), this, SLOT(sortItems()));
-    connect(rbl, SIGNAL(toggled(bool)), this, SLOT(sortItems()));
+    connect(rbk, SIGNAL(toggled(bool)), this, SLOT(sortItems(bool)));
+    connect(rbl, SIGNAL(toggled(bool)), this, SLOT(sortItems(bool)));
     connect(rbk, SIGNAL(toggled(bool)), sortMenu, SLOT(hide()));
     connect(rbl, SIGNAL(toggled(bool)), sortMenu, SLOT(hide()));
 

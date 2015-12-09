@@ -1762,8 +1762,6 @@ bool EntityItem::isResizeable()
     return isSelected() && isExpanded() && hasChildren();
 }
 
-
-
 void EntityItem::setExpandedWidth(qreal w)
 {
 
@@ -2473,6 +2471,7 @@ void EntityItem::forceExpandParentItem()
         EntityItem* pi = parentItems.at(i);
         emit GraphMLItem_SetGraphMLData(pi->getID(), "isExpanded", true);
     }
+    qCritical() << "FORCE EXPAND";
 }
 
 
@@ -2726,7 +2725,9 @@ void EntityItem::firstChildAdded(GraphMLItem* child)
 void EntityItem::lastChildRemoved()
 {
     //Update
-    emit GraphMLItem_SetGraphMLData(getID(), "isExpanded", !isExpandedState());
+    if(isExpanded()){
+        emit GraphMLItem_SetGraphMLData(getID(), "isExpanded", false);
+    }
 
     if (IS_VECTOR) {
         vectorIconURL = nodeKind;

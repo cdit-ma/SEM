@@ -10,7 +10,6 @@ public:
     Workload();
     ~Workload();
 public:
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 

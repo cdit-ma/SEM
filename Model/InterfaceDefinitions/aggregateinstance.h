@@ -9,8 +9,9 @@ public:
     AggregateInstance();
     ~AggregateInstance();
 
-    bool canConnect(Node* attachableObject);
+    Edge::EDGE_CLASS canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
+    bool canConnect_DefinitionEdge(Node *definition);
 };
 
 #endif // AGGREGATEINSTANCE_H

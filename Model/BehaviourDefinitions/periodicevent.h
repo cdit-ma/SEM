@@ -9,7 +9,6 @@ public:
     PeriodicEvent();
     ~PeriodicEvent();
 public:
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 
