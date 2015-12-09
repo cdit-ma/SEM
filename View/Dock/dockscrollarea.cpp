@@ -158,6 +158,19 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
 
 
 /**
+ * @brief DockScrollArea::setInfoText
+ * @param text
+ */
+void DockScrollArea::displayInfoLabel(bool display, QString text)
+{
+    if (infoLabel && (infoLabel->isVisible() != display)) {
+        infoLabel->setText(text);
+        infoLabel->setVisible(display);
+    }
+}
+
+
+/**
  * @brief DockScrollArea::nodeDeleted
  * @param nodeID
  */
@@ -390,6 +403,9 @@ int DockScrollArea::getCurrentNodeID()
  */
 void DockScrollArea::setupLayout()
 {
+    infoLabel = new QLabel("Info Label", this);
+    infoLabel->hide();
+
     QGroupBox* groupBox = new QGroupBox(0);
     groupBox->setTitle(label);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -404,6 +420,7 @@ void DockScrollArea::setupLayout()
     layout->setSpacing(2);
     layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     layout->setSizeConstraint(QLayout::SetMinimumSize);
+    layout->addWidget(infoLabel);
     groupBox->setLayout(layout);
 
     setWidget(groupBox);

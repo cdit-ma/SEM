@@ -50,6 +50,8 @@ public:
     NodeView* getNodeView();
     QStringList getAdoptableNodeListFromView();
 
+    void displayInfoLabel(bool display, QString text = "");
+
     virtual void connectToView() = 0;
     virtual void nodeDeleted(QString nodeID);
 
@@ -83,6 +85,7 @@ private:
 
     QVBoxLayout* mainLayout;
     QVBoxLayout* layout;
+    QLabel* infoLabel;
     QString label;
     bool dockOpen;
 
