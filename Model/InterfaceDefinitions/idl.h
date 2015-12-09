@@ -9,15 +9,7 @@ public:
     IDL();
     ~IDL();
 
-    // GraphML interface
-public:
-    
-
-    // Node interface
-public:
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
-
 };
 
 #endif // IDL_H

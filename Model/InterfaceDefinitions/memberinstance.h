@@ -4,16 +4,14 @@
 
 class MemberInstance : public Node
 {
+    Q_OBJECT
 public:
     MemberInstance();
     ~MemberInstance();
 
-    // GraphML interface
-    
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
-
+    bool canConnect_DefinitionEdge(Node *definition);
+    bool canConnect_DataEdge(Node *node);
 };
-
 
 #endif // MEMBERINSTANCE_H

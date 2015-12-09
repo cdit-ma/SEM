@@ -1,16 +1,26 @@
 #include "eventport.h"
 #include "aggregate.h"
 #include "aggregateinstance.h"
-#include <QDebug>
 
-EventPort::EventPort():Node(Node::NT_DEFINITION)
+EventPort::EventPort(bool isInEventPort):Node(Node::NT_DEFINITION)
 {
+    inEventPort = isInEventPort;
     aggregate = 0;
+    addValidEdgeType(Edge::EC_AGGREGATE);
 }
 
 EventPort::~EventPort()
 {
+}
 
+bool EventPort::isInEventPort()
+{
+    return inEventPort;
+}
+
+bool EventPort::isOutEventPort()
+{
+    return !inEventPort;
 }
 
 void EventPort::setAggregate(Aggregate *aggregate)
@@ -34,35 +44,30 @@ void EventPort::unsetAggregate()
     }
 }
 
-bool EventPort::canConnect(Node* attachableObject)
+bool EventPort::canConnect_AggregateEdge(Node *node)
 {
-    Aggregate* aggregate = dynamic_cast<Aggregate*>(attachableObject);
+    Aggregate* aggregate = dynamic_cast<Aggregate*>(node);
 
-    if(aggregate && getAggregate()){
-#ifdef DEBUG_MODE
-        qWarning() << "Can only connect an EventPort to one aggregate.";
-#endif
-        return false;
-    }
     if(!aggregate){
-#ifdef DEBUG_MODE
-        qWarning() << "Can only connect an EventPort to an Aggregate.";
-#endif
         return false;
     }
 
+    if(getAggregate()){
+        return false;
+    }
 
-    return Node::canConnect(attachableObject);
+    return Node::canConnect_AggregateEdge(aggregate);
 }
 
 bool EventPort::canAdoptChild(Node *child)
 {
      AggregateInstance* aggregateInstance = dynamic_cast<AggregateInstance*>(child);
-     if(aggregateInstance){
-         if(this->getChildren(0).count() > 0){
-             return false;
-         }
-     }else{
+
+     if(!aggregateInstance){
+         return false;
+     }
+
+     if(hasChildren()){
          return false;
      }
 

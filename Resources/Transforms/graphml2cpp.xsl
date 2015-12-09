@@ -1185,6 +1185,7 @@
 			<xsl:choose>
 			<!-- Process VectorOperation, using input and return parameters -->		
 			<xsl:when test="$worker = 'VectorOperation'" >
+				<xsl:value-of select="concat('// Process ', $processName, ' ',$worker, ' ', $opName, '&#xA;')" />
 
 				<!-- Find the type of the elements of the vector -->
 				<xsl:variable name="sourceDataId" select="/descendant::*/gml:edge[@target=$inputParameters[1]/@id]/@source" />
@@ -1260,38 +1261,38 @@
 					</xsl:call-template>
 				</xsl:variable>
 				
-				<!-- Write function get, set, length, remove, clear --> 
+				<!-- Write functions get, set, length, remove, clear --> 
 				<xsl:choose>
 				<xsl:when test="$opName = 'get'">
-					<xsl:value-of select="concat($param1, '[', $param2, ']')" />
+					<xsl:value-of select="concat($param1, '[', $param2, '];&#xA;')" />
 				</xsl:when>
 				<xsl:when test="$opName = 'set'">
-					<xsl:value-of select="concat( $param1, '-&gt;length (', $param2, ' + 1);&#xA;' ) " />
-					<xsl:value-of select="concat( '(*', $param1, ')', '[', $param2, '] = ' ) " />
+					<xsl:value-of select="concat($param1, '-&gt;length (', $param2, ' + 1);&#xA;' ) " />
+					<xsl:value-of select="concat($param1, '[', $param2, '] = ' ) " />
 					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'CORBA::string_dup'" />
 					</xsl:if>
-					<xsl:value-of select="concat('(', $param3, ')')" />
+					<xsl:value-of select="concat('(', $param3, ');&#xA;')" />
 				</xsl:when>
 				<xsl:when test="$opName = 'length'">
-					<xsl:value-of select="concat($param1, '.length ()')" />
+					<xsl:value-of select="concat($param1, '-&gt;length ();&#xA;')" />
 				</xsl:when>
 				<xsl:when test="$opName = 'remove'">
 					<xsl:value-of select="concat($param1, '[', $param2, ']')" />
 					<xsl:value-of select="';&#xA;'" />
-					<xsl:value-of select="concat('for (CORBA::ULong i = ', $param2, '; i &gt; ', $param1, '.length() - 1; i++)&#xA;')" />
+					<xsl:value-of select="concat('for (CORBA::ULong i = ', $param2, '; i &lt; ', $param1, '-&gt;length() - 1; i++)&#xA;')" />
 					<xsl:value-of select="concat('   ', $param1, '[i] = ', $param1, '[i + 1];&#xA;')" />
-					<xsl:value-of select="concat($param1, '.length(', $param1, '.length() - 1);&#xA;')" />
+					<xsl:value-of select="concat($param1, '-&gt;length(', $param1, '-&gt;length() - 1);&#xA;')" />
 				</xsl:when>
 				<xsl:when test="$opName = 'clear'">
-					<xsl:value-of select="concat($param1, '.length (0)')" />
+					<xsl:value-of select="concat($param1, '-&gt;length (0);&#xA;')" />
 				</xsl:when>
 				<xsl:otherwise>
-					<xsl:value-of select="concat('// unknown worker operation ', $worker, '_', $processName, '_.', $opName, '&#xA;')" />
+					<xsl:value-of select="'// unknown worker operation &#xA;'" />
 				</xsl:otherwise>
 				</xsl:choose>
 				
-				<xsl:value-of select="';&#xA;'" />
+				<xsl:value-of select="'&#xA;'" />
 			</xsl:when>
 			
 			<!-- Process with Worker operation, using input and return parameters -->		

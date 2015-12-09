@@ -136,7 +136,12 @@ HEADERS += \
     View/Dock/functionsdockscrollarea.h \
     Model/workerdefinitions.h \
     GUI/searchitem.h \
-    GUI/searchdialog.h
+    GUI/searchdialog.h \
+    Model/Edges/definitionedge.h \
+    Model/BehaviourDefinitions/eventportimpl.h \
+    Model/DeploymentDefinitions/eventportdelegate.h \
+    Model/DeploymentDefinitions/eventportinstance.h \
+    Model/DeploymentDefinitions/hardware.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -238,7 +243,12 @@ SOURCES += \
     View/Dock/functionsdockscrollarea.cpp \
     Model/workerdefinitions.cpp \
     GUI/searchitem.cpp \
-    GUI/searchdialog.cpp
+    GUI/searchdialog.cpp \
+    Model/Edges/definitionedge.cpp \
+    Model/BehaviourDefinitions/eventportimpl.cpp \
+    Model/DeploymentDefinitions/eventportinstance.cpp \
+    Model/DeploymentDefinitions/hardware.cpp \
+    Model/DeploymentDefinitions/eventportdelegate.cpp
 
 FORMS +=
 

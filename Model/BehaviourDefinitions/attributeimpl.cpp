@@ -8,41 +8,36 @@
  */
 AttributeImpl::AttributeImpl():BehaviourNode(false,false,true,Node::NT_IMPL)
 {
-
+    addValidEdgeType(Edge::EC_DATA);
+    addValidEdgeType(Edge::EC_DEFINITION);
 }
-
 
 AttributeImpl::~AttributeImpl()
 {
-
 }
 
 
-
-bool AttributeImpl::canConnect(Node* attachableObject)
+bool AttributeImpl::canAdoptChild(Node*)
 {
-    Attribute* attribute = dynamic_cast<Attribute*>(attachableObject);
-
-    if(getDefinition()){
-        #ifdef DEBUG_MODE
-        qWarning() << "AttributeImpl already has a definition already";
-        #endif
-        return false;
-    }
-
-    if(!attribute){
-        #ifdef DEBUG_MODE
-        qWarning() << "AttributeImpl can only connect to an Attribute.";
-        #endif
-        return false;
-    }
-
-    return Node::canConnect(attachableObject);
-}
-
-bool AttributeImpl::canAdoptChild(Node *child)
-{
-    Q_UNUSED(child);
     return false;
 }
+
+bool AttributeImpl::canConnect_DataEdge(Node *node)
+{
+    //Call base class
+    return Node::canConnect_DataEdge(node);
+}
+
+bool AttributeImpl::canConnect_DefinitionEdge(Node *definition)
+{
+    Attribute* attribute = dynamic_cast<Attribute*>(definition);
+
+    if(!attribute){
+        return false;
+    }
+
+    //Call base impl to check rules.
+    return Node::canConnect_DefinitionEdge(definition);
+}
+
 

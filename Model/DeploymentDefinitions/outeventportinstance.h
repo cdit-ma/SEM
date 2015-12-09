@@ -1,19 +1,17 @@
 #ifndef OUTEVENTPORTINSTANCE_H
 #define OUTEVENTPORTINSTANCE_H
-#include "../InterfaceDefinitions/outeventport.h"
+#include "eventportinstance.h"
 
-class OutEventPortInstance : public Node
+class OutEventPortInstance : public EventPortInstance
 {
-        Q_OBJECT
+    Q_OBJECT
 public:
     OutEventPortInstance();
     ~OutEventPortInstance();
-    // GraphML interface
-public:
+
     bool canAdoptChild(Node* child);
-    bool canConnect(Node* attachableObject);
-    //QString toGraphML(qint32 indentationLevel);
-    
+    bool canConnect_DefinitionEdge(Node *definition);
+    bool canConnect_AssemblyEdge(Node *node);
 };
 
 #endif // OUTEVENTPORTINSTANCE_H

@@ -10,7 +10,7 @@ public:
     ~BranchState();
 
 public:
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
+
 };
 #endif // BRANCHSTATE_H

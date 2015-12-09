@@ -19,12 +19,10 @@
 #define ICON_RATIO 0.8
 #define ICON_SIZE (MIN_HEIGHT * ICON_RATIO - MARGIN_OFFSET)
 
-//#define CLICK_TO_CENTER true
-//#define DOUBLE_CLICK_TO_EXPAND false
-
 
 /**
  * @brief SearchItem::SearchItem
+ * @param item
  * @param parent
  */
 SearchItem::SearchItem(GraphMLItem *item, QWidget *parent) : QLabel(parent)
@@ -97,6 +95,16 @@ QString SearchItem::getKeyValue(QString key)
         return graphMLItem->getGraphML()->getDataValue("kind");
     }
     return "";
+}
+
+
+/**
+ * @brief SearchItem::getItemID
+ * @return
+ */
+int SearchItem::getItemID()
+{
+    return graphMLItemID;
 }
 
 

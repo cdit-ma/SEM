@@ -2298,7 +2298,8 @@ void MedeaWindow::on_actionSearch_triggered()
         foreach (GraphMLItem* guiItem, searchResultItems) {
             SearchItem* searchItem = new SearchItem(guiItem, searchDialog);
             searchItem->connectToWindow(this);
-            searchDialog->insertSearchItem(searchItem);
+            //searchDialog->insertSearchItem(searchItem);
+            searchDialog->addSearchItem(searchItem);
         }
 
         searchDialog->updateHedearLabels(searchText.trimmed(), checkedAspects, checkedKinds);

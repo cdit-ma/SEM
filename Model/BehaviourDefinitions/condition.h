@@ -13,9 +13,10 @@ public:
 
     Branch* getBranch();
     Termination* getTermination();
+
 public:
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node*);
+    bool canConnect_WorkflowEdge(Node *node);
 };
 
 #endif // CONDITION_H

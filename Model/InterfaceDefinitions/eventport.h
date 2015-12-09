@@ -6,22 +6,24 @@ class Aggregate;
 
 class EventPort : public Node
 {
+    Q_OBJECT
 public:
-    EventPort();
+    EventPort(bool isInEventPort);
     ~EventPort();
 
-    // GraphML interface
-    
+    bool isInEventPort();
+    bool isOutEventPort();
 
     void setAggregate(Aggregate *aggregate);
-    Aggregate* getAggregate();
     void unsetAggregate();
+    Aggregate* getAggregate();
 
     bool canAdoptChild(Node *node);
-    bool canConnect(Node *node);
+    bool canConnect_AggregateEdge(Node *aggregate);
 
 private:
     Aggregate* aggregate;
+    bool inEventPort;
 };
 
 #endif // EVENTPORT_H

@@ -1,7 +1,6 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 #include "../node.h"
-#include "eventport.h"
 
 class Vector : public Node
 {
@@ -10,9 +9,8 @@ public:
     Vector();
     ~Vector();
 
-    // GraphML interface
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
+    bool canConnect_AggregateEdge(Node *aggregate);
 };
 
 

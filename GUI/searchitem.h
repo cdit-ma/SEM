@@ -20,6 +20,7 @@ public:
     void connectToWindow(QMainWindow* window);
 
     QString getKeyValue(QString key);
+    int getItemID();
     int getItemWidth();
 
 signals:

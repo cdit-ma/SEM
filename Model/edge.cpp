@@ -4,11 +4,13 @@
 #include "node.h"
 #include <QDebug>
 
-Edge::Edge(Node *s, Node *d):GraphML(GraphML::EDGE)
+Edge::Edge(Node *s, Node *d, EDGE_CLASS edgeClass):GraphML(GraphML::EDGE)
 {
     //Set the instance Variables
     source = s;
     destination = d;
+
+    this->edgeClass = edgeClass;
 
     //Attach the Edge to its source/Destination
     source->addEdge(this);
@@ -135,6 +137,16 @@ QString Edge::toString()
     return QString("Edge[%1]: [" + this->getSource()->toString() +"] <-> [" + this->getDestination()->toString() + "]").arg(this->getID());
 }
 
+bool Edge::isDefinitionEdge()
+{
+    return edgeClass == EC_DEFINITION;
+}
+
+Edge::EDGE_CLASS Edge::getEdgeClass()
+{
+    return edgeClass;
+}
+
 Edge::EDGE_TYPE Edge::getType()
 {
     QString srcKind = source->getNodeKind();
@@ -146,7 +158,7 @@ Edge::EDGE_TYPE Edge::getType()
         }
     }
     if(dstKind == "Aggregate"){
-        if(srcKind.endsWith("EventPort") || srcKind == "Vector"){
+        if(srcKind.endsWith("EventPort") || srcKind == "Vector" || srcKind.endsWith("EventPortDelegate")){
             return ET_AGGREGATE;
         }
     }

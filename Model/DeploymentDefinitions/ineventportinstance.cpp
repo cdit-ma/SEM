@@ -1,45 +1,31 @@
 #include "ineventportinstance.h"
 #include "../InterfaceDefinitions/ineventport.h"
-#include "../InterfaceDefinitions/aggregateinstance.h"
-#include <QDebug>
 
-InEventPortInstance::InEventPortInstance():Node(Node::NT_INSTANCE)
+InEventPortInstance::InEventPortInstance():EventPortInstance(true)
 {
 }
 
 InEventPortInstance::~InEventPortInstance()
 {
-
 }
 
-
-bool InEventPortInstance::canAdoptChild(Node *child)
+bool InEventPortInstance::canAdoptChild(Node*)
 {
-    Q_UNUSED(child);
     return false;
 }
 
-
-//An InEventPortInstance can be connected to:
-//Connected to a Definition:
-// + InEventPort
-bool InEventPortInstance::canConnect(Node* attachableObject)
+bool InEventPortInstance::canConnect_DefinitionEdge(Node *definition)
 {
-    InEventPort* inEventPort = dynamic_cast<InEventPort*> (attachableObject);
-
-    if(inEventPort && getDefinition()){
-#ifdef DEBUG_MODE
-        qWarning() << "InEventPortInstance Node can only be connected to 1 InEventPort Definition.";
-#endif
-        return false;
-    }
+    InEventPort* inEventPort = dynamic_cast<InEventPort*>(definition);
 
     if(!inEventPort){
-#ifdef DEBUG_MODE
-        qWarning() << "InEventPortInstance Node can only be connected to InEventPorts.";
-#endif
         return false;
     }
 
-    return Node::canConnect(attachableObject);
+    return EventPortInstance::canConnect_DefinitionEdge(definition);
+}
+
+bool InEventPortInstance::canConnect_AssemblyEdge(Node*)
+{
+    return false;
 }

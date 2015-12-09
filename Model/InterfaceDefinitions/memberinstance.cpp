@@ -1,40 +1,44 @@
 #include "memberinstance.h"
 #include "../InterfaceDefinitions/member.h"
-#include <QDebug>
 
 MemberInstance::MemberInstance():Node(Node::NT_DEFINSTANCE)
 {
+    addValidEdgeType(Edge::EC_DEFINITION);
+    addValidEdgeType(Edge::EC_DATA);
 }
 
 MemberInstance::~MemberInstance()
 {
-
 }
 
-bool MemberInstance::canConnect(Node* attachableObject)
+bool MemberInstance::canConnect_DefinitionEdge(Node *definition)
 {
-    MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(attachableObject);
-    Member* member = dynamic_cast<Member*>(attachableObject);
+    Member* member = dynamic_cast<Member*>(definition);
+    MemberInstance* memberInstance = dynamic_cast<MemberInstance*>(definition);
 
-    if (!member && !memberInstance){
-#ifdef DEBUG_MODE
-        qWarning() << "MemberInstance can only connect to an MemberInstance or Member.";
-#endif
-        return false;
-    }
-    if(getDefinition()){
-#ifdef DEBUG_MODE
-        qWarning() << "MemberInstance can only connect to one MemberInstance/Member.";
-#endif
+    if(!(member || memberInstance)){
         return false;
     }
 
-
-    return Node::canConnect(attachableObject);
+    return Node::canConnect_DefinitionEdge(definition);
 }
 
-bool MemberInstance::canAdoptChild(Node *child)
+bool MemberInstance::canConnect_DataEdge(Node *node)
 {
-    Q_UNUSED(child);
+    int depthToAspectChild = getDepthToAspect() - 1;
+
+    Node* aspectChild = getParentNode(depthToAspectChild);
+    if(aspectChild){
+        if(!aspectChild->isImpl()){
+            //Cannot have data edges for anything outside of an impl.
+            return false;
+        }
+    }
+
+    return false;
+}
+
+bool MemberInstance::canAdoptChild(Node*)
+{
     return false;
 }

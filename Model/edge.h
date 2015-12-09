@@ -10,11 +10,13 @@ class Node;
 class Edge: public GraphML{
     Q_OBJECT
 public:
+    enum EDGE_CLASS{EC_NONE, EC_AGGREGATE, EC_ASSEMBLY, EC_DATA, EC_DEFINITION, EC_DEPLOYMENT, EC_WORKFLOW};
+
     //Enum for Node Types
     enum EDGE_TYPE {ET_NORMAL, ET_MATCHINGKINDS, ET_AGGREGATE, ET_DEPLOYMENT, ET_ASSEMBLY, ET_COMPONENT, ET_DELEGATE, ET_TERMINATION, ET_DATALINK};
 
     //Constructor
-    Edge(Node* source, Node* destination);
+    Edge(Node* source, Node* destination, EDGE_CLASS edgeClass= EC_NONE);
     ~Edge();
 
     //Get the source graphml object of this Edge
@@ -45,9 +47,12 @@ public:
     QString toString();
 
 
+    bool isDefinitionEdge();
+    EDGE_CLASS getEdgeClass();
 private:
     EDGE_TYPE getType();
     EDGE_TYPE type;
+    EDGE_CLASS edgeClass;
     Node* source;
     Node* destination;
 

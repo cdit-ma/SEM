@@ -8,9 +8,6 @@ class Process: public BehaviourNode
 public:
     Process();
     ~Process();
-
-public:
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 

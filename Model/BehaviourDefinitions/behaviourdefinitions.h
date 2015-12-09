@@ -10,14 +10,7 @@ public:
     BehaviourDefinitions();
     ~BehaviourDefinitions();
 
-
-    // GraphML interface
 public:
-
-
-    // Node interface
-public:
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node* child);
 };
 

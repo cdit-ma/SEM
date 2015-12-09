@@ -1,6 +1,4 @@
 #include "model.h"
-#include <QDebug>
-
 
 Model::Model(): Node()
 {
@@ -13,29 +11,22 @@ Model::~Model()
     removeChildren();
 }
 
-bool Model::canAdoptChild(Node *child)
+bool Model::canAdoptChild(Node *node)
 {
-    InterfaceDefinitions* interfaceDefinitions = dynamic_cast<InterfaceDefinitions*>(child);
-    DeploymentDefinitions* deploymentDefinitions = dynamic_cast<DeploymentDefinitions*>(child);
-    BehaviourDefinitions* behaviourDefinitions = dynamic_cast<BehaviourDefinitions*>(child);
+    InterfaceDefinitions* interfaceDefinitions = dynamic_cast<InterfaceDefinitions*>(node);
+    DeploymentDefinitions* deploymentDefinitions = dynamic_cast<DeploymentDefinitions*>(node);
+    BehaviourDefinitions* behaviourDefinitions = dynamic_cast<BehaviourDefinitions*>(node);
 
-    if(!interfaceDefinitions && !deploymentDefinitions && !behaviourDefinitions){
-        #ifdef DEBUG_MODE
-        qWarning() << "Model can only adopt interfaceDefinitions, deploymentDefinitions, interfaceDefinitions";
-#endif
+    if(!(behaviourDefinitions || deploymentDefinitions || interfaceDefinitions)){
         return false;
     }
 
-    return Node::canAdoptChild(child);
-}
+    foreach(Node* child, getChildren(0)){
+        if(node->compareData(child, "kind")){
+            //Model can only adopt 1 of each adoptable Definitions
+            return false;
+        }
+    }
 
-QString Model::toGraphML(qint32 indentationLevel)
-{
-    return Node::toGraphML(indentationLevel);
-}
-
-bool Model::canConnect(Node* attachableObject)
-{
-    Q_UNUSED(attachableObject);
-    return false;
+    return Node::canAdoptChild(node);
 }

@@ -1,7 +1,7 @@
 #include "node.h"
-#include <QDebug>
 #include "graphmldata.h"
 #include "edge.h"
+#include <QDebug>
 #include <QCryptographicHash>
 #include <QByteArray>
 
@@ -32,6 +32,17 @@ Node::~Node()
 {
     if(parentNode){
         parentNode->removeChild(this);
+    }
+}
+
+/**
+ * @brief Node::addValidEdgeType Add's an Edge class as a type of edge this node should check in canConnect()
+ * @param validEdge
+ */
+void Node::addValidEdgeType(Edge::EDGE_CLASS validEdge)
+{
+    if(!validEdges.contains(validEdge)){
+        validEdges.append(validEdge);
     }
 }
 
@@ -74,6 +85,27 @@ QList<Node *> Node::getItemsConnectedRight()
     }
     return returnable;
 
+}
+
+Node *Node::getContainedAspect()
+{
+    int depth = getDepthToAspect();
+    return getParentNode(depth);
+}
+
+int Node::getDepthToAspect()
+{
+    int depth = 0;
+
+    Node* parent = this;
+    while(parent){
+        if(parent->isAspect()){
+            return depth;
+        }
+        parent = parent->getParentNode();
+        depth ++;
+    }
+    return -1;
 }
 
 int Node::getIndirectConnectCount(QString nodeKind)
@@ -140,9 +172,25 @@ QString Node::toString()
     return QString("[%1]%2 - %3").arg(QString::number(getID()), kind, label);
 }
 
-Node *Node::getParentNode()
+Node *Node::getParentNode(int depth)
 {
-    return parentNode;
+    if(depth >= 0){
+        if(depth == 0){
+            return parentNode;
+        }else{
+            Node* parentNode = this;
+            while(depth >= 0){
+                if(parentNode){
+                    parentNode = parentNode->getParentNode();
+                    depth --;
+                }else{
+                    break;
+                }
+            }
+            return parentNode;
+        }
+    }
+    return 0;
 }
 
 bool Node::canAdoptChild(Node *node)
@@ -329,7 +377,7 @@ void Node::removeChild(Node *child)
 
 void Node::removeChildren()
 {
-    children.clear();\
+    children.clear();
 }
 
 bool Node::ancestorOf(Node *node)
@@ -390,14 +438,148 @@ bool Node::isDescendantOf(Node *node)
     return true;
 }
 
-bool Node::canConnect(Node *node)
+Edge::EDGE_CLASS Node::canConnect(Node *node)
 {
+    //Don't allow multiple connections.
     if(isConnected(node)){
+        return Edge::EC_NONE;
+    }
+
+    //Don't allow connections to parents.
+    if(node->getParentNode() == this || getParentNode() == node){
+        return Edge::EC_NONE;
+    }
+
+    //Don't allow connections to self.
+    if(node == this){
+        return Edge::EC_NONE;
+    }
+
+
+    //Check if node can connect as a definition.
+    if(validEdges.contains(Edge::EC_DEFINITION)){
+        //qCritical() << "Trying canConnect_DefinitionEdge";
+        if(canConnect_DefinitionEdge(node)){
+            return Edge::EC_DEFINITION;
+        }
+    }
+
+    //Check if node can connect as an Aggregate.
+    if(validEdges.contains(Edge::EC_AGGREGATE)){
+        //qCritical() << "Trying canConnect_AggregateEdge";
+        if(canConnect_AggregateEdge(node)){
+            return Edge::EC_AGGREGATE;
+        }
+    }
+
+    //Check if node can connect as an Assembly.
+    if(validEdges.contains(Edge::EC_ASSEMBLY)){
+        //qCritical() << "Trying canConnect_AssemblyEdge";
+        if(canConnect_AssemblyEdge(node)){
+            return Edge::EC_ASSEMBLY;
+        }
+    }
+
+    //Check if node can connect as a Data.
+    if(validEdges.contains(Edge::EC_DATA)){
+        //qCritical() << "Trying canConnect_DataEdge";
+        if(canConnect_DataEdge(node)){
+            return Edge::EC_DATA;
+        }
+    }
+
+    //Check if node can connect as a Data.
+    if(validEdges.contains(Edge::EC_DEPLOYMENT)){
+        //qCritical() << "Trying canConnect_DeploymentEdge";
+        if(canConnect_DeploymentEdge(node)){
+            return Edge::EC_DEPLOYMENT;
+        }
+    }
+
+    //Check if node can connect as a Data.
+    if(validEdges.contains(Edge::EC_WORKFLOW)){
+        //qCritical() << "Trying canConnect_WorkflowEdge";
+        if(canConnect_WorkflowEdge(node)){
+            return Edge::EC_WORKFLOW;
+        }
+    }
+
+    return Edge::EC_NONE;
+}
+
+bool Node::canConnect_AggregateEdge(Node *aggregate)
+{
+    return true;
+}
+
+bool Node::canConnect_AssemblyEdge(Node *node)
+{
+    return true;
+}
+
+bool Node::canConnect_DataEdge(Node *node)
+{
+    return true;
+}
+
+/**
+ * @brief Node::canConnect_DefinitionEdge Returns whether or not this Node can be made an Instance/Impl of the definition node provided
+ * @param definition - The node which will be a definition.
+ * @return true/false
+ */
+bool Node::canConnect_DefinitionEdge(Node *definition)
+{
+    //This must be an Instance/Impl Node Type
+    if(!(isInstance() || isImpl())){
         return false;
     }
-    if(node->getParentNode() == this || this->getParentNode() == node){
+
+    //Node must be a Definition Node Type.
+    if(!definition->isDefinition()){
         return false;
     }
+
+    //Node cannot already have a Definition.
+    if(getDefinition()){
+        return false;
+    }
+
+    //Check parentNode
+    Node* parentNode = getParentNode();
+
+    if(parentNode && (parentNode->isInstance() || parentNode->isImpl())){
+        Node* parentDefinition = parentNode->getDefinition();
+        if(parentDefinition){
+            if(!parentDefinition->isAncestorOf(definition)){
+                //An Entity cannot be connected to It's definition if it's not contained in the parents definition Entity.
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+bool Node::canConnect_DeploymentEdge(Node *hardware)
+{
+
+    if(!hardware->isHardware()){
+        //If the node we are trying to connect to isn't a HardwareType, then return false.
+        return false;
+    }
+
+    foreach(Edge* edge, getEdges(0)){
+        if(edge->getEdgeClass() == Edge::EC_DEPLOYMENT){
+            //There can only be one Deployment edge.
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Node::canConnect_WorkflowEdge(Node *node)
+{
     return true;
 }
 
@@ -556,6 +738,11 @@ bool Node::isAspect()
 bool Node::isImpl()
 {
     return nodeType == Node::NT_IMPL;
+}
+
+bool Node::isHardware()
+{
+    return nodeType == Node::NT_HARDWARE;
 }
 
 void Node::setDefinition(Node *def)

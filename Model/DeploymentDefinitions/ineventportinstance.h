@@ -1,22 +1,17 @@
 #ifndef INEVENTPORTINSTANCE_H
 #define INEVENTPORTINSTANCE_H
-#include "../node.h"
+#include "eventportinstance.h"
 
-class InEventPortInstance : public Node
+class InEventPortInstance : public EventPortInstance
 {
-        Q_OBJECT
+    Q_OBJECT
 public:
     InEventPortInstance();
     ~InEventPortInstance();
 
-
-    // GraphML interface
-public:
-    bool canAdoptChild(Node* child);
-    bool canConnect(Node* attachableObject);
-    //QString toGraphML(qint32 indentationLevel);
-    
-
+    bool canAdoptChild(Node*);
+    bool canConnect_DefinitionEdge(Node *definition);
+    bool canConnect_AssemblyEdge(Node *node);
 };
 
 #endif // INEVENTPORTINSTANCE_H

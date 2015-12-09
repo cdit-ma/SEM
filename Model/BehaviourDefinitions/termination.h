@@ -12,7 +12,6 @@ public:
 
     Branch* getBranch();
 public:
-    bool canConnect(Node* attachableObject);
     bool canAdoptChild(Node*);
 };
 

@@ -1,22 +1,16 @@
 #ifndef COMPONENTINSTANCE_H
 #define COMPONENTINSTANCE_H
 #include "../node.h"
-#include "../BehaviourDefinitions/componentimpl.h"
-
 
 class ComponentInstance : public Node
 {
-        Q_OBJECT
+    Q_OBJECT
 public:
     ComponentInstance();
     ~ComponentInstance();
 
-public:
     bool canAdoptChild(Node* child);
-    bool canConnect(Node* attachableObject);
-    //QString toGraphML(qint32 indentationLevel=0);
-    
-
+    bool canConnect_DefinitionEdge(Node *definition);
 };
 
 #endif // COMPONENTINSTANCE_H

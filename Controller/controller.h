@@ -1,10 +1,12 @@
 #ifndef NEWCONTROLLER_H
 #define NEWCONTROLLER_H
+#include "../Model/model.h"
+#include "../Model/workerdefinitions.h"
+
 #include <QStack>
 #include <QFile>
 #include <QPointF>
-#include "../Model/model.h"
-#include "../Model/workerdefinitions.h"
+#include <QXmlStreamReader>
 
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
@@ -279,11 +281,12 @@ private:
     bool teardownDefinitionRelationship(Node* definition, Node* node, bool instance);
 
     //Attaches an Aggregate Definition to an EventPort Definition.
-    bool setupAggregateRelationship(EventPort* eventPort, Aggregate* aggregate);
-    bool teardownAggregateRelationship(EventPort* EventPort, Aggregate* aggregate);
+    bool setupEventPortAggregateRelationship(EventPort* eventPort, Aggregate* aggregate);
+    bool teardownEventPortAggregateRelationship(EventPort* EventPort, Aggregate* aggregate);
 
-    bool setupVectorRelationship(Vector* vector, Aggregate* aggregate);
-    bool teardownVectorRelationship(Vector* vector, Aggregate* aggregate);
+
+    bool setupAggregateRelationship(Node* node, Aggregate* aggregate);
+    bool teardownAggregateRelationship(Node* node, Aggregate* aggregate);
 
     bool setupParameterRelationship(Parameter* parameter, Node* data);
     bool teardownParameterRelationship(Parameter* parameter, Node* data);
