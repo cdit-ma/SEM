@@ -25,27 +25,26 @@ public:
     void setEnabled(bool enable, bool repaint = false);
     bool isEnabled();
 
-    DockScrollArea* getContainer();
-    void setContainer(DockScrollArea* area);
-    void hideContainer();
+    DockScrollArea* getDock();
+    void setDock(DockScrollArea* dock);
+    void hideDock();
 
     int getWidth();
     DOCK_TYPE getDockType();
 
+    MedeaWindow* getParentWindow();
+
 protected:
     void paintEvent(QPaintEvent* e);
 
-signals:
-    void dockButton_pressed(DOCK_TYPE type);
-    void dockButton_dockOpen(bool open);
-
 public slots:
-    void on_buttonPressed();
+    void dockButtonPressed(DOCK_TYPE type);
 
 private:
     void setColor(int state, bool needRepaint = false);
 
-    DockScrollArea* scrollArea;
+    DockScrollArea* dock;
+    MedeaWindow* parentWindow;
 
     QColor brushColor;
     QColor defaultBrushColor;

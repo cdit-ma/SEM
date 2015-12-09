@@ -92,10 +92,12 @@ signals:
     void window_toggleAspect(VIEW_ASPECT aspect, bool on);
     void window_centerAspect(VIEW_ASPECT aspect);
 
+    void window_dockButtonPressed(DOCK_TYPE);
+    void window_clearDocks();
+
     void window_updateActionsEnabled();
 
     void checkDockScrollBar();
-    void clearDocks();
 
     void window_DisplayMessage(MESSAGE_TYPE type, QString title, QString message);
 
@@ -162,10 +164,7 @@ private slots:
     QIcon getIcon(QString alias, QString image);
     void menuActionTriggered();
 
-    void graphicsItemSelected();
-    void graphicsItemDeleted();
-
-    void dockButtonPressed(DOCK_TYPE dockType);
+    void dockButtonPressed();
     void forceOpenDock(DOCK_TYPE type, QString srcKind = "");
 
     void updateWindowTitle(QString newProjectName);

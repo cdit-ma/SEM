@@ -12,11 +12,8 @@ public:
 
     QList<DockNodeItem*> getDockNodeItems();
 
+    void connectToView();
     void nodeDeleted(QString nodeID);
-
-signals:
-    void dock_forceOpenDock(DOCK_TYPE type);
-    void dock_updateDockItemLabels();
 
 public slots:
     void dockNodeItemClicked();

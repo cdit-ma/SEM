@@ -33,6 +33,8 @@ public:
     virtual QList<DockNodeItem*> getDockNodeItems();
 
     bool isDockOpen();
+    void setDockOpen(bool open);
+
     bool isDockEnabled();
     void setDockEnabled(bool enabled, bool repaint = false);
 
@@ -48,11 +50,13 @@ public:
     NodeView* getNodeView();
     QStringList getAdoptableNodeListFromView();
 
+    virtual void connectToView() = 0;
     virtual void nodeDeleted(QString nodeID);
 
 signals:
-    void dock_opened();
-    void dock_closed();
+    void dock_opened(bool open = true);
+    void dock_closed(bool open = false);
+    void dock_forceOpenDock(DOCK_TYPE type, QString filterForKind = "");
 
 public slots:
     virtual void dockNodeItemClicked() = 0;
@@ -61,8 +65,6 @@ public slots:
 
     void onNodeDeleted(int nodeID, int parentID);
     void onEdgeDeleted(int srcID = -1, int dstID = -1);
-
-    void on_parentButtonPressed();
 
     void clearSelected();
     void updateCurrentNodeItem();
@@ -74,7 +76,7 @@ private:
     void setParentButton(DockToggleButton* parent);
 
     NodeView* nodeView;
-    DockToggleButton *parentButton;
+    DockToggleButton* parentButton;
 
     NodeItem* currentNodeItem;
     int currentNodeItemID;

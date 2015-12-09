@@ -35,6 +35,7 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     setNotAllowedKinds(definitions_notAllowedKinds);
     setDockEnabled(false);
 
+    connectToView();
     connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
 }
 
@@ -56,6 +57,22 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
     }
 
     return dockNodeItems;
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::connectToView
+ */
+void DefinitionsDockScrollArea::connectToView()
+{
+    NodeView* view = getNodeView();
+    if (view) {
+        connect(view, SIGNAL(view_nodeSelected()), this, SLOT(updateCurrentNodeItem()));
+        connect(view, SIGNAL(view_edgeConstructed()), this, SLOT(updateDock()));
+        connect(view, SIGNAL(view_nodeConstructed(NodeItem*)), this, SLOT(nodeConstructed(NodeItem*)));
+        connect(view, SIGNAL(view_edgeDeleted(int,int)), this, SLOT(onEdgeDeleted(int, int)));
+        connect(view, SIGNAL(view_nodeDeleted(int,int)), this, SLOT(onNodeDeleted(int, int)));
+    }
 }
 
 

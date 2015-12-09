@@ -274,7 +274,7 @@ void MedeaWindow::modelReady()
  */
 void MedeaWindow::projectCleared()
 {
-    clearDocks();
+    window_clearDocks();
 }
 
 /**
@@ -1358,7 +1358,6 @@ void MedeaWindow::makeConnections()
 {
     validateResults.connectToWindow(this);
     connect(this, SIGNAL(window_SetViewVisible(bool)), nodeView, SLOT(setVisible(bool)));
-    connect(this, SIGNAL(window_SetViewVisible(bool)), minimap, SLOT(setVisible(bool)));
 
     connect(this, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)), nodeView, SLOT(toggleAspect(VIEW_ASPECT,bool)));
     connect(this, SIGNAL(window_centerAspect(VIEW_ASPECT)), nodeView, SLOT(centerAspect(VIEW_ASPECT)));
@@ -1384,19 +1383,18 @@ void MedeaWindow::makeConnections()
     connect(file_exportSnippet, SIGNAL(triggered()), nodeView, SLOT(exportSnippet()));
 
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
+    connect(toolbarButton, SIGNAL(clicked(bool)), this, SLOT(showWindowToolbar(bool)));
 
     connect(nodeView, SIGNAL(customContextMenuRequested(QPoint)), nodeView, SLOT(showToolbar(QPoint)));
-    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
 
     //Minimap Funcs
+    connect(this, SIGNAL(window_SetViewVisible(bool)), minimap, SLOT(setVisible(bool)));
+    connect(nodeView, SIGNAL(view_ViewportRectChanged(QRectF)), minimap, SLOT(viewportRectChanged(QRectF)));
+    connect(nodeView, SIGNAL(view_ModelSizeChanged()), minimap, SLOT(centerView()));
     connect(minimap, SIGNAL(minimap_Pan()), nodeView, SLOT(minimapPan()));
     connect(minimap, SIGNAL(minimap_Panning(QPointF)), nodeView, SLOT(minimapPanning(QPointF)));
     connect(minimap, SIGNAL(minimap_Panned()), nodeView, SLOT(minimapPanned()));
     connect(minimap, SIGNAL(minimap_Scrolled(int)), nodeView, SLOT(minimapScrolled(int)));
-
-    connect(nodeView, SIGNAL(view_ModelSizeChanged()), minimap, SLOT(centerView()));
-
-    //connect(progressTimer, SIGNAL(timeout()), progressBar, SLOT(hide()));
 
     connect(notificationTimer, SIGNAL(timeout()), notificationsBar, SLOT(hide()));
     connect(notificationTimer, SIGNAL(timeout()), this, SLOT(checkNotificationsQueue()));
@@ -1466,8 +1464,6 @@ void MedeaWindow::makeConnections()
     connect(nodeKindsMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
     connect(dataKeysMenu, SIGNAL(aboutToHide()), this, SLOT(searchMenuClosed()));
 
-    connect(toolbarButton, SIGNAL(clicked(bool)), this, SLOT(showWindowToolbar(bool)));
-
     connect(edit_delete, SIGNAL(triggered()), nodeView, SLOT(deleteSelection()));
     connect(actionFitToScreen, SIGNAL(triggered()), nodeView, SLOT(fitToScreen()));
     connect(actionCenter, SIGNAL(triggered()), nodeView, SLOT(centerItem()));
@@ -1488,43 +1484,11 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
     connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(updateWindowTitle(QString)));
 
-    connect(dockStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedDockClosed()));
+    connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
+
     // DEMO CHANGE
     //connect(toolbarStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedToolbarClosed()));
-
-    connect(partsDock, SIGNAL(dock_forceOpenDock(DOCK_TYPE,QString)), this, SLOT(forceOpenDock(DOCK_TYPE,QString)));
-    connect(definitionsDock, SIGNAL(dock_forceOpenDock(DOCK_TYPE)), this, SLOT(forceOpenDock(DOCK_TYPE)));
-    connect(functionsDock, SIGNAL(dock_forceOpenDock(DOCK_TYPE)), this, SLOT(forceOpenDock(DOCK_TYPE)));
-
-    connect(hardwareNodesButton, SIGNAL(dockButton_dockOpen(bool)), nodeView, SLOT(hardwareDockOpened(bool)));
-
-    connect(this, SIGNAL(clearDocks()), partsDock, SLOT(clear()));
-    connect(this, SIGNAL(clearDocks()), hardwareDock, SLOT(clear()));
-    connect(this, SIGNAL(clearDocks()), definitionsDock, SLOT(clear()));
-    connect(this, SIGNAL(clearDocks()), functionsDock, SLOT(clear()));
-
-    connect(nodeView, SIGNAL(view_nodeSelected()), this, SLOT(graphicsItemSelected()));
-
-    connect(nodeView, SIGNAL(view_nodeSelected()), partsDock, SLOT(updateCurrentNodeItem()));
-    connect(nodeView, SIGNAL(view_nodeSelected()), hardwareDock, SLOT(updateCurrentNodeItem()));
-    connect(nodeView, SIGNAL(view_nodeSelected()), definitionsDock, SLOT(updateCurrentNodeItem()));
-    connect(nodeView, SIGNAL(view_nodeSelected()), functionsDock, SLOT(updateCurrentNodeItem()));
-
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), partsDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), hardwareDock, SLOT(nodeConstructed(NodeItem*)));
-    connect(nodeView, SIGNAL(view_nodeConstructed(NodeItem*)), definitionsDock, SLOT(nodeConstructed(NodeItem*)));
-
-    connect(nodeView, SIGNAL(view_nodeDeleted(int, int)), partsDock, SLOT(onNodeDeleted(int, int)));
-    connect(nodeView, SIGNAL(view_nodeDeleted(int,int)), hardwareDock, SLOT(onNodeDeleted(int, int)));
-    connect(nodeView, SIGNAL(view_nodeDeleted(int,int)), definitionsDock, SLOT(onNodeDeleted(int, int)));
-
-    connect(nodeView, SIGNAL(view_edgeConstructed()), hardwareDock, SLOT(updateDock()));
-    connect(nodeView, SIGNAL(view_edgeConstructed()), definitionsDock, SLOT(updateDock()));
-
-    connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), hardwareDock, SLOT(onEdgeDeleted(int, int)));
-    connect(nodeView, SIGNAL(view_edgeDeleted(int,int)), definitionsDock, SLOT(onEdgeDeleted(int, int)));
-
-    connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
+    //connect(dockStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedDockClosed()));
 
     //For mac
     addAction(exit);
@@ -2817,12 +2781,6 @@ void MedeaWindow::menuActionTriggered()
         progressAction = "Undoing Action";
     } else if (action->text().contains("Redo")) {
         progressAction = "Redoing Action";
-    } else if (action->text().contains("Grid Lines")) {
-
-        // update toggleGridButton's tooltip
-        // in case the grid lines are turned on, this will check if there
-        // is a selected item before it turns the snap to grid functions on
-        graphicsItemSelected();
     }
 }
 
@@ -2889,48 +2847,18 @@ void MedeaWindow::forceToggleAspect(VIEW_ASPECT aspect, bool on)
  * This slot is called whenever a dock toggle button is pressed.
  * It makes sure that the groupbox attached to the dock button
  * that was pressed is the only groupbox that is being displayed.
- * @param buttonName
  */
-void MedeaWindow::dockButtonPressed(DOCK_TYPE dockType)
+void MedeaWindow::dockButtonPressed()
 {
-    DockToggleButton *button, *prevButton;
-
-    switch (dockType) {
-    case PARTS_DOCK:
-        button = partsButton;
-        break;
-    case DEFINITIONS_DOCK:
-        button = definitionsButton;
-        break;
-    case FUNCTIONS_DOCK:
-        button = functionsButton;
-        break;
-    case HARDWARE_DOCK:
-        button = hardwareNodesButton;
-        break;
-    default:
-        qWarning() << "MedeaWindow::dockButtonPressed - Dock type not handled";
-        return;
-    }
-
-    // if the previously activated groupbox is still on display, hide it
-    if (prevPressedButton != 0 && prevPressedButton != button) {
-        prevButton = button;
-        prevPressedButton->hideContainer();
-        button = prevButton;
-    }
-
-    prevPressedButton = button;
-
-    // this allows mouse events to pass through the dock's hidden
-    // groupbox when none of the docks are currently opened
-    if (!partsButton->isSelected() &&
-            !definitionsButton->isSelected() &&
-            !hardwareNodesButton->isSelected() &&
-            !functionsButton->isSelected()) {
-        updateWidgetMask(docksArea, dockButtonsBox);
-    } else {
-        docksArea->clearMask();
+    DockToggleButton* button = qobject_cast<DockToggleButton*>(QObject::sender());
+    if (button) {
+        emit window_dockButtonPressed(button->getDockType());
+        // update the dock area's mask depending on whether a dock is opened
+        if (button->isSelected()) {
+            docksArea->clearMask();
+        } else {
+            updateWidgetMask(docksArea, dockButtonsBox);
+        }
     }
 }
 
@@ -3203,55 +3131,6 @@ void MedeaWindow::checkNotificationsQueue()
     if (notificationsQueue.count() > 0) {
         displayNotification();
     }
-}
-
-
-/**
- * @brief MedeaWindow::graphicsItemSelected
- * Added this slot to update anything that needs updating when a graphics item is selected.
- */
-void MedeaWindow::graphicsItemSelected()
-{
-    //if (hardwareNodesButton->getSelected()) {
-    //    if(nodeView){
-    //        emit window_highlightDeployment();
-    //    }
-    //}
-    /*
-    if (nodeView && nodeView->getSelectedNode()) {
-        view_showConnectedNodes->setEnabled(true);
-        view_snapToGrid->setEnabled(settings_useGridLines->isChecked());
-        view_snapChildrenToGrid->setEnabled(settings_useGridLines->isChecked());
-
-
-
-    } else {
-        view_showConnectedNodes->setEnabled(false);
-        view_snapToGrid->setEnabled(false);
-        view_snapChildrenToGrid->setEnabled(false);
-    }
-    */
-}
-
-
-/**
- * @brief MedeaWindow::graphicsItemDeleted
- * This is currently called when a node item is deleted.
- * It stops the data table from displaying an emty white rectangle
- * when the item that was deleted was previously selected.
- */
-void MedeaWindow::graphicsItemDeleted()
-{
-    //updateDataTable();
-
-    // added this here for when edges are deleted
-    // we need to check first if there's a selected node before clearing the deployment highlight
-    /*
-    if (nodeView) {
-        qDebug() << "Edge deleted";
-        emit window_highlightDeployment(nodeView->getSelectedNode());
-    }
-    */
 }
 
 

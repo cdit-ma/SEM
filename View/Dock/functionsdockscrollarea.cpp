@@ -21,6 +21,8 @@ FunctionsDockScrollArea::FunctionsDockScrollArea(QString label, NodeView *view, 
     getLayout()->addLayout(mainLayout);
 
     setDockEnabled(false);
+
+    connectToView();
     connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
 }
 
@@ -64,6 +66,18 @@ void FunctionsDockScrollArea::addDockNodeItems(QList<QPair<QString, QString> > f
             addDockNodeItem(dockItem, -1, false);
             insertDockNodeItem(dockItem);
         }
+    }
+}
+
+
+/**
+ * @brief FunctionsDockScrollArea::connectToView
+ */
+void FunctionsDockScrollArea::connectToView()
+{
+    NodeView* view = getNodeView();
+    if (view) {
+        connect(view, SIGNAL(view_nodeSelected()), this, SLOT(updateCurrentNodeItem()));
     }
 }
 

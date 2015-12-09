@@ -12,9 +12,7 @@ public:
     explicit FunctionsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent = 0);
 
     void addDockNodeItems(QList<QPair<QString, QString> > functionKinds);
-
-signals:
-    void dock_forceOpenDock(DOCK_TYPE type);
+    void connectToView();
 
 public slots:
     void dockNodeItemClicked();
