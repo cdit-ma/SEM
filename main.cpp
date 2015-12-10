@@ -18,6 +18,12 @@
 //ICON_LINK
 //https://www.google.com/design/icons/index.html
 
+/**
+ * @brief main Main Yo
+ * @param argc
+ * @param argv
+ * @return
+ */
 int main(int argc, char *argv[])
 {
     //Construct a QApplication

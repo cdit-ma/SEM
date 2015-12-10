@@ -3,6 +3,9 @@
 
 #include <QGraphicsView>
 
+/**
+ * @brief The NodeViewMinimap class
+ */
 class NodeViewMinimap : public QGraphicsView
 {
     Q_OBJECT

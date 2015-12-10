@@ -690,6 +690,7 @@ void NewController::constructEdge(int srcID, int dstID, bool reverseOkay)
 {
     Node* src = getNodeFromID(srcID);
     Node* dst = getNodeFromID(dstID);
+    GraphMLData* label = src->getData("label");
     if(src && dst){
         Edge* edge = constructEdgeWithData(src, dst);
         if(!edge){

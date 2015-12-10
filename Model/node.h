@@ -101,7 +101,6 @@ public:
     //Returns whether or not this Node can connect with the provided Node
     Edge::EDGE_CLASS canConnect(Node* node);
 
-
     virtual bool canConnect_AggregateEdge(Node* aggregate);
     virtual bool canConnect_AssemblyEdge(Node* node);
     virtual bool canConnect_DataEdge(Node* node);
