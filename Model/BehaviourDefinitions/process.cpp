@@ -1,8 +1,8 @@
 #include "process.h"
 #include "parameter.h"
 
-Process::Process():BehaviourNode(false, false, false){
-    setUnconnectable(false);
+Process::Process():BehaviourNode(){
+    setIsNonWorkflow(true);
 }
 
 Process::~Process(){

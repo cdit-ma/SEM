@@ -141,7 +141,8 @@ HEADERS += \
     Model/BehaviourDefinitions/eventportimpl.h \
     Model/DeploymentDefinitions/eventportdelegate.h \
     Model/DeploymentDefinitions/eventportinstance.h \
-    Model/DeploymentDefinitions/hardware.h
+    Model/DeploymentDefinitions/hardware.h \
+    Model/Edges/workflowedge.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -248,7 +249,8 @@ SOURCES += \
     Model/BehaviourDefinitions/eventportimpl.cpp \
     Model/DeploymentDefinitions/eventportinstance.cpp \
     Model/DeploymentDefinitions/hardware.cpp \
-    Model/DeploymentDefinitions/eventportdelegate.cpp
+    Model/DeploymentDefinitions/eventportdelegate.cpp \
+    Model/Edges/workflowedge.cpp
 
 FORMS +=
 

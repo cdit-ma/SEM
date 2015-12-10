@@ -13,6 +13,7 @@ public:
     Branch* getBranch();
 public:
     bool canAdoptChild(Node*);
+    bool canConnect_WorkflowEdge(Node *node);
 };
 
 

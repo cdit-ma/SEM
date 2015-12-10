@@ -1179,8 +1179,6 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
 }
 
 
-
-
 void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     VIEW_STATE viewState = getViewState();

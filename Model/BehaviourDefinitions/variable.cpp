@@ -4,6 +4,7 @@
 
 Variable::Variable():BehaviourNode()
 {
+    setIsNonWorkflow(true);
     addValidEdgeType(Edge::EC_DATA);
 }
 

@@ -2161,7 +2161,7 @@ bool NodeView::isNodeVisuallyConnectable(Node *node)
     if(node){
         BehaviourNode* bNode = dynamic_cast<BehaviourNode*>(node);
         if(bNode){
-            if(!bNode->isUnconnectable()){
+            if(bNode->needEdge()){
                 return true;
             }
         }else{

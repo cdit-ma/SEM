@@ -3,10 +3,9 @@
 #include "outeventportimpl.h"
 #include "../InterfaceDefinitions/aggregateinstance.h"
 
-EventPortImpl::EventPortImpl(bool isInEventPort):BehaviourNode(isInEventPort, false, true, Node::NT_IMPL)
+EventPortImpl::EventPortImpl(bool isInEventPort):BehaviourNode(Node::NT_IMPL)
 {
     inEventPort = isInEventPort;
-
     addValidEdgeType(Edge::EC_WORKFLOW);
     addValidEdgeType(Edge::EC_DEFINITION);
 }

@@ -6,8 +6,9 @@
  * @brief AttributeImpl::AttributeImpl Constructor
  * Calls Node::NT_IMPL as it is an Implementation of Attribute
  */
-AttributeImpl::AttributeImpl():BehaviourNode(false,false,true,Node::NT_IMPL)
+AttributeImpl::AttributeImpl():BehaviourNode(Node::NT_IMPL)
 {
+    setIsNonWorkflow(true);
     addValidEdgeType(Edge::EC_DATA);
     addValidEdgeType(Edge::EC_DEFINITION);
 }

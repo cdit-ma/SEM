@@ -1,12 +1,12 @@
 #include "periodicevent.h"
 #include "inputparameter.h"
 
-PeriodicEvent::PeriodicEvent():BehaviourNode(true){
-
+PeriodicEvent::PeriodicEvent():BehaviourNode(){
+    //Setup initial settings
+    setIsWorkflowStart(true);
 }
 
 PeriodicEvent::~PeriodicEvent(){
-
 }
 
 bool PeriodicEvent::canAdoptChild(Node * node)
