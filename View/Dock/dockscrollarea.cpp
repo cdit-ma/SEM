@@ -1,6 +1,10 @@
 #include "dockscrollarea.h"
 #include "docktogglebutton.h"
 #include "docknodeitem.h"
+
+#include "definitionsdockscrollarea.h"
+#include "hardwaredockscrollarea.h"
+
 #include <QDebug>
 
 
@@ -13,6 +17,11 @@
 DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton* parent) :
     QScrollArea(parent)
 {
+    if (!view || !parent) {
+        qWarning() << "DockScrollArea::DockScrollArea - NodeView or parent DockToggleButton is null.";
+        return;
+    }
+
     nodeView = view;
     currentNodeItem = 0;
     currentNodeItemID = -1;
@@ -145,6 +154,19 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
         return nodeView->getAdoptableNodeList(currentNodeItemID);
     }
     return QStringList();
+}
+
+
+/**
+ * @brief DockScrollArea::setInfoText
+ * @param text
+ */
+void DockScrollArea::displayInfoLabel(bool display, QString text)
+{
+    if (infoLabel && (infoLabel->isVisible() != display)) {
+        infoLabel->setText(text);
+        infoLabel->setVisible(display);
+    }
 }
 
 
@@ -284,6 +306,23 @@ bool DockScrollArea::isDockOpen()
 
 
 /**
+ * @brief DockScrollArea::setDockOpen
+ * @param open
+ */
+void DockScrollArea::setDockOpen(bool open)
+{
+    dockOpen = open;
+    setVisible(open);
+
+    if (open) {
+        emit dock_opened();
+    } else {
+        emit dock_closed();
+    }
+}
+
+
+/**
  * @brief DockScrollArea::updateDock
  * If the currently selected node kind is contained in notAllowedKinds,
  * it means that this dock can't be used for the selected node.
@@ -364,6 +403,9 @@ int DockScrollArea::getCurrentNodeID()
  */
 void DockScrollArea::setupLayout()
 {
+    infoLabel = new QLabel("Info Label", this);
+    infoLabel->hide();
+
     QGroupBox* groupBox = new QGroupBox(0);
     groupBox->setTitle(label);
     groupBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
@@ -378,6 +420,7 @@ void DockScrollArea::setupLayout()
     layout->setSpacing(2);
     layout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     layout->setSizeConstraint(QLayout::SetMinimumSize);
+    layout->addWidget(infoLabel);
     groupBox->setLayout(layout);
 
     setWidget(groupBox);
@@ -400,25 +443,7 @@ void DockScrollArea::setupLayout()
 void DockScrollArea::setParentButton(DockToggleButton *parent)
 {
     parentButton = parent;
-    parentButton->setContainer(this);
-    connect(parentButton, SIGNAL(pressed()), this, SLOT(on_parentButtonPressed()));
-}
-
-
-/**
- * @brief DockScrollArea::on_parentButtonPressed
- * This shows or hides the scroll area and its groupbox.
- */
-void DockScrollArea::on_parentButtonPressed()
-{
-    if (dockOpen) {
-        dockOpen = false;
-        emit dock_closed();
-    } else {
-        dockOpen = true;
-        emit dock_opened();
-    }
-    setVisible(dockOpen);
+    parentButton->setDock(this);
 }
 
 

@@ -54,6 +54,25 @@ HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, Do
 
     setNotAllowedKinds(hardware_notAllowedKinds);
     setDockEnabled(false);
+    connectToView();
+}
+
+
+/**
+ * @brief HardwareDockScrollArea::connectToView
+ */
+void HardwareDockScrollArea::connectToView()
+{
+    NodeView* view = getNodeView();
+    if (view) {
+        connect(this, SIGNAL(dock_opened(bool)), view, SLOT(hardwareDockOpened(bool)));
+        connect(this, SIGNAL(dock_closed(bool)), view, SLOT(hardwareDockOpened(bool)));
+        connect(view, SIGNAL(view_nodeSelected()), this, SLOT(updateCurrentNodeItem()));
+        connect(view, SIGNAL(view_edgeConstructed()), this, SLOT(updateDock()));
+        connect(view, SIGNAL(view_nodeConstructed(NodeItem*)), this, SLOT(nodeConstructed(NodeItem*)));
+        connect(view, SIGNAL(view_edgeDeleted(int,int)), this, SLOT(onEdgeDeleted(int, int)));
+        connect(view, SIGNAL(view_nodeDeleted(int,int)), this, SLOT(onNodeDeleted(int, int)));
+    }
 }
 
 

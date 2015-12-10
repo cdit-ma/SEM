@@ -20,6 +20,7 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
     kindsRequiringFunction.append("Process");
 
     setDockEnabled(false);
+    connectToView();
 }
 
 
@@ -134,6 +135,16 @@ void PartsDockScrollArea::addDockNodeItems(QStringList nodeKinds)
 bool PartsDockScrollArea::kindRequiresDockSwitching(QString dockItemKind)
 {
     return kindsRequiringDefinition.contains(dockItemKind) || kindsRequiringFunction.contains(dockItemKind);
+}
+
+void PartsDockScrollArea::connectToView()
+{
+    NodeView* view = getNodeView();
+    if (view) {
+        connect(view, SIGNAL(view_nodeSelected()), this, SLOT(updateCurrentNodeItem()));
+        connect(view, SIGNAL(view_nodeConstructed(NodeItem*)), this, SLOT(updateDock()));
+        connect(view, SIGNAL(view_nodeDeleted(int, int)), this, SLOT(onNodeDeleted(int, int)));
+    }
 }
 
 

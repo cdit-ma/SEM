@@ -13,8 +13,7 @@ public:
     void addDockNodeItems(QStringList nodeKinds);
     bool kindRequiresDockSwitching(QString dockItemKind);
 
-signals:
-    void dock_forceOpenDock(DOCK_TYPE type, QString srcDockItemKind = "");
+    void connectToView();
 
 public slots:
     void dockNodeItemClicked();

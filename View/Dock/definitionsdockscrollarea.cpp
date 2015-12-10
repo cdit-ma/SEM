@@ -35,6 +35,7 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     setNotAllowedKinds(definitions_notAllowedKinds);
     setDockEnabled(false);
 
+    connectToView();
     connect(this, SIGNAL(dock_closed()), this, SLOT(dockClosed()));
 }
 
@@ -56,6 +57,22 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
     }
 
     return dockNodeItems;
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::connectToView
+ */
+void DefinitionsDockScrollArea::connectToView()
+{
+    NodeView* view = getNodeView();
+    if (view) {
+        connect(view, SIGNAL(view_nodeSelected()), this, SLOT(updateCurrentNodeItem()));
+        connect(view, SIGNAL(view_edgeConstructed()), this, SLOT(updateDock()));
+        connect(view, SIGNAL(view_nodeConstructed(NodeItem*)), this, SLOT(nodeConstructed(NodeItem*)));
+        connect(view, SIGNAL(view_edgeDeleted(int,int)), this, SLOT(onEdgeDeleted(int, int)));
+        connect(view, SIGNAL(view_nodeDeleted(int,int)), this, SLOT(onNodeDeleted(int, int)));
+    }
 }
 
 
@@ -446,6 +463,41 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
 
 
 /**
+ * @brief DefinitionsDockScrollArea::updateInfoText
+ */
+void DefinitionsDockScrollArea::updateInfoLabel(bool show)
+{
+    /*
+    if (!show) {
+        displayInfoLabel(false);
+        return;
+    }
+
+    qDebug() << "node kind: " << sourceDockItemKind;
+
+    QString infoLabelText;
+    QString kind = sourceDockItemKind;
+
+    if (kind.endsWith("Instance")) {
+        if (kind == "VectorInstance") {
+             infoLabelText = "There are no IDL files containing initialised Vectors.";
+        } else {
+            kind = kind.remove("Instance");
+            infoLabelText = "There are no IDL files containing" + kind + " .";
+        }
+    } else if (kind == "ComponentImpl") {
+        infoLabelText = "There are no IDL files containing unimplemented Components.";
+    } else {
+        qWarning() << "DefinitionsDockScrollArea::updateInfoLabel - Node kind is not handled.";
+        return;
+    }
+
+    displayInfoLabel(true, infoLabelText);
+    */
+}
+
+
+/**
  * @brief DefinitionsDockScrollArea::showDockItemsOfKind
  * This function displays all the dock items with the provided kind and hides the rest.
  * @param nodeKind - kind of dock node item to show
@@ -459,12 +511,19 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
         return;
     }
 
+    //bool displayInfoLabel = true;
+
     // only show the dock node items with the specified kind
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
         QString dockItemKind = dockItem->getKind();
         bool showItem = dockItemKind == nodeKind;
         dockItem->setHidden(!showItem);
+        /*if (displayInfoLabel && showItem) {
+            displayInfoLabel = false;
+        }*/
     }
+
+    //updateInfoLabel(displayInfoLabel);
 }
 
 

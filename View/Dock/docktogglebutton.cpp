@@ -21,6 +21,9 @@
 DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget *parent) :
     QPushButton(parent)
 {
+    dock = 0;
+    parentWindow = window;
+
     selected = false;
     enabled = false;
 
@@ -83,8 +86,8 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
     setStyleSheet("padding: 0px 5px 5px 0px;");
 
     // make connections
-    connect(this, SIGNAL(pressed()), this, SLOT(on_buttonPressed()));
-    connect(this, SIGNAL(dockButton_pressed(DOCK_TYPE)), window, SLOT(dockButtonPressed(DOCK_TYPE)));
+    connect(this, SIGNAL(pressed()), window, SLOT(dockButtonPressed()));
+    connect(window, SIGNAL(window_dockButtonPressed(DOCK_TYPE)), this, SLOT(dockButtonPressed(DOCK_TYPE)));
 }
 
 
@@ -93,7 +96,7 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
  */
 DockToggleButton::~DockToggleButton()
 {
-    delete scrollArea;
+    delete dock;
 }
 
 
@@ -116,16 +119,6 @@ bool DockToggleButton::isSelected()
 void DockToggleButton::setSelected(bool b)
 {
     selected = b;
-}
-
-
-/**
- * @brief DockToggleButton::setContainer
- * @param area
- */
-void DockToggleButton::setContainer(DockScrollArea *area)
-{
-    scrollArea = area;
 }
 
 
@@ -157,35 +150,49 @@ void DockToggleButton::paintEvent(QPaintEvent *e)
     path2.addEllipse(rect2);
     painter.drawPath(path2);
 
-    //painter.drawText(16, 25, text());
-
     QWidget::paintEvent(e);
 }
 
 
 /**
- * @brief DockToggleButton::hideContainer
+ * @brief DockToggleButton::hideDock
  * When this button's groupbox was the last one displayed,
  * this method is called by the main window to make sure that
  * it is hidden before another groupbox is displayed.
  */
-void DockToggleButton::hideContainer()
+void DockToggleButton::hideDock()
 {
     // if the groupbox is still visible, force press this button to hide it
     if (selected) {
-        emit pressed();
+        dockButtonPressed(getDockType());
     }
 }
 
 
 /**
- * @brief DockToggleButton::getContainer
- * This method returns the dock container attached to this button.
+ * @brief DockToggleButton::getDock
+ * This method returns the dock attached to this button.
  * @return scrollArea
  */
-DockScrollArea* DockToggleButton::getContainer()
+DockScrollArea* DockToggleButton::getDock()
 {
-    return scrollArea;
+    return dock;
+}
+
+
+/**
+ * @brief DockToggleButton::setDock
+ * @param dock
+ */
+void DockToggleButton::setDock(DockScrollArea* dock)
+{
+    this->dock = dock;
+
+    // connect the dock to the parent window
+    if (parentWindow && dock) {
+        connect(parentWindow, SIGNAL(window_clearDocks()), dock, SLOT(clear()));
+        connect(dock, SIGNAL(dock_forceOpenDock(DOCK_TYPE,QString)), parentWindow, SLOT(forceOpenDock(DOCK_TYPE,QString)));
+    }
 }
 
 
@@ -211,21 +218,44 @@ DOCK_TYPE DockToggleButton::getDockType()
 
 
 /**
- * @brief DockToggleButton::on_buttonPressed
- * When this button is pressed, its selected state is updated
- * and its text() is sent to the main window.
+ * @brief DockToggleButton::getParentWindow
+ * @return
  */
-void DockToggleButton::on_buttonPressed()
+MedeaWindow *DockToggleButton::getParentWindow()
 {
-    if (selected) {
-        selected = false;
-        setColor(DEFAULT, true);
+    return parentWindow;
+}
+
+
+/**
+ * @brief DockToggleButton::dockButtonPressed
+ * @param type
+ */
+void DockToggleButton::dockButtonPressed(DOCK_TYPE type)
+{
+    bool needUpdate = true;
+
+    // update the selected state
+    if (type == getDockType()) {
+        selected = !selected;
     } else {
-        selected = true;
-        setColor(SELECTED, true);
+        if (selected) {
+            selected = false;
+        } else {
+            needUpdate = false;
+        }
     }
-    emit dockButton_pressed(dockType);
-    emit dockButton_dockOpen(selected);
+
+    // update the button's color if the state is changed
+    if (needUpdate) {
+        if (selected) {
+            setColor(SELECTED, true);
+        } else {
+            setColor(DEFAULT, true);
+        }
+        // show/hide the attached dock
+        getDock()->setDockOpen(selected);
+    }
 }
 
 
@@ -239,6 +269,7 @@ void DockToggleButton::on_buttonPressed()
 void DockToggleButton::setColor(int state, bool needRepaint)
 {
     penWidth = defaultPenWidth;
+
     switch (state) {
     case DEFAULT:
         penColor = defaultPenColor;
@@ -277,7 +308,7 @@ void DockToggleButton::setEnabled(bool enable, bool repaint)
             setColor(DEFAULT, repaint);
         }
     } else {
-        hideContainer();
+        hideDock();
         setSelected(false);
         setColor(DISABLED, repaint);
     }

@@ -810,7 +810,7 @@ void ToolbarWidget::setupMenus()
     inEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/Info");
     outEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/Info");
     aggregateInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
-    vectorInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Vectors.", ":/Actions/Info");
+    vectorInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing initialised Vectors.", ":/Actions/Info");
 
     // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
     componentImplMenu = new ToolbarMenu(this, componentImplMenuInfoAction);

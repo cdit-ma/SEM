@@ -9,6 +9,8 @@ class HardwareDockScrollArea : public DockScrollArea
     
 public:
     explicit HardwareDockScrollArea(QString label, NodeView *view, DockToggleButton *parent);
+
+    void connectToView();
     
 signals:
     void dock_highlightDockItem(NodeItem* nodeItem = 0);
