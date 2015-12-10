@@ -31,7 +31,8 @@ signals:
 
 
 protected:
-    void addValidEdgeType(Edge::EDGE_CLASS validEdge);
+    void setAcceptEdgeClass(Edge::EDGE_CLASS edgeClass);
+    bool acceptsEdgeClass(Edge::EDGE_CLASS edgeClass);
 public:
     virtual QStringList getConnectableKinds();
     QList<Node*> getItemsConnectedLeft();
@@ -100,7 +101,6 @@ public:
 
     //Returns whether or not this Node can connect with the provided Node
     Edge::EDGE_CLASS canConnect(Node* node);
-
 
     virtual bool canConnect_AggregateEdge(Node* aggregate);
     virtual bool canConnect_AssemblyEdge(Node* node);

@@ -26,6 +26,9 @@
 class ToolbarWidget;
 
 
+/**
+ * @brief The NodeView class
+ */
 class NodeView : public QGraphicsView
 {
     friend class DockScrollArea;

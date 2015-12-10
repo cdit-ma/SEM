@@ -64,7 +64,7 @@
                             <data key="d8">41</data>
                             <data key="d9">kilobytes</data>
                             <data key="d10">0</data>
-                            <data key="d22">Double</data>
+                            <data key="d22">DoubleNumber</data>
                             <data key="d23">true</data>
                             <data key="d25">The number of kilobytes required.</data>
                         </node>
@@ -96,7 +96,7 @@
                             <data key="d8">41</data>
                             <data key="d9">kilobytes</data>
                             <data key="d10">0</data>
-                            <data key="d22">Double</data>
+                            <data key="d22">DoubleNumber</data>
                             <data key="d23">true</data>
                             <data key="d25">The number of kilobytes required.</data>
                         </node>

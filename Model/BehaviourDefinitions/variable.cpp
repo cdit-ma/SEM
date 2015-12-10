@@ -4,7 +4,10 @@
 
 Variable::Variable():BehaviourNode()
 {
-    addValidEdgeType(Edge::EC_DATA);
+    setIsNonWorkflow(true);
+    setIsDataInput(true);
+    setIsDataOutput(true);
+    setAcceptEdgeClass(Edge::EC_DATA);
 }
 
 Variable::~Variable()

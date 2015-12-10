@@ -64,7 +64,7 @@
                             <data key="d8">41</data>
                             <data key="d9">operations</data>
                             <data key="d10">0</data>
-                            <data key="d22">Double</data>
+                            <data key="d22">DoubleNumber</data>
                             <data key="d23">true</data>
                             <data key="d25">The number of Integer Operations required</data>
                         </node>
@@ -108,7 +108,7 @@
                             <data key="d8">41</data>
                             <data key="d9">operations</data>
                             <data key="d10">0</data>
-                            <data key="d22">Double</data>
+                            <data key="d22">DoubleNumber</data>
                             <data key="d23">true</data>
                             <data key="d25">The number of Float Operations required</data>
                         </node>
@@ -152,7 +152,7 @@
                             <data key="d8">41</data>
                             <data key="d9">operations</data>
                             <data key="d10">0</data>
-                            <data key="d22">Double</data>
+                            <data key="d22">DoubleNumber</data>
                             <data key="d23">true</data>
                             <data key="d25">The number of Whetstone loops required</data>
                         </node>
@@ -196,7 +196,7 @@
                             <data key="d8">41</data>
                             <data key="d9">operations</data>
                             <data key="d10">0</data>
-                            <data key="d22">Double</data>
+                            <data key="d22">DoubleNumber</data>
                             <data key="d23">true</data>
                             <data key="d25">The number of MWIP Operations required</data>
                         </node>
@@ -240,7 +240,7 @@
                             <data key="d8">41</data>
                             <data key="d9">operations</data>
                             <data key="d10">0</data>
-                            <data key="d22">Double</data>
+                            <data key="d22">DoubleNumber</data>
                             <data key="d23">true</data>
                             <data key="d25">The number of Dhrystone loops required</data>
                         </node>
@@ -284,7 +284,7 @@
                             <data key="d8">41</data>
                             <data key="d9">operations</data>
                             <data key="d10">0</data>
-                            <data key="d22">Double</data>
+                            <data key="d22">DoubleNumber</data>
                             <data key="d23">true</data>
                             <data key="d25">The number of DMIP Operations required</data>
                         </node>

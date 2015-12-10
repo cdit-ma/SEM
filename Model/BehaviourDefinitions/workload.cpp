@@ -21,5 +21,7 @@ bool Workload::canAdoptChild(Node *child)
         return false;
     }
 
+
+
     return BehaviourNode::canAdoptChild(child);
 }

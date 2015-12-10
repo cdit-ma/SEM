@@ -13,7 +13,7 @@
 #include "whileloop.h"
 
 ComponentImpl::ComponentImpl():Node(Node::NT_IMPL){
-    addValidEdgeType(Edge::EC_DEFINITION);
+    setAcceptEdgeClass(Edge::EC_DEFINITION);
 }
 
 ComponentImpl::~ComponentImpl(){}

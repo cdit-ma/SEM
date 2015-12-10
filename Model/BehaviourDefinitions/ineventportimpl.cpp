@@ -3,6 +3,7 @@
 #include <QDebug>
 
 InEventPortImpl::InEventPortImpl():EventPortImpl(true){
+    setIsWorkflowStart(true);
 }
 
 InEventPortImpl::~InEventPortImpl(){

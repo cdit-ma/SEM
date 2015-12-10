@@ -9,6 +9,11 @@
 #include <QSysInfo>
 #include <QDir>
 
+#include "../Model/Edges/definitionedge.h"
+#include "../Model/Edges/workflowedge.h"
+#include "../Model/Edges/dataedge.h"
+#include "../Model/Edges/assemblyedge.h"
+
 #define LABEL_TRUNCATE_LENGTH 64
 
 bool UNDO = true;
@@ -687,6 +692,7 @@ void NewController::constructEdge(int srcID, int dstID, bool reverseOkay)
 {
     Node* src = getNodeFromID(srcID);
     Node* dst = getNodeFromID(dstID);
+    GraphMLData* label = src->getData("label");
     if(src && dst){
         Edge* edge = constructEdgeWithData(src, dst);
         if(!edge){
@@ -1353,6 +1359,7 @@ QList<int> NewController::getConnectableNodes(int srcID)
         foreach (int ID, nodeIDs) {
             Node* dst = getNodeFromID(ID);
             if(dst && (ID != srcID)){
+
                 if (src->canConnect(dst) != Edge::EC_NONE){
                     legalNodes << ID;
                 }else if (dst->canConnect(src) != Edge::EC_NONE){
@@ -1459,7 +1466,7 @@ int NewController::getSharedParent(int ID1, int ID2)
         QList<int> node2Tree = node2->getTreeIndex();
 
 
-        while(!node1Tree.isEmpty() || !node2Tree.isEmpty()){
+        while(!node1Tree.isEmpty() && !node2Tree.isEmpty()){
             int index1 = node1Tree.takeFirst();
             int index2 = node2Tree.takeFirst();
             if(index1 == index2){
@@ -1627,7 +1634,8 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
         qCritical() << "Source or Destination Node is Null!";
         return 0;
     }
-    if(source->canConnect(destination) != Edge::EC_NONE){
+    Edge::EDGE_CLASS edgeToMake = source->canConnect(destination);
+    if(edgeToMake != Edge::EC_NONE){
         QString sourceKind = source->getDataValue("kind");
         QString destinationKind = destination->getDataValue("kind");
 
@@ -1638,9 +1646,8 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
             destination = temp;
         }
 
-        Edge* edge = new Edge(source, destination);
 
-        return edge;
+        return constructTypedEdge(source, destination, edgeToMake);
     }else{
         if(!source->isConnected(destination)){
             //qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
@@ -4050,6 +4057,29 @@ bool NewController::isInWorkerDefinitions(GraphML *item)
     }else{
         return false;
     }
+}
+
+Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_CLASS edgeClass)
+{
+    Edge* returnable = 0;
+
+    switch(edgeClass){
+    case Edge::EC_DEFINITION:
+        returnable = new DefinitionEdge(src, dst);
+        break;
+    case Edge::EC_WORKFLOW:
+        returnable = new WorkflowEdge(src, dst);
+        break;
+    case Edge::EC_DATA:
+        returnable = new DataEdge(src, dst);
+        break;
+    case Edge::EC_ASSEMBLY:
+        returnable = new AssemblyEdge(src, dst);
+        break;
+    default:
+        returnable = new Edge(src, dst);
+    }
+    return returnable;
 }
 
 QString NewController::getSysOS()

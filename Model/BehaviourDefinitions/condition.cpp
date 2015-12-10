@@ -2,8 +2,8 @@
 #include "termination.h"
 #include "branch.h"
 
-Condition::Condition():BehaviourNode(true, false, false){
-    addValidEdgeType(Edge::EC_WORKFLOW);
+Condition::Condition():BehaviourNode(){
+    setIsWorkflowStart(true);
 }
 
 Condition::~Condition(){}

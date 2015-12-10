@@ -544,8 +544,16 @@ void EdgeItem::setupBrushes()
     pen.setColor(pen.color().darker());
 
     if(getEdge()){
-        if(getEdge()->isDataLink()){
+        Edge::EDGE_CLASS edgeClass = Edge::EC_NONE;
+        if(getEdge()){
+            edgeClass = getEdge()->getEdgeClass();
+        }
+        if(edgeClass == Edge::EC_DATA){
             pen.setColor(Qt::red);
+        }else if(edgeClass == Edge::EC_WORKFLOW){
+            pen.setColor(Qt::yellow);
+        }else if(edgeClass == Edge::EC_ASSEMBLY){
+            pen.setColor(Qt::green);
         }
     }
 

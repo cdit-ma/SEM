@@ -3,7 +3,7 @@
 
 AttributeInstance::AttributeInstance():Node(Node::NT_INSTANCE)
 {
-    addValidEdgeType(Edge::EC_DEFINITION);
+    setAcceptEdgeClass(Edge::EC_DEFINITION);
 }
 
 AttributeInstance::~AttributeInstance()

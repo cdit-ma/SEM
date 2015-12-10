@@ -10,6 +10,7 @@ public:
     ~Variable();
 
     bool canAdoptChild(Node* child);
+
 };
 
 #endif // VARIABLE_H

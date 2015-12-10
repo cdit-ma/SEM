@@ -8,5 +8,7 @@ class WhileLoop: public Branch
 public:
     WhileLoop();
     ~WhileLoop();
+
+    bool canAdoptChild(Node *node);
 };
 #endif // WHILELOOP_H

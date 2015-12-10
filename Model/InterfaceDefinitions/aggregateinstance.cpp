@@ -6,7 +6,7 @@
 
 AggregateInstance::AggregateInstance():Node(Node::NT_DEFINSTANCE)
 {
-    addValidEdgeType(Edge::EC_DEFINITION);
+    setAcceptEdgeClass(Edge::EC_DEFINITION);
 }
 
 AggregateInstance::~AggregateInstance()

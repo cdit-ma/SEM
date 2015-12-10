@@ -9,7 +9,8 @@
 
 Parameter::Parameter(bool isInput):BehaviourNode()
 {
-    addValidEdgeType(Edge::EC_DATA);
+    setIsNonWorkflow(true);
+    setAcceptEdgeClass(Edge::EC_DATA);
     inputParameter = isInput;
 }
 
@@ -28,31 +29,6 @@ bool Parameter::hasConnection()
     return hasEdges();
 }
 
-bool Parameter::compareableTypes(Node *node)
-{
-    QStringList numberTypes;
-    numberTypes << "ShortInteger" << "LongInteger" << "LongLongInteger";
-    numberTypes << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger";
-    numberTypes << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber";
-    numberTypes << "Boolean" << "Byte";
-
-    QStringList stringTypes;
-    stringTypes << "String" << "WideString";
-
-    if(node){
-        //Types
-        QString type1 = getDataValue("type");
-        QString type2 = node->getDataValue("type");
-
-        if(numberTypes.contains(type1) && numberTypes.contains(type2)){
-            return true;
-        }
-        if(stringTypes.contains(type1) && stringTypes.contains(type2)){
-            return true;
-        }
-    }
-    return false;
-}
 
 bool Parameter::canAdoptChild(Node*)
 {

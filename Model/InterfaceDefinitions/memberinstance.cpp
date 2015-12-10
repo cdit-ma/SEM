@@ -3,8 +3,8 @@
 
 MemberInstance::MemberInstance():Node(Node::NT_DEFINSTANCE)
 {
-    addValidEdgeType(Edge::EC_DEFINITION);
-    addValidEdgeType(Edge::EC_DATA);
+    setAcceptEdgeClass(Edge::EC_DEFINITION);
+    setAcceptEdgeClass(Edge::EC_DATA);
 }
 
 MemberInstance::~MemberInstance()

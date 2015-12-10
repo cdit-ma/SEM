@@ -324,7 +324,7 @@ private:
 
     QPair<bool, QString> readFile(QString filePath);
     Node* constructTypedNode(QString nodeKind, bool isTemporary = false, QString nodeType="", QString nodeLabel="");
-
+    Edge* constructTypedEdge(Node* src, Node* dst, Edge::EDGE_CLASS edgeClass);
 
     //Attach GraphMLData('s) to the GraphML item.
     bool _attachGraphMLData(GraphML* item, GraphMLData* data, bool addAction = true);
@@ -354,7 +354,6 @@ private:
 
     bool isInModel(GraphML* item);
     bool isInWorkerDefinitions(GraphML* item);
-
 
     QString getSysOS();
     QString getSysArch();
