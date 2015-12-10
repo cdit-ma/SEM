@@ -6,6 +6,10 @@
 #include "hardwaredockscrollarea.h"
 
 #include <QDebug>
+#include <qmath.h>
+
+#define MAX_LABEL_LENGTH 15
+#define BUTTON_WIDTH 141
 
 
 /**
@@ -103,10 +107,10 @@ DockToggleButton* DockScrollArea::getParentButton()
  */
 DOCK_TYPE DockScrollArea::getDockType()
 {
-   if (parentButton) {
-       return parentButton->getDockType();
-   }
-   return UNKNOWN_DOCK;
+    if (parentButton) {
+        return parentButton->getDockType();
+    }
+    return UNKNOWN_DOCK;
 }
 
 
@@ -163,10 +167,32 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
  */
 void DockScrollArea::displayInfoLabel(bool display, QString text)
 {
-    if (infoLabel && (infoLabel->isVisible() != display)) {
-        infoLabel->setText(text);
-        infoLabel->setVisible(display);
+    if (!infoLabel || (infoLabel->isVisible() == display)) {
+        return;
     }
+
+    if (display && !text.isEmpty()) {
+
+        QStringList textList = text.split(" ");
+        QString displayedText;
+        int lineWidth;
+
+        foreach (QString s, textList) {
+            int sWidth = infoLabel->fontMetrics().width(s + " ");
+            if ((lineWidth + sWidth) < BUTTON_WIDTH) {
+                displayedText += s + " ";
+                lineWidth += sWidth;
+            } else {
+                displayedText += "<br/>" + s + " ";
+                lineWidth = sWidth;
+            }
+        }
+
+        displayedText.truncate(displayedText.length() - 1);
+        infoLabel->setText(displayedText);
+    }
+
+    infoLabel->setVisible(display);
 }
 
 
@@ -404,6 +430,9 @@ int DockScrollArea::getCurrentNodeID()
 void DockScrollArea::setupLayout()
 {
     infoLabel = new QLabel("Info Label", this);
+    infoLabel->setTextFormat(Qt::RichText);
+    infoLabel->setAlignment(Qt::AlignCenter);
+    infoLabel->setStyleSheet("font-style: italic;");
     infoLabel->hide();
 
     QGroupBox* groupBox = new QGroupBox(0);

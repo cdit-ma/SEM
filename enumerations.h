@@ -78,6 +78,7 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     /*
      * THESE ARE THE ORIGINAL COLOURS
      */
+    /*
     switch(aspect){
     case VA_INTERFACES:
         return QColor(110,210,210);
@@ -90,6 +91,7 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     default:
         return Qt::white;
     }
+    */
     /*
     switch(aspect){
     case VA_INTERFACES:
@@ -163,7 +165,7 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     /*
      * This is preferred.
      */
-    /*
+    //*
     switch(aspect){
     case VA_INTERFACES:
         return QColor(24,148,184);
@@ -176,7 +178,7 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     default:
         return Qt::white;
     }
-    */
+    //*/
 }
 
 static QColor GET_VIEW_COLOR(VIEW_THEME theme)
@@ -188,8 +190,8 @@ static QColor GET_VIEW_COLOR(VIEW_THEME theme)
     case VT_NORMAL_THEME:
         return QColor(170,170,170);
     case VT_DARK_THEME:
-        return QColor(70,70,70);
-        //return QColor(50,50,50);
+        //return QColor(70,70,70);
+        return QColor(50,50,50);
     default:
         return Qt::white;
     }

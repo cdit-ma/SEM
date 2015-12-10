@@ -399,8 +399,6 @@ void DockNodeItem::setupLayout()
         textLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     }
 
-    QFont font = textLabel->font();
-    font.setPointSizeF(8);
     textLabel->setFont(QFont(textLabel->font().family(), 8));
     textLabel->setFixedSize(BUTTON_WIDTH - 2, TEXT_HEIGHT);
 

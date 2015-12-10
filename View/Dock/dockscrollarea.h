@@ -86,6 +86,7 @@ private:
     QVBoxLayout* mainLayout;
     QVBoxLayout* layout;
     QLabel* infoLabel;
+
     QString label;
     bool dockOpen;
 

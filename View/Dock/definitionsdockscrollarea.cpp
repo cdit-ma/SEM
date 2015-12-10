@@ -281,11 +281,14 @@ void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
         setDockEnabled(true);
     }
 
+    sourceDockItemKind = srcKind;
+    sourceSelectedItemID = getCurrentNodeID();
+
     getParentButton()->pressed();
     filterDock(srcKind);
 
-    sourceDockItemKind = srcKind;
-    sourceSelectedItemID = getCurrentNodeID();
+    //sourceDockItemKind = srcKind;
+    //sourceSelectedItemID = getCurrentNodeID();
 }
 
 
@@ -467,7 +470,7 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
  */
 void DefinitionsDockScrollArea::updateInfoLabel(bool show)
 {
-    /*
+    //*
     if (!show) {
         displayInfoLabel(false);
         return;
@@ -493,7 +496,7 @@ void DefinitionsDockScrollArea::updateInfoLabel(bool show)
     }
 
     displayInfoLabel(true, infoLabelText);
-    */
+    //*/
 }
 
 
@@ -511,19 +514,19 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
         return;
     }
 
-    //bool displayInfoLabel = true;
+    bool displayInfoLabel = true;
 
     // only show the dock node items with the specified kind
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
         QString dockItemKind = dockItem->getKind();
         bool showItem = dockItemKind == nodeKind;
         dockItem->setHidden(!showItem);
-        /*if (displayInfoLabel && showItem) {
+        if (displayInfoLabel && showItem) {
             displayInfoLabel = false;
-        }*/
+        }
     }
 
-    //updateInfoLabel(displayInfoLabel);
+    updateInfoLabel(displayInfoLabel);
 }
 
 
