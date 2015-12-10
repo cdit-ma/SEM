@@ -5,8 +5,8 @@
 
 ComponentInstance::ComponentInstance():Node(Node::NT_INSTANCE)
 {
-    addValidEdgeType(Edge::EC_DEPLOYMENT);
-    addValidEdgeType(Edge::EC_DEFINITION);
+    setAcceptEdgeClass(Edge::EC_DEPLOYMENT);
+    setAcceptEdgeClass(Edge::EC_DEFINITION);
 }
 
 ComponentInstance::~ComponentInstance()

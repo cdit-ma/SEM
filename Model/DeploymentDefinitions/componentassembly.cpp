@@ -6,7 +6,7 @@
 
 ComponentAssembly::ComponentAssembly():Node()
 {
-    addValidEdgeType(Edge::EC_DEPLOYMENT);
+    setAcceptEdgeClass(Edge::EC_DEPLOYMENT);
 }
 
 ComponentAssembly::~ComponentAssembly()

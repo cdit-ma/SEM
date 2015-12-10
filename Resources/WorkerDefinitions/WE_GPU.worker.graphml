@@ -243,7 +243,7 @@
 							<data key="3">operations</data>
 							<data key="9">0</data>
 							<data key="472"></data>
-							<data key="6">Double</data>
+                                                        <data key="6">DoubleNumber</data>
 							<data key="362">The amount of operations to be performed per kernel execution (will be rounded to the nearest integer.</data>
 							<data key="9999">true</data>
 						</node>
@@ -280,7 +280,7 @@
 							<data key="3">workItems</data>
 							<data key="9">0</data>
 							<data key="472"></data>
-							<data key="6">Double</data>
+                                                        <data key="6">DoubleNumber</data>
 							<data key="362">The amount of work-items to be spawned.</data>
 							<data key="9999">true</data>
 						</node>

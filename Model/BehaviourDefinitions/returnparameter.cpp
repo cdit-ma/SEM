@@ -4,6 +4,7 @@
 
 ReturnParameter:: ReturnParameter(): Parameter(false)
 {
+    setIsDataOutput(true);
 }
 
 ReturnParameter::~ReturnParameter()

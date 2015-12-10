@@ -31,7 +31,8 @@ signals:
 
 
 protected:
-    void addValidEdgeType(Edge::EDGE_CLASS validEdge);
+    void setAcceptEdgeClass(Edge::EDGE_CLASS edgeClass);
+    bool acceptsEdgeClass(Edge::EDGE_CLASS edgeClass);
 public:
     virtual QStringList getConnectableKinds();
     QList<Node*> getItemsConnectedLeft();

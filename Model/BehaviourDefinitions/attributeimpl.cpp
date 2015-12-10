@@ -9,8 +9,10 @@
 AttributeImpl::AttributeImpl():BehaviourNode(Node::NT_IMPL)
 {
     setIsNonWorkflow(true);
-    addValidEdgeType(Edge::EC_DATA);
-    addValidEdgeType(Edge::EC_DEFINITION);
+    setIsDataInput(true);
+    setIsDataOutput(true);
+    setAcceptEdgeClass(Edge::EC_DATA);
+    setAcceptEdgeClass(Edge::EC_DEFINITION);
 }
 
 AttributeImpl::~AttributeImpl()
@@ -25,8 +27,7 @@ bool AttributeImpl::canAdoptChild(Node*)
 
 bool AttributeImpl::canConnect_DataEdge(Node *node)
 {
-    //Call base class
-    return Node::canConnect_DataEdge(node);
+    return BehaviourNode::canConnect_DataEdge(node);
 }
 
 bool AttributeImpl::canConnect_DefinitionEdge(Node *definition)

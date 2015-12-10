@@ -6,8 +6,8 @@
 EventPortImpl::EventPortImpl(bool isInEventPort):BehaviourNode(Node::NT_IMPL)
 {
     inEventPort = isInEventPort;
-    addValidEdgeType(Edge::EC_WORKFLOW);
-    addValidEdgeType(Edge::EC_DEFINITION);
+    setAcceptEdgeClass(Edge::EC_WORKFLOW);
+    setAcceptEdgeClass(Edge::EC_DEFINITION);
 }
 
 EventPortImpl::~EventPortImpl()

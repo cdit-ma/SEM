@@ -77,7 +77,7 @@
                             <data key="d9">operations</data>
                             <data key="d10">2</data>
                             <data key="d11">true</data>
-                            <data key="d22">Double</data>
+                            <data key="d22">DoubleNumber</data>
                             <data key="d23">true</data>
                             <data key="d25">Number of operations, or size of memory to be used in workload execution</data>
                         </node>

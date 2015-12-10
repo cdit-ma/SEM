@@ -39,11 +39,16 @@ Node::~Node()
  * @brief Node::addValidEdgeType Add's an Edge class as a type of edge this node should check in canConnect()
  * @param validEdge
  */
-void Node::addValidEdgeType(Edge::EDGE_CLASS validEdge)
+void Node::setAcceptEdgeClass(Edge::EDGE_CLASS validEdge)
 {
     if(!validEdges.contains(validEdge)){
         validEdges.append(validEdge);
     }
+}
+
+bool Node::acceptsEdgeClass(Edge::EDGE_CLASS edgeClass)
+{
+    return validEdges.contains(edgeClass);
 }
 
 QStringList Node::getConnectableKinds()
@@ -457,7 +462,7 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
 
 
     //Check if node can connect as a definition.
-    if(validEdges.contains(Edge::EC_DEFINITION)){
+    if(acceptsEdgeClass(Edge::EC_DEFINITION)){
         //qCritical() << "Trying canConnect_DefinitionEdge";
         if(canConnect_DefinitionEdge(node)){
             return Edge::EC_DEFINITION;
@@ -465,7 +470,7 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
     }
 
     //Check if node can connect as an Aggregate.
-    if(validEdges.contains(Edge::EC_AGGREGATE)){
+    if(acceptsEdgeClass(Edge::EC_AGGREGATE)){
         //qCritical() << "Trying canConnect_AggregateEdge";
         if(canConnect_AggregateEdge(node)){
             return Edge::EC_AGGREGATE;
@@ -473,7 +478,7 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
     }
 
     //Check if node can connect as an Assembly.
-    if(validEdges.contains(Edge::EC_ASSEMBLY)){
+    if(acceptsEdgeClass(Edge::EC_ASSEMBLY)){
         //qCritical() << "Trying canConnect_AssemblyEdge";
         if(canConnect_AssemblyEdge(node)){
             return Edge::EC_ASSEMBLY;
@@ -481,7 +486,7 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
     }
 
     //Check if node can connect as a Data.
-    if(validEdges.contains(Edge::EC_DATA)){
+    if(acceptsEdgeClass(Edge::EC_DATA)){
         //qCritical() << "Trying canConnect_DataEdge";
         if(canConnect_DataEdge(node)){
             return Edge::EC_DATA;
@@ -489,7 +494,7 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
     }
 
     //Check if node can connect as a Data.
-    if(validEdges.contains(Edge::EC_DEPLOYMENT)){
+    if(acceptsEdgeClass(Edge::EC_DEPLOYMENT)){
         //qCritical() << "Trying canConnect_DeploymentEdge";
         if(canConnect_DeploymentEdge(node)){
             return Edge::EC_DEPLOYMENT;
@@ -497,7 +502,7 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
     }
 
     //Check if node can connect as a Data.
-    if(validEdges.contains(Edge::EC_WORKFLOW)){
+    if(acceptsEdgeClass(Edge::EC_WORKFLOW)){
         //qCritical() << "Trying canConnect_WorkflowEdge";
         if(canConnect_WorkflowEdge(node)){
             return Edge::EC_WORKFLOW;
@@ -519,6 +524,20 @@ bool Node::canConnect_AssemblyEdge(Node *node)
 
 bool Node::canConnect_DataEdge(Node *node)
 {
+    //Check for contained in same Aspect child.
+    Node* componentImpl = getParentNode(getDepthToAspect() - 2);
+    Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 2);
+
+    if(componentImpl != nodeComponentImpl){
+        return false;
+    }
+    if(!componentImpl){
+        return false;
+    }
+    if(!nodeComponentImpl){
+        return false;
+    }
+
     return true;
 }
 
@@ -580,6 +599,20 @@ bool Node::canConnect_DeploymentEdge(Node *hardware)
 
 bool Node::canConnect_WorkflowEdge(Node *node)
 {
+    //Check for contained in same Aspect child.
+    Node* componentImpl = getParentNode(getDepthToAspect() - 2);
+    Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 2);
+
+    if(componentImpl != nodeComponentImpl){
+        return false;
+    }
+    if(!componentImpl){
+        return false;
+    }
+    if(!nodeComponentImpl){
+        return false;
+    }
+
     return true;
 }
 

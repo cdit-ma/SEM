@@ -1,6 +1,7 @@
 #include "behaviournode.h"
 #include "condition.h"
 #include "branch.h"
+#include "parameter.h"
 
 BehaviourNode::BehaviourNode(Node::NODE_TYPE type):Node(type)
 {
@@ -8,8 +9,10 @@ BehaviourNode::BehaviourNode(Node::NODE_TYPE type):Node(type)
     _isWorkflowStart = false;
     _isWorkflowEnd = false;
     _isNonWorkflow = false;
+    _isDataInput = false;
+    _isDataOutput = false;
 
-    addValidEdgeType(Edge::EC_WORKFLOW);
+    setAcceptEdgeClass(Edge::EC_WORKFLOW);
 }
 
 void BehaviourNode::setIsWorkflowStart(bool start)
@@ -27,6 +30,16 @@ void BehaviourNode::setIsNonWorkflow(bool nonWorkflow)
     _isNonWorkflow = nonWorkflow;
 }
 
+void BehaviourNode::setIsDataInput(bool input)
+{
+    _isDataInput = input;
+}
+
+void BehaviourNode::setIsDataOutput(bool output)
+{
+    _isDataOutput = output;
+}
+
 bool BehaviourNode::isWorkflowStart()
 {
     return _isWorkflowStart;
@@ -40,6 +53,32 @@ bool BehaviourNode::isWorkflowEnd()
 bool BehaviourNode::isNonWorkflow()
 {
     return _isNonWorkflow;
+}
+
+bool BehaviourNode::isDataInput()
+{
+    return _isDataInput;
+}
+
+bool BehaviourNode::isDataOutput()
+{
+    return _isDataOutput;
+}
+
+bool BehaviourNode::gotDataInput()
+{
+    if(!isDataInput()){
+        return true;
+    }
+    return getInputDataEdge() != 0;
+}
+
+bool BehaviourNode::gotDataOutput()
+{
+    if(!isDataOutput()){
+        return true;
+    }
+    return getOutputDataEdge() != 0;
 }
 
 bool BehaviourNode::gotLeftWorkflowEdge()
@@ -72,7 +111,48 @@ WorkflowEdge *BehaviourNode::getRightWorkflowEdge()
         }
     }
     return 0;
+}
 
+DataEdge *BehaviourNode::getInputDataEdge()
+{
+    foreach(Edge* edge, getEdges(0)){
+        if(edge->getEdgeClass() == Edge::EC_DATA){
+            if(edge->getDestination() == this){
+                return (DataEdge*)edge;
+            }
+        }
+    }
+    return 0;
+}
+
+DataEdge *BehaviourNode::getOutputDataEdge()
+{
+    foreach(Edge* edge, getEdges(0)){
+        if(edge->getEdgeClass() == Edge::EC_DATA){
+            if(edge->getSource() == this){
+                return (DataEdge*)edge;
+            }
+        }
+    }
+    return 0;
+}
+
+Node *BehaviourNode::getInputData()
+{
+    DataEdge* edge = getInputDataEdge();
+    if(edge){
+        return edge->getSource();
+    }
+    return 0;
+}
+
+Node *BehaviourNode::getOutputData()
+{
+    DataEdge* edge = getOutputDataEdge();
+    if(edge){
+        return edge->getDestination();
+    }
+    return 0;
 }
 
 BehaviourNode *BehaviourNode::getRightBehaviourNode()
@@ -174,6 +254,33 @@ bool BehaviourNode::needEdge()
     return !(gotLeftWorkflowEdge() && gotRightWorkflowEdge());
 }
 
+bool BehaviourNode::compareableTypes(Node *node)
+{
+    QStringList numberTypes;
+    numberTypes << "ShortInteger" << "LongInteger" << "LongLongInteger";
+    numberTypes << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger";
+    numberTypes << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber";
+    numberTypes << "Boolean" << "Byte";
+
+    QStringList stringTypes;
+    stringTypes << "String" << "WideString";
+
+    if(node){
+        //Types
+        QString type1 = getDataValue("type");
+        QString type2 = node->getDataValue("type");
+
+        if(numberTypes.contains(type1) && numberTypes.contains(type2)){
+            return true;
+        }
+        if(stringTypes.contains(type1) && stringTypes.contains(type2)){
+            return true;
+        }
+    }
+    return false;
+
+}
+
 bool BehaviourNode::canConnect_WorkflowEdge(Node *node)
 {
     BehaviourNode* behaviourNode = dynamic_cast<BehaviourNode*>(node);
@@ -231,6 +338,47 @@ bool BehaviourNode::canConnect_WorkflowEdge(Node *node)
 
 
     return Node::canConnect_WorkflowEdge(node);
+}
+
+bool BehaviourNode::canConnect_DataEdge(Node *node)
+{
+
+    BehaviourNode* behaviourNode = dynamic_cast<BehaviourNode*>(node);
+
+    if(!behaviourNode){
+        //Can't connect a Data edge to a non Behaviour Node
+        return false;
+    }
+
+    if(!isDataOutput()){
+        //Cannot connect Data if we aren't an output.
+        return false;
+    }
+
+    if(behaviourNode){
+        if(!behaviourNode->isDataInput()){
+            return false;
+        }
+        Parameter* parameter = dynamic_cast<Parameter*>(node);
+
+
+        if(parameter && parameter->getInputData()){
+            return false;
+        }
+    }
+
+    if(!compareableTypes(node)){
+        //Different Types
+        return false;
+    }
+
+    //if(node->acceptsEdgeClass(Edge::EC_ASSEMBLY)){
+
+    //}
+
+
+
+    return Node::canConnect_DataEdge(node);
 }
 
 

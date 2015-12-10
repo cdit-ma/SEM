@@ -6,8 +6,8 @@ EventPortDelegate::EventPortDelegate(bool inEventPortDelegate):Node()
 {
     this->inEventPortDelegate = inEventPortDelegate;
     this->aggregate = 0;
-    addValidEdgeType(Edge::EC_AGGREGATE);
-    addValidEdgeType(Edge::EC_ASSEMBLY);
+    setAcceptEdgeClass(Edge::EC_AGGREGATE);
+    setAcceptEdgeClass(Edge::EC_ASSEMBLY);
 }
 
 EventPortDelegate::~EventPortDelegate()

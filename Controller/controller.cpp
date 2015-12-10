@@ -11,6 +11,8 @@
 
 #include "../Model/Edges/definitionedge.h"
 #include "../Model/Edges/workflowedge.h"
+#include "../Model/Edges/dataedge.h"
+#include "../Model/Edges/assemblyedge.h"
 
 #define LABEL_TRUNCATE_LENGTH 64
 
@@ -1464,7 +1466,7 @@ int NewController::getSharedParent(int ID1, int ID2)
         QList<int> node2Tree = node2->getTreeIndex();
 
 
-        while(!node1Tree.isEmpty() || !node2Tree.isEmpty()){
+        while(!node1Tree.isEmpty() && !node2Tree.isEmpty()){
             int index1 = node1Tree.takeFirst();
             int index2 = node2Tree.takeFirst();
             if(index1 == index2){
@@ -4067,6 +4069,12 @@ Edge *NewController::constructTypedEdge(Node *src, Node *dst, Edge::EDGE_CLASS e
         break;
     case Edge::EC_WORKFLOW:
         returnable = new WorkflowEdge(src, dst);
+        break;
+    case Edge::EC_DATA:
+        returnable = new DataEdge(src, dst);
+        break;
+    case Edge::EC_ASSEMBLY:
+        returnable = new AssemblyEdge(src, dst);
         break;
     default:
         returnable = new Edge(src, dst);

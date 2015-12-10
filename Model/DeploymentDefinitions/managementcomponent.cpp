@@ -2,7 +2,7 @@
 
 ManagementComponent::ManagementComponent()
 {
-    addValidEdgeType(Edge::EC_DEPLOYMENT);
+    setAcceptEdgeClass(Edge::EC_DEPLOYMENT);
 }
 
 ManagementComponent::~ManagementComponent()
