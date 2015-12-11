@@ -184,10 +184,6 @@ void DockScrollArea::setInfoText(QString text)
  */
 void DockScrollArea::displayInfoLabel(bool display, QString text)
 {
-    qDebug() << "HERE";
-    qDebug() << "display: " << display;
-    qDebug() << "text: " << text
-                ;
     if (display && !text.isEmpty()) {
 
         QStringList textList = text.split(" ");
