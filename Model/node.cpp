@@ -179,23 +179,24 @@ QString Node::toString()
 
 Node *Node::getParentNode(int depth)
 {
-    if(depth >= 0){
-        if(depth == 0){
-            return parentNode;
-        }else{
-            Node* parentNode = this;
-            while(depth >= 0){
-                if(parentNode){
-                    parentNode = parentNode->getParentNode();
-                    depth --;
-                }else{
-                    break;
-                }
-            }
-            return parentNode;
-        }
+
+    if(depth < 0){
+        return 0;
     }
-    return 0;
+    if(depth == 0){
+        return this;
+    }
+    if(depth == 1){
+        return parentNode;
+    }
+    Node* node = this;
+    while(depth >= 1){
+        if(node){
+            node = node->getParentNode();
+        }
+        depth --;
+    }
+    return node;
 }
 
 bool Node::canAdoptChild(Node *node)
@@ -525,9 +526,10 @@ bool Node::canConnect_AssemblyEdge(Node *node)
 bool Node::canConnect_DataEdge(Node *node)
 {
     //Check for contained in same Aspect child.
-    Node* componentImpl = getParentNode(getDepthToAspect() - 2);
-    Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 2);
+    Node* componentImpl = getParentNode(getDepthToAspect() - 1);
+    Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 1);
 
+    qCritical() << this << " component " << componentImpl;
     if(componentImpl != nodeComponentImpl){
         return false;
     }
@@ -600,8 +602,8 @@ bool Node::canConnect_DeploymentEdge(Node *hardware)
 bool Node::canConnect_WorkflowEdge(Node *node)
 {
     //Check for contained in same Aspect child.
-    Node* componentImpl = getParentNode(getDepthToAspect() - 2);
-    Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 2);
+    Node* componentImpl = getParentNode(getDepthToAspect() - 1);
+    Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 1);
 
     if(componentImpl != nodeComponentImpl){
         return false;

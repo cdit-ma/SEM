@@ -47,7 +47,7 @@ public:
     //Child Node Methods
     void setTop(int index = 0);
     virtual QString toString();
-    Node* getParentNode(int depth = 0);
+    Node* getParentNode(int depth = 1);
 
     //Returns whether or not this Node can Adopt the child Node.
     virtual bool canAdoptChild(Node *node);

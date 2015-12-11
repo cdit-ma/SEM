@@ -10,6 +10,7 @@ public:
     ~Variable();
 
     bool canAdoptChild(Node* child);
+    bool canConnect_DataEdge(Node *node);
 
 };
 

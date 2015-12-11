@@ -1,5 +1,6 @@
 #include "attributeimpl.h"
 #include "../InterfaceDefinitions/attribute.h"
+#include "variable.h"
 #include <QDebug>
 
 /**
@@ -27,6 +28,17 @@ bool AttributeImpl::canAdoptChild(Node*)
 
 bool AttributeImpl::canConnect_DataEdge(Node *node)
 {
+    AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(node);
+    Variable* variable = dynamic_cast<Variable*>(node);
+
+    if(attributeImpl){
+        //Cannot data connect an Attribute to an Attribute.
+        return false;
+    }
+    if(variable){
+        //Cannot data connect to a Variable.
+        return false;
+    }
     return BehaviourNode::canConnect_DataEdge(node);
 }
 

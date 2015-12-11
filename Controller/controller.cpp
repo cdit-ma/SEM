@@ -3187,7 +3187,6 @@ void NewController::constructNodeGUI(Node *node)
     if(node->getParentNode()){
         //Set the ParentNode ID if we have a Parent.
         action.parentID = node->getParentNode()->getID();
-
         //Variable.
         Node* parentNode = node->getParentNode();
         if(parentNode->getNodeKind() == "Variable"){

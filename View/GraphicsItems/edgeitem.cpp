@@ -463,7 +463,8 @@ void EdgeItem::updateBrushes()
         HeadBrush = selectedHeadBrush;
     }else{
         if(isHovered()){
-            Pen.setColor(Pen.color().lighter(200));
+            //Pen.setColor(Qt::black);
+            Pen.setColor(Pen.color().lighter(180));
         }
     }
 

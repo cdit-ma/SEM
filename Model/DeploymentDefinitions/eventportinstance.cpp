@@ -81,7 +81,7 @@ bool EventPortInstance::canConnect_AssemblyEdge(Node *node)
     }
 
     //Get the ComponentAssembly which contains this.
-    Node* thisAssembly = getParentNode(1);
+    Node* thisAssembly = getParentNode(2);
 
     Node* nodeAssembly = 0;
 
@@ -107,7 +107,7 @@ bool EventPortInstance::canConnect_AssemblyEdge(Node *node)
             return false;
         }
 
-        nodeAssembly = node->getParentNode(1);
+        nodeAssembly = node->getParentNode(2);
     }
 
     if(eventPortDelegate){

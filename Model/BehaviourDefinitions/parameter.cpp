@@ -37,6 +37,13 @@ bool Parameter::canAdoptChild(Node*)
 
 bool Parameter::canConnect_DataEdge(Node *node)
 {
+    Parameter* parameter = dynamic_cast<Parameter*>(node);
+    if(parameter){
+        if(parameter->getParentNode() == getParentNode()){
+            //cannot connect 2 Parameters from the same parent.
+            return false;
+        }
+    }
     return BehaviourNode::canConnect_DataEdge(node);
 
 }

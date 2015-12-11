@@ -1,6 +1,7 @@
 #include "variable.h"
 #include "../InterfaceDefinitions/aggregateinstance.h"
 #include "../InterfaceDefinitions/vectorinstance.h"
+#include "attributeimpl.h"
 
 Variable::Variable():BehaviourNode()
 {
@@ -30,4 +31,20 @@ bool Variable::canAdoptChild(Node* child)
     }
 
     return BehaviourNode::canAdoptChild(child);
+}
+
+bool Variable::canConnect_DataEdge(Node *node)
+{
+    AttributeImpl* attributeImpl = dynamic_cast<AttributeImpl*>(node);
+    Variable* variable = dynamic_cast<Variable*>(node);
+
+    if(attributeImpl){
+        //Cannot data connect an Attribute to an Attribute.
+        return false;
+    }
+    if(variable){
+        //Cannot data connect to a Variable.
+        return false;
+    }
+    return BehaviourNode::canConnect_DataEdge(node);
 }

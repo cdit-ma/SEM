@@ -49,9 +49,9 @@ bool EventPortDelegate::canConnect_AssemblyEdge(Node *node)
 
     //Get the ComponentAssembly which contains this.
     Node* thisParent = getParentNode();
-    Node* thisParentParent = getParentNode(1);
+    Node* thisParentParent = getParentNode(2);
     Node* nodeParent = node->getParentNode();
-    Node* nodeParentParent = node->getParentNode(1);
+    Node* nodeParentParent = node->getParentNode(2);
 
     Aggregate* portAggregate = getAggregate();
 

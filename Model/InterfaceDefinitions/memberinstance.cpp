@@ -1,8 +1,11 @@
 #include "memberinstance.h"
 #include "../InterfaceDefinitions/member.h"
 
-MemberInstance::MemberInstance():Node(Node::NT_DEFINSTANCE)
+MemberInstance::MemberInstance():BehaviourNode(Node::NT_DEFINSTANCE)
 {
+    setIsNonWorkflow(true);
+    setIsDataInput(true);
+    setIsDataOutput(true);
     setAcceptEdgeClass(Edge::EC_DEFINITION);
     setAcceptEdgeClass(Edge::EC_DATA);
 }
@@ -35,6 +38,11 @@ bool MemberInstance::canConnect_DataEdge(Node *node)
         }
     }
 
+    return BehaviourNode::canConnect_DataEdge(node);
+}
+
+bool MemberInstance::canConnect_WorkflowEdge(Node *node)
+{
     return false;
 }
 
