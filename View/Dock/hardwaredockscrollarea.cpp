@@ -12,7 +12,7 @@
  * @param parent
  */
 HardwareDockScrollArea::HardwareDockScrollArea(QString label, NodeView* view, DockToggleButton *parent) :
-    DockScrollArea(label, view, parent)
+    DockScrollArea(label, view, parent, "There are no available Hardware nodes.")
 {
     // populate list of not allowed kinds
     hardware_notAllowedKinds.append("Model");

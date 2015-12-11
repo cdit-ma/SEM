@@ -12,7 +12,7 @@
  * @param parent
  */
 DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* view, DockToggleButton* parent) :
-    DockScrollArea(label, view, parent)
+    DockScrollArea(label, view, parent, "No entity of the following kinds has been constructed: <br/>Aggregate, BlackBox, Component and Vector")
 {
     // populate list of not allowed kinds
     if (view) {
@@ -20,6 +20,7 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     }
 
     // this is the list of entity kinds that this dock constructs items for
+    definitionKinds.append("IDL");
     definitionKinds.append("Component");
     definitionKinds.append("BlackBox");
     definitionKinds.append("Aggregate");
@@ -91,44 +92,43 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
 
     if (dockItem->isDockItemLabel()) {
 
-        // IDL file deleted - remove corresponding file layout and then delete it
-        if (fileLayoutItems.contains(nodeID)) {
-            QVBoxLayout* fileLayout = fileLayoutItems[nodeID];
-            if (fileLayout) {
-                itemsLayout->removeItem(fileLayout);
-                fileLayoutItems.remove(nodeID);
-                fileLayout->deleteLater();
+        // IDL deleted - remove corresponding file layout and then delete it
+        if (idlLayoutItems.contains(nodeID)) {
+            QVBoxLayout* idlLayout = idlLayoutItems[nodeID];
+            if (idlLayout) {
+                itemsLayout->removeItem(idlLayout);
+                idlLayoutItems.remove(nodeID);
+                idlLayout->deleteLater();
             }
         }
 
     } else {
 
         // Component/BlackBox/Aggregate/Vector deleted - remove from parent file's layout and then delete it
-        DockNodeItem* fileDockItem = dockItem->getParentDockNodeItem();
+        DockNodeItem* idlDockItem = dockItem->getParentDockNodeItem();
 
-        if (!fileDockItem) {
+        if (!idlDockItem) {
             qWarning() << "DefinitionsDockScrollArea::onNodeDeleted - Deleted node has no parent IDL file.";
             return;
         }
 
-        QString fileID = fileDockItem->getID();
-        QVBoxLayout* fileLayout = fileLayoutItems[fileID];
+        QString idlID = idlDockItem->getID();
+        QVBoxLayout* idlLayout = idlLayoutItems[idlID];
 
-        // if there is only 1 child item stored in the File, delete the File too
-        bool deleteFileLayout = fileDockItem->getChildrenDockItems().count() == 1;
+        // if there is only 1 child item stored in the IDL, hide the File
+        bool hideIdlLayout = idlDockItem->getChildrenDockItems().count() == 1;
 
-        if (fileLayout) {
+        if (idlLayout) {
             // remove the child item from the File's layout and the File item's children items list
-            fileLayout->removeWidget(dockItem);
-            fileDockItem->removeChildDockItem(dockItem);
+            idlLayout->removeWidget(dockItem);
+            idlDockItem->removeChildDockItem(dockItem);
 
             // destruct the child dockNodeItem
             DockScrollArea::nodeDeleted(nodeID);
         }
 
-        if (deleteFileLayout) {
-            // destruct the File's dockNodeItem
-            DockScrollArea::nodeDeleted(fileID);
+        if (hideIdlLayout) {
+            idlDockItem->setDockItemVisible(false);
         }
     }
 }
@@ -211,45 +211,56 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
 
     if (definitionKinds.contains(nodeKind)) {
 
-        DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
-        EntityItem* parentEntityItem = entityItem->getParentEntityItem();
+        if (nodeKind == "IDL") {
 
-        if (!parentEntityItem) {
-            qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Component/BlackBox's parent item is null.";
-            return;
-        }
+            // create a new IDL label and add it to the IDL's layout
+            DockNodeItem* idlDockItem = new DockNodeItem("DockItemLabel", entityItem, this, true);
+            QVBoxLayout* idlLayout = new QVBoxLayout();
 
-        QString fileID = QString::number(parentEntityItem->getID());
+            idlLayoutItems[QString::number(entityItem->getID())] = idlLayout;
+            idlLayout->addWidget(idlDockItem);
+            addDockNodeItem(idlDockItem, -1, false);
 
-        // check if there is already a layout and label for the parent File
-        if (!fileLayoutItems.contains(fileID)){
-            // create a new File label and add it to the File's layout
-            DockNodeItem* fileDockItem = new DockNodeItem("DockItemLabel", parentEntityItem, this, true);
-            QVBoxLayout* fileLayout = new QVBoxLayout();
+            insertDockNodeItem(idlDockItem);
+            connect(idlDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
 
-            fileLayoutItems[fileID] = fileLayout;
-            fileLayout->addWidget(fileDockItem);
-            addDockNodeItem(fileDockItem, -1, false);
+            // initially hide dock items for IDLs that don't have any children
+            if (!entityItem->hasChildren()) {
+                idlDockItem->setDockItemVisible(false);
+            }
 
-            insertDockNodeItem(fileDockItem);
-            connect(fileDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
-        }
+        } else {
 
-        // connect the new dock item to its parent file item
-        DockNodeItem* parentDockItem = getDockNodeItem(fileID);
-        if (parentDockItem) {
-            dockItem->setParentDockNodeItem(parentDockItem);
-            parentDockItem->addChildDockItem(dockItem);
-        }
+            DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
+            EntityItem* parentEntityItem = entityItem->getParentEntityItem();
 
-        if (fileLayoutItems.contains(fileID)) {
-            QVBoxLayout* fileLayout = fileLayoutItems[fileID];
-            fileLayout->addWidget(dockItem);
+            if (!parentEntityItem) {
+                qWarning() << "DefinitionsDockScrollArea::nodeConstructed - IDL entity item is null.";
+                return;
+            }
+
+            QString idlID = QString::number(parentEntityItem->getID());
+
+            // check if there is already a layout and label for the parent IDL
+            if (!idlLayoutItems.contains(idlID)){
+                qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Parent IDL doesn't have a layout.";
+                return;
+            }
+
+            // connect the new dock item to its parent file item
+            DockNodeItem* parentDockItem = getDockNodeItem(idlID);
+            if (parentDockItem) {
+                dockItem->setParentDockNodeItem(parentDockItem);
+                parentDockItem->addChildDockItem(dockItem);
+            }
+
+            QVBoxLayout* idlLayout = idlLayoutItems[idlID];
+            idlLayout->addWidget(dockItem);
             addDockNodeItem(dockItem, -1, false);
             insertDockNodeItem(dockItem);
             connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
 
-            // initially hide dock item for Vector if it doesn't have any children
+            // initially hide dock items for Vectors that don't have any children
             if (nodeKind == "Vector") {
                 if (!entityItem->hasChildren()) {
                     dockItem->setForceHidden(true);
@@ -349,7 +360,7 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
     if (isDockItemLabel) {
         // IDL file - remove  fileLayout from itemsLayout
         layoutToSort = itemsLayout;
-        QVBoxLayout* fileLayout = fileLayoutItems[ID];
+        QVBoxLayout* fileLayout = idlLayoutItems[ID];
         if (fileLayout) {
             layoutToSort->removeItem(fileLayout);
         }
@@ -357,7 +368,7 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
         // Component/BlackBox - remove the Component/BlackBox from its parent file's layout.
         if (parentDockItem) {
             QString parentID = parentDockItem->getID();
-            layoutToSort = fileLayoutItems[parentID];
+            layoutToSort = idlLayoutItems[parentID];
             if (layoutToSort) {
                 layoutToSort->removeWidget(dockItem);
             }
@@ -379,7 +390,7 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
             // get the IDL file's label
             QVBoxLayout* fileLayout = dynamic_cast<QVBoxLayout*>(layoutItem);
             if (fileLayout) {
-                QString fileID = fileLayoutItems.key(fileLayout, "");
+                QString fileID = idlLayoutItems.key(fileLayout, "");
                 DockNodeItem* dockItem = getDockNodeItem(fileID);
                 if (dockItem) {
                     dockItemLabel = dockItem->getLabel();
@@ -402,7 +413,7 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
         // insert the new File into the correct alphabetical spot in the layout
         if (labelToSort.compare(dockItemLabel, Qt::CaseInsensitive) <= 0) {
             if (isDockItemLabel) {
-                QVBoxLayout* fileLayout = fileLayoutItems[ID];
+                QVBoxLayout* fileLayout = idlLayoutItems[ID];
                 if (fileLayout) {
                     layoutToSort->insertLayout(i, fileLayout);
                 }
@@ -415,7 +426,7 @@ void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
 
     // if there was no spot to insert the new File layout, add it to the end of the layout
     if (isDockItemLabel) {
-        QVBoxLayout* fileLayout = fileLayoutItems[ID];
+        QVBoxLayout* fileLayout = idlLayoutItems[ID];
         if (fileLayout) {
             layoutToSort->addLayout(fileLayout);
         }
@@ -468,35 +479,27 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
 /**
  * @brief DefinitionsDockScrollArea::updateInfoText
  */
-void DefinitionsDockScrollArea::updateInfoLabel(bool show)
+void DefinitionsDockScrollArea::updateInfoLabel()
 {
-    //*
-    if (!show) {
-        displayInfoLabel(false);
-        return;
-    }
-
-    qDebug() << "node kind: " << sourceDockItemKind;
-
     QString infoLabelText;
     QString kind = sourceDockItemKind;
 
     if (kind.endsWith("Instance")) {
         if (kind == "VectorInstance") {
-             infoLabelText = "There are no IDL files containing initialised Vectors.";
+            infoLabelText = "There are no IDL files containing initialised Vectors.";
         } else {
             kind = kind.remove("Instance");
-            infoLabelText = "There are no IDL files containing" + kind + " .";
+            infoLabelText = "There are no IDL files containing " + kind + " entities.";
         }
     } else if (kind == "ComponentImpl") {
         infoLabelText = "There are no IDL files containing unimplemented Components.";
     } else {
-        qWarning() << "DefinitionsDockScrollArea::updateInfoLabel - Node kind is not handled.";
+        qWarning() << "DefinitionsDockScrollArea::updateInfoLabel - Source kind is not handled.";
         return;
     }
 
-    displayInfoLabel(true, infoLabelText);
-    //*/
+    setInfoText(infoLabelText);
+    setupInfoLabel();
 }
 
 
@@ -514,19 +517,14 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
         return;
     }
 
-    bool displayInfoLabel = true;
-
     // only show the dock node items with the specified kind
     foreach (DockNodeItem* dockItem, getDockNodeItems()) {
         QString dockItemKind = dockItem->getKind();
         bool showItem = dockItemKind == nodeKind;
         dockItem->setHidden(!showItem);
-        if (displayInfoLabel && showItem) {
-            displayInfoLabel = false;
-        }
     }
 
-    updateInfoLabel(displayInfoLabel);
+    updateInfoLabel();
 }
 
 
@@ -536,5 +534,5 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
 void DefinitionsDockScrollArea::clear()
 {
     DockScrollArea::clear();
-    fileLayoutItems.clear();
+    idlLayoutItems.clear();
 }

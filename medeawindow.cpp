@@ -2853,11 +2853,10 @@ void MedeaWindow::dockButtonPressed()
 {
     DockToggleButton* button = qobject_cast<DockToggleButton*>(QObject::sender());
     if (button) {
+        updateWidgetMask(docksArea, dockButtonsBox);
         emit window_dockButtonPressed(button->getDockType());
         if (button->isSelected()) {
             docksArea->clearMask();
-        } else {
-            updateWidgetMask(docksArea, dockButtonsBox);
         }
     }
 }

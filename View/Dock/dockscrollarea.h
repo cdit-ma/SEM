@@ -21,7 +21,7 @@ class DockScrollArea : public QScrollArea
     Q_OBJECT
 
 public:
-    explicit DockScrollArea(QString label, NodeView* view, DockToggleButton* parent);
+    explicit DockScrollArea(QString label, NodeView* view, DockToggleButton* parent, QString dockEmptyText = "");
 
     void setNotAllowedKinds(QStringList kinds);
     QStringList getNotAllowedKinds();
@@ -50,7 +50,8 @@ public:
     NodeView* getNodeView();
     QStringList getAdoptableNodeListFromView();
 
-    void displayInfoLabel(bool display, QString text = "");
+    void setInfoText(QString text);
+    void setupInfoLabel();
 
     virtual void connectToView() = 0;
     virtual void nodeDeleted(QString nodeID);
@@ -76,6 +77,7 @@ public slots:
 private:
     void setupLayout();
     void setParentButton(DockToggleButton* parent);
+    void displayInfoLabel(bool display, QString text = "");
 
     NodeView* nodeView;
     DockToggleButton* parentButton;
@@ -85,7 +87,10 @@ private:
 
     QVBoxLayout* mainLayout;
     QVBoxLayout* layout;
+    
     QLabel* infoLabel;
+    QString infoText;
+    QString defaultInfoText;
 
     QString label;
     bool dockOpen;
