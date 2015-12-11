@@ -128,7 +128,7 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
         }
 
         if (hideIdlLayout) {
-            idlDockItem->setDockItemVisible(false);
+            idlDockItem->setHidden(true);
         }
     }
 }
@@ -226,7 +226,7 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
 
             // initially hide dock items for IDLs that don't have any children
             if (!entityItem->hasChildren()) {
-                idlDockItem->setDockItemVisible(false);
+                idlDockItem->setHidden(true);
             }
 
         } else {
@@ -335,6 +335,8 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
     if (hideCompsWithImpl) {
         hideImplementedComponents();
     }
+
+    updateInfoLabel();
 }
 
 
@@ -523,8 +525,6 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
         bool showItem = dockItemKind == nodeKind;
         dockItem->setHidden(!showItem);
     }
-
-    updateInfoLabel();
 }
 
 

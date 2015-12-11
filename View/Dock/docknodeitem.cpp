@@ -327,7 +327,8 @@ void DockNodeItem::setDockItemVisible(bool visible)
             visible = false;
         } else if (parentDockItem) {
             if (visible) {
-                parentDockItem->setDockItemVisible(true);
+                //parentDockItem->setDockItemVisible(true);
+                parentDockItem->setHidden(false);
             }
             visible = visible && parentDockItem->isExpanded();
         }
@@ -641,11 +642,13 @@ void DockNodeItem::childVisibilityChanged()
     if (isDockItemLabel()) {
         foreach (DockNodeItem* dockItem, childrenDockItems) {
             if (!dockItem->isHidden() && !dockItem->isForceHidden()) {
-                setDockItemVisible(true);
+                //setDockItemVisible(true);
+                setHidden(false);
                 return;
             }
         }
-        setDockItemVisible(false);
+        //setDockItemVisible(false);
+        setHidden(true);
     }
 }
 
