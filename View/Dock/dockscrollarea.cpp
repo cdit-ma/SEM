@@ -17,8 +17,9 @@
  * @param label
  * @param view
  * @param parent
+ * @param dockEmptyText
  */
-DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton* parent) :
+DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton* parent, QString dockEmptyText) :
     QScrollArea(parent)
 {
     if (!view || !parent) {
@@ -27,11 +28,16 @@ DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton* 
     }
 
     nodeView = view;
+    parentButton = 0;
+
     currentNodeItem = 0;
     currentNodeItemID = -1;
 
     this->label = label;
     dockOpen = false;
+
+    defaultInfoText = dockEmptyText;
+    infoText = defaultInfoText;
 
     setParentButton(parent);
     setupLayout();
@@ -165,12 +171,19 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
  * @brief DockScrollArea::setInfoText
  * @param text
  */
+void DockScrollArea::setInfoText(QString text)
+{
+    infoText = text;
+}
+
+
+/**
+ * @brief DockScrollArea::displayInfoLabel
+ * @param display
+ * @param text
+ */
 void DockScrollArea::displayInfoLabel(bool display, QString text)
 {
-    if (!infoLabel || (infoLabel->isVisible() == display)) {
-        return;
-    }
-
     if (display && !text.isEmpty()) {
 
         QStringList textList = text.split(" ");
@@ -240,6 +253,8 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
     } else {
         qWarning() << "DockScrollArea::addDockNodeItem - Item is null.";
     }
+
+    setupInfoLabel();
 }
 
 
@@ -266,6 +281,8 @@ void DockScrollArea::removeDockNodeItem(DockNodeItem* dockItem, bool deleteItem)
     if (deleteItem) {
         dockItem->deleteLater();
     }
+
+    setupInfoLabel();
 }
 
 
@@ -429,10 +446,10 @@ int DockScrollArea::getCurrentNodeID()
  */
 void DockScrollArea::setupLayout()
 {
-    infoLabel = new QLabel("Info Label", this);
+    infoLabel = new QLabel(defaultInfoText, this);
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
-    infoLabel->setStyleSheet("font-style: italic;");
+    infoLabel->setStyleSheet("padding: 10px 0px; font-style: italic;");
     infoLabel->hide();
 
     QGroupBox* groupBox = new QGroupBox(0);
@@ -466,11 +483,36 @@ void DockScrollArea::setupLayout()
 
 
 /**
+ * @brief DockScrollArea::setupInfoLabel
+ */
+void DockScrollArea::setupInfoLabel()
+{
+    if (!dockOpen) {
+        return;
+    }
+
+    bool showLabel = true;
+    foreach (DockNodeItem* item, getDockNodeItems()) {
+        if (!item->isHidden() && !item->isForceHidden()) {
+            showLabel = false;
+            break;
+        }
+    }
+
+    displayInfoLabel(showLabel, infoText);
+}
+
+
+/**
  * @brief DockScrollArea::setParentButton
  * Attach and connect this dock to its parent button.
  */
 void DockScrollArea::setParentButton(DockToggleButton *parent)
 {
+    if (!parent) {
+        qWarning() << "DockScrollArea::setParentButton - Parent is null.";
+        return;
+    }
     parentButton = parent;
     parentButton->setDock(this);
 }

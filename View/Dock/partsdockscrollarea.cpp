@@ -10,7 +10,7 @@
  * @param parent
  */
 PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent) :
-    DockScrollArea(label, view, parent)
+    DockScrollArea(label, view, parent, "Selected entity cannot adopt any other entity.")
 {
     kindsRequiringDefinition.append("BlackBoxInstance");
     kindsRequiringDefinition.append("ComponentInstance");

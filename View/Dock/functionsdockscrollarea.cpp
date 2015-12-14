@@ -11,7 +11,7 @@
  * @param parent
  */
 FunctionsDockScrollArea::FunctionsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent) :
-    DockScrollArea(label, view, parent)
+    DockScrollArea(label, view, parent, "No worker definition has been imported.")
 {
     // setup definitions-dock specific layout
     mainLayout = new QVBoxLayout();

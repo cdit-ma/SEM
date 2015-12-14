@@ -30,13 +30,13 @@ private:
     void filterDock(QString nodeKind = "");
     void showDockItemsOfKind(QString nodeKind);
     void hideImplementedComponents();
-    void updateInfoLabel(bool show);
+    void updateInfoLabel();
 
     QStringList definitions_notAllowedKinds;
     QStringList definitions_allowedKinds;
     QStringList definitionKinds;
 
-    QHash<QString, QVBoxLayout*> fileLayoutItems;
+    QHash<QString, QVBoxLayout*> idlLayoutItems;
     QVBoxLayout* mainLayout;
     QVBoxLayout* itemsLayout;
 
