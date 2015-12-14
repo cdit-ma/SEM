@@ -2291,18 +2291,11 @@ void MedeaWindow::on_actionSearch_triggered()
         QStringList checkedKeys = getCheckedItems(SEARCH_DATA_KEYS);
         QList<GraphMLItem*> searchResultItems = nodeView->search(searchText, checkedAspects, checkedKinds, checkedKeys);
 
-        // clear the list view and the old search items
-        searchDialog->clear();
-
-        // for each item to display, create a button for it and add it to the results layout
-        foreach (GraphMLItem* guiItem, searchResultItems) {
-            SearchItem* searchItem = new SearchItem(guiItem, searchDialog);
-            searchItem->connectToWindow(this);
-            //searchDialog->insertSearchItem(searchItem);
-            searchDialog->addSearchItem(searchItem);
+        bool newSearch = searchDialog->addSearchItems(searchResultItems);
+        if (newSearch) {
+            searchDialog->updateHedearLabels(searchText.trimmed(), checkedAspects, checkedKinds);
         }
 
-        searchDialog->updateHedearLabels(searchText.trimmed(), checkedAspects, checkedKinds);
         searchDialog->show();
     }
 }

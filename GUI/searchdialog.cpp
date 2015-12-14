@@ -10,16 +10,23 @@
 #define LAYOUT_MARGIN 2
 #define LAYOUT_SPACING 5
 
+#define DEFAULT_SORT_KEY "label"
+
 
 /**
  * @brief SearchDialog::SearchDialog
  * @param minimumSize
  * @param parent
  */
-SearchDialog::SearchDialog(QSize minimumSize, QWidget* parent) : QDialog(parent)
+SearchDialog::SearchDialog(QSize minimumSize, MedeaWindow* window) : QDialog(window)
 {
-    sortedByKind = false;
-    sortedByLabel = false;
+    if (!window) {
+        qWarning() << "SearchDialog::SearchDialog - Parent window is null.";
+        return;
+    }
+
+    parentWindow = window;
+    currentSortKey = DEFAULT_SORT_KEY;
 
     setMinimumSize(minimumSize);
     setWindowTitle("Search Results");
@@ -29,57 +36,26 @@ SearchDialog::SearchDialog(QSize minimumSize, QWidget* parent) : QDialog(parent)
 
 
 /**
- * @brief SearchDialog::addSearchItem
- * @param searchItem
+ * @brief SearchDialog::addSearchItems
+ * @param searchResult
  */
-void SearchDialog::addSearchItem(SearchItem* searchItem)
+bool SearchDialog::addSearchItems(QList<GraphMLItem*> searchResult)
 {
-    if (!searchItem) {
-        return;
+    if (searchResult == resultGraphmlItems) {
+        return false;
     }
 
-    MAX_ITEM_WIDTH = qMax(MAX_ITEM_WIDTH, searchItem->getItemWidth());
-    connect(this, SIGNAL(searchDialog_clickToCenter(bool)), searchItem, SLOT(setClickToCenter(bool)));
-    connect(this, SIGNAL(searchDialog_doubleClickToExpand(bool)), searchItem, SLOT(setDoubleClickToExpand(bool)));
+    clear();
 
-    resultsLayout->addWidget(searchItem);
-    searchItems.append(searchItem);
-}
-
-
-/**
- * @brief SearchDialog::insertSearchItem
- * @param item
- */
-void SearchDialog::insertSearchItem(SearchItem* searchItem)
-{
-    if (!searchItem) {
-        return;
+    // for each item to display, create a button for it and add it to the results layout
+    foreach (GraphMLItem* gmlItem, searchResult) {
+        SearchItem* searchItem = new SearchItem(gmlItem, this);
+        searchItem->connectToWindow(parentWindow);
+        addSearchItem(searchItem);
     }
 
-    MAX_ITEM_WIDTH = qMax(MAX_ITEM_WIDTH, searchItem->getItemWidth());
-    connect(this, SIGNAL(searchDialog_clickToCenter(bool)), searchItem, SLOT(setClickToCenter(bool)));
-    connect(this, SIGNAL(searchDialog_doubleClickToExpand(bool)), searchItem, SLOT(setDoubleClickToExpand(bool)));
-
-    if (!searchItems.isEmpty()) {
-        QString searchItemLabel = searchItem->getKeyValue("label");
-        for (int i = 0; i < searchItems.count(); i++) {
-            SearchItem* item = searchItems.at(i);
-            if (!item) {
-                continue;
-            }
-            QString itemLabel = item->getKeyValue("label");
-            int compare = searchItemLabel.compare(itemLabel, Qt::CaseInsensitive);
-            if (compare <= 0) {
-                resultsLayout->insertWidget(i, searchItem);
-                searchItems.insert(i, searchItem);
-                return;
-            }
-        }
-    }
-
-    resultsLayout->addWidget(searchItem);
-    searchItems.append(searchItem);
+    resultGraphmlItems = searchResult;
+    return true;
 }
 
 
@@ -96,11 +72,13 @@ void SearchDialog::clear()
         }
     }
 
-    // clear the stored list
+    // clear the stored lists
     searchItems.clear();
+    resultGraphmlItems.clear();
 
-    sortedByKind = false;
-    sortedByLabel = false;
+    // make sure that the menus are close
+    sortMenu->close();
+    settingsMenu->close();
 }
 
 
@@ -150,7 +128,17 @@ void SearchDialog::show()
         notFoundLabel->hide();
         resize(MAX_ITEM_WIDTH, height());
     }
+    sortItems();
     QDialog::show();
+}
+
+
+/**
+ * @brief SearchDialog::returnFocus
+ */
+void SearchDialog::returnFocus()
+{
+
 }
 
 
@@ -166,27 +154,7 @@ void SearchDialog::sortItems(bool checked)
 
     QRadioButton* rb = qobject_cast<QRadioButton*>(QObject::sender());
     QString key = rb->text();
-
-    QHash<SearchItem*, QString> itemValueHash;
-    QStringList keyValues;
-
-    foreach (SearchItem* item, searchItems) {
-        QString val = item->getKeyValue(key);
-        keyValues.append(val);
-        itemValueHash[item] = val;
-        resultsLayout->removeWidget(item);
-    }
-
-    keyValues.sort(Qt::CaseInsensitive);
-
-    foreach (QString value, keyValues) {
-        SearchItem* item = itemValueHash.key(value);
-        itemValueHash.remove(item);
-        resultsLayout->addWidget(item);
-    }
-
-    sortedByKind = key == "kind";
-    sortedByLabel = key == "label";
+    sortItems(key);
 }
 
 
@@ -234,7 +202,6 @@ void SearchDialog::setupLayout()
     aspectsLabel = constructHeadearLabel("Aspects", headerLabelsLayout, keyLabelWidth);
     kindsLabel = constructHeadearLabel("Kinds", headerLabelsLayout, keyLabelWidth);
 
-    setStyleSheet("QLabel{ color: rgb(30,30,30); }");
     searchLabel->setStyleSheet("color: darkBlue;");
     //searchLabel->setStyleSheet("color: rgb(30,60,110);");
 
@@ -269,6 +236,12 @@ void SearchDialog::setupLayout()
 
     setLayout(layout);
     setupMenus(headerLayout);
+
+    setStyleSheet("QLabel{ color: rgb(30,30,30); }"
+                  "QPushButton{ border: 1px solid darkGray; border-radius: 4px; }"
+                  "QPushButton:hover{ border: 2px solid rgb(150,150,150); background: white; }"
+                  "QPushButton::menu-indicator{ width: 0px; image: none; }"
+                  "QMenu{ padding: 3px; }");
 }
 
 
@@ -287,6 +260,13 @@ void SearchDialog::setupMenus(QHBoxLayout* layout)
     QWidgetAction* labelAction = new QWidgetAction(this);
     QRadioButton* rbl = new QRadioButton("label", this);
     labelAction->setDefaultWidget(rbl);
+
+    // set the default sort key - check the corresponding radio button
+    if (currentSortKey == "kind") {
+        rbk->setChecked(true);
+    } else if (currentSortKey == "label") {
+        rbl->setChecked(true);
+    }
 
     sortMenu = new QMenu(this);
     sortMenu->addAction(kindAction);
@@ -310,14 +290,14 @@ void SearchDialog::setupMenus(QHBoxLayout* layout)
     settingsMenu->addAction(doubleClickAction);
 
     QPushButton* settingsButton = new QPushButton(QIcon(":/Actions/Settings"), "", this);
-    settingsButton->setIconSize(QSize(buttonSize, buttonSize) * ICON_RATIO);
+    settingsButton->setIconSize(QSize(buttonSize, buttonSize) * 0.7);
     settingsButton->setMenu(settingsMenu);
 
     // setup the refresh button
     QPushButton* refreshButton = new QPushButton(QIcon(":/Actions/Refresh"), "", this);
-    refreshButton->setIconSize(QSize(buttonSize, buttonSize) * ICON_RATIO);
+    refreshButton->setIconSize(QSize(buttonSize, buttonSize) * 0.7);
 
-    sortButton->setFixedSize(buttonSize * 2, buttonSize);
+    sortButton->setFixedSize(sortButton->fontMetrics().width("Sort Results") + 15, buttonSize);
     settingsButton->setFixedSize(buttonSize, buttonSize);
     refreshButton->setFixedSize(buttonSize, buttonSize);
 
@@ -326,11 +306,6 @@ void SearchDialog::setupMenus(QHBoxLayout* layout)
     layout->addWidget(settingsButton);
     layout->addSpacing(2);
     layout->addWidget(refreshButton);
-
-    setStyleSheet("QPushButton{ border: 1px solid darkGray; border-radius: 5px; }"
-                  "QPushButton:hover{ border: 2px solid rgb(150,150,150); background: white; }"
-                  "QPushButton::menu-indicator{ width: 0px; image: none; }"
-                  "QMenu{ padding: 3px; }");
 
     connect(rbk, SIGNAL(toggled(bool)), this, SLOT(sortItems(bool)));
     connect(rbl, SIGNAL(toggled(bool)), this, SLOT(sortItems(bool)));
@@ -343,5 +318,64 @@ void SearchDialog::setupMenus(QHBoxLayout* layout)
     connect(cbd, SIGNAL(toggled(bool)), settingsMenu, SLOT(hide()));
 
     connect(refreshButton, SIGNAL(clicked()), this, SIGNAL(searchDialog_refresh()));
+
+    connect(sortMenu, SIGNAL(aboutToHide()), this, SLOT(returnFocus()));
+}
+
+
+/**
+ * @brief SearchDialog::addSearchItem
+ * @param searchItem
+ */
+void SearchDialog::addSearchItem(SearchItem* searchItem)
+{
+    if (!searchItem) {
+        return;
+    }
+
+    MAX_ITEM_WIDTH = qMax(MAX_ITEM_WIDTH, searchItem->getItemWidth());
+    connect(this, SIGNAL(searchDialog_clickToCenter(bool)), searchItem, SLOT(setClickToCenter(bool)));
+    connect(this, SIGNAL(searchDialog_doubleClickToExpand(bool)), searchItem, SLOT(setDoubleClickToExpand(bool)));
+
+    resultsLayout->addWidget(searchItem);
+    searchItems.append(searchItem);
+}
+
+
+/**
+ * @brief SearchDialog::sortItems
+ * @param sortKey
+ */
+void SearchDialog::sortItems(QString sortKey)
+{
+    if (sortKey == currentSortKey) {
+        return;
+    }
+
+    if (sortKey.isEmpty()) {
+        sortKey = currentSortKey;
+    } else if (sortKey != "kind" && sortKey != "label") {
+        return;
+    }
+
+    QHash<SearchItem*, QString> itemValueHash;
+    QStringList keyValues;
+
+    foreach (SearchItem* item, searchItems) {
+        QString val = item->getKeyValue(sortKey);
+        keyValues.append(val);
+        itemValueHash[item] = val;
+        resultsLayout->removeWidget(item);
+    }
+
+    keyValues.sort(Qt::CaseInsensitive);
+
+    foreach (QString value, keyValues) {
+        SearchItem* item = itemValueHash.key(value);
+        itemValueHash.remove(item);
+        resultsLayout->addWidget(item);
+    }
+
+    currentSortKey = sortKey;
 }
 
