@@ -20,6 +20,7 @@ public:
     bool isEmpty();
     void clearMenu();
 
+    //void moveActions();
     void splitActionsWithMenu();
 
 signals:

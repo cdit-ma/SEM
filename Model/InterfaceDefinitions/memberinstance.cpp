@@ -24,7 +24,7 @@ bool MemberInstance::canConnect_DefinitionEdge(Node *definition)
 
 bool MemberInstance::canConnect_DataEdge(Node *node)
 {
-    DataNode::canConnect_DataEdge(node);
+    return DataNode::canConnect_DataEdge(node);
 }
 
 bool MemberInstance::canConnect_WorkflowEdge(Node *node)

@@ -618,35 +618,38 @@ void ToolbarWidget::setupBlackBoxList()
 
 
 /**
- * @brief ToolbarWidget::setupEventPortInstanceList
- */
-void ToolbarWidget::setupEventPortInstanceList()
-{
-    ToolbarMenuAction* action = qobject_cast<ToolbarMenuAction*>(QObject::sender());
-    if (action == inEventPortDelegateAction) {
-        setupEventPortInstanceList("InEventPortInstance");
-    } else if (action == outEventPortDelegateAction) {
-        setupEventPortInstanceList("OutEventPortInstance");
-    } else {
-        qWarning() << "ToolbarWidget::setupEventPortInstanceList - Sender action not handled.";
-    }
-}
-
-
-/**
  * @brief ToolbarWidget::setupAggregateList
  */
 void ToolbarWidget::setupAggregateList()
 {
-    if (aggregateMenuDone) {
-        return;
-    } else {
+    ToolbarMenuAction* action = qobject_cast<ToolbarMenuAction*>(QObject::sender());
+    ToolbarMenu* menu = 0;
+    bool menuDone = false;
+
+    if (action == aggregateInstAction) {
+        menu = aggregateInstMenu;
+        menuDone = aggregateMenuDone;
         aggregateMenuDone = true;
+    } else if (action == inEventPortDelegateAction) {
+        menu = inEventPortDelegateMenu;
+        menuDone = inEventPortInstanceMenuDone;
+        inEventPortInstanceMenuDone = true;
+    } else if (action == outEventPortDelegateAction) {
+        menu = outEventPortDelegateMenu;
+        menuDone = outEventPortInstanceMenuDone;
+        outEventPortInstanceMenuDone = true;
+    } else {
+        qWarning() << "ToolbarWidget::setupAggregateList - Action not handled.";
+        return;
+    }
+
+    if (menuDone) {
+        return;
     }
 
     QList<NodeItem*> agrregates = nodeView->getEntityItemsOfKind("Aggregate");
     foreach (NodeItem* aggregate, agrregates) {
-        constructSubMenuAction(aggregate, aggregateInstMenu);
+        constructSubMenuAction(aggregate, menu);
     }
 }
 
@@ -807,8 +810,8 @@ void ToolbarWidget::setupMenus()
     componentImplMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing unimplemented Components.", ":/Actions/Info");
     componentInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Components.", ":/Actions/Info");
     blackBoxMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing BlackBoxes.", ":/Actions/Info");
-    inEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "This Assembly does not contain any InEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/Info");
-    outEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "This Assembly does not contain any OutEventPortInstances that has a definition that is connected to an Aggregate.", ":/Actions/Info");
+    inEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
+    outEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
     aggregateInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
     vectorInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing initialised Vectors.", ":/Actions/Info");
 
@@ -891,10 +894,10 @@ void ToolbarWidget::makeConnections()
 
     connect(componentImplAction, SIGNAL(hovered()), this, SLOT(setupComponentList()));
     connect(componentInstAction, SIGNAL(hovered()), this, SLOT(setupComponentList()));
-    connect(inEventPortDelegateAction, SIGNAL(hovered()), this, SLOT(setupEventPortInstanceList()));
-    connect(outEventPortDelegateAction, SIGNAL(hovered()), this, SLOT(setupEventPortInstanceList()));
     connect(blackBoxInstAction, SIGNAL(hovered()), this, SLOT(setupBlackBoxList()));
     connect(aggregateInstAction, SIGNAL(hovered()), this, SLOT(setupAggregateList()));
+    connect(inEventPortDelegateAction, SIGNAL(hovered()), this, SLOT(setupAggregateList()));
+    connect(outEventPortDelegateAction, SIGNAL(hovered()), this, SLOT(setupAggregateList()));
     connect(vectorInstAction, SIGNAL(hovered()), this, SLOT(setupVectorList()));
 
     connect(componentImplMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addConnectedNode(ToolbarMenuAction*)));
@@ -1303,54 +1306,6 @@ void ToolbarWidget::setupComponentList(QString actionKind)
         }
         // set up an action for each Component definition
         constructSubMenuAction(component, actionMenu);
-    }
-}
-
-
-/**
- * @brief ToolbarWidget::setupEventPortInstanceList
- * @param eventPortKind
- */
-void ToolbarWidget::setupEventPortInstanceList(QString eventPortKind)
-{
-    ToolbarMenu* actionMenu = 0;
-
-    if (eventPortKind == "InEventPortInstance") {
-        if (inEventPortInstanceMenuDone) {
-            return;
-        } else {
-            inEventPortInstanceMenuDone = true;
-            actionMenu = inEventPortDelegateMenu;
-        }
-    } else if (eventPortKind == "OutEventPortInstance") {
-        if (outEventPortInstanceMenuDone) {
-            return;
-        } else {
-            outEventPortInstanceMenuDone = true;
-            actionMenu = outEventPortDelegateMenu;
-        }
-    } else {
-        qWarning() << "ToolbarWidget::setupEventPortInstanceList - Event port kind not handled.";
-        return;
-    }
-
-    // setup combined list of both Component and BlackBox instances for the In/Out EventPortDelegate menus
-    QList<NodeItem*> definitionInstances = nodeView->getEntityItemsOfKind("ComponentInstance", nodeItem->getID(), 0);
-    definitionInstances.append(nodeView->getEntityItemsOfKind("BlackBoxInstance", nodeItem->getID(), 0));
-
-    foreach (NodeItem* defnInst, definitionInstances) {
-
-        QList<NodeItem*> epInstances = nodeView->getEntityItemsOfKind(eventPortKind, defnInst->getID());
-
-        foreach (NodeItem* epInst, epInstances) {
-            // can only connect an EventPort Delegate to an EventPort connected to an Aggregate
-            NodeItem* epDefn = nodeView->getDefinition(epInst->getID());
-            if (epDefn && !nodeView->getAggregate(epDefn->getID())) {
-                continue;
-            }
-            // set up an action for each In/Out EventPortInstance
-            constructSubMenuAction(epInst, actionMenu);
-        }
     }
 }
 
