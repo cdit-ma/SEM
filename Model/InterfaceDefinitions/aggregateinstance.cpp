@@ -4,7 +4,7 @@
 #include "vectorinstance.h"
 #include <QDebug>
 
-AggregateInstance::AggregateInstance():Node(Node::NT_DEFINSTANCE)
+AggregateInstance::AggregateInstance():DataNode(Node::NT_DEFINSTANCE)
 {
     setAcceptEdgeClass(Edge::EC_DEFINITION);
 }
@@ -36,4 +36,9 @@ bool AggregateInstance::canConnect_DefinitionEdge(Node *definition)
     }
 
     return Node::canConnect_DefinitionEdge(definition);
+}
+
+bool AggregateInstance::canConnect_DataEdge(Node *node)
+{
+    return DataNode::canConnect_DataEdge(node);
 }

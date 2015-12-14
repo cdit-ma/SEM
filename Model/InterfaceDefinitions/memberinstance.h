@@ -1,8 +1,8 @@
 #ifndef MEMBERINSTANCE_H
 #define MEMBERINSTANCE_H
 #include "../node.h"
-#include "../BehaviourDefinitions/behaviournode.h"
-class MemberInstance : public BehaviourNode
+#include "datanode.h"
+class MemberInstance : public DataNode
 {
     Q_OBJECT
 public:

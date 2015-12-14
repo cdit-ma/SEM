@@ -144,7 +144,8 @@ HEADERS += \
     Model/DeploymentDefinitions/hardware.h \
     Model/Edges/workflowedge.h \
     Model/Edges/dataedge.h \
-    Model/Edges/assemblyedge.h
+    Model/Edges/assemblyedge.h \
+    Model/InterfaceDefinitions/datanode.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -254,7 +255,8 @@ SOURCES += \
     Model/DeploymentDefinitions/eventportdelegate.cpp \
     Model/Edges/workflowedge.cpp \
     Model/Edges/dataedge.cpp \
-    Model/Edges/assemblyedge.cpp
+    Model/Edges/assemblyedge.cpp \
+    Model/InterfaceDefinitions/datanode.cpp
 
 FORMS +=
 

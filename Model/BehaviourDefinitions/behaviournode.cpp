@@ -266,6 +266,7 @@ bool BehaviourNode::compareableTypes(Node *node)
     stringTypes << "String" << "WideString";
 
     if(node){
+
         //Types
         QString type1 = getDataValue("type");
         QString type2 = node->getDataValue("type");
@@ -366,7 +367,6 @@ bool BehaviourNode::canConnect_DataEdge(Node *node)
             return false;
         }
     }
-
     if(!compareableTypes(node)){
         //Different Types
         return false;
