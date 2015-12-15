@@ -7,15 +7,15 @@
 #define MIN_HEIGHT 50.0
 
 #define BUTTON_SIZE 28
-#define BUTTON_RADIUS (BUTTON_SIZE / 4)
+#define BUTTON_RADIUS (BUTTON_SIZE / 6)
 #define KEY_LABEL_WIDTH 100
 
 #define LAYOUT_MARGIN 2
 #define LAYOUT_SPACING 5
 #define MARGIN_OFFSET (LAYOUT_MARGIN + LAYOUT_SPACING)
 
-#define LABEL_RATIO 0.5
 //#define LABEL_RATIO (2.0 / 5.0)
+#define LABEL_RATIO 0.5
 #define ICON_RATIO 0.8
 #define ICON_SIZE (MIN_HEIGHT * ICON_RATIO - MARGIN_OFFSET)
 
@@ -254,8 +254,6 @@ void SearchItem::setupLayout()
     // setup entity label
     QString graphMLLabel = graphMLItem->getGraphML()->getDataValue("label");
     entityLabel = new QLabel(this);
-    //entityLabel->setMinimumWidth(MIN_WIDTH * LABEL_RATIO);
-    //entityLabel->setFixedHeight(iconLabel->height());
     entityLabel->setFixedSize(MIN_WIDTH * LABEL_RATIO, iconLabel->height());
     entityLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     entityLabel->setText(graphMLLabel);

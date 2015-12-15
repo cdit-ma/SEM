@@ -38,7 +38,6 @@ public slots:
     void setupLegalNodesList();
     void setupComponentList();
     void setupBlackBoxList();
-    void setupEventPortInstanceList();
     void setupAggregateList();
     void setupVectorList();
     void setupHardwareList();
@@ -78,9 +77,7 @@ private:
     void setupLegalNodesList(QList<NodeItem*> nodeList);
     void setupInstancesList(QList<NodeItem*> instances);
     void setupHardwareList(QList<EntityItem*> hardware);
-
     void setupComponentList(QString actionKind);
-    void setupEventPortInstanceList(QString eventPortKind);
 
     QToolButton* constructToolButton(QSize size, double iconSizeRatio, QString iconPng, QString tooltip = "", QString iconPath = "Actions");
     QFrame* constructFrameSeparator();
@@ -197,6 +194,7 @@ private:
     QList<EntityItem*> hardwareNodeItems;
 
     VIEW_THEME currentTheme;
+
 };
 
 #endif // TOOLBARWIDGET_H

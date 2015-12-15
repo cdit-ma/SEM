@@ -2,6 +2,7 @@
 #define SEARCHDIALOG_H
 
 #include "searchitem.h"
+#include "medeawindow.h"
 
 #include <QDialog>
 #include <QVBoxLayout>
@@ -14,17 +15,15 @@
 #include <QRadioButton>
 #include <QCheckBox>
 
+
 class SearchDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    SearchDialog(QSize minimumSize, QWidget *parent);
+    SearchDialog(QSize minimumSize, MedeaWindow* window);
 
-    void addSearchItem(SearchItem* searchItem);
-    void insertSearchItem(SearchItem* searchItem);
-    void clear();
-
+    bool addSearchItems(QList<GraphMLItem*> searchResult);
     void updateHedearLabels(QString search, QStringList aspects, QStringList kinds);
 
 signals:
@@ -34,9 +33,13 @@ signals:
 
 public slots:
     void show();
+    void returnFocus();
 
 private slots:
     void sortItems(bool checked);
+
+protected:
+    void closeEvent(QCloseEvent* event);
 
 private:
     QLabel* constructHeadearLabel(QString labelText, QVBoxLayout *vLayout, int fixedWidth);
@@ -44,8 +47,13 @@ private:
     void setupLayout();
     void setupMenus(QHBoxLayout *layout);
 
+    void addSearchItem(SearchItem* searchItem);
+    void sortItems(QString sortKey = "");
+
+    void clear();
+
+    MedeaWindow* parentWindow;
     QVBoxLayout* resultsLayout;
-    QList<SearchItem*> searchItems;
 
     QLabel* searchLabel;
     QLabel* aspectsLabel;
@@ -58,10 +66,13 @@ private:
     QFont defaultFont;
     QFont searchFont;
 
-    bool sortedByLabel;
-    bool sortedByKind;
+    QList<SearchItem*> searchItems;
+    QList<GraphMLItem*> resultGraphmlItems;
+
+    QString currentSortKey;
 
     int MAX_ITEM_WIDTH;
+
 };
 
 #endif // SEARCHDIALOG_H

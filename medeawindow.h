@@ -62,6 +62,7 @@
 #include <QAbstractMessageHandler>
 
 
+class SearchDialog;
 
 class MedeaWindow : public QMainWindow
 {

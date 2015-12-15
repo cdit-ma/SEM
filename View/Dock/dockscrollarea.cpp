@@ -449,6 +449,7 @@ void DockScrollArea::setupLayout()
     infoLabel = new QLabel(defaultInfoText, this);
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
+    infoLabel->setFixedWidth(BUTTON_WIDTH);
     infoLabel->setStyleSheet("padding: 10px 0px; font-style: italic;");
     infoLabel->hide();
 
