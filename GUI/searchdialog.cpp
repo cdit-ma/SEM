@@ -157,6 +157,11 @@ void SearchDialog::sortItems(bool checked)
     sortItems(key);
 }
 
+void SearchDialog::closeEvent(QCloseEvent *event)
+{
+    //?
+}
+
 
 /**
  * @brief SearchDialog::constructHeadearLabel

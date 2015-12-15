@@ -25,6 +25,7 @@ public:
 
     bool addSearchItems(QList<GraphMLItem*> searchResult);
     void updateHedearLabels(QString search, QStringList aspects, QStringList kinds);
+    void clear();
 
 signals:
     void searchDialog_refresh();
@@ -50,7 +51,6 @@ private:
     void addSearchItem(SearchItem* searchItem);
     void sortItems(QString sortKey = "");
 
-    void clear();
 
     MedeaWindow* parentWindow;
     QVBoxLayout* resultsLayout;
