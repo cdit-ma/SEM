@@ -2373,6 +2373,7 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("undo", controller->canUndo());
         emit view_updateMenuActionEnabled("redo", controller->canRedo());
         emit view_updateMenuActionEnabled("localDeployment", controller->canLocalDeploy());
+        emit view_updateMenuActionEnabled("getCPP", controller->canGetCPP(selectedIDs));
     }
 
     emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());

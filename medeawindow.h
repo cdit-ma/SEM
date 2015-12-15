@@ -86,6 +86,9 @@ signals:
 
     void window_LoadJenkinsNodes(QString fileData);
 
+
+    void window_GetCPPForComponent(QString graphmlPath, QString component);
+
     void window_SortModel();
 
     void window_searchItemClicked(SearchItem* item);
@@ -113,6 +116,7 @@ public slots:
 
 
     void jenkinsExport();
+    void getCPPForComponent(QString componentName);
     void cutsExport();
     void validateExport();
     void exportTempFile();
@@ -124,6 +128,7 @@ public slots:
 private slots:
     void setFullscreenMode(bool fullscreen);
     void gotXMETransformation(bool success, QString errorString, QString path);
+    void gotCPPForComponent(bool success, QString errorString, QString componentName, QString code);
     void localDeploymentOkay();
     void toggleGridLines();
     void aboutMedea();
@@ -204,6 +209,7 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+    void _getCPPForComponent(QString filePath);
     bool canFilesBeDragImported(const QList<QUrl> files);
     void setupApplication();
     void initialiseJenkinsManager();
@@ -452,9 +458,11 @@ private:
     ActionButton* toolbar_ContextMenu;
 
     bool jenkins_TempExport;
+    bool cpp_TempExport;
     bool cuts_TempExport;
     bool validate_TempExport;
     QString validation_report_path;
+    QString componentName_CPPExport;
 
     // QWidget interface
 protected:

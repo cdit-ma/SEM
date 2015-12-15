@@ -1362,7 +1362,7 @@ void MedeaWindow::makeConnections()
     connect(this, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)), nodeView, SLOT(toggleAspect(VIEW_ASPECT,bool)));
     connect(this, SIGNAL(window_centerAspect(VIEW_ASPECT)), nodeView, SLOT(centerAspect(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_toggleAspect(VIEW_ASPECT, bool)), this, SLOT(forceToggleAspect(VIEW_ASPECT,bool)));
-
+    connect(nodeView, SIGNAL(view_ShowCPPForComponent(QString)), this, SLOT(getCPPForComponent(QString)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), definitionsToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), workloadToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), assemblyToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
@@ -1565,6 +1565,11 @@ void MedeaWindow::changeEvent(QEvent *event)
     }
 }
 
+void MedeaWindow::_getCPPForComponent(QString filePath)
+{
+    emit window_GetCPPForComponent(filePath, componentName_CPPExport);
+}
+
 bool MedeaWindow::canFilesBeDragImported(QList<QUrl> files)
 {
     foreach (const QUrl &url, files){
@@ -1652,7 +1657,8 @@ void MedeaWindow::initialiseCUTSManager()
     cutsManager->setScriptsPath(scriptsPath);
     cutsManager->moveToThread(thread);
     connect(cutsManager, SIGNAL(localDeploymentOkay()), this, SLOT(localDeploymentOkay()));
-
+    connect(this, SIGNAL(window_GetCPPForComponent(QString,QString)), cutsManager, SLOT(getCPPForComponent(QString,QString)));
+    connect(cutsManager, SIGNAL(gotCPPForComponent(bool, QString, QString,QString)), this, SLOT(gotCPPForComponent(bool,QString,  QString, QString)));
     connect(cutsManager, SIGNAL(gotXMETransformation(bool,QString, QString)), this, SLOT(gotXMETransformation(bool, QString, QString)));
 }
 
@@ -1704,6 +1710,8 @@ void MedeaWindow::cuts_runDeployment(QString filePath)
         if(appSettings){
             path = appSettings->getSetting(DEFAULT_DIR_PATH);
         }
+
+
         CUTSExecutionWidget* cWidget = new CUTSExecutionWidget(this, cutsManager);
         cWidget->setGraphMLPath(filePath);
         cWidget->setOutputPath(path);
@@ -1784,6 +1792,19 @@ void MedeaWindow::gotXMETransformation(bool success, QString errorString, QStrin
         QStringList projects;
         projects << path;
         emit importProjects(projects);
+    }
+}
+
+void MedeaWindow::gotCPPForComponent(bool success, QString errorString, QString componentName, QString code)
+{
+    setEnabled(true);
+    updateProgressStatus(100, "");
+    if(!success){
+        QMessageBox::critical(this, "XSL Transformation for CPP Error", errorString, QMessageBox::Ok);
+    }else{
+        popupMultiLine->setWindowTitle(componentName + "Impl.cpp");
+        txtMultiLine->setPlainText(code);
+        popupMultiLine->show();
     }
 }
 
@@ -2015,6 +2036,17 @@ void MedeaWindow::jenkinsExport()
 {
     jenkins_TempExport = true;
     exportTempFile();
+}
+
+void MedeaWindow::getCPPForComponent(QString componentName)
+{
+    if(componentName != ""){
+        setEnabled(false);
+        updateProgressStatus(-1, "Transforming *.cpp from Component: " + componentName);
+        componentName_CPPExport = componentName;
+        cpp_TempExport = true;
+        exportTempFile();
+    }
 }
 
 
@@ -2377,6 +2409,10 @@ void MedeaWindow::writeExportedProject(QString data)
             if(cuts_TempExport){
                 cuts_runDeployment(fileName);
                 cuts_TempExport = false;
+            }
+            if(cpp_TempExport){
+                _getCPPForComponent(fileName);
+                cpp_TempExport = false;
             }
             enableTempExport(true);
 
@@ -2904,8 +2940,13 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
         progressLabel->setText(status + "...");
     }
 
-    // update value
-    value = qMax(value, 0);
+    if(value == -1){
+        progressBar->setMaximum(0);
+        value = 0;
+    }else{
+        progressBar->setMaximum(100);
+        value = qMax(value, 0);
+    }
     progressBar->setValue(value);
 
     // reset the progress bar and re-display the notification bar if it was previously displayed
@@ -3412,7 +3453,7 @@ void MedeaWindow::setupMultiLineBox()
     popupMultiLine->setModal(true);
     //remove the '?' from the title bar
     popupMultiLine->setWindowFlags(popupMultiLine->windowFlags() & (~Qt::WindowContextHelpButtonHint));
-
+    popupMultiLine->setWindowIcon(QIcon(":/Actions/getCPP.png"));
     //Sexy Layout Stuff
     QGridLayout *gridLayout = new QGridLayout(popupMultiLine);
 

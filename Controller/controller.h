@@ -91,6 +91,7 @@ public:
     QString getGraphMLData(int ID, QString key);
 
     bool canCopy(QList<int> selection);
+    bool canGetCPP(QList<int> selection);
     bool canReplicate(QList<int> selection);
     bool canCut(QList<int> selection);
     bool canDelete(QList<int> selection);

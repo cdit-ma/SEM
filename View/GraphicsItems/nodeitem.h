@@ -22,6 +22,8 @@ public:
     QRectF childrenBoundingRect();
     QRectF getChildBoundingRect();
 
+
+    QString getLabel();
     VIEW_ASPECT getViewAspect();
     void setViewAspect(VIEW_ASPECT aspect);
 

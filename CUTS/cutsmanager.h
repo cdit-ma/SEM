@@ -50,7 +50,7 @@ signals:
 
     //Emmited by the slot executeXMETransformation
     void gotXMETransformation(bool success, QString errorString, QString path);
-
+    void gotCPPForComponent(bool success, QString errorString, QString componentName, QString cppCode);
     //Used to send live console output from the executeMWCGeneration
     void gotLiveMWCOutput(QString output);
     //Used to send live console output from the executeCPPGeneration
@@ -69,7 +69,7 @@ private slots:
     //Compiles all CPP artifacts, based on the provided make file.
     void executeCPPCompilation(QString makePath);
 
-
+    void getCPPForComponent(QString graphmlPath, QString componentName);
     void executeXMETransformation(QString xmePath, QString outputFilePath);
 
     //Runs CUTS execution
@@ -100,6 +100,7 @@ private:
 
     QString getGraphmlName(QString file);
     QString getGraphmlPath(QString filePath);
+
 
 
 

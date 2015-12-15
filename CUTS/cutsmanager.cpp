@@ -181,6 +181,36 @@ void CUTSManager::executeCPPCompilation(QString makePath)
     emit executedCPPCompilation(code == 0, errorString);
 }
 
+void CUTSManager::getCPPForComponent(QString graphmlPath, QString component)
+{
+    //Start a QProcess for this program
+    QProcess* process = new QProcess();
+    process->setWorkingDirectory(XSLTransformPath);
+
+    //Construct the arguments for the xsl transform
+    QStringList arguments;
+    arguments << "-jar" << xalanJPath + "xalan.jar";
+    arguments << "-in" << graphmlPath;
+    arguments << "-xsl" << XSLTransformPath + "graphml2cpp.xsl";
+    arguments << "-param" << "File" << component + "Impl.cpp";
+
+    //Construct a wait loop to make sure this transform happens first.
+    QEventLoop waitLoop;
+    connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
+
+    //Execute the QProcess
+    process->start("java", arguments);
+
+    //Wait for The process to exit the loop.
+    waitLoop.exec();
+
+    int code = process->exitCode();
+
+    QString commandOutput = process->readAllStandardOutput();
+    QString errorString = process->readAllStandardError();
+    emit gotCPPForComponent(code == 0,errorString, component, commandOutput);
+}
+
 void CUTSManager::executeXMETransformation(QString xmePath, QString outputFilePath)
 {
     QString tmpDir = getGraphmlPath(outputFilePath);

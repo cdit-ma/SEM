@@ -4968,6 +4968,22 @@ bool NewController::canCopy(QList<int> IDs)
     return gotNode;
 }
 
+bool NewController::canGetCPP(QList<int> IDs)
+{
+    if(IDs.length() != 1){
+        return false;
+    }
+
+    foreach(int ID, IDs){
+        Node* node = getNodeFromID(ID);
+        ComponentImpl* componentImpl = dynamic_cast<ComponentImpl*>(node);
+        if(componentImpl){
+            return true;
+        }
+    }
+    return false;
+}
+
 bool NewController::canReplicate(QList<int> selection)
 {
     //Uses can cut for the moment to try catch replication of implemenations.
