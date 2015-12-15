@@ -273,7 +273,7 @@
 		<xsl:variable name="implNodeId" select="/descendant::*/gml:edge[@target=$node/@id]/@source" />
 		<xsl:variable name="implNode" select="$behaviourDefs/descendant::*/gml:node[@id=$implNodeId]/gml:data[@key=$transformNodeKindKey][text() = 'ComponentImpl']/.." />
 		
-		<xsl:variable name="workerIncludes" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Process']/../gml:data[@key=$transformNodeWorkerKey][text() != '']/.." />
+                <xsl:variable name="workerIncludes" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Process']/../gml:data[@key=$transformNodeFolderKey][text() != '']/.." />
 		
 		<!-- find all workers and add include paths -->
 		<xsl:call-template name="generate_mpc_values">

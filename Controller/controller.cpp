@@ -2520,12 +2520,10 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
             }
         }
     }else if(edge->isDataLink()){
-        Parameter* srcParameter = dynamic_cast<Parameter*>(source);
-        Parameter* dstParameter = dynamic_cast<Parameter*>(destination);
-        if(srcParameter){
-            teardownParameterRelationship(srcParameter, destination);
-        }else if(dstParameter){
-            teardownParameterRelationship(dstParameter, source);
+        BehaviourNode* outputNode = dynamic_cast<BehaviourNode*>(source);
+        BehaviourNode* inputNode = dynamic_cast<BehaviourNode*>(destination);
+        if(inputNode && outputNode){
+            setupDataEdgeRelationship(outputNode, inputNode, false);
         }
     }
 
@@ -3602,10 +3600,106 @@ bool NewController::teardownAggregateRelationship(Node *node, Aggregate *aggrega
     return true;
 }
 
+bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNode *input, bool setup)
+{
+    Node* inputTopParent = input->getParentNode(input->getDepthToAspect() - 2);
+    Node* outputTopParent = output->getParentNode(output->getDepthToAspect() - 2);
+
+    if(inputTopParent){
+        //If we are connecting to an Variable, we don't want to bind.
+        QString parentNodeKind = inputTopParent->getNodeKind();
+        if(parentNodeKind == "Variable"){
+            return true;
+        }
+    }
+
+    GraphMLData* definitionData = output->getData("type");
+    GraphMLData* valueData = input->getData("value");
+
+    if(outputTopParent){
+        //Bind Parent Label if we are a variable.
+        QString parentNodeKind = outputTopParent->getNodeKind();
+        if(parentNodeKind == "Variable"){
+            definitionData = outputTopParent->getData("label");
+        }
+    }
+
+    if(definitionData && valueData){
+        if(setup){
+            definitionData->bindData(valueData, true);
+        }else{
+            definitionData->unbindData(valueData, false);
+            valueData->setValue("");
+        }
+    }else{
+        return false;
+    }
+
+    //Bind special stuffs.
+    Node* inputParent = input->getParentNode();
+    if(inputParent){
+        QString parentNodeKind = inputParent->getNodeKind();
+        if(parentNodeKind == "Process"){
+            QString workerName = inputParent->getDataValue("worker");
+            QString operationName = inputParent->getDataValue("operation");
+            QString parameterLabel = input->getDataValue("label");
+
+            if(workerName == "VectorOperation" && parameterLabel == "vector"){
+                QStringList bindableFunctionTypes;
+                bindableFunctionTypes << "get" << "set" << "remove";
+
+                Node* bindNode = output;
+                if(output->childrenCount() == 1){
+                    //If this is a complex Vector Bind the child.
+                    bindNode = output->getChildren(0)[0];
+                }
+
+                GraphMLData* vectorType = bindNode->getData("type");
+
+
+                if(bindableFunctionTypes.contains(operationName)){
+                    //Find return Parameter;
+                    foreach(Node* child, inputParent->getChildren(0)){
+                        ReturnParameter* returnParameter = dynamic_cast<ReturnParameter*>(child);
+                        if(returnParameter){
+                            GraphMLData* returnType = returnParameter->getData("type");
+                            if(setup){
+                                vectorType->bindData(returnType, true);
+                            }else{
+                                vectorType->unbindData(returnType, false);
+                                vectorType->setValue("");
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
+
+    return true;
+}
+
+bool NewController::teardownDataEdgeRelationship(BehaviourNode *output, BehaviourNode *input)
+{
+    GraphMLData* typeData = output->getData("type");
+    GraphMLData* valueData = input->getData("value");
+
+    if(typeData && valueData){
+        typeData->unbindData(valueData, false);
+    }else{
+        return false;
+    }
+    return true;
+}
+
 bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
 {
     //Get Process
     Node* parameterParent = parameter->getParentNode();
+
+
     Process* process = dynamic_cast<Process*>(parameterParent);
 
     if(parameter->isInputParameter()){
@@ -3858,12 +3952,10 @@ void NewController::constructEdgeGUI(Edge *edge)
     }
 
     if(edge->isDataLink()){
-        Parameter* srcParameter = dynamic_cast<Parameter*>(src);
-        Parameter* dstParameter = dynamic_cast<Parameter*>(dst);
-        if(srcParameter){
-             setupParameterRelationship(srcParameter, dst);
-        }else if(dstParameter){
-            setupParameterRelationship(dstParameter, src);
+        BehaviourNode* outputNode = dynamic_cast<BehaviourNode*>(src);
+        BehaviourNode* inputNode = dynamic_cast<BehaviourNode*>(dst);
+        if(outputNode && outputNode){
+            setupDataEdgeRelationship(outputNode, inputNode, true);
         }
     }
 

@@ -529,7 +529,6 @@ bool Node::canConnect_DataEdge(Node *node)
     Node* componentImpl = getParentNode(getDepthToAspect() - 1);
     Node* nodeComponentImpl = node->getParentNode(node->getDepthToAspect() - 1);
 
-    qCritical() << this << " component " << componentImpl;
     if(componentImpl != nodeComponentImpl){
         return false;
     }
