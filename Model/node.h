@@ -56,6 +56,7 @@ public:
     bool compareData(Node* node, QStringList keys);
 
 
+
     //Adds the Node provided to the list of children.
     void addChild(Node *child);
 
@@ -66,6 +67,8 @@ public:
      //Gets the Children of this Node to a desired Depth.
     //-1 = Recurse forever.
     QList<Node *> getChildren(int depth =-1);
+    Node* getFirstChild();
+    Edge* getFirstEdge();
 
     QList<Node *> getSiblings();
 
@@ -122,6 +125,8 @@ public:
 
 
 
+
+    bool fullyContainsEdge(Edge* edge);
 
     bool containsEdge(Edge* edge);
 

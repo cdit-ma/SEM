@@ -782,6 +782,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         if(hasEditData){
             paintPixmap(painter, IP_BOTLEFT, "Data", editableDataKey);
+
         }
     }
 
@@ -2609,6 +2610,10 @@ void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QStri
 {
     QRectF place = getImageRect(pos);
     QPixmap image = imageMap[pos];
+
+    //if(pos == IP_BOTLEFT && imageName == "replicate_count"){
+    //+    painter->fillRect(place, Qt::red);
+    //}
 
     if(getNodeView() && (image.isNull() || update)){
         image = getNodeView()->getImage(alias, imageName);

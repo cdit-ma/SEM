@@ -140,6 +140,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     validate_TempExport = false;
     cuts_TempExport = false;
     jenkins_TempExport = false;
+    cpp_TempExport = false;
+
     leftOverTime = 0;
     isWindowMaximized = false;
     settingsLoading = false;

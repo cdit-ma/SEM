@@ -137,6 +137,11 @@ QString Edge::toString()
     return QString("Edge[%1]: [" + this->getSource()->toString() +"] <-> [" + this->getDestination()->toString() + "]").arg(this->getID());
 }
 
+bool Edge::isAggregateEdge()
+{
+    return edgeClass == EC_AGGREGATE;
+}
+
 bool Edge::isDefinitionEdge()
 {
     return edgeClass == EC_DEFINITION;

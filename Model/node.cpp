@@ -307,6 +307,16 @@ QList<Node *> Node::getChildren(int depth)
     return childList;
 }
 
+Node *Node::getFirstChild()
+{
+    return getOrderedChildNodes().first();
+}
+
+Edge *Node::getFirstEdge()
+{
+    return getOrderedEdges().first();
+}
+
 QList<Node *> Node::getSiblings()
 {
     QList<Node *> childList;
@@ -577,6 +587,28 @@ bool Node::canConnect_DefinitionEdge(Node *definition)
         }
     }
 
+    //Check for cyclic stuff
+    foreach(Node* child, definition->getChildren(0)){
+        if(child->isInstance() && child->getDefinition()){
+            Node* def = child->getDefinition();
+
+            while(def){
+                if(def->getDefinition()){
+                    def = def->getDefinition();
+                }else{
+                    break;
+                }
+            }
+
+            if(def){
+                if(def->isAncestorOf(this)){
+                    //Disallow cycles.
+                    return false;
+                }
+            }
+        }
+    }
+
     return true;
 }
 
@@ -671,6 +703,14 @@ bool Node::isConnected(Node *node)
 bool Node::isIndirectlyConnected(Node *node)
 {
     return (getAllConnectedNodes().contains(node) || node->getAllConnectedNodes().contains(this) || node == this);
+}
+
+bool Node::fullyContainsEdge(Edge *edge)
+{
+    Node* src = edge->getSource();
+    Node* dst = edge->getDestination();
+
+    return isAncestorOf(src) && isAncestorOf(dst);
 }
 
 
@@ -896,15 +936,13 @@ QList<Node *> Node::getNodesRight()
 
 QList<Node *> Node::getOrderedChildNodes()
 {
-    QMap<QString, Node*> orderedList;
+    QMap<int, Node*> orderedList;
 
     foreach(Node* child, children){
-        QString sortID = child->getDataValue("sortOrder");
+        int sortID = child->getDataNumberValue("sortOrder");
         orderedList.insertMulti(sortID, child);
     }
     return orderedList.values();
-
-
 }
 
 QList<Edge *> Node::getOrderedEdges()

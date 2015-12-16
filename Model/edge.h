@@ -47,6 +47,7 @@ public:
     QString toString();
 
 
+    bool isAggregateEdge();
     bool isDefinitionEdge();
     EDGE_CLASS getEdgeClass();
 private:
