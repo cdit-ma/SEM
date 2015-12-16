@@ -164,7 +164,7 @@ void DockToggleButton::hideDock()
 {
     // if the groupbox is still visible, force press this button to hide it
     if (selected) {
-        dockButtonPressed(getDockType());
+        emit pressed();
     }
 }
 

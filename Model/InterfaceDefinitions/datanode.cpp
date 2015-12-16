@@ -25,6 +25,16 @@ bool DataNode::canConnect_DataEdge(Node *node)
         }
     }
 
+    int depthToContainer = depthToAspectChild - 1;
+    int depthToNodeContainer = node->getDepthToAspect() - 2;
+
+    Node* container = getParentNode(depthToContainer);
+    Node* nodeContainer = node->getParentNode(depthToNodeContainer);
+    if(container == nodeContainer){
+        //Can't connect a member instance in an aggregate to an aggregate.
+        return false;
+    }
+
     return BehaviourNode::canConnect_DataEdge(node);
 }
 

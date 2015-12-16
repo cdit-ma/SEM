@@ -3361,10 +3361,10 @@ void NodeView::storeGraphMLItemInHash(GraphMLItem *item)
 
 }
 
-bool NodeView::removeGraphMLItemFromHash(int ID)
+void NodeView::removeGraphMLItemFromHash(int ID)
 {
-    bool removed = false;
-    if(guiItems.contains(ID)){
+    if (guiItems.contains(ID)) {
+
         GraphMLItem* item = guiItems[ID];
         guiItems.remove(ID);
 
@@ -3376,27 +3376,29 @@ bool NodeView::removeGraphMLItemFromHash(int ID)
             setAttributeModel(0);
         }
 
-        if(item){
-            if(item->isEdgeItem()){
+        if (item) {
+            if (item->isEdgeItem()) {
                 EdgeItem* edgeItem = (EdgeItem*)item;
                 updateDeployment = true;
                 if (edgeItem->getSource() && edgeItem->getDestination()) {
                     emit view_edgeDeleted(edgeItem->getSource()->getID(), edgeItem->getDestination()->getID());
                 }
-            }else{
-                if(item->getParent()){
+            } else {
 
-                    // remove child from parent item
-                    item->getParent()->removeChild(ID);
+                GraphMLItem* parentGraphMLItem = item->getParent();
+                int parentID = -1;
 
-                    emit view_nodeDeleted(item->getID(), item->getParent()->getID());
+                // remove child from parent item
+                if (parentGraphMLItem) {
+                    parentGraphMLItem->removeChild(ID);
+                    parentID = parentGraphMLItem->getID();
                 }
-            }
 
+                emit view_nodeDeleted(item->getID(), parentID);
+            }
 
             item->detach();
             delete item;
-            //qCritical() << "DELETED!";
         }
 
         if(IS_SUB_VIEW){
@@ -3405,15 +3407,13 @@ bool NodeView::removeGraphMLItemFromHash(int ID)
                 deleteLater();
             }
         }
-        removed = true;
-    }else{
+
+    } else {
 
         // need to send view_edgeDeleted signal even if the edge doesn't have a gui item
         if (noGuiIDHash.contains(ID) && noGuiIDHash[ID] == "Edge") {
             emit view_edgeDeleted();
         }
-
-        removed = false;
     }
 
     //Maybe have important thing.
@@ -3424,8 +3424,6 @@ bool NodeView::removeGraphMLItemFromHash(int ID)
         }
         definitionIDs.remove(ID);
     }
-
-    return false;
 }
 
 

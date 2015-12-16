@@ -86,6 +86,9 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     updateTextLabel();
 
     connect(this, SIGNAL(clicked()), this , SLOT(clicked()));
+    if (parentDock) {
+        connect(this, SIGNAL(dockItem_hiddenStateChanged()), parentDock, SLOT(updateInfoLabel()));
+    }
 
     // initially contract labels
     setDockItemExpanded();
@@ -157,7 +160,12 @@ void DockNodeItem::setParentDockNodeItem(DockNodeItem* parentItem)
     if (parentDockItem) {
         setDockItemVisible(parentDockItem->isDockItemVisible());
         connect(parentDockItem, SIGNAL(dockItem_fileClicked(bool)), this, SLOT(parentDockItemClicked(bool)));
-        connect(this, SIGNAL(dockItem_visibilityChanged()), parentDockItem, SLOT(childVisibilityChanged()));
+        connect(this, SIGNAL(dockItem_hiddenStateChanged()), parentDockItem, SLOT(childVisibilityChanged()));
+
+        // if this has a parent dock item, we only need to connect this signal to the parent dock item
+        if (parentDock) {
+            disconnect(this, SIGNAL(dockItem_hiddenStateChanged()), parentDock, SLOT(updateInfoLabel()));
+        }
     }
 }
 
@@ -261,7 +269,6 @@ void DockNodeItem::setHidden(bool hide)
 {
     hidden = hide;
     setDockItemVisible(!hide);
-    emit dockItem_visibilityChanged();
 }
 
 
@@ -322,12 +329,14 @@ void DockNodeItem::setReadOnlyState(bool on)
  */
 void DockNodeItem::setDockItemVisible(bool visible)
 {
+    // this signal needs to be sent whether or not this item's actual visibility is changed
+    emit dockItem_hiddenStateChanged();
+
     if (!isDockItemLabel()) {
         if (hidden || forceHidden) {
             visible = false;
         } else if (parentDockItem) {
             if (visible) {
-                //parentDockItem->setDockItemVisible(true);
                 parentDockItem->setHidden(false);
             }
             visible = visible && parentDockItem->isExpanded();
@@ -640,15 +649,7 @@ void DockNodeItem::highlightDockItem(NodeItem* nodeItem)
 void DockNodeItem::childVisibilityChanged()
 {
     if (isDockItemLabel()) {
-        foreach (DockNodeItem* dockItem, childrenDockItems) {
-            if (!dockItem->isHidden() && !dockItem->isForceHidden()) {
-                //setDockItemVisible(true);
-                setHidden(false);
-                return;
-            }
-        }
-        //setDockItemVisible(false);
-        setHidden(true);
+        setHidden(!hasVisibleChildren());
     }
 }
 
@@ -683,5 +684,20 @@ void DockNodeItem::setDockItemExpanded()
         updateStyleSheet();
         emit dockItem_fileClicked(expanded);
     }
+}
+
+
+/**
+ * @brief DockNodeItem::hasVisibleChildren
+ * @return
+ */
+bool DockNodeItem::hasVisibleChildren()
+{
+    foreach (DockNodeItem* dockItem, childrenDockItems) {
+        if (!dockItem->isHidden() && !dockItem->isForceHidden()) {
+            return true;
+        }
+    }
+    return false;
 }
 

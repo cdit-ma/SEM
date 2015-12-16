@@ -560,7 +560,7 @@
 		<xsl:param name="transformNodeFileKey" />
 		<xsl:param name="transformNodeWorkerKey" />
 	
-		<xsl:variable name="workerIncludes" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Process']/../gml:data[@key=$transformNodeWorkerKey][text() != '']/.." />
+                <xsl:variable name="workerIncludes" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'Process']/../gml:data[@key=$transformNodeFileKey][text() != '']/.." />
 		
 		<!-- find all workers and add include paths -->
 		<xsl:if test="count($workerIncludes) &gt; 0" >

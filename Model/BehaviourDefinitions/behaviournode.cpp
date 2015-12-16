@@ -2,6 +2,7 @@
 #include "condition.h"
 #include "branch.h"
 #include "parameter.h"
+#include "../InterfaceDefinitions/vectorinstance.h"
 
 BehaviourNode::BehaviourNode(Node::NODE_TYPE type):Node(type)
 {
@@ -271,11 +272,31 @@ bool BehaviourNode::compareableTypes(Node *node)
         QString type1 = getDataValue("type");
         QString type2 = node->getDataValue("type");
 
+        if(type1 == type2 && type1 != ""){
+            //Allow direct matches.
+            return true;
+        }
         if(numberTypes.contains(type1) && numberTypes.contains(type2)){
+            //Allow matches of numbers
             return true;
         }
         if(stringTypes.contains(type1) && stringTypes.contains(type2)){
+            //Allow matches of Strings
             return true;
+        }
+        if(type2 == "WE_UTE_Vector"){
+            //Allow Vector Connections to WE_UTE_Vector types
+            VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(this);
+            if(vectorInstance){
+                return true;
+            }
+        }
+        if(type1 == "WE_UTE_Vector"){
+            //Allow Vector Connections from WE_UTE_Vector types to Vectors.
+            VectorInstance* vectorInstance = dynamic_cast<VectorInstance*>(node);
+            if(vectorInstance){
+                return true;
+            }
         }
     }
     return false;
@@ -367,18 +388,53 @@ bool BehaviourNode::canConnect_DataEdge(Node *node)
             return false;
         }
     }
+
+
     if(!compareableTypes(node)){
         //Different Types
         return false;
     }
 
-    //if(node->acceptsEdgeClass(Edge::EC_ASSEMBLY)){
+    if(!Node::canConnect_DataEdge(node)){
+        return false;
+    }
 
-    //}
+    //Look up for Vectors.
+    Node* parentNode = getParentNode();
+    while(parentNode){
+        QString nodeKind = parentNode->getNodeKind();
 
+        if(nodeKind == "VectorInstance"){
+            //Can't allow connections from children of VectorInstance
+            return false;
+        }else if(nodeKind == "OutEventPortImpl"){
+            //Can't allow connections from children of OutEventPortImpls
+            return false;
+        }else if(parentNode->isAspect()){
+            //If we get to an Aspect, return.
+            break;
+        }
+        parentNode = parentNode->getParentNode();
+    }
 
+    Node* nodeParent = node->getParentNode();
+    while(nodeParent){
+        QString nodeKind = nodeParent->getNodeKind();
 
-    return Node::canConnect_DataEdge(node);
+        if(nodeKind == "VectorInstance"){
+            //Can't allow connections from children of VectorInstance
+            return false;
+        }else if(nodeKind == "InEventPortImpl"){
+            //Can't allow connections into children of InEventPortImpl
+            return false;
+        }else if(nodeParent->isAspect()){
+            //If we get to an Aspect, return.
+            break;
+        }
+        nodeParent = nodeParent->getParentNode();
+    }
+
+    return true;
 }
 
 

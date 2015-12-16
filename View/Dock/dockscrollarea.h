@@ -51,7 +51,7 @@ public:
     QStringList getAdoptableNodeListFromView();
 
     void setInfoText(QString text);
-    void setupInfoLabel();
+    bool hasVisibleItems();
 
     virtual void connectToView() = 0;
     virtual void nodeDeleted(QString nodeID);
@@ -74,10 +74,11 @@ public slots:
 
     void parentHeightChanged(double height);
 
+    void updateInfoLabel();
+
 private:
     void setupLayout();
     void setParentButton(DockToggleButton* parent);
-    void displayInfoLabel(bool display, QString text = "");
 
     NodeView* nodeView;
     DockToggleButton* parentButton;
@@ -91,6 +92,7 @@ private:
     QLabel* infoLabel;
     QString infoText;
     QString defaultInfoText;
+    bool infoLabelVisible;
 
     QString label;
     bool dockOpen;

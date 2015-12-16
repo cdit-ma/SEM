@@ -50,7 +50,7 @@ signals:
     void dockItem_clicked();
     void dockItem_fileClicked(bool show);
     void dockItem_relabelled(DockNodeItem* dockItem);
-    void dockItem_visibilityChanged();
+    void dockItem_hiddenStateChanged();
 
 public slots:
     void clicked();
@@ -71,6 +71,7 @@ private:
     void updateStyleSheet();
 
     void setDockItemExpanded();
+    bool hasVisibleChildren();
 
     DockScrollArea* parentDock;
     EntityItem* nodeItem;

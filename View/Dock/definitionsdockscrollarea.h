@@ -30,7 +30,6 @@ private:
     void filterDock(QString nodeKind = "");
     void showDockItemsOfKind(QString nodeKind);
     void hideImplementedComponents();
-    void updateInfoLabel();
 
     QStringList definitions_notAllowedKinds;
     QStringList definitions_allowedKinds;

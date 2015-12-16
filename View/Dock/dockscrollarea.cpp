@@ -30,11 +30,13 @@ DockScrollArea::DockScrollArea(QString label, NodeView* view, DockToggleButton* 
     nodeView = view;
     parentButton = 0;
 
+    this->label = label;
+
     currentNodeItem = 0;
     currentNodeItemID = -1;
 
-    this->label = label;
     dockOpen = false;
+    infoLabelVisible = true;
 
     defaultInfoText = dockEmptyText;
     infoText = defaultInfoText;
@@ -173,39 +175,43 @@ QStringList DockScrollArea::getAdoptableNodeListFromView()
  */
 void DockScrollArea::setInfoText(QString text)
 {
-    infoText = text;
-}
-
-
-/**
- * @brief DockScrollArea::displayInfoLabel
- * @param display
- * @param text
- */
-void DockScrollArea::displayInfoLabel(bool display, QString text)
-{
-    if (display && !text.isEmpty()) {
+    if (!text.isEmpty()) {
 
         QStringList textList = text.split(" ");
-        QString displayedText;
         int lineWidth;
+        text = "";
 
         foreach (QString s, textList) {
             int sWidth = infoLabel->fontMetrics().width(s + " ");
             if ((lineWidth + sWidth) < BUTTON_WIDTH) {
-                displayedText += s + " ";
+                text += s + " ";
                 lineWidth += sWidth;
             } else {
-                displayedText += "<br/>" + s + " ";
+                text += "<br/>" + s + " ";
                 lineWidth = sWidth;
             }
         }
 
-        displayedText.truncate(displayedText.length() - 1);
-        infoLabel->setText(displayedText);
+        text.truncate(text.length() - 1);
     }
 
-    infoLabel->setVisible(display);
+    infoText = text;
+    infoLabel->setText(infoText);
+}
+
+
+/**
+ * @brief DockScrollArea::hasVisibleItems
+ * @return
+ */
+bool DockScrollArea::hasVisibleItems()
+{
+    foreach (DockNodeItem* item, getDockNodeItems()) {
+        if (!item->isHidden() && !item->isForceHidden()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -254,7 +260,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
         qWarning() << "DockScrollArea::addDockNodeItem - Item is null.";
     }
 
-    setupInfoLabel();
+    updateInfoLabel();
 }
 
 
@@ -282,7 +288,7 @@ void DockScrollArea::removeDockNodeItem(DockNodeItem* dockItem, bool deleteItem)
         dockItem->deleteLater();
     }
 
-    setupInfoLabel();
+    updateInfoLabel();
 }
 
 
@@ -446,12 +452,12 @@ int DockScrollArea::getCurrentNodeID()
  */
 void DockScrollArea::setupLayout()
 {
-    infoLabel = new QLabel(defaultInfoText, this);
+    infoLabel = new QLabel(this);
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
     infoLabel->setFixedWidth(BUTTON_WIDTH);
     infoLabel->setStyleSheet("padding: 10px 0px; font-style: italic;");
-    infoLabel->hide();
+    setInfoText(defaultInfoText);
 
     QGroupBox* groupBox = new QGroupBox(0);
     groupBox->setTitle(label);
@@ -480,27 +486,6 @@ void DockScrollArea::setupLayout()
                   "border-radius: 10px;"
                   "padding-top: 10px;"
                   "}");
-}
-
-
-/**
- * @brief DockScrollArea::setupInfoLabel
- */
-void DockScrollArea::setupInfoLabel()
-{
-    if (!dockOpen) {
-        return;
-    }
-
-    bool showLabel = true;
-    foreach (DockNodeItem* item, getDockNodeItems()) {
-        if (!item->isHidden() && !item->isForceHidden()) {
-            showLabel = false;
-            break;
-        }
-    }
-
-    displayInfoLabel(showLabel, infoText);
 }
 
 
@@ -558,3 +543,17 @@ void DockScrollArea::parentHeightChanged(double height)
 {
     resize(width(), height);
 }
+
+
+/**
+ * @brief DockScrollArea::updateInfoLabel
+ */
+void DockScrollArea::updateInfoLabel()
+{
+    bool showLabel = !hasVisibleItems();
+    if (showLabel != infoLabelVisible) {
+        infoLabel->setVisible(showLabel);
+        infoLabelVisible = showLabel;
+    }
+}
+

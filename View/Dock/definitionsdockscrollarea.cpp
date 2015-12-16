@@ -115,7 +115,7 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
         QString idlID = idlDockItem->getID();
         QVBoxLayout* idlLayout = idlLayoutItems[idlID];
 
-        // if there is only 1 child item stored in the IDL, hide the File
+        // if the item to delete is the last child item stored in the IDL, hide the IDL item
         bool hideIdlLayout = idlDockItem->getChildrenDockItems().count() == 1;
 
         if (idlLayout) {
@@ -152,12 +152,7 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
 
     int selectedNodeID = selectedNodeItem->getID();
     int dockNodeID = dockNodeItem->getID().toInt();
-
-    if (selectedNodeItem->getNodeKind() == "BehaviourDefinitions") {
-        getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, "ComponentImpl", 0);
-    } else {
-        getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, dockNodeItem->getKind() + "Instance", 0);
-    }
+    getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, sourceDockItemKind, 0);
 
     // disable this dock after an item has been clicked
     dockClosed();
@@ -315,13 +310,23 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
     }
 
     QString kind;
+    QString infoLabelText;
     bool hideCompsWithImpl = false;
 
     if (nodeKind.endsWith("Instance")) {
-        kind.append(nodeKind.remove("Instance"));
+        kind = nodeKind.remove("Instance");
+        if (kind == "Vector") {
+            infoLabelText = "There are no IDL files containing initialised Vector entities.";
+        } else {
+            infoLabelText = "There are no IDL files containing " + kind + " entities.";
+        }
+    } else if (nodeKind.endsWith("Delegate")) {
+        kind = "Aggregate";
+        infoLabelText = "There are no IDL files containing Aggregate entities.";
     } else if (nodeKind == "ComponentImpl") {
-        kind.append("Component");
+        kind = "Component";
         hideCompsWithImpl = true;
+        infoLabelText = "There are no IDL files containing unimplemented Component entities.";
     } else {
         qWarning() << "DefinitionsDockScrollArea::filterDock - Node kind is not handled.";
         setDockEnabled(false);
@@ -336,7 +341,7 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
         hideImplementedComponents();
     }
 
-    updateInfoLabel();
+    setInfoText(infoLabelText);
 }
 
 
@@ -475,33 +480,6 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
             }
         }
     }
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::updateInfoText
- */
-void DefinitionsDockScrollArea::updateInfoLabel()
-{
-    QString infoLabelText;
-    QString kind = sourceDockItemKind;
-
-    if (kind.endsWith("Instance")) {
-        if (kind == "VectorInstance") {
-            infoLabelText = "There are no IDL files containing initialised Vectors.";
-        } else {
-            kind = kind.remove("Instance");
-            infoLabelText = "There are no IDL files containing " + kind + " entities.";
-        }
-    } else if (kind == "ComponentImpl") {
-        infoLabelText = "There are no IDL files containing unimplemented Components.";
-    } else {
-        qWarning() << "DefinitionsDockScrollArea::updateInfoLabel - Source kind is not handled.";
-        return;
-    }
-
-    setInfoText(infoLabelText);
-    setupInfoLabel();
 }
 
 
