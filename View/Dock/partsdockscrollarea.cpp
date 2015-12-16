@@ -19,6 +19,7 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
     kindsRequiringDefinition.append("VectorInstance");
     kindsRequiringDefinition.append("InEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortDelegate");
+    //kindsRequiringDefinition.append("OutEventPortImpl");
     kindsRequiringFunction.append("Process");
 
     setDockEnabled(false);

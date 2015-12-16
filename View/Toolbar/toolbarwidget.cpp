@@ -42,7 +42,7 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     setupTheme();
 
     makeConnections();
-    resetButtonGroupFlags();
+    resetGroupFlags();
 }
 
 
@@ -56,7 +56,7 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
  */
 void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> edgeItems)
 {
-    resetButtonGroupFlags();
+    resetGroupFlags();
     hideButtons();
     hideSeparators();
 
@@ -214,6 +214,8 @@ void ToolbarWidget::addConnectedNode(ToolbarMenuAction* action)
         kindToConstruct = "InEventPortDelegate";
     } else if (menu == outEventPortDelegateMenu) {
         kindToConstruct = "OutEventPortDelegate";
+    } else if (menu == outEventPortImplMenu) {
+        kindToConstruct = "OutEventPortImpl";
     } else if (menu == blackBoxInstMenu) {
         kindToConstruct = "BlackBoxInstance";
     } else if (menu == aggregateInstMenu) {
@@ -528,6 +530,8 @@ void ToolbarWidget::setupAdoptableNodesList()
             action = inEventPortDelegateAction;
         } else if (kind == "OutEventPortDelegate") {
             action = outEventPortDelegateAction;
+        } else if (kind == "OutEventPortImpl") {
+            action = outEventPortImplAction;
         } else if (kind == "BlackBoxInstance") {
             action = blackBoxInstAction;
         } else if (kind == "AggregateInstance") {
@@ -632,12 +636,12 @@ void ToolbarWidget::setupAggregateList()
         aggregateMenuDone = true;
     } else if (action == inEventPortDelegateAction) {
         menu = inEventPortDelegateMenu;
-        menuDone = inEventPortInstanceMenuDone;
-        inEventPortInstanceMenuDone = true;
+        menuDone = inEventPortInstMenuDone;
+        inEventPortInstMenuDone = true;
     } else if (action == outEventPortDelegateAction) {
         menu = outEventPortDelegateMenu;
-        menuDone = outEventPortInstanceMenuDone;
-        outEventPortInstanceMenuDone = true;
+        menuDone = outEventPortInstMenuDone;
+        outEventPortInstMenuDone = true;
     } else {
         qWarning() << "ToolbarWidget::setupAggregateList - Action not handled.";
         return;
@@ -702,6 +706,36 @@ void ToolbarWidget::setupHardwareList()
     }
 
     hardwareMenu->splitActionsWithMenu();
+}
+
+
+/**
+ * @brief ToolbarWidget::setupOutEventPortList
+ */
+void ToolbarWidget::setupOutEventPortList()
+{
+    if (outEventPortMenuDone) {
+        return;
+    } else {
+        outEventPortMenuDone = true;
+    }
+
+    QList<NodeItem*> outEventPorts;
+    NodeItem* component = nodeView->getNodeItemFromID(nodeItem->getNode()->getDefinition()->getID());
+    if (!component) {
+        outEventPortMenuDone = false;
+        return;
+    }
+
+    foreach (GraphMLItem* item, component->getChildren()) {
+        if (item->getNodeKind() == "OutEventPort") {
+            outEventPorts.append((NodeItem*)item);
+        }
+    }
+
+    foreach (NodeItem* item, outEventPorts) {
+        constructSubMenuAction(item, outEventPortImplMenu);
+    }
 }
 
 
@@ -802,6 +836,7 @@ void ToolbarWidget::setupMenus()
     componentInstAction = new ToolbarMenuAction("ComponentInstance", 0, this);
     inEventPortDelegateAction = new ToolbarMenuAction("InEventPortDelegate", 0, this);
     outEventPortDelegateAction = new ToolbarMenuAction("OutEventPortDelegate", 0, this);
+    outEventPortImplAction = new ToolbarMenuAction("OutEventPortImpl", 0, this);
     blackBoxInstAction = new ToolbarMenuAction("BlackBoxInstance", 0, this);
     aggregateInstAction = new ToolbarMenuAction("AggregateInstance", 0, this);
     vectorInstAction = new ToolbarMenuAction("VectorInstance", 0, this);
@@ -812,6 +847,7 @@ void ToolbarWidget::setupMenus()
     blackBoxMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing BlackBoxes.", ":/Actions/Info");
     inEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
     outEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
+    outEventPortImplMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "The selected entity's definition does not contain any OutEventPorts.", ":/Actions/Info");
     aggregateInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
     vectorInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing initialised Vectors.", ":/Actions/Info");
 
@@ -821,6 +857,7 @@ void ToolbarWidget::setupMenus()
     blackBoxInstMenu = new ToolbarMenu(this, blackBoxMenuInfoAction);
     inEventPortDelegateMenu = new ToolbarMenu(this, inEventPortDelegateMenuInfoAction);
     outEventPortDelegateMenu = new ToolbarMenu(this, outEventPortDelegateMenuInfoAction);
+    outEventPortImplMenu = new ToolbarMenu(this, outEventPortImplMenuInfoAction);
     aggregateInstMenu = new ToolbarMenu(this, aggregateInstMenuInfoAction);
     vectorInstMenu = new ToolbarMenu(this, vectorInstMenuInfoAction);
 
@@ -828,6 +865,7 @@ void ToolbarWidget::setupMenus()
     componentInstAction->setMenu(componentInstMenu);
     inEventPortDelegateAction->setMenu(inEventPortDelegateMenu);
     outEventPortDelegateAction->setMenu(outEventPortDelegateMenu);
+    outEventPortImplAction->setMenu(outEventPortImplMenu);
     blackBoxInstAction->setMenu(blackBoxInstMenu);
     aggregateInstAction->setMenu(aggregateInstMenu);
     vectorInstAction->setMenu(vectorInstMenu);
@@ -898,12 +936,14 @@ void ToolbarWidget::makeConnections()
     connect(aggregateInstAction, SIGNAL(hovered()), this, SLOT(setupAggregateList()));
     connect(inEventPortDelegateAction, SIGNAL(hovered()), this, SLOT(setupAggregateList()));
     connect(outEventPortDelegateAction, SIGNAL(hovered()), this, SLOT(setupAggregateList()));
+    connect(outEventPortImplAction, SIGNAL(hovered()), this, SLOT(setupOutEventPortList()));
     connect(vectorInstAction, SIGNAL(hovered()), this, SLOT(setupVectorList()));
 
     connect(componentImplMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addConnectedNode(ToolbarMenuAction*)));
     connect(componentInstMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addConnectedNode(ToolbarMenuAction*)));
     connect(inEventPortDelegateMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addConnectedNode(ToolbarMenuAction*)));
     connect(outEventPortDelegateMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addConnectedNode(ToolbarMenuAction*)));
+    connect(outEventPortImplMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addConnectedNode(ToolbarMenuAction*)));
     connect(blackBoxInstMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addConnectedNode(ToolbarMenuAction*)));
     connect(aggregateInstMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addConnectedNode(ToolbarMenuAction*)));
     connect(vectorInstMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addConnectedNode(ToolbarMenuAction*)));
@@ -1152,6 +1192,7 @@ void ToolbarWidget::clearMenus()
     componentInstMenu->clearMenu();
     inEventPortDelegateMenu->clearMenu();
     outEventPortDelegateMenu->clearMenu();
+    outEventPortImplMenu->clearMenu();
     blackBoxInstMenu->clearMenu();
     aggregateInstMenu->clearMenu();
     vectorInstMenu->clearMenu();
@@ -1164,9 +1205,9 @@ void ToolbarWidget::clearMenus()
 
 
 /**
- * @brief ToolbarWidget::resetButtonGroupFlags
+ * @brief ToolbarWidget::resetGroupFlags
  */
-void ToolbarWidget::resetButtonGroupFlags()
+void ToolbarWidget::resetGroupFlags()
 {
     alterModelButtonsVisible = false;
     alignButtonsVisible = false;
@@ -1178,8 +1219,9 @@ void ToolbarWidget::resetButtonGroupFlags()
     blackBoxMenuDone = false;
     componentImplMenuDone = false;
     componentInstMenuDone = false;
-    inEventPortInstanceMenuDone = false;
-    outEventPortInstanceMenuDone = false;
+    inEventPortInstMenuDone = false;
+    outEventPortInstMenuDone = false;
+    outEventPortMenuDone = false;
     addMenuDone = false;
     connectMenuDone = false;
     aggregateMenuDone = false;

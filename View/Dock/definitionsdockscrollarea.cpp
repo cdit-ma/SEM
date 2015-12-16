@@ -323,10 +323,15 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
     } else if (nodeKind.endsWith("Delegate")) {
         kind = "Aggregate";
         infoLabelText = "There are no IDL files containing Aggregate entities.";
-    } else if (nodeKind == "ComponentImpl") {
-        kind = "Component";
-        hideCompsWithImpl = true;
-        infoLabelText = "There are no IDL files containing unimplemented Component entities.";
+
+    } else if (nodeKind.endsWith("Impl")) {
+        kind = nodeKind.remove("Impl");
+        if (kind == "Component") {
+            hideCompsWithImpl = true;
+            infoLabelText = "There are no IDL files containing unimplemented Component entities.";
+        } else {
+            infoLabelText = "The selected entity's definition does not contain any OutEventPort entities.";
+        }
     } else {
         qWarning() << "DefinitionsDockScrollArea::filterDock - Node kind is not handled.";
         setDockEnabled(false);
@@ -461,6 +466,40 @@ void DefinitionsDockScrollArea::dockClosed()
 
 
 /**
+ * @brief DefinitionsDockScrollArea::showDockItemsOfKind
+ * This function displays all the dock items with the provided kind and hides the rest.
+ * @param nodeKind - kind of dock node item to show
+ *                 - disable dock if kind is empty
+ */
+void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
+{
+    // disable the dock
+    if (nodeKind.isEmpty()) {
+        setDockEnabled(false);
+        return;
+    }
+
+    // only show the dock node items with the specified kind
+    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        QString dockItemKind = dockItem->getKind();
+        bool showItem = dockItemKind == nodeKind;
+        dockItem->setHidden(!showItem);
+    }
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::hideDockItems
+ */
+void DefinitionsDockScrollArea::hideDockItems()
+{
+    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        dockItem->setHidden(true);
+    }
+}
+
+
+/**
  * @brief DefinitionsDockScrollArea::hideImplementedComponents
  * This method is called when the BehaviourDefinitions or a ComponentImpl that is not connected
  * to a definition is selected. It hides all the Components that already have an implementation.
@@ -484,25 +523,68 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
 
 
 /**
- * @brief DefinitionsDockScrollArea::showDockItemsOfKind
- * This function displays all the dock items with the provided kind and hides the rest.
- * @param nodeKind - kind of dock node item to show
- *                 - disable dock if kind is empty
+ * @brief DefinitionsDockScrollArea::showChildrenOutEventPorts
  */
-void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
+void DefinitionsDockScrollArea::showChildrenOutEventPorts()
 {
-    // disable the dock
-    if (nodeKind.isEmpty()) {
-        setDockEnabled(false);
+    /*
+    if (!getCurrentNodeItem() || getCurrentNodeID() == -1) {
         return;
     }
 
-    // only show the dock node items with the specified kind
-    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-        QString dockItemKind = dockItem->getKind();
-        bool showItem = dockItemKind == nodeKind;
-        dockItem->setHidden(!showItem);
+    hideDockItems();
+
+    QList<NodeItem*> outEventPorts;
+    NodeItem* component = getNodeView()->getNodeItemFromID(nodeItem->getNode()->getDefinition()->getID());
+    if (!component) {
+        return;
     }
+
+    foreach (GraphMLItem* item, component->getChildren()) {
+        if (item->getNodeKind() == "OutEventPort") {
+            outEventPorts.append((NodeItem*)item);
+        }
+    }
+
+    DockNodeItem* compDockItem = new DockNodeItem("DockItemLabel", ((EntityItem*)getCurrentNodeItem()), this, true);
+    QVBoxLayout* compLayout = new QVBoxLayout();
+    tempDockItems.append(compDockItem);
+    addDockNodeItem(compDockItem, -1, false);
+
+    foreach (NodeItem* item, outEventPorts) {
+        DockNodeItem* dockItem = new DockNodeItem("", ((EntityItem*)item), this);
+        compLayout->addWidget(dockItem);
+        tempDockItems.append(dockItem);
+    }
+
+    // initially hide dock items for IDLs that don't have any children
+    if (!entityItem->hasChildren()) {
+        idlDockItem->setHidden(true);
+    }
+
+
+    // connect the new dock item to its parent file item
+    DockNodeItem* parentDockItem = getDockNodeItem(idlID);
+    if (parentDockItem) {
+        dockItem->setParentDockNodeItem(parentDockItem);
+        parentDockItem->addChildDockItem(dockItem);
+    }
+
+    QVBoxLayout* idlLayout = idlLayoutItems[idlID];
+    idlLayout->addWidget(dockItem);
+    addDockNodeItem(dockItem, -1, false);
+    insertDockNodeItem(dockItem);
+    connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+
+    // initially hide dock items for Vectors that don't have any children
+    if (nodeKind == "Vector") {
+        if (!entityItem->hasChildren()) {
+            dockItem->setForceHidden(true);
+        }
+        connect(entityItem, SIGNAL(entityItem_firstChildAdded(int)), dockItem, SLOT(changeVectorHiddenState()));
+        connect(entityItem, SIGNAL(entityItem_lastChildRemoved(int)), dockItem, SLOT(changeVectorHiddenState()));
+    }
+    */
 }
 
 
