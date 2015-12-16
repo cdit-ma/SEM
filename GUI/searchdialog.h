@@ -24,6 +24,8 @@ public:
     SearchDialog(QSize minimumSize, MedeaWindow* window);
 
     bool addSearchItems(QList<GraphMLItem*> searchResult);
+    void clear();
+
     void updateHedearLabels(QString search, QStringList aspects, QStringList kinds);
 
 signals:
@@ -38,9 +40,6 @@ public slots:
 private slots:
     void sortItems(bool checked);
 
-protected:
-    void closeEvent(QCloseEvent* event);
-
 private:
     QLabel* constructHeadearLabel(QString labelText, QVBoxLayout *vLayout, int fixedWidth);
 
@@ -49,8 +48,6 @@ private:
 
     void addSearchItem(SearchItem* searchItem);
     void sortItems(QString sortKey = "");
-
-    void clear();
 
     MedeaWindow* parentWindow;
     QVBoxLayout* resultsLayout;
