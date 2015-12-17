@@ -5,6 +5,7 @@ Version 19:
             * Implemented dragdrop of *.graphml files from OS into MEDEA.
             * Implemented loading of WorkerDefinitions into MEDEA on launch.
             * Labels in the Definitions and Functions dock are now contracted to begin with.
+            * Added a show CPP code toolbar option.
 
 	Fixes:
             * Fixed inconsistent expand state and incorrect expand size when adding first child.

@@ -32,12 +32,14 @@ EditableTextItem::EditableTextItem(QGraphicsItem *parent, int maximumLength) :
     doc = this->document();
 
     doc->setDocumentMargin(0);
+    doc->setUseDesignMetrics(true);
     doc->setTextWidth(this->textWidth);
 
 
 
     QTextOption option = doc->defaultTextOption();
     option.setWrapMode(QTextOption::WrapAnywhere);
+    option.setAlignment(Qt::AlignTop);
     doc->setDefaultTextOption(option);
     setDocument(doc);
     editable = true;
@@ -65,6 +67,7 @@ void EditableTextItem::setEditMode(bool editMode)
 
         //Send the MousePress event to the DoubleClick Handler.
         mouseDoubleClickEvent(fakePress);
+
 
         //Update the textItem to have the full value instead of the truncated value.
         QGraphicsTextItem::setPlainText(currentFullValue);
@@ -106,6 +109,7 @@ bool EditableTextItem::isInEditMode()
 {
     return inEditingMode;
 }
+
 
 bool EditableTextItem::isTruncated()
 {

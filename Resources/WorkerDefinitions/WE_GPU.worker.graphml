@@ -383,20 +383,7 @@
 							<data key="6">WE_UTE_Vector</data>
 							<data key="362">The first of the two matrix operands</data>
 							<data key="9999">true</data>
-						</node>
-						<node id ="2944">
-							<data key="2">InputParameter</data>
-							<data key="4">54</data>
-							<data key="5">290</data>
-							<data key="7">36</data>
-							<data key="8">36</data>
-							<data key="3">gpuNum</data>
-							<data key="9">1</data>
-							<data key="472"></data>
-							<data key="6">UnsignedLongInteger</data>
-							<data key="362">The index of the target GPU/device (starting from 0)</data>
-							<data key="9999">true</data>
-						</node>
+						</node>					
 						<node id ="3294">
 							<data key="2">InputParameter</data>
 							<data key="4">54</data>
@@ -404,7 +391,7 @@
 							<data key="7">36</data>
 							<data key="8">36</data>
 							<data key="3">matrixB</data>
-							<data key="9">2</data>
+                                                        <data key="9">1</data>
 							<data key="472"></data>
 							<data key="6">WE_UTE_Vector</data>
 							<data key="362">The second of the two matrix operands</data>
@@ -417,12 +404,25 @@
 							<data key="7">36</data>
 							<data key="8">36</data>
 							<data key="3">matrixC</data>
-							<data key="9">3</data>
+                                                        <data key="9">2</data>
 							<data key="472"></data>
 							<data key="6">WE_UTE_Vector</data>
 							<data key="362">The matrix to be filled with the result of the multiplication.</data>
 							<data key="9999">true</data>
 						</node>
+                                                <node id ="2944">
+                                                        <data key="2">InputParameter</data>
+                                                        <data key="4">54</data>
+                                                        <data key="5">290</data>
+                                                        <data key="7">36</data>
+                                                        <data key="8">36</data>
+                                                        <data key="3">gpuNum</data>
+                                                        <data key="9">3</data>
+                                                        <data key="472"></data>
+                                                        <data key="6">UnsignedLongInteger</data>
+                                                        <data key="362">The index of the target GPU/device (starting from 0)</data>
+                                                        <data key="9999">true</data>
+                                                </node>
 						<node id ="3935">
 							<data key="2">ReturnParameter</data>
 							<data key="4">254</data>

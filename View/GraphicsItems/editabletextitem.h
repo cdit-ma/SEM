@@ -25,7 +25,6 @@ public:
 signals:
     void textUpdated(QString data);
     void editableItem_EditModeRequested();
-
     void editableItem_hasFocus(bool hasFocus);
 
     // QGraphicsItem interface

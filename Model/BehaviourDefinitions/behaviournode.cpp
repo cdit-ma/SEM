@@ -298,6 +298,11 @@ bool BehaviourNode::compareableTypes(Node *node)
                 return true;
             }
         }
+
+        if(type1 == "WE_UTE_VariableArguments" || type2 == "WE_UTE_VariableArguments"){
+            //Allow anything to connect into the Variable Argument Type.
+            return true;
+        }
     }
     return false;
 

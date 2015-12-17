@@ -176,6 +176,8 @@ signals:
     void view_ImportedSnippet(QList<int> selection, QString fileName, QString fileData);
     void view_ImportSnippet(QString nodeKind);
 
+    void view_ShowCPPForComponent(QString componentName);
+
 
     void view_Copy(QList<int> IDs);
     void view_Cut(QList<int> IDs);
@@ -433,6 +435,7 @@ private:
     QList<NodeItem*> getNodeInstances(int ID);
     QList<EntityItem *> getHardwareList();
     QPair<QString, bool> getEditableDataKeyName(GraphMLItem* node);
+    QPair<QString, bool> getStatusDataKeyName(GraphMLItem* node);
 
     QList<Node*> getFiles();
     QList<Node*> getComponents();

@@ -56,6 +56,11 @@ bool InputItem::isTruncated()
     return textItem->isTruncated();
 }
 
+void InputItem::setTextColor(QColor color)
+{
+    textItem->setDefaultTextColor(color);
+}
+
 
 
 void InputItem::setDropDown(bool isCombo)
@@ -134,6 +139,16 @@ qreal InputItem::getWidth()
 qreal InputItem::getHeight()
 {
     return height;
+}
+
+EditableTextItem *InputItem::getTextItem()
+{
+    return textItem;
+}
+
+QFont InputItem::getFont()
+{
+    return textItem->font();
 }
 
 void InputItem::setValue(QString newValue)

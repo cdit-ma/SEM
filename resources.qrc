@@ -183,6 +183,7 @@
         <file alias="Key.png">Resources/Images/Actions/Key.png</file>
         <file alias="Fullscreen.png">Resources/Images/Actions/Fullscreen.png</file>
         <file alias="Function.png">Resources/Images/Actions/Function.png</file>
+        <file alias="getCPP.png">Resources/Images/Actions/getCPP.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address.png">Resources/Images/Data/ip_address.png</file>
@@ -206,7 +207,7 @@
         <file alias="topic.png">Resources/Images/Data/topic.png</file>
         <file alias="blocking.png">Resources/Images/Data/blocking.png</file>
         <file alias="bytes.png">Resources/Images/Data/bytes.png</file>
-        <file alias="parameters.png">Resources/Images/Data/parameters.png</file>
+        <file alias="parameter.png">Resources/Images/Data/parameter.png</file>
         <file alias="operations.png">Resources/Images/Data/operations.png</file>
         <file alias="client.png">Resources/Images/Data/client.png</file>
         <file alias="gpuNum.png">Resources/Images/Data/gpunum.png</file>
@@ -214,6 +215,8 @@
         <file alias="forceCopy.png">Resources/Images/Data/forceCopy.png</file>
         <file alias="component.png">Resources/Images/Data/component.png</file>
         <file alias="complexityFunction.png">Resources/Images/Data/complexityFunction.png</file>
+        <file alias="WE_UTE_VariableArguments.png">Resources/Images/Data/WE_UTE_VariableArguments.png</file>
+        <file alias="replicate_count.png">Resources/Images/Data/replicate_count.png</file>
     </qresource>
     <qresource prefix="/Functions">
         <file alias="WE_GPU.png">Resources/Images/Functions/WE_GPU.png</file>

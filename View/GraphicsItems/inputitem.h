@@ -23,6 +23,8 @@ public:
     void setToolTipString(QString tooltip);
     bool isTruncated();
 
+    void setTextColor(QColor color);
+
 
     void setDropDown(bool isCombo);
     void setHandleMouse(bool on);
@@ -43,6 +45,8 @@ public:
     qreal getWidth();
     qreal getHeight();
 
+    EditableTextItem* getTextItem();
+    QFont getFont();
 public slots:
     void setValue(QString value="");
     void setEditMode(bool editable);

@@ -301,6 +301,14 @@ QString GraphMLItem::getGraphMLDataValue(QString key)
     return QString();
 }
 
+bool GraphMLItem::hasGraphMLKey(QString key)
+{
+    if(getGraphML() && !getGraphML()->isDeleting()){
+        return getGraphML()->getData(key);
+    }
+    return false;
+}
+
 GraphML *GraphMLItem::getGraphML()
 {
     return attachedGraph;

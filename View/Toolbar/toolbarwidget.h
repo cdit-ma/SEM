@@ -33,6 +33,7 @@ public slots:
     void displayConnectedNode(ToolbarMenuAction* action = 0);
     void expandContractNodes();
     void constructNewView();
+    void getCPPForComponent();
 
     void setupAdoptableNodesList();
     void setupLegalNodesList();
@@ -118,6 +119,8 @@ private:
     QToolButton* exportSnippetButton;
     QToolButton* importSnippetButton;
 
+    QToolButton* getCPPButton;
+
     QToolButton* connectionsButton;
     QToolButton* popupNewWindow;
     QToolButton* displayedChildrenOptionButton;
@@ -173,6 +176,7 @@ private:
     bool showExportSnippetToolButton;
     bool showDefinitionToolButton;
     bool showImplementationToolButton;
+    bool showShowCPPToolButton;
 
     bool alterModelButtonsVisible;
     bool alignButtonsVisible;

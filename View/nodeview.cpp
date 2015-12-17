@@ -1313,6 +1313,7 @@ void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, i
 
 void NodeView::setAttributeModel(GraphMLItem *item, bool tellSubView)
 {
+    qCritical() << item;
     if(item){
         if(currentTableID != item->getID()){
             currentTableID = item->getID();
@@ -2159,12 +2160,33 @@ QPair<QString, bool> NodeView::getEditableDataKeyName(GraphMLItem *node)
     if(nodeKind == "Process"){
         returnType.first = "worker";
     }
+    if(nodeKind == "ComponentAssembly"){
+        returnType.first = "replicate_count";
+    }
 
 
     if(dropdownKinds.contains(nodeKind)){
         returnType.second = true;
     }
 
+    return returnType;
+}
+
+QPair<QString, bool> NodeView::getStatusDataKeyName(GraphMLItem *node)
+{
+    QPair<QString, bool> returnType;
+    returnType.first = "";
+    returnType.second = false;
+
+    QString nodeKind = node->getNodeKind();
+
+    if(nodeKind == "ComponentAssembly"){
+        returnType.first = "replicate_count";
+        returnType.second = true;
+    }
+    if(nodeKind == "Member"){
+        returnType.first = "key";
+    }
     return returnType;
 }
 
@@ -2338,8 +2360,7 @@ void NodeView::_deleteFromIDs(QList<int> IDs)
 {
     if (IDs.count() > 0) {
         if(viewMutex.tryLock()){
-            //Clear the Attribute Table Model
-            setAttributeModel(0, true);
+            //setAttributeModel(0, true);
             emit view_Delete(IDs);
         }
     } else {
@@ -2373,6 +2394,7 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("undo", controller->canUndo());
         emit view_updateMenuActionEnabled("redo", controller->canRedo());
         emit view_updateMenuActionEnabled("localDeployment", controller->canLocalDeploy());
+        emit view_updateMenuActionEnabled("getCPP", controller->canGetCPP(selectedIDs));
     }
 
     emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
@@ -2596,9 +2618,11 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
         if(item->isEntityItem()){
             QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
+            QPair<QString, bool> statusField = getStatusDataKeyName(entityItem);
 
             entityItem->setNodeConnectable(isNodeVisuallyConnectable(node));
             entityItem->setEditableField(editField.first, editField.second);
+            entityItem->setStatusField(statusField.first, statusField.second);
         }
 
         if(item->isNodeItem()){
@@ -3152,9 +3176,12 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
         if(alias == "Actions" || alias == "Data" || alias == "Functions"){
             QColor tint;
 
+            QStringList redImages;
+            redImages << "Warning" << "replicate_count";
+
             if(!tint.isValid()){
                 tint = QColor(60, 60, 60, 255);
-                if(imageName == "Warning"){
+                if(redImages.contains(imageName)){
                     tint = QColor(255, 0, 0, 255);
                 }
             }
@@ -4193,10 +4220,7 @@ void NodeView::undo()
 {
     // undo the action
     if(viewMutex.tryLock()) {
-
-        //clearSelection(true,true);
-        //clearSelection(true,false);
-        setAttributeModel(0, true);
+        //setAttributeModel(0, true);
         emit this->view_Undo();
     }
 }
@@ -4212,9 +4236,7 @@ void NodeView::redo()
 
     // redo the action
     if(viewMutex.tryLock()) {
-        //clearSelection();
-
-        setAttributeModel(0,true);
+        //setAttributeModel(0,true);
         emit this->view_Redo();
     }
 }
@@ -4420,6 +4442,12 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
 
     if (updateTable) {
         setAttributeModel(0,false);
+    }
+
+    ModelItem* modelItem =getModelItem();
+    if(modelItem){
+        //Allow defocusing of ohter things
+        modelItem->setFocus();
     }
 
 

@@ -103,6 +103,15 @@ void GraphMLKey::appendValidValues(QStringList values, QString nodeKind)
     }
 }
 
+void GraphMLKey::addValidRange(qreal min, qreal max, QString nodeKind)
+{
+    QPair<qreal, qreal> range;
+    range.first = min;
+    range.second = max;
+    validRanges[nodeKind] = range;
+}
+
+
 void GraphMLKey::setDefaultValue(QString value)
 {
     defaultValue = value;
@@ -156,6 +165,7 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
 
     bool ok = false;
     bool validValue = isValidValue(newValue, type);
+
 
     switch(type){
     case BOOLEAN:
@@ -218,10 +228,28 @@ QString GraphMLKey::validateDataChange(GraphMLData *data, QString newValue)
         ok = true;
     }
 
+
     if(ok && validValue){
         return newValue;
     }
     return data->getValue();
+}
+
+qreal GraphMLKey::validNumberDataChange(GraphMLData *data, qreal newValue)
+{
+    if(data){
+        GraphML* dataParent = data->getParent();
+        if(dataParent){
+            QString kind = dataParent->getDataValue("kind");
+            if(kind != "" && validRanges.contains(kind)){
+                QPair<qreal, qreal> validRange = validRanges[kind];
+                if(validRange.first > newValue || validRange.second < newValue){
+                    return data->getDoubleValue();
+                }
+            }
+        }
+    }
+    return newValue;
 }
 
 
@@ -270,6 +298,7 @@ bool GraphMLKey::isValidValue(QString number, TYPE type)
             return false;
         }
     }
+
     return true;
 }
 

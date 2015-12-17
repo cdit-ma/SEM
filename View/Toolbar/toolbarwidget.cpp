@@ -29,6 +29,7 @@ ToolbarWidget::ToolbarWidget(NodeView* parentView) :
     showExportSnippetToolButton = false;
     showDefinitionToolButton = false;
     showImplementationToolButton = false;
+    showShowCPPToolButton = false;
 
     setAttribute(Qt::WA_TranslucentBackground);
     setWindowFlags(Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::Popup);
@@ -64,6 +65,7 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
     deleteButton->setVisible(showDeleteToolButton);
     exportSnippetButton->setVisible(showExportSnippetToolButton);
     importSnippetButton->setVisible(showImportSnippetToolButton);
+    getCPPButton->setVisible(showShowCPPToolButton);
 
     alterModelButtonsVisible = showDeleteToolButton;
     snippetButtonsVisible = showExportSnippetToolButton || showImportSnippetToolButton;
@@ -122,6 +124,8 @@ void ToolbarWidget::updateActionEnabledState(QString actionName, bool enabled)
         showExportSnippetToolButton = enabled;
     } else if (actionName == "importSnippet") {
         showImportSnippetToolButton = enabled;
+    } else if(actionName == "getCPP"){
+        showShowCPPToolButton = enabled;
     }
 }
 
@@ -309,6 +313,20 @@ void ToolbarWidget::expandContractNodes()
 void ToolbarWidget::constructNewView()
 {
     nodeView->constructNewView();
+}
+
+/**
+ * @brief ToolbarWidget::getCPPForComponent
+ * Sends a signal to the view to run a XSL transform to get the CPP code for the selected node.
+ */
+void ToolbarWidget::getCPPForComponent()
+{
+    if(nodeItem){
+        QString componentLabel = nodeItem->getLabel();
+        if(componentLabel != ""){
+            emit nodeView->view_ShowCPPForComponent(componentLabel);
+        }
+    }
 }
 
 
@@ -766,6 +784,7 @@ void ToolbarWidget::setupToolBar()
     snippetFrame = constructFrameSeparator();
     importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
     exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
+    getCPPButton = constructToolButton(buttonSize, 0.6, "getCPP", "Get CPP Code");
     goToFrame = constructFrameSeparator();
     definitionButton = constructToolButton(buttonSize, 0.55, "Definition", "View Definition");
     implementationButton = constructToolButton(buttonSize, 0.6, "Implementation", "View Implementation");
@@ -898,6 +917,7 @@ void ToolbarWidget::makeConnections()
     connect(allNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
     connect(connectedNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
     connect(unconnectedNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
+    connect(getCPPButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
 
     connect(connectButton, SIGNAL(clicked()), nodeView, SLOT(setStateConnect()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
@@ -914,6 +934,7 @@ void ToolbarWidget::makeConnections()
     connect(allNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(connectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(unconnectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
+    connect(getCPPButton, SIGNAL(clicked(bool)), this, SLOT(getCPPForComponent()));
 
     connect(addMenu, SIGNAL(aboutToShow()), this, SLOT(setupAdoptableNodesList()));
     connect(addMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addChildNode(ToolbarMenuAction*)));
@@ -1155,6 +1176,7 @@ void ToolbarWidget::hideButtons()
     expandButton->hide();
     contractButton->hide();
     exportSnippetButton->hide();
+    getCPPButton->hide();
     importSnippetButton->hide();
     definitionButton->hide();
     implementationButton->hide();
@@ -1227,6 +1249,7 @@ void ToolbarWidget::resetGroupFlags()
     aggregateMenuDone = false;
     vectorMenuDone = false;
     hardwareMenuDone = false;
+
 
     chosenInstanceID = -1;
 }

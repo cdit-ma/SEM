@@ -21,6 +21,7 @@
 
 #include "nodeitem.h"
 #include "inputitem.h"
+#include "statusitem.h"
 
 #include "../../Model/node.h"
 #include "../../Model/graphmldata.h"
@@ -48,6 +49,7 @@ public:
     MOUSEOVER_TYPE getMouseOverType(QPointF scenePos);
 
     void setEditableField(QString keyName, bool dropDown);
+    void setStatusField(QString keyName, bool isInt);
     //Used Methods
     void setZValue(qreal z);
     void restoreZValue();
@@ -469,6 +471,7 @@ private:
     InputItem* topLabelInputItem;
     InputItem* rightLabelInputItem;
 
+    StatusItem* statusItem;
 
     QString descriptionValue;
     QString nodeHardwareOS;
@@ -486,6 +489,7 @@ private:
 
     QList<int> connectedDataIDs;
     QString editableDataKey;
+    QString statusModeDataKey;
     bool hasEditData;
     bool editableDataDropDown;
     // GraphMLItem interface

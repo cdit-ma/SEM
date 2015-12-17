@@ -72,6 +72,11 @@ QRectF NodeItem::getChildBoundingRect()
     return rect;
 }
 
+QString NodeItem::getLabel()
+{
+    return getGraphMLDataValue("label");
+}
+
 VIEW_ASPECT NodeItem::getViewAspect()
 {
     return viewAspect;

@@ -34,6 +34,8 @@ ModelItem::ModelItem(Node *node, NodeView *view):  GraphMLItem(node, 0, GraphMLI
     height = MODEL_HEIGHT;
     setupInputItems();
 
+    setFlag(QGraphicsItem::ItemIsFocusable);
+
     setupGraphMLDataConnections();
     updateFromGraphMLData();
 

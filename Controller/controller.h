@@ -8,6 +8,12 @@
 #include <QPointF>
 #include <QXmlStreamReader>
 
+#include "../Model/Edges/definitionedge.h"
+#include "../Model/Edges/workflowedge.h"
+#include "../Model/Edges/dataedge.h"
+#include "../Model/Edges/assemblyedge.h"
+#include "../Model/Edges/aggregateedge.h"
+
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
 enum MESSAGE_TYPE{CRITICAL, WARNING, MESSAGE, MODEL};
@@ -19,6 +25,12 @@ struct EdgeTemp
     QString source;
     QString target;
     QList<GraphMLData *> data;
+};
+
+struct ViewSignal{
+    int id;
+    GraphML::KIND kind;
+    bool constructSignal;
 };
 
 struct ActionItem{
@@ -91,6 +103,7 @@ public:
     QString getGraphMLData(int ID, QString key);
 
     bool canCopy(QList<int> selection);
+    bool canGetCPP(QList<int> selection);
     bool canReplicate(QList<int> selection);
     bool canCut(QList<int> selection);
     bool canDelete(QList<int> selection);
@@ -119,7 +132,7 @@ signals:
     void controller_CanRedo(bool ok);
     void controller_ModelReady();
     void controller_ActionProgressChanged(int percent, QString action="");
-    void controller_ActionFinished();
+    void controller_ActionFinished(bool actionSucceeded = true, QString errorCode = "");
 
     void controller_AskQuestion(MESSAGE_TYPE, QString title, QString message, int ID=-1);
     void controller_GotQuestionAnswer();
@@ -190,6 +203,7 @@ private:
     bool _clear();
     bool _copy(QList<int> IDs);
     bool _remove(QList<int> IDs, bool addAction = true);
+    bool _remove(int ID, bool addAction = true);
     bool _replicate(QList<int> IDs, bool addAction = true);
     bool _importProjects(QStringList xmlDataList, bool addAction = true);
     bool _importSnippet(QList<int> IDs, QString fileName, QString fileData, bool addAction = true);
@@ -203,6 +217,7 @@ private:
 
 
 private:
+    void setViewSignalsEnabled(bool enabled, bool sendQueuedSignals = true);
     void updateUndoRedoState();
     void setGraphMLData(GraphML* parent, QString keyName, qreal dataValue, bool addAction = true);
     void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
@@ -252,7 +267,7 @@ private:
 
 
 
-
+    QList<GraphMLData*> cloneNodesData(Node* original, bool ignoreVisuals=true);
     Node* cloneNode(Node* original, Node* parent, bool ignoreVisuals=true);
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
     void constructNodeGUI(Node* node);
@@ -265,7 +280,7 @@ private:
 
     //Constructs a Vector of basic GraphMLData entities required for creating a Node.
     QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1));
-
+    QList<GraphMLData*> constructPositionDataVector(QPointF point);
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
 
@@ -279,6 +294,8 @@ private:
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all GraphMLData which isn't protected.
     bool setupDefinitionRelationship(Node* definition, Node* node, bool instance);
     bool teardownDefinitionRelationship(Node* definition, Node* node, bool instance);
+
+
 
     //Attaches an Aggregate Definition to an EventPort Definition.
     bool setupEventPortAggregateRelationship(EventPort* eventPort, Aggregate* aggregate);
@@ -449,6 +466,8 @@ private:
     int currentActionID;
     int currentActionItemID;
 
+    QList<ViewSignal> viewSignalsList;
+    bool viewSignalsEnabled;
     bool questionAnswer;
 
     bool DELETING;
