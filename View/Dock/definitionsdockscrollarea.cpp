@@ -551,20 +551,139 @@ void DefinitionsDockScrollArea::showChildrenOutEventPorts()
 
 
 /**
+ * @brief DefinitionsDockScrollArea::sortDockItems
+ * @param dockItemLabel
+ */
+void DefinitionsDockScrollArea::sortDockItems(DockNodeItem* dockItem)
+{
+    /*
+    DockNodeItem* parentDockItem = dockItem->getParentDockNodeItem();
+    QVBoxLayout* layoutToSort = 0;
+
+    if (parentDockItem) {
+        QString parentID = parentDockItem->getID();
+        if (parentID.startsWith("Component_")) {
+            layoutToSort = componentLayoutItems[parentID.remove("Component_")];
+        } else {
+            layoutToSort = idlLayoutItems[parentID];
+        }
+    } else {
+        qWarning() << "DefinitionsDockScrollArea::sortDockItems - Dock item doesn't have a parent dock item.";
+        return;
+    }
+
+    if (layoutToSort && !layoutToSort->isEmpty()) {
+
+        QHash<DockNodeItem*, QString> dockItemLabelHash;
+        QStringList labels;
+
+        QLayoutItem* lastLayoutItem = layoutToSort->itemAt(layoutToSort->count() - 1);
+        DockNodeItem* item = dynamic_cast<DockNodeItem*>(lastLayoutItem->widget());
+        if (item && !item->isDockItemLabel()) {
+            QString itemLabel = item->getLabel();
+            if (dockItemLabel.compare(itemLabel) > 0) {
+                layoutToSort->addWidget(item);
+            }
+            return;
+        }
+
+        for (int i = 0; i < layoutToSort->count(); i++) {
+            QLayoutItem* layoutItem = layoutToSort->itemAt(i);
+            // get the dock item's label
+            DockNodeItem* item = dynamic_cast<DockNodeItem*>(layoutItem->widget());
+            if (item && !item->isDockItemLabel()) {
+                QString dockItemLabel = item->getLabel();
+                labels.append(dockItemLabel);
+                dockItemLabelHash[item] = dockItemLabel;
+            }
+        }
+
+        labels.sort(Qt::CaseInsensitive);
+
+        foreach (DockNodeItem* item, dockItemLabelHash.keys()) {
+            layoutToSort->removeWidget(item);
+        }
+        foreach (QString label, labels) {
+            DockNodeItem* item = dockItemLabelHash.key(label);
+            dockItemLabelHash.remove(item);
+            layoutToSort->addWidget(item);
+        }
+    }
+    */
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::sortDockLabelItems
+ * @param dockItemLabel
+ */
+void DefinitionsDockScrollArea::sortDockLabelItems(DockNodeItem *dockItem)
+{
+    /*
+    QVBoxLayout* layoutToSort = itemsLayout;
+
+    if (layoutToSort) {
+
+        QHash<QVBoxLayout*, QString> dockItemLabelHash;
+        QStringList labels;
+
+        for (int i = 0; i < layoutToSort->count(); i++) {
+            QLayoutItem* layoutItem = layoutToSort->itemAt(i);
+            // get the IDL item's label
+            QVBoxLayout* layout = dynamic_cast<QVBoxLayout*>(layoutItem);
+            if (layout) {
+                QString idlID = idlLayoutItems.key(layout);
+                DockNodeItem* item = getDockNodeItem(idlID);
+                if (item && item->isDockItemLabel()) {
+                    QString dockItemLabel = item->getLabel();
+                    labels.append(dockItemLabel);
+                    dockItemLabelHash[layout] = dockItemLabel;
+                }
+            }
+        }
+
+        labels.sort(Qt::CaseInsensitive);
+
+        foreach (QVBoxLayout* layout, dockItemLabelHash.keys()) {
+            layoutToSort->removeItem(layout);
+        }
+        foreach (QString label, labels) {
+            QVBoxLayout* layout = dockItemLabelHash.key(label);
+            dockItemLabelHash.remove(layout);
+            layoutToSort->addLayout(layout);
+        }
+    }
+    */
+}
+
+
+/**
  * @brief DefinitionsDockScrollArea::constructLabelDockItem
  * @param item
  */
 void DefinitionsDockScrollArea::constructLabelDockItem(EntityItem *item)
 {
+    if (!item) {
+        return;
+    }
+
     // create a new dock item label and add it to its corresponding layout
     DockNodeItem* labelDockItem = new DockNodeItem("DockItemLabel", item, this, true);
     QVBoxLayout* layout = new QVBoxLayout();
+    QString itemID = QString::number(item->getID());
 
-    idlLayoutItems[QString::number(item->getID())] = layout;
+    if (item->getNodeKind() == "Component") {
+        labelDockItem->setID("Component_" + itemID);
+        componentLayoutItems[itemID] = layout;
+    } else {
+        idlLayoutItems[itemID] = layout;
+    }
+
     layout->addWidget(labelDockItem);
     addDockNodeItem(labelDockItem, -1, false);
 
     insertDockNodeItem(labelDockItem);
+    //sortDockLabelItems(labelDockItem);
     connect(labelDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
 
     // initially hide label dock items that don't have any children
@@ -580,6 +699,10 @@ void DefinitionsDockScrollArea::constructLabelDockItem(EntityItem *item)
  */
 void DefinitionsDockScrollArea::constructDockItem(EntityItem *item)
 {
+    if (!item) {
+        return;
+    }
+
     DockNodeItem* dockItem = new DockNodeItem("", item, this);
     EntityItem* parentEntityItem = item->getParentEntityItem();
 
@@ -607,6 +730,7 @@ void DefinitionsDockScrollArea::constructDockItem(EntityItem *item)
     layout->addWidget(dockItem);
     addDockNodeItem(dockItem, -1, false);
     insertDockNodeItem(dockItem);
+    //sortDockItems(dockItem);
     connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
 
     // initially hide dock items for Vectors that don't have any children

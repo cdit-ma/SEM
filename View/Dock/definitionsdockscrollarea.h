@@ -28,12 +28,14 @@ public slots:
 
 private:
     void filterDock(QString nodeKind = "");
-
     void showDockItemsOfKind(QString nodeKind);
     void hideDockItems();
 
     void hideImplementedComponents();
     void showChildrenOutEventPorts();
+
+    void sortDockItems(DockNodeItem* dockItem);
+    void sortDockLabelItems(DockNodeItem* dockItem);
 
     void constructLabelDockItem(EntityItem* item);
     void constructDockItem(EntityItem* item);
@@ -42,9 +44,8 @@ private:
     QStringList definitions_allowedKinds;
     QStringList definitionKinds;
 
-    QHash<QString, QVBoxLayout*> layoutItems;
     QHash<QString, QVBoxLayout*> idlLayoutItems;
-    //QHash<QString, QVBoxLayout*> componentLayoutItems;
+    QHash<QString, QVBoxLayout*> componentLayoutItems;
     QList<DockNodeItem*> tempDockItems;
 
     QVBoxLayout* mainLayout;
