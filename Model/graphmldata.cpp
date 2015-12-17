@@ -210,13 +210,15 @@ void GraphMLData::setValue(qreal value)
 {
     if(key){
        if(value != numberValue){
+            qreal newValue = getKey()->validNumberDataChange(this, value);
+
             hasNumber = true;
-            numberValue = value;
+            numberValue = newValue;
             foreach(GraphMLData* data, childData){
-                data->setValue(value);
+                data->setValue(newValue);
             }
             emit dataChanged(this);
-            emit valueChanged(value, keyName);
+            emit valueChanged(newValue, keyName);
         }
     }
 

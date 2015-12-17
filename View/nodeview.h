@@ -434,6 +434,7 @@ private:
     QList<NodeItem*> getNodeInstances(int ID);
     QList<EntityItem *> getHardwareList();
     QPair<QString, bool> getEditableDataKeyName(GraphMLItem* node);
+    QPair<QString, bool> getStatusDataKeyName(GraphMLItem* node);
 
     QList<Node*> getFiles();
     QList<Node*> getComponents();

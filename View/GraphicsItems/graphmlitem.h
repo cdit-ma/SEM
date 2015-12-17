@@ -56,6 +56,7 @@ public:
 
 
     QString getGraphMLDataValue(QString key);
+    bool hasGraphMLKey(QString key);
     GraphML* getGraphML();
     int getID();
 

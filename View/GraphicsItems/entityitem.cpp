@@ -214,6 +214,7 @@ EntityItem::~EntityItem()
     delete rightLabelInputItem;
     delete topLabelInputItem;
     delete bottomInputItem;
+    delete statusItem;
 }
 
 /**
@@ -295,6 +296,30 @@ void EntityItem::setEditableField(QString keyName, bool dropDown)
     }
 
 
+}
+
+void EntityItem::setStatusField(QString keyName, bool isInt)
+{
+    statusModeDataKey = keyName;
+
+    bool gotkey = false;
+    if(keyName != ""){
+        if(hasGraphMLKey(keyName)){
+            connectToGraphMLData(keyName);
+
+            if(statusItem){
+                statusItem->setNumberMode(isInt);
+            }
+            gotkey = true;
+        }
+    }
+    if(!gotkey){
+        statusItem->setVisible(false);
+    }
+
+    if(getGraphML()){
+        graphMLDataChanged(getGraphML()->getData(keyName));
+    }
 }
 
 /**
@@ -1176,6 +1201,11 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
                 }
             }
         }
+        if(keyName == statusModeDataKey){
+            if(statusItem){
+                statusItem->setValue(value);
+            }
+        }
     }
 }
 
@@ -1671,6 +1701,7 @@ QRectF EntityItem::textRect_Bot() const
     return rect;
 }
 
+
 /**
  * @brief EntityItem::lockIconRect
  * @return The QRectF which represents the position for the Lock Icon
@@ -1697,6 +1728,7 @@ QRectF EntityItem::iconRect_TopRight() const
     iconRect.moveTopRight(QPointF(itemMargin + getCurrentWidth(), itemMargin));
     return iconRect;
 }
+
 
 QRectF EntityItem::iconRect_BottomLeft() const
 {
@@ -1888,7 +1920,10 @@ void EntityItem::updateTextLabel(QString newLabel)
 
     topLabelInputItem->updatePosSize(textRect_Top());
     rightLabelInputItem->updatePosSize(textRect_Right());
+
     bottomInputItem->updatePosSize(textRect_Bot());
+
+    statusItem->setCircleCenter(boundingRect().topRight() + QPointF(-getItemMargin(), getItemMargin()));
 
     updateTextVisibility();
 }
@@ -1935,9 +1970,11 @@ void EntityItem::setupBrushes()
 
     pen.setWidth(1);
     pen.setColor(Qt::black);
+    pen.setJoinStyle(Qt::MiterJoin);
     //pen.setColor(Qt::darkGray);
     selectedPen.setColor(Qt::blue);
     selectedPen.setWidth(1);
+    selectedPen.setJoinStyle(Qt::MiterJoin);
 
     //Set up ReadOnly Bruhs
 
@@ -2069,16 +2106,24 @@ void EntityItem::setupLabel()
     bottomInputItem = new InputItem(this, "", false);
     topLabelInputItem = new InputItem(this,"", false);
     rightLabelInputItem = new InputItem(this, "", false);
+    statusItem = new StatusItem(this);
 
     //Setup external Label
     topLabelInputItem->setAcceptHoverEvents(true);
     topLabelInputItem->setToolTipString("Double click to edit label.");
     topLabelInputItem->setCursor(Qt::IBeamCursor);
 
+    //Setup external statusItem
+    statusItem->setAcceptHoverEvents(true);
+    statusItem->setToolTipString("Click to edit field.");
+
+
 
     topLabelInputItem->setAlignment(Qt::AlignCenter);
     rightLabelInputItem->setAlignment(Qt::AlignLeft  | Qt::AlignVCenter);
     bottomInputItem->setAlignment(Qt::AlignLeft  | Qt::AlignVCenter);
+
+    statusItem->setAlignment(Qt::AlignCenter);
 
     //Hide it.
     bottomInputItem->setVisible(false);
@@ -2086,6 +2131,7 @@ void EntityItem::setupLabel()
     QFont textFont;
     textFont.setPixelSize(rightFontSize);
     rightLabelInputItem->setFont(textFont);
+    statusItem->setFont(textFont);
     textFont.setPixelSize(topFontSize);
     topLabelInputItem->setFont(textFont);
     textFont.setPixelSize(botFontSize);
@@ -2096,22 +2142,27 @@ void EntityItem::setupLabel()
     connect(rightLabelInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
     connect(topLabelInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
     connect(bottomInputItem, SIGNAL(InputItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
+    connect(statusItem, SIGNAL(statusItem_EditModeRequested()), this, SLOT(labelEditModeRequest()));
 
     connect(topLabelInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(dataChanged(QString)));
     connect(rightLabelInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(dataChanged(QString)));
     connect(bottomInputItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(dataChanged(QString)));
+    connect(statusItem, SIGNAL(InputItem_ValueChanged(QString)),this, SLOT(dataChanged(QString)));
 
 
     connect(topLabelInputItem, SIGNAL(InputItem_HasFocus(bool)), this, SIGNAL(EntityItem_HasFocus(bool)));
     connect(rightLabelInputItem, SIGNAL(InputItem_HasFocus(bool)), this, SIGNAL(EntityItem_HasFocus(bool)));
     connect(bottomInputItem, SIGNAL(InputItem_HasFocus(bool)), this, SIGNAL(EntityItem_HasFocus(bool)));
+    connect(statusItem, SIGNAL(InputItem_HasFocus(bool)), this, SIGNAL(EntityItem_HasFocus(bool)));
 
     QPointF bottomLabelPos = iconRect_BottomLeft().topRight();
     QPointF expandedLabelPos = expandedLabelRect().topLeft() - QPointF(0, rightLabelInputItem->boundingRect().height() /2);
+    QPointF statusIconPos = boundingRect().topRight() - statusItem->boundingRect().center();
 
     rightLabelInputItem->setPos(expandedLabelPos);
     bottomInputItem->setPos(bottomLabelPos);
     topLabelInputItem->setPos(bottomLabelPos - QPointF(0 , bottomInputItem->boundingRect().height()));
+    statusItem->setPos(statusIconPos);
 
 
 }
@@ -2477,13 +2528,20 @@ void EntityItem::forceExpandParentItem()
 
 void EntityItem::labelEditModeRequest()
 {
+    if(inSubView()){
+        return;
+    }
     InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
-    if (inputItem) {
+    StatusItem* statusItem = qobject_cast<StatusItem*>(QObject::sender());
+    if (inputItem){
         QString dataKey = "label";
         bool comboBox = false;
         if (inputItem == bottomInputItem) {
             dataKey = editableDataKey;
             comboBox = editableDataDropDown;
+        }
+        if(statusItem == this->statusItem){
+            dataKey = statusModeDataKey;
         }
         if (isDataEditable(dataKey)) {
             if (comboBox) {
@@ -2493,7 +2551,11 @@ void EntityItem::labelEditModeRequest()
                 QLineF botLine = QLineF(botLeft,botRight);
                 getNodeView()->showDropDown(this, botLine, editableDataKey, currentValue);
             } else {
-                inputItem->setEditMode(true);
+                if(statusItem){
+                    statusItem->setEditMode(true);
+                }else{
+                    inputItem->setEditMode(true);
+                }
             }
         }
     }
@@ -2503,7 +2565,6 @@ void EntityItem::dataChanged(QString dataValue)
 {
     //Determine the sender
     InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
-
     if(inputItem && getGraphML()){
 
         QString keyValue = "label";
@@ -2511,7 +2572,9 @@ void EntityItem::dataChanged(QString dataValue)
         if(inputItem == bottomInputItem){
             keyValue = editableDataKey;
         }
-
+        if(inputItem == statusItem){
+            keyValue = statusModeDataKey;
+        }
         if(!getGraphML()->getData(keyValue)->isProtected()){
             GraphMLItem_TriggerAction("Set New Data Value");
             GraphMLItem_SetGraphMLData(getID(), keyValue, dataValue);
@@ -2610,10 +2673,6 @@ void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QStri
 {
     QRectF place = getImageRect(pos);
     QPixmap image = imageMap[pos];
-
-    //if(pos == IP_BOTLEFT && imageName == "replicate_count"){
-    //+    painter->fillRect(place, Qt::red);
-    //}
 
     if(getNodeView() && (image.isNull() || update)){
         image = getNodeView()->getImage(alias, imageName);

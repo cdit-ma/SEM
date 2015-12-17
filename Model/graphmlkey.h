@@ -26,6 +26,7 @@ public:
     bool isDouble();
     void appendValidValues(QStringList nodeKinds, QStringList values);
     void appendValidValues(QStringList values, QString nodeKind="ALL");
+    void addValidRange(qreal min, qreal max, QString nodeKind="ALL");
 
     void setDefaultValue(QString value);
     QString getDefaultValue() const;
@@ -35,7 +36,7 @@ public:
     QStringList getSelectableValues(QString nodeKind="ALL");
 
     QString validateDataChange(GraphMLData* data, QString newValue);
-
+    qreal validNumberDataChange(GraphMLData* data, qreal newValue);
     GraphML::KIND getForKind() const;
     QString toGraphML(qint32 indentationLevel=0);
     TYPE getType() const;
@@ -53,6 +54,7 @@ private:
     QList<GraphMLData*> keysData;
 
     QMultiMap<QString, QString> validValues;
+    QMap<QString, QPair<qreal, qreal> > validRanges;
 
     QHash<QString, QStringList> invalidCharacters;
 

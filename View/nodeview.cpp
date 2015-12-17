@@ -2172,6 +2172,24 @@ QPair<QString, bool> NodeView::getEditableDataKeyName(GraphMLItem *node)
     return returnType;
 }
 
+QPair<QString, bool> NodeView::getStatusDataKeyName(GraphMLItem *node)
+{
+    QPair<QString, bool> returnType;
+    returnType.first = "";
+    returnType.second = false;
+
+    QString nodeKind = node->getNodeKind();
+
+    if(nodeKind == "ComponentAssembly"){
+        returnType.first = "replicate_count";
+        returnType.second = true;
+    }
+    if(nodeKind == "Member"){
+        returnType.first = "key";
+    }
+    return returnType;
+}
+
 bool NodeView::isNodeVisuallyConnectable(Node *node)
 {
     if(node){
@@ -2600,9 +2618,11 @@ void NodeView::view_ConstructNodeGUI(Node *node)
 
         if(item->isEntityItem()){
             QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
+            QPair<QString, bool> statusField = getStatusDataKeyName(entityItem);
 
             entityItem->setNodeConnectable(isNodeVisuallyConnectable(node));
             entityItem->setEditableField(editField.first, editField.second);
+            entityItem->setStatusField(statusField.first, statusField.second);
         }
 
         if(item->isNodeItem()){
@@ -4424,6 +4444,12 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
 
     if (updateTable) {
         setAttributeModel(0,false);
+    }
+
+    ModelItem* modelItem =getModelItem();
+    if(modelItem){
+        //Allow defocusing of ohter things
+        modelItem->setFocus();
     }
 
 

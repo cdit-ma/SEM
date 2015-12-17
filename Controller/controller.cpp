@@ -1682,6 +1682,11 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         validValues << "Activate" << "Preprocess" << "Mainprocess" << "Postprocess" << "Passivate";
         attribute->appendValidValues(validValues, keysValues);
     }
+    if(name == "replicate_count"){
+        qreal min = 1;
+        qreal max = 999;
+        attribute->addValidRange(min, max, "ComponentAssembly");
+    }
 
 
     connect(attribute, SIGNAL(model_DisplayMessage(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
