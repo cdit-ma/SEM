@@ -147,7 +147,8 @@ HEADERS += \
     Model/Edges/assemblyedge.h \
     Model/InterfaceDefinitions/datanode.h \
     Model/Edges/aggregateedge.h \
-    View/GraphicsItems/statusitem.h
+    View/GraphicsItems/statusitem.h \
+    Model/InterfaceDefinitions/numberdata.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -260,7 +261,8 @@ SOURCES += \
     Model/Edges/assemblyedge.cpp \
     Model/InterfaceDefinitions/datanode.cpp \
     Model/Edges/aggregateedge.cpp \
-    View/GraphicsItems/statusitem.cpp
+    View/GraphicsItems/statusitem.cpp \
+    Model/InterfaceDefinitions/numberdata.cpp
 
 FORMS +=
 

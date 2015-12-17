@@ -38,8 +38,8 @@
 #define TOOLBAR_BUTTON_HEIGHT 40
 #define TOOLBAR_GAP 5
 
-#define SEARCH_DIALOG_MIN_WIDTH (MIN_WIDTH * 2.0 / 3.0)
-#define SEARCH_DIALOG_MIN_HEIGHT (MIN_HEIGHT * 2.0 / 3.0)
+#define SEARCH_DIALOG_MIN_WIDTH ((MIN_WIDTH * 2.0) / 3.0)
+#define SEARCH_DIALOG_MIN_HEIGHT ((MIN_HEIGHT * 2.0) / 3.0)
 
 #define NOTIFICATION_TIME 2000
 
@@ -915,6 +915,8 @@ void MedeaWindow::setupSearchTools()
     searchOptionMenu = new QMenu(searchOptionButton);
     searchResults = new QDialog(this);
 
+    qCritical() << SEARCH_DIALOG_MIN_WIDTH;
+    qCritical() << SEARCH_DIALOG_MIN_HEIGHT;
     searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
 
     QVBoxLayout* layout = new QVBoxLayout();
