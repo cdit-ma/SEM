@@ -115,7 +115,7 @@ void DefinitionsDockScrollArea::nodeDeleted(QString nodeID)
         QString idlID = idlDockItem->getID();
         QVBoxLayout* idlLayout = idlLayoutItems[idlID];
 
-        // if there is only 1 child item stored in the IDL, hide the File
+        // if the item to delete is the last child item stored in the IDL, hide the IDL item
         bool hideIdlLayout = idlDockItem->getChildrenDockItems().count() == 1;
 
         if (idlLayout) {
@@ -152,12 +152,7 @@ void DefinitionsDockScrollArea::dockNodeItemClicked()
 
     int selectedNodeID = selectedNodeItem->getID();
     int dockNodeID = dockNodeItem->getID().toInt();
-
-    if (selectedNodeItem->getNodeKind() == "BehaviourDefinitions") {
-        getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, "ComponentImpl", 0);
-    } else {
-        getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, dockNodeItem->getKind() + "Instance", 0);
-    }
+    getNodeView()->constructConnectedNode(selectedNodeID, dockNodeID, sourceDockItemKind, 0);
 
     // disable this dock after an item has been clicked
     dockClosed();
@@ -195,6 +190,16 @@ void DefinitionsDockScrollArea::updateDock()
 
 
 /**
+ * @brief DefinitionsDockScrollArea::clear
+ */
+void DefinitionsDockScrollArea::clear()
+{
+    DockScrollArea::clear();
+    idlLayoutItems.clear();
+}
+
+
+/**
  * @brief DefinitionsDockScrollArea::nodeConstructed
  * This gets called whenever a node has been constructed.
  * It checks to see if a dock item needs to be constucted for the new node.
@@ -212,62 +217,14 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
     if (definitionKinds.contains(nodeKind)) {
 
         if (nodeKind == "IDL") {
-
-            // create a new IDL label and add it to the IDL's layout
-            DockNodeItem* idlDockItem = new DockNodeItem("DockItemLabel", entityItem, this, true);
-            QVBoxLayout* idlLayout = new QVBoxLayout();
-
-            idlLayoutItems[QString::number(entityItem->getID())] = idlLayout;
-            idlLayout->addWidget(idlDockItem);
-            addDockNodeItem(idlDockItem, -1, false);
-
-            insertDockNodeItem(idlDockItem);
-            connect(idlDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
-
-            // initially hide dock items for IDLs that don't have any children
-            if (!entityItem->hasChildren()) {
-                idlDockItem->setHidden(true);
-            }
-
+            constructLabelDockItem(entityItem);
         } else {
-
-            DockNodeItem* dockItem = new DockNodeItem("", entityItem, this);
-            EntityItem* parentEntityItem = entityItem->getParentEntityItem();
-
-            if (!parentEntityItem) {
-                qWarning() << "DefinitionsDockScrollArea::nodeConstructed - IDL entity item is null.";
-                return;
+            /*
+            if (nodeKind == "Component") {
+                constructLabelDockItem(entityItem);
             }
-
-            QString idlID = QString::number(parentEntityItem->getID());
-
-            // check if there is already a layout and label for the parent IDL
-            if (!idlLayoutItems.contains(idlID)){
-                qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Parent IDL doesn't have a layout.";
-                return;
-            }
-
-            // connect the new dock item to its parent file item
-            DockNodeItem* parentDockItem = getDockNodeItem(idlID);
-            if (parentDockItem) {
-                dockItem->setParentDockNodeItem(parentDockItem);
-                parentDockItem->addChildDockItem(dockItem);
-            }
-
-            QVBoxLayout* idlLayout = idlLayoutItems[idlID];
-            idlLayout->addWidget(dockItem);
-            addDockNodeItem(dockItem, -1, false);
-            insertDockNodeItem(dockItem);
-            connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
-
-            // initially hide dock items for Vectors that don't have any children
-            if (nodeKind == "Vector") {
-                if (!entityItem->hasChildren()) {
-                    dockItem->setForceHidden(true);
-                }
-                connect(entityItem, SIGNAL(entityItem_firstChildAdded(int)), dockItem, SLOT(changeVectorHiddenState()));
-                connect(entityItem, SIGNAL(entityItem_lastChildRemoved(int)), dockItem, SLOT(changeVectorHiddenState()));
-            }
+            */
+            constructDockItem(entityItem);
         }
 
         updateDock();
@@ -315,13 +272,28 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
     }
 
     QString kind;
+    QString infoLabelText;
     bool hideCompsWithImpl = false;
 
     if (nodeKind.endsWith("Instance")) {
-        kind.append(nodeKind.remove("Instance"));
-    } else if (nodeKind == "ComponentImpl") {
-        kind.append("Component");
-        hideCompsWithImpl = true;
+        kind = nodeKind.remove("Instance");
+        if (kind == "Vector") {
+            infoLabelText = "There are no IDL files containing initialised Vector entities.";
+        } else {
+            infoLabelText = "There are no IDL files containing " + kind + " entities.";
+        }
+    } else if (nodeKind.endsWith("Delegate")) {
+        kind = "Aggregate";
+        infoLabelText = "There are no IDL files containing Aggregate entities.";
+
+    } else if (nodeKind.endsWith("Impl")) {
+        kind = nodeKind.remove("Impl");
+        if (kind == "Component") {
+            hideCompsWithImpl = true;
+            infoLabelText = "There are no IDL files containing unimplemented Component entities.";
+        } else {
+            infoLabelText = "The selected entity's definition does not contain any OutEventPort entities.";
+        }
     } else {
         qWarning() << "DefinitionsDockScrollArea::filterDock - Node kind is not handled.";
         setDockEnabled(false);
@@ -336,7 +308,7 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
         hideImplementedComponents();
     }
 
-    updateInfoLabel();
+    setInfoText(infoLabelText);
 }
 
 
@@ -456,56 +428,6 @@ void DefinitionsDockScrollArea::dockClosed()
 
 
 /**
- * @brief DefinitionsDockScrollArea::hideImplementedComponents
- * This method is called when the BehaviourDefinitions or a ComponentImpl that is not connected
- * to a definition is selected. It hides all the Components that already have an implementation.
- */
-void DefinitionsDockScrollArea::hideImplementedComponents()
-{
-    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
-        QString dockItemKind = dockItem->getKind();
-        if (dockItemKind != "Component") {
-            continue;
-        }
-        bool convert;
-        int ID = dockItem->getID().toInt(&convert);
-        if (convert) {
-            if (getNodeView() && getNodeView()->getImplementation(ID)) {
-                dockItem->setHidden(true);
-            }
-        }
-    }
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::updateInfoText
- */
-void DefinitionsDockScrollArea::updateInfoLabel()
-{
-    QString infoLabelText;
-    QString kind = sourceDockItemKind;
-
-    if (kind.endsWith("Instance")) {
-        if (kind == "VectorInstance") {
-            infoLabelText = "There are no IDL files containing initialised Vectors.";
-        } else {
-            kind = kind.remove("Instance");
-            infoLabelText = "There are no IDL files containing " + kind + " entities.";
-        }
-    } else if (kind == "ComponentImpl") {
-        infoLabelText = "There are no IDL files containing unimplemented Components.";
-    } else {
-        qWarning() << "DefinitionsDockScrollArea::updateInfoLabel - Source kind is not handled.";
-        return;
-    }
-
-    setInfoText(infoLabelText);
-    setupInfoLabel();
-}
-
-
-/**
  * @brief DefinitionsDockScrollArea::showDockItemsOfKind
  * This function displays all the dock items with the provided kind and hides the rest.
  * @param nodeKind - kind of dock node item to show
@@ -529,10 +451,171 @@ void DefinitionsDockScrollArea::showDockItemsOfKind(QString nodeKind)
 
 
 /**
- * @brief DefinitionsDockScrollArea::clear
+ * @brief DefinitionsDockScrollArea::hideDockItems
  */
-void DefinitionsDockScrollArea::clear()
+void DefinitionsDockScrollArea::hideDockItems()
 {
-    DockScrollArea::clear();
-    idlLayoutItems.clear();
+    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        dockItem->setHidden(true);
+    }
 }
+
+
+/**
+ * @brief DefinitionsDockScrollArea::hideImplementedComponents
+ * This method is called when the BehaviourDefinitions or a ComponentImpl that is not connected
+ * to a definition is selected. It hides all the Components that already have an implementation.
+ */
+void DefinitionsDockScrollArea::hideImplementedComponents()
+{
+    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        QString dockItemKind = dockItem->getKind();
+        if (dockItemKind != "Component") {
+            continue;
+        }
+        bool convert;
+        int ID = dockItem->getID().toInt(&convert);
+        if (convert) {
+            if (getNodeView() && getNodeView()->getImplementation(ID)) {
+                dockItem->setHidden(true);
+            }
+        }
+    }
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::showChildrenOutEventPorts
+ */
+void DefinitionsDockScrollArea::showChildrenOutEventPorts()
+{
+    /*
+    if (!getCurrentNodeItem() || getCurrentNodeID() == -1) {
+        return;
+    }
+
+    hideDockItems();
+
+    QList<NodeItem*> outEventPorts;
+    NodeItem* component = getNodeView()->getNodeItemFromID(nodeItem->getNode()->getDefinition()->getID());
+    if (!component) {
+        return;
+    }
+
+    foreach (GraphMLItem* item, component->getChildren()) {
+        if (item->getNodeKind() == "OutEventPort") {
+            outEventPorts.append((NodeItem*)item);
+        }
+    }
+
+    DockNodeItem* compDockItem = new DockNodeItem("DockItemLabel", ((EntityItem*)getCurrentNodeItem()), this, true);
+    QVBoxLayout* compLayout = new QVBoxLayout();
+    tempDockItems.append(compDockItem);
+    addDockNodeItem(compDockItem, -1, false);
+
+    foreach (NodeItem* item, outEventPorts) {
+        DockNodeItem* dockItem = new DockNodeItem("", ((EntityItem*)item), this);
+        compLayout->addWidget(dockItem);
+        tempDockItems.append(dockItem);
+    }
+
+    // initially hide dock items for IDLs that don't have any children
+    if (!entityItem->hasChildren()) {
+        idlDockItem->setHidden(true);
+    }
+
+
+    // connect the new dock item to its parent file item
+    DockNodeItem* parentDockItem = getDockNodeItem(idlID);
+    if (parentDockItem) {
+        dockItem->setParentDockNodeItem(parentDockItem);
+        parentDockItem->addChildDockItem(dockItem);
+    }
+
+    QVBoxLayout* idlLayout = idlLayoutItems[idlID];
+    idlLayout->addWidget(dockItem);
+    addDockNodeItem(dockItem, -1, false);
+    insertDockNodeItem(dockItem);
+    connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+
+    // initially hide dock items for Vectors that don't have any children
+    if (nodeKind == "Vector") {
+        if (!entityItem->hasChildren()) {
+            dockItem->setForceHidden(true);
+        }
+        connect(entityItem, SIGNAL(entityItem_firstChildAdded(int)), dockItem, SLOT(changeVectorHiddenState()));
+        connect(entityItem, SIGNAL(entityItem_lastChildRemoved(int)), dockItem, SLOT(changeVectorHiddenState()));
+    }
+    */
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::constructLabelDockItem
+ * @param item
+ */
+void DefinitionsDockScrollArea::constructLabelDockItem(EntityItem *item)
+{
+    // create a new dock item label and add it to its corresponding layout
+    DockNodeItem* labelDockItem = new DockNodeItem("DockItemLabel", item, this, true);
+    QVBoxLayout* layout = new QVBoxLayout();
+
+    idlLayoutItems[QString::number(item->getID())] = layout;
+    layout->addWidget(labelDockItem);
+    addDockNodeItem(labelDockItem, -1, false);
+
+    insertDockNodeItem(labelDockItem);
+    connect(labelDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+
+    // initially hide label dock items that don't have any children
+    if (!item->hasChildren()) {
+        labelDockItem->setHidden(true);
+    }
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::constructDockItem
+ * @param item
+ */
+void DefinitionsDockScrollArea::constructDockItem(EntityItem *item)
+{
+    DockNodeItem* dockItem = new DockNodeItem("", item, this);
+    EntityItem* parentEntityItem = item->getParentEntityItem();
+
+    if (!parentEntityItem) {
+        qWarning() << "DefinitionsDockScrollArea::nodeConstructed - IDL entity item is null.";
+        return;
+    }
+
+    QString parentID = QString::number(parentEntityItem->getID());
+
+    // check if there is already a layout and label for the parent IDL
+    if (!idlLayoutItems.contains(parentID)){
+        qWarning() << "DefinitionsDockScrollArea::constructDockItem - Parent dock item doesn't have a layout.";
+        return;
+    }
+
+    // connect the new dock item to its parent file item
+    DockNodeItem* parentDockItem = getDockNodeItem(parentID);
+    if (parentDockItem) {
+        dockItem->setParentDockNodeItem(parentDockItem);
+        parentDockItem->addChildDockItem(dockItem);
+    }
+
+    QVBoxLayout* layout = idlLayoutItems[parentID];
+    layout->addWidget(dockItem);
+    addDockNodeItem(dockItem, -1, false);
+    insertDockNodeItem(dockItem);
+    connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+
+    // initially hide dock items for Vectors that don't have any children
+    if (item->getNodeKind() == "Vector") {
+        if (!item->hasChildren()) {
+            dockItem->setForceHidden(true);
+        }
+        connect(item, SIGNAL(entityItem_firstChildAdded(int)), dockItem, SLOT(changeVectorHiddenState()));
+        connect(item, SIGNAL(entityItem_lastChildRemoved(int)), dockItem, SLOT(changeVectorHiddenState()));
+    }
+}
+

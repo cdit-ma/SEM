@@ -42,6 +42,7 @@ public slots:
     void setupAggregateList();
     void setupVectorList();
     void setupHardwareList();
+    void setupOutEventPortList();
 
     void setInstanceID();
 
@@ -72,7 +73,7 @@ private:
     void hideSeparators();
 
     void clearMenus();
-    void resetButtonGroupFlags();
+    void resetGroupFlags();
 
     void setupAdoptableNodesList(QStringList nodeKinds);
     void setupLegalNodesList(QList<NodeItem*> nodeList);
@@ -141,6 +142,7 @@ private:
     ToolbarMenu* blackBoxInstMenu;
     ToolbarMenu* inEventPortDelegateMenu;
     ToolbarMenu* outEventPortDelegateMenu;
+    ToolbarMenu* outEventPortImplMenu;
     ToolbarMenu* aggregateInstMenu;
     ToolbarMenu* vectorInstMenu;
     ToolbarMenu* functionsMenu;
@@ -150,6 +152,7 @@ private:
     ToolbarMenuAction* blackBoxInstAction;
     ToolbarMenuAction* inEventPortDelegateAction;
     ToolbarMenuAction* outEventPortDelegateAction;
+    ToolbarMenuAction* outEventPortImplAction;
     ToolbarMenuAction* aggregateInstAction;
     ToolbarMenuAction* vectorInstAction;
     ToolbarMenuAction* processAction;
@@ -159,6 +162,7 @@ private:
     ToolbarMenuAction* blackBoxMenuInfoAction;
     ToolbarMenuAction* inEventPortDelegateMenuInfoAction;
     ToolbarMenuAction* outEventPortDelegateMenuInfoAction;
+    ToolbarMenuAction* outEventPortImplMenuInfoAction;
     ToolbarMenuAction* aggregateInstMenuInfoAction;
     ToolbarMenuAction* vectorInstMenuInfoAction;
     ToolbarMenuAction* functionsMenuInfoAction;
@@ -184,8 +188,9 @@ private:
     bool blackBoxMenuDone;
     bool componentImplMenuDone;
     bool componentInstMenuDone;
-    bool inEventPortInstanceMenuDone;
-    bool outEventPortInstanceMenuDone;
+    bool inEventPortInstMenuDone;
+    bool outEventPortInstMenuDone;
+    bool outEventPortMenuDone;
     bool aggregateMenuDone;
     bool vectorMenuDone;
     bool addMenuDone;

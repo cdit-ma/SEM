@@ -413,8 +413,9 @@ private:
     bool isEditableDataDropDown(EntityItem* node);
     bool isNodeVisuallyConnectable(Node* node);
     bool onlyHardwareClustersSelected();
-    bool removeGraphMLItemFromHash(int ID);
     bool isItemsAncestorSelected(GraphMLItem* selectedItem);
+
+    void removeGraphMLItemFromHash(int ID);
 
     NewController* getController();
     QRectF getVisibleRect();

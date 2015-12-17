@@ -17,6 +17,9 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
     kindsRequiringDefinition.append("ComponentImpl");
     kindsRequiringDefinition.append("AggregateInstance");
     kindsRequiringDefinition.append("VectorInstance");
+    kindsRequiringDefinition.append("InEventPortDelegate");
+    kindsRequiringDefinition.append("OutEventPortDelegate");
+    //kindsRequiringDefinition.append("OutEventPortImpl");
     kindsRequiringFunction.append("Process");
 
     setDockEnabled(false);
@@ -57,7 +60,7 @@ void PartsDockScrollArea::updateDock()
         } else {
             DockNodeItem* dockNodeItem = getDockNodeItem(kind);
             if (dockNodeItem) {
-                dockNodeItem->hide();
+                dockNodeItem->setHidden(true);
                 displayedItems.removeAll(kind);
             }
         }
@@ -68,7 +71,7 @@ void PartsDockScrollArea::updateDock()
     foreach (QString kind, kindsToShow) {
         DockNodeItem* dockNodeItem = getDockNodeItem(kind);
         if (dockNodeItem) {
-            dockNodeItem->show();
+            dockNodeItem->setHidden(false);
             displayedItems.append(kind);
         }
     }
