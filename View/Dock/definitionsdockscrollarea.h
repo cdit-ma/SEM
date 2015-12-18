@@ -32,6 +32,7 @@ private:
     void hideDockItems();
 
     void hideImplementedComponents();
+    void hideSelectedAggregate();
     void showChildrenOutEventPorts();
 
     void sortDockItems(DockNodeItem* dockItem);

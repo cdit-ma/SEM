@@ -274,12 +274,16 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
     QString kind;
     QString infoLabelText;
     bool hideCompsWithImpl = false;
+    bool hideSelectedAggr = false;
 
     if (nodeKind.endsWith("Instance")) {
         kind = nodeKind.remove("Instance");
         if (kind == "Vector") {
             infoLabelText = "There are no IDL files containing initialised Vector entities.";
         } else {
+            if (kind == "Aggregate") {
+                hideSelectedAggr = true;
+            }
             infoLabelText = "There are no IDL files containing " + kind + " entities.";
         }
     } else if (nodeKind.endsWith("Delegate")) {
@@ -306,6 +310,11 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
     // if required, hide already implemented Components
     if (hideCompsWithImpl) {
         hideImplementedComponents();
+    }
+
+    // if the selected item is an Aggregate and the kind to show is Aggregate, hide the selected item's dock item
+    if (hideSelectedAggr) {
+        hideSelectedAggregate();
     }
 
     setInfoText(infoLabelText);
@@ -479,6 +488,20 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
             if (getNodeView() && getNodeView()->getImplementation(ID)) {
                 dockItem->setHidden(true);
             }
+        }
+    }
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::hideSelectedAggregate
+ */
+void DefinitionsDockScrollArea::hideSelectedAggregate()
+{
+    if (getCurrentNodeKind() == "Aggregate") {
+        DockNodeItem* dockItem = getDockNodeItem(QString::number(getCurrentNodeID()));
+        if (dockItem) {
+            dockItem->setHidden(true);
         }
     }
 }
