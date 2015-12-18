@@ -203,7 +203,7 @@
 		<xsl:variable name="uppercaseFile" select="translate($implName,
                                 'abcdefghijklmnopqrstuvwxyz',
                                 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')" />
-								
+					
 		<!-- Begin -->
 		<xsl:variable name="refFile" select="$componentNode/ancestor::*/gml:data[@key=$transformNodeKindKey][text() = 'IDL']/.." />
 		<xsl:variable name="includeFileName" select="$refFile/gml:data[@key=$transformNodeLabelKey]/text()" />
