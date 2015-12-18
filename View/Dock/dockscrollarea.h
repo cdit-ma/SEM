@@ -29,7 +29,7 @@ public:
     void addDockNodeItem(DockNodeItem* dockItem, int insertIndex = -1, bool addToLayout = true);
     void removeDockNodeItem(DockNodeItem* dockItem, bool deleteItem = false);
 
-    DockNodeItem* getDockNodeItem(QString nodeID);
+    DockNodeItem* getDockNodeItem(QString dockItemID);
     virtual QList<DockNodeItem*> getDockNodeItems();
 
     bool isDockOpen();

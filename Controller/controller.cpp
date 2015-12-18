@@ -1801,7 +1801,7 @@ void NewController::removeGraphMLFromHash(int ID)
             }
         }
 
-        qCritical() << "Removing Item ID: " << ID;
+        //qCritical() << "Removing Item ID: " << ID;
 
         if(reverseKindLookup.contains(ID)){
             QString kind = reverseKindLookup[ID];
@@ -2428,7 +2428,7 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
 
 bool NewController::destructNode(Node *node, bool addAction)
 {
-    qCritical() << "DestructNode: " << node->toString();
+    //qCritical() << "DestructNode: " << node->toString();
     if(!node){
         qCritical() << "NewController::destructNode() Got NULL Node!";
         return true;
@@ -2485,7 +2485,7 @@ bool NewController::destructNode(Node *node, bool addAction)
     while(node->hasChildren()){
         Node* child = node->getFirstChild();
         if(child){
-            qCritical() << "Removing Child: " << child;
+            //qCritical() << "Removing Child: " << child;
             destructNode(child, false);
         }
     }
@@ -2500,9 +2500,9 @@ bool NewController::destructNode(Node *node, bool addAction)
         if(node->getParentNode()){
             action.parentID = node->getParentNode()->getID();
         }
-        qCritical() << node->wasGenerated();
-        qCritical() << addAction;
-        qCritical() << "DESTRUCTING Node:" << node->toString();
+        //qCritical() << node->wasGenerated();
+        //qCritical() << addAction;
+        //qCritical() << "DESTRUCTING Node:" << node->toString();
         addActionToStack(action, addAction);
     }
 

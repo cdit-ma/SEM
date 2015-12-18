@@ -62,11 +62,6 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
             connect((EntityItem*)nodeItem, SIGNAL(entityItem_iconChanged()), this, SLOT(iconChanged()));
         }
 
-        // if kind == DockItemLabel, don't create an icon
-        if (kind == "DockItemLabel") {
-            this->kind = kind;
-        }
-
     } else {
         // if there is no node item, it means that this item belongs
         // to the parts dock and it uses its kind as its label and ID
@@ -157,6 +152,7 @@ QString DockNodeItem::getLabel()
 void DockNodeItem::setParentDockNodeItem(DockNodeItem* parentItem)
 {
     parentDockItem = parentItem;
+
     if (parentDockItem) {
         setDockItemVisible(parentDockItem->isDockItemVisible());
         connect(parentDockItem, SIGNAL(dockItem_fileClicked(bool)), this, SLOT(parentDockItemClicked(bool)));

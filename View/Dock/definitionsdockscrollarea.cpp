@@ -25,6 +25,7 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
     definitionKinds.append("BlackBox");
     definitionKinds.append("Aggregate");
     definitionKinds.append("Vector");
+    definitionKinds.append("OutEventPort");
 
     // setup definitions-dock specific layout
     mainLayout = new QVBoxLayout();
@@ -43,11 +44,12 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
 
 /**
  * @brief DefinitionsDockScrollArea::getDockNodeItems
- * This returns the list of existing dock node items; not including file labels.
+ * This returns the list of existing dock node items; not including dock item labels.
  * @return
  */
 QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
 {
+    qDebug() << "HERE";
     QList<DockNodeItem*> dockItems = DockScrollArea::getDockNodeItems();
     QList<DockNodeItem*> dockNodeItems;
 
@@ -58,6 +60,30 @@ QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
     }
 
     return dockNodeItems;
+}
+
+
+/**
+ * @brief DefinitionsDockScrollArea::getDockItemsOfKind
+ * @param nodeKind
+ * @return
+ */
+QList<DockNodeItem *> DefinitionsDockScrollArea::getDockItemsOfKind(QString nodeKind)
+{
+    QList<DockNodeItem*> itemsOfKind;
+
+    if (nodeKind.isEmpty()) {
+        return itemsOfKind;
+    }
+
+    // only show the dock node items with the specified kind
+    foreach (DockNodeItem* dockItem, getDockNodeItems()) {
+        if (dockItem->getKind() == nodeKind) {
+            itemsOfKind.append(dockItem);
+        }
+    }
+
+    return itemsOfKind;
 }
 
 
@@ -215,18 +241,11 @@ void DefinitionsDockScrollArea::nodeConstructed(NodeItem* nodeItem)
     QString nodeKind = entityItem->getNodeKind();
 
     if (definitionKinds.contains(nodeKind)) {
-
         if (nodeKind == "IDL") {
-            constructLabelDockItem(entityItem);
+            constructDockLabelItem(entityItem);
         } else {
-            /*
-            if (nodeKind == "Component") {
-                constructLabelDockItem(entityItem);
-            }
-            */
             constructDockItem(entityItem);
         }
-
         updateDock();
     }
 }
@@ -254,9 +273,6 @@ void DefinitionsDockScrollArea::forceOpenDock(QString srcKind)
 
     getParentButton()->pressed();
     filterDock(srcKind);
-
-    //sourceDockItemKind = srcKind;
-    //sourceSelectedItemID = getCurrentNodeID();
 }
 
 
@@ -292,7 +308,9 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
             hideCompsWithImpl = true;
             infoLabelText = "There are no IDL files containing unimplemented Component entities.";
         } else {
-            infoLabelText = "The selected entity's definition does not contain any OutEventPort entities.";
+            setInfoText("The selected entity's definition does not contain any OutEventPort entities.");
+            showChildrenOutEventPorts();
+            return;
         }
     } else {
         qWarning() << "DefinitionsDockScrollArea::filterDock - Node kind is not handled.";
@@ -308,105 +326,8 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
         hideImplementedComponents();
     }
 
+    // update the information text for when this dock is empty depending on the filtered kind
     setInfoText(infoLabelText);
-}
-
-
-/**
- * @brief DefinitionsDockScrollArea::insertDockNodeItem
- * This is called whenever this dock constructs a new dock item.
- * It inserts the new dock item to the correct spot to maintain alphabetical ordering.
- * @param dockItem
- */
-void DefinitionsDockScrollArea::insertDockNodeItem(DockNodeItem* dockItem)
-{
-    if (!dockItem) {
-        return;
-    }
-
-    DockNodeItem* parentDockItem = dockItem->getParentDockNodeItem();
-    QVBoxLayout* layoutToSort = 0;
-
-    QString ID = dockItem->getID();
-    QString labelToSort = dockItem->getLabel();
-    bool isDockItemLabel = dockItem->isDockItemLabel();
-
-    if (isDockItemLabel) {
-        // IDL file - remove  fileLayout from itemsLayout
-        layoutToSort = itemsLayout;
-        QVBoxLayout* fileLayout = idlLayoutItems[ID];
-        if (fileLayout) {
-            layoutToSort->removeItem(fileLayout);
-        }
-    } else {
-        // Component/BlackBox - remove the Component/BlackBox from its parent file's layout.
-        if (parentDockItem) {
-            QString parentID = parentDockItem->getID();
-            layoutToSort = idlLayoutItems[parentID];
-            if (layoutToSort) {
-                layoutToSort->removeWidget(dockItem);
-            }
-        }
-    }
-
-    if (!layoutToSort) {
-        qWarning() << "DefinitionsDockScrollArea::insertDockNodeItem - Layout to sort is null.";
-        return;
-    }
-
-    // iterate through the items in this dock's layout
-    for (int i = 0; i < layoutToSort->count(); i++) {
-
-        QLayoutItem* layoutItem = layoutToSort->itemAt(i);
-        QString dockItemLabel;
-
-        if (isDockItemLabel) {
-            // get the IDL file's label
-            QVBoxLayout* fileLayout = dynamic_cast<QVBoxLayout*>(layoutItem);
-            if (fileLayout) {
-                QString fileID = idlLayoutItems.key(fileLayout, "");
-                DockNodeItem* dockItem = getDockNodeItem(fileID);
-                if (dockItem) {
-                    dockItemLabel = dockItem->getLabel();
-                }
-            }
-        } else {
-            // get the Component/BlackBox's label
-            DockNodeItem* dockItem = dynamic_cast<DockNodeItem*>(layoutItem->widget());
-            if (dockItem && !dockItem->isDockItemLabel()) {
-                dockItemLabel = dockItem->getLabel();
-            }
-        }
-
-        // if for some reason the label is empty, skip to the next item
-        if (dockItemLabel.isEmpty()) {
-            continue;
-        }
-
-        // compare existing file names to the new file name
-        // insert the new File into the correct alphabetical spot in the layout
-        if (labelToSort.compare(dockItemLabel, Qt::CaseInsensitive) <= 0) {
-            if (isDockItemLabel) {
-                QVBoxLayout* fileLayout = idlLayoutItems[ID];
-                if (fileLayout) {
-                    layoutToSort->insertLayout(i, fileLayout);
-                }
-            } else {
-                layoutToSort->insertWidget(i, dockItem);
-            }
-            return;
-        }
-    }
-
-    // if there was no spot to insert the new File layout, add it to the end of the layout
-    if (isDockItemLabel) {
-        QVBoxLayout* fileLayout = idlLayoutItems[ID];
-        if (fileLayout) {
-            layoutToSort->addLayout(fileLayout);
-        }
-    } else {
-        layoutToSort->addWidget(dockItem);
-    }
 }
 
 
@@ -489,80 +410,48 @@ void DefinitionsDockScrollArea::hideImplementedComponents()
  */
 void DefinitionsDockScrollArea::showChildrenOutEventPorts()
 {
-    /*
-    if (!getCurrentNodeItem() || getCurrentNodeID() == -1) {
+    NodeItem* selectedItem = getCurrentNodeItem();
+    if (getCurrentNodeID() == -1 || !selectedItem || !selectedItem->getNode()) {
         return;
     }
 
-    hideDockItems();
-
-    QList<NodeItem*> outEventPorts;
-    NodeItem* component = getNodeView()->getNodeItemFromID(nodeItem->getNode()->getDefinition()->getID());
+    Node* component = selectedItem->getNode()->getDefinition();
     if (!component) {
+        qWarning() << "DefinitionsDockScrollArea::showChildrenOutEventPorts - Selected entity doesn't have a definition.";
         return;
     }
 
-    foreach (GraphMLItem* item, component->getChildren()) {
-        if (item->getNodeKind() == "OutEventPort") {
-            outEventPorts.append((NodeItem*)item);
+    DockNodeItem* componentLabelItem = getDockNodeItem("Component_" + QString::number(component->getID())) ;
+    if (componentLabelItem) {
+        showDockItemsOfKind("OutEventPort");
+        foreach (DockNodeItem* item, getDockItemsOfKind("OutEventPort")) {
+            if (item->getParentDockNodeItem() != componentLabelItem) {
+                item->setHidden(true);
+            }
         }
+    } else {
+        setInfoText("Error: There is no dock item for the selected entity's definition.");
     }
-
-    DockNodeItem* compDockItem = new DockNodeItem("DockItemLabel", ((EntityItem*)getCurrentNodeItem()), this, true);
-    QVBoxLayout* compLayout = new QVBoxLayout();
-    tempDockItems.append(compDockItem);
-    addDockNodeItem(compDockItem, -1, false);
-
-    foreach (NodeItem* item, outEventPorts) {
-        DockNodeItem* dockItem = new DockNodeItem("", ((EntityItem*)item), this);
-        compLayout->addWidget(dockItem);
-        tempDockItems.append(dockItem);
-    }
-
-    // initially hide dock items for IDLs that don't have any children
-    if (!entityItem->hasChildren()) {
-        idlDockItem->setHidden(true);
-    }
-
-
-    // connect the new dock item to its parent file item
-    DockNodeItem* parentDockItem = getDockNodeItem(idlID);
-    if (parentDockItem) {
-        dockItem->setParentDockNodeItem(parentDockItem);
-        parentDockItem->addChildDockItem(dockItem);
-    }
-
-    QVBoxLayout* idlLayout = idlLayoutItems[idlID];
-    idlLayout->addWidget(dockItem);
-    addDockNodeItem(dockItem, -1, false);
-    insertDockNodeItem(dockItem);
-    connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
-
-    // initially hide dock items for Vectors that don't have any children
-    if (nodeKind == "Vector") {
-        if (!entityItem->hasChildren()) {
-            dockItem->setForceHidden(true);
-        }
-        connect(entityItem, SIGNAL(entityItem_firstChildAdded(int)), dockItem, SLOT(changeVectorHiddenState()));
-        connect(entityItem, SIGNAL(entityItem_lastChildRemoved(int)), dockItem, SLOT(changeVectorHiddenState()));
-    }
-    */
 }
 
 
 /**
  * @brief DefinitionsDockScrollArea::sortDockItems
- * @param dockItemLabel
+ * @param dockItem
  */
 void DefinitionsDockScrollArea::sortDockItems(DockNodeItem* dockItem)
 {
-    /*
+    if (!dockItem || dockItem->isDockItemLabel()) {
+        return;
+    }
+
     DockNodeItem* parentDockItem = dockItem->getParentDockNodeItem();
     QVBoxLayout* layoutToSort = 0;
 
+    // remove the dock item from its parent file's layout.
     if (parentDockItem) {
         QString parentID = parentDockItem->getID();
-        if (parentID.startsWith("Component_")) {
+        if (dockItem->getKind() == "OutEventPort") {
             layoutToSort = componentLayoutItems[parentID.remove("Component_")];
         } else {
             layoutToSort = idlLayoutItems[parentID];
@@ -572,108 +461,146 @@ void DefinitionsDockScrollArea::sortDockItems(DockNodeItem* dockItem)
         return;
     }
 
-    if (layoutToSort && !layoutToSort->isEmpty()) {
+    if (layoutToSort) {
 
-        QHash<DockNodeItem*, QString> dockItemLabelHash;
-        QStringList labels;
+        QString labelToSort = dockItem->getLabel();
 
-        QLayoutItem* lastLayoutItem = layoutToSort->itemAt(layoutToSort->count() - 1);
-        DockNodeItem* item = dynamic_cast<DockNodeItem*>(lastLayoutItem->widget());
-        if (item && !item->isDockItemLabel()) {
-            QString itemLabel = item->getLabel();
-            if (dockItemLabel.compare(itemLabel) > 0) {
-                layoutToSort->addWidget(item);
-            }
-            return;
-        }
+        // remove the dock item from its parent's layout
+        layoutToSort->removeWidget(dockItem);
 
+        // iterate through the items in the parent's layout
         for (int i = 0; i < layoutToSort->count(); i++) {
+
             QLayoutItem* layoutItem = layoutToSort->itemAt(i);
-            // get the dock item's label
-            DockNodeItem* item = dynamic_cast<DockNodeItem*>(layoutItem->widget());
-            if (item && !item->isDockItemLabel()) {
-                QString dockItemLabel = item->getLabel();
-                labels.append(dockItemLabel);
-                dockItemLabelHash[item] = dockItemLabel;
+            QString dockItemLabel;
+
+            // get the current dock item's label
+            DockNodeItem* currentDockItem = dynamic_cast<DockNodeItem*>(layoutItem->widget());
+            if (currentDockItem && !currentDockItem->isDockItemLabel()) {
+                dockItemLabel = currentDockItem->getLabel();
+            }
+
+            // if for some reason the label is empty or the dock item is a label, skip to the next item
+            if (dockItemLabel.isEmpty()) {
+                continue;
+            }
+
+            // compare current label to labelToSort
+            if (labelToSort.compare(dockItemLabel, Qt::CaseInsensitive) <= 0) {
+                // insert the dock item into the correct alphabetical spot in the layout
+                layoutToSort->insertWidget(i, dockItem);
+                return;
             }
         }
 
-        labels.sort(Qt::CaseInsensitive);
+        // if there was no spot to insert the new dock item, add it to the end of the layout
+        layoutToSort->addWidget(dockItem);
 
-        foreach (DockNodeItem* item, dockItemLabelHash.keys()) {
-            layoutToSort->removeWidget(item);
-        }
-        foreach (QString label, labels) {
-            DockNodeItem* item = dockItemLabelHash.key(label);
-            dockItemLabelHash.remove(item);
-            layoutToSort->addWidget(item);
-        }
+    } else {
+        qWarning() << "DefinitionsDockScrollArea::sortDockItems - Layout to sort is null.";
     }
-    */
 }
 
 
 /**
  * @brief DefinitionsDockScrollArea::sortDockLabelItems
- * @param dockItemLabel
+ * @param dockItem
  */
-void DefinitionsDockScrollArea::sortDockLabelItems(DockNodeItem *dockItem)
+void DefinitionsDockScrollArea::sortDockLabelItems(DockNodeItem* dockItem)
 {
-    /*
-    QVBoxLayout* layoutToSort = itemsLayout;
+    if (!dockItem || !dockItem->isDockItemLabel() || !itemsLayout) {
+        return;
+    }
 
-    if (layoutToSort) {
+    QVBoxLayout* layout = 0;
+    QString ID = dockItem->getID();
+    QString labelToSort = dockItem->getLabel();
+    bool isComponentLabel = dockItem->getKind() == "Component";
 
-        QHash<QVBoxLayout*, QString> dockItemLabelHash;
-        QStringList labels;
+    if (isComponentLabel) {
+        layout = componentLayoutItems[ID.remove("Component_")];
+    } else {
+        layout = idlLayoutItems[ID];
+    }
 
-        for (int i = 0; i < layoutToSort->count(); i++) {
-            QLayoutItem* layoutItem = layoutToSort->itemAt(i);
-            // get the IDL item's label
-            QVBoxLayout* layout = dynamic_cast<QVBoxLayout*>(layoutItem);
-            if (layout) {
-                QString idlID = idlLayoutItems.key(layout);
-                DockNodeItem* item = getDockNodeItem(idlID);
-                if (item && item->isDockItemLabel()) {
-                    QString dockItemLabel = item->getLabel();
-                    labels.append(dockItemLabel);
-                    dockItemLabelHash[layout] = dockItemLabel;
-                }
+    // remove the dock item label's layout from itemsLayout
+    if (layout) {
+        itemsLayout->removeItem(layout);
+    } else {
+        qWarning() << "DefinitionsDockScrollArea::sortDockLabelItems - Dock label item doesn't have a layout.";
+        return;
+    }
+
+    // iterate through the items in this dock's layout
+    for (int i = 0; i < itemsLayout->count(); i++) {
+
+        QLayoutItem* layoutItem = itemsLayout->itemAt(i);
+        QString dockItemLabel;
+
+        // get the dock item's label
+        QVBoxLayout* vLayout = dynamic_cast<QVBoxLayout*>(layoutItem);
+        if (vLayout) {
+            DockNodeItem* currentDockItem = 0;
+            QString layoutID;
+            if (isComponentLabel) {
+                layoutID = componentLayoutItems.key(vLayout);
+                currentDockItem = getDockNodeItem("Component_" + layoutID);
+            } else {
+                layoutID = idlLayoutItems.key(vLayout);
+                currentDockItem = getDockNodeItem(layoutID);
+            }
+            if (currentDockItem) {
+                dockItemLabel = currentDockItem->getLabel();
             }
         }
 
-        labels.sort(Qt::CaseInsensitive);
-
-        foreach (QVBoxLayout* layout, dockItemLabelHash.keys()) {
-            layoutToSort->removeItem(layout);
+        // if for some reason the label is empty, skip to the next item
+        if (dockItemLabel.isEmpty()) {
+            continue;
         }
-        foreach (QString label, labels) {
-            QVBoxLayout* layout = dockItemLabelHash.key(label);
-            dockItemLabelHash.remove(layout);
-            layoutToSort->addLayout(layout);
+
+        // compare current label to labelToSort
+        if (labelToSort.compare(dockItemLabel, Qt::CaseInsensitive) <= 0) {
+            // insert the dock label item's layout into the correct alphabetical spot in the layout
+            itemsLayout->insertLayout(i, layout);
+            return;
         }
     }
-    */
+
+    // if there was no spot to insert the dock label item's layout, add it to the end of the layout
+    itemsLayout->addLayout(layout);
 }
 
 
 /**
- * @brief DefinitionsDockScrollArea::constructLabelDockItem
+ * @brief DefinitionsDockScrollArea::constructDockLabelItem
  * @param item
  */
-void DefinitionsDockScrollArea::constructLabelDockItem(EntityItem *item)
+void DefinitionsDockScrollArea::constructDockLabelItem(EntityItem *item)
 {
     if (!item) {
         return;
     }
 
     // create a new dock item label and add it to its corresponding layout
-    DockNodeItem* labelDockItem = new DockNodeItem("DockItemLabel", item, this, true);
-    QVBoxLayout* layout = new QVBoxLayout();
     QString itemID = QString::number(item->getID());
+    bool isComponentLabel = item->getNodeKind() == "Component";
 
-    if (item->getNodeKind() == "Component") {
-        labelDockItem->setID("Component_" + itemID);
+    QString dockItemID = itemID;
+    if (isComponentLabel) {
+        dockItemID = "Component_" + itemID;
+    }
+
+    // check if the dock already has a label for item
+    if (getDockNodeItem(dockItemID)) {
+        return;
+    }
+
+    QVBoxLayout* layout = new QVBoxLayout();
+    DockNodeItem* labelDockItem = new DockNodeItem("", item, this, true);
+
+    if (isComponentLabel) {
+        labelDockItem->setID(dockItemID);
         componentLayoutItems[itemID] = layout;
     } else {
         idlLayoutItems[itemID] = layout;
@@ -681,10 +608,8 @@ void DefinitionsDockScrollArea::constructLabelDockItem(EntityItem *item)
 
     layout->addWidget(labelDockItem);
     addDockNodeItem(labelDockItem, -1, false);
-
-    insertDockNodeItem(labelDockItem);
-    //sortDockLabelItems(labelDockItem);
-    connect(labelDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+    sortDockLabelItems(labelDockItem);
+    connect(labelDockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(sortDockLabelItems(DockNodeItem*)));
 
     // initially hide label dock items that don't have any children
     if (!item->hasChildren()) {
@@ -699,47 +624,58 @@ void DefinitionsDockScrollArea::constructLabelDockItem(EntityItem *item)
  */
 void DefinitionsDockScrollArea::constructDockItem(EntityItem *item)
 {
-    if (!item) {
+    if (!item || getDockNodeItem(QString::number(item->getID()))) {
         return;
     }
 
-    DockNodeItem* dockItem = new DockNodeItem("", item, this);
     EntityItem* parentEntityItem = item->getParentEntityItem();
-
     if (!parentEntityItem) {
-        qWarning() << "DefinitionsDockScrollArea::nodeConstructed - IDL entity item is null.";
+        qWarning() << "DefinitionsDockScrollArea::nodeConstructed - Parent entity item is null.";
         return;
     }
 
     QString parentID = QString::number(parentEntityItem->getID());
+    bool parentComponent = parentEntityItem->getNodeKind() == "Component";
+    DockNodeItem* parentDockItem = 0;
+    QVBoxLayout* layout = 0;
 
-    // check if there is already a layout and label for the parent IDL
-    if (!idlLayoutItems.contains(parentID)){
-        qWarning() << "DefinitionsDockScrollArea::constructDockItem - Parent dock item doesn't have a layout.";
-        return;
+    // construct a dock item label for parent Components
+    if (parentComponent) {
+        parentDockItem = getDockNodeItem("Component_" + parentID);
+        if (!parentDockItem) {
+            constructDockLabelItem(parentEntityItem);
+            parentDockItem = getDockNodeItem("Component_" + parentID);
+        }
+        layout = componentLayoutItems[parentID];
+    } else {
+        parentDockItem = getDockNodeItem(parentID);
+        layout = idlLayoutItems[parentID];
     }
 
-    // connect the new dock item to its parent file item
-    DockNodeItem* parentDockItem = getDockNodeItem(parentID);
-    if (parentDockItem) {
+    if (parentDockItem && layout) {
+
+        // connect the new dock item to its parent dock item
+        DockNodeItem* dockItem = new DockNodeItem("", item, this);
         dockItem->setParentDockNodeItem(parentDockItem);
         parentDockItem->addChildDockItem(dockItem);
-    }
 
-    QVBoxLayout* layout = idlLayoutItems[parentID];
-    layout->addWidget(dockItem);
-    addDockNodeItem(dockItem, -1, false);
-    insertDockNodeItem(dockItem);
-    //sortDockItems(dockItem);
-    connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(insertDockNodeItem(DockNodeItem*)));
+        // add it to its parent's layout and to this dock's list of dock items
+        layout->addWidget(dockItem);
+        addDockNodeItem(dockItem, -1, false);
+        sortDockItems(dockItem);
+        connect(dockItem, SIGNAL(dockItem_relabelled(DockNodeItem*)), this, SLOT(sortDockItems(DockNodeItem*)));
 
-    // initially hide dock items for Vectors that don't have any children
-    if (item->getNodeKind() == "Vector") {
-        if (!item->hasChildren()) {
-            dockItem->setForceHidden(true);
+        // initially hide dock items for Vectors that don't have any children
+        if (item->getNodeKind() == "Vector") {
+            if (!item->hasChildren()) {
+                dockItem->setForceHidden(true);
+            }
+            connect(item, SIGNAL(entityItem_firstChildAdded(int)), dockItem, SLOT(changeVectorHiddenState()));
+            connect(item, SIGNAL(entityItem_lastChildRemoved(int)), dockItem, SLOT(changeVectorHiddenState()));
         }
-        connect(item, SIGNAL(entityItem_firstChildAdded(int)), dockItem, SLOT(changeVectorHiddenState()));
-        connect(item, SIGNAL(entityItem_lastChildRemoved(int)), dockItem, SLOT(changeVectorHiddenState()));
+
+    } else {
+        qWarning() << "DefinitionsDockScrollArea::constructDockItem - Parent dock item or layout is null.";
     }
 }
 

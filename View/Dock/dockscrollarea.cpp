@@ -296,13 +296,19 @@ void DockScrollArea::removeDockNodeItem(DockNodeItem* dockItem, bool deleteItem)
  * @brief DockScrollArea::getDockNodeItem
  * This checks if this dock already contains a dock node item attached to nodeID.
  * DockNodeItems are indexed by their kind instead of their ID for the parts list.
- * @param nodeID
+ * @param dockItemID
  * @return
  */
-DockNodeItem* DockScrollArea::getDockNodeItem(QString nodeID)
+DockNodeItem* DockScrollArea::getDockNodeItem(QString dockItemID)
 {
-    if (dockNodeItems.contains(nodeID)) {
-        return dockNodeItems[nodeID];
+    foreach (QString itemID, dockNodeItems.keys()) {
+        if (itemID == dockItemID) {
+            return dockNodeItems[itemID];
+        }
+    }
+
+    if (dockNodeItems.contains(dockItemID)) {
+        return dockNodeItems[dockItemID];
     }
     return 0;
 }
