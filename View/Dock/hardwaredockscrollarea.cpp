@@ -117,6 +117,12 @@ void HardwareDockScrollArea::updateDock()
     // check if the dock should be disabled
     foreach (GraphMLItem* selectedItem, selectedItems) {
 
+        // disable this dock for the ModelItem
+        if (selectedItem->isModelItem()) {
+            setDockEnabled(false);
+            return;
+        }
+
         // ignore graphML items that aren't node items
         if (!selectedItem->isNodeItem()) {
             continue;

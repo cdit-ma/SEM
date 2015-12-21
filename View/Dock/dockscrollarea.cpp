@@ -8,8 +8,8 @@
 #include <QDebug>
 #include <qmath.h>
 
-#define MAX_LABEL_LENGTH 15
-#define BUTTON_WIDTH 141
+#define MAX_LABEL_LENGTH 12
+#define BUTTON_WIDTH 131
 
 
 /**
@@ -355,10 +355,10 @@ bool DockScrollArea::isDockEnabled()
  * @brief DockScrollArea::setDockEnabled
  * @param enabled
  */
-void DockScrollArea::setDockEnabled(bool enabled, bool repaint)
+void DockScrollArea::setDockEnabled(bool enabled)
 {
     if (getParentButton()) {
-        getParentButton()->setEnabled(enabled, repaint);
+        getParentButton()->setEnabled(enabled);
     }
 }
 
@@ -474,8 +474,8 @@ void DockScrollArea::setupLayout()
     infoLabel = new QLabel(this);
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
-    infoLabel->setFixedWidth(BUTTON_WIDTH);
-    infoLabel->setStyleSheet("padding: 10px 0px; font-style: italic;");
+    infoLabel->setFixedWidth(BUTTON_WIDTH + 10);
+    infoLabel->setStyleSheet("padding: 10px; font-style: italic;");
     setInfoText(defaultInfoText);
 
     QGroupBox* groupBox = new QGroupBox(0);
@@ -485,7 +485,6 @@ void DockScrollArea::setupLayout()
                             "background-color: rgba(255,255,255,0);"
                             "border: 0px;"
                             "padding: 10px;"
-                            "padding-left: 15px;"
                             "}");
 
     layout = new QVBoxLayout(this);
@@ -500,10 +499,10 @@ void DockScrollArea::setupLayout()
     setWidgetResizable(true);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setStyleSheet("QScrollArea {"
+                  "padding: 10px 0px;"
                   "background-color: rgba(250,250,250,240);"
                   "border: 0px;"
-                  "border-radius: 10px;"
-                  "padding-top: 10px;"
+                  //"border-radius: 10px;"
                   "}");
 }
 

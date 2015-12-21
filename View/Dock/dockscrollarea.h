@@ -36,7 +36,7 @@ public:
     void setDockOpen(bool open);
 
     bool isDockEnabled();
-    void setDockEnabled(bool enabled, bool repaint = false);
+    void setDockEnabled(bool enabled);
 
     DockToggleButton* getParentButton();
     DOCK_TYPE getDockType();

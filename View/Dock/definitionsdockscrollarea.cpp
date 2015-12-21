@@ -49,7 +49,6 @@ DefinitionsDockScrollArea::DefinitionsDockScrollArea(QString label, NodeView* vi
  */
 QList<DockNodeItem*> DefinitionsDockScrollArea::getDockNodeItems()
 {
-    qDebug() << "HERE";
     QList<DockNodeItem*> dockItems = DockScrollArea::getDockNodeItems();
     QList<DockNodeItem*> dockNodeItems;
 
@@ -349,7 +348,7 @@ void DefinitionsDockScrollArea::dockClosed()
 {
     // the moment this dock is closed, it is also disabled
     if (isDockEnabled()) {
-        setDockEnabled(false, true);
+        setDockEnabled(false);
     }
 
     sourceDockItemKind = "";
