@@ -35,6 +35,7 @@ private:
     void hideDockItems();
 
     void hideImplementedComponents();
+    void hideSelectedAggregate();
     void showChildrenOutEventPorts();
 
     void constructDockLabelItem(EntityItem* item);

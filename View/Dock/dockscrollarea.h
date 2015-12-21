@@ -42,6 +42,7 @@ public:
     DOCK_TYPE getDockType();
 
     NodeItem* getCurrentNodeItem();
+    QString getCurrentNodeKind();
     int getCurrentNodeID();
 
     QString getLabel();

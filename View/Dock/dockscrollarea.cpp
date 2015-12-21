@@ -99,6 +99,19 @@ NodeItem* DockScrollArea::getCurrentNodeItem()
 
 
 /**
+ * @brief DockScrollArea::getCurrentNodeKind
+ * @return
+ */
+QString DockScrollArea::getCurrentNodeKind()
+{
+   if (getCurrentNodeItem()) {
+        return getCurrentNodeItem()->getNodeKind();
+   }
+   return "";
+}
+
+
+/**
  * @brief DockScrollArea::getParentButton
  * Returns this dock's parent button (DockToggleButton).
  * @return
