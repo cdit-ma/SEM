@@ -1681,33 +1681,23 @@
 			<xsl:when test="$instType = 'VectorInstance'">
 				<xsl:variable name="vectorName" select="$instNode/gml:data[@key=$transformNodeLabelKey]/text()" />
 				<xsl:variable name="vectorType" select="$instNode/gml:data[@key=$transformNodeTypeKey]/text()" />
-				<!-- Create vector to load values -->
-				<xsl:value-of select="concat($vectorType, '* buf_', generate-id($instNode) ,' = new ::', $vectorType, '(')"/>
-				<!-- check if connected to attribute or variable, otherwise use value -->
-				<xsl:call-template name="Execution_InputParameter">
-					<xsl:with-param name="inputParameter" select="$instNode"/>
-					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
-					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
-					<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
-				</xsl:call-template>				
-				<xsl:value-of select="'.in());&#xA;'" />
-
-				<!-- recursive function to load values ??? 
-				<xsl:variable name="vecName" select="concat('(* buf_', generate-id($instNode) , ')')" />
-				<xsl:call-template name="Execution_Vector">
-					<xsl:with-param name="processNodes" select="$instNode"/>
-					<xsl:with-param name="varName" select="$vecName" />
-					<xsl:with-param name="level" select="'top'" />
-					<xsl:with-param name="recursed" select="$vecName" />
-					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
-					<xsl:with-param name="transformNodeValueKey" select="$transformNodeValueKey"/>
-					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
-					<xsl:with-param name="transformNodeTypeKey"  select="$transformNodeTypeKey" />
-					<xsl:with-param name="transformNodeSortOrderKey"  select="$transformNodeSortOrderKey" />
-				</xsl:call-template> -->
-				
+				<!-- Create vector to load values 
+				<xsl:value-of select="concat($vectorType, '* buf_', generate-id($instNode) ,' = new ::', $vectorType, '(')"/>  -->
+				<xsl:variable name="eventParam">
+					<xsl:call-template name="Execution_InputParameter">
+						<xsl:with-param name="inputParameter" select="$instNode"/>
+						<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
+						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+						<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
+					</xsl:call-template>	
+				</xsl:variable>
 				<!-- assign vector to event -->
-				<xsl:value-of select="concat($varName, '-&gt;', $vectorName, ' (*buf_', generate-id($instNode), ');&#xA;')" />
+				<xsl:value-of select="concat($varName, '-&gt;', $vectorName, ' (') " />
+				<xsl:value-of select="$eventParam" />
+				<xsl:if test="not( starts-with($eventParam, 'ev-&gt;') )" >
+					<xsl:value-of select="'.in()'" />
+				</xsl:if>	
+				<xsl:value-of select="');&#xA;'" />	
 			</xsl:when>
 			</xsl:choose>
 		</xsl:for-each>
