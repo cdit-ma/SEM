@@ -2,6 +2,7 @@
 #define AGGREGATE_H
 #include "../node.h"
 #include "eventport.h"
+#include <QVector>
 
 class Aggregate : public Node
 {

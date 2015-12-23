@@ -7,8 +7,8 @@ Model::Model(): Node()
 
 Model::~Model()
 {
-    removeEdges();
-    removeChildren();
+    //removeEdges();
+    //removeChildren();
 }
 
 bool Model::canAdoptChild(Node *node)

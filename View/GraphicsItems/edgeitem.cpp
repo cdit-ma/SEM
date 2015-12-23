@@ -21,7 +21,7 @@
 
 #define LABEL_RATIO .50
 
-EdgeItem::EdgeItem(Edge* edge, EntityItem *parent, EntityItem* s, EntityItem* d): GraphMLItem(edge, 0, GraphMLItem::NODE_EDGE)
+EdgeItem::EdgeItem(EdgeAdapter *edge, EntityItem *parent, EntityItem* s, EntityItem* d): GraphMLItem(edge, 0, GraphMLItem::NODE_EDGE)
 {
     if(parent){
         setNodeView(parent->getNodeView());
@@ -65,12 +65,12 @@ EdgeItem::EdgeItem(Edge* edge, EntityItem *parent, EntityItem* s, EntityItem* d)
 
     setupBrushes();
 
-    GraphMLData* labelData = edge->getData("description");
+    //Data* labelData = edge->getData("description");
     QString labelString = "";
-    if(labelData){
-        connect(labelData, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
-        labelString = labelData->getValue();
-    }
+    //if(labelData){
+    //    connect(labelData, SIGNAL(dataChanged(Data* )), this, SLOT(graphMLDataChanged(Data*)));
+    //    labelString = labelData->getValue().toString();
+    //}
 
     updateLabel(labelString);
 
@@ -221,12 +221,11 @@ EntityItem *EdgeItem::getDestination()
     return destination;
 }
 
-Edge *EdgeItem::getEdge()
+EdgeAdapter *EdgeItem::getEdgeAdapter()
 {
-    if(getGraphML() && getGraphML()->isEdge()){
-        return (Edge*)getGraphML();
-    }
+    return (EdgeAdapter*)getEntityAdapter();
 }
+
 
 void EdgeItem::setHovered(bool highlighted)
 {
@@ -258,13 +257,13 @@ void EdgeItem::setSelected(bool selected)
 
 void EdgeItem::labelUpdated(QString newLabel)
 {
-    if(getGraphML()){
-        QString currentLabel = getGraphMLDataValue("description");
+    if(getEntityAdapter()){
+        QString currentLabel = getDataValue("description").toString();
 
         if(currentLabel != newLabel){
             if(isDataEditable("description")){
                 GraphMLItem_TriggerAction("Set new description");
-                GraphMLItem_SetGraphMLData(getID(), "description", newLabel);
+                GraphMLItem_SetData(getID(), "description", newLabel);
             }
         }
     }
@@ -358,17 +357,10 @@ void EdgeItem::updateLine()
 }
 
 
-void EdgeItem::graphMLDataChanged(GraphMLData *data)
+void EdgeItem::dataChanged(QString keyName, QVariant data)
 {
-    if(isDeleting()){
-        return;
-    }
-    if(data){
-        QString dataKey = data->getKeyName();
-
-        if(dataKey == "description"){
-            updateLabel(data->getValue());
-        }
+    if(keyName == "description"){
+        updateLabel(data.toString());
     }
 }
 
@@ -506,7 +498,7 @@ bool EdgeItem::isPointInCircle(QPointF position)
 void EdgeItem::updateLabel(QString labelText)
 {
     if(labelText == ""){
-        labelText = "ID: " + QString::number(getGraphML()->getID());
+        labelText = "ID: " + QString::number(getEntityAdapter()->getID());
     }
 
     if(!textItem){
@@ -544,10 +536,10 @@ void EdgeItem::setupBrushes()
     pen.setColor(Qt::gray);
     pen.setColor(pen.color().darker());
 
-    if(getEdge()){
+    if(getEdgeAdapter()){
         Edge::EDGE_CLASS edgeClass = Edge::EC_NONE;
-        if(getEdge()){
-            edgeClass = getEdge()->getEdgeClass();
+        if(getEdgeAdapter()){
+            edgeClass = getEdgeAdapter()->getEdgeClass();
         }
         if(edgeClass == Edge::EC_DATA){
             pen.setColor(Qt::red);

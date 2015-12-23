@@ -4,7 +4,8 @@
 #include "inputitem.h"
 #include "../../Model/node.h"
 #include "../../enumerations.h"
-#include "../../Model/graphmldata.h"
+#include "../../Model/data.h"
+#include "../../Controller/nodeadapter.h"
 #include <QPen>
 
 #define MODEL_WIDTH 72
@@ -16,7 +17,7 @@ class ModelItem : public GraphMLItem
 {
     Q_OBJECT
 public:
-    ModelItem(Node* node, NodeView* view);
+    ModelItem(NodeAdapter* node, NodeView* view);
 
     void adjustPos(QPointF delta);
 
@@ -31,13 +32,13 @@ public:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     void setInSubView(bool inSubview);
 public slots:
-    void graphMLDataChanged(GraphMLData *data);
+    void dataChanged(QString keyName, QVariant data);
     void dataEditModeRequested();
     void dataChanged(QString data);
     void themeChanged(VIEW_THEME theme);
 
 private:
-    void setupGraphMLDataConnections();
+    void setupDataConnections();
     void setupInputItems();
 
     InputItem* topInputItem;

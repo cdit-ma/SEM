@@ -9,7 +9,8 @@
 #include "GraphicsItems/aspectitem.h"
 #include "GraphicsItems/modelitem.h"
 
-
+#include "../Controller/edgeadapter.h"
+#include "../Controller/nodeadapter.h"
 #include "Dock/dockscrollarea.h"
 
 #include <QGraphicsView>
@@ -151,6 +152,7 @@ private slots:
     void actionFinished();
 
 signals:
+    void view_SetDataValue(int ID, QString keyName, QVariant data);
     void view_searchFinished(QStringList searchResult);
     void view_themeChanged(VIEW_THEME theme);
 
@@ -187,10 +189,9 @@ signals:
     void view_Undo();
     void view_Redo();
 
-    void view_SetGraphMLData(int, QString, QString);
-    void view_SetGraphMLData(int, QString, qreal);
-    void view_ConstructGraphMLData(GraphML*, QString);
-    void view_DestructGraphMLData(GraphML*, QString);
+    void view_SetData(int, QString, QVariant);
+    void view_ConstructData(GraphML*, QString);
+    void view_DestructData(GraphML*, QString);
 
     void view_SetAttributeModel(AttributeTableModel* model);
 
@@ -308,8 +309,11 @@ public slots:
 
     void selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint);
 
-    void constructGUIItem(GraphML* item);
-    void destructGUIItem(int ID, GraphML::KIND kind);
+    void constructEntityItem(EntityAdapter* item);
+    void destructEntityItem(EntityAdapter* item);
+    void constructNodeItem(NodeAdapter* node);
+    void constructEdgeItem(EdgeAdapter* node);
+    void destructGUIItem(int ID, GraphML::GRAPHML_KIND kind);
 
     void showToolbar(QPoint position = QPoint());
     void toolbarClosed();
@@ -389,7 +393,6 @@ private:
     void _deleteFromIDs(QList<int> IDs);
     void updateActionsEnabledStates();
     void alignSelectionOnGrid(ALIGN alignment = NONE);
-    void view_ConstructNodeGUI(Node* node);
     void view_ConstructEdgeGUI(Edge* edge);
     void setGraphMLItemSelected(GraphMLItem* item, bool setSelected);
     void connectGraphMLItemToController(GraphMLItem* GUIItem);
@@ -411,7 +414,7 @@ private:
 
     bool allowedFocus(QWidget* widget);
     bool isEditableDataDropDown(EntityItem* node);
-    bool isNodeVisuallyConnectable(Node* node);
+    bool isNodeVisuallyConnectable(NodeAdapter *node);
     bool onlyHardwareClustersSelected();
     bool isItemsAncestorSelected(GraphMLItem* selectedItem);
 
@@ -455,7 +458,7 @@ private:
     GraphMLItem* getGraphMLItemFromID(int ID);
     NodeItem* getNodeItemFromID(int ID);
 
-    QString getGraphMLData(int ID, QString key);
+    QString getData(int ID, QString key);
     QList<EntityItem*> getEntityItemsList();
     QList<NodeItem*> getNodeItemsList();
     QList<EdgeItem*> getEdgeItemsList();
@@ -476,6 +479,8 @@ private:
     QMutex viewMutex;
 
     QStringList nonDrawnItemKinds;
+    QList<NODE_CLASS> nonDrawnNodeClasses;
+    QList<EDGE_CLASS> nonDrawnEdgeClasses;
 
 
     QPoint panningOrigin;
@@ -544,6 +549,8 @@ private:
     QHash<QString, QPixmap> imageLookup;
     QHash<int, GraphMLItem*> guiItems;
     QHash<int, QString> noGuiIDHash;
+
+    QHash<int, NODE_CLASS> noGUINodeIDHash;
 
     QRect visibleViewRect;
 

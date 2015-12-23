@@ -2,7 +2,7 @@
 #include "attributetablemodel.h"
 #include <QDebug>
 #include <QComboBox>
-#include "../../Model/graphmldata.h"
+#include "../../Model/data.h"
 #include "../../Model/node.h"
 ComboBoxTableDelegate::ComboBoxTableDelegate(QObject *parent):QItemDelegate(parent)
 {
@@ -63,12 +63,12 @@ void ComboBoxTableDelegate::updateValue()
 }
 
 
-GraphMLData *ComboBoxTableDelegate::getGraphMLData(const QModelIndex &index) const
+Data *ComboBoxTableDelegate::getData(const QModelIndex &index) const
 {
     QObject* qObject = qvariant_cast<QObject *>(index.model()->data(index, -1));
 
     if(qObject){
-        GraphMLData * data = qobject_cast<GraphMLData *>(qObject);
+        Data * data = qobject_cast<Data *>(qObject);
         if(data){
             return data;
         }
@@ -80,19 +80,19 @@ GraphMLData *ComboBoxTableDelegate::getGraphMLData(const QModelIndex &index) con
 QStringList ComboBoxTableDelegate::getValidValueList(const QModelIndex &index) const
 {
     QStringList returnable;
-    GraphMLData* data = getGraphMLData(index);
+    Data* data = getData(index);
     if(data){
         QString nodeKind = "";
 
-        GraphML* dataParent = data->getParent();
-        GraphMLKey* key = data->getKey();
+        Entity* dataParent = data->getParent();
+        Key* key = data->getKey();
 
         if(dataParent){
-            nodeKind = dataParent->getDataValue("kind");
+            nodeKind = dataParent->getDataValue("kind").toString();
         }
 
-        if(key && nodeKind != "" && key->gotSelectableValues(nodeKind)){
-            returnable = key->getSelectableValues(nodeKind);
+        if(key && nodeKind != "" && key->gotValidValues(nodeKind)){
+            returnable = key->getValidValues(nodeKind);
         }
     }
     return returnable;

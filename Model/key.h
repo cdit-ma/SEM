@@ -1,0 +1,61 @@
+#ifndef KEY_H
+#define KEY_H
+#include "graphml.h"
+#include <QVariant>
+#include "entity.h"
+class Entity;
+class Key : public GraphML
+{
+public:
+    static QString getGraphMLTypeName(const QVariant::Type type);
+
+    static QVariant::Type getTypeFromGraphML(const QString typeString);
+
+    Key(QString keyName, QVariant::Type type, Entity::ENTITY_KIND entityKind);
+
+    void setProtected(bool protect);
+    bool isProtected();
+
+    QString getName() const;
+
+    bool setDefaultValue(const QVariant value);
+    QVariant getDefaultValue() const;
+
+    Entity::ENTITY_KIND getEntityKind() const;
+    QVariant::Type getType() const;
+
+    void addValidValues(QStringList validValues, QStringList entityKinds = QStringList("ALL"));
+    void addValidRange(QPair<qreal, qreal> range, QStringList entityKinds = QStringList("ALL"));
+    void addInvalidCharacters(QStringList invalidCharacters, QStringList entityKinds = QStringList("ALL"));
+
+    QPair<qreal, qreal> getValidRange(QString entityKinds = "ALL");
+    bool gotValidRange(QString entityKinds = "ALL");
+
+    QStringList getValidValues(QString entityKinds = "ALL");
+    bool gotValidValues(QString entityKinds = "ALL");
+
+    QStringList getInvalidCharacters(QString entityKinds = "ALL");
+    bool gotInvalidCharacters(QString entityKinds = "ALL");
+
+    QVariant validateDataChange(Data* data, QVariant dataValue);
+
+    QString toGraphML(int indentDepth);
+    QString toString();
+    bool equals(const Key* key) const;
+private:
+    void addValidValue(QString nodeKind, QString value);
+    void addInvalidCharacters(QString nodeKind, QString invalidCharacter);
+    QString _keyName;
+    QVariant::Type _keyType;
+    Entity::ENTITY_KIND _entityKind;
+
+    bool _isProtected;
+    QVariant defaultValue;
+
+    QMap<QString, QPair<qreal, qreal> > validRanges;
+    QMap<QString, QStringList> validValues;
+    QMap<QString, QStringList> invalidCharacters;
+
+};
+
+#endif // KEY_H

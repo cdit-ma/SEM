@@ -24,7 +24,7 @@
 #include "statusitem.h"
 
 #include "../../Model/node.h"
-#include "../../Model/graphmldata.h"
+#include "../../Model/data.h"
 #include "graphmlitem.h"
 
 class EdgeItem;
@@ -41,7 +41,7 @@ public:
 
     enum IMAGE_POS{IP_TOPLEFT, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER};
 
-    EntityItem(Node *node, NodeItem *parent);
+    EntityItem(NodeAdapter* node, NodeItem *parent);
     ~EntityItem();
 
 
@@ -166,7 +166,8 @@ public:
 
 
 
-    Node* getNode();
+
+    NodeAdapter* getNodeAdapter();
     QString getNodeLabel();
     QList<EntityItem*> getChildEntityItems();
 
@@ -240,7 +241,7 @@ public slots:
 
 
     //USED METHODS
-    void graphMLDataChanged(GraphMLData *data);
+    void dataChanged(QString keyName, QVariant data);
 
     void setSelected(bool selected);
     void setVisibility(bool visible);
@@ -331,11 +332,10 @@ private:
 
     void setupBrushes();
     void setupLabel();
-    void setupGraphMLDataConnections();
+    void setupDataConnections();
     void setupChildrenViewOptionMenu();
 
-    void updateGraphMLPosition();
-    void retrieveGraphMLData();
+    void retrieveData();
     void updateTextLabel(QString text="");
     void childUpdated();
 

@@ -47,15 +47,16 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     if (nodeItem) {
 
         this->kind = nodeItem->getNodeKind();
-        label = nodeItem->getGraphMLDataValue("label");
+        label = nodeItem->getDataValue("label").toString();
         strID = QString::number(nodeItem->getID());
         highlightColor = "rgba(90,150,200,210)";
 
-        if (nodeItem->getNode()) {
-            GraphMLData* label = nodeItem->getNode()->getData("label");
-            if (label) {
-                connect(label, SIGNAL(valueChanged(QString)), this, SLOT(labelChanged(QString)));
-            }
+        if (nodeItem->getNodeAdapter()) {
+            //TODO
+            //Data* label = nodeItem->getNodeAdapter()->getData("label");
+            //if (label) {
+            //    connect(label, SIGNAL(valueChanged(QString)), this, SLOT(labelChanged(QString)));
+            //}
         }
 
         if (nodeItem->isEntityItem()) {

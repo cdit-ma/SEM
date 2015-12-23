@@ -269,8 +269,8 @@ bool BehaviourNode::compareableTypes(Node *node)
     if(node){
 
         //Types
-        QString type1 = getDataValue("type");
-        QString type2 = node->getDataValue("type");
+        QString type1 = getDataValue("type").toString();
+        QString type2 = node->getDataValue("type").toString();
 
         if(type1 == type2 && type1 != ""){
             //Allow direct matches.

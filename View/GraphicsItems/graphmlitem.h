@@ -2,10 +2,8 @@
 #define GRAPHMLITEM_H
 #include <QGraphicsObject>
 #include <QPen>
-#include "../../Model/graphml.h"
-#include "../../Model/graphmldata.h"
 #include "../../enumerations.h"
-//#include "../nodeview.h"
+#include "../../Controller/entityadapter.h"
 
 class NodeView;
 class AttributeTableModel;
@@ -19,7 +17,7 @@ public:
     enum ASPECT_POS{AP_NONE, AP_TOPLEFT, AP_TOPRIGHT,  AP_BOTRIGHT, AP_BOTLEFT};
     enum RENDER_STATE{RS_NONE, RS_BLOCK, RS_MINIMAL, RS_REDUCED, RS_FULL};
 
-    GraphMLItem(GraphML* graph, GraphMLItem *parent, GUI_KIND kind);
+    GraphMLItem(EntityAdapter *graph, GraphMLItem *parent, GUI_KIND kind);
     ~GraphMLItem();
     virtual QRectF sceneBoundingRect() const;
     virtual QRectF boundingRect() const;
@@ -43,21 +41,21 @@ public:
     void setParent(GraphMLItem* item);
     QList<GraphMLItem*> getChildren();
 
-    void connectToGraphMLData(QString keyName);
-    void connectToGraphMLData(GraphMLData* data);
-    void updateFromGraphMLData();
-    void setGraphMLData(QString keyName, QString value);
-    void setGraphMLData(QString keyName, qreal value);
+    void updateFromData();
+    void setData(QString keyName, QVariant value);
     void detach();
     virtual void setInSubView(bool inSubview);
     bool isDeleting();
 
+    void updateData(QString keyName);
     bool intersectsRectangle(QRectF rect);
 
+    void listenForData(QString keyName);
 
-    QString getGraphMLDataValue(QString key);
+
+    QVariant getDataValue(QString key);
     bool hasGraphMLKey(QString key);
-    GraphML* getGraphML();
+    EntityAdapter* getEntityAdapter();
     int getID();
 
     AttributeTableModel* getAttributeTable();
@@ -94,7 +92,7 @@ public slots:
     virtual void setHighlighted(bool isHighlight);
     virtual void setSelected(bool selected);
 
-    virtual void graphMLDataChanged(GraphMLData*) = 0;
+    virtual void dataChanged(QString keyName, QVariant Data) = 0;
 
     virtual void zoomChanged(qreal zoom);
 
@@ -104,10 +102,9 @@ signals:
     void GraphMLItem_TriggerAction(QString actionName);
     void GraphMLItem_SetCentered(GraphMLItem*);
 
-    void GraphMLItem_SetGraphMLData(int, QString, QString);
-    void GraphMLItem_SetGraphMLData(int, QString, qreal);
-    void GraphMLItem_ConstructGraphMLData(GraphML*, QString);
-    void GraphMLItem_DestructGraphMLData(GraphML*, QString);
+    void GraphMLItem_SetData(int, QString, QVariant);
+    void GraphMLItem_ConstructData(GraphML*, QString);
+    void GraphMLItem_DestructData(GraphML*, QString);
 
     void GraphMLItem_AppendSelected(GraphMLItem*);
     void GraphMLItem_RemoveSelected(GraphMLItem*);
@@ -126,10 +123,10 @@ private:
     bool IS_HOVERED;
     bool IS_HIGHLIGHTED;
     bool IN_SUBVIEW;
-    GraphML* attachedGraph;
+    EntityAdapter* attachedGraph;
     GraphMLItem* parentItem;
     AttributeTableModel* table;
-    QList<int> connectedDataIDs;
+    QList<QString> connectedDataKeys;
 
     QHash<int, GraphMLItem*> children;
 

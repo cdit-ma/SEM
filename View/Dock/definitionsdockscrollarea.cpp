@@ -524,7 +524,6 @@ void DefinitionsDockScrollArea::showChildrenOutEventPorts()
         idlDockItem->setHidden(true);
     }
 
-
     // connect the new dock item to its parent file item
     DockNodeItem* parentDockItem = getDockNodeItem(idlID);
     if (parentDockItem) {

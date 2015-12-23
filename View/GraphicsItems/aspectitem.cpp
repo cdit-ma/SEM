@@ -48,7 +48,7 @@
 #define THEME_DARK_NEUTRAL 10
 #define THEME_DARK_COLOURED 11
 
-AspectItem::AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect) : NodeItem(node, parent, GraphMLItem::ASPECT_ITEM)
+AspectItem::AspectItem(NodeAdapter *node, GraphMLItem *parent, VIEW_ASPECT aspect) : NodeItem(node, parent, GraphMLItem::ASPECT_ITEM)
 {
     //Set View Aspect.
     setViewAspect(aspect);
@@ -75,9 +75,9 @@ AspectItem::AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect) : No
     connect(this, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(sizeChanged()));
 
 
-    connectToGraphMLData("width");
-    connectToGraphMLData("height");
-    updateFromGraphMLData();
+    listenForData("width");
+    listenForData("height");
+    updateFromData();
 }
 
 
@@ -232,30 +232,24 @@ QPointF AspectItem::getAspectPos()
     }
 }
 
-void AspectItem::graphMLDataChanged(GraphMLData *data)
+void AspectItem::dataChanged(QString keyName, QVariant data)
 {
-    if(data && data->getParent() == getGraphML() && !getGraphML()->isDeleting()){
-        QString keyName = data->getKeyName();
-        QString value = data->getValue();
-        bool isDouble = false;
-        double valueD = value.toDouble(&isDouble);
 
+    if((keyName == "width" || keyName == "height")){
+        qreal valueD = data.toDouble();
+        //If data is related to the size of the EntityItem
+        if(keyName == "width"){
+            setWidth(valueD);
+        }else if(keyName == "height"){
+            setHeight(valueD);
+        }
 
-        if((keyName == "width" || keyName == "height") && isDouble){
-            //If data is related to the size of the EntityItem
-            if(keyName == "width"){
-                setWidth(valueD);
-            }else if(keyName == "height"){
-                setHeight(valueD);
-            }
-
-            //Check if the Width or Height has changed.
-            if(keyName == "width" && width != valueD){
-                emit GraphMLItem_SetGraphMLData(getID(), "width", QString::number(width));
-            }
-            if(keyName == "height" && height != valueD){
-                emit GraphMLItem_SetGraphMLData(getID(), "height", QString::number(height));
-            }
+        //Check if the Width or Height has changed.
+        if(keyName == "width" && width != valueD){
+            emit dataChanged(keyName, width);
+        }
+        if(keyName == "height" && height != valueD){
+            emit dataChanged(keyName, height);
         }
     }
 }
@@ -287,7 +281,9 @@ void AspectItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             //Goto VS_Selected
         case VS_SELECTED:
             //Enter Selected Mode.
-            getNodeView()->setStateSelected();
+            if(getNodeView()){
+                getNodeView()->setStateSelected();
+            }
             handleSelection(true, controlPressed);
             //Store the previous position.
             previousScenePosition = event->scenePos();

@@ -54,8 +54,10 @@
 #define THEME_DARK_NEUTRAL 10
 #define THEME_DARK_COLOURED 11
 
-GraphMLItem::GraphMLItem(GraphML *graph, GraphMLItem* parent, GraphMLItem::GUI_KIND kind)
+GraphMLItem::GraphMLItem(EntityAdapter *graph, GraphMLItem* parent, GraphMLItem::GUI_KIND kind)
 {
+    graph->addListener(this);
+    connect(graph, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
     parentItem = 0;
     attachedGraph = graph;
 
@@ -63,7 +65,6 @@ GraphMLItem::GraphMLItem(GraphML *graph, GraphMLItem* parent, GraphMLItem::GUI_K
 
     //Cache on Graphics card! May Artifact.
     //setCacheMode(QGraphicsItem::DeviceCoordinateCache);
-
 
 
 
@@ -80,8 +81,8 @@ GraphMLItem::GraphMLItem(GraphML *graph, GraphMLItem* parent, GraphMLItem::GUI_K
 
     if(attachedGraph){
         ID = attachedGraph->getID();
-        if(attachedGraph->isNode()){
-            nodeKind = attachedGraph->getDataValue("kind");
+        if(attachedGraph->isNodeAdapter()){
+            nodeKind = attachedGraph->getDataValue("kind").toString();
         }
     }
 
@@ -112,6 +113,13 @@ VIEW_STATE GraphMLItem::getViewState() const
 bool GraphMLItem::intersectsRectangle(QRectF sceneRect)
 {
     return sceneRect.contains(sceneBoundingRect());
+}
+
+void GraphMLItem::listenForData(QString keyName)
+{
+    if(!connectedDataKeys.contains(keyName)){
+        connectedDataKeys.append(keyName);
+    }
 }
 
 void GraphMLItem::setRenderState(GraphMLItem::RENDER_STATE renderState)
@@ -179,48 +187,20 @@ QList<GraphMLItem *> GraphMLItem::getChildren()
 }
 
 
-void GraphMLItem::connectToGraphMLData(QString keyName)
+void GraphMLItem::updateFromData()
 {
-    if(getGraphML()){
-        connectToGraphMLData(getGraphML()->getData(keyName));
+    foreach(QString keyName, connectedDataKeys){
+        QVariant dataValue = getEntityAdapter()->getDataValue(keyName);
+        dataChanged(keyName, dataValue);
     }
 }
 
-void GraphMLItem::connectToGraphMLData(GraphMLData *data)
+void GraphMLItem::setData(QString keyName, QVariant value)
 {
-    if(data){
-        int ID = data->getID();
-        if(!connectedDataIDs.contains(ID)){
-            connect(data, SIGNAL(dataChanged(GraphMLData* )), this, SLOT(graphMLDataChanged(GraphMLData*)));
-            connectedDataIDs.append(ID);
-        }
-    }
-}
-
-void GraphMLItem::updateFromGraphMLData()
-{
-    for(int i = 0; i < connectedDataIDs.size(); i++){
-        int ID = connectedDataIDs.at(i);
-        GraphMLData* data = getGraphML()->getData(ID);
-        if(data){
-            graphMLDataChanged(data);
-        }
-    }
-}
-
-void GraphMLItem::setGraphMLData(QString keyName, qreal value)
-{
-    GraphMLData* data = getGraphML()->getData(keyName);
-    if(data){
-        data->setValue(value);
-    }
-}
-
-void GraphMLItem::setGraphMLData(QString keyName, QString value)
-{
-    GraphMLData* data = getGraphML()->getData(keyName);
-    if(data){
-        data->setValue(value);
+    if(!getEntityAdapter()->isDataProtected(keyName)){
+        GraphMLItem_TriggerAction("Set New Data Value");
+        qCritical() << "SETTING VALUE: " << value;
+        emit GraphMLItem_SetData(getID(), keyName, value);
     }
 }
 
@@ -242,20 +222,18 @@ bool GraphMLItem::isDeleting()
     return IS_DELETING;
 }
 
+void GraphMLItem::updateData(QString keyName)
+{
+    QVariant data = getDataValue(keyName);
+    dataChanged(keyName, data);
+}
+
 GraphMLItem::~GraphMLItem()
 {
     if(table){
         delete table;
         table = 0;
     }
-    /*
-    if(getNodeView()){
-        if(!getNodeView()->isTerminating()){
-            if(parentItem){
-                parentItem->removeChild(getID());
-            }
-        }
-    }*/
 }
 
 QRectF GraphMLItem::sceneBoundingRect() const
@@ -290,26 +268,15 @@ QString GraphMLItem::getNodeKind()
     return nodeKind;
 }
 
-QString GraphMLItem::getGraphMLDataValue(QString key)
+bool GraphMLItem::hasGraphMLKey(QString keyName)
 {
-    if(getGraphML() && !getGraphML()->isDeleting()){
-        GraphMLData* data = getGraphML()->getData(key);
-        if(!data->isDeleting() && data->getParent() == getGraphML()){
-            return data->getValue();
-        }
-    }
-    return QString();
-}
-
-bool GraphMLItem::hasGraphMLKey(QString key)
-{
-    if(getGraphML() && !getGraphML()->isDeleting()){
-        return getGraphML()->getData(key);
+    if(getEntityAdapter()){
+        return getEntityAdapter()->hasData(keyName);
     }
     return false;
 }
 
-GraphML *GraphMLItem::getGraphML()
+EntityAdapter *GraphMLItem::getEntityAdapter()
 {
     return attachedGraph;
 }
@@ -331,6 +298,14 @@ void GraphMLItem::setNodeView(NodeView *view)
 NodeView *GraphMLItem::getNodeView()
 {
     return nodeView;
+}
+
+QVariant GraphMLItem::getDataValue(QString key)
+{
+    if(getEntityAdapter()){
+        return getEntityAdapter()->getDataValue(key);
+    }
+    return QVariant();
 }
 
 bool GraphMLItem::inMainView()
@@ -373,7 +348,7 @@ bool GraphMLItem::isModelItem()
 bool GraphMLItem::isDataEditable(QString keyName)
 {
     if(attachedGraph){
-        return attachedGraph->getData(keyName) && (!attachedGraph->getData(keyName)->isProtected());
+        return attachedGraph->isDataProtected(keyName);
     }
     return false;
 }

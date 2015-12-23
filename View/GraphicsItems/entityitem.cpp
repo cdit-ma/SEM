@@ -65,7 +65,7 @@
  * @param aspects
  * @param IN_SUBVIEW
  */
-EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, GraphMLItem::ENTITY_ITEM)
+EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, parent, GraphMLItem::ENTITY_ITEM)
 {
     IS_EXPANDED_STATE = false;
     if(parent && parent->isEntityItem()){
@@ -117,7 +117,7 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
 
     childrenViewOptionMenu = 0;
 
-    nodeKind = getGraphML()->getDataValue("kind");
+    nodeKind = getEntityAdapter()->getDataValue("kind").toString();
     isInputParameter = (nodeKind == "InputParameter");
     isReturnParameter = (nodeKind == "ReturnParameter");
 
@@ -172,8 +172,8 @@ EntityItem::EntityItem(Node *node, NodeItem *parent):  NodeItem(node, parent, Gr
 
     setupLabel();
 
-    setupGraphMLDataConnections();
-    updateFromGraphMLData();
+    setupDataConnections();
+    updateFromData();
 
     setupBrushes();
 
@@ -278,7 +278,7 @@ void EntityItem::setEditableField(QString keyName, bool dropDown)
     editableDataDropDown = dropDown;
 
 
-    connectToGraphMLData(keyName);
+    listenForData(keyName);
 
     if(bottomInputItem){
         bottomInputItem->setDropDown(dropDown);
@@ -291,8 +291,8 @@ void EntityItem::setEditableField(QString keyName, bool dropDown)
         }
     }
 
-    if(getGraphML()){
-        graphMLDataChanged(getGraphML()->getData(keyName));
+    if(getEntityAdapter()){
+        dataChanged(keyName, getEntityAdapter()->getDataValue(keyName));
     }
 
 
@@ -305,7 +305,7 @@ void EntityItem::setStatusField(QString keyName, bool isInt)
     bool gotkey = false;
     if(keyName != ""){
         if(hasGraphMLKey(keyName)){
-            connectToGraphMLData(keyName);
+            listenForData(keyName);
 
             if(statusItem){
                 statusItem->setNumberMode(isInt);
@@ -317,8 +317,8 @@ void EntityItem::setStatusField(QString keyName, bool isInt)
         statusItem->setVisible(false);
     }
 
-    if(getGraphML()){
-        graphMLDataChanged(getGraphML()->getData(keyName));
+    if(getEntityAdapter()){
+        dataChanged(keyName, getEntityAdapter()->getDataValue(keyName));
     }
 }
 
@@ -1083,6 +1083,7 @@ double EntityItem::getChildHeight()
 
 
 
+
 /**
  * @brief EntityItem::setSelected Sets the EntityItem as selected, notifies connected edges to highlight.
  * @param selected
@@ -1123,78 +1124,71 @@ void EntityItem::setVisibility(bool visible)
 
 
 /**
- * @brief EntityItem::graphMLDataChanged This method is called when any connected GraphMLData object updates their value.
- * @param data The GraphMLData which has been changed.
+ * @brief EntityItem::graphMLDataChanged This method is called when any connected Data object updates their value.
+ * @param data The Data which has been changed.
  */
-void EntityItem::graphMLDataChanged(GraphMLData* data)
+void EntityItem::dataChanged(QString keyName, QVariant data)
 {
-
-    if(getGraphML() && data && data->getParent() == getGraphML() && !getGraphML()->isDeleting()){
-
-        QString keyName = data->getKeyName();
-        QString value = data->getValue();
-
-        qreal numValue = data->getDoubleValue();
-        bool boolValue = numValue;
-        bool isDouble = data->gotDoubleValue();
-        bool isBool = data->gotBoolValue();
-
-        if((keyName == "x" || keyName == "y") && isDouble){
+        if(keyName == "x" || keyName == "y"){
+            qreal dataValue = data.toReal();
             //If data is related to the position of the EntityItem
             //Get the current center position.
 
             QPointF newCenter = centerPos();
 
             if(keyName == "x"){
-                newCenter.setX(numValue);
+                newCenter.setX(dataValue);
             }else if(keyName == "y"){
-                newCenter.setY(numValue);
+                newCenter.setY(dataValue);
             }
 
             //Update the center position.
             setCenterPos(newCenter);
 
-        }else if((keyName == "width" || keyName == "height") && isDouble){
+        }else if(keyName == "width" || keyName == "height"){
+            qreal dataValue = data.toReal();
             if(keyName == "width"){
-                setExpandedWidth(numValue);
+                setExpandedWidth(dataValue);
             }else if(keyName == "height"){
-                setExpandedHeight(numValue);
+                setExpandedHeight(dataValue);
             }
         }else if(keyName == "label"){
+            qCritical() << "LABEL CHANGED" << data;
+            QString dataValue = data.toString();
             //Update the Label
-            updateTextLabel(value);
+            updateTextLabel(dataValue);
         }else if(keyName == "architecture"){
-            nodeHardwareArch = value;
+            nodeHardwareArch = data.toString();
             update();
         }else if(keyName == "os"){
-            nodeHardwareOS = value;
+            nodeHardwareOS = data.toString();
             update();
         }else if(keyName == "type"){
-            this->nodeType = value;
-        }else if(keyName == "localhost" && isBool){
-            this->nodeHardwareLocalHost = boolValue;
+            this->nodeType = data.toString();
+        }else if(keyName == "localhost"){
+            this->nodeHardwareLocalHost = data.toBool();
             update();
-        }else if(keyName == "key" && isBool){
-            nodeMemberIsKey = boolValue;
+        }else if(keyName == "key"){
+            nodeMemberIsKey = data.toBool();
             update();
-        }else if(keyName == "isExpanded" && isBool){
-            handleExpandState(boolValue);
-        }else if(keyName == "readOnly" && isBool){
-            IS_READ_ONLY = boolValue;
+        }else if(keyName == "isExpanded"){
+            handleExpandState(data.toBool());
+        }else if(keyName == "readOnly"){
+            IS_READ_ONLY = data.toBool();
             update();
         }else if(keyName == "description"){
             //Use as tooltip.
-            descriptionValue = value;
+            descriptionValue = data.toString();
         }else if(keyName == "operation"){
             //Use as tooltip.
-            operationKind = value;
+            operationKind = data.toString();
         }
 
         if(keyName == editableDataKey){
             if(bottomInputItem){
-                bottomInputItem->setValue(value);
+                bottomInputItem->setValue(data.toString());
 
-                if(data->isProtected()){
+                if(getEntityAdapter()->isDataProtected(keyName)){
                     bottomInputItem->setBrush(Qt::NoBrush);
                 }else{
                     bottomInputItem->setBrush(Qt::white);
@@ -1203,10 +1197,9 @@ void EntityItem::graphMLDataChanged(GraphMLData* data)
         }
         if(keyName == statusModeDataKey){
             if(statusItem){
-                statusItem->setValue(value);
+                statusItem->setValue(data.toString());
             }
         }
-    }
 }
 
 
@@ -1376,7 +1369,7 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
                     GraphMLItem_TriggerAction("Expanded Node Item");
                 }
 
-                emit GraphMLItem_SetGraphMLData(getID(), "isExpanded", !isExpandedState());
+                emit GraphMLItem_SetData(getID(), "isExpanded", !isExpandedState());
             }
             break;
         case MO_BOT_LABEL:
@@ -1613,9 +1606,9 @@ void EntityItem::updateDisplayedChildren(int viewMode)
         // show connected HarwareNodes
         connectedChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            if (item->getNode()) {
-                QList<Edge*> edges = item->getNode()->getEdges();
-                item->setHidden(edges.isEmpty());
+            if (item->getNodeAdapter()) {
+                bool hasEdges = item->getNodeAdapter()->edgeCount() <= 0;
+                item->setHidden(hasEdges);
             }
         }
         break;
@@ -1623,9 +1616,9 @@ void EntityItem::updateDisplayedChildren(int viewMode)
         // show unconnected HarwareNodes
         unConnectedChildren->setChecked(true);
         foreach (EntityItem* item, childrenItems) {
-            if (item->getNode()) {
-                QList<Edge*> edges = item->getNode()->getEdges();
-                item->setHidden(!edges.isEmpty());
+            if (item->getNodeAdapter()) {
+                bool hasEdges = item->getNodeAdapter()->edgeCount() <= 0;
+                item->setHidden(!hasEdges);
             }
         }
         break;
@@ -2076,7 +2069,7 @@ void EntityItem::setupChildrenViewOptionMenu()
 //Dont be N-Factorial
 void EntityItem::childUpdated()
 {
-    if(!getGraphML()){
+    if(!getEntityAdapter()){
         return;
     }
 
@@ -2173,27 +2166,27 @@ void EntityItem::setupLabel()
 /**
  * @brief EntityItem::setupGraphMLConnections
  */
-void EntityItem::setupGraphMLDataConnections()
+void EntityItem::setupDataConnections()
 {
-    connectToGraphMLData("x");
-    connectToGraphMLData("y");
-    connectToGraphMLData("height");
-    connectToGraphMLData("width");
-    connectToGraphMLData("label");
-    connectToGraphMLData("type");
-    connectToGraphMLData("isExpanded");
+    listenForData("x");
+    listenForData("y");
+    listenForData("height");
+    listenForData("width");
+    listenForData("label");
+    listenForData("type");
+    listenForData("isExpanded");
 
-    connectToGraphMLData("readOnly");
-    connectToGraphMLData("description");
+    listenForData("readOnly");
+    listenForData("description");
 
     if(nodeKind == "HardwareNode"){
-        connectToGraphMLData("os");
-        connectToGraphMLData("architecture");
-        connectToGraphMLData("localhost");
+        listenForData("os");
+        listenForData("architecture");
+        listenForData("localhost");
     }else if(nodeKind == "Member"){
-        connectToGraphMLData("key");
+        listenForData("key");
     }else if(nodeKind == "Process"){
-        connectToGraphMLData("operation");
+        listenForData("operation");
     }
 }
 
@@ -2342,38 +2335,23 @@ void EntityItem::themeChanged(VIEW_THEME theme)
 }
 
 
-void EntityItem::updateGraphMLPosition()
-{
-    //Give the current Width and height. update the width/height variable in the GraphML Model.
-    GraphML* modelEntity = getGraphML();
-    if(modelEntity){
-        GraphMLData* xData = modelEntity->getData("x");
-        GraphMLData* yData = modelEntity->getData("y");
-        QPointF center = centerPos();
-        xData->setValue(QString::number(center.x()));
-        yData->setValue(QString::number(center.y()));
-    }
-
-}
 
 
 
-
-void EntityItem::retrieveGraphMLData()
+void EntityItem::retrieveData()
 {
 
-    if(!getGraphML()){
+    if(!getEntityAdapter()){
         return;
     }
 
-    if(!getGraphML()->isDeleting()){
-        graphMLDataChanged(getGraphML()->getData("width"));
-        graphMLDataChanged(getGraphML()->getData("height"));
-        graphMLDataChanged(getGraphML()->getData("x"));
-        graphMLDataChanged(getGraphML()->getData("y"));
-        graphMLDataChanged(getGraphML()->getData("label"));
-        graphMLDataChanged(getGraphML()->getData("type"));
-    }
+
+    updateData("width");
+    updateData("height");
+    updateData("x");
+    updateData("y");
+    updateData("label");
+    updateData("type");
 }
 
 
@@ -2439,9 +2417,10 @@ QList<EntityItem*> EntityItem::deploymentView(bool on, EntityItem *selectedItem)
     if (on) {
 
         Node* deploymentLink = 0;
+        /*
 
         // get the hardware node that this item is deployed to
-        foreach (Edge* edge, getNode()->getEdges(0)) {
+        foreach (Edge* edge, getNodeAdapter()->getEdges(0)) {
             if (edge->isDeploymentLink()) {
                 deploymentLink = edge->getDestination();
                 break;
@@ -2455,7 +2434,7 @@ QList<EntityItem*> EntityItem::deploymentView(bool on, EntityItem *selectedItem)
 
         // check this item's children's deployment links
         foreach (EntityItem* childItem, getChildEntityItems()) {
-            foreach (Edge* edge, childItem->getNode()->getEdges(0)) {
+            foreach (Edge* edge, childItem->getNodeAdapter()->getEdges(0)) {
                 if (edge->isDeploymentLink() && edge->getDestination() != deploymentLink) {
                     if (selectedItem && selectedItem == this) {
                         childItem->setHardwareHighlighting(true);
@@ -2466,6 +2445,7 @@ QList<EntityItem*> EntityItem::deploymentView(bool on, EntityItem *selectedItem)
                 }
             }
         }
+        */
 
         // if there are children deployed to a different node, show red hardware icon
         if (chlidrenDeployedToDifferentNode.isEmpty()) {
@@ -2511,7 +2491,7 @@ void EntityItem::forceExpandParentItem()
     EntityItem* parentItem = getParentEntityItem();
     while (parentItem) {
         if (!parentItem->isExpanded()) {
-            //emit GraphMLItem_SetGraphMLData(parentItem->getID(), "isExpanded", true);
+            //emit GraphMLItem_SetData(parentItem->getID(), "isExpanded", true);
             parentItems.append(parentItem);
         }
         parentItem = parentItem->getParentEntityItem();
@@ -2519,7 +2499,7 @@ void EntityItem::forceExpandParentItem()
 
     for (int i = parentItems.count() - 1; i >= 0; i--) {
         EntityItem* pi = parentItems.at(i);
-        emit GraphMLItem_SetGraphMLData(pi->getID(), "isExpanded", true);
+        emit GraphMLItem_SetData(pi->getID(), "isExpanded", true);
     }
     qCritical() << "FORCE EXPAND";
 }
@@ -2565,7 +2545,7 @@ void EntityItem::dataChanged(QString dataValue)
 {
     //Determine the sender
     InputItem* inputItem = qobject_cast<InputItem*>(QObject::sender());
-    if(inputItem && getGraphML()){
+    if(inputItem && getEntityAdapter()){
 
         QString keyValue = "label";
 
@@ -2575,10 +2555,8 @@ void EntityItem::dataChanged(QString dataValue)
         if(inputItem == statusItem){
             keyValue = statusModeDataKey;
         }
-        if(!getGraphML()->getData(keyValue)->isProtected()){
-            GraphMLItem_TriggerAction("Set New Data Value");
-            GraphMLItem_SetGraphMLData(getID(), keyValue, dataValue);
-        }
+
+        setData(keyValue, dataValue);
     }
 }
 
@@ -2706,11 +2684,11 @@ void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QStri
 QStringList EntityItem::getChildrenKind()
 {
     QStringList childrenKinds;
-    Node *node = dynamic_cast<Node*>(getGraphML());
+    Node *node = dynamic_cast<Node*>(getEntityAdapter());
     if (node) {
 
         foreach(Node* child, node->getChildren(0)){
-            childrenKinds.append(child->getDataValue("kind"));
+            childrenKinds.append(child->getDataValue("kind").toString());
         }
     }
     return childrenKinds;
@@ -2725,8 +2703,8 @@ QSizeF EntityItem::getModelSize()
     float graphmlHeight = 0;
     float graphmlWidth = 0;
 
-    graphmlWidth = getGraphMLDataValue("width").toDouble();
-    graphmlHeight = getGraphMLDataValue("height").toDouble();
+    graphmlWidth = getDataValue("width").toDouble();
+    graphmlHeight = getDataValue("height").toDouble();
 
 
 
@@ -2788,7 +2766,7 @@ void EntityItem::lastChildRemoved()
 {
     //Update
     if(isExpanded()){
-        emit GraphMLItem_SetGraphMLData(getID(), "isExpanded", false);
+        emit GraphMLItem_SetData(getID(), "isExpanded", false);
     }
 
     if (IS_VECTOR) {
@@ -2834,29 +2812,23 @@ void EntityItem::sceneRectChanged(QRectF sceneRect)
 
 void EntityItem::labelUpdated(QString newLabel)
 {
-    if(getGraphML()){
+    if(getEntityAdapter()){
 
-        QString currentLabel = getGraphMLDataValue("label");
+        QString currentLabel = getDataValue("label").toString();
 
         if(currentLabel != newLabel){
-            if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
-                GraphMLItem_TriggerAction("Set New Label");
-                GraphMLItem_SetGraphMLData(getID(), "label", newLabel);
-            }
+            setData("label", newLabel);
         }
     }
 }
 
 void EntityItem::setNewLabel(QString newLabel)
 {
-    if(getGraphML()){
+    if(getEntityAdapter()){
         if(newLabel != ""){
-            if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
-                GraphMLItem_TriggerAction("Set New Label");
-                GraphMLItem_SetGraphMLData(getID(), "label", newLabel);
-            }
+            setData("label", newLabel);
         }else{
-            if(getGraphML() && !getGraphML()->getData("label")->isProtected()){
+            if(!getEntityAdapter()->isDataProtected("label")){
                 topLabelInputItem->setEditMode(true);
             }
         }
@@ -2865,9 +2837,9 @@ void EntityItem::setNewLabel(QString newLabel)
 }
 
 
-Node *EntityItem::getNode()
+NodeAdapter *EntityItem::getNodeAdapter()
 {
-    return (Node*) getGraphML();
+    return (NodeAdapter*) getEntityAdapter();
 }
 
 
@@ -2907,8 +2879,8 @@ void EntityItem::resetSize()
 {
     expandedHeight = contractedHeight;
     expandedWidth = contractedWidth;
-    emit GraphMLItem_SetGraphMLData(getID(), "height", contractedHeight);
-    emit GraphMLItem_SetGraphMLData(getID(), "width", contractedWidth);
+    emit GraphMLItem_SetData(getID(), "height", contractedHeight);
+    emit GraphMLItem_SetData(getID(), "width", contractedWidth);
 }
 
 

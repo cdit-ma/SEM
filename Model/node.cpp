@@ -1,12 +1,11 @@
 #include "node.h"
-#include "graphmldata.h"
+#include "data.h"
 #include "edge.h"
 #include <QDebug>
 #include <QCryptographicHash>
 #include <QByteArray>
 
-
-Node::Node(Node::NODE_TYPE type) : GraphML(GraphML::NODE)
+Node::Node(NODE_TYPE type, NODE_CLASS nClass) : Entity(EK_NODE)
 {
     //Set the Node Type.
     nodeType = type;
@@ -15,6 +14,42 @@ Node::Node(Node::NODE_TYPE type) : GraphML(GraphML::NODE)
     definition = 0;
     parentNode = 0;
     childCount = 0;
+
+    nodeClass = nClass;
+}
+
+QString Node::toGraphML(int indentDepth)
+{
+    QString tab("\t");
+    //Construct the desired tab width.
+    QString indent = tab.repeated(indentDepth);
+
+    QString xml;
+    xml += indent;
+    xml += indent + QString("<node id =\"%1\">\n").arg(getID());
+
+
+    foreach(Data* data, getData()){
+        xml += data->toGraphML(indentDepth + 1);
+    }
+
+    if(childrenCount() > 0){
+        xml += indent;
+        xml += QString("\t<graph id =\"g%1\">\n").arg(getID());
+    }
+
+    foreach(Node* child, getChildren(0)){
+        xml += child->toGraphML(indentDepth + 2);
+    }
+
+    if(childrenCount() > 0){
+        xml += indent;
+        xml += QString("\t</graph>\n");
+    }
+    xml += indent;
+    xml += "</node>\n";
+
+    return xml;
 }
 
 
@@ -26,6 +61,11 @@ QList<int> Node::getTreeIndex()
 QString Node::getTreeIndexString()
 {
     return treeIndexStr;
+}
+
+NODE_CLASS Node::getNodeClass()
+{
+    return nodeClass;
 }
 
 Node::~Node()
@@ -51,47 +91,6 @@ bool Node::acceptsEdgeClass(Edge::EDGE_CLASS edgeClass)
     return validEdges.contains(edgeClass);
 }
 
-QStringList Node::getConnectableKinds()
-{
-    return QStringList();
-}
-
-QList<Node *> Node::getItemsConnectedLeft()
-{
-    QList<Node*> returnable;
-
-    QList<Node*> leftNodes;
-
-    while(!leftNodes.isEmpty()){
-        Node* currentNode = leftNodes.takeFirst();
-
-        if(!returnable.contains(currentNode)){
-            returnable << currentNode;
-            leftNodes.append(currentNode->getNodesLeft());
-        }
-    }
-
-    return returnable;
-}
-
-QList<Node *> Node::getItemsConnectedRight()
-{
-    QList<Node*> returnable;
-
-    QList<Node*> rightNodes;
-
-    while(!rightNodes.isEmpty()){
-        Node* currentNode = rightNodes.takeFirst();
-
-        if(!returnable.contains(currentNode)){
-            returnable << currentNode;
-            rightNodes.append(currentNode->getNodesRight());
-        }
-    }
-    return returnable;
-
-}
-
 Node *Node::getContainedAspect()
 {
     int depth = getDepthToAspect();
@@ -113,48 +112,6 @@ int Node::getDepthToAspect()
     return -1;
 }
 
-int Node::getIndirectConnectCount(QString nodeKind)
-{
-    QList<Node*> connectedNodes;
-    QList<Edge*> edgesParsed;
-    QList<Edge*> edgesToLookAt;
-    edgesToLookAt.append(getEdges());
-
-    while(!edgesToLookAt.isEmpty()){
-        Edge* currentEdge = edgesToLookAt.takeFirst();
-        if(currentEdge->isNormalLink()){
-            Node* src = currentEdge->getSource();
-            Node* dst = currentEdge->getDestination();
-            if(!edgesParsed.contains(currentEdge)){
-
-                if(!connectedNodes.contains(src)){
-                    connectedNodes.append(src);
-                    if(src->getParentNode() && !connectedNodes.contains(src->getParentNode())){
-                        connectedNodes.append(src->getParentNode());
-                        edgesToLookAt.append(src->getParentNode()->getEdges(0));
-                    }
-                }
-                if(!connectedNodes.contains(dst)){
-                    connectedNodes.append(dst);
-                    if(dst->getParentNode() && !connectedNodes.contains(dst->getParentNode())){
-                        connectedNodes.append(dst->getParentNode());
-                        edgesToLookAt.append(dst->getParentNode()->getEdges(0));
-                    }
-                }
-
-                edgesParsed.append(currentEdge);
-            }
-        }
-    }
-
-    int count = 0;
-    foreach(Node* node, connectedNodes){
-        if(node->getNodeKind() == nodeKind){
-            count ++;
-        }
-    }
-    return count;
-}
 
 void Node::setTop(int index)
 {
@@ -164,15 +121,15 @@ void Node::setTop(int index)
 
 QString Node::toString()
 {
-    GraphMLData* kindData = getData("kind");
-    GraphMLData* labelData = getData("label");
+    Data* kindData = getData("kind");
+    Data* labelData = getData("label");
     QString kind = "Node";
     QString label = "Node";
     if(kindData){
-        kind = kindData->getValue();
+        kind = kindData->getValue().toString();
     }
     if(labelData){
-        label = labelData->getValue();
+        label = labelData->getValue().toString();
     }
     return QString("[%1]%2 - %3").arg(QString::number(getID()), kind, label);
 }
@@ -231,8 +188,8 @@ bool Node::canAdoptChild(Node *node)
 bool Node::compareData(Node *node, QString keyName)
 {
     if(node){
-        GraphMLData* d1 = getData(keyName);
-        GraphMLData* d2 = node->getData(keyName);
+        Data* d1 = getData(keyName);
+        Data* d2 = node->getData(keyName);
         if(d1 && d2){
             return d1->compare(d2);
         }
@@ -261,12 +218,27 @@ void Node::addChild(Node *child)
 
 QString Node::getNodeKind()
 {
-    return getDataValue("kind");
+    return getDataValue("kind").toString();
 }
 
 bool Node::containsChild(Node *child)
 {
     return children.contains(child);
+}
+
+QList<Node *> Node::getChildren(int depth)
+{
+    QList<Node *> childList = getOrderedChildNodes();
+
+    //While we still have Children, Recurse
+    if(depth != 0){
+        //Add children's children.
+        foreach(Node* child, getChildren(0)){
+            childList += child->getChildren(depth - 1);
+        }
+    }
+
+    return childList;
 }
 
 
@@ -291,21 +263,6 @@ QList<Edge *> Node::getEdges(int depth)
     return edgeList;
 }
 
-QList<Node *> Node::getChildren(int depth)
-{
-    QList<Node *> childList;
-
-    childList += getOrderedChildNodes();
-    //While we still have Children, Recurse
-    if(depth != 0){
-        //Add children's children.
-        foreach(Node* child, getChildren(0)){
-            childList += child->getChildren(depth - 1);
-        }
-    }
-
-    return childList;
-}
 
 Node *Node::getFirstChild()
 {
@@ -345,11 +302,9 @@ QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
 
 bool Node::isReadOnly()
 {
-    GraphMLData* readOnlyData = getData("readOnly");
+    Data* readOnlyData = getData("readOnly");
     if(readOnlyData){
-        if(readOnlyData->gotBoolValue()){
-            return readOnlyData->getBoolValue();
-        }
+        return readOnlyData->getValue().toBool();
     }
     return false;
 }
@@ -391,10 +346,6 @@ void Node::removeChild(Node *child)
     }
 }
 
-void Node::removeChildren()
-{
-    children.clear();
-}
 
 bool Node::ancestorOf(Node *node)
 {
@@ -457,7 +408,7 @@ bool Node::isDescendantOf(Node *node)
 Edge::EDGE_CLASS Node::canConnect(Node *node)
 {
     //Don't allow multiple connections.
-    if(isConnected(node)){
+    if(gotEdgeTo(node)){
         return Edge::EC_NONE;
     }
 
@@ -651,7 +602,7 @@ bool Node::canConnect_WorkflowEdge(Node *node)
 
 
 
-Edge* Node::getConnectingEdge(Node *node)
+Edge* Node::getEdgeTo(Node *node)
 {
     foreach(Edge* edge, edges){
         if(edge->contains(node)){
@@ -659,6 +610,12 @@ Edge* Node::getConnectingEdge(Node *node)
         }
     }
     return 0;
+}
+
+
+bool Node::gotEdgeTo(Node *node)
+{
+    return getEdgeTo(node) != 0;
 }
 
 QList<Node *> Node::getAllConnectedNodes(QList<Node *> connectedNodes)
@@ -695,23 +652,19 @@ QList<Node *> Node::getAllConnectedNodes(QList<Node *> connectedNodes)
     return currentNodes;
 }
 
-bool Node::isConnected(Node *node)
-{
-    return getConnectingEdge(node) != 0;
-}
-
 bool Node::isIndirectlyConnected(Node *node)
 {
     return (getAllConnectedNodes().contains(node) || node->getAllConnectedNodes().contains(this) || node == this);
 }
 
-bool Node::fullyContainsEdge(Edge *edge)
+bool Node::containsEdgeEndPoints(Edge *edge)
 {
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
     return isAncestorOf(src) && isAncestorOf(dst);
 }
+
 
 
 bool Node::containsEdge(Edge *edge)
@@ -721,21 +674,21 @@ bool Node::containsEdge(Edge *edge)
 
 
 
-QList<GraphMLKey *> Node::getKeys(int depth)
+QList<Key *> Node::getKeys(int depth)
 {
-    QList<GraphMLKey*> allKeys;
-    QList<GraphMLData*> allData;
+    QList<Key*> allKeys;
+    QList<Data*> allData;
 
     allData += getData();
-    foreach(GraphML* entity, getChildren(depth)){
+    foreach(Entity* entity, getChildren(depth)){
         allData += entity->getData();
     }
-    foreach(GraphML* entity, getEdges(depth)){
+    foreach(Entity* entity, getEdges(depth)){
         allData += entity->getData();
     }
 
-    foreach(GraphMLData* data, allData){
-        GraphMLKey* key = data->getKey();
+    foreach(Data* data, allData){
+        Key* key = data->getKey();
         if(!allKeys.contains(key)){
             allKeys += key;
         }
@@ -744,50 +697,20 @@ QList<GraphMLKey *> Node::getKeys(int depth)
     return allKeys;
 }
 
-void Node::removeEdges()
+QString Node::getEntityName()
 {
-    edges.clear();
+    return getNodeKind();
 }
 
-QString Node::toGraphML(qint32 indentationLevel)
-{
-    QString tabSpace;
-    tabSpace.fill('\t', indentationLevel);
-
-    QString returnable = QString(tabSpace + "<node id =\"%1\">\n").arg(getID());
-
-    foreach(GraphMLData* data, attachedData){
-        if(data->getKeyName() == "isExpanded" && !data->getBoolValue()){
-            //Ignore false expansion.
-            continue;
-        }
-        returnable += data->toGraphML(indentationLevel + 1);
-    }
-
-    if(childrenCount() > 0){
-        returnable += QString(tabSpace + "\t<graph id =\"g%1\">\n").arg(getID());
-    }
-
-    foreach(Node* child, getChildren(0)){
-        returnable += child->toGraphML(indentationLevel + 2);
-    }
-
-    if(childrenCount() > 0){
-        returnable += QString(tabSpace + "\t</graph>\n");
-    }
-
-    returnable += tabSpace + "</node>\n";
-    return returnable;
-}
 
 QString Node::toMD5Hash()
 {
     QStringList includedKeys;
     includedKeys << "label" << "kind" << "type" << "key";
     QString returnable;
-    foreach(GraphMLData* data, attachedData){
+    foreach(Data* data, getData()){
         if(includedKeys.contains(data->getKeyName())){
-            returnable += data->getKeyName() + "=" + data->getValue() + ";";
+            returnable += data->getKeyName() + "=" + data->getValue().toString() + ";";
         }
     }
     QString hash = QCryptographicHash::hash(returnable.toUtf8(), QCryptographicHash::Md5).toHex();
@@ -906,40 +829,12 @@ void Node::setParentNode(Node *parent, int index)
     parentNode = parent;
 }
 
-QList<Node *> Node::getNodesLeft()
-{
-    QList<Node*> nodesLeft;
-
-    foreach(Edge* edge, this->getEdges(0)){
-        if(edge->getDestination() == this){
-            if(!nodesLeft.contains(edge->getSource())){
-                nodesLeft.append(edge->getSource());
-            }
-        }
-    }
-    return nodesLeft;
-}
-
-QList<Node *> Node::getNodesRight()
-{
-    QList<Node*> nodesRight;
-
-    foreach(Edge* edge, this->getEdges(0)){
-        if(edge->getSource() == this){
-            if(!nodesRight.contains(edge->getDestination())){
-                nodesRight.append(edge->getDestination());
-            }
-        }
-    }
-    return nodesRight;
-}
-
 QList<Node *> Node::getOrderedChildNodes()
 {
     QMap<int, Node*> orderedList;
 
     foreach(Node* child, children){
-        int sortID = child->getDataNumberValue("sortOrder");
+        int sortID = child->getDataValue("sortOrder").toInt();
         orderedList.insertMulti(sortID, child);
     }
     return orderedList.values();

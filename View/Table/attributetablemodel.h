@@ -4,7 +4,7 @@
 #include <QAbstractTableModel>
 
 
-#include "../../Model/graphmldata.h"
+#include "../../Model/data.h"
 #include "../../Model/graphml.h"
 #include "../GraphicsItems/graphmlitem.h"
 #include <QVector>
@@ -21,11 +21,12 @@ public:
     ~AttributeTableModel();
 
 signals:
-    void editMultilineData(GraphMLData* data);
+    void editMultilineData(Data* data);
 public slots:
-    void updatedData(GraphMLData* data);
-    void removedData(int dataID);
-    void addData(GraphMLData* data);
+    void updatedData(QString keyName);
+    void removedData(QString keyName);
+
+    void addData(QString keyName);
     void clearData();
 
     // QAbstractItemModel interface
@@ -38,11 +39,12 @@ public:
     bool setData(const QModelIndex &index, const QVariant &value, int role);
     bool insertRows(int row, int count, const QModelIndex &parent);
 
-    bool removeRows(int row, int count, const QModelIndex &parent);
     Qt::ItemFlags flags(const QModelIndex &index) const;
 private:
-    int getIndex(int ID) const;
-    GraphMLData* getData(int row) const;
+    int getIndex(QString keyName) const;
+    QVariant getDataValue(int row) const;
+    QString getKeyName(int row) const;
+    bool isDataProtected(int row) const;
     bool hasData() const;
 
     void setupDataBinding();
@@ -50,11 +52,11 @@ private:
     GraphMLItem* guiItem;
 
     bool isNode;
-    GraphML* attachedGraphML;
+    EntityAdapter* attachedEntity;
 
+    QStringList keys;
     QStringList dataOrder;
-    QHash<QString, int> nameLookup;
-    QHash<int, GraphMLData*> attachedData;
+
     QStringList permanentlyLockedKeyNames;
     QStringList hiddenKeyNames;
     QStringList multiLineKeyNames;

@@ -2,7 +2,7 @@
 #include "assemblydefinitions.h"
 #include "hardwaredefinitions.h"
 
-DeploymentDefinitions::DeploymentDefinitions():Node()
+DeploymentDefinitions::DeploymentDefinitions():Node(NT_NODE, NC_DEPLOYMENT_DEFINITIONS)
 {
 }
 

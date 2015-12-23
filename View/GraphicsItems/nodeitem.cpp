@@ -32,7 +32,7 @@
 #define THEME_DARK_NEUTRAL 10
 #define THEME_DARK_COLOURED 11
 
-NodeItem::NodeItem(Node *node, GraphMLItem *parent, GraphMLItem::GUI_KIND kind) : GraphMLItem(node, parent, kind)
+NodeItem::NodeItem(NodeAdapter *node, GraphMLItem *parent, GraphMLItem::GUI_KIND kind) : GraphMLItem(node, parent, kind)
 {
     if(parent && parent->isNodeItem()){
         setViewAspect(((NodeItem*)parent)->getViewAspect());
@@ -74,7 +74,7 @@ QRectF NodeItem::getChildBoundingRect()
 
 QString NodeItem::getLabel()
 {
-    return getGraphMLDataValue("label");
+    return getDataValue("label").toString();
 }
 
 VIEW_ASPECT NodeItem::getViewAspect()
@@ -126,12 +126,8 @@ void NodeItem::sortChildren()
         NodeItem* nodeItem = (NodeItem*)child;
         //Find the sortOrder.
         int childSortOrder = toSortMap.size();
-        QString sortOrder = nodeItem->getGraphMLDataValue("sortOrder");
-
-        if(sortOrder != ""){
-            childSortOrder = sortOrder.toInt();
-        }
-        toSortMap.insertMulti(childSortOrder, nodeItem);
+        int sortOrder = nodeItem->getDataValue("sortOrder").toInt();
+        toSortMap.insertMulti(sortOrder, nodeItem);
     }
 
     QList<NodeItem*> toSortItems = toSortMap.values();
@@ -163,11 +159,11 @@ void NodeItem::updatePositionInModel(bool directUpdate)
     QPointF center = getMinimumRectCenterPos();
 
     if(directUpdate){
-        setGraphMLData("x", center.x());
-        setGraphMLData("y", center.y());
+        setData("x", center.x());
+        setData("y", center.y());
     }else{
-        emit GraphMLItem_SetGraphMLData(getID(), "x", center.x());
-        emit GraphMLItem_SetGraphMLData(getID(), "y", center.y());
+        emit GraphMLItem_SetData(getID(), "x", center.x());
+        emit GraphMLItem_SetData(getID(), "y", center.y());
     }
 
 
@@ -182,11 +178,11 @@ void NodeItem::updateSizeInModel(bool directUpdate)
     }
 
     if(directUpdate){
-        setGraphMLData("width", getWidth());
-        setGraphMLData("height", getHeight());
+        setData("width", getWidth());
+        setData("height", getHeight());
     }else{
-        emit GraphMLItem_SetGraphMLData(getID(), "width", getWidth());
-        emit GraphMLItem_SetGraphMLData(getID(), "height", getHeight());
+        emit GraphMLItem_SetData(getID(), "width", getWidth());
+        emit GraphMLItem_SetData(getID(), "height", getHeight());
     }
 
 
@@ -532,7 +528,7 @@ NodeItem *NodeItem::getParentNodeItem()
 
 Node *NodeItem::getNode()
 {
-    return (Node*)getGraphML();
+    return (Node*)getEntityAdapter();
 }
 
 NodeItem::RESIZE_TYPE NodeItem::getResizeMode()

@@ -1,10 +1,10 @@
 #include "edge.h"
 #include "graphml.h"
-#include "graphmldata.h"
+#include "data.h"
 #include "node.h"
 #include <QDebug>
 
-Edge::Edge(Node *s, Node *d, EDGE_CLASS edgeClass):GraphML(GraphML::EDGE)
+Edge::Edge(Node *s, Node *d, EDGE_CLASS edgeClass):Entity(EK_EDGE)
 {
     //Set the instance Variables
     source = s;
@@ -48,10 +48,10 @@ QString Edge::toGraphML(qint32 indentationLevel)
 
     QString returnable = tabSpace + QString("<edge id=\"%1\" source=\"%2\" target =\"%3\"").arg(QString::number(getID()), QString::number(getSource()->getID()), QString::number(getDestination()->getID()));
 
-    if(attachedData.size() > 0){
+    if(hasData()){
         returnable += ">\n";
-        for(int i =0;i<attachedData.size();i++){
-            returnable += attachedData[i]->toGraphML(indentationLevel + 1);
+        foreach(Data* data, getData()){
+            returnable += data->toGraphML(indentationLevel + 1);
         }
         returnable += tabSpace + "</edge>\n";
     }else{

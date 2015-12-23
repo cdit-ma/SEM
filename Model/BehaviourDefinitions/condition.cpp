@@ -20,7 +20,7 @@ Termination *Condition::getTermination()
     if(branch){
         Termination* termination = branch->getTermination();
         if(termination){
-            if(termination->isConnected(this)){
+            if(termination->gotEdgeTo(this)){
                 return termination;
             }
         }

@@ -76,8 +76,6 @@ HEADERS += \
     Model/blanknode.h \
     Model/edge.h \
     Model/graphml.h \
-    Model/graphmldata.h \
-    Model/graphmlkey.h \
     Model/model.h \
     Model/node.h \
     View/Dock/definitionsdockscrollarea.h \
@@ -148,7 +146,12 @@ HEADERS += \
     Model/InterfaceDefinitions/datanode.h \
     Model/Edges/aggregateedge.h \
     View/GraphicsItems/statusitem.h \
-    Model/InterfaceDefinitions/numberdata.h
+    Model/entity.h \
+    Model/key.h \
+    Model/data.h \
+    Controller/entityadapter.h \
+    Controller/nodeadapter.h \
+    Controller/edgeadapter.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -190,8 +193,6 @@ SOURCES += \
     Model/blanknode.cpp \
     Model/edge.cpp \
     Model/graphml.cpp \
-    Model/graphmldata.cpp \
-    Model/graphmlkey.cpp \
     Model/model.cpp \
     Model/node.cpp \
     View/Dock/definitionsdockscrollarea.cpp \
@@ -262,7 +263,12 @@ SOURCES += \
     Model/InterfaceDefinitions/datanode.cpp \
     Model/Edges/aggregateedge.cpp \
     View/GraphicsItems/statusitem.cpp \
-    Model/InterfaceDefinitions/numberdata.cpp
+    Model/entity.cpp \
+    Model/key.cpp \
+    Model/data.cpp \
+    Controller/entityadapter.cpp \
+    Controller/nodeadapter.cpp \
+    Controller/edgeadapter.cpp
 
 FORMS +=
 

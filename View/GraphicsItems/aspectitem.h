@@ -9,7 +9,7 @@ class AspectItem : public NodeItem
     Q_OBJECT
 
 public:
-    AspectItem(Node *node, GraphMLItem *parent, VIEW_ASPECT aspect);
+    AspectItem(NodeAdapter* node, GraphMLItem *parent, VIEW_ASPECT aspect);
     QRectF boundingRect() const;
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
@@ -38,7 +38,7 @@ private:
     QFont textFont;
 
 public slots:
-    void graphMLDataChanged(GraphMLData *);
+    void dataChanged(QString keyName, QVariant data);
 
     void sizeChanged();
 

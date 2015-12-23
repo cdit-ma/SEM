@@ -9,6 +9,8 @@
 #include <QSysInfo>
 #include <QDir>
 
+#include "edgeadapter.h"
+#include "nodeadapter.h"
 
 
 #define LABEL_TRUNCATE_LENGTH 64
@@ -21,7 +23,7 @@ bool SETUP_AS_IMPL = false;
 NewController::NewController()
 {
     qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
-    qRegisterMetaType<GraphML::KIND>("GraphML::KIND");
+    qRegisterMetaType<GraphML::GRAPHML_KIND>("GraphML::GRAPHML_KIND");
     qRegisterMetaType<QList<int> >("QList<int>");
 
 
@@ -111,7 +113,10 @@ void NewController::connectView(NodeView *view)
     view->setController(this);
 
     //Connect SIGNALS to view Slots (ALL VIEWS)
-    connect(this, SIGNAL(controller_GraphMLConstructed(GraphML*)), view, SLOT(constructGUIItem(GraphML*)));
+    connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(constructEntityItem(EntityAdapter*)));
+    connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(destructEntityItem(EntityAdapter*)));
+
+    connect(this, SIGNAL(controller_GraphMLConstructed(Entity*)), view, SLOT(constructGUIItem(Entity*)));
 
     connect(this, SIGNAL(controller_GraphMLDestructed(int, GraphML::KIND)), view, SLOT(destructGUIItem(int,GraphML::KIND)));
 
@@ -178,8 +183,7 @@ void NewController::connectView(NodeView *view)
 
         //Undo SLOTS
         connect(view, SIGNAL(view_TriggerAction(QString)), this, SLOT(triggerAction(QString)));
-        connect(view, SIGNAL(view_SetGraphMLData(int, QString, QString)), this, SLOT(setGraphMLData(int, QString, QString)));
-        connect(view, SIGNAL(view_SetGraphMLData(int, QString, qreal)), this, SLOT(setGraphMLData(int, QString, qreal)));
+        connect(view, SIGNAL(view_SetData(int, QString, QVariant)), this, SLOT(setData(int, QString, QVariant)));
 
 
     }
@@ -190,7 +194,7 @@ void NewController::connectView(NodeView *view)
 void NewController::initializeModel()
 {
     setupModel();
-    loadWorkerDefinitions();
+    //loadWorkerDefinitions();
     clearHistory();
     INITIALIZING = false;
     emit controller_ModelReady();
@@ -268,7 +272,7 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
 
     QString keyXML, edgeXML, nodeXML;
     QList<Node*> containedNodes;
-    QList<GraphMLKey*> containedKeys;
+    QList<Key*> containedKeys;
     QList<Edge*> containedEdges;
 
 
@@ -282,7 +286,7 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
 
 
             //Get all keys used by this node.
-            foreach(GraphMLKey* key, node->getKeys())
+            foreach(Key* key, node->getKeys())
             {
                 //Add the <key> tag to the list of Keys contained.
                 if(!containedKeys.contains(key)){
@@ -346,7 +350,7 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
                 edgeXML += edge->toGraphML(2);
 
                 //Get the Keys related to this edge.
-                foreach(GraphMLKey* key, edge->getKeys()){
+                foreach(Key* key, edge->getKeys()){
                     if(!containedKeys.contains(key)){
                         containedKeys.append(key);
                         keyXML += key->toGraphML(1);
@@ -450,16 +454,17 @@ bool NewController::_clear()
 
 
 
-void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dataValue, bool addAction)
+void NewController::setData(Entity *parent, QString keyName, QVariant dataValue, bool addAction)
 {
 
+    qCritical() << "SETTING" << parent << " key Name: " << keyName << " = " << dataValue;
     if(DELETING){
         //Ignore any calls to set whilst deleting.
         return;
     }
 
     if(!parent){
-        qCritical() << "view_UpdateGraphMLData() Cannot Update GraphMLData for NULL GraphML object.";
+        qCritical() << "view_UpdateData() Cannot Update Data for NULL GraphML object.";
         return;
     }
 
@@ -469,42 +474,32 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
     ActionItem action;
     action.ID = parent->getID();
     action.actionType = MODIFIED;
-    action.actionKind = GraphML::DATA;
+    action.actionKind = GraphML::GK_DATA;
     action.keyName = keyName;
     action.isNum = false;
 
 
-    GraphMLData* data = parent->getData(keyName);
-    if(data && data->getKey()->isNumber() && !data->getKey()->isBoolean()){
-        bool okay = false;
-        qreal dataValueNumber = dataValue.toDouble(&okay);
-        if(okay){
-            setGraphMLData(parent, keyName, dataValueNumber, addAction);
-            return;
-        }
-    }
+    Data* data = parent->getData(keyName);
 
     if(data){
-        action.dataValue = data->getValue();
+        action.dataValue2 = data->getValue();
 
         if(dataValue == action.dataValue){
             //Don't update if we have got the same value in the model.
             return;
         }
 
-        if(parent->isNode()){
-            Node* node = (Node*)parent;
-            if(keyName == "label"){
-                enforceUniqueLabel(node, dataValue);
-            }else{
-                data->setValue(dataValue);
+        if(keyName == "label"){
+            Node* node = dynamic_cast<Node*>(parent);
+            if(node){
+                enforceUniqueLabel(node, dataValue.toString());
             }
-        }else if(parent->isEdge()){
+        }else{
             data->setValue(dataValue);
         }
 
     }else{
-        qCritical() << "view_UpdateGraphMLData() Doesn't Contain GraphMLData for Key: " << keyName;
+        qCritical() << "view_UpdateData() Doesn't Contain Data for Key: " << keyName;
         return;
     }
     if(addAction){
@@ -513,15 +508,15 @@ void NewController::setGraphMLData(GraphML *parent, QString keyName, QString dat
 }
 
 /**
- * @brief NewController::attachGraphMLData - Attaches a GraphMLData to a Entity
- * @param parent - The Entity to attach the GraphMLData to.
- * @param data - The GraphMLData to attach
+ * @brief NewController::attachData - Attaches a Data to a Entity
+ * @param parent - The Entity to attach the Data to.
+ * @param data - The Data to attach
  * @param addAction - Add an undo state
  */
-void NewController::attachGraphMLData(GraphML *parent, GraphMLData *data, bool addAction)
+void NewController::attachData(Entity *parent, Data *data, bool addAction)
 {
     if(!parent || !data){
-        qCritical() << "attachGraphMLData() parent or data is NULL!";
+        qCritical() << "attachData() parent or data is NULL!";
         return;
     }
 
@@ -529,11 +524,11 @@ void NewController::attachGraphMLData(GraphML *parent, GraphMLData *data, bool a
     ActionItem action;
     action.ID = parent->getID();
     action.actionType = CONSTRUCTED;
-    action.actionKind = GraphML::DATA;
+    action.actionKind = GraphML::GK_DATA;
     action.keyName = data->getKeyName();
 
     //Attach the Data to the parent
-    parent->attachData(data);
+    parent->addData(data);
 
 
     //Add an action to the stack.
@@ -541,23 +536,23 @@ void NewController::attachGraphMLData(GraphML *parent, GraphMLData *data, bool a
 }
 
 /**
- * @brief NewController::destructGraphMLData - Removes and destroys a GraphMLData attached to an Entity
- * @param parent - The Entity the GraphMLData is attached to.
- * @param keyName - The Name of the Key of the GraphMLData
+ * @brief NewController::destructData - Removes and destroys a Data attached to an Entity
+ * @param parent - The Entity the Data is attached to.
+ * @param keyName - The Name of the Key of the Data
  * @param addAction - Add an undo state
  */
-void NewController::destructGraphMLData(GraphML *parent, QString keyName, bool addAction)
+void NewController::destructData(Entity *parent, QString keyName, bool addAction)
 {  
     if(!parent){
-        qCritical() << "destructGraphMLData() parent is NULL!";
+        qCritical() << "destructData() parent is NULL!";
         return;
     }
 
     //Get the Data from the GraphML
-    GraphMLData* data = parent->getData(keyName);
+    Data* data = parent->getData(keyName);
 
     if(!data){
-        qCritical() << "destructGraphMLData(): " + parent->toString() + " does not contain GraphMLData for key: " + keyName;
+        qCritical() << "destructData(): " + parent->toString() + " does not contain Data for key: " + keyName;
         return;
     }
 
@@ -565,10 +560,10 @@ void NewController::destructGraphMLData(GraphML *parent, QString keyName, bool a
     ActionItem action;
     action.ID = parent->getID();
     action.actionType = DESTRUCTED;
-    action.actionKind = GraphML::DATA;
+    action.actionKind = GraphML::GK_DATA;
     action.keyName = keyName;
-    action.dataValues.append(data->toStringList());
-    action.boundDataIDs.append(data->getBoundIDS());
+    //action.dataValues.append(data->toStringList());
+    //action.boundDataIDs.append(data->getBoundIDS());
 
     if(data->getParentData()){
         action.parentDataID.append(data->getParentData()->getID());
@@ -597,7 +592,7 @@ void NewController::setViewSignalsEnabled(bool enabled, bool sendQueuedSignals)
             while(!viewSignalsList.isEmpty()){
                 ViewSignal signal = viewSignalsList.takeFirst();
                 if(signal.constructSignal){
-                    GraphML* item = getGraphMLFromID(signal.id);
+                    Entity* item = getGraphMLFromID(signal.id);
                     if(item){
                         emit controller_GraphMLConstructed(item);
                     }
@@ -629,67 +624,6 @@ void NewController::updateUndoRedoState()
     }
 }
 
-void NewController::setGraphMLData(GraphML *parent, QString keyName, qreal dataValue, bool addAction)
-{
-    if(DELETING){
-        //Ignore any calls to set whilst deleting.
-        return;
-    }
-
-    if(!parent){
-        qCritical() << "view_UpdateGraphMLData() Cannot Update GraphMLData for NULL GraphML object.";
-        return;
-    }
-
-    //Construct an Action to reverse the update
-    ActionItem action;
-    action.ID = parent->getID();
-    action.actionType = MODIFIED;
-    action.actionKind = GraphML::DATA;
-    action.keyName = keyName;
-    action.isNum = true;
-
-
-    GraphMLData* data = parent->getData(keyName);
-
-    if(data){
-        if(data->gotDoubleValue()){
-            action.dataValueNum = data->getDoubleValue();
-        }
-
-        if(parent->isNode() && keyName == "sortOrder"){
-            enforceUniqueSortOrder((Node*)parent, dataValue);
-            qreal newSortOrder = parent->getDataNumberValue("sortOrder");
-
-            if(action.dataValueNum == newSortOrder){
-                //Don't add an action for the initial setting!
-                addAction = false;
-            }
-        }else if(parent->isNode()){
-            if(keyName == "x" || keyName == "y"){
-                if(action.dataValueNum != -1 && dataValue == -1){
-                    return;
-                }
-                data->setValue(dataValue);
-            }else{
-                data->setValue(dataValue);
-            }
-        }else if(parent->isEdge()){
-            data->setValue(dataValue);
-        }
-    }else{
-        qCritical() << "view_UpdateGraphMLData() Doesn't Contain GraphMLData for Key: " << keyName;
-        return;
-    }
-    if(addAction){
-        addActionToStack(action, addAction);
-    }
-
-}
-
-
-
-
 
 void NewController::constructNode(int parentID, QString kind, QPointF centerPoint)
 {
@@ -697,13 +631,13 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
         bool ignore = false;
         Node* parentNode = getNodeFromID(parentID);
 
-        QList<GraphMLData*> data;
+        QList<Data*> data;
         //Only allow construction of
         if(kind == "InputParameter"){
             Node* matchingParameter = 0;
             foreach(Node* child, parentNode->getChildrenOfKind("InputParameter", 0)){
-                QString label = child->getDataValue("label");
-                QString type = child->getDataValue("type");
+                QString label = child->getDataValue("label").toString();
+                QString type = child->getDataValue("type").toString();
                 if(label == "parameter" && type == "WE_UTE_VariableArguments"){
                     //Clone the data.
                     matchingParameter = child;
@@ -713,7 +647,7 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
             if(matchingParameter){
                 data = cloneNodesData(matchingParameter);
                 data.append(constructPositionDataVector(centerPoint));
-                foreach(GraphMLData* d, data){
+                foreach(Data* d, data){
                     if(d->getKeyName() == "value"){
                         d->setValue("");
                         break;
@@ -724,7 +658,7 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
                 ignore = true;
             }
         }else{
-            data = constructGraphMLDataVector(kind, centerPoint);
+            data = constructDataVector(kind, centerPoint);
         }
         if(!ignore){
             triggerAction("Constructing Child Node");
@@ -752,7 +686,7 @@ void NewController::constructEdge(int srcID, int dstID, bool reverseOkay)
 {
     Node* src = getNodeFromID(srcID);
     Node* dst = getNodeFromID(dstID);
-    GraphMLData* label = src->getData("label");
+    Data* label = src->getData("label");
     if(src && dst){
         Edge* edge = constructEdgeWithData(src, dst);
         if(!edge){
@@ -769,7 +703,7 @@ void NewController::destructEdge(int srcID, int dstID)
     Node* dst = getNodeFromID(dstID);
 
     if(src && dst){
-        Edge* edge = src->getConnectingEdge(dst);
+        Edge* edge = src->getEdgeTo(dst);
         if(edge){
             destructEdge(edge, true);
         }
@@ -785,22 +719,22 @@ void NewController::constructConnectedNode(int parentID, int connectedID, QStrin
         //Disable the auto send of construct graphml items.
         setViewSignalsEnabled(false);
         triggerAction("Constructed Connected Node");
-        Node* newNode = constructChildNode(parentNode, constructGraphMLDataVector(kind));
+        Node* newNode = constructChildNode(parentNode, constructDataVector(kind));
         //bool gotEdge = false;
         if(newNode){
             //Update the position
-            setGraphMLData(newNode, "x", relativePos.x());
-            setGraphMLData(newNode, "y", relativePos.y());
+            setData(newNode, "x", relativePos.x());
+            setData(newNode, "y", relativePos.y());
 
             constructEdgeWithData(newNode, connectedNode);
 
             //Try the alternate connection.
-            if(!newNode->isConnected(newNode)){
+            if(!newNode->gotEdgeTo(newNode)){
                 constructEdgeWithData(connectedNode, newNode);
             }
         }
 
-        Edge* connectingEdge = newNode->getConnectingEdge(connectedNode);
+        Edge* connectingEdge = newNode->getEdgeTo(connectedNode);
 
         if(!connectingEdge){
             _remove(newNode->getID(),false);
@@ -811,6 +745,7 @@ void NewController::constructConnectedNode(int parentID, int connectedID, QStrin
     }
     emit controller_ActionFinished();
 }
+
 
 
 /**
@@ -826,7 +761,7 @@ void NewController::constructDestructEdges(QList<int> destruct_srcIDs, QList<int
             Node* src = getNodeFromID(destruct_srcIDs[i]);
             Node* dst = getNodeFromID(destruct_dstIDs[i]);
             if (src && dst) {
-                destructEdge(src->getConnectingEdge(dst), true);
+                destructEdge(src->getEdgeTo(dst), true);
             }
         }
     }
@@ -841,11 +776,11 @@ void NewController::constructDestructEdges(QList<int> destruct_srcIDs, QList<int
 }
 
 
-Edge* NewController::constructEdgeWithGraphMLData(Node *src, Node *dst, QList<GraphMLData *> data, int previousID)
+Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<Data *> data, int previousID)
 {
     Edge* edge = _constructEdge(src, dst);
     if(edge){
-        _attachGraphMLData(edge, data, false);
+        _attachData(edge, data, false);
 
         //If we are Undo-ing or Redo-ing and we have an ID to link it to.
         if((UNDOING || REDOING) && previousID != -1){
@@ -856,11 +791,11 @@ Edge* NewController::constructEdgeWithGraphMLData(Node *src, Node *dst, QList<Gr
     return edge;
 }
 
-Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<QStringList> attachedData, int previousID)
+Edge* NewController::constructEdgeWithStrData(Node *src, Node *dst, QList<QStringList> attachedData, int previousID)
 {
     Edge* edge = _constructEdge(src, dst);
     if(edge){
-        _attachGraphMLData(edge, attachedData, false);
+        _attachData(edge, attachedData, false);
 
         if((UNDOING || REDOING) && previousID != -1){
             linkOldIDToID(previousID, edge->getID());
@@ -870,7 +805,7 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<QStringLi
     }
 
 
-    if(!src->isConnected(dst)){
+    if(!src->gotEdgeTo(dst)){
         qCritical() << "Edge: " << src->toString() << " to " << dst->toString() << " not legal.";
         qCritical() << "Edge not legal";
     }
@@ -1085,7 +1020,7 @@ bool NewController::_remove(QList<int> IDs, bool addAction)
             int ID = IDs.takeFirst();
             //Clear the list of related IDs.
             connectedLinkedIDs.clear();
-            GraphML* graphML = getGraphMLFromID(ID);
+            Entity* graphML = getGraphMLFromID(ID);
 
 
             if(graphML){
@@ -1269,10 +1204,10 @@ bool NewController:: _exportSnippet(QList<int> IDs)
             QString exportTimeStamp = getTimeStamp();
 
             //Construct the Keys to attach to the nodes to export.
-            GraphMLKey* readOnlyKey = constructGraphMLKey("readOnly", "boolean", "node");
-            GraphMLKey* IDKey = constructGraphMLKey("originalID", "int", "node");
-            GraphMLKey* dateKey = constructGraphMLKey("exportDateTime", "string", "node");
-            GraphMLKey* annotationKey = constructGraphMLKey("annotation", "string", "node");
+            Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_NODE);
+            Key* IDKey = constructKey("originalID", QVariant::Int, Entity::EK_NODE);
+            Key* dateKey = constructKey("exportDateTime", QVariant::String, Entity::EK_NODE);
+            Key* annotationKey = constructKey("annotation", QVariant::String, Entity::EK_NODE);
 
             QList<Node*> nodeList;
 
@@ -1284,12 +1219,12 @@ bool NewController:: _exportSnippet(QList<int> IDs)
                         nodeList += node;
 
                         //Add exported Data.
-                        GraphMLData* dateData = new GraphMLData(dateKey);
-                        GraphMLData* annotationData = new GraphMLData(annotationKey);
+                        Data* dateData = new Data(dateKey);
+                        Data* annotationData = new Data(annotationKey);
                         dateData->setValue(exportTimeStamp);
                         annotationData->setValue("Exported from MEDEA!");
-                        node->attachData(dateData, true);
-                        node->attachData(annotationData, true);
+                        node->addData(dateData);
+                        node->addData(annotationData);
                     }
 
                     foreach(Node* child, node->getChildren()){
@@ -1304,15 +1239,15 @@ bool NewController:: _exportSnippet(QList<int> IDs)
 
             //Attach read only Data.
             foreach(Node* node, nodeList){
-                GraphMLData* readOnlyData = new GraphMLData(readOnlyKey);
+                Data* readOnlyData = new Data(readOnlyKey);
                 readOnlyData->setValue(true);
                 //Attach data as private data
-                node->attachData(readOnlyData, true);
+                node->addData(readOnlyData);
 
                 if(!node->getData(IDKey)){
-                    GraphMLData* idData = new GraphMLData(IDKey);
+                    Data* idData = new Data(IDKey);
                     idData->setValue(node->getID());
-                    node->attachData(idData);
+                    node->addData(idData);
 
                 }
             }
@@ -1321,9 +1256,9 @@ bool NewController:: _exportSnippet(QList<int> IDs)
 
             //Remove attached Data.
             foreach(Node* node, nodeList){
-                GraphMLData* readOnlyData = node->getData(readOnlyKey);
-                GraphMLData* dateData = node->getData(dateKey);
-                GraphMLData* annotationData = node->getData(annotationKey);
+                Data* readOnlyData = node->getData(readOnlyKey);
+                Data* dateData = node->getData(dateKey);
+                Data* annotationData = node->getData(annotationKey);
 
                 if(readOnlyData){
                     node->removeData(readOnlyData);
@@ -1381,7 +1316,7 @@ QStringList NewController::getAdoptableNodeKinds(int ID)
             return adoptableNodeKinds;
         }
 
-        QString parentNodeKind = parent->getDataValue("kind");
+        QString parentNodeKind = parent->getDataValue("kind").toString();
 
         foreach(QString nodeKind, getGUIConstructableNodeKinds()){
             //Construct a Node of the Kind nodeKind.
@@ -1467,7 +1402,7 @@ QList<int> NewController::getConnectedNodes(int ID)
 
 QStringList NewController::getValidKeyValues(QString keyName, int nodeID)
 {
-    GraphMLKey* key = getGraphMLKeyFromName(keyName);
+    Key* key = getKeyFromName(keyName);
     if(key){
         QString nodeKind;
         if(nodeID != -1){
@@ -1476,9 +1411,9 @@ QStringList NewController::getValidKeyValues(QString keyName, int nodeID)
         }
 
         if(nodeKind != ""){
-            return key->getSelectableValues(nodeKind);
+            return key->getValidValues(nodeKind);
         }else{
-            return key->getSelectableValues();
+            return key->getValidValues();
         }
     }
 }
@@ -1604,13 +1539,13 @@ QList<int> NewController::getNodesOfKind(QString kind, int ID, int depth)
     return children;
 }
 
-QString NewController::getGraphMLData(int ID, QString key)
+QString NewController::getData(int ID, QString key)
 {
-    GraphML* item = getGraphMLFromID(ID);
+    Entity* item = getGraphMLFromID(ID);
     if(item){
-        GraphMLData* data = item->getData(key);
+        Data* data = item->getData(key);
         if(data){
-            return data->getValue();
+            return data->getValue().toString();
         }
     }
     return "";
@@ -1634,22 +1569,21 @@ QString NewController::getXMLAttribute(QXmlStreamReader &xml, QString attributeI
 
 
 
-GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QString forString)
+Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTITY_KIND entityKind)
 {
-    //Construct a new GraphMLKey for the input variables.
-    GraphMLKey *attribute = new GraphMLKey(name, type, forString);
+    Key* newKey = new Key(name, type, entityKind);
 
-    //Search for a matching Key. If we find one, remove the newly created GraphMLKey
-    foreach(GraphMLKey* key, keys){
-        if(key->equals(attribute)){
-            delete attribute;
+    //Search for a matching Key. If we find one, remove the newly created Key
+    foreach(Key* key, keys){
+        if(key->equals(newKey)){
+            delete newKey;
             return key;
         }
     }
 
-    //Protect the GraphMLKey if it meant to be protected
+    //Protect the Key if it meant to be protected
     if(protectedKeyNames.contains(name)){
-        attribute->setDefaultProtected(true);
+        newKey->setProtected(true);
     }
 
     if(name == "type"){
@@ -1658,21 +1592,20 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         keysValues << "Attribute" << "Member" << "Variable";
         validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger" << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber" << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
 
-
-        attribute->appendValidValues(validValues, keysValues);
+        newKey->addValidValues(validValues, keysValues);
     }
     if(name == "middleware"){
         QStringList validValues;
         QStringList keysValues;
         keysValues << "Model";
         validValues << "tao" << "rtidds" << "opensplice" << "coredx" << "tcpip" << "qpidpb" ;
-        attribute->appendValidValues(validValues, keysValues);
+        newKey->addValidValues(validValues, keysValues);
     }
 
-    if(type == "boolean"){
+    if(type == QVariant::Bool){
         QStringList validValues;
         validValues << "true" << "false";
-        attribute->appendValidValues(validValues);
+        newKey->addValidValues(validValues);
     }
 
     if (name == "actionOn") {
@@ -1680,24 +1613,25 @@ GraphMLKey *NewController::constructGraphMLKey(QString name, QString type, QStri
         QStringList keysValues;
         keysValues << "Process";
         validValues << "Activate" << "Preprocess" << "Mainprocess" << "Postprocess" << "Passivate";
-        attribute->appendValidValues(validValues, keysValues);
+        newKey->addValidValues(validValues, keysValues);
     }
     if(name == "replicate_count"){
-        qreal min = 1;
-        qreal max = 999;
-        attribute->addValidRange(min, max, "ComponentAssembly");
+        QPair<qreal, qreal> range;
+        range.first = 1;
+        range.second = 999;
+        newKey->addValidRange(range, QStringList("ComponentAssembly"));
     }
 
 
-    connect(attribute, SIGNAL(model_DisplayMessage(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
-    //Add it to the list of GraphMLKeys.
-    keys.append(attribute);
-    return attribute;
+    connect(newKey, SIGNAL(model_DisplayMessage(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
+    //Add it to the list of Keys.
+    keys.append(newKey);
+    return newKey;
 }
 
-GraphMLKey *NewController::getGraphMLKeyFromName(QString name)
+Key *NewController::getKeyFromName(QString name)
 {
-    foreach(GraphMLKey* key, keys){
+    foreach(Key* key, keys){
         if(key->getName() == name){
             return key;
         }
@@ -1714,8 +1648,8 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
     }
     Edge::EDGE_CLASS edgeToMake = source->canConnect(destination);
     if(edgeToMake != Edge::EC_NONE){
-        QString sourceKind = source->getDataValue("kind");
-        QString destinationKind = destination->getDataValue("kind");
+        QString sourceKind = source->getDataValue("kind").toString();
+        QString destinationKind = destination->getDataValue("kind").toString();
 
         if(sourceKind == "InputParameter" || destinationKind == "ReturnParameter"){
             //Rotate
@@ -1725,14 +1659,14 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
         }
         return constructTypedEdge(source, destination, edgeToMake);
     }else{
-        if(!source->isConnected(destination)){
+        if(!source->gotEdgeTo(destination)){
             //qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
         }
         return 0;
     }
 }
 
-void NewController::storeGraphMLInHash(GraphML *item)
+void NewController::storeGraphMLInHash(Entity* item)
 {
     if(!item){
         return;
@@ -1744,7 +1678,7 @@ void NewController::storeGraphMLInHash(GraphML *item)
     }else{
         bool sendSignal = true;
         IDLookupGraphMLHash[ID] = item;
-        if(item->getKind() == GraphML::NODE){
+        if(item->getEntityKind() == Entity::EK_NODE){
             QString nodeKind = ((Node*)item)->getNodeKind();
             kindLookup[nodeKind].append(ID);
             reverseKindLookup[ID] = nodeKind;
@@ -1757,8 +1691,22 @@ void NewController::storeGraphMLInHash(GraphML *item)
 
             //Check if we should tell the views
             sendSignal = isInModel(item);
-        }else if(item->getKind() == GraphML::EDGE){
+        }else if(item->getEntityKind() == Entity::EK_EDGE){
             edgeIDs.append(ID);
+        }
+
+        EntityAdapter* entityAdapter = 0;
+
+        if(item->isNode()){
+            entityAdapter = new NodeAdapter((Node*)item);
+        }else if(item->isEdge()){
+            entityAdapter = new EdgeAdapter((Edge*)item);
+        }
+
+        if(entityAdapter){
+            //Store it
+            ID2AdapterHash[ID] = entityAdapter;
+            emit controller_EntityConstructed(entityAdapter);
         }
 
         if(viewSignalsEnabled && sendSignal){
@@ -1767,13 +1715,13 @@ void NewController::storeGraphMLInHash(GraphML *item)
             ViewSignal signal;
             signal.id = ID;
             signal.constructSignal = true;
-            signal.kind = item->getKind();
+            signal.kind = item->getGraphMLKind();
             viewSignalsList.append(signal);
         }
     }
 }
 
-GraphML *NewController::getGraphMLFromHash(int ID)
+Entity*NewController::getGraphMLFromHash(int ID)
 {
     if(IDLookupGraphMLHash.contains(ID)){
         return IDLookupGraphMLHash[ID];
@@ -1786,17 +1734,26 @@ GraphML *NewController::getGraphMLFromHash(int ID)
 void NewController::removeGraphMLFromHash(int ID)
 {
     if(IDLookupGraphMLHash.contains(ID)){
-        GraphML* item = IDLookupGraphMLHash[ID];
+        Entity* item = IDLookupGraphMLHash[ID];
+        EntityAdapter* entityAdapter = ID2AdapterHash[ID];
+
+        if(entityAdapter){
+            entityAdapter->invalidate();
+            emit controller_EntityDestructed(entityAdapter);
+
+            ID2AdapterHash.remove(ID);
+        }
+
 
         if(item)
         {
             if(viewSignalsEnabled){
-                emit controller_GraphMLDestructed(ID, item->getKind());
+                emit controller_GraphMLDestructed(ID, item->getGraphMLKind());
             }else{
                 ViewSignal signal;
                 signal.id = ID;
                 signal.constructSignal = false;
-                signal.kind = item->getKind();
+                signal.kind = item->getGraphMLKind();
                 viewSignalsList.append(signal);
             }
         }
@@ -1825,9 +1782,9 @@ void NewController::removeGraphMLFromHash(int ID)
 
         IDLookupGraphMLHash.remove(ID);
 
-        if(item->getKind() == GraphML::NODE){
+        if(item->getEntityKind() == Entity::EK_NODE){
             nodeIDs.removeOne(ID);
-        }else if(item->getKind() == GraphML::EDGE){
+        }else if(item->getEntityKind() == Entity::EK_EDGE){
             edgeIDs.removeOne(ID);
         }
         if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
@@ -1836,7 +1793,7 @@ void NewController::removeGraphMLFromHash(int ID)
     }
 }
 
-Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> nodeData)
+Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData)
 {
     //Construct the node with the data.
     Node* node = constructNode(nodeData);
@@ -1887,7 +1844,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<GraphMLData *> n
     return node;
 }
 
-Node *NewController::constructNode(QList<GraphMLData *> nodeData)
+Node *NewController::constructNode(QList<Data *> nodeData)
 {
     //Get the Kind from the data.
     QString childNodeKind = getDataValueFromKeyName(nodeData, "kind");
@@ -1898,30 +1855,30 @@ Node *NewController::constructNode(QList<GraphMLData *> nodeData)
     Node* node = constructTypedNode(childNodeKind, false, childNodeType, childNodeLabel);
 
     //Enforce Default Data!
-    QList<GraphMLData*> requiredData = constructGraphMLDataVector(childNodeKind);
+    QList<Data*> requiredData = constructDataVector(childNodeKind);
 
 
     bool inModel = isInModel(node);
     if(node){
         //Attach Default Data.
-        _attachGraphMLData(node, requiredData, inModel);
+        _attachData(node, requiredData, inModel);
 
         //Update Data with custom Data!
-        _attachGraphMLData(node, nodeData, inModel);
+        _attachData(node, nodeData, inModel);
     }
 
-    //Delete the GraphMLData objects which didn't get adopted to the Node (or if our Node is null)
+    //Delete the Data objects which didn't get adopted to the Node (or if our Node is null)
     while(!requiredData.isEmpty()){
-        GraphMLData* data = requiredData.takeFirst();
+        Data* data = requiredData.takeFirst();
 
         if(!node || data->getParent() != node){
             delete data;
         }
     }
 
-    //Delete the GraphMLData objects which didn't get adopted to the Node (or if our Node is null)
+    //Delete the Data objects which didn't get adopted to the Node (or if our Node is null)
     while(!nodeData.isEmpty()){
-        GraphMLData* data = nodeData.takeFirst();
+        Data* data = nodeData.takeFirst();
 
         if(!node || data->getParent() != node){
             delete data;
@@ -1930,36 +1887,21 @@ Node *NewController::constructNode(QList<GraphMLData *> nodeData)
     return node;
 }
 
-QString NewController::getMD5OfData(const QList<GraphMLData *> dataToAttach)
-{
-    QList<GraphMLData*> clonedList;
 
-    foreach(GraphMLData* data, dataToAttach){
-        GraphMLData* cloneData = new GraphMLData(data->getKey(), data->getValue());
-        clonedList << cloneData;
-    }
-
-    Node* node = constructNode(clonedList);
-    QString MD5 = node->toMD5Hash();
-
-    delete node;
-    return MD5;
-}
-
-QList<GraphMLData *> NewController::cloneNodesData(Node *original, bool ignoreVisuals)
+QList<Data *> NewController::cloneNodesData(Node *original, bool ignoreVisuals)
 {
     QStringList ignoredKeys;
     if(ignoreVisuals){
         ignoredKeys << "x" << "y" << "isExpanded" << "readOnly" << "width" << "height" << "sortOrder";
     }
 
-    QList<GraphMLData*> clonedData;
+    QList<Data*> clonedData;
 
     //Clone the data from the Definition.
-    foreach(GraphMLData* data, original->getData()){
+    foreach(Data* data, original->getData()){
         if(!ignoredKeys.contains(data->getKeyName())){
             //Clone the data.
-            clonedData << GraphMLData::clone(data);
+            clonedData << Data::clone(data);
         }
     }
     return clonedData;
@@ -1967,7 +1909,7 @@ QList<GraphMLData *> NewController::cloneNodesData(Node *original, bool ignoreVi
 
 Node *NewController::cloneNode(Node *original, Node *parent, bool ignoreVisuals)
 {
-    QList<GraphMLData*> clonedData = cloneNodesData(original, ignoreVisuals);
+    QList<Data*> clonedData = cloneNodesData(original, ignoreVisuals);
     Node* newNode = constructChildNode(parent, clonedData);
 
     if(newNode){
@@ -1979,17 +1921,17 @@ Node *NewController::cloneNode(Node *original, Node *parent, bool ignoreVisuals)
 }
 
 
-QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind, QPointF relativePosition)
+QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relativePosition)
 {
-    GraphMLKey* kindKey = constructGraphMLKey("kind", "string", "node");
-    GraphMLKey* labelKey = constructGraphMLKey("label", "string", "node");
-    GraphMLKey* typeKey = constructGraphMLKey("type", "string", "node");
-    GraphMLKey* widthKey = constructGraphMLKey("width", "double", "node");
-    GraphMLKey* heightKey = constructGraphMLKey("height", "double", "node");
-    GraphMLKey* sortKey = constructGraphMLKey("sortOrder", "int", "node");
-    GraphMLKey* expandedKey = constructGraphMLKey("isExpanded", "boolean", "node");
+    Key* kindKey = constructKey("kind", QVariant::String, Entity::EK_NODE);
+    Key* labelKey = constructKey("label", QVariant::String, Entity::EK_NODE);
+    Key* typeKey = constructKey("type", QVariant::String, Entity::EK_NODE);
+    Key* widthKey = constructKey("width", QVariant::Double, Entity::EK_NODE);
+    Key* heightKey = constructKey("height", QVariant::Double, Entity::EK_NODE);
+    Key* sortKey = constructKey("sortOrder", QVariant::Int, Entity::EK_NODE);
+    Key* expandedKey = constructKey("isExpanded", QVariant::Bool, Entity::EK_NODE);
 
-    QList<GraphMLData*> data;
+    QList<Data*> data;
 
     data.append(constructPositionDataVector(relativePosition));
 
@@ -1997,139 +1939,154 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     if(nodeKind.endsWith("Parameter")){
         labelString = "";
     }
-    data.append(new GraphMLData(kindKey, nodeKind));
-    data.append(new GraphMLData(widthKey));
-    data.append(new GraphMLData(heightKey));
+    data.append(new Data(kindKey, nodeKind));
+    data.append(new Data(widthKey));
+    data.append(new Data(heightKey));
 
 
     bool protectLabel = nodeKind.endsWith("Parameter");
 
     if(!nodeKind.endsWith("Definitions")){
-        data.append(new GraphMLData(labelKey, labelString, protectLabel));
+        Data* labelData = new Data(labelKey);
+        labelData->setValue(labelString);
+        labelData->setProtected(protectLabel);
+        data.append(labelData);
     }
-    data.append(new GraphMLData(sortKey,"-1"));
+
+    data.append(new Data(sortKey, -1));
 
 
     //Attach Node Specific Data.
 
 
     if(nodeKind != "Model" && !nodeKind.endsWith("Definitions")){
-        data.append(new GraphMLData(expandedKey, "false"));
+        data.append(new Data(expandedKey, false));
     }
 
     if(nodeKind == "ManagementComponent"){
-        data.append(new GraphMLData(typeKey));
+        data.append(new Data(typeKey));
 
     }
     if(nodeKind == "Model"){
-        GraphMLKey* middlewareKey = constructGraphMLKey("middleware", "string", "node");
-        GraphMLKey* projectUUID = constructGraphMLKey("projectUUID", "string", "node");
-
-        data.append(new GraphMLData(projectUUID, getTimeStamp()));
-        data.append(new GraphMLData(middlewareKey, "tao"));
+        Key* middlewareKey = constructKey("middleware", QVariant::String, Entity::EK_NODE);
+        Key* projectUUID = constructKey("projectUUID", QVariant::String, Entity::EK_NODE);
+        Data* projectData = new Data(projectUUID);
+        projectData->setValue(getTimeStamp());
+        Data* middlewareData = new Data(middlewareKey);
+        middlewareData->setValue("tao");
+        data.append(projectData);
+        data.append(middlewareData);
     }
     if(nodeKind == "PeriodicEvent"){
-        GraphMLKey* frequencyKey = constructGraphMLKey("frequency", "string", "node");
-        data.append(new GraphMLData(typeKey, "Constant"));
-        data.append(new GraphMLData(frequencyKey, "1.0"));
+        Key* frequencyKey = constructKey("frequency", QVariant::Double,Entity::EK_NODE);
+        Data* freqData = new Data(frequencyKey);
+        freqData->setValue(1.0);
     }
     if(nodeKind == "Process"){
-        GraphMLKey* codeKey = constructGraphMLKey("code", "string", "node");
-        GraphMLKey* actionOnKey = constructGraphMLKey("actionOn", "string", "node");
-        GraphMLKey* workerKey = constructGraphMLKey("worker", "string", "node");
-        GraphMLKey* folderKey = constructGraphMLKey("folder", "string", "node");
-        GraphMLKey* fileKey = constructGraphMLKey("file", "string", "node");
-        GraphMLKey* operationKey = constructGraphMLKey("operation", "string", "node");
-        GraphMLKey* complexityKey = constructGraphMLKey("complexity", "string", "node");
-        GraphMLKey* complexityParamsKey = constructGraphMLKey("complexityParameters", "string", "node");
-        GraphMLKey* parametersKey = constructGraphMLKey("parameters", "string", "node");
-        data.append(new GraphMLData(codeKey));
-        data.append(new GraphMLData(actionOnKey, "Mainprocess"));
-        data.append(new GraphMLData(workerKey));
-        data.append(new GraphMLData(complexityParamsKey));
+        Key* codeKey = constructKey("code", QVariant::String,Entity::EK_NODE);
+        Key* actionOnKey = constructKey("actionOn",QVariant::String,Entity::EK_NODE);
+        Key* workerKey = constructKey("worker",QVariant::String,Entity::EK_NODE);
+        Key* folderKey = constructKey("folder", QVariant::String,Entity::EK_NODE);
+        Key* fileKey = constructKey("file", QVariant::String,Entity::EK_NODE);
+        Key* operationKey = constructKey("operation", QVariant::String,Entity::EK_NODE);
+        Key* complexityKey = constructKey("complexity", QVariant::String,Entity::EK_NODE);
+        Key* complexityParamsKey = constructKey("complexityParameters", QVariant::String,Entity::EK_NODE);
+        Key* parametersKey = constructKey("parameters", QVariant::String,Entity::EK_NODE);
+        data.append(new Data(codeKey));
+        Data* actionOnData = new Data(actionOnKey);
+        actionOnData->setValue("Mainprocess");
+        data.append(actionOnData);
+        data.append(new Data(workerKey));
+        data.append(new Data(complexityParamsKey));
 
-        data.append(new GraphMLData(folderKey));
-        data.append(new GraphMLData(fileKey));
-        data.append(new GraphMLData(operationKey));
-        data.append(new GraphMLData(complexityKey));
-        data.append(new GraphMLData(parametersKey));
+        data.append(new Data(folderKey));
+        data.append(new Data(fileKey));
+        data.append(new Data(operationKey));
+        data.append(new Data(complexityKey));
+        data.append(new Data(parametersKey));
     }
     if(nodeKind == "Condition"){
-        GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
-        data.append(new GraphMLData(valueKey));
+        Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
+        data.append(new Data(valueKey));
     }
     if(nodeKind == "Member"){
-        GraphMLKey* keyKey = constructGraphMLKey("key", "boolean", "node");
-        data.append(new GraphMLData(keyKey, "false"));
-        data.append(new GraphMLData(typeKey, "String"));
+        Key* keyKey = constructKey("key", QVariant::Bool,Entity::EK_NODE);
+        Data* keyData = new Data(keyKey);
+        keyData->setValue(false);
+        Data* typeData = new Data(typeKey);
+        typeData->setValue("String");
+        data.append(keyData);
+        data.append(typeData);
     }
     if(nodeKind == "MemberInstance"){
-        GraphMLKey* keyKey = constructGraphMLKey("key", "boolean", "node");
-        GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
-        data.append(new GraphMLData(valueKey));
-        data.append(new GraphMLData(keyKey, "false"));
+        Key* keyKey = constructKey("key", QVariant::Bool,Entity::EK_NODE);
+        Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
+        Data* keyData = new Data(keyKey);
+        keyData->setValue(false);
+        data.append(keyData);
+        data.append(new Data(valueKey));
     }
     if(nodeKind == "HardwareNode"){
-        GraphMLKey* osKey = constructGraphMLKey("os", "string", "node");
-        GraphMLKey* osVKey = constructGraphMLKey("os_version", "string", "node");
-        GraphMLKey* ipKey = constructGraphMLKey("ip_address", "string", "node");
-        GraphMLKey* archKey = constructGraphMLKey("architecture", "string", "node");
-        GraphMLKey* descriptionKey = constructGraphMLKey("description", "string", "node");
-        data.append(new GraphMLData(osKey));
-        data.append(new GraphMLData(osVKey));
-        data.append(new GraphMLData(ipKey));
-        data.append(new GraphMLData(archKey));
-        data.append(new GraphMLData(descriptionKey));
+        Key* osKey = constructKey("os", QVariant::String,Entity::EK_NODE);
+        Key* osVKey = constructKey("os_version", QVariant::String,Entity::EK_NODE);
+        Key* ipKey = constructKey("ip_address", QVariant::String,Entity::EK_NODE);
+        Key* archKey = constructKey("architecture", QVariant::String,Entity::EK_NODE);
+        Key* descriptionKey = constructKey("description", QVariant::String,Entity::EK_NODE);
+        data.append(new Data(osKey));
+        data.append(new Data(osVKey));
+        data.append(new Data(ipKey));
+        data.append(new Data(archKey));
+        data.append(new Data(descriptionKey));
     }
     if(nodeKind == "Attribute"){
-        data.append(new GraphMLData(typeKey, "String"));
+        data.append(new Data(typeKey, QVariant::String));
     }
 
     if(nodeKind == "ComponentAssembly"){
-        GraphMLKey* replicationKey = constructGraphMLKey("replicate_count", "int", "node");
-        data.append(new GraphMLData(replicationKey, "1"));
+        Key* replicationKey = constructKey("replicate_count", QVariant::Int,Entity::EK_NODE);
+        data.append(new Data(replicationKey, "1"));
     }
 
     if(nodeKind == "Vector"){
-        GraphMLKey* sizeKey = constructGraphMLKey("max_size", "int", "node");
-        data.append(new GraphMLData(sizeKey, "0"));
+        Key* sizeKey = constructKey("max_size", QVariant::Int,Entity::EK_NODE);
+        data.append(new Data(sizeKey, "0"));
     }
 
     if(nodeKind == "AttributeInstance"){
-        GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
-        data.append(new GraphMLData(valueKey));
+        Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
+        data.append(new Data(valueKey));
     }
     if(nodeKind == "Variable"){
-        data.append(new GraphMLData(typeKey, "String"));
-        GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
-        data.append(new GraphMLData(valueKey));
+        data.append(new Data(typeKey, "String"));
+        Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
+        data.append(new Data(valueKey));
     }
     if(nodeKind == "OutEventPortInstance" || nodeKind == "InEventPortInstance"){
-        GraphMLKey* topicKey = constructGraphMLKey("topicName", "string", "node");
-        data.append(new GraphMLData(topicKey));
+        Key* topicKey = constructKey("topicName",QVariant::String,Entity::EK_NODE);
+        data.append(new Data(topicKey));
     }
 
     if(nodeKind.endsWith("Instance") ||nodeKind.endsWith("Impl")){
-        data.append(new GraphMLData(typeKey));
+        data.append(new Data(typeKey));
     }
 
     if(nodeKind.contains("EventPort")){
-        data.append(new GraphMLData(typeKey, "", true));
+        data.append(new Data(typeKey));
     }
     if(nodeKind == "InEventPort"){
-        GraphMLKey* asyncKey = constructGraphMLKey("async", "boolean", "node");
-        data.append(new GraphMLData(asyncKey, "true"));
+        Key* asyncKey = constructKey("async", QVariant::Bool,Entity::EK_NODE);
+        data.append(new Data(asyncKey, true));
     }
     if(nodeKind.endsWith("Parameter")){
         if(nodeKind == "InputParameter"){
-            GraphMLKey* valueKey = constructGraphMLKey("value", "string", "node");
-            data.append(new GraphMLData(valueKey));
+            Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
+            data.append(new Data(valueKey));
         }
-        data.append(new GraphMLData(typeKey, "", true));
+        data.append(new Data(typeKey));
     }
 
     if(nodeKind == "HardwareNode"){
-        foreach(GraphMLData* d, data){
+        foreach(Data* d, data){
             if(d){
                 d->setProtected(true);
             }
@@ -2139,14 +2096,14 @@ QList<GraphMLData *> NewController::constructGraphMLDataVector(QString nodeKind,
     return data;
 }
 
-QList<GraphMLData *> NewController::constructPositionDataVector(QPointF point)
+QList<Data *> NewController::constructPositionDataVector(QPointF point)
 {
-    GraphMLKey* xKey = constructGraphMLKey("x", "double", "node");
-    GraphMLKey* yKey = constructGraphMLKey("y", "double", "node");
+    Key* xKey = constructKey("x", QVariant::Double,Entity::EK_NODE);
+    Key* yKey = constructKey("y",QVariant::Double,Entity::EK_NODE);
 
-    QList<GraphMLData*> position;
-    GraphMLData* xData = new GraphMLData(xKey);
-    GraphMLData* yData = new GraphMLData(yKey);
+    QList<Data*> position;
+    Data* xData = new Data(xKey);
+    Data* yData = new Data(yKey);
     xData->setValue(point.x());
     yData->setValue(point.y());
     position << xData << yData;
@@ -2155,7 +2112,7 @@ QList<GraphMLData *> NewController::constructPositionDataVector(QPointF point)
 
 QString NewController::getNodeInstanceKind(Node *definition)
 {
-    QString definitionKind = definition->getDataValue("kind");
+    QString definitionKind = definition->getDataValue("kind").toString();
     QString kindModifier = "Instance";
 
     QString instanceKind = definitionKind + kindModifier;
@@ -2170,7 +2127,7 @@ QString NewController::getNodeInstanceKind(Node *definition)
 
 QString NewController::getNodeImplKind(Node *definition)
 {
-    QString definitionKind = definition->getDataValue("kind");
+    QString definitionKind = definition->getDataValue("kind").toString();
     QString kindModifier = "Impl";
 
     QString implKind = definitionKind + kindModifier;
@@ -2188,7 +2145,7 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
 {
     int nodesMatched = 0;
     bool requiresLabelAndType = false;
-    QString definitionKind = definition->getDataValue("kind");
+    QString definitionKind = definition->getDataValue("kind").toString();
 
     if(definitionKind == "Attribute" || definitionKind == "Vector" || definitionKind.startsWith("Member")){
         requiresLabelAndType = true;
@@ -2246,7 +2203,7 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
                     continue;
                 }
                 //Don't create an ActionItem for this.
-                //.connectingEdge->setGenerated(true);
+                //.connectingEdge->setWasGenerated(true);
                 nodesMatched++;
             }
         }
@@ -2254,10 +2211,11 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
 
     //If we didn't find a match, we must create an Instance.
     if(nodesMatched == 0){
-        Node *instanceNode = constructChildNode(parent, constructGraphMLDataVector(childKind));
+        Node *instanceNode = constructChildNode(parent, constructDataVector(childKind));
 
         if(!instanceNode){
-            if(!parent->getDataValue("kind").endsWith("EventPortInstance")){
+            QString parentNodeKind = parent->getDataValue("kind").toString();
+            if(!parentNodeKind.endsWith("EventPortInstance")){
                 qCritical() << "constructDefinitionRelative(): Couldn't construct a Relative Node.";
             }
             return 0;
@@ -2270,8 +2228,8 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
             return 0;
         }
         //Don't create an ActionItem for this.
-        instanceNode->setGenerated(true);
-        connectingEdge->setGenerated(true);
+        instanceNode->setWasGenerated(true);
+        connectingEdge->setWasGenerated(true);
 
         nodesMatched ++;
     }
@@ -2285,7 +2243,7 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
 void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
 {
     QString toSetLabel = nodeLabel;
-    QString currentLabel = node->getDataValue("label");
+    QString currentLabel = node->getDataValue("label").toString();
     if(!node){
         return;
     }
@@ -2293,14 +2251,14 @@ void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
     Node* parentNode = node->getParentNode();
 
     if(nodeLabel == ""){
-        nodeLabel = node->getDataValue("label");
+        nodeLabel = node->getDataValue("label").toString();
     }
-    if(node->getDataValue("kind") == "Process"){
-        node->updateDataValue("label", nodeLabel);
+    if(node->getDataValue("kind").toString() == "Process"){
+        node->setDataValue("label", nodeLabel);
         return;
     }
-    if(node->getDataValue("kind") == "Process"){
-        node->updateDataValue("label", nodeLabel);
+    if(node->getDataValue("kind").toString() == "Process"){
+        node->setDataValue("label", nodeLabel);
         return;
     }
 
@@ -2316,7 +2274,7 @@ void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
                 //Don't force uniquity on self.
                 continue;
             }
-            QString siblingLabel = siblingNode->getDataValue("label");
+            QString siblingLabel = siblingNode->getDataValue("label").toString();
 
             if(siblingLabel == nodeLabel){
                 sameLabelNumbers << 0;
@@ -2356,11 +2314,7 @@ void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
     }
 
 
-    node->updateDataValue("label", nodeLabel);
-    if(currentLabel == nodeLabel && nodeLabel != toSetLabel){
-        GraphMLData* labelData = node->getData("label");
-        emit labelData->dataChanged(labelData);
-    }
+    node->setDataValue("label", nodeLabel);
 }
 
 void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
@@ -2374,7 +2328,7 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
     if(parentNode){
         int maxSortOrder = parentNode->childrenCount() -1;
 
-        int originalPosition = node->getDataNumberValue("sortOrder");
+        int originalPosition = node->getDataValue("sortOrder").toInt();
 
 
         //Got original Position.
@@ -2414,21 +2368,20 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
 
 
         foreach(Node* sibling, node->getSiblings()){
-            int currentPos = sibling->getDataNumberValue("sortOrder");
+            int currentPos = sibling->getDataValue("sortOrder").toInt();
 
             if(currentPos >= lowerPos && currentPos <= upperPos){
-                sibling->updateDataValue("sortOrder", currentPos + modifier);
+                sibling->setDataValue("sortOrder", currentPos + modifier);
             }
         }
     }
-    GraphMLData* sortData = node->getData("sortOrder");
+    Data* sortData = node->getData("sortOrder");
     sortData->setValue(newPosition);
-    emit sortData->dataChanged(sortData);
+   // emit sortData->dataChanged(sortData);
 }
 
 bool NewController::destructNode(Node *node, bool addAction)
 {
-    qCritical() << "DestructNode: " << node->toString();
     if(!node){
         qCritical() << "NewController::destructNode() Got NULL Node!";
         return true;
@@ -2455,7 +2408,7 @@ bool NewController::destructNode(Node *node, bool addAction)
             int siblingPos = sibling->getDataValue("sortOrder").toInt(&toInt);
             if(toInt){
                 if(siblingPos > nodePos){
-                    sibling->updateDataValue("sortOrder", QString::number(siblingPos-1));
+                    sibling->setDataValue("sortOrder", QString::number(siblingPos-1));
                 }
             }
         }
@@ -2471,7 +2424,7 @@ bool NewController::destructNode(Node *node, bool addAction)
     while(node->hasEdges()){
         Edge* edge = node->getFirstEdge();
         if(edge){
-            if(node->fullyContainsEdge(edge)){
+            if(node->containsEdgeEndPoints(edge)){
                 qCritical() << "Node: " << node->toString() << " Fully Contains Edge: " << edge->toString();
                 //Add an Undo Step for things not completly owned by this.
                 destructEdge(edge, false);
@@ -2493,16 +2446,13 @@ bool NewController::destructNode(Node *node, bool addAction)
     if(!node->wasGenerated() && addAction){
         //Add an action to reverse this action.
         ActionItem action;
-        action.actionKind = GraphML::NODE;
+        action.actionKind = GraphML::GK_ENTITY;
         action.actionType = DESTRUCTED;
         action.removedXML = XMLDump;
         action.ID = ID;
         if(node->getParentNode()){
             action.parentID = node->getParentNode()->getID();
         }
-        qCritical() << node->wasGenerated();
-        qCritical() << addAction;
-        qCritical() << "DESTRUCTING Node:" << node->toString();
         addActionToStack(action, addAction);
     }
 
@@ -2513,16 +2463,16 @@ bool NewController::destructNode(Node *node, bool addAction)
     HardwareCluster* hCNode = dynamic_cast<HardwareCluster*>(node);
     ManagementComponent* mCNode = dynamic_cast<ManagementComponent*>(node);
     if(hNode){
-        QString nodeName = hNode->getDataValue("label");
+        QString nodeName = hNode->getDataValue("label").toString();
         hardwareNodes.remove(nodeName);
     }
     if(hCNode){
-        QString nodeName = hCNode->getDataValue("label");
+        QString nodeName = hCNode->getDataValue("label").toString();
         hardwareClusters.remove(nodeName);
     }
 
     if(mCNode){
-        QString nodeName = mCNode->getDataValue("label");
+        QString nodeName = mCNode->getDataValue("label").toString();
         managementComponents.remove(nodeName);
     }
     if(isInWorkerDefinitions(node)){
@@ -2567,13 +2517,14 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     if(!edge->wasGenerated() || addAction){
         ActionItem action;
         action.actionType = DESTRUCTED;
-        action.actionKind = GraphML::EDGE;
+        action.actionKind = GraphML::GK_ENTITY;
+        action.entityKind = edge->getEntityKind();
         action.ID = ID;
         action.srcID = srcID;
         action.dstID = dstID;
         //Serialize data values.
-        foreach(GraphMLData* data, edge->getData()){
-            action.dataValues.append(data->toStringList());
+        foreach(Data* data, edge->getData()){
+            //action.dataValues.append(data->toStringList());
         }
 
 
@@ -2604,10 +2555,10 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     }
     case Edge::EC_ASSEMBLY:{
         // UnBind Topics Together.
-        GraphMLData* sourceTopicName = src->getData("topicName");
-        GraphMLData* destinationTopicName = dst->getData("topicName");
+        Data* sourceTopicName = src->getData("topicName");
+        Data* destinationTopicName = dst->getData("topicName");
         if(destinationTopicName && sourceTopicName ){
-            sourceTopicName->unbindData(destinationTopicName);
+            destinationTopicName->unsetParentData();
         }
         break;
     }
@@ -2658,28 +2609,38 @@ bool NewController::reverseAction(ActionItem action)
 
 
         switch(action.actionKind){
-        case GraphML::NODE:{
-            //Delete Node.
-            Node* node = getNodeFromID(action.ID);
-            if(node){
-                return destructNode(node);
+        case GraphML::GK_ENTITY:{
+            switch(action.entityKind){
+                case Entity::EK_NODE:{
+                //Delete Node.
+                Node* node = getNodeFromID(action.ID);
+                if(node){
+                    return destructNode(node);
+                }
+                break;
+                }
+            case Entity::EK_EDGE:{
+                //Delete Edge.
+                Edge* edge = getEdgeFromID(action.ID);
+                if(edge){
+                    return destructEdge(edge, true);
+                }
+                break;
+            }
+
+            default:
+                break;
             }
             break;
+
+
         }
-        case GraphML::EDGE:{
-            //Delete Edge.
-            Edge* edge = getEdgeFromID(action.ID);
-            if(edge){
-                return destructEdge(edge, true);
-            }
-            break;
-        }
-        case GraphML::DATA:{
+        case GraphML::GK_DATA:{
             //Delete Data
-            GraphML* item = getGraphMLFromID(action.ID);
+            Entity* item = getGraphMLFromID(action.ID);
 
             if(item){
-                destructGraphMLData(item, action.keyName);
+                destructData(item, action.keyName);
                 if(!item->getData(action.keyName)){
                     return true;
                 }
@@ -2700,58 +2661,66 @@ bool NewController::reverseAction(ActionItem action)
 
     case DESTRUCTED:{
         switch(action.actionKind){
-        case GraphML::NODE:{
-            //qCritical() << "Redo: Delete Node" << action.ID;
-            //Get Parent Node, and Construct Node.
-            Node* parentNode = getNodeFromID(action.parentID);
-            if(parentNode){
-                return _importGraphMLXML(action.removedXML, parentNode, true, false);
-            }else{
-                qCritical() << "Cannot find Node";
-                return false;
-            }
-            break;
-        }
-        case GraphML::EDGE:{
-            //Get Source and Destination, attempt to construct an Edge.
-
-            Node* src = getNodeFromID(action.srcID);
-            Node* dst = getNodeFromID(action.dstID);
-
-            //qCritical() << "Redo: Delete Edge Between: " << action.srcID << " AND " << action.dstID;
-
-
-            if(src && dst){
-                if(src->isConnected(dst)){
-                    return true;
-                }
-                if(isEdgeLegal(src,dst)){
-                    constructEdgeWithData(src ,dst, action.dataValues, action.ID);
-                    if(src->isConnected(dst)){
-                        return true;
-                    }
+        case GraphML::GK_ENTITY:{
+            switch(action.entityKind){
+                case Entity::EK_NODE:{
+                Node* parentNode = getNodeFromID(action.parentID);
+                if(parentNode){
+                    return _importGraphMLXML(action.removedXML, parentNode, true, false);
                 }else{
+                    qCritical() << "Cannot find Node";
                     return false;
                 }
-            }else{
-                if(!src){
-                    qCritical() << "Cannot find src GraphML" << action.srcID;
-                }
-                if(!dst){
-                    qCritical() << "Cannot find dst GraphML" << action.dstID;
-
-                }
+                break;
             }
-            break;
-        }
-        case GraphML::DATA:{
+            case Entity::EK_EDGE:{
+                Node* src = getNodeFromID(action.srcID);
+                Node* dst = getNodeFromID(action.dstID);
 
-            GraphML* attachedItem = getGraphMLFromID(action.ID);
+                //qCritical() << "Redo: Delete Edge Between: " << action.srcID << " AND " << action.dstID;
+
+
+                if(src && dst){
+                    if(src->gotEdgeTo(dst)){
+                        return true;
+                    }
+                    if(isEdgeLegal(src,dst)){
+
+                        constructEdgeWithStrData(src ,dst, action.dataValues, action.ID);
+                        if(src->gotEdgeTo(dst)){
+                            return true;
+                        }
+                    }else{
+                        return false;
+                    }
+                }else{
+                    if(!src){
+                        qCritical() << "Cannot find src GraphML" << action.srcID;
+                    }
+                    if(!dst){
+                        qCritical() << "Cannot find dst GraphML" << action.dstID;
+
+                    }
+                }
+                break;
+
+            }
+            default:
+                break;
+
+            }
+
+            }
+
+
+        case GraphML::GK_DATA:{
+
+            Entity* attachedItem = getGraphMLFromID(action.ID);
 
             if(attachedItem){
-                bool success = _attachGraphMLData(attachedItem, action.dataValues);
+                bool success = _attachData(attachedItem, action.dataValues);
                 if(!success){
-                    qCritical() << "Could not Attach GraphMLData";
+                    qCritical() << "Could not Attach Data";
                 }
                 return success;
             }else{
@@ -2771,16 +2740,16 @@ bool NewController::reverseAction(ActionItem action)
     }
     case MODIFIED:{
         switch(action.actionKind){
-        case GraphML::DATA:{
-            GraphML* attachedItem = getGraphMLFromID(action.ID);
+        case GraphML::GK_DATA:{
+            Entity* attachedItem = getGraphMLFromID(action.ID);
 
             if(attachedItem){
                 if(action.isNum){
                     //Restore the Data Value;
-                    setGraphMLData(attachedItem, action.keyName, action.dataValueNum);
+                    setData(attachedItem, action.keyName, action.dataValueNum);
                 }else{
                     //Restore the Data Value;
-                    setGraphMLData(attachedItem, action.keyName, action.dataValue);
+                    setData(attachedItem, action.keyName, action.dataValue);
 
                 }
                 return true;
@@ -2803,14 +2772,14 @@ bool NewController::reverseAction(ActionItem action)
     return false;
 
 }
-bool NewController::_attachGraphMLData(GraphML *item, QList<QStringList> dataList, bool addAction)
+bool NewController::_attachData(Entity *item, QList<QStringList> dataList, bool addAction)
 {
-    QList<GraphMLData*> graphMLDataList;
-    //Conver the StringList into GraphMLData Objects.
+    QList<Data*> graphMLDataList;
+    //Conver the StringList into Data Objects.
 
     foreach(QStringList data, dataList){
         if(data.size() != 5){
-            qCritical() << "GraphMLData Cannot be Parsed.";
+            qCritical() << "Data Cannot be Parsed.";
             continue;
         }
 
@@ -2820,15 +2789,19 @@ bool NewController::_attachGraphMLData(GraphML *item, QList<QStringList> dataLis
         QString dataValue = data.at(3);
         bool isProtected = data.at(4) == "true";
 
-        GraphMLKey* key = constructGraphMLKey(keyName, keyType, keyFor);
+        QVariant::Type type = Key::getTypeFromGraphML(keyType);
+        Entity::ENTITY_KIND entityKind = Entity::getEntityKind(keyFor);
+
+        Key* key = constructKey(keyName, type, entityKind);
         if(!key){
             qCritical() << "Cannot Construct Key";
             continue;
         }
 
-        GraphMLData* graphMLData = new GraphMLData(key, dataValue);
+        Data* graphMLData = new Data(key);
+        graphMLData->setValue(dataValue);
         if(!graphMLData){
-            qCritical() << "Cannot Construct GraphMLData";
+            qCritical() << "Cannot Construct Data";
             continue;
         }
 
@@ -2836,25 +2809,25 @@ bool NewController::_attachGraphMLData(GraphML *item, QList<QStringList> dataLis
         graphMLDataList.append(graphMLData);
     }
 
-    return _attachGraphMLData(item, graphMLDataList, addAction);
+    return _attachData(item, graphMLDataList, addAction);
 }
 
-bool NewController::_attachGraphMLData(GraphML *item, QList<GraphMLData *> dataList, bool addAction)
+bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAction)
 {
     if(!item){
         return false;
     }
 
-    foreach(GraphMLData* data, dataList){
-        GraphMLKey* currentKey = data->getKey();
-        //Check if the item has a GraphMLData already.
+    foreach(Data* data, dataList){
+        Key* currentKey = data->getKey();
+        //Check if the item has a Data already.
         if(item->getData(currentKey)){
-            setGraphMLData(item, data->getKeyName(), data->getValue(), addAction);
+            setData(item, data->getKeyName(), data->getValue(), addAction);
         }else{
-            attachGraphMLData(item, data, addAction);
+            attachData(item, data, addAction);
         }
 
-        GraphMLData* updateData = item->getData(currentKey);
+        Data* updateData = item->getData(currentKey);
         if(updateData && !updateData->isProtected()){
             updateData->setProtected(data->isProtected());
         }
@@ -2869,11 +2842,11 @@ Process *NewController::getWorkerProcess(QString workerName, QString operationNa
     return process;
 }
 
-bool NewController::_attachGraphMLData(GraphML *item, GraphMLData *data, bool addAction)
+bool NewController::_attachData(Entity *item, Data *data, bool addAction)
 {
-    QList<GraphMLData *> dataList;
+    QList<Data *> dataList;
     dataList.append(data);
-    return _attachGraphMLData(item, dataList, addAction);
+    return _attachData(item, dataList, addAction);
 }
 
 void NewController::addActionToStack(ActionItem action, bool useAction)
@@ -3031,22 +3004,20 @@ void NewController::logAction(ActionItem item)
         actionType = "M";
     }
 
-    if(item.actionKind == GraphML::NODE){
-        actionKind = "NODE";
-        extraInfo += "\t\tLabel: '" + item.itemLabel + '"';
-        extraInfo += "\t\tKind: '" + item.itemKind + '"';
-
-
+    if(item.actionKind == GraphML::GK_ENTITY){
+        if(item.entityKind == Entity::EK_NODE){
+            actionKind = "NODE";
+            extraInfo += "\t\tLabel: '" + item.itemLabel + '"';
+            extraInfo += "\t\tKind: '" + item.itemKind + '"';
+        }else if(item.entityKind == Entity::EK_EDGE){
+            actionKind = "EDGE";
+            //if(item.actionType == CONSTRUCTED){
+            extraInfo += "\t\tSRC_ID: '" + item.srcID + '"';
+            extraInfo += "\t\tDST_ID: '" + item.dstID + '"';
+            //}
+        }
     }
-    if(item.actionKind == GraphML::EDGE){
-        actionKind = "EDGE";
-        //if(item.actionType == CONSTRUCTED){
-        extraInfo += "\t\tSRC_ID: '" + item.srcID + '"';
-        extraInfo += "\t\tDST_ID: '" + item.dstID + '"';
-        //}
-
-    }
-    if(item.actionKind == GraphML::DATA){
+    if(item.actionKind == GraphML::GK_DATA){
         actionKind = "DATA";
         extraInfo += "\t\tKey: '" + item.keyName +"'";
         if(item.actionType == MODIFIED){
@@ -3271,10 +3242,11 @@ void NewController::constructNodeGUI(Node *node)
     //Construct an ActionItem to reverse Node Construction.
     ActionItem action;
     action.actionType = CONSTRUCTED;
-    action.actionKind = GraphML::NODE;
+    action.actionKind = node->getGraphMLKind();
+    action.entityKind = node->getEntityKind();
     action.ID = node->getID();
-    action.itemLabel = node->getDataValue("label");
-    action.itemKind = node->getDataValue("kind");
+    action.itemLabel = node->getDataValue("label").toString();
+    action.itemKind = node->getDataValue("kind").toString();
 
     if(node->getParentNode()){
         //Set the ParentNode ID if we have a Parent.
@@ -3282,9 +3254,9 @@ void NewController::constructNodeGUI(Node *node)
         //Variable.
         Node* parentNode = node->getParentNode();
         if(parentNode->getNodeKind() == "Variable"){
-            GraphMLData* typeData = parentNode->getData("type");
-            GraphMLData* childType = node->getData("type");
-            childType->bindData(typeData, true);
+            Data* typeData = parentNode->getData("type");
+            Data* childType = node->getData("type");
+            typeData->setParentData(childType);
         }
     }
 
@@ -3298,25 +3270,27 @@ void NewController::constructNodeGUI(Node *node)
 void NewController::setupModel()
 {
     model = dynamic_cast<Model*>(constructTypedNode("Model"));
-    _attachGraphMLData(model, constructGraphMLDataVector("Model"));
+    _attachData(model, constructDataVector("Model"));
+    qCritical() << model->getDataValue("kind");
+    qCritical() << model->getDataValue("label");
     constructNodeGUI(model);
 
     workerDefinitions = constructTypedNode("WorkerDefinitions");
-    _attachGraphMLData(workerDefinitions, constructGraphMLDataVector("WorkerDefinitions"));
+    _attachData(workerDefinitions, constructDataVector("WorkerDefinitions"));
     constructNodeGUI(workerDefinitions);
 
 
-    GraphMLData* labelData = model->getData("label");
+    Data* labelData = model->getData("label");
     connect(labelData, SIGNAL(valueChanged(QString)), this, SIGNAL(controller_ProjectNameChanged(QString)));
 
     //Construct the top level parents.
-    interfaceDefinitions = constructChildNode(model, constructGraphMLDataVector("InterfaceDefinitions"));
-    behaviourDefinitions = constructChildNode(model, constructGraphMLDataVector("BehaviourDefinitions"));
-    deploymentDefinitions =  constructChildNode(model, constructGraphMLDataVector("DeploymentDefinitions"));
+    interfaceDefinitions = constructChildNode(model, constructDataVector("InterfaceDefinitions"));
+    behaviourDefinitions = constructChildNode(model, constructDataVector("BehaviourDefinitions"));
+    deploymentDefinitions =  constructChildNode(model, constructDataVector("DeploymentDefinitions"));
 
     //Construct the second level containers.
-    assemblyDefinitions =  constructChildNode(deploymentDefinitions, constructGraphMLDataVector("AssemblyDefinitions"));
-    hardwareDefinitions =  constructChildNode(deploymentDefinitions, constructGraphMLDataVector("HardwareDefinitions"));
+    assemblyDefinitions =  constructChildNode(deploymentDefinitions, constructDataVector("AssemblyDefinitions"));
+    hardwareDefinitions =  constructChildNode(deploymentDefinitions, constructDataVector("HardwareDefinitions"));
 
     protectedNodes << model;
     protectedNodes << interfaceDefinitions;
@@ -3333,26 +3307,24 @@ void NewController::setupModel()
     undoActionStack.clear();
     redoActionStack.clear();
 
-    //Update the GUI
-    emit labelData->valueChanged(labelData->getValue());
 }
 
 
 
-void NewController::bindGraphMLData(Node *definition, Node *child)
+void NewController::bindData(Node *definition, Node *child)
 {
     if(!(definition && child)){
         return;
     }
 
-    GraphMLData* def_Type = definition->getData("type");
-    GraphMLData* def_Label = definition->getData("label");
-    GraphMLData* child_Type = child->getData("type");
-    GraphMLData* child_Label = child->getData("label");
-    GraphMLData* def_Key = definition->getData("key");
-    GraphMLData* child_Key = child->getData("key");
-    GraphMLData* def_Sort = definition->getData("sortOrder");
-    GraphMLData* child_Sort = child->getData("sortOrder");
+    Data* def_Type = definition->getData("type");
+    Data* def_Label = definition->getData("label");
+    Data* child_Type = child->getData("type");
+    Data* child_Label = child->getData("label");
+    Data* def_Key = definition->getData("key");
+    Data* child_Key = child->getData("key");
+    Data* def_Sort = definition->getData("sortOrder");
+    Data* child_Sort = child->getData("sortOrder");
 
     QString childKind = child->getNodeKind();
     bool bindTypes = true;
@@ -3380,42 +3352,42 @@ void NewController::bindGraphMLData(Node *definition, Node *child)
     }
 
     if(bindTypes){
-        def_Type->bindData(child_Type);
+        child_Type->setParentData(def_Type);
     }else{
-        def_Label->bindData(child_Type);
+        child_Type->setParentData(def_Label);
     }
     child_Type->setProtected(true);
 
     if(def_Key && child_Key){
-        def_Key->bindData(child_Key);
+        child_Key->setParentData(def_Key);
     }
 
     if(bindSort){
-        def_Sort->bindData(child_Sort);
+        child_Sort->setParentData(def_Sort);
     }
 
     if(bindLabels){
-        def_Label->bindData(child_Label);
+        child_Label->setParentData(def_Label);
     }else{
         //Set the value.
-        if(child_Label->getValue().startsWith(child->getDataValue("kind"))){
+        if(child_Label->getValue().toString().startsWith(child->getDataValue("kind").toString())){
             if(child->isImpl()){
-                setGraphMLData(child, "label", def_Label->getValue() + "_Impl");
+                setData(child, "label", def_Label->getValue().toString() + "_Impl");
             }else{
-                setGraphMLData(child, "label", def_Label->getValue() + "_Inst");
+                setData(child, "label", def_Label->getValue().toString() + "_Inst");
             }
         }
     }
 }
 
-void NewController::unbindGraphMLData(Node *definition, Node *instance)
+void NewController::unbindData(Node *definition, Node *instance)
 {
-    foreach(GraphMLData* attachedData, definition->getData()){
-        GraphMLData* newData = 0;
+    foreach(Data* attachedData, definition->getData()){
+        Data* newData = 0;
         newData = instance->getData(attachedData->getKey());
         if(newData){
             if(newData->getParentData() == attachedData){
-                attachedData->unbindData(newData);
+                newData->unsetParentData();
             }
         }
     }
@@ -3424,7 +3396,7 @@ void NewController::unbindGraphMLData(Node *definition, Node *instance)
 /**
  * @brief NewController::setupDefinitionRelationship
  * Attempts to construct/set the provided node as an Instance of the definition provided.
- * Will Adopt Instances of all Definitions contained by Definition provided. Binds relevant GraphMLData together.
+ * Will Adopt Instances of all Definitions contained by Definition provided. Binds relevant Data together.
  * @param definition - The Node which is the Definition of the relationship.
  * @param aggregate - The Node which is to be set as the Instance.
  * @param instance - Is this an Instance or Implementation Relationship.
@@ -3441,7 +3413,7 @@ bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
     //For each child contained in the Definition, which itself is a definition, construct an Instance/Impl inside the Parent Instance/Impl.
     foreach(Node* child, definition->getChildren(0)){
         if(child && child->isDefinition()){
-            if(!node->getDataValue("kind").endsWith("EventPortInstance")){
+            if(!node->getDataValue("kind").toString().endsWith("EventPortInstance")){
                 //Construct relationships between the children which matched the definitionChild.
                 int instancesConnected = constructDefinitionRelative(node, child, instance);
 
@@ -3456,12 +3428,12 @@ bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
 
     //If we have made all children, we can set this node as an instance of the definition.
 
-    //Bind the un-protected GraphMLData attached to the Definition to the Instance.
-    bindGraphMLData(definition, node);
+    //Bind the un-protected Data attached to the Definition to the Instance.
+    bindData(definition, node);
 
     //Get Connecting Edge.
-    Edge* edge = node->getConnectingEdge(definition);
-    GraphMLKey* labelKey = constructGraphMLKey("label", "string", "edge");
+    Edge* edge = node->getEdgeTo(definition);
+    Key* labelKey = constructKey("label", QVariant::String, Entity::EK_EDGE);
     QString definitionType = "";
 
     //Attach the relation to the Definition.
@@ -3480,8 +3452,10 @@ bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
 
     //Attach Data onto Edge to describe Relationship.
     if(!edge->getData(labelKey)){
-        GraphMLData* label = new GraphMLData(labelKey, "Is " + definitionType + " Of");
-        attachGraphMLData(edge, label, false);
+
+        Data* label = new Data(labelKey);
+        label->setValue("Is " + definitionType + " Of");
+        attachData(edge, label, false);
     }
 
     return true;
@@ -3514,8 +3488,8 @@ bool NewController::setupEventPortAggregateRelationship(EventPort *eventPort, Ag
 
     //If we couldn't find an AggregateInstance in the EventPort, construct one.
     if(!aggregateInstance){
-        aggregateInstance = constructChildNode(eventPort, constructGraphMLDataVector("AggregateInstance"));
-        aggregateInstance->setGenerated(true);
+        aggregateInstance = constructChildNode(eventPort, constructDataVector("AggregateInstance"));
+        aggregateInstance->setWasGenerated(true);
     }
 
     //Check that the AggregateInstance was created.
@@ -3534,15 +3508,15 @@ bool NewController::setupEventPortAggregateRelationship(EventPort *eventPort, Ag
     }
 
     //Check for connecting Edge.
-    Edge* edge = aggregateInstance->getConnectingEdge(aggregate);
+    Edge* edge = aggregateInstance->getEdgeTo(aggregate);
 
     if(!edge){
         //Construct an Edge between the AggregateInstance an Aggregate
         constructEdgeWithData(aggregateInstance, aggregate);
-        edge = aggregateInstance->getConnectingEdge(aggregate);
+        edge = aggregateInstance->getEdgeTo(aggregate);
         //Set it is AutoGenerated as to not make an undo state for it.
 		if(edge){
-			edge->setGenerated(true);
+            edge->setWasGenerated(true);
         }
     }
 
@@ -3552,8 +3526,8 @@ bool NewController::setupEventPortAggregateRelationship(EventPort *eventPort, Ag
     }
 
     //Check for a connecting Edge between the eventPort and aggregate.
-    edge = eventPort->getConnectingEdge(aggregate);
-    GraphMLKey* labelKey = constructGraphMLKey("label", "string", "edge");
+    edge = eventPort->getEdgeTo(aggregate);
+    Key* labelKey = constructKey("label", QVariant::String, Entity::EK_EDGE);
 
     //Check for the existance of the Edge constructed.
     if(!edge){
@@ -3563,8 +3537,8 @@ bool NewController::setupEventPortAggregateRelationship(EventPort *eventPort, Ag
 
     //Set Label of Edge.
     if(!edge->getData(labelKey)){
-        GraphMLData* label = new GraphMLData(labelKey, "Uses Aggregate");
-        attachGraphMLData(edge, label, false);
+        Data* label = new Data(labelKey, "Uses Aggregate");
+        attachData(edge, label, false);
     }
     //Set AutoGenerated.
 
@@ -3573,11 +3547,11 @@ bool NewController::setupEventPortAggregateRelationship(EventPort *eventPort, Ag
     eventPort->setAggregate(aggregate);
 
     //Set Type
-    GraphMLData* eventPortType = eventPort->getData("type");
-    GraphMLData* aggregateLabel = aggregate->getData("label");
+    Data* eventPortType = eventPort->getData("type");
+    Data* aggregateLabel = aggregate->getData("label");
 
     if(eventPortType && aggregateLabel){
-        aggregateLabel->bindData(eventPortType);
+        eventPortType->setParentData(aggregateLabel);
         eventPortType->setValue(aggregateLabel->getValue());
     }
 
@@ -3596,7 +3570,7 @@ bool NewController::teardownEventPortAggregateRelationship(EventPort *eventPort,
     eventPort->unsetAggregate();
 
     //Unset Type information;
-    GraphMLData* eventPortType = eventPort->getData("type");
+    Data* eventPortType = eventPort->getData("type");
     if(eventPortType){
         eventPortType->unsetParentData();
         eventPortType->clearValue();
@@ -3626,10 +3600,10 @@ bool NewController::setupAggregateRelationship(Node *node, Aggregate *aggregate)
     }
 
     //Check for a connecting Edge between the eventPort and aggregate.
-    Edge* edge = node->getConnectingEdge(aggregate);
+    Edge* edge = node->getEdgeTo(aggregate);
 
 
-    GraphMLKey* labelKey = constructGraphMLKey("label", "string", "edge");
+    Key* labelKey = constructKey("label", QVariant::String, Entity::EK_EDGE);
 
     //Check for the existance of the Edge constructed.
     if(!edge){
@@ -3639,19 +3613,19 @@ bool NewController::setupAggregateRelationship(Node *node, Aggregate *aggregate)
 
     //Set Label of Edge.
     if(!edge->getData(labelKey)){
-        GraphMLData* label = new GraphMLData(labelKey, "Uses Aggregate");
-        attachGraphMLData(edge, label, false);
+        Data* label = new Data(labelKey, "Uses Aggregate");
+        attachData(edge, label, false);
     }
     //Set AutoGenerated.
 
 
 
     //Set Type
-    GraphMLData* nodeType = node->getData("type");
-    GraphMLData* aggregateLabel = aggregate->getData("label");
+    Data* nodeType = node->getData("type");
+    Data* aggregateLabel = aggregate->getData("label");
 
     if(nodeType && aggregateLabel){
-        aggregateLabel->bindData(nodeType);
+        nodeType->setParentData(aggregateLabel);
         nodeType->setValue(aggregateLabel->getValue());
     }else{
         return false;
@@ -3675,7 +3649,7 @@ bool NewController::teardownAggregateRelationship(Node *node, Aggregate *aggrega
     }
 
     //Unset Type information;
-    GraphMLData* nodeType = node->getData("type");
+    Data* nodeType = node->getData("type");
     if(nodeType){
         nodeType->unsetParentData();
         nodeType->clearValue();
@@ -3703,8 +3677,8 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
         }
     }
 
-    GraphMLData* definitionData = output->getData("type");
-    GraphMLData* valueData = input->getData("value");
+    Data* definitionData = output->getData("type");
+    Data* valueData = input->getData("value");
 
     if(outputTopParent){
         //Bind Parent Label if we are a variable.
@@ -3716,12 +3690,10 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
 
     if(definitionData && valueData){
         if(setup){
-            definitionData->bindData(valueData, true);
+            valueData->setParentData(definitionData);
         }else{
-            definitionData->unbindData(valueData, false);
-            qCritical() << "DefData: " << definitionData;
-            qCritical() << "ValData: " << valueData;
-            valueData->setValue("");
+            valueData->unsetParentData();
+            valueData->clearValue();
         }
     }else{
         return false;
@@ -3732,9 +3704,9 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
     if(inputParent){
         QString parentNodeKind = inputParent->getNodeKind();
         if(parentNodeKind == "Process"){
-            QString workerName = inputParent->getDataValue("worker");
-            QString operationName = inputParent->getDataValue("operation");
-            QString parameterLabel = input->getDataValue("label");
+            QString workerName = inputParent->getDataValue("worker").toString();
+            QString operationName = inputParent->getDataValue("operation").toString();
+            QString parameterLabel = input->getDataValue("label").toString();
 
             if(workerName == "VectorOperation" && parameterLabel == "vector"){
                 QStringList bindableFunctionTypes;
@@ -3746,7 +3718,7 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
                     bindNode = output->getChildren(0)[0];
                 }
 
-                GraphMLData* vectorType = bindNode->getData("type");
+                Data* vectorType = bindNode->getData("type");
 
 
                 if(bindableFunctionTypes.contains(operationName)){
@@ -3754,12 +3726,12 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
                     foreach(Node* child, inputParent->getChildren(0)){
                         ReturnParameter* returnParameter = dynamic_cast<ReturnParameter*>(child);
                         if(returnParameter){
-                            GraphMLData* returnType = returnParameter->getData("type");
+                            Data* returnType = returnParameter->getData("type");
                             if(setup){
-                                vectorType->bindData(returnType, true);
+                                returnType->setParentData(vectorType);
                             }else{
-                                vectorType->unbindData(returnType, false);
-                                vectorType->setValue("");
+                                returnType->unsetParentData();
+                                returnType->clearValue();
                             }
                         }
                     }
@@ -3775,11 +3747,11 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
 
 bool NewController::teardownDataEdgeRelationship(BehaviourNode *output, BehaviourNode *input)
 {
-    GraphMLData* typeData = output->getData("type");
-    GraphMLData* valueData = input->getData("value");
+    Data* typeData = output->getData("type");
+    Data* valueData = input->getData("value");
 
     if(typeData && valueData){
-        typeData->unbindData(valueData, false);
+        valueData->unsetParentData();
     }else{
         return false;
     }
@@ -3795,33 +3767,33 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
     Process* process = dynamic_cast<Process*>(parameterParent);
 
     if(parameter->isInputParameter()){
-        GraphMLData* value = parameter->getData("value");
+        Data* value = parameter->getData("value");
 
         QString dataKind = data->getNodeKind();
         Node* dataParent = data->getParentNode();
         if(dataKind == "VectorInstance"){
             if(dataParent->getNodeKind() == "Variable"){
                 //Bind the label of the variable to the parameter.
-                GraphMLData* label = dataParent->getData("label");
-                label->bindData(value, true);
+                Data* label = dataParent->getData("label");
+                value->setParentData(label);
             }
         }
 
         if(dataKind == "Variable"){
             //Bind the label of the variable to the parameter.
-            GraphMLData* label = data->getData("label");
-            GraphMLData* type = data->getData("type");
-            label->bindData(value, true);
+            Data* label = data->getData("label");
+            Data* type = data->getData("type");
+            value->setParentData(label);
 
             //Protect the type so that people can't change it once it's connected.
             type->setProtected(true);
         }
 
         if(process){
-            QString workerName = process->getDataValue("worker");
-            QString operationName = process->getDataValue("operation");
+            QString workerName = process->getDataValue("worker").toString();
+            QString operationName = process->getDataValue("operation").toString();
             if(workerName == "VectorOperation" && parameter->getDataValue("label") == "vector"){
-                GraphMLData* bindData = data->getData("type");
+                Data* bindData = data->getData("type");
                 if(dataKind == "VectorInstance"){
                     if(data->childrenCount() == 1){
                         bindData = data->getChildren(0)[0]->getData("type");
@@ -3835,8 +3807,8 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
                     foreach(Node* child, process->getChildren(0)){
                         Parameter* parameter = dynamic_cast<Parameter*>(child);
                         if(parameter && parameter->getDataValue("label") == "value"){
-                            GraphMLData* returnType = parameter->getData("type");
-                            bindData->bindData(returnType);
+                            Data* returnType = parameter->getData("type");
+                            returnType->setParentData(bindData);
                         }
                     }
                 }
@@ -3850,16 +3822,16 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
 bool NewController::teardownParameterRelationship(Parameter *parameter, Node *data)
 {
     if(parameter->isInputParameter()){
-        GraphMLData* value = parameter->getData("value");
+        Data* value = parameter->getData("value");
 
         QString dataKind = data->getNodeKind();
         Node* dataParent = data->getParentNode();
         if(dataKind == "VectorInstance"){
             if(dataParent->getNodeKind() == "Variable"){
                 //Bind the label of the variable to the parameter.
-                GraphMLData* label = dataParent->getData("label");
-                label->unbindData(value);
-                label->setValue("");
+                Data* label = dataParent->getData("label");
+                label->unsetParentData();
+                label->clearValue();
             }
         }
     }
@@ -3871,7 +3843,7 @@ bool NewController::teardownParameterRelationship(Parameter *parameter, Node *da
 /**
  * @brief NewController::teardownDefinitionRelationship
  * Attempts to destruct the relationship between the Instance and definition provided.
- * Will remove *ALL* Instances of all Definitions contained by Definition provided. Unbinds relevant GraphMLData and will add Node to be removed.
+ * Will remove *ALL* Instances of all Definitions contained by Definition provided. Unbinds relevant Data and will add Node to be removed.
  * @param definition - The Node which is the Definition of the relationship.
  * @param aggregate - The Node which is the Instance.
  * @param instance - Is this an Instance or Implementation Relationship.
@@ -3886,9 +3858,9 @@ bool NewController:: teardownDefinitionRelationship(Node *definition, Node *node
     }
 
     //Unbind data.
-    unbindGraphMLData(definition, node);
+    unbindData(definition, node);
 
-    if(!definition->isConnected(node)){
+    if(!definition->gotEdgeTo(node)){
         qCritical() << "teardownDefinitionRelationship(): No Edge between Definition and Node.";
         return false;
     }
@@ -3932,10 +3904,11 @@ void NewController::constructEdgeGUI(Edge *edge)
     //Construct an ActionItem to reverse an Edge Construction.
     ActionItem action;
     action.actionType = CONSTRUCTED;
-    action.actionKind = GraphML::EDGE;
+    action.actionKind = edge->getGraphMLKind();
+    action.entityKind = edge->getEntityKind();
     action.ID = edge->getID();
 
-    GraphMLKey* descriptionKey = constructGraphMLKey("description", "string", "edge");
+    Key* descriptionKey = constructKey("description", QVariant::String, Entity::EK_EDGE);
 
 
     //Get Source and Destination of the Edge.
@@ -3979,16 +3952,16 @@ void NewController::constructEdgeGUI(Edge *edge)
     }
     case Edge::EC_ASSEMBLY:{
         //Bind Topics Together, if they contain.
-        GraphMLData* srcTopicName = src->getData("topicName");
-        GraphMLData* dstTopicName = dst->getData("topicName");
+        Data* srcTopicName = src->getData("topicName");
+        Data* dstTopicName = dst->getData("topicName");
 
         if(srcTopicName && dstTopicName){
-            srcTopicName->bindData(dstTopicName);
+            dstTopicName->setParentData(srcTopicName);
         }
 
         if(!edge->getData(descriptionKey)){
-            GraphMLData* label = new GraphMLData(descriptionKey, "Connected To");
-            attachGraphMLData(edge, label, false);
+            Data* label = new Data(descriptionKey, "Connected To");
+            attachData(edge, label, false);
         }
         break;
     }
@@ -4009,32 +3982,32 @@ void NewController::constructEdgeGUI(Edge *edge)
 void NewController::setupManagementComponents()
 {
     //EXECUTION MANAGER
-    QList<GraphMLData*> executionManagerData = constructGraphMLDataVector("ManagementComponent") ;
-    QList<GraphMLData*> dancePlanLauncherData = constructGraphMLDataVector("ManagementComponent") ;
-    QList<GraphMLData*> ddsLoggingServerData = constructGraphMLDataVector("ManagementComponent") ;
-    QList<GraphMLData*> qpidBrokerData = constructGraphMLDataVector("ManagementComponent") ;
+    QList<Data*> executionManagerData = constructDataVector("ManagementComponent") ;
+    QList<Data*> dancePlanLauncherData = constructDataVector("ManagementComponent") ;
+    QList<Data*> ddsLoggingServerData = constructDataVector("ManagementComponent") ;
+    QList<Data*> qpidBrokerData = constructDataVector("ManagementComponent") ;
 
-    foreach(GraphMLData* data, executionManagerData){
+    foreach(Data* data, executionManagerData){
         if(data->getKeyName() == "type" || data->getKeyName() == "label"){
             data->setValue("DANCE_EXECUTION_MANAGER");
             data->setProtected(true);
         }
     }
-    foreach(GraphMLData* data, dancePlanLauncherData){
+    foreach(Data* data, dancePlanLauncherData){
         if(data->getKeyName() == "type" || data->getKeyName() == "label"){
             data->setValue("DANCE_PLAN_LAUNCHER");
             data->setProtected(true);
         }
     }
 
-    foreach(GraphMLData* data, ddsLoggingServerData){
+    foreach(Data* data, ddsLoggingServerData){
         if(data->getKeyName() == "type" || data->getKeyName() == "label"){
             data->setValue("DDS_LOGGING_SERVER");
             data->setProtected(true);
         }
     }
 
-    foreach(GraphMLData* data, qpidBrokerData){
+    foreach(Data* data, qpidBrokerData){
         if(data->getKeyName() == "type" || data->getKeyName() == "label"){
             data->setValue("QPID_BROKER");
             data->setProtected(true);
@@ -4050,15 +4023,17 @@ void NewController::setupManagementComponents()
 void NewController::setupLocalNode()
 {
     //EXECUTION MANAGER
-    QList<GraphMLData*> localNodeData = constructGraphMLDataVector("HardwareNode") ;
+    QList<Data*> localNodeData = constructDataVector("HardwareNode") ;
 
-    GraphMLKey* localhostKey = constructGraphMLKey("localhost", "boolean", "node");
-    localNodeData.append(new GraphMLData(localhostKey ,"true", true));
+    Key* localhostKey = constructKey("localhost", QVariant::Bool,Entity::EK_NODE);
+    Data* data = new Data(localhostKey);
+    data->setValue(true);
+    localNodeData.append(data);
 
 
 
 
-    foreach(GraphMLData* data, localNodeData){
+    foreach(Data* data, localNodeData){
         QString keyName = data->getKeyName();
         if(keyName == "label"){
             data->setValue("localhost");
@@ -4082,18 +4057,18 @@ void NewController::setupLocalNode()
     protectedNodes << localhostNode;
 }
 
-GraphML *NewController::getGraphMLFromID(int ID)
+Entity*NewController::getGraphMLFromID(int ID)
 {
     //Check for old IDs
     ID = getIDFromOldID(ID);
 
-    GraphML* graphML = getGraphMLFromHash(ID);
+    Entity* graphML = getGraphMLFromHash(ID);
     return graphML;
 }
 
 Node *NewController::getNodeFromID(int ID)
 {
-    GraphML* graphML = getGraphMLFromID(ID);
+    Entity* graphML = getGraphMLFromID(ID);
     return getNodeFromGraphML(graphML);
 }
 
@@ -4101,7 +4076,7 @@ Node *NewController::getFirstNodeFromList(QList<int> IDs)
 {
     Node* node = 0;
     foreach(int ID, IDs){
-        GraphML* graphML = getGraphMLFromID(ID);
+        Entity* graphML = getGraphMLFromID(ID);
         if(graphML && graphML->isNode()){
             node = (Node*)graphML;
         }
@@ -4112,7 +4087,7 @@ Node *NewController::getFirstNodeFromList(QList<int> IDs)
 
 Edge *NewController::getEdgeFromID(int ID)
 {
-    GraphML* graphML = getGraphMLFromID(ID);
+    Entity* graphML = getGraphMLFromID(ID);
     return getEdgeFromGraphML(graphML);
 }
 
@@ -4163,19 +4138,19 @@ void NewController::linkOldIDToID(int oldID, int newID)
 
 
 
-Node *NewController::getNodeFromGraphML(GraphML *item)
+Node *NewController::getNodeFromGraphML(Entity *item)
 {
     Node* node = dynamic_cast<Node*>(item);
     return node;
 }
 
-Edge *NewController::getEdgeFromGraphML(GraphML *item)
+Edge *NewController::getEdgeFromGraphML(Entity *item)
 {
     Edge* edge = dynamic_cast<Edge*>(item);
     return edge;
 }
 
-bool NewController::isInModel(GraphML *item)
+bool NewController::isInModel(Entity *item)
 {
     if(model){
         return model->isAncestorOf(item);
@@ -4184,7 +4159,7 @@ bool NewController::isInModel(GraphML *item)
     }
 }
 
-bool NewController::isInWorkerDefinitions(GraphML *item)
+bool NewController::isInWorkerDefinitions(Entity *item)
 {
     if(workerDefinitions){
         return workerDefinitions->isAncestorOf(item);
@@ -4306,26 +4281,19 @@ void NewController::displayMessage(QString title, QString message, int ID)
 }
 
 /**
- * @brief NewController::setGraphMLData Sets the Value of the GraphMLData of an Entity.
+ * @brief NewController::setData Sets the Value of the Data of an Entity.
  * @param parentID - The ID of the Entity
  * @param keyName - The name of the Key
  * @param dataValue - The new value of the Data.
  */
-void NewController::setGraphMLData(int parentID, QString keyName, QString dataValue)
+void NewController::setData(int parentID, QString keyName, QVariant dataValue)
 {
-    GraphML* graphML = getGraphMLFromID(parentID);
+    Entity* graphML = getGraphMLFromID(parentID);
     if(graphML){
-        setGraphMLData(graphML, keyName, dataValue, true);
+        setData(graphML, keyName, dataValue, true);
     }
 }
 
-void NewController::setGraphMLData(int parentID, QString keyName, qreal dataValue)
-{
-    GraphML* graphML = getGraphMLFromID(parentID);
-    if(graphML){
-        setGraphMLData(graphML, keyName, dataValue, true);
-    }
-}
 
 void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
 {
@@ -4343,7 +4311,7 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
             if(deployedID != -1){
                 Node* src = getNodeFromID(ID);
                 Node* hDst = getNodeFromID(deployedID);
-                Edge* edge = src->getConnectingEdge(hDst);
+                Edge* edge = src->getEdgeTo(hDst);
                 if(edge){
                     edgesToDelete << edge;;
                 }
@@ -4358,7 +4326,7 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
         foreach (int srcID, srcIDs) {
             Node* src = getNodeFromID(srcID);
             if(src){
-                Edge* edge =  src->getConnectingEdge(dst);
+                Edge* edge =  src->getEdgeTo(dst);
                 if(edge){
                     destructEdge(edge);
                 }
@@ -4382,7 +4350,7 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
                 //Try swap
                 constructEdgeWithData(dst, src);
             }
-            if(!src || !src->isConnected(dst)){
+            if(!src || !src->gotEdgeTo(dst)){
                 emit controller_DisplayMessage(WARNING, "Deployment Failed", "Cannot Connect Entity: " + src->toString() + " to Hardware Entity: " + dst->toString(), srcID);
             }
         }
@@ -4478,22 +4446,24 @@ Node *NewController::getSingleNode(QList<int> IDs)
 
 bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkID, bool resetPos)
 {
-    //Key Lookup provides a way for the original key "id" to be linked with the internal object GraphMLKey
-    QMap<QString , GraphMLKey*> keyLookup;
+    //Key Lookup provides a way for the original key "id" to be linked with the internal object Key
+    QMap<QString , Key*> keyLookup;
 
     //Node lookup provides a way for the original edge source/target ID's to be linked with the internal object Node
     QMap<QString, Node *> nodeLookup;
 
     //A list for storing the current Parse <data> tags owned by a <node>
-    QList<GraphMLData*> currentNodeData;
+    QList<Data*> currentNodeData;
 
     //A list storing all the Edge information (source, target, data)
     QList<EdgeTemp> currentEdges;
-    GraphMLKey * currentKey;
+    Key * currentKey;
 
     //Used to keep track of state inside the XML
-    GraphML::KIND nowParsing = GraphML::NONE;
-    GraphML::KIND nowInside = GraphML::NONE;
+    Entity::ENTITY_KIND nowParsing = Entity::EK_NONE;
+
+    GraphML::GRAPHML_KIND nowInside = GraphML::GK_NONE;
+    Entity::ENTITY_KIND nowInsideEntity = Entity::EK_NONE;
 
     //Used to store the ID of the node we are to construct
     QString nodeID;
@@ -4586,18 +4556,20 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 currentEdges.append(newEdge);
 
                 //Set the current object type to EDGE.
-                nowInside = GraphML::EDGE;
+                nowInside = GraphML::GK_ENTITY;
+                nowInsideEntity = Entity::EK_EDGE;
             }
             if(xml.isEndElement()){
                 //Set the current object type to NONE.
-                nowInside = GraphML::NONE;
+                nowInside = GraphML::GK_NONE;
+                nowInsideEntity = Entity::EK_NONE;
             }
         }else if(tagName == "data"){
             if(xml.isStartElement()){
                 //Get the datas corresponding Key ID
                 QString keyID = getXMLAttribute(xml, "key");
 
-                GraphMLKey* dataKey = keyLookup[keyID];
+                Key* dataKey = keyLookup[keyID];
 
                 if(!dataKey){
                     qCritical() << QString("Line #%1: Cannot find the <key> to match the <data key=\"%2\">").arg(QString::number(xml.lineNumber()), keyID);
@@ -4607,8 +4579,9 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 //Get the value of the value of the data tag.
                 QString dataValue = xml.readElementText();
 
-                //Construct a GraphMLData object out of the xml, using the key found in keyLookup
-                GraphMLData *data = new GraphMLData(dataKey, dataValue);
+                //Construct a Data object out of the xml, using the key found in keyLookup
+                Data *data = new Data(dataKey);
+                data->setValue(dataValue);
 
 
 
@@ -4641,14 +4614,14 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 }
 
                 //Attach the data to the current object.
-                switch(nowInside){
+                switch(nowInsideEntity){
                 //Attach the Data to the TempEdge if we are currently inside an Edge.
-                case GraphML::EDGE:{
+                case Entity::EK_EDGE:{
                     currentEdges.last().data.append(data);
                     break;
                 }
                     //Attach the Data to the list of Data to be attached to the node.
-                case GraphML::NODE:{
+                case Entity::EK_NODE:{
                     currentNodeData.append(data);
                     break;
                 }
@@ -4659,13 +4632,16 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
             }
         }else if(tagName == "key"){
             if(xml.isStartElement()){
-                nowInside = GraphML::KEY;
+                nowInside = GraphML::GK_KEY;
                 //Parse the Attribute Definition.
                 QString name = getXMLAttribute(xml, "attr.name");
                 QString typeStr = getXMLAttribute(xml, "attr.type");
                 QString forStr = getXMLAttribute(xml, "for");
 
-                currentKey = constructGraphMLKey(name, typeStr, forStr);
+                QVariant::Type type = Key::getTypeFromGraphML(typeStr);
+                Entity::ENTITY_KIND entityKind = Entity::getEntityKind(forStr);
+
+                currentKey = constructKey(name, type, entityKind);
 
                 //Get the Key ID.
                 QString keyID = getXMLAttribute(xml,"id");
@@ -4674,10 +4650,10 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 keyLookup.insert(keyID, currentKey);
             }
             if(xml.isEndElement()){
-                nowInside = GraphML::NONE;
+                nowInside = GraphML::GK_NONE;
             }
         }else if(tagName =="default"){
-            if(nowInside == GraphML::KEY){
+            if(nowInside == GraphML::GK_KEY){
                 QString defaultValue = xml.readElementText();
                 currentKey->setDefaultValue(defaultValue);
             }
@@ -4686,14 +4662,15 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
             if(xml.isStartElement()){
                 //Get the ID of the Node
                 newNodeID = getXMLAttribute(xml, "id");
-                nowInside = GraphML::NODE;
-                nowParsing = GraphML::NODE;
+                nowInside = GraphML::GK_ENTITY;
+                nowInsideEntity = Entity::EK_NODE;
+                nowParsing = Entity::EK_NODE;
             }
             if(xml.isEndElement()){
                 //Increase the depth, as we have seen another </node>
                 parentDepth++;
                 //We have reached the end of a Node, therefore not inside a Node anymore.
-                nowInside = GraphML::NONE;
+                nowInside = GraphML::GK_NONE;
             }
         }else if(tagName == "graph"){
             if(xml.isStartElement()){
@@ -4703,14 +4680,14 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         }else{
             if(xml.isEndDocument()){
                 //Construct the final Node
-                nowParsing = GraphML::NODE;
+                nowParsing = Entity::EK_NODE;
             }else{
-                nowParsing = GraphML::NONE;
+                nowParsing = Entity::EK_NONE;
             }
         }
 
 
-        if(nowParsing == GraphML::NODE){
+        if(nowParsing == Entity::EK_NODE){
             //If we have a nodeID to build
             if(nodeID != ""){
                 Node* node = 0;
@@ -4730,7 +4707,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
                         //Compare timestamp
                         QString newTimeStamp  = getDataValueFromKeyName(currentNodeData, "exportDateTime");
-                        QString currentTimeStamp = node->getDataValue("exportDateTime");
+                        QString currentTimeStamp = node->getDataValue("exportDateTime").toString();
 
 
                         //If the date is older.
@@ -4744,9 +4721,9 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
                         //Got match, so we don't need to construct item.
                         while(!currentNodeData.isEmpty()){
-                            GraphMLData* data = currentNodeData.takeFirst();
+                            Data* data = currentNodeData.takeFirst();
                             if(!ignoreReadOnly){
-                                _attachGraphMLData(node, data);
+                                _attachData(node, data);
                             }
                             if(!data->getParent())
                             {
@@ -4811,7 +4788,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     }
 
                     //Locking Data
-                    foreach(GraphMLData* data, node->getData()){
+                    foreach(Data* data, node->getData()){
                         data->setProtected(true);
                     }
                     readOnlyTag = false;
@@ -4940,7 +4917,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
         bool retry = true;
         if(retryCount[edge.id] > maxRetry){
-            if(!s->isConnected(d) && !errorMessage){
+            if(!s->gotEdgeTo(d) && !errorMessage){
                 qCritical() << s << d;
                 emit controller_DisplayMessage(CRITICAL, "Import Error", "Cannot construct edge!");
                 errorMessage = true;
@@ -4951,13 +4928,13 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
 
 
-        Edge* newEdge = constructEdgeWithGraphMLData(s, d, edge.data, getIntFromQString(edge.id));
+        Edge* newEdge = constructEdgeWithData(s, d, edge.data, getIntFromQString(edge.id));
         if(newEdge){
             sortedEdges.removeFirst();
             edgesMade ++;
         }else{
             sortedEdges.removeFirst();
-            if(!s->isConnected(d) && retry){
+            if(!s->gotEdgeTo(d) && retry){
                 retryCount[edge.id] += 1;
                 sortedEdges.append(edge);
             }else{
@@ -5110,7 +5087,7 @@ bool NewController::canDelete(QList<int> selection)
 bool NewController::canPaste(QList<int> selection)
 {
     if(selection.size() == 1){
-        GraphML* graphml = getGraphMLFromID(selection[0]);\
+        Entity* graphml = getGraphMLFromID(selection[0]);\
         if(graphml && graphml->isNode() && graphml != model){
             return true;
         }
@@ -5134,7 +5111,7 @@ bool NewController::canExportSnippet(QList<int> IDs)
         if(edge){
             continue;
         }
-        if(nonSnippetableKinds.contains(node->getDataValue("kind"))){
+        if(nonSnippetableKinds.contains(node->getDataValue("kind").toString())){
             return false;
         }
         if(node->getData("readOnly")){
@@ -5146,7 +5123,7 @@ bool NewController::canExportSnippet(QList<int> IDs)
             if(!parent){
                 return false;
             }
-            if(!snippetableParentKinds.contains(parent->getDataValue("kind"))){
+            if(!snippetableParentKinds.contains(parent->getDataValue("kind").toString())){
                 return false;
             }
         }else if(node->getParentNode() != parent){
@@ -5166,7 +5143,7 @@ bool NewController::canImportSnippet(QList<int> selection)
         return false;
     }
 
-    if(snippetableParentKinds.contains(parent->getDataValue("kind"))){
+    if(snippetableParentKinds.contains(parent->getDataValue("kind").toString())){
         return true;
     }
     return false;
@@ -5189,7 +5166,11 @@ bool NewController::canRedo()
  */
 bool NewController::canLocalDeploy()
 {
+    if(!assemblyDefinitions){
+        return false;
+    }
     bool isDeployable = false;
+
     //Check to see if all nodes in the assembly definitions are deployed to the localhost node.
     foreach(Node* node, assemblyDefinitions->getChildren()){
         foreach(Edge* edge, node->getEdges(0)){
@@ -5206,10 +5187,21 @@ bool NewController::canLocalDeploy()
     return isDeployable;
 }
 
+bool NewController::isNodeAncestor(int ID, int ID2)
+{
+    Node* node = getNodeFromID(ID);
+    Entity* entity = getGraphMLFromID(ID2);
+
+    if(node && entity){
+        return node->isAncestorOf(entity);
+    }
+    return false;
+}
+
 bool NewController::areIDsInSameBranch(int mainID, int newID)
 {
-    GraphML* main = getGraphMLFromID(mainID);
-    GraphML* other = getGraphMLFromID(newID);
+    Entity* main = getGraphMLFromID(mainID);
+    Entity* other = getGraphMLFromID(newID);
 
     QList<int> mainTree;
     QList<int> secondTree;
@@ -5308,19 +5300,19 @@ Node* NewController::getSharedParent(QList<int> IDs)
     return parent;
 }
 
-QString NewController::getDataValueFromKeyName(QList<GraphMLData *> dataList, QString keyName)
+QString NewController::getDataValueFromKeyName(QList<Data *> dataList, QString keyName)
 {
-    foreach(GraphMLData* data, dataList){
+    foreach(Data* data, dataList){
         if(data->getKeyName() == keyName){
-            return data->getValue();
+            return data->getValue().toString();
         }
     }
     return "";
 }
 
-void NewController::setDataValueFromKeyName(QList<GraphMLData *> dataList, QString keyName, QString value)
+void NewController::setDataValueFromKeyName(QList<Data *> dataList, QString keyName, QString value)
 {
-    foreach(GraphMLData* data, dataList){
+    foreach(Data* data, dataList){
         if(data->getKeyName() == keyName){
             data->setValue(value);
             return;
@@ -5336,8 +5328,8 @@ void NewController::setDataValueFromKeyName(QList<GraphMLData *> dataList, QStri
 QString NewController::getProcessName(Process *process)
 {
     if(process){
-        QString workerName = process->getDataValue("worker");
-        QString operationName = process->getDataValue("operation");
+        QString workerName = process->getDataValue("worker").toString();
+        QString operationName = process->getDataValue("operation").toString();
         if(workerName != "" && operationName != ""){
             return workerName + "_" + operationName;
         }

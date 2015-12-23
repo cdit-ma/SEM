@@ -4,7 +4,7 @@
 
 #include "graphmlitem.h"
 #include "../../Model/node.h"
-
+#include "../../Controller/nodeadapter.h"
 #include "../../enumerations.h"
 class EdgeItem;
 class NodeView;
@@ -16,7 +16,7 @@ class NodeItem : public GraphMLItem
 public:
     enum RESIZE_TYPE{NO_RESIZE, RESIZE, HORIZONTAL_RESIZE, VERTICAL_RESIZE};
 
-    NodeItem(Node *node, GraphMLItem *parent, GUI_KIND kind);
+    NodeItem(NodeAdapter *node, GraphMLItem *parent, GUI_KIND kind);
     ~NodeItem();
 
     QRectF childrenBoundingRect();
@@ -104,7 +104,7 @@ signals:
 
 public slots:
     void toggleGridMode(bool enabled);
-    void graphMLDataChanged(GraphMLData *data) = 0;
+    void dataChanged(QString keyName, QVariant data) = 0;
     virtual void childPositionChanged() = 0;
     virtual void childSizeChanged() = 0;
 

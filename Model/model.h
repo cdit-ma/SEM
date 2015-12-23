@@ -4,8 +4,8 @@
 #include "edge.h"
 #include "node.h"
 #include "blanknode.h"
-#include "graphmlkey.h"
-#include "graphmldata.h"
+#include "key.h"
+#include "data.h"
 
 
 

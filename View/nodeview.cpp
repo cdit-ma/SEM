@@ -138,6 +138,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setRubberBandMode(false);
 
     nonDrawnItemKinds << "DeploymentDefinitions";
+    nonDrawnNodeClasses << NC_DEPLOYMENT_DEFINITIONS;
+
 
     // construct toolbar widget
     toolbar = new ToolbarWidget(this);
@@ -676,8 +678,8 @@ QList<QPair<QString, QString> >  NodeView::getFunctionsList()
     if(controller){
         foreach(int ID, controller->getFunctionIDList()){
             QPair<QString, QString> functionPair;
-            functionPair.first = getGraphMLData(ID, "worker");
-            functionPair.second = getGraphMLData(ID, "operation");
+            functionPair.first = getData(ID, "worker");
+            functionPair.second = getData(ID, "operation");
             if(functionPair.first.isEmpty() || functionPair.second.isEmpty()){
                 continue;
             }
@@ -789,7 +791,7 @@ QList<GraphMLItem*> NodeView::search(QString searchString, QStringList viewAspec
             }
         }
 
-        GraphML* gml = item->getGraphML();
+        EntityAdapter* gml = item->getEntityAdapter();
         if (!gml) {
             continue;
         }
@@ -797,7 +799,7 @@ QList<GraphMLItem*> NodeView::search(QString searchString, QStringList viewAspec
         // if searchString matches at least one of the values of the provided
         // data keys for the current graphml item, append the item to the list
         foreach (QString key, dataKeys) {
-            QString dataVal = gml->getDataValue(key);
+            QString dataVal = gml->getDataValue(key).toString();
             if (dataVal.isEmpty()) {
                 continue;
             }
@@ -1018,10 +1020,10 @@ void NodeView::constructNewView(int nodeKindToCenter)
         }
         while (!constructList.isEmpty()) {
             Node* newNode = constructList.takeFirst();
-            newView->constructGUIItem(newNode);
+//            newView->constructGUIItem(newNode);
         }
         while (!edgeList.isEmpty()) {
-            newView->constructGUIItem(edgeList.takeFirst());
+  //          newView->constructGUIItem(edgeList.takeFirst());
         }
 
         connect(this, SIGNAL(view_ClearSubViewAttributeTable()), newView, SIGNAL(view_ClearSubViewAttributeTable()));
@@ -1131,7 +1133,7 @@ void NodeView::dropDownChangedValue(QString value)
             int ID = item->getID();
             QString dataType = getEditableDataKeyName(item).first;
             if(ID > 0){
-                emit view_SetGraphMLData(ID, dataType, value);
+                emit view_SetData(ID, dataType, value);
             }
         }
     }
@@ -1316,6 +1318,7 @@ void NodeView::setAttributeModel(GraphMLItem *item, bool tellSubView)
     qCritical() << item;
     if(item){
         if(currentTableID != item->getID()){
+            qCritical() << "SETTING TABLE " << item;
             currentTableID = item->getID();
             emit view_SetAttributeModel(item->getAttributeTable());
         }
@@ -1595,7 +1598,7 @@ void NodeView::expandSelection(bool expand)
             if(child->isEntityItem()){
                 EntityItem* entity = (EntityItem*) child;
                 if(entity->isExpanded() != expand){
-                    emit view_SetGraphMLData(entity->getID(), "isExpanded", expand);
+                    emit view_SetData(entity->getID(), "isExpanded", expand);
                 }
             }
         }
@@ -1874,7 +1877,7 @@ void NodeView::keepSelectionFullyVisible(GraphMLItem* item, bool sizeChanged)
         return;
     }
 
-    if (item->getGraphML()->getDataValue("kind") == "Model") {
+    if (item->getEntityAdapter()->getDataValue("kind") == "Model") {
         return;
     }
 
@@ -2190,22 +2193,9 @@ QPair<QString, bool> NodeView::getStatusDataKeyName(GraphMLItem *node)
     return returnType;
 }
 
-bool NodeView::isNodeVisuallyConnectable(Node *node)
+bool NodeView::isNodeVisuallyConnectable(NodeAdapter *node)
 {
     if(node){
-        BehaviourNode* bNode = dynamic_cast<BehaviourNode*>(node);
-        if(bNode){
-            if(bNode->needEdge()){
-                return true;
-            }
-        }else{
-            QString nodeKind = node->getNodeKind();
-            if(nodeKind.contains("EventPort")){
-                if(nodeKind.endsWith("Delegate")  || nodeKind.endsWith("Instance")){
-                    return true;
-                }
-            }
-        }
     }
     return false;
 }
@@ -2489,277 +2479,10 @@ void NodeView::showToolbar(QPoint position)
 }
 
 
-void NodeView::view_ConstructNodeGUI(Node *node)
-{
-    if(!node){
-        return;
-    }
-
-    Node* parentNode = node->getParentNode();
-
-    QString nodeKind = node->getDataValue("kind");
-
-    //Check if we should construct this Node.
-    if(nonDrawnItemKinds.contains(nodeKind)){
-        noGuiIDHash[node->getID()] = nodeKind;
-        return;
-    }
-
-
-    GraphMLItem* parentItem = 0;
-
-
-    Node* parent = parentNode;
-
-    //Get the topmost visible parent
-    while(parent){
-        parentItem = getGraphMLItemFromID(parent->getID());
-        if(parentItem){
-            break;
-        }
-        parent = parent->getParentNode();
-    }
-
-    if(!parentItem && isSubView() && nodeKind != "Model"){
-        qCritical() << "NodeView::view_ConstructNodeGUI() SUB_VIEW probably not meant to build this item as we don't have it's parent.";
-        return;
-    }
-
-    NodeItem* parentNodeItem = 0;
-    EntityItem* parentEntityItem = 0;
-    if(parentItem && parentItem->isEntityItem()){
-        parentEntityItem = (EntityItem*)parentItem;
-    }
-    if(parentItem && parentItem->isNodeItem()){
-        parentNodeItem = (NodeItem*)parentItem;
-    }
-
-
-
-
-    //Check for Pasted data, which will have x,y set to -1
-    qreal xVal = -1;
-    qreal yVal = -1;
-
-    GraphMLData* xData = node->getData("x");
-    GraphMLData* yData = node->getData("y");
-
-    if(xData){
-        xVal = xData->getDoubleValue();
-    }
-
-    if(yData){
-        yVal = yData->getDoubleValue();
-    }
-
-
-    if(xVal == -1 && yVal == -1){
-        GraphMLData* wData = node->getData("width");
-        GraphMLData* hData = node->getData("height");
-        qreal wVal = -1;
-        qreal hVal = -1;
-        if(wData){
-            wVal = wData->getDoubleValue();
-        }
-        if(hData){
-            hVal = hData->getDoubleValue();
-        }
-
-
-
-        QPointF newPosition;
-        if(parentNodeItem){
-            QRectF itemRect;
-            itemRect.setWidth(wVal);
-            itemRect.setHeight(hVal);
-            newPosition = parentNodeItem->getNextChildPos(itemRect);
-        }
-        xData->setValue(newPosition.x());
-        yData->setValue(newPosition.y());
-    }
-
-    if(toolbarDockConstruction || importFromJenkins){
-        if(parentItem && parentItem->isEntityItem()){
-            emit view_SetGraphMLData(parentItem->getID(), "isExpanded", "true");
-        }
-    }
-
-    GraphMLItem* item = 0;
-
-    if(nodeKind == "Model"){
-        item = new ModelItem(node, this);
-    }else if(node->isAspect()){
-        VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
-        if(aspect == VAP_NONE){
-            EntityItem* eItem = new EntityItem(node, parentNodeItem);
-            eItem->handleExpandState(true);
-            item = eItem;
-
-            item->setNodeView(this);
-        }else{
-            item = new AspectItem(node, parentItem, aspect);
-        }
-    }else{
-        item =  new EntityItem(node, parentNodeItem);
-    }
-
-    //Do Generic connect stuffs.
-    if(item){
-        storeGraphMLItemInHash(item);
-
-        if(!scene()->items().contains(item)){
-            scene()->addItem(item);
-        }
-
-        connectGraphMLItemToController(item);
-
-        EntityItem* entityItem = (EntityItem*) item;
-        NodeItem* nodeItem = (NodeItem*) item;
-
-        if(item->isEntityItem()){
-            QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
-            QPair<QString, bool> statusField = getStatusDataKeyName(entityItem);
-
-            entityItem->setNodeConnectable(isNodeVisuallyConnectable(node));
-            entityItem->setEditableField(editField.first, editField.second);
-            entityItem->setStatusField(statusField.first, statusField.second);
-        }
-
-        if(item->isNodeItem()){
-            // send/do necessary signals/updates when a node has been constructed
-            nodeConstructed_signalUpdates(nodeItem);
-        }
-
-        // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
-        // the node's label is automatically selected and editable
-        if (toolbarDockConstruction && SELECT_ON_CONSTRUCTION) {
-            clearSelection(true, false);
-            // why not update menu/toolbar actions here?
-            appendToSelection(item, false);
-
-            if(item->isEntityItem()){
-                //Set new Label for EntityItem.
-                entityItem->setNewLabel();
-            }
-            centerOnItem();
-            toolbarDockConstruction = false;
-        }
-
-        if(isSubView() && item->getID() == centralizedItemID){
-            appendToSelection(item);
-        }
-
-        if(parentItem && parentItem->isNodeItem()){
-            parentNodeItem->updateSizeInModel();
-        }
-
-
-    }
-}
 
 
 void NodeView::view_ConstructEdgeGUI(Edge *edge)
 {
-
-    Node* src = edge->getSource();
-    Node* dst = edge->getDestination();
-
-    if(isSubView()){
-        NodeItem* nodeItem = getNodeItemFromID(centralizedItemID);
-        if(nodeItem){
-            Node* subViewNode = nodeItem->getNode();
-            if(!(subViewNode->isAncestorOf(src) && subViewNode->isAncestorOf(dst))){
-                return;
-            }
-        }
-    }
-
-
-    EntityItem* srcGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromID(src->getID()));
-    EntityItem* dstGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromID(dst->getID()));
-
-    if (edge->isDeploymentLink()) {
-        updateDeployment = true;
-    }
-
-    // need to put this back here
-    edgeConstructed_signalUpdates();
-
-    if(srcGUI != 0 && dstGUI != 0){
-        // send necessary signals when an edge has been constucted
-        //We have valid GUI elements for both ends of this edge.
-        bool constructEdge = true;
-
-        if(edge->isAggregateLink() || edge->isDeploymentLink() || edge->isInstanceLink() || edge->isImplLink()){
-            if(edge->isInstanceLink() || edge->isImplLink()){
-                srcGUI->updateDefinition();
-                definitionIDs[edge->getID()] = src->getID();
-            }
-            constructEdge = false;
-        }
-
-
-        if(edge->isAssemblyLink() || edge->isDelegateLink() || edge->isComponentLink()){
-            constructEdge = true;
-        }
-
-        if(!constructEdge){
-            // added this here otherwise constructed edge with no gui is not stored
-            noGuiIDHash[edge->getID()] = "Edge";
-            return;
-        }
-
-        EntityItem* parent = getSharedEntityItemParent(srcGUI, dstGUI);
-
-        if(!parent){
-            //GETTING MODEL!?
-            qCritical() << "using Model.";
-            return;
-            //parent = getModelItem();
-
-            // added this here otherwise constructed edge with no gui is not stored
-            noGuiIDHash[edge->getID()] = "Edge";
-        }
-
-        //Construct a new GUI Element for this edge.
-        EdgeItem* nodeEdge = new EdgeItem(edge, parent, srcGUI, dstGUI);
-        //EdgeItem2* nodeEdge2 = new EdgeItem2(edge,parent, srcGUI, dstGUI);
-
-
-        //Add it to the list of EdgeItems in the Model.
-        storeGraphMLItemInHash(nodeEdge);
-        //storeGraphMLItemInHash(nodeEdge2);
-
-        //connectGraphMLItemToController(nodeEdge);
-        connectGraphMLItemToController(nodeEdge);
-
-        /*
-        // show hidden hardware node before the new edge is added to scene
-        // sort its parent so that the newly visible hardware node can be easily seen
-        if (dstGUI->getGraphML()->getDataValue("kind") == "HardwareNode") {
-            dstGUI->setHidden(false);
-            if (dstGUI->getParentEntityItem()) {
-                dstGUI->getParentEntityItem()->newSort();
-            }
-        }
-        */
-
-
-        if(!scene()->items().contains(nodeEdge)){
-            //   //Add to model.
-            scene()->addItem(nodeEdge);
-        }
-
-
-
-
-    }else{
-        //Store non created edge ID
-        noGuiIDHash[edge->getID()] = "Edge";
-        if(!IS_SUB_VIEW){
-            qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
-        }
-    }
 }
 
 
@@ -2950,25 +2673,28 @@ void NodeView::showConnectedNodes()
 void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
 {
 
+    qCritical() << "ITEM SELECTED: " << item << " = " << setSelected;
+    qCritical() << item->getAttributeTable();
     int itemID = item->getID();
 
     if(setSelected){
         if(!selectedIDs.contains(itemID)){
             int nodeSize = 0;
 
-            GraphML* graphml = item->getGraphML();
-            if(graphml && graphml->isNode()){
-                nodeSize = ((Node*)graphml)->getTreeIndex().size();
+            EntityAdapter* graphml = item->getEntityAdapter();
+
+            if(graphml && graphml->isNodeAdapter()){
+                nodeSize = ((NodeAdapter*)graphml)->getTreeIndex().size();
             }
 
             //Find spot for selectedID;
             int position = selectedIDs.count();
             for(int i = 0;i < selectedIDs.count();i++){
                 GraphMLItem* selectedItem = getGraphMLItemFromID(selectedIDs[i]);
-                GraphML* graphml = selectedItem->getGraphML();
+                EntityAdapter* graphml2 = selectedItem->getEntityAdapter();
 
-                if(graphml && graphml->isNode()){
-                    int currentPos = ((Node*)graphml)->getTreeIndex().size();
+                if(graphml2 && graphml2->isNodeAdapter()){
+                    int currentPos = ((NodeAdapter*)graphml2)->getTreeIndex().size();
                     if(nodeSize > currentPos){
                         position = i;
                         break;
@@ -2978,7 +2704,7 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
             selectedIDs.insert(position, itemID);
             item->setSelected(true);
 
-            if(graphml && graphml->isNode()){
+            if(graphml && graphml->isNodeAdapter()){
                 nodeSelected_signalUpdates();
             }
 
@@ -2990,8 +2716,8 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
 
             item->setSelected(false);
 
-            GraphML* graphml = item->getGraphML();
-            if(graphml && graphml->isNode()){
+            EntityAdapter* graphml = item->getEntityAdapter();
+            if(graphml && graphml->isNodeAdapter()){
                 nodeSelected_signalUpdates();
             }
 
@@ -3001,6 +2727,7 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
     if(selectedIDs.count() == 1){
         GraphMLItem* item = getGraphMLItemFromID(selectedIDs.last());
         if(item){
+            qCritical() << "SET TABLE";
             setAttributeModel(item);
             return;
         }
@@ -3327,10 +3054,10 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     if(isMainView()){
         connect(item, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
         connect(item, SIGNAL(GraphMLItem_TriggerAction(QString)),  this, SLOT(triggerAction(QString)));
-        connect(item, SIGNAL(GraphMLItem_SetGraphMLData(int,QString,QString)), this, SIGNAL(view_SetGraphMLData(int,QString,QString)));
-        connect(item, SIGNAL(GraphMLItem_SetGraphMLData(int,QString,qreal)), this, SIGNAL(view_SetGraphMLData(int,QString,qreal)));
-        connect(item, SIGNAL(GraphMLItem_DestructGraphMLData(GraphML*,QString)), this, SIGNAL(view_DestructGraphMLData(GraphML*,QString)));
-        connect(item, SIGNAL(GraphMLItem_ConstructGraphMLData(GraphML*,QString)), this, SIGNAL(view_ConstructGraphMLData(GraphML*,QString)));
+
+        connect(item, SIGNAL(GraphMLItem_SetData(int,QString,QVariant)), this, SIGNAL(view_SetData(int,QString,QVariant)));
+        connect(item, SIGNAL(GraphMLItem_DestructData(GraphML*,QString)), this, SIGNAL(view_DestructData(GraphML*,QString)));
+        connect(item, SIGNAL(GraphMLItem_ConstructData(GraphML*,QString)), this, SIGNAL(view_ConstructData(GraphML*,QString)));
 
 
         if(item->isEntityItem()){
@@ -3376,7 +3103,7 @@ EdgeItem *NodeView::getEdgeItemFromGraphMLItem(GraphMLItem *item)
 
 void NodeView::storeGraphMLItemInHash(GraphMLItem *item)
 {
-    GraphML* graphML = item->getGraphML();
+    EntityAdapter* graphML = item->getEntityAdapter();
     if(graphML){
         int ID = graphML->getID();
         if(guiItems.contains(ID)){
@@ -3546,20 +3273,21 @@ void NodeView::edgeConstructed_signalUpdates()
 
 bool NodeView::isItemsAncestorSelected(GraphMLItem *selectedItem)
 {
-    GraphML* selectedModelItem = selectedItem->getGraphML();
-    if(selectedModelItem->isEdge()){
+    EntityAdapter* selectedModelItem = selectedItem->getEntityAdapter();
+    if(selectedModelItem->isEdgeAdapter()){
         return false;
     }
     Node* selectedModelNode = (Node*) selectedModelItem;
 
     foreach(int ID, selectedIDs){
         GraphMLItem* item = getGraphMLItemFromID(ID);
-        GraphML* modelItem = item->getGraphML();
+        EntityAdapter* modelItem = item->getEntityAdapter();
 
-        if(modelItem && modelItem->isNode()){
-            Node* modelNode = (Node*)modelItem;
-            if(modelNode->isAncestorOf(selectedModelNode)){
-                return true;
+        if(modelItem && modelItem->isNodeAdapter()){
+            if(controller){
+                if(controller->isNodeAncestor(modelItem->getID(), selectedItem->getID())){
+                    return true;
+                }
             }
         }
     }
@@ -3568,12 +3296,12 @@ bool NodeView::isItemsAncestorSelected(GraphMLItem *selectedItem)
 
 void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
 {
-    GraphML* selectedModelItem = selectedItem->getGraphML();
-    if(selectedModelItem->isEdge()){
+    EntityAdapter* selectedModelItem = selectedItem->getEntityAdapter();
+    if(selectedModelItem->isEdgeAdapter()){
         return;
     }
 
-    Node* selectedModelNode = (Node*) selectedModelItem;
+    NodeAdapter* selectedModelNode = (NodeAdapter*) selectedModelItem;
 
 
     QList<int> currentlySelectedIDs;
@@ -3582,22 +3310,19 @@ void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
     while(!currentlySelectedIDs.isEmpty()){
         int ID = currentlySelectedIDs.takeFirst();
         GraphMLItem* item = getGraphMLItemFromID(ID);
-        GraphML* modelItem = item->getGraphML();
+        EntityAdapter* modelItem  = item->getEntityAdapter();
 
         bool remove = false;
-        if(modelItem && modelItem->isNode()){
-            Node* modelNode = (Node*)modelItem;
-            remove = selectedModelNode->isAncestorOf(modelNode);
-        }else if(modelItem && modelItem->isEdge()){
-            Edge* modelEdge = (Edge*)modelItem;
-            Node* src = modelEdge->getSource();
-            Node* dst = modelEdge->getDestination();
-            remove = selectedModelNode == src || selectedModelNode == dst;
-        }
-        if(remove){
-            selectedIDs.removeAll(ID);
-            item->setSelected(false);
-        }
+                if(modelItem && modelItem->isNodeAdapter()){
+                    remove = controller->isNodeAncestor(selectedModelItem->getID(), modelItem->getID());
+                }else if(modelItem && modelItem->isEdgeAdapter()){
+                    EdgeAdapter* modelEdge = (EdgeAdapter*)modelItem;
+                    remove = selectedModelItem->getID() == modelEdge->getSourceID() || selectedModelItem->getID() == modelEdge->getDestinationID();
+                }
+                if(remove){
+                    selectedIDs.removeAll(ID);
+                    item->setSelected(false);
+                }
     }
 }
 
@@ -3646,11 +3371,11 @@ NodeItem *NodeView::getNodeItemFromID(int ID)
     }
 }
 
-QString NodeView::getGraphMLData(int ID, QString key)
+QString NodeView::getData(int ID, QString key)
 {
     QString value;
     if(controller){
-        value = controller->getGraphMLData(ID, key);
+        value = controller->getData(ID, key);
     }
     return value;
 }
@@ -4249,6 +3974,7 @@ void NodeView::redo()
  */
 void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 {
+    qCritical() << "APPEND TO SELECTION";
     if (!item) {
         return;
     }
@@ -4292,9 +4018,9 @@ void NodeView::moveSelection(QPointF delta)
 
         foreach(int ID, selectedIDs){
             GraphMLItem* graphMLItem = getGraphMLItemFromID(ID);
-            GraphML* graphml = graphMLItem->getGraphML();
+            EntityAdapter* graphml = graphMLItem->getEntityAdapter();
 
-            if(graphml && graphml->isNode()){
+            if(graphml && graphml->isNodeAdapter()){
                 EntityItem* entityItem = (EntityItem*) graphMLItem;
                 QPointF resultingPosition = entityItem->pos() + delta;
 
@@ -4556,9 +4282,8 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
     //updateActionsEnabledStates(); - don't need this here; already done in appendToSelection
 }
 
-
-void NodeView::constructGUIItem(GraphML *item){
-    //Check if we should construct this item.
+void NodeView::constructEntityItem(EntityAdapter *item)
+{
     if(isSubView() && controller){
         int ID = item->getID();
         if(!controller->areIDsInSameBranch(centralizedItemID, ID)){
@@ -4566,15 +4291,175 @@ void NodeView::constructGUIItem(GraphML *item){
         }
     }
 
-    if(item->isNode()){
-        view_ConstructNodeGUI((Node*)item);
-    }else if(item->isEdge()){
-        view_ConstructEdgeGUI((Edge*)item);
+    if(item->isNodeAdapter()){
+        constructNodeItem((NodeAdapter*) item);
+    }else if(item->isEdgeAdapter()){
+        constructEdgeItem((EdgeAdapter*) item);
+    }
+}
+
+void NodeView::destructEntityItem(EntityAdapter *item)
+{
+    qCritical() << "DESTRUCTING";
+
+    destructGUIItem(item->getID(), GraphML::GK_NONE);
+}
+
+void NodeView::constructNodeItem(NodeAdapter *node)
+{
+    if(!node){
+        return;
+    }
+
+    int ID = node->getID();
+
+    NODE_CLASS nodeClass = node->getNodeClass();
+
+    //Check if we should construct this Node.
+    if(nonDrawnNodeClasses.contains(nodeClass)){
+        qCritical() << "NOT DRAWING THIS ITEM";
+        noGUINodeIDHash[ID] = nodeClass;
+        return;
+    }
+
+
+    GraphMLItem* visibleParentItem = 0;
+
+    int depth = 1;
+    while(true){
+        int parentID = node->getParentNodeID(depth);
+        qCritical() << parentID;
+        if(parentID == -1){
+            break;
+        }
+        GraphMLItem* parentItem = getGraphMLItemFromID(parentID);
+        if(parentItem){
+            visibleParentItem = parentItem;
+            break;
+        }
+        depth ++;
+    }
+
+    NodeItem* parentNodeItem = 0;
+    EntityItem* parentEntityItem = 0;
+
+    if(visibleParentItem){
+        if(visibleParentItem->isEntityItem()){
+            parentEntityItem = (EntityItem*) visibleParentItem;
+        }else if(visibleParentItem->isNodeItem()){
+            parentNodeItem = (NodeItem*) visibleParentItem;
+        }
+    }
+
+    qCritical() << "VISIBLE PARENT ITEM: " << visibleParentItem;
+
+    QVariant xVal = node->getDataValue("x");
+    QVariant yVal = node->getDataValue("y");
+    QVariant wVal = node->getDataValue("width");
+    QVariant hVal = node->getDataValue("height");
+
+    QString nodeKind = node->getDataValue("kind").toString();
+
+    if(xVal.isValid() && yVal.isValid() && wVal.isValid() && hVal.isValid()){
+        qreal x = xVal.toDouble();
+        qreal y = yVal.toDouble();
+        QPointF newCenterPos;
+        if(x == -1 && yVal == -1){
+            qreal w = wVal.toDouble();
+            qreal h = hVal.toDouble();
+            QRectF itemRect;
+            itemRect.setWidth(w);
+            itemRect.setHeight(h);
+            newCenterPos = parentNodeItem->getNextChildPos(itemRect);
+        }
+        //Set the New Position.
+        emit view_SetDataValue(ID, "x", newCenterPos.x());
+        emit view_SetDataValue(ID, "y", newCenterPos.y());
+    }
+
+    bool expandItem = toolbarDockConstruction || importFromJenkins;
+
+    //Expand Parent
+    if(expandItem && parentEntityItem){
+        emit view_SetData(parentEntityItem->getID(), "isExpanded", true);
+    }
+
+    GraphMLItem* item = 0;
+
+    if(nodeKind == "Model"){
+        item = new ModelItem(node, this);
+    }else if(node->isAspect()){
+        VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
+        qCritical() << aspect;
+        qCritical() << parentEntityItem;
+        if(aspect == VAP_NONE){
+            EntityItem* eItem = new EntityItem(node, parentNodeItem);
+            eItem->handleExpandState(true);
+            item = eItem;
+
+            item->setNodeView(this);
+        }else{
+            item = new AspectItem(node, visibleParentItem, aspect);
+        }
+    }else{
+        item =  new EntityItem(node, parentNodeItem);
+    }
+
+    //Do Generic connect stuffs.
+    if(item){
+        storeGraphMLItemInHash(item);
+
+        if(!scene()->items().contains(item)){
+            scene()->addItem(item);
+        }
+
+        connectGraphMLItemToController(item);
+
+        EntityItem* entityItem = (EntityItem*) item;
+        NodeItem* nodeItem = (NodeItem*) item;
+
+        if(item->isEntityItem()){
+            QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
+            QPair<QString, bool> statusField = getStatusDataKeyName(entityItem);
+
+            entityItem->setNodeConnectable(isNodeVisuallyConnectable(node));
+            entityItem->setEditableField(editField.first, editField.second);
+            entityItem->setStatusField(statusField.first, statusField.second);
+        }
+
+        if(item->isNodeItem()){
+            // send/do necessary signals/updates when a node has been constructed
+            nodeConstructed_signalUpdates(nodeItem);
+        }
+
+        // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
+        // the node's label is automatically selected and editable
+        if (toolbarDockConstruction && SELECT_ON_CONSTRUCTION) {
+            clearSelection(true, false);
+            // why not update menu/toolbar actions here?
+            appendToSelection(item, false);
+
+            if(item->isEntityItem()){
+                //Set new Label for EntityItem.
+                entityItem->setNewLabel();
+            }
+            centerOnItem();
+            toolbarDockConstruction = false;
+        }
+
+        if(isSubView() && item->getID() == centralizedItemID){
+            appendToSelection(item);
+        }
+
+        if(parentNodeItem){
+            parentNodeItem->updateSizeInModel();
+        }
     }
 }
 
 
-void NodeView::destructGUIItem(int ID, GraphML::KIND kind)
+
+void NodeView::destructGUIItem(int ID, GraphML::GRAPHML_KIND kind)
 {
     Q_UNUSED(kind);
     removeGraphMLItemFromHash(ID);
@@ -4821,4 +4706,99 @@ void NodeView::selectModel()
         appendToSelection(getModelItem());
     }
 }
+
+void NodeView::constructEdgeItem(EdgeAdapter *edge)
+{
+    int srcID = edge->getSourceID();
+    int dstID = edge->getDestinationID();
+
+    EntityItem* srcGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromID(srcID));
+    EntityItem* dstGUI = getEntityItemFromGraphMLItem(getGraphMLItemFromID(dstID));
+
+    if(!(srcGUI && dstGUI)){
+        return;
+    }
+
+    Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
+    if(edgeClass == Edge::EC_DEPLOYMENT){
+        updateDeployment = true;
+    }
+
+    // need to put this back here
+    edgeConstructed_signalUpdates();
+
+    if(srcGUI != 0 && dstGUI != 0){
+        // send necessary signals when an edge has been constucted
+        //We have valid GUI elements for both ends of this edge.
+        bool constructEdge = true;
+
+        if(edgeClass == Edge::EC_DEFINITION){
+            srcGUI->updateDefinition();
+            definitionIDs[edge->getID()] = srcID;
+            constructEdge = false;
+        }
+
+        if(edgeClass == Edge::EC_ASSEMBLY){
+            constructEdge = true;
+        }
+
+        if(!constructEdge){
+            // added this here otherwise constructed edge with no gui is not stored
+            noGuiIDHash[edge->getID()] = "Edge";
+            return;
+        }
+
+        EntityItem* parent = getSharedEntityItemParent(srcGUI, dstGUI);
+
+        if(!parent){
+            //GETTING MODEL!?
+            qCritical() << "using Model.";
+            return;
+            //parent = getModelItem();
+
+            // added this here otherwise constructed edge with no gui is not stored
+            noGuiIDHash[edge->getID()] = "Edge";
+        }
+
+        //Construct a new GUI Element for this edge.
+        EdgeItem* nodeEdge = new EdgeItem(edge, parent, srcGUI, dstGUI);
+        //EdgeItem2* nodeEdge2 = new EdgeItem2(edge,parent, srcGUI, dstGUI);
+
+
+        //Add it to the list of EdgeItems in the Model.
+        storeGraphMLItemInHash(nodeEdge);
+        //storeGraphMLItemInHash(nodeEdge2);
+
+        //connectGraphMLItemToController(nodeEdge);
+        connectGraphMLItemToController(nodeEdge);
+
+        /*
+        // show hidden hardware node before the new edge is added to scene
+        // sort its parent so that the newly visible hardware node can be easily seen
+        if (dstGUI->getGraphML()->getDataValue("kind") == "HardwareNode") {
+            dstGUI->setHidden(false);
+            if (dstGUI->getParentEntityItem()) {
+                dstGUI->getParentEntityItem()->newSort();
+            }
+        }
+        */
+
+
+        if(!scene()->items().contains(nodeEdge)){
+            //   //Add to model.
+            scene()->addItem(nodeEdge);
+        }
+
+
+
+
+    }else{
+        //Store non created edge ID
+        noGuiIDHash[edge->getID()] = "Edge";
+        if(!IS_SUB_VIEW){
+            qCritical() << "GraphMLController::model_MakeEdge << Cannot add Edge as Source or Destination is null!";
+        }
+    }
+}
+
 

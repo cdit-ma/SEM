@@ -6,6 +6,7 @@
 #include "../../Model/edge.h"
 #include "editabletextitem.h"
 #include "entityitem.h"
+#include "../../Controller/edgeadapter.h"
 #include <QBrush>
 #include <QPen>
 class EdgeItemArrow;
@@ -16,7 +17,7 @@ public:
     enum LINE_SIDE{LEFT,RIGHT};
     enum LINE_DIRECTION{UP, DOWN};
 
-    EdgeItem(Edge *edge, EntityItem *parent, EntityItem* source, EntityItem* destination);
+    EdgeItem(EdgeAdapter *edge, EntityItem *parent, EntityItem* source, EntityItem* destination);
     ~EdgeItem();
 
     QRectF boundingRect() const;
@@ -29,7 +30,7 @@ public:
     EntityItem* getSource();
     EntityItem* getDestination();
 
-    Edge* getEdge();
+    EdgeAdapter* getEdgeAdapter();
 
 
     void setHovered(bool highlighted);
@@ -44,7 +45,7 @@ private slots:
     void setVisible(bool visible);
     void updateVisibleParents();
     void updateLine();
-    void graphMLDataChanged(GraphMLData * data);
+    void dataChanged(QString keyName, QVariant data);
     void zoomChanged(qreal zoom);
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event);

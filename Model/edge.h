@@ -1,13 +1,12 @@
 #ifndef EDGE_H
 #define EDGE_H
 
-#include "graphml.h"
-#include <QString>
+#include "entity.h"
 
 class Node;
 
 //Base class of an edge object (Treated as Class for extended Node Types). Extends the GraphML Abstract Base Class.
-class Edge: public GraphML{
+class Edge: public Entity{
     Q_OBJECT
 public:
     enum EDGE_CLASS{EC_NONE, EC_AGGREGATE, EC_ASSEMBLY, EC_DATA, EC_DEFINITION, EC_DEPLOYMENT, EC_WORKFLOW};

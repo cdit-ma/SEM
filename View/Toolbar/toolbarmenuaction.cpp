@@ -20,7 +20,7 @@ ToolbarMenuAction::ToolbarMenuAction(NodeItem* item, ToolbarMenuAction* parent_a
         if (nodeItem->isEntityItem()) {
             EntityItem* entityItem = (EntityItem*)nodeItem;
             setIcon(QIcon(QPixmap::fromImage(QImage(":/" + entityItem->getIconPrefix() + "/" + entityItem->getIconURL()))));
-            setText(nodeItem->getGraphMLDataValue("label"));
+            setText(nodeItem->getDataValue("label").toString());
         } else {
             setIcon(QIcon(QPixmap::fromImage(QImage(":/Items/" + actionKind))));
             setText(actionKind);

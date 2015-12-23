@@ -91,8 +91,8 @@ QString SearchItem::getKeyValue(QString key)
             return "";
         }
     }
-    if (graphMLItem && graphMLItem->getGraphML()) {
-        return graphMLItem->getGraphML()->getDataValue("kind");
+    if (graphMLItem && graphMLItem->getEntityAdapter()) {
+        return graphMLItem->getEntityAdapter()->getDataValue("kind").toString();
     }
     return "";
 }
@@ -242,7 +242,7 @@ void SearchItem::setupLayout()
     QHBoxLayout* layout = new QHBoxLayout();
 
     // setup icon label
-    QString graphMLKind = graphMLItem->getGraphML()->getDataValue("kind");
+    QString graphMLKind = graphMLItem->getEntityAdapter()->getDataValue("kind").toString();
     QPixmap pixmap(":/Items/" + graphMLKind + ".png");
     pixmap = pixmap.scaled(ICON_SIZE, ICON_SIZE, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
@@ -252,7 +252,7 @@ void SearchItem::setupLayout()
     iconLabel->setPixmap(pixmap);
 
     // setup entity label
-    QString graphMLLabel = graphMLItem->getGraphML()->getDataValue("label");
+    QString graphMLLabel = graphMLItem->getEntityAdapter()->getDataValue("label").toString();
     entityLabel = new QLabel(this);
     entityLabel->setFixedSize(MIN_WIDTH * LABEL_RATIO, iconLabel->height());
     entityLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -368,10 +368,10 @@ void SearchItem::getDataValues()
         return;
     }
     // retrieve the values for the stored data keys
-    GraphML* gml = graphMLItem->getGraphML();
+    EntityAdapter* gml= graphMLItem->getEntityAdapter();
     if (gml) {
         foreach (QString key, dataValueBoxes.keys()) {
-            QString value = gml->getDataValue(key);
+            QString value = gml->getDataValue(key).toString();
             dataValueLabels[key]->setText(value);
             dataValueBoxes[key]->setVisible(!value.isEmpty());
         }
@@ -393,8 +393,8 @@ QString SearchItem::getItemLocation()
     NodeItem* parentItem = nodeItem->getParentNodeItem();
     QString objectLocation = entityLabel->text();
 
-    while (parentItem && parentItem->getGraphML()) {
-        QString parentLabel = parentItem->getGraphML()->getDataValue("label");
+    while (parentItem && parentItem->getEntityAdapter()) {
+        QString parentLabel = parentItem->getEntityAdapter()->getDataValue("label").toString();
         if (parentLabel.isEmpty()) {
             parentLabel = parentItem->getNodeKind();
         }

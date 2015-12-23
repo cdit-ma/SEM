@@ -2,6 +2,8 @@
 #define NEWCONTROLLER_H
 #include "../Model/model.h"
 #include "../Model/workerdefinitions.h"
+#include "entityadapter.h"
+
 
 #include <QStack>
 #include <QFile>
@@ -13,6 +15,7 @@
 #include "../Model/Edges/dataedge.h"
 #include "../Model/Edges/assemblyedge.h"
 #include "../Model/Edges/aggregateedge.h"
+#include "../Model/data.h"
 
 
 enum ACTION_TYPE {CONSTRUCTED, DESTRUCTED, MODIFIED};
@@ -24,18 +27,19 @@ struct EdgeTemp
     qint64 lineNumber;
     QString source;
     QString target;
-    QList<GraphMLData *> data;
+    QList<Data *> data;
 };
 
 struct ViewSignal{
     int id;
-    GraphML::KIND kind;
+    GraphML::GRAPHML_KIND kind;
     bool constructSignal;
 };
 
+
 struct ActionItem{
-    ACTION_TYPE actionType;
-    GraphML::KIND actionKind;
+    GraphML::GRAPHML_KIND actionKind;
+    Entity::ENTITY_KIND entityKind;
     int parentID;
     QString itemLabel;
     QString itemKind;
@@ -44,6 +48,7 @@ struct ActionItem{
     int ID;
     QString keyName;
     QString dataValue;
+    QVariant dataValue2;
     qreal dataValueNum;
     bool isNum;
     QString removedXML;
@@ -100,7 +105,7 @@ public:
     QStringList getValidKeyValues(QString keyName, int ID =-1);
     QList<int> getNodesOfKind(QString kind, int ID=-1, int depth=-1);
 
-    QString getGraphMLData(int ID, QString key);
+    QString getData(int ID, QString key);
 
     bool canCopy(QList<int> selection);
     bool canGetCPP(QList<int> selection);
@@ -113,6 +118,8 @@ public:
     bool canUndo();
     bool canRedo();
     bool canLocalDeploy();
+
+    bool isNodeAncestor(int ID, int ID2);
 
     bool areIDsInSameBranch(int mainID, int newID);
 
@@ -141,8 +148,11 @@ signals:
     void controller_ExportedProject(QString);
     void controller_ExportedSnippet(QString parentName, QString snippetXMLData);
 
-    void controller_GraphMLConstructed(GraphML*);
-    void controller_GraphMLDestructed(int ID, GraphML::KIND kind);
+    void controller_GraphMLConstructed(Entity*);
+    void controller_EntityConstructed(EntityAdapter*);
+    void controller_EntityDestructed(EntityAdapter*);
+
+    void controller_GraphMLDestructed(int ID, GraphML::GRAPHML_KIND kind);
 
     void controller_ProjectNameChanged(QString);
 
@@ -175,8 +185,7 @@ private slots:
     void constructEdge(int srcID, int dstID, bool reverseOkay = false);
     void destructEdge(int srcID, int dstID);
     void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);
-    void setGraphMLData(int parentID, QString keyName, QString dataValue);
-    void setGraphMLData(int parentID, QString keyName, qreal dataValue);
+    void setData(int parentID, QString keyName, QVariant dataValue);
 
     void constructDestructMultipleEdges(QList<int> srcIDs, int dstID);
     void constructDestructEdges(QList<int> destruct_srcIDs, QList<int> destruct_dstIDs, QList<int> construct_srcIDs, int dstID);
@@ -212,15 +221,14 @@ private:
 
 
 private:
-    void attachGraphMLData(GraphML* parent, GraphMLData* data, bool addAction = true);
-    void destructGraphMLData(GraphML* parent, QString keyName, bool addAction = true);
+    void attachData(Entity* parent, Data* data, bool addAction = true);
+    void destructData(Entity* parent, QString keyName, bool addAction = true);
 
 
 private:
     void setViewSignalsEnabled(bool enabled, bool sendQueuedSignals = true);
     void updateUndoRedoState();
-    void setGraphMLData(GraphML* parent, QString keyName, qreal dataValue, bool addAction = true);
-    void setGraphMLData(GraphML* parent, QString keyName, QString dataValue, bool addAction = true);
+    void setData(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
     void clearUndoHistory();
 
     bool askQuestion(MESSAGE_TYPE, QString questionTitle, QString question, int ID=-1);
@@ -239,8 +247,8 @@ private:
     QString _exportGraphMLDocument(Node* node, bool allEdges = false, bool GUI_USED=false);
 
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
-    GraphMLKey* constructGraphMLKey(QString name, QString type, QString forString);
-    GraphMLKey* getGraphMLKeyFromName(QString name);
+    Key* constructKey(QString name, QVariant::Type type,  Entity::ENTITY_KIND entityKind);
+    Key* getKeyFromName(QString name);
 
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
     int constructDefinitionRelative(Node* parent, Node* definition, bool instance = true);
@@ -250,24 +258,23 @@ private:
     QString getXMLAttribute(QXmlStreamReader& xml, QString attributeID);
 
     Edge* _constructEdge(Node* source, Node* destination);
-    Edge* constructEdgeWithGraphMLData(Node* source, Node* destination, QList<GraphMLData*> data = QList<GraphMLData*>(), int previousID=-1);
-    Edge* constructEdgeWithData(Node* source, Node* destination, QList<QStringList> data = QList<QStringList>(), int previousID=-1);
+    Edge* constructEdgeWithData(Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
+    Edge* constructEdgeWithStrData(Node* source, Node* destination, QList<QStringList> data = QList<QStringList>(), int previousID=-1);
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash
-    void storeGraphMLInHash(GraphML* item);
-    GraphML* getGraphMLFromHash(int ID);
+    void storeGraphMLInHash(Entity*item);
+    Entity*getGraphMLFromHash(int ID);
     void removeGraphMLFromHash(int ID);
 
-    //Constructs a Node using the attached GraphMLData elements. Attachs the node to the parentNode provided.
-    Node* constructChildNode(Node* parentNode, QList<GraphMLData*> dataToAttach);
+    //Constructs a Node using the attached Data elements. Attachs the node to the parentNode provided.
+    Node* constructChildNode(Node* parentNode, QList<Data*> dataToAttach);
 
-    Node* constructNode(QList<GraphMLData*> data);
-
-    QString getMD5OfData(const QList<GraphMLData*> dataToAttach);
+    Node* constructNode(QList<Data*> data);
 
 
 
-    QList<GraphMLData*> cloneNodesData(Node* original, bool ignoreVisuals=true);
+
+    QList<Data*> cloneNodesData(Node* original, bool ignoreVisuals=true);
     Node* cloneNode(Node* original, Node* parent, bool ignoreVisuals=true);
     //Sets up an Undo state for the creation of the Node/Edge, and tells the View To construct a GUI Element.
     void constructNodeGUI(Node* node);
@@ -278,20 +285,20 @@ private:
     bool destructEdge(Edge* edge, bool addAction = true);
 
 
-    //Constructs a Vector of basic GraphMLData entities required for creating a Node.
-    QList<GraphMLData*> constructGraphMLDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1));
-    QList<GraphMLData*> constructPositionDataVector(QPointF point);
+    //Constructs a Vector of basic Data entities required for creating a Node.
+    QList<Data*> constructDataVector(QString nodeKind, QPointF relativePosition = QPointF(-1,-1));
+    QList<Data*> constructPositionDataVector(QPointF point);
     QString getNodeInstanceKind(Node* definition);
     QString getNodeImplKind(Node* definition);
 
     //Constructs and setups all required Entities inside the Model Node.
     void setupModel();
 
-    //Binds matching GraphMLData elements from the Node Child, to the Node Definition.
-    void bindGraphMLData(Node* definition, Node* instance);
-    void unbindGraphMLData(Node* definition, Node* instance);
+    //Binds matching Data elements from the Node Child, to the Node Definition.
+    void bindData(Node* definition, Node* instance);
+    void unbindData(Node* definition, Node* instance);
 
-    //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all GraphMLData which isn't protected.
+    //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all Data which isn't protected.
     bool setupDefinitionRelationship(Node* definition, Node* node, bool instance);
     bool teardownDefinitionRelationship(Node* definition, Node* node, bool instance);
 
@@ -346,17 +353,17 @@ private:
     Node* constructTypedNode(QString nodeKind, bool isTemporary = false, QString nodeType="", QString nodeLabel="");
     Edge* constructTypedEdge(Node* src, Node* dst, Edge::EDGE_CLASS edgeClass);
 
-    //Attach GraphMLData('s) to the GraphML item.
-    bool _attachGraphMLData(GraphML* item, GraphMLData* data, bool addAction = true);
-    bool _attachGraphMLData(GraphML* item, QList<QStringList> dataList, bool addAction = true);
-    bool _attachGraphMLData(GraphML* item, QList<GraphMLData*> dataList, bool addAction = true);
+    //Attach Data('s) to the GraphML item.
+    bool _attachData(Entity* item, Data* data, bool addAction = true);
+    bool _attachData(Entity* item, QList<QStringList> dataList, bool addAction = true);
+    bool _attachData(Entity* item, QList<Data*> dataList, bool addAction = true);
     
 
 
     Process* getWorkerProcess(QString workerName, QString operationName);
 
     //Gets the GraphML/Node/Edge Item from the ID provided. Checks the Hash.
-    GraphML* getGraphMLFromID(int ID);
+    Entity*getGraphMLFromID(int ID);
     Node* getNodeFromID(int ID);
     Node* getFirstNodeFromList(QList<int> ID);
     Edge* getEdgeFromID(int ID);
@@ -369,18 +376,18 @@ private:
     void linkOldIDToID(int oldID, int newID);
 
     //Casts the GraphML as a Node/Edge, will be NULL if not a Node/Edge
-    Node* getNodeFromGraphML(GraphML* item);
-    Edge* getEdgeFromGraphML(GraphML* item);
+    Node* getNodeFromGraphML(Entity* item);
+    Edge* getEdgeFromGraphML(Entity* item);
 
-    bool isInModel(GraphML* item);
-    bool isInWorkerDefinitions(GraphML* item);
+    bool isInModel(Entity* item);
+    bool isInWorkerDefinitions(Entity* item);
 
     QString getSysOS();
     QString getSysArch();
     QString getSysOSVersion();
 
     //Stores the GraphMLKey's used by the Model.
-    QList<GraphMLKey*> keys;
+    QList<Key*> keys;
 
     //Stores the list of nodeID's and EdgeID's inside the Hash.
     QList<int> nodeIDs;
@@ -391,12 +398,13 @@ private:
     QStack<ActionItem> redoActionStack;
 
     QString getTimeStamp();
-    QString getDataValueFromKeyName(QList<GraphMLData*> dataList, QString keyName);
-    void setDataValueFromKeyName(QList<GraphMLData*> dataList, QString keyName, QString value);
+    QString getDataValueFromKeyName(QList<Data*> dataList, QString keyName);
+    void setDataValueFromKeyName(QList<Data*> dataList, QString keyName, QString value);
 
     //Provides a lookup for IDs.
     QHash<int, int> IDLookupHash;
-    QHash<int, GraphML*> IDLookupGraphMLHash;
+    QHash<int, Entity*> IDLookupGraphMLHash;
+    QHash<int, EntityAdapter*> ID2AdapterHash;
     QHash<int, QString> reverseKindLookup;
 
     QHash<QString, QList<int> > kindLookup;

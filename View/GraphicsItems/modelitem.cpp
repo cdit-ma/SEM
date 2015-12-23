@@ -3,7 +3,7 @@
 #include <QPainter>
 #include <QDebug>
 
-ModelItem::ModelItem(Node *node, NodeView *view):  GraphMLItem(node, 0, GraphMLItem::MODEL_ITEM)
+ModelItem::ModelItem(NodeAdapter *node, NodeView *view):  GraphMLItem(node, 0, GraphMLItem::MODEL_ITEM)
 {
 
     modelCircleColor = Qt::gray;
@@ -36,8 +36,8 @@ ModelItem::ModelItem(Node *node, NodeView *view):  GraphMLItem(node, 0, GraphMLI
 
     setFlag(QGraphicsItem::ItemIsFocusable);
 
-    setupGraphMLDataConnections();
-    updateFromGraphMLData();
+    setupDataConnections();
+    updateFromData();
 
     setNodeView(view);
 }
@@ -175,20 +175,15 @@ void ModelItem::setInSubView(bool inSubview)
     GraphMLItem::setInSubView(inSubview);
 }
 
-void ModelItem::graphMLDataChanged(GraphMLData *data)
+void ModelItem::dataChanged(QString keyName, QVariant data)
 {
-    if(getGraphML() && data){
-        QString keyName = data->getKeyName();
-        QString value = data->getValue();
-        if(keyName == "label"){
-
-            if(topInputItem){
-                topInputItem->setValue(value);
-            }
-        }else if(keyName == "middleware"){
-            if(bottomInputItem){
-                bottomInputItem->setValue(value);
-            }
+    if(keyName == "label"){
+        if(topInputItem){
+            topInputItem->setValue(data.toString());
+        }
+    }else if(keyName == "middleware"){
+        if(bottomInputItem){
+            bottomInputItem->setValue(data.toString());
         }
     }
 }
@@ -228,9 +223,9 @@ void ModelItem::dataChanged(QString dataValue)
             keyValue = "middleware";
         }
 
-        if(!getGraphML()->getData(keyValue)->isProtected()){
+        if(!getEntityAdapter()->isDataProtected(keyValue)){
             emit GraphMLItem_TriggerAction("Set New Data Value");
-            emit GraphMLItem_SetGraphMLData(getID(), keyValue, dataValue);
+            emit GraphMLItem_SetData(getID(), keyValue, dataValue);
         }
     }
 }
@@ -258,11 +253,11 @@ void ModelItem::themeChanged(VIEW_THEME theme)
 }
 
 
-void ModelItem::setupGraphMLDataConnections()
+void ModelItem::setupDataConnections()
 {
     //Don't care about X,Y,W,H etc
-    connectToGraphMLData("label");
-    connectToGraphMLData("middleware");
+    listenForData("label");
+    listenForData("middleware");
 }
 
 void ModelItem::setupInputItems()
