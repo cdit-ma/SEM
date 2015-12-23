@@ -22,7 +22,7 @@ public:
     void setSelected(bool b);
     bool isSelected();
 
-    void setEnabled(bool enable, bool repaint = false);
+    void setEnabled(bool enable);
     bool isEnabled();
 
     DockScrollArea* getDock();
@@ -34,38 +34,22 @@ public:
 
     MedeaWindow* getParentWindow();
 
-protected:
-    void paintEvent(QPaintEvent* e);
-
 public slots:
     void dockButtonPressed(DOCK_TYPE type);
 
 private:
-    void setColor(int state, bool needRepaint = false);
+    void updateStyleSheet(int state);
 
     DockScrollArea* dock;
     MedeaWindow* parentWindow;
 
-    QColor brushColor;
-    QColor defaultBrushColor;
-    QColor disabledBrushColor;
-    QColor selectedBrushColor;
-
-    QColor penColor;
-    QColor defaultPenColor;
-    QColor disabledPenColor;
-    QColor selectedPenColor;
-
-    int penWidth;
-    int defaultPenWidth;
-    int selectedPenWidth;
-
     DOCK_TYPE dockType;
     QString kind;
-    int width;
-    int height;
+
     bool selected;
     bool enabled;
+
+    QString fixedStyleSheet;
 
 };
 

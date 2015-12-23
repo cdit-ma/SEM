@@ -123,10 +123,10 @@ void SearchDialog::show()
 {
     if (searchItems.isEmpty()) {
         notFoundLabel->show();
-        resize(minimumSize());
+        //resize(minimumSize());
     } else {
         notFoundLabel->hide();
-        resize(MAX_ITEM_WIDTH, height());
+        //resize(MAX_ITEM_WIDTH, height());
     }
     sortItems();
     QDialog::show();

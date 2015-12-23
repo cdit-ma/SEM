@@ -1758,7 +1758,7 @@ void NewController::removeGraphMLFromHash(int ID)
             }
         }
 
-        qCritical() << "Removing Item ID: " << ID;
+        //qCritical() << "Removing Item ID: " << ID;
 
         if(reverseKindLookup.contains(ID)){
             QString kind = reverseKindLookup[ID];
@@ -2438,7 +2438,7 @@ bool NewController::destructNode(Node *node, bool addAction)
     while(node->hasChildren()){
         Node* child = node->getFirstChild();
         if(child){
-            qCritical() << "Removing Child: " << child;
+            //qCritical() << "Removing Child: " << child;
             destructNode(child, false);
         }
     }

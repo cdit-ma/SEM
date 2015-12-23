@@ -671,7 +671,9 @@ void ToolbarWidget::setupAggregateList()
 
     QList<NodeItem*> agrregates = nodeView->getEntityItemsOfKind("Aggregate");
     foreach (NodeItem* aggregate, agrregates) {
-        constructSubMenuAction(aggregate, menu);
+        if (aggregate->getID() != nodeItem->getID()) {
+            constructSubMenuAction(aggregate, menu);
+        }
     }
 }
 

@@ -228,7 +228,7 @@ void FunctionsDockScrollArea::insertDockNodeItem(DockNodeItem *dockItem)
 void FunctionsDockScrollArea::dockClosed()
 {
     // for now, the moment this dock is closed, it is also disabled
-    setDockEnabled(false, true);
+    setDockEnabled(false);
 }
 
 

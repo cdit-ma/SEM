@@ -8,8 +8,8 @@
 #include <QDebug>
 #include <qmath.h>
 
-#define MAX_LABEL_LENGTH 15
-#define BUTTON_WIDTH 141
+#define MAX_LABEL_LENGTH 12
+#define BUTTON_WIDTH 131
 
 
 /**
@@ -95,6 +95,19 @@ NodeItem* DockScrollArea::getCurrentNodeItem()
         return currentNodeItem;
     }
     return 0;
+}
+
+
+/**
+ * @brief DockScrollArea::getCurrentNodeKind
+ * @return
+ */
+QString DockScrollArea::getCurrentNodeKind()
+{
+   if (getCurrentNodeItem()) {
+        return getCurrentNodeItem()->getNodeKind();
+   }
+   return "";
 }
 
 
@@ -296,13 +309,19 @@ void DockScrollArea::removeDockNodeItem(DockNodeItem* dockItem, bool deleteItem)
  * @brief DockScrollArea::getDockNodeItem
  * This checks if this dock already contains a dock node item attached to nodeID.
  * DockNodeItems are indexed by their kind instead of their ID for the parts list.
- * @param nodeID
+ * @param dockItemID
  * @return
  */
-DockNodeItem* DockScrollArea::getDockNodeItem(QString nodeID)
+DockNodeItem* DockScrollArea::getDockNodeItem(QString dockItemID)
 {
-    if (dockNodeItems.contains(nodeID)) {
-        return dockNodeItems[nodeID];
+    foreach (QString itemID, dockNodeItems.keys()) {
+        if (itemID == dockItemID) {
+            return dockNodeItems[itemID];
+        }
+    }
+
+    if (dockNodeItems.contains(dockItemID)) {
+        return dockNodeItems[dockItemID];
     }
     return 0;
 }
@@ -336,10 +355,10 @@ bool DockScrollArea::isDockEnabled()
  * @brief DockScrollArea::setDockEnabled
  * @param enabled
  */
-void DockScrollArea::setDockEnabled(bool enabled, bool repaint)
+void DockScrollArea::setDockEnabled(bool enabled)
 {
     if (getParentButton()) {
-        getParentButton()->setEnabled(enabled, repaint);
+        getParentButton()->setEnabled(enabled);
     }
 }
 
@@ -455,8 +474,8 @@ void DockScrollArea::setupLayout()
     infoLabel = new QLabel(this);
     infoLabel->setTextFormat(Qt::RichText);
     infoLabel->setAlignment(Qt::AlignCenter);
-    infoLabel->setFixedWidth(BUTTON_WIDTH);
-    infoLabel->setStyleSheet("padding: 10px 0px; font-style: italic;");
+    infoLabel->setFixedWidth(BUTTON_WIDTH + 10);
+    infoLabel->setStyleSheet("padding: 10px; font-style: italic;");
     setInfoText(defaultInfoText);
 
     QGroupBox* groupBox = new QGroupBox(0);
@@ -466,7 +485,6 @@ void DockScrollArea::setupLayout()
                             "background-color: rgba(255,255,255,0);"
                             "border: 0px;"
                             "padding: 10px;"
-                            "padding-left: 15px;"
                             "}");
 
     layout = new QVBoxLayout(this);
@@ -481,10 +499,10 @@ void DockScrollArea::setupLayout()
     setWidgetResizable(true);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setStyleSheet("QScrollArea {"
+                  "padding: 10px 0px;"
                   "background-color: rgba(250,250,250,240);"
                   "border: 0px;"
-                  "border-radius: 10px;"
-                  "padding-top: 10px;"
+                  //"border-radius: 10px;"
                   "}");
 }
 

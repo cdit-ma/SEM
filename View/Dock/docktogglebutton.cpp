@@ -7,9 +7,12 @@
 #include <QPainterPath>
 #include <QBrush>
 
+
+#define BUTTON_WIDTH 40
+#define BUTTON_HEIGHT 40
+
 #define DEFAULT 0
-#define DISABLED 1
-#define SELECTED 2
+#define SELECTED 1
 
 
 /**
@@ -23,67 +26,51 @@ DockToggleButton::DockToggleButton(DOCK_TYPE type, MedeaWindow *window, QWidget 
 {
     dock = 0;
     parentWindow = window;
+    dockType = type;
 
     selected = false;
     enabled = false;
 
-    defaultPenWidth = 1;
-    selectedPenWidth = 2;
-    penWidth = defaultPenWidth;
-
-    defaultPenColor = QColor(100,100,100);
-    disabledPenColor = QColor(150,150,150);
-    selectedPenColor = Qt::blue;
-    penColor = defaultPenColor;
-
-    defaultBrushColor = QColor(230, 230, 230);
-    disabledBrushColor = QColor(180, 180, 180);
-    selectedBrushColor = Qt::white;
-    brushColor = defaultBrushColor;
-
-    dockType = type;
-    width = 40;
-    height = 40;
-
-    setFixedSize(width + 10, height + 10);
-
-    QVBoxLayout* vLayout = new QVBoxLayout();
-    QLabel* imageLabel = new QLabel(this);
-
-    QSize pixmapSize = size() * 0.6;
-    QSize labelSize = size();
-
+    QSize buttonSize(BUTTON_WIDTH + 4, BUTTON_HEIGHT + 4);
+    QSize pixmapSize = buttonSize * 0.6;
     QPixmap pixmap;
+
     switch (type) {
     case PARTS_DOCK:
         pixmap = QPixmap::fromImage(QImage(":/Actions/Parts.png"));
+        setToolTip("Parts Dock");
         break;
     case DEFINITIONS_DOCK:
         pixmap = QPixmap::fromImage(QImage(":/Actions/Definition.png"));
         pixmapSize /= 1.5;
+        setToolTip("Definitions Dock");
         break;
     case FUNCTIONS_DOCK:
         pixmap = QPixmap::fromImage(QImage(":/Actions/Function.png"));
         pixmapSize /= 1.25;
+        setToolTip("Functions Dock");
         break;
     case HARDWARE_DOCK:
         pixmap = QPixmap::fromImage(QImage(":/Items/HardwareNode.png"));
+        setToolTip("Hardware Dock");
         break;
     default:
         break;
     }
 
-    pixmap = pixmap.scaled(pixmapSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    fixedStyleSheet = "QPushButton:hover {"
+                      "background-color: white;"
+                      "}"
+                      "QPushButton:disabled {"
+                      "border: 1px solid rgb(140,140,140);"
+                      "background-color: rgb(150,150,150);"
+                      "}"
+                      "QToolTip{ background: white; }";
 
-    imageLabel->setFixedSize(labelSize);
-    imageLabel->setPixmap(pixmap);
-    imageLabel->setAlignment(Qt::AlignCenter);
-
-    vLayout->setMargin(0);
-    vLayout->addWidget(imageLabel);
-
-    setLayout(vLayout);
-    setStyleSheet("padding: 0px 5px 5px 0px;");
+    setFixedSize(buttonSize);
+    setIconSize(pixmapSize);
+    setIcon(QIcon(pixmap));
+    updateStyleSheet(DEFAULT);
 
     // make connections
     connect(this, SIGNAL(pressed()), window, SLOT(dockButtonPressed()));
@@ -119,38 +106,6 @@ bool DockToggleButton::isSelected()
 void DockToggleButton::setSelected(bool b)
 {
     selected = b;
-}
-
-
-/**
- * @brief DockToggleButton::paintEvent
- * Draw the button as an ellipse and change its color when it's selected.
- * The rect used for the path is moved to (1,1) so that the full pen width is painted.
- * @param e
- */
-void DockToggleButton::paintEvent(QPaintEvent *e)
-{
-    QPainter painter(this);
-    QPen pen(penColor);
-    QBrush brush(brushColor);
-
-    pen.setWidth(penWidth);
-    painter.setPen(pen);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-
-    // fill the ellipse
-    QPainterPath path1;
-    QRectF rect1(1, 1, width+1, height+1);
-    path1.addEllipse(rect1);
-    painter.fillPath(path1, brush);
-
-    // draw the ellipse
-    QRectF rect2(1, 1, width+2, height+2);
-    QPainterPath path2;
-    path2.addEllipse(rect2);
-    painter.drawPath(path2);
-
-    QWidget::paintEvent(e);
 }
 
 
@@ -203,7 +158,7 @@ void DockToggleButton::setDock(DockScrollArea* dock)
  */
 int DockToggleButton::getWidth()
 {
-    return width;
+    return BUTTON_WIDTH;
 }
 
 
@@ -249,9 +204,9 @@ void DockToggleButton::dockButtonPressed(DOCK_TYPE type)
     // update the button's color if the state is changed
     if (needUpdate) {
         if (selected) {
-            setColor(SELECTED, true);
+            updateStyleSheet(SELECTED);
         } else {
-            setColor(DEFAULT, true);
+            updateStyleSheet(DEFAULT);
         }
         // show/hide the attached dock
         getDock()->setDockOpen(selected);
@@ -260,35 +215,33 @@ void DockToggleButton::dockButtonPressed(DOCK_TYPE type)
 
 
 /**
- * @brief DockToggleButton::setColor
- * This sets the colour of this toggle button depending on its current state.
- * Repaint the button only if a repaint is required.
+ * @brief DockToggleButton::updateStyleSheet
  * @param state
- * @param needRepaint
  */
-void DockToggleButton::setColor(int state, bool needRepaint)
+void DockToggleButton::updateStyleSheet(int state)
 {
-    penWidth = defaultPenWidth;
+    QString borderStyleSheet;
+    QString backgroundStyleSheet;
 
     switch (state) {
     case DEFAULT:
-        penColor = defaultPenColor;
-        brushColor = defaultBrushColor;
-        break;
-    case DISABLED:
-        penColor = disabledPenColor;
-        brushColor = disabledBrushColor;
+        borderStyleSheet = "border: 1px solid rgb(100,100,100);";
+        backgroundStyleSheet = "background-color: rgb(235,235,235);";
         break;
     case SELECTED:
-        penWidth = selectedPenWidth;
-        penColor = selectedPenColor;
-        brushColor = selectedBrushColor;
+        borderStyleSheet = "border: 2px solid rgb(50,50,250);";
+        backgroundStyleSheet = "background-color: rgb(240,240,240);";
         break;
+    default:
+        return;
     }
 
-    if (needRepaint) {
-        repaint();
-    }
+    setStyleSheet("QPushButton {"
+                  "padding: 0px;"
+                  //"border-radius: 22px;"
+                  + borderStyleSheet
+                  + backgroundStyleSheet +
+                  "}" + fixedStyleSheet);
 }
 
 
@@ -299,20 +252,19 @@ void DockToggleButton::setColor(int state, bool needRepaint)
  * @param enable
  * @param repaint
  */
-void DockToggleButton::setEnabled(bool enable, bool repaint)
+void DockToggleButton::setEnabled(bool enable)
 {
     if (enable) {
         if (selected) {
-            setColor(SELECTED, repaint);
+            updateStyleSheet(SELECTED);
         } else {
-            setColor(DEFAULT, repaint);
+            updateStyleSheet(DEFAULT);
         }
     } else {
         hideDock();
         setSelected(false);
-        setColor(DISABLED, repaint);
     }
-	
+
 	enabled = enable;
     QPushButton::setEnabled(enabled);
 }

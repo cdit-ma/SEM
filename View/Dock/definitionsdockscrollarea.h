@@ -11,6 +11,7 @@ public:
     explicit DefinitionsDockScrollArea(QString label, NodeView *view, DockToggleButton *parent = 0);
 
     QList<DockNodeItem*> getDockNodeItems();
+    QList<DockNodeItem*> getDockItemsOfKind(QString nodeKind);
 
     void connectToView();
     void nodeDeleted(QString nodeID);
@@ -21,31 +22,31 @@ public slots:
     void clear();
 
     void nodeConstructed(NodeItem* nodeItem);
-    void insertDockNodeItem(DockNodeItem* dockItem);
+
+    void sortDockItems(DockNodeItem* dockItem);
+    void sortDockLabelItems(DockNodeItem* dockItem);
 
     void dockClosed();
     void forceOpenDock(QString srcKind);
 
 private:
     void filterDock(QString nodeKind = "");
-
     void showDockItemsOfKind(QString nodeKind);
     void hideDockItems();
 
     void hideImplementedComponents();
+    void hideSelectedAggregate();
     void showChildrenOutEventPorts();
 
-    void constructLabelDockItem(EntityItem* item);
+    void constructDockLabelItem(EntityItem* item);
     void constructDockItem(EntityItem* item);
 
     QStringList definitions_notAllowedKinds;
     QStringList definitions_allowedKinds;
     QStringList definitionKinds;
 
-    QHash<QString, QVBoxLayout*> layoutItems;
     QHash<QString, QVBoxLayout*> idlLayoutItems;
-    //QHash<QString, QVBoxLayout*> componentLayoutItems;
-    QList<DockNodeItem*> tempDockItems;
+    QHash<QString, QVBoxLayout*> componentLayoutItems;
 
     QVBoxLayout* mainLayout;
     QVBoxLayout* itemsLayout;

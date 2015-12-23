@@ -1194,6 +1194,8 @@
 			<xsl:variable name="parameters" select="$processNode/gml:data[@key=$transformNodeParametersKey]/text()" />  
 			<xsl:variable name="inputParameters" select="$processNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'InputParameter']/.." />
 			<xsl:variable name="returnParameter" select="$processNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'ReturnParameter']/.." />
+			<xsl:variable name="interfaceDefs" select="/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'InterfaceDefinitions']/.." />
+			<xsl:variable name="behaviourDefs" select="/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'BehaviourDefinitions']/.." />
 				
 			<xsl:choose>
 			<!-- Process VectorOperation, using input and return parameters -->		
@@ -1201,15 +1203,10 @@
 				<xsl:value-of select="concat('// Process ', $processName, ' ',$worker, ' ', $opName, '&#xA;')" />
 
 				<!-- Find the type of the elements of the vector -->
-				<xsl:variable name="interfaceDefs" select="/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'InterfaceDefinitions']/.." />
-
 				<xsl:variable name="sourceDataId" select="/descendant::*/gml:edge[@target=$inputParameters[1]/@id]/@source" />
 				<xsl:variable name="inputTypeNodeId" select="/descendant::*/gml:edge[@source=$sourceDataId]/@target" />
 				<xsl:variable name="inputTypeNode" select="$interfaceDefs/descendant::*/gml:node[@id=$inputTypeNodeId]" />
-
 				<xsl:variable name="returnDataId" select="/descendant::*/gml:edge[@source=$returnParameter[1]/@id]/@target" />
-				<xsl:variable name="outputTypeNodeId" select="/descendant::*/gml:edge[@target=$returnDataId]/@source" />
-				<xsl:variable name="outputTypeNode" select="$interfaceDefs/descendant::*/gml:node[@id=$outputTypeNodeId]" />
 						
 				<xsl:variable name="elementType" >
 					<xsl:choose>
@@ -1241,13 +1238,6 @@
 					<xsl:call-template name="Execution_InputParameter">
 						<xsl:with-param name="inputParameter" select="$inputParameters[1]"/>
 						<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
-						<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey"/>
-						<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
-						<xsl:with-param name="transformNodeOperationKey" select="$transformNodeOperationKey"/>
-						<xsl:with-param name="transformNodeComplexityKey" select="$transformNodeComplexityKey"/>
-						<xsl:with-param name="transformNodeComplexityParametersKey" select="$transformNodeComplexityParametersKey"/>
-						<xsl:with-param name="transformNodeParametersKey" select="$transformNodeParametersKey"/>
-						<xsl:with-param name="transformNodeCodeKey" select="$transformNodeCodeKey"/>
 						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
 						<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
 					</xsl:call-template>
@@ -1258,13 +1248,6 @@
 					<xsl:call-template name="Execution_InputParameter">
 						<xsl:with-param name="inputParameter" select="$inputParameters[2]"/>
 						<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
-						<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey"/>
-						<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
-						<xsl:with-param name="transformNodeOperationKey" select="$transformNodeOperationKey"/>
-						<xsl:with-param name="transformNodeComplexityKey" select="$transformNodeComplexityKey"/>
-						<xsl:with-param name="transformNodeComplexityParametersKey" select="$transformNodeComplexityParametersKey"/>
-						<xsl:with-param name="transformNodeParametersKey" select="$transformNodeParametersKey"/>
-						<xsl:with-param name="transformNodeCodeKey" select="$transformNodeCodeKey"/>
 						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
 						<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
 					</xsl:call-template>
@@ -1275,36 +1258,40 @@
 					<xsl:call-template name="Execution_InputParameter">
 						<xsl:with-param name="inputParameter" select="$inputParameters[3]"/>
 						<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
-						<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey"/>
-						<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
-						<xsl:with-param name="transformNodeOperationKey" select="$transformNodeOperationKey"/>
-						<xsl:with-param name="transformNodeComplexityKey" select="$transformNodeComplexityKey"/>
-						<xsl:with-param name="transformNodeComplexityParametersKey" select="$transformNodeComplexityParametersKey"/>
-						<xsl:with-param name="transformNodeParametersKey" select="$transformNodeParametersKey"/>
-						<xsl:with-param name="transformNodeCodeKey" select="$transformNodeCodeKey"/>
 						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
 						<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
 					</xsl:call-template>
 				</xsl:variable>
 				
+				<!-- Check which operator to use, . if ev | -&gt; if _var -->
+				<xsl:variable name="op">
+					<xsl:choose>
+					<xsl:when test="starts-with($param1, 'ev-&gt;')">
+						<xsl:value-of select="'.'" />
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of select="'-&gt;'" />
+					</xsl:otherwise>
+					</xsl:choose>
+				</xsl:variable>
+				
 				<!-- Write functions get, set, length, remove, clear --> 
 				<xsl:choose>
 				<xsl:when test="$opName = 'get'">
-					<xsl:variable name="returnNode" select="$returnParameter[1]" />
 					<xsl:call-template name="MemberType">
 						<xsl:with-param name="type" select="$elementType"/>
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
-					<xsl:value-of select="concat(' __', $returnNode/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnNode), '__ = ')" />
+					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = ')" />
 					<xsl:call-template name="MemberInitType">
 						<xsl:with-param name="type" select="$elementType"/>
 					</xsl:call-template>
 					<xsl:value-of select="';&#xA;'" />
 					<!-- test if index is within length -->
-					<xsl:value-of select="concat('if ( ', $param2, '&lt; 0 || ', $param2, '&gt;= ', $param1, '-&gt;length())&#xA;')" />
-					<xsl:value-of select="'   ACE_DEBUG ((LM_DEBUG, ACE_TEXT (&quot;VectorOperation index outside vector length&quot;) ));&#xA;'" />
+					<xsl:value-of select="concat('if ( ', $param2, '&lt; 0 || ', $param2, '&gt;= ', $param1, $op, 'length())&#xA;')" />
+					<xsl:value-of select="'   ACE_DEBUG ((LM_ERROR, ACE_TEXT (&quot;VectorOperation index outside vector length\n&quot;) ));&#xA;'" />
 					<xsl:value-of select="'else {&#xA;   '" />
-					<xsl:value-of select="concat(' __', $returnNode/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnNode), '__ = '  )" />
+					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = '  )" />
 					<!-- cast result to the appropriate type -->
 					<xsl:value-of select="'('" />
 					<xsl:call-template name="MemberType">
@@ -1328,10 +1315,10 @@
 				</xsl:when>
 				<xsl:when test="$opName = 'set'">
 					<!-- test if length is within bounds -->
-					<xsl:value-of select="concat('if ( ', $param2, '&gt;= ', $param1, '-&gt;maximum())&#xA;')" />
-					<xsl:value-of select="'   ACE_DEBUG ((LM_DEBUG, ACE_TEXT (&quot;VectorOperation exceeds bounded size&quot;) ));&#xA;'" />
+					<xsl:value-of select="concat('if ( ', $param2, '&gt;= ', $param1, $op, 'maximum())&#xA;')" />
+					<xsl:value-of select="'   ACE_DEBUG ((LM_ERROR, ACE_TEXT (&quot;VectorOperation exceeds bounded size\n&quot;) ));&#xA;'" />
 					<xsl:value-of select="'else {&#xA;'" />
-					<xsl:value-of select="concat('   if (', $param2, '&gt;= ', $param1, '-&gt;length() ) ', $param1, '-&gt;length (', $param2, '+ 1);&#xA;' ) " />
+					<xsl:value-of select="concat('   if (', $param2, '&gt;= ', $param1, $op, 'length() ) ', $param1, $op, 'length (', $param2, '+ 1);&#xA;' ) " />
 					<xsl:value-of select="concat('   ', $param1, '[')" />
 					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'(CORBA::ULong) '" />
@@ -1344,12 +1331,11 @@
 					<xsl:value-of select="'}&#xA;'" />
 				</xsl:when>
 				<xsl:when test="$opName = 'length'">				
-					<xsl:variable name="returnNode" select="$returnParameter[1]" />
 					<xsl:call-template name="MemberType">
 						<xsl:with-param name="type" select="$elementType"/>
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
-					<xsl:value-of select="concat(' __', $returnNode/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnNode), '__ = '  )" />
+					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = '  )" />
 					<!-- cast result to the appropriate type -->
 					<xsl:value-of select="'('" />
 						<xsl:call-template name="MemberType">
@@ -1357,24 +1343,23 @@
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
 					<xsl:value-of select="') '" />
-					<xsl:value-of select="concat($param1, '-&gt;length ();&#xA;')" />
+					<xsl:value-of select="concat($param1, $op, 'length ();&#xA;')" />
 				</xsl:when>
 				<xsl:when test="$opName = 'remove'">
-					<xsl:variable name="returnNode" select="$returnParameter[1]" />
 					<xsl:call-template name="MemberType">
 						<xsl:with-param name="type" select="$elementType"/>
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
-					<xsl:value-of select="concat(' __', $returnNode/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnNode), '__ = ')" />
+					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = ')" />
 					<xsl:call-template name="MemberInitType">
 						<xsl:with-param name="type" select="$elementType"/>
 					</xsl:call-template>
 					<xsl:value-of select="';&#xA;'" />
 					<!-- test if index is within length -->
-					<xsl:value-of select="concat('if ( ', $param2, '&lt; 0 || ', $param2, '&gt;= ', $param1, '-&gt;length())&#xA;')" />
-					<xsl:value-of select="'   ACE_DEBUG ((LM_DEBUG, ACE_TEXT (&quot;VectorOperation index outside vector length&quot;) ));&#xA;'" />
+					<xsl:value-of select="concat('if ( ', $param2, '&lt; 0 || ', $param2, '&gt;= ', $param1, $op, 'length())&#xA;')" />
+					<xsl:value-of select="'   ACE_DEBUG ((LM_ERROR, ACE_TEXT (&quot;VectorOperation index outside vector length\n&quot;) ));&#xA;'" />
 					<xsl:value-of select="'else {&#xA;   '" />
-					<xsl:value-of select="concat(' __', $returnNode/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnNode), '__ = '  )" />
+					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = '  )" />
 					<!-- cast result to the appropriate type -->
 					<xsl:value-of select="'('" />
 						<xsl:call-template name="MemberType">
@@ -1394,29 +1379,28 @@
 						<xsl:value-of select="'.in ()'" />
 					</xsl:if>
 					<xsl:value-of select="');&#xA;'" />
-					<xsl:value-of select="concat('   for (CORBA::ULong i = ', $param2, '; i &lt; ', $param1, '-&gt;length() - 1; i++)&#xA;')" />
+					<xsl:value-of select="concat('   for (CORBA::ULong i = ', $param2, '; i &lt; ', $param1, $op, 'length() - 1; i++)&#xA;')" />
 					<xsl:value-of select="concat('      ', $param1, '[i] = ', $param1, '[i + 1];&#xA;')" />
-					<xsl:value-of select="concat('   ', $param1, '-&gt;length(', $param1, '-&gt;length() - 1);&#xA;')" />
+					<xsl:value-of select="concat('   ', $param1, $op, 'length(', $param1, $op, 'length() - 1);&#xA;')" />
 					<xsl:value-of select="'}&#xA;'" />
 				</xsl:when>
 				<xsl:when test="$opName = 'clear'">
-					<xsl:value-of select="concat($param1, '-&gt;length (0);&#xA;')" />
+					<xsl:value-of select="concat($param1, $op, 'length (0);&#xA;')" />
 				</xsl:when>
 				<xsl:otherwise>
 					<xsl:value-of select="'// unknown worker operation &#xA;'" />
 				</xsl:otherwise>
 				</xsl:choose>
 			</xsl:when>
-			
-			<!-- Process with Worker operation, using input and return parameters -->		
+
+			<!-- Process Worker defined operation, using input and return parameters -->		
 			<xsl:when test="$opName and not($opName = '') and ( count($inputParameters) &gt; 0 or count($returnParameter) &gt; 0 )" >
 				<xsl:if test="count($returnParameter) &gt; 0">
-					<xsl:variable name="returnNode" select="$returnParameter[1]" />
 					<xsl:call-template name="MemberType">
-						<xsl:with-param name="type" select="$returnNode/gml:data[@key=$transformNodeTypeKey]/text()"/>
+						<xsl:with-param name="type" select="$returnParameter[1]/gml:data[@key=$transformNodeTypeKey]/text()"/>
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
-					<xsl:value-of select="concat(' __', $returnNode/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnNode), '__ = '  )" />
+					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = '  )" />
 				</xsl:if>
 				<!-- changed to use workerID rather than process label -->
 				<xsl:choose>
@@ -1431,14 +1415,11 @@
 						<xsl:with-param name="inputParameters" select="$inputParameters"/>
 						<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
 						<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey"/>
+						<xsl:with-param name="transformNodeWorkerKey" select="$transformNodeWorkerKey"/>
 						<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
-						<xsl:with-param name="transformNodeOperationKey" select="$transformNodeOperationKey"/>
-						<xsl:with-param name="transformNodeComplexityKey" select="$transformNodeComplexityKey"/>
-						<xsl:with-param name="transformNodeComplexityParametersKey" select="$transformNodeComplexityParametersKey"/>
-						<xsl:with-param name="transformNodeParametersKey" select="$transformNodeParametersKey"/>
-						<xsl:with-param name="transformNodeCodeKey" select="$transformNodeCodeKey"/>
 						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
 						<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
+						<xsl:with-param name="transformNodeTypeKey"  select="$transformNodeTypeKey" />
 				</xsl:call-template> 
 				<xsl:value-of select="');&#xA;'" />
 			</xsl:when>
@@ -1481,6 +1462,18 @@
 				<xsl:value-of select="concat($processNode/gml:data[@key=$transformNodeCodeKey]/text(), '&#xA;')" />
 			</xsl:otherwise>
 			</xsl:choose>
+							
+			<!-- if returnParameter linked to Variable, set the value now ??? tmp solution until VariableOperations are implemented ??? --> 
+			<xsl:variable name="returnDataId" select="/descendant::*/gml:edge[@source=$returnParameter[1]/@id]/@target" />
+			<xsl:for-each select="$returnDataId" >
+				<xsl:variable name="rtnDataId" select="." />
+				<xsl:variable name="outputNode" select="$behaviourDefs/descendant::*/gml:node[@id=$rtnDataId]"/>	
+				<xsl:if test="$outputNode/gml:data[@key=$transformNodeKindKey]/text() = 'Variable'">
+					<xsl:value-of select="concat('this-&gt;', $outputNode/gml:data[@key=$transformNodeLabelKey]/text(), '_ ' )" />
+					<xsl:value-of select="' = '" />
+					<xsl:value-of select="concat('__', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ ;&#xA;' )" />
+				</xsl:if>
+			</xsl:for-each>
 			<xsl:value-of select="'&#xA;'" />
 		</xsl:for-each>
 	</xsl:template>
@@ -1490,36 +1483,39 @@
 		<xsl:param name="inputParameters"/> 
 		<xsl:param name="transformNodeKindKey" />
 		<xsl:param name="transformNodeSortOrderKey" />
+		<xsl:param name="transformNodeWorkerKey" />
 		<xsl:param name="transformNodeWorkerIDKey" />
-		<xsl:param name="transformNodeOperationKey" />
-		<xsl:param name="transformNodeComplexityKey" />
-		<xsl:param name="transformNodeComplexityParametersKey" />
-		<xsl:param name="transformNodeParametersKey" />
-		<xsl:param name="transformNodeCodeKey" />
 		<xsl:param name="transformNodeLabelKey" />
 		<xsl:param name="transformNodeValueKey" />
+		<xsl:param name="transformNodeTypeKey" />
 		
+		<xsl:variable name="worker" select="$inputParameters/../../gml:data[@key=$transformNodeWorkerKey]/text()" />
 		<xsl:for-each select="$inputParameters" >
 			<xsl:sort select="./gml:data[@key=$transformNodeSortOrderKey]" data-type="number" order="ascending" /> 
 			<xsl:variable name="inputParameter" select="." />
 			<xsl:if test="position() &gt; 1" >
 				<xsl:value-of select="', '" />
 			</xsl:if>
+			<!-- deal with all the different types of parameters available -->	
+			<xsl:variable name="paramType" select="$inputParameter/gml:data[@key=$transformNodeTypeKey]/text()" />
+			<xsl:variable name="param">
+				<xsl:call-template name="Execution_InputParameter">
+					<xsl:with-param name="inputParameter" select="$inputParameter"/>
+					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
+					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+					<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
+				</xsl:call-template> 
+			</xsl:variable>
 
-			<xsl:call-template name="Execution_InputParameter">
-				<xsl:with-param name="inputParameter" select="$inputParameter"/>
-				<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
-				<xsl:with-param name="transformNodeSortOrderKey" select="$transformNodeSortOrderKey"/>
-				<xsl:with-param name="transformNodeWorkerIDKey" select="$transformNodeWorkerIDKey"/>
-				<xsl:with-param name="transformNodeOperationKey" select="$transformNodeOperationKey"/>
-				<xsl:with-param name="transformNodeComplexityKey" select="$transformNodeComplexityKey"/>
-				<xsl:with-param name="transformNodeComplexityParametersKey" select="$transformNodeComplexityParametersKey"/>
-				<xsl:with-param name="transformNodeParametersKey" select="$transformNodeParametersKey"/>
-				<xsl:with-param name="transformNodeCodeKey" select="$transformNodeCodeKey"/>
-				<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
-				<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
-			</xsl:call-template> 
-				
+			<!-- for WE_GPU processes with WE_UTE_Vector parameters, use the WE_UTE_Vector structure to pass a void pointer  -->
+			<xsl:if test="$worker = 'WE_GPU' and $paramType = 'WE_UTE_Vector'" > 
+				<xsl:value-of select="'WE_UTE_Vector'" />
+			</xsl:if>
+			<xsl:value-of select="concat('(', $param)" />
+			<xsl:if test="$paramType = 'WE_UTE_Vector' and not( starts-with($param, 'ev-&gt;') )" >
+				<xsl:value-of select="'.in()'" />
+			</xsl:if>
+			<xsl:value-of select="' )'" />
 		</xsl:for-each>	
 
 	</xsl:template>
@@ -1528,13 +1524,6 @@
 	<xsl:template name="Execution_InputParameter">
 		<xsl:param name="inputParameter"/> 
 		<xsl:param name="transformNodeKindKey" />
-		<xsl:param name="transformNodeSortOrderKey" />
-		<xsl:param name="transformNodeWorkerIDKey" />
-		<xsl:param name="transformNodeOperationKey" />
-		<xsl:param name="transformNodeComplexityKey" />
-		<xsl:param name="transformNodeComplexityParametersKey" />
-		<xsl:param name="transformNodeParametersKey" />
-		<xsl:param name="transformNodeCodeKey" />
 		<xsl:param name="transformNodeLabelKey" />
 		<xsl:param name="transformNodeValueKey" />
 		
@@ -1545,7 +1534,6 @@
 			<xsl:variable name="sourceDataEvent" select="$sourceDataNode/ancestor::*/gml:data[@key=$transformNodeKindKey][text() = 'InEventPortImpl']/.." />
 			<xsl:variable name="sourceDataVariable" select="$sourceDataNode/ancestor::*/gml:data[@key=$transformNodeKindKey][text() = 'Variable']/.." />
 
-			<!-- deal with all the different types of parameters available -->	
 			<xsl:choose>
 			<xsl:when test="$sourceDataId[1] and $sourceDataNodeKind = 'Variable'">
 				<xsl:value-of select="concat('this-&gt;', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_ ' )" />
@@ -1564,7 +1552,7 @@
 			</xsl:when>
 			
 			<xsl:when test="$sourceDataId[1] and $sourceDataNodeKind = 'AttributeImpl'">
-				<xsl:value-of select="concat('this-&gt;', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text(), ' ()' )" />
+				<xsl:value-of select="concat('this-&gt;', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text(), ' () ' )" />
 			</xsl:when>
 
 			<xsl:when test="$sourceDataId[1] and $sourceDataNodeKind = 'ReturnParameter'">
@@ -1591,7 +1579,7 @@
 
 	</xsl:template>
 	
-	<!-- For structured data need to recures to add all levels of structre -->
+	<!-- For structured data need to recurse to add all levels of structre -->
 	 <xsl:template name="recurseParameter">
 		<xsl:param name="variableName" />
 		<xsl:param name="firstLevelAggregate" />
@@ -1644,19 +1632,24 @@
 			<xsl:when test="$instType = 'MemberInstance'">
 				<!-- Write the contents for a simple property. -->
 				<xsl:variable name="memberName" select="$instNode/gml:data[@key=$transformNodeLabelKey]/text()" />
-				<xsl:variable name="memberValue" select="$instNode/gml:data[@key=$transformNodeValueKey]/text()" />
+				<xsl:choose>
+				<xsl:when test="$level = 'top'">
+					<!-- top level aggregate members need different format -->
+					<xsl:value-of select="concat($varName, '-&gt;', $memberName, ' (')" />
+				</xsl:when>
+				<xsl:otherwise>
+					<xsl:value-of select="concat($recursed, '.', $memberName, ' = (')" />
+				</xsl:otherwise>
+				</xsl:choose>
+				<!-- check if connected to attribute or variable, otherwise use value -->
+				<xsl:call-template name="Execution_InputParameter">
+					<xsl:with-param name="inputParameter" select="$instNode"/>
+					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
+					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+					<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
+				</xsl:call-template>
 				<!-- if (value == "$TIMEOFDAY") memberValue = "ACE_OS::gettimeofday ().msec ()"; ??? -->
-				<xsl:if test="$memberValue != ''">
-					<xsl:choose>
-					<xsl:when test="$level = 'top'">
-						<!-- top level aggregate members need different format -->
-						<xsl:value-of select="concat($varName, '-&gt;', $memberName, ' (', $memberValue, ');&#xA;')" />
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:value-of select="concat($recursed, '.', $memberName, ' = ', $memberValue, ';&#xA;')" />
-					</xsl:otherwise>
-					</xsl:choose>
-				</xsl:if>
+				<xsl:value-of select="');&#xA;'" />
 			</xsl:when>
 			<xsl:when test="$instType = 'AggregateInstance'">
 				<xsl:variable name="aggregateName" select="$instNode/gml:data[@key=$transformNodeLabelKey]/text()" />
@@ -1688,36 +1681,23 @@
 			<xsl:when test="$instType = 'VectorInstance'">
 				<xsl:variable name="vectorName" select="$instNode/gml:data[@key=$transformNodeLabelKey]/text()" />
 				<xsl:variable name="vectorType" select="$instNode/gml:data[@key=$transformNodeTypeKey]/text()" />
-				<xsl:variable name="vectorValue" select="$instNode/gml:data[@key=$transformNodeValueKey]/text()" />
-				<!-- Create vector to load values -->
-				<xsl:value-of select="concat($vectorType, '* buf_', generate-id($instNode) ,' = new ::', $vectorType, '();&#xA;' )" />
-				<xsl:value-of select="concat('buf_', generate-id($instNode), '-&gt;length(', $vectorValue ,');&#xA;')" />
-				<!-- load values -->
-				<xsl:variable name="vecName" select="concat('(* buf_', generate-id($instNode) , ')')" />
-
-				<!-- recursive function -->
-				<xsl:call-template name="Execution_Vector">
-					<xsl:with-param name="processNodes" select="$instNode"/>
-					<xsl:with-param name="varName" select="$vecName" />
-					<xsl:with-param name="level" select="'top'" />
-					<xsl:with-param name="recursed" select="$vecName" />
-					<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey"/>
-					<xsl:with-param name="transformNodeValueKey" select="$transformNodeValueKey"/>
-					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
-					<xsl:with-param name="transformNodeTypeKey"  select="$transformNodeTypeKey" />
-					<xsl:with-param name="transformNodeSortOrderKey"  select="$transformNodeSortOrderKey" />
-				</xsl:call-template>
+				<!-- Create vector to load values 
+				<xsl:value-of select="concat($vectorType, '* buf_', generate-id($instNode) ,' = new ::', $vectorType, '(')"/>  -->
+				<xsl:variable name="eventParam">
+					<xsl:call-template name="Execution_InputParameter">
+						<xsl:with-param name="inputParameter" select="$instNode"/>
+						<xsl:with-param name="transformNodeKindKey" select="$transformNodeKindKey" />
+						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey"/>
+						<xsl:with-param name="transformNodeValueKey"  select="$transformNodeValueKey" />
+					</xsl:call-template>	
+				</xsl:variable>
 				<!-- assign vector to event -->
-				<!-- <xsl:choose>
-					<xsl:when test="$level = 'top'"> -->
-						<!-- top level vector members start recursing -->
-						<xsl:value-of select="concat($varName, '-&gt;', $vectorName, ' (*buf_', generate-id($instNode), ');&#xA;')" />
-				<!--	</xsl:when>
-					<xsl:otherwise> -->
-						<!-- continue recursing -->
-				<!--		<xsl:value-of select="concat($recursed, '.', $vectorName, ' = *buf_', generate-id($instNode), ';&#xA;')" />
-					</xsl:otherwise>
-				</xsl:choose> -->
+				<xsl:value-of select="concat($varName, '-&gt;', $vectorName, ' (') " />
+				<xsl:value-of select="$eventParam" />
+				<xsl:if test="not( starts-with($eventParam, 'ev-&gt;') )" >
+					<xsl:value-of select="'.in()'" />
+				</xsl:if>	
+				<xsl:value-of select="');&#xA;'" />	
 			</xsl:when>
 			</xsl:choose>
 		</xsl:for-each>

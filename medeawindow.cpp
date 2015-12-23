@@ -412,20 +412,28 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
 void MedeaWindow::initialiseGUI()
 {
     // stylesheets
-    setStyleSheet("QToolbar { border: 5px solid black; background: rgba(255,0,0,255); }"
-                  "QToolBar::separator { background-color: rgba(0,0,0,0); }"
+    setStyleSheet("QToolBar::separator { background-color: rgba(0,0,0,0); }"
                   "QToolButton {"
                   "margin: 0px 1px;"
                   "border-radius: 10px;"
-                  "border: 1px solid rgba(160,160,160,225);"
-                  "background-color: rgba(200,200,200,230);"
+                  "border: 1px solid rgb(160,160,160);"
+                  "background-color: rgb(200,200,200);"
                   "}"
                   "QToolButton:hover {"
-                  "border: 2px solid rgba(140,140,140,225);"
-                  "background-color: rgba(240,240,240,250);"
+                  "border: 2px solid rgb(140,140,140);"
+                  "background-color: rgb(240,240,240);"
                   "}"
-                  "QToolButton:disabled { background-color: rgba(150,150,150,150);}"
+                  "QToolButton:disabled { background-color: rgb(150,150,150);}"
                   "QToolButton:pressed { background-color: white; }"
+                  "QToolButton[popupMode=\"1\"] {"
+                  "padding-right: 15px;"
+                  "}"
+                  "QToolButton::menu-button {"
+                  "border-left: 1px solid rgb(150,150,150);"
+                  "border-top-right-radius: 10px;"
+                  "border-bottom-right-radius: 10px;"
+                  "width: 15px;"
+                  "}"
 
                   "QCheckBox { padding: 0px 10px 0px 0px; }"
                   "QCheckBox::indicator { width: 25px; height: 25px; }"
@@ -494,7 +502,6 @@ void MedeaWindow::initialiseGUI()
                               "QPushButton::menu-indicator{ image: none; }");
 
     projectName->setFlat(true);
-    //projectName->setStyleSheet("color: white; font-size: 16px; text-align: left; padding: 8px;");
     projectName->setStyleSheet("color: black; font-size: 16px; text-align: left; padding: 8px;");
     projectName->setFixedWidth(200);
 
@@ -837,11 +844,12 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     functionsDock = new FunctionsDockScrollArea("Functions", nodeView, functionsButton);
 
     // width of the containers are fixed
-    boxWidth = (partsButton->getWidth()*4) + 30;
+    boxWidth = (partsButton->getWidth()*4) + 19;
 
     // set buttonBox's size and get rid of its border
-    dockButtonsBox->setStyleSheet("border: 0px; padding: 0px 7px;");
-    dockButtonsBox->setFixedSize(boxWidth, 60);
+    QSize buttonsBoxSize(boxWidth + 1, 48);
+    dockButtonsBox->setStyleSheet("margin: 0px; border: 0px; padding: 0px;");
+    dockButtonsBox->setFixedSize(buttonsBoxSize);
 
     // set dock's size
     partsDock->setFixedWidth(boxWidth);
@@ -863,18 +871,19 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
 
     // remove extra space in layouts
     dockButtonsHlayout->setMargin(0);
-    dockButtonsHlayout->setSpacing(0);
+    dockButtonsHlayout->setSpacing(1);
     dockAreaLayout->setMargin(0);
     dockAreaLayout->setSpacing(0);
     dockDialogLayout->setMargin(8);
     dockDialogLayout->setSpacing(0);
+    dockLayout->setMargin(0);
+    dockLayout->setSpacing(0);
 
     // add widgets to/and layouts
     dockButtonsHlayout->addWidget(partsButton);
     dockButtonsHlayout->addWidget(definitionsButton);
     dockButtonsHlayout->addWidget(functionsButton);
     dockButtonsHlayout->addWidget(hardwareNodesButton);
-    dockButtonsHlayout->setAlignment(Qt::AlignHCenter);
     dockButtonsBox->setLayout(dockButtonsHlayout);
 
     dockLayout->addWidget(dockButtonsBox);
@@ -1136,8 +1145,8 @@ void MedeaWindow::setupToolbar()
     toolbarButton = new QToolButton(this);
     toolbarButton->setFixedSize(TOOLBAR_BUTTON_WIDTH, TOOLBAR_BUTTON_HEIGHT / 2);
     toolbarButton->setCheckable(true);
-    toolbarButton->setStyleSheet("QToolButton{ background-color: rgba(200,200,200,225); border-radius: 5px; }"
-                                 "QToolButton:hover{ background-color: rgba(240,240,240,250); }");
+    toolbarButton->setStyleSheet("QToolButton{ background-color: rgb(200,200,200); border-radius: 5px; }"
+                                 "QToolButton:hover{ background-color: rgb(240,240,240); }");
 
     QImage expandImage(":/Actions/Arrow_Down");
     QImage contractImage(":/Actions/Arrow_Up");
@@ -1203,10 +1212,18 @@ void MedeaWindow::setupToolbar()
 }
 
 
+/**
+ * @brief MedeaWindow::constructToolbarButton
+ * @param toolbar
+ * @param action
+ * @param actionName
+ * @return
+ */
 bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QString actionName)
 {
-    if(toolbar && action && actionName != ""){
-        if(actionName == TOOLBAR_BACK || actionName == TOOLBAR_FORWARD || actionName == TOOLBAR_ZOOM_TO_FIT){
+    if (toolbar && action && actionName != "") {
+
+        if (actionName == TOOLBAR_BACK || actionName == TOOLBAR_FORWARD || actionName == TOOLBAR_ZOOM_TO_FIT) {
             return false;
         }
 
@@ -1215,16 +1232,34 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
 
         ActionButton* actionButton = new ActionButton(action);
         actionButton->setFixedSize(buttonSize);
+
         QAction* toolAction = toolbar->addWidget(actionButton);
-        if(!toolbarActionLookup.contains(actionName)){
+        if (!toolbarActionLookup.contains(actionName)) {
             toolbarActionLookup[actionName] = toolAction;
-        }else{
+        } else {
             qCritical() << "Duplicate Actions";
         }
-        if(!toolbarButtonLookup.contains(actionName)){
+        if (!toolbarButtonLookup.contains(actionName)) {
             toolbarButtonLookup[actionName] = actionButton;
-        }else{
+        } else {
             qCritical() << "Duplicate Actions";
+        }
+
+        // setup a menu for the replicate button to allow the user to enter the replicate count
+        if (actionName == TOOLBAR_REPLICATE) {
+            QMenu* buttonMenu = new QMenu(this);
+            QLineEdit* le = new QLineEdit(this);
+            QWidgetAction* action = new QWidgetAction(this);
+            action->setDefaultWidget(le);
+            buttonMenu->addAction(action);
+            actionButton->setMenu(buttonMenu);
+            actionButton->setPopupMode(QToolButton::MenuButtonPopup);
+            actionButton->setFixedWidth(55);
+            le->setFixedSize(47,25);
+            le->setFont(guiFont);
+            connect(le, SIGNAL(returnPressed()), buttonMenu, SLOT(hide()));
+            // connect to the replicate slot in the view here
+            //connect(le, SIGNAL(returnPressed()), ));
         }
 
         return true;
@@ -1974,14 +2009,18 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
  */
 void MedeaWindow::updateToolbar()
 {
-    int visibleActionCount = 0;
+    //int visibleActionCount = 0;
+    int totalWidth = 0;
     foreach (QAction* action, toolbar->actions()) {
         if (!action->isSeparator() && action->isVisible()) {
-            visibleActionCount++;
+            //visibleActionCount++;
+            QString actionName = toolbarActionLookup.key(action);
+            totalWidth += toolbarButtonLookup[actionName]->width();
         }
     }
 
-    QSize toolbarSize = QSize(TOOLBAR_BUTTON_WIDTH * visibleActionCount, TOOLBAR_BUTTON_HEIGHT);
+    //QSize toolbarSize = QSize(TOOLBAR_BUTTON_WIDTH * visibleActionCount + 9, TOOLBAR_BUTTON_HEIGHT);
+    QSize toolbarSize = QSize(totalWidth, TOOLBAR_BUTTON_HEIGHT);
     toolbar->setFixedSize(toolbarSize + QSize(28, TOOLBAR_GAP));
 
     if (nodeView) {

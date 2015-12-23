@@ -38,6 +38,7 @@ struct ViewSignal{
 
 
 struct ActionItem{
+    ACTION_TYPE actionType;
     GraphML::GRAPHML_KIND actionKind;
     Entity::ENTITY_KIND entityKind;
     int parentID;
