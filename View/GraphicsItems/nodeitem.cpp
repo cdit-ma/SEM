@@ -319,9 +319,7 @@ void NodeItem::adjustPos(QPointF delta)
 
 QPointF NodeItem::getNextChildPos(QRectF itemRect, QPainterPath childrenPath, bool usePainterPath)
 {
-
     bool useItemRect = !itemRect.isNull();
-    qCritical () << useItemRect;
 
     //Don't use the provided path, construct a new path.
     if(!usePainterPath){

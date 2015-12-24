@@ -1990,8 +1990,6 @@ void EntityItem::setPos(const QPointF pos)
 {
     QPointF newPos = pos;
 
-
-
     //is the new position different.
     if(newPos != this->pos()){
         prepareGeometryChange();

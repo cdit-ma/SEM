@@ -3117,7 +3117,6 @@ void NodeView::storeGraphMLItemInHash(GraphMLItem *item)
             guiItems[ID] = item;
         }
     }
-
 }
 
 void NodeView::removeGraphMLItemFromHash(int ID)
@@ -4286,6 +4285,7 @@ void NodeView::selectedInRubberBand(QPointF fromScenePoint, QPointF toScenePoint
 
 void NodeView::constructEntityItem(EntityAdapter *item)
 {
+
     if(isSubView() && controller){
         int ID = item->getID();
         if(!controller->areIDsInSameBranch(centralizedItemID, ID)){
@@ -4293,10 +4293,12 @@ void NodeView::constructEntityItem(EntityAdapter *item)
         }
     }
 
-    if(item->isNodeAdapter()){
-        constructNodeItem((NodeAdapter*) item);
-    }else if(item->isEdgeAdapter()){
-        constructEdgeItem((EdgeAdapter*) item);
+    if(controller && controller->isInModel(item->getID())){
+        if(item->isNodeAdapter()){
+            constructNodeItem((NodeAdapter*) item);
+        }else if(item->isEdgeAdapter()){
+            constructEdgeItem((EdgeAdapter*) item);
+        }
     }
 }
 
@@ -4338,6 +4340,7 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         depth ++;
     }
 
+
     NodeItem* parentNodeItem = 0;
     EntityItem* parentEntityItem = 0;
 
@@ -4352,6 +4355,8 @@ void NodeView::constructNodeItem(NodeAdapter *node)
 
 
 
+
+
     QVariant xVal = node->getDataValue("x");
     QVariant yVal = node->getDataValue("y");
     QVariant wVal = node->getDataValue("width");
@@ -4360,27 +4365,39 @@ void NodeView::constructNodeItem(NodeAdapter *node)
     QString nodeKind = node->getDataValue("kind").toString();
 
 
+    QRectF itemRect;
+    QPointF centerPoint;
+    QSizeF size;
+
+    if(parentNodeItem){
+        itemRect = parentNodeItem->getChildBoundingRect();
+    }
+
+    if(wVal.isValid() && hVal.isValid()){
+        qreal w = wVal.toDouble();
+        qreal h = hVal.toDouble();
+
+        if(w > itemRect.width()){
+            itemRect.setWidth(w);
+        }
+        if(h > itemRect.height()){
+            itemRect.setHeight(h);
+        }
+    }
+
+    size = itemRect.size();
+
     if(xVal.isValid() && yVal.isValid()){
         qreal x = xVal.toDouble();
         qreal y = yVal.toDouble();
-        QPointF newCenterPos;
+
         if(x == -1 && y == -1){
-            QRectF itemRect = QRectF();
-            if(wVal.isValid() && hVal.isValid()){
-                qreal w = wVal.toDouble();
-                qreal h = hVal.toDouble();
-
-                itemRect.setWidth(w);
-                itemRect.setHeight(h);
-            }
-
             if(parentNodeItem){
-                newCenterPos = parentNodeItem->getNextChildPos(itemRect);
-                emit view_SetData(ID, "x", newCenterPos.x());
-                emit view_SetData(ID, "y", newCenterPos.y());
+                centerPoint = parentNodeItem->getNextChildPos(itemRect);
             }
         }
     }
+
 
     bool expandItem = toolbarDockConstruction || importFromJenkins;
 
@@ -4389,24 +4406,24 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         emit view_SetData(parentEntityItem->getID(), "isExpanded", true);
     }
 
+
+
     GraphMLItem* item = 0;
 
     if(nodeKind == "Model"){
         item = new ModelItem(node, this);
     }else if(node->isAspect()){
         VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
-        if(aspect == VAP_NONE){
-            EntityItem* eItem = new EntityItem(node, parentNodeItem);
-            eItem->handleExpandState(true);
-            item = eItem;
-
-            item->setNodeView(this);
-        }else{
+        if(aspect != VAP_NONE){
             item = new AspectItem(node, visibleParentItem, aspect);
+        }else{
+            qCritical() << "Unknown Aspect!";
+            return;
         }
     }else{
         item =  new EntityItem(node, parentNodeItem);
     }
+
 
     //Do Generic connect stuffs.
     if(item){
@@ -4416,11 +4433,18 @@ void NodeView::constructNodeItem(NodeAdapter *node)
             scene()->addItem(item);
         }
 
+
         connectGraphMLItemToController(item);
+
 
         EntityItem* entityItem = (EntityItem*) item;
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
 
+        if(nodeItem){
+            nodeItem->setWidth(size.width());
+            nodeItem->setHeight(size.height());
+            nodeItem->setPos(centerPoint);
+        }
         if(item->isEntityItem()){
             QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
             QPair<QString, bool> statusField = getStatusDataKeyName(entityItem);

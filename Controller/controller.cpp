@@ -1548,6 +1548,15 @@ QString NewController::getData(int ID, QString key)
     return "";
 }
 
+bool NewController::isInModel(int ID)
+{
+    Entity* item = getGraphMLFromID(ID);
+    if(item){
+        return _isInModel(item);
+    }
+    return false;
+}
+
 
 
 
@@ -1700,7 +1709,7 @@ void NewController::storeGraphMLInHash(Entity* item)
             nodeIDs.append(ID);
 
             //Check if we should tell the views
-            sendSignal = isInModel(item);
+            sendSignal = _isInModel(item);
         }else if(item->getEntityKind() == Entity::EK_EDGE){
             edgeIDs.append(ID);
         }
@@ -1813,7 +1822,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
         return 0;
     }
 
-    bool inModel = isInModel(node);
+    bool inModel = _isInModel(node);
 
     //If we have no parentNode, attempt to attach it to the Model.
     if(!parentNode){
@@ -1868,7 +1877,7 @@ Node *NewController::constructNode(QList<Data *> nodeData)
     QList<Data*> requiredData = constructDataVector(childNodeKind);
 
 
-    bool inModel = isInModel(node);
+    bool inModel = _isInModel(node);
     if(node){
         //Attach Default Data.
         _attachData(node, requiredData, inModel);
@@ -2485,7 +2494,7 @@ bool NewController::destructNode(Node *node, bool addAction)
         QString nodeName = mCNode->getDataValue("label").toString();
         managementComponents.remove(nodeName);
     }
-    if(isInWorkerDefinitions(node)){
+    if(_isInWorkerDefinitions(node)){
         //If we are removing a Process contained in the WorkerDefinitions section.
         Process* process = dynamic_cast<Process*>(node);
         QString processName = getProcessName(process);
@@ -4164,7 +4173,7 @@ Edge *NewController::getEdgeFromGraphML(Entity *item)
     return edge;
 }
 
-bool NewController::isInModel(Entity *item)
+bool NewController::_isInModel(Entity *item)
 {
     if(model){
         return model->isAncestorOf(item);
@@ -4173,7 +4182,7 @@ bool NewController::isInModel(Entity *item)
     }
 }
 
-bool NewController::isInWorkerDefinitions(Entity *item)
+bool NewController::_isInWorkerDefinitions(Entity *item)
 {
     if(workerDefinitions){
         return workerDefinitions->isAncestorOf(item);

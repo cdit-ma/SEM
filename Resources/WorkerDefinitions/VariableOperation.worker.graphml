@@ -189,7 +189,7 @@
                     <data key="d11">true</data>
                     <data key="d13">Mainprocess</data>
                     <data key="d14">VariableOperation</data>
-                    <data key="d18">clear</data>
+                    <data key="d18">increment</data>
                     <data key="d23">true</data>
                     <data key="d24">variableoperation</data>
                     <data key="d26">Increments a number variable.</data>
