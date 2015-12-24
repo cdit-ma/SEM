@@ -21,7 +21,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
         }
     }
 
-    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded"; // << "kind";
+    hiddenKeyNames /*<< "width" << "height" <<  "x" << "y"*/ << "originalID" << "isExpanded"; // << "kind";
     permanentlyLockedKeyNames << "kind";
  	multiLineKeyNames << "code";
     setupDataBinding();
@@ -37,7 +37,6 @@ void AttributeTableModel::updatedData(QString keyName)
 {
     int position = getIndex(keyName);
     if(position != -1){
-        qCritical() << "DATA CHANGED" << keyName;
         QModelIndex indexA = this->index(position, 0, QModelIndex());
         QModelIndex indexB = this->index(position, rowCount(indexA), QModelIndex());
         emit dataChanged(indexA, indexB);

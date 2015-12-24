@@ -41,6 +41,7 @@ Key::Key(QString keyName, QVariant::Type type, Entity::ENTITY_KIND entityKind):G
     _keyName = keyName;
     _keyType = type;
     _entityKind = entityKind;
+    _isProtected = false;
 }
 
 void Key::setProtected(bool protect)
@@ -164,10 +165,11 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
 
     Entity* parentEntity = data->getParent();
     if(!parentEntity){
-        qCritical() << "NO PARENT";
         //If no parent we can't validate the data, so assume correct
         return dataValue;
     }
+
+    QString errorString = "";
 
     QString entityKind = parentEntity->getEntityName();
 
@@ -175,11 +177,20 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
     switch(_keyType){
         case QVariant::String:{
             if(dataValue.canConvert(QVariant::String)){
+                if(_keyName == "label"){
+                    QString newValue = dataValue.toString();
+                    newValue.replace(QString(" "), QString("_"));
+                    newValue.replace(QString("\t"), QString("_"));
+                    dataValue = newValue;
+                }
+
                 //Check for valid values
                 if(gotValidValues(entityKind)){
                     QStringList values = getValidValues(entityKind);
                     if(values.contains(dataValue.toString())){
                         okay = true;
+                    }else{
+                        errorString = "Value doesn't match any valid values: " + values.join(",");
                     }
                 }else{
                     okay = true;
@@ -190,8 +201,9 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
                         QStringList badChars = getInvalidCharacters(entityKind);
                         foreach(QChar qChar, dataValue.toString()){
                             if(badChars.contains(qChar)){
-                                qCritical() << "GOT BAD CHARACTERS";
+                                errorString = "Value has one or more invalid characters (" + badChars.join(" ") + ")";
                                 okay = false;
+                                break;
                             }
                         }
                     }
@@ -208,6 +220,7 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
                 if(gotValidRange(entityKind)){
                     QPair<qreal, qreal> range = getValidRange(entityKind);
                     if(range.first > newValue || range.second < newValue){
+                        errorString = "Number value is outside of valid range: " + QString::number(range.first) + " > value > " + QString::number(range.second) +"!";
                         okay = false;
                     }
                 }else{
@@ -219,12 +232,13 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
     }
     }
 
+
+
     if(okay){
-        qCritical() << "NEW IS OKAY";
         //Return new Value
         return dataValue;
     }else{
-        qCritical() << "OLD WAS OKAY";
+        emit validateError("Data Input failed Validation!",errorString, parentEntity->getID());
         //Return old value.
         return data->getValue();
     }

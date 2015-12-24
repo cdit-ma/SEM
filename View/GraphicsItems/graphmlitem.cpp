@@ -198,8 +198,6 @@ void GraphMLItem::updateFromData()
 void GraphMLItem::setData(QString keyName, QVariant value)
 {
     if(!getEntityAdapter()->isDataProtected(keyName)){
-        GraphMLItem_TriggerAction("Set New Data Value");
-        qCritical() << "SETTING VALUE: " << value;
         emit GraphMLItem_SetData(getID(), keyName, value);
     }
 }

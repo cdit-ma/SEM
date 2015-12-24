@@ -206,6 +206,8 @@ private slots:
 
     void clearHistory();
 
+    void modelLabelChanged();
+
 private:
     //Helper functions.
     bool _paste(int ID, QString xmlData, bool addAction = true);

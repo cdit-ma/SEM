@@ -6,6 +6,7 @@
 class Entity;
 class Key : public GraphML
 {
+    Q_OBJECT
 public:
     static QString getGraphMLTypeName(const QVariant::Type type);
 
@@ -42,6 +43,8 @@ public:
     QString toGraphML(int indentDepth);
     QString toString();
     bool equals(const Key* key) const;
+signals:
+    void validateError(QString, QString, int);
 private:
     void addValidValue(QString nodeKind, QString value);
     void addInvalidCharacters(QString nodeKind, QString invalidCharacter);

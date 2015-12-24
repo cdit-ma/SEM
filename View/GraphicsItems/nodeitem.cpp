@@ -177,15 +177,8 @@ void NodeItem::updateSizeInModel(bool directUpdate)
         getParentNodeItem()->updateSizeInModel(directUpdate);
     }
 
-    if(directUpdate){
-        setData("width", getWidth());
-        setData("height", getHeight());
-    }else{
-        emit GraphMLItem_SetData(getID(), "width", getWidth());
-        emit GraphMLItem_SetData(getID(), "height", getHeight());
-    }
-
-
+    setData("width", getWidth());
+    setData("height", getHeight());
 }
 
 
@@ -328,6 +321,7 @@ QPointF NodeItem::getNextChildPos(QRectF itemRect, QPainterPath childrenPath, bo
 {
 
     bool useItemRect = !itemRect.isNull();
+    qCritical () << useItemRect;
 
     //Don't use the provided path, construct a new path.
     if(!usePainterPath){
@@ -526,9 +520,9 @@ NodeItem *NodeItem::getParentNodeItem()
     return 0;
 }
 
-Node *NodeItem::getNode()
+NodeAdapter *NodeItem::getNodeAdapter()
 {
-    return (Node*)getEntityAdapter();
+    return (NodeAdapter*)getEntityAdapter();
 }
 
 NodeItem::RESIZE_TYPE NodeItem::getResizeMode()

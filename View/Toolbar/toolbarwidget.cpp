@@ -741,9 +741,10 @@ void ToolbarWidget::setupOutEventPortList()
     }
 
     QList<NodeItem*> outEventPorts;
-    NodeItem* component = nodeView->getNodeItemFromID(nodeItem->getNode()->getDefinition()->getID());
+    int definitionId = nodeItem->getNodeAdapter()->getDefinitionID();
+
+    NodeItem* component = nodeView->getNodeItemFromID(definitionId);
     if (!component) {
-        outEventPortMenuDone = false;
         return;
     }
 
@@ -1017,7 +1018,7 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
         expandContractButtonsVisible = false;
 
         // check if the selected node item has other node items connected to it (edges)
-        if (nodeItem->getNode()->getEdges(0).count() > 0) {
+        if(nodeItem->getNodeAdapter()->edgeCount() > 0){
             connectionsButton->show();
         }
 
@@ -1107,11 +1108,13 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
                 bool appendToList = true;
                 for (int j = 0; j < nodeItems.count(); j++) {
                     NodeItem* item_j = nodeItems.at(j);
-                    Node* itemNode = item_j->getNode();
-                    if (!item_j->isEntityItem() || !itemNode->canConnect(legalNode->getNode())) {
-                        appendToList = false;
-                        break;
-                    }
+                    appendToList = false;
+                    //TODO FIX THIS
+                    //Node* itemNode = item_j->getNodeAdapter();
+                    //if (!item_j->isEntityItem() || !itemNode->canConnect(legalNode->getNodeAdapter())) {
+                    //    appendToList = false;
+                    //    break;
+                    //}
                 }
                 if (appendToList && !legalNodes.contains(legalNode)) {
                     legalNodes.append(legalNode);

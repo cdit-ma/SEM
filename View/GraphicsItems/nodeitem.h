@@ -87,7 +87,7 @@ public:
 
     NodeItem* getParentNodeItem();
 
-    Node* getNode();
+    NodeAdapter *getNodeAdapter();
 
     RESIZE_TYPE getResizeMode();
     void setResizeMode(RESIZE_TYPE mode);

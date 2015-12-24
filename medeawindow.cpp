@@ -924,8 +924,6 @@ void MedeaWindow::setupSearchTools()
     searchOptionMenu = new QMenu(searchOptionButton);
     searchResults = new QDialog(this);
 
-    qCritical() << SEARCH_DIALOG_MIN_WIDTH;
-    qCritical() << SEARCH_DIALOG_MIN_HEIGHT;
     searchDialog = new SearchDialog(QSize(SEARCH_DIALOG_MIN_WIDTH, SEARCH_DIALOG_MIN_HEIGHT), this);
 
     QVBoxLayout* layout = new QVBoxLayout();

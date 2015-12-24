@@ -433,18 +433,19 @@ void DefinitionsDockScrollArea::hideSelectedAggregate()
 void DefinitionsDockScrollArea::showChildrenOutEventPorts()
 {
     NodeItem* selectedItem = getCurrentNodeItem();
-    if (getCurrentNodeID() == -1 || !selectedItem || !selectedItem->getNode()) {
+    if (getCurrentNodeID() == -1 || !selectedItem || !selectedItem->getNodeAdapter()) {
         return;
     }
 
-    Node* component = selectedItem->getNode()->getDefinition();
-    if (!component) {
+
+    int definitionID = selectedItem->getNodeAdapter()->getDefinitionID();
+    if (definitionID == -1) {
         qWarning() << "DefinitionsDockScrollArea::showChildrenOutEventPorts - Selected entity doesn't have a definition.";
         return;
     }
 
-    DockNodeItem* componentLabelItem = getDockNodeItem("Component_" + QString::number(component->getID())) ;
-    if (componentLabelItem) {
+    DockNodeItem* componentLabelItem = getDockNodeItem("Component_" + QString::number(definitionID));
+    if (componentLabelItem){
         showDockItemsOfKind("OutEventPort");
         foreach (DockNodeItem* item, getDockItemsOfKind("OutEventPort")) {
             if (item->getParentDockNodeItem() != componentLabelItem) {

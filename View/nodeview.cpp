@@ -138,7 +138,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setRubberBandMode(false);
 
     nonDrawnItemKinds << "DeploymentDefinitions";
-    nonDrawnNodeClasses << NC_DEPLOYMENT_DEFINITIONS;
+    nonDrawnNodeClasses << NC_DEPLOYMENT_DEFINITIONS << NC_WORKER_DEFINITIONS;
 
 
     // construct toolbar widget
@@ -958,6 +958,8 @@ QList<EntityItem*> NodeView::getHardwareList()
  */
 void NodeView::constructNewView(int nodeKindToCenter)
 {
+    return; //FIX THIS
+    /*
     if (getSelectedNodeID() == -1) {
         return;
     }
@@ -1000,16 +1002,21 @@ void NodeView::constructNewView(int nodeKindToCenter)
     subWindow->setNodeView(newView);
     newView->view_LockCenteredGraphML(nodeID);
 
-    Node* currentNode = nodeItem->getNode();
+    NodeItem* currentNode = nodeItem;
 
     if (controller && currentNode) {
+        //TODO FIX THIS
 
         controller->connectView(newView);
 
-        QList<Edge*> edgeList;
-        QList<Node*> constructList;
+        QList<EdgeAdapter*> edgeList;
+        QList<NodeAdapter*> constructList;
 
         // get the children
+        foreach(GraphMLItem* child, currentNode->getChildren()){
+            if(child)
+        }
+
         constructList << currentNode->getChildren();
         edgeList << currentNode->getEdges();
 
@@ -1033,6 +1040,7 @@ void NodeView::constructNewView(int nodeKindToCenter)
     } else {
         delete subWindow;
     }
+    */
 }
 QList<NodeItem *> NodeView::getEntityItemsOfKind(QString kind, int ID, int depth)
 {
@@ -1315,10 +1323,8 @@ void NodeView::showQuestion(MESSAGE_TYPE type, QString title, QString message, i
 
 void NodeView::setAttributeModel(GraphMLItem *item, bool tellSubView)
 {
-    qCritical() << item;
     if(item){
         if(currentTableID != item->getID()){
-            qCritical() << "SETTING TABLE " << item;
             currentTableID = item->getID();
             emit view_SetAttributeModel(item->getAttributeTable());
         }
@@ -1381,6 +1387,9 @@ void NodeView::scrollEvent(int delta, QPoint mouseCenter)
         //qreal viewWidth = viewport()->rect().width();
         //qreal modelVisibleWidth = getModelItem()->childrenBoundingRect().width() * zoomCurrent;
 
+		if(!getModelItem()){
+			return;
+		}
         QRectF modelRect = getModelItem()->childrenBoundingRect();
         qreal modelSize, viewSize;
 
@@ -2672,9 +2681,6 @@ void NodeView::showConnectedNodes()
 
 void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
 {
-
-    qCritical() << "ITEM SELECTED: " << item << " = " << setSelected;
-    qCritical() << item->getAttributeTable();
     int itemID = item->getID();
 
     if(setSelected){
@@ -2727,7 +2733,6 @@ void NodeView::setGraphMLItemSelected(GraphMLItem *item, bool setSelected)
     if(selectedIDs.count() == 1){
         GraphMLItem* item = getGraphMLItemFromID(selectedIDs.last());
         if(item){
-            qCritical() << "SET TABLE";
             setAttributeModel(item);
             return;
         }
@@ -3813,7 +3818,6 @@ void NodeView::alignSelectionOnGrid(NodeView::ALIGN alignment)
 
 void NodeView::setEnabled(bool enabled)
 {
-    //HIDE STUFF
     QGraphicsView::setEnabled(enabled);
 }
 
@@ -3974,7 +3978,6 @@ void NodeView::redo()
  */
 void NodeView::appendToSelection(GraphMLItem *item, bool updateActions)
 {
-    qCritical() << "APPEND TO SELECTION";
     if (!item) {
         return;
     }
@@ -4114,7 +4117,6 @@ void NodeView::moveFinished()
             NodeItem* nodeItem = (NodeItem*) graphMLItem;
 
             if(nodeItem->getParentNodeItem()){
-
                 nodeItem->getParentNodeItem()->setDrawGrid(false);
                 nodeItem->getParentNodeItem()->updateSizeInModel();
             }
@@ -4300,8 +4302,6 @@ void NodeView::constructEntityItem(EntityAdapter *item)
 
 void NodeView::destructEntityItem(EntityAdapter *item)
 {
-    qCritical() << "DESTRUCTING";
-
     destructGUIItem(item->getID(), GraphML::GK_NONE);
 }
 
@@ -4317,7 +4317,6 @@ void NodeView::constructNodeItem(NodeAdapter *node)
 
     //Check if we should construct this Node.
     if(nonDrawnNodeClasses.contains(nodeClass)){
-        qCritical() << "NOT DRAWING THIS ITEM";
         noGUINodeIDHash[ID] = nodeClass;
         return;
     }
@@ -4328,7 +4327,6 @@ void NodeView::constructNodeItem(NodeAdapter *node)
     int depth = 1;
     while(true){
         int parentID = node->getParentNodeID(depth);
-        qCritical() << parentID;
         if(parentID == -1){
             break;
         }
@@ -4343,15 +4341,16 @@ void NodeView::constructNodeItem(NodeAdapter *node)
     NodeItem* parentNodeItem = 0;
     EntityItem* parentEntityItem = 0;
 
+
+
     if(visibleParentItem){
         if(visibleParentItem->isEntityItem()){
             parentEntityItem = (EntityItem*) visibleParentItem;
-        }else if(visibleParentItem->isNodeItem()){
-            parentNodeItem = (NodeItem*) visibleParentItem;
         }
+        parentNodeItem = dynamic_cast<NodeItem*>(visibleParentItem);
     }
 
-    qCritical() << "VISIBLE PARENT ITEM: " << visibleParentItem;
+
 
     QVariant xVal = node->getDataValue("x");
     QVariant yVal = node->getDataValue("y");
@@ -4360,21 +4359,27 @@ void NodeView::constructNodeItem(NodeAdapter *node)
 
     QString nodeKind = node->getDataValue("kind").toString();
 
-    if(xVal.isValid() && yVal.isValid() && wVal.isValid() && hVal.isValid()){
+
+    if(xVal.isValid() && yVal.isValid()){
         qreal x = xVal.toDouble();
         qreal y = yVal.toDouble();
         QPointF newCenterPos;
-        if(x == -1 && yVal == -1){
-            qreal w = wVal.toDouble();
-            qreal h = hVal.toDouble();
-            QRectF itemRect;
-            itemRect.setWidth(w);
-            itemRect.setHeight(h);
-            newCenterPos = parentNodeItem->getNextChildPos(itemRect);
+        if(x == -1 && y == -1){
+            QRectF itemRect = QRectF();
+            if(wVal.isValid() && hVal.isValid()){
+                qreal w = wVal.toDouble();
+                qreal h = hVal.toDouble();
+
+                itemRect.setWidth(w);
+                itemRect.setHeight(h);
+            }
+
+            if(parentNodeItem){
+                newCenterPos = parentNodeItem->getNextChildPos(itemRect);
+                emit view_SetData(ID, "x", newCenterPos.x());
+                emit view_SetData(ID, "y", newCenterPos.y());
+            }
         }
-        //Set the New Position.
-        emit view_SetDataValue(ID, "x", newCenterPos.x());
-        emit view_SetDataValue(ID, "y", newCenterPos.y());
     }
 
     bool expandItem = toolbarDockConstruction || importFromJenkins;
@@ -4390,8 +4395,6 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         item = new ModelItem(node, this);
     }else if(node->isAspect()){
         VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
-        qCritical() << aspect;
-        qCritical() << parentEntityItem;
         if(aspect == VAP_NONE){
             EntityItem* eItem = new EntityItem(node, parentNodeItem);
             eItem->handleExpandState(true);
@@ -4416,7 +4419,7 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         connectGraphMLItemToController(item);
 
         EntityItem* entityItem = (EntityItem*) item;
-        NodeItem* nodeItem = (NodeItem*) item;
+        NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
 
         if(item->isEntityItem()){
             QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
@@ -4427,10 +4430,14 @@ void NodeView::constructNodeItem(NodeAdapter *node)
             entityItem->setStatusField(statusField.first, statusField.second);
         }
 
-        if(item->isNodeItem()){
+        if(nodeItem){
+            nodeItem->updateSizeInModel();
             // send/do necessary signals/updates when a node has been constructed
             nodeConstructed_signalUpdates(nodeItem);
         }
+
+
+
 
         // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
         // the node's label is automatically selected and editable
@@ -4449,10 +4456,6 @@ void NodeView::constructNodeItem(NodeAdapter *node)
 
         if(isSubView() && item->getID() == centralizedItemID){
             appendToSelection(item);
-        }
-
-        if(parentNodeItem){
-            parentNodeItem->updateSizeInModel();
         }
     }
 }

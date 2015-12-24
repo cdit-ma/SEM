@@ -1,7 +1,7 @@
 #include "workerdefinitions.h"
 #include "BehaviourDefinitions/workload.h"
 
-WorkerDefinitions::WorkerDefinitions(): Node(Node::NT_ASPECT)
+WorkerDefinitions::WorkerDefinitions(): Node(Node::NT_ASPECT, NC_WORKER_DEFINITIONS)
 {
     setTop(1);
 }

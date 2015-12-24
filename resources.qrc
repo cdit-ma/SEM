@@ -226,6 +226,7 @@
         <file alias="WE_CPU.png">Resources/Images/Functions/WE_CPU.png</file>
         <file alias="WE_RAM.png">Resources/Images/Functions/WE_RAM.png</file>
         <file alias="WE_UTE.png">Resources/Images/Functions/WE_UTE.png</file>
+        <file alias="VariableOperation.png">Resources/Images/Functions/VariableOperation.png</file>
     </qresource>
     <qresource prefix="/WorkerDefinitions">
         <file alias="CUTS_Client_Logger.worker.graphml">Resources/WorkerDefinitions/CUTS_Client_Logger.worker.graphml</file>
@@ -235,6 +236,7 @@
         <file alias="WE_GPU.worker.graphml">Resources/WorkerDefinitions/WE_GPU.worker.graphml</file>
         <file alias="WE_RAM.worker.graphml">Resources/WorkerDefinitions/WE_RAM.worker.graphml</file>
         <file alias="WE_UTE.worker.graphml">Resources/WorkerDefinitions/WE_UTE.worker.graphml</file>
+        <file alias="VariableOperation.worker.graphml">Resources/WorkerDefinitions/VariableOperation.worker.graphml</file>
     </qresource>
     <qresource prefix="/Sounds">
         <file alias="click.wav">Resources/Sounds/click.wav</file>

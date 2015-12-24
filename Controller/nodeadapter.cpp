@@ -55,6 +55,17 @@ bool NodeAdapter::gotDefinition()
     return false;
 }
 
+bool NodeAdapter::getDefinitionID()
+{
+    if(isValid()){
+        if(_node->getDefinition()){
+            return _node->getDefinition()->getID();
+        }
+    }
+    return -1;
+
+}
+
 bool NodeAdapter::gotInstances()
 {
     if(isValid()){

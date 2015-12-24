@@ -177,11 +177,6 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
 
     setupBrushes();
 
-
-
-
-
-
     setupChildrenViewOptionMenu();
     if (IS_HARDWARE_CLUSTER) {
         if (getNodeView()) {
@@ -189,12 +184,6 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
         } else {
             themeChanged(VT_NORMAL_THEME);
         }
-    }
-
-    if(inMainView()){
-        //Set Values Directly
-        updatePositionInModel(true);
-        updateSizeInModel(true);
     }
 
     updateTextLabel();
@@ -1153,7 +1142,6 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
                 setExpandedHeight(dataValue);
             }
         }else if(keyName == "label"){
-            qCritical() << "LABEL CHANGED" << data;
             QString dataValue = data.toString();
             //Update the Label
             updateTextLabel(dataValue);

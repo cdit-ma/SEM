@@ -152,7 +152,6 @@ private slots:
     void actionFinished();
 
 signals:
-    void view_SetDataValue(int ID, QString keyName, QVariant data);
     void view_searchFinished(QStringList searchResult);
     void view_themeChanged(VIEW_THEME theme);
 

@@ -64,14 +64,10 @@ bool Data::setValue(QVariant value)
     if(_key){
         newValue = _key->validateDataChange(this, value);
     }
-    qCritical() << "TRYING TO SET NEW VALUE" << value;
-    qCritical() << "TRYING TO SET NEW VALUE" << newValue;
-
 
     bool _dataChanged = false;
     if(newValue.isValid() && newValue != _value){
         _dataChanged = true;
-        qCritical() << "SETTING NEW VALUE" << newValue;
         _value = newValue;
     }
 
@@ -83,6 +79,7 @@ bool Data::setValue(QVariant value)
 void Data::setParentData(Data *parentData, bool protect)
 {
     unsetParentData();
+
 
     if(parentData){
         parentData->addChildData(this);

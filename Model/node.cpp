@@ -369,7 +369,6 @@ bool Node::ancestorOf(Node *node)
 
 bool Node::ancestorOf(Edge *edge)
 {
-    qCritical() << "TEST";
     return getEdges().contains(edge);
 }
 

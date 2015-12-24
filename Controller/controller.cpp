@@ -54,7 +54,7 @@ NewController::NewController()
 
 
     viewAspects << "Assembly" << "Workload" << "Definitions" << "Hardware";
-    protectedKeyNames << "x" << "y" << "kind"; //<< "width" << "height";
+    protectedKeyNames << "kind";
 
 
     containerNodeKinds << "Model";
@@ -116,9 +116,6 @@ void NewController::connectView(NodeView *view)
     connect(this, SIGNAL(controller_EntityConstructed(EntityAdapter*)), view, SLOT(constructEntityItem(EntityAdapter*)));
     connect(this, SIGNAL(controller_EntityDestructed(EntityAdapter*)), view, SLOT(destructEntityItem(EntityAdapter*)));
 
-    connect(this, SIGNAL(controller_GraphMLConstructed(Entity*)), view, SLOT(constructGUIItem(Entity*)));
-
-    connect(this, SIGNAL(controller_GraphMLDestructed(int, GraphML::KIND)), view, SLOT(destructGUIItem(int,GraphML::KIND)));
 
     connect(this, SIGNAL(controller_SetViewEnabled(bool)), view, SLOT(setEnabled(bool)));
 
@@ -194,7 +191,7 @@ void NewController::connectView(NodeView *view)
 void NewController::initializeModel()
 {
     setupModel();
-    //loadWorkerDefinitions();
+    loadWorkerDefinitions();
     clearHistory();
     INITIALIZING = false;
     emit controller_ModelReady();
@@ -205,8 +202,8 @@ NewController::~NewController()
     enableDebugLogging(false);
 
     DELETING = true;
-    destructNode(model, false);
-    destructNode(workerDefinitions, false);
+    //destructNode(model, false);
+    //destructNode(workerDefinitions, false);
 }
 
 void NewController::setExternalWorkerDefinitionPath(QString path)
@@ -457,7 +454,7 @@ bool NewController::_clear()
 void NewController::setData(Entity *parent, QString keyName, QVariant dataValue, bool addAction)
 {
 
-    qCritical() << "SETTING" << parent << " key Name: " << keyName << " = " << dataValue;
+    //qCritical() << "SETTING" << parent << " key Name: " << keyName << " = " << dataValue;
     if(DELETING){
         //Ignore any calls to set whilst deleting.
         return;
@@ -1621,9 +1618,22 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
         range.second = 999;
         newKey->addValidRange(range, QStringList("ComponentAssembly"));
     }
+    if(name == "folder" || name == "file"){
+        QStringList invalidChars;
+        invalidChars  << "|" << "," << "*" << "?" << "<" << ">" << ":";
+        if(name == "file"){
+            invalidChars << "/" << "\\" << "\t";
+        }
+        newKey->addInvalidCharacters(invalidChars);
+    }
+    if(name == "label"){
+        QStringList invalidChars;
+        invalidChars << "*" << "." << "[" << "]"<< ";" << "|" << "," <<  "%";
+        invalidChars << "\"" << "'"  << "/" << "\\" << "=" << ":" << " " << "<" << ">" << "\t";
+        newKey->addInvalidCharacters(invalidChars);
+    }
 
-
-    connect(newKey, SIGNAL(model_DisplayMessage(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
+    connect(newKey, SIGNAL(validateError(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
     //Add it to the list of Keys.
     keys.append(newKey);
     return newKey;
@@ -2828,7 +2838,7 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
         }
 
         Data* updateData = item->getData(currentKey);
-        if(updateData && !updateData->isProtected()){
+        if(updateData){
             updateData->setProtected(data->isProtected());
         }
     }
@@ -3086,6 +3096,14 @@ void NewController::clearHistory()
     updateUndoRedoState();
 }
 
+void NewController::modelLabelChanged()
+{
+    Model* model = getModel();
+    if(model){
+        emit controller_ProjectNameChanged(model->getDataValue("label").toString());
+    }
+}
+
 Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QString nodeType, QString nodeLabel)
 {
 
@@ -3271,8 +3289,6 @@ void NewController::setupModel()
 {
     model = dynamic_cast<Model*>(constructTypedNode("Model"));
     _attachData(model, constructDataVector("Model"));
-    qCritical() << model->getDataValue("kind");
-    qCritical() << model->getDataValue("label");
     constructNodeGUI(model);
 
     workerDefinitions = constructTypedNode("WorkerDefinitions");
@@ -3281,7 +3297,7 @@ void NewController::setupModel()
 
 
     Data* labelData = model->getData("label");
-    connect(labelData, SIGNAL(valueChanged(QString)), this, SIGNAL(controller_ProjectNameChanged(QString)));
+    connect(labelData, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(modelLabelChanged()));
 
     //Construct the top level parents.
     interfaceDefinitions = constructChildNode(model, constructDataVector("InterfaceDefinitions"));
@@ -3418,7 +3434,6 @@ bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
                 int instancesConnected = constructDefinitionRelative(node, child, instance);
 
                 if(instancesConnected == 0){
-                    qCritical() << child;
                     qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << node->toString();
                     return false;
                 }
@@ -3892,7 +3907,6 @@ bool NewController::isGraphMLValid(QString inputGraphML)
         if (xmlErrorChecking.hasError()){
             qCritical() << "isGraphMLValid(): Parsing Error! Line #" << xmlErrorChecking.lineNumber();
             qCritical() << "\t" << xmlErrorChecking.errorString();
-            qCritical() << inputGraphML;
             return false;
         }
     }
