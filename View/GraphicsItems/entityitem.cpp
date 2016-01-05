@@ -198,6 +198,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
  */
 EntityItem::~EntityItem()
 {
+    qCritical() << "~EntityItem()";
     currentLeftEdgeIDs.clear();
     currentRightEdgeIDs.clear();
     delete rightLabelInputItem;

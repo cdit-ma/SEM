@@ -37,34 +37,36 @@ struct ViewSignal{
 };
 
 
-struct ActionItem{
-    ACTION_TYPE actionType;
-    GraphML::GRAPHML_KIND actionKind;
-    Entity::ENTITY_KIND entityKind;
-    int parentID;
-    QString itemLabel;
-    QString itemKind;
-    int srcID;
-    int dstID;
+struct EventAction{
+    struct _Action{
+        int ID;
+        int actionID;
+        ACTION_TYPE type;
+        GraphML::GRAPHML_KIND kind;
+        QString name;
+        QString timestamp;
+    } Action;
+
     int ID;
-    QString keyName;
-    QString dataValue;
-    QVariant dataValue2;
-    qreal dataValueNum;
-    bool isNum;
-    QString removedXML;
+    int parentID;
 
-    int actionItemID;
-    QString timestamp;
+    struct _Entity{
+        QString XML;
+        QString nodeKind;
+        Entity::ENTITY_KIND kind;
+    } Entity;
 
-    //In the form KeyName, KeyType, KeyFor, Data Value, isProtected.
-    QList<QStringList> dataValues;
-    //In the form ID
-    QList<QList<int> > boundDataIDs;
-    QList<int> parentDataID;
+    struct _Key{
+        QString name;
+        QVariant::Type type;
+        Entity::ENTITY_KIND kind;
+    } Key;
 
-    QString actionName;
-    int actionID;
+    struct _Data{
+        QString keyName;
+        QVariant value;
+        bool isProtected;
+    } Data;
 };
 
 
@@ -226,7 +228,7 @@ private:
 
 private:
     void attachData(Entity* parent, Data* data, bool addAction = true);
-    void destructData(Entity* parent, QString keyName, bool addAction = true);
+    bool destructData(Entity* parent, QString keyName, bool addAction = true);
 
 
 private:
@@ -252,6 +254,7 @@ private:
 
     //Finds or Constructs a GraphMLKey given a Name, Type and ForType
     Key* constructKey(QString name, QVariant::Type type,  Entity::ENTITY_KIND entityKind);
+    bool destructKey(QString name);
     Key* getKeyFromName(QString name);
 
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
@@ -287,6 +290,7 @@ private:
     //Sets up an Undo state for the deletion of the Node/Edge, and tells the View To destruct its GUI Element.
     bool destructNode(Node* node, bool addAction = true);
     bool destructEdge(Edge* edge, bool addAction = true);
+    bool destructEntity(int ID);
 
 
     //Constructs a Vector of basic Data entities required for creating a Node.
@@ -340,15 +344,15 @@ private:
     bool isNodeKindImplemented(QString nodeKind);
 
     //Used by Undo/Redo to reverse an ActionItem from the Stacks.
-    bool reverseAction(ActionItem action);
+    bool reverseAction(EventAction action);
 
     //Adds an ActionItem to the Undo/Redo Stack depending on the State of the application.
-    void addActionToStack(ActionItem action, bool addAction=true);
+    void addActionToStack(EventAction action, bool addAction=true);
 
     //Undo's/Redo's all of the ActionItems in the Stack which have been performed since the last operation.
     void undoRedo(bool undo=true);
 
-    void logAction(ActionItem item);
+    void logAction(EventAction item);
 
     bool canDeleteNode(Node* node);
 
@@ -361,6 +365,7 @@ private:
     bool _attachData(Entity* item, Data* data, bool addAction = true);
     bool _attachData(Entity* item, QList<QStringList> dataList, bool addAction = true);
     bool _attachData(Entity* item, QList<Data*> dataList, bool addAction = true);
+    bool _attachData(Entity *item, QString keyName, QVariant value, bool addAction = true);
     
 
 
@@ -398,8 +403,8 @@ private:
     QList<int> edgeIDs;
 
     //Stack of ActionItems in the Undo/Redo Stack.
-    QStack<ActionItem> undoActionStack;
-    QStack<ActionItem> redoActionStack;
+    QStack<EventAction> undoActionStack;
+    QStack<EventAction> redoActionStack;
 
     QString getTimeStamp();
     QString getDataValueFromKeyName(QList<Data*> dataList, QString keyName);
@@ -485,6 +490,9 @@ private:
     bool DELETING;
 
 
+
+
 };
+ QDataStream &operator<<(QDataStream &out, const EventAction &action);
 
 #endif // NEWCONTROLLER_H

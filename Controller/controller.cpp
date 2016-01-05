@@ -468,20 +468,20 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
 
 
     //Construct an Action to reverse the update
-    ActionItem action;
-    action.ID = parent->getID();
-    action.actionType = MODIFIED;
-    action.actionKind = GraphML::GK_DATA;
-    action.keyName = keyName;
-    action.isNum = false;
+    EventAction action;
 
+    action.parentID = parent->getID();
+    action.Action.type = MODIFIED;
+    action.Action.kind = GraphML::GK_DATA;
+    action.Data.keyName = keyName;
 
     Data* data = parent->getData(keyName);
 
     if(data){
-        action.dataValue2 = data->getValue();
+        action.ID = data->getID();
+        action.Data.value = data->getValue();
 
-        if(dataValue == action.dataValue){
+        if(dataValue == action.Data.value){
             //Don't update if we have got the same value in the model.
             return;
         }
@@ -518,11 +518,13 @@ void NewController::attachData(Entity *parent, Data *data, bool addAction)
     }
 
     //Construct an Action to reverse the update
-    ActionItem action;
-    action.ID = parent->getID();
-    action.actionType = CONSTRUCTED;
-    action.actionKind = GraphML::GK_DATA;
-    action.keyName = data->getKeyName();
+    EventAction action;
+    action.ID = data->getID();
+    action.parentID = parent->getID();
+    action.Action.type = CONSTRUCTED;
+    action.Action.kind = GraphML::GK_DATA;
+    action.Data.keyName = data->getKeyName();
+    action.Data.value = data->getValue();
 
     //Attach the Data to the parent
     parent->addData(data);
@@ -538,11 +540,11 @@ void NewController::attachData(Entity *parent, Data *data, bool addAction)
  * @param keyName - The Name of the Key of the Data
  * @param addAction - Add an undo state
  */
-void NewController::destructData(Entity *parent, QString keyName, bool addAction)
+bool NewController::destructData(Entity *parent, QString keyName, bool addAction)
 {  
     if(!parent){
         qCritical() << "destructData() parent is NULL!";
-        return;
+        return false;
     }
 
     //Get the Data from the GraphML
@@ -550,30 +552,25 @@ void NewController::destructData(Entity *parent, QString keyName, bool addAction
 
     if(!data){
         qCritical() << "destructData(): " + parent->toString() + " does not contain Data for key: " + keyName;
-        return;
+        return false;
     }
 
     //Construct an Action to reverse the update
-    ActionItem action;
-    action.ID = parent->getID();
-    action.actionType = DESTRUCTED;
-    action.actionKind = GraphML::GK_DATA;
-    action.keyName = keyName;
-    //action.dataValues.append(data->toStringList());
-    //action.boundDataIDs.append(data->getBoundIDS());
-
-    if(data->getParentData()){
-        action.parentDataID.append(data->getParentData()->getID());
-    }
-
+    EventAction action;
+    action.ID = data->getID();
+    action.parentID = parent->getID();
+    action.Action.type = DESTRUCTED;
+    action.Action.kind = GraphML::GK_DATA;
+    action.Data.keyName = keyName;
+    action.Data.value = data->getValue();
 
     //Remove the Data to the parent
     parent->removeData(data);
-    //data->deleteLater();
     delete data;
 
     //Add an action to the stack.
     addActionToStack(action, addAction);
+    return true;
 }
 
 void NewController::setViewSignalsEnabled(bool enabled, bool sendQueuedSignals)
@@ -840,8 +837,9 @@ void NewController::redo()
  */
 void NewController::copy(QList<int> IDs)
 {
-    _copy(IDs);
-    emit controller_ActionFinished();
+
+    //_copy(IDs);
+    //emit controller_ActionFinished();
 }
 
 /**
@@ -1645,7 +1643,40 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
     connect(newKey, SIGNAL(validateError(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
     //Add it to the list of Keys.
     keys.append(newKey);
+
+    //Construct an Action to reverse the update
+    EventAction action;
+    action.ID = newKey->getID();
+    action.Action.type = CONSTRUCTED;
+    action.Action.kind = newKey->getGraphMLKind();
+    action.Key.kind = entityKind;
+    action.Key.type = type;
+
+    addActionToStack(action);
+
     return newKey;
+}
+
+bool NewController::destructKey(QString name)
+{
+    Key* key = getKeyFromName(name);
+    if(key){
+
+        //Construct an Action to reverse the update
+        EventAction action;
+        action.ID = key->getID();
+        action.Action.type = DESTRUCTED;
+        action.Action.kind = key->getGraphMLKind();
+        action.Key.kind = key->getEntityKind();
+        action.Key.type = key->getType();
+
+        addActionToStack(action);
+
+        keys.removeAll(key);
+        delete key;
+        return true;
+    }
+    return false;
 }
 
 Key *NewController::getKeyFromName(QString name)
@@ -2118,7 +2149,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
 QList<Data *> NewController::constructPositionDataVector(QPointF point)
 {
     Key* xKey = constructKey("x", QVariant::Double,Entity::EK_NODE);
-    Key* yKey = constructKey("y",QVariant::Double,Entity::EK_NODE);
+    Key* yKey = constructKey("y", QVariant::Double,Entity::EK_NODE);
 
     QList<Data*> position;
     Data* xData = new Data(xKey);
@@ -2464,11 +2495,15 @@ bool NewController::destructNode(Node *node, bool addAction)
 
     if(!node->wasGenerated() && addAction){
         //Add an action to reverse this action.
-        ActionItem action;
-        action.actionKind = GraphML::GK_ENTITY;
-        action.actionType = DESTRUCTED;
-        action.removedXML = XMLDump;
+        EventAction action;
         action.ID = ID;
+        action.Action.type = DESTRUCTED;
+        action.Action.kind = node->getGraphMLKind();
+
+        action.Entity.kind = node->getEntityKind();
+        action.Entity.nodeKind = node->getNodeKind();
+        action.Entity.XML = XMLDump;
+
         if(node->getParentNode()){
             action.parentID = node->getParentNode()->getID();
         }
@@ -2534,18 +2569,12 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
 
     //If the Edge Wasn't Generated, and we are meant to add an Action for this removal, Add an undo state.
     if(!edge->wasGenerated() || addAction){
-        ActionItem action;
-        action.actionType = DESTRUCTED;
-        action.actionKind = GraphML::GK_ENTITY;
-        action.entityKind = edge->getEntityKind();
+        EventAction action;
         action.ID = ID;
-        action.srcID = srcID;
-        action.dstID = dstID;
-        //Serialize data values.
-        foreach(Data* data, edge->getData()){
-            //action.dataValues.append(data->toStringList());
-        }
-
+        action.Action.type = DESTRUCTED;
+        action.Action.kind = edge->getGraphMLKind();
+        action.Entity.kind = edge->getEntityKind();
+        action.Entity.XML = edge->toGraphML(0);
 
         addActionToStack(action, addAction);
     }
@@ -2604,6 +2633,19 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     return true;
 }
 
+bool NewController::destructEntity(int ID)
+{
+    Entity* entity = getGraphMLFromHash(ID);
+    if(entity){
+        if(entity->isNode()){
+            return destructNode((Node*)entity);
+        }else if(entity->isEdge()){
+            return destructEdge((Edge*)entity);
+        }
+    }
+    return false;
+}
+
 
 
 bool NewController::isEdgeLegal(Node *src, Node *dst)
@@ -2620,176 +2662,50 @@ bool NewController::isNodeKindImplemented(QString nodeKind)
     return containerNodeKinds.contains(nodeKind) || constructableNodeKinds.contains(nodeKind);
 }
 
-bool NewController::reverseAction(ActionItem action)
+bool NewController::reverseAction(EventAction action)
 {
-    //Switch on the Action Type.
-    switch(action.actionType){
-    case CONSTRUCTED:{
 
+    if(action.Action.kind == GraphML::GK_ENTITY){
 
-        switch(action.actionKind){
-        case GraphML::GK_ENTITY:{
-            switch(action.entityKind){
-                case Entity::EK_NODE:{
-                //Delete Node.
-                Node* node = getNodeFromID(action.ID);
-                if(node){
-                    return destructNode(node);
-                }
-                break;
-                }
-            case Entity::EK_EDGE:{
-                //Delete Edge.
-                Edge* edge = getEdgeFromID(action.ID);
-                if(edge){
-                    return destructEdge(edge, true);
-                }
-                break;
+        if(action.Action.type == CONSTRUCTED){
+            return destructEntity(action.ID);
+        }else if(action.Action.type == DESTRUCTED){
+            Node* parentNode = getNodeFromID(action.parentID);
+            if(parentNode){
+                return _importGraphMLXML(action.Entity.XML, parentNode, true);
             }
-
-            default:
-                break;
-            }
-            break;
-
-
         }
-        case GraphML::GK_DATA:{
-            //Delete Data
-            Entity* item = getGraphMLFromID(action.ID);
-
-            if(item){
-                destructData(item, action.keyName);
-                if(!item->getData(action.keyName)){
-                    return true;
-                }
-            }else{
-                qCritical() << "\ncase CONSTRUCTED:GraphML::DATA Cannot find Item";
-                qCritical() << "action.ID: " << action.ID;
-                return false;
+    }else if(action.Action.kind == GraphML::GK_DATA){
+        if(action.Action.type == CONSTRUCTED){
+            Entity* entity = getGraphMLFromID(action.parentID);
+            if(entity){
+                return destructData(entity, action.Data.keyName);
             }
+            return false;
+        }else if(action.Action.type == MODIFIED){
+            Entity* entity = getGraphMLFromID(action.parentID);
 
-            break;
-        }
-        default:{
-            break;
-        }
-        }
-        break;
-    }
-
-    case DESTRUCTED:{
-        switch(action.actionKind){
-        case GraphML::GK_ENTITY:{
-            switch(action.entityKind){
-                case Entity::EK_NODE:{
-                Node* parentNode = getNodeFromID(action.parentID);
-                if(parentNode){
-                    return _importGraphMLXML(action.removedXML, parentNode, true, false);
-                }else{
-                    qCritical() << "Cannot find Node";
-                    return false;
-                }
-                break;
-            }
-            case Entity::EK_EDGE:{
-                Node* src = getNodeFromID(action.srcID);
-                Node* dst = getNodeFromID(action.dstID);
-
-                //qCritical() << "Redo: Delete Edge Between: " << action.srcID << " AND " << action.dstID;
-
-
-                if(src && dst){
-                    if(src->gotEdgeTo(dst)){
-                        return true;
-                    }
-                    if(isEdgeLegal(src,dst)){
-
-                        constructEdgeWithStrData(src ,dst, action.dataValues, action.ID);
-                        if(src->gotEdgeTo(dst)){
-                            return true;
-                        }
-                    }else{
-                        return false;
-                    }
-                }else{
-                    if(!src){
-                        qCritical() << "Cannot find src GraphML" << action.srcID;
-                    }
-                    if(!dst){
-                        qCritical() << "Cannot find dst GraphML" << action.dstID;
-
-                    }
-                }
-                break;
-
-            }
-            default:
-                break;
-
-            }
-
-            }
-
-
-        case GraphML::GK_DATA:{
-
-            Entity* attachedItem = getGraphMLFromID(action.ID);
-
-            if(attachedItem){
-                bool success = _attachData(attachedItem, action.dataValues);
-                if(!success){
-                    qCritical() << "Could not Attach Data";
-                }
-                return success;
-            }else{
-
-                qCritical() << "Destructed Data: Cannot find Item";
-            }
-            break;
-        }
-        default:{
-            break;
-        }
-        }
-        break;
-
-
-
-    }
-    case MODIFIED:{
-        switch(action.actionKind){
-        case GraphML::GK_DATA:{
-            Entity* attachedItem = getGraphMLFromID(action.ID);
-
-            if(attachedItem){
-                if(action.isNum){
-                    //Restore the Data Value;
-                    setData(attachedItem, action.keyName, action.dataValueNum);
-                }else{
-                    //Restore the Data Value;
-                    setData(attachedItem, action.keyName, action.dataValue);
-
-                }
+            if(entity){
+                setData(entity, action.Data.keyName, action.Data.value);
                 return true;
-            }else{
-                //if(!IS_SUB_VIEW){
-                return false;
-                //}
             }
-
-
-            break;
+            return false;
+        }else if(action.Action.type == DESTRUCTED){
+            Entity* entity = getGraphMLFromID(action.parentID);
+            if(entity){
+                return _attachData(entity, action.Data.keyName, action.Data.value);
+            }
+            return false;
         }
-        default:{
-            break;
+    }else if(action.Action.kind == GraphML::GK_KEY){
+        if(action.Action.type == CONSTRUCTED){
+            destructKey(action.Key.name);
+        }else if(action.Action.type == DESTRUCTED){
+            constructKey(action.Key.name, action.Key.type, action.Key.kind);
         }
-        }
-        break;
     }
-    }
-    return false;
 
+    return true;
 }
 bool NewController::_attachData(Entity *item, QList<QStringList> dataList, bool addAction)
 {
@@ -2854,6 +2770,22 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
     return true;
 }
 
+bool NewController::_attachData(Entity *item, QString keyName, QVariant value, bool addAction)
+{
+    Key* key = getKeyFromName(keyName);
+    if(!key){
+        return false;
+    }
+
+    Data* data = new Data(key);
+    if(!data){
+        return false;
+    }
+
+    data->setValue(value);
+    return _attachData(item, data, addAction);
+}
+
 Process *NewController::getWorkerProcess(QString workerName, QString operationName)
 {
     Process* process = 0;
@@ -2868,13 +2800,13 @@ bool NewController::_attachData(Entity *item, Data *data, bool addAction)
     return _attachData(item, dataList, addAction);
 }
 
-void NewController::addActionToStack(ActionItem action, bool useAction)
+void NewController::addActionToStack(EventAction action, bool useAction)
 {
     //Get Current Action ID and action.
-    action.actionID = currentActionID;
-    action.actionName = currentAction;
-    action.timestamp = getTimeStamp();
-    action.actionItemID = currentActionItemID++;
+    action.Action.ID = currentActionID;
+    action.Action.name = currentAction;
+    action.Action.actionID = currentActionItemID++;
+    action.Action.timestamp = getTimeStamp();
 
     if(useAction){
         if(UNDOING){
@@ -2903,7 +2835,7 @@ void NewController::undoRedo(bool undo)
 
 
     //Used to store the stack of actions we are to use.
-    QStack<ActionItem> actionStack = redoActionStack;
+    QStack<EventAction> actionStack = redoActionStack;
 
     if(UNDOING){
         //Set to the use the stack.
@@ -2924,21 +2856,21 @@ void NewController::undoRedo(bool undo)
 
 
     //Get the ID and Name of the top-most action.
-    int topActionID = actionStack.top().actionID;
-    QString topActionName = actionStack.top().actionName;
+    int topActionID = actionStack.top().Action.ID;
+    QString topActionName = actionStack.top().Action.name;
 
     //Emit a new action so this Undo/Redo operation can be reverted.
     triggerAction(topActionName);
 
     //This vector will store all ActionItems which match topActionID
-    QList<ActionItem> toReverse;
+    QList<EventAction> toReverse;
     while(!actionStack.isEmpty()){
         //Get the top-most action.
-        ActionItem action = actionStack.top();
+        EventAction action = actionStack.top();
 
 
         //If this action has the same ID, we should undo it.
-        if(action.actionID == topActionID){
+        if(action.Action.ID == topActionID){
             toReverse.append(action);
             //Remove if from the action stack.
             actionStack.pop();
@@ -2950,6 +2882,7 @@ void NewController::undoRedo(bool undo)
 
 
     actionCount = toReverse.size();
+    qCritical() << "ACTIONS TO REVERSE: " << actionCount;
 
 
     int maxRetry = 3;
@@ -2959,18 +2892,18 @@ void NewController::undoRedo(bool undo)
     previousUndos = actionCount;
     int actionsReversed = 0;
     while(!toReverse.isEmpty()){
-        ActionItem reverseState = toReverse.takeFirst();
+        EventAction reverseState = toReverse.takeFirst();
         bool success = reverseAction(reverseState);
         if(!success){
 
-            retryCount[reverseState.actionItemID] +=1;
-            if(retryCount[reverseState.actionItemID] <= maxRetry){
+            retryCount[reverseState.Action.actionID] +=1;
+            if(retryCount[reverseState.Action.actionID] <= maxRetry){
                 toReverse.append(reverseState);
             }
 
         }else{
             actionsReversed ++;
-            int percentage = (actionsReversed*100) / actionCount;
+            int percentage = (actionsReversed * 100) / actionCount;
             if(UNDOING){
                 controller_ActionProgressChanged(percentage, "Undoing");
             }
@@ -2999,60 +2932,16 @@ void NewController::undoRedo(bool undo)
     updateUndoRedoState();
 }
 
-void NewController::logAction(ActionItem item)
+void NewController::logAction(EventAction item)
 {
     if(DELETING){
         return;
     }
 
+    QDataStream out(logFile);
 
-    QTextStream out(logFile);
-
-    //QString
-    QString actionType;
-    QString actionKind;
-    QString extraInfo = "";
-
-    if(item.actionType == CONSTRUCTED){
-        actionType = "C";
-    }
-    if(item.actionType == DESTRUCTED){
-        actionType = "D";
-    }
-    if(item.actionType == MODIFIED){
-        actionType = "M";
-    }
-
-    if(item.actionKind == GraphML::GK_ENTITY){
-        if(item.entityKind == Entity::EK_NODE){
-            actionKind = "NODE";
-            extraInfo += "\t\tLabel: '" + item.itemLabel + '"';
-            extraInfo += "\t\tKind: '" + item.itemKind + '"';
-        }else if(item.entityKind == Entity::EK_EDGE){
-            actionKind = "EDGE";
-            //if(item.actionType == CONSTRUCTED){
-            extraInfo += "\t\tSRC_ID: '" + item.srcID + '"';
-            extraInfo += "\t\tDST_ID: '" + item.dstID + '"';
-            //}
-        }
-    }
-    if(item.actionKind == GraphML::GK_DATA){
-        actionKind = "DATA";
-        extraInfo += "\t\tKey: '" + item.keyName +"'";
-        if(item.actionType == MODIFIED){
-            extraInfo += "\t\tPrevious Value: '" + item.dataValue + '"';
-        }
-    }
-
-
-    out << item.timestamp << "\t" << item.actionItemID << "\t" << actionType << "\t" << actionKind << "\t" << item.ID;
-    if(extraInfo != ""){
-        out << extraInfo;
-    }
-    out << "\n";
-
-
-
+    out.setVersion(QDataStream::Qt_4_0);
+    out << item;
 }
 
 bool NewController::canDeleteNode(Node *node)
@@ -3267,13 +3156,12 @@ void NewController::constructNodeGUI(Node *node)
     }
 
     //Construct an ActionItem to reverse Node Construction.
-    ActionItem action;
-    action.actionType = CONSTRUCTED;
-    action.actionKind = node->getGraphMLKind();
-    action.entityKind = node->getEntityKind();
+    EventAction action;
+    action.Action.type = CONSTRUCTED;
+    action.Action.kind = node->getGraphMLKind();
     action.ID = node->getID();
-    action.itemLabel = node->getDataValue("label").toString();
-    action.itemKind = node->getDataValue("kind").toString();
+    action.Entity.kind = node->getEntityKind();
+    action.Entity.nodeKind = node->getNodeKind();
 
     if(node->getParentNode()){
         //Set the ParentNode ID if we have a Parent.
@@ -3925,11 +3813,12 @@ bool NewController::isGraphMLValid(QString inputGraphML)
 void NewController::constructEdgeGUI(Edge *edge)
 {
     //Construct an ActionItem to reverse an Edge Construction.
-    ActionItem action;
-    action.actionType = CONSTRUCTED;
-    action.actionKind = edge->getGraphMLKind();
-    action.entityKind = edge->getEntityKind();
+    EventAction action;
+
+    action.Action.type = CONSTRUCTED;
+    action.Action.kind = edge->getGraphMLKind();
     action.ID = edge->getID();
+    action.Entity.kind = edge->getEntityKind();
 
     Key* descriptionKey = constructKey("description", QVariant::String, Entity::EK_EDGE);
 
@@ -3938,12 +3827,7 @@ void NewController::constructEdgeGUI(Edge *edge)
     Node* src = edge->getSource();
     Node* dst = edge->getDestination();
 
-    if(src && dst){
-        action.srcID = src->getID();
-        action.dstID = dst->getID();
-    }
-
-    //Add Action to the Undo/Redo Stack
+     //Add Action to the Undo/Redo Stack
     if(!edge->wasGenerated()){
         addActionToStack(action);
     }
@@ -4274,12 +4158,14 @@ void NewController::enableDebugLogging(bool logMode, QString applicationPath)
         }
         QString filePath = applicationPath + "output.log";
         logFile = new QFile(filePath);
+
         if (!logFile->open(QIODevice::Append | QIODevice::WriteOnly | QIODevice::Text)){
             emit controller_DisplayMessage(WARNING, "Cannot open Log File to write", "MEDEA Cannot open log file: " + filePath + ". Logging Disabled");
             USE_LOGGING = false;
         }else{
             USE_LOGGING = true;
         }
+
     }else{
         //Teardown log File.
         if(logFile){
@@ -5361,4 +5247,12 @@ QString NewController::getProcessName(Process *process)
     return "";
 }
 
+QDataStream &operator<<(QDataStream &out, const EventAction &a)
+{
 
+
+    //Serialize Action output.
+    out << a.Action.ID << a.Action.actionID << a.Action.type << a.Action.kind << a.Action.name << a.Action.timestamp;
+    return out;
+
+}

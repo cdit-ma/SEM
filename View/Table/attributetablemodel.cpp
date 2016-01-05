@@ -21,7 +21,8 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
         }
     }
 
-    hiddenKeyNames /*<< "width" << "height" <<  "x" << "y"*/ << "originalID" << "isExpanded"; // << "kind";
+    attachedEntity->addListener(this);
+    hiddenKeyNames /*<< "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded"; << "kind"*/;
     permanentlyLockedKeyNames << "kind";
  	multiLineKeyNames << "code";
     setupDataBinding();
@@ -30,7 +31,8 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
 
 AttributeTableModel::~AttributeTableModel()
 {
-    //qCritical() << "Deleting Table Model";
+    qCritical() << "Deleting Table Model";
+    attachedEntity->removeListener(this);
 }
 
 void AttributeTableModel::updatedData(QString keyName)
@@ -45,6 +47,7 @@ void AttributeTableModel::updatedData(QString keyName)
 
 void AttributeTableModel::removedData(QString keyName)
 {
+    qCritical() << "REMOVED DATA";
     //Get the Index of the data to be removed.
     int index = getIndex(keyName);
     if(index != -1){
@@ -97,6 +100,7 @@ bool AttributeTableModel::hasData() const
 
 void AttributeTableModel::clearData()
 {
+    qCritical() << "CLEAR DATA";
     beginRemoveRows(QModelIndex(),0, dataOrder.size());
     dataOrder.clear();
     keys.clear();
@@ -253,6 +257,7 @@ bool AttributeTableModel::setData(const QModelIndex &index, const QVariant &valu
         if (index.column() == 1){
             if(!isDataProtected(index.row())){
                 QString keyName = getKeyName(index.row());
+                emit guiItem->GraphMLItem_TriggerAction("Setting Value for: " + keyName);
                 guiItem->setData(keyName, value);
                 return true;
             }

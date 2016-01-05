@@ -1492,7 +1492,7 @@ void NodeView::triggerAction(QString action)
         viewCenteredRectangles.append(centeredRects[mapKey]);
     }
 
-    view_TriggerAction(action);
+    emit view_TriggerAction(action);
     updateActionsEnabledStates();
 }
 
@@ -3155,8 +3155,9 @@ void NodeView::removeGraphMLItemFromHash(int ID)
                 emit view_nodeDeleted(item->getID(), parentID);
             }
 
-            item->detach();
+            qCritical() << "DELETE ITEM";
             delete item;
+            qCritical() << "DELETING";
         }
 
         if(IS_SUB_VIEW){
@@ -3182,6 +3183,7 @@ void NodeView::removeGraphMLItemFromHash(int ID)
         }
         definitionIDs.remove(ID);
     }
+    qCritical() << "DELETION FINISHED";
 }
 
 
@@ -4304,6 +4306,7 @@ void NodeView::constructEntityItem(EntityAdapter *item)
 
 void NodeView::destructEntityItem(EntityAdapter *item)
 {
+    qCritical() << "DESTRUCTING" << item;
     destructGUIItem(item->getID(), GraphML::GK_NONE);
 }
 
@@ -4395,6 +4398,8 @@ void NodeView::constructNodeItem(NodeAdapter *node)
             if(parentNodeItem){
                 centerPoint = parentNodeItem->getNextChildPos(itemRect);
             }
+        }else{
+            centerPoint = QPointF(x,y);
         }
     }
 
@@ -4427,6 +4432,7 @@ void NodeView::constructNodeItem(NodeAdapter *node)
 
     //Do Generic connect stuffs.
     if(item){
+
         storeGraphMLItemInHash(item);
 
         if(!scene()->items().contains(item)){
@@ -4443,9 +4449,9 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         if(nodeItem){
             nodeItem->setWidth(size.width());
             nodeItem->setHeight(size.height());
-            nodeItem->setPos(centerPoint);
         }
         if(item->isEntityItem()){
+            entityItem->setCenterPos(centerPoint);
             QPair<QString, bool> editField = getEditableDataKeyName(entityItem);
             QPair<QString, bool> statusField = getStatusDataKeyName(entityItem);
 

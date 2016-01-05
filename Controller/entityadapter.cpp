@@ -18,7 +18,6 @@ EntityAdapter::EntityAdapter(Entity *entity): QObject(0)
 
 EntityAdapter::~EntityAdapter()
 {
-    //REMOVIGN!
     qCritical() << "REMOVING EntityAdapter" << getID();
 }
 
@@ -98,7 +97,6 @@ void EntityAdapter::addListener(QObject *object)
 {
     if(!_listeners.contains(object)){
         _listeners.append(object);
-        connect(object, SIGNAL(destroyed(QObject*)), this, SLOT(removeListener(QObject*)));
     }
 }
 
@@ -106,9 +104,8 @@ void EntityAdapter::removeListener(QObject *object)
 {
    if(_listeners.contains(object)){
         _listeners.removeAll(object);
+
         if(_listeners.isEmpty()){
-            qCritical() << "DELETING LISTENER " << object;
-            //If we don't have any listeners left.
             deleteLater();
         }
    }
@@ -117,5 +114,5 @@ void EntityAdapter::removeListener(QObject *object)
 
 void EntityAdapter::invalidate()
 {
-    this->_isValid = false;
+    _isValid = false;
 }

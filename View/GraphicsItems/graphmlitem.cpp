@@ -229,9 +229,10 @@ void GraphMLItem::updateData(QString keyName)
 GraphMLItem::~GraphMLItem()
 {
     if(table){
-        delete table;
+        table->deleteLater();
         table = 0;
     }
+    getEntityAdapter()->removeListener(this);
 }
 
 QRectF GraphMLItem::sceneBoundingRect() const

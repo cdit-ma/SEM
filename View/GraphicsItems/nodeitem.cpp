@@ -50,7 +50,7 @@ NodeItem::NodeItem(NodeAdapter *node, GraphMLItem *parent, GraphMLItem::GUI_KIND
 
 NodeItem::~NodeItem()
 {
-
+    qCritical() << "~NodeItem()";
 }
 
 QRectF NodeItem::childrenBoundingRect()
