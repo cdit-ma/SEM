@@ -169,6 +169,7 @@ void NewController::connectView(NodeView *view)
         connect(view, SIGNAL(view_Delete(QList<int>)), this, SLOT(remove(QList<int>)));
         connect(view, SIGNAL(view_Copy(QList<int>)), this, SLOT(copy(QList<int>)));
         connect(view, SIGNAL(view_Cut(QList<int>)), this, SLOT(cut(QList<int>)));
+        connect(view, SIGNAL(view_SetReadOnly(QList<int>,bool)), this, SLOT(setReadOnly(QList<int>,bool)));
         connect(view, SIGNAL(view_Paste(int,QString)), this, SLOT(paste(int,QString)));
 
         //Node Slots
@@ -856,6 +857,48 @@ void NewController::remove(QList<int> IDs)
             emit controller_ActionProgressChanged(100);
         }
     }
+    emit controller_ActionFinished();
+}
+
+void NewController::setReadOnly(QList<int> IDs, bool readOnly)
+{
+    QString exportTimeStamp = getTimeStamp();
+
+    Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_ALL);
+
+
+    QList<Node*> nodeList;
+    //Construct a list of Nodes to be snippeted
+    foreach(int ID, IDs){
+        Node* node = getNodeFromID(ID);
+        if(node){
+            if(!nodeList.contains(node)){
+                nodeList += node;
+            }
+            foreach(Node* child, node->getChildren()){
+                if(!nodeList.contains(child)){
+                    nodeList += child;
+                }
+            }
+        }
+    }
+    //Attach read Only Data to the top.
+
+    //Attach read only Data.
+    foreach(Node* node, nodeList){
+        Data* readOnlyData = node->getData(readOnlyKey);
+
+        if(!readOnlyData){
+            readOnlyData = new Data(readOnlyKey, readOnly);
+            attachData(node, readOnlyData);
+        }else{
+            setData(node, "readOnly", readOnly);
+        }
+    }
+
+
+    qCritical() << IDs;
+    qCritical() << "SETTING READ ONLY" << readOnly;
     emit controller_ActionFinished();
 }
 
@@ -5121,6 +5164,16 @@ bool NewController::canImportSnippet(QList<int> selection)
         return true;
     }
     return false;
+}
+
+bool NewController::canSetReadOnly(QList<int> selection)
+{
+    return true;
+}
+
+bool NewController::canUnsetReadOnly(QList<int> selection)
+{
+    return true;
 }
 
 bool NewController::canUndo()

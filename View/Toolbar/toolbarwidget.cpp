@@ -66,6 +66,8 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
     exportSnippetButton->setVisible(showExportSnippetToolButton);
     importSnippetButton->setVisible(showImportSnippetToolButton);
     getCPPButton->setVisible(showShowCPPToolButton);
+    setReadOnlyButton->setVisible(showSetReadyOnlyToolButton);
+    unsetReadOnlyButton->setVisible(showUnsetReadyOnlyToolButton);
 
     alterModelButtonsVisible = showDeleteToolButton;
     snippetButtonsVisible = showExportSnippetToolButton || showImportSnippetToolButton;
@@ -126,6 +128,10 @@ void ToolbarWidget::updateActionEnabledState(QString actionName, bool enabled)
         showImportSnippetToolButton = enabled;
     } else if(actionName == "getCPP"){
         showShowCPPToolButton = enabled;
+    } else if(actionName == "setReadOnly"){
+        showSetReadyOnlyToolButton = enabled;
+    }else if(actionName == "unsetReadOnly"){
+        showUnsetReadyOnlyToolButton = enabled;
     }
 }
 
@@ -327,6 +333,22 @@ void ToolbarWidget::getCPPForComponent()
             emit nodeView->view_ShowCPPForComponent(componentLabel);
         }
     }
+}
+
+void ToolbarWidget::setReadOnlyMode()
+{
+
+    bool readOnly = false;
+    QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
+    if (button == setReadOnlyButton) {
+        readOnly = true;
+    } else if (button == unsetReadOnlyButton) {
+        readOnly = false;
+    } else {
+        qWarning() << "ToolbarWidget::setReadOnlyMode - Sender object not handled.";
+        return;
+    }
+    nodeView->setReadOnlyMode(readOnly);
 }
 
 
@@ -788,6 +810,12 @@ void ToolbarWidget::setupToolBar()
     importSnippetButton = constructToolButton(buttonSize, 0.6, "ImportSnippet", "Import GraphML Snippet");
     exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
     getCPPButton = constructToolButton(buttonSize, 0.6, "getCPP", "Get CPP Code");
+
+    setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Ready Only");
+    unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Ready Only");
+
+
+
     goToFrame = constructFrameSeparator();
     definitionButton = constructToolButton(buttonSize, 0.55, "Definition", "View Definition");
     implementationButton = constructToolButton(buttonSize, 0.6, "Implementation", "View Implementation");
@@ -921,6 +949,10 @@ void ToolbarWidget::makeConnections()
     connect(connectedNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
     connect(unconnectedNodes, SIGNAL(clicked()), hardwareClusterViewMenu, SLOT(hide()));
     connect(getCPPButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
+    connect(setReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
+    connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
+
+
 
     connect(connectButton, SIGNAL(clicked()), nodeView, SLOT(setStateConnect()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
@@ -938,6 +970,11 @@ void ToolbarWidget::makeConnections()
     connect(connectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(unconnectedNodes, SIGNAL(clicked()), this, SLOT(updateDisplayedChildren()));
     connect(getCPPButton, SIGNAL(clicked(bool)), this, SLOT(getCPPForComponent()));
+
+    connect(setReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(setReadOnlyMode()));
+    connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(setReadOnlyMode()));
+
+
 
     connect(addMenu, SIGNAL(aboutToShow()), this, SLOT(setupAdoptableNodesList()));
     connect(addMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addChildNode(ToolbarMenuAction*)));
@@ -1182,6 +1219,9 @@ void ToolbarWidget::hideButtons()
     contractButton->hide();
     exportSnippetButton->hide();
     getCPPButton->hide();
+    setReadOnlyButton->hide();
+    unsetReadOnlyButton->hide();
+
     importSnippetButton->hide();
     definitionButton->hide();
     implementationButton->hide();

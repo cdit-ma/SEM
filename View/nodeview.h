@@ -135,6 +135,7 @@ protected:
     void keyReleaseEvent(QKeyEvent *event);
 
 
+    void setReadOnlyMode(bool readOnly);
 
     bool viewportEvent(QEvent *);
 
@@ -182,6 +183,7 @@ signals:
 
     void view_Copy(QList<int> IDs);
     void view_Cut(QList<int> IDs);
+    void view_SetReadOnly(QList<int> IDs, bool readOnly);
     void view_Paste(int ID, QString xmlData);
     void view_Delete(QList<int> IDs);
     void view_Replicate(QList<int> IDs);

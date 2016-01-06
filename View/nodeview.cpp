@@ -2395,6 +2395,8 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("redo", controller->canRedo());
         emit view_updateMenuActionEnabled("localDeployment", controller->canLocalDeploy());
         emit view_updateMenuActionEnabled("getCPP", controller->canGetCPP(selectedIDs));
+        emit view_updateMenuActionEnabled("setReadOnly", controller->canSetReadOnly(selectedIDs));
+        emit view_updateMenuActionEnabled("unsetReadOnly", controller->canUnsetReadOnly(selectedIDs));
     }
 
     emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
@@ -3718,6 +3720,18 @@ void NodeView::keyReleaseEvent(QKeyEvent *event)
 
     QGraphicsView::keyReleaseEvent(event);
 
+}
+
+void NodeView::setReadOnlyMode(bool readOnly)
+{
+    if (selectedIDs.count() > 0) {
+        if(viewMutex.tryLock()){
+            triggerAction("Setting Read Only.");
+            emit view_SetReadOnly(selectedIDs, readOnly);
+        }
+    } else {
+        view_displayNotification("Select entity(s) to copy.");
+    }
 }
 
 

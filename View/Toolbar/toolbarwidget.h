@@ -34,6 +34,7 @@ public slots:
     void expandContractNodes();
     void constructNewView();
     void getCPPForComponent();
+    void setReadOnlyMode();
 
     void setupAdoptableNodesList();
     void setupLegalNodesList();
@@ -121,6 +122,10 @@ private:
 
     QToolButton* getCPPButton;
 
+    QToolButton* setReadOnlyButton;
+    QToolButton* unsetReadOnlyButton;
+
+
     QToolButton* connectionsButton;
     QToolButton* popupNewWindow;
     QToolButton* displayedChildrenOptionButton;
@@ -177,6 +182,8 @@ private:
     bool showDefinitionToolButton;
     bool showImplementationToolButton;
     bool showShowCPPToolButton;
+    bool showSetReadyOnlyToolButton;
+    bool showUnsetReadyOnlyToolButton;
 
     bool alterModelButtonsVisible;
     bool alignButtonsVisible;

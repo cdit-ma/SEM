@@ -120,6 +120,8 @@ public:
     bool canPaste(QList<int> selection);
     bool canExportSnippet(QList<int> selection);
     bool canImportSnippet(QList<int> selection);
+    bool canSetReadOnly(QList<int> selection);
+    bool canUnsetReadOnly(QList<int> selection);
     bool canUndo();
     bool canRedo();
     bool canLocalDeploy();
@@ -175,6 +177,7 @@ private slots:
     void paste(int ID, QString xmlData);
     void replicate(QList<int> IDs);
     void remove(QList<int> IDs);
+    void setReadOnly(QList<int> IDs, bool readOnly);
 
     void importSnippet(QList<int> IDs, QString fileName, QString fileData);
     void exportSnippet(QList<int> IDs);
