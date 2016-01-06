@@ -479,9 +479,9 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
 
     if(data){
         action.ID = data->getID();
-        action.Data.value = data->getValue();
+        action.Data.oldValue = data->getValue();
 
-        if(dataValue == action.Data.value){
+        if(dataValue == action.Data.oldValue){
             //Don't update if we have got the same value in the model.
             return;
         }
@@ -494,6 +494,7 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
         }else{
             data->setValue(dataValue);
         }
+        action.Data.newValue = data->getValue();
 
     }else{
         qCritical() << "view_UpdateData() Doesn't Contain Data for Key: " << keyName;
@@ -524,10 +525,12 @@ void NewController::attachData(Entity *parent, Data *data, bool addAction)
     action.Action.type = CONSTRUCTED;
     action.Action.kind = GraphML::GK_DATA;
     action.Data.keyName = data->getKeyName();
-    action.Data.value = data->getValue();
+    action.Data.oldValue = data->getValue();
 
     //Attach the Data to the parent
     parent->addData(data);
+
+    action.Data.newValue = parent->getDataValue(action.Data.keyName);
 
 
     //Add an action to the stack.
@@ -562,7 +565,7 @@ bool NewController::destructData(Entity *parent, QString keyName, bool addAction
     action.Action.type = DESTRUCTED;
     action.Action.kind = GraphML::GK_DATA;
     action.Data.keyName = keyName;
-    action.Data.value = data->getValue();
+    action.Data.oldValue = data->getValue();
 
     //Remove the Data to the parent
     parent->removeData(data);
@@ -837,9 +840,8 @@ void NewController::redo()
  */
 void NewController::copy(QList<int> IDs)
 {
-
-    //_copy(IDs);
-    //emit controller_ActionFinished();
+    _copy(IDs);
+    emit controller_ActionFinished();
 }
 
 /**
@@ -1689,6 +1691,16 @@ Key *NewController::getKeyFromName(QString name)
     return 0;
 }
 
+Key *NewController::getKeyFromID(int ID)
+{
+    foreach(Key* key, keys){
+        if(key->getID() == ID){
+            return key;
+        }
+    }
+    return 0;
+}
+
 
 Edge *NewController::_constructEdge(Node *source, Node *destination)
 {
@@ -1881,14 +1893,18 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
         }
     }
 
-    //If the node is a definition, construct an instance/Implementation in each Instance/Implementation of the parentNode.
-    if(node->isDefinition()){
-        foreach(Node* child, parentNode->getInstances()){
-            constructDefinitionRelative(child, node, true);
+    if(!(UNDOING || REDOING)){
+        //If the node is a definition, construct an instance/Implementation in each Instance/Implementation of the parentNode.
+        if(node->isDefinition()){
+            foreach(Node* child, parentNode->getInstances()){
+                constructDefinitionRelative(child, node, true);
+            }
+            foreach(Node* child, parentNode->getImplementations()){
+                constructDefinitionRelative(child, node, false);
+            }
         }
-        foreach(Node* child, parentNode->getImplementations()){
-            constructDefinitionRelative(child, node, false);
-        }
+    }else{
+        qCritical() << "WE ARE UNDOING";
     }
 
     return node;
@@ -1990,8 +2006,8 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         labelString = "";
     }
     data.append(new Data(kindKey, nodeKind));
-    data.append(new Data(widthKey));
-    data.append(new Data(heightKey));
+    data.append(new Data(widthKey, -1));
+    data.append(new Data(heightKey, -1));
 
 
     bool protectLabel = nodeKind.endsWith("Parameter");
@@ -2135,14 +2151,6 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(new Data(typeKey));
     }
 
-    if(nodeKind == "HardwareNode"){
-        foreach(Data* d, data){
-            if(d){
-                d->setProtected(true);
-            }
-        }
-
-    }
     return data;
 }
 
@@ -2568,9 +2576,10 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     dstID = dst->getID();
 
     //If the Edge Wasn't Generated, and we are meant to add an Action for this removal, Add an undo state.
-    if(!edge->wasGenerated() || addAction){
+    if(addAction){
         EventAction action;
         action.ID = ID;
+        action.parentID = getModel()->getID();
         action.Action.type = DESTRUCTED;
         action.Action.kind = edge->getGraphMLKind();
         action.Entity.kind = edge->getEntityKind();
@@ -2673,6 +2682,8 @@ bool NewController::reverseAction(EventAction action)
             Node* parentNode = getNodeFromID(action.parentID);
             if(parentNode){
                 return _importGraphMLXML(action.Entity.XML, parentNode, true);
+            }else{
+                qCritical() << "CAN'T UNDO";
             }
         }
     }else if(action.Action.kind == GraphML::GK_DATA){
@@ -2686,14 +2697,14 @@ bool NewController::reverseAction(EventAction action)
             Entity* entity = getGraphMLFromID(action.parentID);
 
             if(entity){
-                setData(entity, action.Data.keyName, action.Data.value);
+                setData(entity, action.Data.keyName, action.Data.oldValue);
                 return true;
             }
             return false;
         }else if(action.Action.type == DESTRUCTED){
             Entity* entity = getGraphMLFromID(action.parentID);
             if(entity){
-                return _attachData(entity, action.Data.keyName, action.Data.value);
+                return _attachData(entity, action.Data.keyName, action.Data.oldValue);
             }
             return false;
         }
@@ -2882,7 +2893,6 @@ void NewController::undoRedo(bool undo)
 
 
     actionCount = toReverse.size();
-    qCritical() << "ACTIONS TO REVERSE: " << actionCount;
 
 
     int maxRetry = 3;
@@ -2938,10 +2948,53 @@ void NewController::logAction(EventAction item)
         return;
     }
 
-    QDataStream out(logFile);
+    QTextStream out(logFile);
 
-    out.setVersion(QDataStream::Qt_4_0);
-    out << item;
+    QString actionType="";
+    QString actionKind="";
+
+    switch(item.Action.type){
+    case CONSTRUCTED:
+        actionType = "C";
+        break;
+    case DESTRUCTED:
+        actionType = "D";
+        break;
+    case MODIFIED:
+        actionType = "M";
+        break;
+    }
+
+    switch(item.Action.kind){
+    case GraphML::GK_DATA:
+        actionKind = "data";
+        break;
+    case GraphML::GK_KEY:
+        actionKind = "key";
+        break;
+    case GraphML::GK_ENTITY:
+        actionKind = "entity";
+        break;
+    }
+
+    out << item.Action.ID << "\t";
+    out << item.Action.actionID << "\t";
+    out << actionType << "\t";
+    out << actionKind << "\t";
+    if(item.Action.kind != GraphML::GK_DATA){
+        out << item.ID << "\t";
+    }
+    out << item.parentID << "\t";
+
+    if(item.Action.kind == GraphML::GK_DATA){
+        out << item.Data.keyName << "\t";
+        if(item.Action.type == MODIFIED){
+            out << item.Data.oldValue.toString() << "\t";
+            out << "->\t";
+        }
+        out << item.Data.newValue.toString() << "\t";
+    }
+    out << "\n";
 }
 
 bool NewController::canDeleteNode(Node *node)
@@ -3838,6 +3891,7 @@ void NewController::constructEdgeGUI(Edge *edge)
 
     Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
 
+    if(!(UNDOING || REDOING)){
     switch(edgeClass){
         case Edge::EC_DEFINITION:{
             bool isInstance = src->isInstance();
@@ -3879,6 +3933,7 @@ void NewController::constructEdgeGUI(Edge *edge)
             setupDataEdgeRelationship(outputNode, inputNode, true);
         }
         break;
+    }
     }
     }
 
@@ -3936,8 +3991,6 @@ void NewController::setupLocalNode()
     Data* data = new Data(localhostKey);
     data->setValue(true);
     localNodeData.append(data);
-
-
 
 
     foreach(Data* data, localNodeData){
@@ -4481,6 +4534,14 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 Key* dataKey = keyLookup[keyID];
 
                 if(!dataKey){
+                    bool isInt = false;
+                    int keyIntID = keyID.toInt(&isInt);
+                    if(isInt){
+                        dataKey = getKeyFromID(keyIntID);
+                    }
+                }
+
+                if(!dataKey){
                     qCritical() << QString("Line #%1: Cannot find the <key> to match the <data key=\"%2\">").arg(QString::number(xml.lineNumber()), keyID);
                     continue;
                 }
@@ -4490,6 +4551,10 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
                 //Construct a Data object out of the xml, using the key found in keyLookup
                 Data *data = new Data(dataKey);
+
+                if(dataKey->getType() == QVariant::Bool){
+                    bool isBoolean = false;
+                }
                 data->setValue(dataValue);
 
 

@@ -50,7 +50,6 @@ NodeItem::NodeItem(NodeAdapter *node, GraphMLItem *parent, GraphMLItem::GUI_KIND
 
 NodeItem::~NodeItem()
 {
-    qCritical() << "~NodeItem()";
 }
 
 QRectF NodeItem::childrenBoundingRect()
@@ -143,42 +142,63 @@ void NodeItem::sortChildren()
     }
 }
 
-void NodeItem::updatePositionInModel(bool directUpdate)
+void NodeItem::updatePositionInModel()
 {
     if(isAspectItem()){
         //Don't set Position for Aspects
         return;
     }
 
-    if(getParent() && getParent()->isNodeItem()){
-        getParentNodeItem()->hideChildGridOutline(getID());
-        getParentNodeItem()->updateSizeInModel(directUpdate);
-    }
-
     //Update the Size in the model.
     QPointF center = getMinimumRectCenterPos();
 
-    if(directUpdate){
-        setData("x", center.x());
-        setData("y", center.y());
-    }else{
-        emit GraphMLItem_SetData(getID(), "x", center.x());
-        emit GraphMLItem_SetData(getID(), "y", center.y());
+    qreal currentX = center.x();
+    qreal currentY = center.y();
+
+    //Check if size needs changing.
+    bool needsUpdating = false;
+    if(isDataDifferent("x", currentX)){
+        needsUpdating = true;
+    }
+    if(isDataDifferent("y", currentY)){
+        needsUpdating = true;
     }
 
+    if(needsUpdating){
+        if(getParent() && getParent()->isNodeItem()){
+            getParentNodeItem()->hideChildGridOutline(getID());
+            getParentNodeItem()->updateSizeInModel();
+        }
 
 
+        setData("x", currentX);
+        setData("y", currentY);
+    }
 }
 
-void NodeItem::updateSizeInModel(bool directUpdate)
+void NodeItem::updateSizeInModel()
 {
-    //If we have a NodeItem
-    if(getParentNodeItem()){
-        getParentNodeItem()->updateSizeInModel(directUpdate);
+    qreal currentWidth = getWidth();
+    qreal currentHeight = getHeight();
+
+    //Check if size needs changing.
+    bool needsUpdating = false;
+    if(isDataDifferent("width", currentWidth)){
+        needsUpdating = true;
+    }
+    if(isDataDifferent("height", currentHeight)){
+        needsUpdating = true;
     }
 
-    setData("width", getWidth());
-    setData("height", getHeight());
+    if(needsUpdating){
+        //If we have a NodeItem
+        if(getParentNodeItem()){
+            getParentNodeItem()->updateSizeInModel();
+        }
+
+        setData("width", currentWidth);
+        setData("height", currentHeight);
+    }
 }
 
 

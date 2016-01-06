@@ -55,7 +55,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     controller = 0;
     wasPanning = false;
     connectLine = 0;
-    constructedFromImport = true;
+    constructedFromImport = false;
+    //constructedFromImport = true;
     toolbarJustClosed = false;
     editingEntityItemLabel = false;
     managementComponentVisible = false;
@@ -3155,9 +3156,7 @@ void NodeView::removeGraphMLItemFromHash(int ID)
                 emit view_nodeDeleted(item->getID(), parentID);
             }
 
-            qCritical() << "DELETE ITEM";
             delete item;
-            qCritical() << "DELETING";
         }
 
         if(IS_SUB_VIEW){
@@ -3183,7 +3182,6 @@ void NodeView::removeGraphMLItemFromHash(int ID)
         }
         definitionIDs.remove(ID);
     }
-    qCritical() << "DELETION FINISHED";
 }
 
 
@@ -4306,7 +4304,6 @@ void NodeView::constructEntityItem(EntityAdapter *item)
 
 void NodeView::destructEntityItem(EntityAdapter *item)
 {
-    qCritical() << "DESTRUCTING" << item;
     destructGUIItem(item->getID(), GraphML::GK_NONE);
 }
 
@@ -4446,7 +4443,8 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         EntityItem* entityItem = (EntityItem*) item;
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
 
-        if(nodeItem){
+        if(nodeItem && !size.isNull()){
+            qCritical() << item->getNodeKind() << size;
             nodeItem->setWidth(size.width());
             nodeItem->setHeight(size.height());
         }
@@ -4460,8 +4458,13 @@ void NodeView::constructNodeItem(NodeAdapter *node)
             entityItem->setStatusField(statusField.first, statusField.second);
         }
 
+        if(parentNodeItem){
+            parentNodeItem->updateSizeInModel();
+        }
         if(nodeItem){
+            //Update the model if we need to.
             nodeItem->updateSizeInModel();
+            nodeItem->updatePositionInModel();
             // send/do necessary signals/updates when a node has been constructed
             nodeConstructed_signalUpdates(nodeItem);
         }
@@ -4785,12 +4788,13 @@ void NodeView::constructEdgeItem(EdgeAdapter *edge)
 
         if(!parent){
             //GETTING MODEL!?
-            qCritical() << "using Model.";
-            return;
+            //qCritical() << "using Model.";
+            //return;
             //parent = getModelItem();
 
             // added this here otherwise constructed edge with no gui is not stored
             noGuiIDHash[edge->getID()] = "Edge";
+            return;
         }
 
         //Construct a new GUI Element for this edge.

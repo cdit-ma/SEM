@@ -43,6 +43,7 @@ public:
 
     void updateFromData();
     void setData(QString keyName, QVariant value);
+    bool isDataDifferent(QString keyName, QVariant currentValue);
     void detach();
     virtual void setInSubView(bool inSubview);
     bool isDeleting();

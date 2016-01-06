@@ -175,7 +175,8 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
 
     bool okay = false;
     switch(_keyType){
-        case QVariant::String:{
+        case QVariant::String:
+    {
             if(dataValue.canConvert(QVariant::String)){
                 if(_keyName == "label"){
                     QString newValue = dataValue.toString();
@@ -211,6 +212,23 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
             }
             break;
         }
+    case QVariant::Bool:
+        if(dataValue.type() == QVariant::String){
+            //Try cast from string.
+            QString boolStr = dataValue.toString().toLower();
+            if(boolStr == "true"){
+                okay = true;
+                dataValue.setValue(true);
+            }else if(boolStr == "false"){
+                okay = true;
+                dataValue.setValue(false);
+            }else{
+                okay = false;
+            }
+            break;
+        }
+
+
     default:{
         //Could be a number.
 

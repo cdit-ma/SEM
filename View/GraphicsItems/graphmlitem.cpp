@@ -202,6 +202,12 @@ void GraphMLItem::setData(QString keyName, QVariant value)
     }
 }
 
+bool GraphMLItem::isDataDifferent(QString keyName, QVariant currentValue)
+{
+    QVariant modelValue = getDataValue(keyName);
+    return modelValue != currentValue;
+}
+
 void GraphMLItem::detach()
 {
     IS_DELETING = true;
@@ -347,7 +353,7 @@ bool GraphMLItem::isModelItem()
 bool GraphMLItem::isDataEditable(QString keyName)
 {
     if(attachedGraph){
-        return attachedGraph->isDataProtected(keyName);
+        return !attachedGraph->isDataProtected(keyName);
     }
     return false;
 }

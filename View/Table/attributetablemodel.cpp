@@ -31,7 +31,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
 
 AttributeTableModel::~AttributeTableModel()
 {
-    qCritical() << "Deleting Table Model";
+    //qCritical() << "Deleting Table Model";
     attachedEntity->removeListener(this);
 }
 

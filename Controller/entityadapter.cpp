@@ -18,7 +18,7 @@ EntityAdapter::EntityAdapter(Entity *entity): QObject(0)
 
 EntityAdapter::~EntityAdapter()
 {
-    qCritical() << "REMOVING EntityAdapter" << getID();
+    //qCritical() << "REMOVING EntityAdapter" << getID();
 }
 
 int EntityAdapter::getID()

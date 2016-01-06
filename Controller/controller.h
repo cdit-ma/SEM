@@ -64,7 +64,8 @@ struct EventAction{
 
     struct _Data{
         QString keyName;
-        QVariant value;
+        QVariant oldValue;
+        QVariant newValue;
         bool isProtected;
     } Data;
 };
@@ -256,6 +257,7 @@ private:
     Key* constructKey(QString name, QVariant::Type type,  Entity::ENTITY_KIND entityKind);
     bool destructKey(QString name);
     Key* getKeyFromName(QString name);
+    Key* getKeyFromID(int ID);
 
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
     int constructDefinitionRelative(Node* parent, Node* definition, bool instance = true);

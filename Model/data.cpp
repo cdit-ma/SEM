@@ -173,6 +173,8 @@ void Data::addChildData(Data *childData)
             _childData[ID] = childData;
         }
         connect(this, SIGNAL(dataChanged(int,QString,QVariant)), childData, SLOT(parentDataChanged(int, QString, QVariant)));
+        //Update.
+        childData->setValue(getValue());
     }
 }
 
@@ -184,6 +186,7 @@ void Data::removeChildData(Data *childData)
             _childData.remove(ID);
         }
         disconnect(this, SIGNAL(dataChanged(int, QString, QVariant)), childData, SLOT(parentDataChanged(int, QString, QVariant)));
+        childData->clearValue();
     }
 }
 

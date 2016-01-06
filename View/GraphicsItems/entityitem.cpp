@@ -198,7 +198,6 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
  */
 EntityItem::~EntityItem()
 {
-    qCritical() << "~EntityItem()";
     currentLeftEdgeIDs.clear();
     currentRightEdgeIDs.clear();
     delete rightLabelInputItem;
@@ -2488,7 +2487,6 @@ void EntityItem::forceExpandParentItem()
         EntityItem* pi = parentItems.at(i);
         emit GraphMLItem_SetData(pi->getID(), "isExpanded", true);
     }
-    qCritical() << "FORCE EXPAND";
 }
 
 
@@ -2543,7 +2541,10 @@ void EntityItem::dataChanged(QString dataValue)
             keyValue = statusModeDataKey;
         }
 
-        setData(keyValue, dataValue);
+        if(isDataEditable(keyValue)){
+            emit GraphMLItem_TriggerAction("Data: " + keyValue + " Changed");
+            setData(keyValue, dataValue);
+        }
     }
 }
 

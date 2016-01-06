@@ -40,8 +40,8 @@ public:
     virtual void setPos(const QPointF pos) = 0;
     virtual qreal getItemMargin() const = 0;
 
-    void updatePositionInModel(bool directUpdate = false);
-    void updateSizeInModel(bool directUpdate = false);
+    void updatePositionInModel();
+    void updateSizeInModel();
 
     RESIZE_TYPE resizeEntered(QPointF mousePosition);
 
