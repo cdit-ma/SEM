@@ -38,8 +38,6 @@ Entity::ENTITY_KIND Entity::getEntityKind(const QString entityString)
 
 Entity::Entity(Entity::ENTITY_KIND kind):GraphML(GraphML::GK_ENTITY)
 {
-    _isGenerated = false;
-
     entityKind = kind;
 }
 
@@ -196,16 +194,6 @@ bool Entity::isNode()
 bool Entity::isEdge()
 {
     return entityKind == EK_EDGE;
-}
-
-void Entity::setWasGenerated(bool generated)
-{
-    _isGenerated = generated;
-}
-
-bool Entity::wasGenerated()
-{
-    return _isGenerated;
 }
 
 QVariant Entity::getDataValue(QString keyName)

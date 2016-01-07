@@ -36,9 +36,6 @@ public:
     bool isNode();
     bool isEdge();
 
-    void setWasGenerated(bool generated);
-    bool wasGenerated();
-
 
     QVariant getDataValue(QString keyName);
     void setDataValue(QString keyName, QVariant value);
@@ -68,10 +65,6 @@ private:
     QHash<int, int> lookupKeyID2DataID;
     //Key Name -> Key ID
     QHash<QString, int> lookupKeyName2KeyID;
-
-    bool _isGenerated;
-    // GraphML interface
-
 };
 
 #endif // ENTITY_H

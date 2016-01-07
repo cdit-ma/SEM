@@ -2395,9 +2395,6 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("getCPP", controller->canGetCPP(selectedIDs));
         emit view_updateMenuActionEnabled("setReadOnly", controller->canSetReadOnly(selectedIDs));
         emit view_updateMenuActionEnabled("unsetReadOnly", controller->canUnsetReadOnly(selectedIDs));
-
-        qCritical() << selectedID;
-
         emit view_updateMenuActionEnabled("subView",  getSelectedID() != -1);
     }
 

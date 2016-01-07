@@ -12,7 +12,9 @@ QT       += xmlpatterns
 QT       += multimedia
 
 
-VERSION = 18.0
+VERSION = 1.2.0.0
+DEFINES += APP_VERSION=\\\"$$VERSION\\\"
+
 QMAKE_TARGET_COMPANY = Defence Information Group
 QMAKE_TARGET_PRODUCT = MEDEA
 QMAKE_TARGET_DESCRIPTION = Modelling, Experiment DEsign and Analysis

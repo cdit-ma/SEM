@@ -1627,7 +1627,7 @@ void MedeaWindow::setupApplication()
 {
     //Set QApplication information.
     QApplication::setApplicationName("MEDEA");
-    QApplication::setApplicationVersion("19");
+    QApplication::setApplicationVersion(APP_VERSION);
     QApplication::setOrganizationName("Defence Information Group");
     QApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
     QApplication::setWindowIcon(QIcon(":/Actions/MEDEA.png"));
