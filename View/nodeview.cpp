@@ -959,18 +959,15 @@ QList<EntityItem*> NodeView::getHardwareList()
  */
 void NodeView::constructNewView(int nodeKindToCenter)
 {
-    return; //FIX THIS
-    /*
-    if (getSelectedNodeID() == -1) {
+    if(!controller){
         return;
     }
-
     int nodeID = -1;
 
     switch (nodeKindToCenter) {
     case -1:
     case 0:
-        nodeID = getSelectedNodeID();
+        nodeID = getSelectedID();
         break;
     case -2:
         nodeID = getDefinitionID(nodeID);
@@ -981,15 +978,14 @@ void NodeView::constructNewView(int nodeKindToCenter)
     }
 
 
-
     if (nodeID <= 0) {
         qWarning() << "NodeView::constructNewView - nodeID is null.";
         return;
     }
 
-    NodeItem* nodeItem = getNodeItemFromID(nodeID);
+    GraphMLItem* centeredNode = getGraphMLItemFromID(nodeID);
 
-    if (IS_SUB_VIEW || !nodeItem){
+    if (IS_SUB_VIEW || !centeredNode){
         return;
     }
 
@@ -1003,45 +999,47 @@ void NodeView::constructNewView(int nodeKindToCenter)
     subWindow->setNodeView(newView);
     newView->view_LockCenteredGraphML(nodeID);
 
-    NodeItem* currentNode = nodeItem;
+    controller->connectView(newView);
 
-    if (controller && currentNode) {
-        //TODO FIX THIS
 
-        controller->connectView(newView);
+    QList<GraphMLItem*> constructList;
+    GraphMLItem* parent = centeredNode;
 
-        QList<EdgeAdapter*> edgeList;
-        QList<NodeAdapter*> constructList;
-
-        // get the children
-        foreach(GraphMLItem* child, currentNode->getChildren()){
-            if(child)
-        }
-
-        constructList << currentNode->getChildren();
-        edgeList << currentNode->getEdges();
-
-        while (currentNode) {
-            // add the parent of the currentNode
-            constructList.insert(0,currentNode);
-            currentNode = currentNode->getParentNode();
-        }
-        while (!constructList.isEmpty()) {
-            Node* newNode = constructList.takeFirst();
-//            newView->constructGUIItem(newNode);
-        }
-        while (!edgeList.isEmpty()) {
-  //          newView->constructGUIItem(edgeList.takeFirst());
-        }
-
-        connect(this, SIGNAL(view_ClearSubViewAttributeTable()), newView, SIGNAL(view_ClearSubViewAttributeTable()));
-        subWindow->show();
-        //Centralize item.
-        newView->centralizedItemMoved();
-    } else {
-        delete subWindow;
+    while(parent){
+        constructList.insert(0, parent);
+        parent = parent->getParent();
     }
-    */
+
+    //Construct Parents first.
+    while(!constructList.isEmpty()){
+        GraphMLItem* item = constructList.takeFirst();
+        newView->constructEntityItem(item->getEntityAdapter());
+    }
+
+
+    constructList = centeredNode->getChildren();
+
+
+    while(!constructList.isEmpty()){
+        GraphMLItem* item = constructList.takeFirst();
+        newView->constructEntityItem(item->getEntityAdapter());
+
+        foreach(GraphMLItem* child, item->getChildren()){
+            constructList.insert(0, child);
+        }
+    }
+
+    /*foreach(GraphMLItem* children, centeredNode->getChildren()){
+        EntityAdapter* entity = children->getEntityAdapter();
+        newView->constructEntityItem(entity);
+    }*/
+
+
+
+    connect(this, SIGNAL(view_ClearSubViewAttributeTable()), newView, SIGNAL(view_ClearSubViewAttributeTable()));
+    subWindow->show();
+    //Centralize item.
+    newView->centralizedItemMoved();
 }
 QList<NodeItem *> NodeView::getEntityItemsOfKind(QString kind, int ID, int depth)
 {
@@ -2397,6 +2395,10 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("getCPP", controller->canGetCPP(selectedIDs));
         emit view_updateMenuActionEnabled("setReadOnly", controller->canSetReadOnly(selectedIDs));
         emit view_updateMenuActionEnabled("unsetReadOnly", controller->canUnsetReadOnly(selectedIDs));
+
+        qCritical() << selectedID;
+
+        emit view_updateMenuActionEnabled("subView",  getSelectedID() != -1);
     }
 
     emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
@@ -4458,7 +4460,6 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         NodeItem* nodeItem = dynamic_cast<NodeItem*>(item);
 
         if(nodeItem && !size.isNull()){
-            qCritical() << item->getNodeKind() << size;
             nodeItem->setWidth(size.width());
             nodeItem->setHeight(size.height());
         }

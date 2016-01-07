@@ -241,7 +241,7 @@ private:
     void setData(Entity* parent, QString keyName, QVariant dataValue, bool addAction = true);
     void clearUndoHistory();
 
-    bool askQuestion(MESSAGE_TYPE, QString questionTitle, QString question, int ID=-1);
+    bool askQuestion(MESSAGE_TYPE type, QString questionTitle, QString question, int ID=-1);
     Node* getSingleNode(QList<int> IDs);
 
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
@@ -292,10 +292,9 @@ private:
     void constructNodeGUI(Node* node);
     void constructEdgeGUI(Edge* edge);
 
-    //Sets up an Undo state for the deletion of the Node/Edge, and tells the View To destruct its GUI Element.
-    bool destructNode(Node* node, bool addAction = true);
-    bool destructEdge(Edge* edge, bool addAction = true);
     bool destructEntity(int ID);
+    bool destructNode(Node* node);
+    bool destructEdge(Edge* edge);
 
 
     //Constructs a Vector of basic Data entities required for creating a Node.
@@ -339,7 +338,10 @@ private:
     void setupLocalNode();
 
     void enforceUniqueLabel(Node* node, QString newLabel = "");
-    void enforceUniqueSortOrder(Node* node, int position =-1);
+    bool requiresUniqueLabel(Node* node);
+    //int getUniqueSortOrder(Node* node, )
+    //void enforceUniqueLabel(Node* node, QString newLabel = "");
+    void enforceUniqueSortOrder(Node* node, int newSortPos = -1);
 
 
     //Returns true if the Model Entities can be connected.
@@ -492,7 +494,7 @@ private:
     bool viewSignalsEnabled;
     bool questionAnswer;
 
-    bool DELETING;
+    bool DESTRUCTING_CONTROLLER;
 
 
 

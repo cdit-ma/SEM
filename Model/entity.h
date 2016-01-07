@@ -32,7 +32,7 @@ public:
 
     QStringList getKeyNames();
 
-    virtual QString getEntityName();
+    QString getEntityName();
     bool isNode();
     bool isEdge();
 

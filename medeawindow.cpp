@@ -2606,13 +2606,14 @@ void MedeaWindow::setMenuActionEnabled(QString action, bool enable)
     }else if (action == "singleSelection") {
         actionCenter->setEnabled(enable);
         actionZoomToFit->setEnabled(enable);
-        actionPopupSubview->setEnabled(enable);
         // added this after the tag was made
         actionContextMenu->setEnabled(enable);
     } else if(action == "multipleSelection"){
 
     } else if(action == "localdeployment"){
         model_ExecuteLocalJob->setEnabled(enable);
+    }else if(action == "subView"){
+        actionPopupSubview->setEnabled(enable);
     }
 }
 
@@ -3324,10 +3325,10 @@ void MedeaWindow::updateDataTable()
     dataTableBox->repaint();
 
     // align the contents of the datatable
-    dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-    //dataTable->horizontalHeader()->resizeSection(1, dataTable->width()/4);
-    //dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+    if(dataTable->horizontalHeader()->count() == 2){
+        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+    }
 }
 
 

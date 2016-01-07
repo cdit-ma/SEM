@@ -36,6 +36,22 @@ Node *Edge::getSource()
     return source;
 }
 
+int Edge::getSourceID()
+{
+    if(source){
+        return source->getID();
+    }
+    return -1;
+}
+
+int Edge::getDestinationID()
+{
+    if(destination){
+        return destination->getID();
+    }
+    return -1;
+}
+
 Node *Edge::getDestination()
 {
     return destination;

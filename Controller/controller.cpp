@@ -35,7 +35,7 @@ NewController::NewController()
     INITIALIZING = true;
     viewSignalsEnabled = true;
     REDOING = false;
-    DELETING = false;
+    DESTRUCTING_CONTROLLER = false;
     CUT_USED = false;
     IMPORTING_SNIPPET = false;
     model = 0;
@@ -202,9 +202,10 @@ NewController::~NewController()
 {
     enableDebugLogging(false);
 
-    DELETING = true;
-    //destructNode(model, false);
-    //destructNode(workerDefinitions, false);
+    DESTRUCTING_CONTROLLER = true;
+
+    destructNode(model);
+    destructNode(workerDefinitions);
 }
 
 void NewController::setExternalWorkerDefinitionPath(QString path)
@@ -454,9 +455,7 @@ bool NewController::_clear()
 
 void NewController::setData(Entity *parent, QString keyName, QVariant dataValue, bool addAction)
 {
-
-    //qCritical() << "SETTING" << parent << " key Name: " << keyName << " = " << dataValue;
-    if(DELETING){
+    if(DESTRUCTING_CONTROLLER){
         //Ignore any calls to set whilst deleting.
         return;
     }
@@ -465,8 +464,6 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
         qCritical() << "view_UpdateData() Cannot Update Data for NULL GraphML object.";
         return;
     }
-
-
 
     //Construct an Action to reverse the update
     EventAction action;
@@ -488,10 +485,14 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
         }
 
         if(keyName == "label"){
-            Node* node = dynamic_cast<Node*>(parent);
-            if(node){
-                enforceUniqueLabel(node, dataValue.toString());
+            if(parent->isNode()){
+                enforceUniqueLabel((Node*)parent, dataValue.toString());
             }
+        }else if(keyName == "sortOrder"){
+            if(parent->isNode()){
+                enforceUniqueSortOrder((Node*)parent, dataValue.toInt());
+            }
+            data->setValue(dataValue);
         }else{
             data->setValue(dataValue);
         }
@@ -702,9 +703,7 @@ void NewController::destructEdge(int srcID, int dstID)
 
     if(src && dst){
         Edge* edge = src->getEdgeTo(dst);
-        if(edge){
-            destructEdge(edge, true);
-        }
+        destructEdge(edge);
     }
     emit controller_ActionFinished();
 }
@@ -759,7 +758,7 @@ void NewController::constructDestructEdges(QList<int> destruct_srcIDs, QList<int
             Node* src = getNodeFromID(destruct_srcIDs[i]);
             Node* dst = getNodeFromID(destruct_dstIDs[i]);
             if (src && dst) {
-                destructEdge(src->getEdgeTo(dst), true);
+                destructEdge(src->getEdgeTo(dst));
             }
         }
     }
@@ -1060,26 +1059,11 @@ bool NewController::_remove(QList<int> IDs, bool addAction)
             int ID = IDs.takeFirst();
             //Clear the list of related IDs.
             connectedLinkedIDs.clear();
-            Entity* graphML = getGraphMLFromID(ID);
 
-
-            if(graphML){
-                if(graphML->isNode()){
-                    Node* node = (Node*)graphML;
-
-                    bool success = destructNode(node, true);
-                    if(!success){
-                        allSuccess = false;
-                    }
-
-                }else if (graphML->isEdge()){
-                    //destructEdge((Edge*)graphML);
-                    bool success = destructEdge((Edge*)graphML);
-                    if(!success){
-                        allSuccess = false;
-                    }
-                }
+            if(!destructEntity(ID)){
+                allSuccess = false;
             }
+
             //Add any related ID's which need deleting to the top of the stack.
             IDs = connectedLinkedIDs + IDs;
             deleted++;
@@ -1123,7 +1107,8 @@ bool NewController::_replicate(QList<int> IDs, bool addAction)
             }
             //Import the GraphML
             if(node->getParentNode()){
-                success = _paste(node->getParentNode()->getID(),graphml, false);
+
+                success = _paste(node->getParentNodeID(),graphml, false);
             }
         }
     }
@@ -1850,8 +1835,35 @@ void NewController::removeGraphMLFromHash(int ID)
         }
 
 
+
         if(item)
         {
+
+            if(item->isNode()){
+                Node* node = (Node*)item;
+                QString nodeLabel = node->getDataValue("label").toString();
+                QString nodeKind = node->getDataValue("kind").toString();
+
+
+                if(nodeKind == "HardwareNode"){
+                    hardwareNodes.remove(nodeLabel);
+                }else if(nodeKind == "HardwareCluster"){
+                    hardwareClusters.remove(nodeLabel);
+                }else if(nodeKind == "ManagementComponent"){
+                    managementComponents.remove(nodeLabel);
+                }else if(nodeKind == "Process"){
+                    if(_isInWorkerDefinitions(node)){
+                    //If we are removing a Process contained in the WorkerDefinitions section.
+                        QString processName = getProcessName((Process*)node);
+                        if(processName != ""){
+                            workerProcesses.remove(processName);
+                        }
+                    }
+                }
+            }
+
+
+
             if(viewSignalsEnabled){
                 emit controller_GraphMLDestructed(ID, item->getGraphMLKind());
             }else{
@@ -1895,6 +1907,8 @@ void NewController::removeGraphMLFromHash(int ID)
         if(IDLookupGraphMLHash.size() != (nodeIDs.size() + edgeIDs.size())){
             qCritical() << "Hash Map Inconsistency detected!";
         }
+
+
     }
 }
 
@@ -1921,7 +1935,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
             parentNode->addChild(node);
 
             //Only enforce unique-ness for non-read-only nodes.
-            if(!node->isReadOnly()){
+            if(!node->isReadOnly() && node->hasData("label")){
                 //Force Unique labels
                 enforceUniqueLabel(node);
             }
@@ -1931,7 +1945,7 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
 
             constructNodeGUI(node);
         }else{
-            destructNode(node, false);
+            destructNode(node);
             return 0;
         }
     }
@@ -2341,84 +2355,78 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
 
 
 
-void NewController::enforceUniqueLabel(Node *node, QString nodeLabel)
+void NewController::enforceUniqueLabel(Node *node, QString newLabel)
 {
-    QString toSetLabel = nodeLabel;
-    QString currentLabel = node->getDataValue("label").toString();
     if(!node){
         return;
     }
-
-    Node* parentNode = node->getParentNode();
-
-    if(nodeLabel == ""){
-        nodeLabel = node->getDataValue("label").toString();
-    }
-    if(node->getDataValue("kind").toString() == "Process"){
-        node->setDataValue("label", nodeLabel);
-        return;
-    }
-    if(node->getDataValue("kind").toString() == "Process"){
-        node->setDataValue("label", nodeLabel);
-        return;
+    if(newLabel == ""){
+        newLabel = node->getDataValue("label").toString();
     }
 
+    //Get root String
+    if(requiresUniqueLabel(node)){
+        bool gotMatches = false;
+        QList<int> duplicateNumbers;
+
+        //If we have no parent node we don't need to enforce unique labels.
+        foreach(Node* sibling, node->getSiblings()){
+            QString siblingLabel = sibling->getDataValue("label").toString();
 
 
-    int maxNumber = -1;
-    QList<int> sameLabelNumbers;
-
-    //If we have no parent node we don't need to enforce unique labels.
-    if(parentNode){
-        foreach(Node* siblingNode, parentNode->getChildren(0)){
-            if(siblingNode == node){
-                //Don't force uniquity on self.
-                continue;
-            }
-            QString siblingLabel = siblingNode->getDataValue("label").toString();
-
-            if(siblingLabel == nodeLabel){
-                sameLabelNumbers << 0;
-                if(0 > maxNumber){
-                    maxNumber = 0;
-                }
-            }else if(siblingLabel.startsWith(nodeLabel)){
-                //If sibling's label begins with nodeLabel, check for underscores and numbers for uniquity.
-                QString labelRemainder = siblingLabel.right(siblingLabel.size() - nodeLabel.size());
-
-                if(labelRemainder.startsWith("_") && labelRemainder.count("_") == 1){
-                    labelRemainder = labelRemainder.right(labelRemainder.size() - 1);
-
-                    bool isInt;
-                    int number = labelRemainder.toInt(&isInt);
-                    if(isInt && number > 0){
-                        if(number > maxNumber){
-                            maxNumber = number;
-                        }
-                        sameLabelNumbers << number;
+            QRegularExpression regex(newLabel + "(_)?([0-9]+)?");
+            QRegularExpressionMatch match = regex.match(siblingLabel);
+            if(match.hasMatch()){
+                gotMatches = true;
+                QString underscore = match.captured(1);
+                QString numberStr = match.captured(2);
+                if(underscore != "_"){
+                    duplicateNumbers += 0;
+                }else{
+                    bool isInt = false;
+                    int number = numberStr.toInt(&isInt);
+                    if(isInt){
+                        duplicateNumbers += number;
                     }
                 }
             }
         }
-    }
-    int labelID = 0;
+        qSort(duplicateNumbers);
 
-
-    for(labelID=0; labelID <= maxNumber; labelID++){
-        if(!sameLabelNumbers.contains(labelID)){
-            break;
+        int newNumber = -1;
+        if(gotMatches){
+            newNumber = duplicateNumbers.size();
+            for(int i = 0; i < duplicateNumbers.size(); i ++){
+                int nextNumber = duplicateNumbers[i];
+                if(nextNumber != i){
+                    newNumber = i;
+                    break;
+                }
+            }
         }
+
+
+        if(newNumber > 0){
+            QString questionLabel = newLabel + "_" + QString::number(newNumber);
+
+            qCritical() << node->toString();
+            emit controller_DisplayMessage(WARNING, "Label isn't unique", "Found sibling entity with Label: '" + newLabel + "'. Setting '" + questionLabel + "' instead.",node->getID());
+            newLabel = questionLabel;
+        }
+
     }
-
-    if(labelID > 0){
-        nodeLabel += QString("_%1").arg(labelID);
-    }
-
-
-    node->setDataValue("label", nodeLabel);
+    node->setDataValue("label", newLabel);
 }
 
-void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
+bool NewController::requiresUniqueLabel(Node *node)
+{
+    if(node->getNodeKind() == "Process"){
+        return false;
+    }
+    return true;
+}
+
+void NewController::enforceUniqueSortOrder(Node *node, int newSortPos)
 {
     if(!node){
         return;
@@ -2427,167 +2435,130 @@ void NewController::enforceUniqueSortOrder(Node *node, int newPosition)
     Node* parentNode = node->getParentNode();
 
     if(parentNode){
-        int maxSortOrder = parentNode->childrenCount() -1;
+        int maxSortPos = parentNode->childrenCount() - 1;
 
-        int originalPosition = node->getDataValue("sortOrder").toInt();
+        int currentSortPos = node->getDataValue("sortOrder").toInt();
 
 
-        //Got original Position.
-        if(originalPosition == -1){
-            originalPosition = parentNode->childrenCount() - 1;
+        if(currentSortPos == -1){
+            //If the currentSortPos is invalid, set it as the maximum.
+            currentSortPos = maxSortPos;
         }
 
-        //If newPosition == -1 and originalPosition == -1 we should set the sort Order to the next child size.
-        if(newPosition == -1){
-            newPosition = originalPosition;
+        if(newSortPos == -1){
+            //If the new position is -1, set it to it's current value.
+            newSortPos = currentSortPos;
         }
 
-
-        //Bound the new value for sortOrder based on the parent size.
-        if(newPosition >= parentNode->childrenCount()){
-            newPosition = parentNode->childrenCount() - 1;
+        //Bound the new Sort position.
+        if(newSortPos > maxSortPos){
+            newSortPos = maxSortPos;
+        }else if(newSortPos < 0){
+            newSortPos = 0;
         }
 
-        //Bound the new value for sortOrder base on minimum  children
-        if(newPosition < 0){
-            newPosition = 0;
-        }
-
-        int lowerPos = qMin(originalPosition, newPosition);
-        int upperPos = qMax(originalPosition, newPosition);
+        int lowerPos = qMin(currentSortPos, newSortPos);
+        int upperPos = qMax(currentSortPos, newSortPos);
 
         //If we are updating. refactor.
-        if(originalPosition == newPosition){
-            lowerPos = originalPosition;
-            upperPos = maxSortOrder;
+        if(currentSortPos == newSortPos){
+            lowerPos = currentSortPos;
+            upperPos = maxSortPos;
         }
 
         int modifier = 1;
-        if(newPosition > originalPosition){
+        if(newSortPos > currentSortPos){
             modifier = -1;
         }
 
 
         foreach(Node* sibling, node->getSiblings()){
-            int currentPos = sibling->getDataValue("sortOrder").toInt();
+            int siblingSortPos = sibling->getDataValue("sortOrder").toInt();
 
-            if(currentPos >= lowerPos && currentPos <= upperPos){
-                sibling->setDataValue("sortOrder", currentPos + modifier);
+            if(siblingSortPos >= lowerPos && siblingSortPos <= upperPos){
+                sibling->setDataValue("sortOrder", siblingSortPos + modifier);
             }
         }
+
+        node->setDataValue("sortOrder", newSortPos);
     }
-    Data* sortData = node->getData("sortOrder");
-    sortData->setValue(newPosition);
-   // emit sortData->dataChanged(sortData);
 }
 
-bool NewController::destructNode(Node *node, bool addAction)
+/**
+ * @brief NewController::destructNode Fully deletes a Node; Including all of it's dependants and Edges etc.
+ * @param node The Node to Delete.
+ * @return Success
+ */
+bool NewController::destructNode(Node *node)
 {
     if(!node){
-        qCritical() << "NewController::destructNode() Got NULL Node!";
         return true;
     }
-    if(addAction){
-        if(!canDeleteNode(node)){
-            return false;
-        }
-    }
 
-    //Gotta Delete in Order.
-    QString XMLDump = "";
+    bool addAction = true;
+
     int ID = node->getID();
-    int parentID = -1;
-    if(node->getParentNode()){
-        parentID = node->getParentNode()->getID();
+    int parentID = node->getParentNodeID();
+
+    if(DESTRUCTING_CONTROLLER){
+        //If we are destructing the controller; Don't add an undo state.
+        addAction = false;
+    }else if(!isInModel(ID)){
+        //If the item isn't in the Model; Don't add an undo state.
+        addAction = false;
     }
 
-    bool toInt;
-    int nodePos = node->getDataValue("sortOrder").toInt(&toInt);
-    //Update sort order for silbings.
-    if(toInt){
-        foreach(Node* sibling, node->getSiblings()){
-            int siblingPos = sibling->getDataValue("sortOrder").toInt(&toInt);
-            if(toInt){
-                if(siblingPos > nodePos){
-                    sibling->setDataValue("sortOrder", QString::number(siblingPos-1));
-                }
-            }
-        }
+    if(addAction && !canDeleteNode(node)){
+        //If the item is reverseable action, check if we can actually remove the node.
+        return false;
     }
+
+
 
     if(addAction){
-        //Export only if we are add this node to reverse state.
-        XMLDump = _exportGraphMLDocument(node);
+        int maxPosition = -1;
+        if(node->getParentNode()){
+            maxPosition = node->getParentNode()->childrenCount() - 1;
+        }
+        enforceUniqueSortOrder(node, maxPosition);
     }
 
-    //Only for top parent, DELETE ALL EDGES for everything.
+    //Get a list of dependants.
+    QList<Node*> dependants = node->getDependants();
 
+    //Remove all Edges.
     while(node->hasEdges()){
         Edge* edge = node->getFirstEdge();
-        if(edge){
-            if(node->containsEdgeEndPoints(edge)){
-                qCritical() << "Node: " << node->toString() << " Fully Contains Edge: " << edge->toString();
-                //Add an Undo Step for things not completly owned by this.
-                destructEdge(edge, false);
-            }else{
-                qCritical() << "Node: " << node->toString() << " Doesn't fully contain Edge: " << edge->toString();
-                destructEdge(edge, addAction);
-            }
-        }
+        destructEdge(edge);
     }
 
+    //Remove all nodes which depend on this.
+    while(!dependants.isEmpty()){
+        Node* dependant = dependants.takeFirst();
+        destructNode(dependant);
+    }
+
+    //Remove all Children.
     while(node->hasChildren()){
         Node* child = node->getFirstChild();
-        if(child){
-            //qCritical() << "Removing Child: " << child;
-            destructNode(child, false);
-        }
+        destructNode(child);
     }
 
-    if(!node->wasGenerated() && addAction){
+    if(addAction){
         //Add an action to reverse this action.
         EventAction action;
         action.ID = ID;
+        action.parentID = parentID;
         action.Action.type = DESTRUCTED;
         action.Action.kind = node->getGraphMLKind();
-
         action.Entity.kind = node->getEntityKind();
         action.Entity.nodeKind = node->getNodeKind();
-        action.Entity.XML = XMLDump;
+        action.Entity.XML = _exportGraphMLDocument(node);
 
-        if(node->getParentNode()){
-            action.parentID = node->getParentNode()->getID();
-        }
-        addActionToStack(action, addAction);
+        addActionToStack(action);
     }
 
     removeGraphMLFromHash(ID);
-
-
-    HardwareNode* hNode = dynamic_cast<HardwareNode*>(node);
-    HardwareCluster* hCNode = dynamic_cast<HardwareCluster*>(node);
-    ManagementComponent* mCNode = dynamic_cast<ManagementComponent*>(node);
-    if(hNode){
-        QString nodeName = hNode->getDataValue("label").toString();
-        hardwareNodes.remove(nodeName);
-    }
-    if(hCNode){
-        QString nodeName = hCNode->getDataValue("label").toString();
-        hardwareClusters.remove(nodeName);
-    }
-
-    if(mCNode){
-        QString nodeName = mCNode->getDataValue("label").toString();
-        managementComponents.remove(nodeName);
-    }
-    if(_isInWorkerDefinitions(node)){
-        //If we are removing a Process contained in the WorkerDefinitions section.
-        Process* process = dynamic_cast<Process*>(node);
-        QString processName = getProcessName(process);
-        if(processName != ""){
-            workerProcesses.remove(processName);
-        }
-    }
 
     delete node;
     return true;
@@ -2595,31 +2566,31 @@ bool NewController::destructNode(Node *node, bool addAction)
 
 
 
-bool NewController::destructEdge(Edge *edge, bool addAction)
+bool NewController::destructEdge(Edge *edge)
 {
     if(!edge){
         qCritical() << "destructEdge(): Edge is NULL";
         return true;
     }
 
+    bool addAction = true;
 
-    //Get information about the edge.
+    if(DESTRUCTING_CONTROLLER){
+        //If we are destructing the controller; Don't add an undo state.
+        addAction = false;
+    }
+
     int ID = edge->getID();
-    int srcID = -1;
-    int dstID = -1;
     Node* src = edge->getSource();
-
     Node* dst = edge->getDestination();
 
     if(!(src && dst)){
         qCritical() << "destructEdge(): Source and/or Destination are NULL.";
         return false;
     }
-    srcID = src->getID();
-    dstID = dst->getID();
 
-    //If the Edge Wasn't Generated, and we are meant to add an Action for this removal, Add an undo state.
     if(addAction){
+        //Add an action to reverse this action.
         EventAction action;
         action.ID = ID;
         action.parentID = getModel()->getID();
@@ -2627,11 +2598,10 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
         action.Action.kind = edge->getGraphMLKind();
         action.Entity.kind = edge->getEntityKind();
         action.Entity.XML = edge->toGraphML(0);
-
-        addActionToStack(action, addAction);
+        addActionToStack(action);
     }
 
-
+    //Teardown specific edge classes.
     Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
 
     switch(edgeClass){
@@ -2672,22 +2642,16 @@ bool NewController::destructEdge(Edge *edge, bool addAction)
     }
     }
 
-
-
-
     //Remove it from the hash of GraphML
     removeGraphMLFromHash(ID);
 
-    //Delete it.
-    //delete edge;
-    delete edge;//edge->deleteLater();
-
+    delete edge;
     return true;
 }
 
 bool NewController::destructEntity(int ID)
 {
-    Entity* entity = getGraphMLFromHash(ID);
+    Entity* entity = getGraphMLFromID(ID);
     if(entity){
         if(entity->isNode()){
             return destructNode((Node*)entity);
@@ -2725,9 +2689,8 @@ bool NewController::reverseAction(EventAction action)
             Node* parentNode = getNodeFromID(action.parentID);
             if(parentNode){
                 return _importGraphMLXML(action.Entity.XML, parentNode, true);
-            }else{
-                qCritical() << "CAN'T UNDO";
             }
+            return false;
         }
     }else if(action.Action.kind == GraphML::GK_DATA){
         if(action.Action.type == CONSTRUCTED){
@@ -2879,14 +2842,8 @@ void NewController::addActionToStack(EventAction action, bool useAction)
 
 void NewController::undoRedo(bool undo)
 {
-    if(undo){
-        UNDOING = true;
-        REDOING = false;
-    }else{
-        REDOING = true;
-        UNDOING = false;
-    }
-
+    UNDOING = undo;
+    REDOING = !undo;
 
     //Used to store the stack of actions we are to use.
     QStack<EventAction> actionStack = redoActionStack;
@@ -2948,6 +2905,7 @@ void NewController::undoRedo(bool undo)
         EventAction reverseState = toReverse.takeFirst();
         bool success = reverseAction(reverseState);
         if(!success){
+            qCritical() << "CAN'T REVERSE";
 
             retryCount[reverseState.Action.actionID] +=1;
             if(retryCount[reverseState.Action.actionID] <= maxRetry){
@@ -2987,7 +2945,7 @@ void NewController::undoRedo(bool undo)
 
 void NewController::logAction(EventAction item)
 {
-    if(DELETING){
+    if(DESTRUCTING_CONTROLLER){
         return;
     }
 
@@ -2995,6 +2953,7 @@ void NewController::logAction(EventAction item)
 
     QString actionType="";
     QString actionKind="";
+    QString entityKind="";
 
     switch(item.Action.type){
     case CONSTRUCTED:
@@ -3020,10 +2979,24 @@ void NewController::logAction(EventAction item)
         break;
     }
 
+    switch(item.Entity.kind){
+    case Entity::EK_EDGE:
+        entityKind = "edge";
+        break;
+    case Entity::EK_NODE:
+        entityKind = "node";
+        break;
+    default:
+        break;
+    }
+
     out << item.Action.ID << "\t";
     out << item.Action.actionID << "\t";
     out << actionType << "\t";
     out << actionKind << "\t";
+    if(item.Entity.kind != Entity::EK_NONE){
+        out << entityKind << "\t";
+    }
     if(item.Action.kind != GraphML::GK_DATA){
         out << item.ID << "\t";
     }
@@ -3247,7 +3220,6 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
 void NewController::constructNodeGUI(Node *node)
 {
     if(!node){
-        qCritical() << "Cannot Construct Node GUI element. Null Node.";
         return;
     }
 
@@ -3256,12 +3228,11 @@ void NewController::constructNodeGUI(Node *node)
     action.Action.type = CONSTRUCTED;
     action.Action.kind = node->getGraphMLKind();
     action.ID = node->getID();
+    action.parentID = node->getParentNodeID();
     action.Entity.kind = node->getEntityKind();
     action.Entity.nodeKind = node->getNodeKind();
 
     if(node->getParentNode()){
-        //Set the ParentNode ID if we have a Parent.
-        action.parentID = node->getParentNode()->getID();
         //Variable.
         Node* parentNode = node->getParentNode();
         if(parentNode->getNodeKind() == "Variable"){
@@ -3934,7 +3905,6 @@ void NewController::constructEdgeGUI(Edge *edge)
 
     Edge::EDGE_CLASS edgeClass = edge->getEdgeClass();
 
-    if(!(UNDOING || REDOING)){
     switch(edgeClass){
         case Edge::EC_DEFINITION:{
             bool isInstance = src->isInstance();
@@ -3976,7 +3946,6 @@ void NewController::constructEdgeGUI(Edge *edge)
             setupDataEdgeRelationship(outputNode, inputNode, true);
         }
         break;
-    }
     }
     }
 
@@ -4426,19 +4395,23 @@ void NewController::clearUndoHistory()
     clearHistory();
 }
 
-bool NewController::askQuestion(MESSAGE_TYPE messageType, QString questionTitle, QString question, int ID)
+bool NewController::askQuestion(MESSAGE_TYPE type, QString questionTitle, QString question, int ID)
 {
-    //Construct a EventLoop which waits for the View to answer the question.
-    QEventLoop waitLoop;
-    questionAnswer = false;
+    if(!INITIALIZING){
+        //Construct a EventLoop which waits for the View to answer the question.
+        QEventLoop waitLoop;
+        questionAnswer = false;
 
-    connect(this, SIGNAL(controller_GotQuestionAnswer()), &waitLoop, SLOT(quit()));
+        connect(this, SIGNAL(controller_GotQuestionAnswer()), &waitLoop, SLOT(quit()));
 
-    emit controller_AskQuestion(messageType, questionTitle, question, ID);
+        emit controller_AskQuestion(type, questionTitle, question, ID);
 
-    waitLoop.exec();
-    return questionAnswer;
+        waitLoop.exec();
+        return questionAnswer;
+    }
+    return false;
 }
+
 
 Node *NewController::getSingleNode(QList<int> IDs)
 {
@@ -4729,7 +4702,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
                         //If the date is older.
                         if(newTimeStamp < currentTimeStamp){
-                            resetIgnoreParentID = node->getParentNode()->getID();
+                            resetIgnoreParentID = node->getParentNodeID();
                             ignoreReadOnly = !askQuestion(CRITICAL, "Import Older Snippet", "You are trying to replace an newer version of a snippet with an older version. Would you like to proceed?", node->getID());
                         }
 
@@ -4815,6 +4788,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     bool okay;
                     int oldID = nodeID.toInt(&okay);
                     if(okay){
+                        qCritical() << "linking ID: " << oldID << " to " <<  node->getID();
                         linkOldIDToID(oldID, node->getID());
                     }
                 }

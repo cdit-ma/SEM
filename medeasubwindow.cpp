@@ -60,12 +60,13 @@ void MedeaSubWindow::updateDataTable()
             } else {
                 updateWidgetMask(dataTableBox, dataTable);
             }
-
             // align the contents of the datatable
-            dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-            dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Interactive);
-            dataTable->horizontalHeader()->resizeSection(1, dataTable->width()/4);
-            dataTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+            if(dataTable->horizontalHeader()->count() == 2){
+                dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+                dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+            }
+
+
 
         }else{
             dataTableBox->setVisible(false);

@@ -156,6 +156,14 @@ Node *Node::getParentNode(int depth)
     return node;
 }
 
+int Node::getParentNodeID()
+{
+    if(getParentNode()){
+        return getParentNode()->getID();
+    }
+    return -1;
+}
+
 bool Node::canAdoptChild(Node *node)
 {
     if(!node){
@@ -795,6 +803,14 @@ void Node::addImplementation(Node *impl)
 QList<Node *> Node::getImplementations()
 {
     return implementations;
+}
+
+QList<Node *> Node::getDependants()
+{
+    QList<Node*> nodes;
+    nodes += implementations;
+    nodes += instances;
+    return nodes;
 }
 
 void Node::removeImplementation(Node *impl)

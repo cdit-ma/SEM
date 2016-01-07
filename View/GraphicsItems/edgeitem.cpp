@@ -65,14 +65,7 @@ EdgeItem::EdgeItem(EdgeAdapter *edge, EntityItem *parent, EntityItem* s, EntityI
 
     setupBrushes();
 
-    //Data* labelData = edge->getData("description");
-    QString labelString = "";
-    //if(labelData){
-    //    connect(labelData, SIGNAL(dataChanged(Data* )), this, SLOT(graphMLDataChanged(Data*)));
-    //    labelString = labelData->getValue().toString();
-    //}
-
-    updateLabel(labelString);
+    listenForData("description");
 
 
     //Stepup.
@@ -99,6 +92,7 @@ EdgeItem::EdgeItem(EdgeAdapter *edge, EntityItem *parent, EntityItem* s, EntityI
 
 
     updateLines();
+    updateFromData();
 
     //Update selection state.
     setSelected(false);
@@ -503,6 +497,7 @@ void EdgeItem::updateLabel(QString labelText)
 
     if(!textItem){
         textItem = new EditableTextItem(this);
+        textItem->setAlignment(Qt::AlignCenter);
 
         connect(textItem, SIGNAL(textUpdated(QString)),this, SLOT(labelUpdated(QString)));
 

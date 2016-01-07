@@ -32,6 +32,7 @@ public:
     void setTop(int index = 0);
 
     Node* getParentNode(int depth = 1);
+    int getParentNodeID();
 
     //Returns whether or not this Node can Adopt the child Node.
     virtual bool canAdoptChild(Node *node);
@@ -98,6 +99,7 @@ public:
 
     void addImplementation(Node* impl);
     QList<Node*> getImplementations();
+    QList<Node*> getDependants();
     void removeImplementation(Node* impl);
     bool compareData(Node* node, QString keyName);
     bool compareData(Node* node, QStringList keys);
