@@ -164,6 +164,8 @@ signals:
     void controller_ProjectNameChanged(QString);
 
 
+    void controller_ProjectRequiresSave(bool requiresSave);
+
     void controller_SetClipboardBuffer(QString);
 
     void controller_SetViewEnabled(bool);
@@ -187,6 +189,10 @@ private slots:
 
     void undo();
     void redo();
+
+    void save();
+    void saveAs();
+    void open();
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
     void constructWorkerProcessNode(int parentID,QString workerName, QString operationName, QPointF position);
@@ -247,6 +253,9 @@ private:
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
 
+
+    void projectModified();
+    void projectSaved();
 
     Node* getSharedParent(QList<int> IDs);
 
@@ -450,6 +459,7 @@ private:
     QStringList viewAspects;
     //A list of KeyNames to be protected.
     QStringList protectedKeyNames;
+    QStringList visualKeyNames;
 
     //Used to tell if we are currently Undo-ing/Redo-ing in the system.
     bool UNDOING;
@@ -498,6 +508,7 @@ private:
 
 
 
+    bool projectDirty;
 
 };
  QDataStream &operator<<(QDataStream &out, const EventAction &action);

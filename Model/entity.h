@@ -22,6 +22,7 @@ public:
     bool addData(Data* data);
     bool addData(QList<Data*> dataList);
 
+
     Data* getData(QString keyName);
     Data* getData(Key* key);
     Data* getData(int ID);
@@ -35,6 +36,7 @@ public:
     QString getEntityName();
     bool isNode();
     bool isEdge();
+    bool isReadOnly();
 
 
     QVariant getDataValue(QString keyName);

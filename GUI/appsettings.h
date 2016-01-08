@@ -22,14 +22,14 @@ public:
     void loadSettings();
 
     void setSetting(QString keyName, QVariant value);
-    QString getSetting(QString keyName);
+    QVariant getSetting(QString keyName);
 
     QString getReadableValue(const QString value);
 signals:
-    void settingChanged(QString settingGroup, QString settingName, QString setti5ngValue);
+    void settingChanged(QString settingGroup, QString settingName, QVariant settingValue);
 private slots:
     void _settingChanged(QString settingGroup, QString settingName, QString settingValue);
-    void settingUpdated(QString, QString, QString);
+    void settingUpdated(QString, QString, QVariant);
 
 
     void groupToggled(bool toggled);

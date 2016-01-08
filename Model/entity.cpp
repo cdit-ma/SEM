@@ -196,6 +196,15 @@ bool Entity::isEdge()
     return entityKind == EK_EDGE;
 }
 
+bool Entity::isReadOnly()
+{
+    Data* readOnlyData = getData("readOnly");
+    if(readOnlyData){
+        return readOnlyData->getValue().toBool();
+    }
+    return false;
+}
+
 QVariant Entity::getDataValue(QString keyName)
 {
     Data* data = getData(keyName);

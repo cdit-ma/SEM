@@ -26,6 +26,7 @@ public:
 
     QList<Data*> getChildData();
 
+    bool isVisualData();
 
     Key* getKey();
     QString getKeyName();

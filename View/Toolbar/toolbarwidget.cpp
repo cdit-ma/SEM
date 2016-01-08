@@ -811,8 +811,8 @@ void ToolbarWidget::setupToolBar()
     exportSnippetButton = constructToolButton(buttonSize, 0.6, "ExportSnippet", "Export GraphML Snippet");
     getCPPButton = constructToolButton(buttonSize, 0.6, "getCPP", "Get CPP Code");
 
-    setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Ready Only");
-    unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Ready Only");
+    setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Read Only");
+    unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Read Only");
 
 
 

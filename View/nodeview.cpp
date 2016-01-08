@@ -88,7 +88,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     AUTO_CENTER_ASPECTS = false;
     GRID_LINES_ON = false;
-    SELECT_ON_CONSTRUCTION = false;
+    SELECT_AFTER_CONSTRUCTION = false;
     CONTROL_DOWN = false;
     SHIFT_DOWN = false;
     IS_DESTRUCTING = false;
@@ -276,6 +276,12 @@ NodeView::~NodeView()
         parentNodeView->removeSubView(this);
     }
 }
+
+void NodeView::setApplicationDirectory(QString appDir)
+{
+    applicationDirectory = appDir;
+}
+
 
 void NodeView::setCursor(QCursor cursor)
 {
@@ -1631,6 +1637,36 @@ void NodeView::setupSoundEffects()
     */
 }
 
+void NodeView::settingChanged(QString groupName, QString keyName, QVariant value)
+{
+    bool isInt;
+    QString strValue = value.toString();
+    bool boolValue = value.toBool();
+    int intValue = value.toInt(&isInt);
+
+    if(keyName == LOG_DEBUGGING){
+        emit view_EnableDebugLogging(boolValue, applicationDirectory);
+    }else if(keyName == SELECT_ON_CREATION){
+        selectNodeOnConstruction(boolValue);
+    }else if(keyName == AUTO_CENTER_VIEW){
+        autoCenterAspects(boolValue);
+    }else if(keyName == SELECT_ON_CREATION){
+        selectNodeOnConstruction(boolValue);
+    }else if(keyName == ZOOM_ANCHOR_ON_MOUSE){
+        toggleZoomAnchor(boolValue);
+    }else if(keyName == SHOW_MANAGEMENT_COMPONENTS){
+        showManagementComponents(boolValue);
+    }else if(keyName == SHOW_LOCAL_NODE){
+        showLocalNode(boolValue);
+    }else if(keyName == DARK_THEME_ON) {
+        if(boolValue){
+            setupTheme(VT_DARK_THEME);
+        }else{
+            setupTheme(VT_NORMAL_THEME);
+        }
+    }
+}
+
 void NodeView::modelReady()
 {
     //Do initializing here!
@@ -1639,6 +1675,9 @@ void NodeView::modelReady()
     }
 
     setSceneRect(QRectF(0,0,10000,10000));
+
+    emit view_LoadSettings();
+
     emit view_ModelSizeChanged();
     emit view_ModelReady();
 }
@@ -4181,12 +4220,12 @@ void NodeView::clearSelection(bool updateTable, bool updateDocks)
     }
 
     if (updateTable) {
-        setAttributeModel(0,false);
+        setAttributeModel(0, false);
     }
 
-    ModelItem* modelItem =getModelItem();
+    ModelItem* modelItem = getModelItem();
     if(modelItem){
-        //Allow defocusing of ohter things
+        //Allow defocusing of other things
         modelItem->setFocus();
     }
 
@@ -4250,7 +4289,7 @@ void NodeView::autoCenterAspects(bool center)
  */
 void NodeView::selectNodeOnConstruction(bool select)
 {
-    SELECT_ON_CONSTRUCTION = select;
+    SELECT_AFTER_CONSTRUCTION = select;
 }
 
 
@@ -4486,7 +4525,7 @@ void NodeView::constructNodeItem(NodeAdapter *node)
 
         // if SELECT_ON_CONSTRUCTION, select node after construction and center on it
         // the node's label is automatically selected and editable
-        if (toolbarDockConstruction && SELECT_ON_CONSTRUCTION) {
+        if (toolbarDockConstruction && SELECT_AFTER_CONSTRUCTION) {
             clearSelection(true, false);
             // why not update menu/toolbar actions here?
             appendToSelection(item, false);
@@ -4520,7 +4559,12 @@ void NodeView::destructGUIItem(int ID, GraphML::GRAPHML_KIND kind)
  */
 void NodeView::showManagementComponents(bool show)
 {
+    if(!controller){
+        return;
+    }
+
     Node* assemblyDefinition = 0;
+
     Model* model = controller->getModel();
     if (model) {
         QList<Node*> result = model->getChildrenOfKind("AssemblyDefinitions");
@@ -4570,6 +4614,9 @@ void NodeView::showManagementComponents(bool show)
 
 void NodeView::showLocalNode(bool show)
 {
+    if(!controller){
+        return;
+    }
     Node* hardwareDefinition = 0;
     Model* model = controller->getModel();
     if (model){

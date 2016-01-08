@@ -362,7 +362,6 @@ void EntityItem::handleExpandState(bool newState)
     }
 
 
-    //TODO FIX HARDWARE TOOLBAR
     // if expanded, only show the HardwareNodes that match the current chidldren view mode
     if (IS_HARDWARE_CLUSTER && IS_EXPANDED_STATE) {
         // this will show/hide HardwareNodes depending on the current view mode

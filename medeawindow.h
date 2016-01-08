@@ -108,10 +108,12 @@ signals:
     void executeXMETransformation(QString, QString);  
 
 public slots:
+    void projectRequiresSaving(bool requiresSave);
     void modelReady();
     void projectCleared();
-    void settingChanged(QString groupName, QString keyName, QString value);
+    void settingChanged(QString groupName, QString keyName, QVariant value);
 
+    void loadSettingsFromINI();
     void setupInitialSettings();
 
 
@@ -216,7 +218,7 @@ private:
     void initialiseCUTSManager();
     void importXMEProject(QString fileName);
 
-    void toolbarSettingChanged(QString keyName, QString value);
+    void toolbarSettingChanged(QString keyName, QVariant value);
     void enableTempExport(bool enable);
 
     void setApplicationEnabled(bool enable);
@@ -268,6 +270,11 @@ private:
     QAction* file_newProject;
     QAction* file_importGraphML;
     QAction* file_importXME;
+
+    QAction* file_openProject;
+    QAction* file_saveProject;
+    QAction* file_saveAsProject;
+
     QAction* file_importSnippet;
     QAction* file_exportGraphML;
     QAction* file_exportSnippet;
@@ -439,6 +446,7 @@ private:
     bool tempExport;
     bool isWindowMaximized;
     bool settingsLoading;
+    bool initialSettingsLoaded;
     bool maximizedSettingInitiallyChanged;
 
     bool WINDOW_MAXIMIZED;

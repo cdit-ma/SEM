@@ -51,59 +51,7 @@
 #define GME_FILE_EXT "GME Documents (*.xme)"
 
 // USER SETTINGS
-#define LOG_DEBUGGING "00-01-Log_Debug_Information"
-#define THREAD_LIMIT "00-02-Thread_Limit"
-#define CUTS_CONFIGURE_PATH "00-03-CUTS_Configure_Script_Path"
 
-#define WINDOW_X "01-01-Position_X"
-#define WINDOW_Y "01-02-Position_Y"
-#define WINDOW_W "01-03-Width"
-#define WINDOW_H "01-04-Height"
-#define WINDOW_MAX_STATE "01-05-Maximized"
-#define WINDOW_FULL_SCREEN "01-06-Full_Screen_Mode"
-#define DEFAULT_DIR_PATH "00-04-Default_Open_Path"
-
-#define AUTO_CENTER_VIEW "02-01-Auto_Center_View"
-#define SELECT_ON_CREATION "02-02-Select_Entity_On_Creation"
-#define ZOOM_ANCHOR_ON_MOUSE "02-03-Zoom_View_Under_Mouse"
-#define TOGGLE_GRID "02-04-Toggle_Grid_Lines"
-#define SHOW_MANAGEMENT_COMPONENTS "02-05-Show_Management_Components"
-#define SHOW_LOCAL_NODE "02-06-Show_Local_Node"
-#define DARK_THEME_ON "02-07-Dark_Theme_On"
-
-#define ASPECT_I "03-01-Interfaces"
-#define ASPECT_B "03-02-Behaviour"
-#define ASPECT_A "03-03-Assemblies"
-#define ASPECT_H "03-04-Hardware"
-#define DOCK_VISIBLE "04-01-Hide_Dock"
-#define TOOLBAR_VISIBLE "05-00-00-Hide_Toolbar"
-#define TOOLBAR_EXPANDED "05-00-01-Expand_Toolbar"
-
-#define JENKINS_URL "06-01-URL"
-#define JENKINS_USER "06-02-Username"
-#define JENKINS_PASS "06-03-Password"
-#define JENKINS_JOB "06-04-MEDEA_Jobname"
-#define JENKINS_TOKEN "06-05-API_Token"
-
-#define TOOLBAR_SETTINGS "05-Toolbar_Settings"
-#define TOOLBAR_CONTEXT "05-01-Context_Toolbar"
-#define TOOLBAR_UNDO "05-02-Undo"
-#define TOOLBAR_REDO "05-03-Redo"
-#define TOOLBAR_CUT "05-04-Cut"
-#define TOOLBAR_COPY "05-05-Copy"
-#define TOOLBAR_PASTE "05-06-Paste"
-#define TOOLBAR_REPLICATE "05-07-Replicate"
-#define TOOLBAR_DELETE_ENTITIES "05-08-Delete_Entities"
-#define TOOLBAR_POPUP_SUBVIEW "05-09-Popup_SubView"
-#define TOOLBAR_GRID_LINES "05-10-Grid_Lines"
-#define TOOLBAR_FIT_TO_SCREEN "05-11-Fit_To_Screen"
-#define TOOLBAR_CENTER_ON_ENTITY "05-12-Center_On_Entity"
-#define TOOLBAR_ZOOM_TO_FIT "05-13-Zoom_To_Fit"
-#define TOOLBAR_SORT "05-14-Sort"
-#define TOOLBAR_VERT_ALIGN "05-15-Vertical_Align_Entities"
-#define TOOLBAR_HORIZ_ALIGN "05-16-Horizontal_Align_Entities"
-#define TOOLBAR_BACK "05-17-Back"
-#define TOOLBAR_FORWARD "05-18-Forward"
 
 
 /**
@@ -132,7 +80,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     appSettings = new AppSettings(this, applicationDirectory);
     appSettings->setModal(true);
-    connect(appSettings, SIGNAL(settingChanged(QString,QString,QString)), this, SLOT(settingChanged(QString, QString, QString)));
+    connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
 
     controllerThread = 0;
     controller = 0;
@@ -145,6 +93,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     leftOverTime = 0;
     isWindowMaximized = false;
     settingsLoading = false;
+
+    initialSettingsLoaded = false;
+
     maximizedSettingInitiallyChanged = false;
     nodeView = 0;
     fileDialog = 0;
@@ -154,9 +105,25 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     initialiseGUI();
     makeConnections();
-    newProject();
+
+
+    resetGUI();
+
+    // reset the view - clear history and selection
+    resetView();
+
+    // load the initial settings
+    setupInitialSettings();
+
+    // re-enable the window and view
+    //setApplicationEnabled(true);
+
+    this->show();
+
+    //newProject();
 
     //Load Icon into resource.
+    initialSettingsLoaded = true;
 }
 
 
@@ -189,13 +156,19 @@ MedeaWindow::~MedeaWindow()
 
 }
 
+void MedeaWindow::projectRequiresSaving(bool requiresSave)
+{
+    qCritical() << "REQUIRES SAVING" << requiresSave;
+    setWindowModified(requiresSave);
+}
+
 
 /**
  * @brief MedeaWindow::toolbarSettingChanged
  * @param keyName
  * @param value
  */
-void MedeaWindow::toolbarSettingChanged(QString keyName, QString value)
+void MedeaWindow::toolbarSettingChanged(QString keyName, QVariant value)
 {
     bool isBool = false;
     bool boolValue = false;
@@ -256,7 +229,7 @@ void MedeaWindow::modelReady()
     resetView();
 
     // load the initial settings
-    setupInitialSettings();
+    //setupInitialSettings();
 
     // re-enable the window and view
     setApplicationEnabled(true);
@@ -285,22 +258,22 @@ void MedeaWindow::projectCleared()
  * @param keyName
  * @param value
  */
-void MedeaWindow::settingChanged(QString groupName, QString keyName, QString value)
+void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant value)
 {
     if(groupName==TOOLBAR_SETTINGS){
         toolbarSettingChanged(keyName, value);
     }
-
-    bool isBool = false;
-    bool boolValue = false;
-    bool isInt = false;
-    int intValue = value.toInt(&isInt);
-    if(value == "true" || value == "false"){
-        isBool = true;
-        if(value == "true"){
-            boolValue = true;
+    if(groupName==WINDOW_SETTINGS){
+        if(initialSettingsLoaded){
+            //Ignore window setting changes on reload of settings...
+           return;
         }
     }
+
+    bool isInt;
+    QString strValue = value.toString();
+    bool boolValue = value.toBool();
+    int intValue = value.toInt(&isInt);
 
     if(keyName == WINDOW_X && isInt){
         move(intValue, pos().y());
@@ -310,7 +283,7 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
         resize(intValue, size().height());
     }else if(keyName == WINDOW_H && isInt){
         resize(size().width(), intValue);
-    }else if(keyName == WINDOW_MAX_STATE && isBool){
+    }else if(keyName == WINDOW_MAX_STATE){
         if(boolValue != isWindowMaximized && settingsLoading){
             maximizedSettingInitiallyChanged = true;
             WINDOW_MAXIMIZED = boolValue;
@@ -320,86 +293,70 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QString val
         }else{
             showNormal();
         }
-    }else if(keyName == WINDOW_FULL_SCREEN && isBool){
+    }else if(keyName == WINDOW_FULL_SCREEN){
         setFullscreenMode(boolValue);
-    }else if(keyName == LOG_DEBUGGING && isBool){
-        if(nodeView){
-            emit nodeView->view_EnableDebugLogging(boolValue, applicationDirectory);
-        }
     }else if(keyName == CUTS_CONFIGURE_PATH){
         if(cutsManager){
-            cutsManager->setCUTSConfigScriptPath(value);
+            cutsManager->setCUTSConfigScriptPath(strValue);
         }
     }else if(keyName == THREAD_LIMIT && isInt){
         if(cutsManager){
             cutsManager->setMaxThreadCount(intValue);
         }
-    }else if(keyName == AUTO_CENTER_VIEW && isBool){
-        nodeView->autoCenterAspects(boolValue);
-    }else if(keyName == SELECT_ON_CREATION && isBool){
-        nodeView->selectNodeOnConstruction(boolValue);
-    }else if(keyName == ZOOM_ANCHOR_ON_MOUSE && isBool){
-        nodeView->toggleZoomAnchor(boolValue);
-    }else if(keyName == TOGGLE_GRID && isBool){
+    }else if(keyName == TOGGLE_GRID){
         toggleAndTriggerAction(actionToggleGrid, boolValue);
-    }else if(keyName == DOCK_VISIBLE && isBool){
+    }else if(keyName == DOCK_VISIBLE){
         showDocks(!boolValue);
-    }else if(keyName == TOOLBAR_VISIBLE && isBool){
+    }else if(keyName == TOOLBAR_VISIBLE){
         setToolbarVisibility(!boolValue);
         settingChanged(groupName,TOOLBAR_EXPANDED, appSettings->getSetting(TOOLBAR_EXPANDED));
-    }else if(keyName == TOOLBAR_EXPANDED && isBool){
+    }else if(keyName == TOOLBAR_EXPANDED){
         if(appSettings->getSetting(TOOLBAR_VISIBLE) != "true"){
             toolbarButton->setChecked(boolValue);
             toolbarButton->clicked(boolValue);
         }
-    }else if(keyName == ASPECT_I && isBool){
+    }else if(keyName == ASPECT_I){
         definitionsToggle->setClicked(boolValue);
-    }else if(keyName == ASPECT_B && isBool){
+    }else if(keyName == ASPECT_B){
         workloadToggle->setClicked(boolValue);
-    }else if(keyName == ASPECT_A && isBool){
+    }else if(keyName == ASPECT_A){
         assemblyToggle->setClicked(boolValue);
-    }else if(keyName == ASPECT_H && isBool){
+    }else if(keyName == ASPECT_H){
         hardwareToggle->setClicked(boolValue);
     }else if(keyName == JENKINS_URL){
         if(jenkinsManager){
-            jenkinsManager->setURL(value);
+            jenkinsManager->setURL(strValue);
         }
     }else if(keyName == JENKINS_USER){
         if(jenkinsManager){
-            jenkinsManager->setUsername(value);
+            jenkinsManager->setUsername(strValue);
         }
     }else if(keyName == JENKINS_PASS){
         if(jenkinsManager){
-            jenkinsManager->setPassword(value);
+            jenkinsManager->setPassword(strValue);
         }
     }else if(keyName == JENKINS_TOKEN){
         if(jenkinsManager){
-            jenkinsManager->setToken(value);
+            jenkinsManager->setToken(strValue);
         }
     }else if(keyName == JENKINS_JOB){
-        jenkins_JobName_Changed(value);
-    }else if(keyName == SHOW_MANAGEMENT_COMPONENTS && isBool){
-        if(nodeView){
-            nodeView->showManagementComponents(boolValue);
-        }
-    }else if(keyName == SHOW_LOCAL_NODE && isBool){
-        if(nodeView){
-            nodeView->showLocalNode(boolValue);
-        }
-    } else if (keyName == DARK_THEME_ON && isBool) {
-        if (boolValue) {
-            nodeView->setupTheme(VT_DARK_THEME);
-        } else {
-            nodeView->setupTheme(VT_NORMAL_THEME);
-        }
+        jenkins_JobName_Changed(strValue);
     }else if(keyName == DEFAULT_DIR_PATH){
         //Set up default path.
-
-        DEFAULT_PATH = value;
+        DEFAULT_PATH = strValue;
         if(DEFAULT_PATH == ""){
             //Use application directory
             DEFAULT_PATH = applicationDirectory;
         }
+    }
+}
+
+void MedeaWindow::loadSettingsFromINI()
+{
+    if(appSettings){
+        settingsLoading = true;
+        appSettings->loadSettings();
+        settingsLoading = false;
     }
 }
 
@@ -470,6 +427,7 @@ void MedeaWindow::initialiseGUI()
     controllerThread = 0;
 
     nodeView = new NodeView();
+    nodeView->setApplicationDirectory(applicationDirectory);
 
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
@@ -694,7 +652,19 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     file_newProject = file_menu->addAction(getIcon("Actions", "New"), "New Project");
     file_newProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_N));
+
+    file_openProject = file_menu->addAction(getIcon("Actions", "Import"), "Open Project");
+    file_openProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
+
+    file_saveProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project");
+    file_saveProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+    file_saveAsProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project As");
+    file_saveAsProject->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+
     file_menu->addSeparator();
+
+
+
     file_importGraphML = file_menu->addAction(getIcon("Actions", "Import"), "Import");
     file_importSnippet = file_menu->addAction(getIcon("Actions", "ImportSnippet"), "Import Snippet");
     file_importXME = file_menu->addAction(QIcon(":/GME.ico"), "Import XME File");
@@ -753,7 +723,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     button->setMenu(menu);
 
     //Setup Jenkins Menu
-    QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB);
+    QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB).toString();
 
     //Generic Jenkins Functionality.
     jenkins_ImportNodes = jenkins_menu->addAction(getIcon("Actions", "Computer"), "Import Jenkins Nodes");
@@ -1396,6 +1366,8 @@ void MedeaWindow::makeConnections()
     validateResults.connectToWindow(this);
     connect(this, SIGNAL(window_SetViewVisible(bool)), nodeView, SLOT(setVisible(bool)));
 
+    connect(nodeView, SIGNAL(view_LoadSettings()), this, SLOT(loadSettingsFromINI()));
+
     connect(this, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)), nodeView, SLOT(toggleAspect(VIEW_ASPECT,bool)));
     connect(this, SIGNAL(window_centerAspect(VIEW_ASPECT)), nodeView, SLOT(centerAspect(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_toggleAspect(VIEW_ASPECT, bool)), this, SLOT(forceToggleAspect(VIEW_ASPECT,bool)));
@@ -1404,6 +1376,8 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), workloadToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), assemblyToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), hardwareToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
+
+    connect(nodeView, SIGNAL(view_ProjectRequiresSaving(bool)), this, SLOT(projectRequiresSaving(bool)));
 
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
     connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));
@@ -1647,10 +1621,10 @@ void MedeaWindow::initialiseJenkinsManager()
 {
     jenkinsManager = 0;
 
-    QString jenkinsUrl = appSettings->getSetting(JENKINS_URL);
-    QString jenkinsUser = appSettings->getSetting(JENKINS_USER);
-    QString jenkinsPass = appSettings->getSetting(JENKINS_PASS);
-    QString jenkinsToken = appSettings->getSetting(JENKINS_TOKEN);
+    QString jenkinsUrl = appSettings->getSetting(JENKINS_URL).toString();
+    QString jenkinsUser = appSettings->getSetting(JENKINS_USER).toString();
+    QString jenkinsPass = appSettings->getSetting(JENKINS_PASS).toString();
+    QString jenkinsToken = appSettings->getSetting(JENKINS_TOKEN).toString();
 
     if(jenkinsUrl != "" && jenkinsUser != "" && jenkinsPass != ""){
         QString binaryPath = applicationDirectory + "Resources/Binaries/";
@@ -1727,7 +1701,7 @@ void MedeaWindow::importXMEProject(QString filePath)
  */
 void MedeaWindow::jenkins_InvokeJob(QString filePath)
 {
-    QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB);
+    QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB).toString();
 
     if(jenkinsManager){
         JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
@@ -1745,7 +1719,7 @@ void MedeaWindow::cuts_runDeployment(QString filePath)
     if(cutsManager){
         QString path = "";
         if(appSettings){
-            path = appSettings->getSetting(DEFAULT_DIR_PATH);
+            path = appSettings->getSetting(DEFAULT_DIR_PATH).toString();
         }
 
 
@@ -2037,9 +2011,7 @@ void MedeaWindow::updateToolbar()
  */
 void MedeaWindow::setupInitialSettings()
 {
-    settingsLoading = true;
-    appSettings->loadSettings();
-    settingsLoading = false;
+    loadSettingsFromINI();
 
     // TODO - The following setup only needs to happen once the whole time the application is open
     // It doesn't need to be redone every time new project is called
@@ -2564,7 +2536,7 @@ void MedeaWindow::setClipboard(QString value)
  */
 void MedeaWindow::updateWindowTitle(QString newProjectName)
 {
-    setWindowTitle("MEDEA - " + newProjectName);
+    setWindowTitle("MEDEA - " + newProjectName + "[*]");
     projectName->setText(newProjectName);
     //projectName->setFixedSize(200, projectName->height());
 }

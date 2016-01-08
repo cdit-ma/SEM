@@ -36,6 +36,14 @@ bool EntityAdapter::isEdgeAdapter()
     return !_isNode;
 }
 
+bool EntityAdapter::isReadOnly()
+{
+    if(isValid()){
+        return _entity->isReadOnly();
+    }
+    return false;
+}
+
 const QVariant EntityAdapter::getDataValue(QString keyName)
 {
     QVariant value;
@@ -50,7 +58,11 @@ bool EntityAdapter::isDataProtected(QString keyName)
     if(isValid()){
         Data* data = _entity->getData(keyName);
         if(data){
-            return data->isProtected();
+            if(data->isVisualData()){
+                return false;
+            }else{
+                return data->isProtected();
+            }
         }
     }
     return false;

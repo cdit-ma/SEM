@@ -50,7 +50,7 @@ public:
 
     QString toMD5Hash();
 
-    bool isReadOnly();
+
 
     int childrenCount();
     int edgeCount();

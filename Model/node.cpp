@@ -308,14 +308,7 @@ QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
     return returnableList;
 }
 
-bool Node::isReadOnly()
-{
-    Data* readOnlyData = getData("readOnly");
-    if(readOnlyData){
-        return readOnlyData->getValue().toBool();
-    }
-    return false;
-}
+
 
 /*
 Node *Node::getChild(int position)

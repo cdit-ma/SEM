@@ -75,9 +75,10 @@ void AppSettings::loadSettings()
             if(settingsLoaded && group == "01-Window_Settings"){
                  continue;
             }
-            QString value = settings->value(key).toString();
+            QVariant variant = settings->value(key);
+
             //Foreach Key in each Group in the settings file, emit the signal that the setting has changed.
-            emit settingChanged(group ,key, value);
+            emit settingChanged(group ,key, variant);
         }
         settings->endGroup();
     }
@@ -93,13 +94,13 @@ void AppSettings::loadSettings()
  * @param keyName The name of the key
  * @return The value of the Setting, or "" if no Setting found.
  */
-QString AppSettings::getSetting(QString keyName)
+QVariant AppSettings::getSetting(QString keyName)
 {
-    QString value = "";
+    QVariant value;
     QString groupName = getGroup(keyName);
     if(groupName != ""){
         settings->beginGroup(groupName);
-        value = settings->value(keyName).toString();
+        value = settings->value(keyName);
         settings->endGroup();
     }
     return value;
@@ -166,7 +167,7 @@ void AppSettings::_settingChanged(QString settingGroup, QString settingName, QSt
 }
 
 
-void AppSettings::settingUpdated(QString g , QString n , QString v)
+void AppSettings::settingUpdated(QString g , QString n , QVariant v)
 {
     settings->beginGroup(g);
     settings->setValue(n,v);
@@ -213,7 +214,7 @@ void AppSettings::clearSettings(bool applySettings)
             if(setting.size() == 3){
                 QString setting_group = setting[0];
                 QString setting_name = setting[1];
-                QString setting_value = setting[2];
+                QVariant setting_value = setting[2];
                 //Update the QSetting
                 settingUpdated(setting_group, setting_name, setting_value);
             }

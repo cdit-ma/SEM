@@ -16,6 +16,61 @@ enum DOCK_TYPE{UNKNOWN_DOCK, PARTS_DOCK, DEFINITIONS_DOCK, FUNCTIONS_DOCK, HARDW
 enum NODE_CLASS{NC_NONE, NC_DEPLOYMENT_DEFINITIONS, NC_WORKER_DEFINITIONS};
 enum EDGE_CLASS{EC_NONE};
 
+#define LOG_DEBUGGING "00-01-Log_Debug_Information"
+#define THREAD_LIMIT "00-02-Thread_Limit"
+#define CUTS_CONFIGURE_PATH "00-03-CUTS_Configure_Script_Path"
+
+#define WINDOW_X "01-01-Position_X"
+#define WINDOW_Y "01-02-Position_Y"
+#define WINDOW_W "01-03-Width"
+#define WINDOW_H "01-04-Height"
+#define WINDOW_MAX_STATE "01-05-Maximized"
+#define WINDOW_FULL_SCREEN "01-06-Full_Screen_Mode"
+#define DEFAULT_DIR_PATH "00-04-Default_Open_Path"
+
+#define AUTO_CENTER_VIEW "02-01-Auto_Center_View"
+#define SELECT_ON_CREATION "02-02-Select_Entity_On_Creation"
+#define ZOOM_ANCHOR_ON_MOUSE "02-03-Zoom_View_Under_Mouse"
+#define TOGGLE_GRID "02-04-Toggle_Grid_Lines"
+#define SHOW_MANAGEMENT_COMPONENTS "02-05-Show_Management_Components"
+#define SHOW_LOCAL_NODE "02-06-Show_Local_Node"
+#define DARK_THEME_ON "02-07-Dark_Theme_On"
+
+#define ASPECT_I "03-01-Interfaces"
+#define ASPECT_B "03-02-Behaviour"
+#define ASPECT_A "03-03-Assemblies"
+#define ASPECT_H "03-04-Hardware"
+#define DOCK_VISIBLE "04-01-Hide_Dock"
+#define TOOLBAR_VISIBLE "05-00-00-Hide_Toolbar"
+#define TOOLBAR_EXPANDED "05-00-01-Expand_Toolbar"
+
+#define JENKINS_URL "06-01-URL"
+#define JENKINS_USER "06-02-Username"
+#define JENKINS_PASS "06-03-Password"
+#define JENKINS_JOB "06-04-MEDEA_Jobname"
+#define JENKINS_TOKEN "06-05-API_Token"
+
+#define WINDOWS_SETTINGS "01-Window_Settings"
+#define TOOLBAR_SETTINGS "05-Toolbar_Settings"
+#define TOOLBAR_CONTEXT "05-01-Context_Toolbar"
+#define TOOLBAR_UNDO "05-02-Undo"
+#define TOOLBAR_REDO "05-03-Redo"
+#define TOOLBAR_CUT "05-04-Cut"
+#define TOOLBAR_COPY "05-05-Copy"
+#define TOOLBAR_PASTE "05-06-Paste"
+#define TOOLBAR_REPLICATE "05-07-Replicate"
+#define TOOLBAR_DELETE_ENTITIES "05-08-Delete_Entities"
+#define TOOLBAR_POPUP_SUBVIEW "05-09-Popup_SubView"
+#define TOOLBAR_GRID_LINES "05-10-Grid_Lines"
+#define TOOLBAR_FIT_TO_SCREEN "05-11-Fit_To_Screen"
+#define TOOLBAR_CENTER_ON_ENTITY "05-12-Center_On_Entity"
+#define TOOLBAR_ZOOM_TO_FIT "05-13-Zoom_To_Fit"
+#define TOOLBAR_SORT "05-14-Sort"
+#define TOOLBAR_VERT_ALIGN "05-15-Vertical_Align_Entities"
+#define TOOLBAR_HORIZ_ALIGN "05-16-Horizontal_Align_Entities"
+#define TOOLBAR_BACK "05-17-Back"
+#define TOOLBAR_FORWARD "05-18-Forward"
+
 #define MINIMUM_TEXT_SIZE 6
 
 static VIEW_ASPECT_POS GET_ASPECT_POS(VIEW_ASPECT aspect)

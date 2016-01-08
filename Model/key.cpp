@@ -42,6 +42,7 @@ Key::Key(QString keyName, QVariant::Type type, Entity::ENTITY_KIND entityKind):G
     _keyType = type;
     _entityKind = entityKind;
     _isProtected = false;
+    _isVisual = false;
 }
 
 void Key::setProtected(bool protect)
@@ -52,6 +53,16 @@ void Key::setProtected(bool protect)
 bool Key::isProtected()
 {
     return _isProtected;
+}
+
+void Key::setIsVisualData(bool visual)
+{
+    _isVisual = visual;
+}
+
+bool Key::isVisualData()
+{
+    return _isVisual;
 }
 
 QString Key::getName() const

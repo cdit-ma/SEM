@@ -44,6 +44,7 @@ public:
     NodeView(bool subView = false, QWidget *parent = 0);
     ~NodeView();
 
+    void setApplicationDirectory(QString appDir);
     void setCursor(QCursor cursor);
     void unsetCursor();
 
@@ -145,6 +146,7 @@ private:
     void setupSoundEffects();
 
 private slots:
+    void settingChanged(QString groupName, QString keyName, QVariant value);
     void modelReady();
 
 
@@ -153,6 +155,7 @@ private slots:
     void actionFinished();
 
 signals:
+    void view_LoadSettings();
     void view_searchFinished(QStringList searchResult);
     void view_themeChanged(VIEW_THEME theme);
 
@@ -236,6 +239,7 @@ signals:
     void view_EntityItemLockMenuClosed(EntityItem* EntityItem);
     void view_QuestionAnswered(bool answer);
 
+    void view_ProjectRequiresSaving(bool requiresSave);
 public slots:
     QPointF getCenterOfScreenScenePos(QPoint mousePosition = QPoint());
     void canUndo(bool okay);
@@ -513,7 +517,7 @@ private:
     bool SHIFT_DOWN;
     bool AUTO_CENTER_ASPECTS;
     bool GRID_LINES_ON;
-    bool SELECT_ON_CONSTRUCTION;
+    bool SELECT_AFTER_CONSTRUCTION;
     bool IS_SUB_VIEW;
     bool IS_DESTRUCTING;
 
@@ -559,13 +563,11 @@ private:
     bool showConnectLine;
     int prevHighlightedFromToolbarID;
 
-
     bool ZOOM_UNDER_MOUSE;
 
 	//QSoundEffect* clickSound;
-    // QWidget interface
 
-    // QWidget interface
+    QString applicationDirectory;
 protected:
     void dragEnterEvent(QDragEnterEvent *);
     void dropEvent(QDropEvent* );

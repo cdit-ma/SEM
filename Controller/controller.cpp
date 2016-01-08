@@ -47,6 +47,8 @@ NewController::NewController()
     assemblyDefinitions = 0;
     workerDefinitions = 0;
 
+    projectDirty = false;
+
     currentActionID = 0;
     currentActionItemID = 0;
     actionCount = 0;
@@ -55,6 +57,8 @@ NewController::NewController()
 
     viewAspects << "Assembly" << "Workload" << "Definitions" << "Hardware";
     protectedKeyNames << "kind";
+
+    visualKeyNames << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
 
 
     containerNodeKinds << "Model";
@@ -127,6 +131,7 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(controller_CanUndo(bool)), view, SLOT(canUndo(bool)));
         connect(view, SIGNAL(view_constructDestructEdges(QList<int>, int)), this, SLOT(constructDestructMultipleEdges(QList<int>, int)));
         connect(view, SIGNAL(view_EnableDebugLogging(bool, QString)), this, SLOT(enableDebugLogging(bool, QString)));
+        connect(this, SIGNAL(controller_ProjectRequiresSave(bool)), view, SIGNAL(view_ProjectRequiresSaving(bool)));
 
 
         connect(view, SIGNAL(view_DestructEdge(int, int)), this, SLOT(destructEdge(int, int)));
@@ -505,6 +510,9 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
     if(addAction){
         addActionToStack(action, addAction);
     }
+
+    //Change made, make dirty the project
+    projectModified();
 }
 
 /**
@@ -629,6 +637,13 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
     if(kind != ""){
         bool ignore = false;
         Node* parentNode = getNodeFromID(parentID);
+
+        //Return if we are read only
+        if(parentNode->isReadOnly()){
+            qCritical() << parentNode->toString() << " IS READ ONLY";
+            emit controller_ActionFinished();
+            return;
+        }
 
         QList<Data*> data;
         //Only allow construction of
@@ -833,6 +848,21 @@ void NewController::redo()
     emit controller_ActionFinished();
 }
 
+void NewController::save()
+{
+
+}
+
+void NewController::saveAs()
+{
+
+}
+
+void NewController::open()
+{
+
+}
+
 
 /**
  * @brief NewController::copy - Attempts to copy a list of entities defined by their IDs
@@ -841,6 +871,7 @@ void NewController::redo()
 void NewController::copy(QList<int> IDs)
 {
     _copy(IDs);
+    projectSaved();
     emit controller_ActionFinished();
 }
 
@@ -861,6 +892,8 @@ void NewController::remove(QList<int> IDs)
 
 void NewController::setReadOnly(QList<int> IDs, bool readOnly)
 {
+    qCritical() << IDs;
+    qCritical() << "SETTING READ ONLY" << readOnly;
     QString exportTimeStamp = getTimeStamp();
 
     Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_ALL);
@@ -896,8 +929,7 @@ void NewController::setReadOnly(QList<int> IDs, bool readOnly)
     }
 
 
-    qCritical() << IDs;
-    qCritical() << "SETTING READ ONLY" << readOnly;
+
     emit controller_ActionFinished();
 }
 
@@ -1618,6 +1650,11 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
     //Protect the Key if it meant to be protected
     if(protectedKeyNames.contains(name)){
         newKey->setProtected(true);
+    }
+
+    //Set the keys data so that we can distinguish between things for read only mode.
+    if(visualKeyNames.contains(name)){
+        newKey->setIsVisualData(true);
     }
 
     if(name == "type"){
@@ -3244,6 +3281,7 @@ void NewController::setupModel()
 
 
     Data* labelData = model->getData("label");
+    qCritical() << labelData->isProtected();
     connect(labelData, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(modelLabelChanged()));
 
     //Construct the top level parents.
@@ -4925,6 +4963,23 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     return true;
 }
 
+void NewController::projectModified()
+{
+    if(!projectDirty){
+        projectDirty = true;
+        emit controller_ProjectRequiresSave(projectDirty);
+    }
+}
+
+void NewController::projectSaved()
+{
+    if(projectDirty){
+        projectDirty = false;
+        emit controller_ProjectRequiresSave(projectDirty);
+    }
+
+}
+
 
 bool NewController::canCopy(QList<int> IDs)
 {
@@ -5116,14 +5171,30 @@ bool NewController::canImportSnippet(QList<int> selection)
     return false;
 }
 
-bool NewController::canSetReadOnly(QList<int> selection)
+bool NewController::canSetReadOnly(QList<int> IDs)
 {
-    return true;
+    bool gotAnyNonReadOnly=false;
+    foreach(int ID, IDs){
+        Entity* entity = getGraphMLFromID(ID);
+        if(entity && !entity->isReadOnly()){
+            gotAnyNonReadOnly = true;
+            break;
+        }
+    }
+    return gotAnyNonReadOnly;
 }
 
-bool NewController::canUnsetReadOnly(QList<int> selection)
+bool NewController::canUnsetReadOnly(QList<int> IDs)
 {
-    return true;
+    bool gotAnyReadOnly=false;
+    foreach(int ID, IDs){
+        Entity* entity = getGraphMLFromID(ID);
+        if(entity && entity->isReadOnly()){
+            gotAnyReadOnly = true;
+            break;
+        }
+    }
+    return gotAnyReadOnly;
 }
 
 bool NewController::canUndo()

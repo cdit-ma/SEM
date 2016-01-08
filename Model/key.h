@@ -17,6 +17,8 @@ public:
     void setProtected(bool protect);
     bool isProtected();
 
+    void setIsVisualData(bool visual);
+    bool isVisualData();
     QString getName() const;
 
     bool setDefaultValue(const QVariant value);
@@ -51,6 +53,7 @@ private:
     QString _keyName;
     QVariant::Type _keyType;
     Entity::ENTITY_KIND _entityKind;
+    bool _isVisual;
 
     bool _isProtected;
     QVariant defaultValue;

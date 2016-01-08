@@ -58,6 +58,7 @@ bool Data::isProtected() const
     return _isProtected;
 }
 
+
 bool Data::setValue(QVariant value)
 {
     QVariant newValue = value;
@@ -122,6 +123,14 @@ bool Data::compare(const Data *data) const
 QList<Data *> Data::getChildData()
 {
     return _childData.values();
+}
+
+bool Data::isVisualData()
+{
+    if(_key){
+        return _key->isVisualData();
+    }
+    return false;
 }
 
 
