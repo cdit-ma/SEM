@@ -20,6 +20,7 @@ enum EDGE_CLASS{EC_NONE};
 #define THREAD_LIMIT "00-02-Thread_Limit"
 #define CUTS_CONFIGURE_PATH "00-03-CUTS_Configure_Script_Path"
 
+#define WINDOW_SETTINGS "01-Window_Settings"
 #define WINDOW_X "01-01-Position_X"
 #define WINDOW_Y "01-02-Position_Y"
 #define WINDOW_W "01-03-Width"
@@ -36,6 +37,7 @@ enum EDGE_CLASS{EC_NONE};
 #define SHOW_LOCAL_NODE "02-06-Show_Local_Node"
 #define DARK_THEME_ON "02-07-Dark_Theme_On"
 
+#define ASPECT_SETTINGS "03-Default_Aspects"
 #define ASPECT_I "03-01-Interfaces"
 #define ASPECT_B "03-02-Behaviour"
 #define ASPECT_A "03-03-Assemblies"
@@ -50,7 +52,7 @@ enum EDGE_CLASS{EC_NONE};
 #define JENKINS_JOB "06-04-MEDEA_Jobname"
 #define JENKINS_TOKEN "06-05-API_Token"
 
-#define WINDOWS_SETTINGS "01-Window_Settings"
+
 #define TOOLBAR_SETTINGS "05-Toolbar_Settings"
 #define TOOLBAR_CONTEXT "05-01-Context_Toolbar"
 #define TOOLBAR_UNDO "05-02-Undo"

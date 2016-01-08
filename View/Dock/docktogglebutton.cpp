@@ -146,6 +146,7 @@ void DockToggleButton::setDock(DockScrollArea* dock)
     // connect the dock to the parent window
     if (parentWindow && dock) {
         connect(parentWindow, SIGNAL(window_clearDocks()), dock, SLOT(clear()));
+        connect(parentWindow, SIGNAL(window_clearDocksSelection()), dock, SLOT(clearSelected()));
         connect(dock, SIGNAL(dock_forceOpenDock(DOCK_TYPE,QString)), parentWindow, SLOT(forceOpenDock(DOCK_TYPE,QString)));
     }
 }

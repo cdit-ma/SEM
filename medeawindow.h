@@ -81,6 +81,8 @@ signals:
     void window_PasteData(QString value);
     void window_ExportProject();
     void window_ImportProjects(QStringList file);
+
+    void window_OpenProject(QString fileName, QString fileData);
     void window_ImportSnippet(QString fileName, QString fileData);
 
 
@@ -98,6 +100,7 @@ signals:
 
     void window_dockButtonPressed(DOCK_TYPE);
     void window_clearDocks();
+    void window_clearDocksSelection();
 
     void window_updateActionsEnabled();
 
@@ -110,6 +113,8 @@ signals:
 public slots:
     void projectRequiresSaving(bool requiresSave);
     void modelReady();
+    void modelDisconnected();
+
     void projectCleared();
     void settingChanged(QString groupName, QString keyName, QVariant value);
 
@@ -146,6 +151,9 @@ private slots:
     void on_actionImportJenkinsNode();
 
     void on_actionNew_Project_triggered();
+    void on_actionCloseProject_triggered();
+    void on_actionOpenProject_triggered();
+
     void on_actionImport_GraphML_triggered();
     void on_actionImport_XME_triggered();
     void on_actionExport_GraphML_triggered();
@@ -211,6 +219,9 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+    bool closeProject();
+
+    void populateDocks();
     void _getCPPForComponent(QString filePath);
     bool canFilesBeDragImported(const QList<QUrl> files);
     void setupApplication();
@@ -222,6 +233,7 @@ private:
     void enableTempExport(bool enable);
 
     void setApplicationEnabled(bool enable);
+    void setViewWidgetsEnabled(bool enable);
 
     void resetGUI();
     void resetView();
@@ -229,7 +241,8 @@ private:
     void initialiseGUI();
     void makeConnections();
 
-    void setupController();
+    void teardownProject();
+    void setupProject();
     void setupMenu(QPushButton* button);
     void setupDocks(QHBoxLayout* layout);
     void setupSearchTools();
@@ -253,6 +266,8 @@ private:
     QStringList getCheckedItems(int menu);
     QTemporaryFile* writeTemporaryFile(QString data);
 
+
+    QString readFile(QString fileName);
     QString applicationDirectory;
 
     QPushButton *projectName;
@@ -274,11 +289,13 @@ private:
     QAction* file_openProject;
     QAction* file_saveProject;
     QAction* file_saveAsProject;
+    QAction* file_closeProject;
 
     QAction* file_importSnippet;
     QAction* file_exportGraphML;
     QAction* file_exportSnippet;
 
+    QList<QAction*> modelActions;
     QAction* edit_undo;
     QAction* edit_redo;
     QAction* edit_cut;

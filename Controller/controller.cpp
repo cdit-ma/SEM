@@ -164,6 +164,7 @@ void NewController::connectView(NodeView *view)
         connect(view, SIGNAL(view_ExportProject()), this, SLOT(exportProject()));
         connect(view, SIGNAL(view_ImportProjects(QStringList)), this, SLOT(importProjects(QStringList)));
 
+        connect(view, SIGNAL(view_OpenProject(QString,QString)), this, SLOT(open(QString,QString)));
 
         connect(view, SIGNAL(view_ImportedSnippet(QList<int>,QString,QString)), this, SLOT(importSnippet(QList<int>,QString,QString)));
         connect(view, SIGNAL(view_ExportSnippet(QList<int>)), this, SLOT(exportSnippet(QList<int>)));
@@ -850,16 +851,37 @@ void NewController::redo()
 
 void NewController::save()
 {
-
+    if(projectFileSavePath != ""){
+        exportProject();
+    }
 }
 
-void NewController::saveAs()
+void NewController::saveAs(QString filePath)
 {
 
 }
 
-void NewController::open()
+void NewController::open(QString filepath, QString xmlData)
 {
+    projectFileSavePath = filepath;
+
+    OPEN_USED = true;
+
+    bool result = _importGraphMLXML(xmlData, getModel());
+    if(!result){
+        emit controller_ActionProgressChanged(100);
+        controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
+        projectFileSavePath = "";
+        //Undo the failed load.
+        undoRedo(true);
+    }
+
+    //Clear the Undo/Redo History.
+    clearHistory();
+
+    OPEN_USED = false;
+
+    emit controller_ActionFinished();
 
 }
 
@@ -5233,6 +5255,11 @@ bool NewController::canLocalDeploy()
         }
     }
     return isDeployable;
+}
+
+bool NewController::projectRequiresSaving()
+{
+    return projectDirty;
 }
 
 bool NewController::isNodeAncestor(int ID, int ID2)

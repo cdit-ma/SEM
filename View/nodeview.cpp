@@ -186,6 +186,8 @@ void NodeView::setController(NewController *c)
 void NodeView::disconnectController()
 {
     controller = 0;
+    destroySubViews();
+    emit view_ModelDisconnected();
 }
 
 VIEW_STATE NodeView::getViewState()
@@ -198,8 +200,22 @@ qreal NodeView::getCurrentZoom()
     return transform().m11();
 }
 
+bool NodeView::hasModel()
+{
+    return controller;
+}
+
+bool NodeView::projectRequiresSaving()
+{
+    if(controller){
+        return controller->projectRequiresSaving();
+    }
+    return false;
+}
+
 void NodeView::scrollContentsBy(int dx, int dy)
 {
+
 }
 
 
@@ -1353,6 +1369,15 @@ void NodeView::importProjects(QStringList xmlDataList)
     }
 }
 
+void NodeView::openProject(QString fileName, QString fileData)
+{
+    if(viewMutex.tryLock()){
+        constructedFromImport = true;
+        emit view_OpenProject(fileName, fileData);
+    }
+
+}
+
 void NodeView::loadJenkinsNodes(QString fileData)
 {
     importFromJenkins = true;
@@ -1370,7 +1395,12 @@ void NodeView::exportSnippet()
 void NodeView::exportProject()
 {
     if(viewMutex.tryLock()){
-        emit view_ExportProject();
+        if(hasModel()){
+            QEventLoop waitLoop;
+            connect(controller, SIGNAL(controller_ExportedProject(QString)), &waitLoop, SLOT(quit()));
+            emit view_ExportProject();
+            waitLoop.exec();
+        }
     }
 }
 
@@ -1674,12 +1704,15 @@ void NodeView::modelReady()
         toolbar->setupFunctionsList();
     }
 
+
     setSceneRect(QRectF(0,0,10000,10000));
 
     emit view_LoadSettings();
 
     emit view_ModelSizeChanged();
     emit view_ModelReady();
+    updateActionsEnabledStates();
+
 }
 
 
@@ -2435,18 +2468,18 @@ void NodeView::updateActionsEnabledStates()
         emit view_updateMenuActionEnabled("setReadOnly", controller->canSetReadOnly(selectedIDs));
         emit view_updateMenuActionEnabled("unsetReadOnly", controller->canUnsetReadOnly(selectedIDs));
         emit view_updateMenuActionEnabled("subView",  getSelectedID() != -1);
+
+        emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
+
+        emit view_updateMenuActionEnabled("singleSelection", selectedID != -1);
+        emit view_updateMenuActionEnabled("multipleSelection", !getSelectedNodeIDs().isEmpty());
+
+        // update other menu actions and toolbar buttons
+        emit view_updateMenuActionEnabled("definition", defnID != -1);
+        emit view_updateMenuActionEnabled("implementation", implID != -1);
+        emit view_updateMenuActionEnabled("exportSnippet", canExport);
+        emit view_updateMenuActionEnabled("importSnippet", canImport);
     }
-
-    emit view_updateMenuActionEnabled("sort", !getSelectedNodeIDs().isEmpty());
-
-    emit view_updateMenuActionEnabled("singleSelection", selectedID != -1);
-    emit view_updateMenuActionEnabled("multipleSelection", !getSelectedNodeIDs().isEmpty());
-
-    // update other menu actions and toolbar buttons
-    emit view_updateMenuActionEnabled("definition", defnID != -1);
-    emit view_updateMenuActionEnabled("implementation", implID != -1);
-    emit view_updateMenuActionEnabled("exportSnippet", canExport);
-    emit view_updateMenuActionEnabled("importSnippet", canImport);
 }
 
 

@@ -63,8 +63,11 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
     setupApplication();
-
     setAcceptDrops(true);
+
+    controllerThread = 0;
+    controller = 0;
+    nodeView = 0;
 
 
     WINDOW_MAXIMIZED = false;
@@ -82,8 +85,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     appSettings->setModal(true);
     connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), this, SLOT(settingChanged(QString, QString, QVariant)));
 
-    controllerThread = 0;
-    controller = 0;
+
     tempExport = false;
     validate_TempExport = false;
     cuts_TempExport = false;
@@ -106,23 +108,15 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseGUI();
     makeConnections();
 
-
     resetGUI();
 
-    // reset the view - clear history and selection
     resetView();
 
     // load the initial settings
     setupInitialSettings();
 
-    // re-enable the window and view
-    //setApplicationEnabled(true);
+    //show();
 
-    this->show();
-
-    //newProject();
-
-    //Load Icon into resource.
     initialSettingsLoaded = true;
 }
 
@@ -149,17 +143,16 @@ MedeaWindow::~MedeaWindow()
         jenkinsManager->deleteLater();
     }
 
-    /* REMOVED TO STOP UBUNTU CRASH LOGGING
-    if(controllerThread){
-        controllerThread->deleteLater();
-    }*/
-
+    // REMOVED TO STOP UBUNTU CRASH LOGGING
+    //if(controllerThread){
+    //    controllerThread->deleteLater();
+    //}
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
 {
-    qCritical() << "REQUIRES SAVING" << requiresSave;
     setWindowModified(requiresSave);
+    file_saveProject->setEnabled(requiresSave);
 }
 
 
@@ -219,6 +212,27 @@ void MedeaWindow::setApplicationEnabled(bool enable)
     setEnabled(enable);
 }
 
+void MedeaWindow::setViewWidgetsEnabled(bool enable)
+{
+    minimap->setEnabled(enable);
+
+    //Search
+    projectName->setEnabled(enable);
+    searchBar->setEnabled(enable);
+    searchButton->setEnabled(enable);
+    searchOptionButton->setEnabled(enable);
+
+    foreach(QAction* action, modelActions){
+        action->setEnabled(enable);
+    }
+
+    foreach(AspectToggleWidget* aspect, aspectToggles){
+        aspect->setEnabled(enable);
+    }
+
+     emit window_SetViewVisible(enable);
+}
+
 
 /**
  * @brief MedeaWindow::modelReady - Called whenever a new project is run, after the controller has finished setting up the NodeView/Controller/Model
@@ -228,10 +242,11 @@ void MedeaWindow::modelReady()
     // reset the view - clear history and selection
     resetView();
 
-    // load the initial settings
-    //setupInitialSettings();
+    //Setup the Docks again.
+    populateDocks();
 
-    // re-enable the window and view
+    // re-enable the view widgets and window
+    setViewWidgetsEnabled(true);
     setApplicationEnabled(true);
 
     //Load loadLaunchedFile
@@ -241,6 +256,20 @@ void MedeaWindow::modelReady()
         importProjects(files);
         loadLaunchedFile = false;
     }
+
+    if(nodeView){
+        nodeView->fitToScreen();
+    }
+
+}
+
+void MedeaWindow::modelDisconnected()
+{
+    //Disable most of the GUI.
+    setViewWidgetsEnabled(false);
+
+    //Clear the Docks
+    emit window_clearDocks();
 }
 
 
@@ -249,7 +278,7 @@ void MedeaWindow::modelReady()
  */
 void MedeaWindow::projectCleared()
 {
-    window_clearDocks();
+    emit window_clearDocksSelection();
 }
 
 /**
@@ -262,12 +291,12 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
 {
     if(groupName==TOOLBAR_SETTINGS){
         toolbarSettingChanged(keyName, value);
-    }
-    if(groupName==WINDOW_SETTINGS){
-        if(initialSettingsLoaded){
-            //Ignore window setting changes on reload of settings...
-           return;
-        }
+    }else if(groupName==WINDOW_SETTINGS && initialSettingsLoaded){
+        //Ignore Window settigns after initial load.
+        return;
+    }else if(groupName==ASPECT_SETTINGS && !initialSettingsLoaded){
+        //Ignore Aspect Settings on initial load.
+        return;
     }
 
     bool isInt;
@@ -440,7 +469,7 @@ void MedeaWindow::initialiseGUI()
     delegate = new ComboBoxTableDelegate(0);
 
     menuTitleBox = new QGroupBox(this);
-    projectName = new QPushButton("Model");
+    projectName = new QPushButton("");
 
     // set central widget and window size
     setCentralWidget(nodeView);
@@ -658,8 +687,11 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     file_saveProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project");
     file_saveProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
+
     file_saveAsProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project As");
     file_saveAsProject->setShortcut(QKeySequence(Qt::CTRL + Qt::SHIFT + Qt::Key_S));
+
+    file_closeProject = file_menu->addAction(getIcon("Actions", "Close"), "Close Project");
 
     file_menu->addSeparator();
 
@@ -692,8 +724,8 @@ void MedeaWindow::setupMenu(QPushButton *button)
     edit_menu->addSeparator();
     edit_search = edit_menu->addAction(getIcon("Actions", "Search"), "Search");
     edit_search->setShortcut(QKeySequence(Qt::Key_F3));
-
     edit_delete= edit_menu->addAction(getIcon("Actions", "Delete"), "Delete Selection");
+
 
     view_fitToScreen = view_menu->addAction(getIcon("Actions", "FitToScreen"), "Fit To Screen");
     view_fitToScreen->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Space));
@@ -745,9 +777,9 @@ void MedeaWindow::setupMenu(QPushButton *button)
     }
 
     // initially disable these actions
-    view_goToDefinition->setEnabled(false);
-    view_goToImplementation->setEnabled(false);
-    view_showConnectedNodes->setEnabled(false);
+    //view_goToDefinition->setEnabled(false);
+    //view_goToImplementation->setEnabled(false);
+    //view_showConnectedNodes->setEnabled(false);
 
     //actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
     actionSort = new QAction(getIcon("Actions", "Sort"), "Sort", this);
@@ -783,6 +815,22 @@ void MedeaWindow::setupMenu(QPushButton *button)
     actionToggleGrid = new QAction(getIcon("Actions", "Grid_On"), "Toggle Grid Lines", this);
     actionToggleGrid->setToolTip("Turn Off Grid");
     actionToggleGrid->setCheckable(true);
+
+    //Model Actions
+    modelActions << file_closeProject;
+    modelActions << file_saveProject;
+    modelActions << file_saveAsProject;
+    modelActions << file_importGraphML;
+    modelActions << file_importXME;
+    modelActions << file_importSnippet;
+    modelActions << file_exportGraphML;
+    modelActions << file_exportSnippet;
+
+    modelActions << view_menu->actions();
+    modelActions << edit_menu->actions();
+    modelActions << view_menu->actions();
+    modelActions << model_menu->actions();
+    modelActions << jenkins_menu->actions();
 }
 
 
@@ -1213,6 +1261,10 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
             qCritical() << "Duplicate Actions";
         }
 
+        if(!modelActions.contains(action)){
+            modelActions << action;
+        }
+
         // setup a menu for the replicate button to allow the user to enter the replicate count
         if (actionName == TOOLBAR_REPLICATE) {
             QMenu* buttonMenu = new QMenu(this);
@@ -1236,10 +1288,7 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
 }
 
 
-/**
- * @brief MedeaWindow::setupController
- */
-void MedeaWindow::setupController()
+void MedeaWindow::teardownProject()
 {
     if (controller) {
         delete controller;
@@ -1247,23 +1296,30 @@ void MedeaWindow::setupController()
     }
     if (controllerThread) {
         controllerThread->terminate();
-        //controllerThread->deleteLater();
-        //delete controllerThread;
         controllerThread = 0;
     }
+}
 
-    controller = new NewController();
-    //Set External Worker Definitions Path.
-    controller->setExternalWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
+void MedeaWindow::setupProject()
+{
+    if(!controller && !controllerThread){
+        controller = new NewController();
+        //Set External Worker Definitions Path.
+        controller->setExternalWorkerDefinitionPath(applicationDirectory + "/Resources/WorkerDefinitions/");
 
-    if (THREADING) {
-        controllerThread = new QThread();
-        controllerThread->start();
-        controller->moveToThread(controllerThread);
+        if (THREADING) {
+            controllerThread = new QThread();
+            controllerThread->start();
+            controller->moveToThread(controllerThread);
+        }
+
+        connect(this, SIGNAL(window_ConnectViewAndSetupModel(NodeView*)), controller, SLOT(connectViewAndSetupModel(NodeView*)));
+
+        QEventLoop waitLoop;
+        connect(controller, SIGNAL(controller_ModelReady()), &waitLoop, SLOT(quit()));
+        emit window_ConnectViewAndSetupModel(nodeView);
+        waitLoop.exec();
     }
-
-    connect(this, SIGNAL(window_ConnectViewAndSetupModel(NodeView*)), controller, SLOT(connectViewAndSetupModel(NodeView*)));
-    emit window_ConnectViewAndSetupModel(nodeView);
 }
 
 
@@ -1273,6 +1329,13 @@ void MedeaWindow::setupController()
  */
 void MedeaWindow::resetGUI()
 {
+    updateWidgetsOnWindowChanged();
+
+    if(nodeView && !nodeView->hasModel()){
+        modelDisconnected();
+    }
+
+
     prevPressedButton = 0;
 
     // reset timer
@@ -1334,6 +1397,7 @@ void MedeaWindow::resetView()
         nodeView->view_ClearHistory();
         nodeView->clearSelection();
     }
+
 }
 
 
@@ -1344,16 +1408,10 @@ void MedeaWindow::resetView()
  */
 void MedeaWindow::newProject()
 {
-    //Disable NodeView.
-    //setEnabled(false);
-    //nodeView->setEnabled(false);
-    //nodeView->setSceneVisible(false);
-    //nodeView->setVisible(false);
     setApplicationEnabled(false);
     progressAction = "Setting up New Project";
 
-    resetGUI();
-    setupController();
+    setupProject();
 }
 
 
@@ -1378,9 +1436,13 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), hardwareToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
 
     connect(nodeView, SIGNAL(view_ProjectRequiresSaving(bool)), this, SLOT(projectRequiresSaving(bool)));
+    connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
+
 
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
     connect(nodeView, SIGNAL(view_ModelReady()), this, SLOT(modelReady()));
+    connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
+
     connect(nodeView, SIGNAL(view_ImportSnippet(QString)), this, SLOT(importSnippet(QString)));
 
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
@@ -1414,6 +1476,9 @@ void MedeaWindow::makeConnections()
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(selectModel()));
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
+    connect(file_closeProject, SIGNAL(triggered()), this, SLOT(on_actionCloseProject_triggered()));
+    connect(file_openProject, SIGNAL(triggered()), this, SLOT(on_actionOpenProject_triggered()));
+
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
     connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
     connect(help_AboutMedea, SIGNAL(triggered()), this, SLOT(aboutMedea()));
@@ -1421,6 +1486,7 @@ void MedeaWindow::makeConnections()
     connect(help_Shortcuts, SIGNAL(triggered()), this, SLOT(showShortcutList()));
 
     connect(this, SIGNAL(window_ExportProject()), nodeView, SLOT(exportProject()));
+    connect(this, SIGNAL(window_OpenProject(QString,QString)), nodeView, SIGNAL(view_OpenProject(QString,QString)));
     connect(this, SIGNAL(window_ImportProjects(QStringList)), nodeView, SLOT(importProjects(QStringList)));
     connect(this, SIGNAL(window_LoadJenkinsNodes(QString)), nodeView, SLOT(loadJenkinsNodes(QString)));
 
@@ -1574,6 +1640,64 @@ void MedeaWindow::changeEvent(QEvent *event)
     if (event->type() == QEvent::WindowStateChange){
         updateWidgetsOnWindowChanged();
     }
+}
+
+bool MedeaWindow::closeProject()
+{
+    qCritical() << "Close Project";
+    if(nodeView->projectRequiresSaving()){
+        // ask user if they want to save current project before closing it
+        QMessageBox::StandardButton saveProject = QMessageBox::question(this,
+                                                                        "MEDEA - Save Project",
+                                                                        "Current project will be closed.\nSave changes?",
+                                                                        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
+
+
+        if (saveProject == QMessageBox::Yes || saveProject == QMessageBox::No) {
+            if(saveProject == QMessageBox::Yes){
+                // if failed to export, do nothing
+                bool saveSuccess = exportProject();
+                if(!saveSuccess){
+                    return false;
+                }
+            }
+        }else{
+            return false;
+        }
+    }
+
+    teardownProject();
+    return true;
+}
+
+void MedeaWindow::populateDocks()
+{
+    qCritical() << "Populate Docks";
+    //Clear docks first.
+    emit window_clearDocks();
+
+    // TODO - The following setup only needs to happen once the whole time the application is open
+    // It doesn't need to be redone every time new project is called
+    QStringList allKinds = nodeView->getAllNodeKinds();
+    QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
+    QList<QPair<QString, QString> > functionKinds;
+    functionKinds = nodeView->getFunctionsList();
+
+    partsDock->addDockNodeItems(guiKinds);
+    functionsDock->addDockNodeItems(functionKinds);
+
+    // populate view aspects menu once the nodeView and controller have been
+    // constructed and connected - should only need to do this once
+    allKinds.sort();
+    foreach (QString kind, allKinds) {
+        QWidgetAction* action = new QWidgetAction(this);
+        QCheckBox* checkBox = new QCheckBox(kind, this);
+        checkBox->setFont(guiFont);
+        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
+        action->setDefaultWidget(checkBox);
+        nodeKindsMenu->addAction(action);
+    }
+
 }
 
 void MedeaWindow::_getCPPForComponent(QString filePath)
@@ -1960,7 +2084,7 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
     */
 
     // update the stored view center point and re-center the view
-    if (nodeView && controller) {
+    if (nodeView) {
         nodeView->visibleViewRectChanged(canvasRect);
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
@@ -2012,28 +2136,6 @@ void MedeaWindow::updateToolbar()
 void MedeaWindow::setupInitialSettings()
 {
     loadSettingsFromINI();
-
-    // TODO - The following setup only needs to happen once the whole time the application is open
-    // It doesn't need to be redone every time new project is called
-    QStringList allKinds = nodeView->getAllNodeKinds();
-    QStringList guiKinds = nodeView->getGUIConstructableNodeKinds();
-    QList<QPair<QString, QString> > functionKinds;
-    functionKinds = nodeView->getFunctionsList();
-
-    partsDock->addDockNodeItems(guiKinds);
-    functionsDock->addDockNodeItems(functionKinds);
-
-    // populate view aspects menu once the nodeView and controller have been
-    // constructed and connected - should only need to do this once
-    allKinds.sort();
-    foreach (QString kind, allKinds) {
-        QWidgetAction* action = new QWidgetAction(this);
-        QCheckBox* checkBox = new QCheckBox(kind, this);
-        checkBox->setFont(guiFont);
-        connect(checkBox, SIGNAL(clicked()), this, SLOT(updateSearchLineEdits()));
-        action->setDefaultWidget(checkBox);
-        nodeKindsMenu->addAction(action);
-    }
 
     // calculate the centered view rect and widget masks after the settings has been loaded
     updateWidgetsOnWindowChanged();
@@ -2189,32 +2291,40 @@ void MedeaWindow::on_actionImportJenkinsNode()
 void MedeaWindow::on_actionNew_Project_triggered()
 {
     // ask user if they want to save current project before closing it
-    QMessageBox::StandardButton saveProject = QMessageBox::question(this,
-                                                                    "MEDEA - New Project",
-                                                                    "Current project will be closed.\nSave changes?",
-                                                                    QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
+   bool closed = closeProject();
 
-    if (saveProject == QMessageBox::Yes || saveProject == QMessageBox::No) {
-        if(saveProject == QMessageBox::Yes){
-            // if failed to export, do nothing
-            if (!exportProject()) {
-                return;
-            }
+   if(closed){
+       newProject();
+   }
+}
+
+void MedeaWindow::on_actionCloseProject_triggered()
+{
+    //Close the current Project.
+    closeProject();
+
+
+}
+
+void MedeaWindow::on_actionOpenProject_triggered()
+{
+    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, true, false);
+
+    if(fileNames.size() == 1){
+        bool closed = closeProject();
+
+        if(closed){
+            newProject();
+        }else{
+            return;
         }
-    }else{
-        return;
 
+        QString fileName = fileNames.first();
+        QString fileData = readFile(fileName);
+        if(!fileData.isEmpty()){
+            nodeView->openProject(fileName, fileData);
+        }
     }
-
-    if(nodeView){
-        nodeView->destroySubViews();
-        projectCleared();
-    }
-    //if(model_clearModel){
-    //    model_clearModel->trigger();
-    //}
-
-    newProject();
 }
 
 
@@ -2846,7 +2956,8 @@ bool MedeaWindow::exportProject()
     if (filename != "") {
         if(filename.toLower().endsWith(".graphml") || filename.toLower().endsWith(".xml")){
             exportFileName = filename;
-            emit window_ExportProject();
+
+            nodeView->exportProject();
             return true;
         }else{
             QMessageBox::critical(this, "Error", "You must export using either a .graphml or .xml extension.", QMessageBox::Ok);
@@ -3312,23 +3423,9 @@ void MedeaWindow::importProjects(QStringList files)
 {
     QStringList projects;
     foreach (QString fileName, files) {
-        try {
-            QFile file(fileName);
-
-            bool fileOpened = file.open(QFile::ReadOnly | QFile::Text);
-
-            if (!fileOpened) {
-                QMessageBox::critical(this, "File Error", "Unable to open file: '" + fileName + "'! Check permissions and try again.", QMessageBox::Ok);
-                return;
-            }
-
-            QTextStream fileStream(&file);
-            QString projectXML = fileStream.readAll();
-            file.close();
-            projects << projectXML;
-        } catch (...) {
-            QMessageBox::critical(this, "Error", "Error reading file: '" + fileName + "'", QMessageBox::Ok);
-            return;
+        QString file = readFile(fileName);
+        if(file != ""){
+            projects << file;
         }
     }
     if (projects.size() > 0) {
@@ -3356,15 +3453,11 @@ void MedeaWindow::jenkins_JobName_Changed(QString jobName)
  */
 void MedeaWindow::closeEvent(QCloseEvent * e)
 {
-    QMessageBox::StandardButton resBtn = QMessageBox::question( this, "MEDEA - Quit Confirmation",
-                                                                tr("Are you sure you want to quit Medea?\n"),
-                                                                QMessageBox::Cancel | QMessageBox::Yes,
-                                                                QMessageBox::Yes);
-    if (resBtn != QMessageBox::Yes) {
-        e->ignore();
-    } else {
+    if(closeProject()){
         e->accept();
         deleteLater();
+    }else{
+        e->ignore();
     }
 }
 
@@ -3432,6 +3525,28 @@ QTemporaryFile* MedeaWindow::writeTemporaryFile(QString data)
     tempFile->close();
 
     return tempFile;
+}
+
+QString MedeaWindow::readFile(QString fileName)
+{
+    QString fileData = "";
+    try {
+        QFile file(fileName);
+
+        bool fileOpened = file.open(QFile::ReadOnly | QFile::Text);
+
+        if (!fileOpened) {
+            QMessageBox::critical(this, "File Error", "Unable to open file: '" + fileName + "'! Check permissions and try again.", QMessageBox::Ok);
+            return "";
+        }
+
+        QTextStream fileStream(&file);
+        fileData = fileStream.readAll();
+        file.close();
+    }catch (...) {
+        QMessageBox::critical(this, "Error", "Error reading file: '" + fileName + "'", QMessageBox::Ok);
+    }
+    return fileData;
 }
 
 void MedeaWindow::dropEvent(QDropEvent *event)

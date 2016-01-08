@@ -126,6 +126,8 @@ public:
     bool canRedo();
     bool canLocalDeploy();
 
+    bool projectRequiresSaving();
+
     bool isNodeAncestor(int ID, int ID2);
 
     bool areIDsInSameBranch(int mainID, int newID);
@@ -151,6 +153,9 @@ signals:
     void controller_AskQuestion(MESSAGE_TYPE, QString title, QString message, int ID=-1);
     void controller_GotQuestionAnswer();
     void controller_DisplayMessage(MESSAGE_TYPE, QString title, QString message, int ID=-1);
+
+
+    void controller_SaveProject(QString data, QString filePath);
 
     void controller_ExportedProject(QString);
     void controller_ExportedSnippet(QString parentName, QString snippetXMLData);
@@ -191,8 +196,8 @@ private slots:
     void redo();
 
     void save();
-    void saveAs();
-    void open();
+    void saveAs(QString filePath);
+    void open(QString filepath, QString xmlData);
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
     void constructWorkerProcessNode(int parentID,QString workerName, QString operationName, QPointF position);
@@ -494,6 +499,7 @@ private:
     QList<int> connectedLinkedIDs;
 
     bool CUT_USED;
+    bool OPEN_USED;
     int actionCount;
     QString currentAction;
     QFile* logFile;
@@ -507,6 +513,7 @@ private:
     bool DESTRUCTING_CONTROLLER;
 
 
+    QString projectFileSavePath;
 
     bool projectDirty;
 

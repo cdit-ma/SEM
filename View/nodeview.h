@@ -57,6 +57,8 @@ public:
 
     qreal getCurrentZoom();
 
+    bool hasModel();
+    bool projectRequiresSaving();
 
     void scrollContentsBy(int dx, int dy);
 
@@ -161,6 +163,7 @@ signals:
 
     void view_ClearSubViewAttributeTable();
     void view_ModelReady();
+    void view_ModelDisconnected();
     void view_EnableDebugLogging(bool enable, QString applicationPath="");
 
 	void view_HardwareDockEnabled(bool enabled);
@@ -175,6 +178,7 @@ signals:
     void view_ExportProject();
     void view_ExportedProject(QString data);
     void view_ImportProjects(QStringList data);
+    void view_OpenProject(QString fileName, QString fileData);
 
     void view_ExportedSnippet(QString parentName, QString snippetXMLData);
     void view_ExportSnippet(QList<int> selection);
@@ -257,6 +261,8 @@ public slots:
     void showQuestion(MESSAGE_TYPE type, QString title, QString message, int ID);
     void setAttributeModel(GraphMLItem* item=0, bool tellSubView=false);
     void importProjects(QStringList xmlDataList);
+
+    void openProject(QString fileName, QString fileData);
 
     void loadJenkinsNodes(QString fileData);
     void exportSnippet();

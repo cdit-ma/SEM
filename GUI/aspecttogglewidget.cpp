@@ -136,10 +136,8 @@ bool AspectToggleWidget::isClicked()
  */
 void AspectToggleWidget::setClicked(bool checked)
 {
-    if (CHECKED != checked) {
-        CHECKED = checked;
-        stateChanged();
-    }
+    CHECKED = checked;
+    stateChanged();
 }
 
 
