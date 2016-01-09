@@ -12,9 +12,6 @@
 #include "edgeadapter.h"
 #include "nodeadapter.h"
 
-
-#define LABEL_TRUNCATE_LENGTH 64
-
 bool UNDO = true;
 bool REDO = false;
 bool SETUP_AS_INSTANCE = true;
@@ -26,6 +23,7 @@ NewController::NewController()
     qRegisterMetaType<GraphML::GRAPHML_KIND>("GraphML::GRAPHML_KIND");
     qRegisterMetaType<QList<int> >("QList<int>");
 
+    Model::resetID();
 
 
     logFile = 0;
@@ -126,6 +124,10 @@ void NewController::connectView(NodeView *view)
 
 
     if(view->isMainView()){
+        connect(this, SIGNAL(controller_ProjectFileChanged(QString)), view, SIGNAL(view_ProjectFileChanged(QString)));
+        connect(this, SIGNAL(controller_ProjectNameChanged(QString)), view, SIGNAL(view_ProjectNameChanged(QString)));
+
+
         connect(view, SIGNAL(view_ConstructWorkerProcessNode(int,QString,QString,QPointF)), this, SLOT(constructWorkerProcessNode(int, QString, QString, QPointF)));
         connect(this, SIGNAL(controller_CanRedo(bool)), view, SLOT(canRedo(bool)));
         connect(this, SIGNAL(controller_CanUndo(bool)), view, SLOT(canUndo(bool)));
@@ -138,8 +140,8 @@ void NewController::connectView(NodeView *view)
         //Pass Through Signals to GUI.
         connect(view, SIGNAL(view_ClearHistoryStates()), this, SLOT(clearHistory()));
         connect(view, SIGNAL(view_Clear()), this, SLOT(clear()));
-        connect(this, SIGNAL(controller_ProjectNameChanged(QString)), view, SIGNAL(view_ProjectNameChanged(QString)));
         connect(this, SIGNAL(controller_ExportedProject(QString)), view, SIGNAL(view_ExportedProject(QString)));
+
         connect(this, SIGNAL(controller_SetClipboardBuffer(QString)), view, SIGNAL(view_SetClipboardBuffer(QString)));
 
 
@@ -164,7 +166,10 @@ void NewController::connectView(NodeView *view)
         connect(view, SIGNAL(view_ExportProject()), this, SLOT(exportProject()));
         connect(view, SIGNAL(view_ImportProjects(QStringList)), this, SLOT(importProjects(QStringList)));
 
-        connect(view, SIGNAL(view_OpenProject(QString,QString)), this, SLOT(open(QString,QString)));
+        connect(view, SIGNAL(view_OpenProject(QString, QString)), this, SLOT(openProject(QString, QString)));
+        connect(view, SIGNAL(view_SaveProject(QString)), this, SLOT(saveProject(QString)));
+        connect(this, SIGNAL(controller_SavedProject(QString,QString)), view, SIGNAL(view_SavedProject(QString, QString)));
+        connect(view, SIGNAL(view_ProjectSaved(bool,QString)), this, SLOT(projectSaved(bool,QString)));
 
         connect(view, SIGNAL(view_ImportedSnippet(QList<int>,QString,QString)), this, SLOT(importSnippet(QList<int>,QString,QString)));
         connect(view, SIGNAL(view_ExportSnippet(QList<int>)), this, SLOT(exportSnippet(QList<int>)));
@@ -472,8 +477,7 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
     }
 
     //Construct an Action to reverse the update
-    EventAction action;
-
+    EventAction action = getEventAction();
     action.parentID = parent->getID();
     action.Action.type = MODIFIED;
     action.Action.kind = GraphML::GK_DATA;
@@ -511,9 +515,6 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
     if(addAction){
         addActionToStack(action, addAction);
     }
-
-    //Change made, make dirty the project
-    projectModified();
 }
 
 /**
@@ -530,7 +531,7 @@ void NewController::attachData(Entity *parent, Data *data, bool addAction)
     }
 
     //Construct an Action to reverse the update
-    EventAction action;
+    EventAction action = getEventAction();
     action.ID = data->getID();
     action.parentID = parent->getID();
     action.Action.type = CONSTRUCTED;
@@ -570,7 +571,7 @@ bool NewController::destructData(Entity *parent, QString keyName, bool addAction
     }
 
     //Construct an Action to reverse the update
-    EventAction action;
+    EventAction action = getEventAction();
     action.ID = data->getID();
     action.parentID = parent->getID();
     action.Action.type = DESTRUCTED;
@@ -849,32 +850,32 @@ void NewController::redo()
     emit controller_ActionFinished();
 }
 
-void NewController::save()
+void NewController::saveProject(QString filePath="")
 {
-    if(projectFileSavePath != ""){
-        exportProject();
+    if(model){
+        QString fileData = _exportGraphMLDocument(model);
+
+        if(filePath == ""){
+            //Use current project file path.
+            filePath = projectFileSavePath;
+        }
+        emit controller_SavedProject(filePath, fileData);
     }
+    emit controller_ActionFinished();
 }
 
-void NewController::saveAs(QString filePath)
+void NewController::openProject(QString filePath, QString xmlData)
 {
-
-}
-
-void NewController::open(QString filepath, QString xmlData)
-{
-    projectFileSavePath = filepath;
-
     OPEN_USED = true;
 
     bool result = _importGraphMLXML(xmlData, getModel());
     if(!result){
         emit controller_ActionProgressChanged(100);
         controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
-        projectFileSavePath = "";
         //Undo the failed load.
         undoRedo(true);
     }
+    setProjectFilePath(filePath);
 
     //Clear the Undo/Redo History.
     clearHistory();
@@ -882,7 +883,6 @@ void NewController::open(QString filepath, QString xmlData)
     OPEN_USED = false;
 
     emit controller_ActionFinished();
-
 }
 
 
@@ -893,7 +893,6 @@ void NewController::open(QString filepath, QString xmlData)
 void NewController::copy(QList<int> IDs)
 {
     _copy(IDs);
-    projectSaved();
     emit controller_ActionFinished();
 }
 
@@ -1593,6 +1592,15 @@ int NewController::getContainedAspect(int ID)
     return -1;
 }
 
+void NewController::projectSaved(bool success, QString filePath)
+{
+    if(success){
+        setProjectDirty(false);
+        //Update the file save path.
+        setProjectFilePath(filePath);
+    }
+}
+
 /**
  * @brief NewController::connectViewAndSetupModel Called
  * @param view
@@ -1734,7 +1742,7 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
     keys.append(newKey);
 
     //Construct an Action to reverse the update
-    EventAction action;
+    EventAction action = getEventAction();
     action.ID = newKey->getID();
     action.Action.type = CONSTRUCTED;
     action.Action.kind = newKey->getGraphMLKind();
@@ -1752,7 +1760,7 @@ bool NewController::destructKey(QString name)
     if(key){
 
         //Construct an Action to reverse the update
-        EventAction action;
+        EventAction action = getEventAction();
         action.ID = key->getID();
         action.Action.type = DESTRUCTED;
         action.Action.kind = key->getGraphMLKind();
@@ -2588,7 +2596,7 @@ bool NewController::destructNode(Node *node)
 
     if(addAction){
         //Add an action to reverse this action.
-        EventAction action;
+        EventAction action = getEventAction();
         action.ID = ID;
         action.parentID = parentID;
         action.Action.type = DESTRUCTED;
@@ -2633,7 +2641,7 @@ bool NewController::destructEdge(Edge *edge)
 
     if(addAction){
         //Add an action to reverse this action.
-        EventAction action;
+        EventAction action = getEventAction();
         action.ID = ID;
         action.parentID = getModel()->getID();
         action.Action.type = DESTRUCTED;
@@ -2722,49 +2730,44 @@ bool NewController::isNodeKindImplemented(QString nodeKind)
 
 bool NewController::reverseAction(EventAction action)
 {
-
+    bool success = false;
     if(action.Action.kind == GraphML::GK_ENTITY){
 
         if(action.Action.type == CONSTRUCTED){
-            return destructEntity(action.ID);
+            success = destructEntity(action.ID);
         }else if(action.Action.type == DESTRUCTED){
             Node* parentNode = getNodeFromID(action.parentID);
             if(parentNode){
-                return _importGraphMLXML(action.Entity.XML, parentNode, true);
+                success = _importGraphMLXML(action.Entity.XML, parentNode, true);
             }
-            return false;
         }
     }else if(action.Action.kind == GraphML::GK_DATA){
         if(action.Action.type == CONSTRUCTED){
             Entity* entity = getGraphMLFromID(action.parentID);
             if(entity){
-                return destructData(entity, action.Data.keyName);
+                success = destructData(entity, action.Data.keyName);
             }
-            return false;
         }else if(action.Action.type == MODIFIED){
             Entity* entity = getGraphMLFromID(action.parentID);
 
             if(entity){
                 setData(entity, action.Data.keyName, action.Data.oldValue);
-                return true;
+                success = true;
             }
-            return false;
         }else if(action.Action.type == DESTRUCTED){
             Entity* entity = getGraphMLFromID(action.parentID);
             if(entity){
-                return _attachData(entity, action.Data.keyName, action.Data.oldValue);
+                success = _attachData(entity, action.Data.keyName, action.Data.oldValue);
             }
-            return false;
         }
     }else if(action.Action.kind == GraphML::GK_KEY){
         if(action.Action.type == CONSTRUCTED){
-            destructKey(action.Key.name);
+            success = destructKey(action.Key.name);
         }else if(action.Action.type == DESTRUCTED){
-            constructKey(action.Key.name, action.Key.type, action.Key.kind);
+            success = constructKey(action.Key.name, action.Key.type, action.Key.kind);
         }
     }
-
-    return true;
+    return success;
 }
 bool NewController::_attachData(Entity *item, QList<QStringList> dataList, bool addAction)
 {
@@ -2862,10 +2865,13 @@ bool NewController::_attachData(Entity *item, Data *data, bool addAction)
 void NewController::addActionToStack(EventAction action, bool useAction)
 {
     //Get Current Action ID and action.
-    action.Action.ID = currentActionID;
-    action.Action.name = currentAction;
-    action.Action.actionID = currentActionItemID++;
+    //action.Action.ID = currentActionID;
+    //action.Action.name = currentAction;
+    //action.Action.actionID = currentActionItemID++;
     action.Action.timestamp = getTimeStamp();
+
+    //Change made, make dirty the project
+    setProjectDirty(true);
 
     if(useAction){
         if(UNDOING){
@@ -2947,8 +2953,6 @@ void NewController::undoRedo(bool undo)
         EventAction reverseState = toReverse.takeFirst();
         bool success = reverseAction(reverseState);
         if(!success){
-            qCritical() << "CAN'T REVERSE";
-
             retryCount[reverseState.Action.actionID] +=1;
             if(retryCount[reverseState.Action.actionID] <= maxRetry){
                 toReverse.append(reverseState);
@@ -3266,7 +3270,7 @@ void NewController::constructNodeGUI(Node *node)
     }
 
     //Construct an ActionItem to reverse Node Construction.
-    EventAction action;
+    EventAction action = getEventAction();
     action.Action.type = CONSTRUCTED;
     action.Action.kind = node->getGraphMLKind();
     action.ID = node->getID();
@@ -3303,8 +3307,10 @@ void NewController::setupModel()
 
 
     Data* labelData = model->getData("label");
-    qCritical() << labelData->isProtected();
     connect(labelData, SIGNAL(dataChanged(int,QString,QVariant)), this, SLOT(modelLabelChanged()));
+
+    //Update the view with the correct Model Label.
+    modelLabelChanged();
 
     //Construct the top level parents.
     interfaceDefinitions = constructChildNode(model, constructDataVector("InterfaceDefinitions"));
@@ -3918,7 +3924,7 @@ bool NewController::isGraphMLValid(QString inputGraphML)
 void NewController::constructEdgeGUI(Edge *edge)
 {
     //Construct an ActionItem to reverse an Edge Construction.
-    EventAction action;
+    EventAction action = getEventAction();
 
     action.Action.type = CONSTRUCTED;
     action.Action.kind = edge->getGraphMLKind();
@@ -4037,6 +4043,7 @@ void NewController::setupLocalNode()
 
     Key* localhostKey = constructKey("localhost", QVariant::Bool,Entity::EK_NODE);
     Data* data = new Data(localhostKey);
+    data->setProtected(true);
     data->setValue(true);
     localNodeData.append(data);
 
@@ -4249,6 +4256,15 @@ Model *NewController::getModel()
 WorkerDefinitions *NewController::getWorkerDefinitions()
 {
     return (WorkerDefinitions*)workerDefinitions;
+}
+
+QString NewController::getProjectAsGraphML()
+{
+    QString data;
+    if(model){
+        data = _exportGraphMLDocument(model);
+    }
+    return data;
 }
 
 void NewController::enableDebugLogging(bool logMode, QString applicationPath)
@@ -4985,21 +5001,28 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     return true;
 }
 
-void NewController::projectModified()
+EventAction NewController::getEventAction()
 {
-    if(!projectDirty){
-        projectDirty = true;
+    EventAction action;
+    action.projectDirty = projectDirty;
+    action.Action.ID = currentActionID;
+    action.Action.name = currentAction;
+    action.Action.actionID = currentActionItemID++;
+    return action;
+}
+
+void NewController::setProjectDirty(bool dirty)
+{
+    if(projectDirty != dirty){
+        projectDirty = dirty;
         emit controller_ProjectRequiresSave(projectDirty);
     }
 }
 
-void NewController::projectSaved()
+void NewController::setProjectFilePath(QString filePath)
 {
-    if(projectDirty){
-        projectDirty = false;
-        emit controller_ProjectRequiresSave(projectDirty);
-    }
-
+    projectFileSavePath = filePath;
+    emit controller_ProjectFileChanged(filePath);
 }
 
 
@@ -5255,6 +5278,11 @@ bool NewController::canLocalDeploy()
         }
     }
     return isDeployable;
+}
+
+QString NewController::getProjectFileName()
+{
+    return projectFileSavePath;
 }
 
 bool NewController::projectRequiresSaving()

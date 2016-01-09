@@ -49,8 +49,11 @@ public:
     void unsetCursor();
 
     void destroySubViews();
+
     //Set Controller
+
     void setController(NewController* controller);
+
     void disconnectController();
 
     VIEW_STATE getViewState();
@@ -59,6 +62,11 @@ public:
 
     bool hasModel();
     bool projectRequiresSaving();
+
+    QString getProjectAsGraphML();
+    QString getProjectFileName();
+
+    QString getImportableSnippetKind();
 
     void scrollContentsBy(int dx, int dy);
 
@@ -116,6 +124,8 @@ public:
     bool isTerminating();
     bool isNodeKindDeployable(QString nodeKind);
 
+    QString getProjectFilePath();
+
 
     void setVisible(bool visible);
 
@@ -143,11 +153,13 @@ protected:
     bool viewportEvent(QEvent *);
 
 private:
+    void resetViewState();
     void sortSelection(bool recurse=false);
     void expandSelection(bool expand);
     void setupSoundEffects();
 
 private slots:
+    void controllerDestroyed();
     void settingChanged(QString groupName, QString keyName, QVariant value);
     void modelReady();
 
@@ -157,6 +169,9 @@ private slots:
     void actionFinished();
 
 signals:
+    void view_ProjectFileChanged(QString);
+    void view_ProjectNameChanged(QString);
+
     void view_LoadSettings();
     void view_searchFinished(QStringList searchResult);
     void view_themeChanged(VIEW_THEME theme);
@@ -174,11 +189,16 @@ signals:
 
     void view_SetClipboardBuffer(QString);
 
-    void view_ProjectNameChanged(QString);
     void view_ExportProject();
     void view_ExportedProject(QString data);
     void view_ImportProjects(QStringList data);
+
     void view_OpenProject(QString fileName, QString fileData);
+
+    void view_SaveProject(QString filePath);
+    void view_SavedProject(QString filePath, QString fileData);
+    void view_ProjectSaved(bool success, QString filePath);
+
 
     void view_ExportedSnippet(QString parentName, QString snippetXMLData);
     void view_ExportSnippet(QList<int> selection);
@@ -263,6 +283,8 @@ public slots:
     void importProjects(QStringList xmlDataList);
 
     void openProject(QString fileName, QString fileData);
+    void saveProject(QString filePath);
+
 
     void loadJenkinsNodes(QString fileData);
     void exportSnippet();
@@ -294,6 +316,10 @@ public slots:
     void replicate();
     void copy();
     void cut();
+
+
+
+
     void paste(QString xmlData);
     void selectAll();
 

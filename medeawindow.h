@@ -84,12 +84,14 @@ signals:
 
     void window_OpenProject(QString fileName, QString fileData);
     void window_ImportSnippet(QString fileName, QString fileData);
+    void window_ProjectSaved(bool success, QString filePath);
 
 
     void window_LoadJenkinsNodes(QString fileData);
 
 
     void window_GetCPPForComponent(QString graphmlPath, QString component);
+    void window_ExecuteXSLValidation(QString graphmlPath, QString reportPath);
 
     void window_SortModel();
 
@@ -122,17 +124,19 @@ public slots:
     void setupInitialSettings();
 
 
-    void jenkinsExport();
-    void getCPPForComponent(QString componentName);
-    void cutsExport();
-    void validateExport();
-    void exportTempFile();
-    void jenkins_InvokeJob(QString filePath);
-    void cuts_runDeployment(QString filePath);
 
-    void validate_Exported(QString tempModelPath);
+    void generateCPPForComponent(QString componentName);
+    void executeProjectValidation();
+    void executeLocalNodeDeployment();
+    void executeJenkinsDeployment();
+
 
 private slots:
+    void XSLValidationCompleted(bool success, QString reportPath);
+    void projectFileChanged(QString name="");
+    void projectNameChanged(QString name="");
+
+    void gotSaveData(QString filePath, QString fileData);
     void setFullscreenMode(bool fullscreen);
     void gotXMETransformation(bool success, QString errorString, QString path);
     void gotCPPForComponent(bool success, QString errorString, QString componentName, QString code);
@@ -153,13 +157,12 @@ private slots:
     void on_actionNew_Project_triggered();
     void on_actionCloseProject_triggered();
     void on_actionOpenProject_triggered();
+    void on_actionSaveProject_triggered();
+    void on_actionSaveProjectAs_triggered();
+    void on_actionImportSnippet_triggered();
 
     void on_actionImport_GraphML_triggered();
     void on_actionImport_XME_triggered();
-    void on_actionExport_GraphML_triggered();
-
-    void on_actionValidate_triggered();
-    void validationComplete(int code);
 
     void on_actionPaste_triggered();
     void on_actionExit_triggered();
@@ -168,9 +171,9 @@ private slots:
     void on_searchResultItem_clicked(int ID);
     void on_validationItem_clicked(int ID);
 
-    void writeExportedProject(QString data);
     void writeExportedSnippet(QString parentName, QString snippetXMLData);
-    void importSnippet(QString parentName);
+
+    void importSnippet();
 
     void setClipboard(QString value);
     void setAttributeModel(AttributeTableModel* model);
@@ -183,7 +186,6 @@ private slots:
     void dockButtonPressed();
     void forceOpenDock(DOCK_TYPE type, QString srcKind = "");
 
-    void updateWindowTitle(QString newProjectName);
     void updateProgressStatus(int value, QString status);
     void updateWidgetMask(QWidget* widget, QWidget* maskWidget, bool check = false, QSize border = QSize());
 
@@ -219,7 +221,15 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+    QString getTimestamp();
+    QString getTempFileName(QString prefix="");
     bool closeProject();
+    bool saveProject(bool saveAs=false);
+
+    QString readFile(QString fileName);
+    bool writeFile(QString filePath, QString fileData);
+    QString writeTempFile(QString fileData);
+    QString writeProjectToTempFile();
 
     void populateDocks();
     void _getCPPForComponent(QString filePath);
@@ -235,6 +245,7 @@ private:
     void setApplicationEnabled(bool enable);
     void setViewWidgetsEnabled(bool enable);
 
+    EventAction getEventAction();
     void resetGUI();
     void resetView();
     void newProject();
@@ -267,7 +278,6 @@ private:
     QTemporaryFile* writeTemporaryFile(QString data);
 
 
-    QString readFile(QString fileName);
     QString applicationDirectory;
 
     QPushButton *projectName;
@@ -292,7 +302,6 @@ private:
     QAction* file_closeProject;
 
     QAction* file_importSnippet;
-    QAction* file_exportGraphML;
     QAction* file_exportSnippet;
 
     QList<QAction*> modelActions;
@@ -425,6 +434,8 @@ private:
     QString viewAspectsBarDefaultText;
     QString nodeKindsDefaultText;
     QString dataKeysDefaultText;
+
+    QString currentProjectFilePath;
 
     AppSettings* appSettings;
 

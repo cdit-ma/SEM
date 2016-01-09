@@ -50,6 +50,8 @@ struct EventAction{
     int ID;
     int parentID;
 
+    bool projectDirty;
+
     struct _Entity{
         QString XML;
         QString nodeKind;
@@ -92,6 +94,8 @@ public:
 
 
 
+    QString getProjectAsGraphML();
+
 
     //Get a list of all View Aspects
     QStringList getViewAspects();
@@ -126,6 +130,8 @@ public:
     bool canRedo();
     bool canLocalDeploy();
 
+    QString getProjectFileName();
+
     bool projectRequiresSaving();
 
     bool isNodeAncestor(int ID, int ID2);
@@ -144,6 +150,9 @@ public:
 
 
 signals:
+    void controller_ProjectFileChanged(QString);
+    void controller_ProjectNameChanged(QString);
+
     void controller_CanUndo(bool ok);
     void controller_CanRedo(bool ok);
     void controller_ModelReady();
@@ -155,9 +164,10 @@ signals:
     void controller_DisplayMessage(MESSAGE_TYPE, QString title, QString message, int ID=-1);
 
 
-    void controller_SaveProject(QString data, QString filePath);
+    void controller_SavedProject(QString filePath, QString dat);
 
     void controller_ExportedProject(QString);
+
     void controller_ExportedSnippet(QString parentName, QString snippetXMLData);
 
     void controller_GraphMLConstructed(Entity*);
@@ -166,7 +176,7 @@ signals:
 
     void controller_GraphMLDestructed(int ID, GraphML::GRAPHML_KIND kind);
 
-    void controller_ProjectNameChanged(QString);
+
 
 
     void controller_ProjectRequiresSave(bool requiresSave);
@@ -175,6 +185,7 @@ signals:
 
     void controller_SetViewEnabled(bool);
 private slots:
+    void projectSaved(bool success, QString filePath);
     void enableDebugLogging(bool logMode, QString applicationPath="");
 
     void connectViewAndSetupModel(NodeView* view);
@@ -195,9 +206,8 @@ private slots:
     void undo();
     void redo();
 
-    void save();
-    void saveAs(QString filePath);
-    void open(QString filepath, QString xmlData);
+    void saveProject(QString filePath);
+    void openProject(QString filepath, QString xmlData);
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
     void constructWorkerProcessNode(int parentID,QString workerName, QString operationName, QPointF position);
@@ -258,9 +268,10 @@ private:
     bool _importGraphMLXML(QString document, Node* parent = 0, bool linkID=false, bool resetPos=false);
 
 
+    EventAction getEventAction();
 
-    void projectModified();
-    void projectSaved();
+    void setProjectDirty(bool dirty);
+    void setProjectFilePath(QString filePath);
 
     Node* getSharedParent(QList<int> IDs);
 

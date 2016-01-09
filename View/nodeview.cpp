@@ -181,6 +181,9 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 void NodeView::setController(NewController *c)
 {
     controller = c;
+    if(controller){
+        connect(controller, SIGNAL(destroyed(QObject*)), this, SLOT(controllerDestroyed()));
+    }
 }
 
 void NodeView::disconnectController()
@@ -211,6 +214,36 @@ bool NodeView::projectRequiresSaving()
         return controller->projectRequiresSaving();
     }
     return false;
+}
+
+QString NodeView::getProjectAsGraphML()
+{
+    QString data;
+    if(viewMutex.tryLock()){
+        if(controller){
+            data = controller->getProjectAsGraphML();
+        }
+        viewMutex.unlock();
+    }
+    return data;
+}
+
+QString NodeView::getProjectFileName()
+{
+    if(controller){
+        return controller->getProjectFileName();
+    }
+    return "";
+}
+
+QString NodeView::getImportableSnippetKind()
+{
+    GraphMLItem* selectedItem = getSelectedGraphMLItem();
+
+    if (selectedItem){
+        return selectedItem->getNodeKind();
+    }
+    return "";
 }
 
 void NodeView::scrollContentsBy(int dx, int dy)
@@ -1091,6 +1124,27 @@ bool NodeView::viewportEvent(QEvent * e)
     return QGraphicsView::viewportEvent(e);
 }
 
+void NodeView::resetViewState()
+{
+    selectedIDs.clear();
+    highlightedIDs.clear();
+    subViews.clear();
+    viewCenterPointStack.clear();
+    viewModelPositions.clear();
+    viewCenteredRectangles.clear();
+    modelPositions.clear();
+    centeredRects.clear();
+    definitionIDs.clear();
+    guiItems.clear();
+    noGuiIDHash.clear();
+    noGUINodeIDHash.clear();
+    viewState = VS_NONE;
+
+    emit view_ProjectNameChanged("");
+    emit view_ProjectFileChanged("");
+}
+
+
 
 /**
  * @brief NodeView::actionFinished Called when the Controller has finished running an Action
@@ -1375,8 +1429,16 @@ void NodeView::openProject(QString fileName, QString fileData)
         constructedFromImport = true;
         emit view_OpenProject(fileName, fileData);
     }
+}
+
+void NodeView::saveProject(QString filePath="")
+{
+    if(viewMutex.tryLock()){
+        emit view_SaveProject(filePath);
+    }
 
 }
+
 
 void NodeView::loadJenkinsNodes(QString fileData)
 {
@@ -1392,12 +1454,15 @@ void NodeView::exportSnippet()
     }
 }
 
+/**
+ * @brief NodeView::exportProject - Blocking.
+ */
 void NodeView::exportProject()
 {
     if(viewMutex.tryLock()){
         if(hasModel()){
             QEventLoop waitLoop;
-            connect(controller, SIGNAL(controller_ExportedProject(QString)), &waitLoop, SLOT(quit()));
+            connect(controller, SIGNAL(controller_ActionFinished()), &waitLoop, SLOT(quit()));
             emit view_ExportProject();
             waitLoop.exec();
         }
@@ -1667,6 +1732,12 @@ void NodeView::setupSoundEffects()
     */
 }
 
+void NodeView::controllerDestroyed()
+{
+    disconnectController();
+    resetViewState();
+}
+
 void NodeView::settingChanged(QString groupName, QString keyName, QVariant value)
 {
     bool isInt;
@@ -1711,6 +1782,7 @@ void NodeView::modelReady()
 
     emit view_ModelSizeChanged();
     emit view_ModelReady();
+    emit view_ProjectFileChanged("Untitled Project");
     updateActionsEnabledStates();
 
 }
@@ -4830,6 +4902,7 @@ void NodeView::clearModel()
 void NodeView::selectModel()
 {
     if (getModelItem()) {
+        qCritical() << "GOT MODEL ITEM";
         clearSelection();
         appendToSelection(getModelItem());
     }

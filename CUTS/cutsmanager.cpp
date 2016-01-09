@@ -66,6 +66,42 @@ void CUTSManager::setScriptsPath(QString path)
     scriptsPath = path;
 }
 
+void CUTSManager::executeXSLValidation(QString graphmlPath, QString outputFilePath)
+{
+    if(!isFileReadable(graphmlPath)){
+        emit executedXSLValidation(false, "");
+        return;
+    }
+
+    //Start a QProcess for this program
+    QProcess* process = new QProcess();
+    process->setWorkingDirectory(XSLTransformPath);
+
+    //Construct the arguments for the xsl transform
+    QStringList arguments;
+    arguments << "-jar" << xalanJPath + "xalan.jar";
+    arguments << "-in" << graphmlPath;
+    arguments << "-xsl" << XSLTransformPath + "MEDEA.xsl";
+    arguments << "-out" << outputFilePath;
+
+    //Construct a wait loop to make sure this transform happens first.
+    QEventLoop waitLoop;
+    connect(process, SIGNAL(finished(int)), &waitLoop, SLOT(quit()));
+
+    //Execute the QProcess
+    process->start("java", arguments);
+
+    //Wait for The process to exit the loop.
+    waitLoop.exec();
+
+    int code = process->exitCode();
+
+    //QString commandOutput = process->readAllStandardOutput();
+    //QString errorString = process->readAllStandardError();
+
+    emit executedXSLValidation(code == 0, outputFilePath);
+}
+
 
 
 ///

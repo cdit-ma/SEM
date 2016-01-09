@@ -65,7 +65,7 @@ void ValidateDialog::connectToWindow(QMainWindow* window)
     MedeaWindow* medea = dynamic_cast<MedeaWindow*>(window);
     if (medea) {
         connect(this, SIGNAL(searchItem_centerOnItem(int)), medea, SLOT(on_validationItem_clicked(int)));
-        connect(this, SIGNAL(revalidate_Model()), medea, SLOT(on_actionValidate_triggered()));
+        connect(this, SIGNAL(revalidate_Model()), medea, SLOT(executeProjectValidation()));
     }
 }
 

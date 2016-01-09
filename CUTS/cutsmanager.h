@@ -38,6 +38,8 @@ signals:
     //Emitted by the slot executeProcess
     void fileIsGenerated(QString filePath, bool success);
 
+    void executedXSLValidation(bool success, QString filePath);
+
     //Emitted bt the slot executeXSLGeneration
     void executedXSLGeneration(bool success, QString errorString="");
     //Emitted bt the slot executeMWCGeneration
@@ -61,6 +63,9 @@ signals:
 
     void _gotLiveOutput(QString output);
 private slots:
+
+    //Validates the model.
+    void executeXSLValidation(QString graphmlPath, QString outputFilePath);
 
     //Generates all required artifacts for the provided graphml document.
     void executeXSLGeneration(QString graphmlPath, QString outputPath);

@@ -117,6 +117,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     //show();
 
+
     initialSettingsLoaded = true;
 }
 
@@ -230,7 +231,7 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
         aspect->setEnabled(enable);
     }
 
-     emit window_SetViewVisible(enable);
+    emit window_SetViewVisible(enable);
 }
 
 
@@ -685,6 +686,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
     file_openProject = file_menu->addAction(getIcon("Actions", "Import"), "Open Project");
     file_openProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_O));
 
+    file_menu->addSeparator();
     file_saveProject = file_menu->addAction(getIcon("Actions", "Save"), "Save Project");
     file_saveProject->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_S));
 
@@ -703,9 +705,7 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     file_importGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_I));
     file_menu->addSeparator();
-    file_exportGraphML = file_menu->addAction(getIcon("Actions", "Export"), "Export");
     file_exportSnippet = file_menu->addAction(getIcon("Actions", "ExportSnippet"), "Export Snippet");
-    file_exportGraphML->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_E));
     file_menu->addSeparator();
 
     edit_undo = edit_menu->addAction(getIcon("Actions", "Undo"), "Undo");
@@ -823,7 +823,6 @@ void MedeaWindow::setupMenu(QPushButton *button)
     modelActions << file_importGraphML;
     modelActions << file_importXME;
     modelActions << file_importSnippet;
-    modelActions << file_exportGraphML;
     modelActions << file_exportSnippet;
 
     modelActions << view_menu->actions();
@@ -1426,10 +1425,15 @@ void MedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(view_LoadSettings()), this, SLOT(loadSettingsFromINI()));
 
+    connect(this, SIGNAL(window_ProjectSaved(bool,QString)), nodeView, SIGNAL(view_ProjectSaved(bool, QString)));
+
+    connect(nodeView, SIGNAL(view_ProjectFileChanged(QString)), this, SLOT(projectFileChanged(QString)));
+    connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(projectNameChanged(QString)));
+
     connect(this, SIGNAL(window_toggleAspect(VIEW_ASPECT,bool)), nodeView, SLOT(toggleAspect(VIEW_ASPECT,bool)));
     connect(this, SIGNAL(window_centerAspect(VIEW_ASPECT)), nodeView, SLOT(centerAspect(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_toggleAspect(VIEW_ASPECT, bool)), this, SLOT(forceToggleAspect(VIEW_ASPECT,bool)));
-    connect(nodeView, SIGNAL(view_ShowCPPForComponent(QString)), this, SLOT(getCPPForComponent(QString)));
+    connect(nodeView, SIGNAL(view_ShowCPPForComponent(QString)), this, SLOT(generateCPPForComponent(QString)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), definitionsToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), workloadToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
     connect(nodeView, SIGNAL(view_highlightAspectButton(VIEW_ASPECT)), assemblyToggle, SLOT(highlightToggleButton(VIEW_ASPECT)));
@@ -1437,6 +1441,9 @@ void MedeaWindow::makeConnections()
 
     connect(nodeView, SIGNAL(view_ProjectRequiresSaving(bool)), this, SLOT(projectRequiresSaving(bool)));
     connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
+
+    connect(nodeView, SIGNAL(view_SavedProject(QString,QString)), this, SLOT(gotSaveData(QString, QString)));
+
 
 
     connect(nodeView, SIGNAL(view_OpenHardwareDock()), this, SLOT(jenkinsNodesLoaded()));
@@ -1451,7 +1458,8 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
     connect(nodeView, SIGNAL(view_updateProgressStatus(int,QString)), this, SLOT(updateProgressStatus(int,QString)));
     connect(nodeView, SIGNAL(view_ProjectCleared()), this, SLOT(projectCleared()));
-    connect(file_importSnippet, SIGNAL(triggered()), nodeView, SLOT(request_ImportSnippet()));
+
+    connect(file_importSnippet, SIGNAL(triggered()), this, SLOT(importSnippet()));
     connect(file_importXME, SIGNAL(triggered(bool)), this, SLOT(on_actionImport_XME_triggered()));
     connect(file_exportSnippet, SIGNAL(triggered()), nodeView, SLOT(exportSnippet()));
 
@@ -1478,9 +1486,10 @@ void MedeaWindow::makeConnections()
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_closeProject, SIGNAL(triggered()), this, SLOT(on_actionCloseProject_triggered()));
     connect(file_openProject, SIGNAL(triggered()), this, SLOT(on_actionOpenProject_triggered()));
+    connect(file_saveProject, SIGNAL(triggered(bool)), this, SLOT(on_actionSaveProject_triggered()));
+    connect(file_saveAsProject, SIGNAL(triggered()), this, SLOT(on_actionSaveProjectAs_triggered()));
 
     connect(file_importGraphML, SIGNAL(triggered()), this, SLOT(on_actionImport_GraphML_triggered()));
-    connect(file_exportGraphML, SIGNAL(triggered()), this, SLOT(on_actionExport_GraphML_triggered()));
     connect(help_AboutMedea, SIGNAL(triggered()), this, SLOT(aboutMedea()));
     connect(help_AboutQt, SIGNAL(triggered()), this, SLOT(aboutQt()));
     connect(help_Shortcuts, SIGNAL(triggered()), this, SLOT(showShortcutList()));
@@ -1510,11 +1519,9 @@ void MedeaWindow::makeConnections()
 
     connect(model_clearModel, SIGNAL(triggered()), nodeView, SLOT(clearModel()));
 
-    connect(model_validateModel, SIGNAL(triggered()), this, SLOT(on_actionValidate_triggered()));
-
-    //Jenkins Settings
-    connect(jenkins_ExecuteJob, SIGNAL(triggered()), this, SLOT(jenkinsExport()));
-    connect(model_ExecuteLocalJob, SIGNAL(triggered()), this, SLOT(cutsExport()));
+    connect(model_validateModel, SIGNAL(triggered()), this, SLOT(executeProjectValidation()));
+    connect(jenkins_ExecuteJob, SIGNAL(triggered()), this, SLOT(executeJenkinsDeployment()));
+    connect(model_ExecuteLocalJob, SIGNAL(triggered()), this, SLOT(executeLocalNodeDeployment()));
 
     connect(jenkins_ImportNodes, SIGNAL(triggered()), this, SLOT(on_actionImportJenkinsNode()));
 
@@ -1555,23 +1562,16 @@ void MedeaWindow::makeConnections()
     connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
     connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
 
-    connect(nodeView, SIGNAL(view_ExportedProject(QString)), this, SLOT(writeExportedProject(QString)));
     connect(nodeView, SIGNAL(view_ExportedSnippet(QString,QString)), this, SLOT(writeExportedSnippet(QString,QString)));
 
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
-    connect(nodeView, SIGNAL(view_ProjectNameChanged(QString)), this, SLOT(updateWindowTitle(QString)));
 
     connect(dataTable, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(dataTableDoubleClicked(QModelIndex)));
-
-    // DEMO CHANGE
-    //connect(toolbarStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedToolbarClosed()));
-    //connect(dockStandAloneDialog, SIGNAL(finished(int)), this, SLOT(detachedDockClosed()));
 
     //For mac
     addAction(exit);
     addAction(file_newProject);
     addAction(file_importGraphML);
-    addAction(file_exportGraphML);
 
     addAction(edit_undo);
     addAction(edit_redo);
@@ -1642,32 +1642,70 @@ void MedeaWindow::changeEvent(QEvent *event)
     }
 }
 
+QString MedeaWindow::getTimestamp()
+{
+    QDateTime currentTime = QDateTime::currentDateTime();
+    return currentTime.toString("yyMMdd-hhmmss");
+}
+
+QString MedeaWindow::getTempFileName(QString suffix)
+{
+    if(suffix == ""){
+        suffix = ".graphml";
+    }
+    //Get Timestamp
+    return QDir::tempPath() + "/" + getTimestamp() + "-" + projectName->text() + suffix;
+}
+
 bool MedeaWindow::closeProject()
 {
-    qCritical() << "Close Project";
     if(nodeView->projectRequiresSaving()){
-        // ask user if they want to save current project before closing it
-        QMessageBox::StandardButton saveProject = QMessageBox::question(this,
-                                                                        "MEDEA - Save Project",
-                                                                        "Current project will be closed.\nSave changes?",
+        //Ask User to confirm save?
+        QMessageBox::StandardButton saveProjectButton = QMessageBox::question(this,
+                                                                        "Close Project", "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
                                                                         QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
-
-
-        if (saveProject == QMessageBox::Yes || saveProject == QMessageBox::No) {
-            if(saveProject == QMessageBox::Yes){
-                // if failed to export, do nothing
-                bool saveSuccess = exportProject();
-                if(!saveSuccess){
-                    return false;
-                }
+        if(saveProjectButton == QMessageBox::Yes){
+            bool saveSuccess = saveProject();
+            // if failed to save, do nothing
+            if(!saveSuccess){
+                return false;
             }
+        }else if(saveProjectButton == QMessageBox::No){
+            //Do Nothing
         }else{
             return false;
         }
     }
-
     teardownProject();
     return true;
+}
+
+bool MedeaWindow::saveProject(bool saveAs)
+{
+    if(nodeView){
+        QString filePath = nodeView->getProjectFileName();
+
+        if(filePath == ""){
+            saveAs = true;
+        }
+
+        if(saveAs){
+            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, false);
+
+            if(files.size() != 1){
+                return false;
+            }
+
+            filePath = files.first();
+        }
+
+        QString fileData = nodeView->getProjectAsGraphML();
+
+        bool saveSuccess = writeFile(filePath, fileData);
+        emit window_ProjectSaved(saveSuccess, filePath);
+        return saveSuccess;
+    }
+    return false;
 }
 
 void MedeaWindow::populateDocks()
@@ -1729,6 +1767,7 @@ void MedeaWindow::setupApplication()
     QApplication::setOrganizationName("Defence Information Group");
     QApplication::setOrganizationDomain("http://blogs.adelaide.edu.au/dig/");
     QApplication::setWindowIcon(QIcon(":/Actions/MEDEA.png"));
+    projectFileChanged();
 
     //Set Font.
     int fontID = QFontDatabase::addApplicationFont(":/Resources/Fonts/OpenSans-Regular.ttf");
@@ -1793,8 +1832,10 @@ void MedeaWindow::initialiseCUTSManager()
     cutsManager->moveToThread(thread);
     connect(cutsManager, SIGNAL(localDeploymentOkay()), this, SLOT(localDeploymentOkay()));
     connect(this, SIGNAL(window_GetCPPForComponent(QString,QString)), cutsManager, SLOT(getCPPForComponent(QString,QString)));
+    connect(this, SIGNAL(window_ExecuteXSLValidation(QString, QString)), cutsManager, SLOT(executeXSLValidation(QString,QString)));
     connect(cutsManager, SIGNAL(gotCPPForComponent(bool, QString, QString,QString)), this, SLOT(gotCPPForComponent(bool,QString,  QString, QString)));
     connect(cutsManager, SIGNAL(gotXMETransformation(bool,QString, QString)), this, SLOT(gotXMETransformation(bool, QString, QString)));
+    connect(cutsManager, SIGNAL(executedXSLValidation(bool,QString)), this, SLOT(XSLValidationCompleted(bool,QString)));
 }
 
 
@@ -1819,71 +1860,33 @@ void MedeaWindow::importXMEProject(QString filePath)
 }
 
 
-/**
- * @brief MedeaWindow::jenkins_InvokeJob
- * @param filePath
- */
-void MedeaWindow::jenkins_InvokeJob(QString filePath)
+
+
+void MedeaWindow::projectFileChanged(QString name)
 {
-    QString jenkinsJobName = appSettings->getSetting(JENKINS_JOB).toString();
-
-    if(jenkinsManager){
-        JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
-        jenkinsSJ->requestJob(jenkinsJobName, filePath);
+    if(name != ""){
+        currentProjectFilePath = name;
+        name = " - " + name + "[*]";
     }
-}
-
-
-/**
- * @brief MedeaWindow::cuts_runDeployment
- * @param filePath
- */
-void MedeaWindow::cuts_runDeployment(QString filePath)
-{
-    if(cutsManager){
-        QString path = "";
-        if(appSettings){
-            path = appSettings->getSetting(DEFAULT_DIR_PATH).toString();
-        }
-
-
-        CUTSExecutionWidget* cWidget = new CUTSExecutionWidget(this, cutsManager);
-        cWidget->setGraphMLPath(filePath);
-        cWidget->setOutputPath(path);
-        cWidget->show();
-    }
+    setWindowTitle("MEDEA" + name);
 
 }
 
-
-/**
- * @brief MedeaWindow::validate_Exported
- * @param tempPath
- */
-void MedeaWindow::validate_Exported(QString tempModelPath)
+void MedeaWindow::projectNameChanged(QString name)
 {
-    QString xalanJPath = applicationDirectory + "/Resources/Binaries/";
-    QString scriptPath = applicationDirectory + "/Resources/Scripts/";
-    QString transformsPath = applicationDirectory + "/Resources/Transforms/";
+    if(projectName){
+        projectName->setText(name);
+    }
+}
 
-    // transform .graphml to report.xml
-    // The MEDEA.xsl transform is produced by Schematron/iso_svrl_for_xslt1.xsl
-    QString program = "java";
-    QStringList arguments;
+void MedeaWindow::gotSaveData(QString filePath, QString fileData)
+{
+    //Try and write the file.
+    bool success = writeFile(filePath, fileData);
 
-    validation_report_path = QDir::tempPath() + "/" + projectName->text() + "_ValidateReport.xml";
-
-    arguments << "-jar" << xalanJPath + "xalan.jar"
-              << "-in" << tempModelPath
-              << "-xsl" << transformsPath + "MEDEA.xsl"
-              << "-out" << validation_report_path;
-
-
-    QProcess *myProcess = new QProcess(this);
-
-    connect(myProcess, SIGNAL(finished(int)), this, SLOT(validationComplete(int)));
-    connect(myProcess, SIGNAL(finished(int)), myProcess, SLOT(deleteLater()));
-    myProcess->start(program, arguments);
+    qCritical() << "WRITING SAVE DATA" << success << filePath;
+    //Tell the View the project saved.
+    emit window_ProjectSaved(success, filePath);
 }
 
 void MedeaWindow::setFullscreenMode(bool fullscreen)
@@ -2147,54 +2150,98 @@ void MedeaWindow::setupInitialSettings()
 /**
  * @brief MedeaWindow::jenkinsExport
  */
-void MedeaWindow::jenkinsExport()
+void MedeaWindow::executeJenkinsDeployment()
 {
-    jenkins_TempExport = true;
-    exportTempFile();
-}
+    QString exportFile = writeProjectToTempFile();
 
-void MedeaWindow::getCPPForComponent(QString componentName)
-{
-    if(componentName != ""){
-        setEnabled(false);
-        updateProgressStatus(-1, "Transforming *.cpp from Component: " + componentName);
-        componentName_CPPExport = componentName;
-        cpp_TempExport = true;
-        exportTempFile();
+    if(exportFile.isEmpty()){
+        return;
+    }
+
+    QString jobName = "";
+    if(appSettings){
+        jobName = appSettings->getSetting(JENKINS_JOB).toString();
+    }
+
+    if(jenkinsManager){
+        JenkinsStartJobWidget* jenkinsSJ = new JenkinsStartJobWidget(this, jenkinsManager);
+        jenkinsSJ->requestJob(jobName, exportFile);
     }
 }
 
-
-/**
- * @brief MedeaWindow::cutsExport
- */
-void MedeaWindow::cutsExport()
+void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
 {
-    cuts_TempExport = true;
-    exportTempFile();
+    if(success){
+        QFile xmlFile(reportPath);
+
+        if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
+            displayNotification("XSL Validation failed to produce a report.");
+            return;
+        }
+
+        QXmlQuery query;
+        query.bindVariable("graphmlFile", &xmlFile);
+        const QString queryMessages = QString("declare namespace svrl = \"http://purl.oclc.org/dsdl/svrl\"; doc('file:///%1')//svrl:schematron-output/svrl:failed-assert/string()").arg(xmlFile.fileName());
+        query.setQuery(queryMessages);
+
+        QStringList messagesResult;
+        bool result = query.evaluateTo(&messagesResult);
+        xmlFile.close();
+
+        if(!result){
+            displayNotification("Cannot run QXmlQuery on Validation Report.");
+        }else{
+            validateResults.setupItemsTable(messagesResult);
+            validateResults.show();
+        }
+    }else{
+        displayNotification("XSL Validation failed!");
+    }
+}
+
+void MedeaWindow::generateCPPForComponent(QString componentName)
+{
+    QString exportFile = writeProjectToTempFile();
+    if(exportFile.isEmpty()){
+        return;
+    }
+
+    emit window_GetCPPForComponent(exportFile, componentName);
 }
 
 
-/**
- * @brief MedeaWindow::validateExport
- */
-void MedeaWindow::validateExport()
+void MedeaWindow::executeProjectValidation()
 {
-    validate_TempExport = true;
-    exportTempFile();
+    QString exportFile = writeProjectToTempFile();
+
+    if(exportFile.isEmpty()){
+        return;
+    }
+
+    QString reportPath = getTempFileName("_report.xml");
+
+    emit window_ExecuteXSLValidation(exportFile, reportPath);
 }
 
-
-/**
- * @brief MedeaWindow::exportTempFile
- */
-void MedeaWindow::exportTempFile()
+void MedeaWindow::executeLocalNodeDeployment()
 {
-    tempExport = true;
-    //tempFileName = "C:/MEDEA/build-MEDEA-Desktop_Qt_5_3_0_MSVC2010_OpenGL_32bit-Debug2/debug/Resources/Scripts/"+ projectName->text() + ".graphml";
-    tempFileName = QDir::tempPath() + "/" + projectName->text() + ".graphml";
-    enableTempExport(false);
-    emit window_ExportProject();
+    QString exportFile = writeProjectToTempFile();
+
+    if(exportFile.isEmpty()){
+        return;
+    }
+
+    if(cutsManager){
+        QString path = "";
+        if(appSettings){
+            path = appSettings->getSetting(DEFAULT_DIR_PATH).toString();
+        }
+
+        CUTSExecutionWidget* cWidget = new CUTSExecutionWidget(this, cutsManager);
+        cWidget->setGraphMLPath(exportFile);
+        cWidget->setOutputPath(path);
+        cWidget->show();
+    }
 }
 
 
@@ -2327,6 +2374,23 @@ void MedeaWindow::on_actionOpenProject_triggered()
     }
 }
 
+void MedeaWindow::on_actionSaveProject_triggered()
+{
+    saveProject();
+}
+
+void MedeaWindow::on_actionSaveProjectAs_triggered()
+{
+    saveProject(true);
+}
+
+void MedeaWindow::on_actionImportSnippet_triggered()
+{
+
+
+
+}
+
 
 /**
  * @brief MedeaWindow::on_actionImport_GraphML_triggered
@@ -2348,69 +2412,6 @@ void MedeaWindow::on_actionImport_XME_triggered()
     }
 }
 
-
-/**
- * @brief MedeaWindow::on_actionExport_GraphML_triggered
- */
-void MedeaWindow::on_actionExport_GraphML_triggered()
-{
-    progressAction = "Exporting GraphML";
-    exportProject();
-}
-
-
-
-/**
- * @brief MedeaWindow::on_actionValidate_triggered
- * This is called to validate a model and will display a list of errors.
- */
-void MedeaWindow::on_actionValidate_triggered()
-{
-    //progressAction = "Validating Model";
-    displayNotification("Running XSL Validation on Model");
-
-    validateExport();
-}
-
-
-/**
- * @brief MedeaWindow::validationComplete
- * @param code
- */
-void MedeaWindow::validationComplete(int code)
-{
-    if(code == 0){
-        //validation_report_path
-        QFile xmlFile(validation_report_path);
-        if (!xmlFile.exists() || !xmlFile.open(QIODevice::ReadOnly)){
-            displayNotification("XSL Validation failed to produce a report.");
-            return;
-        }
-
-        // Query the graphml to get a list of all Files to process.
-        QXmlQuery query;
-        query.bindVariable("graphmlFile", &xmlFile);
-        const QString queryMessages = QString("declare namespace svrl = \"http://purl.oclc.org/dsdl/svrl\"; doc('file:///%1')//svrl:schematron-output/svrl:failed-assert/string()")
-                .arg(xmlFile.fileName());
-        query.setQuery(queryMessages);
-
-        QStringList messagesResult;
-        bool result = query.evaluateTo(&messagesResult);
-
-        xmlFile.close();
-
-
-        if(!result){
-            displayNotification("Cannot run QXmlQuery on Validation Report.");
-        }else{
-            validateResults.setupItemsTable(messagesResult);
-            validateResults.show();
-        }
-    }else{
-        displayNotification("XSL Validation failed with error code: " + QString::number(code));
-    }
-
-}
 
 
 /**
@@ -2488,64 +2489,6 @@ void MedeaWindow::on_validationItem_clicked(int ID)
 }
 
 
-/**
- * @brief MedeaWindow::writeExportedProject
- * @param data
- */
-void MedeaWindow::writeExportedProject(QString data)
-{
-    try {
-        QString fileName = exportFileName;
-        if(tempExport){
-            fileName = tempFileName;
-        }
-        //Try and Open File.
-        QFile file(fileName);
-        bool fileOpened = file.open(QIODevice::WriteOnly | QIODevice::Text);
-
-        if(!fileOpened){
-            QMessageBox::critical(this, "File Error", "Unable to open file: '" + fileName + "'! Check permissions and try again.", QMessageBox::Ok);
-            return;
-        }
-
-        //Create stream to write the data.
-        QTextStream out(&file);
-        out << data;
-        file.close();
-
-        //QMessageBox::information(this, "Successfully Exported", "GraphML documented successfully exported to: '" + exportFileName +"'!", QMessageBox::Ok);
-        if(!tempExport){
-            displayNotification("Successfully exported GraphML document.");
-        }
-
-        if(tempExport){
-            tempExport = false;
-            if(jenkins_TempExport){
-                //Link to the function!
-                jenkins_InvokeJob(fileName);
-                jenkins_TempExport = false;
-            }
-            if(validate_TempExport){
-                validate_Exported(fileName);
-                validate_TempExport = false;
-            }
-            if(cuts_TempExport){
-                cuts_runDeployment(fileName);
-                cuts_TempExport = false;
-            }
-            if(cpp_TempExport){
-                _getCPPForComponent(fileName);
-                cpp_TempExport = false;
-            }
-            enableTempExport(true);
-
-        }
-
-    }catch(...){
-        QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
-    }
-}
-
 
 /**
  * @brief MedeaWindow::writeExportedSnippet
@@ -2598,36 +2541,42 @@ void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLDat
  * @brief MedeaWindow::importSnippet
  * @param parentName
  */
-void MedeaWindow::importSnippet(QString parentName)
+void MedeaWindow::importSnippet()
 {
-    QStringList files = fileSelector("Import " + parentName+ ".snippet", "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)", true, false);
+    if(!nodeView){
+        return;
+    }
+
+    //Check if we have any importable snippet types.
+    QString snippetType = nodeView->getImportableSnippetKind();
+
+    if(snippetType == ""){
+        return;
+    }
+
+    QStringList files = fileSelector("Import " + snippetType + ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", true, false);
 
     if(files.size() != 1){
         return;
     }
+
     QString snippetFileName = files.first();
 
     if(snippetFileName.isNull()){
         return;
     }
-    QFile file(snippetFileName);
 
-    bool fileOpened = file.open(QFile::ReadOnly | QFile::Text);
+    QString fileData = readFile(snippetFileName);
 
-    if (!fileOpened) {
-        QMessageBox::critical(this, "File Error", "Unable to open file: '" + snippetFileName + "'! Check permissions and try again.", QMessageBox::Ok);
+    if(fileData == ""){
         return;
     }
 
-    QTextStream fileStream(&file);
-    QString snippetFileData = fileStream.readAll();
-    file.close();
-
+    QFile file(snippetFileName);
     QFileInfo fileInfo(file.fileName());
 
-    window_ImportSnippet(fileInfo.fileName(), snippetFileData);
+    window_ImportSnippet(fileInfo.fileName(), fileData);
 }
-
 
 /**
  * @brief MedeaWindow::setClipboard
@@ -2639,17 +2588,6 @@ void MedeaWindow::setClipboard(QString value)
     clipboard->setText(value);
 }
 
-
-/**
- * @brief MedeaWindow::updateWindowTitle
- * @param newProjectName
- */
-void MedeaWindow::updateWindowTitle(QString newProjectName)
-{
-    setWindowTitle("MEDEA - " + newProjectName + "[*]");
-    projectName->setText(newProjectName);
-    //projectName->setFixedSize(200, projectName->height());
-}
 
 
 /**
@@ -3547,6 +3485,54 @@ QString MedeaWindow::readFile(QString fileName)
         QMessageBox::critical(this, "Error", "Error reading file: '" + fileName + "'", QMessageBox::Ok);
     }
     return fileData;
+}
+
+bool MedeaWindow::writeFile(QString filePath, QString fileData)
+{
+    try {
+        QFile file(filePath);
+
+        bool fileOpened = file.open(QFile::WriteOnly | QFile::Text);
+
+        if (!fileOpened) {
+            QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
+            return false;
+        }
+
+        //Create stream to write the data.
+        QTextStream out(&file);
+        out << fileData;
+        file.close();
+    }catch (...) {
+        QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
+        return false;
+    }
+    return true;
+}
+
+QString MedeaWindow::writeTempFile(QString fileData)
+{
+    QString tempFilePath = getTempFileName();
+
+    bool success = writeFile(tempFilePath, fileData);
+
+    if(!success){
+        return "";
+    }
+    return tempFilePath;
+}
+
+QString MedeaWindow::writeProjectToTempFile()
+{
+    QString data = nodeView->getProjectAsGraphML();
+    if(data.isEmpty()){
+        return "";
+    }
+
+    //Write the data to a temp file.
+    QString exportFile = writeTempFile(data);
+
+    return exportFile;
 }
 
 void MedeaWindow::dropEvent(QDropEvent *event)
