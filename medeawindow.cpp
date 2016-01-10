@@ -1451,8 +1451,8 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_ModelDisconnected()), this, SLOT(modelDisconnected()));
 
     connect(nodeView, SIGNAL(view_ImportSnippet(QString)), this, SLOT(importSnippet(QString)));
-
     connect(this, SIGNAL(window_ImportSnippet(QString,QString)), nodeView, SLOT(importSnippet(QString,QString)));
+
     connect(this, SIGNAL(window_DisplayMessage(MESSAGE_TYPE,QString,QString)), nodeView, SLOT(showMessage(MESSAGE_TYPE,QString,QString)));
     connect(nodeView, SIGNAL(view_updateMenuActionEnabled(QString,bool)), this, SLOT(setMenuActionEnabled(QString,bool)));
     connect(nodeView, SIGNAL(view_SetAttributeModel(AttributeTableModel*)), this, SLOT(setAttributeModel(AttributeTableModel*)));
@@ -1460,7 +1460,11 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_ProjectCleared()), this, SLOT(projectCleared()));
 
     connect(file_importSnippet, SIGNAL(triggered()), this, SLOT(importSnippet()));
+    connect(file_exportSnippet, SIGNAL(triggered()), this, SLOT(exportSnippet()));
+
     connect(file_importXME, SIGNAL(triggered(bool)), this, SLOT(on_actionImport_XME_triggered()));
+
+
     connect(file_exportSnippet, SIGNAL(triggered()), nodeView, SLOT(exportSnippet()));
 
     //connect(nodeView, SIGNAL(view_showWindowToolbar()), this, SLOT(showWindowToolbar()));
@@ -2541,14 +2545,16 @@ void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLDat
  * @brief MedeaWindow::importSnippet
  * @param parentName
  */
-void MedeaWindow::importSnippet()
+void MedeaWindow::importSnippet(QString snippetType)
 {
     if(!nodeView){
         return;
     }
 
-    //Check if we have any importable snippet types.
-    QString snippetType = nodeView->getImportableSnippetKind();
+    if(snippetType == ""){
+        //Check if we have any importable snippet types.
+        snippetType = nodeView->getImportableSnippetKind();
+    }
 
     if(snippetType == ""){
         return;
@@ -2575,7 +2581,36 @@ void MedeaWindow::importSnippet()
     QFile file(snippetFileName);
     QFileInfo fileInfo(file.fileName());
 
-    window_ImportSnippet(fileInfo.fileName(), fileData);
+    emit window_ImportSnippet(fileInfo.fileName(), fileData);
+}
+
+void MedeaWindow::exportSnippet()
+{
+    if(!nodeView){
+        return;
+    }
+
+    QPair<QString, QString> snippetData = nodeView->getSnippetGraphML();
+    if(snippetData.first != ""){
+        QString snippetType = snippetData.first;
+        QString exportData = snippetData.second;
+
+        QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", false);
+
+        if(files.size() != 1){
+            return;
+        }
+        QString exportName = files.first();
+
+        if (exportName == "") {
+            return;
+        }
+
+        if(!exportName.toLower().endsWith(snippetType + ".snippet")){
+            return;
+        }
+        writeFile(exportName, exportData);
+    }
 }
 
 /**
@@ -3503,6 +3538,7 @@ bool MedeaWindow::writeFile(QString filePath, QString fileData)
         QTextStream out(&file);
         out << fileData;
         file.close();
+
     }catch (...) {
         QMessageBox::critical(this, "File Error", "Unable to open file to write: '" + filePath + "'! Check permissions and try again.", QMessageBox::Ok);
         return false;

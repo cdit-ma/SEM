@@ -1252,8 +1252,10 @@ bool NewController::_importSnippet(QList<int> IDs, QString fileName, QString fil
  * @param IDs - The IDs of the entities to try and export.
  * @return Action successful.
  */
-bool NewController:: _exportSnippet(QList<int> IDs)
+QPair<QString, QString> NewController::_exportSnippet(QList<int> IDs)
 {
+    qCritical() << "EXPORT SNIIP{PET";
+    QPair<QString, QString> snippetData;
     if(canExportSnippet(IDs)){
         CUT_USED = false;
 
@@ -1272,7 +1274,7 @@ bool NewController:: _exportSnippet(QList<int> IDs)
 
         //Check if read only.
         if(parentNodeKind == "InterfaceDefinitions"){
-            readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
+            //readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
         }
 
         QString graphmlRepresentation;
@@ -1356,10 +1358,11 @@ bool NewController:: _exportSnippet(QList<int> IDs)
         }
 
 
-        emit controller_ExportedSnippet(parentNodeKind, graphmlRepresentation);
-        return true;
+        snippetData.first = parentNodeKind;
+        snippetData.second = graphmlRepresentation;
     }
-    return false;
+    qCritical() << "GOT DATA";
+    return snippetData;
 }
 
 /**
@@ -4267,6 +4270,16 @@ QString NewController::getProjectAsGraphML()
     return data;
 }
 
+QPair<QString, QString> NewController::getSnippetGraphML(QList<int> IDs)
+{
+    QPair<QString, QString> data;
+    if(model){
+        data = _exportSnippet(IDs);
+        qCritical() << "YO!?";
+    }
+    return data;
+}
+
 void NewController::enableDebugLogging(bool logMode, QString applicationPath)
 {
     if(logMode){
@@ -4428,7 +4441,6 @@ void NewController::importSnippet(QList<int> IDs, QString fileName, QString file
 void NewController::exportSnippet(QList<int> IDs)
 {
     _exportSnippet(IDs);
-    emit controller_ActionFinished();
 }
 
 /**

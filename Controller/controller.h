@@ -95,6 +95,7 @@ public:
 
 
     QString getProjectAsGraphML();
+    QPair<QString, QString> getSnippetGraphML(QList<int> IDs);
 
 
     //Get a list of all View Aspects
@@ -247,7 +248,7 @@ private:
     bool _replicate(QList<int> IDs, bool addAction = true);
     bool _importProjects(QStringList xmlDataList, bool addAction = true);
     bool _importSnippet(QList<int> IDs, QString fileName, QString fileData, bool addAction = true);
-    bool _exportSnippet(QList<int> IDs);
+    QPair<QString, QString> _exportSnippet(QList<int> IDs);
     bool _exportProject();
 
 

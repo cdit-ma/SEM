@@ -64,6 +64,7 @@ public:
     bool projectRequiresSaving();
 
     QString getProjectAsGraphML();
+    QPair<QString, QString> getSnippetGraphML();
     QString getProjectFileName();
 
     QString getImportableSnippetKind();

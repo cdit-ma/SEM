@@ -228,6 +228,19 @@ QString NodeView::getProjectAsGraphML()
     return data;
 }
 
+QPair<QString, QString> NodeView::getSnippetGraphML()
+{
+    QPair<QString, QString> pair;
+    if(viewMutex.tryLock()){
+        if(controller){
+            pair = controller->getSnippetGraphML(selectedIDs);
+            qCritical() << pair;
+        }
+        viewMutex.unlock();
+    }
+    return pair;
+}
+
 QString NodeView::getProjectFileName()
 {
     if(controller){
