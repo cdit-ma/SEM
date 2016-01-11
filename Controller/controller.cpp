@@ -30,6 +30,7 @@ NewController::NewController()
 
     USE_LOGGING = false;
     UNDOING = false;
+    OPEN_USED = false;
     INITIALIZING = true;
     viewSignalsEnabled = true;
     REDOING = false;
@@ -880,6 +881,9 @@ void NewController::openProject(QString filePath, QString xmlData)
     clearHistory();
 
     OPEN_USED = false;
+
+    //Loading a project means we are in state with the savefile.
+    setProjectDirty(false);
 
     emit controller_ActionFinished();
 }
@@ -2721,6 +2725,10 @@ bool NewController::reverseAction(EventAction action)
             Node* parentNode = getNodeFromID(action.parentID);
             if(parentNode){
                 success = _importGraphMLXML(action.Entity.XML, parentNode, true);
+
+                if(!success){
+                    //qCritical() << action.Entity.XML;
+                }
             }
         }
     }else if(action.Action.kind == GraphML::GK_DATA){
@@ -4601,11 +4609,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 QString dataValue = xml.readElementText();
 
                 //Construct a Data object out of the xml, using the key found in keyLookup
-                Data *data = new Data(dataKey);
-
-                if(dataKey->getType() == QVariant::Bool){
-                    bool isBoolean = false;
-                }
+                Data *data = new Data(dataKey);            
                 data->setValue(dataValue);
 
 
@@ -4722,8 +4726,6 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 //If we have a read only tag, we should look for the originalID provided.
                 //To see if we can find the original Node.
                 if(readOnlyTag){
-
-
                     if(readOnlyLookup.contains(originalID)){
                         //Get the ID of the version we have of the originalID
                         int nodeID = readOnlyLookup[originalID];
@@ -4759,19 +4761,31 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 }
 
                 if(!node){
+                    Node* newNode = 0;
 
-
-
-                    //Construct the specialised Node
-                    Node* newNode = constructChildNode(parent, currentNodeData);
-
-                    if(!newNode){
-                        //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
-                        qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
-                        emit controller_DisplayMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent->getID());
-                        return false;
+                    //Don't use
+                    if(!OPEN_USED){
+                        QString nodeKind = getDataValueFromKeyName(currentNodeData, "kind");
+                        if(nodeKind == "Model"){
+                            while(!currentNodeData.isEmpty()){
+                                delete currentNodeData.takeFirst();
+                            }
+                            newNode = getModel();
+                        }
                     }
 
+                    if(!newNode){
+                        //Construct the specialised Node
+                        newNode = constructChildNode(parent, currentNodeData);
+
+                        if(!newNode){
+                            //qCritical() << parent;
+                            //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
+                            qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
+                            emit controller_DisplayMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent->getID());
+                            return false;
+                        }
+                    }
                     node = newNode;
                     storeMD5 = true;
 					currentNodeData.clear();

@@ -10,7 +10,7 @@ public:
     GraphML(GRAPHML_KIND kind);
 
     GraphML::GRAPHML_KIND getGraphMLKind() const;
-    int getID() const;
+    int getID();
 
     //Pure Virtual
     virtual QString toGraphML(int indentDepth=0)=0;

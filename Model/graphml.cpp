@@ -33,7 +33,7 @@ GraphML::GRAPHML_KIND GraphML::getGraphMLKind() const
  * Returns the unique ID of this object.
  * @return
  */
-int GraphML::getID() const
+int GraphML::getID()
 {
     return id;
 }

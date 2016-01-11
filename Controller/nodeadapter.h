@@ -14,7 +14,7 @@ public:
     bool isImpl();
     bool isHardware();
     bool gotDefinition();
-    bool getDefinitionID();
+    int getDefinitionID();
     bool gotInstances();
     bool gotImpl();
     int childCount();

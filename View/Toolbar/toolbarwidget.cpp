@@ -763,7 +763,9 @@ void ToolbarWidget::setupOutEventPortList()
     }
 
     QList<NodeItem*> outEventPorts;
-    int definitionId = nodeItem->getNodeAdapter()->getDefinitionID();
+
+    NodeAdapter* nodeAdapter = nodeItem->getNodeAdapter();
+    int definitionId = nodeAdapter->getDefinitionID();
 
     NodeItem* component = nodeView->getNodeItemFromID(definitionId);
     if (!component) {

@@ -1,5 +1,5 @@
 #include "nodeadapter.h"
-
+#include <QDebug>
 NodeAdapter::NodeAdapter(Node *node): EntityAdapter(node)
 {
     _node = node;
@@ -55,10 +55,11 @@ bool NodeAdapter::gotDefinition()
     return false;
 }
 
-bool NodeAdapter::getDefinitionID()
+int NodeAdapter::getDefinitionID()
 {
     if(isValid()){
         if(_node->getDefinition()){
+            qCritical() << _node->getDefinition()->toString();
             return _node->getDefinition()->getID();
         }
     }

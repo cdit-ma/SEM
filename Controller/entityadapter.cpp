@@ -100,6 +100,15 @@ QVariant::Type EntityAdapter::getKeyType(QString keyName)
 
 }
 
+QString EntityAdapter::toString()
+{
+    QString string;
+    if(isValid()){
+        string = _entity->toString();
+    }
+    return string;
+}
+
 bool EntityAdapter::isValid()
 {
     return _isValid;
