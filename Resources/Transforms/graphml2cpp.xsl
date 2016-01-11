@@ -401,12 +401,12 @@
 		</xsl:if>
 		<xsl:for-each select="$basicVars"> 
 <!--			<xsl:sort select="./gml:data[@key=$transformNodeLabelKey]/text()" data-type="text" /> not required and stuffs test for last() -->
-			<xsl:variable name="variable" select="." />
-			<xsl:variable name="varName" select="$variable/gml:data[@key=$transformNodeLabelKey]/text()" />
-			<xsl:variable name="init_value" select="$variable/gml:data[@key=$transformNodeValueKey]/text()" /> 
+			<xsl:variable name="basicVar" select="." />
+			<xsl:variable name="basicVarName" select="$basicVar/gml:data[@key=$transformNodeLabelKey]/text()" />
+			<xsl:variable name="initValue" select="$basicVar/gml:data[@key=$transformNodeValueKey]/text()" /> 
 			<!-- Write the initial values of the basic variables. -->
-			<xsl:if test="not($init_value = '')" >
-				<xsl:value-of select="concat('  ', $varName, '_ (', $init_value, ')')" />
+			<xsl:if test="not($initValue = '')" >
+				<xsl:value-of select="concat('  ', $basicVarName, '_ (', $initValue, ')')" />
 			</xsl:if>
 			<xsl:if test="position() != last()">
 				<xsl:value-of select="',&#xA;'" />
@@ -414,15 +414,27 @@
 		</xsl:for-each> 
 		<xsl:value-of select="'&#xA;{&#xA;'" />
  
-		<!-- Write all the vector variable new object -->
-		<xsl:variable name="vectorVars" select="$variables/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'VectorInstance']/../../.." />
-		<xsl:for-each select="$vectorVars">
-			<xsl:variable name="vecVar" select="." />
-			<xsl:variable name="vecVarName" select="$vecVar/gml:data[@key=$transformNodeLabelKey]/text()" />
-			<xsl:variable name="vecVarType" select="$vecVar/gml:graph/gml:node/gml:data[@key=$transformNodeTypeKey]/text()" />
-			<xsl:if test="not($vecVarType = '')">
-				<xsl:value-of select="concat('this-&gt;', $vecVarName, '_ = new ', $vecVarType, ' ();&#xA;')" />
+		<!-- Write all the complex variable new object -->
+		<xsl:variable name="complexVars" select="$variables/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'AggregateInstance' or text() = 'VectorInstance']/../../.." />
+		<xsl:for-each select="$complexVars">
+			<xsl:variable name="complexVar" select="." />
+			<xsl:variable name="varName" select="$complexVar/gml:data[@key=$transformNodeLabelKey]/text()" />
+			<xsl:variable name="varType" select="$complexVar/gml:graph/gml:node/gml:data[@key=$transformNodeTypeKey]/text()" />
+			<xsl:if test="not($varType = '')">
+				<xsl:value-of select="concat('this-&gt;', $varName, '_ = new ', $varType, ' ();&#xA;')" />
 			</xsl:if>
+			<!-- need to give initial values to vector or aggregate variables, assume one level only! will need a recursive template to get the full variable name -->
+			<xsl:variable name="complexInitValues" select="$complexVar/descendant::*/gml:node/gml:data[@key=$transformNodeValueKey][text() != '']/.." />
+			<xsl:for-each select="$complexInitValues">
+				<xsl:variable name="complexInitVar" select="./gml:data[@key=$transformNodeLabelKey]/text()" />
+				<xsl:variable name="complexInitVal" select="./gml:data[@key=$transformNodeValueKey]/text()" />
+				<xsl:variable name="complexInitType" select="./gml:data[@key=$transformNodeTypeKey]/text()" />
+				<xsl:value-of select="concat('this-&gt;', $varName, '_-&gt;', $complexInitVar, ' = ')" />
+				<xsl:if test="$complexInitType = 'String' or $complexInitType = 'WideString'">
+					<xsl:value-of select="'CORBA::string_dup'" />
+				</xsl:if>
+				<xsl:value-of select="concat('( ', $complexInitVal, ' );&#xA;')" />
+			</xsl:for-each>
 		</xsl:for-each>
 		
 		<xsl:variable name="periodics" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'PeriodicEvent']/.." />
@@ -806,10 +818,14 @@
 		
 		<xsl:choose>
 			<xsl:when test="$type = 'String' or $type = 'WideString'" >
-				<xsl:value-of select="'&quot;&quot;'" />
+				<xsl:value-of select="' = &quot;&quot;'" />
 			</xsl:when>
-			<xsl:otherwise>
-				<xsl:value-of select="0" />
+			<xsl:when test="$type = 'Byte' or $type = 'Char' or $type = 'WideChar' or $type = 'Boolean' or $type = 'UnsignedShortInteger'
+				or $type = 'UnsignedLongInteger' or $type = 'UnsignedLongLongInteger' or $type = 'ShortInteger' or $type = 'LongInteger'
+				or $type = 'LongLongInteger' or $type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber'" >
+				<xsl:value-of select="' = 0'" />
+			</xsl:when>
+			<xsl:otherwise> <!-- no value assigned when vector type -->
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
@@ -1282,7 +1298,7 @@
 						<xsl:with-param name="type" select="$elementType"/>
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
-					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = ')" />
+					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__')" />
 					<xsl:call-template name="MemberInitType">
 						<xsl:with-param name="type" select="$elementType"/>
 					</xsl:call-template>
@@ -1303,9 +1319,9 @@
 						<xsl:value-of select="'CORBA::string_dup'" />
 					</xsl:if>
 					<xsl:value-of select="concat('(', $param1, '[')" />
-					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
-						<xsl:value-of select="'(CORBA::ULong) '" />
-					</xsl:if>
+					<xsl:value-of select="'(CORBA::ULong) '" />
+<!--				<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
+					</xsl:if> -->
 					<xsl:value-of select="concat($param2, ']')" />
 					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'.in ()'" />
@@ -1320,9 +1336,9 @@
 					<xsl:value-of select="'else {&#xA;'" />
 					<xsl:value-of select="concat('   if (', $param2, '&gt;= ', $param1, $op, 'length() ) ', $param1, $op, 'length (', $param2, '+ 1);&#xA;' ) " />
 					<xsl:value-of select="concat('   ', $param1, '[')" />
-					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
-						<xsl:value-of select="'(CORBA::ULong) '" />
-					</xsl:if>					
+					<xsl:value-of select="'(CORBA::ULong) '" />
+<!--				<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
+					</xsl:if>	-->
 					<xsl:value-of select="concat($param2, '] = ' ) " />
 					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'CORBA::string_dup'" />
@@ -1350,7 +1366,7 @@
 						<xsl:with-param name="type" select="$elementType"/>
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
-					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = ')" />
+					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__')" />
 					<xsl:call-template name="MemberInitType">
 						<xsl:with-param name="type" select="$elementType"/>
 					</xsl:call-template>
@@ -1371,9 +1387,9 @@
 						<xsl:value-of select="'CORBA::string_dup'" />
 					</xsl:if>
 					<xsl:value-of select="concat('(', $param1, '[')" />
-					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
-						<xsl:value-of select="'(CORBA::ULong) '" />
-					</xsl:if>
+					<xsl:value-of select="'(CORBA::ULong) '" />
+<!--				<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
+					</xsl:if> -->
 					<xsl:value-of select="concat($param2, ']')" />
 					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'.in ()'" />
