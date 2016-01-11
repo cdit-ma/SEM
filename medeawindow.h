@@ -74,26 +74,26 @@ public:
 
 signals:
     void window_SetViewVisible(bool visible);
-
     void window_ConnectViewAndSetupModel(NodeView* view);
+
+
     void jenkins_RunGroovyScript(QString groovyScriptPath);
 
-    void window_PasteData(QString value);
-    void window_ExportProject();
+    void window_Paste(QString value);
+
+    void window_ImportSnippet(QString fileName, QString fileData);
     void window_ImportProjects(QStringList file);
+    void window_ImportJenkinsNodes(QString fileData);
 
     void window_OpenProject(QString fileName, QString fileData);
-    void window_ImportSnippet(QString fileName, QString fileData);
     void window_ProjectSaved(bool success, QString filePath);
 
 
-    void window_LoadJenkinsNodes(QString fileData);
-
-
+    //Calls to CUTSManager
     void window_GetCPPForComponent(QString graphmlPath, QString component);
     void window_ExecuteXSLValidation(QString graphmlPath, QString reportPath);
+    void window_ExecuteXMETransform(QString xmePath, QString graphmlPath);
 
-    void window_SortModel();
 
     void window_searchItemClicked(SearchItem* item);
     void window_aspectMiddleClicked(VIEW_ASPECT aspect);
@@ -110,7 +110,6 @@ signals:
 
     void window_DisplayMessage(MESSAGE_TYPE type, QString title, QString message);
 
-    void executeXMETransformation(QString, QString);  
 
 public slots:
     void projectRequiresSaving(bool requiresSave);
@@ -138,7 +137,7 @@ private slots:
 
     void gotSaveData(QString filePath, QString fileData);
     void setFullscreenMode(bool fullscreen);
-    void gotXMETransformation(bool success, QString errorString, QString path);
+    void gotXMETransform(bool success, QString errorString, QString path);
     void gotCPPForComponent(bool success, QString errorString, QString componentName, QString code);
     void localDeploymentOkay();
     void toggleGridLines();
@@ -159,7 +158,6 @@ private slots:
     void on_actionOpenProject_triggered();
     void on_actionSaveProject_triggered();
     void on_actionSaveProjectAs_triggered();
-    void on_actionImportSnippet_triggered();
 
     void on_actionImport_GraphML_triggered();
     void on_actionImport_XME_triggered();
@@ -174,7 +172,7 @@ private slots:
     void writeExportedSnippet(QString parentName, QString snippetXMLData);
 
     void importSnippet(QString snippetType = "");
-    void exportSnippet();
+    void exportSnippet(QString snippetType = "");
 
     void setClipboard(QString value);
     void setAttributeModel(AttributeTableModel* model);
@@ -228,7 +226,7 @@ private:
     bool saveProject(bool saveAs=false);
 
     QString readFile(QString fileName);
-    bool writeFile(QString filePath, QString fileData);
+    bool writeFile(QString filePath, QString fileData, bool notify=true);
     QString writeTempFile(QString fileData);
     QString writeProjectToTempFile();
 
@@ -268,7 +266,6 @@ private:
     void updateToolbar();
     void updateDataTable();
 
-    bool exportProject();
     void importProjects(QStringList files);
 
     void jenkins_JobName_Changed(QString jobName);

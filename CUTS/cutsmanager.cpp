@@ -247,7 +247,7 @@ void CUTSManager::getCPPForComponent(QString graphmlPath, QString component)
     emit gotCPPForComponent(code == 0,errorString, component, commandOutput);
 }
 
-void CUTSManager::executeXMETransformation(QString xmePath, QString outputFilePath)
+void CUTSManager::executeXMETransform(QString xmePath, QString outputFilePath)
 {
     QString tmpDir = getGraphmlPath(outputFilePath);
     QString fileName = getGraphmlName(xmePath);
@@ -290,7 +290,7 @@ void CUTSManager::executeXMETransformation(QString xmePath, QString outputFilePa
 
     QString commandOutput = process->readAllStandardOutput();
     QString errorString = process->readAllStandardError();
-    emit gotXMETransformation(code==0, errorString, outputFilePath);
+    emit gotXMETransform(code==0, errorString, outputFilePath);
 }
 
 void CUTSManager::executeCUTS(QString path, int executionTime)

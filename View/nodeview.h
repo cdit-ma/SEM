@@ -64,7 +64,7 @@ public:
     bool projectRequiresSaving();
 
     QString getProjectAsGraphML();
-    QPair<QString, QString> getSnippetGraphML();
+    QString getSelectionAsGraphMLSnippet();
     QString getProjectFileName();
 
     QString getImportableSnippetKind();
@@ -204,7 +204,9 @@ signals:
     void view_ExportedSnippet(QString parentName, QString snippetXMLData);
     void view_ExportSnippet(QList<int> selection);
     void view_ImportedSnippet(QList<int> selection, QString fileName, QString fileData);
+
     void view_ImportSnippet(QString nodeKind);
+    void view_ExportSnippet(QString nodeKind);
 
     void view_ShowCPPForComponent(QString componentName);
 
@@ -278,6 +280,8 @@ public slots:
     void setStateSelected();
     void clearState();
     void request_ImportSnippet();
+    void request_ExportSnippet();
+
     void hardwareDockOpened(bool opened);
     void showQuestion(MESSAGE_TYPE type, QString title, QString message, int ID);
     void setAttributeModel(GraphMLItem* item=0, bool tellSubView=false);
@@ -288,8 +292,6 @@ public slots:
 
 
     void loadJenkinsNodes(QString fileData);
-    void exportSnippet();
-    void exportProject();
     void importSnippet(QString fileName, QString fileData);
 
     void scrollEvent(int delta, QPoint mouseCenter = QPoint());//, QPointF mouseCenter);

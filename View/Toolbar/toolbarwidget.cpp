@@ -959,7 +959,7 @@ void ToolbarWidget::makeConnections()
     connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
     connect(alignHorizontallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionHorizontally()));
     connect(connectionsButton, SIGNAL(clicked()), nodeView, SLOT(showConnectedNodes()));
-    connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(exportSnippet()));
+    connect(exportSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ExportSnippet()));
     connect(importSnippetButton, SIGNAL(clicked()), nodeView, SLOT(request_ImportSnippet()));
     connect(expandButton, SIGNAL(clicked()), this, SLOT(expandContractNodes()));
     connect(contractButton, SIGNAL(clicked()), this, SLOT(expandContractNodes()));

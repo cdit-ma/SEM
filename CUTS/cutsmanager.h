@@ -51,7 +51,7 @@ signals:
     void executedCUTS(bool success, QString errorString="");
 
     //Emmited by the slot executeXMETransformation
-    void gotXMETransformation(bool success, QString errorString, QString path);
+    void gotXMETransform(bool success, QString errorString, QString path);
     void gotCPPForComponent(bool success, QString errorString, QString componentName, QString cppCode);
     //Used to send live console output from the executeMWCGeneration
     void gotLiveMWCOutput(QString output);
@@ -75,7 +75,7 @@ private slots:
     void executeCPPCompilation(QString makePath);
 
     void getCPPForComponent(QString graphmlPath, QString componentName);
-    void executeXMETransformation(QString xmePath, QString outputFilePath);
+    void executeXMETransform(QString xmePath, QString outputFilePath);
 
     //Runs CUTS execution
     void executeCUTS(QString path, int executionTime=60);

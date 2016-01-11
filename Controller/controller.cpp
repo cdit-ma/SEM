@@ -163,7 +163,6 @@ void NewController::connectView(NodeView *view)
         connect(this, SIGNAL(controller_ActionFinished()), view, SLOT(actionFinished()));
         connect(view, SIGNAL(view_Replicate(QList<int>)), this, SLOT(replicate(QList<int>)));
         //File SLOTS
-        connect(view, SIGNAL(view_ExportProject()), this, SLOT(exportProject()));
         connect(view, SIGNAL(view_ImportProjects(QStringList)), this, SLOT(importProjects(QStringList)));
 
         connect(view, SIGNAL(view_OpenProject(QString, QString)), this, SLOT(openProject(QString, QString)));
@@ -1252,10 +1251,9 @@ bool NewController::_importSnippet(QList<int> IDs, QString fileName, QString fil
  * @param IDs - The IDs of the entities to try and export.
  * @return Action successful.
  */
-QPair<QString, QString> NewController::_exportSnippet(QList<int> IDs)
+QString NewController::_exportSnippet(QList<int> IDs)
 {
-    qCritical() << "EXPORT SNIIP{PET";
-    QPair<QString, QString> snippetData;
+    QString snippetData;
     if(canExportSnippet(IDs)){
         CUT_USED = false;
 
@@ -1358,26 +1356,9 @@ QPair<QString, QString> NewController::_exportSnippet(QList<int> IDs)
         }
 
 
-        snippetData.first = parentNodeKind;
-        snippetData.second = graphmlRepresentation;
+        snippetData = graphmlRepresentation;
     }
-    qCritical() << "GOT DATA";
     return snippetData;
-}
-
-/**
- * @brief NewController::_exportProject Exports the Entire GraphML Model.
- * Calls controller_ExportedProject on success.
- * @return Action successful.
- */
-bool NewController::_exportProject()
-{
-    if(model){
-        QString data = _exportGraphMLDocument(model);
-        controller_ExportedProject(data);
-        return true;
-    }
-    return false;
 }
 
 /**
@@ -2030,8 +2011,6 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
                 constructDefinitionRelative(child, node, false);
             }
         }
-    }else{
-        qCritical() << "WE ARE UNDOING";
     }
 
     return node;
@@ -4270,14 +4249,14 @@ QString NewController::getProjectAsGraphML()
     return data;
 }
 
-QPair<QString, QString> NewController::getSnippetGraphML(QList<int> IDs)
+QString NewController::getSelectionAsGraphMLSnippet(QList<int> IDs)
 {
-    QPair<QString, QString> data;
+    QString data;
     if(model){
         data = _exportSnippet(IDs);
-        qCritical() << "YO!?";
     }
     return data;
+
 }
 
 void NewController::enableDebugLogging(bool logMode, QString applicationPath)
@@ -4411,14 +4390,6 @@ void NewController::importProjects(QStringList xmlDataList)
     emit controller_ActionFinished();
 }
 
-/**
- * @brief NewController::exportProject
- */
-void NewController::exportProject()
-{
-    _exportProject();
-    emit controller_ActionFinished();
-}
 
 /**
  * @brief NewController::importSnippet Imports a Snippet of GraphML into the selection defined by ID provided

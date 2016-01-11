@@ -228,17 +228,16 @@ QString NodeView::getProjectAsGraphML()
     return data;
 }
 
-QPair<QString, QString> NodeView::getSnippetGraphML()
+QString NodeView::getSelectionAsGraphMLSnippet()
 {
-    QPair<QString, QString> pair;
+    QString data;
     if(viewMutex.tryLock()){
         if(controller){
-            pair = controller->getSnippetGraphML(selectedIDs);
-            qCritical() << pair;
+            data = controller->getSelectionAsGraphMLSnippet(selectedIDs);
         }
         viewMutex.unlock();
     }
-    return pair;
+    return data;
 }
 
 QString NodeView::getProjectFileName()
@@ -1379,6 +1378,18 @@ void NodeView::request_ImportSnippet()
     }
 }
 
+void NodeView::request_ExportSnippet()
+{
+    GraphMLItem* selectedItem = getSelectedGraphMLItem();
+
+    if (selectedItem){
+        GraphMLItem* parentItem = selectedItem->getParent();
+        if(parentItem){
+            emit view_ExportSnippet(parentItem->getNodeKind());
+        }
+    }
+}
+
 
 /**
  * @brief NodeView::hardwareDockOpened
@@ -1460,27 +1471,6 @@ void NodeView::loadJenkinsNodes(QString fileData)
     importProjects(QStringList(fileData));
 }
 
-void NodeView::exportSnippet()
-{
-    if(viewMutex.tryLock()){
-        emit view_ExportSnippet(selectedIDs);
-    }
-}
-
-/**
- * @brief NodeView::exportProject - Blocking.
- */
-void NodeView::exportProject()
-{
-    if(viewMutex.tryLock()){
-        if(hasModel()){
-            QEventLoop waitLoop;
-            connect(controller, SIGNAL(controller_ActionFinished()), &waitLoop, SLOT(quit()));
-            emit view_ExportProject();
-            waitLoop.exec();
-        }
-    }
-}
 
 void NodeView::importSnippet(QString fileName, QString fileData)
 {
