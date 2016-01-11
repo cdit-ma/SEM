@@ -394,12 +394,13 @@ public slots:
     void deleteFromIDs(QList<int> IDs);
     void constructConnectedNode(int parentID, int dstID, QString kind, int sender=0);
 
-    void constructNewView(int nodeID=0);
+    void constructNewView(int viewID = -1);
 
     void highlightOnHover(int nodeID = -1);
 
     QList<NodeItem *> getEntityItemsOfKind(QString kind, int ID=-1, int depth=-1);
     void showConnectedNodes();
+
 
 
     void editableItemHasFocus(bool hasFocus);
@@ -466,6 +467,7 @@ private:
     QPointF getModelScenePos();
 
 
+    void setNoModelTextVisible(bool hasModel);
 
     int getMapSize();
 
@@ -600,6 +602,8 @@ private:
 
     bool ZOOM_UNDER_MOUSE;
 
+
+    QGraphicsTextItem* backgroundText;
 	//QSoundEffect* clickSound;
 
     QString applicationDirectory;

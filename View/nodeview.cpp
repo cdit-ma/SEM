@@ -65,6 +65,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     hardwareDockOpen = false;
     showConnectLine = true;
     showSearchSuggestions = false;
+
+    backgroundText = 0;
     //clickSound = 0;
 
 
@@ -159,6 +161,8 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     // call this after the toolbar has been constructed to pass on the theme
     setupTheme();
 
+
+    setNoModelTextVisible(true);
     //Started sound effects
     //setupSoundEffects();
 
@@ -509,6 +513,25 @@ QPointF NodeView::getModelScenePos()
     qWarning() << "NodeView::getModelScenePos - There is no model item.";
     return QPointF();
 }
+
+void NodeView::setNoModelTextVisible(bool visible)
+{
+    if(!backgroundText){
+        backgroundText = new QGraphicsTextItem("NO PROJECT");
+        QFont textFont = font();
+        textFont.setPixelSize(100);
+        backgroundText->setDefaultTextColor(GET_INVERT_COLOR(currentTheme));
+        backgroundText->setFont(textFont);
+        scene()->addItem(backgroundText);
+    }
+    if(backgroundText){
+        if(visible){
+            centerRect(backgroundText->sceneBoundingRect(), CENTER_ON_PADDING, true);
+        }
+        backgroundText->setVisible(visible);
+    }
+}
+
 
 /**
  * @brief NodeView::adjustModelPosition
@@ -1020,21 +1043,19 @@ QList<EntityItem*> NodeView::getHardwareList()
 /**
  * @brief NodeView::constructNewView
  * This slot is called from the window/context toolbar when the popup new view action is triggered.
- * @param nodeKindToCenter - 0 = selected node
- *                           1 = selected node's definition
- *                           2 = selected node's implementation
+ * @param nodeKindToCenter - -1 = selected node
+ *                           -2 = selected node's definition
+ *                           -3 = selected node's implementation
  */
-void NodeView::constructNewView(int nodeKindToCenter)
+void NodeView::constructNewView(int viewKind)
 {
     if(!controller){
         return;
     }
-    int nodeID = -1;
+    int nodeID = getSelectedID();
 
-    switch (nodeKindToCenter) {
+    switch (viewKind) {
     case -1:
-    case 0:
-        nodeID = getSelectedID();
         break;
     case -2:
         nodeID = getDefinitionID(nodeID);
@@ -1042,6 +1063,8 @@ void NodeView::constructNewView(int nodeKindToCenter)
     case -3:
         nodeID = getImplementationID(nodeID);
         break;
+    default:
+        nodeID = viewKind;
     }
 
 
@@ -1151,6 +1174,10 @@ void NodeView::resetViewState()
     noGuiIDHash.clear();
     noGUINodeIDHash.clear();
     viewState = VS_NONE;
+
+
+    setNoModelTextVisible(true);
+
 
     emit view_ProjectNameChanged("");
     emit view_ProjectFileChanged("");
@@ -1773,6 +1800,7 @@ void NodeView::settingChanged(QString groupName, QString keyName, QVariant value
 
 void NodeView::modelReady()
 {
+     setNoModelTextVisible(false);
     //Do initializing here!
     if(toolbar){
         toolbar->setupFunctionsList();
@@ -2318,10 +2346,6 @@ QPair<QString, bool> NodeView::getEditableDataKeyName(GraphMLItem *node)
     if(nodeKind == "Process"){
         returnType.first = "worker";
     }
-    if(nodeKind == "ComponentAssembly"){
-        returnType.first = "replicate_count";
-    }
-
 
     if(dropdownKinds.contains(nodeKind)){
         returnType.second = true;
@@ -2341,9 +2365,6 @@ QPair<QString, bool> NodeView::getStatusDataKeyName(GraphMLItem *node)
     if(nodeKind == "ComponentAssembly"){
         returnType.first = "replicate_count";
         returnType.second = true;
-    }
-    if(nodeKind == "Member"){
-        returnType.first = "key";
     }
     return returnType;
 }
@@ -2406,6 +2427,10 @@ void NodeView::setState(VIEW_STATE state)
     if(isSubView() && !(state ==  VS_SELECTED || state == VS_PANNING || state == VS_PAN || state == VS_NONE)){
         state = VS_NONE;
     }
+    if(!hasModel()){
+        state = VS_NONE;
+    }
+
 
     VIEW_STATE oldState = viewState;
 
@@ -2825,6 +2850,7 @@ void NodeView::showConnectedNodes()
         fitToScreen(connectedItems);
     }
 }
+
 
 
 
@@ -4109,7 +4135,7 @@ void NodeView::undo()
     // undo the action
     if(viewMutex.tryLock()) {
         //setAttributeModel(0, true);
-        emit this->view_Undo();
+        emit view_Undo();
     }
 }
 

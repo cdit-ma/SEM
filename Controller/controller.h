@@ -287,7 +287,7 @@ private:
     Key* getKeyFromID(int ID);
 
     //Finds or Constructs a Node Instance or Implementation inside parent of Definition.
-    int constructDefinitionRelative(Node* parent, Node* definition, bool instance = true);
+    int constructDependantRelative(Node* parent, Node* definition);
 
     //Gets a specific Attribute from the current Element in the XML.
     //Returns "" if no Attribute found.
@@ -335,8 +335,8 @@ private:
     void unbindData(Node* definition, Node* instance);
 
     //Setup/Teardown the node provided an Instance of the Definition. It will adopt Instances of all Definitions contained by definition and bind all Data which isn't protected.
-    bool setupDefinitionRelationship(Node* definition, Node* node, bool instance);
-    bool teardownDefinitionRelationship(Node* definition, Node* node, bool instance);
+    bool setupDependantRelationship(Node* definition, Node* node);
+    bool teardownDependantRelationship(Node* definition, Node* node);
 
 
 
@@ -506,10 +506,14 @@ private:
 
     QString externalWorkerDefPath;
 
-    QList<int> connectedLinkedIDs;
+    //QList<int> connectedLinkedIDs;
+
+    bool isUserAction();
 
     bool CUT_USED;
-    bool OPEN_USED;
+    bool OPENING_PROJECT;
+    bool IMPORTING_PROJECT;
+
     int actionCount;
     QString currentAction;
     QFile* logFile;

@@ -240,6 +240,7 @@ static QColor GET_ASPECT_COLOR(VIEW_ASPECT aspect)
     */
 }
 
+
 static QColor GET_VIEW_COLOR(VIEW_THEME theme)
 {
     // TODO - Use this function to alter the widget colours when the theme's changed.
@@ -254,6 +255,21 @@ static QColor GET_VIEW_COLOR(VIEW_THEME theme)
     default:
         return Qt::white;
     }
+}
+
+static QColor GET_INVERT_COLOR(VIEW_THEME theme){
+
+    switch (theme) {
+    case VT_LIGHT_THEME:
+        // not using this theme at the moment
+    case VT_NORMAL_THEME:
+        return GET_VIEW_COLOR(VT_DARK_THEME);
+    case VT_DARK_THEME:
+        return GET_VIEW_COLOR(VT_NORMAL_THEME);
+    default:
+        return Qt::white;
+    }
+
 }
 
 

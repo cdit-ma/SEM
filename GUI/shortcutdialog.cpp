@@ -19,21 +19,29 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
 
     setupLayout();
     addTitle("Global", QIcon(":/Actions/Global.png"));
-    addShortcut("ESC", "Clears the current selection / Closes current dialog window.");
+
     addShortcut("F1", "Opens the Shortcut window.");
     addShortcut("F3", "Sets the focus into the search box.");
     addShortcut("F10", "Opens the settings window.");
     addShortcut("F11", "Toggles fullscreen mode.");
-    addShortcut("CTRL + N", "Constructs a New Project.");
+
+    addTitle("Project", QIcon(":/Actions/Project.png"));
+    addShortcut("CTRL + N", "Constructs a new project.");
+    addShortcut("CTRL + O", "Opens an existing project.");
+    addShortcut("CTRL + S", "Saves the current project.");
+    addShortcut("CTRL + SHIFT + S", "Saves the current project as another file.");
     addShortcut("CTRL + I", "Imports a Graphml document into current project.");
-    addShortcut("CTRL + E", "Exports the current project as a Graphml document.");
     addShortcut("CTRL + SHIFT + V", "Validates the current project.");
-    addShortcut("CTRL + Z", "Undo's the last change in the model.");
-    addShortcut("CTRL + Y", "Redo's the last Undo.");
+    addShortcut("CTRL + Z", "Undoes the last change in the model.");
+    addShortcut("CTRL + Y", "Redoes the last Undo.");
     addShortcut("CTRL + Space", "Fits the entire model into the view.");
     addShortcut("CTRL + J", "Imports the Nodes from the Jenkins Server.");
 
+
+
+
     addTitle("Selection", QIcon(":/Actions/SelectAll.png"));
+    addShortcut("ESC", "Clears the current selection / Closes current dialog window.");
     addShortcut("F2", "Renames the current (singular) selection.");
     addShortcut("CTRL + A", "Selects all children of currently selected entity.");
     addShortcut("CTRL + C", "Copies the currently selected entities.");
@@ -55,11 +63,10 @@ ShortcutDialog::ShortcutDialog(QWidget *parent) :
 
     addShortcut("L MOUSE + DRAG", "Moves the selected entities.");
     addShortcut("R MOUSE + DRAG", "Pans the view.");
-    addShortcut("CTRL + M MOUSE", "Sorts the children of the entity under the cursor.");
+    //addShortcut("CTRL + M MOUSE", "Sorts the children of the entity under the cursor.");
     addShortcut("CTRL + SHIFT", "Turns on rubberband selection mode.");
 
     tableWidget->resizeColumnsToContents();
-
 }
 
 void ShortcutDialog::addShortcut(QString shortcut, QString description)

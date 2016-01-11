@@ -28,9 +28,10 @@ NewController::NewController()
 
     logFile = 0;
 
+    IMPORTING_PROJECT = false;
     USE_LOGGING = false;
     UNDOING = false;
-    OPEN_USED = false;
+    OPENING_PROJECT = false;
     INITIALIZING = true;
     viewSignalsEnabled = true;
     REDOING = false;
@@ -866,7 +867,7 @@ void NewController::saveProject(QString filePath="")
 
 void NewController::openProject(QString filePath, QString xmlData)
 {
-    OPEN_USED = true;
+    OPENING_PROJECT = true;
 
     bool result = _importGraphMLXML(xmlData, getModel());
     if(!result){
@@ -880,7 +881,7 @@ void NewController::openProject(QString filePath, QString xmlData)
     //Clear the Undo/Redo History.
     clearHistory();
 
-    OPEN_USED = false;
+    OPENING_PROJECT = false;
 
     //Loading a project means we are in state with the savefile.
     setProjectDirty(false);
@@ -1114,14 +1115,12 @@ bool NewController::_remove(QList<int> IDs, bool addAction)
         while(!IDs.isEmpty()){
             int ID = IDs.takeFirst();
             //Clear the list of related IDs.
-            connectedLinkedIDs.clear();
 
             if(!destructEntity(ID)){
                 allSuccess = false;
             }
 
             //Add any related ID's which need deleting to the top of the stack.
-            IDs = connectedLinkedIDs + IDs;
             deleted++;
             if(IDs.count() > 0){
                 emit controller_ActionProgressChanged((deleted/IDs.count() * 100));
@@ -1802,7 +1801,8 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
             source = destination;
             destination = temp;
         }
-        return constructTypedEdge(source, destination, edgeToMake);
+        Edge* edge = constructTypedEdge(source, destination, edgeToMake);
+        return edge;
     }else{
         if(!source->gotEdgeTo(destination)){
             //qCritical() << "Edge: Source: " << source->toString() << " to Destination: " << destination->toString() << " Cannot be created!";
@@ -2005,15 +2005,10 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
         }
     }
 
-    if(!(UNDOING || REDOING)){
+    if(isUserAction()){
         //If the node is a definition, construct an instance/Implementation in each Instance/Implementation of the parentNode.
-        if(node->isDefinition()){
-            foreach(Node* child, parentNode->getInstances()){
-                constructDefinitionRelative(child, node, true);
-            }
-            foreach(Node* child, parentNode->getImplementations()){
-                constructDefinitionRelative(child, node, false);
-            }
+        foreach(Node* dependant, parentNode->getDependants()){
+            constructDependantRelative(dependant, node);
         }
     }
 
@@ -2309,51 +2304,40 @@ QString NewController::getNodeImplKind(Node *definition)
 
 
 
-int NewController::constructDefinitionRelative(Node *parent, Node *definition, bool isInstance)
+int NewController::constructDependantRelative(Node *parent, Node *definition)
 {
+    bool isInstance = parent->isInstance();
     int nodesMatched = 0;
 
-    QString childKind = "";
+    QString dependantKind = "";
 
     if(isInstance){
-        childKind = getNodeInstanceKind(definition);
+        dependantKind = getNodeInstanceKind(definition);
     }else{
-        childKind = getNodeImplKind(definition);
+        dependantKind = getNodeImplKind(definition);
     }
 
 
+
     //For each child in parent, check to see if any Nodes match Label/Type
-    foreach(Node* child, parent->getChildren(0)){
-        if(child->getDefinition() == definition){
-            //Return the child, if we already have a definition relation.
-            return 1;
-        }
+    foreach(Node* child, parent->getChildrenOfKind(dependantKind, 0)){
+        Node* childDef = child->getDefinition();
 
-        if(child->getDefinition()){
-            //If the child has a different definition, move onto the next child.
+        if(childDef){
+            if(childDef == definition){
+                nodesMatched ++;
+            }
+            //Move onto non-definition'd children.
             continue;
         }
 
-        bool labelMatched = false;
-        bool typeMatched = false;
+        bool labelMatched = child->compareData(definition, "label");
+        bool typeMatched = child->compareData(definition, "type");
 
-
-        //Check for kind.
-        if(child->getDataValue("kind") != childKind){
-            continue;
-        }
-
-        if(child->getDataValue("label") == definition->getDataValue("label")){
-            labelMatched = true;
-        }
-
-        if(child->getDataValue("type") == definition->getDataValue("type")){
-            typeMatched = true;
-        }
-
-        //Type can equal the label of the definition.
-        if(child->getDataValue("type") == definition->getDataValue("label")){
-            typeMatched = true;
+        if(!typeMatched){
+            if(child->getDataValue("type") == definition->getDataValue("label")){
+                typeMatched = true;
+            }
         }
 
         if(typeMatched && labelMatched){
@@ -2370,7 +2354,7 @@ int NewController::constructDefinitionRelative(Node *parent, Node *definition, b
 
     //If we didn't find a match, we must create an Instance.
     if(nodesMatched == 0){
-        Node *instanceNode = constructChildNode(parent, constructDataVector(childKind));
+        Node *instanceNode = constructChildNode(parent, constructDataVector(dependantKind));
 
         if(!instanceNode){
             return 0;
@@ -2444,8 +2428,6 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
 
         if(newNumber > 0){
             QString questionLabel = newLabel + "_" + QString::number(newNumber);
-
-            qCritical() << node->toString();
             emit controller_DisplayMessage(WARNING, "Label isn't unique", "Found sibling entity with Label: '" + newLabel + "'. Setting '" + questionLabel + "' instead.",node->getID());
             newLabel = questionLabel;
         }
@@ -2609,6 +2591,7 @@ bool NewController::destructEdge(Edge *edge)
         return true;
     }
 
+
     bool addAction = true;
 
     if(DESTRUCTING_CONTROLLER){
@@ -2642,9 +2625,7 @@ bool NewController::destructEdge(Edge *edge)
 
     switch(edgeClass){
         case Edge::EC_DEFINITION:{
-            bool isInstance = src->isInstance();
-            //DefinitionEdge is either an Instance or an Impl
-            teardownDefinitionRelationship(dst, src, isInstance);
+            teardownDependantRelationship(dst, src);
             break;
         }
     case Edge::EC_AGGREGATE:{
@@ -3421,7 +3402,7 @@ void NewController::unbindData(Node *definition, Node *instance)
  * @param instance - Is this an Instance or Implementation Relationship.
  * @return true if Definition Relation was setup correctly.
  */
-bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bool instance)
+bool NewController::setupDependantRelationship(Node *definition, Node *node)
 {
     //Got Aggregate Edge.
     if(!(definition && node)){
@@ -3429,12 +3410,13 @@ bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
         return false;
     }
 
-    //For each child contained in the Definition, which itself is a definition, construct an Instance/Impl inside the Parent Instance/Impl.
-    foreach(Node* child, definition->getChildren(0)){
-        if(child && child->isDefinition()){
-            if(!node->getDataValue("kind").toString().endsWith("EventPortInstance")){
+
+    if(isUserAction()){
+        //For each child contained in the Definition, which itself is a definition, construct an Instance/Impl inside the Parent Instance/Impl.
+        foreach(Node* child, definition->getChildren(0)){
+            if(child && child->isDefinition()){
                 //Construct relationships between the children which matched the definitionChild.
-                int instancesConnected = constructDefinitionRelative(node, child, instance);
+                int instancesConnected = constructDependantRelative(node, child);
 
                 if(instancesConnected == 0){
                     qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << node->toString();
@@ -3444,8 +3426,6 @@ bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
         }
     }
 
-    //If we have made all children, we can set this node as an instance of the definition.
-
     //Bind the un-protected Data attached to the Definition to the Instance.
     bindData(definition, node);
 
@@ -3454,8 +3434,12 @@ bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
     Key* labelKey = constructKey("label", QVariant::String, Entity::EK_EDGE);
     QString definitionType = "";
 
-    //Attach the relation to the Definition.
-    if(instance){
+    if(!edge){
+        qCritical() << "setupDefinitionRelationship(): Cannot find connecting Edge.";
+        return false;
+    }
+
+    if(node->isInstance()){
         definition->addInstance(node);
         definitionType = "Instance";
     }else{
@@ -3463,14 +3447,8 @@ bool NewController::setupDefinitionRelationship(Node *definition, Node *node, bo
         definitionType = "Implementation";
     }
 
-    if(!edge){
-        qCritical() << "setupDefinitionRelationship(): Cannot find connecting Edge.";
-        return false;
-    }
-
     //Attach Data onto Edge to describe Relationship.
     if(!edge->getData(labelKey)){
-
         Data* label = new Data(labelKey);
         label->setValue("Is " + definitionType + " Of");
         attachData(edge, label, false);
@@ -3497,49 +3475,53 @@ bool NewController::setupEventPortAggregateRelationship(EventPort *eventPort, Ag
 
     Node* aggregateInstance = 0;
 
-    //Check for an Existing AggregateInstance in the EventPort.
-    foreach(Node* child, eventPort->getChildren(0)){
-        if(child->getDataValue("kind") == "AggregateInstance"){
-            aggregateInstance = child;
+
+    //Only auto construct if we are processing a user action.
+    if(isUserAction()){
+        //Check for an Existing AggregateInstance in the EventPort.
+        foreach(Node* child, eventPort->getChildren(0)){
+            if(child->getDataValue("kind") == "AggregateInstance"){
+                aggregateInstance = child;
+            }
         }
-    }
 
-    //If we couldn't find an AggregateInstance in the EventPort, construct one.
-    if(!aggregateInstance){
-        aggregateInstance = constructChildNode(eventPort, constructDataVector("AggregateInstance"));
-    }
+        //If we couldn't find an AggregateInstance in the EventPort, construct one.
+        if(!aggregateInstance){
+            aggregateInstance = constructChildNode(eventPort, constructDataVector("AggregateInstance"));
+        }
 
-    //Check that the AggregateInstance was created.
-    if(!aggregateInstance){
-        qCritical() << "setupAggregateRelationship(): EventPort cannot adopt an AggregateInstance!";
-        return false;
-    }
-    //Check to see if the AggregateInstance has a Definition Yet
-    if(aggregateInstance->getDefinition()){
-        if(aggregateInstance->getDefinition() == aggregate){
-            //qDebug() << "setupAggregateRelationship(): EventPort already contains a correctly defined AggregateInstance!";
-        }else{
-            qCritical() << "setupAggregateRelationship(): EventPort already contains a defined AggregateInstance!";
+        //Check that the AggregateInstance was created.
+        if(!aggregateInstance){
+            qCritical() << "setupAggregateRelationship(): EventPort cannot adopt an AggregateInstance!";
+            return false;
+        }
+        //Check to see if the AggregateInstance has a Definition Yet
+        if(aggregateInstance->getDefinition()){
+            if(aggregateInstance->getDefinition() == aggregate){
+                //qDebug() << "setupAggregateRelationship(): EventPort already contains a correctly defined AggregateInstance!";
+            }else{
+                qCritical() << "setupAggregateRelationship(): EventPort already contains a defined AggregateInstance!";
+                return false;
+            }
+        }
+
+        //Check for connecting Edge.
+        Edge* edge = aggregateInstance->getEdgeTo(aggregate);
+
+        if(!edge){
+            //Construct an Edge between the AggregateInstance an Aggregate
+            constructEdgeWithData(aggregateInstance, aggregate);
+            edge = aggregateInstance->getEdgeTo(aggregate);
+        }
+
+        if(!edge){
+            qCritical() << "setupAggregateRelationship(): Edge between AggregateInstance and Aggregate wasn't constructed!";
             return false;
         }
     }
 
-    //Check for connecting Edge.
-    Edge* edge = aggregateInstance->getEdgeTo(aggregate);
-
-    if(!edge){
-        //Construct an Edge between the AggregateInstance an Aggregate
-        constructEdgeWithData(aggregateInstance, aggregate);
-        edge = aggregateInstance->getEdgeTo(aggregate);
-    }
-
-    if(!edge){
-        qCritical() << "setupAggregateRelationship(): Edge between AggregateInstance and Aggregate wasn't constructed!";
-        return false;
-    }
-
     //Check for a connecting Edge between the eventPort and aggregate.
-    edge = eventPort->getEdgeTo(aggregate);
+    Edge* edge = eventPort->getEdgeTo(aggregate);
     Key* labelKey = constructKey("label", QVariant::String, Entity::EK_EDGE);
 
     //Check for the existance of the Edge constructed.
@@ -3567,8 +3549,6 @@ bool NewController::setupEventPortAggregateRelationship(EventPort *eventPort, Ag
         eventPortType->setParentData(aggregateLabel);
         eventPortType->setValue(aggregateLabel->getValue());
     }
-
-
     return true;
 }
 
@@ -3588,20 +3568,6 @@ bool NewController::teardownEventPortAggregateRelationship(EventPort *eventPort,
         eventPortType->unsetParentData();
         eventPortType->clearValue();
     }
-
-    QList<Node*> aggregateInstances = eventPort->getChildrenOfKind("AggregateInstance", 0);
-    if(aggregateInstances.size() == 1){
-        Node* child = aggregateInstances[0];
-        if(child){
-            //Add the AggregateInstance to the list of Nodes to delete.
-            connectedLinkedIDs.append(child->getID());
-        }else{
-            return false;
-        }
-    }else{
-        return false;
-    }
-
     return true;
 }
 
@@ -3862,7 +3828,7 @@ bool NewController::teardownParameterRelationship(Parameter *parameter, Node *da
  * @param instance - Is this an Instance or Implementation Relationship.
  * @return true if Definition Relation was removed correctly.
  */
-bool NewController:: teardownDefinitionRelationship(Node *definition, Node *node, bool instance)
+bool NewController:: teardownDependantRelationship(Node *definition, Node *node)
 {
     //Got Aggregate Edge.
     if(!(definition && node)){
@@ -3879,16 +3845,11 @@ bool NewController:: teardownDefinitionRelationship(Node *definition, Node *node
     }
 
     //Unset the Relationship between Definition and Instance/Impl
-    if(instance){
+    if(node->isInstance()){
         definition->removeInstance(node);
     }else{
         definition->removeImplementation(node);
     }
-
-    //Remove Instance Node, by placing it in the selected Edges list.
-
-
-    connectedLinkedIDs.append(node->getID());
 
     return true;
 }
@@ -3939,9 +3900,8 @@ void NewController::constructEdgeGUI(Edge *edge)
 
     switch(edgeClass){
         case Edge::EC_DEFINITION:{
-            bool isInstance = src->isInstance();
             //DefinitionEdge is either an Instance or an Impl
-            setupDefinitionRelationship(dst, src, isInstance);
+            setupDependantRelationship(dst, src);
             break;
         }
     case Edge::EC_AGGREGATE:{
@@ -4392,9 +4352,11 @@ void NewController::constructDestructMultipleEdges(QList<int> srcIDs, int dstID)
  */
 void NewController::importProjects(QStringList xmlDataList)
 {
+    IMPORTING_PROJECT = true;
     if(!_importProjects(xmlDataList)){
         emit controller_ActionProgressChanged(100);
     }
+    IMPORTING_PROJECT = false;
     emit controller_ActionFinished();
 }
 
@@ -4764,7 +4726,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     Node* newNode = 0;
 
                     //Don't use
-                    if(!OPEN_USED){
+                    if(!OPENING_PROJECT){
                         QString nodeKind = getDataValueFromKeyName(currentNodeData, "kind");
                         if(nodeKind == "Model"){
                             while(!currentNodeData.isEmpty()){
@@ -4779,6 +4741,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                         newNode = constructChildNode(parent, currentNodeData);
 
                         if(!newNode){
+                            qCritical() << "Parent: " << parent->toString() << " Cannot Adopt: " << getDataValueFromKeyName(currentNodeData, "kind");
                             //qCritical() << parent;
                             //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
                             qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
@@ -4837,7 +4800,6 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     bool okay;
                     int oldID = nodeID.toInt(&okay);
                     if(okay){
-                        qCritical() << "linking ID: " << oldID << " to " <<  node->getID();
                         linkOldIDToID(oldID, node->getID());
                     }
                 }
@@ -5436,6 +5398,15 @@ QString NewController::getProcessName(Process *process)
 
     }
     return "";
+}
+
+bool NewController::isUserAction()
+{
+    if(UNDOING || REDOING || OPENING_PROJECT || IMPORTING_PROJECT || INITIALIZING){
+        return false;
+    }else{
+        return true;
+    }
 }
 
 QDataStream &operator<<(QDataStream &out, const EventAction &a)

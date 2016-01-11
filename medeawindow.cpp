@@ -231,7 +231,9 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
         aspect->setEnabled(enable);
     }
 
-    emit window_SetViewVisible(enable);
+    //emit window_SetViewVisible(enable);
+
+
 }
 
 
@@ -1423,6 +1425,8 @@ void MedeaWindow::makeConnections()
     validateResults.connectToWindow(this);
     connect(this, SIGNAL(window_SetViewVisible(bool)), nodeView, SLOT(setVisible(bool)));
 
+    connect(appSettings, SIGNAL(settingChanged(QString,QString,QVariant)), nodeView, SLOT(settingChanged(QString,QString,QVariant)));
+
     connect(nodeView, SIGNAL(view_LoadSettings()), this, SLOT(loadSettingsFromINI()));
 
     connect(this, SIGNAL(window_ProjectSaved(bool,QString)), nodeView, SIGNAL(view_ProjectSaved(bool, QString)));
@@ -1722,7 +1726,6 @@ bool MedeaWindow::saveProject(bool saveAs)
 
 void MedeaWindow::populateDocks()
 {
-    qCritical() << "Populate Docks";
     //Clear docks first.
     emit window_clearDocks();
 
@@ -2017,13 +2020,6 @@ void MedeaWindow::aboutQt()
  */
 void MedeaWindow::showShortcutList()
 {
-    QString shortcutList;
-
-    shortcutList = "<table border=\"0\">";
-    shortcutList += "<tr><td>Global Shortcuts:</td></tr>";
-    shortcutList += "<tr><td>Type</td><td>Shortcut</td></tr>";
-    shortcutList += "</table>";
-
     ShortcutDialog* shortcutDialog = new ShortcutDialog(this);
     shortcutDialog->exec();
 }

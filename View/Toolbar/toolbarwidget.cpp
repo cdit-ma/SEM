@@ -283,9 +283,9 @@ void ToolbarWidget::displayConnectedNode(ToolbarMenuAction* action)
         }
     } else if (actionKind == "Popup") {
         if (parentWidget == definitionMenu) {
-            nodeView->constructNewView(1);
+            nodeView->constructNewView(-2);
         } else if (parentWidget == implementationMenu) {
-            nodeView->constructNewView(2);
+            nodeView->constructNewView(-3);
         } else if (parentWidget == instancesMenu) {
             nodeView->constructNewView(chosenInstanceID);
         }
