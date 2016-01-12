@@ -219,6 +219,7 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
 
     //Search
     projectName->setEnabled(enable);
+    closeProjectButton->setVisible(enable);
     searchBar->setEnabled(enable);
     searchButton->setEnabled(enable);
     searchOptionButton->setEnabled(enable);
@@ -231,7 +232,9 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
         aspect->setEnabled(enable);
     }
 
-    //emit window_SetViewVisible(enable);
+    //setApplicationEnabled(enable);
+
+    emit window_SetViewVisible(enable);
 
 
 }
@@ -461,6 +464,7 @@ void MedeaWindow::initialiseGUI()
     nodeView = new NodeView();
     nodeView->setApplicationDirectory(applicationDirectory);
 
+
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
 
@@ -473,6 +477,9 @@ void MedeaWindow::initialiseGUI()
 
     menuTitleBox = new QGroupBox(this);
     projectName = new QPushButton("");
+    closeProjectButton = new QPushButton();
+    closeProjectButton->setToolTip("Close the current Project.");
+    closeProjectButton->setIcon(nodeView->getImage("Actions", "Close"));
 
     // set central widget and window size
     setCentralWidget(nodeView);
@@ -492,8 +499,14 @@ void MedeaWindow::initialiseGUI()
                               "QPushButton::menu-indicator{ image: none; }");
 
     projectName->setFlat(true);
-    projectName->setStyleSheet("color: black; font-size: 16px; text-align: left; padding: 8px;");
+    projectName->setStyleSheet("color: black; font-size: 16px; text-align: left;");// /*padding: 8px;*/");
     projectName->setFixedWidth(200);
+
+    closeProjectButton->setFlat(true);
+    closeProjectButton->setFixedWidth(menuButton->height()/2);
+    closeProjectButton->setFixedHeight(menuButton->height()/2);
+
+
 
     definitionsToggle = new AspectToggleWidget(VA_INTERFACES, rightPanelWidth/2, this);
     workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, rightPanelWidth/2, this);
@@ -592,12 +605,16 @@ void MedeaWindow::initialiseGUI()
     titleLayout->addWidget(menuButton, 1);
     titleLayout->addSpacerItem(new QSpacerItem(10, 0));
     titleLayout->addWidget(projectName, 1);
+    titleLayout->addSpacerItem(new QSpacerItem(10, 0));
+    titleLayout->addWidget(closeProjectButton, 1);
+
+
     titleLayout->addStretch();
 
     menuTitleBox->setLayout(titleLayout);
     menuTitleBox->setFixedHeight(menuButton->height() + 30);
     menuTitleBox->setMask(QRegion(0, (menuTitleBox->height() - menuButton->height()) / 2,
-                                  menuButton->width() + projectName->width(), menuButton->height(),
+                                  menuButton->width() + 10 + projectName->width() + 10 + closeProjectButton->width(), menuButton->height(),
                                   QRegion::Rectangle));
 
     topHLayout->setMargin(0);
@@ -829,9 +846,13 @@ void MedeaWindow::setupMenu(QPushButton *button)
 
     modelActions << view_menu->actions();
     modelActions << edit_menu->actions();
+
+
     modelActions << view_menu->actions();
     modelActions << model_menu->actions();
     modelActions << jenkins_menu->actions();
+
+    modelActions.removeAll(view_fullScreenMode);
 }
 
 
@@ -1499,6 +1520,8 @@ void MedeaWindow::makeConnections()
     connect(nodeView, SIGNAL(view_displayNotification(QString,int,int)), this, SLOT(displayNotification(QString,int,int)));
 
     connect(projectName, SIGNAL(clicked()), nodeView, SLOT(selectModel()));
+    connect(closeProjectButton, SIGNAL(clicked()), this, SLOT(on_actionCloseProject_triggered()));
+
 
     connect(file_newProject, SIGNAL(triggered()), this, SLOT(on_actionNew_Project_triggered()));
     connect(file_closeProject, SIGNAL(triggered()), this, SLOT(on_actionCloseProject_triggered()));
@@ -1656,6 +1679,35 @@ void MedeaWindow::changeEvent(QEvent *event)
     if (event->type() == QEvent::WindowStateChange){
         updateWidgetsOnWindowChanged();
     }
+}
+
+bool MedeaWindow::openProject(QString fileName)
+{
+    bool closed = closeProject();
+
+    if(closed){
+        newProject();
+    }else{
+        return false;
+    }
+
+    QString fileData = readFile(fileName);
+    if(!fileData.isEmpty()){
+        nodeView->openProject(fileName, fileData);
+    }else{
+        return false;
+    }
+    return true;
+}
+
+QRect MedeaWindow::getCanvasRect()
+{
+    QRect canvasRect;
+    canvasRect.setHeight(height()-1);
+    canvasRect.setWidth(width() - (docksArea->width() + RIGHT_PANEL_WIDTH + 35 ));
+    canvasRect.moveTopLeft(QPoint(docksArea->width() + 15, 0));
+
+    return canvasRect;
 }
 
 QString MedeaWindow::getTimestamp()
@@ -2088,7 +2140,8 @@ void MedeaWindow::updateWidgetsOnWindowChanged()
 
     // update the stored view center point and re-center the view
     if (nodeView) {
-        nodeView->visibleViewRectChanged(canvasRect);
+        //qCritical() << "UPDATE YO";
+        nodeView->visibleViewRectChanged(getCanvasRect());
         nodeView->updateViewCenterPoint();
         nodeView->recenterView();
         nodeView->aspectGraphicsChanged();
@@ -2358,19 +2411,7 @@ void MedeaWindow::on_actionOpenProject_triggered()
     QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, true, false);
 
     if(fileNames.size() == 1){
-        bool closed = closeProject();
-
-        if(closed){
-            newProject();
-        }else{
-            return;
-        }
-
-        QString fileName = fileNames.first();
-        QString fileData = readFile(fileName);
-        if(!fileData.isEmpty()){
-            nodeView->openProject(fileName, fileData);
-        }
+        openProject(fileNames.first());
     }
 }
 
@@ -3536,8 +3577,15 @@ void MedeaWindow::dropEvent(QDropEvent *event)
         fileList << url.toLocalFile();
     }
     if(!fileList.isEmpty()){
-        progressAction = "Importing GraphML via Drag";
-        importProjects(fileList);
+        if(fileList.size() == 1){
+            progressAction = "Importing GraphML via Drag";
+            QString fileName = fileList.first();
+            if(nodeView->hasModel()){
+                importProjects(fileList);
+            }else{
+                openProject(fileName);
+            }
+        }
     }
 }
 

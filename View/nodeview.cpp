@@ -162,7 +162,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     setupTheme();
 
 
-    setNoModelTextVisible(true);
+
     //Started sound effects
     //setupSoundEffects();
 
@@ -178,6 +178,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
 
     //Set Initial zoom.
+    setNoModelTextVisible(true);
     zoomCurrent = transform().m11();
 }
 
@@ -519,14 +520,19 @@ void NodeView::setNoModelTextVisible(bool visible)
     if(!backgroundText){
         backgroundText = new QGraphicsTextItem("NO PROJECT");
         QFont textFont = font();
-        textFont.setPixelSize(100);
+        textFont.setPixelSize(50);
         backgroundText->setDefaultTextColor(GET_INVERT_COLOR(currentTheme));
         backgroundText->setFont(textFont);
+
+        QPointF position;
+        position.setX(-backgroundText->boundingRect().width()/2);
+        position.setY(-backgroundText->boundingRect().height()/2);
+        backgroundText->setPos(position);
         scene()->addItem(backgroundText);
     }
     if(backgroundText){
         if(visible){
-            centerRect(backgroundText->sceneBoundingRect(), CENTER_ON_PADDING, true);
+           centerRect(backgroundText->sceneBoundingRect(), CENTER_ON_PADDING, true);
         }
         backgroundText->setVisible(visible);
     }

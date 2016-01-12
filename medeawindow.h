@@ -220,6 +220,8 @@ protected:
     void changeEvent(QEvent * event);
 
 private:
+    bool openProject(QString fileName);
+    QRect getCanvasRect();
     QString getTimestamp();
     QString getTempFileName(QString prefix="");
     bool closeProject();
@@ -279,6 +281,7 @@ private:
     QString applicationDirectory;
 
     QPushButton *projectName;
+    QPushButton *closeProjectButton;
     QGroupBox* menuTitleBox;
 
     QMenu* menu;
