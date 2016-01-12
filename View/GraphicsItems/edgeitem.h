@@ -17,7 +17,7 @@ public:
     enum LINE_SIDE{LEFT,RIGHT};
     enum LINE_DIRECTION{UP, DOWN};
 
-    EdgeItem(EdgeAdapter *edge, EntityItem *parent, EntityItem* source, EntityItem* destination);
+    EdgeItem(EdgeAdapter *edge, NodeItem *parent, EntityItem* source, EntityItem* destination);
     ~EdgeItem();
 
     QRectF boundingRect() const;
@@ -66,7 +66,7 @@ private:
     void setupBrushes();
 
 
-    EntityItem* parent;
+    NodeItem* parent;
 
     //Represents the End points of the LineItem
     EntityItem* source;

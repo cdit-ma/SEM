@@ -21,7 +21,7 @@
 
 #define LABEL_RATIO .50
 
-EdgeItem::EdgeItem(EdgeAdapter *edge, EntityItem *parent, EntityItem* s, EntityItem* d): GraphMLItem(edge, 0, GraphMLItem::NODE_EDGE)
+EdgeItem::EdgeItem(EdgeAdapter *edge, NodeItem *parent, EntityItem* s, EntityItem* d): GraphMLItem(edge, 0, GraphMLItem::NODE_EDGE)
 {
     if(parent){
         setNodeView(parent->getNodeView());
@@ -29,8 +29,7 @@ EdgeItem::EdgeItem(EdgeAdapter *edge, EntityItem *parent, EntityItem* s, EntityI
     QGraphicsItem::setParentItem(parent);
 
 
-
-    parent->addChildEdgeItem(this);
+    parent->addEdgeAsChild(this);
 
     textItem = 0;
 
@@ -126,7 +125,7 @@ EdgeItem::~EdgeItem()
             visibleDestination->removeVisibleParentForEdgeItem(getID());
         }
         if(parent){
-            parent->removeChildEdgeItem(this);
+            parent->removeChildEdge(getID());
         }
     }
 

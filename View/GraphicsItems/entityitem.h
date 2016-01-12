@@ -128,9 +128,9 @@ public:
 
 
 
-    void addChildEdgeItem(EdgeItem* edge);
-    QList<EdgeItem*> getChildEdges();
-    void removeChildEdgeItem(EdgeItem* edge);
+   // void addChildEdgeItem(EdgeItem* edge);
+   // QList<EdgeItem*> getChildEdges();
+    //void removeChildEdgeItem(EdgeItem* edge);
     bool isExpanded();
     bool isContracted();
     bool isHidden();
@@ -426,7 +426,7 @@ private:
     QVector<QLineF> xGridLines;
     QVector<QLineF> yGridLines;
 
-    QList<EdgeItem*> childEdges;
+    //QList<EdgeItem*> childEdges;
     //QList<EntityItem*> childEntityItems;
 
     //Used to store the Color/Brush/Pen for the selected Style.

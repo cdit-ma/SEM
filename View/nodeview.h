@@ -434,7 +434,6 @@ private:
     void _deleteFromIDs(QList<int> IDs);
     void updateActionsEnabledStates();
     void alignSelectionOnGrid(ALIGN alignment = NONE);
-    void view_ConstructEdgeGUI(Edge* edge);
     void setGraphMLItemSelected(GraphMLItem* item, bool setSelected);
     void connectGraphMLItemToController(GraphMLItem* GUIItem);
     void storeGraphMLItemInHash(GraphMLItem* item);
@@ -487,7 +486,7 @@ private:
     QList<Node*> getBlackBoxes();
 
 
-    EntityItem* getSharedEntityItemParent(EntityItem* src, EntityItem* dst);
+    GraphMLItem* getSharedEntityItemParent(EntityItem* src, EntityItem* dst);
     EntityItem* getEntityItemFromNode(Node* node);
     EntityItem* getEntityItemFromID(int ID);
     EntityItem* getEntityItemFromGraphMLItem(GraphMLItem* item);

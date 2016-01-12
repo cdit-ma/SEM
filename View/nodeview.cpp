@@ -2670,11 +2670,6 @@ void NodeView::showToolbar(QPoint position)
 
 
 
-void NodeView::view_ConstructEdgeGUI(Edge *edge)
-{
-}
-
-
 void NodeView::view_CenterGraphML(GraphML *graphML)
 {
     GraphMLItem* guiItem = getGraphMLItemFromGraphML(graphML);
@@ -3510,12 +3505,13 @@ void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
     }
 }
 
-EntityItem *NodeView::getSharedEntityItemParent(EntityItem *src, EntityItem *dst)
+GraphMLItem *NodeView::getSharedEntityItemParent(EntityItem *src, EntityItem *dst)
 {
     if(controller){
         int ID = controller->getSharedParent(src->getID(), dst->getID());
 
-        EntityItem* node = getEntityItemFromID(ID);
+
+        GraphMLItem* node = getGraphMLItemFromID(ID);
         if(node){
             return node;
         }
@@ -4984,22 +4980,18 @@ void NodeView::constructEdgeItem(EdgeAdapter *edge)
             return;
         }
 
-        EntityItem* parent = getSharedEntityItemParent(srcGUI, dstGUI);
+        GraphMLItem* parent = getSharedEntityItemParent(srcGUI, dstGUI);
 
-        if(!parent){
-            //GETTING MODEL!?
-            //qCritical() << "using Model.";
-            //return;
-            //parent = getModelItem();
-
+        if(!parent || !parent->isNodeItem()){
             // added this here otherwise constructed edge with no gui is not stored
             noGuiIDHash[edge->getID()] = "Edge";
             return;
         }
 
+        NodeItem* parentNodeItem = (NodeItem*) parent;
+
         //Construct a new GUI Element for this edge.
-        EdgeItem* nodeEdge = new EdgeItem(edge, parent, srcGUI, dstGUI);
-        //EdgeItem2* nodeEdge2 = new EdgeItem2(edge,parent, srcGUI, dstGUI);
+        EdgeItem* nodeEdge = new EdgeItem(edge, parentNodeItem, srcGUI, dstGUI);
 
 
         //Add it to the list of EdgeItems in the Model.

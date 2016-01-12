@@ -908,7 +908,7 @@ bool EntityItem::mouseOverExpand(QPointF mousePosition)
 
 
 
-
+/*
 void EntityItem::addChildEdgeItem(EdgeItem *edge)
 {
     if(!childEdges.contains(edge)){
@@ -924,7 +924,7 @@ QList<EdgeItem *> EntityItem::getChildEdges()
 void EntityItem::removeChildEdgeItem(EdgeItem *edge)
 {
     childEdges.removeAll(edge);
-}
+}*/
 
 /**
  * @brief EntityItem::isHidden
