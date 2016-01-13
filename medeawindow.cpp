@@ -234,9 +234,7 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
 
     //setApplicationEnabled(enable);
 
-    emit window_SetViewVisible(enable);
-
-
+    //emit window_SetViewVisible(enable);
 }
 
 
@@ -253,7 +251,8 @@ void MedeaWindow::modelReady()
 
     // re-enable the view widgets and window
     setViewWidgetsEnabled(true);
-    setApplicationEnabled(true);
+    //setApplicationEnabled(true);
+
 
     //Load loadLaunchedFile
     if(loadLaunchedFile){
@@ -261,10 +260,6 @@ void MedeaWindow::modelReady()
         files << launchFilePathArg;
         importProjects(files);
         loadLaunchedFile = false;
-    }
-
-    if(nodeView){
-        nodeView->fitToScreen();
     }
 
 }
@@ -546,7 +541,7 @@ void MedeaWindow::initialiseGUI()
     progressLayout->setAlignment(notificationsBar, Qt::AlignCenter);
 
     // setup and add dataTable/dataTableBox widget/layout
-    dataTable->setItemDelegateForColumn(2, delegate);
+    dataTable->setItemDelegateForColumn(1, delegate);
     dataTable->setFixedWidth(rightPanelWidth + 5);
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setFont(guiFont);
@@ -1430,7 +1425,6 @@ void MedeaWindow::resetView()
  */
 void MedeaWindow::newProject()
 {
-    setApplicationEnabled(false);
     progressAction = "Setting up New Project";
 
     setupProject();

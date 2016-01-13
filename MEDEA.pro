@@ -402,4 +402,5 @@ DISTFILES += \
     Resources/Images/qt.ico \
     Resources/Fonts/OpenSans-Regular.ttf \
     settings.ini \
-    doxygen.config
+    doxygen.config \
+    defaultSettings.ini

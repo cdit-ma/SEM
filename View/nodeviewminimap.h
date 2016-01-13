@@ -11,6 +11,7 @@ class NodeViewMinimap : public QGraphicsView
     Q_OBJECT
 public:
     explicit NodeViewMinimap(QObject *parent = 0);
+    void setEnabled(bool enabled);
 
 signals:
     void minimap_Panning(QPointF delta);
@@ -32,6 +33,8 @@ private:
     QPointF previousScenePos;
     QRectF viewportRect;
     bool isPanning;
+
+    bool drawRect;
 
 protected:
     void drawForeground(QPainter *painter, const QRectF &rect);

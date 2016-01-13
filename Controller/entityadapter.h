@@ -21,6 +21,7 @@ public:
     bool isDataProtected(QString keyName);
 
     QStringList getKeys();
+    QStringList getValidValuesForKey(QString keyName);
     bool hasData(QString keyName);
     QVariant::Type getKeyType(QString keyName);
 

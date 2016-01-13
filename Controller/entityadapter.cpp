@@ -77,6 +77,24 @@ QStringList EntityAdapter::getKeys()
     return list;
 }
 
+QStringList EntityAdapter::getValidValuesForKey(QString keyName)
+{
+    QStringList list;
+    if(isValid()){
+        QString nodeKind = getDataValue("kind").toString();
+        if(nodeKind != ""){
+            Data* data = _entity->getData(keyName);
+            if(data){
+                Key* key = data->getKey();
+                if(key){
+                    list = key->getValidValues(nodeKind);
+                }
+            }
+        }
+    }
+    return list;
+}
+
 bool EntityAdapter::hasData(QString keyName)
 {
     if(isValid()){

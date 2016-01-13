@@ -4002,20 +4002,16 @@ void NewController::setupLocalNode()
         QString keyName = data->getKeyName();
         if(keyName == "label"){
             data->setValue("localhost");
-            data->setProtected(true);
         }else if(keyName == "ip_address"){
             data->setValue("127.0.0.1");
-            data->setProtected(true);
         }else if(keyName == "os"){
             data->setValue(getSysOS());
-            data->setProtected(true);
         }else if(keyName == "os_version"){
             data->setValue(getSysOSVersion());
-            data->setProtected(true);
         }else if(keyName == "architecture"){
             data->setValue(getSysArch());
-            data->setProtected(true);
         }
+        data->setProtected(true);
     }
 
     localhostNode = constructChildNode(hardwareDefinitions, localNodeData);
@@ -5115,6 +5111,9 @@ bool NewController::canPaste(QList<int> selection)
     if(selection.size() == 1){
         Entity* graphml = getGraphMLFromID(selection[0]);\
         if(graphml && graphml->isNode() && graphml != model){
+            if(graphml->isReadOnly()){
+                return false;
+            }
             return true;
         }
     }
@@ -5177,6 +5176,8 @@ bool NewController::canImportSnippet(QList<int> selection)
 
 bool NewController::canSetReadOnly(QList<int> IDs)
 {
+    return false;
+    /*
     bool gotAnyNonReadOnly=false;
     foreach(int ID, IDs){
         Entity* entity = getGraphMLFromID(ID);
@@ -5186,10 +5187,13 @@ bool NewController::canSetReadOnly(QList<int> IDs)
         }
     }
     return gotAnyNonReadOnly;
+    */
 }
 
 bool NewController::canUnsetReadOnly(QList<int> IDs)
 {
+    return false;
+    /*
     bool gotAnyReadOnly=false;
     foreach(int ID, IDs){
         Entity* entity = getGraphMLFromID(ID);
@@ -5199,6 +5203,7 @@ bool NewController::canUnsetReadOnly(QList<int> IDs)
         }
     }
     return gotAnyReadOnly;
+    */
 }
 
 bool NewController::canUndo()
