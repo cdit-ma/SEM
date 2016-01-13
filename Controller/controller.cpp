@@ -3418,7 +3418,7 @@ bool NewController::setupDependantRelationship(Node *definition, Node *node)
                 //Construct relationships between the children which matched the definitionChild.
                 int instancesConnected = constructDependantRelative(node, child);
 
-                if(instancesConnected == 0){
+                if(instancesConnected == 0 && !node->getNodeKind().endsWith("EventPortInstance")){
                     qCritical() << "setupDefinitionRelationship(): Couldn't create a Definition Relative for: " << child->toString() << " In: " << node->toString();
                     return false;
                 }
