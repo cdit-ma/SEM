@@ -117,6 +117,10 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
 
     //show();
 
+    //Load initial model.
+    if(loadLaunchedFile){
+        openProject(launchFilePathArg);
+    }
 
     initialSettingsLoaded = true;
 }
