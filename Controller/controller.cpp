@@ -1801,6 +1801,7 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
             source = destination;
             destination = temp;
         }
+
         Edge* edge = constructTypedEdge(source, destination, edgeToMake);
         return edge;
     }else{

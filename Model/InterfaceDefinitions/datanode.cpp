@@ -35,6 +35,8 @@ bool DataNode::canConnect_DataEdge(Node *node)
         return false;
     }
 
-    return BehaviourNode::canConnect_DataEdge(node);
+
+    bool okay =  BehaviourNode::canConnect_DataEdge(node);
+    return okay;
 }
 
