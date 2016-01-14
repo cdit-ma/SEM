@@ -1937,7 +1937,7 @@ void MedeaWindow::projectNameChanged(QString name)
 {
     if(projectName){
         projectName->setText(name);
-        projectName->setFixedWidth(projectName->fontMetrics().width(name) + 10);
+        //projectName->setFixedWidth(projectName->fontMetrics().width(name) + 10);
     }
 }
 
