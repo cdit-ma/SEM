@@ -397,6 +397,7 @@ private:
     bool _attachData(Entity* item, QList<QStringList> dataList, bool addAction = true);
     bool _attachData(Entity* item, QList<Data*> dataList, bool addAction = true);
     bool _attachData(Entity *item, QString keyName, QVariant value, bool addAction = true);
+
     
 
 

@@ -2118,6 +2118,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     data.append(new Data(widthKey, -1));
     data.append(new Data(heightKey, -1));
 
+    typeKey->setProtected(true);
 
     bool protectLabel = nodeKind.endsWith("Parameter");
 
@@ -2142,6 +2143,17 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(new Data(typeKey));
 
     }
+
+    QStringList editableTypeKinds;
+    editableTypeKinds << "Variable" << "Member" << "Attribute";
+
+    if(editableTypeKinds.contains(nodeKind)){
+        qCritical() << "SETTING TYPE";
+        Data* typeData = new Data(typeKey, "String");
+        typeData->setProtected(false);
+        data.append(typeData);
+    }
+
     if(nodeKind == "Model"){
         Key* middlewareKey = constructKey("middleware", QVariant::String, Entity::EK_NODE);
         Key* projectUUID = constructKey("projectUUID", QVariant::String, Entity::EK_NODE);
@@ -2188,10 +2200,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         Key* keyKey = constructKey("key", QVariant::Bool,Entity::EK_NODE);
         Data* keyData = new Data(keyKey);
         keyData->setValue(false);
-        Data* typeData = new Data(typeKey);
-        typeData->setValue("String");
         data.append(keyData);
-        data.append(typeData);
     }
     if(nodeKind == "MemberInstance"){
         Key* keyKey = constructKey("key", QVariant::Bool,Entity::EK_NODE);
@@ -2213,9 +2222,6 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(new Data(archKey));
         data.append(new Data(descriptionKey));
     }
-    if(nodeKind == "Attribute"){
-        data.append(new Data(typeKey, QVariant::String));
-    }
 
     if(nodeKind == "ComponentAssembly"){
         Key* replicationKey = constructKey("replicate_count", QVariant::Int,Entity::EK_NODE);
@@ -2231,8 +2237,10 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
         data.append(new Data(valueKey));
     }
+
+
+
     if(nodeKind == "Variable"){
-        data.append(new Data(typeKey, "String"));
         Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
         data.append(new Data(valueKey));
     }
@@ -2797,11 +2805,6 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
             setData(item, data->getKeyName(), data->getValue(), addAction);
         }else{
             attachData(item, data, addAction);
-        }
-
-        Data* updateData = item->getData(currentKey);
-        if(updateData){
-            updateData->setProtected(data->isProtected());
         }
     }
     return true;
@@ -3652,13 +3655,15 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
     Node* inputTopParent = input->getParentNode(input->getDepthToAspect() - 2);
     Node* outputTopParent = output->getParentNode(output->getDepthToAspect() - 2);
 
+    QString inputNodeKind;
     if(inputTopParent){
         //If we are connecting to an Variable, we don't want to bind.
-        QString parentNodeKind = inputTopParent->getNodeKind();
-        if(parentNodeKind == "Variable"){
+        inputNodeKind = inputTopParent->getNodeKind();
+        if(inputNodeKind == "Variable"){
             return true;
         }
     }
+
 
     Data* definitionData = output->getData("type");
     Data* valueData = input->getData("value");
@@ -3666,7 +3671,7 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
     if(outputTopParent){
         //Bind Parent Label if we are a variable.
         QString parentNodeKind = outputTopParent->getNodeKind();
-        if(parentNodeKind == "Variable"){
+        if(parentNodeKind == "Variable" || parentNodeKind == "AttributeImpl"){
             definitionData = outputTopParent->getData("label");
         }
     }
@@ -3676,7 +3681,6 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
             valueData->setParentData(definitionData);
         }else{
             valueData->unsetParentData();
-            valueData->clearValue();
         }
     }else{
         return false;
@@ -3728,18 +3732,6 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
     return true;
 }
 
-bool NewController::teardownDataEdgeRelationship(BehaviourNode *output, BehaviourNode *input)
-{
-    Data* typeData = output->getData("type");
-    Data* valueData = input->getData("value");
-
-    if(typeData && valueData){
-        valueData->unsetParentData();
-    }else{
-        return false;
-    }
-    return true;
-}
 
 bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
 {
@@ -5406,6 +5398,7 @@ QString NewController::getProcessName(Process *process)
     }
     return "";
 }
+
 
 bool NewController::isUserAction()
 {
