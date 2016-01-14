@@ -1,6 +1,6 @@
 #ifndef INEVENTPORTDELEGATE_H
 #define INEVENTPORTDELEGATE_H
-#include "EventPortDelegate.h"
+#include "eventportdelegate.h"
 
 class InEventPortDelegate: public EventPortDelegate
 {
