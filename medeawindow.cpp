@@ -273,6 +273,8 @@ void MedeaWindow::modelDisconnected()
 
     //Clear the Docks
     emit window_clearDocks();
+
+    //Clear toolbar
 }
 
 

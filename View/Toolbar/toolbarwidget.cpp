@@ -108,6 +108,17 @@ void ToolbarWidget::setupFunctionsList()
     }
 }
 
+void ToolbarWidget::clearMenu()
+{
+    clearMenus();
+    functionsMenu->clearMenu();
+
+    chosenInstanceID = -1;
+    adoptableNodeKinds.clear();
+    legalNodeItems.clear();;
+    hardwareNodeItems.clear();
+}
+
 
 /**
  * @brief ToolbarWidget::updateActionEnabled
@@ -1265,6 +1276,7 @@ void ToolbarWidget::clearMenus()
     blackBoxInstMenu->clearMenu();
     aggregateInstMenu->clearMenu();
     vectorInstMenu->clearMenu();
+
 
     // these lists needs to be cleared as well - used to populate menus
     adoptableNodeKinds.clear();

@@ -1773,6 +1773,12 @@ void NodeView::controllerDestroyed()
 {
     disconnectController();
     resetViewState();
+
+    //Clear the toolbar menus
+    if(toolbar){
+        toolbar->clearMenu();
+    }
+
 }
 
 void NodeView::settingChanged(QString groupName, QString keyName, QVariant value)
