@@ -28,6 +28,7 @@ NewController::NewController()
 
     logFile = 0;
 
+    PASTE_USED = false;
     IMPORTING_PROJECT = false;
     USE_LOGGING = false;
     UNDOING = false;
@@ -243,6 +244,11 @@ void NewController::loadWorkerDefinitions()
         foreach(QDir directory, workerDirectories){
             //Foreach *.worker.graphml file in the workerDefPath, load the graphml.
             foreach(QString fileName, directory.entryList(fileExtension)){
+                if(fileName == "VariableOperation.worker.graphml"){
+                    //Ignore VariableOperation
+                    continue;
+                }
+
                 QString importFileName = directory.absolutePath() + "/" + fileName;
 
                 QPair<bool, QString> data = readFile(importFileName);
@@ -1026,6 +1032,7 @@ bool NewController::_paste(int ID, QString xmlData, bool addAction)
         success = false;
     }else{
         if(isGraphMLValid(xmlData) && xmlData != ""){
+            PASTE_USED = true;
             if(addAction){
                 triggerAction("Pasting Selection.");
                 emit controller_ActionProgressChanged(0, "Pasting Selection");
@@ -1033,10 +1040,8 @@ bool NewController::_paste(int ID, QString xmlData, bool addAction)
 
             //Paste it into the current Selected Node,
             success = _importGraphMLXML(xmlData, parentNode, CUT_USED, true);
-            if(!success){
-
-            }
             CUT_USED = false;
+            PASTE_USED = false;
         }
     }
     return success;
@@ -1275,7 +1280,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
 
         //Check if read only.
         if(parentNodeKind == "InterfaceDefinitions"){
-            //readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
+            readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
         }
 
         QString graphmlRepresentation;
@@ -5412,7 +5417,7 @@ QString NewController::getProcessName(Process *process)
 
 bool NewController::isUserAction()
 {
-    if(UNDOING || REDOING || OPENING_PROJECT || IMPORTING_PROJECT || INITIALIZING){
+    if(UNDOING || REDOING || OPENING_PROJECT || IMPORTING_PROJECT || INITIALIZING || PASTE_USED){
         return false;
     }else{
         return true;

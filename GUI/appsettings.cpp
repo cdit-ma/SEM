@@ -185,8 +185,9 @@ void AppSettings::groupToggled(bool toggled)
 
         int groupBoxPadding = groupBox->layout()->spacing();
 
-        int initialHeight = 20;
-        int expandedHeight = initialHeight + groupBox->layout()->margin() * 2;
+        int initialHeight = groupBox->layout()->contentsMargins().top();
+
+        int expandedHeight = groupBox->layout()->contentsMargins().top() + groupBox->layout()->contentsMargins().bottom();
 
         foreach(KeyEditWidget* edit, settingsWidgetsHash.values()){
             if(getReadableValue(edit->getGroupName()) == groupTitle){
@@ -290,10 +291,15 @@ void AppSettings::setupLayout()
         //Add to Layout.
         vLayout->addWidget(groupBox);
 
-        QVBoxLayout* groupVLayout = new QVBoxLayout();
-        groupBox->setLayout(groupVLayout);
 
         QFontMetrics keyFontMetric(keyFont);
+        int labelHeight = keyFontMetric.height();
+
+        QVBoxLayout* groupVLayout = new QVBoxLayout();
+        groupVLayout->setSpacing(5);
+        groupVLayout->setContentsMargins(0, labelHeight + 5,0,5);
+        groupBox->setLayout(groupVLayout);
+
 
 
         //For each key, construct a KeyEditWidget to change the setting of that key.
