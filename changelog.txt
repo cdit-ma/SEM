@@ -1,7 +1,7 @@
 Version 1.2.0.0:
         New Features:
             * Implemented Open/Save/Save As Functionality.
-            * Removed Export functionality (Use Save As)
+            * Removed Export functionality (Use Save As instead)
             * Implemented Parameters
                 ** Parameters can be connected to variables which match the correct type.
             * Implemented Worker Definitions
