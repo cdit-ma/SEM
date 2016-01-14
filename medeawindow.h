@@ -185,6 +185,7 @@ private slots:
     void dockButtonPressed();
     void forceOpenDock(DOCK_TYPE type, QString srcKind = "");
 
+    void displayLoadingStatus(bool show, QString displayText = "");
     void updateProgressStatus(int value, QString status);
     void updateWidgetMask(QWidget* widget, QWidget* maskWidget, bool check = false, QSize border = QSize());
 
@@ -214,6 +215,7 @@ private slots:
     void dialogRejected();
 
     QStringList fileSelector(QString title, QString fileString, bool open, bool allowMultiple=true);
+
 protected:
     void closeEvent(QCloseEvent*);
     void resizeEvent(QResizeEvent* event);
@@ -397,6 +399,11 @@ private:
     QProgressBar* progressBar;
     QLabel* progressLabel;
     QString progressAction;
+
+    QGroupBox* loadingBox;
+    QLabel* loadingLabel;
+    QLabel* loadingMovieLabel;
+    QMovie* loadingMovie;
 
     QLabel* notificationsBar;
     QTimer* notificationTimer;

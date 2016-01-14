@@ -86,7 +86,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         connect(this, SIGNAL(dockItem_hiddenStateChanged()), parentDock, SLOT(updateInfoLabel()));
     }
 
-    // initially contract labels
+    // this initially contract labels
     setDockItemExpanded();
 }
 

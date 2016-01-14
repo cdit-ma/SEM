@@ -3228,7 +3228,7 @@ Node *NewController::constructTypedNode(QString nodeKind, bool isTemporary, QStr
         return new ReturnParameter();
     }else{
         qCritical() << "Node Kind:" << nodeKind << " not yet implemented!";
-        return new BlankNode();
+        return 0;
     }
 
     return 0;
@@ -4741,7 +4741,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                         newNode = constructChildNode(parent, currentNodeData);
 
                         if(!newNode){
-                            qCritical() << "Parent: " << parent->toString() << " Cannot Adopt: " << getDataValueFromKeyName(currentNodeData, "kind");
+                            qCritical() << "Parent: " << parent->toString() << " Cannot Adopt";
                             //qCritical() << parent;
                             //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
                             qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
@@ -5365,7 +5365,7 @@ Node* NewController::getSharedParent(QList<int> IDs)
 QString NewController::getDataValueFromKeyName(QList<Data *> dataList, QString keyName)
 {
     foreach(Data* data, dataList){
-        if(data->getKeyName() == keyName){
+        if(data && data->getKeyName() == keyName){
             return data->getValue().toString();
         }
     }
@@ -5375,7 +5375,7 @@ QString NewController::getDataValueFromKeyName(QList<Data *> dataList, QString k
 void NewController::setDataValueFromKeyName(QList<Data *> dataList, QString keyName, QString value)
 {
     foreach(Data* data, dataList){
-        if(data->getKeyName() == keyName){
+        if(data && data->getKeyName() == keyName){
             data->setValue(value);
             return;
         }

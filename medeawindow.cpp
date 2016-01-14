@@ -464,7 +464,6 @@ void MedeaWindow::initialiseGUI()
     nodeView = new NodeView();
     nodeView->setApplicationDirectory(applicationDirectory);
 
-
     progressBar = new QProgressBar(this);
     progressLabel = new QLabel(this);
 
@@ -480,6 +479,31 @@ void MedeaWindow::initialiseGUI()
     closeProjectButton = new QPushButton();
     closeProjectButton->setToolTip("Close the current Project.");
     closeProjectButton->setIcon(nodeView->getImage("Actions", "Close"));
+
+    loadingBox = new QGroupBox(this);
+    loadingLabel = new QLabel("Loading...", this);
+    loadingMovieLabel = new QLabel(this);
+    loadingMovie = new QMovie(":/Actions/Loading.gif");
+
+    loadingLabel->setStyleSheet(/*"font-weight: bold;*/ "font: 14px; color: black;");
+    loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+
+    loadingMovie->setBackgroundColor(Qt::white);
+    loadingMovie->setScaledSize(QSize(TOOLBAR_BUTTON_WIDTH*1.25, TOOLBAR_BUTTON_HEIGHT*1.25));
+    loadingMovie->start();
+    loadingMovieLabel->setMovie(loadingMovie);
+
+    QHBoxLayout* loadingLayout = new QHBoxLayout();
+    loadingLayout->setMargin(0);
+    loadingLayout->setSpacing(0);
+    loadingLayout->addStretch();
+    loadingLayout->addWidget(loadingMovieLabel);
+    loadingLayout->addWidget(loadingLabel);
+    loadingLayout->addStretch();
+
+    //loadingBox->setStyleSheet("QGroupBox{ background: rgba(250,250,250,220); border-radius: 10px; }");
+    loadingBox->setFixedHeight(TOOLBAR_BUTTON_HEIGHT);
+    loadingBox->setLayout(loadingLayout);
 
     // set central widget and window size
     setCentralWidget(nodeView);
@@ -505,8 +529,6 @@ void MedeaWindow::initialiseGUI()
     closeProjectButton->setFlat(true);
     closeProjectButton->setFixedWidth(menuButton->height()/2);
     closeProjectButton->setFixedHeight(menuButton->height()/2);
-
-
 
     definitionsToggle = new AspectToggleWidget(VA_INTERFACES, rightPanelWidth/2, this);
     workloadToggle = new AspectToggleWidget(VA_BEHAVIOUR, rightPanelWidth/2, this);
@@ -541,9 +563,12 @@ void MedeaWindow::initialiseGUI()
     progressLayout->addStretch(3);
     progressLayout->addWidget(progressLabel);
     progressLayout->addWidget(progressBar);
+    //progressLayout->addWidget(loadingBox, 1, Qt::AlignHCenter);
     progressLayout->addStretch(4);
+    //progressLayout->addWidget(loadingBox, 1, Qt::AlignHCenter);
     progressLayout->addWidget(notificationsBar);
     progressLayout->setAlignment(notificationsBar, Qt::AlignCenter);
+    progressLayout->addWidget(loadingBox, 1, Qt::AlignHCenter);
 
     // setup and add dataTable/dataTableBox widget/layout
     dataTable->setItemDelegateForColumn(2, delegate);
@@ -602,12 +627,11 @@ void MedeaWindow::initialiseGUI()
     // setup layouts for widgets
     titleLayout->setMargin(0);
     titleLayout->setSpacing(0);
-    titleLayout->addWidget(menuButton, 1);
+    titleLayout->addWidget(menuButton);
     titleLayout->addSpacerItem(new QSpacerItem(10, 0));
-    titleLayout->addWidget(projectName, 1);
+    titleLayout->addWidget(projectName);
     titleLayout->addSpacerItem(new QSpacerItem(10, 0));
-    titleLayout->addWidget(closeProjectButton, 1);
-
+    titleLayout->addWidget(closeProjectButton);
 
     titleLayout->addStretch();
 
@@ -663,9 +687,9 @@ void MedeaWindow::initialiseGUI()
     setupMultiLineBox();
 
     // add progress bar layout to the body layout after the dock has been set up
-    bodyLayout->addStretch(4);
+    bodyLayout->addStretch();
     bodyLayout->addLayout(progressLayout);
-    bodyLayout->addStretch(3);
+    bodyLayout->addStretch();
 }
 
 
@@ -1353,10 +1377,9 @@ void MedeaWindow::resetGUI()
 {
     updateWidgetsOnWindowChanged();
 
-    if(nodeView && !nodeView->hasModel()){
+    if (nodeView && !nodeView->hasModel()) {
         modelDisconnected();
     }
-
 
     prevPressedButton = 0;
 
@@ -1366,8 +1389,9 @@ void MedeaWindow::resetGUI()
 
     // initially hide these
     notificationsBar->hide();
-    //progressBar->hide();
     dataTableBox->hide();
+    progressBar->hide();
+    loadingBox->hide();
 
     // clear and reset search bar and search results
     searchBar->clear();
@@ -1730,8 +1754,8 @@ bool MedeaWindow::closeProject()
     if(nodeView->projectRequiresSaving()){
         //Ask User to confirm save?
         QMessageBox::StandardButton saveProjectButton = QMessageBox::question(this,
-                                                                        "Close Project", "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
-                                                                        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
+                                                                              "Close Project", "Do you want to save the changes made to '" + currentProjectFilePath +"' ?",
+                                                                              QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Cancel);
         if(saveProjectButton == QMessageBox::Yes){
             bool saveSuccess = saveProject();
             // if failed to save, do nothing
@@ -2391,11 +2415,11 @@ void MedeaWindow::on_actionImportJenkinsNode()
 void MedeaWindow::on_actionNew_Project_triggered()
 {
     // ask user if they want to save current project before closing it
-   bool closed = closeProject();
+    bool closed = closeProject();
 
-   if(closed){
-       newProject();
-   }
+    if(closed){
+        newProject();
+    }
 }
 
 void MedeaWindow::on_actionCloseProject_triggered()
@@ -3011,15 +3035,43 @@ void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
 
 
 /**
+ * @brief MedeaWindow::displayLoadingStatus
+ * @param show
+ * @param displayText
+ */
+void MedeaWindow::displayLoadingStatus(bool show, QString displayText)
+{
+    if (loadingBox) {
+        if (show != loadingBox->isVisible()) {
+            loadingBox->setVisible(show);
+        }
+        if (show && !displayText.isEmpty()) {
+            displayText += "...";
+            if (loadingLabel->text() != displayText) {
+                loadingLabel->setText(displayText);
+                loadingLabel->setFixedWidth(loadingLabel->fontMetrics().width(loadingLabel->text()) + 20);
+                loadingBox->setFixedWidth(loadingMovieLabel->width() + loadingLabel->width());
+                //loadingBox->move((width() - loadingBox->width()) / 2, height() - loadingBox->height());
+            }
+        }
+    }
+}
+
+
+/**
  * @brief MedeaWindow::updateProgressStatus
  * This updates the progress bar values.
  */
 void MedeaWindow::updateProgressStatus(int value, QString status)
 {
-    // hide the notification bar and pause the timer before showing the progress bar
+    // hide the notification bar
+    if (notificationsBar->isVisible()) {
+        notificationsBar->hide();
+    }
+
+    // pause the notification timer before showing the progress bar
     if (notificationTimer->isActive()) {
         leftOverTime = notificationTimer->remainingTime();
-        notificationsBar->hide();
         notificationTimer->stop();
     }
 
@@ -3033,17 +3085,24 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
         progressLabel->setText(status + "...");
     }
 
-    if(value == -1){
+    if (value == -1) {
         progressBar->setMaximum(0);
         value = 0;
-    }else{
+    } else {
         progressBar->setMaximum(100);
         value = qMax(value, 0);
     }
     progressBar->setValue(value);
 
+    bool stillLoading = value != progressBar->maximum();
+    if (stillLoading && notificationsBar->isVisible()) {
+        notificationsBar->hide();
+    }
+
+    displayLoadingStatus(stillLoading, status);
+
     // reset the progress bar and re-display the notification bar if it was previously displayed
-    if (value == 100) {
+    if (!stillLoading) {
         progressLabel->hide();
         progressBar->hide();
         progressBar->reset();
