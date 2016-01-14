@@ -2402,7 +2402,11 @@ void MedeaWindow::on_actionCloseProject_triggered()
 
 void MedeaWindow::on_actionOpenProject_triggered()
 {
-    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, true, false);
+    QString filePath;
+    if(nodeView){
+        filePath = nodeView->getProjectFileName();
+    }
+    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, true, false, filePath);
 
     if(fileNames.size() == 1){
         openProject(fileNames.first());
@@ -3632,39 +3636,43 @@ void MedeaWindow::dialogRejected()
 
 QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool open, bool allowMultiple, QString fileName)
 {
+    QStringList files;
+
+    if(fileName == ""){
+        fileName = "/";
+    }
+
     if(!fileDialog){
         fileDialog = new QFileDialog(this);
         fileDialog->setWindowModality(Qt::WindowModal);
     }
-    QStringList files;
+
     if(fileDialog){
         fileDialog->setWindowTitle(title);
+        fileDialog->setNameFilter(fileString);
         fileDialog->setDirectory(DEFAULT_PATH);
+
         if(open){
             fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
-            fileDialog->setNameFilter(fileString);
-            //Clear the file name on open
-            fileDialog->setLabelText(QFileDialog::FileName, "");
+
             if(allowMultiple){
                 fileDialog->setFileMode(QFileDialog::ExistingFiles);
             }else{
                 fileDialog->setFileMode(QFileDialog::ExistingFile);
             }
-            fileDialog->setConfirmOverwrite(false);
 
+            fileDialog->setConfirmOverwrite(false);
+            fileDialog->selectFile(fileName);
 
             if (fileDialog->exec()){
                 files = fileDialog->selectedFiles();
             }
         }else{
             fileDialog->setAcceptMode(QFileDialog::AcceptSave);
-
-            fileDialog->setFileMode(QFileDialog::ExistingFile);
             fileDialog->setFileMode(QFileDialog::AnyFile);
 
-            fileDialog->setLabelText(QFileDialog::FileName, fileName);
             fileDialog->setConfirmOverwrite(true);
-            fileDialog->setNameFilter(fileString);
+            fileDialog->selectFile(fileName);
 
             if (fileDialog->exec()){
                 files = fileDialog->selectedFiles();
