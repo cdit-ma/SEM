@@ -14,6 +14,7 @@ EntityAdapter::EntityAdapter(Entity *entity): QObject(0)
     connect(entity, SIGNAL(dataChanged(QString,QVariant)), this, SIGNAL(dataChanged(QString,QVariant)));
     connect(entity, SIGNAL(dataAdded(QString,QVariant)), this, SIGNAL(dataAdded(QString,QVariant)));
     connect(entity, SIGNAL(dataRemoved(QString)), this, SIGNAL(dataRemoved(QString)));
+    connect(entity, SIGNAL(readOnlySet(int, bool)), this, SIGNAL(readOnlySet(int, bool)));
 }
 
 EntityAdapter::~EntityAdapter()
@@ -61,7 +62,11 @@ bool EntityAdapter::isDataProtected(QString keyName)
             if(data->isVisualData()){
                 return false;
             }else{
-                return data->isProtected();
+                if(_entity->isReadOnly()){
+                    return true;
+                }else{
+                    return data->isProtected();
+                }
             }
         }
     }

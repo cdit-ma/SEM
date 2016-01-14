@@ -29,7 +29,6 @@ public:
     QString toString();
     bool isValid();
 
-public slots:
     void addListener(QObject* object);
     void removeListener(QObject* object);
 
@@ -37,6 +36,8 @@ signals:
     void dataAdded(QString keyName, QVariant data);
     void dataChanged(QString keyName, QVariant data);
     void dataRemoved(QString keyName);
+
+    void readOnlySet(int ID, bool isReadOnly);
 private:
     void invalidate();
     bool _isValid;

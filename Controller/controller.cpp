@@ -923,8 +923,6 @@ void NewController::remove(QList<int> IDs)
 
 void NewController::setReadOnly(QList<int> IDs, bool readOnly)
 {
-    qCritical() << IDs;
-    qCritical() << "SETTING READ ONLY" << readOnly;
     QString exportTimeStamp = getTimeStamp();
 
     Key* readOnlyKey = constructKey("readOnly", QVariant::Bool, Entity::EK_ALL);

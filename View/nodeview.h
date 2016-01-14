@@ -220,6 +220,7 @@ signals:
     void view_Undo();
     void view_Redo();
 
+    void view_RefreshDock();
     void view_SetData(int, QString, QVariant);
     void view_ConstructData(GraphML*, QString);
     void view_DestructData(GraphML*, QString);
@@ -281,6 +282,8 @@ public slots:
     void clearState();
     void request_ImportSnippet();
     void request_ExportSnippet();
+
+    void entitySetReadOnly(int ID, bool isReadOnly);
 
     void hardwareDockOpened(bool opened);
     void showQuestion(MESSAGE_TYPE type, QString title, QString message, int ID);

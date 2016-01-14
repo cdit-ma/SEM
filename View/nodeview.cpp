@@ -1423,6 +1423,14 @@ void NodeView::request_ExportSnippet()
     }
 }
 
+void NodeView::entitySetReadOnly(int ID, bool isReadOnly)
+{
+    if(selectedIDs.contains(ID)){
+        //Only refresh dock if we have this item in selection.
+        emit view_RefreshDock();
+    }
+}
+
 
 /**
  * @brief NodeView::hardwareDockOpened
@@ -3240,6 +3248,8 @@ void NodeView::connectGraphMLItemToController(GraphMLItem *item)
     }
 
     if(isMainView()){
+        connect(item->getEntityAdapter(), SIGNAL(readOnlySet(int,bool)), this, SLOT(entitySetReadOnly(int,bool)));
+
         connect(item, SIGNAL(GraphMLItem_SetCentered(GraphMLItem*)), this, SLOT(centerItem(GraphMLItem*)));
         connect(item, SIGNAL(GraphMLItem_TriggerAction(QString)),  this, SLOT(triggerAction(QString)));
 
