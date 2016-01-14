@@ -434,13 +434,15 @@ void DefinitionsDockScrollArea::showChildrenOutEventPorts()
 {
     NodeItem* selectedItem = getCurrentNodeItem();
     if (getCurrentNodeID() == -1 || !selectedItem || !selectedItem->getNodeAdapter()) {
+        qWarning() << "DefinitionsDockScrollArea::showChildrenOutEventPorts - The selected entity is invalid.";
+        setDockEnabled(false);
         return;
     }
 
-
     int definitionID = selectedItem->getNodeAdapter()->getDefinitionID();
     if (definitionID == -1) {
-        qWarning() << "DefinitionsDockScrollArea::showChildrenOutEventPorts - Selected entity doesn't have a definition.";
+        qWarning() << "DefinitionsDockScrollArea::showChildrenOutEventPorts - The selected entity doesn't have a definition.";
+        setDockEnabled(false);
         return;
     }
 
@@ -453,7 +455,8 @@ void DefinitionsDockScrollArea::showChildrenOutEventPorts()
             }
         }
     } else {
-        setInfoText("Error: There is no dock item for the selected entity's definition.");
+        hideDockItems();
+        setInfoText("The selected entity's definition does not contain any OutEventPorts.");
     }
 }
 
