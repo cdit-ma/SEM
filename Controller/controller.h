@@ -513,6 +513,7 @@ private:
     bool CUT_USED;
     bool OPENING_PROJECT;
     bool IMPORTING_PROJECT;
+    bool PASTE_USED;
 
     int actionCount;
     QString currentAction;

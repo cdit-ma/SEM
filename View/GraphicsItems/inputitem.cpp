@@ -7,7 +7,7 @@
 #include "editabletextitem.h"
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
-#define TEXT_PADDING 4
+#define TEXT_PADDING 3
 
 InputItem::InputItem(GraphMLItem *parent, QString initialValue, bool isCombo):QGraphicsObject(parent)
 {

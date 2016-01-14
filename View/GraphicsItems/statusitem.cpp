@@ -5,8 +5,8 @@
 #include <QGraphicsSceneMouseEvent>
 
 #define RADIUS 10
-#define VERT_PADDING 2
-#define HORIZ_PADDING 2
+#define VERT_PADDING 4
+#define HORIZ_PADDING 4
 StatusItem::StatusItem(GraphMLItem *item):InputItem(item, "", false)
 {
     setHeight(RADIUS * 2);

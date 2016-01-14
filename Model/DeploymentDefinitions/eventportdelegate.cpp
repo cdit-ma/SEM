@@ -75,6 +75,13 @@ bool EventPortDelegate::canConnect_AssemblyEdge(Node *node)
             //Can't connect to an eventPortDelegate which has a different Aggregate
             return false;
         }
+
+        if(eventPortDelegate->getDepthToAspect() == getDepthToAspect()){
+            if(eventPortDelegate->isOutEventPortDelegate() == isOutEventPortDelegate()){
+            //Don't allow connection of delegates to the same type of delegate at the same depth.
+                return false;
+            }
+        }
     }
 
     if(eventPortInstance){
