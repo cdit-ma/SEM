@@ -1,4 +1,30 @@
-Version 19:
+Version 1.2.0.0:
+        New Features:
+            * Implemented Open/Save/Save As Functionality.
+            * Removed Export functionality (Use Save As)
+            * Implemented Parameters
+                ** Parameters can be connected to variables which match the correct type.
+            * Implemented Worker Definitions
+                ** Constructing Process (In Dock/Toolbar) now shows a list of Workers with their functions and parameters.
+            * Implemented Parameters with in Processes.
+            * Implemented ComponentAssembly replication.
+            * EventPortDelegates now require an IDL Aggregate to be selected on construction.
+            * Toolbar now shows OutEventPort Definitions for construction of OutEventPortImpl
+
+
+
+
+
+        GitHub Issues Fixed:
+            * #20
+            * #19
+            * #18
+            * #16
+            * #11
+            *
+
+
+Version 1.1.9.0:
 	New Features:
             * Enabled Vector/Vector Instances
             * Vector and VectorInstances icons now show what kind their children are.
@@ -23,7 +49,7 @@ TODO:
 * Remove double-click to expand for search item
 * Search resultls not clearing items on new project
 
-Version 18:
+Version 1.1.8.0:
     New Features:
         * Enabled WhileLoop entity
         * Added an async <data> to all InEventPort Nodes (Only works for TAO ASynchronous behaviour)
@@ -111,7 +137,7 @@ Version 18:
 		* Re-added centering of node items when double-clicked (hitbox for EntityItem is the bodyRect).
 		  ** Switched double-click and middle click of aspect buttons. (Double-click now turns on and center).
 
-Version 17:
+Version 1.1.7.0:
     New Features:
         * Migrated to QTv5.5.0
         * Clicking on a ComponentInstance/ComponentImpl dock item from the parts dock will forcefully open the definitions dock.
@@ -154,18 +180,18 @@ Version 17:
         * Reimplemented how/when the toolbar menus are populated - on menu item click instead of when toolbar is shown
         * Fixed toolbar menu and menu actions bugs related to mouse events
 
-Version 16:
+Version 1.1.6.0:
     * Implemented showing/hiding of connected HardwareNodes using the context toolbar. It can be used when one or more HardwareClusters are selected.
     * Fixed MEDEA to work on Ubuntu
     * Fixed all compile warnings on Ubuntu
 
-Version 15:
+Version 1.1.5.0:
     * Implemented a Menu on HardwareCluster entities to allow the hiding/showing of connected HardwareNode entities.
     * Fixed a bug where launching a Jenkins Job would leave the Progress Bar saying "Waiting on Jenkins CLI..." (Only occured on nodes on same network as Jenkins server)
     * Fixed an issue when Pressing "New Project" would load the saved Window Size/Position settings from the settings.ini file.
     * Implemented a Setting for toggling Debug mode logging to an external log file. Also fixed the location of the log file to be the application directory.
 
-Version 14:
+Version 1.1.4.0:
     * BlackboxInstance entities are now deployable to Hardware* entities
     * Implemented About Page
     * Fixed various bugs.

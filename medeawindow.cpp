@@ -141,11 +141,9 @@ MedeaWindow::~MedeaWindow()
         nodeView->deleteLater();
     }
 
-
     if(jenkinsManager){
         jenkinsManager->deleteLater();
     }
-
     // REMOVED TO STOP UBUNTU CRASH LOGGING
     //if(controllerThread){
     //    controllerThread->deleteLater();
@@ -155,7 +153,6 @@ MedeaWindow::~MedeaWindow()
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
 {
     setWindowModified(requiresSave);
-    file_saveProject->setEnabled(requiresSave);
 }
 
 
