@@ -398,6 +398,9 @@ private:
     QLabel* progressLabel;
     QString progressAction;
 
+    QLabel* loadingLabel;
+    QMovie* loadingMovie;
+
     QLabel* notificationsBar;
     QTimer* notificationTimer;
     QQueue<QString> notificationsQueue;

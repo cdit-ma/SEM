@@ -1284,6 +1284,7 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
         }
 
         // setup a menu for the replicate button to allow the user to enter the replicate count
+        /*
         if (actionName == TOOLBAR_REPLICATE) {
             QMenu* buttonMenu = new QMenu(this);
             QLineEdit* le = new QLineEdit(this);
@@ -1299,6 +1300,7 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
             // connect to the replicate slot in the view here
             //connect(le, SIGNAL(returnPressed()), ));
         }
+        */
 
         return true;
     }
