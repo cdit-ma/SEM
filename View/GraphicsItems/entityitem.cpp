@@ -1117,6 +1117,7 @@ void EntityItem::setVisibility(bool visible)
  */
 void EntityItem::dataChanged(QString keyName, QVariant data)
 {
+    qCritical() << keyName << data.toString();
         if(keyName == "x" || keyName == "y"){
             qreal dataValue = data.toReal();
             //If data is related to the position of the EntityItem

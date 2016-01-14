@@ -5186,8 +5186,6 @@ bool NewController::canImportSnippet(QList<int> selection)
 
 bool NewController::canSetReadOnly(QList<int> IDs)
 {
-    return false;
-    /*
     bool gotAnyNonReadOnly=false;
     foreach(int ID, IDs){
         Entity* entity = getGraphMLFromID(ID);
@@ -5197,13 +5195,10 @@ bool NewController::canSetReadOnly(QList<int> IDs)
         }
     }
     return gotAnyNonReadOnly;
-    */
 }
 
 bool NewController::canUnsetReadOnly(QList<int> IDs)
 {
-    return false;
-    /*
     bool gotAnyReadOnly=false;
     foreach(int ID, IDs){
         Entity* entity = getGraphMLFromID(ID);
@@ -5213,7 +5208,6 @@ bool NewController::canUnsetReadOnly(QList<int> IDs)
         }
     }
     return gotAnyReadOnly;
-    */
 }
 
 bool NewController::canUndo()
