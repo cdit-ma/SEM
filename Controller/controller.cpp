@@ -1275,7 +1275,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
 
         //Check if read only.
         if(parentNodeKind == "InterfaceDefinitions"){
-            //readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
+            readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
         }
 
         QString graphmlRepresentation;
