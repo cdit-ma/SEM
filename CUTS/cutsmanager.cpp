@@ -250,7 +250,7 @@ void CUTSManager::getCPPForComponent(QString graphmlPath, QString component)
 void CUTSManager::executeXMETransform(QString xmePath, QString outputFilePath)
 {
     QString tmpDir = getGraphmlPath(outputFilePath);
-    QString fileName = getGraphmlName(xmePath);
+    QString fileName = getProjectNameFromFile(xmePath);
     QString tmpXME = tmpDir + "/" + fileName + ".xme";
 
     //Copy a copy of the XME into temp
@@ -334,7 +334,6 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
     //Run preprocess generation on the graphml, this will be used as the input to all transforms.
     QString processedGraphmlPath = preProcessIDL(graphmlPath, outputPath);
 
-    qCritical() << "1";
 
     if(!isFileReadable(processedGraphmlPath)){
         emit executedXSLGeneration(false, "Preprocessing graphml document failed!");
@@ -347,7 +346,7 @@ void CUTSManager::processGraphml(QString graphmlPath, QString outputPath)
         return;
     }
 
-    modelName = getGraphmlName(processedGraphmlPath);
+    modelName = getProjectNameFromFile(processedGraphmlPath);
 
     //Construct a QXmlQuery object to inspect the graphml.
     QXmlQuery* query = new QXmlQuery();
@@ -878,7 +877,7 @@ void CUTSManager::queueIDLGeneration(QString graphmlPath, QStringList idls, QStr
  */
 void CUTSManager::queueDeploymentGeneration(QString graphmlPath, QStringList mpcFiles, QString outputPath)
 {
-    QString modelName = getGraphmlName(graphmlPath);
+    QString modelName = getProjectNameFromFile(graphmlPath);
 
     QStringList mwcParams;
     mwcParams << "FileList";
@@ -932,7 +931,7 @@ QString CUTSManager::preProcessIDL(QString inputFilePath, QString outputPath)
     QProcess* process = new QProcess();
     process->setWorkingDirectory(XSLTransformPath);
 
-    QString outFileName = outputPath + getGraphmlName(inputFilePath) + ".graphml";
+    QString outFileName = outputPath + getProjectNameFromFile(inputFilePath) + ".graphml";
 
     //Construct the arguments for the xsl transform
     QStringList arguments;
@@ -1028,11 +1027,57 @@ void CUTSManager::executeProcess(QString program, QStringList arguments, QString
     executingProcessCount++;
 }
 
+/*
 QString CUTSManager::getGraphmlName(QString filePath)
 {
     QFile file(filePath);
     QFileInfo fileInfo = QFileInfo(file);
     return fileInfo.baseName();
+}*/
+
+QString CUTSManager::getProjectNameFromFile(QString file)
+{
+    QString name="";
+    if(!isFileReadable(file)){
+        return name;
+    }
+
+    QFile graphmlFile(file);
+    if(!graphmlFile.open(QIODevice::ReadOnly)){
+        return name;
+    }
+
+    //Construct a QXmlQuery object to inspect the graphml.
+    QXmlQuery* query = new QXmlQuery();
+    //Bind the variable doc, to the path of the graphml file.
+    query->bindVariable("doc", &graphmlFile);
+
+    QHash<QString, QString> keys;
+
+    //Get the id and attr.name attributes of each <key> entities from the graphml
+    QXmlResultItems* keysXML = evaluateQuery2List(query, "doc($doc)//gml:graphml/gml:key[@for='node']");
+    QXmlItem keyXML = keysXML->next();
+
+    while(!keyXML.isNull()){
+        QString ID = evaluateQuery2String(query, "@id/string()", &keyXML);
+        QString name = evaluateQuery2String(query, "@attr.name/string()", &keyXML);
+        keys[name] = ID;
+        keyXML = keysXML->next();
+    }
+
+
+    //Check for TAO
+    //Get the label of each <node> entity of kind "Model"
+    QXmlResultItems* modelsXML = evaluateQuery2List(query, "doc($doc)//gml:node[gml:data[@key='" + keys["kind"] + "' and string()='Model']]");
+    QXmlItem modelXML = modelsXML->next();
+
+
+
+    while(!modelXML.isNull()){
+        name = evaluateQuery2String(query, "gml:data[@key='" + keys["label"] + "']/string()", &modelXML);
+        modelXML = modelsXML->next();
+    }
+    return name;
 }
 
 QString CUTSManager::getGraphmlPath(QString filePath)

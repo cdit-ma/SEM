@@ -94,6 +94,7 @@ public slots:
     virtual void setSelected(bool selected);
 
     virtual void dataChanged(QString keyName, QVariant Data) = 0;
+    virtual void dataRemoved(QString keyName);
 
     virtual void zoomChanged(qreal zoom);
 

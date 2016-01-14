@@ -959,12 +959,6 @@ QList<NodeItem *> NodeView::getConnectableNodeItems(int ID)
     foreach(int cID, IDs){
         NodeItem* entityItem = getEntityItemFromID(cID);
 
-        if(src && entityItem){
-            //Ignore edges between AggregateInstance and AggregateInstances in Dock
-            if(src->getNodeKind() == "AggregateInstance" && entityItem->getNodeKind() == "AggregateInstance"){
-                continue;
-            }
-        }
         if(entityItem){
             nodeItems.append(entityItem);
         }
@@ -1234,6 +1228,7 @@ void NodeView::actionFinished()
     updateActionsEnabledStates();
 
     viewMutex.unlock();
+    //update();
 }
 
 QPointF NodeView::getCenterOfScreenScenePos(QPoint mousePosition)
@@ -1755,6 +1750,7 @@ void NodeView::expandSelection(bool expand)
         update();
         emit view_updateProgressStatus(100);
         actionFinished();
+
     }
 
 }
@@ -1777,6 +1773,12 @@ void NodeView::controllerDestroyed()
 {
     disconnectController();
     resetViewState();
+
+    //Clear the toolbar menus
+    if(toolbar){
+        toolbar->clearMenu();
+    }
+
 }
 
 void NodeView::settingChanged(QString groupName, QString keyName, QVariant value)

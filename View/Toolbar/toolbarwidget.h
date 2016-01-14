@@ -23,6 +23,7 @@ public:
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
     void setupFunctionsList();
+    void clearMenu();
 
 public slots:
     void updateActionEnabledState(QString actionName, bool enabled);

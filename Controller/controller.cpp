@@ -28,6 +28,7 @@ NewController::NewController()
 
     logFile = 0;
 
+    PASTE_USED = false;
     IMPORTING_PROJECT = false;
     USE_LOGGING = false;
     UNDOING = false;
@@ -243,6 +244,11 @@ void NewController::loadWorkerDefinitions()
         foreach(QDir directory, workerDirectories){
             //Foreach *.worker.graphml file in the workerDefPath, load the graphml.
             foreach(QString fileName, directory.entryList(fileExtension)){
+                if(fileName == "VariableOperation.worker.graphml"){
+                    //Ignore VariableOperation
+                    continue;
+                }
+
                 QString importFileName = directory.absolutePath() + "/" + fileName;
 
                 QPair<bool, QString> data = readFile(importFileName);
@@ -872,9 +878,9 @@ void NewController::openProject(QString filePath, QString xmlData)
     bool result = _importGraphMLXML(xmlData, getModel());
     if(!result){
         emit controller_ActionProgressChanged(100);
-        controller_DisplayMessage(CRITICAL, "Import Error", "Cannot import document.", getModel()->getID());
+        controller_DisplayMessage(CRITICAL, "Open Error", "Cannot fully open document.", getModel()->getID());
         //Undo the failed load.
-        undoRedo(true);
+        //undoRedo(true);
     }
     setProjectFilePath(filePath);
 
@@ -1026,6 +1032,7 @@ bool NewController::_paste(int ID, QString xmlData, bool addAction)
         success = false;
     }else{
         if(isGraphMLValid(xmlData) && xmlData != ""){
+            PASTE_USED = true;
             if(addAction){
                 triggerAction("Pasting Selection.");
                 emit controller_ActionProgressChanged(0, "Pasting Selection");
@@ -1033,10 +1040,8 @@ bool NewController::_paste(int ID, QString xmlData, bool addAction)
 
             //Paste it into the current Selected Node,
             success = _importGraphMLXML(xmlData, parentNode, CUT_USED, true);
-            if(!success){
-
-            }
             CUT_USED = false;
+            PASTE_USED = false;
         }
     }
     return success;
@@ -1275,7 +1280,7 @@ QString NewController::_exportSnippet(QList<int> IDs)
 
         //Check if read only.
         if(parentNodeKind == "InterfaceDefinitions"){
-            //readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
+            readOnly = askQuestion(MESSAGE, "Export as Read-Only Snippet?", "Would you like to export the current selection as a read-only snippet?");
         }
 
         QString graphmlRepresentation;
@@ -1801,6 +1806,7 @@ Edge *NewController::_constructEdge(Node *source, Node *destination)
             source = destination;
             destination = temp;
         }
+
         Edge* edge = constructTypedEdge(source, destination, edgeToMake);
         return edge;
     }else{
@@ -4742,16 +4748,19 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                             //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
                             qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
                             emit controller_DisplayMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent->getID());
-                            return false;
                         }
                     }
                     node = newNode;
                     storeMD5 = true;
-					currentNodeData.clear();
+                    currentNodeData.clear();
                 }
 
-                //Set the currentParent to the Node Construced
-                parent = node;
+                if(node){
+                    //Set the currentParent to the Node Construced
+                    parent = node;
+                }else{
+                    parentDepth = 0;
+                }
 
                 //Navigate back to the correct parent.
                 while(parent && parentDepth > 0){
@@ -4766,44 +4775,45 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     }
                 }
 
+                if(node){
+                    //Add the new Node to the lookup table.
+                    nodeLookup[nodeID] = node;
 
-                //Add the new Node to the lookup table.
-                nodeLookup[nodeID] = node;
+                    if(readOnlyTag && originalID != -1){
+                        readOnlyLookup[originalID] = node->getID();
+                        reverseReadOnlyLookup[node->getID()] = originalID;
+                        originalID = -1;
 
-                if(readOnlyTag && originalID != -1){
-                    readOnlyLookup[originalID] = node->getID();
-                    reverseReadOnlyLookup[node->getID()] = originalID;
-                    originalID = -1;
+                        if(storeMD5){
+                            //If the parent of this item isn't read only, we need to add this item to the list of readOnlyIDs
+                            if(!node->getParentNode()->isReadOnly()){
+                                currentROID = node->getID();
+                                readOnlyIDs.append(currentROID);
+                            }
 
-                    if(storeMD5){
-                        //If the parent of this item isn't read only, we need to add this item to the list of readOnlyIDs
-                        if(!node->getParentNode()->isReadOnly()){
-                            currentROID = node->getID();
-                            readOnlyIDs.append(currentROID);
+                            readOnlyIDHashNeeded[currentROID].append(node->toMD5Hash());
                         }
 
-                        readOnlyIDHashNeeded[currentROID].append(node->toMD5Hash());
+                        //Locking Data
+                        foreach(Data* data, node->getData()){
+                            data->setProtected(true);
+                        }
+                        readOnlyTag = false;
                     }
 
-                    //Locking Data
-                    foreach(Data* data, node->getData()){
-                        data->setProtected(true);
+                    if(linkID){
+                        bool okay;
+                        int oldID = nodeID.toInt(&okay);
+                        if(okay){
+                            linkOldIDToID(oldID, node->getID());
+                        }
                     }
-                    readOnlyTag = false;
-                }
 
-                if(linkID){
-                    bool okay;
-                    int oldID = nodeID.toInt(&okay);
-                    if(okay){
-                        linkOldIDToID(oldID, node->getID());
+                    //If we have encountered a Graph object, we should point it to it's parent Node to allow links to Graph's
+                    if(graphID != ""){
+                        nodeLookup.insert(graphID, node);
+                        graphID = "";
                     }
-                }
-
-                //If we have encountered a Graph object, we should point it to it's parent Node to allow links to Graph's
-                if(graphID != ""){
-                    nodeLookup.insert(graphID, node);
-                    graphID = "";
                 }
             }
             //Set the current nodeID to equal the newly found NodeID.
@@ -5407,7 +5417,7 @@ QString NewController::getProcessName(Process *process)
 
 bool NewController::isUserAction()
 {
-    if(UNDOING || REDOING || OPENING_PROJECT || IMPORTING_PROJECT || INITIALIZING){
+    if(UNDOING || REDOING || OPENING_PROJECT || IMPORTING_PROJECT || INITIALIZING || PASTE_USED){
         return false;
     }else{
         return true;

@@ -423,13 +423,21 @@
 			<xsl:if test="not($varType = '')">
 				<xsl:value-of select="concat('this-&gt;', $varName, '_ = new ', $varType, ' ();&#xA;')" />
 			</xsl:if>
-			<!-- need to give initial values to vector or aggregate variables, assume one level only! will need a recursive template to get the full variable name -->
+			<!-- need to give initial values to aggregate variables with a recursive template to get the full variable name -->
 			<xsl:variable name="complexInitValues" select="$complexVar/descendant::*/gml:node/gml:data[@key=$transformNodeValueKey][text() != '']/.." />
 			<xsl:for-each select="$complexInitValues">
-				<xsl:variable name="complexInitVar" select="./gml:data[@key=$transformNodeLabelKey]/text()" />
+				<xsl:variable name="sourceDataNode" select="." />
+				<xsl:variable name="firstLevelAggregate" select="$complexVar/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'AggregateInstance' or text() = 'VectorInstance']/.." />
+				<xsl:call-template name="recurseParameter">
+					<xsl:with-param name="variableName" select="concat('this-&gt;', $varName, '_')"/>
+					<xsl:with-param name="firstLevelAggregate" select="$firstLevelAggregate"/>
+					<xsl:with-param name="sourceDataNode" select="$sourceDataNode" />
+					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
+				</xsl:call-template> 
+
 				<xsl:variable name="complexInitVal" select="./gml:data[@key=$transformNodeValueKey]/text()" />
 				<xsl:variable name="complexInitType" select="./gml:data[@key=$transformNodeTypeKey]/text()" />
-				<xsl:value-of select="concat('this-&gt;', $varName, '_-&gt;', $complexInitVar, ' = ')" />
+				<xsl:value-of select="' = '" />
 				<xsl:if test="$complexInitType = 'String' or $complexInitType = 'WideString'">
 					<xsl:value-of select="'CORBA::string_dup'" />
 				</xsl:if>
@@ -825,7 +833,7 @@
 				or $type = 'LongLongInteger' or $type = 'FloatNumber' or $type = 'DoubleNumber' or $type = 'LongDoubleNumber'" >
 				<xsl:value-of select="' = 0'" />
 			</xsl:when>
-			<xsl:otherwise> <!-- no value assigned when vector type -->
+			<xsl:otherwise> <!-- no value assigned when aggregate type -->
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
@@ -1223,7 +1231,8 @@
 				<xsl:variable name="inputTypeNodeId" select="/descendant::*/gml:edge[@source=$sourceDataId]/@target" />
 				<xsl:variable name="inputTypeNode" select="$interfaceDefs/descendant::*/gml:node[@id=$inputTypeNodeId]" />
 				<xsl:variable name="returnDataId" select="/descendant::*/gml:edge[@source=$returnParameter[1]/@id]/@target" />
-						
+				<xsl:variable name="returnDataNode" select="$behaviourDefs/descendant::*/gml:node[@id=$returnDataId]/." />
+				
 				<xsl:variable name="elementType" >
 					<xsl:choose>
 					<!-- return value for length must be ULong -->
@@ -1236,7 +1245,8 @@
 					</xsl:when> 
 					<!-- if return data is used, match type to linked object -->
 					<xsl:when test="$returnDataId and not($returnDataId = '')" >
-						<xsl:value-of select="$inputTypeNode/gml:graph/gml:node/gml:data[@key=$transformNodeTypeKey]/text()" />
+						<xsl:value-of select="$inputTypeNode/gml:graph/gml:node/gml:data[@key=$transformNodeTypeKey]/text()" /> 
+						<!-- "$returnDataNode/gml:data[@key=$transformNodeTypeKey]/text()" /> -->
 					</xsl:when>
 					<!-- if returnParameter has a type use that -->
 					<xsl:when test="not($returnParameter[1]/gml:data[@key=$transformNodeTypeKey]/text() = '')" >
@@ -1247,7 +1257,7 @@
 						<xsl:value-of select="'UnsignedLongInteger'" />
 					</xsl:otherwise>
 					</xsl:choose>
-				</xsl:variable>			
+				</xsl:variable>	
 			
 				<!-- Get first parameter, should be a vector -->
 				<xsl:variable name="param1">
@@ -1298,6 +1308,9 @@
 						<xsl:with-param name="type" select="$elementType"/>
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
+					<xsl:if test="$inputTypeNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey]/text() = 'AggregateInstance'" >
+						<xsl:value-of select="'_var'" />
+					</xsl:if>
 					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__')" />
 					<xsl:call-template name="MemberInitType">
 						<xsl:with-param name="type" select="$elementType"/>
@@ -1308,7 +1321,10 @@
 					<xsl:value-of select="'   ACE_DEBUG ((LM_ERROR, ACE_TEXT (&quot;VectorOperation index outside vector length\n&quot;) ));&#xA;'" />
 					<xsl:value-of select="'else {&#xA;   '" />
 					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = '  )" />
-					<!-- cast result to the appropriate type -->
+					<xsl:if test="$inputTypeNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey]/text() = 'AggregateInstance'" >
+						<xsl:value-of select="'new '" />
+					</xsl:if>
+					<!-- make result to the appropriate type -->
 					<xsl:value-of select="'('" />
 					<xsl:call-template name="MemberType">
 						<xsl:with-param name="type" select="$elementType"/>
@@ -1318,11 +1334,7 @@
 					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'CORBA::string_dup'" />
 					</xsl:if>
-					<xsl:value-of select="concat('(', $param1, '[')" />
-					<xsl:value-of select="'(CORBA::ULong) '" />
-<!--				<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
-					</xsl:if> -->
-					<xsl:value-of select="concat($param2, ']')" />
+					<xsl:value-of select="concat('(', $param1, '[ (CORBA::ULong) ', $param2, ' ]')" />
 					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'.in ()'" />
 					</xsl:if>
@@ -1335,11 +1347,7 @@
 					<xsl:value-of select="'   ACE_DEBUG ((LM_ERROR, ACE_TEXT (&quot;VectorOperation exceeds bounded size\n&quot;) ));&#xA;'" />
 					<xsl:value-of select="'else {&#xA;'" />
 					<xsl:value-of select="concat('   if (', $param2, '&gt;= ', $param1, $op, 'length() ) ', $param1, $op, 'length (', $param2, '+ 1);&#xA;' ) " />
-					<xsl:value-of select="concat('   ', $param1, '[')" />
-					<xsl:value-of select="'(CORBA::ULong) '" />
-<!--				<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
-					</xsl:if>	-->
-					<xsl:value-of select="concat($param2, '] = ' ) " />
+					<xsl:value-of select="concat('   ', $param1, '[ (CORBA::ULong) ', $param2, '] = ' ) " />
 					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'CORBA::string_dup'" />
 					</xsl:if>
@@ -1351,10 +1359,10 @@
 						<xsl:with-param name="type" select="$elementType"/>
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
-					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = '  )" />
+					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__'  )" />
 					<!-- cast result to the appropriate type -->
-					<xsl:value-of select="'('" />
-						<xsl:call-template name="MemberType">
+					<xsl:value-of select="' = ('" />
+					<xsl:call-template name="MemberType">
 						<xsl:with-param name="type" select="$elementType"/>
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
@@ -1366,6 +1374,9 @@
 						<xsl:with-param name="type" select="$elementType"/>
 						<xsl:with-param name="retn_type" select="'true'"/>
 					</xsl:call-template>
+					<xsl:if test="$inputTypeNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey]/text() = 'AggregateInstance'" >
+						<xsl:value-of select="'_var'" />
+					</xsl:if>
 					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__')" />
 					<xsl:call-template name="MemberInitType">
 						<xsl:with-param name="type" select="$elementType"/>
@@ -1376,7 +1387,10 @@
 					<xsl:value-of select="'   ACE_DEBUG ((LM_ERROR, ACE_TEXT (&quot;VectorOperation index outside vector length\n&quot;) ));&#xA;'" />
 					<xsl:value-of select="'else {&#xA;   '" />
 					<xsl:value-of select="concat(' __', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ = '  )" />
-					<!-- cast result to the appropriate type -->
+					<xsl:if test="$inputTypeNode/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey]/text() = 'AggregateInstance'" >
+						<xsl:value-of select="'new '" />
+					</xsl:if>
+					<!-- make result to the appropriate type -->
 					<xsl:value-of select="'('" />
 						<xsl:call-template name="MemberType">
 						<xsl:with-param name="type" select="$elementType"/>
@@ -1386,11 +1400,7 @@
 					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'CORBA::string_dup'" />
 					</xsl:if>
-					<xsl:value-of select="concat('(', $param1, '[')" />
-					<xsl:value-of select="'(CORBA::ULong) '" />
-<!--				<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
-					</xsl:if> -->
-					<xsl:value-of select="concat($param2, ']')" />
+					<xsl:value-of select="concat('(', $param1, '[ (CORBA::ULong) ', $param2, ']')" />
 					<xsl:if test="$elementType = 'String' or $elementType = 'WideString'">
 						<xsl:value-of select="'.in ()'" />
 					</xsl:if>
@@ -1489,6 +1499,11 @@
 					<xsl:value-of select="' = '" />
 					<xsl:value-of select="concat('__', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ ;&#xA;' )" />
 				</xsl:if>
+				<xsl:if test="$outputNode/../../gml:data[@key=$transformNodeKindKey]/text() = 'Variable'">
+					<xsl:value-of select="concat('this-&gt;', $outputNode/../../gml:data[@key=$transformNodeLabelKey]/text(), '_ ' )" />
+					<xsl:value-of select="' = '" />
+					<xsl:value-of select="concat('__', $returnParameter[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($returnParameter[1]), '__ ;&#xA;' )" />
+				</xsl:if>
 			</xsl:for-each>
 			<xsl:value-of select="'&#xA;'" />
 		</xsl:for-each>
@@ -1550,49 +1565,50 @@
 			<xsl:variable name="sourceDataEvent" select="$sourceDataNode/ancestor::*/gml:data[@key=$transformNodeKindKey][text() = 'InEventPortImpl']/.." />
 			<xsl:variable name="sourceDataVariable" select="$sourceDataNode/ancestor::*/gml:data[@key=$transformNodeKindKey][text() = 'Variable']/.." />
 
-			<xsl:choose>
-			<xsl:when test="$sourceDataId[1] and $sourceDataNodeKind = 'Variable'">
-				<xsl:value-of select="concat('this-&gt;', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_ ' )" />
-			</xsl:when>
+			<xsl:if test ="$sourceDataId[1]" >
+				<xsl:choose>
+				<xsl:when test="$sourceDataNodeKind = 'Variable'">
+					<xsl:value-of select="concat('this-&gt;', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_ ' )" />
+				</xsl:when>
 
-			<!-- ancestor is a Variable, so get data from variable using structured data --> 
-			<xsl:when test="$sourceDataId[1] and $sourceDataVariable[last()]">
-				<!-- event data form depends on the nested aggregates, nested levels accessed as part of structure -->
-				<xsl:variable name="firstLevelAggregate" select="$sourceDataVariable[last()]/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'AggregateInstance' or text() = 'VectorInstance']/.." />
-				<xsl:call-template name="recurseParameter">
-					<xsl:with-param name="variableName" select="concat($sourceDataVariable[last()]/gml:data[@key=$transformNodeLabelKey]/text(), '_')"/>
-					<xsl:with-param name="firstLevelAggregate" select="$firstLevelAggregate"/>
-					<xsl:with-param name="sourceDataNode" select="$sourceDataNode" />
-					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
-				</xsl:call-template> 
-			</xsl:when>
-			
-			<xsl:when test="$sourceDataId[1] and $sourceDataNodeKind = 'AttributeImpl'">
-				<xsl:value-of select="concat('this-&gt;', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text(), ' () ' )" />
-			</xsl:when>
+				<!-- ancestor is a Variable, so get data from variable using structured data --> 
+				<xsl:when test="$sourceDataVariable[last()]">
+					<!-- event data form depends on the nested aggregates, nested levels accessed as part of structure -->
+					<xsl:variable name="firstLevelAggregate" select="$sourceDataVariable[last()]/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'AggregateInstance' or text() = 'VectorInstance']/.." />
+					<xsl:call-template name="recurseParameter">
+						<xsl:with-param name="variableName" select="concat($sourceDataVariable[last()]/gml:data[@key=$transformNodeLabelKey]/text(), '_')"/>
+						<xsl:with-param name="firstLevelAggregate" select="$firstLevelAggregate"/>
+						<xsl:with-param name="sourceDataNode" select="$sourceDataNode" />
+						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
+					</xsl:call-template> 
+				</xsl:when>
+				
+				<xsl:when test="$sourceDataNodeKind = 'AttributeImpl'">
+					<xsl:value-of select="concat('this-&gt;', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text(), ' () ' )" />
+				</xsl:when>
 
-			<xsl:when test="$sourceDataId[1] and $sourceDataNodeKind = 'ReturnParameter'">
-				<xsl:value-of select="concat('__', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($sourceDataNode[1]), '__ ' )" />
-			</xsl:when>
-			
-			<!-- ancestor is an InEventPortImpl, so get data from event --> 
-			<xsl:when test="$sourceDataId[1] and $sourceDataEvent[last()]">
-				<!-- event data form depends on the nested aggregates, nested levels accessed as part of structure -->
-				<xsl:variable name="firstLevelAggregate" select="$sourceDataEvent[last()]/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'AggregateInstance' or text() = 'VectorInstance']/.." />
-				<xsl:call-template name="recurseParameter">
-					<xsl:with-param name="variableName" select="'ev'"/>
-					<xsl:with-param name="firstLevelAggregate" select="$firstLevelAggregate"/>
-					<xsl:with-param name="sourceDataNode" select="$sourceDataNode" />
-					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
-				</xsl:call-template> 
-			</xsl:when>
-
+				<xsl:when test="$sourceDataNodeKind = 'ReturnParameter'">
+					<xsl:value-of select="concat('__', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text(), '_', generate-id($sourceDataNode[1]), '__ ' )" />
+				</xsl:when>
+				
+				<!-- ancestor is an InEventPortImpl, so get data from event --> 
+				<xsl:when test="$sourceDataEvent[last()]">
+					<!-- event data form depends on the nested aggregates, nested levels accessed as part of structure -->
+					<xsl:variable name="firstLevelAggregate" select="$sourceDataEvent[last()]/gml:graph/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'AggregateInstance' or text() = 'VectorInstance']/.." />
+					<xsl:call-template name="recurseParameter">
+						<xsl:with-param name="variableName" select="'ev'"/>
+						<xsl:with-param name="firstLevelAggregate" select="$firstLevelAggregate"/>
+						<xsl:with-param name="sourceDataNode" select="$sourceDataNode" />
+						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
+					</xsl:call-template> 
+					<xsl:value-of select="' ()'" />
+				</xsl:when>
+				</xsl:choose>
+			</xsl:if>
 			<!-- if no link to data source exists, default to value provided -->
-			<xsl:otherwise>
+			<xsl:if test="not($sourceDataId[1])">
 				<xsl:value-of select="$inputParameter/gml:data[@key=$transformNodeValueKey]/text()" />
-			</xsl:otherwise>
-			</xsl:choose>
-
+			</xsl:if>
 	</xsl:template>
 	
 	<!-- For structured data need to recurse to add all levels of structre -->
@@ -1619,7 +1635,7 @@
 		</xsl:when>
 
 		<xsl:otherwise>
-			<xsl:value-of select="concat($variableName, '-&gt;', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text(), ' ()' )" />
+			<xsl:value-of select="concat( $variableName, '-&gt;', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text() )" />
 		</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
