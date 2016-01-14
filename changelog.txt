@@ -11,14 +11,8 @@ Version 1.2.0.0:
             * EventPortDelegates now require an IDL Aggregate to be selected on construction.
             * Toolbar now shows OutEventPort Definitions for construction of OutEventPortImpl
 
-
-        GitHub Issues Fixed:
-            * #20
-            * #19
-            * #18
-            * #16
-            * #11
-
+        GitHub Issues Resolved:
+            * 20, 19 ,18, 16, 11, 10, 9, 7, 6
 
 Version 1.1.9.0:
 	New Features:
