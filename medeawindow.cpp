@@ -131,23 +131,18 @@ MedeaWindow::~MedeaWindow()
 {
     if (appSettings) {
         saveSettings();
-        appSettings->deleteLater();
+        delete appSettings;
     }
 
-    if (controller) {
-        controller->deleteLater();
-    }
+    teardownProject();
+
     if (nodeView) {
-        nodeView->deleteLater();
+        delete nodeView;
     }
 
     if(jenkinsManager){
-        jenkinsManager->deleteLater();
+        delete jenkinsManager;
     }
-    // REMOVED TO STOP UBUNTU CRASH LOGGING
-    //if(controllerThread){
-    //    controllerThread->deleteLater();
-    //}
 }
 
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
@@ -1313,9 +1308,6 @@ void MedeaWindow::teardownProject()
     if (controller) {
         delete controller;
         controller = 0;
-    }
-    if (controllerThread) {
-        controllerThread->terminate();
         controllerThread = 0;
     }
 }
@@ -1331,6 +1323,8 @@ void MedeaWindow::setupProject()
             controllerThread = new QThread();
             controllerThread->start();
             controller->moveToThread(controllerThread);
+
+            connect(controller, SIGNAL(destroyed(QObject*)), controllerThread, SIGNAL(finished()));
         }
 
         connect(this, SIGNAL(window_ConnectViewAndSetupModel(NodeView*)), controller, SLOT(connectViewAndSetupModel(NodeView*)));
