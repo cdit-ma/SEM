@@ -2148,7 +2148,6 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     editableTypeKinds << "Variable" << "Member" << "Attribute";
 
     if(editableTypeKinds.contains(nodeKind)){
-        qCritical() << "SETTING TYPE";
         Data* typeData = new Data(typeKey, "String");
         typeData->setProtected(false);
         data.append(typeData);

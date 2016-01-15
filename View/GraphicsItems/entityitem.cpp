@@ -446,11 +446,6 @@ EntityItem *EntityItem::getParentEntityItem()
 }
 
 
-QList<EdgeItem *> EntityItem::getEdgeItems()
-{
-    return this->connections;
-}
-
 
 QRectF EntityItem::boundingRect() const
 {
@@ -505,20 +500,6 @@ QRectF EntityItem::expandedLabelRect() const
     return QRectF(QPointF(left, top), QPointF(right, top));
 }
 
-
-
-int EntityItem::getEdgeItemIndex(EdgeItem *item)
-{
-    return connections.indexOf(item);
-
-}
-
-int EntityItem::getEdgeItemCount()
-{
-    return connections.size();
-
-
-}
 
 /**
  * @brief EntityItem::gridRect Returns a QRectF which contains the local coordinates of where the Grid lines are to be drawn.
@@ -986,17 +967,6 @@ void EntityItem::updateDefinition(){
             }
         }
     }
-}
-
-void EntityItem::addEdgeItem(EdgeItem *line)
-{
-    connections.append(line);
-}
-
-
-void EntityItem::removeEdgeItem(EdgeItem *line)
-{
-    connections.removeAll(line);
 }
 
 

@@ -59,8 +59,8 @@ EdgeItem::EdgeItem(EdgeAdapter *edge, NodeItem *parent, EntityItem* s, EntityIte
     connect(destination, SIGNAL(GraphMLItem_SizeChanged()), this, SLOT(updateLine()));
 
     //Add the Edge Item to the source/destination.
-    source->addEdgeItem(this);
-    destination->addEdgeItem(this);
+    source->addEdge(this);
+    destination->addEdge(this);
 
     setupBrushes();
 
@@ -110,11 +110,11 @@ EdgeItem::~EdgeItem()
     if(getNodeView() && !getNodeView()->isTerminating()){
         if(source){
             source->removeVisibleParentForEdgeItem(getID());
-            source->removeEdgeItem(this);
+            source->removeEdge(getID());
         }
         if(destination){
             destination->removeVisibleParentForEdgeItem(getID());
-            destination->removeEdgeItem(this);
+            destination->removeEdge(getID());
         }
 
         if(visibleSource){

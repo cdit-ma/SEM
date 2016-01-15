@@ -1098,7 +1098,7 @@ void NodeView::constructNewView(int viewKind)
 
 
     QList<GraphMLItem*> constructList;
-    GraphMLItem* parent = centeredNode;
+    GraphMLItem* parent = centeredNode->getParent();
 
     while(parent){
         constructList.insert(0, parent);
@@ -1111,9 +1111,7 @@ void NodeView::constructNewView(int viewKind)
         newView->constructEntityItem(item->getEntityAdapter());
     }
 
-
-    constructList = centeredNode->getChildren();
-
+    constructList.append(centeredNode);
 
     while(!constructList.isEmpty()){
         GraphMLItem* item = constructList.takeFirst();
@@ -1122,14 +1120,15 @@ void NodeView::constructNewView(int viewKind)
         foreach(GraphMLItem* child, item->getChildren()){
             constructList.insert(0, child);
         }
+
+        if(item->isNodeItem()){
+            NodeItem* nodeItem = (NodeItem*) item;
+
+            foreach(GraphMLItem* edge, nodeItem->getEdges()){
+                constructList.append(edge);
+            }
+        }
     }
-
-    /*foreach(GraphMLItem* children, centeredNode->getChildren()){
-        EntityAdapter* entity = children->getEntityAdapter();
-        newView->constructEntityItem(entity);
-    }*/
-
-
 
     connect(this, SIGNAL(view_ClearSubViewAttributeTable()), newView, SIGNAL(view_ClearSubViewAttributeTable()));
     subWindow->show();
@@ -4499,6 +4498,11 @@ void NodeView::constructEntityItem(EntityAdapter *item)
     }
 
     if(controller && controller->isInModel(item->getID())){
+        if(getGraphMLItemFromID(item->getID())){
+            //Only construct each item once.
+            return;
+        }
+
         if(item->isNodeAdapter()){
             constructNodeItem((NodeAdapter*) item);
         }else if(item->isEdgeAdapter()){

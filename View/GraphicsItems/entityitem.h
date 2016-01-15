@@ -81,8 +81,6 @@ public:
     QRectF expandedBoundingRect() const;
     QRectF expandedLabelRect() const;
 
-    int getEdgeItemIndex(EdgeItem* item = 0);
-    int getEdgeItemCount();
 
     QRectF gridRect() const;
 
@@ -137,9 +135,7 @@ public:
     void setHidden(bool hidden);
 
 
-    void addEdgeItem(EdgeItem* line);
     void updateDefinition();
-    void removeEdgeItem(EdgeItem* line);
 
 
     void setCenterPos(QPointF pos);
@@ -417,7 +413,6 @@ private:
     QPointF previousScenePosition;
 
     //USED TO DETERMINE THE NUMBER OF EDGES.
-    QList<EdgeItem*> connections;
 
     QList<int> currentLeftEdgeIDs;
     QList<int> currentRightEdgeIDs;
