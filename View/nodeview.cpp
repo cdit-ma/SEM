@@ -72,6 +72,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
 
     IS_SUB_VIEW = subView;
 
+    setSceneRect(QRectF(0,0,10000,10000));
 
 
 
@@ -1227,7 +1228,6 @@ void NodeView::actionFinished()
     updateActionsEnabledStates();
 
     viewMutex.unlock();
-    //update();
 }
 
 QPointF NodeView::getCenterOfScreenScenePos(QPoint mousePosition)
@@ -1827,7 +1827,7 @@ void NodeView::modelReady()
     }
 
 
-    setSceneRect(QRectF(0,0,10000,10000));
+
 
     emit view_LoadSettings();
 
@@ -2392,6 +2392,17 @@ QPair<QString, bool> NodeView::getStatusDataKeyName(GraphMLItem *node)
 bool NodeView::isNodeVisuallyConnectable(NodeAdapter *node)
 {
     if(node){
+        if(node->isBehaviourAdapter()){
+            BehaviourNodeAdapter* bna = (BehaviourNodeAdapter*) node;
+            return bna->needsConnection();
+        }else{
+            QString nodeKind = node->getDataValue("kind").toString();
+            if(nodeKind.contains("EventPort")){
+                if(nodeKind.endsWith("Delegate")  || nodeKind.endsWith("Instance")){
+                    return true;
+                }
+            }
+        }
     }
     return false;
 }

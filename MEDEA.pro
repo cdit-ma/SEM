@@ -153,7 +153,8 @@ HEADERS += \
     Model/data.h \
     Controller/entityadapter.h \
     Controller/nodeadapter.h \
-    Controller/edgeadapter.h
+    Controller/edgeadapter.h \
+    Controller/behaviournodeadapter.h
 
 SOURCES += \
     Controller/controller.cpp \
@@ -270,7 +271,8 @@ SOURCES += \
     Model/data.cpp \
     Controller/entityadapter.cpp \
     Controller/nodeadapter.cpp \
-    Controller/edgeadapter.cpp
+    Controller/edgeadapter.cpp \
+    Controller/behaviournodeadapter.cpp
 
 FORMS +=
 

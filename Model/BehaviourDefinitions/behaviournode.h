@@ -57,6 +57,7 @@ public:
 
     bool needEdge();
 
+
     bool compareableTypes(Node* node);
 
 public:

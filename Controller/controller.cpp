@@ -1847,7 +1847,13 @@ void NewController::storeGraphMLInHash(Entity* item)
         EntityAdapter* entityAdapter = 0;
 
         if(item->isNode()){
-            entityAdapter = new NodeAdapter((Node*)item);
+            //Try for BehaviourNodeAdapter.
+            BehaviourNode* bn = dynamic_cast<BehaviourNode*>(item);
+            if(bn){
+                entityAdapter = new BehaviourNodeAdapter((BehaviourNode*)item);
+            }else{
+                entityAdapter = new NodeAdapter((Node*)item);
+            }
         }else if(item->isEdge()){
             entityAdapter = new EdgeAdapter((Edge*)item);
         }

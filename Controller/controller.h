@@ -3,6 +3,7 @@
 #include "../Model/model.h"
 #include "../Model/workerdefinitions.h"
 #include "entityadapter.h"
+#include "behaviournodeadapter.h"
 
 
 #include <QStack>

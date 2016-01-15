@@ -6,7 +6,8 @@
 class NodeAdapter : public EntityAdapter
 {
 public:
-    NodeAdapter(Node* node);
+    enum NODE_ADAPTER_KIND {NAK_NODE, NAK_BEHAVIOUR};
+    NodeAdapter(Node* node, NODE_ADAPTER_KIND nodeAdapterKind=NAK_NODE);
 
     bool isDefinition();
     bool isInstance();
@@ -17,8 +18,13 @@ public:
     int getDefinitionID();
     bool gotInstances();
     bool gotImpl();
+
     int childCount();
     int edgeCount();
+
+    bool isBehaviourAdapter();
+
+
 
     QList<int> getTreeIndex();
 
@@ -28,6 +34,9 @@ public:
 private:
     Node* _node;
     NODE_CLASS _nodeClass;
+    NODE_ADAPTER_KIND _nodeAdapterKind;
+protected:
+    Node* getNode();
 };
 
 #endif // NODEADAPTER_H

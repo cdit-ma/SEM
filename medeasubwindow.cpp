@@ -76,6 +76,7 @@ void MedeaSubWindow::updateDataTable()
 
 void MedeaSubWindow::updateWidgetMask(QWidget *widget, QWidget *maskWidget)
 {
+
     if (widget->mask().isEmpty()) {
         return;
     }

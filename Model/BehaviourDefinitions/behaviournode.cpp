@@ -252,7 +252,7 @@ bool BehaviourNode::gotRightWorkflowEdge()
 
 bool BehaviourNode::needEdge()
 {
-    return !(gotLeftWorkflowEdge() && gotRightWorkflowEdge());
+    return !(gotLeftWorkflowEdge() && gotRightWorkflowEdge() && gotDataInput() && gotDataOutput());
 }
 
 bool BehaviourNode::compareableTypes(Node *node)
