@@ -126,7 +126,6 @@ private:
     QToolButton* setReadOnlyButton;
     QToolButton* unsetReadOnlyButton;
 
-
     QToolButton* connectionsButton;
     QToolButton* popupNewWindow;
     QToolButton* displayedChildrenOptionButton;
@@ -146,6 +145,8 @@ private:
     ToolbarMenu* componentImplMenu;
     ToolbarMenu* componentInstMenu;
     ToolbarMenu* blackBoxInstMenu;
+    ToolbarMenu* inEventPortMenu;
+    ToolbarMenu* outEventPortMenu;
     ToolbarMenu* inEventPortDelegateMenu;
     ToolbarMenu* outEventPortDelegateMenu;
     ToolbarMenu* outEventPortImplMenu;
@@ -156,6 +157,8 @@ private:
     ToolbarMenuAction* componentImplAction;
     ToolbarMenuAction* componentInstAction;
     ToolbarMenuAction* blackBoxInstAction;
+    ToolbarMenuAction* inEventPortAction;
+    ToolbarMenuAction* outEventPortAction;
     ToolbarMenuAction* inEventPortDelegateAction;
     ToolbarMenuAction* outEventPortDelegateAction;
     ToolbarMenuAction* outEventPortImplAction;
@@ -166,6 +169,8 @@ private:
     ToolbarMenuAction* componentImplMenuInfoAction;
     ToolbarMenuAction* componentInstMenuInfoAction;
     ToolbarMenuAction* blackBoxMenuInfoAction;
+    ToolbarMenuAction* inEventPortMenuInfoAction;
+    ToolbarMenuAction* outEventPortMenuInfoAction;
     ToolbarMenuAction* inEventPortDelegateMenuInfoAction;
     ToolbarMenuAction* outEventPortDelegateMenuInfoAction;
     ToolbarMenuAction* outEventPortImplMenuInfoAction;
@@ -196,9 +201,11 @@ private:
     bool blackBoxMenuDone;
     bool componentImplMenuDone;
     bool componentInstMenuDone;
-    bool inEventPortInstMenuDone;
-    bool outEventPortInstMenuDone;
+    bool inEventPortMenuDone;
     bool outEventPortMenuDone;
+    bool inEventPortDelegateMenuDone;
+    bool outEventPortDelegateMenuDone;
+    bool outEventPortImplMenuDone;
     bool aggregateMenuDone;
     bool vectorMenuDone;
     bool addMenuDone;
@@ -209,6 +216,8 @@ private:
     QStringList adoptableNodeKinds;
     QList<NodeItem*> legalNodeItems;
     QList<EntityItem*> hardwareNodeItems;
+
+    QHash<ToolbarMenu*, bool> dynamicMenus;
 
     VIEW_THEME currentTheme;
 

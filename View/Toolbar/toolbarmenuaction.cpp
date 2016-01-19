@@ -49,6 +49,8 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, ToolbarMenuAction* parent_act
     nonDeletableKinds.append("ComponentInstance");
     nonDeletableKinds.append("ComponentImpl");
     nonDeletableKinds.append("BlackBoxInstance");
+    nonDeletableKinds.append("InEventPort");
+    nonDeletableKinds.append("OutEventPort");
     nonDeletableKinds.append("InEventPortDelegate");
     nonDeletableKinds.append("OutEventPortDelegate");
     nonDeletableKinds.append("OutEventPortImpl");
