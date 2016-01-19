@@ -53,6 +53,7 @@ signals:
     void dockItem_hiddenStateChanged();
 
 public slots:
+    void dataChanged(QString keyName, QVariant data);
     void clicked();
     void parentDockItemClicked(bool show);
 
