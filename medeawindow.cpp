@@ -3,7 +3,7 @@
 #include "GUI/codeeditor.h"
 #include "CUTS/GUI/cutsexecutionwidget.h"
 
-//Testing a new Include
+//Testing a new Include..
 #include <QDebug>
 
 #include <QFileDialog>
