@@ -598,8 +598,6 @@ void MedeaWindow::initialiseGUI()
     titleLayout->addWidget(projectName, 1);
     titleLayout->addSpacerItem(new QSpacerItem(10, 0));
     titleLayout->addWidget(closeProjectButton, 1);
-
-
     titleLayout->addStretch();
 
     menuTitleBox->setLayout(titleLayout);
@@ -1935,6 +1933,7 @@ void MedeaWindow::projectNameChanged(QString name)
 {
     if(projectName){
         projectName->setText(name);
+        //projectName->setFixedWidth(projectName->fontMetrics().width(name) + 10);
     }
 }
 

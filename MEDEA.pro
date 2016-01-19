@@ -9,7 +9,6 @@ QT       += xml
 QT       += gui
 QT       += widgets
 QT       += xmlpatterns
-QT       += multimedia
 
 
 VERSION = 1.2.0.0

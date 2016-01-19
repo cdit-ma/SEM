@@ -812,26 +812,6 @@ Edge* NewController::constructEdgeWithData(Node *src, Node *dst, QList<Data *> d
     return edge;
 }
 
-Edge* NewController::constructEdgeWithStrData(Node *src, Node *dst, QList<QStringList> attachedData, int previousID)
-{
-    Edge* edge = _constructEdge(src, dst);
-    if(edge){
-        _attachData(edge, attachedData, false);
-
-        if((UNDOING || REDOING) && previousID != -1){
-            linkOldIDToID(previousID, edge->getID());
-        }
-
-        constructEdgeGUI(edge);
-    }
-
-
-    if(!src->gotEdgeTo(dst)){
-        qCritical() << "Edge: " << src->toString() << " to " << dst->toString() << " not legal.";
-        qCritical() << "Edge not legal";
-    }
-    return edge;
-}
 
 void NewController::triggerAction(QString actionName)
 {
@@ -2170,7 +2150,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(middlewareData);
     }
     if(nodeKind == "PeriodicEvent"){
-        Key* frequencyKey = constructKey("frequency", QVariant::Double,Entity::EK_NODE);
+        Key* frequencyKey = constructKey("frequency", QVariant::Double, Entity::EK_NODE);
         Data* freqData = new Data(frequencyKey);
         freqData->setValue(1.0);
     }
@@ -2757,6 +2737,7 @@ bool NewController::reverseAction(EventAction action)
     }
     return success;
 }
+/*
 bool NewController::_attachData(Entity *item, QList<QStringList> dataList, bool addAction)
 {
     QList<Data*> graphMLDataList;
@@ -2795,7 +2776,7 @@ bool NewController::_attachData(Entity *item, QList<QStringList> dataList, bool 
     }
 
     return _attachData(item, graphMLDataList, addAction);
-}
+}*/
 
 bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAction)
 {
@@ -2804,10 +2785,10 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
     }
 
     foreach(Data* data, dataList){
-        Key* currentKey = data->getKey();
+        QString keyName = data->getKeyName();
         //Check if the item has a Data already.
-        if(item->getData(currentKey)){
-            setData(item, data->getKeyName(), data->getValue(), addAction);
+        if(item->getData(keyName)){
+            setData(item, keyName, data->getValue(), addAction);
         }else{
             attachData(item, data, addAction);
         }
