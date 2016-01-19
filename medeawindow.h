@@ -485,6 +485,9 @@ private:
     bool initialSettingsLoaded;
     bool maximizedSettingInitiallyChanged;
 
+
+    bool SAVE_WINDOW_SETTINGS;
+
     bool WINDOW_MAXIMIZED;
     bool WINDOW_FULLSCREEN;
 

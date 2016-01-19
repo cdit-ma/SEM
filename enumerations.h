@@ -19,6 +19,7 @@ enum EDGE_CLASS{EC_NONE};
 #define LOG_DEBUGGING "00-01-Log_Debug_Information"
 #define THREAD_LIMIT "00-02-Thread_Limit"
 #define CUTS_CONFIGURE_PATH "00-03-CUTS_Configure_Script_Path"
+#define DEFAULT_DIR_PATH "00-04-Default_Open_Path"
 
 #define WINDOW_SETTINGS "01-Window_Settings"
 #define WINDOW_X "01-01-Position_X"
@@ -27,7 +28,9 @@ enum EDGE_CLASS{EC_NONE};
 #define WINDOW_H "01-04-Height"
 #define WINDOW_MAX_STATE "01-05-Maximized"
 #define WINDOW_FULL_SCREEN "01-06-Full_Screen_Mode"
-#define DEFAULT_DIR_PATH "00-04-Default_Open_Path"
+#define WINDOW_STORE_SETTINGS "01-07-Save_Position_On_Exit"
+
+
 
 #define AUTO_CENTER_VIEW "02-01-Auto_Center_View"
 #define SELECT_ON_CREATION "02-02-Select_Entity_On_Creation"

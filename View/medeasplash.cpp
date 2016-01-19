@@ -8,18 +8,20 @@ MedeaSplash::MedeaSplash(QString label, QString subLabel, const QPixmap &pixmap)
     _label = label;
     _subLabel = subLabel;
 
-
-
     setWindowFlags(Qt::WindowStaysOnTopHint | Qt::SplashScreen);
 
-
     setupLayout();
+    layout()->activate();
 
+    QSize currentSize = size();
+    QPoint oldCenter = pos();
+    oldCenter.rx() -= currentSize.width() /2;
+    oldCenter.ry() -= currentSize.height() /2;
+    move(oldCenter);
 }
 
 void MedeaSplash::showMessage(const QString &message, int alignment, const QColor &color)
 {
-    qCritical() << "show MESSAGE";
     if(loadText){
         loadText->setText(message);
     }

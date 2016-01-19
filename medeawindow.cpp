@@ -69,15 +69,17 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QString version = "v";
     version += APP_VERSION;
     splashScreen = new MedeaSplash("MEDEA", version, QPixmap(":/Actions/MEDEA.png"));
-    splashScreen->show();
+    splashScreen->showMessage("Loading Settings");
 
-    splashScreen->showMessage("Initializing NodeView",Qt::AlignBottom | Qt::AlignHCenter);
+    splashScreen->show();
+    //Timeout for 2 seconds before hiding.
+    QTimer::singleShot(2000, splashScreen, SLOT(close()));
+
     setAcceptDrops(true);
 
     controllerThread = 0;
     controller = 0;
     nodeView = 0;
-
 
     WINDOW_MAXIMIZED = false;
     WINDOW_FULLSCREEN = false;
@@ -122,6 +124,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     resetView();
 
     // load the initial settings
+    //splashScreen->showMessage("Setting Up View");
     setupInitialSettings();
 
     //Load initial model.
@@ -148,6 +151,10 @@ MedeaWindow::~MedeaWindow()
     }
     if (nodeView) {
         nodeView->deleteLater();
+    }
+
+    if(splashScreen){
+        splashScreen->deleteLater();
     }
 
     if(jenkinsManager){
@@ -316,9 +323,13 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     int intValue = value.toInt(&isInt);
 
     if(keyName == WINDOW_X && isInt){
-        move(intValue, pos().y());
+        if(intValue >= 0){
+            move(intValue, pos().y());
+        }
     }else if(keyName == WINDOW_Y && isInt){
-        move(pos().x(), intValue);
+        if(intValue >= 0){
+            move(pos().x(), intValue);
+        }
     }else if(keyName == WINDOW_W && isInt){
         resize(intValue, size().height());
     }else if(keyName == WINDOW_H && isInt){
@@ -335,6 +346,8 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         }
     }else if(keyName == WINDOW_FULL_SCREEN){
         setFullscreenMode(boolValue);
+    }else if(keyName == WINDOW_STORE_SETTINGS){
+        SAVE_WINDOW_SETTINGS = boolValue;
     }else if(keyName == CUTS_CONFIGURE_PATH){
         if(cutsManager){
             cutsManager->setCUTSConfigScriptPath(strValue);
@@ -1845,30 +1858,6 @@ void MedeaWindow::setupApplication()
     QFont font = QFont(fontName);
     font.setPointSizeF(8.5);
     QApplication::setFont(font);
-
-    foreach (QScreen *screen, QGuiApplication::screens()) {
-            qDebug() << "Information for screen:" << screen->name();
-            qDebug() << "  Available geometry:" << screen->availableGeometry().x() << screen->availableGeometry().y() << screen->availableGeometry().width() << "x" << screen->availableGeometry().height();
-            qDebug() << "  Available size:" << screen->availableSize().width() << "x" << screen->availableSize().height();
-            qDebug() << "  Available virtual geometry:" << screen->availableVirtualGeometry().x() << screen->availableVirtualGeometry().y() << screen->availableVirtualGeometry().width() << "x" << screen->availableVirtualGeometry().height();
-            qDebug() << "  Available virtual size:" << screen->availableVirtualSize().width() << "x" << screen->availableVirtualSize().height();
-            qDebug() << "  Depth:" << screen->depth() << "bits";
-            qDebug() << "  Geometry:" << screen->geometry().x() << screen->geometry().y() << screen->geometry().width() << "x" << screen->geometry().height();
-            qDebug() << "  Logical DPI:" << screen->logicalDotsPerInch();
-            qDebug() << "  Logical DPI X:" << screen->logicalDotsPerInchX();
-            qDebug() << "  Logical DPI Y:" << screen->logicalDotsPerInchY();
-            qDebug() << "  Orientation:" << screen->orientation();
-            qDebug() << "  Physical DPI:" << screen->physicalDotsPerInch();
-            qDebug() << "  Physical DPI X:" << screen->physicalDotsPerInchX();
-            qDebug() << "  Physical DPI Y:" << screen->physicalDotsPerInchY();
-            qDebug() << "  Physical size:" << screen->physicalSize().width() << "x" << screen->physicalSize().height() << "mm";
-            qDebug() << "  Primary orientation:" << screen->primaryOrientation();
-            qDebug() << "  Refresh rate:" << screen->refreshRate() << "Hz";
-            qDebug() << "  Size:" << screen->size().width() << "x" << screen->size().height();
-            qDebug() << "  Virtual geometry:" << screen->virtualGeometry().x() << screen->virtualGeometry().y() << screen->virtualGeometry().width() << "x" << screen->virtualGeometry().height();
-            qDebug() << "  Virtual size:" << screen->virtualSize().width() << "x" << screen->virtualSize().height();
-        }
-
 }
 
 /**
@@ -2332,7 +2321,7 @@ void MedeaWindow::executeLocalNodeDeployment()
 void MedeaWindow::saveSettings()
 {
     //Write Settings on Quit.
-    if(appSettings){
+    if(appSettings && SAVE_WINDOW_SETTINGS){
         appSettings->setSetting(TOOLBAR_EXPANDED, toolbarButton->isChecked());
 
         appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
