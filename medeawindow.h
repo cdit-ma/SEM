@@ -27,6 +27,11 @@
 #include <QProgressDialog>
 #include <QTemporaryFile>
 
+#include <QGuiApplication>
+#include <QScreen>
+#include <QDebug>
+
+
 #include <QXmlQuery>
 #include <QXmlResultItems>
 
