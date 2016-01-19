@@ -658,7 +658,12 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
         //Only allow construction of
         if(kind == "InputParameter"){
             Node* matchingParameter = 0;
-            foreach(Node* child, parentNode->getChildrenOfKind("InputParameter", 0)){
+
+            QList<Node*> inputParameters = parentNode->getChildrenOfKind("InputParamter", 0);
+
+
+            //Look for matching variables.
+            foreach(Node* child, inputParameters){
                 QString label = child->getDataValue("label").toString();
                 QString type = child->getDataValue("type").toString();
                 if(label == "parameter" && type == "WE_UTE_VariableArguments"){
@@ -677,6 +682,9 @@ void NewController::constructNode(int parentID, QString kind, QPointF centerPoin
                     }
                 }
             }else{
+                if(inputParameters.isEmpty()){
+
+                }
                 //If we don't have a matching parameter.
                 ignore = true;
             }

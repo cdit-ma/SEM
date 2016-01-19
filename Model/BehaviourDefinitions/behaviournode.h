@@ -13,6 +13,7 @@ class BehaviourNode : public Node
     Q_OBJECT
 public:
     BehaviourNode(Node::NODE_TYPE type = NT_NODE);
+    bool requiresParameters();
 
     void setIsWorkflowStart(bool start);
     void setIsWorkflowEnd(bool end);
