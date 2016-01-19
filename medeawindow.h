@@ -49,6 +49,7 @@
 #include "View/Dock/functionsdockscrollarea.h"
 
 #include "View/Validate/validatedialog.h"
+#include "View/medeasplash.h"
 
 #include "CUTS/cutsmanager.h"
 
@@ -501,6 +502,8 @@ private:
     bool validate_TempExport;
     QString validation_report_path;
     QString componentName_CPPExport;
+
+    MedeaSplash* splashScreen;
 
     // QWidget interface
 protected:

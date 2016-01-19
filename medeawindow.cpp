@@ -18,11 +18,13 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QTemporaryFile>
+#include <QSplashScreen>
 #include <QPicture>
 #include "GUI/actionbutton.h"
 #include "GUI/shortcutdialog.h"
 #include <QToolButton>
 #include <QToolBar>
+#include "View/medeasplash.h"
 
 #define THREADING true
 
@@ -63,6 +65,13 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
     setupApplication();
+
+    QString version = "v";
+    version += APP_VERSION;
+    splashScreen = new MedeaSplash("MEDEA", version, QPixmap(":/Actions/MEDEA.png"));
+    splashScreen->show();
+
+    splashScreen->showMessage("Initializing NodeView",Qt::AlignBottom | Qt::AlignHCenter);
     setAcceptDrops(true);
 
     controllerThread = 0;
@@ -1836,6 +1845,8 @@ void MedeaWindow::setupApplication()
     QFont font = QFont(fontName);
     font.setPointSizeF(8.5);
     QApplication::setFont(font);
+
+    qCritical() << QApplication::desktop()->devicePixelRatio();
 }
 
 /**
