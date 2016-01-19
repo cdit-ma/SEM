@@ -52,11 +52,7 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
         highlightColor = "rgba(90,150,200,210)";
 
         if (nodeItem->getNodeAdapter()) {
-            //TODO
-            //Data* label = nodeItem->getNodeAdapter()->getData("label");
-            //if (label) {
-            //    connect(label, SIGNAL(valueChanged(QString)), this, SLOT(labelChanged(QString)));
-            //}
+            connect(nodeItem->getNodeAdapter(), SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
         }
 
         if (nodeItem->isEntityItem()) {
@@ -296,6 +292,13 @@ bool DockNodeItem::isDockItemLabel()
 bool DockNodeItem::isExpanded()
 {
     return expanded;
+}
+
+void DockNodeItem::dataChanged(QString keyName, QVariant data)
+{
+    if(keyName == "label"){
+        labelChanged(data.toString());
+    }
 }
 
 

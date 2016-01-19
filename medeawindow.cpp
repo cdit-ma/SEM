@@ -115,8 +115,10 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     // load the initial settings
     setupInitialSettings();
 
-    //show();
-
+    //Load initial model.
+    if(loadLaunchedFile){
+        openProject(launchFilePathArg);
+    }
 
     initialSettingsLoaded = true;
 }
@@ -139,11 +141,9 @@ MedeaWindow::~MedeaWindow()
         nodeView->deleteLater();
     }
 
-
     if(jenkinsManager){
         jenkinsManager->deleteLater();
     }
-
     // REMOVED TO STOP UBUNTU CRASH LOGGING
     //if(controllerThread){
     //    controllerThread->deleteLater();
@@ -153,7 +153,6 @@ MedeaWindow::~MedeaWindow()
 void MedeaWindow::projectRequiresSaving(bool requiresSave)
 {
     setWindowModified(requiresSave);
-    file_saveProject->setEnabled(requiresSave);
 }
 
 
@@ -234,9 +233,7 @@ void MedeaWindow::setViewWidgetsEnabled(bool enable)
 
     //setApplicationEnabled(enable);
 
-    emit window_SetViewVisible(enable);
-
-
+    //emit window_SetViewVisible(enable);
 }
 
 
@@ -253,7 +250,8 @@ void MedeaWindow::modelReady()
 
     // re-enable the view widgets and window
     setViewWidgetsEnabled(true);
-    setApplicationEnabled(true);
+    //setApplicationEnabled(true);
+
 
     //Load loadLaunchedFile
     if(loadLaunchedFile){
@@ -261,10 +259,6 @@ void MedeaWindow::modelReady()
         files << launchFilePathArg;
         importProjects(files);
         loadLaunchedFile = false;
-    }
-
-    if(nodeView){
-        nodeView->fitToScreen();
     }
 
 }
@@ -276,6 +270,8 @@ void MedeaWindow::modelDisconnected()
 
     //Clear the Docks
     emit window_clearDocks();
+
+    //Clear toolbar
 }
 
 
@@ -483,7 +479,7 @@ void MedeaWindow::initialiseGUI()
     loadingBox = new QGroupBox(this);
     loadingLabel = new QLabel("Loading...", this);
     loadingMovieLabel = new QLabel(this);
-    loadingMovie = new QMovie(":/Actions/Loading.gif");
+    QMovie* loadingMovie = new QMovie(":/Actions/Loading.gif");
 
     loadingLabel->setStyleSheet(/*"font-weight: bold;*/ "font: 14px; color: black;");
     loadingLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
@@ -571,7 +567,7 @@ void MedeaWindow::initialiseGUI()
     progressLayout->addWidget(loadingBox, 1, Qt::AlignHCenter);
 
     // setup and add dataTable/dataTableBox widget/layout
-    dataTable->setItemDelegateForColumn(2, delegate);
+    dataTable->setItemDelegateForColumn(1, delegate);
     dataTable->setFixedWidth(rightPanelWidth + 5);
     dataTable->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     dataTable->setFont(guiFont);
@@ -632,7 +628,6 @@ void MedeaWindow::initialiseGUI()
     titleLayout->addWidget(projectName);
     titleLayout->addSpacerItem(new QSpacerItem(10, 0));
     titleLayout->addWidget(closeProjectButton);
-
     titleLayout->addStretch();
 
     menuTitleBox->setLayout(titleLayout);
@@ -1312,6 +1307,7 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
         }
 
         // setup a menu for the replicate button to allow the user to enter the replicate count
+        /*
         if (actionName == TOOLBAR_REPLICATE) {
             QMenu* buttonMenu = new QMenu(this);
             QLineEdit* le = new QLineEdit(this);
@@ -1327,6 +1323,7 @@ bool MedeaWindow::constructToolbarButton(QToolBar* toolbar, QAction *action, QSt
             // connect to the replicate slot in the view here
             //connect(le, SIGNAL(returnPressed()), ));
         }
+        */
 
         return true;
     }
@@ -1454,7 +1451,6 @@ void MedeaWindow::resetView()
  */
 void MedeaWindow::newProject()
 {
-    setApplicationEnabled(false);
     progressAction = "Setting up New Project";
 
     setupProject();
@@ -1625,7 +1621,6 @@ void MedeaWindow::makeConnections()
     connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
     connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
 
-    connect(nodeView, SIGNAL(view_ExportedSnippet(QString,QString)), this, SLOT(writeExportedSnippet(QString,QString)));
 
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
 
@@ -1782,7 +1777,7 @@ bool MedeaWindow::saveProject(bool saveAs)
         }
 
         if(saveAs){
-            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, false);
+            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, false, false, filePath);
 
             if(files.size() != 1){
                 return false;
@@ -1967,6 +1962,7 @@ void MedeaWindow::projectNameChanged(QString name)
 {
     if(projectName){
         projectName->setText(name);
+        //projectName->setFixedWidth(projectName->fontMetrics().width(name) + 10);
     }
 }
 
@@ -2432,7 +2428,11 @@ void MedeaWindow::on_actionCloseProject_triggered()
 
 void MedeaWindow::on_actionOpenProject_triggered()
 {
-    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, true, false);
+    QString filePath;
+    if(nodeView){
+        filePath = nodeView->getProjectFileName();
+    }
+    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, true, false, filePath);
 
     if(fileNames.size() == 1){
         openProject(fileNames.first());
@@ -2547,53 +2547,6 @@ void MedeaWindow::on_validationItem_clicked(int ID)
     nodeView->selectAndCenterItem(ID);
 }
 
-
-
-/**
- * @brief MedeaWindow::writeExportedSnippet
- * @param parentName
- * @param snippetXMLData
- */
-void MedeaWindow::writeExportedSnippet(QString parentName, QString snippetXMLData)
-{
-    try {
-        //Try and Open File.
-
-        QStringList files = fileSelector("Export " + parentName+ ".snippet", "GraphML " + parentName + " Snippet (*." + parentName+ ".snippet)", false);
-
-        if(files.size() != 1){
-            return;
-        }
-        QString exportName = files.first();
-
-        if (exportName == "") {
-            return;
-        }
-
-        if(!exportName.toLower().endsWith(".snippet")){
-            return;
-        }
-
-        QFile file(exportName);
-        bool fileOpened = file.open(QIODevice::WriteOnly | QIODevice::Text);
-
-        if(!fileOpened){
-            QMessageBox::critical(this, "File Error", "Unable to open file: '" + exportName + "'! Check permissions and try again.", QMessageBox::Ok);
-            return;
-        }
-
-        //Create stream to write the data.
-        QTextStream out(&file);
-        out << snippetXMLData;
-        file.close();
-
-        //QMessageBox::information(this, "Successfully Exported Snippit", "GraphML documented successfully exported to: '" + exportName +"'!", QMessageBox::Ok);
-        displayNotification("Successfully exported GraphML Snippet document.");
-
-    }catch(...){
-        QMessageBox::critical(this, "Exporting Error", "Unknown Error!", QMessageBox::Ok);
-    }
-}
 
 
 /**
@@ -3742,39 +3695,45 @@ void MedeaWindow::dialogRejected()
     popupMultiLine->close();
 }
 
-QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool open, bool allowMultiple)
+QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool open, bool allowMultiple, QString fileName)
 {
+    QStringList files;
+
+    if(fileName == ""){
+        fileName = "/";
+    }
+
     if(!fileDialog){
         fileDialog = new QFileDialog(this);
         fileDialog->setWindowModality(Qt::WindowModal);
     }
-    QStringList files;
+
     if(fileDialog){
         fileDialog->setWindowTitle(title);
+        fileDialog->setNameFilter(fileString);
         fileDialog->setDirectory(DEFAULT_PATH);
+
         if(open){
             fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
-            fileDialog->setNameFilter(fileString);
-            //Clear the file name on open
-            fileDialog->setLabelText(QFileDialog::FileName, "");
+
             if(allowMultiple){
                 fileDialog->setFileMode(QFileDialog::ExistingFiles);
             }else{
                 fileDialog->setFileMode(QFileDialog::ExistingFile);
             }
-            fileDialog->setConfirmOverwrite(false);
 
+            fileDialog->setConfirmOverwrite(false);
+            fileDialog->selectFile(fileName);
 
             if (fileDialog->exec()){
                 files = fileDialog->selectedFiles();
             }
         }else{
             fileDialog->setAcceptMode(QFileDialog::AcceptSave);
-
-            fileDialog->setFileMode(QFileDialog::ExistingFile);
             fileDialog->setFileMode(QFileDialog::AnyFile);
+
             fileDialog->setConfirmOverwrite(true);
-            fileDialog->setNameFilter(fileString);
+            fileDialog->selectFile(fileName);
 
             if (fileDialog->exec()){
                 files = fileDialog->selectedFiles();

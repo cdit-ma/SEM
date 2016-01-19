@@ -103,7 +103,8 @@ private:
 
     QProcessEnvironment getEnvFromScript(QString scriptPath);
 
-    QString getGraphmlName(QString file);
+    //QString getGraphmlName(QString file);
+    QString getProjectNameFromFile(QString file);
     QString getGraphmlPath(QString filePath);
 
 

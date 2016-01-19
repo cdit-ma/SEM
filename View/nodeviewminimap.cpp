@@ -20,6 +20,7 @@
 NodeViewMinimap::NodeViewMinimap(QObject*)
 {
     isPanning = false;
+    drawRect = isEnabled();
     setMouseTracking(true);
     setDragMode(NoDrag);
 
@@ -100,26 +101,34 @@ void NodeViewMinimap::drawForeground(QPainter *painter, const QRectF &rect)
 {
     // this darkens the area in the scene that's not currently visualised by the view
     // it also still draws a rectangle representing what is currently shown in the view
-    QPainterPath path, viewPath;
-    path.addRect(rect);
-    viewPath.addRect(viewportRect);
-    path -= viewPath;
+    if(drawRect){
+        QPainterPath path, viewPath;
+        path.addRect(rect);
+        viewPath.addRect(viewportRect);
+        path -= viewPath;
 
-    QBrush brush(QColor(0,0,0,100));
-    painter->setBrush(brush);
-    painter->setPen(Qt::NoPen);
-    painter->drawPath(path);
+        QBrush brush(QColor(0,0,0,100));
+        painter->setBrush(brush);
+        painter->setPen(Qt::NoPen);
+        painter->drawPath(path);
 
-    QPen pen(Qt::white);
-    if (isPanning) {
-        pen.setColor(Qt::blue);
+        QPen pen(Qt::white);
+        if (isPanning) {
+            pen.setColor(Qt::blue);
+        }
+
+        //pen.setWidth(LINEWIDTH);
+        pen.setWidth(rect.height()/100);
+        painter->setPen(pen);
+        painter->setBrush(Qt::NoBrush);
+        painter->drawRect(viewportRect);
     }
+}
 
-    //pen.setWidth(LINEWIDTH);
-    pen.setWidth(rect.height()/100);
-    painter->setPen(pen);
-    painter->setBrush(Qt::NoBrush);
-    painter->drawRect(viewportRect);
+void NodeViewMinimap::setEnabled(bool enabled)
+{
+    drawRect = enabled;
+    QGraphicsView::setEnabled(true);
 }
 
 

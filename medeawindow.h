@@ -169,8 +169,6 @@ private slots:
     void on_searchResultItem_clicked(int ID);
     void on_validationItem_clicked(int ID);
 
-    void writeExportedSnippet(QString parentName, QString snippetXMLData);
-
     void importSnippet(QString snippetType = "");
     void exportSnippet(QString snippetType = "");
 
@@ -214,7 +212,7 @@ private slots:
 
     void dialogRejected();
 
-    QStringList fileSelector(QString title, QString fileString, bool open, bool allowMultiple=true);
+    QStringList fileSelector(QString title, QString fileString, bool open, bool allowMultiple=true, QString fileName = "");
 
 protected:
     void closeEvent(QCloseEvent*);
@@ -403,7 +401,6 @@ private:
     QGroupBox* loadingBox;
     QLabel* loadingLabel;
     QLabel* loadingMovieLabel;
-    QMovie* loadingMovie;
 
     QLabel* notificationsBar;
     QTimer* notificationTimer;

@@ -103,6 +103,7 @@ NodeView::NodeView(bool subView, QWidget *parent):QGraphicsView(parent)
     eventFromEdgeItem = false;
 
 
+    visibleViewRect = viewport()->rect();
 
     MINIMAP_EVENT = false;
 
@@ -187,6 +188,7 @@ void NodeView::setController(NewController *c)
 {
     controller = c;
     if(controller){
+        setNoModelTextVisible(false);
         connect(controller, SIGNAL(destroyed(QObject*)), this, SLOT(controllerDestroyed()));
     }
 }
@@ -338,6 +340,8 @@ NodeView::~NodeView()
     //Clear the current Selected Attribute Model so that the GUI doesn't crash.
     setAttributeModel(0, true);
 
+    delete backgroundText;
+
     if(parentNodeView && !parentNodeView->isTerminating()){
         parentNodeView->removeSubView(this);
     }
@@ -438,6 +442,7 @@ void NodeView::centerRect(QRectF rect, double padding, bool addToMap)
     setTransform(QTransform());
     scale(newScale, newScale);
 
+
     // center the view on rect's original center
     centerViewOn(rectCenter + sceneOffset);
 
@@ -511,7 +516,7 @@ QPointF NodeView::getModelScenePos()
     if (getModelItem()) {
         return getModelItem()->scenePos();
     }
-    qWarning() << "NodeView::getModelScenePos - There is no model item.";
+    //qWarning() << "NodeView::getModelScenePos - There is no model item.";
     return QPointF();
 }
 
@@ -954,12 +959,6 @@ QList<NodeItem *> NodeView::getConnectableNodeItems(int ID)
     foreach(int cID, IDs){
         NodeItem* entityItem = getEntityItemFromID(cID);
 
-        if(src && entityItem){
-            //Ignore edges between AggregateInstance and AggregateInstances in Dock
-            if(src->getNodeKind() == "AggregateInstance" && entityItem->getNodeKind() == "AggregateInstance"){
-                continue;
-            }
-        }
         if(entityItem){
             nodeItems.append(entityItem);
         }
@@ -1229,6 +1228,7 @@ void NodeView::actionFinished()
     updateActionsEnabledStates();
 
     viewMutex.unlock();
+    //update();
 }
 
 QPointF NodeView::getCenterOfScreenScenePos(QPoint mousePosition)
@@ -1750,6 +1750,7 @@ void NodeView::expandSelection(bool expand)
         update();
         emit view_updateProgressStatus(100);
         actionFinished();
+
     }
 
 }
@@ -1772,6 +1773,12 @@ void NodeView::controllerDestroyed()
 {
     disconnectController();
     resetViewState();
+
+    //Clear the toolbar menus
+    if(toolbar){
+        toolbar->clearMenu();
+    }
+
 }
 
 void NodeView::settingChanged(QString groupName, QString keyName, QVariant value)
@@ -1806,7 +1813,7 @@ void NodeView::settingChanged(QString groupName, QString keyName, QVariant value
 
 void NodeView::modelReady()
 {
-     setNoModelTextVisible(false);
+    setNoModelTextVisible(false);
     //Do initializing here!
     if(toolbar){
         toolbar->setupFunctionsList();
@@ -4964,14 +4971,17 @@ void NodeView::constructEdgeItem(EdgeAdapter *edge)
         //We have valid GUI elements for both ends of this edge.
         bool constructEdge = true;
 
-        if(edgeClass == Edge::EC_DEFINITION){
+        switch(edgeClass){
+        case Edge::EC_AGGREGATE:
+            constructEdge = false;
+            break;
+        case Edge::EC_DEFINITION:
             srcGUI->updateDefinition();
             definitionIDs[edge->getID()] = srcID;
             constructEdge = false;
-        }
-
-        if(edgeClass == Edge::EC_ASSEMBLY){
-            constructEdge = true;
+            break;
+        default:
+            break;
         }
 
         if(!constructEdge){

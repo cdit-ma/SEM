@@ -433,7 +433,6 @@ bool BehaviourNode::canConnect_DataEdge(Node *node)
             //Can't allow connections into children of InEventPortImpl
             return false;
         }else if(nodeParent->isAspect()){
-            //If we get to an Aspect, return.
             break;
         }
         nodeParent = nodeParent->getParentNode();

@@ -295,7 +295,6 @@ private:
 
     Edge* _constructEdge(Node* source, Node* destination);
     Edge* constructEdgeWithData(Node* source, Node* destination, QList<Data*> data = QList<Data*>(), int previousID=-1);
-    Edge* constructEdgeWithStrData(Node* source, Node* destination, QList<QStringList> data = QList<QStringList>(), int previousID=-1);
 
     //Stores/Gets/Removes items/IDs from the GraphML Hash
     void storeGraphMLInHash(Entity*item);
@@ -394,7 +393,7 @@ private:
 
     //Attach Data('s) to the GraphML item.
     bool _attachData(Entity* item, Data* data, bool addAction = true);
-    bool _attachData(Entity* item, QList<QStringList> dataList, bool addAction = true);
+    //bool _attachData(Entity* item, QList<QStringList> dataList, bool addAction = true);
     bool _attachData(Entity* item, QList<Data*> dataList, bool addAction = true);
     bool _attachData(Entity *item, QString keyName, QVariant value, bool addAction = true);
     
@@ -513,6 +512,7 @@ private:
     bool CUT_USED;
     bool OPENING_PROJECT;
     bool IMPORTING_PROJECT;
+    bool PASTE_USED;
 
     int actionCount;
     QString currentAction;

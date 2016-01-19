@@ -63,12 +63,12 @@ void ComboBoxTableDelegate::updateValue()
 }
 
 
-Data *ComboBoxTableDelegate::getData(const QModelIndex &index) const
+EntityAdapter *ComboBoxTableDelegate::getEntityAdapter(const QModelIndex &index) const
 {
     QObject* qObject = qvariant_cast<QObject *>(index.model()->data(index, -1));
 
     if(qObject){
-        Data * data = qobject_cast<Data *>(qObject);
+        EntityAdapter * data = qobject_cast<EntityAdapter *>(qObject);
         if(data){
             return data;
         }
@@ -77,23 +77,18 @@ Data *ComboBoxTableDelegate::getData(const QModelIndex &index) const
     return 0;
 }
 
+QString ComboBoxTableDelegate::getKeyName(const QModelIndex &index) const
+{
+    return index.model()->data(index.model()->index(index.row(), 0)).toString();
+}
+
 QStringList ComboBoxTableDelegate::getValidValueList(const QModelIndex &index) const
 {
     QStringList returnable;
-    Data* data = getData(index);
-    if(data){
-        QString nodeKind = "";
-
-        Entity* dataParent = data->getParent();
-        Key* key = data->getKey();
-
-        if(dataParent){
-            nodeKind = dataParent->getDataValue("kind").toString();
-        }
-
-        if(key && nodeKind != "" && key->gotValidValues(nodeKind)){
-            returnable = key->getValidValues(nodeKind);
-        }
+    EntityAdapter* entityAdapter = getEntityAdapter(index);
+    QString keyName = getKeyName(index);
+    if(entityAdapter){
+        returnable = entityAdapter->getValidValuesForKey(keyName);
     }
     return returnable;
 }

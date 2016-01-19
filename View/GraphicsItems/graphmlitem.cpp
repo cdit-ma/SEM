@@ -59,6 +59,7 @@ GraphMLItem::GraphMLItem(EntityAdapter *graph, GraphMLItem* parent, GraphMLItem:
     graph->addListener(this);
     connect(graph, SIGNAL(dataChanged(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
     connect(graph, SIGNAL(dataAdded(QString,QVariant)), this, SLOT(dataChanged(QString,QVariant)));
+    connect(graph, SIGNAL(dataRemoved(QString)), this, SLOT(dataRemoved(QString)));
     parentItem = 0;
     attachedGraph = graph;
 
@@ -381,6 +382,11 @@ void GraphMLItem::setSelected(bool selected)
         updateCurrentPen();
         update();
     }
+}
+
+void GraphMLItem::dataRemoved(QString keyName)
+{
+    dataChanged(keyName, QVariant());
 }
 
 void GraphMLItem::setHovered(bool isHovered)

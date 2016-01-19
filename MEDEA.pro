@@ -9,7 +9,6 @@ QT       += xml
 QT       += gui
 QT       += widgets
 QT       += xmlpatterns
-QT       += multimedia
 
 
 VERSION = 1.2.0.0
@@ -402,4 +401,5 @@ DISTFILES += \
     Resources/Images/qt.ico \
     Resources/Fonts/OpenSans-Regular.ttf \
     settings.ini \
-    doxygen.config
+    doxygen.config \
+    defaultSettings.ini

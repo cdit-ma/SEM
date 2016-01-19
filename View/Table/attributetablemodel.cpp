@@ -22,7 +22,7 @@ AttributeTableModel::AttributeTableModel(GraphMLItem *item, QObject *parent): QA
     }
 
     attachedEntity->addListener(this);
-    hiddenKeyNames /*<< "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded"; << "kind"*/;
+    hiddenKeyNames << "width" << "height" <<  "x" << "y" << "originalID" << "isExpanded";//<< "kind";
     permanentlyLockedKeyNames << "kind";
  	multiLineKeyNames << "code";
     setupDataBinding();
@@ -218,6 +218,8 @@ QVariant AttributeTableModel::data(const QModelIndex &index, int role) const
         }
     }
     if(role == -1){
+        QVariant v(QMetaType::QObjectStar, &attachedEntity);
+        return v;
         return 0;
     }
 
