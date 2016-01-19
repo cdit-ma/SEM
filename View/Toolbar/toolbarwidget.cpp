@@ -83,6 +83,18 @@ void ToolbarWidget::updateToolbar(QList<NodeItem *> nodeItems, QList<EdgeItem*> 
 
 
 /**
+ * @brief ToolbarWidget::clearToolbarMenus
+ * This function is called whenever the model/view is cleared.
+ */
+void ToolbarWidget::clearToolbarMenus()
+{
+    clearMenus();
+    chosenInstanceID = -1;
+    functionsMenu->clearMenu();
+}
+
+
+/**
  * @brief ToolbarWidget::setupFunctionsList
  */
 void ToolbarWidget::setupFunctionsList()
@@ -108,15 +120,26 @@ void ToolbarWidget::setupFunctionsList()
     }
 }
 
-void ToolbarWidget::clearMenu()
-{
-    clearMenus();
-    functionsMenu->clearMenu();
 
-    chosenInstanceID = -1;
-    adoptableNodeKinds.clear();
-    legalNodeItems.clear();;
-    hardwareNodeItems.clear();
+/**
+ * @brief ToolbarWidget::getNonDeletableMenuActionKinds
+ * @return - the list of actios from the addMenu that has a subMenu.
+ */
+QStringList ToolbarWidget::getNonDeletableMenuActionKinds()
+{
+    QStringList nonDeletableKinds;
+    nonDeletableKinds.append("ComponentInstance");
+    nonDeletableKinds.append("ComponentImpl");
+    nonDeletableKinds.append("BlackBoxInstance");
+    nonDeletableKinds.append("InEventPort");
+    nonDeletableKinds.append("OutEventPort");
+    nonDeletableKinds.append("InEventPortDelegate");
+    nonDeletableKinds.append("OutEventPortDelegate");
+    nonDeletableKinds.append("OutEventPortImpl");
+    nonDeletableKinds.append("AggregateInstance");
+    nonDeletableKinds.append("VectorInstance");
+    nonDeletableKinds.append("Process");
+    return nonDeletableKinds;
 }
 
 
@@ -141,7 +164,7 @@ void ToolbarWidget::updateActionEnabledState(QString actionName, bool enabled)
         showShowCPPToolButton = enabled;
     } else if(actionName == "setReadOnly"){
         showSetReadyOnlyToolButton = enabled;
-    }else if(actionName == "unsetReadOnly"){
+    } else if (actionName == "unsetReadOnly") {
         showUnsetReadyOnlyToolButton = enabled;
     }
 }
@@ -958,13 +981,13 @@ void ToolbarWidget::setupToolBar()
 void ToolbarWidget::setupMenus()
 {
     // construct main menus
-    addMenu = constructToolButtonMenu(addChildButton);
-    connectMenu = constructToolButtonMenu(connectButton, false);
-    hardwareMenu = constructToolButtonMenu(hardwareButton);
-    definitionMenu = constructToolButtonMenu(definitionButton, false);
-    implementationMenu = constructToolButtonMenu(implementationButton, false);
-    instancesMenu = constructToolButtonMenu(instancesButton);
-    hardwareClusterViewMenu = constructToolButtonMenu(displayedChildrenOptionButton);
+    addMenu = constructTopMenu(addChildButton, true, true);
+    connectMenu = constructTopMenu(connectButton, false, true);
+    hardwareMenu = constructTopMenu(hardwareButton, true, true);
+    definitionMenu = constructTopMenu(definitionButton, false);
+    implementationMenu = constructTopMenu(implementationButton, false);
+    instancesMenu = constructTopMenu(instancesButton);
+    hardwareClusterViewMenu = constructTopMenu(displayedChildrenOptionButton);
 
     // setup menu actions for the definition and implementation menus
     definitionMenu->addAction(new ToolbarMenuAction("Goto", 0, definitionMenu, "Go to Definition", ":/Actions/Goto"));
@@ -998,6 +1021,22 @@ void ToolbarWidget::setupMenus()
     aggregateInstAction = new ToolbarMenuAction("AggregateInstance", 0, this);
     vectorInstAction = new ToolbarMenuAction("VectorInstance", 0, this);
 
+    // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
+    componentImplMenu = constructSubMenu(componentImplAction, "There are no IDL files containing unimplemented Components.");
+    componentInstMenu = constructSubMenu(componentInstAction, "There are no IDL files containing Components.");
+    blackBoxInstMenu = constructSubMenu(blackBoxInstAction, "There are no IDL files containing BlackBoxes.");
+    inEventPortMenu = constructSubMenu(inEventPortAction, "There are no IDL files containing Aggregates.");
+    outEventPortMenu = constructSubMenu(outEventPortAction, "There are no IDL files containing Aggregates.");
+    inEventPortDelegateMenu = constructSubMenu(inEventPortDelegateAction, "There are no IDL files containing Aggregates.");
+    outEventPortDelegateMenu = constructSubMenu(outEventPortDelegateAction, "There are no IDL files containing Aggregates.");
+    outEventPortImplMenu = constructSubMenu(outEventPortImplAction, "The selected entity's definition does not contain any OutEventPorts.");
+    aggregateInstMenu = constructSubMenu(aggregateInstAction, "There are no IDL files containing Aggregates.");
+    vectorInstMenu = constructSubMenu(vectorInstAction, "There are no IDL files containing initialised Vectors.");
+
+    processAction = new ToolbarMenuAction("Process", 0, this);
+    functionsMenu = constructSubMenu(processAction, "There are no available functions.", false);
+
+    /*
     // default actions to display information for when their parent menus are empty
     componentImplMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing unimplemented Components.", ":/Actions/Info");
     componentInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Components.", ":/Actions/Info");
@@ -1010,7 +1049,6 @@ void ToolbarWidget::setupMenus()
     aggregateInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
     vectorInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing initialised Vectors.", ":/Actions/Info");
 
-    // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
     componentImplMenu = new ToolbarMenu(this, componentImplMenuInfoAction);
     componentInstMenu = new ToolbarMenu(this, componentInstMenuInfoAction);
     blackBoxInstMenu = new ToolbarMenu(this, blackBoxMenuInfoAction);
@@ -1033,15 +1071,11 @@ void ToolbarWidget::setupMenus()
     aggregateInstAction->setMenu(aggregateInstMenu);
     vectorInstAction->setMenu(vectorInstMenu);
 
-    processAction = new ToolbarMenuAction("Process", 0, this);
-    functionsMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no available functions.", ":/Actions/Info");
-    functionsMenu = new ToolbarMenu(this, functionsMenuInfoAction);
-    processAction->setMenu(functionsMenu);
-
     // this hash stores whether the key menu has been populated or not
     dynamicMenus[addMenu] = false;
     dynamicMenus[connectMenu] = false;
     dynamicMenus[hardwareMenu] = false;
+
     dynamicMenus[blackBoxInstMenu] = false;
     dynamicMenus[componentImplMenu] = false;
     dynamicMenus[componentInstMenu] = false;
@@ -1052,6 +1086,12 @@ void ToolbarWidget::setupMenus()
     dynamicMenus[outEventPortImplMenu] = false;
     dynamicMenus[aggregateInstMenu] = false;
     dynamicMenus[vectorInstMenu] = false;
+
+    processAction = new ToolbarMenuAction("Process", 0, this);
+    functionsMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no available functions.", ":/Actions/Info");
+    functionsMenu = new ToolbarMenu(this, functionsMenuInfoAction);
+    processAction->setMenu(functionsMenu);
+    */
 }
 
 
@@ -1080,8 +1120,6 @@ void ToolbarWidget::makeConnections()
     connect(setReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
     connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(hide()));
 
-
-
     connect(connectButton, SIGNAL(clicked()), nodeView, SLOT(setStateConnect()));
     connect(deleteButton, SIGNAL(clicked()), nodeView, SLOT(deleteSelection()));
     connect(alignVerticallyButton, SIGNAL(clicked()), nodeView, SLOT(alignSelectionVertically()));
@@ -1101,8 +1139,6 @@ void ToolbarWidget::makeConnections()
 
     connect(setReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(setReadOnlyMode()));
     connect(unsetReadOnlyButton, SIGNAL(clicked(bool)), this, SLOT(setReadOnlyMode()));
-
-
 
     connect(addMenu, SIGNAL(aboutToShow()), this, SLOT(setupAdoptableNodesList()));
     connect(addMenu, SIGNAL(toolbarMenu_triggered(ToolbarMenuAction*)), this, SLOT(addChildNode(ToolbarMenuAction*)));
@@ -1383,7 +1419,6 @@ void ToolbarWidget::hideSeparators()
  */
 void ToolbarWidget::clearMenus()
 {
-    qDebug() << "Menus to clear: " << dynamicMenus.keys().count();
     foreach (ToolbarMenu* menu, dynamicMenus.keys()) {
         menu->clearMenu();
     }
@@ -1630,13 +1665,15 @@ QFrame* ToolbarWidget::constructFrameSeparator()
 
 
 /**
- * @brief ToolbarWidget::constructToolButtonMenu
+ * @brief ToolbarWidget::constructTopMenu
  * The connections in here don't need to be applied to all the toolbar menus.
  * Only the top level menus - the ones directly attached to a QToolButton.
  * @param parentButton
+ * @param instantPopup
+ * @param addToDynamicMenuHash
  * @return
  */
-ToolbarMenu* ToolbarWidget::constructToolButtonMenu(QToolButton* parentButton, bool instantPopup)
+ToolbarMenu* ToolbarWidget::constructTopMenu(QToolButton* parentButton, bool instantPopup, bool addToDynamicMenuHash)
 {
     if (parentButton) {
         ToolbarMenu* menu = new ToolbarMenu(this);
@@ -1648,12 +1685,40 @@ ToolbarMenu* ToolbarWidget::constructToolButtonMenu(QToolButton* parentButton, b
             parentButton->setPopupMode(QToolButton::MenuButtonPopup);
             parentButton->setFixedWidth(55);
         }
+        if (addToDynamicMenuHash) {
+            dynamicMenus[menu] = false;
+        }
         parentButton->setMenu(menu);
         return menu;
     } else {
-        qWarning() << "ToolbarWidget::constructToolButtonMenu - Parent tool button is null.";
+        qWarning() << "ToolbarWidget::constructTopMenu - Parent tool button is null.";
         return 0;
     }
+}
+
+
+/**
+ * @brief ToolbarWidget::constructSubMenu
+ * @param parentAction
+ * @param infoText
+ * @param addToDynamicMenuHash
+ * @return
+ */
+ToolbarMenu* ToolbarWidget::constructSubMenu(ToolbarMenuAction* parentAction, QString infoText, bool addToDynamicMenuHash)
+{
+    if (!parentAction) {
+        qWarning() << "ToolbarWidget::constructSubMenu - Menu not constructed.";
+        return 0;
+    }
+
+    // construct a menu with an info action and set it as the parent action's menu
+    ToolbarMenuAction* infoAction = new ToolbarMenuAction("Info", 0, this, infoText, ":/Actions/Info");;
+    ToolbarMenu* menu = new ToolbarMenu(this, infoAction);
+    parentAction->setMenu(menu);
+    if (addToDynamicMenuHash) {
+        dynamicMenus[menu] = false;
+    }
+    return menu;
 }
 
 

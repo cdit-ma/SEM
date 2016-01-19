@@ -22,8 +22,10 @@ public:
     explicit ToolbarWidget(NodeView* parentView = 0);
 
     void updateToolbar(QList<NodeItem*> nodeItems, QList<EdgeItem*> edgeItems);
+    void clearToolbarMenus();
+
     void setupFunctionsList();
-    void clearMenu();
+    QStringList getNonDeletableMenuActionKinds();
 
 public slots:
     void updateActionEnabledState(QString actionName, bool enabled);
@@ -86,7 +88,9 @@ private:
     QToolButton* constructToolButton(QSize size, double iconSizeRatio, QString iconPng, QString tooltip = "", QString iconPath = "Actions");
     QFrame* constructFrameSeparator();
 
-    ToolbarMenu* constructToolButtonMenu(QToolButton* parentButton, bool instantPopup = true);
+    ToolbarMenu* constructTopMenu(QToolButton* parentButton, bool instantPopup = true, bool addToDynamicMenuHash = false);
+    ToolbarMenu* constructSubMenu(ToolbarMenuAction* parentAction, QString infoText, bool addToDynamicMenuHash = true);
+
     ToolbarMenuAction* constructMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu);
     ToolbarMenuAction* constructSubMenuAction(NodeItem* nodeItem, ToolbarMenu* parentMenu);
 
@@ -166,6 +170,7 @@ private:
     ToolbarMenuAction* vectorInstAction;
     ToolbarMenuAction* processAction;
 
+    /*
     ToolbarMenuAction* componentImplMenuInfoAction;
     ToolbarMenuAction* componentInstMenuInfoAction;
     ToolbarMenuAction* blackBoxMenuInfoAction;
@@ -177,6 +182,7 @@ private:
     ToolbarMenuAction* aggregateInstMenuInfoAction;
     ToolbarMenuAction* vectorInstMenuInfoAction;
     ToolbarMenuAction* functionsMenuInfoAction;
+    */
 
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
@@ -198,6 +204,7 @@ private:
     bool goToButtonsVisible;
     bool alterViewButtonsVisible;
 
+    /*
     bool blackBoxMenuDone;
     bool componentImplMenuDone;
     bool componentInstMenuDone;
@@ -211,12 +218,15 @@ private:
     bool addMenuDone;
     bool connectMenuDone;
     bool hardwareMenuDone;
+    */
 
     int chosenInstanceID;
     QStringList adoptableNodeKinds;
     QList<NodeItem*> legalNodeItems;
     QList<EntityItem*> hardwareNodeItems;
 
+    // this hash stores the menus that are cleared/re-populated when the toolbar
+    // is shown and a bool of whether the menu has been re-populated or not
     QHash<ToolbarMenu*, bool> dynamicMenus;
 
     VIEW_THEME currentTheme;

@@ -44,19 +44,11 @@ ToolbarMenuAction::ToolbarMenuAction(QString kind, ToolbarMenuAction* parent_act
     deletable = true;
     actionKind = kind;
 
-    // this is the list of actios from the addMenu in the toolbar that has a menu
+    ToolbarWidget* toolbar = dynamic_cast<ToolbarWidget*>(parent);
     QStringList nonDeletableKinds;
-    nonDeletableKinds.append("ComponentInstance");
-    nonDeletableKinds.append("ComponentImpl");
-    nonDeletableKinds.append("BlackBoxInstance");
-    nonDeletableKinds.append("InEventPort");
-    nonDeletableKinds.append("OutEventPort");
-    nonDeletableKinds.append("InEventPortDelegate");
-    nonDeletableKinds.append("OutEventPortDelegate");
-    nonDeletableKinds.append("OutEventPortImpl");
-    nonDeletableKinds.append("AggregateInstance");
-    nonDeletableKinds.append("VectorInstance");
-    nonDeletableKinds.append("Process");
+    if (toolbar) {
+        nonDeletableKinds = toolbar->getNonDeletableMenuActionKinds();
+    }
     nonDeletableKinds.append("Info");
 
     if (nonDeletableKinds.contains(actionKind)) {

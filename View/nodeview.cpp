@@ -1776,7 +1776,7 @@ void NodeView::controllerDestroyed()
 
     //Clear the toolbar menus
     if(toolbar){
-        toolbar->clearMenu();
+        toolbar->clearToolbarMenus();
     }
 
 }
