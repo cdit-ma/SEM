@@ -359,23 +359,27 @@ void ToolbarWidget::constructNewView()
     nodeView->constructNewView();
 }
 
+
 /**
  * @brief ToolbarWidget::getCPPForComponent
  * Sends a signal to the view to run a XSL transform to get the CPP code for the selected node.
  */
 void ToolbarWidget::getCPPForComponent()
 {
-    if(nodeItem){
+    if (nodeItem) {
         QString componentLabel = nodeItem->getLabel();
-        if(componentLabel != ""){
+        if (componentLabel != "") {
             emit nodeView->view_ShowCPPForComponent(componentLabel);
         }
     }
 }
 
+
+/**
+ * @brief ToolbarWidget::setReadOnlyMode
+ */
 void ToolbarWidget::setReadOnlyMode()
 {
-
     bool readOnly = false;
     QToolButton* button = qobject_cast<QToolButton*>(QObject::sender());
     if (button == setReadOnlyButton) {
@@ -596,14 +600,6 @@ void ToolbarWidget::setupAdoptableNodesList()
         dynamicMenus[addMenu] = true;
     }
 
-    /*
-    if (addMenuDone) {
-        return;
-    } else {
-        addMenuDone = true;
-    }
-    */
-
     foreach (QString kind, adoptableNodeKinds) {
 
         ToolbarMenuAction* action = 0;
@@ -649,14 +645,6 @@ void ToolbarWidget::setupLegalNodesList()
     } else {
         dynamicMenus[connectMenu] = true;
     }
-
-    /*
-    if (connectMenuDone) {
-        return;
-    } else {
-        connectMenuDone = true;
-    }
-    */
 
     NodeItem* selectedItem = nodeView->getSelectedNodeItem();
     NodeItem* selectedParentItem = 0;
@@ -712,14 +700,6 @@ void ToolbarWidget::setupBlackBoxList()
         dynamicMenus[blackBoxInstMenu] = true;
     }
 
-    /*
-    if (blackBoxMenuDone) {
-        return;
-    } else {
-        blackBoxMenuDone = true;
-    }
-    */
-
     QList<NodeItem*> blackBoxes = nodeView->getEntityItemsOfKind("BlackBox");
     foreach (NodeItem* blackBox, blackBoxes) {
         constructSubMenuAction(blackBox, blackBoxInstMenu);
@@ -734,38 +714,6 @@ void ToolbarWidget::setupAggregateList()
 {
     ToolbarMenuAction* action = qobject_cast<ToolbarMenuAction*>(QObject::sender());
     ToolbarMenu* menu = 0;
-    bool menuDone = false;
-
-    /*
-    if (action == aggregateInstAction) {
-        menu = aggregateInstMenu;
-        menuDone = aggregateMenuDone;
-        aggregateMenuDone = true;
-    } else if (action == inEventPortAction) {
-        menu = inEventPortMenu;
-        menuDone = inEventPortMenuDone;
-        inEventPortMenuDone = true;
-    } else if (action == outEventPortAction) {
-        menu = outEventPortMenu;
-        menuDone = outEventPortMenuDone;
-        outEventPortMenuDone = true;
-    } else if (action == inEventPortDelegateAction) {
-        menu = inEventPortDelegateMenu;
-        menuDone = inEventPortDelegateMenuDone;
-        inEventPortDelegateMenuDone = true;
-    } else if (action == outEventPortDelegateAction) {
-        menu = outEventPortDelegateMenu;
-        menuDone = outEventPortDelegateMenuDone;
-        outEventPortDelegateMenuDone = true;
-    } else {
-        qWarning() << "ToolbarWidget::setupAggregateList - Action not handled.";
-        return;
-    }
-
-    if (menuDone) {
-        return;
-    }
-    */
 
     if (action == aggregateInstAction) {
         menu = aggregateInstMenu;
@@ -783,6 +731,7 @@ void ToolbarWidget::setupAggregateList()
     }
 
     if (dynamicMenus.contains(menu)) {
+        // check if the menu has already been populated
         if (dynamicMenus.value(menu)) {
             return;
         } else {
@@ -813,14 +762,6 @@ void ToolbarWidget::setupVectorList()
         dynamicMenus[vectorInstMenu] = true;
     }
 
-    /*
-    if (vectorMenuDone) {
-        return;
-    } else {
-        vectorMenuDone = true;
-    }
-    */
-
     QList<NodeItem*> vectors = nodeView->getEntityItemsOfKind("Vector");
     foreach (NodeItem* vector, vectors) {
         if (vector->hasChildren()) {
@@ -840,14 +781,6 @@ void ToolbarWidget::setupHardwareList()
     } else {
         dynamicMenus[hardwareMenu] = true;
     }
-
-    /*
-    if (hardwareMenuDone) {
-        return;
-    } else {
-        hardwareMenuDone = true;
-    }
-    */
 
     QList<NodeItem*> topActions, subActions;
     foreach (EntityItem* item, hardwareNodeItems) {
@@ -880,16 +813,6 @@ void ToolbarWidget::setupOutEventPortList()
         dynamicMenus[outEventPortImplMenu] = true;
     }
 
-    /*
-    if (outEventPortImplMenuDone) {
-        return;
-    } else {
-        outEventPortImplMenuDone = true;
-    }
-    */
-
-    QList<NodeItem*> outEventPorts;
-
     NodeAdapter* nodeAdapter = nodeItem->getNodeAdapter();
     int definitionId = nodeAdapter->getDefinitionID();
 
@@ -898,6 +821,7 @@ void ToolbarWidget::setupOutEventPortList()
         return;
     }
 
+    QList<NodeItem*> outEventPorts;
     foreach (GraphMLItem* item, component->getChildren()) {
         if (item->getNodeKind() == "OutEventPort") {
             outEventPorts.append((NodeItem*)item);
@@ -1020,6 +944,7 @@ void ToolbarWidget::setupMenus()
     blackBoxInstAction = new ToolbarMenuAction("BlackBoxInstance", 0, this);
     aggregateInstAction = new ToolbarMenuAction("AggregateInstance", 0, this);
     vectorInstAction = new ToolbarMenuAction("VectorInstance", 0, this);
+    processAction = new ToolbarMenuAction("Process", 0, this);
 
     // hidden menus for ComponentInstances, ComponentImpls, In/Out EventPortDelegates and BlackBoxInstances
     componentImplMenu = constructSubMenu(componentImplAction, "There are no IDL files containing unimplemented Components.");
@@ -1032,66 +957,7 @@ void ToolbarWidget::setupMenus()
     outEventPortImplMenu = constructSubMenu(outEventPortImplAction, "The selected entity's definition does not contain any OutEventPorts.");
     aggregateInstMenu = constructSubMenu(aggregateInstAction, "There are no IDL files containing Aggregates.");
     vectorInstMenu = constructSubMenu(vectorInstAction, "There are no IDL files containing initialised Vectors.");
-
-    processAction = new ToolbarMenuAction("Process", 0, this);
     functionsMenu = constructSubMenu(processAction, "There are no available functions.", false);
-
-    /*
-    // default actions to display information for when their parent menus are empty
-    componentImplMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing unimplemented Components.", ":/Actions/Info");
-    componentInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Components.", ":/Actions/Info");
-    blackBoxMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing BlackBoxes.", ":/Actions/Info");
-    inEventPortMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
-    outEventPortMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
-    inEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
-    outEventPortDelegateMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
-    outEventPortImplMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "The selected entity's definition does not contain any OutEventPorts.", ":/Actions/Info");
-    aggregateInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing Aggregates.", ":/Actions/Info");
-    vectorInstMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no IDL files containing initialised Vectors.", ":/Actions/Info");
-
-    componentImplMenu = new ToolbarMenu(this, componentImplMenuInfoAction);
-    componentInstMenu = new ToolbarMenu(this, componentInstMenuInfoAction);
-    blackBoxInstMenu = new ToolbarMenu(this, blackBoxMenuInfoAction);
-    inEventPortMenu = new ToolbarMenu(this, inEventPortDelegateMenuInfoAction);
-    outEventPortMenu = new ToolbarMenu(this, outEventPortDelegateMenuInfoAction);
-    inEventPortDelegateMenu = new ToolbarMenu(this, inEventPortDelegateMenuInfoAction);
-    outEventPortDelegateMenu = new ToolbarMenu(this, outEventPortDelegateMenuInfoAction);
-    outEventPortImplMenu = new ToolbarMenu(this, outEventPortImplMenuInfoAction);
-    aggregateInstMenu = new ToolbarMenu(this, aggregateInstMenuInfoAction);
-    vectorInstMenu = new ToolbarMenu(this, vectorInstMenuInfoAction);
-
-    componentImplAction->setMenu(componentImplMenu);
-    componentInstAction->setMenu(componentInstMenu);
-    inEventPortAction->setMenu(inEventPortMenu);
-    outEventPortAction->setMenu(outEventPortMenu);
-    inEventPortDelegateAction->setMenu(inEventPortDelegateMenu);
-    outEventPortDelegateAction->setMenu(outEventPortDelegateMenu);
-    outEventPortImplAction->setMenu(outEventPortImplMenu);
-    blackBoxInstAction->setMenu(blackBoxInstMenu);
-    aggregateInstAction->setMenu(aggregateInstMenu);
-    vectorInstAction->setMenu(vectorInstMenu);
-
-    // this hash stores whether the key menu has been populated or not
-    dynamicMenus[addMenu] = false;
-    dynamicMenus[connectMenu] = false;
-    dynamicMenus[hardwareMenu] = false;
-
-    dynamicMenus[blackBoxInstMenu] = false;
-    dynamicMenus[componentImplMenu] = false;
-    dynamicMenus[componentInstMenu] = false;
-    dynamicMenus[inEventPortMenu] = false;
-    dynamicMenus[outEventPortMenu] = false;
-    dynamicMenus[inEventPortDelegateMenu] = false;
-    dynamicMenus[outEventPortDelegateMenu] = false;
-    dynamicMenus[outEventPortImplMenu] = false;
-    dynamicMenus[aggregateInstMenu] = false;
-    dynamicMenus[vectorInstMenu] = false;
-
-    processAction = new ToolbarMenuAction("Process", 0, this);
-    functionsMenuInfoAction = new ToolbarMenuAction("Info", 0, this, "There are no available functions.", ":/Actions/Info");
-    functionsMenu = new ToolbarMenu(this, functionsMenuInfoAction);
-    processAction->setMenu(functionsMenu);
-    */
 }
 
 
@@ -1426,23 +1292,6 @@ void ToolbarWidget::clearMenus()
     componentInstMenu->clearMenu();
     instancesMenu->clearMenu();
 
-    /*
-    addMenu->clearMenu();
-    connectMenu->clearMenu();
-    hardwareMenu->clearMenu();
-    instancesMenu->clearMenu();
-    componentImplMenu->clearMenu();
-    componentInstMenu->clearMenu();
-    inEventPortMenu->clearMenu();
-    outEventPortMenu->clearMenu();
-    inEventPortDelegateMenu->clearMenu();
-    outEventPortDelegateMenu->clearMenu();
-    outEventPortImplMenu->clearMenu();
-    blackBoxInstMenu->clearMenu();
-    aggregateInstMenu->clearMenu();
-    vectorInstMenu->clearMenu();
-    */
-
     // these lists needs to be cleared as well - used to populate menus
     adoptableNodeKinds.clear();
     legalNodeItems.clear();
@@ -1465,22 +1314,6 @@ void ToolbarWidget::resetGroupFlags()
     foreach (ToolbarMenu* menu, dynamicMenus.keys()) {
         dynamicMenus[menu] = false;
     }
-
-    /*
-    blackBoxMenuDone = false;
-    componentImplMenuDone = false;
-    componentInstMenuDone = false;
-    inEventPortMenuDone = false;
-    outEventPortMenuDone = false;
-    inEventPortDelegateMenuDone = false;
-    outEventPortDelegateMenuDone = false;
-    outEventPortImplMenuDone = false;
-    addMenuDone = false;
-    connectMenuDone = false;
-    aggregateMenuDone = false;
-    vectorMenuDone = false;
-    hardwareMenuDone = false;
-    */
 
     chosenInstanceID = -1;
 }
@@ -1572,27 +1405,6 @@ void ToolbarWidget::setupHardwareList(QList<EntityItem*> hardware)
 void ToolbarWidget::setupComponentList(QString actionKind)
 {
     ToolbarMenu* actionMenu = 0;
-
-    /*
-    if (actionKind == "impl") {
-        if (componentImplMenuDone) {
-            return;
-        } else {
-            componentImplMenuDone = true;
-            actionMenu = componentImplMenu;
-        }
-    } else if (actionKind == "inst") {
-        if (componentInstMenuDone) {
-            return;
-        } else {
-            componentInstMenuDone = true;
-            actionMenu = componentInstMenu;
-        }
-    } else {
-        qWarning() << "ToolbarWidget::setupCompList - Action kind not handled.";
-        return;
-    }
-    */
 
     if (actionKind == "impl") {
         actionMenu = componentImplMenu;
@@ -1744,7 +1556,6 @@ ToolbarMenuAction* ToolbarWidget::constructMenuAction(NodeItem* nodeItem, Toolba
 }
 
 
-
 /**
  * @brief ToolbarWidget::constructSubMenuAction
  * This method constructs an action for nodeItem, finds its parent action in
@@ -1808,4 +1619,3 @@ void ToolbarWidget::closeOpenMenus()
         menu->close();
     }
 }
-

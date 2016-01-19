@@ -301,10 +301,9 @@ void DefinitionsDockScrollArea::filterDock(QString nodeKind)
             }
             infoLabelText = "There are no IDL files containing " + kind + " entities.";
         }
-    } else if (nodeKind.endsWith("Delegate")) {
+    } else if (nodeKind.endsWith("Port") || nodeKind.endsWith("Delegate")) {
         kind = "Aggregate";
         infoLabelText = "There are no IDL files containing Aggregate entities.";
-
     } else if (nodeKind.endsWith("Impl")) {
         kind = nodeKind.remove("Impl");
         if (kind == "Component") {

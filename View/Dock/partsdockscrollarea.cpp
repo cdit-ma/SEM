@@ -17,6 +17,8 @@ PartsDockScrollArea::PartsDockScrollArea(QString label, NodeView *view, DockTogg
     kindsRequiringDefinition.append("ComponentImpl");
     kindsRequiringDefinition.append("AggregateInstance");
     kindsRequiringDefinition.append("VectorInstance");
+    kindsRequiringDefinition.append("InEventPort");
+    kindsRequiringDefinition.append("OutEventPort");
     kindsRequiringDefinition.append("InEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortDelegate");
     kindsRequiringDefinition.append("OutEventPortImpl");
