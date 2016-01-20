@@ -866,8 +866,6 @@ void ToolbarWidget::setupToolBar()
     setReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Closed", "Set Read Only");
     unsetReadOnlyButton = constructToolButton(buttonSize, 0.6, "Lock_Open", "Unset Read Only");
 
-
-
     goToFrame = constructFrameSeparator();
     definitionButton = constructToolButton(buttonSize, 0.55, "Definition", "View Definition");
     implementationButton = constructToolButton(buttonSize, 0.6, "Implementation", "View Implementation");

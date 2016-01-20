@@ -170,20 +170,6 @@ private:
     ToolbarMenuAction* vectorInstAction;
     ToolbarMenuAction* processAction;
 
-    /*
-    ToolbarMenuAction* componentImplMenuInfoAction;
-    ToolbarMenuAction* componentInstMenuInfoAction;
-    ToolbarMenuAction* blackBoxMenuInfoAction;
-    ToolbarMenuAction* inEventPortMenuInfoAction;
-    ToolbarMenuAction* outEventPortMenuInfoAction;
-    ToolbarMenuAction* inEventPortDelegateMenuInfoAction;
-    ToolbarMenuAction* outEventPortDelegateMenuInfoAction;
-    ToolbarMenuAction* outEventPortImplMenuInfoAction;
-    ToolbarMenuAction* aggregateInstMenuInfoAction;
-    ToolbarMenuAction* vectorInstMenuInfoAction;
-    ToolbarMenuAction* functionsMenuInfoAction;
-    */
-
     QRadioButton* allNodes;
     QRadioButton* connectedNodes;
     QRadioButton* unconnectedNodes;
@@ -204,32 +190,16 @@ private:
     bool goToButtonsVisible;
     bool alterViewButtonsVisible;
 
-    /*
-    bool blackBoxMenuDone;
-    bool componentImplMenuDone;
-    bool componentInstMenuDone;
-    bool inEventPortMenuDone;
-    bool outEventPortMenuDone;
-    bool inEventPortDelegateMenuDone;
-    bool outEventPortDelegateMenuDone;
-    bool outEventPortImplMenuDone;
-    bool aggregateMenuDone;
-    bool vectorMenuDone;
-    bool addMenuDone;
-    bool connectMenuDone;
-    bool hardwareMenuDone;
-    */
-
     int chosenInstanceID;
     QStringList adoptableNodeKinds;
     QList<NodeItem*> legalNodeItems;
     QList<EntityItem*> hardwareNodeItems;
 
+    VIEW_THEME currentTheme;
+
     // this hash stores the menus that are cleared/re-populated when the toolbar
     // is shown and a bool of whether the menu has been re-populated or not
     QHash<ToolbarMenu*, bool> dynamicMenus;
-
-    VIEW_THEME currentTheme;
 
 };
 

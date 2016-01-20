@@ -418,6 +418,8 @@
         <file alias="getCPP.png">Resources/Images/Actions/getCPP.png</file>
         <file alias="Close.png">Resources/Images/Actions/Close.png</file>
         <file alias="Loading.gif">Resources/Images/Actions/Loading.gif</file>
+        <file alias="DisconnectAggregate.png">Resources/Images/Actions/DisconnectAggregate.png</file>
+        <file alias="DisconnectHardwareNode.png">Resources/Images/Actions/DisconnectHardwareNode.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address.png">Resources/Images/Data/ip_address.png</file>
