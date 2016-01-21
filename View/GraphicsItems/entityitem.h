@@ -227,6 +227,9 @@ signals:
 
 
 public slots:
+    void edgeAdded(int ID, Edge::EDGE_CLASS edgeClass);
+    void edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
+
     void labelEditModeRequest();
     void dataChanged(QString dataValue);
     void labelUpdated(QString newLabel);

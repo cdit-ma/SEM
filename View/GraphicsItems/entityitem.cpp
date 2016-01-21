@@ -2143,6 +2143,12 @@ void EntityItem::setupDataConnections()
     }else if(nodeKind == "Process"){
         listenForData("operation");
     }
+
+    NodeAdapter* node = getNodeAdapter();
+    if(node){
+        connect(node, SIGNAL(edgeAdded(int,Edge::EDGE_CLASS)), this, SLOT(edgeAdded(int,Edge::EDGE_CLASS)));
+        connect(node, SIGNAL(edgeRemoved(int,Edge::EDGE_CLASS)), this, SLOT(edgeRemoved(int,Edge::EDGE_CLASS)));
+    }
 }
 
 
@@ -2456,6 +2462,18 @@ void EntityItem::forceExpandParentItem()
         EntityItem* pi = parentItems.at(i);
         emit GraphMLItem_SetData(pi->getID(), "isExpanded", true);
     }
+}
+
+void EntityItem::edgeAdded(int ID, Edge::EDGE_CLASS edgeClass)
+{
+    qCritical() << "EDGE ADDED";
+
+}
+
+void EntityItem::edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass)
+{
+    qCritical() << "EDGE REMOVED";
+
 }
 
 

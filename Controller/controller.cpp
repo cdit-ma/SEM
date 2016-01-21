@@ -21,6 +21,7 @@ NewController::NewController()
 {
     qRegisterMetaType<MESSAGE_TYPE>("MESSAGE_TYPE");
     qRegisterMetaType<GraphML::GRAPHML_KIND>("GraphML::GRAPHML_KIND");
+    qRegisterMetaType<Edge::EDGE_CLASS>("Edge::EDGE_CLASS");
     qRegisterMetaType<QList<int> >("QList<int>");
 
     Model::resetID();
