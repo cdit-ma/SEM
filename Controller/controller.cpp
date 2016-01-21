@@ -2196,7 +2196,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(new Data(descriptionKey));
     }
     if(nodeKind == "Attribute"){
-        data.append(new Data(typeKey, QVariant::String));
+        data.append(new Data(typeKey, "String"));
     }
 
     if(nodeKind == "ComponentAssembly"){
@@ -3655,14 +3655,14 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
     }
 
     if(definitionData && valueData){
-        if(setup){
-            valueData->setParentData(definitionData);
-        }else{
-            valueData->unsetParentData();
-            valueData->clearValue();
-        }
+        //if(setup){
+        //    valueData->setParentData(definitionData);
+        //}else{
+        //    valueData->unsetParentData();
+        //    valueData->clearValue();
+        //}
     }else{
-        return false;
+        //return false;
     }
 
     //Bind special stuffs.
