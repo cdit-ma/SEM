@@ -386,10 +386,8 @@ bool BehaviourNode::canConnect_DataEdge(Node *node)
         if(!behaviourNode->isDataInput()){
             return false;
         }
-        Parameter* parameter = dynamic_cast<Parameter*>(node);
 
-
-        if(parameter && parameter->getInputData()){
+        if(behaviourNode->getInputData()){
             return false;
         }
     }

@@ -2216,7 +2216,9 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(new Data(archKey));
         data.append(new Data(descriptionKey));
     }
-
+    if(nodeKind == "Attribute"){
+        data.append(new Data(typeKey, "String"));
+    }
     if(nodeKind == "ComponentAssembly"){
         Key* replicationKey = constructKey("replicate_count", QVariant::Int,Entity::EK_NODE);
         data.append(new Data(replicationKey, "1"));
@@ -3672,13 +3674,13 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
     }
 
     if(definitionData && valueData){
-        if(setup){
-            valueData->setParentData(definitionData);
-        }else{
-            valueData->unsetParentData();
-        }
+//        if(setup){
+//            valueData->setParentData(definitionData);
+//        }else{
+//            valueData->unsetParentData();
+//        }
     }else{
-        return false;
+        //return false;
     }
 
     //Bind special stuffs.
