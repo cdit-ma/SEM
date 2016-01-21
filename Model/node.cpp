@@ -308,6 +308,17 @@ QList<Node *> Node::getChildrenOfKind(QString kindStr, int depth)
     return returnableList;
 }
 
+QList<int> Node::getEdgeIDs(Edge::EDGE_CLASS edgeClass)
+{
+    QList<int> returnable;
+    foreach(Edge* edge, getEdges(0)){
+        if(edgeClass == Edge::EC_NONE || edge->getEdgeClass() == edgeClass){
+            returnable += edge->getID();
+        }
+    }
+    return returnable;
+}
+
 
 
 /*
@@ -820,12 +831,16 @@ void Node::addEdge(Edge *edge)
 {
     if(!containsEdge(edge)){
         edges.append(edge);
+        emit node_EdgeAdded(edge->getID(), edge->getEdgeClass());
     }
 }
 
 void Node::removeEdge(Edge *edge)
 {
     edges.removeAll(edge);
+    if(edge){
+        emit node_EdgeRemoved(edge->getID(), edge->getEdgeClass());
+    }
 }
 
 void Node::setParentNode(Node *parent, int index)

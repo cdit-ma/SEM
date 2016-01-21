@@ -5,6 +5,8 @@ NodeAdapter::NodeAdapter(Node *node, NodeAdapter::NODE_ADAPTER_KIND nodeAdapterK
     _node = node;
     _nodeClass = node->getNodeClass();
     _nodeAdapterKind = nodeAdapterKind;
+    connect(node, SIGNAL(node_EdgeAdded(int,Edge::EDGE_CLASS)), this, SIGNAL(edgeAdded(int, Edge::EDGE_CLASS)));
+    connect(node, SIGNAL(node_EdgeRemoved(int,Edge::EDGE_CLASS)), this, SIGNAL(edgeRemoved(int,Edge::EDGE_CLASS)));
 }
 
 bool NodeAdapter::isDefinition()
@@ -106,6 +108,14 @@ int NodeAdapter::edgeCount()
 bool NodeAdapter::isBehaviourAdapter()
 {
     return _nodeAdapterKind == NAK_BEHAVIOUR;
+}
+
+QList<int> NodeAdapter::getEdgeIDs(Edge::EDGE_CLASS edgeClass)
+{
+    if(isValid()){
+        return _node->getEdgeIDs(edgeClass);
+    }
+    return QList<int>();
 }
 
 QList<int> NodeAdapter::getTreeIndex()

@@ -43,6 +43,8 @@ public:
     bool containsChild(Node* child);
     QList<Node *> getChildren(int depth =-1);
     QList<Node *> getChildrenOfKind(QString kind, int depth =-1);
+
+    QList<int> getEdgeIDs(Edge::EDGE_CLASS edgeClass = Edge::EC_NONE);
     Node* getFirstChild();
     Edge* getFirstEdge();
 
@@ -104,6 +106,9 @@ public:
     bool compareData(Node* node, QString keyName);
     bool compareData(Node* node, QStringList keys);
 
+signals:
+    void node_EdgeAdded(int ID, Edge::EDGE_CLASS edgeClass);
+    void node_EdgeRemoved(int ID, Edge::EDGE_CLASS edgeClass);
 private:
     void setParentNode(Node* parent, int index);
 

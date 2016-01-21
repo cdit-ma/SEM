@@ -5,6 +5,28 @@ BehaviourNodeAdapter::BehaviourNodeAdapter(BehaviourNode *node):NodeAdapter(node
 
 }
 
+bool BehaviourNodeAdapter::needsDataInput()
+{
+    if(isValid()){
+        BehaviourNode* node = getBehaviourNode();
+        if(node){
+            return !node->gotDataInput();
+        }
+    }
+    return false;
+}
+
+bool BehaviourNodeAdapter::needsDataOutput()
+{
+    if(isValid()){
+        BehaviourNode* node = getBehaviourNode();
+        if(node){
+            return !node->gotDataOutput();
+        }
+    }
+    return false;
+}
+
 bool BehaviourNodeAdapter::needsConnection()
 {
     if(isValid()){

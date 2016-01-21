@@ -524,7 +524,7 @@ private:
 
     QStringList nonDrawnItemKinds;
     QList<NODE_CLASS> nonDrawnNodeClasses;
-    QList<EDGE_CLASS> nonDrawnEdgeClasses;
+    QList<Edge::EDGE_CLASS> nonDrawnEdgeClasses;
 
 
     QPoint panningOrigin;
