@@ -26,7 +26,7 @@ void NotificationItem::setErrorType(ERROR_TYPE errorType)
         break;
     case ET_WARNING:
         setVisible(true);
-        setBackgroundColor(QColor(210,105,30));
+        setBackgroundColor(QColor(255,140,0));
         break;
     }
     update();
@@ -77,7 +77,7 @@ void NotificationItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
     QPixmap imageData;
     if(errorType == ET_CRITICAL){
-        imageData = item->getNodeView()->getImage("Actions", "Cross");
+        imageData = item->getNodeView()->getImage("Actions", "Critical");
     }else if(errorType == ET_WARNING){
         imageData = item->getNodeView()->getImage("Actions", "Exclamation");
     }
