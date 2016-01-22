@@ -10,8 +10,15 @@ class BehaviourNodeAdapter : public NodeAdapter
     Q_OBJECT
 public:
     BehaviourNodeAdapter(BehaviourNode* node);
+
+    bool hasDataOutput();
+    bool hasDataInput();
+
     bool needsDataInput();
     bool needsDataOutput();
+
+
+    bool needsLeftEdge();
 
     bool needsConnection();
 private:

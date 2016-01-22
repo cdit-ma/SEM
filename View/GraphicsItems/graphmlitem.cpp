@@ -78,6 +78,7 @@ GraphMLItem::GraphMLItem(EntityAdapter *graph, GraphMLItem* parent, GraphMLItem:
     IS_HOVERED = false;
     IS_HIGHLIGHTED = false;
     IN_SUBVIEW = false;
+    errorType = ET_OKAY;
 
     ID = -1;
 
@@ -129,6 +130,31 @@ void GraphMLItem::setRenderState(GraphMLItem::RENDER_STATE renderState)
     if(this->renderState != renderState){
         this->renderState = renderState;
     }
+}
+
+void GraphMLItem::setErrorType(ERROR_TYPE type, QString tooltip)
+{
+    if(type > errorType){
+        errorType = type;
+        errorTooltip[type] = tooltip;
+        update();
+    }
+}
+
+void GraphMLItem::clearError()
+{
+    errorType = ET_OKAY;
+    errorTooltip.clear();
+}
+
+ERROR_TYPE GraphMLItem::getErrorType()
+{
+    return errorType;
+}
+
+QString GraphMLItem::getErrorTooltip()
+{
+    return errorTooltip[errorType];
 }
 
 

@@ -3110,13 +3110,14 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
             QColor tint;
 
             QStringList redImages;
-            redImages << "Warning" << "replicate_count";
+            redImages << "Critical" ;
+            QStringList orangeImages;
+            orangeImages << "Warning";
 
-            if(!tint.isValid()){
-                tint = QColor(60, 60, 60, 255);
-                if(redImages.contains(imageName)){
-                    tint = QColor(255, 0, 0, 255);
-                }
+            if(redImages.contains(imageName)){
+                tint = QColor(255,0,0,255);
+            }else if(orangeImages.contains(imageName)){
+                tint = QColor(232,188,0,0);
             }
 
             if(image.size() == QSize(96,96)){

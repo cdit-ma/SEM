@@ -5,12 +5,41 @@ BehaviourNodeAdapter::BehaviourNodeAdapter(BehaviourNode *node):NodeAdapter(node
 
 }
 
+bool BehaviourNodeAdapter::hasDataOutput()
+{
+    if(isValid()){
+        BehaviourNode* node = getBehaviourNode();
+        if(node){
+            if(node->isDataOutput()){
+                return !node->gotDataOutput();
+            }
+        }
+    }
+    return false;
+}
+
+bool BehaviourNodeAdapter::hasDataInput()
+{
+    if(isValid()){
+        BehaviourNode* node = getBehaviourNode();
+        if(node){
+            if(node->isDataInput()){
+                return !node->gotDataInput();
+            }
+        }
+    }
+    return false;
+
+}
+
 bool BehaviourNodeAdapter::needsDataInput()
 {
     if(isValid()){
         BehaviourNode* node = getBehaviourNode();
         if(node){
-            return !node->gotDataInput();
+            if(node->isDataInput()){
+                return !node->gotDataInput();
+            }
         }
     }
     return false;
@@ -22,6 +51,17 @@ bool BehaviourNodeAdapter::needsDataOutput()
         BehaviourNode* node = getBehaviourNode();
         if(node){
             return !node->gotDataOutput();
+        }
+    }
+    return false;
+}
+
+bool BehaviourNodeAdapter::needsLeftEdge()
+{
+    if(isValid()){
+        BehaviourNode* node = getBehaviourNode();
+        if(node){
+            return !node->gotLeftWorkflowEdge();
         }
     }
     return false;

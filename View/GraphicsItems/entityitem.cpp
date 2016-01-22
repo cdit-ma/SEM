@@ -9,6 +9,7 @@
 #include <QPixmap>
 #include <QBitmap>
 
+#include "../../Controller/behaviournodeadapter.h"
 #include <QInputDialog>
 #include <QTextBlockFormat>
 
@@ -97,6 +98,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
 
     sortTriggerAction = true;
     eventFromMenu = true;
+    hasWarning = false;
 
 
     showDeploymentWarningIcon = false;
@@ -187,6 +189,7 @@ EntityItem::EntityItem(NodeAdapter *node, NodeItem *parent):  NodeItem(node, par
     }
 
     updateTextLabel();
+    updateErrorState();
 
     //Force a zoom change.
     zoomChanged(getZoomFactor());
@@ -239,6 +242,8 @@ EntityItem::MOUSEOVER_TYPE EntityItem::getMouseOverType(QPointF scenePos)
             return MO_HARDWAREMENU;
         }if(mouseOverDeploymentIcon(itemPos) && state > RS_REDUCED){
             return MO_DEPLOYMENTWARNING;
+        }if(mouseOverErrorIcon(itemPos) && state > RS_REDUCED){
+            return MO_ERROR;
         }if(mouseOverIcon(itemPos)){
             return MO_ICON;
         }if(mouseOverTopBar(itemPos)){
@@ -530,8 +535,9 @@ QRectF EntityItem::gridRect() const
 QRectF EntityItem::headerRect()
 {
     qreal itemMargin = 2 * getItemMargin();
-    return QRectF(QPointF(0, 0), QPointF(getWidth() + itemMargin, contractedHeight + itemMargin));
+    return QRectF(QPointF(0, 0), QPointF(getCurrentWidth() + itemMargin, contractedHeight + itemMargin));
 }
+
 
 QRectF EntityItem::bodyRect()
 {
@@ -651,10 +657,12 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             headBrush.setColor(selectedPen.color());
         }
 
-        //Paint Header
-        painter->setPen(Qt::NoPen);
+
+
         painter->setBrush(headBrush);
         painter->drawRect(headerRect());
+
+
 
 
         //Draw the boundary.
@@ -752,6 +760,19 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
             paintPixmap(painter, IP_TOPLEFT, "Actions", "Key");
         }
 
+        ERROR_TYPE error = getErrorType();
+        if(error >= ET_OKAY){
+            QString errorName = "Warning";
+
+            if(error == ET_CRITICAL){
+                errorName = "Critical";
+            }else{
+                errorName = "Warning";
+            }
+
+            paintPixmap(painter, IP_TOPMID, "Actions", errorName);
+        }
+
         if(canNodeBeConnected){
             //Paint connect Icon
             paintPixmap(painter, IP_TOPRIGHT, "Actions", "ConnectTo");
@@ -832,6 +853,15 @@ bool EntityItem::mouseOverDeploymentIcon(QPointF mousePosition)
         return iconRect_TopRight().contains(mousePosition);
     }
     return false;
+}
+
+bool EntityItem::mouseOverErrorIcon(QPointF mousePosition)
+{
+    if(getErrorType() != ET_OKAY){
+        return iconRect_TopMid().contains(mousePosition);
+    }
+    return false;
+
 }
 
 bool EntityItem::mouseOverDefinition(QPointF mousePosition)
@@ -1449,6 +1479,10 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
         cursor = Qt::WhatsThisCursor;
         tooltip = "Not all children entities are deployed to the same Hardware entity.";
         break;
+    case MO_ERROR:
+        cursor = Qt::WhatsThisCursor;
+        tooltip = getErrorTooltip();
+        break;
     case MO_RESIZE:
         if(isSelected()){
             tooltip = "Click and drag to change size.\nDouble click to auto set size.";
@@ -1487,6 +1521,22 @@ void EntityItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
     GraphMLItem::hoverMoveEvent(event);
 }
 
+void EntityItem::updateErrorState()
+{
+    NodeAdapter* node = getNodeAdapter();
+    if(node->isBehaviourAdapter()){
+        BehaviourNodeAdapter* bA = (BehaviourNodeAdapter*)node;
+
+        if(bA->needsLeftEdge()){
+            setErrorType(ET_CRITICAL, "Entity requires workload edge.");
+        }else{
+            clearError();
+        }
+
+        setNodeConnectable(bA->needsConnection());
+    }
+}
+
 
 /*void EntityItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
@@ -1520,6 +1570,12 @@ void EntityItem::updateTextVisibility()
 
         bottomInputItem->setVisible(showBottomLabel);
     }
+}
+
+void EntityItem::setWarning(bool warning, QString warningTooltip)
+{
+    hasWarning = warning;
+    this->warningTooltip = warningTooltip;
 }
 
 
@@ -1604,7 +1660,7 @@ QRectF EntityItem::smallIconRect() const
 QRectF EntityItem::iconRect() const
 {
     qreal iconSize = ICON_RATIO * contractedWidth;
-    if(getRenderState() <= RS_REDUCED){
+    if(getRenderState() <= RS_MINIMAL){
         iconSize = contractedWidth;
     }
 
@@ -1650,6 +1706,31 @@ QRectF EntityItem::textRect_Bot() const
     rect.moveBottomLeft(iconRect_BottomLeft().bottomRight());
     return rect;
 }
+
+QRectF EntityItem::statusRect_Left() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    qreal rWidth = SMALL_ICON_RATIO * contractedWidth;
+
+    QRectF headRect = minimumRect();
+    headRect.setWidth(rWidth);
+
+    return headRect;
+}
+
+QRectF EntityItem::iconRect_TopMid() const
+{
+    //Construct a Rectangle to represent the icon size at the origin.
+    QRectF iconRect = smallIconRect();
+
+    //Translate to move the icon to its position
+    qreal itemMargin = getItemMargin();
+    iconRect.moveTopLeft(QPointF(itemMargin + (getCurrentWidth()/2) - (iconRect.width() /2), itemMargin));
+
+    return iconRect;
+
+}
+
 
 
 /**
@@ -1710,6 +1791,8 @@ QRectF EntityItem::getImageRect(EntityItem::IMAGE_POS pos) const
         return iconRect_BottomLeft();
     case IP_TOPRIGHT:
         return iconRect_TopRight();
+    case IP_TOPMID:
+        return iconRect_TopMid();
     case IP_TOPLEFT:
         return iconRect_TopLeft();
     case IP_BOT_RIGHT:
@@ -1946,6 +2029,13 @@ void EntityItem::setupBrushes()
 
     readOnlyHeaderBrush = QBrush(bColor);
 
+    blendColor = Qt::red;
+    bColor = headerBrush.color();
+    bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
+    bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
+    bColor.setGreen(blendFactor * blendColor.green() + (1 - blendFactor) * bColor.green());
+
+    errorHeaderBrush = QBrush(bColor);
 }
 
 
@@ -2466,14 +2556,12 @@ void EntityItem::forceExpandParentItem()
 
 void EntityItem::edgeAdded(int ID, Edge::EDGE_CLASS edgeClass)
 {
-    qCritical() << "EDGE ADDED";
-
+    updateErrorState();
 }
 
 void EntityItem::edgeRemoved(int ID, Edge::EDGE_CLASS edgeClass)
 {
-    qCritical() << "EDGE REMOVED";
-
+    updateErrorState();
 }
 
 

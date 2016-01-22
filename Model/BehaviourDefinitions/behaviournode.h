@@ -22,6 +22,7 @@ public:
     void setIsDataInput(bool input);
     void setIsDataOutput(bool output);
 
+
     bool isWorkflowStart();
     bool isWorkflowEnd();
     bool isNonWorkflow();

@@ -34,12 +34,12 @@ class EntityItem : public NodeItem
 {
     Q_OBJECT
 public:
-    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_TOP_LABEL, MO_BOT_LABEL_ICON, MO_BOT_LABEL, MO_EXPANDLABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODEL_CIRCLE, MO_MODEL_TR, MO_MODEL_BR, MO_MODEL_BL, MO_MODEL_TL, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
+    enum MOUSEOVER_TYPE{MO_NONE, MO_ICON, MO_TOP_LABEL, MO_BOT_LABEL_ICON, MO_BOT_LABEL, MO_EXPANDLABEL, MO_DEFINITION, MO_HARDWAREMENU, MO_ERROR, MO_DEPLOYMENTWARNING, MO_TOPBAR, MO_CONNECT, MO_MODEL_CIRCLE, MO_MODEL_TR, MO_MODEL_BR, MO_MODEL_BL, MO_MODEL_TL, MO_EXPAND, MO_ITEM, MO_RESIZE, MO_RESIZE_HOR, MO_RESIZE_VER};
 
 
 
 
-    enum IMAGE_POS{IP_TOPLEFT, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER};
+    enum IMAGE_POS{IP_TOPLEFT, IP_TOPMID, IP_TOPRIGHT, IP_BOT_RIGHT, IP_BOTLEFT, IP_CENTER};
 
     EntityItem(NodeAdapter* node, NodeItem *parent);
     ~EntityItem();
@@ -117,6 +117,7 @@ public:
     bool mouseOverBotInputIcon(QPointF mousePosition);
     bool mouseOverBotInput(QPointF mousePosition);
     bool mouseOverDeploymentIcon(QPointF mousePosition);
+    bool mouseOverErrorIcon(QPointF mousePosition);
     bool mouseOverDefinition(QPointF mousePosition);
     bool mouseOverIcon(QPointF mousePosition);
     bool mouseOverTopBar(QPointF mousePosition);
@@ -283,7 +284,10 @@ protected:
 
 
 private:
+    void updateErrorState();
     void updateTextVisibility();
+
+    void setWarning(bool warning, QString warningTooltip);
 
     void updateDisplayedChildren(int viewMode);
 
@@ -294,6 +298,11 @@ private:
     QRectF textRect_Top() const;
     QRectF textRect_Right() const;
     QRectF textRect_Bot() const;
+
+
+    QRectF statusRect_Left() const;
+    QRectF iconRect_TopMid() const;
+    //QRectF iconRect_MidRight() const;
 
     QRectF iconRect_TopLeft() const;
     QRectF iconRect_TopRight() const;
@@ -444,6 +453,9 @@ private:
     QBrush readOnlyBodyBrush;
     QBrush readOnlyHeaderBrush;
 
+
+    QBrush errorHeaderBrush;
+
     QPen pen;
     QPen selectedPen;
     bool updatedAlready;
@@ -490,6 +502,9 @@ private:
     QString statusModeDataKey;
     bool hasEditData;
     bool editableDataDropDown;
+
+    bool hasWarning;
+    QString warningTooltip;
     // GraphMLItem interface
 public slots:
     bool canHover();

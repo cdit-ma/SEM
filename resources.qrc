@@ -185,6 +185,7 @@
         <file alias="Function.png">Resources/Images/Actions/Function.png</file>
         <file alias="getCPP.png">Resources/Images/Actions/getCPP.png</file>
         <file alias="Close.png">Resources/Images/Actions/Close.png</file>
+        <file alias="Critical.png">Resources/Images/Actions/Critical.png</file>
     </qresource>
     <qresource prefix="/Data">
         <file alias="ip_address.png">Resources/Images/Data/ip_address.png</file>

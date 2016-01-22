@@ -1671,7 +1671,12 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
         QStringList keysValues;
         keysValues << "Attribute" << "Member" << "Variable";
         validValues << "Boolean" << "Byte" << "Char" << "WideChar" << "ShortInteger" << "LongInteger" << "LongLongInteger" << "UnsignedShortInteger" << "UnsignedLongInteger" << "UnsignedLongLongInteger" << "FloatNumber" << "DoubleNumber" << "LongDoubleNumber" << "GenericObject" << "GenericValue" << "GenericValueObject" << "String" << "WideString";
+        newKey->addValidValues(validValues, keysValues);
 
+        keysValues.clear();;
+        validValues.clear();
+        keysValues << "PeriodicEvent";
+        validValues << "Constant" << "Exponential";
         newKey->addValidValues(validValues, keysValues);
     }
     if(name == "middleware"){
@@ -2160,8 +2165,15 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     }
     if(nodeKind == "PeriodicEvent"){
         Key* frequencyKey = constructKey("frequency", QVariant::Double, Entity::EK_NODE);
+        //Key* frequencyKey = constructKey("frequency", QVariant::String, Entity::EK_NODE);
         Data* freqData = new Data(frequencyKey);
+
+        Data* typeData = new Data(typeKey, "Constant");
+        typeData->setProtected(false);
+        data.append(typeData);
+
         freqData->setValue(1.0);
+        data.append(freqData);
     }
     if(nodeKind == "Process"){
         Key* codeKey = constructKey("code", QVariant::String,Entity::EK_NODE);
