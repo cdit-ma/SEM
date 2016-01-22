@@ -83,7 +83,9 @@ DockNodeItem::DockNodeItem(QString kind, EntityItem* item, QWidget *parent, bool
     }
 
     // this initially contract labels
-    setDockItemExpanded();
+    if(parentDock && parentDock->getDockType()==FUNCTIONS_DOCK){
+        setDockItemExpanded();
+    }
 }
 
 
