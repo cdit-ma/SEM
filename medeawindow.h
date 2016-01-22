@@ -27,6 +27,11 @@
 #include <QProgressDialog>
 #include <QTemporaryFile>
 
+#include <QGuiApplication>
+#include <QScreen>
+#include <QDebug>
+
+
 #include <QXmlQuery>
 #include <QXmlResultItems>
 
@@ -49,6 +54,7 @@
 #include "View/Dock/functionsdockscrollarea.h"
 
 #include "View/Validate/validatedialog.h"
+#include "View/medeasplash.h"
 
 #include "CUTS/cutsmanager.h"
 
@@ -482,6 +488,9 @@ private:
     bool initialSettingsLoaded;
     bool maximizedSettingInitiallyChanged;
 
+
+    bool SAVE_WINDOW_SETTINGS;
+
     bool WINDOW_MAXIMIZED;
     bool WINDOW_FULLSCREEN;
 
@@ -504,6 +513,8 @@ private:
     bool validate_TempExport;
     QString validation_report_path;
     QString componentName_CPPExport;
+
+    MedeaSplash* splashScreen;
 
     // QWidget interface
 protected:

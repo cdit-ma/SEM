@@ -18,11 +18,13 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QTemporaryFile>
+#include <QSplashScreen>
 #include <QPicture>
 #include "GUI/actionbutton.h"
 #include "GUI/shortcutdialog.h"
 #include <QToolButton>
 #include <QToolBar>
+#include "View/medeasplash.h"
 
 #define THREADING true
 
@@ -63,12 +65,22 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     QMainWindow(parent)
 {
     setupApplication();
+
+    QString version = "v";
+    version += APP_VERSION;
+    splashScreen = new MedeaSplash("MEDEA", version, QPixmap(":/Actions/MEDEA.png"));
+    splashScreen->showMessage("Loading Settings");
+
+
+    splashScreen->show();
+    //Timeout for 2 seconds before hiding.
+    QTimer::singleShot(2000, splashScreen, SLOT(close()));
+
     setAcceptDrops(true);
 
     controllerThread = 0;
     controller = 0;
     nodeView = 0;
-
 
     WINDOW_MAXIMIZED = false;
     WINDOW_FULLSCREEN = false;
@@ -106,6 +118,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseCUTSManager();
 
     initialiseGUI();
+
     makeConnections();
 
     resetGUI();
@@ -113,7 +126,9 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     resetView();
 
     // load the initial settings
+    //splashScreen->showMessage("Setting Up View");
     setupInitialSettings();
+    splashScreen->raise();
 
     //Load initial model.
     if(loadLaunchedFile){
@@ -139,6 +154,10 @@ MedeaWindow::~MedeaWindow()
     }
     if (nodeView) {
         nodeView->deleteLater();
+    }
+
+    if(splashScreen){
+        splashScreen->deleteLater();
     }
 
     if(jenkinsManager){
@@ -307,9 +326,13 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
     int intValue = value.toInt(&isInt);
 
     if(keyName == WINDOW_X && isInt){
-        move(intValue, pos().y());
+        if(intValue >= 0){
+            move(intValue, pos().y());
+        }
     }else if(keyName == WINDOW_Y && isInt){
-        move(pos().x(), intValue);
+        if(intValue >= 0){
+            move(pos().x(), intValue);
+        }
     }else if(keyName == WINDOW_W && isInt){
         resize(intValue, size().height());
     }else if(keyName == WINDOW_H && isInt){
@@ -326,6 +349,8 @@ void MedeaWindow::settingChanged(QString groupName, QString keyName, QVariant va
         }
     }else if(keyName == WINDOW_FULL_SCREEN){
         setFullscreenMode(boolValue);
+    }else if(keyName == WINDOW_STORE_SETTINGS){
+        SAVE_WINDOW_SETTINGS = boolValue;
     }else if(keyName == CUTS_CONFIGURE_PATH){
         if(cutsManager){
             cutsManager->setCUTSConfigScriptPath(strValue);
@@ -2324,7 +2349,7 @@ void MedeaWindow::executeLocalNodeDeployment()
 void MedeaWindow::saveSettings()
 {
     //Write Settings on Quit.
-    if(appSettings){
+    if(appSettings && SAVE_WINDOW_SETTINGS){
         appSettings->setSetting(TOOLBAR_EXPANDED, toolbarButton->isChecked());
 
         appSettings->setSetting(WINDOW_MAX_STATE, isMaximized());
