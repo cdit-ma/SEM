@@ -14,6 +14,10 @@ public:
     QRectF topRect() const;
     QRectF botRect() const;
 
+    QPointF getCircleCenter();
+    void setBackgroundColor(QColor color);
+
+
 
     void incrementDecrementNumber(bool inc);
     void setNumberMode(bool num);
@@ -39,6 +43,7 @@ private:
     void _setEditMode(bool editMode);
     qreal widthOffset();
     QPointF topRight;
+    QColor backgroundColor;
 
     bool editMode;
 

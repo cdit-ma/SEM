@@ -22,6 +22,7 @@
 #include "nodeitem.h"
 #include "inputitem.h"
 #include "statusitem.h"
+#include "notificationitem.h"
 
 #include "../../Model/node.h"
 #include "../../Model/data.h"
@@ -482,6 +483,7 @@ private:
     InputItem* rightLabelInputItem;
 
     StatusItem* statusItem;
+    NotificationItem* notificationItem;
 
     QString descriptionValue;
     QString nodeHardwareOS;

@@ -669,7 +669,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         if(renderState >= RS_REDUCED || isSelected() || hasHardwareWarning){
             if(renderState != RS_BLOCK){
                 //Setup the Pen
-                QPen pen = this->pen;
+                QPen  pen = this->pen;
 
                 if(isSelected()){
                     pen = this->selectedPen;
@@ -758,19 +758,6 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
         if(nodeMemberIsKey){
             paintPixmap(painter, IP_TOPLEFT, "Actions", "Key");
-        }
-
-        ERROR_TYPE error = getErrorType();
-        if(error >= ET_OKAY){
-            QString errorName = "Warning";
-
-            if(error == ET_CRITICAL){
-                errorName = "Critical";
-            }else{
-                errorName = "Warning";
-            }
-
-            paintPixmap(painter, IP_TOPMID, "Actions", errorName);
         }
 
         if(canNodeBeConnected){
@@ -1529,7 +1516,9 @@ void EntityItem::updateErrorState()
 
         if(bA->needsLeftEdge()){
             setErrorType(ET_CRITICAL, "Entity requires workload edge.");
+            notificationItem->setErrorType(ET_CRITICAL);
         }else{
+            notificationItem->setErrorType(ET_WARNING);
             clearError();
         }
 
@@ -1792,7 +1781,7 @@ QRectF EntityItem::getImageRect(EntityItem::IMAGE_POS pos) const
     case IP_TOPRIGHT:
         return iconRect_TopRight();
     case IP_TOPMID:
-        return iconRect_TopMid();
+        return iconRect();
     case IP_TOPLEFT:
         return iconRect_TopLeft();
     case IP_BOT_RIGHT:
@@ -1956,7 +1945,7 @@ void EntityItem::updateTextLabel(QString newLabel)
 
     bottomInputItem->updatePosSize(textRect_Bot());
 
-    statusItem->setCircleCenter(boundingRect().topRight() + QPointF(-getItemMargin(), getItemMargin()));
+    statusItem->setCircleCenter(boundingRect().topRight());
 
     updateTextVisibility();
 }
@@ -2030,6 +2019,7 @@ void EntityItem::setupBrushes()
     readOnlyHeaderBrush = QBrush(bColor);
 
     blendColor = Qt::red;
+    blendFactor = .6;
     bColor = headerBrush.color();
     bColor.setBlue(blendFactor * blendColor.blue() + (1 - blendFactor) * bColor.blue());
     bColor.setRed(blendFactor * blendColor.red() + (1 - blendFactor) * bColor.red());
@@ -2145,6 +2135,9 @@ void EntityItem::setupLabel()
     topLabelInputItem = new InputItem(this,"", false);
     rightLabelInputItem = new InputItem(this, "", false);
     statusItem = new StatusItem(this);
+    statusItem->setBackgroundColor(QColor(0,150,150));
+    notificationItem = new NotificationItem(this);
+    notificationItem->setBackgroundColor(QColor(255,204,51));
 
     //Setup external Label
     topLabelInputItem->setAcceptHoverEvents(true);
@@ -2154,6 +2147,9 @@ void EntityItem::setupLabel()
     //Setup external statusItem
     statusItem->setAcceptHoverEvents(true);
     statusItem->setToolTipString("Click to edit field.");
+
+    notificationItem->setAcceptHoverEvents(true);
+
 
 
 
@@ -2196,11 +2192,14 @@ void EntityItem::setupLabel()
     QPointF bottomLabelPos = iconRect_BottomLeft().topRight();
     QPointF expandedLabelPos = expandedLabelRect().topLeft() - QPointF(0, rightLabelInputItem->boundingRect().height() /2);
     QPointF statusIconPos = boundingRect().topRight() - statusItem->boundingRect().center();
+    QPointF notificationIconPos =  - (2*notificationItem->boundingRect().bottomRight());
 
     rightLabelInputItem->setPos(expandedLabelPos);
     bottomInputItem->setPos(bottomLabelPos);
     topLabelInputItem->setPos(bottomLabelPos - QPointF(0 , bottomInputItem->boundingRect().height()));
     statusItem->setPos(statusIconPos);
+    notificationItem->setPos(statusIconPos);
+
 
 
 }

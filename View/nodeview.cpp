@@ -3107,23 +3107,38 @@ QPixmap NodeView::getImage(QString alias, QString imageName)
         QPixmap imageData = QPixmap::fromImage(image);
 
         if(alias == "Actions" || alias == "Data" || alias == "Functions"){
-            QColor tint;
+            QColor tint = QColor(60, 60, 60, 255);
 
             QStringList redImages;
             redImages << "Critical" ;
             QStringList orangeImages;
             orangeImages << "Warning";
+            QStringList whiteImages;
+            whiteImages << "Exclamation" << "Cross";
 
+
+            bool gotMatch = false;
             if(redImages.contains(imageName)){
-                tint = QColor(255,0,0,255);
+                gotMatch = true;
+                tint = QColor(255,0,0);
             }else if(orangeImages.contains(imageName)){
-                tint = QColor(232,188,0,0);
+                gotMatch = true;
+                tint = QColor(232,188,0);
+            }else if(whiteImages.contains(imageName)){
+                gotMatch = true;
+                tint = QColor(255,255,255);
             }
 
-            if(image.size() == QSize(96,96)){
-                // morph it into a grayscale image
-                image = image.alphaChannel();
+            if(!gotMatch){
+                //Should be Grey only if Android ICon.
+                if(image.size() == QSize(96,96)){
+                    gotMatch = true;
+                }
 
+            }
+
+            if(gotMatch){
+                image = image.alphaChannel();
 
                 // now replace the colors in the image
                 for(int i = 0; i < image.colorCount(); ++i) {
