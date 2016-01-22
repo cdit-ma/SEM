@@ -71,6 +71,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     splashScreen = new MedeaSplash("MEDEA", version, QPixmap(":/Actions/MEDEA.png"));
     splashScreen->showMessage("Loading Settings");
 
+
     splashScreen->show();
     //Timeout for 2 seconds before hiding.
     QTimer::singleShot(2000, splashScreen, SLOT(close()));
@@ -117,6 +118,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     initialiseCUTSManager();
 
     initialiseGUI();
+
     makeConnections();
 
     resetGUI();
@@ -126,6 +128,7 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     // load the initial settings
     //splashScreen->showMessage("Setting Up View");
     setupInitialSettings();
+    splashScreen->raise();
 
     //Load initial model.
     if(loadLaunchedFile){
