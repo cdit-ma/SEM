@@ -431,6 +431,7 @@
 				<xsl:call-template name="recurseParameter">
 					<xsl:with-param name="variableName" select="concat('this-&gt;', $varName, '_')"/>
 					<xsl:with-param name="firstLevelAggregate" select="$firstLevelAggregate"/>
+					<xsl:with-param name="firstLevelFunction" select="'false'"/>
 					<xsl:with-param name="sourceDataNode" select="$sourceDataNode" />
 					<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
 				</xsl:call-template> 
@@ -1578,6 +1579,7 @@
 					<xsl:call-template name="recurseParameter">
 						<xsl:with-param name="variableName" select="concat($sourceDataVariable[last()]/gml:data[@key=$transformNodeLabelKey]/text(), '_')"/>
 						<xsl:with-param name="firstLevelAggregate" select="$firstLevelAggregate"/>
+						<xsl:with-param name="firstLevelFunction" select="'false'"/>
 						<xsl:with-param name="sourceDataNode" select="$sourceDataNode" />
 						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
 					</xsl:call-template> 
@@ -1598,10 +1600,10 @@
 					<xsl:call-template name="recurseParameter">
 						<xsl:with-param name="variableName" select="'ev'"/>
 						<xsl:with-param name="firstLevelAggregate" select="$firstLevelAggregate"/>
+						<xsl:with-param name="firstLevelFunction" select="'true'"/>
 						<xsl:with-param name="sourceDataNode" select="$sourceDataNode" />
 						<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
 					</xsl:call-template> 
-					<xsl:value-of select="' ()'" />
 				</xsl:when>
 				</xsl:choose>
 			</xsl:if>
@@ -1615,6 +1617,7 @@
 	 <xsl:template name="recurseParameter">
 		<xsl:param name="variableName" />
 		<xsl:param name="firstLevelAggregate" />
+		<xsl:param name="firstLevelFunction" />
 		<xsl:param name="sourceDataNode" />
 		<xsl:param name="transformNodeLabelKey" />
 		
@@ -1627,6 +1630,7 @@
 			<xsl:call-template name="recurseParameter">
 				<xsl:with-param name="variableName" select="$variableName"/>
 				<xsl:with-param name="firstLevelAggregate" select="$firstLevelAggregate"/>
+				<xsl:with-param name="firstLevelFunction" select="$firstLevelFunction"/>
 				<xsl:with-param name="sourceDataNode" select="$sourceDataNode[1]/../.." />
 				<xsl:with-param name="transformNodeLabelKey" select="$transformNodeLabelKey" />
 			</xsl:call-template> 
@@ -1636,6 +1640,9 @@
 
 		<xsl:otherwise>
 			<xsl:value-of select="concat( $variableName, '-&gt;', $sourceDataNode[1]/gml:data[@key=$transformNodeLabelKey]/text() )" />
+			<xsl:if test="$firstLevelFunction = 'true'" > 
+				<xsl:value-of select="' ()'" />
+			</xsl:if>
 		</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
