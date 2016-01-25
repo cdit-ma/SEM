@@ -368,7 +368,6 @@ void EntityItem::handleExpandState(bool newState)
         updateDisplayedChildren(CHILDREN_VIEW_MODE);
     }
 
-    update();
     emit GraphMLItem_SizeChanged();
 
     updateTextLabel();
