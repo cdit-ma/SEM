@@ -171,7 +171,7 @@ QString Data::toGraphML(int indentDepth)
 
 QString Data::toString()
 {
-    return QString("[" + QString::number(getID()) + "]Data" + getKeyName() + ": " + getValue().toString());
+    return QString("[" + QString::number(getID()) + "] Data " + getKeyName() + ": " + getValue().toString());
 }
 
 void Data::addChildData(Data *childData)
