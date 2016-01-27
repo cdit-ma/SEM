@@ -3329,7 +3329,7 @@ void MedeaWindow::updateDataTable()
 
     // align the contents of the datatable
     if(dataTable->horizontalHeader()->count() == 2){
-        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        dataTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
         dataTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     }
 }
