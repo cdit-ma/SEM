@@ -127,7 +127,7 @@
                             <data key="d7">41</data>
                             <data key="d8">41</data>
                             <data key="d9">size</data>
-                            <data key="d10">1</data>
+                            <data key="d10">0</data>
                             <data key="d22">LongInteger</data>
                             <data key="d23">true</data>
                             <data key="d25">Returns 0 if successful</data>

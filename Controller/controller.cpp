@@ -509,7 +509,6 @@ void NewController::setData(Entity *parent, QString keyName, QVariant dataValue,
             if(parent->isNode()){
                 enforceUniqueSortOrder((Node*)parent, dataValue.toInt());
             }
-            data->setValue(dataValue);
         }else{
             data->setValue(dataValue);
         }
@@ -1986,8 +1985,10 @@ Node *NewController::constructChildNode(Node *parentNode, QList<Data *> nodeData
                 enforceUniqueLabel(node);
             }
 
-            //Force Unique sort order
-            enforceUniqueSortOrder(node);
+            if(isUserAction()){
+                //Force Unique sort order
+                enforceUniqueSortOrder(node);
+            }
 
             constructNodeGUI(node);
         }else{
@@ -2448,6 +2449,14 @@ void NewController::enforceUniqueSortOrder(Node *node, int newSortPos)
         return;
     }
 
+    //If this action is caused by a non-user import, treat the value as gospel.
+    if(!isUserAction()){
+        if(newSortPos != -1){
+            node->setDataValue("sortOrder", newSortPos);
+        }
+        return;
+    }
+
     Node* parentNode = node->getParentNode();
 
     if(parentNode){
@@ -2781,6 +2790,7 @@ bool NewController::_attachData(Entity *item, QList<QStringList> dataList, bool 
 
 bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAction)
 {
+
     if(!item){
         return false;
     }
@@ -2815,6 +2825,7 @@ bool NewController::_attachData(Entity *item, QString keyName, QVariant value, b
     }
 
     data->setValue(value);
+
     return _attachData(item, data, addAction);
 }
 
@@ -4443,6 +4454,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     GraphML::GRAPHML_KIND nowInside = GraphML::GK_NONE;
     Entity::ENTITY_KIND nowInsideEntity = Entity::EK_NONE;
 
+    QHash<int, int> sortOrderCount;
+
     //Used to store the ID of the node we are to construct
     QString nodeID;
 
@@ -4476,6 +4489,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     }
 
 
+    QList<Node*> parentsAddedTo;
 
     Node* originalParent = parent;
 
@@ -4566,7 +4580,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                 QString dataValue = xml.readElementText();
 
                 //Construct a Data object out of the xml, using the key found in keyLookup
-                Data *data = new Data(dataKey);            
+                Data *data = new Data(dataKey);
                 data->setValue(dataValue);
 
 
@@ -4576,10 +4590,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     originalID = -1;
                 }
 
-                if(!linkID && dataKey->getName() == "sortOrder"){
-                    delete data;
-                    continue;
-                }
+
 
                 if(dataKey->getName() == "originalID"){
                     //Cast as int
@@ -4680,6 +4691,25 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
                 bool storeMD5 = false;
 
+                //Modify Sort order to be valid with an existing parent.
+                if(parent){
+                    int pID = parent->getID();
+
+                    int sortOrderDelta = 0;
+                    if(!sortOrderCount.contains(pID)){
+                        sortOrderCount[pID] = parent->childrenCount();
+                    }
+                    sortOrderDelta = sortOrderCount[pID];
+
+                    //Replace the value of the data for sortOrder to be at the end of the existing data.
+                    foreach(Data* data, currentNodeData){
+                        if(data->getKeyName() == "sortOrder"){
+                            int newSortOrder = data->getValue().toInt() + sortOrderDelta;
+                            data->setValue(newSortOrder);
+                        }
+                    }
+                }
+
                 //If we have a read only tag, we should look for the originalID provided.
                 //To see if we can find the original Node.
                 if(readOnlyTag){
@@ -4717,6 +4747,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                     }
                 }
 
+
+
                 if(!node){
                     Node* newNode = 0;
 
@@ -4731,6 +4763,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                         }
                     }
 
+
+
                     if(!newNode){
                         //Construct the specialised Node
                         newNode = constructChildNode(parent, currentNodeData);
@@ -4741,6 +4775,12 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
                             //emit controller_DialogMessage(CRITICAL, "Import Error", QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber()), parent);
                             qDebug() << QString("Line #%1: entity cannot adopt child entity!").arg(xml.lineNumber());
                             emit controller_DisplayMessage(WARNING, "Paste Error", "Cannot import/paste into this entity.", parent->getID());
+                        }else{
+                            if(!parentsAddedTo.contains(parent)){
+                                parentsAddedTo << parent;
+                            }
+
+
                         }
                     }
                     node = newNode;
@@ -4948,6 +4988,17 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
           }
     }
 
+
+    foreach(Node* node, parentsAddedTo){
+        QList<Node*> children = node->getChildren(0);
+        for(int i=0; i <children.length(); i++){
+            Node* child = children.at(i);
+            int sortOrder = child->getDataValue("sortOrder").toInt();
+            if(sortOrder != i){
+                child->setDataValue("sortOrder", i);
+            }
+        }
+    }
 
 
 

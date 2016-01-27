@@ -170,19 +170,21 @@ bool Key::gotInvalidCharacters(QString entityKinds)
 QVariant Key::validateDataChange(Data *data, QVariant dataValue)
 {
     if(data->getKey() != this){
+        qCritical() << "DIFFERENT KEY: ";
         //Return a blank QVariant
         return dataValue;
     }
 
     Entity* parentEntity = data->getParent();
-    if(!parentEntity){
-        //If no parent we can't validate the data, so assume correct
-        return dataValue;
+
+    QString entityKind = "";
+    if(parentEntity){
+        entityKind = parentEntity->getEntityName();
     }
 
     QString errorString = "";
 
-    QString entityKind = parentEntity->getEntityName();
+
 
     bool okay = false;
     switch(_keyType){
@@ -224,26 +226,13 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
             break;
         }
     case QVariant::Bool:
-        if(dataValue.type() == QVariant::String){
-            //Try cast from string.
-            QString boolStr = dataValue.toString().toLower();
-            if(boolStr == "true"){
-                okay = true;
-                dataValue.setValue(true);
-            }else if(boolStr == "false"){
-                okay = true;
-                dataValue.setValue(false);
-            }else{
-                okay = false;
-            }
-            break;
-        }
-
-
+        okay = dataValue.convert(QVariant::Bool);
+        break;
     default:{
         //Could be a number.
+        if(dataValue.canConvert(_keyType)){
+            dataValue.convert(_keyType);
 
-        if(dataValue.canConvert(QVariant::Double)){
             double newValue = dataValue.toDouble(&okay);
             if(okay){
                 if(gotValidRange(entityKind)){
