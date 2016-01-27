@@ -3722,14 +3722,14 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
                 if(bindableFunctionTypes.contains(operationName)){
                     //Find return Parameter;
                     foreach(Node* child, inputParent->getChildren(0)){
-                        ReturnParameter* returnParameter = dynamic_cast<ReturnParameter*>(child);
-                        if(returnParameter){
-                            Data* returnType = returnParameter->getData("type");
+                        Parameter* parameter = dynamic_cast<Parameter*>(child);
+                        if(parameter){
+                            Data* parameterType = parameter->getData("type");
                             if(setup){
-                                returnType->setParentData(vectorType);
+                                parameterType->setParentData(vectorType);
                             }else{
-                                returnType->unsetParentData();
-                                returnType->clearValue();
+                                parameterType->unsetParentData();
+                                parameterType->clearValue();
                             }
                         }
                     }

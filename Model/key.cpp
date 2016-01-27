@@ -178,8 +178,10 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
     Entity* parentEntity = data->getParent();
 
     QString entityKind = "";
+	int parentEntityID = -1;
     if(parentEntity){
         entityKind = parentEntity->getEntityName();
+		parentEntityID = parentEntity->getID();
     }
 
     QString errorString = "";
@@ -256,7 +258,7 @@ QVariant Key::validateDataChange(Data *data, QVariant dataValue)
         //Return new Value
         return dataValue;
     }else{
-        emit validateError("Data Input failed Validation!",errorString, parentEntity->getID());
+        emit validateError("Data Input failed Validation!", errorString, parentEntityID);
         //Return old value.
         return data->getValue();
     }
