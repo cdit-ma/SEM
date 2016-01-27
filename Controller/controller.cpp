@@ -3723,7 +3723,7 @@ bool NewController::setupDataEdgeRelationship(BehaviourNode *output, BehaviourNo
                     //Find return Parameter;
                     foreach(Node* child, inputParent->getChildren(0)){
                         Parameter* parameter = dynamic_cast<Parameter*>(child);
-                        if(parameter){
+                        if(parameter && parameter->getDataValue("label") == "value"){
                             Data* parameterType = parameter->getData("type");
                             if(setup){
                                 parameterType->setParentData(vectorType);
