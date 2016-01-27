@@ -2209,7 +2209,7 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(new Data(descriptionKey));
     }
     if(nodeKind == "Attribute"){
-        data.append(new Data(typeKey, QVariant::String));
+        data.append(new Data(typeKey, "String"));
     }
 
     if(nodeKind == "ComponentAssembly"){
@@ -2248,11 +2248,13 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(new Data(asyncKey, true));
     }
     if(nodeKind.endsWith("Parameter")){
+        data.append(new Data(typeKey));
+
         if(nodeKind == "InputParameter"){
             Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
             data.append(new Data(valueKey));
         }
-        data.append(new Data(typeKey));
+
     }
 
     return data;
@@ -2388,17 +2390,19 @@ void NewController::enforceUniqueLabel(Node *node, QString newLabel)
         bool gotMatches = false;
         QList<int> duplicateNumbers;
 
+        QRegularExpression regex(newLabel+"($|_)(([0-9]+)?$)");
+
         //If we have no parent node we don't need to enforce unique labels.
         foreach(Node* sibling, node->getSiblings()){
             QString siblingLabel = sibling->getDataValue("label").toString();
 
-
-            QRegularExpression regex(newLabel + "(_)?([0-9]+)?");
             QRegularExpressionMatch match = regex.match(siblingLabel);
             if(match.hasMatch()){
                 gotMatches = true;
+
                 QString underscore = match.captured(1);
                 QString numberStr = match.captured(2);
+
                 if(underscore != "_"){
                     duplicateNumbers += 0;
                 }else{
@@ -3796,6 +3800,7 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
                     foreach(Node* child, process->getChildren(0)){
                         Parameter* parameter = dynamic_cast<Parameter*>(child);
                         if(parameter && parameter->getDataValue("label") == "value"){
+                            qCritical() << "BINDING YO!";
                             Data* returnType = parameter->getData("type");
                             returnType->setParentData(bindData);
                         }
