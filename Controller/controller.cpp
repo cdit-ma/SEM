@@ -58,6 +58,7 @@ NewController::NewController()
 
     viewAspects << "Assembly" << "Workload" << "Definitions" << "Hardware";
     protectedKeyNames << "kind";
+    protectedKeyNames << "worker" << "operation" << "workerID" << "description";
 
     visualKeyNames << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
 
@@ -1713,6 +1714,7 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
         newKey->addInvalidCharacters(invalidChars);
     }
 
+
     connect(newKey, SIGNAL(validateError(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
     //Add it to the list of Keys.
     keys.append(newKey);
@@ -2153,27 +2155,8 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(freqData);
     }
     if(nodeKind == "Process"){
-        Key* codeKey = constructKey("code", QVariant::String,Entity::EK_NODE);
-        Key* actionOnKey = constructKey("actionOn",QVariant::String,Entity::EK_NODE);
-        Key* workerKey = constructKey("worker",QVariant::String,Entity::EK_NODE);
-        Key* folderKey = constructKey("folder", QVariant::String,Entity::EK_NODE);
-        Key* fileKey = constructKey("file", QVariant::String,Entity::EK_NODE);
-        Key* operationKey = constructKey("operation", QVariant::String,Entity::EK_NODE);
-        Key* complexityKey = constructKey("complexity", QVariant::String,Entity::EK_NODE);
-        Key* complexityParamsKey = constructKey("complexityParameters", QVariant::String,Entity::EK_NODE);
-        Key* parametersKey = constructKey("parameters", QVariant::String,Entity::EK_NODE);
-        data.append(new Data(codeKey));
-        Data* actionOnData = new Data(actionOnKey);
-        actionOnData->setValue("Mainprocess");
-        data.append(actionOnData);
-        data.append(new Data(workerKey));
-        data.append(new Data(complexityParamsKey));
-
-        data.append(new Data(folderKey));
-        data.append(new Data(fileKey));
-        data.append(new Data(operationKey));
-        data.append(new Data(complexityKey));
-        data.append(new Data(parametersKey));
+        Key* actionOnKey = constructKey("actionOn", QVariant::String,Entity::EK_NODE);
+        data.append(new Data(actionOnKey, "Mainprocess"));
     }
     if(nodeKind == "Condition"){
         Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
@@ -2804,6 +2787,8 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
         return false;
     }
 
+    bool isParameter = dynamic_cast<Parameter*>(item) != 0;
+
     foreach(Data* data, dataList){
         QString keyName = data->getKeyName();
         //Check if the item has a Data already.
@@ -2816,6 +2801,11 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
         Data* updateData = item->getData(keyName);
         if(updateData){
             updateData->setProtected(data->isProtected());
+        }
+
+        if(isParameter){
+            bool protect = keyName != "value";
+            updateData->setProtected(protect);
         }
     }
     return true;
