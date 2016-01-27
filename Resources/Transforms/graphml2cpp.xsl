@@ -532,7 +532,8 @@
 			<xsl:variable name="sinkName" select="$sink/gml:data[@key=$transformNodeLabelKey]/text()" />
 			<xsl:variable name="typeNodeId" select="/descendant::*/gml:edge[@source=$sink/@id]/@target" />
 			<xsl:variable name="typeNode" select="$interfaceDefs/descendant::*/gml:node[@id=$typeNodeId]/gml:data[@key=$transformNodeKindKey][text() = 'Aggregate']/.." />
-			<xsl:variable name="typeName" select="concat($typeNode/gml:data[@key=$transformNodeLabelKey]/text(), $EventSuffix)" />
+			<xsl:variable name="baseName" select="$typeNode/gml:data[@key=$transformNodeLabelKey]/text()" />
+			<xsl:variable name="typeName" select="concat($baseName, $EventSuffix)" />
 			<!-- Construct the name with scoped namespace of component ??? assume top level :: -->
 			<xsl:variable name="fq_name" select="concat('::',$typeName)" />
 			<!-- Make sure this is not a template event port. ie has event type aggregate -->
@@ -549,6 +550,19 @@
 					<xsl:value-of select="concat('&#xA;//&#xA;// sink: ', $sinkName, '&#xA;//&#xA;')" />
 					<xsl:value-of select="concat('void ', $nodeName, '::push_', $sinkName, '_i (', $fq_name, ' * ev)&#xA;{&#xA;')" />
 				</xsl:if>
+				
+				<!-- Copy event to base structure for use in data connections -->
+				<xsl:value-of select="concat('::', $baseName, ' __ev_base__;&#xA;')" />
+				<xsl:for-each select="$sink/gml:graph/gml:node/gml:graph/gml:node" >
+					<xsl:variable name="aggregateChild" select="." />
+					<xsl:variable name="memberLabel" select="$aggregateChild/gml:data[@key=$transformNodeLabelKey]/text()" />
+					<xsl:variable name="memberType" select="$aggregateChild/gml:data[@key=$transformNodeTypeKey]/text()" />
+					<xsl:value-of select="concat('__ev_base__.', $memberLabel, ' = ' )" />
+					<xsl:if test="$memberType = 'String' or $memberType = 'WideString'">
+						<xsl:value-of select="'CORBA::string_dup'" />
+					</xsl:if>
+					<xsl:value-of select="concat('(ev-&gt;', $memberLabel, '());&#xA;')" />
+				</xsl:for-each>
   			</xsl:if>
 			<xsl:variable name="implSink" select="$implNode/descendant::*/gml:node/gml:data[@key=$transformNodeKindKey][text() = 'InEventPortImpl']/../gml:data[@key=$transformNodeLabelKey][text() = $sinkName]/.." />
 			<xsl:call-template name="Execution_Visitor">
@@ -1622,6 +1636,10 @@
 		<xsl:param name="transformNodeLabelKey" />
 		
 		<xsl:choose>
+		<xsl:when test="$sourceDataNode[1]/@id = $firstLevelAggregate/@id and $variableName = 'ev'">
+			<xsl:value-of select="concat('__', $variableName, '_base__')" />
+		</xsl:when>
+
 		<xsl:when test="$sourceDataNode[1]/@id = $firstLevelAggregate/@id">
 			<xsl:value-of select="$variableName" />
 		</xsl:when>
