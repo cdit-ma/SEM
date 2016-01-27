@@ -2241,12 +2241,17 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
     }
 
     if(nodeKind.contains("EventPort")){
-        data.append(new Data(typeKey));
+        Data* typeData = new Data(typeKey);
+        if(nodeKind.endsWith("EventPort")){
+            typeData->setProtected(true);
+        }
+        data.append(typeData);
     }
     if(nodeKind == "InEventPort"){
         Key* asyncKey = constructKey("async", QVariant::Bool,Entity::EK_NODE);
         data.append(new Data(asyncKey, true));
     }
+
     if(nodeKind.endsWith("Parameter")){
         data.append(new Data(typeKey));
 
