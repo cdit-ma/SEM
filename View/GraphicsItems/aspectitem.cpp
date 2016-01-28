@@ -1,21 +1,17 @@
 #include "aspectitem.h"
 #include "../nodeview.h"
-#define ASPECT_ROW_COUNT 6
-#define ASPECT_COL_COUNT 4
 
 #define MODEL_WIDTH 72
 #define MODEL_HEIGHT 72
 
-//#define MARGIN_RATIO 0.10 //NORMAL
+#define WATERMARK_LABEL_RATIO (1.0 / 6.0)
+
 #define MARGIN_RATIO (1.0 / 18.0) //NORMAL
-//#define ICON_RATIO 0.80 //LARGE
-
-
-
 
 #define SELECTED_LINE_WIDTH 3
 #define ITEM_SIZE 72
-
+#define ASPECT_COL_COUNT 6
+#define ASPECT_ROW_COUNT 4
 
 #define ACTUAL_ITEM_SIZE (ITEM_SIZE + ((MARGIN_RATIO * 2) * ITEM_SIZE))
 #define GRID_COUNT 2
@@ -52,11 +48,12 @@ AspectItem::AspectItem(NodeAdapter *node, GraphMLItem *parent, VIEW_ASPECT aspec
 
     width = GRID_SIZE * GRID_COUNT * ASPECT_COL_COUNT;
     height = GRID_SIZE * GRID_COUNT * ASPECT_ROW_COUNT;
+
     minimumWidth = width;
     minimumHeight = height;
 
     textFont.setBold(true);
-    textFont.setPointSize(minimumHeight * (LABEL_RATIO /2));
+    textFont.setPixelSize(minimumHeight * WATERMARK_LABEL_RATIO);
 
     mouseOverResize = NO_RESIZE;
 

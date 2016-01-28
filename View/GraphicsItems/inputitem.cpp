@@ -7,6 +7,7 @@
 #include "editabletextitem.h"
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
+
 #define TEXT_PADDING 4
 
 InputItem::InputItem(GraphMLItem *parent, QString initialValue, bool isCombo):QGraphicsObject(parent)
@@ -219,7 +220,7 @@ void InputItem::updateTextSize()
     textItem->setPos(TEXT_PADDING, moveHeight);
 }
 
-void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
+void InputItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
     qreal actualSize = lod * height;
