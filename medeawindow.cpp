@@ -475,7 +475,8 @@ void MedeaWindow::initialiseGUI()
                   );
 
     // set all gui widget fonts to this
-    guiFont = QFont("Verdana", 8.5);
+    double fontSize = 8.5;
+    guiFont = QFont("Verdana", fontSize);
 
     // initialise variables
     controller = 0;

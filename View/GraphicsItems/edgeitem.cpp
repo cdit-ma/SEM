@@ -745,8 +745,8 @@ void EdgeItem::updateLines()
 
 
 
-    qreal srcArrowLength = abs((-CIRCLE_RADIUS - arrowTailMR.x())/2);
-    qreal dstArrowLength = abs((CIRCLE_RADIUS - arrowHeadMR.x())/2);
+    qreal srcArrowLength = fabs((-CIRCLE_RADIUS - arrowTailMR.x())/2);
+    qreal dstArrowLength = fabs((CIRCLE_RADIUS - arrowHeadMR.x())/2);
     qreal srcArrowOffset = (srcRect.height() /2) - srcYOffset;
     qreal dstArrowOffset = (dstRect.height() /2) - dstYOffset;
 
