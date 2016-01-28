@@ -50,7 +50,9 @@
 #define SEARCH_DATA_KEYS 2
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
+#define GRAPHML_FILE_SUFFIX ".graphml"
 #define GME_FILE_EXT "GME Documents (*.xme)"
+#define GME_FILE_SUFFIX ".xme"
 
 // USER SETTINGS
 //Some change
@@ -1802,7 +1804,7 @@ bool MedeaWindow::saveProject(bool saveAs)
         }
 
         if(saveAs){
-            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, false, false, filePath);
+            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, false, false, filePath);
 
             if(files.size() != 1){
                 return false;
@@ -2457,7 +2459,7 @@ void MedeaWindow::on_actionOpenProject_triggered()
     if(nodeView){
         filePath = nodeView->getProjectFileName();
     }
-    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, true, false, filePath);
+    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, true, false, filePath);
 
     if(fileNames.size() == 1){
         openProject(fileNames.first());
@@ -2483,14 +2485,14 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
 {
     progressAction = "Importing GraphML";
 
-    importProjects(fileSelector("Select one or more files to import.", GRAPHML_FILE_EXT, true));
+    importProjects(fileSelector("Select one or more files to import.", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, true));
 }
 
 void MedeaWindow::on_actionImport_XME_triggered()
 {
     progressAction = "Importing XME";
 
-    QStringList files = fileSelector("Select an XME file to import.", GME_FILE_EXT, true, false);
+    QStringList files = fileSelector("Select an XME file to import.", GME_FILE_EXT, GME_FILE_SUFFIX, true, false);
     if(files.size() == 1){
         importXMEProject(files.first());
     }
@@ -2593,7 +2595,7 @@ void MedeaWindow::importSnippet(QString snippetType)
         return;
     }
 
-    QStringList files = fileSelector("Import " + snippetType + ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", true, false);
+    QStringList files = fileSelector("Import " + snippetType + ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", "."+snippetType+".snippet", true, false);
 
     if(files.size() != 1){
         return;
@@ -2601,7 +2603,8 @@ void MedeaWindow::importSnippet(QString snippetType)
 
     QString snippetFileName = files.first();
 
-    if(snippetFileName.isNull()){
+    if (snippetFileName == "" || !snippetFileName.endsWith(snippetType + ".snippet")){
+        displayNotification("Snippet file selected doesn't match the required file format: " + snippetType);
         return;
     }
 
@@ -2623,20 +2626,24 @@ void MedeaWindow::exportSnippet(QString snippetType)
         return;
     }
 
-    QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", false);
+    QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)","."+snippetType+".snippet", false);
 
     if(files.size() != 1){
+        displayNotification("Only 1 file can be selected to export Snippet!");
         return;
     }
     QString snippetName = files.first();
 
     if (snippetName == "" || !snippetName.endsWith(snippetType + ".snippet")){
+        displayNotification("Snippet file selected doesn't match the required file format: " + snippetType);
         return;
     }
 
     QString grapmlData = nodeView->getSelectionAsGraphMLSnippet();
     if(grapmlData != ""){
         writeFile(snippetName, grapmlData);
+    }else{
+        displayNotification("Cannot export Snippet!");
     }
 }
 
@@ -3720,7 +3727,7 @@ void MedeaWindow::dialogRejected()
     popupMultiLine->close();
 }
 
-QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool open, bool allowMultiple, QString fileName)
+QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple, QString fileName)
 {
     QStringList files;
 
@@ -3737,6 +3744,8 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool op
         fileDialog->setWindowTitle(title);
         fileDialog->setNameFilter(fileString);
         fileDialog->setDirectory(DEFAULT_PATH);
+        //fileDialog->setDefaultSuffix();
+
 
         if(open){
             fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
@@ -3774,5 +3783,7 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool op
             }
         }
     }
+
+
     return files;
 }
