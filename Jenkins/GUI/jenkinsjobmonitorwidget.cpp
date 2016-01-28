@@ -297,7 +297,7 @@ void JenkinsJobMonitorWidget::gotJobActiveConfigurations(QString jobName, QStrin
 void JenkinsJobMonitorWidget::gotJobConsoleOutput(QString jobName, int buildNumber, QString activeConfiguration, QString consoleOutput)
 {
     //Check if the jobName and buildNumber match.
-    if(this->jobName == jobName && buildNumber == buildNumber){
+    if(this->jobName == jobName && this->buildNumber == buildNumber){
         //Append the consoleOutput to the end of the QTextBrowser which matches the activeConfiguration.
         if(configurationBrowsers.contains(activeConfiguration)){
             QTextBrowser* output = configurationBrowsers[activeConfiguration];

@@ -193,7 +193,8 @@ void SearchDialog::setupLayout()
     QHBoxLayout* headerLayout = new QHBoxLayout();
     QVBoxLayout* headerLabelsLayout = new QVBoxLayout();
 
-    defaultFont = QFont("Verdana", 8.5);
+    double fontSize = 8.5;
+    defaultFont = QFont("Verdana", fontSize);
     int keyLabelWidth = fontMetrics().width("WWWWWWWW");
 
     QGroupBox* headerBox = new QGroupBox(this);
