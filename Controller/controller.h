@@ -508,6 +508,7 @@ private:
     //QList<int> connectedLinkedIDs;
 
     bool isUserAction();
+    bool updateProgressNotification();
 
     bool CUT_USED;
     bool OPENING_PROJECT;

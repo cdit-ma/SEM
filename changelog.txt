@@ -1,4 +1,15 @@
-Version 1.2.0.0:
+Version 1.2.1:
+        New Features:
+            * Implemented CPP Code and CPP Header process for injecting *.cpp and *.h code into Model.
+            * Implemented splash screen on loading.
+            * When constructing EventPorts, it will now require selection of an Aggregate.
+            * Implemented a progress gif for Importing Jenkins Nodes, Validating Model, Transforming from XME.
+
+        GitHub Issues Resolved:
+            * 43, 42, 41, 40, 38, 30, 28
+
+
+Version 1.2.0:
         New Features:
             * Implemented Open/Save/Save As Functionality.
             * Removed Export functionality (Use Save As instead)
@@ -14,7 +25,7 @@ Version 1.2.0.0:
         GitHub Issues Resolved:
             * 20, 19 ,18, 16, 11, 10, 9, 7, 6
 
-Version 1.1.9.0:
+Version 1.1.9:
 	New Features:
             * Enabled Vector/Vector Instances
             * Vector and VectorInstances icons now show what kind their children are.
@@ -39,7 +50,7 @@ TODO:
 * Remove double-click to expand for search item
 * Search resultls not clearing items on new project
 
-Version 1.1.8.0:
+Version 1.1.8:
     New Features:
         * Enabled WhileLoop entity
         * Added an async <data> to all InEventPort Nodes (Only works for TAO ASynchronous behaviour)
@@ -127,7 +138,7 @@ Version 1.1.8.0:
 		* Re-added centering of node items when double-clicked (hitbox for EntityItem is the bodyRect).
 		  ** Switched double-click and middle click of aspect buttons. (Double-click now turns on and center).
 
-Version 1.1.7.0:
+Version 1.1.7:
     New Features:
         * Migrated to QTv5.5.0
         * Clicking on a ComponentInstance/ComponentImpl dock item from the parts dock will forcefully open the definitions dock.
@@ -170,18 +181,18 @@ Version 1.1.7.0:
         * Reimplemented how/when the toolbar menus are populated - on menu item click instead of when toolbar is shown
         * Fixed toolbar menu and menu actions bugs related to mouse events
 
-Version 1.1.6.0:
+Version 1.1.6:
     * Implemented showing/hiding of connected HardwareNodes using the context toolbar. It can be used when one or more HardwareClusters are selected.
     * Fixed MEDEA to work on Ubuntu
     * Fixed all compile warnings on Ubuntu
 
-Version 1.1.5.0:
+Version 1.1.5:
     * Implemented a Menu on HardwareCluster entities to allow the hiding/showing of connected HardwareNode entities.
     * Fixed a bug where launching a Jenkins Job would leave the Progress Bar saying "Waiting on Jenkins CLI..." (Only occured on nodes on same network as Jenkins server)
     * Fixed an issue when Pressing "New Project" would load the saved Window Size/Position settings from the settings.ini file.
     * Implemented a Setting for toggling Debug mode logging to an external log file. Also fixed the location of the log file to be the application directory.
 
-Version 1.1.4.0:
+Version 1.1.4:
     * BlackboxInstance entities are now deployable to Hardware* entities
     * Implemented About Page
     * Fixed various bugs.

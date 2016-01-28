@@ -793,7 +793,11 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 
         if(hasEditData){
-            paintPixmap(painter, IP_BOTLEFT, "Data", editableDataKey);
+            if(editableDataKey == "worker"){
+                paintPixmap(painter, IP_BOTLEFT, "Functions", workerKind);
+            }else{
+                paintPixmap(painter, IP_BOTLEFT, "Data", editableDataKey);
+            }
 
         }
     }
@@ -1165,6 +1169,9 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
         }else if(keyName == "description"){
             //Use as tooltip.
             descriptionValue = data.toString();
+        }else if(keyName == "worker"){
+            //Use as tooltip.
+            workerKind = data.toString();
         }else if(keyName == "operation"){
             //Use as tooltip.
             operationKind = data.toString();
@@ -2175,6 +2182,7 @@ void EntityItem::setupDataConnections()
     }else if(nodeKind == "Member"){
         listenForData("key");
     }else if(nodeKind == "Process"){
+        listenForData("worker");
         listenForData("operation");
     }
 }
@@ -2642,14 +2650,26 @@ void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QStri
     QPixmap image = imageMap[pos];
 
     if(getNodeView() && (image.isNull() || update)){
+        //Try get the image the user asked for.
         image = getNodeView()->getImage(alias, imageName);
+
+        if(image.isNull() && workerKind != ""){
+            //Try get the Icon for the worker otherwise.
+            image = getNodeView()->getImage("Functions", workerKind);
+        }
+
         if(image.isNull() && operationKind != ""){
+            //Use the default icon for the Process.
             image = getNodeView()->getImage("Items", "Process");
         }
+
         if(image.isNull() && nodeType != ""){
+            //Look for a Data icon.
             image = getNodeView()->getImage("Data", nodeType);
         }
+
         if(image.isNull()){
+            //Use a help icon.
             image = getNodeView()->getImage("Actions", "Help");
         }
         imageMap[pos] = image;

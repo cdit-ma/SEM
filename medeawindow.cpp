@@ -50,7 +50,9 @@
 #define SEARCH_DATA_KEYS 2
 
 #define GRAPHML_FILE_EXT "GraphML Documents (*.graphml)"
+#define GRAPHML_FILE_SUFFIX ".graphml"
 #define GME_FILE_EXT "GME Documents (*.xme)"
+#define GME_FILE_SUFFIX ".xme"
 
 // USER SETTINGS
 //Some change
@@ -1803,7 +1805,7 @@ bool MedeaWindow::saveProject(bool saveAs)
         }
 
         if(saveAs){
-            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, false, false, filePath);
+            QStringList files = fileSelector("Select a *.graphml file to save project as.", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, false, false, filePath);
 
             if(files.size() != 1){
                 return false;
@@ -2026,6 +2028,7 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
 
 void MedeaWindow::gotXMETransform(bool success, QString errorString, QString path)
 {
+    displayLoadingStatus(false);
     setEnabled(true);
     updateProgressStatus(0,"");
     if(!success){
@@ -2270,6 +2273,7 @@ void MedeaWindow::executeJenkinsDeployment()
 
 void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
 {
+    displayLoadingStatus(false);
     if(success){
         QFile xmlFile(reportPath);
 
@@ -2317,8 +2321,9 @@ void MedeaWindow::executeProjectValidation()
         return;
     }
 
-    QString reportPath = getTempFileName("_report.xml");
+    displayLoadingStatus(true, "Validating Model");
 
+    QString reportPath = getTempFileName("_report.xml");
     emit window_ExecuteXSLValidation(exportFile, reportPath);
 }
 
@@ -2385,6 +2390,7 @@ void MedeaWindow::search()
  */
 void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
 {
+    displayLoadingStatus(false);
     if(jenkinsXML != ""){
         // import Jenkins
         emit window_ImportJenkinsNodes(jenkinsXML);
@@ -2414,6 +2420,7 @@ void MedeaWindow::on_actionImportJenkinsNode()
     progressAction = "Importing Jenkins";
 
     if(jenkinsManager){
+        displayLoadingStatus(true, "Import Jenkins Nodes");
         QString groovyScript = applicationDirectory + "Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy";
 
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
@@ -2458,7 +2465,7 @@ void MedeaWindow::on_actionOpenProject_triggered()
     if(nodeView){
         filePath = nodeView->getProjectFileName();
     }
-    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, true, false, filePath);
+    QStringList fileNames = fileSelector("Select Project to Open", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, true, false, filePath);
 
     if(fileNames.size() == 1){
         openProject(fileNames.first());
@@ -2484,15 +2491,16 @@ void MedeaWindow::on_actionImport_GraphML_triggered()
 {
     progressAction = "Importing GraphML";
 
-    importProjects(fileSelector("Select one or more files to import.", GRAPHML_FILE_EXT, true));
+    importProjects(fileSelector("Select one or more files to import.", GRAPHML_FILE_EXT, GRAPHML_FILE_SUFFIX, true));
 }
 
 void MedeaWindow::on_actionImport_XME_triggered()
 {
     progressAction = "Importing XME";
 
-    QStringList files = fileSelector("Select an XME file to import.", GME_FILE_EXT, true, false);
+    QStringList files = fileSelector("Select an XME file to import.", GME_FILE_EXT, GME_FILE_SUFFIX, true, false);
     if(files.size() == 1){
+        displayLoadingStatus(true, "Transforming XME for import");
         importXMEProject(files.first());
     }
 }
@@ -2594,7 +2602,7 @@ void MedeaWindow::importSnippet(QString snippetType)
         return;
     }
 
-    QStringList files = fileSelector("Import " + snippetType + ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", true, false);
+    QStringList files = fileSelector("Import " + snippetType + ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", "."+snippetType+".snippet", true, false);
 
     if(files.size() != 1){
         return;
@@ -2602,7 +2610,8 @@ void MedeaWindow::importSnippet(QString snippetType)
 
     QString snippetFileName = files.first();
 
-    if(snippetFileName.isNull()){
+    if (snippetFileName == "" || !snippetFileName.endsWith(snippetType + ".snippet")){
+        displayNotification("Snippet file selected doesn't match the required file format: " + snippetType);
         return;
     }
 
@@ -2624,20 +2633,24 @@ void MedeaWindow::exportSnippet(QString snippetType)
         return;
     }
 
-    QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)", false);
+    QStringList files = fileSelector("Export " + snippetType+ ".snippet", "GraphML " + snippetType + " Snippet (*." + snippetType+ ".snippet)","."+snippetType+".snippet", false);
 
     if(files.size() != 1){
+        displayNotification("Only 1 file can be selected to export Snippet!");
         return;
     }
     QString snippetName = files.first();
 
     if (snippetName == "" || !snippetName.endsWith(snippetType + ".snippet")){
+        displayNotification("Snippet file selected doesn't match the required file format: " + snippetType);
         return;
     }
 
     QString grapmlData = nodeView->getSelectionAsGraphMLSnippet();
     if(grapmlData != ""){
         writeFile(snippetName, grapmlData);
+    }else{
+        displayNotification("Cannot export Snippet!");
     }
 }
 
@@ -3078,7 +3091,7 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
         notificationsBar->hide();
     }
 
-    displayLoadingStatus(stillLoading, status);
+    //displayLoadingStatus(stillLoading, status);
 
     // reset the progress bar and re-display the notification bar if it was previously displayed
     if (!stillLoading) {
@@ -3721,7 +3734,7 @@ void MedeaWindow::dialogRejected()
     popupMultiLine->close();
 }
 
-QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool open, bool allowMultiple, QString fileName)
+QStringList MedeaWindow::fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple, QString fileName)
 {
     QStringList files;
 
@@ -3738,6 +3751,8 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool op
         fileDialog->setWindowTitle(title);
         fileDialog->setNameFilter(fileString);
         fileDialog->setDirectory(DEFAULT_PATH);
+        //fileDialog->setDefaultSuffix();
+
 
         if(open){
             fileDialog->setAcceptMode(QFileDialog::AcceptOpen);
@@ -3775,5 +3790,7 @@ QStringList MedeaWindow::fileSelector(QString title, QString fileString, bool op
             }
         }
     }
+
+
     return files;
 }

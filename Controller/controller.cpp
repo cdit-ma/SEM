@@ -58,6 +58,7 @@ NewController::NewController()
 
     viewAspects << "Assembly" << "Workload" << "Definitions" << "Hardware";
     protectedKeyNames << "kind";
+    protectedKeyNames << "worker" << "operation" << "workerID" << "description";
 
     visualKeyNames << "x" << "y" << "width" << "height" << "isExpanded" << "readOnly";
 
@@ -231,6 +232,7 @@ void NewController::setExternalWorkerDefinitionPath(QString path)
  */
 void NewController::loadWorkerDefinitions()
 {
+    controller_ActionProgressChanged(0, "Loading Worker Definitions");
     //We will be importing into the workerDefinitions aspect.
     Node* workerDefinition = getWorkerDefinitions();
     if(workerDefinition){
@@ -240,7 +242,10 @@ void NewController::loadWorkerDefinitions()
             workerDirectories << QDir(externalWorkerDefPath);
         }
 
+
+        QStringList filesToLoad;
         QStringList fileExtension("*.worker.graphml");
+
         foreach(QDir directory, workerDirectories){
             //Foreach *.worker.graphml file in the workerDefPath, load the graphml.
             foreach(QString fileName, directory.entryList(fileExtension)){
@@ -250,20 +255,27 @@ void NewController::loadWorkerDefinitions()
                 }
 
                 QString importFileName = directory.absolutePath() + "/" + fileName;
-
-                QPair<bool, QString> data = readFile(importFileName);
-                //If the file was read.
-                if(data.first){
-                    bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
-                    if(!success){
-                        emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + importFileName +"'!");
-                    }else{
-                        qCritical() << "Loaded Worker Definition: " << importFileName;
-                    }
-                }else{
-                     emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + importFileName +"'!");
-                }
+                filesToLoad << importFileName;
             }
+        }
+
+        float loadCount = 0;
+        foreach(QString file, filesToLoad){
+            QPair<bool, QString> data = readFile(file);
+            //If the file was read.
+            if(data.first){
+                bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
+                if(!success){
+                    emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + file +"'!");
+                }else{
+                    qCritical() << "Loaded Worker Definition: " << file;
+                }
+            }else{
+                 emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + file +"'!");
+            }
+            loadCount++;
+
+            controller_ActionProgressChanged((loadCount / filesToLoad.size()) * 100);
         }
 
 
@@ -279,7 +291,6 @@ void NewController::loadWorkerDefinitions()
             }
         }
     }
-
     //Once we have loaded in workers, we should keep a dictionary lookup for them.
 }
 
@@ -857,6 +868,9 @@ void NewController::openProject(QString filePath, QString xmlData)
 {
     OPENING_PROJECT = true;
 
+    if(updateProgressNotification()){
+        controller_ActionProgressChanged(0, "Opening Document: " + filePath);
+    }
     bool result = _importGraphMLXML(xmlData, getModel());
     if(!result){
         emit controller_ActionProgressChanged(100);
@@ -1714,6 +1728,7 @@ Key *NewController::constructKey(QString name, QVariant::Type type, Entity::ENTI
         newKey->addInvalidCharacters(invalidChars);
     }
 
+
     connect(newKey, SIGNAL(validateError(QString,QString,int)), this, SLOT(displayMessage(QString,QString,int)));
     //Add it to the list of Keys.
     keys.append(newKey);
@@ -2154,27 +2169,8 @@ QList<Data *> NewController::constructDataVector(QString nodeKind, QPointF relat
         data.append(freqData);
     }
     if(nodeKind == "Process"){
-        Key* codeKey = constructKey("code", QVariant::String,Entity::EK_NODE);
-        Key* actionOnKey = constructKey("actionOn",QVariant::String,Entity::EK_NODE);
-        Key* workerKey = constructKey("worker",QVariant::String,Entity::EK_NODE);
-        Key* folderKey = constructKey("folder", QVariant::String,Entity::EK_NODE);
-        Key* fileKey = constructKey("file", QVariant::String,Entity::EK_NODE);
-        Key* operationKey = constructKey("operation", QVariant::String,Entity::EK_NODE);
-        Key* complexityKey = constructKey("complexity", QVariant::String,Entity::EK_NODE);
-        Key* complexityParamsKey = constructKey("complexityParameters", QVariant::String,Entity::EK_NODE);
-        Key* parametersKey = constructKey("parameters", QVariant::String,Entity::EK_NODE);
-        data.append(new Data(codeKey));
-        Data* actionOnData = new Data(actionOnKey);
-        actionOnData->setValue("Mainprocess");
-        data.append(actionOnData);
-        data.append(new Data(workerKey));
-        data.append(new Data(complexityParamsKey));
-
-        data.append(new Data(folderKey));
-        data.append(new Data(fileKey));
-        data.append(new Data(operationKey));
-        data.append(new Data(complexityKey));
-        data.append(new Data(parametersKey));
+        Key* actionOnKey = constructKey("actionOn", QVariant::String,Entity::EK_NODE);
+        data.append(new Data(actionOnKey, "Mainprocess"));
     }
     if(nodeKind == "Condition"){
         Key* valueKey = constructKey("value", QVariant::String,Entity::EK_NODE);
@@ -2807,6 +2803,8 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
         return false;
     }
 
+    bool isParameter = dynamic_cast<Parameter*>(item) != 0;
+
     foreach(Data* data, dataList){
         QString keyName = data->getKeyName();
         //Check if the item has a Data already.
@@ -2819,6 +2817,11 @@ bool NewController::_attachData(Entity *item, QList<Data *> dataList, bool addAc
         Data* updateData = item->getData(keyName);
         if(updateData){
             updateData->setProtected(data->isProtected());
+        }
+
+        if(isParameter){
+            bool protect = keyName != "value";
+            updateData->setProtected(protect);
         }
     }
     return true;
@@ -4541,7 +4544,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         int currentPercentage = (lineNumber * 100.0 / lineCount);
         if(currentPercentage > previousPercentage){
             previousPercentage = currentPercentage;
-            if(!(UNDOING || REDOING || INITIALIZING)){
+
+            if(updateProgressNotification()){
                 controller_ActionProgressChanged(currentPercentage);
             }
         }
@@ -4895,8 +4899,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     }
 
 
-    if(!(UNDOING || REDOING || INITIALIZING)){
-       controller_ActionProgressChanged(0, "Constructing Edges.");
+    if(updateProgressNotification()){
+        controller_ActionProgressChanged(0, "Constructing Edges");
     }
 
     //Sort the edges into types.
@@ -5017,8 +5021,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
 
 
-
-    if(!(UNDOING || REDOING || INITIALIZING)){
+    if(updateProgressNotification()){
         controller_ActionProgressChanged(100);
     }
 
@@ -5481,6 +5484,14 @@ bool NewController::isUserAction()
     }else{
         return true;
     }
+}
+
+bool NewController::updateProgressNotification()
+{
+    if(OPENING_PROJECT || IMPORTING_PROJECT){
+        return true;
+    }
+    return false;
 }
 
 QDataStream &operator<<(QDataStream &out, const EventAction &a)
