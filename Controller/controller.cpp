@@ -232,6 +232,7 @@ void NewController::setExternalWorkerDefinitionPath(QString path)
  */
 void NewController::loadWorkerDefinitions()
 {
+    controller_ActionProgressChanged(0, "Loading Worker Definitions");
     //We will be importing into the workerDefinitions aspect.
     Node* workerDefinition = getWorkerDefinitions();
     if(workerDefinition){
@@ -241,7 +242,10 @@ void NewController::loadWorkerDefinitions()
             workerDirectories << QDir(externalWorkerDefPath);
         }
 
+
+        QStringList filesToLoad;
         QStringList fileExtension("*.worker.graphml");
+
         foreach(QDir directory, workerDirectories){
             //Foreach *.worker.graphml file in the workerDefPath, load the graphml.
             foreach(QString fileName, directory.entryList(fileExtension)){
@@ -251,20 +255,27 @@ void NewController::loadWorkerDefinitions()
                 }
 
                 QString importFileName = directory.absolutePath() + "/" + fileName;
-
-                QPair<bool, QString> data = readFile(importFileName);
-                //If the file was read.
-                if(data.first){
-                    bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
-                    if(!success){
-                        emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + importFileName +"'!");
-                    }else{
-                        qCritical() << "Loaded Worker Definition: " << importFileName;
-                    }
-                }else{
-                     emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + importFileName +"'!");
-                }
+                filesToLoad << importFileName;
             }
+        }
+
+        float loadCount = 0;
+        foreach(QString file, filesToLoad){
+            QPair<bool, QString> data = readFile(file);
+            //If the file was read.
+            if(data.first){
+                bool success = _importGraphMLXML(data.second, workerDefinition, false, true);
+                if(!success){
+                    emit controller_DisplayMessage(WARNING, "Cannot Import worker definition", "MEDEA cannot import worker definition'" + file +"'!");
+                }else{
+                    qCritical() << "Loaded Worker Definition: " << file;
+                }
+            }else{
+                 emit controller_DisplayMessage(WARNING, "Cannot read worker definition", "MEDEA cannot read worker definition'" + file +"'!");
+            }
+            loadCount++;
+
+            controller_ActionProgressChanged((loadCount / filesToLoad.size()) * 100);
         }
 
 
@@ -280,7 +291,6 @@ void NewController::loadWorkerDefinitions()
             }
         }
     }
-
     //Once we have loaded in workers, we should keep a dictionary lookup for them.
 }
 
@@ -855,6 +865,9 @@ void NewController::openProject(QString filePath, QString xmlData)
 {
     OPENING_PROJECT = true;
 
+    if(updateProgressNotification()){
+        controller_ActionProgressChanged(0, "Opening Document: " + filePath);
+    }
     bool result = _importGraphMLXML(xmlData, getModel());
     if(!result){
         emit controller_ActionProgressChanged(100);
@@ -4526,7 +4539,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
         int currentPercentage = (lineNumber * 100.0 / lineCount);
         if(currentPercentage > previousPercentage){
             previousPercentage = currentPercentage;
-            if(!(UNDOING || REDOING || INITIALIZING)){
+
+            if(updateProgressNotification()){
                 controller_ActionProgressChanged(currentPercentage);
             }
         }
@@ -4880,8 +4894,8 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
     }
 
 
-    if(!(UNDOING || REDOING || INITIALIZING)){
-       controller_ActionProgressChanged(0, "Constructing Edges.");
+    if(updateProgressNotification()){
+        controller_ActionProgressChanged(0, "Constructing Edges");
     }
 
     //Sort the edges into types.
@@ -5002,8 +5016,7 @@ bool NewController::_importGraphMLXML(QString document, Node *parent, bool linkI
 
 
 
-
-    if(!(UNDOING || REDOING || INITIALIZING)){
+    if(updateProgressNotification()){
         controller_ActionProgressChanged(100);
     }
 
@@ -5466,6 +5479,14 @@ bool NewController::isUserAction()
     }else{
         return true;
     }
+}
+
+bool NewController::updateProgressNotification()
+{
+    if(OPENING_PROJECT || IMPORTING_PROJECT){
+        return true;
+    }
+    return false;
 }
 
 QDataStream &operator<<(QDataStream &out, const EventAction &a)

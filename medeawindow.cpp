@@ -2027,6 +2027,7 @@ void MedeaWindow::setFullscreenMode(bool fullscreen)
 
 void MedeaWindow::gotXMETransform(bool success, QString errorString, QString path)
 {
+    displayLoadingStatus(false);
     setEnabled(true);
     updateProgressStatus(0,"");
     if(!success){
@@ -2271,6 +2272,7 @@ void MedeaWindow::executeJenkinsDeployment()
 
 void MedeaWindow::XSLValidationCompleted(bool success, QString reportPath)
 {
+    displayLoadingStatus(false);
     if(success){
         QFile xmlFile(reportPath);
 
@@ -2318,8 +2320,9 @@ void MedeaWindow::executeProjectValidation()
         return;
     }
 
-    QString reportPath = getTempFileName("_report.xml");
+    displayLoadingStatus(true, "Validating Model");
 
+    QString reportPath = getTempFileName("_report.xml");
     emit window_ExecuteXSLValidation(exportFile, reportPath);
 }
 
@@ -2386,6 +2389,7 @@ void MedeaWindow::search()
  */
 void MedeaWindow::gotJenkinsNodeGraphML(QString jenkinsXML)
 {
+    displayLoadingStatus(false);
     if(jenkinsXML != ""){
         // import Jenkins
         emit window_ImportJenkinsNodes(jenkinsXML);
@@ -2415,6 +2419,7 @@ void MedeaWindow::on_actionImportJenkinsNode()
     progressAction = "Importing Jenkins";
 
     if(jenkinsManager){
+        displayLoadingStatus(true, "Import Jenkins Nodes");
         QString groovyScript = applicationDirectory + "Resources/Scripts/Jenkins_Construct_GraphMLNodesList.groovy";
 
         JenkinsRequest* jenkinsGS = jenkinsManager->getJenkinsRequest(this);
@@ -2494,6 +2499,7 @@ void MedeaWindow::on_actionImport_XME_triggered()
 
     QStringList files = fileSelector("Select an XME file to import.", GME_FILE_EXT, GME_FILE_SUFFIX, true, false);
     if(files.size() == 1){
+        displayLoadingStatus(true, "Transforming XME for import");
         importXMEProject(files.first());
     }
 }
@@ -3084,7 +3090,7 @@ void MedeaWindow::updateProgressStatus(int value, QString status)
         notificationsBar->hide();
     }
 
-    displayLoadingStatus(stillLoading, status);
+    //displayLoadingStatus(stillLoading, status);
 
     // reset the progress bar and re-display the notification bar if it was previously displayed
     if (!stillLoading) {
