@@ -3,9 +3,10 @@ Version 1.2.1:
             * Implemented CPP Code and CPP Header process for injecting *.cpp and *.h code into Model.
             * Implemented splash screen on loading.
             * When constructing EventPorts, it will now require selection of an Aggregate.
+            * Implemented a progress gif for Importing Jenkins Nodes, Validating Model, Transforming from XME.
 
         GitHub Issues Resolved:
-            * 43, 42, 41, 40, 38, 30
+            * 43, 42, 41, 40, 38, 30, 28
 
 
 Version 1.2.0:
