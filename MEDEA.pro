@@ -271,7 +271,8 @@ SOURCES += \
     Controller/entityadapter.cpp \
     Controller/nodeadapter.cpp \
     Controller/edgeadapter.cpp \
-    View/medeasplash.cpp
+    View/medeasplash.cpp \
+    enumerations.cpp
 
 FORMS +=
 

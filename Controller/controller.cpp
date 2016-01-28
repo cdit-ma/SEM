@@ -323,7 +323,6 @@ QString NewController::_exportGraphMLDocument(QList<int> nodeIDs, bool allEdges,
 
 
     bool copySelectionQuestion = false;
-    bool informQuestion = false;
     foreach(int ID, nodeIDs){
         Node* node = getNodeFromID(ID);
         if(!node){
@@ -700,15 +699,19 @@ void NewController::constructWorkerProcessNode(int parentID, QString workerName,
     triggerAction("Constructing worker Process");
     Node* processFunction = cloneNode(processDefinition, parentNode);
 
+    if(processFunction){
+        processFunction->setDataValue("x", position.x());
+        processFunction->setDataValue("y", position.y());
+    }
+
     emit controller_ActionFinished();
     return;
 }
 
-void NewController::constructEdge(int srcID, int dstID, bool reverseOkay)
+void NewController::constructEdge(int srcID, int dstID)
 {
     Node* src = getNodeFromID(srcID);
     Node* dst = getNodeFromID(dstID);
-    Data* label = src->getData("label");
     if(src && dst){
         Edge* edge = constructEdgeWithData(src, dst);
         if(!edge){
@@ -1451,6 +1454,7 @@ QList<int> NewController::getConnectedNodes(int ID)
 
 QStringList NewController::getValidKeyValues(QString keyName, int nodeID)
 {
+    QStringList validKeyValues;
     Key* key = getKeyFromName(keyName);
     if(key){
         QString nodeKind;
@@ -1459,12 +1463,9 @@ QStringList NewController::getValidKeyValues(QString keyName, int nodeID)
             nodeKind = node->getNodeKind();
         }
 
-        if(nodeKind != ""){
-            return key->getValidValues(nodeKind);
-        }else{
-            return key->getValidValues();
-        }
+        validKeyValues = key->getValidValues(nodeKind);
     }
+    return validKeyValues;
 }
 
 QList<int> NewController::getInstances(int ID)
@@ -2673,6 +2674,8 @@ bool NewController::destructEdge(Edge *edge)
         }
         break;
     }
+    default:
+        break;
     }
 
     //Remove it from the hash of GraphML
@@ -3012,6 +3015,8 @@ void NewController::logAction(EventAction item)
         break;
     case GraphML::GK_ENTITY:
         actionKind = "entity";
+        break;
+    default:
         break;
     }
 
@@ -3821,8 +3826,6 @@ bool NewController::setupParameterRelationship(Parameter *parameter, Node *data)
 bool NewController::teardownParameterRelationship(Parameter *parameter, Node *data)
 {
     if(parameter->isInputParameter()){
-        Data* value = parameter->getData("value");
-
         QString dataKind = data->getNodeKind();
         Node* dataParent = data->getParentNode();
         if(dataKind == "VectorInstance"){
@@ -3959,6 +3962,8 @@ void NewController::constructEdgeGUI(Edge *edge)
         }
         break;
     }
+    default:
+        break;
     }
 
     storeGraphMLInHash(edge);
@@ -5238,7 +5243,7 @@ bool NewController::canImportSnippet(QList<int> selection)
     return false;
 }
 
-bool NewController::canSetReadOnly(QList<int> IDs)
+bool NewController::canSetReadOnly(QList<int>)
 {
     return false;
     /*
@@ -5254,7 +5259,7 @@ bool NewController::canSetReadOnly(QList<int> IDs)
     */
 }
 
-bool NewController::canUnsetReadOnly(QList<int> IDs)
+bool NewController::canUnsetReadOnly(QList<int>)
 {
     return false;
     /*

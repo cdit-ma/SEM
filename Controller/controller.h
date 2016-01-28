@@ -212,7 +212,7 @@ private slots:
 
     void constructNode(int parentID, QString nodeKind, QPointF centerPoint);
     void constructWorkerProcessNode(int parentID,QString workerName, QString operationName, QPointF position);
-    void constructEdge(int srcID, int dstID, bool reverseOkay = false);
+    void constructEdge(int srcID, int dstID);
     void destructEdge(int srcID, int dstID);
     void constructConnectedNode(int parentID, int connectedID, QString kind, QPointF relativePos);
     void setData(int parentID, QString keyName, QVariant dataValue);

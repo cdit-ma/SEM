@@ -9,7 +9,7 @@ ModelItem::ModelItem(NodeAdapter *node, NodeView *view):  GraphMLItem(node, 0, G
     modelCircleColor = Qt::gray;
 
     // setup quadrant colours based on the aspects' positions
-    foreach (VIEW_ASPECT aspect, VIEW_ASPECTS) {
+    foreach (VIEW_ASPECT aspect, GET_VIEW_ASPECTS()) {
         VIEW_ASPECT_POS aspectPos = GET_ASPECT_POS(aspect);
         QColor aspectColor = GET_ASPECT_COLOR(aspect);
         switch (aspectPos) {
@@ -105,7 +105,7 @@ QList<VIEW_ASPECT> ModelItem::getVisibleAspects()
     return list;
 }
 
-void ModelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ModelItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *)
 {
     if(inSubView()){
         //Don't paint in subview
@@ -303,7 +303,12 @@ void ModelItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             getNodeView()->setStateSelected();
             handleSelection(true, controlPressed);
             break;
+        default:
+            break;
         }
+
+        break;
+    default:
         break;
     }
 }

@@ -146,7 +146,7 @@ void NodeViewMinimap::mousePressEvent(QMouseEvent *event)
     }
 }
 
-void NodeViewMinimap::mouseReleaseEvent(QMouseEvent *event)
+void NodeViewMinimap::mouseReleaseEvent(QMouseEvent *)
 {
     isPanning = false;
     emit minimap_Panned();

@@ -124,7 +124,6 @@ void NodeItem::sortChildren()
         }
         NodeItem* nodeItem = (NodeItem*)child;
         //Find the sortOrder.
-        int childSortOrder = toSortMap.size();
         int sortOrder = nodeItem->getDataValue("sortOrder").toInt();
         toSortMap.insertMulti(sortOrder, nodeItem);
     }

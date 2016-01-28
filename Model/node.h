@@ -77,7 +77,7 @@ public:
     bool gotEdgeTo(Node* node);
     bool isIndirectlyConnected(Node* node);
     bool containsEdgeEndPoints(Edge* edge);
-    QList<Node *> getAllConnectedNodes(QList<Node*> connectedNode = QList<Node*>());
+    QList<Node *> getAllConnectedNodes();
 
     QList<Edge *> getEdges(int depth=-1);
     QList<Key *> getKeys(int depth=-1);

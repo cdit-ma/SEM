@@ -108,7 +108,7 @@ void StatusItem::setCircleCenter(QPointF pos)
     updatePosition();
 }
 
-void StatusItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void StatusItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *)
 {
 
     QRectF rect = InputItem::boundingRect();
@@ -238,7 +238,7 @@ qreal StatusItem::widthOffset()
     return getHeight()/2;
 }
 
-void StatusItem::focusOutEvent(QFocusEvent *event)
+void StatusItem::focusOutEvent(QFocusEvent *)
 {
     setEditMode(false);
 }

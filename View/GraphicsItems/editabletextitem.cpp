@@ -191,7 +191,6 @@ QString EditableTextItem::getTruncatedText(const QString text)
 
     //Have to truncate.
     //
-    bool firstInsert = true;
     bool isEven = text.size() % 2;
     if(fm.width(fullText) > textWidth){
         int centerIndex = fullText.size() / 2;

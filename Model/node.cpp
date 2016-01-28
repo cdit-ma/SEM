@@ -474,12 +474,12 @@ Edge::EDGE_CLASS Node::canConnect(Node *node)
     return Edge::EC_NONE;
 }
 
-bool Node::canConnect_AggregateEdge(Node *aggregate)
+bool Node::canConnect_AggregateEdge(Node *)
 {
     return true;
 }
 
-bool Node::canConnect_AssemblyEdge(Node *node)
+bool Node::canConnect_AssemblyEdge(Node *)
 {
     return true;
 }
@@ -618,7 +618,7 @@ bool Node::gotEdgeTo(Node *node)
     return getEdgeTo(node) != 0;
 }
 
-QList<Node *> Node::getAllConnectedNodes(QList<Node *> connectedNodes)
+QList<Node *> Node::getAllConnectedNodes()
 {
 
     QList<Node*> currentNodes = getChildren();

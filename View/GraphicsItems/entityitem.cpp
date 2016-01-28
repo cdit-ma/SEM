@@ -33,7 +33,7 @@
 #define TOP_LABEL_RATIO (1.0 / 6.0)
 #define RIGHT_LABEL_RATIO (1.5 / 6.0)
 #define BOTTOM_LABEL_RATIO (1.0 / 9.0)
-#define LABEL_RATIO (1 - ICON_RATIO)
+
 
 
 
@@ -620,7 +620,7 @@ bool EntityItem::isVector()
 
 
 
-void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget* widget)
+void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget*)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
 
@@ -647,7 +647,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
 
         //Make the background transparent
-        if((renderState > RS_BLOCK) && viewState == VS_MOVING || viewState == VS_RESIZING){
+        if((renderState > RS_BLOCK) && (viewState == VS_MOVING || viewState == VS_RESIZING)){
             if(isSelected() && isNodeOnGrid){
                 QColor color = bodyBrush.color();
                 color.setAlpha(90);
@@ -1216,7 +1216,11 @@ void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 }
             }
             break;
+        default:
+            break;
         }
+        break;
+    default:
         break;
     }
 }
@@ -1260,6 +1264,8 @@ void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         case VS_MOVING:
             emit EntityItem_MoveSelection(deltaPos);
             previousScenePosition = event->scenePos();
+            break;
+        default:
             break;
         }
     }
@@ -1342,7 +1348,6 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
     MOUSEOVER_TYPE mouseDblClickType = getMouseOverType(event->scenePos());
 
-    int aspectID = -1;
     RESIZE_TYPE rt = RESIZE;
     switch(event->button()){
     case Qt::LeftButton:{
@@ -2394,13 +2399,11 @@ void EntityItem::showHardwareIcon(bool show)
  * @param selectedItem
  * @return
  */
-QList<EntityItem*> EntityItem::deploymentView(bool on, EntityItem *selectedItem)
+QList<EntityItem*> EntityItem::deploymentView(bool on, EntityItem *)
 {
     QList<EntityItem*> chlidrenDeployedToDifferentNode;
 
     if (on) {
-
-        Node* deploymentLink = 0;
         /*
 
         // get the hardware node that this item is deployed to

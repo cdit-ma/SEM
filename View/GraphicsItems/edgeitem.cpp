@@ -19,7 +19,6 @@
 
 #define EDGE_GAP_RATIO ((1 - EDGE_SPACE_RATIO)/2)
 
-#define LABEL_RATIO .50
 
 EdgeItem::EdgeItem(EdgeAdapter *edge, NodeItem *parent, EntityItem* s, EntityItem* d): GraphMLItem(edge, 0, GraphMLItem::NODE_EDGE)
 {
@@ -389,7 +388,10 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             //Enter Selected Mode.
             handleSelection(true, controlPressed);
             break;
+        default:
+            break;
         }
+
         break;
     }
     case Qt::MiddleButton:{
@@ -404,14 +406,14 @@ void EdgeItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     emit edgeItem_eventFromItem();
 }
 
-void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+void EdgeItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent*)
 {
     if(isDataEditable("description")){
         textItem->setEditMode(true);
     }
 }
 
-void EdgeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void EdgeItem::hoverEnterEvent(QGraphicsSceneHoverEvent*)
 {
     if(!isHovered()){
         emit GraphMLItem_Hovered(getID(), true);
@@ -419,14 +421,14 @@ void EdgeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 
 }
 
-void EdgeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void EdgeItem::hoverMoveEvent(QGraphicsSceneHoverEvent*)
 {
     if(!isHovered()){
         emit GraphMLItem_Hovered(getID(), true);
     }
 }
 
-void EdgeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void EdgeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent*)
 {
     if(isHovered()){
         emit GraphMLItem_Hovered(getID(), false);

@@ -199,7 +199,7 @@ void Data::removeChildData(Data *childData)
     }
 }
 
-void Data::parentDataChanged(int ID, QString keyName, QVariant data)
+void Data::parentDataChanged(int ID, QString, QVariant data)
 {
     if(ID == _parentDataID){
         //If this signal is coming from our parent, update our value
