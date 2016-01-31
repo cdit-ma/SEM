@@ -260,6 +260,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
         if (addToLayout) {
             if (insertIndex == -1) {
                 layout->addWidget(dockItem);
+                qDebug() << "Added dockitem: " << dockItem->getLabel() << "to layout";
             } else {
                 layout->insertWidget(insertIndex, dockItem);
             }
@@ -268,6 +269,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
         dockNodeIDs.append(dockItemID.toInt());
         dockNodeItems[dockItemID] = dockItem;
         connect(dockItem, SIGNAL(dockItem_clicked()), this, SLOT(dockNodeItemClicked()));
+        qDebug() << "Added dock item - " << dockItem->getLabel();
 
     } else {
         qWarning() << "DockScrollArea::addDockNodeItem - Item is null.";
@@ -278,7 +280,7 @@ void DockScrollArea::addDockNodeItem(DockNodeItem* dockItem, int insertIndex, bo
 
 
 /**
- * @brief DockScrollArea::removeDockNodeItemFromList
+ * @brief DockScrollArea::removeDockNodeItem
  * This method removes the provided dock item from this dock's list and layout.
  * @param dockItem
  */
