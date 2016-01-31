@@ -21,7 +21,7 @@
 #include <QMessageBox>
 
 
-CUTSExecutionWidget::CUTSExecutionWidget(QWidget *parent, CUTSManager *cutsManager)
+CUTSExecutionWidget::CUTSExecutionWidget(QWidget *, CUTSManager *cutsManager)
 {
     this->cutsManager = cutsManager;
     graphmlPathEdit = 0;

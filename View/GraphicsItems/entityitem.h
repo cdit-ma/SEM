@@ -377,6 +377,7 @@ private:
     QString nodeKind;
     QString nodeLabel;
     QString nodeType;
+    QString workerKind;
     QString operationKind;
     QString fileID;
 

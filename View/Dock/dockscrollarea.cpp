@@ -191,7 +191,7 @@ void DockScrollArea::setInfoText(QString text)
     if (!text.isEmpty()) {
 
         QStringList textList = text.split(" ");
-        int lineWidth;
+        int lineWidth=0;
         text = "";
 
         foreach (QString s, textList) {

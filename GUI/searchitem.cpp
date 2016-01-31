@@ -14,8 +14,7 @@
 #define LAYOUT_SPACING 5
 #define MARGIN_OFFSET (LAYOUT_MARGIN + LAYOUT_SPACING)
 
-//#define LABEL_RATIO (2.0 / 5.0)
-#define LABEL_RATIO 0.5
+#define SEARCH_LABEL_RATIO (2.0 / 5.0)
 #define ICON_RATIO 0.8
 #define ICON_SIZE (MIN_HEIGHT * ICON_RATIO - MARGIN_OFFSET)
 
@@ -254,7 +253,7 @@ void SearchItem::setupLayout()
     // setup entity label
     QString graphMLLabel = graphMLItem->getEntityAdapter()->getDataValue("label").toString();
     entityLabel = new QLabel(this);
-    entityLabel->setFixedSize(MIN_WIDTH * LABEL_RATIO, iconLabel->height());
+    entityLabel->setFixedSize(MIN_WIDTH * SEARCH_LABEL_RATIO, iconLabel->height());
     entityLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     entityLabel->setText(graphMLLabel);
 

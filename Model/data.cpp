@@ -171,7 +171,7 @@ QString Data::toGraphML(int indentDepth)
 
 QString Data::toString()
 {
-    return QString("[" + QString::number(getID()) + "]Data" + getKeyName() + ": " + getValue().toString());
+    return QString("[" + QString::number(getID()) + "] Data " + getKeyName() + ": " + getValue().toString());
 }
 
 void Data::addChildData(Data *childData)
@@ -199,7 +199,7 @@ void Data::removeChildData(Data *childData)
     }
 }
 
-void Data::parentDataChanged(int ID, QString keyName, QVariant data)
+void Data::parentDataChanged(int ID, QString, QVariant data)
 {
     if(ID == _parentDataID){
         //If this signal is coming from our parent, update our value

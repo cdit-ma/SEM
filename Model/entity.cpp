@@ -161,7 +161,7 @@ QList<Data *> Entity::getData()
     return lookupDataID2Data.values();
 }
 
-QList<Key *> Entity::getKeys(int depth)
+QList<Key *> Entity::getKeys(int)
 {
     QList<Key *> keys;
   foreach(Data* data, getData()){
@@ -303,7 +303,7 @@ bool Entity::removeData(QString keyName)
     return true;
 }
 
-void Entity::dataChanged(int ID, QString keyName, QVariant data)
+void Entity::dataChanged(int, QString keyName, QVariant data)
 {
     emit dataChanged(keyName, data);
 }

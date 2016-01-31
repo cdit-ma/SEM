@@ -265,7 +265,7 @@ QString NodeView::getImportableSnippetKind()
     return "";
 }
 
-void NodeView::scrollContentsBy(int dx, int dy)
+void NodeView::scrollContentsBy(int, int)
 {
 
 }
@@ -955,7 +955,6 @@ QList<NodeItem *> NodeView::getConnectableNodeItems(int ID)
 {
     QList<NodeItem*> nodeItems;
     QList<int> IDs = controller->getConnectableNodes(ID);
-    NodeItem* src = getEntityItemFromID(ID);
     foreach(int cID, IDs){
         NodeItem* entityItem = getEntityItemFromID(cID);
 
@@ -1781,12 +1780,9 @@ void NodeView::controllerDestroyed()
 
 }
 
-void NodeView::settingChanged(QString groupName, QString keyName, QVariant value)
+void NodeView::settingChanged(QString, QString keyName, QVariant value)
 {
-    bool isInt;
-    QString strValue = value.toString();
     bool boolValue = value.toBool();
-    int intValue = value.toInt(&isInt);
 
     if(keyName == LOG_DEBUGGING){
         emit view_EnableDebugLogging(boolValue, applicationDirectory);
@@ -3396,6 +3392,7 @@ void NodeView::nodeConstructed_signalUpdates(NodeItem* entityItem)
         bool show = managementComponentsShown();
         if (isSubView() && parentNodeView) {
             show = parentNodeView->managementComponentsShown();
+            Q_UNUSED(show)
         }
         //entityItem->setHidden(!show);
 
@@ -3463,7 +3460,6 @@ bool NodeView::isItemsAncestorSelected(GraphMLItem *selectedItem)
     if(selectedModelItem->isEdgeAdapter()){
         return false;
     }
-    Node* selectedModelNode = (Node*) selectedModelItem;
 
     foreach(int ID, selectedIDs){
         GraphMLItem* item = getGraphMLItemFromID(ID);
@@ -3486,8 +3482,6 @@ void NodeView::unsetItemsDescendants(GraphMLItem *selectedItem)
     if(selectedModelItem->isEdgeAdapter()){
         return;
     }
-
-    NodeAdapter* selectedModelNode = (NodeAdapter*) selectedModelItem;
 
 
     QList<int> currentlySelectedIDs;
@@ -3556,6 +3550,7 @@ NodeItem *NodeView::getNodeItemFromID(int ID)
     if(item && item->isNodeItem()){
         return (NodeItem*)item;
     }
+    return 0;
 }
 
 QString NodeView::getData(int ID, QString key)
@@ -3743,7 +3738,7 @@ void NodeView::mousePressEvent(QMouseEvent *event)
 
     switch(buttonPressed){
     case Qt::LeftButton:{
-        QPointF scenePos = mapToScene(event->pos());
+        //QPointF scenePos = mapToScene(event->pos());
         GraphMLItem* itemUnderMouse = getGraphMLItemFromScreenPos(event->pos());
 
         switch(viewState){
@@ -3764,8 +3759,10 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             rubberBand->setGeometry(QRect(rubberBandOrigin, QSize()));
             rubberBand->setVisible(true);
             return;
-
+        default:
+            break;
         }
+
         break;
     }
     case Qt::RightButton:{
@@ -3777,9 +3774,13 @@ void NodeView::mousePressEvent(QMouseEvent *event)
             panningOrigin = event->pos();
             previousPanPos = event->pos();
             return;
+        default:
+            break;
         }
         break;
     }
+    default:
+        break;
     }
 
     QGraphicsView::mousePressEvent(event);
@@ -4611,7 +4612,7 @@ void NodeView::constructNodeItem(NodeAdapter *node)
         item = new ModelItem(node, this);
     }else if(node->isAspect()){
         VIEW_ASPECT aspect = GET_ASPECT_FROM_KIND(nodeKind);
-        if(aspect != VAP_NONE){
+        if(aspect != VA_NONE){
             item = new AspectItem(node, visibleParentItem, aspect);
         }else{
             qCritical() << "Unknown Aspect!";

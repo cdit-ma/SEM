@@ -33,7 +33,7 @@
 #define TOP_LABEL_RATIO (1.0 / 6.0)
 #define RIGHT_LABEL_RATIO (1.5 / 6.0)
 #define BOTTOM_LABEL_RATIO (1.0 / 9.0)
-#define LABEL_RATIO (1 - ICON_RATIO)
+
 
 
 
@@ -368,7 +368,6 @@ void EntityItem::handleExpandState(bool newState)
         updateDisplayedChildren(CHILDREN_VIEW_MODE);
     }
 
-    update();
     emit GraphMLItem_SizeChanged();
 
     updateTextLabel();
@@ -621,7 +620,7 @@ bool EntityItem::isVector()
 
 
 
-void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget* widget)
+void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget*)
 {
     qreal lod = option->levelOfDetailFromTransform(painter->worldTransform());
 
@@ -648,7 +647,7 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         }
 
         //Make the background transparent
-        if((renderState > RS_BLOCK) && viewState == VS_MOVING || viewState == VS_RESIZING){
+        if((renderState > RS_BLOCK) && (viewState == VS_MOVING || viewState == VS_RESIZING)){
             if(isSelected() && isNodeOnGrid){
                 QColor color = bodyBrush.color();
                 color.setAlpha(90);
@@ -794,7 +793,11 @@ void EntityItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 
         if(hasEditData){
-            paintPixmap(painter, IP_BOTLEFT, "Data", editableDataKey);
+            if(editableDataKey == "worker"){
+                paintPixmap(painter, IP_BOTLEFT, "Functions", workerKind);
+            }else{
+                paintPixmap(painter, IP_BOTLEFT, "Data", editableDataKey);
+            }
 
         }
     }
@@ -1166,6 +1169,9 @@ void EntityItem::dataChanged(QString keyName, QVariant data)
         }else if(keyName == "description"){
             //Use as tooltip.
             descriptionValue = data.toString();
+        }else if(keyName == "worker"){
+            //Use as tooltip.
+            workerKind = data.toString();
         }else if(keyName == "operation"){
             //Use as tooltip.
             operationKind = data.toString();
@@ -1217,7 +1223,11 @@ void EntityItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
                 }
             }
             break;
+        default:
+            break;
         }
+        break;
+    default:
         break;
     }
 }
@@ -1261,6 +1271,8 @@ void EntityItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         case VS_MOVING:
             emit EntityItem_MoveSelection(deltaPos);
             previousScenePosition = event->scenePos();
+            break;
+        default:
             break;
         }
     }
@@ -1343,7 +1355,6 @@ void EntityItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 
     MOUSEOVER_TYPE mouseDblClickType = getMouseOverType(event->scenePos());
 
-    int aspectID = -1;
     RESIZE_TYPE rt = RESIZE;
     switch(event->button()){
     case Qt::LeftButton:{
@@ -2171,6 +2182,7 @@ void EntityItem::setupDataConnections()
     }else if(nodeKind == "Member"){
         listenForData("key");
     }else if(nodeKind == "Process"){
+        listenForData("worker");
         listenForData("operation");
     }
 }
@@ -2395,13 +2407,11 @@ void EntityItem::showHardwareIcon(bool show)
  * @param selectedItem
  * @return
  */
-QList<EntityItem*> EntityItem::deploymentView(bool on, EntityItem *selectedItem)
+QList<EntityItem*> EntityItem::deploymentView(bool on, EntityItem *)
 {
     QList<EntityItem*> chlidrenDeployedToDifferentNode;
 
     if (on) {
-
-        Node* deploymentLink = 0;
         /*
 
         // get the hardware node that this item is deployed to
@@ -2640,14 +2650,26 @@ void EntityItem::paintPixmap(QPainter *painter, EntityItem::IMAGE_POS pos, QStri
     QPixmap image = imageMap[pos];
 
     if(getNodeView() && (image.isNull() || update)){
+        //Try get the image the user asked for.
         image = getNodeView()->getImage(alias, imageName);
+
+        if(image.isNull() && workerKind != ""){
+            //Try get the Icon for the worker otherwise.
+            image = getNodeView()->getImage("Functions", workerKind);
+        }
+
         if(image.isNull() && operationKind != ""){
+            //Use the default icon for the Process.
             image = getNodeView()->getImage("Items", "Process");
         }
+
         if(image.isNull() && nodeType != ""){
+            //Look for a Data icon.
             image = getNodeView()->getImage("Data", nodeType);
         }
+
         if(image.isNull()){
+            //Use a help icon.
             image = getNodeView()->getImage("Actions", "Help");
         }
         imageMap[pos] = image;

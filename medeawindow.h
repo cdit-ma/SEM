@@ -218,7 +218,7 @@ private slots:
 
     void dialogRejected();
 
-    QStringList fileSelector(QString title, QString fileString, bool open, bool allowMultiple=true, QString fileName = "");
+    QStringList fileSelector(QString title, QString fileString, QString defaultSuffix, bool open, bool allowMultiple=true, QString fileName = "");
 
 protected:
     void closeEvent(QCloseEvent*);

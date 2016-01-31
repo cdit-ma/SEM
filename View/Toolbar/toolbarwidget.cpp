@@ -1176,7 +1176,6 @@ void ToolbarWidget::updateButtonsAndMenus(QList<NodeItem*> nodeItems)
             foreach (NodeItem* legalNode, nodeView->getConnectableNodeItems(item_i->getID())) {
                 bool appendToList = true;
                 for (int j = 0; j < nodeItems.count(); j++) {
-                    NodeItem* item_j = nodeItems.at(j);
                     appendToList = false;
                     //TODO FIX THIS
                     //Node* itemNode = item_j->getNodeAdapter();

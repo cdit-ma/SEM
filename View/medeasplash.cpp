@@ -20,7 +20,7 @@ MedeaSplash::MedeaSplash(QString label, QString subLabel, const QPixmap &pixmap)
     move(oldCenter);
 }
 
-void MedeaSplash::showMessage(const QString &message, int alignment, const QColor &color)
+void MedeaSplash::showMessage(const QString &message, int, const QColor&)
 {
     if(loadText){
         loadText->setText(message);
