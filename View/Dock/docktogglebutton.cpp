@@ -8,7 +8,7 @@
 #include <QBrush>
 
 
-#define BUTTON_WIDTH 40
+#define BUTTON_WIDTH 60
 #define BUTTON_HEIGHT 40
 
 #define DEFAULT 0
@@ -147,7 +147,7 @@ void DockToggleButton::setDock(DockScrollArea* dock)
     if (parentWindow && dock) {
         connect(parentWindow, SIGNAL(window_clearDocks()), dock, SLOT(clear()));
         connect(parentWindow, SIGNAL(window_clearDocksSelection()), dock, SLOT(clearSelected()));
-        connect(dock, SIGNAL(dock_forceOpenDock(DOCK_TYPE,QString)), parentWindow, SLOT(forceOpenDock(DOCK_TYPE,QString)));
+        //connect(dock, SIGNAL(dock_forceOpenDock(DOCK_TYPE,QString)), parentWindow, SLOT(forceOpenDock(DOCK_TYPE,QString)));
     }
 }
 

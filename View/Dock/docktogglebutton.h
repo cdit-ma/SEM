@@ -31,7 +31,6 @@ public:
 
     int getWidth();
     DOCK_TYPE getDockType();
-
     MedeaWindow* getParentWindow();
 
 public slots:

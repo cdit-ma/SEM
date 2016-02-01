@@ -138,6 +138,8 @@ MedeaWindow::MedeaWindow(QString graphMLFile, QWidget *parent) :
     }
 
     initialSettingsLoaded = true;
+
+    newProject();
 }
 
 
@@ -925,13 +927,16 @@ void MedeaWindow::setupDocks(QHBoxLayout *layout)
     definitionsButton = new DockToggleButton(DEFINITIONS_DOCK, this);
     functionsButton = new DockToggleButton(FUNCTIONS_DOCK, this);
 
+    definitionsButton->hide();
+    functionsButton->hide();
+
     partsDock = new PartsDockScrollArea("Parts", nodeView, partsButton);
     definitionsDock = new DefinitionsDockScrollArea("Definitions", nodeView, definitionsButton);
     hardwareDock = new HardwareDockScrollArea("Nodes", nodeView, hardwareNodesButton);
     functionsDock = new FunctionsDockScrollArea("Functions", nodeView, functionsButton);
 
     // width of the containers are fixed
-    boxWidth = (partsButton->getWidth()*4) + 19;
+    boxWidth = (partsButton->getWidth()*2) + 10; // + 19;
 
     // set buttonBox's size and get rid of its border
     QSize buttonsBoxSize(boxWidth + 1, 48);
@@ -1649,6 +1654,10 @@ void MedeaWindow::makeConnections()
     connect(actionBack, SIGNAL(triggered()), nodeView, SLOT(moveViewBack()));
     connect(actionForward, SIGNAL(triggered()), nodeView, SLOT(moveViewForward()));
 
+    connect(partsDock, SIGNAL(dock_forceOpenDock(QString)), definitionsDock, SLOT(forceOpenDock(QString)));
+    connect(partsDock, SIGNAL(dock_forceOpenDock()), functionsDock, SLOT(forceOpenDock()));
+    connect(definitionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
+    connect(functionsDock, SIGNAL(dock_forceOpenDock()), partsDock, SLOT(forceOpenDock()));
 
     connect(nodeView, SIGNAL(view_SetClipboardBuffer(QString)), this, SLOT(setClipboard(QString)));
 
@@ -3005,6 +3014,7 @@ void MedeaWindow::dockButtonPressed()
  * @param type
  * @param srcKind
  */
+/*
 void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
 {
     switch (type) {
@@ -3024,6 +3034,7 @@ void MedeaWindow::forceOpenDock(DOCK_TYPE type, QString srcKind)
         break;
     }
 }
+*/
 
 
 /**

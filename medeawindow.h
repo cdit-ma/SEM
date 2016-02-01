@@ -187,7 +187,7 @@ private slots:
     void menuActionTriggered();
 
     void dockButtonPressed();
-    void forceOpenDock(DOCK_TYPE type, QString srcKind = "");
+    //void forceOpenDock(DOCK_TYPE type, QString srcKind = "");
 
     void displayLoadingStatus(bool show, QString displayText = "");
     void updateProgressStatus(int value, QString status);

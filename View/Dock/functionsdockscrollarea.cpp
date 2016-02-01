@@ -95,10 +95,10 @@ void FunctionsDockScrollArea::dockNodeItemClicked()
     }
 
     // close this dock after an item has been clicked
-    setDockEnabled(false);
+    //setDockEnabled(false);
 
     // then re-open the parts dock
-    emit dock_forceOpenDock(PARTS_DOCK);
+    emit dock_forceOpenDock();
 }
 
 
@@ -243,7 +243,14 @@ void FunctionsDockScrollArea::forceOpenDock()
     if (!isDockEnabled()) {
         setDockEnabled(true);
     }
+    /*
     if (getParentButton()) {
         getParentButton()->pressed();
     }
+    */
+
+    // close the sender dock then open this dock
+    DockScrollArea* dock = qobject_cast<DockScrollArea*>(QObject::sender());
+    dock->setDockOpen(false);
+    setDockOpen();
 }
